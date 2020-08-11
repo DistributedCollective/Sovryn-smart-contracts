@@ -85,7 +85,7 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
         bytes32 loanId,
         address receiver,
         uint256 depositAmount) // denominated in loanToken
-        external
+        public
         payable
         nonReentrant
         returns (
@@ -106,8 +106,8 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
         address receiver,
         uint256 swapAmount, // denominated in collateralToken
         bool returnTokenIsCollateral, // true: withdraws collateralToken, false: withdraws loanToken
-        bytes calldata /*loanDataBytes*/) // for future use
-        external
+        bytes memory /*loanDataBytes*/) // for future use
+        public
         nonReentrant
         returns (
             uint256 loanCloseAmount,
@@ -164,13 +164,14 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
         );
 
         if (loanCloseAmount < maxLiquidatable) {
-            seizedAmount = SafeMath.div(
-                SafeMath.mul(maxSeizable, loanCloseAmount),
-                maxLiquidatable
-            );
+            seizedAmount = maxSeizable
+                .mul(loanCloseAmount)
+                .div(maxLiquidatable);
         } else if (loanCloseAmount > maxLiquidatable) {
             // adjust down the close amount to the max
             loanCloseAmount = maxLiquidatable;
+            seizedAmount = maxSeizable;
+        } else {
             seizedAmount = maxSeizable;
         }
 
@@ -884,9 +885,9 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
             loanLocal.active = false;
             loanLocal.endTimestamp = block.timestamp;
             loanLocal.pendingTradesId = 0;
-            activeLoansSet.remove(loanLocal.id);
-            lenderLoanSets[loanLocal.lender].remove(loanLocal.id);
-            borrowerLoanSets[loanLocal.borrower].remove(loanLocal.id);
+            activeLoansSet.removeBytes32(loanLocal.id);
+            lenderLoanSets[loanLocal.lender].removeBytes32(loanLocal.id);
+            borrowerLoanSets[loanLocal.borrower].removeBytes32(loanLocal.id);
         } else {
             loanLocal.principal = loanLocal.principal
                 .sub(loanCloseAmount);
@@ -955,8 +956,11 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
         // update remaining lender interest values
         lenderInterestLocal.principalTotal = lenderInterestLocal.principalTotal
             .sub(closePrincipal);
-        lenderInterestLocal.owedTotal = lenderInterestLocal.owedTotal
-            .sub(interestRefundToBorrower);
+
+        uint256 owedTotal = lenderInterestLocal.owedTotal;
+        lenderInterestLocal.owedTotal = owedTotal > interestRefundToBorrower ?
+            owedTotal - interestRefundToBorrower :
+            0;
 
         return interestRefundToBorrower;
     }

@@ -71,6 +71,8 @@ contract LoanTokenLogicStandard is AdvancedToken {
         nonReentrant
         returns (bytes memory)
     {
+        require(borrowAmount != 0, "38");
+
         _checkPause();
 
         _settleInterest();
@@ -84,9 +86,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         _flTotalAssetSupply = beforeAssetsBalance;
 
         // transfer assets to calling contract
-        if (borrowAmount != 0) {
-            _safeTransfer(loanTokenAddress, borrower, borrowAmount, "39");
-        }
+        _safeTransfer(loanTokenAddress, borrower, borrowAmount, "39");
 
         bytes memory callData;
         if (bytes(signature).length == 0) {
@@ -238,9 +238,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
             sentAmounts,
             loanDataBytes
         );
-
     }
-
 
     function transfer(
         address _to,
@@ -819,7 +817,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         }
 
         // handle transfers prior to adding newPrincipal to loanTokenSent
-        _verifyTransfers(
+        uint256 msgValue = _verifyTransfers(
             collateralTokenAddress,
             sentAddresses,
             sentAmounts,
@@ -830,18 +828,10 @@ contract LoanTokenLogicStandard is AdvancedToken {
         sentAmounts[3] = sentAmounts[3]
             .add(sentAmounts[1]); // newPrincipal
 
-        if (withdrawAmount != 0) {//torque loan
+        if (withdrawAmount != 0) {
             // withdrawAmount already sent to the borrower, so we aren't sending it to the protocol
             sentAmounts[3] = sentAmounts[3]
                 .sub(withdrawAmount);
-        }
-
-        uint256 msgValue;
-        if (msg.value != 0) {
-            msgValue = address(this).balance;
-            if (msgValue > msg.value) {
-                msgValue = msg.value;
-            }
         }
 
         bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(
@@ -885,6 +875,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         uint256[5] memory sentAmounts,
         uint256 withdrawalAmount)
         internal
+        returns (uint256 msgValue)
     {
         address _wethToken = wethTokenAddress;
         address _loanTokenAddress = loanTokenAddress;
@@ -894,6 +885,8 @@ contract LoanTokenLogicStandard is AdvancedToken {
         uint256 collateralTokenSent = sentAmounts[4];
 
         require(_loanTokenAddress != collateralTokenAddress, "26");
+
+        msgValue = msg.value;
 
         if (withdrawalAmount != 0) { // withdrawOnOpen == true
             _safeTransfer(_loanTokenAddress, receiver, withdrawalAmount, "");
@@ -906,9 +899,10 @@ contract LoanTokenLogicStandard is AdvancedToken {
         //this is a critical piece of code!
         //wEth are supposed to be held by the contract itself, while other tokens are being transfered from the sender directly
         if (collateralTokenSent != 0) {
-            if (collateralTokenAddress == _wethToken && msg.value != 0 && msg.value >= collateralTokenSent) {
+            if (collateralTokenAddress == _wethToken && msgValue != 0 && msgValue >= collateralTokenSent) {
                 IWeth(_wethToken).deposit.value(collateralTokenSent)();
                 _safeTransfer(collateralTokenAddress, bZxContractAddress, collateralTokenSent, "28-a");
+                msgValue -= collateralTokenSent;
             } else {
                 _safeTransferFrom(collateralTokenAddress, msg.sender, bZxContractAddress, collateralTokenSent, "28-b");
             }
