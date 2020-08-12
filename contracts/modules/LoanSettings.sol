@@ -36,7 +36,7 @@ contract LoanSettings is State, LoanSettingsEvents {
         LoanParams[] calldata loanParamsList)
         external
         returns (bytes32[] memory loanParamsIdList)
-    { 
+    {
         loanParamsIdList = new bytes32[](loanParamsList.length);
         for (uint256 i = 0; i < loanParamsList.length; i++) {
             loanParamsIdList[i] = _setupLoanParams(loanParamsList[i]);
@@ -163,7 +163,7 @@ contract LoanSettings is State, LoanSettingsEvents {
         loanParamsLocal.owner = msg.sender;
 
         loanParams[loanParamsId] = loanParamsLocal;
-        userLoanParamSets[msg.sender].add(loanParamsId);
+        userLoanParamSets[msg.sender].addBytes32(loanParamsId);
 
         emit LoanParamsSetup(
             loanParamsId,

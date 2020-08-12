@@ -130,6 +130,7 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
                 vals
             );
         } else {
+            revert("invalid state");
             /*
             //keccak256("Swaps_SwapsImplZeroX")
             address swapsImplZeroX;
@@ -257,5 +258,4 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
             require(amountInEth <= _maxSwapSize, "swap too large");
         }
     }
-   
 }
