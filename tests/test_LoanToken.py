@@ -176,16 +176,38 @@ def test_Demand_Curve_Setting(loanToken, loanTokenSettings, LoanTokenSettingsLow
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
     localLoanToken.setTarget(loanTokenSettings.address)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenSettingsLowerAdmin.abi, owner=accounts[0])
-    localLoanToken.setDemandCurve(baseRate,rateMultiplier,baseRate,rateMultiplier)
+    localLoanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier)
+
+    assert(loanToken.baseRate() == baseRate)
+    assert(loanToken.rateMultiplier() == rateMultiplier)
+    assert(loanToken.lowUtilBaseRate() == baseRate)
+    assert(loanToken.lowUtilRateMultiplier() == rateMultiplier)
+
     loanTokenLogic = accounts[0].deploy(LoanTokenLogicStandard)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
     localLoanToken.setTarget(loanTokenLogic.address)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
+
     borrowInterestRate = loanToken.borrowInterestRate()
-    print("borrowInterestRate: ",borrowInterestRate)
+    print("borrowInterestRate: ", borrowInterestRate)
     assert(borrowInterestRate > 1e18)
 
-    
+
+def test_Demand_Curve_Setting_should_fail_if_rateMultiplier_plus_baseRate_is_grater_than_100_percent(
+        loanToken, loanTokenSettings, LoanTokenSettingsLowerAdmin, accounts, LoanToken, LoanTokenLogicStandard):
+    incorrect_baseRate = 51e18
+    incorrect_rateMultiplier = 50e18
+    baseRate = 1e18
+    rateMultiplier = 20.25e18
+    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
+    localLoanToken.setTarget(loanTokenSettings.address)
+    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenSettingsLowerAdmin.abi, owner=accounts[0])
+    with reverts():
+        localLoanToken.setDemandCurve(incorrect_baseRate, incorrect_rateMultiplier, baseRate, rateMultiplier)
+    with reverts():
+        localLoanToken.setDemandCurve(baseRate, rateMultiplier, incorrect_baseRate, incorrect_rateMultiplier)
+
+
 def test_lending_fee_setting(bzx):
     tx = bzx.setLendingFeePercent(1e20)
     lfp = bzx.lendingFeePercent()
