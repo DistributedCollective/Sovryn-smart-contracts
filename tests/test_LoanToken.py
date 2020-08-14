@@ -133,21 +133,32 @@ def test_margin_trading_sending_loan_tokens(accounts, bzx, loanToken, SUSD, RBTC
     assert(tx.events['Trade']['positionSize'] == bZxAfterRBTCBalance)
     assert(300e18 - tx.events['Trade']['borrowedAmount'] == loantokenAfterSUSDBalance)
 
-   
-    
+
 def test_lend_to_the_pool(loanToken, accounts, SUSD):
-    receiver = accounts[0]
+    lender = accounts[0]
     deposit_amount = 100e18
     total_deposit_amount = deposit_amount * 2
-    SUSD.mint(receiver, total_deposit_amount)
+    initial_balance = SUSD.balanceOf(lender)
     SUSD.approve(loanToken.address, total_deposit_amount)
 
-    loanToken.mint(receiver, deposit_amount)
-    earned_interests = 0  # Shouldn't be earned interests
-    assert loanToken.tokenPrice() == get_itoken_price(deposit_amount, earned_interests, loanToken.totalSupply())
+    assert(SUSD.balanceOf(lender) == initial_balance)
+    assert(loanToken.totalSupply() == 0)
+    assert(loanToken.profitOf(lender) == 0)
+    assert(loanToken.checkpointPrice(lender) == 0)
 
-    loanToken.mint(receiver, deposit_amount)
-    assert loanToken.tokenPrice() == get_itoken_price(total_deposit_amount, earned_interests, loanToken.totalSupply())
+    loanToken.mint(lender, deposit_amount)
+    assert(SUSD.balanceOf(lender) == initial_balance - deposit_amount)
+    assert(loanToken.balanceOf(lender) == (deposit_amount / loanToken.initialPrice()) * 1e18)
+    earned_interests = 0  # Shouldn't be earned interests
+    price1 = get_itoken_price(deposit_amount, earned_interests, loanToken.totalSupply())
+    assert(loanToken.tokenPrice() == price1)
+    assert(loanToken.checkpointPrice(lender) == loanToken.initialPrice())
+
+    loanToken.mint(lender, deposit_amount)
+    assert(SUSD.balanceOf(lender) == initial_balance - total_deposit_amount)
+    assert(loanToken.balanceOf(lender) == (deposit_amount / loanToken.initialPrice() + deposit_amount / price1) * 1e18)
+    assert(loanToken.checkpointPrice(lender) == price1)
+    assert(loanToken.tokenPrice() == get_itoken_price(total_deposit_amount, earned_interests, loanToken.totalSupply()))
 
 
 def get_itoken_price(assets_deposited, earned_interests, total_supply):
@@ -192,6 +203,7 @@ def test_cash_out_from_the_pool_more_of_lender_balance_should_not_fail(loanToken
     assert(SUSD.balanceOf(lender) == initial_balance)
 
 
+
 def test_Demand_Curve_Setting(loanToken, loanTokenSettings, LoanTokenSettingsLowerAdmin, accounts, LoanToken, LoanTokenLogicStandard):
     baseRate = 1e18
     rateMultiplier = 20.25e18
@@ -234,7 +246,8 @@ def test_lending_fee_setting(bzx):
     tx = bzx.setLendingFeePercent(1e20)
     lfp = bzx.lendingFeePercent()
     assert(lfp == 1e20)
-    
+
+
 def test_supply_interest_fee(accounts,loanToken, SUSD, RBTC, LoanTokenLogicStandard, LoanToken, LoanTokenSettingsLowerAdmin, loanTokenSettings):
     baseRate = 1e18
     rateMultiplier = 20.25e18
