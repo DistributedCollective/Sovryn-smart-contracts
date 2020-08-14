@@ -155,20 +155,42 @@ def get_itoken_price(assets_deposited, earned_interests, total_supply):
 
 
 def test_cash_out_from_the_pool(loanToken, accounts, SUSD):
-    receiver = accounts[0]
+    lender = accounts[0]
+    initial_balance = SUSD.balanceOf(lender)
     amount_withdrawn = 100e18
     total_deposit_amount = amount_withdrawn * 2
-    SUSD.mint(receiver, total_deposit_amount)
+    assert(initial_balance > total_deposit_amount)
+
     SUSD.approve(loanToken.address, total_deposit_amount)
+    assert(loanToken.checkpointPrice(lender) == 0)
+    loanToken.mint(lender, total_deposit_amount)
+    assert(loanToken.checkpointPrice(lender) == loanToken.initialPrice())
+    loan_token_initial_balance = total_deposit_amount / loanToken.initialPrice() * 1e18
+    assert(loanToken.balanceOf(lender) == loan_token_initial_balance)
+    assert(loanToken.totalSupply() == total_deposit_amount)
 
-    loanToken.mint(receiver, total_deposit_amount)
+    loanToken.burn(lender, amount_withdrawn)
+    assert(loanToken.checkpointPrice(lender) == loanToken.initialPrice())
+    assert(loanToken.totalSupply() == amount_withdrawn)
+    assert(loanToken.tokenPrice() == get_itoken_price(amount_withdrawn, 0, loanToken.totalSupply()))
+    assert(loanToken.balanceOf(lender) == amount_withdrawn)
+    assert(SUSD.balanceOf(lender) == initial_balance - amount_withdrawn * loanToken.tokenPrice() / 1e18)
 
-    assert loanToken.totalSupply() == total_deposit_amount
-    loanToken.burn(receiver, amount_withdrawn)
 
-    assert loanToken.totalSupply() == amount_withdrawn
-    assert loanToken.tokenPrice() == get_itoken_price(amount_withdrawn, 0, loanToken.totalSupply())
-    assert loanToken.balanceOf(receiver) == amount_withdrawn
+def test_cash_out_from_the_pool_more_of_lender_balance_should_not_fail(loanToken, accounts, SUSD):
+    lender = accounts[0]
+    initial_balance = SUSD.balanceOf(lender)
+    amount_withdrawn = 100e18
+    total_deposit_amount = amount_withdrawn * 2
+    assert(initial_balance > total_deposit_amount)
+
+    SUSD.approve(loanToken.address, total_deposit_amount)
+    loanToken.mint(lender, total_deposit_amount)
+    loanToken.burn(lender, total_deposit_amount * 2)
+    assert(loanToken.balanceOf(lender) == 0)
+    assert(loanToken.tokenPrice() == loanToken.initialPrice())
+    assert(SUSD.balanceOf(lender) == initial_balance)
+
 
 def test_Demand_Curve_Setting(loanToken, loanTokenSettings, LoanTokenSettingsLowerAdmin, accounts, LoanToken, LoanTokenLogicStandard):
     baseRate = 1e18
