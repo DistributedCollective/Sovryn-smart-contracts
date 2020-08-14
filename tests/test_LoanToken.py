@@ -273,3 +273,44 @@ def test_close_margin_trade(accounts, bzx, loanToken, SUSD, RBTC, web3):
 
     # TODO returnTokenIsCollateral True
     # TODO swapAmount < initial_loan.collateral
+
+
+def test_transfer(accounts, loanToken, SUSD):
+    amount_sent, receiver, sender = initialize_test_transfer(SUSD, accounts, loanToken)
+
+    tx = loanToken.transfer(receiver, amount_sent)
+    assert(loanToken.balanceOf(sender) == amount_sent)
+    assert(loanToken.balanceOf(receiver) == amount_sent)
+
+    assert(loanToken.checkpointPrice(sender) == loanToken.initialPrice())
+    assert(loanToken.checkpointPrice(receiver) == loanToken.initialPrice())
+
+    transfer_event = tx.events['Transfer']
+    assert(transfer_event['from'] == sender)
+    assert(transfer_event['to'] == receiver)
+    assert(transfer_event['value'] == amount_sent)
+
+
+def test_transfer_to_zero_account_should_fail(accounts, loanToken, SUSD):
+    amount_sent, receiver, sender = initialize_test_transfer(SUSD, accounts, loanToken)
+    with reverts("14"):
+        loanToken.transfer(shared.Constants().ZERO_ADDRESS, amount_sent)
+
+
+def test_transfer_with_insufficient_balance(accounts, loanToken, SUSD):
+    amount_sent, receiver, sender = initialize_test_transfer(SUSD, accounts, loanToken)
+    with reverts("14"):
+        loanToken.transfer(sender, amount_sent, {'from': receiver})
+
+
+def initialize_test_transfer(SUSD, accounts, loanToken):
+    sender = accounts[0]
+    receiver = accounts[1]
+    amount_to_buy = 100e18
+    SUSD.approve(loanToken.address, amount_to_buy)
+    loanToken.mint(sender, amount_to_buy)
+    sender_initial_balance = loanToken.balanceOf(sender)
+    assert (sender_initial_balance != 0)
+    amount_sent = sender_initial_balance / 2
+    assert (loanToken.checkpointPrice(sender) == loanToken.initialPrice())
+    return amount_sent, receiver, sender
