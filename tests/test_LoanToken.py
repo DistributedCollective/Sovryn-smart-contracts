@@ -336,3 +336,13 @@ def initialize_test_transfer(SUSD, accounts, loanToken):
     amount_sent = sender_initial_balance / 2
     assert (loanToken.checkpointPrice(sender) == loanToken.initialPrice())
     return amount_sent, receiver, sender
+
+
+def test_transfer_from(SUSD, accounts, loanToken):
+    amount_sent, receiver, sender = initialize_test_transfer(SUSD, accounts, loanToken)
+    loanToken.approve(receiver, amount_sent)
+    assert(loanToken.allowance(sender, receiver) == amount_sent)
+
+    loanToken.transferFrom(sender, receiver, amount_sent, {'from': receiver})
+    assert(loanToken.balanceOf(sender) == amount_sent)
+    assert(loanToken.balanceOf(receiver) == amount_sent)
