@@ -132,6 +132,12 @@ def test_margin_trading_sending_loan_tokens(accounts, bzx, loanToken, SUSD, RBTC
     assert(tx.events['Trade']['borrowedAmount'] == 2 * loanTokenSent)
     assert(tx.events['Trade']['positionSize'] == bZxAfterRBTCBalance)
     assert(300e18 - tx.events['Trade']['borrowedAmount'] == loantokenAfterSUSDBalance)
+    
+    loan = bzx.getLoan(tx.events['Trade']['loanId'])
+    print("loan")
+    print(loan)
+    
+
 
    
     

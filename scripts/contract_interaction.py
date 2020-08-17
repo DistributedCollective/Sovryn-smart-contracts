@@ -14,6 +14,7 @@ def main():
     iRBTCSettings = '0x99DcD929027a307D76d5ca912Eec1C0aE3FA6DDF'
     iSUSDLogic = '0x48f96e4e8adb8db5B70538b58DaDE4a89E2F9DF0'
     iRBTCLogic = '0xCA27bC90C76fc582406fBC4665832753f74A75F5'
+    protocol = '0xBAC609F5C8bb796Fa5A31002f12aaF24B7c35818'
     #setPriceFeeds(acct)
     #mintTokens(acct, iSUSD, iRBTC)
     #burnTokens(acct, iSUSD, iRBTC)
@@ -22,8 +23,9 @@ def main():
     #setupLoanTokenRates(acct, iRBTC, iRBTCSettings, iRBTCLogic)
     #lendToPools(acct, iSUSD, iRBTC)
     #removeFromPool(acct, iSUSD, iRBTC)
-    readLoanTokenState(acct, iSUSD)
-    readLoanTokenState(acct, iRBTC)
+    #readLoanTokenState(acct, iSUSD)
+    #readLoanTokenState(acct, iRBTC)
+    readLoan(acct, protocol, '0x0f5254f95dc22ea94f84e2b0f57a16fa7622087855bc1298fa73eb42671f5011')
 
 def setPriceFeeds(acct):
     priceFeedContract = '0xf2e9fD37912aB53D0FEC1eaCE86d6A14346Fb6dD'
@@ -106,3 +108,9 @@ def readLoanTokenState(acct, loanTokenAddress):
     print("average borrow interest rate", abir/1e18)
     ir = loanToken.nextSupplyInterestRate(0)
     print("interest rate", ir)
+    
+def readLoan(acct, protocolAddress, loanId):
+    bzx = Contract.from_abi("bzx", address=protocolAddress, abi=interface.IBZx.abi, owner=acct)
+    print(bzx.getLoan(loanId))
+
+    
