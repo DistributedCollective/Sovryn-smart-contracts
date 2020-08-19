@@ -200,7 +200,10 @@ contract LoanTokenLogicStandard is AdvancedToken {
         }
 
         require(collateralTokenAddress != loanTokenAddress, "11");
-
+        
+        //computes the worth of the total deposit in loan tokens.
+        //(loanTokenSent + convert(collateralTokenSent))
+        //no actual swap happening here.
         uint256 totalDeposit = _totalDeposit(
             collateralTokenAddress,
             collateralTokenSent,
@@ -807,7 +810,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
     {
         _checkPause();
 
-        require (sentAmounts[1] <= _underlyingBalance() && // newPrincipal
+        require (sentAmounts[1] <= _underlyingBalance() && // newPrincipal (borrowed amount + fees)
             sentAddresses[1] != address(0), // borrower
             "24"
         );
@@ -825,6 +828,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         );
 
         // adding the loan token portion from the lender to loanTokenSent
+        // (add the loan to the loan tokens sent from the user)
         sentAmounts[3] = sentAmounts[3]
             .add(sentAmounts[1]); // newPrincipal
 

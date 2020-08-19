@@ -193,7 +193,11 @@ contract PriceFeeds is Constants, Ownable {
             collateralAmount
         );
     }
-
+    
+    /**
+     * current margin = (total position size - loan)/ loan 
+     * the collateral amount passed as parameter equals the total position size. 
+     * */
     function getCurrentMargin(
         address loanToken,
         address collateralToken,
