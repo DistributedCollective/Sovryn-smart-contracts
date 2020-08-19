@@ -154,7 +154,7 @@ def test_margin_trading_sending_loan_tokens(accounts, bzx, loanToken, SUSD, RBTC
     assert(300e18 - tx.events['Trade']['borrowedAmount'] == loantokenAfterSUSDBalance)
 
 
-def test_lend_to_the_pool(loanToken, accounts, SUSD, RBTC, chain, set_demand_curve):
+def test_lend_to_the_pool(loanToken, accounts, SUSD, RBTC, chain, set_demand_curve, bzx):
     """
     Test lend to the pool. The lender mint tokens from loanToken using SUSD as deposit.
     Then check if user balance change and the token price varies
@@ -164,11 +164,9 @@ def test_lend_to_the_pool(loanToken, accounts, SUSD, RBTC, chain, set_demand_cur
     set_demand_curve(baseRate, rateMultiplier)
 
     lender = accounts[0]
-    deposit_amount = 200e18
-    deposit_amount_1 = deposit_amount * 2
-    deposit_amount_2 = deposit_amount * 2
-    loan_token_sent = deposit_amount / 2
-    total_deposit_amount = deposit_amount_1 + deposit_amount_2 + loan_token_sent
+    deposit_amount = 400e18
+    loan_token_sent = 100e18
+    total_deposit_amount = fixedint(deposit_amount).add(loan_token_sent)
     initial_balance = SUSD.balanceOf(lender)
     SUSD.approve(loanToken.address, total_deposit_amount)
 
@@ -177,17 +175,17 @@ def test_lend_to_the_pool(loanToken, accounts, SUSD, RBTC, chain, set_demand_cur
     assert(loanToken.profitOf(lender) == 0)
     assert(loanToken.checkpointPrice(lender) == 0)
 
-    assert(loanToken.totalSupplyInterestRate(deposit_amount_1) == 0)
-    loanToken.mint(lender, deposit_amount_1)
-    assert(SUSD.balanceOf(lender) == initial_balance - deposit_amount_1)
-    assert(loanToken.balanceOf(lender) == (deposit_amount_1 / loanToken.initialPrice()) * 1e18)
-    earned_interests = 0  # Shouldn't be earned interests
-    price1 = get_itoken_price(deposit_amount_1, earned_interests, loanToken.totalSupply())
+    assert(loanToken.totalSupplyInterestRate(deposit_amount) == 0)
+    loanToken.mint(lender, deposit_amount)
+    assert(SUSD.balanceOf(lender) == initial_balance - deposit_amount)
+    assert(loanToken.balanceOf(lender) == fixedint(deposit_amount).div(loanToken.initialPrice()).mul(1e18))
+    earned_interests_1 = 0  # Shouldn't be earned interests
+    price1 = get_itoken_price(deposit_amount, earned_interests_1, loanToken.totalSupply())
     assert(loanToken.tokenPrice() == price1)
     assert(loanToken.checkpointPrice(lender) == loanToken.initialPrice())
 
     # Should borrow money to get an interest rate different of zero
-    assert(loanToken.totalSupplyInterestRate(deposit_amount_1) == 0)
+    assert(loanToken.totalSupplyInterestRate(deposit_amount) == 0)
     loanToken.marginTrade(
         "0",  # loanId  (0 for new loans)
         2e18,  # leverageAmount
@@ -198,21 +196,17 @@ def test_lend_to_the_pool(loanToken, accounts, SUSD, RBTC, chain, set_demand_cur
         b''  # loanDataBytes (only required with ether)
     )
 
-    # assetSupply should be grater than assetBorrow
-    interest_rate = loanToken.totalSupplyInterestRate(deposit_amount_2)
-    print('interest_rate', interest_rate)
-    assert(SUSD.balanceOf(lender) >= deposit_amount_2)
-    loanToken.mint(lender, deposit_amount_2)
     chain.sleep(100)
-    assert(SUSD.balanceOf(lender) == initial_balance - total_deposit_amount)
-    assert(loanToken.balanceOf(lender) == (deposit_amount_1 / loanToken.initialPrice() + deposit_amount_2 / price1) * 1e18)
-    assert(loanToken.checkpointPrice(lender) == price1)
-    # TODO see why the below assert is not failing because the token price should change with the interests earned
-    assert(loanToken.tokenPrice() == get_itoken_price(total_deposit_amount - loan_token_sent, earned_interests, loanToken.totalSupply()))
+    chain.mine(1)
+    price_2 = loanToken.tokenPrice()
+    lender_interest_data = bzx.getLenderInterestData(loanToken.address, SUSD.address).dict()
+    earned_interest_2 = fixedint(lender_interest_data['interestUnPaid'])\
+        .mul(fixedint(1e20).sub(lender_interest_data['interestFeePercent'])).div(1e20)
+    assert(price_2 == get_itoken_price(deposit_amount, earned_interest_2, loanToken.totalSupply()))
 
 
 def get_itoken_price(assets_deposited, earned_interests, total_supply):
-    return ((assets_deposited + earned_interests) / total_supply) * 1e18
+    return fixedint(assets_deposited).add(earned_interests).mul(1e18).div(total_supply)
 
 
 def test_cash_out_from_the_pool(loanToken, accounts, SUSD):
