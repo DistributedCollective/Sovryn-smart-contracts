@@ -68,7 +68,27 @@ def margin_pool_setup(accounts, RBTC, loanTokenSettings, loanToken, bzx, SUSD):
         [SUSD.address] 
     )
 
-    
+
+@pytest.fixture(scope="module", autouse=True)
+def set_demand_curve(loanToken, LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, accounts, loanTokenSettings):
+    def internal_set_demand_curve(baseRate, rateMultiplier):
+        local_loan_token = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
+        local_loan_token.setTarget(loanTokenSettings.address)
+        local_loan_token_settings = Contract.from_abi("loanToken", address=loanToken.address,
+                                                      abi=LoanTokenSettingsLowerAdmin.abi, owner=accounts[0])
+        local_loan_token_settings.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier)
+        loan_token_logic = accounts[0].deploy(LoanTokenLogicStandard)
+        local_loan_token = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
+        local_loan_token.setTarget(loan_token_logic.address)
+        Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi,
+                          owner=accounts[0])
+        borrow_interest_rate = loanToken.borrowInterestRate()
+        print("borrowInterestRate: ", borrow_interest_rate)
+        assert (borrow_interest_rate > baseRate)
+
+    return internal_set_demand_curve
+
+
 def test_margin_trading_sending_collateral_tokens(accounts, bzx, loanToken, SUSD, RBTC):
     
     loanTokenSent = 10000e18
@@ -184,40 +204,101 @@ def test_margin_trading_sending_loan_tokens(accounts, bzx, loanToken, SUSD, RBTC
 #     TODO test with a liquidationIncentivePercent < currentMargin <= maintenanceMargin
 
 
-def test_lend_to_the_pool(loanToken, accounts, SUSD):
-    receiver = accounts[0]
-    deposit_amount = 100e18
-    total_deposit_amount = deposit_amount * 2
-    SUSD.mint(receiver, total_deposit_amount)
+
+def test_lend_to_the_pool(loanToken, accounts, SUSD, RBTC, chain, set_demand_curve, bzx):
+    """
+    Test lend to the pool. The lender mint tokens from loanToken using SUSD as deposit.
+    Then check if user balance change and the token price varies
+    """
+    baseRate = 1e18
+    rateMultiplier = 20.25e18
+    set_demand_curve(baseRate, rateMultiplier)
+
+    lender = accounts[0]
+    deposit_amount = 400e18
+    loan_token_sent = 100e18
+    total_deposit_amount = fixedint(deposit_amount).add(loan_token_sent)
+    initial_balance = SUSD.balanceOf(lender)
+
     SUSD.approve(loanToken.address, total_deposit_amount)
 
-    loanToken.mint(receiver, deposit_amount)
-    earned_interests = 0  # Shouldn't be earned interests
-    assert loanToken.tokenPrice() == get_itoken_price(deposit_amount, earned_interests, loanToken.totalSupply())
+    assert(SUSD.balanceOf(lender) == initial_balance)
+    assert(loanToken.totalSupply() == 0)
+    assert(loanToken.profitOf(lender) == 0)
+    assert(loanToken.checkpointPrice(lender) == 0)
 
-    loanToken.mint(receiver, deposit_amount)
-    assert loanToken.tokenPrice() == get_itoken_price(total_deposit_amount, earned_interests, loanToken.totalSupply())
+    assert(loanToken.totalSupplyInterestRate(deposit_amount) == 0)
+    loanToken.mint(lender, deposit_amount)
+    assert(SUSD.balanceOf(lender) == initial_balance - deposit_amount)
+    assert(loanToken.balanceOf(lender) == fixedint(deposit_amount).div(loanToken.initialPrice()).mul(1e18))
+    earned_interests_1 = 0  # Shouldn't be earned interests
+    price1 = get_itoken_price(deposit_amount, earned_interests_1, loanToken.totalSupply())
+    assert(loanToken.tokenPrice() == price1)
+    assert(loanToken.checkpointPrice(lender) == loanToken.initialPrice())
+
+    # Should borrow money to get an interest rate different of zero
+    assert(loanToken.totalSupplyInterestRate(deposit_amount) == 0)
+    loanToken.marginTrade(
+        "0",  # loanId  (0 for new loans)
+        2e18,  # leverageAmount
+        loan_token_sent,  # loanTokenSent
+        0,  # no collateral token sent
+        RBTC.address,  # collateralTokenAddress
+        accounts[0],  # trader,
+        b''  # loanDataBytes (only required with ether)
+    )
+
+    chain.sleep(100)
+    chain.mine(1)
+    price_2 = loanToken.tokenPrice()
+    lender_interest_data = bzx.getLenderInterestData(loanToken.address, SUSD.address).dict()
+    earned_interest_2 = fixedint(lender_interest_data['interestUnPaid'])\
+        .mul(fixedint(1e20).sub(lender_interest_data['interestFeePercent'])).div(1e20)
+    assert(price_2 == get_itoken_price(deposit_amount, earned_interest_2, loanToken.totalSupply()))
 
 
 def get_itoken_price(assets_deposited, earned_interests, total_supply):
-    return ((assets_deposited + earned_interests) / total_supply) * 1e18
+    return fixedint(assets_deposited).add(earned_interests).mul(1e18).div(total_supply)
 
 
 def test_cash_out_from_the_pool(loanToken, accounts, SUSD):
-    receiver = accounts[0]
+    lender = accounts[0]
+    initial_balance = SUSD.balanceOf(lender)
     amount_withdrawn = 100e18
     total_deposit_amount = amount_withdrawn * 2
-    SUSD.mint(receiver, total_deposit_amount)
+    assert(initial_balance > total_deposit_amount)
+
     SUSD.approve(loanToken.address, total_deposit_amount)
+    assert(loanToken.checkpointPrice(lender) == 0)
+    loanToken.mint(lender, total_deposit_amount)
+    assert(loanToken.checkpointPrice(lender) == loanToken.initialPrice())
+    loan_token_initial_balance = total_deposit_amount / loanToken.initialPrice() * 1e18
+    assert(loanToken.balanceOf(lender) == loan_token_initial_balance)
+    assert(loanToken.totalSupply() == total_deposit_amount)
 
-    loanToken.mint(receiver, total_deposit_amount)
+    loanToken.burn(lender, amount_withdrawn)
+    assert(loanToken.checkpointPrice(lender) == loanToken.initialPrice())
+    assert(loanToken.totalSupply() == amount_withdrawn)
+    assert(loanToken.tokenPrice() == get_itoken_price(amount_withdrawn, 0, loanToken.totalSupply()))
+    assert(loanToken.balanceOf(lender) == amount_withdrawn)
+    assert(SUSD.balanceOf(lender) == initial_balance - amount_withdrawn * loanToken.tokenPrice() / 1e18)
 
-    assert loanToken.totalSupply() == total_deposit_amount
-    loanToken.burn(receiver, amount_withdrawn)
 
-    assert loanToken.totalSupply() == amount_withdrawn
-    assert loanToken.tokenPrice() == get_itoken_price(amount_withdrawn, 0, loanToken.totalSupply())
-    assert loanToken.balanceOf(receiver) == amount_withdrawn
+def test_cash_out_from_the_pool_more_of_lender_balance_should_not_fail(loanToken, accounts, SUSD):
+    lender = accounts[0]
+    initial_balance = SUSD.balanceOf(lender)
+    amount_withdrawn = 100e18
+    total_deposit_amount = amount_withdrawn * 2
+    assert(initial_balance > total_deposit_amount)
+
+    SUSD.approve(loanToken.address, total_deposit_amount)
+    loanToken.mint(lender, total_deposit_amount)
+    loanToken.burn(lender, total_deposit_amount * 2)
+    assert(loanToken.balanceOf(lender) == 0)
+    assert(loanToken.tokenPrice() == loanToken.initialPrice())
+    assert(SUSD.balanceOf(lender) == initial_balance)
+
+
 
 def test_Demand_Curve_Setting(loanToken, loanTokenSettings, LoanTokenSettingsLowerAdmin, accounts, LoanToken, LoanTokenLogicStandard):
     baseRate = 1e18
@@ -225,49 +306,62 @@ def test_Demand_Curve_Setting(loanToken, loanTokenSettings, LoanTokenSettingsLow
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
     localLoanToken.setTarget(loanTokenSettings.address)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenSettingsLowerAdmin.abi, owner=accounts[0])
-    localLoanToken.setDemandCurve(baseRate,rateMultiplier,baseRate,rateMultiplier)
+    localLoanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier)
+
+    assert(loanToken.baseRate() == baseRate)
+    assert(loanToken.rateMultiplier() == rateMultiplier)
+    assert(loanToken.lowUtilBaseRate() == baseRate)
+    assert(loanToken.lowUtilRateMultiplier() == rateMultiplier)
+
     loanTokenLogic = accounts[0].deploy(LoanTokenLogicStandard)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
     localLoanToken.setTarget(loanTokenLogic.address)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
+
     borrowInterestRate = loanToken.borrowInterestRate()
-    print("borrowInterestRate: ",borrowInterestRate)
+    print("borrowInterestRate: ", borrowInterestRate)
     assert(borrowInterestRate > 1e18)
 
-    
-def test_lending_fee_setting(bzx):
-    tx = bzx.setLendingFeePercent(1e20)
-    lfp = bzx.lendingFeePercent()
-    assert(lfp == 1e20)
-    
-def test_supply_interest_fee(accounts,loanToken, SUSD, RBTC, LoanTokenLogicStandard, LoanToken, LoanTokenSettingsLowerAdmin, loanTokenSettings):
+
+def test_Demand_Curve_Setting_should_fail_if_rateMultiplier_plus_baseRate_is_grater_than_100_percent(
+        loanToken, loanTokenSettings, LoanTokenSettingsLowerAdmin, accounts, LoanToken, LoanTokenLogicStandard):
+    incorrect_baseRate = 51e18
+    incorrect_rateMultiplier = 50e18
     baseRate = 1e18
     rateMultiplier = 20.25e18
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
     localLoanToken.setTarget(loanTokenSettings.address)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenSettingsLowerAdmin.abi, owner=accounts[0])
-    localLoanToken.setDemandCurve(baseRate,rateMultiplier,baseRate,rateMultiplier)
-    loanTokenLogic = accounts[0].deploy(LoanTokenLogicStandard)
-    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
-    localLoanToken.setTarget(loanTokenLogic.address)
-    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
-    borrowInterestRate = loanToken.borrowInterestRate()
-    print("borrowInterestRate: ",borrowInterestRate)
-    assert(borrowInterestRate > 1e18)
-    
-    SUSD.approve(loanToken.address,1e40) 
+    with reverts():
+        localLoanToken.setDemandCurve(incorrect_baseRate, incorrect_rateMultiplier, baseRate, rateMultiplier)
+    with reverts():
+        localLoanToken.setDemandCurve(baseRate, rateMultiplier, incorrect_baseRate, incorrect_rateMultiplier)
+
+
+def test_lending_fee_setting(bzx):
+    tx = bzx.setLendingFeePercent(1e20)
+    lfp = bzx.lendingFeePercent()
+    assert(lfp == 1e20)
+
+
+def test_supply_interest_fee(accounts, loanToken, SUSD, RBTC, set_demand_curve):
+    baseRate = 1e18
+    rateMultiplier = 20.25e18
+    set_demand_curve(baseRate, rateMultiplier)
+
+    SUSD.approve(loanToken.address,1e40)
     loanToken.mint(accounts[0], 1e30)
-    
+
     tx = loanToken.marginTrade(
         "0", #loanId  (0 for new loans)
         2e18, # leverageAmount
         100e18, #loanTokenSent
         0, # no collateral token sent
         RBTC.address, #collateralTokenAddress
-        accounts[0], #trader, 
+        accounts[0], #trader,
         b'' #loanDataBytes (only required with ether)
     )
-    
+
     tas = loanToken.totalAssetSupply()
     print("total supply", tas/1e18);
     tab = loanToken.totalAssetBorrow()
@@ -276,9 +370,9 @@ def test_supply_interest_fee(accounts,loanToken, SUSD, RBTC, LoanTokenLogicStand
     print("average borrow interest rate", abir/1e18)
     ir = loanToken.nextSupplyInterestRate(0)
     print("interest rate", ir)
-    
+
     loanToken.mint(accounts[0], 1e20)
-    
+
     #assert(False)
 
 
@@ -322,3 +416,54 @@ def test_close_margin_trade(accounts, bzx, loanToken, SUSD, RBTC, web3):
 
     # TODO returnTokenIsCollateral True
     # TODO swapAmount < initial_loan.collateral
+
+
+def test_transfer(accounts, loanToken, SUSD):
+    amount_sent, receiver, sender = initialize_test_transfer(SUSD, accounts, loanToken)
+
+    tx = loanToken.transfer(receiver, amount_sent)
+    assert(loanToken.balanceOf(sender) == amount_sent)
+    assert(loanToken.balanceOf(receiver) == amount_sent)
+
+    assert(loanToken.checkpointPrice(sender) == loanToken.initialPrice())
+    assert(loanToken.checkpointPrice(receiver) == loanToken.initialPrice())
+
+    transfer_event = tx.events['Transfer']
+    assert(transfer_event['from'] == sender)
+    assert(transfer_event['to'] == receiver)
+    assert(transfer_event['value'] == amount_sent)
+
+
+def test_transfer_to_zero_account_should_fail(accounts, loanToken, SUSD):
+    amount_sent, receiver, sender = initialize_test_transfer(SUSD, accounts, loanToken)
+    with reverts("14"):
+        loanToken.transfer(shared.Constants().ZERO_ADDRESS, amount_sent)
+
+
+def test_transfer_with_insufficient_balance(accounts, loanToken, SUSD):
+    amount_sent, receiver, sender = initialize_test_transfer(SUSD, accounts, loanToken)
+    with reverts("14"):
+        loanToken.transfer(sender, amount_sent, {'from': receiver})
+
+
+def initialize_test_transfer(SUSD, accounts, loanToken):
+    sender = accounts[0]
+    receiver = accounts[1]
+    amount_to_buy = 100e18
+    SUSD.approve(loanToken.address, amount_to_buy)
+    loanToken.mint(sender, amount_to_buy)
+    sender_initial_balance = loanToken.balanceOf(sender)
+    assert (sender_initial_balance != 0)
+    amount_sent = sender_initial_balance / 2
+    assert (loanToken.checkpointPrice(sender) == loanToken.initialPrice())
+    return amount_sent, receiver, sender
+
+
+def test_transfer_from(SUSD, accounts, loanToken):
+    amount_sent, receiver, sender = initialize_test_transfer(SUSD, accounts, loanToken)
+    loanToken.approve(receiver, amount_sent)
+    assert(loanToken.allowance(sender, receiver) == amount_sent)
+
+    loanToken.transferFrom(sender, receiver, amount_sent, {'from': receiver})
+    assert(loanToken.balanceOf(sender) == amount_sent)
+    assert(loanToken.balanceOf(receiver) == amount_sent)
