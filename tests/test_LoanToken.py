@@ -548,3 +548,79 @@ def test_liquidate(accounts, loanToken, SUSD, set_demand_curve, RBTC, bzx, price
     assert(liquidate_event['collateralWithdrawAmount'] == collateral_withdraw_amount)
     assert(liquidate_event['collateralToLoanRate'] == collateral_to_loan_rate)
     assert(liquidate_event['currentMargin'] == current_margin)
+
+
+def test_rollover(accounts, loanToken, SUSD, set_demand_curve, RBTC, bzx, chain, priceFeeds, WETH, BZRX):
+    """
+    Tests paid interests to lender
+    Test that loan attributes are updated
+    """
+
+    baseRate = 1e18
+    rateMultiplier = 20.25e18
+    set_demand_curve(baseRate, rateMultiplier)
+    SUSD.approve(loanToken.address, 1e40)
+    lender = accounts[0]
+    borrower = accounts[1]
+    loanToken.mint(lender, 1e30)
+    loan_token_sent = 100e18
+    SUSD.mint(borrower, loan_token_sent)
+
+    SUSD.approve(loanToken.address, loan_token_sent, {'from': borrower})
+
+    tx = loanToken.marginTrade(
+        "0",  # loanId  (0 for new loans)
+        2e18,  # leverageAmount
+        loan_token_sent,  # loanTokenSent
+        0,  # no collateral token sent
+        RBTC.address,  # collateralTokenAddress
+        borrower,  # trader,
+        b'',  # loanDataBytes (only required with ether)
+        {'from': borrower}
+    )
+
+    loan_id = tx.events['Trade']['loanId']
+    loan = bzx.getLoan(loan_id).dict()
+    print(loan)
+    time_until_loan_end = loan['endTimestamp'] - chain.time()
+    chain.sleep(time_until_loan_end)
+    chain.mine(1)
+    lender_interest_data = bzx.getLenderInterestData(loanToken.address, SUSD.address).dict()
+    print(lender_interest_data)
+    lender_pool_initial_balance = SUSD.balanceOf(loanToken.address)
+    borrower_initial_balance = SUSD.balanceOf(borrower)
+    tx_rollover = bzx.rollover(loan_id, b'')
+
+    tx_rollover.info()
+    lender_interest_after = bzx.getLenderInterestData(loanToken.address, SUSD.address).dict()
+
+    # Pays outstanding interest to lender
+    lending_fee_percent = bzx.lendingFeePercent()
+    interest_unpaid = lender_interest_data['interestUnPaid']
+    # print('interest_unpaid', interest_unpaid)
+    lending_fee = fixedint(interest_unpaid).mul(lending_fee_percent).div(1e20)
+    interest_owed_now = fixedint(interest_unpaid).sub(lending_fee)
+    # print('interest_owed_now', interest_owed_now)
+    assert(SUSD.balanceOf(loanToken.address) == fixedint(lender_pool_initial_balance).add(interest_owed_now))
+    assert(lender_interest_after['interestPaid'] == interest_unpaid)
+    assert(lender_interest_after['interestUnPaid'] == 0)
+
+    # Settles and pays borrowers based on fees generated
+    if bzx.protocolTokenHeld() != 0:  # TODO I'm not sure if it is correct that protocolTokenHeld is zero
+        print(bzx.getLoanInterestData(loan_id).dict())
+        interest_deposit_remaining = bzx.getLoanInterestData(loan_id).dict()['interestDepositRemaining']
+        interest_expense_fee = fixedint(interest_deposit_remaining).mul(lending_fee_percent).div(1e20)
+        amount = fixedint(borrower_initial_balance).add(interest_expense_fee)
+        query_return = priceFeeds.queryReturn(SUSD.address, BZRX.address, fixedint(amount).div(2))
+        print('query_return', query_return)
+        print('protocolTokenHeld', bzx.protocolTokenHeld())
+        assert(loanToken.balanceOf(BZRX.address) == fixedint(borrower_initial_balance).add(interest_expense_fee))
+        earn_reward_event = tx_rollover.events['EarnReward']
+        assert(earn_reward_event['receiver'] == borrower)
+        assert(earn_reward_event['token'] == BZRX.address)
+        assert(earn_reward_event['loanId'] == loan_id)
+        assert(earn_reward_event['amount'] == fixedint(borrower_initial_balance).add(interest_expense_fee))
+
+    loan_after = bzx.getLoan(loan_id).dict()
+    assert(loan_after['endTimestamp'] >= loan['endTimestamp'] + 28*24*60*60)
+    # check interest payment to lender
