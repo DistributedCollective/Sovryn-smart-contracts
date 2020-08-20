@@ -128,30 +128,81 @@ def test_margin_trading_sending_collateral_tokens(accounts, bzx, loanToken, SUSD
     print("loanTokenAftereRBTCBalance", bZxAfterRBTCBalance/1e18)
     
     #assert(False)#just to make sure, we can read the print statements, will be removed after the test works
-  
-def test_margin_trading_sending_loan_tokens(accounts, bzx, loanToken, SUSD, RBTC):
-    
-    loanTokenSent = 100e18
-    SUSD.mint(loanToken.address,loanTokenSent*3) 
-    SUSD.mint(accounts[0],loanTokenSent)
-    SUSD.approve(loanToken.address, loanTokenSent)
-    
+
+
+def test_margin_trading_sending_loan_tokens(accounts, bzx, loanToken, SUSD, RBTC, priceFeeds, chain):
+
+    loan_token_sent = 100e18
+    SUSD.mint(loanToken.address, loan_token_sent*3)
+    SUSD.mint(accounts[0], loan_token_sent)
+    SUSD.approve(loanToken.address, loan_token_sent)
+
+    leverage_amount = 2e18
+    collateral_sent = 0
     tx = loanToken.marginTrade(
         "0", #loanId  (0 for new loans)
-        2e18, # leverageAmount
-        loanTokenSent, #loanTokenSent
-        0, # no collateral token sent
+        leverage_amount, # leverageAmount
+        loan_token_sent, #loanTokenSent
+        collateral_sent, # no collateral token sent
         RBTC.address, #collateralTokenAddress
-        accounts[0], #trader, 
+        accounts[0], #trader,
         b'' #loanDataBytes (only required with ether)
     )
 
-    bZxAfterRBTCBalance = RBTC.balanceOf(bzx.address)
-    loantokenAfterSUSDBalance = SUSD.balanceOf(loanToken.address)
-    
-    assert(tx.events['Trade']['borrowedAmount'] == 2 * loanTokenSent)
-    assert(tx.events['Trade']['positionSize'] == bZxAfterRBTCBalance)
-    assert(300e18 - tx.events['Trade']['borrowedAmount'] == loantokenAfterSUSDBalance)
+    bzx_after_rbtc_balance = RBTC.balanceOf(bzx.address)
+    loantoken_after_susd_balance = SUSD.balanceOf(loanToken.address)
+
+    assert(tx.events['Trade']['borrowedAmount'] == 2 * loan_token_sent)
+    assert(tx.events['Trade']['positionSize'] == bzx_after_rbtc_balance)
+    assert(300e18 - tx.events['Trade']['borrowedAmount'] == loantoken_after_susd_balance)
+
+    start_margin = 1e38 / leverage_amount
+    total_deposit = loan_token_sent + collateral_sent
+    (trade_rate, trade_rate_precision) = priceFeeds.queryRate(SUSD.address, RBTC.address)
+    (collateral_to_loan_rate, _) = priceFeeds.queryRate(RBTC.address, SUSD.address)
+    interest_rate = loanToken.nextBorrowInterestRate(total_deposit * 1e20 / start_margin)
+    principal = loan_token_sent * 2
+    seconds_per_day = 24 * 60 * 60
+    max_loan_duration = 28 * seconds_per_day
+    seconds_per_year = 365 * seconds_per_day
+    borrow_amount = total_deposit / (interest_rate / seconds_per_year * max_loan_duration / start_margin * 1e20 + 1e20) \
+                    / start_margin * 1e40
+    owed_per_day = borrow_amount * interest_rate / 365e20
+    interest_amount_required = 28 * owed_per_day / seconds_per_day
+    trading_fee = (loan_token_sent + borrow_amount) / 1e20 * 15e16  # 0.15% fee
+    collateral = (collateral_sent + loan_token_sent + borrow_amount - interest_amount_required - trading_fee) \
+                 * trade_rate / trade_rate_precision
+    current_margin = (collateral * collateral_to_loan_rate / 1e18 - principal) / principal * 1e20
+
+    loan_id = tx.events['Trade']['loanId']
+    loan = bzx.getLoan(loan_id).dict()
+    end_timestamp = loan['endTimestamp']
+    block_timestamp = chain.time().real
+    interest_deposit_remaining = (end_timestamp - block_timestamp) * owed_per_day / seconds_per_day if (end_timestamp >= block_timestamp) else 0
+    assert(loan['loanToken'] == SUSD.address)
+    assert(loan['collateralToken'] == RBTC.address)
+    assert(loan['principal'] == principal)
+    # LoanOpening::_borrowOrTrade::300
+    assert(loan['collateral'] == collateral)
+    # LoanOpening::_initializeInterest:574
+    assert(loan['interestOwedPerDay'] == owed_per_day)
+    # LoanOpening::_getLoan:567
+    assert(loan['interestDepositRemaining'] == interest_deposit_remaining)
+    assert(loan['startRate'] == collateral_to_loan_rate)
+    assert(loan['startMargin'] == start_margin)
+    assert(loan['maintenanceMargin'] == 15e18)
+    # LoanMaintenance::_getLoan::539
+    assert(loan['currentMargin'] == current_margin)
+    assert(loan['maxLoanTerm'] == max_loan_duration)  # In the SC is hardcoded to 28 days
+    assert((block_timestamp + max_loan_duration) - end_timestamp <= 1)
+    # LoanMaintenance::_getLoan::549
+    assert(loan['maxLiquidatable'] == 0)
+    # LoanMaintenance::_getLoan::549
+    assert(loan['maxSeizable'] == 0)
+
+#     TODO test with a currentMargin <= liquidationIncentivePercent
+#     TODO test with a liquidationIncentivePercent < currentMargin <= maintenanceMargin
+
 
 
 def test_lend_to_the_pool(loanToken, accounts, SUSD, RBTC, chain, set_demand_curve, bzx):
@@ -168,6 +219,7 @@ def test_lend_to_the_pool(loanToken, accounts, SUSD, RBTC, chain, set_demand_cur
     loan_token_sent = 100e18
     total_deposit_amount = fixedint(deposit_amount).add(loan_token_sent)
     initial_balance = SUSD.balanceOf(lender)
+
     SUSD.approve(loanToken.address, total_deposit_amount)
 
     assert(SUSD.balanceOf(lender) == initial_balance)
