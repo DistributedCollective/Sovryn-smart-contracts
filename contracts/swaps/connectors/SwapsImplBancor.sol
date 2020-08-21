@@ -47,21 +47,27 @@ contract SwapsImplBancor is State, ISwapsImpl {
             IERC20(destTokenAddress)
         );
         
-        uint expectedRate = bancorNetwork.rateByPath(path, minSourceTokenAmount);
+        uint expectedReturn = 0;
+        if(minSourceTokenAmount > 0){
+            //bancorNetwork.rateByPath does not return a rate, but instead the amount of destination tokens returned
+            expectedReturn = bancorNetwork.rateByPath(path, minSourceTokenAmount);
+        }
         
         if(requiredDestTokenAmount > 0){
-            //in case er require a certain amount of tokens and can spend more than the minSourceTokenAmount
+            //in case we require a certain amount of tokens and can spend more than the minSourceTokenAmount
             //calculate the number of tokens to provide 
-            if(maxSourceTokenAmount > minSourceTokenAmount && expectedRate < requiredDestTokenAmount){
-                minSourceTokenAmount = estimateSourceTokenAmount(sourceTokenAddress, destTokenAddress, requiredDestTokenAmount, maxSourceTokenAmount, expectedRate);
+            if(maxSourceTokenAmount > minSourceTokenAmount && expectedReturn < requiredDestTokenAmount){
+                minSourceTokenAmount = estimateSourceTokenAmount(sourceTokenAddress, destTokenAddress, requiredDestTokenAmount, minSourceTokenAmount, maxSourceTokenAmount);
                 require(bancorNetwork.rateByPath(path, minSourceTokenAmount) >= requiredDestTokenAmount, "insufficient source tokens provided.");
             }
-            expectedRate = requiredDestTokenAmount;
+            expectedReturn = requiredDestTokenAmount;
         }
         
         allowTransfer(minSourceTokenAmount, sourceTokenAddress, address(bancorNetwork));
         
-        destTokenAmountReceived = bancorNetwork.convertByPath(path, minSourceTokenAmount, expectedRate, address(0), address(0), 0);
+        destTokenAmountReceived = bancorNetwork.convertByPath(path, minSourceTokenAmount, expectedReturn, address(0), address(0), 0);
+        
+        //todo: check if anythinngs needs to be returned to the sender
     }
     
     /**
@@ -86,33 +92,41 @@ contract SwapsImplBancor is State, ISwapsImpl {
      * @param sourceTokenAddress the address of the source token address
      * @param destTokenAddress the address of the destination token address
      * @param requiredDestTokenAmount the number of destination tokens needed
+     * @param minSourceTokenAmount the minimum number of source tokens to spend
      * @param maxSourceTokenAmount the maximum number of source tokens to spend
-     * @param expectedReturn the expected return for the minSourceTokenAmount
      * @return the estimated amount of source tokens needed
      * */
-    function estimateSourceTokenAmount(address sourceTokenAddress, address destTokenAddress, uint requiredDestTokenAmount, uint maxSourceTokenAmount, uint expectedReturn) internal returns(uint256 estimatedSourceAmount){
+    function estimateSourceTokenAmount(address sourceTokenAddress, address destTokenAddress, uint requiredDestTokenAmount, uint minSourceTokenAmount, uint maxSourceTokenAmount) internal returns(uint256 estimatedSourceAmount){
         //logic like in SwapsImplKyber. query current rate from the price feed, add a 5% buffer and return this value
         //in case it's not bigger than maxSourceTokenAmount. else return maxSourceTokenAmount
         
         uint256 sourceToDestPrecision = IPriceFeeds(priceFeeds).queryPrecision(sourceTokenAddress, destTokenAddress);
         if (sourceToDestPrecision == 0) 
             return maxSourceTokenAmount;
-            
-        uint256 bufferMultiplier = sourceBufferPercent.add(10**20);
-
+        
+        //compute the expected rate for the maxSourceTokenAmount -> if spending less, we can't get a worse rate.
+        uint256 expectedRate = internalExpectedRate(sourceTokenAddress, destTokenAddress, maxSourceTokenAmount);
+        
+        //compute the source tokens needed to get the required amount with the worst case rate
         estimatedSourceAmount = requiredDestTokenAmount
             .mul(sourceToDestPrecision)
-            .div(expectedReturn);
-            
-        estimatedSourceAmount = estimatedSourceAmount // buffer yields more source
-            .mul(bufferMultiplier)
-            .div(10**20);
-
-        if (estimatedSourceAmount == 0 || estimatedSourceAmount > maxSourceTokenAmount) 
+            .div(expectedRate);
+        
+        //always spend the minimum
+        if(estimatedSourceAmount == 0 || estimatedSourceAmount < minSourceTokenAmount)
+            return minSourceTokenAmount;
+        //never spend more than the maximum
+        else if (estimatedSourceAmount > maxSourceTokenAmount) 
             return maxSourceTokenAmount;
 
     }
     
+    /**
+     * returns the expected rate when exchanging the given amount of source tokens
+     * @param sourceTokenAddress the address of the source token contract
+     * @param destTokenAddress the address of the destination token contract
+     * @param sourceTokenAmount the amount of source tokens to get the rate for
+     * */
     function internalExpectedRate(
         address sourceTokenAddress,
         address destTokenAddress,
@@ -126,7 +140,7 @@ contract SwapsImplBancor is State, ISwapsImpl {
             IERC20(sourceTokenAddress),
             IERC20(destTokenAddress)
         );
-        
+        //TODO check if returning an actual rate or the total amount of destination tokens
         return bancorNetwork.rateByPath(path, sourceTokenAmount);
     }
     
