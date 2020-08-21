@@ -53,21 +53,32 @@ contract SwapsImplBancor is State, ISwapsImpl {
             expectedReturn = bancorNetwork.rateByPath(path, minSourceTokenAmount);
         }
         
+        sourceTokenAmountUsed = minSourceTokenAmount;
         if(requiredDestTokenAmount > 0){
             //in case we require a certain amount of tokens and can spend more than the minSourceTokenAmount
             //calculate the number of tokens to provide 
             if(maxSourceTokenAmount > minSourceTokenAmount && expectedReturn < requiredDestTokenAmount){
-                minSourceTokenAmount = estimateSourceTokenAmount(sourceTokenAddress, destTokenAddress, requiredDestTokenAmount, minSourceTokenAmount, maxSourceTokenAmount);
-                require(bancorNetwork.rateByPath(path, minSourceTokenAmount) >= requiredDestTokenAmount, "insufficient source tokens provided.");
+                sourceTokenAmountUsed = estimateSourceTokenAmount(sourceTokenAddress, destTokenAddress, requiredDestTokenAmount, minSourceTokenAmount, maxSourceTokenAmount);
+                require(bancorNetwork.rateByPath(path, sourceTokenAmountUsed) >= requiredDestTokenAmount, "insufficient source tokens provided.");
             }
             expectedReturn = requiredDestTokenAmount;
         }
         
-        allowTransfer(minSourceTokenAmount, sourceTokenAddress, address(bancorNetwork));
+        allowTransfer(sourceTokenAmountUsed, sourceTokenAddress, address(bancorNetwork));
         
-        destTokenAmountReceived = bancorNetwork.convertByPath(path, minSourceTokenAmount, expectedReturn, address(0), address(0), 0);
+        destTokenAmountReceived = bancorNetwork.convertByPath(path, sourceTokenAmountUsed, expectedReturn, address(0), address(0), 0);
         
-        //todo: check if anythinngs needs to be returned to the sender
+        //if the sender is not the protocol (calling with delegatecall), return the remainder to the specified address. 
+        //note: for the case that the swap is used without the protocol. not sure if it should, though. needs to be discussed.
+        if (returnToSenderAddress != address(this)) {
+            if (sourceTokenAmountUsed < maxSourceTokenAmount) {
+                // send unused source token back
+                IERC20(sourceTokenAddress).safeTransfer(
+                    returnToSenderAddress,
+                    maxSourceTokenAmount-sourceTokenAmountUsed
+                );
+            }
+        }
     }
     
     /**
