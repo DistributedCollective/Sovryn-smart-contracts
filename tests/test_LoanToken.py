@@ -591,7 +591,6 @@ def test_rollover(accounts, chain, loanToken, set_demand_curve, bzx, priceFeeds,
     borrower_initial_balance = SUSD.balanceOf(borrower)
     tx_rollover = bzx.rollover(loan_id, b'')
 
-    tx_rollover.info()
     lender_interest_after = bzx.getLenderInterestData(loanToken.address, SUSD.address).dict()
 
     lending_fee_percent = bzx.lendingFeePercent()
