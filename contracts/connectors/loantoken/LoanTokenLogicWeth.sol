@@ -81,23 +81,23 @@ contract LoanTokenLogicWeth is LoanTokenLogicStandard {
                 withdrawalAmount
             );
             if (newPrincipal > withdrawalAmount) {
-                _safeTransfer(_loanTokenAddress, bZxContractAddress, newPrincipal - withdrawalAmount, "");
+                _safeTransfer(_loanTokenAddress, sovrynContractAddress, newPrincipal - withdrawalAmount, "");
             }
         } else {
-            _safeTransfer(_loanTokenAddress, bZxContractAddress, newPrincipal, "27");
+            _safeTransfer(_loanTokenAddress, sovrynContractAddress, newPrincipal, "27");
         }
 
         if (collateralTokenSent != 0) {
-            _safeTransferFrom(collateralTokenAddress, msg.sender, bZxContractAddress, collateralTokenSent, "28");
+            _safeTransferFrom(collateralTokenAddress, msg.sender, sovrynContractAddress, collateralTokenSent, "28");
         }
 
         if (loanTokenSent != 0) {
             if (msgValue != 0 && msgValue >= loanTokenSent) {
                 IWeth(_wethToken).deposit.value(loanTokenSent)();
-                _safeTransfer(_loanTokenAddress, bZxContractAddress, loanTokenSent, "29");
+                _safeTransfer(_loanTokenAddress, sovrynContractAddress, loanTokenSent, "29");
                 msgValue -= loanTokenSent;
             } else {
-                _safeTransferFrom(_loanTokenAddress, msg.sender, bZxContractAddress, loanTokenSent, "29");
+                _safeTransferFrom(_loanTokenAddress, msg.sender, sovrynContractAddress, loanTokenSent, "29");
             }
         }
     }

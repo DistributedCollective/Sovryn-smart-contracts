@@ -10,19 +10,19 @@ import "./AdvancedTokenStorage.sol";
 
 contract LoanToken is AdvancedTokenStorage {
 
-    // It is important to maintain the variables order so the delegate calls can access bZxContractAddress and wethTokenAddress
-    address public bZxContractAddress;
+    // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wethTokenAddress
+    address public sovrynContractAddress;
     address public wethTokenAddress;
     address internal target_;
 
     constructor(
         address _newTarget,
-        address _bZxContractAddress,
+        address _sovrynContractAddress,
         address _wethTokenAddress)
         public
     {
         _setTarget(_newTarget);
-        _setBZxContractAddress(_bZxContractAddress);
+        _setSovrynContractAddress(_sovrynContractAddress);
         _setWethTokenAddress(_wethTokenAddress);
     }
 
@@ -63,12 +63,12 @@ contract LoanToken is AdvancedTokenStorage {
         target_ = _newTarget;
     }
 
-    function _setBZxContractAddress(
-        address _bZxContractAddress)
+    function _setSovrynContractAddress(
+        address _sovrynContractAddress)
         internal
     {
-        require(Address.isContract(_bZxContractAddress), "bzx not a contract");
-        bZxContractAddress = _bZxContractAddress;
+        require(Address.isContract(_sovrynContractAddress), "sovryn not a contract");
+        sovrynContractAddress = _sovrynContractAddress;
     }
 
     function _setWethTokenAddress(

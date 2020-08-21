@@ -8,7 +8,7 @@ import shared
 from munch import Munch
 
 deploys = Munch.fromDict({
-    "bZxProtocol": True,
+    "sovrynProtocol": True,
     "PriceFeeds": True,
     "SwapsImpl": True,
     "ProtocolMigration": True,
@@ -25,7 +25,7 @@ def main():
     deployProtocol()
 
 def deployProtocol():
-    global deploys, bzx, tokens, constants, addresses, thisNetwork, acct
+    global deploys, sovryn, tokens, constants, addresses, thisNetwork, acct
 
     thisNetwork = network.show_active()
 
@@ -55,17 +55,17 @@ def deployProtocol():
 
     ### DEPLOYMENT START ###
 
-    if deploys.bZxProtocol is True:
-        print("Deploying bZxProtocol.")
-        bzxproxy = acct.deploy(bZxProtocol)
-        bzx = Contract.from_abi("bzx", address=bzxproxy.address, abi=interface.IBZx.abi, owner=acct)
-        _add_contract(bzx)
+    if deploys.sovrynProtocol is True:
+        print("Deploying sovrynProtocol.")
+        sovrynproxy = acct.deploy(sovrynProtocol)
+        sovryn = Contract.from_abi("sovryn", address=sovrynproxy.address, abi=interface.ISovryn.abi, owner=acct)
+        _add_contract(sovryn)
     else:
-        if "bZxProtocol" in addresses[thisNetwork]:
-            bzx = Contract.from_abi("bzx", address=addresses[thisNetwork].bZxProtocol, abi=interface.IBZx.abi, owner=acct)
-            _add_contract(bzx)
+        if "sovrynProtocol" in addresses[thisNetwork]:
+            sovryn = Contract.from_abi("sovryn", address=addresses[thisNetwork].sovrynProtocol, abi=interface.ISovryn.abi, owner=acct)
+            _add_contract(sovryn)
         else:
-            raise ValueError('bZxProtocol deployment missing!')
+            raise ValueError('sovrynProtocol deployment missing!')
 
     ## PriceFeeds
     if deploys.PriceFeeds is True:
@@ -201,9 +201,9 @@ def deployProtocol():
         print("Deploying ProtocolMigration.")
         migration = acct.deploy(ProtocolMigration)
         print("Calling replaceContract.")
-        bzx.replaceContract(migration.address)
+        sovryn.replaceContract(migration.address)
 
-        migration = Contract.from_abi("migration", address=bzx.address, abi=migration.abi, owner=acct)
+        migration = Contract.from_abi("migration", address=sovryn.address, abi=migration.abi, owner=acct)
         if thisNetwork == "kovan":
             print("Calling setLegacyOracles.")
             migration.setLegacyOracles(
@@ -243,21 +243,21 @@ def deployProtocol():
         print("Deploying ProtocolSettings.")
         settings = acct.deploy(ProtocolSettings)
         print("Calling replaceContract.")
-        bzx.replaceContract(settings.address)
+        sovryn.replaceContract(settings.address)
 
         print("Calling setPriceFeedContract.")
-        bzx.setPriceFeedContract(
+        sovryn.setPriceFeedContract(
             feeds.address # priceFeeds
         )
 
         print("Calling setSwapsImplContract.")
-        bzx.setSwapsImplContract(
+        sovryn.setSwapsImplContract(
             swaps.address  # swapsImpl
         )
 
         if thisNetwork == "kovan":
             print("Calling setLoanPool.")
-            bzx.setLoanPool(
+            sovryn.setLoanPool(
                 [
                     "0x0afBFCe9DB35FFd1dFdF144A788fa196FD08EFe9", # iETH
                     "0xA1e58F3B1927743393b25f261471E1f2D3D9f0F6", # iSAI
@@ -273,7 +273,7 @@ def deployProtocol():
             )
 
             print("Calling setSupportedTokens.")
-            bzx.setSupportedTokens(
+            sovryn.setSupportedTokens(
                 [
                     "0xd0A1E359811322d97991E03f863a0C30C2cF029C", # WETH
                     "0xC4375B7De8af5a38a93548eb8453a498222C4fF2", # SAI
@@ -290,7 +290,7 @@ def deployProtocol():
             )
         elif thisNetwork == "sandbox":
             print("Calling setLoanPool.")
-            bzx.setLoanPool(
+            sovryn.setLoanPool(
                 [
                     "0x77f973FCaF871459aa58cd81881Ce453759281bC", # iETH
                     "0xF013406A0B1d544238083DF0B93ad0d2cBE0f65f", # iUSDC
@@ -322,7 +322,7 @@ def deployProtocol():
             )
 
             print("Calling setSupportedTokens.")
-            bzx.setSupportedTokens(
+            sovryn.setSupportedTokens(
                 [
                     "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", # WETH
                     "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", # USDC
@@ -356,32 +356,32 @@ def deployProtocol():
                 ]
             )
 
-        bzx.setFeesController(acct.address)
+        sovryn.setFeesController(acct.address)
 
     ## LoanSettings
     if deploys.LoanSettings is True:
         print("Deploying LoanSettings.")
         loanSettings = acct.deploy(LoanSettings)
         print("Calling replaceContract.")
-        bzx.replaceContract(loanSettings.address)
+        sovryn.replaceContract(loanSettings.address)
 
     ## LoanOpenings
     if deploys.LoanOpenings is True:
         print("Deploying LoanOpenings.")
         loanOpenings = acct.deploy(LoanOpenings)
         print("Calling replaceContract.")
-        bzx.replaceContract(loanOpenings.address)
+        sovryn.replaceContract(loanOpenings.address)
 
     ## LoanMaintenance
     if deploys.LoanMaintenance is True:
         print("Deploying LoanMaintenance.")
         loanMaintenance = acct.deploy(LoanMaintenance)
         print("Calling replaceContract.")
-        bzx.replaceContract(loanMaintenance.address)
+        sovryn.replaceContract(loanMaintenance.address)
 
     ## LoanClosings
     if deploys.LoanClosings is True:
         print("Deploying LoanClosings.")
         loanClosings = acct.deploy(LoanClosings)
         print("Calling replaceContract.")
-        bzx.replaceContract(loanClosings.address)
+        sovryn.replaceContract(loanClosings.address)
