@@ -122,7 +122,7 @@ contract SwapsImplBancor is State, ISwapsImpl {
     }
     
     /**
-     * returns the expected rate when exchanging the given amount of source tokens
+     * returns the expected rate for 1 source token when exchanging the given amount of source tokens
      * @param sourceTokenAddress the address of the source token contract
      * @param destTokenAddress the address of the destination token contract
      * @param sourceTokenAmount the amount of source tokens to get the rate for
@@ -140,8 +140,11 @@ contract SwapsImplBancor is State, ISwapsImpl {
             IERC20(sourceTokenAddress),
             IERC20(destTokenAddress)
         );
-        //TODO check if returning an actual rate or the total amount of destination tokens
-        return bancorNetwork.rateByPath(path, sourceTokenAmount);
+        //is returning the total amount of destination tokens
+        uint256 expectedReturn = bancorNetwork.rateByPath(path, sourceTokenAmount);
+
+        //return the rate for 1 token with 18 decimals
+        return expectedReturn.mul(10**18).div(sourceTokenAmount);
     }
     
     
