@@ -42,7 +42,16 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
         _setTarget(this.closeWithDeposit.selector, target);
         _setTarget(this.closeWithSwap.selector, target);
     }
-
+    
+    /**
+     * liquidates a loan. The liquidator pays for the debt up to "closeAmount", so this amount
+     * needs to be approved first.
+     * @param loanId the id of the loan
+     * @param receiver the receiver of the seizable assets
+     * @param closeAmount the amount to close (partial liquidationn possible). if this value is bigger than the max.
+     *          liquidatable amount, the position will be closed completely, but only the liquidatable amount will
+     *          be transfered from the liquidator.
+     * */
     function liquidate(
         bytes32 loanId,
         address receiver,
@@ -290,9 +299,9 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
                 .div(86400);
         }
 
-        uint256 maxDuration = loanParamsLocal.maxLoanTerm;
-
-        if (maxDuration != 0) {
+        //note: to avoid code duplication, it would be nicer to store loanParamsLocal.maxLoanTerm in a local variable
+        //however, we've got stack too deep issues if we do so.
+        if (loanParamsLocal.maxLoanTerm != 0) {
             // fixed-term loan, so need to query iToken for latest variable rate
             uint256 owedPerDay = loanLocal.principal
                 .mul(ILoanPool(loanLocal.lender).borrowInterestRate())
@@ -304,19 +313,28 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
                 .sub(loanInterestLocal.owedPerDay);
 
             loanInterestLocal.owedPerDay = owedPerDay;
+            
+            //if the loan has been open for longer than an additional period, add at least 1 additional day
+            if (backInterestTime >= loanParamsLocal.maxLoanTerm) {
+                loanLocal.endTimestamp = loanLocal.endTimestamp
+                    .add(backInterestTime).add(86400);
+            }
+            //extend by the max loan term
+            else{
+                loanLocal.endTimestamp = loanLocal.endTimestamp
+                    .add(loanParamsLocal.maxLoanTerm);
+            }
         } else {
             // loanInterestLocal.owedPerDay doesn't change
-            maxDuration = 2628000; // approx. 1 month
+            if (backInterestTime >= 2628000){
+                loanLocal.endTimestamp = loanLocal.endTimestamp
+                    .add(backInterestTime).add(86400);
+            }
+            else{
+                loanLocal.endTimestamp = loanLocal.endTimestamp
+                    .add(2628000); // approx. 1 month
+            }
         }
-
-        if (backInterestTime >= maxDuration) {
-            maxDuration = backInterestTime
-                .add(86400); // adds an extra 24 hours
-        }
-
-        // update loan end time
-        loanLocal.endTimestamp = loanLocal.endTimestamp
-            .add(maxDuration);
 
         uint256 interestAmountRequired = loanLocal.endTimestamp
             .sub(block.timestamp);
@@ -335,15 +353,27 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
         interestAmountRequired = interestAmountRequired
             .add(backInterestOwed);
 
-        // collect interest
-        (,uint256 sourceTokenAmountUsed,) = _doCollateralSwap(
+        // collect interest (needs to be converted from the collateral)
+        ( uint256 destTokenAmountReceived , uint256 sourceTokenAmountUsed,) = _doCollateralSwap(
             loanLocal,
             loanParamsLocal,
-            loanLocal.collateral,
-            interestAmountRequired,
+            0,//min swap 0 -> swap connector estimates the amount of source tokens to use
+            interestAmountRequired,//required destination tokens
             true, // returnTokenIsCollateral
             loanDataBytes
         );
+        
+        //received more tokens than needed to pay the interest -> swap rest back to collateral
+        if(destTokenAmountReceived > interestAmountRequired){
+            (destTokenAmountReceived , ,) = _swapBackExcess(
+                loanLocal, 
+                loanParamsLocal, 
+                destTokenAmountReceived - interestAmountRequired,  //amount to be swapped
+                loanDataBytes);
+            sourceTokenAmountUsed = sourceTokenAmountUsed.sub(destTokenAmountReceived);
+        }
+        
+        //subtract the interest from the collateral
         loanLocal.collateral = loanLocal.collateral
             .sub(sourceTokenAmountUsed);
 
@@ -767,7 +797,17 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
             sourceTokenAmountUsed :
             swapAmount;
     }
-
+    
+    /**
+     * swaps collateral tokens for loan tokens
+     * @param loanLocal the loan object
+     * @param loanParamsLocal the loan parameters
+     * @param swapAmount the amount to be swapped
+     * @param principalNeeded the required destination token amount
+     * @param returnTokenIsCollateral if true -> required destination token amount will be passed on, else not
+     *          note: quite dirty. should be refactored.
+     * @param loanDataBytes additional loan data (not in use for token swaps)
+     * */
     function _doCollateralSwap(
         Loan memory loanLocal,
         LoanParams memory loanParamsLocal,
@@ -794,6 +834,36 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
         require(destTokenAmountReceived >= principalNeeded, "insufficient dest amount");
         require(sourceTokenAmountUsed <= loanLocal.collateral, "excessive source amount");
     }
+    
+    /**
+     * used to swap back excessive loan tokens to collateral tokens.
+     * @param loanLocal the loan object
+     * @param loanParamsLocal the loan parameters
+     * @param swapAmount the amount to be swapped
+     * @param loanDataBytes additional loan data (not in use for token swaps)
+     * */
+    function _swapBackExcess(
+        Loan memory loanLocal,
+        LoanParams memory loanParamsLocal,
+        uint256 swapAmount, 
+        bytes memory loanDataBytes) 
+        internal
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed, uint256 collateralToLoanSwapRate)
+    {
+        (destTokenAmountReceived, sourceTokenAmountUsed, collateralToLoanSwapRate) = _loanSwap(
+            loanLocal.id,
+            loanParamsLocal.loanToken,
+            loanParamsLocal.collateralToken,
+            loanLocal.borrower,
+            swapAmount, // minSourceTokenAmount
+            swapAmount, // maxSourceTokenAmount
+            0,  // requiredDestTokenAmount
+            false, // bypassFee
+            loanDataBytes
+        );
+        require(sourceTokenAmountUsed <= swapAmount, "excessive source amount");
+    }
+    
 
     // withdraws asset to receiver
     function _withdrawAsset(

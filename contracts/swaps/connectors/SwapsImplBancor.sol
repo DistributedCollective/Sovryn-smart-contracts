@@ -21,9 +21,11 @@ contract SwapsImplBancor is State, ISwapsImpl {
     
     /**
      * swaps the source token for the destination token on the oracle based amm.
-     * on loan opening minSourceTokenAmount = maxSourceTokenAmount and requiredDestTokenAmount = 0
-     * on loan extension (swap interest) minSourceTokenAmount = maxSourceTokenAmount and requiredDestTokenAmount > 0 (partial spend of source tokens possible)
-     * on loan closure minSourceTokenAmount <= maxSourceTokenAmount and requiredDestTokenAmount >= 0
+     * on loan opening: minSourceTokenAmount = maxSourceTokenAmount and requiredDestTokenAmount = 0
+     * on loan extension: (swap interest) minSourceTokenAmount = 0, maxSourceTokenAmount = complete collateral and requiredDestTokenAmount > 0 
+     *  (amount of source tokens used needs to be estimated)
+     * on loan closure: minSourceTokenAmount <= maxSourceTokenAmount and requiredDestTokenAmount >= 0
+     *  (excess is going to the borrower)
      * **/
     function internalSwap(
         address sourceTokenAddress,
