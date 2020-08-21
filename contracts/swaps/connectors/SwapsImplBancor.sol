@@ -11,7 +11,7 @@ import "./interfaces/IContractRegistry.sol";
 contract SwapsImplBancor is State, ISwapsImpl {
     using SafeERC20 for IERC20;
     
-    address contractRegistryAddress = 0x52Ae12ABe5D8BD778BD5397F99cA900624CfADD4;
+    address contractRegistryAddress;
     bytes32 contractName = hex"42616e636f724e6574776f726b"; // "BancorNetwork"
     
     function getBancorNetworkContract() public view returns(IBancorNetwork){
@@ -94,7 +94,7 @@ contract SwapsImplBancor is State, ISwapsImpl {
      * @param requiredDestTokenAmount the number of destination tokens needed
      * @param minSourceTokenAmount the minimum number of source tokens to spend
      * @param maxSourceTokenAmount the maximum number of source tokens to spend
-     * @return the estimated amount of source tokens needed
+     * @return the estimated amount of source tokens needed. minimum: minSourceTokenAmount, maximum: maxSourceTokenAmount
      * */
     function estimateSourceTokenAmount(address sourceTokenAddress, address destTokenAddress, uint requiredDestTokenAmount, uint minSourceTokenAmount, uint maxSourceTokenAmount) internal returns(uint256 estimatedSourceAmount){
         //logic like in SwapsImplKyber. query current rate from the price feed, add a 5% buffer and return this value
@@ -145,6 +145,14 @@ contract SwapsImplBancor is State, ISwapsImpl {
 
         //return the rate for 1 token with 18 decimals
         return expectedReturn.mul(10**18).div(sourceTokenAmount);
+    }
+    
+    /**
+     * sets the contract registry address of the bancor network
+     * @param registryAddress the address of the registry contract
+     * */
+    function setContractRegistryAddress(address registryAddress) external onlyOwner{
+        contractRegistryAddress = registryAddress;
     }
     
     
