@@ -4,17 +4,17 @@ import pytest
 from brownie import Wei, reverts
 
 @pytest.fixture(scope="module", autouse=True)
-def loanSettings(LoanSettings, accounts, bzx):
-    bzx.replaceContract(accounts[0].deploy(LoanSettings).address)
+def loanSettings(LoanSettings, accounts, sovryn):
+    sovryn.replaceContract(accounts[0].deploy(LoanSettings).address)
 
 @pytest.fixture(scope="module", autouse=True)
-def loanParamsId(accounts, bzx, loanParams):
-    tx = bzx.setupLoanParams([list(loanParams.values())])
+def loanParamsId(accounts, sovryn, loanParams):
+    tx = sovryn.setupLoanParams([list(loanParams.values())])
     loanParamsId = tx.events["LoanParamsIdSetup"][0]["id"]
     return loanParamsId
 
 @pytest.fixture(scope="module", autouse=True)
-def loanParams(accounts, bzx, WETH, SUSD, Constants):
+def loanParams(accounts, sovryn, WETH, SUSD, Constants):
     loanParams = {
         "id": "0x0",
         "active": False,
@@ -27,34 +27,34 @@ def loanParams(accounts, bzx, WETH, SUSD, Constants):
     }
     return loanParams
 
-def test_disableUnauthorizedOwnerLoanSettings(bzx, accounts, SUSD, loanParamsId,):
+def test_disableUnauthorizedOwnerLoanSettings(sovryn, accounts, SUSD, loanParamsId,):
     with reverts("unauthorized owner"):
-        bzx.disableLoanParams([loanParamsId], { "from": accounts[1] })
+        sovryn.disableLoanParams([loanParamsId], { "from": accounts[1] })
 
-def test_LoanSettings_loanParamAlreadyExists(bzx, accounts, SUSD, loanParamsId, loanParams):
+def test_LoanSettings_loanParamAlreadyExists(sovryn, accounts, SUSD, loanParamsId, loanParams):
     with reverts("loanParams exists"):
-        bzx.setupLoanParams([list(loanParams.values()), list(loanParams.values())])
+        sovryn.setupLoanParams([list(loanParams.values()), list(loanParams.values())])
 
-def test_LoanSettings_otherRequires(bzx, accounts, SUSD, loanParamsId, loanParams, Constants):
+def test_LoanSettings_otherRequires(sovryn, accounts, SUSD, loanParamsId, loanParams, Constants):
 
     localLoanParams = loanParams.copy()
    
     localLoanParams["loanToken"] = Constants["ZERO_ADDRESS"]
     print("localLoanParams",localLoanParams)
     with reverts("invalid params"):
-        bzx.setupLoanParams([list(localLoanParams.values())])
+        sovryn.setupLoanParams([list(localLoanParams.values())])
  
     localLoanParams = loanParams.copy()
     localLoanParams["collateralToken"] = Constants["ZERO_ADDRESS"]
     with reverts("invalid params"):
-        bzx.setupLoanParams([list(localLoanParams.values())])
+        sovryn.setupLoanParams([list(localLoanParams.values())])
 
     localLoanParams = loanParams.copy()
     localLoanParams["initialMargin"] = "10 ether"
     with reverts("invalid params"):
-        bzx.setupLoanParams([list(localLoanParams.values())])
+        sovryn.setupLoanParams([list(localLoanParams.values())])
 
     localLoanParams = loanParams.copy()
     localLoanParams["fixedLoanTerm"] = 1
     with reverts("invalid params"):
-        bzx.setupLoanParams([list(localLoanParams.values())])
+        sovryn.setupLoanParams([list(localLoanParams.values())])

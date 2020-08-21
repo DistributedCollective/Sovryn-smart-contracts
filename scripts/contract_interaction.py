@@ -55,8 +55,8 @@ def burnTokens(acct, iSUSD, iRBTC):
     rbtc.burn(iRBTC,1e50) 
     
 def readLendingFee(acct):
-    bzx = Contract.from_abi("bzx", address='0xBAC609F5C8bb796Fa5A31002f12aaF24B7c35818', abi=interface.IBZx.abi, owner=acct)
-    lfp = bzx.lendingFeePercent()
+    sovryn = Contract.from_abi("sovryn", address='0xBAC609F5C8bb796Fa5A31002f12aaF24B7c35818', abi=interface.ISovryn.abi, owner=acct)
+    lfp = sovryn.lendingFeePercent()
     print(lfp/1e18)
     
 def setupLoanTokenRates(acct, loanTokenAddress, settingsAddress, logicAddress):

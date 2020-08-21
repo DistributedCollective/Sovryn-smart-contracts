@@ -9,11 +9,11 @@ from fixedint import *
 import shared
 
 @pytest.fixture(scope="module", autouse=True)
-def loanToken(LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, SUSD, WETH, accounts, bzx, Constants, priceFeeds, swapsImpl):
+def loanToken(LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, SUSD, WETH, accounts, sovryn, Constants, priceFeeds, swapsImpl):
 
     loanTokenLogic = accounts[0].deploy(LoanTokenLogicStandard)
     #Deploying loan token using the loan logic as target for delegate calls
-    loanToken = accounts[0].deploy(LoanToken, loanTokenLogic.address, bzx.address, WETH.address)
+    loanToken = accounts[0].deploy(LoanToken, loanTokenLogic.address, sovryn.address, WETH.address)
     #Initialize loanTokenAddress
     loanToken.initialize(SUSD, "SUSD", "SUSD")
     #setting the logic ABI for the loan token contract
@@ -33,10 +33,10 @@ def loanTokenSettings(accounts, LoanTokenSettingsLowerAdmin):
     return loanTokenSettings
     
 @pytest.fixture(scope="module", autouse=True)
-def loanOpenings(LoanOpenings, accounts, bzx, Constants, priceFeeds, swapsImpl):
-    bzx.replaceContract(accounts[0].deploy(LoanOpenings).address)
-    bzx.setPriceFeedContract(priceFeeds.address)
-    bzx.setSwapsImplContract(swapsImpl.address )
+def loanOpenings(LoanOpenings, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+    sovryn.replaceContract(accounts[0].deploy(LoanOpenings).address)
+    sovryn.setPriceFeedContract(priceFeeds.address)
+    sovryn.setSwapsImplContract(swapsImpl.address )
 
 
 def test_loanAddress(loanToken, SUSD):
@@ -44,7 +44,7 @@ def test_loanAddress(loanToken, SUSD):
     assert loanTokenAddress == SUSD.address
 
 @pytest.fixture(scope="module", autouse=True)
-def margin_pool_setup(accounts, RBTC, loanTokenSettings, loanToken, bzx, SUSD):
+def margin_pool_setup(accounts, RBTC, loanTokenSettings, loanToken, sovryn, SUSD):
     constants = shared.Constants()
     params = [];
     setup1 = [
@@ -63,7 +63,7 @@ def margin_pool_setup(accounts, RBTC, loanTokenSettings, loanToken, bzx, SUSD):
     assert('LoanParamsSetup' in tx.events)
     assert('LoanParamsIdSetup' in tx.events)
     print(tx.info())
-    bzx.setLoanPool(
+    sovryn.setLoanPool(
         [loanToken.address],
         [SUSD.address] 
     )
@@ -89,12 +89,12 @@ def set_demand_curve(loanToken, LoanToken, LoanTokenLogicStandard, LoanTokenSett
     return internal_set_demand_curve
 
 
-def test_margin_trading_sending_collateral_tokens(accounts, bzx, loanToken, SUSD, RBTC):
+def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, RBTC):
     
     loanTokenSent = 10000e18
     SUSD.mint(loanToken.address,loanTokenSent*6) 
     #   address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan 
-    collateralTokenSent = bzx.getRequiredCollateral(SUSD.address,RBTC.address,loanTokenSent*2,50e18, False)
+    collateralTokenSent = sovryn.getRequiredCollateral(SUSD.address,RBTC.address,loanTokenSent*2,50e18, False)
     RBTC.mint(accounts[0],collateralTokenSent)
     #important! WEth is being held by the loanToken contract itself, all other tokens are transfered directly from 
     #the sender and need approval
@@ -115,22 +115,22 @@ def test_margin_trading_sending_collateral_tokens(accounts, bzx, loanToken, SUSD
 
     print(tx.info())
     
-    bZxAfterSUSDBalance = SUSD.balanceOf(bzx.address)
-    print("bZxAfterSUSDBalance", bZxAfterSUSDBalance/1e18)
+    sovrynAfterSUSDBalance = SUSD.balanceOf(sovryn.address)
+    print("sovrynAfterSUSDBalance", sovrynAfterSUSDBalance/1e18)
     
-    bZxAfterRBTCBalance = RBTC.balanceOf(bzx.address)
-    print("bZxAfterRBTCBalance", bZxAfterRBTCBalance/1e18)
+    sovrynAfterRBTCBalance = RBTC.balanceOf(sovryn.address)
+    print("sovrynAfterRBTCBalance", sovrynAfterRBTCBalance/1e18)
     
-    bZxAfterSUSDBalance = SUSD.balanceOf(loanToken.address)
-    print("loanTokenAfterSUSDBalance", bZxAfterSUSDBalance/1e18)
+    sovrynAfterSUSDBalance = SUSD.balanceOf(loanToken.address)
+    print("loanTokenAfterSUSDBalance", sovrynAfterSUSDBalance/1e18)
     
-    bZxAfterRBTCBalance = RBTC.balanceOf(loanToken.address)
-    print("loanTokenAftereRBTCBalance", bZxAfterRBTCBalance/1e18)
+    sovrynAfterRBTCBalance = RBTC.balanceOf(loanToken.address)
+    print("loanTokenAftereRBTCBalance", sovrynAfterRBTCBalance/1e18)
     
     #assert(False)#just to make sure, we can read the print statements, will be removed after the test works
 
 
-def test_margin_trading_sending_loan_tokens(accounts, bzx, loanToken, SUSD, RBTC, priceFeeds, chain):
+def test_margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain):
 
     loan_token_sent = 100e18
     SUSD.mint(loanToken.address, loan_token_sent*3)
@@ -149,11 +149,11 @@ def test_margin_trading_sending_loan_tokens(accounts, bzx, loanToken, SUSD, RBTC
         b'' #loanDataBytes (only required with ether)
     )
 
-    bzx_after_rbtc_balance = RBTC.balanceOf(bzx.address)
+    sovryn_after_rbtc_balance = RBTC.balanceOf(sovryn.address)
     loantoken_after_susd_balance = SUSD.balanceOf(loanToken.address)
 
     assert(tx.events['Trade']['borrowedAmount'] == 2 * loan_token_sent)
-    assert(tx.events['Trade']['positionSize'] == bzx_after_rbtc_balance)
+    assert(tx.events['Trade']['positionSize'] == sovryn_after_rbtc_balance)
     assert(300e18 - tx.events['Trade']['borrowedAmount'] == loantoken_after_susd_balance)
 
     start_margin = 1e38 / leverage_amount
@@ -175,7 +175,7 @@ def test_margin_trading_sending_loan_tokens(accounts, bzx, loanToken, SUSD, RBTC
     current_margin = (collateral * collateral_to_loan_rate / 1e18 - principal) / principal * 1e20
 
     loan_id = tx.events['Trade']['loanId']
-    loan = bzx.getLoan(loan_id).dict()
+    loan = sovryn.getLoan(loan_id).dict()
     end_timestamp = loan['endTimestamp']
     block_timestamp = chain.time().real
     interest_deposit_remaining = (end_timestamp - block_timestamp) * owed_per_day / seconds_per_day if (end_timestamp >= block_timestamp) else 0
@@ -205,7 +205,7 @@ def test_margin_trading_sending_loan_tokens(accounts, bzx, loanToken, SUSD, RBTC
 
 
 
-def test_lend_to_the_pool(loanToken, accounts, SUSD, RBTC, chain, set_demand_curve, bzx):
+def test_lend_to_the_pool(loanToken, accounts, SUSD, RBTC, chain, set_demand_curve, sovryn):
     """
     Test lend to the pool. The lender mint tokens from loanToken using SUSD as deposit.
     Then check if user balance change and the token price varies
@@ -251,7 +251,7 @@ def test_lend_to_the_pool(loanToken, accounts, SUSD, RBTC, chain, set_demand_cur
     chain.sleep(100)
     chain.mine(1)
     price_2 = loanToken.tokenPrice()
-    lender_interest_data = bzx.getLenderInterestData(loanToken.address, SUSD.address).dict()
+    lender_interest_data = sovryn.getLenderInterestData(loanToken.address, SUSD.address).dict()
     earned_interest_2 = fixedint(lender_interest_data['interestUnPaid'])\
         .mul(fixedint(1e20).sub(lender_interest_data['interestFeePercent'])).div(1e20)
     assert(price_2 == get_itoken_price(deposit_amount, earned_interest_2, loanToken.totalSupply()))
@@ -338,9 +338,9 @@ def test_Demand_Curve_Setting_should_fail_if_rateMultiplier_plus_baseRate_is_gra
         localLoanToken.setDemandCurve(baseRate, rateMultiplier, incorrect_baseRate, incorrect_rateMultiplier)
 
 
-def test_lending_fee_setting(bzx):
-    tx = bzx.setLendingFeePercent(1e20)
-    lfp = bzx.lendingFeePercent()
+def test_lending_fee_setting(sovryn):
+    tx = sovryn.setLendingFeePercent(1e20)
+    lfp = sovryn.lendingFeePercent()
     assert(lfp == 1e20)
 
 
@@ -377,11 +377,11 @@ def test_supply_interest_fee(accounts, loanToken, SUSD, RBTC, set_demand_curve):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def loanClosings(LoanClosings, accounts, bzx, Constants, priceFeeds, swapsImpl):
-    bzx.replaceContract(accounts[0].deploy(LoanClosings))
+def loanClosings(LoanClosings, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+    sovryn.replaceContract(accounts[0].deploy(LoanClosings))
 
 
-def test_close_margin_trade(accounts, bzx, loanToken, SUSD, RBTC, web3):
+def test_close_margin_trade(accounts, sovryn, loanToken, SUSD, RBTC, web3):
     loanTokenSent = 100e18
     SUSD.mint(loanToken.address, loanTokenSent * 3)
     SUSD.mint(accounts[0], loanTokenSent)
@@ -397,12 +397,12 @@ def test_close_margin_trade(accounts, bzx, loanToken, SUSD, RBTC, web3):
     )
 
     loan_id = tx.events['Trade']['loanId']
-    initial_loan = bzx.getLoan(loan_id)
+    initial_loan = sovryn.getLoan(loan_id)
     print('Before', initial_loan.dict())
 
-    tx_loan_closing = bzx.closeWithSwap(loan_id, accounts[0], loanTokenSent, False, "")
+    tx_loan_closing = sovryn.closeWithSwap(loan_id, accounts[0], loanTokenSent, False, "")
     print('***************************************************')
-    closed_loan = bzx.getLoan(loan_id).dict()
+    closed_loan = sovryn.getLoan(loan_id).dict()
     print('After', closed_loan)
 
     assert(tx_loan_closing.events['CloseWithSwap']['loanId'] == loan_id)
@@ -470,7 +470,7 @@ def test_transfer_from(SUSD, accounts, loanToken):
 
 
 @pytest.mark.parametrize('rate', [1e21, 6.7e21])
-def test_liquidate(accounts, loanToken, SUSD, set_demand_curve, RBTC, bzx, priceFeeds, rate):
+def test_liquidate(accounts, loanToken, SUSD, set_demand_curve, RBTC, sovryn, priceFeeds, rate):
     """
     First test if fails when the position is healthy currentMargin > maintenanceRate
     Then, test with different rates so the currentMargin is <= liquidationIncentivePercent
@@ -504,13 +504,13 @@ def test_liquidate(accounts, loanToken, SUSD, set_demand_curve, RBTC, bzx, price
     )
 
     loan_id = tx.events['Trade']['loanId']
-    loan = bzx.getLoan(loan_id).dict()
+    loan = sovryn.getLoan(loan_id).dict()
     with reverts("healthy position"):
-        bzx.liquidate(loan_id, lender, loan_token_sent)
+        sovryn.liquidate(loan_id, lender, loan_token_sent)
 
-    SUSD.approve(bzx.address, loan_token_sent, {'from': liquidator})
+    SUSD.approve(sovryn.address, loan_token_sent, {'from': liquidator})
     priceFeeds.setRates(RBTC.address, SUSD.address, rate)
-    tx_liquidation = bzx.liquidate(loan_id, liquidator, loan_token_sent, {'from': liquidator})
+    tx_liquidation = sovryn.liquidate(loan_id, liquidator, loan_token_sent, {'from': liquidator})
 
     collateral_ = loan['collateral']
     principal_ = loan['principal']
@@ -521,7 +521,7 @@ def test_liquidate(accounts, loanToken, SUSD, set_demand_curve, RBTC, bzx, price
         principal_,
         collateral_
     )
-    liquidation_incentive_percent = bzx.liquidationIncentivePercent()
+    liquidation_incentive_percent = sovryn.liquidationIncentivePercent()
     maintenance_margin = loan['maintenanceMargin']
 
     desired_margin = fixedint(maintenance_margin).add(5e18)

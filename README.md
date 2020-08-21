@@ -179,7 +179,7 @@ The loan token (iToken) contract as well as the protocol contract act as proxies
 
 ABI for ```LoanToken``` contracts: ```LoanTokenLogicStandard```
 
-ABI for ```Protocol``` contract: ```IBZx```
+ABI for ```Protocol``` contract: ```ISovryn```
 
 
 

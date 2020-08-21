@@ -15,7 +15,7 @@ import "../contracts/events/FeesEvents.sol";
 import "../contracts/events/SwapsEvents.sol";
 
 
-contract IBZx is
+contract ISovryn is
     State,
     ProtocolSettingsEvents,
     LoanSettingsEvents,
