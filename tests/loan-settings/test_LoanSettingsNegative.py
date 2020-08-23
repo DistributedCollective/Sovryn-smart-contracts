@@ -4,8 +4,8 @@ import pytest
 from brownie import Wei, reverts
 
 @pytest.fixture(scope="module", autouse=True)
-def loanSettings(LoanSettings, accounts, sovryn):
-    sovryn.replaceContract(accounts[0].deploy(LoanSettings).address)
+def loanSettings(LoanSettings, accounts, sovryn, WETH, BZRX):
+    sovryn.replaceContract(accounts[0].deploy(LoanSettings, WETH.address, BZRX.address).address)
 
 @pytest.fixture(scope="module", autouse=True)
 def loanParamsId(accounts, sovryn, loanParams):

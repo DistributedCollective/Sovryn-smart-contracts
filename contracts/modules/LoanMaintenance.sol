@@ -34,7 +34,14 @@ contract LoanMaintenance is State, LoanOpeningsEvents, VaultController, Interest
         uint256 maxSeizable;
     }
 
-    constructor() public {}
+    constructor(
+        address _wethTokenAddress,
+        address _protocolTokenAddress)
+    public
+    {
+        _setWethToken(_wethTokenAddress);
+        _setProtocolTokenAddress(_protocolTokenAddress);
+    }
 
     function()
         external

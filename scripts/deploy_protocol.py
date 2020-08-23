@@ -71,7 +71,7 @@ def deployProtocol():
     if deploys.PriceFeeds is True:
         print("Deploying PriceFeeds.")
         if thisNetwork == "development"  or thisNetwork == "testnet":        
-            feeds = acct.deploy(PriceFeedsLocal)
+            feeds = acct.deploy(PriceFeedsLocal, tokens.weth.address, sovryn.address)
 
             print("Calling setRates x3.")
             feeds.setRates(
@@ -91,7 +91,8 @@ def deployProtocol():
             )
         else:
             if thisNetwork == "kovan":
-                feeds = acct.deploy(PriceFeedsTestnets)
+                feeds = acct.deploy(PriceFeedsTestnets, "0xd0A1E359811322d97991E03f863a0C30C2cF029C",
+                                    "0xe3e682A8Fc7EFec410E4099cc09EfCC0743C634a")
                 
                 print("Calling setDecimals.")
                 feeds.setDecimals(
@@ -118,7 +119,8 @@ def deployProtocol():
                     ],
                 )
             elif thisNetwork == "sandbox":
-                feeds = acct.deploy(PriceFeeds)
+                feeds = acct.deploy(PriceFeeds, "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                                    "0x1c74cFF0376FB4031Cd7492cD6dB2D66c3f2c6B9")
                 
                 print("Calling setDecimals.")
                 feeds.setDecimals(
@@ -184,7 +186,7 @@ def deployProtocol():
     if deploys.SwapsImpl is True:
         print("Deploying Swaps.")
         if thisNetwork == "development"  or thisNetwork == "testnet":
-            swaps = acct.deploy(SwapsImplLocal)
+            swaps = acct.deploy(SwapsImplLocal, tokens.weth.address, sovryn.address)
         else:
             swaps = acct.deploy(SwapsImplKyber)
 
@@ -241,7 +243,7 @@ def deployProtocol():
     ## ProtocolSettings
     if deploys.ProtocolSettings is True:
         print("Deploying ProtocolSettings.")
-        settings = acct.deploy(ProtocolSettings)
+        settings = acct.deploy(ProtocolSettings, tokens.weth.address, sovryn.address)
         print("Calling replaceContract.")
         sovryn.replaceContract(settings.address)
 
@@ -361,27 +363,27 @@ def deployProtocol():
     ## LoanSettings
     if deploys.LoanSettings is True:
         print("Deploying LoanSettings.")
-        loanSettings = acct.deploy(LoanSettings)
+        loanSettings = acct.deploy(LoanSettings, tokens.weth.address, sovryn.address)
         print("Calling replaceContract.")
         sovryn.replaceContract(loanSettings.address)
 
     ## LoanOpenings
     if deploys.LoanOpenings is True:
         print("Deploying LoanOpenings.")
-        loanOpenings = acct.deploy(LoanOpenings)
+        loanOpenings = acct.deploy(LoanOpenings, tokens.weth.address, sovryn.address)
         print("Calling replaceContract.")
         sovryn.replaceContract(loanOpenings.address)
 
     ## LoanMaintenance
     if deploys.LoanMaintenance is True:
         print("Deploying LoanMaintenance.")
-        loanMaintenance = acct.deploy(LoanMaintenance)
+        loanMaintenance = acct.deploy(LoanMaintenance, tokens.weth.address, sovryn.address)
         print("Calling replaceContract.")
         sovryn.replaceContract(loanMaintenance.address)
 
     ## LoanClosings
     if deploys.LoanClosings is True:
         print("Deploying LoanClosings.")
-        loanClosings = acct.deploy(LoanClosings)
+        loanClosings = acct.deploy(LoanClosings, tokens.weth.address, sovryn.address)
         print("Calling replaceContract.")
         sovryn.replaceContract(loanClosings.address)

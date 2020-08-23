@@ -33,8 +33,8 @@ def loanTokenSettings(accounts, LoanTokenSettingsLowerAdmin):
     return loanTokenSettings
     
 @pytest.fixture(scope="module", autouse=True)
-def loanOpenings(LoanOpenings, accounts, sovryn, Constants, priceFeeds, swapsImpl):
-    sovryn.replaceContract(accounts[0].deploy(LoanOpenings).address)
+def loanOpenings(LoanOpenings, accounts, sovryn, Constants, priceFeeds, swapsImpl, WETH, BZRX):
+    sovryn.replaceContract(accounts[0].deploy(LoanOpenings, WETH.address, BZRX.address).address)
     sovryn.setPriceFeedContract(priceFeeds.address)
     sovryn.setSwapsImplContract(swapsImpl.address )
 
@@ -377,8 +377,8 @@ def test_supply_interest_fee(accounts, loanToken, SUSD, RBTC, set_demand_curve):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def loanClosings(LoanClosings, accounts, sovryn, Constants, priceFeeds, swapsImpl):
-    sovryn.replaceContract(accounts[0].deploy(LoanClosings))
+def loanClosings(LoanClosings, accounts, sovryn, Constants, priceFeeds, swapsImpl, WETH, BZRX):
+    sovryn.replaceContract(accounts[0].deploy(LoanClosings, WETH.address, BZRX.address))
 
 
 def test_close_margin_trade(accounts, sovryn, loanToken, SUSD, RBTC, web3):

@@ -15,7 +15,14 @@ import "../swaps/SwapsUser.sol";
 
 contract LoanOpenings is State, LoanOpeningsEvents, VaultController, InterestUser, SwapsUser {
 
-    constructor() public {}
+    constructor(
+        address _wethTokenAddress,
+        address _protocolTokenAddress)
+    public
+    {
+        _setWethToken(_wethTokenAddress);
+        _setProtocolTokenAddress(_protocolTokenAddress);
+    }
 
     function()
         external

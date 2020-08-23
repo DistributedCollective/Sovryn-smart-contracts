@@ -43,22 +43,21 @@ def deployProtocol():
     
 
     print("Deploying PriceFeeds.")
-    feeds = acct.deploy(PriceFeedsLocal)
-    
+    feeds = acct.deploy(PriceFeedsLocal, tokens.weth.address, sovryn.address)
+
     print("Calling setRates.")
     feeds.setRates(
         tokens.rbtc.address,
         tokens.susd.address,
         1e22 #1btc = 10000 susd
     )
-    
 
     print("Deploying Swaps.")
-    swaps = acct.deploy(SwapsImplLocal)
+    swaps = acct.deploy(SwapsImplLocal, tokens.weth.address, sovryn.address)
 
 
     print("Deploying ProtocolSettings.")
-    settings = acct.deploy(ProtocolSettings)
+    settings = acct.deploy(ProtocolSettings, tokens.weth.address, sovryn.address)
     print("Calling replaceContract.")
     sovryn.replaceContract(settings.address)
 
@@ -76,25 +75,25 @@ def deployProtocol():
 
     ## LoanSettings
     print("Deploying LoanSettings.")
-    loanSettings = acct.deploy(LoanSettings)
+    loanSettings = acct.deploy(LoanSettings, tokens.weth.address, sovryn.address)
     print("Calling replaceContract.")
     sovryn.replaceContract(loanSettings.address)
 
     ## LoanOpenings
     print("Deploying LoanOpenings.")
-    loanOpenings = acct.deploy(LoanOpenings)
+    loanOpenings = acct.deploy(LoanOpenings, tokens.weth.address, sovryn.address)
     print("Calling replaceContract.")
     sovryn.replaceContract(loanOpenings.address)
 
     ## LoanMaintenance
     print("Deploying LoanMaintenance.")
-    loanMaintenance = acct.deploy(LoanMaintenance)
+    loanMaintenance = acct.deploy(LoanMaintenance, tokens.weth.address, sovryn.address)
     print("Calling replaceContract.")
     sovryn.replaceContract(loanMaintenance.address)
 
     ## LoanClosings
     print("Deploying LoanClosings.")
-    loanClosings = acct.deploy(LoanClosings)
+    loanClosings = acct.deploy(LoanClosings, tokens.weth.address, sovryn.address)
     print("Calling replaceContract.")
     sovryn.replaceContract(loanClosings.address)
 

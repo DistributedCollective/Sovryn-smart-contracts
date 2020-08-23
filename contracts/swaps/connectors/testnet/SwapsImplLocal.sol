@@ -15,6 +15,15 @@ import "../../../testhelpers/TestToken.sol";
 contract SwapsImplLocal is State, ISwapsImpl {
     using SafeERC20 for IERC20;
 
+    constructor(
+        address _wethTokenAddress,
+        address _protocolTokenAddress)
+    public
+    {
+        _setWethToken(_wethTokenAddress);
+        _setProtocolTokenAddress(_protocolTokenAddress);
+    }
+
     function internalSwap(
         address sourceTokenAddress,
         address destTokenAddress,

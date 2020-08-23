@@ -29,6 +29,13 @@ contract PriceFeedsTestnets is PriceFeeds {
     address public constant kyberContract = 0x692f391bCc85cefCe8C237C01e1f636BbD70EA4D; // kovan
     //address public constant kyberContract = 0x818E6FECD516Ecc3849DAf6845e3EC868087B755; // ropsten
 
+    constructor(
+        address _wethTokenAddress,
+        address _protocolTokenAddress)
+    PriceFeeds(_wethTokenAddress, _protocolTokenAddress)
+    public
+    {}
+
     function _getFastGasPrice()
         internal
         view

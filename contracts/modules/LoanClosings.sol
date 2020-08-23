@@ -24,7 +24,14 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
         Liquidation
     }
 
-    constructor() public {}
+    constructor(
+        address _wethTokenAddress,
+        address _protocolTokenAddress)
+    public
+    {
+        _setWethToken(_wethTokenAddress);
+        _setProtocolTokenAddress(_protocolTokenAddress);
+    }
 
     function()
         external

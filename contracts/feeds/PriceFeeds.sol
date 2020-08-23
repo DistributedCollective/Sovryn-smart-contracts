@@ -30,12 +30,16 @@ contract PriceFeeds is Constants, Ownable {
 
     bool public globalPricingPaused = false;
 
-    constructor()
+    constructor(
+        address _wethTokenAddress,
+        address _protocolTokenAddress)
         public
     {
         // set decimals for ether
         decimals[address(0)] = 18;
-        decimals[address(wethToken)] = 18;
+        decimals[_wethTokenAddress] = 18;
+        _setWethToken(_wethTokenAddress);
+        _setProtocolTokenAddress(_protocolTokenAddress);
     }
 
     function queryRate(

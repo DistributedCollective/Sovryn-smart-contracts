@@ -20,10 +20,10 @@ def test_targetSetup(Constants, sovryn):
     assert sovryn.getTarget(sig1) == Constants["ZERO_ADDRESS"]
     assert sovryn.getTarget(sig2) == Constants["ZERO_ADDRESS"]
 
-def test_replaceContract(Constants, sovryn, accounts, LoanSettings):
+def test_replaceContract(Constants, sovryn, accounts, LoanSettings, WETH, BZRX):
 
     sig = "setupLoanParams((bytes32,bool,address,address,address,uint256,uint256,uint256)[])"
-    loanSettings = accounts[0].deploy(LoanSettings)
+    loanSettings = accounts[0].deploy(LoanSettings, WETH.address, BZRX.address)
 
     sovryn.setTargets([sig], [Constants["ZERO_ADDRESS"]])
     assert sovryn.getTarget(sig) == Constants["ZERO_ADDRESS"]

@@ -15,7 +15,14 @@ import "../mixins/ProtocolTokenUser.sol";
 contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
     using SafeERC20 for IERC20;
 
-    constructor() public {}
+    constructor(
+        address _wethTokenAddress,
+        address _protocolTokenAddress)
+    public
+    {
+        _setWethToken(_wethTokenAddress);
+        _setProtocolTokenAddress(_protocolTokenAddress);
+    }
 
     function()
         external

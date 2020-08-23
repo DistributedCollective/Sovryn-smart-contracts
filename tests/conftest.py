@@ -22,9 +22,9 @@ def RBTC(accounts, TestToken):
     return accounts[0].deploy(TestToken, "RBTC", "RBTC", 18, 1e50)
 
 @pytest.fixture(scope="module")
-def priceFeeds(accounts, WETH, SUSD, RBTC, PriceFeeds, PriceFeedsLocal):
+def priceFeeds(accounts, WETH, SUSD, RBTC, BZRX, PriceFeeds, PriceFeedsLocal):
     if network.show_active() == "development":
-        feeds = accounts[0].deploy(PriceFeedsLocal)
+        feeds = accounts[0].deploy(PriceFeedsLocal, WETH.address, BZRX.address)
         
         feeds.setRates(
             WETH.address,
@@ -42,15 +42,15 @@ def priceFeeds(accounts, WETH, SUSD, RBTC, PriceFeeds, PriceFeedsLocal):
             1e22
         )
     else:
-        feeds = accounts[0].deploy(PriceFeeds)
+        feeds = accounts[0].deploy(PriceFeeds, WETH.address, BZRX.address)
         #feeds.setPriceFeedsBatch(...)
 
     return feeds
 
 @pytest.fixture(scope="module")
-def swapsImpl(accounts, SwapsImplKyber, SwapsImplLocal):
+def swapsImpl(accounts, SwapsImplKyber, SwapsImplLocal, WETH, BZRX):
     if network.show_active() == "development":
-        feeds = accounts[0].deploy(SwapsImplLocal)
+        feeds = accounts[0].deploy(SwapsImplLocal, WETH.address, BZRX.address)
     else:
         feeds = accounts[0].deploy(SwapsImplKyber)
         #feeds.setPriceFeedsBatch(...)
@@ -58,14 +58,14 @@ def swapsImpl(accounts, SwapsImplKyber, SwapsImplLocal):
     return feeds
 
 @pytest.fixture(scope="module", autouse=True)
-def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, LoanMaintenance):
+def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, LoanMaintenance, WETH, BZRX):
     sovrynproxy = accounts[0].deploy(sovrynProtocol)
     sovryn = Contract.from_abi("sovryn", address=sovrynproxy.address, abi=interface.ISovryn.abi, owner=accounts[0])
     _add_contract(sovryn)
     
-    sovryn.replaceContract(accounts[0].deploy(ProtocolSettings).address)
-    sovryn.replaceContract(accounts[0].deploy(LoanSettings).address)
-    sovryn.replaceContract(accounts[0].deploy(LoanMaintenance).address)
+    sovryn.replaceContract(accounts[0].deploy(ProtocolSettings, WETH.address, BZRX.address).address)
+    sovryn.replaceContract(accounts[0].deploy(LoanSettings, WETH.address, BZRX.address).address)
+    sovryn.replaceContract(accounts[0].deploy(LoanMaintenance, WETH.address, BZRX.address).address)
     #sovryn.replaceContract(accounts[0].deploy(LoanOpenings).address)
     #sovryn.replaceContract(accounts[0].deploy(LoanClosings).address)
     

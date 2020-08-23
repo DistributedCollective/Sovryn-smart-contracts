@@ -14,6 +14,13 @@ contract PriceFeedsLocal is PriceFeeds {
 
     //uint256 public slippageMultiplier = 100 ether;
 
+    constructor(
+        address _wethTokenAddress,
+        address _protocolTokenAddress)
+    PriceFeeds(_wethTokenAddress, _protocolTokenAddress)
+    public
+    {}
+
     function _getFastGasPrice()
         internal
         view

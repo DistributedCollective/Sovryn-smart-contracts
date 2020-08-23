@@ -15,7 +15,14 @@ import "../connectors/gastoken/GasTokenUser.sol";
 
 contract SwapsExternal is State, VaultController, SwapsUser, GasTokenUser {
 
-    constructor() public {}
+    constructor(
+        address _wethTokenAddress,
+        address _protocolTokenAddress)
+    public
+    {
+        _setWethToken(_wethTokenAddress);
+        _setProtocolTokenAddress(_protocolTokenAddress);
+    }
 
     function()
         external

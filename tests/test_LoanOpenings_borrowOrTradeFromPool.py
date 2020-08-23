@@ -5,8 +5,8 @@ from brownie import Contract, Wei, reverts
 from fixedint import *
 
 @pytest.fixture(scope="module", autouse=True)
-def loanOpenings(LoanOpenings, accounts, sovryn, Constants, priceFeeds, swapsImpl):
-    sovryn.replaceContract(accounts[0].deploy(LoanOpenings).address)
+def loanOpenings(LoanOpenings, accounts, sovryn, Constants, priceFeeds, swapsImpl, WETH, BZRX):
+    sovryn.replaceContract(accounts[0].deploy(LoanOpenings, WETH.address, BZRX.address).address)
 
     sovryn.setPriceFeedContract(
         priceFeeds.address # priceFeeds
@@ -17,8 +17,8 @@ def loanOpenings(LoanOpenings, accounts, sovryn, Constants, priceFeeds, swapsImp
     )
 
 @pytest.fixture(scope="module", autouse=True)
-def loanClosings(LoanClosings, accounts, sovryn, Constants, priceFeeds, swapsImpl):
-    sovryn.replaceContract(accounts[0].deploy(LoanClosings).address)
+def loanClosings(LoanClosings, accounts, sovryn, Constants, priceFeeds, swapsImpl, WETH, BZRX):
+    sovryn.replaceContract(accounts[0].deploy(LoanClosings, WETH.address, BZRX.address).address)
 
 @pytest.fixture(scope="module")
 def LinkDaiMarginParamsId(Constants, RBTC, SUSD, sovryn, accounts):
@@ -133,9 +133,7 @@ def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, sovryn, SUSD,
     expectedPositionSize = fixedint(loanTokenSent).sub(interestForPosition).mul(tradeEvent["entryPrice"]).div(1e18).add(collateralTokenSent)
     
     ## ignore differences in least significant digits due to rounding error
-    expectedPositionSize = fixedint(expectedPositionSize).div(100)
-    positionSize = fixedint(tradeEvent["positionSize"]).div(100)
-    assert expectedPositionSize == positionSize
+    assert abs(expectedPositionSize.num - int(tradeEvent["positionSize"])) < 100
 
     '''l = sovryn.getUserLoans(
         accounts[1],
