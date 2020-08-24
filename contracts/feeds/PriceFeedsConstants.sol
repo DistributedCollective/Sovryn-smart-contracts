@@ -14,7 +14,7 @@ contract Constants {
 
     function _setWethToken(
         address _wethTokenAddress)
-    internal
+        internal
     {
         require(Address.isContract(_wethTokenAddress), "_wethTokenAddress not a contract");
         wethToken = IWethERC20(_wethTokenAddress);
@@ -22,7 +22,7 @@ contract Constants {
 
     function _setProtocolTokenAddress(
         address _protocolTokenAddress)
-    internal
+        internal
     {
         require(Address.isContract(_protocolTokenAddress), "_protocolTokenAddress not a contract");
         protocolTokenAddress = _protocolTokenAddress;

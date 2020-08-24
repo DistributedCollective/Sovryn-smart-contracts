@@ -186,7 +186,7 @@ def deployProtocol():
     if deploys.SwapsImpl is True:
         print("Deploying Swaps.")
         if thisNetwork == "development"  or thisNetwork == "testnet":
-            swaps = acct.deploy(SwapsImplLocal, tokens.weth.address, sovryn.address)
+            swaps = acct.deploy(SwapsImplLocal)
         else:
             swaps = acct.deploy(SwapsImplKyber)
 
@@ -243,7 +243,7 @@ def deployProtocol():
     ## ProtocolSettings
     if deploys.ProtocolSettings is True:
         print("Deploying ProtocolSettings.")
-        settings = acct.deploy(ProtocolSettings, tokens.weth.address, sovryn.address)
+        settings = acct.deploy(ProtocolSettings)
         print("Calling replaceContract.")
         sovryn.replaceContract(settings.address)
 
@@ -360,30 +360,33 @@ def deployProtocol():
 
         sovryn.setFeesController(acct.address)
 
+        sovryn.setWethToken(tokens.weth.address)
+        sovryn.setProtocolTokenAddress(sovryn.address)
+
     ## LoanSettings
     if deploys.LoanSettings is True:
         print("Deploying LoanSettings.")
-        loanSettings = acct.deploy(LoanSettings, tokens.weth.address, sovryn.address)
+        loanSettings = acct.deploy(LoanSettings)
         print("Calling replaceContract.")
         sovryn.replaceContract(loanSettings.address)
 
     ## LoanOpenings
     if deploys.LoanOpenings is True:
         print("Deploying LoanOpenings.")
-        loanOpenings = acct.deploy(LoanOpenings, tokens.weth.address, sovryn.address)
+        loanOpenings = acct.deploy(LoanOpenings)
         print("Calling replaceContract.")
         sovryn.replaceContract(loanOpenings.address)
 
     ## LoanMaintenance
     if deploys.LoanMaintenance is True:
         print("Deploying LoanMaintenance.")
-        loanMaintenance = acct.deploy(LoanMaintenance, tokens.weth.address, sovryn.address)
+        loanMaintenance = acct.deploy(LoanMaintenance)
         print("Calling replaceContract.")
         sovryn.replaceContract(loanMaintenance.address)
 
     ## LoanClosings
     if deploys.LoanClosings is True:
         print("Deploying LoanClosings.")
-        loanClosings = acct.deploy(LoanClosings, tokens.weth.address, sovryn.address)
+        loanClosings = acct.deploy(LoanClosings)
         print("Calling replaceContract.")
         sovryn.replaceContract(loanClosings.address)

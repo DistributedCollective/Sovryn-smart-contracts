@@ -5,11 +5,11 @@
 
 pragma solidity 0.5.17;
 
-import "../core/Constants.sol";
 import "../openzeppelin/SafeERC20.sol";
+import "../interfaces/IWethERC20.sol";
 
 
-contract VaultController is Constants {
+contract VaultController {
     using SafeERC20 for IERC20;
 
     event VaultDeposit(
@@ -25,7 +25,8 @@ contract VaultController is Constants {
 
     function vaultEtherDeposit(
         address from,
-        uint256 value)
+        uint256 value,
+        IWethERC20 wethToken)
         internal
     {
         IWethERC20 _wethToken = wethToken;
@@ -40,7 +41,8 @@ contract VaultController is Constants {
 
     function vaultEtherWithdraw(
         address to,
-        uint256 value)
+        uint256 value,
+        IWethERC20 wethToken)
         internal
     {
         if (value != 0) {

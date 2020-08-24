@@ -24,14 +24,7 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
         Liquidation
     }
 
-    constructor(
-        address _wethTokenAddress,
-        address _protocolTokenAddress)
-    public
-    {
-        _setWethToken(_wethTokenAddress);
-        _setProtocolTokenAddress(_protocolTokenAddress);
-    }
+    constructor() public {}
 
     function()
         external
@@ -813,7 +806,8 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
             if (assetToken == address(wethToken)) {
                 vaultEtherWithdraw(
                     receiver,
-                    assetAmount
+                    assetAmount,
+                    wethToken
                 );
             } else {
                 vaultWithdraw(

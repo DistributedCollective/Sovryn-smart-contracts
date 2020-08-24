@@ -53,11 +53,11 @@ def deployProtocol():
     )
 
     print("Deploying Swaps.")
-    swaps = acct.deploy(SwapsImplLocal, tokens.weth.address, sovryn.address)
+    swaps = acct.deploy(SwapsImplLocal)
 
 
     print("Deploying ProtocolSettings.")
-    settings = acct.deploy(ProtocolSettings, tokens.weth.address, sovryn.address)
+    settings = acct.deploy(ProtocolSettings)
     print("Calling replaceContract.")
     sovryn.replaceContract(settings.address)
 
@@ -73,27 +73,30 @@ def deployProtocol():
 
     sovryn.setFeesController(acct.address)
 
+    sovryn.setWethToken(tokens.weth.address)
+    sovryn.setProtocolTokenAddress(sovryn.address)
+
     ## LoanSettings
     print("Deploying LoanSettings.")
-    loanSettings = acct.deploy(LoanSettings, tokens.weth.address, sovryn.address)
+    loanSettings = acct.deploy(LoanSettings)
     print("Calling replaceContract.")
     sovryn.replaceContract(loanSettings.address)
 
     ## LoanOpenings
     print("Deploying LoanOpenings.")
-    loanOpenings = acct.deploy(LoanOpenings, tokens.weth.address, sovryn.address)
+    loanOpenings = acct.deploy(LoanOpenings)
     print("Calling replaceContract.")
     sovryn.replaceContract(loanOpenings.address)
 
     ## LoanMaintenance
     print("Deploying LoanMaintenance.")
-    loanMaintenance = acct.deploy(LoanMaintenance, tokens.weth.address, sovryn.address)
+    loanMaintenance = acct.deploy(LoanMaintenance)
     print("Calling replaceContract.")
     sovryn.replaceContract(loanMaintenance.address)
 
     ## LoanClosings
     print("Deploying LoanClosings.")
-    loanClosings = acct.deploy(LoanClosings, tokens.weth.address, sovryn.address)
+    loanClosings = acct.deploy(LoanClosings)
     print("Calling replaceContract.")
     sovryn.replaceContract(loanClosings.address)
 

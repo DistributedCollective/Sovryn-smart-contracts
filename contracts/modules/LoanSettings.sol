@@ -12,14 +12,7 @@ import "../events/LoanSettingsEvents.sol";
 
 contract LoanSettings is State, LoanSettingsEvents {
 
-    constructor(
-        address _wethTokenAddress,
-        address _protocolTokenAddress)
-    public
-    {
-        _setWethToken(_wethTokenAddress);
-        _setProtocolTokenAddress(_protocolTokenAddress);
-    }
+    constructor() public {}
 
     function()
         external

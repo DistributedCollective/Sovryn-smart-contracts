@@ -34,14 +34,7 @@ contract LoanMaintenance is State, LoanOpeningsEvents, VaultController, Interest
         uint256 maxSeizable;
     }
 
-    constructor(
-        address _wethTokenAddress,
-        address _protocolTokenAddress)
-    public
-    {
-        _setWethToken(_wethTokenAddress);
-        _setProtocolTokenAddress(_protocolTokenAddress);
-    }
+    constructor() public {}
 
     function()
         external
@@ -93,7 +86,8 @@ contract LoanMaintenance is State, LoanOpeningsEvents, VaultController, Interest
             require(msg.value == depositAmount, "ether deposit mismatch");
             vaultEtherDeposit(
                 msg.sender,
-                msg.value
+                msg.value,
+                wethToken
             );
         }
     }
@@ -137,7 +131,8 @@ contract LoanMaintenance is State, LoanOpeningsEvents, VaultController, Interest
         if (loanParamsLocal.collateralToken == address(wethToken)) {
             vaultEtherWithdraw(
                 receiver,
-                actualWithdrawAmount
+                actualWithdrawAmount,
+                wethToken
             );
         } else {
             vaultWithdraw(
@@ -230,7 +225,8 @@ contract LoanMaintenance is State, LoanOpeningsEvents, VaultController, Interest
                 require(msg.value == depositAmount, "ether deposit mismatch");
                 vaultEtherDeposit(
                     msg.sender,
-                    msg.value
+                    msg.value,
+                    wethToken
                 );
             }
         }
@@ -316,7 +312,8 @@ contract LoanMaintenance is State, LoanOpeningsEvents, VaultController, Interest
         if (loanParamsLocal.loanToken == address(wethToken)) {
             vaultEtherWithdraw(
                 receiver,
-                withdrawAmount
+                withdrawAmount,
+                wethToken
             );
         } else {
             vaultWithdraw(

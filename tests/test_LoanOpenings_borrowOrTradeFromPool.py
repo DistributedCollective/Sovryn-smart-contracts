@@ -5,8 +5,8 @@ from brownie import Contract, Wei, reverts
 from fixedint import *
 
 @pytest.fixture(scope="module", autouse=True)
-def loanOpenings(LoanOpenings, accounts, sovryn, Constants, priceFeeds, swapsImpl, WETH, BZRX):
-    sovryn.replaceContract(accounts[0].deploy(LoanOpenings, WETH.address, BZRX.address).address)
+def loanOpenings(LoanOpenings, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+    sovryn.replaceContract(accounts[0].deploy(LoanOpenings).address)
 
     sovryn.setPriceFeedContract(
         priceFeeds.address # priceFeeds
@@ -17,8 +17,8 @@ def loanOpenings(LoanOpenings, accounts, sovryn, Constants, priceFeeds, swapsImp
     )
 
 @pytest.fixture(scope="module", autouse=True)
-def loanClosings(LoanClosings, accounts, sovryn, Constants, priceFeeds, swapsImpl, WETH, BZRX):
-    sovryn.replaceContract(accounts[0].deploy(LoanClosings, WETH.address, BZRX.address).address)
+def loanClosings(LoanClosings, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+    sovryn.replaceContract(accounts[0].deploy(LoanClosings).address)
 
 @pytest.fixture(scope="module")
 def LinkDaiMarginParamsId(Constants, RBTC, SUSD, sovryn, accounts):
