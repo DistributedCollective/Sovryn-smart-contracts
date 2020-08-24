@@ -8,7 +8,7 @@ import shared
 from munch import Munch
 
 '''deploys = Munch.fromDict({
-    "bZxProtocol": True,
+    "sovrynProtocol": True,
     "PriceFeeds": True,
     "SwapsImpl": True,
     "ProtocolMigration": True,

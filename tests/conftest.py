@@ -48,28 +48,36 @@ def priceFeeds(accounts, WETH, SUSD, RBTC, PriceFeeds, PriceFeedsLocal):
     return feeds
 
 @pytest.fixture(scope="module")
-def swapsImpl(accounts, SwapsImplKyber, SwapsImplLocal):
+def swapsImpl(accounts, SwapsImplBancor, SwapsImplLocal):
+    '''
     if network.show_active() == "development":
-        feeds = accounts[0].deploy(SwapsImplLocal)
+        swap = accounts[0].deploy(SwapsImplLocal)
     else:
-        feeds = accounts[0].deploy(SwapsImplKyber)
+        swap = accounts[0].deploy(SwapsImplKyber)
         #feeds.setPriceFeedsBatch(...)
+    '''
+    
+    swap = accounts[0].deploy(SwapsImplBancor)
 
-    return feeds
+    return swap
 
 @pytest.fixture(scope="module", autouse=True)
-def bzx(accounts, interface, bZxProtocol, ProtocolSettings, LoanSettings, LoanMaintenance):
-    bzxproxy = accounts[0].deploy(bZxProtocol)
-    bzx = Contract.from_abi("bzx", address=bzxproxy.address, abi=interface.IBZx.abi, owner=accounts[0])
-    _add_contract(bzx)
+def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, LoanMaintenance, SUSD, RBTC, TestBancor, priceFeeds):
+    sovrynproxy = accounts[0].deploy(sovrynProtocol)
+    sovryn = Contract.from_abi("sovryn", address=sovrynproxy.address, abi=interface.ISovryn.abi, owner=accounts[0])
+    _add_contract(sovryn)
     
-    bzx.replaceContract(accounts[0].deploy(ProtocolSettings).address)
-    bzx.replaceContract(accounts[0].deploy(LoanSettings).address)
-    bzx.replaceContract(accounts[0].deploy(LoanMaintenance).address)
-    #bzx.replaceContract(accounts[0].deploy(LoanOpenings).address)
-    #bzx.replaceContract(accounts[0].deploy(LoanClosings).address)
+    sovryn.replaceContract(accounts[0].deploy(ProtocolSettings).address)
+    sovryn.replaceContract(accounts[0].deploy(LoanSettings).address)
+    sovryn.replaceContract(accounts[0].deploy(LoanMaintenance).address)
+    #sovryn.replaceContract(accounts[0].deploy(LoanOpenings).address)
+    #sovryn.replaceContract(accounts[0].deploy(LoanClosings).address)
     
-    return bzx
+    bancorSimulator = accounts[0].deploy(TestBancor, priceFeeds)
+    sovryn.setBancorContractRegistryAddress(bancorSimulator.address)
+    sovryn.setSupportedTokens([SUSD.address,RBTC.address],[True,True])
+    
+    return sovryn
 
 @pytest.fixture(scope="function", autouse=True)
 def isolate(fn_isolation):

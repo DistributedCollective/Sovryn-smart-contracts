@@ -14,7 +14,7 @@ def main():
     deployLoanTokens()
 
 def deployProtocol():
-    global  bzx, tokens, constants, addresses, thisNetwork, acct
+    global  sovryn, tokens, constants, addresses, thisNetwork, acct
 
     thisNetwork = network.show_active()
 
@@ -29,10 +29,10 @@ def deployProtocol():
 
     tokens = Munch()
 
-    print("Deploying bZxProtocol.")
-    bzxproxy = acct.deploy(bZxProtocol)
-    bzx = Contract.from_abi("bzx", address=bzxproxy.address, abi=interface.IBZx.abi, owner=acct)
-    _add_contract(bzx)
+    print("Deploying sovrynProtocol.")
+    sovrynproxy = acct.deploy(sovrynProtocol)
+    sovryn = Contract.from_abi("sovryn", address=sovrynproxy.address, abi=interface.ISovryn.abi, owner=acct)
+    _add_contract(sovryn)
 
     
     print("Deploying test tokens.")
@@ -60,47 +60,47 @@ def deployProtocol():
     print("Deploying ProtocolSettings.")
     settings = acct.deploy(ProtocolSettings)
     print("Calling replaceContract.")
-    bzx.replaceContract(settings.address)
+    sovryn.replaceContract(settings.address)
 
     print("Calling setPriceFeedContract.")
-    bzx.setPriceFeedContract(
+    sovryn.setPriceFeedContract(
         feeds.address # priceFeeds
     )
 
     print("Calling setSwapsImplContract.")
-    bzx.setSwapsImplContract(
+    sovryn.setSwapsImplContract(
         swaps.address  # swapsImpl
     )
 
-    bzx.setFeesController(acct.address)
+    sovryn.setFeesController(acct.address)
 
     ## LoanSettings
     print("Deploying LoanSettings.")
     loanSettings = acct.deploy(LoanSettings)
     print("Calling replaceContract.")
-    bzx.replaceContract(loanSettings.address)
+    sovryn.replaceContract(loanSettings.address)
 
     ## LoanOpenings
     print("Deploying LoanOpenings.")
     loanOpenings = acct.deploy(LoanOpenings)
     print("Calling replaceContract.")
-    bzx.replaceContract(loanOpenings.address)
+    sovryn.replaceContract(loanOpenings.address)
 
     ## LoanMaintenance
     print("Deploying LoanMaintenance.")
     loanMaintenance = acct.deploy(LoanMaintenance)
     print("Calling replaceContract.")
-    bzx.replaceContract(loanMaintenance.address)
+    sovryn.replaceContract(loanMaintenance.address)
 
     ## LoanClosings
     print("Deploying LoanClosings.")
     loanClosings = acct.deploy(LoanClosings)
     print("Calling replaceContract.")
-    bzx.replaceContract(loanClosings.address)
+    sovryn.replaceContract(loanClosings.address)
 
 
 def deployLoanTokens():
-    global bzx, tokens
+    global sovryn, tokens
     print('\n DEPLOYING ISUSD')
     contractAddress = deployLoanToken(tokens.susd.address, "SUSD", "SUSD", tokens.rbtc.address)
     print("initializing the lending pool with some tokens, so we do not run out of funds")
@@ -114,7 +114,7 @@ def deployLoanTokens():
     testDeployment(contractAddress, tokens.rbtc, tokens.susd)
 
 def deployLoanToken(loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddress):
-    global bzx, tokens
+    global sovryn, tokens
     
     print("Deploying LoanTokenLogicStandard")
     loanTokenLogic = acct.deploy(LoanTokenLogicStandard)
@@ -127,7 +127,7 @@ def deployLoanToken(loanTokenAddress, loanTokenSymbol, loanTokenName, collateral
     
     print("Deploying loan token using the loan logic as target for delegate calls")
     print('tokens.weth.address', tokens.weth.address)
-    loanToken = acct.deploy(LoanToken, loanTokenLogic.address, bzx.address, tokens.weth.address)
+    loanToken = acct.deploy(LoanToken, loanTokenLogic.address, sovryn.address, tokens.weth.address)
     _add_contract(loanToken)
     
     print("Initialize loanTokenAddress ")
@@ -142,7 +142,7 @@ def deployLoanToken(loanTokenAddress, loanTokenSymbol, loanTokenName, collateral
     
     print("Setting up pool params on protocol.")
     
-    bzx.setLoanPool(
+    sovryn.setLoanPool(
         [loanToken.address],
         [loanTokenAddress] 
     )
@@ -196,7 +196,7 @@ def setupLoanTokenRates(acct, loanTokenAddress, settingsAddress, logicAddress):
     
     
 def testDeployment(loanTokenAddress, underlyingToken, collateralToken):
-    global bzx
+    global sovryn
     print('\n TESTING THE DEPLOYMENT')
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     
@@ -215,10 +215,10 @@ def testDeployment(loanTokenAddress, underlyingToken, collateralToken):
         b'' #loanDataBytes (only required with ether)
     )
     
-    bZxAfterCollateralBalance = collateralToken.balanceOf(bzx.address)
+    sovrynAfterCollateralBalance = collateralToken.balanceOf(sovryn.address)
 
     assert(tx.events['Trade']['borrowedAmount'] > loanTokenSent)
-    assert(tx.events['Trade']['positionSize'] <= bZxAfterCollateralBalance)
+    assert(tx.events['Trade']['positionSize'] <= sovrynAfterCollateralBalance)
 
     
     

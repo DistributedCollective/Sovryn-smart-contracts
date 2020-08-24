@@ -15,7 +15,7 @@ import "../contracts/events/FeesEvents.sol";
 import "../contracts/events/SwapsEvents.sol";
 
 
-contract IBZx is
+contract ISovryn is
     State,
     ProtocolSettingsEvents,
     LoanSettingsEvents,
@@ -139,7 +139,10 @@ contract IBZx is
         external
         view
         returns (bool);
-
+    
+    function setBancorContractRegistryAddress(
+        address registryAddress) 
+        external;
 
     ////// Loan Settings //////
 

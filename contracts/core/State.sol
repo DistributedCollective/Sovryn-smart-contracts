@@ -20,6 +20,7 @@ contract State is Constants, Objects, ReentrancyGuard, Ownable {
 
     address public priceFeeds;                                                          // handles asset reference price lookups
     address public swapsImpl;                                                           // handles asset swaps using dex liquidity
+    address public bancorContractRegistryAddress;                                       // contract registry address of the bancor network
 
     mapping (bytes4 => address) public logicTargets;                                    // implementations of protocol functions
 

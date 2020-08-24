@@ -48,6 +48,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         _setTarget(this.depositProtocolToken.selector, target);
         _setTarget(this.getLoanPoolsList.selector, target);
         _setTarget(this.isLoanPool.selector, target);
+        _setTarget(this.setBancorContractRegistryAddress.selector, target);
     }
 
     function setPriceFeedContract(
@@ -417,5 +418,13 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         returns (bool)
     {
         return loanPoolToUnderlying[loanPool] != address(0);
+    }
+    
+    /**
+     * sets the contract registry address of the bancor network
+     * @param registryAddress the address of the registry contract
+     * */
+    function setBancorContractRegistryAddress(address registryAddress) external onlyOwner{
+        bancorContractRegistryAddress = registryAddress;
     }
 }

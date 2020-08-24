@@ -1,12 +1,23 @@
+/**
+ * Test file simulating the bancor network
+ * */
+
 pragma solidity 0.5.17;
 
 import "../openzeppelin/SafeERC20.sol";
 import "../feeds/IPriceFeeds.sol";
 import "./TestToken.sol";
-import "../core/State.sol";
+import "../openzeppelin/SafeMath.sol";
 
-contract TestBancor is State {
+contract TestBancor {
     using SafeERC20 for IERC20;
+    using SafeMath for uint256;
+    
+    address public priceFeeds;
+    
+    constructor(address feed) public{
+        priceFeeds = feed;
+    }
     
     function addressOf(bytes32 contractName) public view returns(address){
         return address(this);
@@ -20,8 +31,9 @@ contract TestBancor is State {
         address _affiliateAccount, 
         uint256 _affiliateFee
     ) external payable returns (uint256){
-        TestToken(address(_path[0])).burn(address(this), _amount);
-        TestToken(address(_path[1])).mint(address(this), _minReturn);
+        TestToken(address(_path[0])).burn(address(msg.sender), _amount);
+        TestToken(address(_path[1])).mint(address(msg.sender), _minReturn);
+        return _minReturn;
     }
     
     function rateByPath(
@@ -36,6 +48,7 @@ contract TestBancor is State {
         return _amount
             .mul(sourceToDestRate)
             .div(sourceToDestPrecision);
+
     }
     
     function conversionPath(

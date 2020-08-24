@@ -13,8 +13,8 @@ import "./interfaces/ProtocolSettingsLike.sol";
 contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
     using SafeMath for uint256;
 
-    // It is important to maintain the variables order so the delegate calls can access bZxContractAddress
-    address public bZxContractAddress;
+    // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress
+    address public sovrynContractAddress;
 
     modifier onlyAdmin() {
         require(msg.sender == address(this) ||
@@ -41,7 +41,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
             loanParamsList[i].loanToken = _loanTokenAddress;
             loanParamsList[i].maxLoanTerm = 0;
         }
-        loanParamsIdList = ProtocolSettingsLike(bZxContractAddress).setupLoanParams(loanParamsList);
+        loanParamsIdList = ProtocolSettingsLike(sovrynContractAddress).setupLoanParams(loanParamsList);
         for (uint256 i = 0; i < loanParamsIdList.length; i++) {
             loanParamsIds[uint256(keccak256(abi.encodePacked(
                 loanParamsList[i].collateralToken,
@@ -64,7 +64,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
             loanParamsList[i].maxLoanTerm = 2419200; // 28 days
         }
 
-        loanParamsIdList = ProtocolSettingsLike(bZxContractAddress).setupLoanParams(loanParamsList);
+        loanParamsIdList = ProtocolSettingsLike(sovrynContractAddress).setupLoanParams(loanParamsList);
         for (uint256 i = 0; i < loanParamsIdList.length; i++) {
             loanParamsIds[uint256(keccak256(abi.encodePacked(
                 loanParamsList[i].collateralToken,
@@ -92,7 +92,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
             delete loanParamsIds[id];
         }
 
-        ProtocolSettingsLike(bZxContractAddress).disableLoanParams(loanParamsIdList);
+        ProtocolSettingsLike(sovrynContractAddress).disableLoanParams(loanParamsIdList);
     }
 
     // These params should be percentages represented like so: 5% = 5000000000000000000

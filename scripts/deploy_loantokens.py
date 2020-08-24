@@ -14,7 +14,7 @@ def main():
     deployLoanToken()
 
 def deployLoanToken():
-    global deploys, bzx, tokens, constants, addresses, thisNetwork, acct
+    global deploys, sovryn, tokens, constants, addresses, thisNetwork, acct
 
     thisNetwork = network.show_active()
 
@@ -27,7 +27,7 @@ def deployLoanToken():
 
     print("Loaded account",acct)
     
-    print("Deploying LoanTokenLogicStandard   - careful: hardcoded bZx and WEth contracts.")
+    print("Deploying LoanTokenLogicStandard   - careful: hardcoded sovryn and WEth contracts.")
     loanTokenLogic = acct.deploy(LoanTokenLogicStandard)
     _add_contract(loanTokenLogic)
 

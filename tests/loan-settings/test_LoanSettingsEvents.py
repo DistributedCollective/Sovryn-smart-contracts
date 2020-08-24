@@ -4,10 +4,10 @@ import pytest
 from brownie import Wei, reverts
 
 @pytest.fixture(scope="module", autouse=True)
-def loanSettings(LoanSettings, accounts, bzx):
-    bzx.replaceContract(accounts[0].deploy(LoanSettings).address)
+def loanSettings(LoanSettings, accounts, sovryn):
+    sovryn.replaceContract(accounts[0].deploy(LoanSettings).address)
 
-def test_setupLoanParamsEvents(Constants, bzx, accounts, SUSD, WETH):
+def test_setupLoanParamsEvents(Constants, sovryn, accounts, SUSD, WETH):
     loanParams = {
         "id": "0x0",
         "active": False,
@@ -19,7 +19,7 @@ def test_setupLoanParamsEvents(Constants, bzx, accounts, SUSD, WETH):
         "fixedLoanTerm": "2419200"
     }
 
-    tx = bzx.setupLoanParams([list(loanParams.values())])
+    tx = sovryn.setupLoanParams([list(loanParams.values())])
     print("tx.events", tx.events)
 
     loanParamsIdSetup = tx.events["LoanParamsIdSetup"][0] 
@@ -35,7 +35,7 @@ def test_setupLoanParamsEvents(Constants, bzx, accounts, SUSD, WETH):
     assert(loanParamsSetup["maintenanceMargin"] == Wei("15 ether"))
     assert(loanParamsSetup["maxLoanTerm"] == "2419200")
 
-def test_disableLoanParamsEvents(Constants, bzx, accounts, SUSD, WETH):
+def test_disableLoanParamsEvents(Constants, sovryn, accounts, SUSD, WETH):
     loanParams = {
         "id": "0x0",
         "active": False,
@@ -46,11 +46,11 @@ def test_disableLoanParamsEvents(Constants, bzx, accounts, SUSD, WETH):
         "maintenanceMargin": Wei("15 ether"),
         "fixedLoanTerm": "2419200"
     }
-    txsetupLoanParams = bzx.setupLoanParams([list(loanParams.values())])
+    txsetupLoanParams = sovryn.setupLoanParams([list(loanParams.values())])
     loanParamsId = txsetupLoanParams.events["LoanParamsIdSetup"][0]["id"]
     
     print("loanParamsId", loanParamsId)
-    tx = bzx.disableLoanParams([loanParamsId], { "from": accounts[0] })
+    tx = sovryn.disableLoanParams([loanParamsId], { "from": accounts[0] })
     print("tx.events", tx)
 
     loanParamsIdDisabled = tx.events["LoanParamsIdDisabled"][0] 

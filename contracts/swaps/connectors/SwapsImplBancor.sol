@@ -11,11 +11,12 @@ import "./interfaces/IContractRegistry.sol";
 contract SwapsImplBancor is State, ISwapsImpl {
     using SafeERC20 for IERC20;
     
-    address contractRegistryAddress;
+    
     bytes32 contractName = hex"42616e636f724e6574776f726b"; // "BancorNetwork"
     
     function getBancorNetworkContract() public view returns(IBancorNetwork){
-        IContractRegistry contractRegistry = IContractRegistry(contractRegistryAddress);
+        //bancorContractRegistryAddress is part of State.sol and set in ProtocolSettings.sol
+        IContractRegistry contractRegistry = IContractRegistry(bancorContractRegistryAddress);
         return IBancorNetwork(contractRegistry.addressOf(contractName));
     }
     
@@ -80,6 +81,7 @@ contract SwapsImplBancor is State, ISwapsImpl {
                 );
             }
         }
+
     }
     
     /**
@@ -159,13 +161,7 @@ contract SwapsImplBancor is State, ISwapsImpl {
         return expectedReturn.mul(10**18).div(sourceTokenAmount);
     }
     
-    /**
-     * sets the contract registry address of the bancor network
-     * @param registryAddress the address of the registry contract
-     * */
-    function setContractRegistryAddress(address registryAddress) external onlyOwner{
-        contractRegistryAddress = registryAddress;
-    }
+    
     
     
 }

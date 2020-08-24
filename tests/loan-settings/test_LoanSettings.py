@@ -4,18 +4,18 @@ import pytest
 from brownie import Wei, reverts
 
 @pytest.fixture(scope="module", autouse=True)
-def loanSettings(LoanSettings, accounts, bzx):
-    bzx.replaceContract(accounts[0].deploy(LoanSettings).address)
+def loanSettings(LoanSettings, accounts, sovryn):
+    sovryn.replaceContract(accounts[0].deploy(LoanSettings).address)
 
 @pytest.fixture(scope="module", autouse=True)
-def loanParamsId(accounts, bzx, loanParams):
-    tx = bzx.setupLoanParams([list(loanParams.values())])
+def loanParamsId(accounts, sovryn, loanParams):
+    tx = sovryn.setupLoanParams([list(loanParams.values())])
     loanParamsId = tx.events["LoanParamsIdSetup"][0]["id"]
     return loanParamsId
 
 
 @pytest.fixture(scope="module", autouse=True)
-def loanParams(accounts, bzx, WETH, SUSD, Constants):
+def loanParams(accounts, sovryn, WETH, SUSD, Constants):
     loanParams = {
         "id": "0x0",
         "active": False,
@@ -29,8 +29,8 @@ def loanParams(accounts, bzx, WETH, SUSD, Constants):
     return loanParams
 
 
-def test_setup_removeLoanParams(Constants, bzx, accounts, SUSD, WETH, loanParamsId, loanParams):
-    loanParamsAfter = bzx.getLoanParams([loanParamsId])[0]
+def test_setup_removeLoanParams(Constants, sovryn, accounts, SUSD, WETH, loanParamsId, loanParams):
+    loanParamsAfter = sovryn.getLoanParams([loanParamsId])[0]
     loanParamsAfter = dict(zip(list(loanParams.keys()), loanParamsAfter))
     print(loanParamsAfter)
 
@@ -40,14 +40,14 @@ def test_setup_removeLoanParams(Constants, bzx, accounts, SUSD, WETH, loanParams
     assert(loanParamsAfter["loanToken"] == SUSD.address)
 
     with reverts("unauthorized owner"):
-        bzx.disableLoanParams([loanParamsId], { "from": accounts[1] })
+        sovryn.disableLoanParams([loanParamsId], { "from": accounts[1] })
 
-    bzx.disableLoanParams([loanParamsId], { "from": accounts[0] })
-    assert(bzx.getLoanParams([loanParamsId])[0][0] != "0x0")
+    sovryn.disableLoanParams([loanParamsId], { "from": accounts[0] })
+    assert(sovryn.getLoanParams([loanParamsId])[0][0] != "0x0")
 
 
-def test_setup_removeLoanOrder(Constants, bzx, accounts, SUSD, WETH, loanParamsId, loanParams):
-    loanParamsAfter = bzx.getLoanParams([loanParamsId])[0]
+def test_setup_removeLoanOrder(Constants, sovryn, accounts, SUSD, WETH, loanParamsId, loanParams):
+    loanParamsAfter = sovryn.getLoanParams([loanParamsId])[0]
     loanParamsAfter = dict(zip(list(loanParams.keys()), loanParamsAfter))
     print(loanParamsAfter)
 
@@ -57,15 +57,15 @@ def test_setup_removeLoanOrder(Constants, bzx, accounts, SUSD, WETH, loanParamsI
     assert(loanParamsAfter["loanToken"] == SUSD.address)
 
     with reverts("unauthorized owner"):
-        bzx.disableLoanParams([loanParamsId], { "from": accounts[1] })
+        sovryn.disableLoanParams([loanParamsId], { "from": accounts[1] })
 
-    bzx.disableLoanParams([loanParamsId], { "from": accounts[0] })
-    assert(bzx.getLoanParams([loanParamsId])[0][0] != "0x0")
+    sovryn.disableLoanParams([loanParamsId], { "from": accounts[0] })
+    assert(sovryn.getLoanParams([loanParamsId])[0][0] != "0x0")
 
 
-def test_disableLoanParams(bzx, accounts, SUSD, WETH, loanParamsId, loanParams):
-    bzx.disableLoanParams([loanParamsId], { "from": accounts[0] })
-    loanParamsAfter = bzx.getLoanParams([loanParamsId])[0]
+def test_disableLoanParams(sovryn, accounts, SUSD, WETH, loanParamsId, loanParams):
+    sovryn.disableLoanParams([loanParamsId], { "from": accounts[0] })
+    loanParamsAfter = sovryn.getLoanParams([loanParamsId])[0]
     loanParamsAfter = dict(zip(list(loanParams.keys()), loanParamsAfter))
     print("loanParamsAfter", loanParamsAfter)
     assert(loanParamsAfter["id"] != "0x0")
@@ -78,8 +78,8 @@ def test_disableLoanParams(bzx, accounts, SUSD, WETH, loanParamsId, loanParams):
     assert(loanParamsAfter["fixedLoanTerm"] == "2419200")
 
 
-def test_getLoanParams(bzx, accounts, SUSD, WETH, loanParamsId, loanParams):
-    loanParamsAfter = bzx.getLoanParams([loanParamsId])[0]
+def test_getLoanParams(sovryn, accounts, SUSD, WETH, loanParamsId, loanParams):
+    loanParamsAfter = sovryn.getLoanParams([loanParamsId])[0]
     loanParamsAfter = dict(zip(list(loanParams.keys()), loanParamsAfter))
     print("loanParamsAfter", loanParamsAfter)
     assert(loanParamsAfter["id"] != "0x0")
@@ -92,12 +92,12 @@ def test_getLoanParams(bzx, accounts, SUSD, WETH, loanParamsId, loanParams):
     assert(loanParamsAfter["fixedLoanTerm"] == "2419200")
 
 
-def test_getLoanParamsList(bzx, accounts, loanParamsId, loanParams):
-    loanParamsList = bzx.getLoanParamsList(accounts[0], 0, 1)
+def test_getLoanParamsList(sovryn, accounts, loanParamsId, loanParams):
+    loanParamsList = sovryn.getLoanParamsList(accounts[0], 0, 1)
     assert(loanParamsList[0] == loanParamsId)
 
 
-def test_getTotalPrincipal(Constants, bzx, accounts, SUSD, WETH, RBTC, loanParamsId, loanParams):
-    totalPrincipal = bzx.getTotalPrincipal(accounts[0], SUSD.address)
+def test_getTotalPrincipal(Constants, sovryn, accounts, SUSD, WETH, RBTC, loanParamsId, loanParams):
+    totalPrincipal = sovryn.getTotalPrincipal(accounts[0], SUSD.address)
     print("totalPrincipal", totalPrincipal)
     assert(totalPrincipal == 0)
