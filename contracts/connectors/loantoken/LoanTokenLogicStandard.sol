@@ -59,7 +59,12 @@ contract LoanTokenLogicStandard is AdvancedToken {
             _safeTransfer(loanTokenAddress, receiver, loanAmountPaid, "5");
         }
     }
-
+    
+    
+    /*
+    flashBorrow is disabled for the MVP, but is going to be added later.
+    therefore, it needs to be revised
+    
     function flashBorrow(
         uint256 borrowAmount,
         address borrower,
@@ -118,8 +123,8 @@ contract LoanTokenLogicStandard is AdvancedToken {
 
         return returnData;
     }
+    */
 
-    // ***** NOTE: Reentrancy is allowed here to allow flashloan use cases *****
     function borrow(
         bytes32 loanId,                 // 0 if new loan
         uint256 withdrawAmount,
@@ -131,6 +136,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         bytes memory /*loanDataBytes*/) // arbitrary order data (for future use)
         public
         payable
+        nonReentrant                    //note: needs to be removed to allow flashloan use cases
         returns (uint256, uint256) // returns new principal and new collateral added to loan
     {
         require(withdrawAmount != 0, "6");
@@ -180,7 +186,6 @@ contract LoanTokenLogicStandard is AdvancedToken {
     }
 
     // Called to borrow and immediately get into a positions
-    // ***** NOTE: Reentrancy is allowed here to allow flashloan use cases *****
     function marginTrade(
         bytes32 loanId,                 // 0 if new loan
         uint256 leverageAmount,         // expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
@@ -191,6 +196,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         bytes memory loanDataBytes)     // arbitrary order data
         public
         payable
+        nonReentrant                    //note: needs to be removed to allow flashloan use cases
         returns (uint256, uint256) // returns new principal and new collateral added to trade
     {
         _checkPause();
