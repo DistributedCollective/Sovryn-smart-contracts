@@ -69,9 +69,9 @@ def margin_pool_setup(accounts, RBTC, loanTokenSettings, loanToken, sovryn, SUSD
     )
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture
 def set_demand_curve(loanToken, LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, accounts, loanTokenSettings):
-    def internal_set_demand_curve(baseRate, rateMultiplier):
+    def internal_set_demand_curve(baseRate=1e18, rateMultiplier=20.25e18):
         local_loan_token = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
         local_loan_token.setTarget(loanTokenSettings.address)
         local_loan_token_settings = Contract.from_abi("loanToken", address=loanToken.address,
@@ -87,6 +87,50 @@ def set_demand_curve(loanToken, LoanToken, LoanTokenLogicStandard, LoanTokenSett
         assert (borrow_interest_rate > baseRate)
 
     return internal_set_demand_curve
+
+
+@pytest.fixture
+def lend_to_pool(accounts, SUSD, loanToken):
+    def internal_lend(lender=accounts[0], lend_amount=1e30):
+        # lend
+        SUSD.mint(lender, lend_amount)
+        SUSD.approve(loanToken.address, lend_amount)
+        loanToken.mint(lender, lend_amount)
+
+        return lender, lend_amount
+
+    return internal_lend
+
+
+@pytest.fixture
+def open_margin_trade_position(accounts, SUSD, RBTC, loanToken):
+    def internal_open_margin_trade(trader=accounts[1],
+                                   loan_token_sent=100e18,
+                                   leverage_amount=2e18):
+        """
+        Opens a margin trade position
+        :param trader: trader address
+        :param loan_token_sent: loan token amount sent
+        :param leverage_amount: leverage amount in form 1x,2x,3x,4x,5x where 1 is 1e18
+        :return: loan_id, trader, loan_token_sent and leverage_amount
+        """
+        SUSD.mint(trader, loan_token_sent)
+        SUSD.approve(loanToken.address, loan_token_sent, {'from': trader})
+
+        tx = loanToken.marginTrade(
+            "0",  # loanId  (0 for new loans)
+            leverage_amount,  # leverageAmount
+            loan_token_sent,  # loanTokenSent
+            0,  # no collateral token sent
+            RBTC.address,  # collateralTokenAddress
+            trader,  # trader,
+            b'',  # loanDataBytes (only required with ether)
+            {'from': trader}
+        )
+
+        return tx.events['Trade']['loanId'], trader, loan_token_sent, leverage_amount
+
+    return internal_open_margin_trade
 
 
 def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, RBTC):
@@ -381,41 +425,179 @@ def loanClosings(LoanClosings, accounts, sovryn, Constants, priceFeeds, swapsImp
     sovryn.replaceContract(accounts[0].deploy(LoanClosings))
 
 
-def test_close_margin_trade(accounts, sovryn, loanToken, SUSD, RBTC, web3):
-    loanTokenSent = 100e18
-    SUSD.mint(loanToken.address, loanTokenSent * 3)
-    SUSD.mint(accounts[0], loanTokenSent)
-    SUSD.approve(loanToken.address, loanTokenSent)
-    tx = loanToken.marginTrade(
-        "0",  # loanId  (0 for new loans)
-        2e18,  # leverageAmount
-        loanTokenSent,  # loanTokenSent
-        0,  # no collateral token sent
-        RBTC.address,  # collateralTokenAddress
-        accounts[0],  # trader,
-        b''  # loanDataBytes (only required with ether)
-    )
+def test_close_margin_trade(sovryn, loanToken, web3, set_demand_curve, lend_to_pool, open_margin_trade_position, priceFeeds, chain):
+    set_demand_curve()
+    (receiver, _) = lend_to_pool()
+    (loan_id, trader, loan_token_sent, leverage_amount) = open_margin_trade_position()
 
-    loan_id = tx.events['Trade']['loanId']
+    chain.sleep(10*24*60*60)  # time travel 10 days
+    chain.mine(1)
     initial_loan = sovryn.getLoan(loan_id)
-    print('Before', initial_loan.dict())
 
-    tx_loan_closing = sovryn.closeWithSwap(loan_id, accounts[0], loanTokenSent, False, "")
-    print('***************************************************')
+    with reverts("unauthorized"):
+        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, False, "")
+
+    swap_amount = loan_token_sent
+    tx_loan_closing = sovryn.closeWithSwap(loan_id, trader, swap_amount, False, "", {'from': trader})
     closed_loan = sovryn.getLoan(loan_id).dict()
-    print('After', closed_loan)
 
-    assert(tx_loan_closing.events['CloseWithSwap']['loanId'] == loan_id)
-    assert(tx_loan_closing.events['CloseWithSwap']['loanCloseAmount'] == initial_loan['principal'])
-    assert(tx_loan_closing.events['CloseWithSwap']['currentLeverage'] == 0)
-    assert(tx_loan_closing.events['CloseWithSwap']['closer'] == accounts[0])
+    principal_ = initial_loan['principal']
+    collateral_ = initial_loan['collateral']
 
-    assert(closed_loan['principal'] == 0)
+    loan_token_ = initial_loan['loanToken']
+    collateral_token_ = initial_loan['collateralToken']
+    (trade_rate, precision) = priceFeeds.queryRate(collateral_token_, loan_token_)
+
+    swap_amount = collateral_ if swap_amount > collateral_ else swap_amount
+
+    loan_close_amount = principal_ if swap_amount == collateral_ \
+        else fixedint(principal_).mul(swap_amount).div(collateral_)
+
+    interest_refund_to_borrower = fixedint(initial_loan['interestDepositRemaining'])\
+        .mul(loan_close_amount).div(principal_)
+
+    loan_close_amount_less_interest = fixedint(loan_close_amount).sub(interest_refund_to_borrower) \
+        if fixedint(loan_close_amount).num >= interest_refund_to_borrower.num \
+        else interest_refund_to_borrower
+
+    trading_fee_percent = sovryn.tradingFeePercent()
+    trading_fee = fixedint(swap_amount).mul(trading_fee_percent).div(1e20)
+
+    source_token_amount_used = swap_amount
+    dest_token_amount_received = fixedint(swap_amount).sub(trading_fee).mul(trade_rate).div(precision)
+
+    collateral_to_loan_swap_rate = fixedint(dest_token_amount_received).mul(precision).div(source_token_amount_used)
+    collateral_to_loan_swap_rate = fixedint(1e36).div(collateral_to_loan_swap_rate)
+
+    used_collateral = source_token_amount_used if source_token_amount_used > swap_amount else swap_amount
+
+    covered_principal = 0
+    loan_close_amount = principal_ if swap_amount == collateral_ \
+        else fixedint(principal_).mul(swap_amount).div(collateral_)
+    if loan_close_amount_less_interest == 0:
+        loan_close_amount = covered_principal
+        if covered_principal != principal_:
+            loan_close_amount = fixedint(loan_close_amount).mul(used_collateral).div(collateral_)
+
+    new_collateral = used_collateral if used_collateral != 0 else collateral_
+    new_principal = 0 if loan_close_amount == principal_ else fixedint(principal_).sub(loan_close_amount)
+
+    current_margin = fixedint(new_collateral).mul(trade_rate).mul(1e18).div(precision).div(1e18)
+    current_margin = current_margin.sub(new_principal).mul(1e20).div(new_principal) \
+        if (new_principal != 0 and current_margin.num >= new_principal) else 0
+    current_margin = fixedint(1e36).div(current_margin) if current_margin != 0 else 0
+
+    loan_swap_event = tx_loan_closing.events['LoanSwap']
+    assert(loan_swap_event['loanId'] == loan_id)
+    assert(loan_swap_event['sourceToken'] == collateral_token_)
+    assert(loan_swap_event['destToken'] == loan_token_)
+    assert(loan_swap_event['borrower'] == trader)
+    assert(loan_swap_event['destAmount'] == dest_token_amount_received)
+    assert(loan_swap_event['sourceAmount'] == source_token_amount_used)
+
+    tx_loan_closing.info()
+    close_with_swap_event = tx_loan_closing.events['CloseWithSwap']
+    assert (close_with_swap_event['loanId'] == loan_id)
+    assert(close_with_swap_event['loanCloseAmount'] == loan_close_amount)
+    assert(close_with_swap_event['currentLeverage'] == current_margin)
+    assert(close_with_swap_event['closer'] == trader)
+    assert(close_with_swap_event['user'] == trader)
+    assert(close_with_swap_event['lender'] == loanToken.address)
+    assert(close_with_swap_event['collateralToken'] == collateral_token_)
+    assert(close_with_swap_event['loanToken'] == loan_token_)
+    assert(close_with_swap_event['positionCloseSize'] == used_collateral)
+    assert(close_with_swap_event['exitPrice'] == collateral_to_loan_swap_rate)
+
+    assert(closed_loan['principal'] == new_principal)
     last_block_timestamp = web3.eth.getBlock(web3.eth.blockNumber)['timestamp']
     assert(closed_loan['endTimestamp'] <= last_block_timestamp)
+    # TODO swapAmount > initial_loan.collateral
 
-    # TODO returnTokenIsCollateral True
-    # TODO swapAmount < initial_loan.collateral
+
+def test_close_margin_trade_returning_collateral(sovryn, loanToken, web3, set_demand_curve, lend_to_pool, open_margin_trade_position, priceFeeds, chain):
+    set_demand_curve()
+    (receiver, _) = lend_to_pool()
+    (loan_id, trader, loan_token_sent, leverage_amount) = open_margin_trade_position()
+
+    chain.sleep(10*24*60*60)  # time travel 10 days
+    chain.mine(1)
+    initial_loan = sovryn.getLoan(loan_id)
+
+    with reverts("unauthorized"):
+        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, True, "")
+
+    swap_amount = loan_token_sent
+    tx_loan_closing = sovryn.closeWithSwap(loan_id, trader, swap_amount, True, "", {'from': trader})
+    closed_loan = sovryn.getLoan(loan_id).dict()
+
+    principal_ = initial_loan['principal']
+    collateral_ = initial_loan['collateral']
+
+    loan_token_ = initial_loan['loanToken']
+    collateral_token_ = initial_loan['collateralToken']
+    (trade_rate, precision) = priceFeeds.queryRate(collateral_token_, loan_token_)
+
+    swap_amount = collateral_ if swap_amount > collateral_ else swap_amount
+
+    loan_close_amount = principal_ if swap_amount == collateral_ \
+        else fixedint(principal_).mul(swap_amount).div(collateral_)
+
+    interest_refund_to_borrower = fixedint(initial_loan['interestDepositRemaining']) \
+        .mul(loan_close_amount).div(principal_)
+
+    loan_close_amount_less_interest = fixedint(loan_close_amount).sub(interest_refund_to_borrower) \
+        if fixedint(loan_close_amount).num >= interest_refund_to_borrower.num \
+        else interest_refund_to_borrower
+
+    trading_fee_percent = sovryn.tradingFeePercent()
+    trading_fee = fixedint(loan_close_amount_less_interest).mul(trading_fee_percent).div(1e20)
+
+    source_token_amount_used = fixedint(loan_close_amount_less_interest).add(trading_fee).mul(precision).div(trade_rate)
+    dest_token_amount_received = loan_close_amount_less_interest
+
+    collateral_to_loan_swap_rate = fixedint(dest_token_amount_received).mul(precision).div(source_token_amount_used)
+    collateral_to_loan_swap_rate = fixedint(10**36).div(collateral_to_loan_swap_rate)  # 1e36 produces a wrong number
+    used_collateral = source_token_amount_used if source_token_amount_used > swap_amount else swap_amount
+
+    covered_principal = 0
+    loan_close_amount = principal_ if swap_amount == collateral_ \
+        else fixedint(principal_).mul(swap_amount).div(collateral_)
+    if loan_close_amount_less_interest == 0:
+        loan_close_amount = covered_principal
+        if covered_principal != principal_:
+            loan_close_amount = fixedint(loan_close_amount).mul(used_collateral).div(collateral_)
+
+    new_collateral = used_collateral if used_collateral != 0 else collateral_
+    new_principal = 0 if loan_close_amount == principal_ else fixedint(principal_).sub(loan_close_amount)
+
+    current_margin = fixedint(new_collateral).mul(trade_rate).mul(1e18).div(precision).div(1e18)
+    current_margin = current_margin.sub(new_principal).mul(1e20).div(new_principal) \
+        if (new_principal != 0 and current_margin.num >= new_principal) else 0
+    current_margin = fixedint(10**36).div(current_margin) if current_margin != 0 else 0
+
+    loan_swap_event = tx_loan_closing.events['LoanSwap']
+    assert(loan_swap_event['loanId'] == loan_id)
+    assert(loan_swap_event['sourceToken'] == collateral_token_)
+    assert(loan_swap_event['destToken'] == loan_token_)
+    assert(loan_swap_event['borrower'] == trader)
+    assert(loan_swap_event['sourceAmount'] == source_token_amount_used)
+    assert(loan_swap_event['destAmount'] == dest_token_amount_received)
+
+    close_with_swap_event = tx_loan_closing.events['CloseWithSwap']
+    assert (close_with_swap_event['loanId'] == loan_id)
+    assert(close_with_swap_event['loanCloseAmount'] == loan_close_amount)
+    assert(close_with_swap_event['currentLeverage'] == current_margin)
+    assert(close_with_swap_event['closer'] == trader)
+    assert(close_with_swap_event['user'] == trader)
+    assert(close_with_swap_event['lender'] == loanToken.address)
+    assert(close_with_swap_event['collateralToken'] == collateral_token_)
+    assert(close_with_swap_event['loanToken'] == loan_token_)
+    assert(close_with_swap_event['positionCloseSize'] == used_collateral)
+    assert(close_with_swap_event['exitPrice'] == collateral_to_loan_swap_rate)
+
+    assert(closed_loan['principal'] == new_principal)
+    last_block_timestamp = web3.eth.getBlock(web3.eth.blockNumber)['timestamp']
+    assert(closed_loan['endTimestamp'] <= last_block_timestamp)
 
 
 def test_transfer(accounts, loanToken, SUSD):
