@@ -66,6 +66,7 @@ contract SwapsImplBancor is State, ISwapsImpl {
         
         allowTransfer(sourceTokenAmountUsed, sourceTokenAddress, address(bancorNetwork));
         
+        //note: the kyber connector uses .call() to interact with kyber to avoid bubbling up. here we allow bubbling up.
         destTokenAmountReceived = bancorNetwork.convertByPath(path, sourceTokenAmountUsed, expectedReturn, address(0), address(0), 0);
         
         //if the sender is not the protocol (calling with delegatecall), return the remainder to the specified address. 
