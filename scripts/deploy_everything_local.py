@@ -54,7 +54,7 @@ def deployProtocol():
     
 
     print("Deploying Swaps.")
-    swaps = acct.deploy(SwapsImplLocal)
+    swaps = acct.deploy(SwapsImplBancor)
 
 
     print("Deploying ProtocolSettings.")
@@ -71,6 +71,16 @@ def deployProtocol():
     sovryn.setSwapsImplContract(
         swaps.address  # swapsImpl
     )
+    
+    #on local deployment, we're using a simulator for the bancor network 
+    if thisNetwork == "development":
+        print("Deploying the bancor simulator")
+        bancorSimulator = accounts[0].deploy(TestBancor, feeds.address)
+        print("setting the bancor contract registry address")
+        sovryn.setBancorContractRegistryAddress(bancorSimulator.address)
+    
+    print("Setting the supported addresses") 
+    sovryn.setSupportedTokens([tokens.susd.address,tokens.rbtc.address, tokens.weth.address],[True,True, True])
 
     sovryn.setFeesController(acct.address)
 
