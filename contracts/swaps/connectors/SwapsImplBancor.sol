@@ -126,8 +126,9 @@ contract SwapsImplBancor is State, ISwapsImpl {
             .mul(sourceToDestPrecision)
             .div(expectedRate);
         
-        //always spend the minimum
-        if(estimatedSourceAmount == 0 || estimatedSourceAmount < minSourceTokenAmount)
+        //do not always spend the minimum. the naming is misleading. the protocol requires the 
+        //swap implementation to swap less than the passed minimum at times in order to function as expected.
+        if(estimatedSourceAmount == 0/* || estimatedSourceAmount < minSourceTokenAmount*/)
             return minSourceTokenAmount;
         //never spend more than the maximum
         else if (estimatedSourceAmount > maxSourceTokenAmount) 
