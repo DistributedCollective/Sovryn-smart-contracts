@@ -22,11 +22,19 @@ contract SwapsImplBancor is State, ISwapsImpl {
     
     /**
      * swaps the source token for the destination token on the oracle based amm.
-     * on loan opening: minSourceTokenAmount = maxSourceTokenAmount and requiredDestTokenAmount = 0
-     * on loan extension: (swap interest) minSourceTokenAmount = 0, maxSourceTokenAmount = complete collateral and requiredDestTokenAmount > 0 
-     *  (amount of source tokens used needs to be estimated)
+     * on loan opening: minSourceTokenAmount = maxSourceTokenAmount and requiredDestTokenAmount = 0 
+     *      -> swap the minSourceTokenAmount
+     * on loan rollover: (swap interest) minSourceTokenAmount = 0, maxSourceTokenAmount = complete collateral and requiredDestTokenAmount > 0 
+     *      -> amount of required source tokens to swap is estimated (want to fill requiredDestTokenAmount, not more). maxSourceTokenAMount is not exceeded.
      * on loan closure: minSourceTokenAmount <= maxSourceTokenAmount and requiredDestTokenAmount >= 0
-     *  (excess is going to the borrower)
+     *      -> same as on rollover. minimum amount is not considered at all.
+     * @param sourceTokenAddress the address of the source tokens
+     * @param destTokenAddress the address of the destination tokens
+     * @param receiverAddress the address to receive the swapped tokens
+     * @param returnToSenderAddress the address to return unspent tokens to (when called by the protocol, it's always the protocol contract)
+     * @param minSourceTokenAmount the minimum amount of source tokens to swapped (only considered if requiredDestTokens == 0)
+     * @param maxSourceTokenAmount the maximum amount of source tokens to swapped
+     * @param requiredDestTokenAmount the required amount of destination tokens 
      * **/
     function internalSwap(
         address sourceTokenAddress,
@@ -49,20 +57,18 @@ contract SwapsImplBancor is State, ISwapsImpl {
         );
         
         uint expectedReturn = 0;
-        if(minSourceTokenAmount > 0){
-            //bancorNetwork.rateByPath does not return a rate, but instead the amount of destination tokens returned
-            expectedReturn = bancorNetwork.rateByPath(path, minSourceTokenAmount);
-        }
         
-        sourceTokenAmountUsed = minSourceTokenAmount;
+        //if the required amount of destination tokens is passed, we need to calculate the estimated amount of source tokens
+        //regardless of the minimum source token amount (name is misleading)
         if(requiredDestTokenAmount > 0){
-            //in case we require a certain amount of tokens and can spend more than the minSourceTokenAmount
-            //calculate the number of tokens to provide 
-            if(maxSourceTokenAmount > minSourceTokenAmount && expectedReturn < requiredDestTokenAmount){
-                sourceTokenAmountUsed = estimateSourceTokenAmount(sourceTokenAddress, destTokenAddress, requiredDestTokenAmount, minSourceTokenAmount, maxSourceTokenAmount);
-                require(bancorNetwork.rateByPath(path, sourceTokenAmountUsed) >= requiredDestTokenAmount, "insufficient source tokens provided.");
-            }
+            sourceTokenAmountUsed = estimateSourceTokenAmount(sourceTokenAddress, destTokenAddress, requiredDestTokenAmount,  maxSourceTokenAmount);
+             //bancorNetwork.rateByPath does not return a rate, but instead the amount of destination tokens returned
+            require(bancorNetwork.rateByPath(path, sourceTokenAmountUsed) >= requiredDestTokenAmount, "insufficient source tokens provided.");
             expectedReturn = requiredDestTokenAmount;
+        }
+        else if(minSourceTokenAmount > 0){
+            sourceTokenAmountUsed = minSourceTokenAmount;
+            expectedReturn = bancorNetwork.rateByPath(path, minSourceTokenAmount);
         }
         
         allowTransfer(sourceTokenAmountUsed, sourceTokenAddress, address(bancorNetwork));
@@ -106,11 +112,10 @@ contract SwapsImplBancor is State, ISwapsImpl {
      * @param sourceTokenAddress the address of the source token address
      * @param destTokenAddress the address of the destination token address
      * @param requiredDestTokenAmount the number of destination tokens needed
-     * @param minSourceTokenAmount the minimum number of source tokens to spend
      * @param maxSourceTokenAmount the maximum number of source tokens to spend
      * @return the estimated amount of source tokens needed. minimum: minSourceTokenAmount, maximum: maxSourceTokenAmount
      * */
-    function estimateSourceTokenAmount(address sourceTokenAddress, address destTokenAddress, uint requiredDestTokenAmount, uint minSourceTokenAmount, uint maxSourceTokenAmount) internal returns(uint256 estimatedSourceAmount){
+    function estimateSourceTokenAmount(address sourceTokenAddress, address destTokenAddress, uint requiredDestTokenAmount,  uint maxSourceTokenAmount) internal returns(uint256 estimatedSourceAmount){
         //logic like in SwapsImplKyber. query current rate from the price feed, add a 5% buffer and return this value
         //in case it's not bigger than maxSourceTokenAmount. else return maxSourceTokenAmount
         
@@ -126,11 +131,8 @@ contract SwapsImplBancor is State, ISwapsImpl {
             .mul(sourceToDestPrecision)
             .div(expectedRate);
         
-        //always spend the minimum
-        if(estimatedSourceAmount == 0 || estimatedSourceAmount < minSourceTokenAmount)
-            return minSourceTokenAmount;
         //never spend more than the maximum
-        else if (estimatedSourceAmount > maxSourceTokenAmount) 
+        if (estimatedSourceAmount == 0 || estimatedSourceAmount > maxSourceTokenAmount) 
             return maxSourceTokenAmount;
 
     }
