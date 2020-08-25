@@ -131,6 +131,7 @@ contract SwapsImplBancor is State, ISwapsImpl {
             .mul(sourceToDestPrecision)
             .div(expectedRate);
         
+
         //never spend more than the maximum
         if (estimatedSourceAmount == 0 || estimatedSourceAmount > maxSourceTokenAmount) 
             return maxSourceTokenAmount;
