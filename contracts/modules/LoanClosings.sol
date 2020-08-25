@@ -101,6 +101,16 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
         );
     }
 
+    /**
+     * closes a position by swapping the collateral back to loan tokens, paying the lender
+     * and withdrawing the remainder.
+     * @param loanId the id of the loan
+     * @param receiver the receiver of the remainder (unused collatral + profit)
+     * @param swapAmount defines how much of the position should be closed and is denominated in collateral tokens. 
+     *      If swapAmount >= collateral, the complete position will be closed. 
+     *      Else (swapAmount/collateral) * principal will be swapped (partial closure).
+     * @param returnTokenIsCollateral defines if the remainder should be paid out in collateral tokens or underlying loan tokens
+     * */
     function closeWithSwap(
         bytes32 loanId,
         address receiver,
@@ -456,7 +466,17 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
             CloseTypes.Deposit
         );
     }
-
+    
+    /**
+     * internal function for closing a position by swapping the collateral back to loan tokens, paying the lender
+     * and withdrawing the remainder.
+     * @param loanId the id of the loan
+     * @param receiver the receiver of the remainder (unused collatral + profit)
+     * @param swapAmount defines how much of the position should be closed and is denominated in collateral tokens. 
+     *      If swapAmount >= collateral, the complete position will be closed. 
+     *      Else (swapAmount/collateral) * principal will be swapped (partial closure).
+     * @param returnTokenIsCollateral defines if the remainder should be paid out in collateral tokens or underlying loan tokens
+     * */
     function _closeWithSwap(
         bytes32 loanId,
         address receiver,
@@ -478,13 +498,17 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
             loanLocal,
             loanParamsLocal
         );
-
+        
+        //can't swap more than collateral
         swapAmount = swapAmount > loanLocal.collateral ?
             loanLocal.collateral :
             swapAmount;
 
         uint256 loanCloseAmountLessInterest;
         if (swapAmount == loanLocal.collateral || returnTokenIsCollateral) {
+            //loanCloseAmountLessInterest will be passed as required amount amount of destination tokens.
+            //this means, the actual swapAmount passed to the swap contract does not matter at all.
+            //the source token amount will be computed depending on the required amount amount of destination tokens.
             loanCloseAmount = swapAmount == loanLocal.collateral ?
                 loanLocal.principal :
                 loanLocal.principal
@@ -510,8 +534,8 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
         (coveredPrincipal, usedCollateral, withdrawAmount, swapAmount) = _coverPrincipalWithSwap(
             loanLocal,
             loanParamsLocal,
-            swapAmount,
-            loanCloseAmountLessInterest,
+            swapAmount, //the amount of source tokens to swap (only matters if !returnTokenIsCollateral or loanCloseAmountLessInterest = 0)
+            loanCloseAmountLessInterest, //this is the amount of destination tokens we want to receive (only matters if returnTokenIsCollateral)
             returnTokenIsCollateral,
             loanDataBytes
         );
@@ -695,7 +719,16 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
             require(msg.value == 0, "wrong asset sent");
         }
     }
-
+    
+    /**
+     * swaps a share of a loan's collateral or the complete collateral in order to cover the principle.
+     * @param loanLocal the loan
+     * @param loanParamsLocal the loan parameters
+     * @param swapAmount in case principalNeeded == 0 or !returnTokenIsCollateral, this is the amount which is going to be swapped. 
+     *  Else, swapAmount doesn't matter, because the amount of source tokens needed for the swap is estimated by the connector. 
+     * @param principalNeeded the required amount of destination tokens in order to cover the principle (only used if returnTokenIsCollateral)
+     * @param returnTokenIsCollateral tells if the user wants to withdraw his remaining collateral + profit in collateral tokens
+     * */
     function _coverPrincipalWithSwap(
         Loan memory loanLocal,
         LoanParams memory loanParamsLocal,

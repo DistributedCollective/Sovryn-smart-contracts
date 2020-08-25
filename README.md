@@ -1,4 +1,5 @@
 
+
 # Sovryn v 0.1 Smart Contracts
 
 ## Dependencies
@@ -171,9 +172,34 @@ bytes memory loanDataBytes
 
 ##### 3.2 Close a position
 
-### 4. Liquidation Handling
+There are 2 functions for ending a loan on the protocol contract: ```closeWithSwap``` and ```closeWithDeposit```. Margin trade positions  are always closed with a swap.
 
-### 5. Remarks
+```closeWithSwap``` is expecting following parameters:
+```
+bytes32 loanId,
+address receiver,
+uint256 swapAmount, 
+bool returnTokenIsCollateral, 
+bytes memory loanDataBytes
+```
+```loanId``` is the ID of the loan, which is created on loan opening. It can be obtained either by parsing the Trade event or by reading the open loans from the contract by calling ```getActiveLoans``` or ```getUserLoans```.
+
+```receiver``` is the user's address.
+
+```swapAmount``` defines how much of the position should be swapped and is denominated in collateral tokens. If ```swapAmount >= collateral```, the complete position will be swapped.  
+
+```returnTokenIsCollateral```  pass ```true``` if you want to withdraw collateral tokens, ```false``` if you want to withdraws loan tokens.
+
+```loanDataBytes``` is not used at this point. Pass empty bytes.
+
+### 4. Loan Maintainanance
+
+##### 4.1 Add margin
+##### 4.2 Rollover
+
+### 5. Liquidation Handling
+
+### 6. Remarks
 
 The loan token (iToken) contract as well as the protocol contract act as proxies, delegating all calls to underlying contracts. Therefore, if you want to interact with them using web3, you need to use the ABIs from the contracts containing the actual logic or the interface contract.
 
