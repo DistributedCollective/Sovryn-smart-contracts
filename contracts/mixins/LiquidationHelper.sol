@@ -9,7 +9,15 @@ import "../core/State.sol";
 
 
 contract LiquidationHelper is State {
-
+    
+    /**
+     * computes how much needs to be liquidated in order to restore the desired margin (maintenance + 5%)
+     * @param principal total borrowed amount (in loan tokens)
+     * @param collateral the collateral (in collateral tokens)
+     * @param currentMargin the current margin
+     * @param maintenanceMargin the maintenance (minimum) margin
+     * @param collateralToLoanRate the exchange rate from collateral to loan tokens
+     * */
     function _getLiquidationAmounts(
         uint256 principal,
         uint256 collateral,

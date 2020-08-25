@@ -209,6 +209,25 @@ uint256 depositAmount
 ##### 4.2 Rollover
 
 ### 5. Liquidation Handling
+##### 5.1 Liquidate a position
+In order to liquidate an open position, call ```liquidate``` on the protocol contract. Requirements:
+* current margin < maintenance margin
+* liquidator approved the protocol to spend sufficient tokens
+
+```liquidate``` will compute the maximum seizable amount and buy it using the caller's tokens. Therefore, the caller needs to possess enough funds to purchase the tokens. The liquidator gets an discount on the collateral token price. The discount is set on State.sol and is called ```liquidationIncentivePercent```. Currently, it is hardcoded to 5%. 
+
+```liquidate``` expects following parameter:
+```
+bytes32 loanId,
+address receiver,
+uint256 closeAmount
+``` 
+```loanId``` is the ID of the loan
+
+```receiver``` is the address receiving the seized funds
+
+```closeAmount``` is the amount to liquidate. If closeAmount > maxLiquidatable, the maximum amount will be liquidated.
+
 
 ### 6. Remarks
 

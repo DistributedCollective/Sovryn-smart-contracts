@@ -43,6 +43,13 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
         _setTarget(this.closeWithSwap.selector, target);
     }
 
+    /**
+     * liquidates a loan. the caller needs to approve the closeAmount prior to calling.
+     * Will not liquidate more than is needed to restore the desired margin (maintenance +5%).
+     * @param loanId the ID of the loan to liquidate
+     * @param receiver the receiver of the seized amount
+     * @param closeAmount the amount to close in loanTokens
+     * */
     function liquidate(
         bytes32 loanId,
         address receiver,
@@ -134,7 +141,12 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
         );
     }
 
-
+    /**
+     * internal function for liquidating a loan. 
+     * @param loanId the ID of the loan to liquidate
+     * @param receiver the receiver of the seized amount
+     * @param closeAmount the amount to close in loanTokens
+     * */
     function _liquidate(
         bytes32 loanId,
         address receiver,
@@ -164,7 +176,8 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
         );
 
         loanCloseAmount = closeAmount;
-
+        
+        //amounts to restore the desired margin (maintencance + 5%)
         (uint256 maxLiquidatable, uint256 maxSeizable,) = _getLiquidationAmounts(
             loanLocal.principal,
             loanLocal.collateral,
