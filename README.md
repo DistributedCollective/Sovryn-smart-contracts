@@ -206,7 +206,20 @@ uint256 depositAmount
 ```loanId``` is the ID of the loan
 
 ```depositAmount``` is the amount of collateral tokens to deposit. 
+
 ##### 4.2 Rollover
+
+When the maximum loan duration has been exceeded, the position will need to be rolled over. The function ```rollover``` on the protocol contract extends the loan duration by the maximum term (28 days for margin trades at the moment of writing), pays the interest to the lender and refunds the caller for the gas cost by sending 2 * the gas cost using the fast gas price as base for the calculation.
+
+```rollover``` expects following parameter:
+```
+bytes32 loanId,
+bytes calldata loanDataBytes
+```
+```loanId``` is the ID of the loan.
+
+```loanDataBytes``` is a placeholder for future use. Send an empty bytes array.
+
 
 ### 5. Liquidation Handling
 ##### 5.1 Liquidate a position
