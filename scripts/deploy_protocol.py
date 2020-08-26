@@ -71,7 +71,7 @@ def deployProtocol():
     if deploys.PriceFeeds is True:
         print("Deploying PriceFeeds.")
         if thisNetwork == "development"  or thisNetwork == "testnet":        
-            feeds = acct.deploy(PriceFeedsLocal)
+            feeds = acct.deploy(PriceFeedsLocal, tokens.weth.address, sovryn.address)
 
             print("Calling setRates x3.")
             feeds.setRates(
@@ -91,7 +91,8 @@ def deployProtocol():
             )
         else:
             if thisNetwork == "kovan":
-                feeds = acct.deploy(PriceFeedsTestnets)
+                feeds = acct.deploy(PriceFeedsTestnets, "0xd0A1E359811322d97991E03f863a0C30C2cF029C",
+                                    "0xe3e682A8Fc7EFec410E4099cc09EfCC0743C634a")
                 
                 print("Calling setDecimals.")
                 feeds.setDecimals(
@@ -118,7 +119,8 @@ def deployProtocol():
                     ],
                 )
             elif thisNetwork == "sandbox":
-                feeds = acct.deploy(PriceFeeds)
+                feeds = acct.deploy(PriceFeeds, "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                                    "0x1c74cFF0376FB4031Cd7492cD6dB2D66c3f2c6B9")
                 
                 print("Calling setDecimals.")
                 feeds.setDecimals(
@@ -357,6 +359,9 @@ def deployProtocol():
             )
 
         sovryn.setFeesController(acct.address)
+
+        sovryn.setWethToken(tokens.weth.address)
+        sovryn.setProtocolTokenAddress(sovryn.address)
 
     ## LoanSettings
     if deploys.LoanSettings is True:

@@ -16,7 +16,7 @@ import "../interfaces/ILoanPool.sol";
 import "../connectors/gastoken/GasTokenUser.sol";
 
 
-contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUser, GasTokenUser, SwapsUser, LiquidationHelper {
+contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasTokenUser, SwapsUser, LiquidationHelper {
 
     enum CloseTypes {
         Deposit,
