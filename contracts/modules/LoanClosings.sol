@@ -115,7 +115,8 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
      * @param receiver the receiver of the remainder (unused collatral + profit)
      * @param swapAmount defines how much of the position should be closed and is denominated in collateral tokens. 
      *      If swapAmount >= collateral, the complete position will be closed. 
-     *      Else (swapAmount/collateral) * principal will be swapped (partial closure).
+     *      Else if returnTokenIsCollateral, (swapAmount/collateral) * principal will be swapped (partial closure).
+     *      Else coveredPrincipal
      * @param returnTokenIsCollateral defines if the remainder should be paid out in collateral tokens or underlying loan tokens
      * */
     function closeWithSwap(
@@ -487,7 +488,8 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
      * @param receiver the receiver of the remainder (unused collatral + profit)
      * @param swapAmount defines how much of the position should be closed and is denominated in collateral tokens. 
      *      If swapAmount >= collateral, the complete position will be closed. 
-     *      Else (swapAmount/collateral) * principal will be swapped (partial closure).
+     *      Else if returnTokenIsCollateral, (swapAmount/collateral) * principal will be swapped (partial closure).
+     *      Else coveredPrincipal
      * @param returnTokenIsCollateral defines if the remainder should be paid out in collateral tokens or underlying loan tokens
      * */
     function _closeWithSwap(
