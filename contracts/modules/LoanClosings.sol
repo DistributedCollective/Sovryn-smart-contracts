@@ -16,7 +16,7 @@ import "../interfaces/ILoanPool.sol";
 import "../connectors/gastoken/GasTokenUser.sol";
 
 
-contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUser, GasTokenUser, SwapsUser, LiquidationHelper {
+contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasTokenUser, SwapsUser, LiquidationHelper {
 
     enum CloseTypes {
         Deposit,
@@ -806,8 +806,7 @@ contract LoanClosings is State, LoanClosingsEvents, VaultController, InterestUse
             if (assetToken == address(wethToken)) {
                 vaultEtherWithdraw(
                     receiver,
-                    assetAmount,
-                    wethToken
+                    assetAmount
                 );
             } else {
                 vaultWithdraw(

@@ -13,7 +13,7 @@ import "../swaps/ISwapsImpl.sol";
 import "../connectors/gastoken/GasTokenUser.sol";
 
 
-contract SwapsExternal is State, VaultController, SwapsUser, GasTokenUser {
+contract SwapsExternal is VaultController, SwapsUser, GasTokenUser {
 
     constructor() public {}
 

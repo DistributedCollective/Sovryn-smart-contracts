@@ -14,7 +14,7 @@ import "../mixins/LiquidationHelper.sol";
 import "../swaps/SwapsUser.sol";
 
 
-contract LoanMaintenance is State, LoanOpeningsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper {
+contract LoanMaintenance is LoanOpeningsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper {
 
     struct LoanReturnData {
         bytes32 loanId;
@@ -86,8 +86,7 @@ contract LoanMaintenance is State, LoanOpeningsEvents, VaultController, Interest
             require(msg.value == depositAmount, "ether deposit mismatch");
             vaultEtherDeposit(
                 msg.sender,
-                msg.value,
-                wethToken
+                msg.value
             );
         }
     }
@@ -131,8 +130,7 @@ contract LoanMaintenance is State, LoanOpeningsEvents, VaultController, Interest
         if (loanParamsLocal.collateralToken == address(wethToken)) {
             vaultEtherWithdraw(
                 receiver,
-                actualWithdrawAmount,
-                wethToken
+                actualWithdrawAmount
             );
         } else {
             vaultWithdraw(
@@ -225,8 +223,7 @@ contract LoanMaintenance is State, LoanOpeningsEvents, VaultController, Interest
                 require(msg.value == depositAmount, "ether deposit mismatch");
                 vaultEtherDeposit(
                     msg.sender,
-                    msg.value,
-                    wethToken
+                    msg.value
                 );
             }
         }
@@ -312,8 +309,7 @@ contract LoanMaintenance is State, LoanOpeningsEvents, VaultController, Interest
         if (loanParamsLocal.loanToken == address(wethToken)) {
             vaultEtherWithdraw(
                 receiver,
-                withdrawAmount,
-                wethToken
+                withdrawAmount
             );
         } else {
             vaultWithdraw(

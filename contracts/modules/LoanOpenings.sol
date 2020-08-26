@@ -13,7 +13,7 @@ import "../mixins/InterestUser.sol";
 import "../swaps/SwapsUser.sol";
 
 
-contract LoanOpenings is State, LoanOpeningsEvents, VaultController, InterestUser, SwapsUser {
+contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, SwapsUser {
 
     constructor() public {}
 
