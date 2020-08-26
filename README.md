@@ -186,7 +186,7 @@ bytes memory loanDataBytes
 
 ```receiver``` is the user's address.
 
-```swapAmount``` defines how much of the position should be closed and is denominated in collateral tokens (e.g. rBTC on a iSUSD contract). If ```swapAmount >= collateral```, the complete position will be closed. Else ```(swapAmount/collateral) * principal``` will be swapped (partial closure).
+```swapAmount``` defines how much of the position should be closed and is denominated in collateral tokens (e.g. rBTC on a iSUSD contract). If ```swapAmount >= collateral```, the complete position will be closed. Else if `returnTokenIsCollateral == True` ```(swapAmount/collateral) * principal``` will be swapped (partial closure). Else the closure amount will be the principal's covered amount   
 
 ```returnTokenIsCollateral```  pass ```true``` if you want to withdraw remaining collateral + profit in collateral tokens (e.g. rBTC on a iSUSD contract), ```false``` if you want to withdraw it in loan tokens (e.g. sUSD on a iSUSD contract).
 

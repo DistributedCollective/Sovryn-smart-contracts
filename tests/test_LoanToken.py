@@ -436,7 +436,7 @@ def test_close_all_margin_trade(sovryn, loanToken, web3, set_demand_curve, lend_
     initial_loan = sovryn.getLoan(loan_id)
 
     with reverts("unauthorized"):
-        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, False, "")
+        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral, "")
 
     swap_amount = loan_token_sent
 
@@ -454,7 +454,7 @@ def test_close_partial_margin_trade(sovryn, loanToken, web3, set_demand_curve, l
     initial_loan = sovryn.getLoan(loan_id)
 
     with reverts("unauthorized"):
-        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, False, "")
+        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral, "")
 
     swap_amount = fixedint(initial_loan['collateral']).mul(80*10**18).div(10**20).num
 
@@ -478,25 +478,12 @@ def internal_test_close_margin_trade(swap_amount, initial_loan, loanToken, loan_
         else fixedint(principal_).mul(swap_amount).div(collateral_) if return_token_is_collateral \
         else 0
 
-    print('collateral_', collateral_)
-    print('swap_amount', swap_amount)
-    print('principal_', principal_)
-    print('loan_close_amount', loan_close_amount)
-
-    remaining_ = initial_loan['interestDepositRemaining']
-    endTimestamp = initial_loan['endTimestamp']
-    print('remaining_', remaining_)
-    print('endTimestamp', endTimestamp)
-
-    interest_refund_to_borrower = fixedint(remaining_) \
+    interest_refund_to_borrower = fixedint(initial_loan['interestDepositRemaining']) \
         .mul(loan_close_amount).div(principal_)
 
     loan_close_amount_less_interest = fixedint(loan_close_amount).sub(interest_refund_to_borrower) \
         if loan_close_amount != 0 and fixedint(loan_close_amount).num >= interest_refund_to_borrower.num \
         else interest_refund_to_borrower
-
-    print('interest_refund_to_borrower', interest_refund_to_borrower)
-    print('loan_close_amount_less_interest', loan_close_amount_less_interest)
 
     trading_fee_percent = sovryn.tradingFeePercent()
     aux_trading_fee = loan_close_amount_less_interest if return_token_is_collateral else swap_amount
@@ -505,8 +492,6 @@ def internal_test_close_margin_trade(swap_amount, initial_loan, loanToken, loan_
     source_token_amount_used = \
         swap_amount if not return_token_is_collateral \
         else fixedint(loan_close_amount_less_interest).add(trading_fee).mul(precision).div(trade_rate)
-
-    print('source_token_amount_used', source_token_amount_used)
 
     dest_token_amount_received = \
         fixedint(swap_amount).sub(trading_fee).mul(trade_rate).div(precision) if not return_token_is_collateral \
