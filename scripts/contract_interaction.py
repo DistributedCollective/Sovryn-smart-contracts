@@ -29,7 +29,8 @@ def main():
     #readLoanTokenState(acct, iRBTC)
     #readLoan(acct, protocol, '0xde1821f5678c33ca4007474735d910c0b6bb14f3fa0734447a9bd7b75eaf68ae')
     #getTokenPrice(acct, iRBTC)
-    testTokenBurning(acct, iRBTC, testRBTC)
+    #testTokenBurning(acct, iRBTC, testRBTC)
+    liquidate(acct, protocol, '0x5f8d4599657b3d24eb4fee83974a43c62f411383a8b5750b51adca63058a0f59')
 
 def setPriceFeeds(acct):
     priceFeedContract = '0xf2e9fD37912aB53D0FEC1eaCE86d6A14346Fb6dD'
@@ -139,4 +140,18 @@ def testTokenBurning(acct, loanTokenAddress, testTokenAddress):
     balance = loanToken.balanceOf(acct)
     print("remaining balance", balance/1e18)
     assert(tx.events["Burn"]["tokenAmount"] == burnAmount)
+    
+def liquidate(acct, protocolAddress, loanId):
+    bzx = Contract.from_abi("bzx", address=protocolAddress, abi=interface.IBZx.abi, owner=acct)
+    loan = bzx.getLoan(loanId).dict()
+    print(loan)
+    if(loan['maintenanceMargin'] > loan['currentMargin']):
+        testToken = Contract.from_abi("TestToken", address = loan['loanToken'], abi = TestToken.abi, owner = acct)
+        testToken.mint(acct, loan['maxLiquidatable'])
+        testToken.approve(bzx, loan['maxLiquidatable'])
+        bzx.liquidate(loanId, acct, loan['maxLiquidatable'])
+    else:
+        print("can't liquidate because the loan is healthy")
+    
+    
     
