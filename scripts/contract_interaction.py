@@ -15,6 +15,8 @@ def main():
     iSUSDLogic = '0x48f96e4e8adb8db5B70538b58DaDE4a89E2F9DF0'
     iRBTCLogic = '0xCA27bC90C76fc582406fBC4665832753f74A75F5'
     protocol = '0xBAC609F5C8bb796Fa5A31002f12aaF24B7c35818'
+    testSUSD = '0xE631653c4Dc6Fb98192b950BA0b598f90FA18B3E'
+    testRBTC ='0xE53d858A78D884659BF6955Ea43CBA67c0Ae293F'
     #setPriceFeeds(acct)
     #mintTokens(acct, iSUSD, iRBTC)
     #burnTokens(acct, iSUSD, iRBTC)
@@ -25,7 +27,9 @@ def main():
     #removeFromPool(acct, iSUSD, iRBTC)
     #readLoanTokenState(acct, iSUSD)
     #readLoanTokenState(acct, iRBTC)
-    readLoan(acct, protocol, '0xde1821f5678c33ca4007474735d910c0b6bb14f3fa0734447a9bd7b75eaf68ae')
+    #readLoan(acct, protocol, '0xde1821f5678c33ca4007474735d910c0b6bb14f3fa0734447a9bd7b75eaf68ae')
+    #getTokenPrice(acct, iRBTC)
+    testTokenBurning(acct, iRBTC, testRBTC)
 
 def setPriceFeeds(acct):
     priceFeedContract = '0xf2e9fD37912aB53D0FEC1eaCE86d6A14346Fb6dD'
@@ -113,3 +117,26 @@ def readLoan(acct, protocolAddress, loanId):
     bzx = Contract.from_abi("bzx", address=protocolAddress, abi=interface.IBZx.abi, owner=acct)
     print(bzx.getLoan(loanId).dict())
 
+def getTokenPrice(acct, loanTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    print("token price",loanToken.tokenPrice())
+    
+def testTokenBurning(acct, loanTokenAddress, testTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    testToken = Contract.from_abi("TestToken", address = testTokenAddress, abi = TestToken.abi, owner = acct)
+
+    testToken.approve(loanToken,1e17) 
+    loanToken.mint(acct, 1e17)
+    balance = loanToken.balanceOf(acct)
+    print("balance", balance)
+    tokenPrice = loanToken.tokenPrice()
+    print("token price",tokenPrice/1e18)
+    burnAmount = int(balance / 2)
+    print("burn amount", burnAmount)
+    
+    tx = loanToken.burn(acct, burnAmount)
+    print(tx.info())
+    balance = loanToken.balanceOf(acct)
+    print("remaining balance", balance/1e18)
+    assert(tx.events["Burn"]["tokenAmount"] == burnAmount)
+    
