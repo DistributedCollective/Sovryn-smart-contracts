@@ -25,7 +25,7 @@ def main():
     #removeFromPool(acct, iSUSD, iRBTC)
     #readLoanTokenState(acct, iSUSD)
     #readLoanTokenState(acct, iRBTC)
-    readLoan(acct, protocol, '0x0f5254f95dc22ea94f84e2b0f57a16fa7622087855bc1298fa73eb42671f5011')
+    readLoan(acct, protocol, '0xde1821f5678c33ca4007474735d910c0b6bb14f3fa0734447a9bd7b75eaf68ae')
 
 def setPriceFeeds(acct):
     priceFeedContract = '0xf2e9fD37912aB53D0FEC1eaCE86d6A14346Fb6dD'
@@ -111,6 +111,5 @@ def readLoanTokenState(acct, loanTokenAddress):
     
 def readLoan(acct, protocolAddress, loanId):
     bzx = Contract.from_abi("bzx", address=protocolAddress, abi=interface.IBZx.abi, owner=acct)
-    print(bzx.getLoan(loanId))
+    print(bzx.getLoan(loanId).dict())
 
-    
