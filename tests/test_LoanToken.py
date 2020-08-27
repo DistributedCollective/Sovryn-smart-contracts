@@ -795,4 +795,35 @@ def test_deposit_collateral_0_value(sovryn,set_demand_curve,lend_to_pool,open_ma
     with reverts("depositAmount is 0"):
         sovryn.depositCollateral(loan_id, 0)
     
-#note: deposit collateral tests for WETH still missing. 
+#note: deposit collateral tests for WETH still missing.
+
+
+def test_withdraw_accrued_interest(sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position, SUSD, loanToken, chain):
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    (loan_id, _, _, _) = open_margin_trade_position()
+    initial_block_timestamp = chain[-1].timestamp
+
+    loan = sovryn.getLoan(loan_id).dict()
+    lender = loanToken.address
+
+    # Time travel
+    time_until_loan_end = loan['endTimestamp'] - initial_block_timestamp
+    chain.sleep(time_until_loan_end)
+    chain.mine(1)
+    second_block_timestamp = chain[-1].timestamp
+    end_interest_data_1 = sovryn.getLenderInterestData(lender, SUSD.address)
+    assert(end_interest_data_1['interestPaid'] == 0)
+
+    # lend to pool to call settle interest which calls withdrawAccruedInterest
+    lend_to_pool()
+    end_interest_data_2 = sovryn.getLenderInterestData(lender, SUSD.address)
+
+    interest_owed_now = fixedint(second_block_timestamp - initial_block_timestamp)\
+        .mul(end_interest_data_1['interestOwedPerDay']).div(24*60*60)
+
+    assert(end_interest_data_2['interestOwedPerDay'] != 0)
+    assert(end_interest_data_2['interestPaid'] == interest_owed_now)
+    assert(end_interest_data_2['interestPaidDate'] - second_block_timestamp <= 2)
+    assert(end_interest_data_2['interestUnPaid'] == end_interest_data_1['interestUnPaid'] - interest_owed_now)
