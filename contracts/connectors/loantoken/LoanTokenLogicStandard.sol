@@ -124,7 +124,17 @@ contract LoanTokenLogicStandard is AdvancedToken {
         return returnData;
     }
     */
-
+    
+    /**
+     * borrows funds from the pool. The underlying loan token may not be used as collateral.
+     * @param loanId the ID of the loan, 0 for a new loan 
+     * @param withdrawAmount the amount to be withdrawn (actually borrowed)
+     * @param initialLoanDuration the duration of the loan in seconds. if the loan is not paid back until then, it'll need to be rolled over
+     * @param collateralTokenSent the amount of collateral token sent (150% of the withdrawn amount worth in collateral tokenns)
+     * @param collateralTokenAddress the address of the tokenn to be used as collateral. cannot be the loan token address
+     * @param borrower the one paying for the collateral
+     * @param receiver the one receiving the withdrawn amount
+     * */
     function borrow(
         bytes32 loanId,                 // 0 if new loan
         uint256 withdrawAmount,
