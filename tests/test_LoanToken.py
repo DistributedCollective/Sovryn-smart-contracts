@@ -1072,7 +1072,6 @@ def test_toggle_function_pause_with_non_admin_should_fail(loanToken, LoanTokenSe
         localLoanToken.toggleFunctionPause("mint(address,uint256)", True, {'from':accounts[1]})
 
 
-
 def test_extend_fix_term_loan_duration_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position, LoanMaintenance):
     """
     At this moment the maxLoanTerm is always 28 because it is hardcoded in setupMarginLoanParams.
@@ -1338,3 +1337,18 @@ def test_withdraw_borrowing_fees(accounts, sovryn, set_demand_curve, lend_to_poo
     assert(sovryn.borrowingFeeTokensHeld(SUSD.address)==0)
     assert(SUSD.balanceOf(accounts[1])==fees)
 
+
+def test_reduce_fix_term_loan_duration_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position, LoanMaintenance):
+    """
+    At this moment the maxLoanTerm is always 28 because it is hardcoded in setupMarginLoanParams.
+    So there are only fix-term loans.
+    """
+    # prepare the test
+    set_demand_curve()
+    (receiver, _) = lend_to_pool()
+    (loan_id, trader, loan_token_sent, leverage_amount) = open_margin_trade_position()
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+
+    with reverts("indefinite-term only"):
+        loan_maintenance.reduceLoanDuration(loan_id, trader, loan_token_sent, {'from': trader})
