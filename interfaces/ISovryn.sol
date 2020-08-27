@@ -140,6 +140,14 @@ contract ISovryn is
         view
         returns (bool);
 
+    function setWethToken(
+        address wethTokenAddress)
+        external;
+
+    function setProtocolTokenAddress(
+        address _protocolTokenAddress)
+        external;
+
 
     ////// Loan Settings //////
 

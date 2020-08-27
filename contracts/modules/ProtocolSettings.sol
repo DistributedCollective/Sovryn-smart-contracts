@@ -48,6 +48,8 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         _setTarget(this.depositProtocolToken.selector, target);
         _setTarget(this.getLoanPoolsList.selector, target);
         _setTarget(this.isLoanPool.selector, target);
+        _setTarget(this.setWethToken.selector, target);
+        _setTarget(this.setProtocolTokenAddress.selector, target);
     }
 
     function setPriceFeedContract(
@@ -385,13 +387,13 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         );
     }
 
-   function depositProtocolToken(
+    function depositProtocolToken(
         uint256 amount)
         external
         onlyOwner
     {
         protocolTokenHeld = protocolTokenHeld
-            .add(amount);
+        .add(amount);
 
         IERC20(protocolTokenAddress).safeTransferFrom(
             msg.sender,
@@ -405,7 +407,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         uint256 count)
         external
         view
-        returns(bytes32[] memory)
+        returns (bytes32[] memory)
     {
         return loanPoolsSet.enumerate(start, count);
     }
@@ -417,5 +419,31 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         returns (bool)
     {
         return loanPoolToUnderlying[loanPool] != address(0);
+    }
+
+    function setWethToken(
+        address wethTokenAddress)
+        external
+        onlyOwner
+    {
+        require(Address.isContract(wethTokenAddress), "wethTokenAddress not a contract");
+
+        address oldWethToken = address(wethToken);
+        wethToken = IWethERC20(wethTokenAddress);
+
+        emit SetWethToken(msg.sender, oldWethToken, wethTokenAddress);
+    }
+
+    function setProtocolTokenAddress(
+        address _protocolTokenAddress)
+        external
+        onlyOwner
+    {
+        require(Address.isContract(_protocolTokenAddress), "_protocolTokenAddress not a contract");
+
+        address oldProtocolTokenAddress = protocolTokenAddress;
+        protocolTokenAddress = _protocolTokenAddress;
+
+        emit SetProtocolTokenAddress(msg.sender, oldProtocolTokenAddress, _protocolTokenAddress);
     }
 }

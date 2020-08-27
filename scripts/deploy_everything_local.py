@@ -43,15 +43,14 @@ def deployProtocol():
     
 
     print("Deploying PriceFeeds.")
-    feeds = acct.deploy(PriceFeedsLocal)
-    
+    feeds = acct.deploy(PriceFeedsLocal, tokens.weth.address, sovryn.address)
+
     print("Calling setRates.")
     feeds.setRates(
         tokens.rbtc.address,
         tokens.susd.address,
         1e22 #1btc = 10000 susd
     )
-    
 
     print("Deploying Swaps.")
     swaps = acct.deploy(SwapsImplLocal)
@@ -73,6 +72,9 @@ def deployProtocol():
     )
 
     sovryn.setFeesController(acct.address)
+
+    sovryn.setWethToken(tokens.weth.address)
+    sovryn.setProtocolTokenAddress(sovryn.address)
 
     ## LoanSettings
     print("Deploying LoanSettings.")

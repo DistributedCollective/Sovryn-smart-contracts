@@ -133,9 +133,7 @@ def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, sovryn, SUSD,
     expectedPositionSize = fixedint(loanTokenSent).sub(interestForPosition).mul(tradeEvent["entryPrice"]).div(1e18).add(collateralTokenSent)
     
     ## ignore differences in least significant digits due to rounding error
-    expectedPositionSize = fixedint(expectedPositionSize).div(100)
-    positionSize = fixedint(tradeEvent["positionSize"]).div(100)
-    assert expectedPositionSize == positionSize
+    assert abs(expectedPositionSize.num - int(tradeEvent["positionSize"])) < 100
 
     '''l = sovryn.getUserLoans(
         accounts[1],

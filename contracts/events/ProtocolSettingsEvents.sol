@@ -73,6 +73,18 @@ contract ProtocolSettingsEvents {
         address indexed newController
     );
 
+    event SetWethToken(
+        address indexed sender,
+        address indexed oldWethToken,
+        address indexed newWethToken
+    );
+
+    event SetProtocolTokenAddress(
+        address indexed sender,
+        address indexed oldProtocolToken,
+        address indexed newProtocolToken
+    );
+
     event WithdrawLendingFees(
         address indexed sender,
         address indexed token,

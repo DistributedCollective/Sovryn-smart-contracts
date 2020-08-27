@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import pytest
+from brownie import reverts
 
 def test_setCoreParams(Constants, sovryn):
 
@@ -68,3 +69,23 @@ def test_transferFrom_reverts(token, accounts, idx):
     with brownie.reverts("Insufficient allowance"):
         token.transferFrom(accounts[0], accounts[2], 1e18, {'from': accounts[idx]})
 '''
+
+
+def test_set_weth_token(sovryn, Constants, WETH, accounts):
+    assert(sovryn.owner() == accounts[0])
+    assert(sovryn.wethToken() == Constants["ZERO_ADDRESS"])
+    sovryn.setWethToken(WETH.address)
+    assert(sovryn.wethToken() == WETH.address)
+
+    with reverts("unauthorized"):
+        sovryn.setWethToken(WETH.address, {'from': accounts[1]})
+
+
+def test_set_protocol_token_address(sovryn, Constants, accounts):
+    assert(sovryn.owner() == accounts[0])
+    assert(sovryn.protocolTokenAddress() == Constants["ZERO_ADDRESS"])
+    sovryn.setProtocolTokenAddress(sovryn.address)
+    assert(sovryn.protocolTokenAddress() == sovryn.address)
+
+    with reverts("unauthorized"):
+        sovryn.setProtocolTokenAddress(sovryn.address, {'from': accounts[1]})
