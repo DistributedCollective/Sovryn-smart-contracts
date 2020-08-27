@@ -44,7 +44,7 @@ def test_loanAddress(loanToken, SUSD):
     assert loanTokenAddress == SUSD.address
 
 @pytest.fixture(scope="module", autouse=True)
-def margin_pool_setup(accounts, RBTC, loanTokenSettings, loanToken, sovryn, SUSD):
+def loan_pool_setup(accounts, RBTC, loanTokenSettings, loanToken, sovryn, SUSD):
     constants = shared.Constants()
     params = [];
     setup1 = [
@@ -59,6 +59,10 @@ def margin_pool_setup(accounts, RBTC, loanTokenSettings, loanToken, sovryn, SUSD
     ]
     params.append(setup1)
     calldata = loanTokenSettings.setupMarginLoanParams.encode_input(params)
+    tx = loanToken.updateSettings(loanTokenSettings.address, calldata)
+    assert('LoanParamsSetup' in tx.events)
+    assert('LoanParamsIdSetup' in tx.events)
+    calldata = loanTokenSettings.setupTorqueLoanParams.encode_input(params)
     tx = loanToken.updateSettings(loanTokenSettings.address, calldata)
     assert('LoanParamsSetup' in tx.events)
     assert('LoanParamsIdSetup' in tx.events)
@@ -731,7 +735,7 @@ def test_liquidate(accounts, loanToken, SUSD, set_demand_curve, RBTC, sovryn, pr
     assert(liquidate_event['collateralToLoanRate'] == collateral_to_loan_rate)
     assert(liquidate_event['currentMargin'] == current_margin)
 
-
+'''
 def test_rollover(accounts, chain, loanToken, set_demand_curve, bzx, priceFeeds, SUSD, RBTC, BZRX):
     """
     Tests paid interests to lender
@@ -812,3 +816,53 @@ def test_rollover(accounts, chain, loanToken, set_demand_curve, bzx, priceFeeds,
     assert(loan_swap_event['borrower'] == borrower)
     assert(loan_swap_event['sourceAmount'] == fixedint(interest_unpaid).add(trading_fee).mul(precision).div(trade_rate))
     assert(loan_swap_event['destAmount'] == interest_unpaid)
+'''
+
+def test_borrow(accounts,loanToken,sovryn,set_demand_curve,lend_to_pool, SUSD, RBTC):
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    
+    # determine borrowing parameter
+    withdrawAmount = 10e18 #i want to borrow 10 USD
+    # compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan 
+    collateralTokenSent = sovryn.getRequiredCollateral(SUSD.address,RBTC.address,withdrawAmount,50e18, True)
+    print("collateral needed", collateralTokenSent)
+    durationInSeconds = 60*60*24*10 #10 days
+    
+    # compute expected values for asserts
+    interestRate = loanToken.nextBorrowInterestRate(withdrawAmount)
+    #principal = withdrawAmount/(1 - interestRate/1e20 * durationInSeconds /  31536000)
+    principal = fixedint(withdrawAmount).mul(1e18).div(fixedint(1e18).sub(fixedint(interestRate).mul(durationInSeconds).mul(10e18).div(31536000).div(10e20)))
+    expectedBalance = fixedint(SUSD.balanceOf(accounts[1])).add(withdrawAmount)
+    
+    #approve the transfer of the collateral
+    RBTC.approve(loanToken.address, collateralTokenSent)
+    
+    # borrow some funds
+    tx = loanToken.borrow(
+        "0",                            # bytes32 loanId
+        withdrawAmount,                 # uint256 withdrawAmount
+        durationInSeconds,              # uint256 initialLoanDuration
+        collateralTokenSent,            # uint256 collateralTokenSent
+        RBTC.address,                   # address collateralTokenAddress
+        accounts[0],                    # address borrower
+        accounts[1],                    # address receiver
+        b''                             # bytes memory loanDataBytes
+    )
+    
+    #assert the trade was processed as expected
+    print(tx.info())
+    borrow_event = tx.events['Borrow']
+    assert(borrow_event['user'] == accounts[0])
+    assert(borrow_event['lender'] == loanToken.address)
+    assert(borrow_event['loanToken'] == SUSD.address)
+    assert(borrow_event['collateralToken'] == RBTC.address)
+    assert(borrow_event['newPrincipal'] == principal)
+    assert(borrow_event['interestRate'] == interestRate)
+    assert(borrow_event['interestDuration'] >= durationInSeconds-1 and borrow_event['interestDuration'] <= durationInSeconds)
+    assert(borrow_event['currentMargin'] >= 49e18)
+    
+    #assert the user received the borrowed amount
+    assert(SUSD.balanceOf(accounts[1]) == expectedBalance)
+
