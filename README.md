@@ -33,7 +33,7 @@ brownie networks add rsk testnet host=https://public-node.testnet.rsk.co chainid
 ```
 3. Deploy contracts locally
 ```bash
-brownie run deploy_everything_local.py 
+brownie run deploy_everything_local.py
 ```
 
 4. Deploy contracts on testnet
@@ -41,6 +41,33 @@ brownie run deploy_everything_local.py
 ```bash
 brownie run deploy_everything_local.py --network testnet
 ```
+
+## Bancor joint testing for RSK (local)
+
+1. Start `ganache` with
+```bash
+ganache-cli ---gasLimit 6700000 --port 8545
+```
+Overriding default `brownie` port will make it connect to our local chain and keep it open.
+
+2. Deploy contracts
+```bash
+brownie run deploy_everything_local.py
+```
+
+3. Copy `SUSD` and `RBTC` token addresses from the command line output
+
+4. Use addresses from #2 as reserves in the Bancor codebase (`utils/config`)
+
+5. Deploy Bancor contracts using the same chain and the updated config
+
+6. After deployment, copy the address of the deployed `ContractRegistry` and update the `scripts/setup_bancor_config.json` accordingly.
+
+7. Run the `setup_bancor` script to set the Bancor ContractRegistry address
+```bash
+brownie run setup_bancor.py
+```
+
 
 ## Smart Contract Usage
 
@@ -57,13 +84,13 @@ address[] calldata assets
 
 ```pools``` is an array of iToken addresses.
 
-```assets``` is an array of underlying asset addresses. 
+```assets``` is an array of underlying asset addresses.
 
 For example: The underlying asset of iSUSD is sUSD.
 
 ##### 1.2 Margin Pool
 
-To set up the margin pool parameters, you need to call ```updateSettings``` on the iToken contract (LoanToken.sol).  
+To set up the margin pool parameters, you need to call ```updateSettings``` on the iToken contract (LoanToken.sol).
 
 ```updateSettings``` is expecting the following parameters:
 ```
@@ -76,14 +103,14 @@ bytes memory callData
 
 A ```LoanParams``` object consists of following fields:
 ```
-bytes32 id;                 
-bool active;                
-address owner;              
-address loanToken;          
-address collateralToken;    
-uint256 minInitialMargin;   
-uint256 maintenanceMargin;  
-uint256 maxLoanTerm;      
+bytes32 id;
+bool active;
+address owner;
+address loanToken;
+address collateralToken;
+uint256 minInitialMargin;
+uint256 maintenanceMargin;
+uint256 maxLoanTerm;
 ```
 
 ```id``` is the id of loan params object. Can be any bytes32.
@@ -149,8 +176,8 @@ If you are sending ERC20 tokens as collateral, you first need to approve the iTo
 
 ```marginTrade``` is expecting the following parameters:
 ```
-bytes32 loanId,                 
-uint256 leverageAmount,         
+bytes32 loanId,
+uint256 leverageAmount,
 uint256 loanTokenSent,
 uint256 collateralTokenSent,
 address collateralTokenAddress,
@@ -161,13 +188,13 @@ bytes memory loanDataBytes
 
 ```leverageAmount``` is telling, if the position should open with 2x, 3x, 4x or 5x leverage. It is expected to be passed with 18 decimals.
 
-```loanTokenSent``` and ```collateralTokenSent```are telling the contract about the amount of tokens provided as margin. If the margin is provided in the underlying currency of the iToken contract (e.g. SUSD for iSUSD), the contract will swap it to the collateral token (e.g. RBTC). The user can provide either one of the currencies or both of them. 
+```loanTokenSent``` and ```collateralTokenSent```are telling the contract about the amount of tokens provided as margin. If the margin is provided in the underlying currency of the iToken contract (e.g. SUSD for iSUSD), the contract will swap it to the collateral token (e.g. RBTC). The user can provide either one of the currencies or both of them.
 
 ```collateralTokenAddress```specifies which collateral token is to be used. In theory an iToken contract can support multiple tokens as collateral. Which tokens are supported is specified during the margin pool setup (see above). In our case, there are just two tokens: RBTC and SUSD. RBTC is the collateral token for iSUSD and SUSD is the collateral token for iRBTC.
 
 ```trader``` is the user's wallet address.
 
-```loanDataBytes``` is empty in case of ERC20 tokens. 
+```loanDataBytes``` is empty in case of ERC20 tokens.
 
 ##### 3.2 Close a position
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
- 
-# test script for testing the most basic loan token logic. 
+
+# test script for testing the most basic loan token logic.
 # for now we do not require complete test coverage. just make sure, the regular calls are successful.
 
 import pytest
@@ -26,12 +26,12 @@ def loanToken(LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, SU
     assert initial_total_supply == loanToken.totalSupply()
 
     return loanToken
- 
-@pytest.fixture(scope="module", autouse=True)   
+
+@pytest.fixture(scope="module", autouse=True)
 def loanTokenSettings(accounts, LoanTokenSettingsLowerAdmin):
     loanTokenSettings = accounts[0].deploy(LoanTokenSettingsLowerAdmin)
     return loanTokenSettings
-    
+
 @pytest.fixture(scope="module", autouse=True)
 def loanOpenings(LoanOpenings, accounts, sovryn, Constants, priceFeeds, swapsImpl):
     sovryn.replaceContract(accounts[0].deploy(LoanOpenings).address)
@@ -52,7 +52,7 @@ def margin_pool_setup(accounts, RBTC, loanTokenSettings, loanToken, sovryn, SUSD
         False, ## active
         str(accounts[0]), ## owner
         constants.ZERO_ADDRESS, ## loanToken -> will be overwritten
-        RBTC.address, ## collateralToken. 
+        RBTC.address, ## collateralToken.
         Wei("20 ether"), ## minInitialMargin
         Wei("15 ether"), ## maintenanceMargin
         0 ## fixedLoanTerm -> will be overwritten
@@ -65,7 +65,7 @@ def margin_pool_setup(accounts, RBTC, loanTokenSettings, loanToken, sovryn, SUSD
     print(tx.info())
     sovryn.setLoanPool(
         [loanToken.address],
-        [SUSD.address] 
+        [SUSD.address]
     )
 
 
@@ -90,43 +90,43 @@ def set_demand_curve(loanToken, LoanToken, LoanTokenLogicStandard, LoanTokenSett
 
 
 def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, RBTC):
-    
-    loanTokenSent = 10000e18
-    SUSD.mint(loanToken.address,loanTokenSent*6) 
-    #   address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan 
+
+    loanTokenSent = 100e18
+    SUSD.mint(loanToken.address,loanTokenSent*6)
+    #   address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
     collateralTokenSent = sovryn.getRequiredCollateral(SUSD.address,RBTC.address,loanTokenSent*2,50e18, False)
     RBTC.mint(accounts[0],collateralTokenSent)
-    #important! WEth is being held by the loanToken contract itself, all other tokens are transfered directly from 
+    #important! WEth is being held by the loanToken contract itself, all other tokens are transfered directly from
     #the sender and need approval
     RBTC.approve(loanToken.address, collateralTokenSent)
-    
+
     print("loanTokenSent",loanTokenSent)
     print("collateralTokenSent",collateralTokenSent/1e18)
-    
+
     tx = loanToken.marginTrade(
         "0", #loanId  (0 for new loans)
         5e18, # leverageAmount
         0, #loanTokenSent
-        collateralTokenSent, 
+        collateralTokenSent,
         RBTC.address, #collateralTokenAddress
-        accounts[0], #trader, 
+        accounts[0], #trader,
         b'' #loanDataBytes (only required with ether)
     )
 
     print(tx.info())
-    
+
     sovrynAfterSUSDBalance = SUSD.balanceOf(sovryn.address)
     print("sovrynAfterSUSDBalance", sovrynAfterSUSDBalance/1e18)
-    
+
     sovrynAfterRBTCBalance = RBTC.balanceOf(sovryn.address)
     print("sovrynAfterRBTCBalance", sovrynAfterRBTCBalance/1e18)
-    
+
     sovrynAfterSUSDBalance = SUSD.balanceOf(loanToken.address)
     print("loanTokenAfterSUSDBalance", sovrynAfterSUSDBalance/1e18)
-    
+
     sovrynAfterRBTCBalance = RBTC.balanceOf(loanToken.address)
     print("loanTokenAftereRBTCBalance", sovrynAfterRBTCBalance/1e18)
-    
+
     #assert(False)#just to make sure, we can read the print statements, will be removed after the test works
 
 
