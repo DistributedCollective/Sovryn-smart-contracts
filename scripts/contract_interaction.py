@@ -30,7 +30,8 @@ def main():
     #readLoan(acct, protocol, '0xde1821f5678c33ca4007474735d910c0b6bb14f3fa0734447a9bd7b75eaf68ae')
     #getTokenPrice(acct, iRBTC)
     #testTokenBurning(acct, iRBTC, testRBTC)
-    liquidate(acct, protocol, '0x5f8d4599657b3d24eb4fee83974a43c62f411383a8b5750b51adca63058a0f59')
+    #liquidate(acct, protocol, '0x5f8d4599657b3d24eb4fee83974a43c62f411383a8b5750b51adca63058a0f59')
+    testTradeOpeningAndClosing(acct, protocol,iSUSD,testSUSD,testRBTC)
 
 def setPriceFeeds(acct):
     priceFeedContract = '0xf2e9fD37912aB53D0FEC1eaCE86d6A14346Fb6dD'
@@ -115,8 +116,8 @@ def readLoanTokenState(acct, loanTokenAddress):
     print("interest rate", ir)
     
 def readLoan(acct, protocolAddress, loanId):
-    bzx = Contract.from_abi("bzx", address=protocolAddress, abi=interface.IBZx.abi, owner=acct)
-    print(bzx.getLoan(loanId).dict())
+    sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
+    print(sovryn.getLoan(loanId).dict())
 
 def getTokenPrice(acct, loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
@@ -142,16 +143,37 @@ def testTokenBurning(acct, loanTokenAddress, testTokenAddress):
     assert(tx.events["Burn"]["tokenAmount"] == burnAmount)
     
 def liquidate(acct, protocolAddress, loanId):
-    bzx = Contract.from_abi("bzx", address=protocolAddress, abi=interface.IBZx.abi, owner=acct)
-    loan = bzx.getLoan(loanId).dict()
+    sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
+    loan = sovryn.getLoan(loanId).dict()
     print(loan)
     if(loan['maintenanceMargin'] > loan['currentMargin']):
         testToken = Contract.from_abi("TestToken", address = loan['loanToken'], abi = TestToken.abi, owner = acct)
         testToken.mint(acct, loan['maxLiquidatable'])
-        testToken.approve(bzx, loan['maxLiquidatable'])
-        bzx.liquidate(loanId, acct, loan['maxLiquidatable'])
+        testToken.approve(sovryn, loan['maxLiquidatable'])
+        sovryn.liquidate(loanId, acct, loan['maxLiquidatable'])
     else:
         print("can't liquidate because the loan is healthy")
     
-    
-    
+def testTradeOpeningAndClosing(acct, protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    testToken = Contract.from_abi("TestToken", address = underlyingTokenAddress, abi = TestToken.abi, owner = acct)
+    sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
+    loan_token_sent = 100e18
+    testToken.mint(acct, loan_token_sent)
+    testToken.approve(loanToken, loan_token_sent)
+    tx = loanToken.marginTrade(
+        "0",  # loanId  (0 for new loans)
+        2e18,  # leverageAmount
+        loan_token_sent,  # loanTokenSent
+        0,  # no collateral token sent
+        collateralTokenAddress,  # collateralTokenAddress
+        acct,  # trader,
+        b''  # loanDataBytes (only required with ether)
+    )
+    loanId = tx.events['Trade']['loanId']
+    collateral = tx.events['Trade']['positionSize']
+    print("closing loan with id", loanId)
+    print("position size is ", collateral)
+    loan = sovryn.getLoan(loanId)
+    print("found the loan in storage with position size", loan['collateral'])
+    tx = sovryn.closeWithSwap(loanId, acct, collateral, True, b'')
