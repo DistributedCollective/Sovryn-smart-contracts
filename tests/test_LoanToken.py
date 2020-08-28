@@ -465,6 +465,32 @@ def test_close_partial_margin_trade(sovryn, loanToken, web3, set_demand_curve, l
     internal_test_close_margin_trade(swap_amount, initial_loan, loanToken, loan_id, priceFeeds, sovryn, trader, web3, return_token_is_collateral)
 
 
+@pytest.fixture
+def borrow_indefinite_loan(RBTC, SUSD, accounts, loanToken, sovryn):
+    def internal_borrow(withdraw_amount=10e18, margin=50e18, duration_in_seconds=60 * 60 * 24 * 10,
+                        borrower=accounts[2], receiver=accounts[1]):
+        collateral_token_sent = sovryn.getRequiredCollateral(SUSD.address, RBTC.address, withdraw_amount, margin, True)
+        # approve the transfer of the collateral
+        RBTC.mint(borrower, collateral_token_sent)
+        RBTC.approve(loanToken.address, collateral_token_sent, {'from': borrower})
+        # borrow some funds
+        tx = loanToken.borrow(
+            "0",  # bytes32 loanId
+            withdraw_amount,  # uint256 withdrawAmount
+            duration_in_seconds,  # uint256 initialLoanDuration
+            collateral_token_sent,  # uint256 collateralTokenSent
+            RBTC.address,  # address collateralTokenAddress
+            borrower,  # address borrower
+            receiver,  # address receiver
+            b'',  # bytes memory loanDataBytes
+            {'from': borrower}
+        )
+        loan_id = tx.events['Borrow']['loanId']
+        return loan_id, borrower, receiver, withdraw_amount, duration_in_seconds, margin, tx
+
+    return internal_borrow
+
+
 def internal_test_close_margin_trade(swap_amount, initial_loan, loanToken, loan_id, priceFeeds, sovryn, trader, web3, return_token_is_collateral):
     principal_ = initial_loan['principal']
     collateral_ = initial_loan['collateral']
@@ -995,4 +1021,147 @@ def test_deposit_collateral_0_value(sovryn,set_demand_curve,lend_to_pool,open_ma
         sovryn.depositCollateral(loan_id, 0)
     
 #note: deposit collateral tests for WETH still missing. 
+
+
+def test_extend_fix_term_loan_duration_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position, LoanMaintenance):
+    """
+    At this moment the maxLoanTerm is always 28 because it is hardcoded in setupMarginLoanParams.
+    So there are only fix-term loans.
+    """
+    # prepare the test
+    set_demand_curve()
+    (receiver, _) = lend_to_pool()
+    (loan_id, trader, loan_token_sent, leverage_amount) = open_margin_trade_position()
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+
+    with reverts("indefinite-term only"):
+        loan_maintenance.extendLoanDuration(loan_id, loan_token_sent, False, b'', {'from': trader})
+
+
+def test_extend_loan_duration(accounts, sovryn, set_demand_curve, lend_to_pool, SUSD, LoanMaintenance, borrow_indefinite_loan):
+    """
+    Extend the loan duration and see if the new timestamp is the expected, the interest increase,
+    the borrower SUSD balance decrease and the sovryn SUSD balance increase
+    """
+
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    loan_id, borrower, _, _, _, _, _ = borrow_indefinite_loan()
+
+    initial_loan = sovryn.getLoan(loan_id)
+    initial_loan_interest_data = sovryn.getLoanInterestData(loan_id)
+    initial_loan_token_lender_balance = SUSD.balanceOf(sovryn.address)
+
+    days_to_extend = 10
+    owed_per_day = initial_loan_interest_data['interestOwedPerDay']
+    deposit_amount = owed_per_day * days_to_extend
+
+    # Approve the transfer of loan token
+    SUSD.mint(borrower, deposit_amount)
+    SUSD.approve(sovryn, deposit_amount, {'from': borrower})
+    initial_borrower_balance = SUSD.balanceOf(borrower)
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+    loan_maintenance.extendLoanDuration(loan_id, deposit_amount, False, b'', {'from': borrower})
+
+    end_loan_interest_data = sovryn.getLoanInterestData(loan_id)
+    end_loan = sovryn.getLoan(loan_id)
+
+    assert(end_loan['endTimestamp'] == initial_loan['endTimestamp'] + days_to_extend*24*60*60)
+    assert(end_loan_interest_data['interestDepositTotal'] == initial_loan_interest_data['interestDepositTotal'] + deposit_amount)
+    assert(SUSD.balanceOf(borrower) == initial_borrower_balance - deposit_amount)
+    # Due to block timestamp could be paying outstanding interest to lender or not
+    assert(SUSD.balanceOf(sovryn.address) <= initial_loan_token_lender_balance + deposit_amount)
+
+
+def test_extend_loan_duration_0_deposit_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, LoanMaintenance, borrow_indefinite_loan):
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    loan_id, borrower, _, _, _, _, _ = borrow_indefinite_loan()
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+    with reverts("depositAmount is 0"):
+        loan_maintenance.extendLoanDuration(loan_id, 0, False, b'', {'from': borrower})
+
+
+def test_extend_closed_loan_duration_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, LoanMaintenance, borrow_indefinite_loan):
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    loan_id, borrower, _, _, _, _, tx = borrow_indefinite_loan()
+    borrow_event = tx.events['Borrow']
+    collateral = borrow_event['newCollateral']
+
+    sovryn.closeWithSwap(loan_id, borrower, collateral, False, "", {'from': borrower})
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+    with reverts("depositAmount is 0"):
+        loan_maintenance.extendLoanDuration(loan_id, 0, False, b'', {'from': borrower})
+
+
+def test_extend_loan_duration_user_unauthorized_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, LoanMaintenance, borrow_indefinite_loan):
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    loan_id, _, receiver, _, _, _, _ = borrow_indefinite_loan()
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+    with reverts("depositAmount is 0"):
+        loan_maintenance.extendLoanDuration(loan_id, 0, True, b'', {'from': receiver})
+
+
+def test_extend_loan_duration_with_collateral(accounts, sovryn, set_demand_curve, lend_to_pool, RBTC, SUSD, LoanMaintenance, priceFeeds, borrow_indefinite_loan):
+    """
+    Extend the loan duration with collateral and see if the new timestamp is the expected, the interest increase,
+    the loan's collateral decrease, sovryn SUSD balance increase and RBTC decrease
+    """
+
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    loan_id, borrower, _, _, _, _, _ = borrow_indefinite_loan()
+
+    initial_loan = sovryn.getLoan(loan_id)
+    initial_loan_interest_data = sovryn.getLoanInterestData(loan_id)
+    initial_loan_token_lender_balance = SUSD.balanceOf(sovryn.address)
+    initial_collateral_token_lender_balance = RBTC.balanceOf(sovryn.address)
+
+    days_to_extend = 10
+    owed_per_day = initial_loan_interest_data['interestOwedPerDay']
+    deposit_amount = fixedint(owed_per_day).mul(days_to_extend).num
+
+    (rate, precision) = priceFeeds.queryRate(RBTC.address, SUSD.address)
+    deposit_amount_in_collateral = fixedint(deposit_amount).mul(precision).div(rate)
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+    loan_maintenance.extendLoanDuration(loan_id, deposit_amount, True, b'', {'from': borrower})
+
+    end_loan_interest_data = sovryn.getLoanInterestData(loan_id)
+    end_loan = sovryn.getLoan(loan_id)
+
+    assert(end_loan['endTimestamp'] == initial_loan['endTimestamp'] + days_to_extend*24*60*60)
+    assert(end_loan_interest_data['interestDepositTotal'] == initial_loan_interest_data['interestDepositTotal'] + deposit_amount)
+    assert(end_loan['collateral'] == initial_loan['collateral'] - deposit_amount_in_collateral)
+    assert(RBTC.balanceOf(sovryn.address) == initial_collateral_token_lender_balance - deposit_amount_in_collateral)
+    assert(SUSD.balanceOf(sovryn.address) <= initial_loan_token_lender_balance + deposit_amount)
+
+
+def test_extend_loan_duration_with_collateral_and_eth_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, LoanMaintenance, borrow_indefinite_loan):
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    loan_id, borrower, _, _, _, _, _ = borrow_indefinite_loan()
+
+    initial_loan_interest_data = sovryn.getLoanInterestData(loan_id)
+
+    days_to_extend = 10
+    owed_per_day = initial_loan_interest_data['interestOwedPerDay']
+    deposit_amount = fixedint(owed_per_day).mul(days_to_extend).num
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+    with reverts("wrong asset sent"):
+        loan_maintenance.extendLoanDuration(loan_id, deposit_amount, True, b'', {'from': borrower, 'value': deposit_amount})
 
