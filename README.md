@@ -1,5 +1,6 @@
 
 
+
 # Sovryn v 0.1 Smart Contracts
 
 ## Dependencies
@@ -241,8 +242,63 @@ uint256 closeAmount
 
 ```closeAmount``` is the amount to liquidate. If closeAmount > maxLiquidatable, the maximum amount will be liquidated.
 
+### 6. Reading data from the contracts
 
-### 6. Remarks
+##### 6.1 Loans
+
+You can read all active loans from the smart contract calling ```getActiveLoans```. All active loans for a specific user can be retrieved with ``` getUserLoans```. Both function will return a array of ```LoanReturnData``` objects. 
+To query a single loan, use ```getLoan```.
+
+```LoanReturnData``` objects contain following data:
+```
+bytes32 loanId;
+address loanToken;
+address collateralToken;
+uint256 principal;
+uint256 collateral;
+uint256 interestOwedPerDay;
+uint256 interestDepositRemaining;
+uint256 startRate; 
+uint256 startMargin;
+uint256 maintenanceMargin;
+uint256 currentMargin;
+uint256 maxLoanTerm;
+uint256 endTimestamp;
+uint256 maxLiquidatable;
+uint256 maxSeizable;
+```
+
+``` loanId``` is the ID of the loan
+
+```loanToken``` is the address of the loan token
+
+```collateralToken``` is the address of the collateral token
+
+```principal``` is the complete borrowed amount (in loan tokens)
+
+```collateral``` is the complete position size (loan + margin) (in collateral tokens)
+
+```interestOwedPerDay``` is the interest per day
+
+```startRate``` is the exchange rate at the beginning (collateral token to loan token)
+
+```startMargin``` is the margin at the beginning (in percent, 18 decimals)
+
+```maintenanceMargin``` is the minimum margin. If the current margin drops below, the position will be partially liquidated
+
+```currentMargin``` is the current margin
+
+```maxLoanTerm``` is the max duration of the loan
+
+```endTimestamp``` afterwards the loan needs to be rolled over
+
+```maxLiquidatable``` is the amount which can be liquidated (in loan tokens)
+
+```maxSeizable ``` is the amount which can be retrieved through liquidation (in collateral tokens)
+
+
+
+### 7. Remarks
 
 The loan token (iToken) contract as well as the protocol contract act as proxies, delegating all calls to underlying contracts. Therefore, if you want to interact with them using web3, you need to use the ABIs from the contracts containing the actual logic or the interface contract.
 
