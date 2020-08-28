@@ -9,7 +9,7 @@ pragma experimental ABIEncoderV2;
 import "./State.sol";
 
 
-contract bZxProtocol is State {
+contract sovrynProtocol is State {
 
     function()
         external

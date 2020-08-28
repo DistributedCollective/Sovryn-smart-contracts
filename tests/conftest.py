@@ -22,9 +22,9 @@ def RBTC(accounts, TestToken):
     return accounts[0].deploy(TestToken, "RBTC", "RBTC", 18, 1e50)
 
 @pytest.fixture(scope="module")
-def priceFeeds(accounts, WETH, SUSD, RBTC, PriceFeeds, PriceFeedsLocal):
+def priceFeeds(accounts, WETH, SUSD, RBTC, BZRX, PriceFeeds, PriceFeedsLocal):
     if network.show_active() == "development":
-        feeds = accounts[0].deploy(PriceFeedsLocal)
+        feeds = accounts[0].deploy(PriceFeedsLocal, WETH.address, BZRX.address)
         
         feeds.setRates(
             WETH.address,
@@ -42,7 +42,7 @@ def priceFeeds(accounts, WETH, SUSD, RBTC, PriceFeeds, PriceFeedsLocal):
             1e22
         )
     else:
-        feeds = accounts[0].deploy(PriceFeeds)
+        feeds = accounts[0].deploy(PriceFeeds, WETH.address, BZRX.address)
         #feeds.setPriceFeedsBatch(...)
 
     return feeds
@@ -58,18 +58,18 @@ def swapsImpl(accounts, SwapsImplKyber, SwapsImplLocal):
     return feeds
 
 @pytest.fixture(scope="module", autouse=True)
-def bzx(accounts, interface, bZxProtocol, ProtocolSettings, LoanSettings, LoanMaintenance):
-    bzxproxy = accounts[0].deploy(bZxProtocol)
-    bzx = Contract.from_abi("bzx", address=bzxproxy.address, abi=interface.IBZx.abi, owner=accounts[0])
-    _add_contract(bzx)
+def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, LoanMaintenance):
+    sovrynproxy = accounts[0].deploy(sovrynProtocol)
+    sovryn = Contract.from_abi("sovryn", address=sovrynproxy.address, abi=interface.ISovryn.abi, owner=accounts[0])
+    _add_contract(sovryn)
     
-    bzx.replaceContract(accounts[0].deploy(ProtocolSettings).address)
-    bzx.replaceContract(accounts[0].deploy(LoanSettings).address)
-    bzx.replaceContract(accounts[0].deploy(LoanMaintenance).address)
-    #bzx.replaceContract(accounts[0].deploy(LoanOpenings).address)
-    #bzx.replaceContract(accounts[0].deploy(LoanClosings).address)
+    sovryn.replaceContract(accounts[0].deploy(ProtocolSettings).address)
+    sovryn.replaceContract(accounts[0].deploy(LoanSettings).address)
+    sovryn.replaceContract(accounts[0].deploy(LoanMaintenance).address)
+    #sovryn.replaceContract(accounts[0].deploy(LoanOpenings).address)
+    #sovryn.replaceContract(accounts[0].deploy(LoanClosings).address)
     
-    return bzx
+    return sovryn
 
 @pytest.fixture(scope="function", autouse=True)
 def isolate(fn_isolation):

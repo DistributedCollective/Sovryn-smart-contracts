@@ -15,7 +15,7 @@ import "../contracts/events/FeesEvents.sol";
 import "../contracts/events/SwapsEvents.sol";
 
 
-contract IBZx is
+contract ISovryn is
     State,
     ProtocolSettingsEvents,
     LoanSettingsEvents,
@@ -139,6 +139,14 @@ contract IBZx is
         external
         view
         returns (bool);
+
+    function setWethToken(
+        address wethTokenAddress)
+        external;
+
+    function setProtocolTokenAddress(
+        address _protocolTokenAddress)
+        external;
 
 
     ////// Loan Settings //////

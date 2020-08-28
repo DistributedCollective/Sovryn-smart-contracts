@@ -5,11 +5,11 @@
 
 pragma solidity 0.5.17;
 
-import "../core/Constants.sol";
 import "../openzeppelin/SafeERC20.sol";
+import "../core/State.sol";
 
 
-contract VaultController is Constants {
+contract VaultController is State {
     using SafeERC20 for IERC20;
 
     event VaultDeposit(

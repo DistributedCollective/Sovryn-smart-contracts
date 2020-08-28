@@ -5,23 +5,23 @@ from brownie import Contract, Wei, reverts
 from fixedint import *
 
 @pytest.fixture(scope="module", autouse=True)
-def loanOpenings(LoanOpenings, accounts, bzx, Constants, priceFeeds, swapsImpl):
-    bzx.replaceContract(accounts[0].deploy(LoanOpenings).address)
+def loanOpenings(LoanOpenings, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+    sovryn.replaceContract(accounts[0].deploy(LoanOpenings).address)
 
-    bzx.setPriceFeedContract(
+    sovryn.setPriceFeedContract(
         priceFeeds.address # priceFeeds
     )
 
-    bzx.setSwapsImplContract(
+    sovryn.setSwapsImplContract(
         swapsImpl.address # swapsImpl
     )
 
 @pytest.fixture(scope="module", autouse=True)
-def loanClosings(LoanClosings, accounts, bzx, Constants, priceFeeds, swapsImpl):
-    bzx.replaceContract(accounts[0].deploy(LoanClosings).address)
+def loanClosings(LoanClosings, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+    sovryn.replaceContract(accounts[0].deploy(LoanClosings).address)
 
 @pytest.fixture(scope="module")
-def LinkDaiMarginParamsId(Constants, RBTC, SUSD, bzx, accounts):
+def LinkDaiMarginParamsId(Constants, RBTC, SUSD, sovryn, accounts):
 
     loanParams = {
         "id": "0x0",
@@ -33,11 +33,11 @@ def LinkDaiMarginParamsId(Constants, RBTC, SUSD, bzx, accounts):
         "maintenanceMargin": 15e18,
         "fixedLoanTerm": "2419200" # 28 days
     }
-    tx = bzx.setupLoanParams([list(loanParams.values())])
+    tx = sovryn.setupLoanParams([list(loanParams.values())])
     return tx.events["LoanParamsIdSetup"][0]["id"]
 
 @pytest.fixture(scope="module")
-def LinkDaiBorrowParamsId(Constants, RBTC, SUSD, bzx, accounts):
+def LinkDaiBorrowParamsId(Constants, RBTC, SUSD, sovryn, accounts):
 
     loanParams = {
         "id": "0x0",
@@ -49,13 +49,13 @@ def LinkDaiBorrowParamsId(Constants, RBTC, SUSD, bzx, accounts):
         "maintenanceMargin": 15e18,
         "fixedLoanTerm": "0" # torque loan
     }
-    tx = bzx.setupLoanParams([list(loanParams.values())])
+    tx = sovryn.setupLoanParams([list(loanParams.values())])
     return tx.events["LoanParamsIdSetup"][0]["id"]
 
-def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, bzx, SUSD, RBTC, accounts, web3):
+def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, sovryn, SUSD, RBTC, accounts, web3):
 
     ## setup simulated loan pool
-    bzx.setLoanPool(
+    sovryn.setLoanPool(
         [
             accounts[1],
         ],
@@ -64,21 +64,21 @@ def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, bzx, SUSD, RB
         ]
     )
 
-    bZxBeforeSUSDBalance = SUSD.balanceOf(bzx.address)
-    print("bZxBeforeSUSDBalance", bZxBeforeSUSDBalance)
+    sovrynBeforeSUSDBalance = SUSD.balanceOf(sovryn.address)
+    print("sovrynBeforeSUSDBalance", sovrynBeforeSUSDBalance)
     
-    bZxBeforeRBTCBalance = RBTC.balanceOf(bzx.address)
-    print("bZxBeforeRBTCBalance", bZxBeforeRBTCBalance)
+    sovrynBeforeRBTCBalance = RBTC.balanceOf(sovryn.address)
+    print("sovrynBeforeRBTCBalance", sovrynBeforeRBTCBalance)
 
     loanTokenSent = 100e18
 
     SUSD.mint(
-        bzx.address,
+        sovryn.address,
         loanTokenSent,
         { "from": accounts[0] }
     )
 
-    collateralTokenSent = bzx.getRequiredCollateral(
+    collateralTokenSent = sovryn.getRequiredCollateral(
         SUSD.address,
         RBTC.address,
         loanTokenSent,
@@ -86,7 +86,7 @@ def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, bzx, SUSD, RB
         False
     )
     RBTC.mint(
-        bzx.address,
+        sovryn.address,
         collateralTokenSent,
         { "from": accounts[0] }
     )
@@ -94,7 +94,7 @@ def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, bzx, SUSD, RB
     print("loanTokenSent",loanTokenSent)
     print("collateralTokenSent",collateralTokenSent)
 
-    tx = bzx.borrowOrTradeFromPool(
+    tx = sovryn.borrowOrTradeFromPool(
         LinkDaiMarginParamsId, #loanParamsId
         "0", # loanId
         False, # isTorqueLoan,
@@ -117,11 +117,11 @@ def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, bzx, SUSD, RB
     )
     print(tx.events)
 
-    bZxAfterSUSDBalance = SUSD.balanceOf(bzx.address)
-    print("bZxAfterSUSDBalance", bZxAfterSUSDBalance)
+    sovrynAfterSUSDBalance = SUSD.balanceOf(sovryn.address)
+    print("sovrynAfterSUSDBalance", sovrynAfterSUSDBalance)
     
-    bZxAfterRBTCBalance = RBTC.balanceOf(bzx.address)
-    print("bZxAfterRBTCBalance", bZxAfterRBTCBalance)
+    sovrynAfterRBTCBalance = RBTC.balanceOf(sovryn.address)
+    print("sovrynAfterRBTCBalance", sovrynAfterRBTCBalance)
 
     tradeEvent = tx.events["Trade"][0]
     print(tradeEvent)
@@ -133,11 +133,9 @@ def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, bzx, SUSD, RB
     expectedPositionSize = fixedint(loanTokenSent).sub(interestForPosition).mul(tradeEvent["entryPrice"]).div(1e18).add(collateralTokenSent)
     
     ## ignore differences in least significant digits due to rounding error
-    expectedPositionSize = fixedint(expectedPositionSize).div(100)
-    positionSize = fixedint(tradeEvent["positionSize"]).div(100)
-    assert expectedPositionSize == positionSize
+    assert abs(expectedPositionSize.num - int(tradeEvent["positionSize"])) < 100
 
-    '''l = bzx.getUserLoans(
+    '''l = sovryn.getUserLoans(
         accounts[1],
         0,
         100,
@@ -163,10 +161,10 @@ def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, bzx, SUSD, RB
     
     #assert(False)
 
-def test_borrowFromPool_sim(Constants, LinkDaiBorrowParamsId, bzx, SUSD, RBTC, accounts, web3):
+def test_borrowFromPool_sim(Constants, LinkDaiBorrowParamsId, sovryn, SUSD, RBTC, accounts, web3):
 
     ## setup simulated loan pool
-    bzx.setLoanPool(
+    sovryn.setLoanPool(
         [
             accounts[1],
         ],
@@ -175,11 +173,11 @@ def test_borrowFromPool_sim(Constants, LinkDaiBorrowParamsId, bzx, SUSD, RBTC, a
         ]
     )
 
-    bZxBeforeSUSDBalance = SUSD.balanceOf(bzx.address)
-    print("bZxBeforeSUSDBalance", bZxBeforeSUSDBalance)
+    sovrynBeforeSUSDBalance = SUSD.balanceOf(sovryn.address)
+    print("sovrynBeforeSUSDBalance", sovrynBeforeSUSDBalance)
     
-    bZxBeforeRBTCBalance = RBTC.balanceOf(bzx.address)
-    print("bZxBeforeRBTCBalance", bZxBeforeRBTCBalance)
+    sovrynBeforeRBTCBalance = RBTC.balanceOf(sovryn.address)
+    print("sovrynBeforeRBTCBalance", sovrynBeforeRBTCBalance)
 
     ## loanTokenSent to protocol is just the borrowed/escrowed interest since the actual borrow would have 
     ## already been transfered to the borrower by the pool before borrowOrTradeFromPool is called
@@ -187,12 +185,12 @@ def test_borrowFromPool_sim(Constants, LinkDaiBorrowParamsId, bzx, SUSD, RBTC, a
     newPrincipal = 101e18
 
     SUSD.mint(
-        bzx.address,
+        sovryn.address,
         loanTokenSent,
         { "from": accounts[0] }
     )
     
-    collateralTokenSent = bzx.getRequiredCollateral(
+    collateralTokenSent = sovryn.getRequiredCollateral(
         SUSD.address,
         RBTC.address,
         newPrincipal,
@@ -200,7 +198,7 @@ def test_borrowFromPool_sim(Constants, LinkDaiBorrowParamsId, bzx, SUSD, RBTC, a
         True
     )
     RBTC.mint(
-        bzx.address,
+        sovryn.address,
         collateralTokenSent,
         { "from": accounts[0] }
     )
@@ -209,7 +207,7 @@ def test_borrowFromPool_sim(Constants, LinkDaiBorrowParamsId, bzx, SUSD, RBTC, a
     print("loanTokenSent",loanTokenSent)
     print("collateralTokenSent",collateralTokenSent)
 
-    tx = bzx.borrowOrTradeFromPool(
+    tx = sovryn.borrowOrTradeFromPool(
         LinkDaiBorrowParamsId, #loanParamsId
         "0", # loanId
         True, # isTorqueLoan,
@@ -232,17 +230,17 @@ def test_borrowFromPool_sim(Constants, LinkDaiBorrowParamsId, bzx, SUSD, RBTC, a
     )
     print(tx.events)
 
-    bZxAfterSUSDBalance = SUSD.balanceOf(bzx.address)
-    print("bZxAfterSUSDBalance", bZxAfterSUSDBalance)
+    sovrynAfterSUSDBalance = SUSD.balanceOf(sovryn.address)
+    print("sovrynAfterSUSDBalance", sovrynAfterSUSDBalance)
     
-    bZxAfterRBTCBalance = RBTC.balanceOf(bzx.address)
-    print("bZxAfterRBTCBalance", bZxAfterRBTCBalance)
+    sovrynAfterRBTCBalance = RBTC.balanceOf(sovryn.address)
+    print("sovrynAfterRBTCBalance", sovrynAfterRBTCBalance)
 
     borrowEvent = tx.events["Borrow"][0]
     print(borrowEvent)
 
 
-    '''l = bzx.getUserLoans(
+    '''l = sovryn.getUserLoans(
         accounts[1],
         0,
         100,

@@ -481,7 +481,7 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
 
             uint256 rate = _avgBorrowInterestRate(assetBorrow)
                 .mul(_utilRate)
-                .mul(SafeMath.sub(10**20, ProtocolLike(bZxContractAddress).lendingFeePercent()))
+                .mul(SafeMath.sub(10**20, ProtocolLike(sovrynContractAddress).lendingFeePercent()))
                 .div(10**20);
             return rate
                 .add(_dsr)

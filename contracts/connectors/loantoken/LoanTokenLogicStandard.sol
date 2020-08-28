@@ -14,8 +14,8 @@ import "./interfaces/FeedsLike.sol";
 contract LoanTokenLogicStandard is AdvancedToken {
     using SafeMath for uint256;
 
-    // It is important to maintain the variables order so the delegate calls can access bZxContractAddress and wethTokenAddress
-    address public bZxContractAddress;
+    // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wethTokenAddress
+    address public sovrynContractAddress;
     address public wethTokenAddress;
     address internal target_;
 
@@ -59,7 +59,12 @@ contract LoanTokenLogicStandard is AdvancedToken {
             _safeTransfer(loanTokenAddress, receiver, loanAmountPaid, "5");
         }
     }
-
+    
+    
+    /*
+    flashBorrow is disabled for the MVP, but is going to be added later.
+    therefore, it needs to be revised
+    
     function flashBorrow(
         uint256 borrowAmount,
         address borrower,
@@ -118,8 +123,8 @@ contract LoanTokenLogicStandard is AdvancedToken {
 
         return returnData;
     }
+    */
 
-    // ***** NOTE: Reentrancy is allowed here to allow flashloan use cases *****
     function borrow(
         bytes32 loanId,                 // 0 if new loan
         uint256 withdrawAmount,
@@ -131,6 +136,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         bytes memory /*loanDataBytes*/) // arbitrary order data (for future use)
         public
         payable
+        nonReentrant                    //note: needs to be removed to allow flashloan use cases
         returns (uint256, uint256) // returns new principal and new collateral added to loan
     {
         require(withdrawAmount != 0, "6");
@@ -180,7 +186,6 @@ contract LoanTokenLogicStandard is AdvancedToken {
     }
 
     // Called to borrow and immediately get into a positions
-    // ***** NOTE: Reentrancy is allowed here to allow flashloan use cases *****
     function marginTrade(
         bytes32 loanId,                 // 0 if new loan
         uint256 leverageAmount,         // expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
@@ -191,6 +196,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         bytes memory loanDataBytes)     // arbitrary order data
         public
         payable
+        nonReentrant                    //note: needs to be removed to allow flashloan use cases
         returns (uint256, uint256) // returns new principal and new collateral added to trade
     {
         _checkPause();
@@ -265,7 +271,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
             _from,
             _to,
             _value,
-            ProtocolLike(bZxContractAddress).isLoanPool(msg.sender) ?
+            ProtocolLike(sovrynContractAddress).isLoanPool(msg.sender) ?
                 uint256(-1) :
                 allowed[_from][msg.sender]
         );
@@ -522,7 +528,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         view
         returns (uint256)
     {
-        return ProtocolLike(bZxContractAddress).getTotalPrincipal(
+        return ProtocolLike(sovrynContractAddress).getTotalPrincipal(
             address(this),
             loanTokenAddress
         );
@@ -598,7 +604,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         loanTokenSent = loanTokenSent
             .add(principal);
 
-        collateral = ProtocolLike(bZxContractAddress).getEstimatedMarginExposure(
+        collateral = ProtocolLike(sovrynContractAddress).getEstimatedMarginExposure(
             loanTokenAddress,
             collateralTokenAddress,
             loanTokenSent,
@@ -624,7 +630,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
             );
 
             if (newBorrowAmount <= _underlyingBalance()) {
-                return ProtocolLike(bZxContractAddress).getRequiredCollateral(
+                return ProtocolLike(sovrynContractAddress).getRequiredCollateral(
                     loanTokenAddress,
                     collateralTokenAddress != address(0) ? collateralTokenAddress : wethTokenAddress,
                     newBorrowAmount,
@@ -644,7 +650,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         returns (uint256 borrowAmount)
     {
         if (depositAmount != 0) {
-            borrowAmount = ProtocolLike(bZxContractAddress).getBorrowAmount(
+            borrowAmount = ProtocolLike(sovrynContractAddress).getBorrowAmount(
                 loanTokenAddress,
                 collateralTokenAddress != address(0) ? collateralTokenAddress : wethTokenAddress,
                 depositAmount,
@@ -733,7 +739,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         internal
     {
         if (lastSettleTime_ != block.timestamp) {
-            ProtocolLike(bZxContractAddress).withdrawAccruedInterest(
+            ProtocolLike(sovrynContractAddress).withdrawAccruedInterest(
                 loanTokenAddress
             );
 
@@ -751,7 +757,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
     {
         totalDeposit = loanTokenSent;
         if (collateralTokenSent != 0) {
-            (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = FeedsLike(ProtocolLike(bZxContractAddress).priceFeeds()).queryRate(
+            (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(
                 collateralTokenAddress,
                 loanTokenAddress
             );
@@ -844,7 +850,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         // converting to initialMargin
         leverageAmount = SafeMath.div(10**38, leverageAmount);
             
-        (sentAmounts[1], sentAmounts[4]) = ProtocolLike(bZxContractAddress).borrowOrTradeFromPool.value(msgValue)( // newPrincipal, newCollateral
+        (sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress).borrowOrTradeFromPool.value(msgValue)( // newPrincipal, newCollateral
             loanParamsId,
             loanId,
             withdrawAmount != 0 ? // isTorqueLoan
@@ -891,25 +897,25 @@ contract LoanTokenLogicStandard is AdvancedToken {
         if (withdrawalAmount != 0) { // withdrawOnOpen == true
             _safeTransfer(_loanTokenAddress, receiver, withdrawalAmount, "");
             if (newPrincipal > withdrawalAmount) {
-                _safeTransfer(_loanTokenAddress, bZxContractAddress, newPrincipal - withdrawalAmount, "");
+                _safeTransfer(_loanTokenAddress, sovrynContractAddress, newPrincipal - withdrawalAmount, "");
             }
         } else {
-            _safeTransfer(_loanTokenAddress, bZxContractAddress, newPrincipal, "27");
+            _safeTransfer(_loanTokenAddress, sovrynContractAddress, newPrincipal, "27");
         }
         //this is a critical piece of code!
         //wEth are supposed to be held by the contract itself, while other tokens are being transfered from the sender directly
         if (collateralTokenSent != 0) {
             if (collateralTokenAddress == _wethToken && msgValue != 0 && msgValue >= collateralTokenSent) {
                 IWeth(_wethToken).deposit.value(collateralTokenSent)();
-                _safeTransfer(collateralTokenAddress, bZxContractAddress, collateralTokenSent, "28-a");
+                _safeTransfer(collateralTokenAddress, sovrynContractAddress, collateralTokenSent, "28-a");
                 msgValue -= collateralTokenSent;
             } else {
-                _safeTransferFrom(collateralTokenAddress, msg.sender, bZxContractAddress, collateralTokenSent, "28-b");
+                _safeTransferFrom(collateralTokenAddress, msg.sender, sovrynContractAddress, collateralTokenSent, "28-b");
             }
         }
 
         if (loanTokenSent != 0) {
-            _safeTransferFrom(_loanTokenAddress, msg.sender, bZxContractAddress, loanTokenSent, "29");
+            _safeTransferFrom(_loanTokenAddress, msg.sender, sovrynContractAddress, loanTokenSent, "29");
         }
     }
 
@@ -1006,7 +1012,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         if (assetBorrow != 0 && assetSupply >= assetBorrow) {
             return _avgBorrowInterestRate(assetBorrow)
                 .mul(_utilizationRate(assetBorrow, assetSupply))
-                .mul(SafeMath.sub(10**20, ProtocolLike(bZxContractAddress).lendingFeePercent()))
+                .mul(SafeMath.sub(10**20, ProtocolLike(sovrynContractAddress).lendingFeePercent()))
                 .div(10**40);
         }
     }
@@ -1100,7 +1106,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
     {
         // interestPaid, interestPaidDate, interestOwedPerDay, interestUnPaid, interestFeePercent, principalTotal
         uint256 interestFeePercent;
-        (,,interestOwedPerDay,interestUnPaid,interestFeePercent,) = ProtocolLike(bZxContractAddress).getLenderInterestData(
+        (,,interestOwedPerDay,interestUnPaid,interestFeePercent,) = ProtocolLike(sovrynContractAddress).getLenderInterestData(
             address(this),
             loanTokenAddress
         );
