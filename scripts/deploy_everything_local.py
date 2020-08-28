@@ -51,6 +51,16 @@ def deployProtocol():
         tokens.susd.address,
         1e22 #1btc = 10000 susd
     )
+    feeds.setRates(
+        tokens.weth.address,
+        tokens.rbtc.address,
+        0.34e18
+    )
+    feeds.setRates(
+        tokens.weth.address,
+        tokens.susd.address,
+        382e18
+    )
 
     print("Deploying Swaps.")
     swaps = acct.deploy(SwapsImplLocal)
@@ -104,16 +114,18 @@ def deployProtocol():
 def deployLoanTokens():
     global sovryn, tokens
     print('\n DEPLOYING ISUSD')
-    contractAddress = deployLoanToken(tokens.susd.address, "SUSD", "SUSD", tokens.rbtc.address)
+    contract = deployLoanToken(tokens.susd.address, "SUSD", "SUSD", tokens.rbtc.address)
     print("initializing the lending pool with some tokens, so we do not run out of funds")
-    tokens.susd.mint(contractAddress,1e25) 
-    testDeployment(contractAddress, tokens.susd, tokens.rbtc)
+    tokens.susd.approve(contract.address,1e24) #1M $
+    contract.mint(acct, 1e24)
+    testDeployment(contract.address, tokens.susd, tokens.rbtc)
     
     print('\n DEPLOYING IRBTC')
-    contractAddress = deployLoanToken(tokens.rbtc.address, "RBTC", "RBTC", tokens.susd.address)
+    contract = deployLoanToken(tokens.rbtc.address, "RBTC", "RBTC", tokens.susd.address)
     print("initializing the lending pool with some tokens, so we do not run out of funds")
-    tokens.rbtc.mint(contractAddress,1e25) 
-    testDeployment(contractAddress, tokens.rbtc, tokens.susd)
+    tokens.rbtc.approve(contract.address,1e20) #100 BTC 
+    contract.mint(acct, 1e20)
+    testDeployment(contract.address, tokens.rbtc, tokens.susd)
 
 def deployLoanToken(loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddress):
     global sovryn, tokens
@@ -181,7 +193,7 @@ def deployLoanToken(loanTokenAddress, loanTokenSymbol, loanTokenName, collateral
     
     setupLoanTokenRates(acct, loanToken.address, loanTokenSettings.address, loanTokenLogic.address)
     
-    return loanToken.address
+    return loanToken
     
 def setupLoanTokenRates(acct, loanTokenAddress, settingsAddress, logicAddress):
     baseRate = 1e18
@@ -203,7 +215,7 @@ def testDeployment(loanTokenAddress, underlyingToken, collateralToken):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     
     
-    loanTokenSent = 100e18
+    loanTokenSent = 1e18
     underlyingToken.mint(accounts[0],loanTokenSent)
     underlyingToken.approve(loanToken.address, loanTokenSent)
     
@@ -216,11 +228,14 @@ def testDeployment(loanTokenAddress, underlyingToken, collateralToken):
         accounts[0], #trader, 
         b'' #loanDataBytes (only required with ether)
     )
-    
-    sovrynAfterCollateralBalance = collateralToken.balanceOf(sovryn.address)
 
-    assert(tx.events['Trade']['borrowedAmount'] > loanTokenSent)
-    assert(tx.events['Trade']['positionSize'] <= sovrynAfterCollateralBalance)
+    loanId = tx.events['Trade']['loanId']
+    collateral = tx.events['Trade']['positionSize']
+    print("closing loan with id", loanId)
+    print("position size is ", collateral)
+    loan = sovryn.getLoan(loanId)
+    print("found the loan in storage with position size", loan['collateral'])
+    tx = sovryn.closeWithSwap(loanId, acct, collateral, True, b'')
 
     
     
