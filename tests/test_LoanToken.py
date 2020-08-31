@@ -197,6 +197,7 @@ def test_margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, R
         b'' #loanDataBytes (only required with ether)
     )
 
+
     sovryn_after_rbtc_balance = RBTC.balanceOf(sovryn.address)
     loantoken_after_susd_balance = SUSD.balanceOf(loanToken.address)
 
