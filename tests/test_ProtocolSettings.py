@@ -89,3 +89,59 @@ def test_set_protocol_token_address(sovryn, Constants, accounts):
 
     with reverts("unauthorized"):
         sovryn.setProtocolTokenAddress(sovryn.address, {'from': accounts[1]})
+
+
+'''
+    Should set and deposit the protocol token
+    1. deploy erc20
+    2. set address
+    3. approve token transfer
+    4. deposit tokens
+    5. verify balance
+'''
+def test_deposit_protocol_token(sovryn, accounts, TestToken):
+    sov = accounts[0].deploy(TestToken, "Sovryn", "SOV", 18, 1e50)
+    sovryn.setProtocolTokenAddress(sov.address)
+    sov.approve(sovryn.address, 1e20)
+    sovryn.depositProtocolToken(1e20)
+    assert(sovryn.protocolTokenHeld() == 1e20)
+
+    
+'''
+    Should fail to deposit the protocl token
+'''
+def test_fail_deposit_protocol_token(sovryn, accounts, TestToken):
+    sov = accounts[1].deploy(TestToken, "Sovryn", "SOV", 18, 1e50)
+    sovryn.setProtocolTokenAddress(sov.address)
+    with reverts("unauthorized"):
+        sovryn.depositProtocolToken(sov.address, {"from":accounts[1]})
+    
+'''
+    Should successfully withdraw all deposited protocol tokens
+'''
+def test_withdraw_protocol_token(sovryn, accounts, TestToken):
+    sov = accounts[0].deploy(TestToken, "Sovryn", "SOV", 18, 1e50)
+    sovryn.setProtocolTokenAddress(sov.address)
+    sov.approve(sovryn.address, 1e20)
+    sovryn.depositProtocolToken(1e20)
+    balanceBefore = sov.balanceOf(accounts[1])
+    sovryn.withdrawProtocolToken(accounts[1], 1e20)
+    balanceAfter = sov.balanceOf(accounts[1])
+    assert(sovryn.protocolTokenHeld() == 0)
+    assert(balanceAfter==balanceBefore+1e20)
+    
+'''
+    Should fail to withdraw 1e30 protocol tokens but withdraw 1e20
+'''
+def test_fail_withdraw_protocol_token(sovryn, accounts, TestToken):
+    sov = accounts[0].deploy(TestToken, "Sovryn", "SOV", 18, 1e50)
+    sovryn.setProtocolTokenAddress(sov.address)
+    sov.approve(sovryn.address, 1e20)
+    sovryn.depositProtocolToken(1e20)
+    balanceBefore = sov.balanceOf(accounts[1])
+    sovryn.withdrawProtocolToken(accounts[1], 1e30)
+    balanceAfter = sov.balanceOf(accounts[1])
+    assert(sovryn.protocolTokenHeld() == 0)
+    assert(balanceAfter==balanceBefore+1e20)
+    
+   
