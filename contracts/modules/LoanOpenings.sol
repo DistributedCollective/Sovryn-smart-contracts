@@ -484,11 +484,12 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
         Loan memory loanLocal;
 
         if (loanId == 0) {
+            borrowerNonce[borrower]++;
             loanId = keccak256(abi.encodePacked(
                 loanParamsLocal.id,
                 lender,
                 borrower,
-                block.timestamp
+                borrowerNonce[borrower]
             ));
             require(loans[loanId].id == 0, "loan exists");
 
