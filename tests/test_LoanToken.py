@@ -1020,7 +1020,56 @@ def test_deposit_collateral_0_value(sovryn,set_demand_curve,lend_to_pool,open_ma
     with reverts("depositAmount is 0"):
         sovryn.depositCollateral(loan_id, 0)
     
-#note: deposit collateral tests for WETH still missing.
+#note: deposit collateral tests for WETH still missing. 
+
+
+def test_toggle_function_pause(accounts, loanToken, LoanToken, LoanTokenSettingsLowerAdmin, LoanTokenLogicStandard, loanTokenSettings, SUSD, open_margin_trade_position, lend_to_pool):
+    '''
+    1. pause a function
+    2. try to call the function - should fail
+    3. reactivate it
+    4. try to call the function - should succeed
+    '''
+    lend_to_pool()
+    functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,bytes)"
+    
+    # pause the given function
+    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
+    localLoanToken.setTarget(loanTokenSettings.address)
+    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenSettingsLowerAdmin.abi, owner=accounts[0])
+    localLoanToken.toggleFunctionPause(functionSignature, True)
+    
+    # make sure the function can't be called anymore
+    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
+    loanTokenLogic = accounts[0].deploy(LoanTokenLogicStandard)
+    localLoanToken.setTarget(loanTokenLogic.address)
+    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
+    
+    with reverts("unauthorized"):
+        open_margin_trade_position()
+    
+    # reactivate the given function
+    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
+    localLoanToken.setTarget(loanTokenSettings.address)
+    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenSettingsLowerAdmin.abi, owner=accounts[0])
+    localLoanToken.toggleFunctionPause(functionSignature, False)
+    
+    #make sure the function can be called again
+    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
+    localLoanToken.setTarget(loanTokenLogic.address)
+    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
+    open_margin_trade_position()
+    
+def test_toggle_function_pause_with_non_admin_should_fail(loanToken, LoanTokenSettingsLowerAdmin, loanTokenSettings, LoanToken, accounts):
+    '''
+    call toggleFunction with a non-admin address and make sure it fails
+    '''
+    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
+    localLoanToken.setTarget(loanTokenSettings.address)
+    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenSettingsLowerAdmin.abi, owner=accounts[0])
+    with reverts("unauthorized"):
+        localLoanToken.toggleFunctionPause("mint(address,uint256)", True, {'from':accounts[1]})
+
 
 
 def test_extend_fix_term_loan_duration_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position, LoanMaintenance):
@@ -1197,10 +1246,6 @@ def test_withdraw_accrued_interest(sovryn, set_demand_curve, lend_to_pool, open_
     assert(end_interest_data_2['interestUnPaid'] == end_interest_data_1['interestUnPaid'] - interest_owed_now)
 
 
-
-
-   
-   
     
     
 '''
