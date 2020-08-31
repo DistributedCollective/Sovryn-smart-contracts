@@ -9,7 +9,7 @@ pragma experimental ABIEncoderV2;
 import "./LoanTokenLogicStandard.sol";
 
 
-contract LoanTokenLogicWeth is LoanTokenLogicStandard {
+contract LoanTokenLogicWbtc is LoanTokenLogicStandard {
 
     function mintWithEther(
         address receiver)
@@ -36,7 +36,7 @@ contract LoanTokenLogicWeth is LoanTokenLogicStandard {
         );
 
         if (loanAmountPaid != 0) {
-            IWethERC20(wethTokenAddress).withdraw(loanAmountPaid);
+            IWbtcERC20(wbtcTokenAddress).withdraw(loanAmountPaid);
             Address.sendValue(
                 receiver,
                 loanAmountPaid
@@ -63,8 +63,8 @@ contract LoanTokenLogicWeth is LoanTokenLogicStandard {
         internal
         returns (uint256 msgValue)
     {
-        address _wethToken = wethTokenAddress;
-        address _loanTokenAddress = _wethToken;
+        address _wbtcToken = wbtcTokenAddress;
+        address _loanTokenAddress = _wbtcToken;
         address receiver = sentAddresses[2];
         uint256 newPrincipal = sentAmounts[1];
         uint256 loanTokenSent = sentAmounts[3];
@@ -75,7 +75,7 @@ contract LoanTokenLogicWeth is LoanTokenLogicStandard {
         msgValue = msg.value;
 
         if (withdrawalAmount != 0) { // withdrawOnOpen == true
-            IWethERC20(_wethToken).withdraw(withdrawalAmount);
+            IWbtcERC20(_wbtcToken).withdraw(withdrawalAmount);
             Address.sendValue(
                 receiver,
                 withdrawalAmount
@@ -93,7 +93,7 @@ contract LoanTokenLogicWeth is LoanTokenLogicStandard {
 
         if (loanTokenSent != 0) {
             if (msgValue != 0 && msgValue >= loanTokenSent) {
-                IWeth(_wethToken).deposit.value(loanTokenSent)();
+                IWbtc(_wbtcToken).deposit.value(loanTokenSent)();
                 _safeTransfer(_loanTokenAddress, sovrynContractAddress, loanTokenSent, "29");
                 msgValue -= loanTokenSent;
             } else {

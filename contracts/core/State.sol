@@ -11,7 +11,7 @@ import "../mixins/EnumerableBytes32Set.sol";
 import "../openzeppelin/ReentrancyGuard.sol";
 import "../openzeppelin/Ownable.sol";
 import "../openzeppelin/SafeMath.sol";
-import "../interfaces/IWethERC20.sol";
+import "../interfaces/IWbtcERC20.sol";
 
 
 contract State is Objects, ReentrancyGuard, Ownable {
@@ -76,7 +76,7 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
     uint256 public maxSwapSize = 1500 ether;                                             // maximum support swap size in ETH
 
-    IWethERC20 public wethToken;
+    IWbtcERC20 public wbtcToken;
     address public protocolTokenAddress;
 
     function _setTarget(

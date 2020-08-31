@@ -14,13 +14,13 @@ def loanParamsId(accounts, sovryn, loanParams):
     return loanParamsId
 
 @pytest.fixture(scope="module", autouse=True)
-def loanParams(accounts, sovryn, WETH, SUSD, Constants):
+def loanParams(accounts, sovryn, WBTC, SUSD, Constants):
     loanParams = {
         "id": "0x0",
         "active": False,
         "owner": Constants["ZERO_ADDRESS"],
         "loanToken": SUSD.address,
-        "collateralToken": WETH.address,
+        "collateralToken": WBTC.address,
         "initialMargin": Wei("50 ether"),
         "maintenanceMargin": Wei("15 ether"),
         "fixedLoanTerm": "2419200"

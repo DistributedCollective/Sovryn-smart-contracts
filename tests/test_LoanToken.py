@@ -9,11 +9,11 @@ from fixedint import *
 import shared
 
 @pytest.fixture(scope="module", autouse=True)
-def loanToken(LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, SUSD, WETH, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+def loanToken(LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, SUSD, WBTC, accounts, sovryn, Constants, priceFeeds, swapsImpl):
 
     loanTokenLogic = accounts[0].deploy(LoanTokenLogicStandard)
     #Deploying loan token using the loan logic as target for delegate calls
-    loanToken = accounts[0].deploy(LoanToken, loanTokenLogic.address, sovryn.address, WETH.address)
+    loanToken = accounts[0].deploy(LoanToken, loanTokenLogic.address, sovryn.address, WBTC.address)
     #Initialize loanTokenAddress
     loanToken.initialize(SUSD, "SUSD", "SUSD")
     #setting the logic ABI for the loan token contract
@@ -144,7 +144,7 @@ def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, S
     #   address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan 
     collateralTokenSent = sovryn.getRequiredCollateral(SUSD.address,RBTC.address,loanTokenSent*2,50e18, False)
     RBTC.mint(accounts[0],collateralTokenSent)
-    #important! WEth is being held by the loanToken contract itself, all other tokens are transfered directly from 
+    #important! WBTC is being held by the loanToken contract itself, all other tokens are transfered directly from 
     #the sender and need approval
     RBTC.approve(loanToken.address, collateralTokenSent)
     
@@ -1020,7 +1020,7 @@ def test_deposit_collateral_0_value(sovryn,set_demand_curve,lend_to_pool,open_ma
     with reverts("depositAmount is 0"):
         sovryn.depositCollateral(loan_id, 0)
     
-#note: deposit collateral tests for WETH still missing.
+#note: deposit collateral tests for WBTC still missing.
 
 
 def test_extend_fix_term_loan_duration_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position, LoanMaintenance):

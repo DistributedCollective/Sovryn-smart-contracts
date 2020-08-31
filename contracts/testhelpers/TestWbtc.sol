@@ -16,9 +16,9 @@
 pragma solidity 0.5.17;
 
 
-contract TestWeth {
-    string public name     = "Wrapped Ether";
-    string public symbol   = "WETH";
+contract TestWbtc {
+    string public name     = "Wrapped BTC";
+    string public symbol   = "WBTC";
     uint8  public decimals = 18;
 
     event  Approval(address indexed src, address indexed guy, uint wad);

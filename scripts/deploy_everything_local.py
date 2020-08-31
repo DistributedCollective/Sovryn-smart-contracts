@@ -36,14 +36,14 @@ def deployProtocol():
 
     
     print("Deploying test tokens.")
-    tokens.weth = acct.deploy(TestWeth) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
+    tokens.wbtc = acct.deploy(TestWbtc) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
     tokens.susd = acct.deploy(TestToken, "SUSD", "SUSD", 18, 1e50)
     tokens.rbtc = acct.deploy(TestToken, "RBTC", "RBTC", 18, 1e50)
 
     
 
     print("Deploying PriceFeeds.")
-    feeds = acct.deploy(PriceFeedsLocal, tokens.weth.address, sovryn.address)
+    feeds = acct.deploy(PriceFeedsLocal, tokens.wbtc.address, sovryn.address)
 
     print("Calling setRates.")
     feeds.setRates(
@@ -73,7 +73,7 @@ def deployProtocol():
 
     sovryn.setFeesController(acct.address)
 
-    sovryn.setWethToken(tokens.weth.address)
+    sovryn.setWbtcToken(tokens.wbtc.address)
     sovryn.setProtocolTokenAddress(sovryn.address)
 
     ## LoanSettings
@@ -128,8 +128,8 @@ def deployLoanToken(loanTokenAddress, loanTokenSymbol, loanTokenName, collateral
     _add_contract(loanTokenSettings)
     
     print("Deploying loan token using the loan logic as target for delegate calls")
-    print('tokens.weth.address', tokens.weth.address)
-    loanToken = acct.deploy(LoanToken, loanTokenLogic.address, sovryn.address, tokens.weth.address)
+    print('tokens.wbtc.address', tokens.wbtc.address)
+    loanToken = acct.deploy(LoanToken, loanTokenLogic.address, sovryn.address, tokens.wbtc.address)
     _add_contract(loanToken)
     
     print("Initialize loanTokenAddress ")

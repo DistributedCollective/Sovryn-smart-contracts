@@ -5,19 +5,19 @@
 
 pragma solidity 0.5.17;
 
-import "../interfaces/IWethERC20.sol";
+import "../interfaces/IWbtcERC20.sol";
 import "../openzeppelin/Address.sol";
 
 contract Constants {
-    IWethERC20 public wethToken;
+    IWbtcERC20 public wbtcToken;
     address internal protocolTokenAddress;
 
-    function _setWethToken(
-        address _wethTokenAddress)
+    function _setwbtcToken(
+        address _wbtcTokenAddress)
         internal
     {
-        require(Address.isContract(_wethTokenAddress), "_wethTokenAddress not a contract");
-        wethToken = IWethERC20(_wethTokenAddress);
+        require(Address.isContract(_wbtcTokenAddress), "_wbtcTokenAddress not a contract");
+        wbtcToken = IWbtcERC20(_wbtcTokenAddress);
     }
 
     function _setProtocolTokenAddress(

@@ -250,7 +250,7 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
         uint256 _maxSwapSize = maxSwapSize;
         if (_maxSwapSize != 0) {
             uint256 amountInEth;
-            if (tokenAddress == address(wethToken)) {
+            if (tokenAddress == address(wbtcToken)) {
                 amountInEth = amount;
             } else {
                 amountInEth = IPriceFeeds(priceFeeds).amountInEth(tokenAddress, amount);

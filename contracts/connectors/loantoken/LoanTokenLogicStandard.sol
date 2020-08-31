@@ -14,9 +14,9 @@ import "./interfaces/FeedsLike.sol";
 contract LoanTokenLogicStandard is AdvancedToken {
     using SafeMath for uint256;
 
-    // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wethTokenAddress
+    // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wbtcTokenAddress
     address public sovrynContractAddress;
-    address public wethTokenAddress;
+    address public wbtcTokenAddress;
     address internal target_;
 
     uint256 public constant VERSION = 5;
@@ -158,7 +158,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         require(collateralTokenAddress != address(0) || msg.value != 0 || loanId != 0, "9");
 
         if (collateralTokenAddress == address(0)) {
-            collateralTokenAddress = wethTokenAddress;
+            collateralTokenAddress = wbtcTokenAddress;
         }
         require(collateralTokenAddress != loanTokenAddress, "10");
 
@@ -212,7 +212,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         _checkPause();
  
         if (collateralTokenAddress == address(0)) {
-            collateralTokenAddress = wethTokenAddress;
+            collateralTokenAddress = wbtcTokenAddress;
         }
 
         require(collateralTokenAddress != loanTokenAddress, "11");
@@ -594,7 +594,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         returns (uint256 principal, uint256 collateral, uint256 interestRate)
     {
         if (collateralTokenAddress == address(0)) {
-            collateralTokenAddress = wethTokenAddress;
+            collateralTokenAddress = wbtcTokenAddress;
         }
 
         uint256 totalDeposit = _totalDeposit(
@@ -642,7 +642,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
             if (newBorrowAmount <= _underlyingBalance()) {
                 return ProtocolLike(sovrynContractAddress).getRequiredCollateral(
                     loanTokenAddress,
-                    collateralTokenAddress != address(0) ? collateralTokenAddress : wethTokenAddress,
+                    collateralTokenAddress != address(0) ? collateralTokenAddress : wbtcTokenAddress,
                     newBorrowAmount,
                     50 * 10**18, // initialMargin
                     true // isTorqueLoan
@@ -662,7 +662,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         if (depositAmount != 0) {
             borrowAmount = ProtocolLike(sovrynContractAddress).getBorrowAmount(
                 loanTokenAddress,
-                collateralTokenAddress != address(0) ? collateralTokenAddress : wethTokenAddress,
+                collateralTokenAddress != address(0) ? collateralTokenAddress : wbtcTokenAddress,
                 depositAmount,
                 50 * 10**18, // initialMargin,
                 true // isTorqueLoan
@@ -701,7 +701,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         if (msg.value == 0) {
             _safeTransferFrom(loanTokenAddress, msg.sender, address(this), depositAmount, "18");
         } else {
-            IWeth(wethTokenAddress).deposit.value(depositAmount)();
+            IWbtc(wbtcTokenAddress).deposit.value(depositAmount)();
         }
 
         uint256 oldBalance = balances[receiver];
@@ -893,7 +893,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         internal
         returns (uint256 msgValue)
     {
-        address _wethToken = wethTokenAddress;
+        address _wbtcToken = wbtcTokenAddress;
         address _loanTokenAddress = loanTokenAddress;
         address receiver = sentAddresses[2];
         uint256 newPrincipal = sentAmounts[1];
@@ -915,8 +915,8 @@ contract LoanTokenLogicStandard is AdvancedToken {
         //this is a critical piece of code!
         //wEth are supposed to be held by the contract itself, while other tokens are being transfered from the sender directly
         if (collateralTokenSent != 0) {
-            if (collateralTokenAddress == _wethToken && msgValue != 0 && msgValue >= collateralTokenSent) {
-                IWeth(_wethToken).deposit.value(collateralTokenSent)();
+            if (collateralTokenAddress == _wbtcToken && msgValue != 0 && msgValue >= collateralTokenSent) {
+                IWbtc(_wbtcToken).deposit.value(collateralTokenSent)();
                 _safeTransfer(collateralTokenAddress, sovrynContractAddress, collateralTokenSent, "28-a");
                 msgValue -= collateralTokenSent;
             } else {

@@ -22,17 +22,17 @@ def RBTC(accounts, TestToken):
     return accounts[0].deploy(TestToken, "RBTC", "RBTC", 18, 1e50)
 
 @pytest.fixture(scope="module")
-def priceFeeds(accounts, WETH, SUSD, RBTC, BZRX, PriceFeeds, PriceFeedsLocal):
+def priceFeeds(accounts, WBTC, SUSD, RBTC, BZRX, PriceFeeds, PriceFeedsLocal):
     if network.show_active() == "development":
-        feeds = accounts[0].deploy(PriceFeedsLocal, WETH.address, BZRX.address)
+        feeds = accounts[0].deploy(PriceFeedsLocal, WBTC.address, BZRX.address)
         
         feeds.setRates(
-            WETH.address,
+            WBTC.address,
             RBTC.address,
             0.34e18
         )
         feeds.setRates(
-            WETH.address,
+            WBTC.address,
             SUSD.address,
             382e18
         )
@@ -42,7 +42,7 @@ def priceFeeds(accounts, WETH, SUSD, RBTC, BZRX, PriceFeeds, PriceFeedsLocal):
             1e22
         )
     else:
-        feeds = accounts[0].deploy(PriceFeeds, WETH.address, BZRX.address)
+        feeds = accounts[0].deploy(PriceFeeds, WBTC.address, BZRX.address)
         #feeds.setPriceFeedsBatch(...)
 
     return feeds
@@ -76,9 +76,9 @@ def isolate(fn_isolation):
     pass
 
 @pytest.fixture(scope="module", autouse=True)
-def WETH(module_isolation, accounts, TestWeth):
-    yield accounts[0].deploy(TestWeth) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
+def WBTC(module_isolation, accounts, TestWbtc):
+    yield accounts[0].deploy(TestWbtc) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
 
 @pytest.fixture(scope="module", autouse=True)
-def BZRX(module_isolation, accounts, TestWeth):
-    yield accounts[0].deploy(TestWeth) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
+def BZRX(module_isolation, accounts, TestWbtc):
+    yield accounts[0].deploy(TestWbtc) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
