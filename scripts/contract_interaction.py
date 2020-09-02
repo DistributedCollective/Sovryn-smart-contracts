@@ -8,13 +8,13 @@ from brownie.network.contract import InterfaceContainer
 
 def main():
     acct = accounts.load("rskdeployer")
-    iSUSD = '0xC6Aa9E9C18021Db79eDa87a8E58dD3c146A6b1E5'
-    iRBTC = '0xc4F9857B4bb568C10aD68C092D058Fc8d36Ce4b0'
+    iSUSD = '0xD1A979EDE2c17FCD31800Bed859e5EC3DA178Cb9'
+    iRBTC = '0x08118a219a4e34E06176cD0861fcDDB865771111'
     iSUSDSettings = '0x588F22EaeEe37d9BD0174de8e76df9b69D3Ee4eC'
     iRBTCSettings = '0x99DcD929027a307D76d5ca912Eec1C0aE3FA6DDF'
     iSUSDLogic = '0x48f96e4e8adb8db5B70538b58DaDE4a89E2F9DF0'
     iRBTCLogic = '0xCA27bC90C76fc582406fBC4665832753f74A75F5'
-    protocol = '0xBAC609F5C8bb796Fa5A31002f12aaF24B7c35818'
+    protocol = '0x74808B7a84327c66bA6C3013d06Ed3DD7664b0D4'
     testSUSD = '0xE631653c4Dc6Fb98192b950BA0b598f90FA18B3E'
     testRBTC ='0xE53d858A78D884659BF6955Ea43CBA67c0Ae293F'
     #setPriceFeeds(acct)
@@ -31,7 +31,9 @@ def main():
     #getTokenPrice(acct, iRBTC)
     #testTokenBurning(acct, iRBTC, testRBTC)
     #liquidate(acct, protocol, '0x5f8d4599657b3d24eb4fee83974a43c62f411383a8b5750b51adca63058a0f59')
-    testTradeOpeningAndClosing(acct, protocol,iSUSD,testSUSD,testRBTC)
+    #testTradeOpeningAndClosing(acct, protocol,iSUSD,testSUSD,testRBTC)
+    testBorrow(acct,protocol,iSUSD,testSUSD,testRBTC)
+    #setupTorqueLoanParams(acct,iSUSD,iSUSDSettings,testSUSD,testRBTC)
 
 def setPriceFeeds(acct):
     priceFeedContract = '0xf2e9fD37912aB53D0FEC1eaCE86d6A14346Fb6dD'
@@ -177,3 +179,67 @@ def testTradeOpeningAndClosing(acct, protocolAddress, loanTokenAddress, underlyi
     loan = sovryn.getLoan(loanId)
     print("found the loan in storage with position size", loan['collateral'])
     tx = sovryn.closeWithSwap(loanId, acct, collateral, True, b'')
+
+
+def testBorrow(acct, protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress):
+    #read contract abis
+    sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    testToken = Contract.from_abi("TestToken", address = collateralTokenAddress, abi = TestToken.abi, owner = acct)
+    
+    # determine borrowing parameter
+    withdrawAmount = 10e18 #i want to borrow 10 USD
+    # compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan 
+    collateralTokenSent = sovryn.getRequiredCollateral(underlyingTokenAddress,collateralTokenAddress,withdrawAmount,50e18, True)
+    print("collateral needed", collateralTokenSent)
+    durationInSeconds = 60*60*24*10 #10 days
+    
+    #check requirements
+    totalSupply = loanToken.totalSupply()
+    totalBorrowed = loanToken.totalAssetBorrow()
+    print('available supply:', totalSupply - totalBorrowed)
+    assert(totalSupply - totalBorrowed >= withdrawAmount)
+    interestRate = loanToken.nextBorrowInterestRate(withdrawAmount)
+    print('interest rate (needs to be > 0):', interestRate)
+    assert(interestRate > 0)
+    
+    
+    #approve the transfer of the collateral if needed
+    if(testToken.allowance(acct, loanToken.address) < collateralTokenSent):
+        testToken.approve(loanToken.address, collateralTokenSent)
+    
+    # borrow some funds
+    tx = loanToken.borrow(
+        "0",                            # bytes32 loanId
+        withdrawAmount,                 # uint256 withdrawAmount
+        durationInSeconds,              # uint256 initialLoanDuration
+        collateralTokenSent,            # uint256 collateralTokenSent
+        testToken.address,                   # address collateralTokenAddress
+        acct,                    # address borrower
+        acct,                    # address receiver
+        b''                             # bytes memory loanDataBytes
+    )
+    
+    #assert the trade was processed as expected
+    print(tx.info())
+    
+def setupTorqueLoanParams(acct, loanTokenAddress, loanTokenSettingsAddress, underlyingTokenAddress, collateralTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    loanTokenSettings = Contract.from_abi("loanTokenSettings", address=loanTokenSettingsAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
+    params = [];
+    setup = [
+        b"0x0", ## id
+        False, ## active
+        str(accounts[0]), ## owner
+        underlyingTokenAddress, ## loanToken
+        collateralTokenAddress, ## collateralToken. 
+        Wei("50 ether"), ## minInitialMargin
+        Wei("15 ether"), ## maintenanceMargin
+        0 ## fixedLoanTerm 
+    ]
+    params.append(setup)
+    calldata = loanTokenSettings.setupTorqueLoanParams.encode_input(params)
+    tx = loanToken.updateSettings(loanTokenSettings.address, calldata)
+    assert('LoanParamsSetup' in tx.events)
+    assert('LoanParamsIdSetup' in tx.events)
+    print(tx.info())

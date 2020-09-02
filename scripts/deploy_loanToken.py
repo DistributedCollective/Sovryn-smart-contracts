@@ -101,6 +101,31 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
     #configure the token settings
     calldata = loanTokenSettings.setupMarginLoanParams.encode_input(params)
     
+    #set the setting contract address at the loan token logic contract (need to load the logic ABI in line 171 to work)
+    tx = loanToken.updateSettings(loanTokenSettings.address, calldata, { "from": acct })
+    #print(tx.info())
+    
+    print("Setting up torque pool params")
+    
+    params = [];
+    
+    data = [
+        b"0x0", ## id
+        False, ## active
+        str(acct), ## owner
+        constants.ZERO_ADDRESS, ## loanToken -> will be overwritten
+        collateralAddress, ## collateralToken.  
+        Wei("50 ether"), ## minInitialMargin -> 20% (allows up to 5x leverage)
+        Wei("15 ether"), ## maintenanceMargin -> 15%, below liquidation
+        0 ## fixedLoanTerm -> will be overwritten with 28 days
+    ]
+    
+    
+    params.append(data)
+    
+    #configure the token settings
+    calldata = loanTokenSettings.setupTorqueLoanParams.encode_input(params)
+    
     #print(calldata)
     
     #set the setting contract address at the loan token logic contract (need to load the logic ABI in line 171 to work)
