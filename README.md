@@ -35,13 +35,13 @@ brownie networks add rsk testnet host=https://public-node.testnet.rsk.co chainid
 ```
 3. Deploy contracts locally
 ```bash
-brownie run deploy_everything_local.py 
+brownie run deploy_everything.py 
 ```
 
 4. Deploy contracts on testnet
 
 ```bash
-brownie run deploy_everything_local.py --network testnet
+brownie run deploy_everything.py --network testnet
 ```
 
 ## Smart Contract Usage

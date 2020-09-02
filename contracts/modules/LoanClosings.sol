@@ -88,6 +88,14 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
         );
     }
 
+    /**
+    * Closes a loan by doing a deposit
+    * @param loanId the id of the loan
+    * @param receiver the receiver of the remainder
+    * @param depositAmount defines how much of the position should be closed. It is denominated in loan tokens.
+    *       depositAmount > principal, the complete loan will be closed
+    *       else deposit amount (partial closure)
+    **/
     function closeWithDeposit(
         bytes32 loanId,
         address receiver,
@@ -410,6 +418,14 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
         );
     }
 
+    /**
+    * Internal function for closing a loan by doing a deposit
+    * @param loanId the id of the loan
+    * @param receiver the receiver of the remainder
+    * @param depositAmount defines how much of the position should be closed. It is denominated in loan tokens.
+    *       depositAmount > principal, the complete loan will be closed
+    *       else deposit amount (partial closure)
+    **/
     function _closeWithDeposit(
         bytes32 loanId,
         address receiver,
