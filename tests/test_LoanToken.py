@@ -1073,7 +1073,6 @@ def test_toggle_function_pause_with_non_admin_should_fail(loanToken, LoanTokenSe
         localLoanToken.toggleFunctionPause("mint(address,uint256)", True, {'from':accounts[1]})
 
 
-
 def test_extend_fix_term_loan_duration_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position, LoanMaintenance):
     """
     At this moment the maxLoanTerm is always 28 because it is hardcoded in setupMarginLoanParams.
@@ -1145,12 +1144,17 @@ def test_extend_closed_loan_duration_should_fail(accounts, sovryn, set_demand_cu
     loan_id, borrower, _, _, _, _, tx = borrow_indefinite_loan()
     borrow_event = tx.events['Borrow']
     collateral = borrow_event['newCollateral']
+    initial_loan_interest_data = sovryn.getLoanInterestData(loan_id)
+
+    days_to_extend = 10
+    owed_per_day = initial_loan_interest_data['interestOwedPerDay']
+    deposit_amount = owed_per_day * days_to_extend
 
     sovryn.closeWithSwap(loan_id, borrower, collateral, False, "", {'from': borrower})
 
     loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
-    with reverts("depositAmount is 0"):
-        loan_maintenance.extendLoanDuration(loan_id, 0, False, b'', {'from': borrower})
+    with reverts("loan is closed"):
+        loan_maintenance.extendLoanDuration(loan_id, deposit_amount, False, b'', {'from': borrower})
 
 
 def test_extend_loan_duration_user_unauthorized_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, LoanMaintenance, borrow_indefinite_loan):
@@ -1158,10 +1162,15 @@ def test_extend_loan_duration_user_unauthorized_should_fail(accounts, sovryn, se
     set_demand_curve()
     lend_to_pool()
     loan_id, _, receiver, _, _, _, _ = borrow_indefinite_loan()
+    initial_loan_interest_data = sovryn.getLoanInterestData(loan_id)
+
+    days_to_extend = 10
+    owed_per_day = initial_loan_interest_data['interestOwedPerDay']
+    deposit_amount = owed_per_day * days_to_extend
 
     loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
-    with reverts("depositAmount is 0"):
-        loan_maintenance.extendLoanDuration(loan_id, 0, True, b'', {'from': receiver})
+    with reverts("unauthorized"):
+        loan_maintenance.extendLoanDuration(loan_id, deposit_amount, True, b'', {'from': receiver})
 
 
 def test_extend_loan_duration_with_collateral(accounts, sovryn, set_demand_curve, lend_to_pool, RBTC, SUSD, LoanMaintenance, priceFeeds, borrow_indefinite_loan):
@@ -1340,6 +1349,7 @@ def test_withdraw_borrowing_fees(accounts, sovryn, set_demand_curve, lend_to_poo
     assert(SUSD.balanceOf(accounts[1])==fees)
 
 
+
 def test_full_close_with_deposit(sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position, SUSD, RBTC, loanToken, priceFeeds, chain, accounts, LoanClosingsEvents):
     """
     Test CloseWithDeposit event parameters
@@ -1511,3 +1521,157 @@ def internal_test_close_with_deposit(deposit_amount, RBTC, SUSD, borrower, chain
     transfer_to_lender = transfer_to_lender[0]
     assert (transfer_to_lender['to'] == loanToken.address)
     assert (transfer_to_lender['value'] == loan_close_amount_less_interest)
+
+def test_reduce_fix_term_loan_duration_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position, LoanMaintenance):
+    """
+    At this moment the maxLoanTerm is always 28 because it is hardcoded in setupMarginLoanParams.
+    So there are only fix-term loans.
+    """
+    # prepare the test
+    set_demand_curve()
+    (receiver, _) = lend_to_pool()
+    (loan_id, trader, loan_token_sent, leverage_amount) = open_margin_trade_position()
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+
+    with reverts("indefinite-term only"):
+        loan_maintenance.reduceLoanDuration(loan_id, trader, loan_token_sent, {'from': trader})
+
+
+def test_reduce_loan_duration(accounts, sovryn, set_demand_curve, lend_to_pool, SUSD, LoanMaintenance, borrow_indefinite_loan):
+    """
+    Reduce the loan duration and see if the new timestamp is the expected, the interest decrease,
+    the receiver SUSD balance increase and the sovryn SUSD balance decrease
+    """
+
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    loan_id, borrower, _, _, _, _, _ = borrow_indefinite_loan()
+
+    initial_loan = sovryn.getLoan(loan_id)
+    initial_loan_interest_data = sovryn.getLoanInterestData(loan_id)
+    initial_loan_token_lender_balance = SUSD.balanceOf(sovryn.address)
+
+    days_to_reduce = 5
+    owed_per_day = initial_loan_interest_data['interestOwedPerDay']
+    withdraw_amount = owed_per_day * days_to_reduce
+
+    receiver = accounts[3]
+    initial_receiver_balance = SUSD.balanceOf(receiver)
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+    loan_maintenance.reduceLoanDuration(loan_id, receiver, withdraw_amount, {'from': borrower})
+
+    end_loan_interest_data = sovryn.getLoanInterestData(loan_id)
+    end_loan = sovryn.getLoan(loan_id)
+
+    assert(end_loan['endTimestamp'] == initial_loan['endTimestamp'] - days_to_reduce*24*60*60)
+    assert(end_loan_interest_data['interestDepositTotal'] == initial_loan_interest_data['interestDepositTotal'] - withdraw_amount)
+    assert(SUSD.balanceOf(receiver) == initial_receiver_balance + withdraw_amount)
+    # Due to block timestamp could be paying outstanding interest to lender or not
+    assert(SUSD.balanceOf(sovryn.address) <= initial_loan_token_lender_balance - withdraw_amount)
+
+
+def test_reduce_loan_duration_0_withdraw_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, LoanMaintenance, borrow_indefinite_loan):
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    loan_id, borrower, _, _, _, _, _ = borrow_indefinite_loan()
+    receiver = accounts[3]
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+    with reverts("withdrawAmount is 0"):
+        loan_maintenance.reduceLoanDuration(loan_id, receiver, 0, {'from': borrower})
+
+
+def test_reduce_closed_loan_duration_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, LoanMaintenance, borrow_indefinite_loan):
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    loan_id, borrower, _, _, _, _, tx = borrow_indefinite_loan()
+    borrow_event = tx.events['Borrow']
+    collateral = borrow_event['newCollateral']
+    receiver = accounts[3]
+
+    initial_loan_interest_data = sovryn.getLoanInterestData(loan_id)
+    sovryn.closeWithSwap(loan_id, borrower, collateral, False, "", {'from': borrower})
+
+    days_to_reduce = 5
+    owed_per_day = initial_loan_interest_data['interestOwedPerDay']
+    withdraw_amount = owed_per_day * days_to_reduce
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+    with reverts("loan is closed"):
+        loan_maintenance.reduceLoanDuration(loan_id, receiver, withdraw_amount, {'from': borrower})
+
+
+def test_reduce_loan_duration_user_unauthorized_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, LoanMaintenance, borrow_indefinite_loan):
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    loan_id, borrower, _, _, _, _, _ = borrow_indefinite_loan()
+
+    receiver = accounts[3]
+    initial_loan_interest_data = sovryn.getLoanInterestData(loan_id)
+    days_to_reduce = 5
+    owed_per_day = initial_loan_interest_data['interestOwedPerDay']
+    withdraw_amount = owed_per_day * days_to_reduce
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+    with reverts("unauthorized"):
+        loan_maintenance.reduceLoanDuration(loan_id, receiver, withdraw_amount, {'from': receiver})
+
+
+def test_reduce_loan_duration_with_loan_term_ended_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, LoanMaintenance, borrow_indefinite_loan, chain):
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    loan_id, borrower, _, _, _, _, _ = borrow_indefinite_loan()
+
+    receiver = accounts[3]
+    initial_loan_interest_data = sovryn.getLoanInterestData(loan_id)
+    days_to_reduce = 5
+    owed_per_day = initial_loan_interest_data['interestOwedPerDay']
+    withdraw_amount = owed_per_day * days_to_reduce
+
+    initial_loan = sovryn.getLoan(loan_id)
+    loan_end_timestamp = initial_loan['endTimestamp']
+
+    chain.sleep(loan_end_timestamp)
+    chain.mine(1)
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+    with reverts("loan term has ended"):
+        loan_maintenance.reduceLoanDuration(loan_id, receiver, withdraw_amount, {'from': borrower})
+
+
+def test_reduce_loan_duration_withdraw_amount_too_high_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, LoanMaintenance, borrow_indefinite_loan):
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    loan_id, borrower, _, withdraw_amount, _, _, _ = borrow_indefinite_loan()
+
+    receiver = accounts[3]
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+    with reverts("withdraw amount too high"):
+        loan_maintenance.reduceLoanDuration(loan_id, receiver, withdraw_amount * 2, {'from': borrower})
+
+
+def test_reduce_loan_duration_less_than_one_hour_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, LoanMaintenance, borrow_indefinite_loan):
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    loan_id, borrower, _, _, duration_in_seconds, _, _ = borrow_indefinite_loan()
+
+    receiver = accounts[3]
+    initial_loan_interest_data = sovryn.getLoanInterestData(loan_id)
+    owed_per_day = initial_loan_interest_data['interestOwedPerDay']
+    # reduce the loan upto 50 minutes
+    withdraw_amount = fixedint(owed_per_day).mul(duration_in_seconds - 50*60).div(24*60*60)
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+    with reverts("loan too short"):
+        loan_maintenance.reduceLoanDuration(loan_id, receiver, withdraw_amount, {'from': borrower})
+
