@@ -11,7 +11,7 @@ import "./LoanTokenLogicStandard.sol";
 
 contract LoanTokenLogicWbtc is LoanTokenLogicStandard {
 
-    function mintWithEther(
+    function mintWithBTC(
         address receiver)
         external
         payable
@@ -24,7 +24,7 @@ contract LoanTokenLogicWbtc is LoanTokenLogicStandard {
         );
     }
 
-    function burnToEther(
+    function burnToBTC(
         address receiver,
         uint256 burnAmount)
         external

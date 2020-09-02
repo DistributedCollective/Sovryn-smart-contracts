@@ -25,11 +25,9 @@ contract SwapsImplLocal is State, ISwapsImpl {
         uint256 requiredDestTokenAmount)
         public
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
-    {
+    {   
         require(sourceTokenAddress != destTokenAddress, "source == dest");
-        require(sourceTokenAddress != address(wbtcToken) && destTokenAddress != address(wbtcToken),
-            "wbtc swaps not supported on testnet"
-        );
+
 
         (uint256 tradeRate, uint256 precision) = IPriceFeeds(priceFeeds).queryRate(
             sourceTokenAddress,

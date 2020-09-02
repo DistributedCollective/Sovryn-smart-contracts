@@ -75,6 +75,35 @@ contract TestWbtc {
 
         return true;
     }
+    
+    /**
+     * added for local swap implementation
+     * */
+    function mint(
+        address _to,
+        uint256 _value)
+        public
+    {
+        require(_to != address(0), "no burn allowed");
+        balanceOf[_to] = balanceOf[_to] + _value;
+        emit Transfer(address(0), _to, _value);
+    }
+    
+    /**
+     * added for local swap implementation
+     * */
+    function burn(
+        address _who,
+        uint256 _value)
+        public
+    {
+        require(_value <= balanceOf[_who], "balance too low");
+        // no need to require _value <= totalSupply, since that would imply the
+        // sender's balance is greater than the totalSupply, which *should* be an assertion failure
+
+        balanceOf[_who] = balanceOf[_who] - _value;
+        emit Transfer(_who, address(0), _value);
+    }
 }
 
 

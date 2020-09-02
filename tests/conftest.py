@@ -4,6 +4,7 @@ import pytest
 from brownie import Contract, network
 from brownie.network.contract import InterfaceContainer
 from brownie.network.state import _add_contract, _remove_contract
+from fixtures_loan_token import *
 
 @pytest.fixture(scope="module")
 def Constants():
@@ -29,12 +30,12 @@ def priceFeeds(accounts, WBTC, SUSD, RBTC, BZRX, PriceFeeds, PriceFeedsLocal):
         feeds.setRates(
             WBTC.address,
             RBTC.address,
-            0.34e18
+            1e18
         )
         feeds.setRates(
             WBTC.address,
             SUSD.address,
-            382e18
+            1e22
         )
         feeds.setRates(
             RBTC.address,
@@ -58,7 +59,7 @@ def swapsImpl(accounts, SwapsImplKyber, SwapsImplLocal):
     return feeds
 
 @pytest.fixture(scope="module", autouse=True)
-def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, LoanMaintenance):
+def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, LoanMaintenance, WBTC):
     sovrynproxy = accounts[0].deploy(sovrynProtocol)
     sovryn = Contract.from_abi("sovryn", address=sovrynproxy.address, abi=interface.ISovryn.abi, owner=accounts[0])
     _add_contract(sovryn)
@@ -68,6 +69,7 @@ def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, 
     sovryn.replaceContract(accounts[0].deploy(LoanMaintenance).address)
     #sovryn.replaceContract(accounts[0].deploy(LoanOpenings).address)
     #sovryn.replaceContract(accounts[0].deploy(LoanClosings).address)
+    sovryn.setWbtcToken(WBTC.address)
     
     return sovryn
 
@@ -82,3 +84,4 @@ def WBTC(module_isolation, accounts, TestWbtc):
 @pytest.fixture(scope="module", autouse=True)
 def BZRX(module_isolation, accounts, TestWbtc):
     yield accounts[0].deploy(TestWbtc) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
+  
