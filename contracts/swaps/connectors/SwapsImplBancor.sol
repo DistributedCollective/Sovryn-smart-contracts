@@ -10,21 +10,26 @@ import "./interfaces/IContractRegistry.sol";
 
 contract SwapsImplBancor is State, ISwapsImpl {
     using SafeERC20 for IERC20;
-    
-    
-    bytes32 contractName = hex"42616e636f724e6574776f726b"; // "BancorNetwork"
-    
-    function getBancorNetworkContract() public view returns(IBancorNetwork){
-        //bancorContractRegistryAddress is part of State.sol and set in ProtocolSettings.sol
-        IContractRegistry contractRegistry = IContractRegistry(bancorContractRegistryAddress);
-        return IBancorNetwork(contractRegistry.addressOf(contractName));
+
+    // bytes32 contractName = hex"42616e636f724e6574776f726b"; // "BancorNetwork"
+
+    function getContractHexName(string memory source) public pure returns (bytes32 result) {
+        assembly {
+            result := mload(add(source, 32))
+        }
     }
-    
+
+    function getBancorNetworkContract() public view returns(IBancorNetwork){
+        // bancorContractRegistryAddress is part of State.sol and set in ProtocolSettings.sol
+        IContractRegistry contractRegistry = IContractRegistry(bancorContractRegistryAddress);
+        return IBancorNetwork(contractRegistry.addressOf(getContractHexName("BancorNetwork")));
+    }
+
     /**
      * swaps the source token for the destination token on the oracle based amm.
-     * on loan opening: minSourceTokenAmount = maxSourceTokenAmount and requiredDestTokenAmount = 0 
+     * on loan opening: minSourceTokenAmount = maxSourceTokenAmount and requiredDestTokenAmount = 0
      *      -> swap the minSourceTokenAmount
-     * on loan rollover: (swap interest) minSourceTokenAmount = 0, maxSourceTokenAmount = complete collateral and requiredDestTokenAmount > 0 
+     * on loan rollover: (swap interest) minSourceTokenAmount = 0, maxSourceTokenAmount = complete collateral and requiredDestTokenAmount > 0
      *      -> amount of required source tokens to swap is estimated (want to fill requiredDestTokenAmount, not more). maxSourceTokenAMount is not exceeded.
      * on loan closure: minSourceTokenAmount <= maxSourceTokenAmount and requiredDestTokenAmount >= 0
      *      -> same as on rollover. minimum amount is not considered at all.
@@ -34,8 +39,9 @@ contract SwapsImplBancor is State, ISwapsImpl {
      * @param returnToSenderAddress the address to return unspent tokens to (when called by the protocol, it's always the protocol contract)
      * @param minSourceTokenAmount the minimum amount of source tokens to swapped (only considered if requiredDestTokens == 0)
      * @param maxSourceTokenAmount the maximum amount of source tokens to swapped
-     * @param requiredDestTokenAmount the required amount of destination tokens 
+     * @param requiredDestTokenAmount the required amount of destination tokens
      * **/
+
     function internalSwap(
         address sourceTokenAddress,
         address destTokenAddress,
@@ -49,15 +55,15 @@ contract SwapsImplBancor is State, ISwapsImpl {
     {
         require(sourceTokenAddress != destTokenAddress, "source == dest");
         require(supportedTokens[sourceTokenAddress] && supportedTokens[destTokenAddress], "invalid tokens");
-        
+
         IBancorNetwork bancorNetwork = getBancorNetworkContract();
         IERC20[] memory path = bancorNetwork.conversionPath(
             IERC20(sourceTokenAddress),
             IERC20(destTokenAddress)
         );
-        
+
         uint expectedReturn = 0;
-        
+
         //if the required amount of destination tokens is passed, we need to calculate the estimated amount of source tokens
         //regardless of the minimum source token amount (name is misleading)
         if(requiredDestTokenAmount > 0){
@@ -70,13 +76,13 @@ contract SwapsImplBancor is State, ISwapsImpl {
             sourceTokenAmountUsed = minSourceTokenAmount;
             expectedReturn = bancorNetwork.rateByPath(path, minSourceTokenAmount);
         }
-        
+
         allowTransfer(sourceTokenAmountUsed, sourceTokenAddress, address(bancorNetwork));
-        
+
         //note: the kyber connector uses .call() to interact with kyber to avoid bubbling up. here we allow bubbling up.
         destTokenAmountReceived = bancorNetwork.convertByPath(path, sourceTokenAmountUsed, expectedReturn, address(0), address(0), 0);
-        
-        //if the sender is not the protocol (calling with delegatecall), return the remainder to the specified address. 
+
+        //if the sender is not the protocol (calling with delegatecall), return the remainder to the specified address.
         //note: for the case that the swap is used without the protocol. not sure if it should, though. needs to be discussed.
         if (returnToSenderAddress != address(this)) {
             if (sourceTokenAmountUsed < maxSourceTokenAmount) {
@@ -89,9 +95,9 @@ contract SwapsImplBancor is State, ISwapsImpl {
         }
 
     }
-    
+
     /**
-     * check is the existing allowance suffices to transfer the needed amount of tokens. 
+     * check is the existing allowance suffices to transfer the needed amount of tokens.
      * if not, allows the transfer of an arbitrary amount of tokens.
      * @param tokenAmount the amount to transfer
      * @param tokenAddress the address of the token to transfer
@@ -106,7 +112,7 @@ contract SwapsImplBancor is State, ISwapsImpl {
             );
         }
     }
-    
+
     /**
      * calculates the number of source tokens to provide in order to obtain the required destination amount.
      * @param sourceTokenAddress the address of the source token address
@@ -118,26 +124,26 @@ contract SwapsImplBancor is State, ISwapsImpl {
     function estimateSourceTokenAmount(address sourceTokenAddress, address destTokenAddress, uint requiredDestTokenAmount,  uint maxSourceTokenAmount) internal returns(uint256 estimatedSourceAmount){
         //logic like in SwapsImplKyber. query current rate from the price feed, add a 5% buffer and return this value
         //in case it's not bigger than maxSourceTokenAmount. else return maxSourceTokenAmount
-        
+
         uint256 sourceToDestPrecision = IPriceFeeds(priceFeeds).queryPrecision(sourceTokenAddress, destTokenAddress);
-        if (sourceToDestPrecision == 0) 
+        if (sourceToDestPrecision == 0)
             return maxSourceTokenAmount;
-        
+
         //compute the expected rate for the maxSourceTokenAmount -> if spending less, we can't get a worse rate.
         uint256 expectedRate = internalExpectedRate(sourceTokenAddress, destTokenAddress, maxSourceTokenAmount);
-        
+
         //compute the source tokens needed to get the required amount with the worst case rate
         estimatedSourceAmount = requiredDestTokenAmount
             .mul(sourceToDestPrecision)
             .div(expectedRate);
-        
+
 
         //never spend more than the maximum
-        if (estimatedSourceAmount == 0 || estimatedSourceAmount > maxSourceTokenAmount) 
+        if (estimatedSourceAmount == 0 || estimatedSourceAmount > maxSourceTokenAmount)
             return maxSourceTokenAmount;
 
     }
-    
+
     /**
      * returns the expected rate for 1 source token when exchanging the given amount of source tokens
      * @param sourceTokenAddress the address of the source token contract
@@ -149,7 +155,7 @@ contract SwapsImplBancor is State, ISwapsImpl {
         address destTokenAddress,
         uint256 sourceTokenAmount)
         public
-        view 
+        view
         returns (uint256)
     {
         IBancorNetwork bancorNetwork = getBancorNetworkContract();
@@ -163,8 +169,8 @@ contract SwapsImplBancor is State, ISwapsImpl {
         //return the rate for 1 token with 18 decimals
         return expectedReturn.mul(10**18).div(sourceTokenAmount);
     }
-    
-    
-    
-    
+
+
+
+
 }
