@@ -6,15 +6,15 @@
 pragma solidity 0.5.17;
 
 
-import "./Constants.sol";
 import "./Objects.sol";
 import "../mixins/EnumerableBytes32Set.sol";
 import "../openzeppelin/ReentrancyGuard.sol";
 import "../openzeppelin/Ownable.sol";
 import "../openzeppelin/SafeMath.sol";
+import "../interfaces/IWethERC20.sol";
 
 
-contract State is Constants, Objects, ReentrancyGuard, Ownable {
+contract State is Objects, ReentrancyGuard, Ownable {
     using SafeMath for uint256;
     using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set;
 
@@ -76,7 +76,11 @@ contract State is Constants, Objects, ReentrancyGuard, Ownable {
     uint256 public sourceBufferPercent = 5 * 10**18;                                     // used to estimate kyber swap source amount
 
     uint256 public maxSwapSize = 1500 ether;                                             // maximum support swap size in ETH
-
+    
+    mapping(address => uint256) public borrowerNonce;                                    // nonce per borrower. used for loan id creation.
+    
+    IWethERC20 public wethToken;
+    address public protocolTokenAddress;
 
     function _setTarget(
         bytes4 sig,

@@ -22,9 +22,9 @@ def RBTC(accounts, TestToken):
     return accounts[0].deploy(TestToken, "RBTC", "RBTC", 18, 1e50)
 
 @pytest.fixture(scope="module")
-def priceFeeds(accounts, WETH, SUSD, RBTC, PriceFeeds, PriceFeedsLocal):
+def priceFeeds(accounts, WETH, SUSD, RBTC, BZRX, PriceFeeds, PriceFeedsLocal):
     if network.show_active() == "development":
-        feeds = accounts[0].deploy(PriceFeedsLocal)
+        feeds = accounts[0].deploy(PriceFeedsLocal, WETH.address, BZRX.address)
         
         feeds.setRates(
             WETH.address,
@@ -42,7 +42,7 @@ def priceFeeds(accounts, WETH, SUSD, RBTC, PriceFeeds, PriceFeedsLocal):
             1e22
         )
     else:
-        feeds = accounts[0].deploy(PriceFeeds)
+        feeds = accounts[0].deploy(PriceFeeds, WETH.address, BZRX.address)
         #feeds.setPriceFeedsBatch(...)
 
     return feeds

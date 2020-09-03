@@ -13,7 +13,7 @@ import "../mixins/InterestUser.sol";
 import "../swaps/SwapsUser.sol";
 
 
-contract LoanOpenings is State, LoanOpeningsEvents, VaultController, InterestUser, SwapsUser {
+contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, SwapsUser {
 
     constructor() public {}
 
@@ -484,11 +484,12 @@ contract LoanOpenings is State, LoanOpeningsEvents, VaultController, InterestUse
         Loan memory loanLocal;
 
         if (loanId == 0) {
+            borrowerNonce[borrower]++;
             loanId = keccak256(abi.encodePacked(
                 loanParamsLocal.id,
                 lender,
                 borrower,
-                block.timestamp
+                borrowerNonce[borrower]
             ));
             require(loans[loanId].id == 0, "loan exists");
 
