@@ -36,23 +36,18 @@ def main():
     test_liquidate()
 
 def setup():
-    global sovryn, loan_token, loan_token_logic, loan_token_address, SUSD, RBTC, loan_token_settings
+    global sovryn, loan_token, loan_token_address, SUSD, RBTC, loan_token_settings
 
     sovryn_address = data["sovrynProtocol"]
     contract_registry_address = data["contractRegistry"]
     loan_token_address = data["loanTokenSUSD"]
-    loan_token_logic_address = data["loanTokenLogic"]
     loan_token_settings_address = data["loanTokenSettingsSUSD"]
-    loan_openings_address = data["loanOpenings"]
-    price_feeds_address = data["priceFeeds"]
     SUSD_address = data["SUSD"]
     RBTC_address = data["RBTC"]
 
     sovryn = Contract.from_abi("sovryn", address=sovryn_address, abi=interface.ISovryn.abi, owner=acct)
     loan_token = Contract.from_abi("loanToken", address=loan_token_address, abi=LoanTokenLogicStandard.abi, owner=acct)
-    loan_token_logic = Contract.from_abi("loanTokenLogic", address=loan_token_logic_address, abi=LoanTokenLogicStandard.abi, owner=acct)
     loan_token_settings = Contract.from_abi("loanTokenSettings", address=loan_token_settings_address, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
-    loan_openings = Contract.from_abi("loanOpenings", address=loan_openings_address, abi=LoanOpenings.abi, owner=acct)
     SUSD = Contract.from_abi("TestToken", address=SUSD_address, abi=TestToken.abi, owner=acct)
     RBTC = Contract.from_abi("TestToken", address=RBTC_address, abi=TestToken.abi, owner=acct)
 

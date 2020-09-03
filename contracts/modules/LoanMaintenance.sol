@@ -14,7 +14,7 @@ import "../mixins/LiquidationHelper.sol";
 import "../swaps/SwapsUser.sol";
 
 
-contract LoanMaintenance is State, LoanOpeningsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper {
+contract LoanMaintenance is LoanOpeningsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper {
 
     struct LoanReturnData {
         bytes32 loanId;

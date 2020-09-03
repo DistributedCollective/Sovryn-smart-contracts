@@ -11,7 +11,7 @@ import "../mixins/VaultController.sol";
 import "./FeesHelper.sol";
 
 
-contract InterestUser is State, VaultController, FeesHelper {
+contract InterestUser is VaultController, FeesHelper {
     using SafeERC20 for IERC20;
 
     function _payInterest(

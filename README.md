@@ -1,4 +1,6 @@
 
+
+
 # Sovryn v 0.1 Smart Contracts
 
 ## Dependencies
@@ -33,13 +35,13 @@ brownie networks add rsk testnet host=https://public-node.testnet.rsk.co chainid
 ```
 3. Deploy contracts locally
 ```bash
-brownie run deploy_everything_local.py
+brownie run deploy_everything.py
 ```
 
 4. Deploy contracts on testnet
 
 ```bash
-brownie run deploy_everything_local.py --network testnet
+brownie run deploy_everything.py --network testnet
 ```
 
 ## Bancor joint testing for RSK (local)
@@ -74,9 +76,9 @@ brownie run setup_bancor.py
 ### 1. Parameter setup
 ##### 1.1 Loan Pool
 
-To set the loan pool parameters, you need to call ```setLoanPool``` on the protocol contract.
+To set the loan pool parameter, you need to call ```setLoanPool``` on the protocol contract.
 
-```setLoanPool``` is expecting the following parameters:
+```setLoanPool``` is expecting the following parameter:
 ```
 address[] calldata pools,
 address[] calldata assets
@@ -90,9 +92,9 @@ For example: The underlying asset of iSUSD is sUSD.
 
 ##### 1.2 Margin Pool
 
-To set up the margin pool parameters, you need to call ```updateSettings``` on the iToken contract (LoanToken.sol).
+To set up the margin pool parameter, you need to call ```updateSettings``` on the iToken contract (LoanToken.sol).
 
-```updateSettings``` is expecting the following parameters:
+```updateSettings``` is expecting the following parameter:
 ```
 address settingsTarget,
 bytes memory callData
@@ -139,7 +141,7 @@ uint256 maxLoanTerm;
 
 In order to provide funds to the pool, call ```mint``` on the respective iToken contract. This will take your deposit and give you iTokens in return. If you want to provide sUSD, call it to the iSUSD contract. If you want to provide rBTC, call it to the iRBTC contract.
 
-```mint``` is expecting following parameters:
+```mint``` is expecting following parameter:
 ```
 address receiver,
 uint256 depositAmount
@@ -154,7 +156,7 @@ The function retrieves the tokens from the message sender, so make sure to first
 
 In order to withdraw funds to the pool, call ```burn```on the respective iToken contract. This will burn your iTokens and send you the underlying token in exchange.
 
-```burn``` is expecting the following parameters:
+```burn``` is expecting the following parameter:
 ```
 address receiver,
 uint256 burnAmount
@@ -174,7 +176,7 @@ Let's say you want to trade RBTC against SUSD. You enter a BTC long position by 
 
 If you are sending ERC20 tokens as collateral, you first need to approve the iToken contract to access your funds. This is done by calling ```approve(address spender, uint amount)``` on the ERC20 token contract, where spender is the iToken contract address and amount is the required collateral.
 
-```marginTrade``` is expecting the following parameters:
+```marginTrade``` is expecting the following parameter:
 ```
 bytes32 loanId,
 uint256 leverageAmount,
@@ -198,9 +200,132 @@ bytes memory loanDataBytes
 
 ##### 3.2 Close a position
 
-### 4. Liquidation Handling
+There are 2 functions for ending a loan on the protocol contract: ```closeWithSwap``` and ```closeWithDeposit```. Margin trade positions  are always closed with a swap.
 
-### 5. Remarks
+```closeWithSwap``` is expecting following parameter:
+```
+bytes32 loanId,
+address receiver,
+uint256 swapAmount,
+bool returnTokenIsCollateral,
+bytes memory loanDataBytes
+```
+```loanId``` is the ID of the loan, which is created on loan opening. It can be obtained either by parsing the Trade event or by reading the open loans from the contract by calling ```getActiveLoans``` or ```getUserLoans```.
+
+```receiver``` is the user's address.
+
+```swapAmount``` defines how much of the position should be closed and is denominated in collateral tokens (e.g. rBTC on a iSUSD contract). If ```swapAmount >= collateral```, the complete position will be closed. Else if `returnTokenIsCollateral == True` ```(swapAmount/collateral) * principal``` will be swapped (partial closure). Else the closure amount will be the principal's covered amount
+
+```returnTokenIsCollateral```  pass ```true``` if you want to withdraw remaining collateral + profit in collateral tokens (e.g. rBTC on a iSUSD contract), ```false``` if you want to withdraw it in loan tokens (e.g. sUSD on a iSUSD contract).
+
+```loanDataBytes``` is not used at this point. Pass empty bytes.
+
+### 4. Loan Maintainanance
+
+##### 4.1 Add margin
+
+In order to add margin to a open position, call ```depositCollateral``` on the protocol contract.
+
+```depositCollateral``` expects following parameter:
+```
+bytes32 loanId,
+uint256 depositAmount
+```
+```loanId``` is the ID of the loan
+
+```depositAmount``` is the amount of collateral tokens to deposit.
+
+##### 4.2 Rollover
+
+When the maximum loan duration has been exceeded, the position will need to be rolled over. The function ```rollover``` on the protocol contract extends the loan duration by the maximum term (28 days for margin trades at the moment of writing), pays the interest to the lender and refunds the caller for the gas cost by sending 2 * the gas cost using the fast gas price as base for the calculation.
+
+```rollover``` expects following parameter:
+```
+bytes32 loanId,
+bytes calldata loanDataBytes
+```
+```loanId``` is the ID of the loan.
+
+```loanDataBytes``` is a placeholder for future use. Send an empty bytes array.
+
+
+### 5. Liquidation Handling
+##### 5.1 Liquidate a position
+In order to liquidate an open position, call ```liquidate``` on the protocol contract. Requirements:
+* current margin < maintenance margin
+* liquidator approved the protocol to spend sufficient tokens
+
+```liquidate``` will compute the maximum seizable amount and buy it using the caller's tokens. Therefore, the caller needs to possess enough funds to purchase the tokens. The liquidator gets an discount on the collateral token price. The discount is set on State.sol and is called ```liquidationIncentivePercent```. Currently, it is hardcoded to 5%.
+
+```liquidate``` expects following parameter:
+```
+bytes32 loanId,
+address receiver,
+uint256 closeAmount
+```
+```loanId``` is the ID of the loan
+
+```receiver``` is the address receiving the seized funds
+
+```closeAmount``` is the amount to liquidate. If closeAmount > maxLiquidatable, the maximum amount will be liquidated.
+
+### 6. Reading data from the contracts
+
+##### 6.1 Loans
+
+You can read all active loans from the smart contract calling ```getActiveLoans```. All active loans for a specific user can be retrieved with ``` getUserLoans```. Both function will return a array of ```LoanReturnData``` objects.
+To query a single loan, use ```getLoan```.
+
+```LoanReturnData``` objects contain following data:
+```
+bytes32 loanId;
+address loanToken;
+address collateralToken;
+uint256 principal;
+uint256 collateral;
+uint256 interestOwedPerDay;
+uint256 interestDepositRemaining;
+uint256 startRate;
+uint256 startMargin;
+uint256 maintenanceMargin;
+uint256 currentMargin;
+uint256 maxLoanTerm;
+uint256 endTimestamp;
+uint256 maxLiquidatable;
+uint256 maxSeizable;
+```
+
+``` loanId``` is the ID of the loan
+
+```loanToken``` is the address of the loan token
+
+```collateralToken``` is the address of the collateral token
+
+```principal``` is the complete borrowed amount (in loan tokens)
+
+```collateral``` is the complete position size (loan + margin) (in collateral tokens)
+
+```interestOwedPerDay``` is the interest per day
+
+```startRate``` is the exchange rate at the beginning (collateral token to loan token)
+
+```startMargin``` is the margin at the beginning (in percent, 18 decimals)
+
+```maintenanceMargin``` is the minimum margin. If the current margin drops below, the position will be partially liquidated
+
+```currentMargin``` is the current margin
+
+```maxLoanTerm``` is the max duration of the loan
+
+```endTimestamp``` afterwards the loan needs to be rolled over
+
+```maxLiquidatable``` is the amount which can be liquidated (in loan tokens)
+
+```maxSeizable ``` is the amount which can be retrieved through liquidation (in collateral tokens)
+
+
+
+### 7. Remarks
 
 The loan token (iToken) contract as well as the protocol contract act as proxies, delegating all calls to underlying contracts. Therefore, if you want to interact with them using web3, you need to use the ABIs from the contracts containing the actual logic or the interface contract.
 

@@ -139,10 +139,19 @@ contract ISovryn is
         external
         view
         returns (bool);
-    
+
     function setBancorContractRegistryAddress(
-        address registryAddress) 
+        address registryAddress)
         external;
+
+    function setWethToken(
+        address wethTokenAddress)
+        external;
+
+    function setProtocolTokenAddress(
+        address _protocolTokenAddress)
+        external;
+
 
     ////// Loan Settings //////
 
