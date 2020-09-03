@@ -25,7 +25,7 @@ def RBTC(accounts, TestToken):
 def priceFeeds(accounts, WETH, SUSD, RBTC, BZRX, PriceFeeds, PriceFeedsLocal):
     if network.show_active() == "development":
         feeds = accounts[0].deploy(PriceFeedsLocal, WETH.address, BZRX.address)
-        
+
         feeds.setRates(
             WETH.address,
             RBTC.address,
@@ -48,7 +48,7 @@ def priceFeeds(accounts, WETH, SUSD, RBTC, BZRX, PriceFeeds, PriceFeedsLocal):
     return feeds
 
 @pytest.fixture(scope="module")
-def swapsImpl(accounts, SwapsImplBancor, SwapsImplLocal):
+def swapsImpl(accounts, SwapsImplSovrynSwap, SwapsImplLocal):
     '''
     if network.show_active() == "development":
         swap = accounts[0].deploy(SwapsImplLocal)
@@ -56,27 +56,27 @@ def swapsImpl(accounts, SwapsImplBancor, SwapsImplLocal):
         swap = accounts[0].deploy(SwapsImplKyber)
         #feeds.setPriceFeedsBatch(...)
     '''
-    
-    swap = accounts[0].deploy(SwapsImplBancor)
+
+    swap = accounts[0].deploy(SwapsImplSovrynSwap)
 
     return swap
 
 @pytest.fixture(scope="module", autouse=True)
-def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, LoanMaintenance, SUSD, RBTC, TestBancor, priceFeeds):
+def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, LoanMaintenance, SUSD, RBTC, TestSovrynSwap, priceFeeds):
     sovrynproxy = accounts[0].deploy(sovrynProtocol)
     sovryn = Contract.from_abi("sovryn", address=sovrynproxy.address, abi=interface.ISovryn.abi, owner=accounts[0])
     _add_contract(sovryn)
-    
+
     sovryn.replaceContract(accounts[0].deploy(ProtocolSettings).address)
     sovryn.replaceContract(accounts[0].deploy(LoanSettings).address)
     sovryn.replaceContract(accounts[0].deploy(LoanMaintenance).address)
     #sovryn.replaceContract(accounts[0].deploy(LoanOpenings).address)
     #sovryn.replaceContract(accounts[0].deploy(LoanClosings).address)
-    
-    bancorSimulator = accounts[0].deploy(TestBancor, priceFeeds)
-    sovryn.setBancorContractRegistryAddress(bancorSimulator.address)
+
+    sovrynSwapSimulator = accounts[0].deploy(TestSovrynSwap, priceFeeds)
+    sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address)
     sovryn.setSupportedTokens([SUSD.address,RBTC.address],[True,True])
-    
+
     return sovryn
 
 @pytest.fixture(scope="function", autouse=True)

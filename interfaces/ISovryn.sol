@@ -140,7 +140,7 @@ contract ISovryn is
         view
         returns (bool);
 
-    function setBancorContractRegistryAddress(
+    function setSovrynSwapContractRegistryAddress(
         address registryAddress)
         external;
 

@@ -51,8 +51,8 @@ def setup():
     SUSD = Contract.from_abi("TestToken", address=SUSD_address, abi=TestToken.abi, owner=acct)
     RBTC = Contract.from_abi("TestToken", address=RBTC_address, abi=TestToken.abi, owner=acct)
 
-    print("Setting the bancor contract registry address")
-    sovryn.setBancorContractRegistryAddress(contract_registry_address)  # 0x1280691943Ad9d6B0B9D19f4C62f318C071c41ab
+    print("Setting the SovrynSwap contract registry address")
+    sovryn.setSovrynSwapontractRegistryAddress(contract_registry_address)  # 0x1280691943Ad9d6B0B9D19f4C62f318C071c41ab
 
     initial_total_supply = loan_token.totalSupply()
     # loan token total supply should be zero
