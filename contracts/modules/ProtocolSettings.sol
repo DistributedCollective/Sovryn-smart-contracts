@@ -48,7 +48,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         _setTarget(this.depositProtocolToken.selector, target);
         _setTarget(this.getLoanPoolsList.selector, target);
         _setTarget(this.isLoanPool.selector, target);
-        _setTarget(this.setBancorContractRegistryAddress.selector, target);
+        _setTarget(this.setSovrynSwapContractRegistryAddress.selector, target);
         _setTarget(this.setWethToken.selector, target);
         _setTarget(this.setProtocolTokenAddress.selector, target);
     }
@@ -423,11 +423,11 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
     }
 
     /**
-     * sets the contract registry address of the bancor network
+     * sets the contract registry address of the SovrynSwap network
      * @param registryAddress the address of the registry contract
      * */
-    function setBancorContractRegistryAddress(address registryAddress) external onlyOwner{
-        bancorContractRegistryAddress = registryAddress;
+    function setSovrynSwapContractRegistryAddress(address registryAddress) external onlyOwner{
+        sovrynSwapContractRegistryAddress = registryAddress;
     }
 
     function setWethToken(

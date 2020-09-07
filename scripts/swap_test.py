@@ -51,8 +51,8 @@ def setup():
     SUSD = Contract.from_abi("TestToken", address=SUSD_address, abi=TestToken.abi, owner=acct)
     RBTC = Contract.from_abi("TestToken", address=RBTC_address, abi=TestToken.abi, owner=acct)
 
-    print("Setting the bancor contract registry address")
-    sovryn.setBancorContractRegistryAddress(contract_registry_address)  # 0x1280691943Ad9d6B0B9D19f4C62f318C071c41ab
+    print("Setting the SovrynSwap contract registry address")
+    sovryn.setSovrynSwapontractRegistryAddress(contract_registry_address)  # 0x1280691943Ad9d6B0B9D19f4C62f318C071c41ab
 
     initial_total_supply = loan_token.totalSupply()
     # loan token total supply should be zero
@@ -97,10 +97,12 @@ def test_loan_address():
 
 
 def test_margin_trading_sending_collateral_tokens():
-    loan_token_sent = 10e18
+    loan_token_sent = 100e18
+    leverage_amount = 2e18
+
     SUSD.mint(loan_token.address,loan_token_sent*6)
     # address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
-    collateral_token_sent = sovryn.getRequiredCollateral(SUSD.address,RBTC.address,loan_token_sent*2,5e18, False)
+    collateral_token_sent = sovryn.getRequiredCollateral(SUSD.address,RBTC.address,loan_token_sent*2,50e18, False)
     RBTC.mint(acct,collateral_token_sent)
     # important! WEth is being held by the loanToken contract itself, all other tokens are transfered directly from
     # the sender and need approval
@@ -108,7 +110,7 @@ def test_margin_trading_sending_collateral_tokens():
 
     tx = loan_token.marginTrade(
         "0", #loanId  (0 for new loans)
-        2e18, # leverageAmount
+        leverage_amount, # leverageAmount
         0, #loanTokenSent
         collateral_token_sent,
         RBTC.address, #collateralTokenAddress
@@ -214,12 +216,6 @@ def test_cash_out_from_the_pool():
 
     SUSD.approve(loan_token.address, total_deposit_amount)
     loan_token_initial_balance = total_deposit_amount / loan_token.initialPrice() * 1e18
-
-    # if loan_token.balanceOf(lender) < loan_token_initial_balance:
-    #     raise Exception("Failed to validate `test_cash_out_from_the_pool` - balance is incorrect")
-
-    # if loan_token.totalSupply() < total_deposit_amount:
-    #     raise Exception("Failed to validate `test_cash_out_from_the_pool` - totalSupply is incorrect")
 
     # loan_token.burn(lender, amount_withdrawn)
     if loan_token.totalSupply() < amount_withdrawn:

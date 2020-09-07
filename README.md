@@ -44,7 +44,7 @@ brownie run deploy_everything.py
 brownie run deploy_everything.py --network testnet
 ```
 
-## Bancor joint testing for RSK (local)
+## Sovryn Swap joint testing for RSK (local)
 
 1. Start `ganache` with
 ```bash
@@ -59,15 +59,15 @@ brownie run deploy_everything_local.py
 
 3. Copy `SUSD` and `RBTC` token addresses from the command line output
 
-4. Use addresses from #2 as reserves in the Bancor codebase (`utils/config`)
+4. Use addresses from #2 as reserves in the SovrynSwap codebase (`utils/config`)
 
-5. Deploy Bancor contracts using the same chain and the updated config
+5. Deploy SovrynSwap contracts using the same chain and the updated config
 
-6. After deployment, copy the address of the deployed `ContractRegistry` and update the `scripts/setup_bancor_config.json` accordingly.
+6. After deployment, copy the address of the deployed `ContractRegistry` and update the `scripts/swap_test.json` accordingly.
 
-7. Run the `setup_bancor` script to set the Bancor ContractRegistry address
+7. Run the `swap_test.py` script to set the SovrynSwap ContractRegistry address
 ```bash
-brownie run setup_bancor.py
+brownie run swap_test.py
 ```
 
 
