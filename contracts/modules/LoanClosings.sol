@@ -388,11 +388,12 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
                 backInterestOwed
             );
         }
-
-        uint256 gasRebate = _gasUsed(startingGas)
+        
+        //todo here comes the reward logic --> requires replacement
+        uint256 gasRebate = 0;/*_gasUsed(startingGas)
             .mul(
                 IPriceFeeds(priceFeeds).getFastGasPrice(loanParamsLocal.collateralToken) * 2
-            );
+            );*/
 
         if (gasRebate != 0) {
             // pay out gas rebate to caller
