@@ -12,7 +12,7 @@ import "./PriceFeedsConstants.sol";
 
 
 interface IPriceFeedsExt {
-  function latestAnswer() external view returns (int256);
+  function latestAnswer() external view returns (uint256);
 }
 
 contract PriceFeeds is Constants, Ownable {
@@ -356,7 +356,7 @@ contract PriceFeeds is Constants, Ownable {
             if (sourceToken != address(wethToken) && sourceToken != protocolTokenAddress) {
                 IPriceFeedsExt _sourceFeed = pricesFeeds[sourceToken];
                 require(address(_sourceFeed) != address(0), "unsupported src feed");
-                sourceRate = uint256(_sourceFeed.latestAnswer());
+                sourceRate = _sourceFeed.latestAnswer();
                 require(sourceRate != 0 && (sourceRate >> 128) == 0, "price error");
             } else {
                 sourceRate = sourceToken == protocolTokenAddress ?
@@ -368,7 +368,7 @@ contract PriceFeeds is Constants, Ownable {
             if (destToken != address(wethToken) && destToken != protocolTokenAddress) {
                 IPriceFeedsExt _destFeed = pricesFeeds[destToken];
                 require(address(_destFeed) != address(0), "unsupported dst feed");
-                destRate = uint256(_destFeed.latestAnswer());
+                destRate = _destFeed.latestAnswer();
                 require(destRate != 0 && (destRate >> 128) == 0, "price error");
             } else {
                 destRate = destToken == protocolTokenAddress ?
@@ -417,7 +417,7 @@ contract PriceFeeds is Constants, Ownable {
         view
         returns (uint256 gasPrice)
     {
-        gasPrice = uint256(pricesFeeds[address(1)].latestAnswer())
+        gasPrice = pricesFeeds[address(1)].latestAnswer()
             .mul(10**9);
         require(gasPrice != 0 && (gasPrice >> 128) == 0, "gas price error");
     }

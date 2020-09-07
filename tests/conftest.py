@@ -57,7 +57,7 @@ def swapsImpl(accounts, SwapsImplSovrynSwap, SwapsImplLocal):
         #feeds.setPriceFeedsBatch(...)
     '''
 
-    swap = accounts[0].deploy(SwapsImplSovrynSwap)
+    swap = accounts[0].deploy(SwapsImplLocal)
 
     return swap
 
