@@ -1,11 +1,18 @@
+'''
+test script for testing the loan token trading logic with the sUSD test token as collateral token and wBTC as underlying loan token. 
+1. opening a margin trade position with loan tokens
+2. opening a margin trade position with collateral tokens
+3. closing a margin trade position completely
+4. closing a margin trade position partially
+'''
+
 import pytest
 from brownie import Contract, Wei, reverts
 from fixedint import *
 import shared
-from shared_functions import *
+from shared_trading_functions import *
 
-    
-# test script for testing the loan token logic with wBTC and 1 TestToken
+
 
 '''
 tests margin trading sending loan tokens.

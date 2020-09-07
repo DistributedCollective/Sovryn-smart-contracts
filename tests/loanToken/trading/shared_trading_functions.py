@@ -1,3 +1,7 @@
+'''
+shared functions for the trading tests
+'''
+
 import pytest
 from brownie import Contract, Wei, reverts
 from fixedint import *
