@@ -1,3 +1,13 @@
+'''
+test the token transfer functionality of the loan token contract.
+1. Regular transfer
+2. Transfer to 0
+3. Transfer with insufficient balance
+4. TransferFrom
+
+Token trasnfer function tests are the same for all loan tokens including WBTC.
+'''
+
 import pytest
 from brownie import Contract, Wei, reverts
 from fixedint import *

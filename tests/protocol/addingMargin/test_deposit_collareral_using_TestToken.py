@@ -1,3 +1,10 @@
+'''
+Test adding more margin to existing loans.
+1. Deposit more collateral
+2. Should fail to deposit collateral to an non-existent loan
+3. Should fail to deposit 0 collateral
+'''
+
 import pytest
 from brownie import Contract, Wei, reverts
 from fixedint import *

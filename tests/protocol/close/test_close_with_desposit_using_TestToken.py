@@ -1,6 +1,10 @@
 '''
 Tests the close with deposit. 
 Note: close with swap is tested in loanToken/trading
+
+1. Test a full closure with deposit
+2. Test a partial closure with deposit
+3. Should fail to close with 0 deposit 
 '''
 
 import pytest

@@ -1,3 +1,14 @@
+'''
+Test borrowing from the pool.
+1. Regular borrowing
+2. Should fail to borrow with 0 collateral
+3. Should fail to borrow 0 tokens
+4. Should fail to borrow when sending rBTC along with tokens
+5. Should fail to borrow with an invalid collateral token
+6. Should fail to borrow if the demand curve has not been set
+7. Should fail to borrow with insufficient collateral
+'''
+
 import pytest
 from brownie import Contract, Wei, reverts
 from fixedint import *

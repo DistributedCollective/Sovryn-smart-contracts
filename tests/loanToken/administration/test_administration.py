@@ -1,3 +1,12 @@
+'''
+Test the asministrative functions of the loan token contract
+1. set the demand curve (base for interest calculation)
+2. fail is trying to set the demand curve resulting in a interest rate > 100%
+3. test if the lending fee is set
+4. toggle function pause
+5. fail if trying to toggle the function pause with a non-admin wallet
+'''
+
 import pytest
 from brownie import Contract, Wei, reverts
 from fixedint import *
@@ -47,14 +56,14 @@ def test_lending_fee_setting(sovryn):
     assert(lfp == 1e20)
 
 
-
+'''
+1. pause a function
+2. try to call the function - should fail
+3. reactivate it
+4. try to call the function - should succeed
+'''
 def test_toggle_function_pause(accounts, loanToken, LoanToken, LoanTokenSettingsLowerAdmin, LoanTokenLogicStandard, loanTokenSettings, SUSD, open_margin_trade_position, lend_to_pool):
-    '''
-    1. pause a function
-    2. try to call the function - should fail
-    3. reactivate it
-    4. try to call the function - should succeed
-    '''
+    
     lend_to_pool()
     functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,bytes)"
     
@@ -84,11 +93,12 @@ def test_toggle_function_pause(accounts, loanToken, LoanToken, LoanTokenSettings
     localLoanToken.setTarget(loanTokenLogic.address)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
     open_margin_trade_position()
-    
+ 
+'''
+call toggleFunction with a non-admin address and make sure it fails
+'''   
 def test_toggle_function_pause_with_non_admin_should_fail(loanToken, LoanTokenSettingsLowerAdmin, loanTokenSettings, LoanToken, accounts):
-    '''
-    call toggleFunction with a non-admin address and make sure it fails
-    '''
+    
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
     localLoanToken.setTarget(loanTokenSettings.address)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenSettingsLowerAdmin.abi, owner=accounts[0])

@@ -1,3 +1,22 @@
+'''
+Test extending and reducing loan durations.
+1. Should fail to extend a fixed-term loan
+2. Extend  a loan
+3. Should fail to extend a loan with 0 deposit 
+4. Should fail to extend a closed loan
+5. Should fail to extend another user's loan
+6. Extend a loan with collateral
+7. Should fail to extend a loan with collateral tokens and rBTC value
+8. Should fail to reduce the duration of a fixed-term loan
+9. Reduce the duration of a loan
+10. Should fail to reduce the loan duration without withdrawing some funds
+11. Should fail to reduce the loan duration of a closed loan
+12. Should fail to reduce the loan duration of another user's loan
+13. Should fail to reduce the loan duration if the max duration was already surpassed
+14. Should fail to reduce the loan duration when withdrawing too much
+15. Should fail to reduce the loan duration by less than an hour
+'''
+
 import pytest
 from brownie import Contract, Wei, reverts
 from fixedint import *

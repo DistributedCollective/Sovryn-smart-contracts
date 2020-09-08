@@ -1,3 +1,8 @@
+'''
+Should test the liquidation handling
+1. Liquidate a position
+'''
+
 import pytest
 from brownie import Contract, Wei, reverts
 from fixedint import *
