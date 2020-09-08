@@ -5,12 +5,12 @@ from brownie import reverts
 
 
 @pytest.fixture()
-def set_oracle(PriceFeedsMoC, BZRX, PriceFeeds, WETH, accounts, sovryn, swapsImpl):
+def set_oracle(PriceFeedsMoC, BZRX, PriceFeeds, WBTC, accounts, sovryn, swapsImpl):
     def internal_set_oracle(oracle_address=sovryn.address):
         price_feeds_moc = accounts[0].deploy(PriceFeedsMoC, oracle_address)
-        price_feeds = accounts[0].deploy(PriceFeeds, WETH.address, BZRX.address)
+        price_feeds = accounts[0].deploy(PriceFeeds, WBTC.address, BZRX.address)
 
-        price_feeds.setPriceFeed([BZRX.address, WETH.address], [price_feeds_moc.address, price_feeds_moc.address])
+        price_feeds.setPriceFeed([BZRX.address, WBTC.address], [price_feeds_moc.address, price_feeds_moc.address])
 
         sovryn.setPriceFeedContract(
             price_feeds.address  # priceFeeds
@@ -32,10 +32,10 @@ def pice_feed_moc_mockup(PriceFeedsMoCMockup):
     price_feeds_moc_mockup.setValue()
 
 
-def test_moc_oracle_integration(set_oracle, BZRX, WETH):
+def test_moc_oracle_integration(set_oracle, BZRX, WBTC):
     price_feeds, _ = set_oracle()
 
-    res = price_feeds.queryPrecision(BZRX.address, WETH.address)
+    res = price_feeds.queryPrecision(BZRX.address, WBTC.address)
     assert(res > 0)
 
 
