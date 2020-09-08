@@ -73,7 +73,6 @@ def test_transferFrom_reverts(token, accounts, idx):
 
 def test_set_wbtc_token(sovryn, Constants, WBTC, accounts):
     assert(sovryn.owner() == accounts[0])
-    assert(sovryn.wbtcToken() == Constants["ZERO_ADDRESS"])
     sovryn.setWbtcToken(WBTC.address)
     assert(sovryn.wbtcToken() == WBTC.address)
 
