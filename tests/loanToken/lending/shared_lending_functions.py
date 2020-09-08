@@ -53,7 +53,7 @@ def verify_start_conditions(underlyingToken, loanToken, lender, initial_balance,
 
 '''    
 1. checks the balances of the lender on the underlying token and the loan token contract
-2. makes a trade in order to get a innterest rate > 0
+2. makes a trade in order to get a interest rate > 0
 3. travels in time to accumulate interest
 4. verifies the token price changed according to the gained interest
 '''
@@ -96,13 +96,33 @@ def verify_lending_result_and_itoken_price_change(accounts, underlyingToken, col
 3. withdraw from the pool by burning iTokens
 4. check balance and supply
 '''
-def cash_out_from_the_pool(loanToken, accounts, underlyingToken):
+def cash_out_from_the_pool(loanToken, accounts, underlyingToken, lendBTC):
     lender = accounts[0]
-    initial_balance = underlyingToken.balanceOf(lender)
     amount_withdrawn = 100e18
     total_deposit_amount = amount_withdrawn * 2
-    assert(initial_balance > total_deposit_amount)
+    if lendBTC:
+        initial_balance = lend_btc_before_cashout(loanToken, accounts, underlyingToken, total_deposit_amount, lender)
+        balance_after_lending = lender.balance()
+        loanToken.burnToBTC(lender, amount_withdrawn)
+    else:
+        initial_balance = lend_tokens_before_cashout(loanToken, accounts, underlyingToken, total_deposit_amount, lender)
+        loanToken.burn(lender, amount_withdrawn)
 
+    assert(loanToken.checkpointPrice(lender) == loanToken.initialPrice())
+    assert(loanToken.totalSupply() == amount_withdrawn)
+    assert(loanToken.tokenPrice() == get_itoken_price(amount_withdrawn, 0, loanToken.totalSupply()))
+    assert(loanToken.balanceOf(lender) == amount_withdrawn)
+    if lendBTC:#some rBTC are lost through gas, just make sure, rBTC was paid out
+        assert(lender.balance() > balance_after_lending)
+        assert(lender.balance() <= initial_balance - 1 * amount_withdrawn * loanToken.tokenPrice() / 1e18)
+    else:
+        assert(underlyingToken.balanceOf(lender) == initial_balance - amount_withdrawn * loanToken.tokenPrice() / 1e18)
+
+def lend_tokens_before_cashout(loanToken, accounts, underlyingToken, total_deposit_amount, lender):
+    
+    initial_balance = underlyingToken.balanceOf(lender)
+    assert(initial_balance > total_deposit_amount)
+    
     underlyingToken.approve(loanToken.address, total_deposit_amount)
     assert(loanToken.checkpointPrice(lender) == 0)
     loanToken.mint(lender, total_deposit_amount)
@@ -110,10 +130,33 @@ def cash_out_from_the_pool(loanToken, accounts, underlyingToken):
     loan_token_initial_balance = total_deposit_amount / loanToken.initialPrice() * 1e18
     assert(loanToken.balanceOf(lender) == loan_token_initial_balance)
     assert(loanToken.totalSupply() == total_deposit_amount)
+    
+    return initial_balance
+    
+def lend_btc_before_cashout(loanToken, accounts, underlyingToken, total_deposit_amount, lender):
+    initial_balance = lender.balance()
+    assert(initial_balance > total_deposit_amount)
 
-    loanToken.burn(lender, amount_withdrawn)
+    assert(loanToken.checkpointPrice(lender) == 0)
+    loanToken.mintWithBTC(lender, {'value':total_deposit_amount})
     assert(loanToken.checkpointPrice(lender) == loanToken.initialPrice())
-    assert(loanToken.totalSupply() == amount_withdrawn)
-    assert(loanToken.tokenPrice() == get_itoken_price(amount_withdrawn, 0, loanToken.totalSupply()))
-    assert(loanToken.balanceOf(lender) == amount_withdrawn)
-    assert(underlyingToken.balanceOf(lender) == initial_balance - amount_withdrawn * loanToken.tokenPrice() / 1e18)
+    loan_token_initial_balance = total_deposit_amount / loanToken.initialPrice() * 1e18
+    assert(loanToken.balanceOf(lender) == loan_token_initial_balance)
+    assert(loanToken.totalSupply() == total_deposit_amount)
+    
+    return initial_balance
+    
+    
+def cash_out_from_the_pool_more_of_lender_balance_should_not_fail(loanToken, accounts, SUSD):
+    lender = accounts[0]
+    initial_balance = SUSD.balanceOf(lender)
+    amount_withdrawn = 100e18
+    total_deposit_amount = amount_withdrawn * 2
+    assert(initial_balance > total_deposit_amount)
+
+    SUSD.approve(loanToken.address, total_deposit_amount)
+    loanToken.mint(lender, total_deposit_amount)
+    loanToken.burn(lender, total_deposit_amount * 2)
+    assert(loanToken.balanceOf(lender) == 0)
+    assert(loanToken.tokenPrice() == loanToken.initialPrice())
+    assert(SUSD.balanceOf(lender) == initial_balance)

@@ -1,5 +1,8 @@
 '''
 test script for testing the loan token lending logic with 2 TestTokens. 
+1. Lending / Minting
+2. Cashing Out / Burning
+3. Cashing out / Burning more than available
 '''
 
 #!/usr/bin/python3
@@ -17,23 +20,18 @@ def test_lend_to_the_pool(loanToken, accounts, SUSD, RBTC, chain, set_demand_cur
     lend_to_the_pool(loanToken, accounts, SUSD, RBTC, chain, set_demand_curve, sovryn)
 
 '''
-
+1. lend to the pool
+2. check balance and supply
+3. withdraw from the pool by burning iTokens
+4. check balance and supply
 '''
 def test_cash_out_from_the_pool(loanToken, accounts, SUSD):
-    cash_out_from_the_pool(loanToken, accounts, SUSD)
+    lendBTC = False #lend tokens and not direct rbtc
+    cash_out_from_the_pool(loanToken, accounts, SUSD, lendBTC)
 
-
+'''
+try to burn more than I'm possessing. should burn the maximum possible amount.
+'''
 def test_cash_out_from_the_pool_more_of_lender_balance_should_not_fail(loanToken, accounts, SUSD):
-    lender = accounts[0]
-    initial_balance = SUSD.balanceOf(lender)
-    amount_withdrawn = 100e18
-    total_deposit_amount = amount_withdrawn * 2
-    assert(initial_balance > total_deposit_amount)
-
-    SUSD.approve(loanToken.address, total_deposit_amount)
-    loanToken.mint(lender, total_deposit_amount)
-    loanToken.burn(lender, total_deposit_amount * 2)
-    assert(loanToken.balanceOf(lender) == 0)
-    assert(loanToken.tokenPrice() == loanToken.initialPrice())
-    assert(SUSD.balanceOf(lender) == initial_balance)
+    cash_out_from_the_pool_more_of_lender_balance_should_not_fail(loanToken, accounts, SUSD)
 

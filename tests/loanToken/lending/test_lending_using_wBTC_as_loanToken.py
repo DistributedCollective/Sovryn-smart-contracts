@@ -1,5 +1,8 @@
 '''
 test script for testing the loan token lending logic with the sUSD test token as collateral token and wBTC as underlying loan token. 
+1. Lending / Minting
+2. Cashing Out / Burning
+3. Cashing out / Burning more than available
 '''
 
 import pytest
@@ -22,6 +25,7 @@ def test_lend_to_the_pool(loanTokenWBTC, accounts, SUSD, WBTC, chain, set_demand
     loan_token_sent = 1e18
     total_deposit_amount = fixedint(deposit_amount).add(loan_token_sent)
     initial_balance = 0 # dummy value to be able to use the shared functions
+    actual_initial_balance = lender.balance() 
     
     #check the start conditions are met
     verify_start_conditions(WBTC, loanTokenWBTC, lender, initial_balance, deposit_amount)
@@ -32,5 +36,26 @@ def test_lend_to_the_pool(loanTokenWBTC, accounts, SUSD, WBTC, chain, set_demand
     #verify the result
     initial_balance = 5e18 # dummy value to be able to use the shared functions
     verify_lending_result_and_itoken_price_change(accounts, WBTC, SUSD, loanTokenWBTC, lender, loan_token_sent, initial_balance, deposit_amount, chain, sovryn, True)
+    new_balance = lender.balance() 
+    assert(new_balance < actual_initial_balance)
     
+'''
+1. lend to the pool
+2. check balance and supply
+3. withdraw from the pool by burning iTokens
+4. check balance and supply
+'''
+def test_cash_out_from_the_pool(loanTokenWBTC, accounts, WBTC):
+    lendBTC = True
+    cash_out_from_the_pool(loanTokenWBTC, accounts, WBTC, lendBTC)
     
+'''
+try to burn more than I'm possessing. should burn the maximum possible amount.
+'''
+def test_cash_out_from_the_pool_more_of_lender_balance_should_not_fail(loanTokenWBTC, accounts, SUSD):
+    lender = accounts[0]
+    total_deposit_amount = 200e18
+    loanTokenWBTC.mintWithBTC(lender, {'value':total_deposit_amount})
+    balance_after_lending = lender.balance()
+    loanTokenWBTC.burnToBTC(lender, total_deposit_amount * 2)
+    assert(loanTokenWBTC.balanceOf(lender) == 0)
