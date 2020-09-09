@@ -48,20 +48,21 @@ brownie run deploy_everything.py --network testnet
 
 1. Start `ganache` with
 ```bash
-ganache-cli ---gasLimit 6700000 --port 8545
+ganache-cli --gasLimit 6700000 --port 8545
 ```
 Overriding default `brownie` port will make it connect to our local chain and keep it open.
+If you changed the port in the brownie config, use that port instead.
 
 2. Deploy contracts
 ```bash
-brownie run deploy_everything_local.py
+brownie run deploy_everything.py
 ```
 
 3. Copy `SUSD` and `RBTC` token addresses from the command line output
 
-4. Use addresses from #2 as reserves in the SovrynSwap codebase (`utils/config`)
+4. Use addresses from #2 as reserves in the SovrynSwap codebase (`solidity/utils/config`)
 
-5. Deploy SovrynSwap contracts using the same chain and the updated config
+5. Deploy SovrynSwap contracts using the same chain and the updated config. Consult the README in `solidity/utils`.
 
 6. After deployment, copy the address of the deployed `ContractRegistry` and update the `scripts/swap_test.json` accordingly.
 
