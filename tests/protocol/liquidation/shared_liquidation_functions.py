@@ -8,7 +8,7 @@ from fixedint import *
 import shared
 
 
-def liquidate(accounts, loanToken, underlyingToken, set_demand_curve, collateralToken, sovryn, priceFeeds, rate, WBTC):
+def liquidate(accounts, loanToken, underlyingToken, set_demand_curve, collateralToken, sovryn, priceFeeds, rate, WRBTC):
     # set the demand curve to set interest rates
     set_demand_curve()
     
@@ -18,11 +18,11 @@ def liquidate(accounts, loanToken, underlyingToken, set_demand_curve, collateral
     loan_token_sent = 100e18
     
     # lend to the pool, mint tokens if required, open a margin trade position
-    loan_id = prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken, underlyingToken, collateralToken, sovryn, WBTC)
+    loan_id = prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken, underlyingToken, collateralToken, sovryn, WRBTC)
     loan = sovryn.getLoan(loan_id).dict()
     
     # set the rates so we're able to liquidate
-    if(underlyingToken == WBTC):
+    if(underlyingToken == WRBTC):
         priceFeeds.setRates(underlyingToken.address, collateralToken.address, rate)
         value = loan_token_sent
     else:
@@ -37,7 +37,7 @@ def liquidate(accounts, loanToken, underlyingToken, set_demand_curve, collateral
 '''
 should fail to liquidate a healthy position
 '''
-def liquidate_healthy_position_should_fail(accounts, loanToken, underlyingToken, set_demand_curve, collateralToken, sovryn, priceFeeds, WBTC):
+def liquidate_healthy_position_should_fail(accounts, loanToken, underlyingToken, set_demand_curve, collateralToken, sovryn, priceFeeds, WRBTC):
     # set the demand curve to set interest rates
     set_demand_curve()
     
@@ -47,7 +47,7 @@ def liquidate_healthy_position_should_fail(accounts, loanToken, underlyingToken,
     loan_token_sent = 100e18
     
     # lend to the pool, mint tokens if required, open a margin trade position
-    loan_id = prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken, underlyingToken, collateralToken, sovryn, WBTC)
+    loan_id = prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken, underlyingToken, collateralToken, sovryn, WRBTC)
     
     # try to liquidate the still healthy position
     
@@ -58,10 +58,10 @@ def liquidate_healthy_position_should_fail(accounts, loanToken, underlyingToken,
 '''
 lend to the pool, mint tokens if required, open a margin trade position
 '''
-def prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken, underlyingToken, collateralToken, sovryn, WBTC):
+def prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken, underlyingToken, collateralToken, sovryn, WRBTC):
     underlyingToken.approve(loanToken.address, 1e40)
     
-    if (WBTC == underlyingToken):
+    if (WRBTC == underlyingToken):
         loanToken.mintWithBTC(lender,{'value':1e21})
         value = loan_token_sent
     else:

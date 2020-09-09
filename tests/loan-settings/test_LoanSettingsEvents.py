@@ -7,13 +7,13 @@ from brownie import Wei, reverts
 def loanSettings(LoanSettings, accounts, sovryn):
     sovryn.replaceContract(accounts[0].deploy(LoanSettings).address)
 
-def test_setupLoanParamsEvents(Constants, sovryn, accounts, SUSD, WBTC):
+def test_setupLoanParamsEvents(Constants, sovryn, accounts, SUSD, WRBTC):
     loanParams = {
         "id": "0x0",
         "active": False,
         "owner": Constants["ZERO_ADDRESS"],
         "loanToken": SUSD.address,
-        "collateralToken": WBTC.address,
+        "collateralToken": WRBTC.address,
         "initialMargin": Wei("50 ether"),
         "maintenanceMargin": Wei("15 ether"),
         "fixedLoanTerm": "2419200"
@@ -30,18 +30,18 @@ def test_setupLoanParamsEvents(Constants, sovryn, accounts, SUSD, WBTC):
     assert(loanParamsSetup["id"] != "0x0") 
     assert(loanParamsSetup["owner"] == accounts[0])
     assert(loanParamsSetup["loanToken"] == SUSD.address)
-    assert(loanParamsSetup["collateralToken"] == WBTC.address)
+    assert(loanParamsSetup["collateralToken"] == WRBTC.address)
     assert(loanParamsSetup["minInitialMargin"] == Wei("50 ether"))
     assert(loanParamsSetup["maintenanceMargin"] == Wei("15 ether"))
     assert(loanParamsSetup["maxLoanTerm"] == "2419200")
 
-def test_disableLoanParamsEvents(Constants, sovryn, accounts, SUSD, WBTC):
+def test_disableLoanParamsEvents(Constants, sovryn, accounts, SUSD, WRBTC):
     loanParams = {
         "id": "0x0",
         "active": False,
         "owner": Constants["ZERO_ADDRESS"],
         "loanToken": SUSD.address,
-        "collateralToken": WBTC.address,
+        "collateralToken": WRBTC.address,
         "initialMargin": Wei("50 ether"),
         "maintenanceMargin": Wei("15 ether"),
         "fixedLoanTerm": "2419200"
@@ -61,7 +61,7 @@ def test_disableLoanParamsEvents(Constants, sovryn, accounts, SUSD, WBTC):
     assert(loanParamsDisabled["id"] != "0x0") 
     assert(loanParamsDisabled["owner"] == accounts[0])
     assert(loanParamsDisabled["loanToken"] == SUSD.address)
-    assert(loanParamsDisabled["collateralToken"] == WBTC.address)
+    assert(loanParamsDisabled["collateralToken"] == WRBTC.address)
     assert(loanParamsDisabled["minInitialMargin"] == Wei("50 ether"))
     assert(loanParamsDisabled["maintenanceMargin"] == Wei("15 ether"))
     assert(loanParamsDisabled["maxLoanTerm"] == "2419200")

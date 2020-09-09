@@ -48,7 +48,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         _setTarget(this.depositProtocolToken.selector, target);
         _setTarget(this.getLoanPoolsList.selector, target);
         _setTarget(this.isLoanPool.selector, target);
-        _setTarget(this.setWbtcToken.selector, target);
+        _setTarget(this.setWrbtcToken.selector, target);
         _setTarget(this.setProtocolTokenAddress.selector, target);
     }
 
@@ -421,17 +421,17 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         return loanPoolToUnderlying[loanPool] != address(0);
     }
 
-    function setWbtcToken(
-        address wbtcTokenAddress)
+    function setWrbtcToken(
+        address wrbtcTokenAddress)
         external
         onlyOwner
     {
-        require(Address.isContract(wbtcTokenAddress), "wbtcTokenAddress not a contract");
+        require(Address.isContract(wrbtcTokenAddress), "wrbtcTokenAddress not a contract");
 
-        address oldwbtcToken = address(wbtcToken);
-        wbtcToken = IWbtcERC20(wbtcTokenAddress);
+        address oldwrbtcToken = address(wrbtcToken);
+        wrbtcToken = IWrbtcERC20(wrbtcTokenAddress);
 
-        emit SetWbtcToken(msg.sender, oldwbtcToken, wbtcTokenAddress);
+        emit SetWrbtcToken(msg.sender, oldwrbtcToken, wrbtcTokenAddress);
     }
 
     function setProtocolTokenAddress(

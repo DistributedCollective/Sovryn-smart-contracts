@@ -15,7 +15,7 @@ from shared_lending_functions import *
 Test lend to the pool. The lender mint tokens from loanToken using SUSD as deposit.
 Then check if user balance change and the token price varies
 '''
-def test_lend_to_the_pool(loanTokenWBTC, accounts, SUSD, WBTC, chain, set_demand_curve, sovryn):
+def test_lend_to_the_pool(loanTokenWRBTC, accounts, SUSD, WRBTC, chain, set_demand_curve, sovryn):
     # set the demand curve to set interest rates
     set_demand_curve()
     
@@ -28,14 +28,14 @@ def test_lend_to_the_pool(loanTokenWBTC, accounts, SUSD, WBTC, chain, set_demand
     actual_initial_balance = lender.balance() 
     
     #check the start conditions are met
-    verify_start_conditions(WBTC, loanTokenWBTC, lender, initial_balance, deposit_amount)
+    verify_start_conditions(WRBTC, loanTokenWRBTC, lender, initial_balance, deposit_amount)
     
     #supply funds to the pool (the actual lending)
-    loanTokenWBTC.mintWithBTC(lender, {'value':deposit_amount})
+    loanTokenWRBTC.mintWithBTC(lender, {'value':deposit_amount})
     
     #verify the result
     initial_balance = 5e18 # dummy value to be able to use the shared functions
-    verify_lending_result_and_itoken_price_change(accounts, WBTC, SUSD, loanTokenWBTC, lender, loan_token_sent, initial_balance, deposit_amount, chain, sovryn, True)
+    verify_lending_result_and_itoken_price_change(accounts, WRBTC, SUSD, loanTokenWRBTC, lender, loan_token_sent, initial_balance, deposit_amount, chain, sovryn, True)
     new_balance = lender.balance() 
     assert(new_balance < actual_initial_balance)
     
@@ -45,17 +45,17 @@ def test_lend_to_the_pool(loanTokenWBTC, accounts, SUSD, WBTC, chain, set_demand
 3. withdraw from the pool by burning iTokens
 4. check balance and supply
 '''
-def test_cash_out_from_the_pool(loanTokenWBTC, accounts, WBTC):
+def test_cash_out_from_the_pool(loanTokenWRBTC, accounts, WRBTC):
     lendBTC = True
-    cash_out_from_the_pool(loanTokenWBTC, accounts, WBTC, lendBTC)
+    cash_out_from_the_pool(loanTokenWRBTC, accounts, WRBTC, lendBTC)
     
 '''
 try to burn more than I'm possessing. should burn the maximum possible amount.
 '''
-def test_cash_out_from_the_pool_more_of_lender_balance_should_not_fail(loanTokenWBTC, accounts, SUSD):
+def test_cash_out_from_the_pool_more_of_lender_balance_should_not_fail(loanTokenWRBTC, accounts, SUSD):
     lender = accounts[0]
     total_deposit_amount = 200e18
-    loanTokenWBTC.mintWithBTC(lender, {'value':total_deposit_amount})
+    loanTokenWRBTC.mintWithBTC(lender, {'value':total_deposit_amount})
     balance_after_lending = lender.balance()
-    loanTokenWBTC.burnToBTC(lender, total_deposit_amount * 2)
-    assert(loanTokenWBTC.balanceOf(lender) == 0)
+    loanTokenWRBTC.burnToBTC(lender, total_deposit_amount * 2)
+    assert(loanTokenWRBTC.balanceOf(lender) == 0)

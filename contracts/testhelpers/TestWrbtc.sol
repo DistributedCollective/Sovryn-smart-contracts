@@ -16,9 +16,9 @@
 pragma solidity 0.5.17;
 
 
-contract TestWbtc {
+contract TestWrbtc {
     string public name     = "Wrapped BTC";
-    string public symbol   = "WBTC";
+    string public symbol   = "WRBTC";
     uint8  public decimals = 18;
 
     event  Approval(address indexed src, address indexed guy, uint wad);

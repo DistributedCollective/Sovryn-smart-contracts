@@ -33,14 +33,14 @@ def deployProtocol(acct):
 
     
     print("Deploying test tokens.")
-    tokens.wbtc = acct.deploy(TestWbtc) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
+    tokens.wrbtc = acct.deploy(TestWrbtc) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
     tokens.susd = acct.deploy(TestToken, "SUSD", "SUSD", 18, 1e50)
     tokens.rbtc = acct.deploy(TestToken, "RBTC", "RBTC", 18, 1e50)
 
     
 
     print("Deploying PriceFeeds.")
-    feeds = acct.deploy(PriceFeedsLocal, tokens.wbtc.address, sovryn.address)
+    feeds = acct.deploy(PriceFeedsLocal, tokens.wrbtc.address, sovryn.address)
 
     print("Calling setRates.")
     feeds.setRates(
@@ -49,12 +49,12 @@ def deployProtocol(acct):
         1e22 #1btc = 10000 susd
     )
     feeds.setRates(
-        tokens.wbtc.address,
+        tokens.wrbtc.address,
         tokens.rbtc.address,
         1e18
     )
     feeds.setRates(
-        tokens.wbtc.address,
+        tokens.wrbtc.address,
         tokens.susd.address,
         1e22
     )
@@ -80,7 +80,7 @@ def deployProtocol(acct):
 
     sovryn.setFeesController(acct.address)
 
-    sovryn.setWbtcToken(tokens.wbtc.address)
+    sovryn.setWrbtcToken(tokens.wrbtc.address)
     sovryn.setProtocolTokenAddress(sovryn.address)
 
     ## LoanSettings

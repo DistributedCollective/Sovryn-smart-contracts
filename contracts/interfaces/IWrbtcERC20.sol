@@ -5,8 +5,8 @@
 
 pragma solidity >=0.5.0 <0.6.0;
 
+import "./IWrbtc.sol";
+import "./IERC20.sol";
 
-interface IWbtc {
-    function deposit() external payable;
-    function withdraw(uint256 wad) external;
-}
+
+contract IWrbtcERC20 is IWrbtc, IERC20 {}

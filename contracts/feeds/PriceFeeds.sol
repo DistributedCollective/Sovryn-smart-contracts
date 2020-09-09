@@ -31,14 +31,14 @@ contract PriceFeeds is Constants, Ownable {
     bool public globalPricingPaused = false;
 
     constructor(
-        address _wbtcTokenAddress,
+        address _wrbtcTokenAddress,
         address _protocolTokenAddress)
         public
     {
         // set decimals for ether
         decimals[address(0)] = 18;
-        decimals[_wbtcTokenAddress] = 18;
-        _setwbtcToken(_wbtcTokenAddress);
+        decimals[_wrbtcTokenAddress] = 18;
+        _setWrbtcToken(_wrbtcTokenAddress);
         _setProtocolTokenAddress(_protocolTokenAddress);
     }
 
@@ -128,12 +128,12 @@ contract PriceFeeds is Constants, Ownable {
         view
         returns (uint256 ethAmount)
     {
-        if (tokenAddress == address(wbtcToken)) {
+        if (tokenAddress == address(wrbtcToken)) {
             ethAmount = amount;
         } else {
             (uint toEthRate, uint256 toEthPrecision) = queryRate(
                 tokenAddress,
-                address(wbtcToken)
+                address(wrbtcToken)
             );
             ethAmount = amount
                 .mul(toEthRate)
@@ -270,9 +270,9 @@ contract PriceFeeds is Constants, Ownable {
         returns (uint256)
     {
         uint256 gasPrice = _getFastGasPrice();
-        if (payToken != address(wbtcToken) && payToken != address(0)) {
+        if (payToken != address(wrbtcToken) && payToken != address(0)) {
             (uint256 rate, uint256 precision) = _queryRate(
-                address(wbtcToken),
+                address(wrbtcToken),
                 payToken
             );
             gasPrice = gasPrice
@@ -349,7 +349,7 @@ contract PriceFeeds is Constants, Ownable {
 
         if (sourceToken != destToken) {
             uint256 sourceRate;
-            if (sourceToken != address(wbtcToken) && sourceToken != protocolTokenAddress) {
+            if (sourceToken != address(wrbtcToken) && sourceToken != protocolTokenAddress) {
                 IPriceFeedsExt _sourceFeed = pricesFeeds[sourceToken];
                 require(address(_sourceFeed) != address(0), "unsupported src feed");
                 sourceRate = _sourceFeed.latestAnswer();
@@ -361,7 +361,7 @@ contract PriceFeeds is Constants, Ownable {
             }
 
             uint256 destRate;
-            if (destToken != address(wbtcToken) && destToken != protocolTokenAddress) {
+            if (destToken != address(wrbtcToken) && destToken != protocolTokenAddress) {
                 IPriceFeedsExt _destFeed = pricesFeeds[destToken];
                 require(address(_destFeed) != address(0), "unsupported dst feed");
                 destRate = _destFeed.latestAnswer();

@@ -10,20 +10,20 @@ import "./AdvancedTokenStorage.sol";
 
 contract LoanToken is AdvancedTokenStorage {
 
-    // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wbtcTokenAddress
+    // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wrbtcTokenAddress
     address public sovrynContractAddress;
-    address public wbtcTokenAddress;
+    address public wrbtcTokenAddress;
     address internal target_;
 
     constructor(
         address _newTarget,
         address _sovrynContractAddress,
-        address _wbtcTokenAddress)
+        address _wrbtcTokenAddress)
         public
     {
         _setTarget(_newTarget);
         _setSovrynContractAddress(_sovrynContractAddress);
-        _setwbtcTokenAddress(_wbtcTokenAddress);
+        _setWrbtcTokenAddress(_wrbtcTokenAddress);
     }
 
     function()
@@ -71,12 +71,12 @@ contract LoanToken is AdvancedTokenStorage {
         sovrynContractAddress = _sovrynContractAddress;
     }
 
-    function _setwbtcTokenAddress(
-        address _wbtcTokenAddress)
+    function _setWrbtcTokenAddress(
+        address _wrbtcTokenAddress)
         internal
     {
-        require(Address.isContract(_wbtcTokenAddress), "wbtc not a contract");
-        wbtcTokenAddress = _wbtcTokenAddress;
+        require(Address.isContract(_wrbtcTokenAddress), "wrbtc not a contract");
+        wrbtcTokenAddress = _wrbtcTokenAddress;
     }
     
     function initialize(

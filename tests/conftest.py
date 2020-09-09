@@ -23,17 +23,17 @@ def RBTC(accounts, TestToken):
     return accounts[0].deploy(TestToken, "RBTC", "RBTC", 18, 1e50)
 
 @pytest.fixture(scope="module")
-def priceFeeds(accounts, WBTC, SUSD, RBTC, BZRX, PriceFeeds, PriceFeedsLocal):
+def priceFeeds(accounts, WRBTC, SUSD, RBTC, BZRX, PriceFeeds, PriceFeedsLocal):
     if network.show_active() == "development":
-        feeds = accounts[0].deploy(PriceFeedsLocal, WBTC.address, BZRX.address)
+        feeds = accounts[0].deploy(PriceFeedsLocal, WRBTC.address, BZRX.address)
         
         feeds.setRates(
-            WBTC.address,
+            WRBTC.address,
             RBTC.address,
             1e18
         )
         feeds.setRates(
-            WBTC.address,
+            WRBTC.address,
             SUSD.address,
             1e22
         )
@@ -43,7 +43,7 @@ def priceFeeds(accounts, WBTC, SUSD, RBTC, BZRX, PriceFeeds, PriceFeedsLocal):
             1e22
         )
     else:
-        feeds = accounts[0].deploy(PriceFeeds, WBTC.address, BZRX.address)
+        feeds = accounts[0].deploy(PriceFeeds, WRBTC.address, BZRX.address)
         #feeds.setPriceFeedsBatch(...)
 
     return feeds
@@ -59,7 +59,7 @@ def swapsImpl(accounts, SwapsImplKyber, SwapsImplLocal):
     return feeds
 
 @pytest.fixture(scope="module", autouse=True)
-def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, LoanMaintenance, WBTC):
+def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, LoanMaintenance, WRBTC):
     sovrynproxy = accounts[0].deploy(sovrynProtocol)
     sovryn = Contract.from_abi("sovryn", address=sovrynproxy.address, abi=interface.ISovryn.abi, owner=accounts[0])
     _add_contract(sovryn)
@@ -69,7 +69,7 @@ def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, 
     sovryn.replaceContract(accounts[0].deploy(LoanMaintenance).address)
     #sovryn.replaceContract(accounts[0].deploy(LoanOpenings).address)
     #sovryn.replaceContract(accounts[0].deploy(LoanClosings).address)
-    sovryn.setWbtcToken(WBTC.address)
+    sovryn.setWrbtcToken(WRBTC.address)
     
     return sovryn
 
@@ -78,10 +78,10 @@ def isolate(fn_isolation):
     pass
 
 @pytest.fixture(scope="module", autouse=True)
-def WBTC(module_isolation, accounts, TestWbtc):
-    yield accounts[0].deploy(TestWbtc) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
+def WRBTC(module_isolation, accounts, TestWrbtc):
+    yield accounts[0].deploy(TestWrbtc) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
 
 @pytest.fixture(scope="module", autouse=True)
-def BZRX(module_isolation, accounts, TestWbtc):
-    yield accounts[0].deploy(TestWbtc) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
+def BZRX(module_isolation, accounts, TestWrbtc):
+    yield accounts[0].deploy(TestWrbtc) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
   

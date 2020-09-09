@@ -5,7 +5,7 @@ test the token transfer functionality of the loan token contract.
 3. Transfer with insufficient balance
 4. TransferFrom
 
-Token trasnfer function tests are the same for all loan tokens including WBTC.
+Token trasnfer function tests are the same for all loan tokens including WRBTC.
 '''
 
 import pytest

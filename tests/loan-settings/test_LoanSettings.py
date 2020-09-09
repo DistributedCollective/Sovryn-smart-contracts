@@ -15,13 +15,13 @@ def loanParamsId(accounts, sovryn, loanParams):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def loanParams(accounts, sovryn, WBTC, SUSD, Constants):
+def loanParams(accounts, sovryn, WRBTC, SUSD, Constants):
     loanParams = {
         "id": "0x0",
         "active": False,
         "owner": Constants["ZERO_ADDRESS"],
         "loanToken": SUSD.address,
-        "collateralToken": WBTC.address,
+        "collateralToken": WRBTC.address,
         "initialMargin": Wei("50 ether"),
         "maintenanceMargin": Wei("15 ether"),
         "fixedLoanTerm": "2419200"
@@ -29,7 +29,7 @@ def loanParams(accounts, sovryn, WBTC, SUSD, Constants):
     return loanParams
 
 
-def test_setup_removeLoanParams(Constants, sovryn, accounts, SUSD, WBTC, loanParamsId, loanParams):
+def test_setup_removeLoanParams(Constants, sovryn, accounts, SUSD, WRBTC, loanParamsId, loanParams):
     loanParamsAfter = sovryn.getLoanParams([loanParamsId])[0]
     loanParamsAfter = dict(zip(list(loanParams.keys()), loanParamsAfter))
     print(loanParamsAfter)
@@ -46,7 +46,7 @@ def test_setup_removeLoanParams(Constants, sovryn, accounts, SUSD, WBTC, loanPar
     assert(sovryn.getLoanParams([loanParamsId])[0][0] != "0x0")
 
 
-def test_setup_removeLoanOrder(Constants, sovryn, accounts, SUSD, WBTC, loanParamsId, loanParams):
+def test_setup_removeLoanOrder(Constants, sovryn, accounts, SUSD, WRBTC, loanParamsId, loanParams):
     loanParamsAfter = sovryn.getLoanParams([loanParamsId])[0]
     loanParamsAfter = dict(zip(list(loanParams.keys()), loanParamsAfter))
     print(loanParamsAfter)
@@ -63,7 +63,7 @@ def test_setup_removeLoanOrder(Constants, sovryn, accounts, SUSD, WBTC, loanPara
     assert(sovryn.getLoanParams([loanParamsId])[0][0] != "0x0")
 
 
-def test_disableLoanParams(sovryn, accounts, SUSD, WBTC, loanParamsId, loanParams):
+def test_disableLoanParams(sovryn, accounts, SUSD, WRBTC, loanParamsId, loanParams):
     sovryn.disableLoanParams([loanParamsId], { "from": accounts[0] })
     loanParamsAfter = sovryn.getLoanParams([loanParamsId])[0]
     loanParamsAfter = dict(zip(list(loanParams.keys()), loanParamsAfter))
@@ -72,13 +72,13 @@ def test_disableLoanParams(sovryn, accounts, SUSD, WBTC, loanParamsId, loanParam
     assert(loanParamsAfter["active"] == False) # False because we disabled Loan Param just before
     assert(loanParamsAfter["owner"] == accounts[0])
     assert(loanParamsAfter["loanToken"] == SUSD.address)
-    assert(loanParamsAfter["collateralToken"] == WBTC.address)
+    assert(loanParamsAfter["collateralToken"] == WRBTC.address)
     assert(loanParamsAfter["initialMargin"] == Wei("50 ether"))
     assert(loanParamsAfter["maintenanceMargin"] == Wei("15 ether"))
     assert(loanParamsAfter["fixedLoanTerm"] == "2419200")
 
 
-def test_getLoanParams(sovryn, accounts, SUSD, WBTC, loanParamsId, loanParams):
+def test_getLoanParams(sovryn, accounts, SUSD, WRBTC, loanParamsId, loanParams):
     loanParamsAfter = sovryn.getLoanParams([loanParamsId])[0]
     loanParamsAfter = dict(zip(list(loanParams.keys()), loanParamsAfter))
     print("loanParamsAfter", loanParamsAfter)
@@ -86,7 +86,7 @@ def test_getLoanParams(sovryn, accounts, SUSD, WBTC, loanParamsId, loanParams):
     assert(loanParamsAfter["active"])
     assert(loanParamsAfter["owner"] == accounts[0])
     assert(loanParamsAfter["loanToken"] == SUSD.address)
-    assert(loanParamsAfter["collateralToken"] == WBTC.address)
+    assert(loanParamsAfter["collateralToken"] == WRBTC.address)
     assert(loanParamsAfter["initialMargin"] == Wei("50 ether"))
     assert(loanParamsAfter["maintenanceMargin"] == Wei("15 ether"))
     assert(loanParamsAfter["fixedLoanTerm"] == "2419200")
@@ -97,7 +97,7 @@ def test_getLoanParamsList(sovryn, accounts, loanParamsId, loanParams):
     assert(loanParamsList[0] == loanParamsId)
 
 
-def test_getTotalPrincipal(Constants, sovryn, accounts, SUSD, WBTC, RBTC, loanParamsId, loanParams):
+def test_getTotalPrincipal(Constants, sovryn, accounts, SUSD, WRBTC, RBTC, loanParamsId, loanParams):
     totalPrincipal = sovryn.getTotalPrincipal(accounts[0], SUSD.address)
     print("totalPrincipal", totalPrincipal)
     assert(totalPrincipal == 0)

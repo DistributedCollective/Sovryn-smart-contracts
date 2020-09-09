@@ -50,11 +50,11 @@ contract SwapsExternal is VaultController, SwapsUser, GasTokenUser {
 
         if (msg.value != 0) {
             if (sourceToken == address(0)) {
-                sourceToken = address(wbtcToken);
+                sourceToken = address(wrbtcToken);
             }
-            require(sourceToken == address(wbtcToken), "sourceToken mismatch");
+            require(sourceToken == address(wrbtcToken), "sourceToken mismatch");
             require(msg.value == sourceTokenAmount, "sourceTokenAmount mismatch");
-            wbtcToken.deposit.value(sourceTokenAmount)();
+            wrbtcToken.deposit.value(sourceTokenAmount)();
         } else {
             IERC20(sourceToken).safeTransferFrom(
                 msg.sender,

@@ -11,7 +11,7 @@ import "../mixins/EnumerableBytes32Set.sol";
 import "../openzeppelin/ReentrancyGuard.sol";
 import "../openzeppelin/Ownable.sol";
 import "../openzeppelin/SafeMath.sol";
-import "../interfaces/IWbtcERC20.sol";
+import "../interfaces/IWrbtcERC20.sol";
 
 
 contract State is Objects, ReentrancyGuard, Ownable {
@@ -78,7 +78,7 @@ contract State is Objects, ReentrancyGuard, Ownable {
     
     mapping(address => uint256) public borrowerNonce;                                    // nonce per borrower. used for loan id creation.
 
-    IWbtcERC20 public wbtcToken;
+    IWrbtcERC20 public wrbtcToken;
     address public protocolTokenAddress;
 
     function _setTarget(

@@ -6,11 +6,11 @@ import shared
 
 # returns a loan token with underlying token SUSD  
 @pytest.fixture(scope="module", autouse=True)
-def loanToken(LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, SUSD, WBTC, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+def loanToken(LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, SUSD, WRBTC, accounts, sovryn, Constants, priceFeeds, swapsImpl):
 
     loanTokenLogic = accounts[0].deploy(LoanTokenLogicStandard)
     #Deploying loan token using the loan logic as target for delegate calls
-    loanToken = accounts[0].deploy(LoanToken, loanTokenLogic.address, sovryn.address, WBTC.address)
+    loanToken = accounts[0].deploy(LoanToken, loanTokenLogic.address, sovryn.address, WRBTC.address)
     #Initialize loanTokenAddress
     loanToken.initialize(SUSD, "SUSD", "SUSD")
     #setting the logic ABI for the loan token contract
@@ -25,15 +25,15 @@ def loanToken(LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, SU
     return loanToken
     
 @pytest.fixture(scope="module", autouse=True)
-def loanTokenWBTC(LoanToken, LoanTokenLogicWbtc, LoanTokenSettingsLowerAdmin, SUSD, WBTC, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+def loanTokenWRBTC(LoanToken, LoanTokenLogicWrbtc, LoanTokenSettingsLowerAdmin, SUSD, WRBTC, accounts, sovryn, Constants, priceFeeds, swapsImpl):
 
-    loanTokenLogic = accounts[0].deploy(LoanTokenLogicWbtc)
+    loanTokenLogic = accounts[0].deploy(LoanTokenLogicWrbtc)
     # Deploying loan token using the loan logic as target for delegate calls
-    loanToken = accounts[0].deploy(LoanToken, loanTokenLogic.address, sovryn.address, WBTC.address)
+    loanToken = accounts[0].deploy(LoanToken, loanTokenLogic.address, sovryn.address, WRBTC.address)
     # Initialize loanTokenAddress
-    loanToken.initialize(WBTC, "iWBTC", "iWBTC")
+    loanToken.initialize(WRBTC, "iWRBTC", "iWRBTC")
     # setting the logic ABI for the loan token contract
-    loanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicWbtc.abi, owner=accounts[0])
+    loanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicWrbtc.abi, owner=accounts[0])
 
     # loan token Price should be equals to initial price
     assert loanToken.tokenPrice() == loanToken.initialPrice()
@@ -63,11 +63,11 @@ def loanClosings(LoanClosings, accounts, sovryn, Constants, priceFeeds, swapsImp
 '''
 set up the margin and torque pool parameter for the iSUSD and iBTC loanToken contract
 1. using RBTC (TestToken) as collateral
-2. using wBTC as collateral
+2. using wRBTC as collateral
 set up the loan pool at the protocol contract
 '''
 @pytest.fixture(scope="module", autouse=True)
-def loan_pool_setup(accounts, RBTC, WBTC, loanTokenSettings, loanToken, loanTokenWBTC, sovryn, SUSD):
+def loan_pool_setup(accounts, RBTC, WRBTC, loanTokenSettings, loanToken, loanTokenWRBTC, sovryn, SUSD):
     #preparing the parameter
     constants = shared.Constants()
     params = [];
@@ -84,7 +84,7 @@ def loan_pool_setup(accounts, RBTC, WBTC, loanTokenSettings, loanToken, loanToke
     print(setup1)
     params.append(setup1)
     setup2 = setup1.copy()
-    setup2[4] = WBTC.address
+    setup2[4] = WRBTC.address
     print(setup2)
     params.append(setup2)
     
@@ -104,18 +104,18 @@ def loan_pool_setup(accounts, RBTC, WBTC, loanTokenSettings, loanToken, loanToke
     setup3[4] = SUSD.address
     params.append(setup3)
     calldata = loanTokenSettings.setupMarginLoanParams.encode_input(params)
-    tx = loanTokenWBTC.updateSettings(loanTokenSettings.address, calldata)
+    tx = loanTokenWRBTC.updateSettings(loanTokenSettings.address, calldata)
     assert('LoanParamsSetup' in tx.events)
     assert('LoanParamsIdSetup' in tx.events)
     calldata = loanTokenSettings.setupTorqueLoanParams.encode_input(params)
-    tx = loanTokenWBTC.updateSettings(loanTokenSettings.address, calldata)
+    tx = loanTokenWRBTC.updateSettings(loanTokenSettings.address, calldata)
     assert('LoanParamsSetup' in tx.events)
     assert('LoanParamsIdSetup' in tx.events)
     
     #setting the loan pools
     sovryn.setLoanPool(
-        [loanToken.address, loanTokenWBTC.address],
-        [SUSD.address, WBTC.address] 
+        [loanToken.address, loanTokenWRBTC.address],
+        [SUSD.address, WRBTC.address] 
     )
     
 
@@ -153,10 +153,10 @@ def lend_to_pool(accounts, SUSD, loanToken):
     return internal_lend
     
 @pytest.fixture
-def lend_to_pool_iBTC(accounts, SUSD, loanTokenWBTC):
+def lend_to_pool_iBTC(accounts, SUSD, loanTokenWRBTC):
     def internal_lend(lender=accounts[0], lend_amount=1e21):
         # lend
-        loanTokenWBTC.mintWithBTC(lender, {'from':lender, 'value':lend_amount})
+        loanTokenWRBTC.mintWithBTC(lender, {'from':lender, 'value':lend_amount})
 
         return lender, lend_amount
 
@@ -194,19 +194,19 @@ def open_margin_trade_position(accounts, SUSD, RBTC, loanToken):
     return internal_open_margin_trade
     
 @pytest.fixture
-def open_margin_trade_position_iBTC(accounts, SUSD, RBTC, loanTokenWBTC):
+def open_margin_trade_position_iBTC(accounts, SUSD, RBTC, loanTokenWRBTC):
     def internal_open_margin_trade(trader=accounts[1],
                                    loan_token_sent=1e18,
                                    leverage_amount=2e18):
         """
-        Opens a margin trade position on the loanTokenWBTC contract
+        Opens a margin trade position on the loanTokenWRBTC contract
         :param trader: trader address
         :param loan_token_sent: loan token amount sent
         :param leverage_amount: leverage amount in form 1x,2x,3x,4x,5x where 1 is 1e18
         :return: loan_id, trader, loan_token_sent and leverage_amount
         """
 
-        tx = loanTokenWBTC.marginTrade(
+        tx = loanTokenWRBTC.marginTrade(
             "0",  # loanId  (0 for new loans)
             leverage_amount,  # leverageAmount
             loan_token_sent,  # loanTokenSent

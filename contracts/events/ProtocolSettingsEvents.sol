@@ -73,7 +73,7 @@ contract ProtocolSettingsEvents {
         address indexed newController
     );
 
-    event SetWbtcToken(
+    event SetWrbtcToken(
         address indexed sender,
         address indexed oldWethToken,
         address indexed newWethToken

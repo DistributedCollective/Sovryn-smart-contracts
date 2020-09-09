@@ -16,8 +16,8 @@ from shared_lending_functions import *
 Test lend to the pool. The lender mint tokens from loanToken using SUSD as deposit.
 Then check if user balance change and the token price varies
 '''
-def test_lend_to_the_pool(loanToken, accounts, SUSD, WBTC, chain, set_demand_curve, sovryn):
-    lend_to_the_pool(loanToken, accounts, SUSD, WBTC, chain, set_demand_curve, sovryn)
+def test_lend_to_the_pool(loanToken, accounts, SUSD, WRBTC, chain, set_demand_curve, sovryn):
+    lend_to_the_pool(loanToken, accounts, SUSD, WRBTC, chain, set_demand_curve, sovryn)
 
 '''
 1. lend to the pool

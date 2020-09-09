@@ -15,9 +15,9 @@ contract PriceFeedsLocal is PriceFeeds {
     //uint256 public slippageMultiplier = 100 ether;
 
     constructor(
-        address _wbtcTokenAddress,
+        address _wrbtcTokenAddress,
         address _protocolTokenAddress)
-    PriceFeeds(_wbtcTokenAddress, _protocolTokenAddress)
+    PriceFeeds(_wrbtcTokenAddress, _protocolTokenAddress)
     public
     {}
 
@@ -52,11 +52,11 @@ contract PriceFeedsLocal is PriceFeeds {
                 if (rates[sourceToken][destToken] != 0) {
                     rate = rates[sourceToken][destToken];
                 } else {
-                    uint256 sourceToEther = rates[sourceToken][address(wbtcToken)] != 0 ?
-                        rates[sourceToken][address(wbtcToken)] :
+                    uint256 sourceToEther = rates[sourceToken][address(wrbtcToken)] != 0 ?
+                        rates[sourceToken][address(wrbtcToken)] :
                         10**18;
-                    uint256 etherToDest = rates[address(wbtcToken)][destToken] != 0 ?
-                        rates[address(wbtcToken)][destToken] :
+                    uint256 etherToDest = rates[address(wrbtcToken)][destToken] != 0 ?
+                        rates[address(wrbtcToken)][destToken] :
                         10**18;
 
                     rate = sourceToEther.mul(etherToDest).div(10**18);

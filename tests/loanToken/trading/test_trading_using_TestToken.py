@@ -44,7 +44,7 @@ def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, S
     #   address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan 
     collateralTokenSent = sovryn.getRequiredCollateral(SUSD.address,RBTC.address,loanSize*2,50e18, False)
     RBTC.mint(accounts[0],collateralTokenSent)
-    #important! WBTC is being held by the loanToken contract itself, all other tokens are transfered directly from 
+    #important! WRBTC is being held by the loanToken contract itself, all other tokens are transfered directly from 
     #the sender and need approval
     RBTC.approve(loanToken.address, collateralTokenSent)
     

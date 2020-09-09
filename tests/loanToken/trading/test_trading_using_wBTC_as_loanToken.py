@@ -22,8 +22,8 @@ process is handled by the shared function margin_trading_sending_loan_tokens
 3. verify the trade event and balances are correct
 4. retrieve the loan from the smart contract and make sure all values are set as expected
 '''
-def test_margin_trading_sending_loan_tokens(accounts, sovryn, loanTokenWBTC, SUSD, WBTC, priceFeeds, chain):
-    margin_trading_sending_loan_tokens(accounts, sovryn, loanTokenWBTC, WBTC, SUSD, priceFeeds, chain, True)
+def test_margin_trading_sending_loan_tokens(accounts, sovryn, loanTokenWRBTC, SUSD, WRBTC, priceFeeds, chain):
+    margin_trading_sending_loan_tokens(accounts, sovryn, loanTokenWRBTC, WRBTC, SUSD, priceFeeds, chain, True)
 
 '''
 tests margin trading sending collateral tokens as collateral. 
@@ -31,17 +31,17 @@ process:
 1. send the margin trade tx with the passed parameter (NOTE: the token transfer needs to be approved already)
 2. TODO verify the trade event and balances are correct
 '''     
-def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanTokenWBTC, SUSD, WBTC):
+def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanTokenWRBTC, SUSD, WRBTC):
     loanSize = 1e18
     # make sure there are sufficient funds on the contract
-    loanTokenWBTC.mintWithBTC(accounts[0], {'value':loanSize*6})
+    loanTokenWRBTC.mintWithBTC(accounts[0], {'value':loanSize*6})
     #compute the amount of collateral tokens needed
-    collateralTokenSent = sovryn.getRequiredCollateral(WBTC.address,SUSD.address,loanSize*2,50e18, False)
+    collateralTokenSent = sovryn.getRequiredCollateral(WRBTC.address,SUSD.address,loanSize*2,50e18, False)
     SUSD.mint(accounts[0],collateralTokenSent)
-    #important! WBTC is being held by the loanToken contract itself, all other tokens are transfered directly from 
+    #important! WRBTC is being held by the loanToken contract itself, all other tokens are transfered directly from 
     #the sender and need approval
-    SUSD.approve(loanTokenWBTC.address, collateralTokenSent)
-    margin_trading_sending_collateral_tokens(accounts, sovryn, loanTokenWBTC, WBTC, SUSD, loanSize, collateralTokenSent, 5e18, 0)
+    SUSD.approve(loanTokenWRBTC.address, collateralTokenSent)
+    margin_trading_sending_collateral_tokens(accounts, sovryn, loanTokenWRBTC, WRBTC, SUSD, loanSize, collateralTokenSent, 5e18, 0)
 
 '''
 should completely close a position.
@@ -55,8 +55,8 @@ process is handled by the shared function close_complete_margin_trade
 '''
 
 @pytest.mark.parametrize('return_token_is_collateral', [False, True])
-def test_close_complete_margin_trade(sovryn, loanTokenWBTC, web3, set_demand_curve, lend_to_pool_iBTC, open_margin_trade_position_iBTC, priceFeeds, chain, return_token_is_collateral):
-    close_complete_margin_trade(sovryn, loanTokenWBTC, web3, set_demand_curve, lend_to_pool_iBTC, open_margin_trade_position_iBTC, priceFeeds, chain, return_token_is_collateral)
+def test_close_complete_margin_trade(sovryn, loanTokenWRBTC, web3, set_demand_curve, lend_to_pool_iBTC, open_margin_trade_position_iBTC, priceFeeds, chain, return_token_is_collateral):
+    close_complete_margin_trade(sovryn, loanTokenWRBTC, web3, set_demand_curve, lend_to_pool_iBTC, open_margin_trade_position_iBTC, priceFeeds, chain, return_token_is_collateral)
 
 '''
 should partially close a position.
@@ -70,7 +70,7 @@ process is handled by the shared function close_partial_margin_trade
 '''
 '''
 @pytest.mark.parametrize('return_token_is_collateral', [False, True])
-def test_close_partial_margin_trade(sovryn, loanTokenWBTC, web3, set_demand_curve, lend_to_pool, open_margin_trade_position, priceFeeds, chain, return_token_is_collateral):
-    close_partial_margin_trade(sovryn, loanTokenWBTC, web3, set_demand_curve, lend_to_pool, open_margin_trade_position, priceFeeds, chain, return_token_is_collateral)
+def test_close_partial_margin_trade(sovryn, loanTokenWRBTC, web3, set_demand_curve, lend_to_pool, open_margin_trade_position, priceFeeds, chain, return_token_is_collateral):
+    close_partial_margin_trade(sovryn, loanTokenWRBTC, web3, set_demand_curve, lend_to_pool, open_margin_trade_position, priceFeeds, chain, return_token_is_collateral)
 '''
 
