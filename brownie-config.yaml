@@ -12,13 +12,13 @@ project_structure:
 networks:
     default: development
     development:
-        gas_limit: 8000000
+        gas_limit: 6800000
         gas_price: 2000000000
         reverting_tx_gas_limit: 8000000
         default_contract_owner: true
         cmd_settings:
-            port: 8555
-            gas_limit: 8000000
+            port: 8545
+            gas_limit: 6800000
             accounts: 10
             evm_version: istanbul
             mnemonic: brownie
