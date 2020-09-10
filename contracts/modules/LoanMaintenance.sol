@@ -8,13 +8,14 @@ pragma experimental ABIEncoderV2;
 
 import "../core/State.sol";
 import "../events/LoanOpeningsEvents.sol";
+import "../events/LoanMaintenanceEvents.sol";
 import "../mixins/VaultController.sol";
 import "../mixins/InterestUser.sol";
 import "../mixins/LiquidationHelper.sol";
 import "../swaps/SwapsUser.sol";
 
 
-contract LoanMaintenance is LoanOpeningsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper {
+contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper {
 
     struct LoanReturnData {
         bytes32 loanId;
@@ -89,6 +90,8 @@ contract LoanMaintenance is LoanOpeningsEvents, VaultController, InterestUser, S
                 msg.value
             );
         }
+        
+        emit DepositCollateral(loanId, depositAmount);
     }
 
     function withdrawCollateral(
