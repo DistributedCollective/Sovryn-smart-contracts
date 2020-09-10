@@ -105,4 +105,10 @@ contract ProtocolSettingsEvents {
         address indexed receiver,
         uint256 amount
     );
+
+    event SetRolloverBaseReward(
+        address indexed sender,
+        uint256 oldValue,
+        uint256 newValue
+    );
 }

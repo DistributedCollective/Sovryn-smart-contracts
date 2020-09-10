@@ -10,10 +10,8 @@ import "../core/State.sol";
 import "../mixins/VaultController.sol";
 import "../swaps/SwapsUser.sol";
 import "../swaps/ISwapsImpl.sol";
-import "../connectors/gastoken/GasTokenUser.sol";
 
-
-contract SwapsExternal is VaultController, SwapsUser, GasTokenUser {
+contract SwapsExternal is VaultController, SwapsUser {
 
     constructor() public {}
 
@@ -42,7 +40,6 @@ contract SwapsExternal is VaultController, SwapsUser, GasTokenUser {
         bytes calldata swapData)
         external
         payable
-        usesGasToken
         nonReentrant
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {

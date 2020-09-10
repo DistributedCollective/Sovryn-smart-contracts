@@ -142,5 +142,26 @@ def test_fail_withdraw_protocol_token(sovryn, accounts, TestToken):
     balanceAfter = sov.balanceOf(accounts[1])
     assert(sovryn.protocolTokenHeld() == 0)
     assert(balanceAfter==balanceBefore+1e20)
-    
-   
+
+
+"""
+    Should successfully change rollover base reward
+"""
+def test_set_rollover_base_reward(sovryn, accounts):
+    new_reward = 1e15
+    old_reward = sovryn.rolloverBaseReward()
+    tx = sovryn.setRolloverBaseReward(new_reward)
+
+    event = tx.events['SetRolloverBaseReward']
+    assert(event['sender'] == accounts[0])
+    assert(event['oldValue'] == old_reward)
+    assert(event['newValue'] == new_reward)
+    assert(sovryn.rolloverBaseReward() == new_reward)
+
+
+"""
+    Should fail to change rollover base reward by unauthorized user 
+"""
+def test_set_rollover_base_reward_by_unauthorized_user(sovryn, accounts):
+    with reverts("unauthorized"):
+        sovryn.setRolloverBaseReward(1e15, {'from': accounts[1]})
