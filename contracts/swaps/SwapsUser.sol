@@ -85,7 +85,7 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
         //vals[1]:  maxSourceTokenAmount
         //vals[2]:  requiredDestTokenAmount
 
-        require(vals[0] != 0, "sourceAmount == 0");
+        require(vals[0] != 0 || vals[1] != 0, "min or max source token amount needs to be set");
 
         if (vals[1] == 0) {
             vals[1] = vals[0];
@@ -250,7 +250,7 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
         uint256 _maxSwapSize = maxSwapSize;
         if (_maxSwapSize != 0) {
             uint256 amountInEth;
-            if (tokenAddress == address(wethToken)) {
+            if (tokenAddress == address(wrbtcToken)) {
                 amountInEth = amount;
             } else {
                 amountInEth = IPriceFeeds(priceFeeds).amountInEth(tokenAddress, amount);

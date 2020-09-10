@@ -76,12 +76,14 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
             sourceTokenAmountUsed = minSourceTokenAmount;
             expectedReturn = sovrynSwapNetwork.rateByPath(path, minSourceTokenAmount);
         }
-
+        
+        require(sourceTokenAmountUsed > 0, "cannot swap 0 tokens");
+        
         allowTransfer(sourceTokenAmountUsed, sourceTokenAddress, address(sovrynSwapNetwork));
 
         //note: the kyber connector uses .call() to interact with kyber to avoid bubbling up. here we allow bubbling up.
         destTokenAmountReceived = sovrynSwapNetwork.convertByPath(path, sourceTokenAmountUsed, expectedReturn, address(0), address(0), 0);
-
+        
         //if the sender is not the protocol (calling with delegatecall), return the remainder to the specified address.
         //note: for the case that the swap is used without the protocol. not sure if it should, though. needs to be discussed.
         if (returnToSenderAddress != address(this)) {
@@ -122,8 +124,6 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
      * @return the estimated amount of source tokens needed. minimum: minSourceTokenAmount, maximum: maxSourceTokenAmount
      * */
     function estimateSourceTokenAmount(address sourceTokenAddress, address destTokenAddress, uint requiredDestTokenAmount,  uint maxSourceTokenAmount) internal returns(uint256 estimatedSourceAmount){
-        //logic like in SwapsImplKyber. query current rate from the price feed, add a 5% buffer and return this value
-        //in case it's not bigger than maxSourceTokenAmount. else return maxSourceTokenAmount
 
         uint256 sourceToDestPrecision = IPriceFeeds(priceFeeds).queryPrecision(sourceTokenAddress, destTokenAddress);
         if (sourceToDestPrecision == 0)

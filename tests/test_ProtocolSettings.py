@@ -71,14 +71,13 @@ def test_transferFrom_reverts(token, accounts, idx):
 '''
 
 
-def test_set_weth_token(sovryn, Constants, WETH, accounts):
+def test_set_wrbtc_token(sovryn, Constants, WRBTC, accounts):
     assert(sovryn.owner() == accounts[0])
-    assert(sovryn.wethToken() == Constants["ZERO_ADDRESS"])
-    sovryn.setWethToken(WETH.address)
-    assert(sovryn.wethToken() == WETH.address)
+    sovryn.setWrbtcToken(WRBTC.address)
+    assert(sovryn.wrbtcToken() == WRBTC.address)
 
     with reverts("unauthorized"):
-        sovryn.setWethToken(WETH.address, {'from': accounts[1]})
+        sovryn.setWrbtcToken(WRBTC.address, {'from': accounts[1]})
 
 
 def test_set_protocol_token_address(sovryn, Constants, accounts):

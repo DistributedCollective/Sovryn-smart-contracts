@@ -49,7 +49,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         _setTarget(this.getLoanPoolsList.selector, target);
         _setTarget(this.isLoanPool.selector, target);
         _setTarget(this.setSovrynSwapContractRegistryAddress.selector, target);
-        _setTarget(this.setWethToken.selector, target);
+        _setTarget(this.setWrbtcToken.selector, target);
         _setTarget(this.setProtocolTokenAddress.selector, target);
     }
 
@@ -430,17 +430,17 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         sovrynSwapContractRegistryAddress = registryAddress;
     }
 
-    function setWethToken(
-        address wethTokenAddress)
+    function setWrbtcToken(
+        address wrbtcTokenAddress)
         external
         onlyOwner
     {
-        require(Address.isContract(wethTokenAddress), "wethTokenAddress not a contract");
+        require(Address.isContract(wrbtcTokenAddress), "wrbtcTokenAddress not a contract");
 
-        address oldWethToken = address(wethToken);
-        wethToken = IWethERC20(wethTokenAddress);
+        address oldwrbtcToken = address(wrbtcToken);
+        wrbtcToken = IWrbtcERC20(wrbtcTokenAddress);
 
-        emit SetWethToken(msg.sender, oldWethToken, wethTokenAddress);
+        emit SetWrbtcToken(msg.sender, oldwrbtcToken, wrbtcTokenAddress);
     }
 
     function setProtocolTokenAddress(

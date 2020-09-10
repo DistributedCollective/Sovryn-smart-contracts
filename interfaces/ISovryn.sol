@@ -140,12 +140,12 @@ contract ISovryn is
         view
         returns (bool);
 
+    function setWrbtcToken(
+        address wrbtcTokenAddress)
+        external;
+        
     function setSovrynSwapContractRegistryAddress(
         address registryAddress)
-        external;
-
-    function setWethToken(
-        address wethTokenAddress)
         external;
 
     function setProtocolTokenAddress(

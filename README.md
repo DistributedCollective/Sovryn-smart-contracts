@@ -1,6 +1,7 @@
 
 
 
+
 # Sovryn v 0.1 Smart Contracts
 
 ## Dependencies
@@ -324,7 +325,31 @@ uint256 maxSeizable;
 
 ```maxSeizable ``` is the amount which can be retrieved through liquidation (in collateral tokens)
 
+##### 6.2 Supply and Demand
 
+ ```totalAssetSupply()``` returns the total amount of funds supplied to the iToken contract by the liquidity providers (lenders).
+
+```totalAssetBorrow()``` returns the total amount of funds which is currently borrowed from the smart contract.
+
+##### 6.3 Interest Rates
+
+To read the current interest rate for liquidity providers (lenders), call ```supplyInterestRate()``` . If you would like to obtain the potential interest rate after x assets are being lent to the contract, use  ```nextSupplyInterestRate(x)```
+
+To read the current interest rate for borrowers and/or traders, call ```borrowInterestRate()```.  If you would like to determine the interest rate to be paid considering the loan size x ```nextBorrowInterestRate(x)```.
+
+```avgBorrowInterestRate()``` returns the average interest rate paid by borrowers at the moment. Since the interest rate depends on the ratio demand/supply, some borrower are paying more than others. 
+
+##### 6.4 iToken Price
+
+```tokenPrice()``` returns the current iToken price denominated in underlying tokens. In case of iSUSD, the price would be given in SUSD.
+
+##### 6.5 Lender Balances
+
+Each lender has 2 balances on the iToken contract. The balance of iTokens (e.g. iSUSD) and the balance of underlying tokens (e.g. SUSD).
+
+```balanceOf(address)``` returns the iToken balance of the given address.
+
+```assetBalanceOf(address)``` returns the underlying token balance of the given address.
 
 ### 7. Remarks
 
