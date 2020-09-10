@@ -234,7 +234,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
         }
 
         if (loanCloseAmountLessInterest != 0) {
-            // The lender always gets back an ERC20 (even WETH), so we call withdraw directly rather than
+            // The lender always gets back an ERC20 (even wrbtc), so we call withdraw directly rather than
             // use the _withdrawAsset helper function
             vaultWithdraw(
                 loanParamsLocal.loanToken,
@@ -388,11 +388,12 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
                 backInterestOwed
             );
         }
-
-        uint256 gasRebate = _gasUsed(startingGas)
+        
+        //todo here comes the reward logic --> requires replacement
+        uint256 gasRebate = 0;/*_gasUsed(startingGas)
             .mul(
                 IPriceFeeds(priceFeeds).getFastGasPrice(loanParamsLocal.collateralToken) * 2
-            );
+            );*/
 
         if (gasRebate != 0) {
             // pay out gas rebate to caller
@@ -607,7 +608,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
         }
 
         // Repays principal to lender
-        // The lender always gets back an ERC20 (even WETH), so we call withdraw directly rather than
+        // The lender always gets back an ERC20 (even wrbtc), so we call withdraw directly rather than
         // use the _withdrawAsset helper function
         vaultWithdraw(
             loanParamsLocal.loanToken,
@@ -699,7 +700,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
         }
 
         if (interestAppliedToPrincipal != 0) {
-            // The lender always gets back an ERC20 (even WETH), so we call withdraw directly rather than
+            // The lender always gets back an ERC20 (even wrbtc), so we call withdraw directly rather than
             // use the _withdrawAsset helper function
             vaultWithdraw(
                 loanParamsLocal.loanToken,
@@ -711,7 +712,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
         return loanCloseAmountLessInterest;
     }
 
-    // The receiver always gets back an ERC20 (even WETH)
+    // The receiver always gets back an ERC20 (even wrbtc)
     function _returnPrincipalWithDeposit(
         address loanToken,
         address receiver,
@@ -727,9 +728,9 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
                     principalNeeded
                 );
             } else {
-                require(loanToken == address(wethToken), "wrong asset sent");
+                require(loanToken == address(wrbtcToken), "wrong asset sent");
                 require(msg.value >= principalNeeded, "not enough ether");
-                wethToken.deposit.value(principalNeeded)();
+                wrbtcToken.deposit.value(principalNeeded)();
                 if (receiver != address(this)) {
                     vaultTransfer(
                         loanToken,
@@ -867,7 +868,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
         internal
     {
         if (assetAmount != 0) {
-            if (assetToken == address(wethToken)) {
+            if (assetToken == address(wrbtcToken)) {
                 vaultEtherWithdraw(
                     receiver,
                     assetAmount

@@ -32,8 +32,10 @@ def main():
     #testTokenBurning(acct, iRBTC, testRBTC)
     #liquidate(acct, protocol, '0x5f8d4599657b3d24eb4fee83974a43c62f411383a8b5750b51adca63058a0f59')
     #testTradeOpeningAndClosing(acct, protocol,iSUSD,testSUSD,testRBTC)
-    testBorrow(acct,protocol,iSUSD,testSUSD,testRBTC)
+    #testBorrow(acct,protocol,iSUSD,testSUSD,testRBTC)
     #setupTorqueLoanParams(acct,iSUSD,iSUSDSettings,testSUSD,testRBTC)
+    rollover(acct, protocol, '0xe87b69a7ce05978fa8822f412b7df567cd641e77dbd99a023baf5193950c7678')
+    #replaceLoanClosings(acct, protocol)
 
 def setPriceFeeds(acct):
     priceFeedContract = '0xf2e9fD37912aB53D0FEC1eaCE86d6A14346Fb6dD'
@@ -243,3 +245,13 @@ def setupTorqueLoanParams(acct, loanTokenAddress, loanTokenSettingsAddress, unde
     assert('LoanParamsSetup' in tx.events)
     assert('LoanParamsIdSetup' in tx.events)
     print(tx.info())
+    
+def rollover(acct, protocolAddress, loanId):
+    sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
+    tx = sovryn.rollover(loanId, b'')
+    print(tx.info())
+    
+def replaceLoanClosings(acct, protocolAddress):
+    sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
+    loanClosings = acct.deploy(LoanClosings)
+    sovryn.replaceContract(loanClosings.address)
