@@ -11,7 +11,7 @@ pragma solidity >=0.5.0 <0.6.0;
  *
  * This contract is only required for intermediate, library-like contracts.
  */
-contract Context {
+contract ContextSovryn {
     // Empty internal constructor, to prevent people from mistakenly deploying
     // an instance of this contract, which should be used via inheritance.
     constructor () internal { }

@@ -1109,12 +1109,12 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         } else if (closeType == CloseTypes.Swap) {
             // exitPrice = 1 / collateralToLoanSwapRate
             if (collateralToLoanSwapRate != 0) {
-                collateralToLoanSwapRate = SafeMath.div(10**36, collateralToLoanSwapRate);
+                collateralToLoanSwapRate = SafeMathSovryn.div(10**36, collateralToLoanSwapRate);
             }
 
             // currentLeverage = 100 / currentMargin
             if (currentMargin != 0) {
-                currentMargin = SafeMath.div(10**38, currentMargin);
+                currentMargin = SafeMathSovryn.div(10**38, currentMargin);
             }
 
             emit CloseWithSwap(

@@ -69,5 +69,6 @@ hypothesis:
     stateful_step_count: 10
 
 autofetch_sources: false
-dependencies: null
+dependencies:
+    - OpenZeppelin/openzeppelin-contracts@2.4.0
 dev_deployment_artifacts: false

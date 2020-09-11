@@ -10,7 +10,7 @@ import "../openzeppelin/SafeERC20.sol";
 
 
 contract ProtocolTokenUser is State {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Sovryn;
 
     function _withdrawProtocolToken(
         address receiver,
@@ -31,7 +31,7 @@ contract ProtocolTokenUser is State {
         protocolTokenHeld = tokenBalance
             .sub(withdrawAmount);
 
-        IERC20(protocolTokenAddress).safeTransfer(
+        IERC20Sovryn(protocolTokenAddress).safeTransfer(
             receiver,
             withdrawAmount
         );

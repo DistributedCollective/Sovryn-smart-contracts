@@ -13,7 +13,7 @@ import "../../../testhelpers/TestToken.sol";
 
 
 contract SwapsImplLocal is State, ISwapsImpl {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Sovryn;
 
     function internalSwap(
         address sourceTokenAddress,
@@ -53,7 +53,7 @@ contract SwapsImplLocal is State, ISwapsImpl {
         if (returnToSenderAddress != address(this)) {
             if (sourceTokenAmountUsed < maxSourceTokenAmount) {
                 // send unused source token back
-                IERC20(sourceTokenAddress).safeTransfer(
+                IERC20Sovryn(sourceTokenAddress).safeTransfer(
                     returnToSenderAddress,
                     maxSourceTokenAmount-sourceTokenAmountUsed
                 );

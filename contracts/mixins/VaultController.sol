@@ -10,7 +10,7 @@ import "../core/State.sol";
 
 
 contract VaultController is State {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Sovryn;
 
     event VaultDeposit(
         address indexed asset,
@@ -66,7 +66,7 @@ contract VaultController is State {
         internal
     {
         if (value != 0) {
-            IERC20(token).safeTransferFrom(
+            IERC20Sovryn(token).safeTransferFrom(
                 from,
                 address(this),
                 value
@@ -87,7 +87,7 @@ contract VaultController is State {
         internal
     {
         if (value != 0) {
-            IERC20(token).safeTransfer(
+            IERC20Sovryn(token).safeTransfer(
                 to,
                 value
             );
@@ -109,12 +109,12 @@ contract VaultController is State {
     {
         if (value != 0) {
             if (from == address(this)) {
-                IERC20(token).safeTransfer(
+                IERC20Sovryn(token).safeTransfer(
                     to,
                     value
                 );
             } else {
-                IERC20(token).safeTransferFrom(
+                IERC20Sovryn(token).safeTransferFrom(
                     from,
                     to,
                     value
@@ -129,9 +129,9 @@ contract VaultController is State {
         uint256 value)
         internal
     {
-        if (value != 0 && IERC20(token).allowance(address(this), to) != 0) {
-            IERC20(token).safeApprove(to, 0);
+        if (value != 0 && IERC20Sovryn(token).allowance(address(this), to) != 0) {
+            IERC20Sovryn(token).safeApprove(to, 0);
         }
-        IERC20(token).safeApprove(to, value);
+        IERC20Sovryn(token).safeApprove(to, value);
     }
 }

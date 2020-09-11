@@ -5,7 +5,7 @@
 
 pragma solidity >=0.5.0 <0.6.0;
 
-import "./IERC20.sol";
+import "./IERC20Sovryn.sol";
 
 
 interface IPot {
@@ -25,7 +25,7 @@ interface IPot {
         returns (uint256);
 }
 
-contract IChai is IERC20 {
+contract IChai is IERC20Sovryn {
     function move(
         address src,
         address dst,

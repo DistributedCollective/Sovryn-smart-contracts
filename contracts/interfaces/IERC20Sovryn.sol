@@ -6,7 +6,7 @@
 pragma solidity >=0.5.0 <0.6.0;
 
 
-contract IERC20 {
+contract IERC20Sovryn {
     string public name;
     uint8 public decimals;
     string public symbol;

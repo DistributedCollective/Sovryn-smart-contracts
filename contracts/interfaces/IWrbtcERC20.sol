@@ -6,7 +6,7 @@
 pragma solidity >=0.5.0 <0.6.0;
 
 import "./IWrbtc.sol";
-import "./IERC20.sol";
+import "./IERC20Sovryn.sol";
 
 
-contract IWrbtcERC20 is IWrbtc, IERC20 {}
+contract IWrbtcERC20 is IWrbtc, IERC20Sovryn {}

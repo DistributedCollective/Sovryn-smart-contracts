@@ -11,7 +11,7 @@ import "./interfaces/ProtocolSettingsLike.sol";
 
 
 contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
-    using SafeMath for uint256;
+    using SafeMathSovryn for uint256;
 
     // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress
     address public sovrynContractAddress;

@@ -5,11 +5,11 @@
 
 pragma solidity 0.5.17;
 
-import "../openzeppelin/SafeMath.sol";
+import "../openzeppelin/SafeMathSovryn.sol";
 
 
 contract TestToken {
-    using SafeMath for uint256;
+    using SafeMathSovryn for uint256;
 
     event Transfer(
         address indexed from,

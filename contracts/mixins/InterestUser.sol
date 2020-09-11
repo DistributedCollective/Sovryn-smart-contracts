@@ -12,7 +12,7 @@ import "./FeesHelper.sol";
 
 
 contract InterestUser is VaultController, FeesHelper {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Sovryn;
 
     function _payInterest(
         address lender,

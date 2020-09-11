@@ -92,7 +92,7 @@ contract LoanToken is AdvancedTokenStorage {
 
         name = _name;
         symbol = _symbol;
-        decimals = IERC20(loanTokenAddress).decimals();
+        decimals = IERC20Sovryn(loanTokenAddress).decimals();
 
         initialPrice = 10**18; // starting price of 1
     }

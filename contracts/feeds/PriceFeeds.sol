@@ -5,9 +5,9 @@
 
 pragma solidity 0.5.17;
 
-import "../openzeppelin/SafeMath.sol";
+import "../openzeppelin/SafeMathSovryn.sol";
 import "../openzeppelin/Ownable.sol";
-import "../interfaces/IERC20.sol";
+import "../interfaces/IERC20Sovryn.sol";
 import "./PriceFeedsConstants.sol";
 
 
@@ -16,7 +16,7 @@ interface IPriceFeedsExt {
 }
 
 contract PriceFeeds is Constants, Ownable {
-    using SafeMath for uint256;
+    using SafeMathSovryn for uint256;
 
     event GlobalPricingPaused(
         address indexed sender,
@@ -314,7 +314,7 @@ contract PriceFeeds is Constants, Ownable {
     }
 
     function setDecimals(
-        IERC20[] calldata tokens)
+        IERC20Sovryn[] calldata tokens)
         external
         onlyOwner
     {
@@ -399,16 +399,16 @@ contract PriceFeeds is Constants, Ownable {
         } else {
             uint256 sourceTokenDecimals = decimals[sourceToken];
             if (sourceTokenDecimals == 0)
-                sourceTokenDecimals = IERC20(sourceToken).decimals();
+                sourceTokenDecimals = IERC20Sovryn(sourceToken).decimals();
 
             uint256 destTokenDecimals = decimals[destToken];
             if (destTokenDecimals == 0)
-                destTokenDecimals = IERC20(destToken).decimals();
+                destTokenDecimals = IERC20Sovryn(destToken).decimals();
 
             if (destTokenDecimals >= sourceTokenDecimals)
-                return 10**(SafeMath.sub(18, destTokenDecimals-sourceTokenDecimals));
+                return 10**(SafeMathSovryn.sub(18, destTokenDecimals-sourceTokenDecimals));
             else
-                return 10**(SafeMath.add(18, sourceTokenDecimals-destTokenDecimals));
+                return 10**(SafeMathSovryn.add(18, sourceTokenDecimals-destTokenDecimals));
         }
     }
 

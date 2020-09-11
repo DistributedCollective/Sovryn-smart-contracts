@@ -1,7 +1,7 @@
 
 pragma solidity >=0.5.0 <0.6.0;
 
-import "./Context.sol";
+import "./ContextSovryn.sol";
 
 
 /**
@@ -13,7 +13,7 @@ import "./Context.sol";
  * `onlyOwner`, which can be applied to your functions to restrict their use to
  * the owner.
  */
-contract Ownable is Context {
+contract Ownable is ContextSovryn {
     address private _owner;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);

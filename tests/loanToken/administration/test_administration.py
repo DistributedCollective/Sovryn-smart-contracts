@@ -113,3 +113,31 @@ def test_toggle_function_pause_with_non_admin_should_fail(loanToken, LoanTokenSe
     with reverts("unauthorized"):
         localLoanToken.toggleFunctionPause("mint(address,uint256)", True, {'from':accounts[1]})
 
+
+def test_set_early_access_token(EarlyAccessToken, accounts, loanToken, LoanTokenLogicStandard):
+    old_early_access_token = loanToken.earlyAccessToken()
+    new_early_access_token = accounts[0].deploy(EarlyAccessToken, "Sovryn Early Access Token", "SEAT")
+
+    tx = loanToken.setEarlyAccessToken(new_early_access_token.address)
+    tx.info()
+
+    event_name = "SetEarlyAccessToken"
+    if event_name in tx.events:
+        event = tx.events[event_name]
+        assert(event["sender"] == accounts[0])
+        assert(event["oldValue"] == old_early_access_token)
+        assert(event["newValue"] == new_early_access_token)
+    else:
+        # When all the tests are run, the event is not recognized
+        events = list(
+            filter(lambda tx_: tx_['topic1'] == LoanTokenLogicStandard.topics[event_name], tx.events['(unknown)']))
+        assert(len(events) == 1)
+
+    assert(loanToken.earlyAccessToken() == new_early_access_token)
+
+
+def test_set_early_access_token_with_unauthorized_user_should_fail(early_access_token, EarlyAccessToken, accounts, loanToken):
+    new_early_access_token = accounts[0].deploy(EarlyAccessToken, "Sovryn Early Access Token", "SEAT")
+
+    with reverts("unauthorized"):
+        loanToken.setEarlyAccessToken(new_early_access_token.address, {'from': accounts[1]})

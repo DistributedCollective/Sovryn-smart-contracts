@@ -53,7 +53,7 @@ contract SwapsExternal is VaultController, SwapsUser {
             require(msg.value == sourceTokenAmount, "sourceTokenAmount mismatch");
             wrbtcToken.deposit.value(sourceTokenAmount)();
         } else {
-            IERC20(sourceToken).safeTransferFrom(
+            IERC20Sovryn(sourceToken).safeTransferFrom(
                 msg.sender,
                 address(this),
                 sourceTokenAmount

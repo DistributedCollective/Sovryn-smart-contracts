@@ -22,7 +22,7 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
     // Kovan
     IChai public constant chai = IChai(0x71DD45d9579A499B58aa85F50E5E3B241Ca2d10d);
     IPot public constant pot = IPot(0xEA190DBDC7adF265260ec4dA6e9675Fd4f5A78bb);
-    IERC20 public constant dai = IERC20(0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
+    IERC20Sovryn public constant dai = IERC20Sovryn(0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
 
 
     /* Public functions */
@@ -102,7 +102,7 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
 
         _dsrWithdraw(borrowAmount);
 
-        IERC20 _dai = _getDai();
+        IERC20Sovryn _dai = _getDai();
 
         // save before balances
         uint256 beforeEtherBalance = address(this).balance.sub(msg.value);
@@ -262,13 +262,13 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
 
         uint256 currentPrice = _tokenPrice(_totalAssetSupply(0));
         uint256 currentChaiPrice;
-        IERC20 inAsset;
+        IERC20Sovryn inAsset;
 
         if (withChai) {
-            inAsset = IERC20(address(_getChai()));
+            inAsset = IERC20Sovryn(address(_getChai()));
             currentChaiPrice = chaiPrice();
         } else {
-            inAsset = IERC20(address(_getDai()));
+            inAsset = IERC20Sovryn(address(_getDai()));
         }
 
         require(inAsset.transferFrom(
@@ -470,7 +470,7 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
                     .sub(localBalance) // DAI not DSR'ed can't be counted
             );
             _dsr = _dsr
-                .mul(SafeMath.sub(100 ether, _utilRate));
+                .mul(SafeMathSovryn.sub(100 ether, _utilRate));
 
             if (localBalance != 0) {
                 _utilRate = _utilizationRate(
@@ -481,7 +481,7 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
 
             uint256 rate = _avgBorrowInterestRate(assetBorrow)
                 .mul(_utilRate)
-                .mul(SafeMath.sub(10**20, ProtocolLike(sovrynContractAddress).lendingFeePercent()))
+                .mul(SafeMathSovryn.sub(10**20, ProtocolLike(sovrynContractAddress).lendingFeePercent()))
                 .div(10**20);
             return rate
                 .add(_dsr)
@@ -510,7 +510,7 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
     function _getDai()
         internal
         pure
-        returns (IERC20)
+        returns (IERC20Sovryn)
     {
         return dai;
     }

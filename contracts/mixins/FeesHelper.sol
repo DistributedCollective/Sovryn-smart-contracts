@@ -13,7 +13,7 @@ import "../mixins/ProtocolTokenUser.sol";
 
 
 contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Sovryn;
 
     // calculate trading fee
     function _getTradingFee(

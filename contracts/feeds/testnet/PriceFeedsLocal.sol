@@ -47,7 +47,7 @@ contract PriceFeedsLocal is PriceFeeds {
                 rate = protocolTokenEthPrice;
             } else if (destToken == protocolTokenAddress) {
                 // hack for testnet; only returns price in ETH
-                rate = SafeMath.div(10**36, protocolTokenEthPrice);
+                rate = SafeMathSovryn.div(10**36, protocolTokenEthPrice);
             } else {
                 if (rates[sourceToken][destToken] != 0) {
                     rate = rates[sourceToken][destToken];
@@ -76,7 +76,7 @@ contract PriceFeedsLocal is PriceFeeds {
     {
         if (sourceToken != destToken) {
             rates[sourceToken][destToken] = rate;
-            rates[destToken][sourceToken] = SafeMath.div(10**36, rate);
+            rates[destToken][sourceToken] = SafeMathSovryn.div(10**36, rate);
         }
     }
 

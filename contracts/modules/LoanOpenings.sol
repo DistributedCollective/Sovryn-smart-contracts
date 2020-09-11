@@ -321,7 +321,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
             sentValues[2] = loanLocal.endTimestamp.sub(block.timestamp);
         } else {
             // reclaiming varaible -> entryLeverage = 100 / initialMargin
-            sentValues[2] = SafeMath.div(10**38, initialMargin);
+            sentValues[2] = SafeMathSovryn.div(10**38, initialMargin);
         }
 
         _finalizeOpen(
@@ -395,7 +395,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
             );
         } else {
             // currentLeverage = 100 / currentMargin
-            margin = SafeMath.div(10**38, margin);
+            margin = SafeMathSovryn.div(10**38, margin);
 
             emit Trade(
                 sentAddresses[1],                               // user (trader)

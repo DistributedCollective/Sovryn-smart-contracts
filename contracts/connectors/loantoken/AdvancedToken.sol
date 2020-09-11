@@ -9,7 +9,7 @@ import "./AdvancedTokenStorage.sol";
 
 
 contract AdvancedToken is AdvancedTokenStorage {
-    using SafeMath for uint256;
+    using SafeMathSovryn for uint256;
 
     function approve(
         address _spender,

@@ -4,9 +4,22 @@ from brownie.network.contract import InterfaceContainer
 from brownie.network.state import _add_contract, _remove_contract
 import shared
 
+
+@pytest.fixture(scope="module")
+def early_access_token(accounts, EarlyAccessToken):
+    early_access_token = accounts[0].deploy(EarlyAccessToken, "Sovryn Early Access Token", "SEAT")
+
+    # Mint 1 token to all address to not modify a lot of tests
+    for account in accounts:
+        early_access_token.mint(account, 1)
+
+    print(early_access_token)
+    return early_access_token
+
+
 # returns a loan token with underlying token SUSD  
 @pytest.fixture(scope="module", autouse=True)
-def loanToken(LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, SUSD, WRBTC, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+def loanToken(LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, SUSD, WRBTC, accounts, sovryn, Constants, priceFeeds, swapsImpl, early_access_token):
 
     loanTokenLogic = accounts[0].deploy(LoanTokenLogicStandard)
     #Deploying loan token using the loan logic as target for delegate calls
@@ -15,6 +28,8 @@ def loanToken(LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, SU
     loanToken.initialize(SUSD, "SUSD", "SUSD")
     #setting the logic ABI for the loan token contract
     loanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
+
+    loanToken.setEarlyAccessToken(early_access_token.address)
 
     # loan token Price should be equals to initial price
     assert loanToken.tokenPrice() == loanToken.initialPrice()
@@ -25,7 +40,7 @@ def loanToken(LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, SU
     return loanToken
     
 @pytest.fixture(scope="module", autouse=True)
-def loanTokenWRBTC(LoanToken, LoanTokenLogicWrbtc, LoanTokenSettingsLowerAdmin, SUSD, WRBTC, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+def loanTokenWRBTC(LoanToken, LoanTokenLogicWrbtc, LoanTokenSettingsLowerAdmin, SUSD, WRBTC, accounts, sovryn, Constants, priceFeeds, swapsImpl, early_access_token):
 
     loanTokenLogic = accounts[0].deploy(LoanTokenLogicWrbtc)
     # Deploying loan token using the loan logic as target for delegate calls
@@ -34,6 +49,8 @@ def loanTokenWRBTC(LoanToken, LoanTokenLogicWrbtc, LoanTokenSettingsLowerAdmin, 
     loanToken.initialize(WRBTC, "iWRBTC", "iWRBTC")
     # setting the logic ABI for the loan token contract
     loanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicWrbtc.abi, owner=accounts[0])
+
+    loanToken.setEarlyAccessToken(early_access_token.address)
 
     # loan token Price should be equals to initial price
     assert loanToken.tokenPrice() == loanToken.initialPrice()

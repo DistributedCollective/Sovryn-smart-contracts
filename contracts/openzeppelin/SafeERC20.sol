@@ -1,9 +1,9 @@
 
 pragma solidity >=0.5.0 <0.6.0;
 
-import "./SafeMath.sol";
+import "./SafeMathSovryn.sol";
 import "./Address.sol";
-import "../interfaces/IERC20.sol";
+import "../interfaces/IERC20Sovryn.sol";
 
 
 /**
@@ -16,18 +16,18 @@ import "../interfaces/IERC20.sol";
  * which allows you to call the safe operations as `token.safeTransfer(...)`, etc.
  */
 library SafeERC20 {
-    using SafeMath for uint256;
+    using SafeMathSovryn for uint256;
     using Address for address;
 
-    function safeTransfer(IERC20 token, address to, uint256 value) internal {
+    function safeTransfer(IERC20Sovryn token, address to, uint256 value) internal {
         callOptionalReturn(token, abi.encodeWithSelector(token.transfer.selector, to, value));
     }
 
-    function safeTransferFrom(IERC20 token, address from, address to, uint256 value) internal {
+    function safeTransferFrom(IERC20Sovryn token, address from, address to, uint256 value) internal {
         callOptionalReturn(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));
     }
 
-    function safeApprove(IERC20 token, address spender, uint256 value) internal {
+    function safeApprove(IERC20Sovryn token, address spender, uint256 value) internal {
         // safeApprove should only be called when setting an initial allowance,
         // or when resetting it to zero. To increase and decrease it, use
         // 'safeIncreaseAllowance' and 'safeDecreaseAllowance'
@@ -38,12 +38,12 @@ library SafeERC20 {
         callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, value));
     }
 
-    function safeIncreaseAllowance(IERC20 token, address spender, uint256 value) internal {
+    function safeIncreaseAllowance(IERC20Sovryn token, address spender, uint256 value) internal {
         uint256 newAllowance = token.allowance(address(this), spender).add(value);
         callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));
     }
 
-    function safeDecreaseAllowance(IERC20 token, address spender, uint256 value) internal {
+    function safeDecreaseAllowance(IERC20Sovryn token, address spender, uint256 value) internal {
         uint256 newAllowance = token.allowance(address(this), spender).sub(value, "SafeERC20: decreased allowance below zero");
         callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));
     }
@@ -54,7 +54,7 @@ library SafeERC20 {
      * @param token The token targeted by the call.
      * @param data The call data (encoded using abi.encode or one of its variants).
      */
-    function callOptionalReturn(IERC20 token, bytes memory data) private {
+    function callOptionalReturn(IERC20Sovryn token, bytes memory data) private {
         // We need to perform a low level call here, to bypass Solidity's return data size checking mechanism, since
         // we're implementing it ourselves.
 

@@ -10,12 +10,12 @@ import "./Objects.sol";
 import "../mixins/EnumerableBytes32Set.sol";
 import "../openzeppelin/ReentrancyGuard.sol";
 import "../openzeppelin/Ownable.sol";
-import "../openzeppelin/SafeMath.sol";
+import "../openzeppelin/SafeMathSovryn.sol";
 import "../interfaces/IWrbtcERC20.sol";
 
 
 contract State is Objects, ReentrancyGuard, Ownable {
-    using SafeMath for uint256;
+    using SafeMathSovryn for uint256;
     using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set;
 
     address public priceFeeds;                                                          // handles asset reference price lookups

@@ -13,7 +13,7 @@ import "../mixins/ProtocolTokenUser.sol";
 
 
 contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Sovryn;
 
     constructor() public {}
 
@@ -283,7 +283,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         lendingFeeTokensPaid[token] = lendingFeeTokensPaid[token]
             .add(withdrawAmount);
 
-        IERC20(token).safeTransfer(
+        IERC20Sovryn(token).safeTransfer(
             receiver,
             withdrawAmount
         );
@@ -322,7 +322,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         tradingFeeTokensPaid[token] = tradingFeeTokensPaid[token]
             .add(withdrawAmount);
 
-        IERC20(token).safeTransfer(
+        IERC20Sovryn(token).safeTransfer(
             receiver,
             withdrawAmount
         );
@@ -361,7 +361,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         borrowingFeeTokensPaid[token] = borrowingFeeTokensPaid[token]
             .add(withdrawAmount);
 
-        IERC20(token).safeTransfer(
+        IERC20Sovryn(token).safeTransfer(
             receiver,
             withdrawAmount
         );
@@ -397,7 +397,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         protocolTokenHeld = protocolTokenHeld
         .add(amount);
 
-        IERC20(protocolTokenAddress).safeTransferFrom(
+        IERC20Sovryn(protocolTokenAddress).safeTransferFrom(
             msg.sender,
             address(this),
             amount
