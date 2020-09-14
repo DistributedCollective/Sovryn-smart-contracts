@@ -10,6 +10,7 @@ import "../contracts/core/State.sol";
 import "../contracts/events/ProtocolSettingsEvents.sol";
 import "../contracts/events/LoanSettingsEvents.sol";
 import "../contracts/events/LoanOpeningsEvents.sol";
+import "../contracts/events/LoanMaintenanceEvents.sol";
 import "../contracts/events/LoanClosingsEvents.sol";
 import "../contracts/events/FeesEvents.sol";
 import "../contracts/events/SwapsEvents.sol";
@@ -20,6 +21,7 @@ contract ISovryn is
     ProtocolSettingsEvents,
     LoanSettingsEvents,
     LoanOpeningsEvents,
+    LoanMaintenanceEvents,
     LoanClosingsEvents,
     SwapsEvents {
 
