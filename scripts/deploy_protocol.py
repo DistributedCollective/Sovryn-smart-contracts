@@ -35,7 +35,6 @@ def deployProtocol(acct):
     print("Deploying test tokens.")
     tokens.wrbtc = acct.deploy(TestWrbtc) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
     tokens.susd = acct.deploy(TestToken, "SUSD", "SUSD", 18, 1e50)
-    tokens.rbtc = acct.deploy(TestToken, "RBTC", "RBTC", 18, 1e50)
 
     
 
@@ -43,16 +42,7 @@ def deployProtocol(acct):
     feeds = acct.deploy(PriceFeedsLocal, tokens.wrbtc.address, sovryn.address)
 
     print("Calling setRates.")
-    feeds.setRates(
-        tokens.rbtc.address,
-        tokens.susd.address,
-        1e22 #1btc = 10000 susd
-    )
-    feeds.setRates(
-        tokens.wrbtc.address,
-        tokens.rbtc.address,
-        1e18
-    )
+
     feeds.setRates(
         tokens.wrbtc.address,
         tokens.susd.address,

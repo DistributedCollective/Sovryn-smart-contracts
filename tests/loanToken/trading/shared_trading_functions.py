@@ -249,6 +249,8 @@ def internal_test_close_margin_trade(swap_amount, initial_loan, loanToken, loan_
     assert (loan_swap_event['sourceToken'] == collateral_token_)
     assert (loan_swap_event['destToken'] == loan_token_)
     assert (loan_swap_event['borrower'] == trader)
+    print("actual source token amount used", loan_swap_event['sourceAmount'] )
+    print("expected source token amount used", source_token_amount_used)
     assert (loan_swap_event['sourceAmount'] == source_token_amount_used)
     assert (fixedint(loan_swap_event['destAmount']).sub(dest_token_amount_received).num <= 100)
 
