@@ -11,7 +11,7 @@ import "../mixins/EnumerableBytes32Set.sol";
 import "../openzeppelin/ReentrancyGuard.sol";
 import "../openzeppelin/Ownable.sol";
 import "../openzeppelin/SafeMath.sol";
-import "../interfaces/IWethERC20.sol";
+import "../interfaces/IWrbtcERC20.sol";
 
 
 contract State is Objects, ReentrancyGuard, Ownable {
@@ -77,8 +77,8 @@ contract State is Objects, ReentrancyGuard, Ownable {
     uint256 public maxSwapSize = 1500 ether;                                             // maximum support swap size in ETH
     
     mapping(address => uint256) public borrowerNonce;                                    // nonce per borrower. used for loan id creation.
-    
-    IWethERC20 public wethToken;
+
+    IWrbtcERC20 public wrbtcToken;
     address public protocolTokenAddress;
 
     function _setTarget(

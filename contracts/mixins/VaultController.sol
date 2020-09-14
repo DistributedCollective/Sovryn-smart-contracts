@@ -28,11 +28,11 @@ contract VaultController is State {
         uint256 value)
         internal
     {
-        IWethERC20 _wethToken = wethToken;
-        _wethToken.deposit.value(value)();
+        IWrbtcERC20 _wrbtcToken = wrbtcToken;
+        _wrbtcToken.deposit.value(value)();
 
         emit VaultDeposit(
-            address(_wethToken),
+            address(_wrbtcToken),
             from,
             value
         );
@@ -44,15 +44,15 @@ contract VaultController is State {
         internal
     {
         if (value != 0) {
-            IWethERC20 _wethToken = wethToken;
+            IWrbtcERC20 _wrbtcToken = wrbtcToken;
             uint256 balance = address(this).balance;
             if (value > balance) {
-                _wethToken.withdraw(value - balance);
+                _wrbtcToken.withdraw(value - balance);
             }
             Address.sendValue(to, value);
 
             emit VaultWithdraw(
-                address(_wethToken),
+                address(_wrbtcToken),
                 to,
                 value
             );

@@ -9,7 +9,7 @@ script to deploy the loan tokens. can be used to deploy loan tokens separately, 
 if deploying separetly, the addresses of the existing contracts need to be set.
 '''
 def main():
-    wethAddress = '0xc90bB9fEee164263709336C7e5E9F8e540fA3C6D'
+    wrbtcAddress = '0xc90bB9fEee164263709336C7e5E9F8e540fA3C6D'
     susdAddress = '0xE631653c4Dc6Fb98192b950BA0b598f90FA18B3E'
     rbtcAddress = '0xE53d858A78D884659BF6955Ea43CBA67c0Ae293F'
     protocolAddress = '0xBAC609F5C8bb796Fa5A31002f12aaF24B7c35818'
@@ -24,7 +24,7 @@ def main():
         raise Exception("network not supported")
         
     tokens = Munch()
-    tokens.weth = Contract.from_abi("TestToken", address = wethAddress, abi = TestToken.abi, owner = acct)
+    tokens.wrbtc = Contract.from_abi("TestWrbtc", address = wrbtcAddress, abi = TestToken.abi, owner = acct)
     tokens.susd = Contract.from_abi("TestToken", address = susdAddress, abi = TestToken.abi, owner = acct)
     tokens.rbtc = Contract.from_abi("TestToken", address = rbtcAddress, abi = TestToken.abi, owner = acct)
     sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
@@ -34,20 +34,20 @@ def main():
 def deployLoanTokens(acct, sovryn, tokens):
 
     print('\n DEPLOYING ISUSD')
-    contract = deployLoanToken(acct, sovryn, tokens.susd.address, "SUSD", "SUSD", tokens.rbtc.address, tokens.weth.address)
+    contract = deployLoanToken(acct, sovryn, tokens.susd.address, "SUSD", "SUSD", tokens.rbtc.address, tokens.wrbtc.address)
     print("initializing the lending pool with some tokens, so we do not run out of funds")
     tokens.susd.approve(contract.address,1e24) #1M $
     contract.mint(acct, 1e24)
     testDeployment(acct, sovryn,contract.address, tokens.susd, tokens.rbtc)
     
     print('\n DEPLOYING IRBTC')
-    contract = deployLoanToken(acct, sovryn, tokens.rbtc.address, "RBTC", "RBTC", tokens.susd.address, tokens.weth.address)
+    contract = deployLoanToken(acct, sovryn, tokens.rbtc.address, "RBTC", "RBTC", tokens.susd.address, tokens.wrbtc.address)
     print("initializing the lending pool with some tokens, so we do not run out of funds")
     tokens.rbtc.approve(contract.address,1e20) #100 BTC 
     contract.mint(acct, 1e20)
     testDeployment(acct, sovryn, contract.address, tokens.rbtc, tokens.susd)
 
-def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddress, wethAddress):
+def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddress, wrbtcAddress):
     
     print("Deploying LoanTokenLogicStandard")
     loanTokenLogic = acct.deploy(LoanTokenLogicStandard)
@@ -59,7 +59,7 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
     _add_contract(loanTokenSettings)
     
     print("Deploying loan token using the loan logic as target for delegate calls")
-    loanToken = acct.deploy(LoanToken, loanTokenLogic.address, sovryn.address, wethAddress)
+    loanToken = acct.deploy(LoanToken, loanTokenLogic.address, sovryn.address, wrbtcAddress)
     _add_contract(loanToken)
     
     print("Initialize loanTokenAddress ")

@@ -16,9 +16,9 @@
 pragma solidity 0.5.17;
 
 
-contract TestWeth {
-    string public name     = "Wrapped Ether";
-    string public symbol   = "WETH";
+contract TestWrbtc {
+    string public name     = "Wrapped BTC";
+    string public symbol   = "WRBTC";
     uint8  public decimals = 18;
 
     event  Approval(address indexed src, address indexed guy, uint wad);
@@ -74,6 +74,35 @@ contract TestWeth {
         emit Transfer(src, dst, wad);
 
         return true;
+    }
+    
+    /**
+     * added for local swap implementation
+     * */
+    function mint(
+        address _to,
+        uint256 _value)
+        public
+    {
+        require(_to != address(0), "no burn allowed");
+        balanceOf[_to] = balanceOf[_to] + _value;
+        emit Transfer(address(0), _to, _value);
+    }
+    
+    /**
+     * added for local swap implementation
+     * */
+    function burn(
+        address _who,
+        uint256 _value)
+        public
+    {
+        require(_value <= balanceOf[_who], "balance too low");
+        // no need to require _value <= totalSupply, since that would imply the
+        // sender's balance is greater than the totalSupply, which *should* be an assertion failure
+
+        balanceOf[_who] = balanceOf[_who] - _value;
+        emit Transfer(_who, address(0), _value);
     }
 }
 

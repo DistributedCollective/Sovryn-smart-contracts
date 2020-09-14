@@ -9,9 +9,9 @@ pragma experimental ABIEncoderV2;
 import "./LoanTokenLogicStandard.sol";
 
 
-contract LoanTokenLogicWeth is LoanTokenLogicStandard {
+contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
 
-    function mintWithEther(
+    function mintWithBTC(
         address receiver)
         external
         payable
@@ -24,7 +24,7 @@ contract LoanTokenLogicWeth is LoanTokenLogicStandard {
         );
     }
 
-    function burnToEther(
+    function burnToBTC(
         address receiver,
         uint256 burnAmount)
         external
@@ -36,7 +36,7 @@ contract LoanTokenLogicWeth is LoanTokenLogicStandard {
         );
 
         if (loanAmountPaid != 0) {
-            IWethERC20(wethTokenAddress).withdraw(loanAmountPaid);
+            IWrbtcERC20(wrbtcTokenAddress).withdraw(loanAmountPaid);
             Address.sendValue(
                 receiver,
                 loanAmountPaid
@@ -63,8 +63,8 @@ contract LoanTokenLogicWeth is LoanTokenLogicStandard {
         internal
         returns (uint256 msgValue)
     {
-        address _wethToken = wethTokenAddress;
-        address _loanTokenAddress = _wethToken;
+        address _wrbtcToken = wrbtcTokenAddress;
+        address _loanTokenAddress = _wrbtcToken;
         address receiver = sentAddresses[2];
         uint256 newPrincipal = sentAmounts[1];
         uint256 loanTokenSent = sentAmounts[3];
@@ -75,7 +75,7 @@ contract LoanTokenLogicWeth is LoanTokenLogicStandard {
         msgValue = msg.value;
 
         if (withdrawalAmount != 0) { // withdrawOnOpen == true
-            IWethERC20(_wethToken).withdraw(withdrawalAmount);
+            IWrbtcERC20(_wrbtcToken).withdraw(withdrawalAmount);
             Address.sendValue(
                 receiver,
                 withdrawalAmount
@@ -93,7 +93,7 @@ contract LoanTokenLogicWeth is LoanTokenLogicStandard {
 
         if (loanTokenSent != 0) {
             if (msgValue != 0 && msgValue >= loanTokenSent) {
-                IWeth(_wethToken).deposit.value(loanTokenSent)();
+                IWrbtc(_wrbtcToken).deposit.value(loanTokenSent)();
                 _safeTransfer(_loanTokenAddress, sovrynContractAddress, loanTokenSent, "29");
                 msgValue -= loanTokenSent;
             } else {

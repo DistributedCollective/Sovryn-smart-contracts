@@ -72,7 +72,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
         LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
 
         require(loanLocal.active, "loan is closed");
-        require(msg.value == 0 || loanParamsLocal.collateralToken == address(wethToken), "wrong asset sent");
+        require(msg.value == 0 || loanParamsLocal.collateralToken == address(wrbtcToken), "wrong asset sent");
 
         loanLocal.collateral = loanLocal.collateral
             .add(depositAmount);
@@ -130,7 +130,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
         loanLocal.collateral = loanLocal.collateral
             .sub(actualWithdrawAmount);
 
-        if (loanParamsLocal.collateralToken == address(wethToken)) {
+        if (loanParamsLocal.collateralToken == address(wrbtcToken)) {
             vaultEtherWithdraw(
                 receiver,
                 actualWithdrawAmount
@@ -177,7 +177,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
             "unauthorized"
         );
         require(loanParamsLocal.maxLoanTerm == 0, "indefinite-term only");
-        require(msg.value == 0 || (!useCollateral && loanParamsLocal.loanToken == address(wethToken)), "wrong asset sent");
+        require(msg.value == 0 || (!useCollateral && loanParamsLocal.loanToken == address(wrbtcToken)), "wrong asset sent");
 
         // pay outstanding interest to lender
         _payInterest(
@@ -309,7 +309,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
         require(withdrawAmount < interestDepositRemaining, "withdraw amount too high");
 
         // withdraw interest
-        if (loanParamsLocal.loanToken == address(wethToken)) {
+        if (loanParamsLocal.loanToken == address(wrbtcToken)) {
             vaultEtherWithdraw(
                 receiver,
                 withdrawAmount

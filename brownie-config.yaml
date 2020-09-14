@@ -23,7 +23,7 @@ networks:
             evm_version: istanbul
             mnemonic: brownie
             block_time: 0
-            default_balance: 100
+            default_balance: 1000000
             #time: 2020-05-08T14:54:08+0000
     live:
         cmd_settings:
