@@ -13,10 +13,9 @@ import "../mixins/InterestUser.sol";
 import "../mixins/LiquidationHelper.sol";
 import "../swaps/SwapsUser.sol";
 import "../interfaces/ILoanPool.sol";
-import "../connectors/gastoken/GasTokenUser.sol";
+import "../mixins/RewardHelper.sol";
 
-
-contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasTokenUser, SwapsUser, LiquidationHelper {
+contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper, RewardHelper {
 
     enum CloseTypes {
         Deposit,
@@ -76,14 +75,11 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
         external
         nonReentrant
     {
-        uint256 startingGas = gasleft() + 10000;
-
         // restrict to EOAs to prevent griefing attacks, during interest rate recalculation
         require(msg.sender == tx.origin, "only EOAs can call");
 
         return _rollover(
             loanId,
-            startingGas,
             "" // loanDataBytes
         );
     }
@@ -275,7 +271,6 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
 
     function _rollover(
         bytes32 loanId,
-        uint256 startingGas,
         bytes memory loanDataBytes)
         internal
     {
@@ -409,22 +404,18 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
                 backInterestOwed
             );
         }
-        
-        //todo here comes the reward logic --> requires replacement
-        uint256 gasRebate = 0;/*_gasUsed(startingGas)
-            .mul(
-                IPriceFeeds(priceFeeds).getFastGasPrice(loanParamsLocal.collateralToken) * 2
-            );*/
 
-        if (gasRebate != 0) {
-            // pay out gas rebate to caller
+        uint256 rolloverReward = _getRolloverReward(loanParamsLocal.collateralToken, loanParamsLocal.loanToken, loanLocal.principal);
+
+        if (rolloverReward != 0) {
+            // pay out reward to caller
             loanLocal.collateral = loanLocal.collateral
-                .sub(gasRebate);
+                .sub(rolloverReward);
 
             _withdrawAsset(
                 loanParamsLocal.collateralToken,
                 msg.sender,
-                gasRebate
+                rolloverReward
             );
         }
 

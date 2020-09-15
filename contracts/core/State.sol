@@ -79,6 +79,9 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
     mapping(address => uint256) public borrowerNonce;                                    // nonce per borrower. used for loan id creation.
 
+    uint256 public rolloverBaseReward = 16800000000000;                                  // Rollover transaction costs around 0.0000168 rBTC, it is denominated in wRBTC
+    uint256 public rolloverFlexFeePercent = 0.1 ether;                                   // 0.1%
+
     IWrbtcERC20 public wrbtcToken;
     address public protocolTokenAddress;
 

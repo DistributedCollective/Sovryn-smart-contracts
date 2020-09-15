@@ -51,6 +51,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         _setTarget(this.setSovrynSwapContractRegistryAddress.selector, target);
         _setTarget(this.setWrbtcToken.selector, target);
         _setTarget(this.setProtocolTokenAddress.selector, target);
+        _setTarget(this.setRolloverBaseReward.selector, target);
     }
 
     function setPriceFeedContract(
@@ -454,5 +455,21 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         protocolTokenAddress = _protocolTokenAddress;
 
         emit SetProtocolTokenAddress(msg.sender, oldProtocolTokenAddress, _protocolTokenAddress);
+    }
+
+    /**
+     * @dev set rollover base reward. It should be denominated in wRBTC
+    */
+    function setRolloverBaseReward(
+        uint256 baseRewardValue)
+        external
+        onlyOwner
+    {
+        require(baseRewardValue > 0, "Base reward is zero");
+
+        uint256 oldValue = rolloverBaseReward;
+        rolloverBaseReward = baseRewardValue;
+
+        emit SetRolloverBaseReward(msg.sender, oldValue, rolloverBaseReward);
     }
 }
