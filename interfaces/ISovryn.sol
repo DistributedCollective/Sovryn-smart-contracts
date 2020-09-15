@@ -148,6 +148,10 @@ contract ISovryn is
         address _protocolTokenAddress)
         external;
 
+    function setRolloverBaseReward(
+        uint256 transactionCost)
+        external;
+
 
     ////// Loan Settings //////
 
