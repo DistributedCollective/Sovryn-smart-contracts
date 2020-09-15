@@ -23,7 +23,6 @@ contract ISovryn is
     LoanClosingsEvents,
     SwapsEvents {
 
-
     ////// Protocol //////
 
     function replaceContract(
@@ -86,7 +85,7 @@ contract ISovryn is
         uint256 newAmount)
         external;
 
-    function setSourceBufferPercent(
+    function setSourceBuffer(
         uint256 newAmount)
         external;
 
@@ -142,6 +141,10 @@ contract ISovryn is
 
     function setWrbtcToken(
         address wrbtcTokenAddress)
+        external;
+        
+    function setSovrynSwapContractRegistryAddress(
+        address registryAddress)
         external;
 
     function setProtocolTokenAddress(

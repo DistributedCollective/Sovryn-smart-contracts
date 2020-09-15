@@ -85,7 +85,7 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
         //vals[1]:  maxSourceTokenAmount
         //vals[2]:  requiredDestTokenAmount
 
-        require(vals[0] != 0, "sourceAmount == 0");
+        require(vals[0] != 0 || vals[1] != 0, "min or max source token amount needs to be set");
 
         if (vals[1] == 0) {
             vals[1] = vals[0];

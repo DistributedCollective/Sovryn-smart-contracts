@@ -79,6 +79,12 @@ contract ProtocolSettingsEvents {
         address indexed newWethToken
     );
 
+    event SetSovrynSwapContractRegistryAddress(
+        address indexed sender,
+        address indexed oldSovrynSwapContractRegistryAddress,
+        address indexed newSovrynSwapContractRegistryAddress
+    );
+
     event SetProtocolTokenAddress(
         address indexed sender,
         address indexed oldProtocolToken,

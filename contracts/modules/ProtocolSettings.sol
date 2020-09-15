@@ -38,7 +38,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         _setTarget(this.setAffiliateFeePercent.selector, target);
         _setTarget(this.setLiquidationIncentivePercent.selector, target);
         _setTarget(this.setMaxDisagreement.selector, target);
-        _setTarget(this.setSourceBufferPercent.selector, target);
+        _setTarget(this.setSourceBuffer.selector, target);
         _setTarget(this.setMaxSwapSize.selector, target);
         _setTarget(this.setFeesController.selector, target);
         _setTarget(this.withdrawLendingFees.selector, target);
@@ -48,6 +48,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         _setTarget(this.depositProtocolToken.selector, target);
         _setTarget(this.getLoanPoolsList.selector, target);
         _setTarget(this.isLoanPool.selector, target);
+        _setTarget(this.setSovrynSwapContractRegistryAddress.selector, target);
         _setTarget(this.setWrbtcToken.selector, target);
         _setTarget(this.setProtocolTokenAddress.selector, target);
         _setTarget(this.setRolloverBaseReward.selector, target);
@@ -220,12 +221,12 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         maxDisagreement = newValue;
     }
 
-    function setSourceBufferPercent(
+    function setSourceBuffer(
         uint256 newValue)
         external
         onlyOwner
     {
-        sourceBufferPercent = newValue;
+        sourceBuffer = newValue;
     }
 
     function setMaxSwapSize(
@@ -420,6 +421,24 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         returns (bool)
     {
         return loanPoolToUnderlying[loanPool] != address(0);
+    }
+
+    /**
+     * sets the contract registry address of the SovrynSwap network
+     * @param registryAddress the address of the registry contract
+     * */
+    function setSovrynSwapContractRegistryAddress(
+        address registryAddress)
+        external
+        onlyOwner
+    {
+        require(Address.isContract(registryAddress), "registryAddress not a contract");
+
+        address oldSovrynSwapContractRegistryAddress = sovrynSwapContractRegistryAddress;
+        sovrynSwapContractRegistryAddress = registryAddress;
+
+        emit SetSovrynSwapContractRegistryAddress(msg.sender, oldSovrynSwapContractRegistryAddress,
+            sovrynSwapContractRegistryAddress);
     }
 
     function setWrbtcToken(

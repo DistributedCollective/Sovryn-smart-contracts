@@ -1,3 +1,7 @@
+'''
+tests loan opening isolated. does not work together with the other tests. needs to be run separately.
+'''
+
 #!/usr/bin/python3
 
 import pytest
@@ -66,7 +70,7 @@ def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, sovryn, SUSD,
 
     sovrynBeforeSUSDBalance = SUSD.balanceOf(sovryn.address)
     print("sovrynBeforeSUSDBalance", sovrynBeforeSUSDBalance)
-    
+
     sovrynBeforeRBTCBalance = RBTC.balanceOf(sovryn.address)
     print("sovrynBeforeRBTCBalance", sovrynBeforeRBTCBalance)
 
@@ -119,7 +123,7 @@ def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, sovryn, SUSD,
 
     sovrynAfterSUSDBalance = SUSD.balanceOf(sovryn.address)
     print("sovrynAfterSUSDBalance", sovrynAfterSUSDBalance)
-    
+
     sovrynAfterRBTCBalance = RBTC.balanceOf(sovryn.address)
     print("sovrynAfterRBTCBalance", sovrynAfterRBTCBalance)
 
@@ -131,7 +135,7 @@ def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, sovryn, SUSD,
 
     # expectedPositionSize = collateralTokenSent + ((loanTokenSent - interestForPosition) * tradeEvent["entryPrice"] // 1e18)
     expectedPositionSize = fixedint(loanTokenSent).sub(interestForPosition).mul(tradeEvent["entryPrice"]).div(1e18).add(collateralTokenSent)
-    
+
     ## ignore differences in least significant digits due to rounding error
     assert abs(expectedPositionSize.num - int(tradeEvent["positionSize"])) < 100
 
@@ -158,7 +162,7 @@ def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, sovryn, SUSD,
             f.close()
             break
     '''
-    
+
     #assert(False)
 
 def test_borrowFromPool_sim(Constants, LinkDaiBorrowParamsId, sovryn, SUSD, RBTC, accounts, web3):
@@ -175,11 +179,11 @@ def test_borrowFromPool_sim(Constants, LinkDaiBorrowParamsId, sovryn, SUSD, RBTC
 
     sovrynBeforeSUSDBalance = SUSD.balanceOf(sovryn.address)
     print("sovrynBeforeSUSDBalance", sovrynBeforeSUSDBalance)
-    
+
     sovrynBeforeRBTCBalance = RBTC.balanceOf(sovryn.address)
     print("sovrynBeforeRBTCBalance", sovrynBeforeRBTCBalance)
 
-    ## loanTokenSent to protocol is just the borrowed/escrowed interest since the actual borrow would have 
+    ## loanTokenSent to protocol is just the borrowed/escrowed interest since the actual borrow would have
     ## already been transfered to the borrower by the pool before borrowOrTradeFromPool is called
     loanTokenSent = 1e18
     newPrincipal = 101e18
@@ -189,7 +193,7 @@ def test_borrowFromPool_sim(Constants, LinkDaiBorrowParamsId, sovryn, SUSD, RBTC
         loanTokenSent,
         { "from": accounts[0] }
     )
-    
+
     collateralTokenSent = sovryn.getRequiredCollateral(
         SUSD.address,
         RBTC.address,
@@ -232,7 +236,7 @@ def test_borrowFromPool_sim(Constants, LinkDaiBorrowParamsId, sovryn, SUSD, RBTC
 
     sovrynAfterSUSDBalance = SUSD.balanceOf(sovryn.address)
     print("sovrynAfterSUSDBalance", sovrynAfterSUSDBalance)
-    
+
     sovrynAfterRBTCBalance = RBTC.balanceOf(sovryn.address)
     print("sovrynAfterRBTCBalance", sovrynAfterRBTCBalance)
 
@@ -263,5 +267,5 @@ def test_borrowFromPool_sim(Constants, LinkDaiBorrowParamsId, sovryn, SUSD, RBTC
             f.close()
             break
     '''
-    
+
     #assert(False)
