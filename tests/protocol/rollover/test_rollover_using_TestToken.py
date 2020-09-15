@@ -102,7 +102,7 @@ def test_rollover_reward_payment(accounts, chain, loanToken, set_demand_curve, s
 
     receiver = accounts[3]
     assert(RBTC.balanceOf(receiver) == 0)
-    sovryn.rollover(loan_id, b'', {'from': receiver})
+    tx_rollover = sovryn.rollover(loan_id, b'', {'from': receiver})
 
     end_loan = sovryn.getLoan(loan_id).dict()
 
@@ -110,7 +110,7 @@ def test_rollover_reward_payment(accounts, chain, loanToken, set_demand_curve, s
     (trade_rate, precision) = priceFeeds.queryRate(RBTC.address, SUSD.address)
     trading_fee_percent = sovryn.tradingFeePercent()
     trading_fee = fixedint(interest_unpaid).mul(trading_fee_percent).div(1e20)
-    source_token_amount_used = fixedint(interest_unpaid).add(trading_fee).mul(precision).div(trade_rate).num
+    source_token_amount_used = tx_rollover.events['LoanSwap']['sourceAmount']
 
     # end_collateral = initial_loan['collateral'] - source_token_amount_used - rollover_reward
     rollover_reward = initial_loan['collateral'] - source_token_amount_used - end_loan['collateral']
