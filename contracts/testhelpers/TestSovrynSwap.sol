@@ -18,11 +18,18 @@ contract TestSovrynSwap {
     constructor(address feed) public{
         priceFeeds = feed;
     }
-
+    
+    /**
+     * simulating the contract registry. always returns the address of this contract
+     * */
     function addressOf(bytes32 contractName) public view returns(address){
         return address(this);
     }
-
+    
+    /**
+     * calculates the return tokens when swapping _amount, makes sure the return is bigger than _minReturn,
+     * mints and burns the test tokens accordingly.
+     * */
     function convertByPath(
         IERC20[] calldata _path,
         uint256 _amount,
@@ -46,7 +53,11 @@ contract TestSovrynSwap {
         TestToken(address(_path[1])).mint(address(msg.sender), actualReturn);
         return _minReturn;
     }
-
+    
+    /**
+     * queries the rate from the Price Feed contract and computes the expected return amount based on the 
+     * amout of source tokens to be swapped.
+     * */
     function rateByPath(
         IERC20[] calldata _path,
         uint256 _amount
@@ -61,7 +72,10 @@ contract TestSovrynSwap {
             .div(sourceToDestPrecision);
 
     }
-
+    
+    /**
+     * returns the conversion path -> always a direct path
+     * */
     function conversionPath(
         IERC20 _sourceToken,
         IERC20 _targetToken
