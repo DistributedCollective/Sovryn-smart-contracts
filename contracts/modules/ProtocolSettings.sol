@@ -427,8 +427,18 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
      * sets the contract registry address of the SovrynSwap network
      * @param registryAddress the address of the registry contract
      * */
-    function setSovrynSwapContractRegistryAddress(address registryAddress) external onlyOwner{
+    function setSovrynSwapContractRegistryAddress(
+        address registryAddress)
+        external
+        onlyOwner
+    {
+        require(Address.isContract(registryAddress), "registryAddress not a contract");
+
+        address oldSovrynSwapContractRegistryAddress = sovrynSwapContractRegistryAddress;
         sovrynSwapContractRegistryAddress = registryAddress;
+
+        emit SetSovrynSwapContractRegistryAddress(msg.sender, oldSovrynSwapContractRegistryAddress,
+            sovrynSwapContractRegistryAddress);
     }
 
     function setWrbtcToken(

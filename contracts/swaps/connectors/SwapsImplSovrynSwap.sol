@@ -108,7 +108,12 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
      * @param tokenAddress the address of the token to transfer
      * @param sovrynSwapNetwork the address of the sovrynSwap network contract.
      * */
-    function allowTransfer(uint256 tokenAmount, address tokenAddress, address sovrynSwapNetwork) internal{
+    function allowTransfer(
+        uint256 tokenAmount,
+        address tokenAddress,
+        address sovrynSwapNetwork)
+        internal
+    {
         uint256 tempAllowance = IERC20(tokenAddress).allowance(address(this), sovrynSwapNetwork);
         if (tempAllowance < tokenAmount) {
             IERC20(tokenAddress).safeApprove(
@@ -126,7 +131,14 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
      * @param maxSourceTokenAmount the maximum number of source tokens to spend
      * @return the estimated amount of source tokens needed. minimum: minSourceTokenAmount, maximum: maxSourceTokenAmount
      * */
-    function estimateSourceTokenAmount(address sourceTokenAddress, address destTokenAddress, uint requiredDestTokenAmount,  uint maxSourceTokenAmount) internal returns(uint256 estimatedSourceAmount){
+    function estimateSourceTokenAmount(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint requiredDestTokenAmount,
+        uint maxSourceTokenAmount)
+        internal
+        returns(uint256 estimatedSourceAmount)
+    {
 
         uint256 sourceToDestPrecision = IPriceFeeds(priceFeeds).queryPrecision(sourceTokenAddress, destTokenAddress);
         if (sourceToDestPrecision == 0)
@@ -179,8 +191,4 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
         //return the rate for 1 token with 18 decimals
         return expectedReturn.mul(10**18).div(sourceTokenAmount);
     }
-
-
-
-
 }
