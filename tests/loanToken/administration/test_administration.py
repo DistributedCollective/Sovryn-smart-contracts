@@ -15,10 +15,13 @@ import shared
 def test_Demand_Curve_Setting(loanToken, loanTokenSettings, LoanTokenSettingsLowerAdmin, accounts, LoanToken, LoanTokenLogicStandard):
     baseRate = 1e18
     rateMultiplier = 20.25e18
+    targetLevel=80*10**18
+    kinkLevel=90*10**18
+    maxScaleRate=100*10**18
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
     localLoanToken.setTarget(loanTokenSettings.address)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenSettingsLowerAdmin.abi, owner=accounts[0])
-    localLoanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier)
+    localLoanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
 
     assert(loanToken.baseRate() == baseRate)
     assert(loanToken.rateMultiplier() == rateMultiplier)
@@ -41,13 +44,18 @@ def test_Demand_Curve_Setting_should_fail_if_rateMultiplier_plus_baseRate_is_gra
     incorrect_rateMultiplier = 50e18
     baseRate = 1e18
     rateMultiplier = 20.25e18
+    targetLevel=80*10**18
+    kinkLevel=90*10**18
+    maxScaleRate=100*10**18
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
     localLoanToken.setTarget(loanTokenSettings.address)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenSettingsLowerAdmin.abi, owner=accounts[0])
     with reverts():
-        localLoanToken.setDemandCurve(incorrect_baseRate, incorrect_rateMultiplier, baseRate, rateMultiplier)
+        localLoanToken.setDemandCurve(incorrect_baseRate, incorrect_rateMultiplier, baseRate, rateMultiplier,
+                                      targetLevel, kinkLevel, maxScaleRate)
     with reverts():
-        localLoanToken.setDemandCurve(baseRate, rateMultiplier, incorrect_baseRate, incorrect_rateMultiplier)
+        localLoanToken.setDemandCurve(baseRate, rateMultiplier, incorrect_baseRate, incorrect_rateMultiplier,
+                                      targetLevel, kinkLevel, maxScaleRate)
 
 
 def test_lending_fee_setting(sovryn):

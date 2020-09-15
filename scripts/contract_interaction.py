@@ -74,10 +74,13 @@ def readLendingFee(acct):
 def setupLoanTokenRates(acct, loanTokenAddress, settingsAddress, logicAddress):
     baseRate = 1e18
     rateMultiplier = 20.25e18
+    targetLevel=80*10**18
+    kinkLevel=90*10**18
+    maxScaleRate=100*10**18
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
     localLoanToken.setTarget(settingsAddress)
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
-    localLoanToken.setDemandCurve(baseRate,rateMultiplier,baseRate,rateMultiplier)
+    localLoanToken.setDemandCurve(baseRate,rateMultiplier,baseRate,rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
     localLoanToken.setTarget(logicAddress)
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
@@ -240,7 +243,7 @@ def setupTorqueLoanParams(acct, loanTokenAddress, loanTokenSettingsAddress, unde
         0 ## fixedLoanTerm 
     ]
     params.append(setup)
-    calldata = loanTokenSettings.setupTorqueLoanParams.encode_input(params)
+    calldata = loanTokenSettings.setupLoanParams.encode_input(params, True)
     tx = loanToken.updateSettings(loanTokenSettings.address, calldata)
     assert('LoanParamsSetup' in tx.events)
     assert('LoanParamsIdSetup' in tx.events)
