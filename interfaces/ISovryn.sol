@@ -23,7 +23,6 @@ contract ISovryn is
     LoanClosingsEvents,
     SwapsEvents {
 
-
     ////// Protocol //////
 
     function replaceContract(
@@ -86,7 +85,7 @@ contract ISovryn is
         uint256 newAmount)
         external;
 
-    function setSourceBufferPercent(
+    function setSourceBuffer(
         uint256 newAmount)
         external;
 

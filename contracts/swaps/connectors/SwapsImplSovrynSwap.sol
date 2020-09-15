@@ -69,6 +69,7 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
         if(requiredDestTokenAmount > 0){
             sourceTokenAmountUsed = estimateSourceTokenAmount(sourceTokenAddress, destTokenAddress, requiredDestTokenAmount,  maxSourceTokenAmount);
              //sovrynSwapNetwork.rateByPath does not return a rate, but instead the amount of destination tokens returned
+            emit Debug(minSourceTokenAmount, maxSourceTokenAmount, sourceTokenAmountUsed, requiredDestTokenAmount, sovrynSwapNetwork.rateByPath(path, sourceTokenAmountUsed));
             require(sovrynSwapNetwork.rateByPath(path, sourceTokenAmountUsed) >= requiredDestTokenAmount, "insufficient source tokens provided.");
             expectedReturn = requiredDestTokenAmount;
         }
@@ -97,6 +98,8 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
         }
 
     }
+    
+    event Debug(uint256 minSourceTokenAmount, uint256 maxSourceTokenAmount, uint256 sourceTokenAmountUsed, uint256 requiredDestTokenAmount, uint256 expectedReturn);
 
     /**
      * check is the existing allowance suffices to transfer the needed amount of tokens.
@@ -136,6 +139,13 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
         estimatedSourceAmount = requiredDestTokenAmount
             .mul(sourceToDestPrecision)
             .div(expectedRate);
+            
+        //if the actual rate is exactly the same as the worst case rate, we get rounding issues. So, add a small buffer.
+        //buffer = min(estimatedSourceAmount/1000 , sourceBuffer) with sourceBuffer = 10000
+        uint256 buffer = estimatedSourceAmount.div(1000);
+        if(buffer > sourceBuffer)
+            buffer = sourceBuffer;
+        estimatedSourceAmount = estimatedSourceAmount.add(buffer);
 
 
         //never spend more than the maximum

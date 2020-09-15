@@ -249,25 +249,27 @@ def internal_test_close_margin_trade(swap_amount, initial_loan, loanToken, loan_
     assert (loan_swap_event['sourceToken'] == collateral_token_)
     assert (loan_swap_event['destToken'] == loan_token_)
     assert (loan_swap_event['borrower'] == trader)
-    assert (loan_swap_event['sourceAmount'] == source_token_amount_used)
+    print('source token amount used', loan_swap_event['sourceAmount'] )
+    print('source token amount expected', source_token_amount_used)
+    #10000 is the source buffer used by the sovryn swap connector
+    assert (loan_swap_event['sourceAmount'] - source_token_amount_used <= 10000)
     assert (fixedint(loan_swap_event['destAmount']).sub(dest_token_amount_received).num <= 100)
 
     tx_loan_closing.info()
     close_with_swap_event = tx_loan_closing.events['CloseWithSwap']
     assert (close_with_swap_event['loanId'] == loan_id)
-    print('actual loanCloseAmount', close_with_swap_event['loanCloseAmount'])
-    print('expected loanCloseAmount', loan_close_amount)
     assert (close_with_swap_event['loanCloseAmount'] == loan_close_amount)
     assert (close_with_swap_event['currentLeverage'] == current_margin)
     assert (close_with_swap_event['closer'] == trader)
     assert (close_with_swap_event['user'] == trader)
-    print("actual lender",close_with_swap_event['lender'])
-    print("expected lender", loanToken.address)
     assert (close_with_swap_event['lender'] == loanToken.address)
     assert (close_with_swap_event['collateralToken'] == collateral_token_)
     assert (close_with_swap_event['loanToken'] == loan_token_)
     assert (close_with_swap_event['positionCloseSize'] == used_collateral)
-    assert (close_with_swap_event['exitPrice'] == collateral_to_loan_swap_rate)
+    print('exit price', close_with_swap_event['exitPrice'])
+    print('expected rate', collateral_to_loan_swap_rate)
+    print(fixedint(close_with_swap_event['exitPrice']).sub(collateral_to_loan_swap_rate).mul(100).div(collateral_to_loan_swap_rate) )
+    assert (fixedint(close_with_swap_event['exitPrice']).sub(collateral_to_loan_swap_rate).mul(100).div(collateral_to_loan_swap_rate) == 0)
 
     assert (closed_loan['principal'] == new_principal)
     if loan_close_amount == principal_:

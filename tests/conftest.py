@@ -76,7 +76,7 @@ def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, 
 
     sovrynSwapSimulator = accounts[0].deploy(TestSovrynSwap, priceFeeds)
     sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address)
-    sovryn.setSupportedTokens([SUSD.address,RBTC.address],[True,True])
+    sovryn.setSupportedTokens([SUSD.address,RBTC.address, WRBTC.address],[True,True, True])
 
     sovryn.setWrbtcToken(WRBTC.address)
     

@@ -1,3 +1,7 @@
+'''
+tests loan opening isolated. does not work together with the other tests. needs to be run separately.
+'''
+
 #!/usr/bin/python3
 
 import pytest

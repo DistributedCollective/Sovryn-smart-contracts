@@ -38,7 +38,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         _setTarget(this.setAffiliateFeePercent.selector, target);
         _setTarget(this.setLiquidationIncentivePercent.selector, target);
         _setTarget(this.setMaxDisagreement.selector, target);
-        _setTarget(this.setSourceBufferPercent.selector, target);
+        _setTarget(this.setSourceBuffer.selector, target);
         _setTarget(this.setMaxSwapSize.selector, target);
         _setTarget(this.setFeesController.selector, target);
         _setTarget(this.withdrawLendingFees.selector, target);
@@ -220,12 +220,12 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         maxDisagreement = newValue;
     }
 
-    function setSourceBufferPercent(
+    function setSourceBuffer(
         uint256 newValue)
         external
         onlyOwner
     {
-        sourceBufferPercent = newValue;
+        sourceBuffer = newValue;
     }
 
     function setMaxSwapSize(

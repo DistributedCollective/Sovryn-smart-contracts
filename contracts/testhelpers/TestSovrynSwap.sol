@@ -31,8 +31,19 @@ contract TestSovrynSwap {
         address _affiliateAccount,
         uint256 _affiliateFee
     ) external payable returns (uint256){
+        //compute the return for the amount of tokens provided
+        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(
+            address(_path[0]),
+            address(_path[1])
+        );
+        uint256 actualReturn = _amount
+            .mul(sourceToDestRate)
+            .div(sourceToDestPrecision);
+        
+        require(actualReturn >= _minReturn, "insufficient source tokens provided");
+            
         TestToken(address(_path[0])).burn(address(msg.sender), _amount);
-        TestToken(address(_path[1])).mint(address(msg.sender), _minReturn);
+        TestToken(address(_path[1])).mint(address(msg.sender), actualReturn);
         return _minReturn;
     }
 

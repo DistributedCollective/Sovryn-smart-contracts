@@ -73,7 +73,7 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
     uint256 public maxDisagreement = 5 * 10**18;                                         // % disagreement between swap rate and reference rate
 
-    uint256 public sourceBufferPercent = 5 * 10**18;                                     // used to estimate kyber swap source amount
+    uint256 public sourceBuffer = 10000;                                                 // used as buffer for swap source amount estimations
 
     uint256 public maxSwapSize = 1500 ether;                                             // maximum support swap size in ETH
 
