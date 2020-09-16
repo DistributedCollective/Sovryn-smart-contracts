@@ -28,47 +28,25 @@ contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
         revert("LoanTokenSettingsLowerAdmin - fallback not allowed");
     }
 
-    function setupTorqueLoanParams(
-        LoanParamsStruct.LoanParams[] memory loanParamsList)
+    function setupLoanParams(
+        LoanParamsStruct.LoanParams[] memory loanParamsList,
+        bool areTorqueLoans)
         public
         onlyAdmin
     {
         bytes32[] memory loanParamsIdList;
         address _loanTokenAddress = loanTokenAddress;
 
-        // setup torque loan params
         for (uint256 i = 0; i < loanParamsList.length; i++) {
             loanParamsList[i].loanToken = _loanTokenAddress;
-            loanParamsList[i].maxLoanTerm = 0;
-        }
-        loanParamsIdList = ProtocolSettingsLike(sovrynContractAddress).setupLoanParams(loanParamsList);
-        for (uint256 i = 0; i < loanParamsIdList.length; i++) {
-            loanParamsIds[uint256(keccak256(abi.encodePacked(
-                loanParamsList[i].collateralToken,
-                true // isTorqueLoan
-            )))] = loanParamsIdList[i];
-        }
-    }
-
-    function setupMarginLoanParams(
-        LoanParamsStruct.LoanParams[] memory loanParamsList)
-        public
-        onlyAdmin
-    {
-        bytes32[] memory loanParamsIdList;
-        address _loanTokenAddress = loanTokenAddress;
-
-        // setup margin loan params
-        for (uint256 i = 0; i < loanParamsList.length; i++) {
-            loanParamsList[i].loanToken = _loanTokenAddress;
-            loanParamsList[i].maxLoanTerm = 2419200; // 28 days
+            loanParamsList[i].maxLoanTerm = areTorqueLoans ? 0 : 28 days;
         }
 
         loanParamsIdList = ProtocolSettingsLike(sovrynContractAddress).setupLoanParams(loanParamsList);
         for (uint256 i = 0; i < loanParamsIdList.length; i++) {
             loanParamsIds[uint256(keccak256(abi.encodePacked(
                 loanParamsList[i].collateralToken,
-                false // isTorqueLoan
+                areTorqueLoans // isTorqueLoan
             )))] = loanParamsIdList[i];
         }
     }
@@ -101,17 +79,26 @@ contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
         uint256 _baseRate,
         uint256 _rateMultiplier,
         uint256 _lowUtilBaseRate,
-        uint256 _lowUtilRateMultiplier)
+        uint256 _lowUtilRateMultiplier,
+        uint256 _targetLevel,
+        uint256 _kinkLevel,
+        uint256 _maxScaleRate)
         public
         onlyAdmin
     {
-        require(_rateMultiplier.add(_baseRate) <= 10**20, "");
-        require(_lowUtilRateMultiplier.add(_lowUtilBaseRate) <= 10**20, "");
+        require(_rateMultiplier.add(_baseRate) <= WEI_PERCENT_PRECISION, "curve params too high");
+        require(_lowUtilRateMultiplier.add(_lowUtilBaseRate) <= WEI_PERCENT_PRECISION, "curve params too high");
+
+        require(_targetLevel <= WEI_PERCENT_PRECISION && _kinkLevel <= WEI_PERCENT_PRECISION, "levels too high");
 
         baseRate = _baseRate;
         rateMultiplier = _rateMultiplier;
         lowUtilBaseRate = _lowUtilBaseRate;
         lowUtilRateMultiplier = _lowUtilRateMultiplier;
+
+        targetLevel = _targetLevel; // 80 ether
+        kinkLevel = _kinkLevel; // 90 ether
+        maxScaleRate = _maxScaleRate; // 100 ether
     }
 
     function toggleFunctionPause(

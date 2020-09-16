@@ -23,7 +23,7 @@ from fixedint import *
 import shared
 
 """
-At this moment the maxLoanTerm is always 28 because it is hardcoded in setupMarginLoanParams.
+At this moment the maxLoanTerm is always 28 because it is hardcoded in setupLoanParams.
 So there are only fix-term loans.
 """
 def test_extend_fix_term_loan_duration_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position, LoanMaintenance):
@@ -178,7 +178,7 @@ def test_extend_loan_duration_with_collateral_and_eth_should_fail(accounts, sovr
 
 def test_reduce_fix_term_loan_duration_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position, LoanMaintenance):
     """
-    At this moment the maxLoanTerm is always 28 because it is hardcoded in setupMarginLoanParams.
+    At this moment the maxLoanTerm is always 28 because it is hardcoded in setupLoanParams.
     So there are only fix-term loans.
     """
     # prepare the test
