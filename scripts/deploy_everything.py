@@ -20,10 +20,13 @@ Deploys all of the contracts.
 '''
 def main():
     global configData
+    #configData = {} # deploy new tokens
+    
     configData = {
         'WRBTC': '0xA8621C444E97F0074EfCDff8a2fDafD866662c67',
         'SUSD': '0x0589C9f0632CbCF4BBCedbCE63e004653788A3Fd'
     }
+    
 
     thisNetwork = network.show_active()
 
@@ -34,7 +37,7 @@ def main():
     else:
         raise Exception("network not supported")
     
-    if(configData['WRBTC'] and configData['SUSD']):
+    if('WRBTC' in configData and 'SUSD' in configData):
         tokens = readTokens(acct, configData['WRBTC'], configData['SUSD'])
     else:
         tokens = deployTokens(acct)

@@ -38,9 +38,8 @@ def deployLoanTokens(acct, sovryn, tokens):
     print('\n DEPLOYING ISUSD')
     (contractSUSD, loanTokenSettingsSUSD) = deployLoanToken(acct, sovryn, tokens.susd.address, "iSUSD", "iSUSD", tokens.wrbtc.address, tokens.wrbtc.address)
     print("initializing the lending pool with some tokens, so we do not run out of funds")
-    tokens.susd.approve(contractSUSD.address,1e23) #100k $
-    tokens.wrbtc.deposit({'value':1e18})#needed because of local swap impl
-    contractSUSD.mint(acct, 1e23)
+    tokens.susd.approve(contractSUSD.address,1e22) #10k $
+    contractSUSD.mint(acct, 1e22)
     testDeployment(acct, sovryn,contractSUSD.address, tokens.susd, tokens.wrbtc, 100e18, 0)
     
     print('\n DEPLOYING IWRBTC')
@@ -176,7 +175,6 @@ def testDeployment(acct, sovryn, loanTokenAddress, underlyingToken, collateralTo
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     
     if(value == 0):
-        underlyingToken.mint(acct,loanTokenSent)
         underlyingToken.approve(loanToken.address, loanTokenSent)
     
     
