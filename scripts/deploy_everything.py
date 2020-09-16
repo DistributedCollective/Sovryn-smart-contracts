@@ -3,16 +3,27 @@
 from brownie import *
 from scripts.deploy_protocol import deployProtocol
 from scripts.deploy_loanToken import deployLoanTokens
-
+from scripts.deploy_tokens import deployTokens, readTokens
 
 import shared
 import json
 from munch import Munch
 
-
+'''
+Deploys all of the contracts.
+1. deploys the tokens or reads exsiting token contracts.
+    if configData contains token addresses, use the given addresses
+    else, deploy new tokens
+2. deploys the base protocol contracts.
+3. deploys, configures and tests the loan token contracts.
+4. writes the relevant contract addresses into swap_test.json.
+'''
 def main():
     global configData
-    configData = {}
+    configData = {
+        'WRBTC': '0xA8621C444E97F0074EfCDff8a2fDafD866662c67',
+        'SUSD': '0x0589C9f0632CbCF4BBCedbCE63e004653788A3Fd'
+    }
 
     thisNetwork = network.show_active()
 
@@ -22,8 +33,12 @@ def main():
         acct = accounts.load("rskdeployer")
     else:
         raise Exception("network not supported")
-
-    (sovryn, tokens) = deployProtocol(acct)
+    
+    if(configData['WRBTC'] and configData['SUSD']):
+        tokens = readTokens(acct, configData['WRBTC'], configData['SUSD'])
+    else:
+        tokens = deployTokens(acct)
+    sovryn = deployProtocol(acct, tokens)
     (loanTokenSUSD, loanTokenWRBTC, loanTokenSettingsSUSD,
      loanTokenSettingsWRBTC) = deployLoanTokens(acct, sovryn, tokens)
 

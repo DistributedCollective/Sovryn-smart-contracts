@@ -20,23 +20,14 @@ def main():
 
     deployProtocol(acct)
 
-def deployProtocol(acct):
+def deployProtocol(acct, tokens):
 
     constants = shared.Constants()
-
-    tokens = Munch()
 
     print("Deploying sovrynProtocol.")
     sovrynproxy = acct.deploy(sovrynProtocol)
     sovryn = Contract.from_abi("sovryn", address=sovrynproxy.address, abi=interface.ISovryn.abi, owner=acct)
     _add_contract(sovryn)
-
-
-    print("Deploying test tokens.")
-    tokens.wrbtc = acct.deploy(TestWrbtc) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
-    tokens.susd = acct.deploy(TestToken, "SUSD", "SUSD", 18, 1e50)
-
-
 
     print("Deploying PriceFeeds.")
     feeds = acct.deploy(PriceFeedsLocal, tokens.wrbtc.address, sovryn.address)
@@ -97,4 +88,4 @@ def deployProtocol(acct):
     print("Calling replaceContract.")
     sovryn.replaceContract(loanClosings.address)
 
-    return (sovryn, tokens)
+    return sovryn

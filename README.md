@@ -49,7 +49,7 @@ brownie run deploy_everything.py --network testnet
 
 1. Start `ganache` with
 ```bash
-ganache-cli --gasLimit 6700000 --port 8545
+ganache-cli --gasLimit 6800000 --port 8545
 ```
 Overriding default `brownie` port will make it connect to our local chain and keep it open.
 If you changed the port in the brownie config, use that port instead.

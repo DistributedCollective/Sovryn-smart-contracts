@@ -152,9 +152,9 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
 sets up the interest rates
 '''
 def setupLoanTokenRates(acct, loanTokenAddress, settingsAddress, logicAddress):
-    baseRate = 1e18
-    rateMultiplier = 20.25e18
-    targetLevel=80*10**18
+    baseRate = 5e17
+    rateMultiplier = 10e18
+    targetLevel=0
     kinkLevel=90*10**18
     maxScaleRate=100*10**18
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
