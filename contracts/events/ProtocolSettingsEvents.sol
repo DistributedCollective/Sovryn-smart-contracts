@@ -79,6 +79,12 @@ contract ProtocolSettingsEvents {
         address indexed newWethToken
     );
 
+    event SetSovrynSwapContractRegistryAddress(
+        address indexed sender,
+        address indexed oldSovrynSwapContractRegistryAddress,
+        address indexed newSovrynSwapContractRegistryAddress
+    );
+
     event SetProtocolTokenAddress(
         address indexed sender,
         address indexed oldProtocolToken,
@@ -104,5 +110,11 @@ contract ProtocolSettingsEvents {
         address indexed token,
         address indexed receiver,
         uint256 amount
+    );
+
+    event SetRolloverBaseReward(
+        address indexed sender,
+        uint256 oldValue,
+        uint256 newValue
     );
 }

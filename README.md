@@ -1,6 +1,7 @@
 
 
 
+
 # Sovryn v 0.1 Smart Contracts
 
 ## Dependencies
@@ -35,7 +36,7 @@ brownie networks add rsk testnet host=https://public-node.testnet.rsk.co chainid
 ```
 3. Deploy contracts locally
 ```bash
-brownie run deploy_everything.py 
+brownie run deploy_everything.py
 ```
 
 4. Deploy contracts on testnet
@@ -43,6 +44,34 @@ brownie run deploy_everything.py
 ```bash
 brownie run deploy_everything.py --network testnet
 ```
+
+## Sovryn Swap joint testing for RSK (local)
+
+1. Start `ganache` with
+```bash
+ganache-cli --gasLimit 6700000 --port 8545
+```
+Overriding default `brownie` port will make it connect to our local chain and keep it open.
+If you changed the port in the brownie config, use that port instead.
+
+2. Deploy contracts
+```bash
+brownie run deploy_everything.py
+```
+
+3. Copy `SUSD` and `RBTC` token addresses from the command line output
+
+4. Use addresses from #2 as reserves in the SovrynSwap codebase (`solidity/utils/config`)
+
+5. Deploy SovrynSwap contracts using the same chain and the updated config. Consult the README in `solidity/utils`.
+
+6. After deployment, copy the address of the deployed `ContractRegistry` and update the `scripts/swap_test.json` accordingly.
+
+7. Run the `swap_test.py` script to set the SovrynSwap ContractRegistry address
+```bash
+brownie run swap_test.py
+```
+
 
 ## Smart Contract Usage
 
@@ -59,13 +88,13 @@ address[] calldata assets
 
 ```pools``` is an array of iToken addresses.
 
-```assets``` is an array of underlying asset addresses. 
+```assets``` is an array of underlying asset addresses.
 
 For example: The underlying asset of iSUSD is sUSD.
 
 ##### 1.2 Margin Pool
 
-To set up the margin pool parameter, you need to call ```updateSettings``` on the iToken contract (LoanToken.sol).  
+To set up the margin pool parameter, you need to call ```updateSettings``` on the iToken contract (LoanToken.sol).
 
 ```updateSettings``` is expecting the following parameter:
 ```
@@ -78,14 +107,14 @@ bytes memory callData
 
 A ```LoanParams``` object consists of following fields:
 ```
-bytes32 id;                 
-bool active;                
-address owner;              
-address loanToken;          
-address collateralToken;    
-uint256 minInitialMargin;   
-uint256 maintenanceMargin;  
-uint256 maxLoanTerm;      
+bytes32 id;
+bool active;
+address owner;
+address loanToken;
+address collateralToken;
+uint256 minInitialMargin;
+uint256 maintenanceMargin;
+uint256 maxLoanTerm;
 ```
 
 ```id``` is the id of loan params object. Can be any bytes32.
@@ -151,8 +180,8 @@ If you are sending ERC20 tokens as collateral, you first need to approve the iTo
 
 ```marginTrade``` is expecting the following parameter:
 ```
-bytes32 loanId,                 
-uint256 leverageAmount,         
+bytes32 loanId,
+uint256 leverageAmount,
 uint256 loanTokenSent,
 uint256 collateralTokenSent,
 address collateralTokenAddress,
@@ -163,13 +192,13 @@ bytes memory loanDataBytes
 
 ```leverageAmount``` is telling, if the position should open with 2x, 3x, 4x or 5x leverage. It is expected to be passed with 18 decimals.
 
-```loanTokenSent``` and ```collateralTokenSent```are telling the contract about the amount of tokens provided as margin. If the margin is provided in the underlying currency of the iToken contract (e.g. SUSD for iSUSD), the contract will swap it to the collateral token (e.g. RBTC). The user can provide either one of the currencies or both of them. 
+```loanTokenSent``` and ```collateralTokenSent```are telling the contract about the amount of tokens provided as margin. If the margin is provided in the underlying currency of the iToken contract (e.g. SUSD for iSUSD), the contract will swap it to the collateral token (e.g. RBTC). The user can provide either one of the currencies or both of them.
 
 ```collateralTokenAddress```specifies which collateral token is to be used. In theory an iToken contract can support multiple tokens as collateral. Which tokens are supported is specified during the margin pool setup (see above). In our case, there are just two tokens: RBTC and SUSD. RBTC is the collateral token for iSUSD and SUSD is the collateral token for iRBTC.
 
 ```trader``` is the user's wallet address.
 
-```loanDataBytes``` is empty in case of ERC20 tokens. 
+```loanDataBytes``` is empty in case of ERC20 tokens.
 
 ##### 3.2 Close a position
 
@@ -179,15 +208,15 @@ There are 2 functions for ending a loan on the protocol contract: ```closeWithSw
 ```
 bytes32 loanId,
 address receiver,
-uint256 swapAmount, 
-bool returnTokenIsCollateral, 
+uint256 swapAmount,
+bool returnTokenIsCollateral,
 bytes memory loanDataBytes
 ```
 ```loanId``` is the ID of the loan, which is created on loan opening. It can be obtained either by parsing the Trade event or by reading the open loans from the contract by calling ```getActiveLoans``` or ```getUserLoans```.
 
 ```receiver``` is the user's address.
 
-```swapAmount``` defines how much of the position should be closed and is denominated in collateral tokens (e.g. rBTC on a iSUSD contract). If ```swapAmount >= collateral```, the complete position will be closed. Else if `returnTokenIsCollateral == True` ```(swapAmount/collateral) * principal``` will be swapped (partial closure). Else the closure amount will be the principal's covered amount   
+```swapAmount``` defines how much of the position should be closed and is denominated in collateral tokens (e.g. rBTC on a iSUSD contract). If ```swapAmount >= collateral```, the complete position will be closed. Else if `returnTokenIsCollateral == True` ```(swapAmount/collateral) * principal``` will be swapped (partial closure). Else the closure amount will be the principal's covered amount
 
 ```returnTokenIsCollateral```  pass ```true``` if you want to withdraw remaining collateral + profit in collateral tokens (e.g. rBTC on a iSUSD contract), ```false``` if you want to withdraw it in loan tokens (e.g. sUSD on a iSUSD contract).
 
@@ -197,16 +226,16 @@ bytes memory loanDataBytes
 
 ##### 4.1 Add margin
 
-In order to add margin to a open position, call ```depositCollateral``` on the protocol contract. 
+In order to add margin to a open position, call ```depositCollateral``` on the protocol contract.
 
-```depositCollateral``` expects following parameter: 
+```depositCollateral``` expects following parameter:
 ```
 bytes32 loanId,
 uint256 depositAmount
 ```
 ```loanId``` is the ID of the loan
 
-```depositAmount``` is the amount of collateral tokens to deposit. 
+```depositAmount``` is the amount of collateral tokens to deposit.
 
 ##### 4.2 Rollover
 
@@ -228,14 +257,14 @@ In order to liquidate an open position, call ```liquidate``` on the protocol con
 * current margin < maintenance margin
 * liquidator approved the protocol to spend sufficient tokens
 
-```liquidate``` will compute the maximum seizable amount and buy it using the caller's tokens. Therefore, the caller needs to possess enough funds to purchase the tokens. The liquidator gets an discount on the collateral token price. The discount is set on State.sol and is called ```liquidationIncentivePercent```. Currently, it is hardcoded to 5%. 
+```liquidate``` will compute the maximum seizable amount and buy it using the caller's tokens. Therefore, the caller needs to possess enough funds to purchase the tokens. The liquidator gets an discount on the collateral token price. The discount is set on State.sol and is called ```liquidationIncentivePercent```. Currently, it is hardcoded to 5%.
 
 ```liquidate``` expects following parameter:
 ```
 bytes32 loanId,
 address receiver,
 uint256 closeAmount
-``` 
+```
 ```loanId``` is the ID of the loan
 
 ```receiver``` is the address receiving the seized funds
@@ -246,7 +275,7 @@ uint256 closeAmount
 
 ##### 6.1 Loans
 
-You can read all active loans from the smart contract calling ```getActiveLoans```. All active loans for a specific user can be retrieved with ``` getUserLoans```. Both function will return a array of ```LoanReturnData``` objects. 
+You can read all active loans from the smart contract calling ```getActiveLoans```. All active loans for a specific user can be retrieved with ``` getUserLoans```. Both function will return a array of ```LoanReturnData``` objects.
 To query a single loan, use ```getLoan```.
 
 ```LoanReturnData``` objects contain following data:
@@ -258,7 +287,7 @@ uint256 principal;
 uint256 collateral;
 uint256 interestOwedPerDay;
 uint256 interestDepositRemaining;
-uint256 startRate; 
+uint256 startRate;
 uint256 startMargin;
 uint256 maintenanceMargin;
 uint256 currentMargin;
@@ -296,7 +325,31 @@ uint256 maxSeizable;
 
 ```maxSeizable ``` is the amount which can be retrieved through liquidation (in collateral tokens)
 
+##### 6.2 Supply and Demand
 
+ ```totalAssetSupply()``` returns the total amount of funds supplied to the iToken contract by the liquidity providers (lenders).
+
+```totalAssetBorrow()``` returns the total amount of funds which is currently borrowed from the smart contract.
+
+##### 6.3 Interest Rates
+
+To read the current interest rate for liquidity providers (lenders), call ```supplyInterestRate()``` . If you would like to obtain the potential interest rate after x assets are being lent to the contract, use  ```nextSupplyInterestRate(x)```
+
+To read the current interest rate for borrowers and/or traders, call ```borrowInterestRate()```.  If you would like to determine the interest rate to be paid considering the loan size x ```nextBorrowInterestRate(x)```.
+
+```avgBorrowInterestRate()``` returns the average interest rate paid by borrowers at the moment. Since the interest rate depends on the ratio demand/supply, some borrower are paying more than others. 
+
+##### 6.4 iToken Price
+
+```tokenPrice()``` returns the current iToken price denominated in underlying tokens. In case of iSUSD, the price would be given in SUSD.
+
+##### 6.5 Lender Balances
+
+Each lender has 2 balances on the iToken contract. The balance of iTokens (e.g. iSUSD) and the balance of underlying tokens (e.g. SUSD).
+
+```balanceOf(address)``` returns the iToken balance of the given address.
+
+```assetBalanceOf(address)``` returns the underlying token balance of the given address.
 
 ### 7. Remarks
 

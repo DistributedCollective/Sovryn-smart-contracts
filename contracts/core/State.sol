@@ -20,6 +20,7 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
     address public priceFeeds;                                                          // handles asset reference price lookups
     address public swapsImpl;                                                           // handles asset swaps using dex liquidity
+    address public sovrynSwapContractRegistryAddress;                                       // contract registry address of the sovryn swap network
 
     mapping (bytes4 => address) public logicTargets;                                    // implementations of protocol functions
 
@@ -72,11 +73,14 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
     uint256 public maxDisagreement = 5 * 10**18;                                         // % disagreement between swap rate and reference rate
 
-    uint256 public sourceBufferPercent = 5 * 10**18;                                     // used to estimate kyber swap source amount
+    uint256 public sourceBuffer = 10000;                                                 // used as buffer for swap source amount estimations
 
     uint256 public maxSwapSize = 1500 ether;                                             // maximum support swap size in ETH
-    
+
     mapping(address => uint256) public borrowerNonce;                                    // nonce per borrower. used for loan id creation.
+
+    uint256 public rolloverBaseReward = 16800000000000;                                  // Rollover transaction costs around 0.0000168 rBTC, it is denominated in wRBTC
+    uint256 public rolloverFlexFeePercent = 0.1 ether;                                   // 0.1%
 
     IWrbtcERC20 public wrbtcToken;
     address public protocolTokenAddress;

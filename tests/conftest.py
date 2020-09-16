@@ -49,26 +49,35 @@ def priceFeeds(accounts, WRBTC, SUSD, RBTC, BZRX, PriceFeeds, PriceFeedsLocal):
     return feeds
 
 @pytest.fixture(scope="module")
-def swapsImpl(accounts, SwapsImplKyber, SwapsImplLocal):
+def swapsImpl(accounts, SwapsImplSovrynSwap, SwapsImplLocal):
+    '''
     if network.show_active() == "development":
-        feeds = accounts[0].deploy(SwapsImplLocal)
+        swap = accounts[0].deploy(SwapsImplLocal)
     else:
-        feeds = accounts[0].deploy(SwapsImplKyber)
+        swap = accounts[0].deploy(SwapsImplKyber)
         #feeds.setPriceFeedsBatch(...)
+    '''
 
-    return feeds
+    swap = accounts[0].deploy(SwapsImplSovrynSwap)
+
+    return swap
 
 @pytest.fixture(scope="module", autouse=True)
-def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, LoanMaintenance, WRBTC):
+def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, LoanMaintenance, WRBTC, SUSD, RBTC, TestSovrynSwap, priceFeeds):
     sovrynproxy = accounts[0].deploy(sovrynProtocol)
     sovryn = Contract.from_abi("sovryn", address=sovrynproxy.address, abi=interface.ISovryn.abi, owner=accounts[0])
     _add_contract(sovryn)
-    
+
     sovryn.replaceContract(accounts[0].deploy(ProtocolSettings).address)
     sovryn.replaceContract(accounts[0].deploy(LoanSettings).address)
     sovryn.replaceContract(accounts[0].deploy(LoanMaintenance).address)
     #sovryn.replaceContract(accounts[0].deploy(LoanOpenings).address)
     #sovryn.replaceContract(accounts[0].deploy(LoanClosings).address)
+
+    sovrynSwapSimulator = accounts[0].deploy(TestSovrynSwap, priceFeeds)
+    sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address)
+    sovryn.setSupportedTokens([SUSD.address,RBTC.address, WRBTC.address],[True,True, True])
+
     sovryn.setWrbtcToken(WRBTC.address)
     
     return sovryn

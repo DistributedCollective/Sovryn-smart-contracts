@@ -13,10 +13,9 @@ import "../mixins/InterestUser.sol";
 import "../mixins/LiquidationHelper.sol";
 import "../swaps/SwapsUser.sol";
 import "../interfaces/ILoanPool.sol";
-import "../connectors/gastoken/GasTokenUser.sol";
+import "../mixins/RewardHelper.sol";
 
-
-contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasTokenUser, SwapsUser, LiquidationHelper {
+contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper, RewardHelper {
 
     enum CloseTypes {
         Deposit,
@@ -76,14 +75,11 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
         external
         nonReentrant
     {
-        uint256 startingGas = gasleft() + 10000;
-
         // restrict to EOAs to prevent griefing attacks, during interest rate recalculation
         require(msg.sender == tx.origin, "only EOAs can call");
 
         return _rollover(
             loanId,
-            startingGas,
             "" // loanDataBytes
         );
     }
@@ -121,8 +117,8 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
      * and withdrawing the remainder.
      * @param loanId the id of the loan
      * @param receiver the receiver of the remainder (unused collatral + profit)
-     * @param swapAmount defines how much of the position should be closed and is denominated in collateral tokens. 
-     *      If swapAmount >= collateral, the complete position will be closed. 
+     * @param swapAmount defines how much of the position should be closed and is denominated in collateral tokens.
+     *      If swapAmount >= collateral, the complete position will be closed.
      *      Else if returnTokenIsCollateral, (swapAmount/collateral) * principal will be swapped (partial closure).
      *      Else coveredPrincipal
      * @param returnTokenIsCollateral defines if the remainder should be paid out in collateral tokens or underlying loan tokens
@@ -151,7 +147,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
     }
 
     /**
-     * internal function for liquidating a loan. 
+     * internal function for liquidating a loan.
      * @param loanId the ID of the loan to liquidate
      * @param receiver the receiver of the seized amount
      * @param closeAmount the amount to close in loanTokens
@@ -185,7 +181,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
         );
 
         loanCloseAmount = closeAmount;
-        
+
         //amounts to restore the desired margin (maintencance + 5%)
         (uint256 maxLiquidatable, uint256 maxSeizable,) = _getLiquidationAmounts(
             loanLocal.principal,
@@ -275,7 +271,6 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
 
     function _rollover(
         bytes32 loanId,
-        uint256 startingGas,
         bytes memory loanDataBytes)
         internal
     {
@@ -322,9 +317,9 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
                 .div(86400);
         }
 
-        uint256 maxDuration = loanParamsLocal.maxLoanTerm;
-
-        if (maxDuration != 0) {
+        //note: to avoid code duplication, it would be nicer to store loanParamsLocal.maxLoanTerm in a local variable
+        //however, we've got stack too deep issues if we do so.
+        if (loanParamsLocal.maxLoanTerm != 0) {
             // fixed-term loan, so need to query iToken for latest variable rate
             uint256 owedPerDay = loanLocal.principal
                 .mul(ILoanPool(loanLocal.lender).borrowInterestRate())
@@ -336,19 +331,28 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
                 .sub(loanInterestLocal.owedPerDay);
 
             loanInterestLocal.owedPerDay = owedPerDay;
+
+            //if the loan has been open for longer than an additional period, add at least 1 additional day
+            if (backInterestTime >= loanParamsLocal.maxLoanTerm) {
+                loanLocal.endTimestamp = loanLocal.endTimestamp
+                    .add(backInterestTime).add(86400);
+            }
+            //extend by the max loan term
+            else{
+                loanLocal.endTimestamp = loanLocal.endTimestamp
+                    .add(loanParamsLocal.maxLoanTerm);
+            }
         } else {
             // loanInterestLocal.owedPerDay doesn't change
-            maxDuration = 2628000; // approx. 1 month
+            if (backInterestTime >= 2628000){
+                loanLocal.endTimestamp = loanLocal.endTimestamp
+                    .add(backInterestTime).add(86400);
+            }
+            else{
+                loanLocal.endTimestamp = loanLocal.endTimestamp
+                    .add(2628000); // approx. 1 month
+            }
         }
-
-        if (backInterestTime >= maxDuration) {
-            maxDuration = backInterestTime
-                .add(86400); // adds an extra 24 hours
-        }
-
-        // update loan end time
-        loanLocal.endTimestamp = loanLocal.endTimestamp
-            .add(maxDuration);
 
         uint256 interestAmountRequired = loanLocal.endTimestamp
             .sub(block.timestamp);
@@ -367,15 +371,27 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
         interestAmountRequired = interestAmountRequired
             .add(backInterestOwed);
 
-        // collect interest
-        (,uint256 sourceTokenAmountUsed,) = _doCollateralSwap(
+        // collect interest (needs to be converted from the collateral)
+        ( uint256 destTokenAmountReceived , uint256 sourceTokenAmountUsed,) = _doCollateralSwap(
             loanLocal,
             loanParamsLocal,
-            loanLocal.collateral,
-            interestAmountRequired,
+            0,//min swap 0 -> swap connector estimates the amount of source tokens to use
+            interestAmountRequired,//required destination tokens
             true, // returnTokenIsCollateral
             loanDataBytes
         );
+
+        //received more tokens than needed to pay the interest -> swap rest back to collateral
+        if(destTokenAmountReceived > interestAmountRequired){
+            (destTokenAmountReceived , ,) = _swapBackExcess(
+                loanLocal,
+                loanParamsLocal,
+                destTokenAmountReceived - interestAmountRequired,  //amount to be swapped
+                loanDataBytes);
+            sourceTokenAmountUsed = sourceTokenAmountUsed.sub(destTokenAmountReceived);
+        }
+
+        //subtract the interest from the collateral
         loanLocal.collateral = loanLocal.collateral
             .sub(sourceTokenAmountUsed);
 
@@ -388,22 +404,18 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
                 backInterestOwed
             );
         }
-        
-        //todo here comes the reward logic --> requires replacement
-        uint256 gasRebate = 0;/*_gasUsed(startingGas)
-            .mul(
-                IPriceFeeds(priceFeeds).getFastGasPrice(loanParamsLocal.collateralToken) * 2
-            );*/
 
-        if (gasRebate != 0) {
-            // pay out gas rebate to caller
+        uint256 rolloverReward = _getRolloverReward(loanParamsLocal.collateralToken, loanParamsLocal.loanToken, loanLocal.principal);
+
+        if (rolloverReward != 0) {
+            // pay out reward to caller
             loanLocal.collateral = loanLocal.collateral
-                .sub(gasRebate);
+                .sub(rolloverReward);
 
             _withdrawAsset(
                 loanParamsLocal.collateralToken,
                 msg.sender,
-                gasRebate
+                rolloverReward
             );
         }
 
@@ -497,14 +509,14 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
             CloseTypes.Deposit
         );
     }
-    
+
     /**
      * internal function for closing a position by swapping the collateral back to loan tokens, paying the lender
      * and withdrawing the remainder.
      * @param loanId the id of the loan
      * @param receiver the receiver of the remainder (unused collatral + profit)
-     * @param swapAmount defines how much of the position should be closed and is denominated in collateral tokens. 
-     *      If swapAmount >= collateral, the complete position will be closed. 
+     * @param swapAmount defines how much of the position should be closed and is denominated in collateral tokens.
+     *      If swapAmount >= collateral, the complete position will be closed.
      *      Else if returnTokenIsCollateral, (swapAmount/collateral) * principal will be swapped (partial closure).
      *      Else coveredPrincipal
      * @param returnTokenIsCollateral defines if the remainder should be paid out in collateral tokens or underlying loan tokens
@@ -530,7 +542,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
             loanLocal,
             loanParamsLocal
         );
-        
+
         //can't swap more than collateral
         swapAmount = swapAmount > loanLocal.collateral ?
             loanLocal.collateral :
@@ -751,13 +763,13 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
             require(msg.value == 0, "wrong asset sent");
         }
     }
-    
+
     /**
      * swaps a share of a loan's collateral or the complete collateral in order to cover the principle.
      * @param loanLocal the loan
      * @param loanParamsLocal the loan parameters
-     * @param swapAmount in case principalNeeded == 0 or !returnTokenIsCollateral, this is the amount which is going to be swapped. 
-     *  Else, swapAmount doesn't matter, because the amount of source tokens needed for the swap is estimated by the connector. 
+     * @param swapAmount in case principalNeeded == 0 or !returnTokenIsCollateral, this is the amount which is going to be swapped.
+     *  Else, swapAmount doesn't matter, because the amount of source tokens needed for the swap is estimated by the connector.
      * @param principalNeeded the required amount of destination tokens in order to cover the principle (only used if returnTokenIsCollateral)
      * @param returnTokenIsCollateral tells if the user wants to withdraw his remaining collateral + profit in collateral tokens
      * */
@@ -833,6 +845,16 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
             swapAmount;
     }
 
+    /**
+     * swaps collateral tokens for loan tokens
+     * @param loanLocal the loan object
+     * @param loanParamsLocal the loan parameters
+     * @param swapAmount the amount to be swapped
+     * @param principalNeeded the required destination token amount
+     * @param returnTokenIsCollateral if true -> required destination token amount will be passed on, else not
+     *          note: quite dirty. should be refactored.
+     * @param loanDataBytes additional loan data (not in use for token swaps)
+     * */
     function _doCollateralSwap(
         Loan memory loanLocal,
         LoanParams memory loanParamsLocal,
@@ -859,6 +881,36 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, GasT
         require(destTokenAmountReceived >= principalNeeded, "insufficient dest amount");
         require(sourceTokenAmountUsed <= loanLocal.collateral, "excessive source amount");
     }
+
+    /**
+     * used to swap back excessive loan tokens to collateral tokens.
+     * @param loanLocal the loan object
+     * @param loanParamsLocal the loan parameters
+     * @param swapAmount the amount to be swapped
+     * @param loanDataBytes additional loan data (not in use for token swaps)
+     * */
+    function _swapBackExcess(
+        Loan memory loanLocal,
+        LoanParams memory loanParamsLocal,
+        uint256 swapAmount,
+        bytes memory loanDataBytes)
+        internal
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed, uint256 collateralToLoanSwapRate)
+    {
+        (destTokenAmountReceived, sourceTokenAmountUsed, collateralToLoanSwapRate) = _loanSwap(
+            loanLocal.id,
+            loanParamsLocal.loanToken,
+            loanParamsLocal.collateralToken,
+            loanLocal.borrower,
+            swapAmount, // minSourceTokenAmount
+            swapAmount, // maxSourceTokenAmount
+            0,  // requiredDestTokenAmount
+            false, // bypassFee
+            loanDataBytes
+        );
+        require(sourceTokenAmountUsed <= swapAmount, "excessive source amount");
+    }
+
 
     // withdraws asset to receiver
     function _withdrawAsset(
