@@ -449,7 +449,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         returns (uint256 price)
     {
         uint256 interestUnPaid;
-        if (lastSettleTime_ != block.timestamp) {
+        if (lastSettleTime_ != uint88(block.timestamp)) {
             (,interestUnPaid) = _getAllInterest();
         }
 
@@ -553,7 +553,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         returns (uint256)
     {
         uint256 interestUnPaid;
-        if (lastSettleTime_ != block.timestamp) {
+        if (lastSettleTime_ != uint88(block.timestamp)) {
             (,interestUnPaid) = _getAllInterest();
         }
 
@@ -751,12 +751,13 @@ contract LoanTokenLogicStandard is AdvancedToken {
     function _settleInterest()
         internal
     {
-        if (lastSettleTime_ != block.timestamp) {
+        uint88 ts = uint88(block.timestamp);
+        if (lastSettleTime_ != ts) {
             ProtocolLike(sovrynContractAddress).withdrawAccruedInterest(
                 loanTokenAddress
             );
 
-            lastSettleTime_ = block.timestamp;
+            lastSettleTime_ = ts;
         }
     }
 
@@ -1039,7 +1040,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
     {
         uint256 interestUnPaid;
         if (borrowAmount != 0) {
-            if (lastSettleTime_ != block.timestamp) {
+            if (lastSettleTime_ != uint88(block.timestamp)) {
                 (,interestUnPaid) = _getAllInterest();
             }
 

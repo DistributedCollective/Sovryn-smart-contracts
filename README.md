@@ -103,7 +103,7 @@ bytes memory callData
 ```
 ```settingsTarget``` is the address of the settings contract (LoanTokenSettingsLowerAdmin.sol)
 
-```callData``` is the encoded input for ```setupMarginLoanParams``` on the settings contract, which expects an array of ```LoanParams```, a struct defined in LoanParamsStruct.sol.
+```callData``` is the encoded input for ```setupLoanParams``` on the settings contract, which expects an array of ```LoanParams```, a struct defined in LoanParamsStruct.sol.
 
 A ```LoanParams``` object consists of following fields:
 ```

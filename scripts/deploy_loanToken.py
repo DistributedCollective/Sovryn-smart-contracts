@@ -70,7 +70,7 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
     _add_contract(loanTokenSettings)
 
     print("Deploying loan token using the loan logic as target for delegate calls")
-    loanToken = acct.deploy(LoanToken, loanTokenLogic.address, sovryn.address, wrbtcAddress)
+    loanToken = acct.deploy(LoanToken, acct.address, loanTokenLogic.address, sovryn.address, wrbtcAddress)
     _add_contract(loanToken)
 
     print("Initialize loanTokenAddress ")
@@ -109,8 +109,8 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
     params.append(data)
 
     #configure the token settings
-    calldata = loanTokenSettings.setupMarginLoanParams.encode_input(params)
-
+    calldata = loanTokenSettings.setupLoanParams.encode_input(params, False)
+    
     #set the setting contract address at the loan token logic contract (need to load the logic ABI in line 171 to work)
     tx = loanToken.updateSettings(loanTokenSettings.address, calldata, { "from": acct })
     #print(tx.info())
@@ -134,8 +134,8 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
     params.append(data)
 
     #configure the token settings
-    calldata = loanTokenSettings.setupTorqueLoanParams.encode_input(params)
-
+    calldata = loanTokenSettings.setupLoanParams.encode_input(params, True)
+    
     #print(calldata)
 
     #set the setting contract address at the loan token logic contract (need to load the logic ABI in line 171 to work)
@@ -154,10 +154,13 @@ sets up the interest rates
 def setupLoanTokenRates(acct, loanTokenAddress, settingsAddress, logicAddress):
     baseRate = 1e18
     rateMultiplier = 20.25e18
+    targetLevel=80*10**18
+    kinkLevel=90*10**18
+    maxScaleRate=100*10**18
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
     localLoanToken.setTarget(settingsAddress)
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
-    localLoanToken.setDemandCurve(baseRate,rateMultiplier,baseRate,rateMultiplier)
+    localLoanToken.setDemandCurve(baseRate,rateMultiplier,baseRate,rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
     localLoanToken.setTarget(logicAddress)
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
