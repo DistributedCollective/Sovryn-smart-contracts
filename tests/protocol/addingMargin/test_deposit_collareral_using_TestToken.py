@@ -17,14 +17,20 @@ def test_deposit_collateral(sovryn,set_demand_curve,lend_to_pool,open_margin_tra
     (receiver, _) = lend_to_pool()
     (loan_id, trader, loan_token_sent, leverage_amount) = open_margin_trade_position()
     startCollateral = sovryn.getLoan(loan_id).dict()["collateral"]
+    deposit_amount = startCollateral/2
     
     #deposit collateral to add margin to the loan created above
-    RBTC.approve(sovryn, startCollateral/2)
-    sovryn.depositCollateral(loan_id, startCollateral/2)
+    RBTC.approve(sovryn, deposit_amount)
+    tx = sovryn.depositCollateral(loan_id, deposit_amount)
+    
+    #verify the deposit collateral event
+    print(tx.info())
+    assert(tx.events['DepositCollateral']['loanId'] == loan_id)
+    assert(tx.events['DepositCollateral']['depositAmount'] == deposit_amount)
     
     #make sure, collateral was increased
     endCollateral = sovryn.getLoan(loan_id).dict()["collateral"]
-    assert(endCollateral-startCollateral == startCollateral/2)
+    assert(endCollateral-startCollateral == deposit_amount)
 
 
 def test_deposit_collateral_to_non_existent_loan(sovryn, RBTC):
