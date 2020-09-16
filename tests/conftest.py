@@ -93,4 +93,20 @@ def WRBTC(module_isolation, accounts, TestWrbtc):
 @pytest.fixture(scope="module", autouse=True)
 def BZRX(module_isolation, accounts, TestWrbtc):
     yield accounts[0].deploy(TestWrbtc) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
-  
+
+
+@pytest.fixture()
+def SOV(accounts, TestToken, sovryn, priceFeeds, SUSD, WRBTC):
+    sov = accounts[0].deploy(TestToken, "SOV", "SOV", 18, 10**50)
+    sovryn.setProtocolTokenAddress(sov.address)
+
+    priceFeeds.setRates(
+        SUSD.address,
+        sov.address,
+        1e18
+    )
+
+    sov.approve(sovryn.address, 1e20)
+    sovryn.depositProtocolToken(1e20)
+
+    return sov

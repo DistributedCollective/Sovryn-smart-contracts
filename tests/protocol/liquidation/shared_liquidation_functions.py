@@ -3,12 +3,13 @@ shared functions for the liquidation tests
 '''
 
 import pytest
-from brownie import Contract, Wei, reverts
+from brownie import reverts
 from fixedint import *
-import shared
+from loanToken.sov_reward import verify_sov_reward_payment
 
 
-def liquidate(accounts, loanToken, underlyingToken, set_demand_curve, collateralToken, sovryn, priceFeeds, rate, WRBTC):
+def liquidate(accounts, loanToken, underlyingToken, set_demand_curve, collateralToken, sovryn, priceFeeds, rate, WRBTC,
+              FeesEvents, SOV, chain):
     # set the demand curve to set interest rates
     set_demand_curve()
     
@@ -20,7 +21,7 @@ def liquidate(accounts, loanToken, underlyingToken, set_demand_curve, collateral
     # lend to the pool, mint tokens if required, open a margin trade position
     loan_id = prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken, underlyingToken, collateralToken, sovryn, WRBTC)
     loan = sovryn.getLoan(loan_id).dict()
-    
+
     # set the rates so we're able to liquidate
     if(underlyingToken == WRBTC):
         priceFeeds.setRates(underlyingToken.address, collateralToken.address, rate)
@@ -28,12 +29,20 @@ def liquidate(accounts, loanToken, underlyingToken, set_demand_curve, collateral
     else:
         priceFeeds.setRates(collateralToken.address, underlyingToken.address, rate)
         value = 0
-    
+
+    sov_borrower_initial_balance = SOV.balanceOf(borrower)
+
+    chain.sleep(10*24*60*60)  # time travel 10 days
+    chain.mine(1)
+
     # liquidate
     tx_liquidation = sovryn.liquidate(loan_id, liquidator, loan_token_sent, {'from': liquidator, 'value' :value})
     
     verify_liquidation_event(loan, tx_liquidation, lender, borrower, liquidator, loan_token_sent, loanToken, underlyingToken, set_demand_curve, collateralToken, sovryn, priceFeeds, rate)
-    
+    if(underlyingToken != WRBTC):
+        verify_sov_reward_payment(tx_liquidation, FeesEvents, SOV, borrower, loan_id, sov_borrower_initial_balance, 1)
+
+
 '''
 should fail to liquidate a healthy position
 '''
@@ -62,7 +71,7 @@ def prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken
     underlyingToken.approve(loanToken.address, 1e40)
     
     if (WRBTC == underlyingToken):
-        loanToken.mintWithBTC(lender,{'value':1e21})
+        loanToken.mintWithBTC(lender, {'value': 1e21})
         value = loan_token_sent
     else:
         loanToken.mint(lender, 1e21)
@@ -129,4 +138,3 @@ def verify_liquidation_event(loan, tx_liquidation, lender, borrower, liquidator,
     assert(liquidate_event['collateralWithdrawAmount'] == collateral_withdraw_amount)
     assert(liquidate_event['collateralToLoanRate'] == collateral_to_loan_rate)
     assert(liquidate_event['currentMargin'] == current_margin)
-

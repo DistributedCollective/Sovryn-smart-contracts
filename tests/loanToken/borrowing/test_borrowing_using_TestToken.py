@@ -10,15 +10,16 @@ Test borrowing from the pool.
 '''
 
 import pytest
-from brownie import Contract, Wei, reverts
+from brownie import reverts
 from fixedint import *
 import shared
+from loanToken.sov_reward import verify_sov_reward_payment
 
 '''
 borrows some funds, checks the event is correct (including principal and collateral -> interest check)
 and that the receiver received the correct amount of tokens
 '''
-def test_borrow(accounts,loanToken,sovryn,set_demand_curve,lend_to_pool, SUSD, RBTC):
+def test_borrow(accounts,loanToken,sovryn,set_demand_curve,lend_to_pool, SUSD, RBTC, FeesEvents, SOV):
   
     # prepare the test
     set_demand_curve()
@@ -40,7 +41,10 @@ def test_borrow(accounts,loanToken,sovryn,set_demand_curve,lend_to_pool, SUSD, R
     
     #approve the transfer of the collateral
     RBTC.approve(loanToken.address, collateralTokenSent)
-    
+
+    borrower = accounts[0]
+    sov_initial_balance = SOV.balanceOf(borrower)
+
     # borrow some funds
     tx = loanToken.borrow(
         "0",                            # bytes32 loanId
@@ -48,7 +52,7 @@ def test_borrow(accounts,loanToken,sovryn,set_demand_curve,lend_to_pool, SUSD, R
         durationInSeconds,              # uint256 initialLoanDuration
         collateralTokenSent,            # uint256 collateralTokenSent
         RBTC.address,                   # address collateralTokenAddress
-        accounts[0],                    # address borrower
+        borrower,                    # address borrower
         accounts[1],                    # address receiver
         b''                             # bytes memory loanDataBytes
     )
@@ -56,7 +60,7 @@ def test_borrow(accounts,loanToken,sovryn,set_demand_curve,lend_to_pool, SUSD, R
     #assert the trade was processed as expected
     print(tx.info())
     borrow_event = tx.events['Borrow']
-    assert(borrow_event['user'] == accounts[0])
+    assert(borrow_event['user'] == borrower)
     assert(borrow_event['lender'] == loanToken.address)
     assert(borrow_event['loanToken'] == SUSD.address)
     assert(borrow_event['collateralToken'] == RBTC.address)
@@ -68,6 +72,9 @@ def test_borrow(accounts,loanToken,sovryn,set_demand_curve,lend_to_pool, SUSD, R
     
     #assert the user received the borrowed amount
     assert(SUSD.balanceOf(accounts[1]) == expectedBalance)
+
+    verify_sov_reward_payment(tx, FeesEvents, SOV, borrower, borrow_event['loanId'], sov_initial_balance, 1)
+
 
 def test_borrow_0_collateral_should_fail(accounts,loanToken,sovryn,set_demand_curve,lend_to_pool, SUSD, RBTC):
     # prepare the test
