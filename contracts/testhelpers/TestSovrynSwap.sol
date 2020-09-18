@@ -7,11 +7,11 @@ pragma solidity 0.5.17;
 import "../openzeppelin/SafeERC20.sol";
 import "../feeds/IPriceFeeds.sol";
 import "./TestToken.sol";
-import "../openzeppelin/SafeMath.sol";
+import "../openzeppelin/SafeMathSovryn.sol";
 
 contract TestSovrynSwap {
-    using SafeERC20 for IERC20;
-    using SafeMath for uint256;
+    using SafeERC20 for IERC20Sovryn;
+    using SafeMathSovryn for uint256;
 
     address public priceFeeds;
 
@@ -31,7 +31,7 @@ contract TestSovrynSwap {
      * mints and burns the test tokens accordingly.
      * */
     function convertByPath(
-        IERC20[] calldata _path,
+        IERC20Sovryn[] calldata _path,
         uint256 _amount,
         uint256 _minReturn,
         address _beneficiary,
@@ -59,7 +59,7 @@ contract TestSovrynSwap {
      * amout of source tokens to be swapped.
      * */
     function rateByPath(
-        IERC20[] calldata _path,
+        IERC20Sovryn[] calldata _path,
         uint256 _amount
     ) external view returns (uint256){
         (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(
@@ -77,10 +77,10 @@ contract TestSovrynSwap {
      * returns the conversion path -> always a direct path
      * */
     function conversionPath(
-        IERC20 _sourceToken,
-        IERC20 _targetToken
-    ) external view returns (IERC20[] memory){
-        IERC20[] memory path = new IERC20[](2);
+        IERC20Sovryn _sourceToken,
+        IERC20Sovryn _targetToken
+    ) external view returns (IERC20Sovryn[] memory){
+        IERC20Sovryn[] memory path = new IERC20Sovryn[](2);
         path[0] = _sourceToken;
         path[1] = _targetToken;
         return  path;

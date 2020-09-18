@@ -4,7 +4,7 @@ import "../core/State.sol";
 import "../feeds/IPriceFeeds.sol";
 
 contract RewardHelper is State {
-    using SafeMath for uint256;
+    using SafeMathSovryn for uint256;
 
     /**
      * @dev returns base fee + flex fee

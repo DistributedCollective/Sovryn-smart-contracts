@@ -9,7 +9,7 @@ import "./interfaces/IContractRegistry.sol";
 
 
 contract SwapsImplSovrynSwap is State, ISwapsImpl {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Sovryn;
 
     // bytes32 contractName = hex"42616e636f724e6574776f726b"; // "SovrynSwapNetwork"
 
@@ -57,9 +57,9 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
         require(supportedTokens[sourceTokenAddress] && supportedTokens[destTokenAddress], "invalid tokens");
 
         ISovrynSwapNetwork sovrynSwapNetwork = getSovrynSwapNetworkContract();
-        IERC20[] memory path = sovrynSwapNetwork.conversionPath(
-            IERC20(sourceTokenAddress),
-            IERC20(destTokenAddress)
+        IERC20Sovryn[] memory path = sovrynSwapNetwork.conversionPath(
+            IERC20Sovryn(sourceTokenAddress),
+            IERC20Sovryn(destTokenAddress)
         );
 
         uint expectedReturn = 0;
@@ -90,7 +90,7 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
         if (returnToSenderAddress != address(this)) {
             if (sourceTokenAmountUsed < maxSourceTokenAmount) {
                 // send unused source token back
-                IERC20(sourceTokenAddress).safeTransfer(
+                IERC20Sovryn(sourceTokenAddress).safeTransfer(
                     returnToSenderAddress,
                     maxSourceTokenAmount-sourceTokenAmountUsed
                 );
@@ -114,9 +114,9 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
         address sovrynSwapNetwork)
         internal
     {
-        uint256 tempAllowance = IERC20(tokenAddress).allowance(address(this), sovrynSwapNetwork);
+        uint256 tempAllowance = IERC20Sovryn(tokenAddress).allowance(address(this), sovrynSwapNetwork);
         if (tempAllowance < tokenAmount) {
-            IERC20(tokenAddress).safeApprove(
+            IERC20Sovryn(tokenAddress).safeApprove(
                 sovrynSwapNetwork,
                 uint256(-1)
             );
@@ -181,9 +181,9 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
         returns (uint256)
     {
         ISovrynSwapNetwork sovrynSwapNetwork = getSovrynSwapNetworkContract();
-        IERC20[] memory path = sovrynSwapNetwork.conversionPath(
-            IERC20(sourceTokenAddress),
-            IERC20(destTokenAddress)
+        IERC20Sovryn[] memory path = sovrynSwapNetwork.conversionPath(
+            IERC20Sovryn(sourceTokenAddress),
+            IERC20Sovryn(destTokenAddress)
         );
         //is returning the total amount of destination tokens
         uint256 expectedReturn = sovrynSwapNetwork.rateByPath(path, sourceTokenAmount);
