@@ -15,7 +15,7 @@
 To run the tests, first install the developer dependencies:
 
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 Run the all tests with:
