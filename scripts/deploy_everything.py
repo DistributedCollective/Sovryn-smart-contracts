@@ -49,7 +49,7 @@ def main():
     (loanTokenSUSD, loanTokenWRBTC, loanTokenSettingsSUSD,
      loanTokenSettingsWRBTC) = deployLoanTokens(acct, sovryn, tokens)
 
-    deployMultisig(sovryn, acct, owners, requiredConf)
+    #deployMultisig(sovryn, acct, owners, requiredConf)
     
     configData["sovrynProtocol"] = sovryn.address
     configData["WRBTC"] = tokens.wrbtc.address

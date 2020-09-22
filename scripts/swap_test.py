@@ -117,20 +117,8 @@ def test_margin_trading_sending_collateral_tokens():
         acct, #trader,
         b'' #loanDataBytes (only required with ether)
     )
-
-    print('tx info is', tx.info())
-
-    sovryn_after_SUSD_balance = SUSD.balanceOf(sovryn.address)
-    print("sovryn_after_SUSD_balance", sovryn_after_SUSD_balance/1e18)
-
-    sovryn_after_RBTC_balance = RBTC.balanceOf(sovryn.address)
-    print("sovryn_after_RBTC_balance", sovryn_after_RBTC_balance/1e18)
-
-    sovryn_after_SUSD_balance = SUSD.balanceOf(loan_token.address)
-    print("loan_token_after_SUSD_balance", sovryn_after_SUSD_balance/1e18)
-
-    sovryn_after_RBTC_balance = RBTC.balanceOf(loan_token.address)
-    print("loan_token_after_RBTC_balance", sovryn_after_RBTC_balance/1e18)
+    
+    sovryn.closeWithSwap(tx.events['Trade']['loanId'], acct, collateral_token_sent, False, "")
 
     print("Passed `test_margin_trading_sending_collateral_tokens`")
 
