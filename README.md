@@ -72,6 +72,28 @@ brownie run deploy_everything.py
 brownie run swap_test.py
 ```
 
+## MoC Oracle Deploy (testnet or mainnet)
+
+1. Get MoC medianizer SC address (BTC to USD)
+  - Testnet: 0x667bd3d048FaEBb85bAa0E9f9D87cF4c8CDFE849
+  - Mainnet: See [MoC Contracts verification.md](https://github.com/money-on-chain/main-RBTC-contract/blob/master/Contracts%20verification.md)
+
+2. Modify `scripts/deploy_protocol.py` 
+  
+   a. Deploy PriceFeedsMoC.sol
+   ```python
+   price_feed_moc = acct.deploy(PriceFeedsMoC, moc_medianizer_address)
+   ```
+   
+   b. instead of deploy PriceFeedsLocal use PriceFeeds.sol
+   ```python
+   feeds = acct.deploy(PriceFeeds, tokens.wrbtc.address, sovryn.address)
+   ```
+   
+   c. Set price feeds
+   ```python
+   feeds.setPriceFeed([tokens.rbtc.address, ...], [price_feed_moc.address, ...])
+   ```
 
 ## Smart Contract Usage
 
