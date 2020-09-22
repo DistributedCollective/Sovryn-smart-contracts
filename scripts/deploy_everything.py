@@ -27,7 +27,7 @@ def main():
     (sovryn, tokens) = deployProtocol(acct)
     (loanTokenSUSD, loanTokenRBTC, loanTokenSettingsSUSD,
      loanTokenSettingsRBTC) = deployLoanTokens(acct, sovryn, tokens)
-    deployMultisig(sovryn, acct, owners, requiredConf)
+    #deployMultisig(sovryn, acct, owners, requiredConf)
     
     configData["sovrynProtocol"] = sovryn.address
     configData["RBTC"] = tokens.rbtc.address
