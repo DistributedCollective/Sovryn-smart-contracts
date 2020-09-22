@@ -27,8 +27,8 @@ def main():
     configData = {} # deploy new tokens
     '''
     configData = {
-        'WRBTC': '0xA8621C444E97F0074EfCDff8a2fDafD866662c67',
-        'SUSD': '0x0589C9f0632CbCF4BBCedbCE63e004653788A3Fd'
+        'WRBTC': '0x86011104f8442BF8d241Cb5591C793D9f1659099',
+        'SUSD': '0xB76D18404Afa5aA090D4Ad9a971495DeE8b8dF0e'
     }
     '''
 

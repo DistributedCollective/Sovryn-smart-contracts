@@ -8,7 +8,7 @@ def deployTokens(acct):
     print("Deploying test tokens.")
     tokens = Munch()
     tokens.wrbtc = acct.deploy(TestWrbtc) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
-    tokens.wrbtc.deposit({'value':1e18})#needed because of local swap impl or sovryn swap simulator
+    tokens.wrbtc.deposit({'value':2e18})#needed because of local swap impl or sovryn swap simulator
     tokens.susd = acct.deploy(TestToken, "SUSD", "SUSD", 18, 1e50)
     return tokens
     
