@@ -118,6 +118,8 @@ def test_margin_trading_sending_collateral_tokens():
         b'' #loanDataBytes (only required with ether)
     )
     
+    print("entered position successfully")
+
     sovryn.closeWithSwap(tx.events['Trade']['loanId'], acct, collateral_token_sent, False, "")
 
     print("Passed `test_margin_trading_sending_collateral_tokens`")
