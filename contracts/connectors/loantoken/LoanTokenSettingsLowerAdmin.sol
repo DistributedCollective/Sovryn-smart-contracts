@@ -108,7 +108,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
         onlyAdmin
     {
         // keccak256("iToken_FunctionPause")
-        bytes32 slot = keccak256(abi.encodePacked(bytes4(keccak256(abi.encodePacked(funcId))), Pausable_FunctionPause));
+        bytes32 slot = keccak256(abi.encodePacked(bytes4(keccak256(abi.encodePacked(funcId))), uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)));
         assembly {
             sstore(slot, isPaused)
         }

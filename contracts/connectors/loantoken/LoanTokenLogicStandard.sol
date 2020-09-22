@@ -13,6 +13,7 @@ import "./interfaces/FeedsLike.sol";
 
 contract LoanTokenLogicStandard is AdvancedToken {
     using SafeMath for uint256;
+    using SignedSafeMath for int256;
 
     // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wrbtcTokenAddress
     address public sovrynContractAddress;
@@ -74,6 +75,8 @@ contract LoanTokenLogicStandard is AdvancedToken {
         external
         payable
         nonReentrant
+        pausable(msg.sig)
+        settlesInterest
         returns (bytes memory)
     {
         require(borrowAmount != 0, "38");

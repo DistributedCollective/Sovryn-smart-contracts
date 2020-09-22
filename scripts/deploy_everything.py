@@ -20,13 +20,13 @@ Deploys all of the contracts.
 '''
 def main():
     global configData
-    #configData = {} # deploy new tokens
-    
+    configData = {} # deploy new tokens
+    '''
     configData = {
         'WRBTC': '0xA8621C444E97F0074EfCDff8a2fDafD866662c67',
         'SUSD': '0x0589C9f0632CbCF4BBCedbCE63e004653788A3Fd'
     }
-    
+    '''
 
     thisNetwork = network.show_active()
 

@@ -8,15 +8,15 @@ from brownie.network.contract import InterfaceContainer
 
 def main():
     acct = accounts.load("rskdeployer")
-    iSUSD = '0xD1A979EDE2c17FCD31800Bed859e5EC3DA178Cb9'
-    iRBTC = '0x08118a219a4e34E06176cD0861fcDDB865771111'
-    iSUSDSettings = '0x588F22EaeEe37d9BD0174de8e76df9b69D3Ee4eC'
-    iRBTCSettings = '0x99DcD929027a307D76d5ca912Eec1C0aE3FA6DDF'
-    iSUSDLogic = '0x48f96e4e8adb8db5B70538b58DaDE4a89E2F9DF0'
-    iRBTCLogic = '0xCA27bC90C76fc582406fBC4665832753f74A75F5'
-    protocol = '0x74808B7a84327c66bA6C3013d06Ed3DD7664b0D4'
-    testSUSD = '0xE631653c4Dc6Fb98192b950BA0b598f90FA18B3E'
-    testRBTC ='0xE53d858A78D884659BF6955Ea43CBA67c0Ae293F'
+    iSUSD = '0x4a050817d9192A4E4a093ea6426D53417c5Eb1FC'
+    iRBTC = '0x021Bc6f3c101fC1354A212583a5aF0347FE283Cf'
+    iSUSDSettings = '0x5AB2D034C51F8B3656e210b5b6c4bDf539D20850'
+    iRBTCSettings = '0xB8995D07e32c842D86b052359e6a02Ba7eD11Ab7'
+    iSUSDLogic = '0xC82DBFD8504710CFBFC32BBF8BAFa2E1e247B47e'
+    iRBTCLogic = '0xe811c3dde73Adc80baf26a3ff9661231cB677fBC'
+    protocol = '0x6E2fb26a60dA535732F8149b25018C9c0823a715'
+    testSUSD = '0xD958866a46F4e7Db1Cc6A80589D0dc44Cbfb155b'
+    testRBTC ='0x21Fa1095205a37aDe78F394B3B984ea3f743bc70'
     #setPriceFeeds(acct)
     #mintTokens(acct, iSUSD, iRBTC)
     #burnTokens(acct, iSUSD, iRBTC)
@@ -25,8 +25,10 @@ def main():
     #setupLoanTokenRates(acct, iRBTC, iRBTCSettings, iRBTCLogic)
     #lendToPools(acct, iSUSD, iRBTC)
     #removeFromPool(acct, iSUSD, iRBTC)
-    #readLoanTokenState(acct, iSUSD)
-    #readLoanTokenState(acct, iRBTC)
+    print('iSUSD:')
+    readLoanTokenState(acct, iSUSD)
+    print('iRBTC:')
+    readLoanTokenState(acct, iRBTC)
     #readLoan(acct, protocol, '0xde1821f5678c33ca4007474735d910c0b6bb14f3fa0734447a9bd7b75eaf68ae')
     #getTokenPrice(acct, iRBTC)
     #testTokenBurning(acct, iRBTC, testRBTC)
@@ -34,7 +36,7 @@ def main():
     #testTradeOpeningAndClosing(acct, protocol,iSUSD,testSUSD,testRBTC)
     #testBorrow(acct,protocol,iSUSD,testSUSD,testRBTC)
     #setupTorqueLoanParams(acct,iSUSD,iSUSDSettings,testSUSD,testRBTC)
-    rollover(acct, protocol, '0xe87b69a7ce05978fa8822f412b7df567cd641e77dbd99a023baf5193950c7678')
+    #rollover(acct, protocol, '0xe87b69a7ce05978fa8822f412b7df567cd641e77dbd99a023baf5193950c7678')
     #replaceLoanClosings(acct, protocol)
 
 def setPriceFeeds(acct):
