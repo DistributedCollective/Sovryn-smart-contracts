@@ -75,7 +75,7 @@ def margin_pool_setup():
         0 ## fixedLoanTerm -> will be overwritten
     ]
     params.append(setup)
-    calldata = loan_token_settings.setupMarginLoanParams.encode_input(params)
+    calldata = loan_token_settings.setupLoanParams.encode_input(params, False)
     tx = loan_token.updateSettings(loan_token_settings.address, calldata)
 
     print(tx.info())

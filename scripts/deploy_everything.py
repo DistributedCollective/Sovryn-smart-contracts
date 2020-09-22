@@ -4,6 +4,7 @@ from brownie import *
 from scripts.deploy_protocol import deployProtocol
 from scripts.deploy_loanToken import deployLoanTokens
 from scripts.deploy_tokens import deployTokens, readTokens
+from scripts.deploy_multisig import deployMultisig
 
 import shared
 import json
@@ -20,6 +21,9 @@ Deploys all of the contracts.
 '''
 def main():
     global configData
+
+    owners = [accounts[0], accounts[1], accounts[2]]
+    requiredConf=2
     configData = {} # deploy new tokens
     '''
     configData = {
@@ -45,6 +49,8 @@ def main():
     (loanTokenSUSD, loanTokenWRBTC, loanTokenSettingsSUSD,
      loanTokenSettingsWRBTC) = deployLoanTokens(acct, sovryn, tokens)
 
+    deployMultisig(sovryn, acct, owners, requiredConf)
+    
     configData["sovrynProtocol"] = sovryn.address
     configData["WRBTC"] = tokens.wrbtc.address
     configData["SUSD"] = tokens.susd.address
