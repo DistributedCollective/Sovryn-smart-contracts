@@ -43,6 +43,8 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, underlyingTo
     loantoken_after_underlying_token_balance = underlyingToken.balanceOf(loanToken.address)
 
     assert(tx.events['Trade']['borrowedAmount'] == 2 * loan_token_sent)
+    print('positionSize', tx.events['Trade']['positionSize'])
+    print('token balance', sovryn_after_collateral_token_balance)
     assert(tx.events['Trade']['positionSize'] == sovryn_after_collateral_token_balance)
     assert(loan_token_sent*3 - tx.events['Trade']['borrowedAmount'] == loantoken_after_underlying_token_balance)
     
@@ -251,9 +253,10 @@ def internal_test_close_margin_trade(swap_amount, initial_loan, loanToken, loan_
     assert (loan_swap_event['borrower'] == trader)
     print('source token amount used', loan_swap_event['sourceAmount'] )
     print('source token amount expected', source_token_amount_used)
+    print('difference',loan_swap_event['sourceAmount'] - source_token_amount_used)
     #10000 is the source buffer used by the sovryn swap connector
     assert (loan_swap_event['sourceAmount'] - source_token_amount_used <= 10000)
-    assert (fixedint(loan_swap_event['destAmount']).sub(dest_token_amount_received).num <= 100)
+    assert (loan_swap_event['destAmount']>=fixedint(dest_token_amount_received).mul(995).div(1000).num)
 
     tx_loan_closing.info()
     close_with_swap_event = tx_loan_closing.events['CloseWithSwap']
