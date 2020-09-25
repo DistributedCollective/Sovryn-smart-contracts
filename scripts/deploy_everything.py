@@ -28,7 +28,8 @@ def main():
     '''
     configData = {
         'WRBTC': '0x86011104f8442BF8d241Cb5591C793D9f1659099',
-        'SUSD': '0xB76D18404Afa5aA090D4Ad9a971495DeE8b8dF0e'
+        'SUSD': '0xB76D18404Afa5aA090D4Ad9a971495DeE8b8dF0e',
+        'medianizer': '0x667bd3d048FaEBb85bAa0E9f9D87cF4c8CDFE849'
     }
     '''
 
@@ -45,7 +46,12 @@ def main():
         tokens = readTokens(acct, configData['WRBTC'], configData['SUSD'])
     else:
         tokens = deployTokens(acct)
-    sovryn = deployProtocol(acct, tokens)
+        
+    if(not 'medianizer' in configData):
+        medianizer = deployMoCMockup(acct)
+        configData['medianizer'] = medianizer.address
+        
+    sovryn = deployProtocol(acct, tokens, configData['medianizer'])
     (loanTokenSUSD, loanTokenWRBTC, loanTokenSettingsSUSD,
      loanTokenSettingsWRBTC) = deployLoanTokens(acct, sovryn, tokens)
 
@@ -61,3 +67,9 @@ def main():
 
     with open('./scripts/swap_test.json', 'w') as configFile:
         json.dump(configData, configFile)
+
+def deployMoCMockup(acct):
+    priceFeedMockup = acct.deploy(PriceFeedsMoCMockup)
+    priceFeedMockup.setHas(True)
+    priceFeedMockup.setValue(1e22)
+    return priceFeedMockup
