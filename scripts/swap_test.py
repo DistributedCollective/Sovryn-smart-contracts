@@ -43,7 +43,7 @@ def setup():
     loan_token_address = data["loanTokenSUSD"]
     loan_token_settings_address = data["loanTokenSettingsSUSD"]
     SUSD_address = data["SUSD"]
-    RBTC_address = data["RBTC"]
+    RBTC_address = data["WRBTC"]
 
     sovryn = Contract.from_abi("sovryn", address=sovryn_address, abi=interface.ISovryn.abi, owner=acct)
     loan_token = Contract.from_abi("loanToken", address=loan_token_address, abi=LoanTokenLogicStandard.abi, owner=acct)
