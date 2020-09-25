@@ -30,8 +30,17 @@ def deployProtocol(acct, tokens):
     _add_contract(sovryn)
 
     print("Deploying PriceFeeds.")
-    feeds = acct.deploy(PriceFeedsLocal, tokens.wrbtc.address, sovryn.address)
-
+    #feeds = acct.deploy(PriceFeedsLocal, tokens.wrbtc.address, sovryn.address)
+    priceFeedMockup = acct.deploy(PriceFeedsMoCMockup)
+    priceFeedMockup.setHas(True)
+    priceFeedMockup.setValue(1e22)
+    medianizerAddress = priceFeedMockup.address
+    priceFeedMoC = acct.deploy(PriceFeedsMoC, medianizerAddress)
+    #2nd address should actually be the protocol token address, not the protocol address
+    feeds = acct.deploy(PriceFeeds, tokens.wrbtc.address, sovryn.address, tokens.susd.address)
+    feeds.setPriceFeed([tokens.wrbtc.address], [priceFeedMoC.address])
+    
+    '''
     print("Calling setRates.")
 
     feeds.setRates(
@@ -39,7 +48,7 @@ def deployProtocol(acct, tokens):
         tokens.susd.address,
         1e22
     )
-
+    '''
 
     print("Deploying ProtocolSettings.")
     settings = acct.deploy(ProtocolSettings)
