@@ -40,14 +40,17 @@ def deployProtocol(acct, tokens):
         1e22
     )
 
-    print("Deploying Swaps.")
-    swaps = acct.deploy(SwapsImplLocal)
-
 
     print("Deploying ProtocolSettings.")
     settings = acct.deploy(ProtocolSettings)
     print("Calling replaceContract.")
     sovryn.replaceContract(settings.address)
+    
+    print("Deploying Swaps.")
+    swaps = acct.deploy(SwapsImplSovrynSwap)
+    sovrynSwapSimulator = acct.deploy(TestSovrynSwap, feeds.address)
+    sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address)
+    sovryn.setSupportedTokens([tokens.susd.address, tokens.wrbtc.address],[True, True])
 
     print("Calling setPriceFeedContract.")
     sovryn.setPriceFeedContract(
