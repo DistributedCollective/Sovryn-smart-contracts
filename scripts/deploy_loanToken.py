@@ -12,7 +12,6 @@ if deploying separetly, the addresses of the existing contracts need to be set.
 def main():
     wrbtcAddress = '0xc90bB9fEee164263709336C7e5E9F8e540fA3C6D'
     susdAddress = '0xE631653c4Dc6Fb98192b950BA0b598f90FA18B3E'
-    rbtcAddress = '0xE53d858A78D884659BF6955Ea43CBA67c0Ae293F'
     protocolAddress = '0xBAC609F5C8bb796Fa5A31002f12aaF24B7c35818'
 
     thisNetwork = network.show_active()
@@ -27,34 +26,41 @@ def main():
     tokens = Munch()
     tokens.wrbtc = Contract.from_abi("TestWrbtc", address = wrbtcAddress, abi = TestToken.abi, owner = acct)
     tokens.susd = Contract.from_abi("TestToken", address = susdAddress, abi = TestToken.abi, owner = acct)
-    tokens.rbtc = Contract.from_abi("TestToken", address = rbtcAddress, abi = TestToken.abi, owner = acct)
     sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
 
     deployLoanTokens(acct, sovryn, tokens)
 
+'''
+Deploys and tests the two loan tokenn contracts
+'''
 def deployLoanTokens(acct, sovryn, tokens):
 
     print('\n DEPLOYING ISUSD')
-    (contractSUSD, loanTokenSettingsSUSD) = deployLoanToken(acct, sovryn, tokens.susd.address, "SUSD", "SUSD", tokens.rbtc.address, tokens.wrbtc.address)
-
+    (contractSUSD, loanTokenSettingsSUSD) = deployLoanToken(acct, sovryn, tokens.susd.address, "iSUSD", "iSUSD", tokens.wrbtc.address, tokens.wrbtc.address)
     print("initializing the lending pool with some tokens, so we do not run out of funds")
-    tokens.susd.approve(contractSUSD.address,1e24) #1M $
-    contractSUSD.mint(acct, 1e24)
-    testDeployment(acct, sovryn,contractSUSD.address, tokens.susd, tokens.rbtc)
-
-    print('\n DEPLOYING IRBTC')
-    (contractRBTC, loanTokenSettingsRBTC) = deployLoanToken(acct, sovryn, tokens.rbtc.address, "RBTC", "RBTC", tokens.susd.address, tokens.wrbtc.address)
+    tokens.susd.approve(contractSUSD.address,1e22) #10k $
+    contractSUSD.mint(acct, 1e22)
+    testDeployment(acct, sovryn,contractSUSD.address, tokens.susd, tokens.wrbtc, 100e18, 0)
+    
+    print('\n DEPLOYING IWRBTC')
+    (contractWRBTC, loanTokenSettingsWRBTC) = deployLoanToken(acct, sovryn, tokens.wrbtc.address, "iWRBTC", "iWRBTC", tokens.susd.address, tokens.wrbtc.address)
     print("initializing the lending pool with some tokens, so we do not run out of funds")
-    tokens.rbtc.approve(contractRBTC.address,1e20) #100 BTC
-    contractRBTC.mint(acct, 1e20)
-    testDeployment(acct, sovryn, contractRBTC.address, tokens.rbtc, tokens.susd)
+    contractWRBTC = Contract.from_abi("loanToken", address=contractWRBTC.address, abi=LoanTokenLogicWrbtc.abi, owner=acct)
+    contractWRBTC.mintWithBTC(acct, {'value':1e18})#1 BTC
+    testDeployment(acct, sovryn, contractWRBTC.address, tokens.wrbtc, tokens.susd, 1e17, 1e17)
 
-    return (contractSUSD, contractRBTC, loanTokenSettingsSUSD, loanTokenSettingsRBTC)
+    return (contractSUSD, contractWRBTC, loanTokenSettingsSUSD, loanTokenSettingsWRBTC)
 
+'''
+Deploys a single loan token contract and sets it up
+'''
 def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddress, wrbtcAddress):
     
     print("Deploying LoanTokenLogicStandard")
-    loanTokenLogic = acct.deploy(LoanTokenLogicStandard)
+    if(loanTokenSymbol == 'iWRBTC'):
+        loanTokenLogic = acct.deploy(LoanTokenLogicWrbtc)
+    else:
+        loanTokenLogic = acct.deploy(LoanTokenLogicStandard)
     _add_contract(loanTokenLogic)
 
 
@@ -141,10 +147,13 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
 
     return (loanToken, loanTokenSettings)
 
+'''
+sets up the interest rates
+'''
 def setupLoanTokenRates(acct, loanTokenAddress, settingsAddress, logicAddress):
-    baseRate = 1e18
-    rateMultiplier = 20.25e18
-    targetLevel=80*10**18
+    baseRate = 5e17
+    rateMultiplier = 10e18
+    targetLevel=0
     kinkLevel=90*10**18
     maxScaleRate=100*10**18
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
@@ -156,26 +165,28 @@ def setupLoanTokenRates(acct, loanTokenAddress, settingsAddress, logicAddress):
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     borrowInterestRate = localLoanToken.borrowInterestRate()
     print("borrowInterestRate: ",borrowInterestRate)
-
-
-def testDeployment(acct, sovryn, loanTokenAddress, underlyingToken, collateralToken):
+    
+'''
+test the loan token contract by entering and closing a trade position
+'''
+def testDeployment(acct, sovryn, loanTokenAddress, underlyingToken, collateralToken, loanTokenSent, value):
 
     print('\n TESTING THE DEPLOYMENT')
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
-
-
-    loanTokenSent = 1e18
-    underlyingToken.mint(acct,loanTokenSent)
-    underlyingToken.approve(loanToken.address, loanTokenSent)
-
+    
+    if(value == 0):
+        underlyingToken.approve(loanToken.address, loanTokenSent)
+    
+    
     tx = loanToken.marginTrade(
         "0", #loanId  (0 for new loans)
         2e18, # leverageAmount
         loanTokenSent, #loanTokenSent
         0, # no collateral token sent
         collateralToken.address, #collateralTokenAddress
-        acct, #trader,
-        b'' #loanDataBytes (only required with ether)
+        acct, #trader, 
+        b'', #loanDataBytes (only required with ether)
+        {'value': value}
     )
 
     loanId = tx.events['Trade']['loanId']

@@ -166,8 +166,9 @@ def lend_to_pool_iBTC(accounts, SUSD, loanTokenWRBTC):
 
 
 @pytest.fixture
-def open_margin_trade_position(accounts, SUSD, RBTC, loanToken):
-    def internal_open_margin_trade(trader=accounts[1],
+def open_margin_trade_position(accounts, SUSD, RBTC, WRBTC, loanToken):
+    def internal_open_margin_trade(collateral = 'RBTC',
+                                    trader=accounts[1],
                                    loan_token_sent=100e18,
                                    leverage_amount=2e18):
         """
@@ -179,6 +180,11 @@ def open_margin_trade_position(accounts, SUSD, RBTC, loanToken):
         """
         SUSD.mint(trader, loan_token_sent)
         SUSD.approve(loanToken.address, loan_token_sent, {'from': trader})
+        
+        if(collateral == 'RBTC'): 
+            collateralToken = RBTC.address
+        else:
+            collateralToken = WRBTC.address
 
         tx = loanToken.marginTrade(
             "0",  # loanId  (0 for new loans)

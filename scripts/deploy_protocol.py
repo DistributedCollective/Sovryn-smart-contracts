@@ -20,39 +20,20 @@ def main():
 
     deployProtocol(acct)
 
-def deployProtocol(acct):
+def deployProtocol(acct, tokens):
 
     constants = shared.Constants()
-
-    tokens = Munch()
 
     print("Deploying sovrynProtocol.")
     sovrynproxy = acct.deploy(sovrynProtocol)
     sovryn = Contract.from_abi("sovryn", address=sovrynproxy.address, abi=interface.ISovryn.abi, owner=acct)
     _add_contract(sovryn)
 
-
-    print("Deploying test tokens.")
-    tokens.wrbtc = acct.deploy(TestWrbtc) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
-    tokens.susd = acct.deploy(TestToken, "SUSD", "SUSD", 18, 1e50)
-    tokens.rbtc = acct.deploy(TestToken, "RBTC", "RBTC", 18, 1e50)
-
-
-
     print("Deploying PriceFeeds.")
     feeds = acct.deploy(PriceFeedsLocal, tokens.wrbtc.address, sovryn.address)
 
     print("Calling setRates.")
-    feeds.setRates(
-        tokens.rbtc.address,
-        tokens.susd.address,
-        1e22 #1btc = 10000 susd
-    )
-    feeds.setRates(
-        tokens.wrbtc.address,
-        tokens.rbtc.address,
-        1e18
-    )
+
     feeds.setRates(
         tokens.wrbtc.address,
         tokens.susd.address,
@@ -69,7 +50,7 @@ def deployProtocol(acct):
     swaps = acct.deploy(SwapsImplSovrynSwap)
     sovrynSwapSimulator = acct.deploy(TestSovrynSwap, feeds.address)
     sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address)
-    sovryn.setSupportedTokens([tokens.susd.address,tokens.rbtc.address, tokens.wrbtc.address],[True,True, True])
+    sovryn.setSupportedTokens([tokens.susd.address, tokens.wrbtc.address],[True, True])
 
     print("Calling setPriceFeedContract.")
     sovryn.setPriceFeedContract(
@@ -110,4 +91,4 @@ def deployProtocol(acct):
     print("Calling replaceContract.")
     sovryn.replaceContract(loanClosings.address)
 
-    return (sovryn, tokens)
+    return sovryn
