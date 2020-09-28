@@ -22,16 +22,16 @@ Deploys all of the contracts.
 def main():
     global configData
 
-    owners = [accounts[0], accounts[1], accounts[2]]
+    #owners = [accounts[0], accounts[1], accounts[2]]
     requiredConf=2
     configData = {} # deploy new tokens
-    '''
+    
     configData = {
-        'WRBTC': '0x86011104f8442BF8d241Cb5591C793D9f1659099',
-        'SUSD': '0xB76D18404Afa5aA090D4Ad9a971495DeE8b8dF0e',
+        'WRBTC': '0x69FE5cEC81D5eF92600c1A0dB1F11986AB3758Ab',
+        'SUSD': '0xCb46C0DdC60d18eFEB0e586c17AF6Ea36452DaE0',
         'medianizer': '0x667bd3d048FaEBb85bAa0E9f9D87cF4c8CDFE849'
     }
-    '''
+    
 
     thisNetwork = network.show_active()
 
@@ -71,5 +71,5 @@ def main():
 def deployMoCMockup(acct):
     priceFeedMockup = acct.deploy(PriceFeedsMoCMockup)
     priceFeedMockup.setHas(True)
-    priceFeedMockup.setValue(1e22)
+    priceFeedMockup.setValue(11653e18)
     return priceFeedMockup
