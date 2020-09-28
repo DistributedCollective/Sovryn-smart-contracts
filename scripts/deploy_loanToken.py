@@ -34,20 +34,22 @@ def main():
 Deploys and tests the two loan tokenn contracts
 '''
 def deployLoanTokens(acct, sovryn, tokens):
-
+    
     print('\n DEPLOYING ISUSD')
     (contractSUSD, loanTokenSettingsSUSD) = deployLoanToken(acct, sovryn, tokens.susd.address, "iSUSD", "iSUSD", tokens.wrbtc.address, tokens.wrbtc.address)
     print("initializing the lending pool with some tokens, so we do not run out of funds")
     tokens.susd.approve(contractSUSD.address,1e22) #10k $
     contractSUSD.mint(acct, 1e22)
-    testDeployment(acct, sovryn,contractSUSD.address, tokens.susd, tokens.wrbtc, 100e18, 0)
+    if(network.show_active() == "development")
+        testDeployment(acct, sovryn,contractSUSD.address, tokens.susd, tokens.wrbtc, 100e18, 0)
     
     print('\n DEPLOYING IWRBTC')
     (contractWRBTC, loanTokenSettingsWRBTC) = deployLoanToken(acct, sovryn, tokens.wrbtc.address, "iWRBTC", "iWRBTC", tokens.susd.address, tokens.wrbtc.address)
     print("initializing the lending pool with some tokens, so we do not run out of funds")
     contractWRBTC = Contract.from_abi("loanToken", address=contractWRBTC.address, abi=LoanTokenLogicWrbtc.abi, owner=acct)
     contractWRBTC.mintWithBTC(acct, {'value':1e18})#1 BTC
-    testDeployment(acct, sovryn, contractWRBTC.address, tokens.wrbtc, tokens.susd, 1e17, 1e17)
+    if(network.show_active() == "development")
+        testDeployment(acct, sovryn, contractWRBTC.address, tokens.wrbtc, tokens.susd, 1e17, 1e17)
 
     return (contractSUSD, contractWRBTC, loanTokenSettingsSUSD, loanTokenSettingsWRBTC)
 
@@ -188,6 +190,7 @@ def testDeployment(acct, sovryn, loanTokenAddress, underlyingToken, collateralTo
         b'', #loanDataBytes (only required with ether)
         {'value': value}
     )
+    tx.info()
 
     loanId = tx.events['Trade']['loanId']
     collateral = tx.events['Trade']['positionSize']

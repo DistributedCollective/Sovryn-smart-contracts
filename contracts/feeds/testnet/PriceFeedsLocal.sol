@@ -17,17 +17,10 @@ contract PriceFeedsLocal is PriceFeeds {
     constructor(
         address _wrbtcTokenAddress,
         address _protocolTokenAddress)
-    PriceFeeds(_wrbtcTokenAddress, _protocolTokenAddress)
+    PriceFeeds(_wrbtcTokenAddress, _protocolTokenAddress,_wrbtcTokenAddress)
     public
     {}
 
-    function _getFastGasPrice()
-        internal
-        view
-        returns (uint256 gasPrice)
-    {
-        return 10 * 10**9;
-    }
 
     function _queryRate(
         address sourceToken,

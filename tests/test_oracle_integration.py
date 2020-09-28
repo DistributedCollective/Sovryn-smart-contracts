@@ -26,17 +26,21 @@ def set_oracle(PriceFeedsMoC, BZRX, PriceFeeds, WRBTC, accounts, sovryn, swapsIm
 
 
 @pytest.fixture()
-def pice_feed_moc_mockup(PriceFeedsMoCMockup):
-    price_feeds_moc_mockup = PriceFeedsMoCMockup
+def pice_feed_moc_mockup(accounts, PriceFeedsMoCMockup):
+    price_feeds_moc_mockup = accounts[0].deploy(PriceFeedsMoCMockup)
     price_feeds_moc_mockup.setHas(True)
-    price_feeds_moc_mockup.setValue()
+    price_feeds_moc_mockup.setValue(1e22)
+    return price_feeds_moc_mockup
 
 
-def test_moc_oracle_integration(set_oracle, BZRX, WRBTC):
-    price_feeds, _ = set_oracle()
+def test_moc_oracle_integration(set_oracle, BZRX, WRBTC, pice_feed_moc_mockup):
+    price_feeds,  price_feeds_moc = set_oracle(pice_feed_moc_mockup.address)
 
     res = price_feeds.queryPrecision(BZRX.address, WRBTC.address)
-    assert(res > 0)
+    assert(res == 1e18)
+    
+    res = price_feeds_moc.latestAnswer()
+    assert(res == 1e22)
 
 
 def test_set_moc_oracle_address(set_oracle, accounts, BZRX):

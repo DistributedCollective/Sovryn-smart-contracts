@@ -8,8 +8,10 @@ pragma solidity 0.5.17;
 import "../interfaces/IWrbtcERC20.sol";
 import "../openzeppelin/Address.sol";
 
+
 contract Constants {
     IWrbtcERC20 public wrbtcToken;
+    IWrbtcERC20 public baseToken;
     address internal protocolTokenAddress;
 
     function _setWrbtcToken(
@@ -26,5 +28,13 @@ contract Constants {
     {
         require(Address.isContract(_protocolTokenAddress), "_protocolTokenAddress not a contract");
         protocolTokenAddress = _protocolTokenAddress;
+    }
+    
+    function _setBaseToken(
+        address _baseTokenAddress) 
+        internal
+    {
+        require(Address.isContract(_baseTokenAddress), "_baseTokenAddress not a contract");
+        baseToken = IWrbtcERC20(_baseTokenAddress);
     }
 }

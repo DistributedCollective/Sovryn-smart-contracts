@@ -32,7 +32,8 @@ contract PriceFeeds is Constants, Ownable {
 
     constructor(
         address _wrbtcTokenAddress,
-        address _protocolTokenAddress)
+        address _protocolTokenAddress,
+        address _baseTokenAddress)
         public
     {
         // set decimals for ether
@@ -40,6 +41,7 @@ contract PriceFeeds is Constants, Ownable {
         decimals[_wrbtcTokenAddress] = 18;
         _setWrbtcToken(_wrbtcTokenAddress);
         _setProtocolTokenAddress(_protocolTokenAddress);
+        _setBaseToken(_baseTokenAddress);
     }
 
     function queryRate(
@@ -266,25 +268,8 @@ contract PriceFeeds is Constants, Ownable {
 
         return currentMargin <= maintenanceMargin;
     }
+    
 
-    function getFastGasPrice(
-        address payToken)
-        external
-        view
-        returns (uint256)
-    {
-        uint256 gasPrice = _getFastGasPrice();
-        if (payToken != address(wrbtcToken) && payToken != address(0)) {
-            (uint256 rate, uint256 precision) = _queryRate(
-                address(wrbtcToken),
-                payToken
-            );
-            gasPrice = gasPrice
-                .mul(rate)
-                .div(precision);
-        }
-        return gasPrice;
-    }
 
 
     /*
@@ -353,7 +338,7 @@ contract PriceFeeds is Constants, Ownable {
 
         if (sourceToken != destToken) {
             uint256 sourceRate;
-            if (sourceToken != address(wrbtcToken) && sourceToken != protocolTokenAddress) {
+            if (sourceToken != address(baseToken) && sourceToken != protocolTokenAddress) {
                 IPriceFeedsExt _sourceFeed = pricesFeeds[sourceToken];
                 require(address(_sourceFeed) != address(0), "unsupported src feed");
                 sourceRate = _sourceFeed.latestAnswer();
@@ -365,7 +350,7 @@ contract PriceFeeds is Constants, Ownable {
             }
 
             uint256 destRate;
-            if (destToken != address(wrbtcToken) && destToken != protocolTokenAddress) {
+            if (destToken != address(baseToken) && destToken != protocolTokenAddress) {
                 IPriceFeedsExt _destFeed = pricesFeeds[destToken];
                 require(address(_destFeed) != address(0), "unsupported dst feed");
                 destRate = _destFeed.latestAnswer();
@@ -412,13 +397,5 @@ contract PriceFeeds is Constants, Ownable {
         }
     }
 
-    function _getFastGasPrice()
-        internal
-        view
-        returns (uint256 gasPrice)
-    {
-        gasPrice = pricesFeeds[address(1)].latestAnswer()
-            .mul(10**9);
-        require(gasPrice != 0 && (gasPrice >> 128) == 0, "gas price error");
-    }
+
 }
