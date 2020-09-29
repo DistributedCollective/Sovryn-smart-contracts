@@ -85,7 +85,7 @@ def test_rollover(accounts, chain, loanToken, set_demand_curve, sovryn, priceFee
     assert(loan_swap_event['borrower'] == borrower)
     #source buffer = 10000 in sovryn swap connector
     assert(fixedint(loan_swap_event['sourceAmount']).sub(interest_unpaid).add(trading_fee).mul(precision).div(trade_rate).num <= 10000)
-    assert(loan_swap_event['destAmount'] == interest_unpaid)
+    assert(loan_swap_event['destAmount'] >= interest_unpaid)
 
 
 """
@@ -115,4 +115,4 @@ def test_rollover_reward_payment(accounts, chain, loanToken, set_demand_curve, s
     # end_collateral = initial_loan['collateral'] - source_token_amount_used - rollover_reward
     rollover_reward = initial_loan['collateral'] - source_token_amount_used - end_loan['collateral']
 
-    assert(RBTC.balanceOf(receiver) == rollover_reward)
+    assert(RBTC.balanceOf(receiver) >= rollover_reward)

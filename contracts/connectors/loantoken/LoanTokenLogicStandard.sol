@@ -1086,46 +1086,50 @@ contract LoanTokenLogicStandard is AdvancedToken {
             assetSupply
         );
 
-        uint256 minRate;
-        uint256 maxRate;
+        uint256 thisMinRate;
+        uint256 thisMaxRate;
         uint256 thisBaseRate = baseRate;
         uint256 thisRateMultiplier = rateMultiplier;
+        uint256 thisTargetLevel = targetLevel;
+        uint256 thisKinkLevel = kinkLevel;
+        uint256 thisMaxScaleRate = maxScaleRate;
 
-        if (utilRate < 80 ether) {
-            // target 80% utilization when utilization is under 80%
-            utilRate = 80 ether;
+        if (utilRate < thisTargetLevel) {
+            // target targetLevel utilization when utilization is under targetLevel
+            utilRate = thisTargetLevel;
         }
 
-        if (utilRate > 90 ether) {
+        if (utilRate > thisKinkLevel) {
             // scale rate proportionally up to 100%
+            uint256 thisMaxRange = WEI_PERCENT_PRECISION - thisKinkLevel; // will not overflow
 
-            utilRate = utilRate.sub(90 ether);
-            if (utilRate > 10 ether)
-                utilRate = 10 ether;
+            utilRate -= thisKinkLevel;
+            if (utilRate > thisMaxRange)
+                utilRate = thisMaxRange;
 
-            maxRate = thisRateMultiplier
+            thisMaxRate = thisRateMultiplier
                 .add(thisBaseRate)
-                .mul(90)
-                .div(100);
+                .mul(thisKinkLevel)
+                .div(WEI_PERCENT_PRECISION);
 
             nextRate = utilRate
-                .mul(SafeMath.sub(100 ether, maxRate))
-                .div(10 ether)
-                .add(maxRate);
+                .mul(SafeMath.sub(thisMaxScaleRate, thisMaxRate))
+                .div(thisMaxRange)
+                .add(thisMaxRate);
         } else {
             nextRate = utilRate
                 .mul(thisRateMultiplier)
-                .div(10**20)
+                .div(WEI_PERCENT_PRECISION)
                 .add(thisBaseRate);
 
-            minRate = thisBaseRate;
-            maxRate = thisRateMultiplier
+            thisMinRate = thisBaseRate;
+            thisMaxRate = thisRateMultiplier
                 .add(thisBaseRate);
 
-            if (nextRate < minRate)
-                nextRate = minRate;
-            else if (nextRate > maxRate)
-                nextRate = maxRate;
+            if (nextRate < thisMinRate)
+                nextRate = thisMinRate;
+            else if (nextRate > thisMaxRate)
+                nextRate = thisMaxRate;
         }
     }
 
