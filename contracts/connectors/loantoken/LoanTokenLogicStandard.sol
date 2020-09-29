@@ -307,17 +307,17 @@ contract LoanTokenLogicStandard is AdvancedToken {
         }
 
         uint256 _balancesFrom = balances[_from];
-        uint256 _balancesTo = balances[_to];
-
         require(_value <= _balancesFrom &&
             _to != address(0),
             "14"
         );
-
+        
+        
         uint256 _balancesFromNew = _balancesFrom
             .sub(_value);
         balances[_from] = _balancesFromNew;
-
+        
+        uint256 _balancesTo = balances[_to];
         uint256 _balancesToNew = _balancesTo
             .add(_value);
         balances[_to] = _balancesToNew;

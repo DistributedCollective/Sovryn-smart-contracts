@@ -40,6 +40,14 @@ def test_transfer_with_insufficient_balance(accounts, loanToken, SUSD):
     with reverts("14"):
         loanToken.transfer(sender, amount_sent, {'from': receiver})
 
+def test_transfer_to_self(accounts, loanToken, SUSD):
+    #prepare the transfer by mintinng some tokens
+    amount_sent, _ , sender = initialize_test_transfer(SUSD, accounts, loanToken)
+    initial_balance = loanToken.balanceOf(sender)
+    #transfer the tokens to the sender
+    tx = loanToken.transfer(sender, amount_sent)
+    assert(loanToken.balanceOf(sender) == initial_balance)
+    
 
 def initialize_test_transfer(SUSD, accounts, loanToken):
     sender = accounts[0]
