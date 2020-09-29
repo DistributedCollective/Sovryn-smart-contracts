@@ -432,7 +432,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         external
         onlyOwner
     {
-        require(Address.isContract(registryAddress), "registryAddress not a contract");
+        require(AddressSovryn.isContract(registryAddress), "registryAddress not a contract");
 
         address oldSovrynSwapContractRegistryAddress = sovrynSwapContractRegistryAddress;
         sovrynSwapContractRegistryAddress = registryAddress;
@@ -446,7 +446,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         external
         onlyOwner
     {
-        require(Address.isContract(wrbtcTokenAddress), "wrbtcTokenAddress not a contract");
+        require(AddressSovryn.isContract(wrbtcTokenAddress), "wrbtcTokenAddress not a contract");
 
         address oldwrbtcToken = address(wrbtcToken);
         wrbtcToken = IWrbtcERC20(wrbtcTokenAddress);
@@ -459,7 +459,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         external
         onlyOwner
     {
-        require(Address.isContract(_protocolTokenAddress), "_protocolTokenAddress not a contract");
+        require(AddressSovryn.isContract(_protocolTokenAddress), "_protocolTokenAddress not a contract");
 
         address oldProtocolTokenAddress = protocolTokenAddress;
         protocolTokenAddress = _protocolTokenAddress;

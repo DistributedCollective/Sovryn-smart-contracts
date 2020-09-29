@@ -61,7 +61,7 @@ contract LoanToken is AdvancedTokenStorage {
         address _newTarget)
         internal
     {
-        require(Address.isContract(_newTarget), "target not a contract");
+        require(AddressSovryn.isContract(_newTarget), "target not a contract");
         target_ = _newTarget;
     }
 
@@ -69,7 +69,7 @@ contract LoanToken is AdvancedTokenStorage {
         address _sovrynContractAddress)
         internal
     {
-        require(Address.isContract(_sovrynContractAddress), "sovryn not a contract");
+        require(AddressSovryn.isContract(_sovrynContractAddress), "sovryn not a contract");
         sovrynContractAddress = _sovrynContractAddress;
     }
 
@@ -77,7 +77,7 @@ contract LoanToken is AdvancedTokenStorage {
         address _wrbtcTokenAddress)
         internal
     {
-        require(Address.isContract(_wrbtcTokenAddress), "wrbtc not a contract");
+        require(AddressSovryn.isContract(_wrbtcTokenAddress), "wrbtc not a contract");
         wrbtcTokenAddress = _wrbtcTokenAddress;
     }
     

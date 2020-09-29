@@ -9,7 +9,7 @@ import "../../openzeppelin/SignedSafeMath.sol";
 import "../../openzeppelin/SafeMathSovryn.sol";
 import "../../openzeppelin/ReentrancyGuard.sol";
 import "../../openzeppelin/Ownable.sol";
-import "../../openzeppelin/Address.sol";
+import "../../openzeppelin/AddressSovryn.sol";
 import "../../interfaces/IWrbtcERC20.sol";
 
 contract LoanTokenBase is ReentrancyGuard, Ownable {

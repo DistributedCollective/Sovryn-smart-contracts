@@ -753,7 +753,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
                 }
                 if (msg.value > principalNeeded) {
                     // refund overage
-                    Address.sendValue(
+                    AddressSovryn.sendValue(
                         msg.sender,
                         msg.value - principalNeeded
                     );

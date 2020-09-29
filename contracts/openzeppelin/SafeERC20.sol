@@ -2,7 +2,7 @@
 pragma solidity >=0.5.0 <0.6.0;
 
 import "./SafeMathSovryn.sol";
-import "./Address.sol";
+import "./AddressSovryn.sol";
 import "../interfaces/IERC20Sovryn.sol";
 
 
@@ -17,7 +17,7 @@ import "../interfaces/IERC20Sovryn.sol";
  */
 library SafeERC20 {
     using SafeMathSovryn for uint256;
-    using Address for address;
+    using AddressSovryn for address;
 
     function safeTransfer(IERC20Sovryn token, address to, uint256 value) internal {
         callOptionalReturn(token, abi.encodeWithSelector(token.transfer.selector, to, value));

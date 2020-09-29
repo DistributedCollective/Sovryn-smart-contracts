@@ -1271,7 +1271,7 @@ contract LoanTokenLogicStandard is AdvancedToken {
         public
         onlyOwner
     {
-        require(Address.isContract(_earlyAccessTokenAddress), "");
+        require(AddressSovryn.isContract(_earlyAccessTokenAddress), "");
 
         address oldEarlyAccessToken = earlyAccessToken;
         earlyAccessToken = _earlyAccessTokenAddress;

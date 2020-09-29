@@ -49,7 +49,7 @@ contract VaultController is State {
             if (value > balance) {
                 _wrbtcToken.withdraw(value - balance);
             }
-            Address.sendValue(to, value);
+            AddressSovryn.sendValue(to, value);
 
             emit VaultWithdraw(
                 address(_wrbtcToken),

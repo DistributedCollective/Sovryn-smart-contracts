@@ -11,7 +11,7 @@ def early_access_token(accounts, EarlyAccessToken):
 
     # Mint 1 token to all address to not modify a lot of tests
     for account in accounts:
-        early_access_token.mint(account, 1)
+        early_access_token.mint(account)
 
     print(early_access_token)
     return early_access_token

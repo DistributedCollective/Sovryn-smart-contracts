@@ -1,7 +1,7 @@
 pragma solidity 0.5.17;
 
 import "../PriceFeeds.sol";
-import "../../openzeppelin/Address.sol";
+import "../../openzeppelin/AddressSovryn.sol";
 
 interface Medianizer {
     function peek() external view returns (bytes32, bool);
@@ -35,7 +35,7 @@ contract PriceFeedsMoC is IPriceFeedsExt, Ownable {
         public
         onlyOwner
     {
-        require(Address.isContract(_mocOracleAddress), "_mocOracleAddress not a contract");
+        require(AddressSovryn.isContract(_mocOracleAddress), "_mocOracleAddress not a contract");
         mocOracleAddress = _mocOracleAddress;
         emit SetMoCOracleAddress(mocOracleAddress, msg.sender);
     }

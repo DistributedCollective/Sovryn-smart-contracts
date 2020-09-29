@@ -211,8 +211,9 @@ def test_borrow_without_early_access_token_should_fail(accounts,loanToken,sovryn
     lend_to_pool()
     set_demand_curve()
 
-    # sender should have balance 0
-    early_access_token.transfer(accounts[1], early_access_token.balanceOf(accounts[0]))
+    # sender should have balance 0, first token-id = 1
+    early_access_token.transferFrom(accounts[0], accounts[1], 1)
+    
 
     # determine borrowing parameter
     withdrawAmount = 10e18 #i want to borrow 10 USD

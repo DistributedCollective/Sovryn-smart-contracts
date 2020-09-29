@@ -81,7 +81,9 @@ def test_close_partial_margin_trade(sovryn, loanToken, web3, set_demand_curve, l
 
 
 def test_margin_trading_without_early_access_token_should_fail(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain, early_access_token):
-    early_access_token.transfer(accounts[1], early_access_token.balanceOf(accounts[0]))
+    # sender should have balance 0, first token-id = 1
+    early_access_token.transferFrom(accounts[0], accounts[1], 1)
+    
 
     with reverts("No early access tokens"):
         margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain, False)
