@@ -8,9 +8,10 @@ Note: close with swap is tested in loanToken/trading
 '''
 
 import pytest
-from brownie import Contract, Wei, reverts
+from brownie import reverts
 from fixedint import *
-import shared
+from helpers import decode_log
+from loanToken.sov_reward import verify_sov_reward_payment
 
 """
 Test CloseWithDeposit event parameters
@@ -19,7 +20,8 @@ Test refund interest to receiver
 Test loan update
 Test returning principal to lender with deposit
 """
-def test_full_close_with_deposit(sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position, SUSD, RBTC, loanToken, priceFeeds, chain, accounts, LoanClosingsEvents):
+def test_full_close_with_deposit(sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position, SUSD, RBTC,
+                                 loanToken, priceFeeds, chain, accounts, LoanClosingsEvents, FeesEvents, SOV):
 
     borrower = accounts[3]
     receiver = accounts[4]
@@ -39,7 +41,8 @@ def test_full_close_with_deposit(sovryn, set_demand_curve, lend_to_pool, open_ma
     deposit_amount = principal
 
     internal_test_close_with_deposit(deposit_amount, RBTC, SUSD, borrower, chain, collateral, initial_loan,
-                                     initial_loan_interest, loanToken, loan_id, priceFeeds, principal, receiver, sovryn, LoanClosingsEvents)
+                                     initial_loan_interest, loanToken, loan_id, priceFeeds, principal, receiver,
+                                     sovryn, LoanClosingsEvents, FeesEvents, SOV)
 
 
 """
@@ -49,7 +52,8 @@ Test refund interest to receiver
 Test loan update
 Test returning principal to lender with deposit
 """
-def test_partial_close_with_deposit(sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position, SUSD, RBTC, loanToken, priceFeeds, chain, accounts, LoanClosingsEvents):
+def test_partial_close_with_deposit(sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position, SUSD, RBTC,
+                                    loanToken, priceFeeds, chain, accounts, LoanClosingsEvents, FeesEvents, SOV):
 
     borrower = accounts[3]
     receiver = accounts[4]
@@ -68,7 +72,8 @@ def test_partial_close_with_deposit(sovryn, set_demand_curve, lend_to_pool, open
 
     deposit_amount = principal // 2
     internal_test_close_with_deposit(deposit_amount, RBTC, SUSD, borrower, chain, collateral, initial_loan,
-                                     initial_loan_interest, loanToken, loan_id, priceFeeds, principal, receiver, sovryn, LoanClosingsEvents)
+                                     initial_loan_interest, loanToken, loan_id, priceFeeds, principal, receiver,
+                                     sovryn, LoanClosingsEvents, FeesEvents, SOV)
 
 
 def test_close_with_zero_deposit_should_fail(sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position, chain, accounts):
@@ -87,10 +92,13 @@ def test_close_with_zero_deposit_should_fail(sovryn, set_demand_curve, lend_to_p
 
 
 def internal_test_close_with_deposit(deposit_amount, RBTC, SUSD, borrower, chain, collateral, initial_loan,
-                                     initial_loan_interest, loanToken, loan_id, priceFeeds, principal, receiver, sovryn, LoanClosingsEvents):
+                                     initial_loan_interest, loanToken, loan_id, priceFeeds, principal, receiver,
+                                     sovryn, LoanClosingsEvents, FeesEvents, SOV):
     SUSD.mint(borrower, deposit_amount)
     SUSD.approve(sovryn.address, deposit_amount, {'from': borrower})
     (rate, precision) = priceFeeds.queryRate(initial_loan['collateralToken'], initial_loan['loanToken'])
+
+    sov_borrower_initial_balance = SOV.balanceOf(borrower)
 
     tx = sovryn.closeWithDeposit(loan_id, receiver, deposit_amount, {'from': borrower})
     tx.info()
@@ -115,51 +123,19 @@ def internal_test_close_with_deposit(deposit_amount, RBTC, SUSD, borrower, chain
         else interest_refund_to_borrower_1 - loan_close_amount
 
     # Test CloseWithDeposit event parameters
-    if 'CloseWithDeposit' in tx.events:
-        close_event = tx.events['CloseWithDeposit']
-        assert (close_event['user'] == borrower)
-        assert (close_event['lender'] == loanToken.address)
-        assert (close_event['loanId'] == loan_id)
-        assert (close_event['closer'] == borrower)
-        assert (close_event['loanToken'] == initial_loan['loanToken'])
-        assert (close_event['collateralToken'] == initial_loan['collateralToken'])
-        assert (close_event['repayAmount'] == loan_close_amount)
-        assert (close_event['collateralWithdrawAmount'] == withdraw_amount)
-        assert (close_event['collateralToLoanRate'] == collateral_to_loan_rate)
-        assert (close_event['currentMargin'] == current_margin)
-    else:
-        # When all the tests are run, the event is not recognized so we have to decode it manually
-        # filter all events with topic equals to CloseWithDeposit in '(unknown)' events list
-        close_events = list(
-            filter(lambda tx_: tx_['topic1'] == LoanClosingsEvents.topics['CloseWithDeposit'], tx.events['(unknown)']))
-        assert(len(close_events) == 1)
-
-        def hex_to_str(value):
-            return str(value).lower()[2:]
-
-        def hex_to_decimal(value):
-            return int(value, 16)
-
-        borrower_address = hex_to_str(borrower)
-        lender_address = hex_to_str(loanToken.address)
-        loan_token_address = hex_to_str(initial_loan['loanToken'])
-        collateral_token_address = hex_to_str(initial_loan['collateralToken'])
-
-        close_event = close_events[0]
-        assert (borrower_address in close_event['topic2'])
-        assert (lender_address in close_event['topic3'])
-        assert (str(loan_id) in close_event['topic4'])
-
-        data = textwrap.wrap(hex_to_str(close_event['data']), 64)
-        assert(len(data) == 7)
-        assert (borrower_address in data[0])
-        assert (loan_token_address in data[1])
-        assert (collateral_token_address in data[2])
-        assert (loan_close_amount == hex_to_decimal(data[3]))
-        assert (withdraw_amount == hex_to_decimal(data[4]))
-        assert (collateral_to_loan_rate == hex_to_decimal(data[5]))
-        assert (current_margin == hex_to_decimal(data[6]))
-
+    # When all the tests are run, the event is not recognized so we have to decode it manually
+    close_event = tx.events['CloseWithDeposit'] if 'CloseWithDeposit' in tx.events \
+        else decode_log(tx, LoanClosingsEvents, 'CloseWithDeposit')
+    assert (close_event['user'] == borrower)
+    assert (close_event['lender'] == loanToken.address)
+    assert (close_event['loanId'] == loan_id)
+    assert (close_event['closer'] == borrower)
+    assert (close_event['loanToken'] == initial_loan['loanToken'])
+    assert (close_event['collateralToken'] == initial_loan['collateralToken'])
+    assert (close_event['repayAmount'] == loan_close_amount)
+    assert (close_event['collateralWithdrawAmount'] == withdraw_amount)
+    assert (close_event['collateralToLoanRate'] == collateral_to_loan_rate)
+    assert (close_event['currentMargin'] == current_margin)
 
     # Test refund collateral to receiver
     # Test refund interest to receiver
@@ -184,3 +160,4 @@ def internal_test_close_with_deposit(deposit_amount, RBTC, SUSD, borrower, chain
     assert (transfer_to_lender['to'] == loanToken.address)
     assert (transfer_to_lender['value'] == loan_close_amount_less_interest)
 
+    verify_sov_reward_payment(tx, FeesEvents, SOV, borrower, loan_id, sov_borrower_initial_balance, 1)
