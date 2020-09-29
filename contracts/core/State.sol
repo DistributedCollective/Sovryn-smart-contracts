@@ -75,7 +75,7 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
     uint256 public sourceBuffer = 10000;                                                 // used as buffer for swap source amount estimations
 
-    uint256 public maxSwapSize = 1500 ether;                                             // maximum support swap size in ETH
+    uint256 public maxSwapSize = 50 ether;                                               // maximum support swap size in BTC
 
     mapping(address => uint256) public borrowerNonce;                                    // nonce per borrower. used for loan id creation.
 

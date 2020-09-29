@@ -39,6 +39,10 @@ contract LoanTokenLogicStandard is AdvancedToken {
         nonReentrant
         returns (uint256 mintAmount)
     {
+        //temporary: limit transaction size
+        if(transactionLimit[loanTokenAddress] > 0)
+            require(depositAmount <= transactionLimit[loanTokenAddress]);
+            
         return _mintToken(
             receiver,
             depositAmount
@@ -155,6 +159,10 @@ contract LoanTokenLogicStandard is AdvancedToken {
         require(withdrawAmount != 0, "6");
 
         _checkPause();
+        
+        //temporary: limit transaction size
+        if(transactionLimit[collateralTokenAddress] > 0)
+            require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
 
         require(msg.value == 0 || msg.value == collateralTokenSent, "7");
         require(collateralTokenSent != 0 || loanId != 0, "8");
@@ -219,6 +227,12 @@ contract LoanTokenLogicStandard is AdvancedToken {
         }
 
         require(collateralTokenAddress != loanTokenAddress, "11");
+        
+        //temporary: limit transaction size
+        if(transactionLimit[collateralTokenAddress] > 0)
+            require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
+        if(transactionLimit[loanTokenAddress] > 0)
+            require(loanTokenSent <= transactionLimit[loanTokenAddress]);
         
         //computes the worth of the total deposit in loan tokens.
         //(loanTokenSent + convert(collateralTokenSent))

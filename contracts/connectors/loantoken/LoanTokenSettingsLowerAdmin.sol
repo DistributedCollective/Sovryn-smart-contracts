@@ -15,6 +15,8 @@ contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
 
     // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress
     address public sovrynContractAddress;
+    
+    event SetTransactionLimits(address[] addresses, uint256[] limits);
 
     modifier onlyAdmin() {
         require(msg.sender == address(this) ||
@@ -112,6 +114,23 @@ contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
         assembly {
             sstore(slot, isPaused)
         }
+    }
+    
+    /**
+     * sets the transaction limit per token address
+     * @param addresses the token addresses
+     * @param limits the limit denominated in the currency of the token address
+     * */
+    function setTransactionLimits(
+        address[] memory addresses, 
+        uint256[] memory limits) 
+        public onlyOwner
+    {
+        require(addresses.length == limits.length, "mismatched array lengths");
+        for(uint i = 0; i < addresses.length; i++){
+            transactionLimit[addresses[i]] = limits[i];
+        }
+        emit SetTransactionLimits(addresses, limits);
     }
 
 }
