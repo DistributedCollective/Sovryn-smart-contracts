@@ -16,7 +16,7 @@ def liquidate(accounts, loanToken, underlyingToken, set_demand_curve, collateral
     lender = accounts[0]
     borrower = accounts[1]
     liquidator = accounts[2]
-    loan_token_sent = 100e18
+    loan_token_sent = 10e18
     
     # lend to the pool, mint tokens if required, open a margin trade position
     loan_id = prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken, underlyingToken, collateralToken, sovryn, WRBTC)
@@ -53,7 +53,7 @@ def liquidate_healthy_position_should_fail(accounts, loanToken, underlyingToken,
     lender = accounts[0]
     borrower = accounts[1]
     liquidator = accounts[2]
-    loan_token_sent = 100e18
+    loan_token_sent = 10e18
     
     # lend to the pool, mint tokens if required, open a margin trade position
     loan_id = prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken, underlyingToken, collateralToken, sovryn, WRBTC)
