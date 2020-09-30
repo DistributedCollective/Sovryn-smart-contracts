@@ -6,9 +6,9 @@ from munch import Munch
 
 '''
 script to deploy the protocol. can be used to deploy the protocol alone, but is also used by deploy_everything
-
 '''
 def main():
+    #note: main() function outdated
     thisNetwork = network.show_active()
 
     if thisNetwork == "development":
@@ -17,7 +17,7 @@ def main():
         acct = accounts.load("rskdeployer")
     else:
         raise Exception("network not supported")
-
+    
     deployProtocol(acct)
 
 def deployProtocol(acct, tokens, medianizerAddress):
@@ -35,16 +35,6 @@ def deployProtocol(acct, tokens, medianizerAddress):
     #2nd address should actually be the protocol token address, not the protocol address
     feeds = acct.deploy(PriceFeeds, tokens.wrbtc.address, sovryn.address, tokens.susd.address)
     feeds.setPriceFeed([tokens.wrbtc.address], [priceFeedMoC.address])
-    
-    '''
-    print("Calling setRates.")
-
-    feeds.setRates(
-        tokens.wrbtc.address,
-        tokens.susd.address,
-        1e22
-    )
-    '''
 
     print("Deploying ProtocolSettings.")
     settings = acct.deploy(ProtocolSettings)
@@ -53,8 +43,10 @@ def deployProtocol(acct, tokens, medianizerAddress):
     
     print("Deploying Swaps.")
     swaps = acct.deploy(SwapsImplSovrynSwap)
-    sovrynSwapSimulator = acct.deploy(TestSovrynSwap, feeds.address)
-    sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address)
+    #do not deploy the sovryn swap mockup on mainnet
+    if network.show_active() == "development":
+        sovrynSwapSimulator = acct.deploy(TestSovrynSwap, feeds.address)
+        sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address)
     sovryn.setSupportedTokens([tokens.susd.address, tokens.wrbtc.address],[True, True])
 
     print("Calling setPriceFeedContract.")
@@ -68,8 +60,8 @@ def deployProtocol(acct, tokens, medianizerAddress):
     )
 
     sovryn.setFeesController(acct.address)
-
     sovryn.setWrbtcToken(tokens.wrbtc.address)
+    # needs to be replaced with an actual reward token address
     sovryn.setProtocolTokenAddress(sovryn.address)
 
     ## LoanSettings

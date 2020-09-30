@@ -24,7 +24,10 @@ def main():
         raise Exception("network not supported")
 
     tokens = Munch()
-    tokens.wrbtc = Contract.from_abi("TestWrbtc", address = wrbtcAddress, abi = TestToken.abi, owner = acct)
+    if thisNetwork == "development":
+        tokens.wrbtc = Contract.from_abi("TestWrbtc", address = wrbtcAddress, abi = TestWrbtc.abi, owner = acct)
+    else:
+        tokens.wrbtc = Contract.from_abi("WRBTC", address = wrbtcAddress, abi = WRBTC.abi, owner = acct)
     tokens.susd = Contract.from_abi("TestToken", address = susdAddress, abi = TestToken.abi, owner = acct)
     sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
 
@@ -38,18 +41,18 @@ def deployLoanTokens(acct, sovryn, tokens):
     print('\n DEPLOYING ISUSD')
     (contractSUSD, loanTokenSettingsSUSD) = deployLoanToken(acct, sovryn, tokens.susd.address, "iSUSD", "iSUSD", tokens.wrbtc.address, tokens.wrbtc.address)
     print("initializing the lending pool with some tokens, so we do not run out of funds")
-    tokens.susd.approve(contractSUSD.address,1e22) #10k $
-    contractSUSD.mint(acct, 1e22)
-    if(network.show_active() == "development")
-        testDeployment(acct, sovryn,contractSUSD.address, tokens.susd, tokens.wrbtc, 100e18, 0)
+    tokens.susd.approve(contractSUSD.address,1000e18) #1k $
+    contractSUSD.mint(acct, 1000e18)
+    if network.show_active() == "development":
+        testDeployment(acct, sovryn,contractSUSD.address, tokens.susd, tokens.wrbtc, 21e18, 0)
     
     print('\n DEPLOYING IWRBTC')
     (contractWRBTC, loanTokenSettingsWRBTC) = deployLoanToken(acct, sovryn, tokens.wrbtc.address, "iWRBTC", "iWRBTC", tokens.susd.address, tokens.wrbtc.address)
     print("initializing the lending pool with some tokens, so we do not run out of funds")
     contractWRBTC = Contract.from_abi("loanToken", address=contractWRBTC.address, abi=LoanTokenLogicWrbtc.abi, owner=acct)
-    contractWRBTC.mintWithBTC(acct, {'value':1e18})#1 BTC
-    if(network.show_active() == "development")
-        testDeployment(acct, sovryn, contractWRBTC.address, tokens.wrbtc, tokens.susd, 1e17, 1e17)
+    contractWRBTC.mintWithBTC(acct, {'value':0.1e18})#0.1 BTC
+    if network.show_active() == "development":
+        testDeployment(acct, sovryn, contractWRBTC.address, tokens.wrbtc, tokens.susd, 0.0021e18, 0.0021e18)
 
     return (contractSUSD, contractWRBTC, loanTokenSettingsSUSD, loanTokenSettingsWRBTC)
 
