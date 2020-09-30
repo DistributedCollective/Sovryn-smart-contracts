@@ -6,7 +6,7 @@ import pytest
 from brownie import Contract, Wei, reverts
 from fixedint import *
 import shared
-
+from loanToken.sov_reward import verify_sov_reward_payment
 
 '''
 makes a margin trade sending loan tokens as collateral. therefore, not just the loan, but the complete position needs to be swapped.
@@ -43,6 +43,8 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, underlyingTo
     loantoken_after_underlying_token_balance = underlyingToken.balanceOf(loanToken.address)
 
     assert(tx.events['Trade']['borrowedAmount'] == 2 * loan_token_sent)
+    print('positionSize', tx.events['Trade']['positionSize'])
+    print('token balance', sovryn_after_collateral_token_balance)
     assert(tx.events['Trade']['positionSize'] == sovryn_after_collateral_token_balance)
     assert(loan_token_sent*3 - tx.events['Trade']['borrowedAmount'] == loantoken_after_underlying_token_balance)
     
@@ -97,7 +99,41 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, underlyingTo
     assert(loan['maxLiquidatable'] == 0)
     # LoanMaintenance::_getLoan::549
     assert(loan['maxSeizable'] == 0)
-   
+
+
+def margin_trading_sov_reward_payment(accounts, loanToken, underlyingToken, collateralToken, chain, SOV, FeesEvents):
+    # preparation
+    loan_token_sent = 1e18
+    underlyingToken.mint(loanToken.address, loan_token_sent*3)
+    trader = accounts[0]
+    underlyingToken.mint(trader, loan_token_sent)
+    underlyingToken.approve(loanToken.address, loan_token_sent)
+    value = 0
+
+    # send the transaction
+    leverage_amount = 2e18
+    collateral_sent = 0
+    sov_initial_balance = SOV.balanceOf(trader)
+    tx = loanToken.marginTrade(
+        "0", #loanId  (0 for new loans)
+        leverage_amount, # leverageAmount
+        loan_token_sent, #loanTokenSent
+        collateral_sent, # no collateral token sent
+        collateralToken.address, #collateralTokenAddress
+        trader, #trader,
+        b'', #loanDataBytes (only required with ether)
+        {'value': value}
+    )
+
+    tx.info()
+
+    chain.sleep(10*24*60*60)
+    chain.mine(1)
+
+    constants = shared.Constants()
+    loan_id = constants.ZERO_32  # is zero because is a new loan
+    verify_sov_reward_payment(tx, FeesEvents, SOV, trader, loan_id, sov_initial_balance, 1)
+
 
 '''
 makes a margin trade sending collateral tokens as collateral. therefore, only the loan needs to be swapped.
@@ -124,8 +160,32 @@ def margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, underl
     print(tx.info())
     
     #asserts are missing
-    
-    
+
+
+def margin_trading_sending_collateral_tokens_sov_reward_payment(trader, loanToken, collateralToken, collateralTokenSent,
+                                                                leverageAmount, value, chain, FeesEvents, SOV):
+    sov_initial_balance = SOV.balanceOf(trader)
+    tx = loanToken.marginTrade(
+        "0",  # loanId  (0 for new loans)
+        leverageAmount,  # leverageAmount
+        0,  # loanTokenSent
+        collateralTokenSent,
+        collateralToken.address,  # collateralTokenAddress
+        trader,  # trader,
+        b'',  # loanDataBytes (only required with ether),
+        {'from': trader, 'value': value}
+    )
+
+    tx.info()
+
+    chain.sleep(10*24*60*60)
+    chain.mine(1)
+
+    constants = shared.Constants()
+    loan_id = constants.ZERO_32  # is zero because is a new loan
+    verify_sov_reward_payment(tx, FeesEvents, SOV, trader, loan_id, sov_initial_balance, 1)
+
+
 '''
 close a position completely.
 1. prepares the test by setting up the interest rates, lending to the pool and opening a position
@@ -154,6 +214,29 @@ def close_complete_margin_trade(sovryn, loanToken, web3, set_demand_curve, lend_
     internal_test_close_margin_trade(swap_amount, initial_loan, loanToken, loan_id, priceFeeds, sovryn, trader, web3, return_token_is_collateral)
 
 
+def close_complete_margin_trade_sov_reward_payment(sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position,
+                                                   chain, return_token_is_collateral, FeesEvents, SOV):
+    #prepare the test
+    set_demand_curve()
+    (receiver, _) = lend_to_pool()
+    (loan_id, trader, loan_token_sent, leverage_amount) = open_margin_trade_position()
+
+    chain.sleep(10*24*60*60)  # time travel 10 days
+    chain.mine(1)
+    initial_loan = sovryn.getLoan(loan_id)
+
+    #needs to be called by the trader
+    with reverts("unauthorized"):
+        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral, "")
+
+    #complete closure means the whole collateral is swapped
+    swap_amount = initial_loan['collateral']
+
+    sov_initial_balance = SOV.balanceOf(trader)
+    tx = sovryn.closeWithSwap(loan_id, trader, swap_amount, return_token_is_collateral, "", {'from': trader})
+    verify_sov_reward_payment(tx, FeesEvents, SOV, trader, loan_id, sov_initial_balance, 2)
+
+
 '''
 close a position partially
 1. prepares the test by setting up the interest rates, lending to the pool and opening a position
@@ -180,6 +263,23 @@ def close_partial_margin_trade(sovryn, loanToken, web3, set_demand_curve, lend_t
 
     internal_test_close_margin_trade(swap_amount, initial_loan, loanToken, loan_id, priceFeeds, sovryn, trader, web3, return_token_is_collateral)
 
+
+def close_partial_margin_trade_sov_reward_payment(sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position,
+                                                  chain, return_token_is_collateral, FeesEvents, SOV):
+    #prepare the test
+    set_demand_curve()
+    (receiver, _) = lend_to_pool()
+    (loan_id, trader, loan_token_sent, leverage_amount) = open_margin_trade_position()
+
+    chain.sleep(10*24*60*60)  # time travel 10 days
+    chain.mine(1)
+    initial_loan = sovryn.getLoan(loan_id)
+
+    swap_amount = fixedint(initial_loan['collateral']).mul(80*10**18).div(10**20).num
+
+    sov_initial_balance = SOV.balanceOf(trader)
+    tx = sovryn.closeWithSwap(loan_id, trader, swap_amount, return_token_is_collateral, "", {'from': trader})
+    verify_sov_reward_payment(tx, FeesEvents, SOV, trader, loan_id, sov_initial_balance, 2)
 
 
 def internal_test_close_margin_trade(swap_amount, initial_loan, loanToken, loan_id, priceFeeds, sovryn, trader, web3, return_token_is_collateral):
@@ -251,9 +351,10 @@ def internal_test_close_margin_trade(swap_amount, initial_loan, loanToken, loan_
     assert (loan_swap_event['borrower'] == trader)
     print('source token amount used', loan_swap_event['sourceAmount'] )
     print('source token amount expected', source_token_amount_used)
+    print('difference',loan_swap_event['sourceAmount'] - source_token_amount_used)
     #10000 is the source buffer used by the sovryn swap connector
     assert (loan_swap_event['sourceAmount'] - source_token_amount_used <= 10000)
-    assert (fixedint(loan_swap_event['destAmount']).sub(dest_token_amount_received).num <= 100)
+    assert (loan_swap_event['destAmount']>=fixedint(dest_token_amount_received).mul(995).div(1000).num)
 
     tx_loan_closing.info()
     close_with_swap_event = tx_loan_closing.events['CloseWithSwap']

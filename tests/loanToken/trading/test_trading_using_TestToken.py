@@ -8,10 +8,7 @@ test script for testing the loan token trading logic with 2 TestTokens.
 
 #!/usr/bin/python3
 import pytest
-from brownie import Contract, Wei, reverts
-from fixedint import *
-import shared
-from shared_trading_functions import *
+from loanToken.trading.shared_trading_functions import *
 
 '''
 verifies that the loan token address is set on the contract
@@ -28,8 +25,9 @@ process is handled by the shared function margin_trading_sending_loan_tokens
 3. verify the trade event and balances are correct
 4. retrieve the loan from the smart contract and make sure all values are set as expected
 '''
-def test_margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain):
+def test_margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain, SOV, FeesEvents):
     margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain, False)
+    margin_trading_sov_reward_payment(accounts, loanToken, SUSD, RBTC, chain, SOV, FeesEvents)
 
 '''
 tests margin trading sending collateral tokens as collateral. 
@@ -37,18 +35,24 @@ process:
 1. send the margin trade tx with the passed parameter (NOTE: the token transfer needs to be approved already)
 2. TODO verify the trade event and balances are correct
 ''' 
-def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, RBTC):
-    
+def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, RBTC, chain, FeesEvents, SOV):
     loanSize = 10000e18
-    SUSD.mint(loanToken.address,loanSize*6) 
-    #   address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan 
-    collateralTokenSent = sovryn.getRequiredCollateral(SUSD.address,RBTC.address,loanSize*2,50e18, False)
-    RBTC.mint(accounts[0],collateralTokenSent)
-    #important! WRBTC is being held by the loanToken contract itself, all other tokens are transfered directly from 
-    #the sender and need approval
+    SUSD.mint(loanToken.address, loanSize * 12)
+    #   address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
+    collateralTokenSent = sovryn.getRequiredCollateral(SUSD.address, RBTC.address, loanSize * 2, 50e18, False)
+    RBTC.mint(accounts[0], collateralTokenSent)
+    RBTC.mint(accounts[2], collateralTokenSent)
+    # important! WRBTC is being held by the loanToken contract itself, all other tokens are transfered directly from
+    # the sender and need approval
     RBTC.approve(loanToken.address, collateralTokenSent)
-    
-    margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, RBTC, loanSize, collateralTokenSent, 5e18, 0)
+    RBTC.approve(loanToken.address, collateralTokenSent, {'from': accounts[2]})
+
+    leverageAmount = 5e18
+    value = 0
+    margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, RBTC, loanSize, collateralTokenSent,
+                                             leverageAmount, value)
+    margin_trading_sending_collateral_tokens_sov_reward_payment(accounts[2], loanToken, RBTC, collateralTokenSent,
+                                                                leverageAmount, value, chain, FeesEvents, SOV)
 
 
 '''
@@ -64,6 +68,16 @@ process is handled by the shared function close_complete_margin_trade
 @pytest.mark.parametrize('return_token_is_collateral', [False, True])
 def test_close_complete_margin_trade(sovryn, loanToken, web3, set_demand_curve, lend_to_pool, open_margin_trade_position, priceFeeds, chain, return_token_is_collateral):
     close_complete_margin_trade(sovryn, loanToken, web3, set_demand_curve, lend_to_pool, open_margin_trade_position, priceFeeds, chain, return_token_is_collateral)
+
+'''
+test SOV reward payment
+'''
+@pytest.mark.parametrize('return_token_is_collateral', [False, True])
+def test_close_complete_margin_trade_sov_reward_payment(sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position,
+                                                        chain, return_token_is_collateral, FeesEvents, SOV):
+    close_complete_margin_trade_sov_reward_payment(sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position,
+                                                   chain, return_token_is_collateral, FeesEvents, SOV)
+
 
 '''
 should partially close a position.
@@ -87,3 +101,13 @@ def test_margin_trading_without_early_access_token_should_fail(accounts, sovryn,
 
     with reverts("No early access tokens"):
         margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain, False)
+'''
+test SOV reward payment
+'''
+@pytest.mark.parametrize('return_token_is_collateral', [False, True])
+def test_close_partial_margin_trade_sov_reward_payment(sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position,
+                                                       chain, return_token_is_collateral, FeesEvents, SOV):
+    close_partial_margin_trade_sov_reward_payment(sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position,
+                                                  chain, return_token_is_collateral, FeesEvents, SOV)
+
+

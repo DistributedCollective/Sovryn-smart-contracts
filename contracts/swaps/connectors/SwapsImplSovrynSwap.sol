@@ -61,21 +61,21 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
             IERC20Sovryn(sourceTokenAddress),
             IERC20Sovryn(destTokenAddress)
         );
-
-        uint expectedReturn = 0;
+        
+        uint minReturn = 0;
+        sourceTokenAmountUsed = minSourceTokenAmount;
 
         //if the required amount of destination tokens is passed, we need to calculate the estimated amount of source tokens
         //regardless of the minimum source token amount (name is misleading)
         if(requiredDestTokenAmount > 0){
             sourceTokenAmountUsed = estimateSourceTokenAmount(sourceTokenAddress, destTokenAddress, requiredDestTokenAmount,  maxSourceTokenAmount);
              //sovrynSwapNetwork.rateByPath does not return a rate, but instead the amount of destination tokens returned
-            emit Debug(minSourceTokenAmount, maxSourceTokenAmount, sourceTokenAmountUsed, requiredDestTokenAmount, sovrynSwapNetwork.rateByPath(path, sourceTokenAmountUsed));
             require(sovrynSwapNetwork.rateByPath(path, sourceTokenAmountUsed) >= requiredDestTokenAmount, "insufficient source tokens provided.");
-            expectedReturn = requiredDestTokenAmount;
+            minReturn = requiredDestTokenAmount;
         }
-        else if(minSourceTokenAmount > 0){
-            sourceTokenAmountUsed = minSourceTokenAmount;
-            expectedReturn = sovrynSwapNetwork.rateByPath(path, minSourceTokenAmount);
+        else if (sourceTokenAmountUsed > 0){
+            //for some reason the sovryn swap network tends to return a bit less than the expected rate.
+            minReturn = sovrynSwapNetwork.rateByPath(path, sourceTokenAmountUsed).mul(995).div(1000);
         }
         
         require(sourceTokenAmountUsed > 0, "cannot swap 0 tokens");
@@ -83,7 +83,7 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
         allowTransfer(sourceTokenAmountUsed, sourceTokenAddress, address(sovrynSwapNetwork));
 
         //note: the kyber connector uses .call() to interact with kyber to avoid bubbling up. here we allow bubbling up.
-        destTokenAmountReceived = sovrynSwapNetwork.convertByPath(path, sourceTokenAmountUsed, expectedReturn, address(0), address(0), 0);
+        destTokenAmountReceived = sovrynSwapNetwork.convertByPath(path, sourceTokenAmountUsed, minReturn, address(0), address(0), 0);
         
         //if the sender is not the protocol (calling with delegatecall), return the remainder to the specified address.
         //note: for the case that the swap is used without the protocol. not sure if it should, though. needs to be discussed.
@@ -99,8 +99,6 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
 
     }
     
-    event Debug(uint256 minSourceTokenAmount, uint256 maxSourceTokenAmount, uint256 sourceTokenAmountUsed, uint256 requiredDestTokenAmount, uint256 expectedReturn);
-
     /**
      * check is the existing allowance suffices to transfer the needed amount of tokens.
      * if not, allows the transfer of an arbitrary amount of tokens.

@@ -51,7 +51,7 @@ contract TestSovrynSwap {
             
         TestToken(address(_path[0])).burn(address(msg.sender), _amount);
         TestToken(address(_path[1])).mint(address(msg.sender), actualReturn);
-        return _minReturn;
+        return actualReturn;
     }
     
     /**

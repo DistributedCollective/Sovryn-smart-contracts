@@ -6,7 +6,8 @@ def Constants():
     return Munch({
         "ZERO_ADDRESS": "0x0000000000000000000000000000000000000000",
         "ONE_ADDRESS": "0x0000000000000000000000000000000000000001",
-        "MAX_UINT": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        "MAX_UINT": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "ZERO_32": "0x0000000000000000000000000000000000000000000000000000000000000000"
     })
 
 def Addresses():

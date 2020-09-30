@@ -23,17 +23,19 @@ def main():
         raise Exception("network not supported")
 
     setup()
-    margin_pool_setup()
-
-    test_loan_address()
+    if this_network == "development":
+        margin_pool_setup()
+        test_loan_address()
     test_margin_trading_sending_collateral_tokens()
     test_margin_trading_sending_loan_tokens()
-    test_lend_to_the_pool()
-    test_cash_out_from_the_pool()
-    test_cash_out_from_the_pool_more_of_lender_balance()
-    test_supply_interest_fee()
-    test_transfer()
-    test_liquidate()
+    if this_network == "development":
+        test_lend_to_the_pool()
+        test_cash_out_from_the_pool()
+        test_cash_out_from_the_pool_more_of_lender_balance()
+        test_supply_interest_fee()
+        test_transfer()
+        test_liquidate()
+    
 
 def setup():
     global sovryn, loan_token, loan_token_address, SUSD, RBTC, loan_token_settings
@@ -43,7 +45,7 @@ def setup():
     loan_token_address = data["loanTokenSUSD"]
     loan_token_settings_address = data["loanTokenSettingsSUSD"]
     SUSD_address = data["SUSD"]
-    RBTC_address = data["RBTC"]
+    RBTC_address = data["WRBTC"]
 
     sovryn = Contract.from_abi("sovryn", address=sovryn_address, abi=interface.ISovryn.abi, owner=acct)
     loan_token = Contract.from_abi("loanToken", address=loan_token_address, abi=LoanTokenLogicStandard.abi, owner=acct)
@@ -75,7 +77,7 @@ def margin_pool_setup():
         0 ## fixedLoanTerm -> will be overwritten
     ]
     params.append(setup)
-    calldata = loan_token_settings.setupMarginLoanParams.encode_input(params)
+    calldata = loan_token_settings.setupLoanParams.encode_input(params, False)
     tx = loan_token.updateSettings(loan_token_settings.address, calldata)
 
     print(tx.info())
@@ -100,13 +102,13 @@ def test_margin_trading_sending_collateral_tokens():
     loan_token_sent = 100e18
     leverage_amount = 2e18
 
-    SUSD.mint(loan_token.address,loan_token_sent*6)
+    #SUSD.mint(loan_token.address,loan_token_sent*6)
     # address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
     collateral_token_sent = sovryn.getRequiredCollateral(SUSD.address,RBTC.address,loan_token_sent*2,50e18, False)
-    RBTC.mint(acct,collateral_token_sent)
+    #RBTC.mint(acct,collateral_token_sent)
     # important! WEth is being held by the loanToken contract itself, all other tokens are transfered directly from
     # the sender and need approval
-    RBTC.approve(loan_token.address, collateral_token_sent)
+    #RBTC.approve(loan_token.address, collateral_token_sent)
 
     tx = loan_token.marginTrade(
         "0", #loanId  (0 for new loans)
@@ -115,22 +117,13 @@ def test_margin_trading_sending_collateral_tokens():
         collateral_token_sent,
         RBTC.address, #collateralTokenAddress
         acct, #trader,
-        b'' #loanDataBytes (only required with ether)
+        b'', #loanDataBytes (only required with ether)
+        {'value': collateral_token_sent}
     )
+    
+    print("entered position successfully")
 
-    print('tx info is', tx.info())
-
-    sovryn_after_SUSD_balance = SUSD.balanceOf(sovryn.address)
-    print("sovryn_after_SUSD_balance", sovryn_after_SUSD_balance/1e18)
-
-    sovryn_after_RBTC_balance = RBTC.balanceOf(sovryn.address)
-    print("sovryn_after_RBTC_balance", sovryn_after_RBTC_balance/1e18)
-
-    sovryn_after_SUSD_balance = SUSD.balanceOf(loan_token.address)
-    print("loan_token_after_SUSD_balance", sovryn_after_SUSD_balance/1e18)
-
-    sovryn_after_RBTC_balance = RBTC.balanceOf(loan_token.address)
-    print("loan_token_after_RBTC_balance", sovryn_after_RBTC_balance/1e18)
+    sovryn.closeWithSwap(tx.events['Trade']['loanId'], acct, collateral_token_sent, False, "")
 
     print("Passed `test_margin_trading_sending_collateral_tokens`")
 
@@ -138,8 +131,8 @@ def test_margin_trading_sending_loan_tokens():
     loan_token_sent = 100e18
     leverage_amount = 2e18
 
-    SUSD.mint(loan_token.address, loan_token_sent*3)
-    SUSD.mint(acct, loan_token_sent)
+    #SUSD.mint(loan_token.address, loan_token_sent*3)
+    #SUSD.mint(acct, loan_token_sent)
     SUSD.approve(loan_token.address, loan_token_sent)
 
     tx = loan_token.marginTrade(

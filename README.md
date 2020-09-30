@@ -15,7 +15,7 @@
 To run the tests, first install the developer dependencies:
 
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 Run the all tests with:
@@ -49,7 +49,7 @@ brownie run deploy_everything.py --network testnet
 
 1. Start `ganache` with
 ```bash
-ganache-cli --gasLimit 6700000 --port 8545
+ganache-cli --gasLimit 6800000 --port 8545
 ```
 Overriding default `brownie` port will make it connect to our local chain and keep it open.
 If you changed the port in the brownie config, use that port instead.
@@ -72,6 +72,28 @@ brownie run deploy_everything.py
 brownie run swap_test.py
 ```
 
+## MoC Oracle Deploy (testnet or mainnet)
+
+1. Get MoC medianizer SC address (BTC to USD)
+  - Testnet: 0x667bd3d048FaEBb85bAa0E9f9D87cF4c8CDFE849
+  - Mainnet: See [MoC Contracts verification.md](https://github.com/money-on-chain/main-RBTC-contract/blob/master/Contracts%20verification.md)
+
+2. Modify `scripts/deploy_protocol.py` 
+  
+   a. Deploy PriceFeedsMoC.sol
+   ```python
+   price_feed_moc = acct.deploy(PriceFeedsMoC, moc_medianizer_address)
+   ```
+   
+   b. instead of deploy PriceFeedsLocal use PriceFeeds.sol
+   ```python
+   feeds = acct.deploy(PriceFeeds, tokens.wrbtc.address, sovryn.address)
+   ```
+   
+   c. Set price feeds
+   ```python
+   feeds.setPriceFeed([tokens.rbtc.address, ...], [price_feed_moc.address, ...])
+   ```
 
 ## Smart Contract Usage
 
@@ -359,7 +381,31 @@ ABI for ```LoanToken``` contracts: ```LoanTokenLogicStandard```
 
 ABI for ```Protocol``` contract: ```ISovryn```
 
+### 8. SOV Reward Payments
 
+#### 8.1 Setup
+When deploying the protocol you need to:
+ 1. Configure the protocol address. It is an ERC20 token.
+ 2. Configure price rates between loan and protocol tokens. Using PriceFeeds
+ 3. Mint or approve tokens to protocol.
+ 4. Deposit protocol token. `sovryn.depositProtocolToken(amount)`
+
+#### 8.2 Payment
+When a user calls one of the below functions the protocol pays SOV rewards.
+
+- closeWithSwap
+- closeWithDeposit
+- extendLoanDuration
+- reduceLoanDuration
+- borrow
+- marginTrade
+- rollover
+- liquidate
+
+The function which pays the reward is `PayFeeReward` from `FeesHelper.sol`.
+
+#### 8.3 Withdraw
+The protocol can withdraw SOV tokens using `sovryn.withdrawProtocolToken()` from `ProtocolSettings.sol`. This function is executable only by the owner.
 
 ## License
 

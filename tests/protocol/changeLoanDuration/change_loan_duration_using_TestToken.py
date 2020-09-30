@@ -159,6 +159,35 @@ def test_extend_loan_duration_with_collateral(accounts, sovryn, set_demand_curve
     assert(SUSD.balanceOf(sovryn.address) <= initial_loan_token_lender_balance + deposit_amount)
 
 
+def test_extend_loan_duration_with_collateral_sov_token_reward_payment(accounts, sovryn, set_demand_curve, lend_to_pool, RBTC, SUSD, LoanMaintenance, priceFeeds, borrow_indefinite_loan, SOV, chain):
+
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    duration_in_seconds = 20 * 24 * 60 * 60  # 20 days
+    loan_id, borrower, _, _, _, _, _ = borrow_indefinite_loan(duration_in_seconds=duration_in_seconds)
+
+    initial_loan_interest_data = sovryn.getLoanInterestData(loan_id)
+
+    days_to_extend = 10
+    owed_per_day = initial_loan_interest_data['interestOwedPerDay']
+    deposit_amount = fixedint(owed_per_day).mul(days_to_extend).num
+
+    # Time travel 10 days
+    chain.sleep(10 * 24 * 60 * 60)
+    chain.mine(1)
+
+    borrower_initial_balance = SOV.balanceOf(borrower)
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+    tx = loan_maintenance.extendLoanDuration(loan_id, deposit_amount, True, b'', {'from': borrower})
+
+    event = tx.events['EarnReward']
+    assert(event['receiver'] == borrower)
+    assert(event['token'] == SOV.address)
+    assert(event['loanId'] == loan_id)
+    assert(event['amount'] == SOV.balanceOf(borrower) - borrower_initial_balance)
+
+
 def test_extend_loan_duration_with_collateral_and_eth_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, LoanMaintenance, borrow_indefinite_loan):
     # prepare the test
     set_demand_curve()
@@ -225,6 +254,38 @@ def test_reduce_loan_duration(accounts, sovryn, set_demand_curve, lend_to_pool, 
     assert(SUSD.balanceOf(receiver) == initial_receiver_balance + withdraw_amount)
     # Due to block timestamp could be paying outstanding interest to lender or not
     assert(SUSD.balanceOf(sovryn.address) <= initial_loan_token_lender_balance - withdraw_amount)
+
+
+def test_reduce_loan_duration_sov_token_reward_payment(accounts, sovryn, set_demand_curve, lend_to_pool, SUSD, LoanMaintenance, borrow_indefinite_loan, SOV, chain):
+    # prepare the test
+    set_demand_curve()
+    lend_to_pool()
+    duration_in_seconds = 20 * 24 * 60 * 60  # 20 days
+    loan_id, borrower, _, _, _, _, _ = borrow_indefinite_loan(duration_in_seconds=duration_in_seconds)
+
+    initial_loan_interest_data = sovryn.getLoanInterestData(loan_id)
+
+    days_to_reduce = 5
+    owed_per_day = initial_loan_interest_data['interestOwedPerDay']
+    withdraw_amount = owed_per_day * days_to_reduce
+
+    receiver = accounts[3]
+
+    # Time travel 10 days
+    chain.sleep(10 * 24 * 60 * 60)
+    chain.mine(1)
+
+    loan_maintenance = Contract.from_abi("loanMaintenance", address=sovryn.address, abi=LoanMaintenance.abi, owner=accounts[0])
+    borrower_initial_balance = SOV.balanceOf(borrower)
+    tx = loan_maintenance.reduceLoanDuration(loan_id, receiver, withdraw_amount, {'from': borrower})
+
+    tx.info()
+
+    event = tx.events['EarnReward']
+    assert(event['receiver'] == borrower)
+    assert(event['token'] == SOV.address)
+    assert(event['loanId'] == loan_id)
+    assert(event['amount'] == SOV.balanceOf(borrower) - borrower_initial_balance)
 
 
 def test_reduce_loan_duration_0_withdraw_should_fail(accounts, sovryn, set_demand_curve, lend_to_pool, LoanMaintenance, borrow_indefinite_loan):

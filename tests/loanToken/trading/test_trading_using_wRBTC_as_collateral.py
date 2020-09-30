@@ -7,10 +7,7 @@ test script for testing the loan token trading logic with wBTC as collateral tok
 '''
 
 import pytest
-from brownie import Contract, Wei, reverts
-from fixedint import *
-import shared
-from shared_trading_functions import *
+from loanToken.trading.shared_trading_functions import *
 
 '''
 tests margin trading sending loan tokens.
@@ -20,8 +17,9 @@ process is handled by the shared function margin_trading_sending_loan_tokens
 3. verify the trade event and balances are correct
 4. retrieve the loan from the smart contract and make sure all values are set as expected
 '''
-def test_margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, WRBTC, priceFeeds, chain):
+def test_margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, WRBTC, priceFeeds, chain, SOV, FeesEvents):
     margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, WRBTC, priceFeeds, chain, False)
+    margin_trading_sov_reward_payment(accounts, loanToken, SUSD, WRBTC, chain, SOV, FeesEvents)
 
 '''
 tests margin trading sending collateral tokens as collateral. 
@@ -29,12 +27,18 @@ process:
 1. send the margin trade tx with the passed parameter (NOTE: the token transfer needs to be approved already)
 2. TODO verify the trade event and balances are correct
 '''     
-def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, WRBTC):
+def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, WRBTC, chain, FeesEvents, SOV):
     loanSize = 10000e18
-    SUSD.mint(loanToken.address,loanSize*6) 
-    collateralTokenSent = sovryn.getRequiredCollateral(SUSD.address,WRBTC.address,loanSize*2,50e18, False)
-    margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, WRBTC, loanSize, collateralTokenSent, 5e18, collateralTokenSent)
-    print()
+    SUSD.mint(loanToken.address, loanSize*12)
+    collateralTokenSent = sovryn.getRequiredCollateral(SUSD.address, WRBTC.address, loanSize*2, 50e18, False)
+    leverageAmount = 5e18
+    margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, WRBTC, loanSize, collateralTokenSent,
+                                             leverageAmount, collateralTokenSent)
+
+    WRBTC.mint(accounts[2], collateralTokenSent)
+    WRBTC.approve(loanToken.address, collateralTokenSent, {'from': accounts[2]})
+    margin_trading_sending_collateral_tokens_sov_reward_payment(accounts[2], loanToken, WRBTC, collateralTokenSent,
+                                                                leverageAmount, 0, chain, FeesEvents, SOV)
 
 '''
 should completely close a position.

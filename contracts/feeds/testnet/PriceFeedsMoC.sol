@@ -26,7 +26,7 @@ contract PriceFeedsMoC is IPriceFeedsExt, Ownable {
         returns (uint256)
     {
         (bytes32 value, bool hasValue) = Medianizer(mocOracleAddress).peek();
-        require(hasValue, "Doesn't has value");
+        require(hasValue, "Doesn't have a value");
         return uint256(value);
     }
 

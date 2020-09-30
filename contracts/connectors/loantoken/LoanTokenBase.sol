@@ -11,6 +11,7 @@ import "../../openzeppelin/ReentrancyGuard.sol";
 import "../../openzeppelin/Ownable.sol";
 import "../../openzeppelin/AddressSovryn.sol";
 import "../../interfaces/IWrbtcERC20.sol";
+import "./Pausable.sol";
 
 contract LoanTokenBase is ReentrancyGuard, Ownable {
 
@@ -43,4 +44,7 @@ contract LoanTokenBase is ReentrancyGuard, Ownable {
 
     mapping (uint256 => bytes32) public loanParamsIds; // mapping of keccak256(collateralToken, isTorqueLoan) to loanParamsId
     mapping (address => uint256) internal checkpointPrices_; // price of token at last user checkpoint
+    
+    mapping(address => uint256) public transactionLimit;                                 // the maximum trading/borrowing/lending limit per token address
+                                                                                         // 0 -> no limit
 }

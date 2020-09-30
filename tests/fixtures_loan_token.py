@@ -140,17 +140,17 @@ def loan_pool_setup(accounts, RBTC, WRBTC, loanTokenSettings, loanToken, loanTok
 @pytest.fixture
 def set_demand_curve(loanToken, LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, accounts, loanTokenSettings):
     def internal_set_demand_curve(baseRate=1e18, rateMultiplier=20.25e18, targetLevel=80*10**18, kinkLevel=90*10**18,
-                                  maxScaleRate=100*10**18):
+                                  maxScaleRate=100*10**18, loan_token_address=loanToken.address):
         local_loan_token = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
         local_loan_token.setTarget(loanTokenSettings.address)
-        local_loan_token_settings = Contract.from_abi("loanToken", address=loanToken.address,
+        local_loan_token_settings = Contract.from_abi("loanToken", address=loan_token_address,
                                                       abi=LoanTokenSettingsLowerAdmin.abi, owner=accounts[0])
         local_loan_token_settings.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel,
                                                  kinkLevel, maxScaleRate)
         loan_token_logic = accounts[0].deploy(LoanTokenLogicStandard)
-        local_loan_token = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
+        local_loan_token = Contract.from_abi("loanToken", address=loan_token_address, abi=LoanToken.abi, owner=accounts[0])
         local_loan_token.setTarget(loan_token_logic.address)
-        Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi,
+        Contract.from_abi("loanToken", address=loan_token_address, abi=LoanTokenLogicStandard.abi,
                           owner=accounts[0])
         borrow_interest_rate = loanToken.borrowInterestRate()
         print("borrowInterestRate: ", borrow_interest_rate)
@@ -183,8 +183,9 @@ def lend_to_pool_iBTC(accounts, SUSD, loanTokenWRBTC):
 
 
 @pytest.fixture
-def open_margin_trade_position(accounts, SUSD, RBTC, loanToken):
-    def internal_open_margin_trade(trader=accounts[1],
+def open_margin_trade_position(accounts, SUSD, RBTC, WRBTC, loanToken):
+    def internal_open_margin_trade(collateral = 'RBTC',
+                                    trader=accounts[1],
                                    loan_token_sent=100e18,
                                    leverage_amount=2e18):
         """
@@ -196,6 +197,11 @@ def open_margin_trade_position(accounts, SUSD, RBTC, loanToken):
         """
         SUSD.mint(trader, loan_token_sent)
         SUSD.approve(loanToken.address, loan_token_sent, {'from': trader})
+        
+        if(collateral == 'RBTC'): 
+            collateralToken = RBTC.address
+        else:
+            collateralToken = WRBTC.address
 
         tx = loanToken.marginTrade(
             "0",  # loanId  (0 for new loans)
