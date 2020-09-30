@@ -25,13 +25,13 @@ def main():
     #owners = [accounts[0], accounts[1], accounts[2]]
     requiredConf=2
     configData = {} # deploy new tokens
-    
+    '''
     configData = {
         'WRBTC': '0x69FE5cEC81D5eF92600c1A0dB1F11986AB3758Ab',
         'SUSD': '0xCb46C0DdC60d18eFEB0e586c17AF6Ea36452DaE0',
         'medianizer': '0x667bd3d048FaEBb85bAa0E9f9D87cF4c8CDFE849'
     }
-    
+    '''
 
     thisNetwork = network.show_active()
 
@@ -44,6 +44,8 @@ def main():
     
     if('WRBTC' in configData and 'SUSD' in configData):
         tokens = readTokens(acct, configData['WRBTC'], configData['SUSD'])
+    elif('SUSD' in configData):
+        tokens = deployWRBTC(acct, configData['SUSD'])
     else:
         tokens = deployTokens(acct)
         
