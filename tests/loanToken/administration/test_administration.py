@@ -89,6 +89,9 @@ def test_toggle_function_pause(accounts, loanToken, LoanToken, LoanTokenSettings
     
     with reverts("unauthorized"):
         open_margin_trade_position()
+        
+    #check if checkPause returns true
+    assert(localLoanToken.checkPause(functionSignature))
     
     # reactivate the given function
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
@@ -101,6 +104,9 @@ def test_toggle_function_pause(accounts, loanToken, LoanToken, LoanTokenSettings
     localLoanToken.setTarget(loanTokenLogic.address)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
     open_margin_trade_position()
+    
+    #check if checkPause returns false
+    assert(not localLoanToken.checkPause(functionSignature))
  
 '''
 call toggleFunction with a non-admin address and make sure it fails
