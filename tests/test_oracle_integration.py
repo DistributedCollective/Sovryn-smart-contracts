@@ -5,10 +5,10 @@ from brownie import reverts
 
 
 @pytest.fixture()
-def set_oracle(PriceFeedsMoC, BZRX, PriceFeeds, WRBTC, accounts, sovryn, swapsImpl):
+def set_oracle(PriceFeedsMoC, BZRX, PriceFeeds, WRBTC, accounts, sovryn, swapsImpl, SUSD):
     def internal_set_oracle(oracle_address=sovryn.address):
         price_feeds_moc = accounts[0].deploy(PriceFeedsMoC, oracle_address)
-        price_feeds = accounts[0].deploy(PriceFeeds, WRBTC.address, BZRX.address)
+        price_feeds = accounts[0].deploy(PriceFeeds, WRBTC.address, BZRX.address, SUSD.address)
 
         price_feeds.setPriceFeed([BZRX.address, WRBTC.address], [price_feeds_moc.address, price_feeds_moc.address])
 
