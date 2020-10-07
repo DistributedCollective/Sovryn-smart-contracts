@@ -146,7 +146,13 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
     }
 
 
-    // pay potocolToken reward to user
+    /**
+     * @dev pays the potocolToken reward to user. The reward is worth 50% of the trading/borrowing fee.
+     * @param user the address to send the reward to
+     * @param loanId the Id of the associeated loan - used for logging only.
+     * @param feeToken the address of the token in which the trading/borrowig fee was paid
+     * @param feeAmount the height of the fee
+     * */
     function _payFeeReward(
         address user,
         bytes32 loanId,
@@ -156,6 +162,8 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
     {
         uint256 rewardAmount;
         address _priceFeeds = priceFeeds;
+        //note: this should be refactored.
+        //calculate the reward amount, querying the price feed
         (bool success, bytes memory data) = _priceFeeds.staticcall(
             abi.encodeWithSelector(
                 IPriceFeeds(_priceFeeds).queryReturn.selector,
