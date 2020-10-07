@@ -123,38 +123,14 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
                 }
             }
         }
+        
+        require(loanDataBytes.length == 0, "invalid state");
 
-        if (loanDataBytes.length == 0) {
-            (destTokenAmountReceived, sourceTokenAmountUsed) = _swapsCall_internal(
-                addrs,
-                vals
-            );
-        } else {
-            revert("invalid state");
-            /*
-            //keccak256("Swaps_SwapsImplZeroX")
-            address swapsImplZeroX;
-            assembly {
-                swapsImplZeroX := sload(0x129a6cb350d136ca8d0881f83a9141afd5dc8b3c99057f06df01ab75943df952)
-            }
-            */
-            //revert(string(loanDataBytes));
-            /*
-            vaultWithdraw(
-                addrs[0], // sourceToken
-                address(zeroXConnector),
-                sourceTokenAmount
-            );
-            (destTokenAmountReceived, sourceTokenAmountUsed) = zeroXConnector.swap.value(msg.value)(
-                addrs[0], // sourceToken
-                addrs[1], // destToken
-                addrs[2], // receiver
-                sourceTokenAmount,
-                0,
-                loanDataBytes
-            );
-            */
-        }
+        (destTokenAmountReceived, sourceTokenAmountUsed) = _swapsCall_internal(
+            addrs,
+            vals
+        );
+
 
         if (vals[2] == 0) {
             // there's no minimum destTokenAmount, but all of vals[0] (minSourceTokenAmount) must be spent
