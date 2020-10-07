@@ -29,7 +29,7 @@ def main():
     configData = {
         'WRBTC': '0x69FE5cEC81D5eF92600c1A0dB1F11986AB3758Ab',
         'SUSD': '0xCb46C0DdC60d18eFEB0e586c17AF6Ea36452DaE0',
-        'medianizer': '0x667bd3d048FaEBb85bAa0E9f9D87cF4c8CDFE849'
+        'medianizer': '0x2d39Cc54dc44FF27aD23A91a9B5fd750dae4B218'
     }
     '''
 
