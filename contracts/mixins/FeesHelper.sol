@@ -38,8 +38,14 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
             .mul(borrowingFeePercent)
             .div(10**20);
     }
-
-    // settle trading fee
+    
+    /**
+     * @dev settles the trading fee and pays the token reward to the user.
+     * @param user the address to send the reward to
+     * @param loanId the Id of the associated loan - used for logging only.
+     * @param feeToken the address of the token in which the trading fee is paid
+     * @param feeAmount the height of the fee
+     * */
     function _payTradingFee(
         address user,
         bytes32 loanId,
@@ -48,6 +54,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
         internal
     {
         if (tradingFee != 0) {
+            //increase the storage variable keeping track of the accumulated fees
             tradingFeeTokensHeld[feeToken] = tradingFeeTokensHeld[feeToken]
                 .add(tradingFee);
 
@@ -57,7 +64,8 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
                 loanId,
                 tradingFee
             );
-
+            
+            //pay the token reward to the user
             _payFeeReward(
                 user,
                 loanId,
@@ -66,8 +74,14 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
             );
         }
     }
-
-    // settle loan origination fee
+    
+    /**
+     * @dev settles the borrowing fee and pays the token reward to the user.
+     * @param user the address to send the reward to
+     * @param loanId the Id of the associated loan - used for logging only.
+     * @param feeToken the address of the token in which the borrowig fee is paid
+     * @param feeAmount the height of the fee
+     * */
     function _payBorrowingFee(
         address user,
         bytes32 loanId,
@@ -76,6 +90,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
         internal
     {
         if (borrowingFee != 0) {
+            //increase the storage variable keeping track of the accumulated fees
             borrowingFeeTokensHeld[feeToken] = borrowingFeeTokensHeld[feeToken]
                 .add(borrowingFee);
 
@@ -85,7 +100,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
                 loanId,
                 borrowingFee
             );
-
+            //pay the token reward to the user
             _payFeeReward(
                 user,
                 loanId,
@@ -95,7 +110,12 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
         }
     }
 
-    // settle lender (interest) fee
+    /**
+     * @dev settles the lending fee (based on the interest). Pays no token reward to the user.
+     * @param user the address to send the reward to
+     * @param feeToken the address of the token in which the lending fee is paid
+     * @param lendingFee the height of the fee
+     * */
     function _payLendingFee(
         address user,
         address feeToken,
@@ -103,6 +123,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
         internal
     {
         if (lendingFee != 0) {
+            //increase the storage variable keeping track of the accumulated fees
             lendingFeeTokensHeld[feeToken] = lendingFeeTokensHeld[feeToken]
                 .add(lendingFee);
 
