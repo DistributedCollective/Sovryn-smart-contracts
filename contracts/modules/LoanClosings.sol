@@ -16,6 +16,7 @@ import "../interfaces/ILoanPool.sol";
 import "../mixins/RewardHelper.sol";
 
 contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper, RewardHelper {
+    uint256 constant internal MONTH = 365 days / 12;
 
     enum CloseTypes {
         Deposit,
@@ -314,7 +315,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             backInterestOwed = backInterestTime
                 .mul(loanInterestLocal.owedPerDay);
             backInterestOwed = backInterestOwed
-                .div(86400);
+                .div(1 days);
         }
 
         //note: to avoid code duplication, it would be nicer to store loanParamsLocal.maxLoanTerm in a local variable
@@ -335,7 +336,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             //if the loan has been open for longer than an additional period, add at least 1 additional day
             if (backInterestTime >= loanParamsLocal.maxLoanTerm) {
                 loanLocal.endTimestamp = loanLocal.endTimestamp
-                    .add(backInterestTime).add(86400);
+                    .add(backInterestTime).add(1 days);
             }
             //extend by the max loan term
             else{
@@ -344,13 +345,13 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             }
         } else {
             // loanInterestLocal.owedPerDay doesn't change
-            if (backInterestTime >= 2628000){
+            if (backInterestTime >= MONTH){
                 loanLocal.endTimestamp = loanLocal.endTimestamp
-                    .add(backInterestTime).add(86400);
+                    .add(backInterestTime).add(1 days);
             }
             else{
                 loanLocal.endTimestamp = loanLocal.endTimestamp
-                    .add(2628000); // approx. 1 month
+                    .add(MONTH); 
             }
         }
 
@@ -359,7 +360,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         interestAmountRequired = interestAmountRequired
             .mul(loanInterestLocal.owedPerDay);
         interestAmountRequired = interestAmountRequired
-            .div(86400);
+            .div(1 days);
 
         loanInterestLocal.depositTotal = loanInterestLocal.depositTotal
             .add(interestAmountRequired);
@@ -1061,7 +1062,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         interestRefundToBorrower = interestRefundToBorrower
             .mul(owedPerDayRefund);
         interestRefundToBorrower = interestRefundToBorrower
-            .div(86400);
+            .div(1 days);
 
         if (closePrincipal < loanLocal.principal) {
             loanInterestLocal.depositTotal = loanInterestLocal.depositTotal
