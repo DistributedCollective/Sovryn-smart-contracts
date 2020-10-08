@@ -361,7 +361,14 @@ contract LoanTokenLogicStandard is AdvancedToken {
         uint256 one,
         uint256 two
     );
-
+    
+    /**
+     * @dev updates the user's checkpoint price and profit so far.
+     * @param _user the user address
+     * @param _oldBalance the user's previous balance
+     * @param _newBalance the user's updated balance
+     * @param _currentPrice the current iToken price
+     * */
     function _updateCheckpoints(
         address _user,
         uint256 _oldBalance,
@@ -757,6 +764,8 @@ contract LoanTokenLogicStandard is AdvancedToken {
         require(loanAmountPaid <= loanAmountAvailableInContract, "37");
 
         uint256 oldBalance = balances[msg.sender];
+        
+        //this function does not only update the checkpoints but also the current profit of the user
         _updateCheckpoints(
             msg.sender,
             oldBalance,
