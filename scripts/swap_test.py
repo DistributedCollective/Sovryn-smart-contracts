@@ -129,7 +129,7 @@ def test_margin_trading_sending_collateral_tokens():
     print("Passed `test_margin_trading_sending_collateral_tokens`")
 
 def test_margin_trading_sending_loan_tokens():
-    loan_token_sent = 100e18
+    loan_token_sent = 10e18
     leverage_amount = 2e18
 
     #SUSD.mint(loan_token.address, loan_token_sent*3)
@@ -247,7 +247,7 @@ def test_supply_interest_fee():
     tx = loan_token.marginTrade(
         "0", #loanId  (0 for new loans)
         2e18, # leverageAmount
-        100e18, #loanTokenSent
+        10e18, #loanTokenSent
         0, # no collateral token sent
         RBTC.address, #collateralTokenAddress
         acct, #trader,
@@ -296,7 +296,7 @@ def test_liquidate():
     borrower = accounts[1]
     liquidator = accounts[2]
     loan_token.mint(lender, 1e30)
-    loan_token_sent = 100e18
+    loan_token_sent = 10e18
     SUSD.mint(borrower, loan_token_sent)
     SUSD.mint(liquidator, loan_token_sent)
 

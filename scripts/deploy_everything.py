@@ -73,5 +73,5 @@ def main():
 def deployMoCMockup(acct):
     priceFeedMockup = acct.deploy(PriceFeedsMoCMockup)
     priceFeedMockup.setHas(True)
-    priceFeedMockup.setValue(11653e18)
+    priceFeedMockup.setValue(10000e18)
     return priceFeedMockup
