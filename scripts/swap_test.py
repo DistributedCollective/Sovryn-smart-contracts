@@ -99,12 +99,13 @@ def test_loan_address():
 
 
 def test_margin_trading_sending_collateral_tokens():
-    loan_token_sent = 100e18
+    loan_token_sent = 10e18
     leverage_amount = 2e18
 
     #SUSD.mint(loan_token.address,loan_token_sent*6)
     # address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
     collateral_token_sent = sovryn.getRequiredCollateral(SUSD.address,RBTC.address,loan_token_sent*2,50e18, False)
+    print('collateralTokenSent', collateral_token_sent)
     #RBTC.mint(acct,collateral_token_sent)
     # important! WEth is being held by the loanToken contract itself, all other tokens are transfered directly from
     # the sender and need approval
@@ -128,7 +129,7 @@ def test_margin_trading_sending_collateral_tokens():
     print("Passed `test_margin_trading_sending_collateral_tokens`")
 
 def test_margin_trading_sending_loan_tokens():
-    loan_token_sent = 100e18
+    loan_token_sent = 10e18
     leverage_amount = 2e18
 
     #SUSD.mint(loan_token.address, loan_token_sent*3)
@@ -246,7 +247,7 @@ def test_supply_interest_fee():
     tx = loan_token.marginTrade(
         "0", #loanId  (0 for new loans)
         2e18, # leverageAmount
-        100e18, #loanTokenSent
+        10e18, #loanTokenSent
         0, # no collateral token sent
         RBTC.address, #collateralTokenAddress
         acct, #trader,
@@ -295,7 +296,7 @@ def test_liquidate():
     borrower = accounts[1]
     liquidator = accounts[2]
     loan_token.mint(lender, 1e30)
-    loan_token_sent = 100e18
+    loan_token_sent = 10e18
     SUSD.mint(borrower, loan_token_sent)
     SUSD.mint(liquidator, loan_token_sent)
 
