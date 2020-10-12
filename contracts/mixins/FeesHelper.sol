@@ -44,7 +44,6 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
      * @param user the address to send the reward to
      * @param loanId the Id of the associated loan - used for logging only.
      * @param feeToken the address of the token in which the trading fee is paid
-     * @param feeAmount the height of the fee
      * */
     function _payTradingFee(
         address user,
@@ -80,7 +79,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
      * @param user the address to send the reward to
      * @param loanId the Id of the associated loan - used for logging only.
      * @param feeToken the address of the token in which the borrowig fee is paid
-     * @param feeAmount the height of the fee
+     * @param borrowingFee the height of the fee
      * */
     function _payBorrowingFee(
         address user,
