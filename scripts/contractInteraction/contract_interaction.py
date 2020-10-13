@@ -1,6 +1,6 @@
 
 '''
-This script serves the purpose of interacting with existing smart contracts on the testnet.
+This script serves the purpose of interacting with existing smart contracts on the testnet or mainnet.
 '''
 
 from brownie import *
@@ -8,13 +8,17 @@ from brownie.network.contract import InterfaceContainer
 import json
 
 def main():
-    global contracts, acct
+    
     #load the contracts and acct depending on the network
     loadConfig()
     #call the function you want here
     setupMarginLoanParams(contracts['WRBTC'], contracts['iDOCSettings'], contracts['iDOC'])
+    testTradeOpeningAndClosing(contracts['protocol'], contracts['iDOC'], contracts['DoC'], contracts['WRBTC'], 10e18, 6e18, False, 0)
+    setupMarginLoanParams(contracts['DoC'], contracts['iRBTCSettings'], contracts['iRBTC'])
+    testTradeOpeningAndClosing(contracts['protocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e14, 6e18, False, 1e14)
 
 def loadConfig():
+    global contracts, acct
     this_network = network.show_active()
     if this_network == "rsk-mainnet":
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
@@ -109,21 +113,21 @@ def liquidate(protocolAddress, loanId):
     else:
         print("can't liquidate because the loan is healthy")
     
-def testTradeOpeningAndClosing(protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress):
+def testTradeOpeningAndClosing(protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, loanTokenSent, leverage, testClose, sendValue):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     testToken = Contract.from_abi("TestToken", address = underlyingTokenAddress, abi = TestToken.abi, owner = acct)
     sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
-    loan_token_sent = 100e18
-    testToken.mint(acct, loan_token_sent)
-    testToken.approve(loanToken, loan_token_sent)
+    if(sendValue == 0):
+        testToken.approve(loanToken, loanTokenSent)
     tx = loanToken.marginTrade(
         "0",  # loanId  (0 for new loans)
-        2e18,  # leverageAmount
-        loan_token_sent,  # loanTokenSent
+        leverage,  # leverageAmount, 18 decimals
+        loanTokenSent,  # loanTokenSent
         0,  # no collateral token sent
         collateralTokenAddress,  # collateralTokenAddress
         acct,  # trader,
-        b''  # loanDataBytes (only required with ether)
+        b'',  # loanDataBytes (only required with ether)
+        {'value': sendValue}
     )
     loanId = tx.events['Trade']['loanId']
     collateral = tx.events['Trade']['positionSize']
@@ -131,7 +135,8 @@ def testTradeOpeningAndClosing(protocolAddress, loanTokenAddress, underlyingToke
     print("position size is ", collateral)
     loan = sovryn.getLoan(loanId)
     print("found the loan in storage with position size", loan['collateral'])
-    tx = sovryn.closeWithSwap(loanId, acct, collateral, True, b'')
+    if(testClose):
+        tx = sovryn.closeWithSwap(loanId, acct, collateral, True, b'')
 
 
 def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress):
@@ -293,15 +298,15 @@ def setupMarginLoanParams(collateralTokenAddress, loanTokenSettingsAddress, loan
         b"0x0", ## id
         False, ## active
         acct, ## owner
-        constants.ZERO_ADDRESS, ## loanToken -> will be overwritten
+        "0x0000000000000000000000000000000000000000", ## loanToken -> will be overwritten
         collateralTokenAddress, ## collateralToken.
-        Wei("16 ether"), ## minInitialMargin
-        Wei("15 ether"), ## maintenanceMargin
+        Wei("13.001 ether"), ## minInitialMargin
+        Wei("13 ether"), ## maintenanceMargin
         0 ## fixedLoanTerm -> will be overwritten
     ]
     params.append(setup)
     calldata = loanTokenSettings.setupLoanParams.encode_input(params, False)
-    tx = loanToken.updateSettings(loan_token_settings.address, calldata)
-    assert('LoanParamsSetup' in tx.events)
-    assert('LoanParamsIdSetup' in tx.events)
+    tx = loanToken.updateSettings(loanTokenSettings.address, calldata)
     print(tx.info())
+
+
