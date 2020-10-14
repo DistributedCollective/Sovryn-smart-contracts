@@ -15,7 +15,10 @@ def main():
     #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOCSettings'], contracts['iDOC'])
     #testTradeOpeningAndClosing(contracts['protocol'], contracts['iDOC'], contracts['DoC'], contracts['WRBTC'], 1e18, 10e18, False, 0)
     #setupMarginLoanParams(contracts['DoC'], contracts['iRBTCSettings'], contracts['iRBTC'])
-    testTradeOpeningAndClosing(contracts['protocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 11e18, False, 1e15)
+    #testTradeOpeningAndClosing(contracts['protocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 11e18, False, 1e15)
+    
+    swapTokens(0.02e18,200e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['DoC'])
+    #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
     readLiquidity()
     
 def loadConfig():
@@ -27,6 +30,7 @@ def loadConfig():
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     contracts = json.load(configFile)
     acct = accounts.load("rskdeployer")
+    
 
 
     
@@ -314,4 +318,23 @@ def setupMarginLoanParams(collateralTokenAddress, loanTokenSettingsAddress, loan
     tx = loanToken.updateSettings(loanTokenSettings.address, calldata)
     print(tx.info())
 
-
+def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTokenAddress):
+    abiFile =  open('./scripts/contractInteraction/SovrynSwapNetwork.json')
+    abi = json.load(abiFile)
+    swapNetwork = Contract.from_abi("SovrynSwapNetwork", address=swapNetworkAddress, abi=abi, owner=acct)
+    sourceToken = Contract.from_abi("Token", address=sourceTokenAddress, abi=TestToken.abi, owner=acct)
+    if(sourceToken.allowance(acct, swapNetworkAddress) < amount):
+        sourceToken.approve(swapNetworkAddress,amount)
+    path = swapNetwork.conversionPath(sourceTokenAddress,destTokenAddress)
+    print("path", path)
+    expectedReturn = swapNetwork.getReturnByPath(path, amount)
+    print("expected return ", expectedReturn)
+    tx = swapNetwork.convertByPath(
+        path,
+        amount,
+        minReturn,
+        "0x0000000000000000000000000000000000000000",
+        "0x0000000000000000000000000000000000000000",
+        0
+    )
+    tx.info()
