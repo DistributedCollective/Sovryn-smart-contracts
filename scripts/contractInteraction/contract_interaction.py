@@ -12,11 +12,12 @@ def main():
     #load the contracts and acct depending on the network
     loadConfig()
     #call the function you want here
-    setupMarginLoanParams(contracts['WRBTC'], contracts['iDOCSettings'], contracts['iDOC'])
-    testTradeOpeningAndClosing(contracts['protocol'], contracts['iDOC'], contracts['DoC'], contracts['WRBTC'], 10e18, 6e18, False, 0)
-    setupMarginLoanParams(contracts['DoC'], contracts['iRBTCSettings'], contracts['iRBTC'])
-    testTradeOpeningAndClosing(contracts['protocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e14, 6e18, False, 1e14)
-
+    #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOCSettings'], contracts['iDOC'])
+    #testTradeOpeningAndClosing(contracts['protocol'], contracts['iDOC'], contracts['DoC'], contracts['WRBTC'], 1e18, 10e18, False, 0)
+    #setupMarginLoanParams(contracts['DoC'], contracts['iRBTCSettings'], contracts['iRBTC'])
+    testTradeOpeningAndClosing(contracts['protocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 11e18, False, 1e15)
+    readLiquidity()
+    
 def loadConfig():
     global contracts, acct
     this_network = network.show_active()
@@ -117,7 +118,7 @@ def testTradeOpeningAndClosing(protocolAddress, loanTokenAddress, underlyingToke
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     testToken = Contract.from_abi("TestToken", address = underlyingTokenAddress, abi = TestToken.abi, owner = acct)
     sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
-    if(sendValue == 0):
+    if(sendValue == 0 and testToken.allowance(acct, loanTokenAddress) < loanTokenSent):
         testToken.approve(loanToken, loanTokenSent)
     tx = loanToken.marginTrade(
         "0",  # loanId  (0 for new loans)
@@ -129,12 +130,14 @@ def testTradeOpeningAndClosing(protocolAddress, loanTokenAddress, underlyingToke
         b'',  # loanDataBytes (only required with ether)
         {'value': sendValue}
     )
+    tx.info()
     loanId = tx.events['Trade']['loanId']
     collateral = tx.events['Trade']['positionSize']
     print("closing loan with id", loanId)
     print("position size is ", collateral)
     loan = sovryn.getLoan(loanId)
     print("found the loan in storage with position size", loan['collateral'])
+    print(loan)
     if(testClose):
         tx = sovryn.closeWithSwap(loanId, acct, collateral, True, b'')
 
@@ -246,21 +249,23 @@ def readTransactionLimits(loanTokenAddress, SUSD, RBTC):
     limit = localLoanToken.transactionLimit(SUSD)
     print("USD limit, ",limit)
     
-def readLiquidity(iRBTC, iSUSD, SUSD, RBTC, swap):
-    loanToken = Contract.from_abi("loanToken", address=iRBTC, abi=LoanTokenLogicStandard.abi, owner=acct)
+def readLiquidity():
+    loanToken = Contract.from_abi("loanToken", address=contracts['iRBTC'], abi=LoanTokenLogicStandard.abi, owner=acct)
     tasRBTC = loanToken.totalAssetSupply()
-    print("suppy on iRBTC", tasRBTC/1e18)
+    tabRBTC = loanToken.totalAssetBorrow()
+    print("liquidity on iRBTC", (tasRBTC-tabRBTC)/1e18)
     
-    loanToken = Contract.from_abi("loanToken", address=iSUSD, abi=LoanTokenLogicStandard.abi, owner=acct)
+    loanToken = Contract.from_abi("loanToken", address=contracts['iDOC'], abi=LoanTokenLogicStandard.abi, owner=acct)
     tasIUSD = loanToken.totalAssetSupply()
-    print("suppy on iSUSD", tasIUSD/1e18)
+    tabIUSD = loanToken.totalAssetBorrow()
+    print("liquidity on iSUSD", (tasIUSD-tabIUSD)/1e18)
     
-    tokenContract = Contract.from_abi("Token", address=SUSD, abi=TestToken.abi, owner=acct)
-    bal = tokenContract.balanceOf(swap)
+    tokenContract = Contract.from_abi("Token", address=contracts['DoC'], abi=TestToken.abi, owner=acct)
+    bal = tokenContract.balanceOf(contracts['swap'])
     print("supply of DoC on swap", bal/1e18)
     
-    tokenContract = Contract.from_abi("Token", address=RBTC, abi=TestToken.abi, owner=acct)
-    bal = tokenContract.balanceOf(swap)
+    tokenContract = Contract.from_abi("Token", address=contracts['WRBTC'], abi=TestToken.abi, owner=acct)
+    bal = tokenContract.balanceOf(contracts['swap'])
     print("supply of rBTC on swap", bal/1e18)
     
 
@@ -300,8 +305,8 @@ def setupMarginLoanParams(collateralTokenAddress, loanTokenSettingsAddress, loan
         acct, ## owner
         "0x0000000000000000000000000000000000000000", ## loanToken -> will be overwritten
         collateralTokenAddress, ## collateralToken.
-        Wei("13.001 ether"), ## minInitialMargin
-        Wei("13 ether"), ## maintenanceMargin
+        Wei("8.001 ether"), ## minInitialMargin
+        Wei("8 ether"), ## maintenanceMargin
         0 ## fixedLoanTerm -> will be overwritten
     ]
     params.append(setup)
