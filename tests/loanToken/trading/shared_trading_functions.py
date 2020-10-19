@@ -262,7 +262,7 @@ def close_partial_margin_trade(sovryn, loanToken, web3, set_demand_curve, lend_t
     swap_amount = fixedint(initial_loan['collateral']).mul(80*10**18).div(10**20).num
 
     internal_test_close_margin_trade(swap_amount, initial_loan, loanToken, loan_id, priceFeeds, sovryn, trader, web3, return_token_is_collateral)
-
+    
 
 def close_partial_margin_trade_sov_reward_payment(sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position,
                                                   chain, return_token_is_collateral, FeesEvents, SOV):
@@ -287,6 +287,7 @@ def internal_test_close_margin_trade(swap_amount, initial_loan, loanToken, loan_
     collateral_ = initial_loan['collateral']
 
     tx_loan_closing = sovryn.closeWithSwap(loan_id, trader, swap_amount, return_token_is_collateral, "", {'from': trader})
+    print(tx_loan_closing)
     closed_loan = sovryn.getLoan(loan_id).dict()
     loan_token_ = initial_loan['loanToken']
     collateral_token_ = initial_loan['collateralToken']

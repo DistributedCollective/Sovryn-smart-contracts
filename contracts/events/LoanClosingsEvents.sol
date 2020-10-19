@@ -49,5 +49,11 @@ contract LoanClosingsEvents {
         uint256 collateralToLoanRate,
         uint256 currentMargin
     );
-
+    
+    event swapExcess(
+        bool shouldRefund, 
+        uint amount, 
+        uint amountInRbtc, 
+        uint threshold
+    );
 }
