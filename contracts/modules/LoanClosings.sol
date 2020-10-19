@@ -384,14 +384,22 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             loanDataBytes
         );
 
-        //received more tokens than needed to pay the interest -> swap rest back to collateral
+        //received more tokens than needed to pay the interest 
         if(destTokenAmountReceived > interestAmountRequired){
-            (destTokenAmountReceived , ,) = _swapBackExcess(
-                loanLocal,
-                loanParamsLocal,
-                destTokenAmountReceived - interestAmountRequired,  //amount to be swapped
-                loanDataBytes);
-            sourceTokenAmountUsed = sourceTokenAmountUsed.sub(destTokenAmountReceived);
+            // swap rest back to collateral, if the amount is big enough to cover gas cost
+            if(worthTheTransfer(loanParamsLocal.loanToken, destTokenAmountReceived - interestAmountRequired)){
+                (destTokenAmountReceived , ,) = _swapBackExcess(
+                    loanLocal,
+                    loanParamsLocal,
+                    destTokenAmountReceived - interestAmountRequired,  //amount to be swapped
+                    loanDataBytes);
+                sourceTokenAmountUsed = sourceTokenAmountUsed.sub(destTokenAmountReceived);
+            }
+            //else give it to the protocol as a lending fee
+            else{
+                _payLendingFee(loanLocal.borrower, loanParamsLocal.loanToken, destTokenAmountReceived - interestAmountRequired);
+            }
+            
         }
 
         //subtract the interest from the collateral

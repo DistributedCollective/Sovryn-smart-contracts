@@ -46,6 +46,7 @@ def test_rollover(accounts, chain, loanToken, set_demand_curve, sovryn, priceFee
     lender_pool_initial_balance = SUSD.balanceOf(loanToken.address)
     sov_borrower_initial_balance = SOV.balanceOf(borrower)
     tx_rollover = sovryn.rollover(loan_id, b'')
+    print(tx_rollover)
 
     lender_interest_after = sovryn.getLenderInterestData(loanToken.address, SUSD.address).dict()
 
