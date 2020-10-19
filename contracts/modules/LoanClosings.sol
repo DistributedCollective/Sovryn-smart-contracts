@@ -17,8 +17,9 @@ import "../mixins/RewardHelper.sol";
 
 contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper, RewardHelper {
     uint256 constant internal MONTH = 365 days / 12;
-    //0.00002 BTC
-    uint256 constant public paySwapExcessToBorrowerThreshold = 20000000000000;
+    //0.00001 BTC, would be nicer in State.sol, but would require a redeploy of the complete protocol, so adding it here instead
+    //because it's not shared state anyway and only used by this contract
+    uint256 constant public paySwapExcessToBorrowerThreshold = 10000000000000;
 
     enum CloseTypes {
         Deposit,
