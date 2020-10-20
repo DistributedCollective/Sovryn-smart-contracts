@@ -17,6 +17,9 @@ import "../mixins/RewardHelper.sol";
 
 contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper, RewardHelper {
     uint256 constant internal MONTH = 365 days / 12;
+    //0.00001 BTC, would be nicer in State.sol, but would require a redeploy of the complete protocol, so adding it here instead
+    //because it's not shared state anyway and only used by this contract
+    uint256 constant public paySwapExcessToBorrowerThreshold = 10000000000000;
 
     enum CloseTypes {
         Deposit,
@@ -382,14 +385,22 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             loanDataBytes
         );
 
-        //received more tokens than needed to pay the interest -> swap rest back to collateral
+        //received more tokens than needed to pay the interest 
         if(destTokenAmountReceived > interestAmountRequired){
-            (destTokenAmountReceived , ,) = _swapBackExcess(
-                loanLocal,
-                loanParamsLocal,
-                destTokenAmountReceived - interestAmountRequired,  //amount to be swapped
-                loanDataBytes);
-            sourceTokenAmountUsed = sourceTokenAmountUsed.sub(destTokenAmountReceived);
+            // swap rest back to collateral, if the amount is big enough to cover gas cost
+            if(worthTheTransfer(loanParamsLocal.loanToken, destTokenAmountReceived - interestAmountRequired)){
+                (destTokenAmountReceived , ,) = _swapBackExcess(
+                    loanLocal,
+                    loanParamsLocal,
+                    destTokenAmountReceived - interestAmountRequired,  //amount to be swapped
+                    loanDataBytes);
+                sourceTokenAmountUsed = sourceTokenAmountUsed.sub(destTokenAmountReceived);
+            }
+            //else give it to the protocol as a lending fee
+            else{
+                _payLendingFee(loanLocal.borrower, loanParamsLocal.loanToken, destTokenAmountReceived - interestAmountRequired);
+            }
+            
         }
 
         //subtract the interest from the collateral
@@ -560,7 +571,8 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
                     .mul(swapAmount)
                     .div(loanLocal.collateral);
             require(loanCloseAmount != 0, "loanCloseAmount == 0");
-
+            
+            //computes the interest refund for the borrower and sends it to the lender to cover part of the principal
             loanCloseAmountLessInterest = _settleInterestToPrincipal(
                 loanLocal,
                 loanParamsLocal,
@@ -610,11 +622,13 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
                 .add(coveredPrincipal)
                 .sub(loanCloseAmountLessInterest);
         } else {
+            //pay back the amount which was covered by the swap
             loanCloseAmountLessInterest = coveredPrincipal;
         }
 
         require(loanCloseAmountLessInterest != 0, "closeAmount is 0 after swap");
-
+        
+        //reduce the collateral by the amount which was swapped for the closure
         if (usedCollateral != 0) {
             loanLocal.collateral = loanLocal.collateral
                 .sub(usedCollateral);
@@ -665,7 +679,16 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         );
         require(loanParamsLocal.id != 0, "loanParams not exists");
     }
-
+    
+    /**
+     * @dev computes the interest which needs to be refunded to the borrower based on the amount he's closing and either
+     * subtracts it from the amount which still needs to be paid back (in case outstanding amount > interest) or withdraws the
+     * excess to the borrower (in case interest > outstanding).
+     * @param loanLocal the loan
+     * @param loanParamsLocal the loan params
+     * @param loanCloseAmount the amount to be closed (base for the computation)
+     * @param receiver the address of the receiver (usually the borrower)
+     * */
     function _settleInterestToPrincipal(
         Loan memory loanLocal,
         LoanParams memory loanParamsLocal,
@@ -676,6 +699,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
     {
         uint256 loanCloseAmountLessInterest = loanCloseAmount;
 
+        //compute the interest which neeeds to be refunded to the borrower (because full interest is paid on loan )
         uint256 interestRefundToBorrower = _settleInterest(
             loanParamsLocal,
             loanLocal,
@@ -683,6 +707,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         );
 
         uint256 interestAppliedToPrincipal;
+        //if the outstanding loan is bigger than the interest to be refunded, reduce the amount to be paid back / closed by the interest
         if (loanCloseAmountLessInterest >= interestRefundToBorrower) {
             // apply all of borrower interest refund torwards principal
             interestAppliedToPrincipal = interestRefundToBorrower;
@@ -692,7 +717,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 
             // no interest refund remaining
             interestRefundToBorrower = 0;
-        } else {
+        } else {//if the interest refund is bigger than the outstanding loan, the user needs to get back the interest
             // principal fully covered by excess interest
             interestAppliedToPrincipal = loanCloseAmountLessInterest;
 
@@ -712,6 +737,8 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             }
         }
 
+        //pay the interest to the lender
+        //note: this is a waste of gas, because the loanCloseAmountLessInterest is withdrawn to the lender, too. It could be done at once.
         if (interestAppliedToPrincipal != 0) {
             // The lender always gets back an ERC20 (even wrbtc), so we call withdraw directly rather than
             // use the _withdrawAsset helper function
@@ -764,6 +791,20 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             require(msg.value == 0, "wrong asset sent");
         }
     }
+    
+    /**
+     * @dev checks if the amount of the asset to be transfered is worth the transfer fee
+     * @param asset the asset to be transfered
+     * @param amount the amount to be transfered
+     * @return True if the amount is bigger than the threshold
+     * */
+    function worthTheTransfer(address asset, uint256 amount) internal returns (bool){
+        (uint256 rbtcRate, uint256 rbtcPrecision) = IPriceFeeds(priceFeeds).queryRate(asset, address(wrbtcToken));
+        uint256 amountInRbtc = amount.mul(rbtcRate).div(rbtcPrecision);
+        emit swapExcess(amountInRbtc > paySwapExcessToBorrowerThreshold, amount, amountInRbtc, paySwapExcessToBorrowerThreshold);
+        return amountInRbtc > paySwapExcessToBorrowerThreshold;
+    }
+    
 
     /**
      * swaps a share of a loan's collateral or the complete collateral in order to cover the principle.
@@ -797,14 +838,23 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 
         if (returnTokenIsCollateral) {
             coveredPrincipal = principalNeeded;
-
+            
+            // better fill than expected
             if (destTokenAmountReceived > coveredPrincipal) {
-                // better fill than expected, so send excess to borrower
-                _withdrawAsset(
-                    loanParamsLocal.loanToken,
-                    loanLocal.borrower,
-                    destTokenAmountReceived - coveredPrincipal
-                );
+
+                //  send excess to borrower if the amount is big enough to be worth the gas fees
+                if(worthTheTransfer(loanParamsLocal.loanToken, destTokenAmountReceived - coveredPrincipal)){
+                    _withdrawAsset(
+                        loanParamsLocal.loanToken,
+                        loanLocal.borrower,
+                        destTokenAmountReceived - coveredPrincipal
+                    );
+                }
+                // else, give the excess to the lender (if it goes to the borrower, they're very confused. causes more trouble than it's worth)
+                else{
+                    coveredPrincipal = destTokenAmountReceived;
+                }
+                
             }
             withdrawAmount = swapAmount > sourceTokenAmountUsed ?
                 swapAmount - sourceTokenAmountUsed :
