@@ -17,9 +17,10 @@ def main():
     #setupMarginLoanParams(contracts['DoC'], contracts['iRBTCSettings'], contracts['iRBTC'])
     #testTradeOpeningAndClosing(contracts['protocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 11e18, False, 1e15)
     
-    swapTokens(0.02e18,200e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['DoC'])
+    #swapTokens(0.02e18,200e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['DoC'])
     #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
-    readLiquidity()
+    liquidate(contracts['protocol'], '0xc9b8227bcf953e45f16d5d9a8a74cad92f403b90d0daf00900bb02e4a35c542c')
+    #readLiquidity()
     
 def loadConfig():
     global contracts, acct
@@ -111,10 +112,13 @@ def liquidate(protocolAddress, loanId):
     loan = sovryn.getLoan(loanId).dict()
     print(loan)
     if(loan['maintenanceMargin'] > loan['currentMargin']):
-        testToken = Contract.from_abi("TestToken", address = loan['loanToken'], abi = TestToken.abi, owner = acct)
-        testToken.mint(acct, loan['maxLiquidatable'])
-        testToken.approve(sovryn, loan['maxLiquidatable'])
-        sovryn.liquidate(loanId, acct, loan['maxLiquidatable'])
+        value = 0
+        if(loan['loanToken']==contracts['WRBTC']):
+            value = loan['maxLiquidatable']
+        else:
+            testToken = Contract.from_abi("TestToken", address = loan['loanToken'], abi = TestToken.abi, owner = acct)
+            testToken.approve(sovryn, loan['maxLiquidatable'])
+        sovryn.liquidate(loanId, acct, loan['maxLiquidatable'],{'value': value})
     else:
         print("can't liquidate because the loan is healthy")
     
