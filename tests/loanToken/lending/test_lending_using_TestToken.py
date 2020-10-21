@@ -55,6 +55,7 @@ def test_profit(loanToken, accounts, SUSD, RBTC, chain, set_demand_curve, sovryn
     SUSD.approve(loanToken.address, balanceOf0+100e18)
     chain.sleep(100)
     chain.mine(1)
+    profitAfter = loanToken.profitOf(accounts[0])
 
     assert(profitInt == 0)
-    assert(profitAfter > 0 and profitAfter < profitBefore))
+    assert(profitAfter > 0 and profitAfter < profitBefore)
