@@ -23,7 +23,8 @@ def main():
     #readLiquidity()
     #getBalance(contracts['WRBTC'], '0xE5646fEAf7f728C12EcB34D14b4396Ab94174827')
     #getBalance(contracts['WRBTC'], '0x7BE508451Cd748Ba55dcBE75c8067f9420909b49')
-    readLoan('0xb2bbd9135a7cfbc5adda48e90430923108ad6358418b7ac27c9edcf2d44911e5')
+    #readLoan('0xb2bbd9135a7cfbc5adda48e90430923108ad6358418b7ac27c9edcf2d44911e5')
+    replaceLoanClosings()
     
 def loadConfig():
     global contracts, acct
@@ -216,13 +217,13 @@ def setupTorqueLoanParams(loanTokenAddress, loanTokenSettingsAddress, underlying
     assert('LoanParamsIdSetup' in tx.events)
     print(tx.info())
     
-def rollover(protocolAddress, loanId):
-    sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
+def rollover(loanId):
+    sovryn = Contract.from_abi("sovryn", address=contracts['protocol'], abi=interface.ISovryn.abi, owner=acct)
     tx = sovryn.rollover(loanId, b'')
     print(tx.info())
     
-def replaceLoanClosings(protocolAddress):
-    sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
+def replaceLoanClosings():
+    sovryn = Contract.from_abi("sovryn", address=contracts['protocol'], abi=interface.ISovryn.abi, owner=acct)
     loanClosings = acct.deploy(LoanClosings)
     sovryn.replaceContract(loanClosings.address)
     
