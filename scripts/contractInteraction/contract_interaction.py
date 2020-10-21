@@ -19,8 +19,11 @@ def main():
     
     #swapTokens(0.02e18,200e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['DoC'])
     #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
-    liquidate(contracts['protocol'], '0xc9b8227bcf953e45f16d5d9a8a74cad92f403b90d0daf00900bb02e4a35c542c')
+    #liquidate(contracts['protocol'], '0xc9b8227bcf953e45f16d5d9a8a74cad92f403b90d0daf00900bb02e4a35c542c')
     #readLiquidity()
+    #getBalance(contracts['WRBTC'], '0xE5646fEAf7f728C12EcB34D14b4396Ab94174827')
+    #getBalance(contracts['WRBTC'], '0x7BE508451Cd748Ba55dcBE75c8067f9420909b49')
+    readLoan('0xb2bbd9135a7cfbc5adda48e90430923108ad6358418b7ac27c9edcf2d44911e5')
     
 def loadConfig():
     global contracts, acct
@@ -80,8 +83,8 @@ def readLoanTokenState(loanTokenAddress):
     bir = loanToken.nextBorrowInterestRate(0)
     print("next borrow interest rate", bir)
     
-def readLoan(protocolAddress, loanId):
-    sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
+def readLoan(loanId):
+    sovryn = Contract.from_abi("sovryn", address=contracts['protocol'], abi=interface.ISovryn.abi, owner=acct)
     print(sovryn.getLoan(loanId).dict())
 
 def getTokenPrice(loanTokenAddress):
@@ -227,7 +230,7 @@ def transferOwner(contractAddress, newOwner):
     contract = Contract.from_abi("loanToken", address=contractAddress, abi=LoanToken.abi, owner=acct)
     contract.transferOwnership(newOwner)
     
-def getBalance(contractAddress):
+def getBalance(contractAddress, acct):
     contract = Contract.from_abi("Token", address=contractAddress, abi=LoanToken.abi, owner=acct)
     print(contract.balanceOf(acct))
     
