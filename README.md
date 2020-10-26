@@ -2,6 +2,7 @@
 
 
 
+
 # Sovryn v 0.1 Smart Contracts
 
 ## Dependencies
@@ -244,9 +245,57 @@ bytes memory loanDataBytes
 
 ```loanDataBytes``` is not used at this point. Pass empty bytes.
 
-### 4. Loan Maintainanance
+### 4. Borrowing
+##### 4.1 Borrow - take a loan
+Borrowing works similar to margin trading, just that the borrowed amount is withdrawn by the user instead of being held by the protocol. Just like with margin trading, the collateral is held in a differnet currency than the loan token. In our rBTC/sUSD example, sUSD is being used as collateral for rBTC and vice versa. In  contrast to the margin trade call, it's not possible to send loan tokens, but collateral tokens must be sent: 150% of the withdrawn amount converted to collateral tokens.
 
-##### 4.1 Add margin
+```borrow``` expects following parameter:
+```
+bytes32 loanId,
+uint256 withdrawAmount,
+uint256 initialLoanDuration,
+uint256 collateralTokenSent, 
+address collateralTokenAddress, 
+address borrower,
+address receiver,
+bytes memory loanDataBytes
+```
+
+```loanId``` is the ID of the loan, 0 for a new loan
+
+```withdrawAmount``` is the amount to be withdrawn (actually borrowed)
+
+```initialLoanDuration``` is the duration of the loan in seconds. if the loan is not paid back until then, it'll need to be rolled over
+
+```collateralTokenSent``` is the amount of collateral token sent (150% of the withdrawn amount worth in collateral tokens). If the collateral is rBTC, 
+```collateralTokenSent``` needs to be added as value to the transaction as well. 
+
+```collateralTokenAddress``` is the address of the token to be used as collateral. cannot be the loan token address
+
+```borrower``` is the address of the user paying for the collateral
+
+```receiver``` is the address to receive the withdrawn amount
+
+##### 4.2 Close the loan
+
+Loans can either be closed with a swap like explained in 3.2, or with a deposit. Closing with deposit might be considered the standard behaviour. With ```closeWithDeposit``` the user pays back the loan fully or partially by sending loan tokens to the protocol contract. But users should always have the choice if they prefer to pay back the loan in loan tokens or pay it from their collateral. 
+
+```closeWithDeposit``` expects the following parameter:
+```
+bytes32 loanId,
+address receiver,
+uint256 depositAmount
+```
+
+```loanId```is the id of the loan
+
+```receiver``` is the receiver of the collateral
+
+```depositAmount``` defines how much of the position should be paid back. It is denominated in loan tokens.
+
+### 5. Loan Maintainanance
+
+##### 5.1 Add margin
 
 In order to add margin to a open position, call ```depositCollateral``` on the protocol contract.
 
@@ -259,7 +308,7 @@ uint256 depositAmount
 
 ```depositAmount``` is the amount of collateral tokens to deposit.
 
-##### 4.2 Rollover
+##### 5.2 Rollover
 
 When the maximum loan duration has been exceeded, the position will need to be rolled over. The function ```rollover``` on the protocol contract extends the loan duration by the maximum term (28 days for margin trades at the moment of writing), pays the interest to the lender and refunds the caller for the gas cost by sending 2 * the gas cost using the fast gas price as base for the calculation.
 
@@ -273,8 +322,8 @@ bytes calldata loanDataBytes
 ```loanDataBytes``` is a placeholder for future use. Send an empty bytes array.
 
 
-### 5. Liquidation Handling
-##### 5.1 Liquidate a position
+### 6. Liquidation Handling
+##### 6.1 Liquidate a position
 In order to liquidate an open position, call ```liquidate``` on the protocol contract. Requirements:
 * current margin < maintenance margin
 * liquidator approved the protocol to spend sufficient tokens
@@ -293,9 +342,9 @@ uint256 closeAmount
 
 ```closeAmount``` is the amount to liquidate. If closeAmount > maxLiquidatable, the maximum amount will be liquidated.
 
-### 6. Reading data from the contracts
+### 7. Reading data from the contracts
 
-##### 6.1 Loans
+##### 7.1 Loans
 
 You can read all active loans from the smart contract calling ```getActiveLoans```. All active loans for a specific user can be retrieved with ``` getUserLoans```. Both function will return a array of ```LoanReturnData``` objects.
 To query a single loan, use ```getLoan```.
@@ -347,13 +396,13 @@ uint256 maxSeizable;
 
 ```maxSeizable ``` is the amount which can be retrieved through liquidation (in collateral tokens)
 
-##### 6.2 Supply and Demand
+##### 7.2 Supply and Demand
 
  ```totalAssetSupply()``` returns the total amount of funds supplied to the iToken contract by the liquidity providers (lenders).
 
 ```totalAssetBorrow()``` returns the total amount of funds which is currently borrowed from the smart contract.
 
-##### 6.3 Interest Rates
+##### 7.3 Interest Rates
 
 To read the current interest rate for liquidity providers (lenders), call ```supplyInterestRate()``` . If you would like to obtain the potential interest rate after x assets are being lent to the contract, use  ```nextSupplyInterestRate(x)```
 
@@ -361,11 +410,11 @@ To read the current interest rate for borrowers and/or traders, call ```borrowIn
 
 ```avgBorrowInterestRate()``` returns the average interest rate paid by borrowers at the moment. Since the interest rate depends on the ratio demand/supply, some borrower are paying more than others. 
 
-##### 6.4 iToken Price
+##### 7.4 iToken Price
 
 ```tokenPrice()``` returns the current iToken price denominated in underlying tokens. In case of iSUSD, the price would be given in SUSD.
 
-##### 6.5 Lender Balances
+##### 7.5 Lender Balances
 
 Each lender has 2 balances on the iToken contract. The balance of iTokens (e.g. iSUSD) and the balance of underlying tokens (e.g. SUSD).
 
@@ -373,7 +422,7 @@ Each lender has 2 balances on the iToken contract. The balance of iTokens (e.g. 
 
 ```assetBalanceOf(address)``` returns the underlying token balance of the given address.
 
-### 7. Remarks
+### 8. Remarks
 
 The loan token (iToken) contract as well as the protocol contract act as proxies, delegating all calls to underlying contracts. Therefore, if you want to interact with them using web3, you need to use the ABIs from the contracts containing the actual logic or the interface contract.
 
@@ -381,16 +430,16 @@ ABI for ```LoanToken``` contracts: ```LoanTokenLogicStandard```
 
 ABI for ```Protocol``` contract: ```ISovryn```
 
-### 8. SOV Reward Payments
+### 9. SOV Reward Payments
 
-#### 8.1 Setup
+#### 9.1 Setup
 When deploying the protocol you need to:
  1. Configure the protocol address. It is an ERC20 token.
  2. Configure price rates between loan and protocol tokens. Using PriceFeeds
  3. Mint or approve tokens to protocol.
  4. Deposit protocol token. `sovryn.depositProtocolToken(amount)`
 
-#### 8.2 Payment
+#### 9.2 Payment
 When a user calls one of the below functions the protocol pays SOV rewards.
 
 - closeWithSwap
@@ -404,7 +453,7 @@ When a user calls one of the below functions the protocol pays SOV rewards.
 
 The function which pays the reward is `PayFeeReward` from `FeesHelper.sol`.
 
-#### 8.3 Withdraw
+#### 9.3 Withdraw
 The protocol can withdraw SOV tokens using `sovryn.withdrawProtocolToken()` from `ProtocolSettings.sol`. This function is executable only by the owner.
 
 ## License
