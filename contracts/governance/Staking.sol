@@ -21,7 +21,7 @@ contract Staking is Ownable{
     mapping (address => address) public delegates;
     
     /// @notice the maximum duration to stake tokens for
-    uint256 maxDuration = 3 years;
+    uint256 maxDuration = 1095 days;
 
     /// @notice A checkpoint for marking number of votes from a given block
     struct Checkpoint {
@@ -79,8 +79,10 @@ contract Staking is Ownable{
         bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
         assert(success);
         
+        //todo: lock the tokens
+        
         //increase staked balance
-        balances[msg.sender] = add96(balances[msg.sender],amount);
+        balances[msg.sender] = add96(balances[msg.sender],amount, "balance overflow");
         
         //set the delegatee if set
         if(delegatee != address(0))
@@ -92,12 +94,21 @@ contract Staking is Ownable{
      * @param amount the number of tokens to withdraw
      * @param receiver the receiver of the tokens. If not specified, send to the msg.sender
      * */
-    function withdraw(uint256 amount, address receiver) public {
-        //check if tokens are unlocked
-        //check amount <= balance
+    function withdraw(uint96 amount, address receiver) public {
+        //todo: check if tokens are unlocked
+        
+        require(amount <= balances[msg.sender], "not enough balance");
+        
         //determine the receiver
+        if(receiver == address(0))
+            receiver = msg.sender;
+            
         //reduce staked balance
+        balances[msg.sender] = sub96(balances[msg.sender], amount, "balance underflow");
+        
         //transferFrom
+        bool success = SOVToken.transferFrom(address(this), msg.sender, amount);
+        assert(success);
     }
     
     /**
