@@ -77,6 +77,8 @@ contract Staking is Ownable{
      * @param delegatee the address of the delegatee or 0x0 if there is none.
      * */
     function stake(uint96 amount, uint256 duration, address delegatee) public {
+        require(amount > 0, "amount of tokens to stake needs to be bigger than 0");
+        
         //do not stake longer than the max duration
         if (duration <= maxDuration)
             duration = maxDuration;
@@ -86,10 +88,12 @@ contract Staking is Ownable{
         assert(success);
         
         //lock the tokens
-        lockedUntil[msg.sender] = block.timestamp + duration;
+        uint lockedTS = block.timestamp + duration;
+        require(lockedTS >= lockedUntil[msg.sender], "msg.sender already has a lock. locking duration cannot be reduced.");
+        lockedUntil[msg.sender] = lockedTS;
         
         //increase staked balance
-        balances[msg.sender] = add96(balances[msg.sender],amount, "balance overflow");
+        balances[msg.sender] = add96(balances[msg.sender], amount, "balance overflow");
         
         //set the delegatee if set
         if(delegatee != address(0))
@@ -102,6 +106,7 @@ contract Staking is Ownable{
      * @param receiver the receiver of the tokens. If not specified, send to the msg.sender
      * */
     function withdraw(uint96 amount, address receiver) public {
+        require(amount > 0, "amount of tokens to be withdrawn needs to be bigger than 0");
         require(block.timestamp >= lockedUntil[msg.sender] || allUnlocked, "tokens are still locked.");
         require(amount <= balances[msg.sender], "not enough balance");
         
