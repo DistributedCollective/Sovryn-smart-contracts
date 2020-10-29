@@ -101,6 +101,21 @@ contract Staking is Ownable{
     }
     
     /**
+     * @notice extends the staking duration until the specified date
+     * @param until the new unlocking timestamp in S
+     * */
+    function extendStakingDuration(uint256 until) public{
+        require(lockedUntil[msg.sender] <= until, "cannot reduce the staking duration");
+        
+        //do not exceed the max duration
+        uint latest = block.timestamp + maxDuration;
+        if(until > latest)
+            until = latest;
+            
+        lockedUntil[msg.sender] = until;
+    }
+    
+    /**
      * @notice withdraws the given amount of tokens if they are unlocked
      * @param amount the number of tokens to withdraw
      * @param receiver the receiver of the tokens. If not specified, send to the msg.sender
