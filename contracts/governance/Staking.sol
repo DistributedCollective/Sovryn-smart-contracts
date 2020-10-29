@@ -16,6 +16,9 @@ contract Staking is Ownable{
 
     /// @notice Official record of staked token balances for each account
     mapping (address => uint96) internal balances;
+    
+    /// @notice A record of the unlocking timestamps per address
+    mapping (address => uint) public lockedUntil;
 
     /// @notice A record of each accounts delegate
     mapping (address => address) public delegates;
@@ -79,7 +82,8 @@ contract Staking is Ownable{
         bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
         assert(success);
         
-        //todo: lock the tokens
+        //lock the tokens
+        lockedUntil[msg.sender] = block.timestamp + duration;
         
         //increase staked balance
         balances[msg.sender] = add96(balances[msg.sender],amount, "balance overflow");
@@ -95,8 +99,7 @@ contract Staking is Ownable{
      * @param receiver the receiver of the tokens. If not specified, send to the msg.sender
      * */
     function withdraw(uint96 amount, address receiver) public {
-        //todo: check if tokens are unlocked
-        
+        require(block.timestamp >= lockedUntil[msg.sender], "tokens are still locked.");
         require(amount <= balances[msg.sender], "not enough balance");
         
         //determine the receiver
