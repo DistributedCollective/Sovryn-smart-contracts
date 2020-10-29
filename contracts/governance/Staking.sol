@@ -1,9 +1,15 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
-contract Staking {
+import "../openzeppelin/Ownable.sol";
+import "../interfaces/IERC20.sol";
+
+contract Staking is Ownable{
+    
+    string name = "SOVStaking";
+    
     /// @notice the token to be staked
-    address public SOVTokenAddress;
+    IERC20 public SOVToken;
 
     /// @notice Total number of tokens in circulation
     uint public constant totalSupply = 0; // increases as more tokens are staked
@@ -55,7 +61,7 @@ contract Staking {
      * @param SOV The address of the SOV token address
      */
     constructor(address SOV) public {
-        SOVTokenAddress = SOV;
+        SOVToken = IERC20(SOV);
     }
     
     /**
@@ -64,11 +70,21 @@ contract Staking {
      * @param duration the duration in seconds
      * @param delegatee the address of the delegatee or 0x0 if there is none.
      * */
-    function stake(uint256 amount, uint256 duration, address delegatee) public {
-        //check max duration -> if duration is longer, stake for max duration
-        //transferFrom
+    function stake(uint96 amount, uint256 duration, address delegatee) public {
+        //do not stake longer than the max duration
+        if (duration <= maxDuration)
+            duration = maxDuration;
+            
+        //retrieve the SOV tokens
+        bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
+        assert(success);
+        
         //increase staked balance
-        //if delegatee not 0, set the delegatee
+        balances[msg.sender] = add96(balances[msg.sender],amount);
+        
+        //set the delegatee if set
+        if(delegatee != address(0))
+            _delegate(msg.sender, delegatee);
     }
     
     /**
@@ -87,7 +103,7 @@ contract Staking {
     /**
      * @notice allow the owner to unlock all tokens in case the staking contract is going to be replaced
      * */
-    function unlockAllTokens() onlyOwner{
+    function unlockAllTokens() public onlyOwner{
         
     }
     
