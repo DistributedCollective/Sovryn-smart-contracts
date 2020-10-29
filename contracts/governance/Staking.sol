@@ -25,6 +25,9 @@ contract Staking is Ownable{
     
     /// @notice the maximum duration to stake tokens for
     uint256 maxDuration = 1095 days;
+    
+    /// @notice if this flag is set to true, all tokens are unlocked immediately
+    bool allUnlocked = false;
 
     /// @notice A checkpoint for marking number of votes from a given block
     struct Checkpoint {
@@ -99,7 +102,7 @@ contract Staking is Ownable{
      * @param receiver the receiver of the tokens. If not specified, send to the msg.sender
      * */
     function withdraw(uint96 amount, address receiver) public {
-        require(block.timestamp >= lockedUntil[msg.sender], "tokens are still locked.");
+        require(block.timestamp >= lockedUntil[msg.sender] || allUnlocked, "tokens are still locked.");
         require(amount <= balances[msg.sender], "not enough balance");
         
         //determine the receiver
@@ -116,9 +119,11 @@ contract Staking is Ownable{
     
     /**
      * @notice allow the owner to unlock all tokens in case the staking contract is going to be replaced
+     * note: not reversible on purpose. once unlocked, everything is unlocked. the owner should not be able to just quickly
+     * unlock to withdraw his own tokens and lock again.
      * */
     function unlockAllTokens() public onlyOwner{
-        
+        allUnlocked = true;
     }
     
     /**
