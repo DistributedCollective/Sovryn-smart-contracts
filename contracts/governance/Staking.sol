@@ -85,6 +85,13 @@ contract Staking {
     }
     
     /**
+     * @notice allow the owner to unlock all tokens in case the staking contract is going to be replaced
+     * */
+    function unlockAllTokens() onlyOwner{
+        
+    }
+    
+    /**
      * @notice Get the number of staked tokens held by the `account`
      * @param account The address of the account to get the balance of
      * @return The number of tokens held
