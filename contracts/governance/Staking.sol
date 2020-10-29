@@ -56,11 +56,17 @@ contract Staking is Ownable{
     /// @notice An event thats emitted when a delegate account's vote balance changes
     event DelegateVotesChanged(address indexed delegate, uint previousBalance, uint newBalance);
 
-    /// @notice The standard EIP-20 transfer event
-    event Transfer(address indexed from, address indexed to, uint256 amount);
-
-    /// @notice The standard EIP-20 approval event
-    event Approval(address indexed owner, address indexed spender, uint256 amount);
+    /// @notice An event thats emitted when tokens get staked
+    event TokensStaked(address indexed staker, uint amount, uint stakedUntil, uint totalStaked);
+    
+    /// @notice An event thats emitted when tokens get withdrawn
+    event TokensWithdrawn(address indexed staker, uint amount);
+    
+    /// @notice An event thats emitted when the owner unlocks all tokens
+    event TokensUnlocked(uint amount);
+    
+    /// @notice An event thats emitted when a staking period gets extended
+    event ExtendedStakingDuration(address indexed staker, uint previousDate, uint newDate);
 
     /**
      * @notice Construct a new staking contract
@@ -98,6 +104,8 @@ contract Staking is Ownable{
         //set the delegatee if set
         if(delegatee != address(0))
             _delegate(msg.sender, delegatee);
+        
+        emit TokensStaked(msg.sender, amount, lockedTS, balances[msg.sender]);
     }
     
     /**
@@ -105,14 +113,16 @@ contract Staking is Ownable{
      * @param until the new unlocking timestamp in S
      * */
     function extendStakingDuration(uint256 until) public{
-        require(lockedUntil[msg.sender] <= until, "cannot reduce the staking duration");
+        uint previousLock = lockedUntil[msg.sender];
+        require(previousLock <= until, "cannot reduce the staking duration");
         
         //do not exceed the max duration
         uint latest = block.timestamp + maxDuration;
         if(until > latest)
             until = latest;
-            
+        
         lockedUntil[msg.sender] = until;
+        emit ExtendedStakingDuration(msg.sender, previousLock, until);
     }
     
     /**
@@ -135,6 +145,8 @@ contract Staking is Ownable{
         //transferFrom
         bool success = SOVToken.transferFrom(address(this), msg.sender, amount);
         assert(success);
+        
+        emit TokensWithdrawn(msg.sender, amount);
     }
     
     /**
@@ -144,6 +156,7 @@ contract Staking is Ownable{
      * */
     function unlockAllTokens() public onlyOwner{
         allUnlocked = true;
+        TokensUnlocked(SOVToken.balanceOf(address(this)));
     }
     
     /**
@@ -243,17 +256,6 @@ contract Staking is Ownable{
         emit DelegateChanged(delegator, currentDelegate, delegatee);
 
         _moveDelegates(currentDelegate, delegatee, delegatorBalance);
-    }
-
-    function _transferTokens(address src, address dst, uint96 amount) internal {
-        require(src != address(0), "Comp::_transferTokens: cannot transfer from the zero address");
-        require(dst != address(0), "Comp::_transferTokens: cannot transfer to the zero address");
-
-        balances[src] = sub96(balances[src], amount, "Comp::_transferTokens: transfer amount exceeds balance");
-        balances[dst] = add96(balances[dst], amount, "Comp::_transferTokens: transfer amount overflows");
-        emit Transfer(src, dst, amount);
-
-        _moveDelegates(delegates[src], delegates[dst], amount);
     }
 
     function _moveDelegates(address srcRep, address dstRep, uint96 amount) internal {
