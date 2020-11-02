@@ -98,6 +98,49 @@ brownie run swap_test.py
 
 ## Smart Contract Usage
 
+### 0. Overview
+
+![overview](https://i.ibb.co/GP0dGgk/overview.png)
+##### 0.1 The components
+The smart contracts consist of 3 main components:
+1. The lending pools aka loan tokens
+2. The Sovryn trading protocol
+3. The Sovryn swap network
+
+1 + 2 are part of this repository. 3 can be found in oracle-based-amm.
+
+The watcher is a separate component located in its own repository. It does all of the work which requires an external watcher: liquidating and rolling over position and balancing the AMM.
+
+##### 0.2 The processes
+###### 0.2.1 Lending
+The user provides funds to the lending pool using the ```mint``` function and withdraws funds from the lending pool using the ```burn``` function. Mint and burn refer to minting and burning iTokens. iTokens represent a share of the pool and gather interest over time.
+
+###### 0.2.2 Trading
+In order to open a margin trade position, the user
+1. calls ```marginTrade``` on the loan token contract. 
+2. The loan token contract provides the loan and sends it for processing to the protocol proxy contract.
+3. The protocol proxy contract uses the module ```LoanOpening``` to create a position and swap the loan tokens to collateral tokens.
+4. The Sovryn Swap network looks up the correct comverter and swaps the tokens.
+
+If successful, the position is being held by the protocol proxy contract, which is why positions need to be closed at the protocol proxy contract. There are 2 ways to close a position. They are explained in the sections 3.2 and 4.2.
+
+###### 0.2.3 Borrowing
+Borrowing works similar to a trade. The user takes a loan from the loanToken contract, which tells the protocol to swap it to the currency of the collateral. The borrowed amount is paid out to the user instead of being held by the protocol. Therefore, each loan needs to be overcollateralized. 
+
+###### 0.2.4 Providing liquidity to the AMM
+No trading and no borrowing can take place without a swap. Users can add and remove one-sided liquidity by calling ```addLiquidity``` or ```removeLiquidity``` on the LiquidityV2Converter contract. The AMM can be found in  oracle-based-amm.
+
+###### 0.2.5 Liquidation
+
+Whenever the current margin of a loan falls below maintenance margin, it needs to be liquidated. Anybody can initiate a liquidation and buy the collateral tokens at a discounted rate (5%). Liquidation is implemented in the ```LoanClosing``` module.
+
+###### 0.2.6 Rollover
+Each loan has a duration. In case of a margin trade it is set to 28 days, in case of borrowing, it can be set by the user. On loan opnening, the user pays the interest for this duration in advance. If closing early, he gets the excess refunded. If it is not closed before the end date, it needs to be rolled over. On rollover the interest is paid for the next period. In case of margin trading it's 28 days, in case of borrowing it's a month.
+
+###### 0.2.7 Direct swaps
+The AMM allows for spot trading by interacting with the network contract directly. This is what the arbitraging procedure of the watcher is doing. The AMM tries to keep the balances of its reserves in equilibrium and therefore adjusts the rates to incentivize user to restore the balance. For an excellent explanation, look up this [article](https://blog.bancor.network/breaking-down-bancor-v2-dynamic-automated-market-makers-4e90c0f9a04 "https://blog.bancor.network/breaking-down-bancor-v2-dynamic-automated-market-makers-4e90c0f9a04").
+
+
 ### 1. Parameter setup
 ##### 1.1 Loan Pool
 
@@ -158,7 +201,8 @@ uint256 maxLoanTerm;
 
 ##### 1.3 Interest rates
 
-
+Interest rates are being set up by calling ```setDemandCurve``` on the loanToken contract. The formula for the interest rate is: 
+```interestRate = baseRate + utilizationRate * rateMultiplier```
 
 ### 2. Lending
 
