@@ -156,7 +156,7 @@ contract Staking is Ownable{
      * */
     function unlockAllTokens() public onlyOwner{
         allUnlocked = true;
-        TokensUnlocked(SOVToken.balanceOf(address(this)));
+        emit TokensUnlocked(SOVToken.balanceOf(address(this)));
     }
     
     /**
