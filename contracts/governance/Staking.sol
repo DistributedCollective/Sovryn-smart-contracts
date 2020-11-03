@@ -101,8 +101,10 @@ contract Staking is Ownable{
         //increase staked balance
         balances[msg.sender] = add96(balances[msg.sender], amount, "balance overflow");
         
-        //set the delegatee if set
-        if(delegatee != address(0))
+        //delegate to self in case no address provided
+        if(delegatee == address(0))
+            _delegate(msg.sender, MSG.SENDER);
+        else
             _delegate(msg.sender, delegatee);
         
         emit TokensStaked(msg.sender, amount, lockedTS, balances[msg.sender]);
