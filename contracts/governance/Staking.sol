@@ -18,7 +18,7 @@ contract Staking is Ownable{
     mapping (address => uint96) internal balances;
     
     /// @notice A record of the unlocking timestamps per address
-    mapping (address => uint) public lockedUntil;
+    mapping (address => uint) public stakedUntil;
 
     /// @notice A record of each accounts delegate
     mapping (address => address) public delegates;
@@ -95,8 +95,8 @@ contract Staking is Ownable{
         
         //lock the tokens
         uint lockedTS = block.timestamp + duration;
-        require(lockedTS >= lockedUntil[msg.sender], "msg.sender already has a lock. locking duration cannot be reduced.");
-        lockedUntil[msg.sender] = lockedTS;
+        require(lockedTS >= stakedUntil[msg.sender], "msg.sender already has a lock. locking duration cannot be reduced.");
+        stakedUntil[msg.sender] = lockedTS;
         
         //increase staked balance
         balances[msg.sender] = add96(balances[msg.sender], amount, "balance overflow");
@@ -115,7 +115,7 @@ contract Staking is Ownable{
      * @param until the new unlocking timestamp in S
      * */
     function extendStakingDuration(uint256 until) public{
-        uint previousLock = lockedUntil[msg.sender];
+        uint previousLock = stakedUntil[msg.sender];
         require(previousLock <= until, "cannot reduce the staking duration");
         
         //do not exceed the max duration
@@ -123,7 +123,7 @@ contract Staking is Ownable{
         if(until > latest)
             until = latest;
         
-        lockedUntil[msg.sender] = until;
+        stakedUntil[msg.sender] = until;
         emit ExtendedStakingDuration(msg.sender, previousLock, until);
     }
     
@@ -134,7 +134,7 @@ contract Staking is Ownable{
      * */
     function withdraw(uint96 amount, address receiver) public {
         require(amount > 0, "amount of tokens to be withdrawn needs to be bigger than 0");
-        require(block.timestamp >= lockedUntil[msg.sender] || allUnlocked, "tokens are still locked.");
+        require(block.timestamp >= stakedUntil[msg.sender] || allUnlocked, "tokens are still locked.");
         require(amount <= balances[msg.sender], "not enough balance");
         
         //determine the receiver
