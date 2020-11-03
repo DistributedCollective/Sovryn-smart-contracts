@@ -103,7 +103,7 @@ contract Staking is Ownable{
         
         //delegate to self in case no address provided
         if(delegatee == address(0))
-            _delegate(msg.sender, MSG.SENDER);
+            _delegate(msg.sender, msg.sender);
         else
             _delegate(msg.sender, delegatee);
         
