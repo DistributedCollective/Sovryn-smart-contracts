@@ -40,10 +40,20 @@ brownie networks add rsk testnet host=https://public-node.testnet.rsk.co chainid
 brownie run deploy_everything.py
 ```
 
+or use an absolute path to the script
+```bash
+brownie run ~/Code/Sovryn-smart-contracts/scripts/deployment/deploy_everything.py
+```
+
 4. Deploy contracts on testnet
 
 ```bash
 brownie run deploy_everything.py --network testnet
+```
+
+or use an absolute path to the script
+```bash
+brownie run ~/Code/Sovryn-smart-contracts/scripts/deployment/deploy_everything.py --network testnet
 ```
 
 ## Sovryn Swap joint testing for RSK (local)
@@ -58,6 +68,11 @@ If you changed the port in the brownie config, use that port instead.
 2. Deploy contracts
 ```bash
 brownie run deploy_everything.py
+```
+
+or use an absolute path to the script
+```bash
+brownie run ~/Code/Sovryn-smart-contracts/scripts/deployment/deploy_everything.py
 ```
 
 3. Copy `SUSD` and `RBTC` token addresses from the command line output
