@@ -18,7 +18,7 @@ contract Staking is Ownable{
     mapping (address => uint96) internal balances;
     
     /// @notice A record of the unlocking timestamps per address
-    mapping (address => uint) public stakedUntil;
+    mapping (address => uint) public lockedUntil;
 
     /// @notice A record of each accounts delegate
     mapping (address => address) public delegates;
@@ -37,6 +37,8 @@ contract Staking is Ownable{
 
     /// @notice A record of votes checkpoints for each account, by index
     mapping (address => mapping (uint32 => Checkpoint)) public checkpoints;
+    
+    //note: todo add checkpoints for users and delegatees separately -> one for reding voting rights, one for fee sharing
 
     /// @notice The number of checkpoints for each account
     mapping (address => uint32) public numCheckpoints;
@@ -57,7 +59,7 @@ contract Staking is Ownable{
     event DelegateVotesChanged(address indexed delegate, uint previousBalance, uint newBalance);
 
     /// @notice An event thats emitted when tokens get staked
-    event TokensStaked(address indexed staker, uint amount, uint stakedUntil, uint totalStaked);
+    event TokensStaked(address indexed staker, uint amount, uint lockedUntil, uint totalStaked);
     
     /// @notice An event thats emitted when tokens get withdrawn
     event TokensWithdrawn(address indexed staker, uint amount);
@@ -95,8 +97,8 @@ contract Staking is Ownable{
         
         //lock the tokens
         uint lockedTS = block.timestamp + duration;
-        require(lockedTS >= stakedUntil[msg.sender], "msg.sender already has a lock. locking duration cannot be reduced.");
-        stakedUntil[msg.sender] = lockedTS;
+        require(lockedTS >= lockedUntil[msg.sender], "msg.sender already has a lock. locking duration cannot be reduced.");
+        lockedUntil[msg.sender] = lockedTS;
         
         //increase staked balance
         balances[msg.sender] = add96(balances[msg.sender], amount, "balance overflow");
@@ -115,7 +117,7 @@ contract Staking is Ownable{
      * @param until the new unlocking timestamp in S
      * */
     function extendStakingDuration(uint256 until) public{
-        uint previousLock = stakedUntil[msg.sender];
+        uint previousLock = lockedUntil[msg.sender];
         require(previousLock <= until, "cannot reduce the staking duration");
         
         //do not exceed the max duration
@@ -123,7 +125,7 @@ contract Staking is Ownable{
         if(until > latest)
             until = latest;
         
-        stakedUntil[msg.sender] = until;
+        lockedUntil[msg.sender] = until;
         emit ExtendedStakingDuration(msg.sender, previousLock, until);
     }
     
@@ -134,7 +136,7 @@ contract Staking is Ownable{
      * */
     function withdraw(uint96 amount, address receiver) public {
         require(amount > 0, "amount of tokens to be withdrawn needs to be bigger than 0");
-        require(block.timestamp >= stakedUntil[msg.sender] || allUnlocked, "tokens are still locked.");
+        require(block.timestamp >= lockedUntil[msg.sender] || allUnlocked, "tokens are still locked.");
         require(amount <= balances[msg.sender], "not enough balance");
         
         //determine the receiver
@@ -276,6 +278,7 @@ contract Staking is Ownable{
                 _writeCheckpoint(dstRep, dstRepNum, dstRepOld, dstRepNew);
             }
         }
+        //todo else write checkpoints because voting power increased
     }
 
     function _writeCheckpoint(address delegatee, uint32 nCheckpoints, uint96 oldVotes, uint96 newVotes) internal {
