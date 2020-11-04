@@ -1,3 +1,6 @@
+const { expect } = require('chai');
+const { expectRevert, expectEvent, constants, BN, balance, time } = require('@openzeppelin/test-helpers');
+
 const Timelock = artifacts.require('TimelockHarness');
 
 const {
@@ -30,8 +33,9 @@ contract('Timelock', accounts => {
     timelock = await Timelock.new(root, delay);
 
     blockTimestamp = etherUnsigned(100);
-    await freezeTime(blockTimestamp.toNumber())
-    target = timelock.options.address;
+    //TODO do we need it ?
+    // await freezeTime(blockTimestamp.toNumber())
+    target = timelock.address;
     eta = blockTimestamp.plus(delay);
 
     queuedTxHash = keccak256(
@@ -44,88 +48,81 @@ contract('Timelock', accounts => {
 
   describe('constructor', () => {
     it('sets address of admin', async () => {
-      let configuredAdmin = await call(timelock, 'admin');
-      expect(configuredAdmin).toEqual(root);
+      let configuredAdmin = await timelock.admin.call();
+      expect(configuredAdmin).to.be.equal(root);
     });
 
     it('sets delay', async () => {
-      let configuredDelay = await call(timelock, 'delay');
-      expect(configuredDelay).toEqual(delay.toString());
+      let configuredDelay = await timelock.delay.call();
+      expect(configuredDelay).to.be.bignumber.equal(delay.toString());
     });
   });
 
   describe('setDelay', () => {
     it('requires msg.sender to be Timelock', async () => {
-      await expect(send(timelock, 'setDelay', [delay], { from: root })).rejects.toRevert('revert Timelock::setDelay: Call must come from Timelock.');
+      await expectRevert(timelock.setDelay(delay, { from: root }),
+          'revert Timelock::setDelay: Call must come from Timelock.');
     });
   });
 
   describe('setPendingAdmin', () => {
     it('requires msg.sender to be Timelock', async () => {
-      await expect(
-        send(timelock, 'setPendingAdmin', [newAdmin], { from: root })
-      ).rejects.toRevert('revert Timelock::setPendingAdmin: Call must come from Timelock.');
+      await expectRevert(timelock.setPendingAdmin(newAdmin, { from: root }),
+          'revert Timelock::setPendingAdmin: Call must come from Timelock.');
     });
   });
 
   describe('acceptAdmin', () => {
     afterEach(async () => {
-      await send(timelock, 'harnessSetAdmin', [root], { from: root });
+      await timelock.harnessSetAdmin(root, { from: root });
     });
 
     it('requires msg.sender to be pendingAdmin', async () => {
-      await expect(
-        send(timelock, 'acceptAdmin', { from: notAdmin })
-      ).rejects.toRevert('revert Timelock::acceptAdmin: Call must come from pendingAdmin.');
+      await expectRevert(timelock.acceptAdmin({ from: notAdmin }),
+          'revert Timelock::acceptAdmin: Call must come from pendingAdmin.');
     });
 
     it('sets pendingAdmin to address 0 and changes admin', async () => {
-      await send(timelock, 'harnessSetPendingAdmin', [newAdmin], { from: root });
-      const pendingAdminBefore = await call(timelock, 'pendingAdmin');
-      expect(pendingAdminBefore).toEqual(newAdmin);
+      await timelock.harnessSetPendingAdmin(newAdmin, { from: root });
+      const pendingAdminBefore = await timelock.pendingAdmin.call();
+      expect(pendingAdminBefore).to.be.equal(newAdmin);
 
-      const result = await send(timelock, 'acceptAdmin', { from: newAdmin });
-      const pendingAdminAfter = await call(timelock, 'pendingAdmin');
-      expect(pendingAdminAfter).toEqual('0x0000000000000000000000000000000000000000');
+      const result = await timelock.acceptAdmin({ from: newAdmin });
+      const pendingAdminAfter = await timelock.pendingAdmin.call();
+      expect(pendingAdminAfter).to.be.equal('0x0000000000000000000000000000000000000000');
 
-      const timelockAdmin = await call(timelock, 'admin');
-      expect(timelockAdmin).toEqual(newAdmin);
+      const timelockAdmin = await timelock.admin.call();
+      expect(timelockAdmin).to.be.equal(newAdmin);
 
-      expect(result).toHaveLog('NewAdmin', {
-        newAdmin
-      });
+      expectEvent(result, 'NewAdmin', { newAdmin: newAdmin });
     });
   });
 
   describe('queueTransaction', () => {
     it('requires admin to be msg.sender', async () => {
-      await expect(
-        send(timelock, 'queueTransaction', [target, value, signature, data, eta], { from: notAdmin })
-      ).rejects.toRevert('revert Timelock::queueTransaction: Call must come from admin.');
+      await expectRevert(timelock.queueTransaction(target, value, signature, data, eta, { from: notAdmin }),
+          'revert Timelock::queueTransaction: Call must come from admin.');
     });
 
     it('requires eta to exceed delay', async () => {
       const etaLessThanDelay = blockTimestamp.plus(delay).minus(1);
 
-      await expect(
-        send(timelock, 'queueTransaction', [target, value, signature, data, etaLessThanDelay], {
-          from: root
-        })
-      ).rejects.toRevert('revert Timelock::queueTransaction: Estimated execution block must satisfy delay.');
+      await expectRevert(timelock.queueTransaction(target, value, signature, data, etaLessThanDelay, { from: root }),
+          'revert Timelock::queueTransaction: Estimated execution block must satisfy delay.');
     });
 
     it('sets hash as true in queuedTransactions mapping', async () => {
-      const queueTransactionsHashValueBefore = await call(timelock, 'queuedTransactions', [queuedTxHash]);
-      expect(queueTransactionsHashValueBefore).toEqual(false);
+      const queueTransactionsHashValueBefore = await timelock.queuedTransactions.call(queuedTxHash);
+      expect(queueTransactionsHashValueBefore).to.be.equal(false);
 
-      await send(timelock, 'queueTransaction', [target, value, signature, data, eta], { from: root });
+      await timelock.queueTransaction(target, value, signature, data, eta, { from: root });
 
-      const queueTransactionsHashValueAfter = await call(timelock, 'queuedTransactions', [queuedTxHash]);
-      expect(queueTransactionsHashValueAfter).toEqual(true);
+      const queueTransactionsHashValueAfter = await timelock.queuedTransactions.call(queuedTxHash);
+      expect(queueTransactionsHashValueAfter).to.be.equal(true);
     });
 
     it('should emit QueueTransaction event', async () => {
-      const result = await send(timelock, 'queueTransaction', [target, value, signature, data, eta], {
+      const result = await timelock.queueTransaction(target, value, signature, data, eta, {
         from: root
       });
 
@@ -142,23 +139,22 @@ contract('Timelock', accounts => {
 
   describe('cancelTransaction', () => {
     beforeEach(async () => {
-      await send(timelock, 'queueTransaction', [target, value, signature, data, eta], { from: root });
+      await timelock.queueTransaction(target, value, signature, data, eta, { from: root });
     });
 
     it('requires admin to be msg.sender', async () => {
-      await expect(
-        send(timelock, 'cancelTransaction', [target, value, signature, data, eta], { from: notAdmin })
-      ).rejects.toRevert('revert Timelock::cancelTransaction: Call must come from admin.');
+      await expectRevert(timelock.cancelTransaction(target, value, signature, data, eta, { from: notAdmin }),
+          'revert Timelock::cancelTransaction: Call must come from admin.');
     });
 
     it('sets hash from true to false in queuedTransactions mapping', async () => {
       const queueTransactionsHashValueBefore = await call(timelock, 'queuedTransactions', [queuedTxHash]);
-      expect(queueTransactionsHashValueBefore).toEqual(true);
+      expect(queueTransactionsHashValueBefore).to.be.equal(true);
 
       await send(timelock, 'cancelTransaction', [target, value, signature, data, eta], { from: root });
 
       const queueTransactionsHashValueAfter = await call(timelock, 'queuedTransactions', [queuedTxHash]);
-      expect(queueTransactionsHashValueAfter).toEqual(false);
+      expect(queueTransactionsHashValueAfter).to.be.equal(false);
     });
 
     it('should emit CancelTransaction event', async () => {
@@ -185,11 +181,11 @@ contract('Timelock', accounts => {
           [target, value.toString(), '', '0x', eta.toString()]
         )
       );
-      expect(await call(timelock, 'queuedTransactions', [txHash])).toBeFalsy();
-      await send(timelock, 'queueTransaction', [target, value, '', '0x', eta], { from: root });
-      expect(await call(timelock, 'queuedTransactions', [txHash])).toBeTruthy();
-      await send(timelock, 'cancelTransaction', [target, value, '', '0x', eta], { from: root });
-      expect(await call(timelock, 'queuedTransactions', [txHash])).toBeFalsy();
+      expect(await timelock.queuedTransactions.call(txHash)).to.be.false;
+      await timelock.queueTransaction(target, value, '', '0x', eta, { from: root });
+      expect(await timelock.queuedTransactions.call(txHash)).to.be.true;
+      await timelock.cancelTransaction(target, value, '', '0x', eta, { from: root });
+      expect(await timelock.queuedTransactions(txHash)).to.be.true;
     });
   });
 
@@ -251,10 +247,10 @@ contract('Timelock', accounts => {
 
     it('sets hash from true to false in queuedTransactions mapping, updates delay, and emits ExecuteTransaction event', async () => {
       const configuredDelayBefore = await call(timelock, 'delay');
-      expect(configuredDelayBefore).toEqual(delay.toString());
+      expect(configuredDelayBefore).to.be.equal(delay.toString());
 
       const queueTransactionsHashValueBefore = await call(timelock, 'queuedTransactions', [queuedTxHash]);
-      expect(queueTransactionsHashValueBefore).toEqual(true);
+      expect(queueTransactionsHashValueBefore).to.be.equal(true);
 
       const newBlockTimestamp = blockTimestamp.plus(delay).plus(1);
       await freezeTime(newBlockTimestamp.toNumber());
@@ -264,10 +260,10 @@ contract('Timelock', accounts => {
       });
 
       const queueTransactionsHashValueAfter = await call(timelock, 'queuedTransactions', [queuedTxHash]);
-      expect(queueTransactionsHashValueAfter).toEqual(false);
+      expect(queueTransactionsHashValueAfter).to.be.equal(false);
 
       const configuredDelayAfter = await call(timelock, 'delay');
-      expect(configuredDelayAfter).toEqual(newDelay.toString());
+      expect(configuredDelayAfter).to.be.equal(newDelay.toString());
 
       expect(result).toHaveLog('ExecuteTransaction', {
         data,
@@ -340,10 +336,10 @@ contract('Timelock', accounts => {
 
     it('sets hash from true to false in queuedTransactions mapping, updates admin, and emits ExecuteTransaction event', async () => {
       const configuredPendingAdminBefore = await call(timelock, 'pendingAdmin');
-      expect(configuredPendingAdminBefore).toEqual('0x0000000000000000000000000000000000000000');
+      expect(configuredPendingAdminBefore).to.be.equal('0x0000000000000000000000000000000000000000');
 
       const queueTransactionsHashValueBefore = await call(timelock, 'queuedTransactions', [queuedTxHash]);
-      expect(queueTransactionsHashValueBefore).toEqual(true);
+      expect(queueTransactionsHashValueBefore).to.be.equal(true);
 
       const newBlockTimestamp = blockTimestamp.plus(delay).plus(1);
       await freezeTime(newBlockTimestamp.toNumber())
@@ -353,10 +349,10 @@ contract('Timelock', accounts => {
       });
 
       const queueTransactionsHashValueAfter = await call(timelock, 'queuedTransactions', [queuedTxHash]);
-      expect(queueTransactionsHashValueAfter).toEqual(false);
+      expect(queueTransactionsHashValueAfter).to.be.equal(false);
 
       const configuredPendingAdminAfter = await call(timelock, 'pendingAdmin');
-      expect(configuredPendingAdminAfter).toEqual(newAdmin);
+      expect(configuredPendingAdminAfter).to.be.equal(newAdmin);
 
       expect(result).toHaveLog('ExecuteTransaction', {
         data,
