@@ -15,7 +15,7 @@ const ganache = require('ganache-core');
 module.exports = {
     contracts_directory: './contracts',
     contracts_build_directory: './build/contracts',
-    test_directory: './test-js',
+    test_directory: './tests-js',
     networks: {
         development: {
             host: 'localhost',
