@@ -8,6 +8,15 @@ contract Staking is Ownable{
     ///@notice 2 weeks in seconds
     uint constant twoWeeks = 1209600;
     
+    ///@notice the maximum possible voting weight
+    uint96 constant maxVotingWeight = 100;
+    
+    /// @notice the maximum duration to stake tokens for
+    uint constant maxDuration = 1095 days;
+    
+    ///@notice the maximum duration ^2
+    uint96 constant maxDurationPow2 = 1095 * 1095;
+    
     ///@notice the timestamp of contract creation. base for the staking period calculation
     uint public kickoffTS;
     
@@ -31,9 +40,6 @@ contract Staking is Ownable{
     /// @notice A record of tokens to be unstaked at a given time
     /// for voting weight computation. voting weights get adjusted bi-weekly
     mapping(uint => uint96) public stakedUntil;
-    
-    /// @notice the maximum duration to stake tokens for
-    uint constant maxDuration = 1095 days;
     
     /// @notice if this flag is set to true, all tokens are unlocked immediately
     bool allUnlocked = false;
@@ -197,6 +203,47 @@ contract Staking is Ownable{
     }
     
     /**
+     * @notice computes the current total voting power
+     * @return the current total voting power
+     * */
+    function getTotalVotingPower() view public returns(uint96 totalVotingPower){
+        //76 iterations over stakedUntil to sum up the voting power according to the function starting from now
+        //start the computation with the next unlocking date
+        uint start =  timestampToLockDate(block.timestamp + twoWeeks - 1);
+        uint end = start + maxDuration;
+        
+        //max 76 iterations
+        for(uint i = start; i < end; i += twoWeeks){
+            totalVotingPower = add96(totalVotingPower, powerByDate(i, start), "overflow on total voting power computation");
+        }
+    }
+    
+    /**
+     * computes the voting power for a secific date
+     * */
+    function powerByDate(uint date, uint startDate) internal view returns(uint96 power){
+        require(date > startDate, "date needs to be bigger than startDate");
+        uint remainingTime = (date - startDate);
+        require(maxDuration > remainingTime, "remaining time can't be bigger than max duration");
+        // x = max days - remaining days
+        uint96 x = uint96(maxDuration - remainingTime)/(1 days);
+        uint96 weight = sub96(maxDurationPow2, x*x, "underflow on weight calculation") / (maxDurationPow2 / maxVotingWeight);
+        power = mul96(stakedUntil[date], weight, "multiplication overflow for voting power");
+    }
+    
+    /**
+     * @notice computes the total voting power at a given time
+     * @param time the timestamp for which to calculate the total voting power
+     * @return the total voting power at the given time
+     * */
+    function getPriorTotalVotingPower(uint time) view public returns(uint totalVotingPower){
+        //76 iterations over stakedUntil to sum up the voting power according to the function starting from the given time
+        //retrieving the values from the checkpoints
+        
+    }
+    
+    
+    /**
      * @notice Get the number of staked tokens held by the `account`
      * @param account The address of the account to get the balance of
      * @return The number of tokens held
@@ -346,6 +393,17 @@ contract Staking is Ownable{
     function sub96(uint96 a, uint96 b, string memory errorMessage) internal pure returns (uint96) {
         require(b <= a, errorMessage);
         return a - b;
+    }
+    
+    function mul96(uint96 a, uint96 b, string memory errorMessage) internal pure returns (uint96) {
+        if (a == 0) {
+            return 0;
+        }
+
+        uint96 c = a * b;
+        require(c / a == b, errorMessage);
+
+        return c;
     }
 
     function getChainId() internal pure returns (uint) {
