@@ -22,7 +22,7 @@ module.exports = {
             port: 7545,
             network_id: '*',
             gasPrice: 20000000000,
-            gas: 9500000,
+            gas: 6800000,
             provider: ganache.provider({
                 gasLimit: 6800000,
                 gasPrice: 20000000000,

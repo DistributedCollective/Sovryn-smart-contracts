@@ -1,3 +1,5 @@
+const Timelock = artifacts.require('TimelockHarness');
+
 const {
   encodeParameters,
   etherUnsigned,
@@ -9,7 +11,7 @@ const oneWeekInSeconds = etherUnsigned(7 * 24 * 60 * 60);
 const zero = etherUnsigned(0);
 const gracePeriod = oneWeekInSeconds.multipliedBy(2);
 
-describe('Timelock', () => {
+contract('Timelock', accounts => {
   let root, notAdmin, newAdmin;
   let blockTimestamp;
   let timelock;
@@ -25,7 +27,7 @@ describe('Timelock', () => {
 
   beforeEach(async () => {
     [root, notAdmin, newAdmin] = accounts;
-    timelock = await deploy('TimelockHarness', [root, delay]);
+    timelock = await Timelock.new(root, delay);
 
     blockTimestamp = etherUnsigned(100);
     await freezeTime(blockTimestamp.toNumber())
