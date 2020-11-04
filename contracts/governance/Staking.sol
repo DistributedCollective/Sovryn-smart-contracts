@@ -5,6 +5,11 @@ import "../openzeppelin/Ownable.sol";
 import "../interfaces/IERC20.sol";
 
 contract Staking is Ownable{
+    ///@notice 2 weeks in seconds
+    uint96 constant twoWeeks = 1209600;
+    
+    ///@notice the timestamp of contract creation. base for the staking period calculation
+    uint96 public kickoffTS;
     
     string name = "SOVStaking";
     
@@ -18,13 +23,17 @@ contract Staking is Ownable{
     mapping (address => uint96) internal balances;
     
     /// @notice A record of the unlocking timestamps per address
-    mapping (address => uint) public lockedUntil;
+    mapping (address => uint96) public lockedUntil;
 
     /// @notice A record of each accounts delegate
     mapping (address => address) public delegates;
     
+    /// @notice A record of tokens to be unstaked at a given time
+    /// for voting weight computation. voting weights get adjusted bi-weekly
+    mapping(uint => uint96) public stakedUntil;
+    
     /// @notice the maximum duration to stake tokens for
-    uint256 maxDuration = 1095 days;
+    uint96 constant maxDuration = 1095 days;
     
     /// @notice if this flag is set to true, all tokens are unlocked immediately
     bool allUnlocked = false;
@@ -76,6 +85,7 @@ contract Staking is Ownable{
      */
     constructor(address SOV) public {
         SOVToken = IERC20(SOV);
+        kickoffTS = uint96(block.timestamp);
     }
     
     /**
@@ -84,7 +94,7 @@ contract Staking is Ownable{
      * @param duration the duration in seconds
      * @param delegatee the address of the delegatee or 0x0 if there is none.
      * */
-    function stake(uint96 amount, uint256 duration, address delegatee) public {
+    function stake(uint96 amount, uint96 duration, address delegatee) public {
         require(amount > 0, "amount of tokens to stake needs to be bigger than 0");
         
         //do not stake longer than the max duration
@@ -96,12 +106,20 @@ contract Staking is Ownable{
         assert(success);
         
         //lock the tokens
-        uint lockedTS = block.timestamp + duration;
-        require(lockedTS >= lockedUntil[msg.sender], "msg.sender already has a lock. locking duration cannot be reduced.");
+        uint96 lockedTS = timestampToLockDate(uint96(block.timestamp) + duration);//no overflow possible 
+        uint96 oldLockedTS = lockedUntil[msg.sender];
+        require(lockedTS >= oldLockedTS, "msg.sender already has a lock. locking duration cannot be reduced.");
         lockedUntil[msg.sender] = lockedTS;
+        
+        //decrease staked token count until the old locking date
+        if(oldLockedTS > 0)
+            stakedUntil[oldLockedTS] = sub96(stakedUntil[oldLockedTS], balances[msg.sender], "stakedUntil underflow");
         
         //increase staked balance
         balances[msg.sender] = add96(balances[msg.sender], amount, "balance overflow");
+        
+        //increase staked token count until the new locking date
+        stakedUntil[lockedTS] = add96(stakedUntil[lockedTS], balances[msg.sender], "stakedUntil overflow");
         
         //delegate to self in case no address provided
         if(delegatee == address(0))
@@ -113,15 +131,29 @@ contract Staking is Ownable{
     }
     
     /**
+     * @notice unstaking is posisble every 2 weeks only. this means, to calculate the key value for the stakedUntil
+     * mapping, we need to map the intended timestamp to the closest available date 
+     * @param timestamp the unlocking timestamp
+     * @return the actual unlocking date (might be up to 2 weeks shorter than intended)
+     * */
+    function timestampToLockDate(uint96 timestamp) public view returns(uint96 lockDate){
+        //if staking timestamp does not match any of the unstaking dates, set the lockDate to the closest one before the timestamp
+        uint96 periodFromKickoff = sub96(timestamp, kickoffTS, "timestamp before kickoff") / twoWeeks;
+        lockDate = (periodFromKickoff * twoWeeks) + kickoffTS;
+        require(lockDate > uint96(block.timestamp), "staking period too short");
+    }
+    
+    /**
      * @notice extends the staking duration until the specified date
      * @param until the new unlocking timestamp in S
      * */
-    function extendStakingDuration(uint256 until) public{
-        uint previousLock = lockedUntil[msg.sender];
+    function extendStakingDuration(uint96 until) public{
+        uint96 previousLock = lockedUntil[msg.sender];
+        until = timestampToLockDate(until);
         require(previousLock <= until, "cannot reduce the staking duration");
         
-        //do not exceed the max duration
-        uint latest = block.timestamp + maxDuration;
+        //do not exceed the max duration, no overflow possible
+        uint96 latest = uint96(block.timestamp) + maxDuration;
         if(until > latest)
             until = latest;
         
