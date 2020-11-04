@@ -14,6 +14,15 @@
     "url": "https://github.com/DistributedCollective/Sovryn-smart-contracts/issues"
   },
   "devDependencies": {
+    "bignumber.js": "^9.0.0",
+    "bn.js": "^5.1.2",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "chai-bn": "^0.2.1",
+    "chai-string": "^1.5.0",
+    "decimal.js": "10.2.0",
+    "dirty-chai": "^2.0.1",
+    "ganache-core": "^2.10.2",
     "husky": "^4.2.5",
     "prettier": "^2.0.5",
     "prettier-plugin-solidity": "^1.0.0-alpha.49",
