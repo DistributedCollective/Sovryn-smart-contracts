@@ -88,6 +88,11 @@ brownie run ~/Code/Sovryn-smart-contracts/scripts/deployment/deploy_everything.p
 brownie run swap_test.py
 ```
 
+or use an absolute path to the script
+```bash
+brownie run ~/Code/Sovryn-smart-contracts/scripts/swapTest/swap_test.py
+```
+
 ## MoC Oracle Deploy (testnet or mainnet)
 
 1. Get MoC medianizer SC address (BTC to USD)
@@ -135,7 +140,7 @@ In order to open a margin trade position, the user
 1. calls ```marginTrade``` on the loan token contract. 
 2. The loan token contract provides the loan and sends it for processing to the protocol proxy contract.
 3. The protocol proxy contract uses the module ```LoanOpening``` to create a position and swap the loan tokens to collateral tokens.
-4. The Sovryn Swap network looks up the correct comverter and swaps the tokens.
+4. The Sovryn Swap network looks up the correct converter and swaps the tokens.
 
 If successful, the position is being held by the protocol proxy contract, which is why positions need to be closed at the protocol proxy contract. There are 2 ways to close a position. They are explained in the sections 3.2 and 4.2.
 
