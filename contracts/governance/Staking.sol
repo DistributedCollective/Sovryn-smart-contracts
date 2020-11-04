@@ -6,10 +6,10 @@ import "../interfaces/IERC20.sol";
 
 contract Staking is Ownable{
     ///@notice 2 weeks in seconds
-    uint96 constant twoWeeks = 1209600;
+    uint constant twoWeeks = 1209600;
     
     ///@notice the timestamp of contract creation. base for the staking period calculation
-    uint96 public kickoffTS;
+    uint public kickoffTS;
     
     string name = "SOVStaking";
     
@@ -23,7 +23,7 @@ contract Staking is Ownable{
     mapping (address => uint96) internal balances;
     
     /// @notice A record of the unlocking timestamps per address
-    mapping (address => uint96) public lockedUntil;
+    mapping (address => uint) public lockedUntil;
 
     /// @notice A record of each accounts delegate
     mapping (address => address) public delegates;
@@ -33,7 +33,7 @@ contract Staking is Ownable{
     mapping(uint => uint96) public stakedUntil;
     
     /// @notice the maximum duration to stake tokens for
-    uint96 constant maxDuration = 1095 days;
+    uint constant maxDuration = 1095 days;
     
     /// @notice if this flag is set to true, all tokens are unlocked immediately
     bool allUnlocked = false;
@@ -85,7 +85,7 @@ contract Staking is Ownable{
      */
     constructor(address SOV) public {
         SOVToken = IERC20(SOV);
-        kickoffTS = uint96(block.timestamp);
+        kickoffTS = block.timestamp;
     }
     
     /**
@@ -94,7 +94,7 @@ contract Staking is Ownable{
      * @param duration the duration in seconds
      * @param delegatee the address of the delegatee or 0x0 if there is none.
      * */
-    function stake(uint96 amount, uint96 duration, address delegatee) public {
+    function stake(uint96 amount, uint duration, address delegatee) public {
         require(amount > 0, "amount of tokens to stake needs to be bigger than 0");
         
         //do not stake longer than the max duration
@@ -106,8 +106,8 @@ contract Staking is Ownable{
         assert(success);
         
         //lock the tokens
-        uint96 lockedTS = timestampToLockDate(uint96(block.timestamp) + duration);//no overflow possible 
-        uint96 oldLockedTS = lockedUntil[msg.sender];
+        uint lockedTS = timestampToLockDate(block.timestamp + duration);//no overflow possible 
+        uint oldLockedTS = lockedUntil[msg.sender];
         require(lockedTS >= oldLockedTS, "msg.sender already has a lock. locking duration cannot be reduced.");
         lockedUntil[msg.sender] = lockedTS;
         
@@ -136,24 +136,25 @@ contract Staking is Ownable{
      * @param timestamp the unlocking timestamp
      * @return the actual unlocking date (might be up to 2 weeks shorter than intended)
      * */
-    function timestampToLockDate(uint96 timestamp) public view returns(uint96 lockDate){
+    function timestampToLockDate(uint timestamp) public view returns(uint lockDate){
+        require(timestamp > kickoffTS, "timestamp lies before contract creation");
         //if staking timestamp does not match any of the unstaking dates, set the lockDate to the closest one before the timestamp
-        uint96 periodFromKickoff = sub96(timestamp, kickoffTS, "timestamp before kickoff") / twoWeeks;
-        lockDate = (periodFromKickoff * twoWeeks) + kickoffTS;
-        require(lockDate > uint96(block.timestamp), "staking period too short");
+        uint periodFromKickoff = (timestamp - kickoffTS) / twoWeeks;
+        lockDate = periodFromKickoff * twoWeeks + kickoffTS;
+        require(lockDate > block.timestamp, "staking period too short");
     }
     
     /**
      * @notice extends the staking duration until the specified date
      * @param until the new unlocking timestamp in S
      * */
-    function extendStakingDuration(uint96 until) public{
-        uint96 previousLock = lockedUntil[msg.sender];
+    function extendStakingDuration(uint until) public{
+        uint previousLock = lockedUntil[msg.sender];
         until = timestampToLockDate(until);
         require(previousLock <= until, "cannot reduce the staking duration");
         
         //do not exceed the max duration, no overflow possible
-        uint96 latest = uint96(block.timestamp) + maxDuration;
+        uint latest = block.timestamp + maxDuration;
         if(until > latest)
             until = latest;
         
