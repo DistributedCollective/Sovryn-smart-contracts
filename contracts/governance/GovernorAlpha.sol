@@ -31,7 +31,8 @@ contract GovernorAlpha {
 
     /// @notice The total number of proposals
     uint public proposalCount;
-
+    
+    //todo add start time
     struct Proposal {
         /// @notice Unique id for looking up a proposal
         uint id;
