@@ -1,5 +1,7 @@
+const { expect } = require('chai');
+const { expectRevert, expectEvent, constants, BN, balance, time } = require('@openzeppelin/test-helpers');
+
 const {
-  both,
   etherMantissa,
   encodeParameters,
   setTime,
@@ -12,6 +14,8 @@ const Staking = artifacts.require('Staking');
 const TestToken = artifacts.require('TestToken');
 
 const DELAY = 86400 * 2;
+
+const QUORUM_VOTES = etherMantissa(4000000);
 
 async function enfranchise(token, comp, actor, amount) {
   // await send(comp, 'transfer', [actor, etherMantissa(amount)]);
@@ -38,10 +42,10 @@ contract('GovernorAlpha#queue/1', accounts => {
       const gov = await GovernorAlpha.new(timelock.address, comp.address, root);
       const txAdmin = await timelock.harnessSetAdmin(gov.address);
 
-      await enfranchise(token, comp, a1, 3e6);
+      await enfranchise(token, comp, a1, QUORUM_VOTES);
       await mineBlock();
 
-      const targets = [comp._address, comp._address];
+      const targets = [comp.address, comp.address];
       const values = ["0", "0"];
       const signatures = ["getBalanceOf(address)", "getBalanceOf(address)"];
       const calldatas = [encodeParameters(['address'], [root]), encodeParameters(['address'], [root])];
@@ -63,11 +67,11 @@ contract('GovernorAlpha#queue/1', accounts => {
       const gov = await GovernorAlpha.new(timelock.address, comp.address, root);
       const txAdmin = await timelock.harnessSetAdmin(gov.address);
 
-      await enfranchise(token, comp, a1, 3e6);
-      await enfranchise(token, comp, a2, 3e6);
+      await enfranchise(token, comp, a1, QUORUM_VOTES);
+      await enfranchise(token, comp, a2, QUORUM_VOTES);
       await mineBlock();
 
-      const targets = [comp._address];
+      const targets = [comp.address];
       const values = ["0"];
       const signatures = ["getBalanceOf(address)"];
       const calldatas = [encodeParameters(['address'], [root])];
