@@ -1,3 +1,6 @@
+const { expect } = require('chai');
+const { expectRevert, expectEvent, constants, BN, balance, time } = require('@openzeppelin/test-helpers');
+
 const {
   advanceBlocks,
   etherUnsigned,
@@ -5,156 +8,167 @@ const {
   encodeParameters,
   etherMantissa,
   mineBlock,
-  freezeTime,
+  setTime,
   increaseTime
 } = require('../../Utils/Ethereum');
 
 const path = require('path');
 const solparse = require('solparse');
 
-const governorAlphaPath = path.join(__dirname, '../../..', 'contracts', 'Governance/GovernorAlpha.sol');
+const GovernorAlpha = artifacts.require('GovernorAlpha');
+const Timelock = artifacts.require('TimelockHarness');
+const Staking = artifacts.require('Staking');
+const TestToken = artifacts.require('TestToken');
+
+const governorAlphaPath = path.join(__dirname, '../../..', 'contracts', 'governance/GovernorAlpha.sol');
 
 const statesInverted = solparse
   .parseFile(governorAlphaPath)
   .body
   .find(k => k.type === 'ContractStatement')
   .body
-  .find(k => k.name == 'ProposalState')
+  .find(k => k.name === 'ProposalState')
   .members
 
 const states = Object.entries(statesInverted).reduce((obj, [key, value]) => ({ ...obj, [value]: key }), {});
 
-describe('GovernorAlpha#state/1', () => {
-  let comp, gov, root, acct, delay, timelock;
+contract('GovernorAlpha#state/1', accounts => {
+  let token, comp, gov, root, acct, delay, timelock;
 
-  beforeAll(async () => {
-    await freezeTime(100);
+  before(async () => {
+    await setTime(100);
     [root, acct, ...accounts] = accounts;
-    comp = await deploy('Comp', [root]);
+    token = await TestToken.new("TestToken", "TST", 18, etherMantissa(10000000000000));
+    comp = await Staking.new(token.address);
     delay = etherUnsigned(2 * 24 * 60 * 60).multipliedBy(2)
-    timelock = await deploy('TimelockHarness', [root, delay]);
-    gov = await deploy('GovernorAlpha', [timelock._address, comp._address, root]);
-    await send(timelock, "harnessSetAdmin", [gov._address])
-    await send(comp, 'transfer', [acct, etherMantissa(4000000)]);
-    await send(comp, 'delegate', [acct], { from: acct });
+    timelock = await Timelock.new(root, delay);
+    gov = await GovernorAlpha.new(timelock.address, comp.address, root);
+    await timelock.harnessSetAdmin(gov.address);
+    await token.approve(comp.address, etherMantissa(4000000));
+    await comp.stake(etherMantissa(4000000), delay, acct);
+    await comp.delegate(acct, { from: acct }); //TODO ?
   });
 
   let trivialProposal, targets, values, signatures, callDatas;
-  beforeAll(async () => {
+  before(async () => {
     targets = [root];
     values = ["0"];
     signatures = ["getBalanceOf(address)"]
     callDatas = [encodeParameters(['address'], [acct])];
-    await send(comp, 'delegate', [root]);
-    await send(gov, 'propose', [targets, values, signatures, callDatas, "do nothing"]);
-    proposalId = await call(gov, 'latestProposalIds', [root]);
-    trivialProposal = await call(gov, "proposals", [proposalId])
+    await comp.delegate(root); //TODO ?
+    await gov.propose(targets, values, signatures, callDatas, "do nothing");
+    proposalId = await gov.latestProposalIds.call(root);
+    trivialProposal = await gov.proposals.call(proposalId);
   })
 
   it("Invalid for proposal not found", async () => {
-    await expect(call(gov, 'state', ["5"])).rejects.toRevert("revert GovernorAlpha::state: invalid proposal id")
+    await expectRevert(gov.state.call("5"),
+        "revert GovernorAlpha::state: invalid proposal id");
   })
 
   it("Pending", async () => {
-    expect(await call(gov, 'state', [trivialProposal.id], {})).toEqual(states["Pending"])
+    expect((await gov.state.call(trivialProposal.id)).toString()).to.be.equal(states["Pending"].toString())
   })
 
   it("Active", async () => {
     await mineBlock()
     await mineBlock()
-    expect(await call(gov, 'state', [trivialProposal.id], {})).toEqual(states["Active"])
+    expect((await gov.state.call(trivialProposal.id)).toString()).to.be.equal(states["Active"].toString())
   })
 
   it("Canceled", async () => {
-    await send(comp, 'transfer', [accounts[0], etherMantissa(4000000)]);
-    await send(comp, 'delegate', [accounts[0]], { from: accounts[0] });
+    await token.approve(comp.address, etherMantissa(4000000));
+    await comp.stake(etherMantissa(4000000), delay, acct);
+
+    // await comp.transfer(accounts[0], etherMantissa(4000000));
+    await comp.delegate(accounts[0], { from: accounts[0] });
     await mineBlock()
-    await send(gov, 'propose', [targets, values, signatures, callDatas, "do nothing"], { from: accounts[0] })
-    let newProposalId = await call(gov, 'proposalCount')
+    await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: accounts[0] });
+    let newProposalId = await gov.proposalCount.call();
 
     // send away the delegates
-    await send(comp, 'delegate', [root], { from: accounts[0] });
-    await send(gov, 'cancel', [newProposalId])
+    await comp.delegate(root, { from: accounts[0] });
+    await gov.cancel(newProposalId);
 
-    expect(await call(gov, 'state', [+newProposalId])).toEqual(states["Canceled"])
+    expect(await gov.state.call(+newProposalId)).to.be.equal(states["Canceled"]);
   })
 
   it("Defeated", async () => {
     // travel to end block
     await advanceBlocks(20000)
 
-    expect(await call(gov, 'state', [trivialProposal.id])).toEqual(states["Defeated"])
+    expect(await gov.state(trivialProposal.id)).to.be.equal(states["Defeated"]);
   })
 
   it("Succeeded", async () => {
     await mineBlock()
     const { reply: newProposalId } = await both(gov, 'propose', [targets, values, signatures, callDatas, "do nothing"], { from: acct })
     await mineBlock()
-    await send(gov, 'castVote', [newProposalId, true])
+    await gov.castVote(newProposalId, true);
     await advanceBlocks(20000)
 
-    expect(await call(gov, 'state', [newProposalId])).toEqual(states["Succeeded"])
+    expect(await gov.state.call(newProposalId)).to.be.equal(states["Succeeded"]);
   })
 
   it("Queued", async () => {
     await mineBlock()
     const { reply: newProposalId } = await both(gov, 'propose', [targets, values, signatures, callDatas, "do nothing"], { from: acct })
     await mineBlock()
-    await send(gov, 'castVote', [newProposalId, true])
+    await gov.castVote(newProposalId, true);
     await advanceBlocks(20000)
 
-    await send(gov, 'queue', [newProposalId], { from: acct })
-    expect(await call(gov, 'state', [newProposalId])).toEqual(states["Queued"])
+    await gov.queue(newProposalId, { from: acct });
+    expect(await gov.state.call(newProposalId)).to.be.equal(states["Queued"]);
   })
 
   it("Expired", async () => {
     await mineBlock()
     const { reply: newProposalId } = await both(gov, 'propose', [targets, values, signatures, callDatas, "do nothing"], { from: acct })
     await mineBlock()
-    await send(gov, 'castVote', [newProposalId, true])
+    await gov.castVote(newProposalId, true);
     await advanceBlocks(20000)
 
     await increaseTime(1)
-    await send(gov, 'queue', [newProposalId], { from: acct })
+    await gov.queue(newProposalId, { from: acct });
 
-    let gracePeriod = await call(timelock, 'GRACE_PERIOD')
-    let p = await call(gov, "proposals", [newProposalId]);
+    let gracePeriod = await timelock.GRACE_PERIOD.call();
+    let p = await gov.proposals.call(newProposalId);
     let eta = etherUnsigned(p.eta)
 
-    await freezeTime(eta.plus(gracePeriod).minus(1).toNumber())
+    await setTime(eta.plus(gracePeriod).minus(1).toNumber())
 
-    expect(await call(gov, 'state', [newProposalId])).toEqual(states["Queued"])
+    expect(await gov.state.call(newProposalId)).to.be.equal(states["Queued"]);
 
-    await freezeTime(eta.plus(gracePeriod).toNumber())
+    await setTime(eta.plus(gracePeriod).toNumber())
 
-    expect(await call(gov, 'state', [newProposalId])).toEqual(states["Expired"])
+    expect(await gov.state.call(newProposalId)).to.be.equal(states["Expired"]);
   })
 
   it("Executed", async () => {
     await mineBlock()
     const { reply: newProposalId } = await both(gov, 'propose', [targets, values, signatures, callDatas, "do nothing"], { from: acct })
     await mineBlock()
-    await send(gov, 'castVote', [newProposalId, true])
+    await gov.castVote(newProposalId, true);
     await advanceBlocks(20000)
 
     await increaseTime(1)
-    await send(gov, 'queue', [newProposalId], { from: acct })
+    await gov.queue(newProposalId, { from: acct });
 
-    let gracePeriod = await call(timelock, 'GRACE_PERIOD')
-    let p = await call(gov, "proposals", [newProposalId]);
+    let gracePeriod = await timelock.GRACE_PERIOD.call();
+    let p = await gov.proposals.call(newProposalId);
     let eta = etherUnsigned(p.eta)
 
-    await freezeTime(eta.plus(gracePeriod).minus(1).toNumber())
+    await setTime(eta.plus(gracePeriod).minus(1).toNumber())
 
-    expect(await call(gov, 'state', [newProposalId])).toEqual(states["Queued"])
-    await send(gov, 'execute', [newProposalId], { from: acct })
+    expect(await gov.state.call(newProposalId)).to.be.equal(states["Queued"])
+    await gov.execute(newProposalId, { from: acct });
 
-    expect(await call(gov, 'state', [newProposalId])).toEqual(states["Executed"])
+    expect(await gov.state.call(newProposalId)).to.be.equal(states["Executed"]);
 
     // still executed even though would be expired
-    await freezeTime(eta.plus(gracePeriod).toNumber())
+    await setTime(eta.plus(gracePeriod).toNumber());
 
-    expect(await call(gov, 'state', [newProposalId])).toEqual(states["Executed"])
+    expect(await gov.state.call(newProposalId)).to.be.equal(states["Executed"]);
   })
 
 })

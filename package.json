@@ -28,10 +28,9 @@
     "husky": "^4.2.5",
     "prettier": "^2.0.5",
     "prettier-plugin-solidity": "^1.0.0-alpha.49",
-    "jest-diff": "^26.6.2",
-    "jest-junit": "^11.1.0",
     "solhint": "^3.0.0",
-    "solhint-plugin-prettier": "^0.0.4"
+    "solhint-plugin-prettier": "^0.0.4",
+    "solparse": "^2.2.8"
   },
   "scripts": {
     "analyize-contracts": "slither .",
