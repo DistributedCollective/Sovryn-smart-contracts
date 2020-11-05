@@ -6,7 +6,7 @@ const Timelock = artifacts.require('TimelockHarness');
 const {
   encodeParameters,
   etherUnsigned,
-  freezeTime,
+  setTime,
   keccak256
 } = require('./Utils/Ethereum');
 
@@ -33,8 +33,7 @@ contract('Timelock', accounts => {
     timelock = await Timelock.new(root, delay);
 
     blockTimestamp = etherUnsigned(100);
-    //TODO do we need it ?
-    // await freezeTime(blockTimestamp.toNumber())
+    await setTime(blockTimestamp.toNumber())
     target = timelock.address;
     eta = blockTimestamp.plus(delay);
 
@@ -219,26 +218,26 @@ contract('Timelock', accounts => {
     });
 
     it('requires timestamp to be less than eta plus gracePeriod', async () => {
-      // await freezeTime(blockTimestamp.plus(delay).plus(gracePeriod).plus(1).toNumber());
+      await setTime(blockTimestamp.plus(delay).plus(gracePeriod).plus(1).toNumber());
       await expectRevert(timelock.executeTransaction(target, value, signature, data, eta, { from: root }),
           'revert Timelock::executeTransaction: Transaction is stale.');
     });
 
     it('requires target.call transaction to succeed', async () => {
-      // await freezeTime(eta.toNumber());
+      await setTime(eta.toNumber());
       await expectRevert(timelock.executeTransaction(target, value, signature, revertData, eta, { from: root }),
           'revert Timelock::executeTransaction: Transaction execution reverted.');
     });
 
     it('sets hash from true to false in queuedTransactions mapping, updates delay, and emits ExecuteTransaction event', async () => {
       const configuredDelayBefore = await timelock.delay.call();
-      expect(configuredDelayBefore).to.be.equal(delay.toString());
+      expect(configuredDelayBefore.toString()).to.be.equal(delay.toString());
 
       const queueTransactionsHashValueBefore = await timelock.queuedTransactions.call(queuedTxHash);
       expect(queueTransactionsHashValueBefore).to.be.equal(true);
 
       const newBlockTimestamp = blockTimestamp.plus(delay).plus(1);
-      // await freezeTime(newBlockTimestamp.toNumber());
+      await setTime(newBlockTimestamp.toNumber());
 
       const result = await timelock.executeTransaction(target, value, signature, data, eta, {
         from: root
@@ -248,7 +247,7 @@ contract('Timelock', accounts => {
       expect(queueTransactionsHashValueAfter).to.be.equal(false);
 
       const configuredDelayAfter = await timelock.delay.call();
-      expect(configuredDelayAfter).to.be.equal(newDelay.toString());
+      expect(configuredDelayAfter.toString()).to.be.equal(newDelay.toString());
 
       expectEvent(result, 'ExecuteTransaction', {
         data: data,
@@ -259,9 +258,6 @@ contract('Timelock', accounts => {
         value: value.toString()
       });
 
-      expect(result).toHaveLog('NewDelay', {
-        newDelay: newDelay.toString()
-      });
       expectEvent(result, 'NewDelay', {
         newDelay: newDelay.toString()
       });
@@ -275,6 +271,7 @@ contract('Timelock', accounts => {
       delay = etherUnsigned(configuredDelay);
       signature = 'setPendingAdmin(address)';
       data = encodeParameters(['address'], [newAdmin]);
+      await setTime(blockTimestamp.toNumber())
       eta = blockTimestamp.plus(delay);
 
       queuedTxHash = keccak256(
@@ -306,7 +303,7 @@ contract('Timelock', accounts => {
     });
 
     it('requires timestamp to be less than eta plus gracePeriod', async () => {
-      // await freezeTime(blockTimestamp.plus(delay).plus(gracePeriod).plus(1).toNumber());
+      await setTime(blockTimestamp.plus(delay).plus(gracePeriod).plus(1).toNumber());
       await expectRevert(timelock.executeTransaction(target, value, signature, data, eta, { from: root }),
           'revert Timelock::executeTransaction: Transaction is stale.');
     });
@@ -319,7 +316,7 @@ contract('Timelock', accounts => {
       expect(queueTransactionsHashValueBefore).to.be.equal(true);
 
       const newBlockTimestamp = blockTimestamp.plus(delay).plus(1);
-      // await freezeTime(newBlockTimestamp.toNumber())
+      await setTime(newBlockTimestamp.toNumber())
 
       const result = await timelock.executeTransaction(target, value, signature, data, eta, {
         from: root
@@ -340,9 +337,6 @@ contract('Timelock', accounts => {
         value: value.toString()
       });
 
-      expect(result).toHaveLog('NewPendingAdmin', {
-        newPendingAdmin: newAdmin
-      });
       expectEvent(result, 'NewPendingAdmin', {
         newPendingAdmin: newAdmin
       });
