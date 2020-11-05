@@ -11,6 +11,12 @@ contract TimelockHarness is Timelock {
         Timelock(admin_, delay_) public {
     }
 
+    function setDelay(uint delay_) public {
+        delay = delay_;
+
+        emit NewDelay(delay);
+    }
+
     function harnessSetPendingAdmin(address pendingAdmin_) public {
         pendingAdmin = pendingAdmin_;
     }
