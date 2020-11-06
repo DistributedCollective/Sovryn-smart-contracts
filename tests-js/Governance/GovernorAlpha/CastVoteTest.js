@@ -20,7 +20,7 @@ const TestToken = artifacts.require('TestToken');
 const DELAY = 86400 * 2;
 
 const QUORUM_VOTES = etherMantissa(4000000);
-// const QUORUM_VOTES = 400001; //TODO ?
+const TOTAL_SUPPLY = etherMantissa(1000000000);
 
 async function enfranchise(token, comp, actor, amount) {
   await token.transfer(actor, amount);
@@ -36,7 +36,7 @@ contract("governorAlpha#castVote/2", accounts => {
 
   before(async () => {
     [root, a1, ...accounts] = accounts;
-    token = await TestToken.new("TestToken", "TST", 18, etherMantissa(10000000000000));
+    token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
     comp = await Staking.new(token.address);
     gov = await GovernorAlpha.new(address(0), comp.address, root);
 

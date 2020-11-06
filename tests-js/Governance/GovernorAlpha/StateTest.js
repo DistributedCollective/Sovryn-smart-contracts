@@ -31,6 +31,7 @@ const statesInverted = solparse
 const states = Object.entries(statesInverted).reduce((obj, [key, value]) => ({ ...obj, [value]: key }), {});
 
 const QUORUM_VOTES = etherMantissa(4000000);
+const TOTAL_SUPPLY = etherMantissa(1000000000);
 
 contract('GovernorAlpha#state/1', accounts => {
   let token, comp, gov, root, acct, delay, timelock;
@@ -38,7 +39,7 @@ contract('GovernorAlpha#state/1', accounts => {
   before(async () => {
     await setTime(100);
     [root, acct, ...accounts] = accounts;
-    token = await TestToken.new("TestToken", "TST", 18, etherMantissa(10000000000000));
+    token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
     comp = await Staking.new(token.address);
     delay = etherUnsigned(2 * 24 * 60 * 60).multipliedBy(2)
     timelock = await Timelock.new(root, delay);

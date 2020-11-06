@@ -7,7 +7,8 @@ const {
   minerStop,
   unlockedAccount,
   mineBlock,
-  etherMantissa
+  etherMantissa,
+  etherUnsigned
 } = require('../Utils/Ethereum');
 
 const EIP712 = require('../Utils/EIP712');
@@ -16,6 +17,9 @@ const GovernorAlpha = artifacts.require('GovernorAlphaMockup');
 const Timelock = artifacts.require('TimelockHarness');
 const Staking = artifacts.require('Staking');
 const TestToken = artifacts.require('TestToken');
+
+const TOTAL_SUPPLY = "10000000000000000000000000";
+const delay = etherUnsigned(2 * 24 * 60 * 60).multipliedBy(2);
 
 contract('Staking', accounts => {
   const name = 'Test token';
@@ -26,11 +30,10 @@ contract('Staking', accounts => {
 
   // beforeEach(async () => {
   before(async () => {
-    [root, a1, a2, ...accounts] = accounts;
-    //TODO ?
+    [root, a1, a2, a3, ...accounts] = accounts;
     chainId = 1; // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
     await web3.eth.net.getId();
-    token = await TestToken.new(name, symbol, 18, etherMantissa(1000000000));
+    token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
     comp = await Staking.new(token.address);
   });
 
@@ -46,7 +49,7 @@ contract('Staking', accounts => {
 
   describe('balanceOf', () => {
     it('grants to initial account', async () => {
-      expect(await token.balanceOf.call(root)).to.be.equal("10000000000000000000000000");
+      expect((await token.balanceOf.call(root)).toString()).to.be.equal(TOTAL_SUPPLY);
     });
   });
 
@@ -84,6 +87,7 @@ contract('Staking', accounts => {
       const delegatee = root, nonce = 0, expiry = 10e9;
       const { v, r, s } = EIP712.sign(Domain(comp), 'Delegation', { delegatee, nonce, expiry }, Types, unlockedAccount(a1).secretKey);
       expect(await comp.delegates.call(a1)).to.be.equal(address(0));
+      //FIXME: wrong signatory: address signatory = ecrecover(digest, v, r, s);
       const tx = await comp.delegateBySig(delegatee, nonce, expiry, v, r, s);
       expect(tx.gasUsed < 80000);
       expect(await comp.delegates.call(a1)).to.be.equal(root);
@@ -93,52 +97,65 @@ contract('Staking', accounts => {
   describe('numCheckpoints', () => {
     it('returns the number of checkpoints for a delegate', async () => {
       let guy = accounts[0];
-      await comp.transfer(guy, '100'); //give an account a few tokens for readability
-      await expect(comp.numCheckpoints.call(a1)).resolves.to.be.equal('0');
 
-      const t1 = await comp.delegate(a1, { from: guy });
-      await expect(comp.numCheckpoints.call(a1)).resolves.to.be.equal('1');
+      await token.transfer(guy, "1000"); //give an account a few tokens for readability
 
-      const t2 = await comp.transfer(a2, 10, { from: guy });
-      await expect(comp.numCheckpoints.call(a1)).resolves.to.be.equal('2');
+      await expect((await comp.numCheckpoints.call(a1)).toString()).to.be.equal('0');
 
-      const t3 = await comp.transfer(a2, 10, { from: guy });
-      await expect(comp.numCheckpoints.call(a1)).resolves.to.be.equal('3');
+      await token.approve(comp.address, "1000", { from: guy });
 
-      const t4 = await comp.transfer(guy, 20, { from: root });
-      await expect(compnumCheckpoints.call(a1)).resolves.to.be.equal('4');
+      await comp.stake("100", delay, a2, { from: guy });
+      await comp.delegate(a1, { from: guy });
 
-      await expect(comp.checkpoints.call(a1, 0)).resolves.to.be.equal(expect.objectContaining({ fromBlock: t1.blockNumber.toString(), votes: '100' }));
-      await expect(comp.checkpoints.call(a1, 1)).resolves.to.be.equal(expect.objectContaining({ fromBlock: t2.blockNumber.toString(), votes: '90' }));
-      await expect(comp.checkpoints.call(a1, 2)).resolves.to.be.equal(expect.objectContaining({ fromBlock: t3.blockNumber.toString(), votes: '80' }));
-      await expect(comp.checkpoints.call(a1, 3)).resolves.to.be.equal(expect.objectContaining({ fromBlock: t4.blockNumber.toString(), votes: '100' }));
+      await expect((await comp.numCheckpoints.call(a1)).toString()).to.be.equal('1');
+
+      await comp.delegate(a2, { from: guy });
+      await expect((await comp.numCheckpoints.call(a1)).toString()).to.be.equal('2');
     });
 
     it('does not add more than one checkpoint in a block', async () => {
-      let guy = accounts[0];
+      let guy = accounts[1];
+      await token.transfer(guy, '1000'); //give an account a few tokens for readability
+      await expect((await comp.numCheckpoints.call(a3)).toString()).to.be.equal('0');
 
-      await comp.transfer(guy, '100'); //give an account a few tokens for readability
-      await expect(comp.numCheckpoints.call(a1)).resolves.to.be.equal('0');
+      await token.approve(comp.address, "1000", { from: guy });
+
       await minerStop();
+      let t1 = comp.stake("80", delay, a3, { from: guy });
 
-      let t1 = send(comp, 'delegate', [a1], { from: guy });
-      let t2 = send(comp, 'transfer', [a2, 10], { from: guy });
-      let t3 = send(comp, 'transfer', [a2, 10], { from: guy });
+
+      let t2 = comp.delegate(a3, { from: guy });
+      let t3 = token.transfer(a2, 10, { from: guy });
+      let t4 = token.transfer(a2, 10, { from: guy });
 
       await minerStart();
       t1 = await t1;
       t2 = await t2;
       t3 = await t3;
+      t4 = await t4;
 
-      await expect(comp.numCheckpoints.call(a1)).resolves.to.be.equal('1');
+      await expect((await comp.numCheckpoints.call(a3)).toString()).to.be.equal('1');
 
-      await expect(comp.checkpoints.call(a1, 0)).resolves.to.be.equal(expect.objectContaining({ fromBlock: t1.blockNumber.toString(), votes: '80' }));
-      await expect(comp.checkpoints.call(a1, 1)).resolves.to.be.equal(expect.objectContaining({ fromBlock: '0', votes: '0' }));
-      await expect(comp.checkpoints.call(a1, 2)).resolves.to.be.equal(expect.objectContaining({ fromBlock: '0', votes: '0' }));
+      let checkpoint0 = await comp.checkpoints.call(a3, 0);
+      await expect(checkpoint0.fromBlock.toString()).to.be.equal(t1.receipt.blockNumber.toString());
+      await expect(checkpoint0.votes.toString()).to.be.equal("80");
 
-      const t4 = await comp.transfer(guy, 20, { from: root });
-      await expect(comp.numCheckpoints.call(a1)).resolves.to.be.equal('2');
-      await expect(comp.checkpoints.call(a1, 1)).resolves.to.be.equal(expect.objectContaining({ fromBlock: t4.blockNumber.toString(), votes: '100' }));
+      let checkpoint1 = await comp.checkpoints.call(a3, 1);
+      await expect(checkpoint1.fromBlock.toString()).to.be.equal("0");
+      await expect(checkpoint1.votes.toString()).to.be.equal("0");
+
+      let checkpoint2 = await comp.checkpoints.call(a3, 2);
+      await expect(checkpoint2.fromBlock.toString()).to.be.equal("0");
+      await expect(checkpoint2.votes.toString()).to.be.equal("0");
+
+      let t5 = await comp.stake("20", delay, a3, { from: guy });
+
+      await expect((await comp.numCheckpoints.call(a3)).toString()).to.be.equal('2');
+
+      checkpoint1 = await comp.checkpoints.call(a3, 1);
+      await expect(checkpoint1.fromBlock.toString()).to.be.equal(t5.receipt.blockNumber.toString());
+      await expect(checkpoint1.votes.toString()).to.be.equal("100");
+
     });
   });
 
@@ -149,16 +166,19 @@ contract('Staking', accounts => {
     });
 
     it('returns 0 if there are no checkpoints', async () => {
-      expect(await comp.getPriorVotes.call(a1, 0)).to.be.equal('0');
+      expect((await comp.getPriorVotes.call(a1, 0)).toString()).to.be.equal('0');
     });
 
     it('returns the latest block if >= last checkpoint block', async () => {
+      let amount = 1000;
       const t1 = await comp.delegate(a1, { from: root });
+      await token.approve(comp.address, amount, { from: root });
+      await comp.stake(amount, delay, a1, { from: root });
       await mineBlock();
       await mineBlock();
 
-      expect(await comp.getPriorVotes.call(a1, t1.blockNumber)).to.be.equal('10000000000000000000000000');
-      expect(await comp.getPriorVotes.call(a1, t1.blockNumber + 1)).to.be.equal('10000000000000000000000000');
+      expect((await comp.getPriorVotes.call(a1, new BN(t1.blockNumber))).toString()).to.be.equal(amount);
+      expect((await comp.getPriorVotes.call(a1, new BN(t1.blockNumber + 1))).toString()).to.be.equal(amount);
     });
 
     it('returns zero if < first checkpoint block', async () => {
@@ -168,7 +188,7 @@ contract('Staking', accounts => {
       await mineBlock();
 
       expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber - 1))).toString()).to.be.equal('0');
-      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1))).toString()).to.be.equal('10000000000000000000000000');
+      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1))).toString()).to.be.equal(TOTAL_SUPPLY);
     });
 
     it('generally returns the voting balance at the appropriate checkpoint', async () => {

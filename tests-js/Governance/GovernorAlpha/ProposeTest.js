@@ -14,13 +14,14 @@ const Staking = artifacts.require('Staking');
 const TestToken = artifacts.require('TestToken');
 
 const QUORUM_VOTES = etherMantissa(4000000);
+const TOTAL_SUPPLY = etherMantissa(1000000000);
 
 contract('GovernorAlpha#propose/5', accounts => {
   let token, comp, gov, root, acct;
 
   before(async () => {
     [root, acct, ...accounts] = accounts;
-    token = await TestToken.new("TestToken", "TST", 18, etherMantissa(10000000000000));
+    token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
     comp = await Staking.new(token.address);
     gov = await GovernorAlpha.new(address(0), comp.address, address(0));
   });

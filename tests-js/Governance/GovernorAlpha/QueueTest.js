@@ -16,6 +16,7 @@ const TestToken = artifacts.require('TestToken');
 const DELAY = 86400 * 2;
 
 const QUORUM_VOTES = etherMantissa(4000000);
+const TOTAL_SUPPLY = etherMantissa(1000000000);
 
 async function enfranchise(token, comp, actor, amount) {
   await token.transfer(actor, amount);
@@ -34,7 +35,7 @@ contract('GovernorAlpha#queue/1', accounts => {
   describe("overlapping actions", () => {
     it("reverts on queueing overlapping actions in same proposal", async () => {
       const timelock = await Timelock.new(root, DELAY);
-      const token = await TestToken.new("TestToken", "TST", 18, etherMantissa(10000000000000));
+      const token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
       const comp = await Staking.new(token.address);
       const gov = await GovernorAlpha.new(timelock.address, comp.address, root);
       const txAdmin = await timelock.harnessSetAdmin(gov.address);
