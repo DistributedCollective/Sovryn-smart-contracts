@@ -212,17 +212,29 @@ contract Staking is Ownable{
     
     
     /**
-     * computes the voting power for a secific date
+     * @notice computes the voting power for a secific date
+     * @param date the staking date to compute the power for
+     * @param startDate the date for which we need to know the power of the stake
+     * @param blockNumber the block number. needed for checkpointing.
      * */
     function _powerByDate(uint date, uint startDate, uint blockNumber) internal view returns(uint96 power){
+        uint96 weight = _computeWeightByDate(date, startDate);
+        uint96 staked = getPriorStakesForDate(date, blockNumber);
+        power = mul96(staked, weight, "multiplication overflow for voting power");
+    }
+    
+    /**
+     * @notice compute the weight for a specific date
+     * @param date the unlocking date
+     * @param startDate we compute the weight for the tokens staked until 'date' on 'startDate'
+     * */
+    function _computeWeightByDate(uint date, uint startDate) internal view returns(uint96 weight){
         require(date > startDate, "date needs to be bigger than startDate");
         uint remainingTime = (date - startDate);
         require(maxDuration > remainingTime, "remaining time can't be bigger than max duration");
         // x = max days - remaining days
         uint96 x = uint96(maxDuration - remainingTime)/(1 days);
-        uint96 weight = sub96(maxDurationPow2, x*x, "underflow on weight calculation") / (maxDurationPow2 / maxVotingWeight);
-        uint96 staked = getPriorStakes(date, blockNumber);
-        power = mul96(staked, weight, "multiplication overflow for voting power");
+        weight = sub96(maxDurationPow2, x*x, "underflow on weight calculation") / (maxDurationPow2 / maxVotingWeight);
     }
     
     
@@ -298,14 +310,14 @@ contract Staking is Ownable{
     }
     
     /**
-     * @notice Determine the prior number of votes for an account as of a block number
+     * @notice Determine the prior number of stake for an account as of a block number
      * @dev Block number must be a finalized block or else this function will revert to prevent misinformation.
      * @param account The address of the account to check
      * @param blockNumber The block number to get the vote balance at
      * @return The number of votes the account had as of the given block
      */
-    function getPriorVotes(address account, uint blockNumber) public view returns (uint96) {
-        require(blockNumber < block.number, "Comp::getPriorVotes: not yet determined");
+    function getPriorStake(address account, uint blockNumber) public view returns (uint96) {
+        require(blockNumber < block.number, "Staking::getPriorVotes: not yet determined");
 
         uint32 nCheckpoints = numCheckpoints[account];
         if (nCheckpoints == 0) {
@@ -339,13 +351,27 @@ contract Staking is Ownable{
     }
     
     /**
+     * @notice Determine the prior number of votes for an account as of a block number
+     * @dev Block number must be a finalized block or else this function will revert to prevent misinformation.
+     * @param account The address of the account to check
+     * @param blockNumber The block number to get the vote balance at
+     * @return The number of votes the account had as of the given block
+     */
+     function getPriorVotes(address account, uint blockNumber, uint date) public view returns (uint96) {
+         uint startDate =  timestampToLockDate(date + twoWeeks - 1);//todo think over
+         uint96 staked = getPriorStake(account, blockNumber);
+         uint96 weight = _computeWeightByDate(lockedUntil[account], startDate);
+         return mul96(staked, weight, "Staking::getPriorVotes: multiplication overflow for voting power");
+     }
+    
+    /**
      * @notice Determine the prior number of stake for an unlocking date as of a block number
      * @dev Block number must be a finalized block or else this function will revert to prevent misinformation.
      * @param date The date to check the stakes for
      * @param blockNumber The block number to get the vote balance at
      * @return The number of votes the account had as of the given block
      */
-    function getPriorStakes(uint date, uint blockNumber) public view returns (uint96) {
+    function getPriorStakesForDate(uint date, uint blockNumber) public view returns (uint96) {
         require(blockNumber < block.number, "Staking::getPriorVotes: not yet determined");
 
         uint32 nCheckpoints = numStakingCheckpoints[date];
