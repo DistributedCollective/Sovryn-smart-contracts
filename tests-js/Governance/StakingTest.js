@@ -148,7 +148,8 @@ contract('Staking', accounts => {
       await expect(checkpoint2.fromBlock.toString()).to.be.equal("0");
       await expect(checkpoint2.votes.toString()).to.be.equal("0");
 
-      let t5 = await comp.stake("20", delay, a3, { from: guy });
+      await token.approve(comp.address, "20", { from: a2 });
+      let t5 = await comp.stake("20", delay, a3, { from: a2 });
 
       await expect((await comp.numCheckpoints.call(a3)).toString()).to.be.equal('2');
 
@@ -160,6 +161,19 @@ contract('Staking', accounts => {
   });
 
   describe('getPriorVotes', () => {
+    let amount = "1000";
+
+    before(async () => {
+      [root, a1, a2, a3, ...accounts] = accounts;
+      chainId = 1; // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
+      await web3.eth.net.getId();
+      token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
+      comp = await Staking.new(token.address);
+
+      await token.approve(comp.address, TOTAL_SUPPLY);
+      await comp.stake(amount, delay, root);
+    });
+
     it('reverts if block number >= current block', async () => {
       await expectRevert(comp.getPriorVotes.call(a1, 5e10),
           "revert Comp::getPriorVotes: not yet determined");
@@ -170,50 +184,46 @@ contract('Staking', accounts => {
     });
 
     it('returns the latest block if >= last checkpoint block', async () => {
-      let amount = 1000;
-      const t1 = await comp.delegate(a1, { from: root });
-      await token.approve(comp.address, amount, { from: root });
-      await comp.stake(amount, delay, a1, { from: root });
+      const t1 = await comp.delegate(a1);
       await mineBlock();
       await mineBlock();
 
-      expect((await comp.getPriorVotes.call(a1, new BN(t1.blockNumber))).toString()).to.be.equal(amount);
-      expect((await comp.getPriorVotes.call(a1, new BN(t1.blockNumber + 1))).toString()).to.be.equal(amount);
+      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber))).toString()).to.be.equal(amount);
+      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1))).toString()).to.be.equal(amount);
     });
 
     it('returns zero if < first checkpoint block', async () => {
       await mineBlock();
-      const t1 = await comp.delegate(a1, { from: root });
+      const t1 = await comp.delegate(a2);
+      await mineBlock();
+      await mineBlock();
+
+      expect((await comp.getPriorVotes.call(a2, new BN(t1.receipt.blockNumber - 1))).toString()).to.be.equal('0');
+      expect((await comp.getPriorVotes.call(a2, new BN(t1.receipt.blockNumber + 1))).toString()).to.be.equal(amount);
+    });
+
+    it('generally returns the voting balance at the appropriate checkpoint', async () => {
+      const t1 = await comp.delegate(a1);
+      await mineBlock();
+      await mineBlock();
+      await token.transfer(a2, 10);
+      await token.approve(comp.address, "10", { from: a2 });
+      const t2 = await comp.stake("10", delay, a1, { from: a2 });
+      await mineBlock();
+      await mineBlock();
+      await token.transfer(a3, 101);
+      await token.approve(comp.address, "101", { from: a3 });
+      const t3 = await comp.stake("101", delay, a1, { from: a3 });
       await mineBlock();
       await mineBlock();
 
       expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber - 1))).toString()).to.be.equal('0');
-      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1))).toString()).to.be.equal(TOTAL_SUPPLY);
-    });
-
-    it('generally returns the voting balance at the appropriate checkpoint', async () => {
-      const t1 = await comp.delegate(a1, { from: root });
-      await mineBlock();
-      await mineBlock();
-      const t2 = await token.transfer(a2, 10, { from: root });
-      await mineBlock();
-      await mineBlock();
-      const t3 = await token.transfer(a2, 10, { from: root });
-      await mineBlock();
-      await mineBlock();
-      const t4 = await token.transfer(root, 20, { from: a2 });
-      await mineBlock();
-      await mineBlock();
-
-      expect((await comp.getPriorVotes.call(a1, new BN(t1.blockNumber - 1))).toString()).to.be.equal('0');
-      expect((await comp.getPriorVotes.call(a1, new BN(t1.blockNumber))).toString()).to.be.equal('10000000000000000000000000');
-      expect((await comp.getPriorVotes.call(a1, new BN(t1.blockNumber + 1))).toString()).to.be.equal('10000000000000000000000000');
-      expect((await comp.getPriorVotes.call(a1, new BN(t2.blockNumber))).toString()).to.be.equal('9999999999999999999999990');
-      expect((await comp.getPriorVotes.call(a1, new BN(t2.blockNumber + 1))).toString()).to.be.equal('9999999999999999999999990');
-      expect((await comp.getPriorVotes.call(a1, new BN(t3.blockNumber))).toString()).to.be.equal('9999999999999999999999980');
-      expect((await comp.getPriorVotes.call(a1, new BN(t3.blockNumber + 1))).toString()).to.be.equal('9999999999999999999999980');
-      expect((await comp.getPriorVotes.call(a1, new BN(t4.blockNumber))).toString()).to.be.equal('10000000000000000000000000');
-      expect((await comp.getPriorVotes.call(a1, new BN(t4.blockNumber + 1))).toString()).to.be.equal('10000000000000000000000000');
+      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber))).toString()).to.be.equal('1000');
+      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1))).toString()).to.be.equal('1000');
+      expect((await comp.getPriorVotes.call(a1, new BN(t2.receipt.blockNumber))).toString()).to.be.equal('1010');
+      expect((await comp.getPriorVotes.call(a1, new BN(t2.receipt.blockNumber + 1))).toString()).to.be.equal('1010');
+      expect((await comp.getPriorVotes.call(a1, new BN(t3.receipt.blockNumber))).toString()).to.be.equal('1111');
+      expect((await comp.getPriorVotes.call(a1, new BN(t3.receipt.blockNumber + 1))).toString()).to.be.equal('1111');
     });
   });
 });
