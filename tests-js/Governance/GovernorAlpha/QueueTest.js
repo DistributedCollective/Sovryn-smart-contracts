@@ -18,9 +18,6 @@ const DELAY = 86400 * 2;
 const QUORUM_VOTES = etherMantissa(4000000);
 
 async function enfranchise(token, comp, actor, amount) {
-  // await send(comp, 'transfer', [actor, etherMantissa(amount)]);
-  // await send(comp, 'delegate', [actor], {from: actor});
-
   await token.transfer(actor, amount);
   await token.approve(comp.address, amount, {from: actor});
   await comp.stake(amount, DELAY, actor, {from: actor});
