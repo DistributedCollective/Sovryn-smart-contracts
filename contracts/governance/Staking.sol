@@ -150,6 +150,7 @@ contract Staking is Ownable{
     function timestampToLockDate(uint timestamp) public view returns(uint lockDate){
         require(timestamp > kickoffTS, "Staking::timestampToLockDate: timestamp lies before contract creation");
         //if staking timestamp does not match any of the unstaking dates, set the lockDate to the closest one before the timestamp
+        //e.g. passed timestamps lies 7 weeks after kickoff -> only stake for 6 weeks
         uint periodFromKickoff = (timestamp - kickoffTS) / twoWeeks;
         lockDate = periodFromKickoff * twoWeeks + kickoffTS;
         require(lockDate > block.timestamp, "Staking::timestampToLockDate: staking period too short");
@@ -244,8 +245,8 @@ contract Staking is Ownable{
      * @return the total voting power at the given time
      * */
     function getPriorTotalVotingPower(uint32 blockNumber, uint time) view public returns(uint96 totalVotingPower){
-        //start the computation with the next unlocking date
-        uint start =  timestampToLockDate(time + twoWeeks - 1);//todo think over
+        //start the computation with the exact or previous unlocking date
+        uint start =  timestampToLockDate(time);//todo think over
         uint end = start + maxDuration;
         
         //max 76 iterations
@@ -358,7 +359,8 @@ contract Staking is Ownable{
      * @return The number of votes the account had as of the given block
      */
      function getPriorVotes(address account, uint blockNumber, uint date) public view returns (uint96) {
-         uint startDate =  timestampToLockDate(date + twoWeeks - 1);//todo think over
+         //if date is not an exact break point, start from the previous break point (alternative would be the next)
+         uint startDate =  timestampToLockDate(date);
          uint96 staked = getPriorStake(account, blockNumber);
          uint96 weight = _computeWeightByDate(lockedUntil[account], startDate);
          return mul96(staked, weight, "Staking::getPriorVotes: multiplication overflow for voting power");
