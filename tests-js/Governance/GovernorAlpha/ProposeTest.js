@@ -44,10 +44,6 @@ contract('GovernorAlpha#propose/5', accounts => {
     trivialProposal = await gov.proposals.call(proposalId);
   });
 
-  // it("Given the sender's GetPriorVotes for the immediately previous block is above the Proposal Threshold (e.g. 2%), the given proposal is added to all proposals, given the following settings", async () => {
-  //   test.todo('depends on get prior votes and delegation and voting');
-  // });
-
   describe("simple initialization", () => {
     it("ID is set to a globally unique identifier", async () => {
       expect(trivialProposal.id.toString()).to.be.equal(proposalId.toString());
@@ -69,10 +65,6 @@ contract('GovernorAlpha#propose/5', accounts => {
       expect(trivialProposal.forVotes.toString()).to.be.equal("0");
       expect(trivialProposal.againstVotes.toString()).to.be.equal("0");
     });
-
-    // it("Voters is initialized to the empty set", async () => {
-    //   test.todo('mmm probably nothing to prove here unless we add a counter or something');
-    // });
 
     it("Executed and Canceled flags are initialized to false", async () => {
       expect(trivialProposal.canceled).to.be.equal(false);
@@ -118,8 +110,13 @@ contract('GovernorAlpha#propose/5', accounts => {
 
       describe("Additionally, if there exists a pending or active proposal from the same proposer, we must revert.", () => {
         it("reverts with pending", async () => {
+          await token.transfer(accounts[4], QUORUM_VOTES);
+          await token.approve(comp.address, QUORUM_VOTES, { from: accounts[4] });
+          await comp.stake(QUORUM_VOTES, 0, accounts[4], { from: accounts[4] });
+          await comp.delegate(accounts[4], { from: accounts[4] });
+          await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: accounts[4] });
           await expectRevert(
-              gov.propose.call(targets, values, signatures, callDatas, "do nothing"),
+              gov.propose.call(targets, values, signatures, callDatas, "do nothing", { from: accounts[4] }),
               "revert GovernorAlpha::propose: one live proposal per proposer, found an already pending proposal");
         });
 
@@ -137,7 +134,7 @@ contract('GovernorAlpha#propose/5', accounts => {
     it("This function returns the id of the newly created proposal. # proposalId(n) = succ(proposalId(n-1))", async () => {
       await token.transfer(accounts[2], QUORUM_VOTES);
       await token.approve(comp.address, QUORUM_VOTES, { from: accounts[2] });
-      await comp.stake(QUORUM_VOTES, 0, accounts[3], { from: accounts[2] });
+      await comp.stake(QUORUM_VOTES, 0, accounts[2], { from: accounts[2] });
       await comp.delegate(accounts[2], { from: accounts[2] });
 
       await mineBlock();
