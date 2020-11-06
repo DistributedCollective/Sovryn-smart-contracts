@@ -32,7 +32,6 @@ contract GovernorAlpha {
     /// @notice The total number of proposals
     uint public proposalCount;
     
-    //todo add start time
     struct Proposal {
         /// @notice Unique id for looking up a proposal
         uint id;
@@ -54,12 +53,15 @@ contract GovernorAlpha {
 
         /// @notice The ordered list of calldata to be passed to each call
         bytes[] calldatas;
-
+        
         /// @notice The block at which voting begins: holders must delegate their votes prior to this block
         uint startBlock;
 
         /// @notice The block at which voting ends: votes must be cast prior to this block
         uint endBlock;
+        
+        /// @notice the start time is required for the staking contract
+        uint startTime;
 
         /// @notice Current number of votes in favor of this proposal
         uint forVotes;
@@ -135,7 +137,9 @@ contract GovernorAlpha {
     }
 
     function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
-        require(staking.getPriorVotes(msg.sender, sub256(block.number, 1)) > proposalThreshold(), "GovernorAlpha::propose: proposer votes below proposal threshold");
+        //note: passing this block's timestamp, but the number of the previous block
+        //todo: think if it would be better to pass block.timestamp - 30 (average block time) (probably not because proposal starts in 1 block from now)
+        require(staking.getPriorVotes(msg.sender, sub256(block.number, 1), block.timestamp) > proposalThreshold(), "GovernorAlpha::propose: proposer votes below proposal threshold");
         require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "GovernorAlpha::propose: proposal function information arity mismatch");
         require(targets.length != 0, "GovernorAlpha::propose: must provide actions");
         require(targets.length <= proposalMaxOperations(), "GovernorAlpha::propose: too many actions");
@@ -161,6 +165,7 @@ contract GovernorAlpha {
             calldatas: calldatas,
             startBlock: startBlock,
             endBlock: endBlock,
+            startTime: block.timestamp,//required by the staking contract. not used by the governance contract itself.
             forVotes: 0,
             againstVotes: 0,
             canceled: false,
@@ -205,7 +210,9 @@ contract GovernorAlpha {
         require(state != ProposalState.Executed, "GovernorAlpha::cancel: cannot cancel executed proposal");
 
         Proposal storage proposal = proposals[proposalId];
-        require(msg.sender == guardian || staking.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < proposalThreshold(), "GovernorAlpha::cancel: proposer above threshold");
+        //cancel only if sent by the guardian or the proposer removed his tokens
+        //todo check if necessary -> tokens are locked anyway. could they be removed in the meantime?
+        require(msg.sender == guardian || staking.getPriorVotes(proposal.proposer, sub256(block.number, 1), proposal.startTime) < proposalThreshold(), "GovernorAlpha::cancel: proposer above threshold");
 
         proposal.canceled = true;
         for (uint i = 0; i < proposal.targets.length; i++) {
@@ -264,7 +271,7 @@ contract GovernorAlpha {
         Proposal storage proposal = proposals[proposalId];
         Receipt storage receipt = proposal.receipts[voter];
         require(receipt.hasVoted == false, "GovernorAlpha::_castVote: voter already voted");
-        uint96 votes = staking.getPriorVotes(voter, proposal.startBlock);
+        uint96 votes = staking.getPriorVotes(voter, proposal.startBlock, proposal.startTime);
 
         if (support) {
             proposal.forVotes = add256(proposal.forVotes, votes);
@@ -328,5 +335,5 @@ interface TimelockInterface {
 }
 
 interface StakingInterface {
-    function getPriorVotes(address account, uint blockNumber) external view returns (uint96);
+    function getPriorVotes(address account, uint blockNumber, uint date) external view returns (uint96);
 }
