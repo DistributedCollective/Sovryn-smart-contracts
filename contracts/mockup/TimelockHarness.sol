@@ -11,7 +11,7 @@ contract TimelockHarness is Timelock {
         Timelock(admin_, delay_) public {
     }
 
-    function setDelay(uint delay_) public {
+    function setDelayWithoutChecking(uint delay_) public {
         delay = delay_;
 
         emit NewDelay(delay);

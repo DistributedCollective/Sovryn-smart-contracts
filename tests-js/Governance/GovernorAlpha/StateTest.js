@@ -43,7 +43,7 @@ contract('GovernorAlpha#state/1', accounts => {
     delay = etherUnsigned(2 * 24 * 60 * 60).multipliedBy(2)
     timelock = await Timelock.new(root, delay);
     delay = etherUnsigned(10)
-    await timelock.setDelay(delay);
+    await timelock.setDelayWithoutChecking(delay);
     gov = await GovernorAlpha.new(timelock.address, comp.address, root);
     await timelock.harnessSetAdmin(gov.address);
     await token.approve(comp.address, QUORUM_VOTES);

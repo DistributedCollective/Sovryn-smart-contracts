@@ -10,6 +10,7 @@ const {
 } = require('../../Utils/Ethereum');
 const EIP712 = require('../../Utils/EIP712');
 const BigNumber = require('bignumber.js');
+const saddle = require("saddle");
 
 const GovernorAlpha = artifacts.require('GovernorAlphaMockup');
 const Timelock = artifacts.require('TimelockHarness');
@@ -153,8 +154,11 @@ contract("governorAlpha#castVote/2", accounts => {
       await gov.castVote(proposalId, true, { from: actor });
       await gov.castVote(proposalId, false, { from: actor2 });
 
-      let trxReceipt = gov.getReceipt(proposalId, actor);
-      let trxReceipt2 = gov.getReceipt(proposalId, actor2);
+      let trxReceipt = gov.getReceipt.call(proposalId, actor);
+      let trxReceipt2 = gov.getReceipt.call(proposalId, actor2);
+
+      console.log("========================================================================================");
+      console.log(trxReceipt);
 
       await saddle.trace(trxReceipt, {
         constants: {
