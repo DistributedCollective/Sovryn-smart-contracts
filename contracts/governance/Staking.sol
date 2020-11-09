@@ -122,14 +122,14 @@ contract Staking is Ownable{
         
         //decrease staked token count until the old locking date
         if(oldLockedTS > 0){
-            _decreaseStake(oldLockedTS, balances[msg.sender]);
+            _decreaseDailyStake(oldLockedTS, balances[msg.sender]);
         }
         
         //increase staked balance
         balances[msg.sender] = add96(balances[msg.sender], amount, "Staking::stake: balance overflow");
         
         //increase staked token count until the new locking date
-        _increaseStake(lockedTS, balances[msg.sender]);
+        _increaseDailyStake(lockedTS, balances[msg.sender]);
         
         //delegate to self in case no address provided
         if(delegatee == address(0))
@@ -175,6 +175,13 @@ contract Staking is Ownable{
     }
     
     /**
+     * @notice 
+     * */
+    function increaseStake() public{
+        
+    }
+    
+    /**
      * @notice withdraws the given amount of tokens if they are unlocked
      * @param amount the number of tokens to withdraw
      * @param receiver the receiver of the tokens. If not specified, send to the msg.sender
@@ -192,7 +199,7 @@ contract Staking is Ownable{
         balances[msg.sender] = sub96(balances[msg.sender], amount, "Staking::withdraw: balance underflow");
         
         //update the staking checkpoint
-        _decreaseStake(lockedUntil[msg.sender], amount); 
+        _decreaseDailyStake(lockedUntil[msg.sender], amount); 
         
         //transferFrom
         bool success = SOVToken.transferFrom(address(this), msg.sender, amount);
@@ -245,8 +252,8 @@ contract Staking is Ownable{
      * @return the total voting power at the given time
      * */
     function getPriorTotalVotingPower(uint32 blockNumber, uint time) view public returns(uint96 totalVotingPower){
-        //start the computation with the exact or previous unlocking date
-        uint start =  timestampToLockDate(time);//todo think over
+        //start the computation with the exact or previous unlocking date (voting weight remians the same until the next break point)
+        uint start =  timestampToLockDate(time);
         uint end = start + maxDuration;
         
         //max 76 iterations
@@ -318,7 +325,7 @@ contract Staking is Ownable{
      * @return The number of votes the account had as of the given block
      */
     function getPriorStake(address account, uint blockNumber) public view returns (uint96) {
-        require(blockNumber < block.number, "Staking::getPriorVotes: not yet determined");
+        require(blockNumber < block.number, "Staking::getPriorStake: not yet determined");
 
         uint32 nCheckpoints = numCheckpoints[account];
         if (nCheckpoints == 0) {
@@ -359,7 +366,7 @@ contract Staking is Ownable{
      * @return The number of votes the account had as of the given block
      */
      function getPriorVotes(address account, uint blockNumber, uint date) public view returns (uint96) {
-         //if date is not an exact break point, start from the previous break point (alternative would be the next)
+         //if date is not an exact break point, start weight computation from the previous break point (alternative would be the next)
          uint startDate =  timestampToLockDate(date);
          uint96 staked = getPriorStake(account, blockNumber);
          uint96 weight = _computeWeightByDate(lockedUntil[account], startDate);
@@ -449,17 +456,17 @@ contract Staking is Ownable{
       emit DelegateVotesChanged(delegatee, oldVotes, newVotes);
     }
     
-    function _increaseStake(uint lockedTS, uint96 value) internal{
+    function _increaseDailyStake(uint lockedTS, uint96 value) internal{
         uint32 nCheckpoints = numStakingCheckpoints[lockedTS];
         uint96 staked = stakingCheckpoints[lockedTS][nCheckpoints - 1].stake;
-        uint96 newStake = add96(staked, value, "Staking::_increaseStake: stakedUntil overflow");
+        uint96 newStake = add96(staked, value, "Staking::_increaseDailyStake: stakedUntil overflow");
         _writeStakingCheckpoint(lockedTS, nCheckpoints, newStake);
     }
     
-    function _decreaseStake(uint lockedTS, uint96 value) internal{
+    function _decreaseDailyStake(uint lockedTS, uint96 value) internal{
         uint32 nCheckpoints = numStakingCheckpoints[lockedTS];
         uint96 staked = stakingCheckpoints[lockedTS][nCheckpoints - 1].stake;
-        uint96 newStake = sub96(staked, value, "Staking::_decreaseStake: stakedUntil underflow");
+        uint96 newStake = sub96(staked, value, "Staking::_decreaseDailyStake: stakedUntil underflow");
         _writeStakingCheckpoint(lockedTS, nCheckpoints, newStake);
     }
     
