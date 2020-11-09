@@ -99,12 +99,14 @@ contract Staking is Ownable{
     
     /**
      * @notice stakes the given amount for the given duration of time.
+     * @dev only if staked balance is 0.
      * @param amount the number of tokens to stake
      * @param duration the duration in seconds
      * @param delegatee the address of the delegatee or 0x0 if there is none.
      * */
     function stake(uint96 amount, uint duration, address delegatee) public {
         require(amount > 0, "Staking::stake: amount of tokens to stake needs to be bigger than 0");
+        require(balances[msg.sender] == 0, "Staking:stake: use 'increaseStake' to increase an existing staked position");
         
         //do not stake longer than the max duration
         if (duration <= maxDuration)
@@ -116,20 +118,13 @@ contract Staking is Ownable{
         
         //lock the tokens
         uint lockedTS = timestampToLockDate(block.timestamp + duration);//no overflow possible 
-        uint oldLockedTS = lockedUntil[msg.sender];
-        require(lockedTS >= oldLockedTS, "Staking::stake: msg.sender already has a lock. locking duration cannot be reduced.");
         lockedUntil[msg.sender] = lockedTS;
         
-        //decrease staked token count until the old locking date
-        if(oldLockedTS > 0){
-            _decreaseDailyStake(oldLockedTS, balances[msg.sender]);
-        }
-        
         //increase staked balance
-        balances[msg.sender] = add96(balances[msg.sender], amount, "Staking::stake: balance overflow");
+        balances[msg.sender] = amount;
         
         //increase staked token count until the new locking date
-        _increaseDailyStake(lockedTS, balances[msg.sender]);
+        _increaseDailyStake(lockedTS, amount);
         
         //delegate to self in case no address provided
         if(delegatee == address(0))
@@ -137,7 +132,7 @@ contract Staking is Ownable{
         else
             _delegate(msg.sender, delegatee);
         
-        emit TokensStaked(msg.sender, amount, lockedTS, balances[msg.sender]);
+        emit TokensStaked(msg.sender, amount, lockedTS, amount);
     }
     
     
@@ -171,14 +166,31 @@ contract Staking is Ownable{
             until = latest;
         
         lockedUntil[msg.sender] = until;
+        
+        _decreaseDailyStake(previousLock, balances[msg.sender]);
+        _increaseDailyStake(until, balances[msg.sender]);
+        
         emit ExtendedStakingDuration(msg.sender, previousLock, until);
     }
     
     /**
-     * @notice 
+     * @notice increases a users stake
+     * @param amount the amount of SOV tokens
      * */
-    function increaseStake() public{
+    function increaseStake(uint96 amount) public{
+        require(amount > 0, "Staking::increaseStake: amount of tokens to stake needs to be bigger than 0");
+            
+        //retrieve the SOV tokens
+        bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
+        assert(success);
         
+        //increase staked balance
+        balances[msg.sender] = add96(balances[msg.sender], amount, "Staking::increaseStake: balance overflow");
+        
+        //increase staked token count until the locking date
+        _increaseDailyStake(lockedUntil[msg.sender], amount);
+        
+        emit TokensStaked(msg.sender, amount, lockedUntil[msg.sender], balances[msg.sender]);
     }
     
     /**
