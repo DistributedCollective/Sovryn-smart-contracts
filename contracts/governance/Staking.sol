@@ -40,10 +40,16 @@ contract Staking is Ownable{
     /// @notice if this flag is set to true, all tokens are unlocked immediately
     bool allUnlocked = false;
 
-    /// @notice A checkpoint for marking number of votes from a given block
+    /// @notice A checkpoint for marking the stakes from a given block
     struct Checkpoint {
         uint32 fromBlock;
         uint96 stake;
+    }
+    
+    struct UserCheckpoint {
+        uint32 fromBlock;
+        uint96 stake;
+        uint96 lockedUntil;
     }
     
     /// @notice A record of tokens to be unstaked at a given time in total
@@ -60,11 +66,11 @@ contract Staking is Ownable{
     ///@notice The number of total staking checkpoints for each date
     mapping (address => mapping (uint => uint32)) public numDelegateStakingCheckpoints;
 
-    /// @notice A record of votes checkpoints for each account, by index
-    mapping (address => mapping (uint32 => Checkpoint)) public checkpoints;
+    /// @notice A record of stake checkpoints for each account, by index
+    mapping (address => mapping (uint32 => UserCheckpoint)) public userCheckpoints;
     
     /// @notice The number of checkpoints for each account
-    mapping (address => uint32) public numCheckpoints;
+    mapping (address => uint32) public numUserCheckpoints;
 
     /// @notice The EIP-712 typehash for the contract's domain
     bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
@@ -136,6 +142,8 @@ contract Staking is Ownable{
             _delegate(msg.sender, msg.sender, lockedTS);
         else
             _delegate(msg.sender, delegatee, lockedTS);
+        
+        _writeUserCheckpoint(msg.sender, amount, uint96(lockedTS));
         
         emit TokensStaked(msg.sender, amount, lockedTS, amount);
     }
@@ -324,8 +332,9 @@ contract Staking is Ownable{
      * @return The number of current votes for `account`
      */
     function getCurrentVotes(address account) external view returns (uint96) {
-        uint32 nCheckpoints = numCheckpoints[account];
-        return nCheckpoints > 0 ? checkpoints[account][nCheckpoints - 1].stake : 0;
+        //todo this is a delegate account
+        /*uint32 nCheckpoints = numCheckpoints[account];
+        return nCheckpoints > 0 ? checkpoints[account][nCheckpoints - 1].stake : 0;*/
     }
     
     //todo check if required
@@ -343,8 +352,8 @@ contract Staking is Ownable{
      */
     function getPriorStake(address account, uint blockNumber) public view returns (uint96) {
         require(blockNumber < block.number, "Staking::getPriorStake: not yet determined");
-
-        uint32 nCheckpoints = numCheckpoints[account];
+        //todo this needs to be changed to work for delegatees
+       /* uint32 nCheckpoints = numCheckpoints[account];
         if (nCheckpoints == 0) {
             return 0;
         }
@@ -372,7 +381,7 @@ contract Staking is Ownable{
                 upper = center - 1;
             }
         }
-        return checkpoints[account][lower].stake;
+        return checkpoints[account][lower].stake;*/
     }
     
     /**
@@ -470,17 +479,17 @@ contract Staking is Ownable{
     
     
     
-    function _writeCheckpoint(address delegatee, uint32 nCheckpoints, uint96 oldVotes, uint96 newVotes) internal {
-      uint32 blockNumber = safe32(block.number, "Staking::_writeCheckpoint: block number exceeds 32 bits");
+    function _writeUserCheckpoint(address user,  uint96 newStake, uint96 lockedTS) internal {
+      uint32 blockNumber = safe32(block.number, "Staking::_writeUserCheckpoint: block number exceeds 32 bits");
+      uint32 nCheckpoints = numUserCheckpoints[user];
 
-      if (nCheckpoints > 0 && checkpoints[delegatee][nCheckpoints - 1].fromBlock == blockNumber) {
-          checkpoints[delegatee][nCheckpoints - 1].stake = newVotes;
+      if (nCheckpoints > 0 && userCheckpoints[user][nCheckpoints - 1].fromBlock == blockNumber) {
+          userCheckpoints[user][nCheckpoints - 1].stake = newStake;
       } else {
-          checkpoints[delegatee][nCheckpoints] = Checkpoint(blockNumber, newVotes);
-          numCheckpoints[delegatee] = nCheckpoints + 1;
+          userCheckpoints[user][nCheckpoints] = UserCheckpoint(blockNumber, newStake, lockedTS);
+          numUserCheckpoints[user] = nCheckpoints + 1;
       }
-
-      //emit DelegateVotesChanged(delegatee, oldVotes, newVotes);
+        //todo emit events
     }
     
     /**
