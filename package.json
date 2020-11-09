@@ -24,6 +24,7 @@
     "decimal.js": "10.2.0",
     "dirty-chai": "^2.0.1",
     "ethers": "^5.0.19",
+    "ethereumjs-abi": "^0.6.8",
     "ganache-core": "^2.10.2",
     "husky": "^4.2.5",
     "prettier": "^2.0.5",
