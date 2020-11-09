@@ -55,16 +55,14 @@ contract Staking is Ownable{
     
     /// @notice A record of tokens to be unstaked at a given time which were delegated to a certain address
     /// for delegatee voting power computation. voting weights get adjusted bi-weekly
-    mapping(address => mapping (uint => mapping (uint32 => Checkpoint))) public delegateeStakingCheckpoints;
+    mapping(address => mapping (uint => mapping (uint32 => Checkpoint))) public delegateStakingCheckpoints;
     
     ///@notice The number of total staking checkpoints for each date
-    mapping (uint => uint32) public numDelegateeStakingCheckpoints;
+    mapping (address => mapping (uint => uint32)) public numDelegateStakingCheckpoints;
 
     /// @notice A record of votes checkpoints for each account, by index
     mapping (address => mapping (uint32 => Checkpoint)) public checkpoints;
     
-    //note: todo add checkpoints for users and delegatees separately -> one for reding voting rights, one for fee sharing
-
     /// @notice The number of checkpoints for each account
     mapping (address => uint32) public numCheckpoints;
 
@@ -80,8 +78,8 @@ contract Staking is Ownable{
     /// @notice An event thats emitted when an account changes its delegate
     event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);
 
-    /// @notice An event thats emitted when a delegate account's vote balance changes
-    event DelegateVotesChanged(address indexed delegate, uint previousBalance, uint newBalance);
+    /// @notice An event thats emitted when a delegate account's stake balance changes
+    event DelegateStakeChanged(address indexed delegate, uint lockedUntil, uint previousBalance, uint newBalance);
 
     /// @notice An event thats emitted when tokens get staked
     event TokensStaked(address indexed staker, uint amount, uint lockedUntil, uint totalStaked);
@@ -135,9 +133,9 @@ contract Staking is Ownable{
         
         //delegate to self in case no address provided
         if(delegatee == address(0))
-            _delegate(msg.sender, msg.sender);
+            _delegate(msg.sender, msg.sender, lockedTS);
         else
-            _delegate(msg.sender, delegatee);
+            _delegate(msg.sender, delegatee, lockedTS);
         
         emit TokensStaked(msg.sender, amount, lockedTS, amount);
     }
@@ -297,7 +295,7 @@ contract Staking is Ownable{
      * @param delegatee The address to delegate votes to
      */
     function delegate(address delegatee) public {
-        return _delegate(msg.sender, delegatee);
+        return _delegate(msg.sender, delegatee, lockedUntil[msg.sender]);
     }
 
     /**
@@ -314,10 +312,10 @@ contract Staking is Ownable{
         bytes32 structHash = keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, nonce, expiry));
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
-        require(signatory != address(0), "Comp::delegateBySig: invalid signature");
-        require(nonce == nonces[signatory]++, "Comp::delegateBySig: invalid nonce");
-        require(now <= expiry, "Comp::delegateBySig: signature expired");
-        return _delegate(signatory, delegatee);
+        require(signatory != address(0), "Staking::delegateBySig: invalid signature");
+        require(nonce == nonces[signatory]++, "Staking::delegateBySig: invalid nonce");
+        require(now <= expiry, "Staking::delegateBySig: signature expired");
+        return _delegate(signatory, delegatee, lockedUntil[signatory]);
     }
 
     /**
@@ -450,35 +448,28 @@ contract Staking is Ownable{
         return totalStakingCheckpoints[date][lower].stake;
     }
 
-    function _delegate(address delegator, address delegatee) internal {
+    function _delegate(address delegator, address delegatee, uint lockedTS) internal {
         address currentDelegate = delegates[delegator];
         uint96 delegatorBalance = balances[delegator];
         delegates[delegator] = delegatee;
 
         emit DelegateChanged(delegator, currentDelegate, delegatee);
 
-        _moveDelegates(currentDelegate, delegatee, delegatorBalance);
+        _moveDelegates(currentDelegate, delegatee, delegatorBalance, lockedTS);
     }
 
-    function _moveDelegates(address srcRep, address dstRep, uint96 amount) internal {
+    function _moveDelegates(address srcRep, address dstRep, uint96 amount, uint lockedTS) internal {
         if (srcRep != dstRep && amount > 0) {
-            if (srcRep != address(0)) {
-                uint32 srcRepNum = numCheckpoints[srcRep];
-                uint96 srcRepOld = srcRepNum > 0 ? checkpoints[srcRep][srcRepNum - 1].stake : 0;
-                uint96 srcRepNew = sub96(srcRepOld, amount, "Comp::_moveVotes: vote amount underflows");
-                _writeCheckpoint(srcRep, srcRepNum, srcRepOld, srcRepNew);
-            }
-
-            if (dstRep != address(0)) {
-                uint32 dstRepNum = numCheckpoints[dstRep];
-                uint96 dstRepOld = dstRepNum > 0 ? checkpoints[dstRep][dstRepNum - 1].stake : 0;
-                uint96 dstRepNew = add96(dstRepOld, amount, "Comp::_moveVotes: vote amount overflows");
-                _writeCheckpoint(dstRep, dstRepNum, dstRepOld, dstRepNew);
-            }
+            if (srcRep != address(0)) 
+                 _decreaseDelegateStake(srcRep, lockedTS, amount);
+                 
+            if (dstRep != address(0)) 
+                _increaseDelegateStake(dstRep, lockedTS, amount);
         }
-        //todo else write checkpoints because voting power increased
     }
-
+    
+    
+    
     function _writeCheckpoint(address delegatee, uint32 nCheckpoints, uint96 oldVotes, uint96 newVotes) internal {
       uint32 blockNumber = safe32(block.number, "Staking::_writeCheckpoint: block number exceeds 32 bits");
 
@@ -489,7 +480,46 @@ contract Staking is Ownable{
           numCheckpoints[delegatee] = nCheckpoints + 1;
       }
 
-      emit DelegateVotesChanged(delegatee, oldVotes, newVotes);
+      //emit DelegateVotesChanged(delegatee, oldVotes, newVotes);
+    }
+    
+    /**
+     * @notice increases the delegatee's stake for a giving lock date and writes a checkpoint
+     * @param delegatee the delegatee
+     * @param lockedTS the lock date
+     * @param value the value to add to the staked balance
+     * */
+    function _increaseDelegateStake(address delegatee, uint lockedTS, uint96 value) internal{
+        uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
+        uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
+        uint96 newStake = add96(staked, value, "Staking::_increaseDelegateeStake: stakedUntil overflow");
+        _writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, newStake);
+    }
+    
+    /**
+     * @notice decreases the delegatee's stake for a giving lock date and writes a checkpoint
+     * @param delegatee the delegatee
+     * @param lockedTS the lock date
+     * @param value the value to add to the staked balance
+     * */
+    function _decreaseDelegateStake(address delegatee, uint lockedTS, uint96 value) internal{
+        uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
+        uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
+        uint96 newStake = sub96(staked, value, "Staking::_decreaseDailyStake: stakedUntil underflow");
+        _writeStakingCheckpoint(lockedTS, nCheckpoints, newStake);
+    }
+    
+    function _writeDelegateCheckpoint(address delegatee, uint lockedTS, uint32 nCheckpoints, uint96 newStake) internal {
+      uint32 blockNumber = safe32(block.number, "Staking::_writeStakingCheckpoint: block number exceeds 32 bits");
+      uint96 oldStake = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
+        
+        if (nCheckpoints > 0 && delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].fromBlock == blockNumber) {
+            delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake = newStake;
+        } else {
+            delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints] = Checkpoint(blockNumber, newStake);
+            numDelegateStakingCheckpoints[delegatee][lockedTS] = nCheckpoints + 1;
+        }
+        emit DelegateStakeChanged(delegatee, lockedTS, oldStake, newStake);
     }
     
     function _increaseDailyStake(uint lockedTS, uint96 value) internal{
