@@ -110,7 +110,7 @@ contract("governorAlpha#castVote/2", accounts => {
       const Domain = (gov) => ({
         name: 'Compound Governor Alpha',
         chainId: 1, // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
-        verifyingContract: gov._address
+        verifyingContract: gov.address
       });
       const Types = {
         Ballot: [
@@ -154,50 +154,17 @@ contract("governorAlpha#castVote/2", accounts => {
       await gov.castVote(proposalId, true, { from: actor });
       await gov.castVote(proposalId, false, { from: actor2 });
 
-      let trxReceipt = gov.getReceipt.call(proposalId, actor);
-      let trxReceipt2 = gov.getReceipt.call(proposalId, actor2);
+      let trxReceipt = await gov.getReceipt.call(proposalId, actor);
+      let trxReceipt2 = await gov.getReceipt.call(proposalId, actor2);
 
-      console.log("========================================================================================");
-      console.log(trxReceipt);
+      expect(new BigNumber(trxReceipt.votes.toString()).toString()).to.be.equal(QUORUM_VOTES.toString());
+      expect(trxReceipt.hasVoted).to.be.true;
+      expect(trxReceipt.support).to.be.true;
 
-      await saddle.trace(trxReceipt, {
-        constants: {
-          "account": actor
-        },
-        preFilter: ({op}) => op === 'SLOAD',
-        postFilter: ({source}) => !source || source.includes('receipts'),
-        execLog: (log) => {
-          let [output] = log.outputs;
-          let votes = "000000000000000000000000000000000000000054b419003bdf81640000";
-          let voted = "01";
-          let support = "01";
+      expect(new BigNumber(trxReceipt2.votes.toString()).toString()).to.be.equal(QUORUM_VOTES.toString());
+      expect(trxReceipt2.hasVoted).to.be.true;
+      expect(trxReceipt2.support).to.be.false;
 
-          expect(output).to.be.equal(
-            `${votes}${support}${voted}`
-          );
-        },
-        exec: (logs) => {
-          expect(logs.length).to.be.equal(1); // require only one read
-        }
-      });
-
-      await saddle.trace(trxReceipt2, {
-        constants: {
-          "account": actor2
-        },
-        preFilter: ({op}) => op === 'SLOAD',
-        postFilter: ({source}) => !source || source.includes('receipts'),
-        execLog: (log) => {
-          let [output] = log.outputs;
-          let votes = "0000000000000000000000000000000000000000a968320077bf02c80000";
-          let voted = "01";
-          let support = "00";
-
-          expect(output).to.be.equal(
-            `${votes}${support}${voted}`
-          );
-        }
-      });
     });
   });
 });
