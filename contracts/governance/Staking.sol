@@ -46,12 +46,19 @@ contract Staking is Ownable{
         uint96 stake;
     }
     
-    /// @notice A record of tokens to be unstaked at a given time
-    /// for voting weight computation. voting weights get adjusted bi-weekly
-    mapping (uint => mapping (uint32 => Checkpoint)) public stakingCheckpoints;
+    /// @notice A record of tokens to be unstaked at a given time in total
+    /// for total voting power computation. voting weights get adjusted bi-weekly
+    mapping (uint => mapping (uint32 => Checkpoint)) public totalStakingCheckpoints;
     
-    ///@notice The number of checkpoints for each date
-    mapping (uint => uint32) public numStakingCheckpoints;
+    ///@notice The number of total staking checkpoints for each date
+    mapping (uint => uint32) public numTotalStakingCheckpoints;
+    
+    /// @notice A record of tokens to be unstaked at a given time which were delegated to a certain address
+    /// for delegatee voting power computation. voting weights get adjusted bi-weekly
+    mapping(address => mapping (uint => mapping (uint32 => Checkpoint))) public delegateeStakingCheckpoints;
+    
+    ///@notice The number of total staking checkpoints for each date
+    mapping (uint => uint32) public numDelegateeStakingCheckpoints;
 
     /// @notice A record of votes checkpoints for each account, by index
     mapping (address => mapping (uint32 => Checkpoint)) public checkpoints;
@@ -325,8 +332,8 @@ contract Staking is Ownable{
     
     //todo check if required
     function getCurrentStakedUntil(uint lockedTS) external view returns (uint96) {
-        uint32 nCheckpoints = numStakingCheckpoints[lockedTS];
-        return nCheckpoints > 0 ? stakingCheckpoints[lockedTS][nCheckpoints - 1].stake : 0;
+        uint32 nCheckpoints = numTotalStakingCheckpoints[lockedTS];
+        return nCheckpoints > 0 ? totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake : 0;
     }
     
     /**
@@ -371,18 +378,35 @@ contract Staking is Ownable{
     }
     
     /**
-     * @notice Determine the prior number of votes for an account as of a block number
+     * @notice Determine the prior weighted stake for an account as of a block number
      * @dev Block number must be a finalized block or else this function will revert to prevent misinformation.
+     *      Used for fee sharing, not voting.
      * @param account The address of the account to check
      * @param blockNumber The block number to get the vote balance at
-     * @return The number of votes the account had as of the given block
+     * @return The weighted stake the account had as of the given block
+     */
+     function getPriorWeightedStake(address account, uint blockNumber, uint date) public view returns (uint96) {
+         //if date is not an exact break point, start weight computation from the previous break point (alternative would be the next)
+         uint startDate =  timestampToLockDate(date);
+         uint96 staked = getPriorStake(account, blockNumber);
+         //todo lockedUntil needs to be checkpointed
+         //getPriorLockDate -> use for weight computation
+         uint96 weight = _computeWeightByDate(lockedUntil[account], startDate);
+         return mul96(staked, weight, "Staking::getPriorVotes: multiplication overflow for voting power");
+     }
+     
+     /**
+     * @notice Determine the prior number of votes for a delegatee as of a block number. 
+     * @dev Block number must be a finalized block or else this function will revert to prevent misinformation.
+     *      Used for Voting, not for fee sharing.
+     * @param account The address of the account to check
+     * @param blockNumber The block number to get the vote balance at
+     * @return The number of votes the delegatee had as of the given block
      */
      function getPriorVotes(address account, uint blockNumber, uint date) public view returns (uint96) {
          //if date is not an exact break point, start weight computation from the previous break point (alternative would be the next)
          uint startDate =  timestampToLockDate(date);
-         uint96 staked = getPriorStake(account, blockNumber);
-         uint96 weight = _computeWeightByDate(lockedUntil[account], startDate);
-         return mul96(staked, weight, "Staking::getPriorVotes: multiplication overflow for voting power");
+         //todo checkpoint of stakeduntil per delegatee. 
      }
     
     /**
@@ -395,18 +419,18 @@ contract Staking is Ownable{
     function getPriorStakesForDate(uint date, uint blockNumber) public view returns (uint96) {
         require(blockNumber < block.number, "Staking::getPriorVotes: not yet determined");
 
-        uint32 nCheckpoints = numStakingCheckpoints[date];
+        uint32 nCheckpoints = numTotalStakingCheckpoints[date];
         if (nCheckpoints == 0) {
             return 0;
         }
 
         // First check most recent balance
-        if (stakingCheckpoints[date][nCheckpoints - 1].fromBlock <= blockNumber) {
-            return stakingCheckpoints[date][nCheckpoints - 1].stake;
+        if (totalStakingCheckpoints[date][nCheckpoints - 1].fromBlock <= blockNumber) {
+            return totalStakingCheckpoints[date][nCheckpoints - 1].stake;
         }
 
         // Next check implicit zero balance
-        if (stakingCheckpoints[date][0].fromBlock > blockNumber) {
+        if (totalStakingCheckpoints[date][0].fromBlock > blockNumber) {
             return 0;
         }
 
@@ -414,7 +438,7 @@ contract Staking is Ownable{
         uint32 upper = nCheckpoints - 1;
         while (upper > lower) {
             uint32 center = upper - (upper - lower) / 2; // ceil, avoiding overflow
-            Checkpoint memory cp = stakingCheckpoints[date][center];
+            Checkpoint memory cp = totalStakingCheckpoints[date][center];
             if (cp.fromBlock == blockNumber) {
                 return cp.stake;
             } else if (cp.fromBlock < blockNumber) {
@@ -423,7 +447,7 @@ contract Staking is Ownable{
                 upper = center - 1;
             }
         }
-        return stakingCheckpoints[date][lower].stake;
+        return totalStakingCheckpoints[date][lower].stake;
     }
 
     function _delegate(address delegator, address delegatee) internal {
@@ -469,15 +493,15 @@ contract Staking is Ownable{
     }
     
     function _increaseDailyStake(uint lockedTS, uint96 value) internal{
-        uint32 nCheckpoints = numStakingCheckpoints[lockedTS];
-        uint96 staked = stakingCheckpoints[lockedTS][nCheckpoints - 1].stake;
+        uint32 nCheckpoints = numTotalStakingCheckpoints[lockedTS];
+        uint96 staked = totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake;
         uint96 newStake = add96(staked, value, "Staking::_increaseDailyStake: stakedUntil overflow");
         _writeStakingCheckpoint(lockedTS, nCheckpoints, newStake);
     }
     
     function _decreaseDailyStake(uint lockedTS, uint96 value) internal{
-        uint32 nCheckpoints = numStakingCheckpoints[lockedTS];
-        uint96 staked = stakingCheckpoints[lockedTS][nCheckpoints - 1].stake;
+        uint32 nCheckpoints = numTotalStakingCheckpoints[lockedTS];
+        uint96 staked = totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake;
         uint96 newStake = sub96(staked, value, "Staking::_decreaseDailyStake: stakedUntil underflow");
         _writeStakingCheckpoint(lockedTS, nCheckpoints, newStake);
     }
@@ -485,11 +509,11 @@ contract Staking is Ownable{
     function _writeStakingCheckpoint(uint lockedTS, uint32 nCheckpoints, uint96 newStake) internal{
         uint32 blockNumber = safe32(block.number, "Staking::_writeStakingCheckpoint: block number exceeds 32 bits");
         
-        if (nCheckpoints > 0 && stakingCheckpoints[lockedTS][nCheckpoints - 1].fromBlock == blockNumber) {
-            stakingCheckpoints[lockedTS][nCheckpoints - 1].stake = newStake;
+        if (nCheckpoints > 0 && totalStakingCheckpoints[lockedTS][nCheckpoints - 1].fromBlock == blockNumber) {
+            totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake = newStake;
         } else {
-            stakingCheckpoints[lockedTS][nCheckpoints] = Checkpoint(blockNumber, newStake);
-            numStakingCheckpoints[lockedTS] = nCheckpoints + 1;
+            totalStakingCheckpoints[lockedTS][nCheckpoints] = Checkpoint(blockNumber, newStake);
+            numTotalStakingCheckpoints[lockedTS] = nCheckpoints + 1;
         }
         //todo emit event
     }
