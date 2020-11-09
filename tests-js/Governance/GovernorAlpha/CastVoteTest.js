@@ -67,9 +67,9 @@ contract("governorAlpha#castVote/2", accounts => {
 
   describe("Otherwise", () => {
     it("we add the sender to the proposal's voters set", async () => {
-      await expect((await gov.getReceipt.call(proposalId, accounts[2])).hasVoted).to.be.false;
+      await expect((await gov.getReceipt.call(proposalId, accounts[2])).hasVoted).to.be.equal(false);
       await gov.castVote(proposalId, true, { from: accounts[2] });
-      await expect((await gov.getReceipt.call(proposalId, accounts[2])).hasVoted).to.be.true;
+      await expect((await gov.getReceipt.call(proposalId, accounts[2])).hasVoted).to.be.equal(true);
     });
 
     describe("and we take the balance returned by GetPriorVotes for the given sender and the proposal's start block, which may be zero,", () => {
@@ -108,7 +108,7 @@ contract("governorAlpha#castVote/2", accounts => {
 
     describe('castVoteBySig', () => {
       const Domain = (gov) => ({
-        name: 'Compound Governor Alpha',
+        name: 'Sovryn Governor Alpha',
         chainId: 1, // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
         verifyingContract: gov.address
       });
@@ -133,7 +133,7 @@ contract("governorAlpha#castVote/2", accounts => {
 
         let beforeFors = (await gov.proposals.call(proposalId)).forVotes;
         await mineBlock();
-        const tx = await gov.castVoteBySig(proposalId, true, v, r, s);
+        const tx = await gov.castVoteBySig(proposalId, true, v, r, s, { from: a1 });
         expect(tx.gasUsed < 80000);
 
         let afterFors = (await gov.proposals.call(proposalId)).forVotes;
@@ -158,12 +158,12 @@ contract("governorAlpha#castVote/2", accounts => {
       let trxReceipt2 = await gov.getReceipt.call(proposalId, actor2);
 
       expect(new BigNumber(trxReceipt.votes.toString()).toString()).to.be.equal(QUORUM_VOTES.toString());
-      expect(trxReceipt.hasVoted).to.be.true;
-      expect(trxReceipt.support).to.be.true;
+      expect(trxReceipt.hasVoted).to.be.equal(true);
+      expect(trxReceipt.support).to.be.equal(true);
 
       expect(new BigNumber(trxReceipt2.votes.toString()).toString()).to.be.equal(QUORUM_VOTES.toString());
-      expect(trxReceipt2.hasVoted).to.be.true;
-      expect(trxReceipt2.support).to.be.false;
+      expect(trxReceipt2.hasVoted).to.be.equal(true);
+      expect(trxReceipt2.support).to.be.equal(false);
 
     });
   });

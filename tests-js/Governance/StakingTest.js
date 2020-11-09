@@ -54,7 +54,7 @@ contract('Staking', accounts => {
   });
 
   describe('delegateBySig', () => {
-    const Domain = (comp) => ({ name, chainId, verifyingContract: comp.address });
+    const Domain = (comp) => ({ name: 'SOVStaking', chainId, verifyingContract: comp.address });
     const Types = {
       Delegation: [
         { name: 'delegatee', type: 'address' },
@@ -87,7 +87,6 @@ contract('Staking', accounts => {
       const delegatee = root, nonce = 0, expiry = 10e9;
       const { v, r, s } = EIP712.sign(Domain(comp), 'Delegation', { delegatee, nonce, expiry }, Types, unlockedAccount(a1).secretKey);
       expect(await comp.delegates.call(a1)).to.be.equal(address(0));
-      //FIXME: wrong signatory: address signatory = ecrecover(digest, v, r, s);
       const tx = await comp.delegateBySig(delegatee, nonce, expiry, v, r, s);
       expect(tx.gasUsed < 80000);
       expect(await comp.delegates.call(a1)).to.be.equal(root);
