@@ -9,7 +9,6 @@ const {
 } = require('../../Utils/Ethereum');
 
 const GovernorAlpha = artifacts.require('GovernorAlpha');
-const Timelock = artifacts.require('Timelock');
 const Staking = artifacts.require('Staking');
 const TestToken = artifacts.require('TestToken');
 

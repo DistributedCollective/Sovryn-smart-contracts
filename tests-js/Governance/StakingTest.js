@@ -13,8 +13,6 @@ const {
 
 const EIP712 = require('../Utils/EIP712');
 
-const GovernorAlpha = artifacts.require('GovernorAlphaMockup');
-const Timelock = artifacts.require('TimelockHarness');
 const Staking = artifacts.require('Staking');
 const TestToken = artifacts.require('TestToken');
 
