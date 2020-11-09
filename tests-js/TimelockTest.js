@@ -33,7 +33,7 @@ contract('Timelock', accounts => {
     timelock = await Timelock.new(root, delay);
 
     blockTimestamp = etherUnsigned(100);
-    await setTime(blockTimestamp.toNumber())
+    await setTime(blockTimestamp.toNumber());
     target = timelock.address;
     eta = blockTimestamp.plus(delay);
 
@@ -98,6 +98,14 @@ contract('Timelock', accounts => {
   });
 
   describe('queueTransaction', () => {
+    beforeEach(async () => {
+      const configuredDelay = await timelock.delay.call();
+      delay = etherUnsigned(configuredDelay);
+      blockTimestamp = etherUnsigned(100);
+      await setTime(blockTimestamp.toNumber())
+      eta = blockTimestamp.plus(delay);
+    });
+
     it('requires admin to be msg.sender', async () => {
       await expectRevert(timelock.queueTransaction(target, value, signature, data, eta, { from: notAdmin }),
           'revert Timelock::queueTransaction: Call must come from admin.');
@@ -173,6 +181,14 @@ contract('Timelock', accounts => {
   });
 
   describe('queue and cancel empty', () => {
+    beforeEach(async () => {
+      const configuredDelay = await timelock.delay.call();
+      delay = etherUnsigned(configuredDelay);
+      blockTimestamp = etherUnsigned(100);
+      await setTime(blockTimestamp.toNumber())
+      eta = blockTimestamp.plus(delay);
+    });
+
     it('can queue and cancel an empty signature and data', async () => {
       const txHash = keccak256(
         encodeParameters(
@@ -180,23 +196,24 @@ contract('Timelock', accounts => {
           [target, value.toString(), '', '0x', eta.toString()]
         )
       );
-      expect(await timelock.queuedTransactions.call(txHash)).to.be.false;
+      expect(await timelock.queuedTransactions.call(txHash)).to.be.equal(false);
       await timelock.queueTransaction(target, value, '', '0x', eta, { from: root });
-      expect(await timelock.queuedTransactions.call(txHash)).to.be.true;
+      expect(await timelock.queuedTransactions.call(txHash)).to.be.equal(true);
       await timelock.cancelTransaction(target, value, '', '0x', eta, { from: root });
-      expect(await timelock.queuedTransactions(txHash)).to.be.true;
+      expect(await timelock.queuedTransactions(txHash)).to.be.equal(false);
     });
   });
 
   describe('executeTransaction (setDelay)', () => {
     beforeEach(async () => {
+      const configuredDelay = await timelock.delay.call();
+      delay = etherUnsigned(configuredDelay);
+      blockTimestamp = etherUnsigned(100);
+      await setTime(blockTimestamp.toNumber())
+      eta = blockTimestamp.plus(delay);
+
       // Queue transaction that will succeed
       await timelock.queueTransaction(target, value, signature, data, eta, {
-        from: root
-      });
-
-      // Queue transaction that will revert when executed
-      await timelock.queueTransaction(target, value, signature, revertData, eta, {
         from: root
       });
     });
@@ -224,6 +241,12 @@ contract('Timelock', accounts => {
     });
 
     it('requires target.call transaction to succeed', async () => {
+      await setTime(blockTimestamp.toNumber());
+      // Queue transaction that will revert when executed
+      await timelock.queueTransaction(target, value, signature, revertData, eta, {
+        from: root
+      });
+
       await setTime(eta.toNumber());
       await expectRevert(timelock.executeTransaction(target, value, signature, revertData, eta, { from: root }),
           'revert Timelock::executeTransaction: Transaction execution reverted.');
@@ -271,6 +294,7 @@ contract('Timelock', accounts => {
       delay = etherUnsigned(configuredDelay);
       signature = 'setPendingAdmin(address)';
       data = encodeParameters(['address'], [newAdmin]);
+      blockTimestamp = etherUnsigned(100);
       await setTime(blockTimestamp.toNumber())
       eta = blockTimestamp.plus(delay);
 
