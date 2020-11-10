@@ -13,9 +13,9 @@ def main():
     loadConfig()
     #call the function you want here
     #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOCSettings'], contracts['iDOC'])
-    testTradeOpeningAndClosing(contracts['protocol'], contracts['iDOC'], contracts['DoC'], contracts['WRBTC'], 1e18, 5e18, False, 0)
+    #testTradeOpeningAndClosing(contracts['protocol'], contracts['iDOC'], contracts['DoC'], contracts['WRBTC'], 1e18, 5e18, False, 0)
     #setupMarginLoanParams(contracts['DoC'], contracts['iRBTCSettings'], contracts['iRBTC'])
-    testTradeOpeningAndClosing(contracts['protocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e14, 5e18, True, 1e14)
+    #testTradeOpeningAndClosing(contracts['protocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e14, 5e18, True, 1e14)
     
     #swapTokens(0.02e18,200e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['DoC'])
     #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
@@ -37,6 +37,11 @@ def main():
     #setupLoanTokenRates(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'])
     
     #getBalance('0xC5452Dbb2E3956C1161cB9C2d6DB53C2b60E7805', acct)
+    #getAllowance('0x7F433CC76298bB5099c15C1C7C8f2e89A8370111',acct ,'0xbFDB5fc90b960bcc2e7be2D8E347F8A7E5146077')
+    print('iRBTC')
+    readLoanTokenState(contracts['iRBTC'])
+    print('iDOC')
+    readLoanTokenState(contracts['iDOC'])
     
 def loadConfig():
     global contracts, acct
@@ -371,3 +376,7 @@ def getExpectedReturn(amount, swapNetworkAddress, sourceTokenAddress, destTokenA
     
     #priceFeed = Contract.from_abi("PriceFeeds", address=priceAddress, abi=PriceFeeds.abi, owner=acct)
     #priceFeed.queryReturn(sourceTokenAddress, destTokenAddress, amount)
+    
+def getAllowance(contractAddress, fromAddress, toAddress):
+    contract = Contract.from_abi("Token", address=contractAddress, abi=TestToken.abi, owner=acct)
+    print(contract.allowance(fromAddress,toAddress))
