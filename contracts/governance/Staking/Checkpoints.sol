@@ -50,7 +50,6 @@ contract Checkpoints is StakingStorage, SafeMath96{
           userCheckpoints[user][nCheckpoints] = UserCheckpoint(blockNumber, newStake, lockedTS);
           numUserCheckpoints[user] = nCheckpoints + 1;
       }
-        //todo emit events
     }
     
     /**
@@ -117,7 +116,6 @@ contract Checkpoints is StakingStorage, SafeMath96{
             totalStakingCheckpoints[lockedTS][nCheckpoints] = Checkpoint(blockNumber, newStake);
             numTotalStakingCheckpoints[lockedTS] = nCheckpoints + 1;
         }
-        //todo emit event
     }
     
 }
