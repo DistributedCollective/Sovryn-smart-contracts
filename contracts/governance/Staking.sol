@@ -178,10 +178,14 @@ contract Staking is Ownable{
         if(until > latest)
             until = latest;
         
+        //todo lockedUntil not required anymore (same for balance)
         lockedUntil[msg.sender] = until;
         
-        _decreaseDailyStake(previousLock, balances[msg.sender]);
-        _increaseDailyStake(until, balances[msg.sender]);
+        //update checkpoints
+        uint96 amount = balances[msg.sender];
+        _decreaseDailyStake(previousLock, amount);
+        _increaseDailyStake(until, amount);
+        _writeUserCheckpoint(msg.sender, amount, uint96(until));
         
         emit ExtendedStakingDuration(msg.sender, previousLock, until);
     }
@@ -198,12 +202,15 @@ contract Staking is Ownable{
         assert(success);
         
         //increase staked balance
-        balances[msg.sender] = add96(balances[msg.sender], amount, "Staking::increaseStake: balance overflow");
+        uint96 newBalance = add96(balances[msg.sender], amount, "Staking::increaseStake: balance overflow");
+        balances[msg.sender] = newBalance;
         
-        //increase staked token count until the locking date
-        _increaseDailyStake(lockedUntil[msg.sender], amount);
+        //update checkpoints
+        uint until = lockedUntil[msg.sender];
+        _increaseDailyStake(until, amount);
+        _writeUserCheckpoint(msg.sender, newBalance, uint96(until));
         
-        emit TokensStaked(msg.sender, amount, lockedUntil[msg.sender], balances[msg.sender]);
+        emit TokensStaked(msg.sender, amount, until, newBalance);
     }
     
     /**
@@ -221,10 +228,13 @@ contract Staking is Ownable{
             receiver = msg.sender;
             
         //reduce staked balance
-        balances[msg.sender] = sub96(balances[msg.sender], amount, "Staking::withdraw: balance underflow");
+        uint96 newBalance = sub96(balances[msg.sender], amount, "Staking::withdraw: balance underflow");
+        balances[msg.sender] = newBalance;
         
-        //update the staking checkpoint
-        _decreaseDailyStake(lockedUntil[msg.sender], amount); 
+        //update the checkpoints
+        uint until = lockedUntil[msg.sender];
+        _decreaseDailyStake(until, amount); 
+        _writeUserCheckpoint(msg.sender, newBalance, uint96(until));
         
         //transferFrom
         bool success = SOVToken.transferFrom(address(this), msg.sender, amount);
@@ -250,9 +260,21 @@ contract Staking is Ownable{
      * @param startDate the date for which we need to know the power of the stake
      * @param blockNumber the block number. needed for checkpointing.
      * */
-    function _powerByDate(uint date, uint startDate, uint blockNumber) internal view returns(uint96 power){
+    function _totalPowerByDate(uint date, uint startDate, uint blockNumber) internal view returns(uint96 power){
         uint96 weight = _computeWeightByDate(date, startDate);
-        uint96 staked = getPriorStakesForDate(date, blockNumber);
+        uint96 staked = getPriorTotalStakesForDate(date, blockNumber);
+        power = mul96(staked, weight, "multiplication overflow for voting power");
+    }
+    
+    /**
+     * @notice computes the voting power for a secific date
+     * @param date the staking date to compute the power for
+     * @param startDate the date for which we need to know the power of the stake
+     * @param blockNumber the block number. needed for checkpointing.
+     * */
+    function _totalPowerByDateForDelegatee(address account, uint date, uint startDate, uint blockNumber) internal view returns(uint96 power){
+        uint96 weight = _computeWeightByDate(date, startDate);
+        uint96 staked = getPriorStakeByDateForDelegatee(account, date, blockNumber);
         power = mul96(staked, weight, "multiplication overflow for voting power");
     }
     
@@ -283,7 +305,7 @@ contract Staking is Ownable{
         
         //max 76 iterations
         for(uint i = start; i < end; i += twoWeeks){
-            totalVotingPower = add96(totalVotingPower, _powerByDate(i, start, blockNumber), "overflow on total voting power computation");
+            totalVotingPower = add96(totalVotingPower, _totalPowerByDate(i, start, blockNumber), "overflow on total voting power computation");
         }
     }
     
@@ -350,21 +372,21 @@ contract Staking is Ownable{
      * @param blockNumber The block number to get the vote balance at
      * @return The number of votes the account had as of the given block
      */
-    function getPriorStake(address account, uint blockNumber) public view returns (uint96) {
-        require(blockNumber < block.number, "Staking::getPriorStake: not yet determined");
-        //todo this needs to be changed to work for delegatees
-       /* uint32 nCheckpoints = numCheckpoints[account];
+    function getPriorStakeByDateForDelegatee(address account, uint date, uint blockNumber) public view returns (uint96) {
+        require(blockNumber < block.number, "Staking::getPriorStakeByDateForDelegatee: not yet determined");
+
+        uint32 nCheckpoints = numDelegateStakingCheckpoints[account][date];
         if (nCheckpoints == 0) {
             return 0;
         }
 
         // First check most recent balance
-        if (checkpoints[account][nCheckpoints - 1].fromBlock <= blockNumber) {
-            return checkpoints[account][nCheckpoints - 1].stake;
+        if (delegateStakingCheckpoints[account][date][nCheckpoints - 1].fromBlock <= blockNumber) {
+            return delegateStakingCheckpoints[account][date][nCheckpoints - 1].stake;
         }
 
         // Next check implicit zero balance
-        if (checkpoints[account][0].fromBlock > blockNumber) {
+        if (delegateStakingCheckpoints[account][date][0].fromBlock > blockNumber) {
             return 0;
         }
 
@@ -372,7 +394,7 @@ contract Staking is Ownable{
         uint32 upper = nCheckpoints - 1;
         while (upper > lower) {
             uint32 center = upper - (upper - lower) / 2; // ceil, avoiding overflow
-            Checkpoint memory cp = checkpoints[account][center];
+            Checkpoint memory cp = delegateStakingCheckpoints[account][date][center];
             if (cp.fromBlock == blockNumber) {
                 return cp.stake;
             } else if (cp.fromBlock < blockNumber) {
@@ -381,7 +403,48 @@ contract Staking is Ownable{
                 upper = center - 1;
             }
         }
-        return checkpoints[account][lower].stake;*/
+        return delegateStakingCheckpoints[account][date][lower].stake;
+    }
+    
+    /**
+     * @notice Determine the prior number of stake for an account as of a block number
+     * @dev Block number must be a finalized block or else this function will revert to prevent misinformation.
+     * @param account The address of the account to check
+     * @param blockNumber The block number to get the vote balance at
+     * @return The number of votes the account had as of the given block
+     */
+    function getPriorUserStakeAndDate(address account, uint blockNumber) public view returns (uint96, uint96) {
+        require(blockNumber < block.number, "Staking::getPriorUserStakeAndDate: not yet determined");
+
+        uint32 nCheckpoints = numUserCheckpoints[account];
+        if (nCheckpoints == 0) {
+            return (0, 0);
+        }
+
+        // First check most recent balance
+        if (userCheckpoints[account][nCheckpoints - 1].fromBlock <= blockNumber) {
+            return (userCheckpoints[account][nCheckpoints - 1].stake, userCheckpoints[account][nCheckpoints - 1].lockedUntil);
+        }
+
+        // Next check implicit zero balance
+        if (userCheckpoints[account][0].fromBlock > blockNumber) {
+            return (0, 0);
+        }
+
+        uint32 lower = 0;
+        uint32 upper = nCheckpoints - 1;
+        while (upper > lower) {
+            uint32 center = upper - (upper - lower) / 2; // ceil, avoiding overflow
+            UserCheckpoint memory cp = userCheckpoints[account][center];
+            if (cp.fromBlock == blockNumber) {
+                return (cp.stake, cp.lockedUntil);
+            } else if (cp.fromBlock < blockNumber) {
+                lower = center;
+            } else {
+                upper = center - 1;
+            }
+        }
+        return (userCheckpoints[account][lower].stake, userCheckpoints[account][lower].lockedUntil);
     }
     
     /**
@@ -395,10 +458,8 @@ contract Staking is Ownable{
      function getPriorWeightedStake(address account, uint blockNumber, uint date) public view returns (uint96) {
          //if date is not an exact break point, start weight computation from the previous break point (alternative would be the next)
          uint startDate =  timestampToLockDate(date);
-         uint96 staked = getPriorStake(account, blockNumber);
-         //todo lockedUntil needs to be checkpointed
-         //getPriorLockDate -> use for weight computation
-         uint96 weight = _computeWeightByDate(lockedUntil[account], startDate);
+         (uint96 staked, uint96 until) = getPriorUserStakeAndDate(account, blockNumber);
+         uint96 weight = _computeWeightByDate(until, startDate);
          return mul96(staked, weight, "Staking::getPriorVotes: multiplication overflow for voting power");
      }
      
@@ -410,10 +471,15 @@ contract Staking is Ownable{
      * @param blockNumber The block number to get the vote balance at
      * @return The number of votes the delegatee had as of the given block
      */
-     function getPriorVotes(address account, uint blockNumber, uint date) public view returns (uint96) {
-         //if date is not an exact break point, start weight computation from the previous break point (alternative would be the next)
-         uint startDate =  timestampToLockDate(date);
-         //todo checkpoint of stakeduntil per delegatee. 
+     function getPriorVotes(address account, uint blockNumber, uint date) public view returns (uint96 votes) {
+        //if date is not an exact break point, start weight computation from the previous break point (alternative would be the next)
+        uint start =  timestampToLockDate(date);
+        uint end = start + maxDuration;
+        
+        //max 76 iterations
+        for(uint i = start; i < end; i += twoWeeks){
+            votes = add96(votes, _totalPowerByDateForDelegatee(account, i, start, blockNumber), "overflow on total voting power computation");
+        }
      }
     
     /**
@@ -423,7 +489,7 @@ contract Staking is Ownable{
      * @param blockNumber The block number to get the vote balance at
      * @return The number of votes the account had as of the given block
      */
-    function getPriorStakesForDate(uint date, uint blockNumber) public view returns (uint96) {
+    function getPriorTotalStakesForDate(uint date, uint blockNumber) public view returns (uint96) {
         require(blockNumber < block.number, "Staking::getPriorVotes: not yet determined");
 
         uint32 nCheckpoints = numTotalStakingCheckpoints[date];
@@ -485,6 +551,7 @@ contract Staking is Ownable{
 
       if (nCheckpoints > 0 && userCheckpoints[user][nCheckpoints - 1].fromBlock == blockNumber) {
           userCheckpoints[user][nCheckpoints - 1].stake = newStake;
+          userCheckpoints[user][nCheckpoints - 1].lockedUntil = lockedTS;
       } else {
           userCheckpoints[user][nCheckpoints] = UserCheckpoint(blockNumber, newStake, lockedTS);
           numUserCheckpoints[user] = nCheckpoints + 1;
