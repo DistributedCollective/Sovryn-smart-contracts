@@ -4,9 +4,11 @@ const { expectRevert, expectEvent, constants, BN, balance, time } = require('@op
 const {
   address,
   etherMantissa,
+  etherUnsigned,
   encodeParameters,
   mineBlock,
-  unlockedAccount
+  unlockedAccount,
+  setTime,
 } = require('../../Utils/Ethereum');
 const EIP712 = require('../../Utils/EIP712');
 const BigNumber = require('bignumber.js');
@@ -15,7 +17,7 @@ const GovernorAlpha = artifacts.require('GovernorAlphaMockup');
 const Staking = artifacts.require('Staking');
 const TestToken = artifacts.require('TestToken');
 
-const DELAY = 86400 * 2;
+const DELAY = 86400 * 14;
 
 const QUORUM_VOTES = etherMantissa(4000000);
 const TOTAL_SUPPLY = etherMantissa(1000000000);
@@ -23,9 +25,13 @@ const TOTAL_SUPPLY = etherMantissa(1000000000);
 async function enfranchise(token, comp, actor, amount) {
   await token.transfer(actor, amount);
   await token.approve(comp.address, amount, {from: actor});
-  await comp.stake(amount, DELAY, actor, {from: actor});
+  await comp.stake(amount, DELAY, actor, actor, {from: actor});
 
   await comp.delegate(actor, { from: actor });
+
+  let kickoffTS = await comp.kickoffTS.call();
+  let newTime = kickoffTS.add(new BN(DELAY).mul(new BN(2)));
+  await setTime(newTime);
 }
 
 contract("governorAlpha#castVote/2", accounts => {
@@ -34,6 +40,8 @@ contract("governorAlpha#castVote/2", accounts => {
 
   before(async () => {
     [root, a1, ...accounts] = accounts;
+    let blockTimestamp = etherUnsigned(100);
+    await setTime(blockTimestamp.toNumber());
     token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
     comp = await Staking.new(token.address);
     gov = await GovernorAlpha.new(address(0), comp.address, root);
