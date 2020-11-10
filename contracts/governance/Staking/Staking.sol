@@ -33,7 +33,7 @@ contract Staking is WeightedStaking{
             
         //retrieve the SOV tokens
         bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
-        assert(success);
+        require(success);
         
         //stake for the msg.sender if not specified otherwise
         if(stakeFor == address(0))
@@ -86,10 +86,10 @@ contract Staking is WeightedStaking{
      * */
     function increaseStake(uint96 amount, address stakeFor) public{
         require(amount > 0, "Staking::increaseStake: amount of tokens to stake needs to be bigger than 0");
-            
+        
         //retrieve the SOV tokens
         bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
-        assert(success);
+        require(success);
         
         //stake for the msg.sender if not specified otherwise
         if(stakeFor == address(0))
@@ -126,12 +126,12 @@ contract Staking is WeightedStaking{
         uint96 newBalance = sub96(balance, amount, "Staking::withdraw: balance underflow");
 
         //update the checkpoints
-        _decreaseDailyStake(until, amount); 
+        _decreaseDailyStake(until, amount);
         _writeUserCheckpoint(msg.sender, newBalance, until);
         
         //transferFrom
         bool success = SOVToken.transferFrom(address(this), msg.sender, amount);
-        assert(success);
+        require(success);
         
         emit TokensWithdrawn(msg.sender, amount);
     }
@@ -233,10 +233,10 @@ contract Staking is WeightedStaking{
 
     function _moveDelegates(address srcRep, address dstRep, uint96 amount, uint lockedTS) internal {
         if (srcRep != dstRep && amount > 0) {
-            if (srcRep != address(0)) 
+            if (srcRep != address(0))
                  _decreaseDelegateStake(srcRep, lockedTS, amount);
                  
-            if (dstRep != address(0)) 
+            if (dstRep != address(0))
                 _increaseDelegateStake(dstRep, lockedTS, amount);
         }
     }
