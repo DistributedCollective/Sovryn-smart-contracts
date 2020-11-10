@@ -107,13 +107,10 @@ contract('Staking', accounts => {
       await expect((await comp.numUserCheckpoints.call(a1)).toString()).to.be.equal('0');
 
       await token.approve(comp.address, "1000", { from: guy });
-
-      await comp.stake("100", delay, a2, a2, { from: guy });
-      await comp.delegate(a1, { from: guy });
-
+      await comp.stake("100", delay, a1, a1, { from: guy });
       await expect((await comp.numUserCheckpoints.call(a1)).toString()).to.be.equal('1');
 
-      await comp.delegate(a2, { from: guy });
+      await comp.stake("50", delay, a1, a1, { from: guy });
       await expect((await comp.numUserCheckpoints.call(a1)).toString()).to.be.equal('2');
     });
 
@@ -140,15 +137,15 @@ contract('Staking', accounts => {
 
       await expect((await comp.numUserCheckpoints.call(a3)).toString()).to.be.equal('1');
 
-      let checkpoint0 = await comp.checkpoints.call(a3, 0);
+      let checkpoint0 = await comp.numUserCheckpoints.call(a3, 0);
       await expect(checkpoint0.fromBlock.toString()).to.be.equal(t1.receipt.blockNumber.toString());
       await expect(checkpoint0.votes.toString()).to.be.equal("80");
 
-      let checkpoint1 = await comp.checkpoints.call(a3, 1);
+      let checkpoint1 = await comp.numUserCheckpoints.call(a3, 1);
       await expect(checkpoint1.fromBlock.toString()).to.be.equal("0");
       await expect(checkpoint1.votes.toString()).to.be.equal("0");
 
-      let checkpoint2 = await comp.checkpoints.call(a3, 2);
+      let checkpoint2 = await comp.numUserCheckpoints.call(a3, 2);
       await expect(checkpoint2.fromBlock.toString()).to.be.equal("0");
       await expect(checkpoint2.votes.toString()).to.be.equal("0");
 
@@ -157,7 +154,7 @@ contract('Staking', accounts => {
 
       await expect((await comp.numUserCheckpoints.call(a3)).toString()).to.be.equal('2');
 
-      checkpoint1 = await comp.checkpoints.call(a3, 1);
+      checkpoint1 = await comp.numUserCheckpoints.call(a3, 1);
       await expect(checkpoint1.fromBlock.toString()).to.be.equal(t5.receipt.blockNumber.toString());
       await expect(checkpoint1.votes.toString()).to.be.equal("100");
 
