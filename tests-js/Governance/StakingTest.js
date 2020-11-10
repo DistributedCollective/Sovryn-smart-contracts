@@ -65,21 +65,21 @@ contract('Staking', accounts => {
     it('reverts if the signatory is invalid', async () => {
       const delegatee = root, nonce = 0, expiry = 0;
       await expectRevert(comp.delegateBySig(delegatee, nonce, expiry, 0, '0xbad', '0xbad'),
-          "revert Comp::delegateBySig: invalid signature");
+          "revert Staking::delegateBySig: invalid signature");
     });
 
     it('reverts if the nonce is bad ', async () => {
       const delegatee = root, nonce = 1, expiry = 0;
       const { v, r, s } = EIP712.sign(Domain(comp), 'Delegation', { delegatee, nonce, expiry }, Types, unlockedAccount(a1).secretKey);
       await expectRevert(comp.delegateBySig(delegatee, nonce, expiry, v, r, s),
-          "revert Comp::delegateBySig: invalid nonce");
+          "revert Staking::delegateBySig: invalid nonce");
     });
 
     it('reverts if the signature has expired', async () => {
       const delegatee = root, nonce = 0, expiry = 0;
       const { v, r, s } = EIP712.sign(Domain(comp), 'Delegation', { delegatee, nonce, expiry }, Types, unlockedAccount(a1).secretKey);
       await expectRevert(comp.delegateBySig(delegatee, nonce, expiry, v, r, s),
-          "revert Comp::delegateBySig: signature expired");
+          "revert Staking::delegateBySig: signature expired");
     });
 
     it('delegates on behalf of the signatory', async () => {
@@ -98,28 +98,28 @@ contract('Staking', accounts => {
 
       await token.transfer(guy, "1000"); //give an account a few tokens for readability
 
-      await expect((await comp.numCheckpoints.call(a1)).toString()).to.be.equal('0');
+      await expect((await comp.numUserCheckpoints.call(a1)).toString()).to.be.equal('0');
 
       await token.approve(comp.address, "1000", { from: guy });
 
-      await comp.stake("100", delay, a2, { from: guy });
+      await comp.stake("100", delay, a2, a2, { from: guy });
       await comp.delegate(a1, { from: guy });
 
-      await expect((await comp.numCheckpoints.call(a1)).toString()).to.be.equal('1');
+      await expect((await comp.numUserCheckpoints.call(a1)).toString()).to.be.equal('1');
 
       await comp.delegate(a2, { from: guy });
-      await expect((await comp.numCheckpoints.call(a1)).toString()).to.be.equal('2');
+      await expect((await comp.numUserCheckpoints.call(a1)).toString()).to.be.equal('2');
     });
 
     it('does not add more than one checkpoint in a block', async () => {
       let guy = accounts[1];
       await token.transfer(guy, '1000'); //give an account a few tokens for readability
-      await expect((await comp.numCheckpoints.call(a3)).toString()).to.be.equal('0');
+      await expect((await comp.numUserCheckpoints.call(a3)).toString()).to.be.equal('0');
 
       await token.approve(comp.address, "1000", { from: guy });
 
       await minerStop();
-      let t1 = comp.stake("80", delay, a3, { from: guy });
+      let t1 = comp.stake("80", delay, a3, a3, { from: guy });
 
 
       let t2 = comp.delegate(a3, { from: guy });
@@ -132,7 +132,7 @@ contract('Staking', accounts => {
       t3 = await t3;
       t4 = await t4;
 
-      await expect((await comp.numCheckpoints.call(a3)).toString()).to.be.equal('1');
+      await expect((await comp.numUserCheckpoints.call(a3)).toString()).to.be.equal('1');
 
       let checkpoint0 = await comp.checkpoints.call(a3, 0);
       await expect(checkpoint0.fromBlock.toString()).to.be.equal(t1.receipt.blockNumber.toString());
@@ -147,9 +147,9 @@ contract('Staking', accounts => {
       await expect(checkpoint2.votes.toString()).to.be.equal("0");
 
       await token.approve(comp.address, "20", { from: a2 });
-      let t5 = await comp.stake("20", delay, a3, { from: a2 });
+      let t5 = await comp.stake("20", delay, a3, a3, { from: a2 });
 
-      await expect((await comp.numCheckpoints.call(a3)).toString()).to.be.equal('2');
+      await expect((await comp.numUserCheckpoints.call(a3)).toString()).to.be.equal('2');
 
       checkpoint1 = await comp.checkpoints.call(a3, 1);
       await expect(checkpoint1.fromBlock.toString()).to.be.equal(t5.receipt.blockNumber.toString());
@@ -169,7 +169,7 @@ contract('Staking', accounts => {
       comp = await Staking.new(token.address);
 
       await token.approve(comp.address, TOTAL_SUPPLY);
-      await comp.stake(amount, delay, root);
+      await comp.stake(amount, delay, root, root);
     });
 
     it('reverts if block number >= current block', async () => {
@@ -206,12 +206,12 @@ contract('Staking', accounts => {
       await mineBlock();
       await token.transfer(a2, 10);
       await token.approve(comp.address, "10", { from: a2 });
-      const t2 = await comp.stake("10", delay, a1, { from: a2 });
+      const t2 = await comp.stake("10", delay, a1, a1, { from: a2 });
       await mineBlock();
       await mineBlock();
       await token.transfer(a3, 101);
       await token.approve(comp.address, "101", { from: a3 });
-      const t3 = await comp.stake("101", delay, a1, { from: a3 });
+      const t3 = await comp.stake("101", delay, a1, a1, { from: a3 });
       await mineBlock();
       await mineBlock();
 
@@ -238,30 +238,21 @@ contract('Staking', accounts => {
     });
 
     it("Amount should be positive", async () => {
-      await expectRevert(comp.stake(0, delay, root),
+      await expectRevert(comp.stake(0, delay, root, root),
           "amount of tokens to stake needs to be bigger than 0");
     });
 
     it("Amount should be approved", async () => {
-      await expectRevert(comp.stake(100, delay, root),
+      await expectRevert(comp.stake(100, delay, root, root),
           "invalid transfer");
-    });
-
-    it("Locking duration cannot be reduced", async () => {
-      await token.approve(comp.address, TOTAL_SUPPLY);
-
-      await comp.stake(100, MAX_DURATION.mul(new BN(2)), root);
-
-      await expectRevert(comp.stake(100, MAX_DURATION, root),
-          "msg.sender already has a lock. locking duration cannot be reduced.");
     });
 
     // it("Staking balance should be less than  2**96", async () => {
     //   await token.approve(comp.address, TOTAL_SUPPLY);
     //
-    //   await comp.stake(100, MAX_DURATION, root);
+    //   await comp.stake(100, MAX_DURATION, root, root);
     //
-    //   await expectRevert(comp.stake(new BN(Math.pow(2, 96)).minus(new BN(2)), MAX_DURATION, root),
+    //   await expectRevert(comp.stake(new BN(Math.pow(2, 96)).minus(new BN(2)), MAX_DURATION, root, root),
     //       "msg.sender already has a lock. locking duration cannot be reduced.");
     // });
 
