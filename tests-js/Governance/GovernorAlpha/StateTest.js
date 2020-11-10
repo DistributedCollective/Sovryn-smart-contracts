@@ -33,6 +33,8 @@ const states = Object.entries(statesInverted).reduce((obj, [key, value]) => ({ .
 const QUORUM_VOTES = etherMantissa(4000000);
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
+const DELAY = 86400 * 14;
+
 contract('GovernorAlpha#state/1', accounts => {
   let token, comp, gov, root, acct, delay, timelock;
 
@@ -48,13 +50,13 @@ contract('GovernorAlpha#state/1', accounts => {
     gov = await GovernorAlpha.new(timelock.address, comp.address, root);
     await timelock.harnessSetAdmin(gov.address);
     await token.approve(comp.address, QUORUM_VOTES);
-    await comp.stake(QUORUM_VOTES, delay, acct);
+    await comp.stake(QUORUM_VOTES, delay, root, root);
 
     await token.transfer(acct, QUORUM_VOTES);
     await token.approve(comp.address, QUORUM_VOTES, {from: acct});
-    await comp.stake(QUORUM_VOTES, delay, acct, {from: acct});
+    await comp.stake(QUORUM_VOTES, delay, acct, acct, {from: acct});
 
-    await comp.delegate(acct, { from: acct });
+    await comp.delegate(acct, { from: root });
   });
 
   let trivialProposal, targets, values, signatures, callDatas;
@@ -63,7 +65,9 @@ contract('GovernorAlpha#state/1', accounts => {
     values = ["0"];
     signatures = ["getBalanceOf(address)"]
     callDatas = [encodeParameters(['address'], [acct])];
-    await comp.delegate(root);
+    await comp.delegate(root, {from: acct});
+
+    await updateTime(comp);
     await gov.propose(targets, values, signatures, callDatas, "do nothing");
     proposalId = await gov.latestProposalIds.call(root);
     trivialProposal = await gov.proposals.call(proposalId);
@@ -86,6 +90,7 @@ contract('GovernorAlpha#state/1', accounts => {
 
   it("Canceled", async () => {
     await mineBlock()
+    await updateTime(comp);
     await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: acct });
     let newProposalId = await gov.proposalCount.call();
 
@@ -103,9 +108,12 @@ contract('GovernorAlpha#state/1', accounts => {
 
   it("Succeeded", async () => {
     await mineBlock()
+    await updateTime(comp);
     await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: acct });
     let newProposalId = await gov.latestProposalIds.call(acct);
     await mineBlock()
+
+    await updateTime(comp);
     await gov.castVote(newProposalId, true);
     await advanceBlocks(20);
 
@@ -114,9 +122,12 @@ contract('GovernorAlpha#state/1', accounts => {
 
   it("Queued", async () => {
     await mineBlock()
+    await updateTime(comp);
     await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: acct });
     let newProposalId = await gov.latestProposalIds.call(acct);
     await mineBlock()
+
+    await updateTime(comp);
     await gov.castVote(newProposalId, true);
     await advanceBlocks(20)
 
@@ -126,9 +137,12 @@ contract('GovernorAlpha#state/1', accounts => {
 
   it("Expired", async () => {
     await mineBlock()
+    await updateTime(comp);
     await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: acct });
     let newProposalId = await gov.latestProposalIds.call(acct);
     await mineBlock()
+
+    await updateTime(comp);
     await gov.castVote(newProposalId, true);
     await advanceBlocks(20)
 
@@ -150,14 +164,15 @@ contract('GovernorAlpha#state/1', accounts => {
 
   it("Executed", async () => {
     await mineBlock()
+    await updateTime(comp);
     await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: acct });
     let newProposalId = await gov.latestProposalIds.call(acct);
 
     await mineBlock()
+    await updateTime(comp);
     await gov.castVote(newProposalId, true);
     await advanceBlocks(20)
 
-    await increaseTime(1)
     await gov.queue(newProposalId, { from: acct });
 
     let gracePeriod = await timelock.GRACE_PERIOD.call();
@@ -183,4 +198,10 @@ async function advanceBlocks(number) {
   for (let i = 0; i < number; i++) {
     await mineBlock();
   }
+}
+
+async function updateTime(comp) {
+  let kickoffTS = await comp.kickoffTS.call();
+  let newTime = kickoffTS.add(new BN(DELAY).mul(new BN(2)));
+  await setTime(newTime);
 }
