@@ -18,6 +18,7 @@ const TestToken = artifacts.require('TestToken');
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const delay = etherUnsigned(2 * 24 * 60 * 60).multipliedBy(2);
+const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1095));
 
 contract('Staking', accounts => {
   const name = 'Test token';
@@ -223,4 +224,49 @@ contract('Staking', accounts => {
       expect((await comp.getPriorVotes.call(a1, new BN(t3.receipt.blockNumber + 1))).toString()).to.be.equal('1111');
     });
   });
+
+  describe('stake', () => {
+    let amount = "1000";
+
+    before(async () => {
+      [root, a1, a2, a3, ...accounts] = accounts;
+      token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
+      comp = await Staking.new(token.address);
+
+      // await token.approve(comp.address, TOTAL_SUPPLY);
+
+    });
+
+    it("Amount should be positive", async () => {
+      await expectRevert(comp.stake(0, delay, root),
+          "amount of tokens to stake needs to be bigger than 0");
+    });
+
+    it("Amount should be approved", async () => {
+      await expectRevert(comp.stake(100, delay, root),
+          "invalid transfer");
+    });
+
+    it("Locking duration cannot be reduced", async () => {
+      await token.approve(comp.address, TOTAL_SUPPLY);
+
+      await comp.stake(100, MAX_DURATION.mul(new BN(2)), root);
+
+      await expectRevert(comp.stake(100, MAX_DURATION, root),
+          "msg.sender already has a lock. locking duration cannot be reduced.");
+    });
+
+    // it("Staking balance should be less than  2**96", async () => {
+    //   await token.approve(comp.address, TOTAL_SUPPLY);
+    //
+    //   await comp.stake(100, MAX_DURATION, root);
+    //
+    //   await expectRevert(comp.stake(new BN(Math.pow(2, 96)).minus(new BN(2)), MAX_DURATION, root),
+    //       "msg.sender already has a lock. locking duration cannot be reduced.");
+    // });
+
+
+
+  });
+
 });
