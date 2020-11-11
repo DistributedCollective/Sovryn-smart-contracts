@@ -25,7 +25,7 @@ contract Staking is WeightedStaking{
      * */
     function stake(uint96 amount, uint duration, address stakeFor, address delegatee) public {
         require(amount > 0, "Staking::stake: amount of tokens to stake needs to be bigger than 0");
-        require(_currentBalance(msg.sender) == 0, "Staking:stake: use 'increaseStake' to increase an existing staked position");
+        require(_currentBalance(stakeFor) == 0, "Staking:stake: use 'increaseStake' to increase an existing staked position");
         
         //do not stake longer than the max duration
         if (duration <= maxDuration)
