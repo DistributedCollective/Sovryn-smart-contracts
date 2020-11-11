@@ -96,12 +96,21 @@ contract('WeightedStaking', accounts => {
   describe('checkpoints', () => {
     it('returns the correct checkpoint for an user', async() => {
       let kickoffTS = await staking.kickoffTS.call();
-      let newTime = kickoffTS.add(new BN(DELAY));
       
+      //shortest staking duration
+      let newTime = kickoffTS.add(new BN(DELAY));
       let result = await staking.stake("100", DELAY, a1, a3, {from: a2});
       await expect((await staking.balanceOf(a1)).toString()).to.be.equal('100');
       let checkpoint = await staking.userCheckpoints(a1,0);
 
+      await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
+      await expect(checkpoint.stake.toString()).to.be.equal('100');
+      await expect(checkpoint.lockedUntil.toString()).to.be.equal(newTime.toString());
+      
+      //max staking duration 
+      newTime = kickoffTS.add(new BN(DELAY*3*26));
+      result = await staking.stake("100", DELAY * 3 *26, a2, a3, {from: a2});
+      checkpoint = await staking.userCheckpoints(a2,0);
       await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
       await expect(checkpoint.stake.toString()).to.be.equal('100');
       await expect(checkpoint.lockedUntil.toString()).to.be.equal(newTime.toString());
@@ -136,14 +145,14 @@ contract('WeightedStaking', accounts => {
   describe('total voting power computation', () => {
     it('should compute the expected voting power', async() =>{
       let kickoffTS = await staking.kickoffTS.call();
-      await staking.stake("100", DELAY * 26 * 3, a1, a2, {from: a2});
+      await staking.stake("100", DELAY * (26 * 3 ), a1, a2, {from: a2});
       await staking.stake("100", DELAY * 26 * 2, a2, a2, {from: a2});
       let result = await staking.stake("100", DELAY * 26, a3, a3, {from: a2});
       
       let maxVotingWeight = await staking.maxVotingWeight.call();
       let maxDuration = await staking.maxDuration.call();
-      let expectedPower =  (weightingFunction(100, DELAY * 26 * 3, maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26 * 2, maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26, maxDuration, maxVotingWeight));
-      console.log(expectedPower);
+      let expectedPower =  weightingFunction(100, DELAY * (26 * 3 ), maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26 * 2, maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26, maxDuration, maxVotingWeight);
+      console.log("expected power is: "+expectedPower);
       
       await mineBlock();
       let totalVotingPower = await staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS);
@@ -151,7 +160,9 @@ contract('WeightedStaking', accounts => {
     });
     
     it('should be unable to compute the total voting power for the current block', async() =>{
-      
+      let kickoffTS = await staking.kickoffTS.call();
+      let result = await staking.stake("100", DELAY * 26, a3, a3, {from: a2});
+      await expectRevert(staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS), "Staking::getPriorTotalStakesForDate: not yet determined");
     });
   })
   

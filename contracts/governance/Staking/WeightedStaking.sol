@@ -17,8 +17,8 @@ contract WeightedStaking is Checkpoints{
         uint start =  timestampToLockDate(time);
         uint end = start + maxDuration;
         
-        //max 76 iterations
-        for(uint i = start; i < end; i += twoWeeks){
+        //max 78 iterations
+        for(uint i = start; i <= end; i += twoWeeks){
             totalVotingPower = add96(totalVotingPower, _totalPowerByDate(i, start, blockNumber), "overflow on total voting power computation");
         }
     }
@@ -44,7 +44,7 @@ contract WeightedStaking is Checkpoints{
      * @return The number of votes the account had as of the given block
      */
     function getPriorTotalStakesForDate(uint date, uint blockNumber) public view returns (uint96) {
-        require(blockNumber < block.number, "Staking::getPriorVotes: not yet determined");
+        require(blockNumber < block.number, "Staking::getPriorTotalStakesForDate: not yet determined");
 
         uint32 nCheckpoints = numTotalStakingCheckpoints[date];
         if (nCheckpoints == 0) {
@@ -95,8 +95,8 @@ contract WeightedStaking is Checkpoints{
         uint start =  timestampToLockDate(date);
         uint end = start + maxDuration;
         
-        //max 76 iterations
-        for(uint i = start; i < end; i += twoWeeks){
+        //max 78 iterations
+        for(uint i = start; i <= end; i += twoWeeks){
             votes = add96(votes, _totalPowerByDateForDelegatee(account, i, start, blockNumber), "overflow on total voting power computation");
         }
      }
@@ -223,9 +223,9 @@ contract WeightedStaking is Checkpoints{
      * @param startDate we compute the weight for the tokens staked until 'date' on 'startDate'
      * */
     function _computeWeightByDate(uint date, uint startDate) internal view returns(uint96 weight){
-        require(date >= startDate, "date needs to be bigger than startDate");
+        require(date >= startDate, "Staking::_computeWeightByDate: date needs to be bigger than startDate");
         uint remainingTime = (date - startDate);
-        require(maxDuration > remainingTime, "remaining time can't be bigger than max duration");
+        require(maxDuration >= remainingTime, "Staking::_computeWeightByDate:remaining time can't be bigger than max duration");
         // x = max days - remaining days
         uint96 x = uint96(maxDuration - remainingTime)/(1 days);
         weight = mul96(maxVotingWeight, sub96(maxDurationPow2, x*x, "underflow on weight calculation"), "multiplication overflow on weight computation") / maxDurationPow2 ;
