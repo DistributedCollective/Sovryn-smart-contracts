@@ -222,7 +222,7 @@ contract WeightedStaking is Checkpoints{
      * @param date the unlocking date
      * @param startDate we compute the weight for the tokens staked until 'date' on 'startDate'
      * */
-    function _computeWeightByDate(uint date, uint startDate) internal view returns(uint96 weight){
+    function _computeWeightByDate(uint date, uint startDate) internal pure returns(uint96 weight){
         require(date >= startDate, "Staking::_computeWeightByDate: date needs to be bigger than startDate");
         uint remainingTime = (date - startDate);
         require(maxDuration >= remainingTime, "Staking::_computeWeightByDate:remaining time can't be bigger than max duration");

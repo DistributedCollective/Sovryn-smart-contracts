@@ -148,14 +148,19 @@ contract('WeightedStaking', accounts => {
       await staking.stake("100", DELAY * (26 * 3 ), a1, a2, {from: a2});
       await staking.stake("100", DELAY * 26 * 2, a2, a2, {from: a2});
       let result = await staking.stake("100", DELAY * 26, a3, a3, {from: a2});
+      await mineBlock();
       
       let maxVotingWeight = await staking.maxVotingWeight.call();
       let maxDuration = await staking.maxDuration.call();
-      let expectedPower =  weightingFunction(100, DELAY * (26 * 3 ), maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26 * 2, maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26, maxDuration, maxVotingWeight);
-      console.log("expected power is: "+expectedPower);
       
-      await mineBlock();
+      //power on kickoff date
+      let expectedPower =  weightingFunction(100, DELAY * (26 * 3 ), maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26 * 2, maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26, maxDuration, maxVotingWeight);
       let totalVotingPower = await staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS);
+      await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
+      
+      //power 52 weeks later
+      expectedPower =  weightingFunction(100, DELAY * (26 * 2 ), maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26 * 1, maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26 * 0, maxDuration, maxVotingWeight);
+      totalVotingPower = await staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS.add(new BN(DELAY*26)));
       await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
     });
     
@@ -167,22 +172,68 @@ contract('WeightedStaking', accounts => {
   })
   
   describe('delegated voting power computation', () => {
-    it('', async() =>{
+    it('should compute the expected voting power', async() =>{
+      let kickoffTS = await staking.kickoffTS.call();
+      await staking.stake("100", DELAY * (26 * 3 ), a1, a2, {from: a2});
+      await staking.stake("100", DELAY * 26 * 2, a2, a3, {from: a2});
+      let result = await staking.stake("100", DELAY * 26, a3, a2, {from: a2});
+      await mineBlock();
       
+      let maxVotingWeight = await staking.maxVotingWeight.call();
+      let maxDuration = await staking.maxDuration.call();
+      
+      //power on kickoff date
+      let expectedPower =  weightingFunction(100, DELAY * (26 * 3 ), maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26, maxDuration, maxVotingWeight);
+      let totalVotingPower = await staking.getPriorVotes(a2, result.receipt.blockNumber, kickoffTS);
+      await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
+      
+      //power 52 weeks later
+      expectedPower =  weightingFunction(100, DELAY * (26 * 2 ), maxDuration, maxVotingWeight)  + weightingFunction(100, DELAY * 26 * 0, maxDuration, maxVotingWeight);
+      totalVotingPower = await staking.getPriorVotes(a2, result.receipt.blockNumber, kickoffTS.add(new BN(DELAY*26)));
+      await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
+    });
+    
+    it('should be unable to compute the voting power for the current block', async() =>{
+      let kickoffTS = await staking.kickoffTS.call();
+      let result = await staking.stake("100", DELAY * 26, a3, a3, {from: a2});
+      await expectRevert(staking.getPriorVotes(a3, result.receipt.blockNumber, kickoffTS), "Staking::getPriorStakeByDateForDelegatee: not yet determined");
     });
   })
   
   describe('user weighted stake computation', () => {
-    it('', async() =>{
+    it('should compute the expected weighted stake', async() =>{
+      let kickoffTS = await staking.kickoffTS.call();
+      await staking.stake("100", DELAY * (26 * 3 ), a2, a2, {from: a2});
+      await staking.stake("100", DELAY * 26 * 2, a1, a3, {from: a2});
+      let result = await staking.increaseStake("100", a2, {from: a2});
+      await mineBlock();
       
+      let maxVotingWeight = await staking.maxVotingWeight.call();
+      let maxDuration = await staking.maxDuration.call();
+      
+      //power on kickoff date
+      let expectedPower =  weightingFunction(200, DELAY * (26 * 3 ), maxDuration, maxVotingWeight) 
+      let totalVotingPower = await staking.getPriorWeightedStake(a2, result.receipt.blockNumber, kickoffTS);
+      await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
+      
+      //power 52 weeks later
+      expectedPower =  weightingFunction(200, DELAY * (26 * 2 ), maxDuration, maxVotingWeight);
+      totalVotingPower = await staking.getPriorWeightedStake(a2, result.receipt.blockNumber, kickoffTS.add(new BN(DELAY*26)));
+      await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
+    });
+    
+    it('should be unable to compute the weighted stake for the current block', async() =>{
+      let kickoffTS = await staking.kickoffTS.call();
+      let result = await staking.stake("100", DELAY * 26, a3, a3, {from: a2});
+      await expectRevert(staking.getPriorWeightedStake(a3, result.receipt.blockNumber, kickoffTS), "Staking::getPriorUserStakeAndDate: not yet determined");
     });
   })
 
 });
 
-async function updateTime(staking) {
+async function updateTime(staking, multiplier) {
   let kickoffTS = await staking.kickoffTS.call();
-  let newTime = kickoffTS.add(new BN(DELAY).mul(new BN(2)));
+  let newTime = kickoffTS.add(new BN(DELAY).mul(new BN(multiplier)));
   await setTime(newTime);
   return newTime;
 }
