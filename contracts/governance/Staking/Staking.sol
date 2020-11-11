@@ -28,7 +28,7 @@ contract Staking is WeightedStaking{
         require(_currentBalance(stakeFor) == 0, "Staking:stake: use 'increaseStake' to increase an existing staked position");
         
         //do not stake longer than the max duration
-        if (duration <= maxDuration)
+        if (duration > maxDuration)
             duration = maxDuration;
             
         //retrieve the SOV tokens
@@ -49,9 +49,9 @@ contract Staking is WeightedStaking{
         
         //delegate to self in case no address provided
         if(delegatee == address(0))
-            _delegate(msg.sender, stakeFor, lockedTS);
+            _delegate(stakeFor, stakeFor, lockedTS);
         else
-            _delegate(msg.sender, delegatee, lockedTS);
+            _delegate(stakeFor, delegatee, lockedTS);
         
         emit TokensStaked(stakeFor, amount, lockedTS, amount);
     }
@@ -231,6 +231,7 @@ contract Staking is WeightedStaking{
 
         _moveDelegates(currentDelegate, delegatee, delegatorBalance, lockedTS);
     }
+    
 
     function _moveDelegates(address srcRep, address dstRep, uint96 amount, uint lockedTS) internal {
         if (srcRep != dstRep && amount > 0) {
