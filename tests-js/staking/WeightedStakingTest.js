@@ -16,7 +16,7 @@ const Staking = artifacts.require('Staking');
 const TestToken = artifacts.require('TestToken');
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
-const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1095));
+const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
 const DAY = 86400;
 const TWO_WEEKS = 1209600;
@@ -136,16 +136,22 @@ contract('WeightedStaking', accounts => {
   describe('total voting power computation', () => {
     it('should compute the expected voting power', async() =>{
       let kickoffTS = await staking.kickoffTS.call();
-      await staking.stake("100", DELAY * 72, a1, a2, {from: a2});
-      await staking.stake("100", DELAY * 48, a2, a2, {from: a2});
-      let result = await staking.stake("100", DELAY * 36, a3, a3, {from: a2});
+      await staking.stake("100", DELAY * 26 * 3, a1, a2, {from: a2});
+      await staking.stake("100", DELAY * 26 * 2, a2, a2, {from: a2});
+      let result = await staking.stake("100", DELAY * 26, a3, a3, {from: a2});
       
       let maxVotingWeight = await staking.maxVotingWeight.call();
-      //let expectedPower = maxVotingWeight * (weightingFunction(100, DELAY * 26 * 3) + weightingFunction(100, DELAY * 26 * 2) + weightingFunction(100, DELAY * 26));
-      //console.log(expectedPower);
+      let maxDuration = await staking.maxDuration.call();
+      let expectedPower =  (weightingFunction(100, DELAY * 26 * 3, maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26 * 2, maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26, maxDuration, maxVotingWeight));
+      console.log(expectedPower);
       
-      //let totalVotingPower = await staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS);
-      //console.log(totalVotingPower);
+      await mineBlock();
+      let totalVotingPower = await staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS);
+      await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
+    });
+    
+    it('should be unable to compute the total voting power for the current block', async() =>{
+      
     });
   })
   
@@ -168,4 +174,11 @@ async function updateTime(staking) {
   let newTime = kickoffTS.add(new BN(DELAY).mul(new BN(2)));
   await setTime(newTime);
   return newTime;
+}
+
+function weightingFunction(stake, time, maxDuration, maxVotingWeight){
+  let x = maxDuration - time;
+  let mD2 = maxDuration * maxDuration;
+  return stake * Math.floor(maxVotingWeight * (mD2 - x*x) / mD2) ;
+
 }

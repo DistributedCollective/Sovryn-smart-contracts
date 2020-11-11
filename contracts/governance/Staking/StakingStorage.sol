@@ -12,10 +12,10 @@ contract StakingStorage is Ownable{
     uint96 public constant maxVotingWeight = 100;
     
     /// @notice the maximum duration to stake tokens for
-    uint public constant maxDuration = 1095 days;
+    uint public constant maxDuration = 1092 days;
     
     ///@notice the maximum duration ^2
-    uint96 constant maxDurationPow2 = 1095 * 1095;
+    uint96 constant maxDurationPow2 = 1092 * 1092;
     
     ///@notice the timestamp of contract creation. base for the staking period calculation
     uint public kickoffTS;
