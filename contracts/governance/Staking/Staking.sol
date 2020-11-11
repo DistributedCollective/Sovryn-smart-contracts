@@ -209,7 +209,7 @@ contract Staking is WeightedStaking{
      * @return The number of current votes for `account`
      */
     function getCurrentVotes(address account) external view returns (uint96) {
-        getPriorVotes(account, block.number, block.timestamp);
+        return getPriorVotes(account, block.number, block.timestamp);
     }
     
     /**
