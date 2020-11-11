@@ -228,7 +228,7 @@ contract WeightedStaking is Checkpoints{
         require(maxDuration > remainingTime, "remaining time can't be bigger than max duration");
         // x = max days - remaining days
         uint96 x = uint96(maxDuration - remainingTime)/(1 days);
-        weight = sub96(maxDurationPow2, x*x, "underflow on weight calculation") / (maxDurationPow2 / maxVotingWeight);
+        weight = mul96(maxVotingWeight, sub96(maxDurationPow2, x*x, "underflow on weight calculation"), "multiplication overflow on weight computation") / maxDurationPow2 ;
     }
     
     /**
