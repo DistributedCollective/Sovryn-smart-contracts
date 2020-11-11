@@ -133,7 +133,33 @@ contract('WeightedStaking', accounts => {
     });
   })
   
+  describe('total voting power computation', () => {
+    it('should compute the expected voting power', async() =>{
+      let kickoffTS = await staking.kickoffTS.call();
+      await staking.stake("100", DELAY * 72, a1, a2, {from: a2});
+      await staking.stake("100", DELAY * 48, a2, a2, {from: a2});
+      let result = await staking.stake("100", DELAY * 36, a3, a3, {from: a2});
+      
+      let maxVotingWeight = await staking.maxVotingWeight.call();
+      //let expectedPower = maxVotingWeight * (weightingFunction(100, DELAY * 26 * 3) + weightingFunction(100, DELAY * 26 * 2) + weightingFunction(100, DELAY * 26));
+      //console.log(expectedPower);
+      
+      //let totalVotingPower = await staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS);
+      //console.log(totalVotingPower);
+    });
+  })
   
+  describe('delegated voting power computation', () => {
+    it('', async() =>{
+      
+    });
+  })
+  
+  describe('user weighted stake computation', () => {
+    it('', async() =>{
+      
+    });
+  })
 
 });
 
