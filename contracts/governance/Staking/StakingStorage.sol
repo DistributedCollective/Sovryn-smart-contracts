@@ -9,10 +9,10 @@ contract StakingStorage is Ownable{
     uint constant twoWeeks = 1209600;
     
     ///@notice the maximum possible voting weight
-    uint96 constant maxVotingWeight = 100;
+    uint96 public constant maxVotingWeight = 100;
     
     /// @notice the maximum duration to stake tokens for
-    uint constant maxDuration = 1095 days;
+    uint public constant maxDuration = 1095 days;
     
     ///@notice the maximum duration ^2
     uint96 constant maxDurationPow2 = 1095 * 1095;
