@@ -30,7 +30,7 @@ contract('Staking', accounts => {
   const name = 'Test token';
   const symbol = 'TST';
 
-  let root, a1, a2, chainId;
+  let root, a1, a2, a3, chainId;
   let token, comp;
 
   // beforeEach(async () => {
@@ -176,8 +176,9 @@ contract('Staking', accounts => {
     });
 
     it('reverts if block number >= current block', async () => {
-      await expectRevert(comp.getPriorVotes.call(a1, 5e10),
-          "revert Comp::getPriorVotes: not yet determined");
+      let time = await updateTime(comp);
+      await expectRevert(comp.getPriorVotes.call(a1, 5e10, time),
+          "revert Staking::getPriorStakeByDateForDelegatee: not yet determined");
     });
 
     it('returns 0 if there are no checkpoints', async () => {
@@ -186,11 +187,16 @@ contract('Staking', accounts => {
     });
 
     it('returns the latest block if >= last checkpoint block', async () => {
-      const t1 = await comp.delegate(a1);
+      let t1 = await comp.stake("20", delay, a1, a1);
       await mineBlock();
       await mineBlock();
 
       let time = await updateTime(comp);
+
+      console.log();
+      console.log("================================================================================");
+      console.log(await comp.numUserCheckpoints.call(a1));
+      console.log(await comp.currentLock.call(a1));
 
       expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber), time)).toString()).to.be.equal(amount);
       expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1), time)).toString()).to.be.equal(amount);
