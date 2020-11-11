@@ -15,10 +15,10 @@ contract WeightedStaking is Checkpoints{
     function getPriorTotalVotingPower(uint32 blockNumber, uint time) view public returns(uint96 totalVotingPower){
         //start the computation with the exact or previous unlocking date (voting weight remians the same until the next break point)
         uint start =  timestampToLockDate(time);
-        uint end = start + maxDuration;
+        uint end = start + MAX_DURATION;
         
         //max 78 iterations
-        for(uint i = start; i <= end; i += twoWeeks){
+        for(uint i = start; i <= end; i += TWO_WEEKS){
             totalVotingPower = add96(totalVotingPower, _totalPowerByDate(i, start, blockNumber), "overflow on total voting power computation");
         }
     }
@@ -93,10 +93,10 @@ contract WeightedStaking is Checkpoints{
      function getPriorVotes(address account, uint blockNumber, uint date) public view returns (uint96 votes) {
         //if date is not an exact break point, start weight computation from the previous break point (alternative would be the next)
         uint start =  timestampToLockDate(date);
-        uint end = start + maxDuration;
+        uint end = start + MAX_DURATION;
         
         //max 78 iterations
-        for(uint i = start; i <= end; i += twoWeeks){
+        for(uint i = start; i <= end; i += TWO_WEEKS){
             votes = add96(votes, _totalPowerByDateForDelegatee(account, i, start, blockNumber), "overflow on total voting power computation");
         }
      }
@@ -225,10 +225,10 @@ contract WeightedStaking is Checkpoints{
     function _computeWeightByDate(uint date, uint startDate) internal pure returns(uint96 weight){
         require(date >= startDate, "Staking::_computeWeightByDate: date needs to be bigger than startDate");
         uint remainingTime = (date - startDate);
-        require(maxDuration >= remainingTime, "Staking::_computeWeightByDate:remaining time can't be bigger than max duration");
+        require(MAX_DURATION >= remainingTime, "Staking::_computeWeightByDate:remaining time can't be bigger than max duration");
         // x = max days - remaining days
-        uint96 x = uint96(maxDuration - remainingTime)/(1 days);
-        weight = mul96(maxVotingWeight, sub96(maxDurationPow2, x*x, "underflow on weight calculation"), "multiplication overflow on weight computation") / maxDurationPow2 ;
+        uint96 x = uint96(MAX_DURATION - remainingTime)/(1 days);
+        weight = mul96(MAX_VOTING_WEIGHT, sub96(MAX_DURATION_POW_2, x*x, "underflow on weight calculation"), "multiplication overflow on weight computation") / MAX_DURATION_POW_2;
     }
     
     /**
@@ -241,8 +241,8 @@ contract WeightedStaking is Checkpoints{
         require(timestamp >= kickoffTS, "Staking::timestampToLockDate: timestamp lies before contract creation");
         //if staking timestamp does not match any of the unstaking dates, set the lockDate to the closest one before the timestamp
         //e.g. passed timestamps lies 7 weeks after kickoff -> only stake for 6 weeks
-        uint periodFromKickoff = (timestamp - kickoffTS) / twoWeeks;
-        lockDate = periodFromKickoff * twoWeeks + kickoffTS;
+        uint periodFromKickoff = (timestamp - kickoffTS) / TWO_WEEKS;
+        lockDate = periodFromKickoff * TWO_WEEKS + kickoffTS;
     }
     
 }

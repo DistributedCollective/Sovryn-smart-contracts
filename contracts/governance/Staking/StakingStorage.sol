@@ -6,16 +6,16 @@ import "../../interfaces/IERC20.sol";
 
 contract StakingStorage is Ownable{
     ///@notice 2 weeks in seconds
-    uint constant twoWeeks = 1209600;
+    uint constant TWO_WEEKS = 1209600;
     
     ///@notice the maximum possible voting weight
-    uint96 public constant maxVotingWeight = 100;
+    uint96 public constant MAX_VOTING_WEIGHT = 100;
     
     /// @notice the maximum duration to stake tokens for
-    uint public constant maxDuration = 1092 days;
+    uint public constant MAX_DURATION = 1092 days;
     
     ///@notice the maximum duration ^2
-    uint96 constant maxDurationPow2 = 1092 * 1092;
+    uint96 constant MAX_DURATION_POW_2 = 1092 * 1092;
     
     ///@notice the timestamp of contract creation. base for the staking period calculation
     uint public kickoffTS;

@@ -107,7 +107,7 @@ contract('WeightedStaking', accounts => {
       await expect(checkpoint.stake.toString()).to.be.equal('100');
       await expect(checkpoint.lockedUntil.toString()).to.be.equal(newTime.toString());
       
-      //max staking duration 
+      //max staking duration
       newTime = kickoffTS.add(new BN(DELAY*3*26));
       result = await staking.stake("100", DELAY * 3 *26, a2, a3, {from: a2});
       checkpoint = await staking.userCheckpoints(a2,0);
@@ -150,8 +150,8 @@ contract('WeightedStaking', accounts => {
       let result = await staking.stake("100", DELAY * 26, a3, a3, {from: a2});
       await mineBlock();
       
-      let maxVotingWeight = await staking.maxVotingWeight.call();
-      let maxDuration = await staking.maxDuration.call();
+      let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
+      let maxDuration = await staking.MAX_DURATION.call();
       
       //power on kickoff date
       let expectedPower =  weightingFunction(100, DELAY * (26 * 3 ), maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26 * 2, maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26, maxDuration, maxVotingWeight);
@@ -179,8 +179,8 @@ contract('WeightedStaking', accounts => {
       let result = await staking.stake("100", DELAY * 26, a3, a2, {from: a2});
       await mineBlock();
       
-      let maxVotingWeight = await staking.maxVotingWeight.call();
-      let maxDuration = await staking.maxDuration.call();
+      let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
+      let maxDuration = await staking.MAX_DURATION.call();
       
       //power on kickoff date
       let expectedPower =  weightingFunction(100, DELAY * (26 * 3 ), maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26, maxDuration, maxVotingWeight);
@@ -208,11 +208,11 @@ contract('WeightedStaking', accounts => {
       let result = await staking.increaseStake("100", a2, {from: a2});
       await mineBlock();
       
-      let maxVotingWeight = await staking.maxVotingWeight.call();
-      let maxDuration = await staking.maxDuration.call();
+      let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
+      let maxDuration = await staking.MAX_DURATION.call();
       
       //power on kickoff date
-      let expectedPower =  weightingFunction(200, DELAY * (26 * 3 ), maxDuration, maxVotingWeight) 
+      let expectedPower =  weightingFunction(200, DELAY * (26 * 3 ), maxDuration, maxVotingWeight)
       let totalVotingPower = await staking.getPriorWeightedStake(a2, result.receipt.blockNumber, kickoffTS);
       await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
       

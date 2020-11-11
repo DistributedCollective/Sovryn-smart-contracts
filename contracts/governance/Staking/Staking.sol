@@ -32,8 +32,8 @@ contract Staking is WeightedStaking{
         require(_currentBalance(stakeFor) == 0, "Staking:stake: use 'increaseStake' to increase an existing staked position");
         
         //do not stake longer than the max duration
-        if (duration > maxDuration)
-            duration = maxDuration;
+        if (duration > MAX_DURATION)
+            duration = MAX_DURATION;
             
         //retrieve the SOV tokens
         bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
@@ -67,7 +67,7 @@ contract Staking is WeightedStaking{
         require(previousLock <= until, "Staking::extendStakingDuration: cannot reduce the staking duration");
         
         //do not exceed the max duration, no overflow possible
-        uint latest = block.timestamp + maxDuration;
+        uint latest = block.timestamp + MAX_DURATION;
         if(until > latest)
             until = latest;
         
