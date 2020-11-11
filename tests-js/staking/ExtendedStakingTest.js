@@ -23,6 +23,8 @@ const TWO_WEEKS = 1209600;
 
 const DELAY = 86400 * 14;
 
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 contract('Staking', accounts => {
     const name = 'Test token';
     const symbol = 'TST';
@@ -66,12 +68,11 @@ contract('Staking', accounts => {
                 "Staking::timestampToLockDate: staking period too short");
         });
 
-        it("Should be able to stake and delegate for yourself", async () => {
+        it("Shouldn't be able to stake longer than max duration", async () => {
             let amount = "100";
-            let duration = TWO_WEEKS;
-            let tx = await staking.stake(amount, duration, root, root);
+            let tx = await staking.stake(amount, MAX_DURATION, ZERO_ADDRESS, root);
 
-            let lockedTS = await getTimeFromKickoff(duration);
+            let lockedTS = await getTimeFromKickoff(MAX_DURATION);
             expectEvent(tx, 'TokensStaked', {
                 staker: root,
                 amount: amount,
@@ -80,30 +81,95 @@ contract('Staking', accounts => {
             });
         });
 
-        it("Should be able to stake and delegate for another person", async () => {
+        it("Should be able to stake and delegate for yourself", async () => {
             let amount = "100";
+            let duration = TWO_WEEKS;
+            let tx = await staking.stake(amount, duration, root, root);
+
+            let lockedTS = await getTimeFromKickoff(duration);
+
+            //_writeUserCheckpoint
+            let numUserCheckpoints = await staking.numUserCheckpoints.call(root);
+            expect(numUserCheckpoints.toNumber()).to.be.equal(1);
+            let checkpoint = await staking.userCheckpoints.call(root, 0);
+            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.stake.toString()).to.be.equal(amount);
+            expect(checkpoint.lockedUntil.toString()).to.be.equal(lockedTS.toString());
+
+            //_increaseDailyStake
+            let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(lockedTS);
+            expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(1);
+            checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
+            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.stake.toString()).to.be.equal(amount);
+
+            //_delegate
+            let delegator = await staking.delegates.call(root);
+            expect(delegator).to.be.equal(root);
+
+            let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
+            expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(1);
+            checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, 0);
+            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.stake.toString()).to.be.equal(amount);
+
+            expectEvent(tx, 'TokensStaked', {
+                staker: root,
+                amount: amount,
+                lockedUntil: lockedTS,
+                totalStaked: amount,
+            });
+
+            expectEvent(tx, 'DelegateChanged', {
+                delegator: root,
+                fromDelegate: ZERO_ADDRESS,
+                toDelegate: root
+            });
+        });
+
+        it("Should be able to stake and delegate for another person", async () => {
+            let amount = "1000";
             let duration = new BN(TWO_WEEKS).mul(new BN(2));
             let tx = await staking.stake(amount, duration, account1, account1);
 
             let lockedTS = await getTimeFromKickoff(duration);
+
+            //_writeUserCheckpoint
+            let numUserCheckpoints = await staking.numUserCheckpoints.call(account1);
+            expect(numUserCheckpoints.toNumber()).to.be.equal(1);
+            let checkpoint = await staking.userCheckpoints.call(account1, 0);
+            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.stake.toString()).to.be.equal(amount);
+            expect(checkpoint.lockedUntil.toString()).to.be.equal(lockedTS.toString());
+
+            //_increaseDailyStake
+            let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(lockedTS);
+            expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(1);
+            checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
+            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.stake.toString()).to.be.equal(amount);
+
+            //_delegate
+            let delegator = await staking.delegates.call(account1);
+            expect(delegator).to.be.equal(account1);
+
+            let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(account1, lockedTS);
+            expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(1);
+            checkpoint = await staking.delegateStakingCheckpoints.call(account1, lockedTS, 0);
+            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.stake.toString()).to.be.equal(amount);
+
             expectEvent(tx, 'TokensStaked', {
                 staker: account1,
                 amount: amount,
                 lockedUntil: lockedTS,
                 totalStaked: amount,
             });
-        });
 
-        it("Shouldn't be able to stake longer than max duration", async () => {
-            let amount = "100";
-            let tx = await staking.stake(amount, MAX_DURATION, account1, root);
-
-            let lockedTS = await getTimeFromKickoff(MAX_DURATION);
-            expectEvent(tx, 'TokensStaked', {
-                staker: account1,
-                amount: amount,
-                lockedUntil: lockedTS,
-                totalStaked: amount,
+            expectEvent(tx, 'DelegateChanged', {
+                delegator: account1,
+                fromDelegate: ZERO_ADDRESS,
+                toDelegate: account1
             });
         });
 
