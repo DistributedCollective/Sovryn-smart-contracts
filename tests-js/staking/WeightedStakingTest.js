@@ -93,6 +93,48 @@ contract('WeightedStaking', accounts => {
 
   });
 
+  describe('checkpoints', () => {
+    it('returns the correct checkpoint for an user', async() => {
+      let kickoffTS = await staking.kickoffTS.call();
+      let newTime = kickoffTS.add(new BN(DELAY));
+      
+      let result = await staking.stake("100", DELAY, a1, a3, {from: a2});
+      await expect((await staking.balanceOf(a1)).toString()).to.be.equal('100');
+      let checkpoint = await staking.userCheckpoints(a1,0);
+
+      await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
+      await expect(checkpoint.stake.toString()).to.be.equal('100');
+      await expect(checkpoint.lockedUntil.toString()).to.be.equal(newTime.toString());
+
+    });
+    
+    it('returns the correct checkpoint for a delegate', async() => {
+      let kickoffTS = await staking.kickoffTS.call();
+      let newTime = kickoffTS.add(new BN(DELAY));
+      
+      let result = await staking.stake("100", DELAY, a1, a3, {from: a2});
+      await expect((await staking.balanceOf(a1)).toString()).to.be.equal('100');
+      let checkpoint = await staking.delegateStakingCheckpoints(a3, newTime, 0);
+
+      await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
+      await expect(checkpoint.stake.toString()).to.be.equal('100');
+    });
+    
+    it('returns the correct checkpoint for a total stakes', async() => {
+      let kickoffTS = await staking.kickoffTS.call();
+      let newTime = kickoffTS.add(new BN(DELAY));
+      
+      let result = await staking.stake("100", DELAY, a1, a3, {from: a2});
+      await expect((await staking.balanceOf(a1)).toString()).to.be.equal('100');
+      let checkpoint = await staking.totalStakingCheckpoints( newTime, 0);
+
+      await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
+      await expect(checkpoint.stake.toString()).to.be.equal('100');
+    });
+  })
+  
+  
+
 });
 
 async function updateTime(staking) {
