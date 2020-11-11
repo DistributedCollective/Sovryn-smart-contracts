@@ -33,7 +33,6 @@ contract('Staking', accounts => {
   let root, a1, a2, a3, chainId;
   let token, comp;
 
-  // beforeEach(async () => {
   before(async () => {
     [root, a1, a2, a3, ...accounts] = accounts;
     chainId = 1; // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
@@ -239,76 +238,6 @@ contract('Staking', accounts => {
       expect((await comp.getPriorVotes.call(a1, new BN(t3.receipt.blockNumber), time)).toString()).to.be.equal('1111');
       expect((await comp.getPriorVotes.call(a1, new BN(t3.receipt.blockNumber + 1), time)).toString()).to.be.equal('1111');
     });
-  });
-
-  describe('stake', () => {
-    let amount = "1000";
-
-    before(async () => {
-      [root, a1, a2, a3, ...accounts] = accounts;
-      token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-      comp = await Staking.new(token.address);
-
-      // await token.approve(comp.address, TOTAL_SUPPLY);
-
-    });
-
-    it("Amount should be positive", async () => {
-      await expectRevert(comp.stake(0, delay, root, root),
-          "amount of tokens to stake needs to be bigger than 0");
-    });
-
-    it("Amount should be approved", async () => {
-      await expectRevert(comp.stake(100, delay, root, root),
-          "invalid transfer");
-    });
-
-    // it("Staking balance should be less than  2**96", async () => {
-    //   await token.approve(comp.address, TOTAL_SUPPLY);
-    //
-    //   await comp.stake(100, MAX_DURATION, root, root);
-    //
-    //   await expectRevert(comp.stake(new BN(Math.pow(2, 96)).minus(new BN(2)), MAX_DURATION, root, root),
-    //       "msg.sender already has a lock. locking duration cannot be reduced.");
-    // });
-
-  });
-
-  describe('timestampToLockDate', () => {
-    before(async () => {
-      [root, a1, a2, a3, ...accounts] = accounts;
-
-      token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-      comp = await Staking.new(token.address);
-    });
-
-    it("Lock date should be start + 1 period", async () => {
-      let kickoffTS = await comp.kickoffTS.call();
-      let newTime = kickoffTS.add(new BN(TWO_WEEKS));
-      setTime(newTime);
-
-      let result = await comp.timestampToLockDate(newTime);
-      expect(result.sub(kickoffTS).toNumber()).to.be.equal(TWO_WEEKS);
-    });
-
-    it("Lock date should be start + 2 period", async () => {
-      let kickoffTS = await comp.kickoffTS.call();
-      let newTime = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)).add(new BN(DAY)));
-      setTime(newTime);
-
-      let result = await comp.timestampToLockDate(newTime);
-      expect(result.sub(kickoffTS).toNumber()).to.be.equal(TWO_WEEKS * 2);
-    });
-
-    it("Lock date should be start + 3 period", async () => {
-      let kickoffTS = await comp.kickoffTS.call();
-      let newTime = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(3)).add(new BN(DAY)));
-      setTime(newTime);
-
-      let result = await comp.timestampToLockDate(newTime);
-      expect(result.sub(kickoffTS).toNumber()).to.be.equal(TWO_WEEKS * 3);
-    });
-
   });
 
 });
