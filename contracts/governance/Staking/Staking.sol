@@ -25,6 +25,10 @@ contract Staking is WeightedStaking{
      * */
     function stake(uint96 amount, uint duration, address stakeFor, address delegatee) public {
         require(amount > 0, "Staking::stake: amount of tokens to stake needs to be bigger than 0");
+    
+        //stake for the msg.sender if not specified otherwise
+        if(stakeFor == address(0))
+            stakeFor = msg.sender;
         require(_currentBalance(stakeFor) == 0, "Staking:stake: use 'increaseStake' to increase an existing staked position");
         
         //do not stake longer than the max duration
@@ -34,10 +38,6 @@ contract Staking is WeightedStaking{
         //retrieve the SOV tokens
         bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
         require(success);
-        
-        //stake for the msg.sender if not specified otherwise
-        if(stakeFor == address(0))
-            stakeFor = msg.sender;
         
         //lock the tokens and update the balance by updating the user checkpoint
         uint lockedTS = timestampToLockDate(block.timestamp + duration);//no overflow possible
