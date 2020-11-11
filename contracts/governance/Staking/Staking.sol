@@ -41,6 +41,7 @@ contract Staking is WeightedStaking{
         
         //lock the tokens and update the balance by updating the user checkpoint
         uint lockedTS = timestampToLockDate(block.timestamp + duration);//no overflow possible
+        require(lockedTS > block.timestamp, "Staking::timestampToLockDate: staking period too short");
         _writeUserCheckpoint(stakeFor, amount, uint96(lockedTS));
         
         //increase staked token count until the new locking date

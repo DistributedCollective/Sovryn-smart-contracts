@@ -83,7 +83,7 @@ contract WeightedStaking is Checkpoints{
     /****************************** DELEGATED VOTING POWER COMPUTATION ************************/
     
     /**
-     * @notice Determine the prior number of votes for a delegatee as of a block number. 
+     * @notice Determine the prior number of votes for a delegatee as of a block number.
      * @dev Block number must be a finalized block or else this function will revert to prevent misinformation.
      *      Used for Voting, not for fee sharing.
      * @param account The address of the account to check
@@ -223,7 +223,7 @@ contract WeightedStaking is Checkpoints{
      * @param startDate we compute the weight for the tokens staked until 'date' on 'startDate'
      * */
     function _computeWeightByDate(uint date, uint startDate) internal view returns(uint96 weight){
-        require(date > startDate, "date needs to be bigger than startDate");
+        require(date >= startDate, "date needs to be bigger than startDate");
         uint remainingTime = (date - startDate);
         require(maxDuration > remainingTime, "remaining time can't be bigger than max duration");
         // x = max days - remaining days
@@ -233,7 +233,7 @@ contract WeightedStaking is Checkpoints{
     
     /**
      * @notice unstaking is posisble every 2 weeks only. this means, to calculate the key value for the staking
-     * checkpoints, we need to map the intended timestamp to the closest available date 
+     * checkpoints, we need to map the intended timestamp to the closest available date
      * @param timestamp the unlocking timestamp
      * @return the actual unlocking date (might be up to 2 weeks shorter than intended)
      * */
@@ -243,7 +243,6 @@ contract WeightedStaking is Checkpoints{
         //e.g. passed timestamps lies 7 weeks after kickoff -> only stake for 6 weeks
         uint periodFromKickoff = (timestamp - kickoffTS) / twoWeeks;
         lockDate = periodFromKickoff * twoWeeks + kickoffTS;
-        require(lockDate > block.timestamp, "Staking::timestampToLockDate: staking period too short");
     }
     
 }
