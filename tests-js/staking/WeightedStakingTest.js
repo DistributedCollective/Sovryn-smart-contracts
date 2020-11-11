@@ -71,6 +71,25 @@ contract('WeightedStaking', accounts => {
       await expect((await staking.numDelegateStakingCheckpoints.call(a3, newTime)).toString()).to.be.equal('2');
       
     });
+    
+    it('returns the number of total staking checkpoints for a date', async () => {
+      
+      
+      let kickoffTS = await staking.kickoffTS.call();
+      let newTime = kickoffTS.add(new BN(DELAY));
+
+      await expect((await staking.numTotalStakingCheckpoints.call( newTime)).toString()).to.be.equal('0');
+
+      await staking.stake("100", DELAY, a1, a3, {from: a2});
+      await expect((await staking.numTotalStakingCheckpoints.call( newTime)).toString()).to.be.equal('1');
+     
+      await expect(await staking.increaseStake("50", a1, {from: a2}));
+      await expect((await staking.numTotalStakingCheckpoints.call( newTime)).toString()).to.be.equal('2');
+      
+      await staking.stake("100", DELAY, a2, a3, {from: a2});
+      await expect((await staking.numTotalStakingCheckpoints.call( newTime)).toString()).to.be.equal('3');
+      
+    });
 
   });
 
