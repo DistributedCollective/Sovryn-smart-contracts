@@ -14,7 +14,8 @@ const {
 
 const EIP712 = require('../Utils/EIP712');
 
-const Staking = artifacts.require('Staking');
+const StakingLogic = artifacts.require('Staking');
+const StakingProxy = artifacts.require('StakingProxy');
 const TestToken = artifacts.require('TestToken');
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
@@ -40,7 +41,11 @@ contract('Staking', accounts => {
     chainId = 1; // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
     await web3.eth.net.getId();
     token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-    comp = await Staking.new(token.address);
+  
+    let stakingLogic = await StakingLogic.new(token.address);
+    comp = await StakingProxy.new(token.address);
+    await comp.setImplementation(stakingLogic.address);
+    comp = await StakingLogic.at(comp.address);
   
     MAX_VOTING_WEIGHT = await comp.MAX_VOTING_WEIGHT.call();
   });

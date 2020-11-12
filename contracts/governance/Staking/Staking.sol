@@ -5,16 +5,6 @@ import "./WeightedStaking.sol";
 
 contract Staking is WeightedStaking{
     
-
-    /**
-     * @notice Construct a new staking contract
-     * @param SOV The address of the SOV token address
-     */
-    constructor(address SOV) public {
-        SOVToken = IERC20(SOV);
-        kickoffTS = block.timestamp;
-    }
-    
     /**
      * @notice stakes the given amount for the given duration of time.
      * @dev only if staked balance is 0.

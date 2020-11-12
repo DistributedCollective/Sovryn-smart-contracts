@@ -12,7 +12,8 @@ const {
   setTime
 } = require('../Utils/Ethereum');
 
-const Staking = artifacts.require('Staking');
+const StakingLogic = artifacts.require('Staking');
+const StakingProxy = artifacts.require('StakingProxy');
 const TestToken = artifacts.require('TestToken');
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
@@ -35,7 +36,12 @@ contract('WeightedStaking', accounts => {
 
   beforeEach(async () => {
     token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-    staking = await Staking.new(token.address);
+    
+    let stakingLogic = await StakingLogic.new(token.address);
+    staking = await StakingProxy.new(token.address);
+    await staking.setImplementation(stakingLogic.address);
+    staking = await StakingLogic.at(staking.address);
+    
     await token.transfer(a2, "1000");
     await token.approve(staking.address, "1000", {from: a2});
   });
