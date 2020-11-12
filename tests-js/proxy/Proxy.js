@@ -12,7 +12,7 @@ contract('Proxy', accounts => {
     let accountOwner;
 
     let proxy;
-    let implementation
+    let implementation, implementationNew;
 
     before(async () => {
         account1 = accounts[0];
@@ -92,12 +92,12 @@ contract('Proxy', accounts => {
     });
 
     describe("invoke an implementation", async () => {
+        let value = "12345";
 
         it("Should be able invoke method of the implementation", async () => {
             await proxy.setImplementation(implementation.address, {from: accountOwner});
             proxy = await Implementation.at(proxy.address);
             
-            let value = "123";
             let tx = await proxy.setValue(value, {from: accountOwner});
             expectEvent(
                 tx,
@@ -110,7 +110,21 @@ contract('Proxy', accounts => {
             let savedValue = await proxy.getValue.call();
             expect(savedValue.toString()).to.be.equal(value);
         });
-
+    
+        it("Storage data should be the same after an upgrade", async () => {
+            await proxy.setImplementation(implementation.address, {from: accountOwner});
+            proxy = await Implementation.at(proxy.address);
+        
+            await proxy.setValue(value, {from: accountOwner});
+    
+            let implementationNew = await Implementation.new({from: accountOwner});
+            proxy = await Proxy.at(proxy.address);
+            await proxy.setImplementation(implementationNew.address, {from: accountOwner});
+            proxy = await Implementation.at(proxy.address);
+    
+            let savedValue = await proxy.getValue.call();
+            expect(savedValue.toString()).to.be.equal(value);
+        });
 
         it("Should not be able to invoke not set implementation", async () => {
             await Implementation.new({from: accountOwner});

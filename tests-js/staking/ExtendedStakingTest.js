@@ -15,6 +15,7 @@ const {
 const StakingLogic = artifacts.require('Staking');
 const StakingProxy = artifacts.require('StakingProxy');
 const TestToken = artifacts.require('TestToken');
+const StakingMockup = artifacts.require('StakingMockup');
 
 const TOTAL_SUPPLY = "100000000000000000000000000000";
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
@@ -490,7 +491,7 @@ contract('Staking', accounts => {
             [root, account1, account2, account3, ...accounts] = accounts;
 
             token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-            
+
             let stakingLogic = await StakingLogic.new(token.address);
             staking = await StakingProxy.new(token.address);
             await staking.setImplementation(stakingLogic.address);
@@ -525,7 +526,43 @@ contract('Staking', accounts => {
         });
 
     });
+    
+    describe("upgrade:", async () => {
+        
+        it("Should be able to read correct data after an upgrade", async () => {
+            let amount = 100;
+            let tx = await staking.stake(amount, MAX_DURATION, root, root);
+    
+            let lockedTS = await getTimeFromKickoff(MAX_DURATION);
+            //before upgrade
+            let balance = await staking.balanceOf.call(root);
+            expect(balance.toNumber()).to.be.equal(amount);
+            let checkpoint = await staking.userCheckpoints.call(root, 0);
+            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.stake.toNumber()).to.be.equal(amount);
+            expect(checkpoint.lockedUntil.toString()).to.be.equal(lockedTS.toString());
 
+            //upgrade
+            staking = await StakingProxy.at(staking.address);
+            let stakingMockup = await StakingMockup.new(token.address);
+            await staking.setImplementation(stakingMockup.address);
+            staking = await StakingMockup.at(staking.address);
+    
+            //after upgrade: storage data remained the same
+            balance = await staking.balanceOf.call(root);
+            expect(balance.toNumber()).to.be.equal(amount);
+            checkpoint = await staking.userCheckpoints.call(root, 0);
+            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.stake.toNumber()).to.be.equal(amount);
+            expect(checkpoint.lockedUntil.toString()).to.be.equal(lockedTS.toString());
+            
+            //after upgrade: new method added
+            balance = await staking.balanceOf_MultipliedByTwo.call(root);
+            expect(balance.toNumber()).to.be.equal(amount * 2);
+        });
+        
+    });
+    
     async function getTimeFromKickoff(delay) {
         let kickoffTS = await staking.kickoffTS.call();
         return kickoffTS.add(new BN(delay));
