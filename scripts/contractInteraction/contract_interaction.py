@@ -13,9 +13,9 @@ def main():
     loadConfig()
     #call the function you want here
     #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOCSettings'], contracts['iDOC'])
-    testTradeOpeningAndClosing(contracts['protocol'], contracts['iDOC'], contracts['DoC'], contracts['WRBTC'], 1e18, 5e18, False, 0)
+    #testTradeOpeningAndClosing(contracts['protocol'], contracts['iDOC'], contracts['DoC'], contracts['WRBTC'], 1e18, 5e18, False, 0)
     #setupMarginLoanParams(contracts['DoC'], contracts['iRBTCSettings'], contracts['iRBTC'])
-    testTradeOpeningAndClosing(contracts['protocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e14, 5e18, True, 1e14)
+    #testTradeOpeningAndClosing(contracts['protocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e14, 5e18, True, 1e14)
     
     #swapTokens(0.02e18,200e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['DoC'])
     #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
@@ -37,6 +37,21 @@ def main():
     #setupLoanTokenRates(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'])
     
     #getBalance('0xC5452Dbb2E3956C1161cB9C2d6DB53C2b60E7805', acct)
+    #getAllowance('0x7F433CC76298bB5099c15C1C7C8f2e89A8370111',acct ,'0xbFDB5fc90b960bcc2e7be2D8E347F8A7E5146077')
+    #print('iRBTC')
+    #readLoanTokenState(contracts['iRBTC'])
+    #print('iDOC')
+    #readLoanTokenState(contracts['iDOC'])
+    #for i in range(8):
+    #    setProtocolTokenAddressWithMultisig()
+    #extendDuration()
+    #stake('0x55310E0bC1A85bB24Ec7798a673a69Ba254B6Bbf')
+    #readPriorVotes(acct)
+    #makeGovernanceProposal()
+    #confirmMultisigTransaction(0)
+    #transferTokens(contracts['SOV'], '0x2bD2201bfe156a71EB0d02837172FFc237218505', 500000e18)
+    changeMultisigOwner('0x33EC0Bc1Bc29fdC868e0918983227637Da654c4C')
+
     
 def loadConfig():
     global contracts, acct
@@ -46,8 +61,9 @@ def loadConfig():
     elif this_network == "testnet":
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     contracts = json.load(configFile)
-    #acct = accounts.load("rskdeployer")
-    acct = accounts.load("jamie")
+    acct = accounts.load("rskdeployer")
+    #acct = accounts.load("jamie")
+    #acct = accounts.load("danazix")
     
 
 
@@ -371,3 +387,71 @@ def getExpectedReturn(amount, swapNetworkAddress, sourceTokenAddress, destTokenA
     
     #priceFeed = Contract.from_abi("PriceFeeds", address=priceAddress, abi=PriceFeeds.abi, owner=acct)
     #priceFeed.queryReturn(sourceTokenAddress, destTokenAddress, amount)
+    
+def getAllowance(contractAddress, fromAddress, toAddress):
+    contract = Contract.from_abi("Token", address=contractAddress, abi=TestToken.abi, owner=acct)
+    print(contract.allowance(fromAddress,toAddress))
+    
+def setProtocolTokenAddressWithMultisig():
+    sovryn = Contract.from_abi("sovryn", address=contracts['protocol'], abi=interface.ISovryn.abi, owner=acct)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+
+    dest = sovryn.address
+    val = 0
+    data = sovryn.setProtocolTokenAddress.encode_input(sovryn.address)
+    
+    tx = multisig.submitTransaction(dest,val,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
+    
+def confirmMultisigTransaction(txId):
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.confirmTransaction(txId)
+
+def changeMultisigOwner(newOwner):
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    
+    
+def stake(stakeFor):
+    governor = Contract.from_abi("Governor", address=contracts['governor'], abi=GovernorAlpha.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=contracts['staking'], abi=Staking.abi, owner=acct)
+    SOV = Contract.from_abi("SOV", address=contracts['SOV'], abi=TestToken.abi, owner=acct)
+    quorom = governor.quorumVotes()
+    #SOV.approve(staking.address, quorom)
+    staking.stake(quorom, 52*14*24*60*60, stakeFor, acct)
+
+    
+def increaseStake(amount):
+    staking = Contract.from_abi("Staking", address=contracts['staking'], abi=Staking.abi, owner=acct)
+    SOV = Contract.from_abi("SOV", address=contracts['SOV'], abi=TestToken.abi, owner=acct)
+    SOV.approve(staking.address, amount)
+    staking.increaseStake(amount, acct)
+    
+def extendDuration():
+    staking = Contract.from_abi("Staking", address=contracts['staking'], abi=Staking.abi, owner=acct)
+    staking.extendStakingDuration(1605189273+14*24*60*60*52)
+    
+def makeGovernanceProposal():
+    governor = Contract.from_abi("Governor", address=contracts['governor'], abi=GovernorAlpha.abi, owner=acct)
+    SOV = Contract.from_abi("SOV", address=contracts['SOV'], abi=TestToken.abi, owner=acct)
+    
+    targets = [contracts['SOV']];
+    values = ["0"];
+    signatures = ["getBalanceOf(address)"];
+    dataString = SOV.balanceOf.encode_input(acct)
+    callDatas = [dataString[10:]];
+    print(callDatas)
+    print(len(callDatas[0]))
+    
+    governor.propose(targets, values, signatures, callDatas, "do nothing")
+    
+def readPriorVotes(staker):
+    staking = Contract.from_abi("Staking", address=contracts['staking'], abi=Staking.abi, owner=acct)
+    blocknumber = 1345568
+    time = 1605190732
+    print(staking.getPriorVotes(staker, blocknumber, time))
+    
+def transferTokens(tokenAddress, receiver, amount):
+    token = Contract.from_abi("token", address=tokenAddress, abi=TestToken.abi, owner=acct)
+    token.transfer(receiver, amount)
+
