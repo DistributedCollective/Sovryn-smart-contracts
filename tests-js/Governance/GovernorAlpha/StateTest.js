@@ -34,13 +34,17 @@ const QUORUM_VOTES = etherMantissa(4000000);
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
 const DELAY = 86400 * 14;
+const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
 contract('GovernorAlpha#state/1', accounts => {
   let token, comp, gov, root, acct, delay, timelock;
-
+  
   before(async () => {
-    await setTime(100);
     [root, acct, ...accounts] = accounts;
+  });
+  
+  beforeEach(async () => {
+    await setTime(100);
     token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
     comp = await Staking.new(token.address);
     delay = etherUnsigned(2 * 24 * 60 * 60).multipliedBy(2)
@@ -50,17 +54,17 @@ contract('GovernorAlpha#state/1', accounts => {
     gov = await GovernorAlpha.new(timelock.address, comp.address, root);
     await timelock.harnessSetAdmin(gov.address);
     await token.approve(comp.address, QUORUM_VOTES);
-    await comp.stake(QUORUM_VOTES, delay, root, root);
+    await comp.stake(QUORUM_VOTES, MAX_DURATION, root, root);
 
     await token.transfer(acct, QUORUM_VOTES);
     await token.approve(comp.address, QUORUM_VOTES, {from: acct});
-    await comp.stake(QUORUM_VOTES, delay, acct, acct, {from: acct});
+    await comp.stake(QUORUM_VOTES, MAX_DURATION, acct, acct, {from: acct});
 
     await comp.delegate(acct, { from: root });
   });
 
   let trivialProposal, targets, values, signatures, callDatas;
-  before(async () => {
+  beforeEach(async () => {
     targets = [root];
     values = ["0"];
     signatures = ["getBalanceOf(address)"]

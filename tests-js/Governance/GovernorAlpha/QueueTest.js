@@ -48,7 +48,6 @@ contract('GovernorAlpha#queue/1', accounts => {
       const signatures = ["getBalanceOf(address)", "getBalanceOf(address)"];
       const calldatas = [encodeParameters(['address'], [root]), encodeParameters(['address'], [root])];
 
-      await updateTime(comp);
       await gov.propose(targets, values, signatures, calldatas, "do nothing", { from: a1 });
       let proposalId1 = await gov.proposalCount.call();
       await mineBlock();
@@ -76,11 +75,9 @@ contract('GovernorAlpha#queue/1', accounts => {
       const signatures = ["getBalanceOf(address)"];
       const calldatas = [encodeParameters(['address'], [root])];
 
-      await updateTime(comp);
       await gov.propose(targets, values, signatures, calldatas, "do nothing", { from: a1 });
       let proposalId1 = await gov.proposalCount.call();
 
-      await updateTime(comp);
       await gov.propose(targets, values, signatures, calldatas, "do nothing", { from: a2 });
       let proposalId2 = await gov.proposalCount.call();
       await mineBlock();
@@ -104,10 +101,4 @@ async function advanceBlocks(number) {
   for (let i = 0; i < number; i++) {
     await mineBlock();
   }
-}
-
-async function updateTime(comp) {
-  let kickoffTS = await comp.kickoffTS.call();
-  let newTime = kickoffTS.add(new BN(DELAY).mul(new BN(2)));
-  await setTime(newTime);
 }

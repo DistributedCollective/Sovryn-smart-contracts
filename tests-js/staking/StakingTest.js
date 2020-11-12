@@ -18,13 +18,11 @@ const Staking = artifacts.require('Staking');
 const TestToken = artifacts.require('TestToken');
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
-const delay = etherUnsigned(2 * 24 * 60 * 60).multipliedBy(2);
+const DELAY = 86400 * 14;
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1095));
 
 const DAY = 86400;
 const TWO_WEEKS = 1209600;
-
-const DELAY = 86400 * 14;
 
 contract('Staking', accounts => {
   const name = 'Test token';
@@ -106,10 +104,10 @@ contract('Staking', accounts => {
       await expect((await comp.numUserCheckpoints.call(a1)).toString()).to.be.equal('0');
 
       await token.approve(comp.address, "1000", { from: guy });
-      await comp.stake("100", delay, a1, a1, { from: guy });
+      await comp.stake("100", DELAY, a1, a1, { from: guy });
       await expect((await comp.numUserCheckpoints.call(a1)).toString()).to.be.equal('1');
 
-      await comp.stake("50", delay, a1, a1, { from: guy });
+      await comp.stake("50", DELAY, a1, a1, { from: guy });
       await expect((await comp.numUserCheckpoints.call(a1)).toString()).to.be.equal('2');
     });
 
@@ -121,7 +119,7 @@ contract('Staking', accounts => {
       await token.approve(comp.address, "1000", { from: guy });
 
       await minerStop();
-      let t1 = comp.stake("80", delay, a3, a3, { from: guy });
+      let t1 = comp.stake("80", DELAY, a3, a3, { from: guy });
 
 
       let t2 = comp.delegate(a3, { from: guy });
@@ -149,7 +147,7 @@ contract('Staking', accounts => {
       await expect(checkpoint2.votes.toString()).to.be.equal("0");
 
       await token.approve(comp.address, "20", { from: a2 });
-      let t5 = await comp.stake("20", delay, a3, a3, { from: a2 });
+      let t5 = await comp.stake("20", DELAY, a3, a3, { from: a2 });
 
       await expect((await comp.numUserCheckpoints.call(a3)).toString()).to.be.equal('2');
 
@@ -171,7 +169,7 @@ contract('Staking', accounts => {
       comp = await Staking.new(token.address);
 
       await token.approve(comp.address, TOTAL_SUPPLY);
-      await comp.stake(amount, delay, root, root);
+      await comp.stake(amount, DELAY, root, root);
     });
 
     it('reverts if block number >= current block', async () => {
@@ -186,7 +184,7 @@ contract('Staking', accounts => {
     });
 
     it('returns the latest block if >= last checkpoint block', async () => {
-      let t1 = await comp.stake("20", delay, a1, a1);
+      let t1 = await comp.stake("20", DELAY, a1, a1);
       await mineBlock();
       await mineBlock();
 
@@ -219,12 +217,12 @@ contract('Staking', accounts => {
       await mineBlock();
       await token.transfer(a2, 10);
       await token.approve(comp.address, "10", { from: a2 });
-      const t2 = await comp.stake("10", delay, a1, a1, { from: a2 });
+      const t2 = await comp.stake("10", DELAY, a1, a1, { from: a2 });
       await mineBlock();
       await mineBlock();
       await token.transfer(a3, 101);
       await token.approve(comp.address, "101", { from: a3 });
-      const t3 = await comp.stake("101", delay, a1, a1, { from: a3 });
+      const t3 = await comp.stake("101", DELAY, a1, a1, { from: a3 });
       await mineBlock();
       await mineBlock();
 

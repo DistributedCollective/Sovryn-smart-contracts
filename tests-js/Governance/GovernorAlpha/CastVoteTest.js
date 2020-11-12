@@ -28,10 +28,6 @@ async function enfranchise(token, comp, actor, amount) {
   await comp.stake(amount, DELAY, actor, actor, {from: actor});
 
   await comp.delegate(actor, { from: actor });
-
-  let kickoffTS = await comp.kickoffTS.call();
-  let newTime = kickoffTS.add(new BN(DELAY).mul(new BN(2)));
-  await setTime(newTime);
 }
 
 contract("governorAlpha#castVote/2", accounts => {

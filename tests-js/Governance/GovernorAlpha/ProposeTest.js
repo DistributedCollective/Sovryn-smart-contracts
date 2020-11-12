@@ -38,10 +38,9 @@ contract('GovernorAlpha#propose/5', accounts => {
     callDatas = [encodeParameters(['address'], [acct])];
 
     await token.approve(comp.address, QUORUM_VOTES);
-    await comp.stake(QUORUM_VOTES, 0, acct, acct);
+    await comp.stake(QUORUM_VOTES, DELAY, acct, acct);
     await comp.delegate(root, {from: acct});
 
-    await updateTime(comp);
     await gov.propose(targets, values, signatures, callDatas, "do nothing");
 
     proposalBlock = +(await web3.eth.getBlockNumber());
@@ -117,10 +116,9 @@ contract('GovernorAlpha#propose/5', accounts => {
         it("reverts with pending", async () => {
           await token.transfer(accounts[4], QUORUM_VOTES);
           await token.approve(comp.address, QUORUM_VOTES, { from: accounts[4] });
-          await comp.stake(QUORUM_VOTES, 0, accounts[4], accounts[4], { from: accounts[4] });
+          await comp.stake(QUORUM_VOTES, DELAY, accounts[4], accounts[4], { from: accounts[4] });
           await comp.delegate(accounts[4], { from: accounts[4] });
 
-          await updateTime(comp);
           await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: accounts[4] });
           await expectRevert(
               gov.propose.call(targets, values, signatures, callDatas, "do nothing", { from: accounts[4] }),
@@ -141,10 +139,9 @@ contract('GovernorAlpha#propose/5', accounts => {
     it("This function returns the id of the newly created proposal. # proposalId(n) = succ(proposalId(n-1))", async () => {
       await token.transfer(accounts[2], QUORUM_VOTES);
       await token.approve(comp.address, QUORUM_VOTES, { from: accounts[2] });
-      await comp.stake(QUORUM_VOTES, 0, accounts[2], accounts[2], { from: accounts[2] });
+      await comp.stake(QUORUM_VOTES, DELAY, accounts[2], accounts[2], { from: accounts[2] });
       await comp.delegate(accounts[2], { from: accounts[2] });
 
-      await updateTime(comp);
       await mineBlock();
       let nextProposalId = await gov.propose.call(targets, values, signatures, callDatas, "yoot", { from: accounts[2] });
       // let nextProposalId = await call(gov, 'propose', [targets, values, signatures, callDatas, "second proposal"], { from: accounts[2] });
@@ -155,11 +152,11 @@ contract('GovernorAlpha#propose/5', accounts => {
     it("emits log with id and description", async () => {
       await token.transfer(accounts[3], QUORUM_VOTES);
       await token.approve(comp.address, QUORUM_VOTES, { from: accounts[3] });
-      await comp.stake(QUORUM_VOTES, 0, accounts[3], accounts[3], { from: accounts[3] });
+      await comp.stake(QUORUM_VOTES, DELAY, accounts[3], accounts[3], { from: accounts[3] });
       await comp.delegate(accounts[3], { from: accounts[3] });
       await mineBlock();
 
-      await updateTime(comp);
+      // await updateTime(comp);
       let result = await gov.propose(targets, values, signatures, callDatas, "second proposal", { from: accounts[3] });
       let proposalId = await gov.latestProposalIds.call(accounts[3]);
       let blockNumber = await web3.eth.getBlockNumber() + 1;
@@ -177,9 +174,3 @@ contract('GovernorAlpha#propose/5', accounts => {
     });
   });
 });
-
-async function updateTime(comp) {
-  let kickoffTS = await comp.kickoffTS.call();
-  let newTime = kickoffTS.add(new BN(DELAY).mul(new BN(2)));
-  await setTime(newTime);
-}
