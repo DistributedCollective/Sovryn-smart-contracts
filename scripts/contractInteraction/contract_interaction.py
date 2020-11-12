@@ -50,7 +50,7 @@ def main():
     #makeGovernanceProposal()
     #confirmMultisigTransaction(0)
     #transferTokens(contracts['SOV'], '0x2bD2201bfe156a71EB0d02837172FFc237218505', 500000e18)
-    changeMultisigOwner('0x33EC0Bc1Bc29fdC868e0918983227637Da654c4C')
+    changeMultisigOwner('0x55310E0bC1A85bB24Ec7798a673a69Ba254B6Bbf', '0x33EC0Bc1Bc29fdC868e0918983227637Da654c4C')
 
     
 def loadConfig():
@@ -408,8 +408,12 @@ def confirmMultisigTransaction(txId):
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.confirmTransaction(txId)
 
-def changeMultisigOwner(newOwner):
+def changeMultisigOwner(oldOwner, newOwner):
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    data = multisig.replaceOwner.encode_input(oldOwner, newOwner)
+    tx = multisig.submitTransaction(multisig.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print('txId', txId)
     
     
 def stake(stakeFor):
