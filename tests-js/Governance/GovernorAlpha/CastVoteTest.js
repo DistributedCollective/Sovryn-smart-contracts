@@ -158,12 +158,17 @@ contract("governorAlpha#castVote/2", accounts => {
 
       let trxReceipt = await gov.getReceipt.call(proposalId, actor);
       let trxReceipt2 = await gov.getReceipt.call(proposalId, actor2);
+      
+      let proposal = await gov.proposals.call(proposalId);
+      let expectedVotes = await comp.getPriorVotes.call(actor, proposal.startBlock.toString(), proposal.startTime.toString());
+      let expectedVotes2 = await comp.getPriorVotes.call(actor, proposal.startBlock.toString(), proposal.startTime.toString());
 
-      expect(new BigNumber(trxReceipt.votes.toString()).toString()).to.be.equal(QUORUM_VOTES.toString());
+      
+      expect(new BigNumber(trxReceipt.votes.toString()).toString()).to.be.equal(new BigNumber(expectedVotes.toString()).toString());
       expect(trxReceipt.hasVoted).to.be.equal(true);
       expect(trxReceipt.support).to.be.equal(true);
-
-      expect(new BigNumber(trxReceipt2.votes.toString()).toString()).to.be.equal(QUORUM_VOTES.toString());
+    
+      expect(new BigNumber(trxReceipt.votes.toString()).toString()).to.be.equal(new BigNumber(expectedVotes2.toString()).toString());
       expect(trxReceipt2.hasVoted).to.be.equal(true);
       expect(trxReceipt2.support).to.be.equal(false);
 
