@@ -89,12 +89,13 @@ contract("governorAlpha#castVote/2", accounts => {
         await gov.castVote(proposalId, true, { from: actor });
 
         let afterFors = (await gov.proposals.call(proposalId)).forVotes;
-        expect(new BigNumber(afterFors).toString()).to.be.equal(new BigNumber(beforeFors).plus(QUORUM_VOTES).toString());
+        let proposal = await gov.proposals.call(proposalId);
+        let expectedVotes = await comp.getPriorVotes.call(actor, proposal.startBlock.toString(), proposal.startTime.toString());
+        expect(new BigNumber(afterFors).toString()).to.be.equal(new BigNumber(expectedVotes.toString()).toString())
       })
 
       it("or AgainstVotes corresponding to the caller's support flag.", async () => {
         actor = accounts[3];
-        await enfranchise(token, comp, actor, QUORUM_VOTES);
 
         await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: actor });
         proposalId = await gov.latestProposalIds.call(actor);
@@ -104,7 +105,9 @@ contract("governorAlpha#castVote/2", accounts => {
         await gov.castVote(proposalId, false, { from: actor });
 
         let afterAgainsts = (await gov.proposals.call(proposalId)).againstVotes;
-        expect(new BigNumber(afterAgainsts).toString()).to.be.equal(new BigNumber(beforeAgainsts).plus(QUORUM_VOTES).toString());
+        let proposal = await gov.proposals.call(proposalId);
+        let expectedVotes = await comp.getPriorVotes.call(actor, proposal.startBlock.toString(), proposal.startTime.toString());
+        expect(new BigNumber(afterAgainsts).toString()).to.be.equal(new BigNumber(expectedVotes.toString()).toString());
       });
     });
 
@@ -137,9 +140,11 @@ contract("governorAlpha#castVote/2", accounts => {
         await mineBlock();
         const tx = await gov.castVoteBySig(proposalId, true, v, r, s, { from: a1 });
         expect(tx.gasUsed < 80000);
-
+  
+        let proposal = await gov.proposals.call(proposalId);
+        let expectedVotes = await comp.getPriorVotes.call(a1, proposal.startBlock.toString(), proposal.startTime.toString());
         let afterFors = (await gov.proposals.call(proposalId)).forVotes;
-        expect(new BigNumber(afterFors).toString()).to.be.equal(new BigNumber(beforeFors).plus(QUORUM_VOTES).toString());
+        expect(new BigNumber(afterFors).toString()).to.be.equal(new BigNumber(expectedVotes.toString()).toString());
       });
     });
 
@@ -147,7 +152,7 @@ contract("governorAlpha#castVote/2", accounts => {
       let actor = accounts[2];
       let actor2 = accounts[3];
       await enfranchise(token, comp, actor, QUORUM_VOTES);
-      await enfranchise(token, comp, actor2, QUORUM_VOTES);
+      await enfranchise(token, comp, actor2, QUORUM_VOTES.multipliedBy(2));
       await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: actor });
       proposalId = await gov.latestProposalIds.call(actor);
 
@@ -161,14 +166,13 @@ contract("governorAlpha#castVote/2", accounts => {
       
       let proposal = await gov.proposals.call(proposalId);
       let expectedVotes = await comp.getPriorVotes.call(actor, proposal.startBlock.toString(), proposal.startTime.toString());
-      let expectedVotes2 = await comp.getPriorVotes.call(actor, proposal.startBlock.toString(), proposal.startTime.toString());
-
+      let expectedVotes2 = await comp.getPriorVotes.call(actor2, proposal.startBlock.toString(), proposal.startTime.toString());
       
       expect(new BigNumber(trxReceipt.votes.toString()).toString()).to.be.equal(new BigNumber(expectedVotes.toString()).toString());
       expect(trxReceipt.hasVoted).to.be.equal(true);
       expect(trxReceipt.support).to.be.equal(true);
     
-      expect(new BigNumber(trxReceipt.votes.toString()).toString()).to.be.equal(new BigNumber(expectedVotes2.toString()).toString());
+      expect(new BigNumber(trxReceipt2.votes.toString()).toString()).to.be.equal(new BigNumber(expectedVotes2.toString()).toString());
       expect(trxReceipt2.hasVoted).to.be.equal(true);
       expect(trxReceipt2.support).to.be.equal(false);
 
