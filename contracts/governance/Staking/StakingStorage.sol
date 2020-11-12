@@ -36,25 +36,43 @@ contract StakingStorage is Ownable{
 
     /// @notice The EIP-712 typehash for the delegation struct used by the contract
     bytes32 public constant DELEGATION_TYPEHASH = keccak256("Delegation(address delegatee,uint256 nonce,uint256 expiry)");
+    
+    /*************************** Checkpoints *******************************/
+    
+    /// @notice A checkpoint for marking the stakes from a given block
+    struct Checkpoint {
+        uint32 fromBlock;
+        uint96 stake;
+    }
+    
+    /// @notice A checkpoint for marking the stakes and lock date of an user from a given block
+    struct UserCheckpoint {
+        uint32 fromBlock;
+        uint96 stake;
+        uint96 lockedUntil;
+    }
+    
+    /// @notice A record of tokens to be unstaked at a given time in total
+    /// for total voting power computation. voting weights get adjusted bi-weekly
+    mapping (uint => mapping (uint32 => Checkpoint)) public totalStakingCheckpoints;
+    
+    ///@notice The number of total staking checkpoints for each date
+    mapping (uint => uint32) public numTotalStakingCheckpoints;
+    
+    /// @notice A record of tokens to be unstaked at a given time which were delegated to a certain address
+    /// for delegatee voting power computation. voting weights get adjusted bi-weekly
+    mapping(address => mapping (uint => mapping (uint32 => Checkpoint))) public delegateStakingCheckpoints;
+    
+    ///@notice The number of total staking checkpoints for each date
+    mapping (address => mapping (uint => uint32)) public numDelegateStakingCheckpoints;
+    
+    /// @notice A record of stake checkpoints for each account, by index
+    mapping (address => mapping (uint32 => UserCheckpoint)) public userCheckpoints;
+    
+    /// @notice The number of checkpoints for each account
+    mapping (address => uint32) public numUserCheckpoints;
 
     /// @notice A record of states for signing / validating signatures
     mapping (address => uint) public nonces;
-
-    /// @notice An event thats emitted when an account changes its delegate
-    event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);
-
-    /// @notice An event thats emitted when a delegate account's stake balance changes
-    event DelegateStakeChanged(address indexed delegate, uint lockedUntil, uint previousBalance, uint newBalance);
-
-    /// @notice An event thats emitted when tokens get staked
-    event TokensStaked(address indexed staker, uint amount, uint lockedUntil, uint totalStaked);
     
-    /// @notice An event thats emitted when tokens get withdrawn
-    event TokensWithdrawn(address indexed staker, uint amount);
-    
-    /// @notice An event thats emitted when the owner unlocks all tokens
-    event TokensUnlocked(uint amount);
-    
-    /// @notice An event thats emitted when a staking period gets extended
-    event ExtendedStakingDuration(address indexed staker, uint previousDate, uint newDate);
 }

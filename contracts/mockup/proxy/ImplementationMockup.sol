@@ -8,5 +8,9 @@ contract ImplementationMockup is StorageMockup {
         value = _value;
         emit ValueChanged(_value);
     }
+    
+    function getValue() public view returns (uint) {
+        return value;
+    }
 
 }

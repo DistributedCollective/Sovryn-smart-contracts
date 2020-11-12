@@ -8,41 +8,43 @@ const Implementation = artifacts.require("ImplementationMockup");
 
 contract('Proxy', accounts => {
 
-    let accountUnauthorized;
+    let account1;
     let accountOwner;
 
     let proxy;
+    let implementation
 
     before(async () => {
-        accountUnauthorized = accounts[0];
+        account1 = accounts[0];
         accountOwner = accounts[9];
     });
 
     beforeEach(async () => {
         proxy = await Proxy.new({from: accountOwner});
+        implementation = await Implementation.new({from: accountOwner});
     });
 
     describe("setProxyOwner", async () => {
 
         it("Should be able to transfer ownership", async () => {
     
-            let tx = await proxy.setProxyOwner(accountUnauthorized, {from: accountOwner});
+            let tx = await proxy.setProxyOwner(account1, {from: accountOwner});
             expectEvent(
                 tx,
                 'OwnershipTransferred',
                 {
                     _oldOwner: accountOwner,
-                    _newOwner: accountUnauthorized
+                    _newOwner: account1
                 }
             );
 
             let owner = await proxy.getProxyOwner.call();
-            expect(owner).to.be.equal(accountUnauthorized);
+            expect(owner).to.be.equal(account1);
         });
 
         it("Only owner should be able to transfer ownership", async () => {
             await expectRevert(
-                proxy.setProxyOwner(accountUnauthorized, {from: accountUnauthorized}),
+                proxy.setProxyOwner(account1, {from: account1}),
                 "Proxy:: access denied"
             );
         });
@@ -59,24 +61,23 @@ contract('Proxy', accounts => {
     describe("setImplementation", async () => {
 
         it("Should be able to set implementation", async () => {
-    
-            let tx = await proxy.setImplementation(accountUnauthorized, {from: accountOwner});
+            let tx = await proxy.setImplementation(implementation.address, {from: accountOwner});
             expectEvent(
                 tx,
                 'ImplementationChanged',
                 {
                     _oldImplementation: ZERO_ADDRESS,
-                    _newImplementation: accountUnauthorized
+                    _newImplementation: implementation.address
                 }
             );
 
-            let implementation = await proxy.getImplementation.call();
-            expect(implementation).to.be.equal(accountUnauthorized);
+            let returnedImplementation = await proxy.getImplementation.call();
+            expect(returnedImplementation).to.be.equal(implementation.address);
         });
 
         it("Only owner should be able to set implementation", async () => {
             await expectRevert(
-                proxy.setImplementation(accountUnauthorized, {from: accountUnauthorized}),
+                proxy.setImplementation(implementation.address, {from: account1}),
                 "Proxy:: access denied"
             );
         });
@@ -93,8 +94,7 @@ contract('Proxy', accounts => {
     describe("invoke an implementation", async () => {
 
         it("Should be able invoke method of the implementation", async () => {
-            let mockImplementation = await Implementation.new({from: accountOwner});
-            await proxy.setImplementation(mockImplementation.address, {from: accountOwner});
+            await proxy.setImplementation(implementation.address, {from: accountOwner});
             proxy = await Implementation.at(proxy.address);
             
             let value = "123";
@@ -107,7 +107,7 @@ contract('Proxy', accounts => {
                 }
             );
 
-            let savedValue = await proxy.value.call();
+            let savedValue = await proxy.getValue.call();
             expect(savedValue.toString()).to.be.equal(value);
         });
 
@@ -123,6 +123,5 @@ contract('Proxy', accounts => {
         });
 
     });
-
 
 });

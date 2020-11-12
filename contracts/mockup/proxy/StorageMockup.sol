@@ -2,7 +2,7 @@ pragma solidity ^0.5.17;
 
 contract StorageMockup {
 
-    uint public value;
+    uint value;
 
     event ValueChanged(uint value);
 

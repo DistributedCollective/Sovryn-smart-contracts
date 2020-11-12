@@ -14,7 +14,8 @@ const EIP712 = require('../../Utils/EIP712');
 const BigNumber = require('bignumber.js');
 
 const GovernorAlpha = artifacts.require('GovernorAlphaMockup');
-const Staking = artifacts.require('Staking');
+const StakingLogic = artifacts.require('Staking');
+const StakingProxy = artifacts.require('StakingProxy');
 const TestToken = artifacts.require('TestToken');
 
 const DELAY = 86400 * 14;
@@ -39,7 +40,12 @@ contract("governorAlpha#castVote/2", accounts => {
     let blockTimestamp = etherUnsigned(100);
     await setTime(blockTimestamp.toNumber());
     token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
-    comp = await Staking.new(token.address);
+    
+    let stakingLogic = await StakingLogic.new(token.address);
+    comp = await StakingProxy.new(token.address);
+    await comp.setImplementation(stakingLogic.address);
+    comp = await StakingLogic.at(comp.address);
+    
     gov = await GovernorAlpha.new(address(0), comp.address, root);
 
     targets = [a1];

@@ -12,7 +12,8 @@ const {
     setTime
 } = require('../Utils/Ethereum');
 
-const Staking = artifacts.require('Staking');
+const StakingLogic = artifacts.require('Staking');
+const StakingProxy = artifacts.require('StakingProxy');
 const TestToken = artifacts.require('TestToken');
 
 const TOTAL_SUPPLY = "100000000000000000000000000000";
@@ -38,9 +39,13 @@ contract('Staking', accounts => {
 
     beforeEach(async () => {
         token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-        staking = await Staking.new(token.address);
+        
+        let stakingLogic = await StakingLogic.new(token.address);
+        staking = await StakingProxy.new(token.address);
+        await staking.setImplementation(stakingLogic.address);
+        staking = await StakingLogic.at(staking.address);
+    
         await token.transfer(account1, 1000);
-
         await token.approve(staking.address, TOTAL_SUPPLY);
     });
 
@@ -485,7 +490,11 @@ contract('Staking', accounts => {
             [root, account1, account2, account3, ...accounts] = accounts;
 
             token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-            staking = await Staking.new(token.address);
+            
+            let stakingLogic = await StakingLogic.new(token.address);
+            staking = await StakingProxy.new(token.address);
+            await staking.setImplementation(stakingLogic.address);
+            staking = await StakingLogic.at(staking.address);
         });
 
         it("Lock date should be start + 1 period", async () => {
