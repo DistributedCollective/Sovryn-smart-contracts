@@ -32,7 +32,7 @@ contract BProPriceFeed is IPriceFeedsExt, Ownable {
     }
 
     /**
-     * @dev returns the USD/BTC update time.
+     * @dev returns the update time.
      *
      * @return always returns current block's timestamp
      */
