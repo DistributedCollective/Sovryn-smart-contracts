@@ -30,13 +30,19 @@ contract('Staking', accounts => {
 
   let root, a1, a2, a3, chainId;
   let token, comp;
+  let MAX_VOTING_WEIGHT;
 
   before(async () => {
     [root, a1, a2, a3, ...accounts] = accounts;
+  });
+
+  beforeEach(async () => {
     chainId = 1; // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
     await web3.eth.net.getId();
     token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
     comp = await Staking.new(token.address);
+  
+    MAX_VOTING_WEIGHT = await comp.MAX_VOTING_WEIGHT.call();
   });
 
   describe('metadata', () => {
@@ -107,7 +113,7 @@ contract('Staking', accounts => {
       await comp.stake("100", DELAY, a1, a1, { from: guy });
       await expect((await comp.numUserCheckpoints.call(a1)).toString()).to.be.equal('1');
 
-      await comp.stake("50", DELAY, a1, a1, { from: guy });
+      await comp.increaseStake("50", a1, { from: guy });
       await expect((await comp.numUserCheckpoints.call(a1)).toString()).to.be.equal('2');
     });
 
@@ -134,115 +140,101 @@ contract('Staking', accounts => {
 
       await expect((await comp.numUserCheckpoints.call(a3)).toString()).to.be.equal('1');
 
-      let checkpoint0 = await comp.numUserCheckpoints.call(a3, 0);
+      let checkpoint0 = await comp.userCheckpoints.call(a3, 0);
       await expect(checkpoint0.fromBlock.toString()).to.be.equal(t1.receipt.blockNumber.toString());
-      await expect(checkpoint0.votes.toString()).to.be.equal("80");
+      await expect(checkpoint0.stake.toString()).to.be.equal("80");
 
-      let checkpoint1 = await comp.numUserCheckpoints.call(a3, 1);
+      let checkpoint1 = await comp.userCheckpoints.call(a3, 1);
       await expect(checkpoint1.fromBlock.toString()).to.be.equal("0");
-      await expect(checkpoint1.votes.toString()).to.be.equal("0");
+      await expect(checkpoint1.stake.toString()).to.be.equal("0");
 
-      let checkpoint2 = await comp.numUserCheckpoints.call(a3, 2);
+      let checkpoint2 = await comp.userCheckpoints.call(a3, 2);
       await expect(checkpoint2.fromBlock.toString()).to.be.equal("0");
-      await expect(checkpoint2.votes.toString()).to.be.equal("0");
+      await expect(checkpoint2.stake.toString()).to.be.equal("0");
 
       await token.approve(comp.address, "20", { from: a2 });
-      let t5 = await comp.stake("20", DELAY, a3, a3, { from: a2 });
+      let t5 = await comp.increaseStake("20", a3, { from: a2 });
 
       await expect((await comp.numUserCheckpoints.call(a3)).toString()).to.be.equal('2');
 
-      checkpoint1 = await comp.numUserCheckpoints.call(a3, 1);
+      checkpoint1 = await comp.userCheckpoints.call(a3, 1);
       await expect(checkpoint1.fromBlock.toString()).to.be.equal(t5.receipt.blockNumber.toString());
-      await expect(checkpoint1.votes.toString()).to.be.equal("100");
+      await expect(checkpoint1.stake.toString()).to.be.equal("100");
 
     });
   });
-
+  
   describe('getPriorVotes', () => {
     let amount = "1000";
-
-    before(async () => {
-      [root, a1, a2, a3, ...accounts] = accounts;
-      chainId = 1; // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
-      await web3.eth.net.getId();
-      token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-      comp = await Staking.new(token.address);
-
-      await token.approve(comp.address, TOTAL_SUPPLY);
-      await comp.stake(amount, DELAY, root, root);
-    });
-
+    
     it('reverts if block number >= current block', async () => {
-      let time = await updateTime(comp);
+      let kickoffTS = await comp.kickoffTS.call();
+      let time = kickoffTS.add(new BN(DELAY));
       await expectRevert(comp.getPriorVotes.call(a1, 5e10, time),
           "revert Staking::getPriorStakeByDateForDelegatee: not yet determined");
     });
 
     it('returns 0 if there are no checkpoints', async () => {
-      let time = await updateTime(comp);
+      let time = await comp.kickoffTS.call();
       expect((await comp.getPriorVotes.call(a1, 0, time)).toString()).to.be.equal('0');
     });
 
     it('returns the latest block if >= last checkpoint block', async () => {
-      let t1 = await comp.stake("20", DELAY, a1, a1);
+      await token.approve(comp.address, amount);
+      let t1 = await comp.stake(amount, MAX_DURATION, a1, a1);
       await mineBlock();
       await mineBlock();
 
-      let time = await updateTime(comp);
-
-      console.log();
-      console.log("================================================================================");
-      console.log(await comp.numUserCheckpoints.call(a1));
-      console.log(await comp.currentLock.call(a1));
-
-      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber), time)).toString()).to.be.equal(amount);
-      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1), time)).toString()).to.be.equal(amount);
+      let time = await comp.kickoffTS.call();
+      let amountWithWeight = getAmountWithWeight(amount);
+      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber), time)).toString()).to.be.equal(amountWithWeight.toString());
+      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1), time)).toString()).to.be.equal(amountWithWeight.toString());
     });
 
     it('returns zero if < first checkpoint block', async () => {
       await mineBlock();
-      const t1 = await comp.delegate(a2);
+      await token.approve(comp.address, amount);
+      let t1 = await comp.stake(amount, MAX_DURATION, a1, a1);
       await mineBlock();
       await mineBlock();
-
-      let time = await updateTime(comp);
-
-      expect((await comp.getPriorVotes.call(a2, new BN(t1.receipt.blockNumber - 1), time)).toString()).to.be.equal('0');
-      expect((await comp.getPriorVotes.call(a2, new BN(t1.receipt.blockNumber + 1), time)).toString()).to.be.equal(amount);
+  
+      let time = await comp.kickoffTS.call();
+      let amountWithWeight = getAmountWithWeight(amount);
+      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber - 1), time)).toString()).to.be.equal('0');
+      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1), time)).toString()).to.be.equal(amountWithWeight.toString());
     });
 
     it('generally returns the voting balance at the appropriate checkpoint', async () => {
+      await token.approve(comp.address, "1000");
+      await comp.stake("1000", MAX_DURATION, root, root);
       const t1 = await comp.delegate(a1);
       await mineBlock();
       await mineBlock();
       await token.transfer(a2, 10);
       await token.approve(comp.address, "10", { from: a2 });
-      const t2 = await comp.stake("10", DELAY, a1, a1, { from: a2 });
+      const t2 = await comp.stake("10", MAX_DURATION, a1, a1, { from: a2 });
       await mineBlock();
       await mineBlock();
       await token.transfer(a3, 101);
       await token.approve(comp.address, "101", { from: a3 });
-      const t3 = await comp.stake("101", DELAY, a1, a1, { from: a3 });
+      const t3 = await comp.increaseStake("101", a1, { from: a3 });
       await mineBlock();
       await mineBlock();
 
-      let time = await updateTime(comp);
+      let time = await comp.kickoffTS.call();
 
       expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber - 1), time)).toString()).to.be.equal('0');
-      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber), time)).toString()).to.be.equal('1000');
-      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1), time)).toString()).to.be.equal('1000');
-      expect((await comp.getPriorVotes.call(a1, new BN(t2.receipt.blockNumber), time)).toString()).to.be.equal('1010');
-      expect((await comp.getPriorVotes.call(a1, new BN(t2.receipt.blockNumber + 1), time)).toString()).to.be.equal('1010');
-      expect((await comp.getPriorVotes.call(a1, new BN(t3.receipt.blockNumber), time)).toString()).to.be.equal('1111');
-      expect((await comp.getPriorVotes.call(a1, new BN(t3.receipt.blockNumber + 1), time)).toString()).to.be.equal('1111');
+      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber), time)).toString()).to.be.equal(getAmountWithWeight('1000').toString());
+      expect((await comp.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1), time)).toString()).to.be.equal(getAmountWithWeight('1000').toString());
+      expect((await comp.getPriorVotes.call(a1, new BN(t2.receipt.blockNumber), time)).toString()).to.be.equal(getAmountWithWeight('1010').toString());
+      expect((await comp.getPriorVotes.call(a1, new BN(t2.receipt.blockNumber + 1), time)).toString()).to.be.equal(getAmountWithWeight('1010').toString());
+      expect((await comp.getPriorVotes.call(a1, new BN(t3.receipt.blockNumber), time)).toString()).to.be.equal(getAmountWithWeight('1111').toString());
+      expect((await comp.getPriorVotes.call(a1, new BN(t3.receipt.blockNumber + 1), time)).toString()).to.be.equal(getAmountWithWeight('1111').toString());
     });
   });
-
+  
+  function getAmountWithWeight(amount) {
+    return MAX_VOTING_WEIGHT.mul(new BN(amount));
+  }
+  
 });
-
-async function updateTime(comp) {
-  let kickoffTS = await comp.kickoffTS.call();
-  let newTime = kickoffTS.add(new BN(DELAY).mul(new BN(2)));
-  await setTime(newTime);
-  return newTime;
-}
