@@ -8,8 +8,12 @@ contract StakingStorage is Ownable{
     ///@notice 2 weeks in seconds
     uint constant TWO_WEEKS = 1209600;
     
-    ///@notice the maximum possible voting weight
-    uint96 public constant MAX_VOTING_WEIGHT = 100;
+    ///@notice the maximum possible voting weight before adding +1 (actually 10, but need 9 for computation)
+    uint96 public constant MAX_VOTING_WEIGHT = 9;
+    
+    ///@notice weight is multiplied with this factor (for allowing decimals, like 1.2x)
+    ///@dev MAX_VOTING_WEIGHT * WEIGHT_FACTOR needs to be < 792, because there are 100,000,000 SOV with 18 decimals 
+    uint96 public constant WEIGHT_FACTOR = 10;
     
     /// @notice the maximum duration to stake tokens for
     uint public constant MAX_DURATION = 1092 days;

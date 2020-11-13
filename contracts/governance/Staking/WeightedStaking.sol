@@ -30,9 +30,10 @@ contract WeightedStaking is Checkpoints{
      * @param blockNumber the block number. needed for checkpointing.
      * */
     function _totalPowerByDate(uint date, uint startDate, uint blockNumber) internal view returns(uint96 power){
-        uint96 weight = _computeWeightByDate(date, startDate);
+        uint96 weight = computeWeightByDate(date, startDate);
         uint96 staked = getPriorTotalStakesForDate(date, blockNumber);
-        power = mul96(staked, weight, "multiplication overflow for voting power");
+        //weight is multiplied by some factor to allow decimals.
+        power = mul96(staked, weight, "multiplication overflow for voting power")/WEIGHT_FACTOR;
     }
     
     
@@ -108,9 +109,9 @@ contract WeightedStaking is Checkpoints{
      * @param blockNumber the block number. needed for checkpointing.
      * */
     function _totalPowerByDateForDelegatee(address account, uint date, uint startDate, uint blockNumber) internal view returns(uint96 power){
-        uint96 weight = _computeWeightByDate(date, startDate);
+        uint96 weight = computeWeightByDate(date, startDate);
         uint96 staked = getPriorStakeByDateForDelegatee(account, date, blockNumber);
-        power = mul96(staked, weight, "multiplication overflow for voting power");
+        power = mul96(staked, weight, "multiplication overflow for voting power")/WEIGHT_FACTOR;
     }
     
     /**
@@ -169,8 +170,8 @@ contract WeightedStaking is Checkpoints{
          //if date is not an exact break point, start weight computation from the previous break point (alternative would be the next)
          uint startDate =  timestampToLockDate(date);
          (uint96 staked, uint96 until) = getPriorUserStakeAndDate(account, blockNumber);
-         uint96 weight = _computeWeightByDate(until, startDate);
-         return mul96(staked, weight, "Staking::getPriorVotes: multiplication overflow for voting power");
+         uint96 weight = computeWeightByDate(until, startDate);
+         return mul96(staked, weight, "Staking::getPriorVotes: multiplication overflow for voting power") / WEIGHT_FACTOR;
      }
      
      /**
@@ -222,13 +223,14 @@ contract WeightedStaking is Checkpoints{
      * @param date the unlocking date
      * @param startDate we compute the weight for the tokens staked until 'date' on 'startDate'
      * */
-    function _computeWeightByDate(uint date, uint startDate) internal pure returns(uint96 weight){
-        require(date >= startDate, "Staking::_computeWeightByDate: date needs to be bigger than startDate");
+    function computeWeightByDate(uint date, uint startDate) public pure returns(uint96 weight){
+        require(date >= startDate, "Staking::computeWeightByDate: date needs to be bigger than startDate");
         uint remainingTime = (date - startDate);
-        require(MAX_DURATION >= remainingTime, "Staking::_computeWeightByDate:remaining time can't be bigger than max duration");
+        require(MAX_DURATION >= remainingTime, "Staking::computeWeightByDate:remaining time can't be bigger than max duration");
         // x = max days - remaining days
         uint96 x = uint96(MAX_DURATION - remainingTime)/(1 days);
-        weight = mul96(MAX_VOTING_WEIGHT, sub96(MAX_DURATION_POW_2, x*x, "underflow on weight calculation"), "multiplication overflow on weight computation") / MAX_DURATION_POW_2;
+        //w = (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)
+        weight = add96(WEIGHT_FACTOR, mul96(MAX_VOTING_WEIGHT*WEIGHT_FACTOR, sub96(MAX_DURATION_POW_2, x*x, "underflow on weight calculation"), "multiplication overflow on weight computation") / MAX_DURATION_POW_2, "overflow on weight computation");
     }
     
     /**

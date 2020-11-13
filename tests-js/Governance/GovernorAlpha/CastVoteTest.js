@@ -21,7 +21,7 @@ const TestToken = artifacts.require('TestToken');
 const DELAY = 86400 * 14;
 
 const QUORUM_VOTES = etherMantissa(4000000);
-const TOTAL_SUPPLY = etherMantissa(1000000000);
+const TOTAL_SUPPLY = etherMantissa(100000000);
 
 async function enfranchise(token, comp, actor, amount) {
   await token.transfer(actor, amount);

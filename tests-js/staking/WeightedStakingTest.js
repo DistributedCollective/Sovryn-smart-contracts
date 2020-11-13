@@ -158,14 +158,15 @@ contract('WeightedStaking', accounts => {
       
       let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
       let maxDuration = await staking.MAX_DURATION.call();
+      let weightFactor = await staking.WEIGHT_FACTOR.call();
       
       //power on kickoff date
-      let expectedPower =  weightingFunction(100, DELAY * (26 * 3 ), maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26 * 2, maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26, maxDuration, maxVotingWeight);
+      let expectedPower =  weightingFunction(100, DELAY * (26 * 3 ), maxDuration, maxVotingWeight, weightFactor.toNumber()) + weightingFunction(100, DELAY * 26 * 2, maxDuration, maxVotingWeight, weightFactor.toNumber()) + weightingFunction(100, DELAY * 26, maxDuration, maxVotingWeight, weightFactor.toNumber());
       let totalVotingPower = await staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS);
       await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
       
       //power 52 weeks later
-      expectedPower =  weightingFunction(100, DELAY * (26 * 2 ), maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26 * 1, maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26 * 0, maxDuration, maxVotingWeight);
+      expectedPower =  weightingFunction(100, DELAY * (26 * 2 ), maxDuration, maxVotingWeight, weightFactor.toNumber()) + weightingFunction(100, DELAY * 26 * 1, maxDuration, maxVotingWeight, weightFactor.toNumber()) + weightingFunction(100, DELAY * 26 * 0, maxDuration, maxVotingWeight, weightFactor.toNumber());
       totalVotingPower = await staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS.add(new BN(DELAY*26)));
       await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
     });
@@ -187,14 +188,15 @@ contract('WeightedStaking', accounts => {
       
       let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
       let maxDuration = await staking.MAX_DURATION.call();
+      let weightFactor = await staking.WEIGHT_FACTOR.call();
       
       //power on kickoff date
-      let expectedPower =  weightingFunction(100, DELAY * (26 * 3 ), maxDuration, maxVotingWeight) + weightingFunction(100, DELAY * 26, maxDuration, maxVotingWeight);
+      let expectedPower =  weightingFunction(100, DELAY * (26 * 3 ), maxDuration, maxVotingWeight, weightFactor.toNumber()) + weightingFunction(100, DELAY * 26, maxDuration, maxVotingWeight, weightFactor.toNumber());
       let totalVotingPower = await staking.getPriorVotes(a2, result.receipt.blockNumber, kickoffTS);
       await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
       
       //power 52 weeks later
-      expectedPower =  weightingFunction(100, DELAY * (26 * 2 ), maxDuration, maxVotingWeight)  + weightingFunction(100, DELAY * 26 * 0, maxDuration, maxVotingWeight);
+      expectedPower =  weightingFunction(100, DELAY * (26 * 2 ), maxDuration, maxVotingWeight, weightFactor.toNumber())  + weightingFunction(100, DELAY * 26 * 0, maxDuration, maxVotingWeight, weightFactor.toNumber());
       totalVotingPower = await staking.getPriorVotes(a2, result.receipt.blockNumber, kickoffTS.add(new BN(DELAY*26)));
       await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
     });
@@ -216,14 +218,15 @@ contract('WeightedStaking', accounts => {
       
       let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
       let maxDuration = await staking.MAX_DURATION.call();
+      let weightFactor = await staking.WEIGHT_FACTOR.call();
       
       //power on kickoff date
-      let expectedPower =  weightingFunction(200, DELAY * (26 * 3 ), maxDuration, maxVotingWeight)
+      let expectedPower =  weightingFunction(200, DELAY * (26 * 3 ), maxDuration, maxVotingWeight, weightFactor.toNumber())
       let totalVotingPower = await staking.getPriorWeightedStake(a2, result.receipt.blockNumber, kickoffTS);
       await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
       
       //power 52 weeks later
-      expectedPower =  weightingFunction(200, DELAY * (26 * 2 ), maxDuration, maxVotingWeight);
+      expectedPower =  weightingFunction(200, DELAY * (26 * 2 ), maxDuration, maxVotingWeight, weightFactor.toNumber());
       totalVotingPower = await staking.getPriorWeightedStake(a2, result.receipt.blockNumber, kickoffTS.add(new BN(DELAY*26)));
       await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
     });
@@ -233,7 +236,24 @@ contract('WeightedStaking', accounts => {
       let result = await staking.stake("100", DELAY * 26, a3, a3, {from: a2});
       await expectRevert(staking.getPriorWeightedStake(a3, result.receipt.blockNumber, kickoffTS), "Staking::getPriorUserStakeAndDate: not yet determined");
     });
-  })
+  });
+  
+   describe('general weight computation', () => {
+    it('should compute the expected weight for every staking duration', async() =>{
+      let kickoffTS = await staking.kickoffTS.call();
+      let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
+      let maxDuration = await staking.MAX_DURATION.call();
+      let weightFactor = await staking.WEIGHT_FACTOR.call();
+      let expectedWeight;
+      for (let i = 0; i <= 78; i++){
+        expectedWeight = weightingFunction(100, i*DELAY, maxDuration, maxVotingWeight, weightFactor.toNumber());
+        let newTime = kickoffTS.add(new BN(i*DELAY));
+        let w = Math.floor(100*(await staking.computeWeightByDate(newTime, kickoffTS)).toNumber()/weightFactor.toNumber());
+        await expect(w).to.be.equal(expectedWeight);
+        //console.log(expectedWeight);
+      }
+    });
+   });
 
 });
 
@@ -244,9 +264,9 @@ async function updateTime(staking, multiplier) {
   return newTime;
 }
 
-function weightingFunction(stake, time, maxDuration, maxVotingWeight){
+function weightingFunction(stake, time, maxDuration, maxVotingWeight, weightFactor){
   let x = maxDuration - time;
   let mD2 = maxDuration * maxDuration;
-  return stake * Math.floor(maxVotingWeight * (mD2 - x*x) / mD2) ;
+  return Math.floor(stake * (Math.floor(maxVotingWeight * weightFactor * (mD2 - x*x) / mD2) + weightFactor) / weightFactor);
 
 }
