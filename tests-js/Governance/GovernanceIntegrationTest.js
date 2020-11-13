@@ -162,6 +162,12 @@ contract('GovernanceIntegration', accounts => {
             expect((await loanTokenSettings.transactionLimit.call(account2)).toNumber()).to.be.equal(2222);
         });
     
+        it("Shouldn't be able to execute proposal using Timelock directly", async () => {
+            
+            //TODO implement
+            
+        });
+    
     });
     
     async function executeProposal(proposalData) {
