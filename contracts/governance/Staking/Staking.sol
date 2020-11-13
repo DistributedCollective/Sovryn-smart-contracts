@@ -65,6 +65,8 @@ contract Staking is WeightedStaking{
         uint96 amount = _currentBalance(msg.sender);
         _decreaseDailyStake(previousLock, amount);
         _increaseDailyStake(until, amount);
+        _decreaseDelegateStake(delegates[msg.sender], previousLock, amount);
+        _increaseDelegateStake(delegates[msg.sender], until, amount);
         _writeUserCheckpoint(msg.sender, amount, uint96(until));
         
         emit ExtendedStakingDuration(msg.sender, previousLock, until);
@@ -92,6 +94,7 @@ contract Staking is WeightedStaking{
         //update checkpoints
         uint until = currentLock(stakeFor);
         _increaseDailyStake(until, amount);
+        _increaseDelegateStake(delegates[stakeFor], until, amount);
         _writeUserCheckpoint(stakeFor, newBalance, uint96(until));
         
         emit TokensStaked(stakeFor, amount, until, newBalance);
