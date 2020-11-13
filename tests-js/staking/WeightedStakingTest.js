@@ -206,6 +206,20 @@ contract('WeightedStaking', accounts => {
       let result = await staking.stake("100", DELAY * 26, a3, a3, {from: a2});
       await expectRevert(staking.getPriorVotes(a3, result.receipt.blockNumber, kickoffTS), "Staking::getPriorStakeByDateForDelegatee: not yet determined");
     });
+    
+    it('should return the current votes', async() =>{
+      await staking.stake("100", DELAY * (26 * 3 ), a2, a2, {from: a2});
+      await mineBlock();
+      
+      let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
+      let maxDuration = await staking.MAX_DURATION.call();
+      let weightFactor = await staking.WEIGHT_FACTOR.call();
+      
+      let expectedPower =  weightingFunction(100, DELAY * (26 * 3 ), maxDuration, maxVotingWeight, weightFactor.toNumber());
+      let currentVotes = await staking.getCurrentVotes.call(a2);
+      await expect(currentVotes.toNumber()).to.be.equal(expectedPower);
+      
+    });
   })
   
   describe('user weighted stake computation', () => {
