@@ -18,7 +18,7 @@ def main():
     #testTradeOpeningAndClosing(contracts['protocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e14, 5e18, True, 1e14)
     
     #swapTokens(0.02e18,200e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['DoC'])
-    #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
+    #swapTokens(300e18, 0.01e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
     #liquidate(contracts['protocol'], '0xc9b8227bcf953e45f16d5d9a8a74cad92f403b90d0daf00900bb02e4a35c542c')
     #readLiquidity()
     #getBalance(contracts['WRBTC'], '0xE5646fEAf7f728C12EcB34D14b4396Ab94174827')
@@ -38,10 +38,13 @@ def main():
     
     #getBalance('0xC5452Dbb2E3956C1161cB9C2d6DB53C2b60E7805', acct)
     #getAllowance('0x7F433CC76298bB5099c15C1C7C8f2e89A8370111',acct ,'0xbFDB5fc90b960bcc2e7be2D8E347F8A7E5146077')
-    print('iRBTC')
-    readLoanTokenState(contracts['iRBTC'])
-    print('iDOC')
-    readLoanTokenState(contracts['iDOC'])
+    #print('iRBTC')
+    #readLoanTokenState(contracts['iRBTC'])
+    #print('iDOC')
+    #readLoanTokenState(contracts['iDOC'])
+    #addLiquidity(contracts['swap'], contracts['WRBTC'], 2e18)
+    
+    mintEarlyAccessTokens(contracts['og'], '0x95f1f9393D1d3e46Df2cDa491fc323E142758c21')
     
 def loadConfig():
     global contracts, acct
@@ -51,8 +54,8 @@ def loadConfig():
     elif this_network == "testnet":
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     contracts = json.load(configFile)
-    #acct = accounts.load("rskdeployer")
-    acct = accounts.load("jamie")
+    acct = accounts.load("rskdeployer")
+    #acct = accounts.load("jamie")
     
 
 
@@ -380,3 +383,13 @@ def getExpectedReturn(amount, swapNetworkAddress, sourceTokenAddress, destTokenA
 def getAllowance(contractAddress, fromAddress, toAddress):
     contract = Contract.from_abi("Token", address=contractAddress, abi=TestToken.abi, owner=acct)
     print(contract.allowance(fromAddress,toAddress))
+    
+def addLiquidity(swapAddress, tokenAddress,amount):
+    abiFile =  open('./scripts/contractInteraction/LiquidityPoolV2Converter.json')
+    abi = json.load(abiFile)
+    swap = Contract.from_abi("Converter", address = swapAddress, abi = abi, owner = acct)
+    if( tokenAddress == contracts['WRBTC']):
+        wrbtc = Contract.from_abi("WRBTC", address = contracts['WRBTC'], abi = WRBTC.abi, owner = acct)
+        wrbtc.deposit({'value':amount})
+        wrbtc.approve(swap, amount)
+    swap.addLiquidity(tokenAddress, amount, 1)
