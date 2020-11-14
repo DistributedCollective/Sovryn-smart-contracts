@@ -239,7 +239,7 @@ contract('Staking', accounts => {
   });
   
   function getAmountWithWeight(amount) {
-    return MAX_VOTING_WEIGHT.mul(new BN(amount));
+    return (new BN(MAX_VOTING_WEIGHT.toNumber()+1)).mul(new BN(amount));
   }
   
 });
