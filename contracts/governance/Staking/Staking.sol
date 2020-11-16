@@ -5,16 +5,6 @@ import "./WeightedStaking.sol";
 
 contract Staking is WeightedStaking{
     
-
-    /**
-     * @notice Construct a new staking contract
-     * @param SOV The address of the SOV token address
-     */
-    constructor(address SOV) public {
-        SOVToken = IERC20(SOV);
-        kickoffTS = block.timestamp;
-    }
-    
     /**
      * @notice stakes the given amount for the given duration of time.
      * @dev only if staked balance is 0.
@@ -75,6 +65,8 @@ contract Staking is WeightedStaking{
         uint96 amount = _currentBalance(msg.sender);
         _decreaseDailyStake(previousLock, amount);
         _increaseDailyStake(until, amount);
+        _decreaseDelegateStake(delegates[msg.sender], previousLock, amount);
+        _increaseDelegateStake(delegates[msg.sender], until, amount);
         _writeUserCheckpoint(msg.sender, amount, uint96(until));
         
         emit ExtendedStakingDuration(msg.sender, previousLock, until);
@@ -102,6 +94,7 @@ contract Staking is WeightedStaking{
         //update checkpoints
         uint until = currentLock(stakeFor);
         _increaseDailyStake(until, amount);
+        _increaseDelegateStake(delegates[stakeFor], until, amount);
         _writeUserCheckpoint(stakeFor, newBalance, uint96(until));
         
         emit TokensStaked(stakeFor, amount, until, newBalance);
@@ -209,7 +202,7 @@ contract Staking is WeightedStaking{
      * @return The number of current votes for `account`
      */
     function getCurrentVotes(address account) external view returns (uint96) {
-        return getPriorVotes(account, block.number, block.timestamp);
+        return getPriorVotes(account, block.number - 1, block.timestamp);
     }
     
     /**

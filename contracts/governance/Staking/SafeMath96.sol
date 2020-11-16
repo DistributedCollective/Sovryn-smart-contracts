@@ -6,6 +6,11 @@ contract SafeMath96{
         require(n < 2**32, errorMessage);
         return uint32(n);
     }
+    
+    function safe64(uint n, string memory errorMessage) internal pure returns (uint64) {
+        require(n < 2**64, errorMessage);
+        return uint64(n);
+    }
 
     function safe96(uint n, string memory errorMessage) internal pure returns (uint96) {
         require(n < 2**96, errorMessage);

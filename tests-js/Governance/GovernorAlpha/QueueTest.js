@@ -10,7 +10,8 @@ const {
 
 const GovernorAlpha = artifacts.require('GovernorAlphaMockup');
 const Timelock = artifacts.require('TimelockHarness');
-const Staking = artifacts.require('Staking');
+const StakingLogic = artifacts.require('Staking');
+const StakingProxy = artifacts.require('StakingProxy');
 const TestToken = artifacts.require('TestToken');
 
 const DELAY = 86400 * 14;
@@ -36,7 +37,12 @@ contract('GovernorAlpha#queue/1', accounts => {
     it("reverts on queueing overlapping actions in same proposal", async () => {
       const timelock = await Timelock.new(root, DELAY);
       const token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
-      const comp = await Staking.new(token.address);
+  
+      let stakingLogic = await StakingLogic.new(token.address);
+      let comp = await StakingProxy.new(token.address);
+      await comp.setImplementation(stakingLogic.address);
+      comp = await StakingLogic.at(comp.address);
+      
       const gov = await GovernorAlpha.new(timelock.address, comp.address, root);
       const txAdmin = await timelock.harnessSetAdmin(gov.address);
 
@@ -62,7 +68,12 @@ contract('GovernorAlpha#queue/1', accounts => {
     it("reverts on queueing overlapping actions in different proposals, works if waiting", async () => {
       const timelock = await Timelock.new(root, DELAY);
       const token = await TestToken.new("TestToken", "TST", 18, etherMantissa(10000000000000));
-      const comp = await Staking.new(token.address);
+  
+      let stakingLogic = await StakingLogic.new(token.address);
+      let comp = await StakingProxy.new(token.address);
+      await comp.setImplementation(stakingLogic.address);
+      comp = await StakingLogic.at(comp.address);
+  
       const gov = await GovernorAlpha.new(timelock.address, comp.address, root);
       const txAdmin = await timelock.harnessSetAdmin(gov.address);
 

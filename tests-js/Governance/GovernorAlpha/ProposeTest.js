@@ -10,7 +10,8 @@ const {
 } = require('../../Utils/Ethereum');
 
 const GovernorAlpha = artifacts.require('GovernorAlpha');
-const Staking = artifacts.require('Staking');
+const StakingLogic = artifacts.require('Staking');
+const StakingProxy = artifacts.require('StakingProxy');
 const TestToken = artifacts.require('TestToken');
 
 const QUORUM_VOTES = etherMantissa(4000000);
@@ -24,7 +25,12 @@ contract('GovernorAlpha#propose/5', accounts => {
   before(async () => {
     [root, acct, ...accounts] = accounts;
     token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
-    comp = await Staking.new(token.address);
+  
+    let stakingLogic = await StakingLogic.new(token.address);
+    comp = await StakingProxy.new(token.address);
+    await comp.setImplementation(stakingLogic.address);
+    comp = await StakingLogic.at(comp.address);
+    
     gov = await GovernorAlpha.new(address(0), comp.address, address(0));
   });
 
