@@ -15,7 +15,10 @@ const Timelock = artifacts.require('TimelockHarness');
 const StakingLogic = artifacts.require('Staking');
 const StakingProxy = artifacts.require('StakingProxy');
 const TestToken = artifacts.require('TestToken');
+
+const Protocol = artifacts.require('sovrynProtocol');
 const ProtocolSettings = artifacts.require('ProtocolSettings');
+
 const LoanTokenSettings = artifacts.require('LoanTokenSettingsLowerAdmin');
 const LoanToken = artifacts.require('LoanToken');
 
@@ -36,7 +39,7 @@ contract('GovernanceIntegration', accounts => {
     
     let root, account1, account2, account3, account4;
     let token, staking, gov, timelock;
-    let protocolSettings, loanTokenSettings, loanToken;
+    let protocolSettings, loanTokenSettings, protocol, loanToken;
     
     before(async () => {
         [root, account1, account2, account3, account4, ...accounts] = accounts;
@@ -58,21 +61,16 @@ contract('GovernanceIntegration', accounts => {
         await timelock.harnessSetAdmin(gov.address);
         
         //Settings
-        //TODO LoanToken !
-        protocolSettings = await ProtocolSettings.new();
         loanTokenSettings = await LoanTokenSettings.new();
-    
-        loanToken = await LoanToken.new(root, protocolSettings.address, token.address, token.address);
-        loanToken = await ProtocolSettings.at(loanToken.address);
-        await loanToken.initialize(protocolSettings.address);
-        let lendingFeePercentOld = etherMantissa(10).toString();
-        await loanToken.setLendingFeePercent(lendingFeePercentOld);
+        loanToken = await LoanToken.new(root, loanTokenSettings.address, token.address, token.address);
+        loanToken = await LoanTokenSettings.at(loanToken.address);
         await loanToken.transferOwnership(timelock.address);
     
-        //TODO remove
-        //Transfer Ownership
-        // await protocolSettings.transferOwnership(timelock.address);
-        await loanTokenSettings.transferOwnership(timelock.address);
+        protocolSettings = await ProtocolSettings.new();
+        protocol = await Protocol.new();
+        await protocol.replaceContract(protocolSettings.address);
+        protocol = await ProtocolSettings.at(protocol.address);
+        await protocol.transferOwnership(timelock.address);
     });
     
     describe("change settings", () => {
@@ -83,7 +81,7 @@ contract('GovernanceIntegration', accounts => {
 
             let proposalData = {
                 targets: [
-                    loanToken.address
+                    protocol.address
                 ],
                 values: [
                     0
@@ -98,14 +96,14 @@ contract('GovernanceIntegration', accounts => {
             };
 
             //old value
-            let lendingFeePercent = await loanToken.lendingFeePercent.call();
+            let lendingFeePercent = await protocol.lendingFeePercent.call();
             expect(lendingFeePercent.toString()).to.be.equal(lendingFeePercentOld);
 
             //make changes
             await executeProposal(proposalData);
 
             //new value
-            lendingFeePercent = await loanToken.lendingFeePercent.call();
+            lendingFeePercent = await protocol.lendingFeePercent.call();
             expect(lendingFeePercent.toString()).to.be.equal(lendingFeePercentNew);
         });
 
@@ -118,7 +116,7 @@ contract('GovernanceIntegration', accounts => {
 
             let proposalData = {
                 targets: [
-                    loanToken.address
+                    protocol.address
                 ],
                 values: [
                     0
@@ -133,14 +131,14 @@ contract('GovernanceIntegration', accounts => {
             };
 
             //old value
-            let lendingFeePercent = await loanToken.lendingFeePercent.call();
+            let lendingFeePercent = await protocol.lendingFeePercent.call();
             expect(lendingFeePercent.toString()).to.be.equal(lendingFeePercentOld);
 
             //make changes
             await executeProposal(proposalData);
 
             //new value
-            lendingFeePercent = await loanToken.lendingFeePercent.call();
+            lendingFeePercent = await protocol.lendingFeePercent.call();
             expect(lendingFeePercent.toString()).to.be.equal(lendingFeePercentNew);
         });
     
@@ -150,9 +148,9 @@ contract('GovernanceIntegration', accounts => {
             
             let proposalData = {
                 targets: [
-                    loanToken.address,
-                    loanToken.address,
-                    loanTokenSettings.address
+                    protocol.address,
+                    protocol.address,
+                    loanToken.address
                 ],
                 values: [
                     0,
@@ -173,31 +171,31 @@ contract('GovernanceIntegration', accounts => {
             };
         
             //old values
-            // let tradingFeePercent = await loanToken.tradingFeePercent.call();
-            // expect(tradingFeePercent.toString()).to.be.equal(tradingFeePercentOld);
+            let tradingFeePercent = await protocol.tradingFeePercent.call();
+            expect(tradingFeePercent.toString()).to.be.equal(tradingFeePercentOld);
 
-            expect(await loanToken.loanPoolToUnderlying.call(account1)).to.be.equal(ZERO_ADDRESS);
-            expect(await loanToken.loanPoolToUnderlying.call(account2)).to.be.equal(ZERO_ADDRESS);
-            expect(await loanToken.underlyingToLoanPool.call(account3)).to.be.equal(ZERO_ADDRESS);
-            expect(await loanToken.underlyingToLoanPool.call(account4)).to.be.equal(ZERO_ADDRESS);
+            expect(await protocol.loanPoolToUnderlying.call(account1)).to.be.equal(ZERO_ADDRESS);
+            expect(await protocol.loanPoolToUnderlying.call(account2)).to.be.equal(ZERO_ADDRESS);
+            expect(await protocol.underlyingToLoanPool.call(account3)).to.be.equal(ZERO_ADDRESS);
+            expect(await protocol.underlyingToLoanPool.call(account4)).to.be.equal(ZERO_ADDRESS);
 
-            expect((await loanTokenSettings.transactionLimit.call(account1)).toNumber()).to.be.equal(0);
-            expect((await loanTokenSettings.transactionLimit.call(account2)).toNumber()).to.be.equal(0);
+            expect((await loanToken.transactionLimit.call(account1)).toNumber()).to.be.equal(0);
+            expect((await loanToken.transactionLimit.call(account2)).toNumber()).to.be.equal(0);
     
             //make changes
             await executeProposal(proposalData);
         
             //new values
-            let tradingFeePercent = await loanToken.tradingFeePercent.call();
+            tradingFeePercent = await protocol.tradingFeePercent.call();
             expect(tradingFeePercent.toString()).to.be.equal(tradingFeePercentNew);
     
-            expect(await loanToken.loanPoolToUnderlying.call(account1)).to.be.equal(account3);
-            expect(await loanToken.loanPoolToUnderlying.call(account2)).to.be.equal(account4);
-            expect(await loanToken.underlyingToLoanPool.call(account3)).to.be.equal(account1);
-            expect(await loanToken.underlyingToLoanPool.call(account4)).to.be.equal(account2);
+            expect(await protocol.loanPoolToUnderlying.call(account1)).to.be.equal(account3);
+            expect(await protocol.loanPoolToUnderlying.call(account2)).to.be.equal(account4);
+            expect(await protocol.underlyingToLoanPool.call(account3)).to.be.equal(account1);
+            expect(await protocol.underlyingToLoanPool.call(account4)).to.be.equal(account2);
 
-            expect((await loanTokenSettings.transactionLimit.call(account1)).toNumber()).to.be.equal(1111);
-            expect((await loanTokenSettings.transactionLimit.call(account2)).toNumber()).to.be.equal(2222);
+            expect((await loanToken.transactionLimit.call(account1)).toNumber()).to.be.equal(1111);
+            expect((await loanToken.transactionLimit.call(account2)).toNumber()).to.be.equal(2222);
         });
     
         it("Shouldn't be able to execute proposal using Timelock directly", async () => {
