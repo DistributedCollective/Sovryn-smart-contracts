@@ -214,7 +214,76 @@ contract('Staking', accounts => {
                 toDelegate: account1
             });
         });
-
+    
+        it("Should be able to stake after withdrawing whole amount", async () => {
+            let amount = "1000";
+            let duration = new BN(TWO_WEEKS).mul(new BN(2));
+            await staking.stake(amount, duration, root, root);
+    
+            let lockedTS = await getTimeFromKickoff(duration);
+            await setTime(lockedTS);
+    
+            let stackingbBalance = await token.balanceOf.call(staking.address);
+            expect(stackingbBalance.toString()).to.be.equal(amount);
+    
+            await staking.withdraw(amount, root);
+    
+            stackingbBalance = await token.balanceOf.call(staking.address);
+            expect(stackingbBalance.toNumber()).to.be.equal(0);
+            
+            //stake second time
+            let tx = await staking.stake(amount * 2, duration, root, root);
+    
+            lockedTS = await getTimeFromKickoff(duration * 2);
+            
+            stackingbBalance = await token.balanceOf.call(staking.address);
+            expect(stackingbBalance.toNumber()).to.be.equal(amount * 2);
+    
+            //_writeUserCheckpoint
+            let numUserCheckpoints = await staking.numUserCheckpoints.call(root);
+            expect(numUserCheckpoints.toNumber()).to.be.equal(3);
+            let checkpoint = await staking.userCheckpoints.call(root, 2);
+            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.stake.toNumber()).to.be.equal(amount * 2);
+            expect(checkpoint.lockedUntil.toString()).to.be.equal(lockedTS.toString());
+    
+        });
+    
+        it("Should be able to stake after withdrawing amount partially", async () => {
+            let amount = "1000";
+            let duration = new BN(TWO_WEEKS).mul(new BN(2));
+            await staking.stake(amount, duration, root, root);
+        
+            let lockedTS = await getTimeFromKickoff(duration);
+            await setTime(lockedTS);
+        
+            let stackingbBalance = await token.balanceOf.call(staking.address);
+            expect(stackingbBalance.toString()).to.be.equal(amount);
+            let beforeBalance = await token.balanceOf.call(root);
+        
+            await staking.withdraw(amount / 2, root);
+        
+            stackingbBalance = await token.balanceOf.call(staking.address);
+            expect(stackingbBalance.toNumber()).to.be.equal(amount / 2);
+            let afterBalance = await token.balanceOf.call(root);
+            expect(afterBalance.sub(beforeBalance).toNumber()).to.be.equal(amount / 2);
+        
+            //increase stake
+            let tx = await staking.increaseStake(amount * 2.5, root);
+    
+            stackingbBalance = await token.balanceOf.call(staking.address);
+            expect(stackingbBalance.toNumber()).to.be.equal(amount * 3);
+    
+            //_writeUserCheckpoint
+            let numUserCheckpoints = await staking.numUserCheckpoints.call(root);
+            expect(numUserCheckpoints.toNumber()).to.be.equal(3);
+            let checkpoint = await staking.userCheckpoints.call(root, 2);
+            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.stake.toNumber()).to.be.equal(amount * 3);
+            expect(checkpoint.lockedUntil.toString()).to.be.equal(lockedTS.toString());
+    
+        });
+    
     });
 
     describe('extendStakingDuration', () => {
