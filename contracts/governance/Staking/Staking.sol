@@ -124,10 +124,10 @@ contract Staking is WeightedStaking{
         _writeUserCheckpoint(msg.sender, newBalance, until);
         
         //transferFrom
-        bool success = SOVToken.transfer(msg.sender, amount);
-        require(success);
+        bool success = SOVToken.transfer(receiver, amount);
+        require(success, "Staking::withdraw: Token transfer failed");
         
-        emit TokensWithdrawn(msg.sender, amount);
+        emit TokensWithdrawn(msg.sender, receiver, amount);
     }
     
     /**
