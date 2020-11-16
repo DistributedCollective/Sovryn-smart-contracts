@@ -5,16 +5,19 @@ const {
   address,
   etherMantissa,
   encodeParameters,
-  mineBlock
+  mineBlock,
+  setTime
 } = require('../../Utils/Ethereum');
 
 const GovernorAlpha = artifacts.require('GovernorAlpha');
-const Timelock = artifacts.require('Timelock');
-const Staking = artifacts.require('Staking');
+const StakingLogic = artifacts.require('Staking');
+const StakingProxy = artifacts.require('StakingProxy');
 const TestToken = artifacts.require('TestToken');
 
 const QUORUM_VOTES = etherMantissa(4000000);
 const TOTAL_SUPPLY = etherMantissa(1000000000);
+
+const DELAY = 86400 * 14;
 
 contract('GovernorAlpha#propose/5', accounts => {
   let token, comp, gov, root, acct;
@@ -22,7 +25,12 @@ contract('GovernorAlpha#propose/5', accounts => {
   before(async () => {
     [root, acct, ...accounts] = accounts;
     token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
-    comp = await Staking.new(token.address);
+  
+    let stakingLogic = await StakingLogic.new(token.address);
+    comp = await StakingProxy.new(token.address);
+    await comp.setImplementation(stakingLogic.address);
+    comp = await StakingLogic.at(comp.address);
+    
     gov = await GovernorAlpha.new(address(0), comp.address, address(0));
   });
 
@@ -36,8 +44,9 @@ contract('GovernorAlpha#propose/5', accounts => {
     callDatas = [encodeParameters(['address'], [acct])];
 
     await token.approve(comp.address, QUORUM_VOTES);
-    await comp.stake(QUORUM_VOTES, 0, acct);
-    await comp.delegate(root);
+    await comp.stake(QUORUM_VOTES, DELAY, acct, acct);
+    await comp.delegate(root, {from: acct});
+
     await gov.propose(targets, values, signatures, callDatas, "do nothing");
 
     proposalBlock = +(await web3.eth.getBlockNumber());
@@ -113,8 +122,9 @@ contract('GovernorAlpha#propose/5', accounts => {
         it("reverts with pending", async () => {
           await token.transfer(accounts[4], QUORUM_VOTES);
           await token.approve(comp.address, QUORUM_VOTES, { from: accounts[4] });
-          await comp.stake(QUORUM_VOTES, 0, accounts[4], { from: accounts[4] });
+          await comp.stake(QUORUM_VOTES, DELAY, accounts[4], accounts[4], { from: accounts[4] });
           await comp.delegate(accounts[4], { from: accounts[4] });
+
           await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: accounts[4] });
           await expectRevert(
               gov.propose.call(targets, values, signatures, callDatas, "do nothing", { from: accounts[4] }),
@@ -135,7 +145,7 @@ contract('GovernorAlpha#propose/5', accounts => {
     it("This function returns the id of the newly created proposal. # proposalId(n) = succ(proposalId(n-1))", async () => {
       await token.transfer(accounts[2], QUORUM_VOTES);
       await token.approve(comp.address, QUORUM_VOTES, { from: accounts[2] });
-      await comp.stake(QUORUM_VOTES, 0, accounts[2], { from: accounts[2] });
+      await comp.stake(QUORUM_VOTES, DELAY, accounts[2], accounts[2], { from: accounts[2] });
       await comp.delegate(accounts[2], { from: accounts[2] });
 
       await mineBlock();
@@ -148,10 +158,11 @@ contract('GovernorAlpha#propose/5', accounts => {
     it("emits log with id and description", async () => {
       await token.transfer(accounts[3], QUORUM_VOTES);
       await token.approve(comp.address, QUORUM_VOTES, { from: accounts[3] });
-      await comp.stake(QUORUM_VOTES, 0, accounts[3], { from: accounts[3] });
+      await comp.stake(QUORUM_VOTES, DELAY, accounts[3], accounts[3], { from: accounts[3] });
       await comp.delegate(accounts[3], { from: accounts[3] });
       await mineBlock();
 
+      // await updateTime(comp);
       let result = await gov.propose(targets, values, signatures, callDatas, "second proposal", { from: accounts[3] });
       let proposalId = await gov.latestProposalIds.call(accounts[3]);
       let blockNumber = await web3.eth.getBlockNumber() + 1;

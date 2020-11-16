@@ -15,10 +15,10 @@ contract WeightedStaking is Checkpoints{
     function getPriorTotalVotingPower(uint32 blockNumber, uint time) view public returns(uint96 totalVotingPower){
         //start the computation with the exact or previous unlocking date (voting weight remians the same until the next break point)
         uint start =  timestampToLockDate(time);
-        uint end = start + maxDuration;
+        uint end = start + MAX_DURATION;
         
-        //max 76 iterations
-        for(uint i = start; i < end; i += twoWeeks){
+        //max 78 iterations
+        for(uint i = start; i <= end; i += TWO_WEEKS){
             totalVotingPower = add96(totalVotingPower, _totalPowerByDate(i, start, blockNumber), "overflow on total voting power computation");
         }
     }
@@ -30,9 +30,10 @@ contract WeightedStaking is Checkpoints{
      * @param blockNumber the block number. needed for checkpointing.
      * */
     function _totalPowerByDate(uint date, uint startDate, uint blockNumber) internal view returns(uint96 power){
-        uint96 weight = _computeWeightByDate(date, startDate);
+        uint96 weight = computeWeightByDate(date, startDate);
         uint96 staked = getPriorTotalStakesForDate(date, blockNumber);
-        power = mul96(staked, weight, "multiplication overflow for voting power");
+        //weight is multiplied by some factor to allow decimals.
+        power = mul96(staked, weight, "multiplication overflow for voting power")/WEIGHT_FACTOR;
     }
     
     
@@ -44,7 +45,7 @@ contract WeightedStaking is Checkpoints{
      * @return The number of votes the account had as of the given block
      */
     function getPriorTotalStakesForDate(uint date, uint blockNumber) public view returns (uint96) {
-        require(blockNumber < block.number, "Staking::getPriorVotes: not yet determined");
+        require(blockNumber < block.number, "Staking::getPriorTotalStakesForDate: not yet determined");
 
         uint32 nCheckpoints = numTotalStakingCheckpoints[date];
         if (nCheckpoints == 0) {
@@ -83,7 +84,7 @@ contract WeightedStaking is Checkpoints{
     /****************************** DELEGATED VOTING POWER COMPUTATION ************************/
     
     /**
-     * @notice Determine the prior number of votes for a delegatee as of a block number. 
+     * @notice Determine the prior number of votes for a delegatee as of a block number.
      * @dev Block number must be a finalized block or else this function will revert to prevent misinformation.
      *      Used for Voting, not for fee sharing.
      * @param account The address of the account to check
@@ -93,10 +94,10 @@ contract WeightedStaking is Checkpoints{
      function getPriorVotes(address account, uint blockNumber, uint date) public view returns (uint96 votes) {
         //if date is not an exact break point, start weight computation from the previous break point (alternative would be the next)
         uint start =  timestampToLockDate(date);
-        uint end = start + maxDuration;
+        uint end = start + MAX_DURATION;
         
-        //max 76 iterations
-        for(uint i = start; i < end; i += twoWeeks){
+        //max 78 iterations
+        for(uint i = start; i <= end; i += TWO_WEEKS){
             votes = add96(votes, _totalPowerByDateForDelegatee(account, i, start, blockNumber), "overflow on total voting power computation");
         }
      }
@@ -108,9 +109,9 @@ contract WeightedStaking is Checkpoints{
      * @param blockNumber the block number. needed for checkpointing.
      * */
     function _totalPowerByDateForDelegatee(address account, uint date, uint startDate, uint blockNumber) internal view returns(uint96 power){
-        uint96 weight = _computeWeightByDate(date, startDate);
+        uint96 weight = computeWeightByDate(date, startDate);
         uint96 staked = getPriorStakeByDateForDelegatee(account, date, blockNumber);
-        power = mul96(staked, weight, "multiplication overflow for voting power");
+        power = mul96(staked, weight, "multiplication overflow for voting power")/WEIGHT_FACTOR;
     }
     
     /**
@@ -169,8 +170,8 @@ contract WeightedStaking is Checkpoints{
          //if date is not an exact break point, start weight computation from the previous break point (alternative would be the next)
          uint startDate =  timestampToLockDate(date);
          (uint96 staked, uint96 until) = getPriorUserStakeAndDate(account, blockNumber);
-         uint96 weight = _computeWeightByDate(until, startDate);
-         return mul96(staked, weight, "Staking::getPriorVotes: multiplication overflow for voting power");
+         uint96 weight = computeWeightByDate(until, startDate);
+         return mul96(staked, weight, "Staking::getPriorVotes: multiplication overflow for voting power") / WEIGHT_FACTOR;
      }
      
      /**
@@ -222,28 +223,28 @@ contract WeightedStaking is Checkpoints{
      * @param date the unlocking date
      * @param startDate we compute the weight for the tokens staked until 'date' on 'startDate'
      * */
-    function _computeWeightByDate(uint date, uint startDate) internal view returns(uint96 weight){
-        require(date > startDate, "date needs to be bigger than startDate");
+    function computeWeightByDate(uint date, uint startDate) public pure returns(uint96 weight){
+        require(date >= startDate, "Staking::computeWeightByDate: date needs to be bigger than startDate");
         uint remainingTime = (date - startDate);
-        require(maxDuration > remainingTime, "remaining time can't be bigger than max duration");
+        require(MAX_DURATION >= remainingTime, "Staking::computeWeightByDate:remaining time can't be bigger than max duration");
         // x = max days - remaining days
-        uint96 x = uint96(maxDuration - remainingTime)/(1 days);
-        weight = sub96(maxDurationPow2, x*x, "underflow on weight calculation") / (maxDurationPow2 / maxVotingWeight);
+        uint96 x = uint96(MAX_DURATION - remainingTime)/(1 days);
+        //w = (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)
+        weight = add96(WEIGHT_FACTOR, mul96(MAX_VOTING_WEIGHT*WEIGHT_FACTOR, sub96(MAX_DURATION_POW_2, x*x, "underflow on weight calculation"), "multiplication overflow on weight computation") / MAX_DURATION_POW_2, "overflow on weight computation");
     }
     
     /**
      * @notice unstaking is posisble every 2 weeks only. this means, to calculate the key value for the staking
-     * checkpoints, we need to map the intended timestamp to the closest available date 
+     * checkpoints, we need to map the intended timestamp to the closest available date
      * @param timestamp the unlocking timestamp
      * @return the actual unlocking date (might be up to 2 weeks shorter than intended)
      * */
     function timestampToLockDate(uint timestamp) public view returns(uint lockDate){
-        require(timestamp > kickoffTS, "Staking::timestampToLockDate: timestamp lies before contract creation");
+        require(timestamp >= kickoffTS, "Staking::timestampToLockDate: timestamp lies before contract creation");
         //if staking timestamp does not match any of the unstaking dates, set the lockDate to the closest one before the timestamp
         //e.g. passed timestamps lies 7 weeks after kickoff -> only stake for 6 weeks
-        uint periodFromKickoff = (timestamp - kickoffTS) / twoWeeks;
-        lockDate = periodFromKickoff * twoWeeks + kickoffTS;
-        require(lockDate > block.timestamp, "Staking::timestampToLockDate: staking period too short");
+        uint periodFromKickoff = (timestamp - kickoffTS) / TWO_WEEKS;
+        lockDate = periodFromKickoff * TWO_WEEKS + kickoffTS;
     }
     
 }

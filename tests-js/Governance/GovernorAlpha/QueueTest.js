@@ -10,10 +10,11 @@ const {
 
 const GovernorAlpha = artifacts.require('GovernorAlphaMockup');
 const Timelock = artifacts.require('TimelockHarness');
-const Staking = artifacts.require('Staking');
+const StakingLogic = artifacts.require('Staking');
+const StakingProxy = artifacts.require('StakingProxy');
 const TestToken = artifacts.require('TestToken');
 
-const DELAY = 86400 * 2;
+const DELAY = 86400 * 14;
 
 const QUORUM_VOTES = etherMantissa(4000000);
 const TOTAL_SUPPLY = etherMantissa(1000000000);
@@ -21,7 +22,7 @@ const TOTAL_SUPPLY = etherMantissa(1000000000);
 async function enfranchise(token, comp, actor, amount) {
   await token.transfer(actor, amount);
   await token.approve(comp.address, amount, {from: actor});
-  await comp.stake(amount, DELAY, actor, {from: actor});
+  await comp.stake(amount, DELAY, actor, actor, {from: actor});
 
   await comp.delegate(actor, { from: actor });
 }
@@ -36,7 +37,12 @@ contract('GovernorAlpha#queue/1', accounts => {
     it("reverts on queueing overlapping actions in same proposal", async () => {
       const timelock = await Timelock.new(root, DELAY);
       const token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
-      const comp = await Staking.new(token.address);
+  
+      let stakingLogic = await StakingLogic.new(token.address);
+      let comp = await StakingProxy.new(token.address);
+      await comp.setImplementation(stakingLogic.address);
+      comp = await StakingLogic.at(comp.address);
+      
       const gov = await GovernorAlpha.new(timelock.address, comp.address, root);
       const txAdmin = await timelock.harnessSetAdmin(gov.address);
 
@@ -47,6 +53,7 @@ contract('GovernorAlpha#queue/1', accounts => {
       const values = ["0", "0"];
       const signatures = ["getBalanceOf(address)", "getBalanceOf(address)"];
       const calldatas = [encodeParameters(['address'], [root]), encodeParameters(['address'], [root])];
+
       await gov.propose(targets, values, signatures, calldatas, "do nothing", { from: a1 });
       let proposalId1 = await gov.proposalCount.call();
       await mineBlock();
@@ -61,7 +68,12 @@ contract('GovernorAlpha#queue/1', accounts => {
     it("reverts on queueing overlapping actions in different proposals, works if waiting", async () => {
       const timelock = await Timelock.new(root, DELAY);
       const token = await TestToken.new("TestToken", "TST", 18, etherMantissa(10000000000000));
-      const comp = await Staking.new(token.address);
+  
+      let stakingLogic = await StakingLogic.new(token.address);
+      let comp = await StakingProxy.new(token.address);
+      await comp.setImplementation(stakingLogic.address);
+      comp = await StakingLogic.at(comp.address);
+  
       const gov = await GovernorAlpha.new(timelock.address, comp.address, root);
       const txAdmin = await timelock.harnessSetAdmin(gov.address);
 
@@ -73,8 +85,10 @@ contract('GovernorAlpha#queue/1', accounts => {
       const values = ["0"];
       const signatures = ["getBalanceOf(address)"];
       const calldatas = [encodeParameters(['address'], [root])];
+
       await gov.propose(targets, values, signatures, calldatas, "do nothing", { from: a1 });
       let proposalId1 = await gov.proposalCount.call();
+
       await gov.propose(targets, values, signatures, calldatas, "do nothing", { from: a2 });
       let proposalId2 = await gov.proposalCount.call();
       await mineBlock();

@@ -5,16 +5,6 @@ import "./WeightedStaking.sol";
 
 contract Staking is WeightedStaking{
     
-
-    /**
-     * @notice Construct a new staking contract
-     * @param SOV The address of the SOV token address
-     */
-    constructor(address SOV) public {
-        SOVToken = IERC20(SOV);
-        kickoffTS = block.timestamp;
-    }
-    
     /**
      * @notice stakes the given amount for the given duration of time.
      * @dev only if staked balance is 0.
@@ -25,22 +15,23 @@ contract Staking is WeightedStaking{
      * */
     function stake(uint96 amount, uint duration, address stakeFor, address delegatee) public {
         require(amount > 0, "Staking::stake: amount of tokens to stake needs to be bigger than 0");
-        require(_currentBalance(msg.sender) == 0, "Staking:stake: use 'increaseStake' to increase an existing staked position");
-        
-        //do not stake longer than the max duration
-        if (duration <= maxDuration)
-            duration = maxDuration;
-            
-        //retrieve the SOV tokens
-        bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
-        assert(success);
-        
+    
         //stake for the msg.sender if not specified otherwise
         if(stakeFor == address(0))
             stakeFor = msg.sender;
+        require(_currentBalance(stakeFor) == 0, "Staking:stake: use 'increaseStake' to increase an existing staked position");
+        
+        //do not stake longer than the max duration
+        if (duration > MAX_DURATION)
+            duration = MAX_DURATION;
+            
+        //retrieve the SOV tokens
+        bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
+        require(success);
         
         //lock the tokens and update the balance by updating the user checkpoint
         uint lockedTS = timestampToLockDate(block.timestamp + duration);//no overflow possible
+        require(lockedTS > block.timestamp, "Staking::timestampToLockDate: staking period too short");
         _writeUserCheckpoint(stakeFor, amount, uint96(lockedTS));
         
         //increase staked token count until the new locking date
@@ -48,9 +39,9 @@ contract Staking is WeightedStaking{
         
         //delegate to self in case no address provided
         if(delegatee == address(0))
-            _delegate(msg.sender, stakeFor, lockedTS);
+            _delegate(stakeFor, stakeFor, lockedTS);
         else
-            _delegate(msg.sender, delegatee, lockedTS);
+            _delegate(stakeFor, delegatee, lockedTS);
         
         emit TokensStaked(stakeFor, amount, lockedTS, amount);
     }
@@ -66,7 +57,7 @@ contract Staking is WeightedStaking{
         require(previousLock <= until, "Staking::extendStakingDuration: cannot reduce the staking duration");
         
         //do not exceed the max duration, no overflow possible
-        uint latest = block.timestamp + maxDuration;
+        uint latest = block.timestamp + MAX_DURATION;
         if(until > latest)
             until = latest;
         
@@ -74,6 +65,8 @@ contract Staking is WeightedStaking{
         uint96 amount = _currentBalance(msg.sender);
         _decreaseDailyStake(previousLock, amount);
         _increaseDailyStake(until, amount);
+        _decreaseDelegateStake(delegates[msg.sender], previousLock, amount);
+        _increaseDelegateStake(delegates[msg.sender], until, amount);
         _writeUserCheckpoint(msg.sender, amount, uint96(until));
         
         emit ExtendedStakingDuration(msg.sender, previousLock, until);
@@ -86,10 +79,10 @@ contract Staking is WeightedStaking{
      * */
     function increaseStake(uint96 amount, address stakeFor) public{
         require(amount > 0, "Staking::increaseStake: amount of tokens to stake needs to be bigger than 0");
-            
+        
         //retrieve the SOV tokens
         bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
-        assert(success);
+        require(success);
         
         //stake for the msg.sender if not specified otherwise
         if(stakeFor == address(0))
@@ -101,6 +94,7 @@ contract Staking is WeightedStaking{
         //update checkpoints
         uint until = currentLock(stakeFor);
         _increaseDailyStake(until, amount);
+        _increaseDelegateStake(delegates[stakeFor], until, amount);
         _writeUserCheckpoint(stakeFor, newBalance, uint96(until));
         
         emit TokensStaked(stakeFor, amount, until, newBalance);
@@ -126,14 +120,14 @@ contract Staking is WeightedStaking{
         uint96 newBalance = sub96(balance, amount, "Staking::withdraw: balance underflow");
 
         //update the checkpoints
-        _decreaseDailyStake(until, amount); 
+        _decreaseDailyStake(until, amount);
         _writeUserCheckpoint(msg.sender, newBalance, until);
         
         //transferFrom
-        bool success = SOVToken.transferFrom(address(this), msg.sender, amount);
-        assert(success);
+        bool success = SOVToken.transfer(receiver, amount);
+        require(success, "Staking::withdraw: Token transfer failed");
         
-        emit TokensWithdrawn(msg.sender, amount);
+        emit TokensWithdrawn(msg.sender, receiver, amount);
     }
     
     /**
@@ -208,7 +202,7 @@ contract Staking is WeightedStaking{
      * @return The number of current votes for `account`
      */
     function getCurrentVotes(address account) external view returns (uint96) {
-        getPriorVotes(account, block.number, block.timestamp);
+        return getPriorVotes(account, block.number - 1, block.timestamp);
     }
     
     /**
@@ -230,13 +224,14 @@ contract Staking is WeightedStaking{
 
         _moveDelegates(currentDelegate, delegatee, delegatorBalance, lockedTS);
     }
+    
 
     function _moveDelegates(address srcRep, address dstRep, uint96 amount, uint lockedTS) internal {
         if (srcRep != dstRep && amount > 0) {
-            if (srcRep != address(0)) 
+            if (srcRep != address(0))
                  _decreaseDelegateStake(srcRep, lockedTS, amount);
                  
-            if (dstRep != address(0)) 
+            if (dstRep != address(0))
                 _increaseDelegateStake(dstRep, lockedTS, amount);
         }
     }
