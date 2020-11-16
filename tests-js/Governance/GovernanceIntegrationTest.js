@@ -1,13 +1,13 @@
 const {expect} = require('chai');
 const {expectRevert, expectEvent, constants, BN, balance, time} = require('@openzeppelin/test-helpers');
 
+const { ZERO_ADDRESS } = constants;
+
 const {
-    etherUnsigned,
     encodeParameters,
     etherMantissa,
     mineBlock,
-    setTime,
-    increaseTime
+    increaseTime,
 } = require('../Utils/Ethereum');
 
 const GovernorAlpha = artifacts.require('GovernorAlphaMockup');
@@ -17,6 +17,7 @@ const StakingProxy = artifacts.require('StakingProxy');
 const TestToken = artifacts.require('TestToken');
 const ProtocolSettings = artifacts.require('ProtocolSettings');
 const LoanTokenSettings = artifacts.require('LoanTokenSettingsLowerAdmin');
+const LoanToken = artifacts.require('LoanToken');
 
 const PROPOSAL_THRESHOLD = etherMantissa(1000000);
 const QUORUM_VOTES = etherMantissa(4000000);
@@ -27,8 +28,6 @@ const TWO_DAYS = 86400 * 2;
 const TWO_WEEKS = 86400 * 14;
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-
 //TODO require(success, "Timelock::executeTransaction: Transaction execution reverted.");
 
 contract('GovernanceIntegration', accounts => {
@@ -36,8 +35,8 @@ contract('GovernanceIntegration', accounts => {
     const symbol = 'TST';
     
     let root, account1, account2, account3, account4;
-    let token, staking, gov;
-    let protocolSettings, loanTokenSettings;
+    let token, staking, gov, timelock;
+    let protocolSettings, loanTokenSettings, loanToken;
     
     before(async () => {
         [root, account1, account2, account3, account4, ...accounts] = accounts;
@@ -54,18 +53,22 @@ contract('GovernanceIntegration', accounts => {
         staking = await StakingLogic.at(staking.address);
     
         //Governor
-        let timelock = await Timelock.new(root, TWO_DAYS);
-        // await timelock.setDelayWithoutChecking(1);
+        timelock = await Timelock.new(root, TWO_DAYS);
         gov = await GovernorAlpha.new(timelock.address, staking.address, root);
         await timelock.harnessSetAdmin(gov.address);
         
         //Settings
-        //TODO LoanToken ?
+        //TODO LoanToken !
         protocolSettings = await ProtocolSettings.new();
         loanTokenSettings = await LoanTokenSettings.new();
     
+        loanToken = await LoanToken.new(root, protocolSettings.address, token.address, token.address);
+        loanToken = await ProtocolSettings.at(loanToken.address);
+        await loanToken.initialize(protocolSettings.address);
+        //TODO ???
+        // await loanToken.transferOwnership(timelock.address);
+    
         //Transfer Ownership
-        //TODO changes in a deployment script or in the deployed contracts
         await protocolSettings.transferOwnership(timelock.address);
         await loanTokenSettings.transferOwnership(timelock.address);
     });
@@ -75,19 +78,54 @@ contract('GovernanceIntegration', accounts => {
         it("Should be able to execute one action", async () => {
             let lendingFeePercentOld = etherMantissa(10).toString();
             let lendingFeePercentNew = etherMantissa(7).toString();
-            
+
+            let proposalData = {
+                targets: [
+                    loanToken.address
+                ],
+                values: [
+                    0
+                ],
+                signatures: [
+                    "setLendingFeePercent(uint256)"
+                ],
+                callDatas: [
+                    encodeParameters(['uint256'], [lendingFeePercentNew])
+                ],
+                description: "change settings"
+            };
+
+            //old value
+            // let lendingFeePercent = await loanToken.lendingFeePercent.call();
+            // expect(lendingFeePercent.toString()).to.be.equal(lendingFeePercentOld);
+
+            //make changes
+            await executeProposal(proposalData);
+
+            //new value
+            lendingFeePercent = await loanToken.lendingFeePercent.call();
+            expect(lendingFeePercent.toString()).to.be.equal(lendingFeePercentNew);
+        });
+    
+        it("Should be able to execute one action with signature in the call data", async () => {
+            let lendingFeePercentOld = etherMantissa(10).toString();
+            let lendingFeePercentNew = etherMantissa(7).toString();
+    
+            let selector = web3.utils.keccak256("setLendingFeePercent(uint256)").substring(0, 10);
+            let callData = encodeParameters(['uint256'], [lendingFeePercentNew]).replace("0x", selector);
+    
             let proposalData = {
                 targets: [
                     protocolSettings.address
                 ],
                 values: [
                     0
-                ], //TODO no payable methods
+                ],
                 signatures: [
-                    "setLendingFeePercent(uint256)"
-                ], //TODO add proposal without signature
+                    ""
+                ],
                 callDatas: [
-                    encodeParameters(['uint256'], [lendingFeePercentNew])
+                    callData
                 ],
                 description: "change settings"
             };
@@ -102,8 +140,6 @@ contract('GovernanceIntegration', accounts => {
             //new value
             lendingFeePercent = await protocolSettings.lendingFeePercent.call();
             expect(lendingFeePercent.toString()).to.be.equal(lendingFeePercentNew);
-    
-            //TODO check events ?
         });
     
         it("Should be able to execute three actions", async () => {
@@ -114,7 +150,7 @@ contract('GovernanceIntegration', accounts => {
                 targets: [
                     protocolSettings.address,
                     protocolSettings.address,
-                    loanTokenSettings.address //TODO onlyAdmin ?
+                    loanTokenSettings.address
                 ],
                 values: [
                     0,
@@ -164,7 +200,8 @@ contract('GovernanceIntegration', accounts => {
     
         it("Shouldn't be able to execute proposal using Timelock directly", async () => {
             
-            //TODO implement
+            await expectRevert(timelock.executeTransaction(ZERO_ADDRESS, "0", "", "0x", "0"),
+                "Timelock::executeTransaction: Call must come from admin.");
             
         });
     
@@ -184,7 +221,11 @@ contract('GovernanceIntegration', accounts => {
         await gov.queue(proposalId);
         
         await increaseTime(TWO_DAYS);
-        await gov.execute(proposalId);
+        let tx = await gov.execute(proposalId);
+    
+        expectEvent(tx, 'ProposalExecuted', {
+            id: proposalId,
+        });
     }
     
 });
