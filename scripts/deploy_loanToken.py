@@ -39,7 +39,7 @@ Deploys and tests the two loan tokenn contracts
 def deployLoanTokens(acct, sovryn, tokens):
     
     print('\n DEPLOYING ISUSD')
-    (contractSUSD, loanTokenSettingsSUSD) = deployLoanToken(acct, sovryn, tokens.susd.address, "iSUSD", "iSUSD", tokens.wrbtc.address, tokens.wrbtc.address)
+    (contractSUSD, loanTokenSettingsSUSD) = deployLoanToken(acct, sovryn, tokens.susd.address, "iSUSD", "iSUSD", [tokens.wrbtc.address], tokens.wrbtc.address)
     print("initializing the lending pool with some tokens, so we do not run out of funds")
     tokens.susd.approve(contractSUSD.address,1000e18) #1k $
     contractSUSD.mint(acct, 1000e18)
@@ -47,7 +47,7 @@ def deployLoanTokens(acct, sovryn, tokens):
         testDeployment(acct, sovryn,contractSUSD.address, tokens.susd, tokens.wrbtc, 21e18, 0)
     
     print('\n DEPLOYING IWRBTC')
-    (contractWRBTC, loanTokenSettingsWRBTC) = deployLoanToken(acct, sovryn, tokens.wrbtc.address, "iWRBTC", "iWRBTC", tokens.susd.address, tokens.wrbtc.address)
+    (contractWRBTC, loanTokenSettingsWRBTC) = deployLoanToken(acct, sovryn, tokens.wrbtc.address, "iWRBTC", "iWRBTC", [tokens.susd.address], tokens.wrbtc.address)
     print("initializing the lending pool with some tokens, so we do not run out of funds")
     contractWRBTC = Contract.from_abi("loanToken", address=contractWRBTC.address, abi=LoanTokenLogicWrbtc.abi, owner=acct)
     contractWRBTC.mintWithBTC(acct, {'value':0.1e18})#0.1 BTC
@@ -59,7 +59,7 @@ def deployLoanTokens(acct, sovryn, tokens):
 '''
 Deploys a single loan token contract and sets it up
 '''
-def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddress, wrbtcAddress):
+def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddresses, wrbtcAddress):
     
     print("Deploying LoanTokenLogicStandard")
     if(loanTokenSymbol == 'iWRBTC'):
@@ -93,24 +93,28 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
         [loanTokenAddress]
     )
 
-    print("Setting up margin pool params on loan token.")
+    if not collateralAddresses:
+        collateralAddresses = []
 
     constants = shared.Constants()
-    params = [];
 
-    data = [
-        b"0x0", ## id
-        False, ## active
-        str(acct), ## owner
-        constants.ZERO_ADDRESS, ## loanToken -> will be overwritten
-        collateralAddress, ## collateralToken.
-        Wei("20 ether"), ## minInitialMargin -> 20% (allows up to 5x leverage)
-        Wei("15 ether"), ## maintenanceMargin -> 15%, below liquidation
-        0 ## fixedLoanTerm -> will be overwritten with 28 days
-    ]
+    print("Setting up margin pool params on loan token.")
 
+    params = []
+    
+    for collateralAddress in collateralAddresses:
+        data = [
+            b"0x0", ## id
+            False, ## active
+            str(acct), ## owner
+            constants.ZERO_ADDRESS, ## loanToken -> will be overwritten
+            collateralAddress, ## collateralToken.
+            Wei("20 ether"), ## minInitialMargin -> 20% (allows up to 5x leverage)
+            Wei("15 ether"), ## maintenanceMargin -> 15%, below liquidation
+            0 ## fixedLoanTerm -> will be overwritten with 28 days
+        ]
 
-    params.append(data)
+        params.append(data)
 
     #configure the token settings
     calldata = loanTokenSettings.setupLoanParams.encode_input(params, False)
@@ -121,21 +125,21 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
 
     print("Setting up torque pool params")
 
-    params = [];
+    params = []
 
-    data = [
-        b"0x0", ## id
-        False, ## active
-        str(acct), ## owner
-        constants.ZERO_ADDRESS, ## loanToken -> will be overwritten
-        collateralAddress, ## collateralToken.
-        Wei("50 ether"), ## minInitialMargin -> 20% (allows up to 5x leverage)
-        Wei("15 ether"), ## maintenanceMargin -> 15%, below liquidation
-        0 ## fixedLoanTerm -> will be overwritten with 28 days
-    ]
+    for collateralAddress in collateralAddresses:
+        data = [
+            b"0x0", ## id
+            False, ## active
+            str(acct), ## owner
+            constants.ZERO_ADDRESS, ## loanToken -> will be overwritten
+            collateralAddress, ## collateralToken.
+            Wei("50 ether"), ## minInitialMargin -> 20% (allows up to 5x leverage)
+            Wei("15 ether"), ## maintenanceMargin -> 15%, below liquidation
+            0 ## fixedLoanTerm -> will be overwritten with 28 days
+        ]
 
-
-    params.append(data)
+        params.append(data)
 
     #configure the token settings
     calldata = loanTokenSettings.setupLoanParams.encode_input(params, True)

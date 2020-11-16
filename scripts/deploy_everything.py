@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 
 from brownie import *
-from scripts.deployment.deploy_protocol import deployProtocol
-from scripts.deployment.deploy_loanToken import deployLoanTokens
-from scripts.deployment.deploy_tokens import deployTokens, readTokens
-from scripts.deployment.deploy_multisig import deployMultisig
+from scripts.deploy_protocol import deployProtocol
+from scripts.deploy_loanToken import deployLoanTokens
+from scripts.deploy_tokens import deployTokens, readTokens
+from scripts.deploy_multisig import deployMultisig
 
 import shared
 import json
@@ -41,24 +41,28 @@ def main():
         acct = accounts.load("rskdeployer")
     else:
         raise Exception("network not supported")
-
+    
     if('WRBTC' in configData and 'SUSD' in configData):
         tokens = readTokens(acct, configData['WRBTC'], configData['SUSD'])
     elif('SUSD' in configData):
         tokens = deployWRBTC(acct, configData['SUSD'])
     else:
         tokens = deployTokens(acct)
-
+        
     if(not 'medianizer' in configData):
         medianizer = deployMoCMockup(acct)
         configData['medianizer'] = medianizer.address
 
+    if(not 'mocState' in configData):
+        mocState = deployBProPriceFeedMockup(acct)
+        configData['mocState'] = mocState.address
+        
     sovryn = deployProtocol(acct, tokens, configData['medianizer'])
     (loanTokenSUSD, loanTokenWRBTC, loanTokenSettingsSUSD,
      loanTokenSettingsWRBTC) = deployLoanTokens(acct, sovryn, tokens)
 
     #deployMultisig(sovryn, acct, owners, requiredConf)
-
+    
     configData["sovrynProtocol"] = sovryn.address
     configData["WRBTC"] = tokens.wrbtc.address
     configData["SUSD"] = tokens.susd.address
@@ -75,3 +79,8 @@ def deployMoCMockup(acct):
     priceFeedMockup.setHas(True)
     priceFeedMockup.setValue(10000e18)
     return priceFeedMockup
+
+def deployBProPriceFeedMockup(acct):
+    bproPriceFeedMockup = acct.deploy(BProPriceFeedMockup)
+    bproPriceFeedMockup.setValue(20000e18)
+    return bproPriceFeedMockup
