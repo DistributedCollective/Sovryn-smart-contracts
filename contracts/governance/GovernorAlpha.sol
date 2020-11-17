@@ -1,15 +1,11 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
-contract GovernorAlpha {
+import "./Staking/SafeMath96.sol";
+
+contract GovernorAlpha is SafeMath96 {
     /// @notice The name of this contract
-    string public constant name = "Sovryn Governor Alpha";
-
-    /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
-    function quorumVotes() public pure returns (uint) { return 400000e18; } // 400,000 = 4% of SOV
-
-    /// @notice The number of votes required in order for a voter to become a proposer
-    function proposalThreshold() public pure returns (uint) { return 100000e18; } // 100,000 = 1% of SOV
+    string public constant NAME = "Sovryn Governor Alpha";
 
     /// @notice The maximum number of actions that can be included in a proposal
     function proposalMaxOperations() public pure returns (uint) { return 10; } // 10 actions
@@ -31,16 +27,40 @@ contract GovernorAlpha {
 
     /// @notice The total number of proposals
     uint public proposalCount;
-
+    
     struct Proposal {
         /// @notice Unique id for looking up a proposal
         uint id;
+        
+         /// @notice The block at which voting begins: holders must delegate their votes prior to this block
+        uint32 startBlock;
 
+        /// @notice The block at which voting ends: votes must be cast prior to this block
+        uint32 endBlock;
+        
+        /// @notice Current number of votes in favor of this proposal
+        uint96 forVotes;
+
+        /// @notice Current number of votes in opposition to this proposal
+        uint96 againstVotes;
+        
+        ///@notice the quorum required for this proposal
+        uint96 quorum;
+        
+        /// @notice The timestamp that the proposal will be available for execution, set once the vote succeeds
+        uint64 eta;
+        
+        /// @notice the start time is required for the staking contract
+        uint64 startTime;
+
+        /// @notice Flag marking whether the proposal has been canceled
+        bool canceled;
+
+        /// @notice Flag marking whether the proposal has been executed
+        bool executed;
+        
         /// @notice Creator of the proposal
         address proposer;
-
-        /// @notice The timestamp that the proposal will be available for execution, set once the vote succeeds
-        uint eta;
 
         /// @notice the ordered list of target addresses for calls to be made
         address[] targets;
@@ -53,24 +73,6 @@ contract GovernorAlpha {
 
         /// @notice The ordered list of calldata to be passed to each call
         bytes[] calldatas;
-
-        /// @notice The block at which voting begins: holders must delegate their votes prior to this block
-        uint startBlock;
-
-        /// @notice The block at which voting ends: votes must be cast prior to this block
-        uint endBlock;
-
-        /// @notice Current number of votes in favor of this proposal
-        uint forVotes;
-
-        /// @notice Current number of votes in opposition to this proposal
-        uint againstVotes;
-
-        /// @notice Flag marking whether the proposal has been canceled
-        bool canceled;
-
-        /// @notice Flag marking whether the proposal has been executed
-        bool executed;
 
         /// @notice Receipts of ballots for the entire set of voters
         mapping (address => Receipt) receipts;
@@ -132,9 +134,28 @@ contract GovernorAlpha {
         staking = StakingInterface(staking_);
         guardian = guardian_;
     }
+    
+     /// @notice The number of votes required in order for a voter to become a proposer
+    function proposalThreshold() public view returns (uint96) { 
+        uint96 totalVotingPower = staking.getPriorTotalVotingPower(safe32(block.number-1, "GovernorAlpha::proposalThreshold: block number overflow"), block.timestamp);
+        //1% of current total voting power
+        return totalVotingPower/100; 
+    } 
+
+    
+    /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
+    function quorumVotes() public view returns (uint96) { 
+        uint96 totalVotingPower = staking.getPriorTotalVotingPower(safe32(block.number-1, "GovernorAlpha::quorumVotes: block number overflow"), block.timestamp);
+        //4% of current total voting power
+        return mul96(4, totalVotingPower, "GovernorAlpha::quorumVotes:multiplication overflow")/100; 
+    } 
+
 
     function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
-        require(staking.getPriorVotes(msg.sender, sub256(block.number, 1)) > proposalThreshold(), "GovernorAlpha::propose: proposer votes below proposal threshold");
+        //note: passing this block's timestamp, but the number of the previous block
+        //todo: think if it would be better to pass block.timestamp - 30 (average block time) (probably not because proposal starts in 1 block from now)
+        uint96 proposalThreshold = proposalThreshold();
+        require(staking.getPriorVotes(msg.sender, sub256(block.number, 1), block.timestamp) > proposalThreshold, "GovernorAlpha::propose: proposer votes below proposal threshold");
         require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "GovernorAlpha::propose: proposal function information arity mismatch");
         require(targets.length != 0, "GovernorAlpha::propose: must provide actions");
         require(targets.length <= proposalMaxOperations(), "GovernorAlpha::propose: too many actions");
@@ -152,18 +173,20 @@ contract GovernorAlpha {
         proposalCount++;
         Proposal memory newProposal = Proposal({
             id: proposalCount,
-            proposer: msg.sender,
+            startBlock: safe32(startBlock, "GovernorAlpha::propose: start block number overflow"),
+            endBlock: safe32(endBlock, "GovernorAlpha::propose: end block number overflow"),
+            forVotes: 0,
+            againstVotes: 0,
+            quorum: mul96(4, proposalThreshold, "GovernorAlpha::propose: overflow on quorum computation"),
             eta: 0,
+            startTime: safe64(block.timestamp, "GovernorAlpha::propose: startTime overflow"),//required by the staking contract. not used by the governance contract itself.
+            canceled: false,
+            executed: false,
+            proposer: msg.sender,
             targets: targets,
             values: values,
             signatures: signatures,
-            calldatas: calldatas,
-            startBlock: startBlock,
-            endBlock: endBlock,
-            forVotes: 0,
-            againstVotes: 0,
-            canceled: false,
-            executed: false
+            calldatas: calldatas
         });
 
         proposals[newProposal.id] = newProposal;
@@ -180,7 +203,7 @@ contract GovernorAlpha {
         for (uint i = 0; i < proposal.targets.length; i++) {
             _queueOrRevert(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], eta);
         }
-        proposal.eta = eta;
+        proposal.eta = safe64(eta, "GovernorAlpha::queue: ETA overflow");
         emit ProposalQueued(proposalId, eta);
     }
 
@@ -204,7 +227,9 @@ contract GovernorAlpha {
         require(state != ProposalState.Executed, "GovernorAlpha::cancel: cannot cancel executed proposal");
 
         Proposal storage proposal = proposals[proposalId];
-        require(msg.sender == guardian || staking.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < proposalThreshold(), "GovernorAlpha::cancel: proposer above threshold");
+        //cancel only if sent by the guardian or the proposer removed his tokens
+        //todo check if necessary -> tokens are locked anyway. could they be removed in the meantime?
+        require(msg.sender == guardian || staking.getPriorVotes(proposal.proposer, sub256(block.number, 1), proposal.startTime) < proposalThreshold(), "GovernorAlpha::cancel: proposer above threshold");
 
         proposal.canceled = true;
         for (uint i = 0; i < proposal.targets.length; i++) {
@@ -232,7 +257,7 @@ contract GovernorAlpha {
             return ProposalState.Pending;
         } else if (block.number <= proposal.endBlock) {
             return ProposalState.Active;
-        } else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < quorumVotes()) {
+        } else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < proposal.quorum) {
             return ProposalState.Defeated;
         } else if (proposal.eta == 0) {
             return ProposalState.Succeeded;
@@ -250,7 +275,7 @@ contract GovernorAlpha {
     }
 
     function castVoteBySig(uint proposalId, bool support, uint8 v, bytes32 r, bytes32 s) public {
-        bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), getChainId(), address(this)));
+        bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(NAME)), getChainId(), address(this)));
         bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
@@ -263,12 +288,12 @@ contract GovernorAlpha {
         Proposal storage proposal = proposals[proposalId];
         Receipt storage receipt = proposal.receipts[voter];
         require(receipt.hasVoted == false, "GovernorAlpha::_castVote: voter already voted");
-        uint96 votes = staking.getPriorVotes(voter, proposal.startBlock);
+        uint96 votes = staking.getPriorVotes(voter, proposal.startBlock, proposal.startTime);
 
         if (support) {
-            proposal.forVotes = add256(proposal.forVotes, votes);
+            proposal.forVotes = add96(proposal.forVotes, votes, "GovernorAlpha::_castVote: vote overflow");
         } else {
-            proposal.againstVotes = add256(proposal.againstVotes, votes);
+            proposal.againstVotes = add96(proposal.againstVotes, votes, "GovernorAlpha::_castVote: vote overflow");
         }
 
         receipt.hasVoted = true;
@@ -303,7 +328,7 @@ contract GovernorAlpha {
         require(c >= a, "addition overflow");
         return c;
     }
-
+    
     function sub256(uint256 a, uint256 b) internal pure returns (uint) {
         require(b <= a, "subtraction underflow");
         return a - b;
@@ -314,6 +339,7 @@ contract GovernorAlpha {
         assembly { chainId := chainid() }
         return chainId;
     }
+
 }
 
 interface TimelockInterface {
@@ -327,5 +353,6 @@ interface TimelockInterface {
 }
 
 interface StakingInterface {
-    function getPriorVotes(address account, uint blockNumber) external view returns (uint96);
+    function getPriorVotes(address account, uint blockNumber, uint date) external view returns (uint96);
+    function getPriorTotalVotingPower(uint32 blockNumber, uint time) view external returns(uint96);
 }

@@ -6,6 +6,7 @@ This script serves the purpose of interacting with existing smart contracts on t
 from brownie import *
 from brownie.network.contract import InterfaceContainer
 import json
+import time;
 
 def main():
     
@@ -45,13 +46,16 @@ def main():
     #for i in range(8):
     #    setProtocolTokenAddressWithMultisig()
     #extendDuration()
-    #stake('0x55310E0bC1A85bB24Ec7798a673a69Ba254B6Bbf')
+
+    #stake(acct, 10000e18)
     #readPriorVotes(acct)
     #makeGovernanceProposal()
     #confirmMultisigTransaction(0)
     #transferTokens(contracts['SOV'], '0x2bD2201bfe156a71EB0d02837172FFc237218505', 500000e18)
-    changeMultisigOwner('0x55310E0bC1A85bB24Ec7798a673a69Ba254B6Bbf', '0x33EC0Bc1Bc29fdC868e0918983227637Da654c4C')
-
+    #changeMultisigOwner('0x55310E0bC1A85bB24Ec7798a673a69Ba254B6Bbf', '0x52e8f03e7c9c1Ef320ff7C31dB78EAead18E5F85')
+    #changeProtocolOwnerWithMS('0x6b5b3AaBcb97135371E55bD3eF8a44713aE1841F')
+    readProposal(contracts['governor'])
+    
     
 def loadConfig():
     global contracts, acct
@@ -415,14 +419,21 @@ def changeMultisigOwner(oldOwner, newOwner):
     txId = tx.events["Submission"]["transactionId"]
     print('txId', txId)
     
+def changeProtocolOwnerWithMS(newOwner):
+    sovryn = Contract.from_abi("sovryn", address=contracts['protocol'], abi=interface.ISovryn.abi, owner=acct)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    data = sovryn.transferOwnership.encode_input(newOwner)
+    tx = multisig.submitTransaction(multisig.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print('txId', txId)
     
-def stake(stakeFor):
+    
+def stake(stakeFor, amount):
     governor = Contract.from_abi("Governor", address=contracts['governor'], abi=GovernorAlpha.abi, owner=acct)
     staking = Contract.from_abi("Staking", address=contracts['staking'], abi=Staking.abi, owner=acct)
     SOV = Contract.from_abi("SOV", address=contracts['SOV'], abi=TestToken.abi, owner=acct)
-    quorom = governor.quorumVotes()
-    #SOV.approve(staking.address, quorom)
-    staking.stake(quorom, 52*14*24*60*60, stakeFor, acct)
+    SOV.approve(staking.address, amount)
+    staking.stake(amount, 52*14*24*60*60, stakeFor, acct)
 
     
 def increaseStake(amount):
@@ -459,3 +470,7 @@ def transferTokens(tokenAddress, receiver, amount):
     token = Contract.from_abi("token", address=tokenAddress, abi=TestToken.abi, owner=acct)
     token.transfer(receiver, amount)
 
+def readProposal(governorAddress):
+    governor = Contract.from_abi("Governor", address=governorAddress, abi=GovernorAlpha.abi, owner=acct)
+    proposal = governor.proposals(1);
+    print(proposal)
