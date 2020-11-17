@@ -529,7 +529,30 @@ contract('Staking', accounts => {
                 amount: new BN(amount / 2),
             });
         });
-
+    
+        it("Should be able to withdraw second time", async () => {
+            let amount = "1000";
+            let duration = new BN(TWO_WEEKS).mul(new BN(2));
+            await staking.stake(amount, duration, root, root);
+        
+            let lockedTS = await getTimeFromKickoff(duration);
+            await setTime(lockedTS);
+        
+            let stackingbBalance = await token.balanceOf.call(staking.address);
+            expect(stackingbBalance.toString()).to.be.equal(amount);
+        
+            await staking.withdraw(amount / 2, root);
+        
+            stackingbBalance = await token.balanceOf.call(staking.address);
+            expect(stackingbBalance.toNumber()).to.be.equal(amount / 2);
+    
+            await staking.withdraw(amount / 2, root);
+    
+            stackingbBalance = await token.balanceOf.call(staking.address);
+            expect(stackingbBalance.toNumber()).to.be.equal(0);
+    
+        });
+    
     });
 
     describe('unlockAllTokens', () => {
