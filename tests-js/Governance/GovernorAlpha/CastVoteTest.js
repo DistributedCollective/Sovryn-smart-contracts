@@ -19,6 +19,7 @@ const StakingProxy = artifacts.require('StakingProxy');
 const TestToken = artifacts.require('TestToken');
 
 const DELAY = 86400 * 14;
+const TWO_WEEKS = 86400 * 14;
 
 const QUORUM_VOTES = etherMantissa(4000000);
 const TOTAL_SUPPLY = etherMantissa(100000000);
@@ -27,8 +28,6 @@ async function enfranchise(token, comp, actor, amount) {
   await token.transfer(actor, amount);
   await token.approve(comp.address, amount, {from: actor});
   await comp.stake(amount, DELAY, actor, actor, {from: actor});
-
-  await comp.delegate(actor, { from: actor });
 }
 
 contract("governorAlpha#castVote/2", accounts => {
@@ -146,7 +145,7 @@ contract("governorAlpha#castVote/2", accounts => {
         await mineBlock();
         const tx = await gov.castVoteBySig(proposalId, true, v, r, s, { from: a1 });
         expect(tx.gasUsed < 80000);
-  
+
         let proposal = await gov.proposals.call(proposalId);
         let expectedVotes = await comp.getPriorVotes.call(a1, proposal.startBlock.toString(), proposal.startTime.toString());
         let afterFors = (await gov.proposals.call(proposalId)).forVotes;
@@ -169,19 +168,49 @@ contract("governorAlpha#castVote/2", accounts => {
 
       let trxReceipt = await gov.getReceipt.call(proposalId, actor);
       let trxReceipt2 = await gov.getReceipt.call(proposalId, actor2);
-      
+
       let proposal = await gov.proposals.call(proposalId);
       let expectedVotes = await comp.getPriorVotes.call(actor, proposal.startBlock.toString(), proposal.startTime.toString());
       let expectedVotes2 = await comp.getPriorVotes.call(actor2, proposal.startBlock.toString(), proposal.startTime.toString());
-      
+
       expect(new BigNumber(trxReceipt.votes.toString()).toString()).to.be.equal(new BigNumber(expectedVotes.toString()).toString());
       expect(trxReceipt.hasVoted).to.be.equal(true);
       expect(trxReceipt.support).to.be.equal(true);
-    
+
       expect(new BigNumber(trxReceipt2.votes.toString()).toString()).to.be.equal(new BigNumber(expectedVotes2.toString()).toString());
       expect(trxReceipt2.hasVoted).to.be.equal(true);
       expect(trxReceipt2.support).to.be.equal(false);
 
     });
   });
+  
+  describe("Check votes for a proposal creator:", ()=> {
+    
+    it("compare votes", async () => {
+      let actor = accounts[4];
+      let amount = etherMantissa(1000000);
+      await token.transfer(actor, amount);
+      await token.approve(comp.address, amount, {from: actor});
+      await comp.stake(amount, TWO_WEEKS, actor, actor, {from: actor});
+      
+      await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: actor });
+      proposalId = await gov.latestProposalIds.call(actor);
+      
+      let proposal = await gov.proposals.call(proposalId);
+      expect(proposal.forVotes.toNumber()).to.be.equal(0);
+      
+      await mineBlock();
+      await gov.castVote(proposalId, true, { from: actor });
+      
+      proposal = await gov.proposals.call(proposalId);
+      let expectedVotes = await comp.getPriorVotes.call(actor, proposal.startBlock, proposal.startTime);
+      expect(proposal.forVotes.toString()).to.be.equal(expectedVotes.toString());
+      let receipt = await gov.getReceipt.call(proposalId, actor);
+      expect(receipt.votes.toString()).to.be.equal(expectedVotes.toString());
+      
+      console.log("\n" + proposal.forVotes.toString());
+    })
+    
+  });
+  
 });
