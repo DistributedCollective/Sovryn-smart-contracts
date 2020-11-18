@@ -31,7 +31,7 @@ async function enfranchise(token, comp, actor, amount) {
 }
 
 contract("governorAlpha#castVote/2", accounts => {
-    let token, comp, gov, root, a1;
+    let token, staking, gov, root, a1;
     let targets, values, signatures, callDatas, proposalId;
     
     before(async () => {
@@ -41,17 +41,17 @@ contract("governorAlpha#castVote/2", accounts => {
         token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
         
         let stakingLogic = await StakingLogic.new(token.address);
-        comp = await StakingProxy.new(token.address);
-        await comp.setImplementation(stakingLogic.address);
-        comp = await StakingLogic.at(comp.address);
+        staking = await StakingProxy.new(token.address);
+        await staking.setImplementation(stakingLogic.address);
+        staking = await StakingLogic.at(staking.address);
         
-        gov = await GovernorAlpha.new(address(0), comp.address, root);
+        gov = await GovernorAlpha.new(address(0), staking.address, root);
         
         targets = [a1];
         values = ["0"];
         signatures = ["getBalanceOf(address)"];
         callDatas = [encodeParameters(['address'], [a1])];
-        await enfranchise(token, comp, root, QUORUM_VOTES);
+        await enfranchise(token, staking, root, QUORUM_VOTES);
         await gov.propose(targets, values, signatures, callDatas, "do nothing");
         proposalId = await gov.latestProposalIds.call(root);
     });
@@ -84,7 +84,7 @@ contract("governorAlpha#castVote/2", accounts => {
             
             it("and we add that ForVotes", async () => {
                 actor = accounts[1];
-                await enfranchise(token, comp, actor, QUORUM_VOTES);
+                await enfranchise(token, staking, actor, QUORUM_VOTES);
                 
                 await gov.propose(targets, values, signatures, callDatas, "do nothing", {from: actor});
                 proposalId = await gov.latestProposalIds.call(actor);
@@ -95,7 +95,7 @@ contract("governorAlpha#castVote/2", accounts => {
                 
                 let afterFors = (await gov.proposals.call(proposalId)).forVotes;
                 let proposal = await gov.proposals.call(proposalId);
-                let expectedVotes = await comp.getPriorVotes.call(actor, proposal.startBlock.toString(), proposal.startTime.toString());
+                let expectedVotes = await staking.getPriorVotes.call(actor, proposal.startBlock.toString(), proposal.startTime.toString());
                 expect(new BigNumber(afterFors).toString()).to.be.equal(new BigNumber(expectedVotes.toString()).toString())
             })
             
@@ -111,7 +111,7 @@ contract("governorAlpha#castVote/2", accounts => {
                 
                 let afterAgainsts = (await gov.proposals.call(proposalId)).againstVotes;
                 let proposal = await gov.proposals.call(proposalId);
-                let expectedVotes = await comp.getPriorVotes.call(actor, proposal.startBlock.toString(), proposal.startTime.toString());
+                let expectedVotes = await staking.getPriorVotes.call(actor, proposal.startBlock.toString(), proposal.startTime.toString());
                 expect(new BigNumber(afterAgainsts).toString()).to.be.equal(new BigNumber(expectedVotes.toString()).toString());
             });
         });
@@ -135,7 +135,7 @@ contract("governorAlpha#castVote/2", accounts => {
             });
             
             it('casts vote on behalf of the signatory', async () => {
-                await enfranchise(token, comp, a1, QUORUM_VOTES);
+                await enfranchise(token, staking, a1, QUORUM_VOTES);
                 await gov.propose(targets, values, signatures, callDatas, "do nothing", {from: a1});
                 proposalId = await gov.latestProposalIds.call(a1);
                 
@@ -150,7 +150,7 @@ contract("governorAlpha#castVote/2", accounts => {
                 expect(tx.gasUsed < 80000);
                 
                 let proposal = await gov.proposals.call(proposalId);
-                let expectedVotes = await comp.getPriorVotes.call(a1, proposal.startBlock.toString(), proposal.startTime.toString());
+                let expectedVotes = await staking.getPriorVotes.call(a1, proposal.startBlock.toString(), proposal.startTime.toString());
                 let afterFors = (await gov.proposals.call(proposalId)).forVotes;
                 expect(new BigNumber(afterFors).toString()).to.be.equal(new BigNumber(expectedVotes.toString()).toString());
             });
@@ -159,8 +159,8 @@ contract("governorAlpha#castVote/2", accounts => {
         it("receipt uses one load", async () => {
             let actor = accounts[2];
             let actor2 = accounts[3];
-            await enfranchise(token, comp, actor, QUORUM_VOTES);
-            await enfranchise(token, comp, actor2, QUORUM_VOTES.multipliedBy(2));
+            await enfranchise(token, staking, actor, QUORUM_VOTES);
+            await enfranchise(token, staking, actor2, QUORUM_VOTES.multipliedBy(2));
             await gov.propose(targets, values, signatures, callDatas, "do nothing", {from: actor});
             proposalId = await gov.latestProposalIds.call(actor);
             
@@ -173,8 +173,8 @@ contract("governorAlpha#castVote/2", accounts => {
             let trxReceipt2 = await gov.getReceipt.call(proposalId, actor2);
             
             let proposal = await gov.proposals.call(proposalId);
-            let expectedVotes = await comp.getPriorVotes.call(actor, proposal.startBlock.toString(), proposal.startTime.toString());
-            let expectedVotes2 = await comp.getPriorVotes.call(actor2, proposal.startBlock.toString(), proposal.startTime.toString());
+            let expectedVotes = await staking.getPriorVotes.call(actor, proposal.startBlock.toString(), proposal.startTime.toString());
+            let expectedVotes2 = await staking.getPriorVotes.call(actor2, proposal.startBlock.toString(), proposal.startTime.toString());
             
             expect(new BigNumber(trxReceipt.votes.toString()).toString()).to.be.equal(new BigNumber(expectedVotes.toString()).toString());
             expect(trxReceipt.hasVoted).to.be.equal(true);
@@ -193,8 +193,8 @@ contract("governorAlpha#castVote/2", accounts => {
             let actor = accounts[4];
             let amount = etherMantissa(1000000);
             await token.transfer(actor, amount);
-            await token.approve(comp.address, amount, {from: actor});
-            await comp.stake(amount, TWO_WEEKS, actor, actor, {from: actor});
+            await token.approve(staking.address, amount, {from: actor});
+            await staking.stake(amount, TWO_WEEKS, actor, actor, {from: actor});
             
             await gov.propose(targets, values, signatures, callDatas, "do nothing", {from: actor});
             proposalId = await gov.latestProposalIds.call(actor);
@@ -206,7 +206,7 @@ contract("governorAlpha#castVote/2", accounts => {
             await gov.castVote(proposalId, true, {from: actor});
             
             proposal = await gov.proposals.call(proposalId);
-            let expectedVotes = await comp.getPriorVotes.call(actor, proposal.startBlock, proposal.startTime);
+            let expectedVotes = await staking.getPriorVotes.call(actor, proposal.startBlock, proposal.startTime);
             expect(proposal.forVotes.toString()).to.be.equal(expectedVotes.toString());
             let receipt = await gov.getReceipt.call(proposalId, actor);
             expect(receipt.votes.toString()).to.be.equal(expectedVotes.toString());

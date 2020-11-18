@@ -20,18 +20,18 @@ const TOTAL_SUPPLY = etherMantissa(1000000000);
 const DELAY = 86400 * 14;
 
 contract('GovernorAlpha#propose/5', accounts => {
-    let token, comp, gov, root, acct;
+    let token, staking, gov, root, acct;
     
     before(async () => {
         [root, acct, ...accounts] = accounts;
         token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
         
         let stakingLogic = await StakingLogic.new(token.address);
-        comp = await StakingProxy.new(token.address);
-        await comp.setImplementation(stakingLogic.address);
-        comp = await StakingLogic.at(comp.address);
+        staking = await StakingProxy.new(token.address);
+        await staking.setImplementation(stakingLogic.address);
+        staking = await StakingLogic.at(staking.address);
         
-        gov = await GovernorAlpha.new(address(0), comp.address, address(0));
+        gov = await GovernorAlpha.new(address(0), staking.address, address(0));
     });
     
     let trivialProposal, targets, values, signatures, callDatas;
@@ -43,9 +43,9 @@ contract('GovernorAlpha#propose/5', accounts => {
         signatures = ["getBalanceOf(address)"];
         callDatas = [encodeParameters(['address'], [acct])];
         
-        await token.approve(comp.address, QUORUM_VOTES);
-        await comp.stake(QUORUM_VOTES, DELAY, acct, acct);
-        await comp.delegate(root, {from: acct});
+        await token.approve(staking.address, QUORUM_VOTES);
+        await staking.stake(QUORUM_VOTES, DELAY, acct, acct);
+        await staking.delegate(root, {from: acct});
         
         await gov.propose(targets, values, signatures, callDatas, "do nothing");
         
@@ -121,9 +121,9 @@ contract('GovernorAlpha#propose/5', accounts => {
             describe("Additionally, if there exists a pending or active proposal from the same proposer, we must revert.", () => {
                 it("reverts with pending", async () => {
                     await token.transfer(accounts[4], QUORUM_VOTES);
-                    await token.approve(comp.address, QUORUM_VOTES, {from: accounts[4]});
-                    await comp.stake(QUORUM_VOTES, DELAY, accounts[4], accounts[4], {from: accounts[4]});
-                    await comp.delegate(accounts[4], {from: accounts[4]});
+                    await token.approve(staking.address, QUORUM_VOTES, {from: accounts[4]});
+                    await staking.stake(QUORUM_VOTES, DELAY, accounts[4], accounts[4], {from: accounts[4]});
+                    await staking.delegate(accounts[4], {from: accounts[4]});
                     
                     await gov.propose(targets, values, signatures, callDatas, "do nothing", {from: accounts[4]});
                     await expectRevert(
@@ -144,9 +144,9 @@ contract('GovernorAlpha#propose/5', accounts => {
         
         it("This function returns the id of the newly created proposal. # proposalId(n) = succ(proposalId(n-1))", async () => {
             await token.transfer(accounts[2], QUORUM_VOTES);
-            await token.approve(comp.address, QUORUM_VOTES, {from: accounts[2]});
-            await comp.stake(QUORUM_VOTES, DELAY, accounts[2], accounts[2], {from: accounts[2]});
-            await comp.delegate(accounts[2], {from: accounts[2]});
+            await token.approve(staking.address, QUORUM_VOTES, {from: accounts[2]});
+            await staking.stake(QUORUM_VOTES, DELAY, accounts[2], accounts[2], {from: accounts[2]});
+            await staking.delegate(accounts[2], {from: accounts[2]});
             
             await mineBlock();
             let nextProposalId = await gov.propose.call(targets, values, signatures, callDatas, "yoot", {from: accounts[2]});
@@ -157,9 +157,9 @@ contract('GovernorAlpha#propose/5', accounts => {
         
         it("emits log with id and description", async () => {
             await token.transfer(accounts[3], QUORUM_VOTES);
-            await token.approve(comp.address, QUORUM_VOTES, {from: accounts[3]});
-            await comp.stake(QUORUM_VOTES, DELAY, accounts[3], accounts[3], {from: accounts[3]});
-            await comp.delegate(accounts[3], {from: accounts[3]});
+            await token.approve(staking.address, QUORUM_VOTES, {from: accounts[3]});
+            await staking.stake(QUORUM_VOTES, DELAY, accounts[3], accounts[3], {from: accounts[3]});
+            await staking.delegate(accounts[3], {from: accounts[3]});
             await mineBlock();
             
             // await updateTime(comp);

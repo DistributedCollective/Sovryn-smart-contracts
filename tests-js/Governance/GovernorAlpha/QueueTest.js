@@ -19,12 +19,12 @@ const DELAY = 86400 * 14;
 const QUORUM_VOTES = etherMantissa(4000000);
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
-async function enfranchise(token, comp, actor, amount) {
+async function enfranchise(token, staking, actor, amount) {
     await token.transfer(actor, amount);
-    await token.approve(comp.address, amount, {from: actor});
-    await comp.stake(amount, DELAY, actor, actor, {from: actor});
+    await token.approve(staking.address, amount, {from: actor});
+    await staking.stake(amount, DELAY, actor, actor, {from: actor});
     
-    await comp.delegate(actor, {from: actor});
+    await staking.delegate(actor, {from: actor});
 }
 
 contract('GovernorAlpha#queue/1', accounts => {
@@ -39,17 +39,17 @@ contract('GovernorAlpha#queue/1', accounts => {
             const token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
             
             let stakingLogic = await StakingLogic.new(token.address);
-            let comp = await StakingProxy.new(token.address);
-            await comp.setImplementation(stakingLogic.address);
-            comp = await StakingLogic.at(comp.address);
+            let staking = await StakingProxy.new(token.address);
+            await staking.setImplementation(stakingLogic.address);
+            staking = await StakingLogic.at(staking.address);
             
-            const gov = await GovernorAlpha.new(timelock.address, comp.address, root);
+            const gov = await GovernorAlpha.new(timelock.address, staking.address, root);
             const txAdmin = await timelock.harnessSetAdmin(gov.address);
             
-            await enfranchise(token, comp, a1, QUORUM_VOTES);
+            await enfranchise(token, staking, a1, QUORUM_VOTES);
             await mineBlock();
             
-            const targets = [comp.address, comp.address];
+            const targets = [staking.address, staking.address];
             const values = ["0", "0"];
             const signatures = ["getBalanceOf(address)", "getBalanceOf(address)"];
             const calldatas = [encodeParameters(['address'], [root]), encodeParameters(['address'], [root])];
@@ -70,18 +70,18 @@ contract('GovernorAlpha#queue/1', accounts => {
             const token = await TestToken.new("TestToken", "TST", 18, etherMantissa(10000000000000));
             
             let stakingLogic = await StakingLogic.new(token.address);
-            let comp = await StakingProxy.new(token.address);
-            await comp.setImplementation(stakingLogic.address);
-            comp = await StakingLogic.at(comp.address);
+            let staking = await StakingProxy.new(token.address);
+            await staking.setImplementation(stakingLogic.address);
+            staking = await StakingLogic.at(staking.address);
             
-            const gov = await GovernorAlpha.new(timelock.address, comp.address, root);
+            const gov = await GovernorAlpha.new(timelock.address, staking.address, root);
             const txAdmin = await timelock.harnessSetAdmin(gov.address);
             
-            await enfranchise(token, comp, a1, QUORUM_VOTES);
-            await enfranchise(token, comp, a2, QUORUM_VOTES);
+            await enfranchise(token, staking, a1, QUORUM_VOTES);
+            await enfranchise(token, staking, a2, QUORUM_VOTES);
             await mineBlock();
             
-            const targets = [comp.address];
+            const targets = [staking.address];
             const values = ["0"];
             const signatures = ["getBalanceOf(address)"];
             const calldatas = [encodeParameters(['address'], [root])];

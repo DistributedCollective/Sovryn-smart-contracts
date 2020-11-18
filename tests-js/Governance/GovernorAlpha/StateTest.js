@@ -38,7 +38,7 @@ const DELAY = 86400 * 14;
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
 contract('GovernorAlpha#state/1', accounts => {
-    let token, comp, gov, root, acct, delay, timelock;
+    let token, staking, gov, root, acct, delay, timelock;
     
     before(async () => {
         [root, acct, ...accounts] = accounts;
@@ -49,24 +49,24 @@ contract('GovernorAlpha#state/1', accounts => {
         token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
         
         let stakingLogic = await StakingLogic.new(token.address);
-        comp = await StakingProxy.new(token.address);
-        await comp.setImplementation(stakingLogic.address);
-        comp = await StakingLogic.at(comp.address);
+        staking = await StakingProxy.new(token.address);
+        await staking.setImplementation(stakingLogic.address);
+        staking = await StakingLogic.at(staking.address);
         
         delay = etherUnsigned(2 * 24 * 60 * 60).multipliedBy(2)
         timelock = await Timelock.new(root, delay);
         delay = etherUnsigned(10)
         await timelock.setDelayWithoutChecking(delay);
-        gov = await GovernorAlpha.new(timelock.address, comp.address, root);
+        gov = await GovernorAlpha.new(timelock.address, staking.address, root);
         await timelock.harnessSetAdmin(gov.address);
-        await token.approve(comp.address, QUORUM_VOTES);
-        await comp.stake(QUORUM_VOTES, MAX_DURATION, root, root);
+        await token.approve(staking.address, QUORUM_VOTES);
+        await staking.stake(QUORUM_VOTES, MAX_DURATION, root, root);
         
         await token.transfer(acct, QUORUM_VOTES);
-        await token.approve(comp.address, QUORUM_VOTES, {from: acct});
-        await comp.stake(QUORUM_VOTES, MAX_DURATION, acct, acct, {from: acct});
+        await token.approve(staking.address, QUORUM_VOTES, {from: acct});
+        await staking.stake(QUORUM_VOTES, MAX_DURATION, acct, acct, {from: acct});
         
-        await comp.delegate(acct, {from: root});
+        await staking.delegate(acct, {from: root});
     });
     
     let trivialProposal, targets, values, signatures, callDatas;
@@ -75,9 +75,9 @@ contract('GovernorAlpha#state/1', accounts => {
         values = ["0"];
         signatures = ["getBalanceOf(address)"]
         callDatas = [encodeParameters(['address'], [acct])];
-        await comp.delegate(root, {from: acct});
+        await staking.delegate(root, {from: acct});
         
-        await updateTime(comp);
+        await updateTime(staking);
         await gov.propose(targets, values, signatures, callDatas, "do nothing");
         proposalId = await gov.latestProposalIds.call(root);
         trivialProposal = await gov.proposals.call(proposalId);
@@ -100,7 +100,7 @@ contract('GovernorAlpha#state/1', accounts => {
     
     it("Canceled", async () => {
         await mineBlock()
-        await updateTime(comp);
+        await updateTime(staking);
         await gov.propose(targets, values, signatures, callDatas, "do nothing", {from: acct});
         let newProposalId = await gov.proposalCount.call();
         
@@ -118,12 +118,12 @@ contract('GovernorAlpha#state/1', accounts => {
     
     it("Succeeded", async () => {
         await mineBlock()
-        await updateTime(comp);
+        await updateTime(staking);
         await gov.propose(targets, values, signatures, callDatas, "do nothing", {from: acct});
         let newProposalId = await gov.latestProposalIds.call(acct);
         await mineBlock()
         
-        await updateTime(comp);
+        await updateTime(staking);
         await gov.castVote(newProposalId, true);
         await advanceBlocks(20);
         
@@ -132,12 +132,12 @@ contract('GovernorAlpha#state/1', accounts => {
     
     it("Queued", async () => {
         await mineBlock()
-        await updateTime(comp);
+        await updateTime(staking);
         await gov.propose(targets, values, signatures, callDatas, "do nothing", {from: acct});
         let newProposalId = await gov.latestProposalIds.call(acct);
         await mineBlock()
         
-        await updateTime(comp);
+        await updateTime(staking);
         await gov.castVote(newProposalId, true);
         await advanceBlocks(20)
         
@@ -147,12 +147,12 @@ contract('GovernorAlpha#state/1', accounts => {
     
     it("Expired", async () => {
         await mineBlock()
-        await updateTime(comp);
+        await updateTime(staking);
         await gov.propose(targets, values, signatures, callDatas, "do nothing", {from: acct});
         let newProposalId = await gov.latestProposalIds.call(acct);
         await mineBlock()
         
-        await updateTime(comp);
+        await updateTime(staking);
         await gov.castVote(newProposalId, true);
         await advanceBlocks(20)
         
@@ -174,12 +174,12 @@ contract('GovernorAlpha#state/1', accounts => {
     
     it("Executed", async () => {
         await mineBlock()
-        await updateTime(comp);
+        await updateTime(staking);
         await gov.propose(targets, values, signatures, callDatas, "do nothing", {from: acct});
         let newProposalId = await gov.latestProposalIds.call(acct);
         
         await mineBlock()
-        await updateTime(comp);
+        await updateTime(staking);
         await gov.castVote(newProposalId, true);
         await advanceBlocks(20)
         
@@ -210,8 +210,8 @@ async function advanceBlocks(number) {
     }
 }
 
-async function updateTime(comp) {
-    let kickoffTS = await comp.kickoffTS.call();
+async function updateTime(staking) {
+    let kickoffTS = await staking.kickoffTS.call();
     let newTime = kickoffTS.add(new BN(DELAY).mul(new BN(2)));
     await setTime(newTime);
 }
