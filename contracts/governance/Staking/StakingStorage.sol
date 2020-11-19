@@ -49,13 +49,6 @@ contract StakingStorage is Ownable{
         uint96 stake;
     }
     
-    /// @notice A checkpoint for marking the stakes and lock date of an user from a given block
-    struct UserCheckpoint {
-        uint32 fromBlock;
-        uint96 stake;
-        uint96 lockedUntil;
-    }
-    
     /// @notice A record of tokens to be unstaked at a given time in total
     /// for total voting power computation. voting weights get adjusted bi-weekly
     mapping (uint => mapping (uint32 => Checkpoint)) public totalStakingCheckpoints;
@@ -67,14 +60,14 @@ contract StakingStorage is Ownable{
     /// for delegatee voting power computation. voting weights get adjusted bi-weekly
     mapping(address => mapping (uint => mapping (uint32 => Checkpoint))) public delegateStakingCheckpoints;
     
-    ///@notice The number of total staking checkpoints for each date
+    ///@notice The number of total staking checkpoints for each date per delegate
     mapping (address => mapping (uint => uint32)) public numDelegateStakingCheckpoints;
     
-    /// @notice A record of stake checkpoints for each account, by index
-    mapping (address => mapping (uint32 => UserCheckpoint)) public userCheckpoints;
+    /// @notice A record of tokens to be unstaked at a given time which per user address (address -> lockDate -> stake checkpoint)
+    mapping (address => mapping (uint => mapping (uint32 => Checkpoint))) public userStakingCheckpoints;
     
-    /// @notice The number of checkpoints for each account
-    mapping (address => uint32) public numUserCheckpoints;
+    ///@notice The number of total staking checkpoints for each date per user
+    mapping (address => mapping (uint => uint32)) public numUserStakingCheckpoints;
 
     /// @notice A record of states for signing / validating signatures
     mapping (address => uint) public nonces;
