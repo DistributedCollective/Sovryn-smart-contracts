@@ -48,14 +48,23 @@ def main():
     #extendDuration()
 
     #stake(acct, 10000e18)
-    #readPriorVotes(acct)
+    
     #makeGovernanceProposal()
     #confirmMultisigTransaction(0)
     #transferTokens(contracts['SOV'], '0x2bD2201bfe156a71EB0d02837172FFc237218505', 500000e18)
     #changeMultisigOwner('0x55310E0bC1A85bB24Ec7798a673a69Ba254B6Bbf', '0x52e8f03e7c9c1Ef320ff7C31dB78EAead18E5F85')
     #changeProtocolOwnerWithMS('0x6b5b3AaBcb97135371E55bD3eF8a44713aE1841F')
-    readProposal(contracts['governor'])
-    
+    #readProposal(contracts['governor'])
+    #transferTokens(contracts['SOV'], '0x27Fb05Cb49eb1603b24B4B0B3F9e12defCe94adc', 1000000e18)
+    #getCurrentVotes(acct)
+    #readPriorVotesForProposal(acct, 1)
+    #getBalance('0x576aE218aeCfD4CbD2DBe07250b47e26060932B1','0x854058553dF87EF1bE2c1D8f24eEa8AF52A81fF1')
+    #deployGovernor()
+    #readProposal(1)
+    #readCurrentLock(acct)
+    #readFromMedianizer()
+    #readFromPriceFeed()
+    readOwner(contracts['protocol'])
     
 def loadConfig():
     global contracts, acct
@@ -423,7 +432,7 @@ def changeProtocolOwnerWithMS(newOwner):
     sovryn = Contract.from_abi("sovryn", address=contracts['protocol'], abi=interface.ISovryn.abi, owner=acct)
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     data = sovryn.transferOwnership.encode_input(newOwner)
-    tx = multisig.submitTransaction(multisig.address,0,data)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print('txId', txId)
     
@@ -470,7 +479,47 @@ def transferTokens(tokenAddress, receiver, amount):
     token = Contract.from_abi("token", address=tokenAddress, abi=TestToken.abi, owner=acct)
     token.transfer(receiver, amount)
 
-def readProposal(governorAddress):
-    governor = Contract.from_abi("Governor", address=governorAddress, abi=GovernorAlpha.abi, owner=acct)
-    proposal = governor.proposals(1);
+def readProposal(proposalId):
+    governor = Contract.from_abi("Governor", address=contracts['governor'], abi=GovernorAlpha.abi, owner=acct)
+    proposal = governor.proposals(proposalId).dict();
     print(proposal)
+    return proposal
+
+def getCurrentVotes(userAddress):
+    staking = Contract.from_abi("Staking", address=contracts['staking'], abi=Staking.abi, owner=acct)
+    votes = staking.getCurrentVotes(userAddress)
+    print(votes)
+    
+def readPriorVotesForProposal(staker, proposalId):
+    staking = Contract.from_abi("Staking", address=contracts['staking'], abi=Staking.abi, owner=acct)
+    proposal = readProposal(proposalId)
+    blocknumber = proposal['startBlock']
+    time = proposal['startTime']
+    print(staking.getPriorVotes(staker, blocknumber, time))
+    
+def deployGovernor():
+    governor = acct.deploy(GovernorAlpha, contracts['timelock'], contracts['staking'], contracts['multisig'])
+    timelock = Contract.from_abi("Timelock", address=contracts['timelock'], abi=Timelock.abi, owner=acct)
+    dataString = timelock.setPendingAdmin.encode_input(governor.address)
+    #2 days and 5 minutes from now
+    eta = round(time.time()) + 2*24*60*60 + 300
+    print("schedule ownership transfer for ", eta)
+    tx = timelock.queueTransaction(timelock.address, 0, "setPendingAdmin(address)", dataString[10:], eta)
+    tx.info()
+    
+def readCurrentLock(account):
+    staking = Contract.from_abi("Staking", address=contracts['staking'], abi=Staking.abi, owner=acct)
+    lockDate = staking.currentLock(account)
+    print(lockDate)
+    
+def readFromMedianizer():
+    medianizer = Contract.from_abi("Medianizer", address=contracts['medianizer'], abi=PriceFeedsMoCMockup.abi, owner=acct)
+    print(medianizer.peek())
+    
+def readFromPriceFeed():
+    priceFeed = Contract.from_abi("PriceFeeds", address = contracts['priceFeed'], abi = PriceFeeds.abi, owner = acct)
+    print(priceFeed.queryRate(contracts['WRBTC'], contracts['DoC']))
+    
+def readOwner(contractAddress):
+    contract = Contract.from_abi("Ownable", address = contractAddress, abi = interface.ISovryn.abi, owner = acct)
+    print(contract.owner())
