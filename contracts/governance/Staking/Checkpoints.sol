@@ -86,7 +86,7 @@ contract Checkpoints is StakingStorage, SafeMath96{
         uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
         uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
         uint96 newStake = sub96(staked, value, "Staking::_decreaseDailyStake: stakedUntil underflow");
-        _writeStakingCheckpoint(lockedTS, nCheckpoints, newStake);
+        _writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, newStake);
     }
     
     function _writeDelegateCheckpoint(address delegatee, uint lockedTS, uint32 nCheckpoints, uint96 newStake) internal {
