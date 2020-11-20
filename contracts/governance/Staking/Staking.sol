@@ -32,7 +32,7 @@ contract Staking is WeightedStaking{
         //lock the tokens and update the balance by updating the user checkpoint
         uint lockedTS = timestampToLockDate(block.timestamp + duration);//no overflow possible
         require(lockedTS > block.timestamp, "Staking::timestampToLockDate: staking period too short");
-        _writeUserCheckpoint(stakeFor, amount, uint96(lockedTS));
+        _increaseUserStake(stakeFor, uint96(lockedTS), amount);
         
         //increase staked token count until the new locking date
         _increaseDailyStake(lockedTS, amount);
@@ -49,10 +49,10 @@ contract Staking is WeightedStaking{
     
     /**
      * @notice extends the staking duration until the specified date
+     * @param previousLock the old unlocking timestamp
      * @param until the new unlocking timestamp in S
      * */
-    function extendStakingDuration(uint until) public{
-        uint previousLock = currentLock(msg.sender);
+    function extendStakingDuration(uint previousLock, uint until) public{
         until = timestampToLockDate(until);
         require(previousLock <= until, "Staking::extendStakingDuration: cannot reduce the staking duration");
         
@@ -62,12 +62,14 @@ contract Staking is WeightedStaking{
             until = latest;
         
         //update checkpoints
-        uint96 amount = _currentBalance(msg.sender);
+        uint96 amount = getPriorUserStakeByDate(msg.sender, previousLock, block.number -1);
+        require(amount > 0, "Staking::extendStakingDuration: nothing staked until the previous lock date");
         _decreaseDailyStake(previousLock, amount);
         _increaseDailyStake(until, amount);
         _decreaseDelegateStake(delegates[msg.sender], previousLock, amount);
         _increaseDelegateStake(delegates[msg.sender], until, amount);
-        _writeUserCheckpoint(msg.sender, amount, uint96(until));
+        _decreaseUserStake(msg.sender, until, amount);
+        _increaseUserStake(msg.sender, until, amount);
         
         emit ExtendedStakingDuration(msg.sender, previousLock, until);
     }
@@ -76,8 +78,9 @@ contract Staking is WeightedStaking{
      * @notice increases a users stake
      * @param amount the amount of SOV tokens
      * @param stakeFor the address for which we want to increase the stake. staking for the sender if 0x0
+     * @param until the lock date until which the funds are staked
      * */
-    function increaseStake(uint96 amount, address stakeFor) public{
+    function increaseStake(uint96 amount, address stakeFor, uint until) public{
         require(amount > 0, "Staking::increaseStake: amount of tokens to stake needs to be bigger than 0");
         
         //retrieve the SOV tokens
@@ -95,7 +98,7 @@ contract Staking is WeightedStaking{
         uint until = currentLock(stakeFor);
         _increaseDailyStake(until, amount);
         _increaseDelegateStake(delegates[stakeFor], until, amount);
-        _writeUserCheckpoint(stakeFor, newBalance, uint96(until));
+        _increaseUserStake(stakeFor, until, amount);
         
         emit TokensStaked(stakeFor, amount, until, newBalance);
     }
@@ -103,13 +106,13 @@ contract Staking is WeightedStaking{
     /**
      * @notice withdraws the given amount of tokens if they are unlocked
      * @param amount the number of tokens to withdraw
+     * @param until the date until which the tokens were staked
      * @param receiver the receiver of the tokens. If not specified, send to the msg.sender
      * */
-    function withdraw(uint96 amount, address receiver) public {
+    function withdraw(uint96 amount, uint until, address receiver) public {
         require(amount > 0, "Staking::withdraw: amount of tokens to be withdrawn needs to be bigger than 0");
-        uint96 until = currentLock(msg.sender);
-        uint96 balance = _currentBalance(msg.sender);
         require(block.timestamp >= until || allUnlocked, "Staking::withdraw: tokens are still locked.");
+        uint96 balance = getPriorUserStakeByDate(msg.sender, until, block.number -1);
         require(amount <= balance, "Staking::withdraw: not enough balance");
         
         //determine the receiver
@@ -121,7 +124,7 @@ contract Staking is WeightedStaking{
 
         //update the checkpoints
         _decreaseDailyStake(until, amount);
-        _writeUserCheckpoint(msg.sender, newBalance, until);
+        _decreaseUserStake(msg.sender, until, amount);
         
         //transferFrom
         bool success = SOVToken.transfer(receiver, amount);
@@ -146,7 +149,7 @@ contract Staking is WeightedStaking{
      * @return the lock date of the last checkpoint
      * */
     function currentLock(address account) public view returns(uint96) {
-        return userCheckpoints[account][numUserCheckpoints[account] - 1].lockedUntil;
+        return 0;//userCheckpoints[account][numUserCheckpoints[account] - 1].lockedUntil;
     }
     
     /**
@@ -155,7 +158,7 @@ contract Staking is WeightedStaking{
      * @return the lock date of the last checkpoint
      * */
     function _currentBalance(address account) internal view returns(uint96) {
-        return userCheckpoints[account][numUserCheckpoints[account] - 1].stake;
+        return 0;//userCheckpoints[account][numUserCheckpoints[account] - 1].stake;
     }
     
     /**

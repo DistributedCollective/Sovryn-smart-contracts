@@ -33,7 +33,7 @@ contract Checkpoints is StakingStorage, SafeMath96{
      * */
     function _increaseUserStake(address account, uint lockedTS, uint96 value) internal{
         uint32 nCheckpoints = numUserStakingCheckpoints[account][lockedTS];
-        uint96 staked = delegateUserCheckpoints[account][lockedTS][nCheckpoints - 1].stake;
+        uint96 staked = userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;
         uint96 newStake = add96(staked, value, "Staking::_increaseDelegateeStake: stakedUntil overflow");
         _writeUserCheckpoint(account, lockedTS, nCheckpoints, newStake);
     }

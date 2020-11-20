@@ -166,7 +166,7 @@ contract WeightedStaking is Checkpoints{
      * @param blockNumber The block number to get the vote balance at
      * @return The weighted stake the account had as of the given block
      */
-     function getPriorWeightedStake(address account, uint blockNumber, uint date) public view returns (uint96) {
+     function getPriorWeightedStake(address account, uint blockNumber, uint date) public view returns (uint96 votes) {
         //if date is not an exact break point, start weight computation from the previous break point (alternative would be the next)
         uint start =  timestampToLockDate(date);
         uint end = start + MAX_DURATION;
@@ -197,7 +197,7 @@ contract WeightedStaking is Checkpoints{
      * @param blockNumber The block number to get the vote balance at
      * @return The number of votes the account had as of the given block
      */
-    function getPriorUserStakeByDate(address account, uint date, uint blockNumber) public view returns (uint96, uint96) {
+    function getPriorUserStakeByDate(address account, uint date, uint blockNumber) public view returns (uint96) {
         require(blockNumber < block.number, "WeightedStaking::getPriorUserStakeAndDate: not yet determined");
 
         uint32 nCheckpoints = numUserStakingCheckpoints[account][date];
@@ -219,7 +219,7 @@ contract WeightedStaking is Checkpoints{
         uint32 upper = nCheckpoints - 1;
         while (upper > lower) {
             uint32 center = upper - (upper - lower) / 2; // ceil, avoiding overflow
-            Checkpoint memory cp = delegateUserCheckpoints[account][date][center];
+            Checkpoint memory cp = userStakingCheckpoints[account][date][center];
             if (cp.fromBlock == blockNumber) {
                 return cp.stake;
             } else if (cp.fromBlock < blockNumber) {
@@ -228,7 +228,7 @@ contract WeightedStaking is Checkpoints{
                 upper = center - 1;
             }
         }
-        return delegateUserCheckpoints[account][date][lower].stake;
+        return userStakingCheckpoints[account][date][lower].stake;
     }
     
     
