@@ -14,6 +14,7 @@ import "../mixins/ProtocolTokenUser.sol";
 
 contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
     using SafeERC20 for IERC20;
+    using SafeMath for uint256;
 
     constructor() public {}
 
@@ -41,6 +42,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         _setTarget(this.setSourceBuffer.selector, target);
         _setTarget(this.setMaxSwapSize.selector, target);
         _setTarget(this.setFeesController.selector, target);
+        _setTarget(this.withdrawFees.selector, target);
         _setTarget(this.withdrawLendingFees.selector, target);
         _setTarget(this.withdrawTradingFees.selector, target);
         _setTarget(this.withdrawBorrowingFees.selector, target);
@@ -259,17 +261,49 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         );
     }
     
-    //TODO withdrawLendingFees, withdrawTradingFees, withdrawBorrowingFees
-    //TODO amount = 0 - all tokens ?
     function withdrawFees(
         address token,
-        address receiver,
-        uint256 amount)
+        address receiver)
         external
-        returns (bool)
+        returns (uint)
     {
-        return false;
-        //TODO implement
+        require(msg.sender == feesController, "unauthorized");
+    
+        uint lendingBalance = lendingFeeTokensHeld[token];
+        if (lendingBalance > 0) {
+            lendingFeeTokensHeld[token] = 0;
+            lendingFeeTokensPaid[token] = lendingFeeTokensPaid[token].add(lendingBalance);
+        }
+    
+        uint tradingBalance = tradingFeeTokensHeld[token];
+        if (tradingBalance > 0) {
+            tradingFeeTokensHeld[token] = 0;
+            tradingFeeTokensPaid[token] = tradingFeeTokensPaid[token].add(tradingBalance);
+        }
+    
+        uint borrowingBalance = borrowingFeeTokensHeld[token];
+        if (borrowingBalance > 0) {
+            borrowingFeeTokensHeld[token] = 0;
+            borrowingFeeTokensPaid[token] = borrowingFeeTokensPaid[token].add(borrowingBalance);
+        }
+    
+        uint amount = lendingBalance.add(tradingBalance).add(borrowingBalance);
+        if (amount == 0) {
+            return amount;
+        }
+        
+        IERC20(token).safeTransfer(receiver, amount);
+    
+        emit WithdrawFees(
+            msg.sender,
+            token,
+            receiver,
+            lendingBalance,
+            tradingBalance,
+            borrowingBalance
+        );
+        
+        return amount;
     }
 
     function withdrawLendingFees(

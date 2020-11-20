@@ -90,6 +90,15 @@ contract ProtocolSettingsEvents {
         address indexed oldProtocolToken,
         address indexed newProtocolToken
     );
+    
+    event WithdrawFees(
+        address indexed sender,
+        address indexed token,
+        address indexed receiver,
+        uint lendingAmount,
+        uint tradingAmount,
+        uint borrowingAmount
+    );
 
     event WithdrawLendingFees(
         address indexed sender,
