@@ -258,6 +258,19 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
             newController
         );
     }
+    
+    //TODO withdrawLendingFees, withdrawTradingFees, withdrawBorrowingFees
+    //TODO amount = 0 - all tokens ?
+    function withdrawFees(
+        address token,
+        address receiver,
+        uint256 amount)
+        external
+        returns (bool)
+    {
+        return false;
+        //TODO implement
+    }
 
     function withdrawLendingFees(
         address token,

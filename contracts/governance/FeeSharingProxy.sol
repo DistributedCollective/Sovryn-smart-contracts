@@ -17,14 +17,10 @@ contract FeeSharingProxy is SafeMath96 {
     /// @notice The number of checkpoints for each pool token address
     mapping(address => uint32) public numTokenCheckpoints;
     
-    /// user => last withdrawal block
-//    mapping(address => uint32) public lastBlocks;
-    
     /// user => token => last checkpoint
     mapping(address => mapping(address => uint32)) public passedCheckpoints;
     
-    //TODO daily / weekly ?
-    uint FEE_WITHDRAWAL_PERIOD = 86400;
+    uint FEE_WITHDRAWAL_INTERVAL = 86400;
     uint lastFeeWithdrawalTime;
     
     
@@ -42,31 +38,29 @@ contract FeeSharingProxy is SafeMath96 {
     
     //TODO add events
     
-    //TODO 3 functions for a withdrawal or 1 function ?
-    //TODO do we need to pass _amount or withdraw available balance (e.g. protocol.lendingFeeTokensHeld[_token]) ?
-    function withdrawFees(address _token, uint256 _amount) public {
+    //TODO [3]: do we need to pass _amount or withdraw available balance (e.g. protocol.lendingFeeTokensHeld[_token]) ? - add method tp ProtocolSettings - 3 withdrawal
+    function withdrawFees(address _token) public {
         //TODO validation
-        require(block.timestamp - lastFeeWithdrawalTime >= FEE_WITHDRAWAL_PERIOD, "FeeSharingProxy::withdrawFees: the last withdrawal was recently");
+        require(block.timestamp - lastFeeWithdrawalTime >= FEE_WITHDRAWAL_INTERVAL, "FeeSharingProxy::withdrawFees: the last withdrawal was recently");
         
-        require(protocol.withdrawLendingFees(_token, address(this), _amount), "FeeSharingProxy::withdrawFees: withdrawal failed");
+        require(protocol.withdrawFees(_token, address(this), 0), "FeeSharingProxy::withdrawFees: withdrawal failed");
 
-        
-        //TODO invests the funds in the lending pool - separate method ?
-        //TODO LoanToken -> LoanTokenLogicStandard
-        //TODO _token -> loanToken: what is the relation ?
-        uint numTokens = loanToken.mint(address(this), _amount);
+        //TODO [5]: _token -> loanToken: what is the relation ? - underlyingToLoanPool
+        uint depositAmount = 0; //TODO return from withdrawFees
+        uint numTokens = loanToken.mint(address(this), depositAmount);
         _writeTokenCheckpoint(_token, uint128(numTokens));
 
         lastFeeWithdrawalTime = block.timestamp;
     }
 
-    //TODO do we need to withdraw for all tokens or just for one
-    //TODO msg.sender or parameter ?
-    function withdraw(address _token, uint8 _maxCheckpoints) public {
+    function withdraw(address _token, uint8 _maxCheckpoints, address _receiver) public {
         address user = msg.sender;
+        if (_receiver == address(0)) {
+            _receiver = msg.sender;
+        }
         uint32 start = passedCheckpoints[user][_token];
         uint32 nCheckpoints = numTokenCheckpoints[_token];
-        require(start < nCheckpoints, "FeeSharingProxy::withdrawFees: no tokens for a withdrawal"); //TODO return instead of revert
+        require(start < nCheckpoints, "FeeSharingProxy::withdrawFees: no tokens for a withdrawal");
         
         uint32 end = start + _maxCheckpoints; //TODO uint8
         if (end > nCheckpoints) {
@@ -75,8 +69,7 @@ contract FeeSharingProxy is SafeMath96 {
         uint256 amount = 0;
         for (uint32 i = start; i < end; i++) {
             Checkpoint storage checkpoint = tokenCheckpoints[_token][i];
-            //uint96 weightedStake = staking.getPriorWeightedStake(user, checkpoint.blockNumber, date); //TODO we don't have date here
-            //staking.getPriorUserStakeAndDate(user, checkpoint.blockNumber); //TODO without weight
+            //uint96 weightedStake = staking.getPriorWeightedStake(user, checkpoint.blockNumber, date); //TODO [9]: we don't have date here
             uint96 weightedStake = 1;
 //            uint96 share = mul96(checkpoint.numTokens, weightedStake, "multiplication overflow on share computation") / checkpoint.totalWeightedStake;
             uint share = (checkpoint.numTokens * weightedStake) / checkpoint.totalWeightedStake;
@@ -106,21 +99,7 @@ contract FeeSharingProxy is SafeMath96 {
 
 interface IProtocol {
     
-    function withdrawLendingFees(
-        address token,
-        address receiver,
-        uint256 amount)
-    external
-    returns (bool);
-    
-    function withdrawTradingFees(
-        address token,
-        address receiver,
-        uint256 amount)
-    external
-    returns (bool);
-    
-    function withdrawBorrowingFees(
+    function withdrawFees(
         address token,
         address receiver,
         uint256 amount)
@@ -146,8 +125,9 @@ interface ILoanToken {
 }
 
 interface IStaking {
+    
     function getPriorTotalVotingPower(uint32 blockNumber, uint time) view external returns (uint96);
     
     function getPriorWeightedStake(address account, uint blockNumber, uint date) external view returns (uint96);
-    function getPriorUserStakeAndDate(address account, uint blockNumber) external view returns (uint96, uint96);
+    
 }
