@@ -69,7 +69,7 @@ contract FeeSharingProxy is SafeMath96 {
 
     //TODO check gas
     //TODO Withdrawal should only be possible for blocks which were already mined.
-    function withdraw(address _token, uint32 _maxCheckpoints, address _receiver) public returns (bool) {
+    function withdraw(address _token, uint32 _maxCheckpoints, address _receiver) public returns (uint) {
         address user = msg.sender;
         if (_receiver == address(0)) {
             _receiver = msg.sender;
@@ -100,7 +100,7 @@ contract FeeSharingProxy is SafeMath96 {
     
         emit UserFeeWithdrawn(msg.sender, _receiver, _token, amount);
         
-        return nCheckpoints == end;
+        return nCheckpoints - end;
     }
     
     function _writeTokenCheckpoint(address _token, uint128 _numTokens) internal {
