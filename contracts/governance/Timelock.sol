@@ -97,7 +97,13 @@ contract Timelock {
 
         // solium-disable-next-line security/no-call-value
         (bool success, bytes memory returnData) = target.call.value(value)(callData);
-        require(success, "Timelock::executeTransaction: Transaction execution reverted.");
+        if (!success) {
+            if (returnData.length == 0) {
+                revert("Timelock::executeTransaction: Transaction execution reverted.");
+            } else {
+                revert(strConcat("Timelock::executeTransaction: ", string(returnData)));
+            }
+        }
 
         emit ExecuteTransaction(txHash, target, value, signature, data, eta);
 
@@ -108,4 +114,21 @@ contract Timelock {
         // solium-disable-next-line security/no-block-members
         return block.timestamp;
     }
+    
+    function strConcat(string memory str1, string memory str2) internal pure returns (string memory) {
+        uint returnDataShift = 68; //TODO check
+        bytes memory bytesStr1 = bytes(str1);
+        bytes memory bytesStr2 = bytes(str2);
+        string memory str12 = new string(bytesStr1.length + bytesStr2.length - returnDataShift);
+        bytes memory bytesStr12 = bytes(str12);
+        uint j = 0;
+        for (uint i = 0; i < bytesStr1.length; i++) {
+            bytesStr12[j++] = bytesStr1[i];
+        }
+        for (uint i = returnDataShift; i < bytesStr2.length; i++) {
+            bytesStr12[j++] = bytesStr2[i];
+        }
+        return string(bytesStr12);
+    }
+    
 }
