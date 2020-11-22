@@ -15,7 +15,13 @@ contract Timelock {
     uint public constant GRACE_PERIOD = 14 days;
     uint public constant MINIMUM_DELAY = 2 days;
     uint public constant MAXIMUM_DELAY = 30 days;
-
+    
+    //4 bytes - 0x08c379a0 - method id
+    //32 bytes - 2 parameters
+    //32 bytes - bool, result
+    //32 ... bytes - string, error message
+    uint constant ERROR_MESSAGE_SHIFT = 68;
+    
     address public admin;
     address public pendingAdmin;
     uint public delay;
@@ -98,10 +104,10 @@ contract Timelock {
         // solium-disable-next-line security/no-call-value
         (bool success, bytes memory returnData) = target.call.value(value)(callData);
         if (!success) {
-            if (returnData.length == 0) {
+            if (returnData.length <= ERROR_MESSAGE_SHIFT) {
                 revert("Timelock::executeTransaction: Transaction execution reverted.");
             } else {
-                revert(strConcat("Timelock::executeTransaction: ", string(returnData)));
+                revert(_addErrorMessage("Timelock::executeTransaction: ", string(returnData)));
             }
         }
 
@@ -115,17 +121,16 @@ contract Timelock {
         return block.timestamp;
     }
     
-    function strConcat(string memory str1, string memory str2) internal pure returns (string memory) {
-        uint returnDataShift = 68; //TODO check
+    function _addErrorMessage(string memory str1, string memory str2) internal pure returns (string memory) {
         bytes memory bytesStr1 = bytes(str1);
         bytes memory bytesStr2 = bytes(str2);
-        string memory str12 = new string(bytesStr1.length + bytesStr2.length - returnDataShift);
+        string memory str12 = new string(bytesStr1.length + bytesStr2.length - ERROR_MESSAGE_SHIFT);
         bytes memory bytesStr12 = bytes(str12);
         uint j = 0;
         for (uint i = 0; i < bytesStr1.length; i++) {
             bytesStr12[j++] = bytesStr1[i];
         }
-        for (uint i = returnDataShift; i < bytesStr2.length; i++) {
+        for (uint i = ERROR_MESSAGE_SHIFT; i < bytesStr2.length; i++) {
             bytesStr12[j++] = bytesStr2[i];
         }
         return string(bytesStr12);

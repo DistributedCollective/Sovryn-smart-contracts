@@ -31,8 +31,6 @@ const TWO_DAYS = 86400 * 2;
 const TWO_WEEKS = 86400 * 14;
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
-//TODO require(success, "Timelock::executeTransaction: Transaction execution reverted.");
-
 contract('GovernanceIntegration', accounts => {
     const name = 'Test token';
     const symbol = 'TST';
