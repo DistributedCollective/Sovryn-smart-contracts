@@ -18,8 +18,13 @@ const StakingProxy = artifacts.require('StakingProxy');
 
 const Protocol = artifacts.require('sovrynProtocol');
 const ProtocolSettings = artifacts.require('ProtocolSettings');
+const LoanMaintenance = artifacts.require('LoanMaintenance');
+const LoanSettings = artifacts.require('LoanSettings');
+const LoanOpenings = artifacts.require('LoanOpenings');
+const LoanClosings = artifacts.require('LoanClosings');
 
 const LoanTokenLogic = artifacts.require('LoanTokenLogicStandard');
+const LoanTokenSettings = artifacts.require('LoanTokenSettingsLowerAdmin');
 const LoanToken = artifacts.require('LoanToken');
 
 const FeeSharingProxy = artifacts.require('FeeSharingProxy');
@@ -32,7 +37,8 @@ contract('FeeSharingProxy:', accounts => {
     
     let root, account1, account2, account3, account4;
     let token, susd, wrbtc, staking;
-    let protocolSettings, loanTokenLogic, protocol, loanToken;
+    let protocol;
+    let loanTokenSettings, loanTokenLogic, loanToken;
     let feeSharingProxy;
     
     before(async () => {
@@ -52,12 +58,22 @@ contract('FeeSharingProxy:', accounts => {
         staking = await StakingLogic.at(staking.address);
     
         //Protocol
-        protocolSettings = await ProtocolSettings.new();
         protocol = await Protocol.new();
+        let protocolSettings = await ProtocolSettings.new();
         await protocol.replaceContract(protocolSettings.address);
+        let loanMaintenance = await LoanMaintenance.new();
+        await protocol.replaceContract(loanMaintenance.address);
+        let loanSettings = await LoanSettings.new();
+        await protocol.replaceContract(loanSettings.address);
+        let loanOpenings = await LoanOpenings.new();
+        await protocol.replaceContract(loanOpenings.address);
+        let loanClosings = await LoanClosings.new();
+        await protocol.replaceContract(loanClosings.address);
+    
         protocol = await ProtocolSettings.at(protocol.address);
     
         //Loan token
+        loanTokenSettings = await LoanTokenSettings.new();
         loanTokenLogic = await LoanTokenLogic.new();
         loanToken = await LoanToken.new(root, loanTokenLogic.address, protocol.address, wrbtc.address);
         await loanToken.initialize(susd.address, "iSUSD", "iSUSD");
@@ -67,20 +83,18 @@ contract('FeeSharingProxy:', accounts => {
         
         //TODO ?
         await susd.approve(loanToken.address, TOTAL_SUPPLY);
-        // await loanToken.mint(root, etherMantissa(1000));
-    
-        // if network.show_active() == "development":
-        // testDeployment(acct, sovryn,contractSUSD.address, tokens.susd, tokens.wrbtc, 21e18, 0)
+        await loanToken.mint(root, etherMantissa(1000));
     
         //FeeSharingProxy
-        feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address);
+        feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address, loanToken.address);
+        await protocol.setFeesController(feeSharingProxy.address);
     });
     
     describe("withdrawFees", () => {
         
         it("check setup", async () => {
-            
-            console.log("\n==============================================================");
+    
+            await feeSharingProxy.withdrawFees(susd.address);
         
         });
         

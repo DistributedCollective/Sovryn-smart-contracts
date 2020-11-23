@@ -14,6 +14,7 @@ contract FeeSharingProxy is SafeMath96 {
     
     IProtocol public protocol;
     IStaking public staking;
+    address public loanToken;
     
     /// checkpoints by index per pool token address
     mapping(address => mapping(uint => Checkpoint)) tokenCheckpoints;
@@ -40,9 +41,10 @@ contract FeeSharingProxy is SafeMath96 {
     /// @notice An event that emitted when user fee get withdrawn
     event UserFeeWithdrawn(address indexed sender, address indexed receiver, address indexed token, uint amount);
     
-    constructor(IProtocol _protocol, IStaking _staking) public {
+    constructor(IProtocol _protocol, IStaking _staking, address _loanToken) public {
         protocol = _protocol;
         staking = _staking;
+        loanToken = _loanToken;
     }
     
     function withdrawFees(address _token) public {
@@ -52,14 +54,17 @@ contract FeeSharingProxy is SafeMath96 {
             "FeeSharingProxy::withdrawFees: the last withdrawal was recently"
         );
     
-        address loanToken = protocol.underlyingToLoanPool(_token);
-        require(loanToken != address(0), "FeeSharingProxy::withdrawFees: loan token not found");
+        address loanPoolToken = protocol.underlyingToLoanPool(_token);
+        require(loanPoolToken != address(0), "FeeSharingProxy::withdrawFees: loan token not found");
 
-        uint amount = protocol.withdrawFees(_token, address(this));
+        //TODO MOCK
+//        uint amount = protocol.withdrawFees(_token, address(this));
+        uint amount = 123;
         require(amount > 0, "FeeSharingProxy::withdrawFees: no tokens to withdraw");
 
         //TODO Method can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
-        uint poolTokenAmount = ILoanToken(loanToken).mint(address(this), amount);
+        IERC20(_token).approve(loanToken, amount);
+        uint poolTokenAmount = ILoanToken(loanPoolToken).mint(address(this), amount);
         _writeTokenCheckpoint(_token, uint128(poolTokenAmount));
 
         lastFeeWithdrawalTime = block.timestamp;
