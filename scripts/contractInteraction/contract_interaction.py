@@ -62,9 +62,10 @@ def main():
     #deployGovernor()
     #readProposal(1)
     #readCurrentLock(acct)
-    #readFromMedianizer()
+    readFromMedianizer()
     #readFromPriceFeed()
-    readOwner(contracts['protocol'])
+    #readOwner(contracts['protocol'])
+    updateOracleAddress('0x26a00aF444928d689DDEC7b4D17c0E4a8c9D407d')
     
 def loadConfig():
     global contracts, acct
@@ -515,6 +516,9 @@ def readCurrentLock(account):
 def readFromMedianizer():
     medianizer = Contract.from_abi("Medianizer", address=contracts['medianizer'], abi=PriceFeedsMoCMockup.abi, owner=acct)
     print(medianizer.peek())
+    medianizer = Contract.from_abi("Medianizer", address='0x26a00aF444928d689DDEC7b4D17c0E4a8c9D407d', abi=PriceFeedsMoCMockup.abi, owner=acct)
+    print(medianizer.peek())
+    
     
 def readFromPriceFeed():
     priceFeed = Contract.from_abi("PriceFeeds", address = contracts['priceFeed'], abi = PriceFeeds.abi, owner = acct)
@@ -523,3 +527,7 @@ def readFromPriceFeed():
 def readOwner(contractAddress):
     contract = Contract.from_abi("Ownable", address = contractAddress, abi = interface.ISovryn.abi, owner = acct)
     print(contract.owner())
+    
+def updateOracleAddress(newAddress):
+    priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = '0x0a6858f2E0f2b42dbDD21D248da589478c507cDD', abi = PriceFeedsMoC.abi, owner = acct)
+    priceFeedsMoC.setMoCOracleAddress(newAddress)
