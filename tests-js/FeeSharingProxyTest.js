@@ -31,12 +31,15 @@ const FeeSharingProxy = artifacts.require('FeeSharingProxy');
 
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
+const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
+const TWO_WEEKS = 1209600;
+
 contract('FeeSharingProxy:', accounts => {
-    const name = 'Test token';
+    const name = 'Test SOVToken';
     const symbol = 'TST';
     
     let root, account1, account2, account3, account4;
-    let token, susd, wrbtc, staking;
+    let SOVToken, susd, wrbtc, staking;
     let protocol;
     let loanTokenSettings, loanTokenLogic, loanToken;
     let feeSharingProxy;
@@ -47,13 +50,13 @@ contract('FeeSharingProxy:', accounts => {
     
     beforeEach(async () => {
         //Token
-        token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
+        SOVToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
         susd = await TestToken.new("SUSD", "SUSD", 18, TOTAL_SUPPLY);
         wrbtc = await TestWrbtc.new();
         
         //Staking
-        let stakingLogic = await StakingLogic.new(token.address);
-        staking = await StakingProxy.new(token.address);
+        let stakingLogic = await StakingLogic.new(SOVToken.address);
+        staking = await StakingProxy.new(SOVToken.address);
         await staking.setImplementation(stakingLogic.address);
         staking = await StakingLogic.at(staking.address);
     
@@ -82,8 +85,8 @@ contract('FeeSharingProxy:', accounts => {
         await protocol.setLoanPool([loanToken.address], [susd.address]);
         
         //TODO ?
-        await susd.approve(loanToken.address, TOTAL_SUPPLY);
-        await loanToken.mint(root, etherMantissa(1000));
+        // await susd.approve(loanToken.address, TOTAL_SUPPLY);
+        // await loanToken.mint(root, etherMantissa(1000));
     
         //FeeSharingProxy
         feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address, loanToken.address);
@@ -93,9 +96,27 @@ contract('FeeSharingProxy:', accounts => {
     describe("withdrawFees", () => {
         
         it("check setup", async () => {
+            console.log("\n============================================================");
+            
+            await SOVToken.approve(staking.address, 1000);
+            let tx = await staking.stake(1000, MAX_DURATION, root, root);
+            await mineBlock();
     
-            await feeSharingProxy.withdrawFees(susd.address);
-        
+            let kickoffTS = await staking.kickoffTS.call();
+            // let totalVotingPower = await staking.getPriorTotalVotingPower(tx.receipt.blockNumber, kickoffTS);
+            let totalVotingPower = await staking.getPriorTotalVotingPower(tx.receipt.blockNumber + 1, kickoffTS);
+            console.log(totalVotingPower.toString());
+            
+            //TODO ?
+            await susd.mint(feeSharingProxy.address, 123);
+            
+            tx = await feeSharingProxy.withdrawFees(susd.address);
+    
+            expectEvent(tx, 'FeeWithdrawn', {
+                sender: root,
+                token: susd.address,
+                amount: "123"
+            });
         });
         
     });
