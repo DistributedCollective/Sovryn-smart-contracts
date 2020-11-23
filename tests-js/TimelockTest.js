@@ -249,7 +249,7 @@ contract('Timelock', accounts => {
             
             await setTime(eta.toNumber());
             await expectRevert(timelock.executeTransaction(target, value, signature, revertData, eta, {from: root}),
-                'revert Timelock::executeTransaction: Transaction execution reverted.');
+                'revert Timelock::executeTransaction: Timelock::setDelay: Delay must exceed minimum delay.');
         });
         
         it('sets hash from true to false in queuedTransactions mapping, updates delay, and emits ExecuteTransaction event', async () => {
