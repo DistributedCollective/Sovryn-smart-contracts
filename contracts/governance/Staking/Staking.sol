@@ -63,12 +63,13 @@ contract Staking is WeightedStaking{
             until = latest;
         
         //update checkpoints
+        //todo James: can reading stake at block.number -1 cause trouble with multiple tx in a block?
         uint96 amount = getPriorUserStakeByDate(msg.sender, previousLock, block.number -1);
         require(amount > 0, "Staking::extendStakingDuration: nothing staked until the previous lock date");
+        _decreaseUserStake(msg.sender, previousLock, amount);
+        _increaseUserStake(msg.sender, until, amount);
         _decreaseDailyStake(previousLock, amount);
         _increaseDailyStake(until, amount);
-        _decreaseUserStake(msg.sender, until, amount);
-        _increaseUserStake(msg.sender, until, amount);
         //delegate might change: if there is already a delegate set for the until date, it will remain the delegate for this position
         address delegateFrom = delegates[msg.sender][previousLock];
         address delegateTo = delegates[msg.sender][until];
