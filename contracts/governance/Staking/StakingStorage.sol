@@ -30,7 +30,7 @@ contract StakingStorage is Ownable{
     IERC20 public SOVToken;
     
     /// @notice A record of each accounts delegate
-    mapping (address => address) public delegates;
+    mapping (address => mapping(uint => address)) public delegates;
     
     /// @notice if this flag is set to true, all tokens are unlocked immediately
     bool allUnlocked = false;

@@ -262,5 +262,4 @@ contract WeightedStaking is Checkpoints{
         uint periodFromKickoff = (timestamp - kickoffTS) / TWO_WEEKS;
         lockDate = periodFromKickoff * TWO_WEEKS + kickoffTS;
     }
-    
 }
