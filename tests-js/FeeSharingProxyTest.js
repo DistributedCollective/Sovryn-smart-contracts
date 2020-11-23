@@ -17,7 +17,7 @@ const StakingLogic = artifacts.require('Staking');
 const StakingProxy = artifacts.require('StakingProxy');
 
 const Protocol = artifacts.require('sovrynProtocol');
-const ProtocolSettings = artifacts.require('ProtocolSettings');
+const ProtocolSettings = artifacts.require('ProtocolSettingsMockup');
 const LoanMaintenance = artifacts.require('LoanMaintenance');
 const LoanSettings = artifacts.require('LoanSettings');
 const LoanOpenings = artifacts.require('LoanOpenings');
@@ -32,7 +32,8 @@ const FeeSharingProxy = artifacts.require('FeeSharingProxy');
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
-const TWO_WEEKS = 1209600;
+
+const MAX_VOTING_WEIGHT = 10;
 
 contract('FeeSharingProxy:', accounts => {
     const name = 'Test SOVToken';
@@ -84,39 +85,158 @@ contract('FeeSharingProxy:', accounts => {
         
         await protocol.setLoanPool([loanToken.address], [susd.address]);
         
-        //TODO ?
-        // await susd.approve(loanToken.address, TOTAL_SUPPLY);
-        // await loanToken.mint(root, etherMantissa(1000));
-    
         //FeeSharingProxy
         feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address, loanToken.address);
         await protocol.setFeesController(feeSharingProxy.address);
     });
     
     describe("withdrawFees", () => {
-        
-        it("check setup", async () => {
-            console.log("\n============================================================");
-            
-            await SOVToken.approve(staking.address, 1000);
-            let tx = await staking.stake(1000, MAX_DURATION, root, root);
+    
+        it("ProtocolSettings.withdrawFees", async () => {
+            //stake - getPriorTotalVotingPower
+            let totalStake = 1000;
+            await SOVToken.approve(staking.address, totalStake);
+            let tx = await staking.stake(totalStake, MAX_DURATION, root, root);
             await mineBlock();
     
+            //mock data
+            let totalFeeAmount = "600";
+            await susd.transfer(protocol.address, totalFeeAmount);
+            await protocol.setLendingFeeTokensHeld(susd.address, 100);
+            await protocol.setTradingFeeTokensHeld(susd.address, 200);
+            await protocol.setBorrowingFeeTokensHeld(susd.address, 300);
+    
+            await protocol.setFeesController(root);
+            tx = await protocol.withdrawFees(susd.address, account1);
+    
+            //check a withdraw
+            let protocolBalance = await susd.balanceOf(protocol.address);
+            expect(protocolBalance.toNumber()).to.be.equal(0);
+            let lendingFeeTokensHeld = await protocol.lendingFeeTokensHeld.call(susd.address);
+            expect(lendingFeeTokensHeld.toNumber()).to.be.equal(0);
+            let tradingFeeTokensHeld = await protocol.tradingFeeTokensHeld.call(susd.address);
+            expect(tradingFeeTokensHeld.toNumber()).to.be.equal(0);
+            let borrowingFeeTokensHeld = await protocol.borrowingFeeTokensHeld.call(susd.address);
+            expect(borrowingFeeTokensHeld.toNumber()).to.be.equal(0);
+
+            //check pool tokens mint
+            let userBalance = await susd.balanceOf.call(account1);
+            expect(userBalance.toString()).to.be.equal(totalFeeAmount);
+            
+            expectEvent(tx, 'WithdrawFees', {
+                sender: root,
+                token: susd.address,
+                receiver: account1,
+                lendingAmount: "100",
+                tradingAmount: "200",
+                borrowingAmount: "300"
+            });
+    
+        });
+        
+        it("Should be able to withdraw fees", async () => {
+            console.log("\n============================================================");
+            
+            //stake - getPriorTotalVotingPower
+            let totalStake = 1000;
+            await SOVToken.approve(staking.address, totalStake);
+            let tx = await staking.stake(totalStake, MAX_DURATION, root, root);
+            await mineBlock();
+
+            //TODO remove
             let kickoffTS = await staking.kickoffTS.call();
             // let totalVotingPower = await staking.getPriorTotalVotingPower(tx.receipt.blockNumber, kickoffTS);
             let totalVotingPower = await staking.getPriorTotalVotingPower(tx.receipt.blockNumber + 1, kickoffTS);
             console.log(totalVotingPower.toString());
             
-            //TODO ?
-            await susd.mint(feeSharingProxy.address, 123);
+            //mock data
+            let totalFeeAmount = "600";
+            await susd.transfer(protocol.address, totalFeeAmount);
+            await protocol.setLendingFeeTokensHeld(susd.address, 100);
+            await protocol.setTradingFeeTokensHeld(susd.address, 200);
+            await protocol.setBorrowingFeeTokensHeld(susd.address, 300);
             
             tx = await feeSharingProxy.withdrawFees(susd.address);
+            
+            //check a withdraw
+            let protocolBalance = await susd.balanceOf(protocol.address);
+            expect(protocolBalance.toNumber()).to.be.equal(0);
+            let lendingFeeTokensHeld = await protocol.lendingFeeTokensHeld.call(susd.address);
+            expect(lendingFeeTokensHeld.toNumber()).to.be.equal(0);
+            let tradingFeeTokensHeld = await protocol.tradingFeeTokensHeld.call(susd.address);
+            expect(tradingFeeTokensHeld.toNumber()).to.be.equal(0);
+            let borrowingFeeTokensHeld = await protocol.borrowingFeeTokensHeld.call(susd.address);
+            expect(borrowingFeeTokensHeld.toNumber()).to.be.equal(0);
     
+            //check pool tokens mint
+            let feeSharingProxyBalance = await loanToken.balanceOf.call(feeSharingProxy.address);
+            expect(feeSharingProxyBalance.toString()).to.be.equal(totalFeeAmount);
+
+            //checkpoints
+            let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanToken.address);
+            expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
+            let checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanToken.address, 0);
+            expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
+            expect(checkpoint.numTokens.toString()).to.be.equal(totalFeeAmount);
+            
+            //check lastFeeWithdrawalTime
+            let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call();
+            let block = await web3.eth.getBlock(tx.receipt.blockNumber);
+            expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
+            
             expectEvent(tx, 'FeeWithdrawn', {
                 sender: root,
-                token: susd.address,
-                amount: "123"
+                token: loanToken.address,
+                amount: totalFeeAmount
             });
+        });
+        
+    });
+    
+    describe("withdraw", () => {
+        
+        it("Should be able to withdraw fees", async () => {
+            //stake - getPriorTotalVotingPower
+            let rootStake = 900;
+            await SOVToken.approve(staking.address, rootStake);
+            await staking.stake(rootStake, MAX_DURATION, root, root);
+            await mineBlock();
+    
+            let userStake = 100;
+            await SOVToken.transfer(account1, userStake);
+            await SOVToken.approve(staking.address, userStake, {from: account1});
+            await staking.stake(userStake, MAX_DURATION, account1, account1, {from: account1});
+            await mineBlock();
+            
+            //mock data
+            let totalFeeAmount = 600;
+            await susd.transfer(protocol.address, totalFeeAmount);
+            await protocol.setLendingFeeTokensHeld(susd.address, 100);
+            await protocol.setTradingFeeTokensHeld(susd.address, 200);
+            await protocol.setBorrowingFeeTokensHeld(susd.address, 300);
+            
+            await feeSharingProxy.withdrawFees(susd.address);
+    
+            let tx = await feeSharingProxy.withdraw(loanToken.address, 10, ZERO_ADDRESS, {from: account1});
+    
+            //processedCheckpoints
+            let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+            expect(processedCheckpoints.toNumber()).to.be.equal(1);
+    
+            //check balances
+            let feeSharingProxyBalance = await loanToken.balanceOf.call(feeSharingProxy.address);
+            expect(feeSharingProxyBalance.toNumber()).to.be.equal(totalFeeAmount * 9 / 10);
+            let userBalance = await loanToken.balanceOf.call(account1);
+            expect(userBalance.toNumber()).to.be.equal(totalFeeAmount / 10);
+    
+            expectEvent(tx, 'UserFeeWithdrawn', {
+                sender: account1,
+                receiver: account1,
+                token: loanToken.address,
+                amount: new BN(totalFeeAmount).div(new BN(10))
+            });
+            
         });
         
     });
