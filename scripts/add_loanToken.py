@@ -43,7 +43,7 @@ def main():
     sovryn.setSupportedTokens([tokens.bpro.address],[True])
     feeds = Contract.from_abi("PriceFeeds", address=priceFeedsAddress, abi=PriceFeeds.abi, owner=acct)
 
-    (iBPro, iBProSettings) = addLoanToken(acct, sovryn, tokens, tokens.bpro.address, "iBPro", "iBPro", [tokens.wrbtc.address], tokens.wrbtc.address, feeds, mocStateAddress, BProPriceFeed)
+    (iBPro, iBProSettings) = addLoanToken(acct, sovryn, tokens, tokens.bpro.address, "iBPro", "iBPro", [tokens.wrbtc.address], tokens.wrbtc.address, feeds, BProPriceFeed, mocStateAddress)
 
     configData["medianizer"] = swapTestData["medianizer"]
     configData["mocState"] = mocStateAddress
@@ -64,7 +64,7 @@ def main():
     tokens.bpro.approve(iBPro.address, 1e16)
     testDeployment(acct, sovryn, iBPro.address, tokens.bpro, tokens.wrbtc, 1e16, 0)
     
-def addLoanToken(acct, sovryn, tokens, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddresses, wrbtcAddress, feeds, oracleAddress, PriceFeed):
+def addLoanToken(acct, sovryn, tokens, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddresses, wrbtcAddress, feeds, PriceFeed, oracleAddress):
     if not collateralAddresses:
         collateralAddresses = []
 
