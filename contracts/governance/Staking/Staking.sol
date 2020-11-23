@@ -131,9 +131,6 @@ contract Staking is WeightedStaking{
         if(receiver == address(0))
             receiver = msg.sender;
             
-        //reduce staked balance
-        uint96 newBalance = sub96(balance, amount, "Staking::withdraw: balance underflow");
-
         //update the checkpoints
         _decreaseDailyStake(until, amount);
         _decreaseUserStake(msg.sender, until, amount);
@@ -231,7 +228,7 @@ contract Staking is WeightedStaking{
         uint96 delegatorBalance = _currentBalance(delegator, lockedTS);
         delegates[delegator][lockedTS] = delegatee;
 
-        emit DelegateChanged(delegator, currentDelegate, delegatee);
+        emit DelegateChanged(delegator, lockedTS, currentDelegate, delegatee);
 
         _moveDelegates(currentDelegate, delegatee, delegatorBalance, lockedTS);
     }

@@ -7,7 +7,7 @@ import "./SafeMath96.sol";
 contract Checkpoints is StakingStorage, SafeMath96{
     
     /// @notice An event thats emitted when an account changes its delegate
-    event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);
+    event DelegateChanged(address indexed delegator, uint lockedUntil, address indexed fromDelegate, address indexed toDelegate);
     
     /// @notice An event thats emitted when a delegate account's stake balance changes
     event DelegateStakeChanged(address indexed delegate, uint lockedUntil, uint previousBalance, uint newBalance);
