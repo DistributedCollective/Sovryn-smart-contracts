@@ -27,14 +27,10 @@ def main():
 
     setup()
 
-    RBTC.mint(loan_token.address, 1e17)
-    USDT.mint(loan_token.address, 1000e18)
-    USDT.approve(loan_token.address, 1000e18)
-
     if this_network == "development":
         margin_pool_setup()
         test_loan_address()
-    test_margin_trading_sending_collateral_tokens() 
+    test_margin_trading_sending_collateral_tokens()
     test_margin_trading_sending_loan_tokens()
     
     if this_network == "development":
@@ -253,7 +249,7 @@ def test_cash_out_from_the_pool_more_of_lender_balance():
     print("Passed `test_cash_out_from_the_pool_more_of_lender_balance`")
 
 def test_supply_interest_fee():
-    # USDT.approve(loan_token.address,1e17)
+    USDT.approve(loan_token.address, 1000e18)
     loan_token.mint(acct, 10e18)
 
     tx = loan_token.marginTrade(
@@ -292,7 +288,6 @@ def initialize_test_transfer(USDT, accounts, _loan_token):
 
 def test_transfer():
     amount_sent, receiver, sender = initialize_test_transfer(USDT, accounts, loan_token)
-    print('xxxsasadsaasddasdasdsasad', amount_sent)
 
     tx = loan_token.transfer(receiver, amount_sent)
     transfer_event = tx.events['Transfer']
@@ -304,7 +299,7 @@ def test_transfer():
 
 
 def test_liquidate():
-    # USDT.approve(loan_token.address, 1e17)
+    USDT.approve(loan_token.address, 1000e18)
     lender = accounts[0]
     borrower = accounts[1]
     liquidator = accounts[2]
