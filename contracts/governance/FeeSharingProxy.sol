@@ -92,8 +92,7 @@ contract FeeSharingProxy is SafeMath96 {
         uint256 amount = 0;
         for (uint32 i = start; i < end; i++) {
             Checkpoint storage checkpoint = tokenCheckpoints[_loanPoolToken][i];
-            //uint96 weightedStake = staking.getPriorWeightedStake(user, checkpoint.blockNumber, date); //TODO [9]: we don't have date here
-            uint weightedStake = 1000;
+            uint96 weightedStake = staking.getPriorWeightedStake(user, checkpoint.blockNumber, 0); //TODO [9]: we don't have date here
             uint share = uint(checkpoint.numTokens).mul(weightedStake).div(uint(checkpoint.totalWeightedStake));
             amount = amount.add(share);
         }

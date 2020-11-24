@@ -13,7 +13,7 @@ const {
 const TestToken = artifacts.require('TestToken');
 const TestWrbtc = artifacts.require('TestWrbtc');
 
-const StakingLogic = artifacts.require('Staking');
+const StakingLogic = artifacts.require('StakingMockup');
 const StakingProxy = artifacts.require('StakingProxy');
 
 const Protocol = artifacts.require('sovrynProtocol');
@@ -62,6 +62,7 @@ contract('FeeSharingProxy:', accounts => {
         staking = await StakingProxy.new(SOVToken.address);
         await staking.setImplementation(stakingLogic.address);
         staking = await StakingLogic.at(staking.address);
+        await staking.MOCK_priorWeightedStake(1000);
     
         //Protocol
         protocol = await Protocol.new();
@@ -343,7 +344,44 @@ contract('FeeSharingProxy:', accounts => {
             userBalance = await loanToken.balanceOf.call(account1);
             expect(userBalance.toNumber()).to.be.equal(parseInt(totalFeeAmount / 10));
         });
+    
+        it("Should be able to process 10 checkpoints", async () => {
+            //stake - getPriorTotalVotingPower
+            await stake(1000, root);
         
+            //mock data
+            await createCheckpoints(10);
+    
+            await feeSharingProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, {from: account1});
+            //processedCheckpoints
+            let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+            expect(processedCheckpoints.toNumber()).to.be.equal(10);
+        });
+    
+        it("Should be able to process 10 checkpoints and 3 withdrawal", async () => {
+            //stake - getPriorTotalVotingPower
+            await stake(1000, root);
+        
+            //mock data
+            await createCheckpoints(10);
+        
+            await feeSharingProxy.withdraw(loanToken.address, 5, ZERO_ADDRESS, {from: account1});
+            //processedCheckpoints
+            let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+            expect(processedCheckpoints.toNumber()).to.be.equal(5);
+    
+            await feeSharingProxy.withdraw(loanToken.address, 3, ZERO_ADDRESS, {from: account1});
+            //processedCheckpoints
+            processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+            expect(processedCheckpoints.toNumber()).to.be.equal(8);
+    
+            await feeSharingProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, {from: account1});
+            //processedCheckpoints
+            processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+            expect(processedCheckpoints.toNumber()).to.be.equal(10);
+        });
+    
+    
     });
     
     async function stake(amount, user) {
@@ -371,6 +409,14 @@ contract('FeeSharingProxy:', accounts => {
         expect(tradingFeeTokensHeld.toNumber()).to.be.equal(0);
         let borrowingFeeTokensHeld = await protocol.borrowingFeeTokensHeld.call(susd.address);
         expect(borrowingFeeTokensHeld.toNumber()).to.be.equal(0);
+    }
+    
+    async function createCheckpoints(number) {
+        for (let i = 0; i < number; i++) {
+            await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+            await increaseTime(FEE_WITHDRAWAL_INTERVAL);
+            await feeSharingProxy.withdrawFees(susd.address);
+        }
     }
     
 });
