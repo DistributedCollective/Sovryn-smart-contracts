@@ -386,7 +386,9 @@ contract('FeeSharingProxy:', accounts => {
     
     async function stake(amount, user) {
         await SOVToken.approve(staking.address, amount);
-        let tx = await staking.stake(amount, MAX_DURATION, user, user);
+        let kickoffTS = await staking.kickoffTS.call();
+        let stakingDate = kickoffTS.add(new BN(MAX_DURATION));
+        let tx = await staking.stake(amount, stakingDate, user, user);
         await mineBlock();
         return tx;
     }
