@@ -1,12 +1,9 @@
 pragma solidity >=0.5.0 <0.6.0;
 
-import "./interfaces/IMoCState.sol";
+import "./PriceFeeds.sol";
+import "./IMoCState.sol";
 import "../openzeppelin/Ownable.sol";
 import "../openzeppelin/Address.sol";
-
-interface IPriceFeedsExt {
-  function latestAnswer() external view returns (uint256);
-}
 
 contract BProPriceFeed is IPriceFeedsExt, Ownable {
     address public mocStateAddress;
