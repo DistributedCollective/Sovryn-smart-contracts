@@ -30,7 +30,7 @@ contract StakingStorage is Ownable{
     IERC20 public SOVToken;
     
     /// @notice A record of each accounts delegate
-    mapping (address => address) public delegates;
+    mapping (address => mapping(uint => address)) public delegates;
     
     /// @notice if this flag is set to true, all tokens are unlocked immediately
     bool allUnlocked = false;
@@ -39,7 +39,7 @@ contract StakingStorage is Ownable{
     bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
 
     /// @notice The EIP-712 typehash for the delegation struct used by the contract
-    bytes32 public constant DELEGATION_TYPEHASH = keccak256("Delegation(address delegatee,uint256 nonce,uint256 expiry)");
+    bytes32 public constant DELEGATION_TYPEHASH = keccak256("Delegation(address delegatee,uint256 lockDate,uint256 nonce,uint256 expiry)");
     
     /*************************** Checkpoints *******************************/
     
@@ -47,13 +47,6 @@ contract StakingStorage is Ownable{
     struct Checkpoint {
         uint32 fromBlock;
         uint96 stake;
-    }
-    
-    /// @notice A checkpoint for marking the stakes and lock date of an user from a given block
-    struct UserCheckpoint {
-        uint32 fromBlock;
-        uint96 stake;
-        uint96 lockedUntil;
     }
     
     /// @notice A record of tokens to be unstaked at a given time in total
@@ -67,14 +60,14 @@ contract StakingStorage is Ownable{
     /// for delegatee voting power computation. voting weights get adjusted bi-weekly
     mapping(address => mapping (uint => mapping (uint32 => Checkpoint))) public delegateStakingCheckpoints;
     
-    ///@notice The number of total staking checkpoints for each date
+    ///@notice The number of total staking checkpoints for each date per delegate
     mapping (address => mapping (uint => uint32)) public numDelegateStakingCheckpoints;
     
-    /// @notice A record of stake checkpoints for each account, by index
-    mapping (address => mapping (uint32 => UserCheckpoint)) public userCheckpoints;
+    /// @notice A record of tokens to be unstaked at a given time which per user address (address -> lockDate -> stake checkpoint)
+    mapping (address => mapping (uint => mapping (uint32 => Checkpoint))) public userStakingCheckpoints;
     
-    /// @notice The number of checkpoints for each account
-    mapping (address => uint32) public numUserCheckpoints;
+    ///@notice The number of total staking checkpoints for each date per user
+    mapping (address => mapping (uint => uint32)) public numUserStakingCheckpoints;
 
     /// @notice A record of states for signing / validating signatures
     mapping (address => uint) public nonces;

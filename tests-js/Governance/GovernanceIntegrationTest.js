@@ -31,8 +31,6 @@ const TWO_DAYS = 86400 * 2;
 const TWO_WEEKS = 86400 * 14;
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
-//TODO require(success, "Timelock::executeTransaction: Transaction execution reverted.");
-
 contract('GovernanceIntegration', accounts => {
     const name = 'Test token';
     const symbol = 'TST';
@@ -209,7 +207,8 @@ contract('GovernanceIntegration', accounts => {
     
     async function executeProposal(proposalData) {
         await token.approve(staking.address, QUORUM_VOTES);
-        await staking.stake(QUORUM_VOTES, MAX_DURATION, root, root);
+        let kickoffTS = await staking.kickoffTS.call();
+        await staking.stake(QUORUM_VOTES, kickoffTS.add(MAX_DURATION), root, root);
         
         await gov.propose(proposalData.targets, proposalData.values, proposalData.signatures, proposalData.callDatas, proposalData.description);
         let proposalId = await gov.latestProposalIds.call(root);

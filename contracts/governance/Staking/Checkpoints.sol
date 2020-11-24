@@ -7,7 +7,7 @@ import "./SafeMath96.sol";
 contract Checkpoints is StakingStorage, SafeMath96{
     
     /// @notice An event thats emitted when an account changes its delegate
-    event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);
+    event DelegateChanged(address indexed delegator, uint lockedUntil, address indexed fromDelegate, address indexed toDelegate);
     
     /// @notice An event thats emitted when a delegate account's stake balance changes
     event DelegateStakeChanged(address indexed delegate, uint lockedUntil, uint previousBalance, uint newBalance);
@@ -24,18 +24,44 @@ contract Checkpoints is StakingStorage, SafeMath96{
     /// @notice An event thats emitted when a staking period gets extended
     event ExtendedStakingDuration(address indexed staker, uint previousDate, uint newDate);
     
-    function _writeUserCheckpoint(address user,  uint96 newStake, uint96 lockedTS) internal {
-      uint32 blockNumber = safe32(block.number, "Staking::_writeUserCheckpoint: block number exceeds 32 bits");
-      uint32 nCheckpoints = numUserCheckpoints[user];
-
-      if (nCheckpoints > 0 && userCheckpoints[user][nCheckpoints - 1].fromBlock == blockNumber) {
-          userCheckpoints[user][nCheckpoints - 1].stake = newStake;
-          userCheckpoints[user][nCheckpoints - 1].lockedUntil = lockedTS;
-      } else {
-          userCheckpoints[user][nCheckpoints] = UserCheckpoint(blockNumber, newStake, lockedTS);
-          numUserCheckpoints[user] = nCheckpoints + 1;
-      }
+    
+    /**
+     * @notice increases the user's stake for a giving lock date and writes a checkpoint
+     * @param account the user address
+     * @param lockedTS the lock date
+     * @param value the value to add to the staked balance
+     * */
+    function _increaseUserStake(address account, uint lockedTS, uint96 value) internal{
+        uint32 nCheckpoints = numUserStakingCheckpoints[account][lockedTS];
+        uint96 staked = userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;
+        uint96 newStake = add96(staked, value, "Staking::_increaseUserStake: stakedUntil overflow");
+        _writeUserCheckpoint(account, lockedTS, nCheckpoints, newStake);
     }
+    
+    /**
+     * @notice decreases the user's stake for a giving lock date and writes a checkpoint
+     * @param account the user address
+     * @param lockedTS the lock date
+     * @param value the value to add to the staked balance
+     * */
+    function _decreaseUserStake(address account, uint lockedTS, uint96 value) internal{
+        uint32 nCheckpoints = numUserStakingCheckpoints[account][lockedTS];
+        uint96 staked = userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;
+        uint96 newStake = sub96(staked, value, "Staking::_decreaseUserStake: stakedUntil underflow");
+        _writeUserCheckpoint(account, lockedTS, nCheckpoints, newStake);
+    }
+    
+    function _writeUserCheckpoint(address account, uint lockedTS, uint32 nCheckpoints, uint96 newStake) internal {
+      uint32 blockNumber = safe32(block.number, "Staking::_writeStakingCheckpoint: block number exceeds 32 bits");
+        if (nCheckpoints > 0 && userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].fromBlock == blockNumber) {
+            userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake = newStake;
+        } else {
+            userStakingCheckpoints[account][lockedTS][nCheckpoints] = Checkpoint(blockNumber, newStake);
+            numUserStakingCheckpoints[account][lockedTS] = nCheckpoints + 1;
+        }
+    }
+    
+    
     
     /**
      * @notice increases the delegatee's stake for a giving lock date and writes a checkpoint
@@ -60,7 +86,7 @@ contract Checkpoints is StakingStorage, SafeMath96{
         uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
         uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
         uint96 newStake = sub96(staked, value, "Staking::_decreaseDailyStake: stakedUntil underflow");
-        _writeStakingCheckpoint(lockedTS, nCheckpoints, newStake);
+        _writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, newStake);
     }
     
     function _writeDelegateCheckpoint(address delegatee, uint lockedTS, uint32 nCheckpoints, uint96 newStake) internal {

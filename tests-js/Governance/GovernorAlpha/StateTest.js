@@ -39,6 +39,7 @@ const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
 contract('GovernorAlpha#state/1', accounts => {
     let token, staking, gov, root, acct, delay, timelock;
+    let trivialProposal, targets, values, signatures, callDatas;
     
     before(async () => {
         [root, acct, ...accounts] = accounts;
@@ -64,24 +65,21 @@ contract('GovernorAlpha#state/1', accounts => {
         
         await token.transfer(acct, QUORUM_VOTES);
         await token.approve(staking.address, QUORUM_VOTES, {from: acct});
-        await staking.stake(QUORUM_VOTES, MAX_DURATION, acct, acct, {from: acct});
+        let kickoffTS = await staking.kickoffTS.call();
+        let stakingDate = kickoffTS.add(new BN(MAX_DURATION));
+        await staking.stake(QUORUM_VOTES, stakingDate, acct, acct, {from: acct});
         
-        await staking.delegate(acct, {from: root});
-    });
-    
-    let trivialProposal, targets, values, signatures, callDatas;
-    beforeEach(async () => {
+        //
         targets = [root];
         values = ["0"];
         signatures = ["getBalanceOf(address)"]
         callDatas = [encodeParameters(['address'], [acct])];
-        await staking.delegate(root, {from: acct});
-        
+    
         await updateTime(staking);
         await gov.propose(targets, values, signatures, callDatas, "do nothing");
         proposalId = await gov.latestProposalIds.call(root);
         trivialProposal = await gov.proposals.call(proposalId);
-    })
+    });
     
     it("Invalid for proposal not found", async () => {
         await expectRevert(gov.state.call("5"),
