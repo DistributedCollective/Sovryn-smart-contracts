@@ -209,7 +209,8 @@ contract('GovernanceIntegration', accounts => {
     
     async function executeProposal(proposalData) {
         await token.approve(staking.address, QUORUM_VOTES);
-        await staking.stake(QUORUM_VOTES, MAX_DURATION, root, root);
+        let kickoffTS = await staking.kickoffTS.call();
+        await staking.stake(QUORUM_VOTES, kickoffTS.add(MAX_DURATION), root, root);
         
         await gov.propose(proposalData.targets, proposalData.values, proposalData.signatures, proposalData.callDatas, proposalData.description);
         let proposalId = await gov.latestProposalIds.call(root);
