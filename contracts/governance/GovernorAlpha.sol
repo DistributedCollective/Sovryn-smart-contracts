@@ -173,20 +173,20 @@ contract GovernorAlpha is SafeMath96 {
         proposalCount++;
         Proposal memory newProposal = Proposal({
             id: proposalCount,
-            proposer: msg.sender,
-            eta: 0,
-            targets: targets,
-            values: values,
-            signatures: signatures,
-            calldatas: calldatas,
             startBlock: safe32(startBlock, "GovernorAlpha::propose: start block number overflow"),
             endBlock: safe32(endBlock, "GovernorAlpha::propose: end block number overflow"),
-            startTime: safe64(block.timestamp, "GovernorAlpha::propose: startTime overflow"),//required by the staking contract. not used by the governance contract itself.
             forVotes: 0,
             againstVotes: 0,
             quorum: mul96(4, proposalThreshold, "GovernorAlpha::propose: overflow on quorum computation"),
+            eta: 0,
+            startTime: safe64(block.timestamp, "GovernorAlpha::propose: startTime overflow"),//required by the staking contract. not used by the governance contract itself.
             canceled: false,
-            executed: false
+            executed: false,
+            proposer: msg.sender,
+            targets: targets,
+            values: values,
+            signatures: signatures,
+            calldatas: calldatas
         });
 
         proposals[newProposal.id] = newProposal;

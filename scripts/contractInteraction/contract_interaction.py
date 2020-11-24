@@ -6,6 +6,7 @@ This script serves the purpose of interacting with existing smart contracts on t
 from brownie import *
 from brownie.network.contract import InterfaceContainer
 import json
+import time;
 
 def main():
     
@@ -18,7 +19,7 @@ def main():
     #testTradeOpeningAndClosing(contracts['protocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e14, 5e18, True, 1e14)
     
     #swapTokens(0.02e18,200e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['DoC'])
-    #swapTokens(300e18, 0.01e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
+    #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
     #liquidate(contracts['protocol'], '0xc9b8227bcf953e45f16d5d9a8a74cad92f403b90d0daf00900bb02e4a35c542c')
     #readLiquidity()
     #getBalance(contracts['WRBTC'], '0xE5646fEAf7f728C12EcB34D14b4396Ab94174827')
@@ -42,9 +43,29 @@ def main():
     #readLoanTokenState(contracts['iRBTC'])
     #print('iDOC')
     #readLoanTokenState(contracts['iDOC'])
-    #addLiquidity(contracts['swap'], contracts['WRBTC'], 2e18)
+    #for i in range(8):
+    #    setProtocolTokenAddressWithMultisig()
+    #extendDuration()
+
+    #stake(acct, 10000e18)
     
-    mintEarlyAccessTokens(contracts['og'], '0x95f1f9393D1d3e46Df2cDa491fc323E142758c21')
+    #makeGovernanceProposal()
+    #confirmMultisigTransaction(0)
+    #transferTokens(contracts['SOV'], '0x2bD2201bfe156a71EB0d02837172FFc237218505', 500000e18)
+    #changeMultisigOwner('0x55310E0bC1A85bB24Ec7798a673a69Ba254B6Bbf', '0x52e8f03e7c9c1Ef320ff7C31dB78EAead18E5F85')
+    #changeProtocolOwnerWithMS('0x6b5b3AaBcb97135371E55bD3eF8a44713aE1841F')
+    #readProposal(contracts['governor'])
+    #transferTokens(contracts['SOV'], '0x27Fb05Cb49eb1603b24B4B0B3F9e12defCe94adc', 1000000e18)
+    #getCurrentVotes(acct)
+    #readPriorVotesForProposal(acct, 1)
+    #getBalance('0x576aE218aeCfD4CbD2DBe07250b47e26060932B1','0x854058553dF87EF1bE2c1D8f24eEa8AF52A81fF1')
+    #deployGovernor()
+    #readProposal(1)
+    #readCurrentLock(acct)
+    readFromMedianizer()
+    #readFromPriceFeed()
+    #readOwner(contracts['protocol'])
+    updateOracleAddress('0x26a00aF444928d689DDEC7b4D17c0E4a8c9D407d')
     
 def loadConfig():
     global contracts, acct
@@ -56,6 +77,7 @@ def loadConfig():
     contracts = json.load(configFile)
     acct = accounts.load("rskdeployer")
     #acct = accounts.load("jamie")
+    #acct = accounts.load("danazix")
     
 
 
@@ -384,12 +406,128 @@ def getAllowance(contractAddress, fromAddress, toAddress):
     contract = Contract.from_abi("Token", address=contractAddress, abi=TestToken.abi, owner=acct)
     print(contract.allowance(fromAddress,toAddress))
     
-def addLiquidity(swapAddress, tokenAddress,amount):
-    abiFile =  open('./scripts/contractInteraction/LiquidityPoolV2Converter.json')
-    abi = json.load(abiFile)
-    swap = Contract.from_abi("Converter", address = swapAddress, abi = abi, owner = acct)
-    if( tokenAddress == contracts['WRBTC']):
-        wrbtc = Contract.from_abi("WRBTC", address = contracts['WRBTC'], abi = WRBTC.abi, owner = acct)
-        wrbtc.deposit({'value':amount})
-        wrbtc.approve(swap, amount)
-    swap.addLiquidity(tokenAddress, amount, 1)
+def setProtocolTokenAddressWithMultisig():
+    sovryn = Contract.from_abi("sovryn", address=contracts['protocol'], abi=interface.ISovryn.abi, owner=acct)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+
+    dest = sovryn.address
+    val = 0
+    data = sovryn.setProtocolTokenAddress.encode_input(sovryn.address)
+    
+    tx = multisig.submitTransaction(dest,val,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
+    
+def confirmMultisigTransaction(txId):
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.confirmTransaction(txId)
+
+def changeMultisigOwner(oldOwner, newOwner):
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    data = multisig.replaceOwner.encode_input(oldOwner, newOwner)
+    tx = multisig.submitTransaction(multisig.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print('txId', txId)
+    
+def changeProtocolOwnerWithMS(newOwner):
+    sovryn = Contract.from_abi("sovryn", address=contracts['protocol'], abi=interface.ISovryn.abi, owner=acct)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    data = sovryn.transferOwnership.encode_input(newOwner)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print('txId', txId)
+    
+    
+def stake(stakeFor, amount):
+    governor = Contract.from_abi("Governor", address=contracts['governor'], abi=GovernorAlpha.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=contracts['staking'], abi=Staking.abi, owner=acct)
+    SOV = Contract.from_abi("SOV", address=contracts['SOV'], abi=TestToken.abi, owner=acct)
+    SOV.approve(staking.address, amount)
+    staking.stake(amount, 52*14*24*60*60, stakeFor, acct)
+
+    
+def increaseStake(amount):
+    staking = Contract.from_abi("Staking", address=contracts['staking'], abi=Staking.abi, owner=acct)
+    SOV = Contract.from_abi("SOV", address=contracts['SOV'], abi=TestToken.abi, owner=acct)
+    SOV.approve(staking.address, amount)
+    staking.increaseStake(amount, acct)
+    
+def extendDuration():
+    staking = Contract.from_abi("Staking", address=contracts['staking'], abi=Staking.abi, owner=acct)
+    staking.extendStakingDuration(1605189273+14*24*60*60*52)
+    
+def makeGovernanceProposal():
+    governor = Contract.from_abi("Governor", address=contracts['governor'], abi=GovernorAlpha.abi, owner=acct)
+    SOV = Contract.from_abi("SOV", address=contracts['SOV'], abi=TestToken.abi, owner=acct)
+    
+    targets = [contracts['SOV']];
+    values = ["0"];
+    signatures = ["getBalanceOf(address)"];
+    dataString = SOV.balanceOf.encode_input(acct)
+    callDatas = [dataString[10:]];
+    print(callDatas)
+    print(len(callDatas[0]))
+    
+    governor.propose(targets, values, signatures, callDatas, "do nothing")
+    
+def readPriorVotes(staker):
+    staking = Contract.from_abi("Staking", address=contracts['staking'], abi=Staking.abi, owner=acct)
+    blocknumber = 1345568
+    time = 1605190732
+    print(staking.getPriorVotes(staker, blocknumber, time))
+    
+def transferTokens(tokenAddress, receiver, amount):
+    token = Contract.from_abi("token", address=tokenAddress, abi=TestToken.abi, owner=acct)
+    token.transfer(receiver, amount)
+
+def readProposal(proposalId):
+    governor = Contract.from_abi("Governor", address=contracts['governor'], abi=GovernorAlpha.abi, owner=acct)
+    proposal = governor.proposals(proposalId).dict();
+    print(proposal)
+    return proposal
+
+def getCurrentVotes(userAddress):
+    staking = Contract.from_abi("Staking", address=contracts['staking'], abi=Staking.abi, owner=acct)
+    votes = staking.getCurrentVotes(userAddress)
+    print(votes)
+    
+def readPriorVotesForProposal(staker, proposalId):
+    staking = Contract.from_abi("Staking", address=contracts['staking'], abi=Staking.abi, owner=acct)
+    proposal = readProposal(proposalId)
+    blocknumber = proposal['startBlock']
+    time = proposal['startTime']
+    print(staking.getPriorVotes(staker, blocknumber, time))
+    
+def deployGovernor():
+    governor = acct.deploy(GovernorAlpha, contracts['timelock'], contracts['staking'], contracts['multisig'])
+    timelock = Contract.from_abi("Timelock", address=contracts['timelock'], abi=Timelock.abi, owner=acct)
+    dataString = timelock.setPendingAdmin.encode_input(governor.address)
+    #2 days and 5 minutes from now
+    eta = round(time.time()) + 2*24*60*60 + 300
+    print("schedule ownership transfer for ", eta)
+    tx = timelock.queueTransaction(timelock.address, 0, "setPendingAdmin(address)", dataString[10:], eta)
+    tx.info()
+    
+def readCurrentLock(account):
+    staking = Contract.from_abi("Staking", address=contracts['staking'], abi=Staking.abi, owner=acct)
+    lockDate = staking.currentLock(account)
+    print(lockDate)
+    
+def readFromMedianizer():
+    medianizer = Contract.from_abi("Medianizer", address=contracts['medianizer'], abi=PriceFeedsMoCMockup.abi, owner=acct)
+    print(medianizer.peek())
+    medianizer = Contract.from_abi("Medianizer", address='0x26a00aF444928d689DDEC7b4D17c0E4a8c9D407d', abi=PriceFeedsMoCMockup.abi, owner=acct)
+    print(medianizer.peek())
+    
+    
+def readFromPriceFeed():
+    priceFeed = Contract.from_abi("PriceFeeds", address = contracts['priceFeed'], abi = PriceFeeds.abi, owner = acct)
+    print(priceFeed.queryRate(contracts['WRBTC'], contracts['DoC']))
+    
+def readOwner(contractAddress):
+    contract = Contract.from_abi("Ownable", address = contractAddress, abi = interface.ISovryn.abi, owner = acct)
+    print(contract.owner())
+    
+def updateOracleAddress(newAddress):
+    priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = '0x0a6858f2E0f2b42dbDD21D248da589478c507cDD', abi = PriceFeedsMoC.abi, owner = acct)
+    priceFeedsMoC.setMoCOracleAddress(newAddress)

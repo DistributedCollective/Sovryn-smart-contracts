@@ -22,9 +22,11 @@ const TOTAL_SUPPLY = etherMantissa(1000000000);
 async function enfranchise(token, staking, actor, amount) {
     await token.transfer(actor, amount);
     await token.approve(staking.address, amount, {from: actor});
-    await staking.stake(amount, DELAY, actor, actor, {from: actor});
+    let kickoffTS = await staking.kickoffTS.call();
+    let stakingDate = kickoffTS.add(new BN(DELAY));
+    await staking.stake(amount, stakingDate, actor, actor, {from: actor});
     
-    await staking.delegate(actor, {from: actor});
+    await staking.delegate(actor, stakingDate, {from: actor});
 }
 
 contract('GovernorAlpha#queue/1', accounts => {

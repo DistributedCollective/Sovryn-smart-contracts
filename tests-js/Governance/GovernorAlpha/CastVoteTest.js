@@ -27,7 +27,8 @@ const TOTAL_SUPPLY = etherMantissa(100000000);
 async function enfranchise(token, comp, actor, amount) {
     await token.transfer(actor, amount);
     await token.approve(comp.address, amount, {from: actor});
-    await comp.stake(amount, DELAY, actor, actor, {from: actor});
+    let kickoffTS = await comp.kickoffTS.call();
+    await comp.stake(amount, kickoffTS.add(new BN(DELAY)), actor, actor, {from: actor});
 }
 
 contract("governorAlpha#castVote/2", accounts => {
@@ -194,7 +195,8 @@ contract("governorAlpha#castVote/2", accounts => {
             let amount = etherMantissa(1000000);
             await token.transfer(actor, amount);
             await token.approve(staking.address, amount, {from: actor});
-            await staking.stake(amount, TWO_WEEKS, actor, actor, {from: actor});
+            let kickoffTS = await staking.kickoffTS.call();
+            await staking.stake(amount, kickoffTS.add(new BN(TWO_WEEKS)), actor, actor, {from: actor});
             
             await gov.propose(targets, values, signatures, callDatas, "do nothing", {from: actor});
             proposalId = await gov.latestProposalIds.call(actor);
