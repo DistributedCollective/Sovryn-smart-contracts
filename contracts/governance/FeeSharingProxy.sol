@@ -70,6 +70,7 @@ contract FeeSharingProxy is SafeMath96 {
         emit FeeWithdrawn(msg.sender, loanPoolToken, poolTokenAmount);
     }
 
+    //TODO _loanPoolToken
     //TODO check gas
     //TODO Withdrawal should only be possible for blocks which were already mined.
     function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) public returns (uint) {
