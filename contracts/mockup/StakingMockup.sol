@@ -4,6 +4,10 @@ import "../governance/Staking/Staking.sol";
 
 contract StakingMockup is Staking {
     
+    function balanceOf_MultipliedByTwo(address account) external view returns (uint) {
+        return balanceOf(account) * 2;
+    }
+    
     uint96 priorTotalVotingPower;
 
     function MOCK_priorTotalVotingPower(uint96 _priorTotalVotingPower) public {
