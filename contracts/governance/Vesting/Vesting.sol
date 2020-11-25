@@ -26,7 +26,7 @@ contract Vesting is Ownable{
      * @dev Throws if called by any account other than the token owner or the contract owner.
      */
     modifier onlyOwners() {
-        require(msg.sender == tokenOwner || isOwner(msg.sender), "unauthorized");
+        require(msg.sender == tokenOwner || isOwner(), "unauthorized");
         _;
     }
     
@@ -52,8 +52,8 @@ contract Vesting is Ownable{
      * @param amount the amount of tokens to stake
      * */
     function stakeTokens(uint amount) public{
-        require(startDate == 0; "stakeTokens can be called only once.");
-        startDate = block.number;
+        require(startDate == 0, "stakeTokens can be called only once.");
+        startDate = staking.timestampToLockDate(block.timestamp);
         //transfer the tokens to this contract
         bool success = SOV.transferFrom(msg.sender, address(this), amount);
         require(success);
@@ -83,7 +83,7 @@ contract Vesting is Ownable{
      * @param receiver the receiving address
      * */
     function withdrawTokens(address receiver) public onlyOwners{
-        uint stake;
+        uint96 stake;
         //withdraw for each unlocked position
         for(uint i = startDate+cliff; i < block.timestamp; i += FOUR_WEEKS){
             //read amount to withdraw
