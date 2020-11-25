@@ -37,6 +37,8 @@ const MAX_VOTING_WEIGHT = 10;
 
 const FEE_WITHDRAWAL_INTERVAL = 86400;
 
+const MOCK_PRIOR_WEIGHTED_STAKE = true;
+
 contract('FeeSharingProxy:', accounts => {
     const name = 'Test SOVToken';
     const symbol = 'TST';
@@ -250,8 +252,10 @@ contract('FeeSharingProxy:', accounts => {
             let rootStake = 700;
             await stake(rootStake, root);
     
-            // await staking.MOCK_priorWeightedStake(3000);
             let userStake = 300;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
             await SOVToken.transfer(account1, userStake);
             await stake(userStake, account1);
             
@@ -287,8 +291,10 @@ contract('FeeSharingProxy:', accounts => {
             let rootStake = 900;
             await stake(rootStake, root);
     
-            // await staking.MOCK_priorWeightedStake(1000);
             let userStake = 100;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
             await SOVToken.transfer(account1, userStake);
             await stake(userStake, account1);
     
@@ -345,6 +351,9 @@ contract('FeeSharingProxy:', accounts => {
             //stake - getPriorTotalVotingPower
             await stake(900, root);
             let userStake = 100;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
             await SOVToken.transfer(account1, userStake);
             await stake(userStake, account1);
         
@@ -362,6 +371,9 @@ contract('FeeSharingProxy:', accounts => {
             //stake - getPriorTotalVotingPower
             await stake(900, root);
             let userStake = 100;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
             await SOVToken.transfer(account1, userStake);
             await stake(userStake, account1);
     
@@ -387,22 +399,25 @@ contract('FeeSharingProxy:', accounts => {
             expect(processedCheckpoints.toNumber()).to.be.equal(10);
         });
     
-        // it("Should be able to process 30 checkpoints", async () => {
-        //     //stake - getPriorTotalVotingPower
-        //     await stake(900, root);
-        //     let userStake = 100;
-        //     await SOVToken.transfer(account1, userStake);
-        //     await stake(userStake, account1);
-        //
-        //     //mock data
-        //     await createCheckpoints(30);
-        //
-        //     let tx = await feeSharingProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, {from: account1});
-        //     console.log("\nwithdraw(checkpoints = 100).gasUsed: " + tx.receipt.gasUsed);
-        //     //processedCheckpoints
-        //     let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
-        //     expect(processedCheckpoints.toNumber()).to.be.equal(30);
-        // });
+        it("Should be able to process 30 checkpoints", async () => {
+            //stake - getPriorTotalVotingPower
+            await stake(900, root);
+            let userStake = 100;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            //mock data
+            await createCheckpoints(30);
+
+            let tx = await feeSharingProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, {from: account1});
+            console.log("\nwithdraw(checkpoints = 30).gasUsed: " + tx.receipt.gasUsed);
+            //processedCheckpoints
+            let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+            expect(processedCheckpoints.toNumber()).to.be.equal(30);
+        });
     
     });
     
