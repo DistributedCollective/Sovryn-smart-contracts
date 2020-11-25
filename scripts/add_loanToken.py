@@ -5,16 +5,6 @@ import shared
 import json
 from munch import Munch
 
-def main():
-    print('\n DEPLOYING BPro and iBPro')
-    with open('./scripts/swap_test.json') as config_file:
-        swapTestData = json.load(config_file)
-    mocStateAddress = swapTestData["mocState"]
-    addLoanToken("BPro", "BPro", 18, 1e50, "iBPro", "iBPro", 1e18, 5e17, 5e17, 1e16, BProPriceFeed, mocStateAddress)
-
-    print('\n DEPLOYING USDT and iUSDT')
-    addLoanToken("USDT", "USDT", 18, 1e50, "iUSDT", "iUSDT", 1e17, 1000e18, 1000e18, 1e18, USDTPriceFeed)
-
 def addLoanToken(tokenName, tokenSymbol, tokenDecimals, tokenInitialAmount, loanTokenSymbol, loanTokenName, loanTokenWRBTCAmount, loanTokenUnderlyingTokenAmount, loanTokenAllowance, loanTokenSent, PriceFeed, *oracleAddress):
     global configData
 
