@@ -31,8 +31,9 @@ contract FeeSharingProxy is SafeMath96 {
     
     struct Checkpoint {
         uint32 blockNumber;
+        uint32 timestamp;
         uint96 totalWeightedStake;
-        uint128 numTokens;
+        uint96 numTokens;
     }
     
     /// @notice An event that emitted when fee get withdrawn
@@ -63,14 +64,13 @@ contract FeeSharingProxy is SafeMath96 {
         //TODO Method can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
         IERC20(_token).approve(loanToken, amount);
         uint poolTokenAmount = ILoanToken(loanPoolToken).mint(address(this), amount);
-        _writeTokenCheckpoint(loanPoolToken, uint128(poolTokenAmount));
+        _writeTokenCheckpoint(loanPoolToken, uint96(poolTokenAmount));
 
         lastFeeWithdrawalTime = block.timestamp;
         
         emit FeeWithdrawn(msg.sender, loanPoolToken, poolTokenAmount);
     }
 
-    //TODO _loanPoolToken
     //TODO check gas
     //TODO Withdrawal should only be possible for blocks which were already mined.
     function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) public returns (uint) {
@@ -92,7 +92,10 @@ contract FeeSharingProxy is SafeMath96 {
         uint256 amount = 0;
         for (uint32 i = start; i < end; i++) {
             Checkpoint storage checkpoint = tokenCheckpoints[_loanPoolToken][i];
-            uint96 weightedStake = staking.getPriorWeightedStake(user, checkpoint.blockNumber, 0); //TODO [9]: we don't have date here
+            if (block.number == checkpoint.blockNumber) {
+                //TODO exit
+            }
+            uint96 weightedStake = staking.getPriorWeightedStake(user, checkpoint.blockNumber - 1, checkpoint.timestamp);
             uint share = uint(checkpoint.numTokens).mul(weightedStake).div(uint(checkpoint.totalWeightedStake));
             amount = amount.add(share);
         }
@@ -105,16 +108,17 @@ contract FeeSharingProxy is SafeMath96 {
         return nCheckpoints - end;
     }
     
-    function _writeTokenCheckpoint(address _token, uint128 _numTokens) internal {
+    function _writeTokenCheckpoint(address _token, uint96 _numTokens) internal {
         uint32 blockNumber = safe32(block.number, "FeeSharingProxy::_writeCheckpoint: block number exceeds 32 bits");
+        uint32 blockTimestamp = safe32(block.timestamp, "FeeSharingProxy::_writeCheckpoint: block timestamp exceeds 32 bits");
         uint32 nCheckpoints = numTokenCheckpoints[_token];
-    
-        uint96 totalWeightedStake = staking.getPriorTotalVotingPower(blockNumber, block.timestamp);
+
+        uint96 totalWeightedStake = staking.getPriorTotalVotingPower(blockNumber - 1, block.timestamp);
         if (nCheckpoints > 0 && tokenCheckpoints[_token][nCheckpoints - 1].blockNumber == blockNumber) {
             tokenCheckpoints[_token][nCheckpoints - 1].totalWeightedStake = totalWeightedStake;
             tokenCheckpoints[_token][nCheckpoints - 1].numTokens = _numTokens;
         } else {
-            tokenCheckpoints[_token][nCheckpoints] = Checkpoint(blockNumber, totalWeightedStake, _numTokens);
+            tokenCheckpoints[_token][nCheckpoints] = Checkpoint(blockNumber, blockTimestamp, totalWeightedStake, _numTokens);
             numTokenCheckpoints[_token] = nCheckpoints + 1;
         }
     }

@@ -124,17 +124,9 @@ contract('FeeSharingProxy:', accounts => {
         });
         
         it("Should be able to withdraw fees", async () => {
-            console.log("\n============================================================");
-            
             //stake - getPriorTotalVotingPower
             let totalStake = 1000;
             let tx = await stake(totalStake, root);
-
-            //TODO remove
-            let kickoffTS = await staking.kickoffTS.call();
-            // let totalVotingPower = await staking.getPriorTotalVotingPower(tx.receipt.blockNumber, kickoffTS);
-            let totalVotingPower = await staking.getPriorTotalVotingPower(tx.receipt.blockNumber + 1, kickoffTS);
-            console.log(totalVotingPower.toString());
             
             //mock data
             let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
