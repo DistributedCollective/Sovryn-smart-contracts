@@ -419,6 +419,26 @@ contract('FeeSharingProxy:', accounts => {
             expect(processedCheckpoints.toNumber()).to.be.equal(30);
         });
     
+        // it("Should be able to process 100 checkpoints", async () => {
+        //     //stake - getPriorTotalVotingPower
+        //     await stake(900, root);
+        //     let userStake = 100;
+        //     if (MOCK_PRIOR_WEIGHTED_STAKE) {
+        //         await staking.MOCK_priorWeightedStake(userStake * 10);
+        //     }
+        //     await SOVToken.transfer(account1, userStake);
+        //     await stake(userStake, account1);
+        //
+        //     //mock data
+        //     await createCheckpoints(100);
+        //
+        //     let tx = await feeSharingProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, {from: account1});
+        //     console.log("\nwithdraw(checkpoints = 500).gasUsed: " + tx.receipt.gasUsed);
+        //     //processedCheckpoints
+        //     let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+        //     expect(processedCheckpoints.toNumber()).to.be.equal(100);
+        // });
+    
     });
     
     async function stake(amount, user) {
