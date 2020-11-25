@@ -1,10 +1,11 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
+import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 import "../Staking/Staking.sol";
 
-contract Vesting{
+contract Vesting is Ownable{
     ///@notice the SOV token contract
     IERC20 public SOV; 
     ///@notice the staking contract address
@@ -15,14 +16,17 @@ contract Vesting{
     uint public cliff;
     ///@notice the duration. after this period all tokens will have been unlocked
     uint public duration;
+    ///@notice the start date of the vesting
+    uint public startDate;
     ///@notice constant used for computing the vesting dates 
     uint constant FOUR_WEEKS = 28 days;
     
+    
     /**
-     * @dev Throws if called by any account other than the token owner.
+     * @dev Throws if called by any account other than the token owner or the contract owner.
      */
-    modifier onlyTokenOwner() {
-        require(msg.sender == tokenOwner, "unauthorized");
+    modifier onlyOwners() {
+        require(msg.sender == tokenOwner || isOwner(msg.sender), "unauthorized");
         _;
     }
     
@@ -48,6 +52,8 @@ contract Vesting{
      * @param amount the amount of tokens to stake
      * */
     function stakeTokens(uint amount) public{
+        require(startDate == 0; "stakeTokens can be called only once.");
+        startDate = block.number;
         //transfer the tokens to this contract
         bool success = SOV.transferFrom(msg.sender, address(this), amount);
         require(success);
@@ -68,7 +74,6 @@ contract Vesting{
             //stakes for itself, delegates to the owner
             staking.stake(uint96(stakedPerInterval), i, address(this), tokenOwner);
         }
-     
         
         //think: what if there are already tokens staked for that user until that time? --> increaseStake or not allow?
     }
@@ -77,17 +82,23 @@ contract Vesting{
      * @notice withdraws unlocked tokens from the staking contract and forwards them to an address specified by the token owner
      * @param receiver the receiving address
      * */
-    function withdrawTokens(address receiver) public onlyTokenOwner{
-        //after tokens are unlocked they may be withdrawn
-        //withdraws from staking and forwards to the user
-        //read amount to withdraw
-        //staking.withdraw(amount, receiver)
+    function withdrawTokens(address receiver) public onlyOwners{
+        uint stake;
+        //withdraw for each unlocked position
+        for(uint i = startDate+cliff; i < block.timestamp; i += FOUR_WEEKS){
+            //read amount to withdraw
+            stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1);
+            //withdraw if > 0
+            if(stake > 0)
+                staking.withdraw(stake, i, receiver);
+        }
     }
     
-    function collectDividends() public onlyTokenOwner{
+    function collectDividends() public onlyOwners{
         //invokes the fee sharing proxy
     }
     
-    //token owner or owner should be allowed to change the staking contract
+    //token owner or owner should be allowed to change the staking contract - in case it ever gets changed and the funds moved
+    //might also need a function to move the funds to the new staking contract should the staking contract implement such a function
     
 }
