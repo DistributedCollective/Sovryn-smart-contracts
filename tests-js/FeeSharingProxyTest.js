@@ -62,7 +62,7 @@ contract('FeeSharingProxy:', accounts => {
         staking = await StakingProxy.new(SOVToken.address);
         await staking.setImplementation(stakingLogic.address);
         staking = await StakingLogic.at(staking.address);
-        await staking.MOCK_priorWeightedStake(1000);
+        // await staking.MOCK_priorWeightedStake(1000);
     
         //Protocol
         protocol = await Protocol.new();
@@ -248,10 +248,10 @@ contract('FeeSharingProxy:', accounts => {
         
         it("Should be able to withdraw", async () => {
             //stake - getPriorTotalVotingPower
-            let rootStake = 900;
+            let rootStake = 700;
             await stake(rootStake, root);
     
-            let userStake = 100;
+            let userStake = 300;
             await SOVToken.transfer(account1, userStake);
             await stake(userStake, account1);
             
@@ -268,15 +268,15 @@ contract('FeeSharingProxy:', accounts => {
     
             //check balances
             let feeSharingProxyBalance = await loanToken.balanceOf.call(feeSharingProxy.address);
-            expect(feeSharingProxyBalance.toNumber()).to.be.equal(feeAmount * 9 / 10);
+            expect(feeSharingProxyBalance.toNumber()).to.be.equal(feeAmount * 7 / 10);
             let userBalance = await loanToken.balanceOf.call(account1);
-            expect(userBalance.toNumber()).to.be.equal(feeAmount / 10);
+            expect(userBalance.toNumber()).to.be.equal(feeAmount * 3 / 10);
     
             expectEvent(tx, 'UserFeeWithdrawn', {
                 sender: account1,
                 receiver: account1,
                 token: loanToken.address,
-                amount: new BN(feeAmount).div(new BN(10))
+                amount: new BN(feeAmount).mul(new BN(3)).div(new BN(10))
             });
             
         });

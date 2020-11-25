@@ -8,10 +8,6 @@ contract FeeSharingProxy is SafeMath96 {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     
-    //TODO reorder storage structure
-    
-    //TODO add comments
-    
     IProtocol public protocol;
     IStaking public staking;
     address public loanToken;
@@ -48,6 +44,10 @@ contract FeeSharingProxy is SafeMath96 {
         loanToken = _loanToken;
     }
     
+    /**
+     * @notice withdraw fees for the given token: lendingFee + tradingFee + borrowingFee
+     * @param _token address of the token
+     * */
     function withdrawFees(address _token) public {
         require(_token != address(0), "FeeSharingProxy::withdrawFees: invalid address");
         require(
@@ -61,7 +61,7 @@ contract FeeSharingProxy is SafeMath96 {
         uint amount = protocol.withdrawFees(_token, address(this));
         require(amount > 0, "FeeSharingProxy::withdrawFees: no tokens to withdraw");
 
-        //TODO Method can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
+        //TODO can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
         IERC20(_token).approve(loanToken, amount);
         uint poolTokenAmount = ILoanToken(loanPoolToken).mint(address(this), amount);
         _writeTokenCheckpoint(loanPoolToken, uint96(poolTokenAmount));
@@ -72,7 +72,12 @@ contract FeeSharingProxy is SafeMath96 {
     }
 
     //TODO check gas
-    //TODO Withdrawal should only be possible for blocks which were already mined.
+    /**
+     * @notice withdraw accumulated fee the message sender
+     * @param _loanPoolToken address of the pool token
+     * @param _maxCheckpoints maximum number of checkpoints to be processed
+     * @param _receiver the receiver of tokens or msg.sender
+     * */
     function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) public returns (uint) {
         address user = msg.sender;
         if (_receiver == address(0)) {
@@ -85,16 +90,18 @@ contract FeeSharingProxy is SafeMath96 {
         if (_maxCheckpoints > MAX_CHECKPOINTS) {
             _maxCheckpoints = MAX_CHECKPOINTS;
         }
-        uint32 end = start + _maxCheckpoints; //overflow doesn't matter here //TODO check
+        uint32 end = safe32(start + _maxCheckpoints, "FeeSharingProxy::withdraw: checkpoint index exceeds 32 bits");
         if (end > nCheckpoints) {
             end = nCheckpoints;
+        }
+        //Withdrawal should only be possible for blocks which were already mined.
+        uint32 lastBlockNumber = tokenCheckpoints[_loanPoolToken][end - 1].blockNumber;
+        if (block.number == lastBlockNumber) {
+            end--;
         }
         uint256 amount = 0;
         for (uint32 i = start; i < end; i++) {
             Checkpoint storage checkpoint = tokenCheckpoints[_loanPoolToken][i];
-            if (block.number == checkpoint.blockNumber) {
-                //TODO exit
-            }
             uint96 weightedStake = staking.getPriorWeightedStake(user, checkpoint.blockNumber - 1, checkpoint.timestamp);
             uint share = uint(checkpoint.numTokens).mul(weightedStake).div(uint(checkpoint.totalWeightedStake));
             amount = amount.add(share);
