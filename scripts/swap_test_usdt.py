@@ -47,9 +47,9 @@ def setup():
 
     sovryn_address = dataFromSwapTestUSDT["sovrynProtocol"]
     contract_registry_address = dataFromSwapTestUSDT["contractRegistry"]
-    loan_token_address = dataFromSwapTestUSDT["loanTokenUSDT"]
-    loan_token_settings_address = dataFromSwapTestUSDT["loanTokenSettingsUSDT"]
-    USDT_address = dataFromSwapTestUSDT["USDT"]
+    loan_token_address = dataFromSwapTestUSDT["loanToken"]
+    loan_token_settings_address = dataFromSwapTestUSDT["loanTokenSettings"]
+    USDT_address = dataFromSwapTestUSDT["UnderlyingToken"]
     RBTC_address = dataFromSwapTestUSDT["WRBTC"]
 
     sovryn = Contract.from_abi("sovryn", address=sovryn_address, abi=interface.ISovryn.abi, owner=acct)
@@ -144,6 +144,8 @@ def test_margin_trading_sending_loan_tokens():
     USDT.mint(loan_token.address, 1000e18)
     USDT.approve(loan_token.address, 1000e18)
 
+    loan_token_before_usdt_balance = USDT.balanceOf(loan_token_address)
+
     tx = loan_token.marginTrade(
         "0", # loanId  (0 for new loans)
         leverage_amount, # leverageAmount
@@ -165,7 +167,7 @@ def test_margin_trading_sending_loan_tokens():
     if tx.events['Trade']['borrowedAmount'] > 2 * loan_token_sent:
         raise Exception("Failed to validate `test_margin_trading_sending_loan_tokens` - borrowedAmount is incorrect")
 
-    if 300e18 - tx.events['Trade']['borrowedAmount'] > loan_token_after_usdt_balance:
+    if loan_token_before_usdt_balance - tx.events['Trade']['borrowedAmount'] > loan_token_after_usdt_balance:
         raise Exception("Failed to validate `test_margin_trading_sending_loan_tokens` - borrowedAmount balance is incorrect")
 
     loan_id = tx.events['Trade']['loanId']

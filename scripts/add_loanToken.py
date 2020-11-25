@@ -1,14 +1,21 @@
-#!/usr/bin/python3
-
 from brownie import *
 from scripts.deploy_loanToken import deployLoanToken, testDeployment
-from scripts.deploy_tokens import deployTokens
 
 import shared
 import json
 from munch import Munch
 
 def main():
+    print('\n DEPLOYING BPro and iBPro')
+    with open('./scripts/swap_test.json') as config_file:
+        swapTestData = json.load(config_file)
+    mocStateAddress = swapTestData["mocState"]
+    addLoanToken("BPro", "BPro", 18, 1e50, "iBPro", "iBPro", 1e18, 5e17, 5e17, 1e16, BProPriceFeed, mocStateAddress)
+
+    print('\n DEPLOYING USDT and iUSDT')
+    addLoanToken("USDT", "USDT", 18, 1e50, "iUSDT", "iUSDT", 1e17, 1000e18, 1000e18, 1e18, USDTPriceFeed)
+
+def addLoanToken(tokenName, tokenSymbol, tokenDecimals, tokenInitialAmount, loanTokenSymbol, loanTokenName, loanTokenWRBTCAmount, loanTokenUnderlyingTokenAmount, loanTokenAllowance, loanTokenSent, PriceFeed, *oracleAddress):
     global configData
 
     #owners = [accounts[0], accounts[1], accounts[2]]
@@ -20,8 +27,7 @@ def main():
 
     wrbtcAddress = swapTestData["WRBTC"]
     protocolAddress = swapTestData["sovrynProtocol"]
-    priceFeedsAddress = "0xC0FB6B7230C2f58c88AaAba054f0AA3FfB9De533"
-    mocStateAddress = swapTestData["mocState"]
+    priceFeedsAddress = swapTestData["PriceFeeds"]
 
     thisNetwork = network.show_active()
 
@@ -35,42 +41,40 @@ def main():
     tokens = Munch()
     if thisNetwork == "development":
         tokens.wrbtc = Contract.from_abi("TestWrbtc", address = wrbtcAddress, abi = TestWrbtc.abi, owner = acct)
-        tokens.bpro = acct.deploy(TestToken, "BPro", "BPro", 18, 1e50)
-        tokens.bpro.mint(acct, 10000e18)
+        tokens.token = acct.deploy(TestToken, tokenName, tokenSymbol, tokenDecimals, tokenInitialAmount)
     else:
         tokens.wrbtc = Contract.from_abi("WRBTC", address = wrbtcAddress, abi = WRBTC.abi, owner = acct)
     sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
-    sovryn.setSupportedTokens([tokens.bpro.address],[True])
+    sovryn.setSupportedTokens([tokens.token.address],[True])
     feeds = Contract.from_abi("PriceFeeds", address=priceFeedsAddress, abi=PriceFeeds.abi, owner=acct)
 
-    (iBPro, iBProSettings) = addLoanToken(acct, sovryn, tokens, tokens.bpro.address, "iBPro", "iBPro", [tokens.wrbtc.address], tokens.wrbtc.address, feeds, BProPriceFeed, mocStateAddress)
+    (loanToken, loanTokenSettings) = deployLoanToken(acct, sovryn, tokens.token.address, loanTokenSymbol, loanTokenName, [tokens.wrbtc.address], tokens.wrbtc.address)
 
-    configData["medianizer"] = swapTestData["medianizer"]
-    configData["mocState"] = mocStateAddress
+    tokens.wrbtc.mint(loanToken.address, loanTokenWRBTCAmount)
+    tokens.token.mint(loanToken.address, loanTokenUnderlyingTokenAmount)
+    tokens.token.approve(loanToken.address, loanTokenAllowance)
+
+    if len(oracleAddress) == 0:
+        priceFeed = acct.deploy(PriceFeed)
+    elif len(oracleAddress) == 1:
+        priceFeed = acct.deploy(PriceFeed, oracleAddress[0])
+
+    feeds.setPriceFeed([tokens.token.address], [priceFeed.address])
+
     configData["sovrynProtocol"] = protocolAddress
     configData["WRBTC"] = wrbtcAddress
-    configData["BPro"] = tokens.bpro.address
-    configData["loanTokenSettingsBPro"] = iBProSettings.address
-    configData["loanTokenBPro"] = iBPro.address
+    configData["UnderlyingToken"] = tokens.token.address
+    configData["loanTokenSettings"] = loanTokenSettings.address
+    configData["loanToken"] = loanToken.address
     configData["loanTokenSettingsWRBTC"] = swapTestData["loanTokenSettingsWRBTC"]
     configData["loanTokenRBTC"] = swapTestData["loanTokenRBTC"]
-    configData["BProPriceFeed"] = feeds.pricesFeeds(tokens.bpro.address)
+    configData["UnderlyingTokenPriceFeed"] = feeds.pricesFeeds(tokens.token.address)
     configData["WRBTCPriceFeed"] = feeds.pricesFeeds(tokens.wrbtc.address)
 
-    with open('./scripts/swap_test_bpro.json', 'w') as configFile:
+    with open('./scripts/swap_test_{token}.json'.format(token=tokenSymbol.lower()), 'w') as configFile:
         json.dump(configData, configFile)
 
-    tokens.bpro.mint(iBPro.address, 6e16)
-    tokens.bpro.approve(iBPro.address, 1e16)
-    testDeployment(acct, sovryn, iBPro.address, tokens.bpro, tokens.wrbtc, 1e16, 0)
-    
-def addLoanToken(acct, sovryn, tokens, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddresses, wrbtcAddress, feeds, PriceFeed, oracleAddress):
-    if not collateralAddresses:
-        collateralAddresses = []
+    testDeployment(acct, sovryn, loanToken.address, tokens.token, tokens.wrbtc, loanTokenSent, 0)
 
-    (loanToken, loanTokenSettings) = deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddresses, wrbtcAddress)
 
-    priceFeed = acct.deploy(PriceFeed, oracleAddress)
-    feeds.setPriceFeed([loanTokenAddress], [priceFeed.address])
 
-    return (loanToken, loanTokenSettings)

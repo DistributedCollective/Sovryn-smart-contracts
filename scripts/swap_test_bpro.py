@@ -43,9 +43,9 @@ def setup():
 
     sovryn_address = data["sovrynProtocol"]
     contract_registry_address = data["contractRegistry"]
-    loan_token_address = data["loanTokenBPro"]
-    loan_token_settings_address = data["loanTokenSettingsBPro"]
-    BPro_address = data["BPro"]
+    loan_token_address = data["loanToken"]
+    loan_token_settings_address = data["loanTokenSettings"]
+    BPro_address = data["UnderlyingToken"]
     RBTC_address = data["WRBTC"]
 
     sovryn = Contract.from_abi("sovryn", address=sovryn_address, abi=interface.ISovryn.abi, owner=acct)
@@ -130,11 +130,13 @@ def test_margin_trading_sending_collateral_tokens():
     print("Passed `test_margin_trading_sending_collateral_tokens`")
 
 def test_margin_trading_sending_loan_tokens():
-    loan_token_sent = 1e16
+    loan_token_sent = 1e14
     leverage_amount = 2e18
 
     BPro.mint(loan_token.address, loan_token_sent*6)
     BPro.approve(loan_token.address, loan_token_sent)
+
+    loan_token_before_bpro_balance = BPro.balanceOf(loan_token_address)
 
     tx = loan_token.marginTrade(
         "0", # loanId  (0 for new loans)
@@ -157,7 +159,7 @@ def test_margin_trading_sending_loan_tokens():
     if tx.events['Trade']['borrowedAmount'] > 2 * loan_token_sent:
         raise Exception("Failed to validate `test_margin_trading_sending_loan_tokens` - borrowedAmount is incorrect")
 
-    if 300e18 - tx.events['Trade']['borrowedAmount'] > loan_token_after_bpro_balance:
+    if loan_token_before_bpro_balance - tx.events['Trade']['borrowedAmount'] > loan_token_after_bpro_balance:
         raise Exception("Failed to validate `test_margin_trading_sending_loan_tokens` - borrowedAmount balance is incorrect")
 
     loan_id = tx.events['Trade']['loanId']
@@ -176,7 +178,6 @@ def test_margin_trading_sending_loan_tokens():
          raise Exception("Failed to validate `test_margin_trading_sending_loan_tokens` - collateral address is incorrect")
 
     print("Passed `test_margin_trading_sending_loan_tokens`")
-
 
 def test_lend_to_the_pool():
     baseRate = 1e18

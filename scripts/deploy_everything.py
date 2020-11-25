@@ -57,13 +57,14 @@ def main():
         mocState = deployBProPriceFeedMockup(acct)
         configData['mocState'] = mocState.address
         
-    sovryn = deployProtocol(acct, tokens, configData['medianizer'])
+    (sovryn, feeds) = deployProtocol(acct, tokens, configData['medianizer'])
     (loanTokenSUSD, loanTokenWRBTC, loanTokenSettingsSUSD,
      loanTokenSettingsWRBTC) = deployLoanTokens(acct, sovryn, tokens)
 
     #deployMultisig(sovryn, acct, owners, requiredConf)
     
     configData["sovrynProtocol"] = sovryn.address
+    configData["PriceFeeds"] = feeds.address
     configData["WRBTC"] = tokens.wrbtc.address
     configData["SUSD"] = tokens.susd.address
     configData["loanTokenSettingsSUSD"] = loanTokenSettingsSUSD.address
