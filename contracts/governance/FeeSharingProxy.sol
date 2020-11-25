@@ -20,10 +20,11 @@ contract FeeSharingProxy is SafeMath96 {
     /// user => token => processed checkpoint
     mapping(address => mapping(address => uint32)) public processedCheckpoints;
     
+    //TODO FEE_WITHDRAWAL_INTERVAL, MAX_CHECKPOINTS
     uint constant FEE_WITHDRAWAL_INTERVAL = 86400;
     uint public lastFeeWithdrawalTime;
     
-    uint32 constant MAX_CHECKPOINTS = 100; //TODO ?
+    uint32 constant MAX_CHECKPOINTS = 100;
     
     struct Checkpoint {
         uint32 blockNumber;
@@ -71,7 +72,6 @@ contract FeeSharingProxy is SafeMath96 {
         emit FeeWithdrawn(msg.sender, loanPoolToken, poolTokenAmount);
     }
 
-    //TODO check gas
     /**
      * @notice withdraw accumulated fee the message sender
      * @param _loanPoolToken address of the pool token
