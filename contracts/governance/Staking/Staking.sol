@@ -143,15 +143,7 @@ contract Staking is WeightedStaking{
         emit TokensWithdrawn(msg.sender, receiver, amount);
     }
     
-    /**
-     * @notice allow the owner to unlock all tokens in case the staking contract is going to be replaced
-     * note: not reversible on purpose. once unlocked, everything is unlocked. the owner should not be able to just quickly
-     * unlock to withdraw his own tokens and lock again.
-     * */
-    function unlockAllTokens() public onlyOwner{
-        allUnlocked = true;
-        emit TokensUnlocked(SOVToken.balanceOf(address(this)));
-    }
+    
     
     /**
      * @notice returns the current balance of for an account locked until a certain date
@@ -250,5 +242,40 @@ contract Staking is WeightedStaking{
         uint256 chainId;
         assembly { chainId := chainid() }
         return chainId;
+    }
+    
+    /**
+    * @notice allows the owner to set a new staking contract. as a consequence it allows the stakers to migrate their positions
+    * to the new contract.
+    * @dev doesn't have any influence as long as migrateToNewStakingContract is not implemented.
+    * @param _newStakingContract the address of the new staking contract
+    * */
+    function setNewStakingContract(address _newStakingContract) public onlyOwner{
+        require(_newStakingContract != address(0), "can't reset the new staking contract to 0");
+        address newStakingContract = _newStakingContract;
+    }
+    
+    /**
+     * @notice allows a staker to migrate his positions to the new staking contract.
+     * @dev staking contract needs to be set before by the owner. currently not implemented, just needed for the interface.
+     *      in case it's needed at some point in the future, the implementation needs to be changed first.
+     * */
+    function migrateToNewStakingContract() public {
+        require(newStakingContract != address(0), "there is no new staking contract set");
+        //implementation:
+        //iterate over all possible lock dates from now until now + MAX_DURATION
+        //read the stake & delegate of the msg.sender
+        //if stake > 0, stake it at the new contract until the lock date with the current delegate
+    }
+    
+    /**
+     * @notice allow the owner to unlock all tokens in case the staking contract is going to be replaced
+     * note: not reversible on purpose. once unlocked, everything is unlocked. the owner should not be able to just quickly
+     * unlock to withdraw his own tokens and lock again.
+     * @dev last resort.
+     * */
+    function unlockAllTokens() public onlyOwner{
+        allUnlocked = true;
+        emit TokensUnlocked(SOVToken.balanceOf(address(this)));
     }
 }

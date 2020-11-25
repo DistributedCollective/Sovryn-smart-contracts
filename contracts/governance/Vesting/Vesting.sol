@@ -84,8 +84,13 @@ contract Vesting is Ownable{
      * */
     function withdrawTokens(address receiver) public onlyOwners{
         uint96 stake;
+        //usually we just need to iterate over the possible dates until now
+        uint end = block.timestamp;
+        //in the unlikely case that all tokens have been unlocked early, allow to withdraw all of them.
+        if (staking.allUnlocked())
+            end = startDate + duration;
         //withdraw for each unlocked position
-        for(uint i = startDate+cliff; i < block.timestamp; i += FOUR_WEEKS){
+        for(uint i = startDate+cliff; i < end; i += FOUR_WEEKS){
             //read amount to withdraw
             stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1);
             //withdraw if > 0
@@ -98,7 +103,12 @@ contract Vesting is Ownable{
         //invokes the fee sharing proxy
     }
     
-    //token owner or owner should be allowed to change the staking contract - in case it ever gets changed and the funds moved
-    //might also need a function to move the funds to the new staking contract should the staking contract implement such a function
+    /**
+     * @notice allows the owners to migrate the positions to a new staking contract
+     * */
+    function migrateToNewStakingContract() public onlyOwners{
+        staking.migrateToNewStakingContract();
+        staking = Staking(staking.newStakingContract());
+    }
     
 }
