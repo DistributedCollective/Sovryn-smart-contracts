@@ -2,21 +2,42 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./Vesting.sol";
-import "../../openzeppelin/Ownable.sol";
 
 /**
  * A regular vesting contract, but the owner of the remaining locked tokens can be changed by the owner (governance)
  **/
-contract TeamVesting is Vesting, Ownable{
+contract TeamVesting is Vesting{
+    
+    event TokenOwnerChanged(address indexed oldOwner, address indexed newOwner);
     
     /**
-     * withdraws the unlocked tokens to the current owner and transfers the ownership of the locked tokens to a new owner
-     * @param newOwner the address of the new owner
+     * @notice withdraws the unlocked tokens to the current owner and transfers the ownership of the locked tokens to a new owner
+     * @param newTokenOwner the address of the new owner
      * */
-    function transferTokenOwnership(address newOwner) public onlyOwner{
-        require(newOwner != address(0), "owner needs to be a valid address");
-        //todo withdraw the unlocked tokens for the old owner
-        tokenOwner = newOwner;
+    function transferTokenOwnership(address newTokenOwner) public onlyOwner{
+        require(newTokenOwner != address(0), "owner needs to be a valid address");
+        address oldTokenOwner = tokenOwner;
+        //withdraw the unlocked tokens to the old token owner address
+        withdrawTokens(oldTokenOwner);
+        //set the new token owner
+        tokenOwner = newTokenOwner;
+        //delegate votes to the new owner
+        _changeDelegate(newTokenOwner);
+        
+        emit TokenOwnerChanged(oldTokenOwner, newTokenOwner);
     }
     
+    /**
+     * @notice delegates the remaining votes to the new token owner
+     * @param newTokenOwner the address of the new token owner
+     * */
+    function _changeDelegate(address newTokenOwner) internal{
+        for(uint i = startDate+cliff; i < start + duration; i += FOUR_WEEKS){
+            //only delegate if stake is remaining
+            if(staking.getPriorUserStakeByDate(address(this), i, block.number - 1) > 0)
+                staking.delegate(newTokenOwner, i);
+        }
+    }
+    
+    //might also need a function to close the vesting contract completely -> funds get back to the pool 
 }
