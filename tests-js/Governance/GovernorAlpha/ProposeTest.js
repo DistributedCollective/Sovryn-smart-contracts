@@ -44,8 +44,10 @@ contract('GovernorAlpha#propose/5', accounts => {
         callDatas = [encodeParameters(['address'], [acct])];
         
         await token.approve(staking.address, QUORUM_VOTES);
-        await staking.stake(QUORUM_VOTES, DELAY, acct, acct);
-        await staking.delegate(root, {from: acct});
+        let kickoffTS = await staking.kickoffTS.call();
+        let stakingDate = kickoffTS.add(new BN(DELAY));
+        await staking.stake(QUORUM_VOTES, stakingDate, acct, acct);
+        await staking.delegate(root, stakingDate, {from: acct});
         
         await gov.propose(targets, values, signatures, callDatas, "do nothing");
         
@@ -122,8 +124,10 @@ contract('GovernorAlpha#propose/5', accounts => {
                 it("reverts with pending", async () => {
                     await token.transfer(accounts[4], QUORUM_VOTES);
                     await token.approve(staking.address, QUORUM_VOTES, {from: accounts[4]});
-                    await staking.stake(QUORUM_VOTES, DELAY, accounts[4], accounts[4], {from: accounts[4]});
-                    await staking.delegate(accounts[4], {from: accounts[4]});
+                    let kickoffTS = await staking.kickoffTS.call();
+                    let stakingDate = kickoffTS.add(new BN(DELAY));
+                    await staking.stake(QUORUM_VOTES, stakingDate, accounts[4], accounts[4], {from: accounts[4]});
+                    await staking.delegate(accounts[4], stakingDate, {from: accounts[4]});
                     
                     await gov.propose(targets, values, signatures, callDatas, "do nothing", {from: accounts[4]});
                     await expectRevert(
@@ -145,8 +149,10 @@ contract('GovernorAlpha#propose/5', accounts => {
         it("This function returns the id of the newly created proposal. # proposalId(n) = succ(proposalId(n-1))", async () => {
             await token.transfer(accounts[2], QUORUM_VOTES);
             await token.approve(staking.address, QUORUM_VOTES, {from: accounts[2]});
-            await staking.stake(QUORUM_VOTES, DELAY, accounts[2], accounts[2], {from: accounts[2]});
-            await staking.delegate(accounts[2], {from: accounts[2]});
+            let kickoffTS = await staking.kickoffTS.call();
+            let stakingDate = kickoffTS.add(new BN(DELAY));
+            await staking.stake(QUORUM_VOTES, stakingDate, accounts[2], accounts[2], {from: accounts[2]});
+            await staking.delegate(accounts[2], stakingDate, {from: accounts[2]});
             
             await mineBlock();
             let nextProposalId = await gov.propose.call(targets, values, signatures, callDatas, "yoot", {from: accounts[2]});
@@ -158,8 +164,10 @@ contract('GovernorAlpha#propose/5', accounts => {
         it("emits log with id and description", async () => {
             await token.transfer(accounts[3], QUORUM_VOTES);
             await token.approve(staking.address, QUORUM_VOTES, {from: accounts[3]});
-            await staking.stake(QUORUM_VOTES, DELAY, accounts[3], accounts[3], {from: accounts[3]});
-            await staking.delegate(accounts[3], {from: accounts[3]});
+            let kickoffTS = await staking.kickoffTS.call();
+            let stakingDate = kickoffTS.add(new BN(DELAY));
+            await staking.stake(QUORUM_VOTES, stakingDate, accounts[3], accounts[3], {from: accounts[3]});
+            await staking.delegate(accounts[3], stakingDate, {from: accounts[3]});
             await mineBlock();
             
             // await updateTime(comp);

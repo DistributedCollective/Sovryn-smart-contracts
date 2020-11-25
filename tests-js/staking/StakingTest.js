@@ -33,6 +33,8 @@ contract('Staking', accounts => {
     let token, staking;
     let MAX_VOTING_WEIGHT;
     
+    let kickoffTS, inThreeYears;
+    
     before(async () => {
         [root, a1, a2, a3, ...accounts] = accounts;
     });
@@ -48,6 +50,9 @@ contract('Staking', accounts => {
         staking = await StakingLogic.at(staking.address);
         
         MAX_VOTING_WEIGHT = await staking.MAX_VOTING_WEIGHT.call();
+        
+        kickoffTS = await staking.kickoffTS.call();
+        inThreeYears = kickoffTS.add(new BN(DELAY*26 * 3));
     });
     
     describe('metadata', () => {
@@ -71,6 +76,7 @@ contract('Staking', accounts => {
         const Types = {
             Delegation: [
                 {name: 'delegatee', type: 'address'},
+                {name: 'lockDate', type: 'uint256'},
                 {name: 'nonce', type: 'uint256'},
                 {name: 'expiry', type: 'uint256'}
             ]
@@ -78,43 +84,46 @@ contract('Staking', accounts => {
         
         it('reverts if the signatory is invalid', async () => {
             const delegatee = root, nonce = 0, expiry = 0;
-            await expectRevert(staking.delegateBySig(delegatee, nonce, expiry, 0, '0xbad', '0xbad'),
+            await expectRevert(staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, 0, '0xbad', '0xbad'),
                 "revert Staking::delegateBySig: invalid signature");
         });
         
         it('reverts if the nonce is bad ', async () => {
-            const delegatee = root, nonce = 1, expiry = 0;
+            const delegatee = root, nonce = 1, expiry = 0, lockDate = inThreeYears;
             const {v, r, s} = EIP712.sign(Domain(staking), 'Delegation', {
                 delegatee,
+                lockDate,
                 nonce,
                 expiry
             }, Types, unlockedAccount(a1).secretKey);
-            await expectRevert(staking.delegateBySig(delegatee, nonce, expiry, v, r, s),
+            await expectRevert(staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s),
                 "revert Staking::delegateBySig: invalid nonce");
         });
         
         it('reverts if the signature has expired', async () => {
-            const delegatee = root, nonce = 0, expiry = 0;
+            const delegatee = root, nonce = 0, expiry = 0, lockDate = inThreeYears;
             const {v, r, s} = EIP712.sign(Domain(staking), 'Delegation', {
                 delegatee,
+                lockDate,
                 nonce,
                 expiry
             }, Types, unlockedAccount(a1).secretKey);
-            await expectRevert(staking.delegateBySig(delegatee, nonce, expiry, v, r, s),
+            await expectRevert(staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s),
                 "revert Staking::delegateBySig: signature expired");
         });
         
         it('delegates on behalf of the signatory', async () => {
-            const delegatee = root, nonce = 0, expiry = 10e9;
+            const delegatee = root, nonce = 0, expiry = 10e9, lockDate = inThreeYears;
             const {v, r, s} = EIP712.sign(Domain(staking), 'Delegation', {
                 delegatee,
+                lockDate,
                 nonce,
                 expiry
             }, Types, unlockedAccount(a1).secretKey);
-            expect(await staking.delegates.call(a1)).to.be.equal(address(0));
-            const tx = await staking.delegateBySig(delegatee, nonce, expiry, v, r, s);
+            expect(await staking.delegates.call(a1, inThreeYears)).to.be.equal(address(0));
+            const tx = await staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s);
             expect(tx.gasUsed < 80000);
-            expect(await staking.delegates.call(a1)).to.be.equal(root);
+            expect(await staking.delegates.call(a1, inThreeYears)).to.be.equal(root);
         });
     });
     
@@ -124,28 +133,28 @@ contract('Staking', accounts => {
             
             await token.transfer(guy, "1000"); //give an account a few tokens for readability
             
-            await expect((await staking.numUserCheckpoints.call(a1)).toString()).to.be.equal('0');
+            await expect((await staking.numUserStakingCheckpoints.call(a1, inThreeYears)).toString()).to.be.equal('0');
             
             await token.approve(staking.address, "1000", {from: guy});
-            await staking.stake("100", DELAY, a1, a1, {from: guy});
-            await expect((await staking.numUserCheckpoints.call(a1)).toString()).to.be.equal('1');
+            await staking.stake("100", inThreeYears, a1, a1, {from: guy});
+            await expect((await staking.numUserStakingCheckpoints.call(a1, inThreeYears)).toString()).to.be.equal('1');
             
-            await staking.increaseStake("50", a1, {from: guy});
-            await expect((await staking.numUserCheckpoints.call(a1)).toString()).to.be.equal('2');
+            await staking.increaseStake("50", a1, inThreeYears, {from: guy});
+            await expect((await staking.numUserStakingCheckpoints.call(a1, inThreeYears)).toString()).to.be.equal('2');
         });
         
         it('does not add more than one checkpoint in a block', async () => {
             let guy = accounts[1];
             await token.transfer(guy, '1000'); //give an account a few tokens for readability
-            await expect((await staking.numUserCheckpoints.call(a3)).toString()).to.be.equal('0');
+            await expect((await staking.numUserStakingCheckpoints.call(a3, inThreeYears)).toString()).to.be.equal('0');
             
             await token.approve(staking.address, "1000", {from: guy});
             
             await minerStop();
-            let t1 = staking.stake("80", DELAY, a3, a3, {from: guy});
+            let t1 = staking.stake("80", inThreeYears, a3, a3, {from: guy});
             
             
-            let t2 = staking.delegate(a3, {from: guy});
+            let t2 = staking.delegate(a3, inThreeYears, {from: guy});
             let t3 = token.transfer(a2, 10, {from: guy});
             let t4 = token.transfer(a2, 10, {from: guy});
             
@@ -155,26 +164,26 @@ contract('Staking', accounts => {
             t3 = await t3;
             t4 = await t4;
             
-            await expect((await staking.numUserCheckpoints.call(a3)).toString()).to.be.equal('1');
+            await expect((await staking.numUserStakingCheckpoints.call(a3, inThreeYears)).toString()).to.be.equal('1');
             
-            let checkpoint0 = await staking.userCheckpoints.call(a3, 0);
+            let checkpoint0 = await staking.userStakingCheckpoints.call(a3, inThreeYears, 0);
             await expect(checkpoint0.fromBlock.toString()).to.be.equal(t1.receipt.blockNumber.toString());
             await expect(checkpoint0.stake.toString()).to.be.equal("80");
             
-            let checkpoint1 = await staking.userCheckpoints.call(a3, 1);
+            let checkpoint1 = await staking.userStakingCheckpoints.call(a3, inThreeYears, 1);
             await expect(checkpoint1.fromBlock.toString()).to.be.equal("0");
             await expect(checkpoint1.stake.toString()).to.be.equal("0");
             
-            let checkpoint2 = await staking.userCheckpoints.call(a3, 2);
+            let checkpoint2 = await staking.userStakingCheckpoints.call(a3, inThreeYears, 2);
             await expect(checkpoint2.fromBlock.toString()).to.be.equal("0");
             await expect(checkpoint2.stake.toString()).to.be.equal("0");
             
             await token.approve(staking.address, "20", {from: a2});
-            let t5 = await staking.increaseStake("20", a3, {from: a2});
+            let t5 = await staking.increaseStake("20", a3, inThreeYears, {from: a2});
             
-            await expect((await staking.numUserCheckpoints.call(a3)).toString()).to.be.equal('2');
+            await expect((await staking.numUserStakingCheckpoints.call(a3, inThreeYears)).toString()).to.be.equal('2');
             
-            checkpoint1 = await staking.userCheckpoints.call(a3, 1);
+            checkpoint1 = await staking.userStakingCheckpoints.call(a3, inThreeYears, 1);
             await expect(checkpoint1.fromBlock.toString()).to.be.equal(t5.receipt.blockNumber.toString());
             await expect(checkpoint1.stake.toString()).to.be.equal("100");
             
@@ -185,68 +194,62 @@ contract('Staking', accounts => {
         let amount = "1000";
         
         it('reverts if block number >= current block', async () => {
-            let kickoffTS = await staking.kickoffTS.call();
             let time = kickoffTS.add(new BN(DELAY));
             await expectRevert(staking.getPriorVotes.call(a1, 5e10, time),
-                "revert Staking::getPriorStakeByDateForDelegatee: not yet determined");
+                "revert WeightedStaking::getPriorStakeByDateForDelegatee: not yet determined");
         });
         
         it('returns 0 if there are no checkpoints', async () => {
-            let time = await staking.kickoffTS.call();
-            expect((await staking.getPriorVotes.call(a1, 0, time)).toString()).to.be.equal('0');
+            expect((await staking.getPriorVotes.call(a1, 0, kickoffTS)).toString()).to.be.equal('0');
         });
         
         it('returns the latest block if >= last checkpoint block', async () => {
             await token.approve(staking.address, amount);
-            let t1 = await staking.stake(amount, MAX_DURATION, a1, a1);
+            let t1 = await staking.stake(amount, inThreeYears, a1, a1);
             await mineBlock();
             await mineBlock();
             
-            let time = await staking.kickoffTS.call();
             let amountWithWeight = getAmountWithWeight(amount);
-            expect((await staking.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber), time)).toString()).to.be.equal(amountWithWeight.toString());
-            expect((await staking.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1), time)).toString()).to.be.equal(amountWithWeight.toString());
+            expect((await staking.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber), kickoffTS)).toString()).to.be.equal(amountWithWeight.toString());
+            expect((await staking.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1), kickoffTS)).toString()).to.be.equal(amountWithWeight.toString());
         });
         
         it('returns zero if < first checkpoint block', async () => {
             await mineBlock();
             await token.approve(staking.address, amount);
-            let t1 = await staking.stake(amount, MAX_DURATION, a1, a1);
+            let t1 = await staking.stake(amount, inThreeYears, a1, a1);
             await mineBlock();
             await mineBlock();
             
-            let time = await staking.kickoffTS.call();
             let amountWithWeight = getAmountWithWeight(amount);
-            expect((await staking.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber - 1), time)).toString()).to.be.equal('0');
-            expect((await staking.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1), time)).toString()).to.be.equal(amountWithWeight.toString());
+            expect((await staking.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber - 1), kickoffTS)).toString()).to.be.equal('0');
+            expect((await staking.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1), kickoffTS)).toString()).to.be.equal(amountWithWeight.toString());
         });
         
         it('generally returns the voting balance at the appropriate checkpoint', async () => {
             await token.approve(staking.address, "1000");
-            await staking.stake("1000", MAX_DURATION, root, root);
-            const t1 = await staking.delegate(a1);
+            await staking.stake("1000", inThreeYears, root, root);
+            const t1 = await staking.delegate(a1, inThreeYears);
             await mineBlock();
             await mineBlock();
             await token.transfer(a2, 10);
             await token.approve(staking.address, "10", {from: a2});
-            const t2 = await staking.stake("10", MAX_DURATION, a1, a1, {from: a2});
+            const t2 = await staking.stake("10", inThreeYears, a1, a1, {from: a2});
             await mineBlock();
             await mineBlock();
             await token.transfer(a3, 101);
             await token.approve(staking.address, "101", {from: a3});
-            const t3 = await staking.increaseStake("101", a1, {from: a3});
+            const t3 = await staking.increaseStake("101", a1, inThreeYears, {from: a3});
             await mineBlock();
             await mineBlock();
             
-            let time = await staking.kickoffTS.call();
-            
-            expect((await staking.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber - 1), time)).toString()).to.be.equal('0');
-            expect((await staking.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber), time)).toString()).to.be.equal(getAmountWithWeight('1000').toString());
-            expect((await staking.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1), time)).toString()).to.be.equal(getAmountWithWeight('1000').toString());
-            expect((await staking.getPriorVotes.call(a1, new BN(t2.receipt.blockNumber), time)).toString()).to.be.equal(getAmountWithWeight('1010').toString());
-            expect((await staking.getPriorVotes.call(a1, new BN(t2.receipt.blockNumber + 1), time)).toString()).to.be.equal(getAmountWithWeight('1010').toString());
-            expect((await staking.getPriorVotes.call(a1, new BN(t3.receipt.blockNumber), time)).toString()).to.be.equal(getAmountWithWeight('1111').toString());
-            expect((await staking.getPriorVotes.call(a1, new BN(t3.receipt.blockNumber + 1), time)).toString()).to.be.equal(getAmountWithWeight('1111').toString());
+            expect((await staking.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber - 1), kickoffTS)).toString()).to.be.equal('0');
+            expect((await staking.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber), kickoffTS)).toString()).to.be.equal(getAmountWithWeight('1000').toString());
+            expect((await staking.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber + 1), kickoffTS)).toString()).to.be.equal(getAmountWithWeight('1000').toString());
+            expect((await staking.getPriorVotes.call(a1, new BN(t2.receipt.blockNumber), kickoffTS)).toString()).to.be.equal(getAmountWithWeight('1010').toString());
+            expect((await staking.getPriorVotes.call(a1, new BN(t2.receipt.blockNumber + 1), kickoffTS)).toString()).to.be.equal(getAmountWithWeight('1010').toString());
+            expect((await staking.getPriorVotes.call(a1, new BN(t3.receipt.blockNumber), kickoffTS)).toString()).to.be.equal(getAmountWithWeight('1111').toString());
+            expect((await staking.getPriorVotes.call(a1, new BN(t3.receipt.blockNumber + 1), kickoffTS)).toString()).to.be.equal(getAmountWithWeight('1111').toString());
         });
     });
     

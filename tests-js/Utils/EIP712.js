@@ -67,7 +67,7 @@ function encodeData(primaryType, data, types = {}) {
             encValues.push(value);
         }
     }
-    
+
     return abi.rawEncode(encTypes, encValues);
 }
 
