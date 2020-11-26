@@ -100,9 +100,19 @@ contract FeeSharingProxy is SafeMath96 {
             end--;
         }
         uint256 amount = 0;
+        uint cachedLockDate = 0;
+        uint96 cachedWeightedStake = 0;
         for (uint32 i = start; i < end; i++) {
             Checkpoint storage checkpoint = tokenCheckpoints[_loanPoolToken][i];
-            uint96 weightedStake = staking.getPriorWeightedStake(user, checkpoint.blockNumber - 1, checkpoint.timestamp);
+            uint lockDate = staking.timestampToLockDate(checkpoint.timestamp);
+            uint96 weightedStake;
+            if (lockDate == cachedLockDate) {
+                weightedStake = cachedWeightedStake;
+            } else {
+                weightedStake = staking.getPriorWeightedStake(user, checkpoint.blockNumber - 1, checkpoint.timestamp);
+                cachedWeightedStake = weightedStake;
+                cachedLockDate = lockDate;
+            }
             uint share = uint(checkpoint.numTokens).mul(weightedStake).div(uint(checkpoint.totalWeightedStake));
             amount = amount.add(share);
         }
@@ -142,4 +152,5 @@ interface ILoanToken {
 interface IStaking {
     function getPriorTotalVotingPower(uint32 blockNumber, uint time) view external returns (uint96);
     function getPriorWeightedStake(address account, uint blockNumber, uint date) external view returns (uint96);
+    function timestampToLockDate(uint timestamp) external view returns(uint lockDate);
 }
