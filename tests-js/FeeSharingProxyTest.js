@@ -313,6 +313,126 @@ contract('FeeSharingProxy:', accounts => {
             
         });
     
+        it("Should be able to withdraw", async () => {
+            //stake - getPriorTotalVotingPower
+            let rootStake = 700;
+            await stake(rootStake, root);
+        
+            let userStake = 300;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+        
+            //mock data
+            let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+        
+            await feeSharingProxy.withdrawFees(susd.address);
+        
+            let tx = await feeSharingProxy.withdraw(loanToken.address, 10, ZERO_ADDRESS, {from: account1});
+            console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
+        
+            //processedCheckpoints
+            let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+            expect(processedCheckpoints.toNumber()).to.be.equal(1);
+        
+            //check balances
+            let feeSharingProxyBalance = await loanToken.balanceOf.call(feeSharingProxy.address);
+            expect(feeSharingProxyBalance.toNumber()).to.be.equal(feeAmount * 7 / 10);
+            let userBalance = await loanToken.balanceOf.call(account1);
+            expect(userBalance.toNumber()).to.be.equal(feeAmount * 3 / 10);
+        
+            expectEvent(tx, 'UserFeeWithdrawn', {
+                sender: account1,
+                receiver: account1,
+                token: loanToken.address,
+                amount: new BN(feeAmount).mul(new BN(3)).div(new BN(10))
+            });
+        
+        });
+    
+        it("Should be able to withdraw using 3 checkpoints", async () => {
+            //stake - getPriorTotalVotingPower
+            let rootStake = 900;
+            await stake(rootStake, root);
+        
+            let userStake = 100;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+        
+            // [FIRST]
+            //mock data
+            let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+            let totalFeeAmount = feeAmount;
+            await feeSharingProxy.withdrawFees(susd.address);
+        
+            let tx = await feeSharingProxy.withdraw(loanToken.address, 1, ZERO_ADDRESS, {from: account1});
+            console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
+        
+            //processedCheckpoints
+            let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+            expect(processedCheckpoints.toNumber()).to.be.equal(1);
+        
+            //check balances
+            let feeSharingProxyBalance = await loanToken.balanceOf.call(feeSharingProxy.address);
+            expect(feeSharingProxyBalance.toNumber()).to.be.equal(totalFeeAmount * 9 / 10);
+            let userBalance = await loanToken.balanceOf.call(account1);
+            expect(userBalance.toNumber()).to.be.equal(totalFeeAmount / 10);
+        
+            // [SECOND]
+            //mock data
+            feeAmount = await setFeeTokensHeld(new BN(100), new BN(0), new BN(etherMantissa(123000).toString()));
+            totalFeeAmount = totalFeeAmount.add(feeAmount);
+            await increaseTime(FEE_WITHDRAWAL_INTERVAL);
+            await feeSharingProxy.withdrawFees(susd.address);
+        
+            // [THIRD]
+            //mock data
+            feeAmount = await setFeeTokensHeld(new BN(etherMantissa(123000).toString()),
+                new BN(etherMantissa(1000).toString()), new BN(etherMantissa(54321).toString()));
+            totalFeeAmount = totalFeeAmount.add(feeAmount);
+            await increaseTime(FEE_WITHDRAWAL_INTERVAL);
+            await feeSharingProxy.withdrawFees(susd.address);
+        
+            // [SECOND] - [THIRD]
+            tx = await feeSharingProxy.withdraw(loanToken.address, 2, ZERO_ADDRESS, {from: account1});
+            console.log("\nwithdraw(checkpoints = 2).gasUsed: " + tx.receipt.gasUsed);
+        
+            //processedCheckpoints
+            processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+            expect(processedCheckpoints.toNumber()).to.be.equal(3);
+        
+            //check balances
+            feeSharingProxyBalance = await loanToken.balanceOf.call(feeSharingProxy.address);
+            expect(feeSharingProxyBalance.toNumber()).to.be.equal(parseInt(totalFeeAmount * 9 / 10) + 1);
+            userBalance = await loanToken.balanceOf.call(account1);
+            expect(userBalance.toNumber()).to.be.equal(parseInt(totalFeeAmount / 10));
+        });
+    
+        it("Should be able to process 10 checkpoints", async () => {
+            //stake - getPriorTotalVotingPower
+            await stake(900, root);
+            let userStake = 100;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+        
+            //mock data
+            await createCheckpoints(10);
+        
+            let tx = await feeSharingProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, {from: account1});
+            console.log("\nwithdraw(checkpoints = 10).gasUsed: " + tx.receipt.gasUsed);
+            //processedCheckpoints
+            let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+            expect(processedCheckpoints.toNumber()).to.be.equal(10);
+        });
+    
         it("Should be able to process 10 checkpoints and 3 withdrawal", async () => {
             //stake - getPriorTotalVotingPower
             await stake(900, root);
