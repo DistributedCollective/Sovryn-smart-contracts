@@ -78,7 +78,7 @@ contract FeeSharingProxy is SafeMath96 {
      * @param _maxCheckpoints maximum number of checkpoints to be processed
      * @param _receiver the receiver of tokens or msg.sender
      * */
-    function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) public returns (uint) {
+    function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) public {
         address user = msg.sender;
         if (_receiver == address(0)) {
             _receiver = msg.sender;
@@ -111,8 +111,6 @@ contract FeeSharingProxy is SafeMath96 {
         require(IERC20(_loanPoolToken).transfer(user, amount), "FeeSharingProxy::withdraw: withdrawal failed");
     
         emit UserFeeWithdrawn(msg.sender, _receiver, _loanPoolToken, amount);
-        
-        return nCheckpoints - end;
     }
     
     function _writeTokenCheckpoint(address _token, uint96 _numTokens) internal {
