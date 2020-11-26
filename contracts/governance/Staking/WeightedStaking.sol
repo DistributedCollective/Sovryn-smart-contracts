@@ -173,7 +173,10 @@ contract WeightedStaking is Checkpoints{
         
         //max 78 iterations
         for(uint i = start; i <= end; i += TWO_WEEKS){
-            votes = add96(votes, weightedStakeByDate(account, i, start, blockNumber), "WeightedStaking::getPriorWeightedStake: overflow on total weight computation");
+            uint96 weightedStake = weightedStakeByDate(account, i, start, blockNumber);
+            if (weightedStake > 0) {
+                votes = add96(votes, weightedStake, "WeightedStaking::getPriorWeightedStake: overflow on total weight computation");
+            }
         }
      }
      
@@ -184,9 +187,13 @@ contract WeightedStaking is Checkpoints{
      * @param blockNumber the block number. needed for checkpointing.
      * */
     function weightedStakeByDate(address account, uint date, uint startDate, uint blockNumber) public view returns(uint96 power){
-        uint96 weight = computeWeightByDate(date, startDate);
         uint96 staked = getPriorUserStakeByDate(account, date, blockNumber);
-        power = mul96(staked, weight, "WeightedStaking::weightedStakeByDate: multiplication overflow")/WEIGHT_FACTOR;
+        if (staked > 0) {
+            uint96 weight = computeWeightByDate(date, startDate);
+            power = mul96(staked, weight, "WeightedStaking::weightedStakeByDate: multiplication overflow")/WEIGHT_FACTOR;
+        } else {
+            power = 0;
+        }
     }
      
      /**
