@@ -33,6 +33,7 @@ const FeeSharingProxy = artifacts.require('FeeSharingProxy');
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
+const TWO_WEEKS = 1209600;
 
 const MAX_VOTING_WEIGHT = 10;
 
@@ -533,6 +534,34 @@ contract('FeeSharingProxy:', accounts => {
         //     tx = await staking.calculatePriorWeightedStake(root, block2, stakingDate);
         //     console.log("\ncalculatePriorWeightedStake(checkpoints = " + checkpointCount + ").gasUsed: " + tx.receipt.gasUsed);
         // });
+    
+        it("Should be able to withdraw with staking for 78 dates", async () => {
+            //stake - getPriorTotalVotingPower
+            let rootStake = 700;
+            await stake(rootStake, root);
+        
+            let userStake = 300;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+        
+            let kickoffTS = await staking.kickoffTS.call();
+            await SOVToken.approve(staking.address, userStake * 1000);
+            for (let i = 0; i < 77; i++) {
+                let stakingDate = kickoffTS.add(new BN(TWO_WEEKS * (i + 1)));
+                await staking.stake(userStake, stakingDate, account1, account1);
+            }
+        
+            //mock data
+            await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+        
+            await feeSharingProxy.withdrawFees(susd.address);
+        
+            let tx = await feeSharingProxy.withdraw(loanToken.address, 10, ZERO_ADDRESS, {from: account1});
+            console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
+        });
     
         it('should compute the weighted stake and show gas usage', async () => {
             await stake(100, root);
