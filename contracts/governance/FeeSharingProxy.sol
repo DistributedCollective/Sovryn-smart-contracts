@@ -65,7 +65,7 @@ contract FeeSharingProxy is SafeMath96 {
         //TODO can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
         IERC20(_token).approve(loanToken, amount);
         uint poolTokenAmount = ILoanToken(loanPoolToken).mint(address(this), amount);
-        _writeTokenCheckpoint(loanPoolToken, uint96(poolTokenAmount));
+        _writeTokenCheckpoint(loanPoolToken, safe96(poolTokenAmount, "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits"));
 
         lastFeeWithdrawalTime = block.timestamp;
         
@@ -109,6 +109,8 @@ contract FeeSharingProxy is SafeMath96 {
             if (lockDate == cachedLockDate) {
                 weightedStake = cachedWeightedStake;
             } else {
+                //We need to use "checkpoint.blockNumber - 1" here to calculate weighted stake
+                //for the same block like we did for total voting power in _writeTokenCheckpoint
                 weightedStake = staking.getPriorWeightedStake(user, checkpoint.blockNumber - 1, checkpoint.timestamp);
                 cachedWeightedStake = weightedStake;
                 cachedLockDate = lockDate;
