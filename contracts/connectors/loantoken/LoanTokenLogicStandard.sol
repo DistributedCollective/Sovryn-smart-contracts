@@ -7,16 +7,15 @@ pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./AdvancedToken.sol";
+import "./LoanTokenSettingsLowerAdmin.sol";
 import "./interfaces/ProtocolLike.sol";
 import "./interfaces/FeedsLike.sol";
 
 
-contract LoanTokenLogicStandard is AdvancedToken {
-    using SafeMath for uint256;
+contract LoanTokenLogicStandard is AdvancedToken, LoanTokenSettingsLowerAdmin {
     using SignedSafeMath for int256;
 
     // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wrbtcTokenAddress
-    address public sovrynContractAddress;
     address public wrbtcTokenAddress;
     address internal target_;
 
@@ -852,7 +851,6 @@ contract LoanTokenLogicStandard is AdvancedToken {
         returns (uint256, uint256)
     {
         _checkPause();
-
         require (sentAmounts[1] <= _underlyingBalance() && // newPrincipal (borrowed amount + fees)
             sentAddresses[1] != address(0), // borrower
             "24"
@@ -890,7 +888,6 @@ contract LoanTokenLogicStandard is AdvancedToken {
 
         // converting to initialMargin
         leverageAmount = SafeMath.div(10**38, leverageAmount);
-            
         (sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress).borrowOrTradeFromPool.value(msgValue)( // newPrincipal, newCollateral
             loanParamsId,
             loanId,

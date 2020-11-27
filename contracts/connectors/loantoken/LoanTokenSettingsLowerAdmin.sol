@@ -133,4 +133,9 @@ contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
         emit SetTransactionLimits(addresses, limits);
     }
 
+    function changeLoanToken(string memory _name, string memory _symbol) public onlyAdmin {
+        name = _name;
+        symbol = _symbol;
+    }
+
 }

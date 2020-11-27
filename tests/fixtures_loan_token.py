@@ -43,7 +43,11 @@ def loanTokenWRBTC(LoanToken, LoanTokenLogicWrbtc, LoanTokenSettingsLowerAdmin, 
 
     return loanToken
     
- 
+@pytest.fixture(scope="module", autouse=True)   
+def loanTokenLogic(accounts, LoanTokenLogicStandard):
+    loanTokenLogic = accounts[0].deploy(LoanTokenLogicStandard)
+    return loanTokenLogic
+
 @pytest.fixture(scope="module", autouse=True)   
 def loanTokenSettings(accounts, LoanTokenSettingsLowerAdmin):
     loanTokenSettings = accounts[0].deploy(LoanTokenSettingsLowerAdmin)
@@ -125,16 +129,11 @@ def set_demand_curve(loanToken, LoanToken, LoanTokenLogicStandard, LoanTokenSett
     def internal_set_demand_curve(baseRate=1e18, rateMultiplier=20.25e18, targetLevel=80*10**18, kinkLevel=90*10**18,
                                   maxScaleRate=100*10**18, loan_token_address=loanToken.address):
         local_loan_token = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
-        local_loan_token.setTarget(loanTokenSettings.address)
-        local_loan_token_settings = Contract.from_abi("loanToken", address=loan_token_address,
-                                                      abi=LoanTokenSettingsLowerAdmin.abi, owner=accounts[0])
-        local_loan_token_settings.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel,
-                                                 kinkLevel, maxScaleRate)
         loan_token_logic = accounts[0].deploy(LoanTokenLogicStandard)
-        local_loan_token = Contract.from_abi("loanToken", address=loan_token_address, abi=LoanToken.abi, owner=accounts[0])
         local_loan_token.setTarget(loan_token_logic.address)
-        Contract.from_abi("loanToken", address=loan_token_address, abi=LoanTokenLogicStandard.abi,
-                          owner=accounts[0])
+        localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
+ 
+        localLoanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
         borrow_interest_rate = loanToken.borrowInterestRate()
         print("borrowInterestRate: ", borrow_interest_rate)
         assert (borrow_interest_rate > baseRate)
@@ -254,3 +253,13 @@ def borrow_indefinite_loan(RBTC, SUSD, accounts, loanToken, sovryn):
         return loan_id, borrower, receiver, withdraw_amount, duration_in_seconds, margin, tx
 
     return internal_borrow
+
+@pytest.fixture(scope="module", autouse=True)   
+def name():
+    name = "TestName"
+    return name
+
+@pytest.fixture(scope="module", autouse=True)   
+def symbol():
+    symbol = "TestSymbol"
+    return symbol
