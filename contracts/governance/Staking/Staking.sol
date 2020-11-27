@@ -22,7 +22,7 @@ contract Staking is WeightedStaking{
         //stake for the msg.sender if not specified otherwise
         if(stakeFor == address(0))
             stakeFor = msg.sender;
-        require(_currentBalance(stakeFor, until) == 0, "Staking:stake: use 'increaseStake' to increase an existing staked position");
+        require(currentBalance(stakeFor, until) == 0, "Staking:stake: use 'increaseStake' to increase an existing staked position");
         
         //do not stake longer than the max duration
         if (until > block.timestamp + MAX_DURATION)
@@ -94,7 +94,7 @@ contract Staking is WeightedStaking{
     function increaseStake(uint96 amount, address stakeFor, uint until) public{
         require(amount > 0, "Staking::increaseStake: amount of tokens to stake needs to be bigger than 0");
         until = timestampToLockDate(until);
-        uint96 balance = _currentBalance(stakeFor, until);
+        uint96 balance = currentBalance(stakeFor, until);
         require(balance > 0, "Staking:increaseStake: nothing staked yet until the given date. Use 'stake' instead.");
         
         //retrieve the SOV tokens
@@ -159,7 +159,7 @@ contract Staking is WeightedStaking{
      * @param lockDate the lock date
      * @return the lock date of the last checkpoint
      * */
-    function _currentBalance(address account, uint lockDate) internal view returns(uint96) {
+    function currentBalance(address account, uint lockDate) public view returns(uint96) {
         return userStakingCheckpoints[account][lockDate][numUserStakingCheckpoints[account][lockDate] - 1].stake;
     }
     
@@ -170,7 +170,7 @@ contract Staking is WeightedStaking{
      */
     function balanceOf(address account) public view returns (uint96 balance) {
         for (uint i = kickoffTS; i <= block.timestamp + MAX_DURATION; i += TWO_WEEKS){
-            balance = add96(balance, _currentBalance(account, i), "Staking::balanceOf: overflow");
+            balance = add96(balance, currentBalance(account, i), "Staking::balanceOf: overflow");
         }
     }
 
@@ -226,7 +226,7 @@ contract Staking is WeightedStaking{
 
     function _delegate(address delegator, address delegatee, uint lockedTS) internal {
         address currentDelegate = delegates[delegator][lockedTS];
-        uint96 delegatorBalance = _currentBalance(delegator, lockedTS);
+        uint96 delegatorBalance = currentBalance(delegator, lockedTS);
         delegates[delegator][lockedTS] = delegatee;
 
         emit DelegateChanged(delegator, lockedTS, currentDelegate, delegatee);
