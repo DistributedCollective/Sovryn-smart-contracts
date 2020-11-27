@@ -28,5 +28,9 @@ contract StakingMockup is Staking {
     function getPriorWeightedStake(address account, uint blockNumber, uint date) public view returns (uint96) {
         return priorWeightedStake != 0 ? priorWeightedStake : super.getPriorWeightedStake(account, blockNumber, date);
     }
+    
+    function calculatePriorWeightedStake(address account, uint blockNumber, uint date) public {
+        super.getPriorWeightedStake(account, blockNumber, date);
+    }
 
 }
