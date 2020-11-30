@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 
 from brownie import *
-from scripts.deploy_protocol import deployProtocol
-from scripts.deploy_loanToken import deployLoanTokens
-from scripts.deploy_tokens import deployTokens, readTokens
-from scripts.deploy_multisig import deployMultisig
+from scripts.deployment.deploy_protocol import deployProtocol
+from scripts.deployment.deploy_loanToken import deployLoanTokens
+from scripts.deployment.deploy_tokens import deployTokens, readTokens
+from scripts.deployment.deploy_multisig import deployMultisig
 
 import shared
 import json

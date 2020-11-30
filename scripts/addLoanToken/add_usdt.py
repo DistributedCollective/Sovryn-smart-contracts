@@ -1,5 +1,5 @@
 from brownie import *
-from scripts.add_loanToken import addLoanToken
+from scripts.addLoanToken.add_loanToken import addLoanToken
 
 import shared
 import json

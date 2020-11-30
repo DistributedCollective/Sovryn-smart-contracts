@@ -1,5 +1,5 @@
 from brownie import *
-from scripts.deploy_loanToken import deployLoanToken, testDeployment
+from scripts.deployment.deploy_loanToken import deployLoanToken, testDeployment
 
 import shared
 import json
@@ -12,7 +12,7 @@ def addLoanToken(tokenName, tokenSymbol, tokenDecimals, tokenInitialAmount, loan
     requiredConf=2
     configData = {} # deploy new tokens
 
-    with open('./scripts/swap_test.json') as config_file:
+    with open('./scripts/swapTest/swap_test.json') as config_file:
         swapTestData = json.load(config_file)
 
     wrbtcAddress = swapTestData["WRBTC"]
@@ -61,7 +61,7 @@ def addLoanToken(tokenName, tokenSymbol, tokenDecimals, tokenInitialAmount, loan
     configData["UnderlyingTokenPriceFeed"] = feeds.pricesFeeds(tokens.token.address)
     configData["WRBTCPriceFeed"] = feeds.pricesFeeds(tokens.wrbtc.address)
 
-    with open('./scripts/swap_test_{token}.json'.format(token=tokenSymbol.lower()), 'w') as configFile:
+    with open('./scripts/swapTest/swap_test_{token}.json'.format(token=tokenSymbol.lower()), 'w') as configFile:
         json.dump(configData, configFile)
 
     testDeployment(acct, sovryn, loanToken.address, tokens.token, tokens.wrbtc, loanTokenSent, 0)
