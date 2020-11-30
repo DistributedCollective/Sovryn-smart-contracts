@@ -22,21 +22,23 @@ def addLoanToken(tokenName, tokenSymbol, tokenDecimals, tokenInitialAmount, loan
         sovryn.setSupportedTokens([tokens.token.address],[True])
         
     elif this_network == "testnet" or this_network == "rsk-mainnet":
-        tokens.token = Contract.from_abi("Token", address=contracts[tokenSymbol], abi=IERC20.abi, owner=acct)
+        tokens.token = Contract.from_abi("Token", address=contracts[tokenSymbol], abi=TestToken.abi, owner=acct)
         #on testnet and mainnet, the owner is currently a multisig
         multisig = Contract.from_abi("MultiSig", address=contracts["multisig"], abi=MultiSigWallet.abi, owner=acct)
+        '''
         data = sovryn.setSupportedTokens.encode_input([tokens.token.address],[True])
         tx = multisig.submitTransaction(sovryn.address,0,data)
         txId = tx.events["Submission"]["transactionId"]
         print('confirm following txId to set supported token:', txId)
+        '''
         
     
     tokens.wrbtc = Contract.from_abi("WRBTC", address = wrbtcAddress, abi = WRBTC.abi, owner = acct)
     
     feeds = Contract.from_abi("PriceFeeds", address=priceFeedsAddress, abi=PriceFeeds.abi, owner=acct)
 
-    (loanToken, loanTokenSettings) = deployLoanToken(acct, sovryn, tokens.token.address, loanTokenSymbol, loanTokenName, [tokens.wrbtc.address], tokens.wrbtc.address)
-
+    (loanToken, loanTokenSettings) = deployLoanToken(acct, sovryn, tokens.token.address, loanTokenSymbol, loanTokenName, [tokens.wrbtc.address], tokens.wrbtc.address, multisig)
+    
     tokens.token.approve(loanToken.address, loanTokenAllowance+loanTokenUnderlyingTokenAmount)
     loanToken.mint(acct, loanTokenUnderlyingTokenAmount)
 
