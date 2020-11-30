@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 import "../Staking/Staking.sol";
+import "../IFeeSharingProxy.sol";
 
 contract Vesting is Ownable {
     ///@notice the SOV token contract
@@ -12,6 +13,8 @@ contract Vesting is Ownable {
     Staking staking;
     ///@notice the owner of the vested tokens
     address public tokenOwner;
+    //@notice fee sharing Proxy
+    IFeeSharingProxy public feeSharingProxy;
     ///@notice the cliff. after this time period the tokens begin to unlock
     uint public cliff;
     ///@notice the duration. after this period all tokens will have been unlocked
@@ -20,7 +23,7 @@ contract Vesting is Ownable {
     uint public startDate;
     ///@notice constant used for computing the vesting dates 
     uint constant FOUR_WEEKS = 4 weeks;
-    
+
     /**
      * @dev Throws if called by any account other than the token owner or the contract owner.
      */
@@ -36,17 +39,19 @@ contract Vesting is Ownable {
      * @param _cliff the cliff in seconds
      * @param _duration the total duration in seconds
      * */
-    constructor(address _SOV, address _stakingAddress, address _tokenOwner, uint _cliff, uint _duration) public {
+    constructor(address _SOV, address _stakingAddress, address _tokenOwner, uint _cliff, uint _duration, address _feeSharingProxy) public{
         require(_SOV != address(0), "SOV address invalid");
         require(_stakingAddress != address(0), "staking address invalid");
         require(_tokenOwner != address(0), "token owner address invalid");
         require(_duration >= _cliff, "duration must be bigger than or equal to the cliff");
+        require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
         SOV = IERC20(_SOV);
         staking = Staking(_stakingAddress);
         require(_duration <= staking.MAX_DURATION(), "duration may not exceed the max duration");
         tokenOwner = _tokenOwner;
         cliff = _cliff;
         duration = _duration;
+        feeSharingProxy = IFeeSharingProxy(_feeSharingProxy);
     }
     
     /**
@@ -100,9 +105,13 @@ contract Vesting is Ownable {
                 staking.withdraw(stake, i, receiver);
         }
     }
-    
-    function collectDividends() public onlyOwners {
+
+    /**
+     * @dev collect dividends from fee sharing proxy
+     */
+    function collectDividends() public onlyOwners{
         //invokes the fee sharing proxy
+        feeSharingProxy.withdrawFees(address(SOV));
     }
     
     /**
