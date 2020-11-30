@@ -72,7 +72,7 @@ def main():
     configData["loanTokenSettingsWRBTC"] = loanTokenSettingsWRBTC.address
     configData["loanTokenRBTC"] = loanTokenWRBTC.address
 
-    with open('./scripts/swap_test.json', 'w') as configFile:
+    with open('./scripts/swapTest/swap_test.json', 'w') as configFile:
         json.dump(configData, configFile)
 
 def deployMoCMockup(acct):
