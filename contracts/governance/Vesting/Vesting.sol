@@ -5,7 +5,7 @@ import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 import "../Staking/Staking.sol";
 
-contract Vesting is Ownable{
+contract Vesting is Ownable {
     ///@notice the SOV token contract
     IERC20 public SOV; 
     ///@notice the staking contract address
@@ -19,8 +19,7 @@ contract Vesting is Ownable{
     ///@notice the start date of the vesting
     uint public startDate;
     ///@notice constant used for computing the vesting dates 
-    uint constant FOUR_WEEKS = 28 days;
-    
+    uint constant FOUR_WEEKS = 4 weeks;
     
     /**
      * @dev Throws if called by any account other than the token owner or the contract owner.
@@ -37,14 +36,14 @@ contract Vesting is Ownable{
      * @param _cliff the cliff in seconds
      * @param _duration the total duration in seconds
      * */
-    constructor(address _SOV, address _stakingAddress, address _tokenOwner, uint _cliff, uint _duration) public{
+    constructor(address _SOV, address _stakingAddress, address _tokenOwner, uint _cliff, uint _duration) public {
         require(_SOV != address(0), "SOV address invalid");
         require(_stakingAddress != address(0), "staking address invalid");
         require(_tokenOwner != address(0), "token owner address invalid");
-        require(_duration <= staking.MAX_DURATION(), "duration may not exceed the max duration");
         require(_duration >= _cliff, "duration must be bigger than or equal to the cliff");
         SOV = IERC20(_SOV);
         staking = Staking(_stakingAddress);
+        require(_duration <= staking.MAX_DURATION(), "duration may not exceed the max duration");
         tokenOwner = _tokenOwner;
         cliff = _cliff;
         duration = _duration;
@@ -54,7 +53,7 @@ contract Vesting is Ownable{
      * @notice stakes tokens according to the vesting schedule
      * @param amount the amount of tokens to stake
      * */
-    function stakeTokens(uint amount) public{
+    function stakeTokens(uint amount) public {
         //maybe better to allow staking unil the cliff was reached
         require(startDate == 0, "stakeTokens can be called only once.");
         startDate = staking.timestampToLockDate(block.timestamp);
@@ -74,7 +73,7 @@ contract Vesting is Ownable{
         if(numIntervals > 1)
             staking.stake(uint96(amount - stakedPerInterval * (numIntervals-1)), start, address(this), tokenOwner);
         //stake the rest in 4 week intervals
-        for(uint i = start + FOUR_WEEKS; i <= end; i+= FOUR_WEEKS){
+        for(uint i = start + FOUR_WEEKS; i <= end; i+= FOUR_WEEKS) {
             //stakes for itself, delegates to the owner
             staking.stake(uint96(stakedPerInterval), i, address(this), tokenOwner);
         }
@@ -85,7 +84,7 @@ contract Vesting is Ownable{
      * @notice withdraws unlocked tokens from the staking contract and forwards them to an address specified by the token owner
      * @param receiver the receiving address
      * */
-    function withdrawTokens(address receiver) public onlyOwners{
+    function withdrawTokens(address receiver) public onlyOwners {
         uint96 stake;
         //usually we just need to iterate over the possible dates until now
         uint end = block.timestamp;
@@ -102,14 +101,14 @@ contract Vesting is Ownable{
         }
     }
     
-    function collectDividends() public onlyOwners{
+    function collectDividends() public onlyOwners {
         //invokes the fee sharing proxy
     }
     
     /**
      * @notice allows the owners to migrate the positions to a new staking contract
      * */
-    function migrateToNewStakingContract() public onlyOwners{
+    function migrateToNewStakingContract() public onlyOwners {
         staking.migrateToNewStakingContract();
         staking = Staking(staking.newStakingContract());
     }
