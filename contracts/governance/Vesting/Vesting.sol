@@ -78,8 +78,7 @@ contract Vesting is Ownable{
             //stakes for itself, delegates to the owner
             staking.stake(uint96(stakedPerInterval), i, address(this), tokenOwner);
         }
-        
-        //todo: what if there are already tokens staked for that user until that time? --> increaseStake or not allow?
+
     }
     
     /**
