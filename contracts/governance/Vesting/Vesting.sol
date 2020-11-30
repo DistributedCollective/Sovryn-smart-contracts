@@ -38,6 +38,9 @@ contract Vesting is Ownable{
      * @param _duration the total duration in seconds
      * */
     constructor(address _SOV, address _stakingAddress, address _tokenOwner, uint _cliff, uint _duration) public{
+        require(_SOV != address(0), "SOV address invalid");
+        require(_stakingAddress != address(0), "staking address invalid");
+        require(_tokenOwner != address(0), "token owner address invalid");
         require(_duration <= staking.MAX_DURATION(), "duration may not exceed the max duration");
         require(_duration >= _cliff, "duration must be bigger than or equal to the cliff");
         SOV = IERC20(_SOV);
@@ -52,6 +55,7 @@ contract Vesting is Ownable{
      * @param amount the amount of tokens to stake
      * */
     function stakeTokens(uint amount) public{
+        //maybe better to allow staking unil the cliff was reached
         require(startDate == 0, "stakeTokens can be called only once.");
         startDate = staking.timestampToLockDate(block.timestamp);
         //transfer the tokens to this contract
