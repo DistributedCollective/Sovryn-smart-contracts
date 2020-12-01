@@ -6,6 +6,8 @@ import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../Staking/SafeMath96.sol";
 
+//TODO should be set as protocolTokenAddress (ProtocolSettings.setProtocolTokenAddress)
+//TODO PriceFeeds._protocolTokenAddress ?
 /**
 * Sovryn Reward Token
 */
