@@ -124,7 +124,7 @@ contract Vesting is Ownable {
      */
     function collectDividends(address receiver, uint32 maxCheckpoints) public onlyOwners{
         //invokes the fee sharing proxy
-        feeSharingProxy.withdrawToken(address(SOV), maxCheckpoints, receiver);
+        feeSharingProxy.withdrawTokens(address(SOV), maxCheckpoints, receiver);
         emit DividendsCollected(msg.sender, receiver, maxCheckpoints);
     }
     
