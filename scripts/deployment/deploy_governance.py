@@ -4,7 +4,11 @@ import time;
 
 def main():
     thisNetwork = network.show_active()
-    
+
+    #@todo put correct variables
+    governorOwnerQuorumVotes = 4
+    governorAdminQuorumVotes = 70
+
     if thisNetwork == "development":
         acct = accounts[0]
         guardian = acct
@@ -30,14 +34,20 @@ def main():
     #params: admin, delay
     timelock = acct.deploy(Timelock, acct, delay)
     #params: timelock. staking, guardian
-    governor = acct.deploy(GovernorAlpha, timelock.address, staking.address, guardian)
 
-    dataString = timelock.setPendingAdmin.encode_input(governor.address)
+    governorAdmin = acct.deploy(GovernorAlpha, timelock.address, staking.address, guardian, governorAdminQuorumVotes)
+    governorOwner = acct.deploy(GovernorAlpha, timelock.address, staking.address, guardian, governorOwnerQuorumVotes)
+
+    dataString = timelock.setPendingAdmin.encode_input(governorAdmin.address)
     #2 days and 5 minutes from now
     eta = round(time.time()) + 3*60*60 + 300
-    print("schedule ownership transfer for ", eta)
+    print("schedule ownership(admin) transfer for ", eta)
     timelock.queueTransaction(timelock.address, 0, "setPendingAdmin(address)", dataString[10:], eta)
-    
+
+
+    dataString = timelock.setPendingOwner.encode_input(governorOwner.address)
+    print("schedule ownership(owner) transfer for ", eta)
+    timelock.queueTransaction(timelock.address, 0, "setPendingOwner(address)", dataString[10:], eta)
     
     #todo: set sovryn owner to timelock
     

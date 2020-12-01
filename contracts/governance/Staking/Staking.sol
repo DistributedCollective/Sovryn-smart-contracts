@@ -3,7 +3,13 @@ pragma experimental ABIEncoderV2;
 
 import "./WeightedStaking.sol";
 
-contract Staking is WeightedStaking{
+interface IStaking {
+    function getPriorVotes(address account, uint blockNumber, uint date) external view returns (uint96);
+    function getPriorTotalVotingPower(uint32 blockNumber, uint time) view external returns(uint96);
+}
+
+//@todo change directory name Staking -> staking
+contract Staking is IStaking, WeightedStaking {
     
     /**
      * @notice stakes the given amount for the given duration of time.

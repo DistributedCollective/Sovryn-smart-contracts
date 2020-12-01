@@ -2,6 +2,8 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./Staking/SafeMath96.sol";
+import "./Timelock.sol";
+import "./Staking/Staking.sol";
 
 contract GovernorAlpha is SafeMath96 {
     /// @notice The name of this contract
@@ -17,16 +19,19 @@ contract GovernorAlpha is SafeMath96 {
     function votingPeriod() public pure returns (uint) { return 8640; } // ~3 days in blocks (assuming 30s blocks)
 
     /// @notice The address of the Sovryn Protocol Timelock
-    TimelockInterface public timelock;
+    ITimelock public timelock;
 
     /// @notice The address of the Sovryn staking contract
-    StakingInterface public staking;
+    IStaking public staking;
 
     /// @notice The address of the Governor Guardian
     address public guardian;
 
     /// @notice The total number of proposals
     uint public proposalCount;
+
+    /// @notice Percentage of current total voting power require to vote.
+    uint96 public quorumPercentageVotes;
     
     struct Proposal {
         /// @notice Unique id for looking up a proposal
@@ -75,7 +80,7 @@ contract GovernorAlpha is SafeMath96 {
         bytes[] calldatas;
 
         /// @notice Receipts of ballots for the entire set of voters
-        mapping (address => Receipt) receipts;
+        mapping(address => Receipt) receipts;
     }
 
     /// @notice Ballot receipt record for a voter
@@ -103,10 +108,10 @@ contract GovernorAlpha is SafeMath96 {
     }
 
     /// @notice The official record of all proposals ever proposed
-    mapping (uint => Proposal) public proposals;
+    mapping(uint => Proposal) public proposals;
 
     /// @notice The latest proposal for each proposer
-    mapping (address => uint) public latestProposalIds;
+    mapping(address => uint) public latestProposalIds;
 
     /// @notice The EIP-712 typehash for the contract's domain
     bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
@@ -129,29 +134,14 @@ contract GovernorAlpha is SafeMath96 {
     /// @notice An event emitted when a proposal has been executed in the Timelock
     event ProposalExecuted(uint id);
 
-    constructor(address timelock_, address staking_, address guardian_) public {
-        timelock = TimelockInterface(timelock_);
-        staking = StakingInterface(staking_);
+    constructor(address timelock_, address staking_, address guardian_, uint96 quorumVotes_) public {
+        timelock = ITimelock(timelock_);
+        staking = IStaking(staking_);
         guardian = guardian_;
+        quorumPercentageVotes = quorumVotes_;
     }
     
-     /// @notice The number of votes required in order for a voter to become a proposer
-    function proposalThreshold() public view returns (uint96) { 
-        uint96 totalVotingPower = staking.getPriorTotalVotingPower(safe32(block.number-1, "GovernorAlpha::proposalThreshold: block number overflow"), block.timestamp);
-        //1% of current total voting power
-        return totalVotingPower/100; 
-    } 
-
-    
-    /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
-    function quorumVotes() public view returns (uint96) { 
-        uint96 totalVotingPower = staking.getPriorTotalVotingPower(safe32(block.number-1, "GovernorAlpha::quorumVotes: block number overflow"), block.timestamp);
-        //4% of current total voting power
-        return mul96(4, totalVotingPower, "GovernorAlpha::quorumVotes:multiplication overflow")/100; 
-    } 
-
-
-    function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
+    function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns(uint) {
         //note: passing this block's timestamp, but the number of the previous block
         //todo: think if it would be better to pass block.timestamp - 30 (average block time) (probably not because proposal starts in 1 block from now)
         uint96 proposalThreshold = proposalThreshold();
@@ -177,7 +167,7 @@ contract GovernorAlpha is SafeMath96 {
             endBlock: safe32(endBlock, "GovernorAlpha::propose: end block number overflow"),
             forVotes: 0,
             againstVotes: 0,
-            quorum: mul96(4, proposalThreshold, "GovernorAlpha::propose: overflow on quorum computation"),
+            quorum: mul96(quorumPercentageVotes, proposalThreshold, "GovernorAlpha::propose: overflow on quorum computation"),
             eta: 0,
             startTime: safe64(block.timestamp, "GovernorAlpha::propose: startTime overflow"),//required by the staking contract. not used by the governance contract itself.
             canceled: false,
@@ -200,23 +190,18 @@ contract GovernorAlpha is SafeMath96 {
         require(state(proposalId) == ProposalState.Succeeded, "GovernorAlpha::queue: proposal can only be queued if it is succeeded");
         Proposal storage proposal = proposals[proposalId];
         uint eta = add256(block.timestamp, timelock.delay());
-        for (uint i = 0; i < proposal.targets.length; i++) {
+        for(uint i = 0; i < proposal.targets.length; i++) {
             _queueOrRevert(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], eta);
         }
         proposal.eta = safe64(eta, "GovernorAlpha::queue: ETA overflow");
         emit ProposalQueued(proposalId, eta);
     }
 
-    function _queueOrRevert(address target, uint value, string memory signature, bytes memory data, uint eta) internal {
-        require(!timelock.queuedTransactions(keccak256(abi.encode(target, value, signature, data, eta))), "GovernorAlpha::_queueOrRevert: proposal action already queued at eta");
-        timelock.queueTransaction(target, value, signature, data, eta);
-    }
-
     function execute(uint proposalId) public payable {
         require(state(proposalId) == ProposalState.Queued, "GovernorAlpha::execute: proposal can only be executed if it is queued");
         Proposal storage proposal = proposals[proposalId];
         proposal.executed = true;
-        for (uint i = 0; i < proposal.targets.length; i++) {
+        for(uint i = 0; i < proposal.targets.length; i++) {
             timelock.executeTransaction.value(proposal.values[i])(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
         }
         emit ProposalExecuted(proposalId);
@@ -232,42 +217,11 @@ contract GovernorAlpha is SafeMath96 {
         require(msg.sender == guardian || staking.getPriorVotes(proposal.proposer, sub256(block.number, 1), proposal.startTime) < proposalThreshold(), "GovernorAlpha::cancel: proposer above threshold");
 
         proposal.canceled = true;
-        for (uint i = 0; i < proposal.targets.length; i++) {
+        for(uint i = 0; i < proposal.targets.length; i++) {
             timelock.cancelTransaction(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
         }
 
         emit ProposalCanceled(proposalId);
-    }
-
-    function getActions(uint proposalId) public view returns (address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas) {
-        Proposal storage p = proposals[proposalId];
-        return (p.targets, p.values, p.signatures, p.calldatas);
-    }
-
-    function getReceipt(uint proposalId, address voter) public view returns (Receipt memory) {
-        return proposals[proposalId].receipts[voter];
-    }
-
-    function state(uint proposalId) public view returns (ProposalState) {
-        require(proposalCount >= proposalId && proposalId > 0, "GovernorAlpha::state: invalid proposal id");
-        Proposal storage proposal = proposals[proposalId];
-        if (proposal.canceled) {
-            return ProposalState.Canceled;
-        } else if (block.number <= proposal.startBlock) {
-            return ProposalState.Pending;
-        } else if (block.number <= proposal.endBlock) {
-            return ProposalState.Active;
-        } else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < proposal.quorum) {
-            return ProposalState.Defeated;
-        } else if (proposal.eta == 0) {
-            return ProposalState.Succeeded;
-        } else if (proposal.executed) {
-            return ProposalState.Executed;
-        } else if (block.timestamp >= add256(proposal.eta, timelock.GRACE_PERIOD())) {
-            return ProposalState.Expired;
-        } else {
-            return ProposalState.Queued;
-        }
     }
 
     function castVote(uint proposalId, bool support) public {
@@ -290,7 +244,7 @@ contract GovernorAlpha is SafeMath96 {
         require(receipt.hasVoted == false, "GovernorAlpha::_castVote: voter already voted");
         uint96 votes = staking.getPriorVotes(voter, proposal.startBlock, proposal.startTime);
 
-        if (support) {
+        if(support) {
             proposal.forVotes = add96(proposal.forVotes, votes, "GovernorAlpha::_castVote: vote overflow");
         } else {
             proposal.againstVotes = add96(proposal.againstVotes, votes, "GovernorAlpha::_castVote: vote overflow");
@@ -308,6 +262,11 @@ contract GovernorAlpha is SafeMath96 {
         timelock.acceptAdmin();
     }
 
+    function __acceptOwner() public {
+        require(msg.sender == guardian, "GovernorAlpha::__acceptOwner: sender must be gov guardian");
+        timelock.acceptOwner();
+    }
+
     function __abdicate() public {
         require(msg.sender == guardian, "GovernorAlpha::__abdicate: sender must be gov guardian");
         guardian = address(0);
@@ -323,36 +282,94 @@ contract GovernorAlpha is SafeMath96 {
         timelock.executeTransaction(address(timelock), 0, "setPendingAdmin(address)", abi.encode(newPendingAdmin), eta);
     }
 
-    function add256(uint256 a, uint256 b) internal pure returns (uint) {
+    function __queueSetTimelockPendingOwner(address newPendingOwner, uint eta) public {
+        require(msg.sender == guardian, "GovernorAlpha::__queueSetTimelockPendingOwner: sender must be gov guardian");
+        timelock.queueTransaction(address(timelock), 0, "setPendingOwner(address)", abi.encode(newPendingOwner), eta);
+    }
+
+    function __executeSetTimelockPendingOwner(address newPendingOwner, uint eta) public {
+        require(msg.sender == guardian, "GovernorAlpha::__executeSetTimelockPendingOwner: sender must be gov guardian");
+        timelock.executeTransaction(address(timelock), 0, "setPendingOwner(address)", abi.encode(newPendingOwner), eta);
+    }
+
+    function getActions(uint proposalId) public view returns (address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas) {
+        Proposal storage p = proposals[proposalId];
+        return (p.targets, p.values, p.signatures, p.calldatas);
+    }
+
+    function getReceipt(uint proposalId, address voter) public view returns(Receipt memory) {
+        return proposals[proposalId].receipts[voter];
+    }
+
+    function state(uint proposalId) public view returns(ProposalState) {
+        require(proposalCount >= proposalId && proposalId > 0, "GovernorAlpha::state: invalid proposal id");
+        Proposal storage proposal = proposals[proposalId];
+        
+        if (proposal.canceled) {
+            return ProposalState.Canceled;
+        } 
+        
+        if (block.number <= proposal.startBlock) {
+            return ProposalState.Pending;
+        } 
+        
+        if (block.number <= proposal.endBlock) {
+            return ProposalState.Active;
+        } 
+        
+        if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < proposal.quorum) {
+            return ProposalState.Defeated;
+        } 
+        
+        if (proposal.eta == 0) {
+            return ProposalState.Succeeded;
+        } 
+        
+        if (proposal.executed) {
+            return ProposalState.Executed;
+        } 
+
+        if (block.timestamp >= add256(proposal.eta, timelock.GRACE_PERIOD())) {
+            return ProposalState.Expired;
+        } 
+
+        return ProposalState.Queued;
+    }
+
+    /// @notice The number of votes required in order for a voter to become a proposer
+    function proposalThreshold() public view returns(uint96) { 
+        uint96 totalVotingPower = staking.getPriorTotalVotingPower(safe32(block.number-1, "GovernorAlpha::proposalThreshold: block number overflow"), block.timestamp);
+        //1% of current total voting power
+        return totalVotingPower/100; 
+    } 
+
+    
+    /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
+    function quorumVotes() public view returns(uint96) { 
+        uint96 totalVotingPower = staking.getPriorTotalVotingPower(safe32(block.number-1, "GovernorAlpha::quorumVotes: block number overflow"), block.timestamp);
+        //4% of current total voting power
+        return mul96(quorumPercentageVotes, totalVotingPower, "GovernorAlpha::quorumVotes:multiplication overflow")/100; 
+    }
+
+    function _queueOrRevert(address target, uint value, string memory signature, bytes memory data, uint eta) internal {
+        require(!timelock.queuedTransactions(keccak256(abi.encode(target, value, signature, data, eta))), "GovernorAlpha::_queueOrRevert: proposal action already queued at eta");
+        timelock.queueTransaction(target, value, signature, data, eta);
+    }
+
+    function add256(uint256 a, uint256 b) internal pure returns(uint) {
         uint c = a + b;
         require(c >= a, "addition overflow");
         return c;
     }
     
-    function sub256(uint256 a, uint256 b) internal pure returns (uint) {
+    function sub256(uint256 a, uint256 b) internal pure returns(uint) {
         require(b <= a, "subtraction underflow");
         return a - b;
     }
 
-    function getChainId() internal pure returns (uint) {
+    function getChainId() internal pure returns(uint) {
         uint chainId;
         assembly { chainId := chainid() }
         return chainId;
     }
-
-}
-
-interface TimelockInterface {
-    function delay() external view returns (uint);
-    function GRACE_PERIOD() external view returns (uint);
-    function acceptAdmin() external;
-    function queuedTransactions(bytes32 hash) external view returns (bool);
-    function queueTransaction(address target, uint value, string calldata signature, bytes calldata data, uint eta) external returns (bytes32);
-    function cancelTransaction(address target, uint value, string calldata signature, bytes calldata data, uint eta) external;
-    function executeTransaction(address target, uint value, string calldata signature, bytes calldata data, uint eta) external payable returns (bytes memory);
-}
-
-interface StakingInterface {
-    function getPriorVotes(address account, uint blockNumber, uint date) external view returns (uint96);
-    function getPriorTotalVotingPower(uint32 blockNumber, uint time) view external returns(uint96);
 }
