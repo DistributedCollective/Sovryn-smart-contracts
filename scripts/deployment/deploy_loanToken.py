@@ -116,11 +116,9 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
 
         params.append(data)
 
-    #configure the token settings
-    calldata = loanTokenSettings.setupLoanParams.encode_input(params, False)
-    
-    #set the setting contract address at the loan token logic contract (need to load the logic ABI in line 171 to work)
-    tx = loanToken.updateSettings(loanTokenSettings.address, calldata, { "from": acct })
+    #configure the token settings, and set the setting contract address at the loan token logic contract
+    tx = loanToken.setupLoanParams(params, False)
+    #tx = loanToken.updateSettings(loanTokenSettings.address, calldata, { "from": acct })
     #print(tx.info())
 
     print("Setting up torque pool params")
