@@ -139,7 +139,7 @@ contract('RSOV:', accounts => {
                 "RSOV:: staking duration is too short");
         });
     
-        it('fails if staking duration less then 2 weeks', async () => {
+        it('fails if not an owner', async () => {
             await expectRevert(tokenRSOV.setStakingDuration(TWO_WEEKS, {from: account1}),
                 "Ownable: caller is not the owner");
         });
