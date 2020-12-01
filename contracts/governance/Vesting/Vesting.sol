@@ -10,7 +10,7 @@ contract Vesting is Ownable {
     ///@notice the SOV token contract
     IERC20 public SOV; 
     ///@notice the staking contract address
-    Staking staking;
+    Staking public staking;
     ///@notice the owner of the vested tokens
     address public tokenOwner;
     //@notice fee sharing Proxy
@@ -21,8 +21,13 @@ contract Vesting is Ownable {
     uint public duration;
     ///@notice the start date of the vesting
     uint public startDate;
-    ///@notice constant used for computing the vesting dates 
+    ///@notice constant used for computing the vesting dates
     uint constant FOUR_WEEKS = 4 weeks;
+
+    event TokensStaked(address indexed caller, uint amount);
+    event TokensWithdrawn(address indexed caller, address receiver);
+    event DividendsCollected(address indexed caller, address receiver, uint32 maxCheckpoints);
+    event MigratedToNewStakingContract(address indexed caller, address newStakingContract);
 
     /**
      * @dev Throws if called by any account other than the token owner or the contract owner.
@@ -31,7 +36,7 @@ contract Vesting is Ownable {
         require(msg.sender == tokenOwner || isOwner(), "unauthorized");
         _;
     }
-    
+
     /**
      * @notice setup the vesting schedule
      * @param _SOV the SOV token address
@@ -39,7 +44,7 @@ contract Vesting is Ownable {
      * @param _cliff the cliff in seconds
      * @param _duration the total duration in seconds
      * */
-    constructor(address _SOV, address _stakingAddress, address _tokenOwner, uint _cliff, uint _duration, address _feeSharingProxy) public{
+    constructor(address _SOV, address _stakingAddress, address _tokenOwner, uint _cliff, uint _duration, address _feeSharingProxy) public {
         require(_SOV != address(0), "SOV address invalid");
         require(_stakingAddress != address(0), "staking address invalid");
         require(_tokenOwner != address(0), "token owner address invalid");
@@ -53,7 +58,7 @@ contract Vesting is Ownable {
         duration = _duration;
         feeSharingProxy = IFeeSharingProxy(_feeSharingProxy);
     }
-    
+
     /**
      * @notice stakes tokens according to the vesting schedule
      * @param amount the amount of tokens to stake
@@ -68,23 +73,25 @@ contract Vesting is Ownable {
         //allow the staking contract to access them
         SOV.approve(address(staking), amount);
         //stake them until lock dates according to the vesting schedule
-        //note: because staking is only possible in periods of 2 weeks, the total duration might 
+        //note: because staking is only possible in periods of 2 weeks, the total duration might
         //end up a bit shorter than specified depending on the date of staking.
         uint start = block.timestamp + cliff;
         uint end = block.timestamp + duration;
         uint numIntervals = (end - start)/FOUR_WEEKS + 1;
         uint stakedPerInterval = amount/numIntervals;
         //stakedPerInterval might lose some dust on rounding. add it to the first staking date
-        if(numIntervals > 1)
+        if(numIntervals > 1) {
             staking.stake(uint96(amount - stakedPerInterval * (numIntervals-1)), start, address(this), tokenOwner);
+        }
         //stake the rest in 4 week intervals
         for(uint i = start + FOUR_WEEKS; i <= end; i+= FOUR_WEEKS) {
             //stakes for itself, delegates to the owner
             staking.stake(uint96(stakedPerInterval), i, address(this), tokenOwner);
         }
 
+        emit TokensStaked(msg.sender, amount);
     }
-    
+
     /**
      * @notice withdraws unlocked tokens from the staking contract and forwards them to an address specified by the token owner
      * @param receiver the receiving address
@@ -92,26 +99,33 @@ contract Vesting is Ownable {
     function withdrawTokens(address receiver) public onlyOwners {
         uint96 stake;
         //usually we just need to iterate over the possible dates until now
-        uint end = block.timestamp;
+        uint end;
         //in the unlikely case that all tokens have been unlocked early, allow to withdraw all of them.
-        if (staking.allUnlocked())
+        if (staking.allUnlocked()) {
             end = startDate + duration;
+        } else {
+            end = block.timestamp;
+        }
         //withdraw for each unlocked position
         for(uint i = startDate+cliff; i < end; i += FOUR_WEEKS){
             //read amount to withdraw
             stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1);
             //withdraw if > 0
-            if(stake > 0)
+            if(stake > 0) {
                 staking.withdraw(stake, i, receiver);
+            }
         }
+
+        emit TokensWithdrawn(msg.sender, receiver);
     }
 
     /**
      * @dev collect dividends from fee sharing proxy
      */
-    function collectDividends() public onlyOwners{
+    function collectDividends(address receiver, uint32 maxCheckpoints) public onlyOwners{
         //invokes the fee sharing proxy
-        feeSharingProxy.withdrawFees(address(SOV));
+        feeSharingProxy.withdrawToken(address(SOV), maxCheckpoints, receiver);
+        emit DividendsCollected(msg.sender, receiver, maxCheckpoints);
     }
     
     /**
@@ -120,6 +134,6 @@ contract Vesting is Ownable {
     function migrateToNewStakingContract() public onlyOwners {
         staking.migrateToNewStakingContract();
         staking = Staking(staking.newStakingContract());
+        emit MigratedToNewStakingContract(msg.sender, address(staking));
     }
-    
 }

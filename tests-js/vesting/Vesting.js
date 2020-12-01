@@ -25,7 +25,7 @@ contract('Vesting', accounts => {
     const symbol = 'TST';
 
     let root, a1, a2, a3;
-    let token, staking;
+    let token, staking, stakingLogic, feeSharingProxy;
     let kickoffTS;
 
     let cliff = "10";
@@ -51,31 +51,52 @@ contract('Vesting', accounts => {
 
     describe('constructor', () => {
         it('sets the expected values', async () => {
-            await Vesting.new(token.address, staking.address, root, cliff, duration, feeSharingProxy);
+            let vestingInstance = await Vesting.new(token.address, staking.address, root, cliff, duration, feeSharingProxy);
+
+            //Check data
+            let _sov = await vestingInstance.SOV();
+            let _stackingAddress = await vestingInstance.staking();
+            let _tokenOwner = await vestingInstance.tokenOwner();
+            let _cliff = await vestingInstance.cliff();
+            let _duration = await vestingInstance.duration();
+            let _feeSharingProxy = await vestingInstance.feeSharingProxy();
+
+            assert.equal(_sov, token.address);
+            assert.equal(_stackingAddress, staking.address);
+            assert.equal(_tokenOwner, root);
+            assert.equal(_cliff.toString(), cliff);
+            assert.equal(_duration.toString(), duration);
+            assert.equal(_feeSharingProxy, feeSharingProxy);
         });
 
         it('fails if the 0 address is passed as SOV address', async () => {
-            await expectRevert(Vesting.new(constants.ZERO_ADDRESS, staking.address, root, cliff, duration, feeSharingProxy), "SOV address invalid");
+            await expectRevert(Vesting.new(constants.ZERO_ADDRESS, staking.address, root, cliff, duration, feeSharingProxy),
+                "SOV address invalid");
         });
 
         it('fails if the 0 address is passed as token owner address', async () => {
-            await expectRevert(Vesting.new(token.address, staking.address, constants.ZERO_ADDRESS, cliff, duration, feeSharingProxy), "token owner address invalid");
+            await expectRevert(Vesting.new(token.address, staking.address, constants.ZERO_ADDRESS, cliff, duration, feeSharingProxy),
+                "token owner address invalid");
         });
 
         it('fails if the 0 address is passed as staking address', async () => {
-            await expectRevert(Vesting.new(token.address, constants.ZERO_ADDRESS, root, cliff, duration, feeSharingProxy), "staking address invalid");
+            await expectRevert(Vesting.new(token.address, constants.ZERO_ADDRESS, root, cliff, duration, feeSharingProxy),
+                "staking address invalid");
         });
 
         it('fails if the vesting duration is bigger than the max staking duration', async () => {
-            await expectRevert(Vesting.new(token.address, staking.address, root, cliff, MAX_DURATION.add(new BN(1)), feeSharingProxy), "duration may not exceed the max duration");
+            await expectRevert(Vesting.new(token.address, staking.address, root, cliff, MAX_DURATION.add(new BN(1)), feeSharingProxy),
+                "duration may not exceed the max duration");
         });
 
         it('fails if the vesting duration is shorter than the cliff', async () => {
-            await expectRevert(Vesting.new(token.address, staking.address, root, 100, 99, feeSharingProxy), "duration must be bigger than or equal to the cliff");
+            await expectRevert(Vesting.new(token.address, staking.address, root, 100, 99, feeSharingProxy),
+                "duration must be bigger than or equal to the cliff");
         });
 
         it('fails if the 0 address is passed as feeSharingProxy address', async () => {
-            await expectRevert(Vesting.new(token.address, staking.address, root, cliff, duration, constants.ZERO_ADDRESS), "feeSharingProxy address invalid");
+            await expectRevert(Vesting.new(token.address, staking.address, root, cliff, duration, constants.ZERO_ADDRESS),
+                "feeSharingProxy address invalid");
         });
     });
 
@@ -85,16 +106,18 @@ contract('Vesting', accounts => {
             vesting = await Vesting.new(token.address, staking.address, root, new BN(26 * 7 * 24 * 60 * 60), new BN(104 * 7 * 24 * 60 * 60), feeSharingProxy);
 
             await token.approve(vesting.address, ONE_MILLON);
-            await vesting.stakeTokens(ONE_MILLON);
-        });
+            let tx = await vesting.stakeTokens(ONE_MILLON);
 
-        it('should stake the same, but this time the user already possesses a stake', async () => {
-
+            expectEvent(tx, 'TokensStaked', {
+                caller: root,
+                amount: ONE_MILLON
+            });
         });
 
         it('should fail to stake twice', async () => {
             await token.approve(vesting.address, ONE_MILLON);
-            await expectRevert(vesting.stakeTokens(ONE_MILLON), "stakeTokens can be called only once.");
+            await expectRevert(vesting.stakeTokens(ONE_MILLON),
+                "stakeTokens can be called only once.");
         });
     });
 
@@ -118,7 +141,13 @@ contract('Vesting', accounts => {
             await time.increase(new BN(104 * 7 * 24 * 60 * 60));
 
             //withdraw
-            await vesting.withdrawTokens(root);
+            let tx = await vesting.withdrawTokens(root);
+
+            //check event
+            expectEvent(tx, 'TokensWithdrawn', {
+                caller: root,
+                receiver: root
+            });
 
             //verify amount
             let amount = await token.balanceOf(root);
@@ -168,18 +197,20 @@ contract('Vesting', accounts => {
     });
 
     describe('collectDividends', async() => {
-        let vesting;
-        it('', async() => {
-            vesting = await Vesting.new(token.address, staking.address, a1, new BN(26 * 7 * 24 * 60 * 60), new BN(104 * 7 * 24 * 60 * 60), feeSharingProxy);
-        });
+        it("should fail if the caller is neither owner nor token owner", async() => {
+            let vesting = await Vesting.new(token.address, staking.address, a1, new BN(26 * 7 * 24 * 60 * 60), new BN(104 * 7 * 24 * 60 * 60), feeSharingProxy);
 
-        it('should fail if the caller is neither owner nor token owner', async() => {
-            await expectRevert(vesting.collectDividends({from: a2}), "unauthorized");
-            await expectRevert(vesting.collectDividends({from: a3}), "unauthorized");
+            await expectRevert(vesting.collectDividends(root, 10, {from: a2}), "unauthorized");
+            await expectRevert(vesting.collectDividends(root, 10, {from: a3}), "unauthorized");
 
             // @todo activate when collectDividends will work
-            // await vesting.collectDividends({from: root});
-            // await vesting.collectDividends({from: a1});
+            // await vesting.collectDividends(root, 10, {from: root});
+            // let tx = await vesting.collectDividends(root, 10, {from: a1});
+            // expectEvent(tx, 'DividendsCollected', {
+            //                 caller: root,
+            //                 receiver: root,
+            //                 maxCheckpoints: 10
+            //             });
         });
     });
 
@@ -197,7 +228,13 @@ contract('Vesting', accounts => {
             await staking.setNewStakingContract(newStaking.address);
 
             //2. call migrateToNewStakingContract
-            await vesting.migrateToNewStakingContract();
+            let tx = await vesting.migrateToNewStakingContract();
+            expectEvent(tx, 'MigratedToNewStakingContract', {
+                            caller: root,
+                            newStakingContract: newStaking.address
+                        });
+            let _staking = await vesting.staking();
+            assert.equal(_staking, newStaking.address);
         });
 
         it('should fail if there is no new staking contract set', async() => {

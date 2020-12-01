@@ -30,7 +30,7 @@ contract StakingStorage is Ownable{
     IERC20 public SOVToken;
     
     /// @notice A record of each accounts delegate
-    mapping (address => mapping(uint => address)) public delegates;
+    mapping(address => mapping(uint => address)) public delegates;
     
     /// @notice if this flag is set to true, all tokens are unlocked immediately
     bool public allUnlocked = false;
@@ -54,25 +54,24 @@ contract StakingStorage is Ownable{
     
     /// @notice A record of tokens to be unstaked at a given time in total
     /// for total voting power computation. voting weights get adjusted bi-weekly
-    mapping (uint => mapping (uint32 => Checkpoint)) public totalStakingCheckpoints;
+    mapping(uint => mapping (uint32 => Checkpoint)) public totalStakingCheckpoints;
     
     ///@notice The number of total staking checkpoints for each date
-    mapping (uint => uint32) public numTotalStakingCheckpoints;
+    mapping(uint => uint32) public numTotalStakingCheckpoints;
     
     /// @notice A record of tokens to be unstaked at a given time which were delegated to a certain address
     /// for delegatee voting power computation. voting weights get adjusted bi-weekly
-    mapping(address => mapping (uint => mapping (uint32 => Checkpoint))) public delegateStakingCheckpoints;
+    mapping(address => mapping(uint => mapping(uint32 => Checkpoint))) public delegateStakingCheckpoints;
     
     ///@notice The number of total staking checkpoints for each date per delegate
-    mapping (address => mapping (uint => uint32)) public numDelegateStakingCheckpoints;
+    mapping(address => mapping(uint => uint32)) public numDelegateStakingCheckpoints;
     
     /// @notice A record of tokens to be unstaked at a given time which per user address (address -> lockDate -> stake checkpoint)
-    mapping (address => mapping (uint => mapping (uint32 => Checkpoint))) public userStakingCheckpoints;
+    mapping(address => mapping(uint => mapping(uint32 => Checkpoint))) public userStakingCheckpoints;
     
     ///@notice The number of total staking checkpoints for each date per user
-    mapping (address => mapping (uint => uint32)) public numUserStakingCheckpoints;
+    mapping(address => mapping(uint => uint32)) public numUserStakingCheckpoints;
 
     /// @notice A record of states for signing / validating signatures
-    mapping (address => uint) public nonces;
-    
+    mapping(address => uint) public nonces;
 }

@@ -80,7 +80,6 @@ contract Staking is WeightedStaking{
         _decreaseDelegateStake(delegateFrom, previousLock, amount);
         _increaseDelegateStake(delegateTo, until, amount);
         
-        
         emit ExtendedStakingDuration(msg.sender, previousLock, until);
     }
     
