@@ -17,6 +17,8 @@ const TestToken = artifacts.require('TestToken');
 const Vesting = artifacts.require('Vesting');
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
+const WEEK = new BN(7 * 24 * 60 * 60);
+
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const ONE_MILLON = "1000000000000000000000000";
 
@@ -103,7 +105,7 @@ contract('Vesting', accounts => {
     describe('stakeTokens', () => {
         let vesting;
         it('should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff', async () => {
-            vesting = await Vesting.new(token.address, staking.address, root, new BN(26 * 7 * 24 * 60 * 60), new BN(104 * 7 * 24 * 60 * 60), feeSharingProxy);
+            vesting = await Vesting.new(token.address, staking.address, root, 26 * WEEK , 104 * WEEK, feeSharingProxy);
 
             await token.approve(vesting.address, ONE_MILLON);
             let tx = await vesting.stakeTokens(ONE_MILLON);
@@ -114,6 +116,55 @@ contract('Vesting', accounts => {
             });
         });
 
+        it('should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff', async () => {
+
+            let block = await web3.eth.getBlock("latest")
+            let timestamp = block.timestamp;
+
+            let kickoffTS = await staking.kickoffTS()
+
+            let start = timestamp + 26 * WEEK;
+            let end = timestamp + 104 * WEEK;
+
+            let numIntervals = Math.floor((end - start)/(4 * WEEK)) + 1;
+            let stakedPerInterval = ONE_MILLON / numIntervals;
+
+            //positive case
+            for (let i = start; i <= end; i+= 4 * WEEK) {
+                let periodFromKickoff = Math.floor((i - kickoffTS.toNumber()) / (2 * WEEK));
+                let startBuf = periodFromKickoff * 2 * WEEK + kickoffTS.toNumber();
+                let userStakingCheckpoints = await staking.userStakingCheckpoints(vesting.address, startBuf, 0);
+
+                assert.equal(userStakingCheckpoints.fromBlock.toNumber(), block.number);
+                assert.equal(userStakingCheckpoints.stake.toString(), stakedPerInterval);
+
+                let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(vesting.address, startBuf);
+                assert.equal(numUserStakingCheckpoints.toString(), "1");
+            }
+
+            //negative cases
+
+            //start-10 to avoid coming to active checkpoint
+            let periodFromKickoff = Math.floor((start - 10 - kickoffTS.toNumber()) / (2 * WEEK));
+            let startBuf = periodFromKickoff * 2 * WEEK + kickoffTS.toNumber();
+            let userStakingCheckpoints = await staking.userStakingCheckpoints(vesting.address, startBuf, 0);
+            assert.equal(userStakingCheckpoints.fromBlock.toNumber(), 0);
+            assert.equal(userStakingCheckpoints.stake.toString(), 0);
+
+            let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(vesting.address, startBuf);
+            assert.equal(numUserStakingCheckpoints.toString(), "0");
+
+            periodFromKickoff = Math.floor((end + 1 - kickoffTS.toNumber()) / (2 * WEEK));
+            startBuf = periodFromKickoff * 2 * WEEK + kickoffTS.toNumber();
+            userStakingCheckpoints = await staking.userStakingCheckpoints(vesting.address, startBuf, 0);
+
+            assert.equal(userStakingCheckpoints.fromBlock.toNumber(), 0);
+            assert.equal(userStakingCheckpoints.stake.toString(), 0);
+
+            numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(vesting.address, startBuf);
+            assert.equal(numUserStakingCheckpoints.toString(), "0");
+        });
+
         it('should fail to stake twice', async () => {
             await token.approve(vesting.address, ONE_MILLON);
             await expectRevert(vesting.stakeTokens(ONE_MILLON),
@@ -121,7 +172,7 @@ contract('Vesting', accounts => {
         });
     });
 
-    describe('withdrawTokens',() => {
+    describe('withdrawTokens', () => {
         let vesting;
         it('should withdraw unlocked tokens', async () => {
 
@@ -130,7 +181,7 @@ contract('Vesting', accounts => {
             let toStake = ONE_MILLON;
 
             //Stake
-            vesting = await Vesting.new(token.address, staking.address, root, new BN(26 * 7 * 24 * 60 * 60), new BN(104 * 7 * 24 * 60 * 60), feeSharingProxy);
+            vesting = await Vesting.new(token.address, staking.address, root, 26 * WEEK , 104 * WEEK, feeSharingProxy);
 
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
@@ -138,7 +189,7 @@ contract('Vesting', accounts => {
             let amountAfterStake = await token.balanceOf(root);
 
             //time travel
-            await time.increase(new BN(104 * 7 * 24 * 60 * 60));
+            await time.increase(104 * WEEK);
 
             //withdraw
             let tx = await vesting.withdrawTokens(root);
@@ -168,7 +219,7 @@ contract('Vesting', accounts => {
         it('should do nothing if withdrawing before reaching the cliff', async() => {
             let toStake = ONE_MILLON;
 
-            vesting = await Vesting.new(token.address, staking.address, a1, new BN(26 * 7 * 24 * 60 * 60), new BN(104 * 7 * 24 * 60 * 60), feeSharingProxy);
+            vesting = await Vesting.new(token.address, staking.address, a1, 26 * WEEK , 104 * WEEK, feeSharingProxy);
 
             let previousAmount = await token.balanceOf(root);
 
@@ -178,7 +229,7 @@ contract('Vesting', accounts => {
             let amountAfterStake = await token.balanceOf(root);
 
             //time travel
-            await time.increase(new BN(25 * 7 * 24 * 60 * 60));
+            await time.increase(25 * WEEK);
 
             await vesting.withdrawTokens(root, {from: a1});
             let amount = await token.balanceOf(root);
@@ -198,7 +249,7 @@ contract('Vesting', accounts => {
 
     describe('collectDividends', async() => {
         it("should fail if the caller is neither owner nor token owner", async() => {
-            let vesting = await Vesting.new(token.address, staking.address, a1, new BN(26 * 7 * 24 * 60 * 60), new BN(104 * 7 * 24 * 60 * 60), feeSharingProxy);
+            let vesting = await Vesting.new(token.address, staking.address, a1, 26 * WEEK , 104 * WEEK, feeSharingProxy);
 
             await expectRevert(vesting.collectDividends(root, 10, {from: a2}), "unauthorized");
             await expectRevert(vesting.collectDividends(root, 10, {from: a3}), "unauthorized");
@@ -218,7 +269,7 @@ contract('Vesting', accounts => {
         let vesting;
         it('should set the new staking contract', async() => {
 
-            vesting = await Vesting.new(token.address, staking.address, a1, new BN(26 * 7 * 24 * 60 * 60), new BN(104 * 7 * 24 * 60 * 60), feeSharingProxy);
+            vesting = await Vesting.new(token.address, staking.address, a1, 26 * WEEK , 104 * WEEK, feeSharingProxy);
             //1. set new staking contract address on staking contract
 
             let newStaking = await StakingProxy.new(token.address);
@@ -242,7 +293,7 @@ contract('Vesting', accounts => {
             await newStaking.setImplementation(stakingLogic.address);
             newStaking = await StakingLogic.at(newStaking.address);
 
-            vesting = await Vesting.new(token.address, newStaking.address, a1, new BN(26 * 7 * 24 * 60 * 60), new BN(104 * 7 * 24 * 60 * 60), feeSharingProxy);
+            vesting = await Vesting.new(token.address, newStaking.address, a1, 26 * WEEK , 104 * WEEK, feeSharingProxy);
             await expectRevert(vesting.migrateToNewStakingContract(), "there is no new staking contract set");
         });
 
@@ -251,7 +302,7 @@ contract('Vesting', accounts => {
             await newStaking.setImplementation(stakingLogic.address);
             newStaking = await StakingLogic.at(newStaking.address);
 
-            vesting = await Vesting.new(token.address, newStaking.address, a1, new BN(26 * 7 * 24 * 60 * 60), new BN(104 * 7 * 24 * 60 * 60), feeSharingProxy);
+            vesting = await Vesting.new(token.address, newStaking.address, a1, 26 * WEEK , 104 * WEEK, feeSharingProxy);
             await newStaking.setNewStakingContract(newStaking.address);
 
             await expectRevert(vesting.migrateToNewStakingContract({from: a2}), "unauthorized");

@@ -50,7 +50,7 @@ contract Checkpoints is StakingStorage, SafeMath96{
         uint96 newStake = sub96(staked, value, "Staking::_decreaseUserStake: stakedUntil underflow");
         _writeUserCheckpoint(account, lockedTS, nCheckpoints, newStake);
     }
-    
+
     function _writeUserCheckpoint(address account, uint lockedTS, uint32 nCheckpoints, uint96 newStake) internal {
       uint32 blockNumber = safe32(block.number, "Staking::_writeStakingCheckpoint: block number exceeds 32 bits");
         if (nCheckpoints > 0 && userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].fromBlock == blockNumber) {
