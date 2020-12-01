@@ -93,12 +93,10 @@ def loan_pool_setup(accounts, RBTC, WRBTC, loanTokenSettings, loanToken, loanTok
     params.append(setup2)
     
     # setting up the margin pool
-    calldata = loanTokenSettings.setupLoanParams.encode_input(params, False)
-    tx = loanToken.updateSettings(loanTokenSettings.address, calldata)
+    tx = loanToken.setupLoanParams(params, False)
     assert('LoanParamsSetup' in tx.events)
     assert('LoanParamsIdSetup' in tx.events)
-    calldata = loanTokenSettings.setupLoanParams.encode_input(params, True)
-    tx = loanToken.updateSettings(loanTokenSettings.address, calldata)
+    tx = loanToken.setupLoanParams(params, True)
     assert('LoanParamsSetup' in tx.events)
     assert('LoanParamsIdSetup' in tx.events)
     
@@ -107,12 +105,10 @@ def loan_pool_setup(accounts, RBTC, WRBTC, loanTokenSettings, loanToken, loanTok
     setup3 = setup1.copy()
     setup3[4] = SUSD.address
     params.append(setup3)
-    calldata = loanTokenSettings.setupLoanParams.encode_input(params, False)
-    tx = loanTokenWRBTC.updateSettings(loanTokenSettings.address, calldata)
+    tx = loanTokenWRBTC.setupLoanParams(params, False)
     assert('LoanParamsSetup' in tx.events)
     assert('LoanParamsIdSetup' in tx.events)
-    calldata = loanTokenSettings.setupLoanParams.encode_input(params, True)
-    tx = loanTokenWRBTC.updateSettings(loanTokenSettings.address, calldata)
+    tx = loanTokenWRBTC.setupLoanParams(params, True)
     assert('LoanParamsSetup' in tx.events)
     assert('LoanParamsIdSetup' in tx.events)
     
@@ -128,9 +124,6 @@ def loan_pool_setup(accounts, RBTC, WRBTC, loanTokenSettings, loanToken, loanTok
 def set_demand_curve(loanToken, LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, accounts, loanTokenSettings):
     def internal_set_demand_curve(baseRate=1e18, rateMultiplier=20.25e18, targetLevel=80*10**18, kinkLevel=90*10**18,
                                   maxScaleRate=100*10**18, loan_token_address=loanToken.address):
-        local_loan_token = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
-        loan_token_logic = accounts[0].deploy(LoanTokenLogicStandard)
-        local_loan_token.setTarget(loan_token_logic.address)
         localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
  
         localLoanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate)

@@ -19,9 +19,6 @@ def test_Demand_Curve_Setting(loanToken, loanTokenSettings, LoanTokenSettingsLow
     kinkLevel=90*10**18
     maxScaleRate=100*10**18
 
-    loanTokenLogic = accounts[0].deploy(LoanTokenLogicStandard)
-    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
-    localLoanToken.setTarget(loanTokenLogic.address)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
     localLoanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
 
@@ -44,8 +41,6 @@ def test_Demand_Curve_Setting_should_fail_if_rateMultiplier_plus_baseRate_is_gra
     targetLevel=80*10**18
     kinkLevel=90*10**18
     maxScaleRate=100*10**18
-    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
-    localLoanToken.setTarget(loanTokenLogic.address)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
     with reverts():
         localLoanToken.setDemandCurve(incorrect_baseRate, incorrect_rateMultiplier, baseRate, rateMultiplier,
@@ -73,9 +68,6 @@ def test_toggle_function_pause(accounts, loanToken, LoanToken, LoanTokenSettings
     functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,bytes)"
 
     # pause the given function and make sure the function can't be called anymore
-    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
-    loanTokenLogic = accounts[0].deploy(LoanTokenLogicStandard)
-    localLoanToken.setTarget(loanTokenLogic.address)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
     localLoanToken.toggleFunctionPause(functionSignature, True)
 
@@ -86,8 +78,6 @@ def test_toggle_function_pause(accounts, loanToken, LoanToken, LoanTokenSettings
     assert(localLoanToken.checkPause(functionSignature))
     
     # reactivate the given function and make sure the function can be called again
-    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
-    localLoanToken.setTarget(loanTokenLogic.address)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
     localLoanToken.toggleFunctionPause(functionSignature, False)
     open_margin_trade_position()
@@ -100,8 +90,6 @@ call toggleFunction with a non-admin address and make sure it fails
 '''   
 def test_toggle_function_pause_with_non_admin_should_fail(loanToken, loanTokenLogic, LoanToken, LoanTokenLogicStandard, accounts):
     
-    localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
-    localLoanToken.setTarget(loanTokenLogic.address)
     localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
     with reverts("unauthorized"):
         localLoanToken.toggleFunctionPause("mint(address,uint256)", True, {'from':accounts[1]})

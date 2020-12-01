@@ -141,13 +141,9 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
 
         params.append(data)
 
-    #configure the token settings
-    calldata = loanTokenSettings.setupLoanParams.encode_input(params, True)
-    
-    #print(calldata)
-
-    #set the setting contract address at the loan token logic contract (need to load the logic ABI in line 171 to work)
-    tx = loanToken.updateSettings(loanTokenSettings.address, calldata, { "from": acct })
+    #configure the token settings, and set the setting contract address at the loan token logic contract
+    tx = loanToken.setupLoanParams(params, True)
+    #tx = loanToken.updateSettings(loanTokenSettings.address, calldata, { "from": acct })
     #print(tx.info())
 
     print("setting up interest rates")
@@ -165,8 +161,6 @@ def setupLoanTokenRates(acct, loanTokenAddress, settingsAddress, logicAddress):
     targetLevel=0
     kinkLevel=90*10**18
     maxScaleRate=100*10**18
-    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
-    localLoanToken.setTarget(logicAddress)
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     localLoanToken.setDemandCurve(baseRate,rateMultiplier,baseRate,rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
     borrowInterestRate = localLoanToken.borrowInterestRate()

@@ -7,9 +7,6 @@ returns a function to set the transaction limits
 @pytest.fixture(scope="module") 
 def set_transaction_limit(accounts, loanToken, loanTokenSettings, LoanToken, LoanTokenSettingsLowerAdmin, LoanTokenLogicStandard):
     def internal_set_transaction_limit(sender, addresses, limits):
-        localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanToken.abi, owner=accounts[0])
-        loanTokenLogic = accounts[0].deploy(LoanTokenLogicStandard)
-        localLoanToken.setTarget(loanTokenLogic.address)
         localLoanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
         tx = localLoanToken.setTransactionLimits(addresses,limits, {'from':sender})
         return tx
