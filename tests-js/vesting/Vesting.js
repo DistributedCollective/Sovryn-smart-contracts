@@ -165,6 +165,44 @@ contract('Vesting', accounts => {
             assert.equal(numUserStakingCheckpoints.toString(), "0");
         });
 
+        it('should stake 1000 tokens with a duration of 34 weeks and a 26 week cliff (dust on rounding)', async () => {
+            let amount = 1000;
+            let cliff = 26 * WEEK;
+            let duration = 34 * WEEK;
+            vesting = await Vesting.new(token.address, staking.address, root, cliff, duration, feeSharingProxy);
+
+            await token.approve(vesting.address, amount);
+            await vesting.stakeTokens(amount);
+
+            let block = await web3.eth.getBlock("latest")
+            let timestamp = block.timestamp;
+
+            let start = timestamp + cliff;
+            let end = timestamp + duration;
+
+            let numIntervals = Math.floor((end - start)/(4 * WEEK)) + 1;
+            let stakedPerInterval = Math.floor(amount / numIntervals);
+
+            let stakeForFirstInterval = amount - stakedPerInterval * (numIntervals-1);
+
+            //positive case
+            for (let i = start; i <= end; i+= 4 * WEEK) {
+                let periodFromKickoff = Math.floor((i - kickoffTS.toNumber()) / (2 * WEEK));
+                let startBuf = periodFromKickoff * 2 * WEEK + kickoffTS.toNumber();
+                let userStakingCheckpoints = await staking.userStakingCheckpoints(vesting.address, startBuf, 0);
+
+                assert.equal(userStakingCheckpoints.fromBlock.toNumber(), block.number);
+                if (i === start) {
+                    assert.equal(userStakingCheckpoints.stake.toString(), stakeForFirstInterval);
+                } else {
+                    assert.equal(userStakingCheckpoints.stake.toString(), stakedPerInterval);
+                }
+
+                let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(vesting.address, startBuf);
+                assert.equal(numUserStakingCheckpoints.toString(), "1");
+            }
+        });
+
         it('should fail to stake twice', async () => {
             await token.approve(vesting.address, ONE_MILLON);
             await expectRevert(vesting.stakeTokens(ONE_MILLON),
