@@ -139,7 +139,7 @@ contract('Staking', accounts => {
             await staking.stake("100", inThreeYears, a1, a1, {from: guy});
             await expect((await staking.numUserStakingCheckpoints.call(a1, inThreeYears)).toString()).to.be.equal('1');
             
-            await staking.increaseStake("50", a1, inThreeYears, {from: guy});
+            await staking.stake("50", inThreeYears, a1, a1, {from: guy});
             await expect((await staking.numUserStakingCheckpoints.call(a1, inThreeYears)).toString()).to.be.equal('2');
         });
         
@@ -179,7 +179,7 @@ contract('Staking', accounts => {
             await expect(checkpoint2.stake.toString()).to.be.equal("0");
             
             await token.approve(staking.address, "20", {from: a2});
-            let t5 = await staking.increaseStake("20", a3, inThreeYears, {from: a2});
+            let t5 = await staking.stake("20", inThreeYears, a3, a3, {from: a2});
             
             await expect((await staking.numUserStakingCheckpoints.call(a3, inThreeYears)).toString()).to.be.equal('2');
             
@@ -239,7 +239,7 @@ contract('Staking', accounts => {
             await mineBlock();
             await token.transfer(a3, 101);
             await token.approve(staking.address, "101", {from: a3});
-            const t3 = await staking.increaseStake("101", a1, inThreeYears, {from: a3});
+            const t3 = await staking.stake("101", inThreeYears, a1, a1, {from: a3});
             await mineBlock();
             await mineBlock();
             

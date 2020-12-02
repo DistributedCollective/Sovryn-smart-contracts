@@ -60,13 +60,6 @@ contract('Staking', accounts => {
                 "amount of tokens to stake needs to be bigger than 0");
         });
 
-        it("Use 'increaseStake' to increase an existing staked position", async () => {
-            await staking.stake(100, inOneWeek, root, root);
-
-            await expectRevert(staking.stake(100, inOneWeek, root, root),
-                "Staking:stake: use 'increaseStake' to increase an existing staked position");
-        });
-
         it("Amount should be approved", async () => {
             await expectRevert(staking.stake(100, inOneWeek, root, root, {from: account1}),
                 "invalid transfer");
@@ -274,17 +267,18 @@ contract('Staking', accounts => {
             expect(afterBalance.sub(beforeBalance).toNumber()).to.be.equal(amount / 2);
         
             //increase stake
-            let tx = await staking.increaseStake(amount * 2.5, root, lockedTS);
+            lockedTS = await getTimeFromKickoff(duration * 2);
+            let tx = await staking.stake(amount * 2.5, lockedTS, root, root);
     
             stackingbBalance = await token.balanceOf.call(staking.address);
             expect(stackingbBalance.toNumber()).to.be.equal(amount * 3);
     
             //_writeUserCheckpoint
             let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
-            expect(numUserCheckpoints.toNumber()).to.be.equal(3);
-            let checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 2);
+            expect(numUserCheckpoints.toNumber()).to.be.equal(1);
+            let checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
             expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(amount * 3);
+            expect(checkpoint.stake.toNumber()).to.be.equal(amount * 2.5);
     
         });
     
@@ -384,8 +378,8 @@ contract('Staking', accounts => {
             let lockTS = await getTimeFromKickoff(duration);
             await staking.stake(amount, lockTS, root, root);
 
-            await expectRevert(staking.increaseStake("0", root, lockTS),
-                "Staking::increaseStake: amount of tokens to stake needs to be bigger than 0");
+            await expectRevert(staking.stake("0", lockTS, root, root),
+                "Staking::stake: amount of tokens to stake needs to be bigger than 0");
         });
 
         it("Amount of tokens to stake needs to be bigger than 0", async () => {
@@ -395,7 +389,7 @@ contract('Staking', accounts => {
             await staking.stake(amount, lockTS, root, root);
 
             await token.approve(staking.address, 0);
-            await expectRevert(staking.increaseStake(amount, root, lockTS),
+            await expectRevert(staking.stake(amount, lockTS, root, root),
                 "invalid transfer");
         });
 
@@ -406,7 +400,7 @@ contract('Staking', accounts => {
             await staking.stake(amount, lockTS, root, root);
 
             let maxValue = new BN(2).pow(new BN(96)).sub(new BN(1));
-            await expectRevert(staking.increaseStake(maxValue.sub(new BN(100)), root, lockTS),
+            await expectRevert(staking.stake(maxValue.sub(new BN(100)), lockTS, root, root),
                 "Staking::increaseStake: balance overflow");
         });
 
@@ -420,7 +414,7 @@ contract('Staking', accounts => {
             expect(stackingbBalance.toString()).to.be.equal(amount);
             let beforeBalance = await token.balanceOf.call(root);
 
-            let tx2 = await staking.increaseStake(amount * 2, root, lockedTS);
+            let tx2 = await staking.stake(amount * 2, lockedTS, root, root);
 
             stackingbBalance = await token.balanceOf.call(staking.address);
             expect(stackingbBalance.toNumber()).to.be.equal(amount * 3);

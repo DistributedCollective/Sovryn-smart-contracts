@@ -22,29 +22,35 @@ contract Staking is WeightedStaking{
         //stake for the msg.sender if not specified otherwise
         if(stakeFor == address(0))
             stakeFor = msg.sender;
-        require(currentBalance(stakeFor, until) == 0, "Staking:stake: use 'increaseStake' to increase an existing staked position");
-        
-        //do not stake longer than the max duration
-        if (until > block.timestamp + MAX_DURATION)
-            until = block.timestamp + MAX_DURATION;
-            
-        //retrieve the SOV tokens
-        bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
-        require(success);
-        
-        //lock the tokens and update the balance by updating the user checkpoint
-        _increaseUserStake(stakeFor, until, amount);
-        
-        //increase staked token count until the new locking date
-        _increaseDailyStake(until, amount);
-        
-        //delegate to self in case no address provided
+        //delegate for stakeFor  if not specified otherwise
         if(delegatee == address(0))
-            _delegate(stakeFor, stakeFor, until);
-        else
+            delegatee = stakeFor;
+
+        if (currentBalance(stakeFor, until) > 0) {
+            //change delegate if new one is specified
             _delegate(stakeFor, delegatee, until);
-        
-        emit TokensStaked(stakeFor, amount, until, amount);
+            //increase stake, new delegate will be used
+            _increaseStake(amount, stakeFor, until);
+        } else {
+            //do not stake longer than the max duration
+            if (until > block.timestamp + MAX_DURATION)
+                until = block.timestamp + MAX_DURATION;
+
+            //retrieve the SOV tokens
+            bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
+            require(success);
+
+            //lock the tokens and update the balance by updating the user checkpoint
+            _increaseUserStake(stakeFor, until, amount);
+
+            //increase staked token count until the new locking date
+            _increaseDailyStake(until, amount);
+
+            //delegate to self in case no address provided
+            _delegate(stakeFor, delegatee, until);
+
+            emit TokensStaked(stakeFor, amount, until, amount);
+        }
     }
     
     
@@ -91,7 +97,11 @@ contract Staking is WeightedStaking{
      * @param stakeFor the address for which we want to increase the stake. staking for the sender if 0x0
      * @param until the lock date until which the funds are staked
      * */
-    function increaseStake(uint96 amount, address stakeFor, uint until) public{
+    function increaseStake(uint96 amount, address stakeFor, uint until) public {
+        _increaseStake(amount, stakeFor, until);
+    }
+
+    function _increaseStake(uint96 amount, address stakeFor, uint until) internal {
         require(amount > 0, "Staking::increaseStake: amount of tokens to stake needs to be bigger than 0");
         until = timestampToLockDate(until);
         uint96 balance = currentBalance(stakeFor, until);
@@ -218,12 +228,14 @@ contract Staking is WeightedStaking{
 
     function _delegate(address delegator, address delegatee, uint lockedTS) internal {
         address currentDelegate = delegates[delegator][lockedTS];
-        uint96 delegatorBalance = currentBalance(delegator, lockedTS);
-        delegates[delegator][lockedTS] = delegatee;
+        if (currentDelegate != delegatee) {
+            uint96 delegatorBalance = currentBalance(delegator, lockedTS);
+            delegates[delegator][lockedTS] = delegatee;
 
-        emit DelegateChanged(delegator, lockedTS, currentDelegate, delegatee);
+            emit DelegateChanged(delegator, lockedTS, currentDelegate, delegatee);
 
-        _moveDelegates(currentDelegate, delegatee, delegatorBalance, lockedTS);
+            _moveDelegates(currentDelegate, delegatee, delegatorBalance, lockedTS);
+        }
     }
     
 

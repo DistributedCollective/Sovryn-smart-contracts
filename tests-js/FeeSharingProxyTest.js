@@ -568,7 +568,7 @@ contract('FeeSharingProxy:', accounts => {
             let kickoffTS = await staking.kickoffTS.call();
             let stakingDate = kickoffTS.add(new BN(MAX_DURATION));
             await SOVToken.approve(staking.address, 100);
-            let result = await staking.increaseStake("100", root, stakingDate);
+            let result = await staking.stake("100", stakingDate, root, root);
             await mineBlock();
         
             let tx = await staking.calculatePriorWeightedStake(root, result.receipt.blockNumber, stakingDate);
