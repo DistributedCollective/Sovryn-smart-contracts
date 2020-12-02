@@ -98,6 +98,12 @@ contract ISovryn is
     function setFeesController(
         address newController)
         external;
+    
+    function withdrawFees(
+        address token,
+        address receiver)
+        external
+        returns (uint);
 
     function withdrawLendingFees(
         address token,
