@@ -56,7 +56,7 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
      * @notice holds SOV tokens and mints the respective amount of RSOV tokens
      * @param _amount the amount of tokens to be mint
      */
-    function mint(uint _amount) public {
+    function mint(uint96 _amount) public {
         require(_amount > 0, "RSOV::mint: amount invalid");
         
         //holds SOV tokens
@@ -73,17 +73,16 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
      * @notice burns RSOV tokens and stakes the respective amount SOV tokens in the user's behalf
      * @param _amount the amount of tokens to be burnt
      */
-    function burn(uint _amount) public {
+    function burn(uint96 _amount) public {
         require(_amount > 0, "RSOV:: burn: amount invalid");
-        uint96 amount96 = safe96(_amount, "RSOV::burn: amount exceeds 96 bits");
-        
+
         //burns RSOV tokens
         _burn(msg.sender, _amount);
         
         //stakes SOV tokens in the user's behalf
         SOV.approve(address(staking), _amount);
         uint until = block.timestamp + stakingDuration;
-        staking.stake(amount96, until, msg.sender, msg.sender);
+        staking.stake(_amount, until, msg.sender, msg.sender);
     
         emit Burn(msg.sender, _amount);
     }
