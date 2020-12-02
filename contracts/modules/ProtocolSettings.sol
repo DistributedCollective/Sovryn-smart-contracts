@@ -30,6 +30,11 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         _;
     }
 
+    function setAdmin(address _admin) public onlyOwner {
+        admin = _admin;
+    }
+
+    //@todo add check for double init, idk but init usually can be called only once.
     function initialize(
         address target)
         external

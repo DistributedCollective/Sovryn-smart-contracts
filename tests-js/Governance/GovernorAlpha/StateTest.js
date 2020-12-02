@@ -58,7 +58,7 @@ contract('GovernorAlpha#state/1', accounts => {
         timelock = await Timelock.new(root, delay);
         delay = etherUnsigned(10)
         await timelock.setDelayWithoutChecking(delay);
-        gov = await GovernorAlpha.new(timelock.address, staking.address, root);
+        gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4);
         await timelock.harnessSetAdmin(gov.address);
         await token.approve(staking.address, QUORUM_VOTES);
         await staking.stake(QUORUM_VOTES, MAX_DURATION, root, root);
