@@ -24,6 +24,12 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         revert("fallback not allowed");
     }
 
+    //@todo check for restrictions in this contract
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "unauthorized");
+        _;
+    }
+
     function initialize(
         address target)
         external

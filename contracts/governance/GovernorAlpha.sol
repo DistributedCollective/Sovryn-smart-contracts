@@ -262,11 +262,6 @@ contract GovernorAlpha is SafeMath96 {
         timelock.acceptAdmin();
     }
 
-    function __acceptOwner() public {
-        require(msg.sender == guardian, "GovernorAlpha::__acceptOwner: sender must be gov guardian");
-        timelock.acceptOwner();
-    }
-
     function __abdicate() public {
         require(msg.sender == guardian, "GovernorAlpha::__abdicate: sender must be gov guardian");
         guardian = address(0);
@@ -280,16 +275,6 @@ contract GovernorAlpha is SafeMath96 {
     function __executeSetTimelockPendingAdmin(address newPendingAdmin, uint eta) public {
         require(msg.sender == guardian, "GovernorAlpha::__executeSetTimelockPendingAdmin: sender must be gov guardian");
         timelock.executeTransaction(address(timelock), 0, "setPendingAdmin(address)", abi.encode(newPendingAdmin), eta);
-    }
-
-    function __queueSetTimelockPendingOwner(address newPendingOwner, uint eta) public {
-        require(msg.sender == guardian, "GovernorAlpha::__queueSetTimelockPendingOwner: sender must be gov guardian");
-        timelock.queueTransaction(address(timelock), 0, "setPendingOwner(address)", abi.encode(newPendingOwner), eta);
-    }
-
-    function __executeSetTimelockPendingOwner(address newPendingOwner, uint eta) public {
-        require(msg.sender == guardian, "GovernorAlpha::__executeSetTimelockPendingOwner: sender must be gov guardian");
-        timelock.executeTransaction(address(timelock), 0, "setPendingOwner(address)", abi.encode(newPendingOwner), eta);
     }
 
     function getActions(uint proposalId) public view returns (address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas) {

@@ -31,23 +31,30 @@ def main():
     stakingLogic = acct.deploy(Staking)
     staking = acct.deploy(StakingProxy, SOV)
     staking.setImplementation(stakingLogic.address)
-    #params: admin, delay
-    timelock = acct.deploy(Timelock, acct, delay)
-    #params: timelock. staking, guardian
+    #params: owner, delay
+    timelockOwner = acct.deploy(Timelock, acct, delay)
+    #params: timelockOwner. staking, guardian
 
-    governorAdmin = acct.deploy(GovernorAlpha, timelock.address, staking.address, guardian, governorAdminQuorumVotes)
-    governorOwner = acct.deploy(GovernorAlpha, timelock.address, staking.address, guardian, governorOwnerQuorumVotes)
+    governorOwner = acct.deploy(GovernorAlpha, timelockOwner.address, staking.address, guardian, governorOwnerQuorumVotes)
 
-    dataString = timelock.setPendingAdmin.encode_input(governorAdmin.address)
+    dataString = timelockOwner.setPendingAdmin.encode_input(governorAdmin.address)
     #2 days and 5 minutes from now
     eta = round(time.time()) + 3*60*60 + 300
     print("schedule ownership(admin) transfer for ", eta)
-    timelock.queueTransaction(timelock.address, 0, "setPendingAdmin(address)", dataString[10:], eta)
+    timelockOwner.queueTransaction(timelockOwner.address, 0, "setPendingAdmin(address)", dataString[10:], eta)
 
 
-    dataString = timelock.setPendingOwner.encode_input(governorOwner.address)
-    print("schedule ownership(owner) transfer for ", eta)
-    timelock.queueTransaction(timelock.address, 0, "setPendingOwner(address)", dataString[10:], eta)
-    
-    #todo: set sovryn owner to timelock
+    #params: admin, delay
+    timelockAdmin = acct.deploy(Timelock, acct, delay)
+    #params: timelockAdmin. staking, guardian
+
+    governorAdmin = acct.deploy(GovernorAlpha, timelockAdmin.address, staking.address, guardian, governorAdminQuorumVotes)
+
+    dataString = timelockAdmin.setPendingAdmin.encode_input(governorAdmin.address)
+    #2 days and 5 minutes from now
+    eta = round(time.time()) + 3*60*60 + 300
+    print("schedule ownership(admin) transfer for ", eta)
+    timelockAdmin.queueTransaction(timelockAdmin.address, 0, "setPendingAdmin(address)", dataString[10:], eta)
+
+
     

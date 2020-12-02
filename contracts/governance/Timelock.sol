@@ -6,7 +6,6 @@ interface ITimelock {
     function delay() external view returns (uint);
     function GRACE_PERIOD() external view returns (uint);
     function acceptAdmin() external;
-    function acceptOwner() external;
     function queuedTransactions(bytes32 hash) external view returns (bool);
     function queueTransaction(address target, uint value, string calldata signature, bytes calldata data, uint eta) external returns (bytes32);
     function cancelTransaction(address target, uint value, string calldata signature, bytes calldata data, uint eta) external;
@@ -29,17 +28,12 @@ contract Timelock is ITimelock {
     address public admin;
     address public pendingAdmin;
 
-    address public owner;
-    address public pendingOwner;
-
     uint public delay;
 
     mapping (bytes32 => bool) public queuedTransactions;
 
     event NewAdmin(address indexed newAdmin);
     event NewPendingAdmin(address indexed newPendingAdmin);
-    event NewOwner(address indexed newOwner);
-    event NewPendingOwner(address indexed newPendingOwner);
     event NewDelay(uint indexed newDelay);
     event CancelTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature,  bytes data, uint eta);
     event ExecuteTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature,  bytes data, uint eta);
@@ -72,26 +66,11 @@ contract Timelock is ITimelock {
         emit NewAdmin(admin);
     }
 
-    function acceptOwner() public {
-        require(msg.sender == pendingOwner, "Timelock::acceptOwner: Call must come from pendingOwner.");
-        owner = msg.sender;
-        pendingOwner = address(0);
-
-        emit NewOwner(owner);
-    }
-
     function setPendingAdmin(address pendingAdmin_) public {
         require(msg.sender == address(this), "Timelock::setPendingAdmin: Call must come from Timelock.");
         pendingAdmin = pendingAdmin_;
 
         emit NewPendingAdmin(pendingAdmin);
-    }
-
-    function setPendingOwner(address pendingOwner_) public {
-        require(msg.sender == address(this), "Timelock::setPendingOwner: Call must come from Timelock.");
-        pendingOwner = pendingOwner_;
-
-        emit NewPendingOwner(pendingOwner);
     }
 
     function queueTransaction(address target, uint value, string memory signature, bytes memory data, uint eta) public returns (bytes32) {

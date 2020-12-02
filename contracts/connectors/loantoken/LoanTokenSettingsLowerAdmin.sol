@@ -9,18 +9,25 @@ pragma experimental ABIEncoderV2;
 import "./AdvancedTokenStorage.sol";
 import "./interfaces/ProtocolSettingsLike.sol";
 
-
+// It is a LoanToken implementation!
 contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
     using SafeMath for uint256;
 
     // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress
+
+    // ------------- MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
     address public sovrynContractAddress;
-    
+    address public wrbtcTokenAddress;
+    address internal target_;
+    address public admin;
+    // ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
+
     event SetTransactionLimits(address[] addresses, uint256[] limits);
 
+    //@todo check for restrictions in this contract
     modifier onlyAdmin() {
         require(msg.sender == address(this) ||
-            msg.sender == owner(), "unauthorized");
+            msg.sender == admin, "unauthorized");
         _;
     }
 

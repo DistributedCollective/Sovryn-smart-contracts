@@ -7,13 +7,14 @@ pragma solidity 0.5.17;
 
 import "./AdvancedTokenStorage.sol";
 
-
+//@todo can I change this proxy to EIP-1822 proxy standard, please. https://eips.ethereum.org/EIPS/eip-1822. It's really hard to work with this.
 contract LoanToken is AdvancedTokenStorage {
 
     // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wrbtcTokenAddress
     address public sovrynContractAddress;
     address public wrbtcTokenAddress;
     address internal target_;
+    address public admin;
 
     constructor(
         address _newOwner,
@@ -80,11 +81,13 @@ contract LoanToken is AdvancedTokenStorage {
         require(Address.isContract(_wrbtcTokenAddress), "wrbtc not a contract");
         wrbtcTokenAddress = _wrbtcTokenAddress;
     }
-    
+
+    //@todo add check for double init, idk but init usually can be called only once.
     function initialize(
         address _loanTokenAddress,
         string memory _name,
-        string memory _symbol)
+        string memory _symbol,
+        address _admin)
         public
         onlyOwner
     {
@@ -93,6 +96,7 @@ contract LoanToken is AdvancedTokenStorage {
         name = _name;
         symbol = _symbol;
         decimals = IERC20(loanTokenAddress).decimals();
+        admin = _admin;
 
         initialPrice = 10**18; // starting price of 1
     }

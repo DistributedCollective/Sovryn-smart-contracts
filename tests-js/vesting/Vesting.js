@@ -118,10 +118,10 @@ contract('Vesting', accounts => {
 
         it('should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff', async () => {
 
-            let block = await web3.eth.getBlock("latest")
+            let block = await web3.eth.getBlock("latest");
             let timestamp = block.timestamp;
 
-            let kickoffTS = await staking.kickoffTS()
+            let kickoffTS = await staking.kickoffTS();
 
             let start = timestamp + 26 * WEEK;
             let end = timestamp + 104 * WEEK;
@@ -174,7 +174,7 @@ contract('Vesting', accounts => {
             await token.approve(vesting.address, amount);
             await vesting.stakeTokens(amount);
 
-            let block = await web3.eth.getBlock("latest")
+            let block = await web3.eth.getBlock("latest");
             let timestamp = block.timestamp;
 
             let start = timestamp + cliff;
