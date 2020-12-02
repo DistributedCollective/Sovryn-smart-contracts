@@ -10,4 +10,4 @@ def main():
     with open('./scripts/swapTest/swap_test.json') as config_file:
         swapTestData = json.load(config_file)
     mocStateAddress = swapTestData["mocState"]
-    addLoanToken("BPro", "BPro", 18, 1e50, "iBPro", "iBPro", 1e18, 5e17, 5e17, 1e16, BProPriceFeed, mocStateAddress)
+    addLoanToken("BPro", "BPro", 18, 1e50, "iBPro", "iBPro", 1e17, 1e17, 1e17, 1e15, BProPriceFeed, mocStateAddress)

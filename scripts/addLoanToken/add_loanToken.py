@@ -25,12 +25,11 @@ def addLoanToken(tokenName, tokenSymbol, tokenDecimals, tokenInitialAmount, loan
         tokens.token = Contract.from_abi("Token", address=contracts[tokenSymbol], abi=TestToken.abi, owner=acct)
         #on testnet and mainnet, the owner is currently a multisig
         multisig = Contract.from_abi("MultiSig", address=contracts["multisig"], abi=MultiSigWallet.abi, owner=acct)
-        '''
         data = sovryn.setSupportedTokens.encode_input([tokens.token.address],[True])
         tx = multisig.submitTransaction(sovryn.address,0,data)
         txId = tx.events["Submission"]["transactionId"]
         print('confirm following txId to set supported token:', txId)
-        '''
+
         
     
     tokens.wrbtc = Contract.from_abi("WRBTC", address = wrbtcAddress, abi = WRBTC.abi, owner = acct)
