@@ -1,5 +1,6 @@
 pragma solidity ^0.5.17;
 
-contract IFeeSharingProxy {
-	function withdrawTokens(address _token, uint32 _maxCheckpoints, address _receiver) public;
+interface IFeeSharingProxy {
+	function withdrawFees(address _token) external;
+	function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) external;
 }
