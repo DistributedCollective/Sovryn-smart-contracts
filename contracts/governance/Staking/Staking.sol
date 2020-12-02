@@ -151,7 +151,7 @@ contract Staking is WeightedStaking{
      * @param lockDate the lock date
      * @return the lock date of the last checkpoint
      * */
-    function _currentBalance(address account, uint lockDate) internal view returns(uint96) {
+    function currentBalance(address account, uint lockDate) internal view returns(uint96) {
         return userStakingCheckpoints[account][lockDate][numUserStakingCheckpoints[account][lockDate] - 1].stake;
     }
     
