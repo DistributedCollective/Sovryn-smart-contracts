@@ -56,5 +56,4 @@ def main():
     print("schedule ownership(admin) transfer for ", eta)
     timelockAdmin.queueTransaction(timelockAdmin.address, 0, "setPendingAdmin(address)", dataString[10:], eta)
 
-
-    
+    #@todo need someone to update deploy, idk python, can miss something    

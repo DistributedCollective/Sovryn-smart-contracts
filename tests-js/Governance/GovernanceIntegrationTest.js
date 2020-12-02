@@ -60,7 +60,7 @@ contract('GovernanceIntegration', accounts => {
         
         //Settings
         loanTokenSettings = await LoanTokenSettings.new();
-        loanToken = await LoanToken.new(root, loanTokenSettings.address, token.address, token.address);
+        loanToken = await LoanToken.new(root, loanTokenSettings.address, token.address, token.address, 4);
         loanToken = await LoanTokenSettings.at(loanToken.address);
         await loanToken.transferOwnership(timelock.address);
     

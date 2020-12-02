@@ -6,11 +6,11 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./AdvancedTokenStorage.sol";
-import "./interfaces/ProtocolSettingsLike.sol";
+import "../../connectors/loantoken/interfaces/ProtocolSettingsLike.sol";
+import "../../connectors/loantoken/AdvancedTokenStorage.sol";
 
 // It is a LoanToken implementation!
-contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
+contract PreviousLoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
     using SafeMath for uint256;
 
     // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress
@@ -19,7 +19,6 @@ contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
     address public sovrynContractAddress;
     address public wrbtcTokenAddress;
     address internal target_;
-    address public admin;
     // ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 
     event SetTransactionLimits(address[] addresses, uint256[] limits);
@@ -27,7 +26,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
     //@todo check for restrictions in this contract
     modifier onlyAdmin() {
         require(msg.sender == address(this) ||
-            msg.sender == admin, "unauthorized");
+            msg.sender == owner(), "unauthorized");
         _;
     }
 
@@ -35,8 +34,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
     function init(
         address _loanTokenAddress,
         string memory _name,
-        string memory _symbol,
-        address _admin)
+        string memory _symbol)
     public
     onlyOwner
     {
@@ -45,7 +43,6 @@ contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
         name = _name;
         symbol = _symbol;
         decimals = IERC20(loanTokenAddress).decimals();
-        admin = _admin;
 
         initialPrice = 10**18; // starting price of 1
     }
