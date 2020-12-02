@@ -13,18 +13,28 @@ def main():
     loadConfig()
     #call the function you want here
     #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOCSettings'], contracts['iDOC'])
-    #testTradeOpeningAndClosing(contracts['protocol'], contracts['iDOC'], contracts['DoC'], contracts['WRBTC'], 1e18, 10e18, False, 0)
+    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iDOC'], contracts['DoC'], contracts['WRBTC'], 1e18, 10e18, False, 0)
     #setupMarginLoanParams(contracts['DoC'], contracts['iRBTCSettings'], contracts['iRBTC'])
-    #testTradeOpeningAndClosing(contracts['protocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 11e18, False, 1e15)
+    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 11e18, False, 1e15)
     
     #swapTokens(0.02e18,200e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['DoC'])
     #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
-    #liquidate(contracts['protocol'], '0xc9b8227bcf953e45f16d5d9a8a74cad92f403b90d0daf00900bb02e4a35c542c')
+    #liquidate(contracts['sovrynProtocol'], '0xc9b8227bcf953e45f16d5d9a8a74cad92f403b90d0daf00900bb02e4a35c542c')
     #readLiquidity()
     #getBalance(contracts['WRBTC'], '0xE5646fEAf7f728C12EcB34D14b4396Ab94174827')
     #getBalance(contracts['WRBTC'], '0x7BE508451Cd748Ba55dcBE75c8067f9420909b49')
     #readLoan('0xb2bbd9135a7cfbc5adda48e90430923108ad6358418b7ac27c9edcf2d44911e5')
-    replaceLoanClosings()
+    #replaceLoanClosings()
+    #buyWRBTC()
+    
+    #hasApproval(contracts['WRBTC'], acct, '0x133ebe9c8ba524c9b1b601e794df527f390729bf')
+    #getBalance(contracts['WRBTC'], acct)
+    #readFromMedianizer()
+    #updateOracleAddress(contracts['medianizer'])
+    #swapTokens(1e18, 1, contracts['swapNetwork'], contracts['DoC'], contracts['BPro'])
+    
+    testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iBPro'], contracts['BPro'], contracts['WRBTC'], 1e15, 5e18, True, 0)
+    
     
 def loadConfig():
     global contracts, acct
@@ -85,7 +95,7 @@ def readLoanTokenState(loanTokenAddress):
     print("next borrow interest rate", bir)
     
 def readLoan(loanId):
-    sovryn = Contract.from_abi("sovryn", address=contracts['protocol'], abi=interface.ISovryn.abi, owner=acct)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovryn.abi, owner=acct)
     print(sovryn.getLoan(loanId).dict())
 
 def getTokenPrice(loanTokenAddress):
@@ -218,12 +228,12 @@ def setupTorqueLoanParams(loanTokenAddress, loanTokenSettingsAddress, underlying
     print(tx.info())
     
 def rollover(loanId):
-    sovryn = Contract.from_abi("sovryn", address=contracts['protocol'], abi=interface.ISovryn.abi, owner=acct)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovryn.abi, owner=acct)
     tx = sovryn.rollover(loanId, b'')
     print(tx.info())
     
 def replaceLoanClosings():
-    sovryn = Contract.from_abi("sovryn", address=contracts['protocol'], abi=interface.ISovryn.abi, owner=acct)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovryn.abi, owner=acct)
     loanClosings = acct.deploy(LoanClosings)
     sovryn.replaceContract(loanClosings.address)
     
@@ -235,11 +245,11 @@ def getBalance(contractAddress, acct):
     contract = Contract.from_abi("Token", address=contractAddress, abi=LoanToken.abi, owner=acct)
     print(contract.balanceOf(acct))
     
-def buyWRBTC(contractAddress):
-    contract = Contract.from_abi("WRBTC", address=contractAddress, abi=WRBTC.abi, owner=acct)
-    tx = contract.deposit({'value':1e17})
+def buyWRBTC():
+    contract = Contract.from_abi("WRBTC", address=contracts["WRBTC"], abi=WRBTC.abi, owner=acct)
+    tx = contract.deposit({'value':1e18})
     tx.info()
-    getBalance(acct, contractAddress)
+    print("new balance", getBalance(contracts["WRBTC"], acct))
     
 def mintEarlyAccessTokens(contractAddress, userAddress):
     contract = Contract.from_abi("EarlyAccessToken", address=contractAddress, abi=EarlyAccessToken.abi, owner=acct)
@@ -346,3 +356,25 @@ def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTo
         0
     )
     tx.info()
+    
+    
+def readFromMedianizer():
+    medianizer = Contract.from_abi("Medianizer", address=contracts['medianizer'], abi=PriceFeedsMoCMockup.abi, owner=acct)
+    print(medianizer.peek())
+    medianizer = Contract.from_abi("Medianizer", address='0x26a00aF444928d689DDEC7b4D17c0E4a8c9D407d', abi=PriceFeedsMoCMockup.abi, owner=acct)
+    print(medianizer.peek())
+    
+def updateOracleAddress(newAddress):
+    print("set oracle address to", newAddress)
+    priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = '0x066ba9453e230a260c2a753d9935d91187178C29', abi = PriceFeedsMoC.abi, owner = acct)
+    priceFeedsMoC.setMoCOracleAddress(newAddress)
+
+    
+def addLiquidity(converter, reserve, amount):
+    abiFile =  open('./scripts/contractInteraction/LiquidityPoolV2Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV2Converter", address=converter, abi=abi, owner=acct)
+    print("is active? ", converter.isActive())
+    print("price oracle", converter.priceOracle())
+    tx = converter.addLiquidity(reserve, amount, 1)
+    print(tx)

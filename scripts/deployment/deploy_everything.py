@@ -41,25 +41,30 @@ def main():
         acct = accounts.load("rskdeployer")
     else:
         raise Exception("network not supported")
-
+    
     if('WRBTC' in configData and 'SUSD' in configData):
         tokens = readTokens(acct, configData['WRBTC'], configData['SUSD'])
     elif('SUSD' in configData):
         tokens = deployWRBTC(acct, configData['SUSD'])
     else:
         tokens = deployTokens(acct)
-
+        
     if(not 'medianizer' in configData):
         medianizer = deployMoCMockup(acct)
         configData['medianizer'] = medianizer.address
 
-    sovryn = deployProtocol(acct, tokens, configData['medianizer'])
+    if(not 'mocState' in configData):
+        mocState = deployBProPriceFeedMockup(acct)
+        configData['mocState'] = mocState.address
+        
+    (sovryn, feeds) = deployProtocol(acct, tokens, configData['medianizer'])
     (loanTokenSUSD, loanTokenWRBTC, loanTokenSettingsSUSD,
      loanTokenSettingsWRBTC) = deployLoanTokens(acct, sovryn, tokens)
 
     #deployMultisig(sovryn, acct, owners, requiredConf)
-
+    
     configData["sovrynProtocol"] = sovryn.address
+    configData["PriceFeeds"] = feeds.address
     configData["WRBTC"] = tokens.wrbtc.address
     configData["SUSD"] = tokens.susd.address
     configData["loanTokenSettingsSUSD"] = loanTokenSettingsSUSD.address
@@ -67,7 +72,7 @@ def main():
     configData["loanTokenSettingsWRBTC"] = loanTokenSettingsWRBTC.address
     configData["loanTokenRBTC"] = loanTokenWRBTC.address
 
-    with open('./scripts/swap_test.json', 'w') as configFile:
+    with open('./scripts/swapTest/swap_test.json', 'w') as configFile:
         json.dump(configData, configFile)
 
 def deployMoCMockup(acct):
@@ -75,3 +80,8 @@ def deployMoCMockup(acct):
     priceFeedMockup.setHas(True)
     priceFeedMockup.setValue(10000e18)
     return priceFeedMockup
+
+def deployBProPriceFeedMockup(acct):
+    bproPriceFeedMockup = acct.deploy(BProPriceFeedMockup)
+    bproPriceFeedMockup.setValue(20000e18)
+    return bproPriceFeedMockup
