@@ -53,7 +53,7 @@ contract('LoanTokenUpgrade', accounts => {
 
         //Settings
         loanTokenSettings = await PreviousLoanTokenSettings.new();
-        loanToken = await PreviousLoanToken.new(root, loanTokenSettings.address, token.address, token.address);
+        loanToken = await PreviousLoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, token.address);
         loanToken = await PreviousLoanTokenSettings.at(loanToken.address);
         // await loanToken.transferOwnership(timelock.address);
 
@@ -68,6 +68,9 @@ contract('LoanTokenUpgrade', accounts => {
         //@todo rename this or delete, idk why I wrote this test
         it("check how works proxy", async () => {
 
+            let previousSovrynContractAddress = await loanToken.sovrynContractAddress();
+            let previousWrbtcTokenAddress = await loanToken.wrbtcTokenAddress();
+
             let newLoanTokenSettings = await LoanTokenSettings.new();
 
             let loanTokenProxy = await PreviousLoanToken.at(loanToken.address);
@@ -79,12 +82,18 @@ contract('LoanTokenUpgrade', accounts => {
             let admin = await loanToken.admin();
             assert.equal(admin, constants.ZERO_ADDRESS);
 
-            //change admin
 
+            //change admin
             loanToken.setAdmin(root);
 
             admin = await loanToken.admin();
             assert.equal(admin, root)
+
+            let sovrynContractAddress = await loanToken.sovrynContractAddress();
+            let wrbtcTokenAddress = await loanToken.wrbtcTokenAddress();
+
+            assert.equal(sovrynContractAddress, previousSovrynContractAddress);
+            assert.equal(wrbtcTokenAddress, previousWrbtcTokenAddress);
         })
 
     });
