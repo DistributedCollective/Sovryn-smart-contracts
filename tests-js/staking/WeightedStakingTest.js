@@ -103,7 +103,7 @@ contract('WeightedStaking', accounts => {
             let result = await staking.stake("100", inOneWeek, a1, a3, {from: a2});
             await expect((await staking.balanceOf(a1)).toString()).to.be.equal('100');
             let checkpoint = await staking.userStakingCheckpoints(a1, inOneWeek, 0);
-            
+
             await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
             await expect(checkpoint.stake.toString()).to.be.equal('100');
             
@@ -116,13 +116,26 @@ contract('WeightedStaking', accounts => {
         });
         
         it('returns the correct checkpoint for a delegate', async () => {
-            
             let result = await staking.stake("100", inOneWeek, a1, a3, {from: a2});
             await expect((await staking.balanceOf(a1)).toString()).to.be.equal('100');
+
             let checkpoint = await staking.delegateStakingCheckpoints(a3, inOneWeek, 0);
-            
             await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
             await expect(checkpoint.stake.toString()).to.be.equal('100');
+
+            //add stake and change delegatee
+            result = await staking.stake("200", inOneWeek, a1, a2, {from: a2});
+            await expect((await staking.balanceOf(a1)).toString()).to.be.equal('300');
+
+            //old delegate
+            checkpoint = await staking.delegateStakingCheckpoints(a3, inOneWeek, 1);
+            await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
+            await expect(checkpoint.stake.toString()).to.be.equal('0');
+
+            //new delegate
+            checkpoint = await staking.delegateStakingCheckpoints(a2, inOneWeek, 0);
+            await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
+            await expect(checkpoint.stake.toString()).to.be.equal('300');
         });
         
         it('returns the correct checkpoint for a total stakes', async () => {
