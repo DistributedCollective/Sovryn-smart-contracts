@@ -49,7 +49,6 @@ contract('RSOV:', accounts => {
             
             expect(await tokenTemp.SOV.call()).to.be.equal(tokenSOV.address);
             expect(await tokenTemp.staking.call()).to.be.equal(staking.address);
-            expect(await tokenTemp.stakingDuration.call()).to.be.bignumber.equal(new BN(HALF_YEAR));
         });
     
         it('fails if SOV address is zero', async () => {
@@ -125,27 +124,7 @@ contract('RSOV:', accounts => {
         });
         
     });
-    
-    describe('setStakingDuration:', () => {
-        
-        it('should be able to set staking duration', async () => {
-            await tokenRSOV.setStakingDuration(TWO_WEEKS);
-    
-            expect(await tokenRSOV.stakingDuration.call()).to.be.bignumber.equal(new BN(TWO_WEEKS));
-        });
-        
-        it('fails if staking duration less then 2 weeks', async () => {
-            await expectRevert(tokenRSOV.setStakingDuration(3600),
-                "RSOV:: staking duration is too short");
-        });
-    
-        it('fails if not an owner', async () => {
-            await expectRevert(tokenRSOV.setStakingDuration(TWO_WEEKS, {from: account1}),
-                "Ownable: caller is not the owner");
-        });
-    
-    });
-    
+
     async function getTimeFromKickoff(delay) {
         let kickoffTS = await staking.kickoffTS.call();
         return kickoffTS.add(new BN(delay));

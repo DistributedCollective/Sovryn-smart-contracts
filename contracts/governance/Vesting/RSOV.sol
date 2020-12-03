@@ -12,23 +12,20 @@ import "../Staking/SafeMath96.sol";
 * Sovryn Reward Token
 */
 contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
-    
+
     string constant NAME = "Sovryn Reward Token";
     string constant SYMBOL = "RSOV";
     uint8 constant DECIMALS = 18;
-    
-    ///@notice 6 months (13 periods of 14 days)
-    uint constant HALF_YEAR = 182 days;
-    ///@notice 2 weeks in seconds
-    uint constant TWO_WEEKS = 1209600;
-    
+
+    ///@notice constants used for computing the vesting dates
+    uint constant FOUR_WEEKS = 4 weeks;
+    uint constant YEAR = 52 weeks;
+
     ///@notice the SOV token contract
     IERC20 public SOV;
     ///@notice the staking contract
     IStaking public staking;
-    ///@notice the staking duration for SOV tokens
-    uint public stakingDuration = HALF_YEAR;
-    
+
     event Mint(address indexed sender, uint amount);
     event Burn(address indexed sender, uint amount);
     
@@ -49,7 +46,6 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
     
         SOV = IERC20(_SOV);
         staking = IStaking(_staking);
-        stakingDuration = HALF_YEAR;
     }
     
     /**
@@ -81,16 +77,39 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
         
         //stakes SOV tokens in the user's behalf
         SOV.approve(address(staking), _amount);
-        uint until = block.timestamp + stakingDuration;
-        staking.stake(_amount, until, msg.sender, msg.sender);
-    
+
+        _stakeTokens(_amount, FOUR_WEEKS, YEAR, FOUR_WEEKS, msg.sender, msg.sender);
+
         emit Burn(msg.sender, _amount);
     }
-    
-    function setStakingDuration(uint _stakingDuration) public onlyOwner {
-        require(_stakingDuration >= TWO_WEEKS, "RSOV:: staking duration is too short");
-        
-        stakingDuration = _stakingDuration;
+
+    //TODO move method to Staking or to library
+    function _stakeTokens(
+        uint96 _amount,
+        uint _cliff,
+        uint _duration,
+        uint _intervalLength,
+        address _stakeFor,
+        address _delegatee
+    )
+        public
+    {
+        //stake them until lock dates according to the vesting schedule
+        //note: because staking is only possible in periods of 2 weeks, the total duration might
+        //end up a bit shorter than specified depending on the date of staking.
+        uint start = block.timestamp + _cliff;
+        uint end = block.timestamp + _duration;
+        uint numIntervals = (end - start) / _intervalLength + 1;
+        uint stakedPerInterval = _amount / numIntervals;
+        //stakedPerInterval might lose some dust on rounding. add it to the first staking date
+        if(numIntervals > 1) {
+            staking.stake(uint96(_amount - stakedPerInterval * (numIntervals-1)), start, _stakeFor, _delegatee);
+        }
+        //stake the rest in 4 week intervals
+        for(uint i = start + FOUR_WEEKS; i <= end; i+= FOUR_WEEKS) {
+            //stakes for itself, delegates to the owner
+            staking.stake(uint96(stakedPerInterval), i, _stakeFor, _delegatee);
+        }
     }
 
 }
