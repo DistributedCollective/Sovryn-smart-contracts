@@ -23,7 +23,7 @@ contract Staking is WeightedStaking{
         if(stakeFor == address(0)) {
             stakeFor = msg.sender;
         }
-        //delegate for stakeFor  if not specified otherwise
+        //delegate for stakeFor if not specified otherwise
         if(delegatee == address(0)) {
             delegatee = stakeFor;
         }
@@ -32,11 +32,24 @@ contract Staking is WeightedStaking{
             until = block.timestamp + MAX_DURATION;
         }
 
-        //set or change delegate if new one is specified
-        _delegate(stakeFor, delegatee, until);
-
-        //increase stake, new delegate will be used
+        uint96 previousBalance = currentBalance(stakeFor, until);
+        //increase stake
         _increaseStake(amount, stakeFor, until);
+
+        if (previousBalance == 0) {
+            //regular delegation if it's a first stake
+            _delegate(stakeFor, delegatee, until);
+        } else {
+            address previousDelegatee = delegates[stakeFor][until];
+            if (previousDelegatee != delegatee) {
+                //decrease stake on previous balance for previous delegatee
+                _decreaseDelegateStake(previousDelegatee, until, previousBalance);
+                //add previousBalance to amount
+                amount = add96(previousBalance, amount, "Staking::stake: balance overflow");
+            }
+            //increase stake
+            _increaseDelegateStake(delegatee, until, amount);
+        }
     }
 
     /**
@@ -81,6 +94,7 @@ contract Staking is WeightedStaking{
      * @param stakeFor the address for which we want to increase the stake. staking for the sender if 0x0
      * @param until the lock date until which the funds are staked
      * */
+    //TODO deprecated, can be removed when frontend updated
     function increaseStake(uint96 amount, address stakeFor, uint until) public {
         require(amount > 0, "Staking::increaseStake: amount of tokens to stake needs to be bigger than 0");
 
@@ -93,9 +107,9 @@ contract Staking is WeightedStaking{
             stakeFor = msg.sender;
         }
 
-        _increaseDelegateStake(delegates[stakeFor][until], until, amount);
-
         _increaseStake(amount, stakeFor, until);
+
+        _increaseDelegateStake(delegates[stakeFor][until], until, amount);
     }
 
     function _increaseStake(uint96 amount, address stakeFor, uint until) internal {
@@ -215,14 +229,12 @@ contract Staking is WeightedStaking{
 
     function _delegate(address delegator, address delegatee, uint lockedTS) internal {
         address currentDelegate = delegates[delegator][lockedTS];
-        if (currentDelegate != delegatee) {
-            uint96 delegatorBalance = currentBalance(delegator, lockedTS);
-            delegates[delegator][lockedTS] = delegatee;
+        uint96 delegatorBalance = currentBalance(delegator, lockedTS);
+        delegates[delegator][lockedTS] = delegatee;
 
-            emit DelegateChanged(delegator, lockedTS, currentDelegate, delegatee);
+        emit DelegateChanged(delegator, lockedTS, currentDelegate, delegatee);
 
-            _moveDelegates(currentDelegate, delegatee, delegatorBalance, lockedTS);
-        }
+        _moveDelegates(currentDelegate, delegatee, delegatorBalance, lockedTS);
     }
 
     function _moveDelegates(address srcRep, address dstRep, uint96 amount, uint lockedTS) internal {
