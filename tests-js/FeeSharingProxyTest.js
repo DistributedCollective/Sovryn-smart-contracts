@@ -81,17 +81,14 @@ contract('FeeSharingProxy:', accounts => {
         await protocol.replaceContract(loanClosings.address);
     
         protocol = await ProtocolSettings.at(protocol.address);
-    
         //Loan token
         loanTokenSettings = await LoanTokenSettings.new();
         loanTokenLogic = await LoanTokenLogic.new();
         loanToken = await LoanToken.new(root, loanTokenLogic.address, protocol.address, wrbtc.address);
-
         await loanToken.initialize(susd.address, "iSUSD", "iSUSD");
         loanToken = await LoanTokenLogic.at(loanToken.address);
-        
+        await loanToken.setAdmin(root);
         await protocol.setLoanPool([loanToken.address], [susd.address]);
-        
         //FeeSharingProxy
         feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address, loanToken.address);
         await protocol.setFeesController(feeSharingProxy.address);

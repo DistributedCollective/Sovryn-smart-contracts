@@ -14,27 +14,16 @@ import "./interfaces/FeedsLike.sol";
 contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
     using SignedSafeMath for int256;
 
-    // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wrbtcTokenAddress
-    address public wrbtcTokenAddress;
-    address internal target_;
-    address public admin;
+    // DON'T ADD VARIABLES HERE, PLEASE
 
     uint256 public constant VERSION = 5;
     address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
-
-    //@todo check for restrictions in this contract
-    modifier onlyAdmin() {
-        require(msg.sender == address(this) ||
-        msg.sender == admin, "unauthorized");
-        _;
-    }
 
     function()
         external
     {
         revert("loan token logic - fallback not allowed");
     }
-
 
     /* Public functions */
 

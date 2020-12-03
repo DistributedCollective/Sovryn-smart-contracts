@@ -17,9 +17,17 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 
     // ------------- MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
     address public sovrynContractAddress;
-
+    address public wrbtcTokenAddress;
+    address internal target_;
+    address public admin;
     // ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 
+    //@todo check for restrictions in this contract
+    modifier onlyAdmin() {
+        require(msg.sender == address(this) ||
+        msg.sender == admin, "unauthorized");
+        _;
+    }
 
     event SetTransactionLimits(address[] addresses, uint256[] limits);
 
@@ -38,12 +46,6 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
         decimals = IERC20(loanTokenAddress).decimals();
 
         initialPrice = 10**18; // starting price of 1
-    }
-
-    modifier onlyAdmin() {
-        require(msg.sender == address(this) ||
-            msg.sender == admin, "unauthorized");
-        _;
     }
 
     function setAdmin(address _admin) public onlyOwner {

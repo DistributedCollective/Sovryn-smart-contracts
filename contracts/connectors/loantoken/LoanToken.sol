@@ -86,8 +86,7 @@ contract LoanToken is AdvancedTokenStorage {
     function initialize(
         address _loanTokenAddress,
         string memory _name,
-        string memory _symbol,
-        address _admin)
+        string memory _symbol)
         public
         onlyOwner
     {
@@ -96,10 +95,7 @@ contract LoanToken is AdvancedTokenStorage {
         name = _name;
         symbol = _symbol;
         decimals = IERC20(loanTokenAddress).decimals();
-        admin = _admin;
 
         initialPrice = 10**18; // starting price of 1
     }
-
-
 }

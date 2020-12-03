@@ -291,9 +291,8 @@ contract('Vesting', accounts => {
     describe('collectDividends', async() => {
         it("should fail if the caller is neither owner nor token owner", async() => {
             let vesting = await Vesting.new(token.address, staking.address, a1, 26 * WEEK , 104 * WEEK, feeSharingProxy);
-
-            await expectRevert(vesting.collectDividends(root, 10, {from: a2}), "unauthorized");
-            await expectRevert(vesting.collectDividends(root, 10, {from: a3}), "unauthorized");
+            await expectRevert(vesting.collectDividends(root, 10, a1, {from: a2}), "unauthorized");
+            await expectRevert(vesting.collectDividends(root, 10, a1, {from: a3}), "unauthorized");
 
             // @todo activate when collectDividends will work
             // await vesting.collectDividends(root, 10, {from: root});

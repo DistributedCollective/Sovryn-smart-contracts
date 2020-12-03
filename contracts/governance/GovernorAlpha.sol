@@ -24,7 +24,6 @@ contract GovernorAlpha is SafeMath96 {
     /// @notice The address of the Sovryn staking contract
     IStaking public staking;
 
-
     /// @notice The address of the Governor Guardian
     address public guardian;
 
@@ -34,7 +33,6 @@ contract GovernorAlpha is SafeMath96 {
     /// @notice Percentage of current total voting power require to vote.
     uint96 public quorumPercentageVotes;
 
-    
     struct Proposal {
         /// @notice Unique id for looking up a proposal
         uint id;
@@ -116,7 +114,6 @@ contract GovernorAlpha is SafeMath96 {
     /// @notice The latest proposal for each proposer
     mapping(address => uint) public latestProposalIds;
 
-
     /// @notice The EIP-712 typehash for the contract's domain
     bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
 
@@ -138,10 +135,11 @@ contract GovernorAlpha is SafeMath96 {
     /// @notice An event emitted when a proposal has been executed in the Timelock
     event ProposalExecuted(uint id);
 
-    constructor(address timelock_, address staking_, address guardian_) public {
-        timelock = TimelockInterface(timelock_);
-        staking = StakingInterface(staking_);
+    constructor(address timelock_, address staking_, address guardian_, uint96 _quorumPercentageVotes) public {
+        timelock = ITimelock(timelock_);
+        staking = IStaking(staking_);
         guardian = guardian_;
+        quorumPercentageVotes = _quorumPercentageVotes;
     }
     
      /// @notice The number of votes required in order for a voter to become a proposer
@@ -263,28 +261,6 @@ contract GovernorAlpha is SafeMath96 {
         return proposals[proposalId].receipts[voter];
     }
 
-    function state(uint proposalId) public view returns (ProposalState) {
-        require(proposalCount >= proposalId && proposalId > 0, "GovernorAlpha::state: invalid proposal id");
-        Proposal storage proposal = proposals[proposalId];
-        if (proposal.canceled) {
-            return ProposalState.Canceled;
-        } else if (block.number <= proposal.startBlock) {
-            return ProposalState.Pending;
-        } else if (block.number <= proposal.endBlock) {
-            return ProposalState.Active;
-        } else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < proposal.quorum) {
-            return ProposalState.Defeated;
-        } else if (proposal.eta == 0) {
-            return ProposalState.Succeeded;
-        } else if (proposal.executed) {
-            return ProposalState.Executed;
-        } else if (block.timestamp >= add256(proposal.eta, timelock.GRACE_PERIOD())) {
-            return ProposalState.Expired;
-        } else {
-            return ProposalState.Queued;
-        }
-    }
-
     function castVote(uint proposalId, bool support) public {
         return _castVote(msg.sender, proposalId, support);
     }
@@ -338,14 +314,6 @@ contract GovernorAlpha is SafeMath96 {
         timelock.executeTransaction(address(timelock), 0, "setPendingAdmin(address)", abi.encode(newPendingAdmin), eta);
     }
 
-    function getActions(uint proposalId) public view returns (address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas) {
-        Proposal storage p = proposals[proposalId];
-        return (p.targets, p.values, p.signatures, p.calldatas);
-    }
-
-    function getReceipt(uint proposalId, address voter) public view returns(Receipt memory) {
-        return proposals[proposalId].receipts[voter];
-    }
 
     function state(uint proposalId) public view returns(ProposalState) {
         require(proposalCount >= proposalId && proposalId > 0, "GovernorAlpha::state: invalid proposal id");
@@ -380,26 +348,6 @@ contract GovernorAlpha is SafeMath96 {
         } 
 
         return ProposalState.Queued;
-    }
-
-    /// @notice The number of votes required in order for a voter to become a proposer
-    function proposalThreshold() public view returns(uint96) { 
-        uint96 totalVotingPower = staking.getPriorTotalVotingPower(safe32(block.number-1, "GovernorAlpha::proposalThreshold: block number overflow"), block.timestamp);
-        //1% of current total voting power
-        return totalVotingPower/100; 
-    } 
-
-    
-    /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
-    function quorumVotes() public view returns(uint96) { 
-        uint96 totalVotingPower = staking.getPriorTotalVotingPower(safe32(block.number-1, "GovernorAlpha::quorumVotes: block number overflow"), block.timestamp);
-        //4% of current total voting power
-        return mul96(quorumPercentageVotes, totalVotingPower, "GovernorAlpha::quorumVotes:multiplication overflow")/100; 
-    }
-
-    function _queueOrRevert(address target, uint value, string memory signature, bytes memory data, uint eta) internal {
-        require(!timelock.queuedTransactions(keccak256(abi.encode(target, value, signature, data, eta))), "GovernorAlpha::_queueOrRevert: proposal action already queued at eta");
-        timelock.queueTransaction(target, value, signature, data, eta);
     }
 
     function add256(uint256 a, uint256 b) internal pure returns(uint) {
