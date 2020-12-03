@@ -59,7 +59,7 @@ def deployLoanTokens(acct, sovryn, tokens):
 '''
 Deploys a single loan token contract and sets it up
 '''
-def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddresses, wrbtcAddress):
+def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddresses, wrbtcAddress, multisig=''):
     
     print("Deploying LoanTokenLogicStandard")
     if(loanTokenSymbol == 'iWRBTC'):
@@ -87,11 +87,21 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
     #loanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
     loanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=acct)
     print("Setting up pool params on protocol.")
-
-    sovryn.setLoanPool(
-        [loanToken.address],
-        [loanTokenAddress]
-    )
+    
+    if(acct == sovryn.owner()):
+        sovryn.setLoanPool(
+            [loanToken.address],
+            [loanTokenAddress]
+        )
+    else:
+        input = sovryn.setLoanPool.encode_input(
+            [loanToken.address],
+            [loanTokenAddress]
+        )
+        tx = multisig.submitTransaction(sovryn.address,0,input)
+        txId = tx.events["Submission"]["transactionId"]
+        print('confirm following txId to set loan pool:', txId)
+        
 
     if not collateralAddresses:
         collateralAddresses = []
@@ -154,7 +164,7 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
 sets up the interest rates
 '''
 def setupLoanTokenRates(acct, loanTokenAddress, settingsAddress, logicAddress):
-    baseRate = 5e17
+    baseRate = 1e18
     rateMultiplier = 10e18
     targetLevel=0
     kinkLevel=90*10**18
