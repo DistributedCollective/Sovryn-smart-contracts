@@ -24,7 +24,16 @@ def main():
     #getBalance(contracts['WRBTC'], '0xE5646fEAf7f728C12EcB34D14b4396Ab94174827')
     #getBalance(contracts['WRBTC'], '0x7BE508451Cd748Ba55dcBE75c8067f9420909b49')
     #readLoan('0xb2bbd9135a7cfbc5adda48e90430923108ad6358418b7ac27c9edcf2d44911e5')
-    replaceLoanClosings()
+    #replaceLoanClosings()
+    
+    logicContract = acct.deploy(LoanTokenLogicStandard)
+    print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
+    replaceLoanTokenLogic(contracts['iDOC'],logicContract.address)
+    replaceLoanTokenLogic(contracts['iUSDT'],logicContract.address)
+    replaceLoanTokenLogic(contracts['iBPro'],logicContract.address)
+    logicContract = acct.deploy(LoanTokenLogicWrbtc)
+    print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
+    replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
     
 def loadConfig():
     global contracts, acct
@@ -346,3 +355,7 @@ def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTo
         0
     )
     tx.info()
+    
+def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
+    loanToken.setTarget(logicAddress)
