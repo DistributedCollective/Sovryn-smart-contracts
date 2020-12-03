@@ -12,7 +12,7 @@ contract Staking is WeightedStaking{
      * @param until timestamp indicating the date until which to stake
      * @param stakeFor the address to stake the tokens for or 0x0 if staking for oneself
      * @param delegatee the address of the delegatee or 0x0 if there is none.
-     * */
+     */
     function stake(uint96 amount, uint until, address stakeFor, address delegatee) public {
         require(amount > 0, "Staking::stake: amount of tokens to stake needs to be bigger than 0");
         
@@ -161,7 +161,7 @@ contract Staking is WeightedStaking{
      * @param lockDate the lock date
      * @return the lock date of the last checkpoint
      * */
-    function currentBalance(address account, uint lockDate) public view returns(uint96) {
+    function currentBalance(address account, uint lockDate) internal view returns(uint96) {
         return userStakingCheckpoints[account][lockDate][numUserStakingCheckpoints[account][lockDate] - 1].stake;
     }
     
@@ -219,12 +219,11 @@ contract Staking is WeightedStaking{
     /**
      * @notice gets the current number of tokens staked for a day
      * @param lockedTS the timestamp to get the staked tokens for
-     * */
+     */
     function getCurrentStakedUntil(uint lockedTS) external view returns (uint96) {
         uint32 nCheckpoints = numTotalStakingCheckpoints[lockedTS];
         return nCheckpoints > 0 ? totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake : 0;
     }
-    
 
     function _delegate(address delegator, address delegatee, uint lockedTS) internal {
         address currentDelegate = delegates[delegator][lockedTS];
@@ -237,18 +236,16 @@ contract Staking is WeightedStaking{
             _moveDelegates(currentDelegate, delegatee, delegatorBalance, lockedTS);
         }
     }
-    
 
     function _moveDelegates(address srcRep, address dstRep, uint96 amount, uint lockedTS) internal {
         if (srcRep != dstRep && amount > 0) {
             if (srcRep != address(0))
-                 _decreaseDelegateStake(srcRep, lockedTS, amount);
+                _decreaseDelegateStake(srcRep, lockedTS, amount);
                  
             if (dstRep != address(0))
                 _increaseDelegateStake(dstRep, lockedTS, amount);
         }
     }
-    
 
     function getChainId() internal pure returns (uint) {
         uint256 chainId;
@@ -261,17 +258,17 @@ contract Staking is WeightedStaking{
     * to the new contract.
     * @dev doesn't have any influence as long as migrateToNewStakingContract is not implemented.
     * @param _newStakingContract the address of the new staking contract
-    * */
-    function setNewStakingContract(address _newStakingContract) public onlyOwner{
+    */
+    function setNewStakingContract(address _newStakingContract) public onlyOwner {
         require(_newStakingContract != address(0), "can't reset the new staking contract to 0");
-        address newStakingContract = _newStakingContract;
+        newStakingContract = _newStakingContract;
     }
     
     /**
      * @notice allows a staker to migrate his positions to the new staking contract.
      * @dev staking contract needs to be set before by the owner. currently not implemented, just needed for the interface.
      *      in case it's needed at some point in the future, the implementation needs to be changed first.
-     * */
+     */
     function migrateToNewStakingContract() public {
         require(newStakingContract != address(0), "there is no new staking contract set");
         //implementation:
@@ -285,8 +282,8 @@ contract Staking is WeightedStaking{
      * note: not reversible on purpose. once unlocked, everything is unlocked. the owner should not be able to just quickly
      * unlock to withdraw his own tokens and lock again.
      * @dev last resort.
-     * */
-    function unlockAllTokens() public onlyOwner{
+     */
+    function unlockAllTokens() public onlyOwner {
         allUnlocked = true;
         emit TokensUnlocked(SOVToken.balanceOf(address(this)));
     }

@@ -12,9 +12,9 @@ contract WeightedStaking is Checkpoints{
      * @param time the timestamp for which to calculate the total voting power
      * @return the total voting power at the given time
      * */
-    function getPriorTotalVotingPower(uint32 blockNumber, uint time) view public returns(uint96 totalVotingPower){
+    function getPriorTotalVotingPower(uint32 blockNumber, uint time) view public returns(uint96 totalVotingPower) {
         //start the computation with the exact or previous unlocking date (voting weight remians the same until the next break point)
-        uint start =  timestampToLockDate(time);
+        uint start = timestampToLockDate(time);
         uint end = start + MAX_DURATION;
         
         //max 78 iterations
@@ -29,7 +29,7 @@ contract WeightedStaking is Checkpoints{
      * @param startDate the date for which we need to know the power of the stake
      * @param blockNumber the block number. needed for checkpointing.
      * */
-    function _totalPowerByDate(uint date, uint startDate, uint blockNumber) internal view returns(uint96 power){
+    function _totalPowerByDate(uint date, uint startDate, uint blockNumber) internal view returns(uint96 power) {
         uint96 weight = computeWeightByDate(date, startDate);
         uint96 staked = getPriorTotalStakesForDate(date, blockNumber);
         //weight is multiplied by some factor to allow decimals.
@@ -108,7 +108,7 @@ contract WeightedStaking is Checkpoints{
      * @param startDate the date for which we need to know the power of the stake
      * @param blockNumber the block number. needed for checkpointing.
      * */
-    function _totalPowerByDateForDelegatee(address account, uint date, uint startDate, uint blockNumber) internal view returns(uint96 power){
+    function _totalPowerByDateForDelegatee(address account, uint date, uint startDate, uint blockNumber) internal view returns(uint96 power) {
         uint96 weight = computeWeightByDate(date, startDate);
         uint96 staked = getPriorStakeByDateForDelegatee(account, date, blockNumber);
         power = mul96(staked, weight, "WeightedStaking::_totalPowerByDateForDelegatee: multiplication overflow")/WEIGHT_FACTOR;
@@ -186,7 +186,7 @@ contract WeightedStaking is Checkpoints{
      * @param startDate the date for which we need to know the power of the stake
      * @param blockNumber the block number. needed for checkpointing.
      * */
-    function weightedStakeByDate(address account, uint date, uint startDate, uint blockNumber) public view returns(uint96 power){
+    function weightedStakeByDate(address account, uint date, uint startDate, uint blockNumber) public view returns(uint96 power) {
         uint96 staked = getPriorUserStakeByDate(account, date, blockNumber);
         if (staked > 0) {
             uint96 weight = computeWeightByDate(date, startDate);
@@ -246,7 +246,7 @@ contract WeightedStaking is Checkpoints{
      * @param date the unlocking date
      * @param startDate we compute the weight for the tokens staked until 'date' on 'startDate'
      * */
-    function computeWeightByDate(uint date, uint startDate) public pure returns(uint96 weight){
+    function computeWeightByDate(uint date, uint startDate) public pure returns(uint96 weight) {
         require(date >= startDate, "WeightedStaking::computeWeightByDate: date needs to be bigger than startDate");
         uint remainingTime = (date - startDate);
         require(MAX_DURATION >= remainingTime, "Staking::computeWeightByDate:remaining time can't be bigger than max duration");
@@ -262,7 +262,7 @@ contract WeightedStaking is Checkpoints{
      * @param timestamp the unlocking timestamp
      * @return the actual unlocking date (might be up to 2 weeks shorter than intended)
      * */
-    function timestampToLockDate(uint timestamp) public view returns(uint lockDate){
+    function timestampToLockDate(uint timestamp) public view returns(uint lockDate) {
         require(timestamp >= kickoffTS, "WeightedStaking::timestampToLockDate: timestamp lies before contract creation");
         //if staking timestamp does not match any of the unstaking dates, set the lockDate to the closest one before the timestamp
         //e.g. passed timestamps lies 7 weeks after kickoff -> only stake for 6 weeks
