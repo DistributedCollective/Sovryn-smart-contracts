@@ -17,9 +17,17 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
     // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wrbtcTokenAddress
     address public wrbtcTokenAddress;
     address internal target_;
+    address public admin;
 
     uint256 public constant VERSION = 5;
     address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
+
+    //@todo check for restrictions in this contract
+    modifier onlyAdmin() {
+        require(msg.sender == address(this) ||
+        msg.sender == admin, "unauthorized");
+        _;
+    }
 
     function()
         external

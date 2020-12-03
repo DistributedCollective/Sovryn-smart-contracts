@@ -3,8 +3,10 @@ pragma solidity ^0.5.17;
 import "./Staking/SafeMath96.sol";
 import "../openzeppelin/SafeMath.sol";
 import "../openzeppelin/SafeERC20.sol";
+import "./IFeeSharingProxy.sol";
 
-contract FeeSharingProxy is SafeMath96 {
+contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
+
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     

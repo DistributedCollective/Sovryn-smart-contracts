@@ -45,8 +45,9 @@ contract("governorAlpha#castVote/2", accounts => {
         staking = await StakingProxy.new(token.address);
         await staking.setImplementation(stakingLogic.address);
         staking = await StakingLogic.at(staking.address);
-        
+     
         gov = await GovernorAlpha.new(address(0), staking.address, root, 4);
+
         
         targets = [a1];
         values = ["0"];

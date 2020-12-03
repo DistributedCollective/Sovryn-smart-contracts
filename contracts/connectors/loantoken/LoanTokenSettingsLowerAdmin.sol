@@ -17,26 +17,17 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 
     // ------------- MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
     address public sovrynContractAddress;
-    address public wrbtcTokenAddress;
-    address internal target_;
-    address public admin;
+
     // ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 
-    event SetTransactionLimits(address[] addresses, uint256[] limits);
 
-    //@todo check for restrictions in this contract
-    modifier onlyAdmin() {
-        require(msg.sender == address(this) ||
-            msg.sender == admin, "unauthorized");
-        _;
-    }
+    event SetTransactionLimits(address[] addresses, uint256[] limits);
 
     //@todo add check for double init, idk but init usually can be called only once.
     function init(
         address _loanTokenAddress,
         string memory _name,
-        string memory _symbol,
-        address _admin)
+        string memory _symbol)
     public
     onlyOwner
     {
@@ -45,9 +36,18 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
         name = _name;
         symbol = _symbol;
         decimals = IERC20(loanTokenAddress).decimals();
-        admin = _admin;
 
         initialPrice = 10**18; // starting price of 1
+    }
+
+    modifier onlyAdmin() {
+        require(msg.sender == address(this) ||
+            msg.sender == admin, "unauthorized");
+        _;
+    }
+
+    function setAdmin(address _admin) public onlyOwner {
+        admin = _admin;
     }
 
     function()

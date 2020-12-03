@@ -26,7 +26,7 @@ contract Vesting is Ownable {
 
     event TokensStaked(address indexed caller, uint amount);
     event TokensWithdrawn(address indexed caller, address receiver);
-    event DividendsCollected(address indexed caller, address receiver, uint32 maxCheckpoints);
+    event DividendsCollected(address indexed caller, address loanPoolToken, address receiver, uint32 maxCheckpoints);
     event MigratedToNewStakingContract(address indexed caller, address newStakingContract);
 
     /**
@@ -122,10 +122,10 @@ contract Vesting is Ownable {
     /**
      * @dev collect dividends from fee sharing proxy
      */
-    function collectDividends(address receiver, uint32 maxCheckpoints) public onlyOwners{
+    function collectDividends(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) public onlyOwners {
         //invokes the fee sharing proxy
-        feeSharingProxy.withdrawTokens(address(SOV), maxCheckpoints, receiver);
-        emit DividendsCollected(msg.sender, receiver, maxCheckpoints);
+        feeSharingProxy.withdraw(_loanPoolToken, _maxCheckpoints, _receiver);
+        emit DividendsCollected(msg.sender, _loanPoolToken, _receiver, _maxCheckpoints);
     }
     
     /**

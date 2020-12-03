@@ -2,6 +2,7 @@ pragma solidity ^0.5.17;
 
 import "../openzeppelin/SafeMath.sol";
 
+
 interface ITimelock {
     function delay() external view returns (uint);
     function GRACE_PERIOD() external view returns (uint);
@@ -27,7 +28,6 @@ contract Timelock is ITimelock {
     
     address public admin;
     address public pendingAdmin;
-
     uint public delay;
 
     mapping (bytes32 => bool) public queuedTransactions;
@@ -38,6 +38,7 @@ contract Timelock is ITimelock {
     event CancelTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature,  bytes data, uint eta);
     event ExecuteTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature,  bytes data, uint eta);
     event QueueTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature, bytes data, uint eta);
+
 
     constructor(address admin_, uint delay_) public {
         require(delay_ >= MINIMUM_DELAY, "Timelock::constructor: Delay must exceed minimum delay.");

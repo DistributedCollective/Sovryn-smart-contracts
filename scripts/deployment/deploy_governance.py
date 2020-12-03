@@ -8,7 +8,7 @@ def main():
     #@todo put correct variables
     governorOwnerQuorumVotes = 4
     governorAdminQuorumVotes = 70
-
+    
     if thisNetwork == "development":
         acct = accounts[0]
         guardian = acct
@@ -31,6 +31,7 @@ def main():
     stakingLogic = acct.deploy(Staking)
     staking = acct.deploy(StakingProxy, SOV)
     staking.setImplementation(stakingLogic.address)
+
     #params: owner, delay
     timelockOwner = acct.deploy(Timelock, acct, delay)
     #params: timelockOwner. staking, guardian

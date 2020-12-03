@@ -23,7 +23,8 @@ const TWO_DAYS = 86400 * 2;
 const TWO_WEEKS = 86400 * 14;
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
-contract('GovernanceIntegration', accounts => {
+
+contract('LoanTokenUpgrade', accounts => {
     const name = 'Test token';
     const symbol = 'TST';
 
@@ -79,7 +80,8 @@ contract('GovernanceIntegration', accounts => {
             assert.equal(admin, constants.ZERO_ADDRESS);
 
             //change admin
-            loanToken.init(token.address, "SomeName", "SomeSymbol", root);
+
+            loanToken.setAdmin(root);
 
             admin = await loanToken.admin();
             assert.equal(admin, root)

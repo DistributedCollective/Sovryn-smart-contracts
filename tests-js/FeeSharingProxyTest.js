@@ -86,7 +86,8 @@ contract('FeeSharingProxy:', accounts => {
         loanTokenSettings = await LoanTokenSettings.new();
         loanTokenLogic = await LoanTokenLogic.new();
         loanToken = await LoanToken.new(root, loanTokenLogic.address, protocol.address, wrbtc.address);
-        await loanToken.initialize(susd.address, "iSUSD", "iSUSD", root);
+
+        await loanToken.initialize(susd.address, "iSUSD", "iSUSD");
         loanToken = await LoanTokenLogic.at(loanToken.address);
         
         await protocol.setLoanPool([loanToken.address], [susd.address]);

@@ -53,15 +53,18 @@ contract('GovernanceIntegration', accounts => {
         await staking.setImplementation(stakingLogic.address);
         staking = await StakingLogic.at(staking.address);
 
+
         //Governor
         timelock = await Timelock.new(root, TWO_DAYS);
         gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4);
         await timelock.harnessSetAdmin(gov.address);
+
         //Settings
         loanTokenSettings = await LoanTokenSettings.new();
         loanToken = await LoanToken.new(root, loanTokenSettings.address, token.address, token.address);
         loanToken = await LoanTokenSettings.at(loanToken.address);
         await loanToken.transferOwnership(timelock.address);
+
         protocolSettings = await ProtocolSettings.new();
         protocol = await Protocol.new();
         await protocol.replaceContract(protocolSettings.address);

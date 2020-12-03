@@ -9,5 +9,4 @@ contract GovernorAlphaMockup is GovernorAlpha {
     }
 
     function votingPeriod() public pure returns (uint) { return 10; }
-
 }

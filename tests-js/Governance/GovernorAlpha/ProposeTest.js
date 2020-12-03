@@ -32,6 +32,7 @@ contract('GovernorAlpha#propose/5', accounts => {
         staking = await StakingLogic.at(staking.address);
         
         gov = await GovernorAlpha.new(address(0), staking.address, address(0), 4);
+
     });
     
     let trivialProposal, targets, values, signatures, callDatas;
