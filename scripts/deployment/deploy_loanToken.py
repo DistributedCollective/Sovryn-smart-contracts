@@ -10,9 +10,9 @@ script to deploy the loan tokens. can be used to deploy loan tokens separately, 
 if deploying separetly, the addresses of the existing contracts need to be set.
 '''
 def main():
-    wrbtcAddress = '0xc90bB9fEee164263709336C7e5E9F8e540fA3C6D'
-    susdAddress = '0xE631653c4Dc6Fb98192b950BA0b598f90FA18B3E'
-    protocolAddress = '0xBAC609F5C8bb796Fa5A31002f12aaF24B7c35818'
+    wrbtcAddress = '0x602C71e4DAC47a042Ee7f46E0aee17F94A3bA0B6'
+    susdAddress = '0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87'
+    protocolAddress = '0xcCB53c9429d32594F404d01fbe9E65ED1DCda8D9'
 
     thisNetwork = network.show_active()
 
@@ -126,11 +126,9 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
 
         params.append(data)
 
-    #configure the token settings
-    calldata = loanTokenSettings.setupLoanParams.encode_input(params, False)
-    
-    #set the setting contract address at the loan token logic contract (need to load the logic ABI in line 171 to work)
-    tx = loanToken.updateSettings(loanTokenSettings.address, calldata, { "from": acct })
+    #configure the token settings, and set the setting contract address at the loan token logic contract
+    tx = loanToken.setupLoanParams(params, False)
+    #tx = loanToken.updateSettings(loanTokenSettings.address, calldata, { "from": acct })
     #print(tx.info())
 
     print("Setting up torque pool params")
@@ -151,13 +149,9 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
 
         params.append(data)
 
-    #configure the token settings
-    calldata = loanTokenSettings.setupLoanParams.encode_input(params, True)
-    
-    #print(calldata)
-
-    #set the setting contract address at the loan token logic contract (need to load the logic ABI in line 171 to work)
-    tx = loanToken.updateSettings(loanTokenSettings.address, calldata, { "from": acct })
+    #configure the token settings, and set the setting contract address at the loan token logic contract
+    tx = loanToken.setupLoanParams(params, True)
+    #tx = loanToken.updateSettings(loanTokenSettings.address, calldata, { "from": acct })
     #print(tx.info())
 
     print("setting up interest rates")
@@ -175,13 +169,8 @@ def setupLoanTokenRates(acct, loanTokenAddress, settingsAddress, logicAddress):
     targetLevel=0
     kinkLevel=90*10**18
     maxScaleRate=100*10**18
-    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
-    localLoanToken.setTarget(settingsAddress)
-    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
-    localLoanToken.setDemandCurve(baseRate,rateMultiplier,baseRate,rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
-    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
-    localLoanToken.setTarget(logicAddress)
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    localLoanToken.setDemandCurve(baseRate,rateMultiplier,baseRate,rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
     borrowInterestRate = localLoanToken.borrowInterestRate()
     print("borrowInterestRate: ",borrowInterestRate)
     

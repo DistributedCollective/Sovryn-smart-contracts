@@ -6,17 +6,15 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./AdvancedToken.sol";
+import "./LoanTokenSettingsLowerAdmin.sol";
 import "./interfaces/ProtocolLike.sol";
 import "./interfaces/FeedsLike.sol";
 
 
-contract LoanTokenLogicStandard is AdvancedToken {
-    using SafeMath for uint256;
+contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
     using SignedSafeMath for int256;
 
     // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wrbtcTokenAddress
-    address public sovrynContractAddress;
     address public wrbtcTokenAddress;
     address internal target_;
 
@@ -852,7 +850,6 @@ contract LoanTokenLogicStandard is AdvancedToken {
         returns (uint256, uint256)
     {
         _checkPause();
-
         require (sentAmounts[1] <= _underlyingBalance() && // newPrincipal (borrowed amount + fees)
             sentAddresses[1] != address(0), // borrower
             "24"
@@ -890,7 +887,6 @@ contract LoanTokenLogicStandard is AdvancedToken {
 
         // converting to initialMargin
         leverageAmount = SafeMath.div(10**38, leverageAmount);
-            
         (sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress).borrowOrTradeFromPool.value(msgValue)( // newPrincipal, newCollateral
             loanParamsId,
             loanId,
@@ -1265,36 +1261,6 @@ contract LoanTokenLogicStandard is AdvancedToken {
             return assetBorrow
                 .mul(10**20)
                 .div(assetSupply);
-        }
-    }
-
-
-    /* Owner-Only functions */
-
-    function updateSettings(
-        address settingsTarget,
-        bytes memory callData)
-        public
-        onlyOwner
-    {
-        address currentTarget = target_;
-        target_ = settingsTarget;
-
-        (bool result,) = address(this).call(callData);
-
-        uint256 size;
-        uint256 ptr;
-        assembly {
-            size := returndatasize
-            ptr := mload(0x40)
-            returndatacopy(ptr, 0, size)
-            if eq(result, 0) { revert(ptr, size) }
-        }
-
-        target_ = currentTarget;
-
-        assembly {
-            return(ptr, size)
         }
     }
 }

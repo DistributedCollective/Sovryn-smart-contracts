@@ -12,10 +12,10 @@ def main():
     #load the contracts and acct depending on the network
     loadConfig()
     #call the function you want here
-    #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOCSettings'], contracts['iDOC'])
-    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iDOC'], contracts['DoC'], contracts['WRBTC'], 1e18, 10e18, False, 0)
-    #setupMarginLoanParams(contracts['DoC'], contracts['iRBTCSettings'], contracts['iRBTC'])
-    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 11e18, False, 1e15)
+    #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOC'])
+    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iDOC'], contracts['DoC'], contracts['WRBTC'], 1e18, 5e18, False, 0)
+    #setupMarginLoanParams(contracts['DoC'],  contracts['iRBTC'])
+    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 5e18, False, 1e15)
     
     #swapTokens(0.02e18,200e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['DoC'])
     #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
@@ -24,17 +24,16 @@ def main():
     #getBalance(contracts['WRBTC'], '0xE5646fEAf7f728C12EcB34D14b4396Ab94174827')
     #getBalance(contracts['WRBTC'], '0x7BE508451Cd748Ba55dcBE75c8067f9420909b49')
     #readLoan('0xb2bbd9135a7cfbc5adda48e90430923108ad6358418b7ac27c9edcf2d44911e5')
-    #replaceLoanClosings()
-    #buyWRBTC()
+    replaceLoanClosings()
     
-    #hasApproval(contracts['WRBTC'], acct, '0x133ebe9c8ba524c9b1b601e794df527f390729bf')
-    #getBalance(contracts['WRBTC'], acct)
-    #readFromMedianizer()
-    #updateOracleAddress(contracts['medianizer'])
-    #swapTokens(1e18, 1, contracts['swapNetwork'], contracts['DoC'], contracts['BPro'])
-    
-    testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iBPro'], contracts['BPro'], contracts['WRBTC'], 1e15, 5e18, True, 0)
-    
+    #logicContract = acct.deploy(LoanTokenLogicStandard)
+    #print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
+    #replaceLoanTokenLogic(contracts['iDOC'],logicContract.address)
+    #replaceLoanTokenLogic(contracts['iUSDT'],'0x2d4F27e9F82d315c389E5290D94dbA062993e40a')
+    #replaceLoanTokenLogic(contracts['iBPro'],'0x2d4F27e9F82d315c389E5290D94dbA062993e40a')
+    #logicContract = acct.deploy(LoanTokenLogicWrbtc)
+    #print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
+    #replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
     
 def loadConfig():
     global contracts, acct
@@ -54,19 +53,14 @@ def readLendingFee():
     lfp = sovryn.lendingFeePercent()
     print(lfp/1e18)
     
-def setupLoanTokenRates(loanTokenAddress, settingsAddress, logicAddress):
+def setupLoanTokenRates(loanTokenAddress):
     baseRate = 1e18
     rateMultiplier = 20.25e18
     targetLevel=80*10**18
     kinkLevel=90*10**18
     maxScaleRate=100*10**18
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
-    localLoanToken.setTarget(settingsAddress)
-    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
     localLoanToken.setDemandCurve(baseRate,rateMultiplier,baseRate,rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
-    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
-    localLoanToken.setTarget(logicAddress)
-    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     borrowInterestRate = localLoanToken.borrowInterestRate()
     print("borrowInterestRate: ",borrowInterestRate)
     
@@ -206,10 +200,8 @@ def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collat
     #assert the trade was processed as expected
     print(tx.info())
     
-def setupTorqueLoanParams(loanTokenAddress, loanTokenSettingsAddress, underlyingTokenAddress, collateralTokenAddress):
+def setupTorqueLoanParams(loanTokenAddress, underlyingTokenAddress, collateralTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
-    loanTokenSettings = Contract.from_abi("loanTokenSettings", address=loanTokenSettingsAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
-    params = [];
     setup = [
         b"0x0", ## id
         False, ## active
@@ -221,8 +213,7 @@ def setupTorqueLoanParams(loanTokenAddress, loanTokenSettingsAddress, underlying
         0 ## fixedLoanTerm 
     ]
     params.append(setup)
-    calldata = loanTokenSettings.setupLoanParams.encode_input(params, True)
-    tx = loanToken.updateSettings(loanTokenSettings.address, calldata)
+    tx = loanToken.setupLoanParams(params, True)
     assert('LoanParamsSetup' in tx.events)
     assert('LoanParamsIdSetup' in tx.events)
     print(tx.info())
@@ -234,8 +225,11 @@ def rollover(loanId):
     
 def replaceLoanClosings():
     sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovryn.abi, owner=acct)
-    loanClosings = acct.deploy(LoanClosings)
-    sovryn.replaceContract(loanClosings.address)
+    data = sovryn.replaceContract.encode_input(loanClosings.address)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
     
 def transferOwner(contractAddress, newOwner):
     contract = Contract.from_abi("loanToken", address=contractAddress, abi=LoanToken.abi, owner=acct)
@@ -256,13 +250,10 @@ def mintEarlyAccessTokens(contractAddress, userAddress):
     tx = contract.mint(userAddress)
     tx.info()
     
-def setTransactionLimits(loanTokenAddress, settingsAddress, logicAddress, addresses, limits):
-    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=accounts[0])
-    localLoanToken.setTarget(settingsAddress)
-    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=accounts[0])
+def setTransactionLimits(loanTokenAddress, addresses, limits):
+    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
     tx = localLoanToken.setTransactionLimits(addresses,limits)
-    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=accounts[0])
-    localLoanToken.setTarget(logicAddress)
+
     
 def readTransactionLimits(loanTokenAddress, SUSD, RBTC):
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=accounts[0])
@@ -316,10 +307,9 @@ def readOwner(contractAddress):
     contract = Contract.from_abi("loanToken", address=contractAddress, abi=LoanToken.abi, owner=acct)
     print('owner:',contract.owner())
     
-def setupMarginLoanParams(collateralTokenAddress, loanTokenSettingsAddress, loanTokenAddress):
+def setupMarginLoanParams(collateralTokenAddress, loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
-    loanTokenSettings = Contract.from_abi("loanTokenSettings", address=loanTokenSettingsAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
-
+    
     params = [];
     setup = [
         b"0x0", ## id
@@ -327,13 +317,12 @@ def setupMarginLoanParams(collateralTokenAddress, loanTokenSettingsAddress, loan
         acct, ## owner
         "0x0000000000000000000000000000000000000000", ## loanToken -> will be overwritten
         collateralTokenAddress, ## collateralToken.
-        Wei("8.001 ether"), ## minInitialMargin
-        Wei("8 ether"), ## maintenanceMargin
+        Wei("20 ether"), ## minInitialMargin
+        Wei("15 ether"), ## maintenanceMargin
         0 ## fixedLoanTerm -> will be overwritten
     ]
     params.append(setup)
-    calldata = loanTokenSettings.setupLoanParams.encode_input(params, False)
-    tx = loanToken.updateSettings(loanTokenSettings.address, calldata)
+    tx = loanToken.setupLoanParams(params, False)
     print(tx.info())
 
 def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTokenAddress):
@@ -357,6 +346,9 @@ def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTo
     )
     tx.info()
     
+def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
+    loanToken.setTarget(logicAddress)
     
 def readFromMedianizer():
     medianizer = Contract.from_abi("Medianizer", address=contracts['medianizer'], abi=PriceFeedsMoCMockup.abi, owner=acct)
