@@ -16,6 +16,8 @@ const NAME = "Sovryn Reward Token";
 const SYMBOL = "RSOV";
 const DECIMALS = 18;
 
+const WEEK = new BN(7 * 24 * 60 * 60);
+
 contract('RSOV:', accounts => {
     const name = 'Test tokenSOV';
     const symbol = 'TST';
@@ -104,14 +106,35 @@ contract('RSOV:', accounts => {
             await tokenRSOV.mint(amount, {from: account1});
     
             let tx = await tokenRSOV.burn(amount, {from: account1});
+
+            let block = await web3.eth.getBlock("latest");
+            let timestamp = block.timestamp;
+
+            let start = timestamp + 4 * WEEK;
+            let end = timestamp + 52 * WEEK;
+
+            let numIntervals = Math.floor((end - start)/(4 * WEEK)) + 1;
+            let stakedPerInterval = Math.floor(amount / numIntervals);
+            let stakeForFirstInterval = amount - stakedPerInterval * (numIntervals-1);
+
+            for (let i = start; i <= end; i += 4 * WEEK) {
+                let lockedTS = await staking.timestampToLockDate(i);
+                let userStakingCheckpoints = await staking.userStakingCheckpoints(account1, lockedTS, 0);
+
+                expect(userStakingCheckpoints.fromBlock).to.be.bignumber.equal(new BN(block.number));
+                if (i === start) {
+                    expect(userStakingCheckpoints.stake).to.be.bignumber.equal(new BN(stakeForFirstInterval));
+                } else {
+                    expect(userStakingCheckpoints.stake).to.be.bignumber.equal(new BN(stakedPerInterval));
+                }
+
+                let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(account1, lockedTS);
+                expect(numUserStakingCheckpoints).to.be.bignumber.equal(new BN(1));
+            }
             
             expect(await tokenRSOV.balanceOf.call(account1)).to.be.bignumber.equal(ZERO);
             expect(await tokenSOV.balanceOf.call(staking.address)).to.be.bignumber.equal(new BN(amount));
-            let lockDate = await getTimeFromKickoff(HALF_YEAR);
-            expect(await staking.numUserStakingCheckpoints.call(account1, lockDate)).to.be.bignumber.equal(new BN(1));
-            let checkpoint = await staking.userStakingCheckpoints.call(account1, lockDate, 0);
-            expect(checkpoint.stake).to.be.bignumber.equal(amount);
-            
+
             expectEvent(tx, 'Burn', {
                 sender: account1,
                 amount: amount
