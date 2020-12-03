@@ -96,4 +96,6 @@ contract LoanToken is AdvancedTokenStorage {
 
         initialPrice = 10**18; // starting price of 1
     }
+
+
 }

@@ -15,13 +15,36 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 
     // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress
     address public sovrynContractAddress;
-    
+
+    // ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
+
+
     event SetTransactionLimits(address[] addresses, uint256[] limits);
 
+    //@todo add check for double init, idk but init usually can be called only once.
+    function init(
+        address _loanTokenAddress,
+        string memory _name,
+        string memory _symbol)
+    public
+    onlyOwner
+    {
+        loanTokenAddress = _loanTokenAddress;
+
+        name = _name;
+        symbol = _symbol;
+        decimals = IERC20(loanTokenAddress).decimals();
+
+        initialPrice = 10**18; // starting price of 1
+    }
     modifier onlyAdmin() {
         require(msg.sender == address(this) ||
             msg.sender == owner(), "unauthorized");
         _;
+    }
+
+    function setAdmin(address _admin) public onlyOwner {
+        admin = _admin;
     }
 
     function()
