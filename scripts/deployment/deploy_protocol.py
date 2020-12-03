@@ -88,4 +88,4 @@ def deployProtocol(acct, tokens, medianizerAddress):
     print("Calling replaceContract.")
     sovryn.replaceContract(loanClosings.address)
 
-    return sovryn
+    return (sovryn, feeds)

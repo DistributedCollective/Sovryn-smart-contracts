@@ -6,11 +6,11 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./AdvancedTokenStorage.sol";
+import "./AdvancedToken.sol";
 import "./interfaces/ProtocolSettingsLike.sol";
 
 // It is a LoanToken implementation!
-contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
+contract LoanTokenSettingsLowerAdmin is AdvancedToken {
     using SafeMath for uint256;
 
     // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress
@@ -157,6 +157,11 @@ contract LoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
             transactionLimit[addresses[i]] = limits[i];
         }
         emit SetTransactionLimits(addresses, limits);
+    }
+
+    function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol) public onlyAdmin {
+        name = _name;
+        symbol = _symbol;
     }
 
 }
