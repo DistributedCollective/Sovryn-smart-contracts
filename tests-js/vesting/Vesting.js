@@ -292,15 +292,6 @@ contract('Vesting', accounts => {
             let vesting = await Vesting.new(token.address, staking.address, a1, 26 * WEEK , 104 * WEEK, feeSharingProxy.address);
             await expectRevert(vesting.collectDividends(root, 10, a1, {from: a2}), "unauthorized");
             await expectRevert(vesting.collectDividends(root, 10, a1, {from: a3}), "unauthorized");
-
-            // @todo activate when collectDividends will work
-            // await vesting.collectDividends(root, 10, {from: root});
-            // let tx = await vesting.collectDividends(root, 10, {from: a1});
-            // expectEvent(tx, 'DividendsCollected', {
-            //                 caller: root,
-            //                 receiver: root,
-            //                 maxCheckpoints: 10
-            //             });
         });
 
         it("should collect dividends", async() => {

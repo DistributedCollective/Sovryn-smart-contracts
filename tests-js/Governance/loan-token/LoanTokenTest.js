@@ -65,8 +65,7 @@ contract('LoanTokenUpgrade', accounts => {
     });
 
     describe("change settings", () => {
-        //@todo rename this or delete, idk why I wrote this test
-        it("check how works proxy", async () => {
+        it("admin field should be readable", async () => {
 
             let previousSovrynContractAddress = await loanToken.sovrynContractAddress();
             let previousWrbtcTokenAddress = await loanToken.wrbtcTokenAddress();
@@ -82,12 +81,16 @@ contract('LoanTokenUpgrade', accounts => {
             let admin = await loanToken.admin();
             assert.equal(admin, constants.ZERO_ADDRESS);
 
+            await expectRevert(loanToken.changeLoanTokenNameAndSymbol("newName", "newSymbol"),
+                "unauthorized");
 
             //change admin
             loanToken.setAdmin(root);
 
             admin = await loanToken.admin();
-            assert.equal(admin, root)
+            assert.equal(admin, root);
+
+            await loanToken.changeLoanTokenNameAndSymbol("newName", "newSymbol");
 
             let sovrynContractAddress = await loanToken.sovrynContractAddress();
             let wrbtcTokenAddress = await loanToken.wrbtcTokenAddress();
