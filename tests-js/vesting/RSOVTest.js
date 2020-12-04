@@ -148,9 +148,4 @@ contract('RSOV:', accounts => {
         
     });
 
-    async function getTimeFromKickoff(delay) {
-        let kickoffTS = await staking.kickoffTS.call();
-        return kickoffTS.add(new BN(delay));
-    }
-
 });

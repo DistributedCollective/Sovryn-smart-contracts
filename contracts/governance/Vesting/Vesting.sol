@@ -21,6 +21,8 @@ contract Vesting is Ownable {
     uint public duration;
     ///@notice the start date of the vesting
     uint public startDate;
+    ///@notice the end date of the vesting
+    uint public endDate;
     ///@notice constant used for computing the vesting dates
     uint constant FOUR_WEEKS = 4 weeks;
 
@@ -65,8 +67,10 @@ contract Vesting is Ownable {
      * */
     function stakeTokens(uint amount) public {
         //maybe better to allow staking unil the cliff was reached
-        require(startDate == 0, "stakeTokens can be called only once.");
-        startDate = staking.timestampToLockDate(block.timestamp);
+        if (startDate == 0) {
+            startDate = staking.timestampToLockDate(block.timestamp);
+        }
+        endDate = staking.timestampToLockDate(block.timestamp) + duration;
         //transfer the tokens to this contract
         bool success = SOV.transferFrom(msg.sender, address(this), amount);
         require(success);
@@ -88,7 +92,7 @@ contract Vesting is Ownable {
         uint end;
         //in the unlikely case that all tokens have been unlocked early, allow to withdraw all of them.
         if (staking.allUnlocked()) {
-            end = startDate + duration;
+            end = endDate;
         } else {
             end = block.timestamp;
         }

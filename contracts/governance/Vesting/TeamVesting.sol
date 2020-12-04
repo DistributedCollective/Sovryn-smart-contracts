@@ -32,7 +32,7 @@ contract TeamVesting is Vesting{
      * @param newTokenOwner the address of the new token owner
      * */
     function _changeDelegate(address newTokenOwner) internal{
-        for(uint i = startDate+cliff; i < startDate + duration; i += FOUR_WEEKS){
+        for(uint i = startDate+cliff; i < endDate; i += FOUR_WEEKS){
             //only delegate if stake is remaining
             if(staking.getPriorUserStakeByDate(address(this), i, block.number - 1) > 0)
                 staking.delegate(newTokenOwner, i);
