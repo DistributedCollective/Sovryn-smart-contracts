@@ -173,7 +173,8 @@ contract Staking is WeightedStaking{
      * */
     function withdraw(uint96 amount, uint until, address receiver) public {
         require(amount > 0, "Staking::withdraw: amount of tokens to be withdrawn needs to be bigger than 0");
-        require(block.timestamp >= until || allUnlocked, "Staking::withdraw: tokens are still locked.");
+        //TODO remove
+//        require(block.timestamp >= until || allUnlocked, "Staking::withdraw: tokens are still locked.");
         uint96 balance = getPriorUserStakeByDate(msg.sender, until, block.number -1);
         require(amount <= balance, "Staking::withdraw: not enough balance");
         
@@ -184,7 +185,19 @@ contract Staking is WeightedStaking{
         //update the checkpoints
         _decreaseDailyStake(until, amount);
         _decreaseUserStake(msg.sender, until, amount);
-        
+
+        //early unstaking should be punished
+        if (block.timestamp < until && !allUnlocked) {
+            uint date = timestampToLockDate(block.timestamp);
+            //TODO adjust weight
+            uint96 weight = computeWeightByDate(until, date);
+            uint96 slashedAmount = amount * weight / 1000;
+            uint96 punishedAmount = amount - slashedAmount;
+            amount = slashedAmount;
+            //move punished amount to fee sharing
+
+        }
+
         //transferFrom
         bool success = SOVToken.transfer(receiver, amount);
         require(success, "Staking::withdraw: Token transfer failed");
