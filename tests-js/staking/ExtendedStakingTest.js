@@ -126,8 +126,6 @@ contract('Staking', accounts => {
             let afterBalance = await token.balanceOf.call(root);
             expect(beforeBalance.sub(afterBalance).toString()).to.be.equal(amount);
 
-            
-
             //_writeUserCheckpoint
             let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
             expect(numUserCheckpoints.toNumber()).to.be.equal(1);
@@ -524,6 +522,13 @@ contract('Staking', accounts => {
             expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
             expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
 
+            //_decreaseDelegateStake
+            let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
+            checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, numDelegateStakingCheckpoints - 1);
+            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
+            expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
+            expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(2);
+
             expectEvent(tx2, 'TokensWithdrawn', {
                 staker: root,
                 amount: new BN(amount / 2),
@@ -545,11 +550,23 @@ contract('Staking', accounts => {
         
             stackingbBalance = await token.balanceOf.call(staking.address);
             expect(stackingbBalance.toNumber()).to.be.equal(amount / 2);
+
+            //_decreaseDelegateStake
+            let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
+            let checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, numDelegateStakingCheckpoints - 1);
+            expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
+            expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(2);
     
             await staking.withdraw(amount / 2, lockedTS, root);
     
             stackingbBalance = await token.balanceOf.call(staking.address);
             expect(stackingbBalance.toNumber()).to.be.equal(0);
+
+            //_decreaseDelegateStake
+            numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
+            checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, numDelegateStakingCheckpoints - 1);
+            expect(checkpoint.stake.toNumber()).to.be.equal(0);
+            expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(3);
     
         });
     

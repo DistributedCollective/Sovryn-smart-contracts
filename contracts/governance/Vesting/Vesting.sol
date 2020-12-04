@@ -77,7 +77,7 @@ contract Vesting is Ownable {
         //allow the staking contract to access them
         SOV.approve(address(staking), amount);
 
-        staking.stakeTokens(amount, cliff, duration, FOUR_WEEKS, address(this), tokenOwner);
+        staking.stakesBySchedule(amount, cliff, duration, FOUR_WEEKS, address(this), tokenOwner);
 
         emit TokensStaked(msg.sender, amount);
     }

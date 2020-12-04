@@ -78,7 +78,7 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
         //stakes SOV tokens in the user's behalf
         SOV.approve(address(staking), _amount);
 
-        staking.stakeTokens(_amount, FOUR_WEEKS, YEAR, FOUR_WEEKS, msg.sender, msg.sender);
+        staking.stakesBySchedule(_amount, FOUR_WEEKS, YEAR, FOUR_WEEKS, msg.sender, msg.sender);
 
         emit Burn(msg.sender, _amount);
     }
@@ -86,7 +86,7 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
 }
 
 interface IStaking {
-    function stakeTokens(
+    function stakesBySchedule(
         uint amount,
         uint cliff,
         uint duration,

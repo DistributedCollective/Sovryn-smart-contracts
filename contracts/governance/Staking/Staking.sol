@@ -88,30 +88,6 @@ contract Staking is WeightedStaking{
         emit ExtendedStakingDuration(msg.sender, previousLock, until);
     }
     
-    /**
-     * @notice increases a users stake
-     * @param amount the amount of SOV tokens
-     * @param stakeFor the address for which we want to increase the stake. staking for the sender if 0x0
-     * @param until the lock date until which the funds are staked
-     * */
-    //TODO deprecated, can be removed when frontend updated
-    function increaseStake(uint96 amount, address stakeFor, uint until) public {
-        require(amount > 0, "Staking::increaseStake: amount of tokens to stake needs to be bigger than 0");
-
-        until = timestampToLockDate(until);
-        uint96 balance = currentBalance(stakeFor, until);
-        require(balance > 0, "Staking:increaseStake: nothing staked yet until the given date. Use 'stake' instead.");
-
-        //stake for the msg.sender if not specified otherwise
-        if(stakeFor == address(0)) {
-            stakeFor = msg.sender;
-        }
-
-        _increaseStake(amount, stakeFor, until);
-
-        _increaseDelegateStake(delegates[stakeFor][until], until, amount);
-    }
-
     function _increaseStake(uint96 amount, address stakeFor, uint until) internal {
         //retrieve the SOV tokens
         bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
@@ -137,7 +113,7 @@ contract Staking is WeightedStaking{
      * @param stakeFor the address to stake the tokens for or 0x0 if staking for oneself
      * @param delegatee the address of the delegatee or 0x0 if there is none.
      * */
-    function stakeTokens(
+    function stakesBySchedule(
         uint amount,
         uint cliff,
         uint duration,
@@ -184,6 +160,7 @@ contract Staking is WeightedStaking{
         //update the checkpoints
         _decreaseDailyStake(until, amount);
         _decreaseUserStake(msg.sender, until, amount);
+        _decreaseDelegateStake(delegates[msg.sender][until], until, amount);
         
         //transferFrom
         bool success = SOVToken.transfer(receiver, amount);
