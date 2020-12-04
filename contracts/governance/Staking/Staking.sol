@@ -127,7 +127,44 @@ contract Staking is WeightedStaking{
 
         emit TokensStaked(stakeFor, amount, until, balance);
     }
-    
+
+    /**
+     * @notice stakes tokens according to the vesting schedule
+     * @param amount the amount of tokens to stake
+     * @param cliff the time interval to the first withdraw
+     * @param duration the staking duration
+     * @param intervalLength the length of each staking interval when cliff passed
+     * @param stakeFor the address to stake the tokens for or 0x0 if staking for oneself
+     * @param delegatee the address of the delegatee or 0x0 if there is none.
+     * */
+    function stakeTokens(
+        uint amount,
+        uint cliff,
+        uint duration,
+        uint intervalLength,
+        address stakeFor,
+        address delegatee
+    )
+        public
+    {
+        //stake them until lock dates according to the vesting schedule
+        //note: because staking is only possible in periods of 2 weeks, the total duration might
+        //end up a bit shorter than specified depending on the date of staking.
+        uint start = block.timestamp + cliff;
+        uint end = block.timestamp + duration;
+        uint numIntervals = (end - start) / intervalLength + 1;
+        uint stakedPerInterval = amount / numIntervals;
+        //stakedPerInterval might lose some dust on rounding. add it to the first staking date
+        if(numIntervals > 1) {
+            stake(uint96(amount - stakedPerInterval * (numIntervals-1)), start, stakeFor, delegatee);
+        }
+        //stake the rest in 4 week intervals
+        for(uint i = start + intervalLength; i <= end; i+= intervalLength) {
+            //stakes for itself, delegates to the owner
+            stake(uint96(stakedPerInterval), i, stakeFor, delegatee);
+        }
+    }
+
     /**
      * @notice withdraws the given amount of tokens if they are unlocked
      * @param amount the number of tokens to withdraw

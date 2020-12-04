@@ -72,22 +72,8 @@ contract Vesting is Ownable {
         require(success);
         //allow the staking contract to access them
         SOV.approve(address(staking), amount);
-        //stake them until lock dates according to the vesting schedule
-        //note: because staking is only possible in periods of 2 weeks, the total duration might
-        //end up a bit shorter than specified depending on the date of staking.
-        uint start = block.timestamp + cliff;
-        uint end = block.timestamp + duration;
-        uint numIntervals = (end - start)/FOUR_WEEKS + 1;
-        uint stakedPerInterval = amount/numIntervals;
-        //stakedPerInterval might lose some dust on rounding. add it to the first staking date
-        if(numIntervals > 1) {
-            staking.stake(uint96(amount - stakedPerInterval * (numIntervals-1)), start, address(this), tokenOwner);
-        }
-        //stake the rest in 4 week intervals
-        for(uint i = start + FOUR_WEEKS; i <= end; i+= FOUR_WEEKS) {
-            //stakes for itself, delegates to the owner
-            staking.stake(uint96(stakedPerInterval), i, address(this), tokenOwner);
-        }
+
+        staking.stakeTokens(amount, cliff, duration, FOUR_WEEKS, address(this), tokenOwner);
 
         emit TokensStaked(msg.sender, amount);
     }

@@ -98,7 +98,7 @@ contract('RSOV:', accounts => {
     
     describe('burn:', () => {
         
-        it('should be able to burn RSOV tokens', async () => {
+        it('should be able to burn RSOV tokens and stake for 13 positions', async () => {
             let amount = new BN(1000);
             
             await tokenSOV.transfer(account1, amount);
