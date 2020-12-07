@@ -58,7 +58,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
     function setPauser(address _pauser) public {
         require(msg.sender == address(this) ||
                 msg.sender == admin ||
-                msg.sender == owner, "not allowed");
+                msg.sender == owner(), "not allowed");
         pauser = _pauser;
     }
 
