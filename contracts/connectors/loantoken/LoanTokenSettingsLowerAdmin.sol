@@ -22,6 +22,9 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
     address public admin;
     // ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 
+    //Add new variables here on the bottom
+    address public pauser;
+
     //@todo check for restrictions in this contract
     modifier onlyAdmin() {
         require(msg.sender == address(this) ||
@@ -50,6 +53,13 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 
     function setAdmin(address _admin) public onlyOwner {
         admin = _admin;
+    }
+
+    function setPauser(address _pauser) public {
+        require(msg.sender == address(this) ||
+                msg.sender == admin ||
+                msg.sender == owner, "not allowed");
+        pauser = _pauser;
     }
 
     function()
@@ -135,8 +145,8 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
         string memory funcId,  // example: "mint(uint256,uint256)"
         bool isPaused)
         public
-        onlyAdmin
     {
+        require(msg.sender == pauser, "onlyPauser");
         // keccak256("iToken_FunctionPause")
         bytes32 slot = keccak256(abi.encodePacked(bytes4(keccak256(abi.encodePacked(funcId))), uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)));
         assembly {
