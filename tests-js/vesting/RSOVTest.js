@@ -99,7 +99,8 @@ contract('RSOV:', accounts => {
     describe('burn:', () => {
         
         it('should be able to burn RSOV tokens and stake for 13 positions', async () => {
-            let amount = new BN(1000);
+            let initialAmount = 1000;
+            let amount = initialAmount;
             
             await tokenSOV.transfer(account1, amount);
             await tokenSOV.approve(tokenRSOV.address, amount, {from: account1});
@@ -112,6 +113,9 @@ contract('RSOV:', accounts => {
 
             let start = timestamp + 4 * WEEK;
             let end = timestamp + 52 * WEEK;
+
+            let transferAmount = Math.floor(amount / 14);
+            amount -= transferAmount;
 
             let numIntervals = Math.floor((end - start)/(4 * WEEK)) + 1;
             let stakedPerInterval = Math.floor(amount / numIntervals);
@@ -133,11 +137,13 @@ contract('RSOV:', accounts => {
             }
             
             expect(await tokenRSOV.balanceOf.call(account1)).to.be.bignumber.equal(ZERO);
+            expect(await tokenSOV.balanceOf.call(account1)).to.be.bignumber.equal(new BN(transferAmount));
             expect(await tokenSOV.balanceOf.call(staking.address)).to.be.bignumber.equal(new BN(amount));
+            expect(transferAmount + amount).to.be.equal(initialAmount);
 
             expectEvent(tx, 'Burn', {
                 sender: account1,
-                amount: amount
+                amount: new BN(amount)
             });
         });
         

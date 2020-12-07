@@ -20,6 +20,8 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
     ///@notice constants used for computing the vesting dates
     uint constant FOUR_WEEKS = 4 weeks;
     uint constant YEAR = 52 weeks;
+    ///@notice amount of tokens divided by this constant will be transferred
+    uint96 constant DIRECT_TRANSFER_PART = 14;
 
     ///@notice the SOV token contract
     IERC20 public SOV;
@@ -74,6 +76,14 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
 
         //burns RSOV tokens
         _burn(msg.sender, _amount);
+
+        //transfer 1/14 of amount directly to the user
+        //if amount is too small it won't be transferred
+        uint96 transferAmount = _amount / DIRECT_TRANSFER_PART;
+        if (transferAmount > 0) {
+            SOV.transfer(msg.sender, transferAmount);
+            _amount -= transferAmount;
+        }
         
         //stakes SOV tokens in the user's behalf
         SOV.approve(address(staking), _amount);
