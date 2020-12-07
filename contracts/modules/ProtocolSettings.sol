@@ -26,7 +26,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 
     //@todo check for restrictions in this contract
     modifier onlyAdmin() {
-        require(msg.sender == admin, "unauthorized");
+        require(isOwner() || msg.sender == admin, "unauthorized");
         _;
     }
 

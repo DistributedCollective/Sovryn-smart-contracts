@@ -154,7 +154,7 @@ contract GovernorAlpha is SafeMath96 {
     function quorumVotes() public view returns (uint96) { 
         uint96 totalVotingPower = staking.getPriorTotalVotingPower(safe32(block.number-1, "GovernorAlpha::quorumVotes: block number overflow"), block.timestamp);
         //4% of current total voting power
-        return mul96(4, totalVotingPower, "GovernorAlpha::quorumVotes:multiplication overflow")/100; 
+        return mul96(quorumPercentageVotes, totalVotingPower, "GovernorAlpha::quorumVotes:multiplication overflow")/100;
     } 
 
 

@@ -27,8 +27,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 
     //@todo check for restrictions in this contract
     modifier onlyAdmin() {
-        require(msg.sender == address(this) ||
-        msg.sender == admin, "unauthorized");
+        require(isOwner() || msg.sender == admin, "unauthorized");
         _;
     }
 

@@ -6,8 +6,8 @@ def main():
     thisNetwork = network.show_active()
 
     #@todo put correct variables
-    governorOwnerQuorumVotes = 4
-    governorAdminQuorumVotes = 70
+    governorOwnerQuorumVotes = 70
+    governorAdminQuorumVotes = 4
     
     if thisNetwork == "development":
         acct = accounts[0]
