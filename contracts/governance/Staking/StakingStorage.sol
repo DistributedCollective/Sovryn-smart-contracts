@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
+import "../IFeeSharingProxy.sol";
 
 contract StakingStorage is Ownable{
     ///@notice 2 weeks in seconds
@@ -43,7 +44,10 @@ contract StakingStorage is Ownable{
     
     /// @notice used for stake migrations to a new staking contract with a different storage structure
     address public newStakingContract;
-    
+
+    /// @notice the address of FeeSharingProxy contract, we need it for unstaking with slashing
+    IFeeSharingProxy public feeSharing;
+
     /*************************** Checkpoints *******************************/
     
     /// @notice A checkpoint for marking the stakes from a given block

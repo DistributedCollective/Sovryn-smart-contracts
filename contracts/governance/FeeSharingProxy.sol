@@ -73,6 +73,20 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
         emit FeeWithdrawn(msg.sender, loanPoolToken, poolTokenAmount);
     }
 
+    function transferTokens(address _token, uint96 _amount) public {
+        require(_token != address(0), "FeeSharingProxy::transferTokens: invalid address");
+        require(_amount != address(0), "FeeSharingProxy::transferTokens: invalid amount");
+        //TODO how to avoid often invocations ?
+        require(msg.sender == staking, "Staking::transferTokens: unauthorized");
+
+        //transfer tokens from staking contract
+        bool success = IERC20(_token).transferFrom(address(staking), address(this), _amount);
+        require(success, "Staking::transferTokens: token transfer failed");
+
+        //write a regular checkpoint
+        _writeTokenCheckpoint(_token, _amount);
+    }
+
     /**
      * @notice withdraw accumulated fee the message sender
      * @param _loanPoolToken address of the pool token

@@ -173,8 +173,6 @@ contract Staking is WeightedStaking{
      * */
     function withdraw(uint96 amount, uint until, address receiver) public {
         require(amount > 0, "Staking::withdraw: amount of tokens to be withdrawn needs to be bigger than 0");
-        //TODO remove
-//        require(block.timestamp >= until || allUnlocked, "Staking::withdraw: tokens are still locked.");
         uint96 balance = getPriorUserStakeByDate(msg.sender, until, block.number -1);
         require(amount <= balance, "Staking::withdraw: not enough balance");
         
@@ -194,8 +192,15 @@ contract Staking is WeightedStaking{
             uint96 slashedAmount = amount * weight / 1000;
             uint96 punishedAmount = amount - slashedAmount;
             amount = slashedAmount;
-            //move punished amount to fee sharing
 
+            //punishedAmount can be 0 if block.timestamp are very close to 'until'
+            if (punishedAmount > 0) {
+                require(address(feeSharing) != address(0), "Staking::withdraw: FeeSharing address wasn't set");
+                //move punished amount to fee sharing
+                //approve transfer here and let feeSharing do transfer and write checkpoint
+                SOVToken.approve(address(feeSharing), punishedAmount);
+                feeSharing.transferTokens(address(SOVToken), punishedAmount);
+            }
         }
 
         //transferFrom
@@ -204,9 +209,7 @@ contract Staking is WeightedStaking{
         
         emit TokensWithdrawn(msg.sender, receiver, amount);
     }
-    
-    
-    
+
     /**
      * @notice returns the current balance of for an account locked until a certain date
      * @param account the user address
@@ -312,6 +315,15 @@ contract Staking is WeightedStaking{
     function setNewStakingContract(address _newStakingContract) public onlyOwner {
         require(_newStakingContract != address(0), "can't reset the new staking contract to 0");
         newStakingContract = _newStakingContract;
+    }
+
+    /**
+    * @notice allows the owner to set a fee sharing proxy contract, we need it for unstaking with slashing.
+    * @param _feeSharing the address of FeeSharingProxy contract
+    */
+    function setFeeSharing(address _feeSharing) public onlyOwner {
+        require(_feeSharing != address(0), "FeeSharing address shouldn't be 0");
+        feeSharing = IFeeSharingProxy(_feeSharing);
     }
     
     /**
