@@ -2,11 +2,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./WeightedStaking.sol";
-
-interface IStaking {
-    function getPriorVotes(address account, uint blockNumber, uint date) external view returns (uint96);
-    function getPriorTotalVotingPower(uint32 blockNumber, uint time) view external returns(uint96);
-}
+import "./IStaking.sol";
 
 //@todo change directory name Staking -> staking
 contract Staking is IStaking, WeightedStaking {
