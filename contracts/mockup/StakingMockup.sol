@@ -18,7 +18,6 @@ contract StakingMockup is Staking {
         return priorTotalVotingPower != 0 ? priorTotalVotingPower : super.getPriorTotalVotingPower(blockNumber, time);
     }
     
-    
     uint96 priorWeightedStake;
     
     function MOCK_priorWeightedStake(uint96 _priorWeightedStake) public {
@@ -32,5 +31,4 @@ contract StakingMockup is Staking {
     function calculatePriorWeightedStake(address account, uint blockNumber, uint date) public {
         super.getPriorWeightedStake(account, blockNumber, date);
     }
-
 }

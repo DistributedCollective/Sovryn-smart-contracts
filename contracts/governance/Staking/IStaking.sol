@@ -1,15 +1,16 @@
 pragma solidity ^0.5.17;
 
 interface IStaking {
-    function stakesBySchedule(
-        uint amount,
-        uint cliff,
-        uint duration,
-        uint intervalLength,
-        address stakeFor,
-        address delegatee
-    )
-    external;
+    //@todo activate it after implementation
+//    function stakesBySchedule(
+//        uint amount,
+//        uint cliff,
+//        uint duration,
+//        uint intervalLength,
+//        address stakeFor,
+//        address delegatee
+//    )
+//    external;
 
     function stake(uint96 amount, uint until, address stakeFor, address delegatee) external;
 

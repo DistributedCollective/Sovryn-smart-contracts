@@ -5,7 +5,7 @@ import "./WeightedStaking.sol";
 import "./IStaking.sol";
 
 //@todo change directory name Staking -> staking
-contract Staking is WeightedStaking {
+contract Staking is IStaking, WeightedStaking {
     
     /**
      * @notice stakes the given amount for the given duration of time.
