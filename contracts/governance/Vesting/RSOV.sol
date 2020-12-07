@@ -5,6 +5,7 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../Staking/SafeMath96.sol";
+import "../Staking/IStaking.sol";
 
 //TODO should be set as protocolTokenAddress (ProtocolSettings.setProtocolTokenAddress)
 //TODO PriceFeeds._protocolTokenAddress ?
@@ -93,18 +94,4 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
         emit Burn(msg.sender, _amount);
     }
 
-}
-
-interface IStaking {
-    function stakesBySchedule(
-        uint amount,
-        uint cliff,
-        uint duration,
-        uint intervalLength,
-        address stakeFor,
-        address delegatee
-    )
-        external;
-
-    function stake(uint96 amount, uint until, address stakeFor, address delegatee) external;
 }
