@@ -165,6 +165,50 @@ contract('Vesting', accounts => {
             assert.equal(numUserStakingCheckpoints.toString(), "0");
         });
 
+        it('should stake 2 times 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff', async () => {
+            let amount = 1000;
+            let cliff = 28 * WEEK;
+            let duration = 104 * WEEK;
+            vesting = await Vesting.new(token.address, staking.address, root, cliff, duration, feeSharingProxy.address);
+
+            await token.approve(vesting.address, amount);
+            await vesting.stakeTokens(amount);
+
+            let block1 = await web3.eth.getBlock("latest")
+            let timestamp1 = block1.timestamp;
+
+            let start = timestamp1 + cliff;
+            let end = timestamp1 + duration;
+
+            let numIntervals = Math.floor((end - start)/(4 * WEEK)) + 1;
+            let stakedPerInterval = amount / numIntervals;
+
+            await time.increase(52 * WEEK);
+            await token.approve(vesting.address, amount);
+            await vesting.stakeTokens(amount);
+
+            let block2 = await web3.eth.getBlock("latest")
+            let timestamp2 = block2.timestamp;
+
+            let start2 = await staking.timestampToLockDate(timestamp2 + cliff);
+            let end2 = timestamp2 + duration;
+
+            //positive case
+            for (let i = start; i <= end2; i+= 4 * WEEK) {
+                let lockedTS = await staking.timestampToLockDate(i);
+                let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(vesting.address, lockedTS);
+                let userStakingCheckpoints = await staking.userStakingCheckpoints(vesting.address, lockedTS, numUserStakingCheckpoints - 1);
+                if (i < start2 || i > end) {
+                    assert.equal(numUserStakingCheckpoints.toString(), "1");
+                    assert.equal(userStakingCheckpoints.stake.toString(), stakedPerInterval);
+                } else {
+                    assert.equal(numUserStakingCheckpoints.toString(), "2");
+                    assert.equal(userStakingCheckpoints.stake.toString(), stakedPerInterval * 2);
+                }
+            }
+
+        });
+
         it('should stake 1000 tokens with a duration of 34 weeks and a 26 week cliff (dust on rounding)', async () => {
             let amount = 1000;
             let cliff = 26 * WEEK;
@@ -203,11 +247,6 @@ contract('Vesting', accounts => {
             }
         });
 
-        it('should fail to stake twice', async () => {
-            await token.approve(vesting.address, ONE_MILLON);
-            await expectRevert(vesting.stakeTokens(ONE_MILLON),
-                "stakeTokens can be called only once.");
-        });
     });
 
     describe('withdrawTokens', () => {
@@ -244,6 +283,44 @@ contract('Vesting', accounts => {
             assert.equal(previousAmount.sub(new BN(toStake)).toString(), amountAfterStake.toString());
             assert.equal(previousAmount.toString(), amount.toString());
         });
+
+        it('should withdraw unlocked tokens for 2 stakes', async () => {
+
+            //Save current amount
+            let previousAmount = await token.balanceOf(root);
+            let toStake = ONE_MILLON;
+
+            //Stake
+            vesting = await Vesting.new(token.address, staking.address, root, 26 * WEEK , 104 * WEEK, feeSharingProxy.address);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            await time.increase(52 * WEEK);
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            let amountAfterStake = await token.balanceOf(root);
+
+            //time travel
+            await time.increase(104 * WEEK);
+
+            //withdraw
+            let tx = await vesting.withdrawTokens(root);
+
+            //check event
+            expectEvent(tx, 'TokensWithdrawn', {
+                caller: root,
+                receiver: root
+            });
+
+            //verify amount
+            let amount = await token.balanceOf(root);
+
+            assert.equal(previousAmount.sub(new BN(toStake).mul(new BN(2))).toString(), amountAfterStake.toString());
+            assert.equal(previousAmount.toString(), amount.toString());
+        });
+
 
         it('should do nothing if withdrawing a second time', async() => {
             // This part should be tested on staking contract, function getPriorUserStakeByDate

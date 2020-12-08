@@ -21,6 +21,8 @@ contract Vesting is Ownable {
     uint public duration;
     ///@notice the start date of the vesting
     uint public startDate;
+    ///@notice the end date of the vesting
+    uint public endDate;
     ///@notice constant used for computing the vesting dates
     uint constant FOUR_WEEKS = 4 weeks;
 
@@ -65,29 +67,17 @@ contract Vesting is Ownable {
      * */
     function stakeTokens(uint amount) public {
         //maybe better to allow staking unil the cliff was reached
-        require(startDate == 0, "stakeTokens can be called only once.");
-        startDate = staking.timestampToLockDate(block.timestamp);
+        if (startDate == 0) {
+            startDate = staking.timestampToLockDate(block.timestamp);
+        }
+        endDate = staking.timestampToLockDate(block.timestamp) + duration;
         //transfer the tokens to this contract
         bool success = SOV.transferFrom(msg.sender, address(this), amount);
         require(success);
         //allow the staking contract to access them
         SOV.approve(address(staking), amount);
-        //stake them until lock dates according to the vesting schedule
-        //note: because staking is only possible in periods of 2 weeks, the total duration might
-        //end up a bit shorter than specified depending on the date of staking.
-        uint start = block.timestamp + cliff;
-        uint end = block.timestamp + duration;
-        uint numIntervals = (end - start)/FOUR_WEEKS + 1;
-        uint stakedPerInterval = amount/numIntervals;
-        //stakedPerInterval might lose some dust on rounding. add it to the first staking date
-        if(numIntervals > 1) {
-            staking.stake(uint96(amount - stakedPerInterval * (numIntervals-1)), start, address(this), tokenOwner);
-        }
-        //stake the rest in 4 week intervals
-        for(uint i = start + FOUR_WEEKS; i <= end; i+= FOUR_WEEKS) {
-            //stakes for itself, delegates to the owner
-            staking.stake(uint96(stakedPerInterval), i, address(this), tokenOwner);
-        }
+
+        staking.stakesBySchedule(amount, cliff, duration, FOUR_WEEKS, address(this), tokenOwner);
 
         emit TokensStaked(msg.sender, amount);
     }
@@ -102,7 +92,7 @@ contract Vesting is Ownable {
         uint end;
         //in the unlikely case that all tokens have been unlocked early, allow to withdraw all of them.
         if (staking.allUnlocked()) {
-            end = startDate + duration;
+            end = endDate;
         } else {
             end = block.timestamp;
         }

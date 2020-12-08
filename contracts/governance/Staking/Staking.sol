@@ -2,6 +2,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./WeightedStaking.sol";
+import "./IStaking.sol";
 
 contract Staking is WeightedStaking{
     
@@ -20,34 +21,38 @@ contract Staking is WeightedStaking{
         require(until > block.timestamp, "Staking::timestampToLockDate: staking period too short");
     
         //stake for the msg.sender if not specified otherwise
-        if(stakeFor == address(0))
+        if(stakeFor == address(0)) {
             stakeFor = msg.sender;
-        require(currentBalance(stakeFor, until) == 0, "Staking:stake: use 'increaseStake' to increase an existing staked position");
-        
+        }
+        //delegate for stakeFor if not specified otherwise
+        if(delegatee == address(0)) {
+            delegatee = stakeFor;
+        }
         //do not stake longer than the max duration
-        if (until > block.timestamp + MAX_DURATION)
+        if (until > block.timestamp + MAX_DURATION) {
             until = block.timestamp + MAX_DURATION;
-            
-        //retrieve the SOV tokens
-        bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
-        require(success);
-        
-        //lock the tokens and update the balance by updating the user checkpoint
-        _increaseUserStake(stakeFor, until, amount);
-        
-        //increase staked token count until the new locking date
-        _increaseDailyStake(until, amount);
-        
-        //delegate to self in case no address provided
-        if(delegatee == address(0))
-            _delegate(stakeFor, stakeFor, until);
-        else
+        }
+
+        uint96 previousBalance = currentBalance(stakeFor, until);
+        //increase stake
+        _increaseStake(amount, stakeFor, until);
+
+        if (previousBalance == 0) {
+            //regular delegation if it's a first stake
             _delegate(stakeFor, delegatee, until);
-        
-        emit TokensStaked(stakeFor, amount, until, amount);
+        } else {
+            address previousDelegatee = delegates[stakeFor][until];
+            if (previousDelegatee != delegatee) {
+                //decrease stake on previous balance for previous delegatee
+                _decreaseDelegateStake(previousDelegatee, until, previousBalance);
+                //add previousBalance to amount
+                amount = add96(previousBalance, amount, "Staking::stake: balance overflow");
+            }
+            //increase stake
+            _increaseDelegateStake(delegatee, until, amount);
+        }
     }
-    
-    
+
     /**
      * @notice extends the staking duration until the specified date
      * @param previousLock the old unlocking timestamp
@@ -80,42 +85,63 @@ contract Staking is WeightedStaking{
         delegates[msg.sender][previousLock] = address(0);
         _decreaseDelegateStake(delegateFrom, previousLock, amount);
         _increaseDelegateStake(delegateTo, until, amount);
-        
-        
+
         emit ExtendedStakingDuration(msg.sender, previousLock, until);
     }
     
-    /**
-     * @notice increases a users stake
-     * @param amount the amount of SOV tokens
-     * @param stakeFor the address for which we want to increase the stake. staking for the sender if 0x0
-     * @param until the lock date until which the funds are staked
-     */
-    function increaseStake(uint96 amount, address stakeFor, uint until) public{
-        require(amount > 0, "Staking::increaseStake: amount of tokens to stake needs to be bigger than 0");
-        until = timestampToLockDate(until);
-        uint96 balance = currentBalance(stakeFor, until);
-        require(balance > 0, "Staking:increaseStake: nothing staked yet until the given date. Use 'stake' instead.");
-        
+    function _increaseStake(uint96 amount, address stakeFor, uint until) internal {
         //retrieve the SOV tokens
         bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
         require(success);
-        
-        //stake for the msg.sender if not specified otherwise
-        if(stakeFor == address(0))
-            stakeFor = msg.sender;
-        
+
         //increase staked balance
+        uint96 balance = currentBalance(stakeFor, until);
         balance = add96(balance, amount, "Staking::increaseStake: balance overflow");
-        
+
         //update checkpoints
         _increaseDailyStake(until, amount);
-        _increaseDelegateStake(delegates[stakeFor][until], until, amount);
         _increaseUserStake(stakeFor, until, amount);
-        
+
         emit TokensStaked(stakeFor, amount, until, balance);
     }
-    
+
+    /**
+     * @notice stakes tokens according to the vesting schedule
+     * @param amount the amount of tokens to stake
+     * @param cliff the time interval to the first withdraw
+     * @param duration the staking duration
+     * @param intervalLength the length of each staking interval when cliff passed
+     * @param stakeFor the address to stake the tokens for or 0x0 if staking for oneself
+     * @param delegatee the address of the delegatee or 0x0 if there is none.
+     * */
+    function stakesBySchedule(
+        uint amount,
+        uint cliff,
+        uint duration,
+        uint intervalLength,
+        address stakeFor,
+        address delegatee
+    )
+        public
+    {
+        //stake them until lock dates according to the vesting schedule
+        //note: because staking is only possible in periods of 2 weeks, the total duration might
+        //end up a bit shorter than specified depending on the date of staking.
+        uint start = block.timestamp + cliff;
+        uint end = block.timestamp + duration;
+        uint numIntervals = (end - start) / intervalLength + 1;
+        uint stakedPerInterval = amount / numIntervals;
+        //stakedPerInterval might lose some dust on rounding. add it to the first staking date
+        if(numIntervals > 1) {
+            stake(uint96(amount - stakedPerInterval * (numIntervals-1)), start, stakeFor, delegatee);
+        }
+        //stake the rest in 4 week intervals
+        for(uint i = start + intervalLength; i <= end; i+= intervalLength) {
+            //stakes for itself, delegates to the owner
+            stake(uint96(stakedPerInterval), i, stakeFor, delegatee);
+        }
+    }
+
     /**
      * @notice withdraws the given amount of tokens if they are unlocked
      * @param amount the number of tokens to withdraw
@@ -135,6 +161,7 @@ contract Staking is WeightedStaking{
         //update the checkpoints
         _decreaseDailyStake(until, amount);
         _decreaseUserStake(msg.sender, until, amount);
+        _decreaseDelegateStake(delegates[msg.sender][until], until, amount);
         
         //transferFrom
         bool success = SOVToken.transfer(receiver, amount);

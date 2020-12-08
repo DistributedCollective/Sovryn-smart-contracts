@@ -61,9 +61,7 @@ contract('WeightedStaking', accounts => {
             await staking.stake("100", inOneWeek, a1, a1, {from: a2});
             await expect((await staking.numUserStakingCheckpoints.call(a1, inOneWeek)).toString()).to.be.equal('1');
             
-            await expectRevert(staking.stake("50", inOneWeek, a1, a1, {from: a2}), "Staking:stake: use 'increaseStake' to increase an existing staked position");
-            
-            await expect(await staking.increaseStake("50", a1, inOneWeek, {from: a2}));
+            await expect(await staking.stake("50", inOneWeek, a1, a1, {from: a2}));
             await expect((await staking.numUserStakingCheckpoints.call(a1, inOneWeek)).toString()).to.be.equal('2');
         });
         
@@ -74,7 +72,7 @@ contract('WeightedStaking', accounts => {
             await staking.stake("100", inOneWeek, a1, a3, {from: a2});
             await expect((await staking.numDelegateStakingCheckpoints.call(a3, inOneWeek)).toString()).to.be.equal('1');
             
-            await expect(await staking.increaseStake("50", a1, inOneWeek, {from: a2}));
+            await expect(await staking.stake("50", inOneWeek, a1, a1, {from: a2}));
             await expect((await staking.numDelegateStakingCheckpoints.call(a3, inOneWeek)).toString()).to.be.equal('2');
             
             await staking.stake("100", inOneWeek, a2, a3, {from: a2});
@@ -89,7 +87,7 @@ contract('WeightedStaking', accounts => {
             await staking.stake("100", inOneWeek, a1, a3, {from: a2});
             await expect((await staking.numTotalStakingCheckpoints.call(inOneWeek)).toString()).to.be.equal('1');
             
-            await expect(await staking.increaseStake("50", a1, inOneWeek, {from: a2}));
+            await expect(await staking.stake("50", inOneWeek, a1, a1, {from: a2}));
             await expect((await staking.numTotalStakingCheckpoints.call(inOneWeek)).toString()).to.be.equal('2');
             
             await staking.stake("100", inOneWeek, a2, a3, {from: a2});
@@ -105,7 +103,7 @@ contract('WeightedStaking', accounts => {
             let result = await staking.stake("100", inOneWeek, a1, a3, {from: a2});
             await expect((await staking.balanceOf(a1)).toString()).to.be.equal('100');
             let checkpoint = await staking.userStakingCheckpoints(a1, inOneWeek, 0);
-            
+
             await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
             await expect(checkpoint.stake.toString()).to.be.equal('100');
             
@@ -118,13 +116,26 @@ contract('WeightedStaking', accounts => {
         });
         
         it('returns the correct checkpoint for a delegate', async () => {
-            
             let result = await staking.stake("100", inOneWeek, a1, a3, {from: a2});
             await expect((await staking.balanceOf(a1)).toString()).to.be.equal('100');
+
             let checkpoint = await staking.delegateStakingCheckpoints(a3, inOneWeek, 0);
-            
             await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
             await expect(checkpoint.stake.toString()).to.be.equal('100');
+
+            //add stake and change delegatee
+            result = await staking.stake("200", inOneWeek, a1, a2, {from: a2});
+            await expect((await staking.balanceOf(a1)).toString()).to.be.equal('300');
+
+            //old delegate
+            checkpoint = await staking.delegateStakingCheckpoints(a3, inOneWeek, 1);
+            await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
+            await expect(checkpoint.stake.toString()).to.be.equal('0');
+
+            //new delegate
+            checkpoint = await staking.delegateStakingCheckpoints(a2, inOneWeek, 0);
+            await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
+            await expect(checkpoint.stake.toString()).to.be.equal('300');
         });
         
         it('returns the correct checkpoint for a total stakes', async () => {
@@ -213,7 +224,7 @@ contract('WeightedStaking', accounts => {
 
             await staking.stake("100", inThreeYears, a2, a2, {from: a2});
             await staking.stake("100", inTwoYears, a1, a3, {from: a2});
-            let result = await staking.increaseStake("100", a2, inThreeYears, {from: a2});
+            let result = await staking.stake("100", inThreeYears, a2, a2, {from: a2});
             await mineBlock();
             
             let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
