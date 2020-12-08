@@ -24,7 +24,7 @@ def main():
     #getBalance(contracts['WRBTC'], '0xE5646fEAf7f728C12EcB34D14b4396Ab94174827')
     #getBalance(contracts['WRBTC'], '0x7BE508451Cd748Ba55dcBE75c8067f9420909b49')
     #readLoan('0xb2bbd9135a7cfbc5adda48e90430923108ad6358418b7ac27c9edcf2d44911e5')
-    replaceLoanClosings()
+    #replaceLoanClosings()
     
     #logicContract = acct.deploy(LoanTokenLogicStandard)
     #print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
@@ -34,6 +34,9 @@ def main():
     #logicContract = acct.deploy(LoanTokenLogicWrbtc)
     #print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
     #replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
+    
+
+    deployMultisig(['0xdB3DB4c5695f2aab0F406C86d1f35D326685d055', '0x5092019A3E0334586273A21a701F1BD859ECAbD6', '0xD6da34D91fC59134A132b17e7b5a472CA1BeA794'], 2)
     
 def loadConfig():
     global contracts, acct
@@ -370,3 +373,7 @@ def addLiquidity(converter, reserve, amount):
     print("price oracle", converter.priceOracle())
     tx = converter.addLiquidity(reserve, amount, 1)
     print(tx)
+
+def deployMultisig(owners, requiredConf):
+     multisig = acct.deploy(MultiSigWallet, owners, requiredConf)
+     print("multisig:", multisig)
