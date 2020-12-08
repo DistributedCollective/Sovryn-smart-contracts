@@ -15,7 +15,7 @@ def main():
     #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOC'])
     #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iDOC'], contracts['DoC'], contracts['WRBTC'], 1e18, 5e18, False, 0)
     #setupMarginLoanParams(contracts['DoC'],  contracts['iRBTC'])
-    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 5e18, False, 1e15)
+    testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 5e18, False, 1e15)
     
     #swapTokens(0.02e18,200e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['DoC'])
     #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
@@ -24,7 +24,7 @@ def main():
     #getBalance(contracts['WRBTC'], '0xE5646fEAf7f728C12EcB34D14b4396Ab94174827')
     #getBalance(contracts['WRBTC'], '0x7BE508451Cd748Ba55dcBE75c8067f9420909b49')
     #readLoan('0xb2bbd9135a7cfbc5adda48e90430923108ad6358418b7ac27c9edcf2d44911e5')
-    replaceLoanClosings()
+    #replaceLoanClosings()
     
     #logicContract = acct.deploy(LoanTokenLogicStandard)
     #print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
@@ -34,6 +34,8 @@ def main():
     #logicContract = acct.deploy(LoanTokenLogicWrbtc)
     #print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
     #replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
+    
+    #updatePriceFeedToRSKOracle()
     
 def loadConfig():
     global contracts, acct
@@ -370,3 +372,11 @@ def addLiquidity(converter, reserve, amount):
     print("price oracle", converter.priceOracle())
     tx = converter.addLiquidity(reserve, amount, 1)
     print(tx)
+
+def updatePriceFeedToRSKOracle():
+    newPriceFeed = acct.deploy(PriceFeedRSKOracle, contracts['RSKOracle'])
+    print("new price feed: ", newPriceFeed)
+    feeds = Contract.from_abi("PriceFeeds", address= contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = acct)
+    feeds.setPriceFeed([contracts['WRBTC']], [newPriceFeed.address])
+    
+    
