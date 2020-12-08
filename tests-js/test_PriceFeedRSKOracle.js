@@ -20,7 +20,7 @@ contract('PriceFeedRSKOracle', () => {
     });
 
     it('should always return Price for latestAnswer', async () => {
-        const price = await priceFeedRSKOracle.latestAnswer.call();
+        const price = (await priceFeedRSKOracle.latestAnswer.call()).toNumber();
 
         expect(price).to.be.above(0, 'The price must be larger than 0');
         
