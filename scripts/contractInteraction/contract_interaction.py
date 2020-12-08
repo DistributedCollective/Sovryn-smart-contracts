@@ -24,7 +24,7 @@ def main():
     #getBalance(contracts['WRBTC'], '0xE5646fEAf7f728C12EcB34D14b4396Ab94174827')
     #getBalance(contracts['WRBTC'], '0x7BE508451Cd748Ba55dcBE75c8067f9420909b49')
     #readLoan('0xb2bbd9135a7cfbc5adda48e90430923108ad6358418b7ac27c9edcf2d44911e5')
-    replaceLoanClosings()
+    #replaceLoanClosings()
     
     #logicContract = acct.deploy(LoanTokenLogicStandard)
     #print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
@@ -34,6 +34,14 @@ def main():
     #logicContract = acct.deploy(LoanTokenLogicWrbtc)
     #print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
     #replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
+    readOwner(contracts['iDOC'])
+    readTransactionLimits(contracts['iDOC'],  contracts['DoC'],  contracts['WRBTC'])
+    #setTransactionLimits(contracts['iDOC'], [contracts['DoC']], [0])
+    #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [0])
+    #lendToPool(contracts['iDOC'],contracts['DoC'], 1000e18)
+    #setTransactionLimits(contracts['iDOC'], [contracts['DoC']], [21e18])
+    setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [21e18])
+    readTransactionLimits(contracts['iDOC'],  contracts['DoC'], contracts['WRBTC'])
     
 def loadConfig():
     global contracts, acct
@@ -67,7 +75,8 @@ def setupLoanTokenRates(loanTokenAddress):
 def lendToPool(loanTokenAddress, tokenAddress, amount):
     token = Contract.from_abi("TestToken", address = tokenAddress, abi = TestToken.abi, owner = acct)
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
-    token.approve(loanToken, amount) 
+    if(token.allowance(acct, loanToken.address) < amount):
+        token.approve(loanToken.address, amount) 
     loanToken.mint(acct, amount)
     
 def removeFromPool(loanTokenAddress, amount):
@@ -205,7 +214,7 @@ def setupTorqueLoanParams(loanTokenAddress, underlyingTokenAddress, collateralTo
     setup = [
         b"0x0", ## id
         False, ## active
-        str(accounts[0]), ## owner
+        str(acct), ## owner
         underlyingTokenAddress, ## loanToken
         collateralTokenAddress, ## collateralToken. 
         Wei("50 ether"), ## minInitialMargin
@@ -251,12 +260,20 @@ def mintEarlyAccessTokens(contractAddress, userAddress):
     tx.info()
     
 def setTransactionLimits(loanTokenAddress, addresses, limits):
-    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
+    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     tx = localLoanToken.setTransactionLimits(addresses,limits)
-
+    
+def setTransactionLimitsOld(loanTokenAddress, settingsAddress, logicAddress, addresses, limits):
+    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
+    localLoanToken.setTarget(settingsAddress)
+    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
+    tx = localLoanToken.setTransactionLimits(addresses,limits)
+    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
+    localLoanToken.setTarget(logicAddress)
+    
     
 def readTransactionLimits(loanTokenAddress, SUSD, RBTC):
-    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=accounts[0])
+    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
     limit = localLoanToken.transactionLimit(RBTC)
     print("RBTC limit, ",limit)
     limit = localLoanToken.transactionLimit(SUSD)
