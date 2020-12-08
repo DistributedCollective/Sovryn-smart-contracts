@@ -8,6 +8,11 @@ import "./IFeeSharingProxy.sol";
 contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
+
+    //TODO FEE_WITHDRAWAL_INTERVAL, MAX_CHECKPOINTS
+    uint constant FEE_WITHDRAWAL_INTERVAL = 86400;
+
+    uint32 constant MAX_CHECKPOINTS = 100;
     
     IProtocol public protocol;
     IStaking public staking;
@@ -21,11 +26,12 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
     /// user => token => processed checkpoint
     mapping(address => mapping(address => uint32)) public processedCheckpoints;
     
-    //TODO FEE_WITHDRAWAL_INTERVAL, MAX_CHECKPOINTS
-    uint constant FEE_WITHDRAWAL_INTERVAL = 86400;
-    uint public lastFeeWithdrawalTime;
-    
-    uint32 constant MAX_CHECKPOINTS = 100;
+    //token => time
+    mapping(address => uint) public lastFeeWithdrawalTime;
+
+    //token => amount
+    //amount of tokens that were transferred, but were not saved in checkpoints
+    mapping(address => uint96) public unprocessedAmount;
     
     struct Checkpoint {
         uint32 blockNumber;
@@ -53,7 +59,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
     function withdrawFees(address _token) public {
         require(_token != address(0), "FeeSharingProxy::withdrawFees: invalid address");
         require(
-            block.timestamp - lastFeeWithdrawalTime >= FEE_WITHDRAWAL_INTERVAL,
+            block.timestamp - lastFeeWithdrawalTime[_token] >= FEE_WITHDRAWAL_INTERVAL,
             "FeeSharingProxy::withdrawFees: the last withdrawal was recently"
         );
     
@@ -68,23 +74,50 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
         uint poolTokenAmount = ILoanToken(loanPoolToken).mint(address(this), amount);
         _writeTokenCheckpoint(loanPoolToken, safe96(poolTokenAmount, "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits"));
 
-        lastFeeWithdrawalTime = block.timestamp;
+        lastFeeWithdrawalTime[_token] = block.timestamp;
         
         emit FeeWithdrawn(msg.sender, loanPoolToken, poolTokenAmount);
     }
 
+    /**
+     * @notice transfer tokens to this contract
+     * @dev we just update amount of tokens here and write checkpoint in a separate methods
+     * in order to prevent adding checkpoints too often
+     * @param _token address of the token
+     * @param _amount amount to be transferred
+     * */
     function transferTokens(address _token, uint96 _amount) public {
         require(_token != address(0), "FeeSharingProxy::transferTokens: invalid address");
-        require(_amount != address(0), "FeeSharingProxy::transferTokens: invalid amount");
-        //TODO how to avoid often invocations ?
-        require(msg.sender == staking, "Staking::transferTokens: unauthorized");
+        require(_amount > 0, "FeeSharingProxy::transferTokens: invalid amount");
 
-        //transfer tokens from staking contract
-        bool success = IERC20(_token).transferFrom(address(staking), address(this), _amount);
+        //transfer tokens from msg.sender
+        bool success = IERC20(_token).transferFrom(address(msg.sender), address(this), _amount);
         require(success, "Staking::transferTokens: token transfer failed");
 
+        //update unprocessed amount of tokens
+        unprocessedAmount[_token] = add96(unprocessedAmount[_token], _amount, "FeeSharingProxy::transferTokens: amount exceeds 96 bits");
+
+        //TODO event
+    }
+
+    /**
+     * @notice adds checkpoint with accumulated amount by function invocation
+     * @param _token address of the token
+     * */
+    function addCheckpoint(address _token) public {
+        require(_token != address(0), "FeeSharingProxy::addCheckpoint: invalid address");
+        require(
+            block.timestamp - lastFeeWithdrawalTime[_token] >= FEE_WITHDRAWAL_INTERVAL,
+            "FeeSharingProxy::addCheckpoint: the last withdrawal was recently"
+        );
+
+        lastFeeWithdrawalTime[_token] = block.timestamp;
+        uint96 amount = unprocessedAmount[_token];
+        unprocessedAmount[_token] = 0;
         //write a regular checkpoint
-        _writeTokenCheckpoint(_token, _amount);
+        _writeTokenCheckpoint(_token, amount);
+
+        //TODO event
     }
 
     /**

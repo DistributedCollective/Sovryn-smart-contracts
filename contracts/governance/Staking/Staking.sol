@@ -187,11 +187,11 @@ contract Staking is WeightedStaking{
         //early unstaking should be punished
         if (block.timestamp < until && !allUnlocked) {
             uint date = timestampToLockDate(block.timestamp);
+            uint96 weight = computeWeightByDate(until, date); // (10 - 1) * WEIGHT_FACTOR
             //TODO adjust weight
-            uint96 weight = computeWeightByDate(until, date);
-            uint96 slashedAmount = amount * weight / 1000;
-            uint96 punishedAmount = amount - slashedAmount;
-            amount = slashedAmount;
+            weight = weight * 5;
+            uint96 punishedAmount = amount * weight / WEIGHT_FACTOR / 100;
+            amount -= punishedAmount;
 
             //punishedAmount can be 0 if block.timestamp are very close to 'until'
             if (punishedAmount > 0) {
