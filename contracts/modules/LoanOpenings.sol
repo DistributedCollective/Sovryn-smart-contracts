@@ -199,7 +199,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
                     .mul(10**20)
                     .div(marginAmount);
             } else {
-                (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(
+                /**(uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(
                     collateralToken,
                     loanToken
                 );
@@ -208,7 +208,16 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
                         .mul(10**20)
                         .div(marginAmount)
                         .mul(sourceToDestRate)
-                        .div(sourceToDestPrecision);
+                        .div(sourceToDestPrecision);*/
+                uint256 loanTokenAmount = _swapsExpectedReturn(
+                    collateralToken, 
+                    loanToken, 
+                    collateral
+                );
+                if (loanTokenAmount != 0) {
+                    borrowAmount = loanTokenAmount
+                        .mul(10**20)
+                        .div(marginAmount);
                 }
             }
         }
@@ -638,7 +647,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
                 .mul(marginAmount)
                 .div(10**20);
         } else {
-            (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(
+            /**(uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(
                 collateralToken,
                 loanToken
             );
@@ -647,7 +656,37 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
                     .mul(sourceToDestPrecision)
                     .div(sourceToDestRate)
                     .mul(marginAmount)
-                    .div(10**20);
+                    .div(10**20);*/
+            /**uint256 precision = IPriceFeeds(priceFeeds).queryPrecision(collateralToken,loanToken);
+            uint256 rateWithPrecision = _swapsExpectedReturn(
+                collateralToken, 
+                loanToken, 
+                precision
+            );
+            if (rateWithPrecision != 0) {
+                collateralTokenAmount = newPrincipal
+                    .mul(precision)
+                    .div(rateWithPrecision)
+                    .mul(marginAmount)
+                    .div(10**20);*/
+            /**if (newPrincipal != 0) {
+                collateralTokenAmount = _swapsExpectedReturn(loanToken, collateralToken, newPrincipal);*/
+            /**uint256 precision = IPriceFeeds(priceFeeds).queryPrecision(collateralToken,loanToken);
+            uint256 borrowAmount = getBorrowAmount(loanToken, collateralToken, precision, marginAmount, true);
+            if (borrowAmount != 0) {
+                collateralTokenAmount = newPrincipal.div(borrowAmount).mul(precision);*/
+            /**uint256 precision = IPriceFeeds(priceFeeds).queryPrecision(collateralToken,loanToken);
+            uint256 rate = ISwapsImpl(swapsImpl).internalExpectedRate(collateralToken, loanToken, newPrincipal);
+            if (rate != 0) {
+                collateralTokenAmount = newPrincipal
+                    .mul(precision)
+                    .div(rate)
+                    .mul(marginAmount)
+                    .div(10**20);*/
+            uint256 collateralInLoanTokens = newPrincipal.mul(marginAmount).div(10**20);
+            if (collateralInLoanTokens != 0) {
+                collateralTokenAmount = _swapsExpectedReturn(collateralToken, loanToken, collateralInLoanTokens);
+                
             } else {
                 collateralTokenAmount = 0;
             }

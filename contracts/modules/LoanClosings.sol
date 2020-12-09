@@ -800,7 +800,11 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
      * */
     function worthTheTransfer(address asset, uint256 amount) internal returns (bool){
         (uint256 rbtcRate, uint256 rbtcPrecision) = IPriceFeeds(priceFeeds).queryRate(asset, address(wrbtcToken));
+        //uint256 amountInRbtc = _swapsExpectedReturn(asset, address(wrbtcToken), amount);
         uint256 amountInRbtc = amount.mul(rbtcRate).div(rbtcPrecision);
+        //uint256 rbtcPrecision = IPriceFeeds(priceFeeds).queryPrecision(asset,address(wrbtcToken));
+        //uint256 rbtcRate = _swapsExpectedReturn(asset, address(wrbtcToken), rbtcPrecision);
+        //uint256 amountInRbtc = amount.mul(rbtcRate).div(rbtcPrecision);
         emit swapExcess(amountInRbtc > paySwapExcessToBorrowerThreshold, amount, amountInRbtc, paySwapExcessToBorrowerThreshold);
         return amountInRbtc > paySwapExcessToBorrowerThreshold;
     }

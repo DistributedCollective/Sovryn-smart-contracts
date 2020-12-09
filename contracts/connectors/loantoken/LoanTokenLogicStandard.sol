@@ -794,7 +794,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         returns (uint256 totalDeposit)
     {
         totalDeposit = loanTokenSent;
-        if (collateralTokenSent != 0) {
+        /**if (collateralTokenSent != 0) {
             (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(
                 collateralTokenAddress,
                 loanTokenAddress
@@ -804,6 +804,16 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
                     .mul(sourceToDestRate)
                     .div(sourceToDestPrecision)
                     .add(totalDeposit);
+            }
+        }*/
+        if (collateralTokenSent != 0) {
+            uint256 loanTokenAmount = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
+                collateralTokenAddress,
+                loanTokenAddress, 
+                collateralTokenSent
+            );
+            if (loanTokenAmount != 0) {
+                totalDeposit = loanTokenAmount.add(totalDeposit);
             }
         }
     }

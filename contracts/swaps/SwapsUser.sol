@@ -196,11 +196,11 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
         view
         returns (uint256)
     {
-        uint256 tradingFee = _getTradingFee(sourceTokenAmount);
+        /**uint256 tradingFee = _getTradingFee(sourceTokenAmount);
         if (tradingFee != 0) {
             sourceTokenAmount = sourceTokenAmount
                 .sub(tradingFee);
-        }
+        }*/
 
         uint256 sourceToDestRate = ISwapsImpl(swapsImpl).internalExpectedRate(
             sourceToken,
