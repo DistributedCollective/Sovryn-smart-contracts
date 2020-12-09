@@ -16,7 +16,7 @@ def main():
     #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOC'])
     #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iDOC'], contracts['DoC'], contracts['WRBTC'], 1e18, 5e18, False, 0)
     #setupMarginLoanParams(contracts['DoC'],  contracts['iRBTC'])
-    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 5e18, False, 1e15)
+    testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 5e18, False, 1e15)
     
     #swapTokens(0.02e18,200e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['DoC'])
     #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
@@ -36,6 +36,7 @@ def main():
     #print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
     #replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
     
+
     #setupLoanParamsForCollaterals(contracts['iBPro'], [contracts['DoC'], contracts['USDT']])
     #setupLoanParamsForCollaterals(contracts['iDOC'], [contracts['BPro'], contracts['USDT']])
     #setupLoanParamsForCollaterals(contracts['iUSDT'], [contracts['DoC'], contracts['BPro']])
@@ -43,6 +44,7 @@ def main():
 
     #deployMultisig(['0xdB3DB4c5695f2aab0F406C86d1f35D326685d055', '0x5092019A3E0334586273A21a701F1BD859ECAbD6', '0xD6da34D91fC59134A132b17e7b5a472CA1BeA794'], 2)
     #deployMultisig(['0x2bD2201bfe156a71EB0d02837172FFc237218505', acct, '0xdB3DB4c5695f2aab0F406C86d1f35D326685d055', '0x5092019A3E0334586273A21a701F1BD859ECAbD6', '0xD6da34D91fC59134A132b17e7b5a472CA1BeA794'], 2)
+    #updatePriceFeedToRSKOracle()
 
     
 def loadConfig():
@@ -411,3 +413,12 @@ def setupLoanParamsForCollaterals(loanTokenAddress, collateralAddresses):
     tx = loanToken.setupLoanParams(marginParams, False)
     tx = loanToken.setupLoanParams(torqueParams, True)
     
+
+def updatePriceFeedToRSKOracle():
+    newPriceFeed = acct.deploy(PriceFeedRSKOracle, contracts['RSKOracle'])
+    print("new price feed: ", newPriceFeed)
+    feeds = Contract.from_abi("PriceFeeds", address= contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = acct)
+    feeds.setPriceFeed([contracts['WRBTC']], [newPriceFeed.address])
+    
+    
+
