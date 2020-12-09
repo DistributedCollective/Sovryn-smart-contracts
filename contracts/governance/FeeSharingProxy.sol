@@ -42,6 +42,12 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
     
     /// @notice An event that emitted when fee get withdrawn
     event FeeWithdrawn(address indexed sender, address indexed token, uint amount);
+
+    /// @notice An event that emitted when tokens transferred
+    event TokensTransferred(address indexed sender, address indexed token, uint amount);
+
+    /// @notice An event that emitted when checkpoint added
+    event CheckpointAdded(address indexed sender, address indexed token, uint amount);
     
     /// @notice An event that emitted when user fee get withdrawn
     event UserFeeWithdrawn(address indexed sender, address indexed receiver, address indexed token, uint amount);
@@ -97,7 +103,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
         //update unprocessed amount of tokens
         unprocessedAmount[_token] = add96(unprocessedAmount[_token], _amount, "FeeSharingProxy::transferTokens: amount exceeds 96 bits");
 
-        //TODO event
+        emit TokensTransferred(msg.sender, _token, _amount);
     }
 
     /**
@@ -106,6 +112,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
      * */
     function addCheckpoint(address _token) public {
         require(_token != address(0), "FeeSharingProxy::addCheckpoint: invalid address");
+        require(unprocessedAmount[_token] > 0, "FeeSharingProxy::addCheckpoint: unprocessed amount is 0");
         require(
             block.timestamp - lastFeeWithdrawalTime[_token] >= FEE_WITHDRAWAL_INTERVAL,
             "FeeSharingProxy::addCheckpoint: the last withdrawal was recently"
@@ -117,7 +124,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
         //write a regular checkpoint
         _writeTokenCheckpoint(_token, amount);
 
-        //TODO event
+        emit CheckpointAdded(msg.sender, _token, amount);
     }
 
     /**

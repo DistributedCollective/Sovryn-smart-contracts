@@ -188,8 +188,7 @@ contract Staking is WeightedStaking{
         if (block.timestamp < until && !allUnlocked) {
             uint date = timestampToLockDate(block.timestamp);
             uint96 weight = computeWeightByDate(until, date); // (10 - 1) * WEIGHT_FACTOR
-            //TODO adjust weight
-            weight = weight * 5;
+            weight = weight * weightScaling;
             uint96 punishedAmount = amount * weight / WEIGHT_FACTOR / 100;
             amount -= punishedAmount;
 
@@ -324,6 +323,15 @@ contract Staking is WeightedStaking{
     function setFeeSharing(address _feeSharing) public onlyOwner {
         require(_feeSharing != address(0), "FeeSharing address shouldn't be 0");
         feeSharing = IFeeSharingProxy(_feeSharing);
+    }
+
+    /**
+    * @notice allows the owner to set weight scaling, we need it for unstaking with slashing.
+    * @param _weightScaling the weight scaling
+    */
+    function setWeightScaling(uint96 _weightScaling) public onlyOwner {
+        require(MIN_WEIGHT_SCALING <= _weightScaling && _weightScaling <= MAX_WEIGHT_SCALING, "weight scaling doesn't belong to range [1, 9]");
+        weightScaling = _weightScaling;
     }
     
     /**

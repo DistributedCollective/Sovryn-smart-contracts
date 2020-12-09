@@ -21,7 +21,14 @@ contract StakingStorage is Ownable{
     
     ///@notice the maximum duration ^2
     uint96 constant MAX_DURATION_POW_2 = 1092 * 1092;
-    
+
+    ///@notice default weight scaling
+    uint96 constant DEFAULT_WEIGHT_SCALING = 3;
+
+    ///@notice range for weight scaling
+    uint96 constant MIN_WEIGHT_SCALING = 1;
+    uint96 constant MAX_WEIGHT_SCALING = 9;
+
     ///@notice the timestamp of contract creation. base for the staking period calculation
     uint public kickoffTS;
     
@@ -44,9 +51,6 @@ contract StakingStorage is Ownable{
     
     /// @notice used for stake migrations to a new staking contract with a different storage structure
     address public newStakingContract;
-
-    /// @notice the address of FeeSharingProxy contract, we need it for unstaking with slashing
-    IFeeSharingProxy public feeSharing;
 
     /*************************** Checkpoints *******************************/
     
@@ -78,4 +82,13 @@ contract StakingStorage is Ownable{
 
     /// @notice A record of states for signing / validating signatures
     mapping(address => uint) public nonces;
+
+    /*************************** Slashing *******************************/
+
+    /// @notice the address of FeeSharingProxy contract, we need it for unstaking with slashing
+    IFeeSharingProxy public feeSharing;
+
+    // @notice used for weight scaling when unstaking with slashing
+    uint96 public weightScaling = DEFAULT_WEIGHT_SCALING;
+
 }
