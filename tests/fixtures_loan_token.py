@@ -6,15 +6,15 @@ import shared
 
 # returns a loan token with underlying token SUSD  
 @pytest.fixture(scope="module", autouse=True)
-def loanToken(LoanToken, LoanTokenLogicStandard, LoanTokenSettingsLowerAdmin, SUSD, WRBTC, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+def loanToken(LoanToken, LoanTokenLogicTest, LoanTokenSettingsLowerAdmin, SUSD, WRBTC, accounts, sovryn, Constants, priceFeeds, swapsImpl):
 
-    loanTokenLogic = accounts[0].deploy(LoanTokenLogicStandard)
+    loanTokenLogic = accounts[0].deploy(LoanTokenLogicTest)
     #Deploying loan token using the loan logic as target for delegate calls
     loanToken = accounts[0].deploy(LoanToken, accounts[0], loanTokenLogic.address, sovryn.address, WRBTC.address)
     #Initialize loanTokenAddress
     loanToken.initialize(SUSD, "SUSD", "SUSD")
     #setting the logic ABI for the loan token contract
-    loanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
+    loanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicTest.abi, owner=accounts[0])
 
     # loan token Price should be equals to initial price
     assert loanToken.tokenPrice() == loanToken.initialPrice()

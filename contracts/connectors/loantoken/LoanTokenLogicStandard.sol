@@ -1245,7 +1245,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
     {
         uint256 interestForDuration = interestRate.mul(maxDuration).div(365 days);
         uint256 divisor = uint256(10**20).sub(interestForDuration);
-        loanSizeWithInterest = loanSizeWithInterest.mul(10**20).div(divisor);
+        loanSizeWithInterest = loanSizeBeforeInterest.mul(10**20).div(divisor);
     }
 
     function _utilizationRate(

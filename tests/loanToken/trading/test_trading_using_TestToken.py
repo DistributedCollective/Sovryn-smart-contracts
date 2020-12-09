@@ -4,11 +4,15 @@ test script for testing the loan token trading logic with 2 TestTokens.
 2. opening a margin trade position with collateral tokens
 3. closing a margin trade position completely
 4. closing a margin trade position partially
+5. checks if getMarginBorrowAmountAndRate returns the correct loan size
 '''
 
 #!/usr/bin/python3
 import pytest
 from loanToken.trading.shared_trading_functions import *
+
+
+
 
 '''
 verifies that the loan token address is set on the contract
@@ -103,4 +107,16 @@ def test_close_partial_margin_trade_sov_reward_payment(sovryn, set_demand_curve,
     close_partial_margin_trade_sov_reward_payment(sovryn, set_demand_curve, lend_to_pool, open_margin_trade_position,
                                                   chain, return_token_is_collateral, FeesEvents, SOV)
 
-
+'''
+verifies that the loan size is computed correctly
+'''
+def test_getMarginBorrowAmountAndRate(loanToken, set_demand_curve, lend_to_pool):
+    set_demand_curve()
+    (receiver, _) = lend_to_pool()
+    deposit = 100e18
+    borrowAmount = loanToken.getMarginBorrowAmountAndRate(4e18, deposit)
+    monthly_interest = borrowAmount[1]*28/365
+    #divide by 1000 because of rounding
+    actualAmount = fixedint(borrowAmount[0]).div(1000).num
+    expectedAmount = fixedint(deposit).mul(4).mul(1e20).div(fixedint(1e20).sub(monthly_interest).num).div(1000).num
+    assert(actualAmount == expectedAmount)
