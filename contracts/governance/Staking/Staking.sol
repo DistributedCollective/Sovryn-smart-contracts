@@ -28,9 +28,9 @@ contract Staking is WeightedStaking{
             delegatee = stakeFor;
         }
         //do not stake longer than the max duration
-        if (until > block.timestamp + MAX_DURATION) {
-            until = block.timestamp + MAX_DURATION;
-        }
+        uint latest = timestampToLockDate(block.timestamp + MAX_DURATION);
+        if (until > latest)
+            until = latest;
 
         uint96 previousBalance = currentBalance(stakeFor, until);
         //increase stake
@@ -62,8 +62,8 @@ contract Staking is WeightedStaking{
         require(previousLock <= until, "Staking::extendStakingDuration: cannot reduce the staking duration");
         
         //do not exceed the max duration, no overflow possible
-        uint latest = block.timestamp + MAX_DURATION;
-        if(until > latest)
+        uint latest = timestampToLockDate(block.timestamp + MAX_DURATION);
+        if (until > latest)
             until = latest;
         
         //update checkpoints
@@ -357,4 +357,36 @@ contract Staking is WeightedStaking{
         allUnlocked = true;
         emit TokensUnlocked(SOVToken.balanceOf(address(this)));
     }
+
+    /**
+     * @notice Gets list of stakes for `account`
+     * @param account The address to get stakes
+     * @return The arrays of dates and stakes
+     */
+    function getStakes(address account) public returns (uint[] memory dates, uint96[] memory stakes) {
+        uint latest = timestampToLockDate(block.timestamp + MAX_DURATION);
+
+        //calculate stakes
+        uint count = 0;
+        //we need to iterate from first possible stake date after deployment to the latest from current time
+        for (uint i = kickoffTS + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
+            if (currentBalance(account, i) > 0) {
+                count++;
+            }
+        }
+        dates = new uint[](count);
+        stakes = new uint96[](count);
+
+        //we need to iterate from first possible stake date after deployment to the latest from current time
+        uint j = 0;
+        for (uint i = kickoffTS + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
+            uint96 currentBalance = currentBalance(account, i);
+            if (currentBalance > 0) {
+                dates[j] = i;
+                stakes[j] = currentBalance;
+                j++;
+            }
+        }
+    }
+
 }

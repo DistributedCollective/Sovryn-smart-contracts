@@ -356,12 +356,10 @@ contract('Staking', accounts => {
             let newTime = await getTimeFromKickoff(MAX_DURATION.mul(new BN(2)));
             let tx = await staking.extendStakingDuration(lockedTS, newTime);
 
-            let cuurentTime = await time.latest();
-            let newLockedTs = cuurentTime.add(MAX_DURATION);
             expectEvent(tx, 'ExtendedStakingDuration', {
                 staker: root,
                 previousDate: lockedTS,
-                newDate: newLockedTs
+                newDate: await getTimeFromKickoff(MAX_DURATION)
             });
         });
 
@@ -498,6 +496,36 @@ contract('Staking', accounts => {
                 lockedUntil: lockedTS,
                 totalStaked: new BN(amount * 3)
             });
+        });
+
+    });
+
+    describe('getStakes', () => {
+
+        it("Should be able to increase stake", async () => {
+            let amount1 = "1000";
+            let lockedTS1 = await getTimeFromKickoff(new BN(TWO_WEEKS));
+            await staking.stake(amount1, lockedTS1, root, root);
+
+            //time travel
+            await time.increase(TWO_WEEKS * 10);
+
+            let amount2 = "5000";
+            let lockedTS2 = await getTimeFromKickoff(new BN(MAX_DURATION));
+            await staking.stake(amount2, lockedTS2, root, root);
+
+            let data =  await staking.getStakes.call(root);
+            // console.log();
+            // for (let i = 0; i < data.dates.length; i++) {
+            //     console.log(data.dates[i].toString());
+            //     console.log(data.stakes[i].toString());
+            // }
+
+            expect(data.dates[0]).to.be.bignumber.equal(new BN(lockedTS1));
+            expect(data.stakes[0]).to.be.bignumber.equal(new BN(amount1));
+
+            expect(data.dates[1]).to.be.bignumber.equal(new BN(lockedTS2));
+            expect(data.stakes[1]).to.be.bignumber.equal(new BN(amount2));
         });
 
     });
