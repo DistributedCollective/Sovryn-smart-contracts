@@ -5,6 +5,7 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../Staking/SafeMath96.sol";
+import "../Staking/IStaking.sol";
 
 //TODO should be set as protocolTokenAddress (ProtocolSettings.setProtocolTokenAddress)
 //TODO PriceFeeds._protocolTokenAddress ?
@@ -20,6 +21,8 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
     ///@notice constants used for computing the vesting dates
     uint constant FOUR_WEEKS = 4 weeks;
     uint constant YEAR = 52 weeks;
+    ///@notice amount of tokens divided by this constant will be transferred
+    uint96 constant DIRECT_TRANSFER_PART = 14;
 
     ///@notice the SOV token contract
     IERC20 public SOV;
@@ -74,27 +77,21 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
 
         //burns RSOV tokens
         _burn(msg.sender, _amount);
+
+        //transfer 1/14 of amount directly to the user
+        //if amount is too small it won't be transferred
+        uint96 transferAmount = _amount / DIRECT_TRANSFER_PART;
+        if (transferAmount > 0) {
+            SOV.transfer(msg.sender, transferAmount);
+            _amount -= transferAmount;
+        }
         
         //stakes SOV tokens in the user's behalf
         SOV.approve(address(staking), _amount);
 
-        staking.stakeTokens(_amount, FOUR_WEEKS, YEAR, FOUR_WEEKS, msg.sender, msg.sender);
+        staking.stakesBySchedule(_amount, FOUR_WEEKS, YEAR, FOUR_WEEKS, msg.sender, msg.sender);
 
         emit Burn(msg.sender, _amount);
     }
 
-}
-
-interface IStaking {
-    function stakeTokens(
-        uint amount,
-        uint cliff,
-        uint duration,
-        uint intervalLength,
-        address stakeFor,
-        address delegatee
-    )
-        external;
-
-    function stake(uint96 amount, uint until, address stakeFor, address delegatee) external;
 }
