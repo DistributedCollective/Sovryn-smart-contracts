@@ -33,6 +33,9 @@ contract GovernorAlpha is SafeMath96 {
     /// @notice Percentage of current total voting power require to vote.
     uint96 public quorumPercentageVotes;
 
+    // @notice Minimum  percentage
+    uint96 public minPercentageVotes;
+
     struct Proposal {
         /// @notice Unique id for looking up a proposal
         uint id;
@@ -135,11 +138,12 @@ contract GovernorAlpha is SafeMath96 {
     /// @notice An event emitted when a proposal has been executed in the Timelock
     event ProposalExecuted(uint id);
 
-    constructor(address timelock_, address staking_, address guardian_, uint96 _quorumPercentageVotes) public {
+    constructor(address timelock_, address staking_, address guardian_, uint96 _quorumPercentageVotes, uint96 _minPercentageVotes) public {
         timelock = ITimelock(timelock_);
         staking = IStaking(staking_);
         guardian = guardian_;
         quorumPercentageVotes = _quorumPercentageVotes;
+        minPercentageVotes = _minPercentageVotes;
     }
     
      /// @notice The number of votes required in order for a voter to become a proposer
@@ -329,9 +333,12 @@ contract GovernorAlpha is SafeMath96 {
         
         if (block.number <= proposal.endBlock) {
             return ProposalState.Active;
-        } 
-        
-        if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < proposal.quorum) {
+        }
+
+        uint96 totalVotingPower = staking.getPriorTotalVotingPower(safe32(block.number-1, "GovernorAlpha::state: block number overflow"), block.timestamp);
+
+        if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < proposal.quorum ||
+            mul96(add96(proposal.forVotes, proposal.againstVotes, "GovernorAlpha:: state: forVotes + againstVotes > uint96"), 100, "GovernorAlpha:: state: (forVotes + againstVotes) * 100 > uint96") / totalVotingPower < minPercentageVotes) {
             return ProposalState.Defeated;
         } 
         

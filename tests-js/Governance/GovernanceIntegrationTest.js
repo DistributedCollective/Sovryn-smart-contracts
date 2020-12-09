@@ -56,7 +56,7 @@ contract('GovernanceIntegration', accounts => {
 
         //Governor
         timelock = await Timelock.new(root, TWO_DAYS);
-        gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4);
+        gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4, 0);
         await timelock.harnessSetAdmin(gov.address);
 
         //Settings

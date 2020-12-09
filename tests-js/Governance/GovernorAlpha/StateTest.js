@@ -31,6 +31,7 @@ const statesInverted = solparse
 
 const states = Object.entries(statesInverted).reduce((obj, [key, value]) => ({...obj, [value]: key}), {});
 
+const TWO_PERCENTAGE_VOTES = etherMantissa(200000)
 const QUORUM_VOTES = etherMantissa(4000000);
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
@@ -59,22 +60,28 @@ contract('GovernorAlpha#state/1', accounts => {
         delay = etherUnsigned(10)
         await timelock.setDelayWithoutChecking(delay);
 
-        gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4);
+        gov = await GovernorAlpha.new(timelock.address, staking.address, root, 5, 50);
 
         await timelock.harnessSetAdmin(gov.address);
         await token.approve(staking.address, QUORUM_VOTES);
         await staking.stake(QUORUM_VOTES, MAX_DURATION, root, root);
-        
+
         await token.transfer(acct, QUORUM_VOTES);
         await token.approve(staking.address, QUORUM_VOTES, {from: acct});
         let kickoffTS = await staking.kickoffTS.call();
         let stakingDate = kickoffTS.add(new BN(MAX_DURATION));
         await staking.stake(QUORUM_VOTES, stakingDate, acct, acct, {from: acct});
-        
+
+        await token.transfer(accounts[3], TWO_PERCENTAGE_VOTES);
+        await token.approve(staking.address, TWO_PERCENTAGE_VOTES, {from: accounts[3]});
+        kickoffTS = await staking.kickoffTS.call();
+        stakingDate = kickoffTS.add(new BN(MAX_DURATION));
+        await staking.stake(TWO_PERCENTAGE_VOTES, stakingDate, accounts[3], accounts[3], {from: accounts[3]});
+
         //
         targets = [root];
         values = ["0"];
-        signatures = ["getBalanceOf(address)"]
+        signatures = ["getBalanceOf(address)"];
         callDatas = [encodeParameters(['address'], [acct])];
     
         await updateTime(staking);
@@ -109,27 +116,73 @@ contract('GovernorAlpha#state/1', accounts => {
         expect((await gov.state.call(+newProposalId)).toString()).to.be.equal(states["Canceled"]);
     })
     
-    it("Defeated", async () => {
+    it("Defeated by time", async () => {
         // travel to end block
         await advanceBlocks(20)
         
         expect((await gov.state(trivialProposal.id)).toString()).to.be.equal(states["Defeated"]);
     })
-    
+
+    it("Defeated by quorum", async () => {
+        await mineBlock()
+        await updateTime(staking);
+
+        // let blockNumber = await web3.eth.getBlockNumber()
+        // let block = await web3.eth.getBlock(blockNumber)
+        //
+        // let voices1 = await staking.getPriorVotes(root, blockNumber-1 , block.timestamp);
+        // let voices2 = await staking.getPriorVotes(acct, blockNumber-1 , block.timestamp);
+        // let voices3 = await staking.getPriorVotes(accounts[3], blockNumber-1 , block.timestamp);
+        // let totalVotingPower = await staking.getPriorTotalVotingPower(blockNumber-1, block.timestamp);
+        // console.log("voices1: ", voices1.toString())
+        // console.log("voices2: ", voices2.toString())
+        // console.log("voices3", voices3.toString())
+        // console.log("totalVotingPower: ", totalVotingPower.toString())
+
+        await gov.propose(targets, values, signatures, callDatas, "do nothing", {from: accounts[3]});
+        let newProposalId = await gov.latestProposalIds.call(accounts[3]);
+        await mineBlock()
+
+        await updateTime(staking);
+        await gov.castVote(newProposalId, true, {from: accounts[3]});
+        await advanceBlocks(20);
+
+        //2% of votes
+        expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Defeated"]);
+    })
+
+    it("Defeated by minPercentageVotes", async () => {
+        await mineBlock()
+        await updateTime(staking);
+
+        await gov.propose(targets, values, signatures, callDatas, "do nothing", {from: acct});
+        let newProposalId = await gov.latestProposalIds.call(acct);
+        await mineBlock()
+
+        await updateTime(staking);
+        await gov.castVote(newProposalId, true, {from: acct});
+        await advanceBlocks(20);
+
+        //48% of votes
+        expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Defeated"]);
+    })
+
     it("Succeeded", async () => {
         await mineBlock()
         await updateTime(staking);
+
         await gov.propose(targets, values, signatures, callDatas, "do nothing", {from: acct});
         let newProposalId = await gov.latestProposalIds.call(acct);
         await mineBlock()
         
         await updateTime(staking);
         await gov.castVote(newProposalId, true);
+        await gov.castVote(newProposalId, true, {from: accounts[3]});
         await advanceBlocks(20);
         
         expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Succeeded"]);
     })
-    
+
     it("Queued", async () => {
         await mineBlock()
         await updateTime(staking);
@@ -139,12 +192,13 @@ contract('GovernorAlpha#state/1', accounts => {
         
         await updateTime(staking);
         await gov.castVote(newProposalId, true);
+        await gov.castVote(newProposalId, true, {from: accounts[3]});
         await advanceBlocks(20)
         
         await gov.queue(newProposalId, {from: acct});
         expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Queued"]);
     })
-    
+
     it("Expired", async () => {
         await mineBlock()
         await updateTime(staking);
@@ -154,6 +208,7 @@ contract('GovernorAlpha#state/1', accounts => {
         
         await updateTime(staking);
         await gov.castVote(newProposalId, true);
+        await gov.castVote(newProposalId, true, {from: accounts[3]});
         await advanceBlocks(20)
         
         await increaseTime(1)
@@ -181,6 +236,7 @@ contract('GovernorAlpha#state/1', accounts => {
         await mineBlock()
         await updateTime(staking);
         await gov.castVote(newProposalId, true);
+        await gov.castVote(newProposalId, true, {from: accounts[3]});
         await advanceBlocks(20)
         
         await gov.queue(newProposalId, {from: acct});

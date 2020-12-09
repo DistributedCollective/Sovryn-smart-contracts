@@ -46,7 +46,7 @@ contract("governorAlpha#castVote/2", accounts => {
         await staking.setImplementation(stakingLogic.address);
         staking = await StakingLogic.at(staking.address);
      
-        gov = await GovernorAlpha.new(address(0), staking.address, root, 4);
+        gov = await GovernorAlpha.new(address(0), staking.address, root, 4, 0);
 
         
         targets = [a1];
@@ -213,7 +213,6 @@ contract("governorAlpha#castVote/2", accounts => {
             expect(proposal.forVotes.toString()).to.be.equal(expectedVotes.toString());
             let receipt = await gov.getReceipt.call(proposalId, actor);
             expect(receipt.votes.toString()).to.be.equal(expectedVotes.toString());
-            
             console.log("\n" + proposal.forVotes.toString());
         })
         
