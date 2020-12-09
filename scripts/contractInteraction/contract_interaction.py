@@ -6,6 +6,7 @@ This script serves the purpose of interacting with existing smart contracts on t
 from brownie import *
 from brownie.network.contract import InterfaceContainer
 import json
+import copy
 
 def main():
     
@@ -15,7 +16,7 @@ def main():
     #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOC'])
     #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iDOC'], contracts['DoC'], contracts['WRBTC'], 1e18, 5e18, False, 0)
     #setupMarginLoanParams(contracts['DoC'],  contracts['iRBTC'])
-    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 5e18, False, 1e15)
+    testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 5e18, False, 1e15)
     
     #swapTokens(0.02e18,200e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['DoC'])
     #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
@@ -43,6 +44,17 @@ def main():
     setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [21e18])
     readTransactionLimits(contracts['iDOC'],  contracts['DoC'], contracts['WRBTC'])
     
+
+    #setupLoanParamsForCollaterals(contracts['iBPro'], [contracts['DoC'], contracts['USDT']])
+    #setupLoanParamsForCollaterals(contracts['iDOC'], [contracts['BPro'], contracts['USDT']])
+    #setupLoanParamsForCollaterals(contracts['iUSDT'], [contracts['DoC'], contracts['BPro']])
+    #setupLoanParamsForCollaterals(contracts['iRBTC'], [contracts['BPro'], contracts['USDT']])
+
+    #deployMultisig(['0xdB3DB4c5695f2aab0F406C86d1f35D326685d055', '0x5092019A3E0334586273A21a701F1BD859ECAbD6', '0xD6da34D91fC59134A132b17e7b5a472CA1BeA794'], 2)
+    #deployMultisig(['0x2bD2201bfe156a71EB0d02837172FFc237218505', acct, '0xdB3DB4c5695f2aab0F406C86d1f35D326685d055', '0x5092019A3E0334586273A21a701F1BD859ECAbD6', '0xD6da34D91fC59134A132b17e7b5a472CA1BeA794'], 2)
+    #updatePriceFeedToRSKOracle()
+
+    
 def loadConfig():
     global contracts, acct
     this_network = network.show_active()
@@ -50,7 +62,7 @@ def loadConfig():
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
     elif this_network == "testnet":
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
-    contracts = json.load(configFile)
+    #contracts = json.load(configFile)
     acct = accounts.load("rskdeployer")
     
 
@@ -387,3 +399,43 @@ def addLiquidity(converter, reserve, amount):
     print("price oracle", converter.priceOracle())
     tx = converter.addLiquidity(reserve, amount, 1)
     print(tx)
+
+def deployMultisig(owners, requiredConf):
+     multisig = acct.deploy(MultiSigWallet, owners, requiredConf)
+     print("multisig:", multisig)
+     
+def setupLoanParamsForCollaterals(loanTokenAddress, collateralAddresses):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    marginParams = []
+    torqueParams = []
+    for collateralAddress in collateralAddresses:
+        marginData = [
+            b"0x0", ## id
+            False, ## active
+            str(acct), ## owner
+            "0x0000000000000000000000000000000000000000", ## loanToken -> will be overwritten
+            collateralAddress, ## collateralToken.
+            Wei("20 ether"), ## minInitialMargin -> 20% (allows up to 5x leverage)
+            Wei("15 ether"), ## maintenanceMargin -> 15%, below liquidation
+            0 ## fixedLoanTerm -> will be overwritten with 28 days
+        ]
+        torqueData = copy.deepcopy(marginData)
+        torqueData[5] = Wei("50 ether")
+        print(torqueData)
+        
+        marginParams.append(marginData)
+        torqueParams.append(torqueData)
+
+    #configure the token settings, and set the setting contract address at the loan token logic contract
+    tx = loanToken.setupLoanParams(marginParams, False)
+    tx = loanToken.setupLoanParams(torqueParams, True)
+    
+
+def updatePriceFeedToRSKOracle():
+    newPriceFeed = acct.deploy(PriceFeedRSKOracle, contracts['RSKOracle'])
+    print("new price feed: ", newPriceFeed)
+    feeds = Contract.from_abi("PriceFeeds", address= contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = acct)
+    feeds.setPriceFeed([contracts['WRBTC']], [newPriceFeed.address])
+    
+    
+
