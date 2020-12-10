@@ -149,21 +149,31 @@ contract Staking is WeightedStaking{
      * @param receiver the receiver of the tokens. If not specified, send to the msg.sender
      * */
     function withdraw(uint96 amount, uint until, address receiver) public {
+        _withdraw(amount, until, receiver, false);
+    }
+
+    function governanceWithdraw(uint96 amount, uint until, address receiver) public {
+        _withdraw(amount, until, receiver, true);
+    }
+
+    function _withdraw(uint96 amount, uint until, address receiver, bool isGovernance) internal {
         require(amount > 0, "Staking::withdraw: amount of tokens to be withdrawn needs to be bigger than 0");
         uint96 balance = getPriorUserStakeByDate(msg.sender, until, block.number -1);
         require(amount <= balance, "Staking::withdraw: not enough balance");
-        
+
         //determine the receiver
         if(receiver == address(0))
             receiver = msg.sender;
-            
+
         //update the checkpoints
         _decreaseDailyStake(until, amount);
         _decreaseUserStake(msg.sender, until, amount);
         _decreaseDelegateStake(delegates[msg.sender][until], until, amount);
 
         //early unstaking should be punished
-        if (block.timestamp < until && !allUnlocked) {
+        // @todo vesting contract calls this function always with block.timestamp, maybe we should to change signature to
+        // function withdrawTokens(address receiver, uint96 endDate) public onlyOwners {
+        if (block.timestamp < until && !allUnlocked && !isGovernance) {
             uint date = timestampToLockDate(block.timestamp);
             uint96 weight = computeWeightByDate(until, date); // (10 - 1) * WEIGHT_FACTOR
             weight = weight * weightScaling;
@@ -183,7 +193,7 @@ contract Staking is WeightedStaking{
         //transferFrom
         bool success = SOVToken.transfer(receiver, amount);
         require(success, "Staking::withdraw: Token transfer failed");
-        
+
         emit TokensWithdrawn(msg.sender, receiver, amount);
     }
 
