@@ -11,7 +11,7 @@ from loanToken.sov_reward import verify_sov_reward_payment
 tiny_amount = 10**6
 
 def liquidate(accounts, loanToken, underlyingToken, set_demand_curve, collateralToken, sovryn, priceFeeds, rate, WRBTC,
-              FeesEvents, SOV, chain):
+              FeesEvents, SOV, chain, checkTinyPosition):
     # set the demand curve to set interest rates
     set_demand_curve()
     
@@ -21,7 +21,7 @@ def liquidate(accounts, loanToken, underlyingToken, set_demand_curve, collateral
     loan_token_sent = 10e18
     
     # lend to the pool, mint tokens if required, open a margin trade position
-    loan_id = prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken, underlyingToken, collateralToken, sovryn, WRBTC)
+    loan_id = prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken, underlyingToken, collateralToken, sovryn, WRBTC, checkTinyPosition)
     loan = sovryn.getLoan(loan_id).dict()
 
     # set the rates so we're able to liquidate
@@ -38,7 +38,7 @@ def liquidate(accounts, loanToken, underlyingToken, set_demand_curve, collateral
     chain.mine(1)
 
     # amount to check that tiny position won't be created
-    amount_to_liquidate = loan['principal'] - tiny_amount
+    amount_to_liquidate = loan['principal'] - tiny_amount if checkTinyPosition else loan_token_sent
     # liquidate
     tx_liquidation = sovryn.liquidate(loan_id, liquidator, amount_to_liquidate, {'from': liquidator, 'value' :value})
 
@@ -50,7 +50,7 @@ def liquidate(accounts, loanToken, underlyingToken, set_demand_curve, collateral
 '''
 should fail to liquidate a healthy position
 '''
-def liquidate_healthy_position_should_fail(accounts, loanToken, underlyingToken, set_demand_curve, collateralToken, sovryn, priceFeeds, WRBTC):
+def liquidate_healthy_position_should_fail(accounts, loanToken, underlyingToken, set_demand_curve, collateralToken, sovryn, priceFeeds, WRBTC, checkTinyPosition):
     # set the demand curve to set interest rates
     set_demand_curve()
     
@@ -60,7 +60,7 @@ def liquidate_healthy_position_should_fail(accounts, loanToken, underlyingToken,
     loan_token_sent = 10e18
     
     # lend to the pool, mint tokens if required, open a margin trade position
-    loan_id = prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken, underlyingToken, collateralToken, sovryn, WRBTC)
+    loan_id = prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken, underlyingToken, collateralToken, sovryn, WRBTC, checkTinyPosition)
     
     # try to liquidate the still healthy position
     
@@ -71,7 +71,7 @@ def liquidate_healthy_position_should_fail(accounts, loanToken, underlyingToken,
 '''
 lend to the pool, mint tokens if required, open a margin trade position
 '''
-def prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken, underlyingToken, collateralToken, sovryn, WRBTC):
+def prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken, underlyingToken, collateralToken, sovryn, WRBTC, checkTinyPosition):
     underlyingToken.approve(loanToken.address, 1e40)
     
     if (WRBTC == underlyingToken):
@@ -79,10 +79,11 @@ def prepare_liquidation(lender, borrower, liquidator, loan_token_sent, loanToken
         value = loan_token_sent
     else:
         loanToken.mint(lender, 1e21)
-        underlyingToken.mint(borrower, loan_token_sent * 10**3)
-        underlyingToken.mint(liquidator, loan_token_sent * 10**3)
-        underlyingToken.approve(loanToken.address, loan_token_sent * 10**3, {'from': borrower})
-        underlyingToken.approve(sovryn.address, loan_token_sent * 10**3, {'from': liquidator})
+        multiplier = 10**3 if checkTinyPosition else 1
+        underlyingToken.mint(borrower, loan_token_sent * multiplier)
+        underlyingToken.mint(liquidator, loan_token_sent * multiplier)
+        underlyingToken.approve(loanToken.address, loan_token_sent * multiplier, {'from': borrower})
+        underlyingToken.approve(sovryn.address, loan_token_sent * multiplier, {'from': liquidator})
         value = 0
 
     tx = loanToken.marginTrade(
