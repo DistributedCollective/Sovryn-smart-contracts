@@ -21,6 +21,9 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
     //because it's not shared state anyway and only used by this contract
     uint256 constant public paySwapExcessToBorrowerThreshold = 10000000000000;
 
+    //TODO rename, move, define value
+    uint constant public TINY_AMOUNT = 1;
+
     enum CloseTypes {
         Deposit,
         Swap,
@@ -196,9 +199,15 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         );
 
         if (loanCloseAmount < maxLiquidatable) {
-            seizedAmount = maxSeizable
-                .mul(loanCloseAmount)
-                .div(maxLiquidatable);
+            //close maxLiquidatable if tiny position will remain
+            if (maxLiquidatable - loanCloseAmount <= TINY_AMOUNT) {
+                loanCloseAmount = maxLiquidatable;
+                seizedAmount = maxSeizable;
+            } else {
+                seizedAmount = maxSeizable
+                    .mul(loanCloseAmount)
+                    .div(maxLiquidatable);
+            }
         } else if (loanCloseAmount > maxLiquidatable) {
             // adjust down the close amount to the max
             loanCloseAmount = maxLiquidatable;
@@ -476,6 +485,11 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             loanLocal.principal :
             depositAmount;
 
+        //close whole loan if tiny position will remain
+        if (loanLocal.principal - loanCloseAmount <= TINY_AMOUNT) {
+            loanCloseAmount = loanLocal.principal;
+        }
+
         uint256 loanCloseAmountLessInterest = _settleInterestToPrincipal(
             loanLocal,
             loanParamsLocal,
@@ -559,6 +573,11 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         swapAmount = swapAmount > loanLocal.collateral ?
             loanLocal.collateral :
             swapAmount;
+
+        //close whole loan if tiny position will remain
+        if (loanLocal.collateral - swapAmount <= TINY_AMOUNT) {
+            swapAmount = loanLocal.collateral;
+        }
 
         uint256 loanCloseAmountLessInterest;
         if (swapAmount == loanLocal.collateral || returnTokenIsCollateral) {
