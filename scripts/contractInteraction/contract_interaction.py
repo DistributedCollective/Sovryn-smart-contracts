@@ -14,11 +14,11 @@ def main():
     loadConfig()
     #call the function you want here
     #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOC'])
-    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iDOC'], contracts['DoC'], contracts['WRBTC'], 1e18, 5e18, False, 0)
+    testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iUSDT'], contracts['USDT'], contracts['WRBTC'], 1e18, 5e18, False, 0)
     #setupMarginLoanParams(contracts['DoC'],  contracts['iRBTC'])
-    testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 5e18, False, 1e15)
-    
-    #swapTokens(0.02e18,200e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['DoC'])
+    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 5e18, False, 1e15)
+    #buyWRBTC()
+    #swapTokens(0.027e18,400e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['USDT'])
     #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
     #liquidate(contracts['sovrynProtocol'], '0xc9b8227bcf953e45f16d5d9a8a74cad92f403b90d0daf00900bb02e4a35c542c')
     #readLiquidity()
@@ -45,6 +45,37 @@ def main():
     #deployMultisig(['0xdB3DB4c5695f2aab0F406C86d1f35D326685d055', '0x5092019A3E0334586273A21a701F1BD859ECAbD6', '0xD6da34D91fC59134A132b17e7b5a472CA1BeA794'], 2)
     #deployMultisig(['0x2bD2201bfe156a71EB0d02837172FFc237218505', acct, '0xdB3DB4c5695f2aab0F406C86d1f35D326685d055', '0x5092019A3E0334586273A21a701F1BD859ECAbD6', '0xD6da34D91fC59134A132b17e7b5a472CA1BeA794'], 2)
     #updatePriceFeedToRSKOracle()
+    print('reading price from WRBTC to DOC')
+    readPrice(contracts['WRBTC'], contracts['DoC'])
+    print('reading price from WRBTC to USDT')
+    readPrice(contracts['WRBTC'], contracts['USDT'])
+    print('reading price from WRBTC to BPRO')
+    readPrice(contracts['WRBTC'], contracts['BPro'])
+    print('read price from USDT to DOC')
+    readPrice(contracts['USDT'], contracts['DoC'])
+    
+    print('read swap rate from WRBTC to DOC')
+    readSwapRate(contracts['WRBTC'], contracts['DoC'])
+    print('read swap rate from WRBTC to USDT')
+    readSwapRate(contracts['WRBTC'], contracts['USDT'])
+    print('read swap rate from WRBTC to BPRO')
+    readSwapRate(contracts['WRBTC'], contracts['BPro'])
+    print('read swap rate from USDT to DOC')
+    readSwapRate(contracts['USDT'], contracts['DoC'])
+    print('read swap rate from BPro to DOC')
+    readSwapRate(contracts['BPro'], contracts['DoC'])
+    print('read swap rate from BPro to USDT')
+    readSwapRate(contracts['BPro'], contracts['USDT'])
+    print('read swap rate from USDT to WRBTC')
+    readSwapRate(contracts['USDT'], contracts['WRBTC'])
+    print('read swap rate from DOC to WRBTC')
+    readSwapRate(contracts['DoC'], contracts['WRBTC'])
+    
+    print("price from the USDT oracle on AMM:")
+    readPriceFromOracle('0x78F0b35Edd78eD564830c45F4A22e4b553d7f042')
+    
+    readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', contracts['USDT'])
+    readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', contracts['WRBTC'])
 
     
 def loadConfig():
@@ -54,7 +85,7 @@ def loadConfig():
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
     elif this_network == "testnet":
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
-    #contracts = json.load(configFile)
+    contracts = json.load(configFile)
     acct = accounts.load("rskdeployer")
     
 
@@ -421,4 +452,29 @@ def updatePriceFeedToRSKOracle():
     feeds.setPriceFeed([contracts['WRBTC']], [newPriceFeed.address])
     
     
+def readPrice(source, destination):
+    feeds = Contract.from_abi("PriceFeeds", address= contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = acct)
+    rate = feeds.queryRate(source, destination)
+    print('rate is ', rate)
 
+def readSwapRate(source, destination):
+    abiFile =  open('./scripts/contractInteraction/SovrynSwapNetwork.json')
+    abi = json.load(abiFile)
+    swapNetwork = Contract.from_abi("SovrynSwapNetwork", address=contracts['swapNetwork'], abi=abi, owner=acct)
+    path = swapNetwork.conversionPath(source,destination)
+    #print("path:", path)
+    expectedReturn = swapNetwork.getReturnByPath(path, 0.01e18)
+    print('rate is ', expectedReturn)
+    
+def readPriceFromOracle(oracleAddress):
+    oracle = Contract.from_abi("Oracle", address=oracleAddress, abi=PriceFeedsMoC.abi, owner=acct)
+    price = oracle.latestAnswer()
+    print('rate is ', price)
+    
+def readTargetWeights(converter, reserve):
+    abiFile =  open('./scripts/contractInteraction/LiquidityPoolV2Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV2Converter", address=converter, abi=abi, owner=acct)
+    res = converter.reserves(reserve).dict()
+    print(res)
+    print('target weight is ',res['weight'])
