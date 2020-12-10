@@ -341,7 +341,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 
         return (sentValues[1], sentValues[4]); // newPrincipal, newCollateral
     } 
-    event  CollateralMismatch(uint actual, uint required);
+
 
     function _finalizeOpen(
         LoanParams memory loanParamsLocal,
@@ -351,6 +351,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
         bool isTorqueLoan)
         internal
     {
+        //todo here the actual used rate and margin should go
         (uint256 initialMargin, uint256 collateralToLoanRate) = IPriceFeeds(priceFeeds).getCurrentMargin(
             loanParamsLocal.loanToken,
             loanParamsLocal.collateralToken,
@@ -658,6 +659,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
                     .div(sourceToDestRate)
                     .mul(marginAmount)
                     .div(10**20);
+            }
         }
 
         if (isTorqueLoan && collateralTokenAmount != 0) {
