@@ -21,7 +21,8 @@ interface ISwapsImpl {
     function internalExpectedRate(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint256 sourceTokenAmount)
+        uint256 sourceTokenAmount,
+        address optionalContractAddress)
         external
         view
         returns (uint256);

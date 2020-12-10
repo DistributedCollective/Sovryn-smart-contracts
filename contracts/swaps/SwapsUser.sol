@@ -205,7 +205,8 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
         uint256 sourceToDestRate = ISwapsImpl(swapsImpl).internalExpectedRate(
             sourceToken,
             destToken,
-            sourceTokenAmount
+            sourceTokenAmount,
+            sovrynSwapContractRegistryAddress
         );
         uint256 sourceToDestPrecision = IPriceFeeds(priceFeeds).queryPrecision(
             sourceToken,
