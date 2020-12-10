@@ -77,11 +77,10 @@ def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, sovryn, SUSD,
         SUSD.address,
         RBTC.address,
         loanTokenSent,
-        100e18,
+        50e18,
         False
     )
-    print('required collateral:', collateralTokenSent)
-    #assert(False)
+    print('required collateral:', collateralTokenSent/1e18)
     
     RBTC.mint(
         sovryn.address,
