@@ -581,20 +581,23 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
         return _totalAssetSupply(interestUnPaid);
     }
-
+    
+    /**
+     * @notice computes the maximum deposit amount under current market conditions
+     * @dev maxEscrowAmount = liquidity * (100 - interestForDuration) / 100
+     * @param leverageAmount the chosen leverage with 18 decimals
+     * */
     function getMaxEscrowAmount(
         uint256 leverageAmount)
         public
         view
-        returns (uint256)
+        returns (uint256 maxEscrowAmount)
     {
-        uint256 initialMargin = SafeMath.div(10**38, leverageAmount);
-        return marketLiquidity()
-            .mul(initialMargin)
-            .div(_adjustValue(
-                10**20, // maximum possible interest (100%)
-                2419200, // 28 day duration for margin trades
-                initialMargin));
+        //mathematical imperfection. depending on liquidity we might be able to borrow more if utilization is below the kink level
+        uint256 interestForDuration = maxScaleRate.mul(28).div(365);
+        uint256 factor = uint256(10**20).sub(interestForDuration);
+        uint256 maxLoanSize = marketLiquidity().mul(factor).div(10**20);
+        maxEscrowAmount = maxLoanSize.mul(10**18).div(leverageAmount);
     }
 
     // returns the user's balance of underlying token
@@ -1156,7 +1159,12 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
             .mul(SafeMath.sub(10**20, interestFeePercent))
             .div(10**20);
     }
-
+    
+    /**
+     * @notice computes the loan size and interest rate
+     * @param leverageAmount the leverage with 18 decimals
+     * @param depositAmount the amount the user deposited in underlying loan tokens
+     * */
     function _getMarginBorrowAmountAndRate(
         uint256 leverageAmount,
         uint256 depositAmount)
@@ -1164,23 +1172,12 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         view
         returns (uint256 borrowAmount, uint256 interestRate)
     {
-        uint256 initialMargin = SafeMath.div(10**38, leverageAmount);
-
-        interestRate = _nextBorrowInterestRate2(
-            depositAmount
-                .mul(10**20)
-                .div(initialMargin),
-            _totalAssetSupply(0)
-        );
-
+        uint256 loanSizeBeforeInterest = depositAmount.mul(leverageAmount).div(10**18);
+        //mathematical imperfection. we calculate the interest rate based on the loanSizeBeforeInterest, but 
+        //the actual borrowed amount will be bigger.
+        interestRate = _nextBorrowInterestRate2(loanSizeBeforeInterest, _totalAssetSupply(0));
         // assumes that loan, collateral, and interest token are the same
-        borrowAmount = depositAmount
-            .mul(10**40)
-            .div(_adjustValue(
-                interestRate,
-                2419200, // 28 day duration for margin trades
-                initialMargin))
-            .div(initialMargin);
+        borrowAmount = _adjustLoanSize(interestRate, 28 days, loanSizeBeforeInterest);
     }
 
     function _totalAssetSupply(
@@ -1230,23 +1227,25 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         }
         require(!isPaused, "unauthorized");
     }
-
-    function _adjustValue(
+    
+    /**
+     * @notice adjusts the loan size to make sure the expected exposure remains after prepaying the interest
+     * @dev loanSizeWithInterest = loanSizeBeforeInterest * 100 / (100 - interestForDuration)
+     * @param interestRate the interest rate to pay on the position
+     * @param maxDuration the maximum duration of the position (until rollover)
+     * @param loanSizeBeforeInterest the loan size before interest is added 
+     * */
+    function _adjustLoanSize(
         uint256 interestRate,
         uint256 maxDuration,
-        uint256 marginAmount)
+        uint256 loanSizeBeforeInterest)
         internal
         pure
-        returns (uint256)
+        returns (uint256 loanSizeWithInterest)
     {
-        return maxDuration != 0 ?
-            interestRate
-                .mul(10**20)
-                .div(31536000) // 86400 * 365
-                .mul(maxDuration)
-                .div(marginAmount)
-                .add(10**20) :
-            10**20;
+        uint256 interestForDuration = interestRate.mul(maxDuration).div(365 days);
+        uint256 divisor = uint256(10**20).sub(interestForDuration);
+        loanSizeWithInterest = loanSizeBeforeInterest.mul(10**20).div(divisor);
     }
 
     function _utilizationRate(
@@ -1263,4 +1262,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
                 .div(assetSupply);
         }
     }
+    
+    
 }
