@@ -8,7 +8,7 @@ def Constants():
         "ONE_ADDRESS": "0x0000000000000000000000000000000000000001",
         "MAX_UINT": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
         "ZERO_32": "0x0000000000000000000000000000000000000000000000000000000000000000",
-        "TINY_AMOUNT": 10**14
+        "TINY_AMOUNT": 25 * 10**13
     })
 
 def Addresses():

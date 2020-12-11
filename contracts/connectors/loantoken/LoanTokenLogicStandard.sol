@@ -21,8 +21,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
     uint256 public constant VERSION = 5;
     address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
 
-    //TODO define value
-    uint constant public TINY_AMOUNT = 10**14;
+    uint constant public TINY_AMOUNT = 25 * 10**13;
 
     function()
         external
@@ -244,7 +243,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
             loanTokenSent
         );
         require(totalDeposit != 0, "12");
-        require(totalDeposit > TINY_AMOUNT, "total deposit too small");
+        require(_getAmountInRbtc(loanTokenAddress, totalDeposit) > TINY_AMOUNT, "total deposit too small");
 
         address[4] memory sentAddresses;
         uint256[5] memory sentAmounts;
@@ -810,6 +809,18 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
                     .add(totalDeposit);
             }
         }
+    }
+
+    /**
+     * @dev returns amount of the asset converted to RBTC
+     * @param asset the asset to be transferred
+     * @param amount the amount to be transferred
+     * @return amount in RBTC
+     * */
+    function _getAmountInRbtc(address asset, uint256 amount) internal returns (uint) {
+        (uint256 rbtcRate, uint256 rbtcPrecision) =
+        FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(asset, wrbtcTokenAddress);
+        return amount.mul(rbtcRate).div(rbtcPrecision);
     }
 
     function _getInterestRateAndBorrowAmount(
