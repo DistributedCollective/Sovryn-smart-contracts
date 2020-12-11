@@ -14,7 +14,7 @@ from helpers import decode_log
 from loanToken.sov_reward import verify_sov_reward_payment
 
 # TODO rename, move, define value
-tiny_amount = 10**6
+tiny_amount = 10**14
 
 """
 Test CloseWithDeposit event parameters

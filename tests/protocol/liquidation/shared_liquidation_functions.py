@@ -8,7 +8,7 @@ from fixedint import *
 from loanToken.sov_reward import verify_sov_reward_payment
 
 # TODO rename, move, define value
-tiny_amount = 10**6
+tiny_amount = 10**14
 
 def liquidate(accounts, loanToken, underlyingToken, set_demand_curve, collateralToken, sovryn, priceFeeds, rate, WRBTC,
               FeesEvents, SOV, chain, checkTinyPosition):
