@@ -355,7 +355,8 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
         );
 
         if (loanLocal.startTimestamp == block.timestamp) {
-            loanLocal.startRate = collateralToLoanRate;
+            loanLocal.startRate = collateralToLoanRate;//TODO should be sentValues[3] in case of trade -> the actual amm rate
+            //in case of torque it needs to remain
         }
 
         _emitOpeningEvents(
