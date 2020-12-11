@@ -12,9 +12,7 @@ from brownie import reverts
 from fixedint import *
 from helpers import decode_log
 from loanToken.sov_reward import verify_sov_reward_payment
-
-# TODO rename, move, define value
-tiny_amount = 10**14
+import shared
 
 """
 Test CloseWithDeposit event parameters
@@ -104,7 +102,8 @@ def test_partial_close_with_deposit_tiny_position(sovryn, set_demand_curve, lend
     initial_loan_interest = sovryn.getLoanInterestData(loan_id)
 
     # amount to check that tiny position won't be created
-    deposit_amount = principal - tiny_amount
+    constants = shared.Constants()
+    deposit_amount = principal - constants.TINY_AMOUNT
     internal_test_close_with_deposit(deposit_amount, RBTC, SUSD, borrower, chain, collateral, initial_loan,
                                      initial_loan_interest, loanToken, loan_id, priceFeeds, principal, receiver,
                                      sovryn, LoanClosingsEvents, FeesEvents, SOV)
@@ -139,7 +138,8 @@ def internal_test_close_with_deposit(deposit_amount, RBTC, SUSD, borrower, chain
 
     loan_close_amount = principal if deposit_amount > principal else deposit_amount
     # check that tiny position won't be created
-    loan_close_amount = principal if principal - loan_close_amount <= tiny_amount else loan_close_amount
+    constants = shared.Constants()
+    loan_close_amount = principal if principal - loan_close_amount <= constants.TINY_AMOUNT else loan_close_amount
     withdraw_amount = collateral if loan_close_amount == principal \
         else fixedint(collateral).mul(loan_close_amount).div(principal).num
     end_collateral = collateral - withdraw_amount

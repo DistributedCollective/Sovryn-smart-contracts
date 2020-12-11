@@ -29,6 +29,9 @@ def test_margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, R
     margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain, False)
     margin_trading_sov_reward_payment(accounts, loanToken, SUSD, RBTC, chain, SOV, FeesEvents)
 
+def test_margin_trading_sending_loan_tokens_tiny_amount(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain, SOV, FeesEvents):
+    margin_trading_sending_loan_tokens_tiny_amount(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain, False)
+
 '''
 tests margin trading sending collateral tokens as collateral. 
 process:

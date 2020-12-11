@@ -21,7 +21,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
     uint256 public constant VERSION = 5;
     address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
 
-    //TODO rename, move, define value
+    //TODO define value
     uint constant public TINY_AMOUNT = 10**14;
 
     function()

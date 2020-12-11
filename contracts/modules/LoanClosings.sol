@@ -21,7 +21,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
     //because it's not shared state anyway and only used by this contract
     uint256 constant public paySwapExcessToBorrowerThreshold = 10000000000000;
 
-    //TODO rename, move, define value
+    //TODO define value
     uint constant public TINY_AMOUNT = 10**14;
 
     enum CloseTypes {

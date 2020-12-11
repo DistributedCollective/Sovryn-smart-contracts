@@ -6,9 +6,7 @@ import pytest
 from brownie import reverts
 from fixedint import *
 from loanToken.sov_reward import verify_sov_reward_payment
-
-# TODO rename, move, define value
-tiny_amount = 10**14
+import shared
 
 def liquidate(accounts, loanToken, underlyingToken, set_demand_curve, collateralToken, sovryn, priceFeeds, rate, WRBTC,
               FeesEvents, SOV, chain, checkTinyPosition):
@@ -38,7 +36,8 @@ def liquidate(accounts, loanToken, underlyingToken, set_demand_curve, collateral
     chain.mine(1)
 
     # amount to check that tiny position won't be created
-    amount_to_liquidate = loan['principal'] - tiny_amount if checkTinyPosition else loan_token_sent
+    constants = shared.Constants()
+    amount_to_liquidate = loan['principal'] - constants.TINY_AMOUNT if checkTinyPosition else loan_token_sent
     # liquidate
     tx_liquidation = sovryn.liquidate(loan_id, liquidator, amount_to_liquidate, {'from': liquidator, 'value' :value})
 
@@ -128,7 +127,8 @@ def verify_liquidation_event(loan, tx_liquidation, lender, borrower, liquidator,
 
     loan_close_amount = max_liquidatable if (loan_token_sent > max_liquidatable.num) else loan_token_sent
     # check that tiny position won't be created
-    loan_close_amount = max_liquidatable if (int(max_liquidatable) - loan_close_amount <= tiny_amount) else loan_close_amount
+    constants = shared.Constants()
+    loan_close_amount = max_liquidatable if (int(max_liquidatable) - loan_close_amount <= constants.TINY_AMOUNT) else loan_close_amount
     collateral_withdraw_amount = fixedint(max_seizable).mul(loan_close_amount).div(max_liquidatable)
 
     liquidate_event = tx_liquidation.events['Liquidate']

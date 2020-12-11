@@ -100,6 +100,29 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, underlyingTo
     # LoanMaintenance::_getLoan::549
     assert(loan['maxSeizable'] == 0)
 
+def margin_trading_sending_loan_tokens_tiny_amount(accounts, sovryn, loanToken, underlyingToken, collateralToken, priceFeeds, chain, sendValue):
+    # preparation
+    constants = shared.Constants()
+    loan_token_sent = constants.TINY_AMOUNT
+    underlyingToken.mint(loanToken.address, loan_token_sent*3)
+    underlyingToken.mint(accounts[0], loan_token_sent)
+    underlyingToken.approve(loanToken.address, loan_token_sent)
+    value = loan_token_sent if sendValue else 0
+
+    # send the transaction
+    leverage_amount = 2e18
+    collateral_sent = 0
+    with reverts("total deposit too small"):
+        loanToken.marginTrade(
+            "0", #loanId  (0 for new loans)
+            leverage_amount, # leverageAmount
+            loan_token_sent, #loanTokenSent
+            collateral_sent, # no collateral token sent
+            collateralToken.address, #collateralTokenAddress
+            accounts[0], #trader,
+            b'', #loanDataBytes (only required with ether)
+            {'value': value}
+        )
 
 def margin_trading_sov_reward_payment(accounts, loanToken, underlyingToken, collateralToken, chain, SOV, FeesEvents):
     # preparation
