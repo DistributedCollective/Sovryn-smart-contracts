@@ -14,7 +14,7 @@ def main():
     loadConfig()
     #call the function you want here
     #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOC'])
-    testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iUSDT'], contracts['USDT'], contracts['WRBTC'], 1e18, 5e18, False, 0)
+    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iUSDT'], contracts['USDT'], contracts['WRBTC'], 1e18, 5e18, False, 0)
     #setupMarginLoanParams(contracts['DoC'],  contracts['iRBTC'])
     #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 5e18, False, 1e15)
     #buyWRBTC()
@@ -27,22 +27,15 @@ def main():
     #readLoan('0xb2bbd9135a7cfbc5adda48e90430923108ad6358418b7ac27c9edcf2d44911e5')
     #replaceLoanClosings()
     
-    #logicContract = acct.deploy(LoanTokenLogicStandard)
-    #print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
-    #replaceLoanTokenLogic(contracts['iDOC'],logicContract.address)
-    #replaceLoanTokenLogic(contracts['iUSDT'],'0x2d4F27e9F82d315c389E5290D94dbA062993e40a')
-    #replaceLoanTokenLogic(contracts['iBPro'],'0x2d4F27e9F82d315c389E5290D94dbA062993e40a')
-    #logicContract = acct.deploy(LoanTokenLogicWrbtc)
-    #print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
-    #replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
-    readOwner(contracts['iDOC'])
-    readTransactionLimits(contracts['iDOC'],  contracts['DoC'],  contracts['WRBTC'])
+    #updateAllLogicContracts()
+    #readOwner(contracts['iDOC'])
+    #readTransactionLimits(contracts['iDOC'],  contracts['DoC'],  contracts['WRBTC'])
     #setTransactionLimits(contracts['iDOC'], [contracts['DoC']], [0])
     #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [0])
     #lendToPool(contracts['iDOC'],contracts['DoC'], 1000e18)
     #setTransactionLimits(contracts['iDOC'], [contracts['DoC']], [21e18])
-    setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [21e18])
-    readTransactionLimits(contracts['iDOC'],  contracts['DoC'], contracts['WRBTC'])
+    #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [21e18])
+    #readTransactionLimits(contracts['iDOC'],  contracts['DoC'], contracts['WRBTC'])
     
 
     #setupLoanParamsForCollaterals(contracts['iBPro'], [contracts['DoC'], contracts['USDT']])
@@ -52,38 +45,9 @@ def main():
 
     #deployMultisig(['0xdB3DB4c5695f2aab0F406C86d1f35D326685d055', '0x5092019A3E0334586273A21a701F1BD859ECAbD6', '0xD6da34D91fC59134A132b17e7b5a472CA1BeA794'], 2)
     #deployMultisig(['0x2bD2201bfe156a71EB0d02837172FFc237218505', acct, '0xdB3DB4c5695f2aab0F406C86d1f35D326685d055', '0x5092019A3E0334586273A21a701F1BD859ECAbD6', '0xD6da34D91fC59134A132b17e7b5a472CA1BeA794'], 2)
-    #updatePriceFeedToRSKOracle()
-    print('reading price from WRBTC to DOC')
-    readPrice(contracts['WRBTC'], contracts['DoC'])
-    print('reading price from WRBTC to USDT')
-    readPrice(contracts['WRBTC'], contracts['USDT'])
-    print('reading price from WRBTC to BPRO')
-    readPrice(contracts['WRBTC'], contracts['BPro'])
-    print('read price from USDT to DOC')
-    readPrice(contracts['USDT'], contracts['DoC'])
+    updatePriceFeedToRSKOracle()
+    #checkRates()
     
-    print('read swap rate from WRBTC to DOC')
-    readSwapRate(contracts['WRBTC'], contracts['DoC'])
-    print('read swap rate from WRBTC to USDT')
-    readSwapRate(contracts['WRBTC'], contracts['USDT'])
-    print('read swap rate from WRBTC to BPRO')
-    readSwapRate(contracts['WRBTC'], contracts['BPro'])
-    print('read swap rate from USDT to DOC')
-    readSwapRate(contracts['USDT'], contracts['DoC'])
-    print('read swap rate from BPro to DOC')
-    readSwapRate(contracts['BPro'], contracts['DoC'])
-    print('read swap rate from BPro to USDT')
-    readSwapRate(contracts['BPro'], contracts['USDT'])
-    print('read swap rate from USDT to WRBTC')
-    readSwapRate(contracts['USDT'], contracts['WRBTC'])
-    print('read swap rate from DOC to WRBTC')
-    readSwapRate(contracts['DoC'], contracts['WRBTC'])
-    
-    print("price from the USDT oracle on AMM:")
-    readPriceFromOracle('0x78F0b35Edd78eD564830c45F4A22e4b553d7f042')
-    
-    readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', contracts['USDT'])
-    readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', contracts['WRBTC'])
 
     
 def loadConfig():
@@ -359,9 +323,7 @@ def readLendingBalanceForUser(loanTokenAddress, userAddress):
     bal = loanToken.assetBalanceOf(userAddress)
     print('underlying token balance', bal)
     
-def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
-    loanToken.setTarget(logicAddress)
+
     
 def readOwner(contractAddress):
     contract = Contract.from_abi("loanToken", address=contractAddress, abi=LoanToken.abi, owner=acct)
@@ -495,3 +457,46 @@ def readTargetWeights(converter, reserve):
     res = converter.reserves(reserve).dict()
     print(res)
     print('target weight is ',res['weight'])
+    
+def updateAllLogicContracts():
+    logicContract = acct.deploy(LoanTokenLogicStandard)
+    print('new LoanTokenLogicStandard contract :' + logicContract.address)
+    replaceLoanTokenLogic(contracts['iDOC'],logicContract.address)
+    replaceLoanTokenLogic(contracts['iUSDT'],logicContract.address)
+    replaceLoanTokenLogic(contracts['iBPro'],logicContract.address)
+    logicContract = acct.deploy(LoanTokenLogicWrbtc)
+    print('new LoanTokenLogicWRBTC :' + logicContract.address)
+    replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
+    
+def checkRates():
+    print('reading price from WRBTC to DOC')
+    readPrice(contracts['WRBTC'], contracts['DoC'])
+    print('reading price from WRBTC to USDT')
+    readPrice(contracts['WRBTC'], contracts['USDT'])
+    print('reading price from WRBTC to BPRO')
+    readPrice(contracts['WRBTC'], contracts['BPro'])
+    print('read price from USDT to DOC')
+    readPrice(contracts['USDT'], contracts['DoC'])
+    
+    print('read swap rate from WRBTC to DOC')
+    readSwapRate(contracts['WRBTC'], contracts['DoC'])
+    print('read swap rate from WRBTC to USDT')
+    readSwapRate(contracts['WRBTC'], contracts['USDT'])
+    print('read swap rate from WRBTC to BPRO')
+    readSwapRate(contracts['WRBTC'], contracts['BPro'])
+    print('read swap rate from USDT to DOC')
+    readSwapRate(contracts['USDT'], contracts['DoC'])
+    print('read swap rate from BPro to DOC')
+    readSwapRate(contracts['BPro'], contracts['DoC'])
+    print('read swap rate from BPro to USDT')
+    readSwapRate(contracts['BPro'], contracts['USDT'])
+    print('read swap rate from USDT to WRBTC')
+    readSwapRate(contracts['USDT'], contracts['WRBTC'])
+    print('read swap rate from DOC to WRBTC')
+    readSwapRate(contracts['DoC'], contracts['WRBTC'])
+    
+    print("price from the USDT oracle on AMM:")
+    readPriceFromOracle('0x78F0b35Edd78eD564830c45F4A22e4b553d7f042')
+    
+    readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', contracts['USDT'])
+    readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', contracts['WRBTC'])
