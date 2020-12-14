@@ -60,7 +60,7 @@ contract('GovernorAlpha#state/1', accounts => {
         delay = etherUnsigned(10)
         await timelock.setDelayWithoutChecking(delay);
 
-        gov = await GovernorAlpha.new(timelock.address, staking.address, root, 5, 50);
+        gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4, 50);
 
         await timelock.harnessSetAdmin(gov.address);
         await token.approve(staking.address, QUORUM_VOTES);
@@ -127,17 +127,8 @@ contract('GovernorAlpha#state/1', accounts => {
         await mineBlock()
         await updateTime(staking);
 
-        // let blockNumber = await web3.eth.getBlockNumber()
-        // let block = await web3.eth.getBlock(blockNumber)
-        //
-        // let voices1 = await staking.getPriorVotes(root, blockNumber-1 , block.timestamp);
-        // let voices2 = await staking.getPriorVotes(acct, blockNumber-1 , block.timestamp);
-        // let voices3 = await staking.getPriorVotes(accounts[3], blockNumber-1 , block.timestamp);
-        // let totalVotingPower = await staking.getPriorTotalVotingPower(blockNumber-1, block.timestamp);
-        // console.log("voices1: ", voices1.toString())
-        // console.log("voices2: ", voices2.toString())
-        // console.log("voices3", voices3.toString())
-        // console.log("totalVotingPower: ", totalVotingPower.toString())
+        let blockNumber = await web3.eth.getBlockNumber()
+        let block = await web3.eth.getBlock(blockNumber)
 
         await gov.propose(targets, values, signatures, callDatas, "do nothing", {from: accounts[3]});
         let newProposalId = await gov.latestProposalIds.call(accounts[3]);
@@ -148,6 +139,9 @@ contract('GovernorAlpha#state/1', accounts => {
         await advanceBlocks(20);
 
         //2% of votes
+        let proposal = await gov.proposals.call(newProposalId);
+        expect(proposal.forVotes).to.be.bignumber.lessThan(proposal.quorum);
+
         expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Defeated"]);
     })
 
@@ -164,6 +158,10 @@ contract('GovernorAlpha#state/1', accounts => {
         await advanceBlocks(20);
 
         //48% of votes
+        let proposal = await gov.proposals.call(newProposalId);
+        expect(proposal.forVotes).to.be.bignumber.greaterThan(proposal.quorum);
+        expect(proposal.forVotes.add(proposal.againstVotes)).to.be.bignumber.lessThan(proposal.minPercentage);
+
         expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Defeated"]);
     })
 
