@@ -90,8 +90,9 @@ contract Vesting is Ownable {
         _withdrawTokens(receiver, false);
     }
 
+    //TODO Timelock should be an owner
     /**
-     * @notice withdraws unlocked tokens from the staking contract and forwards them to an address specified by the token owner
+     * @notice withdraws all tokens from the staking contract and forwards them to an address specified by the token owner
      * @param receiver the receiving address
      * @dev can be called only by owner
      * */

@@ -18,7 +18,7 @@ contract TeamVesting is Vesting{
         require(newTokenOwner != address(0), "owner needs to be a valid address");
         address oldTokenOwner = tokenOwner;
         //withdraw the unlocked tokens to the old token owner address
-        withdrawTokens(oldTokenOwner);
+        _withdrawTokens(oldTokenOwner, false);
         //set the new token owner
         tokenOwner = newTokenOwner;
         //delegate votes to the new owner
