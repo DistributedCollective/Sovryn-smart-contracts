@@ -16,9 +16,8 @@ process:
 3. verify the trade event and balances are correct
 4. retrieve the loan from the smart contract and make sure all values are set as expected
 '''
-def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, underlyingToken, collateralToken, priceFeeds, chain, sendValue):
+def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, loan_token_sent, underlyingToken, collateralToken, priceFeeds, chain, sendValue):
     # preparation
-    loan_token_sent = 1e18
     underlyingToken.mint(loanToken.address, loan_token_sent*3)
     underlyingToken.mint(accounts[0], loan_token_sent)
     underlyingToken.approve(loanToken.address, loan_token_sent)
@@ -80,6 +79,9 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, underlyingTo
     assert(loan['collateralToken'] == collateralToken.address)
     assert(loan['principal'] == principal)
     # LoanOpening::_borrowOrTrade::300
+    print("==============================================")
+    print(loan['collateral'])
+    print(collateral)
     assert(loan['collateral'] == collateral)
     # LoanOpening::_initializeInterest:574
     assert(loan['interestOwedPerDay'] == owed_per_day)
@@ -124,9 +126,8 @@ def margin_trading_sending_loan_tokens_tiny_amount(accounts, sovryn, loanToken, 
             {'value': value}
         )
 
-def margin_trading_sov_reward_payment(accounts, loanToken, underlyingToken, collateralToken, chain, SOV, FeesEvents):
+def margin_trading_sov_reward_payment(accounts, loanToken, loan_token_sent, underlyingToken, collateralToken, chain, SOV, FeesEvents):
     # preparation
-    loan_token_sent = 1e18
     underlyingToken.mint(loanToken.address, loan_token_sent*3)
     trader = accounts[0]
     underlyingToken.mint(trader, loan_token_sent)
