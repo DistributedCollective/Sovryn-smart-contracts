@@ -54,6 +54,9 @@ contract GovernorAlpha is SafeMath96 {
         
         ///@notice the quorum required for this proposal
         uint96 quorum;
+
+        ///@notice the minimum percentage required for this proposal
+        uint96 minPercentage;
         
         /// @notice The timestamp that the proposal will be available for execution, set once the vote succeeds
         uint64 eta;
@@ -189,7 +192,7 @@ contract GovernorAlpha is SafeMath96 {
             forVotes: 0,
             againstVotes: 0,
             quorum: mul96(quorumPercentageVotes, proposalThreshold, "GovernorAlpha::propose: overflow on quorum computation"),
-
+            minPercentage: mul96(minPercentageVotes, proposalThreshold, "GovernorAlpha::propose: overflow on minPercentage computation"),
             eta: 0,
             startTime: safe64(block.timestamp, "GovernorAlpha::propose: startTime overflow"),//required by the staking contract. not used by the governance contract itself.
             canceled: false,
@@ -335,10 +338,8 @@ contract GovernorAlpha is SafeMath96 {
             return ProposalState.Active;
         }
 
-        uint96 totalVotingPower = staking.getPriorTotalVotingPower(safe32(block.number-1, "GovernorAlpha::state: block number overflow"), block.timestamp);
-
         if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < proposal.quorum ||
-            mul96(add96(proposal.forVotes, proposal.againstVotes, "GovernorAlpha:: state: forVotes + againstVotes > uint96"), 100, "GovernorAlpha:: state: (forVotes + againstVotes) * 100 > uint96") / totalVotingPower < minPercentageVotes) {
+            add96(proposal.forVotes, proposal.againstVotes, "GovernorAlpha:: state: forVotes + againstVotes > uint96") < proposal.minPercentage) {
             return ProposalState.Defeated;
         } 
         
