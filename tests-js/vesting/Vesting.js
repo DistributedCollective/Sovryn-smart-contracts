@@ -361,6 +361,19 @@ contract('Vesting', accounts => {
             await vesting.withdrawTokens(root, {from: a1});
         });
 
+        it("Shouldn't be possible to use governanceWithdraw by user", async () => {
+            let toStake = ONE_MILLON;
+
+            //Stake
+            vesting = await Vesting.new(token.address, staking.address, root, 26 * WEEK , 104 * WEEK, feeSharingProxy.address);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            await expectRevert(staking.governanceWithdraw(100, kickoffTS + 52 * WEEK, root),
+                "unauthorized");
+        });
+
         it('governanceWithdrawTokens', async() => {
             let previousAmount = await token.balanceOf(root);
             let toStake = ONE_MILLON;

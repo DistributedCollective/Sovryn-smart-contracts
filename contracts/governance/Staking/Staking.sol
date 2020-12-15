@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "./WeightedStaking.sol";
 import "./IStaking.sol";
+import "../../openzeppelin/Address.sol";
 
 contract Staking is WeightedStaking{
     
@@ -153,7 +154,13 @@ contract Staking is WeightedStaking{
     }
 
     //TODO access restriction
+    //TODO use list of Vesting here ?
     function governanceWithdraw(uint96 amount, uint until, address receiver) public {
+        //TODO Currently any contract can withdraw
+        require(Address.isContract(msg.sender) && tx.origin == Ownable(msg.sender).owner(), "unauthorized");
+        //TODO Vesting contract and Staking should be owned by governance timelock
+//        require(Address.isContract(msg.sender) && owner() == Ownable(msg.sender).owner(), "unauthorized");
+
         _withdraw(amount, until, receiver, true);
     }
 
