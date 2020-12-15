@@ -705,6 +705,51 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         }
     }
 
+    /// @dev check if loan size(amount of loan tokens) is correct 
+    function checkLoanSize(
+        address loanToken, 
+        address collateralToken, 
+        uint256 loanTokenAmount) 
+        public 
+        view
+        returns(uint256) 
+    {
+        // calculates expected amount of collateral tokens with the rate queried from price feed
+        uint256 collateralAmountExpected;
+
+        if (loanToken == collateralToken) {
+            collateralAmountExpected = loanTokenAmount;
+        } else {
+            (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(
+                collateralToken,
+                loanToken
+            );
+            if (sourceToDestRate != 0) {
+                collateralAmountExpected = loanTokenAmount
+                .mul(sourceToDestPrecision)
+                .div(sourceToDestRate);
+            } else {
+                collateralAmountExpected = 0;
+            }
+        }
+
+        // gets resulting amount of collateral tokens
+        uint256 collateralAmount = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
+            loanToken, 
+            collateralToken, 
+            loanTokenAmount);
+        
+        // compares both. if different, scales loan size accordingly
+        if (collateralAmount != collateralAmountExpected) {
+            loanTokenAmount = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
+                collateralToken, 
+                loanToken, 
+                collateralAmountExpected);
+        }
+
+        return loanTokenAmount;
+    }
+
 
     /* Internal functions */
 
