@@ -392,12 +392,17 @@ contract('Vesting', accounts => {
 
 
             //governance withdraw until duration must withdraw all staked tokens without fees
-            let tx = await vesting.governanceWithdrawTokens(root);
-            // let tx = await vesting.withdrawTokens(root);
+            // await staking.addToWhitelist(vesting.address);
+            // let tx = await vesting.governanceWithdrawTokens(root);
+            let tx = await staking.governanceWithdrawVesting(vesting.address, root);
 
             //check event
-            expectEvent(tx, 'TokensWithdrawn', {
-                caller: root,
+            // expectEvent(tx, 'TokensWithdrawn', {
+            //     caller: root,
+            //     receiver: root
+            // });
+            expectEvent(tx, 'VestingTokensWithdrawn', {
+                vesting: vesting.address,
                 receiver: root
             });
 

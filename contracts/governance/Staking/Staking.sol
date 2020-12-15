@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "./WeightedStaking.sol";
 import "./IStaking.sol";
-import "../../openzeppelin/Address.sol";
+import "../Vesting/IVesting.sol";
 
 contract Staking is WeightedStaking{
     
@@ -153,15 +153,39 @@ contract Staking is WeightedStaking{
         _withdraw(amount, until, receiver, false);
     }
 
-    //TODO access restriction
-    //TODO use list of Vesting here ?
+    /**
+     * @notice withdraws the given amount of tokens
+     * @param amount the number of tokens to withdraw
+     * @param until the date until which the tokens were staked
+     * @param receiver the receiver of the tokens. If not specified, send to the msg.sender
+     * @dev can be invoked only by whitelisted contract passed to governanceWithdrawVesting
+     * */
     function governanceWithdraw(uint96 amount, uint until, address receiver) public {
-        //TODO Currently any contract can withdraw
-        require(Address.isContract(msg.sender) && tx.origin == Ownable(msg.sender).owner(), "unauthorized");
-        //TODO Vesting contract and Staking should be owned by governance timelock
-//        require(Address.isContract(msg.sender) && owner() == Ownable(msg.sender).owner(), "unauthorized");
+        require(vestingWhitelist[msg.sender], "unauthorized");
 
         _withdraw(amount, until, receiver, true);
+    }
+
+//    function addToWhitelist(address vesting) public onlyOwner {
+//        vestingWhitelist[vesting] = true;
+//    }
+//
+//    function removeFromWhitelist(address vesting) public onlyOwner {
+//        vestingWhitelist[vesting] = false;
+//    }
+
+    /**
+     * @notice withdraws tokens for vesting contact
+     * @param vesting the address of Vesting contract
+     * @param receiver the receiver of the tokens. If not specified, send to the msg.sender
+     * @dev can be invoked only by whitelisted contract passed to governanceWithdrawVesting
+     * */
+    function governanceWithdrawVesting(address vesting, address receiver) public onlyOwner {
+        vestingWhitelist[vesting] = true;
+        IVesting(vesting).governanceWithdrawTokens(receiver);
+        vestingWhitelist[vesting] = false;
+
+        emit VestingTokensWithdrawn(vesting, receiver);
     }
 
     function _withdraw(uint96 amount, uint until, address receiver, bool isGovernance) internal {

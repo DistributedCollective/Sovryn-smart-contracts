@@ -90,14 +90,15 @@ contract Vesting is Ownable {
         _withdrawTokens(receiver, false);
     }
 
-    //TODO tokens should go back to the respective pool of origin (development or ecosystem or adoption)
-    //TODO Timelock should be an owner
     /**
      * @notice withdraws all tokens from the staking contract and forwards them to an address specified by the token owner
      * @param receiver the receiving address
      * @dev can be called only by owner
      * */
-    function governanceWithdrawTokens(address receiver) public onlyOwner {
+//    function governanceWithdrawTokens(address receiver) public onlyOwner {
+    function governanceWithdrawTokens(address receiver) public {
+        require(msg.sender == address(staking), "unauthorized");
+
         _withdrawTokens(receiver, true);
     }
 

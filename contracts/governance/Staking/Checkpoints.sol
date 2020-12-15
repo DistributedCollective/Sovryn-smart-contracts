@@ -17,7 +17,10 @@ contract Checkpoints is StakingStorage, SafeMath96{
     
     /// @notice An event thats emitted when tokens get withdrawn
     event TokensWithdrawn(address indexed staker, address receiver, uint amount);
-    
+
+    /// @notice An event thats emitted when vesting tokens get withdrawn
+    event VestingTokensWithdrawn(address vesting, address receiver);
+
     /// @notice An event thats emitted when the owner unlocks all tokens
     event TokensUnlocked(uint amount);
     
