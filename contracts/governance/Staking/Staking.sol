@@ -166,14 +166,6 @@ contract Staking is WeightedStaking{
         _withdraw(amount, until, receiver, true);
     }
 
-//    function addToWhitelist(address vesting) public onlyOwner {
-//        vestingWhitelist[vesting] = true;
-//    }
-//
-//    function removeFromWhitelist(address vesting) public onlyOwner {
-//        vestingWhitelist[vesting] = false;
-//    }
-
     /**
      * @notice withdraws tokens for vesting contact
      * @param vesting the address of Vesting contract

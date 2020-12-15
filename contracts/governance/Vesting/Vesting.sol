@@ -95,7 +95,6 @@ contract Vesting is Ownable {
      * @param receiver the receiving address
      * @dev can be called only by owner
      * */
-//    function governanceWithdrawTokens(address receiver) public onlyOwner {
     function governanceWithdrawTokens(address receiver) public {
         require(msg.sender == address(staking), "unauthorized");
 

@@ -361,6 +361,19 @@ contract('Vesting', accounts => {
             await vesting.withdrawTokens(root, {from: a1});
         });
 
+        it("Shouldn't be possible to use governanceWithdrawVesting by not owner", async () => {
+            let toStake = ONE_MILLON;
+
+            //Stake
+            vesting = await Vesting.new(token.address, staking.address, root, 26 * WEEK , 104 * WEEK, feeSharingProxy.address);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            await expectRevert(staking.governanceWithdrawVesting(vesting.address, root, {from: a1}),
+                "unauthorized");
+        });
+
         it("Shouldn't be possible to use governanceWithdraw by user", async () => {
             let toStake = ONE_MILLON;
 
@@ -371,6 +384,19 @@ contract('Vesting', accounts => {
             await vesting.stakeTokens(toStake);
 
             await expectRevert(staking.governanceWithdraw(100, kickoffTS + 52 * WEEK, root),
+                "unauthorized");
+        });
+
+        it("Shouldn't be possible to use governanceWithdrawTokens by user", async () => {
+            let toStake = ONE_MILLON;
+
+            //Stake
+            vesting = await Vesting.new(token.address, staking.address, root, 26 * WEEK , 104 * WEEK, feeSharingProxy.address);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            await expectRevert(vesting.governanceWithdrawTokens(root),
                 "unauthorized");
         });
 
@@ -390,17 +416,9 @@ contract('Vesting', accounts => {
 
             let amountAfterStake = await token.balanceOf(root);
 
-
             //governance withdraw until duration must withdraw all staked tokens without fees
-            // await staking.addToWhitelist(vesting.address);
-            // let tx = await vesting.governanceWithdrawTokens(root);
             let tx = await staking.governanceWithdrawVesting(vesting.address, root);
 
-            //check event
-            // expectEvent(tx, 'TokensWithdrawn', {
-            //     caller: root,
-            //     receiver: root
-            // });
             expectEvent(tx, 'VestingTokensWithdrawn', {
                 vesting: vesting.address,
                 receiver: root
