@@ -6,6 +6,7 @@ import "./Vesting.sol";
 /**
  * A regular vesting contract, but the owner of the remaining locked tokens can be changed by the owner (governance)
  **/
+//TODO deprecated
 contract TeamVesting is Vesting{
     
     event TokenOwnerChanged(address indexed oldOwner, address indexed newOwner);
