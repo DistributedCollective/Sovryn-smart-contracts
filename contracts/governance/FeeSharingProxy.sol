@@ -4,8 +4,10 @@ import "./Staking/SafeMath96.sol";
 import "../openzeppelin/SafeMath.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "./IFeeSharingProxy.sol";
+import "./Staking/IStaking.sol";
 
 contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
+
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     
@@ -150,10 +152,4 @@ interface IProtocol {
 
 interface ILoanToken {
     function mint(address receiver, uint256 depositAmount) external returns (uint256 mintAmount);
-}
-
-interface IStaking {
-    function getPriorTotalVotingPower(uint32 blockNumber, uint time) view external returns (uint96);
-    function getPriorWeightedStake(address account, uint blockNumber, uint date) external view returns (uint96);
-    function timestampToLockDate(uint timestamp) external view returns(uint lockDate);
 }

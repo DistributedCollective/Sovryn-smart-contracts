@@ -2,8 +2,10 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./WeightedStaking.sol";
+import "./IStaking.sol";
 
-contract Staking is WeightedStaking{
+//@todo change directory name Staking -> staking
+contract Staking is IStaking, WeightedStaking {
     
     /**
      * @notice stakes the given amount for the given duration of time.

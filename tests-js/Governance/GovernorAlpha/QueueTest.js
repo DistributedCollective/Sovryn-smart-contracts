@@ -45,7 +45,8 @@ contract('GovernorAlpha#queue/1', accounts => {
             await staking.setImplementation(stakingLogic.address);
             staking = await StakingLogic.at(staking.address);
             
-            const gov = await GovernorAlpha.new(timelock.address, staking.address, root);
+            const gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4, 0);
+
             const txAdmin = await timelock.harnessSetAdmin(gov.address);
             
             await enfranchise(token, staking, a1, QUORUM_VOTES);
@@ -76,7 +77,8 @@ contract('GovernorAlpha#queue/1', accounts => {
             await staking.setImplementation(stakingLogic.address);
             staking = await StakingLogic.at(staking.address);
             
-            const gov = await GovernorAlpha.new(timelock.address, staking.address, root);
+            const gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4, 0);
+
             const txAdmin = await timelock.harnessSetAdmin(gov.address);
             
             await enfranchise(token, staking, a1, QUORUM_VOTES);

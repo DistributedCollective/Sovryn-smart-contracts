@@ -6,6 +6,7 @@ This script serves the purpose of interacting with existing smart contracts on t
 from brownie import *
 from brownie.network.contract import InterfaceContainer
 import json
+import time;
 
 def main():
     
@@ -34,7 +35,7 @@ def main():
     #logicContract = acct.deploy(LoanTokenLogicWrbtc)
     #print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
     #replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
-    
+
 def loadConfig():
     global contracts, acct
     this_network = network.show_active()
@@ -44,7 +45,9 @@ def loadConfig():
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     contracts = json.load(configFile)
     acct = accounts.load("rskdeployer")
-    
+    #acct = accounts.load("jamie")
+    #acct = accounts.load("danazix")
+
 
 
     
@@ -309,7 +312,7 @@ def readOwner(contractAddress):
     
 def setupMarginLoanParams(collateralTokenAddress, loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
-    
+
     params = [];
     setup = [
         b"0x0", ## id
@@ -345,23 +348,23 @@ def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTo
         0
     )
     tx.info()
-    
+
 def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
     loanToken.setTarget(logicAddress)
-    
+
 def readFromMedianizer():
     medianizer = Contract.from_abi("Medianizer", address=contracts['medianizer'], abi=PriceFeedsMoCMockup.abi, owner=acct)
     print(medianizer.peek())
     medianizer = Contract.from_abi("Medianizer", address='0x26a00aF444928d689DDEC7b4D17c0E4a8c9D407d', abi=PriceFeedsMoCMockup.abi, owner=acct)
     print(medianizer.peek())
-    
+
 def updateOracleAddress(newAddress):
     print("set oracle address to", newAddress)
     priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = '0x066ba9453e230a260c2a753d9935d91187178C29', abi = PriceFeedsMoC.abi, owner = acct)
     priceFeedsMoC.setMoCOracleAddress(newAddress)
 
-    
+
 def addLiquidity(converter, reserve, amount):
     abiFile =  open('./scripts/contractInteraction/LiquidityPoolV2Converter.json')
     abi = json.load(abiFile)

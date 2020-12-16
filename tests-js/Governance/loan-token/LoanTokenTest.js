@@ -23,6 +23,7 @@ const TWO_DAYS = 86400 * 2;
 const TWO_WEEKS = 86400 * 14;
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
+
 contract('LoanTokenUpgrade', accounts => {
     const name = 'Test token';
     const symbol = 'TST';
@@ -47,12 +48,12 @@ contract('LoanTokenUpgrade', accounts => {
 
         //Governor
         timelock = await Timelock.new(root, TWO_DAYS);
-        gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4);
+        gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4, 0);
         await timelock.harnessSetAdmin(gov.address);
 
         //Settings
         loanTokenSettings = await PreviousLoanTokenSettings.new();
-        loanToken = await PreviousLoanToken.new(root, loanTokenSettings.address, token.address, token.address);
+        loanToken = await PreviousLoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, token.address);
         loanToken = await PreviousLoanTokenSettings.at(loanToken.address);
         // await loanToken.transferOwnership(timelock.address);
 
@@ -64,8 +65,10 @@ contract('LoanTokenUpgrade', accounts => {
     });
 
     describe("change settings", () => {
-        //@todo rename this or delete, idk why I wrote this test
-        it("check how works proxy", async () => {
+        it("admin field should be readable", async () => {
+
+            let previousSovrynContractAddress = await loanToken.sovrynContractAddress();
+            let previousWrbtcTokenAddress = await loanToken.wrbtcTokenAddress();
 
             let newLoanTokenSettings = await LoanTokenSettings.new();
 
@@ -78,11 +81,22 @@ contract('LoanTokenUpgrade', accounts => {
             let admin = await loanToken.admin();
             assert.equal(admin, constants.ZERO_ADDRESS);
 
+            await expectRevert(loanToken.changeLoanTokenNameAndSymbol("newName", "newSymbol", {from: account1}),
+                "unauthorized");
+
             //change admin
             loanToken.setAdmin(root);
 
             admin = await loanToken.admin();
-            assert.equal(admin, root)
+            assert.equal(admin, root);
+
+            await loanToken.changeLoanTokenNameAndSymbol("newName", "newSymbol");
+
+            let sovrynContractAddress = await loanToken.sovrynContractAddress();
+            let wrbtcTokenAddress = await loanToken.wrbtcTokenAddress();
+
+            assert.equal(sovrynContractAddress, previousSovrynContractAddress);
+            assert.equal(wrbtcTokenAddress, previousWrbtcTokenAddress);
         })
 
     });
