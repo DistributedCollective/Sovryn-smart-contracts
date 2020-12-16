@@ -802,12 +802,11 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
                 collateralTokenAddress,
                 loanTokenAddress
             );
-            if (sourceToDestPrecision != 0) {
-                totalDeposit = collateralTokenSent
-                    .mul(sourceToDestRate)
-                    .div(sourceToDestPrecision)
-                    .add(totalDeposit);
-            }
+            require(sourceToDestPrecision != 0, "sourceToDestPrecision is 0");
+            totalDeposit = collateralTokenSent
+                .mul(sourceToDestRate)
+                .div(sourceToDestPrecision)
+                .add(totalDeposit);
         }
     }
 
