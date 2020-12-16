@@ -3,6 +3,7 @@ pragma solidity ^0.5.17;
 import "../../openzeppelin/Ownable.sol";
 import "../../openzeppelin/SafeMath.sol";
 import "../../interfaces/IERC20.sol";
+import "./IVesting.sol";
 
 contract DevelopmentVesting is Ownable {
     using SafeMath for uint;
@@ -27,9 +28,12 @@ contract DevelopmentVesting is Ownable {
     uint public amount;
     ///@notice amount of already withdrawn tokens
     uint public withdrawnAmount;
+    ///@notice amount of already transferred locked tokens
+    uint public transferredLockedAmount;
 
     event TokensStaked(address indexed caller, uint amount);
     event TokensWithdrawn(address indexed caller, address receiver, uint amount);
+    event LockedTokensTransferred(address indexed caller, address vesting, uint amount);
 
     /**
      * @dev Throws if called by any account other than the token owner or the contract owner.
@@ -68,7 +72,7 @@ contract DevelopmentVesting is Ownable {
         duration = _duration;
     }
 
-    function _validateSchedule(uint _cliff, uint _duration) internal {
+    function _validateSchedule(uint _cliff, uint _duration) internal pure {
         require(_duration >= _cliff, "duration must be bigger than or equal to the cliff");
         //TODO add checkings
 
@@ -77,7 +81,7 @@ contract DevelopmentVesting is Ownable {
     /**
      * @notice stakes tokens
      * @param _amount the amount of tokens to stake
-     * */
+     */
     function stakeTokens(uint _amount) public {
         //TODO is it possible to stake N times ?
         require(startDate == 0);
@@ -95,10 +99,12 @@ contract DevelopmentVesting is Ownable {
         emit TokensStaked(msg.sender, amount);
     }
 
+    //TODO withdrawTokens - onlyOwners - the governance should be able to spend the unlocked tokens
     /**
      * @notice withdraws unlocked tokens and forwards them to an address specified by the token owner
      * @param _receiver the receiving address
-     * */
+     * @dev this operation can be done N times
+     */
     function withdrawTokens(address _receiver) public onlyOwners {
         require(_receiver != address(0), "receiver address invalid");
 
@@ -112,24 +118,50 @@ contract DevelopmentVesting is Ownable {
         emit TokensWithdrawn(msg.sender, _receiver, availableAmount);
     }
 
-    //TODO the governance should be able to spend the unlocked tokens
+    //TODO note: ideally, the governance would be able to transfer locked tokens to vesting contracts if they are staked at least until the unlocking date.
     /**
-     * @notice withdraws all tokens by governance and forwards them to an address specified by the token owner
-     * @param _receiver the receiving address
-     * */
-    function governanceWithdrawTokens(address _receiver) public onlyOwner {
-        require(_receiver != address(0), "receiver address invalid");
+     * @notice transfer locked tokens and stake them to an vesting contract specified by the token owner
+     * @param _vesting the vesting contract address
+     * @dev this operation can be done only once
+     */
+    function transferLockedTokens(address _vesting) public onlyOwner {
+        require(_vesting != address(0), "vesting address invalid");
 
+        //TODO if they are staked at least until the unlocking date
+        //latest stake endDate
+//        require(IVesting(_vesting).endDate() >= endDate);
+        //OR
+        //new stake endDate
+        require(block.timestamp + IVesting(_vesting).duration() >= endDate, "vesting duration is too short");
 
+        uint lockedAmount = amount - _getAvailableAmount();
+        require(lockedAmount > 0, "no locked tokens");
 
+        transferredLockedAmount = lockedAmount;
+        SOV.approve(_vesting, lockedAmount);
+        //TODO transfer locked tokens to vesting contracts
+        IVesting(_vesting).stakeTokens(lockedAmount);
+
+        emit LockedTokensTransferred(msg.sender, _vesting, lockedAmount);
     }
 
-    function _getAvailableAmount() internal returns (uint) {
-        return _getUnlockedAmount() - withdrawnAmount;
+    //TODO use this calculation in tests
+    //100 - amount
+    //80 - unlocked
+    //20 - withdrawn
+    //60 - available
+    //50 - transferred
+    //50 - available
+    function _getAvailableAmount() internal view returns (uint) {
+        uint availableAmount = _getUnlockedAmount() - withdrawnAmount;
+        if (availableAmount > amount - transferredLockedAmount) {
+            availableAmount = amount - transferredLockedAmount;
+        }
+        return availableAmount;
     }
 
-    //TODO SafeMath ?
-    function _getUnlockedAmount() internal returns (uint) {
+    //TODO SafeMath ? - amount of SOV tokens never hits 2**256 - 1
+    function _getUnlockedAmount() internal view returns (uint) {
         uint start = startDate + cliff;
         uint end = endDate;
         uint intervalLength = FOUR_WEEKS;
