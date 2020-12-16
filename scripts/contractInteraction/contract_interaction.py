@@ -30,7 +30,8 @@ def main():
     #updateAllLogicContracts()
     #readOwner(contracts['iDOC'])
     #readTransactionLimits(contracts['iDOC'],  contracts['DoC'],  contracts['WRBTC'])
-    #setTransactionLimits(contracts['iDOC'], [contracts['DoC']], [0])
+    #setTransactionLimits(contracts['iDOC'], [contracts['DoC'],  contracts['WRBTC']], [0, 0])
+    #setTransactionLimits(contracts['iRBTC'], [contracts['DoC'],  contracts['WRBTC']], [0, 0])
     #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [0])
     #lendToPool(contracts['iDOC'],contracts['DoC'], 1000e18)
     #setTransactionLimits(contracts['iDOC'], [contracts['DoC']], [21e18])
@@ -48,7 +49,49 @@ def main():
     #updatePriceFeedToRSKOracle()
     #checkRates()
     
-
+    #checkOwnerIsAddress(contracts['sovrynProtocol'], contracts['multisig'])
+    
+    '''
+    print("price feeds SOV")
+    transferOwner(contracts['PriceFeedRSKOracle'], contracts['multisig'])
+    transferOwner(contracts['USDTPriceFeed'], contracts['multisig'])
+    
+    
+    print("price feeds AMM")
+    transferOwner('0xe4d2e26ce947df7a8d04e5a9dcdef0c540c497cf', contracts['multisig'])#BPRO
+    transferOwner('0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789', contracts['multisig'])#WRBTC
+    transferOwner('0xf5df3b2ae0c4e2c8912e177f6bd8ca6d479397a2', contracts['multisig'])#USD
+    
+    
+    print("loan tokens")
+    #transferOwner(contracts['iUSDT'], contracts['multisig'])
+    #transferOwner(contracts['iBPro'], contracts['multisig'])
+    #transferOwner(contracts['iDOC'], contracts['multisig'])
+    transferOwner(contracts['iRBTC'], contracts['multisig'])
+    
+    print("AMM Network + Converters")
+    transferOwner(contracts['swapNetwork'], contracts['multisig'])
+    transferOwner(contracts['ConverterDOC'], contracts['multisig'])
+    transferOwner(contracts['ConverterBPRO'], contracts['multisig'])
+    transferOwner(contracts['ConverterUSDT'], contracts['multisig'])
+    #note:the ownership transfers for the AMM need to be accepted by the new owner
+    
+    
+    acceptOwnershipWithMultisig(contracts['swapNetwork'])
+    acceptOwnershipWithMultisig(contracts['ConverterDOC'])
+    acceptOwnershipWithMultisig(contracts['ConverterBPRO'])
+    acceptOwnershipWithMultisig(contracts['ConverterUSDT'])
+    acceptOwnershipWithMultisig('0xe4d2e26ce947df7a8d04e5a9dcdef0c540c497cf')
+    acceptOwnershipWithMultisig('0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789')
+    
+    checkOwnerIsAddress(contracts['swapNetwork'], contracts['multisig'])
+    checkOwnerIsAddress(contracts['ConverterDOC'], contracts['multisig'])
+    checkOwnerIsAddress(contracts['ConverterBPRO'], contracts['multisig'])
+    checkOwnerIsAddress(contracts['ConverterUSDT'], contracts['multisig'])
+    checkOwnerIsAddress('0xe4d2e26ce947df7a8d04e5a9dcdef0c540c497cf', contracts['multisig'])
+    checkOwnerIsAddress('0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789', contracts['multisig'])
+    '''
+    
     
 def loadConfig():
     global contracts, acct
@@ -110,7 +153,9 @@ def readLoan(loanId):
 
 def getTokenPrice(loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
-    print("token price",loanToken.tokenPrice())
+    price = loanToken.tokenPrice()
+    print("token price",price)
+    return price
     
 def testTokenBurning(loanTokenAddress, testTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
@@ -249,7 +294,19 @@ def replaceLoanClosings():
     
 def transferOwner(contractAddress, newOwner):
     contract = Contract.from_abi("loanToken", address=contractAddress, abi=LoanToken.abi, owner=acct)
-    contract.transferOwnership(newOwner)
+    tx= contract.transferOwnership(newOwner)
+    tx.info()
+    checkOwnerIsAddress(contractAddress, newOwner)
+    
+def acceptOwnershipWithMultisig(contractAddress):
+    abiFile =  open('./scripts/contractInteraction/Owned.json')
+    abi = json.load(abiFile)
+    ownedContract = Contract.from_abi("Owned", address=contractAddress, abi=abi, owner=acct)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    data=ownedContract.acceptOwnership.encode_input()
+    tx= multisig.submitTransaction(contractAddress,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId);
     
 def getBalance(contractAddress, acct):
     contract = Contract.from_abi("Token", address=contractAddress, abi=LoanToken.abi, owner=acct)
@@ -298,11 +355,11 @@ def readLiquidity():
     print("liquidity on iSUSD", (tasIUSD-tabIUSD)/1e18)
     
     tokenContract = Contract.from_abi("Token", address=contracts['DoC'], abi=TestToken.abi, owner=acct)
-    bal = tokenContract.balanceOf(contracts['swap'])
+    bal = tokenContract.balanceOf(contracts['ConverterDOC'])
     print("supply of DoC on swap", bal/1e18)
     
     tokenContract = Contract.from_abi("Token", address=contracts['WRBTC'], abi=TestToken.abi, owner=acct)
-    bal = tokenContract.balanceOf(contracts['swap'])
+    bal = tokenContract.balanceOf(contracts['ConverterDOC'])
     print("supply of rBTC on swap", bal/1e18)
     
 
@@ -328,6 +385,11 @@ def readLendingBalanceForUser(loanTokenAddress, userAddress):
 def readOwner(contractAddress):
     contract = Contract.from_abi("loanToken", address=contractAddress, abi=LoanToken.abi, owner=acct)
     print('owner:',contract.owner())
+
+def checkOwnerIsAddress(contractAddress, expectedOwner):
+    contract = Contract.from_abi("loanToken", address=contractAddress, abi=LoanToken.abi, owner=acct)
+    owner = contract.owner()
+    print("owner == expectedOwner?", owner == expectedOwner)
     
 def setupMarginLoanParams(collateralTokenAddress, loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
@@ -500,3 +562,4 @@ def checkRates():
     
     readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', contracts['USDT'])
     readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', contracts['WRBTC'])
+    
