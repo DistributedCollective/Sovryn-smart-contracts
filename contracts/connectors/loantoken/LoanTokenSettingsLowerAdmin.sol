@@ -158,7 +158,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
     function setTransactionLimits(
         address[] memory addresses, 
         uint256[] memory limits) 
-        public onlyOwner
+        public onlyAdmin
     {
         require(addresses.length == limits.length, "mismatched array lengths");
         for(uint i = 0; i < addresses.length; i++){
