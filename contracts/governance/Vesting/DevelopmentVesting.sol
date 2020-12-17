@@ -10,7 +10,7 @@ contract DevelopmentVesting is Ownable {
 
     ///@notice the SOV token contract
     IERC20 public SOV;
-    ///@notice the owner of the vested tokens
+    ///@notice the owner of the vested tokens (timelock contract initially)
     address public tokenOwner;
     ///@notice the cliff. after this time period the tokens begin to unlock
     uint public cliff;
@@ -21,7 +21,7 @@ contract DevelopmentVesting is Ownable {
     ///@notice the end date of the vesting
     uint public endDate;
     ///@notice constant used for computing the vesting dates
-    //TODO should be configurable ?
+    //TODO should be configurable ? wait for an answer
     //uint public intervalLength;
     uint constant FOUR_WEEKS = 4 weeks;
     ///@notice amount of vested tokens
@@ -60,6 +60,8 @@ contract DevelopmentVesting is Ownable {
         duration = _duration;
     }
 
+    //TODO add setTokenOwner
+
     /**
      * @notice change the vesting schedule
      * @param _cliff the cliff in seconds
@@ -78,12 +80,15 @@ contract DevelopmentVesting is Ownable {
 
     }
 
+    //TODO add sendTokens - wait for an answer
+//    function sendTokens
+
     /**
      * @notice stakes tokens
      * @param _amount the amount of tokens to stake
      */
-    function stakeTokens(uint _amount) public {
-        //TODO is it possible to stake N times ?
+    function vestTokens(uint _amount) public {
+        //TODO is it possible to vest N times ? - wait for an answer
         require(startDate == 0);
         startDate = block.timestamp;
         endDate = block.timestamp + duration;
@@ -118,33 +123,6 @@ contract DevelopmentVesting is Ownable {
         emit TokensWithdrawn(msg.sender, _receiver, availableAmount);
     }
 
-    //TODO note: ideally, the governance would be able to transfer locked tokens to vesting contracts if they are staked at least until the unlocking date.
-    /**
-     * @notice transfer locked tokens and stake them to an vesting contract specified by the token owner
-     * @param _vesting the vesting contract address
-     * @dev this operation can be done only once
-     */
-    function transferLockedTokens(address _vesting) public onlyOwner {
-        require(_vesting != address(0), "vesting address invalid");
-
-        //TODO if they are staked at least until the unlocking date
-        //latest stake endDate
-//        require(IVesting(_vesting).endDate() >= endDate);
-        //OR
-        //new stake endDate
-        require(block.timestamp + IVesting(_vesting).duration() >= endDate, "vesting duration is too short");
-
-        uint lockedAmount = amount - _getAvailableAmount();
-        require(lockedAmount > 0, "no locked tokens");
-
-        transferredLockedAmount = lockedAmount;
-        SOV.approve(_vesting, lockedAmount);
-        //TODO transfer locked tokens to vesting contracts
-        IVesting(_vesting).stakeTokens(lockedAmount);
-
-        emit LockedTokensTransferred(msg.sender, _vesting, lockedAmount);
-    }
-
     //TODO use this calculation in tests
     //100 - amount
     //80 - unlocked
@@ -160,7 +138,7 @@ contract DevelopmentVesting is Ownable {
         return availableAmount;
     }
 
-    //TODO SafeMath ? - amount of SOV tokens never hits 2**256 - 1
+    //amount of SOV tokens never hits 2**256 - 1
     function _getUnlockedAmount() internal view returns (uint) {
         uint start = startDate + cliff;
         uint end = endDate;
