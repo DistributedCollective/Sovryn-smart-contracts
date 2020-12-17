@@ -92,6 +92,7 @@ def main():
     checkOwnerIsAddress('0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789', contracts['multisig'])
     '''
     
+    addOwnerToMultisig('0x27d55f5668ef4438635bdce0adca083507e77752')
     
 def loadConfig():
     global contracts, acct
@@ -563,3 +564,9 @@ def checkRates():
     readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', contracts['USDT'])
     readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', contracts['WRBTC'])
     
+def addOwnerToMultisig(newOwner):
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    data = multisig.addOwner.encode_input(newOwner)
+    tx = multisig.submitTransaction(multisig.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId);
