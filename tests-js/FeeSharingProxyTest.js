@@ -307,6 +307,26 @@ contract('FeeSharingProxy:', accounts => {
                 amount: new BN(amount)
             });
 
+            //checkpoints
+            let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(SOVToken.address);
+            expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
+            let checkpoint = await feeSharingProxy.tokenCheckpoints.call(SOVToken.address, 0);
+            expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
+            expect(checkpoint.numTokens.toString()).to.be.equal(amount.toString());
+
+            //check lastFeeWithdrawalTime
+            let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(SOVToken.address);
+            let block = await web3.eth.getBlock(tx.receipt.blockNumber);
+            expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
+
+            expectEvent(tx, 'CheckpointAdded', {
+                sender: root,
+                token: SOVToken.address,
+                amount: new BN(amount)
+            });
+
+            //second time
             tx = await feeSharingProxy.transferTokens(SOVToken.address, amount * 2);
 
             expect(await feeSharingProxy.unprocessedAmount.call(SOVToken.address)).to.be.bignumber.equal(new BN(amount * 3));
@@ -322,29 +342,19 @@ contract('FeeSharingProxy:', accounts => {
 
     describe("addCheckpoint", () => {
 
-        it("Shouldn't be able to use zero token address", async () => {
-            await expectRevert(feeSharingProxy.addCheckpoint(ZERO_ADDRESS),
-                "FeeSharingProxy::addCheckpoint: invalid address");
-        });
-
-        it("Shouldn't be able to add checkpoint for zero amount", async () => {
-            await expectRevert(feeSharingProxy.addCheckpoint(SOVToken.address),
-                "FeeSharingProxy::addCheckpoint: unprocessed amount is 0");
-        });
-
-        it("Shouldn't be able to add checkpoint second time in period", async () => {
-            let amount = 1000;
-            await SOVToken.approve(feeSharingProxy.address, amount);
-            await feeSharingProxy.transferTokens(SOVToken.address, amount);
-
-            await feeSharingProxy.addCheckpoint(SOVToken.address);
-
-            await SOVToken.approve(feeSharingProxy.address, amount);
-            await feeSharingProxy.transferTokens(SOVToken.address, amount);
-
-            await expectRevert(feeSharingProxy.addCheckpoint(SOVToken.address),
-                "FeeSharingProxy::addCheckpoint: the last withdrawal was recently");
-        });
+        // it("Shouldn't be able to add checkpoint second time in period", async () => {
+        //     let amount = 1000;
+        //     await SOVToken.approve(feeSharingProxy.address, amount);
+        //     await feeSharingProxy.transferTokens(SOVToken.address, amount);
+        //
+        //     await feeSharingProxy.addCheckpoint(SOVToken.address);
+        //
+        //     await SOVToken.approve(feeSharingProxy.address, amount);
+        //     await feeSharingProxy.transferTokens(SOVToken.address, amount);
+        //
+        //     await expectRevert(feeSharingProxy.addCheckpoint(SOVToken.address),
+        //         "FeeSharingProxy::addCheckpoint: the last withdrawal was recently");
+        // });
 
         it("Should be able to add checkpoint", async () => {
             //stake - getPriorTotalVotingPower
