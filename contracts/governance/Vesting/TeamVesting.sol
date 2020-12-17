@@ -6,6 +6,7 @@ import "./Vesting.sol";
 /**
  * A regular vesting contract, but the owner of the remaining locked tokens can be changed by the owner (governance)
  **/
+//TODO deprecated
 contract TeamVesting is Vesting{
     
     event TokenOwnerChanged(address indexed oldOwner, address indexed newOwner);
@@ -18,7 +19,7 @@ contract TeamVesting is Vesting{
         require(newTokenOwner != address(0), "owner needs to be a valid address");
         address oldTokenOwner = tokenOwner;
         //withdraw the unlocked tokens to the old token owner address
-        withdrawTokens(oldTokenOwner);
+        _withdrawTokens(oldTokenOwner, false);
         //set the new token owner
         tokenOwner = newTokenOwner;
         //delegate votes to the new owner

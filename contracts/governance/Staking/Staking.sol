@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "./WeightedStaking.sol";
 import "./IStaking.sol";
+import "../Vesting/IVesting.sol";
 
 contract Staking is WeightedStaking{
     
@@ -149,21 +150,54 @@ contract Staking is WeightedStaking{
      * @param receiver the receiver of the tokens. If not specified, send to the msg.sender
      * */
     function withdraw(uint96 amount, uint until, address receiver) public {
+        _withdraw(amount, until, receiver, false);
+    }
+
+    /**
+     * @notice withdraws the given amount of tokens
+     * @param amount the number of tokens to withdraw
+     * @param until the date until which the tokens were staked
+     * @param receiver the receiver of the tokens. If not specified, send to the msg.sender
+     * @dev can be invoked only by whitelisted contract passed to governanceWithdrawVesting
+     * */
+    function governanceWithdraw(uint96 amount, uint until, address receiver) public {
+        require(vestingWhitelist[msg.sender], "unauthorized");
+
+        _withdraw(amount, until, receiver, true);
+    }
+
+    /**
+     * @notice withdraws tokens for vesting contact
+     * @param vesting the address of Vesting contract
+     * @param receiver the receiver of the tokens. If not specified, send to the msg.sender
+     * @dev can be invoked only by whitelisted contract passed to governanceWithdrawVesting
+     * */
+    function governanceWithdrawVesting(address vesting, address receiver) public onlyOwner {
+        vestingWhitelist[vesting] = true;
+        IVesting(vesting).governanceWithdrawTokens(receiver);
+        vestingWhitelist[vesting] = false;
+
+        emit VestingTokensWithdrawn(vesting, receiver);
+    }
+
+    function _withdraw(uint96 amount, uint until, address receiver, bool isGovernance) internal {
         require(amount > 0, "Staking::withdraw: amount of tokens to be withdrawn needs to be bigger than 0");
         uint96 balance = getPriorUserStakeByDate(msg.sender, until, block.number -1);
         require(amount <= balance, "Staking::withdraw: not enough balance");
-        
+
         //determine the receiver
         if(receiver == address(0))
             receiver = msg.sender;
-            
+
         //update the checkpoints
         _decreaseDailyStake(until, amount);
         _decreaseUserStake(msg.sender, until, amount);
         _decreaseDelegateStake(delegates[msg.sender][until], until, amount);
 
         //early unstaking should be punished
-        if (block.timestamp < until && !allUnlocked) {
+        // @todo vesting contract calls this function always with block.timestamp, maybe we should to change signature to
+        // function withdrawTokens(address receiver, uint96 endDate) public onlyOwners {
+        if (block.timestamp < until && !allUnlocked && !isGovernance) {
             uint date = timestampToLockDate(block.timestamp);
             uint96 weight = computeWeightByDate(until, date); // (10 - 1) * WEIGHT_FACTOR
             weight = weight * weightScaling;
@@ -183,7 +217,7 @@ contract Staking is WeightedStaking{
         //transferFrom
         bool success = SOVToken.transfer(receiver, amount);
         require(success, "Staking::withdraw: Token transfer failed");
-        
+
         emit TokensWithdrawn(msg.sender, receiver, amount);
     }
 

@@ -91,4 +91,7 @@ contract StakingStorage is Ownable{
     // @notice used for weight scaling when unstaking with slashing
     uint96 public weightScaling = DEFAULT_WEIGHT_SCALING;
 
+    // @notice list of Vesting contracts, tokens for these contracts won't be slashed if unstaked by governance
+    mapping(address => bool) public vestingWhitelist;
+
 }
