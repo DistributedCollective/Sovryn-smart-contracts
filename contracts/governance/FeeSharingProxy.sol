@@ -65,11 +65,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
      * */
     function withdrawFees(address _token) public {
         require(_token != address(0), "FeeSharingProxy::withdrawFees: invalid address");
-        require(
-            block.timestamp - lastFeeWithdrawalTime[_token] >= FEE_WITHDRAWAL_INTERVAL,
-            "FeeSharingProxy::withdrawFees: the last withdrawal was recently"
-        );
-    
+
         address loanPoolToken = protocol.underlyingToLoanPool(_token);
         require(loanPoolToken != address(0), "FeeSharingProxy::withdrawFees: loan token not found");
 
@@ -79,10 +75,10 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
         //TODO can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
         IERC20(_token).approve(loanToken, amount);
         uint poolTokenAmount = ILoanToken(loanPoolToken).mint(address(this), amount);
-        _writeTokenCheckpoint(loanPoolToken, safe96(poolTokenAmount, "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits"));
-
-        lastFeeWithdrawalTime[_token] = block.timestamp;
-        
+        if (block.timestamp - lastFeeWithdrawalTime[loanPoolToken] >= FEE_WITHDRAWAL_INTERVAL) {
+            lastFeeWithdrawalTime[loanPoolToken] = block.timestamp;
+            _writeTokenCheckpoint(loanPoolToken, safe96(poolTokenAmount, "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits"));
+        }
         emit FeeWithdrawn(msg.sender, loanPoolToken, poolTokenAmount);
     }
 
@@ -120,8 +116,6 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
             unprocessedAmount[_token] = 0;
             //write a regular checkpoint
             _writeTokenCheckpoint(_token, amount);
-
-            emit CheckpointAdded(msg.sender, _token, amount);
         }
     }
 
@@ -191,6 +185,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
             tokenCheckpoints[_token][nCheckpoints] = Checkpoint(blockNumber, blockTimestamp, totalWeightedStake, _numTokens);
             numTokenCheckpoints[_token] = nCheckpoints + 1;
         }
+        emit CheckpointAdded(msg.sender, _token, _numTokens);
     }
     
 }
