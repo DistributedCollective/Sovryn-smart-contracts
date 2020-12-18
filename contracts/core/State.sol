@@ -85,6 +85,8 @@ contract State is Objects, ReentrancyGuard, Ownable {
     IWrbtcERC20 public wrbtcToken;
     address public protocolTokenAddress;
 
+    address public admin;
+
     function _setTarget(
         bytes4 sig,
         address target)

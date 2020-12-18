@@ -7,6 +7,7 @@ import "./IFeeSharingProxy.sol";
 import "./Staking/IStaking.sol";
 
 contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
+
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 

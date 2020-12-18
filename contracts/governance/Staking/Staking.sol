@@ -5,7 +5,7 @@ import "./WeightedStaking.sol";
 import "./IStaking.sol";
 import "../Vesting/IVesting.sol";
 
-contract Staking is WeightedStaking{
+contract Staking is IStaking, WeightedStaking {
     
     /**
      * @notice stakes the given amount for the given duration of time.
@@ -195,8 +195,6 @@ contract Staking is WeightedStaking{
         _decreaseDelegateStake(delegates[msg.sender][until], until, amount);
 
         //early unstaking should be punished
-        // @todo vesting contract calls this function always with block.timestamp, maybe we should to change signature to
-        // function withdrawTokens(address receiver, uint96 endDate) public onlyOwners {
         if (block.timestamp < until && !allUnlocked && !isGovernance) {
             uint date = timestampToLockDate(block.timestamp);
             uint96 weight = computeWeightByDate(until, date); // (10 - 1) * WEIGHT_FACTOR

@@ -13,6 +13,8 @@ interface IStaking {
 
     function stake(uint96 amount, uint until, address stakeFor, address delegatee) external;
 
+    function getPriorVotes(address account, uint blockNumber, uint date) external view returns (uint96);
+
     function getPriorTotalVotingPower(uint32 blockNumber, uint time) view external returns (uint96);
 
     function getPriorWeightedStake(address account, uint blockNumber, uint date) external view returns (uint96);

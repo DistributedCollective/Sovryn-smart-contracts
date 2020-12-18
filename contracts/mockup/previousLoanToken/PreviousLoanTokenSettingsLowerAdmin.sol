@@ -6,11 +6,11 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./AdvancedToken.sol";
-import "./interfaces/ProtocolSettingsLike.sol";
+import "../../connectors/loantoken/interfaces/ProtocolSettingsLike.sol";
+import "../../connectors/loantoken/AdvancedTokenStorage.sol";
 
 // It is a LoanToken implementation!
-contract LoanTokenSettingsLowerAdmin is AdvancedToken {
+contract PreviousLoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
     using SafeMath for uint256;
 
     // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress
@@ -19,19 +19,16 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
     address public sovrynContractAddress;
     address public wrbtcTokenAddress;
     address internal target_;
-    address public admin;
     // ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 
-    //Add new variables here on the bottom
-    address public pauser;
+    event SetTransactionLimits(address[] addresses, uint256[] limits);
 
     //@todo check for restrictions in this contract
     modifier onlyAdmin() {
-        require(isOwner() || msg.sender == admin, "unauthorized");
+        require(msg.sender == address(this) ||
+            msg.sender == owner(), "unauthorized");
         _;
     }
-
-    event SetTransactionLimits(address[] addresses, uint256[] limits);
 
     //@todo add check for double init, idk but init usually can be called only once.
     function init(
@@ -48,14 +45,6 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
         decimals = IERC20(loanTokenAddress).decimals();
 
         initialPrice = 10**18; // starting price of 1
-    }
-
-    function setAdmin(address _admin) public onlyOwner {
-        admin = _admin;
-    }
-
-    function setPauser(address _pauser) public onlyOwner {
-        pauser = _pauser;
     }
 
     function()
@@ -141,8 +130,8 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
         string memory funcId,  // example: "mint(uint256,uint256)"
         bool isPaused)
         public
+        onlyAdmin
     {
-        require(msg.sender == pauser, "onlyPauser");
         // keccak256("iToken_FunctionPause")
         bytes32 slot = keccak256(abi.encodePacked(bytes4(keccak256(abi.encodePacked(funcId))), uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)));
         assembly {
@@ -158,18 +147,13 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
     function setTransactionLimits(
         address[] memory addresses, 
         uint256[] memory limits) 
-        public onlyAdmin
+        public onlyOwner
     {
         require(addresses.length == limits.length, "mismatched array lengths");
         for(uint i = 0; i < addresses.length; i++){
             transactionLimit[addresses[i]] = limits[i];
         }
         emit SetTransactionLimits(addresses, limits);
-    }
-
-    function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol) public onlyAdmin {
-        name = _name;
-        symbol = _symbol;
     }
 
 }

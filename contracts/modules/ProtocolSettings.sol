@@ -24,6 +24,17 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         revert("fallback not allowed");
     }
 
+    //@todo check for restrictions in this contract
+    modifier onlyAdmin() {
+        require(isOwner() || msg.sender == admin, "unauthorized");
+        _;
+    }
+
+    function setAdmin(address _admin) public onlyOwner {
+        admin = _admin;
+    }
+
+    //@todo add check for double init, idk but init usually can be called only once.
     function initialize(
         address target)
         external

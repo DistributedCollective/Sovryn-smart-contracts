@@ -62,7 +62,8 @@ contract StakingStorage is Ownable{
     
     /// @notice A record of tokens to be unstaked at a given time in total
     /// for total voting power computation. voting weights get adjusted bi-weekly
-    mapping(uint => mapping (uint32 => Checkpoint)) public totalStakingCheckpoints;
+
+    mapping(uint => mapping(uint32 => Checkpoint)) public totalStakingCheckpoints;
     
     ///@notice The number of total staking checkpoints for each date
     mapping(uint => uint32) public numTotalStakingCheckpoints;

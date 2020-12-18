@@ -8,7 +8,6 @@ pragma solidity 0.5.17;
 import "../core/State.sol";
 import "../openzeppelin/SafeERC20.sol";
 
-
 contract ProtocolTokenUser is State {
     using SafeERC20 for IERC20;
 

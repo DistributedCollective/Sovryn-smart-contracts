@@ -64,8 +64,6 @@ contract Checkpoints is StakingStorage, SafeMath96{
         }
     }
     
-    
-    
     /**
      * @notice increases the delegatee's stake for a giving lock date and writes a checkpoint
      * @param delegatee the delegatee
@@ -105,8 +103,6 @@ contract Checkpoints is StakingStorage, SafeMath96{
         emit DelegateStakeChanged(delegatee, lockedTS, oldStake, newStake);
     }
     
-    
-    
     function _increaseDailyStake(uint lockedTS, uint96 value) internal{
         uint32 nCheckpoints = numTotalStakingCheckpoints[lockedTS];
         uint96 staked = totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake;
@@ -131,5 +127,4 @@ contract Checkpoints is StakingStorage, SafeMath96{
             numTotalStakingCheckpoints[lockedTS] = nCheckpoints + 1;
         }
     }
-    
 }
