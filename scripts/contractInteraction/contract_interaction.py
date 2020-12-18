@@ -92,7 +92,10 @@ def main():
     checkOwnerIsAddress('0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789', contracts['multisig'])
     '''
     
-    addOwnerToMultisig('0x27d55f5668ef4438635bdce0adca083507e77752')
+    #addOwnerToMultisig('0x27d55f5668ef4438635bdce0adca083507e77752')
+    
+    #readLiquidity()
+    swapTokens(1e18, 1, contracts['swapNetwork'], contracts['USDT'], contracts['BPro'])
     
 def loadConfig():
     global contracts, acct
@@ -353,14 +356,19 @@ def readLiquidity():
     loanToken = Contract.from_abi("loanToken", address=contracts['iDOC'], abi=LoanTokenLogicStandard.abi, owner=acct)
     tasIUSD = loanToken.totalAssetSupply()
     tabIUSD = loanToken.totalAssetBorrow()
-    print("liquidity on iSUSD", (tasIUSD-tabIUSD)/1e18)
+    print("liquidity on iDOC", (tasIUSD-tabIUSD)/1e18)
     
-    tokenContract = Contract.from_abi("Token", address=contracts['DoC'], abi=TestToken.abi, owner=acct)
-    bal = tokenContract.balanceOf(contracts['ConverterDOC'])
-    print("supply of DoC on swap", bal/1e18)
+    loanToken = Contract.from_abi("loanToken", address=contracts['iUSDT'], abi=LoanTokenLogicStandard.abi, owner=acct)
+    tasIUSD = loanToken.totalAssetSupply()
+    tabIUSD = loanToken.totalAssetBorrow()
+    print("liquidity on iUSDT", (tasIUSD-tabIUSD)/1e18)
+    
+    tokenContract = Contract.from_abi("Token", address=contracts['USDT'], abi=TestToken.abi, owner=acct)
+    bal = tokenContract.balanceOf(contracts['ConverterUSDT'])
+    print("supply of USDT on swap", bal/1e18)
     
     tokenContract = Contract.from_abi("Token", address=contracts['WRBTC'], abi=TestToken.abi, owner=acct)
-    bal = tokenContract.balanceOf(contracts['ConverterDOC'])
+    bal = tokenContract.balanceOf(contracts['ConverterUSDT'])
     print("supply of rBTC on swap", bal/1e18)
     
 
@@ -421,6 +429,7 @@ def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTo
     print("path", path)
     expectedReturn = swapNetwork.getReturnByPath(path, amount)
     print("expected return ", expectedReturn)
+    '''
     tx = swapNetwork.convertByPath(
         path,
         amount,
@@ -430,6 +439,7 @@ def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTo
         0
     )
     tx.info()
+    '''
     
 def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
