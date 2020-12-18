@@ -36,6 +36,7 @@ contract('DevelopmentVesting:', accounts => {
 
     let cliff = "10";
     let duration = "100";
+    let frequency = "30";
 
     before(async () => {
         [root, account1, account2, account3, ...accounts] = accounts;
@@ -46,12 +47,7 @@ contract('DevelopmentVesting:', accounts => {
         await staking.setImplementation(stakingLogic.address);
         staking = await StakingLogic.at(staking.address);
 
-        // await token.transfer(account2, "1000");
-        // await token.approve(staking.address, "1000", {from: account2});
-        //
-        // kickoffTS = await staking.kickoffTS.call();
-
-        developmentVesting = await DevelopmentVesting.new(token.address, root, cliff, duration);
+        developmentVesting = await DevelopmentVesting.new(token.address, root, cliff, duration, frequency);
 
     });
 
@@ -63,26 +59,33 @@ contract('DevelopmentVesting:', accounts => {
             let _tokenOwner = await developmentVesting.tokenOwner();
             let _cliff = await developmentVesting.cliff();
             let _duration = await developmentVesting.duration();
+            let _frequency = await developmentVesting.frequency();
 
             assert.equal(_sov, token.address);
             assert.equal(_tokenOwner, root);
             assert.equal(_cliff.toString(), cliff);
             assert.equal(_duration.toString(), duration);
+            assert.equal(_frequency.toString(), frequency);
         });
 
         it('fails if the 0 address is passed as SOV address', async () => {
-            await expectRevert(DevelopmentVesting.new(ZERO_ADDRESS, root, cliff, duration),
+            await expectRevert(DevelopmentVesting.new(ZERO_ADDRESS, root, cliff, duration, frequency),
                 "SOV address invalid");
         });
 
         it('fails if the 0 address is passed as token owner address', async () => {
-            await expectRevert(DevelopmentVesting.new(token.address, ZERO_ADDRESS, cliff, duration),
+            await expectRevert(DevelopmentVesting.new(token.address, ZERO_ADDRESS, cliff, duration, frequency),
                 "token owner address invalid");
         });
 
         it('fails if the vesting duration is shorter than the cliff', async () => {
-            await expectRevert(DevelopmentVesting.new(token.address, root, 100, 99),
+            await expectRevert(DevelopmentVesting.new(token.address, root, 100, 99, frequency),
                 "duration must be bigger than or equal to the cliff");
+        });
+
+        it('fails if the vesting duration is shorter than the frequency', async () => {
+            await expectRevert(DevelopmentVesting.new(token.address, root, cliff, duration, 200),
+                "frequency is bigger than (duration - cliff)");
         });
 
     });

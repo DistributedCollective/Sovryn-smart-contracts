@@ -121,7 +121,7 @@ contract DevelopmentVesting is Ownable {
 
     function _setSchedule(uint _cliff, uint _duration, uint _frequency) internal {
         require(_duration >= _cliff, "duration must be bigger than or equal to the cliff");
-        require(_duration - cliff / _frequency >= 1, "frequency is bigger than (duration - cliff)");
+        require((_duration - _cliff) >= _frequency, "frequency is bigger than (duration - cliff)");
 
         cliff = _cliff;
         duration = _duration;
