@@ -375,7 +375,7 @@ contract Staking is WeightedStaking{
      * @param account The address to get stakes
      * @return The arrays of dates and stakes
      */
-    function getStakes(address account) public view returns (uint[] memory dates, uint96[] memory stakes) {
+    function getStakes(address account) external view returns (uint[] memory dates, uint96[] memory stakes) {
         uint latest = timestampToLockDate(block.timestamp + MAX_DURATION);
 
         //calculate stakes

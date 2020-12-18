@@ -75,10 +75,13 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
         //TODO can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
         IERC20(_token).approve(loanToken, amount);
         uint poolTokenAmount = ILoanToken(loanPoolToken).mint(address(this), amount);
-        if (block.timestamp - lastFeeWithdrawalTime[loanPoolToken] >= FEE_WITHDRAWAL_INTERVAL) {
-            lastFeeWithdrawalTime[loanPoolToken] = block.timestamp;
-            _writeTokenCheckpoint(loanPoolToken, safe96(poolTokenAmount, "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits"));
-        }
+
+        //update unprocessed amount of tokens
+        uint96 amount96 = safe96(poolTokenAmount, "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits");
+        unprocessedAmount[loanPoolToken] = add96(unprocessedAmount[loanPoolToken], amount96, "FeeSharingProxy::withdrawFees: unprocessedAmount exceeds 96 bits");
+
+        _addCheckpoint(loanPoolToken);
+
         emit FeeWithdrawn(msg.sender, loanPoolToken, poolTokenAmount);
     }
 
