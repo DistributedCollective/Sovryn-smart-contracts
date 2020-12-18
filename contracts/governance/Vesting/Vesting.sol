@@ -86,13 +86,28 @@ contract Vesting is IVesting, Ownable {
     /**
      * @notice withdraws unlocked tokens from the staking contract and forwards them to an address specified by the token owner
      * @param receiver the receiving address
-     * */
+     **/
     function withdrawTokens(address receiver) public onlyOwners {
+        _withdrawTokens(receiver, false);
+    }
+
+    /**
+     * @notice withdraws all tokens from the staking contract and forwards them to an address specified by the token owner
+     * @param receiver the receiving address
+     * @dev can be called only by owner
+     * */
+    function governanceWithdrawTokens(address receiver) public {
+        require(msg.sender == address(staking), "unauthorized");
+
+        _withdrawTokens(receiver, true);
+    }
+
+    function _withdrawTokens(address receiver, bool isGovernance) internal {
         uint96 stake;
         //usually we just need to iterate over the possible dates until now
         uint end;
         //in the unlikely case that all tokens have been unlocked early, allow to withdraw all of them.
-        if (staking.allUnlocked()) {
+        if (staking.allUnlocked() || isGovernance) {
             end = endDate;
         } else {
             end = block.timestamp;
@@ -103,7 +118,11 @@ contract Vesting is IVesting, Ownable {
             stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1);
             //withdraw if > 0
             if(stake > 0) {
-                staking.withdraw(stake, i, receiver);
+                if(isGovernance) {
+                    staking.governanceWithdraw(stake, i, receiver);
+                } else {
+                    staking.withdraw(stake, i, receiver);
+                }
             }
         }
 

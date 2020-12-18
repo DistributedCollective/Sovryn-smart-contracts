@@ -114,7 +114,7 @@ contract('FeeSharingProxy:', accounts => {
             await feeSharingProxy.withdrawFees(susd.address);
 
             await expectRevert(feeSharingProxy.withdrawFees(susd.address),
-                "FeeSharingProxy::withdrawFees: the last withdrawal was recently");
+                "FeeSharingProxy::withdrawFees: no tokens to withdraw");
         });
 
         it("Shouldn't be able to withdraw for unknown token", async () => {
@@ -180,7 +180,7 @@ contract('FeeSharingProxy:', accounts => {
             expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
 
             //check lastFeeWithdrawalTime
-            let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call();
+            let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanToken.address);
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
             expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
 
@@ -217,35 +217,22 @@ contract('FeeSharingProxy:', accounts => {
             expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
 
             //check lastFeeWithdrawalTime
-            let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call();
+            let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanToken.address);
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
             expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
 
             //[SECOND]
             //mock data
             feeAmount = await setFeeTokensHeld(new BN(12345), new BN(0), new BN(0));
+            let unprocessedAmount = feeAmount;
             totalFeeAmount = totalFeeAmount.add(feeAmount);
 
-            await increaseTime(FEE_WITHDRAWAL_INTERVAL);
             tx = await feeSharingProxy.withdrawFees(susd.address);
             await checkWithdrawFee();
 
             //check pool tokens mint
             feeSharingProxyBalance = await loanToken.balanceOf.call(feeSharingProxy.address);
             expect(feeSharingProxyBalance.toString()).to.be.equal(totalFeeAmount.toString());
-
-            //checkpoints
-            numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanToken.address);
-            expect(numTokenCheckpoints.toNumber()).to.be.equal(2);
-            checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanToken.address, 1);
-            expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
-            expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
-            expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
-
-            //check lastFeeWithdrawalTime
-            lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call();
-            block = await web3.eth.getBlock(tx.receipt.blockNumber);
-            expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
 
             //[THIRD]
             //mock data
@@ -262,20 +249,108 @@ contract('FeeSharingProxy:', accounts => {
 
             //checkpoints
             numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanToken.address);
-            expect(numTokenCheckpoints.toNumber()).to.be.equal(3);
-            checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanToken.address, 2);
+            expect(numTokenCheckpoints.toNumber()).to.be.equal(2);
+            checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanToken.address, 1);
             expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
             expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
-            expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
+            expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.add(unprocessedAmount).toString());
 
             //check lastFeeWithdrawalTime
-            lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call();
+            lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanToken.address);
             block = await web3.eth.getBlock(tx.receipt.blockNumber);
             expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
         });
 
     });
-    
+
+    describe("transferTokens", () => {
+
+        it("Shouldn't be able to use zero token address", async () => {
+            await expectRevert(feeSharingProxy.transferTokens(ZERO_ADDRESS, 1000),
+                "FeeSharingProxy::transferTokens: invalid address");
+        });
+
+        it("Shouldn't be able to transfer zero amount", async () => {
+            await expectRevert(feeSharingProxy.transferTokens(SOVToken.address, 0),
+                "FeeSharingProxy::transferTokens: invalid amount");
+        });
+
+        it("Shouldn't be able to withdraw zero amount", async () => {
+            await expectRevert(feeSharingProxy.transferTokens(SOVToken.address, 1000),
+                "invalid transfer");
+        });
+
+        it("Should be able to transfer tokens", async () => {
+            // stake - getPriorTotalVotingPower
+            let totalStake = 1000;
+            await stake(totalStake, root);
+
+            let amount = 1000;
+            await SOVToken.approve(feeSharingProxy.address, amount * 7);
+
+            let tx = await feeSharingProxy.transferTokens(SOVToken.address, amount);
+
+            expect(await feeSharingProxy.unprocessedAmount.call(SOVToken.address)).to.be.bignumber.equal(new BN(0));
+
+            expectEvent(tx, 'TokensTransferred', {
+                sender: root,
+                token: SOVToken.address,
+                amount: new BN(amount)
+            });
+
+            //checkpoints
+            let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(SOVToken.address);
+            expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
+            let checkpoint = await feeSharingProxy.tokenCheckpoints.call(SOVToken.address, 0);
+            expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
+            expect(checkpoint.numTokens.toString()).to.be.equal(amount.toString());
+
+            //check lastFeeWithdrawalTime
+            let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(SOVToken.address);
+            let block = await web3.eth.getBlock(tx.receipt.blockNumber);
+            expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
+
+            expectEvent(tx, 'CheckpointAdded', {
+                sender: root,
+                token: SOVToken.address,
+                amount: new BN(amount)
+            });
+
+            //second time
+            tx = await feeSharingProxy.transferTokens(SOVToken.address, amount * 2);
+
+            expect(await feeSharingProxy.unprocessedAmount.call(SOVToken.address)).to.be.bignumber.equal(new BN(amount * 2));
+
+            expectEvent(tx, 'TokensTransferred', {
+                sender: root,
+                token: SOVToken.address,
+                amount: new BN(amount * 2)
+            });
+
+            await increaseTime(FEE_WITHDRAWAL_INTERVAL);
+            //third time
+            tx = await feeSharingProxy.transferTokens(SOVToken.address, amount * 4);
+
+            expect(await feeSharingProxy.unprocessedAmount.call(SOVToken.address)).to.be.bignumber.equal(new BN(0));
+
+            //checkpoints
+            numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(SOVToken.address);
+            expect(numTokenCheckpoints.toNumber()).to.be.equal(2);
+            checkpoint = await feeSharingProxy.tokenCheckpoints.call(SOVToken.address, 1);
+            expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
+            expect(checkpoint.numTokens.toNumber()).to.be.equal(amount * 6);
+
+            //check lastFeeWithdrawalTime
+            lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(SOVToken.address);
+            block = await web3.eth.getBlock(tx.receipt.blockNumber);
+            expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
+
+        });
+
+    });
+
     describe("withdraw", () => {
     
         it("Shouldn't be able to withdraw zero amount", async () => {
