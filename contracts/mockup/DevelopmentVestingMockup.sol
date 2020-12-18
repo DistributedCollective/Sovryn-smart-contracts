@@ -4,12 +4,12 @@ import "../governance/Vesting/DevelopmentVesting.sol";
 
 contract DevelopmentVestingMockup is DevelopmentVesting {
 
-    function getAvailableAmount() public view returns (uint) {
-        return super._getAvailableAmount();
+    function updateWithdrawnAmount(uint index) public returns (uint) {
+        return super._updateWithdrawnAmount(index);
     }
 
-    function getUnlockedAmount() public view returns (uint) {
-        return super._getUnlockedAmount();
+    function getUnlockedAmount(uint index) public view returns (uint) {
+        return super._getUnlockedAmount(index);
     }
 
 }

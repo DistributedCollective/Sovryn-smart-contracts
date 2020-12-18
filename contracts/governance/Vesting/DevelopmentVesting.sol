@@ -12,23 +12,24 @@ contract DevelopmentVesting is Ownable {
     IERC20 public SOV;
     ///@notice the owner of the vested tokens (timelock contract initially)
     address public tokenOwner;
+
     ///@notice the cliff. after this time period the tokens begin to unlock
     uint public cliff;
     ///@notice the duration. after this period all tokens will have been unlocked
     uint public duration;
     ///@notice the frequency. part of tokens will have been unlocked periodically
     uint public frequency;
-    ///@notice the start date of the vesting
-    uint public startDate;
 
-    ///@notice amount of vested tokens
-    uint public amount;
-    ///@notice amount of already withdrawn tokens
-    uint public withdrawnAmount;
+    struct Schedule {
+        ///@notice the start date of the vesting
+        uint startDate;
+        ///@notice amount of vested tokens
+        uint amount;
+        ///@notice amount of already withdrawn tokens
+        uint withdrawnAmount;
+    }
 
-//    struct Schedule {
-//
-//    }
+    Schedule[] public schedules;
 
     ///@notice amount of locked tokens, these tokens can be withdrawn any time by an owner
     uint public lockedAmount;
@@ -119,16 +120,17 @@ contract DevelopmentVesting is Ownable {
      * @param _amount the amount of tokens to stake
      */
     function vestTokens(uint _amount) public {
-        require(startDate == 0);
-        startDate = block.timestamp;
+        //TODO should we check for some minimum amount here to avoid spam transactions ?
+        require(_amount > 0, "amount needs to be bigger than 0");
 
         //retrieve the SOV tokens
         bool success = SOV.transferFrom(msg.sender, address(this), _amount);
         require(success);
 
-        amount = _amount;
+        Schedule memory schedule = Schedule(block.timestamp, _amount, 0);
+        schedules.push(schedule);
 
-        emit TokensVested(msg.sender, amount);
+        emit TokensVested(msg.sender, _amount);
     }
 
     /**
@@ -139,33 +141,38 @@ contract DevelopmentVesting is Ownable {
     function withdrawVestedTokens(address _receiver) public onlyOwners {
         require(_receiver != address(0), "receiver address invalid");
 
-        uint availableAmount = _getAvailableAmount();
-        require(availableAmount > 0, "no available tokens");
+        uint availableAmount = _updateWithdrawnAmount(0);
 
-        withdrawnAmount += availableAmount;
         bool success = SOV.transfer(_receiver, availableAmount);
         require(success);
 
         emit VestedTokensWithdrawn(msg.sender, _receiver, availableAmount);
     }
 
-    function _getAvailableAmount() internal view returns (uint) {
-        return _getUnlockedAmount() - withdrawnAmount;
+    function _updateWithdrawnAmount(uint index) internal returns (uint) {
+        Schedule storage schedule = schedules[index];
+        uint availableAmount = _getUnlockedAmount(index) - schedule.withdrawnAmount;
+        require(availableAmount > 0, "no available tokens");
+
+        schedule.withdrawnAmount += availableAmount;
+
+        return availableAmount;
     }
 
     //amount of SOV tokens never hits 2**256 - 1
-    function _getUnlockedAmount() internal view returns (uint) {
-        uint start = startDate + cliff;
-        uint end = startDate + duration;
+    function _getUnlockedAmount(uint index) internal view returns (uint) {
+        Schedule storage schedule = schedules[index];
+        uint start = schedule.startDate + cliff;
+        uint end = schedule.startDate + duration;
         if (block.timestamp >= start) {
             uint numIntervals = (end - start) / frequency + 1;
-            uint amountPerInterval = amount / numIntervals;
+            uint amountPerInterval = schedule.amount / numIntervals;
             uint256 intervalNumber = (block.timestamp - start) / frequency + 1;
             if (intervalNumber > numIntervals) {
                 intervalNumber = numIntervals;
             }
             //amountPerInterval might lose some dust on rounding. add it to the first interval
-            uint unlockedAmount = amount - amountPerInterval * numIntervals;
+            uint unlockedAmount = schedule.amount - amountPerInterval * numIntervals;
             return unlockedAmount + amountPerInterval * intervalNumber;
         } else {
             return 0;
