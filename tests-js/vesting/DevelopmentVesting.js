@@ -30,7 +30,7 @@ contract('DevelopmentVesting:', accounts => {
 
     let root, account1, account2, account3;
     let token, staking, stakingLogic;
-    let vesting;
+    let vesting, tokenOwner;
     let kickoffTS;
 
     let cliff = WEEK;
@@ -46,7 +46,8 @@ contract('DevelopmentVesting:', accounts => {
         await staking.setImplementation(stakingLogic.address);
         staking = await StakingLogic.at(staking.address);
 
-        vesting = await DevelopmentVesting.new(token.address, root, cliff, duration, frequency);
+        tokenOwner = account1;
+        vesting = await DevelopmentVesting.new(token.address, tokenOwner, cliff, duration, frequency);
 
     });
 
@@ -61,7 +62,7 @@ contract('DevelopmentVesting:', accounts => {
             let _frequency = await vesting.frequency();
 
             assert.equal(_sov, token.address);
-            assert.equal(_tokenOwner, root);
+            assert.equal(_tokenOwner, tokenOwner);
             assert.equal(_cliff.toString(), cliff);
             assert.equal(_duration.toString(), duration);
             assert.equal(_frequency.toString(), frequency);
@@ -89,6 +90,61 @@ contract('DevelopmentVesting:', accounts => {
 
     });
 
+    describe('setTokenOwner:', () => {
+
+        it('sets token owner', async () => {
+            await vesting.setTokenOwner(account2);
+
+            expect(await vesting.tokenOwner()).to.be.equal(account2);
+        });
+
+        it('fails if the 0 address is passed as token owner address', async () => {
+            await expectRevert(vesting.setTokenOwner(ZERO_ADDRESS),
+                "token owner address invalid");
+        });
+
+        it('fails if the 0 address is passed as token owner address', async () => {
+            await expectRevert(vesting.setTokenOwner(account2, {from: tokenOwner}),
+                "unauthorized");
+        });
+
+    });
+
+    describe('depositTokens:', () => {
+
+        it('change schedule to unlock tokens', async () => {
+            let amount = 12345;
+            await token.approve(vesting.address, amount);
+            let tx = await vesting.depositTokens(amount);
+
+            let depositedAmount = await vesting.amount();
+            expect(depositedAmount.toNumber()).to.be.equal(amount);
+
+            let vestingBalance = await token.balanceOf(vesting.address);
+            expect(vestingBalance.toNumber()).to.be.equal(amount);
+
+            expectEvent(tx, 'TokensSent', {
+                caller: root,
+                amount: new BN(amount)
+            });
+        });
+
+        it('fails if amount is 0', async () => {
+            await expectRevert(vesting.depositTokens(0),
+                "amount needs to be bigger than 0");
+        });
+
+        it('fails if transfer fails', async () => {
+            await expectRevert(vesting.depositTokens(12345),
+                "invalid transfer");
+        });
+
+    });
+
+    describe('withdrawTokens:', () => {
+
+    });
+
     describe('changeSchedule:', () => {
 
         it('change schedule to unlock tokens', async () => {
@@ -107,15 +163,15 @@ contract('DevelopmentVesting:', accounts => {
 
     });
 
-    describe('stakeTokens:', () => {
+    describe('vestTokens:', () => {
 
     });
 
-    describe('withdrawTokens:', () => {
+    describe('withdrawByAllSchedules:', () => {
 
     });
 
-    describe('transferLockedTokens:', () => {
+    describe('withdrawByGivenSchedules:', () => {
 
     });
 
