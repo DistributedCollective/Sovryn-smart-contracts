@@ -15,11 +15,10 @@ const StakingLogic = artifacts.require('Staking');
 const StakingProxy = artifacts.require('StakingProxy');
 const TestToken = artifacts.require('TestToken');
 const Vesting = artifacts.require('Vesting');
-const DevelopmentVesting = artifacts.require('DevelopmentVesting');
+const DevelopmentVesting = artifacts.require('DevelopmentVestingMockup');
 
 const ZERO_ADDRESS = constants.ZERO_ADDRESS;
 
-const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 const WEEK = new BN(7 * 24 * 60 * 60);
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
@@ -31,12 +30,12 @@ contract('DevelopmentVesting:', accounts => {
 
     let root, account1, account2, account3;
     let token, staking, stakingLogic;
-    let developmentVesting;
+    let vesting;
     let kickoffTS;
 
-    let cliff = "10";
-    let duration = "100";
-    let frequency = "30";
+    let cliff = WEEK;
+    let duration = WEEK.mul(new BN(11));
+    let frequency = WEEK.mul(new BN(2));
 
     before(async () => {
         [root, account1, account2, account3, ...accounts] = accounts;
@@ -47,7 +46,7 @@ contract('DevelopmentVesting:', accounts => {
         await staking.setImplementation(stakingLogic.address);
         staking = await StakingLogic.at(staking.address);
 
-        developmentVesting = await DevelopmentVesting.new(token.address, root, cliff, duration, frequency);
+        vesting = await DevelopmentVesting.new(token.address, root, cliff, duration, frequency);
 
     });
 
@@ -55,11 +54,11 @@ contract('DevelopmentVesting:', accounts => {
 
         it('sets the expected values', async () => {
             //Check data
-            let _sov = await developmentVesting.SOV();
-            let _tokenOwner = await developmentVesting.tokenOwner();
-            let _cliff = await developmentVesting.cliff();
-            let _duration = await developmentVesting.duration();
-            let _frequency = await developmentVesting.frequency();
+            let _sov = await vesting.SOV();
+            let _tokenOwner = await vesting.tokenOwner();
+            let _cliff = await vesting.cliff();
+            let _duration = await vesting.duration();
+            let _frequency = await vesting.frequency();
 
             assert.equal(_sov, token.address);
             assert.equal(_tokenOwner, root);
@@ -69,28 +68,42 @@ contract('DevelopmentVesting:', accounts => {
         });
 
         it('fails if the 0 address is passed as SOV address', async () => {
-            await expectRevert(DevelopmentVesting.new(ZERO_ADDRESS, root, cliff, duration, frequency),
+            await expectRevert(DevelopmentVesting.new(ZERO_ADDRESS, root, 10, 100, 30),
                 "SOV address invalid");
         });
 
         it('fails if the 0 address is passed as token owner address', async () => {
-            await expectRevert(DevelopmentVesting.new(token.address, ZERO_ADDRESS, cliff, duration, frequency),
+            await expectRevert(DevelopmentVesting.new(token.address, ZERO_ADDRESS, 10, 100, 30),
                 "token owner address invalid");
         });
 
         it('fails if the vesting duration is shorter than the cliff', async () => {
-            await expectRevert(DevelopmentVesting.new(token.address, root, 100, 99, frequency),
+            await expectRevert(DevelopmentVesting.new(token.address, root, 100, 99, 100),
                 "duration must be bigger than or equal to the cliff");
         });
 
         it('fails if the vesting duration is shorter than the frequency', async () => {
-            await expectRevert(DevelopmentVesting.new(token.address, root, cliff, duration, 200),
+            await expectRevert(DevelopmentVesting.new(token.address, root,10, 100, 200),
                 "frequency is bigger than (duration - cliff)");
         });
 
     });
 
     describe('changeSchedule:', () => {
+
+        it('change schedule to unlock tokens', async () => {
+            let amount = 1000;
+            await token.approve(vesting.address, amount);
+            await vesting.vestTokens(amount);
+
+            let unlockedAmount = await vesting.getUnlockedAmount(0);
+            expect(unlockedAmount.toNumber()).to.be.equal(0);
+
+            await vesting.changeSchedule(0, 0, 0);
+
+            unlockedAmount = await vesting.getUnlockedAmount(0);
+            expect(unlockedAmount.toNumber()).to.be.equal(amount);
+        });
 
     });
 

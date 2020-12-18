@@ -75,10 +75,10 @@ contract DevelopmentVesting is Ownable {
     }
 
     /**
-     * @notice send tokens to this contract, these tokens can be withdrawn any time by an owner
+     * @notice deposit tokens to this contract, these tokens can be withdrawn any time by an owner
      * @param _amount the amount of tokens to send
      */
-    function sendTokens(uint _amount) public {
+    function depositTokens(uint _amount) public {
         require(_amount > 0, "amount needs to be bigger than 0");
 
         //retrieve the SOV tokens
@@ -92,7 +92,7 @@ contract DevelopmentVesting is Ownable {
 
     //TODO onlyOwners or onlyOwner ?
     /**
-     * @notice withdraws tokens
+     * @notice withdraws tokens that were not vested by a schedule (tokens were deposited to this contract)
      * @param _amount the amount of tokens to be withdrawn
      * @param _receiver the receiving address
      */
@@ -129,7 +129,7 @@ contract DevelopmentVesting is Ownable {
     }
 
     /**
-     * @notice stakes tokens
+     * @notice stakes tokens by a schedule
      * @param _amount the amount of tokens to vest
      */
     function vestTokens(uint _amount) public {
@@ -170,7 +170,7 @@ contract DevelopmentVesting is Ownable {
         _withdrawBySchedules(_receiver, _start, length);
     }
 
-    function _withdrawBySchedules(address _receiver, uint _start, uint _length) public {
+    function _withdrawBySchedules(address _receiver, uint _start, uint _length) internal {
         require(_receiver != address(0), "receiver address invalid");
         uint availableAmount = 0;
         for (uint i = _start; i < _length; i++) {
@@ -199,9 +199,16 @@ contract DevelopmentVesting is Ownable {
         uint start = schedule.startDate + cliff;
         uint end = schedule.startDate + duration;
         if (block.timestamp >= start) {
-            uint numIntervals = (end - start) / frequency + 1;
+            uint numIntervals;
+            uint256 intervalNumber;
+            if (frequency == 0) {
+                numIntervals = 1;
+                intervalNumber = 1;
+            } else {
+                numIntervals = (end - start) / frequency + 1;
+                intervalNumber = (block.timestamp - start) / frequency + 1;
+            }
             uint amountPerInterval = schedule.amount / numIntervals;
-            uint256 intervalNumber = (block.timestamp - start) / frequency + 1;
             if (intervalNumber > numIntervals) {
                 intervalNumber = numIntervals;
             }
