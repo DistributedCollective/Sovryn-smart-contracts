@@ -14,8 +14,23 @@ const {
 
 const StakingLogic = artifacts.require('Staking');
 const StakingProxy = artifacts.require('StakingProxy');
-const TestToken = artifacts.require('TestToken');
 const StakingMockup = artifacts.require('StakingMockup');
+
+const TestToken = artifacts.require('TestToken');
+const TestWrbtc = artifacts.require('TestWrbtc');
+
+const Protocol = artifacts.require('sovrynProtocol');
+const ProtocolSettings = artifacts.require('ProtocolSettingsMockup');
+const LoanMaintenance = artifacts.require('LoanMaintenance');
+const LoanSettings = artifacts.require('LoanSettings');
+const LoanOpenings = artifacts.require('LoanOpenings');
+const LoanClosings = artifacts.require('LoanClosings');
+
+const LoanTokenLogic = artifacts.require('LoanTokenLogicStandard');
+const LoanTokenSettings = artifacts.require('LoanTokenSettingsLowerAdmin');
+const LoanToken = artifacts.require('LoanToken');
+
+const FeeSharingProxy = artifacts.require('FeeSharingProxy');
 
 const TOTAL_SUPPLY = "100000000000000000000000000000";
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
@@ -32,7 +47,10 @@ contract('Staking', accounts => {
     const symbol = 'TST';
 
     let root, account1, account2, account3;
-    let token, staking;
+    let token, susd, wrbtc, staking;
+    let protocol;
+    let loanTokenSettings, loanTokenLogic, loanToken;
+    let feeSharingProxy;
     let kickoffTS, inOneWeek;
 
     before(async () => {
@@ -40,13 +58,46 @@ contract('Staking', accounts => {
     });
 
     beforeEach(async () => {
+        //Token
         token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-        
+        susd = await TestToken.new("SUSD", "SUSD", 18, TOTAL_SUPPLY);
+        wrbtc = await TestWrbtc.new();
+
+        //staking
         let stakingLogic = await StakingLogic.new(token.address);
         staking = await StakingProxy.new(token.address);
         await staking.setImplementation(stakingLogic.address);
         staking = await StakingLogic.at(staking.address);
-    
+
+        //Protocol
+        protocol = await Protocol.new();
+        let protocolSettings = await ProtocolSettings.new();
+        await protocol.replaceContract(protocolSettings.address);
+        let loanMaintenance = await LoanMaintenance.new();
+        await protocol.replaceContract(loanMaintenance.address);
+        let loanSettings = await LoanSettings.new();
+        await protocol.replaceContract(loanSettings.address);
+        let loanOpenings = await LoanOpenings.new();
+        await protocol.replaceContract(loanOpenings.address);
+        let loanClosings = await LoanClosings.new();
+        await protocol.replaceContract(loanClosings.address);
+
+        protocol = await ProtocolSettings.at(protocol.address);
+
+        //Loan token
+        loanTokenSettings = await LoanTokenSettings.new();
+        loanTokenLogic = await LoanTokenLogic.new();
+        loanToken = await LoanToken.new(root, loanTokenLogic.address, protocol.address, wrbtc.address);
+        // await loanToken.initialize(susd.address, "iSUSD", "iSUSD");
+        loanToken = await LoanTokenLogic.at(loanToken.address);
+
+        await protocol.setLoanPool([loanToken.address], [susd.address]);
+
+        //FeeSharingProxy
+        feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address, loanToken.address);
+        await protocol.setFeesController(feeSharingProxy.address);
+        await staking.setFeeSharing(feeSharingProxy.address);
+
         await token.transfer(account1, 1000);
         await token.approve(staking.address, TOTAL_SUPPLY);
         kickoffTS = await staking.kickoffTS.call();
@@ -74,7 +125,7 @@ contract('Staking', accounts => {
             let amount = "100";
             let lockedTS = await getTimeFromKickoff(MAX_DURATION);
             let tx = await staking.stake(amount, lockedTS, account1, account1);
-            
+
             expectEvent(tx, 'TokensStaked', {
                 staker: account1,
                 amount: amount,
@@ -94,7 +145,7 @@ contract('Staking', accounts => {
             let lockedTS = await getTimeFromKickoff(MAX_DURATION);
             let tx = await staking.stake(amount, lockedTS, ZERO_ADDRESS, ZERO_ADDRESS);
 
-            
+
             expectEvent(tx, 'TokensStaked', {
                 staker: root,
                 amount: amount,
@@ -114,7 +165,7 @@ contract('Staking', accounts => {
             let amount = "100";
             let duration = TWO_WEEKS;
             let lockedTS = await getTimeFromKickoff(duration);
-            
+
             let stackingbBalance = await token.balanceOf.call(staking.address);
             expect(stackingbBalance.toNumber()).to.be.equal(0);
             let beforeBalance = await token.balanceOf.call(root);
@@ -168,7 +219,7 @@ contract('Staking', accounts => {
             let amount = "1000";
             let duration = new BN(TWO_WEEKS).mul(new BN(2));
             let lockedTS = await getTimeFromKickoff(duration);
-            
+
             let tx = await staking.stake(amount, lockedTS, account1, account1);
 
             //_writeUserCheckpoint
@@ -304,12 +355,10 @@ contract('Staking', accounts => {
             let newTime = await getTimeFromKickoff(MAX_DURATION.mul(new BN(2)));
             let tx = await staking.extendStakingDuration(lockedTS, newTime);
 
-            let cuurentTime = await time.latest();
-            let newLockedTs = cuurentTime.add(MAX_DURATION);
             expectEvent(tx, 'ExtendedStakingDuration', {
                 staker: root,
                 previousDate: lockedTS,
-                newDate: newLockedTs
+                newDate: await getTimeFromKickoff(MAX_DURATION)
             });
         });
 
@@ -450,6 +499,61 @@ contract('Staking', accounts => {
 
     });
 
+    describe('getStakes', () => {
+
+        it("Should be able to increase stake", async () => {
+            let amount1 = "1000";
+            let lockedTS1 = await getTimeFromKickoff(new BN(TWO_WEEKS));
+            await staking.stake(amount1, lockedTS1, root, root);
+
+            //time travel
+            await time.increase(TWO_WEEKS * 10);
+
+            let amount2 = "5000";
+            let lockedTS2 = await getTimeFromKickoff(new BN(MAX_DURATION));
+            await staking.stake(amount2, lockedTS2, root, root);
+
+            let data =  await staking.getStakes.call(root);
+            // console.log();
+            // for (let i = 0; i < data.dates.length; i++) {
+            //     console.log(data.dates[i].toString());
+            //     console.log(data.stakes[i].toString());
+            // }
+
+            expect(data.dates[0]).to.be.bignumber.equal(new BN(lockedTS1));
+            expect(data.stakes[0]).to.be.bignumber.equal(new BN(amount1));
+
+            expect(data.dates[1]).to.be.bignumber.equal(new BN(lockedTS2));
+            expect(data.stakes[1]).to.be.bignumber.equal(new BN(amount2));
+        });
+
+    });
+
+    describe('setWeightScaling', () => {
+
+        it("Shouldn't be able to weight scaling less than min value", async () => {
+            await expectRevert(staking.setWeightScaling(0),
+                "weight scaling doesn't belong to range [1, 9]");
+        });
+
+        it("Shouldn't be able to weight scaling more than max value", async () => {
+            await expectRevert(staking.setWeightScaling(10),
+                "weight scaling doesn't belong to range [1, 9]");
+        });
+
+        it("Only owner should be able to weight scaling", async () => {
+            await expectRevert(staking.setWeightScaling(5, {from: account1}),
+                "unauthorized");
+        });
+
+        it("Should be able to weight scaling", async () => {
+            await staking.setWeightScaling(7);
+
+            expect(await staking.weightScaling.call()).to.be.bignumber.equal(new BN(7));
+        });
+
+    });
+
     describe('withdraw', () => {
 
         it("Amount of tokens to be withdrawn needs to be bigger than 0", async () => {
@@ -460,16 +564,6 @@ contract('Staking', accounts => {
 
             await expectRevert(staking.withdraw("0", lockedTS, root),
                 "Staking::withdraw: amount of tokens to be withdrawn needs to be bigger than 0");
-        });
-
-        it("Shouldn't be able to withdraw when tokens are still locked", async () => {
-            let amount = "1000";
-            let duration = new BN(TWO_WEEKS).mul(new BN(2));
-            let lockedTS = await getTimeFromKickoff(duration);
-            await staking.stake(amount, lockedTS, root, root);
-
-            await expectRevert(staking.withdraw(amount, lockedTS, root),
-                "Staking::withdraw: tokens are still locked.");
         });
 
         it("Shouldn't be able to withdraw amount greater than balance", async () => {
@@ -541,12 +635,10 @@ contract('Staking', accounts => {
             let lockedTS = await getTimeFromKickoff(duration);
             await staking.stake(amount, lockedTS, root, root);
         
-            await setTime(lockedTS);
-        
             let stackingbBalance = await token.balanceOf.call(staking.address);
             expect(stackingbBalance.toString()).to.be.equal(amount);
         
-            await staking.withdraw(amount / 2, lockedTS, root);
+            await staking.withdraw(amount / 2, lockedTS, account2);
         
             stackingbBalance = await token.balanceOf.call(staking.address);
             expect(stackingbBalance.toNumber()).to.be.equal(amount / 2);
@@ -556,8 +648,8 @@ contract('Staking', accounts => {
             let checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, numDelegateStakingCheckpoints - 1);
             expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
             expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(2);
-    
-            await staking.withdraw(amount / 2, lockedTS, root);
+
+            await staking.withdraw(amount / 2, lockedTS, account2);
     
             stackingbBalance = await token.balanceOf.call(staking.address);
             expect(stackingbBalance.toNumber()).to.be.equal(0);
@@ -567,7 +659,62 @@ contract('Staking', accounts => {
             checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, numDelegateStakingCheckpoints - 1);
             expect(checkpoint.stake.toNumber()).to.be.equal(0);
             expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(3);
-    
+
+            let feeSharingBalance = await token.balanceOf.call(feeSharingProxy.address);
+            let userBalance = await token.balanceOf.call(account2);
+
+            let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
+            let maxDuration = await staking.MAX_DURATION.call();
+            let weightFactor = await staking.WEIGHT_FACTOR.call();
+            let weight = weightingFunction(amount, duration, maxDuration, maxVotingWeight, weightFactor.toNumber()) / 100;
+            let weightScaling = await staking.weightScaling.call();
+            weight = weight * weightScaling;
+            let punishedAmount = weight;
+
+            await expect(feeSharingBalance).to.be.bignumber.equal(new BN(punishedAmount));
+            await expect(userBalance).to.be.bignumber.equal(new BN(amount - punishedAmount));
+        });
+
+        it("Should be able to withdraw earlier for any lock date", async () => {
+            console.log();
+            let amount = "10000";
+            console.log("Staked amount: " + amount);
+
+            for (let i = 1; i <= 78; i++) {
+                if (i !== 1 && i !== 78 && i % 10 !== 0) {
+                    continue;
+                }
+
+                feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address, loanToken.address);
+                await staking.setFeeSharing(feeSharingProxy.address);
+
+                let duration = new BN(i * TWO_WEEKS);
+                let lockedTS = await getTimeFromKickoff(duration);
+                await staking.stake(amount, lockedTS, root, root);
+
+                let stackingbBalance = await token.balanceOf.call(staking.address);
+                expect(stackingbBalance.toString()).to.be.equal(amount);
+
+                await staking.withdraw(amount, lockedTS, account2);
+
+                stackingbBalance = await token.balanceOf.call(staking.address);
+                expect(stackingbBalance.toNumber()).to.be.equal(0);
+
+                let feeSharingBalance = await token.balanceOf.call(feeSharingProxy.address);
+                let userBalance = await token.balanceOf.call(account2);
+
+                let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
+                let maxDuration = await staking.MAX_DURATION.call();
+                let weightFactor = await staking.WEIGHT_FACTOR.call();
+                let weight = weightingFunction(amount, duration, maxDuration, maxVotingWeight, weightFactor.toNumber()) / 100;
+                let weightScaling = await staking.weightScaling.call();
+                weight = weight * weightScaling;
+                let punishedAmount = weight;
+
+                let weeks = i * 2;
+                console.log("lock date: " + weeks + " (weeks), slashed amount: " + feeSharingBalance.toString() + " ( " + feeSharingBalance / 100  + "% )");
+                await expect(feeSharingBalance).to.be.bignumber.equal(new BN(punishedAmount));
+            }
         });
     
     });
@@ -678,3 +825,10 @@ contract('Staking', accounts => {
     }
 
 });
+
+function weightingFunction(stake, time, maxDuration, maxVotingWeight, weightFactor) {
+    let x = maxDuration - time;
+    let mD2 = maxDuration * maxDuration;
+    return Math.floor(stake * (Math.floor(maxVotingWeight * weightFactor * (mD2 - x * x) / mD2) + weightFactor) / weightFactor);
+
+}

@@ -360,6 +360,76 @@ contract('Vesting', accounts => {
             await vesting.withdrawTokens(root, {from: root});
             await vesting.withdrawTokens(root, {from: a1});
         });
+
+        it("Shouldn't be possible to use governanceWithdrawVesting by not owner", async () => {
+            let toStake = ONE_MILLON;
+
+            //Stake
+            vesting = await Vesting.new(token.address, staking.address, root, 26 * WEEK , 104 * WEEK, feeSharingProxy.address);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            await expectRevert(staking.governanceWithdrawVesting(vesting.address, root, {from: a1}),
+                "unauthorized");
+        });
+
+        it("Shouldn't be possible to use governanceWithdraw by user", async () => {
+            let toStake = ONE_MILLON;
+
+            //Stake
+            vesting = await Vesting.new(token.address, staking.address, root, 26 * WEEK , 104 * WEEK, feeSharingProxy.address);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            await expectRevert(staking.governanceWithdraw(100, kickoffTS + 52 * WEEK, root),
+                "unauthorized");
+        });
+
+        it("Shouldn't be possible to use governanceWithdrawTokens by user", async () => {
+            let toStake = ONE_MILLON;
+
+            //Stake
+            vesting = await Vesting.new(token.address, staking.address, root, 26 * WEEK , 104 * WEEK, feeSharingProxy.address);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            await expectRevert(vesting.governanceWithdrawTokens(root),
+                "unauthorized");
+        });
+
+        it('governanceWithdrawTokens', async() => {
+            let previousAmount = await token.balanceOf(root);
+            let toStake = ONE_MILLON;
+
+            //Stake
+            vesting = await Vesting.new(token.address, staking.address, root, 26 * WEEK , 104 * WEEK, feeSharingProxy.address);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            await time.increase(52 * WEEK);
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            let amountAfterStake = await token.balanceOf(root);
+
+            //governance withdraw until duration must withdraw all staked tokens without fees
+            let tx = await staking.governanceWithdrawVesting(vesting.address, root);
+
+            expectEvent(tx, 'VestingTokensWithdrawn', {
+                vesting: vesting.address,
+                receiver: root
+            });
+
+            //verify amount
+            let amount = await token.balanceOf(root);
+
+            assert.equal(previousAmount.sub(new BN(toStake).mul(new BN(2))).toString(), amountAfterStake.toString());
+            assert.equal(previousAmount.toString(), amount.toString());
+        });
     });
 
     describe('collectDividends', async() => {

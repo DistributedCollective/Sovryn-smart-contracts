@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "./WeightedStaking.sol";
 import "./IStaking.sol";
+import "../Vesting/IVesting.sol";
 
 contract Staking is WeightedStaking{
     
@@ -29,9 +30,9 @@ contract Staking is WeightedStaking{
             delegatee = stakeFor;
         }
         //do not stake longer than the max duration
-        if (until > block.timestamp + MAX_DURATION) {
-            until = block.timestamp + MAX_DURATION;
-        }
+        uint latest = timestampToLockDate(block.timestamp + MAX_DURATION);
+        if (until > latest)
+            until = latest;
 
         uint96 previousBalance = currentBalance(stakeFor, until);
         //increase stake
@@ -63,8 +64,8 @@ contract Staking is WeightedStaking{
         require(previousLock <= until, "Staking::extendStakingDuration: cannot reduce the staking duration");
         
         //do not exceed the max duration, no overflow possible
-        uint latest = block.timestamp + MAX_DURATION;
-        if(until > latest)
+        uint latest = timestampToLockDate(block.timestamp + MAX_DURATION);
+        if (until > latest)
             until = latest;
         
         //update checkpoints
@@ -149,29 +150,77 @@ contract Staking is WeightedStaking{
      * @param receiver the receiver of the tokens. If not specified, send to the msg.sender
      * */
     function withdraw(uint96 amount, uint until, address receiver) public {
+        _withdraw(amount, until, receiver, false);
+    }
+
+    /**
+     * @notice withdraws the given amount of tokens
+     * @param amount the number of tokens to withdraw
+     * @param until the date until which the tokens were staked
+     * @param receiver the receiver of the tokens. If not specified, send to the msg.sender
+     * @dev can be invoked only by whitelisted contract passed to governanceWithdrawVesting
+     * */
+    function governanceWithdraw(uint96 amount, uint until, address receiver) public {
+        require(vestingWhitelist[msg.sender], "unauthorized");
+
+        _withdraw(amount, until, receiver, true);
+    }
+
+    /**
+     * @notice withdraws tokens for vesting contact
+     * @param vesting the address of Vesting contract
+     * @param receiver the receiver of the tokens. If not specified, send to the msg.sender
+     * @dev can be invoked only by whitelisted contract passed to governanceWithdrawVesting
+     * */
+    function governanceWithdrawVesting(address vesting, address receiver) public onlyOwner {
+        vestingWhitelist[vesting] = true;
+        IVesting(vesting).governanceWithdrawTokens(receiver);
+        vestingWhitelist[vesting] = false;
+
+        emit VestingTokensWithdrawn(vesting, receiver);
+    }
+
+    function _withdraw(uint96 amount, uint until, address receiver, bool isGovernance) internal {
         require(amount > 0, "Staking::withdraw: amount of tokens to be withdrawn needs to be bigger than 0");
-        require(block.timestamp >= until || allUnlocked, "Staking::withdraw: tokens are still locked.");
         uint96 balance = getPriorUserStakeByDate(msg.sender, until, block.number -1);
         require(amount <= balance, "Staking::withdraw: not enough balance");
-        
+
         //determine the receiver
         if(receiver == address(0))
             receiver = msg.sender;
-            
+
         //update the checkpoints
         _decreaseDailyStake(until, amount);
         _decreaseUserStake(msg.sender, until, amount);
         _decreaseDelegateStake(delegates[msg.sender][until], until, amount);
-        
+
+        //early unstaking should be punished
+        // @todo vesting contract calls this function always with block.timestamp, maybe we should to change signature to
+        // function withdrawTokens(address receiver, uint96 endDate) public onlyOwners {
+        if (block.timestamp < until && !allUnlocked && !isGovernance) {
+            uint date = timestampToLockDate(block.timestamp);
+            uint96 weight = computeWeightByDate(until, date); // (10 - 1) * WEIGHT_FACTOR
+            weight = weight * weightScaling;
+            uint96 punishedAmount = amount * weight / WEIGHT_FACTOR / 100;
+            amount -= punishedAmount;
+
+            //punishedAmount can be 0 if block.timestamp are very close to 'until'
+            if (punishedAmount > 0) {
+                require(address(feeSharing) != address(0), "Staking::withdraw: FeeSharing address wasn't set");
+                //move punished amount to fee sharing
+                //approve transfer here and let feeSharing do transfer and write checkpoint
+                SOVToken.approve(address(feeSharing), punishedAmount);
+                feeSharing.transferTokens(address(SOVToken), punishedAmount);
+            }
+        }
+
         //transferFrom
         bool success = SOVToken.transfer(receiver, amount);
         require(success, "Staking::withdraw: Token transfer failed");
-        
+
         emit TokensWithdrawn(msg.sender, receiver, amount);
     }
-    
-    
-    
+
     /**
      * @notice returns the current balance of for an account locked until a certain date
      * @param account the user address
@@ -278,7 +327,25 @@ contract Staking is WeightedStaking{
         require(_newStakingContract != address(0), "can't reset the new staking contract to 0");
         newStakingContract = _newStakingContract;
     }
-    
+
+    /**
+    * @notice allows the owner to set a fee sharing proxy contract, we need it for unstaking with slashing.
+    * @param _feeSharing the address of FeeSharingProxy contract
+    */
+    function setFeeSharing(address _feeSharing) public onlyOwner {
+        require(_feeSharing != address(0), "FeeSharing address shouldn't be 0");
+        feeSharing = IFeeSharingProxy(_feeSharing);
+    }
+
+    /**
+    * @notice allows the owner to set weight scaling, we need it for unstaking with slashing.
+    * @param _weightScaling the weight scaling
+    */
+    function setWeightScaling(uint96 _weightScaling) public onlyOwner {
+        require(MIN_WEIGHT_SCALING <= _weightScaling && _weightScaling <= MAX_WEIGHT_SCALING, "weight scaling doesn't belong to range [1, 9]");
+        weightScaling = _weightScaling;
+    }
+
     /**
      * @notice allows a staker to migrate his positions to the new staking contract.
      * @dev staking contract needs to be set before by the owner. currently not implemented, just needed for the interface.
@@ -302,4 +369,36 @@ contract Staking is WeightedStaking{
         allUnlocked = true;
         emit TokensUnlocked(SOVToken.balanceOf(address(this)));
     }
+
+    /**
+     * @notice Gets list of stakes for `account`
+     * @param account The address to get stakes
+     * @return The arrays of dates and stakes
+     */
+    function getStakes(address account) external view returns (uint[] memory dates, uint96[] memory stakes) {
+        uint latest = timestampToLockDate(block.timestamp + MAX_DURATION);
+
+        //calculate stakes
+        uint count = 0;
+        //we need to iterate from first possible stake date after deployment to the latest from current time
+        for (uint i = kickoffTS + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
+            if (currentBalance(account, i) > 0) {
+                count++;
+            }
+        }
+        dates = new uint[](count);
+        stakes = new uint96[](count);
+
+        //we need to iterate from first possible stake date after deployment to the latest from current time
+        uint j = 0;
+        for (uint i = kickoffTS + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
+            uint96 currentBalance = currentBalance(account, i);
+            if (currentBalance > 0) {
+                dates[j] = i;
+                stakes[j] = currentBalance;
+                j++;
+            }
+        }
+    }
+
 }
