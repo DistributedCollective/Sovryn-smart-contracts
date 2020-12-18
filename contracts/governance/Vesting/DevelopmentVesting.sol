@@ -20,18 +20,21 @@ contract DevelopmentVesting is Ownable {
     uint public frequency;
     ///@notice the start date of the vesting
     uint public startDate;
-    ///@notice the end date of the vesting
-    uint public endDate;
+
     ///@notice amount of vested tokens
     uint public amount;
     ///@notice amount of already withdrawn tokens
     uint public withdrawnAmount;
 
+//    struct Schedule {
+//
+//    }
+
     ///@notice amount of locked tokens, these tokens can be withdrawn any time by an owner
     uint public lockedAmount;
 
     event TokensSent(address indexed caller, uint amount);
-    event LockedTokensWithdrawn(address indexed caller, address receiver, uint amount);
+    event TokensWithdrawn(address indexed caller, address receiver, uint amount);
     event TokensVested(address indexed caller, uint amount);
     event VestedTokensWithdrawn(address indexed caller, address receiver, uint amount);
 
@@ -79,7 +82,7 @@ contract DevelopmentVesting is Ownable {
     }
 
     //TODO onlyOwners or onlyOwner ?
-    function withdrawLockedTokens(uint _amount, address _receiver) public onlyOwners {
+    function withdrawTokens(uint _amount, address _receiver) public onlyOwners {
         require(_amount > 0, "amount needs to be bigger than 0");
         require(_amount <= lockedAmount, "amount is not available");
         require(_receiver != address(0), "receiver address invalid");
@@ -89,7 +92,7 @@ contract DevelopmentVesting is Ownable {
 
         lockedAmount -= _amount;
 
-        emit LockedTokensWithdrawn(msg.sender, _receiver, _amount);
+        emit TokensWithdrawn(msg.sender, _receiver, _amount);
     }
 
     /**
@@ -118,7 +121,6 @@ contract DevelopmentVesting is Ownable {
     function vestTokens(uint _amount) public {
         require(startDate == 0);
         startDate = block.timestamp;
-        endDate = block.timestamp + duration;
 
         //retrieve the SOV tokens
         bool success = SOV.transferFrom(msg.sender, address(this), _amount);
@@ -154,7 +156,7 @@ contract DevelopmentVesting is Ownable {
     //amount of SOV tokens never hits 2**256 - 1
     function _getUnlockedAmount() internal view returns (uint) {
         uint start = startDate + cliff;
-        uint end = endDate;
+        uint end = startDate + duration;
         if (block.timestamp >= start) {
             uint numIntervals = (end - start) / frequency + 1;
             uint amountPerInterval = amount / numIntervals;
