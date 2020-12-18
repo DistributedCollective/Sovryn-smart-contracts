@@ -5,8 +5,9 @@ import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 import "../Staking/Staking.sol";
 import "../IFeeSharingProxy.sol";
+import "./IVesting.sol";
 
-contract Vesting is Ownable {
+contract Vesting is IVesting, Ownable {
     ///@notice the SOV token contract
     IERC20 public SOV; 
     ///@notice the staking contract address
