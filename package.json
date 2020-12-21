@@ -27,7 +27,6 @@
     "ethers": "^5.0.19",
     "ganache-core": "^2.10.2",
     "husky": "^4.2.5",
-    "openzeppelin-solidity": "^2.5.1",
     "prettier": "^2.0.5",
     "prettier-plugin-solidity": "^1.0.0-alpha.49",
     "solhint": "^3.0.0",
