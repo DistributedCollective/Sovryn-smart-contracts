@@ -6,8 +6,11 @@ def main():
     thisNetwork = network.show_active()
 
     #@todo put correct variables
-    governorOwnerQuorumVotes = 70
-    governorAdminQuorumVotes = 4
+    ownerQuorumVotes = 70
+    ownerMinPercentageVotes = 50
+
+    adminQuorumVotes = 4
+    adminMinPercentageVotes = 50
     
     if thisNetwork == "development":
         acct = accounts[0]
@@ -36,11 +39,11 @@ def main():
     timelockOwner = acct.deploy(Timelock, acct, delay)
     #params: timelockOwner. staking, guardian
 
-    governorOwner = acct.deploy(GovernorAlpha, timelockOwner.address, staking.address, guardian, governorOwnerQuorumVotes)
+    governorOwner = acct.deploy(GovernorAlpha, timelockOwner.address, staking.address, guardian, ownerQuorumVotes, ownerMinPercentageVotes)
 
-    dataString = timelockOwner.setPendingAdmin.encode_input(governorAdmin.address)
+    dataString = timelockOwner.setPendingAdmin.encode_input(governorOwner.address)
     #2 days and 5 minutes from now
-    eta = round(time.time()) + 3*60*60 + 300
+    eta = round(time.time()) + delay + 300
     print("schedule ownership(admin) transfer for ", eta)
     timelockOwner.queueTransaction(timelockOwner.address, 0, "setPendingAdmin(address)", dataString[10:], eta)
 
@@ -49,11 +52,11 @@ def main():
     timelockAdmin = acct.deploy(Timelock, acct, delay)
     #params: timelockAdmin. staking, guardian
 
-    governorAdmin = acct.deploy(GovernorAlpha, timelockAdmin.address, staking.address, guardian, governorAdminQuorumVotes)
+    governorAdmin = acct.deploy(GovernorAlpha, timelockAdmin.address, staking.address, guardian, adminQuorumVotes, adminMinPercentageVotes)
 
     dataString = timelockAdmin.setPendingAdmin.encode_input(governorAdmin.address)
     #2 days and 5 minutes from now
-    eta = round(time.time()) + 3*60*60 + 300
+    eta = round(time.time()) + delay + 300
     print("schedule ownership(admin) transfer for ", eta)
     timelockAdmin.queueTransaction(timelockAdmin.address, 0, "setPendingAdmin(address)", dataString[10:], eta)
 
