@@ -705,52 +705,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         }
     }
 
-    /// @dev check if loan size(amount of loan tokens) is correct 
-    function checkLoanSize(
-        address loanToken, 
-        address collateralToken, 
-        uint256 loanTokenAmount) 
-        public 
-        view
-        returns(uint256) 
-    {
-        // calculates expected amount of collateral tokens with the rate queried from price feed
-        uint256 collateralAmountExpected;
-
-        if (loanToken == collateralToken) {
-            collateralAmountExpected = loanTokenAmount;
-        } else {
-            (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(
-                collateralToken,
-                loanToken
-            );
-            if (sourceToDestRate != 0) {
-                collateralAmountExpected = loanTokenAmount
-                .mul(sourceToDestPrecision)
-                .div(sourceToDestRate);
-            } else {
-                collateralAmountExpected = 0;
-            }
-        }
-
-        // gets resulting amount of collateral tokens
-        uint256 collateralAmount = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
-            loanToken, 
-            collateralToken, 
-            loanTokenAmount);
-        
-        // compares both. if different, scales loan size accordingly
-        if (collateralAmount != collateralAmountExpected) {
-            loanTokenAmount = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
-                collateralToken, 
-                loanToken, 
-                collateralAmountExpected);
-        }
-
-        return loanTokenAmount;
-    }
-
-
     /* Internal functions */
 
     function _mintToken(
@@ -839,28 +793,36 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         returns (uint256 totalDeposit)
     {
         totalDeposit = loanTokenSent;
+
         if (collateralTokenSent != 0) {
-            (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(
+            
+            (uint256 collateralToLoanRate, uint256 collateralToLoanPrecision) = FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(
                 collateralTokenAddress,
                 loanTokenAddress
             );
-            if (sourceToDestPrecision != 0) {
-                totalDeposit = collateralTokenSent
-                    .mul(sourceToDestRate)
-                    .div(sourceToDestPrecision)
-                    .add(totalDeposit);
-            }
-        }/*
-        if (collateralTokenSent != 0) {
-            uint256 loanTokenAmount = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
-                collateralTokenAddress,
-                loanTokenAddress, 
-                collateralTokenSent
-            );
-            if (loanTokenAmount != 0) {
+
+            if ((collateralToLoanRate != 0) && (collateralToLoanPrecision != 0)) {
+                uint256 loanTokenAmount = collateralTokenSent
+                    .mul(collateralToLoanRate)
+                    .div(collateralToLoanPrecision
+                );
+                
+                uint256 collateralTokenAmount = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
+                    loanTokenAddress,
+                    collateralTokenAddress,
+                    loanTokenAmount
+                );
+
+                if (collateralTokenAmount != collateralTokenSent) {
+                    loanTokenAmount = loanTokenAmount
+                        .mul(collateralTokenAmount)
+                        .div(collateralTokenSent
+                    );
+                }
+
                 totalDeposit = loanTokenAmount.add(totalDeposit);
             }
-        }*/
+        }            
     }
 
     function _getInterestRateAndBorrowAmount(
