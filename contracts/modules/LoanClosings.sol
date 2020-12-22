@@ -441,16 +441,28 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             );
         }
 
-        (uint256 currentMargin,) = IPriceFeeds(priceFeeds).getCurrentMargin(
-            loanParamsLocal.loanToken,
-            loanParamsLocal.collateralToken,
-            loanLocal.principal,
-            loanLocal.collateral
-        );
-        require(
-            currentMargin > 3 ether, // ensure there's more than 3% margin remaining
-            "unhealthy position"
-        );
+        //close whole loan if tiny position will remain
+        //TODO should we check total deposit here ?
+//        if (_getAmountInRbtc(loanParamsLocal.loanToken, loanLocal.principal)
+//                .add(_getAmountInRbtc(loanParamsLocal.collateralToken, loanLocal.collateral)) <= TINY_AMOUNT) {
+        if (_getAmountInRbtc(loanParamsLocal.loanToken, loanLocal.principal) <= TINY_AMOUNT) {
+            _closeWithDeposit(
+                loanLocal.id,
+                loanLocal.borrower, //TODO loanLocal.borrower ?
+                loanLocal.principal
+            );
+        } else {
+            (uint256 currentMargin,) = IPriceFeeds(priceFeeds).getCurrentMargin(
+                loanParamsLocal.loanToken,
+                loanParamsLocal.collateralToken,
+                loanLocal.principal,
+                loanLocal.collateral
+            );
+            require(
+                currentMargin > 3 ether, // ensure there's more than 3% margin remaining
+                "unhealthy position"
+            );
+        }
     }
 
     /**
