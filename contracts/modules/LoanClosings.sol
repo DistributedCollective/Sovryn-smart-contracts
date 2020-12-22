@@ -488,6 +488,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 
         Loan storage loanLocal = loans[loanId];
         LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
+        //TODO should we skip this check if invoked from rollover ?
         _checkAuthorized(
             loanLocal,
             loanParamsLocal

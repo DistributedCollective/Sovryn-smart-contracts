@@ -16,7 +16,9 @@ def setup_rollover_test(RBTC, SUSD, accounts, chain, loanToken, loan_token_sent,
     loanToken.mint(lender, 10 ** 30)
     SUSD.mint(borrower, loan_token_sent)
     SUSD.approve(loanToken.address, loan_token_sent, {'from': borrower})
-    loanToken.approve(sovryn.address, loan_token_sent, {'from': borrower})
+    SUSD.mint(borrower, loan_token_sent)
+    SUSD.approve(sovryn.address, loan_token_sent, {'from': borrower})
+    SUSD.approve(sovryn.address, loan_token_sent)
     tx = loanToken.marginTrade(
         "0",  # loanId  (0 for new loans)
         leverage_amount,  # leverageAmount
