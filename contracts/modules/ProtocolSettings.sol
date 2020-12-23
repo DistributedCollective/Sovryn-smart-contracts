@@ -52,6 +52,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         _setTarget(this.setWrbtcToken.selector, target);
         _setTarget(this.setProtocolTokenAddress.selector, target);
         _setTarget(this.setRolloverBaseReward.selector, target);
+        _setTarget(this.setRebatePercent.selector, target);
     }
 
     function setPriceFeedContract(
@@ -481,5 +482,18 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         rolloverBaseReward = baseRewardValue;
 
         emit SetRolloverBaseReward(msg.sender, oldValue, rolloverBaseReward);
+    }
+
+    function setRebatePercent(
+        uint256 rebatePercent) 
+        external
+        onlyOwner 
+    {
+        require(rebatePercent <= 10**20, "Fee rebate is too high");
+
+        uint256 oldRebatePercent = feeRebatePercent;
+        feeRebatePercent = rebatePercent;
+
+        emit SetRebatePercent(msg.sender, oldRebatePercent, rebatePercent);
     }
 }

@@ -85,6 +85,8 @@ contract State is Objects, ReentrancyGuard, Ownable {
     IWrbtcERC20 public wrbtcToken;
     address public protocolTokenAddress;
 
+    uint256 public feeRebatePercent = 50 * 10**18; // 50% fee rebate                     // potocolToken reward to user, it is worth % of trading/borrowing fee
+
     function _setTarget(
         bytes4 sig,
         address target)
