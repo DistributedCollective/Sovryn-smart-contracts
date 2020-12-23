@@ -80,6 +80,16 @@ def test_rollover(accounts, chain, loanToken, set_demand_curve, sovryn, priceFee
     assert(fixedint(loan_swap_event['sourceAmount']).sub(interest_unpaid).add(trading_fee).mul(precision).div(trade_rate).num <= 10000)
     assert(loan_swap_event['destAmount'] >= interest_unpaid)
 
+    rollover_event = tx_rollover.events['Rollover']
+    assert(rollover_event['user'] == borrower)
+    assert(rollover_event['lender'] == loanToken.address)
+    assert(rollover_event['loanId'] == loan_id)
+    assert(rollover_event['principal'] == loan_after['principal'])
+    assert(rollover_event['collateral'] == loan_after['collateral'])
+    assert(rollover_event['endTimestamp'] == loan_after['endTimestamp'])
+    assert(rollover_event['rewardReceiver'] == accounts[0]) #sender
+    assert(rollover_event['reward'] > 0)
+
 def test_rollover_tiny_amount(accounts, chain, loanToken, set_demand_curve, sovryn, priceFeeds, SUSD, RBTC, BZRX, SOV, FeesEvents):
     constants = shared.Constants()
     loan_token_sent = (constants.TINY_AMOUNT + 1) * 10**4

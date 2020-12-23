@@ -49,7 +49,18 @@ contract LoanClosingsEvents {
         uint256 collateralToLoanRate,
         uint256 currentMargin
     );
-    
+
+    event Rollover(
+        address indexed user,
+        address indexed lender,
+        bytes32 indexed loanId,
+        uint principal,
+        uint collateral,
+        uint endTimestamp,
+        address rewardReceiver,
+        uint reward
+    );
+
     event swapExcess(
         bool shouldRefund, 
         uint amount, 

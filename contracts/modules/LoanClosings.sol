@@ -463,6 +463,21 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
                 "unhealthy position"
             );
         }
+
+        //moved here because of stack too deep error
+        if (loanLocal.active) {
+            emit Rollover(
+                loanLocal.borrower,                             // user (borrower)
+                loanLocal.lender,                               // lender
+                loanLocal.id,                                   // loanId
+                loanLocal.principal,                            // principal
+                loanLocal.collateral,                           // collateral
+                loanLocal.endTimestamp,                         // endTimestamp
+                msg.sender,                                     // rewardReceiver
+                rolloverReward                                  // reward
+            );
+        }
+
     }
 
     /**
