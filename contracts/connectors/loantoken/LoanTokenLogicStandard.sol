@@ -243,6 +243,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
             loanTokenSent
         );
         require(totalDeposit != 0, "12");
+        //TODO should we multiply total Deposit by leverage Amount/10**18 before check?
         require(_getAmountInRbtc(loanTokenAddress, totalDeposit) > TINY_AMOUNT, "total deposit too small");
 
         address[4] memory sentAddresses;
