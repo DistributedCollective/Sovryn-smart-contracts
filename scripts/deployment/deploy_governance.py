@@ -61,6 +61,7 @@ def main():
     #2 days and 5 minutes from now
     eta = round(time.time()) + delay + 300
     print("schedule ownership(admin) transfer for ", eta)
+    print(dataString[10:])
     timelockOwner.queueTransaction(timelockOwner.address, 0, "setPendingAdmin(address)", dataString[10:], eta)
 
     # [timelockAdmin]
@@ -74,4 +75,5 @@ def main():
     #2 days and 5 minutes from now
     eta = round(time.time()) + delay + 300
     print("schedule ownership(admin) transfer for ", eta)
+    print(dataString[10:])
     timelockAdmin.queueTransaction(timelockAdmin.address, 0, "setPendingAdmin(address)", dataString[10:], eta)
