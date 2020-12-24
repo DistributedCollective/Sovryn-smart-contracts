@@ -37,6 +37,7 @@ contract SwapsExternal is VaultController, SwapsUser {
         address returnToSender,
         uint256 sourceTokenAmount,
         uint256 requiredDestTokenAmount,
+        uint256 minReturn,
         bytes calldata swapData)
         external
         payable
@@ -44,6 +45,10 @@ contract SwapsExternal is VaultController, SwapsUser {
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
         require(sourceTokenAmount != 0, "sourceTokenAmount == 0");
+        require(minReturn > 0, "minReturn must larger than zero");
+
+        (uint256 rateFromPriceFeeds, ) = IPriceFeeds(priceFeeds).queryRate(sourceToken, destToken);
+        require(rateFromPriceFeeds == ISwapsImpl(swapsImpl).internalExpectedRate(sourceToken, destToken, sourceTokenAmount), "rate disagreement");
 
         if (msg.value != 0) {
             if (sourceToken == address(0)) {
@@ -77,6 +82,8 @@ contract SwapsExternal is VaultController, SwapsUser {
             false, // bypassFee
             swapData
         );
+
+        require(destTokenAmountReceived >= minReturn, "destTokenAmountReceived too low");
 
         emit ExternalSwap(
             msg.sender, // user
