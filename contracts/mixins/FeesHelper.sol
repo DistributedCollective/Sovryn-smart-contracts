@@ -10,8 +10,10 @@ import "../openzeppelin/SafeERC20.sol";
 import "../feeds/IPriceFeeds.sol";
 import "../events/FeesEvents.sol";
 import "../mixins/ProtocolTokenUser.sol";
+import "../modules/interfaces/ProtocolAffiliatesInterface.sol";
 
-
+//REFACTOR problem: direct calls to State violates encapsulation principle; 
+// proposed solution: replace all direct State calls for protocol functions calls
 contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
     using SafeERC20 for IERC20;
 
@@ -41,10 +43,21 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
     
     /**
      * @dev settles the trading fee and pays the token reward to the user.
-     * @param user the address to send the reward to
-     * @param loanId the Id of the associated loan - used for logging only.
+     * @param referrer the affiliate referrer address to send the reward to
      * @param feeToken the address of the token in which the trading fee is paid
      * */
+    
+    function _payTradingFeeToAffiliate(
+        address referrer,
+        address feeToken,
+        uint256 tradingFee) 
+        internal 
+        returns (uint256 affiliatesTradingFee)
+    {
+        affiliatesTradingFee  = ProtocolAffiliatesInterface(protocolAddress).
+                                    payTradingFeeToAffiliatesReferrer(referrer, feeToken, tradingFee);
+        //TODO: add event
+    }
     function _payTradingFee(
         address user,
         bytes32 loanId,
@@ -52,16 +65,22 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
         uint256 tradingFee)
         internal
     {
+        uint affiliatesTradingFee;
+        uint protocolTradingFee = tradingFee;
         if (tradingFee != 0) {
-            //increase the storage variable keeping track of the accumulated fees
+            if(affiliatesUserReferrer[user] != address(0)) { //TODO: refactor: prog to interface, call affiliate module function
+                affiliatesTradingFee = _payTradingFeeToAffiliate(user, affiliatesUserReferrer[user], protocolTradingFee);
+                protocolTradingFee = protocolTradingFee.sub(affiliatesTradingFee);
+            }
+
             tradingFeeTokensHeld[feeToken] = tradingFeeTokensHeld[feeToken]
-                .add(tradingFee);
+                .add(protocolTradingFee);
 
             emit PayTradingFee(
                 user,
                 feeToken,
                 loanId,
-                tradingFee
+                protocolTradingFee
             );
             
             //pay the token reward to the user

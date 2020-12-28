@@ -9,6 +9,7 @@ pragma experimental ABIEncoderV2;
 import "./LoanTokenSettingsLowerAdmin.sol";
 import "./interfaces/ProtocolLike.sol";
 import "./interfaces/FeedsLike.sol";
+import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
 
 
 contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
@@ -270,6 +271,36 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
             collateralTokenAddress,
             sentAddresses,
             sentAmounts,
+            loanDataBytes
+        );
+    }
+
+    function marginTradeAffiliate(
+        bytes32 loanId,                 // 0 if new loan
+        uint256 leverageAmount,         // expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
+        uint256 loanTokenSent,
+        uint256 collateralTokenSent,
+        address collateralTokenAddress,
+        address trader,
+        address affiliateReferrer,       // the user was brought by the affiliate (referrer)
+        bytes memory loanDataBytes       // arbitrary order data
+        )     
+        public
+        payable
+        nonReentrant                    //note: needs to be removed to allow flashloan use cases
+        returns (uint256, uint256)      // returns new principal and new collateral added to trade
+    {   
+        if(affiliateReferrer != address(0)) 
+            ProtocolAffiliatesInterface(sovrynContractAddress).setAffiliatesReferrer(trader, affiliateReferrer);
+            
+        
+        return marginTrade (
+            loanId,                    
+            leverageAmount,            
+            loanTokenSent,
+            collateralTokenSent,
+            collateralTokenAddress,
+            trader,
             loanDataBytes
         );
     }
@@ -903,11 +934,13 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         );
         require (sentAmounts[1] != 0, "25");
 
+        ProtocolAffiliatesInterface(sovrynContractAddress).setUserNotFirstTradeFlag(sentAddresses[1]);
+
         return (sentAmounts[1], sentAmounts[4]); // newPrincipal, newCollateral
     }
 
     // sentAddresses[0]: lender
-    // sentAddresses[1]: borrower
+    // sentAddresses[1]: borrower/trader
     // sentAddresses[2]: receiver
     // sentAddresses[3]: manager
     // sentAmounts[0]: interestRate

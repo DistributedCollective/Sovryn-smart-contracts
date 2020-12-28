@@ -117,4 +117,10 @@ contract ProtocolSettingsEvents {
         uint256 oldValue,
         uint256 newValue
     );
+
+    event SetProtocolAddress(
+          address indexed sender,
+          address indexed oldProtocol,
+          address indexed newProtocol
+    );
 }
