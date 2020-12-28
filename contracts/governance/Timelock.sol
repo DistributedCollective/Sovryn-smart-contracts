@@ -17,7 +17,7 @@ contract Timelock is ITimelock {
     using SafeMath for uint;
 
     uint public constant GRACE_PERIOD = 14 days;
-    uint public constant MINIMUM_DELAY = 3 hours;
+    uint public constant MINIMUM_DELAY = 5 minutes;
     uint public constant MAXIMUM_DELAY = 30 days;
     
     //4 bytes - 0x08c379a0 - method id

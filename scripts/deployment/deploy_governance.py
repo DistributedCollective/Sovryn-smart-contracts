@@ -15,15 +15,15 @@ def main():
 
     if thisNetwork == "development":
         acct = accounts[0]
-        # configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
         guardian = acct
         SOV = acct.deploy(TestToken, "SOV", "SOV", 18, 1e26).address
-        delay = 2*24*60*60
+        delay = 5*60
     elif thisNetwork == "testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
         SOV = '0x04fa98E97A376a086e3BcAB99c076CB249e5740D'
-        delay = 3*60*60
+        delay = 5*60
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
