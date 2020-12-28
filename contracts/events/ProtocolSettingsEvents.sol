@@ -118,6 +118,12 @@ contract ProtocolSettingsEvents {
         uint256 newValue
     );
 
+    event SetRebatePercent(
+        address indexed sender,
+        uint256 oldRebatePercent,
+        uint256 newRebatePercent
+    );
+
     event SetProtocolAddress(
           address indexed sender,
           address indexed oldProtocol,

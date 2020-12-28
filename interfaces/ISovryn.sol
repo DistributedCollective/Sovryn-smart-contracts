@@ -157,6 +157,10 @@ contract ISovryn is
         uint256 transactionCost)
         external;
 
+    function setRebatePercent(
+        uint256 rebatePercent) 
+        external; 
+
 
     ////// Loan Settings //////
 

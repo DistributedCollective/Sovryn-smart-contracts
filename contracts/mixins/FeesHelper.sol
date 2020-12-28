@@ -208,7 +208,9 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
                 IPriceFeeds(_priceFeeds).queryReturn.selector,
                 feeToken,
                 protocolTokenAddress, // price rewards using BZRX price rather than vesting token price
-                feeAmount / 2  // 50% of fee value
+                feeAmount
+                .mul(feeRebatePercent)
+                .div(10**20)  
             )
         );
         assembly {

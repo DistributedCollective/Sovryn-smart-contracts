@@ -87,7 +87,10 @@ contract State is Objects, ReentrancyGuard, Ownable {
     IWrbtcERC20 public wrbtcToken;
     address public protocolTokenAddress;
 
+    uint256 public feeRebatePercent = 50 * 10**18; // 50% fee rebate                     // potocolToken reward to user, it is worth % of trading/borrowing fee
+    
     address public protocolAddress;                                                       // for modules interaction
+    
     mapping (address => bool) public userNotFirstTradeFlag;      			        	  // The flag is set on the user's first trade or borrowing
     
     mapping (address => EnumerableAddressSet.AddressSet) internal affiliatesReferrerTokensList;   // addresses of tokens in which commissions were paid to referrers
