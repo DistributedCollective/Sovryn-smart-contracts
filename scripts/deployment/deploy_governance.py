@@ -45,7 +45,7 @@ def main():
     staking = Contract.from_abi("Staking", address=staking.address, abi=Staking.abi, owner=acct)
 
     #deploy fee sharing contract
-    feeSharing = acct.deploy(FeeSharingProxy, protocolAddress, staking.address, staking.address) #TODO _loanToken
+    feeSharing = acct.deploy(FeeSharingProxy, protocolAddress, staking.address)
 
     # set fee sharing
     staking.setFeeSharing(feeSharing.address)
