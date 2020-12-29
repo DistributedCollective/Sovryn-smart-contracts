@@ -247,7 +247,14 @@ contract GovernorAlpha is SafeMath96 {
         Proposal storage proposal = proposals[proposalId];
         //cancel only if sent by the guardian or the proposer removed his tokens
         //todo check if necessary -> tokens are locked anyway. could they be removed in the meantime?
-        require(msg.sender == guardian || staking.getPriorVotes(proposal.proposer, sub256(block.number, 1), proposal.startTime) < proposalThreshold(), "GovernorAlpha::cancel: proposer above threshold");
+        require(msg.sender == guardian
+            //nobody has voted for the proposal
+//            || (proposal.forVotes == 0 && staking.getPriorVotes(proposal.proposer, sub256(block.number, 1), proposal.startTime) < proposalThreshold()),
+            //voting hasn't been started yet
+            || (proposal.forVotes == 0 && proposal.againstVotes == 0 && staking.getPriorVotes(proposal.proposer, sub256(block.number, 1), proposal.startTime) < proposalThreshold()),
+            //the proposal hasn't been queued yet
+//            || (state != ProposalState.Queued && staking.getPriorVotes(proposal.proposer, sub256(block.number, 1), proposal.startTime) < proposalThreshold()),
+            "GovernorAlpha::cancel: proposer above threshold");
 
         proposal.canceled = true;
         
