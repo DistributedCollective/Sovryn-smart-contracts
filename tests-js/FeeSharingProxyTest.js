@@ -90,7 +90,7 @@ contract('FeeSharingProxy:', accounts => {
         await loanToken.setAdmin(root);
         await protocol.setLoanPool([loanToken.address], [susd.address]);
         //FeeSharingProxy
-        feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address, loanToken.address);
+        feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address);
         await protocol.setFeesController(feeSharingProxy.address);
     });
     

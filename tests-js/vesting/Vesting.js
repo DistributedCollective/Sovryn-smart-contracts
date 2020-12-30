@@ -38,7 +38,7 @@ contract('Vesting', accounts => {
         [root, a1, a2, a3, ...accounts] = accounts;
         token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 
-        feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, constants.ZERO_ADDRESS, constants.ZERO_ADDRESS);
+        feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, constants.ZERO_ADDRESS);
 
 
         stakingLogic = await StakingLogic.new(token.address);
