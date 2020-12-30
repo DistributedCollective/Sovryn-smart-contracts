@@ -23,6 +23,11 @@ contract MultiSigKeyHolders is Ownable {
         uint248 index;
     }
 
+    event EthereumAddressAdded(address indexed account);
+    event EthereumAddressRemoved(address indexed account);
+    event BitcoinAddressAdded(string account);
+    event BitcoinAddressRemoved(string account);
+
     /**
      * @notice adds ethereum address to the key holders
      * @param _address the address to be added
@@ -51,6 +56,8 @@ contract MultiSigKeyHolders is Ownable {
             });
             ethereumAddresses.push(_address);
         }
+
+        emit EthereumAddressAdded(_address);
     }
 
     /**
@@ -83,6 +90,8 @@ contract MultiSigKeyHolders is Ownable {
             ethereumAddresses.length--;
             delete isEthereumAddressAdded[_address];
         }
+
+        emit EthereumAddressRemoved(_address);
     }
 
     /**
@@ -128,6 +137,8 @@ contract MultiSigKeyHolders is Ownable {
             });
             bitcoinAddresses.push(_address);
         }
+
+        emit BitcoinAddressAdded(_address);
     }
 
     /**
@@ -160,6 +171,8 @@ contract MultiSigKeyHolders is Ownable {
             bitcoinAddresses.length--;
             delete isBitcoinAddressAdded[_address];
         }
+
+        emit BitcoinAddressRemoved(_address);
     }
 
     /**
