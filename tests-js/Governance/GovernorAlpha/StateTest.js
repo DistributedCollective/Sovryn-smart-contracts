@@ -264,19 +264,19 @@ contract('GovernorAlpha#state/1', accounts => {
         await mineBlock();
 
         //voting
-        await gov.castVote(proposalId, true);
+        // await gov.castVote(proposalId, true);
 
         //queue proposal
-        await advanceBlocks(10);
-        await gov.queue(proposalId);
+        // await advanceBlocks(10);
+        // await gov.queue(proposalId);
 
         //increase proposal threshold - stakes tokens for user 3
-        await staking.stake(10000, kickoffTS.add(new BN(DELAY)), accounts[3], accounts[3]);
-        await mineBlock();
+        // await staking.stake(10000, kickoffTS.add(new BN(DELAY)), accounts[3], accounts[3]);
+        // await mineBlock();
 
         //cancel proposal
         await expectRevert(gov.cancel(proposalId, {from: acct}),
-            "revert GovernorAlpha::cancel: proposer above threshold");
+            "revert GovernorAlpha::cancel: sender isn't a guardian");
 
     });
 
