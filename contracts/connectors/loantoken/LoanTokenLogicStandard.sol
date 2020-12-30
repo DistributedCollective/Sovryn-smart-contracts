@@ -292,8 +292,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
     {   
         if(affiliateReferrer != address(0)) 
             ProtocolAffiliatesInterface(sovrynContractAddress).setAffiliatesReferrer(trader, affiliateReferrer);
-            
-        
         return marginTrade (
             loanId,                    
             leverageAmount,            

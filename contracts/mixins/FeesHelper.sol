@@ -12,8 +12,6 @@ import "../events/FeesEvents.sol";
 import "../mixins/ProtocolTokenUser.sol";
 import "../modules/interfaces/ProtocolAffiliatesInterface.sol";
 
-//REFACTOR problem: direct calls to State violates encapsulation principle; 
-// proposed solution: replace all direct State calls for protocol functions calls
 contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
     using SafeERC20 for IERC20;
 
@@ -66,9 +64,9 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
         internal
     {
         uint affiliatesTradingFee;
-        uint protocolTradingFee = tradingFee;
+        uint protocolTradingFee = tradingFee; //trading fee paid to protocol
         if (tradingFee != 0) {
-            if(affiliatesUserReferrer[user] != address(0)) { //TODO: refactor: prog to interface, call affiliate module function
+            if(affiliatesUserReferrer[user] != address(0)) { //REFACTOR code to interface: call affiliate module function
                 affiliatesTradingFee = _payTradingFeeToAffiliate(user, affiliatesUserReferrer[user], protocolTradingFee);
                 protocolTradingFee = protocolTradingFee.sub(affiliatesTradingFee);
             }
