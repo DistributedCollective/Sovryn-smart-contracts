@@ -18,8 +18,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
     
     IProtocol public protocol;
     IStaking public staking;
-    address public loanToken;
-    
+
     /// checkpoints by index per pool token address
     mapping(address => mapping(uint => Checkpoint)) public tokenCheckpoints;
     /// @notice The number of checkpoints for each pool token address
@@ -54,10 +53,9 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
     /// @notice An event that emitted when user fee get withdrawn
     event UserFeeWithdrawn(address indexed sender, address indexed receiver, address indexed token, uint amount);
     
-    constructor(IProtocol _protocol, IStaking _staking, address _loanToken) public {
+    constructor(IProtocol _protocol, IStaking _staking) public {
         protocol = _protocol;
         staking = _staking;
-        loanToken = _loanToken;
     }
     
     /**
@@ -74,7 +72,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
         require(amount > 0, "FeeSharingProxy::withdrawFees: no tokens to withdraw");
 
         //TODO can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
-        IERC20(_token).approve(loanToken, amount);
+        IERC20(_token).approve(loanPoolToken, amount);
         uint poolTokenAmount = ILoanToken(loanPoolToken).mint(address(this), amount);
 
         //update unprocessed amount of tokens

@@ -12,9 +12,9 @@ contract FeeSharingProxyMockup is FeeSharingProxy {
 
     TestData public testData;
 
-    constructor(IProtocol _protocol, IStaking _staking, address _loanToken)
+    constructor(IProtocol _protocol, IStaking _staking)
         public
-        FeeSharingProxy(_protocol, _staking, _loanToken)
+        FeeSharingProxy(_protocol, _staking)
     {
     }
 
