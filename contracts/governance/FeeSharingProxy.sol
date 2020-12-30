@@ -128,26 +128,42 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
      * @param _receiver the receiver of tokens or msg.sender
      * */
     function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) public {
+        //prevents processing all checkpoints because of block gas limit
+        require(_maxCheckpoints > 0, "_maxCheckpoints should be positive");
+
         address user = msg.sender;
         if (_receiver == address(0)) {
             _receiver = msg.sender;
         }
-        uint32 start = processedCheckpoints[user][_loanPoolToken];
-        uint32 nCheckpoints = numTokenCheckpoints[_loanPoolToken];
-        require(start < nCheckpoints, "FeeSharingProxy::withdrawFees: no tokens for a withdrawal");
 
-        if (_maxCheckpoints > MAX_CHECKPOINTS) {
-            _maxCheckpoints = MAX_CHECKPOINTS;
-        }
-        uint32 end = safe32(start + _maxCheckpoints, "FeeSharingProxy::withdraw: checkpoint index exceeds 32 bits");
-        if (end > nCheckpoints) {
-            end = nCheckpoints;
-        }
-        //Withdrawal should only be possible for blocks which were already mined.
-        uint32 lastBlockNumber = tokenCheckpoints[_loanPoolToken][end - 1].blockNumber;
-        if (block.number == lastBlockNumber) {
-            end--;
-        }
+        uint amount;
+        uint32 end;
+        (amount, end) = _getAccumulatedFees(user, _loanPoolToken, _maxCheckpoints);
+
+        processedCheckpoints[user][_loanPoolToken] = end;
+        
+        require(IERC20(_loanPoolToken).transfer(user, amount), "FeeSharingProxy::withdraw: withdrawal failed");
+    
+        emit UserFeeWithdrawn(msg.sender, _receiver, _loanPoolToken, amount);
+    }
+
+    /**
+     * @notice returns accumulated fee for the message sender
+     * @param _user the address of the user or contract
+     * @param _loanPoolToken address of the pool token
+     * */
+    function getAccumulatedFees(address _user, address _loanPoolToken) public view returns (uint) {
+        uint amount;
+        (amount, ) = _getAccumulatedFees(_user, _loanPoolToken, 0);
+        return amount;
+    }
+
+    function _getAccumulatedFees(address _user, address _loanPoolToken, uint32 _maxCheckpoints) internal view returns (uint, uint32) {
+        uint32 start = processedCheckpoints[_user][_loanPoolToken];
+        require(start < numTokenCheckpoints[_loanPoolToken], "FeeSharingProxy::withdrawFees: no tokens for a withdrawal");
+
+        uint32 end = _getEndOfRange(start, _loanPoolToken, _maxCheckpoints);
+
         uint256 amount = 0;
         uint cachedLockDate = 0;
         uint96 cachedWeightedStake = 0;
@@ -160,18 +176,37 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
             } else {
                 //We need to use "checkpoint.blockNumber - 1" here to calculate weighted stake
                 //for the same block like we did for total voting power in _writeTokenCheckpoint
-                weightedStake = staking.getPriorWeightedStake(user, checkpoint.blockNumber - 1, checkpoint.timestamp);
+                weightedStake = staking.getPriorWeightedStake(_user, checkpoint.blockNumber - 1, checkpoint.timestamp);
                 cachedWeightedStake = weightedStake;
                 cachedLockDate = lockDate;
             }
             uint share = uint(checkpoint.numTokens).mul(weightedStake).div(uint(checkpoint.totalWeightedStake));
             amount = amount.add(share);
         }
-        processedCheckpoints[user][_loanPoolToken] = end;
-        
-        require(IERC20(_loanPoolToken).transfer(user, amount), "FeeSharingProxy::withdraw: withdrawal failed");
-    
-        emit UserFeeWithdrawn(msg.sender, _receiver, _loanPoolToken, amount);
+        return (amount, end);
+    }
+
+    function _getEndOfRange(uint32 start, address _loanPoolToken, uint32 _maxCheckpoints) internal view returns (uint32) {
+        uint32 nCheckpoints = numTokenCheckpoints[_loanPoolToken];
+        uint32 end;
+        if (_maxCheckpoints == 0) {
+            //all checkpoints will be processed (only for getter outside of a transaction)
+            end = nCheckpoints;
+        } else {
+            if (_maxCheckpoints > MAX_CHECKPOINTS) {
+                _maxCheckpoints = MAX_CHECKPOINTS;
+            }
+            end = safe32(start + _maxCheckpoints, "FeeSharingProxy::withdraw: checkpoint index exceeds 32 bits");
+            if (end > nCheckpoints) {
+                end = nCheckpoints;
+            }
+        }
+        //Withdrawal should only be possible for blocks which were already mined.
+        uint32 lastBlockNumber = tokenCheckpoints[_loanPoolToken][end - 1].blockNumber;
+        if (block.number == lastBlockNumber) {
+            end--;
+        }
+        return end;
     }
     
     function _writeTokenCheckpoint(address _token, uint96 _numTokens) internal {
