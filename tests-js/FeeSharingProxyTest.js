@@ -350,8 +350,16 @@ contract('FeeSharingProxy:', accounts => {
     });
 
     describe("withdraw", () => {
+
+        it("Shouldn't be able to withdraw without checkpoints", async () => {
+            await expectRevert(feeSharingProxy.withdraw(loanToken.address, 0, account2, {from: account1}),
+                "FeeSharingProxy::withdraw: _maxCheckpoints should be positive");
+        });
     
         it("Shouldn't be able to withdraw zero amount", async () => {
+            let fees = await feeSharingProxy.getAccumulatedFees(account1, loanToken.address);
+            expect(fees).to.be.bignumber.equal("0");
+
             await expectRevert(feeSharingProxy.withdraw(loanToken.address, 10, ZERO_ADDRESS, {from: account1}),
                 "FeeSharingProxy::withdrawFees: no tokens for a withdrawal");
         });
@@ -372,6 +380,9 @@ contract('FeeSharingProxy:', accounts => {
             let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 
             await feeSharingProxy.withdrawFees(susd.address);
+
+            let fees = await feeSharingProxy.getAccumulatedFees(account1, loanToken.address);
+            expect(fees).to.be.bignumber.equal(new BN(feeAmount).mul(new BN(3)).div(new BN(10)));
 
             let tx = await feeSharingProxy.withdraw(loanToken.address, 1000, account2, {from: account1});
 
@@ -404,6 +415,9 @@ contract('FeeSharingProxy:', accounts => {
             let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 
             await feeSharingProxy.withdrawFees(susd.address);
+
+            let fees = await feeSharingProxy.getAccumulatedFees(account1, loanToken.address);
+            expect(fees).to.be.bignumber.equal(new BN(feeAmount).mul(new BN(3)).div(new BN(10)));
 
             let tx = await feeSharingProxy.withdraw(loanToken.address, 10, ZERO_ADDRESS, {from: account1});
             console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);

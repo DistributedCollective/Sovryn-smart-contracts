@@ -129,7 +129,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
      * */
     function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) public {
         //prevents processing all checkpoints because of block gas limit
-        require(_maxCheckpoints > 0, "_maxCheckpoints should be positive");
+        require(_maxCheckpoints > 0, "FeeSharingProxy::withdraw: _maxCheckpoints should be positive");
 
         address user = msg.sender;
         if (_receiver == address(0)) {
@@ -160,9 +160,20 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 
     function _getAccumulatedFees(address _user, address _loanPoolToken, uint32 _maxCheckpoints) internal view returns (uint, uint32) {
         uint32 start = processedCheckpoints[_user][_loanPoolToken];
-        require(start < numTokenCheckpoints[_loanPoolToken], "FeeSharingProxy::withdrawFees: no tokens for a withdrawal");
-
-        uint32 end = _getEndOfRange(start, _loanPoolToken, _maxCheckpoints);
+        uint32 end;
+        //additional bool param can't be used because of stack too deep error
+        if (_maxCheckpoints > 0) {
+            //withdraw -> _getAccumulatedFees
+            require(start < numTokenCheckpoints[_loanPoolToken], "FeeSharingProxy::withdrawFees: no tokens for a withdrawal");
+            end = _getEndOfRange(start, _loanPoolToken, _maxCheckpoints);
+        } else {
+            //getAccumulatedFees -> _getAccumulatedFees
+            //don't throw error for getter invocation outside of transaction
+            if (start >= numTokenCheckpoints[_loanPoolToken]) {
+                return (0, numTokenCheckpoints[_loanPoolToken]);
+            }
+            end = numTokenCheckpoints[_loanPoolToken];
+        }
 
         uint256 amount = 0;
         uint cachedLockDate = 0;
