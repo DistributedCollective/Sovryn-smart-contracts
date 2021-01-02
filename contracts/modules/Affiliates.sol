@@ -16,7 +16,6 @@ import "../mixins/EnumerableBytes32Set.sol";
 //import "../mixins/VaultController.sol";
 import "../openzeppelin/SafeERC20.sol";
 
-
 contract Affiliates is State {
 	//TODO: add events
 	//AUDIT: add Affiliates module 'API' functions to ./interfaces/ISovryn.sol?
@@ -38,16 +37,15 @@ contract Affiliates is State {
 	function initialize(address target) external onlyOwner {
 		_setTarget(this.setAffiliatesUserReferrer.selector, target);
 		_setTarget(this.getUserNotFirstTradeFlag.selector, target);
+		_setTarget(this.setUserNotFirstTradeFlag.selector, target);
 		_setTarget(this.getAffiliatesReferrerBalances.selector, target);
 		_setTarget(this.getAffiliatesReferrerTokenBalance.selector, target);
 		_setTarget(this.payTradingFeeToAffiliatesReferrer.selector, target);
 		_setTarget(this.getAffiliatesReferrerTokensList.selector, target);
-		_setTarget(this.payTradingFeeToAffiliatesReferrer.selector, target);
 		_setTarget(this.withdrawAffiliatesReferrerTokenFees.selector, target);
 	}
 
-	//TODO: verify all external and public functions registered above
-	//TODO: move to a separate events storage? (best practice? why?)
+	//AUDIT: move to a separate events storage? (best practice? why?)
 
 	event SetAffiliatesReferrer(
 		address indexed user,
@@ -62,7 +60,7 @@ contract Affiliates is State {
 	);
 
 	// only callable by loan pools
-	modifier onlyCalledByLoanPools() {
+	modifier onlyCallableByLoanPools() {
 		require(
 			loanPoolToUnderlying[msg.sender] != address(0),
 			"Affiliates: not authorized"
@@ -78,7 +76,7 @@ contract Affiliates is State {
 
 	function setAffiliatesUserReferrer(address user, address referrer)
 		external
-		onlyCalledByLoanPools
+		onlyCallableByLoanPools
 	{
 		SetAffiliatesReferrerResult memory result;
 		require(user != referrer, "Affiliates: User cannot be self-referred");
@@ -101,21 +99,25 @@ contract Affiliates is State {
 		}
 	}
 
-	function getUserNotFirstTradeFlag(address user) public view returns (bool) {
+	function getUserNotFirstTradeFlag(address user) 
+		public 
+		view 
+		returns (bool) 
+	{
 		//getter adds future proof
 		return userNotFirstTradeFlag[user];
 	}
 
 	function setUserNotFirstTradeFlag(address user)
 		external
-		onlyCalledByLoanPools
+		onlyCallableByLoanPools
 	{
 		if (userNotFirstTradeFlag[user] == false)
 			userNotFirstTradeFlag[user] = true;
 		//TODO: event
 	}
 
-	//If need to allow an owner to nullify a referrer for some reason
+	//AUDIT Do we need to allow an owner to nullify a referrer for some reason?
 	/*
     function affiliatesRemoveUserReferrer(address user, address referrer) external onlyOwner {
         if(referrer != address(0) && getUserNotFirstTradeFlag[user]) {
@@ -132,16 +134,10 @@ contract Affiliates is State {
 		returns (uint256)
 	{
 		return
-			feeTokenAmount
-                .mul(_getAffiliatesTradingFeePercent())
-                .div(10**20);
+			feeTokenAmount.mul(_getAffiliatesTradingFeePercent()).div(10**20);
 	}
 
-	function _getAffiliatesTradingFeePercent() 
-        internal 
-        view 
-        returns (uint256) 
-    {
+	function _getAffiliatesTradingFeePercent() internal view returns (uint256) {
 		return affiliateFeePercent;
 	}
 
@@ -152,64 +148,65 @@ contract Affiliates is State {
 		address referrer,
 		address token,
 		uint256 tradingFeeTokenBaseAmount
-	) 
-    external 
-    returns (uint256 referrerTradingFee) 
-    {
+	) external returns (uint256 referrerTradingFee) {
 		if (tradingFeeTokenBaseAmount > 0) {
 			referrerTradingFee = _getReferrerTradingFee(
 				tradingFeeTokenBaseAmount
 			);
-			affiliatesReferrerBalances[referrer][token] = affiliatesReferrerBalances[referrer][token]
-				.add(referrerTradingFee);
+			affiliatesReferrerBalances[referrer][
+				token
+			] = affiliatesReferrerBalances[referrer][token].add(
+				referrerTradingFee
+			);
 		}
 		return referrerTradingFee;
 	}
+
+	event WithdrawAffiliateReferrerTokenFees(address indexed referrer, address indexed receiver, address indexed tokenAddress, uint256 amount);
 
 	function withdrawAffiliatesReferrerTokenFees(
 		address token,
 		address receiver,
 		uint256 amount
-	) external {
+	) external 
+	  returns (uint256 withdrawAmount) {
 		require(
 			receiver != address(0),
 			"Affiliates: cannot withdraw to zero address"
 		);
 
 		address referrer = msg.sender;
-		uint256 referrerTokenBalance = affiliatesReferrerBalances[referrer][token];
-		uint256 withdrawAmount = referrerTokenBalance > amount
-			? amount
-			: referrerTokenBalance;
+		uint256 referrerTokenBalance =
+			affiliatesReferrerBalances[referrer][token];
+		withdrawAmount =
+			referrerTokenBalance > amount ? amount : referrerTokenBalance;
 
 		require(withdrawAmount > 0, "Affiliates: cannot withdraw zero amount");
 
-		if (referrerTokenBalance == 0) {
-			_removeAffiliatesReferrerToken(referrer, token);
-		}
-        
-		require(
-			referrerTokenBalance > 0,
-			"Affiliates: referrer cannot withdraw with zero balance"
-		);
+		if (referrerTokenBalance > 0) {
+			uint256 newReferrerTokenBalance =
+				referrerTokenBalance.sub(withdrawAmount);
 
-		uint256 newReferrerTokenBalance = referrerTokenBalance.sub(
-			withdrawAmount
-		);
+			if (newReferrerTokenBalance == 0) {
+				_removeAffiliatesReferrerToken(referrer, token);
+			} else {
+				affiliatesReferrerBalances[referrer][token] = newReferrerTokenBalance;
+			}
 
-		if (newReferrerTokenBalance == 0) {
-			_removeAffiliatesReferrerToken(referrer, token);
+			IERC20(token).safeTransfer(receiver, withdrawAmount);
+
+			emit WithdrawAffiliateReferrerTokenFees(referrer, receiver, token, withdrawAmount);
 		} else {
-			affiliatesReferrerBalances[referrer][token] = newReferrerTokenBalance;
+			_removeAffiliatesReferrerToken(referrer, token);
+			withdrawAmount = 0;
 		}
-
-		IERC20(token).safeTransfer(receiver, withdrawAmount);
+		return withdrawAmount;
 	}
 
 	function _removeAffiliatesReferrerToken(address referrer, address token)
 		internal
 	{
-		//delete affiliatesReferrerBalances[referrer][token]; //AUDIT: looks like we don't need to remove balances as it is mapping, do we?
+		delete affiliatesReferrerBalances[referrer][token];
 		affiliatesReferrerTokensList[referrer].remove(token);
 	}
 
