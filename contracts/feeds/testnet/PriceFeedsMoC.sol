@@ -8,34 +8,28 @@ interface Medianizer {
 }
 
 contract PriceFeedsMoC is IPriceFeedsExt, Ownable {
-
     address public mocOracleAddress;
 
-    event SetMoCOracleAddress(address indexed mocOracleAddress, address changerAddress);
+    event SetMoCOracleAddress(
+        address indexed mocOracleAddress,
+        address changerAddress
+    );
 
-    constructor(
-        address _mocOracleAddress)
-        public
-    {
+    constructor(address _mocOracleAddress) public {
         setMoCOracleAddress(_mocOracleAddress);
     }
 
-    function latestAnswer()
-        external
-        view
-        returns (uint256)
-    {
+    function latestAnswer() external view returns (uint256) {
         (bytes32 value, bool hasValue) = Medianizer(mocOracleAddress).peek();
         require(hasValue, "Doesn't have a value");
         return uint256(value);
     }
 
-    function setMoCOracleAddress(
-        address _mocOracleAddress)
-        public
-        onlyOwner
-    {
-        require(Address.isContract(_mocOracleAddress), "_mocOracleAddress not a contract");
+    function setMoCOracleAddress(address _mocOracleAddress) public onlyOwner {
+        require(
+            Address.isContract(_mocOracleAddress),
+            "_mocOracleAddress not a contract"
+        );
         mocOracleAddress = _mocOracleAddress;
         emit SetMoCOracleAddress(mocOracleAddress, msg.sender);
     }

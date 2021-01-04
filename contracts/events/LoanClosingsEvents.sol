@@ -5,9 +5,7 @@
 
 pragma solidity 0.5.17;
 
-
 contract LoanClosingsEvents {
-
     // topic0: 0x6349c1a02ec126f7f4fc6e6837e1859006e90e9901635c442d29271e77b96fb6
     event CloseWithDeposit(
         address indexed user,
@@ -49,11 +47,11 @@ contract LoanClosingsEvents {
         uint256 collateralToLoanRate,
         uint256 currentMargin
     );
-    
+
     event swapExcess(
-        bool shouldRefund, 
-        uint amount, 
-        uint amountInRbtc, 
-        uint threshold
+        bool shouldRefund,
+        uint256 amount,
+        uint256 amountInRbtc,
+        uint256 threshold
     );
 }

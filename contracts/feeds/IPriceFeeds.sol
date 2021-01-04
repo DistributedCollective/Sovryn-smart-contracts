@@ -5,18 +5,13 @@
 
 pragma solidity 0.5.17;
 
-
 interface IPriceFeeds {
-    function queryRate(
-        address sourceToken,
-        address destToken)
+    function queryRate(address sourceToken, address destToken)
         external
         view
         returns (uint256 rate, uint256 precision);
 
-    function queryPrecision(
-        address sourceToken,
-        address destToken)
+    function queryPrecision(address sourceToken, address destToken)
         external
         view
         returns (uint256 precision);
@@ -24,24 +19,18 @@ interface IPriceFeeds {
     function queryReturn(
         address sourceToken,
         address destToken,
-        uint256 sourceAmount)
-        external
-        view
-        returns (uint256 destAmount);
+        uint256 sourceAmount
+    ) external view returns (uint256 destAmount);
 
     function checkPriceDisagreement(
         address sourceToken,
         address destToken,
         uint256 sourceAmount,
         uint256 destAmount,
-        uint256 maxSlippage)
-        external
-        view
-        returns (uint256 sourceToDestSwapRate);
+        uint256 maxSlippage
+    ) external view returns (uint256 sourceToDestSwapRate);
 
-    function amountInEth(
-        address Token,
-        uint256 amount)
+    function amountInEth(address Token, uint256 amount)
         external
         view
         returns (uint256 ethAmount);
@@ -51,16 +40,15 @@ interface IPriceFeeds {
         address collateralToken,
         uint256 loanAmount,
         uint256 collateralAmount,
-        uint256 maintenanceMargin)
-        external
-        view
-        returns (uint256);
+        uint256 maintenanceMargin
+    ) external view returns (uint256);
 
     function getCurrentMarginAndCollateralSize(
         address loanToken,
         address collateralToken,
         uint256 loanAmount,
-        uint256 collateralAmount)
+        uint256 collateralAmount
+    )
         external
         view
         returns (uint256 currentMargin, uint256 collateralInEthAmount);
@@ -69,7 +57,8 @@ interface IPriceFeeds {
         address loanToken,
         address collateralToken,
         uint256 loanAmount,
-        uint256 collateralAmount)
+        uint256 collateralAmount
+    )
         external
         view
         returns (uint256 currentMargin, uint256 collateralToLoanRate);
@@ -79,14 +68,8 @@ interface IPriceFeeds {
         address collateralToken,
         uint256 loanAmount,
         uint256 collateralAmount,
-        uint256 maintenanceMargin)
-        external
-        view
-        returns (bool);
+        uint256 maintenanceMargin
+    ) external view returns (bool);
 
-    function getFastGasPrice(
-        address payToken)
-        external
-        view
-        returns (uint256);
+    function getFastGasPrice(address payToken) external view returns (uint256);
 }
