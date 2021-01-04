@@ -33,7 +33,8 @@
     "solhint": "^3.0.0",
     "solhint-plugin-prettier": "^0.0.4",
     "solidity-coverage": "^0.7.13",
-    "solparse": "^2.2.8"
+    "solparse": "^2.2.8",
+    "truffle": "^5.1.60"
   },
   "scripts": {
     "analyze-contracts": "slither .",
