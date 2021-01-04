@@ -191,6 +191,7 @@ contract GovernorAlpha is SafeMath96 {
             endBlock: safe32(endBlock, "GovernorAlpha::propose: end block number overflow"),
             forVotes: 0,
             againstVotes: 0,
+            //proposalThreshold is 1% of total votes, we can save gas using this pre calculated value
             quorum: mul96(quorumPercentageVotes, proposalThreshold, "GovernorAlpha::propose: overflow on quorum computation"),
             minPercentage: mul96(minPercentageVotes, proposalThreshold, "GovernorAlpha::propose: overflow on minPercentage computation"),
             eta: 0,
@@ -245,9 +246,8 @@ contract GovernorAlpha is SafeMath96 {
         require(state != ProposalState.Executed, "GovernorAlpha::cancel: cannot cancel executed proposal");
 
         Proposal storage proposal = proposals[proposalId];
-        //cancel only if sent by the guardian or the proposer removed his tokens
-        //todo check if necessary -> tokens are locked anyway. could they be removed in the meantime?
-        require(msg.sender == guardian || staking.getPriorVotes(proposal.proposer, sub256(block.number, 1), proposal.startTime) < proposalThreshold(), "GovernorAlpha::cancel: proposer above threshold");
+        //cancel only if sent by the guardian
+        require(msg.sender == guardian, "GovernorAlpha::cancel: sender isn't a guardian");
 
         proposal.canceled = true;
         
