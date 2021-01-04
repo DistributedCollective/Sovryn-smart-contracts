@@ -11,12 +11,15 @@ const { BN, time } = require('@openzeppelin/test-helpers');
 const { duration, latest, increase } = time;
 
 const PriceFeedRSKOracle = artifacts.require('PriceFeedRSKOracle');
+const PriceFeedRSKOracleMockup = artifacts.require('PriceFeedRSKOracleMockup');
 
 contract('PriceFeedRSKOracle', () => {
     let priceFeedRSKOracle;
 
     beforeEach(async () => {
-        priceFeedRSKOracle = await PriceFeedRSKOracle.deployed();
+        priceFeedRSKOracleMockup = await PriceFeedRSKOracleMockup.new();
+        await priceFeedRSKOracleMockup.setValue(1);
+        priceFeedRSKOracle = await PriceFeedRSKOracle.new(priceFeedRSKOracleMockup.address);
     });
 
     it('should always return Price for latestAnswer', async () => {

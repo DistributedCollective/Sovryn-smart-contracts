@@ -11,18 +11,21 @@ const { BN, time } = require('@openzeppelin/test-helpers');
 const { duration, latest, increase } = time;
 
 const BProPriceFeed = artifacts.require('BProPriceFeed');
+const BProPriceFeedMockup = artifacts.require('BProPriceFeedMockup');
 
 contract('BProPriceFeed', () => {
     let bproPriceFeed;
 
     beforeEach(async () => {
-        bproPriceFeed = await BProPriceFeed.deployed();
+        bProPriceFeedMockup = await BProPriceFeedMockup.new();
+        await bProPriceFeedMockup.setValue(1);
+        bproPriceFeed = await BProPriceFeed.new(bProPriceFeedMockup.address);
     });
 
     it('should always return BPro USD Price for latestAnswer', async () => {
         const bproUSDPrice = await bproPriceFeed.latestAnswer.call();
 
-        expect(bproUSDPrice).to.be.above(0, 'The Bpro USD Price must be larger than 0');
+        expect(bproUSDPrice.toNumber()).to.be.above(0, 'The Bpro USD Price must be larger than 0');
         
         if (bproUSDPrice > 0) {
             console.log('The BPro USD Price is:', bproUSDPrice);}
