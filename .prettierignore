@@ -5,15 +5,7 @@ __pycache__
 build/
 reports/
 node_modules/
-ignore/
-!.gitignore
-!.gitattributes
 !.solhint.json
-ignore
-*.txt
-*.log
-!requirements.txt
 package-lock.json
-*_ignore_*
-*_joined_*
-.vscode
+coverage
+coverage.json
