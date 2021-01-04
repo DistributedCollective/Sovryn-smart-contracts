@@ -5,17 +5,24 @@ import "../openzeppelin/Ownable.sol";
 
 contract MultiSigKeyHolders is Ownable {
 
+    uint constant public MAX_OWNER_COUNT = 50;
+
     string private constant ERROR_INVALID_ADDRESS = "Invalid address";
+    string private constant ERROR_INVALID_REQUIRED = "Invalid required";
 
     //flag and index for Ethereum address
     mapping (address => Data) private isEthereumAddressAdded;
     //list of Ethereum addresses
     address[] private ethereumAddresses;
+    //required number of signatures for the Ethereum multisig
+    uint public ethereumRequired = 2;
 
     //flag and index for Bitcoin address
     mapping (string => Data) private isBitcoinAddressAdded;
     //list of Bitcoin addresses
     string[] private bitcoinAddresses;
+    //required number of signatures for the Bitcoin multisig
+    uint public bitcoinRequired = 2;
 
     //helps removing items from array
     struct Data {
@@ -25,8 +32,19 @@ contract MultiSigKeyHolders is Ownable {
 
     event EthereumAddressAdded(address indexed account);
     event EthereumAddressRemoved(address indexed account);
+    event EthereumRequirementChanged(uint required);
     event BitcoinAddressAdded(string account);
     event BitcoinAddressRemoved(string account);
+    event BitcoinRequirementChanged(uint required);
+
+    modifier validRequirement(uint ownerCount, uint _required) {
+        require(ownerCount <= MAX_OWNER_COUNT
+            && _required <= ownerCount
+            && _required != 0
+            && ownerCount != 0,
+            ERROR_INVALID_REQUIRED);
+        _;
+    }
 
     /**
      * @notice adds ethereum address to the key holders
@@ -109,6 +127,15 @@ contract MultiSigKeyHolders is Ownable {
         return ethereumAddresses;
     }
 
+    function changeEthereumRequirement(uint _required)
+        public
+        onlyOwner
+        validRequirement(ethereumAddresses.length, _required)
+    {
+        ethereumRequired = _required;
+        emit EthereumRequirementChanged(_required);
+    }
+
     /**
      * @notice adds bitcoin address to the key holders
      * @param _address the address to be added
@@ -188,6 +215,15 @@ contract MultiSigKeyHolders is Ownable {
      */
     function getBitcoinAddresses() public view returns (string[] memory) {
         return bitcoinAddresses;
+    }
+
+    function changeBitcoinRequirement(uint _required)
+        public
+        onlyOwner
+        validRequirement(bitcoinAddresses.length, _required)
+    {
+        bitcoinRequired = _required;
+        emit BitcoinRequirementChanged(_required);
     }
 
     /**

@@ -12,6 +12,7 @@ contract('MultiSigKeyHolders:', accounts => {
     let multiSig;
     let bitcoinAccount1 = "bc1q9gl8ddnkr0xr5d9vefnkwyd3g8fpjsp8z8l7zm";
     let bitcoinAccount2 = "37S6qsjzw14MH9SFt7PmsBchobkRE6SxNP";
+    let bitcoinAccount3 = "37S6qsjzw14MH9SFt7PmsBchobkRE6SxN3";
 
     before(async () => {
         [root, account1, account2, account3, account4, ...accounts] = accounts;
@@ -19,6 +20,15 @@ contract('MultiSigKeyHolders:', accounts => {
     
     beforeEach(async () => {
         multiSig = await MultiSigKeyHolders.new();
+    });
+
+    describe("initialization", () => {
+
+        it("Should set default values", async () => {
+            expect(await multiSig.ethereumRequired.call()).to.be.bignumber.equal(new BN(2));
+            expect(await multiSig.bitcoinRequired.call()).to.be.bignumber.equal(new BN(2));
+        });
+
     });
     
     describe("addEthereumAddress", () => {
@@ -80,6 +90,33 @@ contract('MultiSigKeyHolders:', accounts => {
             });
             expectEvent(tx, 'EthereumAddressAdded', {
                 account: account2
+            });
+        });
+
+    });
+
+    describe("changeEthereumRequirement", () => {
+
+        it("Only owner should be able to change ethereum requirement", async () => {
+            await expectRevert(multiSig.changeEthereumRequirement(1, {from: account1}),
+                "unauthorized");
+        });
+
+        it("Only owner should be able to change ethereum requirement", async () => {
+            await expectRevert(multiSig.changeEthereumRequirement(5),
+                "Invalid required");
+        });
+
+        it("Should be able to change ethereum requirement", async () => {
+            let required = 3;
+            await multiSig.addEthereumAddresses([account1, account2, account3]);
+
+            let tx = await multiSig.changeEthereumRequirement(required);
+
+            expect(await multiSig.ethereumRequired.call()).to.be.bignumber.equal(new BN(required));
+
+            expectEvent(tx, 'EthereumRequirementChanged', {
+                required: new BN(required)
             });
         });
 
@@ -203,17 +240,17 @@ contract('MultiSigKeyHolders:', accounts => {
 
     describe("removeEthereumAddress", () => {
 
-        it("Shouldn't be able to add zero address", async () => {
+        it("Shouldn't be able to remove zero address", async () => {
             await expectRevert(multiSig.removeEthereumAddress(ZERO_ADDRESS),
                 "Invalid address");
         });
 
-        it("Only owner should be able to add address", async () => {
+        it("Only owner should be able to remove address", async () => {
             await expectRevert(multiSig.removeEthereumAddress(account1, {from: account1}),
                 "unauthorized");
         });
 
-        it("Should be able to add address", async () => {
+        it("Should be able to remove address", async () => {
             await multiSig.addEthereumAddress(account1);
             let tx = await multiSig.removeEthereumAddress(account1);
 
@@ -232,17 +269,17 @@ contract('MultiSigKeyHolders:', accounts => {
 
     describe("removeEthereumAddresses", () => {
 
-        it("Shouldn't be able to add zero addresses", async () => {
+        it("Shouldn't be able to remove zero addresses", async () => {
             await expectRevert(multiSig.removeEthereumAddresses([ZERO_ADDRESS]),
                 "Invalid address");
         });
 
-        it("Only owner should be able to add addresses", async () => {
+        it("Only owner should be remove to add addresses", async () => {
             await expectRevert(multiSig.removeEthereumAddresses([account1, account2], {from: account1}),
                 "unauthorized");
         });
 
-        it("Should be able to add addresses", async () => {
+        it("Should be able to remove addresses", async () => {
             await multiSig.addEthereumAddresses([account1, account2]);
             let tx = await multiSig.removeEthereumAddresses([account1, account2]);
 
@@ -266,17 +303,17 @@ contract('MultiSigKeyHolders:', accounts => {
 
     describe("removeBitcoinAddress", () => {
 
-        it("Shouldn't be able to add zero address", async () => {
+        it("Shouldn't be able to remove zero address", async () => {
             await expectRevert(multiSig.removeBitcoinAddress(EMPTY_ADDRESS),
                 "Invalid address");
         });
 
-        it("Only owner should be able to add address", async () => {
+        it("Only owner should be remove to add address", async () => {
             await expectRevert(multiSig.removeBitcoinAddress(bitcoinAccount1, {from: account1}),
                 "unauthorized");
         });
 
-        it("Should be able to add address", async () => {
+        it("Should be able to remove address", async () => {
             await multiSig.addBitcoinAddress(bitcoinAccount1);
             let tx = await multiSig.removeBitcoinAddress(bitcoinAccount1);
 
@@ -295,17 +332,17 @@ contract('MultiSigKeyHolders:', accounts => {
 
     describe("removeBitcoinAddresses", () => {
 
-        it("Shouldn't be able to add zero addresses", async () => {
+        it("Shouldn't be able to remove zero addresses", async () => {
             await expectRevert(multiSig.removeBitcoinAddresses([EMPTY_ADDRESS]),
                 "Invalid address");
         });
 
-        it("Only owner should be able to add addresses", async () => {
+        it("Only owner should be able to remove addresses", async () => {
             await expectRevert(multiSig.removeBitcoinAddresses([bitcoinAccount1, bitcoinAccount2], {from: account1}),
                 "unauthorized");
         });
 
-        it("Should be able to add addresses", async () => {
+        it("Should be able to remove addresses", async () => {
             await multiSig.addBitcoinAddresses([bitcoinAccount1, bitcoinAccount2]);
             let tx = await multiSig.removeBitcoinAddresses([bitcoinAccount1, bitcoinAccount2]);
 
@@ -329,17 +366,17 @@ contract('MultiSigKeyHolders:', accounts => {
 
     describe("removeEthereumAndBitcoinAddresses", () => {
 
-        it("Shouldn't be able to add zero address", async () => {
+        it("Shouldn't be able to remove zero address", async () => {
             await expectRevert(multiSig.removeEthereumAndBitcoinAddresses([ZERO_ADDRESS], [bitcoinAccount1]),
                 "Invalid address");
         });
 
-        it("Only owner should be able to add address", async () => {
+        it("Only owner should be able to remove address", async () => {
             await expectRevert(multiSig.removeEthereumAndBitcoinAddresses([account1, account2], [bitcoinAccount1, bitcoinAccount2], {from: account1}),
                 "unauthorized");
         });
 
-        it("Should be able to add addresses", async () => {
+        it("Should be able to remove addresses", async () => {
             await multiSig.addEthereumAndBitcoinAddresses([account1, account2], [bitcoinAccount1, bitcoinAccount2]);
             let tx = await multiSig.removeEthereumAndBitcoinAddresses([account1, account2], [bitcoinAccount1, bitcoinAccount2]);
 
@@ -375,5 +412,33 @@ contract('MultiSigKeyHolders:', accounts => {
         });
 
     });
+
+    describe("changeBitcoinRequirement", () => {
+
+        it("Only owner should be able to change ethereum requirement", async () => {
+            await expectRevert(multiSig.changeBitcoinRequirement(1, {from: account1}),
+                "unauthorized");
+        });
+
+        it("Only owner should be able to change ethereum requirement", async () => {
+            await expectRevert(multiSig.changeBitcoinRequirement(5),
+                "Invalid required");
+        });
+
+        it("Should be able to change ethereum requirement", async () => {
+            let required = 3;
+            await multiSig.addBitcoinAddresses([bitcoinAccount1, bitcoinAccount2, bitcoinAccount3]);
+
+            let tx = await multiSig.changeBitcoinRequirement(required);
+
+            expect(await multiSig.bitcoinRequired.call()).to.be.bignumber.equal(new BN(required));
+
+            expectEvent(tx, 'BitcoinRequirementChanged', {
+                required: new BN(required)
+            });
+        });
+
+    });
+
 
 });
