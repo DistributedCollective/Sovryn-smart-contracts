@@ -29,11 +29,6 @@ module.exports = {
         default_balance_ether: 10000000000000000000,
       }),
     },
-    coverage: {
-      host: "localhost",
-      port: 6545,
-      network_id: "*",
-    },
   },
   plugins: ["solidity-coverage"],
   compilers: {
