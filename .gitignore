@@ -1,4 +1,5 @@
 __pycache__
+.pytest_cache
 .DS_Store
 .history
 .hypothesis/
@@ -16,4 +17,6 @@ ignore
 package-lock.json
 *_ignore_*
 *_joined_*
+coverage
+coverage.json
 .vscode

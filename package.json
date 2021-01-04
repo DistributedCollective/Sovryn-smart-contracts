@@ -21,6 +21,7 @@
     "chai-as-promised": "^7.1.1",
     "chai-bn": "^0.2.1",
     "chai-string": "^1.5.0",
+    "coveralls": "^3.1.0",
     "decimal.js": "10.2.0",
     "dirty-chai": "^2.0.1",
     "ethereumjs-abi": "^0.6.8",
@@ -31,17 +32,20 @@
     "prettier-plugin-solidity": "^1.0.0-beta.2",
     "solhint": "^3.0.0",
     "solhint-plugin-prettier": "^0.0.4",
+    "solidity-coverage": "^0.7.13",
     "solparse": "^2.2.8"
   },
   "scripts": {
     "analyze-contracts": "slither .",
+    "prettier": "prettier --write {,*/**/}*.{js,test.js,sol}",
     "lint-contracts": "solhint contracts/**/*.sol",
     "test": "brownie test",
-    "test-js": "truffle test"
+    "test-js": "truffle test",
+    "coverage": "truffle run coverage --file='tests-js/' --network coverage"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn analyze-contracts && yarn lint-contracts && yarn test",
+      "pre-commit": "yarn analyze-contracts && yarn prettier && yarn lint-contracts",
       "pre-push": "yarn test && yarn test-js"
     }
   },
