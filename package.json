@@ -42,7 +42,7 @@
     "lint-contracts": "solhint contracts/**/*.sol",
     "test": "brownie test",
     "test-js": "truffle test",
-    "coverage": "truffle run coverage --file='tests-js/' --network coverage"
+    "coverage": "truffle run coverage --file='tests-js/'"
   },
   "husky": {
     "hooks": {
