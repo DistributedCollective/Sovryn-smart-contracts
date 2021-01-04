@@ -20,3 +20,4 @@ package-lock.json
 coverage
 coverage.json
 .vscode
+yarn.lock
