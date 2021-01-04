@@ -63,6 +63,13 @@ def loanOpenings(LoanOpenings, accounts, sovryn, Constants, priceFeeds, swapsImp
 def loanClosings(LoanClosings, accounts, sovryn, Constants, priceFeeds, swapsImpl):
     sovryn.replaceContract(accounts[0].deploy(LoanClosings))
 
+@pytest.fixture(scope="module", autouse=True)
+def loanClosingsWith(LoanClosingsWith, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+    sovryn.replaceContract(accounts[0].deploy(LoanClosingsWith))
+
+@pytest.fixture(scope="module", autouse=True)
+def affiliates(Affiliates, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+    sovryn.replaceContract(accounts[0].deploy(Affiliates).address)
 
 '''
 set up the margin and torque pool parameter for the iSUSD and iBTC loanToken contract

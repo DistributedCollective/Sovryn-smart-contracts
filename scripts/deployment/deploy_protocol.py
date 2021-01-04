@@ -87,5 +87,15 @@ def deployProtocol(acct, tokens, medianizerAddress):
     loanClosings = acct.deploy(LoanClosings)
     print("Calling replaceContract.")
     sovryn.replaceContract(loanClosings.address)
+    print("Deploying LoanClosingsWith.")
+    loanClosingsWith = acct.deploy(LoanClosingsWith)
+    print("Calling replaceContract.")
+    sovryn.replaceContract(loanClosingsWith.address)
 
+    ##Affiliates
+    print("Deploying Affiliates.")
+    affiliates = acct.deploy(Afiliates)
+    print("Calling replaceContract.")
+    sovryn.replaceContract(affiliates.address)
+    
     return (sovryn, feeds)
