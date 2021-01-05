@@ -36,8 +36,9 @@ def main():
     #print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
     #replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
 
-    governorAcceptAdmin("governorOwner")
-    governorAcceptAdmin("governorAdmin")
+    # governorAcceptAdmin("governorOwner")
+    # governorAcceptAdmin("governorAdmin")
+    setFees()
 
 def loadConfig():
     global contracts, acct
@@ -383,5 +384,38 @@ def governorAcceptAdmin(type):
 
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(governor.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def setFees():
+    fee = 10**10
+
+    print(contracts['sovrynProtocol'])
+    print(contracts['multisig'])
+
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=ProtocolSettings.abi, owner=acct)
+    data = sovryn.setLendingFeePercent.encode_input(fee)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=ProtocolSettings.abi, owner=acct)
+    data = sovryn.setTradingFeePercent.encode_input(fee)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=ProtocolSettings.abi, owner=acct)
+    data = sovryn.setBorrowingFeePercent.encode_input(fee)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
