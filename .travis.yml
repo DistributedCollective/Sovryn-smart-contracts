@@ -13,7 +13,9 @@ before_script:
 script:
   - npm run prettier
   - npm run lint-contracts
+  - npm run test
   - npm run test-js
+  - npm run analyze-contracts
 
 after_script:
   - npm run coverage
