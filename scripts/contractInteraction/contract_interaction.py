@@ -36,8 +36,9 @@ def main():
     #print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
     #replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
 
-    governorAcceptAdmin("governorOwner")
-    governorAcceptAdmin("governorAdmin")
+    # governorAcceptAdmin("governorOwner")
+    # governorAcceptAdmin("governorAdmin")
+    governorAcceptAdmin("governor")
 
 def loadConfig():
     global contracts, acct
