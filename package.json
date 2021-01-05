@@ -30,6 +30,7 @@
     "husky": "^4.3.6",
     "prettier": "^2.2.1",
     "prettier-plugin-solidity": "^1.0.0-beta.2",
+    "solc": "^0.5.17",
     "solhint": "^3.0.0",
     "solhint-plugin-prettier": "^0.0.4",
     "solidity-coverage": "^0.7.13",
