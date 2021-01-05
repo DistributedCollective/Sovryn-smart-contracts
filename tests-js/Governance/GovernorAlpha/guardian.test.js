@@ -175,10 +175,6 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 
   });
 
-  beforeEach("", async () => {
-    // TODO
-  });
-
   it("Remove a successful proposal which was queued even if successful.", async () => {
     // Proposal Parameters
     targets = [testToken.address];
@@ -302,7 +298,7 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
       from: guardianOne,
     });
     // After the required delay time is over.
-    await time.increase(delay);
+    await time.increase(delay + 1);
     // Executing the the new governor as the Pending Admin to the Timelock Queue.
     await governorAlpha.__executeSetTimelockPendingAdmin(newGovernorAlpha.address, eta, {
       from: guardianOne,

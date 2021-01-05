@@ -152,14 +152,6 @@ contract("GovernorAlpha (Proposer Functions)", (accounts) => {
     );
   });
 
-  beforeEach("", async () => {
-    // TODO
-  });
-
-  it("Able to create a new proposal.", async () => {
-    // Already Test Written in Another File.
-  });
-
   it("Should not create a new proposal if not enough staked.", async () => {
     // Proposal Parameters
     targets = [testToken.address];
@@ -188,27 +180,4 @@ contract("GovernorAlpha (Proposer Functions)", (accounts) => {
     );
   });
 
-  it("Should check the actions have equal lengths.", async () => {
-    // Already Test Written in Another File.
-  });
-
-  it("Should contain atleast one action.", async () => {
-    // Already Test Written in Another File.
-  });
-
-  it("Should not contain more actions than allowed in a single proposal.", async () => {
-    // Already Test Written in Another File.
-  });
-
-  it("Should not allow same actions more than once in a single proposal.", async () => {
-    // Already Test Written in Another File.
-  });
-
-  it("Should not propose more than one proposal at a time.", async () => {
-    // Already Test Written in Another File.
-  });
-
-  it("Creating a new Proposal should emit the ProposalCreated event.", async () => {
-    // Already Test Written in Another File.
-  });
 });

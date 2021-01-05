@@ -175,22 +175,6 @@ contract("GovernorAlpha (Voter Functions)", (accounts) => {
     );
   });
 
-  beforeEach("", async () => {
-    // TODO
-  });
-
-  it("Able to vote on a proposal.", async () => {
-    // Already Test Written in Another File.
-  });
-
-  it("Should not vote twice on a proposal.", async () => {
-    // Already Test Written in Another File.
-  });
-
-  it("Should be able to vote on behalf of someone with offline signature.", async () => {
-    // Already Test Written in Another File.
-  });
-
   it("Should not be allowed to vote on a proposal with any other state than active.", async () => {
     // Proposal Parameters
     targets = [testToken.address];
