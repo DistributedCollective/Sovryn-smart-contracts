@@ -40,6 +40,7 @@ def main():
 
     # make governance an owner of GovernorTokensHolder
     governorTokensHolder.transferOwnership(timelock.address)
+    token.setGovernorTokensHolder(governorTokensHolder.address)
 
     governor = acct.deploy(GovernorAlphaComp, timelock.address, token.address, guardian)
 
