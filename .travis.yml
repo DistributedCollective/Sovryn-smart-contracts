@@ -21,6 +21,8 @@ install:
   - pip3 --version
   - python3 -m pip install -U pip
   - pip3 --version
+  - pip3 install wheel
+  - pip3 install --no-use-wheel --no-cache-dir h5py
 
 before_script:
   - pip3 install -r requirements.txt
