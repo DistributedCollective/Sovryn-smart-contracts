@@ -64,6 +64,7 @@ contract Comp is Ownable {
      */
     constructor(address account) public {
         balances[account] = uint96(totalSupply);
+        _moveDelegates(address(0), account, uint96(totalSupply));
         emit Transfer(address(0), account, totalSupply);
     }
 
@@ -240,7 +241,15 @@ contract Comp is Ownable {
         balances[dst] = add96(balances[dst], amount, "Comp::_transferTokens: transfer amount overflows");
         emit Transfer(src, dst, amount);
 
-        _moveDelegates(delegates[src], delegates[dst], amount);
+        address delegateSrc = delegates[src];
+        if (delegateSrc == address(0)) {
+            delegateSrc = src;
+        }
+        address delegateDst = delegates[dst];
+        if (delegateDst == address(0)) {
+            delegateDst = dst;
+        }
+        _moveDelegates(delegateSrc, delegateDst, amount);
     }
 
     function _moveDelegates(address srcRep, address dstRep, uint96 amount) internal {
