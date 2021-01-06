@@ -45,6 +45,8 @@ def addLoanToken(tokenName, tokenSymbol, tokenDecimals, tokenInitialAmount, loan
         priceFeed = acct.deploy(PriceFeed)
     elif len(oracleAddress) == 1:
         priceFeed = acct.deploy(PriceFeed, oracleAddress[0])
+    elif len(oracleAddress) == 2:
+        priceFeed = acct.deploy(PriceFeed, oracleAddress[0], oracleAddress[1])
 
     feeds.setPriceFeed([tokens.token.address], [priceFeed.address])
     
