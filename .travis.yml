@@ -1,14 +1,16 @@
-language: node_js
-node_js:
-  - "10"
+language: python
+python:
+    - 2.7
 
 cache:
   directories:
   - node_modules
 
-before_script:
-  - export NODE_OPTIONS=--max_old_space_size=4096
-  - npm install
+install:
+    - pip install -r requirements.txt
+    - nvm install 0.37.2
+    - export NODE_OPTIONS=--max_old_space_size=4096
+    - npm install
 
 script:
   - npm run prettier
