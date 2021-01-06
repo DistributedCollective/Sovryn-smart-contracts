@@ -13,7 +13,6 @@ install:
   - sudo add-apt-repository -y ppa:deadsnakes/ppa
   - sudo apt-get update
   - sudo apt install python3.6
-  - cd ~/Desktop/
   - wget -c http://launchpadlibrarian.net/449402985/python3-lib2to3_3.6.9-1~18.04_all.deb
   - wget -c http://launchpadlibrarian.net/449402975/python3-distutils_3.6.9-1~18.04_all.deb
   - sudo apt install ./python3-lib2to3_3.6.9-1~18.04_all.deb
