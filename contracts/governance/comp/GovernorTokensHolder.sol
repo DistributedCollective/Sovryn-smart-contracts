@@ -3,6 +3,7 @@ pragma solidity ^0.5.17;
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 
+//we don't need it for Genesis Sale
 contract GovernorTokensHolder is Ownable {
 
     IERC20 public token;

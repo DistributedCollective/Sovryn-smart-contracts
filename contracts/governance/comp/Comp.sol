@@ -46,8 +46,6 @@ contract Comp is Ownable {
     /// @notice A record of states for signing / validating signatures
     mapping (address => uint) public nonces;
 
-    address public governorTokensHolder;
-
     /// @notice An event thats emitted when an account changes its delegate
     event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);
 
@@ -67,15 +65,6 @@ contract Comp is Ownable {
     constructor(address account) public {
         balances[account] = uint96(totalSupply);
         emit Transfer(address(0), account, totalSupply);
-    }
-
-    function setGovernorTokensHolder(address holder) public onlyOwner {
-        governorTokensHolder = holder;
-    }
-
-    modifier onlyOwnerOrGovernor() {
-        require(isOwner() || msg.sender == governorTokensHolder, "unauthorized");
-        _;
     }
 
     /**
@@ -125,7 +114,7 @@ contract Comp is Ownable {
      * @param rawAmount The number of tokens to transfer
      * @return Whether or not the transfer succeeded
      */
-    function transfer(address dst, uint rawAmount) external onlyOwnerOrGovernor returns (bool) {
+    function transfer(address dst, uint rawAmount) external onlyOwner returns (bool) {
         uint96 amount = safe96(rawAmount, "Comp::transfer: amount exceeds 96 bits");
         _transferTokens(msg.sender, dst, amount);
         return true;
@@ -138,7 +127,7 @@ contract Comp is Ownable {
      * @param rawAmount The number of tokens to transfer
      * @return Whether or not the transfer succeeded
      */
-    function transferFrom(address src, address dst, uint rawAmount) external onlyOwnerOrGovernor returns (bool) {
+    function transferFrom(address src, address dst, uint rawAmount) external onlyOwner returns (bool) {
         address spender = msg.sender;
         uint96 spenderAllowance = allowances[src][spender];
         uint96 amount = safe96(rawAmount, "Comp::approve: amount exceeds 96 bits");

@@ -30,17 +30,16 @@ def main():
     tokensOwner = acct
     token = acct.deploy(Comp, tokensOwner)
 
-    # GovernorTokensHolder
-    governorTokensHolder = acct.deploy(GovernorTokensHolder, token.address)
-
     # governance
     #params: owner, delay
     delay = 5*60
     timelock = acct.deploy(TimelockComp, acct, delay)
 
+    # TODO we don't need it for Genesis Sale
+    # GovernorTokensHolder
+    # governorTokensHolder = acct.deploy(GovernorTokensHolder, token.address)
     # make governance an owner of GovernorTokensHolder
-    governorTokensHolder.transferOwnership(timelock.address)
-    token.setGovernorTokensHolder(governorTokensHolder.address)
+    # governorTokensHolder.transferOwnership(timelock.address)
 
     governor = acct.deploy(GovernorAlphaComp, timelock.address, token.address, guardian)
 
