@@ -8,7 +8,6 @@ cache:
 
 install:
   - python -m pip --version
-  - python -m pip3 --version
 
 before_script:
   - pip install -r requirements.txt
