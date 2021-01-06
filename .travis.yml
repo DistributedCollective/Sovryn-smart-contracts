@@ -8,7 +8,7 @@ cache:
 
 install:
     - pip install -r requirements.txt
-    - nvm install 0.37.2
+    - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash
     - export NODE_OPTIONS=--max_old_space_size=4096
     - npm install
 
