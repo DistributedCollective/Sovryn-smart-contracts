@@ -7,9 +7,8 @@ cache:
   - node_modules
 
 install:
-  - python --version
   - python3 --version
-  - python -m pip --version
+  - sudo apt-get install python3-pip
   - python -m pip3 --version
 
 before_script:
