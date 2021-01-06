@@ -38,7 +38,10 @@ def main():
 
     # governorAcceptAdmin("governorOwner")
     # governorAcceptAdmin("governorAdmin")
-    governorAcceptAdmin("governor")
+
+    # governorAcceptAdmin("governor")
+
+    prepareProposalData()
 
 def loadConfig():
     global contracts, acct
@@ -386,3 +389,30 @@ def governorAcceptAdmin(type):
     tx = multisig.submitTransaction(governor.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
+
+def prepareProposalData():
+    # [proposal 1]
+    # governorTokensHolder = Contract.from_abi("GovernorTokensHolder", address=contracts['GovernorTokensHolder'], abi=GovernorTokensHolder.abi, owner=acct)
+    # data = governorTokensHolder.transfer.encode_input("0xad21b3040350e3f29864f95ec6401e52f83363a2", 5000000000000000000000000)
+    # print(data)
+
+    # [proposal 2]
+    # multiSigKeyHolders = Contract.from_abi("MultiSigKeyHolders", address=contracts['MultiSigKeyHolders'], abi=MultiSigKeyHolders.abi, owner=acct)
+    #
+    # data = multiSigKeyHolders.changeEthereumRequirement.encode_input(3)
+    # print(data)
+    #
+    # data = multiSigKeyHolders.changeBitcoinRequirement.encode_input(4)
+    # print(data)
+    #
+    # data = multiSigKeyHolders.addEthereumAddress.encode_input("0x27d55f5668ef4438635bdce0adca083507e77752")
+    # print(data)
+    #
+    # data = multiSigKeyHolders.addBitcoinAddress.encode_input("bc1q9gl8ddnkr0xr5d9vefnkwyd3g8fpjsp8z8l7zm")
+    # print(data)
+
+    # [proposal 3]
+    multiSigKeyHolders = Contract.from_abi("MultiSigKeyHolders", address=contracts['MultiSigKeyHolders'], abi=MultiSigKeyHolders.abi, owner=acct)
+
+    data = multiSigKeyHolders.addEthereumAndBitcoinAddresses.encode_input(["0xad21b3040350e3f29864f95ec6401e52f83363a2", "0x08142bf7841d89dd1e6c12bc1a8bd972419db435"], ["37S6qsjzw14MH9SFt7PmsBchobkRE6SxNP", "37S6qsjzw14MH9SFt7PmsBchobkRE6SxN3"])
+    print(data)
