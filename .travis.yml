@@ -7,10 +7,13 @@ cache:
   - node_modules
 
 install:
+  - python --version
+  - python3 --version
   - python -m pip --version
+  - python -m pip3 --version
 
 before_script:
-  - pip install -r requirements.txt
+  - pip3 install -r requirements.txt
   - export NODE_OPTIONS=--max_old_space_size=4096
   - npm install
 
