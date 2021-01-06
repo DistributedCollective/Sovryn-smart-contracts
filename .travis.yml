@@ -19,7 +19,7 @@ install:
   - python3 --version
   - sudo apt install python3-pip
   - pip3 --version
-  - python -m pip install -U pip
+  - python3 -m pip install -U pip
   - pip3 --version
 
 before_script:
