@@ -21,12 +21,11 @@ def main():
     elif thisNetwork == "testnet":
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     contracts = json.load(configFile)
-    # TODO guardian = multisig or rskdeployer ?
+    # TODO use MultiSig for main network
     if (thisNetwork == "testnet" or thisNetwork == "rsk-mainnet"):
         guardian = contracts['multisig']
 
     # NTSOV
-    # TODO tokens owner = rskdeployer or another address ?
     tokensOwner = acct
     token = acct.deploy(Comp, tokensOwner)
 
