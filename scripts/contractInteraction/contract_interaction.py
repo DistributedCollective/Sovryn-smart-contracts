@@ -95,7 +95,8 @@ def main():
     #addOwnerToMultisig('0x27d55f5668ef4438635bdce0adca083507e77752')
     
     #readLiquidity()
-    swapTokens(1e18, 1, contracts['swapNetwork'], contracts['USDT'], contracts['BPro'])
+    #swapTokens(1e18, 1, contracts['swapNetwork'], contracts['USDT'], contracts['BPro'])
+    updateContracts()
     
 def loadConfig():
     global contracts, acct
@@ -562,7 +563,7 @@ def replaceSwapsImplSovrynSwap():
     print("replacing swaps")
     swaps = acct.deploy(SwapsImplSovrynSwap)
     sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovryn.abi, owner=acct)
-    data = sovryn.setSwapsImplContract.encode_input(swapsUser.address)
+    data = sovryn.setSwapsImplContract.encode_input(swaps.address)
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
