@@ -364,7 +364,8 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
         );
 
         if (loanLocal.startTimestamp == block.timestamp) {
-            loanLocal.startRate = collateralToLoanRate;
+            uint256 totalSwapRate = 10**36;
+            loanLocal.startRate = isTorqueLoan ? collateralToLoanRate : totalSwapRate.div(sentValues[3]);
         }
 
         _emitOpeningEvents(

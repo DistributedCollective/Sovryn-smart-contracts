@@ -53,6 +53,7 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, underlyingTo
     total_deposit = loan_token_sent + collateral_sent
     (trade_rate, trade_rate_precision) = priceFeeds.queryRate(underlyingToken.address, collateralToken.address)
     (collateral_to_loan_rate, _) = priceFeeds.queryRate(collateralToken.address, underlyingToken.address)
+    collateral_to_loan_swap_rate = "%e"%(10**36 / tx.events['Trade']['entryPrice'])
     interest_rate = loanToken.nextBorrowInterestRate(total_deposit * 1e20 / start_margin)
     principal = loan_token_sent * 2
     seconds_per_day = 24 * 60 * 60
@@ -74,7 +75,6 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, underlyingTo
     end_timestamp = loan['endTimestamp']
     block_timestamp = chain.time().real
     interest_deposit_remaining = (end_timestamp - block_timestamp) * owed_per_day / seconds_per_day if (end_timestamp >= block_timestamp) else 0
-    
     # assert the loan object is set as expected
     assert(loan['loanToken'] == underlyingToken.address)
     assert(loan['collateralToken'] == collateralToken.address)
@@ -85,7 +85,7 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, underlyingTo
     assert(loan['interestOwedPerDay'] == owed_per_day)
     # LoanOpening::_getLoan:567
     assert(loan['interestDepositRemaining'] == interest_deposit_remaining)
-    assert(loan['startRate'] == collateral_to_loan_rate)
+    assert("%e"%loan['startRate'] == collateral_to_loan_swap_rate)
     assert(loan['startMargin'] == start_margin)
     assert(loan['maintenanceMargin'] == 15e18)
     # LoanMaintenance::_getLoan::539
