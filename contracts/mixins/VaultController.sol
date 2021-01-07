@@ -8,7 +8,6 @@ pragma solidity 0.5.17;
 import "../openzeppelin/SafeERC20.sol";
 import "../core/State.sol";
 
-
 contract VaultController is State {
     using SafeERC20 for IERC20;
 
@@ -23,26 +22,14 @@ contract VaultController is State {
         uint256 amount
     );
 
-    function vaultEtherDeposit(
-        address from,
-        uint256 value)
-        internal
-    {
+    function vaultEtherDeposit(address from, uint256 value) internal {
         IWrbtcERC20 _wrbtcToken = wrbtcToken;
         _wrbtcToken.deposit.value(value)();
 
-        emit VaultDeposit(
-            address(_wrbtcToken),
-            from,
-            value
-        );
+        emit VaultDeposit(address(_wrbtcToken), from, value);
     }
 
-    function vaultEtherWithdraw(
-        address to,
-        uint256 value)
-        internal
-    {
+    function vaultEtherWithdraw(address to, uint256 value) internal {
         if (value != 0) {
             IWrbtcERC20 _wrbtcToken = wrbtcToken;
             uint256 balance = address(this).balance;
@@ -51,52 +38,31 @@ contract VaultController is State {
             }
             Address.sendValue(to, value);
 
-            emit VaultWithdraw(
-                address(_wrbtcToken),
-                to,
-                value
-            );
+            emit VaultWithdraw(address(_wrbtcToken), to, value);
         }
     }
 
     function vaultDeposit(
         address token,
         address from,
-        uint256 value)
-        internal
-    {
+        uint256 value
+    ) internal {
         if (value != 0) {
-            IERC20(token).safeTransferFrom(
-                from,
-                address(this),
-                value
-            );
+            IERC20(token).safeTransferFrom(from, address(this), value);
 
-            emit VaultDeposit(
-                token,
-                from,
-                value
-            );
+            emit VaultDeposit(token, from, value);
         }
     }
 
     function vaultWithdraw(
         address token,
         address to,
-        uint256 value)
-        internal
-    {
+        uint256 value
+    ) internal {
         if (value != 0) {
-            IERC20(token).safeTransfer(
-                to,
-                value
-            );
+            IERC20(token).safeTransfer(to, value);
 
-            emit VaultWithdraw(
-                token,
-                to,
-                value
-            );
+            emit VaultWithdraw(token, to, value);
         }
     }
 
@@ -104,21 +70,13 @@ contract VaultController is State {
         address token,
         address from,
         address to,
-        uint256 value)
-        internal
-    {
+        uint256 value
+    ) internal {
         if (value != 0) {
             if (from == address(this)) {
-                IERC20(token).safeTransfer(
-                    to,
-                    value
-                );
+                IERC20(token).safeTransfer(to, value);
             } else {
-                IERC20(token).safeTransferFrom(
-                    from,
-                    to,
-                    value
-                );
+                IERC20(token).safeTransferFrom(from, to, value);
             }
         }
     }
@@ -126,9 +84,8 @@ contract VaultController is State {
     function vaultApprove(
         address token,
         address to,
-        uint256 value)
-        internal
-    {
+        uint256 value
+    ) internal {
         if (value != 0 && IERC20(token).allowance(address(this), to) != 0) {
             IERC20(token).safeApprove(to, 0);
         }

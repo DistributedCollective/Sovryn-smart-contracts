@@ -9,22 +9,14 @@ pragma experimental ABIEncoderV2;
 import "../core/State.sol";
 import "../events/LoanSettingsEvents.sol";
 
-
 contract LoanSettings is State, LoanSettingsEvents {
-
     constructor() public {}
 
-    function()
-        external
-    {
+    function() external {
         revert("LoanSettings - fallback not allowed");
     }
 
-    function initialize(
-        address target)
-        external
-        onlyOwner
-    {
+    function initialize(address target) external onlyOwner {
         _setTarget(this.setupLoanParams.selector, target);
         _setTarget(this.disableLoanParams.selector, target);
         _setTarget(this.getLoanParams.selector, target);
@@ -32,8 +24,7 @@ contract LoanSettings is State, LoanSettingsEvents {
         _setTarget(this.getTotalPrincipal.selector, target);
     }
 
-    function setupLoanParams(
-        LoanParams[] calldata loanParamsList)
+    function setupLoanParams(LoanParams[] calldata loanParamsList)
         external
         returns (bytes32[] memory loanParamsIdList)
     {
@@ -44,12 +35,12 @@ contract LoanSettings is State, LoanSettingsEvents {
     }
 
     // Deactivates LoanParams for future loans. Active loans using it are unaffected.
-    function disableLoanParams(
-        bytes32[] calldata loanParamsIdList)
-        external
-    {
+    function disableLoanParams(bytes32[] calldata loanParamsIdList) external {
         for (uint256 i = 0; i < loanParamsIdList.length; i++) {
-            require(msg.sender == loanParams[loanParamsIdList[i]].owner, "unauthorized owner");
+            require(
+                msg.sender == loanParams[loanParamsIdList[i]].owner,
+                "unauthorized owner"
+            );
             loanParams[loanParamsIdList[i]].active = false;
 
             LoanParams memory loanParamsLocal = loanParams[loanParamsIdList[i]];
@@ -69,8 +60,7 @@ contract LoanSettings is State, LoanSettingsEvents {
         }
     }
 
-    function getLoanParams(
-        bytes32[] memory loanParamsIdList)
+    function getLoanParams(bytes32[] memory loanParamsIdList)
         public
         view
         returns (LoanParams[] memory loanParamsList)
@@ -97,11 +87,8 @@ contract LoanSettings is State, LoanSettingsEvents {
     function getLoanParamsList(
         address owner,
         uint256 start,
-        uint256 count)
-        external
-        view
-        returns (bytes32[] memory loanParamsList)
-    {
+        uint256 count
+    ) external view returns (bytes32[] memory loanParamsList) {
         EnumerableBytes32Set.Bytes32Set storage set = userLoanParamSets[owner];
 
         uint256 end = count.min256(set.values.length);
@@ -111,11 +98,11 @@ contract LoanSettings is State, LoanSettingsEvents {
 
         loanParamsList = new bytes32[](count);
         uint256 itemCount;
-        for (uint256 i = end-start; i > 0; i--) {
+        for (uint256 i = end - start; i > 0; i--) {
             if (itemCount == count) {
                 break;
             }
-            loanParamsList[itemCount] = set.get(i+start-1);
+            loanParamsList[itemCount] = set.get(i + start - 1);
             itemCount++;
         }
 
@@ -126,9 +113,7 @@ contract LoanSettings is State, LoanSettingsEvents {
         }
     }
 
-    function getTotalPrincipal(
-        address lender,
-        address loanToken)
+    function getTotalPrincipal(address lender, address loanToken)
         external
         view
         returns (uint256)
@@ -136,25 +121,30 @@ contract LoanSettings is State, LoanSettingsEvents {
         return lenderInterest[lender][loanToken].principalTotal;
     }
 
-    function _setupLoanParams(
-        LoanParams memory loanParamsLocal)
+    function _setupLoanParams(LoanParams memory loanParamsLocal)
         internal
         returns (bytes32)
     {
-        bytes32 loanParamsId = keccak256(abi.encodePacked(
-            loanParamsLocal.loanToken,
-            loanParamsLocal.collateralToken,
-            loanParamsLocal.minInitialMargin,
-            loanParamsLocal.maintenanceMargin,
-            loanParamsLocal.maxLoanTerm,
-            block.timestamp
-        ));
+        bytes32 loanParamsId =
+            keccak256(
+                abi.encodePacked(
+                    loanParamsLocal.loanToken,
+                    loanParamsLocal.collateralToken,
+                    loanParamsLocal.minInitialMargin,
+                    loanParamsLocal.maintenanceMargin,
+                    loanParamsLocal.maxLoanTerm,
+                    block.timestamp
+                )
+            );
         require(loanParams[loanParamsId].id == 0, "loanParams exists");
 
-        require(loanParamsLocal.loanToken != address(0) &&
-            loanParamsLocal.collateralToken != address(0) &&
-            loanParamsLocal.minInitialMargin > loanParamsLocal.maintenanceMargin &&
-            (loanParamsLocal.maxLoanTerm == 0 || loanParamsLocal.maxLoanTerm > 3600), // a defined maxLoanTerm has to be greater than one hour
+        require(
+            loanParamsLocal.loanToken != address(0) &&
+                loanParamsLocal.collateralToken != address(0) &&
+                loanParamsLocal.minInitialMargin >
+                loanParamsLocal.maintenanceMargin &&
+                (loanParamsLocal.maxLoanTerm == 0 ||
+                    loanParamsLocal.maxLoanTerm > 3600), // a defined maxLoanTerm has to be greater than one hour
             "invalid params"
         );
 
@@ -174,10 +164,7 @@ contract LoanSettings is State, LoanSettingsEvents {
             loanParamsLocal.maintenanceMargin,
             loanParamsLocal.maxLoanTerm
         );
-        emit LoanParamsIdSetup(
-            loanParamsId,
-            loanParamsLocal.owner
-        );
+        emit LoanParamsIdSetup(loanParamsId, loanParamsLocal.owner);
 
         return loanParamsId;
     }

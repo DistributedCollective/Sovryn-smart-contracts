@@ -5,9 +5,9 @@ pragma solidity >=0.5.0 <0.6.0;
  * @dev Signed math operations with safety checks that revert on error.
  */
 library SignedSafeMath {
-    int256 constant private _INT256_MIN = -2**255;
+    int256 private constant _INT256_MIN = -2**255;
 
-        /**
+    /**
      * @dev Returns the multiplication of two signed integers, reverting on
      * overflow.
      *
@@ -25,7 +25,10 @@ library SignedSafeMath {
             return 0;
         }
 
-        require(!(a == -1 && b == _INT256_MIN), "SignedSafeMath: multiplication overflow");
+        require(
+            !(a == -1 && b == _INT256_MIN),
+            "SignedSafeMath: multiplication overflow"
+        );
 
         int256 c = a * b;
         require(c / a == b, "SignedSafeMath: multiplication overflow");
@@ -47,7 +50,10 @@ library SignedSafeMath {
      */
     function div(int256 a, int256 b) internal pure returns (int256) {
         require(b != 0, "SignedSafeMath: division by zero");
-        require(!(b == -1 && a == _INT256_MIN), "SignedSafeMath: division overflow");
+        require(
+            !(b == -1 && a == _INT256_MIN),
+            "SignedSafeMath: division overflow"
+        );
 
         int256 c = a / b;
 
@@ -66,7 +72,10 @@ library SignedSafeMath {
      */
     function sub(int256 a, int256 b) internal pure returns (int256) {
         int256 c = a - b;
-        require((b >= 0 && c <= a) || (b < 0 && c > a), "SignedSafeMath: subtraction overflow");
+        require(
+            (b >= 0 && c <= a) || (b < 0 && c > a),
+            "SignedSafeMath: subtraction overflow"
+        );
 
         return c;
     }
@@ -83,7 +92,10 @@ library SignedSafeMath {
      */
     function add(int256 a, int256 b) internal pure returns (int256) {
         int256 c = a + b;
-        require((b >= 0 && c >= a) || (b < 0 && c < a), "SignedSafeMath: addition overflow");
+        require(
+            (b >= 0 && c >= a) || (b < 0 && c < a),
+            "SignedSafeMath: addition overflow"
+        );
 
         return c;
     }

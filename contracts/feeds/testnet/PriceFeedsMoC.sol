@@ -9,7 +9,6 @@ interface Medianizer {
 }
 
 contract PriceFeedsMoC is IPriceFeedsExt, Ownable {
-
     address public mocOracleAddress;
     address public rskOracleAddress;
 
@@ -39,12 +38,11 @@ contract PriceFeedsMoC is IPriceFeedsExt, Ownable {
         }
     }
 
-    function setMoCOracleAddress(
-        address _mocOracleAddress)
-        public
-        onlyOwner
-    {
-        require(Address.isContract(_mocOracleAddress), "_mocOracleAddress not a contract");
+    function setMoCOracleAddress(address _mocOracleAddress) public onlyOwner {
+        require(
+            Address.isContract(_mocOracleAddress),
+            "_mocOracleAddress not a contract"
+        );
         mocOracleAddress = _mocOracleAddress;
         emit SetMoCOracleAddress(mocOracleAddress, msg.sender);
     }
