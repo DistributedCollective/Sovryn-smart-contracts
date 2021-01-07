@@ -842,9 +842,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
             .value(msgValue)( // newPrincipal, newCollateral
             loanParamsId,
             loanId,
-            withdrawAmount != 0 // isTorqueLoan
-                ? true
-                : false,
+            withdrawAmountExist,
             leverageAmount, // initialMargin
             sentAddresses,
             sentAmounts,
