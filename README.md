@@ -13,8 +13,9 @@
 * [yarn](https://classic.yarnpkg.com/en/docs/install/) - tested with v1.22.5
 * [python3](https://www.python.org/downloads/release/python-385/) v3.8.5 or greater, python3-dev
 * [pip3](https://pip.pypa.io/en/stable/installing/) - tested with v20.0.2
-* [ganache-cli](https://github.com/trufflesuite/ganache-cli) - tested with version [6.9.1](https://github.com/trufflesuite/ganache-cli/releases/tag/v6.9.1)
-* [brownie](https://github.com/eth-brownie/brownie/) version 1.12.4 or greater
+* [ganache-cli](https://github.com/trufflesuite/ganache-cli) - tested with [v6.9.1](https://github.com/trufflesuite/ganache-cli/releases/tag/v6.9.1)
+* [brownie](https://github.com/eth-brownie/brownie/) v1.12.4 or greater
+* [solc-select](https://github.com/crytic/solc-select) only if you are having multiple solc installed locally and globally.
 
 ## Setup and Testing
 
