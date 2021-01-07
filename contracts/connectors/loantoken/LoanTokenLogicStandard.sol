@@ -818,20 +818,23 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
             sentAmounts[3] = sentAmounts[3].sub(withdrawAmount);
         }
 
+        bool withdrawAmountExist = false; // Default is false, but added just as to make sure.
+
+        if (withdrawAmount != 0) {
+            withdrawAmountExist = true;
+        }
+
         bytes32 loanParamsId =
             loanParamsIds[
                 uint256(
                     keccak256(
                         abi.encodePacked(
                             collateralTokenAddress,
-                            withdrawAmount != 0 // isTorqueLoan
-                                ? true
-                                : false
+                            withdrawAmountExist
                         )
                     )
                 )
             ];
-
         // converting to initialMargin
         leverageAmount = SafeMath.div(10**38, leverageAmount);
         (sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress)
