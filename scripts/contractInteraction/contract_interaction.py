@@ -14,7 +14,7 @@ def main():
     loadConfig()
     #call the function you want here
     #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOC'])
-    testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iUSDT'], contracts['USDT'], contracts['WRBTC'], 1e18, 5e18, False, 0)
+    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iUSDT'], contracts['USDT'], contracts['WRBTC'], 1e18, 5e18, False, 0)
     #setupMarginLoanParams(contracts['DoC'],  contracts['iRBTC'])
     #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 5e18, False, 1e15)
     #buyWRBTC()
@@ -27,14 +27,16 @@ def main():
     #readLoan('0xb2bbd9135a7cfbc5adda48e90430923108ad6358418b7ac27c9edcf2d44911e5')
     #replaceLoanClosings()
     
-    #logicContract = acct.deploy(LoanTokenLogicStandard)
-    #print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
-    #replaceLoanTokenLogic(contracts['iDOC'],logicContract.address)
-    #replaceLoanTokenLogic(contracts['iUSDT'],'0x2d4F27e9F82d315c389E5290D94dbA062993e40a')
-    #replaceLoanTokenLogic(contracts['iBPro'],'0x2d4F27e9F82d315c389E5290D94dbA062993e40a')
-    #logicContract = acct.deploy(LoanTokenLogicWrbtc)
-    #print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
-    #replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
+    #updateAllLogicContracts()
+    #readOwner(contracts['iDOC'])
+    #readTransactionLimits(contracts['iDOC'],  contracts['DoC'],  contracts['WRBTC'])
+    #setTransactionLimits(contracts['iDOC'], [contracts['DoC'],  contracts['WRBTC']], [0, 0])
+    #setTransactionLimits(contracts['iRBTC'], [contracts['DoC'],  contracts['WRBTC']], [0, 0])
+    #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [0])
+    #lendToPool(contracts['iDOC'],contracts['DoC'], 1000e18)
+    #setTransactionLimits(contracts['iDOC'], [contracts['DoC']], [21e18])
+    #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [21e18])
+    #readTransactionLimits(contracts['iDOC'],  contracts['DoC'], contracts['WRBTC'])
     
 
     #setupLoanParamsForCollaterals(contracts['iBPro'], [contracts['DoC'], contracts['USDT']])
@@ -45,38 +47,55 @@ def main():
     #deployMultisig(['0xdB3DB4c5695f2aab0F406C86d1f35D326685d055', '0x5092019A3E0334586273A21a701F1BD859ECAbD6', '0xD6da34D91fC59134A132b17e7b5a472CA1BeA794'], 2)
     #deployMultisig(['0x2bD2201bfe156a71EB0d02837172FFc237218505', acct, '0xdB3DB4c5695f2aab0F406C86d1f35D326685d055', '0x5092019A3E0334586273A21a701F1BD859ECAbD6', '0xD6da34D91fC59134A132b17e7b5a472CA1BeA794'], 2)
     #updatePriceFeedToRSKOracle()
-    print('reading price from WRBTC to DOC')
-    readPrice(contracts['WRBTC'], contracts['DoC'])
-    print('reading price from WRBTC to USDT')
-    readPrice(contracts['WRBTC'], contracts['USDT'])
-    print('reading price from WRBTC to BPRO')
-    readPrice(contracts['WRBTC'], contracts['BPro'])
-    print('read price from USDT to DOC')
-    readPrice(contracts['USDT'], contracts['DoC'])
+    #checkRates()
     
-    print('read swap rate from WRBTC to DOC')
-    readSwapRate(contracts['WRBTC'], contracts['DoC'])
-    print('read swap rate from WRBTC to USDT')
-    readSwapRate(contracts['WRBTC'], contracts['USDT'])
-    print('read swap rate from WRBTC to BPRO')
-    readSwapRate(contracts['WRBTC'], contracts['BPro'])
-    print('read swap rate from USDT to DOC')
-    readSwapRate(contracts['USDT'], contracts['DoC'])
-    print('read swap rate from BPro to DOC')
-    readSwapRate(contracts['BPro'], contracts['DoC'])
-    print('read swap rate from BPro to USDT')
-    readSwapRate(contracts['BPro'], contracts['USDT'])
-    print('read swap rate from USDT to WRBTC')
-    readSwapRate(contracts['USDT'], contracts['WRBTC'])
-    print('read swap rate from DOC to WRBTC')
-    readSwapRate(contracts['DoC'], contracts['WRBTC'])
+    #checkOwnerIsAddress(contracts['sovrynProtocol'], contracts['multisig'])
     
-    print("price from the USDT oracle on AMM:")
-    readPriceFromOracle('0x78F0b35Edd78eD564830c45F4A22e4b553d7f042')
+    '''
+    print("price feeds SOV")
+    transferOwner(contracts['PriceFeedRSKOracle'], contracts['multisig'])
+    transferOwner(contracts['USDTPriceFeed'], contracts['multisig'])
     
-    readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', contracts['USDT'])
-    readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', contracts['WRBTC'])
-
+    
+    print("price feeds AMM")
+    transferOwner('0xe4d2e26ce947df7a8d04e5a9dcdef0c540c497cf', contracts['multisig'])#BPRO
+    transferOwner('0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789', contracts['multisig'])#WRBTC
+    transferOwner('0xf5df3b2ae0c4e2c8912e177f6bd8ca6d479397a2', contracts['multisig'])#USD
+    
+    
+    print("loan tokens")
+    #transferOwner(contracts['iUSDT'], contracts['multisig'])
+    #transferOwner(contracts['iBPro'], contracts['multisig'])
+    #transferOwner(contracts['iDOC'], contracts['multisig'])
+    transferOwner(contracts['iRBTC'], contracts['multisig'])
+    
+    print("AMM Network + Converters")
+    transferOwner(contracts['swapNetwork'], contracts['multisig'])
+    transferOwner(contracts['ConverterDOC'], contracts['multisig'])
+    transferOwner(contracts['ConverterBPRO'], contracts['multisig'])
+    transferOwner(contracts['ConverterUSDT'], contracts['multisig'])
+    #note:the ownership transfers for the AMM need to be accepted by the new owner
+    
+    
+    acceptOwnershipWithMultisig(contracts['swapNetwork'])
+    acceptOwnershipWithMultisig(contracts['ConverterDOC'])
+    acceptOwnershipWithMultisig(contracts['ConverterBPRO'])
+    acceptOwnershipWithMultisig(contracts['ConverterUSDT'])
+    acceptOwnershipWithMultisig('0xe4d2e26ce947df7a8d04e5a9dcdef0c540c497cf')
+    acceptOwnershipWithMultisig('0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789')
+    
+    checkOwnerIsAddress(contracts['swapNetwork'], contracts['multisig'])
+    checkOwnerIsAddress(contracts['ConverterDOC'], contracts['multisig'])
+    checkOwnerIsAddress(contracts['ConverterBPRO'], contracts['multisig'])
+    checkOwnerIsAddress(contracts['ConverterUSDT'], contracts['multisig'])
+    checkOwnerIsAddress('0xe4d2e26ce947df7a8d04e5a9dcdef0c540c497cf', contracts['multisig'])
+    checkOwnerIsAddress('0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789', contracts['multisig'])
+    '''
+    
+    #addOwnerToMultisig('0x27d55f5668ef4438635bdce0adca083507e77752')
+    
+    #readLiquidity()
+    swapTokens(1e18, 1, contracts['swapNetwork'], contracts['USDT'], contracts['BPro'])
     
 def loadConfig():
     global contracts, acct
@@ -110,7 +129,8 @@ def setupLoanTokenRates(loanTokenAddress):
 def lendToPool(loanTokenAddress, tokenAddress, amount):
     token = Contract.from_abi("TestToken", address = tokenAddress, abi = TestToken.abi, owner = acct)
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
-    token.approve(loanToken, amount) 
+    if(token.allowance(acct, loanToken.address) < amount):
+        token.approve(loanToken.address, amount) 
     loanToken.mint(acct, amount)
     
 def removeFromPool(loanTokenAddress, amount):
@@ -137,7 +157,9 @@ def readLoan(loanId):
 
 def getTokenPrice(loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
-    print("token price",loanToken.tokenPrice())
+    price = loanToken.tokenPrice()
+    print("token price",price)
+    return price
     
 def testTokenBurning(loanTokenAddress, testTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
@@ -248,7 +270,7 @@ def setupTorqueLoanParams(loanTokenAddress, underlyingTokenAddress, collateralTo
     setup = [
         b"0x0", ## id
         False, ## active
-        str(accounts[0]), ## owner
+        str(acct), ## owner
         underlyingTokenAddress, ## loanToken
         collateralTokenAddress, ## collateralToken. 
         Wei("50 ether"), ## minInitialMargin
@@ -276,7 +298,19 @@ def replaceLoanClosings():
     
 def transferOwner(contractAddress, newOwner):
     contract = Contract.from_abi("loanToken", address=contractAddress, abi=LoanToken.abi, owner=acct)
-    contract.transferOwnership(newOwner)
+    tx= contract.transferOwnership(newOwner)
+    tx.info()
+    checkOwnerIsAddress(contractAddress, newOwner)
+    
+def acceptOwnershipWithMultisig(contractAddress):
+    abiFile =  open('./scripts/contractInteraction/Owned.json')
+    abi = json.load(abiFile)
+    ownedContract = Contract.from_abi("Owned", address=contractAddress, abi=abi, owner=acct)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    data=ownedContract.acceptOwnership.encode_input()
+    tx= multisig.submitTransaction(contractAddress,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId);
     
 def getBalance(contractAddress, acct):
     contract = Contract.from_abi("Token", address=contractAddress, abi=LoanToken.abi, owner=acct)
@@ -294,12 +328,20 @@ def mintEarlyAccessTokens(contractAddress, userAddress):
     tx.info()
     
 def setTransactionLimits(loanTokenAddress, addresses, limits):
-    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=accounts[0])
+    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     tx = localLoanToken.setTransactionLimits(addresses,limits)
-
+    
+def setTransactionLimitsOld(loanTokenAddress, settingsAddress, logicAddress, addresses, limits):
+    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
+    localLoanToken.setTarget(settingsAddress)
+    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
+    tx = localLoanToken.setTransactionLimits(addresses,limits)
+    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
+    localLoanToken.setTarget(logicAddress)
+    
     
 def readTransactionLimits(loanTokenAddress, SUSD, RBTC):
-    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=accounts[0])
+    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
     limit = localLoanToken.transactionLimit(RBTC)
     print("RBTC limit, ",limit)
     limit = localLoanToken.transactionLimit(SUSD)
@@ -314,14 +356,19 @@ def readLiquidity():
     loanToken = Contract.from_abi("loanToken", address=contracts['iDOC'], abi=LoanTokenLogicStandard.abi, owner=acct)
     tasIUSD = loanToken.totalAssetSupply()
     tabIUSD = loanToken.totalAssetBorrow()
-    print("liquidity on iSUSD", (tasIUSD-tabIUSD)/1e18)
+    print("liquidity on iDOC", (tasIUSD-tabIUSD)/1e18)
     
-    tokenContract = Contract.from_abi("Token", address=contracts['DoC'], abi=TestToken.abi, owner=acct)
-    bal = tokenContract.balanceOf(contracts['swap'])
-    print("supply of DoC on swap", bal/1e18)
+    loanToken = Contract.from_abi("loanToken", address=contracts['iUSDT'], abi=LoanTokenLogicStandard.abi, owner=acct)
+    tasIUSD = loanToken.totalAssetSupply()
+    tabIUSD = loanToken.totalAssetBorrow()
+    print("liquidity on iUSDT", (tasIUSD-tabIUSD)/1e18)
+    
+    tokenContract = Contract.from_abi("Token", address=contracts['USDT'], abi=TestToken.abi, owner=acct)
+    bal = tokenContract.balanceOf(contracts['ConverterUSDT'])
+    print("supply of USDT on swap", bal/1e18)
     
     tokenContract = Contract.from_abi("Token", address=contracts['WRBTC'], abi=TestToken.abi, owner=acct)
-    bal = tokenContract.balanceOf(contracts['swap'])
+    bal = tokenContract.balanceOf(contracts['ConverterUSDT'])
     print("supply of rBTC on swap", bal/1e18)
     
 
@@ -347,6 +394,11 @@ def readLendingBalanceForUser(loanTokenAddress, userAddress):
 def readOwner(contractAddress):
     contract = Contract.from_abi("loanToken", address=contractAddress, abi=LoanToken.abi, owner=acct)
     print('owner:',contract.owner())
+
+def checkOwnerIsAddress(contractAddress, expectedOwner):
+    contract = Contract.from_abi("loanToken", address=contractAddress, abi=LoanToken.abi, owner=acct)
+    owner = contract.owner()
+    print("owner == expectedOwner?", owner == expectedOwner)
     
 def setupMarginLoanParams(collateralTokenAddress, loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
@@ -377,6 +429,7 @@ def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTo
     print("path", path)
     expectedReturn = swapNetwork.getReturnByPath(path, amount)
     print("expected return ", expectedReturn)
+    '''
     tx = swapNetwork.convertByPath(
         path,
         amount,
@@ -386,6 +439,7 @@ def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTo
         0
     )
     tx.info()
+    '''
     
 def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
@@ -532,3 +586,43 @@ def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
     tx = multisig.submitTransaction(loanToken.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
+    
+def checkRates():
+    print('reading price from WRBTC to DOC')
+    readPrice(contracts['WRBTC'], contracts['DoC'])
+    print('reading price from WRBTC to USDT')
+    readPrice(contracts['WRBTC'], contracts['USDT'])
+    print('reading price from WRBTC to BPRO')
+    readPrice(contracts['WRBTC'], contracts['BPro'])
+    print('read price from USDT to DOC')
+    readPrice(contracts['USDT'], contracts['DoC'])
+    
+    print('read swap rate from WRBTC to DOC')
+    readSwapRate(contracts['WRBTC'], contracts['DoC'])
+    print('read swap rate from WRBTC to USDT')
+    readSwapRate(contracts['WRBTC'], contracts['USDT'])
+    print('read swap rate from WRBTC to BPRO')
+    readSwapRate(contracts['WRBTC'], contracts['BPro'])
+    print('read swap rate from USDT to DOC')
+    readSwapRate(contracts['USDT'], contracts['DoC'])
+    print('read swap rate from BPro to DOC')
+    readSwapRate(contracts['BPro'], contracts['DoC'])
+    print('read swap rate from BPro to USDT')
+    readSwapRate(contracts['BPro'], contracts['USDT'])
+    print('read swap rate from USDT to WRBTC')
+    readSwapRate(contracts['USDT'], contracts['WRBTC'])
+    print('read swap rate from DOC to WRBTC')
+    readSwapRate(contracts['DoC'], contracts['WRBTC'])
+    
+    print("price from the USDT oracle on AMM:")
+    readPriceFromOracle('0x78F0b35Edd78eD564830c45F4A22e4b553d7f042')
+    
+    readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', contracts['USDT'])
+    readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', contracts['WRBTC'])
+    
+def addOwnerToMultisig(newOwner):
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    data = multisig.addOwner.encode_input(newOwner)
+    tx = multisig.submitTransaction(multisig.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId);
