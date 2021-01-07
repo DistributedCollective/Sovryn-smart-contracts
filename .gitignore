@@ -21,3 +21,4 @@ coverage
 coverage.json
 .vscode
 yarn.lock
+solc-select
