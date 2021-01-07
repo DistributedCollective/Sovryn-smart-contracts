@@ -342,9 +342,7 @@ def readLendingBalanceForUser(loanTokenAddress, userAddress):
     bal = loanToken.assetBalanceOf(userAddress)
     print('underlying token balance', bal)
     
-def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
-    loanToken.setTarget(logicAddress)
+
     
 def readOwner(contractAddress):
     contract = Contract.from_abi("loanToken", address=contractAddress, abi=LoanToken.abi, owner=acct)
@@ -478,3 +476,59 @@ def readTargetWeights(converter, reserve):
     res = converter.reserves(reserve).dict()
     print(res)
     print('target weight is ',res['weight'])
+    
+def updateContracts():
+    replaceLoanOpenings()
+    replaceSwapsUser()
+    replaceSwapsImplSovrynSwap()
+    replaceLoanTokenLogicOnAllContracts()
+
+    
+def replaceLoanOpenings():
+    print("replacing loan openings")
+    loanOpenings = acct.deploy(LoanOpenings)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovryn.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(loanOpenings.address)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
+    
+def replaceSwapsUser():
+    print("replacing swaps user")
+    swapsUser = acct.deploy(SwapsUser)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovryn.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(swapsUser.address)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
+    
+def replaceSwapsImplSovrynSwap():
+    print("replacing swaps")
+    swaps = acct.deploy(SwapsImplSovrynSwap)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovryn.abi, owner=acct)
+    data = sovryn.setSwapsImplContract.encode_input(swapsUser.address)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
+
+def replaceLoanTokenLogicOnAllContracts():
+    print("replacing loan token logic")
+    logicContract = acct.deploy(LoanTokenLogicStandard)
+    print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
+    replaceLoanTokenLogic(contracts['iDOC'],logicContract.address)
+    replaceLoanTokenLogic(contracts['iUSDT'],logicContract.address)
+    replaceLoanTokenLogic(contracts['iBPro'],logicContract.address)
+    logicContract = acct.deploy(LoanTokenLogicWrbtc)
+    print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
+    replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
+    
+def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
+    data = loanToken.setTarget.encode_input(logicAddress)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(loanToken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
