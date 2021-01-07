@@ -418,13 +418,19 @@ def prepareProposalData():
     # print(data)
 
     # [proposal 4]
-    multiSigKeyHolders = Contract.from_abi("MultiSigKeyHolders", address=contracts['MultiSigKeyHolders'], abi=MultiSigKeyHolders.abi, owner=acct)
-
-    data = multiSigKeyHolders.changeEthereumRequirement.encode_input(3)
-    print(data)
+    # multiSigKeyHolders = Contract.from_abi("MultiSigKeyHolders", address=contracts['MultiSigKeyHolders'], abi=MultiSigKeyHolders.abi, owner=acct)
+    #
+    # data = multiSigKeyHolders.changeEthereumRequirement.encode_input(3)
+    # print(data)
 
     # [proposal 5]
+    # multiSigKeyHolders = Contract.from_abi("MultiSigKeyHolders", address=contracts['MultiSigKeyHolders'], abi=MultiSigKeyHolders.abi, owner=acct)
+    #
+    # data = multiSigKeyHolders.changeEthereumRequirement.encode_input(4)
+    # print(data)
+
+    # [proposal 6]
     multiSigKeyHolders = Contract.from_abi("MultiSigKeyHolders", address=contracts['MultiSigKeyHolders'], abi=MultiSigKeyHolders.abi, owner=acct)
 
-    data = multiSigKeyHolders.changeEthereumRequirement.encode_input(4)
+    data = multiSigKeyHolders.addEthereumAndBitcoinAddresses.encode_input(["0xAdfDF3055136356a34256809c79a8cb0a99A7a86", "0x8a52CDB3e99634e2638a3DCe1A0388EDB7A32c11"], ["37S6qsjzw14MH9SFt7PmsBchobkRE6SxN4", "37S6qsjzw14MH9SFt7PmsBchobkRE6SxN5"])
     print(data)
