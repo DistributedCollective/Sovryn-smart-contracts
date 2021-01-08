@@ -90,8 +90,15 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
                 msg.value
             );
         }
+
+        (, uint256 collateralToLoanRate) = IPriceFeeds(priceFeeds).getCurrentMargin(
+            loanParamsLocal.loanToken,
+            loanParamsLocal.collateralToken,
+            loanLocal.principal,
+            loanLocal.collateral
+        );
         
-        emit DepositCollateral(loanId, depositAmount);
+        emit DepositCollateral(loanId, depositAmount, collateralToLoanRate);
     }
 
     function withdrawCollateral(
