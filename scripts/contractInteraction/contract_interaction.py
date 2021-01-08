@@ -95,7 +95,8 @@ def main():
     #addOwnerToMultisig('0x27d55f5668ef4438635bdce0adca083507e77752')
     
     #readLiquidity()
-    swapTokens(1e18, 1, contracts['swapNetwork'], contracts['USDT'], contracts['BPro'])
+    #swapTokens(1e18, 1, contracts['swapNetwork'], contracts['USDT'], contracts['BPro'])
+    updatePriceFeedToMOCOracle()
     
 def loadConfig():
     global contracts, acct
@@ -503,6 +504,12 @@ def updatePriceFeedToRSKOracle():
     feeds = Contract.from_abi("PriceFeeds", address= contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = acct)
     feeds.setPriceFeed([contracts['WRBTC']], [newPriceFeed.address])
     
+def updatePriceFeedToMOCOracle():
+    #newPriceFeed = acct.deploy(PriceFeedsMoC, contracts['medianizer'], contracts['RSKOracle'])
+    #print("new price feed: ", newPriceFeed)
+    feeds = Contract.from_abi("PriceFeeds", address= contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = acct)
+    #feeds.setPriceFeed([contracts['WRBTC']], [newPriceFeed.address])
+    feeds.setPriceFeed([contracts['WRBTC']], ['0x873B33BAFcA43a813a109942958F207847dF4d09'])
     
 def readPrice(source, destination):
     feeds = Contract.from_abi("PriceFeeds", address= contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = acct)
