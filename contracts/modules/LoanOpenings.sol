@@ -125,12 +125,17 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
         uint256 interestAmountRequired = maxLoanTerm
             .mul(owedPerDay)
             .div(86400);
-
+        
+        uint256 swapAmount = loanTokenSent.sub(interestAmountRequired);
+        uint256 tradingFee = _getTradingFee(swapAmount);
+        if (tradingFee != 0) {
+            swapAmount = swapAmount.sub(tradingFee);
+        }
+        
         uint256 receivedAmount = _swapsExpectedReturn(
             loanToken,
             collateralToken,
-            loanTokenSent
-                .sub(interestAmountRequired)
+            swapAmount
         );
         if (receivedAmount == 0) {
             return 0;
@@ -209,6 +214,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
                         .div(marginAmount)
                         .mul(sourceToDestRate)
                         .div(sourceToDestPrecision);
+
                 }
             }
         }
@@ -313,6 +319,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
             "collateral insufficient"
         );
 
+
         loanLocal.collateral = loanLocal.collateral
             .add(sentValues[4]);
 
@@ -333,7 +340,8 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
         );
 
         return (sentValues[1], sentValues[4]); // newPrincipal, newCollateral
-    }
+    } 
+
 
     function _finalizeOpen(
         LoanParams memory loanParamsLocal,
@@ -343,6 +351,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
         bool isTorqueLoan)
         internal
     {
+        //todo here the actual used rate and margin should go
         (uint256 initialMargin, uint256 collateralToLoanRate) = IPriceFeeds(priceFeeds).getCurrentMargin(
             loanParamsLocal.loanToken,
             loanParamsLocal.collateralToken,
@@ -355,7 +364,8 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
         );
 
         if (loanLocal.startTimestamp == block.timestamp) {
-            loanLocal.startRate = collateralToLoanRate;
+            uint256 totalSwapRate = 10**36;
+            loanLocal.startRate = isTorqueLoan ? collateralToLoanRate : totalSwapRate.div(sentValues[3]);
         }
 
         _emitOpeningEvents(
@@ -638,18 +648,18 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
                 .mul(marginAmount)
                 .div(10**20);
         } else {
+            //using the price feed instead of the swap expected return because we need the rate in the inverse direction
+            //so the swap is probably farther off than the price feed. 
             (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(
                 collateralToken,
                 loanToken
             );
             if (sourceToDestRate != 0) {
-                collateralTokenAmount = newPrincipal
+                collateralTokenAmount = newPrincipal           
                     .mul(sourceToDestPrecision)
                     .div(sourceToDestRate)
                     .mul(marginAmount)
                     .div(10**20);
-            } else {
-                collateralTokenAmount = 0;
             }
         }
 

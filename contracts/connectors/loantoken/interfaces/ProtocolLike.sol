@@ -98,4 +98,12 @@ interface ProtocolLike {
         external
         view
         returns (uint256);
+
+    function getSwapExpectedReturn(
+        address sourceToken,
+        address destToken,
+        uint256 sourceTokenAmount) 
+        external 
+        view
+        returns(uint256);
 }
