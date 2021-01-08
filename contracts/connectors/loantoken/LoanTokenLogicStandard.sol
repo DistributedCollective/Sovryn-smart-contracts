@@ -354,11 +354,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         return true;
     }
 
-    event Debug(
-        bytes32 slot,
-        uint256 one,
-        uint256 two
-    );
     
     /**
      * @dev updates the user's checkpoint price and profit so far.
@@ -397,11 +392,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
         checkpointPrices_[_user] = _currentPrice;
 
-        emit Debug(
-            slot,
-            _currentProfit,
-            _currentPrice
-        );
     }
 
     /* Public View functions */
