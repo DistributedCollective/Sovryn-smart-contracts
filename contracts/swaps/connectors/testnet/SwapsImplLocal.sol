@@ -64,7 +64,8 @@ contract SwapsImplLocal is State, ISwapsImpl {
     function internalExpectedRate(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint256 sourceTokenAmount)
+        uint256 sourceTokenAmount,
+        address unused)
         public
         view
         returns (uint256)
