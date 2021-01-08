@@ -39,9 +39,9 @@ def main():
     # governorAcceptAdmin("governorOwner")
     # governorAcceptAdmin("governorAdmin")
 
-    # governorAcceptAdmin("governor")
+    governorAcceptAdmin("governor")
 
-    prepareProposalData()
+    # prepareProposalData()
 
 def loadConfig():
     global contracts, acct
@@ -382,8 +382,9 @@ def addLiquidity(converter, reserve, amount):
     print(tx)
 
 def governorAcceptAdmin(type):
-    governor = Contract.from_abi("GovernorAlpha", address=contracts[type], abi=GovernorAlpha.abi, owner=acct)
+    governor = Contract.from_abi("GovernorAlphaComp", address=contracts[type], abi=GovernorAlphaComp.abi, owner=acct)
     data = governor.__acceptAdmin.encode_input()
+    print(data)
 
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(governor.address,0,data)
