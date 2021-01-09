@@ -14,9 +14,10 @@ def main():
     loadConfig()
     #call the function you want here
     #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOC'])
-    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iUSDT'], contracts['USDT'], contracts['WRBTC'], 1e18, 5e18, False, 0)
+    #readPrice(contracts['WRBTC'], contracts['USDT'])
+    testTradeOpeningAndClosingWithCollateral(contracts['sovrynProtocol'], contracts['iUSDT'], contracts['USDT'], contracts['WRBTC'], 1e14, 2e18, True, 1e14)
     #setupMarginLoanParams(contracts['DoC'],  contracts['iRBTC'])
-    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e15, 5e18, False, 1e15)
+    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e14, 5e18, True, 1e15)
     #buyWRBTC()
     #swapTokens(0.027e18,400e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['USDT'])
     #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
@@ -96,8 +97,10 @@ def main():
     
     #readLiquidity()
     #swapTokens(1e18, 1, contracts['swapNetwork'], contracts['USDT'], contracts['BPro'])
-    updatePriceFeedToMOCOracle()
-    updateContracts()
+    #readFromMedianizer()
+    #replaceSwapsUser()
+    #checkRates()
+    #replaceSwapsExternal()
     
 def loadConfig():
     global contracts, acct
@@ -203,6 +206,7 @@ def testTradeOpeningAndClosing(protocolAddress, loanTokenAddress, underlyingToke
     sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
     if(sendValue == 0 and testToken.allowance(acct, loanTokenAddress) < loanTokenSent):
         testToken.approve(loanToken, loanTokenSent)
+    print('going to trade')
     tx = loanToken.marginTrade(
         "0",  # loanId  (0 for new loans)
         leverage,  # leverageAmount, 18 decimals
@@ -223,6 +227,35 @@ def testTradeOpeningAndClosing(protocolAddress, loanTokenAddress, underlyingToke
     print(loan)
     if(testClose):
         tx = sovryn.closeWithSwap(loanId, acct, collateral, True, b'')
+        
+def testTradeOpeningAndClosingWithCollateral(protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, collateralTokenSent, leverage, testClose, sendValue):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    testToken = Contract.from_abi("TestToken", address = underlyingTokenAddress, abi = TestToken.abi, owner = acct)
+    sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
+    #if(sendValue == 0 and testToken.allowance(acct, loanTokenAddress) < loanTokenSent):
+    #    testToken.approve(loanToken, loanTokenSent)
+    print('going to trade')
+    tx = loanToken.marginTrade(
+        "0",  # loanId  (0 for new loans)
+        leverage,  # leverageAmount, 18 decimals
+        0,  # loanTokenSent
+        collateralTokenSent,  # no collateral token sent
+        collateralTokenAddress,  # collateralTokenAddress
+        acct,  # trader,
+        b'',  # loanDataBytes (only required with ether)
+        {'value': sendValue}
+    )
+    tx.info()
+    loanId = tx.events['Trade']['loanId']
+    collateral = tx.events['Trade']['positionSize']
+    print("closing loan with id", loanId)
+    print("position size is ", collateral)
+    loan = sovryn.getLoan(loanId)
+    print("found the loan in storage with position size", loan['collateral'])
+    print(loan)
+    if(testClose):
+        tx = sovryn.closeWithSwap(loanId, acct, collateral, True, b'')
+
 
 
 def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress):
@@ -450,8 +483,6 @@ def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
 def readFromMedianizer():
     medianizer = Contract.from_abi("Medianizer", address=contracts['medianizer'], abi=PriceFeedsMoCMockup.abi, owner=acct)
     print(medianizer.peek())
-    medianizer = Contract.from_abi("Medianizer", address='0x26a00aF444928d689DDEC7b4D17c0E4a8c9D407d', abi=PriceFeedsMoCMockup.abi, owner=acct)
-    print(medianizer.peek())
     
 def updateOracleAddress(newAddress):
     print("set oracle address to", newAddress)
@@ -506,11 +537,15 @@ def updatePriceFeedToRSKOracle():
     feeds.setPriceFeed([contracts['WRBTC']], [newPriceFeed.address])
     
 def updatePriceFeedToMOCOracle():
-    #newPriceFeed = acct.deploy(PriceFeedsMoC, contracts['medianizer'], contracts['RSKOracle'])
-    #print("new price feed: ", newPriceFeed)
+    newPriceFeed = acct.deploy(PriceFeedsMoC, contracts['medianizer'], contracts['RSKOracle'])
+    print("new price feed: ", newPriceFeed)
     feeds = Contract.from_abi("PriceFeeds", address= contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = acct)
-    #feeds.setPriceFeed([contracts['WRBTC']], [newPriceFeed.address])
-    feeds.setPriceFeed([contracts['WRBTC']], ['0x873B33BAFcA43a813a109942958F207847dF4d09'])
+    data = feeds.setPriceFeed.encode_input([contracts['WRBTC']], [newPriceFeed.address])
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(feeds.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId);
+
     
 def readPrice(source, destination):
     feeds = Contract.from_abi("PriceFeeds", address= contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = acct)
@@ -540,11 +575,19 @@ def readTargetWeights(converter, reserve):
     print('target weight is ',res['weight'])
     
 def updateContracts():
-    replaceLoanOpenings()
-    replaceSwapsUser()
     replaceSwapsImplSovrynSwap()
+    replaceSwapsUser()
+    replaceLoanOpenings()
     replaceLoanTokenLogicOnAllContracts()
-
+    
+def replaceSwapsExternal():
+    #swapsExternal = acct.deploy(SwapsExternal)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovryn.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input('0xAa1dEDE8C097349Dd25C98A0bF79c8D9B6e55caf')
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
     
 def replaceLoanOpenings():
     print("replacing loan openings")
@@ -634,3 +677,4 @@ def addOwnerToMultisig(newOwner):
     tx = multisig.submitTransaction(multisig.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print("txid",txId);
+
