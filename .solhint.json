@@ -3,6 +3,6 @@
   "plugins": ["prettier"],
   "rules": {
     "prettier/prettier": "error",
-    "max-line-length": ["warn",120]
+    "max-line-length": ["warn",140]
   }
 }
