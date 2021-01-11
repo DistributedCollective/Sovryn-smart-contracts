@@ -47,6 +47,6 @@ def main():
     multiSigKeyHolders = acct.deploy(MultiSigKeyHolders)
     multiSigKeyHolders.transferOwnership(timelock.address)
 
-    # GovernorTokensHolder
-    governorVault = acct.deploy(GovernorVault, token.address)
+    # GovernorVault
+    governorVault = acct.deploy(GovernorVault)
     governorVault.transferOwnership(timelock.address)
