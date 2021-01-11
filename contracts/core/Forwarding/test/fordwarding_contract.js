@@ -223,8 +223,6 @@ contract("FordwardingContract", (accounts) => {
     );
   });
 
-  //  depositCollateral() test are not here because there is need to change in contract . Here is how we can change the code in 2nd point
-  //  https://docs.google.com/document/d/1PIRfgX-eF0SepjJh2c7-i8wUzSGuHOmKTMMFqgeXnuY/edit
 
   it("Borrow USDT and provide collateral as DOC", async () => {
     const doCAddress = "0xCB46c0ddc60D18eFEB0E586C17Af6ea36452Dae0";
