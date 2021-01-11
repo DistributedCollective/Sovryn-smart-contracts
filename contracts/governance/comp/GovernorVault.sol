@@ -5,30 +5,22 @@ import "../../interfaces/IERC20.sol";
 
 contract GovernorVault is Ownable {
 
-    string public constant ERROR_INVALID_ADDRESS = "Invalid address";
-
-    IERC20 public token;
-
     event Deposited(address indexed sender, uint amount);
-    event TokensTransferred(address indexed receiver, uint amount);
+    event TokensTransferred(address indexed receiver, address indexed token, uint amount);
     event RbtcTransferred(address indexed receiver, uint amount);
-
-    constructor(address _token) public {
-        require(_token != address(0), ERROR_INVALID_ADDRESS);
-
-        token = IERC20(_token);
-    }
 
     /**
      * @notice transfers tokens
      * @param _receiver the receiver of tokens
+     * @param _token the address of token contract
      * @param _amount the to be transferred
      */
-    function transferTokens(address _receiver, uint _amount) public onlyOwner {
-        require(_receiver != address(0), ERROR_INVALID_ADDRESS);
+    function transferTokens(address _receiver, address _token, uint _amount) public onlyOwner {
+        require(_receiver != address(0), "Invalid receiver address");
+        require(_token != address(0), "Invalid token address");
 
-        require(token.transfer(_receiver, _amount), "Transfer failed");
-        emit TokensTransferred(_receiver, _amount);
+        require(IERC20(_token).transfer(_receiver, _amount), "Transfer failed");
+        emit TokensTransferred(_receiver, _token, _amount);
     }
 
     /**
@@ -37,7 +29,7 @@ contract GovernorVault is Ownable {
      * @param _amount the to be transferred
      */
     function transferRbtc(address payable _receiver, uint _amount) public onlyOwner {
-        require(_receiver != address(0), ERROR_INVALID_ADDRESS);
+        require(_receiver != address(0), "Invalid receiver address");
 
         address(_receiver).transfer(_amount);
         emit RbtcTransferred(_receiver, _amount);

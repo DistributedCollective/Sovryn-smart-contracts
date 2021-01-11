@@ -37,22 +37,6 @@ contract('TeamVesting', accounts => {
         vault = await GovernorVault.new(token.address);
     });
 
-    describe('constructor', () => {
-
-        it('sets the expected values', async () => {
-            let vaultInstance = await GovernorVault.new(token.address);
-
-            let tokenAddress = await vaultInstance.token();
-            assert.equal(tokenAddress, token.address);
-        });
-
-        it('fails if the 0 address is passed as SOV address', async () => {
-            await expectRevert(GovernorVault.new(ZERO_ADDRESS),
-                ERROR_INVALID_ADDRESS);
-        });
-
-    });
-
     describe('transferTokens', () => {
 
         it('Should be able to transfer tokens', async () => {
@@ -62,7 +46,7 @@ contract('TeamVesting', accounts => {
             let balance = await token.balanceOf.call(vault.address);
             expect(balance.toString()).to.be.equal(amount);
 
-            let tx = await vault.transferTokens(account1, amount);
+            let tx = await vault.transferTokens(account1, token.address, amount);
 
             balance = await token.balanceOf.call(vault.address);
             expect(balance.toString()).to.be.equal("0");
@@ -76,17 +60,29 @@ contract('TeamVesting', accounts => {
         });
 
         it('fails if the sender is not an owner', async () => {
-            await expectRevert(vault.transferTokens(account1, 100, {from: account1}),
+            await expectRevert(vault.transferTokens(account1, token.address, 100, {from: account1}),
                 "unauthorized");
         });
 
-        it('fails if the 0 address is passed', async () => {
-            await expectRevert(vault.transferTokens(ZERO_ADDRESS, 100),
-                ERROR_INVALID_ADDRESS);
+        it('fails if the 0 receiver address is passed', async () => {
+            await expectRevert(vault.transferTokens(ZERO_ADDRESS, token.address, 100),
+                "Invalid receiver address");
+        });
+
+        it('fails if the 0 token address is passed', async () => {
+            await expectRevert(vault.transferTokens(account1, ZERO_ADDRESS, 100),
+                "Invalid token address");
+        });
+
+        it('fails if wrong token address', async () => {
+            await token.transfer(vault.address, 100);
+
+            await expectRevert(vault.transferTokens(token.address, account1, 100),
+                "revert");
         });
 
         it('fails if amount passed is not available', async () => {
-            await expectRevert(vault.transferTokens(account1, 100),
+            await expectRevert(vault.transferTokens(account1, token.address, 100),
                 "invalid transfer");
         });
 
@@ -128,7 +124,7 @@ contract('TeamVesting', accounts => {
 
         it('fails if the 0 address is passed', async () => {
             await expectRevert(vault.transferRbtc(ZERO_ADDRESS, 100),
-                ERROR_INVALID_ADDRESS);
+                "Invalid receiver address");
         });
 
         it('fails if amount passed is not available', async () => {
