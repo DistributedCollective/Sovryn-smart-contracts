@@ -73,13 +73,16 @@ contract SwapsImplLocal is State, ISwapsImpl {
     function internalExpectedRate(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint256 sourceTokenAmount
-    ) public view returns (uint256) {
-        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) =
-            IPriceFeeds(priceFeeds).queryRate(
-                sourceTokenAddress,
-                destTokenAddress
-            );
+        uint256 sourceTokenAmount,
+        address unused)
+        public
+        view
+        returns (uint256)
+    {
+        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(
+            sourceTokenAddress,
+            destTokenAddress
+        );
 
         return
             sourceTokenAmount.mul(sourceToDestRate).div(sourceToDestPrecision);

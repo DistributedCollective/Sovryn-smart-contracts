@@ -73,5 +73,16 @@ interface ProtocolLike {
 
     function isLoanPool(address loanPool) external view returns (bool);
 
-    function lendingFeePercent() external view returns (uint256);
+    function lendingFeePercent()
+        external
+        view
+        returns (uint256);
+
+    function getSwapExpectedReturn(
+        address sourceToken,
+        address destToken,
+        uint256 sourceTokenAmount) 
+        external 
+        view
+        returns(uint256);
 }

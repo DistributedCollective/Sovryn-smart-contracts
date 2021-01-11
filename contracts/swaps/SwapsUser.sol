@@ -198,24 +198,18 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
     function _swapsExpectedReturn(
         address sourceToken,
         address destToken,
-        uint256 sourceTokenAmount
-    ) internal view returns (uint256) {
-        uint256 tradingFee = _getTradingFee(sourceTokenAmount);
-        if (tradingFee != 0) {
-            sourceTokenAmount = sourceTokenAmount.sub(tradingFee);
-        }
+        uint256 sourceTokenAmount)
+        internal
+        view
+        returns (uint256 destTokenAmount)
+    {
 
-        uint256 sourceToDestRate =
-            ISwapsImpl(swapsImpl).internalExpectedRate(
-                sourceToken,
-                destToken,
-                sourceTokenAmount
-            );
-        uint256 sourceToDestPrecision =
-            IPriceFeeds(priceFeeds).queryPrecision(sourceToken, destToken);
-
-        return
-            sourceTokenAmount.mul(sourceToDestRate).div(sourceToDestPrecision);
+        destTokenAmount = ISwapsImpl(swapsImpl).internalExpectedRate(
+            sourceToken,
+            destToken,
+            sourceTokenAmount,
+            sovrynSwapContractRegistryAddress
+        );
     }
 
     function _checkSwapSize(address tokenAddress, uint256 amount)

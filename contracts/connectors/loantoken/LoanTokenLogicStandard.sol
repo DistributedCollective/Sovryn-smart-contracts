@@ -341,8 +341,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         return true;
     }
 
-    event Debug(bytes32 slot, uint256 one, uint256 two);
-
     /**
      * @dev updates the user's checkpoint price and profit so far.
      * @param _user the user address
@@ -385,7 +383,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
         checkpointPrices_[_user] = _currentPrice;
 
-        emit Debug(slot, _currentProfit, _currentPrice);
     }
 
     /* Public View functions */
@@ -732,23 +729,54 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         }
     }
 
+    /**
+     * @dev computes what the deposit is worth in loan tokens using the swap rate 
+     *      used for loan size computation
+     * @param collateralTokenAddress the address of the collateral token
+     * @param collateralTokenSent the number of collateral tokens provided the user
+     * @param loanTokenSent the number of loan tokens provided by the user
+     * @return the value of the deposit in loan tokens
+     * */
     function _totalDeposit(
         address collateralTokenAddress,
         uint256 collateralTokenSent,
         uint256 loanTokenSent
     ) internal view returns (uint256 totalDeposit) {
         totalDeposit = loanTokenSent;
+
         if (collateralTokenSent != 0) {
-            (uint256 sourceToDestRate, uint256 sourceToDestPrecision) =
-                FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds())
-                    .queryRate(collateralTokenAddress, loanTokenAddress);
-            if (sourceToDestPrecision != 0) {
-                totalDeposit = collateralTokenSent
-                    .mul(sourceToDestRate)
-                    .div(sourceToDestPrecision)
-                    .add(totalDeposit);
+            //get the oracle rate from collateral -> loan
+            (uint256 collateralToLoanRate, uint256 collateralToLoanPrecision) = FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(
+                collateralTokenAddress,
+                loanTokenAddress
+            );
+            require((collateralToLoanRate != 0) && (collateralToLoanPrecision != 0), "invalid exchange rate for the collateral token");
+            
+            //compute the loan token amount with the oracle rate
+            uint256 loanTokenAmount = collateralTokenSent
+                .mul(collateralToLoanRate)
+                .div(collateralToLoanPrecision
+            );
+            
+            //see how many collateralTokens we would get if exchanging this amount of loan tokens to collateral tokens
+            uint256 collateralTokenAmount = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
+                loanTokenAddress,
+                collateralTokenAddress,
+                loanTokenAmount
+            );
+            
+            //probably not the same due to the price difference
+            if (collateralTokenAmount != collateralTokenSent) {
+                //scale the loan token amount accordingly, so we'll get the expected position size in the end
+                loanTokenAmount = loanTokenAmount
+                    .mul(collateralTokenAmount)
+                    .div(collateralTokenSent
+                );
             }
-        }
+
+            totalDeposit = loanTokenAmount.add(totalDeposit);
+
+        }            
     }
 
     function _getInterestRateAndBorrowAmount(
