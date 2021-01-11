@@ -34,12 +34,6 @@ def main():
     delay = 5*60
     timelock = acct.deploy(TimelockComp, acct, delay)
 
-    # TODO we don't need it for Genesis Sale
-    # GovernorTokensHolder
-    # governorTokensHolder = acct.deploy(GovernorTokensHolder, token.address)
-    # make governance an owner of GovernorTokensHolder
-    # governorTokensHolder.transferOwnership(timelock.address)
-
     governor = acct.deploy(GovernorAlphaComp, timelock.address, token.address, guardian)
 
     dataString = timelock.setPendingAdmin.encode_input(governor.address)
@@ -52,3 +46,7 @@ def main():
     # MultiSigKeyHolders
     multiSigKeyHolders = acct.deploy(MultiSigKeyHolders)
     multiSigKeyHolders.transferOwnership(timelock.address)
+
+    # GovernorTokensHolder
+    governorVault = acct.deploy(GovernorVault, token.address)
+    governorVault.transferOwnership(timelock.address)
