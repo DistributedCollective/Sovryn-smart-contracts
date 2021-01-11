@@ -7,13 +7,16 @@ import "../ISwapsImpl.sol";
 import "./interfaces/ISovrynSwapNetwork.sol";
 import "./interfaces/IContractRegistry.sol";
 
-
 contract SwapsImplSovrynSwap is State, ISwapsImpl {
     using SafeERC20 for IERC20;
 
     // bytes32 contractName = hex"42616e636f724e6574776f726b"; // "SovrynSwapNetwork"
 
-    function getContractHexName(string memory source) public pure returns (bytes32 result) {
+    function getContractHexName(string memory source)
+        public
+        pure
+        returns (bytes32 result)
+    {
         assembly {
             result := mload(add(source, 32))
         }
@@ -54,12 +57,17 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
         address returnToSenderAddress,
         uint256 minSourceTokenAmount,
         uint256 maxSourceTokenAmount,
-        uint256 requiredDestTokenAmount)
+        uint256 requiredDestTokenAmount
+    )
         public
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
         require(sourceTokenAddress != destTokenAddress, "source == dest");
-        require(supportedTokens[sourceTokenAddress] && supportedTokens[destTokenAddress], "invalid tokens");
+        require(
+            supportedTokens[sourceTokenAddress] &&
+                supportedTokens[destTokenAddress],
+            "invalid tokens"
+        );
 
         ISovrynSwapNetwork sovrynSwapNetwork = getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
         IERC20[] memory path = sovrynSwapNetwork.conversionPath(
@@ -72,24 +80,46 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
 
         //if the required amount of destination tokens is passed, we need to calculate the estimated amount of source tokens
         //regardless of the minimum source token amount (name is misleading)
-        if(requiredDestTokenAmount > 0){
-            sourceTokenAmountUsed = estimateSourceTokenAmount(sourceTokenAddress, destTokenAddress, requiredDestTokenAmount,  maxSourceTokenAmount);
-             //sovrynSwapNetwork.rateByPath does not return a rate, but instead the amount of destination tokens returned
-            require(sovrynSwapNetwork.rateByPath(path, sourceTokenAmountUsed) >= requiredDestTokenAmount, "insufficient source tokens provided.");
+        if (requiredDestTokenAmount > 0) {
+            sourceTokenAmountUsed = estimateSourceTokenAmount(
+                sourceTokenAddress,
+                destTokenAddress,
+                requiredDestTokenAmount,
+                maxSourceTokenAmount
+            );
+            //sovrynSwapNetwork.rateByPath does not return a rate, but instead the amount of destination tokens returned
+            require(
+                sovrynSwapNetwork.rateByPath(path, sourceTokenAmountUsed) >=
+                    requiredDestTokenAmount,
+                "insufficient source tokens provided."
+            );
             minReturn = requiredDestTokenAmount;
-        }
-        else if (sourceTokenAmountUsed > 0){
+        } else if (sourceTokenAmountUsed > 0) {
             //for some reason the sovryn swap network tends to return a bit less than the expected rate.
-            minReturn = sovrynSwapNetwork.rateByPath(path, sourceTokenAmountUsed).mul(995).div(1000);
+            minReturn = sovrynSwapNetwork
+                .rateByPath(path, sourceTokenAmountUsed)
+                .mul(995)
+                .div(1000);
         }
-        
+
         require(sourceTokenAmountUsed > 0, "cannot swap 0 tokens");
-        
-        allowTransfer(sourceTokenAmountUsed, sourceTokenAddress, address(sovrynSwapNetwork));
+
+        allowTransfer(
+            sourceTokenAmountUsed,
+            sourceTokenAddress,
+            address(sovrynSwapNetwork)
+        );
 
         //note: the kyber connector uses .call() to interact with kyber to avoid bubbling up. here we allow bubbling up.
-        destTokenAmountReceived = sovrynSwapNetwork.convertByPath(path, sourceTokenAmountUsed, minReturn, address(0), address(0), 0);
-        
+        destTokenAmountReceived = sovrynSwapNetwork.convertByPath(
+            path,
+            sourceTokenAmountUsed,
+            minReturn,
+            address(0),
+            address(0),
+            0
+        );
+
         //if the sender is not the protocol (calling with delegatecall), return the remainder to the specified address.
         //note: for the case that the swap is used without the protocol. not sure if it should, though. needs to be discussed.
         if (returnToSenderAddress != address(this)) {
@@ -97,13 +127,12 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
                 // send unused source token back
                 IERC20(sourceTokenAddress).safeTransfer(
                     returnToSenderAddress,
-                    maxSourceTokenAmount-sourceTokenAmountUsed
+                    maxSourceTokenAmount - sourceTokenAmountUsed
                 );
             }
         }
-
     }
-    
+
     /**
      * check is the existing allowance suffices to transfer the needed amount of tokens.
      * if not, allows the transfer of an arbitrary amount of tokens.
@@ -114,15 +143,12 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
     function allowTransfer(
         uint256 tokenAmount,
         address tokenAddress,
-        address sovrynSwapNetwork)
-        internal
-    {
-        uint256 tempAllowance = IERC20(tokenAddress).allowance(address(this), sovrynSwapNetwork);
+        address sovrynSwapNetwork
+    ) internal {
+        uint256 tempAllowance =
+            IERC20(tokenAddress).allowance(address(this), sovrynSwapNetwork);
         if (tempAllowance < tokenAmount) {
-            IERC20(tokenAddress).safeApprove(
-                sovrynSwapNetwork,
-                uint256(-1)
-            );
+            IERC20(tokenAddress).safeApprove(sovrynSwapNetwork, uint256(-1));
         }
     }
 
@@ -155,19 +181,18 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
         estimatedSourceAmount = requiredDestTokenAmount
             .mul(sourceToDestPrecision)
             .div(expectedRate);
-            
+
         //if the actual rate is exactly the same as the worst case rate, we get rounding issues. So, add a small buffer.
         //buffer = min(estimatedSourceAmount/1000 , sourceBuffer) with sourceBuffer = 10000
         uint256 buffer = estimatedSourceAmount.div(1000);
-        if(buffer > sourceBuffer)
-            buffer = sourceBuffer;
+        if (buffer > sourceBuffer) buffer = sourceBuffer;
         estimatedSourceAmount = estimatedSourceAmount.add(buffer);
 
-
         //never spend more than the maximum
-        if (estimatedSourceAmount == 0 || estimatedSourceAmount > maxSourceTokenAmount)
-            return maxSourceTokenAmount;
-
+        if (
+            estimatedSourceAmount == 0 ||
+            estimatedSourceAmount > maxSourceTokenAmount
+        ) return maxSourceTokenAmount;
     }
 
     /**
@@ -191,7 +216,8 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
             IERC20(destTokenAddress)
         );
         //is returning the total amount of destination tokens
-        uint256 expectedReturn = sovrynSwapNetwork.rateByPath(path, sourceTokenAmount);
+        uint256 expectedReturn =
+            sovrynSwapNetwork.rateByPath(path, sourceTokenAmount);
 
         //return the rate for 1 token with 18 decimals
         return expectedReturn.mul(10**18).div(sourceTokenAmount);

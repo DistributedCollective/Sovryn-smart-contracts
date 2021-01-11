@@ -15,31 +15,28 @@ import "../swaps/SwapsUser.sol";
 import "../interfaces/ILoanPool.sol";
 import "../mixins/RewardHelper.sol";
 
-contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper, RewardHelper {
-    uint256 constant internal MONTH = 365 days / 12;
+contract LoanClosings is
+    LoanClosingsEvents,
+    VaultController,
+    InterestUser,
+    SwapsUser,
+    LiquidationHelper,
+    RewardHelper
+{
+    uint256 internal constant MONTH = 365 days / 12;
     //0.00001 BTC, would be nicer in State.sol, but would require a redeploy of the complete protocol, so adding it here instead
     //because it's not shared state anyway and only used by this contract
-    uint256 constant public paySwapExcessToBorrowerThreshold = 10000000000000;
+    uint256 public constant paySwapExcessToBorrowerThreshold = 10000000000000;
 
-    enum CloseTypes {
-        Deposit,
-        Swap,
-        Liquidation
-    }
+    enum CloseTypes {Deposit, Swap, Liquidation}
 
     constructor() public {}
 
-    function()
-        external
-    {
+    function() external {
         revert("fallback not allowed");
     }
 
-    function initialize(
-        address target)
-        external
-        onlyOwner
-    {
+    function initialize(address target) external onlyOwner {
         _setTarget(this.liquidate.selector, target);
         _setTarget(this.rollover.selector, target);
         _setTarget(this.closeWithDeposit.selector, target);
@@ -56,7 +53,8 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
     function liquidate(
         bytes32 loanId,
         address receiver,
-        uint256 closeAmount) // denominated in loanToken
+        uint256 closeAmount // denominated in loanToken
+    )
         external
         payable
         nonReentrant
@@ -66,40 +64,36 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             address seizedToken
         )
     {
-        return _liquidate(
-            loanId,
-            receiver,
-            closeAmount
-        );
+        return _liquidate(loanId, receiver, closeAmount);
     }
 
     function rollover(
         bytes32 loanId,
-        bytes calldata /*loanDataBytes*/) // for future use
-        external
-        nonReentrant
-    {
+        bytes calldata /*loanDataBytes*/ // for future use
+    ) external nonReentrant {
         // restrict to EOAs to prevent griefing attacks, during interest rate recalculation
         require(msg.sender == tx.origin, "only EOAs can call");
 
-        return _rollover(
-            loanId,
-            "" // loanDataBytes
-        );
+        return
+            _rollover(
+                loanId,
+                "" // loanDataBytes
+            );
     }
 
     /**
-    * Closes a loan by doing a deposit
-    * @param loanId the id of the loan
-    * @param receiver the receiver of the remainder
-    * @param depositAmount defines how much of the position should be closed. It is denominated in loan tokens.
-    *       depositAmount > principal, the complete loan will be closed
-    *       else deposit amount (partial closure)
-    **/
+     * Closes a loan by doing a deposit
+     * @param loanId the id of the loan
+     * @param receiver the receiver of the remainder
+     * @param depositAmount defines how much of the position should be closed. It is denominated in loan tokens.
+     *       depositAmount > principal, the complete loan will be closed
+     *       else deposit amount (partial closure)
+     **/
     function closeWithDeposit(
         bytes32 loanId,
         address receiver,
-        uint256 depositAmount) // denominated in loanToken
+        uint256 depositAmount // denominated in loanToken
+    )
         public
         payable
         nonReentrant
@@ -109,11 +103,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             address withdrawToken
         )
     {
-        return _closeWithDeposit(
-            loanId,
-            receiver,
-            depositAmount
-        );
+        return _closeWithDeposit(loanId, receiver, depositAmount);
     }
 
     /**
@@ -132,7 +122,8 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         address receiver,
         uint256 swapAmount, // denominated in collateralToken
         bool returnTokenIsCollateral, // true: withdraws collateralToken, false: withdraws loanToken
-        bytes memory /*loanDataBytes*/) // for future use
+        bytes memory /*loanDataBytes*/ // for future use
+    )
         public
         nonReentrant
         returns (
@@ -141,13 +132,14 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             address withdrawToken
         )
     {
-        return _closeWithSwap(
-            loanId,
-            receiver,
-            swapAmount,
-            returnTokenIsCollateral,
-            "" // loanDataBytes
-        );
+        return
+            _closeWithSwap(
+                loanId,
+                receiver,
+                swapAmount,
+                returnTokenIsCollateral,
+                "" // loanDataBytes
+            );
     }
 
     /**
@@ -159,7 +151,8 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
     function _liquidate(
         bytes32 loanId,
         address receiver,
-        uint256 closeAmount)
+        uint256 closeAmount
+    )
         internal
         returns (
             uint256 loanCloseAmount,
@@ -173,12 +166,13 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         require(loanLocal.active, "loan is closed");
         require(loanParamsLocal.id != 0, "loanParams not exists");
 
-        (uint256 currentMargin, uint256 collateralToLoanRate) = IPriceFeeds(priceFeeds).getCurrentMargin(
-            loanParamsLocal.loanToken,
-            loanParamsLocal.collateralToken,
-            loanLocal.principal,
-            loanLocal.collateral
-        );
+        (uint256 currentMargin, uint256 collateralToLoanRate) =
+            IPriceFeeds(priceFeeds).getCurrentMargin(
+                loanParamsLocal.loanToken,
+                loanParamsLocal.collateralToken,
+                loanLocal.principal,
+                loanLocal.collateral
+            );
         require(
             currentMargin <= loanParamsLocal.maintenanceMargin,
             "healthy position"
@@ -187,18 +181,19 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         loanCloseAmount = closeAmount;
 
         //amounts to restore the desired margin (maintencance + 5%)
-        (uint256 maxLiquidatable, uint256 maxSeizable,) = _getLiquidationAmounts(
-            loanLocal.principal,
-            loanLocal.collateral,
-            currentMargin,
-            loanParamsLocal.maintenanceMargin,
-            collateralToLoanRate
-        );
+        (uint256 maxLiquidatable, uint256 maxSeizable, ) =
+            _getLiquidationAmounts(
+                loanLocal.principal,
+                loanLocal.collateral,
+                currentMargin,
+                loanParamsLocal.maintenanceMargin,
+                collateralToLoanRate
+            );
 
         if (loanCloseAmount < maxLiquidatable) {
-            seizedAmount = maxSeizable
-                .mul(loanCloseAmount)
-                .div(maxLiquidatable);
+            seizedAmount = maxSeizable.mul(loanCloseAmount).div(
+                maxLiquidatable
+            );
         } else if (loanCloseAmount > maxLiquidatable) {
             // adjust down the close amount to the max
             loanCloseAmount = maxLiquidatable;
@@ -217,12 +212,13 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         );
 
         // a portion of the principal is repaid to the lender out of interest refunded
-        uint256 loanCloseAmountLessInterest = _settleInterestToPrincipal(
-            loanLocal,
-            loanParamsLocal,
-            loanCloseAmount,
-            loanLocal.borrower
-        );
+        uint256 loanCloseAmountLessInterest =
+            _settleInterestToPrincipal(
+                loanLocal,
+                loanParamsLocal,
+                loanCloseAmount,
+                loanLocal.borrower
+            );
 
         if (loanCloseAmount > loanCloseAmountLessInterest) {
             // full interest refund goes to the borrower
@@ -246,20 +242,12 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         seizedToken = loanParamsLocal.collateralToken;
 
         if (seizedAmount != 0) {
-            loanLocal.collateral = loanLocal.collateral
-                .sub(seizedAmount);
+            loanLocal.collateral = loanLocal.collateral.sub(seizedAmount);
 
-            _withdrawAsset(
-                seizedToken,
-                receiver,
-                seizedAmount
-            );
+            _withdrawAsset(seizedToken, receiver, seizedAmount);
         }
 
-        _closeLoan(
-            loanLocal,
-            loanCloseAmount
-        );
+        _closeLoan(loanLocal, loanCloseAmount);
 
         _emitClosingEvents(
             loanParamsLocal,
@@ -273,11 +261,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         );
     }
 
-    function _rollover(
-        bytes32 loanId,
-        bytes memory loanDataBytes)
-        internal
-    {
+    function _rollover(bytes32 loanId, bytes memory loanDataBytes) internal {
         Loan storage loanLocal = loans[loanId];
         LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
 
@@ -293,13 +277,11 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         );
 
         // pay outstanding interest to lender
-        _payInterest(
-            loanLocal.lender,
-            loanParamsLocal.loanToken
-        );
+        _payInterest(loanLocal.lender, loanParamsLocal.loanToken);
 
         LoanInterest storage loanInterestLocal = loanInterest[loanLocal.id];
-        LenderInterest storage lenderInterestLocal = lenderInterest[loanLocal.lender][loanParamsLocal.loanToken];
+        LenderInterest storage lenderInterestLocal =
+            lenderInterest[loanLocal.lender][loanParamsLocal.loanToken];
 
         _settleFeeRewardForInterestExpense(
             loanInterestLocal,
@@ -313,99 +295,117 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         uint256 backInterestTime;
         uint256 backInterestOwed;
         if (block.timestamp > loanLocal.endTimestamp) {
-            backInterestTime = block.timestamp
-                .sub(loanLocal.endTimestamp);
-            backInterestOwed = backInterestTime
-                .mul(loanInterestLocal.owedPerDay);
-            backInterestOwed = backInterestOwed
-                .div(1 days);
+            backInterestTime = block.timestamp.sub(loanLocal.endTimestamp);
+            backInterestOwed = backInterestTime.mul(
+                loanInterestLocal.owedPerDay
+            );
+            backInterestOwed = backInterestOwed.div(1 days);
         }
 
         //note: to avoid code duplication, it would be nicer to store loanParamsLocal.maxLoanTerm in a local variable
         //however, we've got stack too deep issues if we do so.
         if (loanParamsLocal.maxLoanTerm != 0) {
             // fixed-term loan, so need to query iToken for latest variable rate
-            uint256 owedPerDay = loanLocal.principal
-                .mul(ILoanPool(loanLocal.lender).borrowInterestRate())
-                .div(365 * 10**20);
+            uint256 owedPerDay =
+                loanLocal
+                    .principal
+                    .mul(ILoanPool(loanLocal.lender).borrowInterestRate())
+                    .div(365 * 10**20);
 
-            lenderInterestLocal.owedPerDay = lenderInterestLocal.owedPerDay
-                .add(owedPerDay);
-            lenderInterestLocal.owedPerDay = lenderInterestLocal.owedPerDay
-                .sub(loanInterestLocal.owedPerDay);
+            lenderInterestLocal.owedPerDay = lenderInterestLocal.owedPerDay.add(
+                owedPerDay
+            );
+            lenderInterestLocal.owedPerDay = lenderInterestLocal.owedPerDay.sub(
+                loanInterestLocal.owedPerDay
+            );
 
             loanInterestLocal.owedPerDay = owedPerDay;
 
             //if the loan has been open for longer than an additional period, add at least 1 additional day
             if (backInterestTime >= loanParamsLocal.maxLoanTerm) {
-                loanLocal.endTimestamp = loanLocal.endTimestamp
-                    .add(backInterestTime).add(1 days);
+                loanLocal.endTimestamp = loanLocal
+                    .endTimestamp
+                    .add(backInterestTime)
+                    .add(1 days);
             }
             //extend by the max loan term
-            else{
-                loanLocal.endTimestamp = loanLocal.endTimestamp
-                    .add(loanParamsLocal.maxLoanTerm);
+            else {
+                loanLocal.endTimestamp = loanLocal.endTimestamp.add(
+                    loanParamsLocal.maxLoanTerm
+                );
             }
         } else {
             // loanInterestLocal.owedPerDay doesn't change
-            if (backInterestTime >= MONTH){
-                loanLocal.endTimestamp = loanLocal.endTimestamp
-                    .add(backInterestTime).add(1 days);
-            }
-            else{
-                loanLocal.endTimestamp = loanLocal.endTimestamp
-                    .add(MONTH); 
+            if (backInterestTime >= MONTH) {
+                loanLocal.endTimestamp = loanLocal
+                    .endTimestamp
+                    .add(backInterestTime)
+                    .add(1 days);
+            } else {
+                loanLocal.endTimestamp = loanLocal.endTimestamp.add(MONTH);
             }
         }
 
-        uint256 interestAmountRequired = loanLocal.endTimestamp
-            .sub(block.timestamp);
-        interestAmountRequired = interestAmountRequired
-            .mul(loanInterestLocal.owedPerDay);
-        interestAmountRequired = interestAmountRequired
-            .div(1 days);
+        uint256 interestAmountRequired =
+            loanLocal.endTimestamp.sub(block.timestamp);
+        interestAmountRequired = interestAmountRequired.mul(
+            loanInterestLocal.owedPerDay
+        );
+        interestAmountRequired = interestAmountRequired.div(1 days);
 
-        loanInterestLocal.depositTotal = loanInterestLocal.depositTotal
-            .add(interestAmountRequired);
-
-        lenderInterestLocal.owedTotal = lenderInterestLocal.owedTotal
-            .add(interestAmountRequired);
-
-        // add backInterestOwed
-        interestAmountRequired = interestAmountRequired
-            .add(backInterestOwed);
-
-        // collect interest (needs to be converted from the collateral)
-        ( uint256 destTokenAmountReceived , uint256 sourceTokenAmountUsed,) = _doCollateralSwap(
-            loanLocal,
-            loanParamsLocal,
-            0,//min swap 0 -> swap connector estimates the amount of source tokens to use
-            interestAmountRequired,//required destination tokens
-            true, // returnTokenIsCollateral
-            loanDataBytes
+        loanInterestLocal.depositTotal = loanInterestLocal.depositTotal.add(
+            interestAmountRequired
         );
 
-        //received more tokens than needed to pay the interest 
-        if(destTokenAmountReceived > interestAmountRequired){
+        lenderInterestLocal.owedTotal = lenderInterestLocal.owedTotal.add(
+            interestAmountRequired
+        );
+
+        // add backInterestOwed
+        interestAmountRequired = interestAmountRequired.add(backInterestOwed);
+
+        // collect interest (needs to be converted from the collateral)
+        (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed, ) =
+            _doCollateralSwap(
+                loanLocal,
+                loanParamsLocal,
+                0, //min swap 0 -> swap connector estimates the amount of source tokens to use
+                interestAmountRequired, //required destination tokens
+                true, // returnTokenIsCollateral
+                loanDataBytes
+            );
+
+        //received more tokens than needed to pay the interest
+        if (destTokenAmountReceived > interestAmountRequired) {
             // swap rest back to collateral, if the amount is big enough to cover gas cost
-            if(worthTheTransfer(loanParamsLocal.loanToken, destTokenAmountReceived - interestAmountRequired)){
-                (destTokenAmountReceived , ,) = _swapBackExcess(
+            if (
+                worthTheTransfer(
+                    loanParamsLocal.loanToken,
+                    destTokenAmountReceived - interestAmountRequired
+                )
+            ) {
+                (destTokenAmountReceived, , ) = _swapBackExcess(
                     loanLocal,
                     loanParamsLocal,
-                    destTokenAmountReceived - interestAmountRequired,  //amount to be swapped
-                    loanDataBytes);
-                sourceTokenAmountUsed = sourceTokenAmountUsed.sub(destTokenAmountReceived);
+                    destTokenAmountReceived - interestAmountRequired, //amount to be swapped
+                    loanDataBytes
+                );
+                sourceTokenAmountUsed = sourceTokenAmountUsed.sub(
+                    destTokenAmountReceived
+                );
             }
             //else give it to the protocol as a lending fee
-            else{
-                _payLendingFee(loanLocal.borrower, loanParamsLocal.loanToken, destTokenAmountReceived - interestAmountRequired);
+            else {
+                _payLendingFee(
+                    loanLocal.borrower,
+                    loanParamsLocal.loanToken,
+                    destTokenAmountReceived - interestAmountRequired
+                );
             }
-            
         }
 
         //subtract the interest from the collateral
-        loanLocal.collateral = loanLocal.collateral
-            .sub(sourceTokenAmountUsed);
+        loanLocal.collateral = loanLocal.collateral.sub(sourceTokenAmountUsed);
 
         if (backInterestOwed != 0) {
             // pay out backInterestOwed
@@ -417,12 +417,16 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             );
         }
 
-        uint256 rolloverReward = _getRolloverReward(loanParamsLocal.collateralToken, loanParamsLocal.loanToken, loanLocal.principal);
+        uint256 rolloverReward =
+            _getRolloverReward(
+                loanParamsLocal.collateralToken,
+                loanParamsLocal.loanToken,
+                loanLocal.principal
+            );
 
         if (rolloverReward != 0) {
             // pay out reward to caller
-            loanLocal.collateral = loanLocal.collateral
-                .sub(rolloverReward);
+            loanLocal.collateral = loanLocal.collateral.sub(rolloverReward);
 
             _withdrawAsset(
                 loanParamsLocal.collateralToken,
@@ -431,12 +435,13 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             );
         }
 
-        (uint256 currentMargin,) = IPriceFeeds(priceFeeds).getCurrentMargin(
-            loanParamsLocal.loanToken,
-            loanParamsLocal.collateralToken,
-            loanLocal.principal,
-            loanLocal.collateral
-        );
+        (uint256 currentMargin, ) =
+            IPriceFeeds(priceFeeds).getCurrentMargin(
+                loanParamsLocal.loanToken,
+                loanParamsLocal.collateralToken,
+                loanLocal.principal,
+                loanLocal.collateral
+            );
         require(
             currentMargin > 3 ether, // ensure there's more than 3% margin remaining
             "unhealthy position"
@@ -444,17 +449,18 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
     }
 
     /**
-    * Internal function for closing a loan by doing a deposit
-    * @param loanId the id of the loan
-    * @param receiver the receiver of the remainder
-    * @param depositAmount defines how much of the position should be closed. It is denominated in loan tokens.
-    *       depositAmount > principal, the complete loan will be closed
-    *       else deposit amount (partial closure)
-    **/
+     * Internal function for closing a loan by doing a deposit
+     * @param loanId the id of the loan
+     * @param receiver the receiver of the remainder
+     * @param depositAmount defines how much of the position should be closed. It is denominated in loan tokens.
+     *       depositAmount > principal, the complete loan will be closed
+     *       else deposit amount (partial closure)
+     **/
     function _closeWithDeposit(
         bytes32 loanId,
         address receiver,
-        uint256 depositAmount) // denominated in loanToken
+        uint256 depositAmount // denominated in loanToken
+    )
         internal
         returns (
             uint256 loanCloseAmount,
@@ -466,22 +472,20 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 
         Loan storage loanLocal = loans[loanId];
         LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
-        _checkAuthorized(
-            loanLocal,
-            loanParamsLocal
-        );
+        _checkAuthorized(loanLocal, loanParamsLocal);
 
         // can't close more than the full principal
-        loanCloseAmount = depositAmount > loanLocal.principal ?
-            loanLocal.principal :
-            depositAmount;
+        loanCloseAmount = depositAmount > loanLocal.principal
+            ? loanLocal.principal
+            : depositAmount;
 
-        uint256 loanCloseAmountLessInterest = _settleInterestToPrincipal(
-            loanLocal,
-            loanParamsLocal,
-            loanCloseAmount,
-            receiver
-        );
+        uint256 loanCloseAmountLessInterest =
+            _settleInterestToPrincipal(
+                loanLocal,
+                loanParamsLocal,
+                loanCloseAmount,
+                receiver
+            );
 
         if (loanCloseAmountLessInterest != 0) {
             _returnPrincipalWithDeposit(
@@ -494,22 +498,17 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         if (loanCloseAmount == loanLocal.principal) {
             withdrawAmount = loanLocal.collateral;
         } else {
-            withdrawAmount = loanLocal.collateral
-                .mul(loanCloseAmount)
-                .div(loanLocal.principal);
+            withdrawAmount = loanLocal.collateral.mul(loanCloseAmount).div(
+                loanLocal.principal
+            );
         }
 
         withdrawToken = loanParamsLocal.collateralToken;
 
         if (withdrawAmount != 0) {
-            loanLocal.collateral = loanLocal.collateral
-                .sub(withdrawAmount);
+            loanLocal.collateral = loanLocal.collateral.sub(withdrawAmount);
 
-            _withdrawAsset(
-                withdrawToken,
-                receiver,
-                withdrawAmount
-            );
+            _withdrawAsset(withdrawToken, receiver, withdrawAmount);
         }
 
         _finalizeClose(
@@ -538,7 +537,8 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         address receiver,
         uint256 swapAmount,
         bool returnTokenIsCollateral,
-        bytes memory loanDataBytes)
+        bytes memory loanDataBytes
+    )
         internal
         returns (
             uint256 loanCloseAmount,
@@ -550,28 +550,23 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 
         Loan storage loanLocal = loans[loanId];
         LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
-        _checkAuthorized(
-            loanLocal,
-            loanParamsLocal
-        );
+        _checkAuthorized(loanLocal, loanParamsLocal);
 
         //can't swap more than collateral
-        swapAmount = swapAmount > loanLocal.collateral ?
-            loanLocal.collateral :
-            swapAmount;
+        swapAmount = swapAmount > loanLocal.collateral
+            ? loanLocal.collateral
+            : swapAmount;
 
         uint256 loanCloseAmountLessInterest;
         if (swapAmount == loanLocal.collateral || returnTokenIsCollateral) {
             //loanCloseAmountLessInterest will be passed as required amount amount of destination tokens.
             //this means, the actual swapAmount passed to the swap contract does not matter at all.
             //the source token amount will be computed depending on the required amount amount of destination tokens.
-            loanCloseAmount = swapAmount == loanLocal.collateral ?
-                loanLocal.principal :
-                loanLocal.principal
-                    .mul(swapAmount)
-                    .div(loanLocal.collateral);
+            loanCloseAmount = swapAmount == loanLocal.collateral
+                ? loanLocal.principal
+                : loanLocal.principal.mul(swapAmount).div(loanLocal.collateral);
             require(loanCloseAmount != 0, "loanCloseAmount == 0");
-            
+
             //computes the interest refund for the borrower and sends it to the lender to cover part of the principal
             loanCloseAmountLessInterest = _settleInterestToPrincipal(
                 loanLocal,
@@ -588,7 +583,12 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         uint256 coveredPrincipal;
         uint256 usedCollateral;
         // swapAmount repurposed for collateralToLoanSwapRate to avoid stack too deep error
-        (coveredPrincipal, usedCollateral, withdrawAmount, swapAmount) = _coverPrincipalWithSwap(
+        (
+            coveredPrincipal,
+            usedCollateral,
+            withdrawAmount,
+            swapAmount
+        ) = _coverPrincipalWithSwap(
             loanLocal,
             loanParamsLocal,
             swapAmount, //the amount of source tokens to swap (only matters if !returnTokenIsCollateral or loanCloseAmountLessInterest = 0)
@@ -603,9 +603,9 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             // amounts that is closed
             loanCloseAmount = coveredPrincipal;
             if (coveredPrincipal != loanLocal.principal) {
-                loanCloseAmount = loanCloseAmount
-                    .mul(usedCollateral)
-                    .div(loanLocal.collateral);
+                loanCloseAmount = loanCloseAmount.mul(usedCollateral).div(
+                    loanLocal.collateral
+                );
             }
             require(loanCloseAmount != 0, "loanCloseAmount == 0");
 
@@ -618,20 +618,22 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             );
 
             // remaining amount withdrawn to the receiver
-            withdrawAmount = withdrawAmount
-                .add(coveredPrincipal)
-                .sub(loanCloseAmountLessInterest);
+            withdrawAmount = withdrawAmount.add(coveredPrincipal).sub(
+                loanCloseAmountLessInterest
+            );
         } else {
             //pay back the amount which was covered by the swap
             loanCloseAmountLessInterest = coveredPrincipal;
         }
 
-        require(loanCloseAmountLessInterest != 0, "closeAmount is 0 after swap");
-        
+        require(
+            loanCloseAmountLessInterest != 0,
+            "closeAmount is 0 after swap"
+        );
+
         //reduce the collateral by the amount which was swapped for the closure
         if (usedCollateral != 0) {
-            loanLocal.collateral = loanLocal.collateral
-                .sub(usedCollateral);
+            loanLocal.collateral = loanLocal.collateral.sub(usedCollateral);
         }
 
         // Repays principal to lender
@@ -643,16 +645,12 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             loanCloseAmountLessInterest
         );
 
-        withdrawToken = returnTokenIsCollateral ?
-            loanParamsLocal.collateralToken :
-            loanParamsLocal.loanToken;
+        withdrawToken = returnTokenIsCollateral
+            ? loanParamsLocal.collateralToken
+            : loanParamsLocal.loanToken;
 
         if (withdrawAmount != 0) {
-            _withdrawAsset(
-                withdrawToken,
-                receiver,
-                withdrawAmount
-            );
+            _withdrawAsset(withdrawToken, receiver, withdrawAmount);
         }
 
         _finalizeClose(
@@ -667,19 +665,17 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 
     function _checkAuthorized(
         Loan memory loanLocal,
-        LoanParams memory loanParamsLocal)
-        internal
-        view
-    {
+        LoanParams memory loanParamsLocal
+    ) internal view {
         require(loanLocal.active, "loan is closed");
         require(
             msg.sender == loanLocal.borrower ||
-            delegatedManagers[loanLocal.id][msg.sender],
+                delegatedManagers[loanLocal.id][msg.sender],
             "unauthorized"
         );
         require(loanParamsLocal.id != 0, "loanParams not exists");
     }
-    
+
     /**
      * @dev computes the interest which needs to be refunded to the borrower based on the amount he's closing and either
      * subtracts it from the amount which still needs to be paid back (in case outstanding amount > interest) or withdraws the
@@ -693,18 +689,17 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         Loan memory loanLocal,
         LoanParams memory loanParamsLocal,
         uint256 loanCloseAmount,
-        address receiver)
-        internal
-        returns (uint256)
-    {
+        address receiver
+    ) internal returns (uint256) {
         uint256 loanCloseAmountLessInterest = loanCloseAmount;
 
         //compute the interest which neeeds to be refunded to the borrower (because full interest is paid on loan )
-        uint256 interestRefundToBorrower = _settleInterest(
-            loanParamsLocal,
-            loanLocal,
-            loanCloseAmountLessInterest
-        );
+        uint256 interestRefundToBorrower =
+            _settleInterest(
+                loanParamsLocal,
+                loanLocal,
+                loanCloseAmountLessInterest
+            );
 
         uint256 interestAppliedToPrincipal;
         //if the outstanding loan is bigger than the interest to be refunded, reduce the amount to be paid back / closed by the interest
@@ -717,7 +712,8 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 
             // no interest refund remaining
             interestRefundToBorrower = 0;
-        } else {//if the interest refund is bigger than the outstanding loan, the user needs to get back the interest
+        } else {
+            //if the interest refund is bigger than the outstanding loan, the user needs to get back the interest
             // principal fully covered by excess interest
             interestAppliedToPrincipal = loanCloseAmountLessInterest;
 
@@ -756,17 +752,11 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
     function _returnPrincipalWithDeposit(
         address loanToken,
         address receiver,
-        uint256 principalNeeded)
-        internal
-    {
+        uint256 principalNeeded
+    ) internal {
         if (principalNeeded != 0) {
             if (msg.value == 0) {
-                vaultTransfer(
-                    loanToken,
-                    msg.sender,
-                    receiver,
-                    principalNeeded
-                );
+                vaultTransfer(loanToken, msg.sender, receiver, principalNeeded);
             } else {
                 require(loanToken == address(wrbtcToken), "wrong asset sent");
                 require(msg.value >= principalNeeded, "not enough ether");
@@ -781,30 +771,35 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
                 }
                 if (msg.value > principalNeeded) {
                     // refund overage
-                    Address.sendValue(
-                        msg.sender,
-                        msg.value - principalNeeded
-                    );
+                    Address.sendValue(msg.sender, msg.value - principalNeeded);
                 }
             }
         } else {
             require(msg.value == 0, "wrong asset sent");
         }
     }
-    
+
     /**
      * @dev checks if the amount of the asset to be transfered is worth the transfer fee
      * @param asset the asset to be transfered
      * @param amount the amount to be transfered
      * @return True if the amount is bigger than the threshold
      * */
-    function worthTheTransfer(address asset, uint256 amount) internal returns (bool){
-        (uint256 rbtcRate, uint256 rbtcPrecision) = IPriceFeeds(priceFeeds).queryRate(asset, address(wrbtcToken));
+    function worthTheTransfer(address asset, uint256 amount)
+        internal
+        returns (bool)
+    {
+        (uint256 rbtcRate, uint256 rbtcPrecision) =
+            IPriceFeeds(priceFeeds).queryRate(asset, address(wrbtcToken));
         uint256 amountInRbtc = amount.mul(rbtcRate).div(rbtcPrecision);
-        emit swapExcess(amountInRbtc > paySwapExcessToBorrowerThreshold, amount, amountInRbtc, paySwapExcessToBorrowerThreshold);
+        emit swapExcess(
+            amountInRbtc > paySwapExcessToBorrowerThreshold,
+            amount,
+            amountInRbtc,
+            paySwapExcessToBorrowerThreshold
+        );
         return amountInRbtc > paySwapExcessToBorrowerThreshold;
     }
-    
 
     /**
      * swaps a share of a loan's collateral or the complete collateral in order to cover the principle.
@@ -821,13 +816,23 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         uint256 swapAmount,
         uint256 principalNeeded,
         bool returnTokenIsCollateral,
-        bytes memory loanDataBytes)
+        bytes memory loanDataBytes
+    )
         internal
-        returns (uint256 coveredPrincipal, uint256 usedCollateral, uint256 withdrawAmount, uint256 collateralToLoanSwapRate)
+        returns (
+            uint256 coveredPrincipal,
+            uint256 usedCollateral,
+            uint256 withdrawAmount,
+            uint256 collateralToLoanSwapRate
+        )
     {
         uint256 destTokenAmountReceived;
         uint256 sourceTokenAmountUsed;
-        (destTokenAmountReceived, sourceTokenAmountUsed, collateralToLoanSwapRate) = _doCollateralSwap(
+        (
+            destTokenAmountReceived,
+            sourceTokenAmountUsed,
+            collateralToLoanSwapRate
+        ) = _doCollateralSwap(
             loanLocal,
             loanParamsLocal,
             swapAmount,
@@ -838,12 +843,16 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 
         if (returnTokenIsCollateral) {
             coveredPrincipal = principalNeeded;
-            
+
             // better fill than expected
             if (destTokenAmountReceived > coveredPrincipal) {
-
                 //  send excess to borrower if the amount is big enough to be worth the gas fees
-                if(worthTheTransfer(loanParamsLocal.loanToken, destTokenAmountReceived - coveredPrincipal)){
+                if (
+                    worthTheTransfer(
+                        loanParamsLocal.loanToken,
+                        destTokenAmountReceived - coveredPrincipal
+                    )
+                ) {
                     _withdrawAsset(
                         loanParamsLocal.loanToken,
                         loanLocal.borrower,
@@ -851,14 +860,13 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
                     );
                 }
                 // else, give the excess to the lender (if it goes to the borrower, they're very confused. causes more trouble than it's worth)
-                else{
+                else {
                     coveredPrincipal = destTokenAmountReceived;
                 }
-                
             }
-            withdrawAmount = swapAmount > sourceTokenAmountUsed ?
-                swapAmount - sourceTokenAmountUsed :
-                0;
+            withdrawAmount = swapAmount > sourceTokenAmountUsed
+                ? swapAmount - sourceTokenAmountUsed
+                : 0;
         } else {
             require(sourceTokenAmountUsed == swapAmount, "swap error");
 
@@ -867,7 +875,6 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 
                 coveredPrincipal = principalNeeded;
                 withdrawAmount = destTokenAmountReceived - principalNeeded;
-
             } else {
                 // sourceTokenAmountUsed == swapAmount < loanLocal.collateral
 
@@ -875,7 +882,9 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
                     // edge case where swap covers full principal
 
                     coveredPrincipal = loanLocal.principal;
-                    withdrawAmount = destTokenAmountReceived - loanLocal.principal;
+                    withdrawAmount =
+                        destTokenAmountReceived -
+                        loanLocal.principal;
 
                     // excess collateral refunds to the borrower
                     _withdrawAsset(
@@ -891,9 +900,9 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             }
         }
 
-        usedCollateral = sourceTokenAmountUsed > swapAmount ?
-            sourceTokenAmountUsed :
-            swapAmount;
+        usedCollateral = sourceTokenAmountUsed > swapAmount
+            ? sourceTokenAmountUsed
+            : swapAmount;
     }
 
     /**
@@ -912,25 +921,40 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         uint256 swapAmount,
         uint256 principalNeeded,
         bool returnTokenIsCollateral,
-        bytes memory loanDataBytes)
+        bytes memory loanDataBytes
+    )
         internal
-        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed, uint256 collateralToLoanSwapRate)
+        returns (
+            uint256 destTokenAmountReceived,
+            uint256 sourceTokenAmountUsed,
+            uint256 collateralToLoanSwapRate
+        )
     {
-        (destTokenAmountReceived, sourceTokenAmountUsed, collateralToLoanSwapRate) = _loanSwap(
+        (
+            destTokenAmountReceived,
+            sourceTokenAmountUsed,
+            collateralToLoanSwapRate
+        ) = _loanSwap(
             loanLocal.id,
             loanParamsLocal.collateralToken,
             loanParamsLocal.loanToken,
             loanLocal.borrower,
             swapAmount, // minSourceTokenAmount
             loanLocal.collateral, // maxSourceTokenAmount
-            returnTokenIsCollateral ?
-                principalNeeded :  // requiredDestTokenAmount
-                0,
+            returnTokenIsCollateral
+                ? principalNeeded // requiredDestTokenAmount
+                : 0,
             false, // bypassFee
             loanDataBytes
         );
-        require(destTokenAmountReceived >= principalNeeded, "insufficient dest amount");
-        require(sourceTokenAmountUsed <= loanLocal.collateral, "excessive source amount");
+        require(
+            destTokenAmountReceived >= principalNeeded,
+            "insufficient dest amount"
+        );
+        require(
+            sourceTokenAmountUsed <= loanLocal.collateral,
+            "excessive source amount"
+        );
     }
 
     /**
@@ -944,44 +968,44 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         Loan memory loanLocal,
         LoanParams memory loanParamsLocal,
         uint256 swapAmount,
-        bytes memory loanDataBytes)
+        bytes memory loanDataBytes
+    )
         internal
-        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed, uint256 collateralToLoanSwapRate)
+        returns (
+            uint256 destTokenAmountReceived,
+            uint256 sourceTokenAmountUsed,
+            uint256 collateralToLoanSwapRate
+        )
     {
-        (destTokenAmountReceived, sourceTokenAmountUsed, collateralToLoanSwapRate) = _loanSwap(
+        (
+            destTokenAmountReceived,
+            sourceTokenAmountUsed,
+            collateralToLoanSwapRate
+        ) = _loanSwap(
             loanLocal.id,
             loanParamsLocal.loanToken,
             loanParamsLocal.collateralToken,
             loanLocal.borrower,
             swapAmount, // minSourceTokenAmount
             swapAmount, // maxSourceTokenAmount
-            0,  // requiredDestTokenAmount
+            0, // requiredDestTokenAmount
             false, // bypassFee
             loanDataBytes
         );
         require(sourceTokenAmountUsed <= swapAmount, "excessive source amount");
     }
 
-
     // withdraws asset to receiver
     function _withdrawAsset(
         address assetToken,
         address receiver,
-        uint256 assetAmount)
-        internal
-    {
+        uint256 assetAmount
+    ) internal {
         if (assetAmount != 0) {
             if (assetToken == address(wrbtcToken)) {
-                vaultEtherWithdraw(
-                    receiver,
-                    assetAmount
-                );
+                vaultEtherWithdraw(receiver, assetAmount);
             } else {
-                vaultWithdraw(
-                    assetToken,
-                    receiver,
-                    assetAmount
-                );
+                vaultWithdraw(assetToken, receiver, assetAmount);
             }
         }
     }
@@ -992,28 +1016,25 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         uint256 loanCloseAmount,
         uint256 collateralCloseAmount,
         uint256 collateralToLoanSwapRate,
-        CloseTypes closeType)
-        internal
-    {
-        _closeLoan(
-            loanLocal,
-            loanCloseAmount
-        );
+        CloseTypes closeType
+    ) internal {
+        _closeLoan(loanLocal, loanCloseAmount);
 
         address _priceFeeds = priceFeeds;
         uint256 currentMargin;
         uint256 collateralToLoanRate;
 
         // this is still called even with full loan close to return collateralToLoanRate
-        (bool success, bytes memory data) = _priceFeeds.staticcall(
-            abi.encodeWithSelector(
-                IPriceFeeds(_priceFeeds).getCurrentMargin.selector,
-                loanParamsLocal.loanToken,
-                loanParamsLocal.collateralToken,
-                loanLocal.principal,
-                loanLocal.collateral
-            )
-        );
+        (bool success, bytes memory data) =
+            _priceFeeds.staticcall(
+                abi.encodeWithSelector(
+                    IPriceFeeds(_priceFeeds).getCurrentMargin.selector,
+                    loanParamsLocal.loanToken,
+                    loanParamsLocal.collateralToken,
+                    loanLocal.principal,
+                    loanLocal.collateral
+                )
+            );
         assembly {
             if eq(success, 1) {
                 currentMargin := mload(add(data, 32))
@@ -1023,8 +1044,8 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         //// Note: We can safely skip the margin check if closing via closeWithDeposit or if closing the loan in full by any method ////
         require(
             closeType == CloseTypes.Deposit ||
-            loanLocal.principal == 0 || // loan fully closed
-            currentMargin > loanParamsLocal.maintenanceMargin,
+                loanLocal.principal == 0 || // loan fully closed
+                currentMargin > loanParamsLocal.maintenanceMargin,
             "unhealthy position"
         );
 
@@ -1040,9 +1061,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         );
     }
 
-    function _closeLoan(
-        Loan storage loanLocal,
-        uint256 loanCloseAmount)
+    function _closeLoan(Loan storage loanLocal, uint256 loanCloseAmount)
         internal
         returns (uint256)
     {
@@ -1057,26 +1076,21 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             lenderLoanSets[loanLocal.lender].removeBytes32(loanLocal.id);
             borrowerLoanSets[loanLocal.borrower].removeBytes32(loanLocal.id);
         } else {
-            loanLocal.principal = loanLocal.principal
-                .sub(loanCloseAmount);
+            loanLocal.principal = loanLocal.principal.sub(loanCloseAmount);
         }
     }
 
     function _settleInterest(
         LoanParams memory loanParamsLocal,
         Loan memory loanLocal,
-        uint256 closePrincipal)
-        internal
-        returns (uint256)
-    {
+        uint256 closePrincipal
+    ) internal returns (uint256) {
         // pay outstanding interest to lender
-        _payInterest(
-            loanLocal.lender,
-            loanParamsLocal.loanToken
-        );
+        _payInterest(loanLocal.lender, loanParamsLocal.loanToken);
 
         LoanInterest storage loanInterestLocal = loanInterest[loanLocal.id];
-        LenderInterest storage lenderInterestLocal = lenderInterest[loanLocal.lender][loanParamsLocal.loanToken];
+        LenderInterest storage lenderInterestLocal =
+            lenderInterest[loanLocal.lender][loanParamsLocal.loanToken];
 
         uint256 interestTime = block.timestamp;
         if (interestTime > loanLocal.endTimestamp) {
@@ -1093,7 +1107,8 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 
         uint256 owedPerDayRefund;
         if (closePrincipal < loanLocal.principal) {
-            owedPerDayRefund = loanInterestLocal.owedPerDay
+            owedPerDayRefund = loanInterestLocal
+                .owedPerDay
                 .mul(closePrincipal)
                 .div(loanLocal.principal);
         } else {
@@ -1101,34 +1116,38 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         }
 
         // update stored owedPerDay
-        loanInterestLocal.owedPerDay = loanInterestLocal.owedPerDay
-            .sub(owedPerDayRefund);
-        lenderInterestLocal.owedPerDay = lenderInterestLocal.owedPerDay
-            .sub(owedPerDayRefund);
+        loanInterestLocal.owedPerDay = loanInterestLocal.owedPerDay.sub(
+            owedPerDayRefund
+        );
+        lenderInterestLocal.owedPerDay = lenderInterestLocal.owedPerDay.sub(
+            owedPerDayRefund
+        );
 
         // update borrower interest
-        uint256 interestRefundToBorrower = loanLocal.endTimestamp
-            .sub(interestTime);
-        interestRefundToBorrower = interestRefundToBorrower
-            .mul(owedPerDayRefund);
-        interestRefundToBorrower = interestRefundToBorrower
-            .div(1 days);
+        uint256 interestRefundToBorrower =
+            loanLocal.endTimestamp.sub(interestTime);
+        interestRefundToBorrower = interestRefundToBorrower.mul(
+            owedPerDayRefund
+        );
+        interestRefundToBorrower = interestRefundToBorrower.div(1 days);
 
         if (closePrincipal < loanLocal.principal) {
-            loanInterestLocal.depositTotal = loanInterestLocal.depositTotal
-                .sub(interestRefundToBorrower);
+            loanInterestLocal.depositTotal = loanInterestLocal.depositTotal.sub(
+                interestRefundToBorrower
+            );
         } else {
             loanInterestLocal.depositTotal = 0;
         }
 
         // update remaining lender interest values
-        lenderInterestLocal.principalTotal = lenderInterestLocal.principalTotal
+        lenderInterestLocal.principalTotal = lenderInterestLocal
+            .principalTotal
             .sub(closePrincipal);
 
         uint256 owedTotal = lenderInterestLocal.owedTotal;
-        lenderInterestLocal.owedTotal = owedTotal > interestRefundToBorrower ?
-            owedTotal - interestRefundToBorrower :
-            0;
+        lenderInterestLocal.owedTotal = owedTotal > interestRefundToBorrower
+            ? owedTotal - interestRefundToBorrower
+            : 0;
 
         return interestRefundToBorrower;
     }
@@ -1141,26 +1160,28 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
         uint256 collateralToLoanRate,
         uint256 collateralToLoanSwapRate,
         uint256 currentMargin,
-        CloseTypes closeType)
-        internal
-    {
+        CloseTypes closeType
+    ) internal {
         if (closeType == CloseTypes.Deposit) {
             emit CloseWithDeposit(
-                loanLocal.borrower,                             // user (borrower)
-                loanLocal.lender,                               // lender
-                loanLocal.id,                                   // loanId
-                msg.sender,                                     // closer
-                loanParamsLocal.loanToken,                      // loanToken
-                loanParamsLocal.collateralToken,                // collateralToken
-                loanCloseAmount,                                // loanCloseAmount
-                collateralCloseAmount,                          // collateralCloseAmount
-                collateralToLoanRate,                           // collateralToLoanRate
-                currentMargin                                   // currentMargin
+                loanLocal.borrower, // user (borrower)
+                loanLocal.lender, // lender
+                loanLocal.id, // loanId
+                msg.sender, // closer
+                loanParamsLocal.loanToken, // loanToken
+                loanParamsLocal.collateralToken, // collateralToken
+                loanCloseAmount, // loanCloseAmount
+                collateralCloseAmount, // collateralCloseAmount
+                collateralToLoanRate, // collateralToLoanRate
+                currentMargin // currentMargin
             );
         } else if (closeType == CloseTypes.Swap) {
             // exitPrice = 1 / collateralToLoanSwapRate
             if (collateralToLoanSwapRate != 0) {
-                collateralToLoanSwapRate = SafeMath.div(10**36, collateralToLoanSwapRate);
+                collateralToLoanSwapRate = SafeMath.div(
+                    10**36,
+                    collateralToLoanSwapRate
+                );
             }
 
             // currentLeverage = 100 / currentMargin
@@ -1169,29 +1190,30 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
             }
 
             emit CloseWithSwap(
-                loanLocal.borrower,                             // user (trader)
-                loanLocal.lender,                               // lender
-                loanLocal.id,                                   // loanId
-                loanParamsLocal.collateralToken,                // collateralToken
-                loanParamsLocal.loanToken,                      // loanToken
-                msg.sender,                                     // closer
-                collateralCloseAmount,                          // positionCloseSize
-                loanCloseAmount,                                // loanCloseAmount
-                collateralToLoanSwapRate,                       // exitPrice (1 / collateralToLoanSwapRate)
-                currentMargin                                   // currentLeverage
+                loanLocal.borrower, // user (trader)
+                loanLocal.lender, // lender
+                loanLocal.id, // loanId
+                loanParamsLocal.collateralToken, // collateralToken
+                loanParamsLocal.loanToken, // loanToken
+                msg.sender, // closer
+                collateralCloseAmount, // positionCloseSize
+                loanCloseAmount, // loanCloseAmount
+                collateralToLoanSwapRate, // exitPrice (1 / collateralToLoanSwapRate)
+                currentMargin // currentLeverage
             );
-        } else { // closeType == CloseTypes.Liquidation
+        } else {
+            // closeType == CloseTypes.Liquidation
             emit Liquidate(
-                loanLocal.borrower,                             // user (borrower)
-                msg.sender,                                     // liquidator
-                loanLocal.id,                                   // loanId
-                loanLocal.lender,                               // lender
-                loanParamsLocal.loanToken,                      // loanToken
-                loanParamsLocal.collateralToken,                // collateralToken
-                loanCloseAmount,                                // loanCloseAmount
-                collateralCloseAmount,                          // collateralCloseAmount
-                collateralToLoanRate,                           // collateralToLoanRate
-                currentMargin                                   // currentMargin
+                loanLocal.borrower, // user (borrower)
+                msg.sender, // liquidator
+                loanLocal.id, // loanId
+                loanLocal.lender, // lender
+                loanParamsLocal.loanToken, // loanToken
+                loanParamsLocal.collateralToken, // collateralToken
+                loanCloseAmount, // loanCloseAmount
+                collateralCloseAmount, // collateralCloseAmount
+                collateralToLoanRate, // collateralToLoanRate
+                currentMargin // currentMargin
             );
         }
     }

@@ -7,23 +7,72 @@
 
 ## Dependencies
 
-* [python3](https://www.python.org/downloads/release/python-368/) version 3.6 or greater, python3-dev
-* [ganache-cli](https://github.com/trufflesuite/ganache-cli) - tested with version [6.9.1](https://github.com/trufflesuite/ganache-cli/releases/tag/v6.9.1)
-* [brownie](https://github.com/eth-brownie/brownie/) version 1.10.4 or greater
+* [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) - tested with v2.25.1
+* [node.js & npm](https://www.npmjs.com/get-npm) - tested with node.js v10.19.0 and npm v6.14.4
+* curl - tested with v7.68.0
+* [yarn](https://classic.yarnpkg.com/en/docs/install/) - tested with v1.22.5
+* [python3](https://www.python.org/downloads/release/python-385/) v3.8.5 or greater, python3-dev
+* [pip3](https://pip.pypa.io/en/stable/installing/) - tested with v20.0.2
+* [ganache-cli](https://github.com/trufflesuite/ganache-cli) - tested with [v6.9.1](https://github.com/trufflesuite/ganache-cli/releases/tag/v6.9.1)
+* [brownie](https://github.com/eth-brownie/brownie/) v1.12.4 or greater
+* [solc-select](https://github.com/crytic/solc-select) only if you are having multiple solc installed locally and globally.
 
-## Testing
+## Setup and Testing
 
-To run the tests, first install the developer dependencies:
+First install all the npm packages:
 
-```bash
+```
+npm i
+```
+
+And then install all the python packages using pip3:
+
+```
 pip3 install -r requirements.txt
 ```
 
-Run the all tests with:
+To run prettier:
 
-```bash
-brownie test
 ```
+npm run prettier
+```
+
+To run linting of contracts:
+
+```
+npm run lint-contracts
+```
+
+To analyze the contracts using Slither:
+
+```
+npm run analyze-contracts
+```
+
+To run the tests written in python:
+
+```
+npm run test
+```
+
+To run tests written in JS:
+
+```
+npm run test-js
+```
+
+To check the test coverage of JS:
+
+```
+npm run coverage
+```
+Note: Sometimes it might show an error "JavaScript heap out of memory", then please increase the memory allocation using:
+
+```
+export NODE_OPTIONS=--max_old_space_size=4096
+```
+
+If still the error persists, make sure that you closed the shell and opened another shell. Also, if possible, increase the number from `4096` to a higher number in the above command.
 
 ## Deployment on RSK testnet
 
