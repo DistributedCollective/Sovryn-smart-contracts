@@ -39,9 +39,9 @@ def main():
     # governorAcceptAdmin("governorOwner")
     # governorAcceptAdmin("governorAdmin")
 
-    governorAcceptAdmin("governor")
+    # governorAcceptAdmin("governor")
 
-    # prepareProposalData()
+    prepareProposalData()
 
 def loadConfig():
     global contracts, acct
@@ -431,7 +431,19 @@ def prepareProposalData():
     # print(data)
 
     # [proposal 6]
-    multiSigKeyHolders = Contract.from_abi("MultiSigKeyHolders", address=contracts['MultiSigKeyHolders'], abi=MultiSigKeyHolders.abi, owner=acct)
+    # multiSigKeyHolders = Contract.from_abi("MultiSigKeyHolders", address=contracts['MultiSigKeyHolders'], abi=MultiSigKeyHolders.abi, owner=acct)
+    #
+    # data = multiSigKeyHolders.addEthereumAndBitcoinAddresses.encode_input(["0xAdfDF3055136356a34256809c79a8cb0a99A7a86", "0x8a52CDB3e99634e2638a3DCe1A0388EDB7A32c11"], ["37S6qsjzw14MH9SFt7PmsBchobkRE6SxN4", "37S6qsjzw14MH9SFt7PmsBchobkRE6SxN5"])
+    # print(data)
 
-    data = multiSigKeyHolders.addEthereumAndBitcoinAddresses.encode_input(["0xAdfDF3055136356a34256809c79a8cb0a99A7a86", "0x8a52CDB3e99634e2638a3DCe1A0388EDB7A32c11"], ["37S6qsjzw14MH9SFt7PmsBchobkRE6SxN4", "37S6qsjzw14MH9SFt7PmsBchobkRE6SxN5"])
+    # [proposal 7]
+    # governorVault = Contract.from_abi("GovernorVault", address=contracts['governorVault'], abi=GovernorVault.abi, owner=acct)
+    #
+    # data = governorVault.transferTokens.encode_input("0x5603e46fb0bc18c5e77a769d06166ba0348ecc0b", "0xAdfDF3055136356a34256809c79a8cb0a99A7a86", 1000000000000000000000000)
+    # print(data)
+
+    # [proposal 8]
+    governorVault = Contract.from_abi("GovernorVault", address=contracts['governorVault'], abi=GovernorVault.abi, owner=acct)
+
+    data = governorVault.transferRbtc.encode_input("0x5603e46fb0bc18c5e77a769d06166ba0348ecc0b", 10000000000000000)
     print(data)
