@@ -695,6 +695,11 @@ contract('Staking', accounts => {
                 let stackingbBalance = await token.balanceOf.call(staking.address);
                 expect(stackingbBalance.toString()).to.be.equal(amount);
 
+                await mineBlock();
+                let amounts = await staking.getWithdrawAmounts(amount, lockedTS);
+                let returnedAvailableAmount = amounts[0];
+                let returnedPunishedAmount = amounts[1];
+
                 await staking.withdraw(amount, lockedTS, account2);
 
                 stackingbBalance = await token.balanceOf.call(staking.address);
@@ -713,7 +718,10 @@ contract('Staking', accounts => {
 
                 let weeks = i * 2;
                 console.log("lock date: " + weeks + " (weeks), slashed amount: " + feeSharingBalance.toString() + " ( " + feeSharingBalance / 100  + "% )");
-                await expect(feeSharingBalance).to.be.bignumber.equal(new BN(punishedAmount));
+                expect(feeSharingBalance).to.be.bignumber.equal(new BN(punishedAmount));
+
+                expect(returnedPunishedAmount).to.be.bignumber.equal(new BN(punishedAmount));
+                expect(returnedAvailableAmount).to.be.bignumber.equal(new BN(amount).sub(returnedPunishedAmount));
             }
         });
     
