@@ -33,7 +33,6 @@ interface IERC20 {
     );
 }
 
-// 0x93f549B6f5B0c8521C99a18181fBBF459010112E
 
 interface ILiquidityPoolV2Converter {
     function addLiquidity(
@@ -43,8 +42,7 @@ interface ILiquidityPoolV2Converter {
     ) external payable returns (uint256);
 
     function poolToken(IERC20 _reserveToken) external view returns (IERC20);
-    //   function removeLiquidity(ISmartToken _poolToken, uint256 _amount, uint256 _minReturn) external returns (uint256);
-    //  function poolToken(IERC20Token _reserveToken) public view returns (ISmartToken) ;
+    
 }
 
 interface SovrynProtocol {
