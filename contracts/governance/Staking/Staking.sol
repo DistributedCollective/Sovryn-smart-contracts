@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 import "./WeightedStaking.sol";
 import "./IStaking.sol";
 import "../Vesting/IVesting.sol";
+import "../../rsk/RSKAddrValidator.sol";
 
 contract Staking is IStaking, WeightedStaking {
     
@@ -265,7 +266,7 @@ contract Staking is IStaking, WeightedStaking {
         bytes32 structHash = keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, lockDate, nonce, expiry));
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
-        require(signatory != address(0), "Staking::delegateBySig: invalid signature");
+        require(RSKAddrValidator.checkPKNotZero(signatory), "Staking::delegateBySig: invalid signature");
         require(nonce == nonces[signatory]++, "Staking::delegateBySig: invalid nonce");
         require(now <= expiry, "Staking::delegateBySig: signature expired");
         return _delegate(signatory, delegatee, lockDate);

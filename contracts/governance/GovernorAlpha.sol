@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 import "./Staking/SafeMath96.sol";
 import "./Timelock.sol";
 import "./Staking/Staking.sol";
+import "../rsk/RSKAddrValidator.sol";
 
 contract GovernorAlpha is SafeMath96 {
     /// @notice The name of this contract
@@ -277,7 +278,7 @@ contract GovernorAlpha is SafeMath96 {
         bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
-        require(signatory != address(0), "GovernorAlpha::castVoteBySig: invalid signature");
+        require(RSKAddrValidator.checkPKNotZero(signatory), "GovernorAlpha::castVoteBySig: invalid signature");
         return _castVote(signatory, proposalId, support);
     }
 
