@@ -172,6 +172,25 @@ contract('ProtocolTokenHandler', async (accounts) => {
     await expectRevert(sovHandler.withdraw(accounts[1], sovHandler.address, web3.utils.toBN(1e17), 1, [sig1]), "invalid opcode");
   });
 
+  it('should revert when balance not enough', async () => {
+    await sovHandler.addSigner(accounts[0]);
+    await sovHandler.addSigner(accounts[1]);
+    await sovHandler.addSigner(accounts[2]);
 
+    await sov.approve(sovHandler.address, web3.utils.toBN(1e17));
+    await sovHandler.deposit(web3.utils.toBN(1e17));
+
+    let msgHash = await web3.utils.soliditySha3(accounts[1], sovHandler.address, web3.utils.toBN(1e18), 1);
+
+    let sig1 = await web3.eth.sign(msgHash, accounts[0]);
+    let sig2 = await web3.eth.sign(msgHash, accounts[1]);
+
+    let recoverSig1 = await web3.eth.accounts.recover(msgHash, sig1);
+    let recoverSig2 = await web3.eth.accounts.recover(msgHash, sig2);
+    assert.equal(recoverSig1, accounts[0]);
+    assert.equal(recoverSig2, accounts[1]);
+    
+    await expectRevert(sovHandler.withdraw(accounts[1], sovHandler.address, web3.utils.toBN(1e18), 1, [sig1, sig2]), "balance not enough");
+  });
 
 });

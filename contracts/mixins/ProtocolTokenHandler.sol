@@ -88,6 +88,9 @@ contract ProtocolTokenHandler is Ownable {
         require(_contractAddress == address(this), "contract address disagreement");
         require(_amount > 0, "amount should larger than zero");
 
+        uint256 balance = IERC20(protocolTokenAddress).balanceOf(address(this));
+        require(balance >= _amount, "balance not enough");
+
         uint256 oldNonce = userNonce[msg.sender];
         require(_nonce > oldNonce, "nonce smaller than last know nonce");
         userNonce[msg.sender] = _nonce;
@@ -124,10 +127,6 @@ contract ProtocolTokenHandler is Ownable {
             verifiedSigners[i] = signer;
         }
 
-        uint256 balance = IERC20(protocolTokenAddress).balanceOf(address(this));
-        if (_amount > balance) {
-            _amount = balance;
-        }
         IERC20(protocolTokenAddress).safeTransfer(
             _recipient,
             _amount
