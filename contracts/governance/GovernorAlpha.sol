@@ -169,8 +169,8 @@ contract GovernorAlpha is SafeMath96 {
     function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
         //note: passing this block's timestamp, but the number of the previous block
         //todo: think if it would be better to pass block.timestamp - 30 (average block time) (probably not because proposal starts in 1 block from now)
-        uint96 proposalThreshold = proposalThreshold();
-        require(staking.getPriorVotes(msg.sender, sub256(block.number, 1), block.timestamp) > proposalThreshold, "GovernorAlpha::propose: proposer votes below proposal threshold");
+        uint96 threshold = proposalThreshold();
+        require(staking.getPriorVotes(msg.sender, sub256(block.number, 1), block.timestamp) > threshold, "GovernorAlpha::propose: proposer votes below proposal threshold");
         require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "GovernorAlpha::propose: proposal function information arity mismatch");
         require(targets.length != 0, "GovernorAlpha::propose: must provide actions");
         require(targets.length <= proposalMaxOperations(), "GovernorAlpha::propose: too many actions");
@@ -193,8 +193,8 @@ contract GovernorAlpha is SafeMath96 {
             forVotes: 0,
             againstVotes: 0,
             //proposalThreshold is 1% of total votes, we can save gas using this pre calculated value
-            quorum: mul96(quorumPercentageVotes, proposalThreshold, "GovernorAlpha::propose: overflow on quorum computation"),
-            minPercentage: mul96(minPercentageVotes, proposalThreshold, "GovernorAlpha::propose: overflow on minPercentage computation"),
+            quorum: mul96(quorumPercentageVotes, threshold, "GovernorAlpha::propose: overflow on quorum computation"),
+            minPercentage: mul96(minPercentageVotes, threshold, "GovernorAlpha::propose: overflow on minPercentage computation"),
             eta: 0,
             startTime: safe64(block.timestamp, "GovernorAlpha::propose: startTime overflow"),//required by the staking contract. not used by the governance contract itself.
             canceled: false,

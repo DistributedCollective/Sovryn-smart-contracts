@@ -391,10 +391,10 @@ contract Staking is IStaking, WeightedStaking {
         //we need to iterate from first possible stake date after deployment to the latest from current time
         uint j = 0;
         for (uint i = kickoffTS + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
-            uint96 currentBalance = currentBalance(account, i);
-            if (currentBalance > 0) {
+            uint96 balance = currentBalance(account, i);
+            if (balance > 0) {
                 dates[j] = i;
-                stakes[j] = currentBalance;
+                stakes[j] = balance;
                 j++;
             }
         }
