@@ -1,6 +1,6 @@
 // SPDX-License-Identifier:MIT
-pragma solidity ^0.7.5;
-pragma abicoder v2;
+pragma solidity 0.5.17;
+pragma experimental ABIEncoderV2;
 import "./Signature.sol";
 
 interface IERC20 {
@@ -33,6 +33,8 @@ interface IERC20 {
     );
 }
 
+// 0x93f549B6f5B0c8521C99a18181fBBF459010112E
+
 interface ILiquidityPoolV2Converter {
     function addLiquidity(
         IERC20 _reserveToken,
@@ -41,6 +43,8 @@ interface ILiquidityPoolV2Converter {
     ) external payable returns (uint256);
 
     function poolToken(IERC20 _reserveToken) external view returns (IERC20);
+    //   function removeLiquidity(ISmartToken _poolToken, uint256 _amount, uint256 _minReturn) external returns (uint256);
+    //  function poolToken(IERC20Token _reserveToken) public view returns (ISmartToken) ;
 }
 
 interface SovrynProtocol {
@@ -119,11 +123,11 @@ interface SovrynProtocol {
 
     function depositCollateral(
         bytes32 loanId,
-        uint256 depositAmount // must match msg.value if ether is sent
+        uint256 depositAmount //Only for tokens
     ) external payable;
 }
 
-interface ILoanTokenLogicStandard {
+interface ILoanToken {
     function marginTrade(
         bytes32 loanId, // 0 if new loan
         uint256 leverageAmount,
@@ -131,7 +135,7 @@ interface ILoanTokenLogicStandard {
         uint256 collateralTokenSent,
         address collateralToken,
         address trader,
-        bytes memory loanDataBytes // arbitrary order data
+        bytes calldata loanDataBytes // arbitrary order data
     ) external payable returns (uint256, uint256);
 
     function loanTokenAddress() external view returns (address);
@@ -144,7 +148,7 @@ interface ILoanTokenLogicStandard {
         address collateralTokenAddress, // if address(0), this means ETH and ETH must be sent with the call or loanId must be provided
         address borrower,
         address receiver,
-        bytes memory // arbitrary order data (for future use) /*loanDataBytes*/
+        bytes calldata // arbitrary order data (for future use) /*loanDataBytes*/
     ) external payable returns (uint256, uint256); // returns new principal and new collateral added to loan
 
     function getBorrowAmountForDeposit(
@@ -152,9 +156,7 @@ interface ILoanTokenLogicStandard {
         uint256 initialLoanDuration, // duration in seconds
         address collateralTokenAddress // address(0) means ETH
     ) external view returns (uint256 borrowAmount);
-}
 
-interface ILending {
     function mint(address receiver, uint256 depositAmount)
         external
         returns (uint256 mintAmount);
@@ -178,23 +180,31 @@ interface SwapsExternal {
         );
 }
 
-contract FordwardingContract {
+contract Forwarding {
     address private owner;
     mapping(address => bool) private reservToken;
-    VerifySignature private Signature;
+    VerifySignature private signature;
 
-    constructor() {
+    constructor() public {
         owner = msg.sender;
-        // Signature=new VerifySignature();
+        signature = new VerifySignature();
     }
 
-    // function getHash() public pure returns(bytes32){
-    //     Signature.getMessageHash();
-    // }
-    // function VerifyUser(address signer,bytes memory loanId,address receiver,uint256 depositAmount,bytes memory sig)public view returns (bool ){
-    //     return Signature.verify(signer,loanId,receiver,depositAmount,sig);
+    function getHash(
+        bytes32 loanId,
+        address receiver,
+        uint256 depositAmount,
+        bytes4 methodSig
+    ) public view returns (bytes32) {
+        return
+            signature.getMessageHash(
+                loanId,
+                receiver,
+                depositAmount,
+                methodSig
+            );
+    }
 
-    // }
     modifier onlyOwner() {
         require(msg.sender == owner, "sender must be owner");
         _;
@@ -255,11 +265,7 @@ contract FordwardingContract {
         );
     }
 
-    event addLiquidityEvent(
-        address indexed receiver,
-        address indexed poolToken,
-        uint256 poolShare
-    );
+    event addLiquidityEvent(address indexed receiver, uint256 poolShare);
 
     function addLiquidity(
         address _calledContract,
@@ -284,7 +290,7 @@ contract FordwardingContract {
             poolToken.transfer(msg.sender, poolShare),
             "contract not transfer minted tokens"
         );
-        emit addLiquidityEvent(msg.sender, address(poolToken), poolShare);
+        emit addLiquidityEvent(msg.sender, poolShare);
     }
 
     event depositLendEvent(address indexed _receiver, uint256 _shareAmmount);
@@ -300,12 +306,13 @@ contract FordwardingContract {
             "Not enough tokens to approve"
         );
         uint256 _shareAmmount =
-            ILending(_calledContract).mint(_receiver, _depositAmount);
+            ILoanToken(_calledContract).mint(_receiver, _depositAmount);
         emit depositLendEvent(_receiver, _shareAmmount);
     }
 
     event marginTradeEvent(
         address indexed trader,
+        address indexed loanToken,
         uint256 newPrinicipal,
         uint256 newCollateral
     );
@@ -331,7 +338,7 @@ contract FordwardingContract {
             );
         if (loanTokenSent != 0) {
             address loanTokenAddress =
-                ILoanTokenLogicStandard(_loanTokenContract).loanTokenAddress();
+                ILoanToken(_loanTokenContract).loanTokenAddress();
             require(
                 doTransferFrom(
                     loanTokenAddress,
@@ -341,9 +348,7 @@ contract FordwardingContract {
                 "not enough tokens to approve"
             );
         }
-        (newPrinicipal, newCollateral) = ILoanTokenLogicStandard(
-            _loanTokenContract
-        )
+        (newPrinicipal, newCollateral) = ILoanToken(_loanTokenContract)
             .marginTrade(
             loanId,
             leverageAmount,
@@ -353,7 +358,12 @@ contract FordwardingContract {
             trader,
             loanDataBytes
         );
-        emit marginTradeEvent(trader, newPrinicipal, newCollateral);
+        emit marginTradeEvent(
+            trader,
+            _loanTokenContract,
+            newPrinicipal,
+            newCollateral
+        );
     }
 
     event depositCollateralEvent(
@@ -361,7 +371,6 @@ contract FordwardingContract {
         uint256 depositAmount
     );
 
-    //NEED to change depositCollateral() code in LoanMaintenance.sol
     function depositCollateral(
         address _calledContract,
         address _tokenContract,
@@ -404,10 +413,7 @@ contract FordwardingContract {
             ),
             "Not enough tokens to approve"
         );
-        (newPrinicipal, newCollateral) = ILoanTokenLogicStandard(
-            _loanTokenContract
-        )
-            .borrow(
+        (newPrinicipal, newCollateral) = ILoanToken(_loanTokenContract).borrow(
             loanId,
             withdrawAmount,
             initialLoanDuration,
@@ -433,7 +439,7 @@ contract FordwardingContract {
         bytes32 loanId,
         address receiver,
         uint256 depositAmount,
-        bytes memory sig
+        bytes memory sig //sig is signatures in Bytes
     )
         public
         returns (
@@ -443,11 +449,15 @@ contract FordwardingContract {
         )
     {
         // Verify that user is a verified signer
-        // VerifyUser(msg.sender,loanId,receiver,depositAmount,sig);
-        //NO SIGNATURE REQUIRE HERE because we check here caller of closeWithDeposit is borrower only .
+        require(
+            signature.verify(loanId, receiver, depositAmount, msg.sig, sig),
+            "user signature not verified"
+        );
         SovrynProtocol.Loan memory loanLocal =
             SovrynProtocol(_calledContract).loans(loanId);
-        require(msg.sender == address(loanLocal.borrower), "unauthorized");
+        address loanBorrower = loanLocal.borrower;
+        require(msg.sender == loanBorrower, "unauthorized");
+
         require(
             doTransferFrom(_tokenContract, _calledContract, depositAmount),
             "Not enough tokens to approve"
@@ -476,7 +486,7 @@ contract FordwardingContract {
         address returnToSender,
         uint256 sourceTokenAmount,
         uint256 requiredDestTokenAmount,
-        bytes calldata swapData
+        bytes memory swapData
     )
         public
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
