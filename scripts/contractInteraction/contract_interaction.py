@@ -448,29 +448,28 @@ def prepareProposalData():
     # data = governorVault.transferRbtc.encode_input("0x5603e46fb0bc18c5e77a769d06166ba0348ecc0b", 10000000000000000)
     # print(data)
 
-    # [proposal 9]
+    # # [proposal 9]
     # # Timelock SC call to CSOV SC (on 0x75071030A635D3073a76b9F4370B72763b2De0a3):
     # # setSaleAdmin("0x12f7140A8856F03816Dc934f9716483CE0a9C7eB")
     # governorVault = Contract.from_abi("GovernorVault", address=contracts['governorVault'], abi=GovernorVault.abi, owner=acct)
     #
-    # data = governorVault.setSaleAdmin.encode_input("0x12f7140A8856F03816Dc934f9716483CE0a9C7eB")
+    # data = governorVault.setSaleAdmin.encode_input("0x3c886dC89808dF2FFEd295c8d0AE6Bdb4fE38CC5")
     # print(data)
 
-    # [proposal 10]
-    # crowdsale.start(86400, 50000, 1000000000000000, 2000000000000000000000000);
-    # to crowdsale contract on: 0x12f7140A8856F03816Dc934f9716483CE0a9C7eB
+    # # [proposal 10]
+    # # crowdsale.start(86400, 50000, 1000000000000000, 2000000000000000000000000);
+    # # to crowdsale contract on: 0x12f7140A8856F03816Dc934f9716483CE0a9C7eB
     # governorVault = Contract.from_abi("GovernorVault", address=contracts['governorVault'], abi=GovernorVault.abi, owner=acct)
     #
     # data = governorVault.start.encode_input(86400, 50000, 1000000000000000, 2000000000000000000000000)
     # print(data)
 
     # [proposal 11]
-    governor = Contract.from_abi("GovernorComp", address=contracts['governor'], abi=GovernorComp.abi, owner=acct)
+    governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
 
-    data = governor.propose.encode_input(
-        ["0x75071030A635D3073a76b9F4370B72763b2De0a3","0x12f7140A8856F03816Dc934f9716483CE0a9C7eB"],
+    governor.propose(
+        ["0x75bbf7f4d77777730eE35b94881B898113a93124","0x3c886dC89808dF2FFEd295c8d0AE6Bdb4fE38CC5"],
         [0,0],
         ["setSaleAdmin(address)", "start(uint256,uint256,uint256,uint256)"],
-        ["0x00000000000000000000000012f7140a8856f03816dc934f9716483ce0a9c7eb","0x0000000000000000000000000000000000000000000000000000000000015180000000000000000000000000000000000000000000000000000000000000c35000000000000000000000000000000000000000000000000000038d7ea4c6800000000000000000000000000000000000000000000001a784379d99db42000000"],
+        ["0x0000000000000000000000003c886dc89808df2ffed295c8d0ae6bdb4fe38cc5","0x0000000000000000000000000000000000000000000000000000000000015180000000000000000000000000000000000000000000000000000000000000c35000000000000000000000000000000000000000000000000000038d7ea4c6800000000000000000000000000000000000000000000001a784379d99db42000000"],
         "Set sale admin and start crowd sale")
-    print(data)
