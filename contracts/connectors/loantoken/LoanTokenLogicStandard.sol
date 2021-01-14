@@ -9,9 +9,9 @@ pragma experimental ABIEncoderV2;
 import "./LoanTokenSettingsLowerAdmin.sol";
 import "./interfaces/ProtocolLike.sol";
 import "./interfaces/FeedsLike.sol";
+import "../../swaps/SwapsUser.sol";
 
-
-contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
+contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin, SwapsUser {
     using SignedSafeMath for int256;
 
     // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wrbtcTokenAddress
@@ -29,6 +29,42 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 
     /* Public functions */
+
+    function checkPriceDisagreement(
+        address sourceToken,
+        address destToken,
+        uint256 sourceAmount,
+        uint256 maxSlippage)
+        public
+        view
+    {
+        if (sourceAmount != 0) {
+            (uint256 rate, uint256 precision) = FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(
+                sourceToken,
+                destToken
+            );
+
+            uint256 sourceToDestSwapRate = ISwapsImpl(swapsImpl).internalExpectedRate(
+                sourceToken,
+                destToken,
+                sourceAmount
+            );
+
+            sourceToDestSwapRate = sourceToDestSwapRate.mul(precision).div(sourceAmount);
+
+            uint256 spreadValue = sourceToDestSwapRate > rate ?
+                sourceToDestSwapRate - rate :
+                rate - sourceToDestSwapRate;
+
+            if (spreadValue != 0) {
+                spreadValue = spreadValue
+                .mul(10**20)
+                .div(sourceToDestSwapRate);
+                
+                require(spreadValue <= maxSlippage, "price disagreement");
+            }           
+        }
+    }
 
     function mint(
         address receiver,
@@ -212,6 +248,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         uint256 collateralTokenSent,
         address collateralTokenAddress,
         address trader,
+        uint256 maxSlippage,
         bytes memory loanDataBytes)     // arbitrary order data
         public
         payable
@@ -219,7 +256,14 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         returns (uint256, uint256) // returns new principal and new collateral added to trade
     {
         _checkPause();
- 
+
+        checkPriceDisagreement(
+                collateralTokenAddress,
+                loanTokenAddress,
+                collateralTokenSent,
+                maxSlippage
+        );
+
         if (collateralTokenAddress == address(0)) {
             collateralTokenAddress = wrbtcTokenAddress;
         }

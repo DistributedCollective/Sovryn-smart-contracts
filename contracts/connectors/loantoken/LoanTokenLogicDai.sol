@@ -189,6 +189,7 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
         uint256 collateralTokenSent,
         address collateralToken,
         address trader,
+        uint256 maxSlippage,
         bytes memory loanDataBytes)     // arbitrary order data
         public
         payable
@@ -201,6 +202,7 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
             collateralTokenSent,
             collateralToken,
             trader,
+            maxSlippage,
             loanDataBytes
         );
 

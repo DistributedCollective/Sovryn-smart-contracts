@@ -38,7 +38,8 @@ contract SwapsExternal is VaultController, SwapsUser {
         uint256 sourceTokenAmount,
         uint256 requiredDestTokenAmount,
         uint256 minReturn,
-        bytes calldata swapData)
+        bytes calldata swapData,
+        address priceFeeds_)
         external
         payable
         nonReentrant
@@ -46,9 +47,7 @@ contract SwapsExternal is VaultController, SwapsUser {
     {
         require(sourceTokenAmount != 0, "sourceTokenAmount == 0");
         require(minReturn > 0, "minReturn must larger than zero");
-
-        (uint256 rateFromPriceFeeds, ) = IPriceFeeds(priceFeeds).queryRate(sourceToken, destToken);
-        require(rateFromPriceFeeds == ISwapsImpl(swapsImpl).internalExpectedRate(sourceToken, destToken, sourceTokenAmount), "rate disagreement");
+        require(checkPriceDivergence(sourceToken, destToken, sourceTokenAmount, priceFeeds_), "rate disagreement");
 
         if (msg.value != 0) {
             if (sourceToken == address(0)) {
@@ -107,5 +106,19 @@ contract SwapsExternal is VaultController, SwapsUser {
             destToken,
             sourceTokenAmount
         );
+    }
+
+    function checkPriceDivergence(        
+        address sourceToken,
+        address destToken,
+        uint256 sourceTokenAmount,
+        address priceFeeds_) 
+        public 
+        returns(bool result) 
+    {
+        (uint256 rate, uint256 precision) = IPriceFeeds(priceFeeds_).queryRate(sourceToken, destToken);
+        uint256 rateFromSwap = ISwapsImpl(swapsImpl).internalExpectedRate(sourceToken, destToken, sourceTokenAmount);
+        rateFromSwap = rateFromSwap.mul(precision).div(sourceTokenAmount);
+        result = rate == rateFromSwap ? true : false;
     }
 }
