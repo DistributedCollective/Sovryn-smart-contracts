@@ -41,7 +41,8 @@ def main():
 
     # governorAcceptAdmin("governor")
 
-    prepareProposalData()
+    # prepareProposalData()
+    createProposal()
 
 def loadConfig():
     global contracts, acct
@@ -457,11 +458,11 @@ def prepareProposalData():
     # print(data)
 
     # # [proposal 10]
-    # # crowdsale.start(86400, 50000, 1000000000000000, 2000000000000000000000000);
+    # # crowdsale.start(86400, 33333, 1000000000000000, 2000000000000000000000000);
     # # to crowdsale contract on: 0x12f7140A8856F03816Dc934f9716483CE0a9C7eB
     # governorVault = Contract.from_abi("GovernorVault", address=contracts['governorVault'], abi=GovernorVault.abi, owner=acct)
     #
-    # data = governorVault.start.encode_input(86400, 50000, 1000000000000000, 2000000000000000000000000)
+    # data = governorVault.start.encode_input(86400, 33333, 1000000000000000, 2000000000000000000000000)
     # print(data)
 
     # [proposal 11]
@@ -471,5 +472,37 @@ def prepareProposalData():
         ["0x75bbf7f4d77777730eE35b94881B898113a93124","0x3c886dC89808dF2FFEd295c8d0AE6Bdb4fE38CC5"],
         [0,0],
         ["setSaleAdmin(address)", "start(uint256,uint256,uint256,uint256)"],
-        ["0x0000000000000000000000003c886dc89808df2ffed295c8d0ae6bdb4fe38cc5","0x0000000000000000000000000000000000000000000000000000000000015180000000000000000000000000000000000000000000000000000000000000c35000000000000000000000000000000000000000000000000000038d7ea4c6800000000000000000000000000000000000000000000001a784379d99db42000000"],
+        ["0x0000000000000000000000003c886dc89808df2ffed295c8d0ae6bdb4fe38cc5","0x0000000000000000000000000000000000000000000000000000000000015180000000000000000000000000000000000000000000000000000000000000823500000000000000000000000000000000000000000000000000038d7ea4c6800000000000000000000000000000000000000000000001a784379d99db42000000"],
+        "Set sale admin and start crowd sale (rate = 33333)")
+
+def createProposal():
+
+    cSOV = contracts['cSOV']
+    crowdsale = contracts['crowdsale']
+
+    # dummy contract, just for encoding function calls
+    dummyAddress = contracts['governor']
+    dummyContract = Contract.from_abi("CrowdSaleMethods", address=dummyAddress, abi=CrowdSaleMethods.abi, owner=acct)
+
+    # first action
+    target1 = cSOV
+    signature1 = "setSaleAdmin(address)"
+    data1 = dummyContract.setSaleAdmin.encode_input(crowdsale)
+    data1 = "0x" + data1[10:]
+    print(data1)
+
+    # second action
+    target2 = crowdsale
+    signature2 = "start(uint256,uint256,uint256,uint256)"
+    data2 = dummyContract.start.encode_input(86400, 33333, 1000000000000000, 2000000000000000000000000)
+    data2 = "0x" + data2[10:]
+    print(data2)
+
+    # create proposal
+    governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
+    governor.propose(
+        [target1, target2],
+        [0, 0],
+        [signature1, signature2],
+        [data1, data2],
         "Set sale admin and start crowd sale")

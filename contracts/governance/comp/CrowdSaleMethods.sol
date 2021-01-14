@@ -1,0 +1,16 @@
+pragma solidity ^0.5.17;
+
+contract CrowdSaleMethods {
+
+    function setSaleAdmin(address payable _saleAdmin) external {
+    }
+
+    function start(
+        uint256 _duration,
+        uint256 _rate,
+        uint256 _minPurchase,
+        uint256 _crowdSaleSupply
+    ) external {
+    }
+
+}
