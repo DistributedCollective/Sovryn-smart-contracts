@@ -42,8 +42,8 @@ def main():
     # governorAcceptAdmin("governor")
 
     # prepareProposalData()
-    # createProposalStartSale()
-    createProposalCloseSale()
+    createProposalStartSale()
+    # createProposalCloseSale()
 
 def loadConfig():
     global contracts, acct
@@ -530,6 +530,7 @@ def createProposalCloseSale():
     signature2 = "withdrawFunds()"
     data2 = dummyContract.withdrawFunds.encode_input()
     data2 = "0x" + data2[10:]
+    # data2 = "" #second variant
     print(data2)
 
     # create proposal
