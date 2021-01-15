@@ -21,6 +21,7 @@ contract SwapsExternal is VaultController, SwapsUser {
     function initialize(address target) external onlyOwner {
         _setTarget(this.swapExternal.selector, target);
         _setTarget(this.getSwapExpectedReturn.selector, target);
+        _setTarget(this.checkPriceDivergence.selector, target);
     }
 
     function swapExternal(
@@ -30,7 +31,9 @@ contract SwapsExternal is VaultController, SwapsUser {
         address returnToSender,
         uint256 sourceTokenAmount,
         uint256 requiredDestTokenAmount,
-        bytes calldata swapData
+        uint256 minReturn,
+        bytes calldata swapData,
+        address priceFeeds_
     )
         external
         payable
@@ -38,7 +41,9 @@ contract SwapsExternal is VaultController, SwapsUser {
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
         require(sourceTokenAmount != 0, "sourceTokenAmount == 0");
-
+        require(minReturn >= 0, "minReturn must larger than zero");
+        require(checkPriceDivergence(sourceToken, destToken, sourceTokenAmount, priceFeeds_), "rate disagreement");
+ 
         if (msg.value != 0) {
             if (sourceToken == address(0)) {
                 sourceToken = address(wrbtcToken);
@@ -56,7 +61,7 @@ contract SwapsExternal is VaultController, SwapsUser {
                 sourceTokenAmount
             );
         }
-
+ 
         (destTokenAmountReceived, sourceTokenAmountUsed) = _swapsCall(
             [
                 sourceToken,
@@ -75,6 +80,8 @@ contract SwapsExternal is VaultController, SwapsUser {
             swapData
         );
 
+        require(destTokenAmountReceived >= minReturn, "destTokenAmountReceived too low");
+
         emit ExternalSwap(
             msg.sender, // user
             sourceToken,
@@ -90,5 +97,19 @@ contract SwapsExternal is VaultController, SwapsUser {
         uint256 sourceTokenAmount
     ) external view returns (uint256) {
         return _swapsExpectedReturn(sourceToken, destToken, sourceTokenAmount);
+    }
+
+    function checkPriceDivergence(        
+        address sourceToken,
+        address destToken,
+        uint256 sourceTokenAmount,
+        address priceFeeds_) 
+        public 
+        returns(bool result) 
+    {
+        (uint256 rate, uint256 precision) = IPriceFeeds(priceFeeds_).queryRate(sourceToken, destToken);
+        uint256 destTokenAmount = _swapsExpectedReturn(sourceToken, destToken, sourceTokenAmount);
+        uint256 rateFromSwap = destTokenAmount.mul(precision).div(sourceTokenAmount);
+        result = rate == rateFromSwap ? true : false;
     }
 }

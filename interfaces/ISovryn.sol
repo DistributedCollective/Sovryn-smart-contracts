@@ -324,4 +324,35 @@ contract ISovryn is
     ) external;
 
     function getLegacyOracle(address ref) external view returns (address);
+
+    ////// External Swaps //////
+
+    function swapExternal(
+        address sourceToken,
+        address destToken,
+        address receiver,
+        address returnToSender,
+        uint256 sourceTokenAmount,
+        uint256 requiredDestTokenAmount,
+        uint256 minReturn,
+        bytes calldata swapData,
+        address priceFeeds_
+    )
+        external
+        payable
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
+
+    function getSwapExpectedReturn(
+        address sourceToken,
+        address destToken,
+        uint256 sourceTokenAmount
+    ) external view returns (uint256);
+
+    function checkPriceDivergence(        
+        address sourceToken,
+        address destToken,
+        uint256 sourceTokenAmount,
+        address priceFeeds_) 
+        public 
+        returns(bool result);
 }
