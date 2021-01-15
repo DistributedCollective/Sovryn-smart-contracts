@@ -42,7 +42,8 @@ def main():
     # governorAcceptAdmin("governor")
 
     # prepareProposalData()
-    createProposal()
+    # createProposalStartSale()
+    createProposalCloseSale()
 
 def loadConfig():
     global contracts, acct
@@ -475,7 +476,7 @@ def prepareProposalData():
         ["0x0000000000000000000000003c886dc89808df2ffed295c8d0ae6bdb4fe38cc5","0x0000000000000000000000000000000000000000000000000000000000015180000000000000000000000000000000000000000000000000000000000000823500000000000000000000000000000000000000000000000000038d7ea4c6800000000000000000000000000000000000000000000001a784379d99db42000000"],
         "Set sale admin and start crowd sale (rate = 33333)")
 
-def createProposal():
+def createProposalStartSale():
 
     cSOV = contracts['cSOV']
     crowdsale = contracts['crowdsale']
@@ -506,3 +507,36 @@ def createProposal():
         [signature1, signature2],
         [data1, data2],
         "Set sale admin and start crowd sale")
+
+# CrowdSale.saleClosure(true), CrowdSale.withdrawFunds()
+def createProposalCloseSale():
+
+    cSOV = contracts['cSOV']
+    crowdsale = contracts['crowdsale']
+
+    # dummy contract, just for encoding function calls
+    dummyAddress = contracts['governor']
+    dummyContract = Contract.from_abi("CrowdSaleMethods", address=dummyAddress, abi=CrowdSaleMethods.abi, owner=acct)
+
+    # first action
+    target1 = crowdsale
+    signature1 = "saleClosure(bool)"
+    data1 = dummyContract.saleClosure.encode_input(True)
+    data1 = "0x" + data1[10:]
+    print(data1)
+
+    # second action
+    target2 = crowdsale
+    signature2 = "withdrawFunds()"
+    data2 = dummyContract.withdrawFunds.encode_input()
+    data2 = "0x" + data2[10:]
+    print(data2)
+
+    # create proposal
+    governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
+    governor.propose(
+        [target1, target2],
+        [0, 0],
+        [signature1, signature2],
+        [data1, data2],
+        "Close sale")

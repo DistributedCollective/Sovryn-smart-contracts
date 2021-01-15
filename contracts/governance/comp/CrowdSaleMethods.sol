@@ -13,4 +13,10 @@ contract CrowdSaleMethods {
     ) external {
     }
 
+    function saleClosure(bool _isSaleEnded) external {
+    }
+
+    function withdrawFunds() external {
+    }
+
 }
