@@ -29,7 +29,7 @@ def main():
     configData = {
         'WRBTC': '0x69FE5cEC81D5eF92600c1A0dB1F11986AB3758Ab',
         'SUSD': '0xCb46C0DdC60d18eFEB0e586c17AF6Ea36452DaE0',
-        'medianizer': '0x2d39Cc54dc44FF27aD23A91a9B5fd750dae4B218'
+        'mocOracleAddress': '0x2d39Cc54dc44FF27aD23A91a9B5fd750dae4B218'
     }
     '''
 
@@ -49,37 +49,45 @@ def main():
     else:
         tokens = deployTokens(acct)
         
-    if(not 'medianizer' in configData):
-        medianizer = deployMoCMockup(acct)
-        configData['medianizer'] = medianizer.address
+    if(not 'mocOracleAddress' in configData):
+        mocOracle = deployMoCMockup(acct)
+        configData['mocOracleAddress'] = mocOracle.address
+
+    if(not 'rskOracleAddress' in configData):
+        rskOracle = deployRSKMockup(acct)
+        configData['rskOracleAddress'] = rskOracle.address
 
     if(not 'mocState' in configData):
         mocState = deployBProPriceFeedMockup(acct)
         configData['mocState'] = mocState.address
         
-    (sovryn, feeds) = deployProtocol(acct, tokens, configData['medianizer'])
+    (sovryn, feeds) = deployProtocol(acct, tokens, configData['mocOracleAddress'], configData['rskOracleAddress'])
     (loanTokenSUSD, loanTokenWRBTC, loanTokenSettingsSUSD,
      loanTokenSettingsWRBTC) = deployLoanTokens(acct, sovryn, tokens)
 
     #deployMultisig(sovryn, acct, owners, requiredConf)
-    
+
     configData["sovrynProtocol"] = sovryn.address
     configData["PriceFeeds"] = feeds.address
     configData["WRBTC"] = tokens.wrbtc.address
     configData["SUSD"] = tokens.susd.address
-    configData["loanTokenSettingsSUSD"] = loanTokenSettingsSUSD.address
     configData["loanTokenSUSD"] = loanTokenSUSD.address
-    configData["loanTokenSettingsWRBTC"] = loanTokenSettingsWRBTC.address
     configData["loanTokenRBTC"] = loanTokenWRBTC.address
 
     with open('./scripts/swapTest/swap_test.json', 'w') as configFile:
         json.dump(configData, configFile)
 
 def deployMoCMockup(acct):
-    priceFeedMockup = acct.deploy(PriceFeedsMoCMockup)
-    priceFeedMockup.setHas(True)
-    priceFeedMockup.setValue(10000e18)
-    return priceFeedMockup
+    priceFeedsMoCMockup = acct.deploy(PriceFeedsMoCMockup)
+    priceFeedsMoCMockup.setHas(True)
+    priceFeedsMoCMockup.setValue(10000e18)
+    return priceFeedsMoCMockup
+
+def deployRSKMockup(acct):
+    priceFeedRSKMockup = acct.deploy(PriceFeedRSKOracleMockup)
+    priceFeedRSKMockup.setHas(True)
+    priceFeedRSKMockup.setValue(10000e18)
+    return priceFeedRSKMockup
 
 def deployBProPriceFeedMockup(acct):
     bproPriceFeedMockup = acct.deploy(BProPriceFeedMockup)

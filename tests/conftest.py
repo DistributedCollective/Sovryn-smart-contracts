@@ -63,7 +63,9 @@ def swapsImpl(accounts, SwapsImplSovrynSwap, SwapsImplLocal):
     return swap
 
 @pytest.fixture(scope="module", autouse=True)
-def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, LoanMaintenance, WRBTC, SUSD, RBTC, TestSovrynSwap, priceFeeds, Affiliates):
+
+def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, LoanMaintenance, WRBTC, SUSD, RBTC, TestSovrynSwap, priceFeeds, SwapsExternal, Affiliates):
+
     sovrynproxy = accounts[0].deploy(sovrynProtocol)
     sovryn = Contract.from_abi("sovryn", address=sovrynproxy.address, abi=interface.ISovryn.abi, owner=accounts[0])
     _add_contract(sovryn)
@@ -72,6 +74,7 @@ def sovryn(accounts, interface, sovrynProtocol, ProtocolSettings, LoanSettings, 
     sovryn.replaceContract(accounts[0].deploy(LoanSettings).address)
     sovryn.replaceContract(accounts[0].deploy(LoanMaintenance).address)
     sovryn.replaceContract(accounts[0].deploy(Affiliates).address)
+    sovryn.replaceContract(accounts[0].deploy(SwapsExternal).address)
     #sovryn.replaceContract(accounts[0].deploy(LoanOpenings).address)
     #sovryn.replaceContract(accounts[0].deploy(LoanClosings).address)
 

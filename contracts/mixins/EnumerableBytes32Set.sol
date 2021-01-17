@@ -18,11 +18,10 @@ pragma solidity 0.5.17;
  *
  */
 library EnumerableBytes32Set {
-
     struct Bytes32Set {
         // Position of the value in the `values` array, plus 1 because index 0
         // means a value is not in the set.
-        mapping (bytes32 => uint256) index;
+        mapping(bytes32 => uint256) index;
         bytes32[] values;
     }
 
@@ -49,7 +48,7 @@ library EnumerableBytes32Set {
         internal
         returns (bool)
     {
-        if (!contains(set, value)){
+        if (!contains(set, value)) {
             set.index[value] = set.values.push(value);
             return true;
         } else {
@@ -80,7 +79,7 @@ library EnumerableBytes32Set {
         internal
         returns (bool)
     {
-        if (contains(set, value)){
+        if (contains(set, value)) {
             uint256 toDeleteIndex = set.index[value] - 1;
             uint256 lastIndex = set.values.length - 1;
 
@@ -125,11 +124,11 @@ library EnumerableBytes32Set {
      * WARNING: This function may run out of gas on large sets: use {length} and
      * {get} instead in these cases.
      */
-    function enumerate(Bytes32Set storage set, uint256 start, uint256 count)
-        internal
-        view
-        returns (bytes32[] memory output)
-    {
+    function enumerate(
+        Bytes32Set storage set,
+        uint256 start,
+        uint256 count
+    ) internal view returns (bytes32[] memory output) {
         uint256 end = start + count;
         require(end >= start, "addition overflow");
         end = set.values.length < end ? set.values.length : end;
@@ -137,9 +136,9 @@ library EnumerableBytes32Set {
             return output;
         }
 
-        output = new bytes32[](end-start);
-        for (uint256 i; i < end-start; i++) {
-            output[i] = set.values[i+start];
+        output = new bytes32[](end - start);
+        for (uint256 i; i < end - start; i++) {
+            output[i] = set.values[i + start];
         }
         return output;
     }
@@ -147,22 +146,18 @@ library EnumerableBytes32Set {
     /**
      * @dev Returns the number of elements on the set. O(1).
      */
-    function length(Bytes32Set storage set)
-        internal
-        view
-        returns (uint256)
-    {
+    function length(Bytes32Set storage set) internal view returns (uint256) {
         return set.values.length;
     }
 
-   /** @dev Returns the element stored at position `index` in the set. O(1).
-    * Note that there are no guarantees on the ordering of values inside the
-    * array, and it may change when more values are added or removed.
-    *
-    * Requirements:
-    *
-    * - `index` must be strictly less than {length}.
-    */
+    /** @dev Returns the element stored at position `index` in the set. O(1).
+     * Note that there are no guarantees on the ordering of values inside the
+     * array, and it may change when more values are added or removed.
+     *
+     * Requirements:
+     *
+     * - `index` must be strictly less than {length}.
+     */
     function get(Bytes32Set storage set, uint256 index)
         internal
         view

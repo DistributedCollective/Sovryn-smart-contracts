@@ -8,39 +8,26 @@ pragma experimental ABIEncoderV2;
 
 import "./LoanTokenLogicStandard.sol";
 
-
 contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
-
-    function mintWithBTC(
-        address receiver)
+    function mintWithBTC(address receiver)
         external
         payable
         nonReentrant
         returns (uint256 mintAmount)
     {
-        return _mintToken(
-            receiver,
-            msg.value
-        );
+        return _mintToken(receiver, msg.value);
     }
 
-    function burnToBTC(
-        address receiver,
-        uint256 burnAmount)
+    function burnToBTC(address receiver, uint256 burnAmount)
         external
         nonReentrant
         returns (uint256 loanAmountPaid)
     {
-        loanAmountPaid = _burnToken(
-            burnAmount
-        );
+        loanAmountPaid = _burnToken(burnAmount);
 
         if (loanAmountPaid != 0) {
             IWrbtcERC20(wrbtcTokenAddress).withdraw(loanAmountPaid);
-            Address.sendValue(
-                receiver,
-                loanAmountPaid
-            );
+            Address.sendValue(receiver, loanAmountPaid);
         }
     }
 
@@ -59,10 +46,8 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
         address collateralTokenAddress,
         address[4] memory sentAddresses,
         uint256[5] memory sentAmounts,
-        uint256 withdrawalAmount)
-        internal
-        returns (uint256 msgValue)
-    {
+        uint256 withdrawalAmount
+    ) internal returns (uint256 msgValue) {
         address _wrbtcToken = wrbtcTokenAddress;
         address _loanTokenAddress = _wrbtcToken;
         address receiver = sentAddresses[2];
@@ -74,30 +59,55 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
 
         msgValue = msg.value;
 
-        if (withdrawalAmount != 0) { // withdrawOnOpen == true
+        if (withdrawalAmount != 0) {
+            // withdrawOnOpen == true
             IWrbtcERC20(_wrbtcToken).withdraw(withdrawalAmount);
-            Address.sendValue(
-                receiver,
-                withdrawalAmount
-            );
+            Address.sendValue(receiver, withdrawalAmount);
             if (newPrincipal > withdrawalAmount) {
-                _safeTransfer(_loanTokenAddress, sovrynContractAddress, newPrincipal - withdrawalAmount, "");
+                _safeTransfer(
+                    _loanTokenAddress,
+                    sovrynContractAddress,
+                    newPrincipal - withdrawalAmount,
+                    ""
+                );
             }
         } else {
-            _safeTransfer(_loanTokenAddress, sovrynContractAddress, newPrincipal, "27");
+            _safeTransfer(
+                _loanTokenAddress,
+                sovrynContractAddress,
+                newPrincipal,
+                "27"
+            );
         }
 
         if (collateralTokenSent != 0) {
-            _safeTransferFrom(collateralTokenAddress, msg.sender, sovrynContractAddress, collateralTokenSent, "28");
+            _safeTransferFrom(
+                collateralTokenAddress,
+                msg.sender,
+                sovrynContractAddress,
+                collateralTokenSent,
+                "28"
+            );
         }
 
         if (loanTokenSent != 0) {
             if (msgValue != 0 && msgValue >= loanTokenSent) {
                 IWrbtc(_wrbtcToken).deposit.value(loanTokenSent)();
-                _safeTransfer(_loanTokenAddress, sovrynContractAddress, loanTokenSent, "29");
+                _safeTransfer(
+                    _loanTokenAddress,
+                    sovrynContractAddress,
+                    loanTokenSent,
+                    "29"
+                );
                 msgValue -= loanTokenSent;
             } else {
-                _safeTransferFrom(_loanTokenAddress, msg.sender, sovrynContractAddress, loanTokenSent, "29");
+                _safeTransferFrom(
+                    _loanTokenAddress,
+                    msg.sender,
+                    sovrynContractAddress,
+                    loanTokenSent,
+                    "29"
+                );
             }
         }
     }

@@ -11,23 +11,16 @@ import "../events/ProtocolSettingsEvents.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../mixins/ProtocolTokenUser.sol";
 
-
 contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
     using SafeERC20 for IERC20;
 
     constructor() public {}
 
-    function()
-        external
-    {
+    function() external {
         revert("fallback not allowed");
     }
 
-    function initialize(
-        address target)
-        external
-        onlyOwner
-    {
+    function initialize(address target) external onlyOwner {
         _setTarget(this.setPriceFeedContract.selector, target);
         _setTarget(this.setSwapsImplContract.selector, target);
         _setTarget(this.setLoanPool.selector, target);
@@ -75,39 +68,21 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         );
     }
 
-    function setPriceFeedContract(
-        address newContract)
-        external
-        onlyOwner
-    {
+    function setPriceFeedContract(address newContract) external onlyOwner {
         address oldContract = priceFeeds;
         priceFeeds = newContract;
 
-        emit SetPriceFeedContract(
-            msg.sender,
-            oldContract,
-            newContract
-        );
+        emit SetPriceFeedContract(msg.sender, oldContract, newContract);
     }
 
-    function setSwapsImplContract(
-        address newContract)
-        external
-        onlyOwner
-    {
+    function setSwapsImplContract(address newContract) external onlyOwner {
         address oldContract = swapsImpl;
         swapsImpl = newContract;
 
-        emit SetSwapsImplContract(
-            msg.sender,
-            oldContract,
-            newContract
-        );
+        emit SetSwapsImplContract(msg.sender, oldContract, newContract);
     }
 
-    function setLoanPool(
-        address[] calldata pools,
-        address[] calldata assets)
+    function setLoanPool(address[] calldata pools, address[] calldata assets)
         external
         onlyOwner
     {
@@ -116,9 +91,15 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         for (uint256 i = 0; i < pools.length; i++) {
             require(pools[i] != assets[i], "pool == asset");
             require(pools[i] != address(0), "pool == 0");
-            require(assets[i] != address(0) || loanPoolToUnderlying[pools[i]] != address(0), "pool not exists");
+            require(
+                assets[i] != address(0) ||
+                    loanPoolToUnderlying[pools[i]] != address(0),
+                "pool not exists"
+            );
             if (assets[i] == address(0)) {
-                underlyingToLoanPool[loanPoolToUnderlying[pools[i]]] = address(0);
+                underlyingToLoanPool[loanPoolToUnderlying[pools[i]]] = address(
+                    0
+                );
                 loanPoolToUnderlying[pools[i]] = address(0);
                 loanPoolsSet.removeAddress(pools[i]);
             } else {
@@ -127,99 +108,56 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
                 loanPoolsSet.addAddress(pools[i]);
             }
 
-            emit SetLoanPool(
-                msg.sender,
-                pools[i],
-                assets[i]
-            );
+            emit SetLoanPool(msg.sender, pools[i], assets[i]);
         }
     }
 
     function setSupportedTokens(
         address[] calldata addrs,
-        bool[] calldata toggles)
-        external
-        onlyOwner
-    {
+        bool[] calldata toggles
+    ) external onlyOwner {
         require(addrs.length == toggles.length, "count mismatch");
 
         for (uint256 i = 0; i < addrs.length; i++) {
             supportedTokens[addrs[i]] = toggles[i];
 
-            emit SetSupportedTokens(
-                msg.sender,
-                addrs[i],
-                toggles[i]
-            );
+            emit SetSupportedTokens(msg.sender, addrs[i], toggles[i]);
         }
     }
 
-    function setLendingFeePercent(
-        uint256 newValue)
-        external
-        onlyOwner
-    {
+    function setLendingFeePercent(uint256 newValue) external onlyOwner {
         require(newValue <= 10**20, "value too high");
         uint256 oldValue = lendingFeePercent;
         lendingFeePercent = newValue;
 
-        emit SetLendingFeePercent(
-            msg.sender,
-            oldValue,
-            newValue
-        );
+        emit SetLendingFeePercent(msg.sender, oldValue, newValue);
     }
 
-    function setTradingFeePercent(
-        uint256 newValue)
-        external
-        onlyOwner
-    {
+    function setTradingFeePercent(uint256 newValue) external onlyOwner {
         require(newValue <= 10**20, "value too high");
         uint256 oldValue = tradingFeePercent;
         tradingFeePercent = newValue;
 
-        emit SetTradingFeePercent(
-            msg.sender,
-            oldValue,
-            newValue
-        );
+        emit SetTradingFeePercent(msg.sender, oldValue, newValue);
     }
 
-    function setBorrowingFeePercent(
-        uint256 newValue)
-        external
-        onlyOwner
-    {
+    function setBorrowingFeePercent(uint256 newValue) external onlyOwner {
         require(newValue <= 10**20, "value too high");
         uint256 oldValue = borrowingFeePercent;
         borrowingFeePercent = newValue;
 
-        emit SetBorrowingFeePercent(
-            msg.sender,
-            oldValue,
-            newValue
-        );
+        emit SetBorrowingFeePercent(msg.sender, oldValue, newValue);
     }
 
-    function setAffiliateFeePercent(
-        uint256 newValue)
-        external
-        onlyOwner
-    {
+    function setAffiliateFeePercent(uint256 newValue) external onlyOwner {
         require(newValue <= 10**20, "value too high");
         uint256 oldValue = affiliateFeePercent;
         affiliateFeePercent = newValue;
 
-        emit SetAffiliateFeePercent(
-            msg.sender,
-            oldValue,
-            newValue
-        );
+        emit SetAffiliateFeePercent(msg.sender, oldValue, newValue);
     }
 
-    function setLiquidationIncentivePercent(
-        uint256 newValue)
+    function setLiquidationIncentivePercent(uint256 newValue)
         external
         onlyOwner
     {
@@ -227,66 +165,36 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         uint256 oldValue = liquidationIncentivePercent;
         liquidationIncentivePercent = newValue;
 
-        emit SetLiquidationIncentivePercent(
-            msg.sender,
-            oldValue,
-            newValue
-        );
+        emit SetLiquidationIncentivePercent(msg.sender, oldValue, newValue);
     }
 
-    function setMaxDisagreement(
-        uint256 newValue)
-        external
-        onlyOwner
-    {
+    function setMaxDisagreement(uint256 newValue) external onlyOwner {
         maxDisagreement = newValue;
     }
 
-    function setSourceBuffer(
-        uint256 newValue)
-        external
-        onlyOwner
-    {
+    function setSourceBuffer(uint256 newValue) external onlyOwner {
         sourceBuffer = newValue;
     }
 
-    function setMaxSwapSize(
-        uint256 newValue)
-        external
-        onlyOwner
-    {
+    function setMaxSwapSize(uint256 newValue) external onlyOwner {
         uint256 oldValue = maxSwapSize;
         maxSwapSize = newValue;
 
-        emit SetMaxSwapSize(
-            msg.sender,
-            oldValue,
-            newValue
-        );
+        emit SetMaxSwapSize(msg.sender, oldValue, newValue);
     }
 
-    function setFeesController(
-        address newController)
-        external
-        onlyOwner
-    {
+    function setFeesController(address newController) external onlyOwner {
         address oldController = feesController;
         feesController = newController;
 
-        emit SetFeesController(
-            msg.sender,
-            oldController,
-            newController
-        );
+        emit SetFeesController(msg.sender, oldController, newController);
     }
 
     function withdrawLendingFees(
         address token,
         address receiver,
-        uint256 amount)
-        external
-        returns (bool)
-    {
+        uint256 amount
+    ) external returns (bool) {
         require(msg.sender == feesController, "unauthorized");
 
         uint256 withdrawAmount = amount;
@@ -299,22 +207,14 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
             return false;
         }
 
-        lendingFeeTokensHeld[token] = balance
-            .sub(withdrawAmount);
-        lendingFeeTokensPaid[token] = lendingFeeTokensPaid[token]
-            .add(withdrawAmount);
-
-        IERC20(token).safeTransfer(
-            receiver,
+        lendingFeeTokensHeld[token] = balance.sub(withdrawAmount);
+        lendingFeeTokensPaid[token] = lendingFeeTokensPaid[token].add(
             withdrawAmount
         );
 
-        emit WithdrawLendingFees(
-            msg.sender,
-            token,
-            receiver,
-            withdrawAmount
-        );
+        IERC20(token).safeTransfer(receiver, withdrawAmount);
+
+        emit WithdrawLendingFees(msg.sender, token, receiver, withdrawAmount);
 
         return true;
     }
@@ -322,10 +222,8 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
     function withdrawTradingFees(
         address token,
         address receiver,
-        uint256 amount)
-        external
-        returns (bool)
-    {
+        uint256 amount
+    ) external returns (bool) {
         require(msg.sender == feesController, "unauthorized");
 
         uint256 withdrawAmount = amount;
@@ -338,22 +236,14 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
             return false;
         }
 
-        tradingFeeTokensHeld[token] = balance
-            .sub(withdrawAmount);
-        tradingFeeTokensPaid[token] = tradingFeeTokensPaid[token]
-            .add(withdrawAmount);
-
-        IERC20(token).safeTransfer(
-            receiver,
+        tradingFeeTokensHeld[token] = balance.sub(withdrawAmount);
+        tradingFeeTokensPaid[token] = tradingFeeTokensPaid[token].add(
             withdrawAmount
         );
 
-        emit WithdrawTradingFees(
-            msg.sender,
-            token,
-            receiver,
-            withdrawAmount
-        );
+        IERC20(token).safeTransfer(receiver, withdrawAmount);
+
+        emit WithdrawTradingFees(msg.sender, token, receiver, withdrawAmount);
 
         return true;
     }
@@ -361,10 +251,8 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
     function withdrawBorrowingFees(
         address token,
         address receiver,
-        uint256 amount)
-        external
-        returns (bool)
-    {
+        uint256 amount
+    ) external returns (bool) {
         require(msg.sender == feesController, "unauthorized");
 
         uint256 withdrawAmount = amount;
@@ -377,46 +265,28 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
             return false;
         }
 
-        borrowingFeeTokensHeld[token] = balance
-            .sub(withdrawAmount);
-        borrowingFeeTokensPaid[token] = borrowingFeeTokensPaid[token]
-            .add(withdrawAmount);
-
-        IERC20(token).safeTransfer(
-            receiver,
+        borrowingFeeTokensHeld[token] = balance.sub(withdrawAmount);
+        borrowingFeeTokensPaid[token] = borrowingFeeTokensPaid[token].add(
             withdrawAmount
         );
 
-        emit WithdrawBorrowingFees(
-            msg.sender,
-            token,
-            receiver,
-            withdrawAmount
-        );
+        IERC20(token).safeTransfer(receiver, withdrawAmount);
+
+        emit WithdrawBorrowingFees(msg.sender, token, receiver, withdrawAmount);
 
         return true;
     }
 
-    function withdrawProtocolToken(
-        address receiver,
-        uint256 amount)
+    function withdrawProtocolToken(address receiver, uint256 amount)
         external
         onlyOwner
         returns (address, bool)
     {
-        return _withdrawProtocolToken(
-            receiver,
-            amount
-        );
+        return _withdrawProtocolToken(receiver, amount);
     }
 
-    function depositProtocolToken(
-        uint256 amount)
-        external
-        onlyOwner
-    {
-        protocolTokenHeld = protocolTokenHeld
-        .add(amount);
+    function depositProtocolToken(uint256 amount) external onlyOwner {
+        protocolTokenHeld = protocolTokenHeld.add(amount);
 
         IERC20(protocolTokenAddress).safeTransferFrom(
             msg.sender,
@@ -425,9 +295,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         );
     }
 
-    function getLoanPoolsList(
-        uint256 start,
-        uint256 count)
+    function getLoanPoolsList(uint256 start, uint256 count)
         external
         view
         returns (bytes32[] memory)
@@ -435,12 +303,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         return loanPoolsSet.enumerate(start, count);
     }
 
-    function isLoanPool(
-        address loanPool)
-        external
-        view
-        returns (bool)
-    {
+    function isLoanPool(address loanPool) external view returns (bool) {
         return loanPoolToUnderlying[loanPool] != address(0);
     }
 
@@ -448,26 +311,31 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
      * sets the contract registry address of the SovrynSwap network
      * @param registryAddress the address of the registry contract
      * */
-    function setSovrynSwapContractRegistryAddress(
-        address registryAddress)
+    function setSovrynSwapContractRegistryAddress(address registryAddress)
         external
         onlyOwner
     {
-        require(Address.isContract(registryAddress), "registryAddress not a contract");
+        require(
+            Address.isContract(registryAddress),
+            "registryAddress not a contract"
+        );
 
-        address oldSovrynSwapContractRegistryAddress = sovrynSwapContractRegistryAddress;
+        address oldSovrynSwapContractRegistryAddress =
+            sovrynSwapContractRegistryAddress;
         sovrynSwapContractRegistryAddress = registryAddress;
 
-        emit SetSovrynSwapContractRegistryAddress(msg.sender, oldSovrynSwapContractRegistryAddress,
-            sovrynSwapContractRegistryAddress);
+        emit SetSovrynSwapContractRegistryAddress(
+            msg.sender,
+            oldSovrynSwapContractRegistryAddress,
+            sovrynSwapContractRegistryAddress
+        );
     }
 
-    function setWrbtcToken(
-        address wrbtcTokenAddress)
-        external
-        onlyOwner
-    {
-        require(Address.isContract(wrbtcTokenAddress), "wrbtcTokenAddress not a contract");
+    function setWrbtcToken(address wrbtcTokenAddress) external onlyOwner {
+        require(
+            Address.isContract(wrbtcTokenAddress),
+            "wrbtcTokenAddress not a contract"
+        );
 
         address oldwrbtcToken = address(wrbtcToken);
         wrbtcToken = IWrbtcERC20(wrbtcTokenAddress);
@@ -475,27 +343,29 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         emit SetWrbtcToken(msg.sender, oldwrbtcToken, wrbtcTokenAddress);
     }
 
-    function setProtocolTokenAddress(
-        address _protocolTokenAddress)
+    function setProtocolTokenAddress(address _protocolTokenAddress)
         external
         onlyOwner
     {
-        require(Address.isContract(_protocolTokenAddress), "_protocolTokenAddress not a contract");
+        require(
+            Address.isContract(_protocolTokenAddress),
+            "_protocolTokenAddress not a contract"
+        );
 
         address oldProtocolTokenAddress = protocolTokenAddress;
         protocolTokenAddress = _protocolTokenAddress;
 
-        emit SetProtocolTokenAddress(msg.sender, oldProtocolTokenAddress, _protocolTokenAddress);
+        emit SetProtocolTokenAddress(
+            msg.sender,
+            oldProtocolTokenAddress,
+            _protocolTokenAddress
+        );
     }
 
     /**
      * @dev set rollover base reward. It should be denominated in wRBTC
-    */
-    function setRolloverBaseReward(
-        uint256 baseRewardValue)
-        external
-        onlyOwner
-    {
+     */
+    function setRolloverBaseReward(uint256 baseRewardValue) external onlyOwner {
         require(baseRewardValue > 0, "Base reward is zero");
 
         uint256 oldValue = rolloverBaseReward;
@@ -504,11 +374,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
         emit SetRolloverBaseReward(msg.sender, oldValue, rolloverBaseReward);
     }
 
-    function setRebatePercent(
-        uint256 rebatePercent) 
-        external
-        onlyOwner 
-    {
+    function setRebatePercent(uint256 rebatePercent) external onlyOwner {
         require(rebatePercent <= 10**20, "Fee rebate is too high");
 
         uint256 oldRebatePercent = feeRebatePercent;

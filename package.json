@@ -1,5 +1,5 @@
 {
-  "name": "SovrynSmartContracts",
+  "name": "sovrynsmartcontracts",
   "version": "1.0.0",
   "description": "Version 1 of the smart contracts for the Sovryn protocol and external integrations",
   "keywords": [],
@@ -14,20 +14,40 @@
     "url": "https://github.com/DistributedCollective/Sovryn-smart-contracts/issues"
   },
   "devDependencies": {
-    "husky": "^4.2.5",
-    "prettier": "^2.0.5",
-    "prettier-plugin-solidity": "^1.0.0-alpha.49",
+    "@openzeppelin/test-helpers": "^0.5.6",
+    "bignumber.js": "^9.0.0",
+    "bn.js": "^5.1.2",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "chai-bn": "^0.2.1",
+    "chai-string": "^1.5.0",
+    "coveralls": "^3.1.0",
+    "decimal.js": "10.2.0",
+    "dirty-chai": "^2.0.1",
+    "ethereumjs-abi": "^0.6.8",
+    "ethers": "^5.0.19",
+    "ganache-core": "^2.10.2",
+    "husky": "^4.3.6",
+    "prettier": "^2.2.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.2",
     "solhint": "^3.0.0",
-    "solhint-plugin-prettier": "^0.0.4"
+    "solhint-plugin-prettier": "^0.0.4",
+    "solidity-coverage": "^0.7.13",
+    "solparse": "^2.2.8",
+    "truffle": "^5.1.60"
   },
   "scripts": {
-    "analyize-contracts": "slither .",
+    "analyze-contracts": "slither .",
+    "prettier": "prettier --write {,*/**/}*.{js,test.js,sol}",
     "lint-contracts": "solhint contracts/**/*.sol",
-    "test": "brownie test"
+    "test": "brownie test",
+    "test-js": "truffle test",
+    "coverage": "truffle run coverage --file='tests-js/'"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn analyize-contracts && yarn lint-contracts"
+      "pre-commit": "yarn prettier && yarn lint-contracts && yarn analyze-contracts",
+      "pre-push": "yarn test && yarn test-js"
     }
   },
   "dependencies": {

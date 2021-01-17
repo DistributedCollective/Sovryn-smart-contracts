@@ -11,51 +11,60 @@ import "../../ISwapsImpl.sol";
 import "../../../feeds/IPriceFeeds.sol";
 import "../../../testhelpers/TestToken.sol";
 
-
 contract SwapsImplLocal is State, ISwapsImpl {
     using SafeERC20 for IERC20;
 
     function internalSwap(
         address sourceTokenAddress,
         address destTokenAddress,
-        address /*receiverAddress*/,
+        address, /*receiverAddress*/
         address returnToSenderAddress,
         uint256 minSourceTokenAmount,
         uint256 maxSourceTokenAmount,
-        uint256 requiredDestTokenAmount)
+        uint256 requiredDestTokenAmount
+    )
         public
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
-    {   
+    {
         require(sourceTokenAddress != destTokenAddress, "source == dest");
 
-
-        (uint256 tradeRate, uint256 precision) = IPriceFeeds(priceFeeds).queryRate(
-            sourceTokenAddress,
-            destTokenAddress
-        );
+        (uint256 tradeRate, uint256 precision) =
+            IPriceFeeds(priceFeeds).queryRate(
+                sourceTokenAddress,
+                destTokenAddress
+            );
 
         if (requiredDestTokenAmount == 0) {
             sourceTokenAmountUsed = minSourceTokenAmount;
-            destTokenAmountReceived = minSourceTokenAmount
-                .mul(tradeRate)
-                .div(precision);
+            destTokenAmountReceived = minSourceTokenAmount.mul(tradeRate).div(
+                precision
+            );
         } else {
             destTokenAmountReceived = requiredDestTokenAmount;
-            sourceTokenAmountUsed = requiredDestTokenAmount
-                .mul(precision)
-                .div(tradeRate);
-            require(sourceTokenAmountUsed <= minSourceTokenAmount, "destAmount too great");
+            sourceTokenAmountUsed = requiredDestTokenAmount.mul(precision).div(
+                tradeRate
+            );
+            require(
+                sourceTokenAmountUsed <= minSourceTokenAmount,
+                "destAmount too great"
+            );
         }
 
-        TestToken(sourceTokenAddress).burn(address(this), sourceTokenAmountUsed);
-        TestToken(destTokenAddress).mint(address(this), destTokenAmountReceived);
+        TestToken(sourceTokenAddress).burn(
+            address(this),
+            sourceTokenAmountUsed
+        );
+        TestToken(destTokenAddress).mint(
+            address(this),
+            destTokenAmountReceived
+        );
 
         if (returnToSenderAddress != address(this)) {
             if (sourceTokenAmountUsed < maxSourceTokenAmount) {
                 // send unused source token back
                 IERC20(sourceTokenAddress).safeTransfer(
                     returnToSenderAddress,
-                    maxSourceTokenAmount-sourceTokenAmountUsed
+                    maxSourceTokenAmount - sourceTokenAmountUsed
                 );
             }
         }
@@ -64,7 +73,8 @@ contract SwapsImplLocal is State, ISwapsImpl {
     function internalExpectedRate(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint256 sourceTokenAmount)
+        uint256 sourceTokenAmount,
+        address unused)
         public
         view
         returns (uint256)
@@ -74,8 +84,7 @@ contract SwapsImplLocal is State, ISwapsImpl {
             destTokenAddress
         );
 
-        return sourceTokenAmount
-            .mul(sourceToDestRate)
-            .div(sourceToDestPrecision);
+        return
+            sourceTokenAmount.mul(sourceToDestRate).div(sourceToDestPrecision);
     }
 }

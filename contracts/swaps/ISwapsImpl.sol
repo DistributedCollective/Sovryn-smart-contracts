@@ -5,7 +5,6 @@
 
 pragma solidity 0.5.17;
 
-
 interface ISwapsImpl {
     function internalSwap(
         address sourceTokenAddress,
@@ -14,14 +13,19 @@ interface ISwapsImpl {
         address returnToSenderAddress,
         uint256 minSourceTokenAmount,
         uint256 maxSourceTokenAmount,
-        uint256 requiredDestTokenAmount)
+        uint256 requiredDestTokenAmount
+    )
         external
-        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
+        returns (
+            uint256 destTokenAmountReceived,
+            uint256 sourceTokenAmountUsed
+        );
 
     function internalExpectedRate(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint256 sourceTokenAmount)
+        uint256 sourceTokenAmount,
+        address optionalContractAddress)
         external
         view
         returns (uint256);

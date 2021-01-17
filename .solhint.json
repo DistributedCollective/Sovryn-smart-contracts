@@ -1,15 +1,13 @@
 {
   "extends": "solhint:default",
-  "plugins": ["prettier"],
+  "plugins": [
+    "prettier"
+  ],
   "rules": {
     "prettier/prettier": "error",
     "max-line-length": [
-      true, 
-      {
-        "limit": 130, 
-        "ignore-pattern": "^import [^,]+ from |^export | implements"
-      }
-    ],
-    "no-inline-assembly": false
+      "warn",
+      140
+    ]
   }
 }

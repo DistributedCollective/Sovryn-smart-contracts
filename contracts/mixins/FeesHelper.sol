@@ -16,81 +16,73 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
     using SafeERC20 for IERC20;
 
     // calculate trading fee
-    function _getTradingFee(
-        uint256 feeTokenAmount)
+    function _getTradingFee(uint256 feeTokenAmount)
         internal
         view
         returns (uint256)
     {
-        return feeTokenAmount
-            .mul(tradingFeePercent)
-            .div(10**20);
+        return feeTokenAmount.mul(tradingFeePercent).div(10**20);
     }
 
     // calculate loan origination fee
-    function _getBorrowingFee(
-        uint256 feeTokenAmount)
+    function _getBorrowingFee(uint256 feeTokenAmount)
         internal
         view
         returns (uint256)
     {
-        return feeTokenAmount
-            .mul(borrowingFeePercent)
-            .div(10**20);
+        return feeTokenAmount.mul(borrowingFeePercent).div(10**20);
     }
-    
+
     /**
      * @dev settles the trading fee and pays the token reward to the user.
      * @param referrer the affiliate referrer address to send the reward to
      * @param feeToken the address of the token in which the trading fee is paid
      * */
-    
+
     function _payTradingFeeToAffiliate(
         address referrer,
         address feeToken,
-        uint256 tradingFee) 
-        internal 
-        returns (uint256 affiliatesTradingFee)
-    {
-        affiliatesTradingFee  = ProtocolAffiliatesInterface(protocolAddress).
-                                    payTradingFeeToAffiliatesReferrer(referrer, feeToken, tradingFee);
+        uint256 tradingFee
+    ) internal returns (uint256 affiliatesTradingFee) {
+        affiliatesTradingFee = ProtocolAffiliatesInterface(protocolAddress)
+            .payTradingFeeToAffiliatesReferrer(referrer, feeToken, tradingFee);
         //TODO: add event
     }
+
     function _payTradingFee(
         address user,
         bytes32 loanId,
         address feeToken,
-        uint256 tradingFee)
-        internal
-    {
-        uint affiliatesTradingFee;
-        uint protocolTradingFee = tradingFee; //trading fee paid to protocol
+        uint256 tradingFee
+    ) internal {
+        uint256 affiliatesTradingFee;
+        uint256 protocolTradingFee = tradingFee; //trading fee paid to protocol
         if (tradingFee != 0) {
-            if(affiliatesUserReferrer[user] != address(0)) { //REFACTOR code to interface: call affiliate module function
-                affiliatesTradingFee = _payTradingFeeToAffiliate(user, affiliatesUserReferrer[user], protocolTradingFee);
-                protocolTradingFee = protocolTradingFee.sub(affiliatesTradingFee);
+            if (affiliatesUserReferrer[user] != address(0)) {
+                //REFACTOR code to interface: call affiliate module function
+                affiliatesTradingFee = _payTradingFeeToAffiliate(
+                    user,
+                    affiliatesUserReferrer[user],
+                    protocolTradingFee
+                );
+                protocolTradingFee = protocolTradingFee.sub(
+                    affiliatesTradingFee
+                );
             }
 
-            tradingFeeTokensHeld[feeToken] = tradingFeeTokensHeld[feeToken]
-                .add(protocolTradingFee);
-
-            emit PayTradingFee(
-                user,
-                feeToken,
-                loanId,
+            tradingFeeTokensHeld[feeToken] = tradingFeeTokensHeld[feeToken].add(
                 protocolTradingFee
             );
-            
+
+            emit PayTradingFee(user, feeToken, loanId, protocolTradingFee);
+
+            emit PayTradingFee(user, feeToken, loanId, tradingFee);
+
             //pay the token reward to the user
-            _payFeeReward(
-                user,
-                loanId,
-                feeToken,
-                tradingFee
-            );
+            _payFeeReward(user, loanId, feeToken, tradingFee);
         }
     }
-    
+
     /**
      * @dev settles the borrowing fee and pays the token reward to the user.
      * @param user the address to send the reward to
@@ -102,27 +94,16 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
         address user,
         bytes32 loanId,
         address feeToken,
-        uint256 borrowingFee)
-        internal
-    {
+        uint256 borrowingFee
+    ) internal {
         if (borrowingFee != 0) {
             //increase the storage variable keeping track of the accumulated fees
             borrowingFeeTokensHeld[feeToken] = borrowingFeeTokensHeld[feeToken]
                 .add(borrowingFee);
 
-            emit PayBorrowingFee(
-                user,
-                feeToken,
-                loanId,
-                borrowingFee
-            );
+            emit PayBorrowingFee(user, feeToken, loanId, borrowingFee);
             //pay the token reward to the user
-            _payFeeReward(
-                user,
-                loanId,
-                feeToken,
-                borrowingFee
-            );
+            _payFeeReward(user, loanId, feeToken, borrowingFee);
         }
     }
 
@@ -135,21 +116,17 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
     function _payLendingFee(
         address user,
         address feeToken,
-        uint256 lendingFee)
-        internal
-    {
+        uint256 lendingFee
+    ) internal {
         if (lendingFee != 0) {
             //increase the storage variable keeping track of the accumulated fees
-            lendingFeeTokensHeld[feeToken] = lendingFeeTokensHeld[feeToken]
-                .add(lendingFee);
-
-            emit PayLendingFee(
-                user,
-                feeToken,
+            lendingFeeTokensHeld[feeToken] = lendingFeeTokensHeld[feeToken].add(
                 lendingFee
             );
 
-             //// NOTE: Lenders do not receive a fee reward ////
+            emit PayLendingFee(user, feeToken, lendingFee);
+
+            //// NOTE: Lenders do not receive a fee reward ////
         }
     }
 
@@ -159,29 +136,23 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
         bytes32 loanId,
         address feeToken,
         address user,
-        uint256 interestTime)
-        internal
-    {
+        uint256 interestTime
+    ) internal {
         // this represents the fee generated by a borrower's interest payment
-        uint256 interestExpenseFee = interestTime
-            .sub(loanInterestLocal.updatedTimestamp)
-            .mul(loanInterestLocal.owedPerDay)
-            .div(86400)
-            .mul(lendingFeePercent)
-            .div(10**20);
+        uint256 interestExpenseFee =
+            interestTime
+                .sub(loanInterestLocal.updatedTimestamp)
+                .mul(loanInterestLocal.owedPerDay)
+                .div(86400)
+                .mul(lendingFeePercent)
+                .div(10**20);
 
         loanInterestLocal.updatedTimestamp = interestTime;
 
         if (interestExpenseFee != 0) {
-            _payFeeReward(
-                user,
-                loanId,
-                feeToken,
-                interestExpenseFee
-            );
+            _payFeeReward(user, loanId, feeToken, interestExpenseFee);
         }
     }
-
 
     /**
      * @dev pays the potocolToken reward to user. The reward is worth 50% of the trading/borrowing fee.
@@ -194,23 +165,21 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
         address user,
         bytes32 loanId,
         address feeToken,
-        uint256 feeAmount)
-        internal
-    {
+        uint256 feeAmount
+    ) internal {
         uint256 rewardAmount;
         address _priceFeeds = priceFeeds;
         //note: this should be refactored.
         //calculate the reward amount, querying the price feed
-        (bool success, bytes memory data) = _priceFeeds.staticcall(
-            abi.encodeWithSelector(
-                IPriceFeeds(_priceFeeds).queryReturn.selector,
-                feeToken,
-                protocolTokenAddress, // price rewards using BZRX price rather than vesting token price
-                feeAmount
-                .mul(feeRebatePercent)
-                .div(10**20)  
-            )
-        );
+        (bool success, bytes memory data) =
+            _priceFeeds.staticcall(
+                abi.encodeWithSelector(
+                    IPriceFeeds(_priceFeeds).queryReturn.selector,
+                    feeToken,
+                    protocolTokenAddress, // price rewards using BZRX price rather than vesting token price
+                    feeAmount.mul(feeRebatePercent).div(10**20)
+                )
+            );
         assembly {
             if eq(success, 1) {
                 rewardAmount := mload(add(data, 32))
@@ -219,20 +188,11 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 
         if (rewardAmount != 0) {
             address rewardToken;
-            (rewardToken, success) = _withdrawProtocolToken(
-                user,
-                rewardAmount
-            );
+            (rewardToken, success) = _withdrawProtocolToken(user, rewardAmount);
             if (success) {
-                protocolTokenPaid = protocolTokenPaid
-                    .add(rewardAmount);
+                protocolTokenPaid = protocolTokenPaid.add(rewardAmount);
 
-                emit EarnReward(
-                    user,
-                    rewardToken,
-                    loanId,
-                    rewardAmount
-                );
+                emit EarnReward(user, rewardToken, loanId, rewardAmount);
             }
         }
     }
