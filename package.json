@@ -29,9 +29,9 @@
     "ganache-core": "^2.10.2",
     "husky": "^4.3.6",
     "prettier": "^2.2.1",
-    "prettier-plugin-solidity": "^1.0.0-beta.2",
+    "prettier-plugin-solidity": "^1.0.0-beta.3",
     "solhint": "^3.0.0",
-    "solhint-plugin-prettier": "^0.0.4",
+    "solhint-plugin-prettier": "^0.0.5",
     "solidity-coverage": "^0.7.13",
     "solparse": "^2.2.8",
     "truffle": "^5.1.60"
@@ -43,12 +43,6 @@
     "test": "brownie test",
     "test-js": "truffle test",
     "coverage": "truffle run coverage --file='tests-js/'"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn prettier && yarn lint-contracts && yarn analyze-contracts",
-      "pre-push": "yarn test && yarn test-js"
-    }
   },
   "dependencies": {
     "phantomjs-prebuilt": "^2.1.16",
