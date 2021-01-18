@@ -46,7 +46,6 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
     ) internal returns (uint256 affiliatesTradingFee) {
         affiliatesTradingFee = ProtocolAffiliatesInterface(protocolAddress)
             .payTradingFeeToAffiliatesReferrer(referrer, feeToken, tradingFee);
-        //TODO: add event
     }
 
     function _payTradingFee(
@@ -59,7 +58,6 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
         uint256 protocolTradingFee = tradingFee; //trading fee paid to protocol
         if (tradingFee != 0) {
             if (affiliatesUserReferrer[user] != address(0)) {
-                //REFACTOR code to interface: call affiliate module function
                 affiliatesTradingFee = _payTradingFeeToAffiliate(
                     user,
                     affiliatesUserReferrer[user],
@@ -75,8 +73,6 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
             );
 
             emit PayTradingFee(user, feeToken, loanId, protocolTradingFee);
-
-            emit PayTradingFee(user, feeToken, loanId, tradingFee);
 
             //pay the token reward to the user
             _payFeeReward(user, loanId, feeToken, tradingFee);

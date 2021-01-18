@@ -767,47 +767,7 @@ contract LoanClosings is
         uint256 currentMargin,
         CloseTypes closeType
     ) internal {
-        if (closeType == CloseTypes.Deposit) {
-            emit CloseWithDeposit(
-                loanLocal.borrower, // user (borrower)
-                loanLocal.lender, // lender
-                loanLocal.id, // loanId
-                msg.sender, // closer
-                loanParamsLocal.loanToken, // loanToken
-                loanParamsLocal.collateralToken, // collateralToken
-                loanCloseAmount, // loanCloseAmount
-                collateralCloseAmount, // collateralCloseAmount
-                collateralToLoanRate, // collateralToLoanRate
-                currentMargin // currentMargin
-            );
-        } else if (closeType == CloseTypes.Swap) {
-            // exitPrice = 1 / collateralToLoanSwapRate
-            if (collateralToLoanSwapRate != 0) {
-                collateralToLoanSwapRate = SafeMath.div(
-                    10**36,
-                    collateralToLoanSwapRate
-                );
-            }
-
-            // currentLeverage = 100 / currentMargin
-            if (currentMargin != 0) {
-                currentMargin = SafeMath.div(10**38, currentMargin);
-            }
-
-            emit CloseWithSwap(
-                loanLocal.borrower, // user (trader)
-                loanLocal.lender, // lender
-                loanLocal.id, // loanId
-                loanParamsLocal.collateralToken, // collateralToken
-                loanParamsLocal.loanToken, // loanToken
-                msg.sender, // closer
-                collateralCloseAmount, // positionCloseSize
-                loanCloseAmount, // loanCloseAmount
-                collateralToLoanSwapRate, // exitPrice (1 / collateralToLoanSwapRate)
-                currentMargin // currentLeverage
-            );
-        } else {
-            // closeType == CloseTypes.Liquidation
+        if (closeType == CloseTypes.Liquidation)
             emit Liquidate(
                 loanLocal.borrower, // user (borrower)
                 msg.sender, // liquidator
@@ -820,6 +780,5 @@ contract LoanClosings is
                 collateralToLoanRate, // collateralToLoanRate
                 currentMargin // currentMargin
             );
-        }
     }
 }
