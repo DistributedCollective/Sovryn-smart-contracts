@@ -63,7 +63,7 @@ contract SwapsExternal is VaultController, SwapsUser {
                 destToken,
                 receiver,
                 returnToSender,
-                msg.sender // user
+                receiver // user is receiver here because calling by forwardingContract(can't use msg.sender here) and protocol reward pay to user not forwardingContract
             ],
             [
                 sourceTokenAmount, // minSourceTokenAmount
@@ -76,7 +76,7 @@ contract SwapsExternal is VaultController, SwapsUser {
         );
 
         emit ExternalSwap(
-            msg.sender, // user
+            receiver, // user
             sourceToken,
             destToken,
             sourceTokenAmountUsed,
