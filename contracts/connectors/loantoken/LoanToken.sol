@@ -7,9 +7,7 @@ pragma solidity 0.5.17;
 
 import "./AdvancedTokenStorage.sol";
 
-
 contract LoanToken is AdvancedTokenStorage {
-
     // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wrbtcTokenAddress
     address public sovrynContractAddress;
     address public wrbtcTokenAddress;
@@ -19,19 +17,15 @@ contract LoanToken is AdvancedTokenStorage {
         address _newOwner,
         address _newTarget,
         address _sovrynContractAddress,
-        address _wrbtcTokenAddress)
-        public
-    {
+        address _wrbtcTokenAddress
+    ) public {
         transferOwnership(_newOwner);
         _setTarget(_newTarget);
         _setSovrynContractAddress(_sovrynContractAddress);
         _setWrbtcTokenAddress(_wrbtcTokenAddress);
     }
 
-    function()
-        external
-        payable
-    {
+    function() external payable {
         if (gasleft() <= 2300) {
             return;
         }
@@ -39,55 +33,56 @@ contract LoanToken is AdvancedTokenStorage {
         address target = target_;
         bytes memory data = msg.data;
         assembly {
-            let result := delegatecall(gas, target, add(data, 0x20), mload(data), 0, 0)
+            let result := delegatecall(
+                gas,
+                target,
+                add(data, 0x20),
+                mload(data),
+                0,
+                0
+            )
             let size := returndatasize
             let ptr := mload(0x40)
             returndatacopy(ptr, 0, size)
             switch result
-            case 0 { revert(ptr, size) }
-            default { return(ptr, size) }
+                case 0 {
+                    revert(ptr, size)
+                }
+                default {
+                    return(ptr, size)
+                }
         }
     }
 
-    function setTarget(
-        address _newTarget)
-        public
-        onlyOwner
-    {
+    function setTarget(address _newTarget) public onlyOwner {
         _setTarget(_newTarget);
     }
 
-    function _setTarget(
-        address _newTarget)
-        internal
-    {
+    function _setTarget(address _newTarget) internal {
         require(Address.isContract(_newTarget), "target not a contract");
         target_ = _newTarget;
     }
 
-    function _setSovrynContractAddress(
-        address _sovrynContractAddress)
+    function _setSovrynContractAddress(address _sovrynContractAddress)
         internal
     {
-        require(Address.isContract(_sovrynContractAddress), "sovryn not a contract");
+        require(
+            Address.isContract(_sovrynContractAddress),
+            "sovryn not a contract"
+        );
         sovrynContractAddress = _sovrynContractAddress;
     }
 
-    function _setWrbtcTokenAddress(
-        address _wrbtcTokenAddress)
-        internal
-    {
+    function _setWrbtcTokenAddress(address _wrbtcTokenAddress) internal {
         require(Address.isContract(_wrbtcTokenAddress), "wrbtc not a contract");
         wrbtcTokenAddress = _wrbtcTokenAddress;
     }
-    
+
     function initialize(
         address _loanTokenAddress,
         string memory _name,
-        string memory _symbol)
-        public
-        onlyOwner
-    {
+        string memory _symbol
+    ) public onlyOwner {
         loanTokenAddress = _loanTokenAddress;
 
         name = _name;

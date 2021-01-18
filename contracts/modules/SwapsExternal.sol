@@ -12,20 +12,13 @@ import "../swaps/SwapsUser.sol";
 import "../swaps/ISwapsImpl.sol";
 
 contract SwapsExternal is VaultController, SwapsUser {
-
     constructor() public {}
 
-    function()
-        external
-    {
+    function() external {
         revert("fallback not allowed");
     }
 
-    function initialize(
-        address target)
-        external
-        onlyOwner
-    {
+    function initialize(address target) external onlyOwner {
         _setTarget(this.swapExternal.selector, target);
         _setTarget(this.getSwapExpectedReturn.selector, target);
     }
@@ -37,7 +30,8 @@ contract SwapsExternal is VaultController, SwapsUser {
         address returnToSender,
         uint256 sourceTokenAmount,
         uint256 requiredDestTokenAmount,
-        bytes calldata swapData)
+        bytes calldata swapData
+    )
         external
         payable
         nonReentrant
@@ -50,7 +44,10 @@ contract SwapsExternal is VaultController, SwapsUser {
                 sourceToken = address(wrbtcToken);
             }
             require(sourceToken == address(wrbtcToken), "sourceToken mismatch");
-            require(msg.value == sourceTokenAmount, "sourceTokenAmount mismatch");
+            require(
+                msg.value == sourceTokenAmount,
+                "sourceTokenAmount mismatch"
+            );
             wrbtcToken.deposit.value(sourceTokenAmount)();
         } else {
             IERC20(sourceToken).safeTransferFrom(
@@ -90,15 +87,8 @@ contract SwapsExternal is VaultController, SwapsUser {
     function getSwapExpectedReturn(
         address sourceToken,
         address destToken,
-        uint256 sourceTokenAmount)
-        external
-        view
-        returns (uint256)
-    {
-        return _swapsExpectedReturn(
-            sourceToken,
-            destToken,
-            sourceTokenAmount
-        );
+        uint256 sourceTokenAmount
+    ) external view returns (uint256) {
+        return _swapsExpectedReturn(sourceToken, destToken, sourceTokenAmount);
     }
 }

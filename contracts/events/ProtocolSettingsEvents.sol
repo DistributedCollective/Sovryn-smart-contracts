@@ -5,7 +5,6 @@
 
 pragma solidity 0.5.17;
 
-
 contract ProtocolSettingsEvents {
     event SetPriceFeedContract(
         address indexed sender,
@@ -116,5 +115,11 @@ contract ProtocolSettingsEvents {
         address indexed sender,
         uint256 oldValue,
         uint256 newValue
+    );
+
+    event SetRebatePercent(
+        address indexed sender,
+        uint256 oldRebatePercent,
+        uint256 newRebatePercent
     );
 }

@@ -7,24 +7,21 @@ pragma solidity 0.5.17;
 
 import "../PriceFeeds.sol";
 
-
 contract PriceFeedsLocal is PriceFeeds {
-
-    mapping (address => mapping (address => uint256)) public rates;
+    mapping(address => mapping(address => uint256)) public rates;
 
     //uint256 public slippageMultiplier = 100 ether;
 
-    constructor(
-        address _wrbtcTokenAddress,
-        address _protocolTokenAddress)
-    PriceFeeds(_wrbtcTokenAddress, _protocolTokenAddress,_wrbtcTokenAddress)
-    public
+    constructor(address _wrbtcTokenAddress, address _protocolTokenAddress)
+        public
+        PriceFeeds(
+            _wrbtcTokenAddress,
+            _protocolTokenAddress,
+            _wrbtcTokenAddress
+        )
     {}
 
-
-    function _queryRate(
-        address sourceToken,
-        address destToken)
+    function _queryRate(address sourceToken, address destToken)
         internal
         view
         returns (uint256 rate, uint256 precision)
@@ -45,12 +42,14 @@ contract PriceFeedsLocal is PriceFeeds {
                 if (rates[sourceToken][destToken] != 0) {
                     rate = rates[sourceToken][destToken];
                 } else {
-                    uint256 sourceToEther = rates[sourceToken][address(wrbtcToken)] != 0 ?
-                        rates[sourceToken][address(wrbtcToken)] :
-                        10**18;
-                    uint256 etherToDest = rates[address(wrbtcToken)][destToken] != 0 ?
-                        rates[address(wrbtcToken)][destToken] :
-                        10**18;
+                    uint256 sourceToEther =
+                        rates[sourceToken][address(wrbtcToken)] != 0
+                            ? rates[sourceToken][address(wrbtcToken)]
+                            : 10**18;
+                    uint256 etherToDest =
+                        rates[address(wrbtcToken)][destToken] != 0
+                            ? rates[address(wrbtcToken)][destToken]
+                            : 10**18;
 
                     rate = sourceToEther.mul(etherToDest).div(10**18);
                 }
@@ -59,14 +58,11 @@ contract PriceFeedsLocal is PriceFeeds {
         }
     }
 
-
     function setRates(
         address sourceToken,
         address destToken,
-        uint256 rate)
-        public
-        onlyOwner
-    {
+        uint256 rate
+    ) public onlyOwner {
         if (sourceToken != destToken) {
             rates[sourceToken][destToken] = rate;
             rates[destToken][sourceToken] = SafeMath.div(10**36, rate);

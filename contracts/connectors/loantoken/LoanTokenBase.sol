@@ -14,7 +14,6 @@ import "../../interfaces/IWrbtcERC20.sol";
 import "./Pausable.sol";
 
 contract LoanTokenBase is ReentrancyGuard, Ownable {
-
     uint256 internal constant WEI_PRECISION = 10**18;
     uint256 internal constant WEI_PERCENT_PRECISION = 10**20;
 
@@ -42,9 +41,9 @@ contract LoanTokenBase is ReentrancyGuard, Ownable {
     // uint88 for tight packing -> 8 + 88 + 160 = 256
     uint88 internal lastSettleTime_;
 
-    mapping (uint256 => bytes32) public loanParamsIds; // mapping of keccak256(collateralToken, isTorqueLoan) to loanParamsId
-    mapping (address => uint256) internal checkpointPrices_; // price of token at last user checkpoint
-    
-    mapping(address => uint256) public transactionLimit;                                 // the maximum trading/borrowing/lending limit per token address
-                                                                                         // 0 -> no limit
+    mapping(uint256 => bytes32) public loanParamsIds; // mapping of keccak256(collateralToken, isTorqueLoan) to loanParamsId
+    mapping(address => uint256) internal checkpointPrices_; // price of token at last user checkpoint
+
+    mapping(address => uint256) public transactionLimit; // the maximum trading/borrowing/lending limit per token address
+    // 0 -> no limit
 }

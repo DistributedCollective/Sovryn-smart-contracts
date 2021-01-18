@@ -8,7 +8,10 @@ import "../openzeppelin/Address.sol";
 contract PriceFeedRSKOracle is IPriceFeedsExt, Ownable {
     address public rskOracleAddress;
 
-    event SetRSKOracleAddress(address indexed rskOracleAddress, address changerAddress);
+    event SetRSKOracleAddress(
+        address indexed rskOracleAddress,
+        address changerAddress
+    );
 
     /**
      * @dev initializes a new RSK Oracle
@@ -18,13 +21,13 @@ contract PriceFeedRSKOracle is IPriceFeedsExt, Ownable {
     constructor(address _rskOracleAddress) public {
         setRSKOracleAddress(_rskOracleAddress);
     }
-    
+
     /**
      * @return price
      */
     function latestAnswer() external view returns (uint256 _price) {
         IRSKOracle _rskOracle = IRSKOracle(rskOracleAddress);
-        (_price,) = _rskOracle.getPricing();      
+        (_price, ) = _rskOracle.getPricing();
     }
 
     /**
@@ -41,7 +44,10 @@ contract PriceFeedRSKOracle is IPriceFeedsExt, Ownable {
      * @param _rskOracleAddress RSK Oracle address
      */
     function setRSKOracleAddress(address _rskOracleAddress) public onlyOwner {
-        require(Address.isContract(_rskOracleAddress), "_rskOracleAddress not a contract");
+        require(
+            Address.isContract(_rskOracleAddress),
+            "_rskOracleAddress not a contract"
+        );
         rskOracleAddress = _rskOracleAddress;
         emit SetRSKOracleAddress(rskOracleAddress, msg.sender);
     }
