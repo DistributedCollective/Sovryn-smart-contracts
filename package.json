@@ -47,7 +47,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "yarn prettier && yarn lint-contracts",
-      "pre-push": "yarn test && yarn test-js"
+      "pre-push": "yarn test-js"
     }
   },
   "dependencies": {
