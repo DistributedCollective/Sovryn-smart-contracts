@@ -39,7 +39,7 @@ def main():
     # governorAcceptAdmin("governorOwner")
     # governorAcceptAdmin("governorAdmin")
 
-    governorAcceptAdmin("governor")
+    # governorAcceptAdmin("governor")
 
     # prepareProposalData()
 
@@ -556,17 +556,10 @@ def createProposalCloseSale():
         "Close sale")
 
 def createProposalTransferFunds():
-    token = contracts['NTSOV']
     governorVault = Contract.from_abi("GovernorVault", address=contracts['governorVault'], abi=GovernorVault.abi, owner=acct)
 
     # TODO set a receiver
-    receiver = ""
-    # first action
-    target1 = governorVault
-    signature1 = "transferTokens(address,address,uint256)"
-    data1 = governorVault.transferTokens.encode_input(receiver, token, 1000)
-    data1 = "0x" + data1[10:]
-    print(data1)
+    receiver = "0xad21b3040350E3F29864F95ec6401e52f83363A2"
 
     # second action
     target2 = governorVault
@@ -578,8 +571,8 @@ def createProposalTransferFunds():
     # create proposal
     governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
     governor.propose(
-        [target1, target2],
-        [0, 0],
-        [signature1, signature2],
-        [data1, data2],
+        [target2],
+        [0],
+        [signature2],
+        [data2],
         "Transfer funds")
