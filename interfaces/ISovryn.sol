@@ -6,14 +6,14 @@
 pragma solidity >=0.5.0 <0.6.0;
 pragma experimental ABIEncoderV2;
 
-import "../contracts/core/State.sol";
-import "../contracts/events/ProtocolSettingsEvents.sol";
-import "../contracts/events/LoanSettingsEvents.sol";
-import "../contracts/events/LoanOpeningsEvents.sol";
-import "../contracts/events/LoanMaintenanceEvents.sol";
-import "../contracts/events/LoanClosingsEvents.sol";
-import "../contracts/events/FeesEvents.sol";
-import "../contracts/events/SwapsEvents.sol";
+import "../core/State.sol";
+import "../events/ProtocolSettingsEvents.sol";
+import "../events/LoanSettingsEvents.sol";
+import "../events/LoanOpeningsEvents.sol";
+import "../events/LoanMaintenanceEvents.sol";
+import "../events/LoanClosingsEvents.sol";
+import "../events/FeesEvents.sol";
+import "../events/SwapsEvents.sol";
 
 contract ISovryn is
     State,
@@ -200,6 +200,26 @@ contract ISovryn is
 
     function rollover(bytes32 loanId, bytes calldata loanDataBytes) external;
 
+    function closeWithDepositWithSig(
+        bytes32 loanId,
+        address receiver,
+        uint256 depositAmount, // denominated in loanToken
+        bytes calldata sig //sig is userSignatures in Bytes
+    )
+        external
+        returns (
+            uint256 loanCloseAmount,
+            uint256 withdrawAmount,
+            address withdrawToken
+        );
+
+    function getHash(
+        bytes32 loanId,
+        address receiver,
+        uint256 depositAmount,
+        bytes4 methodSig
+    ) external pure returns (bytes32);
+
     function closeWithDeposit(
         bytes32 loanId,
         address receiver,
@@ -324,4 +344,28 @@ contract ISovryn is
     ) external;
 
     function getLegacyOracle(address ref) external view returns (address);
+
+    ///// SwapsExternal /////
+
+    function getSwapExpectedReturn(
+        address sourceToken,
+        address destToken,
+        uint256 sourceTokenAmount
+    ) external view returns (uint256);
+
+    function swapExternal(
+        address sourceToken,
+        address destToken,
+        address receiver,
+        address returnToSender,
+        uint256 sourceTokenAmount,
+        uint256 requiredDestTokenAmount,
+        bytes calldata swapData
+    )
+        external
+        payable
+        returns (
+            uint256 destTokenAmountReceived,
+            uint256 sourceTokenAmountUsed
+        );
 }
