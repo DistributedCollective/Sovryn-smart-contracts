@@ -181,9 +181,7 @@ contract Staking is IStaking, WeightedStaking {
     }
 
     function _withdraw(uint96 amount, uint until, address receiver, bool isGovernance) internal {
-        require(amount > 0, "Staking::withdraw: amount of tokens to be withdrawn needs to be bigger than 0");
-        uint96 balance = getPriorUserStakeByDate(msg.sender, until, block.number -1);
-        require(amount <= balance, "Staking::withdraw: not enough balance");
+        _validateWithdrawParams(amount, until);
 
         //determine the receiver
         if(receiver == address(0))
@@ -196,10 +194,7 @@ contract Staking is IStaking, WeightedStaking {
 
         //early unstaking should be punished
         if (block.timestamp < until && !allUnlocked && !isGovernance) {
-            uint date = timestampToLockDate(block.timestamp);
-            uint96 weight = computeWeightByDate(until, date); // (10 - 1) * WEIGHT_FACTOR
-            weight = weight * weightScaling;
-            uint96 punishedAmount = amount * weight / WEIGHT_FACTOR / 100;
+            uint96 punishedAmount = _getPunishedAmount(amount, until);
             amount -= punishedAmount;
 
             //punishedAmount can be 0 if block.timestamp are very close to 'until'
@@ -217,6 +212,40 @@ contract Staking is IStaking, WeightedStaking {
         require(success, "Staking::withdraw: Token transfer failed");
 
         emit TokensWithdrawn(msg.sender, receiver, amount);
+    }
+
+    /**
+     * @notice returns available and punished amount for withdrawing
+     * @param amount the number of tokens to withdraw
+     * @param until the date until which the tokens were staked
+     * */
+    function getWithdrawAmounts(uint96 amount, uint until) public view returns (uint96, uint96) {
+        _validateWithdrawParams(amount, until);
+        uint96 punishedAmount = _getPunishedAmount(amount, until);
+        return (amount - punishedAmount, punishedAmount);
+    }
+
+    /**
+     * @notice returns punished amount for withdrawing
+     * @param amount the number of tokens to withdraw
+     * @param until the date until which the tokens were staked
+     * */
+    function _getPunishedAmount(uint96 amount, uint until) internal view returns (uint96) {
+        uint date = timestampToLockDate(block.timestamp);
+        uint96 weight = computeWeightByDate(until, date); // (10 - 1) * WEIGHT_FACTOR
+        weight = weight * weightScaling;
+        return amount * weight / WEIGHT_FACTOR / 100;
+    }
+
+    /**
+     * @notice validates withdraw parameters
+     * @param amount the number of tokens to withdraw
+     * @param until the date until which the tokens were staked
+     * */
+    function _validateWithdrawParams(uint96 amount, uint until) internal view {
+        require(amount > 0, "Staking::withdraw: amount of tokens to be withdrawn needs to be bigger than 0");
+        uint96 balance = getPriorUserStakeByDate(msg.sender, until, block.number -1);
+        require(amount <= balance, "Staking::withdraw: not enough balance");
     }
 
     /**
