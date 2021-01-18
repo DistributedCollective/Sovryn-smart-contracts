@@ -559,12 +559,13 @@ def createProposalTransferFunds():
     governorVault = Contract.from_abi("GovernorVault", address=contracts['governorVault'], abi=GovernorVault.abi, owner=acct)
 
     # TODO set a receiver
-    receiver = "0xad21b3040350E3F29864F95ec6401e52f83363A2"
+    receiver = ""
 
     # second action
     target2 = governorVault
     signature2 = "transferRbtc(address,uint256)"
-    data2 = governorVault.transferRbtc.encode_input(receiver, 100000000000000000)
+    # 0.0001
+    data2 = governorVault.transferRbtc.encode_input(receiver, 100000000000000)
     data2 = "0x" + data2[10:]
     print(data2)
 
