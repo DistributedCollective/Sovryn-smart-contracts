@@ -23,7 +23,7 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, underlyingTo
     underlyingToken.mint(accounts[0], loan_token_sent)
     underlyingToken.approve(loanToken.address, loan_token_sent)
     value = loan_token_sent if sendValue else 0
-    
+
     # send the transaction
     leverage_amount = 2e18
     collateral_sent = 0
@@ -34,6 +34,7 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, underlyingTo
         collateral_sent, # no collateral token sent
         collateralToken.address, #collateralTokenAddress
         accounts[0], #trader,
+        1e25, # maxSlippage
         b'', #loanDataBytes (only required with ether)
         {'value': value}
     )
@@ -121,6 +122,7 @@ def margin_trading_sov_reward_payment(accounts, loanToken, underlyingToken, coll
         collateral_sent, # no collateral token sent
         collateralToken.address, #collateralTokenAddress
         trader, #trader,
+        1e25, # maxSlippage
         b'', #loanDataBytes (only required with ether)
         {'value': value}
     )
@@ -153,6 +155,7 @@ def margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, underl
         collateralTokenSent, 
         collateralToken.address, #collateralTokenAddress
         accounts[0], #trader, 
+        1e25, # maxSlippage
         b'', #loanDataBytes (only required with ether),
         {'value' : value}
     )
@@ -172,6 +175,7 @@ def margin_trading_sending_collateral_tokens_sov_reward_payment(trader, loanToke
         collateralTokenSent,
         collateralToken.address,  # collateralTokenAddress
         trader,  # trader,
+        1e25,  # maxSlippage
         b'',  # loanDataBytes (only required with ether),
         {'from': trader, 'value': value}
     )

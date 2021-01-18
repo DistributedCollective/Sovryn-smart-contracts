@@ -215,6 +215,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         uint256 collateralTokenSent,
         address collateralTokenAddress,
         address trader,
+        uint256 maxSlippage,
         bytes memory loanDataBytes // arbitrary order data
     )
         public
@@ -226,6 +227,33 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         )
     {
         _checkPause();
+
+        if (collateralTokenSent != 0) {
+            (uint256 rateFromPriceFeeds, uint256 precision) = FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(
+                collateralTokenAddress,
+                loanTokenAddress
+            );
+
+            uint256 loanTokenAmount = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
+                collateralTokenAddress,
+                loanTokenAddress,
+                collateralTokenSent
+            );
+
+            uint256 rateFromSwap = loanTokenAmount.mul(precision).div(collateralTokenSent);
+
+            uint256 spreadValue = rateFromSwap > rateFromPriceFeeds ?
+                rateFromSwap - rateFromPriceFeeds :
+                rateFromPriceFeeds - rateFromSwap;
+
+            if (spreadValue != 0) {
+                spreadValue = spreadValue
+                .mul(10**20)
+                .div(rateFromSwap);
+                
+                require(spreadValue <= maxSlippage, "price disagreement");
+            }           
+        }
 
         if (collateralTokenAddress == address(0)) {
             collateralTokenAddress = wrbtcTokenAddress;
