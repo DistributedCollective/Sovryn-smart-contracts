@@ -346,10 +346,18 @@ contract LoanOpenings is
         );
 
         if (loanLocal.startTimestamp == block.timestamp) {
-            uint256 totalSwapRate = 10**36;
-            loanLocal.startRate = isTorqueLoan
-                ? collateralToLoanRate
-                : totalSwapRate.div(sentValues[3]);
+
+            uint256 loanToCollateralPrecision = IPriceFeeds(priceFeeds).queryPrecision(
+                loanParamsLocal.loanToken, 
+                loanParamsLocal.collateralToken
+            );
+            uint256 collateralToLoanPrecision = IPriceFeeds(priceFeeds).queryPrecision(
+                loanParamsLocal.collateralToken,
+                loanParamsLocal.loanToken
+            );
+            uint256 totalSwapRate = loanToCollateralPrecision.mul(collateralToLoanPrecision);
+            loanLocal.startRate = isTorqueLoan ? collateralToLoanRate : totalSwapRate.div(sentValues[3]);
+
         }
 
         _emitOpeningEvents(
