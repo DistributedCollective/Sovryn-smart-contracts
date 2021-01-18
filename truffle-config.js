@@ -1,5 +1,10 @@
 // //Here is the command line  use to launch the Ganache CLI client:
 //ganache-cli -d 100000000 --allowUnlimitedContractSize
+
+//For compiling run: truffle compile (//so that Abi can be build in  build/contract folder automatically)
+
+//for test locally run: truffle test 
+//for checking every event run: truffle test --show-events
 module.exports = {
   // Configure your compilers
   compilers: {
