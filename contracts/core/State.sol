@@ -14,9 +14,9 @@ import "../openzeppelin/SafeMath.sol";
 import "../interfaces/IWrbtcERC20.sol";
 
 contract State is Objects, ReentrancyGuard, Ownable {
-    using SafeMath for uint256;
-    using EnumerableAddressSet for EnumerableAddressSet.AddressSet; // enumerable map of addresses
-    using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set; // enumerable map of bytes32 or addresses
+	using SafeMath for uint256;
+	using EnumerableAddressSet for EnumerableAddressSet.AddressSet; // enumerable map of addresses
+	using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set; // enumerable map of bytes32 or addresses
 
 	address public priceFeeds; // handles asset reference price lookups
 	address public swapsImpl; // handles asset swaps using dex liquidity
@@ -87,18 +87,16 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
 	uint256 public feeRebatePercent = 50 * 10**18; // 50% fee rebate                     // potocolToken reward to user, it is worth % of trading/borrowing fee
 
-    address public protocolAddress; // for modules interaction
+	address public protocolAddress; // for modules interaction
 
-    mapping(address => bool) public userNotFirstTradeFlag; // The flag is set on the user's first trade or borrowing
+	mapping(address => bool) public userNotFirstTradeFlag; // The flag is set on the user's first trade or borrowing
 
-    mapping(address => EnumerableAddressSet.AddressSet)
-        internal affiliatesReferrerTokensList; // addresses of tokens in which commissions were paid to referrers
-    mapping(address => mapping(address => uint256))
-        public affiliatesReferrerBalances; // [referrerAddress][tokenAddress] is a referrer's token balance of accrued fees
-    mapping(address => address) public affiliatesUserReferrer; // User => referrer (affiliate)
+	mapping(address => EnumerableAddressSet.AddressSet) internal affiliatesReferrerTokensList; // addresses of tokens in which commissions were paid to referrers
+	mapping(address => mapping(address => uint256)) public affiliatesReferrerBalances; // [referrerAddress][tokenAddress] is a referrer's token balance of accrued fees
+	mapping(address => address) public affiliatesUserReferrer; // User => referrer (affiliate)
 
-    function _setTarget(bytes4 sig, address target) internal {
-        logicTargets[sig] = target;
+	function _setTarget(bytes4 sig, address target) internal {
+		logicTargets[sig] = target;
 
 		if (target != address(0)) {
 			logicTargetsSet.addBytes32(bytes32(sig));

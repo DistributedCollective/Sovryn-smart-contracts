@@ -4,21 +4,15 @@
  */
 
 pragma solidity 0.5.17;
+
 interface ProtocolAffiliatesInterface {
-    function setAffiliatesReferrer(
-            address user,
-            address referrer) 
-            external;
+	function setAffiliatesReferrer(address user, address referrer) external;
 
-    function setUserNotFirstTradeFlag(
-        address user_)
-        external;
+	function setUserNotFirstTradeFlag(address user_) external;
 
-    function payTradingFeeToAffiliatesReferrer(
-        address affiliate,
-        address token,
-        uint256 amount
-    )
-        external
-        returns(uint256);
+	function payTradingFeeToAffiliatesReferrer(
+		address affiliate,
+		address token,
+		uint256 amount
+	) external returns (uint256);
 }
