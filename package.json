@@ -44,6 +44,12 @@
     "test-js": "truffle test",
     "coverage": "truffle run coverage --file='tests-js/'"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn prettier && yarn lint-contracts",
+      "pre-push": "yarn test-js"
+    }
+  },
   "dependencies": {
     "phantomjs-prebuilt": "^2.1.16",
     "sol2uml": "^1.1.17"

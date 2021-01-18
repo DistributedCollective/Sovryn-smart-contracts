@@ -16,95 +16,85 @@ import "../contracts/events/FeesEvents.sol";
 import "../contracts/events/SwapsEvents.sol";
 
 contract ISovryn is
-    State,
-    ProtocolSettingsEvents,
-    LoanSettingsEvents,
-    LoanOpeningsEvents,
-    LoanMaintenanceEvents,
-    LoanClosingsEvents,
-    SwapsEvents
+	State,
+	ProtocolSettingsEvents,
+	LoanSettingsEvents,
+	LoanOpeningsEvents,
+	LoanMaintenanceEvents,
+	LoanClosingsEvents,
+	SwapsEvents
 {
-    ////// Protocol //////
+	////// Protocol //////
 
-    function replaceContract(address target) external;
+	function replaceContract(address target) external;
 
-    function setTargets(
-        string[] calldata sigsArr,
-        address[] calldata targetsArr
-    ) external;
+	function setTargets(string[] calldata sigsArr, address[] calldata targetsArr) external;
 
-    function getTarget(string calldata sig) external view returns (address);
+	function getTarget(string calldata sig) external view returns (address);
 
-    ////// Protocol Settings //////
+	////// Protocol Settings //////
 
-    function setPriceFeedContract(address newContract) external;
+	function setPriceFeedContract(address newContract) external;
 
-    function setSwapsImplContract(address newContract) external;
+	function setSwapsImplContract(address newContract) external;
 
-    function setLoanPool(address[] calldata pools, address[] calldata assets)
-        external;
+	function setLoanPool(address[] calldata pools, address[] calldata assets) external;
 
-    function setSupportedTokens(
-        address[] calldata addrs,
-        bool[] calldata toggles
-    ) external;
+	function setSupportedTokens(address[] calldata addrs, bool[] calldata toggles) external;
 
-    function setLendingFeePercent(uint256 newValue) external;
+	function setLendingFeePercent(uint256 newValue) external;
 
-    function setTradingFeePercent(uint256 newValue) external;
+	function setTradingFeePercent(uint256 newValue) external;
 
-    function setBorrowingFeePercent(uint256 newValue) external;
+	function setBorrowingFeePercent(uint256 newValue) external;
 
-    function setAffiliateFeePercent(uint256 newValue) external;
+	function setAffiliateFeePercent(uint256 newValue) external;
 
-    function setLiquidationIncentivePercent(uint256 newAmount) external;
+	function setLiquidationIncentivePercent(uint256 newAmount) external;
 
-    function setMaxDisagreement(uint256 newAmount) external;
+	function setMaxDisagreement(uint256 newAmount) external;
 
-    function setSourceBuffer(uint256 newAmount) external;
+	function setSourceBuffer(uint256 newAmount) external;
 
-    function setMaxSwapSize(uint256 newAmount) external;
+	function setMaxSwapSize(uint256 newAmount) external;
 
-    function setFeesController(address newController) external;
+	function setFeesController(address newController) external;
 
-    function withdrawLendingFees(
-        address token,
-        address receiver,
-        uint256 amount
-    ) external returns (bool);
+	function withdrawLendingFees(
+		address token,
+		address receiver,
+		uint256 amount
+	) external returns (bool);
 
-    function withdrawTradingFees(
-        address token,
-        address receiver,
-        uint256 amount
-    ) external returns (bool);
+	function withdrawTradingFees(
+		address token,
+		address receiver,
+		uint256 amount
+	) external returns (bool);
 
-    function withdrawBorrowingFees(
-        address token,
-        address receiver,
-        uint256 amount
-    ) external returns (bool);
+	function withdrawBorrowingFees(
+		address token,
+		address receiver,
+		uint256 amount
+	) external returns (bool);
 
-    function withdrawProtocolToken(address receiver, uint256 amount)
-        external
-        returns (address, bool);
+	function withdrawProtocolToken(address receiver, uint256 amount) external returns (address, bool);
 
-    function depositProtocolToken(uint256 amount) external;
+	function depositProtocolToken(uint256 amount) external;
 
-    function getLoanPoolsList(uint256 start, uint256 count) external;
+	function getLoanPoolsList(uint256 start, uint256 count) external;
 
-    function isLoanPool(address loanPool) external view returns (bool);
+	function isLoanPool(address loanPool) external view returns (bool);
 
-    function setWrbtcToken(address wrbtcTokenAddress) external;
+	function setWrbtcToken(address wrbtcTokenAddress) external;
 
-    function setSovrynSwapContractRegistryAddress(address registryAddress)
-        external;
+	function setSovrynSwapContractRegistryAddress(address registryAddress) external;
 
-    function setProtocolTokenAddress(address _protocolTokenAddress) external;
+	function setProtocolTokenAddress(address _protocolTokenAddress) external;
 
-    function setRolloverBaseReward(uint256 transactionCost) external;
+	function setRolloverBaseReward(uint256 transactionCost) external;
 
-    function setRebatePercent(uint256 rebatePercent) external;
+	function setRebatePercent(uint256 rebatePercent) external;
 
     ////// Loan Settings //////
 

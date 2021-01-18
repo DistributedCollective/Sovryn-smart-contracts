@@ -52,8 +52,8 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, underlyingTo
     start_margin = 1e38 / leverage_amount
     total_deposit = loan_token_sent + collateral_sent
     (trade_rate, trade_rate_precision) = priceFeeds.queryRate(underlyingToken.address, collateralToken.address)
-    (collateral_to_loan_rate, _) = priceFeeds.queryRate(collateralToken.address, underlyingToken.address)
-    collateral_to_loan_swap_rate = "%e"%(10**36 / tx.events['Trade']['entryPrice'])
+    (collateral_to_loan_rate, collateral_to_loan_precision) = priceFeeds.queryRate(collateralToken.address, underlyingToken.address)
+    collateral_to_loan_swap_rate = "%e"%(collateral_to_loan_precision *  trade_rate_precision / tx.events['Trade']['entryPrice'])
     interest_rate = loanToken.nextBorrowInterestRate(total_deposit * 1e20 / start_margin)
     principal = loan_token_sent * 2
     seconds_per_day = 24 * 60 * 60

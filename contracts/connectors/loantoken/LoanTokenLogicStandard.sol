@@ -12,47 +12,37 @@ import "./interfaces/FeedsLike.sol";
 import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
 
 contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
-    using SignedSafeMath for int256;
+	using SignedSafeMath for int256;
 
-    // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wrbtcTokenAddress
-    address public wrbtcTokenAddress;
-    address internal target_;
+	// It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wrbtcTokenAddress
+	address public wrbtcTokenAddress;
+	address internal target_;
 
-    uint256 public constant VERSION = 5;
-    address internal constant arbitraryCaller =
-        0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
+	uint256 public constant VERSION = 5;
+	address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
 
-    function() external {
-        revert("loan token logic - fallback not allowed");
-    }
+	function() external {
+		revert("loan token logic - fallback not allowed");
+	}
 
-    /* Public functions */
+	/* Public functions */
 
-    function mint(address receiver, uint256 depositAmount)
-        external
-        nonReentrant
-        returns (uint256 mintAmount)
-    {
-        //temporary: limit transaction size
-        if (transactionLimit[loanTokenAddress] > 0)
-            require(depositAmount <= transactionLimit[loanTokenAddress]);
+	function mint(address receiver, uint256 depositAmount) external nonReentrant returns (uint256 mintAmount) {
+		//temporary: limit transaction size
+		if (transactionLimit[loanTokenAddress] > 0) require(depositAmount <= transactionLimit[loanTokenAddress]);
 
-        return _mintToken(receiver, depositAmount);
-    }
+		return _mintToken(receiver, depositAmount);
+	}
 
-    function burn(address receiver, uint256 burnAmount)
-        external
-        nonReentrant
-        returns (uint256 loanAmountPaid)
-    {
-        loanAmountPaid = _burnToken(burnAmount);
+	function burn(address receiver, uint256 burnAmount) external nonReentrant returns (uint256 loanAmountPaid) {
+		loanAmountPaid = _burnToken(burnAmount);
 
-        if (loanAmountPaid != 0) {
-            _safeTransfer(loanTokenAddress, receiver, loanAmountPaid, "5");
-        }
-    }
+		if (loanAmountPaid != 0) {
+			_safeTransfer(loanTokenAddress, receiver, loanAmountPaid, "5");
+		}
+	}
 
-    /*
+	/*
     flashBorrow is disabled for the MVP, but is going to be added later.
     therefore, it needs to be revised
     
