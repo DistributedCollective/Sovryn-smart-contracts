@@ -39,7 +39,7 @@ def main():
     # governorAcceptAdmin("governorOwner")
     # governorAcceptAdmin("governorAdmin")
 
-    # governorAcceptAdmin("governor")
+    governorAcceptAdmin("governor")
 
     # prepareProposalData()
 
