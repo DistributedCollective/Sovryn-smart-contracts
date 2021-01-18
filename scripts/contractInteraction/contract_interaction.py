@@ -42,8 +42,9 @@ def main():
     # governorAcceptAdmin("governor")
 
     # prepareProposalData()
-    createProposalStartSale()
+    # createProposalStartSale()
     # createProposalCloseSale()
+    createProposalTransferFunds()
 
 def loadConfig():
     global contracts, acct
@@ -530,7 +531,6 @@ def createProposalCloseSale():
     signature2 = "withdrawFunds()"
     data2 = dummyContract.withdrawFunds.encode_input()
     data2 = "0x" + data2[10:]
-    # data2 = "" #second variant
     print(data2)
 
     # create proposal
@@ -541,3 +541,32 @@ def createProposalCloseSale():
         [signature1, signature2],
         [data1, data2],
         "Close sale")
+
+def createProposalTransferFunds():
+    token = contracts['NTSOV']
+    governorVault = Contract.from_abi("GovernorVault", address=contracts['governorVault'], abi=GovernorVault.abi, owner=acct)
+
+    # TODO set a receiver
+    receiver = "0xad21b3040350e3f29864f95ec6401e52f83363a2"
+    # first action
+    target1 = governorVault
+    signature1 = "transferTokens(address,address,uint256)"
+    data1 = governorVault.transferTokens.encode_input(receiver, token, 1000)
+    data1 = "0x" + data1[10:]
+    print(data1)
+
+    # second action
+    target2 = governorVault
+    signature2 = "transferRbtc(address,uint256)"
+    data2 = governorVault.transferRbtc.encode_input(receiver, 100000000000000000)
+    data2 = "0x" + data2[10:]
+    print(data2)
+
+    # create proposal
+    governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
+    governor.propose(
+        [target1, target2],
+        [0, 0],
+        [signature1, signature2],
+        [data1, data2],
+        "Transfer funds")
