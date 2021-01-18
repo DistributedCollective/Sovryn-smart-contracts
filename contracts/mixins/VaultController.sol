@@ -9,86 +9,78 @@ import "../openzeppelin/SafeERC20.sol";
 import "../core/State.sol";
 
 contract VaultController is State {
-    using SafeERC20 for IERC20;
+	using SafeERC20 for IERC20;
 
-    event VaultDeposit(
-        address indexed asset,
-        address indexed from,
-        uint256 amount
-    );
-    event VaultWithdraw(
-        address indexed asset,
-        address indexed to,
-        uint256 amount
-    );
+	event VaultDeposit(address indexed asset, address indexed from, uint256 amount);
+	event VaultWithdraw(address indexed asset, address indexed to, uint256 amount);
 
-    function vaultEtherDeposit(address from, uint256 value) internal {
-        IWrbtcERC20 _wrbtcToken = wrbtcToken;
-        _wrbtcToken.deposit.value(value)();
+	function vaultEtherDeposit(address from, uint256 value) internal {
+		IWrbtcERC20 _wrbtcToken = wrbtcToken;
+		_wrbtcToken.deposit.value(value)();
 
-        emit VaultDeposit(address(_wrbtcToken), from, value);
-    }
+		emit VaultDeposit(address(_wrbtcToken), from, value);
+	}
 
-    function vaultEtherWithdraw(address to, uint256 value) internal {
-        if (value != 0) {
-            IWrbtcERC20 _wrbtcToken = wrbtcToken;
-            uint256 balance = address(this).balance;
-            if (value > balance) {
-                _wrbtcToken.withdraw(value - balance);
-            }
-            Address.sendValue(to, value);
+	function vaultEtherWithdraw(address to, uint256 value) internal {
+		if (value != 0) {
+			IWrbtcERC20 _wrbtcToken = wrbtcToken;
+			uint256 balance = address(this).balance;
+			if (value > balance) {
+				_wrbtcToken.withdraw(value - balance);
+			}
+			Address.sendValue(to, value);
 
-            emit VaultWithdraw(address(_wrbtcToken), to, value);
-        }
-    }
+			emit VaultWithdraw(address(_wrbtcToken), to, value);
+		}
+	}
 
-    function vaultDeposit(
-        address token,
-        address from,
-        uint256 value
-    ) internal {
-        if (value != 0) {
-            IERC20(token).safeTransferFrom(from, address(this), value);
+	function vaultDeposit(
+		address token,
+		address from,
+		uint256 value
+	) internal {
+		if (value != 0) {
+			IERC20(token).safeTransferFrom(from, address(this), value);
 
-            emit VaultDeposit(token, from, value);
-        }
-    }
+			emit VaultDeposit(token, from, value);
+		}
+	}
 
-    function vaultWithdraw(
-        address token,
-        address to,
-        uint256 value
-    ) internal {
-        if (value != 0) {
-            IERC20(token).safeTransfer(to, value);
+	function vaultWithdraw(
+		address token,
+		address to,
+		uint256 value
+	) internal {
+		if (value != 0) {
+			IERC20(token).safeTransfer(to, value);
 
-            emit VaultWithdraw(token, to, value);
-        }
-    }
+			emit VaultWithdraw(token, to, value);
+		}
+	}
 
-    function vaultTransfer(
-        address token,
-        address from,
-        address to,
-        uint256 value
-    ) internal {
-        if (value != 0) {
-            if (from == address(this)) {
-                IERC20(token).safeTransfer(to, value);
-            } else {
-                IERC20(token).safeTransferFrom(from, to, value);
-            }
-        }
-    }
+	function vaultTransfer(
+		address token,
+		address from,
+		address to,
+		uint256 value
+	) internal {
+		if (value != 0) {
+			if (from == address(this)) {
+				IERC20(token).safeTransfer(to, value);
+			} else {
+				IERC20(token).safeTransferFrom(from, to, value);
+			}
+		}
+	}
 
-    function vaultApprove(
-        address token,
-        address to,
-        uint256 value
-    ) internal {
-        if (value != 0 && IERC20(token).allowance(address(this), to) != 0) {
-            IERC20(token).safeApprove(to, 0);
-        }
-        IERC20(token).safeApprove(to, value);
-    }
+	function vaultApprove(
+		address token,
+		address to,
+		uint256 value
+	) internal {
+		if (value != 0 && IERC20(token).allowance(address(this), to) != 0) {
+			IERC20(token).safeApprove(to, 0);
+		}
+		IERC20(token).safeApprove(to, value);
+	}
 }
