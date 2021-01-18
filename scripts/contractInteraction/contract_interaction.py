@@ -42,9 +42,11 @@ def main():
     # governorAcceptAdmin("governor")
 
     # prepareProposalData()
+
+    # distributeTokens()
     # createProposalStartSale()
     # createProposalCloseSale()
-    createProposalTransferFunds()
+    # createProposalTransferFunds()
 
 def loadConfig():
     global contracts, acct
@@ -468,14 +470,25 @@ def prepareProposalData():
     # print(data)
 
     # [proposal 11]
-    governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
+    # governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
+    #
+    # governor.propose(
+    #     ["0x75bbf7f4d77777730eE35b94881B898113a93124","0x3c886dC89808dF2FFEd295c8d0AE6Bdb4fE38CC5"],
+    #     [0,0],
+    #     ["setSaleAdmin(address)", "start(uint256,uint256,uint256,uint256)"],
+    #     ["0x0000000000000000000000003c886dc89808df2ffed295c8d0ae6bdb4fe38cc5","0x0000000000000000000000000000000000000000000000000000000000015180000000000000000000000000000000000000000000000000000000000000823500000000000000000000000000000000000000000000000000038d7ea4c6800000000000000000000000000000000000000000000001a784379d99db42000000"],
+    #     "Set sale admin and start crowd sale (rate = 33333)")
 
-    governor.propose(
-        ["0x75bbf7f4d77777730eE35b94881B898113a93124","0x3c886dC89808dF2FFEd295c8d0AE6Bdb4fE38CC5"],
-        [0,0],
-        ["setSaleAdmin(address)", "start(uint256,uint256,uint256,uint256)"],
-        ["0x0000000000000000000000003c886dc89808df2ffed295c8d0ae6bdb4fe38cc5","0x0000000000000000000000000000000000000000000000000000000000015180000000000000000000000000000000000000000000000000000000000000823500000000000000000000000000000000000000000000000000038d7ea4c6800000000000000000000000000000000000000000000001a784379d99db42000000"],
-        "Set sale admin and start crowd sale (rate = 33333)")
+    print("")
+
+def distributeTokens():
+    token = Contract.from_abi("Comp", address=contracts['NTSOV'], abi=Comp.abi, owner=acct)
+    amount = "1000000000000000000000000"
+    addresses = ["0xad21b3040350e3f29864f95ec6401e52f83363a2"]
+
+    for address in addresses:
+        print(address)
+        token.transfer(address, amount)
 
 def createProposalStartSale():
 
@@ -547,7 +560,7 @@ def createProposalTransferFunds():
     governorVault = Contract.from_abi("GovernorVault", address=contracts['governorVault'], abi=GovernorVault.abi, owner=acct)
 
     # TODO set a receiver
-    receiver = "0xad21b3040350e3f29864f95ec6401e52f83363a2"
+    receiver = ""
     # first action
     target1 = governorVault
     signature1 = "transferTokens(address,address,uint256)"
