@@ -198,12 +198,8 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
     function _swapsExpectedReturn(
         address sourceToken,
         address destToken,
-        uint256 sourceTokenAmount)
-        internal
-        view
-        returns (uint256 destTokenAmount)
-    {
-
+        uint256 sourceTokenAmount
+    ) internal view returns (uint256 destTokenAmount) {
         destTokenAmount = ISwapsImpl(swapsImpl).internalExpectedRate(
             sourceToken,
             destToken,

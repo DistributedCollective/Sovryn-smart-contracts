@@ -116,21 +116,16 @@ contract LoanOpenings is
 
         uint256 owedPerDay = newPrincipal.mul(interestRate).div(365 * 10**20);
 
-        uint256 interestAmountRequired = maxLoanTerm
-            .mul(owedPerDay)
-            .div(86400);
-        
+        uint256 interestAmountRequired = maxLoanTerm.mul(owedPerDay).div(86400);
+
         uint256 swapAmount = loanTokenSent.sub(interestAmountRequired);
         uint256 tradingFee = _getTradingFee(swapAmount);
         if (tradingFee != 0) {
             swapAmount = swapAmount.sub(tradingFee);
         }
-        
-        uint256 receivedAmount = _swapsExpectedReturn(
-            loanToken,
-            collateralToken,
-            swapAmount
-        );
+
+        uint256 receivedAmount =
+            _swapsExpectedReturn(loanToken, collateralToken, swapAmount);
         if (receivedAmount == 0) {
             return 0;
         } else {
@@ -199,7 +194,6 @@ contract LoanOpenings is
                         .div(marginAmount)
                         .mul(sourceToDestRate)
                         .div(sourceToDestPrecision);
-
                 }
             }
         }
@@ -310,8 +304,7 @@ contract LoanOpenings is
             "collateral insufficient"
         );
 
-        loanLocal.collateral = loanLocal.collateral
-            .add(sentValues[4]);
+        loanLocal.collateral = loanLocal.collateral.add(sentValues[4]);
 
         if (isTorqueLoan) {
             // reclaiming varaible -> interestDuration
@@ -330,24 +323,23 @@ contract LoanOpenings is
         );
 
         return (sentValues[1], sentValues[4]); // newPrincipal, newCollateral
-    } 
-
+    }
 
     function _finalizeOpen(
         LoanParams memory loanParamsLocal,
         Loan storage loanLocal,
         address[4] memory sentAddresses,
         uint256[5] memory sentValues,
-        bool isTorqueLoan)
-        internal
-    {
+        bool isTorqueLoan
+    ) internal {
         //todo here the actual used rate and margin should go
-        (uint256 initialMargin, uint256 collateralToLoanRate) = IPriceFeeds(priceFeeds).getCurrentMargin(
-            loanParamsLocal.loanToken,
-            loanParamsLocal.collateralToken,
-            loanLocal.principal,
-            loanLocal.collateral
-        );
+        (uint256 initialMargin, uint256 collateralToLoanRate) =
+            IPriceFeeds(priceFeeds).getCurrentMargin(
+                loanParamsLocal.loanToken,
+                loanParamsLocal.collateralToken,
+                loanLocal.principal,
+                loanLocal.collateral
+            );
         require(
             initialMargin > loanParamsLocal.maintenanceMargin,
             "unhealthy position"
@@ -355,7 +347,9 @@ contract LoanOpenings is
 
         if (loanLocal.startTimestamp == block.timestamp) {
             uint256 totalSwapRate = 10**36;
-            loanLocal.startRate = isTorqueLoan ? collateralToLoanRate : totalSwapRate.div(sentValues[3]);
+            loanLocal.startRate = isTorqueLoan
+                ? collateralToLoanRate
+                : totalSwapRate.div(sentValues[3]);
         }
 
         _emitOpeningEvents(
@@ -624,13 +618,11 @@ contract LoanOpenings is
             collateralTokenAmount = newPrincipal.mul(marginAmount).div(10**20);
         } else {
             //using the price feed instead of the swap expected return because we need the rate in the inverse direction
-            //so the swap is probably farther off than the price feed. 
-            (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(
-                collateralToken,
-                loanToken
-            );
+            //so the swap is probably farther off than the price feed.
+            (uint256 sourceToDestRate, uint256 sourceToDestPrecision) =
+                IPriceFeeds(priceFeeds).queryRate(collateralToken, loanToken);
             if (sourceToDestRate != 0) {
-                collateralTokenAmount = newPrincipal           
+                collateralTokenAmount = newPrincipal
                     .mul(sourceToDestPrecision)
                     .div(sourceToDestRate)
                     .mul(marginAmount)

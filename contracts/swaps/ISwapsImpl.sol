@@ -25,8 +25,6 @@ interface ISwapsImpl {
         address sourceTokenAddress,
         address destTokenAddress,
         uint256 sourceTokenAmount,
-        address optionalContractAddress)
-        external
-        view
-        returns (uint256);
+        address optionalContractAddress
+    ) external view returns (uint256);
 }
