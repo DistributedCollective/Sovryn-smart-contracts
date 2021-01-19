@@ -90,7 +90,7 @@ contract('VestingIntegrationTest', accounts => {
         loanTokenSettings = await LoanTokenSettings.new();
         loanTokenLogic = await LoanTokenLogic.new();
         loanToken = await LoanToken.new(root, loanTokenLogic.address, protocol.address, wrbtc.address);
-        // await loanToken.initialize(susd.address, "iSUSD", "iSUSD");
+        await loanToken.initialize(susd.address, "iSUSD", "iSUSD");
         loanToken = await LoanTokenLogic.at(loanToken.address);
 
         await protocol.setLoanPool([loanToken.address], [susd.address]);
@@ -106,23 +106,70 @@ contract('VestingIntegrationTest', accounts => {
         inOneWeek = kickoffTS.add(new BN(DELAY));
     });
 
-    describe('stakeTokens', () => {
+    // describe('collectDividends', () => {
+    //
+    //     let vesting;
+    //
+    //     it('should be able to collect dividends', async () => {
+    //         vesting = await Vesting.new(token.address, staking.address, root, 26 * WEEK, 104 * WEEK, feeSharingProxy.address);
+    //         await token.approve(vesting.address, ONE_MILLON);
+    //         await vesting.stakeTokens(ONE_MILLON);
+    //
+    //         //mock data
+    //         let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+    //
+    //         await feeSharingProxy.withdrawFees(susd.address);
+    //
+    //         let fees = await feeSharingProxy.getAccumulatedFees(vesting.address, loanToken.address);
+    //         expect(fees).to.be.bignumber.equal(new BN(feeAmount));
+    //
+    //         let tx = await vesting.collectDividends(loanToken.address, 1000, account1);
+    //
+    //         //processedCheckpoints
+    //         let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(vesting.address, loanToken.address);
+    //         expect(processedCheckpoints.toNumber()).to.be.equal(1);
+    //
+    //         expectEvent(tx, 'DividendsCollected', {
+    //             caller: root,
+    //             loanPoolToken: loanToken.address,
+    //             receiver: account1,
+    //             maxCheckpoints: "1000"
+    //         });
+    //
+    //     });
+    //
+    // });
+
+    describe('migrateToNewStakingContract', () => {
 
         let vesting;
 
-        it('should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff', async () => {
+        it('should be able to migrate to new staking contract', async () => {
             vesting = await Vesting.new(token.address, staking.address, root, 26 * WEEK, 104 * WEEK, feeSharingProxy.address);
             await token.approve(vesting.address, ONE_MILLON);
-            let tx = await vesting.stakeTokens(ONE_MILLON);
+            await vesting.stakeTokens(ONE_MILLON);
 
-            expectEvent(tx, 'TokensStaked', {
-                caller: root,
-                amount: ONE_MILLON
-            });
+            let balance = await staking.balanceOf.call(vesting.address);
+            expect(balance.toString()).equal(ONE_MILLON);
+
+            await staking.setNewStakingContract(account1);
+            await vesting.migrateToNewStakingContract();
+
+            await token.approve(vesting.address, ONE_MILLON);
+            await vesting.stakeTokens(ONE_MILLON);
+
+
         });
 
-        //
-
     });
+
+    async function setFeeTokensHeld(lendingFee, tradingFee, borrowingFee) {
+        let totalFeeAmount = lendingFee.add(tradingFee).add(borrowingFee);
+        await susd.transfer(protocol.address, totalFeeAmount);
+        await protocol.setLendingFeeTokensHeld(susd.address, lendingFee);
+        await protocol.setTradingFeeTokensHeld(susd.address, tradingFee);
+        await protocol.setBorrowingFeeTokensHeld(susd.address, borrowingFee);
+        return totalFeeAmount;
+    }
 
 });
