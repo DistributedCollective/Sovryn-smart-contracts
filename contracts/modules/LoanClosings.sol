@@ -64,10 +64,9 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 		)
 	{
 		// we will take methodSig as msg.sig of methodSignature(closeWithDepositWithSig(bytes32,address,uint256,bytes))
-		// require(
+		
 		require(_verifyUserSignature(loanId, receiver, depositAmount, bytes4(msg.sig), sig), "UnAuthorize User");
-		//
-		// );
+		
 		return _closeWithDeposit(loanId, receiver, depositAmount);
 	}
 
