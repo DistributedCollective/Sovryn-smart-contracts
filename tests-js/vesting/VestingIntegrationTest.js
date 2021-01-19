@@ -106,39 +106,39 @@ contract('VestingIntegrationTest', accounts => {
         inOneWeek = kickoffTS.add(new BN(DELAY));
     });
 
-    // describe('collectDividends', () => {
-    //
-    //     let vesting;
-    //
-    //     it('should be able to collect dividends', async () => {
-    //         vesting = await Vesting.new(token.address, staking.address, root, 26 * WEEK, 104 * WEEK, feeSharingProxy.address);
-    //         await token.approve(vesting.address, ONE_MILLON);
-    //         await vesting.stakeTokens(ONE_MILLON);
-    //
-    //         //mock data
-    //         let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
-    //
-    //         await feeSharingProxy.withdrawFees(susd.address);
-    //
-    //         let fees = await feeSharingProxy.getAccumulatedFees(vesting.address, loanToken.address);
-    //         expect(fees).to.be.bignumber.equal(new BN(feeAmount));
-    //
-    //         let tx = await vesting.collectDividends(loanToken.address, 1000, account1);
-    //
-    //         //processedCheckpoints
-    //         let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(vesting.address, loanToken.address);
-    //         expect(processedCheckpoints.toNumber()).to.be.equal(1);
-    //
-    //         expectEvent(tx, 'DividendsCollected', {
-    //             caller: root,
-    //             loanPoolToken: loanToken.address,
-    //             receiver: account1,
-    //             maxCheckpoints: "1000"
-    //         });
-    //
-    //     });
-    //
-    // });
+    describe('collectDividends', () => {
+
+        let vesting;
+
+        it('should be able to collect dividends', async () => {
+            vesting = await Vesting.new(token.address, staking.address, root, 26 * WEEK, 104 * WEEK, feeSharingProxy.address);
+            await token.approve(vesting.address, ONE_MILLON);
+            await vesting.stakeTokens(ONE_MILLON);
+
+            //mock data
+            let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+
+            await feeSharingProxy.withdrawFees(susd.address);
+
+            let fees = await feeSharingProxy.getAccumulatedFees(vesting.address, loanToken.address);
+            expect(fees).to.be.bignumber.equal(new BN(feeAmount));
+
+            let tx = await vesting.collectDividends(loanToken.address, 1000, account1);
+
+            //processedCheckpoints
+            let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(vesting.address, loanToken.address);
+            expect(processedCheckpoints.toNumber()).to.be.equal(1);
+
+            expectEvent(tx, 'DividendsCollected', {
+                caller: root,
+                loanPoolToken: loanToken.address,
+                receiver: account1,
+                maxCheckpoints: "1000"
+            });
+
+        });
+
+    });
 
     describe('migrateToNewStakingContract', () => {
 
@@ -156,8 +156,8 @@ contract('VestingIntegrationTest', accounts => {
             await vesting.migrateToNewStakingContract();
 
             await token.approve(vesting.address, ONE_MILLON);
-            await vesting.stakeTokens(ONE_MILLON);
-
+            await expectRevert(vesting.stakeTokens(ONE_MILLON),
+                "revert");
 
         });
 
