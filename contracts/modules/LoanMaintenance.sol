@@ -91,11 +91,9 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
             );
         }
 
-        (, uint256 collateralToLoanRate) = IPriceFeeds(priceFeeds).getCurrentMargin(
-            loanParamsLocal.loanToken,
+        (uint256 collateralToLoanRate, ) = IPriceFeeds(priceFeeds).queryRate(
             loanParamsLocal.collateralToken,
-            loanLocal.principal,
-            loanLocal.collateral
+            loanParamsLocal.loanToken
         );
         
         emit DepositCollateral(loanId, depositAmount, collateralToLoanRate);
