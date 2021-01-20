@@ -7,6 +7,7 @@ from brownie import *
 from brownie.network.contract import InterfaceContainer
 import json
 import copy
+import time;
 
 def main():
     
@@ -26,82 +27,21 @@ def main():
     #getBalance(contracts['WRBTC'], '0xE5646fEAf7f728C12EcB34D14b4396Ab94174827')
     #getBalance(contracts['WRBTC'], '0x7BE508451Cd748Ba55dcBE75c8067f9420909b49')
     #readLoan('0xb2bbd9135a7cfbc5adda48e90430923108ad6358418b7ac27c9edcf2d44911e5')
-    #replaceLoanClosings()
-    
-    #updateAllLogicContracts()
-    #readOwner(contracts['iDOC'])
-    #readTransactionLimits(contracts['iDOC'],  contracts['DoC'],  contracts['WRBTC'])
-    #setTransactionLimits(contracts['iDOC'], [contracts['DoC'],  contracts['WRBTC']], [0, 0])
-    #setTransactionLimits(contracts['iRBTC'], [contracts['DoC'],  contracts['WRBTC']], [0, 0])
-    #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [0])
-    #lendToPool(contracts['iDOC'],contracts['DoC'], 1000e18)
-    #setTransactionLimits(contracts['iDOC'], [contracts['DoC']], [21e18])
-    #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [21e18])
-    #readTransactionLimits(contracts['iDOC'],  contracts['DoC'], contracts['WRBTC'])
-    
 
-    #setupLoanParamsForCollaterals(contracts['iBPro'], [contracts['DoC'], contracts['USDT']])
-    #setupLoanParamsForCollaterals(contracts['iDOC'], [contracts['BPro'], contracts['USDT']])
-    #setupLoanParamsForCollaterals(contracts['iUSDT'], [contracts['DoC'], contracts['BPro']])
-    #setupLoanParamsForCollaterals(contracts['iRBTC'], [contracts['BPro'], contracts['USDT']])
+    # replaceLoanClosings()
+    
+    #logicContract = acct.deploy(LoanTokenLogicStandard)
+    #print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
+    #replaceLoanTokenLogic(contracts['iDOC'],logicContract.address)
+    #replaceLoanTokenLogic(contracts['iUSDT'],'0x2d4F27e9F82d315c389E5290D94dbA062993e40a')
+    #replaceLoanTokenLogic(contracts['iBPro'],'0x2d4F27e9F82d315c389E5290D94dbA062993e40a')
+    #logicContract = acct.deploy(LoanTokenLogicWrbtc)
+    #print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
+    #replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
 
-    #deployMultisig(['0xdB3DB4c5695f2aab0F406C86d1f35D326685d055', '0x5092019A3E0334586273A21a701F1BD859ECAbD6', '0xD6da34D91fC59134A132b17e7b5a472CA1BeA794'], 2)
-    #deployMultisig(['0x2bD2201bfe156a71EB0d02837172FFc237218505', acct, '0xdB3DB4c5695f2aab0F406C86d1f35D326685d055', '0x5092019A3E0334586273A21a701F1BD859ECAbD6', '0xD6da34D91fC59134A132b17e7b5a472CA1BeA794'], 2)
-    #updatePriceFeedToRSKOracle()
-    #checkRates()
-    
-    #checkOwnerIsAddress(contracts['sovrynProtocol'], contracts['multisig'])
-    
-    '''
-    print("price feeds SOV")
-    transferOwner(contracts['PriceFeedRSKOracle'], contracts['multisig'])
-    transferOwner(contracts['USDTPriceFeed'], contracts['multisig'])
-    
-    
-    print("price feeds AMM")
-    transferOwner('0xe4d2e26ce947df7a8d04e5a9dcdef0c540c497cf', contracts['multisig'])#BPRO
-    transferOwner('0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789', contracts['multisig'])#WRBTC
-    transferOwner('0xf5df3b2ae0c4e2c8912e177f6bd8ca6d479397a2', contracts['multisig'])#USD
-    
-    
-    print("loan tokens")
-    #transferOwner(contracts['iUSDT'], contracts['multisig'])
-    #transferOwner(contracts['iBPro'], contracts['multisig'])
-    #transferOwner(contracts['iDOC'], contracts['multisig'])
-    transferOwner(contracts['iRBTC'], contracts['multisig'])
-    
-    print("AMM Network + Converters")
-    transferOwner(contracts['swapNetwork'], contracts['multisig'])
-    transferOwner(contracts['ConverterDOC'], contracts['multisig'])
-    transferOwner(contracts['ConverterBPRO'], contracts['multisig'])
-    transferOwner(contracts['ConverterUSDT'], contracts['multisig'])
-    #note:the ownership transfers for the AMM need to be accepted by the new owner
-    
-    
-    acceptOwnershipWithMultisig(contracts['swapNetwork'])
-    acceptOwnershipWithMultisig(contracts['ConverterDOC'])
-    acceptOwnershipWithMultisig(contracts['ConverterBPRO'])
-    acceptOwnershipWithMultisig(contracts['ConverterUSDT'])
-    acceptOwnershipWithMultisig('0xe4d2e26ce947df7a8d04e5a9dcdef0c540c497cf')
-    acceptOwnershipWithMultisig('0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789')
-    
-    checkOwnerIsAddress(contracts['swapNetwork'], contracts['multisig'])
-    checkOwnerIsAddress(contracts['ConverterDOC'], contracts['multisig'])
-    checkOwnerIsAddress(contracts['ConverterBPRO'], contracts['multisig'])
-    checkOwnerIsAddress(contracts['ConverterUSDT'], contracts['multisig'])
-    checkOwnerIsAddress('0xe4d2e26ce947df7a8d04e5a9dcdef0c540c497cf', contracts['multisig'])
-    checkOwnerIsAddress('0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789', contracts['multisig'])
-    '''
-    
-    #addOwnerToMultisig('0x27d55f5668ef4438635bdce0adca083507e77752')
-    
-    #readLiquidity()
-    #swapTokens(1e18, 1, contracts['swapNetwork'], contracts['USDT'], contracts['BPro'])
-    #readFromMedianizer()
-    #replaceSwapsUser()
-    #checkRates()
-    #replaceSwapsExternal()
-    
+    governorAcceptAdmin("governorOwner")
+    governorAcceptAdmin("governorAdmin")
+
 def loadConfig():
     global contracts, acct
     this_network = network.show_active()
@@ -111,7 +51,9 @@ def loadConfig():
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     contracts = json.load(configFile)
     acct = accounts.load("rskdeployer")
-    
+    #acct = accounts.load("jamie")
+    #acct = accounts.load("danazix")
+
 
 
     
@@ -437,7 +379,7 @@ def checkOwnerIsAddress(contractAddress, expectedOwner):
     
 def setupMarginLoanParams(collateralTokenAddress, loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
-    
+
     params = [];
     setup = [
         b"0x0", ## id
@@ -475,21 +417,23 @@ def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTo
     )
     tx.info()
     '''
-    
+
 def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
     loanToken.setTarget(logicAddress)
-    
+
 def readFromMedianizer():
     medianizer = Contract.from_abi("Medianizer", address=contracts['medianizer'], abi=PriceFeedsMoCMockup.abi, owner=acct)
     print(medianizer.peek())
-    
+    medianizer = Contract.from_abi("Medianizer", address='0x26a00aF444928d689DDEC7b4D17c0E4a8c9D407d', abi=PriceFeedsMoCMockup.abi, owner=acct)
+    print(medianizer.peek())
+
 def updateOracleAddress(newAddress):
     print("set oracle address to", newAddress)
     priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = '0x066ba9453e230a260c2a753d9935d91187178C29', abi = PriceFeedsMoC.abi, owner = acct)
     priceFeedsMoC.setMoCOracleAddress(newAddress)
 
-    
+
 def addLiquidity(converter, reserve, amount):
     abiFile =  open('./scripts/contractInteraction/LiquidityPoolV2Converter.json')
     abi = json.load(abiFile)
@@ -678,3 +622,11 @@ def addOwnerToMultisig(newOwner):
     txId = tx.events["Submission"]["transactionId"]
     print("txid",txId);
 
+def governorAcceptAdmin(type):
+    governor = Contract.from_abi("GovernorAlpha", address=contracts[type], abi=GovernorAlpha.abi, owner=acct)
+    data = governor.__acceptAdmin.encode_input()
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(governor.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)

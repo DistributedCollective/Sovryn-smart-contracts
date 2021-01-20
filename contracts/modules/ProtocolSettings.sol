@@ -12,6 +12,7 @@ import "../openzeppelin/SafeERC20.sol";
 import "../mixins/ProtocolTokenUser.sol";
 
 contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
+
 	using SafeERC20 for IERC20;
 
 	constructor() public {}
@@ -305,4 +306,5 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 
 		emit SetRebatePercent(msg.sender, oldRebatePercent, rebatePercent);
 	}
+
 }

@@ -1,0 +1,36 @@
+@startuml
+title Investor Vesting
+
+skinparam monochrome true
+
+' Participants:
+
+actor "Investor" as I
+
+participant "Governance" as G
+
+participant "Vesting" as V
+
+actor "Receiver" as R
+
+== Deposit Tokens ==
+I->V: deposit tokens
+G->V: withdraw tokens
+V->R: transfer tokens
+
+== Vest Tokens ==
+I->V: vest tokens
+note over V
+    first schedule created
+end note
+I->V: vest tokens
+note over V
+    second schedule created
+end note
+G->V: withdraw unlocked tokens
+
+loop for each schedule
+    V->R: transfer unlocked tokens
+end
+
+@enduml
