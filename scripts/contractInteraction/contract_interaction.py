@@ -48,7 +48,7 @@ def main():
     # createProposalCloseSale()
     # createProposalTransferFunds()
     # createProposalAddKeys()
-    # createProposalSetSaleParams()
+    createProposalSetSaleParams()
 
 def loadConfig():
     global contracts, acct
@@ -676,9 +676,9 @@ def createProposalSetSaleParams():
     print(description)
 
     # create proposal
-    # governor.propose(
-    #     [target],
-    #     [0],
-    #     [signature],
-    #     [data],
-    #     description)
+    governor.propose(
+        [target],
+        [0],
+        [signature],
+        [data],
+        description)
