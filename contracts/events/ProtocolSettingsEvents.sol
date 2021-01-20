@@ -6,7 +6,6 @@
 pragma solidity 0.5.17;
 
 contract ProtocolSettingsEvents {
-
 	event SetPriceFeedContract(address indexed sender, address oldValue, address newValue);
 
 	event SetSwapsImplContract(address indexed sender, address oldValue, address newValue);

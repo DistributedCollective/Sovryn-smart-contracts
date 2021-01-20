@@ -73,7 +73,6 @@ contract LoanToken is AdvancedTokenStorage {
 	) public onlyOwner {
 		loanTokenAddress = _loanTokenAddress;
 
-
 		name = _name;
 		symbol = _symbol;
 		decimals = IERC20(loanTokenAddress).decimals();
