@@ -39,7 +39,7 @@ def main():
     # governorAcceptAdmin("governorOwner")
     # governorAcceptAdmin("governorAdmin")
 
-    governorAcceptAdmin("governor")
+    # governorAcceptAdmin("governor")
 
     # prepareProposalData()
 
@@ -616,8 +616,11 @@ def createProposalAddKeys():
     multiSigKeyHolders = Contract.from_abi("MultiSigKeyHolders", address=contracts['MultiSigKeyHolders'], abi=MultiSigKeyHolders.abi, owner=acct)
 
     addresses = [
-        "37S6qsjzw14MH9SFt7PmsBchobkRE6SxNP",
-        "37S6qsjzw14MH9SFt7PmsBchobkRE6SxN3"
+        "xpub661MyMwAqRbcGsSj8ZG4MkLEKmdELnUTYPVnxmMa58WgS9mBYeQCjDSfaHFsYE6ZFXNRUEPdJoxWKuxMsjbJNVbK4uCydX21V7SYsUauXC7",
+        "xpub661MyMwAqRbcFcLDoxkxYtnhQoUc6a3zwKRNaFPBwF7mwtzMv14eL24c5bT1ZM9MsyFxZSc6sdpAvZWEiRrkgaW8VaYudsLv7JYY6mzkL5T",
+        "xpub661MyMwAqRbcGsbuF22FVyTRZYGCGFtsCvyboHRhuHi4gRqyMrvwo7BxQkePWXVMzkG8eHuT6QrWBudN9mDMS84JboTU28nETWg6kTNQLuR",
+        "xpub661MyMwAqRbcF7gpQCcphWUaZcfYBSHym6rHGGsW1KwDer2j3XNwZQraMu25rnUnXqmqZ6nERR2KE9YdCrvzxoZdvWrGujsxEtPL5Vgid9R",
+        "xpub661MyMwAqRbcG7KrofqGrRUPw2PET8cjCWra3zZUfh3a6TFNJ4Y9PmxnW9X4KSDRywRtZ1VJSS9yGZ4TjtLM5dSquBu8gUnvRYZwUBPrbUA"
     ]
 
     # action
@@ -625,17 +628,9 @@ def createProposalAddKeys():
     signature = "addBitcoinAddresses(string[])"
     data = multiSigKeyHolders.addBitcoinAddresses.encode_input(addresses)
     data = "0x" + data[10:]
-    description = "Assign key holders"
+    description = "sha256: 3e40ce690b0f4ba5bbbd1ec9ab184e81a5451b0bd21d3ff012095b8900052e2d link: https://github.com/DistributedCollective/governance-proposals/blob/b7033aaa42e1c860fca5ff103a3f2e85cd60a279/proposal1.md"
 
-    # # create proposal
     governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
-    # governor.propose(
-    #     [target],
-    #     [0],
-    #     [signature],
-    #     [data],
-    #     description)
-
     print(governor.address)
 
     print([target])
@@ -643,6 +638,15 @@ def createProposalAddKeys():
     print([signature])
     print([data])
     print(description)
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
+
 
 def createProposalSetSaleParams():
 
@@ -660,17 +664,9 @@ def createProposalSetSaleParams():
     data = dummyContract.start.encode_input(86400, 36363, 1000000000000000, 1800000000000000000000000)
     data = "0x" + data[10:]
 
-    description = "Set sale parameters"
+    description = "sha256: 9b4278c307bc5514c597aef5658071745f86f8fa28e39ee51132c36a0d2a097b link: https://github.com/DistributedCollective/governance-proposals/blob/4ff5f12baec3993c86a37e619a42771c3bb58136/proposal2.md"
 
-    # create proposal
     governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
-    # governor.propose(
-    #     [target],
-    #     [0],
-    #     [signature],
-    #     [data],
-    #     description)
-
     print(governor.address)
 
     print([target])
@@ -678,3 +674,11 @@ def createProposalSetSaleParams():
     print([signature])
     print([data])
     print(description)
+
+    # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
