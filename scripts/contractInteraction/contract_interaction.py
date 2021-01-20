@@ -543,7 +543,7 @@ def createProposalStartSale():
     # second action
     target2 = crowdsale
     signature2 = "start(uint256,uint256,uint256,uint256)"
-    data2 = dummyContract.start.encode_input(86400, 33333, 1000000000000000, 2000000000000000000000000)
+    data2 = dummyContract.start.encode_input(86400, 36363, 1000000000000000, 1800000000000000000000000)
     data2 = "0x" + data2[10:]
     print(data2)
 
@@ -657,7 +657,7 @@ def createProposalSetSaleParams():
     target = crowdsale
     # set params
     signature = "setParams(uint256,uint256,uint256,uint256)"
-    data = dummyContract.start.encode_input(86400, 33333, 1000000000000000, 2000000000000000000000000)
+    data = dummyContract.start.encode_input(86400, 36363, 1000000000000000, 1800000000000000000000000)
     data = "0x" + data[10:]
 
     description = "Set sale parameters"
