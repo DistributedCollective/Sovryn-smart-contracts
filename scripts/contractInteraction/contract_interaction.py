@@ -628,7 +628,7 @@ def createProposalAddKeys():
     signature = "addBitcoinAddresses(string[])"
     data = multiSigKeyHolders.addBitcoinAddresses.encode_input(addresses)
     data = "0x" + data[10:]
-    description = "sha256: 3e40ce690b0f4ba5bbbd1ec9ab184e81a5451b0bd21d3ff012095b8900052e2d link: https://github.com/DistributedCollective/governance-proposals/blob/b7033aaa42e1c860fca5ff103a3f2e85cd60a279/proposal1.md"
+    description = "sha256: 3e40ce690b0f4ba5bbbd1ec9ab184e81a5451b0bd21d3ff012095b8900052e2d link: https://github.com/DistributedCollective/SIPS/blob/c7d0aabc07696403312abf15d2e4379ef67f75c0/SIP-0001.md"
 
     governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
     print(governor.address)
@@ -664,7 +664,7 @@ def createProposalSetSaleParams():
     data = dummyContract.start.encode_input(86400, 36363, 1000000000000000, 1800000000000000000000000)
     data = "0x" + data[10:]
 
-    description = "sha256: 9b4278c307bc5514c597aef5658071745f86f8fa28e39ee51132c36a0d2a097b link: https://github.com/DistributedCollective/governance-proposals/blob/4ff5f12baec3993c86a37e619a42771c3bb58136/proposal2.md"
+    description = "sha256: 9b4278c307bc5514c597aef5658071745f86f8fa28e39ee51132c36a0d2a097b link: https://github.com/DistributedCollective/SIPS/blob/00979e4d3b36e18b05f8088607809d8de03e261c/SIP-0002.md"
 
     governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
     print(governor.address)
