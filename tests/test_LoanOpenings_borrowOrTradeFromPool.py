@@ -8,21 +8,6 @@ import pytest
 from brownie import Contract, Wei, reverts
 from fixedint import *
 
-@pytest.fixture(scope="module", autouse=True)
-def loanOpenings(LoanOpenings, accounts, sovryn, Constants, priceFeeds, swapsImpl):
-    sovryn.replaceContract(accounts[0].deploy(LoanOpenings).address)
-
-    sovryn.setPriceFeedContract(
-        priceFeeds.address # priceFeeds
-    )
-
-    sovryn.setSwapsImplContract(
-        swapsImpl.address # swapsImpl
-    )
-
-@pytest.fixture(scope="module", autouse=True)
-def loanClosings(LoanClosings, accounts, sovryn, Constants, priceFeeds, swapsImpl):
-    sovryn.replaceContract(accounts[0].deploy(LoanClosings).address)
 
 @pytest.fixture(scope="module")
 def LinkDaiMarginParamsId(Constants, RBTC, SUSD, sovryn, accounts):
@@ -81,14 +66,22 @@ def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, sovryn, SUSD,
         loanTokenSent,
         { "from": accounts[0] }
     )
-
+    
+    sovrynSwap = sovryn.sovrynSwapContractRegistryAddress()
+    #print('sovryn seap contract registry address is ',sovrynSwap)
+    #addressOf = sovrynSwap.addressOf(sovrynSwap.address)
+    print('returned address is ',sovrynSwap)
+    swapsI = sovryn.swapsImpl()
+    print('swaps impl is ', swapsI)
     collateralTokenSent = sovryn.getRequiredCollateral(
         SUSD.address,
         RBTC.address,
         loanTokenSent,
-        100e18,
+        50e18,
         False
     )
+    print('required collateral:', collateralTokenSent/1e18)
+    
     RBTC.mint(
         sovryn.address,
         collateralTokenSent,
@@ -138,7 +131,7 @@ def test_marginTradeFromPool_sim(Constants, LinkDaiMarginParamsId, sovryn, SUSD,
 
     ## ignore differences in least significant digits due to rounding error
     assert abs(expectedPositionSize.num - int(tradeEvent["positionSize"])) < 100
-
+    
     '''l = sovryn.getUserLoans(
         accounts[1],
         0,
@@ -201,6 +194,8 @@ def test_borrowFromPool_sim(Constants, LinkDaiBorrowParamsId, sovryn, SUSD, RBTC
         50e18,
         True
     )
+    
+    
     RBTC.mint(
         sovryn.address,
         collateralTokenSent,
@@ -242,7 +237,7 @@ def test_borrowFromPool_sim(Constants, LinkDaiBorrowParamsId, sovryn, SUSD, RBTC
 
     borrowEvent = tx.events["Borrow"][0]
     print(borrowEvent)
-
+    
 
     '''l = sovryn.getUserLoans(
         accounts[1],

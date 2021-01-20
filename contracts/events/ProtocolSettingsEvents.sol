@@ -5,125 +5,47 @@
 
 pragma solidity 0.5.17;
 
-
 contract ProtocolSettingsEvents {
-    event SetPriceFeedContract(
-        address indexed sender,
-        address oldValue,
-        address newValue
-    );
 
-    event SetSwapsImplContract(
-        address indexed sender,
-        address oldValue,
-        address newValue
-    );
+	event SetPriceFeedContract(address indexed sender, address oldValue, address newValue);
 
-    event SetLoanPool(
-        address indexed sender,
-        address indexed loanPool,
-        address indexed underlying
-    );
+	event SetSwapsImplContract(address indexed sender, address oldValue, address newValue);
 
-    event SetSupportedTokens(
-        address indexed sender,
-        address indexed token,
-        bool isActive
-    );
+	event SetLoanPool(address indexed sender, address indexed loanPool, address indexed underlying);
 
-    event SetLendingFeePercent(
-        address indexed sender,
-        uint256 oldValue,
-        uint256 newValue
-    );
+	event SetSupportedTokens(address indexed sender, address indexed token, bool isActive);
 
-    event SetTradingFeePercent(
-        address indexed sender,
-        uint256 oldValue,
-        uint256 newValue
-    );
+	event SetLendingFeePercent(address indexed sender, uint256 oldValue, uint256 newValue);
 
-    event SetBorrowingFeePercent(
-        address indexed sender,
-        uint256 oldValue,
-        uint256 newValue
-    );
+	event SetTradingFeePercent(address indexed sender, uint256 oldValue, uint256 newValue);
 
-    event SetAffiliateFeePercent(
-        address indexed sender,
-        uint256 oldValue,
-        uint256 newValue
-    );
+	event SetBorrowingFeePercent(address indexed sender, uint256 oldValue, uint256 newValue);
 
-    event SetLiquidationIncentivePercent(
-        address indexed sender,
-        uint256 oldValue,
-        uint256 newValue
-    );
+	event SetAffiliateFeePercent(address indexed sender, uint256 oldValue, uint256 newValue);
 
-    event SetMaxSwapSize(
-        address indexed sender,
-        uint256 oldValue,
-        uint256 newValue
-    );
+	event SetLiquidationIncentivePercent(address indexed sender, uint256 oldValue, uint256 newValue);
 
-    event SetFeesController(
-        address indexed sender,
-        address indexed oldController,
-        address indexed newController
-    );
+	event SetMaxSwapSize(address indexed sender, uint256 oldValue, uint256 newValue);
 
-    event SetWrbtcToken(
-        address indexed sender,
-        address indexed oldWethToken,
-        address indexed newWethToken
-    );
+	event SetFeesController(address indexed sender, address indexed oldController, address indexed newController);
 
-    event SetSovrynSwapContractRegistryAddress(
-        address indexed sender,
-        address indexed oldSovrynSwapContractRegistryAddress,
-        address indexed newSovrynSwapContractRegistryAddress
-    );
+	event SetWrbtcToken(address indexed sender, address indexed oldWethToken, address indexed newWethToken);
 
-    event SetProtocolTokenAddress(
-        address indexed sender,
-        address indexed oldProtocolToken,
-        address indexed newProtocolToken
-    );
-    
-    event WithdrawFees(
-        address indexed sender,
-        address indexed token,
-        address indexed receiver,
-        uint lendingAmount,
-        uint tradingAmount,
-        uint borrowingAmount
-    );
+	event SetSovrynSwapContractRegistryAddress(
+		address indexed sender,
+		address indexed oldSovrynSwapContractRegistryAddress,
+		address indexed newSovrynSwapContractRegistryAddress
+	);
 
-    event WithdrawLendingFees(
-        address indexed sender,
-        address indexed token,
-        address indexed receiver,
-        uint256 amount
-    );
+	event SetProtocolTokenAddress(address indexed sender, address indexed oldProtocolToken, address indexed newProtocolToken);
 
-    event WithdrawTradingFees(
-        address indexed sender,
-        address indexed token,
-        address indexed receiver,
-        uint256 amount
-    );
+	event WithdrawLendingFees(address indexed sender, address indexed token, address indexed receiver, uint256 amount);
 
-    event WithdrawBorrowingFees(
-        address indexed sender,
-        address indexed token,
-        address indexed receiver,
-        uint256 amount
-    );
+	event WithdrawTradingFees(address indexed sender, address indexed token, address indexed receiver, uint256 amount);
 
-    event SetRolloverBaseReward(
-        address indexed sender,
-        uint256 oldValue,
-        uint256 newValue
-    );
+	event WithdrawBorrowingFees(address indexed sender, address indexed token, address indexed receiver, uint256 amount);
+
+	event SetRolloverBaseReward(address indexed sender, uint256 oldValue, uint256 newValue);
+
+	event SetRebatePercent(address indexed sender, uint256 oldRebatePercent, uint256 newRebatePercent);
 }
