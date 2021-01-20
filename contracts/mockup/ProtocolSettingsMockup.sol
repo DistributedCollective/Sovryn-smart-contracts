@@ -29,7 +29,6 @@ contract ProtocolSettingsMockup is ProtocolSettings {
 		_setTarget(this.setSourceBuffer.selector, target);
 		_setTarget(this.setMaxSwapSize.selector, target);
 		_setTarget(this.setFeesController.selector, target);
-		_setTarget(this.withdrawFees.selector, target);
 		_setTarget(this.withdrawLendingFees.selector, target);
 		_setTarget(this.withdrawTradingFees.selector, target);
 		_setTarget(this.withdrawBorrowingFees.selector, target);

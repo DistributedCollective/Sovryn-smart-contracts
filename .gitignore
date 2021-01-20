@@ -7,6 +7,7 @@ build/
 reports/
 node_modules/
 ignore/
+.*
 !.gitignore
 !.gitattributes
 !.solhint.json
@@ -22,3 +23,5 @@ coverage.json
 .vscode
 yarn.lock
 solc-select
+artifacts
+cache
