@@ -39,7 +39,7 @@ def main():
     # governorAcceptAdmin("governorOwner")
     # governorAcceptAdmin("governorAdmin")
 
-    # governorAcceptAdmin("governor")
+    governorAcceptAdmin("governor")
 
     # prepareProposalData()
 
@@ -483,8 +483,40 @@ def prepareProposalData():
 
 def distributeTokens():
     token = Contract.from_abi("Comp", address=contracts['NTSOV'], abi=Comp.abi, owner=acct)
-    amount = "1000000000000000000000000"
-    addresses = ["0xad21b3040350e3f29864f95ec6401e52f83363a2"]
+    addresses = [
+        "0x5453A749ff4C331769A3a8D404dd4FC04c35Ad51",
+        "0xE3f5622739cbDE5c3534627dD0Be861A51614452",
+        "0x2f46c63E8D21438FF86fce1DDE996250319717d4",
+        "0x75F7d09110631FE60a804642003bE00C8Bcd26b7",
+        "0x7C1437Dc4C67753ecA6aF02f8E51A6d5889d2250",
+        "0xaCB50D843Ae1Cb6Ce471E865ab69A0705d7fF4e6",
+        "0xEaBB83a1cEFc5f50C83BC4252C618d3294152A86",
+        "0x1aEb6A6Deb55E68e91B79048E95d1BeE06D8ff1f",
+        "0x87CC6E5f8Ef8E93391cFbD60F89354d60Ae7abF8",
+        "0xcDD9B1fF13fe747E77A3742C134153d64910Bb3B",
+        "0x58B753F0c417494226Af608B63E80028255CBc64",
+        "0xA7be68C9C946240ddAA164Efd25B082d2A3Bc6e5",
+        "0xeDF998477d7575F8aE27D96f2a4812B305413FF0",
+        "0xB7D16F650CB3b0754D61bdb3f6dB79157DED81d8",
+        "0x0007448F4ba168e24C35F835EefA1A76587d691d",
+        "0x4C3d3505D34213751c4B4d621cB6bDe7E664E222",
+        "0x1996A1c4597721EDAFA2ffe433B0C26B25494ec9",
+        "0x8bB38C74b8aaf929201F013C9ecc42b750E562c6",
+        "0x992230F727e8DB1B3ba71f6Afba8be33D18aA02B",
+        "0xA987a709f4A93eC25738FeC0F8d6189260459ed7",
+        "0x854058553dF87EF1bE2c1D8f24eEa8AF52A81fF1",
+        "0xc17a80871E41565aA972DEf4716DC1398259444f",
+        "0xD26FB194325C94b1Fd762ad0147CF45f3f8c5324",
+        "0x673B37941AB527E0eeE13C1fF09298Ef1911D7D6",
+        "0xFF332c0A6078E8276aD604BA81A01AaA99a7f69F",
+        "0x7289EBa63d11a8d0cd1e0B9E94e1c5Cb9c8b9C84",
+        "0x1486947a7a32631B15dAB6a092e460be03FB5c5f",
+        "0xFBaCB4A0529998A998b7c700753ce4551a81965f"
+    ]
+
+    amount = token.totalSupply() / len(addresses)
+    print(len(addresses))
+    print(amount)
 
     for address in addresses:
         print(address)
@@ -559,7 +591,7 @@ def createProposalTransferFunds():
     governorVault = Contract.from_abi("GovernorVault", address=contracts['governorVault'], abi=GovernorVault.abi, owner=acct)
 
     # TODO set a receiver
-    receiver = ""
+    receiver = "0x27D55f5668eF4438635bdCE0aDCA083507E77752"
 
     # second action
     target2 = governorVault
@@ -576,4 +608,4 @@ def createProposalTransferFunds():
         [0],
         [signature2],
         [data2],
-        "Transfer funds")
+        "Test transfer funds")
