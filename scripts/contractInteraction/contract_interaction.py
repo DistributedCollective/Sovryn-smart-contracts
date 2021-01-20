@@ -628,7 +628,7 @@ def createProposalAddKeys():
     signature = "addBitcoinAddresses(string[])"
     data = multiSigKeyHolders.addBitcoinAddresses.encode_input(addresses)
     data = "0x" + data[10:]
-    description = "SIP 0001 - Assign Multi-sig Addresses for Sovryn Bitcoin Treasury. Details: https://github.com/DistributedCollective/SIPS/blob/c7d0aabc07696403312abf15d2e4379ef67f75c0/SIP-0001.md , sha256: 3e40ce690b0f4ba5bbbd1ec9ab184e81a5451b0bd21d3ff012095b8900052e2d"
+    description = "SIP 0001 - Assign Multi-sig Addresses for Sovryn Bitcoin Treasury. Details: https://github.com/DistributedCollective/SIPS/blob/c7d0aabc07696403312abf15d2e4379ef67f75c0/SIP-0001.md , sha256: 63817f1519ef0bf4699899acd747ef7a856ddbda1bba7a20ec75eb9da89650b7"
 
     governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
     print(governor.address)
@@ -664,7 +664,7 @@ def createProposalSetSaleParams():
     data = dummyContract.start.encode_input(86400, 36363, 1000000000000000, 1800000000000000000000000)
     data = "0x" + data[10:]
 
-    description = "SIP 0002 - Issuance of cSOV to community members. Details: https://github.com/DistributedCollective/SIPS/blob/00979e4d3b36e18b05f8088607809d8de03e261c/SIP-0002.md , sha256: 9b4278c307bc5514c597aef5658071745f86f8fa28e39ee51132c36a0d2a097b"
+    description = "SIP 0002 - Issuance of cSOV to community members. Details: https://github.com/DistributedCollective/SIPS/blob/00979e4d3b36e18b05f8088607809d8de03e261c/SIP-0002.md , sha256: 322cace15ffca9111b5fe1f3ce96ab54302144122c928489813926d33e0270f5"
 
     governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
     print(governor.address)
