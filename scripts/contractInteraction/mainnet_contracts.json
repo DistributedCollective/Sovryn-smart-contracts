@@ -18,6 +18,6 @@
     "timelock": "0x04cb2eF013F866E9915016E44FE36218361C1F5a",
     "governorVault": "0xC7A1637b37190a456b017897207bceb2A29f19b9",
     "MultiSigKeyHolders": "0x1B1656CBEf05522184f833B5ca9405072Daa8416",
-    "cSOV": "",
-    "crowdsale": ""
+    "cSOV": "0x0106F2fFBF6A4f5DEcE323d20E16E2037E732790",
+    "crowdsale": "0xd42070b07D4EAbb801d76c6929f21749647275Ec"
 }
