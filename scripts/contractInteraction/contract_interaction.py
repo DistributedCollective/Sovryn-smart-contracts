@@ -39,7 +39,7 @@ def main():
     # governorAcceptAdmin("governorOwner")
     # governorAcceptAdmin("governorAdmin")
 
-    governorAcceptAdmin("governor")
+    # governorAcceptAdmin("governor")
 
     # prepareProposalData()
 
@@ -47,6 +47,8 @@ def main():
     # createProposalStartSale()
     # createProposalCloseSale()
     # createProposalTransferFunds()
+    # createProposalAddKeys()
+    createProposalSetSaleParams()
 
 def loadConfig():
     global contracts, acct
@@ -591,7 +593,7 @@ def createProposalTransferFunds():
     governorVault = Contract.from_abi("GovernorVault", address=contracts['governorVault'], abi=GovernorVault.abi, owner=acct)
 
     # TODO set a receiver
-    receiver = "0x27D55f5668eF4438635bdCE0aDCA083507E77752"
+    receiver = ""
 
     # second action
     target2 = governorVault
@@ -609,3 +611,70 @@ def createProposalTransferFunds():
         [signature2],
         [data2],
         "Test transfer funds")
+
+def createProposalAddKeys():
+    multiSigKeyHolders = Contract.from_abi("MultiSigKeyHolders", address=contracts['MultiSigKeyHolders'], abi=MultiSigKeyHolders.abi, owner=acct)
+
+    addresses = [
+        "37S6qsjzw14MH9SFt7PmsBchobkRE6SxNP",
+        "37S6qsjzw14MH9SFt7PmsBchobkRE6SxN3"
+    ]
+
+    # action
+    target = multiSigKeyHolders.address
+    signature = "addBitcoinAddresses(string[])"
+    data = multiSigKeyHolders.addBitcoinAddresses.encode_input(addresses)
+    data = "0x" + data[10:]
+    description = "Assign key holders"
+
+    # # create proposal
+    governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
+
+    print(governor.address)
+
+    print([target])
+    print([0])
+    print([signature])
+    print([data])
+    print(description)
+
+def createProposalSetSaleParams():
+
+    cSOV = contracts['cSOV']
+    crowdsale = contracts['crowdsale']
+
+    # dummy contract, just for encoding function calls
+    dummyAddress = contracts['governor']
+    dummyContract = Contract.from_abi("CrowdSaleMethods", address=dummyAddress, abi=CrowdSaleMethods.abi, owner=acct)
+
+    # action
+    target = crowdsale
+    # set params
+    signature = "setParams(uint256,uint256,uint256,uint256)"
+    data = dummyContract.start.encode_input(86400, 33333, 1000000000000000, 2000000000000000000000000)
+    data = "0x" + data[10:]
+
+    description = "Set sale parameters"
+
+    # create proposal
+    governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
+
+    print(governor.address)
+
+    print([target])
+    print([0])
+    print([signature])
+    print([data])
+    print(description)
