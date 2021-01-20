@@ -14,7 +14,6 @@ import "../mixins/LiquidationHelper.sol";
 import "../swaps/SwapsUser.sol";
 import "../interfaces/ILoanPool.sol";
 import "../mixins/RewardHelper.sol";
-import "./ECDSA.sol";
 
 contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper, RewardHelper {
 	uint256 internal constant MONTH = 365 days / 12;
@@ -35,51 +34,6 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 		_setTarget(this.rollover.selector, target);
 		_setTarget(this.closeWithDeposit.selector, target);
 		_setTarget(this.closeWithSwap.selector, target);
-		_setTarget(this.closeWithDepositWithSig.selector, target);
-		_setTarget(this.getHash.selector, target);
-	}
-
-	function getHash(
-		bytes32 loanId,
-		address receiver,
-		uint256 depositAmount,
-		bytes4 methodSig
-	) public pure returns (bytes32) {
-		return keccak256(abi.encodePacked(loanId, receiver, depositAmount, methodSig));
-	}
-
-	//This function is not  declared as payable because it will only accept fund as tokens(as DOC,USDT,BITpro)
-	function closeWithDepositWithSig(
-		bytes32 loanId,
-		address receiver,
-		uint256 depositAmount, // denominated in loanToken
-		bytes memory sig //sig is userSignatures in Bytes
-	)
-		public
-		nonReentrant
-		returns (
-			uint256 loanCloseAmount,
-			uint256 withdrawAmount,
-			address withdrawToken
-		)
-	{
-		// we will take methodSig as msg.sig of methodSignature(closeWithDepositWithSig(bytes32,address,uint256,bytes))
-		
-		require(_verifyUserSignature(loanId, receiver, depositAmount, bytes4(msg.sig), sig), "UnAuthorize User");
-		
-		return _closeWithDeposit(loanId, receiver, depositAmount);
-	}
-
-	function _verifyUserSignature(
-		bytes32 loanId,
-		address receiver,
-		uint256 depositAmount,
-		bytes4 methodSig,
-		bytes memory sig
-	) internal returns (bool) {
-		bytes32 messageHash = keccak256(abi.encodePacked(loanId, receiver, depositAmount, methodSig));
-		bytes32 ethSignedMessageHash = ECDSA.toEthSignedMessageHash(messageHash);
-		return receiver == ECDSA.recover(ethSignedMessageHash, sig);
 	}
 
 	/**
@@ -109,9 +63,6 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 	function rollover(
 		bytes32 loanId,
 		bytes calldata /*loanDataBytes*/ // for future use
-
-		bytes calldata // for future use /*loanDataBytes*/
-
 	) external nonReentrant {
 		// restrict to EOAs to prevent griefing attacks, during interest rate recalculation
 		require(msg.sender == tx.origin, "only EOAs can call");
@@ -145,10 +96,6 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 			address withdrawToken
 		)
 	{
-
-		Loan storage loanLocal = loans[loanId];
-		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
-		_checkAuthorized(loanLocal, loanParamsLocal);
 		return _closeWithDeposit(loanId, receiver, depositAmount);
 	}
 
@@ -169,9 +116,6 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 		uint256 swapAmount, // denominated in collateralToken
 		bool returnTokenIsCollateral, // true: withdraws collateralToken, false: withdraws loanToken
 		bytes memory /*loanDataBytes*/ // for future use
-
-		bytes memory // for future use /*loanDataBytes*/
-
 	)
 		public
 		nonReentrant
@@ -436,9 +380,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 
 		Loan storage loanLocal = loans[loanId];
 		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
-
 		_checkAuthorized(loanLocal, loanParamsLocal);
-
 
 		// can't close more than the full principal
 		loanCloseAmount = depositAmount > loanLocal.principal ? loanLocal.principal : depositAmount;
