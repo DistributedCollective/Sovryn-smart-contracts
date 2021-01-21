@@ -45,8 +45,8 @@
     "prettier": "prettier --write {,*/**/}*.{js,test.js,sol}",
     "lint-contracts": "solhint contracts/**/*.sol",
     "test": "brownie test",
-    "test-js": "truffle test",
-    "coverage": "truffle run coverage --file='tests-js/'"
+    "test-js": "npx hardhat test",
+    "coverage": "npx hardhat coverage"
   },
   "husky": {
     "hooks": {
