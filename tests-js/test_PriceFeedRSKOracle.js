@@ -1,5 +1,3 @@
-const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
-
 require("@openzeppelin/test-helpers/configure")({
 	provider: web3.currentProvider,
 	singletons: {
@@ -7,17 +5,15 @@ require("@openzeppelin/test-helpers/configure")({
 	},
 });
 
-const { expect } = require('chai');
-require('chai').should();
-
+const { expect } = require("chai");
 const { BN, time } = require("@openzeppelin/test-helpers");
 
 const { duration, latest, increase } = time;
 
-const PriceFeedRSKOracle = contract.fromArtifact("PriceFeedRSKOracle");
-const PriceFeedRSKOracleMockup = contract.fromArtifact("PriceFeedRSKOracleMockup");
+const PriceFeedRSKOracle = artifacts.require("PriceFeedRSKOracle");
+const PriceFeedRSKOracleMockup = artifacts.require("PriceFeedRSKOracleMockup");
 
-describe("PriceFeedRSKOracle", () => {
+contract("PriceFeedRSKOracle", () => {
 	let priceFeedRSKOracle;
 
 	beforeEach(async () => {

@@ -1,14 +1,10 @@
-const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
-
-const { expect } = require('chai');
-require('chai').should();
-
+const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
-const StakingLogic = contract.fromArtifact("Staking");
-const StakingProxy = contract.fromArtifact("StakingProxy");
-const TestToken = contract.fromArtifact("TestToken");
-const RSOV = contract.fromArtifact("RSOV");
+const StakingLogic = artifacts.require("Staking");
+const StakingProxy = artifacts.require("StakingProxy");
+const TestToken = artifacts.require("TestToken");
+const RSOV = artifacts.require("RSOV");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const TWO_WEEKS = 1209600;
@@ -22,7 +18,7 @@ const DECIMALS = 18;
 
 const WEEK = new BN(7 * 24 * 60 * 60);
 
-describe("RSOV:", () => {
+contract("RSOV:", (accounts) => {
 	const name = "Test tokenSOV";
 	const symbol = "TST";
 

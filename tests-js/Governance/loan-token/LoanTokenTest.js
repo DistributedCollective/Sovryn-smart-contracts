@@ -1,24 +1,20 @@
-const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
-
-const { expect } = require('chai');
-require('chai').should();
-
+const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
-const GovernorAlpha = contract.fromArtifact("GovernorAlphaMockup");
-const Timelock = contract.fromArtifact("TimelockHarness");
-const StakingLogic = contract.fromArtifact("Staking");
-const StakingProxy = contract.fromArtifact("StakingProxy");
-const TestToken = contract.fromArtifact("TestToken");
+const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
+const Timelock = artifacts.require("TimelockHarness");
+const StakingLogic = artifacts.require("Staking");
+const StakingProxy = artifacts.require("StakingProxy");
+const TestToken = artifacts.require("TestToken");
 
-const Protocol = contract.fromArtifact("sovrynProtocol");
-const ProtocolSettings = contract.fromArtifact("ProtocolSettings");
+const Protocol = artifacts.require("sovrynProtocol");
+const ProtocolSettings = artifacts.require("ProtocolSettings");
 
-const LoanTokenSettings = contract.fromArtifact("LoanTokenSettingsLowerAdmin");
-const LoanToken = contract.fromArtifact("LoanToken");
+const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
+const LoanToken = artifacts.require("LoanToken");
 
-const PreviousLoanTokenSettings = contract.fromArtifact("PreviousLoanTokenSettingsLowerAdmin");
-const PreviousLoanToken = contract.fromArtifact("PreviousLoanToken");
+const PreviousLoanTokenSettings = artifacts.require("PreviousLoanTokenSettingsLowerAdmin");
+const PreviousLoanToken = artifacts.require("PreviousLoanToken");
 
 const TOTAL_SUPPLY = 100;
 
@@ -27,7 +23,7 @@ const TWO_DAYS = 86400 * 2;
 const TWO_WEEKS = 86400 * 14;
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
-describe("LoanTokenUpgrade", () => {
+contract("LoanTokenUpgrade", (accounts) => {
 	const name = "Test token";
 	const symbol = "TST";
 

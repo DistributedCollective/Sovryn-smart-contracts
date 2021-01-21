@@ -1,15 +1,10 @@
-const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
-
-const { expect } = require('chai');
-require('chai').should();
-
 // For this one, Governor Alpha Mockup is used to reduce the voting period to just 10 blocks.
-const GovernorAlpha = contract.fromArtifact("GovernorAlphaMockup");
-const Timelock = contract.fromArtifact("Timelock");
-const TestToken = contract.fromArtifact("TestToken");
-const StakingLogic = contract.fromArtifact("Staking");
-const StakingProxy = contract.fromArtifact("StakingProxy");
-const SetGet = contract.fromArtifact("setGet");
+const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
+const Timelock = artifacts.require("Timelock");
+const TestToken = artifacts.require("TestToken");
+const StakingLogic = artifacts.require("Staking");
+const StakingProxy = artifacts.require("StakingProxy");
+const SetGet = artifacts.require("setGet");
 
 const {
 	time, // Convert different time units to seconds. Available helpers are: seconds, minutes, hours, days, weeks and years.
@@ -79,7 +74,7 @@ async function advanceBlocks(num) {
 	}
 }
 
-describe("GovernorAlpha (Any User Functions)", () => {
+contract("GovernorAlpha (Any User Functions)", (accounts) => {
 	let governorAlpha, stakingLogic, stakingProxy, timelock, testToken, setGet;
 	let guardianOne, guardianTwo, voterOne, voterTwo, voterThree, userOne, userTwo;
 	let targets, values, signatures, callDatas, eta, proposalId;

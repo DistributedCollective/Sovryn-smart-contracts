@@ -1,17 +1,14 @@
-const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
-
-const { expect } = require('chai');
-require('chai').should();
+const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
 const { address, etherMantissa, etherUnsigned, encodeParameters, mineBlock, unlockedAccount, setTime } = require("../../Utils/Ethereum");
 const EIP712 = require("../../Utils/EIP712");
 const BigNumber = require("bignumber.js");
 
-const GovernorAlpha = contract.fromArtifact("GovernorAlphaMockup");
-const StakingLogic = contract.fromArtifact("Staking");
-const StakingProxy = contract.fromArtifact("StakingProxy");
-const TestToken = contract.fromArtifact("TestToken");
+const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
+const StakingLogic = artifacts.require("Staking");
+const StakingProxy = artifacts.require("StakingProxy");
+const TestToken = artifacts.require("TestToken");
 
 const DELAY = 86400 * 14;
 const TWO_WEEKS = 86400 * 14;
@@ -26,12 +23,12 @@ async function enfranchise(token, comp, actor, amount) {
 	await comp.stake(amount, kickoffTS.add(new BN(DELAY)), actor, actor, { from: actor });
 }
 
-describe("governorAlpha#castVote/2", () => {
+contract("governorAlpha#castVote/2", (accounts) => {
 	let token, staking, gov, root, a1;
 	let targets, values, signatures, callDatas, proposalId;
 
 	before(async () => {
-		[root, a1] = accounts;
+		[root, a1, ...accounts] = accounts;
 		let blockTimestamp = etherUnsigned(100);
 		await setTime(blockTimestamp.toNumber());
 		token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);

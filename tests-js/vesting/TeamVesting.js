@@ -1,20 +1,16 @@
-const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
-
-const { expect } = require('chai');
-require('chai').should();
-
+const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 const { address, minerStart, minerStop, unlockedAccount, mineBlock, etherMantissa, etherUnsigned, setTime } = require("../Utils/Ethereum");
 
-const StakingLogic = contract.fromArtifact("Staking");
-const StakingProxy = contract.fromArtifact("StakingProxy");
-const TestToken = contract.fromArtifact("TestToken");
-const Vesting = contract.fromArtifact("TeamVesting");
+const StakingLogic = artifacts.require("Staking");
+const StakingProxy = artifacts.require("StakingProxy");
+const TestToken = artifacts.require("TestToken");
+const Vesting = artifacts.require("TeamVesting");
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 const TOTAL_SUPPLY = "10000000000000000000000000";
 
-describe("TeamVesting", () => {
+contract("TeamVesting", (accounts) => {
 	const name = "Test token";
 	const symbol = "TST";
 

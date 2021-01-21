@@ -1,16 +1,12 @@
-const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
-
-const { expect } = require('chai');
-require('chai').should();
-
+const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-const Proxy = contract.fromArtifact("ProxyMockup");
-const Implementation = contract.fromArtifact("ImplementationMockup");
+const Proxy = artifacts.require("ProxyMockup");
+const Implementation = artifacts.require("ImplementationMockup");
 
-describe("Proxy", () => {
+contract("Proxy", (accounts) => {
 	let account1;
 	let accountOwner;
 

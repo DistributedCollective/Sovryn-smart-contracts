@@ -1,31 +1,27 @@
-const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
-
-const { expect } = require('chai');
-require('chai').should();
-
+const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
 const { address, minerStart, minerStop, unlockedAccount, mineBlock, etherMantissa, etherUnsigned, setTime } = require("../Utils/Ethereum");
 
-const StakingLogic = contract.fromArtifact("Staking");
-const StakingProxy = contract.fromArtifact("StakingProxy");
-const StakingMockup = contract.fromArtifact("StakingMockup");
+const StakingLogic = artifacts.require("Staking");
+const StakingProxy = artifacts.require("StakingProxy");
+const StakingMockup = artifacts.require("StakingMockup");
 
-const TestToken = contract.fromArtifact("TestToken");
-const TestWrbtc = contract.fromArtifact("TestWrbtc");
+const TestToken = artifacts.require("TestToken");
+const TestWrbtc = artifacts.require("TestWrbtc");
 
-const Protocol = contract.fromArtifact("sovrynProtocol");
-const ProtocolSettings = contract.fromArtifact("ProtocolSettingsMockup");
-const LoanMaintenance = contract.fromArtifact("LoanMaintenance");
-const LoanSettings = contract.fromArtifact("LoanSettings");
-const LoanOpenings = contract.fromArtifact("LoanOpenings");
-const LoanClosings = contract.fromArtifact("LoanClosings");
+const Protocol = artifacts.require("sovrynProtocol");
+const ProtocolSettings = artifacts.require("ProtocolSettingsMockup");
+const LoanMaintenance = artifacts.require("LoanMaintenance");
+const LoanSettings = artifacts.require("LoanSettings");
+const LoanOpenings = artifacts.require("LoanOpenings");
+const LoanClosings = artifacts.require("LoanClosings");
 
-const LoanTokenLogic = contract.fromArtifact("LoanTokenLogicStandard");
-const LoanTokenSettings = contract.fromArtifact("LoanTokenSettingsLowerAdmin");
-const LoanToken = contract.fromArtifact("LoanToken");
+const LoanTokenLogic = artifacts.require("LoanTokenLogicStandard");
+const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
+const LoanToken = artifacts.require("LoanToken");
 
-const FeeSharingProxy = contract.fromArtifact("FeeSharingProxy");
+const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 
 const TOTAL_SUPPLY = "100000000000000000000000000000";
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
@@ -37,7 +33,7 @@ const DELAY = 86400 * 14;
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-describe("Staking", () => {
+contract("Staking", (accounts) => {
 	const name = "Test token";
 	const symbol = "TST";
 

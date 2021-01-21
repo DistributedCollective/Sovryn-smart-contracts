@@ -1,17 +1,13 @@
-const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
-
-const { expect } = require('chai');
-require('chai').should();
-
+const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
 const { etherMantissa, encodeParameters, setTime, mineBlock } = require("../../Utils/Ethereum");
 
-const GovernorAlpha = contract.fromArtifact("GovernorAlphaMockup");
-const Timelock = contract.fromArtifact("TimelockHarness");
-const StakingLogic = contract.fromArtifact("Staking");
-const StakingProxy = contract.fromArtifact("StakingProxy");
-const TestToken = contract.fromArtifact("TestToken");
+const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
+const Timelock = artifacts.require("TimelockHarness");
+const StakingLogic = artifacts.require("Staking");
+const StakingProxy = artifacts.require("StakingProxy");
+const TestToken = artifacts.require("TestToken");
 
 const DELAY = 86400 * 14;
 
@@ -28,7 +24,7 @@ async function enfranchise(token, staking, actor, amount) {
 	await staking.delegate(actor, stakingDate, { from: actor });
 }
 
-describe("GovernorAlpha#queue/1", () => {
+contract("GovernorAlpha#queue/1", (accounts) => {
 	let root, a1, a2;
 	before(async () => {
 		[root, a1, a2, ...accounts] = accounts;

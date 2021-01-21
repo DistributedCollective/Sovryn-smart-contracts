@@ -1,25 +1,21 @@
-const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
-
-const { expect } = require('chai');
-require('chai').should();
-
+const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
 const { ZERO_ADDRESS } = constants;
 
 const { encodeParameters, etherMantissa, mineBlock, increaseTime } = require("../Utils/Ethereum");
 
-const GovernorAlpha = contract.fromArtifact("GovernorAlphaMockup");
-const Timelock = contract.fromArtifact("TimelockHarness");
-const StakingLogic = contract.fromArtifact("Staking");
-const StakingProxy = contract.fromArtifact("StakingProxy");
-const TestToken = contract.fromArtifact("TestToken");
+const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
+const Timelock = artifacts.require("TimelockHarness");
+const StakingLogic = artifacts.require("Staking");
+const StakingProxy = artifacts.require("StakingProxy");
+const TestToken = artifacts.require("TestToken");
 
-const Protocol = contract.fromArtifact("sovrynProtocol");
-const ProtocolSettings = contract.fromArtifact("ProtocolSettings");
+const Protocol = artifacts.require("sovrynProtocol");
+const ProtocolSettings = artifacts.require("ProtocolSettings");
 
-const LoanTokenSettings = contract.fromArtifact("LoanTokenSettingsLowerAdmin");
-const LoanToken = contract.fromArtifact("LoanToken");
+const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
+const LoanToken = artifacts.require("LoanToken");
 
 const PROPOSAL_THRESHOLD = etherMantissa(1000000);
 const QUORUM_VOTES = etherMantissa(4000000);
@@ -30,7 +26,7 @@ const TWO_DAYS = 86400 * 2;
 const TWO_WEEKS = 86400 * 14;
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
-describe("GovernanceIntegration", () => {
+contract("GovernanceIntegration", (accounts) => {
 	const name = "Test token";
 	const symbol = "TST";
 
@@ -39,7 +35,7 @@ describe("GovernanceIntegration", () => {
 	let protocolSettings, loanTokenSettings, protocol, loanToken;
 
 	before(async () => {
-		[root, account1, account2, account3, account4] = accounts;
+		[root, account1, account2, account3, account4, ...accounts] = accounts;
 	});
 
 	beforeEach(async () => {

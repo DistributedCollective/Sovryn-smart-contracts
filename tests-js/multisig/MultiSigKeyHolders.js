@@ -1,16 +1,12 @@
-const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
-
-const { expect } = require('chai');
-require('chai').should();
-
+const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
 const { ZERO_ADDRESS } = constants;
 const EMPTY_ADDRESS = "";
 
-const MultiSigKeyHolders = contract.fromArtifact("MultiSigKeyHolders");
+const MultiSigKeyHolders = artifacts.require("MultiSigKeyHolders");
 
-describe("MultiSigKeyHolders:", () => {
+contract("MultiSigKeyHolders:", (accounts) => {
 	let root, account1, account2, account3, account4;
 	let multiSig;
 	let bitcoinAccount1 = "bc1q9gl8ddnkr0xr5d9vefnkwyd3g8fpjsp8z8l7zm";

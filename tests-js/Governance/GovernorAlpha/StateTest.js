@@ -1,8 +1,4 @@
-const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
-
-const { expect } = require('chai');
-require('chai').should();
-
+const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
 const { etherUnsigned, encodeParameters, etherMantissa, mineBlock, setTime, increaseTime } = require("../../Utils/Ethereum");
@@ -10,11 +6,11 @@ const { etherUnsigned, encodeParameters, etherMantissa, mineBlock, setTime, incr
 const path = require("path");
 const solparse = require("solparse");
 
-const GovernorAlpha = contract.fromArtifact("GovernorAlphaMockup");
-const Timelock = contract.fromArtifact("TimelockHarness");
-const StakingLogic = contract.fromArtifact("Staking");
-const StakingProxy = contract.fromArtifact("StakingProxy");
-const TestToken = contract.fromArtifact("TestToken");
+const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
+const Timelock = artifacts.require("TimelockHarness");
+const StakingLogic = artifacts.require("Staking");
+const StakingProxy = artifacts.require("StakingProxy");
+const TestToken = artifacts.require("TestToken");
 
 const governorAlphaPath = path.join(__dirname, "../../..", "contracts", "governance/GovernorAlpha.sol");
 
@@ -32,7 +28,7 @@ const TOTAL_SUPPLY = etherMantissa(1000000000);
 const DELAY = 86400 * 14;
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
-describe("GovernorAlpha#state/1", () => {
+contract("GovernorAlpha#state/1", (accounts) => {
 	let token, staking, gov, root, acct, delay, timelock;
 	let trivialProposal, targets, values, signatures, callDatas;
 
