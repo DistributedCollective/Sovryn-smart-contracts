@@ -39,7 +39,7 @@ def main():
     # governorAcceptAdmin("governorOwner")
     # governorAcceptAdmin("governorAdmin")
 
-    # governorAcceptAdmin("governor")
+    governorAcceptAdmin("governor")
 
     # prepareProposalData()
 
@@ -48,7 +48,7 @@ def main():
     # createProposalCloseSale()
     # createProposalTransferFunds()
     # createProposalAddKeys()
-    createProposalSetSaleParams()
+    # createProposalSetSaleParams()
 
 def loadConfig():
     global contracts, acct
