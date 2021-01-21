@@ -1,28 +1,32 @@
-const { expect } = require("chai");
+const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
+
+const { expect } = require('chai');
+require('chai').should();
+
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
 const { ZERO_ADDRESS } = constants;
 
 const { encodeParameters, etherMantissa, mineBlock, increaseTime, blockNumber } = require("./Utils/Ethereum");
 
-const TestToken = artifacts.require("TestToken");
-const TestWrbtc = artifacts.require("TestWrbtc");
+const TestToken = contract.fromArtifact("TestToken");
+const TestWrbtc = contract.fromArtifact("TestWrbtc");
 
-const StakingLogic = artifacts.require("StakingMockup");
-const StakingProxy = artifacts.require("StakingProxy");
+const StakingLogic = contract.fromArtifact("StakingMockup");
+const StakingProxy = contract.fromArtifact("StakingProxy");
 
-const Protocol = artifacts.require("sovrynProtocol");
-const ProtocolSettings = artifacts.require("ProtocolSettingsMockup");
-const LoanMaintenance = artifacts.require("LoanMaintenance");
-const LoanSettings = artifacts.require("LoanSettings");
-const LoanOpenings = artifacts.require("LoanOpenings");
-const LoanClosings = artifacts.require("LoanClosings");
+const Protocol = contract.fromArtifact("sovrynProtocol");
+const ProtocolSettings = contract.fromArtifact("ProtocolSettingsMockup");
+const LoanMaintenance = contract.fromArtifact("LoanMaintenance");
+const LoanSettings = contract.fromArtifact("LoanSettings");
+const LoanOpenings = contract.fromArtifact("LoanOpenings");
+const LoanClosings = contract.fromArtifact("LoanClosings");
 
-const LoanTokenLogic = artifacts.require("LoanTokenLogicStandard");
-const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
-const LoanToken = artifacts.require("LoanToken");
+const LoanTokenLogic = contract.fromArtifact("LoanTokenLogicStandard");
+const LoanTokenSettings = contract.fromArtifact("LoanTokenSettingsLowerAdmin");
+const LoanToken = contract.fromArtifact("LoanToken");
 
-const FeeSharingProxy = artifacts.require("FeeSharingProxy");
+const FeeSharingProxy = contract.fromArtifact("FeeSharingProxy");
 
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
@@ -35,7 +39,7 @@ const FEE_WITHDRAWAL_INTERVAL = 86400;
 
 const MOCK_PRIOR_WEIGHTED_STAKE = false;
 
-contract("FeeSharingProxy:", (accounts) => {
+describe("FeeSharingProxy:", () => {
 	const name = "Test SOVToken";
 	const symbol = "TST";
 
@@ -46,7 +50,7 @@ contract("FeeSharingProxy:", (accounts) => {
 	let feeSharingProxy;
 
 	before(async () => {
-		[root, account1, account2, account3, account4, ...accounts] = accounts;
+		[root, account1, account2, account3, account4] = accounts;
 	});
 
 	beforeEach(async () => {

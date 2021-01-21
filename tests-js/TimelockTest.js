@@ -1,7 +1,11 @@
-const { expect } = require("chai");
+const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
+
+const { expect } = require('chai');
+require('chai').should();
+
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
-const Timelock = artifacts.require("TimelockHarness");
+const Timelock = contract.fromArtifact("TimelockHarness");
 
 const { encodeParameters, etherUnsigned, setTime, keccak256 } = require("./Utils/Ethereum");
 
@@ -9,7 +13,7 @@ const oneWeekInSeconds = etherUnsigned(7 * 24 * 60 * 60);
 const zero = etherUnsigned(0);
 const gracePeriod = oneWeekInSeconds.multipliedBy(2);
 
-contract("Timelock", (accounts) => {
+describe("Timelock", () => {
 	let root, notAdmin, newAdmin;
 	let blockTimestamp;
 	let timelock;

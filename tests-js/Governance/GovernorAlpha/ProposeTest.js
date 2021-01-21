@@ -1,19 +1,23 @@
-const { expect } = require("chai");
+const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
+
+const { expect } = require('chai');
+require('chai').should();
+
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
 const { address, etherMantissa, encodeParameters, mineBlock, setTime } = require("../../Utils/Ethereum");
 
-const GovernorAlpha = artifacts.require("GovernorAlpha");
-const StakingLogic = artifacts.require("Staking");
-const StakingProxy = artifacts.require("StakingProxy");
-const TestToken = artifacts.require("TestToken");
+const GovernorAlpha = contract.fromArtifact("GovernorAlpha");
+const StakingLogic = contract.fromArtifact("Staking");
+const StakingProxy = contract.fromArtifact("StakingProxy");
+const TestToken = contract.fromArtifact("TestToken");
 
 const QUORUM_VOTES = etherMantissa(4000000);
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
 const DELAY = 86400 * 14;
 
-contract("GovernorAlpha#propose/5", (accounts) => {
+describe("GovernorAlpha#propose/5", () => {
 	let token, staking, gov, root, acct;
 
 	before(async () => {
