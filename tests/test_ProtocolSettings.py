@@ -331,3 +331,35 @@ def test_set_rollover_base_reward_by_unauthorized_user(sovryn, multisig, account
     with reverts("unauthorized"):
         sovryn.setRolloverBaseReward(1e15, {'from': accounts[0]})
 
+
+'''
+    Should successfully change rebate percent 
+'''
+def test_set_rebate_percent(sovryn, multisig, accounts):
+    new_percent = 20e18
+    old_percent = sovryn.feeRebatePercent()
+    
+    
+    dest = sovryn.address
+    val = 0
+    data = sovryn.setRebatePercent.encode_input(new_percent)
+    print(data)
+    
+    tx = multisig.submitTransaction(dest,val,data,{"from":accounts[0]})
+    txId = tx.events["Submission"]["transactionId"]
+    tx2 = multisig.confirmTransaction(txId, {"from": accounts[1]})
+
+    event = tx2.events['SetRebatePercent']
+    assert(event['sender'] == multisig.address)
+    assert(event['oldRebatePercent'] == old_percent)
+    assert(event['newRebatePercent'] == new_percent)
+    assert(sovryn.feeRebatePercent() == new_percent)
+
+
+'''
+    Should fail to change rebate percent by unauthorized user 
+'''
+def test_set_rebate_percent_by_unauthorized_user(sovryn, multisig, accounts):
+    with reverts("unauthorized"):
+        sovryn.setRebatePercent(20e18, {'from': accounts[0]})
+
