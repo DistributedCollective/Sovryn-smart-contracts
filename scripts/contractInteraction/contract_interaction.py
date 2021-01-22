@@ -538,14 +538,12 @@ def createProposalStartSale():
     signature1 = "setSaleAdmin(address)"
     data1 = dummyContract.setSaleAdmin.encode_input(crowdsale)
     data1 = "0x" + data1[10:]
-    print(data1)
 
     # second action
     target2 = crowdsale
     signature2 = "start(uint256,uint256,uint256,uint256)"
     data2 = dummyContract.start.encode_input(86400, 36363, 1000000000000000, 1800000000000000000000000)
     data2 = "0x" + data2[10:]
-    print(data2)
 
     # TODO update description
     description = "Set sale admin and start crowd sale"
