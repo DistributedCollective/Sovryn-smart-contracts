@@ -44,7 +44,7 @@ def main():
     # prepareProposalData()
 
     # distributeTokens()
-    # createProposalStartSale()
+    createProposalStartSale()
     # createProposalCloseSale()
     # createProposalTransferFunds()
     # createProposalAddKeys()
@@ -542,11 +542,12 @@ def createProposalStartSale():
     # second action
     target2 = crowdsale
     signature2 = "start(uint256,uint256,uint256,uint256)"
+    # TODO update rate !
     data2 = dummyContract.start.encode_input(86400, 36363, 1000000000000000, 1800000000000000000000000)
     data2 = "0x" + data2[10:]
 
-    # TODO update description
-    description = "Set sale admin and start crowd sale"
+    # TODO update description !
+    description = "SIP 0003 - . Details:  , sha256: "
 
     governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
     print(governor.address)
