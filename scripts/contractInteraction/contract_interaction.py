@@ -39,7 +39,7 @@ def main():
     # governorAcceptAdmin("governorOwner")
     # governorAcceptAdmin("governorAdmin")
 
-    governorAcceptAdmin("governor")
+    # governorAcceptAdmin("governor")
 
     # prepareProposalData()
 
@@ -547,14 +547,26 @@ def createProposalStartSale():
     data2 = "0x" + data2[10:]
     print(data2)
 
-    # create proposal
+    # TODO update description
+    description = "Set sale admin and start crowd sale"
+
     governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
-    governor.propose(
-        [target1, target2],
-        [0, 0],
-        [signature1, signature2],
-        [data1, data2],
-        "Set sale admin and start crowd sale")
+    print(governor.address)
+
+    print("==============================")
+    print([target1, target2])
+    print([0, 0])
+    print([signature1, signature2])
+    print([data1, data2])
+    print(description)
+
+    # create proposal
+    # governor.propose(
+    #     [target1, target2],
+    #     [0, 0],
+    #     [signature1, signature2],
+    #     [data1, data2],
+    #     description)
 
 # CrowdSale.saleClosure(true), CrowdSale.withdrawFunds()
 def createProposalCloseSale():
