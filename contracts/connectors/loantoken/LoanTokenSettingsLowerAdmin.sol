@@ -12,33 +12,33 @@ import "./interfaces/ProtocolSettingsLike.sol";
 contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	using SafeMath for uint256;
 
-    // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress
+	// It is important to maintain the variables order so the delegate calls can access sovrynContractAddress
 
-    // ------------- MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
-    address public sovrynContractAddress;
-    address public wrbtcTokenAddress;
-    address internal target_;
-    address public admin;
-    // ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
+	// ------------- MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
+	address public sovrynContractAddress;
+	address public wrbtcTokenAddress;
+	address internal target_;
+	address public admin;
+	// ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 
-    //Add new variables here on the bottom
-    address public pauser;
+	//Add new variables here on the bottom
+	address public pauser;
 
-    //@todo check for restrictions in this contract
-    modifier onlyAdmin() {
-        require(isOwner() || msg.sender == admin, "unauthorized");
-        _;
-    }
+	//@todo check for restrictions in this contract
+	modifier onlyAdmin() {
+		require(isOwner() || msg.sender == admin, "unauthorized");
+		_;
+	}
 
-    event SetTransactionLimits(address[] addresses, uint256[] limits);
+	event SetTransactionLimits(address[] addresses, uint256[] limits);
 
-    function setAdmin(address _admin) public onlyOwner {
-        admin = _admin;
-    }
+	function setAdmin(address _admin) public onlyOwner {
+		admin = _admin;
+	}
 
-    function setPauser(address _pauser) public onlyOwner {
-        pauser = _pauser;
-    }
+	function setPauser(address _pauser) public onlyOwner {
+		pauser = _pauser;
+	}
 
 	function() external {
 		revert("LoanTokenSettingsLowerAdmin - fallback not allowed");

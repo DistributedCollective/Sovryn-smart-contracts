@@ -38,14 +38,14 @@ contract ProtocolSettingsEvents {
 
 	event SetProtocolTokenAddress(address indexed sender, address indexed oldProtocolToken, address indexed newProtocolToken);
 
-    event WithdrawFees(
-        address indexed sender,
-        address indexed token,
-        address indexed receiver,
-        uint lendingAmount,
-        uint tradingAmount,
-        uint borrowingAmount
-    );
+	event WithdrawFees(
+		address indexed sender,
+		address indexed token,
+		address indexed receiver,
+		uint256 lendingAmount,
+		uint256 tradingAmount,
+		uint256 borrowingAmount
+	);
 
 	event WithdrawLendingFees(address indexed sender, address indexed token, address indexed receiver, uint256 amount);
 
