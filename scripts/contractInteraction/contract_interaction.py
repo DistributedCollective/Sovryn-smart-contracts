@@ -543,11 +543,11 @@ def createProposalStartSale():
     target2 = crowdsale
     signature2 = "start(uint256,uint256,uint256,uint256)"
     # TODO update rate !
-    data2 = dummyContract.start.encode_input(86400, 36363, 1000000000000000, 1800000000000000000000000)
+    data2 = dummyContract.start.encode_input(604800, 40000, 1000000000000000, 2000000000000000000000000)
     data2 = "0x" + data2[10:]
 
     # TODO update description !
-    description = "SIP 0003 - . Details:  , sha256: "
+    description = "SIP 0003 - Activation of Genesis Reservation. Details: https://github.com/DistributedCollective/SIPS/blob/47f9b43dc6b26c654512c9d17f0b604cce9d9e52/SIP-0003.md , sha256: f6eb88647e005ca4537d7d4e889a5b389ec05c307a2e482182d686cb013650fc"
 
     governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
     print(governor.address)
