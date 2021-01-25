@@ -47,5 +47,6 @@ module.exports = {
 		timeout: 1800000,
 		useColors: true,
 		reporter: "list",
+		enableTimeouts: false,
 	},
 };
