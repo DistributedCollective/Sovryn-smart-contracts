@@ -43,8 +43,8 @@ module.exports = {
 		},
 	},
 	mocha: {
-		before_timeout: 600000,
-		timeout: 600000,
+		before_timeout: 1800000,
+		timeout: 1800000,
 		useColors: true,
 		reporter: "list",
 	},

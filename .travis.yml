@@ -15,5 +15,5 @@ script:
   - npm run test-js
 
 after_script:
-  - travis_wait 30 npm run coverage
+  - npm run coverage
   - cat coverage/lcov.info | coveralls
