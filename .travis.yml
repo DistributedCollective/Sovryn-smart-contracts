@@ -7,7 +7,7 @@ cache:
   - node_modules
 
 before_script:
-  - export NODE_OPTIONS=--max_old_space_size=4096
+  - export NODE_OPTIONS=--max_old_space_size=8192
   - npm install
 
 script:
@@ -15,5 +15,5 @@ script:
   - npm run test-js
 
 after_script:
-  - npm run coverage
+  - travis_wait 90 npm run coverage
   - cat coverage/lcov.info | coveralls
