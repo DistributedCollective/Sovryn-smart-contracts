@@ -99,23 +99,27 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, IApproveAndCall {
 		emit Burn(msg.sender, _amount);
 	}
 
-	function receiveApproval(address _sender, uint256 _amount, address _token, bytes memory _data) public {
+	function receiveApproval(
+		address _sender,
+		uint256 _amount,
+		address _token,
+		bytes memory _data
+	) public {
 		//accept calls only from SOV token
 		require(msg.sender == address(SOV), "unauthorized");
 
 		//TODO check function to be invoked, only mintForSender
 		//TODO function mintForSender(address _sender, uint96 _amount) public {
 		(bool success, bytes memory returnData) = address(this).call(_data);
-//		if (!success) {
-//			if (returnData.length <= ERROR_MESSAGE_SHIFT) {
-//				revert("Timelock::executeTransaction: Transaction execution reverted.");
-//			} else {
-//				revert(_addErrorMessage("Timelock::executeTransaction: ", string(returnData)));
-//			}
-//		}
+		//		if (!success) {
+		//			if (returnData.length <= ERROR_MESSAGE_SHIFT) {
+		//				revert("Timelock::executeTransaction: Transaction execution reverted.");
+		//			} else {
+		//				revert(_addErrorMessage("Timelock::executeTransaction: ", string(returnData)));
+		//			}
+		//		}
 		if (!success) {
 			revert("RSOV::receiveApproval: Transaction execution reverted.");
 		}
 	}
-
 }
