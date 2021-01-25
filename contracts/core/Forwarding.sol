@@ -3,15 +3,8 @@ pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 interface IERC20 {
-	function name() external view returns (string memory);
-
-	function totalSupply() external view returns (uint256);
-
-	function balanceOf(address _who) external view returns (uint256);
 
 	function transfer(address _to, uint256 _value) external returns (bool);
-
-	function allowance(address _owner, address _spender) external view returns (uint256);
 
 	function transferFrom(
 		address _from,
@@ -71,6 +64,16 @@ interface SovrynProtocol {
 		bytes32 loanId,
 		uint256 depositAmount //Only for tokens
 	) external payable;
+
+	function swapExternal(
+		address sourceToken,
+		address destToken,
+		address receiver,
+		address returnToSender,
+		uint256 sourceTokenAmount,
+		uint256 requiredDestTokenAmount,
+		bytes calldata swapData
+	) external payable returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
 }
 
 interface ILoanToken {
@@ -100,18 +103,6 @@ interface ILoanToken {
 	function mint(address receiver, uint256 depositAmount) external returns (uint256 mintAmount);
 }
 
-interface SwapsExternal {
-	function swapExternal(
-		address sourceToken,
-		address destToken,
-		address receiver,
-		address returnToSender,
-		uint256 sourceTokenAmount,
-		uint256 requiredDestTokenAmount,
-		bytes calldata swapData
-	) external payable returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
-}
-
 contract Forwarding {
 	address private owner;
 	mapping(address => bool) private reservToken;
@@ -137,7 +128,6 @@ contract Forwarding {
 	event borrowEvent(address indexed receiver, uint256 newPrinicipal, uint256 newCollateral);
 
 	event closeWithDepositWithUserSigEvent(
-		address indexed user,
 		uint256 loanCloseAmmount,
 		uint256 withdrawAmmount,
 		address indexed withdrawToken
@@ -347,9 +337,10 @@ contract Forwarding {
 			address withdrawToken
 		)
 	{
-		SovrynProtocol.Loan memory loanLocal = SovrynProtocol(protocolContract).loans(loanId);
-		address loanBorrower = loanLocal.borrower;
-		require(msg.sender == loanBorrower, "unauthorized");
+		// we can add this also as another layer for security
+		// SovrynProtocol.Loan memory loanLocal = SovrynProtocol(protocolContract).loans(loanId);
+		// address loanBorrower = loanLocal.borrower;
+		// require(msg.sender == loanBorrower, "unauthorized");
 
 		require(doTransferFrom(tokenContract, protocolContract, depositAmount), "Not enough tokens to approve");
 		(loanCloseAmount, withdrawAmount, withdrawToken) = SovrynProtocol(protocolContract).closeWithDepositWithSig(
@@ -358,7 +349,7 @@ contract Forwarding {
 			depositAmount,
 			sig
 		);
-		emit closeWithDepositWithUserSigEvent(receiver, loanCloseAmount, withdrawAmount, withdrawToken);
+		emit closeWithDepositWithUserSigEvent(loanCloseAmount, withdrawAmount, withdrawToken);
 	}
 
 	//  Swapping tokens
@@ -373,7 +364,7 @@ contract Forwarding {
 		bytes memory swapData
 	) public returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
 		require(doTransferFrom(sourceToken, _calledContract, sourceTokenAmount), "not enough tokens to approve");
-		(destTokenAmountReceived, sourceTokenAmountUsed) = SwapsExternal(_calledContract).swapExternal(
+		(destTokenAmountReceived, sourceTokenAmountUsed) = SovrynProtocol(_calledContract).swapExternal(
 			sourceToken,
 			destToken,
 			receiver,
