@@ -6,13 +6,14 @@ import "../../openzeppelin/ERC20.sol";
 import "../../openzeppelin/Ownable.sol";
 import "../Staking/SafeMath96.sol";
 import "../Staking/IStaking.sol";
+import "../../token/IApproveAndCall.sol";
 
 //TODO should be set as protocolTokenAddress (ProtocolSettings.setProtocolTokenAddress)
 //TODO PriceFeeds._protocolTokenAddress ?
 /**
  * Sovryn Reward Token
  */
-contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
+contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, IApproveAndCall {
 	string constant NAME = "Sovryn Reward Token";
 	string constant SYMBOL = "RSOV";
 	uint8 constant DECIMALS = 18;
@@ -49,16 +50,27 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
 	 * @param _amount the amount of tokens to be mint
 	 */
 	function mint(uint96 _amount) public {
+		_mintForSender(msg.sender, _amount);
+	}
+
+	function mintForSender(address _sender, uint96 _amount) public {
+		//accept calls only from this contract
+		require(msg.sender == address(this), "unauthorized");
+
+		_mintForSender(_sender, _amount);
+	}
+
+	function _mintForSender(address _sender, uint96 _amount) internal {
 		require(_amount > 0, "RSOV::mint: amount invalid");
 
 		//holds SOV tokens
-		bool success = SOV.transferFrom(msg.sender, address(this), _amount);
+		bool success = SOV.transferFrom(_sender, address(this), _amount);
 		require(success);
 
 		//mints RSOV tokens
-		_mint(msg.sender, _amount);
+		_mint(_sender, _amount);
 
-		emit Mint(msg.sender, _amount);
+		emit Mint(_sender, _amount);
 	}
 
 	/**
@@ -86,4 +98,24 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
 
 		emit Burn(msg.sender, _amount);
 	}
+
+	function receiveApproval(address _sender, uint256 _amount, address _token, bytes memory _data) public {
+		//accept calls only from SOV token
+		require(msg.sender == address(SOV), "unauthorized");
+
+		//TODO check function to be invoked, only mintForSender
+		//TODO function mintForSender(address _sender, uint96 _amount) public {
+		(bool success, bytes memory returnData) = address(this).call(_data);
+//		if (!success) {
+//			if (returnData.length <= ERROR_MESSAGE_SHIFT) {
+//				revert("Timelock::executeTransaction: Transaction execution reverted.");
+//			} else {
+//				revert(_addErrorMessage("Timelock::executeTransaction: ", string(returnData)));
+//			}
+//		}
+		if (!success) {
+			revert("RSOV::receiveApproval: Transaction execution reverted.");
+		}
+	}
+
 }
