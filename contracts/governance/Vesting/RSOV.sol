@@ -113,5 +113,4 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 		selectors[0] = this.mintWithApproval.selector;
 		return selectors;
 	}
-
 }

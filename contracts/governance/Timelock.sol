@@ -166,5 +166,4 @@ contract Timelock is ErrorDecoder, ITimelock {
 		// solium-disable-next-line security/no-block-members
 		return block.timestamp;
 	}
-
 }

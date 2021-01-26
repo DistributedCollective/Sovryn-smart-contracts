@@ -89,7 +89,6 @@ contract("RSOV:", (accounts) => {
 		let amount = new BN(5000);
 
 		it("should be able to mint RSOV tokens", async () => {
-
 			await tokenSOV.transfer(account1, amount);
 
 			let contract = new web3.eth.Contract(tokenRSOV.abi, tokenRSOV.address);

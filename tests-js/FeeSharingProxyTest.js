@@ -332,7 +332,6 @@ contract("FeeSharingProxy:", (accounts) => {
 	});
 
 	describe("transferTokensWithApproval", () => {
-
 		it("fails if invoked directly", async () => {
 			await expectRevert(feeSharingProxy.transferTokensWithApproval(root, SOVToken.address, 1000), "unauthorized");
 		});
@@ -343,7 +342,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			let sender = root;
 			let data = contract.methods.transferTokens(SOVToken.address, amount).encodeABI();
 
-			await expectRevert(SOVToken.approveAndCall(feeSharingProxy.address, amount, data, {from: sender}), "method is not allowed");
+			await expectRevert(SOVToken.approveAndCall(feeSharingProxy.address, amount, data, { from: sender }), "method is not allowed");
 		});
 
 		it("Should be able to transfer tokens", async () => {
@@ -356,7 +355,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			let contract = new web3.eth.Contract(feeSharingProxy.abi, feeSharingProxy.address);
 			let sender = root;
 			let data = contract.methods.transferTokensWithApproval(sender, SOVToken.address, amount).encodeABI();
-			let tx = await SOVToken.approveAndCall(feeSharingProxy.address, amount, data, {from: sender});
+			let tx = await SOVToken.approveAndCall(feeSharingProxy.address, amount, data, { from: sender });
 
 			expect(await feeSharingProxy.unprocessedAmount.call(SOVToken.address)).to.be.bignumber.equal(new BN(0));
 
@@ -372,7 +371,6 @@ contract("FeeSharingProxy:", (accounts) => {
 			let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(SOVToken.address);
 			let block = await web3.eth.getBlock(tx.receipt.blockNumber);
 			expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
-
 		});
 	});
 

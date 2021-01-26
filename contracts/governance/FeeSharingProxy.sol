@@ -109,11 +109,19 @@ contract FeeSharingProxy is SafeMath96, ApprovalReceiver, IFeeSharingProxy {
 	 * @param _token address of the token
 	 * @param _amount amount to be transferred
 	 * */
-	function transferTokensWithApproval(address _sender, address _token, uint96 _amount) public onlyThisContract {
+	function transferTokensWithApproval(
+		address _sender,
+		address _token,
+		uint96 _amount
+	) public onlyThisContract {
 		_transferTokens(_sender, _token, _amount);
 	}
 
-	function _transferTokens(address _sender, address _token, uint96 _amount) internal {
+	function _transferTokens(
+		address _sender,
+		address _token,
+		uint96 _amount
+	) internal {
 		require(_token != address(0), "FeeSharingProxy::transferTokens: invalid address");
 		require(_amount > 0, "FeeSharingProxy::transferTokens: invalid amount");
 
@@ -275,7 +283,6 @@ contract FeeSharingProxy is SafeMath96, ApprovalReceiver, IFeeSharingProxy {
 		selectors[0] = this.transferTokensWithApproval.selector;
 		return selectors;
 	}
-
 }
 
 interface IProtocol {
