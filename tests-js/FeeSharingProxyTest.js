@@ -6,6 +6,7 @@ const { ZERO_ADDRESS } = constants;
 const { encodeParameters, etherMantissa, mineBlock, increaseTime, blockNumber } = require("./Utils/Ethereum");
 
 const TestToken = artifacts.require("TestToken");
+const SOV = artifacts.require("SOV");
 const TestWrbtc = artifacts.require("TestWrbtc");
 
 const StakingLogic = artifacts.require("StakingMockup");
@@ -51,7 +52,7 @@ contract("FeeSharingProxy:", (accounts) => {
 
 	beforeEach(async () => {
 		//Token
-		SOVToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
+		SOVToken = await SOV.new(TOTAL_SUPPLY);
 		susd = await TestToken.new("SUSD", "SUSD", 18, TOTAL_SUPPLY);
 		wrbtc = await TestWrbtc.new();
 
@@ -257,8 +258,8 @@ contract("FeeSharingProxy:", (accounts) => {
 			await expectRevert(feeSharingProxy.transferTokens(SOVToken.address, 0), "FeeSharingProxy::transferTokens: invalid amount");
 		});
 
-		it("Shouldn't be able to withdraw zero amount", async () => {
-			await expectRevert(feeSharingProxy.transferTokens(SOVToken.address, 1000), "invalid transfer");
+		it("Shouldn't be able to withdraw more than allowed", async () => {
+			await expectRevert(feeSharingProxy.transferTokens(SOVToken.address, 1000), "ERC20: transfer amount exceeds allowance");
 		});
 
 		it("Should be able to transfer tokens", async () => {
@@ -327,6 +328,51 @@ contract("FeeSharingProxy:", (accounts) => {
 			lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(SOVToken.address);
 			block = await web3.eth.getBlock(tx.receipt.blockNumber);
 			expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
+		});
+	});
+
+	describe("transferTokensWithApproval", () => {
+
+		it("fails if invoked directly", async () => {
+			await expectRevert(feeSharingProxy.transferTokensWithApproval(root, SOVToken.address, 1000), "unauthorized");
+		});
+
+		it("fails if pass wrong method in data", async () => {
+			let amount = 1000;
+			let contract = new web3.eth.Contract(feeSharingProxy.abi, feeSharingProxy.address);
+			let sender = root;
+			let data = contract.methods.transferTokens(SOVToken.address, amount).encodeABI();
+
+			await expectRevert(SOVToken.approveAndCall(feeSharingProxy.address, amount, data, {from: sender}), "method is not allowed");
+		});
+
+		it("Should be able to transfer tokens", async () => {
+			// stake - getPriorTotalVotingPower
+			let totalStake = 1000;
+			await stake(totalStake, root);
+
+			let amount = 1000;
+
+			let contract = new web3.eth.Contract(feeSharingProxy.abi, feeSharingProxy.address);
+			let sender = root;
+			let data = contract.methods.transferTokensWithApproval(sender, SOVToken.address, amount).encodeABI();
+			let tx = await SOVToken.approveAndCall(feeSharingProxy.address, amount, data, {from: sender});
+
+			expect(await feeSharingProxy.unprocessedAmount.call(SOVToken.address)).to.be.bignumber.equal(new BN(0));
+
+			//checkpoints
+			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(SOVToken.address);
+			expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
+			let checkpoint = await feeSharingProxy.tokenCheckpoints.call(SOVToken.address, 0);
+			expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
+			expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
+			expect(checkpoint.numTokens.toString()).to.be.equal(amount.toString());
+
+			//check lastFeeWithdrawalTime
+			let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(SOVToken.address);
+			let block = await web3.eth.getBlock(tx.receipt.blockNumber);
+			expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
+
 		});
 	});
 

@@ -5,22 +5,27 @@ import "../token/IApproveAndCall.sol";
 
 contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 
+    modifier onlyThisContract() {
+        //accepts calls only from receiveApproval function
+        require(msg.sender == address(this), "unauthorized");
+        _;
+    }
+
     function receiveApproval(
         address _sender,
         uint256 _amount,
         address _token,
         bytes memory _data
     ) public {
-        _receiveApproval(_sender, _amount, _getToken(), _data, _getSelectors());
+        _receiveApproval(_sender, _amount, _getToken(_token), _data, _getSelectors());
     }
 
-    function _getToken() internal returns (address) {
-        return address(0);
+    function _getToken(address _token) internal returns (address) {
+        return _token;
     }
 
     function _getSelectors() internal returns (bytes4[] memory) {
-        bytes4[] memory selectors = new bytes4[](1);
-        return selectors;
+        return new bytes4[](0);
     }
 
     function _receiveApproval(

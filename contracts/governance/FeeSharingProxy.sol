@@ -5,8 +5,9 @@ import "../openzeppelin/SafeMath.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "./IFeeSharingProxy.sol";
 import "./Staking/IStaking.sol";
+import "./ApprovalReceiver.sol";
 
-contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
+contract FeeSharingProxy is SafeMath96, ApprovalReceiver, IFeeSharingProxy {
 	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
 
@@ -95,11 +96,29 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 	 * @param _amount amount to be transferred
 	 * */
 	function transferTokens(address _token, uint96 _amount) public {
+		_transferTokens(msg.sender, _token, _amount);
+	}
+
+	/**
+	 * @notice transfer tokens to this contract
+	 * @dev we just update amount of tokens here and write checkpoint in a separate methods
+	 * in order to prevent adding checkpoints too often
+	 * @dev this function will be invoked from receiveApproval
+	 * @dev SOV.approveAndCall -> this.receiveApproval -> this.mintWithApproval
+	 * @param _sender the sender of SOV.approveAndCall
+	 * @param _token address of the token
+	 * @param _amount amount to be transferred
+	 * */
+	function transferTokensWithApproval(address _sender, address _token, uint96 _amount) public onlyThisContract {
+		_transferTokens(_sender, _token, _amount);
+	}
+
+	function _transferTokens(address _sender, address _token, uint96 _amount) internal {
 		require(_token != address(0), "FeeSharingProxy::transferTokens: invalid address");
 		require(_amount > 0, "FeeSharingProxy::transferTokens: invalid amount");
 
-		//transfer tokens from msg.sender
-		bool success = IERC20(_token).transferFrom(address(msg.sender), address(this), _amount);
+		//transfer tokens from _sender
+		bool success = IERC20(_token).transferFrom(_sender, address(this), _amount);
 		require(success, "Staking::transferTokens: token transfer failed");
 
 		//update unprocessed amount of tokens
@@ -107,7 +126,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 
 		_addCheckpoint(_token);
 
-		emit TokensTransferred(msg.sender, _token, _amount);
+		emit TokensTransferred(_sender, _token, _amount);
 	}
 
 	/**
@@ -250,6 +269,13 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 		}
 		emit CheckpointAdded(msg.sender, _token, _numTokens);
 	}
+
+	function _getSelectors() internal returns (bytes4[] memory) {
+		bytes4[] memory selectors = new bytes4[](1);
+		selectors[0] = this.transferTokensWithApproval.selector;
+		return selectors;
+	}
+
 }
 
 interface IProtocol {

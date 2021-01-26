@@ -61,10 +61,7 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 	 * @param _sender the sender of SOV.approveAndCall
 	 * @param _amount the amount of tokens to be mint
 	 */
-	function mintWithApproval(address _sender, uint96 _amount) public {
-		//accepts calls only from receiveApproval function
-		require(msg.sender == address(this), "unauthorized");
-
+	function mintWithApproval(address _sender, uint96 _amount) public onlyThisContract {
 		_mintTo(_sender, _amount);
 	}
 
@@ -107,7 +104,7 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 		emit Burn(msg.sender, _amount);
 	}
 
-	function _getToken() internal returns (address) {
+	function _getToken(address _token) internal returns (address) {
 		return address(SOV);
 	}
 

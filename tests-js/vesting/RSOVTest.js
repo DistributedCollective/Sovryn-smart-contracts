@@ -3,7 +3,7 @@ const { expectRevert, expectEvent, constants, BN, balance, time } = require("@op
 
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
-const TestToken = artifacts.require("SOV");
+const SOV = artifacts.require("SOV");
 const RSOV = artifacts.require("RSOV");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
@@ -27,7 +27,7 @@ contract("RSOV:", (accounts) => {
 	});
 
 	beforeEach(async () => {
-		tokenSOV = await TestToken.new(TOTAL_SUPPLY);
+		tokenSOV = await SOV.new(TOTAL_SUPPLY);
 
 		let stakingLogic = await StakingLogic.new(tokenSOV.address);
 		staking = await StakingProxy.new(tokenSOV.address);
@@ -102,6 +102,10 @@ contract("RSOV:", (accounts) => {
 			expect(await tokenSOV.balanceOf.call(tokenRSOV.address)).to.be.bignumber.equal(amount);
 		});
 
+		it("fails if invoked directly", async () => {
+			await expectRevert(tokenRSOV.mintWithApproval(account1, new BN(5000)), "unauthorized");
+		});
+
 		it("fails if pass wrong method in data", async () => {
 			let contract = new web3.eth.Contract(tokenRSOV.abi, tokenRSOV.address);
 			let data = contract.methods.mint(amount).encodeABI();
@@ -109,7 +113,7 @@ contract("RSOV:", (accounts) => {
 			await expectRevert(tokenSOV.approveAndCall(tokenRSOV.address, amount, data, { from: account1 }), "method is not allowed");
 		});
 
-		it("fails if pass wrong method in data", async () => {
+		it("fails if pass wrong method params in data", async () => {
 			let contract = new web3.eth.Contract(tokenRSOV.abi, tokenRSOV.address);
 			let data = contract.methods.mintWithApproval(account1, new BN(0)).encodeABI();
 
@@ -117,18 +121,13 @@ contract("RSOV:", (accounts) => {
 		});
 	});
 
+	//TODO move to test for ApprovalReceiver
 	describe("receiveApproval:", () => {
 		it("fails if invoked directly", async () => {
 			let amount = new BN(5000);
 			let contract = new web3.eth.Contract(tokenRSOV.abi, tokenRSOV.address);
 			let data = contract.methods.mintWithApproval(account1, amount).encodeABI();
 			await expectRevert(tokenRSOV.receiveApproval(account1, amount, tokenSOV.address, data), "unauthorized");
-		});
-	});
-
-	describe("mintWithApproval:", () => {
-		it("fails if invoked directly", async () => {
-			await expectRevert(tokenRSOV.mintWithApproval(account1, new BN(5000)), "unauthorized");
 		});
 	});
 
