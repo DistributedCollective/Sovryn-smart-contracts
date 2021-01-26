@@ -1,5 +1,4 @@
 language: node_js
-arch: amd64
 os: linux
 dist: xenial
 node_js:
@@ -16,9 +15,9 @@ install:
   - npm install
 
 script:
-  - npm run lint-contracts
-  - npm run test-js
-  - travis_wait 40 node --max-old-space-size=7168 ./node_modules/.bin/truffle run coverage
+  - yarn lint-contracts
+  - yarn test-js
+  - yarn coverage
 
 after_script:
   - cat coverage/lcov.info | coveralls
