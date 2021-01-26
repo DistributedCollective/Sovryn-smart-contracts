@@ -13,7 +13,11 @@ contract SOV is ERC20, ERC20Detailed, Ownable {
 	string constant SYMBOL = "SOV";
 	uint8 constant DECIMALS = 18;
 
-	constructor() public ERC20Detailed(NAME, SYMBOL, DECIMALS) {}
+	constructor(uint256 _initialAmount) public ERC20Detailed(NAME, SYMBOL, DECIMALS) {
+		if (_initialAmount != 0) {
+			_mint(msg.sender, _initialAmount);
+		}
+	}
 
 	/**
 	 * @notice approves and then calls the receiving contract

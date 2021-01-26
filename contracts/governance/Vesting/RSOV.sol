@@ -24,6 +24,12 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, IApproveAndCall {
 	///@notice amount of tokens divided by this constant will be transferred
 	uint96 constant DIRECT_TRANSFER_PART = 14;
 
+	//4 bytes - 0x08c379a0 - method id
+	//32 bytes - 2 parameters
+	//32 bytes - bool, result
+	//32 ... bytes - string, error message
+	uint256 constant ERROR_MESSAGE_SHIFT = 68;
+
 	///@notice the SOV token contract
 	IERC20_ public SOV;
 	///@notice the staking contract
@@ -50,17 +56,24 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, IApproveAndCall {
 	 * @param _amount the amount of tokens to be mint
 	 */
 	function mint(uint96 _amount) public {
-		_mintForSender(msg.sender, _amount);
+		_mintTo(msg.sender, _amount);
 	}
 
-	function mintForSender(address _sender, uint96 _amount) public {
-		//accept calls only from this contract
+	/**
+	 * @notice holds SOV tokens and mints the respective amount of RSOV tokens
+	 * @dev this function will be invoked from receiveApproval
+	 * @dev SOV.approveAndCall -> this.receiveApproval -> this.mintWithApproval
+	 * @param _sender the sender of SOV.approveAndCall
+	 * @param _amount the amount of tokens to be mint
+	 */
+	function mintWithApproval(address _sender, uint96 _amount) public {
+		//accepts calls only from receiveApproval function
 		require(msg.sender == address(this), "unauthorized");
 
-		_mintForSender(_sender, _amount);
+		_mintTo(_sender, _amount);
 	}
 
-	function _mintForSender(address _sender, uint96 _amount) internal {
+	function _mintTo(address _sender, uint96 _amount) internal {
 		require(_amount > 0, "RSOV::mint: amount invalid");
 
 		//holds SOV tokens
@@ -101,25 +114,45 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, IApproveAndCall {
 
 	function receiveApproval(
 		address _sender,
-		uint256 _amount,
-		address _token,
+		uint256 /*_amount*/,
+		address /*_token*/,
 		bytes memory _data
 	) public {
-		//accept calls only from SOV token
+		//accepts calls only from SOV token
 		require(msg.sender == address(SOV), "unauthorized");
 
-		//TODO check function to be invoked, only mintForSender
-		//TODO function mintForSender(address _sender, uint96 _amount) public {
+		//only mintWithApproval
+		require(getSig(_data) == this.mintWithApproval.selector, "method is not allowed");
+
 		(bool success, bytes memory returnData) = address(this).call(_data);
-		//		if (!success) {
-		//			if (returnData.length <= ERROR_MESSAGE_SHIFT) {
-		//				revert("Timelock::executeTransaction: Transaction execution reverted.");
-		//			} else {
-		//				revert(_addErrorMessage("Timelock::executeTransaction: ", string(returnData)));
-		//			}
-		//		}
 		if (!success) {
-			revert("RSOV::receiveApproval: Transaction execution reverted.");
+			if (returnData.length <= ERROR_MESSAGE_SHIFT) {
+				revert("receiveApproval: Transaction execution reverted.");
+			} else {
+				revert(_addErrorMessage("receiveApproval: ", string(returnData)));
+			}
 		}
 	}
+
+	function getSig(bytes memory _data) internal pure returns (bytes4 sig) {
+		assembly {
+			sig := mload(add(_data, 32))
+		}
+	}
+
+	function _addErrorMessage(string memory str1, string memory str2) internal pure returns (string memory) {
+		bytes memory bytesStr1 = bytes(str1);
+		bytes memory bytesStr2 = bytes(str2);
+		string memory str12 = new string(bytesStr1.length + bytesStr2.length - ERROR_MESSAGE_SHIFT);
+		bytes memory bytesStr12 = bytes(str12);
+		uint256 j = 0;
+		for (uint256 i = 0; i < bytesStr1.length; i++) {
+			bytesStr12[j++] = bytesStr1[i];
+		}
+		for (uint256 i = ERROR_MESSAGE_SHIFT; i < bytesStr2.length; i++) {
+			bytesStr12[j++] = bytesStr2[i];
+		}
+		return string(bytesStr12);
+	}
+
 }
