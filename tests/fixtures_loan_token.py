@@ -60,8 +60,8 @@ def loanOpenings(LoanOpenings, accounts, sovryn, Constants, priceFeeds, swapsImp
     sovryn.setSwapsImplContract(swapsImpl.address )
     
 @pytest.fixture(scope="module", autouse=True)
-def loanClosings(LoanClosings, accounts, sovryn, Constants, priceFeeds, swapsImpl):
-    sovryn.replaceContract(accounts[0].deploy(LoanClosings))
+def loanClosingsBase(LoanClosingsBase, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+    sovryn.replaceContract(accounts[0].deploy(LoanClosingsBase))
 
 @pytest.fixture(scope="module", autouse=True)
 def loanClosingsWith(LoanClosingsWith, accounts, sovryn, Constants, priceFeeds, swapsImpl):
@@ -201,14 +201,15 @@ def open_margin_trade_position(accounts, SUSD, RBTC, WRBTC, loanToken):
     return internal_open_margin_trade
 
 def open_margin_trade_position_with_affiliate(accounts, SUSD, RBTC, WRBTC, loanToken):
-    def internal_open_margin_trade(collateral = 'RBTC',
+    def internal_open_margin_trade_affiliate(collateral = 'RBTC',
                                    trader=accounts[1],
                                    referrer = accounts[2],
                                    loan_token_sent=100e18,
                                    leverage_amount=2e18):
         """
-        Opens a margin trade position
+        Opens a margin trade position with affiliate address passed
         :param trader: trader address
+        :param referrer: affiliate referrer address
         :param loan_token_sent: loan token amount sent
         :param leverage_amount: leverage amount in form 1x,2x,3x,4x,5x where 1 is 1e18
         :return: loan_id, trader, loan_token_sent and leverage_amount
@@ -232,10 +233,17 @@ def open_margin_trade_position_with_affiliate(accounts, SUSD, RBTC, WRBTC, loanT
             b'',  # loanDataBytes (only required with ether)
             {'from': trader}
         )
-//STOPPEDHERE
-        return tx.events['Trade']['loanId'], trader, loan_token_sent, leverage_amount
+#STOPPEDHERE 
+        # emit SetAffiliatesReferrer(user, referrer);
+        eventReferrer = tx.events['SetAffiliatesReferrer']
+        print(eventReferrer)
 
-    return internal_open_margin_trade_with_affiliate
+        # emit PayTradingFeeToAffiliate(referrer, token, referrerTradingFee);
+        eventPayReferrer = tx.events['PayTradingFeeToAffiliate']
+        print(eventPayReferrer)
+        return eventReferrer, eventPayReferrer, trader, referrer, loan_token_sent, leverage_amount
+
+    return internal_open_margin_trade_affiliate
     
 @pytest.fixture
 def open_margin_trade_position_iBTC(accounts, SUSD, RBTC, loanTokenWRBTC):

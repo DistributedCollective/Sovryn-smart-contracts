@@ -5,7 +5,8 @@
 
 pragma solidity >=0.5.0 <0.6.0;
 pragma experimental ABIEncoderV2;
-
+//TODO: stored in ./interfaces only while brownie isn't removed
+//TODO: move to contracts/interfaces after with brownie is removed
 import "../contracts/core/State.sol";
 import "../contracts/events/ProtocolSettingsEvents.sol";
 import "../contracts/events/LoanSettingsEvents.sol";
@@ -15,7 +16,7 @@ import "../contracts/events/LoanClosingsEvents.sol";
 import "../contracts/events/FeesEvents.sol";
 import "../contracts/events/SwapsEvents.sol";
 
-contract ISovryn is
+contract ISovrynBrownie is
 	State,
 	ProtocolSettingsEvents,
 	LoanSettingsEvents,
@@ -33,6 +34,8 @@ contract ISovryn is
 	function getTarget(string calldata sig) external view returns (address);
 
 	////// Protocol Settings //////
+
+	function setSovrynProtocolAddress(address newProtocolAddress) external;
 
 	function setPriceFeedContract(address newContract) external;
 
@@ -329,4 +332,6 @@ contract ISovryn is
 	) external returns (uint256 withdrawAmount);
 
 	function setAffiliatesUserReferrer(address user, address referrer) external; //onlyCallableByLoanPools
+
+	// function getAffiliatesUserReferrer(address user) external returns ; //AUDIT: do we need it to be public?
 }
