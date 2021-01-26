@@ -48,18 +48,8 @@ contract("Forwarding ", async (accounts) => {
 		if (accounts[0] == (await sovryn.owner())) {
 			await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
 		}
-		//Deploying Forwarding Contract
-		forwarding = await Forwarding.new();
 
-		//Asking one-time approval for ForwardingContract(1Billion token)
-		const maxAmmount = wei("1000000000", "ether");
-		await doc.approve(forwarding.address, maxAmmount);
-		await testWrbtc.approve(forwarding.address, maxAmmount);
-		//Ging some real TestWrbtc to testWrbtc, so that when loan close then it give my collateral as realTestWrbtc
-		await testWrbtc.deposit({ value: wei("1", "ether") });
-	});
-	beforeEach(async () => {
-		//Setting price like 1wRBTC == 100 DOC
+		//Setting price feeds e.g. price like 1wRBTC == 100 DOC
 
 		const feeds = await PriceFeedsLocal.new(testWrbtc.address, sovryn.address);
 		await feeds.setRates(doc.address, testWrbtc.address, wei("0.01", "ether"));
@@ -108,6 +98,16 @@ contract("Forwarding ", async (accounts) => {
 
 		// const borrowInterestRate = await loanTokenV2.borrowInterestRate();
 		// console.log("borrowInterestRate: ", borrowInterestRate.toString());
+
+		//Deploying Forwarding Contract
+		forwarding = await Forwarding.new();
+
+		//Asking one-time approval for ForwardingContract(1Billion token)
+		const maxAmmount = wei("1000000000", "ether");
+		await doc.approve(forwarding.address, maxAmmount);
+		await testWrbtc.approve(forwarding.address, maxAmmount);
+		//Ging some real TestWrbtc to testWrbtc, so that when loan close then it give my collateral as realTestWrbtc
+		await testWrbtc.deposit({ value: wei("1", "ether") });
 	});
 	it("Deposit 12 DOC token", async function () {
 		const loanTokenAddress = await loanToken.loanTokenAddress();
