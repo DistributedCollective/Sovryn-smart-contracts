@@ -7,14 +7,14 @@ import "../../openzeppelin/Ownable.sol";
 import "../Staking/SafeMath96.sol";
 import "../Staking/IStaking.sol";
 import "../../token/IApproveAndCall.sol";
-import "../ErrorDecoder.sol";
+import "../ApprovalReceiver.sol";
 
 //TODO should be set as protocolTokenAddress (ProtocolSettings.setProtocolTokenAddress)
 //TODO PriceFeeds._protocolTokenAddress ?
 /**
  * Sovryn Reward Token
  */
-contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ErrorDecoder, IApproveAndCall {
+contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 	string constant NAME = "Sovryn Reward Token";
 	string constant SYMBOL = "RSOV";
 	uint8 constant DECIMALS = 18;
@@ -107,32 +107,14 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ErrorDecoder, IAppro
 		emit Burn(msg.sender, _amount);
 	}
 
-	function receiveApproval(
-		address _sender,
-		uint256 /*_amount*/,
-		address /*_token*/,
-		bytes memory _data
-	) public {
-		//accepts calls only from SOV token
-		require(msg.sender == address(SOV), "unauthorized");
-
-		//only mintWithApproval
-		require(getSig(_data) == this.mintWithApproval.selector, "method is not allowed");
-
-		(bool success, bytes memory returnData) = address(this).call(_data);
-		if (!success) {
-			if (returnData.length <= ERROR_MESSAGE_SHIFT) {
-				revert("receiveApproval: Transaction execution reverted.");
-			} else {
-				revert(_addErrorMessage("receiveApproval: ", string(returnData)));
-			}
-		}
+	function _getToken() internal returns (address) {
+		return address(SOV);
 	}
 
-	function getSig(bytes memory _data) internal pure returns (bytes4 sig) {
-		assembly {
-			sig := mload(add(_data, 32))
-		}
+	function _getSelectors() internal returns (bytes4[] memory) {
+		bytes4[] memory selectors = new bytes4[](1);
+		selectors[0] = this.mintWithApproval.selector;
+		return selectors;
 	}
 
 }
