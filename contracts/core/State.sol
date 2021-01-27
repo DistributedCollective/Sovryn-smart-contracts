@@ -85,6 +85,8 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
 	uint256 public feeRebatePercent = 50 * 10**18; // 50% fee rebate                     // potocolToken reward to user, it is worth % of trading/borrowing fee
 
+	address public admin;
+
 	function _setTarget(bytes4 sig, address target) internal {
 		logicTargets[sig] = target;
 
