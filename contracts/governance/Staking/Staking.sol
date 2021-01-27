@@ -4,11 +4,11 @@ pragma experimental ABIEncoderV2;
 import "./WeightedStaking.sol";
 import "./IStaking.sol";
 import "../Vesting/IVesting.sol";
+import "../ApprovalReceiver.sol";
 
-contract Staking is IStaking, WeightedStaking {
+contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	/**
 	 * @notice stakes the given amount for the given duration of time.
-	 * @dev only if staked balance is 0.
 	 * @param amount the number of tokens to stake
 	 * @param until timestamp indicating the date until which to stake
 	 * @param stakeFor the address to stake the tokens for or 0x0 if staking for oneself
@@ -20,14 +20,44 @@ contract Staking is IStaking, WeightedStaking {
 		address stakeFor,
 		address delegatee
 	) public {
+		_stake(msg.sender, amount, until, stakeFor, delegatee);
+	}
+
+	/**
+	 * @notice stakes the given amount for the given duration of time.
+	 * @dev this function will be invoked from receiveApproval
+	 * @dev SOV.approveAndCall -> this.receiveApproval -> this.stakeWithApproval
+	 * @param sender the sender of SOV.approveAndCall
+	 * @param amount the number of tokens to stake
+	 * @param until timestamp indicating the date until which to stake
+	 * @param stakeFor the address to stake the tokens for or 0x0 if staking for oneself
+	 * @param delegatee the address of the delegatee or 0x0 if there is none.
+	 */
+	function stakeWithApproval(
+		address sender,
+		uint96 amount,
+		uint256 until,
+		address stakeFor,
+		address delegatee
+	) public onlyThisContract {
+		_stake(sender, amount, until, stakeFor, delegatee);
+	}
+
+	function _stake(
+		address sender,
+		uint96 amount,
+		uint256 until,
+		address stakeFor,
+		address delegatee
+	) internal {
 		require(amount > 0, "Staking::stake: amount of tokens to stake needs to be bigger than 0");
 
 		until = timestampToLockDate(until);
 		require(until > block.timestamp, "Staking::timestampToLockDate: staking period too short");
 
-		//stake for the msg.sender if not specified otherwise
+		//stake for the sender if not specified otherwise
 		if (stakeFor == address(0)) {
-			stakeFor = msg.sender;
+			stakeFor = sender;
 		}
 		//delegate for stakeFor if not specified otherwise
 		if (delegatee == address(0)) {
@@ -39,7 +69,7 @@ contract Staking is IStaking, WeightedStaking {
 
 		uint96 previousBalance = currentBalance(stakeFor, until);
 		//increase stake
-		_increaseStake(amount, stakeFor, until);
+		_increaseStake(sender, amount, stakeFor, until);
 
 		if (previousBalance == 0) {
 			//regular delegation if it's a first stake
@@ -93,12 +123,13 @@ contract Staking is IStaking, WeightedStaking {
 	}
 
 	function _increaseStake(
+		address sender,
 		uint96 amount,
 		address stakeFor,
 		uint256 until
 	) internal {
 		//retrieve the SOV tokens
-		bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
+		bool success = SOVToken.transferFrom(sender, address(this), amount);
 		require(success);
 
 		//increase staked balance
@@ -462,4 +493,15 @@ contract Staking is IStaking, WeightedStaking {
 			}
 		}
 	}
+
+	function _getToken(address _token) internal returns (address) {
+		return address(SOVToken);
+	}
+
+	function _getSelectors() internal returns (bytes4[] memory) {
+		bytes4[] memory selectors = new bytes4[](1);
+		selectors[0] = this.stakeWithApproval.selector;
+		return selectors;
+	}
+
 }

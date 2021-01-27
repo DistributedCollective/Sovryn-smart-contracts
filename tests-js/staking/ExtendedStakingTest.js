@@ -7,6 +7,7 @@ const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const StakingMockup = artifacts.require("StakingMockup");
 
+const SOV = artifacts.require("SOV");
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
 
@@ -50,7 +51,7 @@ contract("Staking", (accounts) => {
 
 	beforeEach(async () => {
 		//Token
-		token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
+		token = await SOV.new(TOTAL_SUPPLY);
 		susd = await TestToken.new("SUSD", "SUSD", 18, TOTAL_SUPPLY);
 		wrbtc = await TestWrbtc.new();
 
@@ -101,7 +102,7 @@ contract("Staking", (accounts) => {
 		});
 
 		it("Amount should be approved", async () => {
-			await expectRevert(staking.stake(100, inOneWeek, root, root, { from: account1 }), "invalid transfer");
+			await expectRevert(staking.stake(100, inOneWeek, root, root, { from: account1 }), "ERC20: transfer amount exceeds allowance");
 		});
 
 		it("Staking period too short", async () => {
@@ -315,6 +316,71 @@ contract("Staking", (accounts) => {
 		});
 	});
 
+	describe("stakeWithApproval", () => {
+
+		it("Should be able to stake and delegate for yourself", async () => {
+			let amount = "100";
+			let duration = TWO_WEEKS;
+			let lockedTS = await getTimeFromKickoff(duration);
+
+			let stackingbBalance = await token.balanceOf.call(staking.address);
+			expect(stackingbBalance.toNumber()).to.be.equal(0);
+			let beforeBalance = await token.balanceOf.call(root);
+
+			await token.approve(staking.address, 0);
+
+			let contract = new web3.eth.Contract(staking.abi, staking.address);
+			let sender = root;
+			let data = contract.methods.stakeWithApproval(sender, amount, lockedTS, root, root).encodeABI();
+			let tx = await token.approveAndCall(staking.address, amount, data, { from: sender });
+
+			stackingbBalance = await token.balanceOf.call(staking.address);
+			expect(stackingbBalance.toString()).to.be.equal(amount);
+			let afterBalance = await token.balanceOf.call(root);
+			expect(beforeBalance.sub(afterBalance).toString()).to.be.equal(amount);
+
+			//_writeUserCheckpoint
+			let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
+			expect(numUserCheckpoints.toNumber()).to.be.equal(1);
+			let checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+			expect(checkpoint.stake.toString()).to.be.equal(amount);
+
+			//_increaseDailyStake
+			let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(lockedTS);
+			expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(1);
+			checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+			expect(checkpoint.stake.toString()).to.be.equal(amount);
+
+			//_delegate
+			let delegator = await staking.delegates.call(root, lockedTS);
+			expect(delegator).to.be.equal(root);
+
+			let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
+			expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(1);
+			checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, 0);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+			expect(checkpoint.stake.toString()).to.be.equal(amount);
+
+		});
+
+		it("fails if invoked directly", async () => {
+			let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
+			await expectRevert(staking.stakeWithApproval(root, "100", lockedTS, root, root), "unauthorized");
+		});
+
+		it("fails if pass wrong method in data", async () => {
+			let amount = "100";
+			let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
+			let contract = new web3.eth.Contract(staking.abi, staking.address);
+			let data = contract.methods.stake(amount, lockedTS, root, root).encodeABI();
+
+			await expectRevert(token.approveAndCall(staking.address, amount, data), "method is not allowed");
+		});
+
+	});
+
 	describe("extendStakingDuration", () => {
 		it("Cannot reduce the staking duration", async () => {
 			let amount = "1000";
@@ -419,7 +485,7 @@ contract("Staking", (accounts) => {
 			await staking.stake(amount, lockTS, root, root);
 
 			await token.approve(staking.address, 0);
-			await expectRevert(staking.stake(amount, lockTS, root, root), "invalid transfer");
+			await expectRevert(staking.stake(amount, lockTS, root, root), "ERC20: transfer amount exceeds allowance");
 		});
 
 		it("Shouldn't be able to overflow balance", async () => {
