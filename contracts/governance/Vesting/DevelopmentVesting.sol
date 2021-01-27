@@ -4,8 +4,9 @@ import "../../openzeppelin/Ownable.sol";
 import "../../openzeppelin/SafeMath.sol";
 import "../../interfaces/IERC20.sol";
 import "./IVesting.sol";
+import "../ApprovalReceiver.sol";
 
-contract DevelopmentVesting is Ownable {
+contract DevelopmentVesting is Ownable, ApprovalReceiver {
 	using SafeMath for uint256;
 
 	///@notice the SOV token contract
@@ -85,15 +86,30 @@ contract DevelopmentVesting is Ownable {
 	 * @param _amount the amount of tokens to send
 	 */
 	function depositTokens(uint256 _amount) public {
+		_depositTokens(msg.sender, _amount);
+	}
+
+	/**
+	 * @notice deposit tokens to this contract, these tokens can be withdrawn any time by an owner
+	* @dev this function will be invoked from receiveApproval
+	 * @dev SOV.approveAndCall -> this.receiveApproval -> this.mintWithApproval
+	 * @param _sender the sender of SOV.approveAndCall
+	 * @param _amount the amount of tokens to send
+	 */
+	function depositTokensWithApproval(address _sender, uint256 _amount) public onlyThisContract {
+		_depositTokens(_sender, _amount);
+	}
+
+	function _depositTokens(address _sender, uint256 _amount) internal {
 		require(_amount > 0, "amount needs to be bigger than 0");
 
 		//retrieve the SOV tokens
-		bool success = SOV.transferFrom(msg.sender, address(this), _amount);
+		bool success = SOV.transferFrom(_sender, address(this), _amount);
 		require(success);
 
 		amount += _amount;
 
-		emit TokensSent(msg.sender, _amount);
+		emit TokensSent(_sender, _amount);
 	}
 
 	//TODO onlyOwners or onlyOwner ?
@@ -147,17 +163,32 @@ contract DevelopmentVesting is Ownable {
 	 * @param _amount the amount of tokens to vest
 	 */
 	function vestTokens(uint256 _amount) public {
+		_vestTokens(msg.sender, _amount);
+	}
+
+	/**
+	 * @notice stakes tokens by a schedule
+	 * @dev this function will be invoked from receiveApproval
+	 * @dev SOV.approveAndCall -> this.receiveApproval -> this.vestTokensWithApproval
+	 * @param _sender the sender of SOV.approveAndCall
+	 * @param _amount the amount of tokens to vest
+	 */
+	function vestTokensWithApproval(address _sender, uint256 _amount) public onlyThisContract {
+		_vestTokens(_sender, _amount);
+	}
+
+	function _vestTokens(address _sender, uint256 _amount) internal {
 		//TODO should we check for some minimum amount here to avoid spam transactions ?
 		require(_amount > 0, "amount needs to be bigger than 0");
 
 		//retrieve the SOV tokens
-		bool success = SOV.transferFrom(msg.sender, address(this), _amount);
+		bool success = SOV.transferFrom(_sender, address(this), _amount);
 		require(success);
 
 		Schedule memory schedule = Schedule(block.timestamp, _amount, 0);
 		schedules.push(schedule);
 
-		emit TokensVested(msg.sender, _amount);
+		emit TokensVested(_sender, _amount);
 	}
 
 	/**
@@ -240,5 +271,16 @@ contract DevelopmentVesting is Ownable {
 		} else {
 			return 0;
 		}
+	}
+
+	function _getToken(address _token) internal returns (address) {
+		return address(SOV);
+	}
+
+	function _getSelectors() internal returns (bytes4[] memory) {
+		bytes4[] memory selectors = new bytes4[](2);
+		selectors[0] = this.depositTokensWithApproval.selector;
+		selectors[1] = this.vestTokensWithApproval.selector;
+		return selectors;
 	}
 }

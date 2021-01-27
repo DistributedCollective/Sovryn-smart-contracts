@@ -81,7 +81,7 @@ contract Vesting is IVesting, Ownable, ApprovalReceiver {
 	/**
 	 * @notice stakes tokens according to the vesting schedule
 	 * @dev this function will be invoked from receiveApproval
-	 * @dev SOV.approveAndCall -> this.receiveApproval -> this.mintWithApproval
+	 * @dev SOV.approveAndCall -> this.receiveApproval -> this.stakeTokensWithApproval
 	 * @param _sender the sender of SOV.approveAndCall
 	 * @param _amount the amount of tokens to stake
 	 * */
