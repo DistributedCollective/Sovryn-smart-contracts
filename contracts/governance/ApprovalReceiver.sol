@@ -3,6 +3,9 @@ pragma solidity ^0.5.17;
 import "./ErrorDecoder.sol";
 import "../token/IApproveAndCall.sol";
 
+/**
+ * Base contract for receiving approval from SOV token
+ */
 contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 	modifier onlyThisContract() {
 		//accepts calls only from receiveApproval function
@@ -10,6 +13,13 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 		_;
 	}
 
+	/**
+	 * @notice receives approval from SOV token
+	 * @param _sender the sender of SOV.approveAndCall function
+	 * @param _amount the amount was approved
+	 * @param _token the address of token
+	 * @param _data the data will be used for low level call
+	 */
 	function receiveApproval(
 		address _sender,
 		uint256 _amount,
@@ -23,6 +33,10 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 		return _token;
 	}
 
+	/**
+	* @notice returns list of function selectors allowed to be invoked
+	* @dev should be overridden in child contracts, otherwise error will be thrown
+	*/
 	function _getSelectors() internal returns (bytes4[] memory) {
 		return new bytes4[](0);
 	}
@@ -48,6 +62,7 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 		}
 		require(isAllowed, "method is not allowed");
 
+		//makes call and reads error message
 		(bool success, bytes memory returnData) = address(this).call(_data);
 		if (!success) {
 			if (returnData.length <= ERROR_MESSAGE_SHIFT) {
