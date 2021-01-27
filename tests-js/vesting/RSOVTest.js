@@ -120,7 +120,6 @@ contract("RSOV:", (accounts) => {
 		});
 	});
 
-	//TODO move to test for ApprovalReceiver
 	describe("receiveApproval:", () => {
 		it("fails if invoked directly", async () => {
 			let amount = new BN(5000);
