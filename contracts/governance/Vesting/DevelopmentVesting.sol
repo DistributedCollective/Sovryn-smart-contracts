@@ -91,7 +91,7 @@ contract DevelopmentVesting is Ownable, ApprovalReceiver {
 
 	/**
 	 * @notice deposit tokens to this contract, these tokens can be withdrawn any time by an owner
-	* @dev this function will be invoked from receiveApproval
+	 * @dev this function will be invoked from receiveApproval
 	 * @dev SOV.approveAndCall -> this.receiveApproval -> this.mintWithApproval
 	 * @param _sender the sender of SOV.approveAndCall
 	 * @param _amount the amount of tokens to send

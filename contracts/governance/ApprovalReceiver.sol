@@ -34,9 +34,9 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 	}
 
 	/**
-	* @notice returns list of function selectors allowed to be invoked
-	* @dev should be overridden in child contracts, otherwise error will be thrown
-	*/
+	 * @notice returns list of function selectors allowed to be invoked
+	 * @dev should be overridden in child contracts, otherwise error will be thrown
+	 */
 	function _getSelectors() internal returns (bytes4[] memory) {
 		return new bytes4[](0);
 	}

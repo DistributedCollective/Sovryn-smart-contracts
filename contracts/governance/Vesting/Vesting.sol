@@ -89,7 +89,7 @@ contract Vesting is IVesting, Ownable, ApprovalReceiver {
 		_stakeTokens(_sender, _amount);
 	}
 
-	function _stakeTokens(address _sender,  uint256 _amount) internal {
+	function _stakeTokens(address _sender, uint256 _amount) internal {
 		//maybe better to allow staking unil the cliff was reached
 		if (startDate == 0) {
 			startDate = staking.timestampToLockDate(block.timestamp);

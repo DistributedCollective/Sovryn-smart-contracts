@@ -503,5 +503,4 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		selectors[0] = this.stakeWithApproval.selector;
 		return selectors;
 	}
-
 }

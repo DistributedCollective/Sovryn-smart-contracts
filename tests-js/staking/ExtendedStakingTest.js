@@ -317,7 +317,6 @@ contract("Staking", (accounts) => {
 	});
 
 	describe("stakeWithApproval", () => {
-
 		it("Should be able to stake and delegate for yourself", async () => {
 			let amount = "100";
 			let duration = TWO_WEEKS;
@@ -362,7 +361,6 @@ contract("Staking", (accounts) => {
 			checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, 0);
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.stake.toString()).to.be.equal(amount);
-
 		});
 
 		it("fails if invoked directly", async () => {
@@ -378,7 +376,6 @@ contract("Staking", (accounts) => {
 
 			await expectRevert(token.approveAndCall(staking.address, amount, data), "method is not allowed");
 		});
-
 	});
 
 	describe("extendStakingDuration", () => {
