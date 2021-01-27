@@ -19,5 +19,5 @@ script:
   - npm run test-js
 
 after_script:
-  - node --max_old_space_size=6144 ./node_modules/.bin/truffle run coverage
+  - node --max-old-space-size=6144 ./node_modules/.bin/truffle run coverage
   - cat coverage/lcov.info | coveralls
