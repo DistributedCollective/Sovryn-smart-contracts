@@ -26,11 +26,15 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 		address _token,
 		bytes memory _data
 	) public {
-		_receiveApproval(_sender, _amount, _getToken(_token), _data, _getSelectors());
+		_receiveApproval(_sender, _amount, _getToken(), _data, _getSelectors());
 	}
 
-	function _getToken(address _token) internal returns (address) {
-		return _token;
+	/**
+	 * @notice returns token address, only this address can be a sender for receiveApproval
+	 * @dev should be overridden in child contracts, otherwise error will be thrown
+	 */
+	function _getToken() internal returns (address) {
+		return address(0);
 	}
 
 	/**

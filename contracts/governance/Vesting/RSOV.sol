@@ -104,7 +104,7 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 		emit Burn(msg.sender, _amount);
 	}
 
-	function _getToken(address _token) internal returns (address) {
+	function _getToken() internal returns (address) {
 		return address(SOV);
 	}
 

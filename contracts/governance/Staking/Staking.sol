@@ -494,7 +494,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		}
 	}
 
-	function _getToken(address _token) internal returns (address) {
+	function _getToken() internal returns (address) {
 		return address(SOVToken);
 	}
 

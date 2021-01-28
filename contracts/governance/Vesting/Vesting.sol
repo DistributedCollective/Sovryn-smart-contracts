@@ -174,7 +174,7 @@ contract Vesting is IVesting, Ownable, ApprovalReceiver {
 		emit MigratedToNewStakingContract(msg.sender, address(staking));
 	}
 
-	function _getToken(address _token) internal returns (address) {
+	function _getToken() internal returns (address) {
 		return address(SOV);
 	}
 
