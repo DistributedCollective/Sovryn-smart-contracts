@@ -74,7 +74,7 @@ contract("FeeSharingProxy:", (accounts) => {
 		await protocol.replaceContract(loanOpenings.address);
 		let loanClosingsBase = await LoanClosingsBase.new();
 		await protocol.replaceContract(loanClosingsBase.address);
-		let LoanClosingsWith = await LoanClosingsWith.new();
+		let loanClosingsWith = await LoanClosingsWith.new();
 		await protocol.replaceContract(loanClosingsWith.address);
 
 		protocol = await ProtocolSettings.at(protocol.address);
