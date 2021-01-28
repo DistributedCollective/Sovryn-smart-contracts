@@ -18,9 +18,9 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 	 * @param _data the data will be used for low level call
 	 */
 	function receiveApproval(
-		address /*_sender*/,
-		uint256 /*_amount*/,
-		address /*_token*/,
+		address, /*_sender*/
+		uint256, /*_amount*/
+		address, /*_token*/
 		bytes memory _data
 	) public {
 		_receiveApproval(_getToken(), _data, _getSelectors());
