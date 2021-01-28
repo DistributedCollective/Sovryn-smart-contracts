@@ -13,6 +13,7 @@ import "../mixins/ProtocolTokenUser.sol";
 
 contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	using SafeERC20 for IERC20;
+	using SafeMath for uint256;
 
 	constructor() public {}
 
@@ -34,6 +35,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.setSourceBuffer.selector, target);
 		_setTarget(this.setMaxSwapSize.selector, target);
 		_setTarget(this.setFeesController.selector, target);
+		_setTarget(this.withdrawFees.selector, target);
 		_setTarget(this.withdrawLendingFees.selector, target);
 		_setTarget(this.withdrawTradingFees.selector, target);
 		_setTarget(this.withdrawBorrowingFees.selector, target);
@@ -165,6 +167,39 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		feesController = newController;
 
 		emit SetFeesController(msg.sender, oldController, newController);
+	}
+
+	function withdrawFees(address token, address receiver) external returns (uint256) {
+		require(msg.sender == feesController, "unauthorized");
+
+		uint256 lendingBalance = lendingFeeTokensHeld[token];
+		if (lendingBalance > 0) {
+			lendingFeeTokensHeld[token] = 0;
+			lendingFeeTokensPaid[token] = lendingFeeTokensPaid[token].add(lendingBalance);
+		}
+
+		uint256 tradingBalance = tradingFeeTokensHeld[token];
+		if (tradingBalance > 0) {
+			tradingFeeTokensHeld[token] = 0;
+			tradingFeeTokensPaid[token] = tradingFeeTokensPaid[token].add(tradingBalance);
+		}
+
+		uint256 borrowingBalance = borrowingFeeTokensHeld[token];
+		if (borrowingBalance > 0) {
+			borrowingFeeTokensHeld[token] = 0;
+			borrowingFeeTokensPaid[token] = borrowingFeeTokensPaid[token].add(borrowingBalance);
+		}
+
+		uint256 amount = lendingBalance.add(tradingBalance).add(borrowingBalance);
+		if (amount == 0) {
+			return amount;
+		}
+
+		IERC20(token).safeTransfer(receiver, amount);
+
+		emit WithdrawFees(msg.sender, token, receiver, lendingBalance, tradingBalance, borrowingBalance);
+
+		return amount;
 	}
 
 	function withdrawLendingFees(

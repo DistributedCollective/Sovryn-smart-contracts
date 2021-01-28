@@ -25,3 +25,4 @@ yarn.lock
 solc-select
 artifacts
 cache
+.idea/
