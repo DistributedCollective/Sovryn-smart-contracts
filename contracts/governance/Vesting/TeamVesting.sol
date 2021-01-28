@@ -6,10 +6,20 @@ import "./Vesting.sol";
 /**
  * A regular vesting contract, but the owner of the remaining locked tokens can be changed by the owner (governance)
  **/
-//TODO deprecated
 contract TeamVesting is Vesting {
 	event TokenOwnerChanged(address indexed oldOwner, address indexed newOwner);
 
+	constructor(
+		address _SOV,
+		address _stakingAddress,
+		address _tokenOwner,
+		uint256 _cliff,
+		uint256 _duration,
+		address _feeSharingProxy
+	) public Vesting(_SOV, _stakingAddress, _tokenOwner, _cliff, _duration, _feeSharingProxy) {
+	}
+
+	//TODO deprecated
 	/**
 	 * @notice withdraws the unlocked tokens to the current owner and transfers the ownership of the locked tokens to a new owner
 	 * @param newTokenOwner the address of the new owner
