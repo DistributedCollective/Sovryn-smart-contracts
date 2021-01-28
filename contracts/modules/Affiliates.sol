@@ -20,7 +20,6 @@ contract Affiliates is State, AffiliatesEvents {
     */
 
 	using SafeERC20 for IERC20;
-	using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set;
 
 	constructor() public {}
 
@@ -29,7 +28,7 @@ contract Affiliates is State, AffiliatesEvents {
 	}
 
 	function initialize(address target) external onlyOwner {
-		_setTarget(this.setAffiliatesUserReferrer.selector, target);
+		_setTarget(this.setAffiliatesReferrer.selector, target);
 		_setTarget(this.getUserNotFirstTradeFlag.selector, target);
 		_setTarget(this.setUserNotFirstTradeFlag.selector, target);
 		_setTarget(this.getAffiliatesReferrerBalances.selector, target);
@@ -39,9 +38,14 @@ contract Affiliates is State, AffiliatesEvents {
 		_setTarget(this.withdrawAffiliatesReferrerTokenFees.selector, target);
 	}
 
-	// only callable by loan pools
 	modifier onlyCallableByLoanPools() {
 		require(loanPoolToUnderlying[msg.sender] != address(0), "Affiliates: not authorized");
+		_;
+	}
+
+	// only allowed to be called from within protocol functions
+	modifier onlyCallableInternal() {
+		require(msg.sender == protocolAddress, "Affiliates: not authorized");
 		_;
 	}
 
@@ -51,13 +55,12 @@ contract Affiliates is State, AffiliatesEvents {
 		bool userNotFirstTradeFlag;
 	}
 
-	function setAffiliatesUserReferrer(address user, address referrer) external onlyCallableByLoanPools {
+	function setAffiliatesReferrer(address user, address referrer) external onlyCallableByLoanPools {
 		SetAffiliatesReferrerResult memory result;
-		require(user != referrer, "Affiliates: User cannot be self-referred");
 
 		result.userNotFirstTradeFlag = getUserNotFirstTradeFlag(user);
-		result.alreadySet = affiliatesUserReferrer[user] == address(0) ? false : true;
-		result.success = !(result.userNotFirstTradeFlag || result.alreadySet);
+		result.alreadySet = affiliatesUserReferrer[user] != address(0) ? true : false;
+		result.success = !(result.userNotFirstTradeFlag || result.alreadySet || user == referrer);
 		if (result.success) {
 			affiliatesUserReferrer[user] = referrer;
 			emit SetAffiliatesReferrer(user, referrer);
@@ -70,6 +73,7 @@ contract Affiliates is State, AffiliatesEvents {
 		return userNotFirstTradeFlag[user];
 	}
 
+	//REFACTOR move setUserNotFirstTradeFlag to ProtocolSettings?
 	function setUserNotFirstTradeFlag(address user) external onlyCallableByLoanPools {
 		if (!userNotFirstTradeFlag[user]) {
 			userNotFirstTradeFlag[user] = true;
@@ -103,9 +107,10 @@ contract Affiliates is State, AffiliatesEvents {
 		address referrer,
 		address token,
 		uint256 tradingFeeTokenBaseAmount
-	) external returns (uint256 referrerTradingFee) {
+	) external onlyCallableInternal returns (uint256 referrerTradingFee) {
 		if (tradingFeeTokenBaseAmount > 0) {
 			referrerTradingFee = _getReferrerTradingFee(tradingFeeTokenBaseAmount);
+			if (!affiliatesReferrerTokensList[referrer].contains(token)) affiliatesReferrerTokensList[referrer].add(token);
 			affiliatesReferrerBalances[referrer][token] = affiliatesReferrerBalances[referrer][token].add(referrerTradingFee);
 		}
 
@@ -118,12 +123,11 @@ contract Affiliates is State, AffiliatesEvents {
 		address token,
 		address receiver,
 		uint256 amount
-	) external returns (uint256 withdrawAmount) {
+	) external {
 		require(receiver != address(0), "Affiliates: cannot withdraw to zero address");
-
 		address referrer = msg.sender;
 		uint256 referrerTokenBalance = affiliatesReferrerBalances[referrer][token];
-		withdrawAmount = referrerTokenBalance > amount ? amount : referrerTokenBalance;
+		uint256 withdrawAmount = referrerTokenBalance > amount ? amount : referrerTokenBalance;
 
 		require(withdrawAmount > 0, "Affiliates: cannot withdraw zero amount");
 
@@ -138,12 +142,8 @@ contract Affiliates is State, AffiliatesEvents {
 
 			IERC20(token).safeTransfer(receiver, withdrawAmount);
 
-			emit WithdrawAffiliateReferrerTokenFees(referrer, receiver, token, withdrawAmount);
-		} else {
-			_removeAffiliatesReferrerToken(referrer, token);
-			withdrawAmount = 0;
+			emit WithdrawAffiliatesReferrerTokenFees(referrer, receiver, token, withdrawAmount);
 		}
-		return withdrawAmount;
 	}
 
 	function _removeAffiliatesReferrerToken(address referrer, address token) internal {

@@ -61,7 +61,7 @@ contract State is Objects, ReentrancyGuard, Ownable {
 	uint256 public protocolTokenHeld; // current protocol token deposit balance
 	uint256 public protocolTokenPaid; // lifetime total payout of protocol token
 
-	uint256 public affiliateFeePercent = 30 * 10**18; // 30% fee share                  // fee share for affiliate program
+	uint256 public affiliateFeePercent = 20 * 10**18; // 20% fee share                  // fee share for affiliate program
 
 	uint256 public liquidationIncentivePercent = 5 * 10**18; // 5% collateral discount  // discount on collateral for liquidators
 

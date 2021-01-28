@@ -267,8 +267,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	)
 		public
 		payable
-		nonReentrant //note: needs to be removed to allow flashloan use cases
 		returns (
+			//nonReentrant //note: needs to be removed to allow flashloan use cases
 			uint256,
 			uint256 // returns new principal and new collateral added to trade
 		)
@@ -276,6 +276,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		if (affiliateReferrer != address(0))
 			ProtocolAffiliatesInterface(sovrynContractAddress).setAffiliatesReferrer(trader, affiliateReferrer);
 		return marginTrade(loanId, leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress, trader, loanDataBytes);
+		//return marginTradeMock(loanId, leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress, trader, loanDataBytes);
 	}
 
 	function transfer(address _to, uint256 _value) external returns (bool) {
@@ -740,6 +741,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		);
 		require(sentAmounts[1] != 0, "25");
 
+		//REFACTOR: move to a general interface: ProtocolSettingsLike?
 		ProtocolAffiliatesInterface(sovrynContractAddress).setUserNotFirstTradeFlag(sentAddresses[1]);
 
 		return (sentAmounts[1], sentAmounts[4]); // newPrincipal, newCollateral

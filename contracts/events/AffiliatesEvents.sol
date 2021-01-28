@@ -6,11 +6,11 @@
 pragma solidity 0.5.17;
 
 contract AffiliatesEvents {
-	event SetAffiliatesReferrer(address indexed user, address indexed affiliate);
+	event SetAffiliatesReferrer(address indexed user, address indexed referrer);
 
-	event SetAffiliatesReferrerFail(address indexed user, address indexed affiliate, bool alreadySet, bool userNotFirstTrade);
+	event SetAffiliatesReferrerFail(address indexed user, address indexed referrer, bool alreadySet, bool userNotFirstTrade);
 
-	event WithdrawAffiliateReferrerTokenFees(
+	event WithdrawAffiliatesReferrerTokenFees(
 		address indexed referrer,
 		address indexed receiver,
 		address indexed tokenAddress,
@@ -19,5 +19,5 @@ contract AffiliatesEvents {
 
 	event SetUserNotFirstTradeFlag(address indexed user);
 
-	event PayTradingFeeToAffiliate(address indexed referrer, address indexed feeToken, uint256 tradingFee);
+	event PayTradingFeeToAffiliate(address indexed referrer, address indexed feeToken, uint256 fee);
 }

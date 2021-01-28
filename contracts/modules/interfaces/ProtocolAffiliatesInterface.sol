@@ -10,6 +10,8 @@ interface ProtocolAffiliatesInterface {
 
 	function setUserNotFirstTradeFlag(address user_) external;
 
+	function getUserNotFirstTradeFlag(address user_) external returns (bool);
+
 	function payTradingFeeToAffiliatesReferrer(
 		address affiliate,
 		address token,

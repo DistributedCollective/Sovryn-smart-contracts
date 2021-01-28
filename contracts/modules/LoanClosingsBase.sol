@@ -15,7 +15,9 @@ import "../swaps/SwapsUser.sol";
 import "../interfaces/ILoanPool.sol";
 import "../mixins/RewardHelper.sol";
 
-contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper, RewardHelper {
+//AUDIT: rename the contract to avoid misuse and relying of stripped-down functionality
+//LoanClosingsPure, LoanClosingsLR?
+contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper, RewardHelper {
 	uint256 internal constant MONTH = 365 days / 12;
 	//0.00001 BTC, would be nicer in State.sol, but would require a redeploy of the complete protocol, so adding it here instead
 	//because it's not shared state anyway and only used by this contract

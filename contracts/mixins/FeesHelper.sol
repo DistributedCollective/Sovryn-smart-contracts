@@ -53,7 +53,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 		uint256 protocolTradingFee = tradingFee; //trading fee paid to protocol
 		if (tradingFee != 0) {
 			if (affiliatesUserReferrer[user] != address(0)) {
-				affiliatesTradingFee = _payTradingFeeToAffiliate(user, affiliatesUserReferrer[user], protocolTradingFee);
+				affiliatesTradingFee = _payTradingFeeToAffiliate(affiliatesUserReferrer[user], feeToken, protocolTradingFee);
 				protocolTradingFee = protocolTradingFee.sub(affiliatesTradingFee);
 			}
 
