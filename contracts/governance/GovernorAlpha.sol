@@ -209,8 +209,8 @@ contract GovernorAlpha is SafeMath96 {
 				startBlock: safe32(startBlock, "GovernorAlpha::propose: start block number overflow"),
 				endBlock: safe32(endBlock, "GovernorAlpha::propose: end block number overflow"),
 				forVotes: 0,
-				againstVotes: 0, //proposalThreshold is 1% of total votes, we can save gas using this pre calculated value
-				quorum: mul96(quorumPercentageVotes, proposalThreshold, "GovernorAlpha::propose: overflow on quorum computation"),
+				againstVotes: 0,
+				quorum: mul96(quorumPercentageVotes, proposalThreshold, "GovernorAlpha::propose: overflow on quorum computation"), //proposalThreshold is 1% of total votes, we can save gas using this pre calculated value
 				minPercentage: mul96(
 					minPercentageVotes,
 					proposalThreshold,
