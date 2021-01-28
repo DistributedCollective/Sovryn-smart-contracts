@@ -273,11 +273,11 @@ contract DevelopmentVesting is Ownable, ApprovalReceiver {
 		}
 	}
 
-	function _getToken() internal returns (address) {
+	function _getToken() internal view returns (address) {
 		return address(SOV);
 	}
 
-	function _getSelectors() internal returns (bytes4[] memory) {
+	function _getSelectors() internal view returns (bytes4[] memory) {
 		bytes4[] memory selectors = new bytes4[](2);
 		selectors[0] = this.depositTokensWithApproval.selector;
 		selectors[1] = this.vestTokensWithApproval.selector;

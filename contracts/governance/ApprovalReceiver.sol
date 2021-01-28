@@ -15,25 +15,22 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 
 	/**
 	 * @notice receives approval from SOV token
-	 * @param _sender the sender of SOV.approveAndCall function
-	 * @param _amount the amount was approved
-	 * @param _token the address of token
 	 * @param _data the data will be used for low level call
 	 */
 	function receiveApproval(
-		address _sender,
-		uint256 _amount,
-		address _token,
+		address /*_sender*/,
+		uint256 /*_amount*/,
+		address /*_token*/,
 		bytes memory _data
 	) public {
-		_receiveApproval(_sender, _amount, _getToken(), _data, _getSelectors());
+		_receiveApproval(_getToken(), _data, _getSelectors());
 	}
 
 	/**
 	 * @notice returns token address, only this address can be a sender for receiveApproval
 	 * @dev should be overridden in child contracts, otherwise error will be thrown
 	 */
-	function _getToken() internal returns (address) {
+	function _getToken() internal view returns (address) {
 		return address(0);
 	}
 
@@ -41,13 +38,11 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 	 * @notice returns list of function selectors allowed to be invoked
 	 * @dev should be overridden in child contracts, otherwise error will be thrown
 	 */
-	function _getSelectors() internal returns (bytes4[] memory) {
+	function _getSelectors() internal view returns (bytes4[] memory) {
 		return new bytes4[](0);
 	}
 
 	function _receiveApproval(
-		address _sender,
-		uint256 _amount,
 		address _token,
 		bytes memory _data,
 		bytes4[] memory _selectors

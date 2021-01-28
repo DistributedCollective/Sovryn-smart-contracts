@@ -494,11 +494,11 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		}
 	}
 
-	function _getToken() internal returns (address) {
+	function _getToken() internal view returns (address) {
 		return address(SOVToken);
 	}
 
-	function _getSelectors() internal returns (bytes4[] memory) {
+	function _getSelectors() internal view returns (bytes4[] memory) {
 		bytes4[] memory selectors = new bytes4[](1);
 		selectors[0] = this.stakeWithApproval.selector;
 		return selectors;
