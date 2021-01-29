@@ -13,8 +13,8 @@ contract VestingFactory is Ownable {
     address public SOV;
     ///@notice the staking contract address
     address public staking;
-    //@notice fee sharing Proxy
-    address public feeSharingProxy;
+    //@notice fee sharing proxy
+    address public feeSharing;
 
     //TODO do we need to support N CSOV ?
     ///@notice the CSOV token contract
@@ -32,26 +32,30 @@ contract VestingFactory is Ownable {
     constructor(
         address _SOV,
         address _staking,
-        address _feeSharingProxy
+        address _feeSharing,
+        address _CSOV
     ) public {
         require(_SOV != address(0), "SOV address invalid");
         require(_staking != address(0), "staking address invalid");
-        require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
+        require(_feeSharing != address(0), "feeSharing address invalid");
+        require(_CSOV != address(0), "CSOV address invalid");
 
         SOV = _SOV;
         staking = _staking;
-        feeSharingProxy = _feeSharingProxy;
+        feeSharing = _feeSharing;
+        CSOV = IERC20(_CSOV);
     }
 
+
+    //TODO do we need a blacklist?
     function exchangeCSOV(uint96 _amount) public {
-        require(_amount > 0, "VestingFactory:: exchangeCSOV: amount invalid");
+        require(_amount > 0, "amount invalid");
 
         //TODO transfer or mark as already converted if non-transferable
-        //holds CSOV tokens
+        //holds CSOV tokens, an appropriate fund should be a message sender
         bool success = CSOV.transferFrom(msg.sender, address(this), _amount);
-        require(success, "VestingFactory:: exchangeCSOV: transfer failed");
+        require(success, "transfer failed");
 
-        //move SOV tokens from an appropriate fund
 
         //create vesting contract or load an existing one
 
@@ -63,7 +67,7 @@ contract VestingFactory is Ownable {
     function _getOrCreateVesting(address _tokenOwner, uint256 _cliff, uint256 _duration) internal returns (address) {
         uint type_ = uint(VestingType.TokenHolderVesting);
         if (vestingContracts[_tokenOwner][type_] == address(0)) {
-            vestingContracts[_tokenOwner][type_] = address(new Vesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy));
+            vestingContracts[_tokenOwner][type_] = address(new Vesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharing));
         }
         return vestingContracts[_tokenOwner][type_];
     }
@@ -71,7 +75,7 @@ contract VestingFactory is Ownable {
     function _getOrCreateTeamVesting(address _tokenOwner, uint256 _cliff, uint256 _duration) internal returns (address) {
         uint type_ = uint(VestingType.MultisigVesting);
         if (vestingContracts[_tokenOwner][type_] == address(0)) {
-            vestingContracts[_tokenOwner][type_] = address(new TeamVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy));
+            vestingContracts[_tokenOwner][type_] = address(new TeamVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharing));
         }
         return vestingContracts[_tokenOwner][type_];
     }
