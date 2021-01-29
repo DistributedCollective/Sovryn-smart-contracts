@@ -16,8 +16,7 @@ contract TeamVesting is Vesting {
 		uint256 _cliff,
 		uint256 _duration,
 		address _feeSharingProxy
-	) public Vesting(_SOV, _stakingAddress, _tokenOwner, _cliff, _duration, _feeSharingProxy) {
-	}
+	) public Vesting(_SOV, _stakingAddress, _tokenOwner, _cliff, _duration, _feeSharingProxy) {}
 
 	//TODO deprecated
 	/**
