@@ -37,7 +37,7 @@ contract VestingFactory is Ownable {
     }
 
     event CSOVTokensExchanged(address indexed caller, uint256 amount);
-
+    //TODO events
 
     constructor(
         address _SOV,
@@ -131,7 +131,9 @@ contract VestingFactory is Ownable {
     function _getOrCreateVesting(address _tokenOwner, uint256 _cliff, uint256 _duration) internal returns (address) {
         uint type_ = uint(VestingType.TokenHolderVesting);
         if (vestingContracts[_tokenOwner][type_] == address(0)) {
-            vestingContracts[_tokenOwner][type_] = address(new Vesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharing));
+            address vesting = address(new Vesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharing));
+            vestingContracts[_tokenOwner][type_] = vesting;
+            Ownable(vesting).transferOwnership(_tokenOwner);
         }
         return vestingContracts[_tokenOwner][type_];
     }
@@ -139,7 +141,9 @@ contract VestingFactory is Ownable {
     function _getOrCreateTeamVesting(address _tokenOwner, uint256 _cliff, uint256 _duration) internal returns (address) {
         uint type_ = uint(VestingType.MultisigVesting);
         if (vestingContracts[_tokenOwner][type_] == address(0)) {
-            vestingContracts[_tokenOwner][type_] = address(new TeamVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharing));
+            address vesting = address(new TeamVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharing));
+            vestingContracts[_tokenOwner][type_] = vesting;
+            Ownable(vesting).transferOwnership(_tokenOwner);
         }
         return vestingContracts[_tokenOwner][type_];
     }
@@ -156,7 +160,9 @@ contract VestingFactory is Ownable {
 
     function _getOrCreateAdoptionOrDevelopmentVesting(uint _type, address _tokenOwner, uint256 _cliff, uint256 _duration, uint256 _frequency) internal returns (address) {
         if (vestingContracts[_tokenOwner][_type] == address(0)) {
-            vestingContracts[_tokenOwner][_type] = address(new DevelopmentVesting(SOV, _tokenOwner, _cliff, _duration, _frequency));
+            address vesting = address(new DevelopmentVesting(SOV, _tokenOwner, _cliff, _duration, _frequency));
+            vestingContracts[_tokenOwner][_type] = vesting;
+            Ownable(vesting).transferOwnership(_tokenOwner);
         }
         return vestingContracts[_tokenOwner][_type];
     }

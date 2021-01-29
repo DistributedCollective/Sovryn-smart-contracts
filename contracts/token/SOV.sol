@@ -19,6 +19,10 @@ contract SOV is ERC20, ERC20Detailed, Ownable {
 		}
 	}
 
+	function mint(address _account, uint256 _amount) public onlyOwner {
+		_mint(_account, _amount);
+	}
+
 	/**
 	 * @notice approves and then calls the receiving contract
 	 */
