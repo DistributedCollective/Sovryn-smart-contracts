@@ -3,21 +3,15 @@ pragma solidity ^0.5.17;
 import "../governance/Vesting/DevelopmentVesting.sol";
 
 contract DevelopmentVestingMockup is DevelopmentVesting {
+	constructor(
+		address _SOV,
+		address _tokenOwner,
+		uint256 _cliff,
+		uint256 _duration,
+		uint256 _frequency
+	) public DevelopmentVesting(_SOV, _tokenOwner, _cliff, _duration, _frequency) {}
 
-    constructor(
-        address _SOV,
-        address _tokenOwner,
-        uint _cliff,
-        uint _duration,
-        uint _frequency
-    )
-        DevelopmentVesting(_SOV, _tokenOwner, _cliff, _duration, _frequency)
-        public
-    {
-    }
-
-    function getUnlockedAmount(uint index) public view returns (uint) {
-        return super._getUnlockedAmount(index);
-    }
-
+	function getUnlockedAmount(uint256 index) public view returns (uint256) {
+		return super._getUnlockedAmount(index);
+	}
 }
