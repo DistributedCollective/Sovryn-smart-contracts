@@ -12,8 +12,11 @@ contract VestingFactory is Ownable {
     ///@notice constant used for computing the vesting dates
     uint256 constant FOUR_WEEKS = 4 weeks;
 
-    uint256 constant CSOV_CLIFF = FOUR_WEEKS;
-    uint256 constant CSOV_DURATION = 10 * FOUR_WEEKS;
+    uint256 constant CSOV_VESTING_CLIFF = FOUR_WEEKS;
+    uint256 constant CSOV_VESTING_DURATION = 10 * FOUR_WEEKS;
+
+    uint256 constant TEAM_VESTING_CLIFF = 6 * FOUR_WEEKS;
+    uint256 constant TEAM_VESTING_DURATION = 36 * FOUR_WEEKS;
 
     ///@notice the SOV token contract
     address public SOV;
@@ -92,7 +95,7 @@ contract VestingFactory is Ownable {
     }
 
     function _createVestingForCSOV(uint _amount) internal {
-        address vesting = _getOrCreateVesting(msg.sender, CSOV_CLIFF, CSOV_DURATION);
+        address vesting = _getOrCreateVesting(msg.sender, CSOV_VESTING_CLIFF, CSOV_VESTING_DURATION);
 
         //TODO how tokens will be transferred to VestingFactory ?
         IERC20(SOV).approve(vesting, _amount);
@@ -110,6 +113,31 @@ contract VestingFactory is Ownable {
             }
         }
         require(isValid, "wrong CSOV address");
+    }
+
+    //TODO cliff - FOUR_WEEKS ?
+    function createVesting(address _tokenOwner, uint _amount, uint _duration) public onlyOwner {
+        address vesting = _getOrCreateVesting(_tokenOwner, FOUR_WEEKS, _duration);
+        IERC20(SOV).approve(vesting, _amount);
+        IVesting(vesting).stakeTokens(_amount);
+    }
+
+    function createTeamVesting(address _tokenOwner, uint _amount) public onlyOwner {
+        address vesting = _getOrCreateTeamVesting(_tokenOwner, TEAM_VESTING_CLIFF, TEAM_VESTING_DURATION);
+        IERC20(SOV).approve(vesting, _amount);
+        IVesting(vesting).stakeTokens(_amount);
+    }
+
+    function createDevelopmentVesting(address _tokenOwner, uint _amount, uint256 _cliff, uint256 _duration, uint256 _frequency) public onlyOwner {
+        address vesting = _getOrCreateDevelopmentVesting(_tokenOwner, _cliff, _duration, _frequency);
+        IERC20(SOV).approve(vesting, _amount);
+//        IDevelopmentVesting(vesting).depositTokens(_amount);
+    }
+
+    function createAdoptionVesting(address _tokenOwner, uint _amount, uint256 _cliff, uint256 _duration, uint256 _frequency) public onlyOwner {
+        address vesting = _getOrCreateAdoptionVesting(_tokenOwner, _cliff, _duration, _frequency);
+        IERC20(SOV).approve(vesting, _amount);
+//        IDevelopmentVesting(vesting).depositTokens(_amount);
     }
 
     function getVesting(address _tokenOwner) public view returns (address) {
