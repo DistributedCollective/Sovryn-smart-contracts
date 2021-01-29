@@ -9,6 +9,12 @@ import "./TeamVesting.sol";
 import "./DevelopmentVesting.sol";
 
 contract VestingFactory is Ownable {
+    ///@notice constant used for computing the vesting dates
+    uint256 constant FOUR_WEEKS = 4 weeks;
+
+    uint256 constant CSOV_CLIFF = FOUR_WEEKS;
+    uint256 constant CSOV_DURATION = 10 * FOUR_WEEKS;
+
     ///@notice the SOV token contract
     address public SOV;
     ///@notice the staking contract address
@@ -16,52 +22,110 @@ contract VestingFactory is Ownable {
     //@notice fee sharing proxy
     address public feeSharing;
 
-    //TODO do we need to support N CSOV ?
-    ///@notice the CSOV token contract
-    IERC20 public CSOV;
+    ///@notice the CSOV token contracts
+    address[] public CSOVtokens;
 
+    //TODO can user have more than one vesting contract of some type ?
     //user => vesting type => vesting contract
     mapping(address => mapping(uint => address)) public vestingContracts;
 
     enum VestingType {
         MultisigVesting, //TeamVesting
         TokenHolderVesting, //Vesting
-        DevelopmentVesting //Adoption fund, Development fund
+        DevelopmentVesting, //Development fund
+        AdoptionVesting //Adoption fund
     }
+
+    event CSOVTokensExchanged(address indexed caller, uint256 amount);
+
 
     constructor(
         address _SOV,
         address _staking,
         address _feeSharing,
-        address _CSOV
+        address[] memory _CSOVtokens
     ) public {
         require(_SOV != address(0), "SOV address invalid");
         require(_staking != address(0), "staking address invalid");
         require(_feeSharing != address(0), "feeSharing address invalid");
-        require(_CSOV != address(0), "CSOV address invalid");
+        for (uint i = 0; i < _CSOVtokens.length; i++) {
+            require(_CSOVtokens[i] != address(0), "CSOV address invalid");
+        }
 
         SOV = _SOV;
         staking = _staking;
         feeSharing = _feeSharing;
-        CSOV = IERC20(_CSOV);
+        CSOVtokens = _CSOVtokens;
     }
 
+    function transferSOV(address _receiver, uint _amount) public onlyOwner {
+        IERC20(SOV).transfer(_receiver, _amount);
+    }
 
-    //TODO do we need a blacklist?
-    function exchangeCSOV(uint96 _amount) public {
+    function exchangeAllCSOV() public {
+        uint amount = 0;
+        for (uint i = 0; i < CSOVtokens.length; i++) {
+            address CSOV = CSOVtokens[i];
+            uint balance = IERC20(SOV).balanceOf(msg.sender);
+            if (balance == 0) {
+                continue;
+            }
+            bool success = IERC20(CSOV).transferFrom(msg.sender, address(this), balance);
+            require(success, "transfer failed");
+            amount += balance;
+        }
+
+        require(amount > 0, "amount invalid");
+        _createVestingForCSOV(amount);
+    }
+
+    function exchangeCSOV(address _CSOV, uint _amount) public {
+        _validateCSOV(_CSOV);
         require(_amount > 0, "amount invalid");
 
         //TODO transfer or mark as already converted if non-transferable
-        //holds CSOV tokens, an appropriate fund should be a message sender
-        bool success = CSOV.transferFrom(msg.sender, address(this), _amount);
+        //TODO do we need a blacklist?
+        bool success = IERC20(_CSOV).transferFrom(msg.sender, address(this), _amount);
         require(success, "transfer failed");
 
+        _createVestingForCSOV(_amount);
+    }
 
-        //create vesting contract or load an existing one
+    function _createVestingForCSOV(uint _amount) internal {
+        address vesting = _getOrCreateVesting(msg.sender, CSOV_CLIFF, CSOV_DURATION);
 
-        //stakeTokens
+        //TODO how tokens will be transferred to VestingFactory ?
+        IERC20(SOV).approve(vesting, _amount);
+        IVesting(vesting).stakeTokens(_amount);
 
-        //event
+        emit CSOVTokensExchanged(msg.sender, _amount);
+    }
+
+    function _validateCSOV(address _CSOV) internal {
+        bool isValid = false;
+        for (uint i = 0; i < CSOVtokens.length; i++) {
+            if (_CSOV == CSOVtokens[i]) {
+                isValid = true;
+                break;
+            }
+        }
+        require(isValid, "wrong CSOV address");
+    }
+
+    function getVesting(address _tokenOwner) public view returns (address) {
+        return vestingContracts[_tokenOwner][uint(VestingType.TokenHolderVesting)];
+    }
+
+    function getTeamVesting(address _tokenOwner) public view returns (address) {
+        return vestingContracts[_tokenOwner][uint(VestingType.MultisigVesting)];
+    }
+
+    function getDevelopmentVesting(address _tokenOwner) public view returns (address) {
+        return vestingContracts[_tokenOwner][uint(VestingType.DevelopmentVesting)];
+    }
+
+    function getAdoptionVesting(address _tokenOwner) public view returns (address) {
+        return vestingContracts[_tokenOwner][uint(VestingType.AdoptionVesting)];
     }
 
     function _getOrCreateVesting(address _tokenOwner, uint256 _cliff, uint256 _duration) internal returns (address) {
@@ -82,11 +146,19 @@ contract VestingFactory is Ownable {
 
     function _getOrCreateDevelopmentVesting(address _tokenOwner, uint256 _cliff, uint256 _duration, uint256 _frequency) internal returns (address) {
         uint type_ = uint(VestingType.DevelopmentVesting);
-        if (vestingContracts[_tokenOwner][type_] == address(0)) {
-            vestingContracts[_tokenOwner][type_] = address(new DevelopmentVesting(SOV, _tokenOwner, _cliff, _duration, _frequency));
-        }
-        return vestingContracts[_tokenOwner][type_];
+        return _getOrCreateAdoptionOrDevelopmentVesting(type_, _tokenOwner, _cliff, _duration, _frequency);
     }
 
+    function _getOrCreateAdoptionVesting(address _tokenOwner, uint256 _cliff, uint256 _duration, uint256 _frequency) internal returns (address) {
+        uint type_ = uint(VestingType.AdoptionVesting);
+        return _getOrCreateAdoptionOrDevelopmentVesting(type_, _tokenOwner, _cliff, _duration, _frequency);
+    }
+
+    function _getOrCreateAdoptionOrDevelopmentVesting(uint _type, address _tokenOwner, uint256 _cliff, uint256 _duration, uint256 _frequency) internal returns (address) {
+        if (vestingContracts[_tokenOwner][_type] == address(0)) {
+            vestingContracts[_tokenOwner][_type] = address(new DevelopmentVesting(SOV, _tokenOwner, _cliff, _duration, _frequency));
+        }
+        return vestingContracts[_tokenOwner][_type];
+    }
 
 }
