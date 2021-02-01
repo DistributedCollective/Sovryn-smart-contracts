@@ -219,11 +219,11 @@ contract DevelopmentFund is Ownable {
 			require(txStatus, "Not enough token sent to change release schedule.");
 		} else if (remainingTokens > _releaseTotalTokenAmount) {
 			/// If there are more tokens than required, send the extra tokens back.
-			bool txStatus = SOV.transferFrom(msg.sender, address(this), remainingTokens.sub(_releaseTotalTokenAmount));
+			bool txStatus = SOV.transfer(msg.sender, remainingTokens.sub(_releaseTotalTokenAmount));
 			require(txStatus, "Not enough token sent to change release schedule.");
 		}
 
-		/// Updating the remaining tokens in contract
+		/// Updating the remaining tokens in contract.
 		remainingTokens = _releaseTotalTokenAmount;
 
 		/// Finally we update the token release schedule.
@@ -231,24 +231,6 @@ contract DevelopmentFund is Ownable {
 		releaseTokenAmount = _releaseTokenAmount;
 
 		emit TokenReleaseChanged(msg.sender, _releaseDuration.length);
-	}
-
-	/**
-	 * @notice Withdraws all or part of the remaining tokens.
-	 * @param _amount the amount of tokens to be withdrawn.
-	 * @param _receiver the receiving address.
-	 */
-	function withdrawTokensByLockedTokenOwner(uint256 _amount, address _receiver) public onlyOwner {
-		require(_amount > 0, "Token amount needs to be bigger than 0.");
-		require(_amount <= remainingTokens, "Token amount is not available.");
-		require(_receiver != address(0), "Receiver address is invalid");
-
-		remainingTokens = remainingTokens.sub(_amount);
-
-		bool txStatus = SOV.transfer(_receiver, _amount);
-		require(txStatus, "Token transfer was not successful. Check receiver address.");
-
-		emit LockedTokenWithdrawalByLockedOwner(msg.sender, _receiver, _amount);
 	}
 
 	/**
@@ -282,6 +264,9 @@ contract DevelopmentFund is Ownable {
 			count++;
 		}
 
+		/// Checking to see if atleast a single schedule was reached or not.
+		require(count > 0, "No release schedule reached.");
+
 		emit UnlockedTokenWithdrawalByUnlockedOwner(msg.sender, amount, count);
 
 		/// Now clearing up the release schedule.
@@ -294,8 +279,11 @@ contract DevelopmentFund is Ownable {
 		/// Now updating the last release time to reflect the current last release.
 		lastReleaseTime = lastReleaseTimeMemory.add(totalDuration);
 
+		/// Updating the remaining token.
+		remainingTokens = remainingTokens.sub(amount);
+
 		/// Sending the amount to unlocked token owner.
-		bool txStatus = SOV.transfer(unlockedTokenOwner, amount);
+		bool txStatus = SOV.transfer(msg.sender, amount);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
 	}
 
