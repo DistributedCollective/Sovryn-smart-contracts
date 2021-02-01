@@ -18,13 +18,15 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	uint256 public constant VERSION = 5;
 	address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
 
+	
+
 	function() external {
 		revert("loan token logic - fallback not allowed");
 	}
 
 	/* Public functions */
 
-	function mint(address receiver, uint256 depositAmount) external nonReentrant returns (uint256 mintAmount) {
+	function mint(address receiver, uint256 depositAmount) external nonReentrant hasEarlyAccessToken returns (uint256 mintAmount) {
 		//temporary: limit transaction size
 		if (transactionLimit[loanTokenAddress] > 0) require(depositAmount <= transactionLimit[loanTokenAddress]);
 
@@ -128,6 +130,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		public
 		payable
 		nonReentrant //note: needs to be removed to allow flashloan use cases
+		hasEarlyAccessToken
 		returns (
 			uint256,
 			uint256 // returns new principal and new collateral added to loan
@@ -196,6 +199,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		public
 		payable
 		nonReentrant //note: needs to be removed to allow flashloan use cases
+		hasEarlyAccessToken
 		returns (
 			uint256,
 			uint256 // returns new principal and new collateral added to trade
@@ -974,4 +978,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			return assetBorrow.mul(10**20).div(assetSupply);
 		}
 	}
+
+	
 }
