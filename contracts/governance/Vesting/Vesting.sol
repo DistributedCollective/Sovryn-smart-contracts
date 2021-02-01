@@ -114,17 +114,6 @@ contract Vesting is IVesting, Ownable, ApprovalReceiver {
 		_withdrawTokens(receiver, false);
 	}
 
-	/**
-	 * @notice withdraws all tokens from the staking contract and forwards them to an address specified by the token owner
-	 * @param receiver the receiving address
-	 * @dev can be called only by owner
-	 * */
-	function governanceWithdrawTokens(address receiver) public {
-		require(msg.sender == address(staking), "unauthorized");
-
-		_withdrawTokens(receiver, true);
-	}
-
 	function _withdrawTokens(address receiver, bool isGovernance) internal {
 		uint96 stake;
 		//usually we just need to iterate over the possible dates until now

@@ -20,13 +20,15 @@ contract VestingFactory is Ownable {
 
 	///@notice the SOV token contract
 	address public SOV;
+	///@notice the CSOV token contracts
+	address[] public CSOVtokens;
+
 	///@notice the staking contract address
 	address public staking;
 	//@notice fee sharing proxy
 	address public feeSharing;
-
-	///@notice the CSOV token contracts
-	address[] public CSOVtokens;
+	//@notice the governance timelock address
+	address public governanceTimelock;
 
 	//TODO can user have more than one vesting contract of some type ?
 	//user => vesting type => vesting contract
@@ -45,27 +47,31 @@ contract VestingFactory is Ownable {
 
 	constructor(
 		address _SOV,
+		address[] memory _CSOVtokens,
 		address _staking,
 		address _feeSharing,
-		address[] memory _CSOVtokens
+		address _governanceTimelock
 	) public {
 		require(_SOV != address(0), "SOV address invalid");
-		require(_staking != address(0), "staking address invalid");
-		require(_feeSharing != address(0), "feeSharing address invalid");
 		for (uint256 i = 0; i < _CSOVtokens.length; i++) {
 			require(_CSOVtokens[i] != address(0), "CSOV address invalid");
 		}
+		require(_staking != address(0), "staking address invalid");
+		require(_feeSharing != address(0), "feeSharing address invalid");
+		require(_governanceTimelock != address(0), "governanceTimelock address invalid");
 
 		SOV = _SOV;
+		CSOVtokens = _CSOVtokens;
 		staking = _staking;
 		feeSharing = _feeSharing;
-		CSOVtokens = _CSOVtokens;
+		governanceTimelock = _governanceTimelock;
 	}
 
 	function transferSOV(address _receiver, uint256 _amount) public onlyOwner {
 		IERC20(SOV).transfer(_receiver, _amount);
 	}
 
+	//TODO exchangeAllCSOV or exchangeCSOV ?
 	function exchangeAllCSOV() public {
 		uint256 amount = 0;
 		for (uint256 i = 0; i < CSOVtokens.length; i++) {
@@ -182,7 +188,7 @@ contract VestingFactory is Ownable {
 		if (vestingContracts[_tokenOwner][type_] == address(0)) {
 			address vesting = address(new Vesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharing));
 			vestingContracts[_tokenOwner][type_] = vesting;
-			Ownable(vesting).transferOwnership(_tokenOwner);
+			Ownable(vesting).transferOwnership(governanceTimelock);
 		}
 		return vestingContracts[_tokenOwner][type_];
 	}
@@ -196,7 +202,7 @@ contract VestingFactory is Ownable {
 		if (vestingContracts[_tokenOwner][type_] == address(0)) {
 			address vesting = address(new TeamVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharing));
 			vestingContracts[_tokenOwner][type_] = vesting;
-			Ownable(vesting).transferOwnership(_tokenOwner);
+			Ownable(vesting).transferOwnership(governanceTimelock);
 		}
 		return vestingContracts[_tokenOwner][type_];
 	}
@@ -231,7 +237,7 @@ contract VestingFactory is Ownable {
 		if (vestingContracts[_tokenOwner][_type] == address(0)) {
 			address vesting = address(new DevelopmentVesting(SOV, _tokenOwner, _cliff, _duration, _frequency));
 			vestingContracts[_tokenOwner][_type] = vesting;
-			Ownable(vesting).transferOwnership(_tokenOwner);
+			Ownable(vesting).transferOwnership(governanceTimelock);
 		}
 		return vestingContracts[_tokenOwner][_type];
 	}

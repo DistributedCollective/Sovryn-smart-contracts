@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "./WeightedStaking.sol";
 import "./IStaking.sol";
-import "../Vesting/IVesting.sol";
+import "../Vesting/ITeamVesting.sol";
 import "../ApprovalReceiver.sol";
 
 contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
@@ -217,7 +217,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * */
 	function governanceWithdrawVesting(address vesting, address receiver) public onlyOwner {
 		vestingWhitelist[vesting] = true;
-		IVesting(vesting).governanceWithdrawTokens(receiver);
+		ITeamVesting(vesting).governanceWithdrawTokens(receiver);
 		vestingWhitelist[vesting] = false;
 
 		emit VestingTokensWithdrawn(vesting, receiver);
