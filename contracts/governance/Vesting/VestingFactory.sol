@@ -39,11 +39,15 @@ contract VestingFactory is Ownable {
 		TokenHolderVesting, //Vesting
 		DevelopmentVesting, //Development fund
 		AdoptionVesting //Adoption fund
+		//TODO Ecosystem fund, Programmatic sale
 	}
 
 	event CSOVTokensExchanged(address indexed caller, uint256 amount);
-
-	//TODO events
+	event SOVTransferred(address indexed receiver, uint256 amount);
+	event VestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint amount);
+	event TeamVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint amount);
+	event DevelopmentVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 frequency, uint amount);
+	event AdoptionVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 frequency, uint amount);
 
 	constructor(
 		address _SOV,
@@ -69,9 +73,12 @@ contract VestingFactory is Ownable {
 
 	function transferSOV(address _receiver, uint256 _amount) public onlyOwner {
 		IERC20(SOV).transfer(_receiver, _amount);
+		emit SOVTransferred(_receiver, _amount);
 	}
 
 	//TODO exchangeAllCSOV or exchangeCSOV ?
+	//TODO transfer or mark as already converted if non-transferable
+	//TODO do we need a blacklist?
 	function exchangeAllCSOV() public {
 		uint256 amount = 0;
 		for (uint256 i = 0; i < CSOVtokens.length; i++) {
@@ -93,8 +100,6 @@ contract VestingFactory is Ownable {
 		_validateCSOV(_CSOV);
 		require(_amount > 0, "amount invalid");
 
-		//TODO transfer or mark as already converted if non-transferable
-		//TODO do we need a blacklist?
 		bool success = IERC20(_CSOV).transferFrom(msg.sender, address(this), _amount);
 		require(success, "transfer failed");
 
@@ -128,15 +133,18 @@ contract VestingFactory is Ownable {
 		uint256 _amount,
 		uint256 _duration
 	) public onlyOwner {
-		address vesting = _getOrCreateVesting(_tokenOwner, FOUR_WEEKS, _duration);
+		uint256 cliff = FOUR_WEEKS;
+		address vesting = _getOrCreateVesting(_tokenOwner, cliff, _duration);
 		IERC20(SOV).approve(vesting, _amount);
 		IVesting(vesting).stakeTokens(_amount);
+		emit VestingCreated(_tokenOwner, cliff, _duration, _amount);
 	}
 
 	function createTeamVesting(address _tokenOwner, uint256 _amount) public onlyOwner {
 		address vesting = _getOrCreateTeamVesting(_tokenOwner, TEAM_VESTING_CLIFF, TEAM_VESTING_DURATION);
 		IERC20(SOV).approve(vesting, _amount);
 		IVesting(vesting).stakeTokens(_amount);
+		emit VestingCreated(_tokenOwner, TEAM_VESTING_CLIFF, TEAM_VESTING_DURATION, _amount);
 	}
 
 	function createDevelopmentVesting(
@@ -148,7 +156,8 @@ contract VestingFactory is Ownable {
 	) public onlyOwner {
 		address vesting = _getOrCreateDevelopmentVesting(_tokenOwner, _cliff, _duration, _frequency);
 		IERC20(SOV).approve(vesting, _amount);
-		//        IDevelopmentVesting(vesting).depositTokens(_amount);
+		IDevelopmentVesting(vesting).vestTokens(_amount);
+		emit DevelopmentVestingCreated(_tokenOwner, _cliff, _duration, _frequency, _amount);
 	}
 
 	function createAdoptionVesting(
@@ -160,7 +169,8 @@ contract VestingFactory is Ownable {
 	) public onlyOwner {
 		address vesting = _getOrCreateAdoptionVesting(_tokenOwner, _cliff, _duration, _frequency);
 		IERC20(SOV).approve(vesting, _amount);
-		//        IDevelopmentVesting(vesting).depositTokens(_amount);
+		IDevelopmentVesting(vesting).vestTokens(_amount);
+		emit AdoptionVestingCreated(_tokenOwner, _cliff, _duration, _frequency, _amount);
 	}
 
 	function getVesting(address _tokenOwner) public view returns (address) {

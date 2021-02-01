@@ -5,8 +5,9 @@ import "../../openzeppelin/SafeMath.sol";
 import "../../interfaces/IERC20.sol";
 import "./IVesting.sol";
 import "../ApprovalReceiver.sol";
+import "./IDevelopmentVesting.sol";
 
-contract DevelopmentVesting is Ownable, ApprovalReceiver {
+contract DevelopmentVesting is IDevelopmentVesting, Ownable, ApprovalReceiver {
 	using SafeMath for uint256;
 
 	///@notice the SOV token contract
