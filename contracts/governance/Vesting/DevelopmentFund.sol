@@ -248,26 +248,35 @@ contract DevelopmentFund is Ownable {
 
 	/**
 	 * @notice Withdraws all unlocked/released token.
+	 * @param _amount The amount to be withdrawn.
 	 */
-	function withdrawTokensByUnlockedTokenOwner() public onlyUnlockedTokenOwner {
+	function withdrawTokensByUnlockedTokenOwner(uint256 _amount) public onlyUnlockedTokenOwner {
+		require(_amount > 0, "Zero can't be withdrawn.");
+
 		uint256 count; /// To know how many elements to be removed from the release schedule.
-		uint256 amount; /// To know the total amount to be transferred.
-		uint256 totalDuration; /// To know the total duration covered from the last release time.
-		uint256 lastReleaseTimeMemory = lastReleaseTime; /// Better to use memory than storage.
+		uint256 amount = _amount; /// To know the total amount to be transferred.
+		uint256 newLastReleaseTimeMemory = lastReleaseTime; /// Better to use memory than storage.
 		uint256 releaseDurationLength = releaseDuration.length.sub(1); /// Also checks if there are any elements in the release schedule.
 
 		/// Getting the amount of tokens, the number of releases and calculating the total duration.
-		while (lastReleaseTimeMemory.add(releaseDuration[releaseDurationLength].add(totalDuration)) >= block.timestamp) {
-			amount = amount.add(releaseTokenAmount[releaseDurationLength]);
-			totalDuration = totalDuration.add(releaseDuration[releaseDurationLength]);
+		while (amount > 0 && newLastReleaseTimeMemory.add(releaseDuration[releaseDurationLength]) >= block.timestamp) {
+			if(amount >= releaseTokenAmount[releaseDurationLength]){
+				amount = amount.sub(releaseTokenAmount[releaseDurationLength]);
+				newLastReleaseTimeMemory = newLastReleaseTimeMemory.add(releaseDuration[releaseDurationLength]);
+				count++;
+			}
+			else {
+				/// This will be the last case.
+				releaseTokenAmount[releaseDurationLength] = releaseTokenAmount[releaseDurationLength].sub(amount);
+				amount = 0;
+			}
 			releaseDurationLength--;
-			count++;
 		}
 
 		/// Checking to see if atleast a single schedule was reached or not.
-		require(count > 0, "No release schedule reached.");
+		require(count > 0 || amount == 0, "No release schedule reached.");
 
-		emit UnlockedTokenWithdrawalByUnlockedOwner(msg.sender, amount, count);
+		emit UnlockedTokenWithdrawalByUnlockedOwner(msg.sender, _amount, count);
 
 		/// Now clearing up the release schedule.
 		while (count > 0) {
@@ -276,14 +285,14 @@ contract DevelopmentFund is Ownable {
 			count--;
 		}
 
-		/// Now updating the last release time to reflect the current last release.
-		lastReleaseTime = lastReleaseTimeMemory.add(totalDuration);
+		/// Updating the last release time.
+		lastReleaseTime = newLastReleaseTimeMemory;
 
 		/// Updating the remaining token.
-		remainingTokens = remainingTokens.sub(amount);
+		remainingTokens = remainingTokens.sub(_amount);
 
 		/// Sending the amount to unlocked token owner.
-		bool txStatus = SOV.transfer(msg.sender, amount);
+		bool txStatus = SOV.transfer(msg.sender, _amount);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
 	}
 
