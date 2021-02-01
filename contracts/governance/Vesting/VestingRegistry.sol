@@ -152,7 +152,7 @@ contract VestingRegistry is Ownable {
 		address vesting = _getOrCreateTeamVesting(_tokenOwner, TEAM_VESTING_CLIFF, TEAM_VESTING_DURATION);
 		IERC20(SOV).approve(vesting, _amount);
 		IVesting(vesting).stakeTokens(_amount);
-		emit VestingCreated(_tokenOwner, TEAM_VESTING_CLIFF, TEAM_VESTING_DURATION, _amount);
+		emit TeamVestingCreated(_tokenOwner, TEAM_VESTING_CLIFF, TEAM_VESTING_DURATION, _amount);
 	}
 
 	function createDevelopmentVesting(

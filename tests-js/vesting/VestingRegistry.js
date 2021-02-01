@@ -9,6 +9,7 @@ const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry");
 const Vesting = artifacts.require("TeamVesting");
+const DevelopmentVesting = artifacts.require("DevelopmentVesting");
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 const FOUR_WEEKS = new BN(4 * 7 * 24 * 60 * 60);
@@ -162,11 +163,20 @@ contract("VestingRegistry", (accounts) => {
 	// 		expect(cSOV1balance.toString()).equal("0");
 	// 		let cSOV2balance = await cSOV1.balanceOf(account2);
 	// 		expect(cSOV2balance.toString()).equal("0");
+	// 		let balance = await SOV.balanceOf(vestingRegistry.address);
+	// 		expect(balance.toString()).equal("0");
 	//
 	// 		let cliff = await vestingRegistry.CSOV_VESTING_CLIFF();
-	// 		let duration = await vestingRegistry.CSOV_VESTING_DURATION()
+	// 		let duration = await vestingRegistry.CSOV_VESTING_DURATION();
 	//
-	// 		await checkVesting(account2, cliff, duration, amount);
+	// 		let vestingAddress = await vestingRegistry.getVesting(account2);
+	// 		let vesting = await Vesting.at(vestingAddress);
+	// 		await checkVesting(vesting, account2, cliff, duration, amount);
+	//
+	// 		await expectRevert(
+	// 			vesting.governanceWithdrawTokens(account2),
+	// 			"revert"
+	// 		);
 	// 	});
 	//
 	// 	it("fails if the 0 is cSOV amount", async () => {
@@ -199,18 +209,189 @@ contract("VestingRegistry", (accounts) => {
 	// 	});
 	//
 	// });
+	//
+	// describe("exchangeCSOV", () => {
+	// 	//TODO implement if we need this method
+	//
+	// });
+	//
+	// describe("createVesting", () => {
+	// 	it("should be able to create vesting", async () => {
+	// 		let amount = new BN(1000000);
+	// 		await SOV.transfer(vestingRegistry.address, amount);
+	//
+	// 		let cliff = FOUR_WEEKS;
+	// 		let duration = FOUR_WEEKS.mul(new BN(20));
+	// 		let tx = await vestingRegistry.createVesting(account2, amount, duration);
+	//
+	// 		expectEvent(tx, "VestingCreated", {
+	// 			tokenOwner: account2,
+	// 			cliff: cliff,
+	// 			duration: duration,
+	// 			amount: amount,
+	// 		});
+	//
+	// 		let balance = await SOV.balanceOf(vestingRegistry.address);
+	// 		expect(balance.toString()).equal("0");
+	//
+	// 		let vestingAddress = await vestingRegistry.getVesting(account2);
+	// 		let vesting = await Vesting.at(vestingAddress);
+	// 		await checkVesting(vesting, account2, cliff, duration, amount);
+	//
+	// 		await expectRevert(
+	// 			vesting.governanceWithdrawTokens(account2),
+	// 			"revert"
+	// 		);
+	// 	});
+	//
+	// 	it("fails if vestingRegistry doesn't have enough SOV", async () => {
+	// 		let amount = new BN(1000000);
+	// 		let duration = FOUR_WEEKS.mul(new BN(20));
+	//
+	// 		await expectRevert(
+	// 			vestingRegistry.createVesting(account2, amount, duration),
+	// 			"ERC20: transfer amount exceeds balance"
+	// 		);
+	// 	});
+	//
+	// });
 
-	describe("exchangeCSOV", () => {
-		//TODO implement if we need this method
+	describe("createTeamVesting", () => {
+		it("should be able to create vesting", async () => {
+			let amount = new BN(1000000);
+			await SOV.transfer(vestingRegistry.address, amount);
+
+			let cliff = await vestingRegistry.TEAM_VESTING_CLIFF();
+			let duration = await vestingRegistry.TEAM_VESTING_DURATION();
+			//FIXME
+			let tx = await vestingRegistry.createTeamVesting(account2, amount);
+
+			expectEvent(tx, "TeamVestingCreated", {
+				tokenOwner: account2,
+				cliff: cliff,
+				duration: duration,
+				amount: amount,
+			});
+
+			let balance = await SOV.balanceOf(vestingRegistry.address);
+			expect(balance.toString()).equal("0");
+
+			let vestingAddress = await vestingRegistry.getTeamVesting(account2);
+			let vesting = await Vesting.at(vestingAddress);
+			await checkVesting(vesting, account2, cliff, duration, amount);
+
+			await expectRevert(
+				vesting.governanceWithdrawTokens(account2),
+				"revert"
+			);
+		});
+
+		it("fails if vestingRegistry doesn't have enough SOV", async () => {
+			let amount = new BN(1000000);
+
+			await expectRevert(
+				vestingRegistry.createTeamVesting(account2, amount),
+				"ERC20: transfer amount exceeds balance"
+			);
+		});
 
 	});
 
+	// describe("createDevelopmentVesting", () => {
+	// 	it("should be able to create vesting", async () => {
+	// 		let amount = new BN(1000000);
+	// 		await SOV.transfer(vestingRegistry.address, amount);
+	//
+	// 		let cliff = FOUR_WEEKS.mul(new BN(3));
+	// 		let duration = FOUR_WEEKS.mul(new BN(12));
+	// 		let frequency = FOUR_WEEKS;
+	// 		let tx = await vestingRegistry.createDevelopmentVesting(account2, amount, cliff, duration, frequency);
+	//
+	// 		expectEvent(tx, "DevelopmentVestingCreated", {
+	// 			tokenOwner: account2,
+	// 			cliff: cliff,
+	// 			duration: duration,
+	// 			amount: amount,
+	// 		});
+	//
+	// 		let balance = await SOV.balanceOf(vestingRegistry.address);
+	// 		expect(balance.toString()).equal("0");
+	//
+	// 		let vestingAddress = await vestingRegistry.getDevelopmentVesting(account2);
+	// 		let vesting = await DevelopmentVesting.at(vestingAddress);
+	//
+	// 		expect(await vesting.SOV()).equal(SOV.address);
+	// 		expect(await vesting.tokenOwner()).equal(account2);
+	// 		expect(await vesting.cliff()).to.be.bignumber.equal(cliff);
+	// 		expect(await vesting.duration()).to.be.bignumber.equal(duration);
+	// 		expect(await vesting.frequency()).to.be.bignumber.equal(frequency);
+	//
+	// 		let vestingSchedule =  await vesting.schedules(0);
+	// 		expect(vestingSchedule.amount).to.be.bignumber.equal(amount);
+	// 		expect(vestingSchedule.withdrawnAmount).to.be.bignumber.equal(new BN(0));
+	// 	});
+	//
+	// 	it("fails if vestingRegistry doesn't have enough SOV", async () => {
+	// 		let amount = new BN(1000000);
+	// 		let cliff = FOUR_WEEKS.mul(new BN(3));
+	// 		let duration = FOUR_WEEKS.mul(new BN(12));
+	//
+	// 		await expectRevert(
+	// 			vestingRegistry.createDevelopmentVesting(account2, amount, cliff, duration, FOUR_WEEKS),
+	// 			"ERC20: transfer amount exceeds balance"
+	// 		);
+	// 	});
+	//
+	// });
+	//
+	// describe("createAdoptionVesting", () => {
+	// 	it("should be able to create vesting", async () => {
+	// 		let amount = new BN(1000000);
+	// 		await SOV.transfer(vestingRegistry.address, amount);
+	//
+	// 		let cliff = FOUR_WEEKS.mul(new BN(3));
+	// 		let duration = FOUR_WEEKS.mul(new BN(12));
+	// 		let frequency = FOUR_WEEKS;
+	// 		let tx = await vestingRegistry.createAdoptionVesting(account2, amount, cliff, duration, frequency);
+	//
+	// 		expectEvent(tx, "AdoptionVestingCreated", {
+	// 			tokenOwner: account2,
+	// 			cliff: cliff,
+	// 			duration: duration,
+	// 			amount: amount,
+	// 		});
+	//
+	// 		let balance = await SOV.balanceOf(vestingRegistry.address);
+	// 		expect(balance.toString()).equal("0");
+	//
+	// 		let vestingAddress = await vestingRegistry.getAdoptionVesting(account2);
+	// 		let vesting = await DevelopmentVesting.at(vestingAddress);
+	//
+	// 		expect(await vesting.SOV()).equal(SOV.address);
+	// 		expect(await vesting.tokenOwner()).equal(account2);
+	// 		expect(await vesting.cliff()).to.be.bignumber.equal(cliff);
+	// 		expect(await vesting.duration()).to.be.bignumber.equal(duration);
+	// 		expect(await vesting.frequency()).to.be.bignumber.equal(frequency);
+	//
+	// 		let vestingSchedule =  await vesting.schedules(0);
+	// 		expect(vestingSchedule.amount).to.be.bignumber.equal(amount);
+	// 		expect(vestingSchedule.withdrawnAmount).to.be.bignumber.equal(new BN(0));
+	// 	});
+	//
+	// 	it("fails if vestingRegistry doesn't have enough SOV", async () => {
+	// 		let amount = new BN(1000000);
+	// 		let cliff = FOUR_WEEKS.mul(new BN(3));
+	// 		let duration = FOUR_WEEKS.mul(new BN(12));
+	//
+	// 		await expectRevert(
+	// 			vestingRegistry.createDevelopmentVesting(account2, amount, cliff, duration, FOUR_WEEKS),
+	// 			"ERC20: transfer amount exceeds balance"
+	// 		);
+	// 	});
+	//
+	// });
 
-
-	async function checkVesting(account, cliff, duration, amount) {
-		let vestingAddress = await vestingRegistry.getVesting(account);
-		let vesting = await Vesting.at(vestingAddress);
-
+	async function checkVesting(vesting, account, cliff, duration, amount) {
 		let startDate = await vesting.startDate();
 		let start = startDate.toNumber() + cliff.toNumber();
 		let end = startDate.toNumber() + duration.toNumber();
