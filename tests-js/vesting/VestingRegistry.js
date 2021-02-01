@@ -7,6 +7,7 @@ const SOV = artifacts.require("SOV");
 const TestToken = artifacts.require("TestToken");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingFactory = artifacts.require("VestingFactory");
+const VestingRegistry = artifacts.require("VestingRegistry");
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 const WEEK = new BN(7 * 24 * 60 * 60);
@@ -15,18 +16,17 @@ const TOTAL_SUPPLY = "100000000000000000000000000";
 const ONE_MILLON = "1000000000000000000000000";
 const ZERO_ADDRESS = constants.ZERO_ADDRESS;
 
-contract("VestingFactory", (accounts) => {
+contract("VestingRegistry", (accounts) => {
 	let root, account1, account2, account3;
 	let token, cSOV1, cSOV2;
 	let staking, stakingLogic, feeSharingProxy;
-	let vestingFactory;
+	let vestingFactory, vestingRegistry;
 
 	before(async () => {
 		[root, account1, account2, account3, ...accounts] = accounts;
 	});
 
 	beforeEach(async () => {
-		[root, account1, account2, account3, ...accounts] = accounts;
 		token = await SOV.new(TOTAL_SUPPLY);
 		cSOV1 = await TestToken.new("cSOV1", "cSOV1", 18, TOTAL_SUPPLY);
 		cSOV2 = await TestToken.new("cSOV2", "cSOV2", 18, TOTAL_SUPPLY);
@@ -38,57 +38,66 @@ contract("VestingFactory", (accounts) => {
 
 		feeSharingProxy = await FeeSharingProxy.new(ZERO_ADDRESS, staking.address);
 
-		vestingFactory = VestingFactory.new(token.address, [cSOV1.address, cSOV2.address], staking.address, feeSharingProxy.address, account1);
+		vestingFactory = await VestingFactory.new();
+		vestingRegistry = await VestingRegistry.new(vestingFactory.address, token.address, [cSOV1.address, cSOV2.address], staking.address, feeSharingProxy.address, account1);
 	});
 
 	describe("constructor", () => {
 		it("sets the expected values", async () => {
 			//Check data
-			let _sov = await vestingFactory.SOV();
-			let _CSOVtokens = await vestingFactory.CSOVtokens();
-			let _stacking = await vestingFactory.staking();
-			let _feeSharingProxy = await vestingFactory.feeSharingProxy();
-			let _governanceTimelock = await vestingFactory._governanceTimelock();
+			let _sov = await vestingRegistry.SOV();
+			let _CSOV1 = await vestingRegistry.CSOVtokens(0);
+			let _CSOV2 = await vestingRegistry.CSOVtokens(1);
+			let _stacking = await vestingRegistry.staking();
+			let _feeSharingProxy = await vestingRegistry.feeSharingProxy();
+			let _governanceTimelock = await vestingRegistry.governanceTimelock();
 
 			assert.equal(_sov, token.address);
-			assert.equal(_CSOVtokens[0], cSOV1.address);
-			assert.equal(_CSOVtokens[1], cSOV2.address);
+			assert.equal(_CSOV1, cSOV1.address);
+			assert.equal(_CSOV2, cSOV2.address);
 			assert.equal(_stacking, staking.address);
 			assert.equal(_feeSharingProxy, feeSharingProxy.address);
-			assert.equal(_governanceTimelock, _governanceTimelock.address);
+			assert.equal(_governanceTimelock, account1);
+		});
+
+		it("fails if the 0 address is passed as vestingFactory address", async () => {
+			await expectRevert(
+				VestingRegistry.new(ZERO_ADDRESS, token.address, [cSOV1.address, cSOV2.address], staking.address, feeSharingProxy.address, account1),
+				"vestingFactory address invalid"
+			);
 		});
 
 		it("fails if the 0 address is passed as SOV address", async () => {
 			await expectRevert(
-				VestingFactory.new(ZERO_ADDRESS, [cSOV1.address, cSOV2.address], staking.address, feeSharingProxy.address, account1),
+				VestingRegistry.new(vestingFactory.address, ZERO_ADDRESS, [cSOV1.address, cSOV2.address], staking.address, feeSharingProxy.address, account1),
 				"SOV address invalid"
 			);
 		});
 
 		it("fails if the 0 address is passed as cSOV address", async () => {
 			await expectRevert(
-				VestingFactory.new(token.address, [cSOV1.address, cSOV2.address, ZERO_ADDRESS], staking.address, feeSharingProxy.address, account1),
+				VestingRegistry.new(vestingFactory.address, token.address, [cSOV1.address, cSOV2.address, ZERO_ADDRESS], staking.address, feeSharingProxy.address, account1),
 				"CSOV address invalid"
 			);
 		});
 
 		it("fails if the 0 address is passed as staking address", async () => {
 			await expectRevert(
-				VestingFactory.new(token.address, [cSOV1.address, cSOV2.address], ZERO_ADDRESS, feeSharingProxy.address, account1),
+				VestingRegistry.new(vestingFactory.address, token.address, [cSOV1.address, cSOV2.address], ZERO_ADDRESS, feeSharingProxy.address, account1),
 				"staking address invalid"
 			);
 		});
 
 		it("fails if the 0 address is passed as feeSharingProxy address", async () => {
 			await expectRevert(
-				VestingFactory.new(token.address, [cSOV1.address, cSOV2.address], staking.address, ZERO_ADDRESS, account1),
+				VestingRegistry.new(vestingFactory.address, token.address, [cSOV1.address, cSOV2.address], staking.address, ZERO_ADDRESS, account1),
 				"feeSharingProxy address invalid"
 			);
 		});
 
 		it("fails if the 0 address is passed as governanceTimelock address", async () => {
 			await expectRevert(
-				VestingFactory.new(token.address, [cSOV1.address, cSOV2.address], staking.address, feeSharingProxy.address, ZERO_ADDRESS),
+				VestingRegistry.new(vestingFactory.address, token.address, [cSOV1.address, cSOV2.address], staking.address, feeSharingProxy.address, ZERO_ADDRESS),
 				"governanceTimelock address invalid"
 			);
 		});
