@@ -139,68 +139,79 @@ contract("VestingRegistry", (accounts) => {
 	//
 	// });
 
-	describe("exchangeAllCSOV", () => {
-		it("should be able to exchange CSOV", async () => {
-			let amount1 = new BN(1000);
-			let amount2 = new BN(2000);
-			await cSOV1.transfer(account2, amount1);
-			await cSOV2.transfer(account2, amount2);
-			let amount = amount1.add(amount2);
-			await SOV.transfer(vestingRegistry.address, amount);
-
-			await cSOV1.approve(vestingRegistry.address, amount1, {from: account2})
-			await cSOV2.approve(vestingRegistry.address, amount2, {from: account2})
-
-			let tx = await vestingRegistry.exchangeAllCSOV({from: account2});
-
-			expectEvent(tx, "CSOVTokensExchanged", {
-				caller: account2,
-				amount: amount,
-			});
-
-			let cSOV1balance = await cSOV1.balanceOf(account2);
-			expect(cSOV1balance.toString()).equal("0");
-			let cSOV2balance = await cSOV1.balanceOf(account2);
-			expect(cSOV2balance.toString()).equal("0");
-
-			await checkVesting(account2, amount);
-		});
-
-		// it("only owner should be able to transfer", async () => {
-		// 	await expectRevert(
-		// 		vestingRegistry.transferSOV(account1, 1000, {from: account1}),
-		// 		"unauthorized"
-		// 	);
-		// });
-		//
-		// it("fails if the 0 address is passed as receiver address", async () => {
-		// 	await expectRevert(
-		// 		vestingRegistry.transferSOV(ZERO_ADDRESS, 1000),
-		// 		"receiver address invalid"
-		// 	);
-		// });
-		//
-		// it("fails if the 0 is passed as an amount", async () => {
-		// 	await expectRevert(
-		// 		vestingRegistry.transferSOV(account1, 0),
-		// 		"amount invalid"
-		// 	);
-		// });
-
-	});
+	// describe("exchangeAllCSOV", () => {
+	// 	it("should be able to exchange CSOV", async () => {
+	// 		let amount1 = new BN(1000);
+	// 		let amount2 = new BN(2000);
+	// 		await cSOV1.transfer(account2, amount1);
+	// 		await cSOV2.transfer(account2, amount2);
+	// 		let amount = amount1.add(amount2);
+	// 		await SOV.transfer(vestingRegistry.address, amount);
+	//
+	// 		await cSOV1.approve(vestingRegistry.address, amount1, {from: account2})
+	// 		await cSOV2.approve(vestingRegistry.address, amount2, {from: account2})
+	//
+	// 		let tx = await vestingRegistry.exchangeAllCSOV({from: account2});
+	//
+	// 		expectEvent(tx, "CSOVTokensExchanged", {
+	// 			caller: account2,
+	// 			amount: amount,
+	// 		});
+	//
+	// 		let cSOV1balance = await cSOV1.balanceOf(account2);
+	// 		expect(cSOV1balance.toString()).equal("0");
+	// 		let cSOV2balance = await cSOV1.balanceOf(account2);
+	// 		expect(cSOV2balance.toString()).equal("0");
+	//
+	// 		let cliff = await vestingRegistry.CSOV_VESTING_CLIFF();
+	// 		let duration = await vestingRegistry.CSOV_VESTING_DURATION()
+	//
+	// 		await checkVesting(account2, cliff, duration, amount);
+	// 	});
+	//
+	// 	it("fails if the 0 is cSOV amount", async () => {
+	// 		await expectRevert(
+	// 			vestingRegistry.exchangeAllCSOV({from: account2}),
+	// 			"amount invalid"
+	// 		);
+	// 	});
+	//
+	// 	it("fails if the 0 cSOV transfer is not approved", async () => {
+	// 		let amount = new BN(1000);
+	// 		await cSOV1.transfer(account2, amount);
+	//
+	// 		await expectRevert(
+	// 			vestingRegistry.exchangeAllCSOV({from: account2}),
+	// 			"invalid transfer"
+	// 		);
+	// 	});
+	//
+	// 	it("fails if vestingRegistry doesn't have enough SOV", async () => {
+	// 		let amount = new BN(1000);
+	// 		await cSOV1.transfer(account2, amount);
+	//
+	// 		await cSOV1.approve(vestingRegistry.address, amount, {from: account2})
+	//
+	// 		await expectRevert(
+	// 			vestingRegistry.exchangeAllCSOV({from: account2}),
+	// 			"ERC20: transfer amount exceeds balance"
+	// 		);
+	// 	});
+	//
+	// });
 
 	describe("exchangeCSOV", () => {
 		//TODO implement if we need this method
 
 	});
 
-	async function checkVesting(account, amount) {
+
+
+	async function checkVesting(account, cliff, duration, amount) {
 		let vestingAddress = await vestingRegistry.getVesting(account);
 		let vesting = await Vesting.at(vestingAddress);
 
 		let startDate = await vesting.startDate();
-		let cliff = await vestingRegistry.CSOV_VESTING_CLIFF();
-		let duration = await vestingRegistry.CSOV_VESTING_DURATION()
 		let start = startDate.toNumber() + cliff.toNumber();
 		let end = startDate.toNumber() + duration.toNumber();
 
