@@ -11,13 +11,13 @@ import "./IDevelopmentVesting.sol";
 
 contract VestingRegistry is Ownable {
 	///@notice constant used for computing the vesting dates
-	uint256 constant FOUR_WEEKS = 4 weeks;
+	uint256 public constant FOUR_WEEKS = 4 weeks;
 
-	uint256 constant CSOV_VESTING_CLIFF = FOUR_WEEKS;
-	uint256 constant CSOV_VESTING_DURATION = 10 * FOUR_WEEKS;
+	uint256 public constant CSOV_VESTING_CLIFF = FOUR_WEEKS;
+	uint256 public constant CSOV_VESTING_DURATION = 10 * FOUR_WEEKS;
 
-	uint256 constant TEAM_VESTING_CLIFF = 6 * FOUR_WEEKS;
-	uint256 constant TEAM_VESTING_DURATION = 36 * FOUR_WEEKS;
+	uint256 public constant TEAM_VESTING_CLIFF = 6 * FOUR_WEEKS;
+	uint256 public constant TEAM_VESTING_DURATION = 36 * FOUR_WEEKS;
 
 	IVestingFactory public vestingFactory;
 
@@ -78,6 +78,9 @@ contract VestingRegistry is Ownable {
 	}
 
 	function transferSOV(address _receiver, uint256 _amount) public onlyOwner {
+		require(_receiver != address(0), "receiver address invalid");
+		require(_amount != 0, "amount invalid");
+
 		IERC20(SOV).transfer(_receiver, _amount);
 		emit SOVTransferred(_receiver, _amount);
 	}
@@ -89,7 +92,7 @@ contract VestingRegistry is Ownable {
 		uint256 amount = 0;
 		for (uint256 i = 0; i < CSOVtokens.length; i++) {
 			address CSOV = CSOVtokens[i];
-			uint256 balance = IERC20(SOV).balanceOf(msg.sender);
+			uint256 balance = IERC20(CSOV).balanceOf(msg.sender);
 			if (balance == 0) {
 				continue;
 			}
@@ -115,7 +118,6 @@ contract VestingRegistry is Ownable {
 	function _createVestingForCSOV(uint256 _amount) internal {
 		address vesting = _getOrCreateVesting(msg.sender, CSOV_VESTING_CLIFF, CSOV_VESTING_DURATION);
 
-		//TODO how tokens will be transferred to VestingFactory ?
 		IERC20(SOV).approve(vesting, _amount);
 		IVesting(vesting).stakeTokens(_amount);
 
@@ -258,5 +260,3 @@ contract VestingRegistry is Ownable {
 		return vestingContracts[_tokenOwner][_type];
 	}
 }
-
-//TODO check params during Vesting creation
