@@ -6,7 +6,7 @@ const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV = artifacts.require("SOV");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
-const Vesting = artifacts.require("Vesting");
+const Vesting = artifacts.require("TeamVesting");
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 const WEEK = new BN(7 * 24 * 60 * 60);
