@@ -116,9 +116,22 @@ contract("VestingRegistry", (accounts) => {
 	});
 
 	describe("setCSOVtokens", () => {
+		it("sets the expected values", async () => {
+			await vestingRegistry.setCSOVtokens([account2, account3]);
 
-		//TODO implement
+			let _CSOV1 = await vestingRegistry.CSOVtokens(0);
+			let _CSOV2 = await vestingRegistry.CSOVtokens(1);
 
+			expect(_CSOV1).equal(account2);
+			expect(_CSOV2).equal(account3);
+		});
+
+		it("fails if the 0 address is passed as cSOV address", async () => {
+			await expectRevert(
+				vestingRegistry.setCSOVtokens([cSOV1.address, cSOV2.address, ZERO_ADDRESS]),
+				"CSOV address invalid"
+			);
+		});
 	});
 
 	describe("transferSOV", () => {
