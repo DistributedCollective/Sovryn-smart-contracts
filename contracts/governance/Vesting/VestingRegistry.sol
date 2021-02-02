@@ -16,10 +16,6 @@ contract VestingRegistry is Ownable {
 	uint256 public constant CSOV_VESTING_CLIFF = FOUR_WEEKS;
 	uint256 public constant CSOV_VESTING_DURATION = 10 * FOUR_WEEKS;
 
-	uint256 public constant TEAM_VESTING_CLIFF = 6 * FOUR_WEEKS;
-	//	uint256 public constant TEAM_VESTING_DURATION = 36 * FOUR_WEEKS;
-	uint256 public constant TEAM_VESTING_DURATION = 1092 days;
-
 	IVestingFactory public vestingFactory;
 
 	///@notice the SOV token contract
@@ -34,7 +30,7 @@ contract VestingRegistry is Ownable {
 	//@notice the vesting owner (e.g. governance timelock address)
 	address public vestingOwner;
 
-	//TODO can user have more than one vesting contract of some type ? No, add to doc!
+	//TODO add to the documentation: address can have only one vesting of each type
 	//user => vesting type => vesting contract
 	mapping(address => mapping(uint256 => address)) public vestingContracts;
 
@@ -52,7 +48,6 @@ contract VestingRegistry is Ownable {
 	event DevelopmentVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 frequency, uint256 amount);
 	event AdoptionVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 frequency, uint256 amount);
 
-	//TODO setter for CSOVtokens ? set an array
 	constructor(
 		address _vestingFactory,
 		address _SOV,
@@ -63,19 +58,28 @@ contract VestingRegistry is Ownable {
 	) public {
 		require(_vestingFactory != address(0), "vestingFactory address invalid");
 		require(_SOV != address(0), "SOV address invalid");
-		for (uint256 i = 0; i < _CSOVtokens.length; i++) {
-			require(_CSOVtokens[i] != address(0), "CSOV address invalid");
-		}
 		require(_staking != address(0), "staking address invalid");
 		require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
 		require(_vestingOwner != address(0), "vestingOwner address invalid");
 
+		_setCSOVtokens(_CSOVtokens);
+
 		vestingFactory = IVestingFactory(_vestingFactory);
 		SOV = _SOV;
-		CSOVtokens = _CSOVtokens;
 		staking = _staking;
 		feeSharingProxy = _feeSharingProxy;
 		vestingOwner = _vestingOwner;
+	}
+
+	function setCSOVtokens(address[] memory _CSOVtokens) public onlyOwner {
+		_setCSOVtokens(_CSOVtokens);
+	}
+
+	function _setCSOVtokens(address[] memory _CSOVtokens) internal {
+		for (uint256 i = 0; i < _CSOVtokens.length; i++) {
+			require(_CSOVtokens[i] != address(0), "CSOV address invalid");
+		}
+		CSOVtokens = _CSOVtokens;
 	}
 
 	function transferSOV(address _receiver, uint256 _amount) public onlyOwner {
@@ -93,12 +97,11 @@ contract VestingRegistry is Ownable {
 		for (uint256 i = 0; i < CSOVtokens.length; i++) {
 			address CSOV = CSOVtokens[i];
 			uint256 balance = IERC20(CSOV).balanceOf(msg.sender);
-			if (balance == 0) {
-				continue;
+			if (balance != 0) {
+				bool success = IERC20(CSOV).transferFrom(msg.sender, address(this), balance);
+				require(success, "transfer failed");
+				amount += balance;
 			}
-			bool success = IERC20(CSOV).transferFrom(msg.sender, address(this), balance);
-			require(success, "transfer failed");
-			amount += balance;
 		}
 
 		require(amount > 0, "amount invalid");
@@ -125,29 +128,28 @@ contract VestingRegistry is Ownable {
 		require(isValid, "wrong CSOV address");
 	}
 
-	//TODO cliff - FOUR_WEEKS ?
 	function createVesting(
 		address _tokenOwner,
 		uint256 _amount,
 		uint256 _cliff,
 		uint256 _duration
 	) public onlyOwner {
-		uint256 cliff = FOUR_WEEKS;
-		address vesting = _getOrCreateVesting(_tokenOwner, cliff, _duration);
+		address vesting = _getOrCreateVesting(_tokenOwner, _cliff, _duration);
 		IERC20(SOV).approve(vesting, _amount);
 		IVesting(vesting).stakeTokens(_amount);
-		emit VestingCreated(_tokenOwner, cliff, _duration, _amount);
+		emit VestingCreated(_tokenOwner, _cliff, _duration, _amount);
 	}
 
 	function createTeamVesting(
 		address _tokenOwner,
+		uint256 _amount,
 		uint256 _cliff,
-		uint256 _amount
+		uint256 _duration
 	) public onlyOwner {
-		address vesting = _getOrCreateTeamVesting(_tokenOwner, TEAM_VESTING_CLIFF, TEAM_VESTING_DURATION);
+		address vesting = _getOrCreateTeamVesting(_tokenOwner, _cliff, _duration);
 		IERC20(SOV).approve(vesting, _amount);
 		IVesting(vesting).stakeTokens(_amount);
-		emit TeamVestingCreated(_tokenOwner, TEAM_VESTING_CLIFF, TEAM_VESTING_DURATION, _amount);
+		emit TeamVestingCreated(_tokenOwner, _cliff, _duration, _amount);
 	}
 
 	function createDevelopmentVesting(
