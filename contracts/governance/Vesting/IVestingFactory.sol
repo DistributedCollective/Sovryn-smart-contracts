@@ -9,9 +9,7 @@ interface IVestingFactory {
 		uint256 _duration,
 		address _feeSharing,
 		address _owner
-	)
-	external
-	returns (address);
+	) external returns (address);
 
 	function deployTeamVesting(
 		address _SOV,
@@ -21,9 +19,7 @@ interface IVestingFactory {
 		uint256 _duration,
 		address _feeSharing,
 		address _owner
-	)
-	external
-	returns (address);
+	) external returns (address);
 
 	function deployDevelopmentVesting(
 		address _SOV,
@@ -32,8 +28,5 @@ interface IVestingFactory {
 		uint256 _duration,
 		uint256 _frequency,
 		address _owner
-	)
-	external
-	returns (address);
-
+	) external returns (address);
 }

@@ -41,7 +41,14 @@ contract("VestingRegistry", (accounts) => {
 		feeSharingProxy = await FeeSharingProxy.new(ZERO_ADDRESS, staking.address);
 
 		vestingFactory = await VestingFactory.new();
-		vestingRegistry = await VestingRegistry.new(vestingFactory.address, SOV.address, [cSOV1.address, cSOV2.address], staking.address, feeSharingProxy.address, account1);
+		vestingRegistry = await VestingRegistry.new(
+			vestingFactory.address,
+			SOV.address,
+			[cSOV1.address, cSOV2.address],
+			staking.address,
+			feeSharingProxy.address,
+			account1
+		);
 		vestingFactory.transferOwnership(vestingRegistry.address);
 	});
 
@@ -280,21 +287,14 @@ contract("VestingRegistry", (accounts) => {
 			let vesting = await Vesting.at(vestingAddress);
 			await checkVesting(vesting, account2, cliff, duration, amount);
 
-			await expectRevert(
-				vesting.governanceWithdrawTokens(account2),
-				"revert"
-			);
+			await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
 		});
 
 		it("fails if vestingRegistry doesn't have enough SOV", async () => {
 			let amount = new BN(1000000);
 
-			await expectRevert(
-				vestingRegistry.createTeamVesting(account2, amount),
-				"ERC20: transfer amount exceeds balance"
-			);
+			await expectRevert(vestingRegistry.createTeamVesting(account2, amount), "ERC20: transfer amount exceeds balance");
 		});
-
 	});
 
 	// describe("createDevelopmentVesting", () => {
@@ -416,5 +416,4 @@ contract("VestingRegistry", (accounts) => {
 			assert.equal(delegateStakingCheckpoints.stake.toString(), stakedPerInterval);
 		}
 	}
-
 });

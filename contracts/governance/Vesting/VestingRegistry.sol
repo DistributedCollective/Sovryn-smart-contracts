@@ -17,7 +17,7 @@ contract VestingRegistry is Ownable {
 	uint256 public constant CSOV_VESTING_DURATION = 10 * FOUR_WEEKS;
 
 	uint256 public constant TEAM_VESTING_CLIFF = 6 * FOUR_WEEKS;
-//	uint256 public constant TEAM_VESTING_DURATION = 36 * FOUR_WEEKS;
+	//	uint256 public constant TEAM_VESTING_DURATION = 36 * FOUR_WEEKS;
 	uint256 public constant TEAM_VESTING_DURATION = 1092 days;
 
 	IVestingFactory public vestingFactory;
@@ -34,7 +34,7 @@ contract VestingRegistry is Ownable {
 	//@notice the vesting owner (e.g. governance timelock address)
 	address public vestingOwner;
 
-	//TODO can user have more than one vesting contract of some type ?
+	//TODO can user have more than one vesting contract of some type ? No, add to doc!
 	//user => vesting type => vesting contract
 	mapping(address => mapping(uint256 => address)) public vestingContracts;
 
@@ -43,17 +43,16 @@ contract VestingRegistry is Ownable {
 		TokenHolderVesting, //Vesting
 		DevelopmentVesting, //Development fund
 		AdoptionVesting //Adoption fund
-		//TODO Ecosystem fund, Programmatic sale
 	}
 
 	event CSOVTokensExchanged(address indexed caller, uint256 amount);
 	event SOVTransferred(address indexed receiver, uint256 amount);
-	event VestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint amount);
-	event TeamVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint amount);
-	event DevelopmentVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 frequency, uint amount);
-	event AdoptionVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 frequency, uint amount);
+	event VestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 amount);
+	event TeamVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 amount);
+	event DevelopmentVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 frequency, uint256 amount);
+	event AdoptionVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 frequency, uint256 amount);
 
-	//TODO setter for CSOVtokens ?
+	//TODO setter for CSOVtokens ? set an array
 	constructor(
 		address _vestingFactory,
 		address _SOV,
@@ -87,7 +86,6 @@ contract VestingRegistry is Ownable {
 		emit SOVTransferred(_receiver, _amount);
 	}
 
-	//TODO exchangeAllCSOV or exchangeCSOV ?
 	//TODO transfer or mark as already converted if non-transferable
 	//TODO do we need a blacklist?
 	function exchangeAllCSOV() public {
@@ -105,16 +103,6 @@ contract VestingRegistry is Ownable {
 
 		require(amount > 0, "amount invalid");
 		_createVestingForCSOV(amount);
-	}
-
-	function exchangeCSOV(address _CSOV, uint256 _amount) public {
-		_validateCSOV(_CSOV);
-		require(_amount > 0, "amount invalid");
-
-		bool success = IERC20(_CSOV).transferFrom(msg.sender, address(this), _amount);
-		require(success, "transfer failed");
-
-		_createVestingForCSOV(_amount);
 	}
 
 	function _createVestingForCSOV(uint256 _amount) internal {
@@ -141,6 +129,7 @@ contract VestingRegistry is Ownable {
 	function createVesting(
 		address _tokenOwner,
 		uint256 _amount,
+		uint256 _cliff,
 		uint256 _duration
 	) public onlyOwner {
 		uint256 cliff = FOUR_WEEKS;
@@ -150,7 +139,11 @@ contract VestingRegistry is Ownable {
 		emit VestingCreated(_tokenOwner, cliff, _duration, _amount);
 	}
 
-	function createTeamVesting(address _tokenOwner, uint256 _amount) public onlyOwner {
+	function createTeamVesting(
+		address _tokenOwner,
+		uint256 _cliff,
+		uint256 _amount
+	) public onlyOwner {
 		address vesting = _getOrCreateTeamVesting(_tokenOwner, TEAM_VESTING_CLIFF, TEAM_VESTING_DURATION);
 		IERC20(SOV).approve(vesting, _amount);
 		IVesting(vesting).stakeTokens(_amount);

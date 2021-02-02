@@ -7,7 +7,6 @@ import "./Vesting.sol";
  * A regular vesting contract, but the owner (governance) is able to withdraw earlier without a slashing
  **/
 contract TeamVesting is Vesting {
-
 	constructor(
 		address _SOV,
 		address _stakingAddress,
@@ -27,5 +26,4 @@ contract TeamVesting is Vesting {
 
 		_withdrawTokens(receiver, true);
 	}
-
 }
