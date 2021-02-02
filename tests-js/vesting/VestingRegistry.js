@@ -1,6 +1,8 @@
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
+const { encodeParameters, etherMantissa, mineBlock, increaseTime, blockNumber } = require("../Utils/Ethereum");
+
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
@@ -449,6 +451,16 @@ contract("VestingRegistry", (accounts) => {
 	});
 
 	async function checkVesting(vesting, account, cliff, duration, amount) {
+		await mineBlock();
+
+		let vestingBalance = await staking.balanceOf(vesting.address);
+		expect(vestingBalance).to.be.bignumber.equal(amount);
+
+		let accountVotes = await staking.getCurrentVotes(account);
+		expect(accountVotes).to.be.not.equal(new BN(0));
+		let vestingVotes = await staking.getCurrentVotes(vesting.address);
+		expect(vestingVotes).to.be.bignumber.equal(new BN(0));
+
 		let startDate = await vesting.startDate();
 		let start = startDate.toNumber() + cliff.toNumber();
 		let end = startDate.toNumber() + duration.toNumber();
