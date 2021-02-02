@@ -43,8 +43,9 @@ contract VestingRegistry is Ownable {
 
 	event CSOVTokensExchanged(address indexed caller, uint256 amount);
 	event SOVTransferred(address indexed receiver, uint256 amount);
-	event VestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 amount);
-	event TeamVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 amount);
+	event VestingCreated(address indexed tokenOwner, address vesting, uint256 cliff, uint256 duration, uint256 amount);
+	event TeamVestingCreated(address indexed tokenOwner, address vesting, uint256 cliff, uint256 duration, uint256 amount);
+	event TokensStaked(address indexed vesting, uint256 amount);
 	event DevelopmentVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 frequency, uint256 amount);
 	event AdoptionVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 frequency, uint256 amount);
 
@@ -135,9 +136,7 @@ contract VestingRegistry is Ownable {
 		uint256 _duration
 	) public onlyOwner {
 		address vesting = _getOrCreateVesting(_tokenOwner, _cliff, _duration);
-		IERC20(SOV).approve(vesting, _amount);
-		IVesting(vesting).stakeTokens(_amount);
-		emit VestingCreated(_tokenOwner, _cliff, _duration, _amount);
+		emit VestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount);
 	}
 
 	function createTeamVesting(
@@ -147,9 +146,16 @@ contract VestingRegistry is Ownable {
 		uint256 _duration
 	) public onlyOwner {
 		address vesting = _getOrCreateTeamVesting(_tokenOwner, _cliff, _duration);
-		IERC20(SOV).approve(vesting, _amount);
-		IVesting(vesting).stakeTokens(_amount);
-		emit TeamVestingCreated(_tokenOwner, _cliff, _duration, _amount);
+		emit TeamVestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount);
+	}
+
+	function stakeTokens(address _vesting, uint256 _amount) public onlyOwner {
+		require(_vesting != address(0), "vesting address invalid");
+		require(_amount > 0, "amount invalid");
+
+		IERC20(SOV).approve(_vesting, _amount);
+		IVesting(_vesting).stakeTokens(_amount);
+		emit TokensStaked(_vesting, _amount);
 	}
 
 	function createDevelopmentVesting(

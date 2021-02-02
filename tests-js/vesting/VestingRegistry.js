@@ -15,6 +15,8 @@ const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 const FOUR_WEEKS = new BN(4 * 7 * 24 * 60 * 60);
 
 const TEAM_VESTING_CLIFF = FOUR_WEEKS.mul(new BN(6));
+//TODO 36 or MAX_DURATION ?
+// const TEAM_VESTING_DURATION = FOUR_WEEKS.mul(new BN(36));
 const TEAM_VESTING_DURATION = MAX_DURATION;
 
 const TOTAL_SUPPLY = "100000000000000000000000000";
@@ -247,9 +249,12 @@ contract("VestingRegistry", (accounts) => {
 			let cliff = FOUR_WEEKS;
 			let duration = FOUR_WEEKS.mul(new BN(20));
 			let tx = await vestingRegistry.createVesting(account2, amount, cliff, duration);
+			let vestingAddress = await vestingRegistry.getVesting(account2);
+			await vestingRegistry.stakeTokens(vestingAddress, amount);
 
 			expectEvent(tx, "VestingCreated", {
 				tokenOwner: account2,
+				vesting: vestingAddress,
 				cliff: cliff,
 				duration: duration,
 				amount: amount,
@@ -258,7 +263,6 @@ contract("VestingRegistry", (accounts) => {
 			let balance = await SOV.balanceOf(vestingRegistry.address);
 			expect(balance.toString()).equal("0");
 
-			let vestingAddress = await vestingRegistry.getVesting(account2);
 			let vesting = await Vesting.at(vestingAddress);
 			await checkVesting(vesting, account2, cliff, duration, amount);
 
@@ -273,8 +277,11 @@ contract("VestingRegistry", (accounts) => {
 			let cliff = FOUR_WEEKS;
 			let duration = FOUR_WEEKS.mul(new BN(20));
 
+			await vestingRegistry.createVesting(account2, amount, cliff, duration);
+			let vestingAddress = await vestingRegistry.getVesting(account2);
+
 			await expectRevert(
-				vestingRegistry.createVesting(account2, amount, cliff, duration),
+				vestingRegistry.stakeTokens(vestingAddress, amount),
 				"ERC20: transfer amount exceeds balance"
 			);
 		});
@@ -287,13 +294,17 @@ contract("VestingRegistry", (accounts) => {
 			await SOV.transfer(vestingRegistry.address, amount);
 
 			let cliff = TEAM_VESTING_CLIFF;
-			// let duration = TEAM_VESTING_DURATION;
-			let duration = FOUR_WEEKS.mul(new BN(10));
-			//FIXME
+			let duration = TEAM_VESTING_DURATION;
 			let tx = await vestingRegistry.createTeamVesting(account2, amount, cliff, duration);
+			let vestingAddress = await vestingRegistry.getTeamVesting(account2);
+			let tx2 = await vestingRegistry.stakeTokens(vestingAddress, amount);
+
+			console.log("\ngasUsed = " + tx.receipt.gasUsed);
+			console.log("gasUsed = " + tx2.receipt.gasUsed);
 
 			expectEvent(tx, "TeamVestingCreated", {
 				tokenOwner: account2,
+				vesting: vestingAddress,
 				cliff: cliff,
 				duration: duration,
 				amount: amount,
@@ -302,7 +313,6 @@ contract("VestingRegistry", (accounts) => {
 			let balance = await SOV.balanceOf(vestingRegistry.address);
 			expect(balance.toString()).equal("0");
 
-			let vestingAddress = await vestingRegistry.getTeamVesting(account2);
 			let vesting = await Vesting.at(vestingAddress);
 			await checkVesting(vesting, account2, cliff, duration, amount);
 
@@ -314,7 +324,33 @@ contract("VestingRegistry", (accounts) => {
 			let cliff = TEAM_VESTING_CLIFF;
 			let duration = TEAM_VESTING_DURATION;
 
-			await expectRevert(vestingRegistry.createTeamVesting(account2, amount, cliff, duration), "ERC20: transfer amount exceeds balance");
+			await vestingRegistry.createTeamVesting(account2, amount, cliff, duration);
+			let vestingAddress = await vestingRegistry.getTeamVesting(account2);
+
+			await expectRevert(vestingRegistry.stakeTokens(vestingAddress, amount), "ERC20: transfer amount exceeds balance");
+		});
+	});
+
+	describe("stakeTokens", () => {
+		it("fails if the 0 address is passed as vesting address", async () => {
+			await expectRevert(
+				vestingRegistry.stakeTokens(ZERO_ADDRESS, new BN(1000000)),
+				"vesting address invalid"
+			);
+		});
+
+		it("fails if the 0 address is passed as an amount", async () => {
+			await expectRevert(
+				vestingRegistry.stakeTokens(account1, 0),
+				"amount invalid"
+			);
+		});
+
+		it("only owner should be able to stake tokens", async () => {
+			await expectRevert(
+				vestingRegistry.stakeTokens(account1, new BN(1000000), {from: account1}),
+				"unauthorized"
+			);
 		});
 	});
 
@@ -418,7 +454,9 @@ contract("VestingRegistry", (accounts) => {
 		let end = startDate.toNumber() + duration.toNumber();
 
 		let numIntervals = Math.floor((end - start) / FOUR_WEEKS) + 1;
-		let stakedPerInterval = amount / numIntervals;
+		let stakedPerInterval = Math.floor(amount / numIntervals);
+
+		let stakeForFirstInterval = amount - stakedPerInterval * (numIntervals - 1);
 
 		expect(await vesting.cliff()).to.be.bignumber.equal(cliff);
 		expect(await vesting.duration()).to.be.bignumber.equal(duration);
@@ -429,12 +467,20 @@ contract("VestingRegistry", (accounts) => {
 			let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(vesting.address, lockedTS);
 			let userStakingCheckpoints = await staking.userStakingCheckpoints(vesting.address, lockedTS, numUserStakingCheckpoints - 1);
 			assert.equal(numUserStakingCheckpoints.toString(), "1");
-			assert.equal(userStakingCheckpoints.stake.toString(), stakedPerInterval);
+			if (i === start) {
+				assert.equal(userStakingCheckpoints.stake.toString(), stakeForFirstInterval);
+			} else {
+				assert.equal(userStakingCheckpoints.stake.toString(), stakedPerInterval);
+			}
 
 			let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints(account, lockedTS);
 			let delegateStakingCheckpoints = await staking.delegateStakingCheckpoints(account, lockedTS, numUserStakingCheckpoints - 1);
 			assert.equal(numDelegateStakingCheckpoints.toString(), "1");
-			assert.equal(delegateStakingCheckpoints.stake.toString(), stakedPerInterval);
+			if (i === start) {
+				assert.equal(delegateStakingCheckpoints.stake.toString(), stakeForFirstInterval);
+			} else {
+				assert.equal(delegateStakingCheckpoints.stake.toString(), stakedPerInterval);
+			}
 		}
 	}
 });
