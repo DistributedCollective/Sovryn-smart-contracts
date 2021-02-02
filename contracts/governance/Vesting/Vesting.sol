@@ -94,7 +94,6 @@ contract Vesting is IVesting, Ownable, ApprovalReceiver {
 		if (startDate == 0) {
 			startDate = staking.timestampToLockDate(block.timestamp);
 		}
-		//adjust time here and skip adjustment in the loop
 		endDate = staking.timestampToLockDate(block.timestamp + duration);
 		//transfer the tokens to this contract
 		bool success = SOV.transferFrom(_sender, address(this), _amount);

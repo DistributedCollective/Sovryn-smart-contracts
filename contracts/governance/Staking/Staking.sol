@@ -170,7 +170,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		//end up a bit shorter than specified depending on the date of staking.
 		uint256 start = timestampToLockDate(block.timestamp + cliff);
 		if (duration > MAX_DURATION) {
-			duration - MAX_DURATION;
+			duration = MAX_DURATION;
 		}
 		uint256 end = timestampToLockDate(block.timestamp + duration);
 		uint256 numIntervals = (end - start) / intervalLength + 1;
