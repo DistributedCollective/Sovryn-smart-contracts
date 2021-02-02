@@ -17,7 +17,8 @@ contract VestingRegistry is Ownable {
 	uint256 public constant CSOV_VESTING_DURATION = 10 * FOUR_WEEKS;
 
 	uint256 public constant TEAM_VESTING_CLIFF = 6 * FOUR_WEEKS;
-	uint256 public constant TEAM_VESTING_DURATION = 36 * FOUR_WEEKS;
+//	uint256 public constant TEAM_VESTING_DURATION = 36 * FOUR_WEEKS;
+	uint256 public constant TEAM_VESTING_DURATION = 1092 days;
 
 	IVestingFactory public vestingFactory;
 
@@ -30,8 +31,8 @@ contract VestingRegistry is Ownable {
 	address public staking;
 	//@notice fee sharing proxy
 	address public feeSharingProxy;
-	//@notice the governance timelock address
-	address public governanceTimelock;
+	//@notice the vesting owner (e.g. governance timelock address)
+	address public vestingOwner;
 
 	//TODO can user have more than one vesting contract of some type ?
 	//user => vesting type => vesting contract
@@ -52,13 +53,14 @@ contract VestingRegistry is Ownable {
 	event DevelopmentVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 frequency, uint amount);
 	event AdoptionVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 frequency, uint amount);
 
+	//TODO setter for CSOVtokens ?
 	constructor(
 		address _vestingFactory,
 		address _SOV,
 		address[] memory _CSOVtokens,
 		address _staking,
 		address _feeSharingProxy,
-		address _governanceTimelock
+		address _vestingOwner
 	) public {
 		require(_vestingFactory != address(0), "vestingFactory address invalid");
 		require(_SOV != address(0), "SOV address invalid");
@@ -67,14 +69,14 @@ contract VestingRegistry is Ownable {
 		}
 		require(_staking != address(0), "staking address invalid");
 		require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
-		require(_governanceTimelock != address(0), "governanceTimelock address invalid");
+		require(_vestingOwner != address(0), "vestingOwner address invalid");
 
 		vestingFactory = IVestingFactory(_vestingFactory);
 		SOV = _SOV;
 		CSOVtokens = _CSOVtokens;
 		staking = _staking;
 		feeSharingProxy = _feeSharingProxy;
-		governanceTimelock = _governanceTimelock;
+		vestingOwner = _vestingOwner;
 	}
 
 	function transferSOV(address _receiver, uint256 _amount) public onlyOwner {
@@ -204,8 +206,7 @@ contract VestingRegistry is Ownable {
 	) internal returns (address) {
 		uint256 type_ = uint256(VestingType.TokenHolderVesting);
 		if (vestingContracts[_tokenOwner][type_] == address(0)) {
-			//TODO governanceTimelock ?
-			address vesting = vestingFactory.deployVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy, governanceTimelock);
+			address vesting = vestingFactory.deployVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy, vestingOwner);
 			vestingContracts[_tokenOwner][type_] = vesting;
 		}
 		return vestingContracts[_tokenOwner][type_];
@@ -218,8 +219,7 @@ contract VestingRegistry is Ownable {
 	) internal returns (address) {
 		uint256 type_ = uint256(VestingType.MultisigVesting);
 		if (vestingContracts[_tokenOwner][type_] == address(0)) {
-			//TODO governanceTimelock ?
-			address vesting = vestingFactory.deployTeamVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy, governanceTimelock);
+			address vesting = vestingFactory.deployTeamVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy, vestingOwner);
 			vestingContracts[_tokenOwner][type_] = vesting;
 		}
 		return vestingContracts[_tokenOwner][type_];
@@ -253,8 +253,7 @@ contract VestingRegistry is Ownable {
 		uint256 _frequency
 	) internal returns (address) {
 		if (vestingContracts[_tokenOwner][_type] == address(0)) {
-			//TODO governanceTimelock ?
-			address vesting = vestingFactory.deployDevelopmentVesting(SOV, _tokenOwner, _cliff, _duration, _frequency, governanceTimelock);
+			address vesting = vestingFactory.deployDevelopmentVesting(SOV, _tokenOwner, _cliff, _duration, _frequency, vestingOwner);
 			vestingContracts[_tokenOwner][_type] = vesting;
 		}
 		return vestingContracts[_tokenOwner][_type];

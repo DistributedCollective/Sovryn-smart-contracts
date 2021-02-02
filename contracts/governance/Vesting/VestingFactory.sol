@@ -15,14 +15,14 @@ contract VestingFactory is IVestingFactory, Ownable {
 		uint256 _cliff,
 		uint256 _duration,
 		address _feeSharing,
-		address _owner
+		address _vestingOwner
 	)
 		onlyOwner //owner - VestingRegistry
 		external
 		returns (address)
 	{
 		address vesting = address(new Vesting(_SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing));
-		Ownable(vesting).transferOwnership(_owner);
+		Ownable(vesting).transferOwnership(_vestingOwner);
 		return vesting;
 	}
 
@@ -33,14 +33,14 @@ contract VestingFactory is IVestingFactory, Ownable {
 		uint256 _cliff,
 		uint256 _duration,
 		address _feeSharing,
-		address _owner
+		address _vestingOwner
 	)
 		onlyOwner //owner - VestingRegistry
 		external
 		returns (address)
 	{
 		address vesting = address(new TeamVesting(_SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing));
-		Ownable(vesting).transferOwnership(_owner);
+		Ownable(vesting).transferOwnership(_vestingOwner);
 		return vesting;
 	}
 
@@ -50,14 +50,14 @@ contract VestingFactory is IVestingFactory, Ownable {
 		uint256 _cliff,
 		uint256 _duration,
 		uint256 _frequency,
-		address _owner
+		address _vestingOwner
 	)
 	onlyOwner //owner - VestingRegistry
 	external
 	returns (address)
 	{
 		address vesting = address(new DevelopmentVesting(_SOV, _tokenOwner, _cliff, _duration, _frequency));
-		Ownable(vesting).transferOwnership(_owner);
+		Ownable(vesting).transferOwnership(_vestingOwner);
 		return vesting;
 	}
 
