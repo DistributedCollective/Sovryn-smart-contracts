@@ -78,42 +78,84 @@ contract("VestingRegistry", (accounts) => {
 
 		it("fails if the 0 address is passed as vestingFactory address", async () => {
 			await expectRevert(
-				VestingRegistry.new(ZERO_ADDRESS, SOV.address, [cSOV1.address, cSOV2.address], staking.address, feeSharingProxy.address, account1),
+				VestingRegistry.new(
+					ZERO_ADDRESS,
+					SOV.address,
+					[cSOV1.address, cSOV2.address],
+					staking.address,
+					feeSharingProxy.address,
+					account1
+				),
 				"vestingFactory address invalid"
 			);
 		});
 
 		it("fails if the 0 address is passed as SOV address", async () => {
 			await expectRevert(
-				VestingRegistry.new(vestingFactory.address, ZERO_ADDRESS, [cSOV1.address, cSOV2.address], staking.address, feeSharingProxy.address, account1),
+				VestingRegistry.new(
+					vestingFactory.address,
+					ZERO_ADDRESS,
+					[cSOV1.address, cSOV2.address],
+					staking.address,
+					feeSharingProxy.address,
+					account1
+				),
 				"SOV address invalid"
 			);
 		});
 
 		it("fails if the 0 address is passed as cSOV address", async () => {
 			await expectRevert(
-				VestingRegistry.new(vestingFactory.address, SOV.address, [cSOV1.address, cSOV2.address, ZERO_ADDRESS], staking.address, feeSharingProxy.address, account1),
+				VestingRegistry.new(
+					vestingFactory.address,
+					SOV.address,
+					[cSOV1.address, cSOV2.address, ZERO_ADDRESS],
+					staking.address,
+					feeSharingProxy.address,
+					account1
+				),
 				"CSOV address invalid"
 			);
 		});
 
 		it("fails if the 0 address is passed as staking address", async () => {
 			await expectRevert(
-				VestingRegistry.new(vestingFactory.address, SOV.address, [cSOV1.address, cSOV2.address], ZERO_ADDRESS, feeSharingProxy.address, account1),
+				VestingRegistry.new(
+					vestingFactory.address,
+					SOV.address,
+					[cSOV1.address, cSOV2.address],
+					ZERO_ADDRESS,
+					feeSharingProxy.address,
+					account1
+				),
 				"staking address invalid"
 			);
 		});
 
 		it("fails if the 0 address is passed as feeSharingProxy address", async () => {
 			await expectRevert(
-				VestingRegistry.new(vestingFactory.address, SOV.address, [cSOV1.address, cSOV2.address], staking.address, ZERO_ADDRESS, account1),
+				VestingRegistry.new(
+					vestingFactory.address,
+					SOV.address,
+					[cSOV1.address, cSOV2.address],
+					staking.address,
+					ZERO_ADDRESS,
+					account1
+				),
 				"feeSharingProxy address invalid"
 			);
 		});
 
 		it("fails if the 0 address is passed as vestingOwner address", async () => {
 			await expectRevert(
-				VestingRegistry.new(vestingFactory.address, SOV.address, [cSOV1.address, cSOV2.address], staking.address, feeSharingProxy.address, ZERO_ADDRESS),
+				VestingRegistry.new(
+					vestingFactory.address,
+					SOV.address,
+					[cSOV1.address, cSOV2.address],
+					staking.address,
+					feeSharingProxy.address,
+					ZERO_ADDRESS
+				),
 				"vestingOwner address invalid"
 			);
 		});
@@ -131,10 +173,7 @@ contract("VestingRegistry", (accounts) => {
 		});
 
 		it("fails if the 0 address is passed as cSOV address", async () => {
-			await expectRevert(
-				vestingRegistry.setCSOVtokens([cSOV1.address, cSOV2.address, ZERO_ADDRESS]),
-				"CSOV address invalid"
-			);
+			await expectRevert(vestingRegistry.setCSOVtokens([cSOV1.address, cSOV2.address, ZERO_ADDRESS]), "CSOV address invalid");
 		});
 	});
 
@@ -151,26 +190,16 @@ contract("VestingRegistry", (accounts) => {
 		});
 
 		it("only owner should be able to transfer", async () => {
-			await expectRevert(
-				vestingRegistry.transferSOV(account1, 1000, {from: account1}),
-				"unauthorized"
-			);
+			await expectRevert(vestingRegistry.transferSOV(account1, 1000, { from: account1 }), "unauthorized");
 		});
 
 		it("fails if the 0 address is passed as receiver address", async () => {
-			await expectRevert(
-				vestingRegistry.transferSOV(ZERO_ADDRESS, 1000),
-				"receiver address invalid"
-			);
+			await expectRevert(vestingRegistry.transferSOV(ZERO_ADDRESS, 1000), "receiver address invalid");
 		});
 
 		it("fails if the 0 is passed as an amount", async () => {
-			await expectRevert(
-				vestingRegistry.transferSOV(account1, 0),
-				"amount invalid"
-			);
+			await expectRevert(vestingRegistry.transferSOV(account1, 0), "amount invalid");
 		});
-
 	});
 
 	describe("exchangeAllCSOV", () => {
@@ -182,10 +211,10 @@ contract("VestingRegistry", (accounts) => {
 			let amount = amount1.add(amount2);
 			await SOV.transfer(vestingRegistry.address, amount);
 
-			await cSOV1.approve(vestingRegistry.address, amount1, {from: account2})
-			await cSOV2.approve(vestingRegistry.address, amount2, {from: account2})
+			await cSOV1.approve(vestingRegistry.address, amount1, { from: account2 });
+			await cSOV2.approve(vestingRegistry.address, amount2, { from: account2 });
 
-			let tx = await vestingRegistry.exchangeAllCSOV({from: account2});
+			let tx = await vestingRegistry.exchangeAllCSOV({ from: account2 });
 
 			expectEvent(tx, "CSOVTokensExchanged", {
 				caller: account2,
@@ -206,41 +235,28 @@ contract("VestingRegistry", (accounts) => {
 			let vesting = await Vesting.at(vestingAddress);
 			await checkVesting(vesting, account2, cliff, duration, amount);
 
-			await expectRevert(
-				vesting.governanceWithdrawTokens(account2),
-				"revert"
-			);
+			await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
 		});
 
 		it("fails if the 0 is cSOV amount", async () => {
-			await expectRevert(
-				vestingRegistry.exchangeAllCSOV({from: account2}),
-				"amount invalid"
-			);
+			await expectRevert(vestingRegistry.exchangeAllCSOV({ from: account2 }), "amount invalid");
 		});
 
 		it("fails if the 0 cSOV transfer is not approved", async () => {
 			let amount = new BN(1000);
 			await cSOV1.transfer(account2, amount);
 
-			await expectRevert(
-				vestingRegistry.exchangeAllCSOV({from: account2}),
-				"invalid transfer"
-			);
+			await expectRevert(vestingRegistry.exchangeAllCSOV({ from: account2 }), "invalid transfer");
 		});
 
 		it("fails if vestingRegistry doesn't have enough SOV", async () => {
 			let amount = new BN(1000);
 			await cSOV1.transfer(account2, amount);
 
-			await cSOV1.approve(vestingRegistry.address, amount, {from: account2})
+			await cSOV1.approve(vestingRegistry.address, amount, { from: account2 });
 
-			await expectRevert(
-				vestingRegistry.exchangeAllCSOV({from: account2}),
-				"ERC20: transfer amount exceeds balance"
-			);
+			await expectRevert(vestingRegistry.exchangeAllCSOV({ from: account2 }), "ERC20: transfer amount exceeds balance");
 		});
-
 	});
 
 	describe("createVesting", () => {
@@ -268,10 +284,7 @@ contract("VestingRegistry", (accounts) => {
 			let vesting = await Vesting.at(vestingAddress);
 			await checkVesting(vesting, account2, cliff, duration, amount);
 
-			await expectRevert(
-				vesting.governanceWithdrawTokens(account2),
-				"revert"
-			);
+			await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
 		});
 
 		it("fails if vestingRegistry doesn't have enough SOV", async () => {
@@ -282,12 +295,8 @@ contract("VestingRegistry", (accounts) => {
 			await vestingRegistry.createVesting(account2, amount, cliff, duration);
 			let vestingAddress = await vestingRegistry.getVesting(account2);
 
-			await expectRevert(
-				vestingRegistry.stakeTokens(vestingAddress, amount),
-				"ERC20: transfer amount exceeds balance"
-			);
+			await expectRevert(vestingRegistry.stakeTokens(vestingAddress, amount), "ERC20: transfer amount exceeds balance");
 		});
-
 	});
 
 	describe("createTeamVesting", () => {
@@ -335,24 +344,15 @@ contract("VestingRegistry", (accounts) => {
 
 	describe("stakeTokens", () => {
 		it("fails if the 0 address is passed as vesting address", async () => {
-			await expectRevert(
-				vestingRegistry.stakeTokens(ZERO_ADDRESS, new BN(1000000)),
-				"vesting address invalid"
-			);
+			await expectRevert(vestingRegistry.stakeTokens(ZERO_ADDRESS, new BN(1000000)), "vesting address invalid");
 		});
 
 		it("fails if the 0 address is passed as an amount", async () => {
-			await expectRevert(
-				vestingRegistry.stakeTokens(account1, 0),
-				"amount invalid"
-			);
+			await expectRevert(vestingRegistry.stakeTokens(account1, 0), "amount invalid");
 		});
 
 		it("only owner should be able to stake tokens", async () => {
-			await expectRevert(
-				vestingRegistry.stakeTokens(account1, new BN(1000000), {from: account1}),
-				"unauthorized"
-			);
+			await expectRevert(vestingRegistry.stakeTokens(account1, new BN(1000000), { from: account1 }), "unauthorized");
 		});
 	});
 
@@ -385,7 +385,7 @@ contract("VestingRegistry", (accounts) => {
 			expect(await vesting.duration()).to.be.bignumber.equal(duration);
 			expect(await vesting.frequency()).to.be.bignumber.equal(frequency);
 
-			let vestingSchedule =  await vesting.schedules(0);
+			let vestingSchedule = await vesting.schedules(0);
 			expect(vestingSchedule.amount).to.be.bignumber.equal(amount);
 			expect(vestingSchedule.withdrawnAmount).to.be.bignumber.equal(new BN(0));
 		});
@@ -400,7 +400,6 @@ contract("VestingRegistry", (accounts) => {
 				"ERC20: transfer amount exceeds balance"
 			);
 		});
-
 	});
 
 	describe("createAdoptionVesting", () => {
@@ -432,7 +431,7 @@ contract("VestingRegistry", (accounts) => {
 			expect(await vesting.duration()).to.be.bignumber.equal(duration);
 			expect(await vesting.frequency()).to.be.bignumber.equal(frequency);
 
-			let vestingSchedule =  await vesting.schedules(0);
+			let vestingSchedule = await vesting.schedules(0);
 			expect(vestingSchedule.amount).to.be.bignumber.equal(amount);
 			expect(vestingSchedule.withdrawnAmount).to.be.bignumber.equal(new BN(0));
 		});
@@ -447,7 +446,6 @@ contract("VestingRegistry", (accounts) => {
 				"ERC20: transfer amount exceeds balance"
 			);
 		});
-
 	});
 
 	async function checkVesting(vesting, account, cliff, duration, amount) {
