@@ -17,9 +17,9 @@ contract DevelopmentFund is Ownable {
 	/// @notice The SOV token contract.
 	IERC20 public SOV;
 
-	/// @notice The owner of the locked tokens.
+	/// @notice The owner of the locked tokens (usually Governance).
 	address public lockedTokenOwner;
-	/// @notice The owner of the unlocked tokens.
+	/// @notice The owner of the unlocked tokens (usually MultiSig).
 	address public unlockedTokenOwner;
 	/// @notice The emergency transfer wallet/contract.
 	address public safeVault;
@@ -89,6 +89,11 @@ contract DevelopmentFund is Ownable {
 
 	/* Modifiers */
 
+	modifier onlyLockedTokenOwner() {
+		require(msg.sender == lockedTokenOwner, "Only Locked Token Owner can call this.");
+		_;
+	}
+
 	modifier onlyUnlockedTokenOwner() {
 		require(msg.sender == unlockedTokenOwner, "Only Unlocked Token Owner can call this.");
 		_;
@@ -120,15 +125,13 @@ contract DevelopmentFund is Ownable {
 		unlockedTokenOwner = _unlockedTokenOwner;
 
 		lastReleaseTime = block.timestamp;
-
-		_transferOwnership(_lockedTokenOwner);
 	}
 
 	/**
 	 * @notice Update Locked Token Owner.
 	 * @param _newLockedTokenOwner The owner of the locked tokens & contract.
 	 */
-	function updateLockedTokenOwner(address _newLockedTokenOwner) public onlyOwner {
+	function updateLockedTokenOwner(address _newLockedTokenOwner) public onlyLockedTokenOwner {
 		require(_newLockedTokenOwner != address(0), "New locked token owner address invalid.");
 
 		newLockedTokenOwner = _newLockedTokenOwner;
@@ -147,8 +150,6 @@ contract DevelopmentFund is Ownable {
 
 		lockedTokenOwner = newLockedTokenOwner;
 
-		_transferOwnership(lockedTokenOwner);
-
 		newLockedTokenOwner = address(0);
 	}
 
@@ -156,7 +157,7 @@ contract DevelopmentFund is Ownable {
 	 * @notice Update Unlocked Token Owner.
 	 * @param _newUnlockedTokenOwner The new unlocked token owner.
 	 */
-	function updateUnlockedTokenOwner(address _newUnlockedTokenOwner) public onlyOwner {
+	function updateUnlockedTokenOwner(address _newUnlockedTokenOwner) public onlyLockedTokenOwner {
 		require(_newUnlockedTokenOwner != address(0), "New unlocked token owner address invalid.");
 
 		unlockedTokenOwner = _newUnlockedTokenOwner;
@@ -192,7 +193,7 @@ contract DevelopmentFund is Ownable {
 		uint256 _newLastReleaseTime,
 		uint256[] memory _releaseDuration,
 		uint256[] memory _releaseTokenAmount
-	) public onlyOwner {
+	) public onlyLockedTokenOwner {
 		/// Checking if the schedule duration and token allocation length matches.
 		require(_releaseDuration.length == _releaseTokenAmount.length, "Release Schedule does not match.");
 
@@ -299,7 +300,7 @@ contract DevelopmentFund is Ownable {
 	 * @dev This could be called when the current development fund has to be upgraded.
 	 * @param _receiver The address which receives this token transfer.
 	 */
-	function transferTokensByLockedTokenOwner(address _receiver) public onlyOwner {
+	function transferTokensByLockedTokenOwner(address _receiver) public onlyLockedTokenOwner {
 		bool txStatus = SOV.transfer(_receiver, remainingTokens);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
 
