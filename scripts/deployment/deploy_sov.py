@@ -9,17 +9,12 @@ def main():
     if thisNetwork == "development":
         acct = accounts[0]
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
-        cSOV1 = acct.deploy(TestToken, "cSOV1", "cSOV1", 18, 1e26).address
-        cSOV2 = acct.deploy(TestToken, "cSOV2", "cSOV2", 18, 1e26).address
-
     elif thisNetwork == "testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
-
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
-
     else:
         raise Exception("network not supported")
 
@@ -28,12 +23,15 @@ def main():
     protocolAddress = contracts['sovrynProtocol']
     if (thisNetwork == "testnet" or thisNetwork == "rsk-mainnet"):
         vestingOwner = contracts['multisig']
+        cSOV1 = contracts['cSOV1']
+        cSOV2 = contracts['cSOV2']
     else:
         vestingOwner = acct
+        cSOV1 = acct.deploy(TestToken, "cSOV1", "cSOV1", 18, 1e26).address
+        cSOV2 = acct.deploy(TestToken, "cSOV2", "cSOV2", 18, 1e26).address
 
     #deploy SOV
     SOVtoken = acct.deploy(SOV, 1e26).address
-
 
 
     #deploy the staking contracts
@@ -47,7 +45,6 @@ def main():
 
     # set fee sharing
     staking.setFeeSharing(feeSharing.address)
-
 
 
     #deploy VestingFactory
@@ -69,3 +66,4 @@ def main():
 
 
     # TODO Ecosystem fund, Programmatic sale
+    # TODO move rest of the tokens
