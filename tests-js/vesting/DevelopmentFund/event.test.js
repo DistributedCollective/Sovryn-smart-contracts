@@ -162,7 +162,7 @@ contract("DevelopmentFund (Events)", (accounts) => {
 		await developmentFund.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount, { from: governance });
 
 		// Increasing the time to pass atleast one duration.
-		await time.increase(releaseDuration[releaseDuration.length - 1]);
+		await time.increase(releaseDuration[releaseDuration.length - 1] + 1);
 
 		let txReceipt = await developmentFund.withdrawTokensByUnlockedTokenOwner(releaseTokenAmount[releaseTokenAmount.length - 1], {
 			from: multisig,

@@ -395,7 +395,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await developmentFund.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount, { from: governance });
 
 		// Increasing the time to pass atleast one duration.
-		await time.increase(releaseDuration[releaseDuration.length - 1]);
+		await time.increase(releaseDuration[releaseDuration.length - 1] + 1);
 
 		await developmentFund.withdrawTokensByUnlockedTokenOwner(releaseTokenAmount[releaseTokenAmount.length - 1], { from: multisig });
 
@@ -442,8 +442,8 @@ contract("DevelopmentFund (State)", (accounts) => {
 			zero,
 			lastReleaseTime.toNumber() + releaseDuration[releaseDuration.length - 1],
 			zero,
-			releaseDuration,
-			releaseTokenAmount
+			zero,
+			zero
 		);
 	});
 
@@ -458,11 +458,11 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await developmentFund.changeTokenReleaseSchedule(currentTime, releaseDuration, releaseTokenAmount, { from: governance });
 
 		// Increasing the time to pass atleast one duration.
-		await time.increase(releaseDuration[releaseDuration.length - 1]);
+		await time.increase(releaseDuration[releaseDuration.length - 1] + 1);
 
 		let withdrawAmount = Math.floor(releaseTokenAmount[releaseTokenAmount.length - 1] / 2);
 		await developmentFund.withdrawTokensByUnlockedTokenOwner(withdrawAmount, { from: multisig });
-		await checkStatus(developmentFund, [0, 0, 0, 1, 0, 0, 0], zero, zero, zero, currentTime, zero, releaseDuration, releaseTokenAmount);
+		await checkStatus(developmentFund, [0, 0, 0, 1, 0, 0, 0], zero, zero, zero, currentTime, zero, zero, zero);
 	});
 
 	it("Zero Tokens could not be withdrawed from release schedule.", async () => {
@@ -475,6 +475,6 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await testToken.approve(developmentFund.address, value, { from: userOne });
 		await developmentFund.depositTokens(value, { from: userOne });
 		await developmentFund.transferTokensByLockedTokenOwner(creator, { from: governance });
-		await checkStatus(developmentFund, [0, 0, 0, 0, 1, 0, 0], zero, zero, zero, zero, zero, releaseDuration, releaseTokenAmount);
+		await checkStatus(developmentFund, [0, 0, 0, 0, 1, 0, 0], zero, zero, zero, zero, zero, zero, zero);
 	});
 });
