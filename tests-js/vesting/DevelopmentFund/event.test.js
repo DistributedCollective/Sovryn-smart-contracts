@@ -100,7 +100,7 @@ contract("DevelopmentFund (Events)", (accounts) => {
 		});
 	});
 
-	it("Approving a new locked token owner should emit NewLockedOwnerApproved event.", async () => {
+	it("Approving a new Locked Token Owner should emit NewLockedOwnerApproved event.", async () => {
 		await developmentFund.updateLockedTokenOwner(newGovernance, { from: governance });
 		let txReceipt = await developmentFund.approveLockedTokenOwner({ from: multisig });
 		expectEvent(txReceipt, "NewLockedOwnerApproved", {

@@ -46,9 +46,9 @@ function convertBNArrayToNumArray(bnArray) {
  *
  * @param contractInstance The contract instance.
  * @param checkArray The items to be checked.
- * @param lockedTokenOwner The locked token owner.
- * @param unlockedTokenOwner The unlocked token owner.
- * @param newLockedTokenOwner The new locked token owner.
+ * @param lockedTokenOwner The Locked Token Owner.
+ * @param unlockedTokenOwner The Unlocked Token Owner.
+ * @param newLockedTokenOwner The new Locked Token Owner.
  * @param lastReleaseTime The last release time.
  * @param remainingTokens The remaining tokens in contract.
  * @param releaseDuration The release duration of a schedule.
@@ -204,18 +204,18 @@ contract("DevelopmentFund (State)", (accounts) => {
 		);
 	});
 
-	it("Adding new Locked Token Owner should update the new locked token owner storage.", async () => {
+	it("Adding new Locked Token Owner should update the new Locked Token Owner storage.", async () => {
 		await developmentFund.updateLockedTokenOwner(newGovernance, { from: governance });
 		await checkStatus(developmentFund, [0, 0, 1, 0, 0, 0, 0], zero, zero, newGovernance, zero, zero, zero, zero);
 	});
 
-	it("Approving new Locked Token Owner should update the locked token owner.", async () => {
+	it("Approving new Locked Token Owner should update the Locked Token Owner.", async () => {
 		await developmentFund.updateLockedTokenOwner(newGovernance, { from: governance });
 		await developmentFund.approveLockedTokenOwner({ from: multisig });
 		await checkStatus(developmentFund, [1, 0, 0, 0, 0, 0, 0], newGovernance, zero, zero, zero, zero, zero, zero);
 	});
 
-	it("After approval of new Locked Token owner, newLockedTokenOwner should be zero address.", async () => {
+	it("After approval of new Locked Token Owner, newLockedTokenOwner should be zero address.", async () => {
 		await developmentFund.updateLockedTokenOwner(newGovernance, { from: governance });
 		await developmentFund.approveLockedTokenOwner({ from: multisig });
 		await checkStatus(developmentFund, [0, 0, 1, 0, 0, 0, 0], zero, zero, constants.ZERO_ADDRESS, zero, zero, zero, zero);
@@ -412,7 +412,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await developmentFund.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount, { from: governance });
 
 		// Increasing the time to pass atleast one duration.
-		await time.increase(releaseDuration[releaseDuration.length - 1]);
+		await time.increase(releaseDuration[releaseDuration.length - 1] + 1);
 
 		let withdrawAmount = Math.floor(releaseTokenAmount[releaseTokenAmount.length - 1] / 2);
 		await developmentFund.withdrawTokensByUnlockedTokenOwner(withdrawAmount, { from: multisig });
@@ -428,7 +428,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await developmentFund.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount, { from: governance });
 
 		// Increasing the time to pass atleast one duration.
-		await time.increase(releaseDuration[releaseDuration.length - 1]);
+		await time.increase(releaseDuration[releaseDuration.length - 1] + 1);
 
 		let lastReleaseTime = await developmentFund.lastReleaseTime();
 

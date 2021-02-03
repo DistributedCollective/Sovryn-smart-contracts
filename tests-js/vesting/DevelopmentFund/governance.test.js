@@ -44,9 +44,9 @@ function convertBNArrayToNumArray(bnArray) {
  *
  * @param contractInstance The contract instance.
  * @param checkArray The items to be checked.
- * @param lockedTokenOwner The locked token owner.
- * @param unlockedTokenOwner The unlocked token owner.
- * @param newLockedTokenOwner The new locked token owner.
+ * @param lockedTokenOwner The Locked Token Owner.
+ * @param unlockedTokenOwner The Unlocked Token Owner.
+ * @param newLockedTokenOwner The new Locked Token Owner.
  * @param lastReleaseTime The last release time.
  * @param remainingTokens The remaining tokens in contract.
  * @param releaseDuration The release duration of a schedule.

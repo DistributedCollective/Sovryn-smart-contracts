@@ -92,7 +92,10 @@ contract("DevelopmentFund (Any User Functions)", (accounts) => {
 	});
 
 	it("Except Locked Token Owner, no one should be able to add new Locked Token Owner.", async () => {
-		await expectRevert(developmentFund.updateLockedTokenOwner(newGovernance, { from: userOne }), "unauthorized");
+		await expectRevert(
+			developmentFund.updateLockedTokenOwner(newGovernance, { from: userOne }),
+			"Only Locked Token Owner can call this."
+		);
 	});
 
 	it("Except current Unlocked Token Owner, no one should be able to approve Locked Token Owner.", async () => {
@@ -101,7 +104,10 @@ contract("DevelopmentFund (Any User Functions)", (accounts) => {
 	});
 
 	it("Except Locked Token Owner, no one should be able to update Unlocked Token Owner.", async () => {
-		await expectRevert(developmentFund.updateUnlockedTokenOwner(newMultisig, { from: userOne }), "unauthorized");
+		await expectRevert(
+			developmentFund.updateUnlockedTokenOwner(newMultisig, { from: userOne }),
+			"Only Locked Token Owner can call this."
+		);
 	});
 
 	it("Anyone could deposit Tokens.", async () => {
@@ -116,7 +122,7 @@ contract("DevelopmentFund (Any User Functions)", (accounts) => {
 		releaseTokenAmount = createReleaseTokenAmount();
 		await expectRevert(
 			developmentFund.changeTokenReleaseSchedule(newReleaseTime, releaseDuration, releaseTokenAmount, { from: userOne }),
-			"unauthorized"
+			"Only Locked Token Owner can call this."
 		);
 	});
 
@@ -136,6 +142,9 @@ contract("DevelopmentFund (Any User Functions)", (accounts) => {
 	});
 
 	it("Except Locked Token Owner, no one should be able to transfer all tokens to a receiver.", async () => {
-		await expectRevert(developmentFund.transferTokensByLockedTokenOwner(creator, { from: userOne }), "unauthorized");
+		await expectRevert(
+			developmentFund.transferTokensByLockedTokenOwner(creator, { from: userOne }),
+			"Only Locked Token Owner can call this."
+		);
 	});
 });

@@ -102,21 +102,27 @@ contract("DevelopmentFund (Multisig Functions)", (accounts) => {
 		await testToken.approve(developmentFund.address, totalReleaseTokenAmount);
 	});
 
-	it("Unlocked Token owner should not be able to add locked token owner.", async () => {
-		await expectRevert(developmentFund.updateLockedTokenOwner(newGovernance, { from: multisig }), "unauthorized");
+	it("Unlocked Token Owner should not be able to add Locked Token Owner.", async () => {
+		await expectRevert(
+			developmentFund.updateLockedTokenOwner(newGovernance, { from: multisig }),
+			"Only Locked Token Owner can call this."
+		);
 	});
 
-	it("Unlocked Token owner should be able to approve a locked token owner.", async () => {
+	it("Unlocked Token Owner should be able to approve a Locked Token Owner.", async () => {
 		await developmentFund.updateLockedTokenOwner(newGovernance, { from: governance });
 		await developmentFund.approveLockedTokenOwner({ from: multisig });
 	});
 
-	it("Unlocked Token owner should not be able to approve a locked token owner, if not added by governance.", async () => {
+	it("Unlocked Token Owner should not be able to approve a Locked Token Owner, if not added by governance.", async () => {
 		await expectRevert(developmentFund.approveLockedTokenOwner({ from: multisig }), "No new locked owner added.");
 	});
 
 	it("Unlocked Token Owner should not be able to update Unlocked Token Owner.", async () => {
-		await expectRevert(developmentFund.updateUnlockedTokenOwner(newMultisig, { from: multisig }), "unauthorized");
+		await expectRevert(
+			developmentFund.updateUnlockedTokenOwner(newMultisig, { from: multisig }),
+			"Only Locked Token Owner can call this."
+		);
 	});
 
 	it("Unlocked Token Owner should not be able to change the release schedule.", async () => {
@@ -124,7 +130,7 @@ contract("DevelopmentFund (Multisig Functions)", (accounts) => {
 		releaseTokenAmount = createReleaseTokenAmount();
 		await expectRevert(
 			developmentFund.changeTokenReleaseSchedule(newReleaseTime, releaseDuration, releaseTokenAmount, { from: multisig }),
-			"unauthorized"
+			"Only Locked Token Owner can call this."
 		);
 	});
 
@@ -157,7 +163,7 @@ contract("DevelopmentFund (Multisig Functions)", (accounts) => {
 		await developmentFund.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount, { from: governance });
 
 		// Increasing the time to pass atleast one duration.
-		await time.increase(releaseDuration[releaseDuration.length - 1]);
+		await time.increase(releaseDuration[releaseDuration.length - 1] + 1);
 
 		await developmentFund.withdrawTokensByUnlockedTokenOwner(Math.floor(releaseTokenAmount[releaseTokenAmount.length - 1] / 2), {
 			from: multisig,
@@ -172,7 +178,7 @@ contract("DevelopmentFund (Multisig Functions)", (accounts) => {
 		await developmentFund.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount, { from: governance });
 
 		// Increasing the time to pass atleast one duration.
-		await time.increase(releaseDuration[releaseDuration.length - 1] + releaseDuration[releaseDuration.length - 2]);
+		await time.increase(releaseDuration[releaseDuration.length - 1] + releaseDuration[releaseDuration.length - 2] + 1);
 
 		await developmentFund.withdrawTokensByUnlockedTokenOwner(
 			releaseTokenAmount[releaseTokenAmount.length - 1] + Math.floor(releaseTokenAmount[releaseTokenAmount.length - 2] / 2),
@@ -188,7 +194,7 @@ contract("DevelopmentFund (Multisig Functions)", (accounts) => {
 		await developmentFund.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount, { from: governance });
 
 		// Increasing the time to pass atleast one duration.
-		await time.increase(releaseDuration[releaseDuration.length - 1]);
+		await time.increase(releaseDuration[releaseDuration.length - 1] + 1);
 
 		// Checking token balance of multisig contract before tx
 		let beforeTokenBalance = await testToken.balanceOf(multisig);
@@ -219,6 +225,9 @@ contract("DevelopmentFund (Multisig Functions)", (accounts) => {
 	});
 
 	it("Unlocked Token Owner should not be able to transfer all tokens to a receiver.", async () => {
-		await expectRevert(developmentFund.transferTokensByLockedTokenOwner(creator, { from: multisig }), "unauthorized");
+		await expectRevert(
+			developmentFund.transferTokensByLockedTokenOwner(creator, { from: multisig }),
+			"Only Locked Token Owner can call this."
+		);
 	});
 });
