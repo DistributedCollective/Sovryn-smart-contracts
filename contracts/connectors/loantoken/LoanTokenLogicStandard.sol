@@ -17,7 +17,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	// DON'T ADD VARIABLES HERE, PLEASE
 
 	uint256 public constant VERSION = 5;
-	address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
+
+	// address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF; // replaced for arbitraryCallerAddress in LoanTokenSettingsLowerAdmin
 
 	function() external {
 		revert("loan token logic - fallback not allowed");
@@ -78,14 +79,14 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 		// arbitrary call
 		(bool success, bytes memory returnData) =
-			arbitraryCaller.call.value(msg.value)(
+			arbitraryCallerAddress.call.value(msg.value)(
 				abi.encodeWithSelector(
 					0xde064e0d, // sendCall(address,bytes)
 					target,
 					callData
 				)
 			);
-		require(success, "arbitraryCaller.call failed");
+		require(success, "arbitraryCallerAddress.call failed");
 
 		// unlock totalAssetSupply
 		_flTotalAssetSupply = 0;

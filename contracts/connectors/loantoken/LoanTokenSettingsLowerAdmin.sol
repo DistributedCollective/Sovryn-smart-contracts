@@ -23,6 +23,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 
 	//Add new variables here on the bottom
 	address public pauser;
+	address public arbitraryCallerAddress; //a universal delegate caller, used for flash borrowing
 	mapping(address => bool) public flashLoanWhiteList; //#123 whitelist flashloans
 
 	//@todo check for restrictions in this contract
@@ -37,6 +38,10 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	}
 
 	event SetTransactionLimits(address[] addresses, uint256[] limits);
+
+	function setArbitraryCallerAddress(address caller) public onlyAdmin {
+		arbitraryCallerAddress = caller;
+	}
 
 	function addToFlashLoanWhileList(address addressToAdd) public onlyAdmin {
 		flashLoanWhiteList[addressToAdd] = true;
