@@ -106,6 +106,14 @@ def main():
     # governorAcceptAdmin("governorOwner")
     # governorAcceptAdmin("governorAdmin")
 
+    #replaceLoanTokenLogicOnAllContracts()
+
+    setEarlyAccessToken(contracts['iDOC'], contracts['og'])
+    setEarlyAccessToken(contracts['iUSDT'], contracts['og'])
+    setEarlyAccessToken(contracts['iRBTC'], contracts['og'])
+    setEarlyAccessToken(contracts['iBPro'], contracts['og'])
+
+
 def loadConfig():
     global contracts, acct
     this_network = network.show_active()
@@ -632,11 +640,11 @@ def replaceSwapsImplSovrynSwap():
 
 def replaceLoanTokenLogicOnAllContracts():
     print("replacing loan token logic")
-    logicContract = acct.deploy(LoanTokenLogicStandard)
-    print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
-    replaceLoanTokenLogic(contracts['iDOC'],logicContract.address)
-    replaceLoanTokenLogic(contracts['iUSDT'],logicContract.address)
-    replaceLoanTokenLogic(contracts['iBPro'],logicContract.address)
+    #logicContract = acct.deploy(LoanTokenLogicStandard)
+    #print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
+    #replaceLoanTokenLogic(contracts['iDOC'],logicContract.address)
+    replaceLoanTokenLogic(contracts['iUSDT'],'0xFeEe82AF436cf937990f9A1087bb6c1106F35751')
+    replaceLoanTokenLogic(contracts['iBPro'],'0xFeEe82AF436cf937990f9A1087bb6c1106F35751')
     logicContract = acct.deploy(LoanTokenLogicWrbtc)
     print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
     replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
@@ -647,7 +655,7 @@ def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(loanToken.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
-    print(txId);
+    print(txId)
 
 def checkRates():
     print('reading price from WRBTC to DOC')
@@ -698,3 +706,11 @@ def governorAcceptAdmin(type):
     tx = multisig.submitTransaction(governor.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
+
+def setEarlyAccessToken(loanTokenAddress, EATokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
+    data = loanToken.setEarlyAccessToken.encode_input(EATokenAddress)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(loanToken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);

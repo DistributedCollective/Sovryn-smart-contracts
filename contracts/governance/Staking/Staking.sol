@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 import "./WeightedStaking.sol";
 import "./IStaking.sol";
 import "../Vesting/IVesting.sol";
+import "../../rsk/RSKAddrValidator.sol";
 
 contract Staking is IStaking, WeightedStaking {
 	/**
@@ -317,7 +318,7 @@ contract Staking is IStaking, WeightedStaking {
 		bytes32 structHash = keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, lockDate, nonce, expiry));
 		bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
 		address signatory = ecrecover(digest, v, r, s);
-		require(signatory != address(0), "Staking::delegateBySig: invalid signature");
+		require(RSKAddrValidator.checkPKNotZero(signatory), "Staking::delegateBySig: invalid signature");
 		require(nonce == nonces[signatory]++, "Staking::delegateBySig: invalid nonce");
 		require(now <= expiry, "Staking::delegateBySig: signature expired");
 		return _delegate(signatory, delegatee, lockDate);
@@ -454,10 +455,10 @@ contract Staking is IStaking, WeightedStaking {
 		//we need to iterate from first possible stake date after deployment to the latest from current time
 		uint256 j = 0;
 		for (uint256 i = kickoffTS + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
-			uint96 currentBalance = currentBalance(account, i);
-			if (currentBalance > 0) {
+			uint96 balance = currentBalance(account, i);
+			if (balance > 0) {
 				dates[j] = i;
-				stakes[j] = currentBalance;
+				stakes[j] = balance;
 				j++;
 			}
 		}

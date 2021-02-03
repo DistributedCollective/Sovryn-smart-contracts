@@ -133,3 +133,12 @@ def test_getMaxEscrowAmount(loanToken, set_demand_curve, lend_to_pool):
     #note maxLoanSize != supply because getMaxEscrowAmount assumes an interest rate of 100%, but less is actually used
     #checked the correctnessby printing the value but don't add a manual check here because no time and having issues with brownie
     #ReturnValue
+
+def test_margin_trading_without_early_access_token_should_fail(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain, TestToken):
+    # prepare early access token
+    early_access_token = accounts[0].deploy(TestToken, "Sovryn Early Access Token", "SEAT", 1, 10)
+    early_access_token.transfer(accounts[1], early_access_token.balanceOf(accounts[0]))
+    loanToken.setEarlyAccessToken(early_access_token.address)
+
+    with reverts("No early access tokens"):
+        margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain, False) 
