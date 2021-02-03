@@ -202,6 +202,37 @@ contract("VestingRegistry", (accounts) => {
 		});
 	});
 
+	describe("setBlacklistFlag", () => {
+		it("should be able to add user to blacklist", async () => {
+			await vestingRegistry.setBlacklistFlag(account2, true);
+
+			let blacklisted = await vestingRegistry.blacklist(account2);
+			expect(blacklisted).equal(true);
+		});
+
+		it("fails if the 0 address is passed", async () => {
+			await expectRevert(vestingRegistry.setBlacklistFlag(ZERO_ADDRESS, true), "account address invalid");
+		});
+	});
+
+	describe("setLockedAmount", () => {
+		it("should be able to set locked amount", async () => {
+			let amount = new BN(123);
+			await vestingRegistry.setLockedAmount(account2, amount);
+
+			let lockedAmount = await vestingRegistry.lockedAmount(account2);
+			expect(lockedAmount).to.be.bignumber.equal(amount);
+		});
+
+		it("fails if the 0 address is passed", async () => {
+			await expectRevert(vestingRegistry.setLockedAmount(ZERO_ADDRESS, 111), "account address invalid");
+		});
+
+		it("fails if the 0 amount is passed", async () => {
+			await expectRevert(vestingRegistry.setLockedAmount(account2, 0), "amount invalid");
+		});
+	});
+
 	describe("exchangeAllCSOV", () => {
 		it("should be able to exchange CSOV", async () => {
 			let amount1 = new BN(1000);
@@ -211,9 +242,6 @@ contract("VestingRegistry", (accounts) => {
 			let amount = amount1.add(amount2);
 			await SOV.transfer(vestingRegistry.address, amount);
 
-			await cSOV1.approve(vestingRegistry.address, amount1, { from: account2 });
-			await cSOV2.approve(vestingRegistry.address, amount2, { from: account2 });
-
 			let tx = await vestingRegistry.exchangeAllCSOV({ from: account2 });
 
 			expectEvent(tx, "CSOVTokensExchanged", {
@@ -221,10 +249,9 @@ contract("VestingRegistry", (accounts) => {
 				amount: amount,
 			});
 
-			let cSOV1balance = await cSOV1.balanceOf(account2);
-			expect(cSOV1balance.toString()).equal("0");
-			let cSOV2balance = await cSOV1.balanceOf(account2);
-			expect(cSOV2balance.toString()).equal("0");
+			let accountProcessed = await vestingRegistry.accountProcessed(account2);
+			expect(accountProcessed).equal(true);
+
 			let balance = await SOV.balanceOf(vestingRegistry.address);
 			expect(balance.toString()).equal("0");
 
@@ -238,22 +265,65 @@ contract("VestingRegistry", (accounts) => {
 			await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
 		});
 
-		it("fails if the 0 is cSOV amount", async () => {
-			await expectRevert(vestingRegistry.exchangeAllCSOV({ from: account2 }), "amount invalid");
+		it("should be able to exchange CSOV partially", async () => {
+			let amount1 = new BN(1000);
+			let amount2 = new BN(2000);
+			let lockedAmount = new BN(700);
+			await cSOV1.transfer(account2, amount1);
+			await cSOV2.transfer(account2, amount2);
+
+			let amount = amount1.add(amount2).sub(lockedAmount);
+			await SOV.transfer(vestingRegistry.address, amount);
+
+			await vestingRegistry.setLockedAmount(account2, lockedAmount);
+			let tx = await vestingRegistry.exchangeAllCSOV({ from: account2 });
+
+			expectEvent(tx, "CSOVTokensExchanged", {
+				caller: account2,
+				amount: amount,
+			});
+
+			let accountProcessed = await vestingRegistry.accountProcessed(account2);
+			expect(accountProcessed).equal(true);
+
+			let balance = await SOV.balanceOf(vestingRegistry.address);
+			expect(balance.toString()).equal("0");
+
+			let cliff = await vestingRegistry.CSOV_VESTING_CLIFF();
+			let duration = await vestingRegistry.CSOV_VESTING_DURATION();
+
+			let vestingAddress = await vestingRegistry.getVesting(account2);
+			let vesting = await Vesting.at(vestingAddress);
+			await checkVesting(vesting, account2, cliff, duration, amount);
+
+			await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
 		});
 
-		it("fails if the 0 cSOV transfer is not approved", async () => {
+		it("fails if trying to withdraw second time", async () => {
 			let amount = new BN(1000);
 			await cSOV1.transfer(account2, amount);
+			await SOV.transfer(vestingRegistry.address, amount);
 
-			await expectRevert(vestingRegistry.exchangeAllCSOV({ from: account2 }), "invalid transfer");
+			await vestingRegistry.exchangeAllCSOV({ from: account2 });
+			await expectRevert(vestingRegistry.exchangeAllCSOV({ from: account2 }), "account has been already processed");
+		});
+
+		it("fails if account blacklisted", async () => {
+			let amount = new BN(1000);
+			await cSOV1.transfer(account2, amount);
+			await SOV.transfer(vestingRegistry.address, amount);
+
+			await vestingRegistry.setBlacklistFlag(account2, true);
+			await expectRevert(vestingRegistry.exchangeAllCSOV({ from: account2 }), "account has been already processed");
+		});
+
+		it("fails if the 0 is cSOV amount", async () => {
+			await expectRevert(vestingRegistry.exchangeAllCSOV({ from: account2 }), "amount invalid");
 		});
 
 		it("fails if vestingRegistry doesn't have enough SOV", async () => {
 			let amount = new BN(1000);
 			await cSOV1.transfer(account2, amount);
-
-			await cSOV1.approve(vestingRegistry.address, amount, { from: account2 });
 
 			await expectRevert(vestingRegistry.exchangeAllCSOV({ from: account2 }), "ERC20: transfer amount exceeds balance");
 		});
