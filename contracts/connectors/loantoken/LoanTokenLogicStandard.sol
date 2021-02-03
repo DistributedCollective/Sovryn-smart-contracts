@@ -40,71 +40,61 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		}
 	}
 
-	/*
-    flashBorrow is disabled for the MVP, but is going to be added later.
-    therefore, it needs to be revised
-    
-    function flashBorrow(
-        uint256 borrowAmount,
-        address borrower,
-        address target,
-        string calldata signature,
-        bytes calldata data)
-        external
-        payable
-        nonReentrant
-        pausable(msg.sig)
-        settlesInterest
-        returns (bytes memory)
-    {
-        require(borrowAmount != 0, "38");
+	/*flashBorrow is disabled for the MVP, but is going to be added later.
+    therefore, it needs to be revised*/
 
-        _checkPause();
+	function flashBorrow(
+		uint256 borrowAmount,
+		address borrower,
+		address target,
+		string calldata signature,
+		bytes calldata data
+	) external payable nonReentrant onlyFlashLoanWhitelisted(borrower) returns (bytes memory) {
+		require(borrowAmount != 0, "38");
 
-        _settleInterest();
+		//AUDIT: the borrower parameter can be removed
+		require(borrower == msg.sender, "unauthorised usage of a whitelisted address");
 
-        // save before balances
-        uint256 beforeEtherBalance = address(this).balance.sub(msg.value);
-        uint256 beforeAssetsBalance = _underlyingBalance()
-            .add(totalAssetBorrow());
+		_checkPause();
 
-        // lock totalAssetSupply for duration of flash loan
-        _flTotalAssetSupply = beforeAssetsBalance;
+		_settleInterest();
 
-        // transfer assets to calling contract
-        _safeTransfer(loanTokenAddress, borrower, borrowAmount, "39");
+		// save before balances
+		uint256 beforeEtherBalance = address(this).balance.sub(msg.value);
+		uint256 beforeAssetsBalance = _underlyingBalance().add(totalAssetBorrow());
 
-        bytes memory callData;
-        if (bytes(signature).length == 0) {
-            callData = data;
-        } else {
-            callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
-        }
+		// lock totalAssetSupply for duration of flash loan
+		_flTotalAssetSupply = beforeAssetsBalance;
 
-        // arbitrary call
-        (bool success, bytes memory returnData) = arbitraryCaller.call.value(msg.value)(
-            abi.encodeWithSelector(
-                0xde064e0d, // sendCall(address,bytes)
-                target,
-                callData
-            )
-        );
-        require(success, "call failed");
+		// transfer assets to calling contract
+		_safeTransfer(loanTokenAddress, borrower, borrowAmount, "39");
 
-        // unlock totalAssetSupply
-        _flTotalAssetSupply = 0;
+		bytes memory callData;
+		if (bytes(signature).length == 0) {
+			callData = data;
+		} else {
+			callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
+		}
 
-        // verifies return of flash loan
-        require(
-            address(this).balance >= beforeEtherBalance &&
-            _underlyingBalance()
-                .add(totalAssetBorrow()) >= beforeAssetsBalance,
-            "40"
-        );
+		// arbitrary call
+		(bool success, bytes memory returnData) =
+			arbitraryCaller.call.value(msg.value)(
+				abi.encodeWithSelector(
+					0xde064e0d, // sendCall(address,bytes)
+					target,
+					callData
+				)
+			);
+		require(success, "arbitraryCaller.call failed");
 
-        return returnData;
-    }
-    */
+		// unlock totalAssetSupply
+		_flTotalAssetSupply = 0;
+
+		// verifies return of flash loan
+		require(address(this).balance >= beforeEtherBalance && _underlyingBalance().add(totalAssetBorrow()) >= beforeAssetsBalance, "40");
+
+		return returnData;
+	}
 
 	/**
 	 * borrows funds from the pool. The underlying loan token may not be used as collateral.
@@ -128,7 +118,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	)
 		public
 		payable
-		nonReentrant //note: needs to be removed to allow flashloan use cases
+		nonReentrant //note: needs to be removed to allow flashloan use cases?
 		returns (
 			uint256,
 			uint256 // returns new principal and new collateral added to loan
@@ -196,7 +186,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	)
 		public
 		payable
-		nonReentrant //note: needs to be removed to allow flashloan use cases
+		nonReentrant //note: needs to be removed to allow flashloan use cases?
 		returns (
 			uint256,
 			uint256 // returns new principal and new collateral added to trade
@@ -266,7 +256,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		public
 		payable
 		returns (
-			//nonReentrant //note: needs to be removed to allow flashloan use cases
 			uint256,
 			uint256 // returns new principal and new collateral added to trade
 		)
@@ -274,7 +263,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		if (affiliateReferrer != address(0))
 			ProtocolAffiliatesInterface(sovrynContractAddress).setAffiliatesReferrer(trader, affiliateReferrer);
 		return marginTrade(loanId, leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress, trader, loanDataBytes);
-		//return marginTradeMock(loanId, leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress, trader, loanDataBytes);
 	}
 
 	function transfer(address _to, uint256 _value) external returns (bool) {

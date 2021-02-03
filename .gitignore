@@ -6,6 +6,7 @@ __pycache__
 build/
 reports/
 node_modules/
+node_modules
 ignore/
 .*
 !.gitignore
@@ -26,3 +27,4 @@ solc-select
 artifacts
 cache
 .idea/
+workspace.code-workspace

@@ -23,6 +23,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 
 	//Add new variables here on the bottom
 	address public pauser;
+	mapping(address => bool) public flashLoanWhiteList; //#123 whitelist flashloans
 
 	//@todo check for restrictions in this contract
 	modifier onlyAdmin() {
@@ -30,7 +31,20 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 		_;
 	}
 
+	modifier onlyFlashLoanWhitelisted(address account) {
+		require(flashLoanWhiteList[account], "account is not whitelisted for flash loans");
+		_;
+	}
+
 	event SetTransactionLimits(address[] addresses, uint256[] limits);
+
+	function addToFlashLoanWhileList(address addressToAdd) public onlyAdmin {
+		flashLoanWhiteList[addressToAdd] = true;
+	}
+
+	function removeFromFlashLoanWhileList(address addressToAdd) public onlyAdmin {
+		delete flashLoanWhiteList[addressToAdd];
+	}
 
 	function setAdmin(address _admin) public onlyOwner {
 		admin = _admin;
