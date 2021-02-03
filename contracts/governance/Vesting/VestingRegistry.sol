@@ -35,8 +35,8 @@ contract VestingRegistry is Ownable {
 	mapping(address => mapping(uint256 => address)) public vestingContracts;
 
 	enum VestingType {
-		MultisigVesting, //TeamVesting
-		TokenHolderVesting, //Vesting
+		TeamVesting, //MultisigVesting
+		Vesting, //TokenHolderVesting
 		DevelopmentVesting, //Development fund
 		AdoptionVesting //Adoption fund
 	}
@@ -185,11 +185,11 @@ contract VestingRegistry is Ownable {
 	}
 
 	function getVesting(address _tokenOwner) public view returns (address) {
-		return vestingContracts[_tokenOwner][uint256(VestingType.TokenHolderVesting)];
+		return vestingContracts[_tokenOwner][uint256(VestingType.Vesting)];
 	}
 
 	function getTeamVesting(address _tokenOwner) public view returns (address) {
-		return vestingContracts[_tokenOwner][uint256(VestingType.MultisigVesting)];
+		return vestingContracts[_tokenOwner][uint256(VestingType.TeamVesting)];
 	}
 
 	function getDevelopmentVesting(address _tokenOwner) public view returns (address) {
@@ -205,7 +205,7 @@ contract VestingRegistry is Ownable {
 		uint256 _cliff,
 		uint256 _duration
 	) internal returns (address) {
-		uint256 type_ = uint256(VestingType.TokenHolderVesting);
+		uint256 type_ = uint256(VestingType.Vesting);
 		if (vestingContracts[_tokenOwner][type_] == address(0)) {
 			address vesting = vestingFactory.deployVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy, vestingOwner);
 			vestingContracts[_tokenOwner][type_] = vesting;
@@ -218,7 +218,7 @@ contract VestingRegistry is Ownable {
 		uint256 _cliff,
 		uint256 _duration
 	) internal returns (address) {
-		uint256 type_ = uint256(VestingType.MultisigVesting);
+		uint256 type_ = uint256(VestingType.TeamVesting);
 		if (vestingContracts[_tokenOwner][type_] == address(0)) {
 			address vesting = vestingFactory.deployTeamVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy, vestingOwner);
 			vestingContracts[_tokenOwner][type_] = vesting;

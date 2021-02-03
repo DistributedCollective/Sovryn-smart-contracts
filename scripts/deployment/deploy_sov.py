@@ -6,7 +6,6 @@ import json
 def main():
     thisNetwork = network.show_active()
 
-
     if thisNetwork == "development":
         acct = accounts[0]
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
@@ -36,6 +35,7 @@ def main():
     SOVtoken = acct.deploy(SOV, 1e26).address
 
 
+
     #deploy the staking contracts
     stakingLogic = acct.deploy(Staking)
     staking = acct.deploy(StakingProxy, SOVtoken)
@@ -49,10 +49,23 @@ def main():
     staking.setFeeSharing(feeSharing.address)
 
 
+
     #deploy VestingFactory
     vestingFactory = acct.deploy(VestingFactory).address
 
     #deploy VestingRegistry
     vestingRegistry = acct.deploy(VestingRegistry, vestingFactory, SOVtoken, [cSOV1, cSOV2], staking.address, feeSharing.address, vestingOwner)
+
+    # TeamVesting
+    
+
+    # Vesting
+
+
+    # Development fund
+
+
+    # Adoption fund
+
 
     # TODO Ecosystem fund, Programmatic sale

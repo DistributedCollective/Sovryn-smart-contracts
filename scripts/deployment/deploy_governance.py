@@ -10,8 +10,8 @@ def main():
     ownerQuorumVotes = 70
     ownerMinPercentageVotes = 50
 
-    adminQuorumVotes = 4
-    adminMinPercentageVotes = 50
+    adminQuorumVotes = 20
+    adminMinPercentageVotes = 5
 
     if thisNetwork == "development":
         acct = accounts[0]
