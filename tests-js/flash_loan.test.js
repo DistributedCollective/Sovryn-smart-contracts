@@ -121,27 +121,128 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 		await doc.transfer(loanTokenV2.address, wei("500", "ether"));
 		await doc.approve(loanToken.address, web3.utils.toWei("20", "ether"));
 	});
-	it("Margin trading  with 3X leverage with DOC token and topUp position by 12rwBTC", async () => {
-		// setting up interest rates
-		//Giving some testRbtc to sovrynAddress (by minting some testRbtc),so  that it can open position in wRBTC.
-		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
+	it("Flash borrowing loan ammount of 12 DOC", async () => {
+		// minting withdrawAmmount (12DOC) tokens to loanToken + some interest as 0.5 so total is 12.5 so that we can borrow from loanToken
+		await doc.mint(loanTokenV2.address, wei("12.5", "ether"));
 
-		assert.equal(await sovryn.protocolAddress(), sovryn.address);
-
-		const leverageAmount = web3.utils.toWei("3", "ether");
-		const loanTokenSent = web3.utils.toWei("20", "ether");
-
-		await loanTokenV2.marginTrade(
-			constants.ZERO_BYTES32, // loanId  (0 for new loans)
-			leverageAmount, // leverageAmount
-			loanTokenSent, // loanTokenSent
-			0, // no collateral token sent
-			testWrbtc.address, // collateralTokenAddress
-			owner, //trader, // trader,
-			//referrer, // affiliates referrer
-			"0x", // loanDataBytes (only required with ether)
-			{ from: owner }
+		const collateralTokenAddress = testWrbtc.address;
+		const depositAmount = wei("12", "ether");
+		const collateralTokenSent = await sovryn.getRequiredCollateral(
+			doc.address,
+			collateralTokenAddress,
+			depositAmount,
+			wei("50", "ether"),
+			true
 		);
-		expect(await sovryn.getUserNotFirstTradeFlag(owner), "sovryn.getUserNotFirstTradeFlag(trader) should be true").to.be.true;
+		// console.log(collateralTokenSent.toString());
+
+		const withdrawAmount = depositAmount;
+		await forwarding.borrow(
+			loanTokenV2.address,
+			"0x0000000000000000000000000000000000000000000000000000000000000000", //loanId  (0 for new loans)
+			withdrawAmount,
+			2419200,
+			collateralTokenSent,
+			collateralTokenAddress, //collateralTokenAddress
+			accounts[0],
+			accounts[0],
+			"0x" //loanDataBytes (only required with rBTC)
+		);
+
+		//Now closeWithDepositWithSig (closing user loan by their signatures)
+		//Creating user signature by loanid,receiver,depositAmmount,methodSignature
+		const methodSig = "0x50b38565";
+		const loan = await sovryn.getUserLoans(accounts[0], 0, 3, 2, false, false); //Here 2 is  non-margin trade loans
+		const loanId = loan[0].loanId;
+		const receiver = accounts[0];
+		const hash = await sovryn.getHash(loanId, receiver, withdrawAmount, methodSig);
+
+		//repaying loan then it give us collateral as real RBTC (here not wrBTC but Rtbc)
+
+		const beforeRepayWBtcAmmount = parseInt(await web3.eth.getBalance(accounts[0])) / 1e18;
+		const userSig = await web3.eth.sign(hash, accounts[0]);
+		await forwarding.closeWithDepositWithUserSig(sovryn.address, doc.address, loanId, receiver, withdrawAmount, userSig);
+		const AfterRepaywRBTCAmmount = parseInt(await web3.eth.getBalance(accounts[0])) / 1e18;
+		assert.ok(AfterRepaywRBTCAmmount > beforeRepayWBtcAmmount, "Loan is not close by user");
+	});
+	it("Borrowing loan ammount of  12 DOC  and closing this loan by closeWithDepositWithSig by thirdParty ", async () => {
+		// minting withdrawAmmount (12DOC) tokens to loanToken + some interest as 0.5 so total is 12.5 so that we can borrow from loanToken
+		await doc.mint(loanTokenV2.address, wei("12.5", "ether"));
+		const collateralTokenAddress = testWrbtc.address;
+		const depositAmount = wei("12", "ether");
+		const collateralTokenSent = await sovryn.getRequiredCollateral(
+			doc.address,
+			collateralTokenAddress,
+			depositAmount,
+			wei("50", "ether"),
+			true
+		);
+		// console.log(collateralTokenSent.toString());
+
+		const withdrawAmount = depositAmount;
+		await forwarding.borrow(
+			loanTokenV2.address,
+			"0x0000000000000000000000000000000000000000000000000000000000000000", //loanId  (0 for new loans)
+			withdrawAmount,
+			2419200,
+			collateralTokenSent,
+			collateralTokenAddress, //collateralTokenAddress
+			accounts[0],
+			accounts[0],
+			"0x" //loanDataBytes (only required with rBTC)
+		);
+
+		//Now closeWithDepositWithSig (closing user loan by their signatures)
+		//Creating user signature by loanid,receiver,depositAmmount,methodSignature
+		const methodSig = "0x50b38565";
+		const loan = await sovryn.getUserLoans(accounts[0], 0, 3, 2, false, false); //Here 2 is  non-margin trade loans
+		const loanId = loan[0].loanId;
+		const receiver = accounts[0];
+		const hash = await sovryn.getHash(loanId, receiver, withdrawAmount, methodSig);
+
+		const userSig = await web3.eth.sign(hash, accounts[2]);
+
+		//Catching error and save by try/catch Block
+		try {
+			await doc.mint(accounts[2], withdrawAmount);
+			await doc.approve(forwarding.address, withdrawAmount, { from: accounts[2] });
+			await testWrbtc.deposit({ value: wei("1", "ether") });
+
+			await forwarding.closeWithDepositWithUserSig(sovryn.address, doc.address, loanId, receiver, withdrawAmount, userSig, {
+				from: accounts[2],
+			});
+		} catch (error) {
+			// Loan Don't close by third party so it give UnAuthorize User
+			assert.ok(error["reason"] == "UnAuthorize User");
+		}
+	});
+	it("Borrowing loan ammount of  12 DOC  from loanToken and loanToken don't have enough ammount of DOC ", async () => {
+		const collateralTokenAddress = testWrbtc.address;
+		const depositAmount = wei("12", "ether");
+		const collateralTokenSent = await sovryn.getRequiredCollateral(
+			doc.address,
+			collateralTokenAddress,
+			depositAmount,
+			wei("50", "ether"),
+			true
+		);
+		// console.log(collateralTokenSent.toString());
+
+		const withdrawAmount = depositAmount;
+		try {
+			await forwarding.borrow(
+				loanTokenV2.address,
+				"0x0000000000000000000000000000000000000000000000000000000000000000", //loanId  (0 for new loans)
+				withdrawAmount,
+				2419200,
+				collateralTokenSent,
+				collateralTokenAddress, //collateralTokenAddress
+				accounts[0],
+				accounts[0],
+				"0x" //loanDataBytes (only required with rBTC)
+			);
+		} catch (error) {
+			assert.ok(error["reason"] == "24");
+		}
 	});
 });

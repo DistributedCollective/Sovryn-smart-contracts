@@ -1,4 +1,4 @@
-const { assert } = require("chai");
+const { assert, expect } = require("chai");
 // const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard"); //replaced by MockLoanTokenLogic
 const sovrynProtocol = artifacts.require("sovrynProtocol");
 const LoanToken = artifacts.require("LoanToken");
@@ -21,7 +21,7 @@ const SwapsImplLocal = artifacts.require("SwapsImplLocal");
 const Affiliates = artifacts.require("Affiliates");
 
 const { BN, constants, send, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
-const { expect } = require("hardhat");
+//const { expect } = require("hardhat");
 
 contract("Affiliates", (accounts) => {
 	let loanTokenLogic;
