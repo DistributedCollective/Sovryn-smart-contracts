@@ -22,9 +22,17 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	// ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 
 	//Add new variables here on the bottom
+	address public earlyAccessToken;
 	address public pauser;
 	address public arbitraryCallerAddress; //a universal delegate caller, used for flash borrowing
 	mapping(address => bool) public flashLoanWhiteList; //#123 whitelist flashloans
+
+	event SetEarlyAccessToken(address oldValue, address newValue);
+
+	modifier hasEarlyAccessToken() {
+		if (earlyAccessToken != address(0)) require(IERC20(earlyAccessToken).balanceOf(msg.sender) > 0, "No early access tokens");
+		_;
+	}
 
 	//@todo check for restrictions in this contract
 	modifier onlyAdmin() {
@@ -160,5 +168,15 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol) public onlyAdmin {
 		name = _name;
 		symbol = _symbol;
+	}
+
+	/**
+	 *	@notice set early access token
+	 *	@param _earlyAccessTokenAddress the early access token
+	 */
+	function setEarlyAccessToken(address _earlyAccessTokenAddress) public onlyAdmin {
+		address oldEarlyAccessToken = earlyAccessToken;
+		earlyAccessToken = _earlyAccessTokenAddress;
+		emit SetEarlyAccessToken(oldEarlyAccessToken, earlyAccessToken);
 	}
 }

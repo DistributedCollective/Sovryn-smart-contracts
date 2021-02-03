@@ -212,3 +212,34 @@ def test_borrow_insufficient_collateral_should_fail(accounts,loanToken,sovryn,se
             b''                             # bytes memory loanDataBytes
         )
     
+def test_borrow_without_early_access_token_should_fail_if_required(TestToken,accounts,loanToken,sovryn,set_demand_curve,lend_to_pool, SUSD, RBTC):
+    # prepare the test
+    lend_to_pool()
+    set_demand_curve()
+
+    # prepare early access token
+    early_access_token = accounts[0].deploy(TestToken, "Sovryn Early Access Token", "SEAT", 1, 10)
+    early_access_token.transfer(accounts[1], early_access_token.balanceOf(accounts[0]))
+    loanToken.setEarlyAccessToken(early_access_token.address)
+
+    # determine borrowing parameter
+    withdrawAmount = 10e18 #i want to borrow 10 USD
+    # compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
+    collateralTokenSent = sovryn.getRequiredCollateral(SUSD.address,RBTC.address,withdrawAmount,50e18, True)
+    print("sending collateral",collateralTokenSent)
+
+    #approve the transfer of the collateral
+    RBTC.approve(loanToken.address, collateralTokenSent)
+
+    with reverts("No early access tokens"):
+        loanToken.borrow(
+            "0",                            # bytes32 loanId
+            withdrawAmount ,                # uint256 withdrawAmount
+            24*60*60,                       # uint256 initialLoanDuration
+            collateralTokenSent,            # uint256 collateralTokenSent
+            RBTC.address,                   # address collateralTokenAddress
+            accounts[0],                    # address borrower
+            accounts[1],                    # address receiver
+            b''                             # bytes memory loanDataBytes
+        )
+
