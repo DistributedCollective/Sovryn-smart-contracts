@@ -8,8 +8,11 @@ import "./IVestingFactory.sol";
 import "./IVesting.sol";
 import "./ITeamVesting.sol";
 import "./IDevelopmentVesting.sol";
+import "../../openzeppelin/SafeMath.sol";
 
 contract VestingRegistry is Ownable {
+	using SafeMath for uint256;
+
 	///@notice constant used for computing the vesting dates
 	uint256 public constant FOUR_WEEKS = 4 weeks;
 
@@ -33,6 +36,15 @@ contract VestingRegistry is Ownable {
 	//TODO add to the documentation: address can have only one vesting of each type
 	//user => vesting type => vesting contract
 	mapping(address => mapping(uint256 => address)) public vestingContracts;
+
+	//struct can be created to save storage slots, but it doesn't make sense
+	//we don't have a lot of blacklisted accounts or account with locked amount
+	//user => flag whether user has already exchange cSV or got a reimbursement
+	mapping(address => bool) public accountProcessed;
+	//user => flag whether user shouldn't be able to exchange or reimburse
+	mapping(address => bool) public blacklist;
+	//user => amount of tokens should not be processed
+	mapping(address => uint256) public lockedAmount;
 
 	enum VestingType {
 		TeamVesting, //MultisigVesting
@@ -83,6 +95,19 @@ contract VestingRegistry is Ownable {
 		CSOVtokens = _CSOVtokens;
 	}
 
+	function setBlacklistFlag(address _account, bool _blacklisted) public onlyOwner {
+		require(_account != address(0), "account address invalid");
+
+		blacklist[_account] = _blacklisted;
+	}
+
+	function setLockedAmount(address _account, uint256 _amount) public onlyOwner {
+		require(_account != address(0), "account address invalid");
+		require(_amount != 0, "amount invalid");
+
+		lockedAmount[_account] = _amount;
+	}
+
 	function transferSOV(address _receiver, uint256 _amount) public onlyOwner {
 		require(_receiver != address(0), "receiver address invalid");
 		require(_amount != 0, "amount invalid");
@@ -91,21 +116,20 @@ contract VestingRegistry is Ownable {
 		emit SOVTransferred(_receiver, _amount);
 	}
 
-	//TODO transfer or mark as already converted if non-transferable
-	//TODO do we need a blacklist?
 	function exchangeAllCSOV() public {
+		require(!accountProcessed[msg.sender] && !blacklist[msg.sender], "account has been already processed");
+		accountProcessed[msg.sender] = true;
+
 		uint256 amount = 0;
 		for (uint256 i = 0; i < CSOVtokens.length; i++) {
 			address CSOV = CSOVtokens[i];
 			uint256 balance = IERC20(CSOV).balanceOf(msg.sender);
-			if (balance != 0) {
-				bool success = IERC20(CSOV).transferFrom(msg.sender, address(this), balance);
-				require(success, "transfer failed");
-				amount += balance;
-			}
+			amount += balance;
 		}
 
-		require(amount > 0, "amount invalid");
+		require(amount > lockedAmount[msg.sender], "amount invalid");
+		amount -= lockedAmount[msg.sender];
+
 		_createVestingForCSOV(amount);
 	}
 
