@@ -25,16 +25,12 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	address public earlyAccessToken;
 	address public pauser;
 
-	event SetEarlyAccessToken(
-		address oldValue,
-        address newValue
-    );
+	event SetEarlyAccessToken(address oldValue, address newValue);
 
-    modifier hasEarlyAccessToken() {
-		if(earlyAccessToken!=address(0))
-        	require(IERC20(earlyAccessToken).balanceOf(msg.sender) > 0, "No early access tokens");
-        _;
-    }
+	modifier hasEarlyAccessToken() {
+		if (earlyAccessToken != address(0)) require(IERC20(earlyAccessToken).balanceOf(msg.sender) > 0, "No early access tokens");
+		_;
+	}
 
 	//@todo check for restrictions in this contract
 	modifier onlyAdmin() {
@@ -156,16 +152,12 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	}
 
 	/**
-	 *	@notice set early access token 
-	 *	@param _earlyAccessTokenAddress the early access token 
+	 *	@notice set early access token
+	 *	@param _earlyAccessTokenAddress the early access token
 	 */
-	function setEarlyAccessToken(
-        address _earlyAccessTokenAddress)
-        public
-        onlyAdmin
-    {
-        address oldEarlyAccessToken = earlyAccessToken;
-        earlyAccessToken = _earlyAccessTokenAddress;
-        emit SetEarlyAccessToken(oldEarlyAccessToken, earlyAccessToken);
-    }
+	function setEarlyAccessToken(address _earlyAccessTokenAddress) public onlyAdmin {
+		address oldEarlyAccessToken = earlyAccessToken;
+		earlyAccessToken = _earlyAccessTokenAddress;
+		emit SetEarlyAccessToken(oldEarlyAccessToken, earlyAccessToken);
+	}
 }

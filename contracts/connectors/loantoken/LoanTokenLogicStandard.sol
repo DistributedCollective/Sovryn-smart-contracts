@@ -18,8 +18,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	uint256 public constant VERSION = 5;
 	address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
 
-	
-
 	function() external {
 		revert("loan token logic - fallback not allowed");
 	}
@@ -978,6 +976,4 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			return assetBorrow.mul(10**20).div(assetSupply);
 		}
 	}
-
-	
 }
