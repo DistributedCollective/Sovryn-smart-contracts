@@ -314,7 +314,7 @@ contract DevelopmentFund is Ownable {
 	 * @notice Function to read the current token release duration.
 	 * @return _currentReleaseDuration The current release duration.
 	 */
-	function getReleaseDuration() public view returns(uint256[] memory _releaseTokenDuration){
+	function getReleaseDuration() public view returns (uint256[] memory _releaseTokenDuration) {
 		return releaseDuration;
 	}
 
@@ -322,7 +322,7 @@ contract DevelopmentFund is Ownable {
 	 * @notice Function to read the current token release amount.
 	 * @return _currentReleaseTokenAmount The current release token amount.
 	 */
-	function getReleaseTokenAmount() public view returns(uint256[] memory _currentReleaseTokenAmount){
+	function getReleaseTokenAmount() public view returns (uint256[] memory _currentReleaseTokenAmount) {
 		return releaseTokenAmount;
 	}
 }
