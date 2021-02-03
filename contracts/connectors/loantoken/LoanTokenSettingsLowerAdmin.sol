@@ -22,6 +22,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	// ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 
 	//Add new variables here on the bottom
+	address public earlyAccessToken;
 	address public pauser;
 	mapping(address => bool) public flashLoanWhiteList; //#123 whitelist flashloans
 
