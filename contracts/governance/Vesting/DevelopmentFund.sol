@@ -67,17 +67,12 @@ contract DevelopmentFund is Ownable {
 	/// @param _releaseCount The number of releases planned in the schedule.
 	event TokenReleaseChanged(address indexed _initiator, uint256 indexed _releaseCount);
 
-	/// @notice Emitted when a locked owner withdraws all or part of the token balance from contract.
-	/// @param _initiator The address which initiated this event to be emitted.
-	/// @param _receiver The address which receives this token withdrawed.
-	/// @param _amount The total amount of token withdrawed.
-	event LockedTokenWithdrawalByLockedOwner(address indexed _initiator, address indexed _receiver, uint256 indexed _amount);
-
 	/// @notice Emitted when a unlocked owner transfers all the tokens to a safe vault.
 	/// @param _initiator The address which initiated this event to be emitted.
+	/// @param _receiver The address which receives this token withdrawed.
 	/// @param _amount The total amount of token transferred.
-	/// @dev This is done in an emergency situation only to a predetermined wallet by governance.
-	event LockedTokenTransferByUnlockedOwner(address indexed _initiator, uint256 indexed _amount);
+	/// @dev This is done in an emergency situation only to a predetermined wallet by locked token owner.
+	event LockedTokenTransferByUnlockedOwner(address indexed _initiator, address indexed _receiver, uint256 indexed _amount);
 
 	/// @notice Emitted when a unlocked owner withdraws the released tokens.
 	/// @param _initiator The address which initiated this event to be emitted.
@@ -89,7 +84,7 @@ contract DevelopmentFund is Ownable {
 	/// @param _initiator The address which initiated this event to be emitted.
 	/// @param _receiver The address which receives this token transfer.
 	/// @param _amount The total amount of token transferred.
-	/// @dev This is done only by governance.
+	/// @dev This is done only by locked token owner.
 	event LockedTokenTransferByLockedOwner(address indexed _initiator, address indexed _receiver, uint256 indexed _amount);
 
 	/* Modifiers */
@@ -143,7 +138,7 @@ contract DevelopmentFund is Ownable {
 
 	/**
 	 * @notice Approve Locked Token Owner.
-	 * @dev This approval is an added security to avoid development fund takeover by a compromised governance.
+	 * @dev This approval is an added security to avoid development fund takeover by a compromised locked token owner.
 	 */
 	function approveLockedTokenOwner() public onlyUnlockedTokenOwner {
 		require(newLockedTokenOwner != address(0), "No new locked owner added.");
@@ -203,6 +198,7 @@ contract DevelopmentFund is Ownable {
 
 		/// If the last release time has to be changed, then you can pass a new one here.
 		/// Or else, the duration of release will be calculated based on this timestamp.
+		/// Even a future timestamp can be mentioned here.
 		if (_newLastReleaseTime != 0) {
 			lastReleaseTime = _newLastReleaseTime;
 		}
@@ -220,7 +216,7 @@ contract DevelopmentFund is Ownable {
 		} else if (remainingTokens > _releaseTotalTokenAmount) {
 			/// If there are more tokens than required, send the extra tokens back.
 			bool txStatus = SOV.transfer(msg.sender, remainingTokens.sub(_releaseTotalTokenAmount));
-			require(txStatus, "Not enough token sent to change release schedule.");
+			require(txStatus, "Token not received by the Locked Owner.");
 		}
 
 		/// Updating the remaining tokens in contract.
@@ -241,7 +237,7 @@ contract DevelopmentFund is Ownable {
 		bool txStatus = SOV.transfer(safeVault, remainingTokens);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
 
-		emit LockedTokenTransferByUnlockedOwner(msg.sender, remainingTokens);
+		emit LockedTokenTransferByUnlockedOwner(msg.sender, safeVault, remainingTokens);
 
 		remainingTokens = 0;
 	}
@@ -256,27 +252,29 @@ contract DevelopmentFund is Ownable {
 		uint256 count; /// To know how many elements to be removed from the release schedule.
 		uint256 amount = _amount; /// To know the total amount to be transferred.
 		uint256 newLastReleaseTimeMemory = lastReleaseTime; /// Better to use memory than storage.
-		uint256 releaseDurationLength = releaseDuration.length.sub(1); /// Also checks if there are any elements in the release schedule.
+		uint256 releaseLength = releaseDuration.length.sub(1); /// Also checks if there are any elements in the release schedule.
 
 		/// Getting the amount of tokens, the number of releases and calculating the total duration.
-		while (amount > 0 && newLastReleaseTimeMemory.add(releaseDuration[releaseDurationLength]) >= block.timestamp) {
-			if(amount >= releaseTokenAmount[releaseDurationLength]){
-				amount = amount.sub(releaseTokenAmount[releaseDurationLength]);
-				newLastReleaseTimeMemory = newLastReleaseTimeMemory.add(releaseDuration[releaseDurationLength]);
+		while (amount > 0 && newLastReleaseTimeMemory.add(releaseDuration[releaseLength]) < block.timestamp) {
+			if (amount >= releaseTokenAmount[releaseLength]) {
+				amount = amount.sub(releaseTokenAmount[releaseLength]);
+				newLastReleaseTimeMemory = newLastReleaseTimeMemory.add(releaseDuration[releaseLength]);
 				count++;
-			}
-			else {
-				/// This will be the last case.
-				releaseTokenAmount[releaseDurationLength] = releaseTokenAmount[releaseDurationLength].sub(amount);
+			} else {
+				/// This will be the last case, if correct amount is passed.
+				releaseTokenAmount[releaseLength] = releaseTokenAmount[releaseLength].sub(amount);
 				amount = 0;
 			}
-			releaseDurationLength--;
+			releaseLength--;
 		}
 
 		/// Checking to see if atleast a single schedule was reached or not.
 		require(count > 0 || amount == 0, "No release schedule reached.");
 
-		emit UnlockedTokenWithdrawalByUnlockedOwner(msg.sender, _amount, count);
+		/// If locked token owner tries to send a higher amount that schedule
+		uint256 value = _amount.sub(amount);
+
+		emit UnlockedTokenWithdrawalByUnlockedOwner(msg.sender, value, count);
 
 		/// Now clearing up the release schedule.
 		while (count > 0) {
@@ -289,10 +287,10 @@ contract DevelopmentFund is Ownable {
 		lastReleaseTime = newLastReleaseTimeMemory;
 
 		/// Updating the remaining token.
-		remainingTokens = remainingTokens.sub(_amount);
+		remainingTokens = remainingTokens.sub(value);
 
 		/// Sending the amount to unlocked token owner.
-		bool txStatus = SOV.transfer(msg.sender, _amount);
+		bool txStatus = SOV.transfer(msg.sender, value);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
 	}
 
@@ -308,5 +306,23 @@ contract DevelopmentFund is Ownable {
 		emit LockedTokenTransferByLockedOwner(msg.sender, _receiver, remainingTokens);
 
 		remainingTokens = 0;
+	}
+
+	/* Getter Functions */
+
+	/**
+	 * @notice Function to read the current token release duration.
+	 * @return _currentReleaseDuration The current release duration.
+	 */
+	function getReleaseDuration() public view returns(uint256[] memory _releaseTokenDuration){
+		return releaseDuration;
+	}
+
+	/**
+	 * @notice Function to read the current token release amount.
+	 * @return _currentReleaseTokenAmount The current release token amount.
+	 */
+	function getReleaseTokenAmount() public view returns(uint256[] memory _currentReleaseTokenAmount){
+		return releaseTokenAmount;
 	}
 }
