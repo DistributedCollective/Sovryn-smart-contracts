@@ -7,11 +7,11 @@ def main():
     thisNetwork = network.show_active()
 
     #@todo put correct variables
-    ownerQuorumVotes = 70
-    ownerMinPercentageVotes = 50
+    ownerQuorumVotes = 50
+    ownerMinPercentageVotes = 70
 
-    adminQuorumVotes = 20
-    adminMinPercentageVotes = 5
+    adminQuorumVotes = 5
+    adminMinPercentageVotes = 20
 
     if thisNetwork == "development":
         acct = accounts[0]
