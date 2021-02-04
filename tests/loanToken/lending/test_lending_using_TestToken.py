@@ -59,3 +59,18 @@ def test_profit(loanToken, accounts, SUSD, RBTC, chain, set_demand_curve, sovryn
 
     assert(profitInt == 0)
     assert(profitAfter > 0 and profitAfter < profitBefore)
+
+def test_mint_without_early_access_token_should_fail_if_required(TestToken, loanToken, accounts, SUSD, RBTC, chain, set_demand_curve, sovryn):
+    # prepare early access token
+    early_access_token = accounts[0].deploy(TestToken, "Sovryn Early Access Token", "SEAT", 1, 10)
+    early_access_token.transfer(accounts[1], early_access_token.balanceOf(accounts[0]))
+    loanToken.setEarlyAccessToken(early_access_token.address)
+
+    with reverts("No early access tokens"):
+        lend_to_the_pool(loanToken, accounts, SUSD, RBTC, chain, set_demand_curve, sovryn)
+
+def test_mint_with_early_access_token(TestToken, loanToken, accounts, SUSD, RBTC, chain, set_demand_curve, sovryn):
+    # prepare early access token
+    early_access_token = accounts[0].deploy(TestToken, "Sovryn Early Access Token", "SEAT", 1, 10)
+    loanToken.setEarlyAccessToken(early_access_token.address)
+    lend_to_the_pool(loanToken, accounts, SUSD, RBTC, chain, set_demand_curve, sovryn)

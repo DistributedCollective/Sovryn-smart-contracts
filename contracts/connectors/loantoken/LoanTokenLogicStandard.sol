@@ -24,7 +24,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 	/* Public functions */
 
-	function mint(address receiver, uint256 depositAmount) external nonReentrant returns (uint256 mintAmount) {
+	function mint(address receiver, uint256 depositAmount) external nonReentrant hasEarlyAccessToken returns (uint256 mintAmount) {
 		//temporary: limit transaction size
 		if (transactionLimit[loanTokenAddress] > 0) require(depositAmount <= transactionLimit[loanTokenAddress]);
 
@@ -128,6 +128,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		public
 		payable
 		nonReentrant //note: needs to be removed to allow flashloan use cases
+		hasEarlyAccessToken
 		returns (
 			uint256,
 			uint256 // returns new principal and new collateral added to loan
@@ -196,6 +197,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		public
 		payable
 		nonReentrant //note: needs to be removed to allow flashloan use cases
+		hasEarlyAccessToken
 		returns (
 			uint256,
 			uint256 // returns new principal and new collateral added to trade
