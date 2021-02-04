@@ -328,9 +328,13 @@ contract("Staking", (accounts) => {
 
 			await token.approve(staking.address, 0);
 
+			//TODO
+			await token.approve(staking.address, amount * 2, {from: account1});
+
 			let contract = new web3.eth.Contract(staking.abi, staking.address);
 			let sender = root;
 			let data = contract.methods.stakeWithApproval(sender, amount, lockedTS, root, root).encodeABI();
+			// let data = contract.methods.stakeWithApproval(account1, amount * 2, lockedTS, root, root).encodeABI();
 			let tx = await token.approveAndCall(staking.address, amount, data, { from: sender });
 
 			stackingbBalance = await token.balanceOf.call(staking.address);
@@ -368,13 +372,37 @@ contract("Staking", (accounts) => {
 			await expectRevert(staking.stakeWithApproval(root, "100", lockedTS, root, root), "unauthorized");
 		});
 
-		it("fails if pass wrong method in data", async () => {
+		it("fails if wrong method passed in data", async () => {
 			let amount = "100";
 			let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
 			let contract = new web3.eth.Contract(staking.abi, staking.address);
 			let data = contract.methods.stake(amount, lockedTS, root, root).encodeABI();
 
 			await expectRevert(token.approveAndCall(staking.address, amount, data), "method is not allowed");
+		});
+
+		it("fails if wrong sender passed in data", async () => {
+			let amount = "100";
+			let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
+			let contract = new web3.eth.Contract(staking.abi, staking.address);
+
+			await token.approve(staking.address, amount * 2, {from: account1});
+			let sender = root;
+			let data = contract.methods.stakeWithApproval(account1, amount, lockedTS, root, root).encodeABI();
+
+			await expectRevert(token.approveAndCall(staking.address, amount, data, { from: sender }), "sender mismatch");
+		});
+
+		it("fails if wrong amount passed in data", async () => {
+			let amount = "100";
+			let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
+			let contract = new web3.eth.Contract(staking.abi, staking.address);
+
+			await token.approve(staking.address, amount * 2, {from: account1});
+			let sender = root;
+			let data = contract.methods.stakeWithApproval(sender, amount, lockedTS, root, root).encodeABI();
+
+			await expectRevert(token.approveAndCall(staking.address, amount * 2, data, { from: sender }), "amount mismatch");
 		});
 	});
 
