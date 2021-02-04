@@ -6,6 +6,7 @@ import json
 def main():
     thisNetwork = network.show_active()
 
+    # == Params ============================================================================================================================
     # TODO set correct variables
     ownerQuorumVotes = 50
     ownerMinPercentageVotes = 70
@@ -13,7 +14,7 @@ def main():
     adminQuorumVotes = 5
     adminMinPercentageVotes = 20
 
-
+    # == Load config =======================================================================================================================
     if thisNetwork == "development":
         acct = accounts[0]
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
@@ -38,6 +39,7 @@ def main():
     else:
         guardian = acct
 
+    # == Governor Owner ====================================================================================================================
     # [timelockOwner]
     #params: owner, delay
     timelockOwner = acct.deploy(Timelock, acct, delay)
@@ -52,6 +54,7 @@ def main():
     print(dataString[10:])
     timelockOwner.queueTransaction(timelockOwner.address, 0, "setPendingAdmin(address)", dataString[10:], eta)
 
+    # == Governor Admin ====================================================================================================================
     # [timelockAdmin]
     #params: admin, delay
     timelockAdmin = acct.deploy(Timelock, acct, delay)

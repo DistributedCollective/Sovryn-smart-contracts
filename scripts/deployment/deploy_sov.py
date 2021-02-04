@@ -6,6 +6,7 @@ import json
 def main():
     thisNetwork = network.show_active()
 
+    # == Load config =======================================================================================================================
     if thisNetwork == "development":
         acct = accounts[0]
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
@@ -18,11 +19,13 @@ def main():
     else:
         raise Exception("network not supported")
 
+    # TODO add CSOV addresses to config files
     # load deployed contracts addresses
     contracts = json.load(configFile)
     protocolAddress = contracts['sovrynProtocol']
+    multisig = contracts['multisig']
     if (thisNetwork == "testnet" or thisNetwork == "rsk-mainnet"):
-        vestingOwner = contracts['multisig']
+        vestingOwner = multisig
         cSOV1 = contracts['cSOV1']
         cSOV2 = contracts['cSOV2']
     else:
@@ -30,10 +33,11 @@ def main():
         cSOV1 = acct.deploy(TestToken, "cSOV1", "cSOV1", 18, 1e26).address
         cSOV2 = acct.deploy(TestToken, "cSOV2", "cSOV2", 18, 1e26).address
 
+    # == SOV ===============================================================================================================================
     #deploy SOV
     SOVtoken = acct.deploy(SOV, 1e26)
 
-
+    # == Staking ===========================================================================================================================
     #deploy the staking contracts
     stakingLogic = acct.deploy(Staking)
     staking = acct.deploy(StakingProxy, SOVtoken.address)
@@ -46,7 +50,7 @@ def main():
     # set fee sharing
     staking.setFeeSharing(feeSharing.address)
 
-
+    # == VestingRegistry ===================================================================================================================
     #deploy VestingFactory
     vestingFactory = acct.deploy(VestingFactory)
 
@@ -54,9 +58,17 @@ def main():
     vestingRegistry = acct.deploy(VestingRegistry, vestingFactory.address, SOVtoken.address, [cSOV1, cSOV2], staking.address, feeSharing.address, vestingOwner)
     vestingFactory.transferOwnership(vestingRegistry.address)
 
+    # == GovernorVault =====================================================================================================================
+    # TODO Do we need to deploy new Vault ? Governance 1.0 is an owner of already deployed Vault
+    # GovernorVault
+    governorVault = acct.deploy(GovernorVault)
+    governorVault.transferOwnership(multisig)
+
+    # == Vesting contracts =================================================================================================================
     DAY = 24 * 60 * 60
     FOUR_WEEKS = 4 * 7 * DAY
 
+    # TODO add real data
     # TeamVesting
     cliff = 6 * FOUR_WEEKS
     duration = 1092 * DAY
@@ -68,18 +80,6 @@ def main():
         [
             accounts[1],
             200000e18
-        ],
-        [
-            accounts[2],
-            300000e18
-        ],
-        [
-            accounts[3],
-            400000e18
-        ],
-        [
-            accounts[4],
-            500000e18
         ]
     ]
     teamVestingAmount = 0
@@ -102,7 +102,7 @@ def main():
         print(cliff)
         print(duration)
 
-
+    # TODO add real data
     # Vesting
     vestingList = [
         [
@@ -116,24 +116,6 @@ def main():
             200000e18,
             7 * FOUR_WEEKS,
             14 * FOUR_WEEKS
-        ],
-        [
-            accounts[2],
-            300000e18,
-            8 * FOUR_WEEKS,
-            15 * FOUR_WEEKS
-        ],
-        [
-            accounts[3],
-            400000e18,
-            9 * FOUR_WEEKS,
-            16 * FOUR_WEEKS
-        ],
-        [
-            accounts[4],
-            500000e18,
-            10 * FOUR_WEEKS,
-            17 * FOUR_WEEKS
         ]
     ]
     vestingAmount = 0
@@ -158,12 +140,11 @@ def main():
         print(cliff)
         print(duration)
 
-
+    #  == Development and Adoption fund ====================================================================================================
     # Development fund
 
 
     # Adoption fund
 
 
-    # TODO Ecosystem fund, Programmatic sale
-    # TODO move rest of the tokens
+    # TODO where to move rest of the tokens ?
