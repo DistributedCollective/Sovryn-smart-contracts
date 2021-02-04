@@ -19,4 +19,7 @@ contract CrowdSaleMethods {
     function withdrawFunds() external {
     }
 
+    function mintCSOV(uint256 amount) external {
+    }
+
 }
