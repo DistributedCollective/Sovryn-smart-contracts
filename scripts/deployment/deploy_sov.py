@@ -74,12 +74,8 @@ def main():
     duration = 1092 * DAY
     teamVestingList = [
         [
-            accounts[0],
+            acct,
             100000e18
-        ],
-        [
-            accounts[1],
-            200000e18
         ]
     ]
     teamVestingAmount = 0
@@ -106,18 +102,13 @@ def main():
     # Vesting
     vestingList = [
         [
-            accounts[0],
+            acct,
             100000e18,
             6 * FOUR_WEEKS,
             13 * FOUR_WEEKS
-        ],
-        [
-            accounts[1],
-            200000e18,
-            7 * FOUR_WEEKS,
-            14 * FOUR_WEEKS
         ]
     ]
+    print()
     vestingAmount = 0
     for vesting in vestingList:
         amount = vesting[1]
@@ -142,9 +133,13 @@ def main():
 
     #  == Development and Adoption fund ====================================================================================================
     # Development fund
-
+    # TODO initially multisig for both owners
+    # developmentFund = acct.deploy(DevelopmentFund, SOVtoken.address, multisig, governorVault, multisig)
+    # developmentFund.depositTokens(10000000e18)
 
     # Adoption fund
-
+    # TODO initially multisig for both owners
+    # adoptiontFund = acct.deploy(DevelopmentFund, SOVtoken.address, multisig, governorVault, multisig)
+    # adoptiontFund.depositTokens(38100000e18)
 
     # TODO where to move rest of the tokens ?
