@@ -180,7 +180,6 @@ contract("DevelopmentFund (Governance Functions)", (accounts) => {
 	});
 
 	it("Should not be able to approve the Locked Token Owner.", async () => {
-		await developmentFund.updateLockedTokenOwner(newGovernance, { from: governance });
 		await expectRevert(developmentFund.approveLockedTokenOwner({ from: governance }), "Only Unlocked Token Owner can call this.");
 	});
 
@@ -197,7 +196,6 @@ contract("DevelopmentFund (Governance Functions)", (accounts) => {
 	});
 
 	it("Locked Token Owner should approve the contract to send tokens for the Release Schedule.", async () => {
-		releaseTokenAmount = createReleaseTokenAmount();
 		await expectRevert(
 			developmentFund.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount, { from: governance }),
 			"invalid transfer"
@@ -212,9 +210,8 @@ contract("DevelopmentFund (Governance Functions)", (accounts) => {
 	});
 
 	it("Locked Token Owner should not be able to withdraw tokens after schedule duration passed.", async () => {
-		let value = randomValue();
 		await expectRevert(
-			developmentFund.withdrawTokensByUnlockedTokenOwner(value, { from: governance }),
+			developmentFund.withdrawTokensByUnlockedTokenOwner(zero, { from: governance }),
 			"Only Unlocked Token Owner can call this."
 		);
 	});

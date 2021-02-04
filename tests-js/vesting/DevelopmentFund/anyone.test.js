@@ -99,7 +99,6 @@ contract("DevelopmentFund (Any User Functions)", (accounts) => {
 	});
 
 	it("Except current Unlocked Token Owner, no one should be able to approve Locked Token Owner.", async () => {
-		await developmentFund.updateLockedTokenOwner(newGovernance, { from: governance });
 		await expectRevert(developmentFund.approveLockedTokenOwner({ from: userOne }), "Only Unlocked Token Owner can call this.");
 	});
 
@@ -118,10 +117,8 @@ contract("DevelopmentFund (Any User Functions)", (accounts) => {
 	});
 
 	it("Except Locked Token Owner, no one should be able to change the release schedule.", async () => {
-		let newReleaseTime = randomValue();
-		releaseTokenAmount = createReleaseTokenAmount();
 		await expectRevert(
-			developmentFund.changeTokenReleaseSchedule(newReleaseTime, releaseDuration, releaseTokenAmount, { from: userOne }),
+			developmentFund.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount, { from: userOne }),
 			"Only Locked Token Owner can call this."
 		);
 	});
@@ -134,9 +131,8 @@ contract("DevelopmentFund (Any User Functions)", (accounts) => {
 	});
 
 	it("Except Unlocked Token Owner, no one should be able to withdraw tokens from schedule.", async () => {
-		let value = randomValue();
 		await expectRevert(
-			developmentFund.withdrawTokensByUnlockedTokenOwner(value, { from: userOne }),
+			developmentFund.withdrawTokensByUnlockedTokenOwner(zero, { from: userOne }),
 			"Only Unlocked Token Owner can call this."
 		);
 	});

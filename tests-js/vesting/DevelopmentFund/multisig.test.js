@@ -126,10 +126,8 @@ contract("DevelopmentFund (Multisig Functions)", (accounts) => {
 	});
 
 	it("Unlocked Token Owner should not be able to change the release schedule.", async () => {
-		let newReleaseTime = randomValue();
-		releaseTokenAmount = createReleaseTokenAmount();
 		await expectRevert(
-			developmentFund.changeTokenReleaseSchedule(newReleaseTime, releaseDuration, releaseTokenAmount, { from: multisig }),
+			developmentFund.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount, { from: multisig }),
 			"Only Locked Token Owner can call this."
 		);
 	});
