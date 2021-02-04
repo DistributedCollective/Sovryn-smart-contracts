@@ -1,6 +1,5 @@
 pragma solidity ^0.5.17;
 
-import "../../openzeppelin/Ownable.sol";
 import "../../openzeppelin/SafeMath.sol";
 import "../../interfaces/IERC20.sol";
 
@@ -9,7 +8,7 @@ import "../../interfaces/IERC20.sol";
  *  @author Franklin Richards
  *  @notice You can use this contract for timed token release from Dev Fund.
  */
-contract DevelopmentFund is Ownable {
+contract DevelopmentFund {
 	using SafeMath for uint256;
 
 	/* Storage */
