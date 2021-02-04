@@ -31,16 +31,6 @@ function randomValue() {
 }
 
 /**
- * Function to convert a BN array to number array.
- *
- * @param bnArray The array with BNs.
- * @return numArray The array with numbers.
- */
-function convertBNArrayToNumArray(bnArray) {
-	return bnArray.map((a) => a.toNumber());
-}
-
-/**
  * Function to create a random token amount with 60 items (considering one for each month for 5 years).
  *
  * @returns releaseTokenAmounts The release token amount array.
@@ -66,7 +56,7 @@ function calculateTotalTokenAmount(releaseTokenAmounts) {
 	return releaseTokenAmounts.reduce((a, b) => a + b, 0);
 }
 
-contract("DevelopmentFund (Contract Owner Functions)", (accounts) => {
+contract("DevelopmentFund (Contract Creator Functions)", (accounts) => {
 	let developmentFund, testToken;
 	let creator, governance, newGovernance, multisig, newMultisig, safeVault, userOne;
 
@@ -102,37 +92,37 @@ contract("DevelopmentFund (Contract Owner Functions)", (accounts) => {
 		await testToken.approve(developmentFund.address, totalReleaseTokenAmount);
 	});
 
-	it("Contract Owner should not be able to add Locked Token Owner.", async () => {
+	it("Contract Creator should not be able to add Locked Token Owner.", async () => {
 		await expectRevert(developmentFund.updateLockedTokenOwner(newGovernance), "Only Locked Token Owner can call this.");
 	});
 
-	it("Contract Owner should not be able to approve a Locked Token Owner.", async () => {
+	it("Contract Creator should not be able to approve a Locked Token Owner.", async () => {
 		await expectRevert(developmentFund.approveLockedTokenOwner(), "Only Unlocked Token Owner can call this.");
 	});
 
-	it("Contract Owner should not be able to update Unlocked Token Owner.", async () => {
+	it("Contract Creator should not be able to update Unlocked Token Owner.", async () => {
 		await expectRevert(developmentFund.updateUnlockedTokenOwner(newMultisig), "Only Locked Token Owner can call this.");
 	});
 
-	it("Contract Owner should not be able to change the release schedule.", async () => {
+	it("Contract Creator should not be able to change the release schedule.", async () => {
 		await expectRevert(
 			developmentFund.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount),
 			"Only Locked Token Owner can call this."
 		);
 	});
 
-	it("Contract Owner should not be able to transfer all tokens to safeVault.", async () => {
+	it("Contract Creator should not be able to transfer all tokens to safeVault.", async () => {
 		await expectRevert(developmentFund.transferTokensByUnlockedTokenOwner(), "Only Unlocked Token Owner can call this.");
 	});
 
-	it("Contract Owner should not be able to withdraw tokens after schedule.", async () => {
+	it("Contract Creator should not be able to withdraw tokens after schedule.", async () => {
 		await expectRevert(
 			developmentFund.withdrawTokensByUnlockedTokenOwner(releaseTokenAmount[releaseTokenAmount.length - 1]),
 			"Only Unlocked Token Owner can call this."
 		);
 	});
 
-	it("Contract Owner should not be able to transfer all tokens to a receiver.", async () => {
+	it("Contract Creator should not be able to transfer all tokens to a receiver.", async () => {
 		await expectRevert(developmentFund.transferTokensByLockedTokenOwner(creator), "Only Locked Token Owner can call this.");
 	});
 });
