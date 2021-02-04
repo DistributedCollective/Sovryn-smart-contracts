@@ -21,8 +21,8 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 		address, /*_sender*/
 		uint256, /*_amount*/
 		address, /*_token*/
-		bytes memory _data
-	) public {
+		bytes calldata _data
+	) external {
 		_receiveApproval(_getToken(), _data, _getSelectors());
 	}
 

@@ -19,7 +19,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 until,
 		address stakeFor,
 		address delegatee
-	) public {
+	) external {
 		_stake(msg.sender, amount, until, stakeFor, delegatee);
 	}
 
@@ -171,12 +171,12 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 stakedPerInterval = amount / numIntervals;
 		//stakedPerInterval might lose some dust on rounding. add it to the first staking date
 		if (numIntervals > 1) {
-			stake(uint96(amount - stakedPerInterval * (numIntervals - 1)), start, stakeFor, delegatee);
+			_stake(msg.sender, uint96(amount - stakedPerInterval * (numIntervals - 1)), start, stakeFor, delegatee);
 		}
 		//stake the rest in 4 week intervals
 		for (uint256 i = start + intervalLength; i <= end; i += intervalLength) {
 			//stakes for itself, delegates to the owner
-			stake(uint96(stakedPerInterval), i, stakeFor, delegatee);
+			_stake(msg.sender, uint96(stakedPerInterval), i, stakeFor, delegatee);
 		}
 	}
 
