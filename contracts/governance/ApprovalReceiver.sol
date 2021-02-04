@@ -40,10 +40,9 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 		require(isAllowed, "method is not allowed");
 
 		//check sender and amount
-		bytes32 dummy;
 		address sender;
 		uint256 amount;
-		(dummy, sender, amount) = abi.decode(
+		(, sender, amount) = abi.decode(
 			abi.encodePacked(bytes28(0), _data),
 			(bytes32,address,uint256)
 		);
