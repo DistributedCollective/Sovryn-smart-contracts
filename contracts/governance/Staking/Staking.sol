@@ -77,6 +77,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		} else {
 			address previousDelegatee = delegates[stakeFor][until];
 			if (previousDelegatee != delegatee) {
+				//update delegatee
+				delegates[stakeFor][until] = delegatee;
 				//decrease stake on previous balance for previous delegatee
 				_decreaseDelegateStake(previousDelegatee, until, previousBalance);
 				//add previousBalance to amount

@@ -501,11 +501,19 @@ contract("Staking", (accounts) => {
 			let lockedTS = await getTimeFromKickoff(duration);
 			let tx1 = await staking.stake(amount, lockedTS, root, root);
 
+			//check delegatee
+			let delegatee = await staking.delegates(root, lockedTS);
+			expect(delegatee).equal(root);
+
 			let stackingbBalance = await token.balanceOf.call(staking.address);
 			expect(stackingbBalance.toString()).to.be.equal(amount);
 			let beforeBalance = await token.balanceOf.call(root);
 
-			let tx2 = await staking.stake(amount * 2, lockedTS, root, root);
+			let tx2 = await staking.stake(amount * 2, lockedTS, root, account1);
+
+			//check delegatee
+			delegatee = await staking.delegates(root, lockedTS);
+			expect(delegatee).equal(account1);
 
 			stackingbBalance = await token.balanceOf.call(staking.address);
 			expect(stackingbBalance.toNumber()).to.be.equal(amount * 3);
@@ -529,6 +537,23 @@ contract("Staking", (accounts) => {
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx1.receipt.blockNumber);
 			expect(checkpoint.stake.toString()).to.be.equal(amount);
 			checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 1);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
+			expect(checkpoint.stake.toNumber()).to.be.equal(amount * 3);
+
+			//delegateStakingCheckpoints - root
+			let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
+			expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(2);
+			checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, 0);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx1.receipt.blockNumber);
+			expect(checkpoint.stake.toString()).to.be.equal(amount);
+			checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, 1);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
+			expect(checkpoint.stake.toNumber()).to.be.equal(0);
+
+			//delegateStakingCheckpoints - account1
+			numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(account1, lockedTS);
+			expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(1);
+			checkpoint = await staking.delegateStakingCheckpoints.call(account1, lockedTS, 0);
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
 			expect(checkpoint.stake.toNumber()).to.be.equal(amount * 3);
 
