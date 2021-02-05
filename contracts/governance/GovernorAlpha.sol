@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 import "./Staking/SafeMath96.sol";
 import "./Timelock.sol";
 import "./Staking/Staking.sol";
+import "../rsk/RSKAddrValidator.sol";
 
 contract GovernorAlpha is SafeMath96 {
 	/// @notice The name of this contract
@@ -174,9 +175,9 @@ contract GovernorAlpha is SafeMath96 {
 	) public returns (uint256) {
 		//note: passing this block's timestamp, but the number of the previous block
 		//todo: think if it would be better to pass block.timestamp - 30 (average block time) (probably not because proposal starts in 1 block from now)
-		uint96 proposalThreshold = proposalThreshold();
+		uint96 threshold = proposalThreshold();
 		require(
-			staking.getPriorVotes(msg.sender, sub256(block.number, 1), block.timestamp) > proposalThreshold,
+			staking.getPriorVotes(msg.sender, sub256(block.number, 1), block.timestamp) > threshold,
 			"GovernorAlpha::propose: proposer votes below proposal threshold"
 		);
 		require(
@@ -210,12 +211,8 @@ contract GovernorAlpha is SafeMath96 {
 				endBlock: safe32(endBlock, "GovernorAlpha::propose: end block number overflow"),
 				forVotes: 0,
 				againstVotes: 0,
-				quorum: mul96(quorumPercentageVotes, proposalThreshold, "GovernorAlpha::propose: overflow on quorum computation"), //proposalThreshold is 1% of total votes, we can save gas using this pre calculated value
-				minPercentage: mul96(
-					minPercentageVotes,
-					proposalThreshold,
-					"GovernorAlpha::propose: overflow on minPercentage computation"
-				),
+				quorum: mul96(quorumPercentageVotes, threshold, "GovernorAlpha::propose: overflow on quorum computation"), //proposalThreshold is 1% of total votes, we can save gas using this pre calculated value
+				minPercentage: mul96(minPercentageVotes, threshold, "GovernorAlpha::propose: overflow on minPercentage computation"),
 				eta: 0,
 				startTime: safe64(block.timestamp, "GovernorAlpha::propose: startTime overflow"), //required by the staking contract. not used by the governance contract itself.
 				canceled: false,
@@ -333,7 +330,7 @@ contract GovernorAlpha is SafeMath96 {
 		bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));
 		bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
 		address signatory = ecrecover(digest, v, r, s);
-		require(signatory != address(0), "GovernorAlpha::castVoteBySig: invalid signature");
+		require(RSKAddrValidator.checkPKNotZero(signatory), "GovernorAlpha::castVoteBySig: invalid signature");
 		return _castVote(signatory, proposalId, support);
 	}
 

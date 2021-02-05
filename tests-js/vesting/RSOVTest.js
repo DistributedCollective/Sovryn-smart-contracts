@@ -116,7 +116,7 @@ contract("RSOV:", (accounts) => {
 			let contract = new web3.eth.Contract(tokenRSOV.abi, tokenRSOV.address);
 			let data = contract.methods.mintWithApproval(account1, new BN(0)).encodeABI();
 
-			await expectRevert(tokenSOV.approveAndCall(tokenRSOV.address, amount, data, { from: account1 }), "RSOV::mint: amount invalid");
+			await expectRevert(tokenSOV.approveAndCall(tokenRSOV.address, amount, data, { from: account1 }), "amount mismatch");
 		});
 	});
 

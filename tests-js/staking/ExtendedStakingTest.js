@@ -328,9 +328,13 @@ contract("Staking", (accounts) => {
 
 			await token.approve(staking.address, 0);
 
+			//TODO
+			await token.approve(staking.address, amount * 2, {from: account1});
+
 			let contract = new web3.eth.Contract(staking.abi, staking.address);
 			let sender = root;
 			let data = contract.methods.stakeWithApproval(sender, amount, lockedTS, root, root).encodeABI();
+			// let data = contract.methods.stakeWithApproval(account1, amount * 2, lockedTS, root, root).encodeABI();
 			let tx = await token.approveAndCall(staking.address, amount, data, { from: sender });
 
 			stackingbBalance = await token.balanceOf.call(staking.address);
@@ -368,13 +372,37 @@ contract("Staking", (accounts) => {
 			await expectRevert(staking.stakeWithApproval(root, "100", lockedTS, root, root), "unauthorized");
 		});
 
-		it("fails if pass wrong method in data", async () => {
+		it("fails if wrong method passed in data", async () => {
 			let amount = "100";
 			let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
 			let contract = new web3.eth.Contract(staking.abi, staking.address);
 			let data = contract.methods.stake(amount, lockedTS, root, root).encodeABI();
 
 			await expectRevert(token.approveAndCall(staking.address, amount, data), "method is not allowed");
+		});
+
+		it("fails if wrong sender passed in data", async () => {
+			let amount = "100";
+			let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
+			let contract = new web3.eth.Contract(staking.abi, staking.address);
+
+			await token.approve(staking.address, amount * 2, {from: account1});
+			let sender = root;
+			let data = contract.methods.stakeWithApproval(account1, amount, lockedTS, root, root).encodeABI();
+
+			await expectRevert(token.approveAndCall(staking.address, amount, data, { from: sender }), "sender mismatch");
+		});
+
+		it("fails if wrong amount passed in data", async () => {
+			let amount = "100";
+			let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
+			let contract = new web3.eth.Contract(staking.abi, staking.address);
+
+			await token.approve(staking.address, amount * 2, {from: account1});
+			let sender = root;
+			let data = contract.methods.stakeWithApproval(sender, amount, lockedTS, root, root).encodeABI();
+
+			await expectRevert(token.approveAndCall(staking.address, amount * 2, data, { from: sender }), "amount mismatch");
 		});
 	});
 
@@ -501,11 +529,19 @@ contract("Staking", (accounts) => {
 			let lockedTS = await getTimeFromKickoff(duration);
 			let tx1 = await staking.stake(amount, lockedTS, root, root);
 
+			//check delegatee
+			let delegatee = await staking.delegates(root, lockedTS);
+			expect(delegatee).equal(root);
+
 			let stackingbBalance = await token.balanceOf.call(staking.address);
 			expect(stackingbBalance.toString()).to.be.equal(amount);
 			let beforeBalance = await token.balanceOf.call(root);
 
-			let tx2 = await staking.stake(amount * 2, lockedTS, root, root);
+			let tx2 = await staking.stake(amount * 2, lockedTS, root, account1);
+
+			//check delegatee
+			delegatee = await staking.delegates(root, lockedTS);
+			expect(delegatee).equal(account1);
 
 			stackingbBalance = await token.balanceOf.call(staking.address);
 			expect(stackingbBalance.toNumber()).to.be.equal(amount * 3);
@@ -529,6 +565,23 @@ contract("Staking", (accounts) => {
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx1.receipt.blockNumber);
 			expect(checkpoint.stake.toString()).to.be.equal(amount);
 			checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 1);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
+			expect(checkpoint.stake.toNumber()).to.be.equal(amount * 3);
+
+			//delegateStakingCheckpoints - root
+			let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
+			expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(2);
+			checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, 0);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx1.receipt.blockNumber);
+			expect(checkpoint.stake.toString()).to.be.equal(amount);
+			checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, 1);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
+			expect(checkpoint.stake.toNumber()).to.be.equal(0);
+
+			//delegateStakingCheckpoints - account1
+			numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(account1, lockedTS);
+			expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(1);
+			checkpoint = await staking.delegateStakingCheckpoints.call(account1, lockedTS, 0);
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
 			expect(checkpoint.stake.toNumber()).to.be.equal(amount * 3);
 

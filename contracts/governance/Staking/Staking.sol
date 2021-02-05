@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "./WeightedStaking.sol";
 import "./IStaking.sol";
+import "../../rsk/RSKAddrValidator.sol";
 import "../Vesting/ITeamVesting.sol";
 import "../ApprovalReceiver.sol";
 
@@ -19,7 +20,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 until,
 		address stakeFor,
 		address delegatee
-	) public {
+	) external {
 		_stake(msg.sender, amount, until, stakeFor, delegatee, false);
 	}
 
@@ -82,6 +83,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		} else {
 			address previousDelegatee = delegates[stakeFor][until];
 			if (previousDelegatee != delegatee) {
+				//update delegatee
+				delegates[stakeFor][until] = delegatee;
 				//decrease stake on previous balance for previous delegatee
 				_decreaseDelegateStake(previousDelegatee, until, previousBalance);
 				//add previousBalance to amount
@@ -177,7 +180,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 stakedPerInterval = amount / numIntervals;
 		//stakedPerInterval might lose some dust on rounding. add it to the first staking date
 		if (numIntervals > 1) {
-			stake(uint96(amount - stakedPerInterval * (numIntervals - 1)), start, stakeFor, delegatee);
+			_stake(msg.sender, uint96(amount - stakedPerInterval * (numIntervals - 1)), start, stakeFor, delegatee, true);
 		}
 		//stake the rest in 4 week intervals
 		for (uint256 i = start + intervalLength; i <= end; i += intervalLength) {
@@ -356,7 +359,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		bytes32 structHash = keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, lockDate, nonce, expiry));
 		bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
 		address signatory = ecrecover(digest, v, r, s);
-		require(signatory != address(0), "Staking::delegateBySig: invalid signature");
+		require(RSKAddrValidator.checkPKNotZero(signatory), "Staking::delegateBySig: invalid signature");
 		require(nonce == nonces[signatory]++, "Staking::delegateBySig: invalid nonce");
 		require(now <= expiry, "Staking::delegateBySig: signature expired");
 		return _delegate(signatory, delegatee, lockDate);
@@ -493,10 +496,10 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		//we need to iterate from first possible stake date after deployment to the latest from current time
 		uint256 j = 0;
 		for (uint256 i = kickoffTS + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
-			uint96 currentBalance = currentBalance(account, i);
-			if (currentBalance > 0) {
+			uint96 balance = currentBalance(account, i);
+			if (balance > 0) {
 				dates[j] = i;
-				stakes[j] = currentBalance;
+				stakes[j] = balance;
 				j++;
 			}
 		}
