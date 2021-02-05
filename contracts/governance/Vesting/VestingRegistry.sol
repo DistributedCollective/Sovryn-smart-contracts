@@ -55,11 +55,7 @@ contract VestingRegistry is Ownable {
 		AdoptionVesting //Adoption fund
 	}
 
-	event CSOVReImburse(
-		address from,
-		uint256 CSOVamount,
-		uint256 reImburseAmount
-	);
+	event CSOVReImburse(address from, uint256 CSOVamount, uint256 reImburseAmount);
 	event CSOVTokensExchanged(address indexed caller, uint256 amount);
 	event SOVTransferred(address indexed receiver, uint256 amount);
 	event VestingCreated(address indexed tokenOwner, address vesting, uint256 cliff, uint256 duration, uint256 amount);
@@ -106,8 +102,8 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-     * @dev reImburse - check holder CSOV balance, ReImburse RBTC and store holder address in processedList
-     */
+	 * @dev reImburse - check holder CSOV balance, ReImburse RBTC and store holder address in processedList
+	 */
 	function reImburse() public isNotProcessed isNotBlacklisted {
 		uint256 CSOVAmountWei = 0;
 		for (uint256 i = 0; i < CSOVtokens.length; i++) {
@@ -121,10 +117,7 @@ contract VestingRegistry is Ownable {
 		processedList[msg.sender] = true;
 
 		uint256 reImburseAmount = (CSOVAmountWei.mul(priceSats)).div(10**10);
-		require(
-			address(this).balance >= reImburseAmount,
-			"Not enough funds to reimburse"
-		);
+		require(address(this).balance >= reImburseAmount, "Not enough funds to reimburse");
 		msg.sender.transfer(reImburseAmount);
 
 		emit CSOVReImburse(msg.sender, CSOVAmountWei, reImburseAmount);

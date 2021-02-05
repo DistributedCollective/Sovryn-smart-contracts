@@ -25,7 +25,7 @@ const TOTAL_SUPPLY = "100000000000000000000000000";
 const ONE_MILLON = "1000000000000000000000000";
 const ZERO_ADDRESS = constants.ZERO_ADDRESS;
 
-const pricsSats = '2500';
+const pricsSats = "2500";
 
 contract("VestingRegistry", (accounts) => {
 	let root, account1, account2, account3;
