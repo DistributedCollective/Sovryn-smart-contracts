@@ -297,6 +297,14 @@ contract ISovryn is
 		bool unsafeOnly
 	) external view returns (LoanReturnData[] memory loansData);
 
+	////// SwapsExternal //////
+
+	function getSwapExpectedReturn(
+		address sourceToken,
+		address destToken,
+		uint256 sourceTokenAmount
+	) external view returns (uint256);
+
 	////// Protocol Migration //////
 
 	function setLegacyOracles(address[] calldata refs, address[] calldata oracles) external;
