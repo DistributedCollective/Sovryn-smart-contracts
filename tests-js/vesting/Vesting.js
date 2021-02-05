@@ -4,7 +4,7 @@ const { address, minerStart, minerStop, unlockedAccount, mineBlock, etherMantiss
 
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
-const TestToken = artifacts.require("TestToken");
+const SOV = artifacts.require("SOV");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const Vesting = artifacts.require("Vesting");
 
@@ -27,7 +27,7 @@ contract("Vesting", (accounts) => {
 
 	before(async () => {
 		[root, a1, a2, a3, ...accounts] = accounts;
-		token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
+		token = await SOV.new(TOTAL_SUPPLY);
 
 		feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, constants.ZERO_ADDRESS);
 
@@ -218,6 +218,71 @@ contract("Vesting", (accounts) => {
 
 			await token.approve(vesting.address, amount);
 			await vesting.stakeTokens(amount);
+
+			let block = await web3.eth.getBlock("latest");
+			let timestamp = block.timestamp;
+
+			let start = timestamp + cliff;
+			let end = timestamp + duration;
+
+			let numIntervals = Math.floor((end - start) / (4 * WEEK)) + 1;
+			let stakedPerInterval = Math.floor(amount / numIntervals);
+
+			let stakeForFirstInterval = amount - stakedPerInterval * (numIntervals - 1);
+
+			//positive case
+			for (let i = start; i <= end; i += 4 * WEEK) {
+				let periodFromKickoff = Math.floor((i - kickoffTS.toNumber()) / (2 * WEEK));
+				let startBuf = periodFromKickoff * 2 * WEEK + kickoffTS.toNumber();
+				let userStakingCheckpoints = await staking.userStakingCheckpoints(vesting.address, startBuf, 0);
+
+				assert.equal(userStakingCheckpoints.fromBlock.toNumber(), block.number);
+				if (i === start) {
+					assert.equal(userStakingCheckpoints.stake.toString(), stakeForFirstInterval);
+				} else {
+					assert.equal(userStakingCheckpoints.stake.toString(), stakedPerInterval);
+				}
+
+				let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(vesting.address, startBuf);
+				assert.equal(numUserStakingCheckpoints.toString(), "1");
+			}
+		});
+	});
+
+	describe("stakeTokensWithApproval", () => {
+		let vesting;
+
+		it("fails if invoked directly", async () => {
+			let amount = 1000;
+			let cliff = 26 * WEEK;
+			let duration = 34 * WEEK;
+			vesting = await Vesting.new(token.address, staking.address, root, cliff, duration, feeSharingProxy.address);
+			await expectRevert(vesting.stakeTokensWithApproval(root, amount), "unauthorized");
+		});
+
+		it("fails if pass wrong method in data", async () => {
+			let amount = 1000;
+			let cliff = 26 * WEEK;
+			let duration = 34 * WEEK;
+			vesting = await Vesting.new(token.address, staking.address, root, cliff, duration, feeSharingProxy.address);
+
+			let contract = new web3.eth.Contract(vesting.abi, vesting.address);
+			let sender = root;
+			let data = contract.methods.stakeTokens(amount).encodeABI();
+
+			await expectRevert(token.approveAndCall(vesting.address, amount, data, { from: sender }), "method is not allowed");
+		});
+
+		it("should stake 1000 tokens with a duration of 34 weeks and a 26 week cliff (dust on rounding)", async () => {
+			let amount = 1000;
+			let cliff = 26 * WEEK;
+			let duration = 34 * WEEK;
+			vesting = await Vesting.new(token.address, staking.address, root, cliff, duration, feeSharingProxy.address);
+
+			let contract = new web3.eth.Contract(vesting.abi, vesting.address);
+			let sender = root;
+			let data = contract.methods.stakeTokensWithApproval(sender, amount).encodeABI();
+			await token.approveAndCall(vesting.address, amount, data, { from: sender });
 
 			let block = await web3.eth.getBlock("latest");
 			let timestamp = block.timestamp;

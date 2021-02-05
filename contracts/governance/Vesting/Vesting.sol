@@ -6,8 +6,9 @@ import "../../interfaces/IERC20.sol";
 import "../Staking/Staking.sol";
 import "../IFeeSharingProxy.sol";
 import "./IVesting.sol";
+import "../ApprovalReceiver.sol";
 
-contract Vesting is IVesting, Ownable {
+contract Vesting is IVesting, Ownable, ApprovalReceiver {
 	///@notice the SOV token contract
 	IERC20 public SOV;
 	///@notice the staking contract address
@@ -71,23 +72,38 @@ contract Vesting is IVesting, Ownable {
 
 	/**
 	 * @notice stakes tokens according to the vesting schedule
-	 * @param amount the amount of tokens to stake
+	 * @param _amount the amount of tokens to stake
 	 * */
-	function stakeTokens(uint256 amount) public {
+	function stakeTokens(uint256 _amount) public {
+		_stakeTokens(msg.sender, _amount);
+	}
+
+	/**
+	 * @notice stakes tokens according to the vesting schedule
+	 * @dev this function will be invoked from receiveApproval
+	 * @dev SOV.approveAndCall -> this.receiveApproval -> this.stakeTokensWithApproval
+	 * @param _sender the sender of SOV.approveAndCall
+	 * @param _amount the amount of tokens to stake
+	 * */
+	function stakeTokensWithApproval(address _sender, uint256 _amount) public onlyThisContract {
+		_stakeTokens(_sender, _amount);
+	}
+
+	function _stakeTokens(address _sender, uint256 _amount) internal {
 		//maybe better to allow staking unil the cliff was reached
 		if (startDate == 0) {
 			startDate = staking.timestampToLockDate(block.timestamp);
 		}
 		endDate = staking.timestampToLockDate(block.timestamp) + duration;
 		//transfer the tokens to this contract
-		bool success = SOV.transferFrom(msg.sender, address(this), amount);
+		bool success = SOV.transferFrom(_sender, address(this), _amount);
 		require(success);
 		//allow the staking contract to access them
-		SOV.approve(address(staking), amount);
+		SOV.approve(address(staking), _amount);
 
-		staking.stakesBySchedule(amount, cliff, duration, FOUR_WEEKS, address(this), tokenOwner);
+		staking.stakesBySchedule(_amount, cliff, duration, FOUR_WEEKS, address(this), tokenOwner);
 
-		emit TokensStaked(msg.sender, amount);
+		emit TokensStaked(_sender, _amount);
 	}
 
 	/**
@@ -156,5 +172,15 @@ contract Vesting is IVesting, Ownable {
 		staking.migrateToNewStakingContract();
 		staking = Staking(staking.newStakingContract());
 		emit MigratedToNewStakingContract(msg.sender, address(staking));
+	}
+
+	function _getToken() internal view returns (address) {
+		return address(SOV);
+	}
+
+	function _getSelectors() internal view returns (bytes4[] memory) {
+		bytes4[] memory selectors = new bytes4[](1);
+		selectors[0] = this.stakeTokensWithApproval.selector;
+		return selectors;
 	}
 }

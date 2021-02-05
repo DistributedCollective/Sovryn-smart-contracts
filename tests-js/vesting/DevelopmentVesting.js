@@ -4,7 +4,7 @@ const { increaseTime } = require("../Utils/Ethereum");
 
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
-const TestToken = artifacts.require("TestToken");
+const SOV = artifacts.require("SOV");
 const Vesting = artifacts.require("Vesting");
 const DevelopmentVesting = artifacts.require("DevelopmentVestingMockup");
 
@@ -32,7 +32,7 @@ contract("DevelopmentVesting:", (accounts) => {
 	});
 
 	beforeEach(async () => {
-		token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
+		token = await SOV.new(TOTAL_SUPPLY);
 
 		stakingLogic = await StakingLogic.new(token.address);
 		staking = await StakingProxy.new(token.address);
@@ -118,7 +118,36 @@ contract("DevelopmentVesting:", (accounts) => {
 		});
 
 		it("fails if transfer fails", async () => {
-			await expectRevert(vesting.depositTokens(12345), "invalid transfer");
+			await expectRevert(vesting.depositTokens(12345), "ERC20: transfer amount exceeds allowance");
+		});
+	});
+
+	describe("depositTokensWithApproval:", () => {
+		it("should be able to deposit tokens", async () => {
+			let amount = 12345;
+
+			let contract = new web3.eth.Contract(vesting.abi, vesting.address);
+			let sender = root;
+			let data = contract.methods.depositTokensWithApproval(sender, amount).encodeABI();
+			await token.approveAndCall(vesting.address, amount, data, { from: sender });
+
+			let depositedAmount = await vesting.amount();
+			expect(depositedAmount.toNumber()).to.be.equal(amount);
+
+			let vestingBalance = await token.balanceOf(vesting.address);
+			expect(vestingBalance.toNumber()).to.be.equal(amount);
+		});
+
+		it("fails if invoked directly", async () => {
+			await expectRevert(vesting.depositTokensWithApproval(account1, new BN(5000)), "unauthorized");
+		});
+
+		it("fails if pass wrong method in data", async () => {
+			let amount = 12345;
+			let contract = new web3.eth.Contract(vesting.abi, vesting.address);
+			let data = contract.methods.depositTokens(amount).encodeABI();
+
+			await expectRevert(token.approveAndCall(vesting.address, amount, data, { from: account1 }), "method is not allowed");
 		});
 	});
 
@@ -213,7 +242,39 @@ contract("DevelopmentVesting:", (accounts) => {
 		});
 
 		it("fails if transfer fails", async () => {
-			await expectRevert(vesting.vestTokens(12345), "invalid transfer");
+			await expectRevert(vesting.vestTokens(12345), "ERC20: transfer amount exceeds allowance");
+		});
+	});
+
+	describe("vestTokensWithApproval:", () => {
+		it("should be able to vest tokens", async () => {
+			let amount = 123000;
+
+			let contract = new web3.eth.Contract(vesting.abi, vesting.address);
+			let sender = root;
+			let data = contract.methods.vestTokensWithApproval(sender, amount).encodeABI();
+			let tx = await token.approveAndCall(vesting.address, amount, data, { from: sender });
+
+			let vestingBalance = await token.balanceOf(vesting.address);
+			expect(vestingBalance.toNumber()).to.be.equal(amount);
+
+			let schedule = await vesting.schedules(0);
+			let block = await web3.eth.getBlock(tx.receipt.blockNumber);
+			expect(schedule.startDate.toString()).to.be.equal(block.timestamp.toString());
+			expect(schedule.amount.toNumber()).to.be.equal(amount);
+			expect(schedule.withdrawnAmount.toNumber()).to.be.equal(0);
+		});
+
+		it("fails if invoked directly", async () => {
+			await expectRevert(vesting.vestTokensWithApproval(account1, new BN(5000)), "unauthorized");
+		});
+
+		it("fails if pass wrong method in data", async () => {
+			let amount = 12345;
+			let contract = new web3.eth.Contract(vesting.abi, vesting.address);
+			let data = contract.methods.vestTokens(amount).encodeABI();
+
+			await expectRevert(token.approveAndCall(vesting.address, amount, data, { from: account1 }), "method is not allowed");
 		});
 	});
 

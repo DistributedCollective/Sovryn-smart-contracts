@@ -6,13 +6,15 @@ import "../../openzeppelin/ERC20.sol";
 import "../../openzeppelin/Ownable.sol";
 import "../Staking/SafeMath96.sol";
 import "../Staking/IStaking.sol";
+import "../../token/IApproveAndCall.sol";
+import "../ApprovalReceiver.sol";
 
 //TODO should be set as protocolTokenAddress (ProtocolSettings.setProtocolTokenAddress)
 //TODO PriceFeeds._protocolTokenAddress ?
 /**
  * Sovryn Reward Token
  */
-contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
+contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 	string constant NAME = "Sovryn Reward Token";
 	string constant SYMBOL = "RSOV";
 	uint8 constant DECIMALS = 18;
@@ -49,16 +51,31 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
 	 * @param _amount the amount of tokens to be mint
 	 */
 	function mint(uint96 _amount) public {
+		_mintTo(msg.sender, _amount);
+	}
+
+	/**
+	 * @notice holds SOV tokens and mints the respective amount of RSOV tokens
+	 * @dev this function will be invoked from receiveApproval
+	 * @dev SOV.approveAndCall -> this.receiveApproval -> this.mintWithApproval
+	 * @param _sender the sender of SOV.approveAndCall
+	 * @param _amount the amount of tokens to be mint
+	 */
+	function mintWithApproval(address _sender, uint96 _amount) public onlyThisContract {
+		_mintTo(_sender, _amount);
+	}
+
+	function _mintTo(address _sender, uint96 _amount) internal {
 		require(_amount > 0, "RSOV::mint: amount invalid");
 
 		//holds SOV tokens
-		bool success = SOV.transferFrom(msg.sender, address(this), _amount);
+		bool success = SOV.transferFrom(_sender, address(this), _amount);
 		require(success);
 
 		//mints RSOV tokens
-		_mint(msg.sender, _amount);
+		_mint(_sender, _amount);
 
-		emit Mint(msg.sender, _amount);
+		emit Mint(_sender, _amount);
 	}
 
 	/**
@@ -85,5 +102,15 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96 {
 		staking.stakesBySchedule(_amount, FOUR_WEEKS, YEAR, FOUR_WEEKS, msg.sender, msg.sender);
 
 		emit Burn(msg.sender, _amount);
+	}
+
+	function _getToken() internal view returns (address) {
+		return address(SOV);
+	}
+
+	function _getSelectors() internal view returns (bytes4[] memory) {
+		bytes4[] memory selectors = new bytes4[](1);
+		selectors[0] = this.mintWithApproval.selector;
+		return selectors;
 	}
 }

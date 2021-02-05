@@ -1,6 +1,7 @@
 pragma solidity ^0.5.17;
 
 import "../openzeppelin/SafeMath.sol";
+import "./ErrorDecoder.sol";
 
 interface ITimelock {
 	function delay() external view returns (uint256);
@@ -36,18 +37,12 @@ interface ITimelock {
 	) external payable returns (bytes memory);
 }
 
-contract Timelock is ITimelock {
+contract Timelock is ErrorDecoder, ITimelock {
 	using SafeMath for uint256;
 
 	uint256 public constant GRACE_PERIOD = 14 days;
 	uint256 public constant MINIMUM_DELAY = 3 hours;
 	uint256 public constant MAXIMUM_DELAY = 30 days;
-
-	//4 bytes - 0x08c379a0 - method id
-	//32 bytes - 2 parameters
-	//32 bytes - bool, result
-	//32 ... bytes - string, error message
-	uint256 constant ERROR_MESSAGE_SHIFT = 68;
 
 	address public admin;
 	address public pendingAdmin;
@@ -170,20 +165,5 @@ contract Timelock is ITimelock {
 	function getBlockTimestamp() internal view returns (uint256) {
 		// solium-disable-next-line security/no-block-members
 		return block.timestamp;
-	}
-
-	function _addErrorMessage(string memory str1, string memory str2) internal pure returns (string memory) {
-		bytes memory bytesStr1 = bytes(str1);
-		bytes memory bytesStr2 = bytes(str2);
-		string memory str12 = new string(bytesStr1.length + bytesStr2.length - ERROR_MESSAGE_SHIFT);
-		bytes memory bytesStr12 = bytes(str12);
-		uint256 j = 0;
-		for (uint256 i = 0; i < bytesStr1.length; i++) {
-			bytesStr12[j++] = bytesStr1[i];
-		}
-		for (uint256 i = ERROR_MESSAGE_SHIFT; i < bytesStr2.length; i++) {
-			bytesStr12[j++] = bytesStr2[i];
-		}
-		return string(bytesStr12);
 	}
 }
