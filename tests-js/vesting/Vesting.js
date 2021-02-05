@@ -121,7 +121,7 @@ contract("Vesting", (accounts) => {
 			}
 
 			//delegate
-			let tx = await vesting.delegate(a1, {from: a2});
+			let tx = await vesting.delegate(a1, { from: a2 });
 
 			expectEvent(tx, "VotesDelegated", {
 				caller: a2,
@@ -137,13 +137,12 @@ contract("Vesting", (accounts) => {
 		});
 
 		it("fails if delegatee is zero address", async () => {
-			await expectRevert(vesting.delegate(constants.ZERO_ADDRESS, {from: a2}), "delegatee address invalid");
+			await expectRevert(vesting.delegate(constants.ZERO_ADDRESS, { from: a2 }), "delegatee address invalid");
 		});
 
 		it("fails if not a token owner", async () => {
-			await expectRevert(vesting.delegate(a1, {from: a1}), "unauthorized");
+			await expectRevert(vesting.delegate(a1, { from: a1 }), "unauthorized");
 		});
-
 	});
 
 	describe("stakeTokens", () => {

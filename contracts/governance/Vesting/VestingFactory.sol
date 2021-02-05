@@ -61,5 +61,4 @@ contract VestingFactory is IVestingFactory, Ownable {
 		Ownable(vesting).transferOwnership(_vestingOwner);
 		return vesting;
 	}
-
 }

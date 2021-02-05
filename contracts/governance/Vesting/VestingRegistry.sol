@@ -309,5 +309,4 @@ contract VestingRegistry is Ownable {
 		}
 		return vestingContracts[_tokenOwner][type_];
 	}
-
 }
