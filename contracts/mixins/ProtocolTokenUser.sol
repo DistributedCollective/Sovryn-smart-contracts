@@ -8,34 +8,24 @@ pragma solidity 0.5.17;
 import "../core/State.sol";
 import "../openzeppelin/SafeERC20.sol";
 
-
 contract ProtocolTokenUser is State {
-    using SafeERC20 for IERC20;
+	using SafeERC20 for IERC20;
 
-    function _withdrawProtocolToken(
-        address receiver,
-        uint256 amount)
-        internal
-        returns (address, bool)
-    {
-        uint256 withdrawAmount = amount;
+	function _withdrawProtocolToken(address receiver, uint256 amount) internal returns (address, bool) {
+		uint256 withdrawAmount = amount;
 
-        uint256 tokenBalance = protocolTokenHeld;
-        if (withdrawAmount > tokenBalance) {
-            withdrawAmount = tokenBalance;
-        }
-        if (withdrawAmount == 0) {
-            return (protocolTokenAddress, false);
-        }
+		uint256 tokenBalance = protocolTokenHeld;
+		if (withdrawAmount > tokenBalance) {
+			withdrawAmount = tokenBalance;
+		}
+		if (withdrawAmount == 0) {
+			return (protocolTokenAddress, false);
+		}
 
-        protocolTokenHeld = tokenBalance
-            .sub(withdrawAmount);
+		protocolTokenHeld = tokenBalance.sub(withdrawAmount);
 
-        IERC20(protocolTokenAddress).safeTransfer(
-            receiver,
-            withdrawAmount
-        );
+		IERC20(protocolTokenAddress).safeTransfer(receiver, withdrawAmount);
 
-        return (protocolTokenAddress, true);
-    }
+		return (protocolTokenAddress, true);
+	}
 }
