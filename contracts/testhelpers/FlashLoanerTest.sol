@@ -29,6 +29,7 @@ contract FlashLoanerTest is Ownable {
 		uint256 loanAmount
 	) internal {
 		IERC20(loanToken).transfer(iToken, loanAmount);
+		emit BalanceOfAfterRepaid(IERC20(loanToken).balanceOf(address(this)));
 	}
 
 	function executeOperation(
@@ -53,7 +54,6 @@ contract FlashLoanerTest is Ownable {
 		result = initiateFlashLoanTest(token, iToken, amount);
 
 		emit BalanceOf(IERC20(token).balanceOf(address(this)));
-
 		// after loan checks and what not.
 		if (hashCompareWithLengthCheck(bytes("1"), result)) {
 			revert("failed executeOperation");
@@ -71,4 +71,6 @@ contract FlashLoanerTest is Ownable {
 	event ExecuteOperation(address loanToken, address iToken, uint256 loanAmount);
 
 	event BalanceOf(uint256 balance);
+
+	event BalanceOfAfterRepaid(uint256 balance);
 }

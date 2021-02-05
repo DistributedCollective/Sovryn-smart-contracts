@@ -40,7 +40,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 		_;
 	}
 
-	modifier onlyFlashLoanWhitelisted(address account) {
+	modifier onlyFlashLoanWhiteListed(address account) {
 		require(flashLoanWhiteList[account], "account is not whitelisted for flash loans");
 		_;
 	}
@@ -51,11 +51,11 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 		arbitraryCallerAddress = caller;
 	}
 
-	function addToFlashLoanWhileList(address addressToAdd) public onlyAdmin {
+	function addToFlashLoanWhiteList(address addressToAdd) public onlyAdmin {
 		flashLoanWhiteList[addressToAdd] = true;
 	}
 
-	function removeFromFlashLoanWhileList(address addressToAdd) public onlyAdmin {
+	function removeFromFlashLoanWhiteList(address addressToAdd) public onlyAdmin {
 		delete flashLoanWhiteList[addressToAdd];
 	}
 

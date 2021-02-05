@@ -18,7 +18,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 	uint256 public constant VERSION = 5;
 
-	// address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF; // replaced for arbitraryCallerAddress in LoanTokenSettingsLowerAdmin
+	// address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF; // ethereum address! replaced by  arbitraryCallerAddress in LoanTokenSettingsLowerAdmin
 
 	function() external {
 		revert("loan token logic - fallback not allowed");
@@ -50,9 +50,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		address target,
 		string calldata signature,
 		bytes calldata data
-	) external payable nonReentrant onlyFlashLoanWhitelisted(borrower) returns (bytes memory) {
+	) external payable nonReentrant onlyFlashLoanWhiteListed(borrower) returns (bytes memory) {
 		require(borrowAmount != 0, "38");
-
 		//AUDIT: the borrower parameter can be removed
 		require(borrower == msg.sender, "unauthorised usage of a whitelisted address");
 
@@ -78,6 +77,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		}
 
 		// arbitrary call
+		require(arbitraryCallerAddress != address(0), "arbitraryCallerAddress is not set");
 		(bool success, bytes memory returnData) =
 			arbitraryCallerAddress.call.value(msg.value)(
 				abi.encodeWithSelector(
@@ -91,7 +91,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		// unlock totalAssetSupply
 		_flTotalAssetSupply = 0;
 
-		// verifies return of flash loan
 		require(address(this).balance >= beforeEtherBalance && _underlyingBalance().add(totalAssetBorrow()) >= beforeAssetsBalance, "40");
 
 		return returnData;
