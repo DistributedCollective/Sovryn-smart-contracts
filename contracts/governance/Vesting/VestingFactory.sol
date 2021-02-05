@@ -6,6 +6,16 @@ import "./TeamVesting.sol";
 import "./IVestingFactory.sol";
 
 contract VestingFactory is IVestingFactory, Ownable {
+	/**
+	 * @notice deploys Vesting contract
+	 * @param _SOV the address of SOV token
+	 * @param _staking the address of staking contract
+	 * @param _tokenOwner the owner of the tokens
+	 * @param _cliff the cliff in seconds
+	 * @param _duration the total duration in seconds
+	 * @param _feeSharing the address of fee sharing contract
+	 * @param _vestingOwner the address of an owner of vesting contract
+	 */
 	function deployVesting(
 		address _SOV,
 		address _staking,
@@ -24,6 +34,16 @@ contract VestingFactory is IVestingFactory, Ownable {
 		return vesting;
 	}
 
+	/**
+	 * @notice deploys Team Vesting contract
+	 * @param _SOV the address of SOV token
+	 * @param _staking the address of staking contract
+	 * @param _tokenOwner the owner of the tokens
+	 * @param _cliff the cliff in seconds
+	 * @param _duration the total duration in seconds
+	 * @param _feeSharing the address of fee sharing contract
+	 * @param _vestingOwner the address of an owner of vesting contract
+	 */
 	function deployTeamVesting(
 		address _SOV,
 		address _staking,

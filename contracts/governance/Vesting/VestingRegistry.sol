@@ -130,7 +130,10 @@ contract VestingRegistry is Ownable {
 	}
 
 	//--------------------------------------------------------------------------------------------------------------------------------------
-
+	/**
+	 * @notice sets CSON tokens array
+	 * @param _CSOVtokens the array of CSOV tokens
+	 */
 	function setCSOVtokens(address[] memory _CSOVtokens) public onlyOwner {
 		_setCSOVtokens(_CSOVtokens);
 	}
@@ -142,12 +145,22 @@ contract VestingRegistry is Ownable {
 		CSOVtokens = _CSOVtokens;
 	}
 
+	/**
+	 * @notice sets blacklist flag
+	 * @param _account the address to be blacklisted
+	 * @param _blacklisted the flag to add/remove to/from a blacklist
+	 */
 	function setBlacklistFlag(address _account, bool _blacklisted) public onlyOwner {
 		require(_account != address(0), "account address invalid");
 
 		blacklist[_account] = _blacklisted;
 	}
 
+	/**
+	 * @notice sets amount to be subtracted from user token balance
+	 * @param _account the address with locked amount
+	 * @param _amount the amount is locked
+	 */
 	function setLockedAmount(address _account, uint256 _amount) public onlyOwner {
 		require(_account != address(0), "account address invalid");
 		require(_amount != 0, "amount invalid");
@@ -155,6 +168,11 @@ contract VestingRegistry is Ownable {
 		lockedAmount[_account] = _amount;
 	}
 
+	/**
+	 * @notice transfers SOV tokens to given address
+	 * @param _receiver the address of the SOV receiver
+	 * @param _amount the amount to be transferred
+	 */
 	function transferSOV(address _receiver, uint256 _amount) public onlyOwner {
 		require(_receiver != address(0), "receiver address invalid");
 		require(_amount != 0, "amount invalid");
@@ -163,6 +181,9 @@ contract VestingRegistry is Ownable {
 		emit SOVTransferred(_receiver, _amount);
 	}
 
+	/**
+	 * @notice exchanges CSOV to SOV with 1:1 rate
+	 */
 	function exchangeAllCSOV() public isNotProcessed isNotBlacklisted {
 		processedList[msg.sender] = true;
 
@@ -199,6 +220,13 @@ contract VestingRegistry is Ownable {
 		require(isValid, "wrong CSOV address");
 	}
 
+	/**
+	 * @notice creates Vesting contract
+	 * @param _tokenOwner the owner of the tokens
+	 * @param _amount the amount to be staked
+	 * @param _cliff the cliff in seconds
+	 * @param _duration the total duration in seconds
+	 */
 	function createVesting(
 		address _tokenOwner,
 		uint256 _amount,
@@ -209,6 +237,13 @@ contract VestingRegistry is Ownable {
 		emit VestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount);
 	}
 
+	/**
+	 * @notice creates Team Vesting contract
+	 * @param _tokenOwner the owner of the tokens
+	 * @param _amount the amount to be staked
+	 * @param _cliff the cliff in seconds
+	 * @param _duration the total duration in seconds
+	 */
 	function createTeamVesting(
 		address _tokenOwner,
 		uint256 _amount,
@@ -219,6 +254,11 @@ contract VestingRegistry is Ownable {
 		emit TeamVestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount);
 	}
 
+	/**
+	 * @notice stakes tokens according to the vesting schedule
+	 * @param _vesting the address of Vesting contract
+	 * @param _amount the amount of tokens to stake
+	 */
 	function stakeTokens(address _vesting, uint256 _amount) public onlyOwner {
 		require(_vesting != address(0), "vesting address invalid");
 		require(_amount > 0, "amount invalid");
@@ -228,10 +268,18 @@ contract VestingRegistry is Ownable {
 		emit TokensStaked(_vesting, _amount);
 	}
 
+	/**
+	 * @notice returns vesting contract address for the given token owner
+	 * @param _tokenOwner the owner of the tokens
+	 */
 	function getVesting(address _tokenOwner) public view returns (address) {
 		return vestingContracts[_tokenOwner][uint256(VestingType.Vesting)];
 	}
 
+	/**
+	 * @notice returns team vesting contract address for the given token owner
+	 * @param _tokenOwner the owner of the tokens
+	 */
 	function getTeamVesting(address _tokenOwner) public view returns (address) {
 		return vestingContracts[_tokenOwner][uint256(VestingType.TeamVesting)];
 	}
