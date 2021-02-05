@@ -7,7 +7,6 @@ import "../IFeeSharingProxy.sol";
 import "./IVestingFactory.sol";
 import "./IVesting.sol";
 import "./ITeamVesting.sol";
-import "./IDevelopmentVesting.sol";
 import "../../openzeppelin/SafeMath.sol";
 
 contract VestingRegistry is Ownable {
@@ -50,9 +49,7 @@ contract VestingRegistry is Ownable {
 
 	enum VestingType {
 		TeamVesting, //MultisigVesting
-		Vesting, //TokenHolderVesting
-		DevelopmentVesting, //Development fund
-		AdoptionVesting //Adoption fund
+		Vesting //TokenHolderVesting
 	}
 
 	event CSOVReImburse(address from, uint256 CSOVamount, uint256 reImburseAmount);
@@ -61,8 +58,6 @@ contract VestingRegistry is Ownable {
 	event VestingCreated(address indexed tokenOwner, address vesting, uint256 cliff, uint256 duration, uint256 amount);
 	event TeamVestingCreated(address indexed tokenOwner, address vesting, uint256 cliff, uint256 duration, uint256 amount);
 	event TokensStaked(address indexed vesting, uint256 amount);
-	event DevelopmentVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 frequency, uint256 amount);
-	event AdoptionVestingCreated(address indexed tokenOwner, uint256 cliff, uint256 duration, uint256 frequency, uint256 amount);
 
 	constructor(
 		address _vestingFactory,
@@ -233,46 +228,12 @@ contract VestingRegistry is Ownable {
 		emit TokensStaked(_vesting, _amount);
 	}
 
-	function createDevelopmentVesting(
-		address _tokenOwner,
-		uint256 _amount,
-		uint256 _cliff,
-		uint256 _duration,
-		uint256 _frequency
-	) public onlyOwner {
-		address vesting = _getOrCreateDevelopmentVesting(_tokenOwner, _cliff, _duration, _frequency);
-		IERC20(SOV).approve(vesting, _amount);
-		IDevelopmentVesting(vesting).vestTokens(_amount);
-		emit DevelopmentVestingCreated(_tokenOwner, _cliff, _duration, _frequency, _amount);
-	}
-
-	function createAdoptionVesting(
-		address _tokenOwner,
-		uint256 _amount,
-		uint256 _cliff,
-		uint256 _duration,
-		uint256 _frequency
-	) public onlyOwner {
-		address vesting = _getOrCreateAdoptionVesting(_tokenOwner, _cliff, _duration, _frequency);
-		IERC20(SOV).approve(vesting, _amount);
-		IDevelopmentVesting(vesting).vestTokens(_amount);
-		emit AdoptionVestingCreated(_tokenOwner, _cliff, _duration, _frequency, _amount);
-	}
-
 	function getVesting(address _tokenOwner) public view returns (address) {
 		return vestingContracts[_tokenOwner][uint256(VestingType.Vesting)];
 	}
 
 	function getTeamVesting(address _tokenOwner) public view returns (address) {
 		return vestingContracts[_tokenOwner][uint256(VestingType.TeamVesting)];
-	}
-
-	function getDevelopmentVesting(address _tokenOwner) public view returns (address) {
-		return vestingContracts[_tokenOwner][uint256(VestingType.DevelopmentVesting)];
-	}
-
-	function getAdoptionVesting(address _tokenOwner) public view returns (address) {
-		return vestingContracts[_tokenOwner][uint256(VestingType.AdoptionVesting)];
 	}
 
 	function _getOrCreateVesting(
@@ -301,37 +262,4 @@ contract VestingRegistry is Ownable {
 		return vestingContracts[_tokenOwner][type_];
 	}
 
-	function _getOrCreateDevelopmentVesting(
-		address _tokenOwner,
-		uint256 _cliff,
-		uint256 _duration,
-		uint256 _frequency
-	) internal returns (address) {
-		uint256 type_ = uint256(VestingType.DevelopmentVesting);
-		return _getOrCreateAdoptionOrDevelopmentVesting(type_, _tokenOwner, _cliff, _duration, _frequency);
-	}
-
-	function _getOrCreateAdoptionVesting(
-		address _tokenOwner,
-		uint256 _cliff,
-		uint256 _duration,
-		uint256 _frequency
-	) internal returns (address) {
-		uint256 type_ = uint256(VestingType.AdoptionVesting);
-		return _getOrCreateAdoptionOrDevelopmentVesting(type_, _tokenOwner, _cliff, _duration, _frequency);
-	}
-
-	function _getOrCreateAdoptionOrDevelopmentVesting(
-		uint256 _type,
-		address _tokenOwner,
-		uint256 _cliff,
-		uint256 _duration,
-		uint256 _frequency
-	) internal returns (address) {
-		if (vestingContracts[_tokenOwner][_type] == address(0)) {
-			address vesting = vestingFactory.deployDevelopmentVesting(SOV, _tokenOwner, _cliff, _duration, _frequency, vestingOwner);
-			vestingContracts[_tokenOwner][_type] = vesting;
-		}
-		return vestingContracts[_tokenOwner][_type];
-	}
 }

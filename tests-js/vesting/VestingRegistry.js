@@ -11,7 +11,6 @@ const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry");
 const Vesting = artifacts.require("TeamVesting");
-const DevelopmentVesting = artifacts.require("DevelopmentVesting");
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 const FOUR_WEEKS = new BN(4 * 7 * 24 * 60 * 60);
@@ -432,98 +431,6 @@ contract("VestingRegistry", (accounts) => {
 
 		it("only owner should be able to stake tokens", async () => {
 			await expectRevert(vestingRegistry.stakeTokens(account1, new BN(1000000), { from: account1 }), "unauthorized");
-		});
-	});
-
-	describe("createDevelopmentVesting", () => {
-		it("should be able to create vesting", async () => {
-			let amount = new BN(1000000);
-			await SOV.transfer(vestingRegistry.address, amount);
-
-			let cliff = FOUR_WEEKS.mul(new BN(3));
-			let duration = FOUR_WEEKS.mul(new BN(12));
-			let frequency = FOUR_WEEKS;
-			let tx = await vestingRegistry.createDevelopmentVesting(account2, amount, cliff, duration, frequency);
-
-			expectEvent(tx, "DevelopmentVestingCreated", {
-				tokenOwner: account2,
-				cliff: cliff,
-				duration: duration,
-				amount: amount,
-			});
-
-			let balance = await SOV.balanceOf(vestingRegistry.address);
-			expect(balance.toString()).equal("0");
-
-			let vestingAddress = await vestingRegistry.getDevelopmentVesting(account2);
-			let vesting = await DevelopmentVesting.at(vestingAddress);
-
-			expect(await vesting.SOV()).equal(SOV.address);
-			expect(await vesting.tokenOwner()).equal(account2);
-			expect(await vesting.cliff()).to.be.bignumber.equal(cliff);
-			expect(await vesting.duration()).to.be.bignumber.equal(duration);
-			expect(await vesting.frequency()).to.be.bignumber.equal(frequency);
-
-			let vestingSchedule = await vesting.schedules(0);
-			expect(vestingSchedule.amount).to.be.bignumber.equal(amount);
-			expect(vestingSchedule.withdrawnAmount).to.be.bignumber.equal(new BN(0));
-		});
-
-		it("fails if vestingRegistry doesn't have enough SOV", async () => {
-			let amount = new BN(1000000);
-			let cliff = FOUR_WEEKS.mul(new BN(3));
-			let duration = FOUR_WEEKS.mul(new BN(12));
-
-			await expectRevert(
-				vestingRegistry.createDevelopmentVesting(account2, amount, cliff, duration, FOUR_WEEKS),
-				"ERC20: transfer amount exceeds balance"
-			);
-		});
-	});
-
-	describe("createAdoptionVesting", () => {
-		it("should be able to create vesting", async () => {
-			let amount = new BN(1000000);
-			await SOV.transfer(vestingRegistry.address, amount);
-
-			let cliff = FOUR_WEEKS.mul(new BN(3));
-			let duration = FOUR_WEEKS.mul(new BN(12));
-			let frequency = FOUR_WEEKS;
-			let tx = await vestingRegistry.createAdoptionVesting(account2, amount, cliff, duration, frequency);
-
-			expectEvent(tx, "AdoptionVestingCreated", {
-				tokenOwner: account2,
-				cliff: cliff,
-				duration: duration,
-				amount: amount,
-			});
-
-			let balance = await SOV.balanceOf(vestingRegistry.address);
-			expect(balance.toString()).equal("0");
-
-			let vestingAddress = await vestingRegistry.getAdoptionVesting(account2);
-			let vesting = await DevelopmentVesting.at(vestingAddress);
-
-			expect(await vesting.SOV()).equal(SOV.address);
-			expect(await vesting.tokenOwner()).equal(account2);
-			expect(await vesting.cliff()).to.be.bignumber.equal(cliff);
-			expect(await vesting.duration()).to.be.bignumber.equal(duration);
-			expect(await vesting.frequency()).to.be.bignumber.equal(frequency);
-
-			let vestingSchedule = await vesting.schedules(0);
-			expect(vestingSchedule.amount).to.be.bignumber.equal(amount);
-			expect(vestingSchedule.withdrawnAmount).to.be.bignumber.equal(new BN(0));
-		});
-
-		it("fails if vestingRegistry doesn't have enough SOV", async () => {
-			let amount = new BN(1000000);
-			let cliff = FOUR_WEEKS.mul(new BN(3));
-			let duration = FOUR_WEEKS.mul(new BN(12));
-
-			await expectRevert(
-				vestingRegistry.createDevelopmentVesting(account2, amount, cliff, duration, FOUR_WEEKS),
-				"ERC20: transfer amount exceeds balance"
-			);
 		});
 	});
 
