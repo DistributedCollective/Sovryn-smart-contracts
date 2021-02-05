@@ -25,6 +25,8 @@ const TOTAL_SUPPLY = "100000000000000000000000000";
 const ONE_MILLON = "1000000000000000000000000";
 const ZERO_ADDRESS = constants.ZERO_ADDRESS;
 
+const pricsSats = '2500';
+
 contract("VestingRegistry", (accounts) => {
 	let root, account1, account2, account3;
 	let SOV, cSOV1, cSOV2;
@@ -52,6 +54,7 @@ contract("VestingRegistry", (accounts) => {
 			vestingFactory.address,
 			SOV.address,
 			[cSOV1.address, cSOV2.address],
+			pricsSats,
 			staking.address,
 			feeSharingProxy.address,
 			account1
@@ -82,6 +85,7 @@ contract("VestingRegistry", (accounts) => {
 					ZERO_ADDRESS,
 					SOV.address,
 					[cSOV1.address, cSOV2.address],
+					pricsSats,
 					staking.address,
 					feeSharingProxy.address,
 					account1
@@ -96,6 +100,7 @@ contract("VestingRegistry", (accounts) => {
 					vestingFactory.address,
 					ZERO_ADDRESS,
 					[cSOV1.address, cSOV2.address],
+					pricsSats,
 					staking.address,
 					feeSharingProxy.address,
 					account1
@@ -110,6 +115,7 @@ contract("VestingRegistry", (accounts) => {
 					vestingFactory.address,
 					SOV.address,
 					[cSOV1.address, cSOV2.address, ZERO_ADDRESS],
+					pricsSats,
 					staking.address,
 					feeSharingProxy.address,
 					account1
@@ -124,6 +130,7 @@ contract("VestingRegistry", (accounts) => {
 					vestingFactory.address,
 					SOV.address,
 					[cSOV1.address, cSOV2.address],
+					pricsSats,
 					ZERO_ADDRESS,
 					feeSharingProxy.address,
 					account1
@@ -138,6 +145,7 @@ contract("VestingRegistry", (accounts) => {
 					vestingFactory.address,
 					SOV.address,
 					[cSOV1.address, cSOV2.address],
+					pricsSats,
 					staking.address,
 					ZERO_ADDRESS,
 					account1
@@ -152,6 +160,7 @@ contract("VestingRegistry", (accounts) => {
 					vestingFactory.address,
 					SOV.address,
 					[cSOV1.address, cSOV2.address],
+					pricsSats,
 					staking.address,
 					feeSharingProxy.address,
 					ZERO_ADDRESS
@@ -249,8 +258,8 @@ contract("VestingRegistry", (accounts) => {
 				amount: amount,
 			});
 
-			let accountProcessed = await vestingRegistry.accountProcessed(account2);
-			expect(accountProcessed).equal(true);
+			let processedList = await vestingRegistry.processedList(account2);
+			expect(processedList).equal(true);
 
 			let balance = await SOV.balanceOf(vestingRegistry.address);
 			expect(balance.toString()).equal("0");
@@ -283,8 +292,8 @@ contract("VestingRegistry", (accounts) => {
 				amount: amount,
 			});
 
-			let accountProcessed = await vestingRegistry.accountProcessed(account2);
-			expect(accountProcessed).equal(true);
+			let processedList = await vestingRegistry.processedList(account2);
+			expect(processedList).equal(true);
 
 			let balance = await SOV.balanceOf(vestingRegistry.address);
 			expect(balance.toString()).equal("0");

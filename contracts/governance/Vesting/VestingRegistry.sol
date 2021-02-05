@@ -26,6 +26,8 @@ contract VestingRegistry is Ownable {
 	///@notice the CSOV token contracts
 	address[] public CSOVtokens;
 
+	uint256 public priceSats;
+
 	///@notice the staking contract address
 	address public staking;
 	//@notice fee sharing proxy
@@ -40,7 +42,7 @@ contract VestingRegistry is Ownable {
 	//struct can be created to save storage slots, but it doesn't make sense
 	//we don't have a lot of blacklisted accounts or account with locked amount
 	//user => flag whether user has already exchange cSV or got a reimbursement
-	mapping(address => bool) public accountProcessed;
+	mapping(address => bool) public processedList;
 	//user => flag whether user shouldn't be able to exchange or reimburse
 	mapping(address => bool) public blacklist;
 	//user => amount of tokens should not be processed
@@ -53,6 +55,11 @@ contract VestingRegistry is Ownable {
 		AdoptionVesting //Adoption fund
 	}
 
+	event CSOVReImburse(
+		address from,
+		uint256 CSOVamount,
+		uint256 reImburseAmount
+	);
 	event CSOVTokensExchanged(address indexed caller, uint256 amount);
 	event SOVTransferred(address indexed receiver, uint256 amount);
 	event VestingCreated(address indexed tokenOwner, address vesting, uint256 cliff, uint256 duration, uint256 amount);
@@ -65,6 +72,7 @@ contract VestingRegistry is Ownable {
 		address _vestingFactory,
 		address _SOV,
 		address[] memory _CSOVtokens,
+		uint256 _priceSats,
 		address _staking,
 		address _feeSharingProxy,
 		address _vestingOwner
@@ -79,10 +87,56 @@ contract VestingRegistry is Ownable {
 
 		vestingFactory = IVestingFactory(_vestingFactory);
 		SOV = _SOV;
+		priceSats = _priceSats;
 		staking = _staking;
 		feeSharingProxy = _feeSharingProxy;
 		vestingOwner = _vestingOwner;
 	}
+
+	//---PostCSOV---------------------------------------------------------------------------------------------------------------------------
+
+	modifier isNotProcessed(address holder) {
+		require(!processedList[holder], "Address cannot be processed twice");
+		_;
+	}
+
+	/**
+     * @dev reImburse - check holder CSOV balance, ReImburse RBTC and store holder address in processedList
+     * @param holder address of CSOV holder
+     */
+	function reImburse(address payable holder) public isNotProcessed(holder) {
+		uint256 CSOVAmountWei = 0;
+		for (uint256 i = 0; i < CSOVtokens.length; i++) {
+			address CSOV = CSOVtokens[i];
+			uint256 balance = IERC20(CSOV).balanceOf(holder);
+			CSOVAmountWei = CSOVAmountWei.add(balance);
+		}
+
+		require(CSOVAmountWei > 0, "holder has no CSOV");
+		processedList[holder] = true;
+
+		uint256 reImburseAmount = (CSOVAmountWei.mul(priceSats)).div(10**10);
+		require(
+			address(this).balance >= reImburseAmount,
+			"Not enough funds to reimburse"
+		);
+		holder.transfer(reImburseAmount);
+
+		emit CSOVReImburse(holder, CSOVAmountWei, reImburseAmount);
+	}
+
+	function budget() external view returns (uint256) {
+		uint256 SCBudget = address(this).balance;
+		return SCBudget;
+	}
+
+	function deposit() public payable {}
+
+	function withdrawAll(address payable to) public onlyOwner {
+		to.transfer(address(this).balance);
+	}
+
+	//--------------------------------------------------------------------------------------------------------------------------------------
 
 	function setCSOVtokens(address[] memory _CSOVtokens) public onlyOwner {
 		_setCSOVtokens(_CSOVtokens);
@@ -117,8 +171,8 @@ contract VestingRegistry is Ownable {
 	}
 
 	function exchangeAllCSOV() public {
-		require(!accountProcessed[msg.sender] && !blacklist[msg.sender], "account has been already processed");
-		accountProcessed[msg.sender] = true;
+		require(!processedList[msg.sender] && !blacklist[msg.sender], "account has been already processed");
+		processedList[msg.sender] = true;
 
 		uint256 amount = 0;
 		for (uint256 i = 0; i < CSOVtokens.length; i++) {
