@@ -314,7 +314,7 @@ contract("VestingRegistry", (accounts) => {
 			await SOV.transfer(vestingRegistry.address, amount);
 
 			await vestingRegistry.exchangeAllCSOV({ from: account2 });
-			await expectRevert(vestingRegistry.exchangeAllCSOV({ from: account2 }), "account has been already processed");
+			await expectRevert(vestingRegistry.exchangeAllCSOV({ from: account2 }), "Address cannot be processed twice");
 		});
 
 		it("fails if account blacklisted", async () => {
@@ -323,7 +323,7 @@ contract("VestingRegistry", (accounts) => {
 			await SOV.transfer(vestingRegistry.address, amount);
 
 			await vestingRegistry.setBlacklistFlag(account2, true);
-			await expectRevert(vestingRegistry.exchangeAllCSOV({ from: account2 }), "account has been already processed");
+			await expectRevert(vestingRegistry.exchangeAllCSOV({ from: account2 }), "Address blacklisted");
 		});
 
 		it("fails if the 0 is cSOV amount", async () => {

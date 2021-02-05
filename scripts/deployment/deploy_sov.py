@@ -57,7 +57,8 @@ def main():
     #deploy VestingRegistry
     # TODO vestingOwner will be the owner for all contracts deployed by VestingRegistry
     # TODO vestingOwner - multisig ?
-    vestingRegistry = acct.deploy(VestingRegistry, vestingFactory.address, SOVtoken.address, [cSOV1, cSOV2], staking.address, feeSharing.address, vestingOwner)
+    PRICE_SATS = 2500
+    vestingRegistry = acct.deploy(VestingRegistry, vestingFactory.address, SOVtoken.address, [cSOV1, cSOV2], PRICE_SATS, staking.address, feeSharing.address, vestingOwner)
     vestingFactory.transferOwnership(vestingRegistry.address)
 
     # == GovernorVault =====================================================================================================================

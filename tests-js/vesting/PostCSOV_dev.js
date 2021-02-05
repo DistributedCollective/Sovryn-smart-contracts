@@ -1,5 +1,5 @@
 //const { expectRevert, increaseTime } = require('@openzeppelin/test-helpers');
-const {expectEvent, expectRevert, time} = require('@openzeppelin/test-helpers');
+const {expectEvent, expectRevert, time, BN} = require('@openzeppelin/test-helpers');
 const PostCSOV = artifacts.require('VestingRegistry.sol');
 const TestToken = artifacts.require('TestToken.sol');
 
@@ -77,7 +77,7 @@ contract('PostCSOV', (accounts) => {
             console.log("CSOVAmountWei2: " + CSOVAmountWei2);
 
 
-            let tx = await postcsov.reImburse(accounts[2]);
+            let tx = await postcsov.reImburse({from: accounts[2]});
 
             let rbtcAmount = ((CSOVAmountWei1 + CSOVAmountWei2) * pricsSats) / (10 ** 10);
             console.log("rbtcAmount: " + rbtcAmount);
@@ -86,6 +86,35 @@ contract('PostCSOV', (accounts) => {
                 from: accounts[2],
                 CSOVamount: '6000000000000000000',
                 reImburseAmount: '1500000000000'
+            });
+        });
+
+        it('should reImburse partially', async () => {
+            const amount = web3.utils.toWei('3');
+            let postBudget = await postcsov.budget();
+            console.log("postBudget: " + postBudget);
+
+            await postcsov.deposit({from: accounts[1], value: amount});
+
+            postBudget = await postcsov.budget();
+            console.log("postBudget: " + postBudget);
+
+            let CSOVAmountWei1 = await token1.balanceOf(accounts[2]);
+            console.log("CSOVAmountWei1: " + CSOVAmountWei1);
+
+            let CSOVAmountWei2 = await token2.balanceOf(accounts[2]);
+            console.log("CSOVAmountWei2: " + CSOVAmountWei2);
+
+            await postcsov.setLockedAmount(accounts[2], "2000000000000000000", {from: owner});
+            let tx = await postcsov.reImburse({from: accounts[2]});
+
+            let rbtcAmount = ((CSOVAmountWei1 + CSOVAmountWei2) * pricsSats) / (10 ** 10);
+            console.log("rbtcAmount: " + rbtcAmount);
+
+            expectEvent(tx, 'CSOVReImburse', {
+                from: accounts[2],
+                CSOVamount: '4000000000000000000',
+                reImburseAmount: '1000000000000'
             });
         });
 
@@ -105,13 +134,13 @@ contract('PostCSOV', (accounts) => {
             let CSOVAmountWei2 = await token2.balanceOf(accounts[2]);
             console.log("CSOVAmountWei2: " + CSOVAmountWei2);
 
-            let tx = await postcsov.reImburse(accounts[2]);
+            let tx = await postcsov.reImburse({from: accounts[2]});
 
             let rbtcAmount = ((CSOVAmountWei1 + CSOVAmountWei2) * pricsSats) / (10 ** 10);
             console.log("rbtcAmount: " + rbtcAmount);
 
             await expectRevert(
-                postcsov.reImburse(accounts[3]),
+                postcsov.reImburse({from: accounts[3]}),
                 "holder has no CSOV"
             );
 
@@ -122,7 +151,7 @@ contract('PostCSOV', (accounts) => {
             });
 
             await expectRevert(
-                postcsov.reImburse(accounts[2]),
+                postcsov.reImburse({from: accounts[2]}),
                 "Address cannot be processed twice"
             );
         });
@@ -143,8 +172,17 @@ contract('PostCSOV', (accounts) => {
             console.log("CSOVAmountWei2: " + CSOVAmountWei2);
 
             await expectRevert(
-                postcsov.reImburse(accounts[3]),
+                postcsov.reImburse({from: accounts[3]}),
                 "holder has no CSOV"
+            );
+        });
+
+        it('should not reImburse if user blacklisted', async () => {
+            await postcsov.setBlacklistFlag(accounts[3], true, {from: owner});
+
+            await expectRevert(
+                postcsov.reImburse({from: accounts[3]}),
+                "Address blacklisted"
             );
         });
     });

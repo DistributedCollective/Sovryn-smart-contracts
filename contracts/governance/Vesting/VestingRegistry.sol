@@ -95,34 +95,39 @@ contract VestingRegistry is Ownable {
 
 	//---PostCSOV---------------------------------------------------------------------------------------------------------------------------
 
-	modifier isNotProcessed(address holder) {
-		require(!processedList[holder], "Address cannot be processed twice");
+	modifier isNotProcessed() {
+		require(!processedList[msg.sender], "Address cannot be processed twice");
+		_;
+	}
+
+	modifier isNotBlacklisted() {
+		require(!blacklist[msg.sender], "Address blacklisted");
 		_;
 	}
 
 	/**
      * @dev reImburse - check holder CSOV balance, ReImburse RBTC and store holder address in processedList
-     * @param holder address of CSOV holder
      */
-	function reImburse(address payable holder) public isNotProcessed(holder) {
+	function reImburse() public isNotProcessed isNotBlacklisted {
 		uint256 CSOVAmountWei = 0;
 		for (uint256 i = 0; i < CSOVtokens.length; i++) {
 			address CSOV = CSOVtokens[i];
-			uint256 balance = IERC20(CSOV).balanceOf(holder);
+			uint256 balance = IERC20(CSOV).balanceOf(msg.sender);
 			CSOVAmountWei = CSOVAmountWei.add(balance);
 		}
 
-		require(CSOVAmountWei > 0, "holder has no CSOV");
-		processedList[holder] = true;
+		require(CSOVAmountWei > lockedAmount[msg.sender], "holder has no CSOV");
+		CSOVAmountWei -= lockedAmount[msg.sender];
+		processedList[msg.sender] = true;
 
 		uint256 reImburseAmount = (CSOVAmountWei.mul(priceSats)).div(10**10);
 		require(
 			address(this).balance >= reImburseAmount,
 			"Not enough funds to reimburse"
 		);
-		holder.transfer(reImburseAmount);
+		msg.sender.transfer(reImburseAmount);
 
-		emit CSOVReImburse(holder, CSOVAmountWei, reImburseAmount);
+		emit CSOVReImburse(msg.sender, CSOVAmountWei, reImburseAmount);
 	}
 
 	function budget() external view returns (uint256) {
@@ -170,8 +175,7 @@ contract VestingRegistry is Ownable {
 		emit SOVTransferred(_receiver, _amount);
 	}
 
-	function exchangeAllCSOV() public {
-		require(!processedList[msg.sender] && !blacklist[msg.sender], "account has been already processed");
+	function exchangeAllCSOV() public isNotProcessed isNotBlacklisted {
 		processedList[msg.sender] = true;
 
 		uint256 amount = 0;
