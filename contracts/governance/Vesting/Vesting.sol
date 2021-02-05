@@ -29,6 +29,7 @@ contract Vesting is IVesting, Ownable, ApprovalReceiver {
 	uint256 constant FOUR_WEEKS = 4 weeks;
 
 	event TokensStaked(address indexed caller, uint256 amount);
+	event VotesDelegated(address indexed caller, address delegatee);
 	event TokensWithdrawn(address indexed caller, address receiver);
 	event DividendsCollected(address indexed caller, address loanPoolToken, address receiver, uint32 maxCheckpoints);
 	event MigratedToNewStakingContract(address indexed caller, address newStakingContract);
@@ -38,6 +39,14 @@ contract Vesting is IVesting, Ownable, ApprovalReceiver {
 	 */
 	modifier onlyOwners() {
 		require(msg.sender == tokenOwner || isOwner(), "unauthorized");
+		_;
+	}
+
+	/**
+	 * @dev Throws if called by any account other than the token owner.
+	 */
+	modifier onlyTokenOwner() {
+		require(msg.sender == tokenOwner, "unauthorized");
 		_;
 	}
 
@@ -107,6 +116,20 @@ contract Vesting is IVesting, Ownable, ApprovalReceiver {
 	}
 
 	/**
+	 * @notice Delegate votes from `msg.sender` which are locked until lockDate to `delegatee`
+	 * @param _delegatee The address to delegate votes to
+	 */
+	function delegate(address _delegatee) public onlyTokenOwner {
+		require(_delegatee != address(0), "delegatee address invalid");
+
+		//withdraw for each unlocked position
+		for (uint256 i = startDate + cliff; i < endDate; i += FOUR_WEEKS) {
+			staking.delegate(_delegatee, i);
+		}
+		emit VotesDelegated(msg.sender, _delegatee);
+	}
+
+	/**
 	 * @notice withdraws unlocked tokens from the staking contract and forwards them to an address specified by the token owner
 	 * @param receiver the receiving address
 	 **/
@@ -115,6 +138,8 @@ contract Vesting is IVesting, Ownable, ApprovalReceiver {
 	}
 
 	function _withdrawTokens(address receiver, bool isGovernance) internal {
+		require(receiver != address(0), "receiver address invalid");
+
 		uint96 stake;
 		//usually we just need to iterate over the possible dates until now
 		uint256 end;
@@ -149,6 +174,7 @@ contract Vesting is IVesting, Ownable, ApprovalReceiver {
 		uint32 _maxCheckpoints,
 		address _receiver
 	) public onlyOwners {
+		require(_receiver != address(0), "receiver address invalid");
 		//invokes the fee sharing proxy
 		feeSharingProxy.withdraw(_loanPoolToken, _maxCheckpoints, _receiver);
 		emit DividendsCollected(msg.sender, _loanPoolToken, _receiver, _maxCheckpoints);

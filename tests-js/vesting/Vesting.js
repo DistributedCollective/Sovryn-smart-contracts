@@ -106,6 +106,46 @@ contract("Vesting", (accounts) => {
 		});
 	});
 
+	describe("delegate", () => {
+		let vesting;
+		it("should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff", async () => {
+			vesting = await Vesting.new(token.address, staking.address, a2, 26 * WEEK, 104 * WEEK, feeSharingProxy.address);
+			await token.approve(vesting.address, ONE_MILLON);
+			await vesting.stakeTokens(ONE_MILLON);
+
+			//check delegatee
+			let data = await staking.getStakes.call(vesting.address);
+			for (let i = 0; i < data.dates.length; i++) {
+				let delegatee = await staking.delegates(vesting.address, data.dates[i]);
+				expect(delegatee).equal(a2);
+			}
+
+			//delegate
+			let tx = await vesting.delegate(a1, {from: a2});
+
+			expectEvent(tx, "VotesDelegated", {
+				caller: a2,
+				delegatee: a1,
+			});
+
+			//check new delegatee
+			data = await staking.getStakes.call(vesting.address);
+			for (let i = 0; i < data.dates.length; i++) {
+				let delegatee = await staking.delegates(vesting.address, data.dates[i]);
+				expect(delegatee).equal(a1);
+			}
+		});
+
+		it("fails if delegatee is zero address", async () => {
+			await expectRevert(vesting.delegate(constants.ZERO_ADDRESS, {from: a2}), "delegatee address invalid");
+		});
+
+		it("fails if not a token owner", async () => {
+			await expectRevert(vesting.delegate(a1, {from: a1}), "unauthorized");
+		});
+
+	});
+
 	describe("stakeTokens", () => {
 		let vesting;
 		it("should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff", async () => {
@@ -117,6 +157,13 @@ contract("Vesting", (accounts) => {
 				caller: root,
 				amount: ONE_MILLON,
 			});
+
+			//check delegatee
+			let data = await staking.getStakes.call(vesting.address);
+			for (let i = 0; i < data.dates.length; i++) {
+				let delegatee = await staking.delegates(vesting.address, data.dates[i]);
+				expect(delegatee).equal(root);
+			}
 		});
 
 		it("should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff", async () => {
