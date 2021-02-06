@@ -212,7 +212,11 @@ contract GovernorAlpha is SafeMath96 {
 				forVotes: 0,
 				againstVotes: 0,
 				quorum: mul96(quorumPercentageVotes, threshold, "GovernorAlpha::propose: overflow on quorum computation"), //proposalThreshold is 1% of total votes, we can save gas using this pre calculated value
-				majorityPercentage: mul96(majorityPercentageVotes, threshold, "GovernorAlpha::propose: overflow on majorityPercentage computation"),
+				majorityPercentage: mul96(
+					majorityPercentageVotes,
+					threshold,
+					"GovernorAlpha::propose: overflow on majorityPercentage computation"
+				),
 				eta: 0,
 				startTime: safe64(block.timestamp, "GovernorAlpha::propose: startTime overflow"), //required by the staking contract. not used by the governance contract itself.
 				canceled: false,
