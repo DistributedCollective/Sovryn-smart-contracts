@@ -3,10 +3,11 @@ from brownie import *
 import time
 import json
 
+# TODO DEPRECATED
 def main():
     thisNetwork = network.show_active()
 
-    # == Params ============================================================================================================================
+    # == Governance Params =================================================================================================================
     # TODO set correct variables
     ownerQuorumVotes = 20
     ownerMajorityPercentageVotes = 70
