@@ -291,7 +291,8 @@ contract VestingRegistry is Ownable {
 	) internal returns (address) {
 		uint256 type_ = uint256(VestingType.Vesting);
 		if (vestingContracts[_tokenOwner][type_] == address(0)) {
-			address vesting = vestingFactory.deployVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy, vestingOwner);
+			//TODO Owner of OwnerVesting contracts - the same address as tokenOwner
+			address vesting = vestingFactory.deployVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy, _tokenOwner);
 			vestingContracts[_tokenOwner][type_] = vesting;
 		}
 		return vestingContracts[_tokenOwner][type_];

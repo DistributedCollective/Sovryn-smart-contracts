@@ -23,13 +23,13 @@ def main():
     # load deployed contracts addresses
     contracts = json.load(configFile)
     protocolAddress = contracts['sovrynProtocol']
+    # TODO do we need another multisig ?
     multisig = contracts['multisig']
+    teamVestingOwner = multisig
     if (thisNetwork == "testnet" or thisNetwork == "rsk-mainnet"):
-        vestingOwner = multisig
         cSOV1 = contracts['cSOV1']
         cSOV2 = contracts['cSOV2']
     else:
-        vestingOwner = acct
         cSOV1 = acct.deploy(TestToken, "cSOV1", "cSOV1", 18, 1e26).address
         cSOV2 = acct.deploy(TestToken, "cSOV2", "cSOV2", 18, 1e26).address
 
@@ -55,10 +55,8 @@ def main():
     vestingFactory = acct.deploy(VestingFactory)
 
     #deploy VestingRegistry
-    # TODO vestingOwner will be the owner for all contracts deployed by VestingRegistry
-    # TODO vestingOwner - multisig ?
     PRICE_SATS = 2500
-    vestingRegistry = acct.deploy(VestingRegistry, vestingFactory.address, SOVtoken.address, [cSOV1, cSOV2], PRICE_SATS, staking.address, feeSharing.address, vestingOwner)
+    vestingRegistry = acct.deploy(VestingRegistry, vestingFactory.address, SOVtoken.address, [cSOV1, cSOV2], PRICE_SATS, staking.address, feeSharing.address, teamVestingOwner)
     vestingFactory.transferOwnership(vestingRegistry.address)
 
     # == GovernorVault =====================================================================================================================
@@ -70,15 +68,16 @@ def main():
     # == Vesting contracts =================================================================================================================
     DAY = 24 * 60 * 60
     FOUR_WEEKS = 4 * 7 * DAY
+    TWO_WEEKS = 2 * 7 * DAY
 
     # TODO add real data
-    # TeamVesting
-    cliff = 6 * FOUR_WEEKS
+    # TeamVesting / MultisigVesting
+    cliff = 13 * TWO_WEEKS
     duration = 1092 * DAY
     teamVestingList = [
         [
             acct,
-            100000e18
+            100000000e18
         ]
     ]
     teamVestingAmount = 0
@@ -102,11 +101,11 @@ def main():
         print(duration)
 
     # TODO add real data
-    # Vesting
+    # Vesting / OwnerVesting
     vestingList = [
         [
             acct,
-            100000e18,
+            100000000e18,
             6 * FOUR_WEEKS,
             13 * FOUR_WEEKS
         ]
