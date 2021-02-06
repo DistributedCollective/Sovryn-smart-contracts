@@ -8,11 +8,11 @@ def main():
 
     # == Params ============================================================================================================================
     # TODO set correct variables
-    ownerQuorumVotes = 50
-    ownerMinPercentageVotes = 70
+    ownerQuorumVotes = 20
+    ownerMajorityPercentageVotes = 70
 
     adminQuorumVotes = 5
-    adminMinPercentageVotes = 20
+    adminMajorityPercentageVotes = 50
 
     # == Load config =======================================================================================================================
     if thisNetwork == "development":
@@ -45,7 +45,7 @@ def main():
     timelockOwner = acct.deploy(Timelock, acct, delay)
     #params: timelockOwner. staking, guardian
 
-    governorOwner = acct.deploy(GovernorAlpha, timelockOwner.address, staking, guardian, ownerQuorumVotes, ownerMinPercentageVotes)
+    governorOwner = acct.deploy(GovernorAlpha, timelockOwner.address, staking, guardian, ownerQuorumVotes, ownerMajorityPercentageVotes)
 
     dataString = timelockOwner.setPendingAdmin.encode_input(governorOwner.address)
     #2 days and 5 minutes from now
@@ -60,7 +60,7 @@ def main():
     timelockAdmin = acct.deploy(Timelock, acct, delay)
     #params: timelockAdmin. staking, guardian
 
-    governorAdmin = acct.deploy(GovernorAlpha, timelockAdmin.address, staking, guardian, adminQuorumVotes, adminMinPercentageVotes)
+    governorAdmin = acct.deploy(GovernorAlpha, timelockAdmin.address, staking, guardian, adminQuorumVotes, adminMajorityPercentageVotes)
 
     dataString = timelockAdmin.setPendingAdmin.encode_input(governorAdmin.address)
     #2 days and 5 minutes from now
