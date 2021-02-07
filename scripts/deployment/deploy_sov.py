@@ -190,3 +190,9 @@ def main():
     # adoptiontFund.depositTokens(38100000e18)
 
     # TODO where to move rest of the tokens ?
+
+    #  == Transfer ownership to owner governor =============================================================================================
+    # TODO transfer ownership of all these contracts to timelockOwner
+    # SOVtoken.transferOwnership(timelockOwner.address)
+    # staking.transferOwnership(timelockOwner.address)
+    # vestingRegistry.transferOwnership(timelockOwner.address)
