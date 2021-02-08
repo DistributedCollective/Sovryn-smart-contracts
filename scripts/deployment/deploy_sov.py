@@ -2,6 +2,7 @@ from brownie import *
 
 import time
 import json
+import csv
 
 def main():
     thisNetwork = network.show_active()
@@ -111,6 +112,35 @@ def main():
     # governorVault.transferOwnership(multisig)
 
     # == Vesting contracts =================================================================================================================
+    teamVestingList = []
+    vestingList = []
+    with open('./scripts/deployment/vestings.txt', 'r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            tokenOwner = row[1].replace(" ", "")
+            amount = row[2].replace(",", "").replace(".", "")
+            amount = int(amount) * 1e16
+            vestingData = row[4].split(" ")
+            vestingType = vestingData[0]
+            cliffAndDuration = vestingData[1].split("+")
+            cliff = cliffAndDuration[0]
+            duration = cliffAndDuration[1]
+            if (vestingType == "MultisigVesting"):
+                teamVestingList.append([tokenOwner, amount, cliff, duration])
+            if (vestingType == "OwnerVesting"):
+                vestingList.append([tokenOwner, amount, cliff, duration])
+            # print("=======================================")
+            # print(vestingType)
+            # print("'" + tokenOwner + "', ")
+            # print(amount)
+            # print(cliff)
+            # print(duration)
+
+    print("teamVestingList:")
+    print(teamVestingList)
+    print("vestingList:")
+    print(vestingList)
+
     DAY = 24 * 60 * 60
     FOUR_WEEKS = 4 * 7 * DAY
 
@@ -119,20 +149,17 @@ def main():
 
     # TODO add real data
     # TeamVesting / MultisigVesting
-    teamVestingList = [
-    ]
     teamVestingAmount = 0
     for teamVesting in teamVestingList:
-        amount = teamVesting[1] * 1e18
-        teamVestingAmount += amount
+        teamVestingAmount += int(teamVesting[1])
     print("Team Vesting Amount: ", teamVestingAmount)
     SOVtoken.transfer(vestingRegistry.address, teamVestingAmount)
 
     for teamVesting in teamVestingList:
         tokenOwner = teamVesting[0]
-        amount = teamVesting[1] * 1e18
-        cliff = CLIFF_DELAY + teamVesting[2] * FOUR_WEEKS
-        duration = cliff + teamVesting[3]
+        amount = int(teamVesting[1])
+        cliff = CLIFF_DELAY + int(teamVesting[2]) * FOUR_WEEKS
+        duration = cliff + int(teamVesting[3]) * FOUR_WEEKS
         vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
         vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
         vestingRegistry.stakeTokens(vestingAddress, amount)
@@ -145,27 +172,17 @@ def main():
 
     # TODO add real data
     # Vesting / OwnerVesting
-    vestingList = [
-        [
-            acct,
-            100000e18,
-            6 * FOUR_WEEKS,
-            13 * FOUR_WEEKS
-        ]
-    ]
-    print()
     vestingAmount = 0
     for vesting in vestingList:
-        amount = vesting[1] * 1e18
-        vestingAmount += amount
+        vestingAmount += int(vesting[1])
     print("Vesting Amount: ", vestingAmount)
     SOVtoken.transfer(vestingRegistry.address, vestingAmount)
 
     for vesting in vestingList:
         tokenOwner = vesting[0]
-        amount = vesting[1] * 1e18
-        cliff = CLIFF_DELAY + vesting[2] * FOUR_WEEKS
-        duration = cliff + vesting[3]
+        amount = int(vesting[1])
+        cliff = CLIFF_DELAY + int(vesting[2]) * FOUR_WEEKS
+        duration = cliff + int(vesting[3]) * FOUR_WEEKS
         vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
         vestingAddress = vestingRegistry.getVesting(tokenOwner)
         vestingRegistry.stakeTokens(vestingAddress, amount)
