@@ -41,6 +41,7 @@ def main():
     # TODO do we need another multisig ?
     multisig = contracts['multisig']
     teamVestingOwner = multisig
+    governorVault = contracts['governorVault']
     if (thisNetwork == "testnet" or thisNetwork == "rsk-mainnet"):
         cSOV1 = contracts['cSOV1']
         cSOV2 = contracts['cSOV2']
@@ -106,12 +107,46 @@ def main():
     vestingRegistry = acct.deploy(VestingRegistry, vestingFactory.address, SOVtoken.address, [cSOV1, cSOV2], PRICE_SATS, staking.address, feeSharing.address, teamVestingOwner)
     vestingFactory.transferOwnership(vestingRegistry.address)
 
-    # == GovernorVault =====================================================================================================================
-    # GovernorVault
-    # governorVault = acct.deploy(GovernorVault)
-    # governorVault.transferOwnership(multisig)
+    #  == Development and Adoption fund ====================================================================================================
+    # TODO TeamMultisig ?
+    # line 72
+    SOVtoken.transfer(multisig, 57812504 * 1e16)
 
-    # == Vesting contracts =================================================================================================================
+    # line 73
+    # TODO GovAdmin - GovernanceVault ?
+    SOVtoken.transfer(governorVault, 80000000 * 1e16)
+
+    # line 74
+    # Adoption Fund Vesting
+    # adoptiontFund = acct.deploy(DevelopmentFund, SOVtoken.address, acct, governorVault, acct)
+    # adoptiontFund.depositTokens(3696983667 * 1e16)
+    # TODO prepare schedule
+    # adoptiontFund.changeTokenReleaseSchedule
+    # adoptiontFund.updateLockedTokenOwner(timelockOwner.address)
+    # adoptiontFund.approveLockedTokenOwner()
+    # adoptiontFund.updateUnlockedTokenOwner(timelockOwner.address)
+
+    # line 75
+    # Development Fund Vesting
+    # developmentFund = acct.deploy(DevelopmentFund, SOVtoken.address, acct, governorVault, acct)
+    # developmentFund.depositTokens(861859779 * 1e16)
+    # TODO prepare schedule
+    # adoptiontFund.changeTokenReleaseSchedule
+    # adoptiontFund.updateLockedTokenOwner(multisig)
+    # adoptiontFund.approveLockedTokenOwner()
+    # adoptiontFund.updateUnlockedTokenOwner(timelockOwner.address)
+
+    # line 76
+    # Public Sale
+    # TODO TeamMultisig ?
+    SOVtoken.transfer(multisig, 415925381 * 1e16)
+
+    # line 77
+    # Public Sale
+    # TODO TeamMultisig ?
+    SOVtoken.transfer(multisig, 264194619 * 1e16)
+
+    # == Vesting contracts ===============================================================================================================
     teamVestingList = []
     vestingList = []
     with open('./scripts/deployment/vestings.txt', 'r') as file:
@@ -192,19 +227,6 @@ def main():
         print(amount)
         print(cliff)
         print(duration)
-
-    #  == Development and Adoption fund ====================================================================================================
-    # Development fund
-    # TODO initially multisig for both owners
-    # developmentFund = acct.deploy(DevelopmentFund, SOVtoken.address, timelockOwner.address, governorVault, multisig)
-    # developmentFund.depositTokens(10000000e18)
-
-    # Adoption fund
-    # TODO initially multisig for both owners
-    # adoptiontFund = acct.deploy(DevelopmentFund, SOVtoken.address, timelockOwner.address, governorVault, timelockOwner.address)
-    # adoptiontFund.depositTokens(38100000e18)
-
-    # TODO where to move rest of the tokens ?
 
     #  == Transfer ownership to owner governor =============================================================================================
     # TODO transfer ownership of all these contracts to timelockOwner
