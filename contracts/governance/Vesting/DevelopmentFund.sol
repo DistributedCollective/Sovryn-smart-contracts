@@ -59,32 +59,32 @@ contract DevelopmentFund {
 	/// @notice Emitted when a new token deposit is done.
 	/// @param _initiator The address which initiated this event to be emitted.
 	/// @param _amount The total amount of token deposited.
-	event TokenDeposit(address indexed _initiator, uint256 indexed _amount);
+	event TokenDeposit(address indexed _initiator, uint256 _amount);
 
 	/// @notice Emitted when a new release schedule is created.
 	/// @param _initiator The address which initiated this event to be emitted.
 	/// @param _releaseCount The number of releases planned in the schedule.
-	event TokenReleaseChanged(address indexed _initiator, uint256 indexed _releaseCount);
+	event TokenReleaseChanged(address indexed _initiator, uint256 _releaseCount);
 
 	/// @notice Emitted when a unlocked owner transfers all the tokens to a safe vault.
 	/// @param _initiator The address which initiated this event to be emitted.
 	/// @param _receiver The address which receives this token withdrawed.
 	/// @param _amount The total amount of token transferred.
 	/// @dev This is done in an emergency situation only to a predetermined wallet by locked token owner.
-	event LockedTokenTransferByUnlockedOwner(address indexed _initiator, address indexed _receiver, uint256 indexed _amount);
+	event LockedTokenTransferByUnlockedOwner(address indexed _initiator, address indexed _receiver, uint256 _amount);
 
 	/// @notice Emitted when a unlocked owner withdraws the released tokens.
 	/// @param _initiator The address which initiated this event to be emitted.
 	/// @param _amount The total amount of token withdrawed.
 	/// @param _releaseCount The total number of releases done based on duration.
-	event UnlockedTokenWithdrawalByUnlockedOwner(address indexed _initiator, uint256 indexed _amount, uint256 indexed _releaseCount);
+	event UnlockedTokenWithdrawalByUnlockedOwner(address indexed _initiator, uint256 _amount, uint256 _releaseCount);
 
 	/// @notice Emitted when a locked owner transfers all the tokens to a receiver.
 	/// @param _initiator The address which initiated this event to be emitted.
 	/// @param _receiver The address which receives this token transfer.
 	/// @param _amount The total amount of token transferred.
 	/// @dev This is done only by locked token owner.
-	event LockedTokenTransferByLockedOwner(address indexed _initiator, address indexed _receiver, uint256 indexed _amount);
+	event LockedTokenTransferByLockedOwner(address indexed _initiator, address indexed _receiver, uint256 _amount);
 
 	/* Modifiers */
 
