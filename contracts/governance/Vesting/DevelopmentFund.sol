@@ -277,8 +277,8 @@ contract DevelopmentFund {
 
 		/// Now clearing up the release schedule.
 		while (count > 0) {
-			releaseDuration.length--;
-			releaseTokenAmount.length--;
+			releaseDuration.pop();
+			releaseTokenAmount.pop();
 			count--;
 		}
 
