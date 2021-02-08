@@ -19,6 +19,9 @@ contract SOV is ERC20, ERC20Detailed, Ownable {
 		}
 	}
 
+	/**
+	* @dev don't create more than 2^96/10 tokens before updating the governance first
+	*/
 	function mint(address _account, uint256 _amount) public onlyOwner {
 		_mint(_account, _amount);
 	}
