@@ -238,16 +238,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await testToken.mint(governance, totalReleaseTokenAmount);
 		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: governance });
 		await developmentFund.changeTokenReleaseSchedule(newReleaseTime, releaseDuration, releaseTokenAmount, { from: governance });
-		await checkStatus(
-			developmentFund,
-			[0, 0, 0, 1, 1, 1],
-			zero,
-			zero,
-			zero,
-			newReleaseTime,
-			releaseDuration,
-			releaseTokenAmount
-		);
+		await checkStatus(developmentFund, [0, 0, 0, 1, 1, 1], zero, zero, zero, newReleaseTime, releaseDuration, releaseTokenAmount);
 		let tokenBalance = await testToken.balanceOf(developmentFund.address);
 		assert.equal(tokenBalance.toNumber(), totalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
 	});
@@ -260,16 +251,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await testToken.mint(governance, totalReleaseTokenAmount);
 		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: governance });
 		await developmentFund.changeTokenReleaseSchedule(newReleaseTime, releaseDuration, releaseTokenAmount, { from: governance });
-		await checkStatus(
-			developmentFund,
-			[0, 0, 0, 1, 1, 1],
-			zero,
-			zero,
-			zero,
-			newReleaseTime,
-			releaseDuration,
-			releaseTokenAmount
-		);
+		await checkStatus(developmentFund, [0, 0, 0, 1, 1, 1], zero, zero, zero, newReleaseTime, releaseDuration, releaseTokenAmount);
 		let tokenBalance = await testToken.balanceOf(developmentFund.address);
 		assert.equal(tokenBalance.toNumber(), totalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
 
@@ -280,16 +262,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await testToken.mint(governance, totalReleaseTokenAmount);
 		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: governance });
 		await developmentFund.changeTokenReleaseSchedule(newReleaseTime, releaseDuration, releaseTokenAmount, { from: governance });
-		await checkStatus(
-			developmentFund,
-			[0, 0, 0, 1, 1, 1],
-			zero,
-			zero,
-			zero,
-			newReleaseTime,
-			releaseDuration,
-			releaseTokenAmount
-		);
+		await checkStatus(developmentFund, [0, 0, 0, 1, 1, 1], zero, zero, zero, newReleaseTime, releaseDuration, releaseTokenAmount);
 		tokenBalance = await testToken.balanceOf(developmentFund.address);
 		assert.equal(tokenBalance.toNumber(), totalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
 	});
@@ -315,16 +288,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 		let afterTokenBalance = await testToken.balanceOf(governance);
 
 		assert.strictEqual(beforeTokenBalance.toNumber(), afterTokenBalance.toNumber() - extraTokens, "Extra tokens not sent back.");
-		await checkStatus(
-			developmentFund,
-			[0, 0, 0, 1, 1, 1],
-			zero,
-			zero,
-			zero,
-			newReleaseTime,
-			releaseDuration,
-			releaseTokenAmount
-		);
+		await checkStatus(developmentFund, [0, 0, 0, 1, 1, 1], zero, zero, zero, newReleaseTime, releaseDuration, releaseTokenAmount);
 		let tokenBalance = await testToken.balanceOf(developmentFund.address);
 		assert.equal(tokenBalance.toNumber(), totalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
 	});
@@ -350,16 +314,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 		let afterTokenBalance = await testToken.balanceOf(governance);
 
 		assert.strictEqual(beforeTokenBalance.toNumber(), afterTokenBalance.toNumber() + deficitTokens, "Extra tokens not sent back.");
-		await checkStatus(
-			developmentFund,
-			[0, 0, 0, 1, 1, 1],
-			zero,
-			zero,
-			zero,
-			newReleaseTime,
-			releaseDuration,
-			releaseTokenAmount
-		);
+		await checkStatus(developmentFund, [0, 0, 0, 1, 1, 1], zero, zero, zero, newReleaseTime, releaseDuration, releaseTokenAmount);
 		let tokenBalance = await testToken.balanceOf(developmentFund.address);
 		assert.equal(tokenBalance.toNumber(), totalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
 	});
@@ -411,7 +366,10 @@ contract("DevelopmentFund (State)", (accounts) => {
 		// Increasing the time to pass atleast one duration.
 		await time.increase(releaseDuration[releaseDuration.length - 1] + releaseDuration[releaseDuration.length - 2] + 1);
 
-		await developmentFund.withdrawTokensByUnlockedTokenOwner(releaseTokenAmount[releaseTokenAmount.length - 1] + releaseTokenAmount[releaseTokenAmount.length - 2], { from: multisig });
+		await developmentFund.withdrawTokensByUnlockedTokenOwner(
+			releaseTokenAmount[releaseTokenAmount.length - 1] + releaseTokenAmount[releaseTokenAmount.length - 2],
+			{ from: multisig }
+		);
 
 		releaseDuration.pop();
 		releaseDuration.pop();
