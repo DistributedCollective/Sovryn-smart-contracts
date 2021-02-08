@@ -171,7 +171,6 @@ contract DevelopmentFund {
 	 */
 	function depositTokens(uint256 _amount) public {
 		require(_amount > 0, "Amount needs to be bigger than zero.");
-		require(SOV.allowance(msg.sender, address(this)) >= _amount, "Not enough token approved for transfer.");
 
 		bool txStatus = SOV.transferFrom(msg.sender, address(this), _amount);
 		require(txStatus, "Token transfer was not successful.");
