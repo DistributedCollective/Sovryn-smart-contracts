@@ -27,8 +27,6 @@ contract DevelopmentFund {
 
 	/// @notice The last token release timestamp or the time of contract creation.
 	uint256 public lastReleaseTime;
-	/// @notice The amount of remaining tokens to release.
-	uint256 public remainingTokens;
 
 	/// @notice The release duration array in seconds.
 	uint256[] public releaseDuration;
@@ -175,8 +173,6 @@ contract DevelopmentFund {
 		bool txStatus = SOV.transferFrom(msg.sender, address(this), _amount);
 		require(txStatus, "Token transfer was not successful.");
 
-		remainingTokens = remainingTokens.add(_amount);
-
 		emit TokenDeposit(msg.sender, _amount);
 	}
 
@@ -208,6 +204,9 @@ contract DevelopmentFund {
 			_releaseTotalTokenAmount = _releaseTotalTokenAmount.add(_releaseTokenAmount[amountIndex]);
 		}
 
+		/// Getting the current token balance of the contract.
+		uint256 remainingTokens = SOV.balanceOf(address(this));
+
 		/// If the token balance is not sufficient, then we transfer the change to contract.
 		if (remainingTokens < _releaseTotalTokenAmount) {
 			bool txStatus = SOV.transferFrom(msg.sender, address(this), _releaseTotalTokenAmount.sub(remainingTokens));
@@ -217,9 +216,6 @@ contract DevelopmentFund {
 			bool txStatus = SOV.transfer(msg.sender, remainingTokens.sub(_releaseTotalTokenAmount));
 			require(txStatus, "Token not received by the Locked Owner.");
 		}
-
-		/// Updating the remaining tokens in contract.
-		remainingTokens = _releaseTotalTokenAmount;
 
 		/// Finally we update the token release schedule.
 		releaseDuration = _releaseDuration;
@@ -233,12 +229,11 @@ contract DevelopmentFund {
 	 * @dev This could be called when governance or development fund might be compromised.
 	 */
 	function transferTokensByUnlockedTokenOwner() public onlyUnlockedTokenOwner {
+		uint256 remainingTokens = SOV.balanceOf(address(this));
 		bool txStatus = SOV.transfer(safeVault, remainingTokens);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
 
 		emit LockedTokenTransferByUnlockedOwner(msg.sender, safeVault, remainingTokens);
-
-		remainingTokens = 0;
 	}
 
 	/**
@@ -273,24 +268,18 @@ contract DevelopmentFund {
 		/// If locked token owner tries to send a higher amount that schedule
 		uint256 value = _amount.sub(amount);
 
-		emit UnlockedTokenWithdrawalByUnlockedOwner(msg.sender, value, count);
-
 		/// Now clearing up the release schedule.
-		while (count > 0) {
-			releaseDuration.pop();
-			releaseTokenAmount.pop();
-			count--;
-		}
+		releaseDuration.length -= count;
+		releaseTokenAmount.length -= count;
 
 		/// Updating the last release time.
 		lastReleaseTime = newLastReleaseTimeMemory;
 
-		/// Updating the remaining token.
-		remainingTokens = remainingTokens.sub(value);
-
 		/// Sending the amount to unlocked token owner.
 		bool txStatus = SOV.transfer(msg.sender, value);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
+
+		emit UnlockedTokenWithdrawalByUnlockedOwner(msg.sender, value, count);
 	}
 
 	/**
@@ -299,12 +288,11 @@ contract DevelopmentFund {
 	 * @param _receiver The address which receives this token transfer.
 	 */
 	function transferTokensByLockedTokenOwner(address _receiver) public onlyLockedTokenOwner {
+		uint256 remainingTokens = SOV.balanceOf(address(this));
 		bool txStatus = SOV.transfer(_receiver, remainingTokens);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
 
 		emit LockedTokenTransferByLockedOwner(msg.sender, _receiver, remainingTokens);
-
-		remainingTokens = 0;
 	}
 
 	/* Getter Functions */
