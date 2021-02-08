@@ -54,6 +54,10 @@ def main():
     # == SOV ===============================================================================================================================
     #deploy SOV
     SOVtoken = acct.deploy(SOV, 1e26)
+    print("balance:")
+    print(SOVtoken.balanceOf(acct))
+
+    MULTIPLIER = 10000000000000000
 
     # == Staking ===========================================================================================================================
     #deploy the staking contracts
@@ -110,16 +114,16 @@ def main():
     #  == Development and Adoption fund ====================================================================================================
     # TODO TeamMultisig ?
     # line 72
-    SOVtoken.transfer(multisig, 57812504 * 1e16)
+    SOVtoken.transfer(multisig, 57812504 * MULTIPLIER)
 
     # line 73
     # TODO GovAdmin - GovernanceVault ?
-    SOVtoken.transfer(governorVault, 80000000 * 1e16)
+    SOVtoken.transfer(governorVault, 80000000 * MULTIPLIER)
 
     # line 74
     # Adoption Fund Vesting
     # adoptiontFund = acct.deploy(DevelopmentFund, SOVtoken.address, acct, governorVault, acct)
-    # adoptiontFund.depositTokens(3696983667 * 1e16)
+    # adoptiontFund.depositTokens(3696983667 * MULTIPLIER)
     # TODO prepare schedule
     # adoptiontFund.changeTokenReleaseSchedule
     # adoptiontFund.updateLockedTokenOwner(timelockOwner.address)
@@ -129,7 +133,7 @@ def main():
     # line 75
     # Development Fund Vesting
     # developmentFund = acct.deploy(DevelopmentFund, SOVtoken.address, acct, governorVault, acct)
-    # developmentFund.depositTokens(861859779 * 1e16)
+    # developmentFund.depositTokens(861859779 * MULTIPLIER)
     # TODO prepare schedule
     # adoptiontFund.changeTokenReleaseSchedule
     # adoptiontFund.updateLockedTokenOwner(multisig)
@@ -139,12 +143,12 @@ def main():
     # line 76
     # Public Sale
     # TODO TeamMultisig ?
-    SOVtoken.transfer(multisig, 415925381 * 1e16)
+    SOVtoken.transfer(multisig, 415925381 * MULTIPLIER)
 
     # line 77
-    # Public Sale
+    # Genesis Sale
     # TODO TeamMultisig ?
-    SOVtoken.transfer(multisig, 264194619 * 1e16)
+    SOVtoken.transfer(multisig, 264194619 * MULTIPLIER)
 
     # == Vesting contracts ===============================================================================================================
     teamVestingList = []
@@ -154,7 +158,7 @@ def main():
         for row in reader:
             tokenOwner = row[1].replace(" ", "")
             amount = row[2].replace(",", "").replace(".", "")
-            amount = int(amount) * 1e16
+            amount = int(amount) * MULTIPLIER
             vestingData = row[4].split(" ")
             vestingType = vestingData[0]
             cliffAndDuration = vestingData[1].split("+")
@@ -233,3 +237,6 @@ def main():
     # SOVtoken.transferOwnership(timelockOwner.address)
     # staking.transferOwnership(timelockOwner.address)
     # vestingRegistry.transferOwnership(timelockOwner.address)
+
+    print("balance:")
+    print(SOVtoken.balanceOf(acct))
