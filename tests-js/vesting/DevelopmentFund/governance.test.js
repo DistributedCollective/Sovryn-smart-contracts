@@ -48,7 +48,6 @@ function convertBNArrayToNumArray(bnArray) {
  * @param unlockedTokenOwner The Unlocked Token Owner.
  * @param newLockedTokenOwner The new Locked Token Owner.
  * @param lastReleaseTime The last release time.
- * @param remainingTokens The remaining tokens in contract.
  * @param releaseDuration The release duration of a schedule.
  * @param releaseTokenAmount The release token amount of a schedule.
  */
@@ -59,7 +58,6 @@ async function checkStatus(
 	unlockedTokenOwner,
 	newLockedTokenOwner,
 	lastReleaseTime,
-	remainingTokens,
 	releaseDuration,
 	releaseTokenAmount
 ) {
@@ -80,10 +78,6 @@ async function checkStatus(
 		assert.equal(lastReleaseTime, cValue.toNumber(), "The last release time does not match.");
 	}
 	if (checkArray[4] == 1) {
-		let cValue = await contractInstance.remainingTokens();
-		assert.equal(remainingTokens, cValue.toNumber(), "The remaining token does not match.");
-	}
-	if (checkArray[5] == 1) {
 		let cValue = [];
 		await contractInstance.getReleaseDuration().then((data) => {
 			cValue = data;
@@ -95,7 +89,7 @@ async function checkStatus(
 			"The release duration does not match."
 		);
 	}
-	if (checkArray[6] == 1) {
+	if (checkArray[5] == 1) {
 		let cValue = [];
 		await contractInstance.getReleaseTokenAmount().then((data) => {
 			cValue = data;
@@ -172,7 +166,7 @@ contract("DevelopmentFund (Governance Functions)", (accounts) => {
 	});
 
 	it("Instance Locked Token Owner should be governance.", async () => {
-		await checkStatus(developmentFund, [1, 0, 0, 0, 0, 0, 0], governance, zero, zero, zero, zero, zero, zero);
+		await checkStatus(developmentFund, [1, 0, 0, 0, 0, 0], governance, zero, zero, zero, zero, zero);
 	});
 
 	it("Should be able to add new Locked Token Owner.", async () => {

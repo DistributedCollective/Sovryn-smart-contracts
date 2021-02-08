@@ -50,7 +50,6 @@ function convertBNArrayToNumArray(bnArray) {
  * @param unlockedTokenOwner The Unlocked Token Owner.
  * @param newLockedTokenOwner The new Locked Token Owner.
  * @param lastReleaseTime The last release time.
- * @param remainingTokens The remaining tokens in contract.
  * @param releaseDuration The release duration of a schedule.
  * @param releaseTokenAmount The release token amount of a schedule.
  */
@@ -61,7 +60,6 @@ async function checkStatus(
 	unlockedTokenOwner,
 	newLockedTokenOwner,
 	lastReleaseTime,
-	remainingTokens,
 	releaseDuration,
 	releaseTokenAmount
 ) {
@@ -82,10 +80,6 @@ async function checkStatus(
 		assert.equal(lastReleaseTime, cValue.toNumber(), "The last release time does not match.");
 	}
 	if (checkArray[4] == 1) {
-		let cValue = await contractInstance.remainingTokens();
-		assert.equal(remainingTokens, cValue.toNumber(), "The remaining token does not match.");
-	}
-	if (checkArray[5] == 1) {
 		let cValue = [];
 		await contractInstance.getReleaseDuration().then((data) => {
 			cValue = data;
@@ -97,7 +91,7 @@ async function checkStatus(
 			"The release duration does not match."
 		);
 	}
-	if (checkArray[6] == 1) {
+	if (checkArray[5] == 1) {
 		let cValue = [];
 		await contractInstance.getReleaseTokenAmount().then((data) => {
 			cValue = data;
@@ -192,33 +186,31 @@ contract("DevelopmentFund (State)", (accounts) => {
 
 		await checkStatus(
 			developmentFund,
-			[1, 1, 0, 1, 0, 0, 0],
+			[1, 1, 0, 1, 0, 0],
 			governance,
 			multisig,
 			zero,
 			currentTime,
-			zero,
-			0,
-			releaseDuration[0],
-			releaseTokenAmount[0]
+			releaseDuration,
+			releaseTokenAmount
 		);
 	});
 
 	it("Adding new Locked Token Owner should update the new Locked Token Owner storage.", async () => {
 		await developmentFund.updateLockedTokenOwner(newGovernance, { from: governance });
-		await checkStatus(developmentFund, [0, 0, 1, 0, 0, 0, 0], zero, zero, newGovernance, zero, zero, zero, zero);
+		await checkStatus(developmentFund, [0, 0, 1, 0, 0, 0], zero, zero, newGovernance, zero, zero, zero);
 	});
 
 	it("Approving new Locked Token Owner should update the Locked Token Owner.", async () => {
 		await developmentFund.updateLockedTokenOwner(newGovernance, { from: governance });
 		await developmentFund.approveLockedTokenOwner({ from: multisig });
-		await checkStatus(developmentFund, [1, 0, 0, 0, 0, 0, 0], newGovernance, zero, zero, zero, zero, zero, zero);
+		await checkStatus(developmentFund, [1, 0, 0, 0, 0, 0], newGovernance, zero, zero, zero, zero, zero);
 	});
 
 	it("After approval of new Locked Token Owner, newLockedTokenOwner should be zero address.", async () => {
 		await developmentFund.updateLockedTokenOwner(newGovernance, { from: governance });
 		await developmentFund.approveLockedTokenOwner({ from: multisig });
-		await checkStatus(developmentFund, [0, 0, 1, 0, 0, 0, 0], zero, zero, constants.ZERO_ADDRESS, zero, zero, zero, zero);
+		await checkStatus(developmentFund, [0, 0, 1, 0, 0, 0], zero, zero, constants.ZERO_ADDRESS, zero, zero, zero);
 	});
 
 	it("Adding new Deposit should update the remaining token and contract token balance.", async () => {
@@ -226,14 +218,13 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await testToken.mint(userOne, value);
 		await testToken.approve(developmentFund.address, value, { from: userOne });
 		await developmentFund.depositTokens(value, { from: userOne });
-		await checkStatus(developmentFund, [0, 0, 0, 0, 1, 0, 0], zero, zero, zero, zero, value, zero, zero);
 		let tokenBalance = await testToken.balanceOf(developmentFund.address);
 		assert.equal(tokenBalance.toNumber(), value, "Token Balance in contract does not match the deposited amount.");
 	});
 
 	it("The contract should be approved to make token transfer for deposit.", async () => {
 		let value = randomValue();
-		await expectRevert(developmentFund.depositTokens(value, { from: userOne }), "Not enough token approved for transfer.");
+		await expectRevert(developmentFund.depositTokens(value, { from: userOne }), "invalid transfer");
 	});
 
 	it("Zero Tokens could not be deposited.", async () => {
@@ -249,15 +240,16 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await developmentFund.changeTokenReleaseSchedule(newReleaseTime, releaseDuration, releaseTokenAmount, { from: governance });
 		await checkStatus(
 			developmentFund,
-			[0, 0, 0, 1, 1, 1, 1],
+			[0, 0, 0, 1, 1, 1],
 			zero,
 			zero,
 			zero,
 			newReleaseTime,
-			totalReleaseTokenAmount,
 			releaseDuration,
 			releaseTokenAmount
 		);
+		let tokenBalance = await testToken.balanceOf(developmentFund.address);
+		assert.equal(tokenBalance.toNumber(), totalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
 	});
 
 	it("Updating the release schedule twice should update the lastReleaseTime, releaseDuration and releaseTokenAmount accordingly.", async () => {
@@ -270,15 +262,16 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await developmentFund.changeTokenReleaseSchedule(newReleaseTime, releaseDuration, releaseTokenAmount, { from: governance });
 		await checkStatus(
 			developmentFund,
-			[0, 0, 0, 1, 1, 1, 1],
+			[0, 0, 0, 1, 1, 1],
 			zero,
 			zero,
 			zero,
 			newReleaseTime,
-			totalReleaseTokenAmount,
 			releaseDuration,
 			releaseTokenAmount
 		);
+		let tokenBalance = await testToken.balanceOf(developmentFund.address);
+		assert.equal(tokenBalance.toNumber(), totalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
 
 		// Second Time
 		newReleaseTime = randomValue();
@@ -289,15 +282,16 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await developmentFund.changeTokenReleaseSchedule(newReleaseTime, releaseDuration, releaseTokenAmount, { from: governance });
 		await checkStatus(
 			developmentFund,
-			[0, 0, 0, 1, 1, 1, 1],
+			[0, 0, 0, 1, 1, 1],
 			zero,
 			zero,
 			zero,
 			newReleaseTime,
-			totalReleaseTokenAmount,
 			releaseDuration,
 			releaseTokenAmount
 		);
+		tokenBalance = await testToken.balanceOf(developmentFund.address);
+		assert.equal(tokenBalance.toNumber(), totalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
 	});
 
 	it("While updating release schedule, extra tokens should be sent back.", async () => {
@@ -323,15 +317,16 @@ contract("DevelopmentFund (State)", (accounts) => {
 		assert.strictEqual(beforeTokenBalance.toNumber(), afterTokenBalance.toNumber() - extraTokens, "Extra tokens not sent back.");
 		await checkStatus(
 			developmentFund,
-			[0, 0, 0, 1, 1, 1, 1],
+			[0, 0, 0, 1, 1, 1],
 			zero,
 			zero,
 			zero,
 			newReleaseTime,
-			totalReleaseTokenAmount,
 			releaseDuration,
 			releaseTokenAmount
 		);
+		let tokenBalance = await testToken.balanceOf(developmentFund.address);
+		assert.equal(tokenBalance.toNumber(), totalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
 	});
 
 	it("While updating release schedule, deficient tokens should be sent to contract.", async () => {
@@ -357,15 +352,16 @@ contract("DevelopmentFund (State)", (accounts) => {
 		assert.strictEqual(beforeTokenBalance.toNumber(), afterTokenBalance.toNumber() + deficitTokens, "Extra tokens not sent back.");
 		await checkStatus(
 			developmentFund,
-			[0, 0, 0, 1, 1, 1, 1],
+			[0, 0, 0, 1, 1, 1],
 			zero,
 			zero,
 			zero,
 			newReleaseTime,
-			totalReleaseTokenAmount,
 			releaseDuration,
 			releaseTokenAmount
 		);
+		let tokenBalance = await testToken.balanceOf(developmentFund.address);
+		assert.equal(tokenBalance.toNumber(), totalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
 	});
 
 	it("Unequal array for duration and tokens should not be accepted for token release schedule.", async () => {
@@ -384,7 +380,8 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await testToken.approve(developmentFund.address, value, { from: userOne });
 		await developmentFund.depositTokens(value, { from: userOne });
 		await developmentFund.transferTokensByUnlockedTokenOwner({ from: multisig });
-		await checkStatus(developmentFund, [0, 0, 0, 0, 1, 0, 0], zero, zero, zero, zero, zero, zero, zero);
+		let tokenBalance = await testToken.balanceOf(developmentFund.address);
+		assert.equal(tokenBalance.toNumber(), 0, "Token Balance in contract does not match the correct amount.");
 	});
 
 	it("After withdrawing all tokens after a particular schedule, the release array size should decrease.", async () => {
@@ -401,7 +398,26 @@ contract("DevelopmentFund (State)", (accounts) => {
 
 		releaseDuration.pop();
 		releaseTokenAmount.pop();
-		await checkStatus(developmentFund, [0, 0, 0, 0, 0, 1, 1], zero, zero, zero, zero, zero, releaseDuration, releaseTokenAmount);
+		await checkStatus(developmentFund, [0, 0, 0, 0, 1, 1], zero, zero, zero, zero, releaseDuration, releaseTokenAmount);
+	});
+
+	it("After withdrawing all tokens after 2 particular schedule, the release array size should decrease.", async () => {
+		releaseTokenAmount = createReleaseTokenAmount();
+		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
+		await testToken.mint(governance, totalReleaseTokenAmount);
+		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: governance });
+		await developmentFund.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount, { from: governance });
+
+		// Increasing the time to pass atleast one duration.
+		await time.increase(releaseDuration[releaseDuration.length - 1] + releaseDuration[releaseDuration.length - 2] + 1);
+
+		await developmentFund.withdrawTokensByUnlockedTokenOwner(releaseTokenAmount[releaseTokenAmount.length - 1] + releaseTokenAmount[releaseTokenAmount.length - 2], { from: multisig });
+
+		releaseDuration.pop();
+		releaseDuration.pop();
+		releaseTokenAmount.pop();
+		releaseTokenAmount.pop();
+		await checkStatus(developmentFund, [0, 0, 0, 0, 1, 1], zero, zero, zero, zero, releaseDuration, releaseTokenAmount);
 	});
 
 	it("After withdrawing part of tokens after a particular schedule, the release token amount should decrease.", async () => {
@@ -417,7 +433,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 		let withdrawAmount = Math.floor(releaseTokenAmount[releaseTokenAmount.length - 1] / 2);
 		await developmentFund.withdrawTokensByUnlockedTokenOwner(withdrawAmount, { from: multisig });
 		releaseTokenAmount[releaseTokenAmount.length - 1] = releaseTokenAmount[releaseTokenAmount.length - 1] - withdrawAmount;
-		await checkStatus(developmentFund, [0, 0, 0, 0, 0, 1, 1], zero, zero, zero, zero, zero, releaseDuration, releaseTokenAmount);
+		await checkStatus(developmentFund, [0, 0, 0, 0, 1, 1], zero, zero, zero, zero, releaseDuration, releaseTokenAmount);
 	});
 
 	it("After withdrawing all tokens after a particular schedule, the release time should be updated based on duration.", async () => {
@@ -436,12 +452,11 @@ contract("DevelopmentFund (State)", (accounts) => {
 
 		await checkStatus(
 			developmentFund,
-			[0, 0, 0, 1, 0, 0, 0],
+			[0, 0, 0, 1, 0, 0],
 			zero,
 			zero,
 			zero,
 			lastReleaseTime.toNumber() + releaseDuration[releaseDuration.length - 1],
-			zero,
 			zero,
 			zero
 		);
@@ -462,7 +477,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 
 		let withdrawAmount = Math.floor(releaseTokenAmount[releaseTokenAmount.length - 1] / 2);
 		await developmentFund.withdrawTokensByUnlockedTokenOwner(withdrawAmount, { from: multisig });
-		await checkStatus(developmentFund, [0, 0, 0, 1, 0, 0, 0], zero, zero, zero, currentTime, zero, zero, zero);
+		await checkStatus(developmentFund, [0, 0, 0, 1, 0, 0], zero, zero, zero, currentTime, zero, zero);
 	});
 
 	it("Zero Tokens could not be withdrawed from release schedule.", async () => {
@@ -475,6 +490,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await testToken.approve(developmentFund.address, value, { from: userOne });
 		await developmentFund.depositTokens(value, { from: userOne });
 		await developmentFund.transferTokensByLockedTokenOwner(creator, { from: governance });
-		await checkStatus(developmentFund, [0, 0, 0, 0, 1, 0, 0], zero, zero, zero, zero, zero, zero, zero);
+		let tokenBalance = await testToken.balanceOf(developmentFund.address);
+		assert.equal(tokenBalance.toNumber(), 0, "Token Balance in contract does not match the correct amount.");
 	});
 });
