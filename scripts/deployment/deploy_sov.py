@@ -113,28 +113,26 @@ def main():
     # == Vesting contracts =================================================================================================================
     DAY = 24 * 60 * 60
     FOUR_WEEKS = 4 * 7 * DAY
-    TWO_WEEKS = 2 * 7 * DAY
+
+    # TODO 2 weeks delay ?
+    CLIFF_DELAY = 2 * 7 * DAY
 
     # TODO add real data
     # TeamVesting / MultisigVesting
-    cliff = 13 * TWO_WEEKS
-    duration = 1092 * DAY
     teamVestingList = [
-        [
-            acct,
-            100000e18
-        ]
     ]
     teamVestingAmount = 0
     for teamVesting in teamVestingList:
-        amount = teamVesting[1]
+        amount = teamVesting[1] * 1e18
         teamVestingAmount += amount
     print("Team Vesting Amount: ", teamVestingAmount)
     SOVtoken.transfer(vestingRegistry.address, teamVestingAmount)
 
     for teamVesting in teamVestingList:
         tokenOwner = teamVesting[0]
-        amount = teamVesting[1]
+        amount = teamVesting[1] * 1e18
+        cliff = CLIFF_DELAY + teamVesting[2] * FOUR_WEEKS
+        duration = cliff + teamVesting[3]
         vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
         vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
         vestingRegistry.stakeTokens(vestingAddress, amount)
@@ -158,16 +156,16 @@ def main():
     print()
     vestingAmount = 0
     for vesting in vestingList:
-        amount = vesting[1]
+        amount = vesting[1] * 1e18
         vestingAmount += amount
     print("Vesting Amount: ", vestingAmount)
     SOVtoken.transfer(vestingRegistry.address, vestingAmount)
 
     for vesting in vestingList:
         tokenOwner = vesting[0]
-        amount = vesting[1]
-        cliff = vesting[2]
-        duration = vesting[3]
+        amount = vesting[1] * 1e18
+        cliff = CLIFF_DELAY + vesting[2] * FOUR_WEEKS
+        duration = cliff + vesting[3]
         vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
         vestingAddress = vestingRegistry.getVesting(tokenOwner)
         vestingRegistry.stakeTokens(vestingAddress, amount)
