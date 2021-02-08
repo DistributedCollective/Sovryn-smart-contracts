@@ -23,17 +23,21 @@ const states = Object.entries(statesInverted).reduce((obj, [key, value]) => ({ .
 
 const TWO_PERCENTAGE_VOTES = etherMantissa(200000);
 const QUORUM_VOTES = etherMantissa(4000000);
+const QUORUM_VOTES_MUL_2 = etherMantissa(4000000 * 2);
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
 const DELAY = 86400 * 14;
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
+const QUORUM = 4;
+const MAJORITY = 50;
+
 contract("GovernorAlpha#state/1", (accounts) => {
-	let token, staking, gov, root, acct, delay, timelock;
+	let token, staking, gov, root, acct, acct2, delay, timelock;
 	let trivialProposal, targets, values, signatures, callDatas;
 
 	before(async () => {
-		[root, acct, ...accounts] = accounts;
+		[root, acct, acct2, ...accounts] = accounts;
 	});
 
 	beforeEach(async () => {
@@ -118,12 +122,20 @@ contract("GovernorAlpha#state/1", (accounts) => {
 
 		//2% of votes
 		let proposal = await gov.proposals.call(newProposalId);
-		expect(proposal.forVotes).to.be.bignumber.lessThan(proposal.quorum);
+		let totalVotes = proposal.forVotes.add(proposal.againstVotes);
+		expect(totalVotes).to.be.bignumber.lessThan(proposal.quorum);
 
 		expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Defeated"]);
 	});
 
 	it("Defeated by minPercentageVotes", async () => {
+		let stakeAmount = QUORUM_VOTES_MUL_2;
+		await token.transfer(acct2, stakeAmount);
+		await token.approve(staking.address, stakeAmount, { from: acct2 });
+		let kickoffTS = await staking.kickoffTS.call();
+		let stakingDate = kickoffTS.add(new BN(MAX_DURATION));
+		await staking.stake(stakeAmount, stakingDate, acct2, acct2, { from: acct2 });
+
 		await mineBlock();
 		await updateTime(staking);
 
@@ -133,12 +145,14 @@ contract("GovernorAlpha#state/1", (accounts) => {
 
 		await updateTime(staking);
 		await gov.castVote(newProposalId, true, { from: acct });
+		await gov.castVote(newProposalId, false, { from: acct2 });
 		await advanceBlocks(20);
 
 		//48% of votes
 		let proposal = await gov.proposals.call(newProposalId);
-		expect(proposal.forVotes).to.be.bignumber.greaterThan(proposal.quorum);
-		expect(proposal.forVotes.add(proposal.againstVotes)).to.be.bignumber.lessThan(proposal.minPercentage);
+		let totalVotes = proposal.forVotes.add(proposal.againstVotes);
+		expect(totalVotes).to.be.bignumber.greaterThan(proposal.quorum);
+		expect(proposal.forVotes).to.be.bignumber.lessThan(totalVotes.mul(new BN(MAJORITY)).div(new BN(100)));
 
 		expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Defeated"]);
 	});
@@ -278,7 +292,7 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		delay = etherUnsigned(10);
 		await timelock.setDelayWithoutChecking(delay);
 
-		gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4, 50);
+		gov = await GovernorAlpha.new(timelock.address, staking.address, root, QUORUM, MAJORITY);
 
 		await timelock.harnessSetAdmin(gov.address);
 	}
