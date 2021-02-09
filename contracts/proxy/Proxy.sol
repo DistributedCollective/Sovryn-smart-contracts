@@ -30,6 +30,10 @@ contract Proxy {
 	 * @param _implementation Address of the implementation
 	 */
 	function setImplementation(address _implementation) public onlyProxyOwner {
+		_setImplementation(_implementation);
+	}
+
+	function _setImplementation(address _implementation) internal {
 		require(_implementation != address(0), "Proxy::setImplementation: invalid address");
 		emit ImplementationChanged(getImplementation(), _implementation);
 
