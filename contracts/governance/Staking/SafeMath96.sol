@@ -63,6 +63,4 @@ contract SafeMath96 {
 
 		return c;
 	}
-
-
 }
