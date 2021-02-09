@@ -41,7 +41,6 @@ def main():
     # TODO do we need another multisig ?
     multisig = contracts['multisig']
     teamVestingOwner = multisig
-    governorVault = contracts['governorVault']
     if (thisNetwork == "testnet" or thisNetwork == "rsk-mainnet"):
         cSOV1 = contracts['cSOV1']
         cSOV2 = contracts['cSOV2']
@@ -88,6 +87,10 @@ def main():
     print(dataString[10:])
     timelockOwner.queueTransaction(timelockOwner.address, 0, "setPendingAdmin(address)", dataString[10:], eta)
 
+    # GovernorVault Owner
+    governorVaultOwner = acct.deploy(GovernorVault)
+    governorVaultOwner.transferOwnership(timelockOwner.address)
+
     # == Governor Admin ====================================================================================================================
     # [timelockAdmin]
     #params: admin, delay
@@ -103,6 +106,10 @@ def main():
     print(dataString[10:])
     timelockAdmin.queueTransaction(timelockAdmin.address, 0, "setPendingAdmin(address)", dataString[10:], eta)
 
+    # GovernorVault Admin
+    governorVaultAdmin = acct.deploy(GovernorVault)
+    governorVaultAdmin.transferOwnership(timelockAdmin.address)
+
     # == VestingRegistry ===================================================================================================================
     #deploy VestingFactory
     vestingFactory = acct.deploy(VestingFactory)
@@ -113,13 +120,13 @@ def main():
     vestingFactory.transferOwnership(vestingRegistry.address)
 
     #  == Development and Adoption fund ====================================================================================================
-    # TODO TeamMultisig ?
     # line 72
-    SOVtoken.transfer(multisig, 57812504 * MULTIPLIER)
+    # TeamMultisig
+    SOVtoken.transfer(multisig, 55311210 * MULTIPLIER)
 
     # line 73
-    # TODO GovAdmin - GovernanceVault ?
-    SOVtoken.transfer(governorVault, 80000000 * MULTIPLIER)
+    # GovAdmin
+    SOVtoken.transfer(governorVaultAdmin, 80000000 * MULTIPLIER)
 
     # TODO duration = 30 days ?
     FUND_RELEASE_INTERVAL = 30 * 24 * 60 * 60
@@ -129,6 +136,7 @@ def main():
     adoptionFundAmounts = []
     adoptionFundReleaseDurations = []
 
+    # TODO check funds.csv
     # parse data
     with open('./scripts/deployment/funds.csv', 'r') as file:
         reader = csv.reader(file)
@@ -164,8 +172,9 @@ def main():
 
     # line 74
     # Adoption Fund Vesting
+    # TODO governorVaultOwner ?
     adoptionAmount = 3697104000 * MULTIPLIER
-    adoptiontFund = acct.deploy(DevelopmentFund, SOVtoken.address, acct, governorVault, acct)
+    adoptiontFund = acct.deploy(DevelopmentFund, SOVtoken.address, acct, governorVaultOwner, acct)
     SOVtoken.approve(adoptiontFund.address, adoptionAmount)
     adoptiontFund.depositTokens(adoptionAmount)
     print(adoptionFundReleaseDurations)
@@ -178,8 +187,9 @@ def main():
 
     # line 75
     # Development Fund Vesting
+    # TODO governorVaultOwner ?
     developmentAmount = 861859788 * MULTIPLIER
-    developmentFund = acct.deploy(DevelopmentFund, SOVtoken.address, acct, governorVault, acct)
+    developmentFund = acct.deploy(DevelopmentFund, SOVtoken.address, acct, governorVaultOwner, acct)
     SOVtoken.approve(developmentFund.address, developmentAmount)
     developmentFund.depositTokens(developmentAmount)
     print(developmentFundReleaseDurations)
@@ -192,13 +202,13 @@ def main():
 
     # line 76
     # Public Sale
-    # TODO TeamMultisig ?
-    SOVtoken.transfer(multisig, 415925381 * MULTIPLIER)
+    # OwnerGovernor
+    SOVtoken.transfer(governorVaultOwner, 415925381 * MULTIPLIER)
 
     # line 77
     # Genesis Sale
-    # TODO TeamMultisig ?
-    SOVtoken.transfer(multisig, 264194619 * MULTIPLIER)
+    # GovAdmin
+    SOVtoken.transfer(governorVaultAdmin, 264194619 * MULTIPLIER)
 
     # == Vesting contracts ===============================================================================================================
     # TODO check vestings.csv
