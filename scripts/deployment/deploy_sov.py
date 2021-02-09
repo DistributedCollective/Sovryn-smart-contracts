@@ -51,6 +51,7 @@ def main():
         cSOV2 = acct.deploy(TestToken, "cSOV2", "cSOV2", 18, 1e26).address
         guardian = acct
 
+    balanceBefore = acct.balance()
     # == SOV ===============================================================================================================================
     #deploy SOV
     SOVtoken = acct.deploy(SOV, 1e26)
@@ -151,9 +152,10 @@ def main():
     SOVtoken.transfer(multisig, 264194619 * MULTIPLIER)
 
     # == Vesting contracts ===============================================================================================================
+    # TODO check vestings.csv
     teamVestingList = []
     vestingList = []
-    with open('./scripts/deployment/vestings.txt', 'r') as file:
+    with open('./scripts/deployment/vestings.csv', 'r') as file:
         reader = csv.reader(file)
         for row in reader:
             tokenOwner = row[1].replace(" ", "")
@@ -186,7 +188,6 @@ def main():
     # TODO 2 weeks delay ?
     CLIFF_DELAY = 2 * 7 * DAY
 
-    # TODO add real data
     # TeamVesting / MultisigVesting
     teamVestingAmount = 0
     for teamVesting in teamVestingList:
@@ -209,7 +210,6 @@ def main():
         print(cliff)
         print(duration)
 
-    # TODO add real data
     # Vesting / OwnerVesting
     vestingAmount = 0
     for vesting in vestingList:
@@ -240,3 +240,6 @@ def main():
 
     print("balance:")
     print(SOVtoken.balanceOf(acct))
+
+    print("deployment cost:")
+    print((balanceBefore - acct.balance()) / 1e18)
