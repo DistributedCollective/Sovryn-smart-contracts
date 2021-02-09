@@ -15,6 +15,7 @@ import "../mixins/LiquidationHelper.sol";
 import "../swaps/SwapsUser.sol";
 
 contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper {
+
 	struct LoanReturnData {
 		bytes32 loanId;
 		address loanToken;
@@ -71,8 +72,13 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 			require(msg.value == depositAmount, "ether deposit mismatch");
 			vaultEtherDeposit(msg.sender, msg.value);
 		}
-
-		emit DepositCollateral(loanId, depositAmount);
+    
+    (uint256 collateralToLoanRate, ) = IPriceFeeds(priceFeeds).queryRate(
+            loanParamsLocal.collateralToken,
+            loanParamsLocal.loanToken
+    );
+    
+		emit DepositCollateral(loanId, depositAmount, collateralToLoanRate);
 	}
 
 	function withdrawCollateral(
@@ -479,4 +485,5 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 			);
 		require(currentMargin > loanParamsLocal.maintenanceMargin, "unhealthy position");
 	}
+
 }
