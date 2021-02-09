@@ -112,7 +112,8 @@ def main():
 
     # == VestingRegistry ===================================================================================================================
     #deploy VestingFactory
-    vestingFactory = acct.deploy(VestingFactory)
+    vestingLogic = acct.deploy(VestingLogic)
+    vestingFactory = acct.deploy(VestingFactory, vestingLogic.address)
 
     #deploy VestingRegistry
     PRICE_SATS = 2500

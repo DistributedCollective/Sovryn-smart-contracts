@@ -3,6 +3,8 @@ pragma experimental ABIEncoderV2;
 
 import "./TeamVesting.sol";
 
+//TODO add tests for governanceWithdrawTokens
+//TODO split Proxy on Proxy and UpgradableProxy
 contract Vesting is TeamVesting {
 
 	/**
