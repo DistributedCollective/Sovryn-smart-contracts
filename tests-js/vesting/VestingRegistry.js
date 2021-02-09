@@ -8,6 +8,7 @@ const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
 const TestToken = artifacts.require("TestToken");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
+const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry");
 const Vesting = artifacts.require("TeamVesting");
@@ -30,7 +31,7 @@ contract("VestingRegistry", (accounts) => {
 	let root, account1, account2, account3;
 	let SOV, cSOV1, cSOV2;
 	let staking, stakingLogic, feeSharingProxy;
-	let vestingFactory, vestingRegistry;
+	let vestingFactory, vestingLogic, vestingRegistry;
 
 	before(async () => {
 		[root, account1, account2, account3, ...accounts] = accounts;
@@ -48,7 +49,8 @@ contract("VestingRegistry", (accounts) => {
 
 		feeSharingProxy = await FeeSharingProxy.new(ZERO_ADDRESS, staking.address);
 
-		vestingFactory = await VestingFactory.new();
+		vestingLogic = await VestingLogic.new();
+		vestingFactory = await VestingFactory.new(vestingLogic.address);
 		vestingRegistry = await VestingRegistry.new(
 			vestingFactory.address,
 			SOV.address,
@@ -267,7 +269,7 @@ contract("VestingRegistry", (accounts) => {
 			let duration = await vestingRegistry.CSOV_VESTING_DURATION();
 
 			let vestingAddress = await vestingRegistry.getVesting(account2);
-			let vesting = await Vesting.at(vestingAddress);
+			let vesting = await VestingLogic.at(vestingAddress);
 			await checkVesting(vesting, account2, cliff, duration, amount);
 
 			await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
@@ -301,7 +303,7 @@ contract("VestingRegistry", (accounts) => {
 			let duration = await vestingRegistry.CSOV_VESTING_DURATION();
 
 			let vestingAddress = await vestingRegistry.getVesting(account2);
-			let vesting = await Vesting.at(vestingAddress);
+			let vesting = await VestingLogic.at(vestingAddress);
 			await checkVesting(vesting, account2, cliff, duration, amount);
 
 			await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
@@ -359,7 +361,7 @@ contract("VestingRegistry", (accounts) => {
 			let balance = await SOV.balanceOf(vestingRegistry.address);
 			expect(balance.toString()).equal("0");
 
-			let vesting = await Vesting.at(vestingAddress);
+			let vesting = await VestingLogic.at(vestingAddress);
 			await checkVesting(vesting, account2, cliff, duration, amount);
 
 			await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
@@ -402,7 +404,7 @@ contract("VestingRegistry", (accounts) => {
 			let balance = await SOV.balanceOf(vestingRegistry.address);
 			expect(balance.toString()).equal("0");
 
-			let vesting = await Vesting.at(vestingAddress);
+			let vesting = await VestingLogic.at(vestingAddress);
 			await checkVesting(vesting, account2, cliff, duration, amount);
 
 			await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
