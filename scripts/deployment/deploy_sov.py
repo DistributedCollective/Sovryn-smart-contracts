@@ -121,6 +121,48 @@ def main():
     # TODO GovAdmin - GovernanceVault ?
     SOVtoken.transfer(governorVault, 80000000 * MULTIPLIER)
 
+    # TODO duration = 30 days ?
+    FUND_RELEASE_INTERVAL = 30 * 24 * 60 * 60
+
+    developmentFundAmounts = []
+    developmentFundReleaseDuration = []
+    adoptionFundAmounts = []
+    adoptionFundReleaseDuration = []
+
+    with open('./scripts/deployment/funds.csv', 'r') as file:
+        reader = csv.reader(file)
+        rowNumber = 1
+        for row in reader:
+            if (rowNumber == 6): # Development Fund
+                cellNumber = 1
+                for cell in row:
+                    if (cellNumber >= 4):
+                        print(cell)
+                    cellNumber += 1
+            if (rowNumber == 9): # Adoption Fund
+                print(row)
+
+
+            rowNumber += 1
+            # tokenOwner = row[1].replace(" ", "")
+            # amount = row[2].replace(",", "").replace(".", "")
+            # amount = int(amount) * MULTIPLIER
+            # vestingData = row[4].split(" ")
+            # vestingType = vestingData[0]
+            # cliffAndDuration = vestingData[1].split("+")
+            # cliff = cliffAndDuration[0]
+            # duration = cliffAndDuration[1]
+            # if (vestingType == "MultisigVesting"):
+            #     teamVestingList.append([tokenOwner, amount, cliff, duration])
+            # if (vestingType == "OwnerVesting"):
+            #     vestingList.append([tokenOwner, amount, cliff, duration])
+            # print("=======================================")
+            # print(vestingType)
+            # print("'" + tokenOwner + "', ")
+            # print(amount)
+            # print(cliff)
+            # print(duration)
+
     # line 74
     # Adoption Fund Vesting
     adoptiontFundAmount = 3696983667 * MULTIPLIER
