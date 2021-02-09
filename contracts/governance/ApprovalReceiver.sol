@@ -42,10 +42,7 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 		//check sender and amount
 		address sender;
 		uint256 amount;
-		(, sender, amount) = abi.decode(
-			abi.encodePacked(bytes28(0), _data),
-			(bytes32,address,uint256)
-		);
+		(, sender, amount) = abi.decode(abi.encodePacked(bytes28(0), _data), (bytes32, address, uint256));
 		require(sender == _sender, "sender mismatch");
 		require(amount == _amount, "amount mismatch");
 
@@ -68,9 +65,7 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 		return new bytes4[](0);
 	}
 
-	function _call(
-		bytes memory _data
-	) internal {
+	function _call(bytes memory _data) internal {
 		//makes call and reads error message
 		(bool success, bytes memory returnData) = address(this).call(_data);
 		if (!success) {

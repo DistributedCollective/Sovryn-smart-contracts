@@ -329,7 +329,7 @@ contract("Staking", (accounts) => {
 			await token.approve(staking.address, 0);
 
 			//TODO
-			await token.approve(staking.address, amount * 2, {from: account1});
+			await token.approve(staking.address, amount * 2, { from: account1 });
 
 			let contract = new web3.eth.Contract(staking.abi, staking.address);
 			let sender = root;
@@ -386,7 +386,7 @@ contract("Staking", (accounts) => {
 			let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
 			let contract = new web3.eth.Contract(staking.abi, staking.address);
 
-			await token.approve(staking.address, amount * 2, {from: account1});
+			await token.approve(staking.address, amount * 2, { from: account1 });
 			let sender = root;
 			let data = contract.methods.stakeWithApproval(account1, amount, lockedTS, root, root).encodeABI();
 
@@ -398,7 +398,7 @@ contract("Staking", (accounts) => {
 			let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
 			let contract = new web3.eth.Contract(staking.abi, staking.address);
 
-			await token.approve(staking.address, amount * 2, {from: account1});
+			await token.approve(staking.address, amount * 2, { from: account1 });
 			let sender = root;
 			let data = contract.methods.stakeWithApproval(sender, amount, lockedTS, root, root).encodeABI();
 
