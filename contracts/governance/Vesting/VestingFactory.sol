@@ -6,13 +6,13 @@ import "./TeamVesting.sol";
 import "./IVestingFactory.sol";
 
 contract VestingFactory is IVestingFactory, Ownable {
-
 	address public vestingLogic;
 
 	constructor(address _vestingLogic) public {
 		require(_vestingLogic != address(0), "invalid vesting logic address");
 		vestingLogic = _vestingLogic;
 	}
+
 	/**
 	 * @notice deploys Vesting contract
 	 * @param _SOV the address of SOV token

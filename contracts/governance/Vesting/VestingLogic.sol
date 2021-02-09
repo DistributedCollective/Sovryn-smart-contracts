@@ -10,7 +10,6 @@ import "../ApprovalReceiver.sol";
 import "./VestingStorage.sol";
 
 contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
-
 	event TokensStaked(address indexed caller, uint256 amount);
 	event VotesDelegated(address indexed caller, address delegatee);
 	event TokensWithdrawn(address indexed caller, address receiver);

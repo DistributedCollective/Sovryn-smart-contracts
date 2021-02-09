@@ -46,5 +46,4 @@ contract TeamVesting is VestingStorage, Proxy {
 		duration = _duration;
 		feeSharingProxy = IFeeSharingProxy(_feeSharingProxy);
 	}
-
 }

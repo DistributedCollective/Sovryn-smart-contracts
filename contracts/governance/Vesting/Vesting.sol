@@ -6,7 +6,6 @@ import "./TeamVesting.sol";
 //TODO add tests for governanceWithdrawTokens
 //TODO split Proxy on Proxy and UpgradableProxy
 contract Vesting is TeamVesting {
-
 	/**
 	 * @notice setup the vesting schedule
 	 * @param _logic the address of logic contract
@@ -31,5 +30,4 @@ contract Vesting is TeamVesting {
 	function governanceWithdrawTokens(address receiver) public {
 		revert("operation not supported");
 	}
-
 }
