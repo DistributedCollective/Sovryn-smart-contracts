@@ -388,8 +388,6 @@ contract("VestingRegistry", (accounts) => {
 
 			let proxy = await UpgradableProxy.at(vestingAddress);
 			await expectRevert(proxy.setImplementation(account2), "revert");
-
-			expect(await proxy.getProxyOwner()).equal(proxy.address);
 		});
 
 		it("fails if vestingRegistry doesn't have enough SOV", async () => {
@@ -436,8 +434,6 @@ contract("VestingRegistry", (accounts) => {
 
 			let proxy = await UpgradableProxy.at(vestingAddress);
 			await expectRevert(proxy.setImplementation(account2), "revert");
-
-			expect(await proxy.getProxyOwner()).equal(proxy.address);
 		});
 
 		it("fails if vestingRegistry doesn't have enough SOV", async () => {
