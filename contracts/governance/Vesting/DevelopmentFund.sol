@@ -17,7 +17,7 @@ contract DevelopmentFund {
 	IERC20 public SOV;
 
 	/// @notice The current contract status.
-	enum Status {Deployed, Active, Expired}
+	enum Status { Deployed, Active, Expired }
 	Status public status;
 
 	/// @notice The owner of the locked tokens (usually Governance).
@@ -145,7 +145,7 @@ contract DevelopmentFund {
 
 		lastReleaseTime = _lastReleaseTime;
 		/// If last release time passed is zero, then current time stamp will be used as the last release time.
-		if(_lastReleaseTime == 0){
+		if (_lastReleaseTime == 0) {
 			lastReleaseTime = block.timestamp;
 		}
 

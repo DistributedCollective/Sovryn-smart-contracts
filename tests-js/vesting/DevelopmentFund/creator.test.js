@@ -80,7 +80,16 @@ contract("DevelopmentFund (Contract Creator Functions)", (accounts) => {
 		releaseTokenAmount = createReleaseTokenAmount();
 
 		// Creating the contract instance.
-		developmentFund = await DevelopmentFund.new(testToken.address, governance, safeVault, multisig, zero, releaseDuration, releaseTokenAmount, {from: creator});
+		developmentFund = await DevelopmentFund.new(
+			testToken.address,
+			governance,
+			safeVault,
+			multisig,
+			zero,
+			releaseDuration,
+			releaseTokenAmount,
+			{ from: creator }
+		);
 
 		// Calculating the total tokens in the release schedule.
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
@@ -89,17 +98,14 @@ contract("DevelopmentFund (Contract Creator Functions)", (accounts) => {
 		await testToken.mint(creator, totalSupply, { from: creator });
 
 		// Approving the development fund to do a transfer on behalf of governance.
-		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, {from: creator});
+		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: creator });
 
 		// Marking the contract as active.
-		await developmentFund.init({from: creator});
+		await developmentFund.init({ from: creator });
 	});
 
 	it("Contract Creator should not be able to call the init() more than once.", async () => {
-		await expectRevert(
-			developmentFund.init({from: creator}),
-			"The contract is not in the right state."
-		);
+		await expectRevert(developmentFund.init({ from: creator }), "The contract is not in the right state.");
 	});
 
 	it("Contract Creator should not be able to add Locked Token Owner.", async () => {

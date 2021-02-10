@@ -81,7 +81,16 @@ contract("DevelopmentFund (Events)", (accounts) => {
 		releaseTokenAmount = createReleaseTokenAmount();
 
 		// Creating the contract instance.
-		developmentFund = await DevelopmentFund.new(testToken.address, governance, safeVault, multisig, zero, releaseDuration, releaseTokenAmount, {from: creator});
+		developmentFund = await DevelopmentFund.new(
+			testToken.address,
+			governance,
+			safeVault,
+			multisig,
+			zero,
+			releaseDuration,
+			releaseTokenAmount,
+			{ from: creator }
+		);
 
 		// Calculating the total tokens in the release schedule.
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
@@ -90,10 +99,10 @@ contract("DevelopmentFund (Events)", (accounts) => {
 		await testToken.mint(creator, totalSupply, { from: creator });
 
 		// Approving the development fund to do a transfer on behalf of governance.
-		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, {from: creator});
+		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: creator });
 
 		// Marking the contract as active.
-		await developmentFund.init({from: creator});
+		await developmentFund.init({ from: creator });
 	});
 
 	it("Adding a new locked owner should emit NewLockedOwnerAdded event.", async () => {

@@ -80,7 +80,16 @@ contract("DevelopmentFund (Any User Functions)", (accounts) => {
 		releaseTokenAmount = createReleaseTokenAmount();
 
 		// Creating the contract instance.
-		developmentFund = await DevelopmentFund.new(testToken.address, governance, safeVault, multisig, zero, releaseDuration, releaseTokenAmount, {from: creator});
+		developmentFund = await DevelopmentFund.new(
+			testToken.address,
+			governance,
+			safeVault,
+			multisig,
+			zero,
+			releaseDuration,
+			releaseTokenAmount,
+			{ from: creator }
+		);
 
 		// Calculating the total tokens in the release schedule.
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
@@ -89,24 +98,30 @@ contract("DevelopmentFund (Any User Functions)", (accounts) => {
 		await testToken.mint(creator, totalSupply, { from: creator });
 
 		// Approving the development fund to do a transfer on behalf of governance.
-		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, {from: creator});
+		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: creator });
 
 		// Marking the contract as active.
-		await developmentFund.init({from: creator});
+		await developmentFund.init({ from: creator });
 	});
 
 	it("Anyone should be able to fund the initial token release schedule amount to make contract active.", async () => {
-		developmentFund = await DevelopmentFund.new(testToken.address, governance, safeVault, multisig, zero, releaseDuration, releaseTokenAmount, {from: creator});
+		developmentFund = await DevelopmentFund.new(
+			testToken.address,
+			governance,
+			safeVault,
+			multisig,
+			zero,
+			releaseDuration,
+			releaseTokenAmount,
+			{ from: creator }
+		);
 		await testToken.mint(userOne, totalReleaseTokenAmount);
 		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: userOne });
 		await developmentFund.init({ from: userOne });
 	});
 
 	it("No one should be able to call the init() more than once.", async () => {
-		await expectRevert(
-			developmentFund.init({from: userOne}),
-			"The contract is not in the right state."
-		);
+		await expectRevert(developmentFund.init({ from: userOne }), "The contract is not in the right state.");
 	});
 
 	it("Except Locked Token Owner, no one should be able to add new Locked Token Owner.", async () => {
