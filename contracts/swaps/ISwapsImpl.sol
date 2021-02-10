@@ -22,4 +22,11 @@ interface ISwapsImpl {
 		uint256 sourceTokenAmount,
 		address optionalContractAddress
 	) external view returns (uint256);
+
+	function internalExpectedReturn(
+		address sourceTokenAddress,
+		address destTokenAddress,
+		uint256 sourceTokenAmount,
+		address sovrynSwapContractRegistryAddress
+	) external view returns (uint256 expectedReturn);
 }
