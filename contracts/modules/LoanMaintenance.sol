@@ -72,7 +72,9 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 			vaultEtherDeposit(msg.sender, msg.value);
 		}
 
-		emit DepositCollateral(loanId, depositAmount);
+		(uint256 collateralToLoanRate, ) = IPriceFeeds(priceFeeds).queryRate(loanParamsLocal.collateralToken, loanParamsLocal.loanToken);
+
+		emit DepositCollateral(loanId, depositAmount, collateralToLoanRate);
 	}
 
 	function withdrawCollateral(

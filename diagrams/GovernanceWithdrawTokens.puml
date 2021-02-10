@@ -1,0 +1,39 @@
+@startuml
+title Governance Withdraw Tokens
+
+skinparam monochrome true
+
+' Participants:
+
+participant "Governance" as G
+
+participant "Staking" as S
+
+participant "Vesting" as V
+
+box "User or Contract"
+actor "Receiver" as U
+end box
+
+G->S: withdraw vesting
+note over S
+    vesting, receiver
+end note
+
+S->V: withdraw tokens
+note over V
+    receiver
+end note
+
+loop for each staking date
+    V->S: withdraw
+    note over S
+        amount, date, receiver
+    end note
+    S->U: transfer tokens
+    note over V
+        receiver, amount
+    end note
+end
+
+@enduml

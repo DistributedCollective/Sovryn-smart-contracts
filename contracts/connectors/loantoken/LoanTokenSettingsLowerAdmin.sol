@@ -13,13 +13,39 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	using SafeMath for uint256;
 
 	// It is important to maintain the variables order so the delegate calls can access sovrynContractAddress
+
+	// ------------- MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 	address public sovrynContractAddress;
+	address public wrbtcTokenAddress;
+	address internal target_;
+	address public admin;
+	// ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
+
+	//Add new variables here on the bottom
+	address public earlyAccessToken;
+	address public pauser;
+
+	event SetEarlyAccessToken(address oldValue, address newValue);
+
+	modifier hasEarlyAccessToken() {
+		if (earlyAccessToken != address(0)) require(IERC20(earlyAccessToken).balanceOf(msg.sender) > 0, "No early access tokens");
+		_;
+	}
+
+	//@todo check for restrictions in this contract
+	modifier onlyAdmin() {
+		require(isOwner() || msg.sender == admin, "unauthorized");
+		_;
+	}
 
 	event SetTransactionLimits(address[] addresses, uint256[] limits);
 
-	modifier onlyAdmin() {
-		require(msg.sender == address(this) || msg.sender == owner(), "unauthorized");
-		_;
+	function setAdmin(address _admin) public onlyOwner {
+		admin = _admin;
+	}
+
+	function setPauser(address _pauser) public onlyOwner {
+		pauser = _pauser;
 	}
 
 	function() external {
@@ -92,7 +118,8 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	function toggleFunctionPause(
 		string memory funcId, // example: "mint(uint256,uint256)"
 		bool isPaused
-	) public onlyAdmin {
+	) public {
+		require(msg.sender == pauser, "onlyPauser");
 		// keccak256("iToken_FunctionPause")
 		bytes32 slot =
 			keccak256(
@@ -111,7 +138,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	 * @param addresses the token addresses
 	 * @param limits the limit denominated in the currency of the token address
 	 * */
-	function setTransactionLimits(address[] memory addresses, uint256[] memory limits) public onlyOwner {
+	function setTransactionLimits(address[] memory addresses, uint256[] memory limits) public onlyAdmin {
 		require(addresses.length == limits.length, "mismatched array lengths");
 		for (uint256 i = 0; i < addresses.length; i++) {
 			transactionLimit[addresses[i]] = limits[i];
@@ -122,5 +149,15 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol) public onlyAdmin {
 		name = _name;
 		symbol = _symbol;
+	}
+
+	/**
+	 *	@notice set early access token
+	 *	@param _earlyAccessTokenAddress the early access token
+	 */
+	function setEarlyAccessToken(address _earlyAccessTokenAddress) public onlyAdmin {
+		address oldEarlyAccessToken = earlyAccessToken;
+		earlyAccessToken = _earlyAccessTokenAddress;
+		emit SetEarlyAccessToken(oldEarlyAccessToken, earlyAccessToken);
 	}
 }
