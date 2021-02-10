@@ -39,7 +39,6 @@ contract TeamVesting is VestingStorage, Proxy {
 		require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
 
 		_setImplementation(_logic);
-		_setProxyOwner(address(this));
 		SOV = IERC20(_SOV);
 		staking = Staking(_stakingAddress);
 		require(_duration <= staking.MAX_DURATION(), "duration may not exceed the max duration");

@@ -5,6 +5,10 @@ import "../../interfaces/IERC20.sol";
 import "../Staking/Staking.sol";
 import "../IFeeSharingProxy.sol";
 
+/**
+ * Vesting Storage Contract
+ * @dev use Ownable as a parent to align storage structure for Logic and Proxy contracts
+ */
 contract VestingStorage is Ownable {
 	///@notice the SOV token contract
 	IERC20 public SOV;
