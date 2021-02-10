@@ -181,33 +181,41 @@ def main():
 
     # line 74
     # Adoption Fund Vesting
-    # TODO governorVaultOwner ?
-    adoptionAmount = 3697104000 * MULTIPLIER
-    adoptiontFund = acct.deploy(DevelopmentFund, SOVtoken.address, acct, governorVaultOwner, acct)
-    SOVtoken.approve(adoptiontFund.address, adoptionAmount)
-    adoptiontFund.depositTokens(adoptionAmount)
     print(adoptionFundReleaseDurations)
     print(adoptionFundAmounts)
-    adoptiontFund.changeTokenReleaseSchedule(0, adoptionFundReleaseDurations, adoptionFundAmounts)
-    adoptiontFund.updateLockedTokenOwner(timelockOwner.address)
-    adoptiontFund.approveLockedTokenOwner()
-    # TODO - onlyLockedTokenOwner - timelockOwner.address
-    # adoptiontFund.updateUnlockedTokenOwner(timelockOwner.address)
+    # TODO governorVaultOwner ?
+    adoptionAmount = 3697104000 * MULTIPLIER
+    adoptiontFund = acct.deploy(
+        DevelopmentFund,
+        SOVtoken.address,
+        timelockOwner.address,
+        governorVaultOwner,
+        timelockOwner.address,
+        0,
+        adoptionFundReleaseDurations,
+        adoptionFundAmounts
+    )
+    SOVtoken.approve(adoptiontFund.address, adoptionAmount)
+    adoptiontFund.init()
 
     # line 75
     # Development Fund Vesting
-    # TODO governorVaultOwner ?
-    developmentAmount = 861859788 * MULTIPLIER
-    developmentFund = acct.deploy(DevelopmentFund, SOVtoken.address, acct, governorVaultOwner, acct)
-    SOVtoken.approve(developmentFund.address, developmentAmount)
-    developmentFund.depositTokens(developmentAmount)
     print(developmentFundReleaseDurations)
     print(developmentFundAmounts)
-    developmentFund.changeTokenReleaseSchedule(0, developmentFundReleaseDurations, developmentFundAmounts)
-    developmentFund.updateLockedTokenOwner(multisig)
-    developmentFund.approveLockedTokenOwner()
-    # TODO - onlyLockedTokenOwner - multisig
-    # developmentFund.updateUnlockedTokenOwner(timelockOwner.address)
+    # TODO governorVaultOwner ?
+    developmentAmount = 861859788 * MULTIPLIER
+    developmentFund = acct.deploy(
+        DevelopmentFund,
+        SOVtoken.address,
+        multisig,
+        governorVaultOwner,
+        timelockOwner.address,
+        0,
+        developmentFundReleaseDurations,
+        developmentFundAmounts
+    )
+    SOVtoken.approve(developmentFund.address, developmentAmount)
+    developmentFund.init()
 
     # line 76
     # Public Sale
@@ -306,7 +314,7 @@ def main():
     staking.transferOwnership(timelockOwner.address)
     stakingProxy = Contract.from_abi("Proxy", address=staking.address, abi=Proxy.abi, owner=acct)
     stakingProxy.setProxyOwner(timelockOwner.address)
-    # vestingRegistry.transferOwnership(timelockOwner.address)
+    vestingRegistry.transferOwnership(timelockOwner.address)
 
     print("balance:")
     print(SOVtoken.balanceOf(acct))
