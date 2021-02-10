@@ -170,6 +170,23 @@ contract("VestingRegistry", (accounts) => {
 		});
 	});
 
+	describe("setVestingFactory", () => {
+		it("sets vesting factory", async () => {
+			await vestingRegistry.setVestingFactory(account2);
+
+			let vestingFactory = await vestingRegistry.vestingFactory();
+			expect(vestingFactory).equal(account2);
+		});
+
+		it("fails if the 0 address is passed", async () => {
+			await expectRevert(vestingRegistry.setVestingFactory(ZERO_ADDRESS), "vestingFactory address invalid");
+		});
+
+		it("fails if sender isn't an owner", async () => {
+			await expectRevert(vestingRegistry.setVestingFactory(account2, {from: account2}), "unauthorized");
+		});
+	});
+
 	describe("setCSOVtokens", () => {
 		it("sets the expected values", async () => {
 			await vestingRegistry.setCSOVtokens([account2, account3]);
@@ -183,6 +200,10 @@ contract("VestingRegistry", (accounts) => {
 
 		it("fails if the 0 address is passed as cSOV address", async () => {
 			await expectRevert(vestingRegistry.setCSOVtokens([cSOV1.address, cSOV2.address, ZERO_ADDRESS]), "CSOV address invalid");
+		});
+
+		it("fails if sender isn't an owner", async () => {
+			await expectRevert(vestingRegistry.setCSOVtokens([cSOV1.address, cSOV2.address], {from: account2}), "unauthorized");
 		});
 	});
 
