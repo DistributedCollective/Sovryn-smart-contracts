@@ -16,6 +16,10 @@ contract DevelopmentFund {
 	/// @notice The SOV token contract.
 	IERC20 public SOV;
 
+	/// @notice The current contract status.
+	enum Status {Deployed, Active, Expired}
+	Status public status;
+
 	/// @notice The owner of the locked tokens (usually Governance).
 	address public lockedTokenOwner;
 	/// @notice The owner of the unlocked tokens (usually MultiSig).
@@ -34,6 +38,12 @@ contract DevelopmentFund {
 	uint256[] public releaseTokenAmount;
 
 	/* Events */
+
+	/// @notice Emitted when the contract is activated.
+	event DevelopmentFundActivated();
+
+	/// @notice Emitted when the contract is expired due to total token transfer.
+	event DevelopmentFundExpired();
 
 	/// @notice Emitted when a new locked owner is added to the contract.
 	/// @param _initiator The address which initiated this event to be emitted.
@@ -96,6 +106,11 @@ contract DevelopmentFund {
 		_;
 	}
 
+	modifier checkStatus(Status s) {
+		require(status == s, "The contract is not in the right state.");
+		_;
+	}
+
 	/* Functions */
 
 	/**
@@ -104,12 +119,19 @@ contract DevelopmentFund {
 	 * @param _lockedTokenOwner The owner of the locked tokens & contract.
 	 * @param _safeVault The emergency wallet/contract to transfer token.
 	 * @param _unlockedTokenOwner The owner of the unlocked tokens.
+	 * @param _lastReleaseTime If the last release time is to be changed, zero if no change required.
+	 * @param _releaseDuration The time duration between each release calculated from `lastReleaseTime` in seconds.
+	 * @param _releaseTokenAmount The amount of token to be released in each duration/interval.
+	 * @dev Initial release schedule should be verified, error will result in either redeployment or calling changeTokenReleaseSchedule() after init() along with token transfer.
 	 */
 	constructor(
 		address _SOV,
 		address _lockedTokenOwner,
 		address _safeVault,
-		address _unlockedTokenOwner
+		address _unlockedTokenOwner,
+		uint256 _lastReleaseTime,
+		uint256[] memory _releaseDuration,
+		uint256[] memory _releaseTokenAmount
 	) public {
 		require(_SOV != address(0), "Invalid SOV Address.");
 		require(_lockedTokenOwner != address(0), "Locked token & contract owner address invalid.");
@@ -121,14 +143,47 @@ contract DevelopmentFund {
 		safeVault = _safeVault;
 		unlockedTokenOwner = _unlockedTokenOwner;
 
-		lastReleaseTime = block.timestamp;
+		lastReleaseTime = _lastReleaseTime;
+		/// If last release time passed is zero, then current time stamp will be used as the last release time.
+		if(_lastReleaseTime == 0){
+			lastReleaseTime = block.timestamp;
+		}
+
+		/// Checking if the schedule duration and token allocation length matches.
+		require(_releaseDuration.length == _releaseTokenAmount.length, "Release Schedule does not match.");
+
+		/// Finally we update the token release schedule.
+		releaseDuration = _releaseDuration;
+		releaseTokenAmount = _releaseTokenAmount;
+	}
+
+	/**
+	 * @notice This function is called once after deployment for token transfer based on schedule.
+	 * @dev Without calling this function, the contract will not work.
+	 */
+	function init() public checkStatus(Status.Deployed) {
+		uint256[] memory _releaseTokenAmount = releaseTokenAmount;
+		require(_releaseTokenAmount.length != 0, "Release Schedule not set.");
+
+		/// Getting the current release schedule total token amount.
+		uint256 _releaseTotalTokenAmount;
+		for (uint256 amountIndex = 0; amountIndex < _releaseTokenAmount.length; amountIndex++) {
+			_releaseTotalTokenAmount = _releaseTotalTokenAmount.add(_releaseTokenAmount[amountIndex]);
+		}
+
+		bool txStatus = SOV.transferFrom(msg.sender, address(this), _releaseTotalTokenAmount);
+		require(txStatus, "Not enough token sent to change release schedule.");
+
+		status = Status.Active;
+
+		emit DevelopmentFundActivated();
 	}
 
 	/**
 	 * @notice Update Locked Token Owner.
 	 * @param _newLockedTokenOwner The owner of the locked tokens & contract.
 	 */
-	function updateLockedTokenOwner(address _newLockedTokenOwner) public onlyLockedTokenOwner {
+	function updateLockedTokenOwner(address _newLockedTokenOwner) public onlyLockedTokenOwner checkStatus(Status.Active) {
 		require(_newLockedTokenOwner != address(0), "New locked token owner address invalid.");
 
 		newLockedTokenOwner = _newLockedTokenOwner;
@@ -140,7 +195,7 @@ contract DevelopmentFund {
 	 * @notice Approve Locked Token Owner.
 	 * @dev This approval is an added security to avoid development fund takeover by a compromised locked token owner.
 	 */
-	function approveLockedTokenOwner() public onlyUnlockedTokenOwner {
+	function approveLockedTokenOwner() public onlyUnlockedTokenOwner checkStatus(Status.Active) {
 		require(newLockedTokenOwner != address(0), "No new locked owner added.");
 
 		emit NewLockedOwnerApproved(msg.sender, lockedTokenOwner, newLockedTokenOwner);
@@ -154,7 +209,7 @@ contract DevelopmentFund {
 	 * @notice Update Unlocked Token Owner.
 	 * @param _newUnlockedTokenOwner The new unlocked token owner.
 	 */
-	function updateUnlockedTokenOwner(address _newUnlockedTokenOwner) public onlyLockedTokenOwner {
+	function updateUnlockedTokenOwner(address _newUnlockedTokenOwner) public onlyLockedTokenOwner checkStatus(Status.Active) {
 		require(_newUnlockedTokenOwner != address(0), "New unlocked token owner address invalid.");
 
 		unlockedTokenOwner = _newUnlockedTokenOwner;
@@ -167,7 +222,7 @@ contract DevelopmentFund {
 	 * @param _amount the amount of tokens deposited.
 	 * @dev These tokens can be withdrawn/transferred any time by the lockedTokenOwner.
 	 */
-	function depositTokens(uint256 _amount) public {
+	function depositTokens(uint256 _amount) public checkStatus(Status.Active) {
 		require(_amount > 0, "Amount needs to be bigger than zero.");
 
 		bool txStatus = SOV.transferFrom(msg.sender, address(this), _amount);
@@ -187,7 +242,7 @@ contract DevelopmentFund {
 		uint256 _newLastReleaseTime,
 		uint256[] memory _releaseDuration,
 		uint256[] memory _releaseTokenAmount
-	) public onlyLockedTokenOwner {
+	) public onlyLockedTokenOwner checkStatus(Status.Active) {
 		/// Checking if the schedule duration and token allocation length matches.
 		require(_releaseDuration.length == _releaseTokenAmount.length, "Release Schedule does not match.");
 
@@ -228,19 +283,21 @@ contract DevelopmentFund {
 	 * @notice Transfers all of the remaining tokens in an emergency situation.
 	 * @dev This could be called when governance or development fund might be compromised.
 	 */
-	function transferTokensByUnlockedTokenOwner() public onlyUnlockedTokenOwner {
+	function transferTokensByUnlockedTokenOwner() public onlyUnlockedTokenOwner checkStatus(Status.Active) {
 		uint256 remainingTokens = SOV.balanceOf(address(this));
 		bool txStatus = SOV.transfer(safeVault, remainingTokens);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
+		status = Status.Expired;
 
 		emit LockedTokenTransferByUnlockedOwner(msg.sender, safeVault, remainingTokens);
+		emit DevelopmentFundExpired();
 	}
 
 	/**
 	 * @notice Withdraws all unlocked/released token.
 	 * @param _amount The amount to be withdrawn.
 	 */
-	function withdrawTokensByUnlockedTokenOwner(uint256 _amount) public onlyUnlockedTokenOwner {
+	function withdrawTokensByUnlockedTokenOwner(uint256 _amount) public onlyUnlockedTokenOwner checkStatus(Status.Active) {
 		require(_amount > 0, "Zero can't be withdrawn.");
 
 		uint256 count; /// To know how many elements to be removed from the release schedule.
@@ -287,12 +344,14 @@ contract DevelopmentFund {
 	 * @dev This could be called when the current development fund has to be upgraded.
 	 * @param _receiver The address which receives this token transfer.
 	 */
-	function transferTokensByLockedTokenOwner(address _receiver) public onlyLockedTokenOwner {
+	function transferTokensByLockedTokenOwner(address _receiver) public onlyLockedTokenOwner checkStatus(Status.Active) {
 		uint256 remainingTokens = SOV.balanceOf(address(this));
 		bool txStatus = SOV.transfer(_receiver, remainingTokens);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
+		status = Status.Expired;
 
 		emit LockedTokenTransferByLockedOwner(msg.sender, _receiver, remainingTokens);
+		emit DevelopmentFundExpired();
 	}
 
 	/* Getter Functions */
