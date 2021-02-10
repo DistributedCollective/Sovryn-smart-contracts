@@ -1,5 +1,5 @@
-// For this test, governance contract and multisig wallet will be done by normal wallets
-// They will acts as locked and unlocked owner,
+// For this test, governance contract and multisig wallet will be done by normal wallets.
+// They will acts as locked and unlocked owner.
 
 const DevelopmentFund = artifacts.require("DevelopmentFund");
 const TestToken = artifacts.require("TestToken");
@@ -70,11 +70,6 @@ contract("DevelopmentFund (Events)", (accounts) => {
 	});
 
 	beforeEach("Creating New Development Fund Instance.", async () => {
-		developmentFund = await DevelopmentFund.new(testToken.address, governance, safeVault, multisig);
-
-		// Minting new Tokens.
-		await testToken.mint(governance, totalSupply, { from: creator });
-
 		// Creating a new release schedule.
 		releaseDuration = [];
 		// This is run 60 times for mimicking 5 years (12 months * 5), though the interval is small.
@@ -85,11 +80,29 @@ contract("DevelopmentFund (Events)", (accounts) => {
 		// Creating a new release token schedule.
 		releaseTokenAmount = createReleaseTokenAmount();
 
+		// Creating the contract instance.
+		developmentFund = await DevelopmentFund.new(
+			testToken.address,
+			governance,
+			safeVault,
+			multisig,
+			zero,
+			releaseDuration,
+			releaseTokenAmount,
+			{ from: creator }
+		);
+
 		// Calculating the total tokens in the release schedule.
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
 
+		// Minting new Tokens.
+		await testToken.mint(creator, totalSupply, { from: creator });
+
 		// Approving the development fund to do a transfer on behalf of governance.
-		await testToken.approve(developmentFund.address, totalReleaseTokenAmount);
+		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: creator });
+
+		// Marking the contract as active.
+		await developmentFund.init({ from: creator });
 	});
 
 	it("Adding a new locked owner should emit NewLockedOwnerAdded event.", async () => {
@@ -142,15 +155,12 @@ contract("DevelopmentFund (Events)", (accounts) => {
 	});
 
 	it("Transferring all tokens to safeVault by Unlocked Token Owner should emit LockedTokenTransferByUnlockedOwner event.", async () => {
-		let value = randomValue();
-		await testToken.mint(userOne, value);
-		await testToken.approve(developmentFund.address, value, { from: userOne });
-		await developmentFund.depositTokens(value, { from: userOne });
 		let txReceipt = await developmentFund.transferTokensByUnlockedTokenOwner({ from: multisig });
+		expectEvent(txReceipt, "DevelopmentFundExpired");
 		expectEvent(txReceipt, "LockedTokenTransferByUnlockedOwner", {
 			_initiator: multisig,
 			_receiver: safeVault,
-			_amount: new BN(value),
+			_amount: new BN(totalReleaseTokenAmount),
 		});
 	});
 
@@ -175,15 +185,12 @@ contract("DevelopmentFund (Events)", (accounts) => {
 	});
 
 	it("Transferring all tokens to a receiver by Locked Token Owner should emit LockedTokenTransferByLockedOwner event.", async () => {
-		let value = randomValue();
-		await testToken.mint(userOne, value);
-		await testToken.approve(developmentFund.address, value, { from: userOne });
-		await developmentFund.depositTokens(value, { from: userOne });
 		let txReceipt = await developmentFund.transferTokensByLockedTokenOwner(creator, { from: governance });
+		expectEvent(txReceipt, "DevelopmentFundExpired");
 		expectEvent(txReceipt, "LockedTokenTransferByLockedOwner", {
 			_initiator: governance,
 			_receiver: creator,
-			_amount: new BN(value),
+			_amount: new BN(totalReleaseTokenAmount),
 		});
 	});
 });
