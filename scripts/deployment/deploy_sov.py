@@ -38,7 +38,6 @@ def main():
     # load deployed contracts addresses
     contracts = json.load(configFile)
     protocolAddress = contracts['sovrynProtocol']
-    # TODO do we need another multisig ?
     multisig = contracts['multisig']
     teamVestingOwner = multisig
     if (thisNetwork == "testnet" or thisNetwork == "rsk-mainnet"):
@@ -293,8 +292,10 @@ def main():
 
     #  == Transfer ownership to owner governor =============================================================================================
     # TODO transfer ownership of all these contracts to timelockOwner
-    # SOVtoken.transferOwnership(timelockOwner.address)
-    # staking.transferOwnership(timelockOwner.address)
+    SOVtoken.transferOwnership(timelockOwner.address)
+    staking.transferOwnership(timelockOwner.address)
+    stakingProxy = Contract.from_abi("Proxy", address=staking.address, abi=Proxy.abi, owner=acct)
+    stakingProxy.setProxyOwner(timelockOwner.address)
     # vestingRegistry.transferOwnership(timelockOwner.address)
 
     print("balance:")
