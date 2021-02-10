@@ -25,14 +25,6 @@ contract Proxy {
 		_;
 	}
 
-	/**
-	 * @notice Sets address of the implementation
-	 * @param _implementation Address of the implementation
-	 */
-	function setImplementation(address _implementation) public onlyProxyOwner {
-		_setImplementation(_implementation);
-	}
-
 	function _setImplementation(address _implementation) internal {
 		require(_implementation != address(0), "Proxy::setImplementation: invalid address");
 		emit ImplementationChanged(getImplementation(), _implementation);
@@ -52,14 +44,6 @@ contract Proxy {
 		assembly {
 			_implementation := sload(key)
 		}
-	}
-
-	/**
-	 * @notice Sets address of the owner
-	 * @param _owner Address of the owner
-	 */
-	function setProxyOwner(address _owner) public onlyProxyOwner {
-		_setProxyOwner(_owner);
 	}
 
 	function _setProxyOwner(address _owner) internal {

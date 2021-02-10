@@ -12,6 +12,7 @@ const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry");
 const Vesting = artifacts.require("TeamVesting");
+const UpgradableProxy = artifacts.require("UpgradableProxy");
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 const FOUR_WEEKS = new BN(4 * 7 * 24 * 60 * 60);
@@ -362,7 +363,10 @@ contract("VestingRegistry", (accounts) => {
 			let vesting = await VestingLogic.at(vestingAddress);
 			await checkVesting(vesting, account2, cliff, duration, amount);
 
-			await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
+			await expectRevert(vesting.governanceWithdrawTokens(account2), "operation not supported");
+
+			let proxy = await UpgradableProxy.at(vestingAddress);
+			await expectRevert(proxy.setImplementation(account2), "revert");
 		});
 
 		it("fails if vestingRegistry doesn't have enough SOV", async () => {
@@ -405,7 +409,10 @@ contract("VestingRegistry", (accounts) => {
 			let vesting = await VestingLogic.at(vestingAddress);
 			await checkVesting(vesting, account2, cliff, duration, amount);
 
-			await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
+			await expectRevert(vesting.governanceWithdrawTokens(account2), "unauthorized");
+
+			let proxy = await UpgradableProxy.at(vestingAddress);
+			await expectRevert(proxy.setImplementation(account2), "revert");
 		});
 
 		it("fails if vestingRegistry doesn't have enough SOV", async () => {

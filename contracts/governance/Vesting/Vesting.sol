@@ -4,7 +4,6 @@ pragma experimental ABIEncoderV2;
 import "./TeamVesting.sol";
 
 //TODO add tests for governanceWithdrawTokens
-//TODO split Proxy on Proxy and UpgradableProxy
 contract Vesting is TeamVesting {
 	/**
 	 * @notice setup the vesting schedule
@@ -25,7 +24,7 @@ contract Vesting is TeamVesting {
 	) public TeamVesting(_logic, _SOV, _stakingAddress, _tokenOwner, _cliff, _duration, _feeSharingProxy) {}
 
 	/**
-	 * @dev we need to add this implementation to prevent proxy call
+	 * @dev we need to add this implementation to prevent proxy call VestingLogic.governanceWithdrawTokens
 	 */
 	function governanceWithdrawTokens(address receiver) public {
 		revert("operation not supported");

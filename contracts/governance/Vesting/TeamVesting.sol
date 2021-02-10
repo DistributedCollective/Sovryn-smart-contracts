@@ -12,6 +12,7 @@ import "../../proxy/Proxy.sol";
 
 /**
  * A regular vesting contract, but the owner (governance) is able to withdraw earlier without a slashing
+ * @dev Vesting contracts shouldn't be upgradable, use Proxy instead of UpgradableProxy
  **/
 contract TeamVesting is VestingStorage, Proxy {
 	/**
