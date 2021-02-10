@@ -1,11 +1,10 @@
-// For this test, governance contract and multisig wallet will be done by normal wallets
-// They will acts as locked and unlocked owner,
+// For this test, governance contract and multisig wallet will be done by normal wallets.
+// They will acts as locked and unlocked owner.
 
 const DevelopmentFund = artifacts.require("DevelopmentFund");
 const TestToken = artifacts.require("TestToken");
 
 const {
-	time, // Convert different time units to seconds. Available helpers are: seconds, minutes, hours, days, weeks and years.
 	BN, // Big Number support.
 	expectRevert, // Assertions for transactions that should fail.
 } = require("@openzeppelin/test-helpers");
@@ -70,11 +69,6 @@ contract("DevelopmentFund (Contract Creator Functions)", (accounts) => {
 	});
 
 	beforeEach("Creating New Development Fund Instance.", async () => {
-		developmentFund = await DevelopmentFund.new(testToken.address, governance, safeVault, multisig);
-
-		// Minting new Tokens.
-		await testToken.mint(governance, totalSupply, { from: creator });
-
 		// Creating a new release schedule.
 		releaseDuration = [];
 		// This is run 60 times for mimicking 5 years (12 months * 5), though the interval is small.
@@ -85,11 +79,27 @@ contract("DevelopmentFund (Contract Creator Functions)", (accounts) => {
 		// Creating a new release token schedule.
 		releaseTokenAmount = createReleaseTokenAmount();
 
+		// Creating the contract instance.
+		developmentFund = await DevelopmentFund.new(testToken.address, governance, safeVault, multisig, zero, releaseDuration, releaseTokenAmount, {from: creator});
+
 		// Calculating the total tokens in the release schedule.
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
 
+		// Minting new Tokens.
+		await testToken.mint(creator, totalSupply, { from: creator });
+
 		// Approving the development fund to do a transfer on behalf of governance.
-		await testToken.approve(developmentFund.address, totalReleaseTokenAmount);
+		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, {from: creator});
+
+		// Marking the contract as active.
+		await developmentFund.init({from: creator});
+	});
+
+	it("Contract Creator should not be able to call the init() more than once.", async () => {
+		await expectRevert(
+			developmentFund.init({from: creator}),
+			"The contract is not in the right state."
+		);
 	});
 
 	it("Contract Creator should not be able to add Locked Token Owner.", async () => {

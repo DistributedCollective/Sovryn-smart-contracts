@@ -1,5 +1,5 @@
-// For this test, governance contract and multisig wallet will be done by normal wallets
-// They will acts as locked and unlocked owner,
+// For this test, governance contract and multisig wallet will be done by normal wallets.
+// They will acts as locked and unlocked owner.
 
 const DevelopmentFund = artifacts.require("DevelopmentFund");
 const TestToken = artifacts.require("TestToken");
@@ -27,80 +27,6 @@ let totalReleaseTokenAmount = 0;
  */
 function randomValue() {
 	return Math.floor(Math.random() * 1000);
-}
-
-/**
- * Function to convert a BN array to number array.
- *
- * @param bnArray The array with BNs.
- * @return numArray The array with numbers.
- */
-function convertBNArrayToNumArray(bnArray) {
-	return bnArray.map((a) => a.toNumber());
-}
-
-/**
- * Function to check the contract state.
- *
- * @param contractInstance The contract instance.
- * @param checkArray The items to be checked.
- * @param lockedTokenOwner The Locked Token Owner.
- * @param unlockedTokenOwner The Unlocked Token Owner.
- * @param newLockedTokenOwner The new Locked Token Owner.
- * @param lastReleaseTime The last release time.
- * @param releaseDuration The release duration of a schedule.
- * @param releaseTokenAmount The release token amount of a schedule.
- */
-async function checkStatus(
-	contractInstance,
-	checkArray,
-	lockedTokenOwner,
-	unlockedTokenOwner,
-	newLockedTokenOwner,
-	lastReleaseTime,
-	releaseDuration,
-	releaseTokenAmount
-) {
-	if (checkArray[0] == 1) {
-		let cValue = await contractInstance.lockedTokenOwner();
-		assert.strictEqual(lockedTokenOwner, cValue, "The locked owner does not match.");
-	}
-	if (checkArray[1] == 1) {
-		let cValue = await contractInstance.unlockedTokenOwner();
-		assert.strictEqual(unlockedTokenOwner, cValue, "The unlocked owner does not match.");
-	}
-	if (checkArray[2] == 1) {
-		let cValue = await contractInstance.newLockedTokenOwner();
-		assert.strictEqual(newLockedTokenOwner, cValue, "The new locked owner does not match.");
-	}
-	if (checkArray[3] == 1) {
-		let cValue = await contractInstance.lastReleaseTime();
-		assert.equal(lastReleaseTime, cValue.toNumber(), "The last release time does not match.");
-	}
-	if (checkArray[4] == 1) {
-		let cValue = [];
-		await contractInstance.getReleaseDuration().then((data) => {
-			cValue = data;
-		});
-		cValue = convertBNArrayToNumArray(cValue);
-		assert(cValue.length == releaseDuration.length, "The release duration length does not match.");
-		assert(
-			cValue.every((value, index) => value === releaseDuration[index]),
-			"The release duration does not match."
-		);
-	}
-	if (checkArray[5] == 1) {
-		let cValue = [];
-		await contractInstance.getReleaseTokenAmount().then((data) => {
-			cValue = data;
-		});
-		cValue = convertBNArrayToNumArray(cValue);
-		assert(cValue.length == releaseTokenAmount.length, "The release token length does not match.");
-		assert(
-			cValue.every((value, index) => value === releaseTokenAmount[index]),
-			"The release token amount does not match."
-		);
-	}
 }
 
 /**
@@ -143,11 +69,6 @@ contract("DevelopmentFund (Governance Functions)", (accounts) => {
 	});
 
 	beforeEach("Creating New Development Fund Instance.", async () => {
-		developmentFund = await DevelopmentFund.new(testToken.address, governance, safeVault, multisig);
-
-		// Minting new Tokens.
-		await testToken.mint(governance, totalSupply, { from: creator });
-
 		// Creating a new release schedule.
 		releaseDuration = [];
 		// This is run 60 times for mimicking 5 years (12 months * 5), though the interval is small.
@@ -158,15 +79,32 @@ contract("DevelopmentFund (Governance Functions)", (accounts) => {
 		// Creating a new release token schedule.
 		releaseTokenAmount = createReleaseTokenAmount();
 
+		// Creating the contract instance.
+		developmentFund = await DevelopmentFund.new(testToken.address, governance, safeVault, multisig, zero, releaseDuration, releaseTokenAmount, {from: creator});
+
 		// Calculating the total tokens in the release schedule.
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
 
+		// Minting new Tokens.
+		await testToken.mint(creator, totalSupply, { from: creator });
+
 		// Approving the development fund to do a transfer on behalf of governance.
-		await testToken.approve(developmentFund.address, totalReleaseTokenAmount);
+		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, {from: creator});
+
+		// Marking the contract as active.
+		await developmentFund.init({from: creator});
+	});
+
+	it("Locked Token Owner should not be able to call the init() more than once.", async () => {
+		await expectRevert(
+			developmentFund.init({from: governance}),
+			"The contract is not in the right state."
+		);
 	});
 
 	it("Instance Locked Token Owner should be governance.", async () => {
-		await checkStatus(developmentFund, [1, 0, 0, 0, 0, 0], governance, zero, zero, zero, zero, zero);
+		let lockedTokenOwner = await developmentFund.lockedTokenOwner();
+		assert.strictEqual(lockedTokenOwner, governance, "The locked owner does not match.");
 	});
 
 	it("Should be able to add new Locked Token Owner.", async () => {
@@ -190,6 +128,8 @@ contract("DevelopmentFund (Governance Functions)", (accounts) => {
 	});
 
 	it("Locked Token Owner should approve the contract to send tokens for the Release Schedule.", async () => {
+		developmentFund = await DevelopmentFund.new(testToken.address, governance, safeVault, multisig, zero, [0], [0], {from: governance});
+		await developmentFund.init({ from: governance });
 		await expectRevert(
 			developmentFund.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount, { from: governance }),
 			"invalid transfer"
