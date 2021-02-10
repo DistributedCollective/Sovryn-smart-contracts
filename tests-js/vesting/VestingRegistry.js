@@ -169,6 +169,41 @@ contract("VestingRegistry", (accounts) => {
 		});
 	});
 
+	describe("addAdmin", () => {
+		it("adds admin", async () => {
+			let tx = await vestingRegistry.addAdmin(account1);
+
+			expectEvent(tx, "AdminAdded", {
+				admin: account1
+			});
+
+			let isAdmin = await vestingRegistry.admins(account1);
+			expect(isAdmin).equal(true);
+		});
+
+		it("fails sender isn't an owner", async () => {
+			await expectRevert(vestingRegistry.addAdmin(account1, {from: account1}), "unauthorized");
+		});
+	});
+
+	describe("removeAdmin", () => {
+		it("adds admin", async () => {
+			await vestingRegistry.addAdmin(account1);
+			let tx = await vestingRegistry.removeAdmin(account1);
+
+			expectEvent(tx, "AdminRemoved", {
+				admin: account1
+			});
+
+			let isAdmin = await vestingRegistry.admins(account1);
+			expect(isAdmin).equal(false);
+		});
+
+		it("fails sender isn't an owner", async () => {
+			await expectRevert(vestingRegistry.removeAdmin(account1, {from: account1}), "unauthorized");
+		});
+	});
+
 	describe("setCSOVtokens", () => {
 		it("sets the expected values", async () => {
 			await vestingRegistry.setCSOVtokens([account2, account3]);
@@ -375,6 +410,17 @@ contract("VestingRegistry", (accounts) => {
 
 			await expectRevert(vestingRegistry.stakeTokens(vestingAddress, amount), "ERC20: transfer amount exceeds balance");
 		});
+
+		it("fails if sender is not an owner or admin", async () => {
+			let amount = new BN(1000000);
+			let cliff = TEAM_VESTING_CLIFF;
+			let duration = TEAM_VESTING_DURATION;
+
+			await expectRevert(vestingRegistry.createVesting(account2, amount, cliff, duration, { from: account1 }), "unauthorized");
+
+			await vestingRegistry.addAdmin(account1);
+			await vestingRegistry.createVesting(account2, amount, cliff, duration, { from: account1 });
+		});
 	});
 
 	describe("createTeamVesting", () => {
@@ -418,6 +464,17 @@ contract("VestingRegistry", (accounts) => {
 
 			await expectRevert(vestingRegistry.stakeTokens(vestingAddress, amount), "ERC20: transfer amount exceeds balance");
 		});
+
+		it("fails if sender is not an owner or admin", async () => {
+			let amount = new BN(1000000);
+			let cliff = TEAM_VESTING_CLIFF;
+			let duration = TEAM_VESTING_DURATION;
+
+			await expectRevert(vestingRegistry.createTeamVesting(account2, amount, cliff, duration, { from: account1 }), "unauthorized");
+
+			await vestingRegistry.addAdmin(account1);
+			await vestingRegistry.createTeamVesting(account2, amount, cliff, duration, { from: account1 });
+		});
 	});
 
 	describe("stakeTokens", () => {
@@ -429,8 +486,19 @@ contract("VestingRegistry", (accounts) => {
 			await expectRevert(vestingRegistry.stakeTokens(account1, 0), "amount invalid");
 		});
 
-		it("only owner should be able to stake tokens", async () => {
-			await expectRevert(vestingRegistry.stakeTokens(account1, new BN(1000000), { from: account1 }), "unauthorized");
+		it("only owner or admin should be able to stake tokens", async () => {
+			let amount = new BN(1000000);
+			await SOV.transfer(vestingRegistry.address, amount);
+
+			let cliff = TEAM_VESTING_CLIFF;
+			let duration = TEAM_VESTING_DURATION;
+			await vestingRegistry.createTeamVesting(account2, amount, cliff, duration);
+			let vestingAddress = await vestingRegistry.getTeamVesting(account2);
+
+			await expectRevert(vestingRegistry.stakeTokens(vestingAddress, new BN(1000000), { from: account1 }), "unauthorized");
+
+			await vestingRegistry.addAdmin(account1);
+			await vestingRegistry.stakeTokens(vestingAddress, new BN(1000000), { from: account1 });
 		});
 	});
 
