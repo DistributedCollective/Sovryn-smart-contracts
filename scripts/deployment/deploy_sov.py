@@ -118,6 +118,13 @@ def main():
     vestingRegistry = acct.deploy(VestingRegistry, vestingFactory.address, SOVtoken.address, [cSOV1, cSOV2], PRICE_SATS, staking.address, feeSharing.address, teamVestingOwner)
     vestingFactory.transferOwnership(vestingRegistry.address)
 
+    # this address got 400 too much
+    # MULTIPLIER = 10^16
+    vestingRegistry.setLockedAmount("0x0EE55aE961521fefcc8F7368e1f72ceF1190f2C9", 400 * 100 * MULTIPLIER)
+
+    # this is the one who's tx got reverted
+    vestingRegistry.setBlacklistFlag("0xd970fF09681a05e644cD28980B94a22c32c9526B")
+
     #  == Development and Adoption fund ====================================================================================================
     # line 72
     # TeamMultisig
@@ -169,6 +176,9 @@ def main():
                     cellNumber += 1
             rowNumber += 1
 
+    developmentFundAmounts.reverse()
+    adoptionFundAmounts.reverse()
+
     # line 74
     # Adoption Fund Vesting
     # TODO governorVaultOwner ?
@@ -209,97 +219,97 @@ def main():
     # GovAdmin
     SOVtoken.transfer(governorVaultAdmin, 264194619 * MULTIPLIER)
 
-    # == Vesting contracts ===============================================================================================================
-    # TODO check vestings.csv
-    teamVestingList = []
-    vestingList = []
-    with open('./scripts/deployment/vestings.csv', 'r') as file:
-        reader = csv.reader(file)
-        for row in reader:
-            tokenOwner = row[1].replace(" ", "")
-            amount = row[2].replace(",", "").replace(".", "")
-            amount = int(amount) * MULTIPLIER
-            vestingData = row[4].split(" ")
-            vestingType = vestingData[0]
-            cliffAndDuration = vestingData[1].split("+")
-            cliff = cliffAndDuration[0]
-            duration = cliffAndDuration[1]
-            if (vestingType == "MultisigVesting"):
-                teamVestingList.append([tokenOwner, amount, cliff, duration])
-            if (vestingType == "OwnerVesting"):
-                vestingList.append([tokenOwner, amount, cliff, duration])
-            # print("=======================================")
-            # print(vestingType)
-            # print("'" + tokenOwner + "', ")
-            # print(amount)
-            # print(cliff)
-            # print(duration)
-
-    print("teamVestingList:")
-    print(teamVestingList)
-    print("vestingList:")
-    print(vestingList)
-
-    DAY = 24 * 60 * 60
-    FOUR_WEEKS = 4 * 7 * DAY
-
-    # TODO 2 weeks delay ?
-    CLIFF_DELAY = 2 * 7 * DAY
-
-    # TeamVesting / MultisigVesting
-    teamVestingAmount = 0
-    for teamVesting in teamVestingList:
-        teamVestingAmount += int(teamVesting[1])
-    print("Team Vesting Amount: ", teamVestingAmount)
-    SOVtoken.transfer(vestingRegistry.address, teamVestingAmount)
-
-    for teamVesting in teamVestingList:
-        tokenOwner = teamVesting[0]
-        amount = int(teamVesting[1])
-        cliff = CLIFF_DELAY + int(teamVesting[2]) * FOUR_WEEKS
-        duration = cliff + int(teamVesting[3]) * FOUR_WEEKS
-        vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
-        vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
-        vestingRegistry.stakeTokens(vestingAddress, amount)
-
-        print("TeamVesting: ", vestingAddress)
-        print(tokenOwner)
-        print(amount)
-        print(cliff)
-        print(duration)
-
-    # Vesting / OwnerVesting
-    vestingAmount = 0
-    for vesting in vestingList:
-        vestingAmount += int(vesting[1])
-    print("Vesting Amount: ", vestingAmount)
-    SOVtoken.transfer(vestingRegistry.address, vestingAmount)
-
-    for vesting in vestingList:
-        tokenOwner = vesting[0]
-        amount = int(vesting[1])
-        cliff = CLIFF_DELAY + int(vesting[2]) * FOUR_WEEKS
-        duration = cliff + int(vesting[3]) * FOUR_WEEKS
-        vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
-        vestingAddress = vestingRegistry.getVesting(tokenOwner)
-        vestingRegistry.stakeTokens(vestingAddress, amount)
-
-        print("Vesting: ", vestingAddress)
-        print(tokenOwner)
-        print(amount)
-        print(cliff)
-        print(duration)
-
-    #  == Transfer ownership to owner governor =============================================================================================
-    # TODO transfer ownership of all these contracts to timelockOwner
-    SOVtoken.transferOwnership(timelockOwner.address)
-    staking.transferOwnership(timelockOwner.address)
-    stakingProxy = Contract.from_abi("Proxy", address=staking.address, abi=Proxy.abi, owner=acct)
-    stakingProxy.setProxyOwner(timelockOwner.address)
-    # vestingRegistry.transferOwnership(timelockOwner.address)
-
-    print("balance:")
-    print(SOVtoken.balanceOf(acct))
-
-    print("deployment cost:")
-    print((balanceBefore - acct.balance()) / 1e18)
+    # # == Vesting contracts ===============================================================================================================
+    # # TODO check vestings.csv
+    # teamVestingList = []
+    # vestingList = []
+    # with open('./scripts/deployment/vestings.csv', 'r') as file:
+    #     reader = csv.reader(file)
+    #     for row in reader:
+    #         tokenOwner = row[1].replace(" ", "")
+    #         amount = row[2].replace(",", "").replace(".", "")
+    #         amount = int(amount) * MULTIPLIER
+    #         vestingData = row[4].split(" ")
+    #         vestingType = vestingData[0]
+    #         cliffAndDuration = vestingData[1].split("+")
+    #         cliff = cliffAndDuration[0]
+    #         duration = cliffAndDuration[1]
+    #         if (vestingType == "MultisigVesting"):
+    #             teamVestingList.append([tokenOwner, amount, cliff, duration])
+    #         if (vestingType == "OwnerVesting"):
+    #             vestingList.append([tokenOwner, amount, cliff, duration])
+    #         # print("=======================================")
+    #         # print(vestingType)
+    #         # print("'" + tokenOwner + "', ")
+    #         # print(amount)
+    #         # print(cliff)
+    #         # print(duration)
+    #
+    # print("teamVestingList:")
+    # print(teamVestingList)
+    # print("vestingList:")
+    # print(vestingList)
+    #
+    # DAY = 24 * 60 * 60
+    # FOUR_WEEKS = 4 * 7 * DAY
+    #
+    # # TODO 2 weeks delay ?
+    # CLIFF_DELAY = 2 * 7 * DAY
+    #
+    # # TeamVesting / MultisigVesting
+    # teamVestingAmount = 0
+    # for teamVesting in teamVestingList:
+    #     teamVestingAmount += int(teamVesting[1])
+    # print("Team Vesting Amount: ", teamVestingAmount)
+    # SOVtoken.transfer(vestingRegistry.address, teamVestingAmount)
+    #
+    # for teamVesting in teamVestingList:
+    #     tokenOwner = teamVesting[0]
+    #     amount = int(teamVesting[1])
+    #     cliff = CLIFF_DELAY + int(teamVesting[2]) * FOUR_WEEKS
+    #     duration = cliff + int(teamVesting[3]) * FOUR_WEEKS
+    #     vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
+    #     vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
+    #     vestingRegistry.stakeTokens(vestingAddress, amount)
+    #
+    #     print("TeamVesting: ", vestingAddress)
+    #     print(tokenOwner)
+    #     print(amount)
+    #     print(cliff)
+    #     print(duration)
+    #
+    # # Vesting / OwnerVesting
+    # vestingAmount = 0
+    # for vesting in vestingList:
+    #     vestingAmount += int(vesting[1])
+    # print("Vesting Amount: ", vestingAmount)
+    # SOVtoken.transfer(vestingRegistry.address, vestingAmount)
+    #
+    # for vesting in vestingList:
+    #     tokenOwner = vesting[0]
+    #     amount = int(vesting[1])
+    #     cliff = CLIFF_DELAY + int(vesting[2]) * FOUR_WEEKS
+    #     duration = cliff + int(vesting[3]) * FOUR_WEEKS
+    #     vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
+    #     vestingAddress = vestingRegistry.getVesting(tokenOwner)
+    #     vestingRegistry.stakeTokens(vestingAddress, amount)
+    #
+    #     print("Vesting: ", vestingAddress)
+    #     print(tokenOwner)
+    #     print(amount)
+    #     print(cliff)
+    #     print(duration)
+    #
+    # #  == Transfer ownership to owner governor =============================================================================================
+    # # TODO transfer ownership of all these contracts to timelockOwner
+    # SOVtoken.transferOwnership(timelockOwner.address)
+    # staking.transferOwnership(timelockOwner.address)
+    # stakingProxy = Contract.from_abi("Proxy", address=staking.address, abi=Proxy.abi, owner=acct)
+    # stakingProxy.setProxyOwner(timelockOwner.address)
+    # # vestingRegistry.transferOwnership(timelockOwner.address)
+    #
+    # print("balance:")
+    # print(SOVtoken.balanceOf(acct))
+    #
+    # print("deployment cost:")
+    # print((balanceBefore - acct.balance()) / 1e18)
