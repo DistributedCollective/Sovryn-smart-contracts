@@ -52,7 +52,7 @@ def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, S
     leverageAmount = 5e18
     value = 0
     margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, RBTC, loanSize, collateralTokenSent,
-                                             leverageAmount, value)
+                                             leverageAmount, value, priceFeeds)
     margin_trading_sending_collateral_tokens_sov_reward_payment(accounts[2], loanToken, RBTC, collateralTokenSent,
                                                                 leverageAmount, value, chain, FeesEvents, SOV)
 

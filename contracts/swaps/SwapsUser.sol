@@ -175,7 +175,7 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
 		address destToken,
 		uint256 sourceTokenAmount
 	) internal view returns (uint256 destTokenAmount) {
-		destTokenAmount = ISwapsImpl(swapsImpl).internalExpectedRate(
+		destTokenAmount = ISwapsImpl(swapsImpl).internalExpectedReturn(
 			sourceToken,
 			destToken,
 			sourceTokenAmount,

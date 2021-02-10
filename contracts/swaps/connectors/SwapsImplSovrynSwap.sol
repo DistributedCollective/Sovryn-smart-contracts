@@ -173,4 +173,22 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
 		//return the rate for 1 token with 18 decimals
 		return expectedReturn.mul(10**18).div(sourceTokenAmount);
 	}
+
+	/**
+	 * returns the expected return amount when exchanging the given amount of source tokens
+	 * @param sourceTokenAddress the address of the source token contract
+	 * @param destTokenAddress the address of the destination token contract
+	 * @param sourceTokenAmount the amount of source tokens to get the return for
+	 * */
+	function internalExpectedReturn(
+		address sourceTokenAddress,
+		address destTokenAddress,
+		uint256 sourceTokenAmount,
+		address sovrynSwapContractRegistryAddress
+	) public view returns (uint256 expectedReturn) {
+		ISovrynSwapNetwork sovrynSwapNetwork = getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
+		IERC20[] memory path = sovrynSwapNetwork.conversionPath(IERC20(sourceTokenAddress), IERC20(destTokenAddress));
+		//is returning the total amount of destination tokens
+		expectedReturn = sovrynSwapNetwork.rateByPath(path, sourceTokenAmount);
+	}
 }
