@@ -142,9 +142,15 @@ process:
 2. TODO verify the trade event and balances are correct
 '''    
 def margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, underlyingToken, collateralToken, loanSize, collateralTokenSent, leverageAmount, value):
-    
-    print("loanSize",loanSize)
+            
+    result = loanToken.getEstimatedMarginDetails.call(leverageAmount, 0, collateralTokenSent, collateralToken.address)
+    print("principal", result[0]/1e18)
+    print("collateral", result[1]/1e18)
+    print("interestRate", result[2]/1e18)
+
+    print("loanSize",loanSize/1e18)
     print("collateralTokenSent",collateralTokenSent/1e18)
+    print("leverageAmount", leverageAmount/1e18)
     
     tx = loanToken.marginTrade(
         "0", #loanId  (0 for new loans)
@@ -158,7 +164,7 @@ def margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, underl
     )
 
     print(tx.info())
-    
+
     #asserts are missing
 
 
