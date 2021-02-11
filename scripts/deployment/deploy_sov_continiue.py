@@ -139,10 +139,10 @@ def main():
 
     #  == Transfer ownership to owner governor =============================================================================================
     # TODO transfer ownership of all these contracts to timelockOwner
-    SOVtoken.transferOwnership(timelockOwner)
-    staking.transferOwnership(timelockOwner)
-    stakingProxy.setProxyOwner(timelockOwner)
-    vestingRegistry.transferOwnership(multisig)
+    # SOVtoken.transferOwnership(timelockOwner)
+    # staking.transferOwnership(timelockOwner)
+    # stakingProxy.setProxyOwner(timelockOwner)
+    # vestingRegistry.transferOwnership(multisig)
 
     print("balance:")
     print(SOVtoken.balanceOf(acct) / 10**18)
