@@ -130,7 +130,7 @@ def main():
     #  == Development and Adoption fund ====================================================================================================
     # line 74
     # TeamMultisig
-    SOVtoken.transfer(multisig, 30191220 * MULTIPLIER)
+    SOVtoken.transfer(multisig, 57377758 * MULTIPLIER)
 
     # line 75
     # GovAdmin
@@ -296,6 +296,8 @@ def main():
         print(cliff)
         print(duration)
         print((duration - cliff) / FOUR_WEEKS + 1)
+        # stakes = staking.getStakes(vestingAddress)
+        # print(stakes)
 
     # Vesting / OwnerVesting
     vestingAmount = 0
@@ -319,6 +321,8 @@ def main():
         print(cliff)
         print(duration)
         print((duration - cliff) / FOUR_WEEKS + 1)
+        # stakes = staking.getStakes(vestingAddress)
+        # print(stakes)
 
     #  == Transfer ownership to owner governor =============================================================================================
     # TODO transfer ownership of all these contracts to timelockOwner
