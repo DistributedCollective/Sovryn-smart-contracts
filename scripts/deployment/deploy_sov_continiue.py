@@ -47,6 +47,8 @@ def main():
     stakingProxy = Contract.from_abi("UpgradableProxy", address=contracts['StakingProxy'], abi=UpgradableProxy.abi, owner=acct)
     vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
 
+    MULTIPLIER = 10**16
+
     # == Vesting contracts ===============================================================================================================
     # TODO check vestings.csv
     teamVestingList = []
