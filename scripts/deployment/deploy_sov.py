@@ -52,11 +52,11 @@ def main():
     balanceBefore = acct.balance()
     # == SOV ===============================================================================================================================
     #deploy SOV
-    SOVtoken = acct.deploy(SOV, 1e26)
+    SOVtoken = acct.deploy(SOV, 10**26)
     print("balance:")
     print(SOVtoken.balanceOf(acct))
 
-    MULTIPLIER = 10000000000000000
+    MULTIPLIER = 10**16
 
     # == Staking ===========================================================================================================================
     #deploy the staking contracts
@@ -326,7 +326,7 @@ def main():
     vestingRegistry.transferOwnership(timelockOwner.address)
 
     print("balance:")
-    print(SOVtoken.balanceOf(acct) / 1e18)
+    print(SOVtoken.balanceOf(acct) / 10**18)
 
     print("deployment cost:")
-    print((balanceBefore - acct.balance()) / 1e18)
+    print((balanceBefore - acct.balance()) / 10**18)
