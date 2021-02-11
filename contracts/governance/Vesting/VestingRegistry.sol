@@ -47,6 +47,9 @@ contract VestingRegistry is Ownable {
 	//user => amount of tokens should not be processed
 	mapping(address => uint256) public lockedAmount;
 
+	//user => flag whether user has admin role
+	mapping(address => bool) public admins;
+
 	enum VestingType {
 		TeamVesting, //MultisigVesting
 		Vesting //TokenHolderVesting
@@ -58,6 +61,8 @@ contract VestingRegistry is Ownable {
 	event VestingCreated(address indexed tokenOwner, address vesting, uint256 cliff, uint256 duration, uint256 amount);
 	event TeamVestingCreated(address indexed tokenOwner, address vesting, uint256 cliff, uint256 duration, uint256 amount);
 	event TokensStaked(address indexed vesting, uint256 amount);
+	event AdminAdded(address admin);
+	event AdminRemoved(address admin);
 
 	constructor(
 		address _vestingFactory,
@@ -81,6 +86,24 @@ contract VestingRegistry is Ownable {
 		staking = _staking;
 		feeSharingProxy = _feeSharingProxy;
 		vestingOwner = _vestingOwner;
+	}
+
+	/**
+	 * @dev Throws if called by any account other than the owner or admin.
+	 */
+	modifier onlyAuthorized() {
+		require(isOwner() || admins[msg.sender], "unauthorized");
+		_;
+	}
+
+	function addAdmin(address _admin) public onlyOwner {
+		admins[_admin] = true;
+		emit AdminAdded(_admin);
+	}
+
+	function removeAdmin(address _admin) public onlyOwner {
+		admins[_admin] = false;
+		emit AdminRemoved(_admin);
 	}
 
 	//---PostCSOV---------------------------------------------------------------------------------------------------------------------------
@@ -245,7 +268,7 @@ contract VestingRegistry is Ownable {
 		uint256 _amount,
 		uint256 _cliff,
 		uint256 _duration
-	) public onlyOwner {
+	) public onlyAuthorized {
 		address vesting = _getOrCreateVesting(_tokenOwner, _cliff, _duration);
 		emit VestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount);
 	}
@@ -262,7 +285,7 @@ contract VestingRegistry is Ownable {
 		uint256 _amount,
 		uint256 _cliff,
 		uint256 _duration
-	) public onlyOwner {
+	) public onlyAuthorized {
 		address vesting = _getOrCreateTeamVesting(_tokenOwner, _cliff, _duration);
 		emit TeamVestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount);
 	}
@@ -272,7 +295,7 @@ contract VestingRegistry is Ownable {
 	 * @param _vesting the address of Vesting contract
 	 * @param _amount the amount of tokens to stake
 	 */
-	function stakeTokens(address _vesting, uint256 _amount) public onlyOwner {
+	function stakeTokens(address _vesting, uint256 _amount) public onlyAuthorized {
 		require(_vesting != address(0), "vesting address invalid");
 		require(_amount > 0, "amount invalid");
 

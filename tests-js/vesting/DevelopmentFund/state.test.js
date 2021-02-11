@@ -1,5 +1,5 @@
-// For this test, governance contract and multisig wallet will be done by normal wallets
-// They will acts as locked and unlocked owner,
+// For this test, governance contract and multisig wallet will be done by normal wallets.
+// They will acts as locked and unlocked owner.
 
 const DevelopmentFund = artifacts.require("DevelopmentFund");
 const TestToken = artifacts.require("TestToken");
@@ -20,6 +20,9 @@ let releaseInterval = 600; // 10 minutes.
 let releaseDuration = [];
 let releaseTokenAmount = [];
 let totalReleaseTokenAmount = 0;
+let statusDeployed = 0;
+let statusActive = 1;
+let statusExpired = 2;
 
 /**
  * Function to create a random value.
@@ -52,6 +55,7 @@ function convertBNArrayToNumArray(bnArray) {
  * @param lastReleaseTime The last release time.
  * @param releaseDuration The release duration of a schedule.
  * @param releaseTokenAmount The release token amount of a schedule.
+ * @param status The current contract status.
  */
 async function checkStatus(
 	contractInstance,
@@ -61,7 +65,8 @@ async function checkStatus(
 	newLockedTokenOwner,
 	lastReleaseTime,
 	releaseDuration,
-	releaseTokenAmount
+	releaseTokenAmount,
+	status
 ) {
 	if (checkArray[0] == 1) {
 		let cValue = await contractInstance.lockedTokenOwner();
@@ -102,6 +107,10 @@ async function checkStatus(
 			cValue.every((value, index) => value === releaseTokenAmount[index]),
 			"The release token amount does not match."
 		);
+	}
+	if (checkArray[6] == 1) {
+		let cValue = await contractInstance.status();
+		assert.equal(status, cValue.toNumber(), "The contract status does not match.");
 	}
 }
 
@@ -145,11 +154,6 @@ contract("DevelopmentFund (State)", (accounts) => {
 	});
 
 	beforeEach("Creating New Development Fund Instance.", async () => {
-		developmentFund = await DevelopmentFund.new(testToken.address, governance, safeVault, multisig);
-
-		// Minting new Tokens.
-		await testToken.mint(governance, totalSupply, { from: creator });
-
 		// Creating a new release schedule.
 		releaseDuration = [];
 		// This is run 60 times for mimicking 5 years (12 months * 5), though the interval is small.
@@ -160,57 +164,85 @@ contract("DevelopmentFund (State)", (accounts) => {
 		// Creating a new release token schedule.
 		releaseTokenAmount = createReleaseTokenAmount();
 
+		// Creating the contract instance.
+		developmentFund = await DevelopmentFund.new(
+			testToken.address,
+			governance,
+			safeVault,
+			multisig,
+			zero,
+			releaseDuration,
+			releaseTokenAmount,
+			{ from: creator }
+		);
+
 		// Calculating the total tokens in the release schedule.
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
 
+		// Minting new Tokens.
+		await testToken.mint(creator, totalSupply, { from: creator });
+
 		// Approving the development fund to do a transfer on behalf of governance.
-		await testToken.approve(developmentFund.address, totalReleaseTokenAmount);
+		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: creator });
+
+		// Marking the contract as active.
+		await developmentFund.init({ from: creator });
 	});
 
 	it("Successfully created an instance without any error.", async () => {
-		developmentFund = await DevelopmentFund.new(testToken.address, governance, safeVault, multisig);
+		developmentFund = await DevelopmentFund.new(
+			testToken.address,
+			governance,
+			safeVault,
+			multisig,
+			zero,
+			releaseDuration,
+			releaseTokenAmount,
+			{ from: creator }
+		);
 
 		let currentTime = await time.latest();
 
-		// Minting new Tokens
-		await testToken.mint(governance, totalSupply, { from: creator });
+		// Checking if the contract is in deployed state.
+		await checkStatus(developmentFund, [0, 0, 0, 0, 0, 0, 1], zero, zero, zero, zero, zero, zero, statusDeployed);
 
-		// Creating a new release token schedule.
-		releaseTokenAmount = createReleaseTokenAmount();
-
-		// Calculating the total tokens in the release schedule.
-		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
+		// Minting new Tokens.
+		await testToken.mint(creator, totalSupply, { from: creator });
 
 		// Approving the development fund to do a transfer on behalf of governance.
-		await testToken.approve(developmentFund.address, totalReleaseTokenAmount);
+		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: creator });
+
+		// Marking the contract as active.
+		await developmentFund.init({ from: creator });
 
 		await checkStatus(
 			developmentFund,
-			[1, 1, 0, 1, 0, 0],
+			[1, 1, 0, 1, 1, 1, 1],
 			governance,
 			multisig,
 			zero,
 			currentTime,
 			releaseDuration,
-			releaseTokenAmount
+			releaseTokenAmount,
+			statusActive
 		);
 	});
 
 	it("Adding new Locked Token Owner should update the new Locked Token Owner storage.", async () => {
 		await developmentFund.updateLockedTokenOwner(newGovernance, { from: governance });
-		await checkStatus(developmentFund, [0, 0, 1, 0, 0, 0], zero, zero, newGovernance, zero, zero, zero);
+		await checkStatus(developmentFund, [0, 0, 1, 0, 0, 0, 0], zero, zero, newGovernance, zero, zero, zero, zero);
 	});
 
 	it("Approving new Locked Token Owner should update the Locked Token Owner.", async () => {
 		await developmentFund.updateLockedTokenOwner(newGovernance, { from: governance });
 		await developmentFund.approveLockedTokenOwner({ from: multisig });
-		await checkStatus(developmentFund, [1, 0, 0, 0, 0, 0], newGovernance, zero, zero, zero, zero, zero);
+		await checkStatus(developmentFund, [1, 0, 0, 0, 0, 0, 0], newGovernance, zero, zero, zero, zero, zero, zero);
 	});
 
 	it("After approval of new Locked Token Owner, newLockedTokenOwner should be zero address.", async () => {
 		await developmentFund.updateLockedTokenOwner(newGovernance, { from: governance });
 		await developmentFund.approveLockedTokenOwner({ from: multisig });
-		await checkStatus(developmentFund, [0, 0, 1, 0, 0, 0], zero, zero, constants.ZERO_ADDRESS, zero, zero, zero);
+		await checkStatus(developmentFund, [0, 0, 1, 0, 0, 0, 0], zero, zero, constants.ZERO_ADDRESS, zero, zero, zero, zero);
 	});
 
 	it("Adding new Deposit should update the remaining token and contract token balance.", async () => {
@@ -219,7 +251,11 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await testToken.approve(developmentFund.address, value, { from: userOne });
 		await developmentFund.depositTokens(value, { from: userOne });
 		let tokenBalance = await testToken.balanceOf(developmentFund.address);
-		assert.equal(tokenBalance.toNumber(), value, "Token Balance in contract does not match the deposited amount.");
+		assert.equal(
+			tokenBalance.toNumber(),
+			value + totalReleaseTokenAmount,
+			"Token Balance in contract does not match the deposited amount."
+		);
 	});
 
 	it("The contract should be approved to make token transfer for deposit.", async () => {
@@ -238,7 +274,17 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await testToken.mint(governance, totalReleaseTokenAmount);
 		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: governance });
 		await developmentFund.changeTokenReleaseSchedule(newReleaseTime, releaseDuration, releaseTokenAmount, { from: governance });
-		await checkStatus(developmentFund, [0, 0, 0, 1, 1, 1], zero, zero, zero, newReleaseTime, releaseDuration, releaseTokenAmount);
+		await checkStatus(
+			developmentFund,
+			[0, 0, 0, 1, 1, 1, 0],
+			zero,
+			zero,
+			zero,
+			newReleaseTime,
+			releaseDuration,
+			releaseTokenAmount,
+			zero
+		);
 		let tokenBalance = await testToken.balanceOf(developmentFund.address);
 		assert.equal(tokenBalance.toNumber(), totalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
 	});
@@ -251,7 +297,17 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await testToken.mint(governance, totalReleaseTokenAmount);
 		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: governance });
 		await developmentFund.changeTokenReleaseSchedule(newReleaseTime, releaseDuration, releaseTokenAmount, { from: governance });
-		await checkStatus(developmentFund, [0, 0, 0, 1, 1, 1], zero, zero, zero, newReleaseTime, releaseDuration, releaseTokenAmount);
+		await checkStatus(
+			developmentFund,
+			[0, 0, 0, 1, 1, 1, 0],
+			zero,
+			zero,
+			zero,
+			newReleaseTime,
+			releaseDuration,
+			releaseTokenAmount,
+			zero
+		);
 		let tokenBalance = await testToken.balanceOf(developmentFund.address);
 		assert.equal(tokenBalance.toNumber(), totalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
 
@@ -262,22 +318,30 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await testToken.mint(governance, totalReleaseTokenAmount);
 		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: governance });
 		await developmentFund.changeTokenReleaseSchedule(newReleaseTime, releaseDuration, releaseTokenAmount, { from: governance });
-		await checkStatus(developmentFund, [0, 0, 0, 1, 1, 1], zero, zero, zero, newReleaseTime, releaseDuration, releaseTokenAmount);
+		await checkStatus(
+			developmentFund,
+			[0, 0, 0, 1, 1, 1, 0],
+			zero,
+			zero,
+			zero,
+			newReleaseTime,
+			releaseDuration,
+			releaseTokenAmount,
+			zero
+		);
 		tokenBalance = await testToken.balanceOf(developmentFund.address);
 		assert.equal(tokenBalance.toNumber(), totalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
 	});
 
 	it("While updating release schedule, extra tokens should be sent back.", async () => {
+		let previousReleaseTokenAmount = totalReleaseTokenAmount;
 		let newReleaseTime = randomValue();
 		releaseTokenAmount = createReleaseTokenAmount();
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
 
-		// Sending extra token and total release amount through deposit.
-		let extraTokens = 100 + randomValue();
-		let completeAmount = extraTokens + totalReleaseTokenAmount;
-		await testToken.mint(governance, completeAmount);
-		await testToken.approve(developmentFund.address, completeAmount, { from: governance });
-		await developmentFund.depositTokens(completeAmount, { from: governance });
+		await testToken.mint(governance, totalReleaseTokenAmount);
+		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: governance });
+		await developmentFund.depositTokens(totalReleaseTokenAmount, { from: governance });
 
 		// Checking token balance of governance contract before tx
 		let beforeTokenBalance = await testToken.balanceOf(governance);
@@ -287,8 +351,22 @@ contract("DevelopmentFund (State)", (accounts) => {
 		// Checking token balance of governance contract after tx
 		let afterTokenBalance = await testToken.balanceOf(governance);
 
-		assert.strictEqual(beforeTokenBalance.toNumber(), afterTokenBalance.toNumber() - extraTokens, "Extra tokens not sent back.");
-		await checkStatus(developmentFund, [0, 0, 0, 1, 1, 1], zero, zero, zero, newReleaseTime, releaseDuration, releaseTokenAmount);
+		assert.strictEqual(
+			afterTokenBalance.toNumber(),
+			beforeTokenBalance.toNumber() + previousReleaseTokenAmount,
+			"Extra tokens not sent back."
+		);
+		await checkStatus(
+			developmentFund,
+			[0, 0, 0, 1, 1, 1, 0],
+			zero,
+			zero,
+			zero,
+			newReleaseTime,
+			releaseDuration,
+			releaseTokenAmount,
+			zero
+		);
 		let tokenBalance = await testToken.balanceOf(developmentFund.address);
 		assert.equal(tokenBalance.toNumber(), totalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
 	});
@@ -296,14 +374,16 @@ contract("DevelopmentFund (State)", (accounts) => {
 	it("While updating release schedule, deficient tokens should be sent to contract.", async () => {
 		let newReleaseTime = randomValue();
 		releaseTokenAmount = createReleaseTokenAmount();
-		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
+		let newTotalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
+		if (newTotalReleaseTokenAmount <= totalReleaseTokenAmount) {
+			let difference = totalReleaseTokenAmount - newTotalReleaseTokenAmount + randomValue();
+			releaseTokenAmount[releaseTokenAmount.length - 1] += difference;
+		}
+		newTotalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
+		let deficient = newTotalReleaseTokenAmount - totalReleaseTokenAmount;
 
-		// Sending extra token and total release amount through deposit.
-		let deficitTokens = 100 + randomValue();
-		let completeAmount = totalReleaseTokenAmount - deficitTokens;
-		await testToken.mint(governance, completeAmount);
-		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: governance });
-		await developmentFund.depositTokens(completeAmount, { from: governance });
+		await testToken.mint(governance, deficient);
+		await testToken.approve(developmentFund.address, deficient, { from: governance });
 
 		// Checking token balance of governance contract before tx
 		let beforeTokenBalance = await testToken.balanceOf(governance);
@@ -313,10 +393,20 @@ contract("DevelopmentFund (State)", (accounts) => {
 		// Checking token balance of governance contract after tx
 		let afterTokenBalance = await testToken.balanceOf(governance);
 
-		assert.strictEqual(beforeTokenBalance.toNumber(), afterTokenBalance.toNumber() + deficitTokens, "Extra tokens not sent back.");
-		await checkStatus(developmentFund, [0, 0, 0, 1, 1, 1], zero, zero, zero, newReleaseTime, releaseDuration, releaseTokenAmount);
+		assert.strictEqual(afterTokenBalance.toNumber(), beforeTokenBalance.toNumber() - deficient, "Extra tokens not sent to contract.");
+		await checkStatus(
+			developmentFund,
+			[0, 0, 0, 1, 1, 1, 0],
+			zero,
+			zero,
+			zero,
+			newReleaseTime,
+			releaseDuration,
+			releaseTokenAmount,
+			zero
+		);
 		let tokenBalance = await testToken.balanceOf(developmentFund.address);
-		assert.equal(tokenBalance.toNumber(), totalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
+		assert.equal(tokenBalance.toNumber(), newTotalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
 	});
 
 	it("Unequal array for duration and tokens should not be accepted for token release schedule.", async () => {
@@ -337,6 +427,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await developmentFund.transferTokensByUnlockedTokenOwner({ from: multisig });
 		let tokenBalance = await testToken.balanceOf(developmentFund.address);
 		assert.equal(tokenBalance.toNumber(), 0, "Token Balance in contract does not match the correct amount.");
+		await checkStatus(developmentFund, [0, 0, 0, 0, 0, 0, 1], zero, zero, zero, zero, zero, zero, statusExpired);
 	});
 
 	it("After withdrawing all tokens after a particular schedule, the release array size should decrease.", async () => {
@@ -353,7 +444,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 
 		releaseDuration.pop();
 		releaseTokenAmount.pop();
-		await checkStatus(developmentFund, [0, 0, 0, 0, 1, 1], zero, zero, zero, zero, releaseDuration, releaseTokenAmount);
+		await checkStatus(developmentFund, [0, 0, 0, 0, 1, 1, 0], zero, zero, zero, zero, releaseDuration, releaseTokenAmount, zero);
 	});
 
 	it("After withdrawing all tokens after 2 particular schedule, the release array size should decrease.", async () => {
@@ -375,7 +466,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 		releaseDuration.pop();
 		releaseTokenAmount.pop();
 		releaseTokenAmount.pop();
-		await checkStatus(developmentFund, [0, 0, 0, 0, 1, 1], zero, zero, zero, zero, releaseDuration, releaseTokenAmount);
+		await checkStatus(developmentFund, [0, 0, 0, 0, 1, 1, 0], zero, zero, zero, zero, releaseDuration, releaseTokenAmount, zero);
 	});
 
 	it("After withdrawing part of tokens after a particular schedule, the release token amount should decrease.", async () => {
@@ -391,7 +482,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 		let withdrawAmount = Math.floor(releaseTokenAmount[releaseTokenAmount.length - 1] / 2);
 		await developmentFund.withdrawTokensByUnlockedTokenOwner(withdrawAmount, { from: multisig });
 		releaseTokenAmount[releaseTokenAmount.length - 1] = releaseTokenAmount[releaseTokenAmount.length - 1] - withdrawAmount;
-		await checkStatus(developmentFund, [0, 0, 0, 0, 1, 1], zero, zero, zero, zero, releaseDuration, releaseTokenAmount);
+		await checkStatus(developmentFund, [0, 0, 0, 0, 1, 1, 0], zero, zero, zero, zero, releaseDuration, releaseTokenAmount, zero);
 	});
 
 	it("After withdrawing all tokens after a particular schedule, the release time should be updated based on duration.", async () => {
@@ -410,11 +501,12 @@ contract("DevelopmentFund (State)", (accounts) => {
 
 		await checkStatus(
 			developmentFund,
-			[0, 0, 0, 1, 0, 0],
+			[0, 0, 0, 1, 0, 0, 0],
 			zero,
 			zero,
 			zero,
 			lastReleaseTime.toNumber() + releaseDuration[releaseDuration.length - 1],
+			zero,
 			zero,
 			zero
 		);
@@ -435,7 +527,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 
 		let withdrawAmount = Math.floor(releaseTokenAmount[releaseTokenAmount.length - 1] / 2);
 		await developmentFund.withdrawTokensByUnlockedTokenOwner(withdrawAmount, { from: multisig });
-		await checkStatus(developmentFund, [0, 0, 0, 1, 0, 0], zero, zero, zero, currentTime, zero, zero);
+		await checkStatus(developmentFund, [0, 0, 0, 1, 0, 0, 0], zero, zero, zero, currentTime, zero, zero, zero);
 	});
 
 	it("Zero Tokens could not be withdrawed from release schedule.", async () => {
@@ -450,5 +542,6 @@ contract("DevelopmentFund (State)", (accounts) => {
 		await developmentFund.transferTokensByLockedTokenOwner(creator, { from: governance });
 		let tokenBalance = await testToken.balanceOf(developmentFund.address);
 		assert.equal(tokenBalance.toNumber(), 0, "Token Balance in contract does not match the correct amount.");
+		await checkStatus(developmentFund, [0, 0, 0, 0, 0, 0, 1], zero, zero, zero, zero, zero, zero, statusExpired);
 	});
 });

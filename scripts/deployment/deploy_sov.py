@@ -38,7 +38,6 @@ def main():
     # load deployed contracts addresses
     contracts = json.load(configFile)
     protocolAddress = contracts['sovrynProtocol']
-    # TODO do we need another multisig ?
     multisig = contracts['multisig']
     teamVestingOwner = multisig
     if (thisNetwork == "testnet" or thisNetwork == "rsk-mainnet"):
@@ -120,6 +119,13 @@ def main():
     vestingRegistry = acct.deploy(VestingRegistry, vestingFactory.address, SOVtoken.address, [cSOV1, cSOV2], PRICE_SATS, staking.address, feeSharing.address, teamVestingOwner)
     vestingFactory.transferOwnership(vestingRegistry.address)
 
+    # this address got 400 too much
+    # MULTIPLIER = 10^16
+    vestingRegistry.setLockedAmount("0x0EE55aE961521fefcc8F7368e1f72ceF1190f2C9", 400 * 100 * MULTIPLIER)
+
+    # this is the one who's tx got reverted
+    vestingRegistry.setBlacklistFlag("0xd970fF09681a05e644cD28980B94a22c32c9526B", True)
+
     #  == Development and Adoption fund ====================================================================================================
     # line 72
     # TeamMultisig
@@ -171,35 +177,46 @@ def main():
                     cellNumber += 1
             rowNumber += 1
 
+    developmentFundAmounts.reverse()
+    adoptionFundAmounts.reverse()
+
     # line 74
     # Adoption Fund Vesting
-    # TODO governorVaultOwner ?
-    adoptionAmount = 3697104000 * MULTIPLIER
-    adoptiontFund = acct.deploy(DevelopmentFund, SOVtoken.address, acct, governorVaultOwner, acct)
-    SOVtoken.approve(adoptiontFund.address, adoptionAmount)
-    adoptiontFund.depositTokens(adoptionAmount)
     print(adoptionFundReleaseDurations)
     print(adoptionFundAmounts)
-    adoptiontFund.changeTokenReleaseSchedule(0, adoptionFundReleaseDurations, adoptionFundAmounts)
-    adoptiontFund.updateLockedTokenOwner(timelockOwner.address)
-    adoptiontFund.approveLockedTokenOwner()
-    # TODO - onlyLockedTokenOwner - timelockOwner.address
-    # adoptiontFund.updateUnlockedTokenOwner(timelockOwner.address)
+    # TODO governorVaultOwner ?
+    adoptionAmount = 3697104000 * MULTIPLIER
+    adoptiontFund = acct.deploy(
+        DevelopmentFund,
+        SOVtoken.address,
+        timelockOwner.address,
+        governorVaultOwner,
+        timelockOwner.address,
+        0,
+        adoptionFundReleaseDurations,
+        adoptionFundAmounts
+    )
+    SOVtoken.approve(adoptiontFund.address, adoptionAmount)
+    adoptiontFund.init()
 
     # line 75
     # Development Fund Vesting
-    # TODO governorVaultOwner ?
-    developmentAmount = 861859788 * MULTIPLIER
-    developmentFund = acct.deploy(DevelopmentFund, SOVtoken.address, acct, governorVaultOwner, acct)
-    SOVtoken.approve(developmentFund.address, developmentAmount)
-    developmentFund.depositTokens(developmentAmount)
     print(developmentFundReleaseDurations)
     print(developmentFundAmounts)
-    developmentFund.changeTokenReleaseSchedule(0, developmentFundReleaseDurations, developmentFundAmounts)
-    developmentFund.updateLockedTokenOwner(multisig)
-    developmentFund.approveLockedTokenOwner()
-    # TODO - onlyLockedTokenOwner - multisig
-    # developmentFund.updateUnlockedTokenOwner(timelockOwner.address)
+    # TODO governorVaultOwner ?
+    developmentAmount = 861859788 * MULTIPLIER
+    developmentFund = acct.deploy(
+        DevelopmentFund,
+        SOVtoken.address,
+        multisig,
+        governorVaultOwner,
+        timelockOwner.address,
+        0,
+        developmentFundReleaseDurations,
+        developmentFundAmounts
+    )
+    SOVtoken.approve(developmentFund.address, developmentAmount)
+    developmentFund.init()
 
     # line 76
     # Public Sale
@@ -294,9 +311,11 @@ def main():
 
     #  == Transfer ownership to owner governor =============================================================================================
     # TODO transfer ownership of all these contracts to timelockOwner
-    # SOVtoken.transferOwnership(timelockOwner.address)
-    # staking.transferOwnership(timelockOwner.address)
-    # vestingRegistry.transferOwnership(timelockOwner.address)
+    SOVtoken.transferOwnership(timelockOwner.address)
+    staking.transferOwnership(timelockOwner.address)
+    stakingProxy = Contract.from_abi("Proxy", address=staking.address, abi=Proxy.abi, owner=acct)
+    stakingProxy.setProxyOwner(timelockOwner.address)
+    vestingRegistry.transferOwnership(timelockOwner.address)
 
     print("balance:")
     print(SOVtoken.balanceOf(acct))
