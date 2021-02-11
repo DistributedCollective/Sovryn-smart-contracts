@@ -8,17 +8,17 @@ const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
 const TestToken = artifacts.require("TestToken");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
+const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry");
 const Vesting = artifacts.require("TeamVesting");
+const UpgradableProxy = artifacts.require("UpgradableProxy");
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 const FOUR_WEEKS = new BN(4 * 7 * 24 * 60 * 60);
 
 const TEAM_VESTING_CLIFF = FOUR_WEEKS.mul(new BN(6));
-//TODO 36 or MAX_DURATION ?
-// const TEAM_VESTING_DURATION = FOUR_WEEKS.mul(new BN(36));
-const TEAM_VESTING_DURATION = MAX_DURATION;
+const TEAM_VESTING_DURATION = FOUR_WEEKS.mul(new BN(36));
 
 const TOTAL_SUPPLY = "100000000000000000000000000";
 const ONE_MILLON = "1000000000000000000000000";
@@ -30,7 +30,7 @@ contract("VestingRegistry", (accounts) => {
 	let root, account1, account2, account3;
 	let SOV, cSOV1, cSOV2;
 	let staking, stakingLogic, feeSharingProxy;
-	let vestingFactory, vestingRegistry;
+	let vestingFactory, vestingLogic, vestingRegistry;
 
 	before(async () => {
 		[root, account1, account2, account3, ...accounts] = accounts;
@@ -48,7 +48,8 @@ contract("VestingRegistry", (accounts) => {
 
 		feeSharingProxy = await FeeSharingProxy.new(ZERO_ADDRESS, staking.address);
 
-		vestingFactory = await VestingFactory.new();
+		vestingLogic = await VestingLogic.new();
+		vestingFactory = await VestingFactory.new(vestingLogic.address);
 		vestingRegistry = await VestingRegistry.new(
 			vestingFactory.address,
 			SOV.address,
@@ -169,6 +170,23 @@ contract("VestingRegistry", (accounts) => {
 		});
 	});
 
+	describe("setVestingFactory", () => {
+		it("sets vesting factory", async () => {
+			await vestingRegistry.setVestingFactory(account2);
+
+			let vestingFactory = await vestingRegistry.vestingFactory();
+			expect(vestingFactory).equal(account2);
+		});
+
+		it("fails if the 0 address is passed", async () => {
+			await expectRevert(vestingRegistry.setVestingFactory(ZERO_ADDRESS), "vestingFactory address invalid");
+		});
+
+		it("fails if sender isn't an owner", async () => {
+			await expectRevert(vestingRegistry.setVestingFactory(account2, {from: account2}), "unauthorized");
+		});
+	});
+
 	describe("addAdmin", () => {
 		it("adds admin", async () => {
 			let tx = await vestingRegistry.addAdmin(account1);
@@ -217,6 +235,10 @@ contract("VestingRegistry", (accounts) => {
 
 		it("fails if the 0 address is passed as cSOV address", async () => {
 			await expectRevert(vestingRegistry.setCSOVtokens([cSOV1.address, cSOV2.address, ZERO_ADDRESS]), "CSOV address invalid");
+		});
+
+		it("fails if sender isn't an owner", async () => {
+			await expectRevert(vestingRegistry.setCSOVtokens([cSOV1.address, cSOV2.address], {from: account2}), "unauthorized");
 		});
 	});
 
@@ -302,7 +324,7 @@ contract("VestingRegistry", (accounts) => {
 			let duration = await vestingRegistry.CSOV_VESTING_DURATION();
 
 			let vestingAddress = await vestingRegistry.getVesting(account2);
-			let vesting = await Vesting.at(vestingAddress);
+			let vesting = await VestingLogic.at(vestingAddress);
 			await checkVesting(vesting, account2, cliff, duration, amount);
 
 			await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
@@ -336,7 +358,7 @@ contract("VestingRegistry", (accounts) => {
 			let duration = await vestingRegistry.CSOV_VESTING_DURATION();
 
 			let vestingAddress = await vestingRegistry.getVesting(account2);
-			let vesting = await Vesting.at(vestingAddress);
+			let vesting = await VestingLogic.at(vestingAddress);
 			await checkVesting(vesting, account2, cliff, duration, amount);
 
 			await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
@@ -394,10 +416,13 @@ contract("VestingRegistry", (accounts) => {
 			let balance = await SOV.balanceOf(vestingRegistry.address);
 			expect(balance.toString()).equal("0");
 
-			let vesting = await Vesting.at(vestingAddress);
+			let vesting = await VestingLogic.at(vestingAddress);
 			await checkVesting(vesting, account2, cliff, duration, amount);
 
-			await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
+			await expectRevert(vesting.governanceWithdrawTokens(account2), "operation not supported");
+
+			let proxy = await UpgradableProxy.at(vestingAddress);
+			await expectRevert(proxy.setImplementation(account2), "revert");
 		});
 
 		it("fails if vestingRegistry doesn't have enough SOV", async () => {
@@ -448,10 +473,13 @@ contract("VestingRegistry", (accounts) => {
 			let balance = await SOV.balanceOf(vestingRegistry.address);
 			expect(balance.toString()).equal("0");
 
-			let vesting = await Vesting.at(vestingAddress);
+			let vesting = await VestingLogic.at(vestingAddress);
 			await checkVesting(vesting, account2, cliff, duration, amount);
 
-			await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
+			await expectRevert(vesting.governanceWithdrawTokens(account2), "unauthorized");
+
+			let proxy = await UpgradableProxy.at(vestingAddress);
+			await expectRevert(proxy.setImplementation(account2), "revert");
 		});
 
 		it("fails if vestingRegistry doesn't have enough SOV", async () => {

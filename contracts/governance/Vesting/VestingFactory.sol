@@ -6,6 +6,13 @@ import "./TeamVesting.sol";
 import "./IVestingFactory.sol";
 
 contract VestingFactory is IVestingFactory, Ownable {
+	address public vestingLogic;
+
+	constructor(address _vestingLogic) public {
+		require(_vestingLogic != address(0), "invalid vesting logic address");
+		vestingLogic = _vestingLogic;
+	}
+
 	/**
 	 * @notice deploys Vesting contract
 	 * @param _SOV the address of SOV token
@@ -29,7 +36,7 @@ contract VestingFactory is IVestingFactory, Ownable {
 		onlyOwner //owner - VestingRegistry
 		returns (address)
 	{
-		address vesting = address(new Vesting(_SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing));
+		address vesting = address(new Vesting(vestingLogic, _SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing));
 		Ownable(vesting).transferOwnership(_vestingOwner);
 		return vesting;
 	}
@@ -57,7 +64,7 @@ contract VestingFactory is IVestingFactory, Ownable {
 		onlyOwner //owner - VestingRegistry
 		returns (address)
 	{
-		address vesting = address(new TeamVesting(_SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing));
+		address vesting = address(new TeamVesting(vestingLogic, _SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing));
 		Ownable(vesting).transferOwnership(_vestingOwner);
 		return vesting;
 	}

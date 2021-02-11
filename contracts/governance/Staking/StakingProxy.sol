@@ -1,9 +1,12 @@
 pragma solidity ^0.5.17;
 
 import "./StakingStorage.sol";
-import "../../proxy/Proxy.sol";
+import "../../proxy/UpgradableProxy.sol";
 
-contract StakingProxy is StakingStorage, Proxy {
+/**
+ * @dev Staking contract should be upgradable, use UpgradableProxy
+ */
+contract StakingProxy is StakingStorage, UpgradableProxy {
 	/**
 	 * @notice Construct a new staking contract
 	 * @param SOV The address of the SOV token address

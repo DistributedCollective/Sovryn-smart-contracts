@@ -73,15 +73,14 @@ contract VestingRegistry is Ownable {
 		address _feeSharingProxy,
 		address _vestingOwner
 	) public {
-		require(_vestingFactory != address(0), "vestingFactory address invalid");
 		require(_SOV != address(0), "SOV address invalid");
 		require(_staking != address(0), "staking address invalid");
 		require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
 		require(_vestingOwner != address(0), "vestingOwner address invalid");
 
+		_setVestingFactory(_vestingFactory);
 		_setCSOVtokens(_CSOVtokens);
 
-		vestingFactory = IVestingFactory(_vestingFactory);
 		SOV = _SOV;
 		priceSats = _priceSats;
 		staking = _staking;
@@ -153,6 +152,20 @@ contract VestingRegistry is Ownable {
 	}
 
 	//--------------------------------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * @notice sets vesting factory address
+	 * @param _vestingFactory the address of vesting factory contract
+	 */
+	function setVestingFactory(address _vestingFactory) public onlyOwner {
+		_setVestingFactory(_vestingFactory);
+	}
+
+	function _setVestingFactory(address _vestingFactory) internal {
+		require(_vestingFactory != address(0), "vestingFactory address invalid");
+		vestingFactory = IVestingFactory(_vestingFactory);
+	}
+
 	/**
 	 * @notice sets CSON tokens array
 	 * @param _CSOVtokens the array of CSOV tokens
