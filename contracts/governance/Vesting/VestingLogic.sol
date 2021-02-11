@@ -114,7 +114,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 			end = block.timestamp;
 		}
 		//withdraw for each unlocked position
-		for (uint256 i = startDate + cliff; i < end; i += FOUR_WEEKS) {
+		for (uint256 i = startDate + cliff; i <= end; i += FOUR_WEEKS) {
 			//read amount to withdraw
 			stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1);
 			//withdraw if > 0
