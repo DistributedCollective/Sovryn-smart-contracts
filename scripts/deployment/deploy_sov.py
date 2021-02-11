@@ -189,9 +189,7 @@ def main():
     print(adoptionFundReleaseDurations)
     print(adoptionFundAmounts)
     # TODO governorVaultOwner ?
-    adoptionAmount = 3722223999 * MULTIPLIER
     print(adoptionTotalAmount)
-    print(adoptionAmount)
     adoptiontFund = acct.deploy(
         DevelopmentFund,
         SOVtoken.address,
@@ -202,7 +200,7 @@ def main():
         adoptionFundReleaseDurations,
         adoptionFundAmounts
     )
-    SOVtoken.approve(adoptiontFund.address, adoptionAmount)
+    SOVtoken.approve(adoptiontFund.address, adoptionTotalAmount)
     adoptiontFund.init()
 
     # line 77
@@ -210,9 +208,7 @@ def main():
     print(developmentFundReleaseDurations)
     print(developmentFundAmounts)
     # TODO governorVaultOwner ?
-    developmentAmount = 836859779 * MULTIPLIER
     print(developmentTotalAmount)
-    print(developmentAmount)
     developmentFund = acct.deploy(
         DevelopmentFund,
         SOVtoken.address,
@@ -223,7 +219,7 @@ def main():
         developmentFundReleaseDurations,
         developmentFundAmounts
     )
-    SOVtoken.approve(developmentFund.address, developmentAmount)
+    SOVtoken.approve(developmentFund.address, developmentTotalAmount)
     developmentFund.init()
 
     # line 78
@@ -325,12 +321,12 @@ def main():
     # TODO transfer ownership of all these contracts to timelockOwner
     SOVtoken.transferOwnership(timelockOwner.address)
     staking.transferOwnership(timelockOwner.address)
-    stakingProxy = Contract.from_abi("UpgradableProxy", address=staking.address, abi=Proxy.abi, owner=acct)
+    stakingProxy = Contract.from_abi("UpgradableProxy", address=staking.address, abi=UpgradableProxy.abi, owner=acct)
     stakingProxy.setProxyOwner(timelockOwner.address)
     vestingRegistry.transferOwnership(timelockOwner.address)
 
     print("balance:")
-    print(SOVtoken.balanceOf(acct))
+    print(SOVtoken.balanceOf(acct) / 1e18)
 
     print("deployment cost:")
     print((balanceBefore - acct.balance()) / 1e18)
