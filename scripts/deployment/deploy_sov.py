@@ -127,11 +127,11 @@ def main():
     vestingRegistry.setBlacklistFlag("0xd970fF09681a05e644cD28980B94a22c32c9526B", True)
 
     #  == Development and Adoption fund ====================================================================================================
-    # line 72
+    # line 74
     # TeamMultisig
-    SOVtoken.transfer(multisig, 55311210 * MULTIPLIER)
+    SOVtoken.transfer(multisig, 30191220 * MULTIPLIER)
 
-    # line 73
+    # line 75
     # GovAdmin
     SOVtoken.transfer(governorVaultAdmin, 80000000 * MULTIPLIER)
 
@@ -145,6 +145,8 @@ def main():
 
     # TODO check funds.csv
     # parse data
+    developmentTotalAmount = 0
+    adoptionTotalAmount = 0
     with open('./scripts/deployment/funds.csv', 'r') as file:
         reader = csv.reader(file)
         rowNumber = 1
@@ -159,6 +161,7 @@ def main():
                         cell = int(cell)
                         print(str(i) + "-" + str(cell))
                         developmentFundAmounts.append(cell * MULTIPLIER)
+                        developmentTotalAmount += cell * MULTIPLIER
                         developmentFundReleaseDurations.append(FUND_RELEASE_INTERVAL)
                         i += 1
                     cellNumber += 1
@@ -169,9 +172,10 @@ def main():
                 for cell in row:
                     if (cellNumber >= 4):
                         cell = cell.replace(",", "").replace(".", "")
-                        cell = int(cell) * 100
+                        cell = int(cell)
                         print(str(i) + "-" + str(cell))
                         adoptionFundAmounts.append(cell * MULTIPLIER)
+                        adoptionTotalAmount += cell * MULTIPLIER
                         adoptionFundReleaseDurations.append(FUND_RELEASE_INTERVAL)
                         i += 1
                     cellNumber += 1
@@ -180,12 +184,14 @@ def main():
     developmentFundAmounts.reverse()
     adoptionFundAmounts.reverse()
 
-    # line 74
+    # line 76
     # Adoption Fund Vesting
     print(adoptionFundReleaseDurations)
     print(adoptionFundAmounts)
     # TODO governorVaultOwner ?
-    adoptionAmount = 3697104000 * MULTIPLIER
+    adoptionAmount = 3722223999 * MULTIPLIER
+    print(adoptionTotalAmount)
+    print(adoptionAmount)
     adoptiontFund = acct.deploy(
         DevelopmentFund,
         SOVtoken.address,
@@ -199,12 +205,14 @@ def main():
     SOVtoken.approve(adoptiontFund.address, adoptionAmount)
     adoptiontFund.init()
 
-    # line 75
+    # line 77
     # Development Fund Vesting
     print(developmentFundReleaseDurations)
     print(developmentFundAmounts)
     # TODO governorVaultOwner ?
-    developmentAmount = 861859788 * MULTIPLIER
+    developmentAmount = 836859779 * MULTIPLIER
+    print(developmentTotalAmount)
+    print(developmentAmount)
     developmentFund = acct.deploy(
         DevelopmentFund,
         SOVtoken.address,
@@ -218,12 +226,16 @@ def main():
     SOVtoken.approve(developmentFund.address, developmentAmount)
     developmentFund.init()
 
-    # line 76
+    # line 78
+    # GovAdmin
+    SOVtoken.transfer(governorVaultAdmin, 25000000 * MULTIPLIER)
+
+    # line 79
     # Public Sale
     # OwnerGovernor
     SOVtoken.transfer(governorVaultOwner, 415925381 * MULTIPLIER)
 
-    # line 77
+    # line 80
     # Genesis Sale
     # GovAdmin
     SOVtoken.transfer(governorVaultAdmin, 264194619 * MULTIPLIER)
@@ -313,7 +325,7 @@ def main():
     # TODO transfer ownership of all these contracts to timelockOwner
     SOVtoken.transferOwnership(timelockOwner.address)
     staking.transferOwnership(timelockOwner.address)
-    stakingProxy = Contract.from_abi("Proxy", address=staking.address, abi=Proxy.abi, owner=acct)
+    stakingProxy = Contract.from_abi("UpgradableProxy", address=staking.address, abi=Proxy.abi, owner=acct)
     stakingProxy.setProxyOwner(timelockOwner.address)
     vestingRegistry.transferOwnership(timelockOwner.address)
 
