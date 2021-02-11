@@ -3,6 +3,7 @@ from brownie import *
 import time
 import json
 import csv
+import math
 
 def main():
     thisNetwork = network.show_active()
@@ -284,7 +285,7 @@ def main():
         tokenOwner = teamVesting[0]
         amount = int(teamVesting[1])
         cliff = CLIFF_DELAY + int(teamVesting[2]) * FOUR_WEEKS
-        duration = cliff + int(teamVesting[3]) * FOUR_WEEKS
+        duration = cliff + (int(teamVesting[3]) - 1) * FOUR_WEEKS
         vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
         vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
         vestingRegistry.stakeTokens(vestingAddress, amount)
@@ -294,6 +295,7 @@ def main():
         print(amount)
         print(cliff)
         print(duration)
+        print((duration - cliff) / FOUR_WEEKS + 1)
 
     # Vesting / OwnerVesting
     vestingAmount = 0
@@ -306,7 +308,7 @@ def main():
         tokenOwner = vesting[0]
         amount = int(vesting[1])
         cliff = CLIFF_DELAY + int(vesting[2]) * FOUR_WEEKS
-        duration = cliff + int(vesting[3]) * FOUR_WEEKS
+        duration = cliff + (int(vesting[3]) - 1) * FOUR_WEEKS
         vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
         vestingAddress = vestingRegistry.getVesting(tokenOwner)
         vestingRegistry.stakeTokens(vestingAddress, amount)
@@ -316,6 +318,7 @@ def main():
         print(amount)
         print(cliff)
         print(duration)
+        print((duration - cliff) / FOUR_WEEKS + 1)
 
     #  == Transfer ownership to owner governor =============================================================================================
     # TODO transfer ownership of all these contracts to timelockOwner
