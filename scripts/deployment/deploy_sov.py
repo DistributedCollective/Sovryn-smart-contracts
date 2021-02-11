@@ -42,8 +42,8 @@ def main():
     multisig = contracts['multisig']
     teamVestingOwner = multisig
     if (thisNetwork == "testnet" or thisNetwork == "rsk-mainnet"):
-        cSOV1 = contracts['cSOV1']
-        cSOV2 = contracts['cSOV2']
+        cSOV1 = contracts['CSOV1']
+        cSOV2 = contracts['CSOV2']
         guardian = contracts['multisig']
     else:
         cSOV1 = acct.deploy(TestToken, "cSOV1", "cSOV1", 18, 1e26).address
