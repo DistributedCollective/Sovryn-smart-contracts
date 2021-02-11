@@ -323,7 +323,7 @@ def main():
     staking.transferOwnership(timelockOwner.address)
     stakingProxy = Contract.from_abi("UpgradableProxy", address=staking.address, abi=UpgradableProxy.abi, owner=acct)
     stakingProxy.setProxyOwner(timelockOwner.address)
-    vestingRegistry.transferOwnership(timelockOwner.address)
+    vestingRegistry.transferOwnership(multisig)
 
     print("balance:")
     print(SOVtoken.balanceOf(acct) / 10**18)
