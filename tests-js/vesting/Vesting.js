@@ -662,7 +662,7 @@ contract("Vesting", (accounts) => {
 				staking.address,
 				root,
 				26 * WEEK,
-				104 * WEEK,
+				106 * WEEK,
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
@@ -689,6 +689,10 @@ contract("Vesting", (accounts) => {
 
 			assert.equal(previousAmount.sub(new BN(toStake).mul(new BN(2))).toString(), amountAfterStake.toString());
 			assert.equal(previousAmount.toString(), amount.toString());
+
+			let vestingBalance = await staking.balanceOf(vesting.address);
+			expect(vestingBalance).to.be.bignumber.equal(new BN(0));
+
 		});
 	});
 
