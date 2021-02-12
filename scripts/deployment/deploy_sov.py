@@ -288,7 +288,6 @@ def main():
         duration = cliff + (int(teamVesting[3]) - 1) * FOUR_WEEKS
         vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
         vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
-        vestingRegistry.stakeTokens(vestingAddress, amount)
 
         print("TeamVesting: ", vestingAddress)
         print(tokenOwner)
@@ -296,6 +295,8 @@ def main():
         print(cliff)
         print(duration)
         print((duration - cliff) / FOUR_WEEKS + 1)
+        vestingRegistry.stakeTokens(vestingAddress, amount)
+
         # stakes = staking.getStakes(vestingAddress)
         # print(stakes)
 
@@ -313,7 +314,6 @@ def main():
         duration = cliff + (int(vesting[3]) - 1) * FOUR_WEEKS
         vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
         vestingAddress = vestingRegistry.getVesting(tokenOwner)
-        vestingRegistry.stakeTokens(vestingAddress, amount)
 
         print("Vesting: ", vestingAddress)
         print(tokenOwner)
@@ -321,6 +321,8 @@ def main():
         print(cliff)
         print(duration)
         print((duration - cliff) / FOUR_WEEKS + 1)
+        vestingRegistry.stakeTokens(vestingAddress, amount)
+
         # stakes = staking.getStakes(vestingAddress)
         # print(stakes)
 
