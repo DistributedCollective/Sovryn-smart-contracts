@@ -185,7 +185,7 @@ def open_margin_trade_position(accounts, SUSD, RBTC, WRBTC, loanToken):
             0,  # no collateral token sent
             RBTC.address,  # collateralTokenAddress
             trader,  # trader,
-            0,  # maxSlippage
+            0,  # minReturn
             b'',  # loanDataBytes (only required with ether)
             {'from': trader}
         )
@@ -214,7 +214,7 @@ def open_margin_trade_position_iBTC(accounts, SUSD, RBTC, loanTokenWRBTC):
             0,  # no collateral token sent
             SUSD.address,  # collateralTokenAddress
             trader,  # trader,
-            0,  # maxSlippage
+            0,  # minReturn
             b'',  # loanDataBytes (only required with ether)
             {'from': trader, 'value': loan_token_sent}
         )

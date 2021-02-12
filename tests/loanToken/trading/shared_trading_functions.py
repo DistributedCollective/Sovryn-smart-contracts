@@ -23,7 +23,7 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, underlyingTo
     underlyingToken.mint(accounts[0], loan_token_sent)
     underlyingToken.approve(loanToken.address, loan_token_sent)
     value = loan_token_sent if sendValue else 0
-
+    
     # send the transaction
     leverage_amount = 2e18
     collateral_sent = 0
@@ -34,7 +34,7 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, underlyingTo
         collateral_sent, # no collateral token sent
         collateralToken.address, #collateralTokenAddress
         accounts[0], #trader,
-        1e25, # maxSlippage
+        0,  # minReturn
         b'', #loanDataBytes (only required with ether)
         {'value': value}
     )
@@ -53,8 +53,8 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, underlyingTo
     start_margin = 1e38 / leverage_amount
     total_deposit = loan_token_sent + collateral_sent
     (trade_rate, trade_rate_precision) = priceFeeds.queryRate(underlyingToken.address, collateralToken.address)
-    (collateral_to_loan_rate, _) = priceFeeds.queryRate(collateralToken.address, underlyingToken.address)
-    collateral_to_loan_swap_rate = "%e"%(10**36 / tx.events['Trade']['entryPrice'])
+    (collateral_to_loan_rate, collateral_to_loan_precision) = priceFeeds.queryRate(collateralToken.address, underlyingToken.address)
+    collateral_to_loan_swap_rate = "%e"%(collateral_to_loan_precision *  trade_rate_precision / tx.events['Trade']['entryPrice'])
     interest_rate = loanToken.nextBorrowInterestRate(total_deposit * 1e20 / start_margin)
     principal = loan_token_sent * 2
     seconds_per_day = 24 * 60 * 60
@@ -122,7 +122,7 @@ def margin_trading_sov_reward_payment(accounts, loanToken, underlyingToken, coll
         collateral_sent, # no collateral token sent
         collateralToken.address, #collateralTokenAddress
         trader, #trader,
-        1e25, # maxSlippage
+        0,  # minReturn
         b'', #loanDataBytes (only required with ether)
         {'value': value}
     )
@@ -155,7 +155,7 @@ def margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, underl
         collateralTokenSent, 
         collateralToken.address, #collateralTokenAddress
         accounts[0], #trader, 
-        1e25, # maxSlippage
+        0,  # minReturn
         b'', #loanDataBytes (only required with ether),
         {'value' : value}
     )
@@ -175,7 +175,7 @@ def margin_trading_sending_collateral_tokens_sov_reward_payment(trader, loanToke
         collateralTokenSent,
         collateralToken.address,  # collateralTokenAddress
         trader,  # trader,
-        1e25,  # maxSlippage
+        0,  # minReturn
         b'',  # loanDataBytes (only required with ether),
         {'from': trader, 'value': value}
     )

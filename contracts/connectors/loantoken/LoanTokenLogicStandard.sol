@@ -215,7 +215,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         uint256 collateralTokenSent,
         address collateralTokenAddress,
         address trader,
-        uint256 maxSlippage,
+		uint256 minReturn, // minimum position size in the collateral tokens
         bytes memory loanDataBytes // arbitrary order data
     )
         public
@@ -228,89 +228,57 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
     {
         _checkPause();
 
-        if (collateralTokenSent != 0) {
-            (uint256 rateFromPriceFeeds, uint256 precision) = FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(
-                collateralTokenAddress,
-                loanTokenAddress
-            );
+		require(minReturn >= 0, "minReturn must larger than zero");
 
-            uint256 loanTokenAmount = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
-                collateralTokenAddress,
-                loanTokenAddress,
-                collateralTokenSent
-            );
+		if (collateralTokenAddress == address(0)) {
+			collateralTokenAddress = wrbtcTokenAddress;
+		}
 
-            uint256 rateFromSwap = loanTokenAmount.mul(precision).div(collateralTokenSent);
+		require(collateralTokenAddress != loanTokenAddress, "11");
 
-            uint256 spreadValue = rateFromSwap > rateFromPriceFeeds ?
-                rateFromSwap - rateFromPriceFeeds :
-                rateFromPriceFeeds - rateFromSwap;
+		//temporary: limit transaction size
+		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
+		if (transactionLimit[loanTokenAddress] > 0) require(loanTokenSent <= transactionLimit[loanTokenAddress]);
 
-            if (spreadValue != 0) {
-                spreadValue = spreadValue
-                .mul(10**20)
-                .div(rateFromSwap);
-                
-                require(spreadValue <= maxSlippage, "price disagreement");
-            }           
-        }
+		//computes the worth of the total deposit in loan tokens.
+		//(loanTokenSent + convert(collateralTokenSent))
+		//no actual swap happening here.
+		uint256 totalDeposit = _totalDeposit(collateralTokenAddress, collateralTokenSent, loanTokenSent);
+		require(totalDeposit != 0, "12");
 
-        if (collateralTokenAddress == address(0)) {
-            collateralTokenAddress = wrbtcTokenAddress;
-        }
+		address[4] memory sentAddresses;
+		uint256[5] memory sentAmounts;
 
-        require(collateralTokenAddress != loanTokenAddress, "11");
+		sentAddresses[0] = address(this); // lender
+		sentAddresses[1] = trader;
+		sentAddresses[2] = trader;
+		//sentAddresses[3] = address(0); // manager
 
-        //temporary: limit transaction size
-        if (transactionLimit[collateralTokenAddress] > 0)
-            require(
-                collateralTokenSent <= transactionLimit[collateralTokenAddress]
-            );
-        if (transactionLimit[loanTokenAddress] > 0)
-            require(loanTokenSent <= transactionLimit[loanTokenAddress]);
+		//sentAmounts[0] = 0; // interestRate (found later)
+		sentAmounts[1] = totalDeposit; // total amount of deposit
+		//sentAmounts[2] = 0; // interestInitialAmount (interest is calculated based on fixed-term loan)
+		sentAmounts[3] = loanTokenSent;
+		sentAmounts[4] = collateralTokenSent;
 
-        //computes the worth of the total deposit in loan tokens.
-        //(loanTokenSent + convert(collateralTokenSent))
-        //no actual swap happening here.
-        uint256 totalDeposit =
-            _totalDeposit(
-                collateralTokenAddress,
-                collateralTokenSent,
-                loanTokenSent
-            );
-        require(totalDeposit != 0, "12");
+		_settleInterest();
 
-        address[4] memory sentAddresses;
-        uint256[5] memory sentAmounts;
+		(sentAmounts[1], sentAmounts[0]) = _getMarginBorrowAmountAndRate( // borrowAmount, interestRate
+			leverageAmount,
+			sentAmounts[1] // depositAmount
+		);
 
-        sentAddresses[0] = address(this); // lender
-        sentAddresses[1] = trader;
-        sentAddresses[2] = trader;
-        //sentAddresses[3] = address(0); // manager
+		(newPrincipal, newCollateral) = 
+			_borrowOrTrade(
+				loanId,
+				0, // withdrawAmount
+				leverageAmount,
+				collateralTokenAddress,
+				sentAddresses,
+				sentAmounts,
+				loanDataBytes
+			);
 
-        //sentAmounts[0] = 0; // interestRate (found later)
-        sentAmounts[1] = totalDeposit; // total amount of deposit
-        //sentAmounts[2] = 0; // interestInitialAmount (interest is calculated based on fixed-term loan)
-        sentAmounts[3] = loanTokenSent;
-        sentAmounts[4] = collateralTokenSent;
-
-        _settleInterest();
-
-        (sentAmounts[1], sentAmounts[0]) = _getMarginBorrowAmountAndRate( // borrowAmount, interestRate
-            leverageAmount,
-            sentAmounts[1] // depositAmount
-        );
-
-        return
-            _borrowOrTrade(
-                loanId,
-                0, // withdrawAmount
-                leverageAmount,
-                collateralTokenAddress,
-                sentAddresses,
-                sentAmounts,
-                loanDataBytes
-            );
+		require(newCollateral >= minReturn, "new collateral too low");
     }
 
     function transfer(address _to, uint256 _value) external returns (bool) {
