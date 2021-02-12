@@ -1,7 +1,8 @@
 "use strict";
 
 const BigNumber = require("bignumber.js");
-const ethers = require("ethers");
+//const ethers = require("ethers");
+const { ethers } = require("hardhat");
 
 function UInt256Max() {
 	return ethers.constants.MaxUint256;
@@ -90,7 +91,7 @@ async function increaseTime(seconds) {
 }
 
 async function setTime(seconds) {
-	await rpc({ method: "evm_setTime", params: [new Date(seconds * 1000)] });
+	await rpc({ method: "evm_setTime", params: [new Date(seconds * 1000)] }); //doesn't work with hardhat, falls silently
 }
 
 async function freezeTime(seconds) {
@@ -117,6 +118,7 @@ async function minerStop() {
 }
 
 async function rpc(request) {
+	//return await network.provider.request(request); - this is more hardhat way but causes more failures
 	return new Promise((okay, fail) => web3.currentProvider.send(request, (err, res) => (err ? fail(err) : okay(res))));
 }
 
@@ -149,6 +151,7 @@ module.exports = {
 	blockNumber,
 	freezeTime,
 	increaseTime,
+	increaseTimeNoMine,
 	mineBlock,
 	mineBlockNumber,
 	minerStart,

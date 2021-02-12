@@ -1,11 +1,12 @@
+const hre = require("hardhat");
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
 const { address, etherMantissa, etherUnsigned, encodeParameters, mineBlock, unlockedAccount, setTime } = require("../../Utils/Ethereum");
 const EIP712 = require("../../Utils/EIP712");
-const BigNumber = require("bignumber.js");
 
 const { getAccountsPrivateKeys, getAccountsPrivateKeysBuffer } = require("../../Utils/hardhat_utils");
+const BigNumber = require("bignumber.js");
 const { bufferToHex, privateToAddress, toChecksumAddress } = require("ethereumjs-util");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
@@ -32,9 +33,71 @@ contract("governorAlpha#castVote/2", (accounts) => {
 	let targets, values, signatures, callDatas, proposalId;
 
 	before(async () => {
+		console.log(accounts);
 		[root, a1, ...accounts] = accounts;
+		//a1 = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
+		//a1 = "0x7b2512b985a3fc84b1578dc555c14dfa1cf5ace5";
 		[pkbRoot, pkbA1, ...pkbAccounts] = getAccountsPrivateKeysBuffer();
+		console.log(`PKBA1: `);
+		console.log(pkbA1);
+		console.log(`PKBA1:-- `);
+		getAccountsPrivateKeysBuffer()[0];
+		getAccountsPrivateKeysBuffer()[1];
+		//console.log(ethers.provider);
 		currentChainId = (await ethers.provider.getNetwork()).chainId;
+		console.log(`CHAIN ID: ${currentChainId}`);
+		//root = bufferToHex(privateToAddress(pbRoot));
+		//a1 = bufferToHex(privateToAddress(pbA1));
+		/*console.log(`unlockedAccount(a1).secretKey:`);*/
+		/*console.log("===============================================");
+		pkAcc.forEach((el) => console.log(bufferToHex(privateToAddress(el))));
+		console.log("===============================================");
+		console.log(`root: ${root}`);
+		console.log(`a1: ${a1}`);
+		console.log("===============================================");
+		*/
+		/*console.log("uask");
+		const uask = unlockedAccount(a1).secretKey;
+		console.log(bufferToHex(privateToAddress(uask)));
+		console.log(bufferToHex(uask));
+		console.log(uask);
+		console.log("===============================================");
+		*/
+		//[pRoot, pA1] = getAccountsPrivateKeys();
+		//root = bufferToHex(privateToAddress(pRoot));
+		//root = privateToAddress(pRoot.privateKey);
+		//a1 = bufferToHex(privateToAddress(pA1));
+		//a1 = bufferToHex(privateToAddress(pA1.privateKey));
+		/* paramA10 = pA1.privateKey;
+		paramA11 = privateToAddress(pA1.privateKey);
+		paramA12 = bufferToHex(privateToAddress(pA1.privateKey));
+		paramA13 = pbA1;
+		paramA14 = bufferToHex(pbA1);
+		console.log("bufferToHex(privateToAddress(pbA1)): ");
+		console.log(bufferToHex(privateToAddress(pbA1)));
+		console.log("= = = = = = = = = = = = = = = = = = = = = = = = = "); */
+		//pRoot = pRoot.privateKey;
+		//pA1 = pA1.privateKey;
+		/* console.log(pRoot);
+		console.log(a1);
+		console.log(root);
+		console.log(a1); */
+		/*console.log(`bufferToHex(pbA1): ${bufferToHex(pbA1)}`);
+
+		console.log("= = = = = = = = = = = = = = = = = = = = = = = = = ");
+		*/
+		//console.log(pA1 === uask);
+
+		// pkAcc.forEach((el) => console.log(el));
+		/*console.log("===============================================");
+		pkAcc.forEach((el) => console.log(bufferToHex(privateToAddress(el))));
+		pkAcc.forEach((el) => console.log(bufferToHex(el)));
+		console.log("|||||||||||||||||||||||||||||||||||||||||||||||||");
+
+		console.log(bufferToHex(privateToAddress(pA1)));
+		console.log("--------------------------------------------------------------------------");
+		pkAcc.forEach((el) => console.log(bufferToHex(privateToAddress(el))));*/
+
 		let blockTimestamp = etherUnsigned(100);
 		await setTime(blockTimestamp.toNumber());
 		token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
@@ -50,6 +113,8 @@ contract("governorAlpha#castVote/2", (accounts) => {
 		values = ["0"];
 		signatures = ["getBalanceOf(address)"];
 		callDatas = [encodeParameters(["address"], [a1])];
+		console.log("callDatas: ");
+		console.log(callDatas);
 		await enfranchise(token, staking, root, QUORUM_VOTES);
 		await gov.propose(targets, values, signatures, callDatas, "do nothing");
 		proposalId = await gov.latestProposalIds.call(root);
@@ -117,9 +182,9 @@ contract("governorAlpha#castVote/2", (accounts) => {
 		});
 
 		describe("castVoteBySig", () => {
-			const Domain = (gov) => ({
+			const Domain = async (gov) => ({
 				name: "Sovryn Governor Alpha",
-				chainId: currentChainId, //31337 - Hardhat, //1 - Mainnet, // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
+				chainId: 31337, //currentChainId, // hh: 31337 default //await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
 				verifyingContract: gov.address,
 			});
 			const Types = {
@@ -136,11 +201,15 @@ contract("governorAlpha#castVote/2", (accounts) => {
 				);
 			});
 
-			it("casts vote on behalf of the signatory", async () => {
+			it.only("casts vote on behalf of the signatory", async () => {
 				await enfranchise(token, staking, a1, QUORUM_VOTES);
 				await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: a1 });
 				proposalId = await gov.latestProposalIds.call(a1);
-
+				console.log("proposalId: ");
+				console.log(proposalId.toString());
+				console.log("currentChainId");
+				console.log(currentChainId);
+				//const signer = await new ethers.providers.JsonRpcProvider().getSigner(a1);
 				const { v, r, s } = EIP712.sign(
 					Domain(gov),
 					"Ballot",
@@ -150,17 +219,30 @@ contract("governorAlpha#castVote/2", (accounts) => {
 					},
 					Types,
 					pkbA1
-					//unlockedAccount(a1).secretKey - this doesn't work with Hardhat
+					//unlockedAccount(a1).secretKey - doesn't work with hardhat
 				);
-
+				//console.log("unlockedAccount(a1).secretKey");
+				//console.log(unlockedAccount(a1).secretKey);
 				let beforeFors = (await gov.proposals.call(proposalId)).forVotes;
+				console.log(`beforeFors`);
+				console.log(beforeFors.toString(16));
 				await mineBlock();
 				const tx = await gov.castVoteBySig(proposalId, true, v, r, s, { from: a1 });
+				console.log("tx: ");
+				console.log(tx.logs[0].args);
 				expect(tx.gasUsed < 80000);
 
 				let proposal = await gov.proposals.call(proposalId);
+				console.log(proposal);
+				console.log("************************");
+				console.log(proposal.startBlock.toString());
+				console.log(proposal.startTime.toString());
+				console.log("************************");
 				let expectedVotes = await staking.getPriorVotes.call(a1, proposal.startBlock.toString(), proposal.startTime.toString());
 				let afterFors = (await gov.proposals.call(proposalId)).forVotes;
+				console.log("afterFors: ");
+				console.log(afterFors.toString());
+				console.log("************************");
 				expect(new BigNumber(afterFors).toString()).to.be.equal(new BigNumber(expectedVotes.toString()).toString());
 			});
 		});
