@@ -222,8 +222,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         payable
         nonReentrant //note: needs to be removed to allow flashloan use cases
         returns (
-            uint256,
-            uint256 // returns new principal and new collateral added to trade
+            uint256 newPrincipal,
+            uint256 newCollateral // returns new principal and new collateral added to trade
         )
     {
         _checkPause();
