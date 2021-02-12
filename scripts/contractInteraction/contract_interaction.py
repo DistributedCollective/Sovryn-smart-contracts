@@ -108,11 +108,12 @@ def main():
 
     #replaceLoanTokenLogicOnAllContracts()
 
-    setEarlyAccessToken(contracts['iDOC'], contracts['og'])
-    setEarlyAccessToken(contracts['iUSDT'], contracts['og'])
-    setEarlyAccessToken(contracts['iRBTC'], contracts['og'])
-    setEarlyAccessToken(contracts['iBPro'], contracts['og'])
+    # setEarlyAccessToken(contracts['iDOC'], contracts['og'])
+    # setEarlyAccessToken(contracts['iUSDT'], contracts['og'])
+    # setEarlyAccessToken(contracts['iRBTC'], contracts['og'])
+    # setEarlyAccessToken(contracts['iBPro'], contracts['og'])
 
+    createProposalSIP005()
 
 def loadConfig():
     global contracts, acct
@@ -709,3 +710,31 @@ def setEarlyAccessToken(loanTokenAddress, EATokenAddress):
     tx = multisig.submitTransaction(loanToken.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
+
+def createProposalSIP005():
+    dummyAddress = contracts['GovernorOwner']
+    dummyContract = Contract.from_abi("DummyContract", address=dummyAddress, abi=DummyContract.abi, owner=acct)
+
+    # action
+    target = contracts['VestingRegistry']
+    signature = "approveTokens(address,address,address)"
+    data = dummyContract.approveTokens.encode_input(contracts['CSOV1'], contracts['CSOV2'], contracts['SOV'])
+    data = "0x" + data[10:]
+    description = "SIP-0005: Redeeming cSOV for SOV. Details:  , sha256: "
+
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
+    print(governor.address)
+
+    print([target])
+    print([0])
+    print([signature])
+    print([data])
+    print(description)
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
