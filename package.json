@@ -41,8 +41,9 @@
     "prettier": "prettier --write {,*/**/}*.{js,test.js,sol}",
     "lint-contracts": "solhint contracts/**/*.sol",
     "test": "brownie test",
-    "test-js": "truffle test",
-    "coverage": "truffle run coverage --file='tests-js/'"
+    "test-js": "echo 'Executing pure Hardhat test cases ...'; npx hardhat test; echo 'Executing test cases using Ganache ...'; npx hardhat --config hardhat-ganache-tests.config.js --network ganache test;",
+    "coverage": "npx hardhat coverage",
+    "mocha-test-single": "mocha --timeout 10000 --exit --recursive"
   },
   "husky": {
     "hooks": {

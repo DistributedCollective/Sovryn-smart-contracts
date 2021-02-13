@@ -104,6 +104,10 @@ async function advanceBlocks(blocks) {
 	await rpc({ method: "evm_mineBlockNumber", params: [blocks + parseInt(num)] });
 }
 
+async function setNextBlockTimestamp(timestamp) {
+	await rpc({ method: "evm_setNextBlockTimestamp", params: [timestamp] });
+}
+
 async function blockNumber() {
 	let { result: num } = await rpc({ method: "eth_blockNumber" });
 	return parseInt(num);
@@ -118,8 +122,9 @@ async function minerStop() {
 }
 
 async function rpc(request) {
-	//return await network.provider.request(request); - this is more hardhat way but causes more failures
-	return new Promise((okay, fail) => web3.currentProvider.send(request, (err, res) => (err ? fail(err) : okay(res))));
+	return network != undefined
+		? await network.provider.request(request) //- this is more hardhat way but causes more failures
+		: new Promise((okay, fail) => web3.currentProvider.send(request, (err, res) => (err ? fail(err) : okay(res))));
 }
 
 async function both(contract, method, args = [], opts = {}) {
@@ -151,14 +156,13 @@ module.exports = {
 	blockNumber,
 	freezeTime,
 	increaseTime,
-	increaseTimeNoMine,
 	mineBlock,
 	mineBlockNumber,
 	minerStart,
 	minerStop,
 	rpc,
 	setTime,
-
+	setNextBlockTimestamp,
 	both,
 	sendFallback,
 	UInt256Max,

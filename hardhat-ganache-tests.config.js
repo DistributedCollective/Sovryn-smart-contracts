@@ -59,6 +59,6 @@ module.exports = {
 	},
 	mocha: {
 		timeout: 600000,
-		fgrep: "using Ganache",
+		grep: "^(?=.*; using Ganache).*",
 	},
 };
