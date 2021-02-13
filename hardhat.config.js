@@ -1,7 +1,6 @@
 const { task } = require("hardhat/config");
 
 require("@nomiclabs/hardhat-ganache");
-
 require("@nomiclabs/hardhat-truffle5");
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-web3");
@@ -59,5 +58,6 @@ module.exports = {
 	},
 	mocha: {
 		timeout: 600000,
+		grep: "^(?!.*; using Ganache).*",
 	},
 };
