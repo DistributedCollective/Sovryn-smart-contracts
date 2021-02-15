@@ -103,8 +103,8 @@ def main():
     #checkRates()
     #replaceSwapsExternal()
 
-    # governorAcceptAdmin("governorOwner")
-    # governorAcceptAdmin("governorAdmin")
+    governorAcceptAdmin("GovernorOwner")
+    governorAcceptAdmin("GovernorAdmin")
 
     #replaceLoanTokenLogicOnAllContracts()
 
@@ -113,7 +113,7 @@ def main():
     # setEarlyAccessToken(contracts['iRBTC'], contracts['og'])
     # setEarlyAccessToken(contracts['iBPro'], contracts['og'])
 
-    createProposalSIP005()
+    # createProposalSIP005()
 
 def loadConfig():
     global contracts, acct
