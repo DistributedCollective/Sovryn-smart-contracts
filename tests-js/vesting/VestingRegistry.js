@@ -183,7 +183,7 @@ contract("VestingRegistry", (accounts) => {
 		});
 
 		it("fails if sender isn't an owner", async () => {
-			await expectRevert(vestingRegistry.setVestingFactory(account2, {from: account2}), "unauthorized");
+			await expectRevert(vestingRegistry.setVestingFactory(account2, { from: account2 }), "unauthorized");
 		});
 	});
 
@@ -192,7 +192,7 @@ contract("VestingRegistry", (accounts) => {
 			let tx = await vestingRegistry.addAdmin(account1);
 
 			expectEvent(tx, "AdminAdded", {
-				admin: account1
+				admin: account1,
 			});
 
 			let isAdmin = await vestingRegistry.admins(account1);
@@ -200,7 +200,7 @@ contract("VestingRegistry", (accounts) => {
 		});
 
 		it("fails sender isn't an owner", async () => {
-			await expectRevert(vestingRegistry.addAdmin(account1, {from: account1}), "unauthorized");
+			await expectRevert(vestingRegistry.addAdmin(account1, { from: account1 }), "unauthorized");
 		});
 	});
 
@@ -210,7 +210,7 @@ contract("VestingRegistry", (accounts) => {
 			let tx = await vestingRegistry.removeAdmin(account1);
 
 			expectEvent(tx, "AdminRemoved", {
-				admin: account1
+				admin: account1,
 			});
 
 			let isAdmin = await vestingRegistry.admins(account1);
@@ -218,7 +218,7 @@ contract("VestingRegistry", (accounts) => {
 		});
 
 		it("fails sender isn't an owner", async () => {
-			await expectRevert(vestingRegistry.removeAdmin(account1, {from: account1}), "unauthorized");
+			await expectRevert(vestingRegistry.removeAdmin(account1, { from: account1 }), "unauthorized");
 		});
 	});
 
@@ -238,7 +238,7 @@ contract("VestingRegistry", (accounts) => {
 		});
 
 		it("fails if sender isn't an owner", async () => {
-			await expectRevert(vestingRegistry.setCSOVtokens([cSOV1.address, cSOV2.address], {from: account2}), "unauthorized");
+			await expectRevert(vestingRegistry.setCSOVtokens([cSOV1.address, cSOV2.address], { from: account2 }), "unauthorized");
 		});
 	});
 

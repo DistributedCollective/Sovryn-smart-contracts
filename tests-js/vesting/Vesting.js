@@ -692,7 +692,6 @@ contract("Vesting", (accounts) => {
 
 			let vestingBalance = await staking.balanceOf(vesting.address);
 			expect(vestingBalance).to.be.bignumber.equal(new BN(0));
-
 		});
 	});
 
