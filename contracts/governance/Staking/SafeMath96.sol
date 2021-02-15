@@ -50,4 +50,17 @@ contract SafeMath96 {
 
 		return c;
 	}
+
+	function div96(
+		uint96 a,
+		uint96 b,
+		string memory errorMessage
+	) internal pure returns (uint96) {
+		// Solidity only automatically asserts when dividing by 0
+		require(b > 0, errorMessage);
+		uint96 c = a / b;
+		// assert(a == b * c + a % b); // There is no case in which this doesn't hold
+
+		return c;
+	}
 }

@@ -22,8 +22,8 @@ contract GovernorAlpha is SafeMath96 {
 
 	/// @notice The duration of voting on a proposal, in blocks
 	function votingPeriod() public pure returns (uint256) {
-		return 8640;
-	} // ~3 days in blocks (assuming 30s blocks)
+		return 2880;
+	} // ~1 day in blocks (assuming 30s blocks)
 
 	/// @notice The address of the Sovryn Protocol Timelock
 	ITimelock public timelock;
@@ -40,8 +40,8 @@ contract GovernorAlpha is SafeMath96 {
 	/// @notice Percentage of current total voting power require to vote.
 	uint96 public quorumPercentageVotes;
 
-	// @notice Minimum  percentage
-	uint96 public minPercentageVotes;
+	// @notice Majority percentage
+	uint96 public majorityPercentageVotes;
 
 	struct Proposal {
 		/// @notice Unique id for looking up a proposal
@@ -56,8 +56,8 @@ contract GovernorAlpha is SafeMath96 {
 		uint96 againstVotes;
 		///@notice the quorum required for this proposal
 		uint96 quorum;
-		///@notice the minimum percentage required for this proposal
-		uint96 minPercentage;
+		///@notice the majority percentage required for this proposal
+		uint96 majorityPercentage;
 		/// @notice The timestamp that the proposal will be available for execution, set once the vote succeeds
 		uint64 eta;
 		/// @notice the start time is required for the staking contract
@@ -135,13 +135,13 @@ contract GovernorAlpha is SafeMath96 {
 		address staking_,
 		address guardian_,
 		uint96 _quorumPercentageVotes,
-		uint96 _minPercentageVotes
+		uint96 _majorityPercentageVotes
 	) public {
 		timelock = ITimelock(timelock_);
 		staking = IStaking(staking_);
 		guardian = guardian_;
 		quorumPercentageVotes = _quorumPercentageVotes;
-		minPercentageVotes = _minPercentageVotes;
+		majorityPercentageVotes = _majorityPercentageVotes;
 	}
 
 	/// @notice The number of votes required in order for a voter to become a proposer
@@ -212,7 +212,11 @@ contract GovernorAlpha is SafeMath96 {
 				forVotes: 0,
 				againstVotes: 0,
 				quorum: mul96(quorumPercentageVotes, threshold, "GovernorAlpha::propose: overflow on quorum computation"), //proposalThreshold is 1% of total votes, we can save gas using this pre calculated value
-				minPercentage: mul96(minPercentageVotes, threshold, "GovernorAlpha::propose: overflow on minPercentage computation"),
+				majorityPercentage: mul96(
+					majorityPercentageVotes,
+					threshold,
+					"GovernorAlpha::propose: overflow on majorityPercentage computation"
+				),
 				eta: 0,
 				startTime: safe64(block.timestamp, "GovernorAlpha::propose: startTime overflow"), //required by the staking contract. not used by the governance contract itself.
 				canceled: false,
@@ -394,12 +398,14 @@ contract GovernorAlpha is SafeMath96 {
 			return ProposalState.Active;
 		}
 
-		if (
-			proposal.forVotes <= proposal.againstVotes ||
-			proposal.forVotes < proposal.quorum ||
-			add96(proposal.forVotes, proposal.againstVotes, "GovernorAlpha:: state: forVotes + againstVotes > uint96") <
-			proposal.minPercentage
-		) {
+		uint96 totalVotes = add96(proposal.forVotes, proposal.againstVotes, "GovernorAlpha:: state: forVotes + againstVotes > uint96");
+		uint96 totalVotesMajorityPercentage = div96(totalVotes, 100, "GovernorAlpha:: state: division error");
+		totalVotesMajorityPercentage = mul96(
+			totalVotesMajorityPercentage,
+			majorityPercentageVotes,
+			"GovernorAlpha:: state: totalVotes * majorityPercentage > uint96"
+		);
+		if (proposal.forVotes <= totalVotesMajorityPercentage || totalVotes < proposal.quorum) {
 			return ProposalState.Defeated;
 		}
 

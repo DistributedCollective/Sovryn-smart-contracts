@@ -3,8 +3,8 @@ pragma experimental ABIEncoderV2;
 
 import "./WeightedStaking.sol";
 import "./IStaking.sol";
-import "../Vesting/IVesting.sol";
 import "../../rsk/RSKAddrValidator.sol";
+import "../Vesting/ITeamVesting.sol";
 import "../ApprovalReceiver.sol";
 
 contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
@@ -21,7 +21,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address stakeFor,
 		address delegatee
 	) external {
-		_stake(msg.sender, amount, until, stakeFor, delegatee);
+		_stake(msg.sender, amount, until, stakeFor, delegatee, false);
 	}
 
 	/**
@@ -41,7 +41,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address stakeFor,
 		address delegatee
 	) public onlyThisContract {
-		_stake(sender, amount, until, stakeFor, delegatee);
+		_stake(sender, amount, until, stakeFor, delegatee, false);
 	}
 
 	function _stake(
@@ -49,11 +49,14 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint96 amount,
 		uint256 until,
 		address stakeFor,
-		address delegatee
+		address delegatee,
+		bool timeAdjusted
 	) internal {
 		require(amount > 0, "Staking::stake: amount of tokens to stake needs to be bigger than 0");
 
-		until = timestampToLockDate(until);
+		if (!timeAdjusted) {
+			until = timestampToLockDate(until);
+		}
 		require(until > block.timestamp, "Staking::timestampToLockDate: staking period too short");
 
 		//stake for the sender if not specified otherwise
@@ -65,8 +68,10 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 			delegatee = stakeFor;
 		}
 		//do not stake longer than the max duration
-		uint256 latest = timestampToLockDate(block.timestamp + MAX_DURATION);
-		if (until > latest) until = latest;
+		if (!timeAdjusted) {
+			uint256 latest = timestampToLockDate(block.timestamp + MAX_DURATION);
+			if (until > latest) until = latest;
+		}
 
 		uint96 previousBalance = currentBalance(stakeFor, until);
 		//increase stake
@@ -166,18 +171,21 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		//stake them until lock dates according to the vesting schedule
 		//note: because staking is only possible in periods of 2 weeks, the total duration might
 		//end up a bit shorter than specified depending on the date of staking.
-		uint256 start = block.timestamp + cliff;
-		uint256 end = block.timestamp + duration;
+		uint256 start = timestampToLockDate(block.timestamp + cliff);
+		if (duration > MAX_DURATION) {
+			duration = MAX_DURATION;
+		}
+		uint256 end = timestampToLockDate(block.timestamp + duration);
 		uint256 numIntervals = (end - start) / intervalLength + 1;
 		uint256 stakedPerInterval = amount / numIntervals;
 		//stakedPerInterval might lose some dust on rounding. add it to the first staking date
 		if (numIntervals > 1) {
-			_stake(msg.sender, uint96(amount - stakedPerInterval * (numIntervals - 1)), start, stakeFor, delegatee);
+			_stake(msg.sender, uint96(amount - stakedPerInterval * (numIntervals - 1)), start, stakeFor, delegatee, true);
 		}
 		//stake the rest in 4 week intervals
 		for (uint256 i = start + intervalLength; i <= end; i += intervalLength) {
 			//stakes for itself, delegates to the owner
-			_stake(msg.sender, uint96(stakedPerInterval), i, stakeFor, delegatee);
+			_stake(msg.sender, uint96(stakedPerInterval), i, stakeFor, delegatee, true);
 		}
 	}
 
@@ -220,7 +228,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * */
 	function governanceWithdrawVesting(address vesting, address receiver) public onlyOwner {
 		vestingWhitelist[vesting] = true;
-		IVesting(vesting).governanceWithdrawTokens(receiver);
+		ITeamVesting(vesting).governanceWithdrawTokens(receiver);
 		vestingWhitelist[vesting] = false;
 
 		emit VestingTokensWithdrawn(vesting, receiver);
