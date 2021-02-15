@@ -719,7 +719,7 @@ def createProposalSIP005():
     signature = "transferTokens(address,address,uint256)"
     data = GovernorVaultAdmin.transferTokens.encode_input(contracts['VestingRegistry'], contracts['SOV'], 264194619 * 10**16)
     data = "0x" + data[10:]
-    description = "SIP-0005: Redeeming cSOV for SOV. Details: https://github.com/DistributedCollective/SIPS/blob/SIP0005/SIP-0005.md , sha256: "
+    description = "SIP-0005: Redeeming cSOV for SOV. Details: https://github.com/DistributedCollective/SIPS/blob/aee11010c65f8ae5704149aa8fce8230508b9aac/SIP-0005.md , sha256: a593ee922a79be144984842e0158610c14d72544ae28b706f6a856d795de9c1e"
 
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorAdmin'], abi=GovernorAlpha.abi, owner=acct)
     print(governor.address)
