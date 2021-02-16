@@ -328,6 +328,8 @@ contract("VestingRegistry", (accounts) => {
 			await checkVesting(vesting, account2, cliff, duration, amount);
 
 			await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
+
+			await expectRevert(vestingRegistry.reImburse({ from: account2 }), "Address cannot be processed twice");
 		});
 
 		it("should be able to exchange CSOV partially", async () => {
@@ -392,6 +394,81 @@ contract("VestingRegistry", (accounts) => {
 
 			await expectRevert(vestingRegistry.exchangeAllCSOV({ from: account2 }), "ERC20: transfer amount exceeds balance");
 		});
+	});
+
+	describe("reImburse", () => {
+		it("should be able to reImburse CSOV", async () => {
+			let amount1 = new BN(100 * 10**8);
+			let amount2 = new BN(200 * 10**8);
+			await cSOV1.transfer(account2, amount1);
+			await cSOV2.transfer(account2, amount2);
+			let amount = amount1.add(amount2);
+			await SOV.transfer(vestingRegistry.address, amount);
+
+			let priceSats = await vestingRegistry.priceSats();
+			let reImburseAmount = amount.mul(priceSats).div(new BN(10**10));
+			console.log(reImburseAmount.toString());
+			await vestingRegistry.deposit({ from: root, value: reImburseAmount });
+
+			let balanceBefore = await web3.eth.getBalance(account2);
+			console.log(balanceBefore);
+
+			let tx = await vestingRegistry.reImburse({ from: account2 });
+
+			expectEvent(tx, "CSOVReImburse", {
+				from: account2,
+				CSOVamount: amount,
+				reImburseAmount: reImburseAmount
+			});
+
+			let processedList = await vestingRegistry.processedList(account2);
+			expect(processedList).equal(true);
+
+			let balance = await SOV.balanceOf(vestingRegistry.address);
+			expect(balance.toString()).equal(amount.toString());
+
+			let balanceAfter = await web3.eth.getBalance(account2);
+			console.log(balanceAfter);
+
+			let balanceVR = await web3.eth.getBalance(vestingRegistry.address);
+			expect(balanceVR).to.be.bignumber.equal(new BN(0));
+
+			await expectRevert(vestingRegistry.reImburse({ from: account2 }), "Address cannot be processed twice");
+		});
+
+		it("fails if account blacklisted", async () => {
+			let amount = new BN(1000);
+			await cSOV1.transfer(account2, amount);
+			await SOV.transfer(vestingRegistry.address, amount);
+
+			await vestingRegistry.setBlacklistFlag(account2, true);
+			await expectRevert(vestingRegistry.reImburse({ from: account2 }), "Address blacklisted");
+		});
+
+		it("fails if the 0 is cSOV amount", async () => {
+			await expectRevert(vestingRegistry.reImburse({ from: account2 }), "holder has no CSOV");
+		});
+	});
+
+	describe("withdrawAll", () => {
+		it("should be able to withdraw all rbtc", async () => {
+			let balanceVR = await web3.eth.getBalance(vestingRegistry.address);
+			expect(balanceVR).to.be.bignumber.equal(new BN(0));
+
+			let amount = new BN(123 * 10 ** 5);
+			await vestingRegistry.deposit({ from: root, value: amount });
+
+			let balanceBefore = await web3.eth.getBalance(account2);
+			console.log("\n" + balanceBefore);
+
+			await vestingRegistry.withdrawAll(account2);
+
+			let balanceAfter = await web3.eth.getBalance(account2);
+			console.log(balanceAfter);
+
+			expect(new BN(balanceAfter).sub(new BN(balanceBefore))).to.be.bignumber.equal(amount);
+		});
+
 	});
 
 	describe("createVesting", () => {
