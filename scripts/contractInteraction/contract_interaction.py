@@ -50,7 +50,8 @@ def main():
     # createProposalAddKeys()
     # createProposalSetSaleParams()
 
-    createProposalSIP004()
+    # createProposalSIP004()
+    createProposalSIP007()
 
 def loadConfig():
     global contracts, acct
@@ -706,6 +707,33 @@ def createProposalSIP004():
     data = dummyContract.mintCSOV.encode_input(6419461868e14)
     data = "0x" + data[10:]
     description = "SIP 0004 - Minting of Additional cSOV. Details: https://github.com/DistributedCollective/SIPS/blob/a2f132ddc948c963c599f214330556edac7fc85f/SIP-0004.md , sha256: 384346ee91744b0ff9a76bd961b955b3ec78d9bb5ad3a07662822804cc078ef0"
+
+    governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
+    print(governor.address)
+
+    print([target])
+    print([0])
+    print([signature])
+    print([data])
+    print(description)
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
+
+def createProposalSIP007():
+    governorVault = Contract.from_abi("GovernorVault", address=contracts['governorVault'], abi=GovernorVault.abi, owner=acct)
+
+    # action
+    target = contracts['governorVault']
+    signature = "transferRbtc(address,uint256)"
+    data = governorVault.transferRbtc.encode_input(contracts['VestingRegistry'], 7776308611443494927)
+    data = "0x" + data[10:]
+    description = "SIP 0007 - . Details:  , sha256: "
 
     governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
     print(governor.address)
