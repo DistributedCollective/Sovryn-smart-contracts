@@ -51,7 +51,9 @@ def main():
     # createProposalSetSaleParams()
 
     # createProposalSIP004()
-    createProposalSIP007()
+
+    # createProposalSIP007()
+    multisigTranferRbtc()
 
 def loadConfig():
     global contracts, acct
@@ -755,3 +757,17 @@ def createProposalSIP007():
     #     [signature],
     #     [data],
     #     description)
+
+def multisigTranferRbtc():
+    vestingRegistry = Contract.from_abi("CrowdSaleMethods", address=contracts['VestingRegistry'], abi=CrowdSaleMethods.abi, owner=acct)
+
+    # amount = 7776308611443494927
+    amount = 10**16
+
+    data = vestingRegistry.deposit.encode_input()
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(contracts['VestingRegistry'], amount, data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
