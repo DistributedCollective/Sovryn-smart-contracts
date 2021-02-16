@@ -727,27 +727,38 @@ def createProposalSIP004():
 
 def createProposalSIP007():
     governorVault = Contract.from_abi("GovernorVault", address=contracts['governorVault'], abi=GovernorVault.abi, owner=acct)
+    vestingRegistry = Contract.from_abi("CrowdSaleMethods", address=contracts['VestingRegistry'], abi=CrowdSaleMethods.abi, owner=acct)
 
-    # action
+    # amount = 7776308611443494927
+    amount = 10*16
+
+    # action 1
     target = contracts['governorVault']
     signature = "transferRbtc(address,uint256)"
-    data = governorVault.transferRbtc.encode_input(contracts['VestingRegistry'], 7776308611443494927)
+    data = governorVault.transferRbtc.encode_input(contracts['timelock'], amount)
     data = "0x" + data[10:]
-    description = "SIP 0007 - . Details:  , sha256: "
+
+    # action 1
+    target2 = contracts['VestingRegistry']
+    signature2 = "deposit()"
+    data2 = vestingRegistry.deposit.encode_input()
+    data2 = "0x" + data2[10:]
+
+    description = "SIP 0007 - Proposal to transfer RBTC raised during the Genesis Pre-order from Bitocracy 1.0 to Bitocracy 2.0. Details: https://github.com/DistributedCollective/SIPS/blob/2e7f6b21092b3c88e1c63174664e28cabf8d3b5d/SIP-0007.md , sha256: 02095ee0fb5c6f69e4b0a190a75db43c5d7fe44c27cae07f7e137e9ae9d5c59e"
 
     governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
     print(governor.address)
 
-    print([target])
-    print([0])
-    print([signature])
-    print([data])
+    print([target, target2])
+    print([0, amount])
+    print([signature, signature2])
+    print([data, data2])
     print(description)
 
-    # # create proposal
+    # create proposal
     # governor.propose(
-    #     [target],
-    #     [0],
-    #     [signature],
-    #     [data],
+    #     [target, target2],
+    #     [0, amount],
+    #     [signature, signature2],
+    #     [data, data2],
     #     description)

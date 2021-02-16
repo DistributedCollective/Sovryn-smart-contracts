@@ -22,4 +22,6 @@ contract CrowdSaleMethods {
     function mintCSOV(uint256 amount) external {
     }
 
+    function deposit() public payable {}
+
 }
