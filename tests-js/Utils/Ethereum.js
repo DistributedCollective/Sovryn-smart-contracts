@@ -67,12 +67,14 @@ function keccak256(values) {
 	return ethers.utils.keccak256(values);
 }
 
+// not working with hardhat, use hardhat_utils as a workaround
 function unlockedAccounts() {
 	let provider = web3.currentProvider;
 	if (provider._providers) provider = provider._providers.find((p) => p._ganacheProvider)._ganacheProvider;
 	return provider.manager.state.unlocked_accounts;
 }
 
+// not working with hardhat
 function unlockedAccount(a) {
 	return unlockedAccounts()[a.toLowerCase()];
 }
@@ -90,15 +92,18 @@ async function increaseTime(seconds) {
 	return rpc({ method: "evm_mine" });
 }
 
+// doesn't work with hardhat
 async function setTime(seconds) {
-	await rpc({ method: "evm_setTime", params: [new Date(seconds * 1000)] }); //doesn't work with hardhat, falls silently
+	await rpc({ method: "evm_setTime", params: [new Date(seconds * 1000)] });
 }
 
+// doesn't work with hardhat
 async function freezeTime(seconds) {
 	await rpc({ method: "evm_freezeTime", params: [seconds] });
 	return rpc({ method: "evm_mine" });
 }
 
+// adapted for both truffle and hardhat
 async function advanceBlocks(blocks) {
 	//let res = parseInt(await rpc({ method: "eth_blockNumber" }), 16);
 	//console.log(`await rpc({ method: "eth_blockNumber" }): ${res}`);
@@ -124,14 +129,17 @@ async function blockNumber() {
 	//return num;
 }
 
+// doesn't work with hardhat
 async function minerStart() {
 	return rpc({ method: "miner_start" });
 }
 
+// doesn't work with hardhat
 async function minerStop() {
 	return rpc({ method: "miner_stop" });
 }
 
+// adapted to work in both truffle and hardhat
 async function rpc(request) {
 	try {
 		return await network.provider.request(request);
