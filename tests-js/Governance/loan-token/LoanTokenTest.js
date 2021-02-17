@@ -82,7 +82,7 @@ contract("LoanTokenUpgrade", (accounts) => {
 			await expectRevert(loanToken.changeLoanTokenNameAndSymbol("newName", "newSymbol", { from: account1 }), "unauthorized");
 
 			//change admin
-			loanToken.setAdmin(root);
+			await loanToken.setAdmin(root);
 
 			admin = await loanToken.admin();
 			assert.equal(admin, root);

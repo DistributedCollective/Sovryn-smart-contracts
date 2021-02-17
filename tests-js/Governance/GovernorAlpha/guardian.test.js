@@ -12,9 +12,12 @@ const {
 	expectRevert, // Assertions for transactions that should fail.
 } = require("@openzeppelin/test-helpers");
 
-const { encodeParameters, increaseTime, blockNumber, mineBlock } = require("../../Utils/Ethereum");
+const { encodeParameters, increaseTime, blockNumber, mineBlock, advanceBlocks } = require("../../Utils/Ethereum");
 
 const { assert } = require("chai");
+
+const BigNumber = require("bignumber.js");
+const { ethers } = require("hardhat");
 
 // Some constants we would be using in the contract.
 let zero = new BN(0);
@@ -53,12 +56,12 @@ async function stake(tokenInstance, stakingInstance, stakeFor, delegatee, amount
  *
  * @param {number} num The block number you want to reach.
  */
-async function advanceBlocks(num) {
+/*async function advanceBlocks(num) {
 	let currentBlockNumber = await blockNumber();
 	for (let i = currentBlockNumber; i < num; i++) {
 		await mineBlock();
 	}
-}
+}*/
 
 contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 	let governorAlpha, stakingLogic, stakingProxy, timelock, testToken;
@@ -109,7 +112,8 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 		let value = zero;
 		let signature = "setPendingAdmin(address)";
 		let callData = encodeParameters(["address"], [governorAlpha.address]);
-		let currentBlock = await web3.eth.getBlock(await blockNumber());
+		//let currentBlock = await web3.eth.getBlock(await blockNumber());
+		let currentBlock = await ethers.provider.getBlock("latest");
 		let eta = new BN(currentBlock.timestamp).add(new BN(delay + 1));
 
 		// Adding the setPendingAdmin() to the Timelock Queue.
@@ -138,8 +142,8 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 
 		// Getting the proposal id of the newly created proposal.
 		proposalId = await governorAlpha.latestProposalIds(voterOne);
-
 		await mineBlock();
+
 		// Votes in majority.
 		await governorAlpha.castVote(proposalId, true, { from: voterOne });
 

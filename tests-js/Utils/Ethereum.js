@@ -100,8 +100,16 @@ async function freezeTime(seconds) {
 }
 
 async function advanceBlocks(blocks) {
-	let { result: num } = await rpc({ method: "eth_blockNumber" });
-	await rpc({ method: "evm_mineBlockNumber", params: [blocks + parseInt(num)] });
+	//let res = parseInt(await rpc({ method: "eth_blockNumber" }), 16);
+	//console.log(`await rpc({ method: "eth_blockNumber" }): ${res}`);
+	let currentBlockNumber = await blockNumber();
+	//console.log(`Ethereum::currentBlockNumber: ${currentBlockNumber}`);
+	//let { result: num } = await rpc({ method: "eth_blockNumber" });
+	//await rpc({ method: "evm_mineBlockNumber", params: [blocks + parseInt(num)] });
+	//await rpc({ method: "evm_mineBlockNumber", params: [blocks + num] });
+	for (let i = currentBlockNumber; i < blocks; i++) {
+		await mineBlock();
+	}
 }
 
 async function setNextBlockTimestamp(timestamp) {
@@ -110,7 +118,10 @@ async function setNextBlockTimestamp(timestamp) {
 
 async function blockNumber() {
 	let { result: num } = await rpc({ method: "eth_blockNumber" });
+	if (num === undefined) num = await rpc({ method: "eth_blockNumber" });
+	//let { result: num } = await rpc({ method: "eth_blockNumber" });
 	return parseInt(num);
+	//return num;
 }
 
 async function minerStart() {
@@ -122,9 +133,13 @@ async function minerStop() {
 }
 
 async function rpc(request) {
-	return network != undefined
-		? await network.provider.request(request) //- this is more hardhat way but causes more failures
-		: new Promise((okay, fail) => web3.currentProvider.send(request, (err, res) => (err ? fail(err) : okay(res))));
+	try {
+		return await network.provider.request(request);
+	} catch (e) {
+		if (typeof network != "undefined") console.error(e);
+		//console.log("Ethereum.js rpc:: network is undefined. Trying web3.currentProvider.send...");
+		return new Promise((okay, fail) => web3.currentProvider.send(request, (err, res) => (err ? fail(err) : okay(res))));
+	}
 }
 
 async function both(contract, method, args = [], opts = {}) {

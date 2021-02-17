@@ -1,7 +1,16 @@
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
-const { address, etherMantissa, etherUnsigned, encodeParameters, mineBlock, unlockedAccount, setTime } = require("../../Utils/Ethereum");
+const {
+	address,
+	etherMantissa,
+	etherUnsigned,
+	encodeParameters,
+	mineBlock,
+	unlockedAccount,
+	setTime,
+	setNextBlockTimestamp,
+} = require("../../Utils/Ethereum");
 const EIP712 = require("../../Utils/EIP712");
 const BigNumber = require("bignumber.js");
 
@@ -35,8 +44,10 @@ contract("governorAlpha#castVote/2", (accounts) => {
 		[root, a1, ...accounts] = accounts;
 		[pkbRoot, pkbA1, ...pkbAccounts] = getAccountsPrivateKeysBuffer();
 		currentChainId = (await ethers.provider.getNetwork()).chainId;
-		let blockTimestamp = etherUnsigned(100);
-		await setTime(blockTimestamp.toNumber());
+		//let blockTimestamp = etherUnsigned(100);
+		//await setTime(blockTimestamp.toNumber());
+		block = await ethers.provider.getBlock("latest");
+		setNextBlockTimestamp(block.timestamp + 100);
 		token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
 
 		let stakingLogic = await StakingLogic.new(token.address);
@@ -218,7 +229,7 @@ contract("governorAlpha#castVote/2", (accounts) => {
 			expect(proposal.forVotes.toString()).to.be.equal(expectedVotes.toString());
 			let receipt = await gov.getReceipt.call(proposalId, actor);
 			expect(receipt.votes.toString()).to.be.equal(expectedVotes.toString());
-			console.log("\n" + proposal.forVotes.toString());
+			// console.log("\n" + proposal.forVotes.toString());
 		});
 	});
 });
