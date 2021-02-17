@@ -46,7 +46,6 @@
     "lint-contracts": "solhint contracts/**/*.sol",
     "test": "brownie test",
     "test-js": "echo Executing pure Hardhat test cases ... && npx hardhat test && echo Executing test cases using Ganache ... && npx hardhat --config hardhat-ganache-tests.config.js --network ganache test",
-    "test-tl": "npx hardhat --config hardhat-ganache-tests.config.js --network ganache test ./tests-js/TimelockTest.js",
     "coverage": "npx hardhat coverage",
     "mocha-test-single": "mocha --timeout 10000 --exit --recursive"
   },
