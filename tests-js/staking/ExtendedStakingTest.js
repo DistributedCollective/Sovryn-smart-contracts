@@ -1,7 +1,19 @@
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
-const { address, minerStart, minerStop, unlockedAccount, mineBlock, etherMantissa, etherUnsigned, setTime } = require("../Utils/Ethereum");
+const {
+	address,
+	minerStart,
+	minerStop,
+	unlockedAccount,
+	mineBlock,
+	etherMantissa,
+	etherUnsigned,
+	setTime,
+	increaseTime,
+	setNextBlockTimestamp,
+	advanceBlocks,
+} = require("../Utils/Ethereum");
 
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
@@ -255,7 +267,8 @@ contract("Staking", (accounts) => {
 			let lockedTS = await getTimeFromKickoff(duration);
 			await staking.stake(amount, lockedTS, root, root);
 
-			await setTime(lockedTS);
+			//await setTime(lockedTS);
+			setNextBlockTimestamp(lockedTS.toNumber());
 
 			let stackingbBalance = await token.balanceOf.call(staking.address);
 			expect(stackingbBalance.toString()).to.be.equal(amount);
@@ -285,9 +298,13 @@ contract("Staking", (accounts) => {
 			let duration = new BN(TWO_WEEKS).mul(new BN(2));
 			let lockedTS = await getTimeFromKickoff(duration);
 
+			let bb = await token.balanceOf.call(root);
+
 			await staking.stake(amount, lockedTS, root, root);
 
-			await setTime(lockedTS);
+			//await setTime(lockedTS);
+			setNextBlockTimestamp(lockedTS.toNumber());
+			blockTimestamp = (await ethers.provider.getBlock("latest")).timestamp;
 
 			let stackingbBalance = await token.balanceOf.call(staking.address);
 			expect(stackingbBalance.toString()).to.be.equal(amount);
@@ -298,6 +315,7 @@ contract("Staking", (accounts) => {
 			stackingbBalance = await token.balanceOf.call(staking.address);
 			expect(stackingbBalance.toNumber()).to.be.equal(amount / 2);
 			let afterBalance = await token.balanceOf.call(root);
+
 			expect(afterBalance.sub(beforeBalance).toNumber()).to.be.equal(amount / 2);
 
 			//increase stake
@@ -608,10 +626,9 @@ contract("Staking", (accounts) => {
 			await staking.stake(amount2, lockedTS2, root, root);
 
 			let data = await staking.getStakes.call(root);
-			// console.log();
+
 			// for (let i = 0; i < data.dates.length; i++) {
-			//     console.log(data.dates[i].toString());
-			//     console.log(data.stakes[i].toString());
+
 			// }
 
 			expect(data.dates[0]).to.be.bignumber.equal(new BN(lockedTS1));
@@ -661,7 +678,8 @@ contract("Staking", (accounts) => {
 			let lockedTS = await getTimeFromKickoff(duration);
 			await staking.stake(amount, lockedTS, root, root);
 
-			await setTime(lockedTS);
+			//await setTime(lockedTS);
+			setNextBlockTimestamp(lockedTS.toNumber());
 			await expectRevert(staking.withdraw(amount * 2, lockedTS, root), "Staking::withdraw: not enough balance");
 		});
 
@@ -671,7 +689,9 @@ contract("Staking", (accounts) => {
 			let lockedTS = await getTimeFromKickoff(duration);
 			let tx1 = await staking.stake(amount, lockedTS, root, root);
 
-			await setTime(lockedTS);
+			//await setTime(lockedTS);
+			setNextBlockTimestamp(lockedTS.toNumber());
+			mineBlock();
 
 			let stackingbBalance = await token.balanceOf.call(staking.address);
 			expect(stackingbBalance.toString()).to.be.equal(amount);
@@ -764,9 +784,7 @@ contract("Staking", (accounts) => {
 		});
 
 		it("Should be able to withdraw earlier for any lock date", async () => {
-			console.log();
 			let amount = "10000";
-			console.log("Staked amount: " + amount);
 
 			for (let i = 1; i <= 78; i++) {
 				if (i !== 1 && i !== 78 && i % 10 !== 0) {
@@ -805,15 +823,7 @@ contract("Staking", (accounts) => {
 				let punishedAmount = weight;
 
 				let weeks = i * 2;
-				console.log(
-					"lock date: " +
-						weeks +
-						" (weeks), slashed amount: " +
-						feeSharingBalance.toString() +
-						" ( " +
-						feeSharingBalance / 100 +
-						"% )"
-				);
+
 				expect(feeSharingBalance).to.be.bignumber.equal(new BN(punishedAmount));
 
 				expect(returnedPunishedAmount).to.be.bignumber.equal(new BN(punishedAmount));
@@ -858,7 +868,8 @@ contract("Staking", (accounts) => {
 		it("Lock date should be start + 1 period", async () => {
 			let kickoffTS = await staking.kickoffTS.call();
 			let newTime = kickoffTS.add(new BN(TWO_WEEKS));
-			await setTime(newTime);
+			//await setTime(newTime);
+			setNextBlockTimestamp(newTime.toNumber());
 
 			let result = await staking.timestampToLockDate(newTime);
 			expect(result.sub(kickoffTS).toNumber()).to.be.equal(TWO_WEEKS);
@@ -867,7 +878,8 @@ contract("Staking", (accounts) => {
 		it("Lock date should be start + 2 period", async () => {
 			let kickoffTS = await staking.kickoffTS.call();
 			let newTime = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)).add(new BN(DAY)));
-			await setTime(newTime);
+			//await setTime(newTime);
+			setNextBlockTimestamp(newTime.toNumber());
 
 			let result = await staking.timestampToLockDate(newTime);
 			expect(result.sub(kickoffTS).toNumber()).to.be.equal(TWO_WEEKS * 2);
@@ -876,7 +888,8 @@ contract("Staking", (accounts) => {
 		it("Lock date should be start + 3 period", async () => {
 			let kickoffTS = await staking.kickoffTS.call();
 			let newTime = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(3)).add(new BN(DAY)));
-			await setTime(newTime);
+			//await setTime(newTime);
+			setNextBlockTimestamp(newTime.toNumber());
 
 			let result = await staking.timestampToLockDate(newTime);
 			expect(result.sub(kickoffTS).toNumber()).to.be.equal(TWO_WEEKS * 3);

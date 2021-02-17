@@ -1,0 +1,2 @@
+to remove all console.log() from the code
+.*console\.log([\w\W]*?);

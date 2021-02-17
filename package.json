@@ -14,7 +14,11 @@
     "url": "https://github.com/DistributedCollective/Sovryn-smart-contracts/issues"
   },
   "devDependencies": {
-    "@openzeppelin/test-helpers": "^0.5.6",
+    "@nomiclabs/hardhat-ethers": "^2.0.1",
+    "@nomiclabs/hardhat-ganache": "^2.0.0",
+    "@nomiclabs/hardhat-truffle5": "^2.0.0",
+    "@nomiclabs/hardhat-web3": "^2.0.0",
+    "@openzeppelin/test-helpers": "^0.5.10",
     "bignumber.js": "^9.0.0",
     "bn.js": "^5.1.2",
     "chai": "^4.2.0",
@@ -41,7 +45,8 @@
     "prettier": "prettier --write {,*/**/}*.{js,test.js,sol}",
     "lint-contracts": "solhint contracts/**/*.sol",
     "test": "brownie test",
-    "test-js": "echo 'Executing pure Hardhat test cases ...'; npx hardhat test; echo 'Executing test cases using Ganache ...'; npx hardhat --config hardhat-ganache-tests.config.js --network ganache test;",
+    "test-js": "echo Executing pure Hardhat test cases ... && npx hardhat test && echo Executing test cases using Ganache ... && npx hardhat --config hardhat-ganache-tests.config.js --network ganache test",
+    "test-tl": "npx hardhat --config hardhat-ganache-tests.config.js --network ganache test ./tests-js/TimelockTest.js",
     "coverage": "npx hardhat coverage",
     "mocha-test-single": "mocha --timeout 10000 --exit --recursive"
   },

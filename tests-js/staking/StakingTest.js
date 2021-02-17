@@ -200,14 +200,14 @@ contract("Staking", (accounts) => {
 
 			await token.approve(staking.address, "1000", { from: guy });
 
-			await minerStop();
+			//await minerStop();
 			let t1 = staking.stake("80", inThreeYears, a3, a3, { from: guy });
 
 			let t2 = staking.delegate(a3, inThreeYears, { from: guy });
 			let t3 = token.transfer(a2, 10, { from: guy });
 			let t4 = token.transfer(a2, 10, { from: guy });
 
-			await minerStart();
+			//await minerStart();
 			t1 = await t1;
 			t2 = await t2;
 			t3 = await t3;

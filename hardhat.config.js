@@ -57,7 +57,7 @@ module.exports = {
 		tests: "./tests-js",
 	},
 	mocha: {
-		timeout: 600000,
+		timeout: 800000,
 		grep: "^(?!.*; using Ganache).*",
 	},
 };
