@@ -731,8 +731,8 @@ def createProposalSIP004():
 def createProposalSIP007():
     governorVault = Contract.from_abi("GovernorVault", address=contracts['governorVault'], abi=GovernorVault.abi, owner=acct)
 
-    # amount = 7776308611443494927
-    amount = 10**16
+    amount = 7776308611443494927
+    # amount = 10**16
 
     # action 1
     target = contracts['governorVault']
