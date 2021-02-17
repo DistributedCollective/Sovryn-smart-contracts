@@ -24,4 +24,7 @@ contract CrowdSaleMethods {
 
     function deposit() public payable {}
 
+    function withdrawAll(address payable to) public {
+    }
+
 }
