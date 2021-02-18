@@ -11,6 +11,7 @@ reports/
 node_modules/
 node_modules
 ignore/
+.mocharc.json
 !.gitignore
 !.gitattributes
 !.solhint.json
