@@ -740,7 +740,7 @@ def createProposalSIP007():
     data = governorVault.transferRbtc.encode_input(contracts['multisig'], amount)
     data = "0x" + data[10:]
 
-    description = "SIP 0007 - Proposal to transfer RBTC raised during the Genesis Pre-order from Bitocracy 1.0 to Bitocracy 2.0. Details: https://github.com/DistributedCollective/SIPS/blob/2e7f6b21092b3c88e1c63174664e28cabf8d3b5d/SIP-0007.md , sha256: 02095ee0fb5c6f69e4b0a190a75db43c5d7fe44c27cae07f7e137e9ae9d5c59e"
+    description = "SIP-0007: Proposal to designate the Exchequer Multisig, and use of funds. Details: https://github.com/DistributedCollective/SIPS/blob/c5a4664043d71589b9065143b33dc9680bd4cfd6/SIP-0007.md , sha256: fe345575661ff2eeb6564cfdc70f632276e803c23acfb595264d2138881ed18e"
 
     governor = Contract.from_abi("GovernorAlphaComp", address=contracts['governor'], abi=GovernorAlphaComp.abi, owner=acct)
     print(governor.address)
