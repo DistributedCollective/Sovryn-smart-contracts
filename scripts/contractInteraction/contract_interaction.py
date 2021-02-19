@@ -747,7 +747,7 @@ def createProposalSIP007():
     signature = "transferTokens(address,address,uint256)"
     data = GovernorVaultOwner.transferTokens.encode_input(contracts['multisig'], contracts['SOV'], 2 * 10**24)
     data = "0x" + data[10:]
-    description = "SIP 0006 - Sovryn Origins Pre-Sale. Details:  , sha256: "
+    description = "SIP-0006: Origins Pre-Sale. Details: https://github.com/DistributedCollective/SIPS/blob/02f836980ee6a4b2992ffb1576e42655ac6fc241/SIP-0006.md , sha256: b6807ded0bd18ddd9d29e189179e23b6d63ef86e93b79143ed03c563770a490d"
 
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
     print(governor.address)
