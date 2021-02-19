@@ -51,6 +51,16 @@ contract OriginInvestorsClaim is Ownable {
 		_;
 	}
 
+	modifier notInVestingList() {
+		require(!vestingList[msg.sender], "address is in the vestingList");
+		_;
+	}
+
+	modifier notWithdrawn() {
+		require(!withdrawnList[msg.sender], "tokens already withdrawn");
+		_;
+	}
+
 	constructor(address vestingRegistryAddress) public {
 		vestingRegistry = VestingRegistry(vestingRegistryAddress);
 		staking = Staking(vestingRegistry.staking());
@@ -85,13 +95,13 @@ contract OriginInvestorsClaim is Ownable {
 
 	function claim() public onlyWhitelisted {
 		if (now < vestingTerm) {
-			if (!vestingList[msg.sender]) createVesting();
+			createVesting();
 		} else {
 			withdraw();
 		}
 	}
 
-	function createVesting() internal {
+	function createVesting() internal notInVestingList {
 		uint256 cliff = vestingTerm.sub(now);
 		uint256 duration = cliff;
 		uint256 amount = investorsAmountsList[msg.sender];
@@ -104,15 +114,12 @@ contract OriginInvestorsClaim is Ownable {
 		vestingRegistry.stakeTokens(vestingContractAddress, amount);
 	}
 
-	function withdraw() internal {
-		require(!withdrawnList[msg.sender], "tokens already withdrawn");
+	function withdraw() internal notInVestingList notWithdrawn {
 		withdrawnList[msg.sender] = true;
 
 		// withdraw only for those claiming after the cliff, i.e. without vesting contracts
 		// those with vestingContracts should withdraw using Vesting.withdrawTokens
 		// from Vesting (VestingLogic) contract
-		if (!vestingList[msg.sender]) {
-			SOVToken.transfer(msg.sender, investorsAmountsList[msg.sender]);
-		}
+		SOVToken.transfer(msg.sender, investorsAmountsList[msg.sender]);
 	}
 }

@@ -102,9 +102,13 @@ contract("OriginInvestorsClaim", (accounts) => {
 	});
 
 	describe("setInvestorsList", () => {
-		it("sets investors list", async () => {
+		it("set investors list", async () => {
 			let tx = await investorsClaim.setInvestorsAmountsList(investors, amounts);
 			expectEvent(tx, "InvestorsAmountsListSet", { qty: new BN(amounts.length) });
+			for (i = 0; i < investors; i++) {
+				amount = await investorsClaim.investorsAmountsList(invertors[i]);
+				expect(amount).to.be.bignumber.equal(new BN(amounts[i]), `wrong investors list assignment at index ${i}`);
+			}
 		});
 
 		it("fails if investors.length != amounts.length", async () => {
@@ -161,6 +165,10 @@ contract("OriginInvestorsClaim", (accounts) => {
 			await investorsClaim.claim({ from: investor3 });
 			balance = await SOV.balanceOf(investor3);
 			expect(balance).to.be.bignumber.equal(amounts[2]);
+		});
+
+		it("investors with vesting contracts created cannot withdraw here", async () => {
+			await expectRevert(investorsClaim.claim({ from: investor1 }), "address is in the vestingList");
 		});
 
 		it("can withdraw only once", async () => {
