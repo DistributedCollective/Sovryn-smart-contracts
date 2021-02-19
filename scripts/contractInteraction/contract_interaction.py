@@ -103,8 +103,8 @@ def main():
     #checkRates()
     #replaceSwapsExternal()
 
-    governorAcceptAdmin("GovernorOwner")
-    governorAcceptAdmin("GovernorAdmin")
+    # governorAcceptAdmin("GovernorOwner")
+    # governorAcceptAdmin("GovernorAdmin")
 
     #replaceLoanTokenLogicOnAllContracts()
 
@@ -114,6 +114,7 @@ def main():
     # setEarlyAccessToken(contracts['iBPro'], contracts['og'])
 
     # createProposalSIP005()
+    createProposalSIP007()
 
 def loadConfig():
     global contracts, acct
@@ -722,6 +723,33 @@ def createProposalSIP005():
     description = "SIP-0005: Redeeming cSOV for SOV. Details: https://github.com/DistributedCollective/SIPS/blob/aee11010c65f8ae5704149aa8fce8230508b9aac/SIP-0005.md , sha256: a593ee922a79be144984842e0158610c14d72544ae28b706f6a856d795de9c1e"
 
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorAdmin'], abi=GovernorAlpha.abi, owner=acct)
+    print(governor.address)
+
+    print([target])
+    print([0])
+    print([signature])
+    print([data])
+    print(description)
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
+
+def createProposalSIP007():
+    GovernorVaultOwner = Contract.from_abi("GovernorVault", address=contracts['GovernorVaultOwner'], abi=GovernorVault.abi, owner=acct)
+
+    # action
+    target = contracts['GovernorVaultOwner']
+    signature = "transferTokens(address,address,uint256)"
+    data = GovernorVaultOwner.transferTokens.encode_input(contracts['multisig'], contracts['SOV'], 2 * 10**24)
+    data = "0x" + data[10:]
+    description = "SIP 0006 - Sovryn Origins Pre-Sale. Details:  , sha256: "
+
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
     print(governor.address)
 
     print([target])
