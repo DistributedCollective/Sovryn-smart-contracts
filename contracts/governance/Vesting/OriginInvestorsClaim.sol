@@ -1,16 +1,17 @@
 pragma solidity ^0.5.17;
+pragma experimental ABIEncoderV2;
 
 import "./VestingRegistry.sol";
 import "../Staking/Staking.sol";
 
 /**
  * @title Origin investors claim vested cSOV tokens
- * @dev this is a one-time throw away contract
+ * @notice // TODO: fund this contract with a total amount of SOV needed to distribute
  */
 contract OriginInvestorsClaim is Ownable {
 	using SafeMath for uint256;
 
-	VestingRegistry public constant vestingRegistry = VestingRegistry(0x80B036ae59B3e38B573837c01BB1DB95515b7E6B);
+	//VestingRegistry public constant vestingRegistry = VestingRegistry(0x80B036ae59B3e38B573837c01BB1DB95515b7E6B);
 
 	///@notice constant used for computing the vesting dates
 	uint256 public constant SIX_WEEKS = 6 weeks;
@@ -18,22 +19,24 @@ contract OriginInvestorsClaim is Ownable {
 	uint256 public constant SOV_VESTING_CLIFF = SIX_WEEKS;
 	uint256 public constant SOV_VESTING_DURATION = SOV_VESTING_CLIFF;
 
-	Staking public staking = Staking(vestingRegistry.staking());
-	uint256 public kickoffTS = staking.kickoffTS();
-	IERC20 public SOVToken = staking.SOVToken();
-	uint256 public vestingTerm = kickoffTS + SOV_VESTING_CLIFF;
+	VestingRegistry public vestingRegistry;
+	Staking public staking;
+	uint256 public kickoffTS;
+	IERC20 public SOVToken;
+	uint256 public vestingTerm;
 
 	//user => flag whether user has already claimed vested SOV
-	mapping(address => bool) public createdVestingList;
-	//user => flag whether user has already withdrawn vested SOV
+	mapping(address => bool) public vestingList;
+	//user => flag whether user has already withdrawn SOV
 	mapping(address => bool) public withdrawnList;
 	//user => flag whether user has admin role
 	mapping(address => bool) public admins;
 
-	mapping(address => uint256) public originInvestorsAmount; // origin investors entitled to claim vested SOV
+	mapping(address => uint256) public investorsAmountsList; // origin investors entitled to claim SOV
 
 	event AdminAdded(address admin);
 	event AdminRemoved(address admin);
+	event InvestorsAmountsListSet(uint256 qty);
 
 	/**
 	 * @dev Throws if called by any account other than the owner or admin.
@@ -44,18 +47,16 @@ contract OriginInvestorsClaim is Ownable {
 	}
 
 	modifier onlyWhitelisted() {
-		require(originInvestorsAmount[msg.sender] != 0, "not whitelisted");
+		require(investorsAmountsList[msg.sender] != 0, "not whitelisted");
 		_;
 	}
 
-	modifier notInCreatedVestingList() {
-		require(!createdVestingList[msg.sender], "Address cannot be processed twice");
-		_;
-	}
-
-	modifier notWithdrawn() {
-		require(!withdrawnList[msg.sender], "Address cannot be processed twice");
-		_;
+	constructor(address vestingRegistryAddress) public {
+		vestingRegistry = VestingRegistry(vestingRegistryAddress);
+		staking = Staking(vestingRegistry.staking());
+		kickoffTS = staking.kickoffTS();
+		SOVToken = staking.SOVToken();
+		vestingTerm = kickoffTS + SOV_VESTING_CLIFF;
 	}
 
 	function addAdmin(address _admin) public onlyOwner {
@@ -68,42 +69,50 @@ contract OriginInvestorsClaim is Ownable {
 		emit AdminRemoved(_admin);
 	}
 
-	function setInvestorsWhitelist(address[] memory investors, uint256[] memory claimAmounts) public onlyAuthorized {
+	//in case we have unclaimed tokens
+	function ownerTtransferBalance(address toAddress) public onlyOwner {
+		SOVToken.transfer(toAddress, SOVToken.balanceOf(address(this)));
+	}
+
+	function setInvestorsAmountsList(address[] memory investors, uint256[] memory claimAmounts) public onlyAuthorized {
 		require(investors.length == claimAmounts.length, "investors.length != claimAmounts.length");
 		for (uint256 i = 0; i < investors.length; i++) {
-			originInvestorsAmount[investors[i]] = claimAmounts[i];
+			investorsAmountsList[investors[i]] = claimAmounts[i];
 		}
+
+		emit InvestorsAmountsListSet(investors.length);
 	}
 
 	function claim() public onlyWhitelisted {
 		if (now < vestingTerm) {
-			createVesting();
+			if (!vestingList[msg.sender]) createVesting();
 		} else {
 			withdraw();
 		}
 	}
 
-	function createVesting() internal notInCreatedVestingList {
+	function createVesting() internal {
 		uint256 cliff = vestingTerm.sub(now);
 		uint256 duration = cliff;
-		uint256 amount = originInvestorsAmount[msg.sender];
-		address vestingContractAddress = vestingRegistry.getVesting(msg.sender);
+		uint256 amount = investorsAmountsList[msg.sender];
+		address vestingContractAddress;
 
-		createdVestingList[msg.sender] = true;
+		vestingList[msg.sender] = true;
 
 		vestingRegistry.createVesting(msg.sender, amount, cliff, duration);
+		vestingContractAddress = vestingRegistry.getVesting(msg.sender);
 		vestingRegistry.stakeTokens(vestingContractAddress, amount);
 	}
 
-	function withdraw() internal notWithdrawn {
+	function withdraw() internal {
+		require(!withdrawnList[msg.sender], "tokens already withdrawn");
 		withdrawnList[msg.sender] = true;
 
-		if (createdVestingList[msg.sender]) {
-			// withdraw from staking
-			staking.withdraw(uint96(originInvestorsAmount[msg.sender]), vestingTerm, msg.sender);
-		} else {
-			// TODO: need to set alowance to the contract
-			SOVToken.transfer(msg.sender, originInvestorsAmount[msg.sender]);
+		// withdraw only for those claiming after the cliff, i.e. without vesting contracts
+		// those with vestingContracts should withdraw using Vesting.withdrawTokens
+		// from Vesting (VestingLogic) contract
+		if (!vestingList[msg.sender]) {
+			SOVToken.transfer(msg.sender, investorsAmountsList[msg.sender]);
 		}
 	}
 }
