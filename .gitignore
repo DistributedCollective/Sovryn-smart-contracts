@@ -23,3 +23,7 @@ coverage.json
 yarn.lock
 solc-select
 .idea/
+.env
+node_modules
+artifacts/
+cache/
