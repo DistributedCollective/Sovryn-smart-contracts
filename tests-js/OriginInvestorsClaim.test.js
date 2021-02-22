@@ -36,10 +36,10 @@ contract("OriginInvestorsClaim", (accounts) => {
 		return kickoffTS.add(new BN(offset));
 	}
 
-	async function checkVestingContractCreated(txHash, investor, cliff, amount) {
-		const vestingAddress = await vestingRegistry.getVesting(investor);
+	async function checkVestingContractCreated(txHash, receiver, cliff, amount) {
+		const vestingAddress = await vestingRegistry.getVesting(receiver);
 		await expectEvent.inTransaction(txHash, vestingRegistry, "VestingCreated", {
-			tokenOwner: investor,
+			tokenOwner: receiver,
 			vesting: vestingAddress,
 			cliff: cliff,
 			duration: cliff,
@@ -81,7 +81,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 	}
 
 	before(async () => {
-		[root, initializer, account1, investor1, investor2, investor3, ...accounts] = accounts;
+		[root, initializer, account1, investor1, investor2, investor3, claimedTokensReceiver, ...accounts] = accounts;
 		investors = [investor1, investor2, investor3];
 		amount1 = new BN(ONE_MILLION);
 		amount2 = amount1.muln(2);
@@ -190,7 +190,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 		});
 	});
 
-	describe.only("process claims", () => {
+	describe("process claims", () => {
 		before(async () => {
 			await createOriginInvestorsClaimContract({ initializeInvestorsList: true });
 			await vestingRegistry.addAdmin(investorsClaim.address);
@@ -199,10 +199,11 @@ contract("OriginInvestorsClaim", (accounts) => {
 		it("should create vesting contract within vesting period", async () => {
 			const timeFromKickoff = getTimeFromKickoff(ONE_WEEK);
 			await setNextBlockTimestamp(timeFromKickoff.toNumber());
-			tx = await investorsClaim.claim({ from: investor1 });
+			tx = await investorsClaim.claim(investor1, { from: investor1 });
 
 			await expectEvent(tx.receipt, "ClaimVested", {
 				investor: investor1,
+				receiver: investor1,
 				amount: amount1,
 			});
 
@@ -213,16 +214,17 @@ contract("OriginInvestorsClaim", (accounts) => {
 			expect(await investorsClaim.investorsAmountsList(investor1)).to.be.bignumber.equal(new BN(0));
 
 			await setNextBlockTimestamp(getTimeFromKickoff(SIX_WEEKS).subn(1).toNumber());
-			tx = await investorsClaim.claim({ from: investor2 });
+			tx = await investorsClaim.claim(claimedTokensReceiver, { from: investor2 });
 
 			await expectEvent(tx.receipt, "ClaimVested", {
 				investor: investor2,
+				receiver: claimedTokensReceiver,
 				amount: amount2,
 			});
 
 			txHash = tx.receipt.transactionHash;
 
-			checkVestingContractCreated(txHash, investor2, new BN(1), amount2);
+			checkVestingContractCreated(txHash, claimedTokensReceiver, new BN(1), amount2);
 
 			expect(await investorsClaim.investorsAmountsList(investor2)).to.be.bignumber.equal(new BN(0));
 
@@ -242,7 +244,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 			expect(balance).to.be.bignumber.equal(new BN(0));
 
 			// await SOV.transfer(vestingRegistry.address, amount3);
-			tx = await investorsClaim.claim({ from: investor3 });
+			tx = await investorsClaim.claim(investor3, { from: investor3 });
 
 			await expectEvent(tx.receipt, "ClaimTransferred", {
 				investor: investor3,
@@ -255,14 +257,14 @@ contract("OriginInvestorsClaim", (accounts) => {
 
 		it("investors with vesting contracts created cannot withdraw here", async () => {
 			await expectRevert(
-				investorsClaim.claim({ from: investor1 }),
+				investorsClaim.claim(investor1, { from: investor1 }),
 				"OriginInvestorsClaim::onlyWhitelisted: not whitelisted or already claimed"
 			);
 		});
 
 		it("can withdraw only once", async () => {
 			await expectRevert(
-				investorsClaim.claim({ from: investor3 }),
+				investorsClaim.claim(investor3, { from: investor3 }),
 				"OriginInvestorsClaim::onlyWhitelisted: not whitelisted or already claimed"
 			);
 		});
@@ -277,7 +279,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 		});
 
 		it("allows to claim only from whitelisted addresses", async () => {
-			await expectRevert(investorsClaim.claim({ from: account1 }), "not whitelisted or already claimed");
+			await expectRevert(investorsClaim.claim(account1, { from: account1 }), "not whitelisted or already claimed");
 		});
 	});
 });
