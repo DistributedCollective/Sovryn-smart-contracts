@@ -113,7 +113,8 @@ def main():
     # setEarlyAccessToken(contracts['iRBTC'], contracts['og'])
     # setEarlyAccessToken(contracts['iBPro'], contracts['og'])
 
-    createProposalSIP005()
+    #createProposalSIP005()
+    queueProposal(1)
 
 def loadConfig():
     global contracts, acct
@@ -738,3 +739,8 @@ def createProposalSIP005():
     #     [signature],
     #     [data],
     #     description)
+
+def queueProposal(id):
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
+    tx = governor.queue(id)
+    tx.info()
