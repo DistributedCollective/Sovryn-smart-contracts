@@ -129,6 +129,10 @@ async function blockNumber() {
 	//return num;
 }
 
+async function lastBlock() {
+	return await rpc({ method: "eth_getBlockByNumber", params: ["latest", true] });
+}
+
 // doesn't work with hardhat
 async function minerStart() {
 	return rpc({ method: "miner_start" });
@@ -177,6 +181,7 @@ module.exports = {
 
 	advanceBlocks,
 	blockNumber,
+	lastBlock,
 	freezeTime,
 	increaseTime,
 	mineBlock,

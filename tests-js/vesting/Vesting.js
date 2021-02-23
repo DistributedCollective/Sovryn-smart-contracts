@@ -1,6 +1,4 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
-const BigNumber = require("bignumber.js");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 const {
 	address,
@@ -12,8 +10,8 @@ const {
 	etherUnsigned,
 	setTime,
 	increaseTime,
+	lastBlock,
 } = require("../Utils/Ethereum");
-//const { before } = require("mocha");
 
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
@@ -60,9 +58,6 @@ contract("Vesting", (accounts) => {
 	});
 
 	describe("constructor", () => {
-		before(async () => {
-			await init();
-		});
 		it("sets the expected values", async () => {
 			let vestingInstance = await Vesting.new(
 				vestingLogic.address,
@@ -199,7 +194,7 @@ contract("Vesting", (accounts) => {
 		});
 	});
 
-	describe("stakeTokens", () => {
+	describe("stakeTokens; using Ganache", () => {
 		let vesting;
 		it("should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff", async () => {
 			vesting = await Vesting.new(
@@ -213,9 +208,8 @@ contract("Vesting", (accounts) => {
 			);
 			vesting = await VestingLogic.at(vesting.address);
 			await token.approve(vesting.address, ONE_MILLON);
-			tx = await vesting.stakeTokens(ONE_MILLON);
-		});
-		it("should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff", async () => {
+			let tx = await vesting.stakeTokens(ONE_MILLON);
+
 			expectEvent(tx, "TokensStaked", {
 				caller: root,
 				amount: ONE_MILLON,
@@ -231,8 +225,8 @@ contract("Vesting", (accounts) => {
 
 		it("should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff", async () => {
 			//let block = await web3.eth.getBlock("latest");
-			let block = await ethers.provider.getBlock("latest");
-			let timestamp = block.timestamp;
+			let block = await lastBlock(); //ethers.provider.getBlock("latest");
+			let timestamp = parseInt(block.timestamp);
 
 			let kickoffTS = await staking.kickoffTS();
 
@@ -261,7 +255,7 @@ contract("Vesting", (accounts) => {
 			let periodFromKickoff = Math.floor((start - 10 - kickoffTS.toNumber()) / (2 * WEEK));
 			let startBuf = periodFromKickoff * 2 * WEEK + kickoffTS.toNumber();
 			let userStakingCheckpoints = await staking.userStakingCheckpoints(vesting.address, startBuf, 0);
-			// trouble
+
 			assert.equal(userStakingCheckpoints.fromBlock.toNumber(), 0);
 			assert.equal(userStakingCheckpoints.stake.toString(), 0);
 
@@ -306,8 +300,7 @@ contract("Vesting", (accounts) => {
 			let numIntervals = Math.floor((end - start) / (4 * WEEK)) + 1;
 			let stakedPerInterval = amount / numIntervals;
 
-			//await time.increase(52 * WEEK);
-			increaseTime(52 * WEEK);
+			await increaseTime(52 * WEEK);
 			await token.approve(vesting.address, amount);
 			await vesting.stakeTokens(amount);
 
@@ -497,8 +490,7 @@ contract("Vesting", (accounts) => {
 			let amountAfterStake = await token.balanceOf(root);
 
 			//time travel
-			//await time.increase(104 * WEEK);
-			increaseTime(104 * WEEK);
+			await increaseTime(104 * WEEK);
 
 			//withdraw
 			let tx = await vesting.withdrawTokens(root);
@@ -536,16 +528,14 @@ contract("Vesting", (accounts) => {
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 
-			//await time.increase(52 * WEEK);
-			increaseTime(52 * WEEK);
+			await increaseTime(52 * WEEK);
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 
 			let amountAfterStake = await token.balanceOf(root);
 
 			//time travel
-			//await time.increase(104 * WEEK);
-			increaseTime(104 * WEEK);
+			await increaseTime(104 * WEEK);
 
 			//withdraw
 			let tx = await vesting.withdrawTokens(root);
@@ -594,8 +584,7 @@ contract("Vesting", (accounts) => {
 			let amountAfterStake = await token.balanceOf(root);
 
 			//time travel
-			//await time.increase(25 * WEEK);
-			increaseTime(25 * WEEK);
+			await increaseTime(25 * WEEK);
 
 			await vesting.withdrawTokens(root, { from: a1 });
 			let amount = await token.balanceOf(root);
@@ -651,7 +640,7 @@ contract("Vesting", (accounts) => {
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 
-			await expectRevert(staking.governanceWithdraw(100, kickoffTS + 52 * WEEK, root), "unauthorized");
+			await expectRevert(staking.governanceWithdraw(100, kickoffTS.toNumber() + 52 * WEEK, root), "unauthorized");
 		});
 
 		it("Shouldn't be possible to use governanceWithdrawTokens by user", async () => {
@@ -694,8 +683,7 @@ contract("Vesting", (accounts) => {
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 
-			//await time.increase(52 * WEEK);
-			increaseTime(52 * WEEK);
+			await increaseTime(52 * WEEK);
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 

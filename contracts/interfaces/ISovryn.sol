@@ -6,14 +6,14 @@
 pragma solidity >=0.5.0 <0.6.0;
 pragma experimental ABIEncoderV2;
 
-import "../contracts/core/State.sol";
-import "../contracts/events/ProtocolSettingsEvents.sol";
-import "../contracts/events/LoanSettingsEvents.sol";
-import "../contracts/events/LoanOpeningsEvents.sol";
-import "../contracts/events/LoanMaintenanceEvents.sol";
-import "../contracts/events/LoanClosingsEvents.sol";
-import "../contracts/events/FeesEvents.sol";
-import "../contracts/events/SwapsEvents.sol";
+import "../core/State.sol";
+import "../events/ProtocolSettingsEvents.sol";
+import "../events/LoanSettingsEvents.sol";
+import "../events/LoanOpeningsEvents.sol";
+import "../events/LoanMaintenanceEvents.sol";
+import "../events/LoanClosingsEvents.sol";
+import "../events/FeesEvents.sol";
+import "../events/SwapsEvents.sol";
 
 contract ISovryn is
 	State,

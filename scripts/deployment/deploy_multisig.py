@@ -22,7 +22,7 @@ def main():
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     contracts = json.load(configFile)
     
-    sovryn = Contract.from_abi("sovryn", address=contracts["protocol"], abi=interface.ISovryn.abi, owner=acct)
+    sovryn = Contract.from_abi("sovryn", address=contracts["protocol"], abi=interface.ISovrynBrownie.abi, owner=acct)
     owners = ['0x52e8f03e7c9c1Ef320ff7C31dB78EAead18E5F85', acct, '0xEaBB83a1cEFc5f50C83BC4252C618d3294152A86']
     requiredConf=2
     deployMultisig(sovryn, acct, owners, requiredConf)
