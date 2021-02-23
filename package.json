@@ -33,6 +33,7 @@
     "ganache-core": "^2.10.2",
     "hardhat": "^2.0.11",
     "hardhat-contract-sizer": "^2.0.2",
+    "hardhat-deploy": "^0.7.0-beta.46",
     "hardhat-log-remover": "^2.0.0",
     "husky": "^4.3.6",
     "prettier": "^2.2.1",
