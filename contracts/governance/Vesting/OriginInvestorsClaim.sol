@@ -14,15 +14,18 @@ contract OriginInvestorsClaim is Ownable {
 
 	//VestingRegistry public constant vestingRegistry = VestingRegistry(0x80B036ae59B3e38B573837c01BB1DB95515b7E6B);
 
+	uint256 totalAmount;
+
 	///@notice constant used for computing the vesting dates
 	uint256 public constant SOV_VESTING_CLIFF = 6 weeks;
 
+	uint256 public kickoffTS;
+	uint256 public vestingTerm;
+	uint256 public investorsQty;
+	bool public investorsListInitialized;
 	VestingRegistry public vestingRegistry;
 	Staking public staking;
-	uint256 public kickoffTS;
 	IERC20 public SOVToken;
-	uint256 public vestingTerm;
-	bool public investorsListInitialized;
 
 	//user => flag whether user has admin role
 	mapping(address => bool) public admins;
@@ -35,6 +38,7 @@ contract OriginInvestorsClaim is Ownable {
 	event InvestorsAmountsListSet(uint256 qty, uint256 totalAmount);
 	event ClaimVested(address indexed investor, address indexed receiver, uint256 amount);
 	event ClaimTransferred(address indexed investor, uint256 amount);
+	event InvestorsAmountsListInitialized(uint256 qty, uint256 totalAmount);
 
 	/**
 	 * @dev Throws if called by any account other than the owner or admin.
@@ -46,6 +50,16 @@ contract OriginInvestorsClaim is Ownable {
 
 	modifier onlyWhitelisted() {
 		require(investorsAmountsList[msg.sender] != 0, "OriginInvestorsClaim::onlyWhitelisted: not whitelisted or already claimed");
+		_;
+	}
+
+	modifier notInitialized() {
+		require(!investorsListInitialized, "OriginInvestorsClaim::setInvestorsAmountsList: the investors list has already been set");
+		_;
+	}
+
+	modifier initialized() {
+		require(investorsListInitialized, "OriginInvestorsClaim::setInvestorsAmountsList: the investors list has not been set yet");
 		_;
 	}
 
@@ -67,7 +81,9 @@ contract OriginInvestorsClaim is Ownable {
 		emit AdminRemoved(_admin);
 	}
 
-	//in case we have unclaimed tokens
+	/**
+	 * @notice in case we have unclaimed tokens or in emergency case
+	 */
 	function authorizedBalanceWithdraw(address toAddress) public onlyAuthorized {
 		require(
 			SOVToken.transfer(toAddress, SOVToken.balanceOf(address(this))),
@@ -76,39 +92,40 @@ contract OriginInvestorsClaim is Ownable {
 	}
 
 	/**
+	 * @notice should ne called after the investors list setup completed
+	 */
+	function setInvestorsAmountsListIntilized() public onlyAuthorized notInitialized {
+		require(
+			SOVToken.balanceOf(address(this)) >= totalAmount,
+			"OriginInvestorsClaim::setInvestorsAmountsList: the contract is not enough financed"
+		);
+
+		investorsListInitialized = true;
+
+		emit InvestorsAmountsListInitialized(investorsQty, totalAmount);
+	}
+
+	/**
 	 *  @notice the contract should be approved or transferred necessary amount of SOV prior to calling the function
-	 *	@param allowanceFrom address that approved total amount for this contract or 0x0 if transferred
 	 *  @param investors is the list of investors addresses
 	 *  @param claimAmounts is the list of amounts for investors investors[i] will receive claimAmounts[i] of SOV
 	 */
-	function setInvestorsAmountsList(
-		address[] memory investors,
-		uint256[] memory claimAmounts,
-		address allowanceFrom
-	) public onlyAuthorized {
-		uint256 totalAmount;
+	function setInvestorsAmountsList(address[] calldata investors, uint256[] calldata claimAmounts) external onlyAuthorized notInitialized {
 		require(
 			investors.length == claimAmounts.length,
 			"OriginInvestorsClaim::setInvestorsAmountsList: investors.length != claimAmounts.length"
 		);
-		require(!investorsListInitialized, "OriginInvestorsClaim::setInvestorsAmountsList: the investors list has already been set");
-		investorsListInitialized = true;
 
 		for (uint256 i = 0; i < investors.length; i++) {
 			investorsAmountsList[investors[i]] = claimAmounts[i];
 			totalAmount = totalAmount.add(claimAmounts[i]);
 		}
 
-		require(
-			SOVToken.balanceOf(address(this)) >= totalAmount ||
-				(allowanceFrom != address(0) && SOVToken.transferFrom(allowanceFrom, address(this), totalAmount)),
-			"OriginInvestorsClaim::setInvestorsAmountsList: the contract is not enough financed or wrong allowance address passed"
-		);
-
+		investorsQty = investorsQty.add(investors.length);
 		emit InvestorsAmountsListSet(investors.length, totalAmount);
 	}
 
-	function claim(address receiver) public onlyWhitelisted {
+	function claim(address receiver) external onlyWhitelisted initialized {
 		if (now < vestingTerm) {
 			createVesting(receiver);
 		} else {
