@@ -36,7 +36,7 @@ contract OriginInvestorsClaim is Ownable {
 	event AdminAdded(address admin);
 	event AdminRemoved(address admin);
 	event InvestorsAmountsListSet(uint256 qty, uint256 totalAmount);
-	event ClaimVested(address indexed investor, address indexed receiver, uint256 amount);
+	event ClaimVested(address indexed investor, uint256 amount);
 	event ClaimTransferred(address indexed investor, uint256 amount);
 	event InvestorsAmountsListInitialized(uint256 qty, uint256 totalAmount);
 
@@ -125,31 +125,31 @@ contract OriginInvestorsClaim is Ownable {
 		emit InvestorsAmountsListSet(investors.length, totalAmount);
 	}
 
-	function claim(address receiver) external onlyWhitelisted initialized {
+	function claim() external onlyWhitelisted initialized {
 		if (now < vestingTerm) {
-			createVesting(receiver);
+			createVesting();
 		} else {
 			transfer();
 		}
 	}
 
-	function createVesting(address receiver) internal {
+	function createVesting() internal {
 		uint256 cliff = vestingTerm.sub(now);
 		uint256 duration = cliff;
 		uint256 amount = investorsAmountsList[msg.sender];
 		address vestingContractAddress;
 
-		vestingContractAddress = vestingRegistry.getVesting(receiver);
-		require(vestingContractAddress == address(0), "OriginInvestorsClaim::withdraw: the receiver has an active vesting contract");
+		vestingContractAddress = vestingRegistry.getVesting(msg.sender);
+		require(vestingContractAddress == address(0), "OriginInvestorsClaim::withdraw: the claimer has an active vesting contract");
 
 		delete investorsAmountsList[msg.sender];
 
-		vestingRegistry.createVesting(receiver, amount, cliff, duration);
-		vestingContractAddress = vestingRegistry.getVesting(receiver);
+		vestingRegistry.createVesting(msg.sender, amount, cliff, duration);
+		vestingContractAddress = vestingRegistry.getVesting(msg.sender);
 		require(SOVToken.transfer(address(vestingRegistry), amount), "OriginInvestorsClaim::withdraw: SOV transfer failed");
 		vestingRegistry.stakeTokens(vestingContractAddress, amount);
 
-		emit ClaimVested(msg.sender, receiver, amount);
+		emit ClaimVested(msg.sender, amount);
 	}
 
 	function transfer() internal {

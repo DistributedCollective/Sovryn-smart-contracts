@@ -299,8 +299,9 @@ contract VestingRegistry is Ownable {
 		require(_vesting != address(0), "vesting address invalid");
 		require(_amount > 0, "amount invalid");
 
-		require(IERC20(SOV).approve(_vesting, _amount),"VestingRegistry::stakeTokes: failed to approve amount for vesting");
+		require(IERC20(SOV).approve(_vesting, _amount), "VestingRegistry::stakeTokes: failed to approve amount for vesting");
 		IVesting(_vesting).stakeTokens(_amount);
+
 		emit TokensStaked(_vesting, _amount);
 	}
 
