@@ -16,7 +16,7 @@ contract("PostCSOV", (accounts) => {
 	const owner = accounts[5];
 	const csovAdmin = accounts[0];
 	const amountUser = web3.utils.toWei("3");
-	console.log("Owner: " + owner);
+	//console.log("Owner: " + owner);
 
 	const totalSupply = web3.utils.toWei("2000000");
 	const pricsSats = "2500";

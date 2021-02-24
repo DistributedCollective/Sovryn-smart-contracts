@@ -143,7 +143,7 @@ contract("DevelopmentFund (Any User Functions)", (accounts) => {
 	});
 
 	it("Anyone could deposit Tokens.", async () => {
-		let value = randomValue();
+		let value = randomValue() + 1;
 		await testToken.mint(userOne, value);
 		await testToken.approve(developmentFund.address, value, { from: userOne });
 		await developmentFund.depositTokens(value, { from: userOne });

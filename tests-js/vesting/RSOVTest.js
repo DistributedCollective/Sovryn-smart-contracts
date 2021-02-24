@@ -81,7 +81,7 @@ contract("RSOV:", (accounts) => {
 		});
 
 		it("fails if transfer is not approved", async () => {
-			await expectRevert(tokenRSOV.mint(100), "ERC20: transfer amount exceeds allowance.");
+			await expectRevert(tokenRSOV.mint(100), "ERC20: transfer amount exceeds allowance");
 		});
 	});
 
