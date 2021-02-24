@@ -6,6 +6,7 @@ import "./IStaking.sol";
 import "../../rsk/RSKAddrValidator.sol";
 import "../Vesting/ITeamVesting.sol";
 import "../ApprovalReceiver.sol";
+import "hardhat/console.sol";
 
 contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	/**
@@ -75,6 +76,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 		uint96 previousBalance = currentBalance(stakeFor, until);
 		//increase stake
+		console.log("previousBalance: %s", previousBalance);
 		_increaseStake(sender, amount, stakeFor, until);
 
 		if (previousBalance == 0) {
@@ -178,10 +180,16 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 end = timestampToLockDate(block.timestamp + duration);
 		uint256 numIntervals = (end - start) / intervalLength + 1;
 		uint256 stakedPerInterval = amount / numIntervals;
+		console.log("Staking end %s, start: %s, numIntervals: %s", end, start, numIntervals);
+		console.log(" stakedPerInterval: %s", stakedPerInterval);
+		console.log("uint96(amount - stakedPerInterval * (numIntervals - 1)): %s", uint96(amount - stakedPerInterval * (numIntervals - 1)));
 		//stakedPerInterval might lose some dust on rounding. add it to the first staking date
 		if (numIntervals > 1) {
 			_stake(msg.sender, uint96(amount - stakedPerInterval * (numIntervals - 1)), start, stakeFor, delegatee, true);
 		}
+		console.log("stakeFor: %s", stakeFor);
+		console.log("balanceOf: %s", balanceOf(stakeFor));
+
 		//stake the rest in 4 week intervals
 		for (uint256 i = start + intervalLength; i <= end; i += intervalLength) {
 			//stakes for itself, delegates to the owner

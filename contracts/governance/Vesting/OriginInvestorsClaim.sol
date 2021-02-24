@@ -35,7 +35,7 @@ contract OriginInvestorsClaim is Ownable {
 
 	event AdminAdded(address admin);
 	event AdminRemoved(address admin);
-	event InvestorsAmountsListSet(uint256 qty, uint256 totalAmount);
+	event InvestorsAmountsListAppended(uint256 qty, uint256 amount);
 	event ClaimVested(address indexed investor, uint256 amount);
 	event ClaimTransferred(address indexed investor, uint256 amount);
 	event InvestorsAmountsListInitialized(uint256 qty, uint256 totalAmount);
@@ -44,7 +44,7 @@ contract OriginInvestorsClaim is Ownable {
 	 * @dev Throws if called by any account other than the owner or admin.
 	 */
 	modifier onlyAuthorized() {
-		require(isOwner() || admins[msg.sender], "OriginInvestorsClaim::onlyAuthorized: unauthorized");
+		require(isOwner() || admins[msg.sender], "OriginInvestorsClaim::onlyAuthorized: should be authorized");
 		_;
 	}
 
@@ -54,12 +54,12 @@ contract OriginInvestorsClaim is Ownable {
 	}
 
 	modifier notInitialized() {
-		require(!investorsListInitialized, "OriginInvestorsClaim::setInvestorsAmountsList: the investors list has already been set");
+		require(!investorsListInitialized, "OriginInvestorsClaim::notInitialized: the investors list should not be set as initialized");
 		_;
 	}
 
 	modifier initialized() {
-		require(investorsListInitialized, "OriginInvestorsClaim::setInvestorsAmountsList: the investors list has not been set yet");
+		require(investorsListInitialized, "OriginInvestorsClaim::initialized: the investors list has not been set yet");
 		_;
 	}
 
@@ -94,7 +94,7 @@ contract OriginInvestorsClaim is Ownable {
 	/**
 	 * @notice should ne called after the investors list setup completed
 	 */
-	function setInvestorsAmountsListIntilized() public onlyAuthorized notInitialized {
+	function setInvestorsAmountsListInitialized() public onlyAuthorized notInitialized {
 		require(
 			SOVToken.balanceOf(address(this)) >= totalAmount,
 			"OriginInvestorsClaim::setInvestorsAmountsList: the contract is not enough financed"
@@ -107,22 +107,32 @@ contract OriginInvestorsClaim is Ownable {
 
 	/**
 	 *  @notice the contract should be approved or transferred necessary amount of SOV prior to calling the function
-	 *  @param investors is the list of investors addresses
+	 *  @param investors is the list of investors addresses to add to the list. Duplicates will be skipped.
 	 *  @param claimAmounts is the list of amounts for investors investors[i] will receive claimAmounts[i] of SOV
 	 */
-	function setInvestorsAmountsList(address[] calldata investors, uint256[] calldata claimAmounts) external onlyAuthorized notInitialized {
+	function appendInvestorsAmountsList(address[] calldata investors, uint256[] calldata claimAmounts)
+		external
+		onlyAuthorized
+		notInitialized
+	{
+		uint256 subQty;
+		uint256 amountBefore = totalAmount;
 		require(
 			investors.length == claimAmounts.length,
-			"OriginInvestorsClaim::setInvestorsAmountsList: investors.length != claimAmounts.length"
+			"OriginInvestorsClaim::appendInvestorsAmountsList: investors.length != claimAmounts.length"
 		);
 
 		for (uint256 i = 0; i < investors.length; i++) {
-			investorsAmountsList[investors[i]] = claimAmounts[i];
-			totalAmount = totalAmount.add(claimAmounts[i]);
+			if (investorsAmountsList[investors[i]] == 0) {
+				investorsAmountsList[investors[i]] = claimAmounts[i];
+				totalAmount = totalAmount.add(claimAmounts[i]);
+			} else {
+				subQty = subQty.add(1);
+			}
 		}
 
-		investorsQty = investorsQty.add(investors.length);
-		emit InvestorsAmountsListSet(investors.length, totalAmount);
+		investorsQty = investorsQty.add(investors.length.sub(subQty));
+		emit InvestorsAmountsListAppended(investors.length.sub(subQty), totalAmount.sub(amountBefore));
 	}
 
 	function claim() external onlyWhitelisted initialized {

@@ -15,13 +15,15 @@ const VestingRegistry = artifacts.require("VestingRegistry");
 const OriginInvestorsClaim = artifacts.require("OriginInvestorsClaim");
 
 const ONE_WEEK = new BN(7 * 24 * 60 * 60);
+const TWO_WEEKS = ONE_WEEK.muln(2);
 const SIX_WEEKS = ONE_WEEK.muln(6); //new BN(6 * 7 * 24 * 60 * 60);
 
 const TOTAL_SUPPLY = "100000000000000000000000000";
 const ONE_MILLION = "1000000000000000000000000";
+const ONE_THOUSAND = "1000000000000000000000";
 const ZERO_ADDRESS = constants.ZERO_ADDRESS;
 
-const pricsSats = "2500";
+const priceSats = "2500";
 
 contract("OriginInvestorsClaim", (accounts) => {
 	let root, initializer, account1, investor1, investor2, investor3;
@@ -42,48 +44,68 @@ contract("OriginInvestorsClaim", (accounts) => {
 			tokenOwner: receiver,
 			vesting: vestingAddress,
 			cliff: cliff,
+			duration: cliff + TWO_WEEKS,
+			amount: amount,
+		});
+
+		//event TokensStaked(address indexed vesting, uint256 amount);
+		await expectEvent.inTransaction(txHash, vestingRegistry, "TokensStaked", {
+			vesting: vestingAddress,
+			amount: amount,
+		});
+
+		const staked = await staking.balanceOf(vestingAddress);
+		expect(staked, "The vesting contract is not staked").to.be.bignumber.equal(amount);
+	}
+
+	/*async function checkVestingContractStaked(txHash, receiver, cliff, amount) {
+		const vestingAddress = await vestingRegistry.getVesting(receiver);
+		await expectEvent.inTransaction(txHash, vestingRegistry, "VestingCreated", {
+			tokenOwner: receiver,
+			vesting: vestingAddress,
+			cliff: cliff,
 			duration: cliff,
 			amount: amount,
 		});
-	}
+	}*/
 
-	async function createOriginInvestorsClaimContract({
-		initializeInvestorsList = false,
-		approve = true,
-		transfer = false,
-		_investors = investors,
-		_amounts = amounts,
-	}) {
-		investorsClaim = await OriginInvestorsClaim.new(vestingRegistry.address);
-		if (initializeInvestorsList) {
-			await fundContract(approve, transfer, _amounts);
-			if (approve) {
-				investorsClaim.setInvestorsAmountsList(_investors, _amounts, initializer);
-			} else if (transfer) {
-				investorsClaim.setInvestorsAmountsList(_investors, _amounts, constants.ZERO_ADDRESS);
-			}
+	async function appendInvestorsAmountsList(_investors, _amounts, _fundContract = false) {
+		await investorsClaim.appendInvestorsAmountsList(_investors, _amounts);
+		if (_fundContract) {
+			await fundContract(_amounts);
 		}
 	}
 
-	async function fundContract({ approve = true, transfer = false, _amounts = amounts }) {
+	async function fundContract(_amounts = amounts) {
 		const totalReducer = (accumulator, currentValue) => accumulator.add(currentValue);
 		const total = _amounts.reduce(totalReducer);
 		await SOV.transfer(initializer, total);
 		await investorsClaim.authorizedBalanceWithdraw(root); //nullify balance
-		if (!approve && !transfer) throw "createOriginInvestorsClaimContract: the contract is not funded";
 
-		if (approve) {
-			await SOV.approve(investorsClaim.address, total, { from: initializer });
-		} else {
-			// transfer
-			await SOV.transfer(investorsClaim.address, total, { from: initializer });
+		await SOV.transfer(investorsClaim.address, total, { from: initializer });
+	}
+
+	async function createOriginInvestorsClaimContract({
+		_initializeInvestorsList = false,
+		_fundContract = false,
+		_investors = investors,
+		_amounts = amounts,
+	}) {
+		investorsClaim = await OriginInvestorsClaim.new(vestingRegistry.address);
+
+		if (_initializeInvestorsList) {
+			await appendInvestorsAmountsList(_investors, _amounts);
+		}
+
+		if (_fundContract) {
+			await fundContract(_amounts);
 		}
 	}
 
 	before(async () => {
 		[root, initializer, account1, investor1, investor2, investor3, claimedTokensReceiver, ...accounts] = accounts;
 		investors = [investor1, investor2, investor3];
-		amount1 = new BN(ONE_MILLION);
+		amount1 = new BN(ONE_THOUSAND);
 		amount2 = amount1.muln(2);
 		amount3 = amount1.muln(5);
 		amounts = [amount1, amount2, amount3];
@@ -107,7 +129,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 			vestingFactory.address,
 			SOV.address,
 			[cSOV1.address, cSOV2.address],
-			pricsSats,
+			priceSats,
 			staking.address,
 			feeSharingProxy.address,
 			account1
@@ -116,115 +138,126 @@ contract("OriginInvestorsClaim", (accounts) => {
 
 		kickoffTS = await staking.kickoffTS.call();
 
-		await createOriginInvestorsClaimContract({ initializeInvestorsList: true, approve: true, transfer: false });
+		await createOriginInvestorsClaimContract({ _initializeInvestorsList: true });
 
 		await vestingRegistry.addAdmin(investorsClaim.address); //TODO: after deploy run addAdmin(OriginInvestorsClaim address)
 	});
 
 	describe("setInvestorsList", () => {
 		beforeEach(async () => {
-			await createOriginInvestorsClaimContract({ initializeInvestorsList: false });
-			await fundContract({ approve: true, transfer: false });
+			await createOriginInvestorsClaimContract({ _initializeInvestorsList: false, _fundContract: true });
 		});
 
 		it("set investors list", async () => {
-			// transfer
+			//set first chunk of the list
+			let tx = await investorsClaim.appendInvestorsAmountsList(investors.slice(0, 2), amounts.slice(0, 2));
+			expectEvent(tx, "InvestorsAmountsListAppended", {
+				qty: new BN(amounts.slice(0, 2).length),
+				amount: amount1.add(amount2),
+			});
 
-			await fundContract({ approve: false, transfer: true });
+			await verifyAmounts(2);
 
-			let tx = await investorsClaim.setInvestorsAmountsList(investors, amounts, constants.ZERO_ADDRESS);
-			expectEvent(tx, "InvestorsAmountsListSet", { qty: new BN(amounts.length), totalAmount: amount1.add(amount2).add(amount3) });
+			//add to the list
+			tx = await investorsClaim.appendInvestorsAmountsList(investors, amounts);
+			expectEvent(tx, "InvestorsAmountsListAppended", { qty: new BN(1), amount: amount3 });
 
-			await verifyAmounts();
+			await verifyAmounts(3);
 
-			// allowance
-			await createOriginInvestorsClaimContract({ initializeInvestorsList: false });
-			await fundContract({ approve: true, transfer: false });
-
-			tx = await investorsClaim.setInvestorsAmountsList(investors, amounts, initializer);
-			expectEvent(tx, "InvestorsAmountsListSet", { qty: new BN(amounts.length), totalAmount: amount1.add(amount2).add(amount3) });
-
-			await verifyAmounts();
-
-			async function verifyAmounts() {
-				for (i = 0; i < investors; i++) {
-					amount = await investorsClaim.investorsAmountsList(invertors[i]);
+			async function verifyAmounts(upperBoundary) {
+				for (i = 0; i < upperBoundary; i++) {
+					amount = await investorsClaim.investorsAmountsList(investors[i]);
 					expect(amount).to.be.bignumber.equal(new BN(amounts[i]), `wrong investors list assignment at index ${i}`);
 				}
 			}
 
 			//allowance with wrong 0x0 address param
-			await createOriginInvestorsClaimContract({ initializeInvestorsList: false });
-			await fundContract({ approve: true, transfer: false });
+			await createOriginInvestorsClaimContract({ _initializeInvestorsList: true, _fundContract: false });
 			//await SOV.transfer(root, await SOV.balanceOf(initializer), { from: initializer });
+			await expectRevert(
+				investorsClaim.setInvestorsAmountsListInitialized(),
+				"OriginInvestorsClaim::setInvestorsAmountsList: the contract is not enough financed"
+			);
+
+			await fundContract(amounts);
+			await investorsClaim.setInvestorsAmountsListInitialized();
 
 			await expectRevert(
-				investorsClaim.setInvestorsAmountsList(investors, amounts, constants.ZERO_ADDRESS),
-				"OriginInvestorsClaim::setInvestorsAmountsList: the contract is not enough financed or wrong allowance address passed"
+				investorsClaim.appendInvestorsAmountsList(investors, amounts),
+				"OriginInvestorsClaim::notInitialized: the investors list should not be set as initialized"
 			);
 		});
 
-		it("can load investors list only once", async () => {
-			await createOriginInvestorsClaimContract({ initializeInvestorsList: true, transfer: true });
-			//await investorsClaim.setInvestorsAmountsList(investors, amounts, initializer); // if transferred then allowanceFrom (initializer) doesn't matter
+		it("cannot add investors to the list after setInvestorsAmountsListIntilized() called", async () => {
+			await createOriginInvestorsClaimContract({ _initializeInvestorsList: true, _fundContract: true });
+
+			await investorsClaim.setInvestorsAmountsListInitialized();
+
 			await expectRevert(
-				investorsClaim.setInvestorsAmountsList(investors, amounts, constants.ZERO_ADDRESS),
-				"OriginInvestorsClaim::setInvestorsAmountsList: the investors list has already been set"
-			);
-			await expectRevert(
-				investorsClaim.setInvestorsAmountsList(investors, amounts, initializer),
-				"OriginInvestorsClaim::setInvestorsAmountsList: the investors list has already been set"
+				investorsClaim.appendInvestorsAmountsList(investors, amounts),
+				"OriginInvestorsClaim::notInitialized: the investors list should not be set as initialized"
 			);
 		});
 
 		it("fails if investors.length != amounts.length", async () => {
+			await createOriginInvestorsClaimContract({ _initializeInvestorsList: true, _fundContract: true });
+
 			const investorsReduced = investors.slice(1);
 			await expectRevert(
-				investorsClaim.setInvestorsAmountsList(investorsReduced, amounts, initializer),
+				investorsClaim.appendInvestorsAmountsList(investorsReduced, amounts),
 				"investors.length != claimAmounts.length"
 			);
 		});
 
 		it("only authorised can whitelist investors", async () => {
-			await expectRevert(investorsClaim.setInvestorsAmountsList(investors, amounts, initializer, { from: account1 }), "unauthorized");
+			await expectRevert(
+				investorsClaim.appendInvestorsAmountsList(investors, amounts, { from: account1 }),
+				"OriginInvestorsClaim::onlyAuthorized: should be authorized"
+			);
 		});
 	});
 
 	describe("process claims", () => {
 		before(async () => {
-			await createOriginInvestorsClaimContract({ initializeInvestorsList: true });
+			await createOriginInvestorsClaimContract({ _initializeInvestorsList: true, _fundContract: true });
 			await vestingRegistry.addAdmin(investorsClaim.address);
 			//await fundContract({ approve: true, transfer: false });
 		});
-		it("should create vesting contract within vesting period", async () => {
+		it.only("should create vesting contract within vesting period", async () => {
+			await expectRevert(
+				investorsClaim.claim({ from: investor1 }),
+				"OriginInvestorsClaim::initialized: the investors list has not been set yet"
+			);
+
+			await investorsClaim.setInvestorsAmountsListInitialized();
+
 			const timeFromKickoff = getTimeFromKickoff(ONE_WEEK);
 			await setNextBlockTimestamp(timeFromKickoff.toNumber());
-			tx = await investorsClaim.claim(investor1, { from: investor1 });
+			tx = await investorsClaim.claim({ from: investor1 });
 
 			await expectEvent(tx.receipt, "ClaimVested", {
 				investor: investor1,
-				receiver: investor1,
 				amount: amount1,
 			});
 
 			let txHash = tx.receipt.transactionHash;
 
-			checkVestingContractCreated(txHash, investor1, SIX_WEEKS.sub(ONE_WEEK), amount1);
+			await checkVestingContractCreated(txHash, investor1, SIX_WEEKS.sub(ONE_WEEK), amount1);
+			//checkVestingContractStaked();
 
 			expect(await investorsClaim.investorsAmountsList(investor1)).to.be.bignumber.equal(new BN(0));
 
 			await setNextBlockTimestamp(getTimeFromKickoff(SIX_WEEKS).subn(1).toNumber());
-			tx = await investorsClaim.claim(claimedTokensReceiver, { from: investor2 });
+			tx = await investorsClaim.claim({ from: investor2 });
 
 			await expectEvent(tx.receipt, "ClaimVested", {
 				investor: investor2,
-				receiver: claimedTokensReceiver,
 				amount: amount2,
 			});
 
 			txHash = tx.receipt.transactionHash;
 
-			checkVestingContractCreated(txHash, claimedTokensReceiver, new BN(1), amount2);
+			checkVestingContractCreated(txHash, investor2, new BN(1), amount2);
 
 			expect(await investorsClaim.investorsAmountsList(investor2)).to.be.bignumber.equal(new BN(0));
 
@@ -244,7 +277,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 			expect(balance).to.be.bignumber.equal(new BN(0));
 
 			// await SOV.transfer(vestingRegistry.address, amount3);
-			tx = await investorsClaim.claim(investor3, { from: investor3 });
+			tx = await investorsClaim.claim({ from: investor3 });
 
 			await expectEvent(tx.receipt, "ClaimTransferred", {
 				investor: investor3,
@@ -257,7 +290,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 
 		it("investors with vesting contracts created cannot withdraw here", async () => {
 			await expectRevert(
-				investorsClaim.claim(investor1, { from: investor1 }),
+				investorsClaim.claim({ from: investor1 }),
 				"OriginInvestorsClaim::onlyWhitelisted: not whitelisted or already claimed"
 			);
 		});
@@ -279,7 +312,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 		});
 
 		it("allows to claim only from whitelisted addresses", async () => {
-			await expectRevert(investorsClaim.claim(account1, { from: account1 }), "not whitelisted or already claimed");
+			await expectRevert(investorsClaim.claim({ from: account1 }), "not whitelisted or already claimed");
 		});
 	});
 });

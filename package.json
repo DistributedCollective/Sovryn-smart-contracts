@@ -54,12 +54,6 @@
     "coverage": "npx hardhat coverage",
     "mocha-test-single": "mocha --timeout 10000 --exit --recursive"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn prettier && yarn lint-contracts",
-      "pre-push": "yarn test-js"
-    }
-  },
   "dependencies": {
     "phantomjs-prebuilt": "^2.1.16",
     "sol2uml": "^1.1.17"
