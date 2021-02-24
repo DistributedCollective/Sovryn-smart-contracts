@@ -18,6 +18,6 @@ script:
   - npm run lint-contracts
   - npm run test-js
 
-# after_script:
-#   - node --max-old-space-size=6144 ./node_modules/.bin/truffle run coverage
-#   - cat coverage/lcov.info | coveralls
+after_script:
+  - npm run coverage
+  - cat coverage/lcov.info | coveralls
