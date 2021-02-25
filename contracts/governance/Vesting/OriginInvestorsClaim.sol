@@ -116,7 +116,7 @@ contract OriginInvestorsClaim is Ownable {
 		notInitialized
 	{
 		uint256 subQty;
-		uint256 amountBefore = totalAmount;
+		uint256 sumAmount;
 		require(
 			investors.length == claimAmounts.length,
 			"OriginInvestorsClaim::appendInvestorsAmountsList: investors.length != claimAmounts.length"
@@ -125,14 +125,15 @@ contract OriginInvestorsClaim is Ownable {
 		for (uint256 i = 0; i < investors.length; i++) {
 			if (investorsAmountsList[investors[i]] == 0) {
 				investorsAmountsList[investors[i]] = claimAmounts[i];
-				totalAmount = totalAmount.add(claimAmounts[i]);
+				sumAmount = sumAmount.add(claimAmounts[i]);
 			} else {
 				subQty = subQty.add(1);
 			}
 		}
 
 		investorsQty = investorsQty.add(investors.length.sub(subQty));
-		emit InvestorsAmountsListAppended(investors.length.sub(subQty), totalAmount.sub(amountBefore));
+		totalAmount = totalAmount.add(sumAmount);
+		emit InvestorsAmountsListAppended(investors.length.sub(subQty), sumAmount);
 	}
 
 	function claim() external onlyWhitelisted initialized {
