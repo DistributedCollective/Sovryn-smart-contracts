@@ -113,10 +113,8 @@ def main():
     # setEarlyAccessToken(contracts['iRBTC'], contracts['og'])
     # setEarlyAccessToken(contracts['iBPro'], contracts['og'])
 
-    # createProposalSIP005()
-    checkVotingPower()
-    createProposalSIP006()
     createProposalSIP008()
+
 
 def loadConfig():
     global contracts, acct
@@ -739,6 +737,7 @@ def createProposalSIP005():
     #     [data],
     #     description)
 
+
 def checkVotingPower():
 
     staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
@@ -799,3 +798,14 @@ def createProposalSIP008():
     #     [signature],
     #     [data],
     #     description)
+
+def queueProposal(id):
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
+    tx = governor.queue(id)
+    tx.info()
+
+def executeProposal(id):
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
+    tx = governor.execute(id)
+    tx.info()
+
