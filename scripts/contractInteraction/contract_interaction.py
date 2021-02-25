@@ -113,23 +113,18 @@ def main():
     # setEarlyAccessToken(contracts['iRBTC'], contracts['og'])
     # setEarlyAccessToken(contracts['iBPro'], contracts['og'])
 
-    #createProposalSIP005()
-    #queueProposal(1)
-    #readOwner('0x80ec7ADd6CC1003BBEa89527ce93722e1DaD5c2a')
-    executeProposal(1)
+    createProposalSIP008()
+
 
 def loadConfig():
     global contracts, acct
     this_network = network.show_active()
     if this_network == "rsk-mainnet":
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
-    elif this_network == "testnet":
+    elif this_network == "rsk-testnet":
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     contracts = json.load(configFile)
     acct = accounts.load("rskdeployer")
-    
-
-
     
 def readLendingFee():
     sovryn = Contract.from_abi("sovryn", address='0xBAC609F5C8bb796Fa5A31002f12aaF24B7c35818', abi=interface.ISovrynBrownie.abi, owner=acct)
@@ -742,6 +737,68 @@ def createProposalSIP005():
     #     [data],
     #     description)
 
+
+def checkVotingPower():
+
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+
+    votingPower = staking.getCurrentVotes(acct)
+
+    print('======================================')
+    print('Your Address: '+str(acct))
+    print('Your Voting Power: '+str(votingPower))
+    print('======================================')
+
+def createProposalSIP006():
+    # action
+    target = contracts['SOV']
+    signature = "name()"
+    data = "0x"
+    description = "SIP-0006 (A1): Origin Pre-Sale: Amendment 1, Details:  https://github.com/DistributedCollective/SIPS/blob/92036332c739d39e2df2fb15a21e8cbc05182ee7/SIP-0006(A1).md, sha256: 5f832f8e78b461d6d637410b55a66774925756489222f8aa13b37f1828a1aa4b"
+
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
+
+    print('Governor Address:    '+governor.address)
+    print('Target:              '+str([target]))
+    print('Values:              '+str([0]))
+    print('Signature:           '+str([signature]))
+    print('Data:                '+str([data]))
+    print('Description:         '+str(description))
+    print('======================================')
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
+
+def createProposalSIP008():
+    # action
+    target = contracts['SOV']
+    signature = "symbol()"
+    data = "0x"
+    description = "SIP-0008: Sovryn Bug Bounty Program, Details:  https://github.com/DistributedCollective/SIPS/blob/a8cf098d21e5d4b0357906687374a4320c4f00bd/SIP-0008.md, sha256: a201aa8d031e5c95d4a63cc86758adb1e4a65f6a0a915eb7499d0cac332e75ba"
+
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
+
+    print('Governor Address:    '+governor.address)
+    print('Target:              '+str([target]))
+    print('Values:              '+str([0]))
+    print('Signature:           '+str([signature]))
+    print('Data:                '+str([data]))
+    print('Description:         '+str(description))
+    print('======================================')
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
+
 def queueProposal(id):
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
     tx = governor.queue(id)
@@ -751,3 +808,4 @@ def executeProposal(id):
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
     tx = governor.execute(id)
     tx.info()
+
