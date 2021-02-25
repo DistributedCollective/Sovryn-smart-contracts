@@ -116,6 +116,7 @@ def main():
     # createProposalSIP005()
     checkVotingPower()
     createProposalSIP006()
+    createProposalSIP008()
 
 def loadConfig():
     global contracts, acct
@@ -755,6 +756,31 @@ def createProposalSIP006():
     signature = "name()"
     data = "0x"
     description = "SIP-0006 (A1): Origin Pre-Sale: Amendment 1, Details:  https://github.com/DistributedCollective/SIPS/blob/92036332c739d39e2df2fb15a21e8cbc05182ee7/SIP-0006(A1).md, sha256: 5f832f8e78b461d6d637410b55a66774925756489222f8aa13b37f1828a1aa4b"
+
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
+
+    print('Governor Address:    '+governor.address)
+    print('Target:              '+str([target]))
+    print('Values:              '+str([0]))
+    print('Signature:           '+str([signature]))
+    print('Data:                '+str([data]))
+    print('Description:         '+str(description))
+    print('======================================')
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
+
+def createProposalSIP008():
+    # action
+    target = contracts['SOV']
+    signature = "symbol()"
+    data = "0x"
+    description = "SIP-0008: Sovryn Bug Bounty Program, Details:  https://github.com/DistributedCollective/SIPS/blob/a8cf098d21e5d4b0357906687374a4320c4f00bd/SIP-0008.md, sha256: a201aa8d031e5c95d4a63cc86758adb1e4a65f6a0a915eb7499d0cac332e75ba"
 
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
 
