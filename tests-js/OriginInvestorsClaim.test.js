@@ -19,7 +19,6 @@ const TWO_WEEKS = ONE_WEEK.muln(2);
 const SIX_WEEKS = ONE_WEEK.muln(6); //new BN(6 * 7 * 24 * 60 * 60);
 
 const TOTAL_SUPPLY = "100000000000000000000000000";
-const ONE_MILLION = "1000000000000000000000000";
 const ONE_THOUSAND = "1000000000000000000000";
 const ZERO_ADDRESS = constants.ZERO_ADDRESS;
 
@@ -38,13 +37,13 @@ contract("OriginInvestorsClaim", (accounts) => {
 		return kickoffTS.add(new BN(offset));
 	}
 
-	async function checkVestingContractCreated(txHash, receiver, cliff, amount) {
+	async function checkVestingContractCreatedAndStaked(txHash, receiver, cliff, amount) {
 		const vestingAddress = await vestingRegistry.getVesting(receiver);
 		await expectEvent.inTransaction(txHash, vestingRegistry, "VestingCreated", {
 			tokenOwner: receiver,
 			vesting: vestingAddress,
 			cliff: cliff,
-			duration: cliff + TWO_WEEKS,
+			duration: cliff,
 			amount: amount,
 		});
 
@@ -57,17 +56,6 @@ contract("OriginInvestorsClaim", (accounts) => {
 		const staked = await staking.balanceOf(vestingAddress);
 		expect(staked, "The vesting contract is not staked").to.be.bignumber.equal(amount);
 	}
-
-	/*async function checkVestingContractStaked(txHash, receiver, cliff, amount) {
-		const vestingAddress = await vestingRegistry.getVesting(receiver);
-		await expectEvent.inTransaction(txHash, vestingRegistry, "VestingCreated", {
-			tokenOwner: receiver,
-			vesting: vestingAddress,
-			cliff: cliff,
-			duration: cliff,
-			amount: amount,
-		});
-	}*/
 
 	async function appendInvestorsAmountsList(_investors, _amounts, _fundContract = false) {
 		await investorsClaim.appendInvestorsAmountsList(_investors, _amounts);
@@ -109,9 +97,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 		amount2 = amount1.muln(2);
 		amount3 = amount1.muln(5);
 		amounts = [amount1, amount2, amount3];
-		//});
 
-		//beforeEach(async () => {
 		SOV = await SOV_ABI.new(TOTAL_SUPPLY);
 		cSOV1 = await TestToken.new("cSOV1", "cSOV1", 18, TOTAL_SUPPLY);
 		cSOV2 = await TestToken.new("cSOV2", "cSOV2", 18, TOTAL_SUPPLY);
@@ -140,7 +126,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 
 		await createOriginInvestorsClaimContract({ _initializeInvestorsList: true });
 
-		await vestingRegistry.addAdmin(investorsClaim.address); //TODO: after deploy run addAdmin(OriginInvestorsClaim address)
+		await vestingRegistry.addAdmin(investorsClaim.address);
 	});
 
 	describe("setInvestorsList", () => {
@@ -158,7 +144,6 @@ contract("OriginInvestorsClaim", (accounts) => {
 
 			await verifyAmounts(2);
 
-			//add to the list
 			tx = await investorsClaim.appendInvestorsAmountsList(investors, amounts);
 			expectEvent(tx, "InvestorsAmountsListAppended", { qty: new BN(1), amount: amount3 });
 
@@ -171,9 +156,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 				}
 			}
 
-			//allowance with wrong 0x0 address param
 			await createOriginInvestorsClaimContract({ _initializeInvestorsList: true, _fundContract: false });
-			//await SOV.transfer(root, await SOV.balanceOf(initializer), { from: initializer });
 			await expectRevert(
 				investorsClaim.setInvestorsAmountsListInitialized(),
 				"OriginInvestorsClaim::setInvestorsAmountsList: the contract is not enough financed"
@@ -223,7 +206,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 			await vestingRegistry.addAdmin(investorsClaim.address);
 			//await fundContract({ approve: true, transfer: false });
 		});
-		it.only("should create vesting contract within vesting period", async () => {
+		it("should create vesting contract within vesting period", async () => {
 			await expectRevert(
 				investorsClaim.claim({ from: investor1 }),
 				"OriginInvestorsClaim::initialized: the investors list has not been set yet"
@@ -242,8 +225,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 
 			let txHash = tx.receipt.transactionHash;
 
-			await checkVestingContractCreated(txHash, investor1, SIX_WEEKS.sub(ONE_WEEK), amount1);
-			//checkVestingContractStaked();
+			await checkVestingContractCreatedAndStaked(txHash, investor1, SIX_WEEKS.sub(ONE_WEEK), amount1);
 
 			expect(await investorsClaim.investorsAmountsList(investor1)).to.be.bignumber.equal(new BN(0));
 
@@ -257,7 +239,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 
 			txHash = tx.receipt.transactionHash;
 
-			checkVestingContractCreated(txHash, investor2, new BN(1), amount2);
+			await checkVestingContractCreatedAndStaked(txHash, investor2, new BN(1), amount2);
 
 			expect(await investorsClaim.investorsAmountsList(investor2)).to.be.bignumber.equal(new BN(0));
 
@@ -297,7 +279,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 
 		it("can withdraw only once", async () => {
 			await expectRevert(
-				investorsClaim.claim(investor3, { from: investor3 }),
+				investorsClaim.claim({ from: investor3 }),
 				"OriginInvestorsClaim::onlyWhitelisted: not whitelisted or already claimed"
 			);
 		});

@@ -52,11 +52,10 @@ def main():
    
     #claimContract = acct.deploy(OriginInvestorsClaim, contracts["VestingRegistry"])
 
-    #vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
-
+    #vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, 
     # need to be owner to transfer or mint
     sov = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
-
+    '''
     #deploy the staking contracts
     stakingLogic = acct.deploy(Staking)
     staking = acct.deploy(StakingProxy, contracts['SOV'])
@@ -88,6 +87,7 @@ def main():
     # this is the one who's tx got reverted
     vestingRegistry.setBlacklistFlag("0xd970fF09681a05e644cD28980B94a22c32c9526B", True)
     
+    vestingRegistry = Contract.from_abi("VestingRegistry", address="0x440cFF946B561364022674d853FaaB22cC594F73", abi=VestingRegistry.abi, owner=acct)
     claimContract = acct.deploy(OriginInvestorsClaim, vestingRegistry.address)
 
     vestingRegistry.addAdmin(claimContract.address)
@@ -109,5 +109,6 @@ def main():
     claimContract.appendInvestorsAmountsList(['0x88530bbfC00A149A51D6D72F7FA54c97C5ff363C', '0x2bD2201bfe156a71EB0d02837172FFc237218505', '0x7BE508451Cd748Ba55dcBE75c8067f9420909b49',
 '0x96b6e7DC48066655E0388a1b6351e6719eDB7d52',
 '0x6Df0d206431905C8D262DDB56c7928a8e4C4c040','0xA987a709f4A93eC25738FeC0F8d6189260459ed7'],[1500 * 10 ** 18, 5000 * 10 ** 18, 1000 * 10 ** 18, 500 * 10 ** 18, 2000 * 10 ** 18, 7000 * 10 ** 18])
-
-    claimContract.setInvestorsAmountsListIntilized()
+    '''
+    claimContract = Contract.from_abi("OriginInvestorsClaim", address="0xcC60E8157a2A24E7184fb02aD8d724627C2e97D4", abi=OriginInvestorsClaim.abi, owner=acct)
+    claimContract.setInvestorsAmountsListInitialized()
