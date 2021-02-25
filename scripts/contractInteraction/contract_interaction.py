@@ -113,20 +113,18 @@ def main():
     # setEarlyAccessToken(contracts['iRBTC'], contracts['og'])
     # setEarlyAccessToken(contracts['iBPro'], contracts['og'])
 
-    createProposalSIP005()
+    # createProposalSIP005()
+    checkVotingPower()
 
 def loadConfig():
     global contracts, acct
     this_network = network.show_active()
     if this_network == "rsk-mainnet":
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
-    elif this_network == "testnet":
+    elif this_network == "rsk-testnet":
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     contracts = json.load(configFile)
     acct = accounts.load("rskdeployer")
-    
-
-
     
 def readLendingFee():
     sovryn = Contract.from_abi("sovryn", address='0xBAC609F5C8bb796Fa5A31002f12aaF24B7c35818', abi=interface.ISovrynBrownie.abi, owner=acct)
@@ -738,3 +736,14 @@ def createProposalSIP005():
     #     [signature],
     #     [data],
     #     description)
+
+def checkVotingPower():
+
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+
+    votingPower = staking.getCurrentVotes(acct)
+
+    print('======================================')
+    print('Your Address: '+str(acct))
+    print('Your Voting Power: '+str(votingPower))
+    print('======================================')
