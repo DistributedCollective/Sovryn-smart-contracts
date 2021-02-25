@@ -115,6 +115,7 @@ def main():
 
     # createProposalSIP005()
     checkVotingPower()
+    createProposalSIP006()
 
 def loadConfig():
     global contracts, acct
@@ -747,3 +748,28 @@ def checkVotingPower():
     print('Your Address: '+str(acct))
     print('Your Voting Power: '+str(votingPower))
     print('======================================')
+
+def createProposalSIP006():
+    # action
+    target = contracts['SOV']
+    signature = "name()"
+    data = "0x"
+    description = "SIP-0006 (A1): Origin Pre-Sale: Amendment 1, Details:  https://github.com/DistributedCollective/SIPS/blob/92036332c739d39e2df2fb15a21e8cbc05182ee7/SIP-0006(A1).md, sha256: 5f832f8e78b461d6d637410b55a66774925756489222f8aa13b37f1828a1aa4b"
+
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
+
+    print('Governor Address:    '+governor.address)
+    print('Target:              '+str([target]))
+    print('Values:              '+str([0]))
+    print('Signature:           '+str([signature]))
+    print('Data:                '+str([data]))
+    print('Description:         '+str(description))
+    print('======================================')
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
