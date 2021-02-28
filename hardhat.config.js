@@ -51,6 +51,16 @@ module.exports = {
 	},
 	networks: {
 		hardhat: {},
+		rskTestnet: {
+			url: "https://public-node.testnet.rsk.co/",
+			accounts: { mnemonic: "brownie", count: 10 },
+			network_id: 31,
+			confirmations: 4,
+		},
+		rskMainnet: {
+			url: "https://public-node.rsk.co/",
+			network_id: 30,
+		},
 	},
 	paths: {
 		sources: "./contracts",
