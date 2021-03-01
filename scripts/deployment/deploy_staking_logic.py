@@ -49,7 +49,8 @@ def main():
     print('''
     next steps: 
     STEP 1: SIP
-     - create governance SIP staking.setImplementation(newStakingLogic.address)
+     - create governance SIP to execute staking proxy 
+       staking.setImplementation(newStakingLogic.address)
      - vote on SIP
      - in 3 days after SIP executed (in 3 days ater voting) run deploy_orig_claiming ")
 
