@@ -56,6 +56,9 @@ module.exports = {
 			accounts: { mnemonic: "brownie", count: 10 },
 			network_id: 31,
 			confirmations: 4,
+			gasMultiplier: 1.25,
+			//timeout: 20000, // increase if needed; 20000 is the default value
+			//allowUnlimitedContractSize, //to overcome EIP170 contrtact size restriction on the testnet; i.e. console.log adds a decent overhead to the contracts; use with care, don't forget to comment after usage
 		},
 		rskPublicMainnet: {
 			url: "https://public-node.rsk.co/",
@@ -66,6 +69,9 @@ module.exports = {
 			accounts: { mnemonic: "brownie", count: 10 },
 			network_id: 31,
 			confirmations: 4,
+			gasMultiplier: 1.25,
+			//timeout: 20000, // increase if needed; 20000 is the default value
+			//allowUnlimitedContractSize, //to overcome EIP170 contrtact size restriction on the testnet; i.e. console.log adds a decent overhead to the contracts; use with care, don't forget to comment after usage
 		},
 		rskSovrynMainnet: {
 			url: "https://mainnet.sovryn.app/rpc",
