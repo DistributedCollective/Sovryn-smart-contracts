@@ -113,7 +113,8 @@ def main():
     # setEarlyAccessToken(contracts['iRBTC'], contracts['og'])
     # setEarlyAccessToken(contracts['iBPro'], contracts['og'])
 
-    createProposalSIP008()
+    # createProposalSIP008()
+    createProposalSIP009()
 
 
 def loadConfig():
@@ -809,3 +810,30 @@ def executeProposal(id):
     tx = governor.execute(id)
     tx.info()
 
+def createProposalSIP009():
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+
+    # action
+    target = contracts['Staking']
+    signature = "setImplementation(address)"
+    data = staking.setImplementation.encode_input(contracts['StakingLogic'])
+    data = "0x" + data[10:]
+    description = "SIP-0009: :, sha256: "
+
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
+
+    print('Governor Address:    '+governor.address)
+    print('Target:              '+str([target]))
+    print('Values:              '+str([0]))
+    print('Signature:           '+str([signature]))
+    print('Data:                '+str([data]))
+    print('Description:         '+str(description))
+    print('======================================')
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
