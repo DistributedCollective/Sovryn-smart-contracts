@@ -51,14 +51,24 @@ module.exports = {
 	},
 	networks: {
 		hardhat: {},
-		rskTestnet: {
+		rskPublicTestnet: {
 			url: "https://public-node.testnet.rsk.co/",
 			accounts: { mnemonic: "brownie", count: 10 },
 			network_id: 31,
 			confirmations: 4,
 		},
-		rskMainnet: {
+		rskPublicMainnet: {
 			url: "https://public-node.rsk.co/",
+			network_id: 30,
+		},
+		rskSovrynTestnet: {
+			url: "https://testnet.sovryn.app/rpc",
+			accounts: { mnemonic: "brownie", count: 10 },
+			network_id: 31,
+			confirmations: 4,
+		},
+		rskSovrynMainnet: {
+			url: "https://mainnet.sovryn.app/rpc",
 			network_id: 30,
 		},
 	},
