@@ -43,6 +43,9 @@ def main():
 
     #deploy the staking logic contracts
     stakingLogic = acct.deploy(Staking)
+    feeSharing = Contract.from_abi("FeeSharingProxy", address=contracts["FeeSharingProxy"], abi=FeeSharingProxy.abi, owner=acct)
+    staking.setFeeSharing(feeSharing.address)
+    
     print("new staking logic address:", stakingLogic.address)
     print('''
     next steps: 
