@@ -9,7 +9,7 @@ import "./IVesting.sol";
 import "./ITeamVesting.sol";
 import "../../openzeppelin/SafeMath.sol";
 
-//one time contract needed to distribute tokens to origin investors
+//one time contract needed to distribute tokens to origin sales investors
 contract VestingRegistry2 is Ownable {
 	using SafeMath for uint256;
 
