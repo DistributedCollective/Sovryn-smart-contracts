@@ -58,7 +58,7 @@ module.exports = {
 			confirmations: 4,
 			gasMultiplier: 1.25,
 			//timeout: 20000, // increase if needed; 20000 is the default value
-			//allowUnlimitedContractSize, //to overcome EIP170 contrtact size restriction on the testnet; i.e. console.log adds a decent overhead to the contracts; use with care, don't forget to comment after usage
+			//allowUnlimitedContractSize, //EIP170 contrtact size restriction temporal testnet workaround
 		},
 		rskPublicMainnet: {
 			url: "https://public-node.rsk.co/",
@@ -71,7 +71,7 @@ module.exports = {
 			confirmations: 4,
 			gasMultiplier: 1.25,
 			//timeout: 20000, // increase if needed; 20000 is the default value
-			//allowUnlimitedContractSize, //to overcome EIP170 contrtact size restriction on the testnet; i.e. console.log adds a decent overhead to the contracts; use with care, don't forget to comment after usage
+			//allowUnlimitedContractSize, //EIP170 contrtact size restriction temporal testnet workaround
 		},
 		rskSovrynMainnet: {
 			url: "https://mainnet.sovryn.app/rpc",
