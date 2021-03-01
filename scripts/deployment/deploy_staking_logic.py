@@ -41,8 +41,6 @@ def main():
     
     print('deploying account:', acct)
 
-    sov = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
-
     #deploy the staking logic contracts
     stakingLogic = acct.deploy(Staking)
     print("new staking logic address:", stakingLogic.address)
