@@ -51,6 +51,34 @@ module.exports = {
 	},
 	networks: {
 		hardhat: {},
+		rskPublicTestnet: {
+			url: "https://public-node.testnet.rsk.co/",
+			accounts: { mnemonic: "brownie", count: 10 },
+			network_id: 31,
+			confirmations: 4,
+			gasMultiplier: 1.25,
+			//timeout: 20000, // increase if needed; 20000 is the default value
+			//allowUnlimitedContractSize, //EIP170 contrtact size restriction temporal testnet workaround
+		},
+		rskPublicMainnet: {
+			url: "https://public-node.rsk.co/",
+			network_id: 30,
+			//timeout: 20000, // increase if needed; 20000 is the default value
+		},
+		rskSovrynTestnet: {
+			url: "https://testnet.sovryn.app/rpc",
+			accounts: { mnemonic: "brownie", count: 10 },
+			network_id: 31,
+			confirmations: 4,
+			gasMultiplier: 1.25,
+			//timeout: 20000, // increase if needed; 20000 is the default value
+			//allowUnlimitedContractSize, //EIP170 contrtact size restriction temporal testnet workaround
+		},
+		rskSovrynMainnet: {
+			url: "https://mainnet.sovryn.app/rpc",
+			network_id: 30,
+			//timeout: 20000, // increase if needed; 20000 is the default value
+		},
 	},
 	paths: {
 		sources: "./contracts",
