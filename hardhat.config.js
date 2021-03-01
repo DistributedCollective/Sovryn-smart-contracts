@@ -63,6 +63,7 @@ module.exports = {
 		rskPublicMainnet: {
 			url: "https://public-node.rsk.co/",
 			network_id: 30,
+			//timeout: 20000, // increase if needed; 20000 is the default value
 		},
 		rskSovrynTestnet: {
 			url: "https://testnet.sovryn.app/rpc",
@@ -76,6 +77,7 @@ module.exports = {
 		rskSovrynMainnet: {
 			url: "https://mainnet.sovryn.app/rpc",
 			network_id: 30,
+			//timeout: 20000, // increase if needed; 20000 is the default value
 		},
 	},
 	paths: {
