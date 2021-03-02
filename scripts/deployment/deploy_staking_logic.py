@@ -8,44 +8,26 @@ import math
 def main():
     thisNetwork = network.show_active()
 
-    # == Governance Params =================================================================================================================
-    # TODO set correct variables
-    ownerQuorumVotes = 20
-    ownerMajorityPercentageVotes = 70
-
-    adminQuorumVotes = 5
-    adminMajorityPercentageVotes = 50
-
     # == Load config =======================================================================================================================
     if thisNetwork == "development":
         acct = accounts[0]
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
-        ownerDelay = 3*60*60
-        adminDelay = 3*60*60
     elif thisNetwork == "testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
-        ownerDelay = 2*24*60*60
-        adminDelay = 1*24*60*60
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
-        ownerDelay = 2*24*60*60
-        adminDelay = 1*24*60*60
     else:
         raise Exception("network not supported")
 
     contracts = json.load(configFile)
 
-    balanceBefore = acct.balance()
-    
     print('deploying account:', acct)
 
     #deploy the staking logic contracts
     stakingLogic = acct.deploy(Staking)
-    feeSharing = Contract.from_abi("FeeSharingProxy", address=contracts["FeeSharingProxy"], abi=FeeSharingProxy.abi, owner=acct)
-    staking.setFeeSharing(feeSharing.address)
-    
+
     print("new staking logic address:", stakingLogic.address)
     print('''
     next steps: 
