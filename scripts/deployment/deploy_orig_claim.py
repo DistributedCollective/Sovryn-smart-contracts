@@ -51,6 +51,5 @@ def main():
         2. Fund OriginInvestorsClaim with SOV. Make sure SOV.balanceOf(OriginInvestorsClaim.address) == OriginInvestorsClaim.totalAmount()
         3. Call OriginInvestorsClaim.setInvestorsAmountsListInitialized() - it prevents form further investors list appending and opens contract for the investors claiming
         4. Notify origin investors that they can claim their tokens with the cliff == duration == Mar 26 2021
-        5. Pray
         '''
     )
