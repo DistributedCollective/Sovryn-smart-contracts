@@ -11,7 +11,7 @@ const TestToken = artifacts.require("TestToken");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
-const VestingRegistry = artifacts.require("VestingRegistry");
+const VestingRegistry = artifacts.require("VestingRegistry2"); //removed some methods from VestingRegistry to prevent double spendings
 const OriginInvestorsClaim = artifacts.require("OriginInvestorsClaim");
 
 const ONE_WEEK = new BN(7 * 24 * 60 * 60);

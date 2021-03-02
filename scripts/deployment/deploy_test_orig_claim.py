@@ -43,7 +43,7 @@ def main():
 
     balanceBefore = acct.balance()
     
-    print('acct:', acct)
+    print('deploying acct:', acct)
 
     #sov = acct.deploy(SOV, 10**26)
     #print("SOV deployed; balance of acct: ", sov.balanceOf(acct))
@@ -59,12 +59,13 @@ def main():
 
     #deploy the staking contracts
     stakingLogic = acct.deploy(Staking)
-    staking = acct.deploy(StakingProxy, contracts['SOV'])
-    staking.setImplementation(stakingLogic.address)
-    staking = Contract.from_abi("Staking", address=staking.address, abi=Staking.abi, owner=acct)
+    #staking = acct.deploy(StakingProxy, contracts['SOV'])
+    stakingProxy = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    stakingProxy.setImplementation(stakingLogic.address)
+    staking = Contract.from_abi("Staking", address=stakingProxy.address, abi=Staking.abi, owner=acct)
 
-     #deploy fee sharing contract
-    feeSharing = acct.deploy(FeeSharingProxy, contracts["sovrynProtocol"], staking.address)
+    #deploy fee sharing contract
+    #feeSharing = acct.deploy(FeeSharingProxy, contracts["sovrynProtocol"], staking.address)
 
     # set fee sharing
     staking.setFeeSharing(feeSharing.address)
@@ -72,13 +73,15 @@ def main():
     #staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
     feeSharingAddress = staking.feeSharing()
 
+    print('feeSharingAddress: ', feeSharingAddress)
+
     #this is one-time vesting registry for origin sales investors claim exclusively
     #deploy VestingFactory
     
     vestingLogic = acct.deploy(VestingLogic)
     vestingFactory = acct.deploy(VestingFactory, vestingLogic.address)
     PRICE_SATS = 2500
-    vestingRegistry = acct.deploy(VestingRegistry, vestingFactory.address, contracts['SOV'], [contracts["CSOV1"], contracts["CSOV2"]], PRICE_SATS, staking.address, feeSharingAddress, teamVestingOwner)
+    vestingRegistry = acct.deploy(VestingRegistry2, vestingFactory.address, contracts['SOV'], [contracts["CSOV1"], contracts["CSOV2"]], PRICE_SATS, staking.address, feeSharingAddress, teamVestingOwner)
     vestingFactory.transferOwnership(vestingRegistry.address)
 
     # this address got 400 too much
@@ -92,8 +95,8 @@ def main():
 
     vestingRegistry.addAdmin(claimContract.address)
 
-    print('sov.balanceOf(acct)', sov.balanceOf(acct))
-    print('sov.totalSupply(): ', sov.totalSupply())
+    #print('sov.balanceOf(acct)', sov.balanceOf(acct))
+    #print('sov.totalSupply(): ', sov.totalSupply())
 
     if sov.balanceOf(acct) < 100000 * 10 ** 18:
         sov.mint(acct, 100000 * 10 ** 18)
@@ -101,9 +104,9 @@ def main():
     if sov.balanceOf(claimContract.address) < 50000 * 10 ** 18:
         sov.transfer(claimContract.address, 50000 * 10 ** 18)
     
-    print('sov.balance: ', sov.balance())
+   # print('sov.balance: ', sov.balance())
     
-    print('sov.balanceOf(claimContract.address): ', sov.balanceOf(claimContract.address))
+   # print('sov.balanceOf(claimContract.address): ', sov.balanceOf(claimContract.address))
 
 
     claimContract.appendInvestorsAmountsList(['0x88530bbfC00A149A51D6D72F7FA54c97C5ff363C', '0x2bD2201bfe156a71EB0d02837172FFc237218505', '0x7BE508451Cd748Ba55dcBE75c8067f9420909b49',
