@@ -818,7 +818,7 @@ def createProposalSIP0010():
     signature = "setImplementation(address)"
     data = staking.setImplementation.encode_input(contracts['StakingLogic'])
     data = "0x" + data[10:]
-    description = "SIP-0009: :, sha256: "
+    description = "SIP-0010: :, sha256: "
 
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
 
