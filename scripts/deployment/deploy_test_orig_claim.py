@@ -62,13 +62,13 @@ def main():
     #staking = acct.deploy(StakingProxy, contracts['SOV'])
     stakingProxy = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
     stakingProxy.setImplementation(stakingLogic.address)
-    staking = Contract.from_abi("Staking", address=stakingProxy.address, abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
 
     #deploy fee sharing contract
     #feeSharing = acct.deploy(FeeSharingProxy, contracts["sovrynProtocol"], staking.address)
 
     # set fee sharing
-    staking.setFeeSharing(feeSharing.address)
+    # staking.setFeeSharing(feeSharing.address)
 
     #staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
     feeSharingAddress = staking.feeSharing()
@@ -83,13 +83,6 @@ def main():
     PRICE_SATS = 2500
     vestingRegistry = acct.deploy(VestingRegistry2, vestingFactory.address, contracts['SOV'], [contracts["CSOV1"], contracts["CSOV2"]], PRICE_SATS, staking.address, feeSharingAddress, teamVestingOwner)
     vestingFactory.transferOwnership(vestingRegistry.address)
-
-    # this address got 400 too much
-    MULTIPLIER = 10 ** 16
-    vestingRegistry.setLockedAmount("0x0EE55aE961521fefcc8F7368e1f72ceF1190f2C9", 400 * 100 * MULTIPLIER)
-
-    # this is the one who's tx got reverted
-    vestingRegistry.setBlacklistFlag("0xd970fF09681a05e644cD28980B94a22c32c9526B", True)
     
     claimContract = acct.deploy(OriginInvestorsClaim, vestingRegistry.address)
 
@@ -113,4 +106,4 @@ def main():
 '0x96b6e7DC48066655E0388a1b6351e6719eDB7d52',
 '0x6Df0d206431905C8D262DDB56c7928a8e4C4c040','0xA987a709f4A93eC25738FeC0F8d6189260459ed7'],[1500 * 10 ** 18, 5000 * 10 ** 18, 1000 * 10 ** 18, 500 * 10 ** 18, 2000 * 10 ** 18, 7000 * 10 ** 18])
 
-    claimContract.setInvestorsAmountsListIntilized()
+    claimContract.setInvestorsAmountsListInitialized()

@@ -8,15 +8,6 @@ import math
 def main():
     thisNetwork = network.show_active()
 
-    # == Governance Params =================================================================================================================
-    # TODO set correct variables
-    ownerQuorumVotes = 20
-    ownerMajorityPercentageVotes = 70
-
-    adminQuorumVotes = 5
-    adminMajorityPercentageVotes = 50
-
-    # == Load config =======================================================================================================================
     if thisNetwork == "development":
         acct = accounts[0]
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
@@ -42,37 +33,24 @@ def main():
     teamVestingOwner = multisig
     
     print('deploying account:', acct)
-
-    sov = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
-
-    #CRITICAL by the time of running this script the new staking logic should be deployed and implemented
-    # see deploy_staking_logic.py
-    
-    staking = Contract.from_abi("Staking", address=staking.address, abi=Staking.abi, owner=acct)
     
     vestingFactory = acct.deploy(VestingFactory, contracts['VestingLogic'])
-    #vestingRegistryBase = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
 
     PRICE_SATS = 2500
-    vestingRegistry = acct.deploy(VestingRegistry2, vestingFactory.address, contracts['SOV'], [contracts["CSOV1"], contracts["CSOV2"]], PRICE_SATS, staking.address, feeSharing.address, teamVestingOwner)
+    vestingRegistry = acct.deploy(VestingRegistry2, vestingFactory.address, contracts["SOV"], [contracts["CSOV1"], contracts["CSOV2"]], PRICE_SATS, contracts["Staking"], contracts["FeeSharingProxy"], teamVestingOwner)
     vestingFactory.transferOwnership(vestingRegistry.address)
-
-    # this address got 400 too much
-    MULTIPLIER = 10 ** 16
-    vestingRegistry.setLockedAmount("0x0EE55aE961521fefcc8F7368e1f72ceF1190f2C9", 400 * 100 * MULTIPLIER)
-
-    # this is the one who's tx got reverted
-    vestingRegistry.setBlacklistFlag("0xd970fF09681a05e644cD28980B94a22c32c9526B", True)
     
     claimContract = acct.deploy(OriginInvestorsClaim, vestingRegistry.address)
 
     vestingRegistry.addAdmin(claimContract.address)
 
-    #print('sov.balanceOf(acct)', sov.balanceOf(acct))
-    #print('sov.totalSupply(): ', sov.totalSupply())
-
-    #if sov.balanceOf(acct) < 100000 * 10 ** 18:
-    #    sov.mint(acct, 100000 * 10 ** 18)
-
-    #if sov.balanceOf(claimContract.address) < 50000 * 10 ** 18:
-    #    sov.transfer(claimContract.address, 50000 * 10 ** 18)
+    print(
+        '''
+        Next steps:
+        1. Load investors reestr by chunks of 250 records at once using OriginInvestorsClaim.appendInvestorsAmountsList method
+        2. Fund OriginInvestorsClaim with SOV. Make sure SOV.balanceOf(OriginInvestorsClaim.address) == OriginInvestorsClaim.totalAmount()
+        3. Call OriginInvestorsClaim.setInvestorsAmountsListInitialized() - it prevents form further investors list appending and opens contract for the investors claiming
+        4. Notify origin investors that they can claim their tokens with the cliff == duration == Mar 26 2021
+        5. Pray
+        '''
+    )
