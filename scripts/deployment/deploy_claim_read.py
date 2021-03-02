@@ -55,8 +55,16 @@ def main():
     #vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
 
     staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    stakingProxy = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
     feeSharingAddress = staking.feeSharing()
 
+    print('StakingProxy owner: ', stakingProxy.owner())
+
+    stakingProxy.setImplementation(staking.address)
+
+    return
+
+    
     #this is one-time vesting registry for origin sales investors claim exclusively
     #deploy VestingFactory
     

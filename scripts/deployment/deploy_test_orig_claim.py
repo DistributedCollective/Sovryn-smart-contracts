@@ -60,9 +60,9 @@ def main():
     #deploy the staking contracts
     stakingLogic = acct.deploy(Staking)
     #staking = acct.deploy(StakingProxy, contracts['SOV'])
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
-    staking.setImplementation(stakingLogic.address)
-    staking = Contract.from_abi("Staking", address=staking.address, abi=Staking.abi, owner=acct)
+    stakingProxy = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    stakingProxy.setImplementation(stakingLogic.address)
+    staking = Contract.from_abi("Staking", address=stakingProxy.address, abi=Staking.abi, owner=acct)
 
     #deploy fee sharing contract
     #feeSharing = acct.deploy(FeeSharingProxy, contracts["sovrynProtocol"], staking.address)
