@@ -179,7 +179,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 numIntervals = (end - start) / intervalLength + 1;
 		uint256 stakedPerInterval = amount / numIntervals;
 		//stakedPerInterval might lose some dust on rounding. add it to the first staking date
-		if (numIntervals >= 1) {
+		if (numIntervals > 1) {
 			_stake(msg.sender, uint96(amount - stakedPerInterval * (numIntervals - 1)), start, stakeFor, delegatee, true);
 		}
 		//stake the rest in 4 week intervals
