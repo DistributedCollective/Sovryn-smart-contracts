@@ -76,7 +76,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 		require(_delegatee != address(0), "delegatee address invalid");
 
 		//withdraw for each unlocked position
-		for (uint256 i = startDate + cliff; i < endDate; i += FOUR_WEEKS) {
+		for (uint256 i = startDate + cliff; i <= endDate; i += FOUR_WEEKS) {
 			staking.delegate(_delegatee, i);
 		}
 		emit VotesDelegated(msg.sender, _delegatee);
