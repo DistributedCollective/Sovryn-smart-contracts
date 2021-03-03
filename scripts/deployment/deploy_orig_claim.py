@@ -34,7 +34,8 @@ def main():
     
     print('deploying account:', acct)
     
-    vestingFactory = acct.deploy(VestingFactory, contracts['VestingLogic'])
+    vestingLogic = acct.deploy(VestingLogic)
+    vestingFactory = acct.deploy(VestingFactory, vestingLogic.address)
 
     PRICE_SATS = 2500
     vestingRegistry = acct.deploy(VestingRegistry2, vestingFactory.address, contracts["SOV"], [contracts["CSOV1"], contracts["CSOV2"]], PRICE_SATS, contracts["Staking"], contracts["FeeSharingProxy"], teamVestingOwner)
