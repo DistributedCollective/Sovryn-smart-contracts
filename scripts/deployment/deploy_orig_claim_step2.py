@@ -69,8 +69,6 @@ def main():
             appendInvestorsList(claimContract)
         totalCount = rowNumber
 
-    claimContract.setInvestorsAmountsListInitialized()
-
     totals = f'''
     totalCount: {totalCount}
     chunkSize: {chunkSize}
