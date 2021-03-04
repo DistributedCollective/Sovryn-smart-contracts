@@ -14,7 +14,7 @@ contract OriginInvestorsClaim is Ownable {
 
 	//VestingRegistry public constant vestingRegistry = VestingRegistry(0x80B036ae59B3e38B573837c01BB1DB95515b7E6B);
 
-	uint256 totalAmount;
+	uint256 public totalAmount;
 
 	///@notice constant used for computing the vesting dates
 	uint256 public constant SOV_VESTING_CLIFF = 6 weeks;

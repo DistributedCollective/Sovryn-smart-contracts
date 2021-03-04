@@ -47,13 +47,16 @@ def main():
     vestingFactory.transferOwnership(vestingRegistry.address)
 
     claimContract = acct.deploy(OriginInvestorsClaim, vestingRegistry.address)
-
     vestingRegistry.addAdmin(claimContract.address)
+    claimContract.transferOwnership(multisig)
+
     print(
         '''
         Next steps:
-        1. Fund OriginInvestorsClaim with SOV = 9073250102711580000000 (DECIMALS == 18)
-        2. Set variable originInvestorsClaimAddress in deploy_orig_claim_step2.py, save and run it to load investors reestr by chunks of 250 records
-        3. Notify origin investors that they can claim their tokens with the cliff == duration == Mar 26 2021
+        1. Set OriginInvestorsClaim address in the relevant config: testnet_contracts.js or mainnet_contracts.js
+        2. Run deploy_orig_claim_step2.py to load investors list by chunks of 250 records
+        3. Fund OriginInvestorsClaim with SOV = 9073250102711580000000 (DECIMALS == 18). Should equal to OriginInvestorsClaim.totalAmount()
+        4. Run deploy_orig_claim_step2.py to notify the claim contract that users can claim their SOV
+        5. Notify origin investors that they can claim their tokens with the cliff == duration == Mar 26 2021
         '''
     )

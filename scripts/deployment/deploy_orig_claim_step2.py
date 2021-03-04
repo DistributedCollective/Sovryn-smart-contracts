@@ -5,7 +5,6 @@ import json
 import csv
 import math
 
-originInvestorsClaimAddress = ''
 totalAmountSatoshi = 0
 totalAmountSOV = 0
 totalCount = 0
@@ -16,15 +15,10 @@ appendAddresses = []
 appendAmounts = []
 # https://github.com/DistributedCollective/SIPS/blob/main/SIP-0006(A1).md
 EX_RATE = 9736
-MULTIPLIER = 10**18
+MULTIPLIER = 10 ** 18
 
 
 def main():
-
-    if (originInvestorsClaimAddress == ''):
-        print('please set originInvestorsClaimAddress and run again')
-        return
-
     thisNetwork = network.show_active()
 
     if thisNetwork == "development":
@@ -48,23 +42,31 @@ def main():
     else:
         raise Exception("network not supported")
 
-    global originInvestorsClaimAddress
+    contracts = json.load(configFile)
+    multisig = contracts['multisig']
+    teamVestingOwner = multisig
+
+    originInvestorsClaimAddress = contracts['OriginInvestorsClaim']
+    if (originInvestorsClaimAddress == ''):
+        print('please set originInvestorsClaimAddress and run again')
+        return
+
     claimContract = Contract.from_abi(
         "OriginInvestorsClaim", address=originInvestorsClaimAddress, abi=originInvestorsClaimAddress.abi, owner=acct)
 
     global rowNumber, chunksSize
     with open('./scripts/deployment/origin_claim_list.csv', 'r') as file:
-        #reader = csv.reader(file)
+        # reader = csv.reader(file)
         reader = csv.DictReader(file)
         rowNumber = 0
         for row in reader:
             rowNumber += 1
             processRow(row)
             if (rowNumber % chunkSize == 0):
-                appendInvestorsList()
+                appendInvestorsList(claimContract)
 
         if (rowNumber % chunkSize != 0):
-            appendInvestorsList()
+            appendInvestorsList(claimContract)
         totalCount = rowNumber
 
     claimContract.setInvestorsAmountsListInitialized()
@@ -80,7 +82,7 @@ def main():
     print(totals)
 
 
-def appendInvestorsList():
+def appendInvestorsList(claimContract):
     global chunksProcessed, rowNumber, chunksProcessed
     global appendAddresses, appendAmounts
     claimContract.appendInvestorsAmountsList(
@@ -95,7 +97,7 @@ def processRow(row):
     global satoshiAmount
     global appendAddresses, appendAmounts, totalAmountSatoshi, totalAmountSOV
     satoshiAmount = int(row['value'])
-    SOVAmount = satoshiAmount / EX_RATE * MULTIPLIER
+    SOVAmount = satoshiAmount * MULTIPLIER / EX_RATE
     appendAddresses.append(row['web3 address'])
     appendAmounts.append(SOVAmount)
     totalAmountSatoshi += satoshiAmount
