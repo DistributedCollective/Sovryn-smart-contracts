@@ -5,6 +5,7 @@ import json
 import csv
 import math
 
+originInvestorsClaimAddress = ''
 totalAmountSatoshi = 0
 totalAmountSOV = 0
 totalCount = 0
@@ -46,6 +47,7 @@ def main():
     multisig = contracts['multisig']
     teamVestingOwner = multisig
 
+    global originInvestorsClaimAddress
     originInvestorsClaimAddress = contracts['OriginInvestorsClaim']
     if (originInvestorsClaimAddress == ''):
         print('please set originInvestorsClaimAddress and run again')
@@ -55,9 +57,7 @@ def main():
         "OriginInvestorsClaim", address=originInvestorsClaimAddress, abi=originInvestorsClaimAddress.abi, owner=acct)
 
     global rowNumber, chunksSize
-    state = "nice" if is_nice else "not nice"
-    dataFile = './scripts/deployment/origin_claim_list.csv' if thisNetwork == 'rsk-mainnet' else './scripts/deployment/origin_claim_test_list_3238.csv'
-    with open(datafile, 'r') as file:
+    with open('./scripts/deployment/origin_claim_list.csv', 'r') as file:
         # reader = csv.reader(file)
         reader = csv.DictReader(file)
         rowNumber = 0
@@ -65,11 +65,13 @@ def main():
             rowNumber += 1
             processRow(row)
             if (rowNumber % chunkSize == 0):
-                appendInvestorsList(claimContract)
+                appendInvestorsList()
 
         if (rowNumber % chunkSize != 0):
-            appendInvestorsList(claimContract)
+            appendInvestorsList()
         totalCount = rowNumber
+
+    claimContract.setInvestorsAmountsListInitialized()
 
     totals = f'''
     totalCount: {totalCount}
@@ -82,7 +84,7 @@ def main():
     print(totals)
 
 
-def appendInvestorsList(claimContract):
+def appendInvestorsList():
     global chunksProcessed, rowNumber, chunksProcessed
     global appendAddresses, appendAmounts
     claimContract.appendInvestorsAmountsList(
@@ -97,7 +99,7 @@ def processRow(row):
     global satoshiAmount
     global appendAddresses, appendAmounts, totalAmountSatoshi, totalAmountSOV
     satoshiAmount = int(row['value'])
-    SOVAmount = satoshiAmount * MULTIPLIER / EX_RATE
+    SOVAmount = satoshiAmount / EX_RATE * MULTIPLIER
     appendAddresses.append(row['web3 address'])
     appendAmounts.append(SOVAmount)
     totalAmountSatoshi += satoshiAmount
