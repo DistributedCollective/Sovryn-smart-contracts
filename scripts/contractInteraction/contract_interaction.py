@@ -774,15 +774,15 @@ def setBorrowingFee(fee):
     print(txId);
 
 def transferSOVtoOriginInvestorsClaim():
-    # TODO set amount
-    amount = 0
-    if (amount == 0):
-        print('Please set amount and run again')
-        return
-
     originInvestorsClaimAddress = contracts['OriginInvestorsClaim']
     if (originInvestorsClaimAddress == ''):
         print('Please set originInvestorsClaimAddress and run again')
+        return
+
+    originInvestorsClaim = Contract.from_abi("OriginInvestorsClaim", address=originInvestorsClaimAddress, abi=OriginInvestorsClaim.abi, owner=acct)
+    amount = originInvestorsClaim.totalAmount()
+    if (amount == 0):
+        print('Please set amount and run again')
         return
 
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
