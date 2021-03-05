@@ -52,7 +52,8 @@ def main():
 
     global rowNumber, chunksSize
     # dataFile = './scripts/deployment/origin_claim_list_final.csv' if thisNetwork == 'rsk-mainnet' else './#scripts/deployment/origin_claim_test_list_3237.csv'
-    dataFile = './scripts/deployment/origin_claim_list_final.csv'
+    #dataFile = './scripts/deployment/origin_claim_list_final.csv'
+    dataFile = './scripts/deployment/origin_claim_list_final_11_chunk.csv'
 
     with open(dataFile, 'r') as file:
         reader = csv.DictReader(file)
