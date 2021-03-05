@@ -56,8 +56,9 @@ def main():
     claimContract = acct.deploy(OriginInvestorsClaim, vestingRegistry.address)
     vestingRegistry.addAdmin(claimContract.address)
 
-    if thisNetwork == "rsk-mainnet":
-        claimContract.transferOwnership(multisig)
+    # can be done after deploy_orig_claim_step3.py
+    # if thisNetwork == "rsk-mainnet":
+    #     claimContract.transferOwnership(multisig)
 
     print(
         '''
