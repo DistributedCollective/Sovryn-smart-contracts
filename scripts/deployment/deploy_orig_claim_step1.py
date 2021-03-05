@@ -13,20 +13,14 @@ def main():
         acct = accounts[0]
         configFile = open(
             './scripts/contractInteraction/testnet_contracts.json')
-        ownerDelay = 3*60*60
-        adminDelay = 3*60*60
     elif thisNetwork == "testnet":
         acct = accounts.load("rskdeployer")
         configFile = open(
             './scripts/contractInteraction/testnet_contracts.json')
-        ownerDelay = 2*24*60*60
-        adminDelay = 1*24*60*60
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
         configFile = open(
             './scripts/contractInteraction/mainnet_contracts.json')
-        ownerDelay = 2*24*60*60
-        adminDelay = 1*24*60*60
     else:
         raise Exception("network not supported")
 
