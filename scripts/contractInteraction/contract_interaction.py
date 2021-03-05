@@ -780,16 +780,13 @@ def createVesting():
     DAY = 24 * 60 * 60
     FOUR_WEEKS = 4 * 7 * DAY
 
-    # TODO 2 weeks delay ?
-    CLIFF_DELAY = 2 * 7 * DAY
-
     tokenOwner = "0x21e1AaCb6aadF9c6F28896329EF9423aE5c67416"
     amount = 27186538 * 10**16
     # TODO cliff 4 weeks or less ?
     # cliff = CLIFF_DELAY + int(vesting[2]) * FOUR_WEEKS
     # duration = cliff + (int(vesting[3]) - 1) * FOUR_WEEKS
 
-    cliff = CLIFF_DELAY + 1 * FOUR_WEEKS
+    cliff = 1 * FOUR_WEEKS
     duration = cliff + (10 - 1) * FOUR_WEEKS
 
     vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
