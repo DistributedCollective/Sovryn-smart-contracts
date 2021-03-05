@@ -41,22 +41,31 @@ def main():
     vestingLogic = acct.deploy(VestingLogic)
     vestingFactory = acct.deploy(VestingFactory, vestingLogic.address)
 
+    if thisNetwork == "rsk-mainnet":
+        feeSharingProxy = contracts["FeeSharingProxy"]
+    else:
+        staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+        feeSharingProxy = staking.feeSharing()
+        
+
     PRICE_SATS = 2500
     vestingRegistry = acct.deploy(VestingRegistry2, vestingFactory.address, contracts["SOV"], [
-                                  contracts["CSOV1"], contracts["CSOV2"]], PRICE_SATS, contracts["Staking"], contracts["FeeSharingProxy"], teamVestingOwner)
+                                  contracts["CSOV1"], contracts["CSOV2"]], PRICE_SATS, contracts["Staking"], feeSharingProxy, teamVestingOwner)
     vestingFactory.transferOwnership(vestingRegistry.address)
 
     claimContract = acct.deploy(OriginInvestorsClaim, vestingRegistry.address)
     vestingRegistry.addAdmin(claimContract.address)
-    claimContract.transferOwnership(multisig)
+
+    if thisNetwork == "rsk-mainnet":
+        claimContract.transferOwnership(multisig)
 
     print(
         '''
         Next steps:
-        1. Set OriginInvestorsClaim address in the relevant config: testnet_contracts.js or mainnet_contracts.js
+        1. Set OriginInvestorsClaim and VestingLogic addresses in the relevant config: testnet_contracts.js or mainnet_contracts.js
         2. Run deploy_orig_claim_step2.py to load investors list by chunks of 250 records
         3. Fund OriginInvestorsClaim with SOV = 9073250102711580000000 (DECIMALS == 18). Should equal to OriginInvestorsClaim.totalAmount()
-        4. Run deploy_orig_claim_step2.py to notify the claim contract that users can claim their SOV
+        4. Run deploy_orig_claim_step3.py to notify the claim contract that users can claim their SOV
         5. Notify origin investors that they can claim their tokens with the cliff == duration == Mar 26 2021
         '''
     )

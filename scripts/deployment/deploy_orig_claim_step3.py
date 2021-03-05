@@ -50,8 +50,8 @@ def main():
         return
 
     claimContract = Contract.from_abi(
-        "OriginInvestorsClaim", address=originInvestorsClaimAddress, abi=originInvestorsClaimAddress.abi, owner=acct)
+        "OriginInvestorsClaim", address=originInvestorsClaimAddress, abi=OriginInvestorsClaim.abi, owner=acct)
 
     claimContract.setInvestorsAmountsListInitialized()
 
-    print('Please inform origin investors they can claim their SOV')
+    print('Good job! Now please inform origin investors they can claim their SOV')

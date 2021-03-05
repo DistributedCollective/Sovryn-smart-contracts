@@ -8,7 +8,7 @@ import math
 totalAmountSatoshi = 0
 totalAmountSOV = 0
 totalCount = 0
-chunkSize = 4  # TODO: 250
+chunkSize = 250
 rowNumber = 0
 chunksProcessed = 0
 appendAddresses = []
@@ -48,17 +48,15 @@ def main():
 
     originInvestorsClaimAddress = contracts['OriginInvestorsClaim']
     if (originInvestorsClaimAddress == ''):
-        print('please set originInvestorsClaimAddress and run again')
+        print('Please set originInvestorsClaimAddress and run again')
         return
 
     claimContract = Contract.from_abi(
-        "OriginInvestorsClaim", address=originInvestorsClaimAddress, abi=originInvestorsClaimAddress.abi, owner=acct)
+        "OriginInvestorsClaim", address=originInvestorsClaimAddress, abi=OriginInvestorsClaim.abi, owner=acct)
 
     global rowNumber, chunksSize
-    state = "nice" if is_nice else "not nice"
-    dataFile = './scripts/deployment/origin_claim_list.csv' if thisNetwork == 'rsk-mainnet' else './scripts/deployment/origin_claim_test_list_3238.csv'
-    with open(datafile, 'r') as file:
-        # reader = csv.reader(file)
+    dataFile = './scripts/deployment/origin_claim_list.csv' if thisNetwork == 'rsk-mainnet' else './scripts/deployment/origin_claim_test_list_3237.csv'
+    with open(dataFile, 'r') as file:
         reader = csv.DictReader(file)
         rowNumber = 0
         for row in reader:
@@ -71,13 +69,22 @@ def main():
             appendInvestorsList(claimContract)
         totalCount = rowNumber
 
+    #fund the contract on the testnet, should be done separately manually by using multisig on mainnet
+    if thisNetwork != "rsk-mainnet": 
+        sov = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+        if sov.balanceOf(acct) < totalAmountSOV:
+            sov.mint(acct, totalAmountSOV)
+        if sov.balanceOf(claimContract.address) < totalAmountSOV:
+            sov.transfer(claimContract.address, totalAmountSOV)
+        
+
     totals = f'''
     totalCount: {totalCount}
     chunkSize: {chunkSize}
     chunksProcessed: {chunksProcessed}
     totalAmountSatoshi: {totalAmountSatoshi}
     totalAmountSOV: {totalAmountSOV}
-    Notify origin investors that they can claim their tokens with the cliff == duration == Mar 26 2021
+    Verify the numbers and call claimContract.setInvestorsAmountsListInitialized()
     '''
     print(totals)
 
@@ -85,10 +92,10 @@ def main():
 def appendInvestorsList(claimContract):
     global chunksProcessed, rowNumber, chunksProcessed
     global appendAddresses, appendAmounts
-    claimContract.appendInvestorsAmountsList(
-        appendAddresses, appendAmounts)
     chunksProcessed += 1
     print(f'appending at row: {rowNumber}, chunk: {chunksProcessed}')
+    claimContract.appendInvestorsAmountsList(
+        appendAddresses, appendAmounts)
     appendAddresses = []
     appendAmounts = []
 

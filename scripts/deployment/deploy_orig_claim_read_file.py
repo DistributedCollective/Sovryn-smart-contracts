@@ -9,7 +9,7 @@ import os
 totalAmountSatoshi = 0
 totalAmountSOV = 0
 totalCount = 0
-chunkSize = 4
+chunkSize = 250
 rowNumber = 0
 chunksProcessed = 0
 appendAddresses = []
@@ -20,9 +20,9 @@ MULTIPLIER = 10**18
 
 
 def main():
+    
     '''
     thisNetwork = network.show_active()
-
     if thisNetwork == "development":
         acct = accounts[0]
         configFile = open(
@@ -45,7 +45,9 @@ def main():
         raise Exception("network not supported")
     '''
     global rowNumber, chunkSize
-    with open('./scripts/deployment/origin_claim_list.csv', 'r') as file:
+    #dataFile = './scripts/deployment/origin_claim_list.csv' if thisNetwork == 'rsk-mainnet' else './scripts/deployment/origin_claim_test_list_3238.csv'
+    dataFile = './scripts/deployment/origin_claim_test_list_3237.csv'
+    with open(dataFile, 'r') as file:
         # reader = csv.reader(file)
         reader = csv.DictReader(file)
         rowNumber = 0
@@ -71,7 +73,7 @@ def main():
     chunksProcessed: {chunksProcessed}
     totalAmountSatoshi: {totalAmountSatoshi}
     totalAmountSOV: {totalAmountSOV}
-    Notify origin investors that they can claim their tokens with the cliff == duration == Mar 26 2021')
+    Notify origin investors that they can claim their tokens with the cliff == duration == Mar 26 2021
     '''
     print(totals)
 
@@ -83,8 +85,8 @@ def appendInvestorsList():
     #    appendAddresses, appendAmounts)
     chunksProcessed += 1
     print(f'appending at row: {rowNumber}, chunk: {chunksProcessed}')
-    print(f'appendAddresses: {appendAddresses}')
-    print(f'appendAmounts: {appendAmounts}')
+    #print(f'appendAddresses: {appendAddresses}')
+    #print(f'appendAmounts: {appendAmounts}')
     appendAddresses = []
     appendAmounts = []
 
@@ -93,10 +95,10 @@ def processRow(row):
     global satoshiAmount
     global appendAddresses, appendAmounts, totalAmountSatoshi, totalAmountSOV
     satoshiAmount = int(row['value'])
-    SOVAmount = satoshiAmount / EX_RATE * MULTIPLIER
+    SOVAmount = satoshiAmount * MULTIPLIER / EX_RATE
     appendAddresses.append(row['web3 address'])
     appendAmounts.append(SOVAmount)
     totalAmountSatoshi += satoshiAmount
     totalAmountSOV += SOVAmount
 
-# brownie run /d/Projects/sovryn/Sovryn-smart-contracts/scripts/deployment/deploy_orig_claim_read_file.py
+# brownie run /d/Projects/sovryn/Sovryn-smart-contracts/scripts/deployment/deploy_orig_claim_read_file.py --network testnet
