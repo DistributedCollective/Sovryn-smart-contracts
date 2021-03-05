@@ -38,9 +38,9 @@ def main():
     if thisNetwork == "rsk-mainnet":
         feeSharingProxy = contracts["FeeSharingProxy"]
     else:
-        staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+        staking = Contract.from_abi(
+            "Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
         feeSharingProxy = staking.feeSharing()
-        
 
     PRICE_SATS = 2500
     vestingRegistry = acct.deploy(VestingRegistry2, vestingFactory.address, contracts["SOV"], [

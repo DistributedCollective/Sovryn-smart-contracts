@@ -40,6 +40,8 @@ def main():
     multisig = contracts['multisig']
     teamVestingOwner = multisig
 
+    balanceBefore = acct.balance()
+
     originInvestorsClaimAddress = contracts['OriginInvestorsClaim']
     if (originInvestorsClaimAddress == ''):
         print('Please set originInvestorsClaimAddress and run again')
@@ -49,7 +51,9 @@ def main():
         "OriginInvestorsClaim", address=originInvestorsClaimAddress, abi=OriginInvestorsClaim.abi, owner=acct)
 
     global rowNumber, chunksSize
-    dataFile = './scripts/deployment/origin_claim_list_final.csv' if thisNetwork == 'rsk-mainnet' else './scripts/deployment/origin_claim_test_list_3237.csv'
+    # dataFile = './scripts/deployment/origin_claim_list_final.csv' if thisNetwork == 'rsk-mainnet' else './#scripts/deployment/origin_claim_test_list_3237.csv'
+    dataFile = './scripts/deployment/origin_claim_list_final.csv'
+
     with open(dataFile, 'r') as file:
         reader = csv.DictReader(file)
         rowNumber = 0
@@ -63,14 +67,14 @@ def main():
             appendInvestorsList(claimContract)
         totalCount = rowNumber
 
-    #fund the contract on the testnet, should be done separately manually by using multisig on mainnet
-    if thisNetwork != "rsk-mainnet": 
-        sov = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    # fund the contract on the testnet, should be done separately manually by using multisig on mainnet
+    if thisNetwork != "rsk-mainnet":
+        sov = Contract.from_abi(
+            "SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
         if sov.balanceOf(acct) < totalAmountSOV:
             sov.mint(acct, totalAmountSOV)
         if sov.balanceOf(claimContract.address) < totalAmountSOV:
             sov.transfer(claimContract.address, totalAmountSOV)
-        
 
     totals = f'''
     totalCount: {totalCount}
@@ -81,6 +85,8 @@ def main():
     Verify the numbers and call claimContract.setInvestorsAmountsListInitialized()
     '''
     print(totals)
+    print("deployment cost:")
+    print((balanceBefore - acct.balance()) / 10**18)
 
 
 def appendInvestorsList(claimContract):
