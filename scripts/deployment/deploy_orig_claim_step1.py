@@ -57,7 +57,7 @@ def main():
     print(
         '''
         Next steps:
-        1. Set OriginInvestorsClaim and VestingLogic addresses in the relevant config: testnet_contracts.js or mainnet_contracts.js
+        1. Set OriginInvestorsClaim and VestingRegistry2 addresses in the relevant config: testnet_contracts.js or mainnet_contracts.js
         2. Run deploy_orig_claim_step2.py to load investors list by chunks of 250 records
         3. Fund OriginInvestorsClaim with SOV = 9073250102711580000000 (DECIMALS == 18). Should equal to OriginInvestorsClaim.totalAmount()
         4. Run deploy_orig_claim_step3.py to notify the claim contract that users can claim their SOV
