@@ -49,7 +49,7 @@ def main():
         "OriginInvestorsClaim", address=originInvestorsClaimAddress, abi=OriginInvestorsClaim.abi, owner=acct)
 
     global rowNumber, chunksSize
-    dataFile = './scripts/deployment/origin_claim_list.csv' if thisNetwork == 'rsk-mainnet' else './scripts/deployment/origin_claim_test_list_3237.csv'
+    dataFile = './scripts/deployment/origin_claim_list_final.csv' if thisNetwork == 'rsk-mainnet' else './scripts/deployment/origin_claim_test_list_3237.csv'
     with open(dataFile, 'r') as file:
         reader = csv.DictReader(file)
         rowNumber = 0

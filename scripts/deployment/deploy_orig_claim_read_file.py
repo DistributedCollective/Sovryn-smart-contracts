@@ -46,7 +46,7 @@ def main():
     '''
     global rowNumber, chunkSize
     #dataFile = './scripts/deployment/origin_claim_list.csv' if thisNetwork == 'rsk-mainnet' else './scripts/deployment/origin_claim_test_list_3238.csv'
-    dataFile = './scripts/deployment/origin_claim_test_list_3237.csv'
+    dataFile = './scripts/deployment/origin_claim_list.csv'
     with open(dataFile, 'r') as file:
         # reader = csv.reader(file)
         reader = csv.DictReader(file)
