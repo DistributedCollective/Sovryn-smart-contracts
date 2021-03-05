@@ -49,9 +49,11 @@ def main():
 
     #createProposalSIP008()
 
-    setLendingFee(10**19)
-    setTradingFee(15 * 10**16)
-    setBorrowingFee(9 * 10**16)
+    # setLendingFee(10**19)
+    # setTradingFee(15 * 10**16)
+    # setBorrowingFee(9 * 10**16)
+
+    transferSOVtoOriginInvestorsClaim()
 
 
 def loadConfig():
@@ -770,3 +772,24 @@ def setBorrowingFee(fee):
     tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
+
+def transferSOVtoOriginInvestorsClaim():
+    # TODO set amount
+    amount = 0
+    if (amount == 0):
+        print('Please set amount and run again')
+        return
+
+    originInvestorsClaimAddress = contracts['OriginInvestorsClaim']
+    if (originInvestorsClaimAddress == ''):
+        print('Please set originInvestorsClaimAddress and run again')
+        return
+
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    data = SOVtoken.transfer.encode_input(originInvestorsClaimAddress, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(SOVtoken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
