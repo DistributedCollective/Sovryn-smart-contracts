@@ -49,9 +49,14 @@ def main():
 
     #createProposalSIP008()
 
-    setLendingFee(10**19)
-    setTradingFee(15 * 10**16)
-    setBorrowingFee(9 * 10**16)
+    # setLendingFee(10**19)
+    # setTradingFee(15 * 10**16)
+    # setBorrowingFee(9 * 10**16)
+
+    createVesting()
+    transferSOVtoVestingRegistry()
+    stakeTokens1()
+    stakeTokens2()
 
 
 def loadConfig():
@@ -770,3 +775,74 @@ def setBorrowingFee(fee):
     tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
+
+def createVesting():
+    DAY = 24 * 60 * 60
+    FOUR_WEEKS = 4 * 7 * DAY
+
+    # TODO 2 weeks delay ?
+    CLIFF_DELAY = 2 * 7 * DAY
+
+    tokenOwner = "0x21e1AaCb6aadF9c6F28896329EF9423aE5c67416"
+    amount = 27186538 * 10**16
+    # TODO cliff 4 weeks or less ?
+    # cliff = CLIFF_DELAY + int(vesting[2]) * FOUR_WEEKS
+    # duration = cliff + (int(vesting[3]) - 1) * FOUR_WEEKS
+
+    cliff = CLIFF_DELAY + 1 * FOUR_WEEKS
+    duration = cliff + (10 - 1) * FOUR_WEEKS
+
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    data = vestingRegistry.createVesting.encode_input(tokenOwner, amount, cliff, duration)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(vestingRegistry.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def transferSOVtoVestingRegistry():
+    #  50,000.00 + 271,865.38 SOV
+    amount = (5000000 + 27186538) * 10**16
+
+    vestingRegistryAddress = contracts['VestingRegistry']
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    data = SOVtoken.transfer.encode_input(vestingRegistryAddress, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(SOVtoken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def stakeTokens1():
+    tokenOwner = "0xb1fdf99cD9d73605eb43Fc2A2BB5486C7958681f"
+    # 50,000.00 SOV
+    amount = 5000000 * 10**16
+
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    vestingAddress = vestingRegistry.getVesting(tokenOwner)
+    print("vestingAddress: " + vestingAddress)
+    data = vestingRegistry.stakeTokens.encode_input(vestingAddress, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(vestingRegistry.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def stakeTokens2():
+    tokenOwner = "0x21e1AaCb6aadF9c6F28896329EF9423aE5c67416"
+    # 271,865.38 SOV
+    amount = 27186538 * 10**16
+
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    vestingAddress = vestingRegistry.getVesting(tokenOwner)
+    print("vestingAddress: " + vestingAddress)
+    data = vestingRegistry.stakeTokens.encode_input(vestingAddress, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(vestingRegistry.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
