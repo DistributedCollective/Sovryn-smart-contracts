@@ -47,7 +47,7 @@ def main():
         "OriginInvestorsClaim", address=originInvestorsClaimAddress, abi=OriginInvestorsClaim.abi, owner=acct)
     
     multisig = contracts['multisig']
-    сlaimContract.transferOwnership(multisig)
+    claimContract.transferOwnership(multisig)
 
     print(
         '''
