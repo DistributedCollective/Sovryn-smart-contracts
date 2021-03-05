@@ -46,75 +46,12 @@ def main():
     #setupLoanParamsForCollaterals(contracts['iUSDT'], [contracts['DoC'], contracts['BPro']])
     #setupLoanParamsForCollaterals(contracts['iRBTC'], [contracts['BPro'], contracts['USDT']])
 
-    #deployMultisig(['0xdB3DB4c5695f2aab0F406C86d1f35D326685d055', '0x5092019A3E0334586273A21a701F1BD859ECAbD6', '0xD6da34D91fC59134A132b17e7b5a472CA1BeA794'], 2)
-    #deployMultisig(['0x2bD2201bfe156a71EB0d02837172FFc237218505', acct, '0xdB3DB4c5695f2aab0F406C86d1f35D326685d055', '0x5092019A3E0334586273A21a701F1BD859ECAbD6', '0xD6da34D91fC59134A132b17e7b5a472CA1BeA794'], 2)
-    #updatePriceFeedToRSKOracle()
-    #checkRates()
 
-    #checkOwnerIsAddress(contracts['sovrynProtocol'], contracts['multisig'])
+    #createProposalSIP008()
 
-    '''
-    print("price feeds SOV")
-    transferOwner(contracts['PriceFeedRSKOracle'], contracts['multisig'])
-    transferOwner(contracts['USDTPriceFeed'], contracts['multisig'])
-    
-    
-    print("price feeds AMM")
-    transferOwner('0xe4d2e26ce947df7a8d04e5a9dcdef0c540c497cf', contracts['multisig'])#BPRO
-    transferOwner('0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789', contracts['multisig'])#WRBTC
-    transferOwner('0xf5df3b2ae0c4e2c8912e177f6bd8ca6d479397a2', contracts['multisig'])#USD
-    
-    
-    print("loan tokens")
-    #transferOwner(contracts['iUSDT'], contracts['multisig'])
-    #transferOwner(contracts['iBPro'], contracts['multisig'])
-    #transferOwner(contracts['iDOC'], contracts['multisig'])
-    transferOwner(contracts['iRBTC'], contracts['multisig'])
-    
-    print("AMM Network + Converters")
-    transferOwner(contracts['swapNetwork'], contracts['multisig'])
-    transferOwner(contracts['ConverterDOC'], contracts['multisig'])
-    transferOwner(contracts['ConverterBPRO'], contracts['multisig'])
-    transferOwner(contracts['ConverterUSDT'], contracts['multisig'])
-    #note:the ownership transfers for the AMM need to be accepted by the new owner
-    
-    
-    acceptOwnershipWithMultisig(contracts['swapNetwork'])
-    acceptOwnershipWithMultisig(contracts['ConverterDOC'])
-    acceptOwnershipWithMultisig(contracts['ConverterBPRO'])
-    acceptOwnershipWithMultisig(contracts['ConverterUSDT'])
-    acceptOwnershipWithMultisig('0xe4d2e26ce947df7a8d04e5a9dcdef0c540c497cf')
-    acceptOwnershipWithMultisig('0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789')
-    
-    checkOwnerIsAddress(contracts['swapNetwork'], contracts['multisig'])
-    checkOwnerIsAddress(contracts['ConverterDOC'], contracts['multisig'])
-    checkOwnerIsAddress(contracts['ConverterBPRO'], contracts['multisig'])
-    checkOwnerIsAddress(contracts['ConverterUSDT'], contracts['multisig'])
-    checkOwnerIsAddress('0xe4d2e26ce947df7a8d04e5a9dcdef0c540c497cf', contracts['multisig'])
-    checkOwnerIsAddress('0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789', contracts['multisig'])
-    '''
-
-    #addOwnerToMultisig('0x27d55f5668ef4438635bdce0adca083507e77752')
-
-    #readLiquidity()
-    #swapTokens(1e18, 1, contracts['swapNetwork'], contracts['USDT'], contracts['BPro'])
-    #readFromMedianizer()
-    #replaceSwapsUser()
-    #checkRates()
-    #replaceSwapsExternal()
-
-    # governorAcceptAdmin("governorOwner")
-    # governorAcceptAdmin("governorAdmin")
-
-    #replaceLoanTokenLogicOnAllContracts()
-
-    # setEarlyAccessToken(contracts['iDOC'], contracts['og'])
-    # setEarlyAccessToken(contracts['iUSDT'], contracts['og'])
-    # setEarlyAccessToken(contracts['iRBTC'], contracts['og'])
-    # setEarlyAccessToken(contracts['iBPro'], contracts['og'])
-
-    # createProposalSIP008()
-    createProposalSIP009()
+    setLendingFee(10**19)
+    setTradingFee(15 * 10**16)
+    setBorrowingFee(9 * 10**16)
 
 
 def loadConfig():
@@ -809,3 +746,27 @@ def executeProposal(id):
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
     tx = governor.execute(id)
     tx.info()
+
+def setLendingFee(fee):
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.setLendingFeePercent.encode_input(fee)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
+
+def setTradingFee(fee):
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.setTradingFeePercent.encode_input(fee)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
+
+def setBorrowingFee(fee):
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.setBorrowingFeePercent.encode_input(fee)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
