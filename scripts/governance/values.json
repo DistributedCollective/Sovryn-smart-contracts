@@ -1,0 +1,9 @@
+{
+    "account" : "0x0000000000000000000000000000000000000000",
+    "SOV_Amount_To_Stake" : "1000000",
+    "Time_To_Stake" : "31536000",
+    "Proposal_Target" : "0x0000000000000000000000000000000000000000",
+    "Proposal_Signature" : "name()",
+    "Proposal_Data" : "0x",
+    "Proposal_Description" : "SIP-000 : SIP_Name, Details: https://github.com/SIP-000.md, sha256: XXX"
+}
