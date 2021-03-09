@@ -775,6 +775,27 @@ def setBorrowingFee(fee):
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
 
+def transferSOVtoOriginInvestorsClaim():
+    originInvestorsClaimAddress = contracts['OriginInvestorsClaim']
+    if (originInvestorsClaimAddress == ''):
+        print('Please set originInvestorsClaimAddress and run again')
+        return
+
+    originInvestorsClaim = Contract.from_abi("OriginInvestorsClaim", address=originInvestorsClaimAddress, abi=OriginInvestorsClaim.abi, owner=acct)
+    amount = originInvestorsClaim.totalAmount()
+    if (amount == 0):
+        print('Please set amount and run again')
+        return
+
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    data = SOVtoken.transfer.encode_input(originInvestorsClaimAddress, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(SOVtoken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
 def createVesting():
     DAY = 24 * 60 * 60
     FOUR_WEEKS = 4 * 7 * DAY
