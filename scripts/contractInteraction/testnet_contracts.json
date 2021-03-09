@@ -32,6 +32,9 @@
     "Staking": "0xc37A85e35d7eECC82c4544dcba84CF7E61e1F1a3",
     "GovernorOwner": "0x058FD3F6a40b92b311B49E5e3E064300600021D7",
     "GovernorAdmin": "0x1528f0341a1Ea546780caD690F54b4FBE1834ED4",
-    "VestingRegistry": "0x80ec7ADd6CC1003BBEa89527ce93722e1DaD5c2a"
-
+    "VestingRegistry": "0x80ec7ADd6CC1003BBEa89527ce93722e1DaD5c2a",
+    "VestingRegistry2": "0x068fbb3Bef062C3daBA7a4B12f53Cd614FBcBF1d",
+    
+    "VestingLogic": "0xc1cECAC06c7a5d5480F158043A150acf06e206cD",
+    "OriginInvestorsClaim": "0x9FBe4Bf89521088F790a4dD2F3e495B4f0dA7F42"
 }
