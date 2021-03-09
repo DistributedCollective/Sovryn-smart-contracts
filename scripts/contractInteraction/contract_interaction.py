@@ -53,6 +53,8 @@ def main():
     # setTradingFee(15 * 10**16)
     # setBorrowingFee(9 * 10**16)
 
+    # transferSOVtoOriginInvestorsClaim()
+
     createVesting()
     transferSOVtoVestingRegistry()
     stakeTokens2()
