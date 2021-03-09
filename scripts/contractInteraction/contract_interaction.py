@@ -49,9 +49,8 @@ def main():
 
     #createProposalSIP008()
 
-    setLendingFee(10**19)
-    setTradingFee(15 * 10**16)
-    setBorrowingFee(9 * 10**16)
+    #deployMultisig(["0x986C65fc1783a445CecCadE74234dC8627d429d8", "0x0b3be9435610aac0e1c6f7a26c77e2213738cb48", "0xf281c928ab16a0ab9856d089d9eecc6d5c7bbe28", "0x7172492060f1404ba88a6bab1a20360ff767ceca"], 3)
+    #sendFromMultisig(0.08e18)
 
 
 def loadConfig():
@@ -676,14 +675,14 @@ def createProposalSIP005():
     #     description)
 
 
-def checkVotingPower():
+def checkVotingPower(address):
 
     staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
 
-    votingPower = staking.getCurrentVotes(acct)
+    votingPower = staking.getCurrentVotes(address)
 
     print('======================================')
-    print('Your Address: '+str(acct))
+    print('Your Address: '+str(address))
     print('Your Voting Power: '+str(votingPower))
     print('======================================')
 
@@ -770,3 +769,17 @@ def setBorrowingFee(fee):
     tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
+
+def sendFromMultisig(amount):
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    data = vestingRegistry.deposit.encode_input()
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(vestingRegistry.address,amount,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
+
+def mintNFT(contractAddress, receiver):
+    abiFile =  open('./scripts/contractInteraction/SovrynNft.json')
+    abi = json.load(abiFile)
+    nft = Contract.from_abi("NFT", address=contractAddress, abi=abi, owner=acct)
+    nft.mint(receiver)
