@@ -30,7 +30,7 @@ def main():
     TOKEN_PRICE = 9736
 
     # TODO VestingRegistry2
-    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    vestingRegistry2 = Contract.from_abi("VestingRegistry2", address=contracts['VestingRegistry2'], abi=VestingRegistry2.abi, owner=acct)
 
     # == Vesting contracts ===============================================================================================================
     btcAmount = 0
