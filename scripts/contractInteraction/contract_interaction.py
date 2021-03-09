@@ -786,6 +786,12 @@ def createVesting():
     # cliff = CLIFF_DELAY + int(vesting[2]) * FOUR_WEEKS
     # duration = cliff + (int(vesting[3]) - 1) * FOUR_WEEKS
 
+    # i think we don't need the delay anymore
+    # because 2 weeks after TGE passed already
+    # we keep the 4 weeks (26th of march first payout)
+
+    # already deployed genesis contracts have this cliff), the first unlocking date will be April 9
+
     cliff = 1 * FOUR_WEEKS
     duration = cliff + (10 - 1) * FOUR_WEEKS
 
