@@ -55,7 +55,6 @@ def main():
 
     createVesting()
     transferSOVtoVestingRegistry()
-    stakeTokens1()
     stakeTokens2()
 
 
@@ -790,8 +789,6 @@ def createVesting():
     # because 2 weeks after TGE passed already
     # we keep the 4 weeks (26th of march first payout)
 
-    # already deployed genesis contracts have this cliff), the first unlocking date will be April 9
-
     cliff = 1 * FOUR_WEEKS
     duration = cliff + (10 - 1) * FOUR_WEEKS
 
@@ -805,8 +802,8 @@ def createVesting():
     print(txId)
 
 def transferSOVtoVestingRegistry():
-    #  50,000.00 + 271,865.38 SOV
-    amount = (5000000 + 27186538) * 10**16
+    # 271,865.38 SOV
+    amount = 27186538 * 10**16
 
     vestingRegistryAddress = contracts['VestingRegistry']
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
@@ -815,22 +812,6 @@ def transferSOVtoVestingRegistry():
 
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(SOVtoken.address,0,data)
-    txId = tx.events["Submission"]["transactionId"]
-    print(txId)
-
-def stakeTokens1():
-    tokenOwner = "0xb1fdf99cD9d73605eb43Fc2A2BB5486C7958681f"
-    # 50,000.00 SOV
-    amount = 5000000 * 10**16
-
-    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
-    vestingAddress = vestingRegistry.getVesting(tokenOwner)
-    print("vestingAddress: " + vestingAddress)
-    data = vestingRegistry.stakeTokens.encode_input(vestingAddress, amount)
-    print(data)
-
-    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
-    tx = multisig.submitTransaction(vestingRegistry.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
