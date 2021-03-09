@@ -26,3 +26,6 @@ def main():
     vestingRegistry2 = contracts['VestingRegistry2']
 
     origingVestingCreator = acct.deploy(OrigingVestingCreator, vestingRegistry2)
+
+    # TODO save to *_contracts.json
+    # TODO vestingRegistry2.addAdmin(origingVestingCreator.address)

@@ -5,7 +5,7 @@ import "../../openzeppelin/Ownable.sol";
 import "./VestingRegistry.sol";
 
 /**
-* @title Proxy contract to for checking address, creating and staking tokens
+* @title Temp contract for checking address, creating and staking tokens
 *
 */
 contract OrigingVestingCreator is Ownable {
@@ -25,7 +25,7 @@ contract OrigingVestingCreator is Ownable {
         processedList[_tokenOwner] = true;
 
         vestingRegistry.createVesting(_tokenOwner, _amount, _cliff, _duration);
-        address vesting = vestingRegistry.getVesting(msg.sender);
+        address vesting = vestingRegistry.getVesting(_tokenOwner);
         vestingRegistry.stakeTokens(vesting, _amount);
     }
 

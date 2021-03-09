@@ -25,14 +25,35 @@ def main():
     contracts = json.load(configFile)
     multisig = contracts['multisig']
 
-    balanceBefore = acct.balance()
-
     TOKEN_PRICE = 9736
 
-    # TODO VestingRegistry2
-    vestingRegistry2 = Contract.from_abi("VestingRegistry2", address=contracts['VestingRegistry2'], abi=VestingRegistry2.abi, owner=acct)
+    if thisNetwork == "development":
+        SOVtoken = acct.deploy(SOV, 10**26)
+        protocolAddress = contracts['sovrynProtocol']
+        stakingLogic = acct.deploy(Staking)
+        staking = acct.deploy(StakingProxy, SOVtoken.address)
+        staking.setImplementation(stakingLogic.address)
+        staking = Contract.from_abi("Staking", address=staking.address, abi=Staking.abi, owner=acct)
 
-    # == Vesting contracts ===============================================================================================================
+        feeSharing = acct.deploy(FeeSharingProxy, protocolAddress, staking.address)
+        staking.setFeeSharing(feeSharing.address)
+
+        vestingLogic = acct.deploy(VestingLogic)
+        vestingFactory = acct.deploy(VestingFactory, vestingLogic.address)
+        vestingRegistry2 = acct.deploy(VestingRegistry, vestingFactory.address, SOVtoken.address, [], 1, staking.address, feeSharing.address, multisig)
+        vestingFactory.transferOwnership(vestingRegistry2.address)
+
+        balanceBefore = acct.balance()
+        vestingCreator = acct.deploy(OrigingVestingCreator, vestingRegistry2)
+        vestingRegistry2.addAdmin(vestingCreator.address)
+
+        # TODO transfer from multisig
+        SOVtoken.transfer(vestingRegistry2.address, 20751256676253082407040)
+    else:
+        balanceBefore = acct.balance()
+        vestingCreator = contracts['OrigingVestingCreator']
+
+    # == Vesting contracts =================================================================================================================
     btcAmount = 0
     vestingList = []
     with open('./scripts/deployment/vesting/BTC to be returned(PA).csv', 'r') as file:
@@ -73,19 +94,14 @@ def main():
     for vesting in vestingList:
         tokenOwner = vesting[0]
         amount = vesting[1]
-        # vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
-        # vestingAddress = vestingRegistry.getVesting(tokenOwner)
 
-        # print("Vesting: ", vestingAddress)
-        # print(tokenOwner)
-        # print(amount)
-        # print(cliff)
-        # print(duration)
-        # print((duration - cliff) / FOUR_WEEKS + 1)
-        # vestingRegistry.stakeTokens(vestingAddress, amount)
+        print(tokenOwner)
+        print(amount)
+        print(cliff)
+        print(duration)
+        print((duration - cliff) / FOUR_WEEKS + 1)
 
-        # stakes = staking.getStakes(vestingAddress)
-        # print(stakes)
+        vestingCreator.createVesting(tokenOwner, amount, cliff, duration)
 
     print("deployment cost:")
     print((balanceBefore - acct.balance()) / 10**18)
