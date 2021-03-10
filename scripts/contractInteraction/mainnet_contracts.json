@@ -44,5 +44,7 @@
     "DevelopmentFund": "0x617866cC4a089c3653ddC31a618b078291839AeB",
 
     "VestingRegistry2": "0x0a9bDbf5e104a30fb4c99f6812FB85B60Fd8D372",
-    "OriginInvestorsClaim": "0xE0f5BF8d0C58d9c8A078DB75A9D379E6CDF3149E"
+    "OriginInvestorsClaim": "0xE0f5BF8d0C58d9c8A078DB75A9D379E6CDF3149E",
+
+    "OrigingVestingCreator": "0xea173A078bA12673a8bef6DFa47A8E8f130B4939"
 }
