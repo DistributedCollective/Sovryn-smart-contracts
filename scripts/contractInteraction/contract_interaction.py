@@ -55,10 +55,11 @@ def main():
 
     # transferSOVtoOriginInvestorsClaim()
 
-    createVesting()
-    transferSOVtoVestingRegistry()
-    stakeTokens2()
+    # createVesting()
+    # transferSOVtoVestingRegistry()
+    # stakeTokens2()
 
+    transferSOVtoVestingRegistry2()
 
 def loadConfig():
     global contracts, acct
@@ -851,5 +852,21 @@ def stakeTokens2():
 
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(vestingRegistry.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def transferSOVtoVestingRegistry2():
+    # Vesting Amount: 20751256676253082407040 (about 21K SOV)
+    # BTC Amount: 2.0203423499999995
+    amount = 20751256676253082407040
+
+    # Origin - VestingRegistry2
+    vestingRegistryAddress = contracts['VestingRegistry2']
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    data = SOVtoken.transfer.encode_input(vestingRegistryAddress, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(SOVtoken.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
