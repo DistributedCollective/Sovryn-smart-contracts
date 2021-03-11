@@ -25,7 +25,7 @@ brownie accounts new rskdeployer
 2. Add network Rsk-testnet
 
 ```
-brownie networks add rsk-testnet host=https://testnet.sovryn.app/rpc chainid=31
+brownie networks add rsk rsk-testnet host=https://testnet.sovryn.app/rpc chainid=31
 ```
 
 3. Interacting with Governance Contracts
@@ -46,31 +46,31 @@ To run:
 - Calculate Voting Power
 
 ```
-brownie run scripts/governance/calculate_voting_power.py --network rsk-mainnet
+brownie run scripts/governance/calculate_voting_power.py --network rsk-testnet
 ```
 
 - Stake Tokens
 
 ```
-brownie run scripts/governance/stake_tokens.py --network rsk-mainnet
+brownie run scripts/governance/stake_tokens.py --network rsk-testnet
 ```
 
 - Current Voting Power
 
 ```
-brownie run scripts/governance/current_voting_power.py --network rsk-mainnet
+brownie run scripts/governance/current_voting_power.py --network rsk-testnet
 ```
 
 - Create Proposal
 
 ```
-brownie run scripts/governance/create_proposal.py --network rsk-mainnet
+brownie run scripts/governance/create_proposal.py --network rsk-testnet
 ```
 
 - Last Proposal Created
 
 ```
-brownie run scripts/governance/last_proposal_created.py --network rsk-mainnet
+brownie run scripts/governance/last_proposal_created.py --network rsk-testnet
 ```
 
 ## Things To Remember:
