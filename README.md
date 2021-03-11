@@ -169,8 +169,10 @@ brownie run ~/Code/Sovryn-smart-contracts/scripts/swapTest/swap_test.py
 
 Just like on RSK testnet, but
 ```python
-add network as brownie networks add arbitrum arb-kovan host=https://kovan3.arbitrum.io/rpc chainid=79377087078960
+brownie networks add arbitrum arb-kovan host=https://kovan3.arbitrum.io/rpc chainid=79377087078960
 ```
+
+Set the gas price to 0 on the brownie config.
 
 ## Smart Contract Usage
 
