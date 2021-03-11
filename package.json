@@ -61,6 +61,7 @@
   },
   "dependencies": {
     "phantomjs-prebuilt": "^2.1.16",
-    "sol2uml": "^1.1.17"
+    "sol2uml": "^1.1.17",
+    "yarn": "^1.22.10"
   }
 }
