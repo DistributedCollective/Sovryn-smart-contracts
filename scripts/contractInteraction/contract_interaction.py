@@ -53,8 +53,13 @@ def main():
     # setTradingFee(15 * 10**16)
     # setBorrowingFee(9 * 10**16)
 
-    transferSOVtoOriginInvestorsClaim()
+    # transferSOVtoOriginInvestorsClaim()
 
+    # createVesting()
+    # transferSOVtoVestingRegistry()
+    # stakeTokens2()
+
+    transferSOVtoVestingRegistry2()
 
 def loadConfig():
     global contracts, acct
@@ -800,6 +805,78 @@ def transferSOVtoOriginInvestorsClaim():
 
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
     data = SOVtoken.transfer.encode_input(originInvestorsClaimAddress, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(SOVtoken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def createVesting():
+    DAY = 24 * 60 * 60
+    FOUR_WEEKS = 4 * 7 * DAY
+
+    tokenOwner = "0x21e1AaCb6aadF9c6F28896329EF9423aE5c67416"
+    amount = 27186538 * 10**16
+    # TODO cliff 4 weeks or less ?
+    # cliff = CLIFF_DELAY + int(vesting[2]) * FOUR_WEEKS
+    # duration = cliff + (int(vesting[3]) - 1) * FOUR_WEEKS
+
+    # i think we don't need the delay anymore
+    # because 2 weeks after TGE passed already
+    # we keep the 4 weeks (26th of march first payout)
+
+    cliff = 1 * FOUR_WEEKS
+    duration = cliff + (10 - 1) * FOUR_WEEKS
+
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    data = vestingRegistry.createVesting.encode_input(tokenOwner, amount, cliff, duration)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(vestingRegistry.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def transferSOVtoVestingRegistry():
+    # 271,865.38 SOV
+    amount = 27186538 * 10**16
+
+    vestingRegistryAddress = contracts['VestingRegistry']
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    data = SOVtoken.transfer.encode_input(vestingRegistryAddress, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(SOVtoken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def stakeTokens2():
+    tokenOwner = "0x21e1AaCb6aadF9c6F28896329EF9423aE5c67416"
+    # 271,865.38 SOV
+    amount = 27186538 * 10**16
+
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    vestingAddress = vestingRegistry.getVesting(tokenOwner)
+    print("vestingAddress: " + vestingAddress)
+    data = vestingRegistry.stakeTokens.encode_input(vestingAddress, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(vestingRegistry.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def transferSOVtoVestingRegistry2():
+    # Vesting Amount: 20751256676253082407040 (about 21K SOV)
+    # BTC Amount: 2.0203423499999995
+    amount = 20751256676253082407040
+
+    # Origin - VestingRegistry2
+    vestingRegistryAddress = contracts['VestingRegistry2']
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    data = SOVtoken.transfer.encode_input(vestingRegistryAddress, amount)
     print(data)
 
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
