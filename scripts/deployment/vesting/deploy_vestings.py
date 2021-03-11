@@ -51,7 +51,7 @@ def main():
         SOVtoken.transfer(vestingRegistry2.address, 20751256676253082407040)
     else:
         balanceBefore = acct.balance()
-        vestingCreator = contracts['OrigingVestingCreator']
+        vestingCreator = Contract.from_abi("OrigingVestingCreator", address=contracts['OrigingVestingCreator'], abi=OrigingVestingCreator.abi, owner=acct)
 
     # == Vesting contracts =================================================================================================================
     btcAmount = 0
