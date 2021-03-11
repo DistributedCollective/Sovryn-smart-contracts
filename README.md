@@ -165,6 +165,13 @@ brownie run ~/Code/Sovryn-smart-contracts/scripts/swapTest/swap_test.py
    feeds.setPriceFeed([tokens.rbtc.address, ...], [price_feed_moc.address, ...])
    ```
 
+## Deployment on Arbitrum kovan testnet
+
+Just like on RSK testnet, but
+```python
+add network as brownie networks add arbitrum arb-kovan host=https://kovan3.arbitrum.io/rpc chainid=79377087078960
+```
+
 ## Smart Contract Usage
 
 ### 0. Overview
