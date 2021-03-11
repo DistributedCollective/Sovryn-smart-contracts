@@ -151,7 +151,7 @@ def test_margin_trading_sending_loan_tokens():
     if tx.events['Trade']['positionSize'] > sovryn_after_rbtc_balance:
         raise Exception("Failed to validate `test_margin_trading_sending_loan_tokens` - positionSize is incorrect")
 
-    if tx.events['Trade']['borrowedAmount'] > 2 * loan_token_sent:
+    if tx.events['Trade']['borrowedAmount'] <= 2 * loan_token_sent:
         raise Exception("Failed to validate `test_margin_trading_sending_loan_tokens` - borrowedAmount is incorrect")
 
     if 300e18 - tx.events['Trade']['borrowedAmount'] > loan_token_after_susd_balance:
