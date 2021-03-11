@@ -683,14 +683,14 @@ def createProposalSIP005():
     #     description)
 
 
-def checkVotingPower():
+def checkVotingPower(address):
 
     staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
 
-    votingPower = staking.getCurrentVotes(acct)
+    votingPower = staking.getCurrentVotes(address)
 
     print('======================================')
-    print('Your Address: '+str(acct))
+    print('Your Address: '+str(address))
     print('Your Voting Power: '+str(votingPower))
     print('======================================')
 
@@ -778,6 +778,19 @@ def setBorrowingFee(fee):
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
 
+def sendFromMultisig(amount):
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    data = vestingRegistry.deposit.encode_input()
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(vestingRegistry.address,amount,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
+
+def mintNFT(contractAddress, receiver):
+    abiFile =  open('./scripts/contractInteraction/SovrynNft.json')
+    abi = json.load(abiFile)
+    nft = Contract.from_abi("NFT", address=contractAddress, abi=abi, owner=acct)
+    nft.mint(receiver)
 def transferSOVtoOriginInvestorsClaim():
     originInvestorsClaimAddress = contracts['OriginInvestorsClaim']
     if (originInvestorsClaimAddress == ''):
