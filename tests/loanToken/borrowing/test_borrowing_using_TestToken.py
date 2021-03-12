@@ -282,7 +282,7 @@ def test_borrow_from_foreign_loan_should_fail(accounts,loanToken,sovryn,set_dema
     #approve the transfer of the collateral
     RBTC.approve(loanToken.address, collateralTokenSent, {'from': accounts[2]})
 
-    with reverts("borrower mismatch"):
+    with reverts("unauthorized use of existing loan"):
         tx = loanToken.borrow(
             loanId,                            # bytes32 loanId
             withdrawAmount/2,                 # uint256 withdrawAmount
