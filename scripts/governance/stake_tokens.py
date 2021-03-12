@@ -9,7 +9,7 @@ def main():
     #load the contracts and acct depending on the network
     loadConfig()
 
-    stakeTokens(values['SOV_Amount_To_Stake'], values['Time_To_Stake'], values['account'])
+    stakeTokens(values['SOV_Amount_To_Stake'], values['Time_To_Stake'], values['account'], values['delegatee'])
 
 def loadConfig():
     global contracts, acct, values
@@ -22,7 +22,7 @@ def loadConfig():
     values = json.load(open('./scripts/governance/values.json'))
     acct = accounts.load("rskdeployer")
 
-def stakeTokens(sovAmount, stakeTime, acctAddress):
+def stakeTokens(sovAmount, stakeTime, acctAddress, delegateeAddress):
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acctAddress)
     staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acctAddress)
 
@@ -30,4 +30,4 @@ def stakeTokens(sovAmount, stakeTime, acctAddress):
     amount = sovAmount * (10 ** 18)
 
     SOVtoken.approve(staking.address, amount)
-    tx = staking.stake(amount, until, acctAddress, acctAddress)
+    tx = staking.stake(amount, until, acctAddress, delegateeAddress)
