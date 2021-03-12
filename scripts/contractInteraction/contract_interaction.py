@@ -59,14 +59,30 @@ def main():
     # transferSOVtoVestingRegistry()
     # stakeTokens2()
 
-    transferSOVtoVestingRegistry2()
+    #triggerEmergencyStop(contracts['iUSDT'])
+    #triggerEmergencyStop(contracts['iBPro'])
+    #triggerEmergencyStop(contracts['iDOC'])
+    #triggerEmergencyStop(contracts['iRBTC'])
+
+    testBorrow(contracts['sovrynProtocol'], contracts['iUSDT'], contracts['USDT'], contracts['WRBTC'])
+    #readOwner(contracts['iUSDT'])
+    checkPause(contracts['iUSDT'])
+    checkPause(contracts['iRBTC'])
+    checkPause(contracts['iBPro'])
+    checkPause(contracts['iDOC'])
+
+    #setPauser(contracts['iRBTC'], contracts['multisig'])
+    #setPauser(contracts['iBPro'], contracts['multisig'])
+    #setPauser(contracts['iDOC'], contracts['multisig'])
+    #executeOnMultisig(68)
+    #checkPause(contracts['iUSDT'])
 
 def loadConfig():
     global contracts, acct
     this_network = network.show_active()
     if this_network == "rsk-mainnet":
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
-    elif this_network == "rsk-testnet":
+    elif this_network == "testnet":
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     contracts = json.load(configFile)
     acct = accounts.load("rskdeployer")
@@ -223,22 +239,20 @@ def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collat
     # determine borrowing parameter
     withdrawAmount = 10e18 #i want to borrow 10 USD
     # compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan 
-    collateralTokenSent = sovryn.getRequiredCollateral(underlyingTokenAddress,collateralTokenAddress,withdrawAmount,50e18, True)
-    print("collateral needed", collateralTokenSent)
+    collateralTokenSent = 2* sovryn.getRequiredCollateral(underlyingTokenAddress,collateralTokenAddress,withdrawAmount,50e18, True)
+    print("collateral needed", collateralTokenSent/1e18)
     durationInSeconds = 60*60*24*10 #10 days
     
     #check requirements
-    totalSupply = loanToken.totalSupply()
-    totalBorrowed = loanToken.totalAssetBorrow()
-    print('available supply:', totalSupply - totalBorrowed)
-    assert(totalSupply - totalBorrowed >= withdrawAmount)
+    availableSupply = loanToken.marketLiquidity()
+    print('available supply:', availableSupply/1e18)
+    assert(availableSupply >= withdrawAmount)
     interestRate = loanToken.nextBorrowInterestRate(withdrawAmount)
     print('interest rate (needs to be > 0):', interestRate)
     assert(interestRate > 0)
     
-    
     #approve the transfer of the collateral if needed
-    if(testToken.allowance(acct, loanToken.address) < collateralTokenSent):
+    if(testToken.address.lower() != contracts['WRBTC'].lower() and testToken.allowance(acct, loanToken.address) < collateralTokenSent):
         testToken.approve(loanToken.address, collateralTokenSent)
     
     # borrow some funds
@@ -250,7 +264,8 @@ def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collat
         testToken.address,                   # address collateralTokenAddress
         acct,                    # address borrower
         acct,                    # address receiver
-        b''                             # bytes memory loanDataBytes
+        b'' ,                            # bytes memory loanDataBytes
+        {'value': collateralTokenSent}
     )
     
     #assert the trade was processed as expected
@@ -883,3 +898,35 @@ def transferSOVtoVestingRegistry2():
     tx = multisig.submitTransaction(SOVtoken.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
+
+def triggerEmergencyStop(loanTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    #functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,bytes)"
+    functionSignature = "borrow(bytes32,uint256,uint256,uint256,address,address,address,bytes)"
+    data = loanToken.toggleFunctionPause.encode_input(functionSignature, True)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(loanToken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def readPauser(loanTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    print(loanToken.pauser())
+
+def setPauser(loanTokenAddress, pauser):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    data = loanToken.setPauser.encode_input(pauser)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(loanToken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def executeOnMultisig(transactionId):
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+
+    multisig.executeTransaction(transactionId)
+
+def checkPause(loanTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    funcId = "borrow(bytes32,uint256,uint256,uint256,address,address,address,bytes)"
+    print(loanToken.checkPause(funcId))
