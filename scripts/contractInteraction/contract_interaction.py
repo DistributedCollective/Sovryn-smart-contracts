@@ -64,18 +64,7 @@ def main():
     #triggerEmergencyStop(contracts['iDOC'])
     #triggerEmergencyStop(contracts['iRBTC'])
 
-    testBorrow(contracts['sovrynProtocol'], contracts['iUSDT'], contracts['USDT'], contracts['WRBTC'])
-    #readOwner(contracts['iUSDT'])
-    checkPause(contracts['iUSDT'])
-    checkPause(contracts['iRBTC'])
-    checkPause(contracts['iBPro'])
-    checkPause(contracts['iDOC'])
-
-    #setPauser(contracts['iRBTC'], contracts['multisig'])
-    #setPauser(contracts['iBPro'], contracts['multisig'])
-    #setPauser(contracts['iDOC'], contracts['multisig'])
-    #executeOnMultisig(68)
-    #checkPause(contracts['iUSDT'])
+    determineFundsAtRisk()
 
 def loadConfig():
     global contracts, acct
@@ -930,3 +919,25 @@ def checkPause(loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     funcId = "borrow(bytes32,uint256,uint256,uint256,address,address,address,bytes)"
     print(loanToken.checkPause(funcId))
+
+def determineFundsAtRisk():
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    borrowedPositions = []
+    sum = 0
+    possible = 0
+    for i in range (0, 10000, 10):
+        loans = sovryn.getActiveLoans(i, i+10, False)
+        if(len(loans) == 0):
+            break
+        for loan in loans:
+            if loan[11] == 0 and loan[10] > 150e18:
+                print(loan[1])
+                sum += loan[3]
+                possible += loan[3] * (loan[10] / 150e18)
+                borrowedPositions.append(loan)
+
+    print(borrowedPositions)
+    print(len(borrowedPositions))
+    print('total height of affected loans: ', sum/1e18)
+    print('total potential borrowed: ', possible/1e18)
+    print('could have been stolen: ', (possible - sum)/1e18)
