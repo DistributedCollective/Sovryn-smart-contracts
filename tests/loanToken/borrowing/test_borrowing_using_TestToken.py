@@ -299,7 +299,7 @@ def test_borrow_from_foreign_loan_should_fail(accounts,loanToken,sovryn,set_dema
 borrows some funds from account 0 and then takes out some more from account 2 with a marginTrade without paying
 should fail.
 '''   
-def test_borrow_from_foreign_trade_position_should_fail(accounts,loanToken,sovryn,set_demand_curve,lend_to_pool, SUSD, RBTC, FeesEvents, SOV, priceFeeds):
+def test_margin_trade_from_foreign_loan_should_fail(accounts,loanToken,sovryn,set_demand_curve,lend_to_pool, SUSD, RBTC, FeesEvents, SOV, priceFeeds):
 
     # prepare the test
     lend_to_pool()
@@ -345,4 +345,47 @@ def test_borrow_from_foreign_trade_position_should_fail(accounts,loanToken,sovry
             accounts[2], #trader,
             b'', #loanDataBytes (only required with ether)
             {'from': accounts[2]}
+        )
+
+'''
+margin trades from account 0 and then borrows from same loan.
+should fail.
+'''
+def test_borrow_from_trade_position_should_fail(accounts,loanToken,sovryn,set_demand_curve,lend_to_pool, SUSD, RBTC, FeesEvents, SOV):
+    # prepare the test
+    lend_to_pool()
+    set_demand_curve()
+
+    # determine borrowing parameter
+    withdrawAmount = 10e18 #i want to borrow 10 USD
+    
+    #approve the transfer of the collateral
+    SUSD.approve(loanToken.address, withdrawAmount)
+
+    tx = loanToken.marginTrade(
+        0, #loanId  (0 for new loans)
+        1e18, # leverageAmount
+        withdrawAmount, #loanTokenSent
+        0, # no collateral token sent
+        RBTC.address, #collateralTokenAddress
+        accounts[0], #trader,
+        b'', #loanDataBytes (only required with ether)
+    )
+    borrow_event = tx.events['Trade']
+    loanId = borrow_event['loanId']
+
+    #approve the transfer of the collateral
+    RBTC.approve(loanToken.address, withdrawAmount)
+
+    with reverts("loanParams mismatch"):
+        tx = loanToken.borrow(
+            loanId,                            # bytes32 loanId
+            withdrawAmount/10,                 # uint256 withdrawAmount
+            60*60*24*10,              # uint256 initialLoanDuration
+            1,            # uint256 collateralTokenSent
+            RBTC.address,                   # address collateralTokenAddress
+            accounts[0],                       # address borrower
+            accounts[0],                    # address receiver
+            b'',                             # bytes memory loanDataBytes
+            {'from': accounts[0]}
         )
