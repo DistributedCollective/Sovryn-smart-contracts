@@ -11,7 +11,6 @@ test script for testing the loan token trading logic with 2 TestTokens.
 import pytest
 from loanToken.trading.shared_trading_functions import *
 
-
 '''
 verifies that the loan token address is set on the contract
 '''
@@ -142,3 +141,28 @@ def test_margin_trading_without_early_access_token_should_fail(accounts, sovryn,
 
     with reverts("No early access tokens"):
         margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain, False) 
+
+
+def test_increasing_position_of_other_trader_should_fail(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain, SOV, FeesEvents,lend_to_pool,open_margin_trade_position):
+    #prepare the test
+    (receiver, _) = lend_to_pool()
+    #trader=accounts[1] on this call
+    (loan_id, trader, loan_token_sent, leverage_amount) = open_margin_trade_position()
+
+    #deposit collateral to add margin to the loan created above
+    RBTC.approve(sovryn, 1e18)
+    tx = sovryn.depositCollateral(loan_id, 1e18)
+    RBTC.transfer(accounts[2], 1e18)
+    RBTC.approve(loanToken, 1e18, {'from':accounts[2]})
+
+    with reverts("unauthorized use of existing loan"):
+        tx = loanToken.marginTrade(
+            loan_id, #loanId  (0 for new loans)
+            2e18, # leverageAmount
+            0, #loanTokenSent
+            1000, # no collateral token sent
+            RBTC.address, #collateralTokenAddress
+            accounts[1], #trader,
+            b'', #loanDataBytes (only required with ether)
+            {'from':accounts[2]}
+        )
