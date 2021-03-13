@@ -214,6 +214,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 		require(collateralTokenAddress != loanTokenAddress, "11");
 
+		// ensures authorized use of existing loan
+        require(loanId == 0 || msg.sender == trader, "unauthorized use of existing loan");
+
 		//temporary: limit transaction size
 		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
 		if (transactionLimit[loanTokenAddress] > 0) require(loanTokenSent <= transactionLimit[loanTokenAddress]);

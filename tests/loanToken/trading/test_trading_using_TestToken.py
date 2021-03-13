@@ -37,7 +37,7 @@ process:
 1. send the margin trade tx with the passed parameter (NOTE: the token transfer needs to be approved already)
 2. TODO verify the trade event and balances are correct
 ''' 
-def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, RBTC, chain, FeesEvents, SOV):
+def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, RBTC, chain, FeesEvents, SOV, priceFeeds):
     loanSize = 10000e18
     SUSD.mint(loanToken.address, loanSize * 12)
     #   address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
