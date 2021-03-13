@@ -3,6 +3,7 @@ __pycache__
 .DS_Store
 .history
 .hypothesis/
+.gradle/
 build/
 reports/
 node_modules/
@@ -27,3 +28,4 @@ solc-select
 node_modules
 artifacts/
 cache/
+contracts_bzx/

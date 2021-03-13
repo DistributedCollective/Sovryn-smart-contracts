@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.
+ * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
 
@@ -13,6 +13,29 @@ contract AdvancedToken is AdvancedTokenStorage {
 	function approve(address _spender, uint256 _value) public returns (bool) {
 		allowed[msg.sender][_spender] = _value;
 		emit Approval(msg.sender, _spender, _value);
+		return true;
+	}
+
+	//bzx compare
+	//TODO: Unit tests increase/decrease approval
+	function increaseApproval(address _spender, uint256 _addedValue) public returns (bool) {
+		uint256 _allowed = allowed[msg.sender][_spender].add(_addedValue);
+		allowed[msg.sender][_spender] = _allowed;
+
+		emit Approval(msg.sender, _spender, _allowed);
+		return true;
+	}
+
+	function decreaseApproval(address _spender, uint256 _subtractedValue) public returns (bool) {
+		uint256 _allowed = allowed[msg.sender][_spender];
+		if (_subtractedValue >= _allowed) {
+			_allowed = 0;
+		} else {
+			_allowed -= _subtractedValue;
+		}
+		allowed[msg.sender][_spender] = _allowed;
+
+		emit Approval(msg.sender, _spender, _allowed);
 		return true;
 	}
 
@@ -41,13 +64,12 @@ contract AdvancedToken is AdvancedTokenStorage {
 		uint256 _assetAmount,
 		uint256 _price
 	) internal returns (uint256) {
-		require(_tokenAmount <= balances[_who], "16");
-		// no need to require value <= totalSupply, since that would imply the
-		// sender's balance is greater than the totalSupply, which *should* be an assertion failure
+		//bzx compare
+		//TODO: Unit test
+		uint256 _balance = balances[_who].sub(_tokenAmount, "16");
 
-		uint256 _balance = balances[_who].sub(_tokenAmount);
+		// a rounding error may leave dust behind, so we clear this out
 		if (_balance <= 10) {
-			// we can't leave such small balance quantities
 			_tokenAmount = _tokenAmount.add(_balance);
 			_balance = 0;
 		}

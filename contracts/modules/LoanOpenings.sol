@@ -120,9 +120,11 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 		if (marginAmount != 0) {
 			collateralAmountRequired = _getRequiredCollateral(loanToken, collateralToken, newPrincipal, marginAmount, isTorqueLoan);
 
-			uint256 fee = isTorqueLoan ? _getBorrowingFee(collateralAmountRequired) : _getTradingFee(collateralAmountRequired);
-			if (fee != 0) {
-				collateralAmountRequired = collateralAmountRequired.add(fee);
+			uint256 feePercent = isTorqueLoan ? borrowingFeePercent : tradingFeePercent;
+			if (collateralAmountRequired != 0 && feePercent != 0) {
+				collateralAmountRequired = collateralAmountRequired.mul(10**20).divCeil(
+					10**20 - feePercent // never will overflow
+				);
 			}
 		}
 	}
@@ -138,20 +140,21 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 			if (isTorqueLoan) {
 				marginAmount = marginAmount.add(10**20); // adjust for over-collateralized loan
 			}
-
-			uint256 collateral = collateralTokenAmount;
-			uint256 fee = isTorqueLoan ? _getBorrowingFee(collateral) : _getTradingFee(collateral);
-			if (fee != 0) {
-				collateral = collateral.sub(fee);
-			}
-
 			if (loanToken == collateralToken) {
-				borrowAmount = collateral.mul(10**20).div(marginAmount);
+				borrowAmount = collateralTokenAmount.mul(10**20).div(marginAmount);
 			} else {
 				(uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(collateralToken, loanToken);
 				if (sourceToDestPrecision != 0) {
-					borrowAmount = collateral.mul(10**20).div(marginAmount).mul(sourceToDestRate).div(sourceToDestPrecision);
+					borrowAmount = collateralTokenAmount.mul(10**20).mul(sourceToDestRate).div(marginAmount).div(sourceToDestPrecision);
 				}
+			}
+			uint256 feePercent = isTorqueLoan ? borrowingFeePercent : tradingFeePercent;
+			if (borrowAmount != 0 && feePercent != 0) {
+				borrowAmount = borrowAmount
+					.mul(
+					10**20 - feePercent // never will overflow
+				)
+					.divCeil(10**20);
 			}
 		}
 	}
@@ -503,7 +506,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 			//so the swap is probably farther off than the price feed.
 			(uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(collateralToken, loanToken);
 			if (sourceToDestRate != 0) {
-				collateralTokenAmount = newPrincipal.mul(sourceToDestPrecision).div(sourceToDestRate).mul(marginAmount).div(10**20);
+				collateralTokenAmount = newPrincipal.mul(sourceToDestPrecision).mul(marginAmount).div(sourceToDestRate).div(10**20);
 			}
 		}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.
+ * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
 
@@ -21,6 +21,9 @@ contract AdvancedTokenStorage is LoanTokenBase {
 
 	// topic: 0x743033787f4738ff4d6a7225ce2bd0977ee5f86b91a902a58f5e4d0b297b4644
 	event Burn(address indexed burner, uint256 tokenAmount, uint256 assetAmount, uint256 price);
+
+	//topic: 0xc688ff9bd4a1c369dd44c5cf64efa9db6652fb6b280aa765cd43f17d256b816e
+	event FlashBorrow(address borrower, address target, address loanToken, uint256 loanAmount);
 
 	mapping(address => uint256) internal balances;
 	mapping(address => mapping(address => uint256)) internal allowed;

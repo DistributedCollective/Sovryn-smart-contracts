@@ -116,7 +116,6 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
 		return returnData;
 	}
 
-	// ***** NOTE: Reentrancy is allowed here to allow flashloan use cases *****
 	function borrow(
 		bytes32 loanId, // 0 if new loan
 		uint256 withdrawAmount,
@@ -125,7 +124,7 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
 		address collateralToken, // if address(0), this means ETH and ETH must be sent with the call or loanId must be provided
 		address borrower,
 		address receiver,
-		bytes memory /*loanDataBytes*/ // arbitrary order data (for future use)
+		bytes memory // arbitrary order data (for future use) /*loanDataBytes*/
 	)
 		public
 		payable
