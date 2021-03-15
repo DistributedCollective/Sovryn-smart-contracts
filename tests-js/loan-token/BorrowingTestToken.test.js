@@ -19,7 +19,7 @@ const {
 	getPriceFeeds,
 	getSovryn,
 	CONSTANTS,
-} = require("./utils.js");
+} = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 
