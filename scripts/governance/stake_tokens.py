@@ -26,8 +26,8 @@ def stakeTokens(sovAmount, stakeTime, acctAddress, delegateeAddress):
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acctAddress)
     staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acctAddress)
 
-    until = int(time.time() + stakeTime)
-    amount = sovAmount * (10 ** 18)
+    until = int(time.time()) + int(stakeTime)
+    amount = int(sovAmount) * (10 ** 18)
 
     SOVtoken.approve(staking.address, amount)
     tx = staking.stake(amount, until, acctAddress, delegateeAddress)
