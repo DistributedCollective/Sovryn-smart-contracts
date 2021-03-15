@@ -59,12 +59,11 @@ def main():
     # transferSOVtoVestingRegistry()
     # stakeTokens2()
 
-    #triggerEmergencyStop(contracts['iUSDT'])
-    #triggerEmergencyStop(contracts['iBPro'])
-    #triggerEmergencyStop(contracts['iDOC'])
-    #triggerEmergencyStop(contracts['iRBTC'])
+    triggerEmergencyStop(contracts['iUSDT'], False)
+    triggerEmergencyStop(contracts['iBPro'], False)
+    triggerEmergencyStop(contracts['iDOC'], False)
+    triggerEmergencyStop(contracts['iRBTC'], False)
 
-    determineFundsAtRisk()
 
 def loadConfig():
     global contracts, acct
@@ -583,11 +582,11 @@ def replaceSwapsImplSovrynSwap():
 
 def replaceLoanTokenLogicOnAllContracts():
     print("replacing loan token logic")
-    #logicContract = acct.deploy(LoanTokenLogicStandard)
-    #print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
-    #replaceLoanTokenLogic(contracts['iDOC'],logicContract.address)
-    replaceLoanTokenLogic(contracts['iUSDT'],'0xFeEe82AF436cf937990f9A1087bb6c1106F35751')
-    replaceLoanTokenLogic(contracts['iBPro'],'0xFeEe82AF436cf937990f9A1087bb6c1106F35751')
+    logicContract = acct.deploy(LoanTokenLogicStandard)
+    print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
+    replaceLoanTokenLogic(contracts['iDOC'],logicContract.address)
+    replaceLoanTokenLogic(contracts['iUSDT'],logicContract.address)
+    replaceLoanTokenLogic(contracts['iBPro'],logicContract.address)
     logicContract = acct.deploy(LoanTokenLogicWrbtc)
     print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
     replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
@@ -888,11 +887,11 @@ def transferSOVtoVestingRegistry2():
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
-def triggerEmergencyStop(loanTokenAddress):
+def triggerEmergencyStop(loanTokenAddress, turnOn):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     #functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,bytes)"
     functionSignature = "borrow(bytes32,uint256,uint256,uint256,address,address,address,bytes)"
-    data = loanToken.toggleFunctionPause.encode_input(functionSignature, True)
+    data = loanToken.toggleFunctionPause.encode_input(functionSignature, turnOn)
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(loanToken.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
