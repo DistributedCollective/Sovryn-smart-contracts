@@ -1,6 +1,6 @@
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 const { expect } = require("chai");
-const { increaseTime } = require("../../Utils/Ethereum");
+const { increaseTime } = require("../Utils/Ethereum");
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
