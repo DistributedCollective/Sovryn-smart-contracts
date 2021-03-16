@@ -115,7 +115,7 @@ contract("LoanTokenTransactionLimit", (accounts) => {
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
 			await set_transaction_limit(accounts[0], [SUSD.address, RBTC.address], [new BN(1000).mul(oneEth), oneEth]);
-			open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
 		});
 
 		// borrowing should succeed if the transfered amount does not exceed the transaction limit
@@ -123,7 +123,7 @@ contract("LoanTokenTransactionLimit", (accounts) => {
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
 			await set_transaction_limit(accounts[0], [SUSD.address, RBTC.address], [new BN(1000).mul(oneEth), oneEth]);
-			borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
+			await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
 		});
 
 		// lending should succeed if the transfered amount does not exceed the transaction limit
