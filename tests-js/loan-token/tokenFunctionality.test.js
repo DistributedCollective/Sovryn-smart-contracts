@@ -31,7 +31,7 @@ const initialize_test_transfer = async (SUSD, accounts, _loan_token) => {
 	return { amount_sent, receiver, sender };
 };
 
-contract("LoanTokenBorrowing", (accounts) => {
+contract("LoanTokenFunctionality", (accounts) => {
 	let owner;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC;
 

@@ -1,4 +1,5 @@
 const { BN } = require("@openzeppelin/test-helpers");
+const constants = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
 
 const TestToken = artifacts.require("TestToken");
@@ -257,10 +258,10 @@ const borrow_indefinite_loan = async (
 	sovryn,
 	SUSD,
 	RBTC,
-	withdraw_amount = new BN(10).pow(new BN(18)).toString(),
-	margin = new BN(50).pow(new BN(18)).toString(),
-	duration_in_seconds = 60 * 60 * 24 * 10,
-	accounts
+	accounts,
+	withdraw_amount = oneEth.toString(),
+	margin = new BN(50).mul(oneEth).toString(),
+	duration_in_seconds = 60 * 60 * 24 * 10
 ) => {
 	const borrower = accounts[2];
 	const receiver = accounts[1];
@@ -270,17 +271,18 @@ const borrow_indefinite_loan = async (
 	await RBTC.approve(loanToken.address, collateral_token_sent, { from: borrower });
 	// borrow some funds
 	const tx = await loanToken.borrow(
-		"0", // bytes32 loanId
+		constants.ZERO_BYTES32, // bytes32 loanId
 		withdraw_amount, // uint256 withdrawAmount
 		duration_in_seconds, // uint256 initialLoanDuration
 		collateral_token_sent, // uint256 collateralTokenSent
 		RBTC.address, // address collateralTokenAddress
 		borrower, // address borrower
 		receiver, // address receiver
-		[], // bytes memory loanDataBytes
+		"0x", // bytes memory loanDataBytes
 		{ from: borrower }
 	);
-	const loan_id = tx.events["Borrow"]["loanId"];
+	const decode = decodeLogs(tx.receipt.rawLogs, LoanOpenings, "Borrow");
+	const loan_id = decode[0].args["loanId"];
 	return [loan_id, borrower, receiver, withdraw_amount, duration_in_seconds, margin, tx];
 };
 
