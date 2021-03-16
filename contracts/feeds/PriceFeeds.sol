@@ -188,10 +188,9 @@ contract PriceFeeds is Constants, Ownable {
 	}
 
 	function setGlobalPricingPaused(bool isPaused) external onlyOwner {
-			globalPricingPaused = isPaused;
+		globalPricingPaused = isPaused;
 
-			emit GlobalPricingPaused(msg.sender, isPaused);
-		}
+		emit GlobalPricingPaused(msg.sender, isPaused);
 	}
 
 	/*
