@@ -53,6 +53,9 @@ contract PriceFeeds is Constants, Ownable {
 		address destToken,
 		uint256 sourceAmount
 	) public view returns (uint256 destAmount) {
+		if (globalPricingPaused) {
+			return 0;
+		}
 		(uint256 rate, uint256 precision) = _queryRate(sourceToken, destToken);
 
 		destAmount = sourceAmount.mul(rate).div(precision);
@@ -65,6 +68,7 @@ contract PriceFeeds is Constants, Ownable {
 		uint256 destAmount,
 		uint256 maxSlippage
 	) public view returns (uint256 sourceToDestSwapRate) {
+		require(!globalPricingPaused, "pricing is paused");
 		(uint256 rate, uint256 precision) = _queryRate(sourceToken, destToken);
 
 		sourceToDestSwapRate = destAmount.mul(precision).div(sourceAmount);
@@ -184,7 +188,6 @@ contract PriceFeeds is Constants, Ownable {
 	}
 
 	function setGlobalPricingPaused(bool isPaused) external onlyOwner {
-		if (globalPricingPaused != isPaused) {
 			globalPricingPaused = isPaused;
 
 			emit GlobalPricingPaused(msg.sender, isPaused);

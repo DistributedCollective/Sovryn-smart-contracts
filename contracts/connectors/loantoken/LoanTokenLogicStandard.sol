@@ -11,7 +11,13 @@ import "./interfaces/ProtocolLike.sol";
 import "./interfaces/FeedsLike.sol";
 
 contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
+	using SafeMath for uint256;
 	using SignedSafeMath for int256;
+
+	modifier settlesInterest() {
+		_settleInterest();
+		_;
+	}
 
 	// DON'T ADD VARIABLES HERE, PLEASE
 
@@ -54,7 +60,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         payable
         nonReentrant
         pausable(msg.sig)
-        settlesInterest
         returns (bytes memory)
     {
         require(borrowAmount != 0, "38");
@@ -697,7 +702,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, withdrawAmountExist)))];
 		// converting to initialMargin
 		leverageAmount = SafeMath.div(10**38, leverageAmount);
-		(sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress).borrowOrTradeFromPool.value(msgValue)( // newPrincipal, newCollateral
+		(sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress).borrowOrTradeFromPool.value(msgValue)( // newPrincipal,newCollateral
 			loanParamsId,
 			loanId,
 			withdrawAmountExist,
