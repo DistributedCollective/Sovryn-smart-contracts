@@ -19,8 +19,6 @@ const wei = web3.utils.toWei;
 
 const hunEth = new BN(wei("100", "ether"));
 
-// This decodes longs for a single event type, and returns a decoded object in
-// the same form truffle-contract uses on its receipts
 const initialize_test_transfer = async (SUSD, accounts, _loan_token) => {
 	const sender = accounts[0];
 	const receiver = accounts[1];
@@ -32,6 +30,7 @@ const initialize_test_transfer = async (SUSD, accounts, _loan_token) => {
 
 	return { amount_sent, receiver, sender };
 };
+
 contract("LoanTokenBorrowing", (accounts) => {
 	let owner;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC;

@@ -1,4 +1,5 @@
 const { BN } = require("@openzeppelin/test-helpers");
+const { expect } = require("chai");
 
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
@@ -16,10 +17,11 @@ const LoanClosings = artifacts.require("LoanClosings");
 const SwapsExternal = artifacts.require("SwapsExternal");
 
 const LoanToken = artifacts.require("LoanToken");
-const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
+const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicTest");
+const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplLocal = artifacts.require("SwapsImplLocal");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
@@ -90,10 +92,10 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
 	await sovryn.setWrbtcToken(WRBTC.address);
 
 	// loanOpening
-	const swaps = await SwapsImplLocal.new();
+	const swaps = await SwapsImplSovrynSwap.new();
 	await sovryn.replaceContract((await LoanOpenings.new()).address);
-	await sovryn.setSwapsImplContract(swaps.address);
 	await sovryn.setPriceFeedContract(priceFeeds.address);
+	await sovryn.setSwapsImplContract(swaps.address);
 
 	// loanClosing
 	await sovryn.replaceContract((await LoanClosings.new()).address);
@@ -105,6 +107,10 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
 const getLoanTokenLogic = async () => {
 	const loanTokenLogicStandard = await LoanTokenLogicStandard.new();
 	return loanTokenLogicStandard;
+};
+const getLoanTokenLogicWrbtc = async () => {
+	const loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
+	return loanTokenLogicWrbtc;
 };
 
 const getLoanTokenSettings = async () => {
@@ -123,10 +129,10 @@ const getLoanToken = async (loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD) 
 	return loanToken;
 };
 
-const getLoanTokenWRBTC = async (loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD) => {
-	let loanTokenWRBTC = await LoanToken.new(owner, loanTokenLogicStandard.address, sovryn.address, WRBTC.address);
+const getLoanTokenWRBTC = async (loanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD) => {
+	let loanTokenWRBTC = await LoanToken.new(owner, loanTokenLogicWrbtc.address, sovryn.address, WRBTC.address);
 	await loanTokenWRBTC.initialize(WRBTC.address, "iWRBTC", "iWRBTC"); //iToken
-	loanTokenWRBTC = await LoanTokenLogicStandard.at(loanTokenWRBTC.address);
+	loanTokenWRBTC = await LoanTokenLogicWrbtc.at(loanTokenWRBTC.address);
 	// assert loanToken.tokenPrice() == loanToken.initialPrice()
 	// const initial_total_supply = await loanToken.totalSupply();
 	// loan token total supply should be zero
@@ -144,21 +150,23 @@ const loan_pool_setup = async (sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loan
 		RBTC.address, // address collateralToken; // the required collateral token
 		wei("20", "ether"), // uint256 minInitialMargin; // the minimum allowed initial margin
 		wei("15", "ether"), // uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
-		2419200, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
+		0, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
 	];
-	//params.push(config);
-	config[3] = WRBTC.address;
 	params.push(config);
+	const copy1 = [...config];
+	copy1[4] = WRBTC.address;
+	params.push(copy1);
 
+	await loanToken.setupLoanParams(params, false);
 	await loanToken.setupLoanParams(params, true);
-	// await loanToken.setupLoanParams(params, true);
 
 	params = [];
-	config[3] = SUSD.address;
-	params.push(config);
+	const copy2 = [...config];
+	copy2[4] = SUSD.address;
+	params.push(copy2);
 
 	await loanTokenWRBTC.setupLoanParams(params, false);
-	// await loanTokenWRBTC.setupLoanParams(params, true);
+	await loanTokenWRBTC.setupLoanParams(params, true);
 
 	await sovryn.setLoanPool([loanToken.address, loanTokenWRBTC.address], [SUSD.address, WRBTC.address]);
 };
@@ -198,8 +206,8 @@ const open_margin_trade_position = async (
 	SUSD,
 	trader,
 	collateral = "RBTC",
-	loan_token_sent = new BN(100).pow(new BN(18)).toString(),
-	leverage_amount = new BN(2).pow(new BN(18)).toString()
+	loan_token_sent = hunEth.toString(),
+	leverage_amount = new BN(2).mul(oneEth).toString()
 ) => {
 	await SUSD.mint(trader, loan_token_sent);
 	await SUSD.approve(loanToken.address, loan_token_sent, { from: trader });
@@ -208,8 +216,8 @@ const open_margin_trade_position = async (
 	if (collateral == "RBTC") collateralToken = RBTC.address;
 	else collateralToken = WRBTC.address;
 
-	const tx = await loanToken.marginTrade(
-		"0", // loanId  (0 for new loans)
+	const { receipt } = await loanToken.marginTrade(
+		"0x0", // loanId  (0 for new loans)
 		leverage_amount, // leverageAmount
 		loan_token_sent, // loanTokenSent
 		0, // no collateral token sent
@@ -218,19 +226,19 @@ const open_margin_trade_position = async (
 		[], // loanDataBytes (only required with ether)
 		{ from: trader }
 	);
-
-	return [tx.events["Trade"]["loanId"], trader, loan_token_sent, leverage_amount];
+	const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Trade");
+	return [decode[0].args["loanId"], trader, loan_token_sent, leverage_amount];
 };
 
 const open_margin_trade_position_iBTC = async (
 	loanTokenWRBTC,
 	SUSD,
 	trader,
-	loan_token_sent = new BN(1).pow(new BN(18)).toString(),
-	leverage_amount = new BN(2).pow(new BN(18)).toString()
+	loan_token_sent = oneEth.toString(),
+	leverage_amount = new BN(2).mul(oneEth).toString()
 ) => {
-	const tx = await loanTokenWRBTC.marginTrade(
-		"0", // loanId  (0 for new loans)
+	const { receipt } = await loanTokenWRBTC.marginTrade(
+		"0x0", // loanId  (0 for new loans)
 		leverage_amount, // leverageAmount
 		loan_token_sent, // loanTokenSent
 		0, // no collateral token sent
@@ -240,7 +248,8 @@ const open_margin_trade_position_iBTC = async (
 		{ from: trader, value: loan_token_sent }
 	);
 
-	return [tx.events["Trade"]["loanId"], trader, loan_token_sent, leverage_amount];
+	const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Trade");
+	return [decode[0].args["loanId"], trader, loan_token_sent, leverage_amount];
 };
 
 const borrow_indefinite_loan = async (
@@ -275,6 +284,53 @@ const borrow_indefinite_loan = async (
 	return [loan_id, borrower, receiver, withdraw_amount, duration_in_seconds, margin, tx];
 };
 
+function decodeLogs(logs, emitter, eventName) {
+	let abi;
+	let address;
+	abi = emitter.abi;
+	try {
+		address = emitter.address;
+	} catch (e) {
+		address = null;
+	}
+
+	let eventABI = abi.filter((x) => x.type === "event" && x.name === eventName);
+	if (eventABI.length === 0) {
+		throw new Error(`No ABI entry for event '${eventName}'`);
+	} else if (eventABI.length > 1) {
+		throw new Error(`Multiple ABI entries for event '${eventName}', only uniquely named events are supported`);
+	}
+
+	eventABI = eventABI[0];
+
+	// The first topic will equal the hash of the event signature
+	const eventSignature = `${eventName}(${eventABI.inputs.map((input) => input.type).join(",")})`;
+	const eventTopic = web3.utils.sha3(eventSignature);
+
+	// Only decode events of type 'EventName'
+	return logs
+		.filter((log) => log.topics.length > 0 && log.topics[0] === eventTopic && (!address || log.address === address))
+		.map((log) => web3.eth.abi.decodeLog(eventABI.inputs, log.data, log.topics.slice(1)))
+		.map((decoded) => ({ event: eventName, args: decoded }));
+}
+
+const verify_sov_reward_payment = async (logs, FeesEvents, SOV, borrower, loan_id, sov_initial_balance, expected_events_number) => {
+	const earn_reward_events = decodeLogs(logs, FeesEvents, "EarnReward");
+	const len = earn_reward_events.length;
+	expect(len).to.equal(expected_events_number);
+
+	let reward = new BN(0);
+	for (let i = 0; i < len; i++) {
+		const args = earn_reward_events[i].args;
+		expect(args["receiver"]).to.equal(borrower);
+		expect(args["token"]).to.equal(SOV.address);
+		expect(args["loanId"]).to.equal(loan_id);
+		reward = reward.add(new BN(args["amount"]));
+	}
+
+	expect(await SOV.balanceOf(borrower)).to.be.a.bignumber.equal(sov_initial_balance.add(reward));
+};
+
 module.exports = {
 	getSUSD,
 	getRBTC,
@@ -282,6 +338,7 @@ module.exports = {
 	getBZRX,
 	getSOV,
 	getLoanTokenLogic,
+	getLoanTokenLogicWrbtc,
 	getLoanToken,
 	getLoanTokenWRBTC,
 	loan_pool_setup,
@@ -290,4 +347,10 @@ module.exports = {
 	getPriceFeeds,
 	getSovryn,
 	CONSTANTS,
+	decodeLogs,
+	verify_sov_reward_payment,
+	lend_to_pool_iBTC,
+	open_margin_trade_position,
+	open_margin_trade_position_iBTC,
+	borrow_indefinite_loan,
 };

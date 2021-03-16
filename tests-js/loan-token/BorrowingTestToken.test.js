@@ -18,6 +18,8 @@ const {
 	lend_to_pool,
 	getPriceFeeds,
 	getSovryn,
+	decodeLogs,
+	verify_sov_reward_payment,
 	CONSTANTS,
 } = require("../Utils/initializer.js");
 
@@ -29,52 +31,6 @@ const hunEth = new BN(wei("100", "ether"));
 
 // This decodes longs for a single event type, and returns a decoded object in
 // the same form truffle-contract uses on its receipts
-function decodeLogs(logs, emitter, eventName) {
-	let abi;
-	let address;
-	abi = emitter.abi;
-	try {
-		address = emitter.address;
-	} catch (e) {
-		address = null;
-	}
-
-	let eventABI = abi.filter((x) => x.type === "event" && x.name === eventName);
-	if (eventABI.length === 0) {
-		throw new Error(`No ABI entry for event '${eventName}'`);
-	} else if (eventABI.length > 1) {
-		throw new Error(`Multiple ABI entries for event '${eventName}', only uniquely named events are supported`);
-	}
-
-	eventABI = eventABI[0];
-
-	// The first topic will equal the hash of the event signature
-	const eventSignature = `${eventName}(${eventABI.inputs.map((input) => input.type).join(",")})`;
-	const eventTopic = web3.utils.sha3(eventSignature);
-
-	// Only decode events of type 'EventName'
-	return logs
-		.filter((log) => log.topics.length > 0 && log.topics[0] === eventTopic && (!address || log.address === address))
-		.map((log) => web3.eth.abi.decodeLog(eventABI.inputs, log.data, log.topics.slice(1)))
-		.map((decoded) => ({ event: eventName, args: decoded }));
-}
-
-const verify_sov_reward_payment = async (logs, SOV, borrower, loan_id, sov_initial_balance, expected_events_number) => {
-	const earn_reward_events = decodeLogs(logs, FeesEvents, "EarnReward");
-	const len = earn_reward_events.length;
-	expect(len).to.equal(expected_events_number);
-
-	let reward = 0;
-	for (let i = 0; i < len; i++) {
-		const args = earn_reward_events[i].args;
-		expect(args["receiver"]).to.equal(borrower);
-		expect(args["token"]).to.equal(SOV.address);
-		expect(args["loanId"]).to.equal(loan_id);
-		reward += args["amount"];
-	}
-
-	expect(await SOV.balanceOf(borrower)).to.be.a.bignumber.equal(sov_initial_balance.add(new BN(reward)));
-};
 
 contract("LoanTokenBorrowing", (accounts) => {
 	let owner, account1;
@@ -158,7 +114,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 			// assert the user received the borrowed amount
 			expect(await SUSD.balanceOf(account1)).to.be.a.bignumber.equal(expectedBalance);
-			await verify_sov_reward_payment(receipt.rawLogs, SOV, owner, args["loanId"], sov_initial_balance, 1);
+			await verify_sov_reward_payment(receipt.rawLogs, FeesEvents, SOV, owner, args["loanId"], sov_initial_balance, 1);
 		});
 
 		it("test_borrow_0_collateral_should_fail", async () => {
