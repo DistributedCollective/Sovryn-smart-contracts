@@ -10,7 +10,6 @@ import "../../../openzeppelin/SafeERC20.sol";
 import "../../ISwapsImpl.sol";
 import "../../../feeds/IPriceFeeds.sol";
 import "../../../testhelpers/TestToken.sol";
-import "hardhat/console.sol";
 
 contract SwapsImplLocal is State, ISwapsImpl {
 	using SafeERC20 for IERC20;
@@ -65,7 +64,6 @@ contract SwapsImplLocal is State, ISwapsImpl {
 		uint256 sourceTokenAmount,
 		address unused
 	) public view returns (uint256) {
-		console.log(priceFeeds);
 		(uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);
 
 		return sourceTokenAmount.mul(sourceToDestRate).div(sourceToDestPrecision);
