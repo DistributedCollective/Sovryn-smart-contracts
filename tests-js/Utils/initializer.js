@@ -259,7 +259,7 @@ const borrow_indefinite_loan = async (
 	SUSD,
 	RBTC,
 	accounts,
-	withdraw_amount = oneEth.toString(),
+	withdraw_amount = new BN(10).mul(oneEth).toString(),
 	margin = new BN(50).mul(oneEth).toString(),
 	duration_in_seconds = 60 * 60 * 24 * 10
 ) => {
@@ -283,7 +283,7 @@ const borrow_indefinite_loan = async (
 	);
 	const decode = decodeLogs(tx.receipt.rawLogs, LoanOpenings, "Borrow");
 	const loan_id = decode[0].args["loanId"];
-	return [loan_id, borrower, receiver, withdraw_amount, duration_in_seconds, margin, tx];
+	return [loan_id, borrower, receiver, withdraw_amount, duration_in_seconds, margin, decode[0].args];
 };
 
 function decodeLogs(logs, emitter, eventName) {

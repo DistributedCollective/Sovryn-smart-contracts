@@ -117,7 +117,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			await verify_sov_reward_payment(receipt.rawLogs, FeesEvents, SOV, owner, args["loanId"], sov_initial_balance, 1);
 		});
 
-		it("test_borrow_0_collateral_should_fail", async () => {
+		it("Test borrow 0 collateral should fail", async () => {
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
 			expectRevert(
@@ -135,7 +135,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			);
 		});
 
-		it("test_borrow_0_withdraw_should_fail", async () => {
+		it("Test borrow 0 withdraw should fail", async () => {
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
 			expectRevert(
@@ -153,7 +153,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			);
 		});
 
-		it("test_borrow_sending_value_with_tokens_should_fail", async () => {
+		it("Test borrow sending value with tokens should fail", async () => {
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
 			expectRevert(
@@ -172,7 +172,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			);
 		});
 
-		it("test_borrow_invalid_collateral_should_fail", async () => {
+		it("Test borrow invalid collateral should fail", async () => {
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
 			expectRevert(
@@ -204,7 +204,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			);
 		});
 
-		it("test_borrow_no_interest_should_fail", async () => {
+		it("Test borrow no interest should fail", async () => {
 			// no demand curve settings -> no interest set
 			//  prepare the test
 			await lend_to_pool(loanToken, SUSD, owner);
@@ -237,7 +237,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			);
 		});
 
-		it("test_borrow_insufficient_collateral_should_fail", async () => {
+		it("Test borrow insufficient collateral should fail", async () => {
 			//  prepare the test
 
 			await lend_to_pool(loanToken, SUSD, owner);
@@ -272,7 +272,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			);
 		});
 
-		it("test_borrow_without_early_access_token_should_fail_if_required", async () => {
+		it("Test borrow without early access token should fail if required", async () => {
 			// no demand curve settings -> no interest set
 			//  prepare the test
 
