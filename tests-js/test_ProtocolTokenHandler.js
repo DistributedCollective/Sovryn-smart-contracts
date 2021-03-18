@@ -63,7 +63,7 @@ contract('ProtocolTokenHandler', async (accounts) => {
     assert.equal(await sov.balanceOf(sovHandler.address), 1e17);
   });
 
-  it('withdraw', async () => {
+  it('withdraw; using Ganache', async () => {
     await sovHandler.addSigner(accounts[0]);
     await sovHandler.addSigner(accounts[1]);
     await sovHandler.addSigner(accounts[2]);
@@ -87,7 +87,7 @@ contract('ProtocolTokenHandler', async (accounts) => {
     await expectEvent(res, 'Withdraw', {caller:accounts[0], recipient:accounts[1], amount:web3.utils.toBN(1e17)});
   });
  
-  it('should revert when using older nonce', async () => {
+  it('should revert when using older nonce; using Ganache', async () => {
     await sovHandler.addSigner(accounts[0]);
     await sovHandler.addSigner(accounts[1]);
     await sovHandler.addSigner(accounts[2]);
@@ -133,7 +133,7 @@ contract('ProtocolTokenHandler', async (accounts) => {
     await expectRevert(sovHandler.withdraw(accounts[1], web3.utils.toBN(1e17), 1, [sig1, sig2]), "signer not authorized");
   });
 
-  it('should revert when using duplicate signers', async () => {
+  it('should revert when using duplicate signers; using Ganache', async () => {
     await sovHandler.addSigner(accounts[0]);
     await sovHandler.addSigner(accounts[1]);
     await sovHandler.addSigner(accounts[2]);
@@ -154,7 +154,7 @@ contract('ProtocolTokenHandler', async (accounts) => {
     await expectRevert(sovHandler.withdraw(accounts[1], web3.utils.toBN(1e17), 1, [sig1, sig1]), "signer verified");
   });
 
-  it('should revert when signers not enough', async () => {
+  it('should revert when signers not enough; using Ganache', async () => {
     await sovHandler.addSigner(accounts[0]);
     await sovHandler.addSigner(accounts[1]);
     await sovHandler.addSigner(accounts[2]);
