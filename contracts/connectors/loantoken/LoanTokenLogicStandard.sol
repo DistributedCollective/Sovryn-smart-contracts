@@ -154,7 +154,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		require(collateralTokenAddress != address(0) || msg.value != 0 || loanId != 0, "9");
 
 		// ensures authorized use of existing loan
-		require(loanId == 0 || msg.sender == borrower, "13");
+		require(loanId == 0 || msg.sender == borrower, "unauthorized use of existing loan");
 
 		if (collateralTokenAddress == address(0)) {
 			collateralTokenAddress = wrbtcTokenAddress;
@@ -223,6 +223,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		}
 
 		require(collateralTokenAddress != loanTokenAddress, "11");
+
+		// ensures authorized use of existing loan
+		require(loanId == 0 || msg.sender == trader, "unauthorized use of existing loan");
 
 		//temporary: limit transaction size
 		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
@@ -702,7 +705,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, withdrawAmountExist)))];
 		// converting to initialMargin
 		leverageAmount = SafeMath.div(10**38, leverageAmount);
-		(sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress).borrowOrTradeFromPool.value(msgValue)( // newPrincipal,newCollateral
+		(sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress).borrowOrTradeFromPool.value(msgValue)( //newPrincipal,newCollateral
 			loanParamsId,
 			loanId,
 			withdrawAmountExist,
