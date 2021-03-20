@@ -256,7 +256,7 @@ contract("ProtocolSettings", (accounts) => {
 		});
 
 		// Should successfully change rollover base reward
-		it("Test fail withdraw protocol token", async () => {
+		it("Test set rollover base reward", async () => {
 			const new_reward = new BN(10).pow(new BN(15));
 			const old_reward = await sovryn.rolloverBaseReward();
 
