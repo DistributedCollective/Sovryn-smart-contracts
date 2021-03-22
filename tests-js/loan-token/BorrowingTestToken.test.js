@@ -37,7 +37,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV;
 
 	before(async () => {
-		[owner, account1, ...accounts] = accounts;
+		[owner, account1] = accounts;
 	});
 
 	beforeEach(async () => {
@@ -250,19 +250,19 @@ contract("LoanTokenBorrowing", (accounts) => {
 				SUSD.address,
 				RBTC.address,
 				withdrawAmount,
-				new BN(10).pow(new BN(18)).mul(new BN(50)).toString(),
+				new BN(10).pow(new BN(18)).mul(new BN(50)),
 				true
 			);
 			collateralTokenSent = collateralTokenSent.div(new BN(2));
 
 			//approve the transfer of the collateral
-			await RBTC.approve(loanToken.address, collateralTokenSent.toString());
+			await RBTC.approve(loanToken.address, collateralTokenSent);
 			expectRevert(
 				loanToken.borrow(
 					"0x0", // bytes32 loanId
 					withdrawAmount, // uint256 withdrawAmount
 					24 * 60 * 60, // uint256 initialLoanDuration
-					collateralTokenSent.toString(), // uint256 collateralTokenSent
+					collateralTokenSent, // uint256 collateralTokenSent
 					RBTC.address, // address collateralTokenAddress
 					owner, // address borrower
 					account1, // address receiver
@@ -273,7 +273,6 @@ contract("LoanTokenBorrowing", (accounts) => {
 		});
 
 		it("Test borrow without early access token should fail if required", async () => {
-			// no demand curve settings -> no interest set
 			//  prepare the test
 
 			await lend_to_pool(loanToken, SUSD, owner);
@@ -281,7 +280,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 			// prepare early access token
 			const early_access_token = await TestToken.new("Sovryn Early Access Token", "SEAT", 1, 10);
-			await early_access_token.transfer(account1, (await early_access_token.balanceOf(owner)).toString());
+			await early_access_token.transfer(account1, await early_access_token.balanceOf(owner));
 			await loanToken.setEarlyAccessToken(early_access_token.address);
 
 			// determine borrowing parameter
@@ -290,25 +289,183 @@ contract("LoanTokenBorrowing", (accounts) => {
 			let collateralTokenSent = await sovryn.getRequiredCollateral(
 				SUSD.address,
 				RBTC.address,
-				withdrawAmount.toString(),
+				withdrawAmount,
 				new BN(50).pow(new BN(18)),
 				true
 			);
 
 			//approve the transfer of the collateral
-			await RBTC.approve(loanToken.address, collateralTokenSent.toString());
+			await RBTC.approve(loanToken.address, collateralTokenSent);
 			expectRevert(
 				loanToken.borrow(
 					"0x0", // bytes32 loanId
-					withdrawAmount.toString(), // uint256 withdrawAmount
+					withdrawAmount, // uint256 withdrawAmount
 					24 * 60 * 60, // uint256 initialLoanDuration
-					collateralTokenSent.toString(), // uint256 collateralTokenSent
+					collateralTokenSent, // uint256 collateralTokenSent
 					RBTC.address, // address collateralTokenAddress
 					owner, // address borrower
 					account1, // address receiver
 					"0x0" // bytes memory loanDataBytes
 				),
 				"No early access tokens"
+			);
+		});
+
+		// borrows some funds from account 0 and then takes out some more from account 2 with 'borrow' without paying should fail.
+		it("Test borrow from foreign loan should fail", async () => {
+			//  prepare the test
+
+			await lend_to_pool(loanToken, SUSD, owner);
+			await set_demand_curve(loanToken);
+
+			// determine borrowing parameter
+			const withdrawAmount = oneEth.mul(new BN(10)); // i want to borrow 10 USD
+			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
+			let collateralTokenSent = await sovryn.getRequiredCollateral(
+				SUSD.address,
+				RBTC.address,
+				withdrawAmount,
+				new BN(10).pow(new BN(18)).mul(new BN(50)),
+				true
+			);
+			collateralTokenSent = collateralTokenSent.mul(new BN(2));
+			const durationInSeconds = 60 * 60 * 24 * 10;
+
+			// approve the transfer of the collateral
+			await RBTC.approve(loanToken.address, collateralTokenSent);
+			const borrower = accounts[0];
+
+			const { receipt } = await loanToken.borrow(
+				"0x0", // bytes32 loanId
+				withdrawAmount, // uint256 withdrawAmount
+				durationInSeconds, // uint256 initialLoanDuration
+				collateralTokenSent, // uint256 collateralTokenSent
+				RBTC.address, // address collateralTokenAddress
+				borrower, // address borrower
+				account1, // address receiver
+				"0x0" // bytes memory loanDataBytes
+			);
+
+			const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Borrow");
+			const loanId = decode[0].args["loanId"];
+
+			await RBTC.transfer(accounts[2], collateralTokenSent);
+			// approve the transfer of the collateral
+			await RBTC.approve(loanToken.address, collateralTokenSent, { from: accounts[2] });
+
+			await expectRevert(
+				loanToken.borrow(
+					loanId, // bytes32 loanId
+					withdrawAmount.div(new BN(2)), // uint256 withdrawAmount
+					durationInSeconds, // uint256 initialLoanDuration
+					1, // uint256 collateralTokenSent
+					RBTC.address, // address collateralTokenAddress
+					borrower, // address borrower
+					accounts[2], // address receiver
+					"0x0", // bytes memory loanDataBytes
+					{ from: accounts[2] }
+				),
+				"unauthorized use of existing loan"
+			);
+		});
+
+		// borrows some funds from account 0 and then takes out some more from account 2 with a marginTrade without paying should fail.
+		it("Test margin trade from foreign loan should fail", async () => {
+			//  prepare the test
+
+			await lend_to_pool(loanToken, SUSD, owner);
+			await set_demand_curve(loanToken);
+
+			// determine borrowing parameter
+			const withdrawAmount = oneEth.mul(new BN(10)); // i want to borrow 10 USD
+			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
+			let collateralTokenSent = await sovryn.getRequiredCollateral(
+				SUSD.address,
+				RBTC.address,
+				withdrawAmount,
+				new BN(10).pow(new BN(18)).mul(new BN(50)),
+				true
+			);
+			collateralTokenSent = collateralTokenSent.mul(new BN(2));
+			const durationInSeconds = 60 * 60 * 24 * 10;
+
+			// approve the transfer of the collateral
+			await RBTC.approve(loanToken.address, collateralTokenSent);
+			const borrower = accounts[0];
+
+			const { receipt } = await loanToken.borrow(
+				"0x0", // bytes32 loanId
+				withdrawAmount, // uint256 withdrawAmount
+				durationInSeconds, // uint256 initialLoanDuration
+				collateralTokenSent, // uint256 collateralTokenSent
+				RBTC.address, // address collateralTokenAddress
+				borrower, // address borrower
+				account1, // address receiver
+				"0x0" // bytes memory loanDataBytes
+			);
+
+			const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Borrow");
+			const loanId = decode[0].args["loanId"];
+
+			await SUSD.transfer(accounts[2], collateralTokenSent);
+			// approve the transfer of the collateral
+			await SUSD.approve(loanToken.address, collateralTokenSent, { from: accounts[2] });
+
+			await expectRevert(
+				loanToken.marginTrade(
+					loanId, // bytes32 loanId
+					oneEth, // uint256 withdrawAmount
+					10000000, // uint256 collateralTokenSent
+					0,
+					RBTC.address, // address collateralTokenAddress
+					accounts[2], // address receiver
+					"0x0", // bytes memory loanDataBytes
+					{ from: accounts[2] }
+				),
+				"borrower mismatch"
+			);
+		});
+
+		// margin trades from account 0 and then borrows from same loan should fail.
+		it("Test borrow from trade position should fail", async () => {
+			//  prepare the test
+
+			await lend_to_pool(loanToken, SUSD, owner);
+			await set_demand_curve(loanToken);
+
+			// determine borrowing parameter
+			const withdrawAmount = oneEth.mul(new BN(10)); // i want to borrow 10 USD
+
+			await SUSD.approve(loanToken.address, withdrawAmount);
+
+			const { receipt } = await loanToken.marginTrade(
+				"0x0", // bytes32 loanId
+				oneEth, // uint256 withdrawAmount
+				withdrawAmount, // uint256 collateralTokenSent
+				0,
+				RBTC.address, // address collateralTokenAddress
+				accounts[0], // address receiver
+				"0x" // bytes memory loanDataBytes
+			);
+
+			const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Trade");
+			const loanId = decode[0].args["loanId"];
+
+			// approve the transfer of the collateral
+			await RBTC.approve(loanToken.address, withdrawAmount);
+
+			await expectRevert(
+				loanToken.borrow(
+					loanId, // bytes32 loanId
+					withdrawAmount.div(new BN(10)), // uint256 withdrawAmount
+					60 * 60 * 24 * 10, // uint256 initialLoanDuration
+					1, // uint256 collateralTokenSent
+					RBTC.address, // address collateralTokenAddress
+					accounts[0], // address borrower
+					accounts[0], // address receiver
+					"0x" // bytes memory loanDataBytes
+				),
+				"loanParams mismatch"
 			);
 		});
 	});

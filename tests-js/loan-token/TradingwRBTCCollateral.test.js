@@ -5,6 +5,8 @@ const {
 	margin_trading_sov_reward_payment,
 	margin_trading_sending_collateral_tokens,
 	margin_trading_sending_collateral_tokens_sov_reward_payment,
+	close_complete_margin_trade,
+	close_partial_margin_trade,
 } = require("./tradingFunctions");
 
 const FeesEvents = artifacts.require("FeesEvents");
@@ -22,6 +24,9 @@ const {
 	loan_pool_setup,
 	getPriceFeeds,
 	getSovryn,
+	lend_to_pool,
+	set_demand_curve,
+	open_margin_trade_position,
 } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
@@ -100,6 +105,84 @@ contract("LoanTokenTrading", (accounts) => {
 				0,
 				FeesEvents,
 				SOV
+			);
+		});
+
+		/*
+			should completely close a position.
+			first with returning loan tokens, then with returning collateral tokens to the sender.
+			process is handled by the shared function close_complete_margin_trade
+			1. prepares the test by setting up the interest rates, lending to the pool and opening a position
+			2. travels in time, so interest needs to be paid
+			3. makes sure closing with an unauthorized caller fails (only the trader may close his position)
+			4. sends the closing tx from the trader
+			5. verifies the result
+		*/
+		it("Test close complete margin trade", async () => {
+			await close_complete_margin_trade(
+				sovryn,
+				loanToken,
+				set_demand_curve,
+				lend_to_pool,
+				open_margin_trade_position,
+				priceFeeds,
+				true,
+				RBTC,
+				WRBTC,
+				SUSD,
+				accounts
+			);
+			await close_complete_margin_trade(
+				sovryn,
+				loanToken,
+				set_demand_curve,
+				lend_to_pool,
+				open_margin_trade_position,
+				priceFeeds,
+				false,
+				RBTC,
+				WRBTC,
+				SUSD,
+				accounts
+			);
+		});
+
+		/*
+			should partially close a position.
+			first with returning loan tokens, then with returning collateral tokens to the sender.
+			process is handled by the shared function close_partial_margin_trade
+			1. prepares the test by setting up the interest rates, lending to the pool and opening a position
+			2. travels in time, so interest needs to be paid
+			3. makes sure closing with an unauthorized caller fails (only the trader may close his position)
+			4. sends the closing tx from the trader
+			5. verifies the result
+		*/
+		it("Test close partial margin trade", async () => {
+			await close_partial_margin_trade(
+				sovryn,
+				loanToken,
+				set_demand_curve,
+				lend_to_pool,
+				open_margin_trade_position,
+				priceFeeds,
+				true,
+				RBTC,
+				WRBTC,
+				SUSD,
+				accounts
+			);
+			await close_partial_margin_trade(
+				sovryn,
+				loanToken,
+				set_demand_curve,
+				lend_to_pool,
+				open_margin_trade_position,
+				priceFeeds,
+				false,
+				RBTC,
+				WRBTC,
+				SUSD,
+				accounts
 			);
 		});
 	});

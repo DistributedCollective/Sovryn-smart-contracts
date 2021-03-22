@@ -452,7 +452,7 @@ const internal_test_close_margin_trade = async (
 	const new_collateral = !used_collateral.eq(new BN(0)) ? collateral_.sub(used_collateral) : collateral_;
 	const new_principal = loan_close_amount.eq(principal_) ? new BN(0) : principal_.sub(loan_close_amount);
 
-	if (return_token_is_collateral && collateral_.gt(swap_amount)) console.log(new_principal.toString());
+	// if (return_token_is_collateral && collateral_.gt(swap_amount)) console.log(new_principal.toString());
 
 	let current_margin = new_collateral.mul(trade_rate).mul(oneEth).div(precision).div(oneEth);
 	current_margin =
