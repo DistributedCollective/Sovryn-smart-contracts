@@ -940,3 +940,28 @@ def determineFundsAtRisk():
     print('total height of affected loans: ', sum/1e18)
     print('total potential borrowed: ', possible/1e18)
     print('could have been stolen: ', (possible - sum)/1e18)
+
+def createProposalSIP0014():
+    # action
+    target = contracts['SOV']
+    signature = "name()"
+    data = "0x"
+    description = "SIP-0014: Strategic Investment, Details: https://github.com/DistributedCollective/SIPS/blob/18f7eec97d3e280f45601cf879a7cda9985c522d/SIP-0014.md, sha256: 2dc16befc5c2733bfbb8fcd81e4b3726904183f2a26618696f31059523466499"
+
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
+
+    print('Governor Address:    '+governor.address)
+    print('Target:              '+str([target]))
+    print('Values:              '+str([0]))
+    print('Signature:           '+str([signature]))
+    print('Data:                '+str([data]))
+    print('Description:         '+str(description))
+    print('======================================')
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
