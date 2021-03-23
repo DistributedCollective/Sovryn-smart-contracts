@@ -1,5 +1,4 @@
 const { expectRevert, BN, expectEvent } = require("@openzeppelin/test-helpers");
-const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
 
 const {
 	getSUSD,
@@ -18,13 +17,10 @@ const {
 	borrow_indefinite_loan,
 	open_margin_trade_position,
 } = require("../Utils/initializer.js");
-const constants = require("@openzeppelin/test-helpers/src/constants");
 
 const wei = web3.utils.toWei;
 
 const oneEth = new BN(wei("1", "ether"));
-const tenEth = new BN(wei("10", "ether"));
-const hunEth = new BN(wei("100", "ether"));
 
 // This decodes longs for a single event type, and returns a decoded object in
 // the same form truffle-contract uses on its receipts
@@ -96,6 +92,18 @@ contract("LoanTokenTransactionLimit", (accounts) => {
 				accounts[0],
 				[SUSD.address, RBTC.address],
 				[new BN(21).mul(oneEth).div(new BN(10)), new BN(21).mul(oneEth).div(new BN(10000000))]
+			);
+			expectRevert.unspecified(borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts));
+		});
+
+		// borrowing should fail if the transfered amount exceeds the transaction limit
+		it("Test borrowing exceeding limit should fail", async () => {
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, owner);
+			await set_transaction_limit(
+				accounts[0],
+				[SUSD.address, RBTC.address],
+				[new BN(21).mul(oneEth).div(new BN(10)), new BN(21).mul(oneEth).div(new BN(100000))]
 			);
 			expectRevert.unspecified(borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts));
 		});
