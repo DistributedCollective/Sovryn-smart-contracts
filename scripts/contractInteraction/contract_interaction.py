@@ -946,10 +946,15 @@ def determineFundsAtRisk():
     print('could have been stolen: ', (possible - sum)/1e18)
 
 def createProposalSIP0014():
+    # 1,500,000 SOV
+    amount = 1500000 * 10**18
+    governorVault = Contract.from_abi("GovernorVault", address=contracts['GovernorVaultOwner'], abi=GovernorVault.abi, owner=acct)
+
     # action
-    target = contracts['SOV']
-    signature = "name()"
-    data = "0x"
+    target = governorVault.address
+    signature = "transferTokens(address,address,uint256)"
+    data = governorVault.transferTokens.encode_input(contracts['multisig'], contracts['SOV'], amount)
+    data = "0x" + data[10:]
     description = "SIP-0014: Strategic Investment, Details: https://github.com/DistributedCollective/SIPS/blob/18f7eec97d3e280f45601cf879a7cda9985c522d/SIP-0014.md, sha256: 2dc16befc5c2733bfbb8fcd81e4b3726904183f2a26618696f31059523466499"
 
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
