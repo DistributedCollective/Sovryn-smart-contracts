@@ -1009,6 +1009,26 @@ def stake80KTokens():
     # print(txId)
 
 def createProposalSIP0015():
+
+    # TODO ?
+    # "TimelockOwner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+    # "multisig": "0x924f5ad34698Fd20c90Fe5D5A8A0abd3b42dc711",
+
+    # AdoptionFund.lockedTokenOwner = 0x967c84b731679E36A344002b8E3CE50620A7F69f
+    # AdoptionFund.unlockedTokenOwner = 0x967c84b731679E36A344002b8E3CE50620A7F69f
+    # DevelopmentFund.lockedTokenOwner = 0x924f5ad34698Fd20c90Fe5D5A8A0abd3b42dc711
+    # DevelopmentFund.unlockedTokenOwner = 0x967c84b731679E36A344002b8E3CE50620A7F69f
+
+    # function changeTokenReleaseSchedule(
+    #     uint256 _newLastReleaseTime,
+    #             uint256[] memory _releaseDuration,
+    #                              uint256[] memory _releaseTokenAmount
+    # ) public onlyLockedTokenOwner checkStatus(Status.Active) {
+
+    # function withdrawTokensByUnlockedTokenOwner(uint256 _amount) public onlyUnlockedTokenOwner checkStatus(Status.Active) {
+    # bool txStatus = SOV.transfer(msg.sender, value);
+
+
     # 800,000.00 SOV + 250,000.00 SOV
     amount = 1050000 * 10**18
     governorVault = Contract.from_abi("GovernorVault", address=contracts['GovernorVaultAdmin'], abi=GovernorVault.abi, owner=acct)
