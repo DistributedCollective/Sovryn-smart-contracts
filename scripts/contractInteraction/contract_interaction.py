@@ -63,8 +63,11 @@ def main():
     # triggerEmergencyStop(contracts['iBPro'], False)
     # triggerEmergencyStop(contracts['iDOC'], False)
     # triggerEmergencyStop(contracts['iRBTC'], False)
+
     createProposalSIP0014()
 
+    # addInvestorToBlacklist()
+    # stake80KTokens()
 
 def loadConfig():
     global contracts, acct
@@ -966,3 +969,34 @@ def createProposalSIP0014():
     #     [signature],
     #     [data],
     #     description)
+
+def addInvestorToBlacklist():
+    # we need to process CSOV->SOV exchnage manually,
+    # investor address should be added to blacklist in VestingRegistry
+    tokenOwner = "0x75F7d09110631FE60a804642003bE00C8Bcd26b7"
+
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    data = vestingRegistry.setBlacklistFlag.encode_input(tokenOwner, True)
+    print(data)
+
+    # multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    # tx = multisig.submitTransaction(SOVtoken.address,0,data)
+    # txId = tx.events["Submission"]["transactionId"]
+    # print(txId)
+
+def stake80KTokens():
+    # another address of the investor (addInvestorToBlacklist)
+    tokenOwner = "0x21e1AaCb6aadF9c6F28896329EF9423aE5c67416"
+    # 80K SOV
+    amount = 80000 * 10**18
+
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    vestingAddress = vestingRegistry.getVesting(tokenOwner)
+    print("vestingAddress: " + vestingAddress)
+    data = vestingRegistry.stakeTokens.encode_input(vestingAddress, amount)
+    print(data)
+
+    # multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    # tx = multisig.submitTransaction(vestingRegistry.address,0,data)
+    # txId = tx.events["Submission"]["transactionId"]
+    # print(txId)
