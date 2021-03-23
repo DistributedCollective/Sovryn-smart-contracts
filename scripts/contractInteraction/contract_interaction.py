@@ -59,10 +59,11 @@ def main():
     # transferSOVtoVestingRegistry()
     # stakeTokens2()
 
-    triggerEmergencyStop(contracts['iUSDT'], False)
-    triggerEmergencyStop(contracts['iBPro'], False)
-    triggerEmergencyStop(contracts['iDOC'], False)
-    triggerEmergencyStop(contracts['iRBTC'], False)
+    # triggerEmergencyStop(contracts['iUSDT'], False)
+    # triggerEmergencyStop(contracts['iBPro'], False)
+    # triggerEmergencyStop(contracts['iDOC'], False)
+    # triggerEmergencyStop(contracts['iRBTC'], False)
+    createProposalSIP0014()
 
 
 def loadConfig():
