@@ -951,11 +951,11 @@ def createProposalSIP0014():
     governorVault = Contract.from_abi("GovernorVault", address=contracts['GovernorVaultOwner'], abi=GovernorVault.abi, owner=acct)
 
     # action
-    target = governorVault.address
+    target = contracts['GovernorVaultOwner']
     signature = "transferTokens(address,address,uint256)"
     data = governorVault.transferTokens.encode_input(contracts['multisig'], contracts['SOV'], amount)
     data = "0x" + data[10:]
-    description = "SIP-0014: Strategic Investment, Details: https://github.com/DistributedCollective/SIPS/blob/18f7eec97d3e280f45601cf879a7cda9985c522d/SIP-0014.md, sha256: 2dc16befc5c2733bfbb8fcd81e4b3726904183f2a26618696f31059523466499"
+    description = "SIP-0014: Strategic Investment, Details: https://github.com/DistributedCollective/SIPS/blob/7b90ebcb4e135b931210b3cea22698084de9d641/SIP-0014.md, sha256: 780d4db45ae09e30516ad11b0332f68a101775ed418f68f1aaf1af93e37e519f"
 
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
 
