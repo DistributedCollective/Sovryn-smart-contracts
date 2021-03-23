@@ -64,10 +64,12 @@ def main():
     # triggerEmergencyStop(contracts['iDOC'], False)
     # triggerEmergencyStop(contracts['iRBTC'], False)
 
-    createProposalSIP0014()
+    # createProposalSIP0014()
 
     # addInvestorToBlacklist()
     # stake80KTokens()
+
+    createProposalSIP0015()
 
 def loadConfig():
     global contracts, acct
@@ -1005,3 +1007,33 @@ def stake80KTokens():
     # tx = multisig.submitTransaction(vestingRegistry.address,0,data)
     # txId = tx.events["Submission"]["transactionId"]
     # print(txId)
+
+def createProposalSIP0015():
+    # 800,000.00 SOV + 250,000.00 SOV
+    amount = 1050000 * 10**18
+    governorVault = Contract.from_abi("GovernorVault", address=contracts['GovernorVaultAdmin'], abi=GovernorVault.abi, owner=acct)
+
+    # action
+    target = contracts['GovernorVaultAdmin']
+    signature = "transferTokens(address,address,uint256)"
+    data = governorVault.transferTokens.encode_input(contracts['multisig'], contracts['SOV'], amount)
+    data = "0x" + data[10:]
+    description = "SIP-0015: Sovryn Treasury Management, Details: https://github.com/DistributedCollective/SIPS/blob/664857d3ea0d97d269b57e7fe418a9fcafba5d5a/SIP-0015.md, sha256: 43ff7af29b58fadb720b31dfa8b1e774ef465324c9c4981f5a097ca58f31c530"
+
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
+
+    print('Governor Address:    '+governor.address)
+    print('Target:              '+str([target]))
+    print('Values:              '+str([0]))
+    print('Signature:           '+str([signature]))
+    print('Data:                '+str([data]))
+    print('Description:         '+str(description))
+    print('======================================')
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
