@@ -69,9 +69,7 @@ def main():
     # addInvestorToBlacklist()
     # stake80KTokens()
 
-    # createProposalSIP0015()
-
-    transfer1KSOV()
+    createProposalSIP0015()
 
 def loadConfig():
     global contracts, acct
@@ -1012,35 +1010,11 @@ def stake80KTokens():
 
 def createProposalSIP0015():
 
-    # TODO ?
-    # "TimelockOwner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
-    # "multisig": "0x924f5ad34698Fd20c90Fe5D5A8A0abd3b42dc711",
-
-    # AdoptionFund.lockedTokenOwner = 0x967c84b731679E36A344002b8E3CE50620A7F69f
-    # AdoptionFund.unlockedTokenOwner = 0x967c84b731679E36A344002b8E3CE50620A7F69f
-    # DevelopmentFund.lockedTokenOwner = 0x924f5ad34698Fd20c90Fe5D5A8A0abd3b42dc711
-    # DevelopmentFund.unlockedTokenOwner = 0x967c84b731679E36A344002b8E3CE50620A7F69f
-
-    # function changeTokenReleaseSchedule(
-    #     uint256 _newLastReleaseTime,
-    #             uint256[] memory _releaseDuration,
-    #                              uint256[] memory _releaseTokenAmount
-    # ) public onlyLockedTokenOwner checkStatus(Status.Active) {
-
-    # function withdrawTokensByUnlockedTokenOwner(uint256 _amount) public onlyUnlockedTokenOwner checkStatus(Status.Active) {
-    # bool txStatus = SOV.transfer(msg.sender, value);
-
-
-    # 800,000.00 SOV + 250,000.00 SOV
-    amount = 1050000 * 10**18
-    governorVault = Contract.from_abi("GovernorVault", address=contracts['GovernorVaultAdmin'], abi=GovernorVault.abi, owner=acct)
-
     # action
-    target = contracts['GovernorVaultAdmin']
-    signature = "transferTokens(address,address,uint256)"
-    data = governorVault.transferTokens.encode_input(contracts['multisig'], contracts['SOV'], amount)
-    data = "0x" + data[10:]
-    description = "SIP-0015: Sovryn Treasury Management, Details: https://github.com/DistributedCollective/SIPS/blob/664857d3ea0d97d269b57e7fe418a9fcafba5d5a/SIP-0015.md, sha256: 43ff7af29b58fadb720b31dfa8b1e774ef465324c9c4981f5a097ca58f31c530"
+    target = contracts['SOV']
+    signature = "symbol()"
+    data = "0x"
+    description = "SIP-0015: Sovryn Treasury Management, Details: https://github.com/DistributedCollective/SIPS/blob/977d1ebf73f954071ffd8a787c2660c41e069e0f/SIP-0015.md, sha256: c5cdd1557f9637816c2fb2ae4ac847ffba1eacd4599488bcda793b7945798ddf"
 
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
 
@@ -1059,17 +1033,3 @@ def createProposalSIP0015():
     #     [signature],
     #     [data],
     #     description)
-
-def transfer1KSOV():
-    # 1000 SOV to 0x4f3948816785e30c3378eD3b9F2de034e3AE2E97
-    receiver = "0x4f3948816785e30c3378eD3b9F2de034e3AE2E97"
-    amount = 1000 * 10**18
-
-    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
-    data = SOVtoken.transfer.encode_input(receiver, amount)
-    print(data)
-
-    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
-    tx = multisig.submitTransaction(SOVtoken.address,0,data)
-    txId = tx.events["Submission"]["transactionId"]
-    print(txId)
