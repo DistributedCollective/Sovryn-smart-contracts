@@ -192,7 +192,7 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
 				"0x", // loanDataBytes
 				{ from: accounts[1] }
 			);
-
+			// TODO: add expected and actual result comparison or else the borrow test is without validation
 			const sovrynAfterSUSDBalance = await SUSD.balanceOf(sovryn.address);
 			console.log("sovrynAfterSUSDBalance", sovrynAfterSUSDBalance.toString());
 

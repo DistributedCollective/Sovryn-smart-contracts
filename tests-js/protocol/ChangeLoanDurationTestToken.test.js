@@ -207,9 +207,12 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			expect(
 				end_loan_interest_data["interestDepositTotal"].eq(initial_loan_interest_data["interestDepositTotal"].add(deposit_amount))
 			).to.be.true;
-			// expect(new BN(end_loan["collateral"]).eq(new BN(initial_loan["collateral"]).sub(deposit_amount_in_collateral))).to.be.true;
-			// expect((await RBTC.balanceOf(sovryn.address)).eq(initial_collateral_token_lender_balance.sub(deposit_amount_in_collateral))).to
-			// 	.be.true;
+			// expect(new BN(end_loan["collateral"])).to.be.a.bignumber.eq(
+			// 	new BN(initial_loan["collateral"]).sub(deposit_amount_in_collateral)
+			// );
+			// expect(await RBTC.balanceOf(sovryn.address)).to.be.a.bignumber.eq(
+			// 	initial_collateral_token_lender_balance.sub(deposit_amount_in_collateral)
+			// );
 			expect((await SUSD.balanceOf(sovryn.address)).lte(initial_loan_token_lender_balance.add(deposit_amount))).to.be.true;
 		});
 
@@ -250,8 +253,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			const days_to_extend = new BN(10);
 			const owed_per_day = initial_loan_interest_data["interestOwedPerDay"];
 			const deposit_amount = owed_per_day.mul(days_to_extend);
-
-			await increaseTime(10 * 24 * 60 * 60);
 
 			const loanMaintenance = await LoanMaintenance.at(sovryn.address);
 			await expectRevert(

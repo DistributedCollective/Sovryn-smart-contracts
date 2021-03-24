@@ -49,8 +49,9 @@ contract("Protocol", (accounts) => {
 
 		it("Test receiveEther", async () => {
 			expect((await web3.eth.getBalance(sovryn.address)) == 0).to.be.true;
-			// await web3.eth.sendTransaction({ from: accounts[0].toString(), to: sovryn.address, value: 10000, gas: "210000" });
-			// expect((await web3.eth.getBalance(sovryn.address)).toNumber() == 10000).to.be.true;
+			// gasleft() should be < 2300 in the Protocol.sol proxy contract, 21000 is the min gas for sending value
+			await web3.eth.sendTransaction({ from: accounts[0].toString(), to: sovryn.address, value: 10000, gas: 22000 });
+			expect((await web3.eth.getBalance(sovryn.address)) == 10000).to.be.true;
 		});
 	});
 });
