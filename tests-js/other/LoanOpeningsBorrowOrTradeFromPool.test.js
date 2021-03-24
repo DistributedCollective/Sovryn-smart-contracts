@@ -141,7 +141,7 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
 				.add(collateralTokenSent);
 
 			// ignore differences in least significant digits due to rounding error
-			expect(expectedPositionSize.divn(100)).to.be.bignumber.equal(new BN(tradeEvent["positionSize"]).divn(100));
+			expect(Math.abs(expectedPositionSize.sub(new BN(tradeEvent["positionSize"])).toNumber()) < 100).to.be.true;
 		});
 
 		it("Test borrowFromPool sim", async () => {
