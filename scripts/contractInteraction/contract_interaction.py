@@ -69,7 +69,9 @@ def main():
     # addInvestorToBlacklist()
     # stake80KTokens()
 
-    createProposalSIP0015()
+    # createProposalSIP0015()
+
+    transfer1KSOV()
 
 def loadConfig():
     global contracts, acct
@@ -1057,3 +1059,17 @@ def createProposalSIP0015():
     #     [signature],
     #     [data],
     #     description)
+
+def transfer1KSOV():
+    # 1000 SOV to 0x4f3948816785e30c3378eD3b9F2de034e3AE2E97
+    receiver = "0x4f3948816785e30c3378eD3b9F2de034e3AE2E97"
+    amount = 1000 * 10**18
+
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    data = SOVtoken.transfer.encode_input(receiver, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(SOVtoken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
