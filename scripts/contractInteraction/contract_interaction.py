@@ -989,7 +989,7 @@ def addInvestorToBlacklist():
     print(data)
 
     # multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
-    # tx = multisig.submitTransaction(SOVtoken.address,0,data)
+    # tx = multisig.submitTransaction(vestingRegistry.address,0,data)
     # txId = tx.events["Submission"]["transactionId"]
     # print(txId)
 
