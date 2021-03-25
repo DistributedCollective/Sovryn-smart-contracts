@@ -41,7 +41,6 @@ contract TokenSender is Ownable {
         emit AdminRemoved(_admin);
     }
 
-    //TODO amounts should be calculated outside
     /**
      * @notice transfers given amounts of SOV to the given addresses
      * @param _receivers the addresses of the SOV receivers
@@ -50,7 +49,6 @@ contract TokenSender is Ownable {
     function transferSOVusingList(address[] memory _receivers, uint256[] memory _amounts) public onlyAuthorized {
         require(_receivers.length == _amounts.length, "arrays mismatch");
 
-        //TODO should we save processing flag to storage?
         for (uint256 i = 0; i < _receivers.length; i++) {
             _transferSOV(_receivers[i], _amounts[i]);
         }
