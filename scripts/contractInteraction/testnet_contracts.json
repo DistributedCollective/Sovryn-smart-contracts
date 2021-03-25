@@ -36,5 +36,7 @@
     "VestingRegistry2": "0x068fbb3Bef062C3daBA7a4B12f53Cd614FBcBF1d",
     
     "VestingLogic": "0xc1cECAC06c7a5d5480F158043A150acf06e206cD",
-    "OriginInvestorsClaim": "0x9FBe4Bf89521088F790a4dD2F3e495B4f0dA7F42"
+    "OriginInvestorsClaim": "0x9FBe4Bf89521088F790a4dD2F3e495B4f0dA7F42",
+
+    "WRBTCtoSOVConverter": "0x38729759415b27F70D5ca91CE357c45214B95Cf4"
 }

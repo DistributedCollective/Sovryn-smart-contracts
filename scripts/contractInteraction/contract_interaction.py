@@ -19,7 +19,7 @@ def main():
     # testTradeOpeningAndClosingWithCollateral(contracts['sovrynProtocol'], contracts['iUSDT'], contracts['USDT'], contracts['WRBTC'], 1e14, 2e18, True, 1e14)
     #setupMarginLoanParams(contracts['DoC'],  contracts['iRBTC'])
     #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e14, 5e18, True, 1e15)
-    #buyWRBTC()
+    # buyWRBTC()
     #swapTokens(0.027e18,400e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['USDT'])
     #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
     #liquidate(contracts['sovrynProtocol'], '0xc9b8227bcf953e45f16d5d9a8a74cad92f403b90d0daf00900bb02e4a35c542c')
@@ -59,11 +59,12 @@ def main():
     # transferSOVtoVestingRegistry()
     # stakeTokens2()
 
-    triggerEmergencyStop(contracts['iUSDT'], False)
-    triggerEmergencyStop(contracts['iBPro'], False)
-    triggerEmergencyStop(contracts['iDOC'], False)
-    triggerEmergencyStop(contracts['iRBTC'], False)
+    # triggerEmergencyStop(contracts['iUSDT'], False)
+    # triggerEmergencyStop(contracts['iBPro'], False)
+    # triggerEmergencyStop(contracts['iDOC'], False)
+    # triggerEmergencyStop(contracts['iRBTC'], False)
 
+    addLiquidityV1(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
 
 def loadConfig():
     global contracts, acct
@@ -312,7 +313,7 @@ def getBalance(contractAddress, acct):
     
 def buyWRBTC():
     contract = Contract.from_abi("WRBTC", address=contracts["WRBTC"], abi=WRBTC.abi, owner=acct)
-    tx = contract.deposit({'value':1e18})
+    tx = contract.deposit({'value':1e16})
     tx.info()
     print("new balance", getBalance(contracts["WRBTC"], acct))
     
@@ -940,3 +941,17 @@ def determineFundsAtRisk():
     print('total height of affected loans: ', sum/1e18)
     print('total potential borrowed: ', possible/1e18)
     print('could have been stolen: ', (possible - sum)/1e18)
+
+def addLiquidityV1(converter, tokens, amounts):
+    abiFile =  open('./scripts/contractInteraction/LiquidityPoolV1Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV1Converter", address=converter, abi=abi, owner=acct)
+
+    print("is active? ", converter.isActive())
+
+    print(converter)
+    print(tokens)
+    print(amounts)
+
+    tx = converter.addLiquidity(tokens, amounts, 1)
+    print(tx)
