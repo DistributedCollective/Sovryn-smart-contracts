@@ -949,9 +949,10 @@ def addLiquidityV1(converter, tokens, amounts):
 
     print("is active? ", converter.isActive())
 
-    print(converter)
-    print(tokens)
-    print(amounts)
+    token = Contract.from_abi("ERC20", address=tokens[0], abi=ERC20.abi, owner=acct)
+    token.approve(converter.address, amounts[0])
+    token = Contract.from_abi("ERC20", address=tokens[1], abi=ERC20.abi, owner=acct)
+    token.approve(converter.address, amounts[1])
 
     tx = converter.addLiquidity(tokens, amounts, 1)
     print(tx)
