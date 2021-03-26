@@ -30,10 +30,7 @@ contract("TokenSender", (accounts) => {
 		});
 
 		it("fails if the 0 address is passed as SOV address", async () => {
-			await expectRevert(
-				TokenSender.new(ZERO_ADDRESS),
-				"SOV address invalid"
-			);
+			await expectRevert(TokenSender.new(ZERO_ADDRESS), "SOV address invalid");
 		});
 	});
 
@@ -80,7 +77,7 @@ contract("TokenSender", (accounts) => {
 			let balanceBefore = await SOV.balanceOf(account1);
 
 			await tokenSender.addAdmin(account1);
-			await tokenSender.transferSOV(account1, amount, {from: account1});
+			await tokenSender.transferSOV(account1, amount, { from: account1 });
 
 			let balanceAfter = await SOV.balanceOf(account1);
 
@@ -108,7 +105,7 @@ contract("TokenSender", (accounts) => {
 			let balanceBefore = await SOV.balanceOf(account1);
 
 			await tokenSender.addAdmin(account1);
-			let tx = await tokenSender.transferSOVusingList([account1], [amount], {from: account1});
+			let tx = await tokenSender.transferSOVusingList([account1], [amount], { from: account1 });
 			console.log("gasUsed = " + tx.receipt.gasUsed);
 
 			let balanceAfter = await SOV.balanceOf(account1);
@@ -124,7 +121,7 @@ contract("TokenSender", (accounts) => {
 			let balanceBefore2 = await SOV.balanceOf(account2);
 
 			await tokenSender.addAdmin(account1);
-			let tx = await tokenSender.transferSOVusingList([account1, account2], [amount, amount], {from: account1});
+			let tx = await tokenSender.transferSOVusingList([account1, account2], [amount, amount], { from: account1 });
 
 			let balanceAfter1 = await SOV.balanceOf(account1);
 			let balanceAfter2 = await SOV.balanceOf(account2);
@@ -165,5 +162,4 @@ contract("TokenSender", (accounts) => {
 			await expectRevert(tokenSender.transferSOVusingList([account1], [0]), "amount invalid");
 		});
 	});
-
 });
