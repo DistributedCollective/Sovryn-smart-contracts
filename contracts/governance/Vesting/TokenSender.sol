@@ -67,7 +67,7 @@ contract TokenSender is Ownable {
         require(_receiver != address(0), "receiver address invalid");
         require(_amount != 0, "amount invalid");
 
-        IERC20(SOV).transfer(_receiver, _amount);
+        require(IERC20(SOV).transfer(_receiver, _amount), "transfer failed");
         emit SOVTransferred(_receiver, _amount);
     }
 
