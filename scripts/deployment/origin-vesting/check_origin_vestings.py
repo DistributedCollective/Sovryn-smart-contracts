@@ -51,6 +51,6 @@ def main():
                 stakes = staking.getStakes(vesting)
                 stakeDates = stakes[0]
                 isEndOfInterval = False
-                if (date == endDate and date == stakeDates[0]):
+                if (date == endDate and (len(stakeDates) == 0 or date == stakeDates[0])):
                     isEndOfInterval = True
                 print(user + "," + vestingAddress + "," + str(startDate) + "," + str(cliff) + "," + str(endDate) + "," + str(date) + "," + str(isEndOfInterval) + "," + str(stakeDates))
