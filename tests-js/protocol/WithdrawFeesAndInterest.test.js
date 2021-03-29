@@ -76,8 +76,7 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 				.div(new BN(24 * 60 * 60));
 
 			expect(end_interest_data_2["interestOwedPerDay"].toString() != "0").to.be.true;
-			// console.log(end_interest_data_2["interestPaid"].toString(), interest_owed_now.toString());
-			// expect(end_interest_data_2["interestPaid"].toString() == interest_owed_now.toString()).to.be.true;
+			expect(end_interest_data_2["interestPaid"].toString() == interest_owed_now.toString()).to.be.true;
 			expect(end_interest_data_2["interestPaidDate"].toNumber() - second_block_timestamp <= 3).to.be.true;
 			expect(end_interest_data_2["interestUnPaid"].eq(end_interest_data_1["interestUnPaid"].sub(interest_owed_now)));
 		});
