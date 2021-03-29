@@ -107,7 +107,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		const owed_per_day_refund = owed_per_day.mul(loan_close_amount).div(principal);
 		// (loan end timestamp - block timestamp) * owedPerDayRefund / 24*60*60
 		const num = await blockNumber();
-		let lastBlock = await web3.eth.getBlock(num - 1);
+		let lastBlock = await web3.eth.getBlock(num);
 		const block_timestamp = lastBlock.timestamp;
 		const interest_refund_to_borrower_1 = new BN(end_timestamp - block_timestamp).mul(owed_per_day_refund).div(new BN(24 * 60 * 60));
 		const interest_refund_to_borrower = interest_refund_to_borrower_1.lte(loan_close_amount)
@@ -153,7 +153,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		expect(transfer_to_lender.length == 1).to.be.true;
 		transfer_to_lender = transfer_to_lender[0].args;
 		expect(transfer_to_lender["to"] == loanToken.address).to.be.true;
-		// expect(transfer_to_lender["value"]).eq(loan_close_amount_less_interest.toString());
+		expect(transfer_to_lender["value"]).eq(loan_close_amount_less_interest.toString());
 
 		await verify_sov_reward_payment(receipt.rawLogs, FeesEvents, SOV, borrower, loan_id, sov_borrower_initial_balance, 1);
 	};

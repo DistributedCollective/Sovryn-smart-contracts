@@ -207,6 +207,9 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			expect(
 				end_loan_interest_data["interestDepositTotal"].eq(initial_loan_interest_data["interestDepositTotal"].add(deposit_amount))
 			).to.be.true;
+			// TODO: deposit_amount_in_collateral has more difference
+			//  AssertionError: expected '1495264145042852' to equal '1495264145052852'
+
 			// expect(new BN(end_loan["collateral"])).to.be.a.bignumber.eq(
 			// 	new BN(initial_loan["collateral"]).sub(deposit_amount_in_collateral)
 			// );
@@ -220,7 +223,16 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			// prepare the test
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
-			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
+			const [loan_id, borrower] = await borrow_indefinite_loan(
+				loanToken,
+				sovryn,
+				SUSD,
+				RBTC,
+				accounts,
+				(withdraw_amount = new BN(10).mul(oneEth).toString()),
+				(margin = new BN(50).mul(oneEth).toString()),
+				(duration_in_seconds = 60 * 60 * 24 * 20)
+			);
 
 			const initial_loan_interest_data = await sovryn.getLoanInterestData(loan_id);
 

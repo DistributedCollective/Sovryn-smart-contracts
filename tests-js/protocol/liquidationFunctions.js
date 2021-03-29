@@ -57,6 +57,7 @@ const liquidate = async (
 	await verify_liquidation_event(
 		loan,
 		receipt.rawLogs,
+		lender,
 		borrower,
 		liquidator,
 		loan_token_sent,
@@ -149,6 +150,7 @@ const prepare_liquidation = async (
 const verify_liquidation_event = async (
 	loan,
 	logs,
+	lender,
 	borrower,
 	liquidator,
 	loan_token_sent,
@@ -170,10 +172,10 @@ const verify_liquidation_event = async (
 
 	let max_liquidatable = desired_margin.add(hunEth).mul(principal_).div(hunEth);
 	max_liquidatable = max_liquidatable.sub(collateral_.mul(collateral_to_loan_rate).div(oneEth));
-	max_liquidatable = max_liquidatable.mul(hunEth).div(desired_margin).sub(liquidation_incentive_percent);
+	max_liquidatable = max_liquidatable.mul(hunEth).div(desired_margin.sub(liquidation_incentive_percent));
 	max_liquidatable = max_liquidatable.gt(principal_) ? principal_ : max_liquidatable;
 
-	let max_seizable = max_liquidatable.mul(liquidation_incentive_percent).add(hunEth);
+	let max_seizable = max_liquidatable.mul(liquidation_incentive_percent.add(hunEth));
 	max_seizable = max_seizable.div(collateral_to_loan_rate).div(new BN(100));
 	max_seizable = max_seizable.gt(collateral_) ? collateral_ : max_seizable;
 	const loan_close_amount = loan_token_sent.gt(max_liquidatable) ? max_liquidatable : loan_token_sent;
@@ -189,11 +191,9 @@ const verify_liquidation_event = async (
 	expect(liquidate_event["loanToken"] == underlyingToken.address).to.be.true;
 	expect(liquidate_event["collateralToken"] == collateralToken.address).to.be.true;
 	expect(liquidate_event["repayAmount"] == loan_token_sent.toString()).to.be.true;
-	// expect(liquidate_event["collateralWithdrawAmount"] == collateral_withdraw_amount.toString()).to.be.true;
+	expect(liquidate_event["collateralWithdrawAmount"] == collateral_withdraw_amount.toString()).to.be.true;
 	expect(liquidate_event["collateralToLoanRate"] == collateral_to_loan_rate.toString()).to.be.true;
 	expect(liquidate_event["currentMargin"] == current_margin.toString()).to.be.true;
-
-	// console.log(liquidate_event, collateral_withdraw_amount.toString());
 };
 
 module.exports = {

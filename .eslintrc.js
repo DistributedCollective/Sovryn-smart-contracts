@@ -6,9 +6,9 @@ module.exports = {
 		mocha: true, // for test files
 		"truffle/globals": true, // same as "truffle/truffle": true
 	},
-	extends: "eslint:recommended",
+	extends: "prettier",
 	parserOptions: {
-		ecmaVersion: 12,
+		ecmaVersion: 2020,
 	},
 	rules: {},
 	plugins: ["truffle"],

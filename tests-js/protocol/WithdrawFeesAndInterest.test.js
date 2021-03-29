@@ -123,7 +123,7 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 			6. Call withdraw trading fees
 			7. Verify the right amount was paid out and the trading fees reduced on the smart contract 
 		*/
-		it("Test withdraw lending fees", async () => {
+		it("Test withdraw trading fees", async () => {
 			// prepare the test
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);

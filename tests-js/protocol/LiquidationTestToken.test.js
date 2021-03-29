@@ -56,11 +56,13 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
 			or > liquidationIncentivePercent
 			liquidationIncentivePercent = 5e18 by default
 		*/
-		it("Test liquidate", async () => {
-			let rate = new BN(10).pow(new BN(21));
+		it("Test liquidate with rate 1e21", async () => {
+			const rate = new BN(10).pow(new BN(21));
 			await liquidate(accounts, loanToken, SUSD, set_demand_curve, RBTC, sovryn, priceFeeds, rate, WRBTC, FeesEvents, SOV);
-			// rate = new BN(67).mul(new BN(10).pow(new BN(20)));
-			// await liquidate(accounts, loanToken, SUSD, set_demand_curve, RBTC, sovryn, priceFeeds, rate, WRBTC, FeesEvents, SOV);
+		});
+		it("Test liquidate with rate 6.7e21", async () => {
+			const rate = new BN(67).mul(new BN(10).pow(new BN(20)));
+			await liquidate(accounts, loanToken, SUSD, set_demand_curve, RBTC, sovryn, priceFeeds, rate, WRBTC, FeesEvents, SOV);
 		});
 
 		/*

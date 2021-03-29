@@ -151,7 +151,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 			Collateral should decrease
 			Sender collateral balance should increase
 		*/
-		it("Test rollover", async () => {
+		it("Test rollover reward payment", async () => {
 			// prepare the test
 			const [, initial_loan, loan_id] = await setup_rollover_test(RBTC, SUSD, accounts, loanToken, set_demand_curve, sovryn);
 
