@@ -239,6 +239,7 @@ contract WeightedStaking is Checkpoints {
 	) public view returns (uint96) {
 		require(blockNumber < block.number, "WeightedStaking::getPriorUserStakeAndDate: not yet determined");
 
+		date = timestampToLockDate(date);
 		uint32 nCheckpoints = numUserStakingCheckpoints[account][date];
 		if (nCheckpoints == 0) {
 			return 0;
