@@ -239,7 +239,7 @@ contract WeightedStaking is Checkpoints {
 	) public view returns (uint96) {
 		require(blockNumber < block.number, "WeightedStaking::getPriorUserStakeAndDate: not yet determined");
 
-		date = timestampToLockDate(date);
+		date = _adjustDateForOrigin(date);
 		uint32 nCheckpoints = numUserStakingCheckpoints[account][date];
 		if (nCheckpoints == 0) {
 			return 0;
@@ -309,4 +309,15 @@ contract WeightedStaking is Checkpoints {
 		uint256 periodFromKickoff = (timestamp - kickoffTS) / TWO_WEEKS;
 		lockDate = periodFromKickoff * TWO_WEEKS + kickoffTS;
 	}
+
+	function _adjustDateForOrigin(uint256 date) internal view returns (uint256) {
+		uint256 adjustedDate = timestampToLockDate(date);
+		//origin vesting contracts have different dates
+		//we need to add 2 weeks to get end of period (by default, it's start)
+		if (adjustedDate != date) {
+			date = adjustedDate + TWO_WEEKS;
+		}
+		return date;
+	}
+
 }
