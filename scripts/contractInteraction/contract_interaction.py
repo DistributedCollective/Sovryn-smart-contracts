@@ -59,10 +59,12 @@ def main():
     # transferSOVtoVestingRegistry()
     # stakeTokens2()
 
-    triggerEmergencyStop(contracts['iUSDT'], False)
-    triggerEmergencyStop(contracts['iBPro'], False)
-    triggerEmergencyStop(contracts['iDOC'], False)
-    triggerEmergencyStop(contracts['iRBTC'], False)
+    # triggerEmergencyStop(contracts['iUSDT'], False)
+    # triggerEmergencyStop(contracts['iBPro'], False)
+    # triggerEmergencyStop(contracts['iDOC'], False)
+    # triggerEmergencyStop(contracts['iRBTC'], False)
+
+    createProposalSIP0016()
 
 
 def loadConfig():
@@ -940,3 +942,46 @@ def determineFundsAtRisk():
     print('total height of affected loans: ', sum/1e18)
     print('total potential borrowed: ', possible/1e18)
     print('could have been stolen: ', (possible - sum)/1e18)
+
+def createProposalSIP0016():
+
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+
+    # action
+    target = contracts['Staking']
+    signature = "setImplementation(address)"
+    data = staking.setImplementation.encode_input(contracts['StakingLogic2'])
+    data = "0x" + data[10:]
+    description = "SIP-0016: Proposal to upgrade Staking contract - apply fix to unlock Origin Vesting contracts, Details: https://github.com/DistributedCollective/SIPS/blob/128a524ec5a8aa533a3dbadcda115acc71c86182/SIP-0016.md, sha256: 666f8a71dae650ba9a3673bad82ae1524fe486c9e6702a75d9a566b743497d73"
+
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
+
+    print('Governor Address:    '+governor.address)
+    print('Target:              '+str([target]))
+    print('Values:              '+str([0]))
+    print('Signature:           '+str([signature]))
+    print('Data:                '+str([data]))
+    print('Description:         '+str(description))
+    print('======================================')
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
+
+# SIP-0010
+# address[]: targets 0x5684a06CaB22Db16d901fEe2A5C081b4C91eA40e
+# uint256[]: values 0
+# string[]: signatures setImplementation(address)
+# bytes[]: calldatas 0x0000000000000000000000005b87f01f665050d244543ca047317c26862e47f7
+
+# SIP-0016
+# Governor Address:    0x6496DF39D000478a7A7352C01E0E713835051CcD
+# Target:              ['0x5684a06CaB22Db16d901fEe2A5C081b4C91eA40e']
+# Values:              [0]
+# Signature:           ['setImplementation(address)']
+# Data:                ['0x000000000000000000000000962ce6e2fa1a4917dff12ad10135b1a4f16c2db0']
+# Description:         SIP-0016: Proposal to upgrade Staking contract - apply fix to unlock Origin Vesting contracts, Details: https://github.com/DistributedCollective/SIPS/blob/128a524ec5a8aa533a3dbadcda115acc71c86182/SIP-0016.md, sha256: 666f8a71dae650ba9a3673bad82ae1524fe486c9e6702a75d9a566b743497d73
