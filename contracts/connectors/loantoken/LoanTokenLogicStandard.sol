@@ -216,8 +216,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	{
 		_checkPause();
 
-		require(loanId == 0 || msg.sender == trader, "13");
-
 		if (collateralTokenAddress == address(0)) {
 			collateralTokenAddress = wrbtcTokenAddress;
 		}
