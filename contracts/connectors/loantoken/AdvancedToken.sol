@@ -16,29 +16,6 @@ contract AdvancedToken is AdvancedTokenStorage {
 		return true;
 	}
 
-	//bzx compare
-	//TODO: Unit tests increase/decrease approval
-	function increaseApproval(address _spender, uint256 _addedValue) public returns (bool) {
-		uint256 _allowed = allowed[msg.sender][_spender].add(_addedValue);
-		allowed[msg.sender][_spender] = _allowed;
-
-		emit Approval(msg.sender, _spender, _allowed);
-		return true;
-	}
-
-	function decreaseApproval(address _spender, uint256 _subtractedValue) public returns (bool) {
-		uint256 _allowed = allowed[msg.sender][_spender];
-		if (_subtractedValue >= _allowed) {
-			_allowed = 0;
-		} else {
-			_allowed -= _subtractedValue;
-		}
-		allowed[msg.sender][_spender] = _allowed;
-
-		emit Approval(msg.sender, _spender, _allowed);
-		return true;
-	}
-
 	function _mint(
 		address _to,
 		uint256 _tokenAmount,
@@ -79,7 +56,6 @@ contract AdvancedToken is AdvancedTokenStorage {
 
 		emit Burn(_who, _tokenAmount, _assetAmount, _price);
 		emit Transfer(_who, address(0), _tokenAmount);
-
 		return _balance;
 	}
 }
