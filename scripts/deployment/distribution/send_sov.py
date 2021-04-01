@@ -23,11 +23,40 @@ def main():
 
     # load deployed contracts addresses
     contracts = json.load(configFile)
-    SOVtoken = contracts['SOV']
+
+    tokenSender = Contract.from_abi("TokenSender", address=contracts['TokenSender'], abi=TokenSender.abi, owner=acct)
 
     balanceBefore = acct.balance()
 
-    tokenSender = acct.deploy(TokenSender, SOVtoken)
+    # amounts examples: 269.231, 18.578
+    MULTIPLIER = 10**15
+
+    totalAmount = 0
+    receivers = []
+    amounts = []
+    with open('./scripts/deployment/distribution/SCNC.csv', 'r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            tokenOwner = row[3].replace(" ", "")
+            amount = row[1].replace(",", "").replace(".", "")
+            amount = int(amount) * MULTIPLIER
+            totalAmount += amount
+
+            receivers.append(tokenOwner)
+            amounts.append(amount)
+
+            print("=======================================")
+            print("'" + tokenOwner + "', ")
+            print(amount)
+
+    print("total amount:")
+    print(totalAmount / 10**18)
+    # 1058.715
+
+    print(receivers)
+    print(amounts)
+
+    # tokenSender.transferSOVusingList(receivers, amounts)
 
     print("deployment cost:")
     print((balanceBefore - acct.balance()) / 10**18)
