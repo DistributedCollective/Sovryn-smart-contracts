@@ -34,7 +34,7 @@ def main():
     totalAmount = 0
     receivers = []
     amounts = []
-    with open('./scripts/deployment/distribution/SCNC.csv', 'r') as file:
+    with open('./scripts/deployment/distribution/SCNC-1.csv', 'r') as file:
         reader = csv.reader(file)
         for row in reader:
             tokenOwner = row[3].replace(" ", "")
