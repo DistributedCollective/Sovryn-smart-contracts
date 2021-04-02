@@ -64,8 +64,14 @@ def main():
     # triggerEmergencyStop(contracts['iDOC'], False)
     # triggerEmergencyStop(contracts['iRBTC'], False)
 
-    transferSOVtoTokenSender()
+    # createProposalSIP0014()
 
+    # addInvestorToBlacklist()
+    # stake80KTokens()
+
+    # createProposalSIP0015()
+
+    transferSOVtoTokenSender()
 
 def loadConfig():
     global contracts, acct
@@ -942,6 +948,93 @@ def determineFundsAtRisk():
     print('total height of affected loans: ', sum/1e18)
     print('total potential borrowed: ', possible/1e18)
     print('could have been stolen: ', (possible - sum)/1e18)
+
+def createProposalSIP0014():
+    # 1,500,000 SOV
+    amount = 1500000 * 10**18
+    governorVault = Contract.from_abi("GovernorVault", address=contracts['GovernorVaultOwner'], abi=GovernorVault.abi, owner=acct)
+
+    # action
+    target = contracts['GovernorVaultOwner']
+    signature = "transferTokens(address,address,uint256)"
+    data = governorVault.transferTokens.encode_input(contracts['multisig'], contracts['SOV'], amount)
+    data = "0x" + data[10:]
+    description = "SIP-0014: Strategic Investment, Details: https://github.com/DistributedCollective/SIPS/blob/7b90ebcb4e135b931210b3cea22698084de9d641/SIP-0014.md, sha256: 780d4db45ae09e30516ad11b0332f68a101775ed418f68f1aaf1af93e37e519f"
+
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
+
+    print('Governor Address:    '+governor.address)
+    print('Target:              '+str([target]))
+    print('Values:              '+str([0]))
+    print('Signature:           '+str([signature]))
+    print('Data:                '+str([data]))
+    print('Description:         '+str(description))
+    print('======================================')
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
+
+def addInvestorToBlacklist():
+    # we need to process CSOV->SOV exchnage manually,
+    # investor address should be added to blacklist in VestingRegistry
+    tokenOwner = "0x75F7d09110631FE60a804642003bE00C8Bcd26b7"
+
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    data = vestingRegistry.setBlacklistFlag.encode_input(tokenOwner, True)
+    print(data)
+
+    # multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    # tx = multisig.submitTransaction(vestingRegistry.address,0,data)
+    # txId = tx.events["Submission"]["transactionId"]
+    # print(txId)
+
+def stake80KTokens():
+    # another address of the investor (addInvestorToBlacklist)
+    tokenOwner = "0x21e1AaCb6aadF9c6F28896329EF9423aE5c67416"
+    # 80K SOV
+    amount = 80000 * 10**18
+
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    vestingAddress = vestingRegistry.getVesting(tokenOwner)
+    print("vestingAddress: " + vestingAddress)
+    data = vestingRegistry.stakeTokens.encode_input(vestingAddress, amount)
+    print(data)
+
+    # multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    # tx = multisig.submitTransaction(vestingRegistry.address,0,data)
+    # txId = tx.events["Submission"]["transactionId"]
+    # print(txId)
+
+def createProposalSIP0015():
+
+    # action
+    target = contracts['SOV']
+    signature = "symbol()"
+    data = "0x"
+    description = "SIP-0015: Sovryn Treasury Management, Details: https://github.com/DistributedCollective/SIPS/blob/977d1ebf73f954071ffd8a787c2660c41e069e0f/SIP-0015.md, sha256: c5cdd1557f9637816c2fb2ae4ac847ffba1eacd4599488bcda793b7945798ddf"
+
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorAdmin'], abi=GovernorAlpha.abi, owner=acct)
+
+    print('Governor Address:    '+governor.address)
+    print('Target:              '+str([target]))
+    print('Values:              '+str([0]))
+    print('Signature:           '+str([signature]))
+    print('Data:                '+str([data]))
+    print('Description:         '+str(description))
+    print('======================================')
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
 
 def transferSOVtoTokenSender():
     # 6733.675 SOV
