@@ -5,7 +5,6 @@ const {
 	margin_trading_sov_reward_payment,
 	margin_trading_sending_collateral_tokens,
 	margin_trading_sending_collateral_tokens_sov_reward_payment,
-	close_complete_margin_trade,
 	close_complete_margin_trade_wrbtc,
 } = require("./tradingFunctions");
 
@@ -60,6 +59,18 @@ contract("LoanTokenTrading", (accounts) => {
 	});
 
 	describe("test the loan token trading logic with SUSD test token as collateral token and the wBTC as underlying loan token. ", () => {
+		/*
+      tests margin trading sending loan tokens.
+			process is handled by the shared function margin_trading_sending_loan_tokens
+			1. approve the transfer
+			2. send the margin trade tx
+			3. verify the trade event and balances are correct
+			4. retrieve the loan from the smart contract and make sure all values are set as expected
+    */
+		it("Test margin trading sending loan tokens", async () => {
+			await margin_trading_sending_loan_tokens(accounts, sovryn, loanTokenWRBTC, WRBTC, SUSD, priceFeeds, false);
+			await margin_trading_sov_reward_payment(accounts, loanTokenWRBTC, WRBTC, SUSD, SOV, FeesEvents);
+		});
 		it("Test margin trading sending collateral tokens", async () => {
 			const loanSize = oneEth;
 			//  make sure there are sufficient funds on the contract
