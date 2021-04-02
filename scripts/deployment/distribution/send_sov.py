@@ -27,19 +27,42 @@ def main():
     tokenSender = Contract.from_abi("TokenSender", address=contracts['TokenSender'], abi=TokenSender.abi, owner=acct)
 
     balanceBefore = acct.balance()
+    totalAmount = 0
 
     # amounts examples: 269.231, 18.578
-    MULTIPLIER = 10**15
+    data = parseFile('./scripts/deployment/distribution/SCNC-1.csv', 10**15)
+    totalAmount += data["totalAmount"]
+    tokenSender.transferSOVusingList(data["receivers"], data["amounts"])
 
+    # amounts examples: 1.875
+    data = parseFile('./scripts/deployment/distribution/SCNC-2.csv', 10**15)
+    totalAmount += data["totalAmount"]
+    tokenSender.transferSOVusingList(data["receivers"], data["amounts"])
+
+    # amounts examples: 63.53, 60.65, 25.99
+    data = parseFile('./scripts/deployment/distribution/SGMB.csv', 10**16)
+    totalAmount += data["totalAmount"]
+    tokenSender.transferSOVusingList(data["receivers"], data["amounts"])
+
+    # 6733.675
+    print("=======================================")
+    print("SOV amount:")
+    print(totalAmount / 10**18)
+
+    print("deployment cost:")
+    print((balanceBefore - acct.balance()) / 10**18)
+
+
+def parseFile(fileName, multiplier):
     totalAmount = 0
     receivers = []
     amounts = []
-    with open('./scripts/deployment/distribution/SCNC-1.csv', 'r') as file:
+    with open(fileName, 'r') as file:
         reader = csv.reader(file)
         for row in reader:
             tokenOwner = row[3].replace(" ", "")
             amount = row[1].replace(",", "").replace(".", "")
-            amount = int(amount) * MULTIPLIER
+            amount = int(amount) * multiplier
             totalAmount += amount
 
             receivers.append(tokenOwner)
@@ -49,14 +72,11 @@ def main():
             print("'" + tokenOwner + "', ")
             print(amount)
 
-    print("total amount:")
-    print(totalAmount / 10**18)
-    # 1058.715
+    # print(receivers)
+    # print(amounts)
 
-    print(receivers)
-    print(amounts)
-
-    # tokenSender.transferSOVusingList(receivers, amounts)
-
-    print("deployment cost:")
-    print((balanceBefore - acct.balance()) / 10**18)
+    return {
+               "totalAmount": totalAmount,
+               "receivers": receivers,
+                "amounts": amounts
+            }
