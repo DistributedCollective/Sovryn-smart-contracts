@@ -54,6 +54,7 @@ def main():
 
 
 def parseFile(fileName, multiplier):
+    print(fileName)
     totalAmount = 0
     receivers = []
     amounts = []
@@ -68,9 +69,9 @@ def parseFile(fileName, multiplier):
             receivers.append(tokenOwner)
             amounts.append(amount)
 
-            print("=======================================")
-            print("'" + tokenOwner + "', ")
-            print(amount)
+            # print("=======================================")
+            # print("'" + tokenOwner + "', ")
+            # print(amount)
 
     # print(receivers)
     # print(amounts)
