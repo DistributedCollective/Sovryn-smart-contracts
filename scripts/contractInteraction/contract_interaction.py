@@ -59,10 +59,12 @@ def main():
     # transferSOVtoVestingRegistry()
     # stakeTokens2()
 
-    triggerEmergencyStop(contracts['iUSDT'], False)
-    triggerEmergencyStop(contracts['iBPro'], False)
-    triggerEmergencyStop(contracts['iDOC'], False)
-    triggerEmergencyStop(contracts['iRBTC'], False)
+    # triggerEmergencyStop(contracts['iUSDT'], False)
+    # triggerEmergencyStop(contracts['iBPro'], False)
+    # triggerEmergencyStop(contracts['iDOC'], False)
+    # triggerEmergencyStop(contracts['iRBTC'], False)
+
+    transferSOVtoTokenSender()
 
 
 def loadConfig():
@@ -940,3 +942,17 @@ def determineFundsAtRisk():
     print('total height of affected loans: ', sum/1e18)
     print('total potential borrowed: ', possible/1e18)
     print('could have been stolen: ', (possible - sum)/1e18)
+
+def transferSOVtoTokenSender():
+    # 6733.675 SOV
+    amount = 6733675 * 10**15
+
+    tokenSenderAddress = contracts['TokenSender']
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    data = SOVtoken.transfer.encode_input(tokenSenderAddress, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(SOVtoken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
