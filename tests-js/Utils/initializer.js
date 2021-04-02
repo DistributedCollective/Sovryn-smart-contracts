@@ -22,7 +22,7 @@ const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicTest");
 const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplLocal");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));

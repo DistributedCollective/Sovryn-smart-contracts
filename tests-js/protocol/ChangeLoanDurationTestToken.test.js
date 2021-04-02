@@ -200,9 +200,9 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			// buffer = min(estimatedSourceAmount/1000 , sourceBuffer) with sourceBuffer = 10000
 			// code from SwapsImplSovrynSwap.sol
 
-			// let buffer = deposit_amount_in_collateral.div(new BN(1000));
-			// if (buffer.gt(new BN(10000))) buffer = new BN(10000);
-			// deposit_amount_in_collateral = deposit_amount_in_collateral.add(buffer);
+			let buffer = deposit_amount_in_collateral.div(new BN(1000));
+			if (buffer.gt(new BN(10000))) buffer = new BN(10000);
+			deposit_amount_in_collateral = deposit_amount_in_collateral.add(buffer);
 
 			const loanMaintenance = await LoanMaintenance.at(sovryn.address);
 			await loanMaintenance.extendLoanDuration(loan_id, deposit_amount, true, "0x", { from: borrower });
