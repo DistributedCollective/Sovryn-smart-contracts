@@ -181,9 +181,16 @@ const margin_trading_sending_collateral_tokens = async (
 	const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Trade");
 	const args = decode[0].args;
 
+	console.log(`args["positionSize"]: ${args["positionSize"].toString()}`);
+	console.log(`args["borrowedAmount"]: ${new BN(args["borrowedAmount"]).toString()}`);
+	console.log(`args["entryPrice"]: ${new BN(args["entryPrice"]).toString()}`);
+	console.log(`collateralTokenSent: ${collateralTokenSent.toString()}`);
+
+	//TODO: refactor calc formula to eliminate rounding error
 	expect(args["positionSize"]).to.eq(
-		new BN(args["borrowedAmount"]).mul(new BN(args["entryPrice"])).div(oneEth).add(collateralTokenSent).toString()
-	);
+		new BN(args["borrowedAmount"]).mul(new BN(args["entryPrice"]).addn(1)).div(oneEth).add(collateralTokenSent).toString()
+	); //addn(1) - rounding error
+
 	expect(args["borrowedAmount"]).to.eq(
 		loanSize
 			.mul(collateralTokenSent)
@@ -192,7 +199,7 @@ const margin_trading_sending_collateral_tokens = async (
 			.toString()
 	);
 	expect(args["interestRate"]).to.eq("0");
-	expect(args["entryPrice"]).to.eq(rate.mul(new BN(9985)).div(new BN(10000)).toString());
+	expect(args["entryPrice"]).to.eq(rate.mul(new BN(9985)).div(new BN(10000)).sub(new BN(1)).toString()); //9985 == (1-0.15/100); sub(1) - rounding error
 	expect(args["entryLeverage"]).to.eq(leverageAmount.toString());
 };
 

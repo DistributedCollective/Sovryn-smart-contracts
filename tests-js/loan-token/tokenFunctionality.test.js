@@ -69,12 +69,12 @@ contract("LoanTokenFunctionality", (accounts) => {
 
 		it("Test transfer with insufficient balance", async () => {
 			const { amount_sent, sender, receiver } = await initialize_test_transfer(SUSD, accounts, loanToken);
-			expectRevert(loanToken.transfer(sender, amount_sent.toString(), { from: receiver }), "14");
+			expectRevert(loanToken.transfer(sender, amount_sent.toString(), { from: receiver }), "16");
 		});
 
 		it("Test transfer to zero account should fail", async () => {
 			const { amount_sent } = await initialize_test_transfer(SUSD, accounts, loanToken);
-			expectRevert(loanToken.transfer(CONSTANTS.ZERO_ADDRESS, amount_sent.toString()), "14");
+			expectRevert(loanToken.transfer(CONSTANTS.ZERO_ADDRESS, amount_sent.toString()), "15");
 		});
 
 		it("Test transfer to self", async () => {

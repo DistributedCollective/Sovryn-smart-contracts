@@ -11,6 +11,7 @@ import "../events/LoanOpeningsEvents.sol";
 import "../mixins/VaultController.sol";
 import "../mixins/InterestUser.sol";
 import "../swaps/SwapsUser.sol";
+import "hardhat/console.sol";
 
 contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, SwapsUser {
 	constructor() public {}
@@ -117,15 +118,31 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 		uint256 marginAmount,
 		bool isTorqueLoan
 	) public view returns (uint256 collateralAmountRequired) {
+		uint256 collateralRequired = _getRequiredCollateral(loanToken, collateralToken, newPrincipal, marginAmount, isTorqueLoan);
 		if (marginAmount != 0) {
 			collateralAmountRequired = _getRequiredCollateral(loanToken, collateralToken, newPrincipal, marginAmount, isTorqueLoan);
 
+			// new
 			uint256 feePercent = isTorqueLoan ? borrowingFeePercent : tradingFeePercent;
 			if (collateralAmountRequired != 0 && feePercent != 0) {
 				collateralAmountRequired = collateralAmountRequired.mul(10**20).divCeil(
 					10**20 - feePercent // never will overflow
 				);
+				console.log("Collateral required new: %s, fee percent: %s", collateralAmountRequired, feePercent);
 			}
+
+			/*uint256 fee = isTorqueLoan ? _getBorrowingFee(collateralAmountRequired) : _getTradingFee(collateralAmountRequired);
+			if (fee != 0) {
+				collateralAmountRequired = collateralAmountRequired.add(fee);
+			}*/
+			//console.log("Collateral required prev: %s", collateralAmountRequired);
+
+			uint256 fee = isTorqueLoan ? _getBorrowingFee(collateralRequired) : _getTradingFee(collateralRequired);
+			if (fee != 0) {
+				collateralRequired = collateralRequired.add(fee);
+			}
+			console.log("Collateral required prev: %s", collateralRequired);
+			console.log("fee: %s", fee);
 		}
 	}
 
