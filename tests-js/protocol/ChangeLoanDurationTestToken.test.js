@@ -194,7 +194,15 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			const deposit_amount = owed_per_day.mul(days_to_extend);
 
 			const { rate, precision } = await priceFeeds.queryRate(RBTC.address, SUSD.address);
-			const deposit_amount_in_collateral = deposit_amount.mul(precision).div(rate);
+			let deposit_amount_in_collateral = deposit_amount.mul(precision).div(rate);
+
+			// if the actual rate is exactly the same as the worst case rate, we get rounding issues. So, add a small buffer.
+			// buffer = min(estimatedSourceAmount/1000 , sourceBuffer) with sourceBuffer = 10000
+			// code from SwapsImplSovrynSwap.sol
+
+			let buffer = deposit_amount_in_collateral.div(new BN(1000));
+			if (buffer.gt(new BN(10000))) buffer = new BN(10000);
+			deposit_amount_in_collateral = deposit_amount_in_collateral.add(buffer);
 
 			const loanMaintenance = await LoanMaintenance.at(sovryn.address);
 			await loanMaintenance.extendLoanDuration(loan_id, deposit_amount, true, "0x", { from: borrower });
@@ -207,15 +215,12 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			expect(
 				end_loan_interest_data["interestDepositTotal"].eq(initial_loan_interest_data["interestDepositTotal"].add(deposit_amount))
 			).to.be.true;
-			// TODO: deposit_amount_in_collateral has more difference
-			//  AssertionError: expected '1495264145042852' to equal '1495264145052852'
-
-			// expect(new BN(end_loan["collateral"])).to.be.a.bignumber.eq(
-			// 	new BN(initial_loan["collateral"]).sub(deposit_amount_in_collateral)
-			// );
-			// expect(await RBTC.balanceOf(sovryn.address)).to.be.a.bignumber.eq(
-			// 	initial_collateral_token_lender_balance.sub(deposit_amount_in_collateral)
-			// );
+			expect(new BN(end_loan["collateral"])).to.be.a.bignumber.eq(
+				new BN(initial_loan["collateral"]).sub(deposit_amount_in_collateral)
+			);
+			expect(await RBTC.balanceOf(sovryn.address)).to.be.a.bignumber.eq(
+				initial_collateral_token_lender_balance.sub(deposit_amount_in_collateral)
+			);
 			expect((await SUSD.balanceOf(sovryn.address)).lte(initial_loan_token_lender_balance.add(deposit_amount))).to.be.true;
 		});
 

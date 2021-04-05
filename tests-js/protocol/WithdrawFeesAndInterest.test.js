@@ -61,9 +61,6 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 			const time_until_loan_end = loan["endTimestamp"] - initial_block_timestamp;
 			await increaseTime(time_until_loan_end);
 
-			num = await blockNumber();
-			lastBlock = await web3.eth.getBlock(num);
-			const second_block_timestamp = lastBlock.timestamp;
 			const end_interest_data_1 = await sovryn.getLenderInterestData(lender, SUSD.address);
 			expect(end_interest_data_1["interestPaid"] == "0").to.be.true;
 
@@ -71,13 +68,17 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 			await lend_to_pool(loanToken, SUSD, owner);
 			const end_interest_data_2 = await sovryn.getLenderInterestData(lender, SUSD.address);
 
-			const interest_owed_now = new BN(second_block_timestamp - initial_block_timestamp)
+			num = await blockNumber();
+			lastBlock = await web3.eth.getBlock(num);
+			const second_block_timestamp = lastBlock.timestamp;
+
+			const interest_owed_now = new BN(loan["endTimestamp"] - initial_block_timestamp)
 				.mul(end_interest_data_1["interestOwedPerDay"])
 				.div(new BN(24 * 60 * 60));
 
 			expect(end_interest_data_2["interestOwedPerDay"].toString() != "0").to.be.true;
-			expect(end_interest_data_2["interestPaid"].toString() == interest_owed_now.toString()).to.be.true;
-			expect(end_interest_data_2["interestPaidDate"].toNumber() - second_block_timestamp <= 3).to.be.true;
+			expect(end_interest_data_2["interestPaid"].toString()).eq(interest_owed_now.toString());
+			expect(end_interest_data_2["interestPaidDate"].toNumber() - second_block_timestamp <= 2).to.be.true;
 			expect(end_interest_data_2["interestUnPaid"].eq(end_interest_data_1["interestUnPaid"].sub(interest_owed_now)));
 		});
 

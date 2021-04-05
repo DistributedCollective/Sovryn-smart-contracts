@@ -77,6 +77,15 @@ const getPriceFeeds = async (WRBTC, SUSD, RBTC, sovryn, BZRX) => {
 	return feeds;
 };
 
+const getPriceFeedsRBTC = async (WRBTC, SUSD, RBTC, sovryn, BZRX) => {
+	const feeds = await PriceFeedsLocal.new(WRBTC.address, BZRX.address);
+
+	await feeds.setRates(WRBTC.address, RBTC.address, oneEth.toString());
+	await feeds.setRates(WRBTC.address, SUSD.address, oneEth.toString());
+	await feeds.setRates(RBTC.address, SUSD.address, new BN(10).pow(new BN(22)).toString());
+	return feeds;
+};
+
 const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
 	const sovrynproxy = await sovrynProtocol.new();
 	const sovryn = await ISovryn.at(sovrynproxy.address);
@@ -195,9 +204,9 @@ const lend_to_pool = async (loanToken, SUSD, lender) => {
 };
 
 const lend_to_pool_iBTC = async (loanTokenWRBTC, lender) => {
-	const lend_amount = tenKEth.toString();
+	const lend_amount = new BN(10).pow(new BN(21)).toString();
 	await loanTokenWRBTC.mintWithBTC(lender, { from: lender, value: lend_amount });
-	return { lender, lend_amount };
+	return [lender, lend_amount];
 };
 
 const open_margin_trade_position = async (
@@ -347,6 +356,7 @@ module.exports = {
 	lend_to_pool,
 	set_demand_curve,
 	getPriceFeeds,
+	getPriceFeedsRBTC,
 	getSovryn,
 	CONSTANTS,
 	decodeLogs,

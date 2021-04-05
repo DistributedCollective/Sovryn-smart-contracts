@@ -90,7 +90,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		const block_timestamp = currentBlock.timestamp;
 		const time_until_loan_end = loan["endTimestamp"] - block_timestamp;
 		await increaseTime(time_until_loan_end);
-		return [borrower, loan, loan_id];
+		return [borrower, loan, loan_id, parseInt(loan["endTimestamp"])];
 	};
 
 	describe("Tests the close with deposit. ", () => {
@@ -101,7 +101,14 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		*/
 		it("Test rollover", async () => {
 			// prepare the test
-			const [borrower, loan, loan_id] = await setup_rollover_test(RBTC, SUSD, accounts, loanToken, set_demand_curve, sovryn);
+			const [borrower, loan, loan_id, endTimestamp] = await setup_rollover_test(
+				RBTC,
+				SUSD,
+				accounts,
+				loanToken,
+				set_demand_curve,
+				sovryn
+			);
 
 			const lender_interest_data = await sovryn.getLenderInterestData(loanToken.address, SUSD.address);
 
@@ -114,8 +121,20 @@ contract("ProtocolCloseDeposit", (accounts) => {
 			const lending_fee_percent = await sovryn.lendingFeePercent();
 			const interest_unpaid = new BN(lender_interest_data["interestUnPaid"]);
 			const lending_fee = interest_unpaid.mul(lending_fee_percent).div(hunEth);
-			const interest_owed_now = interest_unpaid.sub(lending_fee);
-			// expect((await SUSD.balanceOf(loanToken.address)).eq(lender_pool_initial_balance.add(interest_owed_now))).to.be.true;
+			let interest_owed_now = interest_unpaid.sub(lending_fee);
+
+			num = await blockNumber();
+			currentBlock = await web3.eth.getBlock(num);
+			block_timestamp = currentBlock.timestamp;
+			if (block_timestamp > endTimestamp) {
+				backInterestTime = new BN(block_timestamp - endTimestamp);
+				backInterestOwed = backInterestTime.mul(lender_interest_data["interestOwedPerDay"]).div(new BN(24 * 60 * 60));
+				const lending_fee = backInterestOwed.mul(lending_fee_percent).div(hunEth);
+				backInterestOwed = backInterestOwed.sub(lending_fee);
+				interest_owed_now = interest_owed_now.add(backInterestOwed);
+			}
+
+			expect((await SUSD.balanceOf(loanToken.address)).eq(lender_pool_initial_balance.add(interest_owed_now))).to.be.true;
 			expect(lender_interest_after["interestPaid"] == interest_unpaid.toString()).to.be.true;
 			expect(lender_interest_after["interestUnPaid"] == "0").to.be.true;
 

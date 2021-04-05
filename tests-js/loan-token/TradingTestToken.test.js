@@ -88,7 +88,6 @@ contract("LoanTokenTrading", (accounts) => {
 		  1. send the margin trade tx with the passed parameter (NOTE: the token transfer needs to be approved already)
 		  2. TODO verify the trade event and balances are correct
 		*/
-
 		it("Test margin trading sending collateral tokens", async () => {
 			const loanSize = new BN(10000).mul(oneEth);
 			await SUSD.mint(loanToken.address, loanSize.mul(new BN(12)));
@@ -131,7 +130,6 @@ contract("LoanTokenTrading", (accounts) => {
 				SOV
 			);
 		});
-
 		/*
 		  should completely close a position.
 		  first with returning loan tokens, then with returning collateral tokens to the sender.

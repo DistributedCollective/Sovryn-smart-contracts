@@ -281,6 +281,45 @@ const close_complete_margin_trade = async (
 	);
 };
 
+const close_complete_margin_trade_wrbtc = async (
+	sovryn,
+	loanToken,
+	loanTokenWRBTC,
+	set_demand_curve,
+	lend_to_pool_iBTC,
+	open_margin_trade_position_iBTC,
+	priceFeeds,
+	return_token_is_collateral,
+	RBTC,
+	WRBTC,
+	SUSD,
+	accounts
+) => {
+	// prepare the test
+	await set_demand_curve(loanToken);
+	await lend_to_pool_iBTC(loanTokenWRBTC, accounts[0]);
+	const [loan_id, trader, loan_token_sent] = await open_margin_trade_position_iBTC(loanTokenWRBTC, SUSD, accounts[1]);
+
+	await increaseTime(10 * 24 * 60 * 60);
+	const initial_loan = await sovryn.getLoan(loan_id);
+
+	// needs to be called by the trader
+	expectRevert(sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral, "0x"), "unauthorized");
+
+	// complete closure means the whole collateral is swapped
+	const swap_amount = initial_loan["collateral"];
+
+	await internal_test_close_margin_trade(
+		new BN(swap_amount),
+		initial_loan,
+		loanTokenWRBTC,
+		loan_id,
+		priceFeeds,
+		sovryn,
+		trader,
+		return_token_is_collateral
+	);
+};
 const close_complete_margin_trade_sov_reward_payment = async (
 	sovryn,
 	set_demand_curve,
@@ -506,14 +545,13 @@ const internal_test_close_margin_trade = async (
 
 const get_estimated_margin_details = async (loanToken, collateralToken, loanSize, collateralTokenSent, leverageAmount) => {
 	const result = await loanToken.getEstimatedMarginDetails(leverageAmount, 0, collateralTokenSent, collateralToken.address);
-	expect(
-		result[0].eq(
-			loanSize
-				.mul(collateralTokenSent)
-				.mul(leverageAmount)
-				.div(new BN(10).pow(new BN(36)))
-		)
-	).to.be.true;
+
+	expect(result[0]).to.be.a.bignumber.eq(
+		loanSize
+			.mul(collateralTokenSent)
+			.mul(leverageAmount)
+			.div(new BN(10).pow(new BN(36)))
+	);
 	expect(result[2].eq(new BN(0))).to.be.true;
 	// console.log("principal", result[0]);
 	// console.log("collateral", result[1]);
@@ -532,4 +570,5 @@ module.exports = {
 	close_complete_margin_trade_sov_reward_payment,
 	close_partial_margin_trade,
 	close_partial_margin_trade_sov_reward_payment,
+	close_complete_margin_trade_wrbtc,
 };
