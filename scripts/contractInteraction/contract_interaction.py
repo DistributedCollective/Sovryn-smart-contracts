@@ -64,7 +64,8 @@ def main():
     # triggerEmergencyStop(contracts['iDOC'], False)
     # triggerEmergencyStop(contracts['iRBTC'], False)
 
-    addLiquidityV1(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
+    # addLiquidityV1(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
+    addLiquidityV1UsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
 
 def loadConfig():
     global contracts, acct
@@ -955,4 +956,15 @@ def addLiquidityV1(converter, tokens, amounts):
     token.approve(converter.address, amounts[1])
 
     tx = converter.addLiquidity(tokens, amounts, 1)
+    print(tx)
+
+def addLiquidityV1UsingWrapper(converter, tokens, amounts):
+    abiFile =  open('./scripts/contractInteraction/RBTCWrapperProxy.json')
+    abi = json.load(abiFile)
+    wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=contracts['RBTCWrapperProxy'], abi=abi, owner=acct)
+
+    token = Contract.from_abi("ERC20", address=tokens[1], abi=ERC20.abi, owner=acct)
+    token.approve(wrapperProxy.address, amounts[1])
+
+    tx = wrapperProxy.addLiquidityToV1(converter, tokens, amounts, 1, {'value': amounts[0]})
     print(tx)
