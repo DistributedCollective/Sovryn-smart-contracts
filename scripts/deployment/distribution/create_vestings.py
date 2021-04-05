@@ -44,8 +44,8 @@ def main():
         tokenOwner = teamVesting[0]
         amount = int(teamVesting[1])
         vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
-        if (vestingAddress != "0x0000000000000000000000000000000000000000"):
-            raise Exception("Address already has team vesting contract")
+        # if (vestingAddress != "0x0000000000000000000000000000000000000000"):
+        #     raise Exception("Address already has team vesting contract")
         # vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
         vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
         print("TeamVesting: ", vestingAddress)
