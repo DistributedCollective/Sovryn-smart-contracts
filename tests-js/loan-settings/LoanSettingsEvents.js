@@ -97,6 +97,7 @@ contract("LoanSettingsEvents", (accounts) => {
             tx = await sovryn.setupLoanParams([Object.values(loanParams)]);
 
             await expectEvent(tx, "LoanParamsIdSetup", {owner: lender});
+			assert(tx.logs[1]["id"] != "0x0");
 
             await expectEvent(tx, "LoanParamsSetup", 
                 {
@@ -108,6 +109,7 @@ contract("LoanSettingsEvents", (accounts) => {
                     maxLoanTerm: "2419200"
                 }
             );
+			assert(tx.logs[0]["id"] != "0x0");
 		});
 
  
@@ -118,6 +120,7 @@ contract("LoanSettingsEvents", (accounts) => {
 			tx = await sovryn.disableLoanParams([loanParamsId], { "from": lender });
 
             await expectEvent(tx, "LoanParamsIdDisabled", {owner: lender});
+			assert(tx.logs[1]["id"] != "0x0");
 
             await expectEvent(tx, "LoanParamsDisabled", 
                 {
@@ -129,6 +132,7 @@ contract("LoanSettingsEvents", (accounts) => {
                     maxLoanTerm: "2419200"
                 }
             );
+			assert(tx.logs[0]["id"] != "0x0");
 		});
 	});
 });
