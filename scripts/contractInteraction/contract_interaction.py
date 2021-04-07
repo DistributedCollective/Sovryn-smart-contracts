@@ -80,7 +80,7 @@ def main():
     testV1Converter(contracts["ConverterSOV"], contracts["WRBTC"], contracts["SOV"])
     # transferSOVtoTokenSender()
     # addLiquidityV1(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
-    addLiquidityV1UsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
+    #addLiquidityV1UsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
 
 def loadConfig():
     global contracts, acct
@@ -1119,6 +1119,16 @@ def testV1Converter(converterAddress, reserve1, reserve2):
     print('newBalance: ', newAccountBalance)
     print('difference:', accountBalance - newAccountBalance)
     print('expected differnce:', bal2/100)
+
+    addLiquidityV1UsingWrapper(converterAddress, [reserve1, reserve2], [bal1/100, bal2/50])
+
+    newerAccountBalance = tokenContract2.balanceOf(acct)
+    print('difference:', newAccountBalance - newerAccountBalance)
+    print('expected differnce:', bal2/100)
+
+    balanceOnProxy = tokenContract2.balanceOf(contracts['RBTCWrapperProxy'])
+    print('balance on proxy contract after the interaction: ', balanceOnProxy)
+
 
 def addLiquidityV1(converter, tokens, amounts):
     abiFile =  open('./scripts/contractInteraction/LiquidityPoolV1Converter.json')
