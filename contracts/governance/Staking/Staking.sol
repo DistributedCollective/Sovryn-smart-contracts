@@ -3,13 +3,13 @@ pragma experimental ABIEncoderV2;
 
 import "./WeightedStaking.sol";
 import "./IStaking.sol";
-import "../Vesting/IVesting.sol";
 import "../../rsk/RSKAddrValidator.sol";
+import "../Vesting/ITeamVesting.sol";
+import "../ApprovalReceiver.sol";
 
-contract Staking is IStaking, WeightedStaking {
+contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	/**
 	 * @notice stakes the given amount for the given duration of time.
-	 * @dev only if staked balance is 0.
 	 * @param amount the number of tokens to stake
 	 * @param until timestamp indicating the date until which to stake
 	 * @param stakeFor the address to stake the tokens for or 0x0 if staking for oneself
@@ -20,27 +20,62 @@ contract Staking is IStaking, WeightedStaking {
 		uint256 until,
 		address stakeFor,
 		address delegatee
-	) public {
+	) external {
+		_stake(msg.sender, amount, until, stakeFor, delegatee, false);
+	}
+
+	/**
+	 * @notice stakes the given amount for the given duration of time.
+	 * @dev this function will be invoked from receiveApproval
+	 * @dev SOV.approveAndCall -> this.receiveApproval -> this.stakeWithApproval
+	 * @param sender the sender of SOV.approveAndCall
+	 * @param amount the number of tokens to stake
+	 * @param until timestamp indicating the date until which to stake
+	 * @param stakeFor the address to stake the tokens for or 0x0 if staking for oneself
+	 * @param delegatee the address of the delegatee or 0x0 if there is none.
+	 */
+	function stakeWithApproval(
+		address sender,
+		uint96 amount,
+		uint256 until,
+		address stakeFor,
+		address delegatee
+	) public onlyThisContract {
+		_stake(sender, amount, until, stakeFor, delegatee, false);
+	}
+
+	function _stake(
+		address sender,
+		uint96 amount,
+		uint256 until,
+		address stakeFor,
+		address delegatee,
+		bool timeAdjusted
+	) internal {
 		require(amount > 0, "Staking::stake: amount of tokens to stake needs to be bigger than 0");
 
-		until = timestampToLockDate(until);
+		if (!timeAdjusted) {
+			until = timestampToLockDate(until);
+		}
 		require(until > block.timestamp, "Staking::timestampToLockDate: staking period too short");
 
-		//stake for the msg.sender if not specified otherwise
+		//stake for the sender if not specified otherwise
 		if (stakeFor == address(0)) {
-			stakeFor = msg.sender;
+			stakeFor = sender;
 		}
 		//delegate for stakeFor if not specified otherwise
 		if (delegatee == address(0)) {
 			delegatee = stakeFor;
 		}
 		//do not stake longer than the max duration
-		uint256 latest = timestampToLockDate(block.timestamp + MAX_DURATION);
-		if (until > latest) until = latest;
+		if (!timeAdjusted) {
+			uint256 latest = timestampToLockDate(block.timestamp + MAX_DURATION);
+			if (until > latest) until = latest;
+		}
 
 		uint96 previousBalance = currentBalance(stakeFor, until);
 		//increase stake
-		_increaseStake(amount, stakeFor, until);
+		_increaseStake(sender, amount, stakeFor, until);
 
 		if (previousBalance == 0) {
 			//regular delegation if it's a first stake
@@ -48,6 +83,8 @@ contract Staking is IStaking, WeightedStaking {
 		} else {
 			address previousDelegatee = delegates[stakeFor][until];
 			if (previousDelegatee != delegatee) {
+				//update delegatee
+				delegates[stakeFor][until] = delegatee;
 				//decrease stake on previous balance for previous delegatee
 				_decreaseDelegateStake(previousDelegatee, until, previousBalance);
 				//add previousBalance to amount
@@ -94,12 +131,13 @@ contract Staking is IStaking, WeightedStaking {
 	}
 
 	function _increaseStake(
+		address sender,
 		uint96 amount,
 		address stakeFor,
 		uint256 until
 	) internal {
 		//retrieve the SOV tokens
-		bool success = SOVToken.transferFrom(msg.sender, address(this), amount);
+		bool success = SOVToken.transferFrom(sender, address(this), amount);
 		require(success);
 
 		//increase staked balance
@@ -133,18 +171,21 @@ contract Staking is IStaking, WeightedStaking {
 		//stake them until lock dates according to the vesting schedule
 		//note: because staking is only possible in periods of 2 weeks, the total duration might
 		//end up a bit shorter than specified depending on the date of staking.
-		uint256 start = block.timestamp + cliff;
-		uint256 end = block.timestamp + duration;
+		uint256 start = timestampToLockDate(block.timestamp + cliff);
+		if (duration > MAX_DURATION) {
+			duration = MAX_DURATION;
+		}
+		uint256 end = timestampToLockDate(block.timestamp + duration);
 		uint256 numIntervals = (end - start) / intervalLength + 1;
 		uint256 stakedPerInterval = amount / numIntervals;
 		//stakedPerInterval might lose some dust on rounding. add it to the first staking date
-		if (numIntervals > 1) {
-			stake(uint96(amount - stakedPerInterval * (numIntervals - 1)), start, stakeFor, delegatee);
+		if (numIntervals >= 1) {
+			_stake(msg.sender, uint96(amount - stakedPerInterval * (numIntervals - 1)), start, stakeFor, delegatee, true);
 		}
 		//stake the rest in 4 week intervals
 		for (uint256 i = start + intervalLength; i <= end; i += intervalLength) {
 			//stakes for itself, delegates to the owner
-			stake(uint96(stakedPerInterval), i, stakeFor, delegatee);
+			_stake(msg.sender, uint96(stakedPerInterval), i, stakeFor, delegatee, true);
 		}
 	}
 
@@ -187,7 +228,7 @@ contract Staking is IStaking, WeightedStaking {
 	 * */
 	function governanceWithdrawVesting(address vesting, address receiver) public onlyOwner {
 		vestingWhitelist[vesting] = true;
-		IVesting(vesting).governanceWithdrawTokens(receiver);
+		ITeamVesting(vesting).governanceWithdrawTokens(receiver);
 		vestingWhitelist[vesting] = false;
 
 		emit VestingTokensWithdrawn(vesting, receiver);
@@ -462,5 +503,15 @@ contract Staking is IStaking, WeightedStaking {
 				j++;
 			}
 		}
+	}
+
+	function _getToken() internal view returns (address) {
+		return address(SOVToken);
+	}
+
+	function _getSelectors() internal view returns (bytes4[] memory) {
+		bytes4[] memory selectors = new bytes4[](1);
+		selectors[0] = this.stakeWithApproval.selector;
+		return selectors;
 	}
 }

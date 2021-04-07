@@ -1,4 +1,4 @@
-const { assert } = require("chai");
+const { assert, expect } = require("chai");
 // const hre = require("hardhat"); access to the hardhat engine if needed
 // const { encodeParameters, etherMantissa, mineBlock, increaseTime, blockNumber, sendFallback } = require("./utilities/ethereum"); useful utilities
 

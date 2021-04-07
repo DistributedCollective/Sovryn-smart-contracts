@@ -1,0 +1,27 @@
+ALL
+#one-time setup:
+brownie accounts new rskdeployer
+
+
+TESTNET
+#one-time setting:
+brownie networks add rsk testnet host=https://testnet.sovryn.app/rpc chainid=31
+
+#running
+brownie run scripts/contractInteraction/contractInteraction.py --network testnet
+
+
+MAINNET
+#one-time setting:
+brownie networks add rsk rsk-mainnet host=https://mainnet.sovryn.app/rpc chainid=30
+
+#running
+brownie run scripts/contractInteraction/contractInteraction.py --network rsk-mainnet
+
+#adding deployment example:
+#add alike function
+def deployMultisig(owners, requiredConf):
+     multisig = acct.deploy(MultiSigWallet, owners, requiredConf)
+     print("multisig:", multisig)
+
+#and then call it in the main function

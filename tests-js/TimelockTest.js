@@ -1,9 +1,10 @@
 const { expect } = require("chai");
+const BigNumber = require("bignumber.js");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
 const Timelock = artifacts.require("TimelockHarness");
 
-const { encodeParameters, etherUnsigned, setTime, keccak256 } = require("./Utils/Ethereum");
+const { encodeParameters, etherUnsigned, setTime, keccak256, setNextBlockTimestamp, increaseTime } = require("./Utils/Ethereum");
 
 const oneWeekInSeconds = etherUnsigned(7 * 24 * 60 * 60);
 const zero = etherUnsigned(0);
@@ -27,8 +28,7 @@ contract("Timelock", (accounts) => {
 		[root, notAdmin, newAdmin] = accounts;
 		timelock = await Timelock.new(root, delay);
 
-		blockTimestamp = etherUnsigned(100);
-		await setTime(blockTimestamp.toNumber());
+		blockTimestamp = new BigNumber((await ethers.provider.getBlock("latest")).timestamp);
 		target = timelock.address;
 		eta = blockTimestamp.plus(delay);
 
@@ -96,9 +96,17 @@ contract("Timelock", (accounts) => {
 		beforeEach(async () => {
 			const configuredDelay = await timelock.delay.call();
 			delay = etherUnsigned(configuredDelay);
-			blockTimestamp = etherUnsigned(100);
-			await setTime(blockTimestamp.toNumber());
-			eta = blockTimestamp.plus(delay);
+
+			blockTimestamp = new BigNumber((await ethers.provider.getBlock("latest")).timestamp);
+			setNextBlockTimestamp(blockTimestamp.plus(100).toNumber());
+			eta = blockTimestamp.plus(delay).plus(100);
+
+			queuedTxHash = keccak256(
+				encodeParameters(
+					["address", "uint256", "string", "bytes", "uint256"],
+					[target, value.toString(), signature, data, eta.toString()]
+				)
+			);
 		});
 
 		it("requires admin to be msg.sender", async () => {
@@ -145,6 +153,17 @@ contract("Timelock", (accounts) => {
 
 	describe("cancelTransaction", () => {
 		beforeEach(async () => {
+			const configuredDelay = await timelock.delay.call();
+			delay = etherUnsigned(configuredDelay);
+			blockTimestamp = new BigNumber((await ethers.provider.getBlock("latest")).timestamp);
+			setNextBlockTimestamp(blockTimestamp.plus(100).toNumber());
+			eta = blockTimestamp.plus(delay).plus(100);
+			queuedTxHash = keccak256(
+				encodeParameters(
+					["address", "uint256", "string", "bytes", "uint256"],
+					[target, value.toString(), signature, data, eta.toString()]
+				)
+			);
 			await timelock.queueTransaction(target, value, signature, data, eta, { from: root });
 		});
 
@@ -185,9 +204,9 @@ contract("Timelock", (accounts) => {
 		beforeEach(async () => {
 			const configuredDelay = await timelock.delay.call();
 			delay = etherUnsigned(configuredDelay);
-			blockTimestamp = etherUnsigned(100);
-			await setTime(blockTimestamp.toNumber());
-			eta = blockTimestamp.plus(delay);
+			blockTimestamp = new BigNumber((await ethers.provider.getBlock("latest")).timestamp);
+			setNextBlockTimestamp(blockTimestamp.plus(100).toNumber());
+			eta = blockTimestamp.plus(delay).plus(100);
 		});
 
 		it("can queue and cancel an empty signature and data", async () => {
@@ -206,14 +225,23 @@ contract("Timelock", (accounts) => {
 		beforeEach(async () => {
 			const configuredDelay = await timelock.delay.call();
 			delay = etherUnsigned(configuredDelay);
-			blockTimestamp = etherUnsigned(100);
-			await setTime(blockTimestamp.toNumber());
-			eta = blockTimestamp.plus(delay);
+			blockTimestamp = new BigNumber((await ethers.provider.getBlock("latest")).timestamp);
+
+			setNextBlockTimestamp(blockTimestamp.plus(100).toNumber());
+			eta = blockTimestamp.plus(delay).plus(100);
 
 			// Queue transaction that will succeed
 			await timelock.queueTransaction(target, value, signature, data, eta, {
 				from: root,
 			});
+
+			blockTimestamp = new BigNumber((await ethers.provider.getBlock("latest")).timestamp);
+			queuedTxHash = keccak256(
+				encodeParameters(
+					["address", "uint256", "string", "bytes", "uint256"],
+					[target, value.toString(), signature, data, eta.toString()]
+				)
+			);
 		});
 
 		it("requires admin to be msg.sender", async () => {
@@ -239,7 +267,7 @@ contract("Timelock", (accounts) => {
 		});
 
 		it("requires timestamp to be less than eta plus gracePeriod", async () => {
-			await setTime(blockTimestamp.plus(delay).plus(gracePeriod).plus(1).toNumber());
+			await setNextBlockTimestamp(blockTimestamp.plus(delay).plus(gracePeriod).plus(1).toNumber());
 			await expectRevert(
 				timelock.executeTransaction(target, value, signature, data, eta, { from: root }),
 				"revert Timelock::executeTransaction: Transaction is stale."
@@ -247,13 +275,16 @@ contract("Timelock", (accounts) => {
 		});
 
 		it("requires target.call transaction to succeed", async () => {
-			await setTime(blockTimestamp.toNumber());
-			// Queue transaction that will revert when executed
+			setNextBlockTimestamp(blockTimestamp.plus(100).toNumber());
+			eta = blockTimestamp.plus(delay).plus(100);
 			await timelock.queueTransaction(target, value, signature, revertData, eta, {
 				from: root,
 			});
 
-			await setTime(eta.toNumber());
+			//await setTime(eta.toNumber());
+			//blockTimestamp = new BigNumber((await ethers.provider.getBlock("latest")).timestamp);
+			setNextBlockTimestamp(eta.toNumber());
+			//eta = blockTimestamp.plus(delay).plus(100);
 			await expectRevert(
 				timelock.executeTransaction(target, value, signature, revertData, eta, { from: root }),
 				"revert Timelock::executeTransaction: Timelock::setDelay: Delay must exceed minimum delay."
@@ -268,7 +299,9 @@ contract("Timelock", (accounts) => {
 			expect(queueTransactionsHashValueBefore).to.be.equal(true);
 
 			const newBlockTimestamp = blockTimestamp.plus(delay).plus(1);
-			await setTime(newBlockTimestamp.toNumber());
+
+			//await setTime(newBlockTimestamp.toNumber());
+			await time.increaseTo(newBlockTimestamp.toNumber());
 
 			const result = await timelock.executeTransaction(target, value, signature, data, eta, {
 				from: root,
@@ -298,13 +331,14 @@ contract("Timelock", (accounts) => {
 	describe("executeTransaction (setPendingAdmin)", () => {
 		beforeEach(async () => {
 			const configuredDelay = await timelock.delay.call();
-
 			delay = etherUnsigned(configuredDelay);
 			signature = "setPendingAdmin(address)";
 			data = encodeParameters(["address"], [newAdmin]);
-			blockTimestamp = etherUnsigned(100);
-			await setTime(blockTimestamp.toNumber());
-			eta = blockTimestamp.plus(delay);
+			//blockTimestamp = etherUnsigned(100);
+			//await setTime(blockTimestamp.toNumber());
+			blockTimestamp = new BigNumber((await ethers.provider.getBlock("latest")).timestamp);
+			setNextBlockTimestamp(blockTimestamp.plus(100).toNumber());
+			eta = blockTimestamp.plus(delay).plus(100);
 
 			queuedTxHash = keccak256(
 				encodeParameters(
@@ -316,6 +350,8 @@ contract("Timelock", (accounts) => {
 			await timelock.queueTransaction(target, value, signature, data, eta, {
 				from: root,
 			});
+
+			blockTimestamp = new BigNumber((await ethers.provider.getBlock("latest")).timestamp);
 		});
 
 		it("requires admin to be msg.sender", async () => {
@@ -341,7 +377,13 @@ contract("Timelock", (accounts) => {
 		});
 
 		it("requires timestamp to be less than eta plus gracePeriod", async () => {
-			await setTime(blockTimestamp.plus(delay).plus(gracePeriod).plus(1).toNumber());
+			//await setTime(blockTimestamp.plus(delay).plus(gracePeriod).plus(1).toNumber());
+			//await mineBlock();
+			//blockTimestamp = new BigNumber((await ethers.provider.getBlock("latest")).timestamp);
+			//blockTimestamp = new BigNumber(await time.latest());
+			//eta = blockTimestamp.plus(delay);
+			await setNextBlockTimestamp(blockTimestamp.plus(delay).plus(gracePeriod).plus(1).toNumber());
+
 			await expectRevert(
 				timelock.executeTransaction(target, value, signature, data, eta, { from: root }),
 				"revert Timelock::executeTransaction: Transaction is stale."
@@ -356,7 +398,13 @@ contract("Timelock", (accounts) => {
 			expect(queueTransactionsHashValueBefore).to.be.equal(true);
 
 			const newBlockTimestamp = blockTimestamp.plus(delay).plus(1);
-			await setTime(newBlockTimestamp.toNumber());
+			//await setTime(newBlockTimestamp.toNumber());
+
+			//await time.advanceBlock();
+			//blockTimestamp = new BigNumber(await time.latest());
+			//eta = blockTimestamp.plus(delay);
+			//await setNextBlockTimestamp(blockTimestamp.plus(delay).plus(gracePeriod).plus(1).toNumber());
+			await time.increaseTo(newBlockTimestamp.toNumber());
 
 			const result = await timelock.executeTransaction(target, value, signature, data, eta, {
 				from: root,

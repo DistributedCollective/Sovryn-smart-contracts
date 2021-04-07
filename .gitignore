@@ -28,3 +28,7 @@ artifacts
 cache
 .idea/
 workspace.code-workspace
+.env
+node_modules
+artifacts/
+cache/

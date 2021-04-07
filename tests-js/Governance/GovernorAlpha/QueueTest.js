@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
-const { etherMantissa, encodeParameters, setTime, mineBlock } = require("../../Utils/Ethereum");
+const { etherMantissa, encodeParameters, mineBlock, increaseTime } = require("../../Utils/Ethereum");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
@@ -57,12 +57,11 @@ contract("GovernorAlpha#queue/1", (accounts) => {
 			await mineBlock();
 
 			const txVote1 = await gov.castVote(proposalId1, true, { from: a1 });
-			await advanceBlocks(30);
-
+			await advanceBlocks(10);
 			await expectRevert(gov.queue(proposalId1), "revert GovernorAlpha::_queueOrRevert: proposal action already queued at eta");
 		});
 
-		it("reverts on queueing overlapping actions in different proposals, works if waiting", async () => {
+		it("reverts on queueing overlapping actions in different proposals, works if waiting; using Ganache", async () => {
 			const timelock = await Timelock.new(root, DELAY);
 			const token = await TestToken.new("TestToken", "TST", 18, etherMantissa(10000000000000));
 
@@ -94,12 +93,19 @@ contract("GovernorAlpha#queue/1", (accounts) => {
 			const txVote1 = await gov.castVote(proposalId1, true, { from: a1 });
 			const txVote2 = await gov.castVote(proposalId2, true, { from: a2 });
 			await advanceBlocks(30);
-			await setTime(100);
+			//await setTime(100);
 
-			const txQueue1 = await gov.queue(proposalId1);
-			await expectRevert(gov.queue(proposalId2), "revert GovernorAlpha::_queueOrRevert: proposal action already queued at eta");
+			await gov
+				.queue(proposalId1)
+				.then(
+					await expectRevert(
+						gov.queue(proposalId2),
+						"revert GovernorAlpha::_queueOrRevert: proposal action already queued at eta"
+					)
+				);
 
-			await setTime(101);
+			await increaseTime(60);
+			//await setTime(101);
 			const txQueue2 = await gov.queue(proposalId2);
 		});
 	});

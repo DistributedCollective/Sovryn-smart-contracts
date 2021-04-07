@@ -7,6 +7,7 @@ pragma solidity >=0.5.0 <0.6.0;
 pragma experimental ABIEncoderV2;
 //TODO: stored in ./interfaces only while brownie isn't removed
 //TODO: move to contracts/interfaces after with brownie is removed
+
 import "../contracts/core/State.sol";
 import "../contracts/events/ProtocolSettingsEvents.sol";
 import "../contracts/events/LoanSettingsEvents.sol";

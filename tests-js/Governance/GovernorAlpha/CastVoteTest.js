@@ -1,9 +1,21 @@
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
-const { address, etherMantissa, etherUnsigned, encodeParameters, mineBlock, unlockedAccount, setTime } = require("../../Utils/Ethereum");
+const {
+	address,
+	etherMantissa,
+	etherUnsigned,
+	encodeParameters,
+	mineBlock,
+	unlockedAccount,
+	setTime,
+	setNextBlockTimestamp,
+} = require("../../Utils/Ethereum");
 const EIP712 = require("../../Utils/EIP712");
 const BigNumber = require("bignumber.js");
+
+const { getAccountsPrivateKeys, getAccountsPrivateKeysBuffer } = require("../../Utils/hardhat_utils");
+const { bufferToHex, privateToAddress, toChecksumAddress } = require("ethereumjs-util");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const StakingLogic = artifacts.require("Staking");
@@ -25,12 +37,17 @@ async function enfranchise(token, comp, actor, amount) {
 
 contract("governorAlpha#castVote/2", (accounts) => {
 	let token, staking, gov, root, a1;
+	let pkbA1, currentChainId;
 	let targets, values, signatures, callDatas, proposalId;
 
 	before(async () => {
 		[root, a1, ...accounts] = accounts;
-		let blockTimestamp = etherUnsigned(100);
-		await setTime(blockTimestamp.toNumber());
+		[pkbRoot, pkbA1, ...pkbAccounts] = getAccountsPrivateKeysBuffer();
+		currentChainId = (await ethers.provider.getNetwork()).chainId;
+		//let blockTimestamp = etherUnsigned(100);
+		//await setTime(blockTimestamp.toNumber());
+		block = await ethers.provider.getBlock("latest");
+		setNextBlockTimestamp(block.timestamp + 100);
 		token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
 
 		let stakingLogic = await StakingLogic.new(token.address);
@@ -113,7 +130,7 @@ contract("governorAlpha#castVote/2", (accounts) => {
 		describe("castVoteBySig", () => {
 			const Domain = (gov) => ({
 				name: "Sovryn Governor Alpha",
-				chainId: 1, // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
+				chainId: currentChainId, //31337 - Hardhat, //1 - Mainnet, // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
 				verifyingContract: gov.address,
 			});
 			const Types = {
@@ -143,7 +160,8 @@ contract("governorAlpha#castVote/2", (accounts) => {
 						support: true,
 					},
 					Types,
-					unlockedAccount(a1).secretKey
+					pkbA1
+					//unlockedAccount(a1).secretKey - this doesn't work with Hardhat
 				);
 
 				let beforeFors = (await gov.proposals.call(proposalId)).forVotes;
@@ -211,7 +229,7 @@ contract("governorAlpha#castVote/2", (accounts) => {
 			expect(proposal.forVotes.toString()).to.be.equal(expectedVotes.toString());
 			let receipt = await gov.getReceipt.call(proposalId, actor);
 			expect(receipt.votes.toString()).to.be.equal(expectedVotes.toString());
-			console.log("\n" + proposal.forVotes.toString());
+			// console.log("\n" + proposal.forVotes.toString());
 		});
 	});
 });

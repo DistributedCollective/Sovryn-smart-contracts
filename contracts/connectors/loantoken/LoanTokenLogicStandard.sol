@@ -136,6 +136,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		require(collateralTokenSent != 0 || loanId != 0, "8");
 		require(collateralTokenAddress != address(0) || msg.value != 0 || loanId != 0, "9");
 
+		// ensures authorized use of existing loan
+        require(loanId == 0 || msg.sender == borrower, "unauthorized use of existing loan");
+
 		if (collateralTokenAddress == address(0)) {
 			collateralTokenAddress = wrbtcTokenAddress;
 		}
@@ -201,6 +204,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		}
 
 		require(collateralTokenAddress != loanTokenAddress, "11");
+
+		// ensures authorized use of existing loan
+        require(loanId == 0 || msg.sender == trader, "unauthorized use of existing loan");
 
 		//temporary: limit transaction size
 		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);

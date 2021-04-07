@@ -3,7 +3,7 @@ const { expectRevert, expectEvent, constants, BN, balance, time } = require("@op
 
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
-const TestToken = artifacts.require("TestToken");
+const SOV = artifacts.require("SOV");
 const RSOV = artifacts.require("RSOV");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
@@ -19,9 +19,6 @@ const DECIMALS = 18;
 const WEEK = new BN(7 * 24 * 60 * 60);
 
 contract("RSOV:", (accounts) => {
-	const name = "Test tokenSOV";
-	const symbol = "TST";
-
 	let root, account1, account2, account3;
 	let tokenSOV, tokenRSOV, staking;
 
@@ -30,7 +27,7 @@ contract("RSOV:", (accounts) => {
 	});
 
 	beforeEach(async () => {
-		tokenSOV = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
+		tokenSOV = await SOV.new(TOTAL_SUPPLY);
 
 		let stakingLogic = await StakingLogic.new(tokenSOV.address);
 		staking = await StakingProxy.new(tokenSOV.address);
@@ -84,7 +81,51 @@ contract("RSOV:", (accounts) => {
 		});
 
 		it("fails if transfer is not approved", async () => {
-			await expectRevert(tokenRSOV.mint(100), "invalid transfer");
+			await expectRevert(tokenRSOV.mint(100), "ERC20: transfer amount exceeds allowance");
+		});
+	});
+
+	describe("mintWithApproval:", () => {
+		let amount = new BN(5000);
+
+		it("should be able to mint RSOV tokens", async () => {
+			await tokenSOV.transfer(account1, amount);
+
+			let contract = new web3.eth.Contract(tokenRSOV.abi, tokenRSOV.address);
+			let sender = account1;
+			let data = contract.methods.mintWithApproval(sender, amount).encodeABI();
+			await tokenSOV.approveAndCall(tokenRSOV.address, amount, data, { from: sender });
+
+			expect(await tokenSOV.balanceOf.call(account1)).to.be.bignumber.equal(ZERO);
+			expect(await tokenRSOV.balanceOf.call(account1)).to.be.bignumber.equal(amount);
+			expect(await tokenSOV.balanceOf.call(tokenRSOV.address)).to.be.bignumber.equal(amount);
+		});
+
+		it("fails if invoked directly", async () => {
+			await expectRevert(tokenRSOV.mintWithApproval(account1, new BN(5000)), "unauthorized");
+		});
+
+		it("fails if pass wrong method in data", async () => {
+			let contract = new web3.eth.Contract(tokenRSOV.abi, tokenRSOV.address);
+			let data = contract.methods.mint(amount).encodeABI();
+
+			await expectRevert(tokenSOV.approveAndCall(tokenRSOV.address, amount, data, { from: account1 }), "method is not allowed");
+		});
+
+		it("fails if pass wrong method params in data", async () => {
+			let contract = new web3.eth.Contract(tokenRSOV.abi, tokenRSOV.address);
+			let data = contract.methods.mintWithApproval(account1, new BN(0)).encodeABI();
+
+			await expectRevert(tokenSOV.approveAndCall(tokenRSOV.address, amount, data, { from: account1 }), "amount mismatch");
+		});
+	});
+
+	describe("receiveApproval:", () => {
+		it("fails if invoked directly", async () => {
+			let amount = new BN(5000);
+			let contract = new web3.eth.Contract(tokenRSOV.abi, tokenRSOV.address);
+			let data = contract.methods.mintWithApproval(account1, amount).encodeABI();
+			await expectRevert(tokenRSOV.receiveApproval(account1, amount, tokenSOV.address, data), "unauthorized");
 		});
 	});
 

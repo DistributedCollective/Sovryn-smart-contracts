@@ -29,7 +29,7 @@ process:
 1. send the margin trade tx with the passed parameter (NOTE: the token transfer needs to be approved already)
 2. TODO verify the trade event and balances are correct
 '''     
-def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanTokenWRBTC, SUSD, WRBTC, chain, FeesEvents, SOV):
+def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanTokenWRBTC, SUSD, WRBTC, chain, FeesEvents, SOV, priceFeeds):
     loanSize = 1e18
     # make sure there are sufficient funds on the contract
     loanTokenWRBTC.mintWithBTC(accounts[0], {'value':loanSize*6})
@@ -45,7 +45,7 @@ def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanTokenWRB
     leverageAmount = 5e18
     value = 0
     margin_trading_sending_collateral_tokens(accounts, sovryn, loanTokenWRBTC, WRBTC, SUSD, loanSize,
-                                             collateralTokenSent, leverageAmount, value)
+                                             collateralTokenSent, leverageAmount, value, priceFeeds)
     margin_trading_sending_collateral_tokens_sov_reward_payment(accounts[2], loanTokenWRBTC, SUSD, collateralTokenSent,
                                                                 leverageAmount, value, chain, FeesEvents, SOV)
 

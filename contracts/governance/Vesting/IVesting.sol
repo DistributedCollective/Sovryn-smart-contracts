@@ -6,6 +6,4 @@ interface IVesting {
 	function endDate() external returns (uint256);
 
 	function stakeTokens(uint256 amount) external;
-
-	function governanceWithdrawTokens(address receiver) external;
 }
