@@ -40,12 +40,14 @@ def main():
     #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [21e18])
     #readTransactionLimits(contracts['iDOC'],  contracts['DoC'], contracts['WRBTC'])
 
+    '''
+    setupLoanParamsForCollaterals(contracts['iBPro'], [contracts['SOV']])
+    setupLoanParamsForCollaterals(contracts['iDOC'], [contracts['SOV']])
+    setupLoanParamsForCollaterals(contracts['iUSDT'], [contracts['SOV']])
+    setupLoanParamsForCollaterals(contracts['iRBTC'], [contracts['SOV']])
+    '''
 
-    #setupLoanParamsForCollaterals(contracts['iBPro'], [contracts['DoC'], contracts['USDT']])
-    #setupLoanParamsForCollaterals(contracts['iDOC'], [contracts['BPro'], contracts['USDT']])
-    #setupLoanParamsForCollaterals(contracts['iUSDT'], [contracts['DoC'], contracts['BPro']])
-    #setupLoanParamsForCollaterals(contracts['iRBTC'], [contracts['BPro'], contracts['USDT']])
-
+    #setSupportedToken(contracts['SOV'])
 
     #createProposalSIP008()
 
@@ -71,7 +73,11 @@ def main():
 
     # createProposalSIP0015()
 
-    transferSOVtoTokenSender()
+    #transferSOVtoTokenSender()
+    #readBalanceFromAMM()
+    #checkRates()
+
+    testV1Converter(contracts["ConverterSOV"], contracts["WRBTC"], contracts["SOV"])
 
 def loadConfig():
     global contracts, acct
@@ -495,8 +501,18 @@ def setupLoanParamsForCollaterals(loanTokenAddress, collateralAddresses):
         torqueParams.append(torqueData)
 
     #configure the token settings, and set the setting contract address at the loan token logic contract
-    tx = loanToken.setupLoanParams(marginParams, False)
-    tx = loanToken.setupLoanParams(torqueParams, True)
+    dataM = loanToken.setupLoanParams.encode_input(marginParams, False)
+    dataT = loanToken.setupLoanParams.encode_input(torqueParams, True)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+
+    tx = multisig.submitTransaction(loanToken.address,0,dataM)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId);
+
+    tx = multisig.submitTransaction(loanToken.address,0,dataT)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId);
 
 
 def updatePriceFeedToRSKOracle():
@@ -1049,3 +1065,54 @@ def transferSOVtoTokenSender():
     tx = multisig.submitTransaction(SOVtoken.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
+
+def setSupportedToken(tokenAddress):
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+
+    data = sovryn.setSupportedTokens.encode_input([tokenAddress],[True]) 
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def readBalanceFromAMM():
+
+    tokenContract = Contract.from_abi("Token", address=contracts['USDT'], abi=TestToken.abi, owner=acct)
+    bal = tokenContract.balanceOf(contracts['ConverterUSDT'])
+    print("supply of USDT on swap", bal/1e18)
+
+    abiFile =  open('./scripts/contractInteraction/LiquidityPoolV2Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV2Converter", address=contracts['ConverterUSDT'], abi=abi, owner=acct)
+
+    reserve = converter.reserves(contracts['USDT'])
+
+    print("registered upply of USDT on swap", reserve[0]/1e18)
+    print(reserve)
+
+def testV1Converter(converterAddress, reserve1, reserve2):
+    abiFile =  open('./scripts/contractInteraction/LiquidityPoolV1Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV1Converter", address=converterAddress, abi=abi, owner=acct)
+
+    print(converter.reserveRatio())
+    print(converter.reserves(reserve1))
+    print(converter.reserves(reserve2))
+    bal1 = converter.reserves(reserve1)[0]
+    bal2 = converter.reserves(reserve2)[0]
+
+    tokenContract1 = Contract.from_abi("Token", address=reserve1, abi=TestToken.abi, owner=acct)
+    tokenContract1.approve(converter.address, bal1/100)
+
+    tokenContract2 = Contract.from_abi("Token", address=reserve2, abi=TestToken.abi, owner=acct)
+    tokenContract2.approve(converter.address, bal2/50)
+    accountBalance = tokenContract2.balanceOf(acct)   
+
+    converter.addLiquidity([reserve1, reserve2],[bal1/100, bal2/50],1)
+
+    newAccountBalance = tokenContract2.balanceOf(acct)
+
+    print('oldBalance: ', accountBalance)
+    print('newBalance: ', newAccountBalance)
+    print('difference:', accountBalance - newAccountBalance)
+    print('expected differnce:', bal2/100)
