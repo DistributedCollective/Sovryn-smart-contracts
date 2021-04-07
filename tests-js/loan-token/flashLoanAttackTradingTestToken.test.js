@@ -57,7 +57,7 @@ contract("flashLoanAttackTradingTestToken", (accounts) => {
 		/*
 		  tests margin trading sending loan tokens with flash loan fron 3rd party.
 		*/
-		it.only("Test margin trading sending loan tokens", async () => {
+		it("Test margin trading sending loan tokens", async () => {
 			await fl_attack_margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, false);
 		});
 	});
