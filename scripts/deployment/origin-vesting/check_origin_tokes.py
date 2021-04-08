@@ -4,6 +4,7 @@ import time
 import json
 import csv
 import math
+from datetime import date
 
 def main():
     thisNetwork = network.show_active()
@@ -48,7 +49,13 @@ def main():
             vestedTokens = staking.balanceOf(vestingAddress)
             totalVested += vestedTokens
 
-            print(user + "," + str(balance / 10**18) + "," + str(stakedTokens / 10**18) + "," + str(vestedTokens / 10**18))
+            data = user + "," + str(balance / 10**18) + "," + str(stakedTokens / 10**18) + "," + str(vestedTokens / 10**18)
+            if (stakedTokens > 0):
+                stakes = staking.getStakes(user)
+                ts = stakes[0][0]
+                # data += "," + time.strftime("%Y-%m-%d %H:%M:%S", ts) +  "," + str(stakes[0])
+                data += "," + str(date.fromtimestamp(ts)) +  "," + str(stakes[0])
+            print(data)
 
     print("totalBalance: " + str(totalBalance / 10**18))
     print("totalStaked: " + str(totalStaked / 10**18))
