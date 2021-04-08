@@ -40,12 +40,14 @@ def main():
     #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [21e18])
     #readTransactionLimits(contracts['iDOC'],  contracts['DoC'], contracts['WRBTC'])
 
+    '''
+    setupLoanParamsForCollaterals(contracts['iBPro'], [contracts['SOV']])
+    setupLoanParamsForCollaterals(contracts['iDOC'], [contracts['SOV']])
+    setupLoanParamsForCollaterals(contracts['iUSDT'], [contracts['SOV']])
+    setupLoanParamsForCollaterals(contracts['iRBTC'], [contracts['SOV']])
+    '''
 
-    #setupLoanParamsForCollaterals(contracts['iBPro'], [contracts['DoC'], contracts['USDT']])
-    #setupLoanParamsForCollaterals(contracts['iDOC'], [contracts['BPro'], contracts['USDT']])
-    #setupLoanParamsForCollaterals(contracts['iUSDT'], [contracts['DoC'], contracts['BPro']])
-    #setupLoanParamsForCollaterals(contracts['iRBTC'], [contracts['BPro'], contracts['USDT']])
-
+    #setSupportedToken(contracts['SOV'])
 
     #createProposalSIP008()
 
@@ -59,11 +61,26 @@ def main():
     # transferSOVtoVestingRegistry()
     # stakeTokens2()
 
-    triggerEmergencyStop(contracts['iUSDT'], False)
-    triggerEmergencyStop(contracts['iBPro'], False)
-    triggerEmergencyStop(contracts['iDOC'], False)
-    triggerEmergencyStop(contracts['iRBTC'], False)
+    # triggerEmergencyStop(contracts['iUSDT'], False)
+    # triggerEmergencyStop(contracts['iBPro'], False)
+    # triggerEmergencyStop(contracts['iDOC'], False)
+    # triggerEmergencyStop(contracts['iRBTC'], False)
 
+    # createProposalSIP0014()
+
+    # addInvestorToBlacklist()
+    # stake80KTokens()
+
+    # createProposalSIP0015()
+
+    #transferSOVtoTokenSender()
+    #readBalanceFromAMM()
+    #checkRates()
+
+    testV1Converter(contracts["ConverterSOV"], contracts["WRBTC"], contracts["SOV"])
+    # transferSOVtoTokenSender()
+    # addLiquidityV1(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
+    #addLiquidityV1UsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
 
 def loadConfig():
     global contracts, acct
@@ -487,8 +504,18 @@ def setupLoanParamsForCollaterals(loanTokenAddress, collateralAddresses):
         torqueParams.append(torqueData)
 
     #configure the token settings, and set the setting contract address at the loan token logic contract
-    tx = loanToken.setupLoanParams(marginParams, False)
-    tx = loanToken.setupLoanParams(torqueParams, True)
+    dataM = loanToken.setupLoanParams.encode_input(marginParams, False)
+    dataT = loanToken.setupLoanParams.encode_input(torqueParams, True)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+
+    tx = multisig.submitTransaction(loanToken.address,0,dataM)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId);
+
+    tx = multisig.submitTransaction(loanToken.address,0,dataT)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId);
 
 
 def updatePriceFeedToRSKOracle():
@@ -940,3 +967,191 @@ def determineFundsAtRisk():
     print('total height of affected loans: ', sum/1e18)
     print('total potential borrowed: ', possible/1e18)
     print('could have been stolen: ', (possible - sum)/1e18)
+
+def createProposalSIP0014():
+    # 1,500,000 SOV
+    amount = 1500000 * 10**18
+    governorVault = Contract.from_abi("GovernorVault", address=contracts['GovernorVaultOwner'], abi=GovernorVault.abi, owner=acct)
+
+    # action
+    target = contracts['GovernorVaultOwner']
+    signature = "transferTokens(address,address,uint256)"
+    data = governorVault.transferTokens.encode_input(contracts['multisig'], contracts['SOV'], amount)
+    data = "0x" + data[10:]
+    description = "SIP-0014: Strategic Investment, Details: https://github.com/DistributedCollective/SIPS/blob/7b90ebcb4e135b931210b3cea22698084de9d641/SIP-0014.md, sha256: 780d4db45ae09e30516ad11b0332f68a101775ed418f68f1aaf1af93e37e519f"
+
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
+
+    print('Governor Address:    '+governor.address)
+    print('Target:              '+str([target]))
+    print('Values:              '+str([0]))
+    print('Signature:           '+str([signature]))
+    print('Data:                '+str([data]))
+    print('Description:         '+str(description))
+    print('======================================')
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
+
+def addInvestorToBlacklist():
+    # we need to process CSOV->SOV exchnage manually,
+    # investor address should be added to blacklist in VestingRegistry
+    tokenOwner = "0x75F7d09110631FE60a804642003bE00C8Bcd26b7"
+
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    data = vestingRegistry.setBlacklistFlag.encode_input(tokenOwner, True)
+    print(data)
+
+    # multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    # tx = multisig.submitTransaction(vestingRegistry.address,0,data)
+    # txId = tx.events["Submission"]["transactionId"]
+    # print(txId)
+
+def stake80KTokens():
+    # another address of the investor (addInvestorToBlacklist)
+    tokenOwner = "0x21e1AaCb6aadF9c6F28896329EF9423aE5c67416"
+    # 80K SOV
+    amount = 80000 * 10**18
+
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    vestingAddress = vestingRegistry.getVesting(tokenOwner)
+    print("vestingAddress: " + vestingAddress)
+    data = vestingRegistry.stakeTokens.encode_input(vestingAddress, amount)
+    print(data)
+
+    # multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    # tx = multisig.submitTransaction(vestingRegistry.address,0,data)
+    # txId = tx.events["Submission"]["transactionId"]
+    # print(txId)
+
+def createProposalSIP0015():
+
+    # action
+    target = contracts['SOV']
+    signature = "symbol()"
+    data = "0x"
+    description = "SIP-0015: Sovryn Treasury Management, Details: https://github.com/DistributedCollective/SIPS/blob/977d1ebf73f954071ffd8a787c2660c41e069e0f/SIP-0015.md, sha256: c5cdd1557f9637816c2fb2ae4ac847ffba1eacd4599488bcda793b7945798ddf"
+
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorAdmin'], abi=GovernorAlpha.abi, owner=acct)
+
+    print('Governor Address:    '+governor.address)
+    print('Target:              '+str([target]))
+    print('Values:              '+str([0]))
+    print('Signature:           '+str([signature]))
+    print('Data:                '+str([data]))
+    print('Description:         '+str(description))
+    print('======================================')
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
+
+def transferSOVtoTokenSender():
+    # 6733.675 SOV
+    amount = 6733675 * 10**15
+
+    tokenSenderAddress = contracts['TokenSender']
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    data = SOVtoken.transfer.encode_input(tokenSenderAddress, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(SOVtoken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def setSupportedToken(tokenAddress):
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+
+    data = sovryn.setSupportedTokens.encode_input([tokenAddress],[True]) 
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def readBalanceFromAMM():
+
+    tokenContract = Contract.from_abi("Token", address=contracts['USDT'], abi=TestToken.abi, owner=acct)
+    bal = tokenContract.balanceOf(contracts['ConverterUSDT'])
+    print("supply of USDT on swap", bal/1e18)
+
+    abiFile =  open('./scripts/contractInteraction/LiquidityPoolV2Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV2Converter", address=contracts['ConverterUSDT'], abi=abi, owner=acct)
+
+    reserve = converter.reserves(contracts['USDT'])
+
+    print("registered upply of USDT on swap", reserve[0]/1e18)
+    print(reserve)
+
+def testV1Converter(converterAddress, reserve1, reserve2):
+    abiFile =  open('./scripts/contractInteraction/LiquidityPoolV1Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV1Converter", address=converterAddress, abi=abi, owner=acct)
+
+    print(converter.reserveRatio())
+    print(converter.reserves(reserve1))
+    print(converter.reserves(reserve2))
+    bal1 = converter.reserves(reserve1)[0]
+    bal2 = converter.reserves(reserve2)[0]
+
+    tokenContract1 = Contract.from_abi("Token", address=reserve1, abi=TestToken.abi, owner=acct)
+    tokenContract1.approve(converter.address, bal1/100)
+
+    tokenContract2 = Contract.from_abi("Token", address=reserve2, abi=TestToken.abi, owner=acct)
+    tokenContract2.approve(converter.address, bal2/50)
+    accountBalance = tokenContract2.balanceOf(acct)   
+
+    converter.addLiquidity([reserve1, reserve2],[bal1/100, bal2/50],1)
+
+    newAccountBalance = tokenContract2.balanceOf(acct)
+
+    print('oldBalance: ', accountBalance)
+    print('newBalance: ', newAccountBalance)
+    print('difference:', accountBalance - newAccountBalance)
+    print('expected differnce:', bal2/100)
+
+    addLiquidityV1UsingWrapper(converterAddress, [reserve1, reserve2], [bal1/100, bal2/50])
+
+    newerAccountBalance = tokenContract2.balanceOf(acct)
+    print('difference:', newAccountBalance - newerAccountBalance)
+    print('expected differnce:', bal2/100)
+
+    balanceOnProxy = tokenContract2.balanceOf(contracts['RBTCWrapperProxy'])
+    print('balance on proxy contract after the interaction: ', balanceOnProxy)
+
+
+def addLiquidityV1(converter, tokens, amounts):
+    abiFile =  open('./scripts/contractInteraction/LiquidityPoolV1Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV1Converter", address=converter, abi=abi, owner=acct)
+
+    print("is active? ", converter.isActive())
+
+    token = Contract.from_abi("ERC20", address=tokens[0], abi=ERC20.abi, owner=acct)
+    token.approve(converter.address, amounts[0])
+    token = Contract.from_abi("ERC20", address=tokens[1], abi=ERC20.abi, owner=acct)
+    token.approve(converter.address, amounts[1])
+
+    tx = converter.addLiquidity(tokens, amounts, 1)
+    print(tx)
+
+def addLiquidityV1UsingWrapper(converter, tokens, amounts):
+    abiFile =  open('./scripts/contractInteraction/RBTCWrapperProxy.json')
+    abi = json.load(abiFile)
+    wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=contracts['RBTCWrapperProxy'], abi=abi, owner=acct)
+
+    token = Contract.from_abi("ERC20", address=tokens[1], abi=ERC20.abi, owner=acct)
+    token.approve(wrapperProxy.address, amounts[1])
+
+    tx = wrapperProxy.addLiquidityToV1(converter, tokens, amounts, 1, {'value': amounts[0]})
+    print(tx)
