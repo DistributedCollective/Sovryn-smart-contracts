@@ -25,6 +25,8 @@ const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 
+const Affiliates = artifacts.require("Affiliates");
+
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
@@ -111,6 +113,11 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
 	// loanClosing
 	await sovryn.replaceContract((await LoanClosingsWith.new()).address);
 	await sovryn.replaceContract((await LoanClosingsBase.new()).address);
+
+	// affiliates
+	await sovryn.replaceContract((await Affiliates.new()).address);
+	await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
+
 	return sovryn;
 };
 

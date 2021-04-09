@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
-const { mineBlock, increaseTime } = require("../Utils/Ethereum");
+//const { mineBlock, increaseTime } = require("../Utils/Ethereum");
 
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
@@ -22,6 +22,8 @@ const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplLocal = artifacts.require("SwapsImplLocal");
 
+const Affiliates = artifacts.require("Affiliates");
+
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 
 const {
@@ -31,6 +33,7 @@ const {
 	cash_out_from_the_pool,
 	cash_out_from_the_pool_more_of_lender_balance_should_not_fail,
 } = require("./helpers");
+//const { artifacts } = require("hardhat");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
@@ -63,6 +66,9 @@ contract("LoanTokenLending", (accounts) => {
 		await sovryn.replaceContract((await LoanMaintenance.new()).address);
 		await sovryn.replaceContract((await SwapsExternal.new()).address);
 		await sovryn.replaceContract((await LoanOpenings.new()).address);
+		await sovryn.replaceContract((await Affiliates.new()).address);
+
+		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
 
 		await sovryn.setWrbtcToken(testWrbtc.address);
 
