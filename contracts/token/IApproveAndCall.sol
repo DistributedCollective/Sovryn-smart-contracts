@@ -1,12 +1,15 @@
 pragma solidity ^0.5.17;
 
+/**
+ * @title Interface for contract governance/ApprovalReceiver.sol
+ */
 interface IApproveAndCall {
 	/**
-	 * @notice receives approval from SOV token
-	 * @param _sender the sender of SOV.approveAndCall function
-	 * @param _amount the amount was approved
-	 * @param _token the address of token
-	 * @param _data the data will be used for low level call
+	 * @notice Receives approval from SOV token.
+	 * @param _sender The sender of SOV.approveAndCall function.
+	 * @param _amount The amount was approved.
+	 * @param _token The address of token.
+	 * @param _data The data will be used for low level call.
 	 */
 	function receiveApproval(
 		address _sender,
