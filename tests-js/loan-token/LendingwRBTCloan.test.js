@@ -68,8 +68,6 @@ contract("LoanTokenLending", (accounts) => {
 		await sovryn.replaceContract((await LoanOpenings.new()).address);
 		await sovryn.replaceContract((await Affiliates.new()).address);
 
-		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
-
 		await sovryn.setWrbtcToken(testWrbtc.address);
 
 		feeds = await PriceFeedsLocal.new(testWrbtc.address, sovryn.address);

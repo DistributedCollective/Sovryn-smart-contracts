@@ -116,7 +116,6 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
 
 	// affiliates
 	await sovryn.replaceContract((await Affiliates.new()).address);
-	await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
 
 	return sovryn;
 };

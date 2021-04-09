@@ -56,8 +56,6 @@ contract("LoanTokenLending", (accounts) => {
 		await sovryn.replaceContract((await LoanOpenings.new()).address);
 		await sovryn.replaceContract((await Affiliates.new()).address);
 
-		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
-
 		rBTC = await TestToken.new("RBTC", "RBTC", 18, wei("1000", "ether"));
 		await sovryn.setWrbtcToken(rBTC.address);
 
