@@ -34,7 +34,7 @@ def main():
     totalAmount += data["totalAmount"]
     # tokenSender.transferSOVusingList(data["receivers"], data["amounts"])
 
-    # 6733.675
+    # 875.39
     print("=======================================")
     print("SOV amount:")
     print(totalAmount / 10**18)
