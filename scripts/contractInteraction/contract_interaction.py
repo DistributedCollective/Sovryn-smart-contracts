@@ -1175,9 +1175,9 @@ def addLiquidityV1FromMultisigUsingWrapper(converter, tokens, amounts):
     print(txId)
 
     # addLiquidityToV1
-    data = wrapperProxy.addLiquidityToV1.encode_input(converter, tokens, amounts, 1, {'value': amounts[0]})
+    data = wrapperProxy.addLiquidityToV1.encode_input(converter, tokens, amounts, 1)
     print(data)
 
-    tx = multisig.submitTransaction(wrapperProxy.address,0,data)
+    tx = multisig.submitTransaction(wrapperProxy.address,amounts[0],data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
