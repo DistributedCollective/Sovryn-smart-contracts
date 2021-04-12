@@ -2,6 +2,7 @@ pragma solidity ^0.5.17;
 
 /**
  * @title Interface for contract governance/ApprovalReceiver.sol
+ * @dev Interfaces are used to cast a contract address into a callable instance.
  */
 interface IApproveAndCall {
 	/**
