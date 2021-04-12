@@ -77,10 +77,11 @@ def main():
     #readBalanceFromAMM()
     #checkRates()
 
-    testV1Converter(contracts["ConverterSOV"], contracts["WRBTC"], contracts["SOV"])
+    # testV1Converter(contracts["ConverterSOV"], contracts["WRBTC"], contracts["SOV"])
     # transferSOVtoTokenSender()
     # addLiquidityV1(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
-    #addLiquidityV1UsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
+    # addLiquidityV1UsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
+    addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**15, 67 * 10**17])
 
 def loadConfig():
     global contracts, acct
@@ -1155,3 +1156,27 @@ def addLiquidityV1UsingWrapper(converter, tokens, amounts):
 
     tx = wrapperProxy.addLiquidityToV1(converter, tokens, amounts, 1, {'value': amounts[0]})
     print(tx)
+
+# "RBTCWrapperProxy":  ""
+# TODO set RBTCWrapperProxy address
+def addLiquidityV1FromMultisigUsingWrapper(converter, tokens, amounts):
+    abiFile =  open('./scripts/contractInteraction/RBTCWrapperProxy.json')
+    abi = json.load(abiFile)
+    wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=contracts['RBTCWrapperProxy'], abi=abi, owner=acct)
+
+    # approve
+    token = Contract.from_abi("ERC20", address=tokens[1], abi=ERC20.abi, owner=acct)
+    data = token.approve.encode_input(wrapperProxy.address, amounts[1])
+    print(data)
+
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+    # addLiquidityToV1
+    data = wrapperProxy.addLiquidityToV1.encode_input(converter, tokens, amounts, 1, {'value': amounts[0]})
+    print(data)
+
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
