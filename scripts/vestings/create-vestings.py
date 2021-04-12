@@ -31,19 +31,14 @@ def main():
     DAY = 24 * 60 * 60
     FOUR_WEEKS = 4 * 7 * DAY
 
+    # TODO ?
     cliff = FOUR_WEEKS
     duration = 6 * FOUR_WEEKS
 
-    tokenOwner = "0x715F62e75f09FD2a097a48640c269C3A0C50D2a0"
-    amount = 4000 * 10**18
-    SOVtoken.transfer(contracts['VestingRegistry'], amount)
+    tokenOwner = ""
+    amount = 0 * 10**18
     vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
     vestingAddress = vestingRegistry.getVesting(tokenOwner)
-    vestingRegistry.stakeTokens(vestingAddress, amount)
-
-    tokenOwner = "0x715F62e75f09FD2a097a48640c269C3A0C50D2a0"
-    amount = 5000 * 10**18
-    SOVtoken.transfer(contracts['VestingRegistry'], amount)
-    vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
-    vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
-    vestingRegistry.stakeTokens(vestingAddress, amount)
+    SOVtoken.approve(vestingAddress, amount)
+    vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=acct)
+    vestingLogic.stakeTokens(amount)
