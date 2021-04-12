@@ -1163,13 +1163,14 @@ def addLiquidityV1FromMultisigUsingWrapper(converter, tokens, amounts):
     abiFile =  open('./scripts/contractInteraction/RBTCWrapperProxy.json')
     abi = json.load(abiFile)
     wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=contracts['RBTCWrapperProxy'], abi=abi, owner=acct)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
 
     # approve
     token = Contract.from_abi("ERC20", address=tokens[1], abi=ERC20.abi, owner=acct)
     data = token.approve.encode_input(wrapperProxy.address, amounts[1])
     print(data)
 
-    tx = multisig.submitTransaction(sovryn.address,0,data)
+    tx = multisig.submitTransaction(token.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
@@ -1177,6 +1178,6 @@ def addLiquidityV1FromMultisigUsingWrapper(converter, tokens, amounts):
     data = wrapperProxy.addLiquidityToV1.encode_input(converter, tokens, amounts, 1, {'value': amounts[0]})
     print(data)
 
-    tx = multisig.submitTransaction(sovryn.address,0,data)
+    tx = multisig.submitTransaction(wrapperProxy.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
