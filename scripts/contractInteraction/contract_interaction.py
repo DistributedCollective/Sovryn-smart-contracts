@@ -1059,7 +1059,7 @@ def createProposalSIP0015():
 
 def transferSOVtoTokenSender():
     # 875.39 SOV
-    amount = 875.39 * 10**16
+    amount = 87539 * 10**16
 
     tokenSenderAddress = contracts['TokenSender']
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
