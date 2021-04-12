@@ -6,7 +6,7 @@ import "./SafeMath96.sol";
 
 /**
  * @title Checkpoints contract.
- * @notice Increases and decreases storage values for users, delegatees and daily stake. 
+ * @notice Increases and decreases storage values for users, delegatees and daily stake.
  * */
 contract Checkpoints is StakingStorage, SafeMath96 {
 	/// @notice An event triggered when an account changes its delegate.

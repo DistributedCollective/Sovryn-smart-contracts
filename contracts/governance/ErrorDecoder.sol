@@ -4,6 +4,7 @@ pragma solidity ^0.5.17;
  * @title Base contract to properly handle returned data on failed calls
  * @dev On EVM if the return data length of a call is less than 68,
  * then the transaction fails silently without a revert message!
+ * 
  * As described in the Solidity documentation
  * https://solidity.readthedocs.io/en/v0.5.17/control-structures.html#revert
  * the revert reason is an ABI-encoded string consisting of:
@@ -25,11 +26,7 @@ pragma solidity ^0.5.17;
  *   Error message: 54696d656c6f636b3a3a73657444656c61793a2044656c6179206d75737420657863656564206d696e696d756d2064656c61792e000000000000000000000000
  */
 contract ErrorDecoder {
-	// 4 bytes - 0x08c379a0 - method id
-	// 32 bytes - 2 parameters
-	// 32 bytes - bool, result
-	// 32 ... bytes - string, error message
-	uint256 constant ERROR_MESSAGE_SHIFT = 68;
+	uint256 constant ERROR_MESSAGE_SHIFT = 68; // EVM silent revert error string length
 
 	/**
 	 * @notice Concats two error strings taking into account ERROR_MESSAGE_SHIFT.

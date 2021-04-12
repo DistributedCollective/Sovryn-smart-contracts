@@ -6,7 +6,7 @@ import "../../interfaces/IERC20.sol";
 import "../IFeeSharingProxy.sol";
 
 /**
- * @title Just the storage part of stacking contract, no functions, only constant, 
+ * @title Just the storage part of stacking contract, no functions, only constant,
  * variables and required structures (mappings).
  * @notice Used by StackingProxy and Checkpoints contracts.
  */
