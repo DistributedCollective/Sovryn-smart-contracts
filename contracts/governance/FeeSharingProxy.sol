@@ -12,7 +12,7 @@ import "./Staking/IStaking.sol";
  * sharing according to the own voting power in relation to the total. Whenever
  * somebody decides to collect the fees from the protocol, they get transferred
  * to a proxy contract which invests the funds in the lending pool and keeps
- * the pool tokens. 
+ * the pool tokens.
  *
  * The fee sharing proxy will be set as feesController of the protocol contract.
  * This allows the fee sharing proxy to withdraw the fees. The fee sharing
@@ -24,7 +24,7 @@ import "./Staking/IStaking.sol";
  * Because both values are subject to change, they may be different on each fee
  * withdrawal. To be able to calculate a user’s share of tokens when he wants
  * to withdraw, we need checkpoints.
- * 
+ *
  * This contract is intended to be set as the protocol fee collector.
  * Anybody can invoke the withdrawFees function which uses
  * protocol.withdrawFees to obtain available fees from operations on a
@@ -37,7 +37,6 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
 
-	
 	/* Storage */
 
 	/// @dev TODO FEE_WITHDRAWAL_INTERVAL, MAX_CHECKPOINTS
@@ -50,11 +49,11 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 
 	/// @notice Checkpoints by index per pool token address
 	mapping(address => mapping(uint256 => Checkpoint)) public tokenCheckpoints;
-	
+
 	/// @notice The number of checkpoints for each pool token address.
 	mapping(address => uint32) public numTokenCheckpoints;
 
-	/// @notice 
+	/// @notice
 	/// user => token => processed checkpoint
 	mapping(address => mapping(address => uint32)) public processedCheckpoints;
 
@@ -73,7 +72,6 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 		uint96 numTokens;
 	}
 
-
 	/* Events */
 
 	/// @notice An event emitted when fee get withdrawn.
@@ -87,7 +85,6 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 
 	/// @notice An event emitted when user fee get withdrawn.
 	event UserFeeWithdrawn(address indexed sender, address indexed receiver, address indexed token, uint256 amount);
-
 
 	/* Functions */
 
@@ -161,7 +158,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 
 			/// @notice Reset unprocessed amount of tokens to zero.
 			unprocessedAmount[_token] = 0;
-			
+
 			/// @notice Write a regular checkpoint.
 			_writeTokenCheckpoint(_token, amount);
 		}
@@ -209,23 +206,23 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 	}
 
 	/**
-	* @notice Whenever fees are withdrawn, the staking contract needs to
-	* checkpoint the block number, the number of pool tokens and the
-	* total voting power at that time (read from the staking contract).
-	* While the total voting power would not necessarily need to be
-	* checkpointed, it makes sense to save gas cost on withdrawal.
-	*
-	* When the user wants to withdraw his\her share of tokens, we need
-	* to iterate over all of the checkpoints since the users last
-	* withdrawal (note: remember last withdrawal block), query the
-	* user’s balance at the checkpoint blocks from the staking contract,
-	* compute his share of the checkpointed tokens and add them up.
-	* The maximum number of checkpoints to process at once should be limited.
-	* 
-	* @param _user Address of the user's account.
-	* @param _loanPoolToken Loan pool token address.
-	* @param _maxCheckpoints Checkpoint index incremental.
-	* */
+	 * @notice Whenever fees are withdrawn, the staking contract needs to
+	 * checkpoint the block number, the number of pool tokens and the
+	 * total voting power at that time (read from the staking contract).
+	 * While the total voting power would not necessarily need to be
+	 * checkpointed, it makes sense to save gas cost on withdrawal.
+	 *
+	 * When the user wants to withdraw his\her share of tokens, we need
+	 * to iterate over all of the checkpoints since the users last
+	 * withdrawal (note: remember last withdrawal block), query the
+	 * user’s balance at the checkpoint blocks from the staking contract,
+	 * compute his share of the checkpointed tokens and add them up.
+	 * The maximum number of checkpoints to process at once should be limited.
+	 *
+	 * @param _user Address of the user's account.
+	 * @param _loanPoolToken Loan pool token address.
+	 * @param _maxCheckpoints Checkpoint index incremental.
+	 * */
 	function _getAccumulatedFees(
 		address _user,
 		address _loanPoolToken,
@@ -270,14 +267,14 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 	}
 
 	/**
-	* @notice Withdrawal should only be possible for blocks which were already
-	* mined. If the fees are withdrawn in the same block as the user withdrawal
-	* they are not considered by the withdrawing logic (to avoid inconsistencies).
-	* 
-	* @param start Start of the range.
-	* @param _loanPoolToken Loan pool token address.
-	* @param _maxCheckpoints Checkpoint index incremental.
-	* */
+	 * @notice Withdrawal should only be possible for blocks which were already
+	 * mined. If the fees are withdrawn in the same block as the user withdrawal
+	 * they are not considered by the withdrawing logic (to avoid inconsistencies).
+	 *
+	 * @param start Start of the range.
+	 * @param _loanPoolToken Loan pool token address.
+	 * @param _maxCheckpoints Checkpoint index incremental.
+	 * */
 	function _getEndOfRange(
 		uint32 start,
 		address _loanPoolToken,
@@ -328,7 +325,6 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 		emit CheckpointAdded(msg.sender, _token, _numTokens);
 	}
 }
-
 
 /* Interfaces */
 

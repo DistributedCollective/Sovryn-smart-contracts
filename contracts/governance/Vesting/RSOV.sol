@@ -22,7 +22,6 @@ import "../ApprovalReceiver.sol";
  * 1 year duration.
  * */
 contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
-	
 	/* Storage */
 
 	string constant NAME = "Sovryn Reward Token";
@@ -40,12 +39,10 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 	/// @notice The staking contract.
 	IStaking public staking;
 
-
 	/* Events */
 
 	event Mint(address indexed sender, uint256 amount);
 	event Burn(address indexed sender, uint256 amount);
-
 
 	/* Functions */
 
