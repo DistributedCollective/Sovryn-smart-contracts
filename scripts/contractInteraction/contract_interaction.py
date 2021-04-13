@@ -83,7 +83,11 @@ def main():
     # addLiquidityV1UsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
 
     # addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**15, 67 * 10**17])
-    addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [30 * 10**18, 200000 * 10**18])
+    # addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [30 * 10**18, 200000 * 10**18])
+
+    removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 5 * 10**17, [contracts['WRBTC'], contracts['SOV']])
+    # 2986.175 × 99% ~ 2957
+    # removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 2957 * 10**18, [contracts['WRBTC'], contracts['SOV']])
 
 def loadConfig():
     global contracts, acct
@@ -1179,5 +1183,33 @@ def addLiquidityV1FromMultisigUsingWrapper(converter, tokens, amounts):
     print(data)
 
     tx = multisig.submitTransaction(wrapperProxy.address,amounts[0],data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def removeLiquidityV1toMultisigUsingWrapper(converter, amount, tokens):
+    abiFile =  open('./scripts/contractInteraction/RBTCWrapperProxy.json')
+    abi = json.load(abiFile)
+    wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=contracts['RBTCWrapperProxy'], abi=abi, owner=acct)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+
+    converterAbiFile =  open('./scripts/contractInteraction/LiquidityPoolV1Converter.json')
+    converterAbi = json.load(converterAbiFile)
+    converterContract = Contract.from_abi("LiquidityPoolV1Converter", address=converter, abi=converterAbi, owner=acct)
+    poolToken = converterContract.anchor()
+
+    # approve
+    token = Contract.from_abi("ERC20", address=poolToken, abi=ERC20.abi, owner=acct)
+    data = token.approve.encode_input(wrapperProxy.address, amount)
+    print(data)
+
+    tx = multisig.submitTransaction(token.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+    # removeLiquidityFromV1
+    data = wrapperProxy.removeLiquidityFromV1.encode_input(converter, amount, tokens, [1,1])
+    print(data)
+
+    tx = multisig.submitTransaction(wrapperProxy.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
