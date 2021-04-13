@@ -796,6 +796,14 @@ def setBorrowingFee(fee):
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
 
+def setAffiliateFeePercent(fee):
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.setAffiliateFeePercent.encode_input(fee)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
+
 def sendFromMultisig(amount):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
     data = vestingRegistry.deposit.encode_input()

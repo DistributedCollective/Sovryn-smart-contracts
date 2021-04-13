@@ -94,7 +94,7 @@ def deployProtocol(acct, tokens, mocOracleAddress, rskOracleAddress):
 
     ##Affiliates
     print("Deploying Affiliates.")
-    affiliates = acct.deploy(Afiliates)
+    affiliates = acct.deploy(Affiliates)
     print("Calling replaceContract.")
     sovryn.replaceContract(affiliates.address)
     
