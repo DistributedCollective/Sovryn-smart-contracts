@@ -43,8 +43,10 @@ def main():
         cliff = int(teamVesting[2]) * FOUR_WEEKS
         duration = int(teamVesting[3]) * FOUR_WEEKS
         vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
-        # if (vestingAddress != "0x0000000000000000000000000000000000000000"):
-        #     raise Exception("Address already has team vesting contract")
+        if (vestingAddress != "0x0000000000000000000000000000000000000000"):
+            vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=acct)
+            if (cliff != vestingLogic.cliff() or duration != vestingLogic.duration()):
+                raise Exception("Address already has team vesting contract with different schedule")
         # vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
         vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
         print("TeamVesting: ", vestingAddress)
@@ -61,7 +63,7 @@ def main():
         # stakes = staking.getStakes(vestingAddress)
         # print(stakes)
 
-    #
+    # 44123.4
     print("=======================================")
     print("SOV amount:")
     print(totalAmount / 10**18)
