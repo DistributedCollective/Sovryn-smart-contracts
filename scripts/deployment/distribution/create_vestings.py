@@ -30,19 +30,18 @@ def main():
     DAY = 24 * 60 * 60
     FOUR_WEEKS = 4 * 7 * DAY
 
-    cliff = FOUR_WEEKS
-    duration = 26 * FOUR_WEEKS
-
     balanceBefore = acct.balance()
     totalAmount = 0
 
-    # amounts examples: 3205.128, 641.026
-    data = parseFile('./scripts/deployment/distribution/vestings2.csv', 10**15)
+    # amounts examples: 641.0, 1218.0, 177.6
+    data = parseFile('./scripts/deployment/distribution/vestings3.csv', 10**17)
     totalAmount += data["totalAmount"]
 
     for teamVesting in data["teamVestingList"]:
         tokenOwner = teamVesting[0]
         amount = int(teamVesting[1])
+        cliff = int(teamVesting[2]) * FOUR_WEEKS
+        duration = int(teamVesting[3]) * FOUR_WEEKS
         vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
         # if (vestingAddress != "0x0000000000000000000000000000000000000000"):
         #     raise Exception("Address already has team vesting contract")
@@ -55,12 +54,14 @@ def main():
         print(cliff)
         print(duration)
         print((duration - cliff) / FOUR_WEEKS + 1)
-        # vestingRegistry.stakeTokens(vestingAddress, amount)
+        # SOVtoken.approve(vestingAddress, amount)
+        # vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=acct)
+        # vestingLogic.stakeTokens(amount)
 
         # stakes = staking.getStakes(vestingAddress)
         # print(stakes)
 
-    # 9348.337
+    #
     print("=======================================")
     print("SOV amount:")
     print(totalAmount / 10**18)
@@ -76,12 +77,14 @@ def parseFile(fileName, multiplier):
     with open(fileName, 'r') as file:
         reader = csv.reader(file)
         for row in reader:
-            tokenOwner = row[3].replace(" ", "")
-            amount = row[1].replace(",", "").replace(".", "")
+            tokenOwner = row[1].replace(" ", "")
+            amount = row[0].replace(",", "").replace(".", "")
             amount = int(amount) * multiplier
+            cliff = int(row[3])
+            duration = int(row[4])
             totalAmount += amount
 
-            teamVestingList.append([tokenOwner, amount])
+            teamVestingList.append([tokenOwner, amount, cliff, duration])
 
             # print("=======================================")
             # print("'" + tokenOwner + "', ")
