@@ -117,28 +117,22 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 		uint256 marginAmount,
 		bool isTorqueLoan
 	) public view returns (uint256 collateralAmountRequired) {
-		uint256 collateralRequired = _getRequiredCollateral(loanToken, collateralToken, newPrincipal, marginAmount, isTorqueLoan);
 		if (marginAmount != 0) {
 			collateralAmountRequired = _getRequiredCollateral(loanToken, collateralToken, newPrincipal, marginAmount, isTorqueLoan);
 
-			// fix Inconsistent Fee Calculation in getBorrowAmount() and getRequiredCollateral()
-			// new
+			// p3.9 from bzx peckshield-audit-report-bZxV2-v1.0rc1.pdf
+			// cannot be applied solely as it drives to some other tests failure
+			/*
 			uint256 feePercent = isTorqueLoan ? borrowingFeePercent : tradingFeePercent;
 			if (collateralAmountRequired != 0 && feePercent != 0) {
 				collateralAmountRequired = collateralAmountRequired.mul(10**20).divCeil(
 					10**20 - feePercent // never will overflow
 				);
-			}
+			}*/
 
-			/*uint256 fee = isTorqueLoan ? _getBorrowingFee(collateralAmountRequired) : _getTradingFee(collateralAmountRequired);
+			uint256 fee = isTorqueLoan ? _getBorrowingFee(collateralAmountRequired) : _getTradingFee(collateralAmountRequired);
 			if (fee != 0) {
 				collateralAmountRequired = collateralAmountRequired.add(fee);
-			}*/
-			//
-
-			uint256 fee = isTorqueLoan ? _getBorrowingFee(collateralRequired) : _getTradingFee(collateralRequired);
-			if (fee != 0) {
-				collateralRequired = collateralRequired.add(fee);
 			}
 		}
 	}
@@ -154,14 +148,25 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 			if (isTorqueLoan) {
 				marginAmount = marginAmount.add(10**20); // adjust for over-collateralized loan
 			}
+			uint256 collateral = collateralTokenAmount;
+			uint256 fee = isTorqueLoan ? _getBorrowingFee(collateral) : _getTradingFee(collateral);
+			if (fee != 0) {
+				collateral = collateral.sub(fee);
+			}
 			if (loanToken == collateralToken) {
-				borrowAmount = collateralTokenAmount.mul(10**20).div(marginAmount);
+				borrowAmount = collateral.mul(10**20).div(marginAmount);
 			} else {
 				(uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(collateralToken, loanToken);
 				if (sourceToDestPrecision != 0) {
+					borrowAmount = collateral.mul(10**20).div(marginAmount).mul(sourceToDestRate).div(sourceToDestPrecision);
+					/*TODO: review
 					borrowAmount = collateralTokenAmount.mul(10**20).mul(sourceToDestRate).div(marginAmount).div(sourceToDestPrecision);
+					*/
 				}
 			}
+			/*
+			// p3.9 from bzx peckshield-audit-report-bZxV2-v1.0rc1.pdf
+			// cannot be applied solely as it drives to some other tests failure
 			uint256 feePercent = isTorqueLoan ? borrowingFeePercent : tradingFeePercent;
 			if (borrowAmount != 0 && feePercent != 0) {
 				borrowAmount = borrowAmount
@@ -169,7 +174,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 					10**20 - feePercent // never will overflow
 				)
 					.divCeil(10**20);
-			}
+			}*/
 		}
 	}
 
@@ -520,7 +525,9 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 			//so the swap is probably farther off than the price feed.
 			(uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(collateralToken, loanToken);
 			if (sourceToDestRate != 0) {
-				collateralTokenAmount = newPrincipal.mul(sourceToDestPrecision).mul(marginAmount).div(sourceToDestRate).div(10**20);
+				collateralTokenAmount = newPrincipal.mul(sourceToDestPrecision).div(sourceToDestRate).mul(marginAmount).div(10**20);
+				/*TODO: review
+				collateralTokenAmount = newPrincipal.mul(sourceToDestPrecision).mul(marginAmount).div(sourceToDestRate).div(10**20);*/
 			}
 		}
 		// ./tests-js/loan-token/TradingTestToken.test.js

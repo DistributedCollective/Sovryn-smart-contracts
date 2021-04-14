@@ -19,9 +19,28 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 		return feeTokenAmount.mul(tradingFeePercent).divCeil(10**20);
 	}
 
+	/*
+	// p3.9 from bzx peckshield-audit-report-bZxV2-v1.0rc1.pdf
+	// cannot be applied solely nor with LoanOpenings.sol as it drives to some other tests failure
+	function _getTradingFee(uint256 feeTokenAmount) internal view returns (uint256) {
+		uint256 collateralAmountRequired =
+			feeTokenAmount.mul(10**20).divCeil(
+				10**20 - tradingFeePercent // never will overflow
+			);
+		return collateralAmountRequired.sub(feeTokenAmount);
+	}*/
+
 	// calculate loan origination fee
 	function _getBorrowingFee(uint256 feeTokenAmount) internal view returns (uint256) {
 		return feeTokenAmount.mul(borrowingFeePercent).divCeil(10**20);
+		/*
+		// p3.9 from bzx peckshield-audit-report-bZxV2-v1.0rc1.pdf
+		// cannot be applied solely nor with LoanOpenings.sol as it drives to some other tests failure
+		uint256 collateralAmountRequired =
+			feeTokenAmount.mul(10**20).divCeil(
+				10**20 - borrowingFeePercent // never will overflow
+			);
+		return collateralAmountRequired.sub(feeTokenAmount);*/
 	}
 
 	/**

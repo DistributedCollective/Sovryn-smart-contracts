@@ -134,7 +134,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 				interest_owed_now = interest_owed_now.add(backInterestOwed);
 			}
 
-			expect((await SUSD.balanceOf(loanToken.address)).eq(lender_pool_initial_balance.add(interest_owed_now))).to.be.true;
+			expect(await SUSD.balanceOf(loanToken.address)).to.be.bignumber.equal(lender_pool_initial_balance.add(interest_owed_now));
 			expect(lender_interest_after["interestPaid"] == interest_unpaid.toString()).to.be.true;
 			expect(lender_interest_after["interestUnPaid"] == "0").to.be.true;
 

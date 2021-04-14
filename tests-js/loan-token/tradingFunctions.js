@@ -182,19 +182,23 @@ const margin_trading_sending_collateral_tokens = async (
 	const args = decode[0].args;
 
 	expect(args["positionSize"]).to.eq(
-		new BN(args["borrowedAmount"]).mul(new BN(args["entryPrice"]).addn(1)).div(oneEth).add(collateralTokenSent).toString()
-	); //addn(1) - rounding error */
+		new BN(args["borrowedAmount"]).mul(new BN(args["entryPrice"]) /*.addn(1)*/).div(oneEth).add(collateralTokenSent).toString()
+	); //addn(1) - rounding error if used with p3.9 from bzx peckshield-audit-report-bZxV2-v1.0rc1.pdf; cannot be applied solely as it drives to some other tests failure
 
 	expect(args["borrowedAmount"]).to.eq(
 		loanSize
-			.divn(2)
 			.mul(collateralTokenSent)
 			.mul(leverageAmount)
 			.div(new BN(10).pow(new BN(36)))
 			.toString()
 	);
 	expect(args["interestRate"]).to.eq("0");
-	expect(args["entryPrice"]).to.eq(rate.mul(new BN(9985)).div(new BN(10000)).sub(new BN(1)).toString()); //9985 == (1-0.15/100); sub(1) - rounding error
+	expect(args["entryPrice"]).to.eq(
+		rate
+			.mul(new BN(9985))
+			.div(new BN(10000)) /*.sub(new BN(1))*/
+			.toString()
+	); //9985 == (1-0.15/100); sub(1) - rounding error // p3.9 from bzx peckshield-audit-report-bZxV2-v1.0rc1.pdf; cannot be applied solely as it drives to some other tests failure
 	expect(args["entryLeverage"]).to.eq(leverageAmount.toString());
 };
 
@@ -539,7 +543,6 @@ const get_estimated_margin_details = async (loanToken, collateralToken, loanSize
 
 	expect(result[0]).to.be.a.bignumber.eq(
 		loanSize
-			.divn(2)
 			.mul(collateralTokenSent)
 			.mul(leverageAmount)
 			.div(new BN(10).pow(new BN(36)))

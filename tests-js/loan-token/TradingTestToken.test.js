@@ -89,7 +89,7 @@ contract("LoanTokenTrading", (accounts) => {
 		  2. TODO verify the trade event and balances are correct
 		*/
 		it("Test margin trading sending collateral tokens", async () => {
-			const loanSize = new BN(20000).mul(oneEth);
+			const loanSize = new BN(10000).mul(oneEth);
 			await SUSD.mint(loanToken.address, loanSize.mul(new BN(12)));
 
 			//   address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan

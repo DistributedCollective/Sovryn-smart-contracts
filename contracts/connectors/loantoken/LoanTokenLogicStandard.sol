@@ -282,8 +282,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 				_from,
 				_to,
 				_value,
-				allowed[_from][msg.sender]
-				/*ProtocolLike(sovrynContractAddress).isLoanPool(msg.sender) ? uint256(-1) : allowed[_from][msg.sender]*/
+				//allowed[_from][msg.sender]
+				ProtocolLike(sovrynContractAddress).isLoanPool(msg.sender) ? uint256(-1) : allowed[_from][msg.sender]
 			);
 	}
 

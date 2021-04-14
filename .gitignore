@@ -29,3 +29,5 @@ node_modules
 artifacts/
 cache/
 contracts_bzx/
+tmp/
+tmp
