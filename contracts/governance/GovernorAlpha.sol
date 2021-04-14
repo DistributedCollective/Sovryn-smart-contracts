@@ -17,7 +17,6 @@ import "../rsk/RSKAddrValidator.sol";
  * making a proposal as well as a minimum quorum.
  * */
 contract GovernorAlpha is SafeMath96 {
-
 	/* Storage */
 
 	/// @notice The name of this contract.
@@ -118,7 +117,6 @@ contract GovernorAlpha is SafeMath96 {
 	/// @notice The EIP-712 typehash for the ballot struct used by the contract.
 	bytes32 public constant BALLOT_TYPEHASH = keccak256("Ballot(uint256 proposalId,bool support)");
 
-
 	/* Events */
 
 	/// @notice An event emitted when a new proposal is created.
@@ -145,7 +143,6 @@ contract GovernorAlpha is SafeMath96 {
 
 	/// @notice An event emitted when a proposal has been executed in the Timelock.
 	event ProposalExecuted(uint256 id);
-
 
 	/* Functions */
 
@@ -394,19 +391,19 @@ contract GovernorAlpha is SafeMath96 {
 	 * is that they can create a signed vote transaction for free, and have a
 	 * trusted third-party spend rBTC(or ETH) on gas fees and write it to the
 	 * blockchain for them.
-	 * 
+	 *
 	 * The third party in this scenario, submitting the SOV-holder’s signed
 	 * transaction holds a voting power that is for only a single proposal.
 	 * The signatory still holds the power to vote on their own behalf in
 	 * the proposal if the third party has not yet published the signed
 	 * transaction that was given to them.
-	 * 
+	 *
 	 * @dev The signature needs to be broken up into 3 parameters, known as
 	 * v, r and s:
 	 * const r = '0x' + sig.substring(2).substring(0, 64);
 	 * const s = '0x' + sig.substring(2).substring(64, 128);
 	 * const v = '0x' + sig.substring(2).substring(128, 130);
-	 * 
+	 *
 	 * @param proposalId Proposal index to access the list proposals[] from storage.
 	 * @param support Vote value, yes or no.
 	 * @param v Signature parameter.
@@ -552,15 +549,15 @@ contract GovernorAlpha is SafeMath96 {
 
 	/**
 	 * @notice Retrieve CHAIN_ID of the executing chain.
-	 * 
+	 *
 	 * Chain identifier (chainID) introduced in EIP-155 protects transaction
 	 * included into one chain from being included into another chain.
 	 * Basically, chain identifier is an integer number being used in the
 	 * processes of signing transactions and verifying transaction signatures.
-	 * 
+	 *
 	 * @dev As of version 0.5.12, Solidity includes an assembly function
 	 * chainid() that provides access to the new CHAINID opcode.
-	 * 
+	 *
 	 * TODO: chainId is included in block. So you can get chain id like
 	 * block timestamp or block number: block.chainid;
 	 * */
@@ -572,7 +569,6 @@ contract GovernorAlpha is SafeMath96 {
 		return chainId;
 	}
 }
-
 
 /* Interfaces */
 

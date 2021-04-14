@@ -43,27 +43,27 @@ interface ITimelock {
  * @notice This contract lets Sovryn governance system set up its
  * own Time Lock instance to execute transactions proposed through the
  * GovernorAlpha contract instance.
- * 
+ *
  * The Timelock contract allows its admin (Sovryn governance on
- * GovernorAlpha contract) to add arbitrary function calls to a 
+ * GovernorAlpha contract) to add arbitrary function calls to a
  * queue. This contract can only execute a function call if the
  * function call has been in the queue for at least 3 hours.
- * 
+ *
  * Anytime the Timelock contract makes a function call, it must be the
  * case that the function call was first made public by having been publicly
  * added to the queue at least 3 hours prior.
- * 
+ *
  * The intention is to provide GovernorAlpha contract the functionality to
- * queue proposal actions. This would mean that any changes made by Sovryn 
+ * queue proposal actions. This would mean that any changes made by Sovryn
  * governance of any contract would necessarily come with at least an
  * advanced warning. This makes the Sovryn system follow a “time-delayed,
  * opt-out” upgrade pattern (rather than an “instant, forced” upgrade pattern).
- * 
+ *
  * Time-delaying admin actions gives users a chance to exit system if its
  * admins become malicious or compromised (or make a change that the users
  * do not like). Downside is that honest admins would be unable
- * to lock down functionality to protect users if a critical bug was found. 
- * 
+ * to lock down functionality to protect users if a critical bug was found.
+ *
  * Delayed transactions reduce the amount of trust required by users of Sovryn
  * and the overall risk for contracts building on top of it, as GovernorAlpha.
  * */
@@ -244,7 +244,7 @@ contract Timelock is ErrorDecoder, ITimelock {
 	 * @dev Timestamp of the current block in seconds since the epoch.
 	 * It is a Unix time stamp. So, it has the complete information about
 	 * the date, hours, minutes, and seconds (in UTC) when the block was
-	 * created. 
+	 * created.
 	 * */
 	function getBlockTimestamp() internal view returns (uint256) {
 		// solium-disable-next-line security/no-block-members

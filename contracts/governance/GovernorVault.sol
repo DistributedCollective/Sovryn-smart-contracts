@@ -8,15 +8,13 @@ import "../interfaces/IERC20.sol";
  * @notice This contract stores tokens and rBTC only transfereble by owner,
  * i.e. Sovryn governance.
  * */
- contract GovernorVault is Ownable {
-	
+contract GovernorVault is Ownable {
 	/* Events */
-	
+
 	event Deposited(address indexed sender, uint256 amount);
 	event TokensTransferred(address indexed receiver, address indexed token, uint256 amount);
 	event RbtcTransferred(address indexed receiver, uint256 amount);
 
-	
 	/* Functions */
 
 	/**
