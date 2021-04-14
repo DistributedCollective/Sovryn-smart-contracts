@@ -43,16 +43,27 @@ def main():
         amount = int(teamVesting[1])
         cliff = int(teamVesting[2]) * FOUR_WEEKS
         duration = int(teamVesting[3]) * FOUR_WEEKS
-        vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
+        isTeam = bool(teamVesting[4])
+        if isTeam:
+            vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
+        else:
+            vestingAddress = vestingRegistry.getVesting(tokenOwner)
         if (vestingAddress != "0x0000000000000000000000000000000000000000"):
             vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=acct)
             if (cliff != vestingLogic.cliff() or duration != vestingLogic.duration()):
                 raise Exception("Address already has team vesting contract with different schedule")
-        # vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
-        vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
-        print("TeamVesting: ", vestingAddress)
+        print("=======================================")
+        if isTeam:
+            # vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
+            # vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
+            print("TeamVesting: ", vestingAddress)
+        else:
+            # vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
+            # vestingAddress = vestingRegistry.getVesting(tokenOwner)
+            print("Vesting: ", vestingAddress)
 
         print(tokenOwner)
+        print(isTeam)
         print(amount)
         print(cliff)
         print(duration)
@@ -64,7 +75,7 @@ def main():
         # stakes = staking.getStakes(vestingAddress)
         # print(stakes)
 
-    # 44123.4
+    # 43482.4
     print("=======================================")
     print("SOV amount:")
     print(totalAmount / 10**18)
@@ -85,9 +96,12 @@ def parseFile(fileName, multiplier):
             amount = int(amount) * multiplier
             cliff = int(row[3])
             duration = int(row[4])
+            isTeam = True
+            if (row[5] == "OwnerVesting"):
+                isTeam = False
             totalAmount += amount
 
-            teamVestingList.append([tokenOwner, amount, cliff, duration])
+            teamVestingList.append([tokenOwner, amount, cliff, duration, isTeam])
 
             # print("=======================================")
             # print("'" + tokenOwner + "', ")
