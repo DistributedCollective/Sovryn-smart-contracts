@@ -40,7 +40,7 @@ contract InterestUser is VaultController, FeesHelper {
 		address interestToken,
 		uint256 interestOwedNow
 	) internal {
-		uint256 lendingFee = interestOwedNow.mul(lendingFeePercent).divCeil(10**20);
+		uint256 lendingFee = interestOwedNow.mul(lendingFeePercent).div(10**20);
 
 		_payLendingFee(lender, interestToken, lendingFee);
 
