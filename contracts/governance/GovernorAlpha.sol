@@ -198,7 +198,8 @@ contract GovernorAlpha is SafeMath96 {
 		string memory description
 	) public returns (uint256) {
 		// note: passing this block's timestamp, but the number of the previous block.
-		// todo: think if it would be better to pass block.timestamp - 30 (average block time) (probably not because proposal starts in 1 block from now).
+		// todo: think if it would be better to pass block.timestamp - 30 (average block time)
+		// (probably not because proposal starts in 1 block from now).
 		uint96 threshold = proposalThreshold();
 		require(
 			staking.getPriorVotes(msg.sender, sub256(block.number, 1), block.timestamp) > threshold,
@@ -228,6 +229,9 @@ contract GovernorAlpha is SafeMath96 {
 		uint256 endBlock = add256(startBlock, votingPeriod());
 
 		proposalCount++;
+
+		/// @dev quorum: proposalThreshold is 1% of total votes, we can save gas using this pre calculated value.
+		/// @dev startTime: Required by the staking contract. not used by the governance contract itself.
 		Proposal memory newProposal =
 			Proposal({
 				id: proposalCount,
@@ -235,14 +239,14 @@ contract GovernorAlpha is SafeMath96 {
 				endBlock: safe32(endBlock, "GovernorAlpha::propose: end block number overflow"),
 				forVotes: 0,
 				againstVotes: 0,
-				quorum: mul96(quorumPercentageVotes, threshold, "GovernorAlpha::propose: overflow on quorum computation"), // proposalThreshold is 1% of total votes, we can save gas using this pre calculated value.
+				quorum: mul96(quorumPercentageVotes, threshold, "GovernorAlpha::propose: overflow on quorum computation"), 
 				majorityPercentage: mul96(
 					majorityPercentageVotes,
 					threshold,
 					"GovernorAlpha::propose: overflow on majorityPercentage computation"
 				),
 				eta: 0,
-				startTime: safe64(block.timestamp, "GovernorAlpha::propose: startTime overflow"), // required by the staking contract. not used by the governance contract itself.
+				startTime: safe64(block.timestamp, "GovernorAlpha::propose: startTime overflow"),
 				canceled: false,
 				executed: false,
 				proposer: msg.sender,

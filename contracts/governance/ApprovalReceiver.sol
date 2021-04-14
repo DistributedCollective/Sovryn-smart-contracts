@@ -89,7 +89,9 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 	 * four bytes of the Keccak-256 (SHA-3) hash of the signature of the function.
 	 * Solidity doesn't yet support a casting of byte[4] to bytes4.
 	 * Example:
-	 *  msg.data: 0xcdcd77c000000000000000000000000000000000000000000000000000000000000000450000000000000000000000000000000000000000000000000000000000000001
+	 *  msg.data:
+	 *    0xcdcd77c000000000000000000000000000000000000000000000000000000000000
+	 *    000450000000000000000000000000000000000000000000000000000000000000001
 	 *  selector (or method ID): 0xcdcd77c0
 	 *  signature: baz(uint32,bool)
 	 * @param _data The msg.data from the low level call.
