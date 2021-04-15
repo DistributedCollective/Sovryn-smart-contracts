@@ -3,16 +3,33 @@ pragma solidity ^0.5.17;
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 
+/**
+ * @title SOV Token sender contract.
+ *
+ * @notice This contract includes functions to transfer SOV tokens
+ * to a recipient or to several recipients in a list. There is
+ * an ACL control check by modifier.
+ *
+ * @dev TODO: Maybe this token transfer functionality should be included
+ * in the SOV token contract, because other contracts are requiring it too:
+ * VestingRegistry.sol and VestingRegistry2.sol
+ * */
 contract TokenSender is Ownable {
-	///@notice the SOV token contract
+	/* Storage */
+
+	/// @notice The SOV token contract.
 	address public SOV;
 
-	//user => flag whether user has admin role
+	/// @dev user => flag whether user has admin role
 	mapping(address => bool) public admins;
+
+	/* Events */
 
 	event SOVTransferred(address indexed receiver, uint256 amount);
 	event AdminAdded(address admin);
 	event AdminRemoved(address admin);
+
+	/* Functions */
 
 	constructor(address _SOV) public {
 		require(_SOV != address(0), "SOV address invalid");
@@ -20,29 +37,41 @@ contract TokenSender is Ownable {
 		SOV = _SOV;
 	}
 
+	/* Modifiers */
+
 	/**
 	 * @dev Throws if called by any account other than the owner or admin.
-	 */
+	 * */
 	modifier onlyAuthorized() {
 		require(isOwner() || admins[msg.sender], "unauthorized");
 		_;
 	}
 
+	/* Functions */
+
+	/**
+	 * @notice Adds account to ACL.
+	 * @param _admin The addresses of the account to grant permissions.
+	 * */
 	function addAdmin(address _admin) public onlyOwner {
 		admins[_admin] = true;
 		emit AdminAdded(_admin);
 	}
 
+	/**
+	 * @notice Removes account from ACL.
+	 * @param _admin The addresses of the account to revoke permissions.
+	 * */
 	function removeAdmin(address _admin) public onlyOwner {
 		admins[_admin] = false;
 		emit AdminRemoved(_admin);
 	}
 
 	/**
-	 * @notice transfers given amounts of SOV to the given addresses
-	 * @param _receivers the addresses of the SOV receivers
-	 * @param _amounts the amounts to be transferred
-	 */
+	 * @notice Transfers given amounts of SOV to the given addresses.
+	 * @param _receivers The addresses of the SOV receivers.
+	 * @param _amounts The amounts to be transferred.
+	 * */
 	function transferSOVusingList(address[] memory _receivers, uint256[] memory _amounts) public onlyAuthorized {
 		require(_receivers.length == _amounts.length, "arrays mismatch");
 
@@ -52,10 +81,10 @@ contract TokenSender is Ownable {
 	}
 
 	/**
-	 * @notice transfers SOV tokens to given address
-	 * @param _receiver the address of the SOV receiver
-	 * @param _amount the amount to be transferred
-	 */
+	 * @notice Transfers SOV tokens to given address.
+	 * @param _receiver The address of the SOV receiver.
+	 * @param _amount The amount to be transferred.
+	 * */
 	function transferSOV(address _receiver, uint256 _amount) public onlyAuthorized {
 		_transferSOV(_receiver, _amount);
 	}

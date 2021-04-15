@@ -11,17 +11,22 @@ import "./VestingStorage.sol";
 import "../../proxy/Proxy.sol";
 
 /**
- * A regular vesting contract, but the owner (governance) is able to withdraw earlier without a slashing
- * @dev Vesting contracts shouldn't be upgradable, use Proxy instead of UpgradableProxy
+ * @title Team Vesting Contract.
+ *
+ * @notice A regular vesting contract, but the owner (governance) is able to
+ * withdraw earlier without a slashing.
+ *
+ * @dev Vesting contracts shouldn't be upgradable,
+ * use Proxy instead of UpgradableProxy.
  **/
 contract TeamVesting is VestingStorage, Proxy {
 	/**
-	 * @notice setup the vesting schedule
-	 * @param _logic the address of logic contract
-	 * @param _SOV the SOV token address
-	 * @param _tokenOwner the owner of the tokens
-	 * @param _cliff the cliff in seconds
-	 * @param _duration the total duration in seconds
+	 * @notice Setup the vesting schedule.
+	 * @param _logic The address of logic contract.
+	 * @param _SOV The SOV token address.
+	 * @param _tokenOwner The owner of the tokens.
+	 * @param _cliff The cliff in seconds.
+	 * @param _duration The total duration in seconds.
 	 * */
 	constructor(
 		address _logic,

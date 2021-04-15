@@ -12,7 +12,9 @@ import "../../openzeppelin/SafeMath.sol";
 contract VestingRegistry is Ownable {
 	using SafeMath for uint256;
 
-	///@notice constant used for computing the vesting dates
+	/* Storage */
+
+	/// @notice Constant used for computing the vesting dates.
 	uint256 public constant FOUR_WEEKS = 4 weeks;
 
 	uint256 public constant CSOV_VESTING_CLIFF = FOUR_WEEKS;
@@ -20,40 +22,51 @@ contract VestingRegistry is Ownable {
 
 	IVestingFactory public vestingFactory;
 
-	///@notice the SOV token contract
+	/// @notice The SOV token contract.
 	address public SOV;
-	///@notice the CSOV token contracts
+
+	/// @notice The CSOV token contracts.
 	address[] public CSOVtokens;
 
 	uint256 public priceSats;
 
-	///@notice the staking contract address
+	/// @notice The staking contract address.
 	address public staking;
-	//@notice fee sharing proxy
+
+	/// @notice Fee sharing proxy.
 	address public feeSharingProxy;
-	//@notice the vesting owner (e.g. governance timelock address)
+
+	/// @notice The vesting owner (e.g. governance timelock address).
 	address public vestingOwner;
 
-	//TODO add to the documentation: address can have only one vesting of each type
-	//user => vesting type => vesting contract
+	/// @dev TODO Add to the documentation: address can have only one vesting of each type.
+	/// @dev user => vesting type => vesting contract.
 	mapping(address => mapping(uint256 => address)) public vestingContracts;
 
-	//struct can be created to save storage slots, but it doesn't make sense
-	//we don't have a lot of blacklisted accounts or account with locked amount
-	//user => flag whether user has already exchange cSV or got a reimbursement
+	/**
+	 * @dev Struct can be created to save storage slots, but it doesn't make
+	 * sense. We don't have a lot of blacklisted accounts or account with
+	 * locked amount.
+	 * */
+
+	/// @dev user => flag whether user has already exchange cSOV or got a reimbursement.
 	mapping(address => bool) public processedList;
-	//user => flag whether user shouldn't be able to exchange or reimburse
+
+	/// @dev user => flag whether user shouldn't be able to exchange or reimburse.
 	mapping(address => bool) public blacklist;
-	//user => amount of tokens should not be processed
+
+	/// @dev user => amount of tokens should not be processed.
 	mapping(address => uint256) public lockedAmount;
 
-	//user => flag whether user has admin role
+	/// @dev user => flag whether user has admin role.
 	mapping(address => bool) public admins;
 
 	enum VestingType {
-		TeamVesting, //MultisigVesting
-		Vesting //TokenHolderVesting
+		TeamVesting, // MultisigVesting
+		Vesting // TokenHolderVesting
 	}
+
+	/* Events */
 
 	event CSOVReImburse(address from, uint256 CSOVamount, uint256 reImburseAmount);
 	event CSOVTokensExchanged(address indexed caller, uint256 amount);
@@ -63,6 +76,8 @@ contract VestingRegistry is Ownable {
 	event TokensStaked(address indexed vesting, uint256 amount);
 	event AdminAdded(address admin);
 	event AdminRemoved(address admin);
+
+	/* Functions */
 
 	constructor(
 		address _vestingFactory,
@@ -88,25 +103,38 @@ contract VestingRegistry is Ownable {
 		vestingOwner = _vestingOwner;
 	}
 
+	//---ACL------------------------------------------------------------------
+
 	/**
 	 * @dev Throws if called by any account other than the owner or admin.
+	 * TODO: This ACL logic should be available on OpenZeppeling Ownable.sol
+	 * or on our own overriding sovrynOwnable. This same logic is repeated
+	 * on OriginInvestorsClaim.sol, TokenSender.sol and VestingRegistry2.sol
 	 */
 	modifier onlyAuthorized() {
 		require(isOwner() || admins[msg.sender], "unauthorized");
 		_;
 	}
 
+	/**
+	 * @notice Adds account to ACL.
+	 * @param _admin The addresses of the account to grant permissions.
+	 * */
 	function addAdmin(address _admin) public onlyOwner {
 		admins[_admin] = true;
 		emit AdminAdded(_admin);
 	}
 
+	/**
+	 * @notice Removes account from ACL.
+	 * @param _admin The addresses of the account to revoke permissions.
+	 * */
 	function removeAdmin(address _admin) public onlyOwner {
 		admins[_admin] = false;
 		emit AdminRemoved(_admin);
 	}
 
-	//---PostCSOV---------------------------------------------------------------------------------------------------------------------------
+	//---PostCSOV--------------------------------------------------------------
 
 	modifier isNotProcessed() {
 		require(!processedList[msg.sender], "Address cannot be processed twice");
@@ -119,7 +147,10 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @dev reImburse - check holder CSOV balance, ReImburse RBTC and store holder address in processedList
+	 * @notice CSOV payout to sender with rBTC currency.
+	 * 1.- Check holder CSOV balance by adding up every CSOV token balance.
+	 * 2.- ReImburse RBTC if funds available.
+	 * 3.- And store holder address in processedList.
 	 */
 	function reImburse() public isNotProcessed isNotBlacklisted {
 		uint256 CSOVAmountWei = 0;
@@ -154,26 +185,47 @@ contract VestingRegistry is Ownable {
 	//--------------------------------------------------------------------------------------------------------------------------------------
 
 	/**
-	 * @notice sets vesting factory address
-	 * @param _vestingFactory the address of vesting factory contract
-	 */
+	 * @notice Sets vesting factory address. High level endpoint.
+	 * @param _vestingFactory The address of vesting factory contract.
+	 *
+	 * @dev Splitting code on two functions: high level and low level
+	 * is a pattern that makes easy to extend functionality in a readable way,
+	 * without accidentally breaking the actual action being performed.
+	 * For example, checks should be done on high level endpoint, while core
+	 * functionality should be coded on the low level function.
+	 * */
 	function setVestingFactory(address _vestingFactory) public onlyOwner {
 		_setVestingFactory(_vestingFactory);
 	}
 
+	/**
+	 * @notice Sets vesting factory address. Low level core function.
+	 * @param _vestingFactory The address of vesting factory contract.
+	 * */
 	function _setVestingFactory(address _vestingFactory) internal {
 		require(_vestingFactory != address(0), "vestingFactory address invalid");
 		vestingFactory = IVestingFactory(_vestingFactory);
 	}
 
 	/**
-	 * @notice sets CSON tokens array
-	 * @param _CSOVtokens the array of CSOV tokens
-	 */
+	 * @notice Sets CSON tokens array. High level endpoint.
+	 *
+	 * @dev Splitting code on two functions: high level and low level
+	 * is a pattern that makes easy to extend functionality in a readable way,
+	 * without accidentally breaking the actual action being performed.
+	 * For example, checks should be done on high level endpoint, while core
+	 * functionality should be coded on the low level function.
+	 *
+	 * @param _CSOVtokens The array of CSOV tokens.
+	 * */
 	function setCSOVtokens(address[] memory _CSOVtokens) public onlyOwner {
 		_setCSOVtokens(_CSOVtokens);
 	}
 
+	/**
+	 * @notice Sets CSON tokens array by looping through input. Low level function.
+	 * @param _CSOVtokens The array of CSOV tokens.
+	 * */
 	function _setCSOVtokens(address[] memory _CSOVtokens) internal {
 		for (uint256 i = 0; i < _CSOVtokens.length; i++) {
 			require(_CSOVtokens[i] != address(0), "CSOV address invalid");
@@ -182,10 +234,10 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice sets blacklist flag
-	 * @param _account the address to be blacklisted
-	 * @param _blacklisted the flag to add/remove to/from a blacklist
-	 */
+	 * @notice Sets blacklist flag (true/false).
+	 * @param _account The address to be blacklisted.
+	 * @param _blacklisted The flag to add/remove to/from a blacklist.
+	 * */
 	function setBlacklistFlag(address _account, bool _blacklisted) public onlyOwner {
 		require(_account != address(0), "account address invalid");
 
@@ -193,10 +245,10 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice sets amount to be subtracted from user token balance
-	 * @param _account the address with locked amount
-	 * @param _amount the amount is locked
-	 */
+	 * @notice Sets amount to be subtracted from user token balance.
+	 * @param _account The address with locked amount.
+	 * @param _amount The amount to be locked.
+	 * */
 	function setLockedAmount(address _account, uint256 _amount) public onlyOwner {
 		require(_account != address(0), "account address invalid");
 		require(_amount != 0, "amount invalid");
@@ -205,10 +257,14 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice transfers SOV tokens to given address
-	 * @param _receiver the address of the SOV receiver
-	 * @param _amount the amount to be transferred
-	 */
+	 * @notice Transfers SOV tokens to given address.
+	 *
+	 * @dev This is a wrapper for ERC-20 transfer function w/
+	 * additional checks and triggering an event.
+	 *
+	 * @param _receiver The address of the SOV receiver.
+	 * @param _amount The amount to be transferred.
+	 * */
 	function transferSOV(address _receiver, uint256 _amount) public onlyOwner {
 		require(_receiver != address(0), "receiver address invalid");
 		require(_amount != 0, "amount invalid");
@@ -291,10 +347,10 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice stakes tokens according to the vesting schedule
-	 * @param _vesting the address of Vesting contract
-	 * @param _amount the amount of tokens to stake
-	 */
+	 * @notice Stakes tokens according to the vesting schedule.
+	 * @param _vesting The address of Vesting contract.
+	 * @param _amount The amount of tokens to stake.
+	 * */
 	function stakeTokens(address _vesting, uint256 _amount) public onlyAuthorized {
 		require(_vesting != address(0), "vesting address invalid");
 		require(_amount > 0, "amount invalid");
@@ -305,21 +361,31 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice returns vesting contract address for the given token owner
-	 * @param _tokenOwner the owner of the tokens
-	 */
+	 * @notice Queries the vesting contract for an account.
+	 * @param _tokenOwner The owner of the tokens.
+	 * @return The vesting contract address for the given token owner.
+	 * */
 	function getVesting(address _tokenOwner) public view returns (address) {
 		return vestingContracts[_tokenOwner][uint256(VestingType.Vesting)];
 	}
 
 	/**
-	 * @notice returns team vesting contract address for the given token owner
-	 * @param _tokenOwner the owner of the tokens
-	 */
+	 * @notice Queries the team vesting contract for an account.
+	 * @param _tokenOwner The owner of the tokens.
+	 * @return The team vesting contract address for the given token owner.
+	 * */
 	function getTeamVesting(address _tokenOwner) public view returns (address) {
 		return vestingContracts[_tokenOwner][uint256(VestingType.TeamVesting)];
 	}
 
+	/**
+	 * @notice If not exists, deploys a vesting contract through factory.
+	 * @param _tokenOwner The owner of the tokens.
+	 * @param _cliff The cliff in seconds.
+	 * @param _duration The total duration in seconds.
+	 * @return The team vesting contract address for the given token owner
+	 * whether it existed previously or not.
+	 * */
 	function _getOrCreateVesting(
 		address _tokenOwner,
 		uint256 _cliff,
@@ -327,7 +393,7 @@ contract VestingRegistry is Ownable {
 	) internal returns (address) {
 		uint256 type_ = uint256(VestingType.Vesting);
 		if (vestingContracts[_tokenOwner][type_] == address(0)) {
-			//TODO Owner of OwnerVesting contracts - the same address as tokenOwner
+			/// @dev TODO: Owner of OwnerVesting contracts - the same address as tokenOwner.
 			address vesting = vestingFactory.deployVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy, _tokenOwner);
 			vestingContracts[_tokenOwner][type_] = vesting;
 		}
