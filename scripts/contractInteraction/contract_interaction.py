@@ -73,6 +73,9 @@ def main():
 
     # createProposalSIP0015()
 
+    # transferSOVtoTokenSender()
+
+    # transferSOVtoScriptAccount()
     #transferSOVtoTokenSender()
     #readBalanceFromAMM()
     #checkRates()
@@ -1076,11 +1079,28 @@ def transferSOVtoTokenSender():
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
+def transferSOVtoScriptAccount():
+    # 5825.7 SOV
+    amount = 58257 * 10**17
+
+    # TODO set receiver address
+    receiver = "0x27D55f5668eF4438635bdCE0aDCA083507E77752"
+    if (receiver == ""):
+        raise Exception("Invalid address")
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    data = SOVtoken.transfer.encode_input(receiver, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(SOVtoken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
 def setSupportedToken(tokenAddress):
     sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
 
-    data = sovryn.setSupportedTokens.encode_input([tokenAddress],[True]) 
+    data = sovryn.setSupportedTokens.encode_input([tokenAddress],[True])
     tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
@@ -1116,7 +1136,7 @@ def testV1Converter(converterAddress, reserve1, reserve2):
 
     tokenContract2 = Contract.from_abi("Token", address=reserve2, abi=TestToken.abi, owner=acct)
     tokenContract2.approve(converter.address, bal2/50)
-    accountBalance = tokenContract2.balanceOf(acct)   
+    accountBalance = tokenContract2.balanceOf(acct)
 
     converter.addLiquidity([reserve1, reserve2],[bal1/100, bal2/50],1)
 
