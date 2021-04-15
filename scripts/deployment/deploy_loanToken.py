@@ -44,6 +44,7 @@ def deployLoanTokens(acct, sovryn, tokens):
     tokens.susd.approve(contractSUSD.address,1000e18) #1k $
     contractSUSD.mint(acct, 1000e18)
     if network.show_active() == "development":
+        testAffiliatesIntegration(acct, sovryn,contractSUSD.address, tokens.susd, tokens.wrbtc, 21e18, 0)
         testDeployment(acct, sovryn,contractSUSD.address, tokens.susd, tokens.wrbtc, 21e18, 0)
     
     print('\n DEPLOYING IWRBTC')
@@ -52,6 +53,7 @@ def deployLoanTokens(acct, sovryn, tokens):
     contractWRBTC = Contract.from_abi("loanToken", address=contractWRBTC.address, abi=LoanTokenLogicWrbtc.abi, owner=acct)
     contractWRBTC.mintWithBTC(acct, {'value':0.1e18})#0.1 BTC
     if network.show_active() == "development":
+        testAffiliatesIntegration(acct, sovryn, contractWRBTC.address, tokens.wrbtc, tokens.susd, 0.0021e18, 0.0021e18)
         testDeployment(acct, sovryn, contractWRBTC.address, tokens.wrbtc, tokens.susd, 0.0021e18, 0.0021e18)
 
     return (contractSUSD, contractWRBTC, loanTokenSettingsSUSD, loanTokenSettingsWRBTC)
@@ -167,7 +169,7 @@ def setupLoanTokenRates(acct, loanTokenAddress, logicAddress):
     localLoanToken.setDemandCurve(baseRate,rateMultiplier,baseRate,rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
     borrowInterestRate = localLoanToken.borrowInterestRate()
     print("borrowInterestRate: ",borrowInterestRate)
-    
+
 '''
 test the loan token contract by entering and closing a trade position
 '''
@@ -198,6 +200,36 @@ def testDeployment(acct, sovryn, loanTokenAddress, underlyingToken, collateralTo
     print("position size is ", collateral)
     tx = sovryn.closeWithSwap(loanId, acct, collateral, True, b'')
 
+'''
+test the affiliate margin trade by entering and closing a trade position
+'''
+def testAffiliatesIntegration(acct, sovryn, loanTokenAddress, underlyingToken, collateralToken, loanTokenSent, value):
 
+    print('\n TESTING THE AFFILIATES INTEGRATION')
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    
+    if(value == 0):
+        underlyingToken.approve(loanToken.address, loanTokenSent)
+    
+    referrerAddress = accounts[9]
+    print('\n Referrer referrer : ')
+    print(referrerAddress)
+    
+    tx = loanToken.marginTradeAffiliate(
+        "0", #loanId  (0 for new loans)
+        2e18, # leverageAmount
+        loanTokenSent, #loanTokenSent
+        0, # no collateral token sent
+        collateralToken.address, #collateralTokenAddress
+        acct, #trader, 
+        referrerAddress,
+        b'', #loanDataBytes (only required with ether)
+        {'value': value}
+    )
+    tx.info()
 
-
+    loanId = tx.events['Trade']['loanId']
+    collateral = tx.events['Trade']['positionSize']
+    print("closing loan with id", loanId)
+    print("position size is ", collateral)
+    tx = sovryn.closeWithSwap(loanId, acct, collateral, True, b'')

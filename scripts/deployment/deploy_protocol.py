@@ -64,6 +64,9 @@ def deployProtocol(acct, tokens, mocOracleAddress, rskOracleAddress):
     # needs to be replaced with an actual reward token address
     sovryn.setProtocolTokenAddress(sovryn.address)
 
+    # need to set sovryn protocol address for module interaction
+    sovryn.setSovrynProtocolAddress(sovryn.address)
+
     ## LoanSettings
     print("Deploying LoanSettings.")
     loanSettings = acct.deploy(LoanSettings)
