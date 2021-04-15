@@ -122,7 +122,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 	 * @notice Withdraws tokens from the staking contract and forwards them
 	 * to an address specified by the token owner. Low level function.
 	 * @dev Once here the caller permission is taken for granted.
-	 * @param Receiver the receiving address.
+	 * @param receiver The receiving address.
 	 * @param isGovernance Whether all tokens (true)
 	 * or just unlocked tokens (false).
 	 * */
