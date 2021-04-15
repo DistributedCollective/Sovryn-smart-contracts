@@ -77,10 +77,41 @@ def main():
     #readBalanceFromAMM()
     #checkRates()
 
-    testV1Converter(contracts["ConverterSOV"], contracts["WRBTC"], contracts["SOV"])
+    #testV1Converter(contracts["ConverterSOV"], contracts["WRBTC"], contracts["SOV"])
     # transferSOVtoTokenSender()
     # addLiquidityV1(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
     #addLiquidityV1UsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
+
+    '''''
+    startRate = 1e8/15000 *1e10
+    print(startRate)
+    sovBalance = 100000 * 1e18
+    rbtcBalance = sovBalance / startRate 
+    print(rbtcBalance)
+    product = sovBalance * rbtcBalance
+    amount = 1000 *1e18
+    getTargetAmountFromAMM(sovBalance, 50000, rbtcBalance, 50000, amount)
+
+
+    newTargetBalance = product / (sovBalance + amount )
+    targetAmount = rbtcBalance-newTargetBalance
+    #targetAmount = rbtcBalance * (1-sovBalance/(sovBalance + amount))
+    rate = amount / targetAmount
+    impact =  100*(rate - startRate)/startRate
+    print(targetAmount)
+    print(rate)
+    print(impact)
+    '''
+
+    readSwapRate(contracts['SOV'], contracts['WRBTC'])
+    readOwner(contracts['WRBTCtoSOVConverter'])
+    #acceptOwnershipWithMultisig(contracts['WRBTCtoSOVConverter'])
+    readConversionFee(contracts['WRBTCtoSOVConverter'])
+    readConversionFee(contracts['ConverterUSDT'])
+
+    #((impact/100 * 15000e10) + 15000e10) * rbtcBalance - ((impact/100 * 15000e10) + 15000e10) * (sovBalance * rbtcBalance / (sovBalance + amount ))  = amount  
+
+
 
 def loadConfig():
     global contracts, acct
@@ -548,6 +579,13 @@ def readSwapRate(source, destination):
     #print("path:", path)
     expectedReturn = swapNetwork.getReturnByPath(path, 0.01e18)
     print('rate is ', expectedReturn)
+
+def readConversionFee(converterAddress):
+    abiFile =  open('./scripts/contractInteraction/LiquidityPoolV1Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("Converter", address=converterAddress, abi=abi, owner=acct)
+    fee = converter.conversionFee()
+    print('fee is ', fee)
 
 def readPriceFromOracle(oracleAddress):
     oracle = Contract.from_abi("Oracle", address=oracleAddress, abi=PriceFeedsMoC.abi, owner=acct)
@@ -1155,3 +1193,13 @@ def addLiquidityV1UsingWrapper(converter, tokens, amounts):
 
     tx = wrapperProxy.addLiquidityToV1(converter, tokens, amounts, 1, {'value': amounts[0]})
     print(tx)
+
+def getTargetAmountFromAMM(_sourceReserveBalance, _sourceReserveWeight, _targetReserveBalance, _targetReserveWeight, _amount):
+    abiFile =  open('./scripts/contractInteraction/SovrynSwapFormula.json')
+    abi = json.load(abiFile)
+
+    sovrynSwapFormula = Contract.from_abi("SovrynSwapFormula", address=contracts['SovrynSwapFormula'], abi=abi, owner=acct)
+
+    targetAmount = sovrynSwapFormula.crossReserveTargetAmount(_sourceReserveBalance, _sourceReserveWeight, _targetReserveBalance, _targetReserveWeight, _amount)
+
+    print(targetAmount)
