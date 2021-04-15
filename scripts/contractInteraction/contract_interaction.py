@@ -74,7 +74,6 @@ def main():
     # transferSOVtoTokenSender()
 
     transferSOVtoScriptAccount()
-    transferSOV()
 
 def loadConfig():
     global contracts, acct
@@ -1054,28 +1053,11 @@ def transferSOVtoTokenSender():
     print(txId)
 
 def transferSOVtoScriptAccount():
-    # 43482.4 SOV
-    amount = 434824 * 10**17
+    # 5825.7 SOV
+    amount = 58257 * 10**17
 
     # TODO set receiver address
     receiver = "0x27D55f5668eF4438635bdCE0aDCA083507E77752"
-    if (receiver == ""):
-        raise Exception("Invalid address")
-    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
-    data = SOVtoken.transfer.encode_input(receiver, amount)
-    print(data)
-
-    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
-    tx = multisig.submitTransaction(SOVtoken.address,0,data)
-    txId = tx.events["Submission"]["transactionId"]
-    print(txId)
-
-def transferSOV():
-    # 641.0 SOV
-    amount = 6410 * 10**17
-
-    # TODO set receiver address
-    receiver = "0xbFd7dE39db0edd0bB912de917E1553fe42400402"
     if (receiver == ""):
         raise Exception("Invalid address")
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
