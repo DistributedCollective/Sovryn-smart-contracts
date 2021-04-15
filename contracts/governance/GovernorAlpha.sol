@@ -239,7 +239,7 @@ contract GovernorAlpha is SafeMath96 {
 				endBlock: safe32(endBlock, "GovernorAlpha::propose: end block number overflow"),
 				forVotes: 0,
 				againstVotes: 0,
-				quorum: mul96(quorumPercentageVotes, threshold, "GovernorAlpha::propose: overflow on quorum computation"), 
+				quorum: mul96(quorumPercentageVotes, threshold, "GovernorAlpha::propose: overflow on quorum computation"),
 				majorityPercentage: mul96(
 					majorityPercentageVotes,
 					threshold,
