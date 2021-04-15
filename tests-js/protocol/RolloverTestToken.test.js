@@ -101,6 +101,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		*/
 		it("Test rollover", async () => {
 			// prepare the test
+
 			const [borrower, loan, loan_id, endTimestamp] = await setup_rollover_test(
 				RBTC,
 				SUSD,
@@ -115,6 +116,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 			const lender_pool_initial_balance = await SUSD.balanceOf(loanToken.address);
 			const sov_borrower_initial_balance = await SOV.balanceOf(borrower);
 			const { receipt } = await sovryn.rollover(loan_id, "0x");
+			const susd_bal_after_rollover = (await SUSD.balanceOf(loanToken.address)).toString();
 
 			const lender_interest_after = await sovryn.getLenderInterestData(loanToken.address, SUSD.address);
 
