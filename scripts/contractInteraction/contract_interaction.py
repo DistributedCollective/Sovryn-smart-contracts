@@ -73,14 +73,24 @@ def main():
 
     # createProposalSIP0015()
 
+    # transferSOVtoTokenSender()
+
+    # transferSOVtoScriptAccount()
     #transferSOVtoTokenSender()
     #readBalanceFromAMM()
     #checkRates()
 
-    #testV1Converter(contracts["ConverterSOV"], contracts["WRBTC"], contracts["SOV"])
+    # testV1Converter(contracts["ConverterSOV"], contracts["WRBTC"], contracts["SOV"])
     # transferSOVtoTokenSender()
     # addLiquidityV1(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
-    #addLiquidityV1UsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
+    # addLiquidityV1UsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
+
+    # addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**15, 67 * 10**17])
+    # addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [30 * 10**18, 200000 * 10**18])
+
+    removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 5 * 10**17, [contracts['WRBTC'], contracts['SOV']])
+    # 2986.175 × 99% ~ 2957
+    # removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 2957 * 10**18, [contracts['WRBTC'], contracts['SOV']])
 
     '''''
     startRate = 1e8/15000 *1e10
@@ -1107,11 +1117,28 @@ def transferSOVtoTokenSender():
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
+def transferSOVtoScriptAccount():
+    # 5825.7 SOV
+    amount = 58257 * 10**17
+
+    # TODO set receiver address
+    receiver = "0x27D55f5668eF4438635bdCE0aDCA083507E77752"
+    if (receiver == ""):
+        raise Exception("Invalid address")
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    data = SOVtoken.transfer.encode_input(receiver, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(SOVtoken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
 def setSupportedToken(tokenAddress):
     sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
 
-    data = sovryn.setSupportedTokens.encode_input([tokenAddress],[True]) 
+    data = sovryn.setSupportedTokens.encode_input([tokenAddress],[True])
     tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
@@ -1147,7 +1174,7 @@ def testV1Converter(converterAddress, reserve1, reserve2):
 
     tokenContract2 = Contract.from_abi("Token", address=reserve2, abi=TestToken.abi, owner=acct)
     tokenContract2.approve(converter.address, bal2/50)
-    accountBalance = tokenContract2.balanceOf(acct)   
+    accountBalance = tokenContract2.balanceOf(acct)
 
     converter.addLiquidity([reserve1, reserve2],[bal1/100, bal2/50],1)
 
@@ -1203,3 +1230,53 @@ def getTargetAmountFromAMM(_sourceReserveBalance, _sourceReserveWeight, _targetR
     targetAmount = sovrynSwapFormula.crossReserveTargetAmount(_sourceReserveBalance, _sourceReserveWeight, _targetReserveBalance, _targetReserveWeight, _amount)
 
     print(targetAmount)
+def addLiquidityV1FromMultisigUsingWrapper(converter, tokens, amounts):
+    abiFile =  open('./scripts/contractInteraction/RBTCWrapperProxy.json')
+    abi = json.load(abiFile)
+    wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=contracts['RBTCWrapperProxy'], abi=abi, owner=acct)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+
+    # approve
+    token = Contract.from_abi("ERC20", address=tokens[1], abi=ERC20.abi, owner=acct)
+    data = token.approve.encode_input(wrapperProxy.address, amounts[1])
+    print(data)
+
+    tx = multisig.submitTransaction(token.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+    # addLiquidityToV1
+    data = wrapperProxy.addLiquidityToV1.encode_input(converter, tokens, amounts, 1)
+    print(data)
+
+    tx = multisig.submitTransaction(wrapperProxy.address,amounts[0],data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def removeLiquidityV1toMultisigUsingWrapper(converter, amount, tokens):
+    abiFile =  open('./scripts/contractInteraction/RBTCWrapperProxy.json')
+    abi = json.load(abiFile)
+    wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=contracts['RBTCWrapperProxy'], abi=abi, owner=acct)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+
+    converterAbiFile =  open('./scripts/contractInteraction/LiquidityPoolV1Converter.json')
+    converterAbi = json.load(converterAbiFile)
+    converterContract = Contract.from_abi("LiquidityPoolV1Converter", address=converter, abi=converterAbi, owner=acct)
+    poolToken = converterContract.anchor()
+
+    # approve
+    token = Contract.from_abi("ERC20", address=poolToken, abi=ERC20.abi, owner=acct)
+    data = token.approve.encode_input(wrapperProxy.address, amount)
+    print(data)
+
+    tx = multisig.submitTransaction(token.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+    # removeLiquidityFromV1
+    data = wrapperProxy.removeLiquidityFromV1.encode_input(converter, amount, tokens, [1,1])
+    print(data)
+
+    tx = multisig.submitTransaction(wrapperProxy.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
