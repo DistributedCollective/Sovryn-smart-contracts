@@ -79,6 +79,16 @@ contract VestingRegistry is Ownable {
 
 	/* Functions */
 
+	/**
+	 * @notice Contract deployment settings.
+	 * @param _vestingFactory The address of vesting factory contract.
+	 * @param _SOV The SOV token address.
+	 * @param _CSOVtokens The array of CSOV tokens.
+	 * @param _priceSats The price of CSOV tokens in satoshis.
+	 * @param _staking The address of staking contract.
+	 * @param _feeSharingProxy The address of fee sharing proxy contract.
+	 * @param _vestingOwner The address of an owner of vesting contract.
+	 * */
 	constructor(
 		address _vestingFactory,
 		address _SOV,
@@ -149,7 +159,7 @@ contract VestingRegistry is Ownable {
 	/**
 	 * @notice CSOV payout to sender with rBTC currency.
 	 * 1.- Check holder CSOV balance by adding up every CSOV token balance.
-	 * 2.- ReImburse RBTC if funds available.
+	 * 2.- ReImburse rBTC if funds available.
 	 * 3.- And store holder address in processedList.
 	 */
 	function reImburse() public isNotProcessed isNotBlacklisted {
@@ -164,7 +174,13 @@ contract VestingRegistry is Ownable {
 		CSOVAmountWei -= lockedAmount[msg.sender];
 		processedList[msg.sender] = true;
 
-		uint256 reImburseAmount = (CSOVAmountWei.mul(priceSats)).div(10**10);
+		/**
+		 * @dev Found and fixed the SIP-0007 bug on VestingRegistry::reImburse formula.
+		 * More details at Documenting Code issues at point 11 in
+		 * https://docs.google.com/document/d/10idTD1K6JvoBmtPKGuJ2Ub_mMh6qTLLlTP693GQKMyU/
+		 * Previous buggy code: uint256 reImburseAmount = (CSOVAmountWei.mul(priceSats)).div(10**10);
+		 * */
+		uint256 reImburseAmount = (CSOVAmountWei.mul(priceSats)).div(10**8);
 		require(address(this).balance >= reImburseAmount, "Not enough funds to reimburse");
 		msg.sender.transfer(reImburseAmount);
 
@@ -208,7 +224,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice Sets CSON tokens array. High level endpoint.
+	 * @notice Sets CSOV tokens array. High level endpoint.
 	 *
 	 * @dev Splitting code on two functions: high level and low level
 	 * is a pattern that makes easy to extend functionality in a readable way,
@@ -223,7 +239,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice Sets CSON tokens array by looping through input. Low level function.
+	 * @notice Sets CSOV tokens array by looping through input. Low level function.
 	 * @param _CSOVtokens The array of CSOV tokens.
 	 * */
 	function _setCSOVtokens(address[] memory _CSOVtokens) internal {
@@ -292,6 +308,10 @@ contract VestingRegistry is Ownable {
 		_createVestingForCSOV(amount);
 	}
 
+	/**
+	 * @notice CSOV tokens are moved and staked on Vesting contract.
+	 * @param _amount The amount of tokens to be vested.
+	 * */
 	function _createVestingForCSOV(uint256 _amount) internal {
 		address vesting = _getOrCreateVesting(msg.sender, CSOV_VESTING_CLIFF, CSOV_VESTING_DURATION);
 
@@ -301,6 +321,10 @@ contract VestingRegistry is Ownable {
 		emit CSOVTokensExchanged(msg.sender, _amount);
 	}
 
+	/**
+	 * @notice Checks a token address is among the CSOV token addresses.
+	 * @param _CSOV The CSOV token address.
+	 * */
 	function _validateCSOV(address _CSOV) internal view {
 		bool isValid = false;
 		for (uint256 i = 0; i < CSOVtokens.length; i++) {
@@ -313,12 +337,12 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice creates Vesting contract
-	 * @param _tokenOwner the owner of the tokens
-	 * @param _amount the amount to be staked
-	 * @param _cliff the cliff in seconds
-	 * @param _duration the total duration in seconds
-	 */
+	 * @notice Creates Vesting contract.
+	 * @param _tokenOwner The owner of the tokens.
+	 * @param _amount The amount to be staked.
+	 * @param _cliff The cliff in seconds.
+	 * @param _duration The total duration in seconds.
+	 * */
 	function createVesting(
 		address _tokenOwner,
 		uint256 _amount,
@@ -330,12 +354,12 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice creates Team Vesting contract
-	 * @param _tokenOwner the owner of the tokens
-	 * @param _amount the amount to be staked
-	 * @param _cliff the cliff in seconds
-	 * @param _duration the total duration in seconds
-	 */
+	 * @notice Creates Team Vesting contract.
+	 * @param _tokenOwner The owner of the tokens.
+	 * @param _amount The amount to be staked.
+	 * @param _cliff The cliff in seconds.
+	 * @param _duration The total duration in seconds.
+	 * */
 	function createTeamVesting(
 		address _tokenOwner,
 		uint256 _amount,
@@ -383,7 +407,7 @@ contract VestingRegistry is Ownable {
 	 * @param _tokenOwner The owner of the tokens.
 	 * @param _cliff The cliff in seconds.
 	 * @param _duration The total duration in seconds.
-	 * @return The team vesting contract address for the given token owner
+	 * @return The vesting contract address for the given token owner
 	 * whether it existed previously or not.
 	 * */
 	function _getOrCreateVesting(
@@ -400,6 +424,14 @@ contract VestingRegistry is Ownable {
 		return vestingContracts[_tokenOwner][type_];
 	}
 
+	/**
+	 * @notice If not exists, deploys a team vesting contract through factory.
+	 * @param _tokenOwner The owner of the tokens.
+	 * @param _cliff The cliff in seconds.
+	 * @param _duration The total duration in seconds.
+	 * @return The team vesting contract address for the given token owner
+	 * whether it existed previously or not.
+	 * */
 	function _getOrCreateTeamVesting(
 		address _tokenOwner,
 		uint256 _cliff,
