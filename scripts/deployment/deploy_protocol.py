@@ -20,18 +20,18 @@ def main():
     
     deployProtocol(acct)
 
-def deployProtocol(acct, tokens, medianizerAddress):
+def deployProtocol(acct, tokens, mocOracleAddress, rskOracleAddress):
 
     constants = shared.Constants()
 
     print("Deploying sovrynProtocol.")
     sovrynproxy = acct.deploy(sovrynProtocol)
-    sovryn = Contract.from_abi("sovryn", address=sovrynproxy.address, abi=interface.ISovryn.abi, owner=acct)
+    sovryn = Contract.from_abi("sovryn", address=sovrynproxy.address, abi=interface.ISovrynBrownie.abi, owner=acct)
     _add_contract(sovryn)
 
     print("Deploying PriceFeeds.")
     #feeds = acct.deploy(PriceFeedsLocal, tokens.wrbtc.address, sovryn.address)
-    priceFeedMoC = acct.deploy(PriceFeedsMoC, medianizerAddress)
+    priceFeedMoC = acct.deploy(PriceFeedsMoC, mocOracleAddress, rskOracleAddress)
     #2nd address should actually be the protocol token address, not the protocol address
     feeds = acct.deploy(PriceFeeds, tokens.wrbtc.address, sovryn.address, tokens.susd.address)
     feeds.setPriceFeed([tokens.wrbtc.address], [priceFeedMoC.address])
@@ -87,5 +87,11 @@ def deployProtocol(acct, tokens, medianizerAddress):
     loanClosings = acct.deploy(LoanClosings)
     print("Calling replaceContract.")
     sovryn.replaceContract(loanClosings.address)
+
+    ## SwapExternal
+    print("Deploying SwapExternal.")
+    swapExternal = acct.deploy(SwapsExternal)
+    print("Calling replaceContract.")
+    sovryn.replaceContract(swapExternal.address)
 
     return (sovryn, feeds)

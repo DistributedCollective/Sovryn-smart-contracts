@@ -11,71 +11,61 @@ import "../../ISwapsImpl.sol";
 import "../../../feeds/IPriceFeeds.sol";
 import "../../../testhelpers/TestToken.sol";
 
-
 contract SwapsImplLocal is State, ISwapsImpl {
-    using SafeERC20 for IERC20;
+	using SafeERC20 for IERC20;
 
-    function internalSwap(
-        address sourceTokenAddress,
-        address destTokenAddress,
-        address /*receiverAddress*/,
-        address returnToSenderAddress,
-        uint256 minSourceTokenAmount,
-        uint256 maxSourceTokenAmount,
-        uint256 requiredDestTokenAmount)
-        public
-        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
-    {   
-        require(sourceTokenAddress != destTokenAddress, "source == dest");
+	function internalSwap(
+		address sourceTokenAddress,
+		address destTokenAddress,
+		address, /*receiverAddress*/
+		address returnToSenderAddress,
+		uint256 minSourceTokenAmount,
+		uint256 maxSourceTokenAmount,
+		uint256 requiredDestTokenAmount
+	) public returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
+		require(sourceTokenAddress != destTokenAddress, "source == dest");
 
+		(uint256 tradeRate, uint256 precision) = IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);
 
-        (uint256 tradeRate, uint256 precision) = IPriceFeeds(priceFeeds).queryRate(
-            sourceTokenAddress,
-            destTokenAddress
-        );
+		if (requiredDestTokenAmount == 0) {
+			sourceTokenAmountUsed = minSourceTokenAmount;
+			destTokenAmountReceived = minSourceTokenAmount.mul(tradeRate).div(precision);
+		} else {
+			destTokenAmountReceived = requiredDestTokenAmount;
+			sourceTokenAmountUsed = requiredDestTokenAmount.mul(precision).div(tradeRate);
+			require(sourceTokenAmountUsed <= minSourceTokenAmount, "destAmount too great");
+		}
 
-        if (requiredDestTokenAmount == 0) {
-            sourceTokenAmountUsed = minSourceTokenAmount;
-            destTokenAmountReceived = minSourceTokenAmount
-                .mul(tradeRate)
-                .div(precision);
-        } else {
-            destTokenAmountReceived = requiredDestTokenAmount;
-            sourceTokenAmountUsed = requiredDestTokenAmount
-                .mul(precision)
-                .div(tradeRate);
-            require(sourceTokenAmountUsed <= minSourceTokenAmount, "destAmount too great");
-        }
+		TestToken(sourceTokenAddress).burn(address(this), sourceTokenAmountUsed);
+		TestToken(destTokenAddress).mint(address(this), destTokenAmountReceived);
 
-        TestToken(sourceTokenAddress).burn(address(this), sourceTokenAmountUsed);
-        TestToken(destTokenAddress).mint(address(this), destTokenAmountReceived);
+		if (returnToSenderAddress != address(this)) {
+			if (sourceTokenAmountUsed < maxSourceTokenAmount) {
+				// send unused source token back
+				IERC20(sourceTokenAddress).safeTransfer(returnToSenderAddress, maxSourceTokenAmount - sourceTokenAmountUsed);
+			}
+		}
+	}
 
-        if (returnToSenderAddress != address(this)) {
-            if (sourceTokenAmountUsed < maxSourceTokenAmount) {
-                // send unused source token back
-                IERC20(sourceTokenAddress).safeTransfer(
-                    returnToSenderAddress,
-                    maxSourceTokenAmount-sourceTokenAmountUsed
-                );
-            }
-        }
-    }
+	function internalExpectedRate(
+		address sourceTokenAddress,
+		address destTokenAddress,
+		uint256 sourceTokenAmount,
+		address unused
+	) public view returns (uint256) {
+		(uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);
 
-    function internalExpectedRate(
-        address sourceTokenAddress,
-        address destTokenAddress,
-        uint256 sourceTokenAmount)
-        public
-        view
-        returns (uint256)
-    {
-        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(
-            sourceTokenAddress,
-            destTokenAddress
-        );
+		return sourceTokenAmount.mul(sourceToDestRate).div(sourceToDestPrecision);
+	}
 
-        return sourceTokenAmount
-            .mul(sourceToDestRate)
-            .div(sourceToDestPrecision);
-    }
+	function internalExpectedReturn(
+		address sourceTokenAddress,
+		address destTokenAddress,
+		uint256 sourceTokenAmount,
+		address unused
+	) public view returns (uint256) {
+		(uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);
+
+		return sourceTokenAmount.mul(sourceToDestRate).div(sourceToDestPrecision);
+	}
 }

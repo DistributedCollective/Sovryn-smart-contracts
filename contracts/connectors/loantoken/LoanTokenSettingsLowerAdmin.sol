@@ -9,133 +9,155 @@ pragma experimental ABIEncoderV2;
 import "./AdvancedToken.sol";
 import "./interfaces/ProtocolSettingsLike.sol";
 
-
 contract LoanTokenSettingsLowerAdmin is AdvancedToken {
-    using SafeMath for uint256;
+	using SafeMath for uint256;
 
-    // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress
-    address public sovrynContractAddress;
-    
-    event SetTransactionLimits(address[] addresses, uint256[] limits);
+	// It is important to maintain the variables order so the delegate calls can access sovrynContractAddress
 
-    modifier onlyAdmin() {
-        require(msg.sender == address(this) ||
-            msg.sender == owner(), "unauthorized");
-        _;
-    }
+	// ------------- MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
+	address public sovrynContractAddress;
+	address public wrbtcTokenAddress;
+	address internal target_;
+	address public admin;
+	// ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 
-    function()
-        external
-    {
-        revert("LoanTokenSettingsLowerAdmin - fallback not allowed");
-    }
+	//Add new variables here on the bottom
+	address public earlyAccessToken;
+	address public pauser;
 
-    function setupLoanParams(
-        LoanParamsStruct.LoanParams[] memory loanParamsList,
-        bool areTorqueLoans)
-        public
-        onlyAdmin
-    {
-        bytes32[] memory loanParamsIdList;
-        address _loanTokenAddress = loanTokenAddress;
+	event SetEarlyAccessToken(address oldValue, address newValue);
 
-        for (uint256 i = 0; i < loanParamsList.length; i++) {
-            loanParamsList[i].loanToken = _loanTokenAddress;
-            loanParamsList[i].maxLoanTerm = areTorqueLoans ? 0 : 28 days;
-        }
+	modifier hasEarlyAccessToken() {
+		if (earlyAccessToken != address(0)) require(IERC20(earlyAccessToken).balanceOf(msg.sender) > 0, "No early access tokens");
+		_;
+	}
 
-        loanParamsIdList = ProtocolSettingsLike(sovrynContractAddress).setupLoanParams(loanParamsList);
-        for (uint256 i = 0; i < loanParamsIdList.length; i++) {
-            loanParamsIds[uint256(keccak256(abi.encodePacked(
-                loanParamsList[i].collateralToken,
-                areTorqueLoans // isTorqueLoan
-            )))] = loanParamsIdList[i];
-        }
-    }
+	//@todo check for restrictions in this contract
+	modifier onlyAdmin() {
+		require(isOwner() || msg.sender == admin, "unauthorized");
+		_;
+	}
 
+	event SetTransactionLimits(address[] addresses, uint256[] limits);
 
-    function disableLoanParams(
-        address[] calldata collateralTokens,
-        bool[] calldata isTorqueLoans)
-        external
-        onlyAdmin
-    {
-        require(collateralTokens.length == isTorqueLoans.length, "count mismatch");
+	function setAdmin(address _admin) public onlyOwner {
+		admin = _admin;
+	}
 
-        bytes32[] memory loanParamsIdList = new bytes32[](collateralTokens.length);
-        for (uint256 i = 0; i < collateralTokens.length; i++) {
-            uint256 id = uint256(keccak256(abi.encodePacked(
-                collateralTokens[i],
-                isTorqueLoans[i]
-            )));
-            loanParamsIdList[i] = loanParamsIds[id];
-            delete loanParamsIds[id];
-        }
+	function setPauser(address _pauser) public onlyOwner {
+		pauser = _pauser;
+	}
 
-        ProtocolSettingsLike(sovrynContractAddress).disableLoanParams(loanParamsIdList);
-    }
+	function() external {
+		revert("LoanTokenSettingsLowerAdmin - fallback not allowed");
+	}
 
-    // These params should be percentages represented like so: 5% = 5000000000000000000
-    // rateMultiplier + baseRate can't exceed 100%
-    function setDemandCurve(
-        uint256 _baseRate,
-        uint256 _rateMultiplier,
-        uint256 _lowUtilBaseRate,
-        uint256 _lowUtilRateMultiplier,
-        uint256 _targetLevel,
-        uint256 _kinkLevel,
-        uint256 _maxScaleRate)
-        public
-        onlyAdmin
-    {
-        require(_rateMultiplier.add(_baseRate) <= WEI_PERCENT_PRECISION, "curve params too high");
-        require(_lowUtilRateMultiplier.add(_lowUtilBaseRate) <= WEI_PERCENT_PRECISION, "curve params too high");
+	function setupLoanParams(LoanParamsStruct.LoanParams[] memory loanParamsList, bool areTorqueLoans) public onlyAdmin {
+		bytes32[] memory loanParamsIdList;
+		address _loanTokenAddress = loanTokenAddress;
 
-        require(_targetLevel <= WEI_PERCENT_PRECISION && _kinkLevel <= WEI_PERCENT_PRECISION, "levels too high");
+		for (uint256 i = 0; i < loanParamsList.length; i++) {
+			loanParamsList[i].loanToken = _loanTokenAddress;
+			loanParamsList[i].maxLoanTerm = areTorqueLoans ? 0 : 28 days;
+		}
 
-        baseRate = _baseRate;
-        rateMultiplier = _rateMultiplier;
-        lowUtilBaseRate = _lowUtilBaseRate;
-        lowUtilRateMultiplier = _lowUtilRateMultiplier;
+		loanParamsIdList = ProtocolSettingsLike(sovrynContractAddress).setupLoanParams(loanParamsList);
+		for (uint256 i = 0; i < loanParamsIdList.length; i++) {
+			loanParamsIds[
+				uint256(
+					keccak256(
+						abi.encodePacked(
+							loanParamsList[i].collateralToken,
+							areTorqueLoans // isTorqueLoan
+						)
+					)
+				)
+			] = loanParamsIdList[i];
+		}
+	}
 
-        targetLevel = _targetLevel; // 80 ether
-        kinkLevel = _kinkLevel; // 90 ether
-        maxScaleRate = _maxScaleRate; // 100 ether
-    }
+	function disableLoanParams(address[] calldata collateralTokens, bool[] calldata isTorqueLoans) external onlyAdmin {
+		require(collateralTokens.length == isTorqueLoans.length, "count mismatch");
 
-    function toggleFunctionPause(
-        string memory funcId,  // example: "mint(uint256,uint256)"
-        bool isPaused)
-        public
-        onlyAdmin
-    {
-        // keccak256("iToken_FunctionPause")
-        bytes32 slot = keccak256(abi.encodePacked(bytes4(keccak256(abi.encodePacked(funcId))), uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)));
-        assembly {
-            sstore(slot, isPaused)
-        }
-    }
-    
-    /**
-     * sets the transaction limit per token address
-     * @param addresses the token addresses
-     * @param limits the limit denominated in the currency of the token address
-     * */
-    function setTransactionLimits(
-        address[] memory addresses, 
-        uint256[] memory limits) 
-        public onlyOwner
-    {
-        require(addresses.length == limits.length, "mismatched array lengths");
-        for(uint i = 0; i < addresses.length; i++){
-            transactionLimit[addresses[i]] = limits[i];
-        }
-        emit SetTransactionLimits(addresses, limits);
-    }
+		bytes32[] memory loanParamsIdList = new bytes32[](collateralTokens.length);
+		for (uint256 i = 0; i < collateralTokens.length; i++) {
+			uint256 id = uint256(keccak256(abi.encodePacked(collateralTokens[i], isTorqueLoans[i])));
+			loanParamsIdList[i] = loanParamsIds[id];
+			delete loanParamsIds[id];
+		}
 
-    function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol) public onlyAdmin {
-        name = _name;
-        symbol = _symbol;
-    }
+		ProtocolSettingsLike(sovrynContractAddress).disableLoanParams(loanParamsIdList);
+	}
 
+	// These params should be percentages represented like so: 5% = 5000000000000000000
+	// rateMultiplier + baseRate can't exceed 100%
+	function setDemandCurve(
+		uint256 _baseRate,
+		uint256 _rateMultiplier,
+		uint256 _lowUtilBaseRate,
+		uint256 _lowUtilRateMultiplier,
+		uint256 _targetLevel,
+		uint256 _kinkLevel,
+		uint256 _maxScaleRate
+	) public onlyAdmin {
+		require(_rateMultiplier.add(_baseRate) <= WEI_PERCENT_PRECISION, "curve params too high");
+		require(_lowUtilRateMultiplier.add(_lowUtilBaseRate) <= WEI_PERCENT_PRECISION, "curve params too high");
+
+		require(_targetLevel <= WEI_PERCENT_PRECISION && _kinkLevel <= WEI_PERCENT_PRECISION, "levels too high");
+
+		baseRate = _baseRate;
+		rateMultiplier = _rateMultiplier;
+		lowUtilBaseRate = _lowUtilBaseRate;
+		lowUtilRateMultiplier = _lowUtilRateMultiplier;
+
+		targetLevel = _targetLevel; // 80 ether
+		kinkLevel = _kinkLevel; // 90 ether
+		maxScaleRate = _maxScaleRate; // 100 ether
+	}
+
+	function toggleFunctionPause(
+		string memory funcId, // example: "mint(uint256,uint256)"
+		bool isPaused
+	) public {
+		require(msg.sender == pauser, "onlyPauser");
+		// keccak256("iToken_FunctionPause")
+		bytes32 slot =
+			keccak256(
+				abi.encodePacked(
+					bytes4(keccak256(abi.encodePacked(funcId))),
+					uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
+				)
+			);
+		assembly {
+			sstore(slot, isPaused)
+		}
+	}
+
+	/**
+	 * sets the transaction limit per token address
+	 * @param addresses the token addresses
+	 * @param limits the limit denominated in the currency of the token address
+	 * */
+	function setTransactionLimits(address[] memory addresses, uint256[] memory limits) public onlyAdmin {
+		require(addresses.length == limits.length, "mismatched array lengths");
+		for (uint256 i = 0; i < addresses.length; i++) {
+			transactionLimit[addresses[i]] = limits[i];
+		}
+		emit SetTransactionLimits(addresses, limits);
+	}
+
+	function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol) public onlyAdmin {
+		name = _name;
+		symbol = _symbol;
+	}
+
+	/**
+	 *	@notice set early access token
+	 *	@param _earlyAccessTokenAddress the early access token
+	 */
+	function setEarlyAccessToken(address _earlyAccessTokenAddress) public onlyAdmin {
+		address oldEarlyAccessToken = earlyAccessToken;
+		earlyAccessToken = _earlyAccessTokenAddress;
+		emit SetEarlyAccessToken(oldEarlyAccessToken, earlyAccessToken);
+	}
 }

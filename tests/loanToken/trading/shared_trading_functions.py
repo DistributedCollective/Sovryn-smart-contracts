@@ -51,7 +51,8 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, loan_token_s
     start_margin = 1e38 / leverage_amount
     total_deposit = loan_token_sent + collateral_sent
     (trade_rate, trade_rate_precision) = priceFeeds.queryRate(underlyingToken.address, collateralToken.address)
-    (collateral_to_loan_rate, _) = priceFeeds.queryRate(collateralToken.address, underlyingToken.address)
+    (collateral_to_loan_rate, collateral_to_loan_precision) = priceFeeds.queryRate(collateralToken.address, underlyingToken.address)
+    collateral_to_loan_swap_rate = "%e"%(collateral_to_loan_precision *  trade_rate_precision / tx.events['Trade']['entryPrice'])
     interest_rate = loanToken.nextBorrowInterestRate(total_deposit * 1e20 / start_margin)
     principal = loan_token_sent * 2
     seconds_per_day = 24 * 60 * 60
@@ -73,7 +74,6 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, loan_token_s
     end_timestamp = loan['endTimestamp']
     block_timestamp = chain.time().real
     interest_deposit_remaining = (end_timestamp - block_timestamp) * owed_per_day / seconds_per_day if (end_timestamp >= block_timestamp) else 0
-    
     # assert the loan object is set as expected
     assert(loan['loanToken'] == underlyingToken.address)
     assert(loan['collateralToken'] == collateralToken.address)
@@ -87,7 +87,7 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, loan_token_s
     assert(loan['interestOwedPerDay'] == owed_per_day)
     # LoanOpening::_getLoan:567
     assert(loan['interestDepositRemaining'] == interest_deposit_remaining)
-    assert(loan['startRate'] == collateral_to_loan_rate)
+    assert("%e"%loan['startRate'] == collateral_to_loan_swap_rate)
     assert(loan['startMargin'] == start_margin)
     assert(loan['maintenanceMargin'] == 15e18)
     # LoanMaintenance::_getLoan::539
@@ -165,11 +165,11 @@ process:
 1. send the margin trade tx with the passed parameter (NOTE: the token transfer needs to be approved already)
 2. TODO verify the trade event and balances are correct
 '''    
-def margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, underlyingToken, collateralToken, loanSize, collateralTokenSent, leverageAmount, value):
+def margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, underlyingToken, collateralToken, loanSize, collateralTokenSent, leverageAmount, value, priceFeeds):
     
-    print("loanSize",loanSize)
-    print("collateralTokenSent",collateralTokenSent/1e18)
-    
+    get_estimated_margin_details(loanToken, collateralToken, loanSize, collateralTokenSent, leverageAmount)
+    (rate, precision) = priceFeeds.queryRate(underlyingToken.address, collateralToken.address)
+
     tx = loanToken.marginTrade(
         "0", #loanId  (0 for new loans)
         leverageAmount, # leverageAmount
@@ -181,13 +181,17 @@ def margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, underl
         {'value' : value}
     )
 
-    print(tx.info())
-    
-    #asserts are missing
+    event = tx.events["Trade"]
+    assert(event["positionSize"] == event["borrowedAmount"] * event["entryPrice"] / 1e18 + collateralTokenSent)
+    assert(event["borrowedAmount"] == loanSize * collateralTokenSent * leverageAmount / 1e36)
+    assert(event["interestRate"] == 0)
+    assert(event["entryPrice"] == rate * (1-0.15/100))
+    assert(event["entryLeverage"] == leverageAmount)
 
 
 def margin_trading_sending_collateral_tokens_sov_reward_payment(trader, loanToken, collateralToken, collateralTokenSent,
                                                                 leverageAmount, value, chain, FeesEvents, SOV):
+    
     sov_initial_balance = SOV.balanceOf(trader)
     tx = loanToken.marginTrade(
         "0",  # loanId  (0 for new loans)
@@ -402,3 +406,18 @@ def internal_test_close_margin_trade(swap_amount, initial_loan, loanToken, loan_
         last_block_timestamp = web3.eth.getBlock(web3.eth.blockNumber)['timestamp']
         assert (closed_loan['endTimestamp'] <= last_block_timestamp)
 
+ 
+def get_estimated_margin_details(loanToken, collateralToken, loanSize, collateralTokenSent, leverageAmount):
+            
+    result = loanToken.getEstimatedMarginDetails.call(leverageAmount, 0, collateralTokenSent, collateralToken.address)
+    
+    assert(result[0] == loanSize * collateralTokenSent * leverageAmount / 1e36)
+    assert(result[2] == 0)
+
+    print("principal", result[0])
+    print("collateral", result[1])
+    print("interestRate", result[2])
+    print("loanSize",loanSize)
+    print("collateralTokenSent",collateralTokenSent)
+    print("leverageAmount", leverageAmount)
+    

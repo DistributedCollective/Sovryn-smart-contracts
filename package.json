@@ -1,5 +1,5 @@
 {
-  "name": "SovrynSmartContracts",
+  "name": "sovrynsmartcontracts",
   "version": "1.0.0",
   "description": "Version 1 of the smart contracts for the Sovryn protocol and external integrations",
   "keywords": [],
@@ -14,24 +14,57 @@
     "url": "https://github.com/DistributedCollective/Sovryn-smart-contracts/issues"
   },
   "devDependencies": {
-    "husky": "^4.2.5",
-    "prettier": "^2.0.5",
-    "prettier-plugin-solidity": "^1.0.0-alpha.49",
+    "@nomiclabs/hardhat-ethers": "^2.0.1",
+    "@nomiclabs/hardhat-ganache": "^2.0.0",
+    "@nomiclabs/hardhat-truffle5": "^2.0.0",
+    "@nomiclabs/hardhat-web3": "^2.0.0",
+    "@openzeppelin/test-helpers": "^0.5.10",
+    "bignumber.js": "^9.0.0",
+    "bn.js": "^5.1.2",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "chai-bn": "^0.2.1",
+    "chai-string": "^1.5.0",
+    "coveralls": "^3.1.0",
+    "decimal.js": "10.2.0",
+    "dirty-chai": "^2.0.1",
+    "eslint": "^7.21.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-truffle": "^0.3.1",
+    "ethereumjs-abi": "^0.6.8",
+    "ethers": "^5.0.19",
+    "ganache-core": "^2.10.2",
+    "hardhat": "^2.0.11",
+    "hardhat-contract-sizer": "^2.0.2",
+    "hardhat-deploy": "^0.7.0-beta.46",
+    "hardhat-log-remover": "^2.0.0",
+    "husky": "^4.3.6",
+    "prettier": "^2.2.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.2",
     "solhint": "^3.0.0",
-    "solhint-plugin-prettier": "^0.0.4"
+    "solhint-plugin-prettier": "^0.0.4",
+    "solidity-coverage": "^0.7.13",
+    "solparse": "^2.2.8",
+    "truffle": "^5.1.60"
   },
   "scripts": {
-    "analyize-contracts": "slither .",
+    "analyze-contracts": "slither .",
+    "prettier": "prettier --write {,*/**/}*.{js,test.js,sol}",
     "lint-contracts": "solhint contracts/**/*.sol",
-    "test": "brownie test"
+    "test": "brownie test",
+    "test-js": "echo Executing pure Hardhat test cases ... && npx hardhat test && echo Executing test cases using Ganache ... && npx hardhat --config hardhat-ganache-tests.config.js --network ganache test",
+    "coverage": "npx hardhat coverage",
+    "mocha-test-single": "mocha --timeout 10000 --exit --recursive"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn analyize-contracts && yarn lint-contracts && yarn test"
+      "pre-commit": "yarn prettier && yarn lint-contracts",
+      "pre-push": "yarn test-js"
     }
   },
   "dependencies": {
     "phantomjs-prebuilt": "^2.1.16",
-    "sol2uml": "^1.1.17"
+    "sol2uml": "^1.1.17",
+    "yarn": "^1.22.10"
   }
 }

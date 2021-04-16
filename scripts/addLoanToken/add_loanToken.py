@@ -10,9 +10,12 @@ def addLoanToken(tokenName, tokenSymbol, tokenDecimals, tokenInitialAmount, loan
 
     configData = {}
     
+    loanTokenLogicAddress = ''
+    multisig = ''
+    
     loadConfig()
 
-    sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovryn.abi, owner=acct)
+    sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovrynBrownie.abi, owner=acct)
     
     tokens = Munch()
 
@@ -29,30 +32,31 @@ def addLoanToken(tokenName, tokenSymbol, tokenDecimals, tokenInitialAmount, loan
         tx = multisig.submitTransaction(sovryn.address,0,data)
         txId = tx.events["Submission"]["transactionId"]
         print('confirm following txId to set supported token:', txId)
-
+        loanTokenLogicAddress = contracts['LoanTokenLogicStandard'] 
         
     
     tokens.wrbtc = Contract.from_abi("WRBTC", address = wrbtcAddress, abi = WRBTC.abi, owner = acct)
     
     feeds = Contract.from_abi("PriceFeeds", address=priceFeedsAddress, abi=PriceFeeds.abi, owner=acct)
 
-    (loanToken, loanTokenSettings) = deployLoanToken(acct, sovryn, tokens.token.address, loanTokenSymbol, loanTokenName, [tokens.wrbtc.address], tokens.wrbtc.address, multisig)
+    (loanToken, loanTokenSettings) = deployLoanToken(acct, sovryn, tokens.token.address, loanTokenSymbol, loanTokenName, [tokens.wrbtc.address], tokens.wrbtc.address, multisig, loanTokenLogicAddress)
     
-    tokens.token.approve(loanToken.address, loanTokenAllowance+loanTokenUnderlyingTokenAmount)
-    loanToken.mint(acct, loanTokenUnderlyingTokenAmount)
-
     if len(oracleAddress) == 0:
         priceFeed = acct.deploy(PriceFeed)
     elif len(oracleAddress) == 1:
         priceFeed = acct.deploy(PriceFeed, oracleAddress[0])
+    elif len(oracleAddress) == 2:
+        priceFeed = acct.deploy(PriceFeed, oracleAddress[0], oracleAddress[1])
 
     feeds.setPriceFeed([tokens.token.address], [priceFeed.address])
     
-    writeConfig(loanToken, loanTokenSettings, feeds, tokenSymbol)
+    writeConfig(loanToken,  feeds, tokenSymbol)
     
     
     #for other networks the test fails, because the AMM needs to be set up first
     if this_network == "development":
+        tokens.token.approve(loanToken.address, loanTokenAllowance+loanTokenUnderlyingTokenAmount)
+        loanToken.mint(acct, loanTokenUnderlyingTokenAmount)
         testDeployment(acct, sovryn, loanToken.address, tokens.token, tokens.wrbtc, loanTokenSent, 0)
 
 
@@ -78,17 +82,14 @@ def loadConfig():
     protocolAddress = contracts["sovrynProtocol"]
     priceFeedsAddress = contracts["PriceFeeds"]
     
-def writeConfig(loanToken, loanTokenSettings, feeds, tokenSymbol):
+def writeConfig(loanToken,  feeds, tokenSymbol):
     configData["sovrynProtocol"] = protocolAddress
     configData["WRBTC"] = wrbtcAddress
     configData["UnderlyingToken"] = tokens.token.address
-    configData["loanTokenSettings"] = loanTokenSettings.address
     configData["loanToken"] = loanToken.address
     if this_network == "development":
-        configData["loanTokenSettingsWRBTC"] = contracts["loanTokenSettingsWRBTC"]
         configData["loanTokenRBTC"] = contracts["loanTokenRBTC"]
     else:
-        configData["loanTokenSettingsWRBTC"] = contracts["iRBTCSettings"]
         configData["loanTokenRBTC"] = contracts["iRBTC"]
     configData["UnderlyingTokenPriceFeed"] = feeds.pricesFeeds(tokens.token.address)
     configData["WRBTCPriceFeed"] = feeds.pricesFeeds(tokens.wrbtc.address)

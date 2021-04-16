@@ -11,7 +11,7 @@ from fixedint import *
 import shared
 
 
-def test_deposit_collateral(sovryn,set_demand_curve,lend_to_pool,open_margin_trade_position, RBTC):
+def test_deposit_collateral(sovryn,set_demand_curve,lend_to_pool,open_margin_trade_position, RBTC, priceFeeds):
     #prepare the test
     set_demand_curve()
     (receiver, _) = lend_to_pool()
@@ -22,16 +22,23 @@ def test_deposit_collateral(sovryn,set_demand_curve,lend_to_pool,open_margin_tra
     #deposit collateral to add margin to the loan created above
     RBTC.approve(sovryn, deposit_amount)
     tx = sovryn.depositCollateral(loan_id, deposit_amount)
+
+    (currentMargin, collateralInEthAmount) = priceFeeds.getCurrentMargin(
+        sovryn.getLoan(loan_id).dict()["loanToken"],
+        sovryn.getLoan(loan_id).dict()["collateralToken"],
+        sovryn.getLoan(loan_id).dict()["principal"],
+        sovryn.getLoan(loan_id).dict()["collateral"]
+    )
     
     #verify the deposit collateral event
     print(tx.info())
     assert(tx.events['DepositCollateral']['loanId'] == loan_id)
     assert(tx.events['DepositCollateral']['depositAmount'] == deposit_amount)
+    assert(tx.events['DepositCollateral']['rate'] == collateralInEthAmount)
     
     #make sure, collateral was increased
     endCollateral = sovryn.getLoan(loan_id).dict()["collateral"]
     assert(endCollateral-startCollateral == deposit_amount)
-
 
 def test_deposit_collateral_to_non_existent_loan(sovryn, RBTC):
     #try to deposit collateral to a loan with id 0
