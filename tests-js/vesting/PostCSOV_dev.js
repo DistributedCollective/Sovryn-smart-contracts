@@ -87,13 +87,17 @@ contract("PostCSOV", (accounts) => {
 
 			let tx = await postcsov.reImburse({ from: accounts[2] });
 
-			let rbtcAmount = ((CSOVAmountWei1 + CSOVAmountWei2) * pricsSats) / 10 ** 10;
+			// Found and fixed the SIP-0007 bug on VestingRegistry::reImburse formula.
+			// More details at Documenting Code issues at point 11 in
+			// https://docs.google.com/document/d/10idTD1K6JvoBmtPKGuJ2Ub_mMh6qTLLlTP693GQKMyU/
+			// Bug: let rbtcAmount = ((CSOVAmountWei1 + CSOVAmountWei2) * pricsSats) / 10 ** 10;
+			let rbtcAmount = ((CSOVAmountWei1 + CSOVAmountWei2) * pricsSats) / 10 ** 8;
 			console.log("rbtcAmount: " + rbtcAmount);
 
 			expectEvent(tx, "CSOVReImburse", {
 				from: accounts[2],
 				CSOVamount: "6000000000000000000",
-				reImburseAmount: "1500000000000",
+				reImburseAmount: "150000000000000",
 			});
 		});
 
@@ -152,7 +156,7 @@ contract("PostCSOV", (accounts) => {
 			expectEvent(tx, "CSOVReImburse", {
 				from: accounts[2],
 				CSOVamount: "6000000000000000000",
-				reImburseAmount: "1500000000000",
+				reImburseAmount: "150000000000000",
 			});
 
 			await expectRevert(postcsov.reImburse({ from: accounts[2] }), "Address cannot be processed twice");
