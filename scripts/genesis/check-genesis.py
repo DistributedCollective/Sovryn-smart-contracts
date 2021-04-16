@@ -4,6 +4,7 @@ import time
 import json
 import csv
 import math
+import os
 
 def main():
     thisNetwork = network.show_active()
@@ -31,6 +32,11 @@ def main():
     # https://explorer.rsk.co/address/0x0106f2ffbf6a4f5dece323d20e16e2037e732790?__tab=accounts&page__accounts=1
     # https://explorer.rsk.co/address/0x7f7dcf9df951c4a332740e9a125720da242a34ff?__tab=accounts&page__accounts=1
 
+    f = open("./scripts/genesis/genesis-list-out.csv", "w")
+    #f.write('')
+    #f.close()
+    #f = open("./scripts/genesis/genesis-list-out.csv", "a")
+    priceSats = vestingRegistry.priceSats()
     with open('./scripts/genesis/genesis-list.csv', 'r') as file:
         reader = csv.reader(file)
         for row in reader:
@@ -39,4 +45,8 @@ def main():
             isBlacklisted = vestingRegistry.blacklist(account)
             if (not isProcessed and not isBlacklisted):
                 balance = CSOV1token.balanceOf(account) + CSOV2token.balanceOf(account) -  vestingRegistry.lockedAmount(account)
-                print(account + "," + str(isProcessed) + "," + str(isBlacklisted) + "," + str(balance / 10**18))
+                reimburseAmount = balance * priceSats / 10**8
+                #logRow = account + "," + str(isProcessed) + "," + str(isBlacklisted) + "," + str(balance / 10**18) + "," + str(reimburseAmount / 10**18)
+                logRow = account + "," + str(balance / 10**18) + "," + str(reimburseAmount / 10**18)
+                f.write(logRow)
+    f.close()
