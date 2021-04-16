@@ -375,6 +375,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 					currentMargin > 3 ether, // ensure there's more than 3% margin remaining
 					"unhealthy position"
 				);
+		}
 	}
 
 	/**
