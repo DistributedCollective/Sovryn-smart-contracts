@@ -16,6 +16,7 @@ import "../contracts/events/LoanMaintenanceEvents.sol";
 import "../contracts/events/LoanClosingsEvents.sol";
 import "../contracts/events/FeesEvents.sol";
 import "../contracts/events/SwapsEvents.sol";
+import "../contracts/events/AffiliatesEvents.sol";
 
 contract ISovrynBrownie is
 	State,
@@ -24,7 +25,9 @@ contract ISovrynBrownie is
 	LoanOpeningsEvents,
 	LoanMaintenanceEvents,
 	LoanClosingsEvents,
-	SwapsEvents
+	SwapsEvents,
+	AffiliatesEvents,
+	FeesEvents
 {
 	////// Protocol //////
 

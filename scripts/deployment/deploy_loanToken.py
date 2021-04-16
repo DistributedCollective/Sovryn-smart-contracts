@@ -212,8 +212,7 @@ def testAffiliatesIntegration(acct, sovryn, loanTokenAddress, underlyingToken, c
         underlyingToken.approve(loanToken.address, loanTokenSent)
     
     referrerAddress = accounts[9]
-    print('\n Referrer referrer : ')
-    print(referrerAddress)
+    print('\n Referrer address : ', referrerAddress)
     
     tx = loanToken.marginTradeAffiliate(
         "0", #loanId  (0 for new loans)
@@ -227,6 +226,26 @@ def testAffiliatesIntegration(acct, sovryn, loanTokenAddress, underlyingToken, c
         {'value': value}
     )
     tx.info()
+
+    # Check if the referrer is correct
+    print("\n--- CHECK REFERRER ---")
+    referrerOnChain = sovryn.affiliatesUserReferrer(acct)
+    if referrerOnChain != referrerAddress:
+        raise Exception("Referrer is not match!")
+    print("Check Referrer -- Passed")
+
+    print("\n--- CHECK TRADER NOT FIRST TRADE FLAG (MUST BE TRUE) ---")
+    notFirstTradeFlagOnChain = sovryn.getUserNotFirstTradeFlag(acct)
+    if notFirstTradeFlagOnChain == False:
+        raise Exception("Failed to change user first trade flag")
+    print("Check First Trade Flag -- Passed")
+
+    print("\n--- CHECK AFFILIATE REWARD BALANCE ---")
+    submittedAffiliatesReward = tx.events['PayTradingFeeToAffiliate']['fee']
+    affiliatesRewardBalanceOnChain = sovryn.affiliatesReferrerBalances(referrerAddress, underlyingToken)
+    if affiliatesRewardBalanceOnChain != submittedAffiliatesReward:
+        raise Exception("Affiliates reward is invalid")
+    print("Check affiliate reward balance -- Passed with value (" , submittedAffiliatesReward , " & " , affiliatesRewardBalanceOnChain , ")\n")
 
     loanId = tx.events['Trade']['loanId']
     collateral = tx.events['Trade']['positionSize']

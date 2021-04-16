@@ -16,6 +16,8 @@ import "../events/LoanMaintenanceEvents.sol";
 import "../events/LoanClosingsEvents.sol";
 import "../events/FeesEvents.sol";
 import "../events/SwapsEvents.sol";
+import "../events/AffiliatesEvents.sol";
+import "../events/FeesEvents.sol";
 
 contract ISovryn is
 	State,
@@ -24,7 +26,9 @@ contract ISovryn is
 	LoanOpeningsEvents,
 	LoanMaintenanceEvents,
 	LoanClosingsEvents,
-	SwapsEvents
+	SwapsEvents,
+	AffiliatesEvents,
+	FeesEvents
 {
 	////// Protocol //////
 
