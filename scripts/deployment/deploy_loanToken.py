@@ -252,3 +252,26 @@ def testAffiliatesIntegration(acct, sovryn, loanTokenAddress, underlyingToken, c
     print("closing loan with id", loanId)
     print("position size is ", collateral)
     tx = sovryn.closeWithSwap(loanId, acct, collateral, True, b'')
+
+    latestAffiliateBalanceBeforeWithdrawal = sovryn.affiliatesReferrerBalances(referrerAddress, underlyingToken)
+    previousBalanceInTokenContract = underlyingToken.balanceOf(referrerAddress)
+
+    print("\n-- TEST WITHDRAW AFFILIATE BALANCE ---")
+    withdrawAffiliateBalanceTx = sovryn.withdrawAffiliatesReferrerTokenFees(underlyingToken, referrerAddress, affiliatesRewardBalanceOnChain, {'from': referrerAddress})
+    withdrawAffiliateBalanceTx.info
+
+    print("\n--- CHECK REST BALANCE IN AFFILIATE CONTRACT ---")
+    restAffiliateBalance = sovryn.affiliatesReferrerBalances(referrerAddress, underlyingToken)
+    print("\nLatest affiliate balance: ", latestAffiliateBalanceBeforeWithdrawal)
+    print("Withdrawn token: ", affiliatesRewardBalanceOnChain)
+    print("Rest Balance", restAffiliateBalance)
+    if latestAffiliateBalanceBeforeWithdrawal - affiliatesRewardBalanceOnChain != restAffiliateBalance:
+        raise Exception("Rest token amount after withdrawal in affiliate contract is not matched")
+        
+    print("\n--- CHECK TOKEN BALANCE IN TOKEN CONTRACT ---")
+    balanceInTokenContract = underlyingToken.balanceOf(referrerAddress)
+    print("\nPrevious balance in token contract: ", previousBalanceInTokenContract)
+    print("Withdrawn token: ", affiliatesRewardBalanceOnChain)
+    print("Latest balance in token contract: ", balanceInTokenContract)
+    if balanceInTokenContract != affiliatesRewardBalanceOnChain:
+        raise Exception("Withdrawn token amount in token contract is not matched")
