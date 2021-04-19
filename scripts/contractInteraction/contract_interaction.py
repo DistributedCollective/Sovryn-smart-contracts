@@ -119,8 +119,9 @@ def main():
     readConversionFee(contracts['WRBTCtoSOVConverter'])
     readConversionFee(contracts['ConverterUSDT'])
 
-    #((impact/100 * 15000e10) + 15000e10) * rbtcBalance - ((impact/100 * 15000e10) + 15000e10) * (sovBalance * rbtcBalance / (sovBalance + amount ))  = amount  
+    #((impact/100 * 15000e10) + 15000e10) * rbtcBalance - ((impact/100 * 15000e10) + 15000e10) * (sovBalance * rbtcBalance / (sovBalance + amount ))  = amount
 
+    createProposalSIP0015()
 
 
 def loadConfig():
@@ -1280,3 +1281,32 @@ def removeLiquidityV1toMultisigUsingWrapper(converter, amount, tokens):
     tx = multisig.submitTransaction(wrapperProxy.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
+
+def createProposalSIP0016():
+
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+
+    # action
+    target = contracts['Staking']
+    signature = "setImplementation(address)"
+    data = staking.setImplementation.encode_input(contracts['StakingLogic2'])
+    data = "0x" + data[10:]
+    description = "SIP-0016: Proposal to upgrade Staking contract - apply fix to unlock Origin Vesting contracts, Details: https://github.com/DistributedCollective/SIPS/blob/128a524ec5a8aa533a3dbadcda115acc71c86182/SIP-0016.md, sha256: 666f8a71dae650ba9a3673bad82ae1524fe486c9e6702a75d9a566b743497d73"
+
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
+
+    print('Governor Address:    '+governor.address)
+    print('Target:              '+str([target]))
+    print('Values:              '+str([0]))
+    print('Signature:           '+str([signature]))
+    print('Data:                '+str([data]))
+    print('Description:         '+str(description))
+    print('======================================')
+
+    # # create proposal
+    # governor.propose(
+    #     [target],
+    #     [0],
+    #     [signature],
+    #     [data],
+    #     description)
