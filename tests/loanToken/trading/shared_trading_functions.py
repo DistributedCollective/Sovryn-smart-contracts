@@ -144,10 +144,13 @@ process:
 2. TODO verify the trade event and balances are correct
 '''    
 def margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, underlyingToken, collateralToken, loanSize, collateralTokenSent, leverageAmount, value):
+    # Users do not want to lose more than 2%
+    minReturn = (leverageAmount + 1) * collateralTokenSent * 0.98 / 1e18
     
+    print("minReturn",minReturn)
     print("loanSize",loanSize)
     print("collateralTokenSent",collateralTokenSent/1e18)
-    
+
     tx = loanToken.marginTrade(
         "0", #loanId  (0 for new loans)
         leverageAmount, # leverageAmount

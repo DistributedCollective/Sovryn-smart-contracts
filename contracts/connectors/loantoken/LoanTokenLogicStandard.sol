@@ -228,7 +228,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
     {
         _checkPause();
 
-		require(minReturn >= 0, "minReturn must larger than zero");
+        checkPriceDivergence(leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress, minReturn);
 
 		if (collateralTokenAddress == address(0)) {
 			collateralTokenAddress = wrbtcTokenAddress;
@@ -237,8 +237,10 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		require(collateralTokenAddress != loanTokenAddress, "11");
 
 		//temporary: limit transaction size
-		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
-		if (transactionLimit[loanTokenAddress] > 0) require(loanTokenSent <= transactionLimit[loanTokenAddress]);
+        uint256 limit = transactionLimit[collateralTokenAddress];
+        require(limit == 0 || limit >= collateralTokenSent);
+        limit = transactionLimit[loanTokenAddress];
+        require(limit == 0 || limit >= loanTokenSent);
 
 		//computes the worth of the total deposit in loan tokens.
 		//(loanTokenSent + convert(collateralTokenSent))
@@ -277,8 +279,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 				sentAmounts,
 				loanDataBytes
 			);
-
-		require(newCollateral >= minReturn, "new collateral too low");
     }
 
     function transfer(address _to, uint256 _value) external returns (bool) {
@@ -647,6 +647,25 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
                 borrowAmount = 0;
             }
         }
+    }
+
+    function checkPriceDivergence(        
+        uint256 leverageAmount,
+        uint256 loanTokenSent,
+        uint256 collateralTokenSent,
+        address collateralTokenAddress, 
+        uint256 minReturn) 
+        public 
+        view
+    {
+        uint256 estimatedCollateral;
+        (, estimatedCollateral, ) = getEstimatedMarginDetails(
+            leverageAmount,
+            loanTokenSent,
+            collateralTokenSent,
+            collateralTokenAddress
+        );
+		require(estimatedCollateral >= minReturn, "new collateral too low");
     }
 
     /* Internal functions */
