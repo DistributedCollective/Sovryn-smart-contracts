@@ -335,8 +335,7 @@ contract ISovryn is
         uint256 sourceTokenAmount,
         uint256 requiredDestTokenAmount,
         uint256 minReturn,
-        bytes calldata swapData,
-        address priceFeeds_
+        bytes calldata swapData
     )
         external
         payable

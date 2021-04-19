@@ -658,14 +658,13 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         public 
         view
     {
-        uint256 estimatedCollateral;
-        (, estimatedCollateral, ) = getEstimatedMarginDetails(
+        (, uint256 estimatedCollateral, ) = getEstimatedMarginDetails(
             leverageAmount,
             loanTokenSent,
             collateralTokenSent,
             collateralTokenAddress
         );
-		require(estimatedCollateral >= minReturn, "new collateral too low");
+        require(estimatedCollateral >= minReturn, "new collateral too low");
     }
 
     /* Internal functions */
