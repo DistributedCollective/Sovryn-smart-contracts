@@ -32,10 +32,11 @@ def main():
     for teamVesting in data:
         tokenOwner = teamVesting
         vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
+        balance = 0
         if (vestingAddress != "0x0000000000000000000000000000000000000000"):
-            vestingAddress = vestingRegistry.getVesting(tokenOwner)
+            balance = staking.balanceOf(vestingAddress)
 
-        print(tokenOwner + "," + vestingAddress)
+        print(tokenOwner + "," + vestingAddress + "," + str(balance / 10**18))
 
 def parseFile(fileName, multiplier):
     print(fileName)
