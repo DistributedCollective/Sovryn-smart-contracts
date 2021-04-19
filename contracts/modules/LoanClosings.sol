@@ -354,9 +354,6 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 		}
 
         //close whole loan if tiny position will remain
-        //TODO should we check total deposit here ?
-//        if (_getAmountInRbtc(loanParamsLocal.loanToken, loanLocal.principal)
-//                .add(_getAmountInRbtc(loanParamsLocal.collateralToken, loanLocal.collateral)) <= TINY_AMOUNT) {
         if (_getAmountInRbtc(loanParamsLocal.loanToken, loanLocal.principal) <= TINY_AMOUNT) {
             _closeWithDeposit(
                 loanLocal.id,
@@ -410,10 +407,12 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 
         //close whole loan if tiny position will remain
         uint remainingAmount = loanLocal.principal - loanCloseAmount;
-        remainingAmount = _getAmountInRbtc(loanParamsLocal.loanToken, remainingAmount);
-        if (remainingAmount <= TINY_AMOUNT) {
-            loanCloseAmount = loanLocal.principal;
-        }
+		if (remainingAmount > 0) {
+			remainingAmount = _getAmountInRbtc(loanParamsLocal.loanToken, remainingAmount);
+			if (remainingAmount <= TINY_AMOUNT) {
+				loanCloseAmount = loanLocal.principal;
+			}
+		}
 
 		uint256 loanCloseAmountLessInterest = _settleInterestToPrincipal(loanLocal, loanParamsLocal, loanCloseAmount, receiver);
 
@@ -480,9 +479,11 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 		swapAmount = swapAmount > loanLocal.collateral ? loanLocal.collateral : swapAmount;
 
 		//close whole loan if tiny position will remain
-        if (_getAmountInRbtc(loanParamsLocal.collateralToken, loanLocal.collateral - swapAmount) <= TINY_AMOUNT) {
-            swapAmount = loanLocal.collateral;
-        }
+		if (loanLocal.collateral - swapAmount > 0) {
+			if (_getAmountInRbtc(loanParamsLocal.collateralToken, loanLocal.collateral - swapAmount) <= TINY_AMOUNT) {
+				swapAmount = loanLocal.collateral;
+			}
+		}
 
 		uint256 loanCloseAmountLessInterest;
 		if (swapAmount == loanLocal.collateral || returnTokenIsCollateral) {

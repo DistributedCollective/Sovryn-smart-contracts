@@ -228,8 +228,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		//no actual swap happening here.
 		uint256 totalDeposit = _totalDeposit(collateralTokenAddress, collateralTokenSent, loanTokenSent);
 		require(totalDeposit != 0, "12");
-        //TODO should we multiply total Deposit by leverage Amount/10**18 before check?
-        require(_getAmountInRbtc(loanTokenAddress, totalDeposit) > TINY_AMOUNT, "total deposit too small");
 
 		address[4] memory sentAddresses;
 		uint256[5] memory sentAmounts;
@@ -251,6 +249,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			leverageAmount,
 			sentAmounts[1] // depositAmount
 		);
+
+		require(_getAmountInRbtc(loanTokenAddress, sentAmounts[1]) > TINY_AMOUNT, "principal too small");
 
 		return
 			_borrowOrTrade(
@@ -655,7 +655,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
      * */
     function _getAmountInRbtc(address asset, uint256 amount) internal returns (uint) {
         (uint256 rbtcRate, uint256 rbtcPrecision) =
-        FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(asset, wrbtcTokenAddress);
+        	FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(asset, wrbtcTokenAddress);
         return amount.mul(rbtcRate).div(rbtcPrecision);
     }
 
