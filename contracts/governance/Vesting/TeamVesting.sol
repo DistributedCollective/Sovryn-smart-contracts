@@ -25,7 +25,7 @@ contract TeamVesting is VestingStorage, Proxy {
 	 * @param _logic The address of logic contract.
 	 * @param _SOV The SOV token address.
 	 * @param _tokenOwner The owner of the tokens.
-	 * @param _cliff The cliff in seconds.
+	 * @param _cliff The time interval to the first withdraw in seconds.
 	 * @param _duration The total duration in seconds.
 	 * */
 	constructor(

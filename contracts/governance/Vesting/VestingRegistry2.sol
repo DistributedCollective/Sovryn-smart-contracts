@@ -216,12 +216,12 @@ contract VestingRegistry2 is Ownable {
 	}
 
 	/**
-	 * @notice creates Vesting contract
-	 * @param _tokenOwner the owner of the tokens
-	 * @param _amount the amount to be staked
-	 * @param _cliff the cliff in seconds
-	 * @param _duration the total duration in seconds
-	 */
+	 * @notice Creates Vesting contract.
+	 * @param _tokenOwner The owner of the tokens.
+	 * @param _amount The amount to be staked.
+	 * @param _cliff The time interval to the first withdraw in seconds.
+	 * @param _duration The total duration in seconds.
+	 * */
 	function createVesting(
 		address _tokenOwner,
 		uint256 _amount,
@@ -233,12 +233,12 @@ contract VestingRegistry2 is Ownable {
 	}
 
 	/**
-	 * @notice creates Team Vesting contract
-	 * @param _tokenOwner the owner of the tokens
-	 * @param _amount the amount to be staked
-	 * @param _cliff the cliff in seconds
-	 * @param _duration the total duration in seconds
-	 */
+	 * @notice Creates Team Vesting contract.
+	 * @param _tokenOwner The owner of the tokens.
+	 * @param _amount The amount to be staked.
+	 * @param _cliff The time interval to the first withdraw in seconds.
+	 * @param _duration The total duration in seconds.
+	 * */
 	function createTeamVesting(
 		address _tokenOwner,
 		uint256 _amount,

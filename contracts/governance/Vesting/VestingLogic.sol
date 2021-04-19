@@ -192,6 +192,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 	/**
 	 * @notice Overrides default ApprovalReceiver._getToken function to
 	 * register SOV token on this contract.
+	 * @return The address of SOV token.
 	 * */
 	function _getToken() internal view returns (address) {
 		return address(SOV);
@@ -200,6 +201,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 	/**
 	 * @notice Overrides default ApprovalReceiver._getSelectors function to
 	 * register stakeTokensWithApproval selector on this contract.
+	 * @return The array of registered selectors on this contract.
 	 * */
 	function _getSelectors() internal view returns (bytes4[] memory) {
 		bytes4[] memory selectors = new bytes4[](1);

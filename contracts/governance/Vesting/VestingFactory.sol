@@ -24,7 +24,7 @@ contract VestingFactory is IVestingFactory, Ownable {
 	 * @param _SOV the address of SOV token.
 	 * @param _staking The address of staking contract.
 	 * @param _tokenOwner The owner of the tokens.
-	 * @param _cliff The cliff in seconds.
+	 * @param _cliff The time interval to the first withdraw in seconds.
 	 * @param _duration The total duration in seconds.
 	 * @param _feeSharing The address of fee sharing contract.
 	 * @param _vestingOwner The address of an owner of vesting contract.
@@ -53,7 +53,7 @@ contract VestingFactory is IVestingFactory, Ownable {
 	 * @param _SOV The address of SOV token.
 	 * @param _staking The address of staking contract.
 	 * @param _tokenOwner The owner of the tokens.
-	 * @param _cliff The cliff in seconds.
+	 * @param _cliff The time interval to the first withdraw in seconds.
 	 * @param _duration The total duration in seconds.
 	 * @param _feeSharing The address of fee sharing contract.
 	 * @param _vestingOwner The address of an owner of vesting contract.

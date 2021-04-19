@@ -9,6 +9,24 @@ import "./IVesting.sol";
 import "./ITeamVesting.sol";
 import "../../openzeppelin/SafeMath.sol";
 
+/**
+* @title Vesting Registry contract.
+* 
+* @notice On January 25, 2020, Sovryn launched the Genesis Reservation system.
+* Sovryn community members who controlled a special NFT were granted access to
+* stake BTC or rBTC for cSOV tokens at a rate of 2500 satoshis per cSOV. Per
+* SIP-0003, up to 2,000,000 cSOV were made available in the Genesis event,
+* which will be redeemable on a 1:1 basis for cSOV, subject to approval by
+* existing SOV holders.
+* 
+* On 15 Feb 2021 Sovryn is taking another step in its journey to decentralized
+* financial sovereignty with the vote on SIP 0005. This proposal will enable
+* participants of the Genesis Reservation system to redeem their reserved cSOV
+* tokens for SOV. They will also have the choice to redeem cSOV for rBTC if
+* they decide to exit the system.
+* 
+* This contract deals with the vesting and redemption of cSOV tokens.
+* */
 contract VestingRegistry is Ownable {
 	using SafeMath for uint256;
 
@@ -25,7 +43,7 @@ contract VestingRegistry is Ownable {
 	/// @notice The SOV token contract.
 	address public SOV;
 
-	/// @notice The CSOV token contracts.
+	/// @notice The cSOV token contracts.
 	address[] public CSOVtokens;
 
 	uint256 public priceSats;
@@ -83,11 +101,18 @@ contract VestingRegistry is Ownable {
 	 * @notice Contract deployment settings.
 	 * @param _vestingFactory The address of vesting factory contract.
 	 * @param _SOV The SOV token address.
-	 * @param _CSOVtokens The array of CSOV tokens.
-	 * @param _priceSats The price of CSOV tokens in satoshis.
+	 * @param _CSOVtokens The array of cSOV tokens.
+	 * @param _priceSats The price of cSOV tokens in satoshis.
 	 * @param _staking The address of staking contract.
 	 * @param _feeSharingProxy The address of fee sharing proxy contract.
 	 * @param _vestingOwner The address of an owner of vesting contract.
+	 * @dev On Sovryn the vesting owner is Exchequer Multisig.
+	 * According to SIP-0007 The Exchequer Multisig is designated to hold
+	 * certain funds in the form of rBTC and SOV, in order to allow for
+	 * flexible deployment of such funds on:
+	 *  + facilitating rBTC redemptions for Genesis pre-sale participants.
+	 *  + deploying of SOV for the purposes of exchange listings, market
+	 *    making, and partnerships with third parties.
 	 * */
 	constructor(
 		address _vestingFactory,
@@ -157,8 +182,8 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice CSOV payout to sender with rBTC currency.
-	 * 1.- Check holder CSOV balance by adding up every CSOV token balance.
+	 * @notice cSOV payout to sender with rBTC currency.
+	 * 1.- Check holder cSOV balance by adding up every cSOV token balance.
 	 * 2.- ReImburse rBTC if funds available.
 	 * 3.- And store holder address in processedList.
 	 */
@@ -224,7 +249,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice Sets CSOV tokens array. High level endpoint.
+	 * @notice Sets cSOV tokens array. High level endpoint.
 	 *
 	 * @dev Splitting code on two functions: high level and low level
 	 * is a pattern that makes easy to extend functionality in a readable way,
@@ -232,15 +257,15 @@ contract VestingRegistry is Ownable {
 	 * For example, checks should be done on high level endpoint, while core
 	 * functionality should be coded on the low level function.
 	 *
-	 * @param _CSOVtokens The array of CSOV tokens.
+	 * @param _CSOVtokens The array of cSOV tokens.
 	 * */
 	function setCSOVtokens(address[] memory _CSOVtokens) public onlyOwner {
 		_setCSOVtokens(_CSOVtokens);
 	}
 
 	/**
-	 * @notice Sets CSOV tokens array by looping through input. Low level function.
-	 * @param _CSOVtokens The array of CSOV tokens.
+	 * @notice Sets cSOV tokens array by looping through input. Low level function.
+	 * @param _CSOVtokens The array of cSOV tokens.
 	 * */
 	function _setCSOVtokens(address[] memory _CSOVtokens) internal {
 		for (uint256 i = 0; i < _CSOVtokens.length; i++) {
@@ -290,7 +315,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice exchanges CSOV to SOV with 1:1 rate
+	 * @notice exchanges cSOV to SOV with 1:1 rate
 	 */
 	function exchangeAllCSOV() public isNotProcessed isNotBlacklisted {
 		processedList[msg.sender] = true;
@@ -309,7 +334,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice CSOV tokens are moved and staked on Vesting contract.
+	 * @notice cSOV tokens are moved and staked on Vesting contract.
 	 * @param _amount The amount of tokens to be vested.
 	 * */
 	function _createVestingForCSOV(uint256 _amount) internal {
@@ -322,8 +347,8 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice Checks a token address is among the CSOV token addresses.
-	 * @param _CSOV The CSOV token address.
+	 * @notice Checks a token address is among the cSOV token addresses.
+	 * @param _CSOV The cSOV token address.
 	 * */
 	function _validateCSOV(address _CSOV) internal view {
 		bool isValid = false;
@@ -340,7 +365,7 @@ contract VestingRegistry is Ownable {
 	 * @notice Creates Vesting contract.
 	 * @param _tokenOwner The owner of the tokens.
 	 * @param _amount The amount to be staked.
-	 * @param _cliff The cliff in seconds.
+	 * @param _cliff The time interval to the first withdraw in seconds.
 	 * @param _duration The total duration in seconds.
 	 * */
 	function createVesting(
@@ -357,7 +382,7 @@ contract VestingRegistry is Ownable {
 	 * @notice Creates Team Vesting contract.
 	 * @param _tokenOwner The owner of the tokens.
 	 * @param _amount The amount to be staked.
-	 * @param _cliff The cliff in seconds.
+	 * @param _cliff The time interval to the first withdraw in seconds.
 	 * @param _duration The total duration in seconds.
 	 * */
 	function createTeamVesting(
@@ -405,7 +430,7 @@ contract VestingRegistry is Ownable {
 	/**
 	 * @notice If not exists, deploys a vesting contract through factory.
 	 * @param _tokenOwner The owner of the tokens.
-	 * @param _cliff The cliff in seconds.
+	 * @param _cliff The time interval to the first withdraw in seconds.
 	 * @param _duration The total duration in seconds.
 	 * @return The vesting contract address for the given token owner
 	 * whether it existed previously or not.
@@ -427,7 +452,7 @@ contract VestingRegistry is Ownable {
 	/**
 	 * @notice If not exists, deploys a team vesting contract through factory.
 	 * @param _tokenOwner The owner of the tokens.
-	 * @param _cliff The cliff in seconds.
+	 * @param _cliff The time interval to the first withdraw in seconds.
 	 * @param _duration The total duration in seconds.
 	 * @return The team vesting contract address for the given token owner
 	 * whether it existed previously or not.
