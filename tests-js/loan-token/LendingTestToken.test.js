@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
-const { increaseTime } = require("../../Utils/Ethereum");
+const { increaseTime } = require("../Utils/Ethereum");
 
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
