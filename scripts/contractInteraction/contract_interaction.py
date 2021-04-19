@@ -73,7 +73,7 @@ def main():
 
     # createProposalSIP0015()
 
-    # transferSOVtoTokenSender()
+     # transferSOVtoTokenSender()
 
     # transferSOVtoScriptAccount()
     #transferSOVtoTokenSender()
@@ -84,6 +84,8 @@ def main():
     # transferSOVtoTokenSender()
     # addLiquidityV1(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
     # addLiquidityV1UsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
+
+    # sendSOVFromVestingRegistry()
 
     # addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**15, 67 * 10**17])
     # addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [30 * 10**18, 200000 * 10**18])
@@ -1105,8 +1107,8 @@ def createProposalSIP0015():
     #     description)
 
 def transferSOVtoTokenSender():
-    # 6733.675 SOV
-    amount = 6733675 * 10**15
+    # 875.39 SOV
+    amount = 87539 * 10**16
 
     tokenSenderAddress = contracts['TokenSender']
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
@@ -1310,3 +1312,14 @@ def createProposalSIP0016():
     #     [signature],
     #     [data],
     #     description)
+
+def sendSOVFromVestingRegistry():
+    amount = 307470805 * 10**14
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    data = vestingRegistry.transferSOV.encode_input(contracts['multisig'], amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(vestingRegistry.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
