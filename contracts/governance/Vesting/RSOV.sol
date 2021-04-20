@@ -47,7 +47,7 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 	/* Functions */
 
 	/**
-	 * @notice Creates reward token RSOV.
+	 * @notice Create reward token RSOV.
 	 * @param _SOV The SOV token address.
 	 * @param _staking The staking contract address.
 	 * */
@@ -60,29 +60,29 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 	}
 
 	/**
-	 * @notice Holds SOV tokens and mints the respective amount of RSOV tokens.
+	 * @notice Hold SOV tokens and mint the respective amount of RSOV tokens.
 	 * @param _amount The amount of tokens to be mint.
-	 */
+	 * */
 	function mint(uint96 _amount) public {
 		_mintTo(msg.sender, _amount);
 	}
 
 	/**
-	 * @notice Holds SOV tokens and mints the respective amount of RSOV tokens.
+	 * @notice Hold SOV tokens and mint the respective amount of RSOV tokens.
 	 * @dev This function will be invoked from receiveApproval.
 	 * @dev SOV.approveAndCall -> this.receiveApproval -> this.mintWithApproval
 	 * @param _sender The sender of SOV.approveAndCall
 	 * @param _amount The amount of tokens to be mint.
-	 */
+	 * */
 	function mintWithApproval(address _sender, uint96 _amount) public onlyThisContract {
 		_mintTo(_sender, _amount);
 	}
 
 	/**
 	 * @notice The actual minting process, holding SOV and minting RSOV tokens.
-	 * @param _sender The recipient of the minted tokens
+	 * @param _sender The recipient of the minted tokens.
 	 * @param _amount The amount of tokens to be minted.
-	 */
+	 * */
 	function _mintTo(address _sender, uint96 _amount) internal {
 		require(_amount > 0, "RSOV::mint: amount invalid");
 
@@ -98,9 +98,9 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 	}
 
 	/**
-	 * @notice Burns RSOV tokens and stakes the respective amount SOV tokens in the user's behalf.
+	 * @notice Burn RSOV tokens and stakes the respective amount SOV tokens in the user's behalf.
 	 * @param _amount The amount of tokens to be burnt.
-	 */
+	 * */
 	function burn(uint96 _amount) public {
 		require(_amount > 0, "RSOV:: burn: amount invalid");
 
@@ -124,7 +124,7 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 	}
 
 	/**
-	 * @notice Overrides default ApprovalReceiver._getToken function to
+	 * @notice Override default ApprovalReceiver._getToken function to
 	 * register SOV token on this contract.
 	 * @return The address of SOV token.
 	 * */
@@ -133,7 +133,7 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 	}
 
 	/**
-	 * @notice Overrides default ApprovalReceiver._getSelectors function to
+	 * @notice Override default ApprovalReceiver._getSelectors function to
 	 * register mintWithApproval selector on this contract.
 	 * @return The array of registered selectors on this contract.
 	 * */

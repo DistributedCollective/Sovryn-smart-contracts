@@ -205,7 +205,7 @@ contract WeightedStaking is Checkpoints {
 	 *      Used for fee sharing, not voting.
 	 * TODO: WeightedStaking::getPriorWeightedStake is using the variable name "votes"
 	 * to add up token stake, and that could be misleading.
-	 * 
+	 *
 	 * @param account The address of the account to check.
 	 * @param blockNumber The block number to get the vote balance at.
 	 * @return The weighted stake the account had as of the given block.
@@ -338,7 +338,7 @@ contract WeightedStaking is Checkpoints {
 		 * @dev If staking timestamp does not match any of the unstaking dates
 		 * , set the lockDate to the closest one before the timestamp.
 		 * E.g. Passed timestamps lies 7 weeks after kickoff -> only stake for 6 weeks.
-		* */
+		 * */
 		uint256 periodFromKickoff = (timestamp - kickoffTS) / TWO_WEEKS;
 		lockDate = periodFromKickoff * TWO_WEEKS + kickoffTS;
 	}

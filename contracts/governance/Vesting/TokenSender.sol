@@ -50,7 +50,7 @@ contract TokenSender is Ownable {
 	/* Functions */
 
 	/**
-	 * @notice Adds account to ACL.
+	 * @notice Add account to ACL.
 	 * @param _admin The addresses of the account to grant permissions.
 	 * */
 	function addAdmin(address _admin) public onlyOwner {
@@ -59,7 +59,7 @@ contract TokenSender is Ownable {
 	}
 
 	/**
-	 * @notice Removes account from ACL.
+	 * @notice Remove account from ACL.
 	 * @param _admin The addresses of the account to revoke permissions.
 	 * */
 	function removeAdmin(address _admin) public onlyOwner {
@@ -68,7 +68,7 @@ contract TokenSender is Ownable {
 	}
 
 	/**
-	 * @notice Transfers given amounts of SOV to the given addresses.
+	 * @notice Transfer given amounts of SOV to the given addresses.
 	 * @param _receivers The addresses of the SOV receivers.
 	 * @param _amounts The amounts to be transferred.
 	 * */
@@ -81,7 +81,7 @@ contract TokenSender is Ownable {
 	}
 
 	/**
-	 * @notice Transfers SOV tokens to given address.
+	 * @notice Transfer SOV tokens to given address.
 	 * @param _receiver The address of the SOV receiver.
 	 * @param _amount The amount to be transferred.
 	 * */

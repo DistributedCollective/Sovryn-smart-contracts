@@ -18,7 +18,7 @@ import "../../proxy/Proxy.sol";
  *
  * @dev Vesting contracts shouldn't be upgradable,
  * use Proxy instead of UpgradableProxy.
- **/
+ * */
 contract TeamVesting is VestingStorage, Proxy {
 	/**
 	 * @notice Setup the vesting schedule.

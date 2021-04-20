@@ -83,7 +83,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		if (stakeFor == address(0)) {
 			stakeFor = sender;
 		}
-		
+
 		/// @dev Delegate for stakeFor if not specified otherwise.
 		if (delegatee == address(0)) {
 			delegatee = stakeFor;
@@ -96,7 +96,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		}
 
 		uint96 previousBalance = currentBalance(stakeFor, until);
-		
+
 		/// @dev Increase stake.
 		_increaseStake(sender, amount, stakeFor, until);
 
@@ -108,7 +108,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 			if (previousDelegatee != delegatee) {
 				/// @dev Update delegatee.
 				delegates[stakeFor][until] = delegatee;
-				
+
 				/// @dev Decrease stake on previous balance for previous delegatee.
 				_decreaseDelegateStake(previousDelegatee, until, previousBalance);
 
@@ -385,7 +385,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	/**
 	 * @notice Delegates votes from signatory to a delegatee account.
 	 * Voting with EIP-712 Signatures.
-	 * 
+	 *
 	 * Voting power can be delegated to any address, and then can be used to
 	 * vote on proposals. A key benefit to users of by-signature functionality
 	 * is that they can create a signed vote transaction for free, and have a
@@ -403,7 +403,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * const r = '0x' + sig.substring(2).substring(0, 64);
 	 * const s = '0x' + sig.substring(2).substring(64, 128);
 	 * const v = '0x' + sig.substring(2).substring(128, 130);
-	 * 
+	 *
 	 * @param delegatee The address to delegate votes to.
 	 * @param lockDate The date until which the position is locked.
 	 * @param nonce The contract state required to match the signature.
@@ -578,7 +578,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 	/**
 	 * @notice Allow the owner to unlock all tokens in case the staking contract
-	 * is going to be replaced 
+	 * is going to be replaced
 	 * Note: Not reversible on purpose. once unlocked, everything is unlocked.
 	 * The owner should not be able to just quickly unlock to withdraw his own
 	 * tokens and lock again.

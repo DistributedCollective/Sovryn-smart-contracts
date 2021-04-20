@@ -6,9 +6,10 @@ import "../../interfaces/IERC20.sol";
 import "../IFeeSharingProxy.sol";
 
 /**
- * @title Just the storage part of stacking contract, no functions, only constant,
- * variables and required structures (mappings).
- * @notice Used by StackingProxy and Checkpoints contracts.
+ * @title Staking Storage contact.
+ * @notice Just the storage part of stacking contract, no functions,
+ * only constant, variables and required structures (mappings).
+ * Used by StackingProxy and Checkpoints contracts.
  */
 contract StakingStorage is Ownable {
 	/// @notice 2 weeks in seconds.

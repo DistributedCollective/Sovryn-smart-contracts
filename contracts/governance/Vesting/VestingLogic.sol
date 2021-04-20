@@ -9,6 +9,11 @@ import "./IVesting.sol";
 import "../ApprovalReceiver.sol";
 import "./VestingStorage.sol";
 
+/**
+ * @title Vesting Logic contract.
+ * @notice Staking, delegating and withdrawal functionality.
+ * @dev Deployed by a VestingFactory contract.
+ * */
 contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 	/* Events */
 

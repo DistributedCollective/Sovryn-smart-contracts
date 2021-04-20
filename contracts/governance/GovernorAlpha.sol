@@ -390,7 +390,7 @@ contract GovernorAlpha is SafeMath96 {
 
 	/**
 	 * @notice Voting with EIP-712 Signatures.
-	 * 
+	 *
 	 * Voting power can be delegated to any address, and then can be used to
 	 * vote on proposals. A key benefit to users of by-signature functionality
 	 * is that they can create a signed vote transaction for free, and have a
@@ -433,7 +433,7 @@ contract GovernorAlpha is SafeMath96 {
 
 		/// @dev GovernorAlpha uses BALLOT_TYPEHASH, while Staking uses DELEGATION_TYPEHASH
 		bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));
-		
+
 		bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
 		address signatory = ecrecover(digest, v, r, s);
 		require(RSKAddrValidator.checkPKNotZero(signatory), "GovernorAlpha::castVoteBySig: invalid signature");

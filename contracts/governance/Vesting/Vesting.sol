@@ -30,9 +30,9 @@ contract Vesting is TeamVesting {
 	) public TeamVesting(_logic, _SOV, _stakingAddress, _tokenOwner, _cliff, _duration, _feeSharingProxy) {}
 
 	/**
-	 * @dev we need to add this implementation to prevent proxy call VestingLogic.governanceWithdrawTokens
+	 * @dev We need to add this implementation to prevent proxy call VestingLogic.governanceWithdrawTokens
 	 * @param receiver The receiver of the token withdrawal.
-	 */
+	 * */
 	function governanceWithdrawTokens(address receiver) public {
 		revert("operation not supported");
 	}

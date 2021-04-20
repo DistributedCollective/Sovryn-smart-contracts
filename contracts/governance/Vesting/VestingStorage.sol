@@ -12,7 +12,7 @@ import "../IFeeSharingProxy.sol";
  * It is parent of VestingLogic and TeamVesting.
  *
  * @dev Use Ownable as a parent to align storage structure for Logic and Proxy contracts.
- */
+ * */
 contract VestingStorage is Ownable {
 	/// @notice The SOV token contract.
 	IERC20 public SOV;

@@ -5,18 +5,20 @@ import "./VestingRegistry.sol";
 import "../Staking/Staking.sol";
 
 /**
- * @title Origin investors claim vested cSOV tokens
- * @notice // TODO: fund this contract with a total amount of SOV needed to distribute
- *
- */
+ * @title Origin investors claim vested cSOV tokens.
+ * @notice // TODO: fund this contract with a total amount of SOV needed to distribute.
+ * */
 contract OriginInvestorsClaim is Ownable {
 	using SafeMath for uint256;
 
-	//VestingRegistry public constant vestingRegistry = VestingRegistry(0x80B036ae59B3e38B573837c01BB1DB95515b7E6B);
+
+	/* Storage */
+
+	/// VestingRegistry public constant vestingRegistry = VestingRegistry(0x80B036ae59B3e38B573837c01BB1DB95515b7E6B);
 
 	uint256 public totalAmount;
 
-	///@notice constant used for computing the vesting dates
+	/// @notice Constant used for computing the vesting dates.
 	uint256 public constant SOV_VESTING_CLIFF = 6 weeks;
 
 	uint256 public kickoffTS;
@@ -27,11 +29,14 @@ contract OriginInvestorsClaim is Ownable {
 	Staking public staking;
 	IERC20 public SOVToken;
 
-	//user => flag whether user has admin role
+	/// @dev user => flag : Whether user has admin role.
 	mapping(address => bool) public admins;
 
-	// origin investors entitled to claim SOV
+	/// @dev investor => Amount : Origin investors entitled to claim SOV.
 	mapping(address => uint256) public investorsAmountsList;
+
+
+	/* Events */
 
 	event AdminAdded(address admin);
 	event AdminRemoved(address admin);
@@ -40,29 +45,40 @@ contract OriginInvestorsClaim is Ownable {
 	event ClaimTransferred(address indexed investor, uint256 amount);
 	event InvestorsAmountsListInitialized(uint256 qty, uint256 totalAmount);
 
-	/**
-	 * @dev Throws if called by any account other than the owner or admin.
-	 */
+
+	/* Modifiers */
+
+	/// @dev Throws if called by any account other than the owner or admin.
 	modifier onlyAuthorized() {
 		require(isOwner() || admins[msg.sender], "OriginInvestorsClaim::onlyAuthorized: should be authorized");
 		_;
 	}
 
+	/// @dev Throws if called by any account not whitelisted.
 	modifier onlyWhitelisted() {
 		require(investorsAmountsList[msg.sender] != 0, "OriginInvestorsClaim::onlyWhitelisted: not whitelisted or already claimed");
 		_;
 	}
 
+	/// @dev Throws if called w/ an initialized investors list.
 	modifier notInitialized() {
 		require(!investorsListInitialized, "OriginInvestorsClaim::notInitialized: the investors list should not be set as initialized");
 		_;
 	}
 
+	/// @dev Throws if called w/ an uninitialized investors list.
 	modifier initialized() {
 		require(investorsListInitialized, "OriginInvestorsClaim::initialized: the investors list has not been set yet");
 		_;
 	}
 
+
+	/* Functions */
+
+	/**
+	 * @notice Contract deployment requires one parameter:
+	 * @param vestingRegistryAddress The vestingRegistry contract instance address.
+	 * */
 	constructor(address vestingRegistryAddress) public {
 		vestingRegistry = VestingRegistry(vestingRegistryAddress);
 		staking = Staking(vestingRegistry.staking());
@@ -71,19 +87,29 @@ contract OriginInvestorsClaim is Ownable {
 		vestingTerm = kickoffTS + SOV_VESTING_CLIFF;
 	}
 
+	/**
+	 * @notice Add account to ACL.
+	 * @param _admin The addresses of the account to grant permissions.
+	 * */
 	function addAdmin(address _admin) public onlyOwner {
 		admins[_admin] = true;
 		emit AdminAdded(_admin);
 	}
 
+	/**
+	 * @notice Remove account from ACL.
+	 * @param _admin The addresses of the account to revoke permissions.
+	 * */
 	function removeAdmin(address _admin) public onlyOwner {
 		admins[_admin] = false;
 		emit AdminRemoved(_admin);
 	}
 
 	/**
-	 * @notice in case we have unclaimed tokens or in emergency case
-	 */
+	 * @notice In case we have unclaimed tokens or in emergency case
+	 * this function transfers all SOV tokens to a given address.
+	 * @param toAddress The recipient address of all this contract tokens.
+	 * */
 	function authorizedBalanceWithdraw(address toAddress) public onlyAuthorized {
 		require(
 			SOVToken.transfer(toAddress, SOVToken.balanceOf(address(this))),
@@ -92,8 +118,10 @@ contract OriginInvestorsClaim is Ownable {
 	}
 
 	/**
-	 * @notice should ne called after the investors list setup completed
-	 */
+	 * @notice Should be called after the investors list setup completed.
+	 * This function checks whether the SOV token balance of the contract is
+	 * enough and sets status list to initialized.
+	 * */
 	function setInvestorsAmountsListInitialized() public onlyAuthorized notInitialized {
 		require(
 			SOVToken.balanceOf(address(this)) >= totalAmount,
@@ -106,10 +134,13 @@ contract OriginInvestorsClaim is Ownable {
 	}
 
 	/**
-	 *  @notice the contract should be approved or transferred necessary amount of SOV prior to calling the function
-	 *  @param investors is the list of investors addresses to add to the list. Duplicates will be skipped.
-	 *  @param claimAmounts is the list of amounts for investors investors[i] will receive claimAmounts[i] of SOV
-	 */
+	 * @notice The contract should be approved or transferred necessary
+	 * amount of SOV prior to calling the function.
+	 * @param investors The list of investors addresses to add to the list.
+	 * Duplicates will be skipped.
+	 * @param claimAmounts The list of amounts for investors investors[i]
+	 * will receive claimAmounts[i] of SOV.
+	 * */
 	function appendInvestorsAmountsList(address[] calldata investors, uint256[] calldata claimAmounts)
 		external
 		onlyAuthorized
@@ -136,6 +167,11 @@ contract OriginInvestorsClaim is Ownable {
 		emit InvestorsAmountsListAppended(investors.length.sub(subQty), sumAmount);
 	}
 
+	/**
+	 * @notice Claim tokens from this contract.
+	 * If vestingTerm is not yet achieved a vesting is created.
+	 * Otherwise tokens are tranferred.
+	 * */
 	function claim() external onlyWhitelisted initialized {
 		if (now < vestingTerm) {
 			createVesting();
@@ -144,6 +180,11 @@ contract OriginInvestorsClaim is Ownable {
 		}
 	}
 
+	/**
+	 * @notice Transfer tokens from this contract to a vestingRegistry contract.
+	 * Sender is removed from investor list and all its unvested tokens
+	 * are sent to vesting contract.
+	 * */
 	function createVesting() internal {
 		uint256 cliff = vestingTerm.sub(now);
 		uint256 duration = cliff;
@@ -163,14 +204,21 @@ contract OriginInvestorsClaim is Ownable {
 		emit ClaimVested(msg.sender, amount);
 	}
 
+	/**
+	 * @notice Transfer tokens from this contract to the sender.
+	 * Sender is removed from investor list and all its unvested tokens
+	 * are sent to its account.
+	 * */
 	function transfer() internal {
 		uint256 amount = investorsAmountsList[msg.sender];
 
 		delete investorsAmountsList[msg.sender];
 
-		// withdraw only for those claiming after the cliff, i.e. without vesting contracts
-		// those with vestingContracts should withdraw using Vesting.withdrawTokens
-		// from Vesting (VestingLogic) contract
+		/**
+		 * @dev Withdraw only for those claiming after the cliff, i.e. without vesting contracts.
+		 * Those with vestingContracts should withdraw using Vesting.withdrawTokens
+		 * from Vesting (VestingLogic) contract.
+		 * */
 		require(SOVToken.transfer(msg.sender, amount), "OriginInvestorsClaim::withdraw: SOV transfer failed");
 
 		emit ClaimTransferred(msg.sender, amount);

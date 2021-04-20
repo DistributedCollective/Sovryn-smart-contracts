@@ -9,11 +9,14 @@ import "./IVesting.sol";
 import "./ITeamVesting.sol";
 import "../../openzeppelin/SafeMath.sol";
 
-//one time contract needed to distribute tokens to origin sales investors
+/**
+ * @title VestingRegistry 2 contract.
+ * @notice One time contract needed to distribute tokens to origin sales investors.
+ * */
 contract VestingRegistry2 is Ownable {
 	using SafeMath for uint256;
 
-	///@notice constant used for computing the vesting dates
+	/// @notice Constant used for computing the vesting dates.
 	uint256 public constant FOUR_WEEKS = 4 weeks;
 
 	uint256 public constant CSOV_VESTING_CLIFF = FOUR_WEEKS;
@@ -21,34 +24,34 @@ contract VestingRegistry2 is Ownable {
 
 	IVestingFactory public vestingFactory;
 
-	///@notice the SOV token contract
+	/// @notice The SOV token contract.
 	address public SOV;
-	///@notice the CSOV token contracts
+	/// @notice The CSOV token contracts.
 	address[] public CSOVtokens;
 
 	uint256 public priceSats;
 
-	///@notice the staking contract address
+	/// @notice The staking contract address.
 	address public staking;
-	//@notice fee sharing proxy
+	// @notice Fee sharing proxy.
 	address public feeSharingProxy;
-	//@notice the vesting owner (e.g. governance timelock address)
+	// @notice The vesting owner (e.g. governance timelock address).
 	address public vestingOwner;
 
-	//TODO add to the documentation: address can have only one vesting of each type
-	//user => vesting type => vesting contract
+	/// @dev TODO: Add to the documentation: address can have only one vesting of each type.
+	/// @dev user => vesting type => vesting contract
 	mapping(address => mapping(uint256 => address)) public vestingContracts;
 
-	//struct can be created to save storage slots, but it doesn't make sense
-	//we don't have a lot of blacklisted accounts or account with locked amount
-	//user => flag whether user has already exchange cSV or got a reimbursement
+	/// @dev Struct can be created to save storage slots, but it doesn't make sense.
+	/// @dev We don't have a lot of blacklisted accounts or account with locked amount.
+	/// @dev user => flag whether user has already exchange cSV or got a reimbursement.
 	mapping(address => bool) public processedList;
-	//user => flag whether user shouldn't be able to exchange or reimburse
+	/// @dev user => flag whether user shouldn't be able to exchange or reimburse.
 	mapping(address => bool) public blacklist;
-	//user => amount of tokens should not be processed
+	/// @dev user => amount of tokens should not be processed.
 	mapping(address => uint256) public lockedAmount;
 
-	//user => flag whether user has admin role
+	/// @dev user => flag whether user has admin role.
 	mapping(address => bool) public admins;
 
 	enum VestingType {
@@ -96,17 +99,25 @@ contract VestingRegistry2 is Ownable {
 		_;
 	}
 
+	/**
+	 * @notice Add account to ACL.
+	 * @param _admin The addresses of the account to grant permissions.
+	 * */
 	function addAdmin(address _admin) public onlyOwner {
 		admins[_admin] = true;
 		emit AdminAdded(_admin);
 	}
 
+	/**
+	 * @notice Remove account from ACL.
+	 * @param _admin The addresses of the account to revoke permissions.
+	 * */
 	function removeAdmin(address _admin) public onlyOwner {
 		admins[_admin] = false;
 		emit AdminRemoved(_admin);
 	}
 
-	//---PostCSOV---------------------------------------------------------------------------------------------------------------------------
+	//---PostCSOV--------------------------------------------------------------
 
 	modifier isNotProcessed() {
 		require(!processedList[msg.sender], "Address cannot be processed twice");

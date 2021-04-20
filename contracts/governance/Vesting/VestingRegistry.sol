@@ -10,23 +10,23 @@ import "./ITeamVesting.sol";
 import "../../openzeppelin/SafeMath.sol";
 
 /**
-* @title Vesting Registry contract.
-* 
-* @notice On January 25, 2020, Sovryn launched the Genesis Reservation system.
-* Sovryn community members who controlled a special NFT were granted access to
-* stake BTC or rBTC for cSOV tokens at a rate of 2500 satoshis per cSOV. Per
-* SIP-0003, up to 2,000,000 cSOV were made available in the Genesis event,
-* which will be redeemable on a 1:1 basis for cSOV, subject to approval by
-* existing SOV holders.
-* 
-* On 15 Feb 2021 Sovryn is taking another step in its journey to decentralized
-* financial sovereignty with the vote on SIP 0005. This proposal will enable
-* participants of the Genesis Reservation system to redeem their reserved cSOV
-* tokens for SOV. They will also have the choice to redeem cSOV for rBTC if
-* they decide to exit the system.
-* 
-* This contract deals with the vesting and redemption of cSOV tokens.
-* */
+ * @title Vesting Registry contract.
+ *
+ * @notice On January 25, 2020, Sovryn launched the Genesis Reservation system.
+ * Sovryn community members who controlled a special NFT were granted access to
+ * stake BTC or rBTC for cSOV tokens at a rate of 2500 satoshis per cSOV. Per
+ * SIP-0003, up to 2,000,000 cSOV were made available in the Genesis event,
+ * which will be redeemable on a 1:1 basis for cSOV, subject to approval by
+ * existing SOV holders.
+ *
+ * On 15 Feb 2021 Sovryn is taking another step in its journey to decentralized
+ * financial sovereignty with the vote on SIP 0005. This proposal will enable
+ * participants of the Genesis Reservation system to redeem their reserved cSOV
+ * tokens for SOV. They will also have the choice to redeem cSOV for rBTC if
+ * they decide to exit the system.
+ *
+ * This contract deals with the vesting and redemption of cSOV tokens.
+ * */
 contract VestingRegistry is Ownable {
 	using SafeMath for uint256;
 
@@ -152,7 +152,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice Adds account to ACL.
+	 * @notice Add account to ACL.
 	 * @param _admin The addresses of the account to grant permissions.
 	 * */
 	function addAdmin(address _admin) public onlyOwner {
@@ -161,7 +161,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice Removes account from ACL.
+	 * @notice Remove account from ACL.
 	 * @param _admin The addresses of the account to revoke permissions.
 	 * */
 	function removeAdmin(address _admin) public onlyOwner {

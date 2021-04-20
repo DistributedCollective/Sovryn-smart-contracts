@@ -29,7 +29,7 @@ contract VestingFactory is IVestingFactory, Ownable {
 	 * @param _feeSharing The address of fee sharing contract.
 	 * @param _vestingOwner The address of an owner of vesting contract.
 	 * @return The vesting contract address.
-	 */
+	 * */
 	function deployVesting(
 		address _SOV,
 		address _staking,
@@ -49,7 +49,7 @@ contract VestingFactory is IVestingFactory, Ownable {
 	}
 
 	/**
-	 * @notice deploys Team Vesting contract.
+	 * @notice Deploys Team Vesting contract.
 	 * @param _SOV The address of SOV token.
 	 * @param _staking The address of staking contract.
 	 * @param _tokenOwner The owner of the tokens.
@@ -58,7 +58,7 @@ contract VestingFactory is IVestingFactory, Ownable {
 	 * @param _feeSharing The address of fee sharing contract.
 	 * @param _vestingOwner The address of an owner of vesting contract.
 	 * @return The vesting contract address.
-	 */
+	 * */
 	function deployTeamVesting(
 		address _SOV,
 		address _staking,
