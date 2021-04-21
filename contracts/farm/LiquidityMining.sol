@@ -9,22 +9,22 @@ import "../openzeppelin/SafeMath.sol";
 import "./Upgradeable.sol";
 
 interface IMigratorChef {
-    // Perform LP token migration from legacy UniswapV2 to BGOVSwap.
+    // Perform LP token migration from legacy UniswapV2 to RSOVSwap.
     // Take the current LP token address and return the new LP token address.
     // Migrator should have full access to the caller's LP token.
     // Return the new LP token address.
     //
     // XXX Migrator must have allowance access to UniswapV2 LP tokens.
-    // BGOVSwap must mint EXACTLY the same amount of BGOVSwap LP tokens or
+    // RSOVSwap must mint EXACTLY the same amount of RSOVSwap LP tokens or
     // else something bad will happen. Traditional UniswapV2 does not
     // do that so be careful!
     function migrate(IERC20 token) external returns (IERC20);
 }
 
-// MasterChef is the master of BGOV. He can make BGOV and he is a fair guy.
+// MasterChef is the master of RSOV. He can make RSOV and he is a fair guy.
 //
 // Note that it's ownable and the owner wields tremendous power. The ownership
-// will be transferred to a governance smart contract once BGOV is sufficiently
+// will be transferred to a governance smart contract once RSOV is sufficiently
 // distributed and the community can show to govern itself.
 //
 // Have fun reading it. Hopefully it's bug-free. God bless.
@@ -37,13 +37,13 @@ contract LiquidityMining is Upgradeable {
         uint256 amount; // How many LP tokens the user has provided.
         uint256 rewardDebt; // Reward debt. See explanation below.
         //
-        // We do some fancy math here. Basically, any point in time, the amount of BGOVs
+        // We do some fancy math here. Basically, any point in time, the amount of RSOVs
         // entitled to a user but is pending to be distributed is:
         //
-        //   pending reward = (user.amount * pool.accBGOVPerShare) - user.rewardDebt
+        //   pending reward = (user.amount * pool.accRSOVPerShare) - user.rewardDebt
         //
         // Whenever a user deposits or withdraws LP tokens to a pool. Here's what happens:
-        //   1. The pool's `accBGOVPerShare` (and `lastRewardBlock`) gets updated.
+        //   1. The pool's `accRSOVPerShare` (and `lastRewardBlock`) gets updated.
         //   2. User receives the pending reward sent to his/her address.
         //   3. User's `amount` gets updated.
         //   4. User's `rewardDebt` gets updated.
@@ -51,19 +51,19 @@ contract LiquidityMining is Upgradeable {
     // Info of each pool.
     struct PoolInfo {
         IERC20 lpToken; // Address of LP token contract.
-        uint256 allocPoint; // How many allocation points assigned to this pool. BGOVs to distribute per block.
-        uint256 lastRewardBlock; // Last block number that BGOVs distribution occurs.
-        uint256 accBGOVPerShare; // Accumulated BGOVs per share, times 1e12. See below.
+        uint256 allocPoint; // How many allocation points assigned to this pool. RSOVs to distribute per block.
+        uint256 lastRewardBlock; // Last block number that RSOVs distribution occurs.
+        uint256 accRSOVPerShare; // Accumulated RSOVs per share, times 1e12. See below.
     }
-    // The BGOV TOKEN!
-    ERC20 public BGOV;
+    // The RSOV TOKEN!
+    ERC20 public RSOV;
     // Dev address.
     address public devaddr;
-    // Block number when bonus BGOV period ends.
+    // Block number when bonus RSOV period ends.
     uint256 public bonusEndBlock;
-    // BGOV tokens created per block.
-    uint256 public BGOVPerBlock;
-    // Bonus muliplier for early BGOV makers.
+    // RSOV tokens created per block.
+    uint256 public RSOVPerBlock;
+    // Bonus muliplier for early RSOV makers.
     uint256 public constant BONUS_MULTIPLIER = 10;
     // The migrator contract. It has a lot of power. Can only be set througgith governance (owner).
     IMigratorChef public migrator;
@@ -73,7 +73,7 @@ contract LiquidityMining is Upgradeable {
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
     // Total allocation poitns. Must be the sum of all allocation points in all pools.
     uint256 public totalAllocPoint = 0;
-    // The block number when BGOV mining starts.
+    // The block number when RSOV mining starts.
     uint256 public startBlock;
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
@@ -84,16 +84,16 @@ contract LiquidityMining is Upgradeable {
     );
 
     function initialize(
-        ERC20 _BGOV,
+        ERC20 _RSOV,
         address _devaddr,
-        uint256 _BGOVPerBlock,
+        uint256 _RSOVPerBlock,
         uint256 _startBlock,
         uint256 _bonusEndBlock
     ) public onlyOwner {
-        require(address(BGOV) == address(0), "unauthorized");
-        BGOV = _BGOV;
+        require(address(RSOV) == address(0), "unauthorized");
+        RSOV = _RSOV;
         devaddr = _devaddr;
-        BGOVPerBlock = _BGOVPerBlock;
+        RSOVPerBlock = _RSOVPerBlock;
         bonusEndBlock = _bonusEndBlock;
         startBlock = _startBlock;
     }
@@ -120,12 +120,12 @@ contract LiquidityMining is Upgradeable {
                 lpToken: _lpToken,
                 allocPoint: _allocPoint,
                 lastRewardBlock: lastRewardBlock,
-                accBGOVPerShare: 0
+                accRSOVPerShare: 0
             })
         );
     }
 
-    // Update the given pool's BGOV allocation point. Can only be called by the owner.
+    // Update the given pool's RSOV allocation point. Can only be called by the owner.
     function set(
         uint256 _pid,
         uint256 _allocPoint,
@@ -176,37 +176,37 @@ contract LiquidityMining is Upgradeable {
     }
 
     
-    function _pendingBGOV(uint256 _pid, address _user)
+    function _pendingRSOV(uint256 _pid, address _user)
         internal
         view
         returns (uint256)
     {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
-        uint256 accBGOVPerShare = pool.accBGOVPerShare;
+        uint256 accRSOVPerShare = pool.accRSOVPerShare;
         uint256 lpSupply = pool.lpToken.balanceOf(address(this));
         if (block.number > pool.lastRewardBlock && lpSupply != 0) {
             uint256 multiplier =
                 getMultiplier(pool.lastRewardBlock, block.number);
-            uint256 BGOVReward =
-                multiplier.mul(BGOVPerBlock).mul(pool.allocPoint).div(
+            uint256 RSOVReward =
+                multiplier.mul(RSOVPerBlock).mul(pool.allocPoint).div(
                     totalAllocPoint
                 );
-            accBGOVPerShare = accBGOVPerShare.add(
-                BGOVReward.mul(1e12).div(lpSupply)
+            accRSOVPerShare = accRSOVPerShare.add(
+                RSOVReward.mul(1e12).div(lpSupply)
             );
         }
-        return user.amount.mul(accBGOVPerShare).div(1e12).sub(user.rewardDebt);
+        return user.amount.mul(accRSOVPerShare).div(1e12).sub(user.rewardDebt);
     }
 
 
-    // View function to see pending BGOVs on frontend.
-    function pendingBGOV(uint256 _pid, address _user)
+    // View function to see pending RSOVs on frontend.
+    function pendingRSOV(uint256 _pid, address _user)
         external
         view
         returns (uint256)
     {
-        return _pendingBGOV(_pid, _user);
+        return _pendingRSOV(_pid, _user);
     }
 
 
@@ -230,30 +230,30 @@ contract LiquidityMining is Upgradeable {
             return;
         }
         uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-        uint256 BGOVReward =
-            multiplier.mul(BGOVPerBlock).mul(pool.allocPoint).div(
+        uint256 RSOVReward =
+            multiplier.mul(RSOVPerBlock).mul(pool.allocPoint).div(
                 totalAllocPoint
             );
         //todo original code minted tokens here, we have to supply tokens to this contract instead
-        //BGOV.mint(devaddr, BGOVReward.div(10));
-        //BGOV.mint(address(this), BGOVReward);
-        pool.accBGOVPerShare = pool.accBGOVPerShare.add(
-            BGOVReward.mul(1e12).div(lpSupply)
+        //RSOV.mint(devaddr, RSOVReward.div(10));
+        //RSOV.mint(address(this), RSOVReward);
+        pool.accRSOVPerShare = pool.accRSOVPerShare.add(
+            RSOVReward.mul(1e12).div(lpSupply)
         );
         pool.lastRewardBlock = block.number;
     }
 
-    // Deposit LP tokens to MasterChef for BGOV allocation.
+    // Deposit LP tokens to MasterChef for RSOV allocation.
     function deposit(uint256 _pid, uint256 _amount) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
         if (user.amount > 0) {
             uint256 pending =
-                user.amount.mul(pool.accBGOVPerShare).div(1e12).sub(
+                user.amount.mul(pool.accRSOVPerShare).div(1e12).sub(
                     user.rewardDebt
                 );
-            safeBGOVTransfer(msg.sender, pending);
+            safeRSOVTransfer(msg.sender, pending);
         }
         pool.lpToken.safeTransferFrom(
             address(msg.sender),
@@ -261,7 +261,7 @@ contract LiquidityMining is Upgradeable {
             _amount
         );
         user.amount = user.amount.add(_amount);
-        user.rewardDebt = user.amount.mul(pool.accBGOVPerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accRSOVPerShare).div(1e12);
         emit Deposit(msg.sender, _pid, _amount);
     }
 
@@ -276,12 +276,12 @@ contract LiquidityMining is Upgradeable {
         require(user.amount >= _amount, "withdraw: not good");
         updatePool(_pid);
         uint256 pending =
-            user.amount.mul(pool.accBGOVPerShare).div(1e12).sub(
+            user.amount.mul(pool.accRSOVPerShare).div(1e12).sub(
                 user.rewardDebt
             );
-        safeBGOVTransfer(msg.sender, pending);
+        safeRSOVTransfer(msg.sender, pending);
         user.amount = user.amount.sub(_amount);
-        user.rewardDebt = user.amount.mul(pool.accBGOVPerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accRSOVPerShare).div(1e12);
         pool.lpToken.safeTransfer(address(msg.sender), _amount);
         emit Withdraw(msg.sender, _pid, _amount);
     }
@@ -296,13 +296,13 @@ contract LiquidityMining is Upgradeable {
         user.rewardDebt = 0;
     }
 
-    // Safe BGOV transfer function, just in case if rounding error causes pool to not have enough BGOVs.
-    function safeBGOVTransfer(address _to, uint256 _amount) internal {
-        uint256 BGOVBal = BGOV.balanceOf(address(this));
-        if (_amount > BGOVBal) {
-            BGOV.transfer(_to, BGOVBal);
+    // Safe RSOV transfer function, just in case if rounding error causes pool to not have enough RSOVs.
+    function safeRSOVTransfer(address _to, uint256 _amount) internal {
+        uint256 RSOVBal = RSOV.balanceOf(address(this));
+        if (_amount > RSOVBal) {
+            RSOV.transfer(_to, RSOVBal);
         } else {
-            BGOV.transfer(_to, _amount);
+            RSOV.transfer(_to, _amount);
         }
     }
 
@@ -329,7 +329,7 @@ contract LiquidityMining is Upgradeable {
         userInfos = new uint256[2][](length);
         for (uint256 pid = 0; pid < length; ++pid) {
             userInfos[pid][0] = userInfo[pid][_user].amount;
-            userInfos[pid][1] = _pendingBGOV(pid, _user);
+            userInfos[pid][1] = _pendingRSOV(pid, _user);
 
         }
     }
@@ -342,11 +342,11 @@ contract LiquidityMining is Upgradeable {
         }
     }
 
-    function getPendingBGOV(address _user) external view returns(uint256[] memory pending){
+    function getPendingRSOV(address _user) external view returns(uint256[] memory pending){
         uint256 length = poolInfo.length;
         pending = new uint256[](length);
         for (uint256 pid = 0; pid < length; ++pid) {
-            pending[pid] = _pendingBGOV(pid, _user);
+            pending[pid] = _pendingRSOV(pid, _user);
         }
     }
 
