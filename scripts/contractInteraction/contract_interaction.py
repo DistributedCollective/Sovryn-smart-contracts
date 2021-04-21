@@ -90,7 +90,7 @@ def main():
     # addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**15, 67 * 10**17])
     # addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [30 * 10**18, 200000 * 10**18])
 
-    removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 5 * 10**17, [contracts['WRBTC'], contracts['SOV']])
+    # removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 5 * 10**17, [contracts['WRBTC'], contracts['SOV']])
     # 2986.175 × 99% ~ 2957
     # removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 2957 * 10**18, [contracts['WRBTC'], contracts['SOV']])
 
@@ -115,15 +115,16 @@ def main():
     print(impact)
     '''
 
-    readSwapRate(contracts['SOV'], contracts['WRBTC'])
-    readOwner(contracts['WRBTCtoSOVConverter'])
+    # readSwapRate(contracts['SOV'], contracts['WRBTC'])
+    # readOwner(contracts['WRBTCtoSOVConverter'])
     #acceptOwnershipWithMultisig(contracts['WRBTCtoSOVConverter'])
-    readConversionFee(contracts['WRBTCtoSOVConverter'])
-    readConversionFee(contracts['ConverterUSDT'])
+    # readConversionFee(contracts['WRBTCtoSOVConverter'])
+    # readConversionFee(contracts['ConverterUSDT'])
 
     #((impact/100 * 15000e10) + 15000e10) * rbtcBalance - ((impact/100 * 15000e10) + 15000e10) * (sovBalance * rbtcBalance / (sovBalance + amount ))  = amount
 
-    createProposalSIP0015()
+    # createProposalSIP0015()
+    transferSOVtoScriptAccount()
 
 
 def loadConfig():
@@ -1121,8 +1122,8 @@ def transferSOVtoTokenSender():
     print(txId)
 
 def transferSOVtoScriptAccount():
-    # 5825.7 SOV
-    amount = 58257 * 10**17
+    # 31111.5 SOV
+    amount = 311115 * 10**17
 
     # TODO set receiver address
     receiver = "0x27D55f5668eF4438635bdCE0aDCA083507E77752"
