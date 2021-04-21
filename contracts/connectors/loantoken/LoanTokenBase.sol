@@ -13,16 +13,31 @@ import "../../openzeppelin/Address.sol";
 import "../../interfaces/IWrbtcERC20.sol";
 import "./Pausable.sol";
 
+/**
+ * @title Loan Token Base contract.
+ * @notice This contract code comes from bZx.
+ * bZx is a protocol for tokenized margin trading and lending https://bzx.network
+ *
+ * Specific loan related storage for iTokens.
+ *
+ * An loan token or iToken is a representation of a user funds in the pool and the
+ * interest they've earned. The redemption value of iTokens continually increase
+ * from the accretion of interest paid into the lending pool by borrowers. The user
+ * can sell iTokens to exit its position. The user might potentially use them as
+ * collateral wherever applicable.
+ * */
 contract LoanTokenBase is ReentrancyGuard, Ownable {
 	uint256 internal constant WEI_PRECISION = 10**18;
 	uint256 internal constant WEI_PERCENT_PRECISION = 10**20;
 
 	int256 internal constant sWEI_PRECISION = 10**18;
 
+	/// @notice Standard ERC-20 properties
 	string public name;
 	string public symbol;
 	uint8 public decimals;
 
+	/// @notice The address of the loan token (asset to lend) instance.
 	address public loanTokenAddress;
 
 	uint256 public baseRate;
@@ -38,12 +53,16 @@ contract LoanTokenBase is ReentrancyGuard, Ownable {
 	uint256 public checkpointSupply;
 	uint256 public initialPrice;
 
-	// uint88 for tight packing -> 8 + 88 + 160 = 256
+	/// uint88 for tight packing -> 8 + 88 + 160 = 256
 	uint88 internal lastSettleTime_;
 
-	mapping(uint256 => bytes32) public loanParamsIds; // mapping of keccak256(collateralToken, isTorqueLoan) to loanParamsId
-	mapping(address => uint256) internal checkpointPrices_; // price of token at last user checkpoint
+	/// Mapping of keccak256(collateralToken, isTorqueLoan) to loanParamsId.
+	mapping(uint256 => bytes32) public loanParamsIds;
+	
+	/// Price of token at last user checkpoint.
+	mapping(address => uint256) internal checkpointPrices_;
 
-	mapping(address => uint256) public transactionLimit; // the maximum trading/borrowing/lending limit per token address
-	// 0 -> no limit
+	/// The maximum trading/borrowing/lending limit per token address.
+	/// 0 -> no limit
+	mapping(address => uint256) public transactionLimit;
 }

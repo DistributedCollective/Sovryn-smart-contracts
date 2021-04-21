@@ -15,6 +15,13 @@ import "../rsk/RSKAddrValidator.sol";
  * proposal will be scheduled on the timelock contract. Only after sufficient
  * time passed, it can be executed. A minimum voting power is required for
  * making a proposal as well as a minimum quorum.
+ *
+ * Voting power in the Bitocracy:
+ * Stakers will receive voting power in the Bitocracy in return for their
+ * staking commitment. This voting power is weighted by how much SOV is staked
+ * and for how long the staking period is - staking more SOV over longer staking
+ * periods results in higher voting power. With this voting power, users can
+ * vote for or against any SIP in bitocracy.sovryn.app.
  * */
 contract GovernorAlpha is SafeMath96 {
 	/* Storage */
@@ -183,7 +190,7 @@ contract GovernorAlpha is SafeMath96 {
 	}
 
 	/**
-	 * @notice Creates a new proposal.
+	 * @notice Create a new proposal.
 	 * @param targets Array of contract addresses to perform proposal execution.
 	 * @param values Array of rBTC amounts to send on proposal execution.
 	 * @param signatures Array of function signatures to call on proposal execution.
@@ -264,7 +271,7 @@ contract GovernorAlpha is SafeMath96 {
 	}
 
 	/**
-	 * @notice Enqueues a proposal and everyone of its calls.
+	 * @notice Enqueue a proposal and everyone of its calls.
 	 * @param proposalId Proposal index to access the list proposals[] from storage.
 	 * */
 	function queue(uint256 proposalId) public {
@@ -303,7 +310,7 @@ contract GovernorAlpha is SafeMath96 {
 	}
 
 	/**
-	 * @notice Executes a proposal by looping and performing everyone of its calls.
+	 * @notice Execute a proposal by looping and performing everyone of its calls.
 	 * @param proposalId Proposal index to access the list proposals[] from storage.
 	 * */
 	function execute(uint256 proposalId) public payable {
@@ -324,7 +331,7 @@ contract GovernorAlpha is SafeMath96 {
 	}
 
 	/**
-	 * @notice Cancels a proposal by looping and cancelling everyone of its calls.
+	 * @notice Cancel a proposal by looping and cancelling everyone of its calls.
 	 * @param proposalId Proposal index to access the list proposals[] from storage.
 	 * */
 	function cancel(uint256 proposalId) public {
@@ -351,7 +358,7 @@ contract GovernorAlpha is SafeMath96 {
 	}
 
 	/**
-	 * @notice Queries a proposal list of its calls.
+	 * @notice Get a proposal list of its calls.
 	 * @param proposalId Proposal index to access the list proposals[] from storage.
 	 * @return Arrays of the 4 call parameters: targets, values, signatures, calldatas.
 	 * */
@@ -370,7 +377,7 @@ contract GovernorAlpha is SafeMath96 {
 	}
 
 	/**
-	 * @notice Queries a proposal receipt.
+	 * @notice Get a proposal receipt.
 	 * @param proposalId Proposal index to access the list proposals[] from storage.
 	 * @param voter A governance stakeholder with voting power.
 	 * @return The voter receipt of the proposal.
@@ -441,7 +448,7 @@ contract GovernorAlpha is SafeMath96 {
 	}
 
 	/**
-	 * @notice Casts a vote, adding it to the total counting.
+	 * @notice Cast a vote, adding it to the total counting.
 	 * @param voter A governance stakeholder with voting power that is casting the vote.
 	 * @param proposalId Proposal index to access the list proposals[] from storage.
 	 * @param support Vote value, yes or no.
@@ -495,7 +502,7 @@ contract GovernorAlpha is SafeMath96 {
 	}
 
 	/**
-	 * @notice Queries a proposal state.
+	 * @notice Get a proposal state.
 	 * @param proposalId Proposal index to access the list proposals[] from storage.
 	 * @return The state of the proposal: Canceled, Pending, Active, Defeated,
 	 * Succeeded, Executed, Expired.

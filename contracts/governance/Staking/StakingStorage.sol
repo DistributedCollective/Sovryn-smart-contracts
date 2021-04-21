@@ -10,7 +10,16 @@ import "../IFeeSharingProxy.sol";
  * @notice Just the storage part of stacking contract, no functions,
  * only constant, variables and required structures (mappings).
  * Used by StackingProxy and Checkpoints contracts.
- */
+ *
+ * What is SOV staking?
+ * The purpose of the SOV token is to provide a pseudonymous,
+ * censorship-resistant mechanism for governing the parameters of the Sovryn
+ * protocol, while aligning the incentives of protocol governors with the
+ * long-term success of the protocol. Any SOV token holder can choose to
+ * stake (lock up) their tokens for a fixed period of time in return for
+ * voting rights in the Bitocracy. Stakers are further incentivised through
+ * fee and slashing rewards.
+ * */
 contract StakingStorage is Ownable {
 	/// @notice 2 weeks in seconds.
 	uint256 constant TWO_WEEKS = 1209600;

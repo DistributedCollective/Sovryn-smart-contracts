@@ -57,7 +57,7 @@ contract VestingRegistry is Ownable {
 	/// @notice The vesting owner (e.g. governance timelock address).
 	address public vestingOwner;
 
-	/// @dev TODO Add to the documentation: address can have only one vesting of each type.
+	/// @dev TODO: Add to the documentation: address can have only one vesting of each type.
 	/// @dev user => vesting type => vesting contract.
 	mapping(address => mapping(uint256 => address)) public vestingContracts;
 
@@ -212,13 +212,24 @@ contract VestingRegistry is Ownable {
 		emit CSOVReImburse(msg.sender, CSOVAmountWei, reImburseAmount);
 	}
 
+	/**
+	 * @notice Get contract balance.
+	 * @return The token balance of the contract.
+	 * */
 	function budget() external view returns (uint256) {
 		uint256 SCBudget = address(this).balance;
 		return SCBudget;
 	}
 
+	/**
+	 * @notice Deposit function to receiving value (rBTC).
+	 * */
 	function deposit() public payable {}
 
+	/**
+	 * @notice Send all contract balance to an account.
+	 * @param to The account address to send the balance to.
+	 * */
 	function withdrawAll(address payable to) public onlyOwner {
 		to.transfer(address(this).balance);
 	}
@@ -250,13 +261,6 @@ contract VestingRegistry is Ownable {
 
 	/**
 	 * @notice Sets cSOV tokens array. High level endpoint.
-	 *
-	 * @dev Splitting code on two functions: high level and low level
-	 * is a pattern that makes easy to extend functionality in a readable way,
-	 * without accidentally breaking the actual action being performed.
-	 * For example, checks should be done on high level endpoint, while core
-	 * functionality should be coded on the low level function.
-	 *
 	 * @param _CSOVtokens The array of cSOV tokens.
 	 * */
 	function setCSOVtokens(address[] memory _CSOVtokens) public onlyOwner {
@@ -275,7 +279,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice Sets blacklist flag (true/false).
+	 * @notice Set blacklist flag (true/false).
 	 * @param _account The address to be blacklisted.
 	 * @param _blacklisted The flag to add/remove to/from a blacklist.
 	 * */
@@ -286,7 +290,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice Sets amount to be subtracted from user token balance.
+	 * @notice Set amount to be subtracted from user token balance.
 	 * @param _account The address with locked amount.
 	 * @param _amount The amount to be locked.
 	 * */
@@ -298,7 +302,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice Transfers SOV tokens to given address.
+	 * @notice Transfer SOV tokens to given address.
 	 *
 	 * @dev This is a wrapper for ERC-20 transfer function w/
 	 * additional checks and triggering an event.
@@ -315,7 +319,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice exchanges cSOV to SOV with 1:1 rate
+	 * @notice Exchange cSOV to SOV with 1:1 rate
 	 */
 	function exchangeAllCSOV() public isNotProcessed isNotBlacklisted {
 		processedList[msg.sender] = true;
@@ -347,7 +351,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice Checks a token address is among the cSOV token addresses.
+	 * @notice Check a token address is among the cSOV token addresses.
 	 * @param _CSOV The cSOV token address.
 	 * */
 	function _validateCSOV(address _CSOV) internal view {
@@ -362,7 +366,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice Creates Vesting contract.
+	 * @notice Create Vesting contract.
 	 * @param _tokenOwner The owner of the tokens.
 	 * @param _amount The amount to be staked.
 	 * @param _cliff The time interval to the first withdraw in seconds.
@@ -379,7 +383,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice Creates Team Vesting contract.
+	 * @notice Create Team Vesting contract.
 	 * @param _tokenOwner The owner of the tokens.
 	 * @param _amount The amount to be staked.
 	 * @param _cliff The time interval to the first withdraw in seconds.
@@ -396,7 +400,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice Stakes tokens according to the vesting schedule.
+	 * @notice Stake tokens according to the vesting schedule.
 	 * @param _vesting The address of Vesting contract.
 	 * @param _amount The amount of tokens to stake.
 	 * */
@@ -410,7 +414,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice Queries the vesting contract for an account.
+	 * @notice Query the vesting contract for an account.
 	 * @param _tokenOwner The owner of the tokens.
 	 * @return The vesting contract address for the given token owner.
 	 * */
@@ -419,7 +423,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice Queries the team vesting contract for an account.
+	 * @notice Query the team vesting contract for an account.
 	 * @param _tokenOwner The owner of the tokens.
 	 * @return The team vesting contract address for the given token owner.
 	 * */
@@ -428,7 +432,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice If not exists, deploys a vesting contract through factory.
+	 * @notice If not exists, deploy a vesting contract through factory.
 	 * @param _tokenOwner The owner of the tokens.
 	 * @param _cliff The time interval to the first withdraw in seconds.
 	 * @param _duration The total duration in seconds.
@@ -450,7 +454,7 @@ contract VestingRegistry is Ownable {
 	}
 
 	/**
-	 * @notice If not exists, deploys a team vesting contract through factory.
+	 * @notice If not exists, deploy a team vesting contract through factory.
 	 * @param _tokenOwner The owner of the tokens.
 	 * @param _cliff The time interval to the first withdraw in seconds.
 	 * @param _duration The total duration in seconds.

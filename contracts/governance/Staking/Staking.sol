@@ -272,7 +272,12 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	}
 
 	/**
-	 * @notice Send user' staked tokens to a receiver.
+	 * @notice Send user' staked tokens to a receiver taking into account punishments.
+	 * Sovryn encourages long-term commitment and thinking. When/if you unstake before
+	 * the end of the staking period, a percentage of the original staking amount will
+	 * be slashed. This amount is also added to the reward pool and is distributed
+	 * between all other stakers.
+	 *
 	 * @param amount The number of tokens to withdraw.
 	 * @param until The date until which the tokens were staked.
 	 * @param receiver The receiver of the tokens. If not specified, send to the msg.sender

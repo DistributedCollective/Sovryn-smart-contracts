@@ -18,7 +18,7 @@ contract GovernorVault is Ownable {
 	/* Functions */
 
 	/**
-	 * @notice Transfers tokens.
+	 * @notice Transfer tokens.
 	 * @param _receiver The receiver of tokens.
 	 * @param _token The address of token contract.
 	 * @param _amount The amount to be transferred.
@@ -36,7 +36,7 @@ contract GovernorVault is Ownable {
 	}
 
 	/**
-	 * @notice Transfers RBTC.
+	 * @notice Transfer RBTC.
 	 * @param _receiver The receiver of RBTC.
 	 * @param _amount The amount to be transferred.
 	 * */

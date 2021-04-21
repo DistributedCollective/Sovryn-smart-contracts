@@ -106,8 +106,7 @@ contract Timelock is ErrorDecoder, ITimelock {
 	function() external payable {}
 
 	/**
-	 * @notice This function is used to set a new delay when executing the
-	 * contract calls.
+	 * @notice Set a new delay when executing the contract calls.
 	 * @param delay_ The amount of time to wait until execution.
 	 * */
 	function setDelay(uint256 delay_) public {
@@ -120,7 +119,7 @@ contract Timelock is ErrorDecoder, ITimelock {
 	}
 
 	/**
-	 * @notice A function used to accept a new admin for the timelock.
+	 * @notice Accept a new admin for the timelock.
 	 * */
 	function acceptAdmin() public {
 		require(msg.sender == pendingAdmin, "Timelock::acceptAdmin: Call must come from pendingAdmin.");
@@ -131,7 +130,7 @@ contract Timelock is ErrorDecoder, ITimelock {
 	}
 
 	/**
-	 * @notice A function to set a new pending admin for the timelock.
+	 * @notice Set a new pending admin for the timelock.
 	 * @param pendingAdmin_ The new pending admin address.
 	 * */
 	function setPendingAdmin(address pendingAdmin_) public {
@@ -142,7 +141,7 @@ contract Timelock is ErrorDecoder, ITimelock {
 	}
 
 	/**
-	 * @notice Queues a new transaction from the governance contract.
+	 * @notice Queue a new transaction from the governance contract.
 	 * @param target The contract to call.
 	 * @param value The amount to send in the transaction.
 	 * @param signature The stanndard representation of the function called.
@@ -168,7 +167,7 @@ contract Timelock is ErrorDecoder, ITimelock {
 	}
 
 	/**
-	 * @notice This function is used to cancel a transaction.
+	 * @notice Cancel a transaction.
 	 * @param target The contract to call.
 	 * @param value The amount to send in the transaction.
 	 * @param signature The stanndard representation of the function called.

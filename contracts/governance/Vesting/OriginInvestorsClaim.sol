@@ -11,7 +11,6 @@ import "../Staking/Staking.sol";
 contract OriginInvestorsClaim is Ownable {
 	using SafeMath for uint256;
 
-
 	/* Storage */
 
 	/// VestingRegistry public constant vestingRegistry = VestingRegistry(0x80B036ae59B3e38B573837c01BB1DB95515b7E6B);
@@ -35,7 +34,6 @@ contract OriginInvestorsClaim is Ownable {
 	/// @dev investor => Amount : Origin investors entitled to claim SOV.
 	mapping(address => uint256) public investorsAmountsList;
 
-
 	/* Events */
 
 	event AdminAdded(address admin);
@@ -44,7 +42,6 @@ contract OriginInvestorsClaim is Ownable {
 	event ClaimVested(address indexed investor, uint256 amount);
 	event ClaimTransferred(address indexed investor, uint256 amount);
 	event InvestorsAmountsListInitialized(uint256 qty, uint256 totalAmount);
-
 
 	/* Modifiers */
 
@@ -71,7 +68,6 @@ contract OriginInvestorsClaim is Ownable {
 		require(investorsListInitialized, "OriginInvestorsClaim::initialized: the investors list has not been set yet");
 		_;
 	}
-
 
 	/* Functions */
 

@@ -127,7 +127,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 	/**
 	 * @notice Transfer tokens to this contract.
 	 * @dev We just update amount of tokens here and write checkpoint in a separate methods
-	 * in order to prevent adding checkpoints too often
+	 * in order to prevent adding checkpoints too often.
 	 * @param _token Address of the token.
 	 * @param _amount Amount to be transferred.
 	 * */
@@ -148,7 +148,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 	}
 
 	/**
-	 * @notice Adds checkpoint with accumulated amount by function invocation.
+	 * @notice Add checkpoint with accumulated amount by function invocation.
 	 * @param _token Address of the token.
 	 * */
 	function _addCheckpoint(address _token) internal {
@@ -166,6 +166,13 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 
 	/**
 	 * @notice Withdraw accumulated fee the message sender.
+	 *
+	 * The Sovryn protocol collects fees on every trade/swap and loan.
+	 * These fees will be distributed to SOV stakers based on their voting
+	 * power as a percentage of total voting power. Therefore, staking more
+	 * SOV and/or staking for longer will increase your share of the fees
+	 * generated, meaning you will earn more from staking.
+	 *
 	 * @param _loanPoolToken Address of the pool token.
 	 * @param _maxCheckpoints Maximum number of checkpoints to be processed.
 	 * @param _receiver The receiver of tokens or msg.sender
@@ -195,9 +202,10 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 	}
 
 	/**
-	 * @notice Returns accumulated fee for the message sender.
+	 * @notice Get the accumulated loan pool fee of the message sender.
 	 * @param _user The address of the user or contract.
 	 * @param _loanPoolToken Address of the pool token.
+	 * @return The accumulated fee for the message sender.
 	 * */
 	function getAccumulatedFees(address _user, address _loanPoolToken) public view returns (uint256) {
 		uint256 amount;
@@ -212,7 +220,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 	 * While the total voting power would not necessarily need to be
 	 * checkpointed, it makes sense to save gas cost on withdrawal.
 	 *
-	 * When the user wants to withdraw his\her share of tokens, we need
+	 * When the user wants to withdraw its share of tokens, we need
 	 * to iterate over all of the checkpoints since the users last
 	 * withdrawal (note: remember last withdrawal block), query the
 	 * user’s balance at the checkpoint blocks from the staking contract,
