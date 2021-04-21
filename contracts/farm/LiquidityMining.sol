@@ -46,8 +46,6 @@ contract LiquidityMining is Upgradeable {
     }
     // The RSOV TOKEN!
     ERC20 public RSOV;
-    // Dev address.
-    address public devaddr;
     // Block number when bonus RSOV period ends.
     uint256 public bonusEndBlock;
     // RSOV tokens created per block.
@@ -72,14 +70,12 @@ contract LiquidityMining is Upgradeable {
 
     function initialize(
         ERC20 _RSOV,
-        address _devaddr,
         uint256 _RSOVPerBlock,
         uint256 _startBlock,
         uint256 _bonusEndBlock
     ) public onlyOwner {
         require(address(RSOV) == address(0), "unauthorized");
         RSOV = _RSOV;
-        devaddr = _devaddr;
         RSOVPerBlock = _RSOVPerBlock;
         bonusEndBlock = _bonusEndBlock;
         startBlock = _startBlock;
@@ -206,7 +202,6 @@ contract LiquidityMining is Upgradeable {
                 totalAllocPoint
             );
         //todo original code minted tokens here, we have to supply tokens to this contract instead
-        //RSOV.mint(devaddr, RSOVReward.div(10));
         //RSOV.mint(address(this), RSOVReward);
         pool.accRSOVPerShare = pool.accRSOVPerShare.add(
             RSOVReward.mul(1e12).div(lpSupply)
@@ -275,12 +270,6 @@ contract LiquidityMining is Upgradeable {
         } else {
             RSOV.transfer(_to, _amount);
         }
-    }
-
-    // Update dev address by the previous dev.
-    function dev(address _devaddr) public {
-        require(msg.sender == devaddr, "dev: wut?");
-        devaddr = _devaddr;
     }
 
 
