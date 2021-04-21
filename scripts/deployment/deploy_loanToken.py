@@ -204,7 +204,6 @@ def testDeployment(acct, sovryn, loanTokenAddress, underlyingToken, collateralTo
 test the affiliate margin trade by entering and closing a trade position
 '''
 def testAffiliatesIntegration(acct, sovryn, loanTokenAddress, underlyingToken, collateralToken, loanTokenSent, value):
-
     print('\n TESTING THE AFFILIATES INTEGRATION')
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     
@@ -213,6 +212,8 @@ def testAffiliatesIntegration(acct, sovryn, loanTokenAddress, underlyingToken, c
     
     referrerAddress = accounts[9]
     print('\n Referrer address : ', referrerAddress)
+    previousAffiliatesRewardBalanceOnChain = sovryn.affiliatesReferrerBalances(referrerAddress, underlyingToken)
+    previousBalanceInTokenContract = underlyingToken.balanceOf(referrerAddress)
     
     tx = loanToken.marginTradeAffiliate(
         "0", #loanId  (0 for new loans)
@@ -243,7 +244,7 @@ def testAffiliatesIntegration(acct, sovryn, loanTokenAddress, underlyingToken, c
     print("\n--- CHECK AFFILIATE REWARD BALANCE ---")
     submittedAffiliatesReward = tx.events['PayTradingFeeToAffiliate']['fee']
     affiliatesRewardBalanceOnChain = sovryn.affiliatesReferrerBalances(referrerAddress, underlyingToken)
-    if affiliatesRewardBalanceOnChain != submittedAffiliatesReward:
+    if affiliatesRewardBalanceOnChain - previousAffiliatesRewardBalanceOnChain != submittedAffiliatesReward:
         raise Exception("Affiliates reward is invalid")
     print("Check affiliate reward balance -- Passed with value (" , submittedAffiliatesReward , " & " , affiliatesRewardBalanceOnChain , ")\n")
 
@@ -267,11 +268,11 @@ def testAffiliatesIntegration(acct, sovryn, loanTokenAddress, underlyingToken, c
     print("Rest Balance", restAffiliateBalance)
     if latestAffiliateBalanceBeforeWithdrawal - affiliatesRewardBalanceOnChain != restAffiliateBalance:
         raise Exception("Rest token amount after withdrawal in affiliate contract is not matched")
-        
+
     print("\n--- CHECK TOKEN BALANCE IN TOKEN CONTRACT ---")
     balanceInTokenContract = underlyingToken.balanceOf(referrerAddress)
     print("\nPrevious balance in token contract: ", previousBalanceInTokenContract)
     print("Withdrawn token: ", affiliatesRewardBalanceOnChain)
     print("Latest balance in token contract: ", balanceInTokenContract)
-    if balanceInTokenContract != affiliatesRewardBalanceOnChain:
+    if balanceInTokenContract - previousBalanceInTokenContract != affiliatesRewardBalanceOnChain:
         raise Exception("Withdrawn token amount in token contract is not matched")
