@@ -30,7 +30,7 @@ contract VestingCreator is AdminRole {
 	}
 
 	event SOVTransferred(address indexed receiver, uint256 amount);
-	event TokensStaked(address indexed vesting, uint256 amount);
+	event TokensStaked(address indexed vesting, address indexed tokenOwner, uint256 amount);
 	event VestingDataRemoved(address indexed caller, address tokenOwner);
 	event DataCleared(address indexed caller);
 	event ErrorDataCleared(address indexed caller);
@@ -100,6 +100,8 @@ contract VestingCreator is AdminRole {
 	 * @notice creates vesting contract (if it hasn't been created yet) and stakes tokens
 	 */
 	function processNextVesting() onlyAuthorized public {
+		//TODO probably, we need to split into 2 separate operations:
+		//TODO vesting creation and token staking (in some cases they can't be processed in one transaction because of block gas limit)
 		if (vestingDataList.length > 0) {
 			VestingData storage vestingData = vestingDataList[vestingDataList.length - 1];
 			uint amount = vestingData.amount;
@@ -111,7 +113,7 @@ contract VestingCreator is AdminRole {
 			SOV.approve(address(vesting), amount);
 			vesting.stakeTokens(amount);
 			delete vestingDataList[vestingDataList.length - 1];
-			emit TokensStaked(address(vesting), amount);
+			emit TokensStaked(address(vesting), vestingData.tokenOwner, amount);
 		}
 	}
 
