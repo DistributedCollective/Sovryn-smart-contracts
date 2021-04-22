@@ -6,8 +6,7 @@ pragma experimental ABIEncoderV2;
 import "../openzeppelin/ERC20.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
-import "./Upgradeable.sol";
-
+import "../openzeppelin/Ownable.sol";
 
 
 // MasterChef is the master of RSOV. He can make RSOV and he is a fair guy.
@@ -17,7 +16,7 @@ import "./Upgradeable.sol";
 // distributed and the community can show to govern itself.
 //
 // Have fun reading it. Hopefully it's bug-free. God bless.
-contract LiquidityMining is Upgradeable {
+contract LiquidityMining is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
