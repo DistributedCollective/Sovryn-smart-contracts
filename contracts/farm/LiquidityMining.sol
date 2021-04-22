@@ -7,6 +7,7 @@ import "../openzeppelin/ERC20.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
 import "../openzeppelin/Ownable.sol";
+import "../token/SOV.sol";
 
 
 // MasterChef is the master of RSOV. He can make RSOV and he is a fair guy.
@@ -20,6 +21,7 @@ contract LiquidityMining is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
+    //TODO check if we can use uint128 instead of uint256 to save 1 storage slot for each user
     // Info of each user.
     struct UserInfo {
         uint256 amount; // How many LP tokens the user has provided.
@@ -36,6 +38,7 @@ contract LiquidityMining is Ownable {
         //   3. User's `amount` gets updated.
         //   4. User's `rewardDebt` gets updated.
     }
+    //TODO probably, we can save slots here, not sure we will have a lot of pools
     // Info of each pool.
     struct PoolInfo {
         IERC20 lpToken; // Address of LP token contract.
@@ -85,6 +88,7 @@ contract LiquidityMining is Ownable {
     }
 
     // Add a new lp to the pool. Can only be called by the owner.
+    //TODO transaction should be reverted in this case
     // XXX DO NOT add the same LP token more than once. Rewards will be messed up if you do.
     function add(
         uint256 _allocPoint,
@@ -200,6 +204,8 @@ contract LiquidityMining is Ownable {
             multiplier.mul(RSOVPerBlock).mul(pool.allocPoint).div(
                 totalAllocPoint
             );
+        //TODO I think we can use RSOV.mint(RSOVReward), but this contract should have an appropriate amount of SOV
+        //TODO or as you mentioned this contract should have an appropriate amount of RSOV
         //todo original code minted tokens here, we have to supply tokens to this contract instead
         //RSOV.mint(address(this), RSOVReward);
         pool.accRSOVPerShare = pool.accRSOVPerShare.add(
@@ -261,6 +267,7 @@ contract LiquidityMining is Ownable {
         user.rewardDebt = 0;
     }
 
+    //TODO it can be RSOV or SOV, depends on an implementation of `updatePool`
     // Safe RSOV transfer function, just in case if rounding error causes pool to not have enough RSOVs.
     function safeRSOVTransfer(address _to, uint256 _amount) internal {
         uint256 RSOVBal = RSOV.balanceOf(address(this));
@@ -276,12 +283,8 @@ contract LiquidityMining is Ownable {
 
 
     function getPoolInfos() external view returns(PoolInfo[] memory poolInfos){
-        uint256 length = poolInfo.length;
-        poolInfos = new PoolInfo[](length);
-        for (uint256 pid = 0; pid < length; ++pid) {
-            poolInfos[pid] = poolInfo[pid];
-        }
-    }
+        return poolInfo;
+   }
 
     function getOptimisedUserInfos(address _user) external view returns(uint256[2][] memory userInfos){
         uint256 length = poolInfo.length;
