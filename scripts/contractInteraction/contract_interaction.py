@@ -90,7 +90,7 @@ def main():
     # addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**15, 67 * 10**17])
     # addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [30 * 10**18, 200000 * 10**18])
 
-    removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 5 * 10**17, [contracts['WRBTC'], contracts['SOV']])
+    # removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 5 * 10**17, [contracts['WRBTC'], contracts['SOV']])
     # 2986.175 × 99% ~ 2957
     # removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 2957 * 10**18, [contracts['WRBTC'], contracts['SOV']])
 
@@ -115,15 +115,16 @@ def main():
     print(impact)
     '''
 
-    readSwapRate(contracts['SOV'], contracts['WRBTC'])
-    readOwner(contracts['WRBTCtoSOVConverter'])
+    # readSwapRate(contracts['SOV'], contracts['WRBTC'])
+    # readOwner(contracts['WRBTCtoSOVConverter'])
     #acceptOwnershipWithMultisig(contracts['WRBTCtoSOVConverter'])
-    readConversionFee(contracts['WRBTCtoSOVConverter'])
-    readConversionFee(contracts['ConverterUSDT'])
+    # readConversionFee(contracts['WRBTCtoSOVConverter'])
+    # readConversionFee(contracts['ConverterUSDT'])
 
     #((impact/100 * 15000e10) + 15000e10) * rbtcBalance - ((impact/100 * 15000e10) + 15000e10) * (sovBalance * rbtcBalance / (sovBalance + amount ))  = amount
 
-    createProposalSIP0015()
+#     createProposalSIP0015()
+    updateFeeController()
 
 
 def loadConfig():
@@ -1321,5 +1322,15 @@ def sendSOVFromVestingRegistry():
 
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(vestingRegistry.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def updateFeeController():
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.setFeesController.encode_input(contracts['FeeSharingProxy'])
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
