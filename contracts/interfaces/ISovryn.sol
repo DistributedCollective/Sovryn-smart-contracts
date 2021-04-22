@@ -336,6 +336,10 @@ contract ISovryn is
 		uint256 amount
 	) external returns (uint256 withdrawAmount);
 
+	function withdrawAllAffiliatesReferrerTokenFees(
+		address receiver
+	) external;
+
 	function setAffiliatesUserReferrer(address user, address referrer) external; //onlyCallableByLoanPools
 
 	// function getAffiliatesUserReferrer(address user) external returns ; //AUDIT: do we need it to be public?

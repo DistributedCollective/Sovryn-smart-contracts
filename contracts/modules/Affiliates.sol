@@ -36,6 +36,7 @@ contract Affiliates is State, AffiliatesEvents {
 		_setTarget(this.payTradingFeeToAffiliatesReferrer.selector, target);
 		_setTarget(this.getAffiliatesReferrerTokensList.selector, target);
 		_setTarget(this.withdrawAffiliatesReferrerTokenFees.selector, target);
+		_setTarget(this.withdrawAllAffiliatesReferrerTokenFees.selector, target);
 	}
 
 	modifier onlyCallableByLoanPools() {
@@ -123,7 +124,7 @@ contract Affiliates is State, AffiliatesEvents {
 		address token,
 		address receiver,
 		uint256 amount
-	) external {
+	) public {
 		require(receiver != address(0), "Affiliates: cannot withdraw to zero address");
 		address referrer = msg.sender;
 		uint256 referrerTokenBalance = affiliatesReferrerBalances[referrer][token];
@@ -146,13 +147,25 @@ contract Affiliates is State, AffiliatesEvents {
 		}
 	}
 
+	function withdrawAllAffiliatesReferrerTokenFees(
+		address receiver
+	) external {
+		require(receiver != address(0), "Affiliates: cannot withdraw to zero address");
+		address referrer = msg.sender;
+		
+		(address[] memory tokenAddresses, uint256[] memory tokenBalances) = getAffiliatesReferrerBalances(referrer);
+		for (uint256 i; i < tokenAddresses.length; i++) {
+			withdrawAffiliatesReferrerTokenFees(tokenAddresses[i], receiver, tokenBalances[i]);
+		}
+	}
+
 	function _removeAffiliatesReferrerToken(address referrer, address token) internal {
 		delete affiliatesReferrerBalances[referrer][token];
 		affiliatesReferrerTokensList[referrer].remove(token);
 	}
 
 	function getAffiliatesReferrerBalances(address referrer)
-		external
+		public
 		view
 		returns (address[] memory referrerTokensList, uint256[] memory referrerTokensBalances)
 	{
