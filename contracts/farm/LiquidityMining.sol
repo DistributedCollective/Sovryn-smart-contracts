@@ -22,7 +22,7 @@ contract LiquidityMining is Ownable {
 	uint256 public constant PRECISION = 1e12;
 	// Bonus multiplier for early RSOV makers.
 	// During bonus period each passed block will be calculated like N passed blocks, where N = BONUS_MULTIPLIER
-	uint256 public constant BONUS_MULTIPLIER = 10;
+	uint256 public constant BONUS_BLOCK_MULTIPLIER = 10;
 
 	//TODO check if we can use uint128 instead of uint256 to save 1 storage slot for each user
 	// Info of each user.
@@ -59,12 +59,17 @@ contract LiquidityMining is Ownable {
 	uint256 public bonusEndBlock;
 	// RSOV tokens created per block.
 	uint256 public RSOVPerBlock;
+
+	//TODO check of we still need this array
 	// Info of each pool.
 	PoolInfo[] public poolInfo;
+	// TODO use _lpToken instead of _pid in all functions
+	mapping(address => uint256) poolIds;
+
 	// Info of each user that stakes LP tokens.
 	mapping(uint256 => mapping(address => UserInfo)) public userInfo;
 	// Total allocation points. Must be the sum of all allocation points in all pools.
-	uint256 public totalAllocPoint = 0;
+	uint256 public totalAllocPoint;
 
 	event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
 	event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
@@ -94,18 +99,20 @@ contract LiquidityMining is Ownable {
 	// XXX DO NOT add the same LP token more than once. Rewards will be messed up if you do.
 	function add(uint256 _allocPoint, IERC20 _lpToken, bool _withUpdate) public onlyOwner {
 		if (_withUpdate) {
-			massUpdatePools();
+			updateAllPools();
 		}
 
 		uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
 		totalAllocPoint = totalAllocPoint.add(_allocPoint);
+
+		poolIds[address(_lpToken)] = poolInfo.length;
 		poolInfo.push(PoolInfo({ lpToken: _lpToken, allocPoint: _allocPoint, lastRewardBlock: lastRewardBlock, accRSOVPerShare: 0 }));
 	}
 
 	// Update the given pool's RSOV allocation point. Can only be called by the owner.
 	function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate) public onlyOwner {
 		if (_withUpdate) {
-			massUpdatePools();
+			updateAllPools();
 		}
 
 		totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
@@ -113,13 +120,13 @@ contract LiquidityMining is Ownable {
 	}
 
 	// Return reward multiplier over the given _from to _to block.
-	function getMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
+	function getPassedBlocksWithBonusMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
 		if (_to <= bonusEndBlock) {
-			return _to.sub(_from).mul(BONUS_MULTIPLIER);
+			return _to.sub(_from).mul(BONUS_BLOCK_MULTIPLIER);
 		} else if (_from >= bonusEndBlock) {
 			return _to.sub(_from);
 		} else {
-			return bonusEndBlock.sub(_from).mul(BONUS_MULTIPLIER).add(_to.sub(bonusEndBlock));
+			return bonusEndBlock.sub(_from).mul(BONUS_BLOCK_MULTIPLIER).add(_to.sub(bonusEndBlock));
 		}
 	}
 
@@ -130,7 +137,7 @@ contract LiquidityMining is Ownable {
 		uint256 accRSOVPerShare = pool.accRSOVPerShare;
 		uint256 lpSupply = pool.lpToken.balanceOf(address(this));
 		if (block.number > pool.lastRewardBlock && lpSupply != 0) {
-			uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
+			uint256 multiplier = getPassedBlocksWithBonusMultiplier(pool.lastRewardBlock, block.number);
 			uint256 RSOVReward = multiplier.mul(RSOVPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
 			accRSOVPerShare = accRSOVPerShare.add(RSOVReward.mul(PRECISION).div(lpSupply));
 		}
@@ -143,7 +150,7 @@ contract LiquidityMining is Ownable {
 	}
 
 	// Update reward variables for all pools. Be careful of gas spending!
-	function massUpdatePools() public {
+	function updateAllPools() public {
 		uint256 length = poolInfo.length;
 		for (uint256 pid = 0; pid < length; ++pid) {
 			updatePool(pid);
@@ -165,7 +172,7 @@ contract LiquidityMining is Ownable {
 			return;
 		}
 
-		uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
+		uint256 multiplier = getPassedBlocksWithBonusMultiplier(pool.lastRewardBlock, block.number);
 		uint256 RSOVReward = multiplier.mul(RSOVPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
 		//TODO I think we can use RSOV.mint(RSOVReward), but this contract should have an appropriate amount of SOV
 		//TODO or as you mentioned this contract should have an appropriate amount of RSOV
@@ -184,7 +191,7 @@ contract LiquidityMining is Ownable {
 
 		if (user.amount > 0) {
 			uint256 pending = user.amount.mul(pool.accRSOVPerShare).div(PRECISION).sub(user.rewardDebt);
-			safeRSOVTransfer(msg.sender, pending);
+			_safeRSOVTransfer(msg.sender, pending);
 		}
 		pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 		user.amount = user.amount.add(_amount);
@@ -205,7 +212,7 @@ contract LiquidityMining is Ownable {
 		updatePool(_pid);
 
 		uint256 pending = user.amount.mul(pool.accRSOVPerShare).div(PRECISION).sub(user.rewardDebt);
-		safeRSOVTransfer(msg.sender, pending);
+		_safeRSOVTransfer(msg.sender, pending);
 		user.amount = user.amount.sub(_amount);
 		user.rewardDebt = user.amount.mul(pool.accRSOVPerShare).div(PRECISION);
 
@@ -225,13 +232,12 @@ contract LiquidityMining is Ownable {
 	}
 
 	// Safe RSOV transfer function, just in case if rounding error causes pool to not have enough RSOVs.
-	function safeRSOVTransfer(address _to, uint256 _amount) internal {
+	function _safeRSOVTransfer(address _to, uint256 _amount) internal {
 		uint256 RSOVBal = RSOV.balanceOf(address(this));
 		if (_amount > RSOVBal) {
-			RSOV.transfer(_to, RSOVBal);
-		} else {
-			RSOV.transfer(_to, _amount);
+			_amount = RSOVBal;
 		}
+		require(RSOV.transfer(_to, _amount), "transfer failed");
 	}
 
 	// Custom logic - helpers
