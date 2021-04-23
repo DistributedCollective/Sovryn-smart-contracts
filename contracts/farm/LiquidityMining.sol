@@ -53,12 +53,12 @@ contract LiquidityMining is Ownable {
 
 	// The RSOV TOKEN!
 	ERC20 public RSOV;
+	// RSOV tokens created per block.
+	uint256 public RSOVPerBlock;
 	// The block number when RSOV mining starts.
 	uint256 public startBlock;
 	// Block number when bonus RSOV period ends.
 	uint256 public bonusEndBlock;
-	// RSOV tokens created per block.
-	uint256 public RSOVPerBlock;
 
 	//TODO check of we still need this array
 	// Info of each pool.
@@ -81,7 +81,9 @@ contract LiquidityMining is Ownable {
 		uint256 _startBlock,
 		uint256 _bonusEndBlock
 	) public onlyOwner {
-		require(address(RSOV) == address(0), "unauthorized");
+		require(address(RSOV) == address(0), "already initialized");
+
+		require(address(_RSOV) != address(0), "token address invalid");
 
 		RSOV = _RSOV;
 		RSOVPerBlock = _RSOVPerBlock;
