@@ -15,8 +15,8 @@ import "./Pausable.sol";
 
 /**
  * @title Loan Token Base contract.
- * @notice This contract code comes from bZx.
- * bZx is a protocol for tokenized margin trading and lending https://bzx.network
+ * @notice This contract code comes from bZx. bZx is a protocol for tokenized margin
+ * trading and lending https://bzx.network similar to the dYdX protocol.
  *
  * Specific loan related storage for iTokens.
  *
@@ -25,6 +25,15 @@ import "./Pausable.sol";
  * from the accretion of interest paid into the lending pool by borrowers. The user
  * can sell iTokens to exit its position. The user might potentially use them as
  * collateral wherever applicable.
+ *
+ * There are three main tokens in the bZx system, iTokens, pTokens, and BZRX tokens.
+ * The bZx system of lending and borrowing depends on iTokens and pTokens, and when
+ * users lend or borrow money on bZx, their crypto assets go into or come out of
+ * global liquidity pools, which are pools of funds shared between many different
+ * exchanges. When lenders supply funds into the global liquidity pools, they
+ * automatically receive iTokens; When users borrow money to open margin trading
+ * positions, they automatically receive pTokens. The system is also designed to
+ * use the BZRX tokens, which are only used to pay fees on the network currently.
  * */
 contract LoanTokenBase is ReentrancyGuard, Ownable {
 	uint256 internal constant WEI_PRECISION = 10**18;
@@ -58,7 +67,7 @@ contract LoanTokenBase is ReentrancyGuard, Ownable {
 
 	/// Mapping of keccak256(collateralToken, isTorqueLoan) to loanParamsId.
 	mapping(uint256 => bytes32) public loanParamsIds;
-	
+
 	/// Price of token at last user checkpoint.
 	mapping(address => uint256) internal checkpointPrices_;
 

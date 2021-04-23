@@ -9,8 +9,8 @@ import "./AdvancedTokenStorage.sol";
 
 /**
  * @title Advanced Token contract.
- * @notice This contract code comes from bZx.
- * bZx is a protocol for tokenized margin trading and lending https://bzx.network
+ * @notice This contract code comes from bZx. bZx is a protocol for tokenized margin
+ * trading and lending https://bzx.network similar to the dYdX protocol.
  *
  * AdvancedToken implements standard ERC-20 approval, mint and burn token functionality.
  * Logic (AdvancedToken) is kept aside from storage (AdvancedTokenStorage).
@@ -38,7 +38,7 @@ contract AdvancedToken is AdvancedTokenStorage {
 	 * @param _spender The account address that will be able to spend the tokens.
 	 * @param _value The amount of tokens allowed to spend.
 	 */
-	 function approve(address _spender, uint256 _value) public returns (bool) {
+	function approve(address _spender, uint256 _value) public returns (bool) {
 		allowed[msg.sender][_spender] = _value;
 		emit Approval(msg.sender, _spender, _value);
 		return true;
@@ -47,6 +47,7 @@ contract AdvancedToken is AdvancedTokenStorage {
 	/**
 	 * @notice The iToken minting process. Meant to issue Loan iTokens.
 	 * Lenders are able to open an iToken position, by minting them.
+	 * This function is called by LoanTokenLogicStandard::_mintToken
 	 * @param _to The recipient of the minted tTokens.
 	 * @param _tokenAmount The amount of iTokens to be minted.
 	 * @param _assetAmount The amount of lended tokens (asset to lend).
@@ -75,6 +76,7 @@ contract AdvancedToken is AdvancedTokenStorage {
 	/**
 	 * @notice The iToken burning process. Meant to destroy Loan iTokens.
 	 * Lenders are able to close an iToken position, by burning them.
+	 * This function is called by LoanTokenLogicStandard::_burnToken
 	 * @param _who The owner of the iTokens to burn.
 	 * @param _tokenAmount The amount of iTokens to burn.
 	 * @param _assetAmount The amount of lended tokens.

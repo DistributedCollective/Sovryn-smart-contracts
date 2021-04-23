@@ -755,11 +755,14 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 	}
 
 	/**
-	 * used to swap back excessive loan tokens to collateral tokens.
+	 * @notice Used to swap back excessive loan tokens to collateral tokens.
+	 *
 	 * @param loanLocal the loan object
 	 * @param loanParamsLocal the loan parameters
 	 * @param swapAmount the amount to be swapped
-	 * @param loanDataBytes additional loan data (not in use for token swaps)
+	 * @param loanDataBytes Additional loan data (not in use for token swaps).
+	 *
+	 * @return destTokenAmountReceived, sourceTokenAmountUsed and collateralToLoanSwapRate.
 	 * */
 	function _swapBackExcess(
 		Loan memory loanLocal,

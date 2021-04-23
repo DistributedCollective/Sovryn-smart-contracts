@@ -17,7 +17,7 @@ contract VestingRegistry2 is Ownable {
 	using SafeMath for uint256;
 
 	/* Storage */
-	
+
 	/// @notice Constant used for computing the vesting dates.
 	uint256 public constant FOUR_WEEKS = 4 weeks;
 
@@ -71,7 +71,7 @@ contract VestingRegistry2 is Ownable {
 	}
 
 	/* Events */
-	
+
 	event CSOVTokensExchanged(address indexed caller, uint256 amount);
 	event SOVTransferred(address indexed receiver, uint256 amount);
 	event VestingCreated(address indexed tokenOwner, address vesting, uint256 cliff, uint256 duration, uint256 amount);

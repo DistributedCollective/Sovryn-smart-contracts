@@ -9,8 +9,8 @@ import "./LoanTokenBase.sol";
 
 /**
  * @title Advanced Token Storage contract.
- * @notice This contract code comes from bZx.
- * bZx is a protocol for tokenized margin trading and lending https://bzx.network
+ * @notice This contract code comes from bZx. bZx is a protocol for tokenized margin
+ * trading and lending https://bzx.network similar to the dYdX protocol.
  *
  * AdvancedTokenStorage implements standard ERC-20 getters functionality:
  * totalSupply, balanceOf, allowance and some events.
@@ -35,7 +35,7 @@ contract AdvancedTokenStorage is LoanTokenBase {
 	event Burn(address indexed burner, uint256 tokenAmount, uint256 assetAmount, uint256 price);
 
 	/* Storage */
-	
+
 	mapping(address => uint256) internal balances;
 	mapping(address => mapping(address => uint256)) internal allowed;
 	uint256 internal totalSupply_;

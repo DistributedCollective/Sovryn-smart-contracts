@@ -32,6 +32,12 @@ import "./Staking/IStaking.sol";
  * Also, the staking contract sends slashed tokens to this contract. When a
  * user calls the withdraw function, the contract transfers the fee sharing
  * rewards in proportion to the user’s weighted stake since the last withdrawal.
+ *
+ * The protocol is collecting fees in all sorts of currencies and then automatically
+ * supplies them to the respective lending pools. Therefore, all fees are
+ * generating interest for the SOV holders. If one of them withdraws fees, it will
+ * get pool tokens. It is planned to add the option to convert anything to rBTC
+ * before withdrawing, but not yet implemented.
  * */
 contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 	using SafeMath for uint256;
