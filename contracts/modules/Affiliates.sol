@@ -126,7 +126,6 @@ contract Affiliates is State, AffiliatesEvents {
 
 			// Submit SOV Bonus to the event, so it can be processed by the backend
 			emitSOVBonus(referrer, token, referrerTradingFee);
-
 		}
 
 		emit PayTradingFeeToAffiliate(referrer, token, referrerTradingFee);
@@ -140,13 +139,23 @@ contract Affiliates is State, AffiliatesEvents {
 	 * @param referralCommissionAmount token amount of the refferal commission
 	 */
 
-	function emitSOVBonus(address referrer, address referralCommissionToken, uint256 referralCommissionAmount) internal {
+	function emitSOVBonus(
+		address referrer,
+		address referralCommissionToken,
+		uint256 referralCommissionAmount
+	) internal {
 		// Get the SOV amount based on the referralCommission token
-		uint256 sovRate = ISwapsImpl(swapsImpl).internalExpectedRate(referralCommissionToken, sovTokenAddress, referralCommissionAmount, sovrynSwapContractRegistryAddress);
+		uint256 sovRate =
+			ISwapsImpl(swapsImpl).internalExpectedRate(
+				referralCommissionToken,
+				sovTokenAddress,
+				referralCommissionAmount,
+				sovrynSwapContractRegistryAddress
+			);
 		uint256 sovBonusAmount = referralCommissionAmount.mul(sovRate).div(10**18);
 
 		emit SetAffiliatesSOVBonus(referrer, sovBonusAmount);
-    }
+	}
 
 	function withdrawAffiliatesReferrerTokenFees(
 		address token,

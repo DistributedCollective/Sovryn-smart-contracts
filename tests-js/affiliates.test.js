@@ -6,6 +6,7 @@ const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic"); //added func
 
 const TestWrbtc = artifacts.require("TestWrbtc");
 const TestToken = artifacts.require("TestToken");
+const SOV = artifacts.require("SOV");
 const ISovryn = artifacts.require("ISovryn");
 const ProtocolSettings = artifacts.require("ProtocolSettings");
 const LoanSettings = artifacts.require("LoanSettings");
@@ -17,16 +18,19 @@ const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplLocal = artifacts.require("SwapsImplLocal");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 const Affiliates = artifacts.require("Affiliates");
 
 const { BN, constants, send, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const { expect } = require("hardhat");
 
+const TOTAL_SUPPLY = "10000000000000000000000000";
+
 contract("Affiliates", (accounts) => {
 	let loanTokenLogic;
 	let testWrbtc;
 	let doc;
+	let tokenSOV;
 	let sovryn;
 	let loanTokenV2;
 	let feeds;
@@ -54,6 +58,7 @@ contract("Affiliates", (accounts) => {
 		loanTokenLogic = await MockLoanTokenLogic.new();
 		testWrbtc = await TestWrbtc.new();
 		doc = await TestToken.new("dollar on chain", "DOC", 18, wei("20000", "ether"));
+		tokenSOV = await SOV.new(TOTAL_SUPPLY);
 		loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 		await loanToken.initialize(doc.address, "SUSD", "SUSD");
 
@@ -68,7 +73,7 @@ contract("Affiliates", (accounts) => {
 		//initialize
 		feeds = await PriceFeedsLocal.new(testWrbtc.address, sovryn.address);
 		await feeds.setRates(doc.address, testWrbtc.address, wei("0.01", "ether"));
-		const swaps = await SwapsImplLocal.new();
+		const swapsSovryn = await SwapsImplSovrynSwap.new();
 		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
 		await sovryn.setSupportedTokens([doc.address, testWrbtc.address], [true, true]);
@@ -76,10 +81,12 @@ contract("Affiliates", (accounts) => {
 			feeds.address //priceFeeds
 		);
 		await sovryn.setSwapsImplContract(
-			swaps.address // swapsImpl
+			swapsSovryn.address // swapsImpl
 		);
 		await sovryn.setFeesController(owner);
 		await sovryn.setWrbtcToken(testWrbtc.address);
+		await sovryn.setSOVTokenAddress(tokenSOV.address);
+		await sovryn.setMinReferralsToPayoutAffiliates(1);
 
 		{
 			/**
