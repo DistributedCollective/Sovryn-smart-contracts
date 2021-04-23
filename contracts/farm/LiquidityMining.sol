@@ -84,8 +84,8 @@ contract LiquidityMining is Ownable {
 		uint256 _startBlock,
 		uint256 _bonusEndBlock
 	) public onlyOwner {
-		require(address(RSOV) == address(0), "already initialized");
-		require(address(_RSOV) != address(0), "token address invalid");
+		require(address(RSOV) == address(0), "Already initialized");
+		require(address(_RSOV) != address(0), "Token address invalid");
 
 		RSOV = _RSOV;
 		RSOVPerBlock = _RSOVPerBlock;
@@ -95,9 +95,9 @@ contract LiquidityMining is Ownable {
 
 	// Add a new lp to the pool. Can only be called by the owner.
 	function add(uint256 _allocationPoint, address _poolToken, bool _withUpdate) public onlyOwner {
-		require(_allocationPoint > 0, "invalid allocation point");
-		require(_poolToken != address(0), "invalid token address");
-		require(poolIds[_poolToken] == 0, "token already added");
+		require(_allocationPoint > 0, "Invalid allocation point");
+		require(_poolToken != address(0), "Invalid token address");
+		require(poolIds[_poolToken] == 0, "Token already added");
 
 		if (_withUpdate) {
 			updateAllPools();
@@ -114,16 +114,18 @@ contract LiquidityMining is Ownable {
 	}
 
 	// Update the given pool's RSOV allocation point. Can only be called by the owner.
-	function update(uint256 _pid, uint256 _allocationPoint, bool _withUpdate) public onlyOwner {
+	function update(address _poolToken, uint256 _allocationPoint, bool _withUpdate) public onlyOwner {
+		uint256 poolId = _getPoolId(_poolToken);
+
 		if (_withUpdate) {
 			updateAllPools();
 		}
 
-		uint256 previousAllocationPoint = poolInfo[_pid].allocationPoint;
+		uint256 previousAllocationPoint = poolInfo[poolId].allocationPoint;
 		totalAllocationPoint = totalAllocationPoint.sub(previousAllocationPoint).add(_allocationPoint);
-		poolInfo[_pid].allocationPoint = _allocationPoint;
+		poolInfo[poolId].allocationPoint = _allocationPoint;
 
-		emit PoolTokenUpdated(user, poolToken, _allocationPoint, previousAllocationPoint);
+		emit PoolTokenUpdated(msg.sender, _poolToken, _allocationPoint, previousAllocationPoint);
 	}
 
 	// Return reward multiplier over the given _from to _to block.
@@ -137,9 +139,9 @@ contract LiquidityMining is Ownable {
 		}
 	}
 
-	function _pendingRSOV(uint256 _pid, address _user) internal view returns (uint256) {
-		PoolInfo storage pool = poolInfo[_pid];
-		UserInfo storage user = userInfo[_pid][_user];
+	function _pendingRSOV(uint256 _poolId, address _user) internal view returns (uint256) {
+		PoolInfo storage pool = poolInfo[_poolId];
+		UserInfo storage user = userInfo[_poolId][_user];
 
 		uint256 accRSOVPerShare = pool.accRSOVPerShare;
 		uint256 lpSupply = pool.poolToken.balanceOf(address(this));
@@ -152,21 +154,27 @@ contract LiquidityMining is Ownable {
 	}
 
 	// View function to see pending RSOVs on frontend.
-	function pendingRSOV(uint256 _pid, address _user) external view returns (uint256) {
-		return _pendingRSOV(_pid, _user);
+	function pendingRSOV(address _poolToken, address _user) external returns (uint256) {
+		uint256 poolId = _getPoolId(_poolToken);
+		return _pendingRSOV(poolId, _user);
 	}
 
 	// Update reward variables for all pools. Be careful of gas spending!
 	function updateAllPools() public {
 		uint256 length = poolInfo.length;
 		for (uint256 pid = 0; pid < length; ++pid) {
-			updatePool(pid);
+			_updatePool(pid);
 		}
 	}
 
+	function updatePool(address _poolToken) external {
+		uint256 poolId = _getPoolId(_poolToken);
+		_updatePool(poolId);
+	}
+
 	// Update reward variables of the given pool to be up-to-date.
-	function updatePool(uint256 _pid) public {
-		PoolInfo storage pool = poolInfo[_pid];
+	function _updatePool(uint256 _poolId) internal {
+		PoolInfo storage pool = poolInfo[_poolId];
 
 		//this pool has been updated recently
 		if (block.number <= pool.lastRewardBlock) {
@@ -190,11 +198,12 @@ contract LiquidityMining is Ownable {
 	}
 
 	// Deposit LP tokens to LiquidityMining for RSOV allocation.
-	function deposit(uint256 _pid, uint256 _amount) public {
-		PoolInfo storage pool = poolInfo[_pid];
-		UserInfo storage user = userInfo[_pid][msg.sender];
+	function deposit(address _poolToken, uint256 _amount) public {
+		uint256 poolId = _getPoolId(_poolToken);
+		PoolInfo storage pool = poolInfo[poolId];
+		UserInfo storage user = userInfo[poolId][msg.sender];
 
-		updatePool(_pid);
+		_updatePool(poolId);
 
 		if (user.amount > 0) {
 			uint256 pending = user.amount.mul(pool.accRSOVPerShare).div(PRECISION).sub(user.rewardDebt);
@@ -203,20 +212,21 @@ contract LiquidityMining is Ownable {
 		pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 		user.amount = user.amount.add(_amount);
 		user.rewardDebt = user.amount.mul(pool.accRSOVPerShare).div(PRECISION);
-		emit Deposit(msg.sender, _pid, _amount);
+		emit Deposit(msg.sender, poolId, _amount);
 	}
 
-	function claimReward(uint256 _pid) public {
-		deposit(_pid, 0);
+	function claimReward(address _poolToken) public {
+		deposit(_poolToken, 0);
 	}
 
 	// Withdraw LP tokens from LiquidityMining.
-	function withdraw(uint256 _pid, uint256 _amount) public {
-		PoolInfo storage pool = poolInfo[_pid];
-		UserInfo storage user = userInfo[_pid][msg.sender];
+	function withdraw(address _poolToken, uint256 _amount) public {
+		uint256 poolId = _getPoolId(_poolToken);
+		PoolInfo storage pool = poolInfo[poolId];
+		UserInfo storage user = userInfo[poolId][msg.sender];
 		require(user.amount >= _amount, "withdraw: not good");
 
-		updatePool(_pid);
+		_updatePool(poolId);
 
 		uint256 pending = user.amount.mul(pool.accRSOVPerShare).div(PRECISION).sub(user.rewardDebt);
 		_safeRSOVTransfer(msg.sender, pending);
@@ -224,16 +234,17 @@ contract LiquidityMining is Ownable {
 		user.rewardDebt = user.amount.mul(pool.accRSOVPerShare).div(PRECISION);
 
 		pool.poolToken.safeTransfer(address(msg.sender), _amount);
-		emit Withdraw(msg.sender, _pid, _amount);
+		emit Withdraw(msg.sender, poolId, _amount);
 	}
 
 	// Withdraw without caring about rewards. EMERGENCY ONLY.
-	function emergencyWithdraw(uint256 _pid) public {
-		PoolInfo storage pool = poolInfo[_pid];
-		UserInfo storage user = userInfo[_pid][msg.sender];
+	function emergencyWithdraw(address _poolToken) public {
+		uint256 poolId = _getPoolId(_poolToken);
+		PoolInfo storage pool = poolInfo[poolId];
+		UserInfo storage user = userInfo[poolId][msg.sender];
 
 		pool.poolToken.safeTransfer(address(msg.sender), user.amount);
-		emit EmergencyWithdraw(msg.sender, _pid, user.amount);
+		emit EmergencyWithdraw(msg.sender, poolId, user.amount);
 		user.amount = 0;
 		user.rewardDebt = 0;
 	}
@@ -245,6 +256,12 @@ contract LiquidityMining is Ownable {
 			_amount = RSOVBal;
 		}
 		require(RSOV.transfer(_to, _amount), "transfer failed");
+	}
+
+	function _getPoolId(address _poolToken) internal returns (uint256) {
+		uint256 poolId = poolIds[_poolToken];
+		require(poolId > 0, "Pool token not found");
+		return poolId;
 	}
 
 	// Custom logic - helpers
@@ -266,11 +283,11 @@ contract LiquidityMining is Ownable {
 		}
 	}
 
-	function getUserInfos(address _wallet) external view returns (UserInfo[] memory userInfos) {
+	function getUserInfos(address _user) external view returns (UserInfo[] memory userInfos) {
 		uint256 length = poolInfo.length;
 		userInfos = new UserInfo[](length);
 		for (uint256 pid = 0; pid < length; ++pid) {
-			userInfos[pid] = userInfo[pid][_wallet];
+			userInfos[pid] = userInfo[pid][_user];
 		}
 	}
 

@@ -17,7 +17,7 @@ contract("LiquidityMining:", (accounts) => {
     const bonusEndBlock = new BN(1000);
 
     let root, account1, account2, account3, account4;
-    let RSOVToken;
+    let RSOVToken, token1, token2, token3;
     let liquidityMining;
 
     before(async () => {
@@ -26,6 +26,9 @@ contract("LiquidityMining:", (accounts) => {
 
     beforeEach(async () => {
         RSOVToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
+        token1 = await TestToken.new("Test token 1", "TST-1", 18, TOTAL_SUPPLY);
+        token2 = await TestToken.new("Test token 2", "TST-2", 18, TOTAL_SUPPLY);
+        token3 = await TestToken.new("Test token 3", "TST-3", 18, TOTAL_SUPPLY);
 
         liquidityMining = await LiquidityMining.new();
         await liquidityMining.initialize(RSOVToken.address, RSOVPerBlock, startBlock, bonusEndBlock);
@@ -47,7 +50,7 @@ contract("LiquidityMining:", (accounts) => {
         it("fails if already initialized", async () => {
             await expectRevert(
                 liquidityMining.initialize(RSOVToken.address, RSOVPerBlock, startBlock, bonusEndBlock),
-                "already initialized"
+                "Already initialized"
             );
         });
 
@@ -55,9 +58,17 @@ contract("LiquidityMining:", (accounts) => {
             liquidityMining = await LiquidityMining.new();
             await expectRevert(
                 liquidityMining.initialize(ZERO_ADDRESS, RSOVPerBlock, startBlock, bonusEndBlock),
-                "token address invalid"
+                "Token address invalid"
             );
         });
+    });
+
+    describe("add", () => {
+        it("should be able to add lp token", async () => {
+            await liquidityMining.add(1, token1.address, false);
+
+        });
+
     });
 
 });
