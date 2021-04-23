@@ -42,6 +42,10 @@ contract ISovryn is
 
 	function setSovrynProtocolAddress(address newProtocolAddress) external;
 
+	function setSOVTokenAddress(address newSovTokenAddress) external;
+
+	function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external;
+
 	function setPriceFeedContract(address newContract) external;
 
 	function setSwapsImplContract(address newContract) external;
@@ -57,6 +61,8 @@ contract ISovryn is
 	function setBorrowingFeePercent(uint256 newValue) external;
 
 	function setAffiliateFeePercent(uint256 newValue) external;
+
+	function setAffiliateSOVBonusPercent(uint256 newValue) external;
 
 	function setLiquidationIncentivePercent(uint256 newAmount) external;
 
@@ -336,9 +342,7 @@ contract ISovryn is
 		uint256 amount
 	) external returns (uint256 withdrawAmount);
 
-	function withdrawAllAffiliatesReferrerTokenFees(
-		address receiver
-	) external;
+	function withdrawAllAffiliatesReferrerTokenFees(address receiver) external;
 
 	function setAffiliatesUserReferrer(address user, address referrer) external; //onlyCallableByLoanPools
 

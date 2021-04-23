@@ -12,6 +12,7 @@ import "../mixins/EnumerableBytes32Set.sol";
 //import "../mixins/VaultController.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../events/AffiliatesEvents.sol";
+import "../swaps/ISwapsImpl.sol";
 
 contract Affiliates is State, AffiliatesEvents {
 	/*
@@ -64,6 +65,7 @@ contract Affiliates is State, AffiliatesEvents {
 		result.success = !(result.userNotFirstTradeFlag || result.alreadySet || user == referrer);
 		if (result.success) {
 			affiliatesUserReferrer[user] = referrer;
+			if (!referralsList[referrer].contains(user)) referralsList[referrer].add(user);
 			emit SetAffiliatesReferrer(user, referrer);
 		} else {
 			emit SetAffiliatesReferrerFail(user, referrer, result.alreadySet, result.userNotFirstTradeFlag);
@@ -101,6 +103,14 @@ contract Affiliates is State, AffiliatesEvents {
 		return affiliateFeePercent;
 	}
 
+	function _getMinReferralsToPayout() internal view returns (uint256) {
+		return minReferralsToPayout;
+	}
+
+	function _getAffiliatesSOVBonusPercent() internal view returns (uint256) {
+		return affiliateSOVBonusPercent;
+	}
+
 	/**
 	 * @param tradingFeeTokenBaseAmount total trading fee amount, the base for calculating referrer's fees
 	 */
@@ -113,12 +123,30 @@ contract Affiliates is State, AffiliatesEvents {
 			referrerTradingFee = _getReferrerTradingFee(tradingFeeTokenBaseAmount);
 			if (!affiliatesReferrerTokensList[referrer].contains(token)) affiliatesReferrerTokensList[referrer].add(token);
 			affiliatesReferrerBalances[referrer][token] = affiliatesReferrerBalances[referrer][token].add(referrerTradingFee);
+
+			// Submit SOV Bonus to the event, so it can be processed by the backend
+			emitSOVBonus(referrer, token, referrerTradingFee);
+
 		}
 
 		emit PayTradingFeeToAffiliate(referrer, token, referrerTradingFee);
 
 		return referrerTradingFee;
 	}
+
+	/**
+	 * @param referrer token address of the referrer
+	 * @param referralCommissionToken token address of the referral commission
+	 * @param referralCommissionAmount token amount of the refferal commission
+	 */
+
+	function emitSOVBonus(address referrer, address referralCommissionToken, uint256 referralCommissionAmount) internal {
+		// Get the SOV amount based on the referralCommission token
+		uint256 sovRate = ISwapsImpl(swapsImpl).internalExpectedRate(referralCommissionToken, sovTokenAddress, referralCommissionAmount, sovrynSwapContractRegistryAddress);
+		uint256 sovBonusAmount = referralCommissionAmount.mul(sovRate).div(10**18);
+
+		emit SetAffiliatesSOVBonus(referrer, sovBonusAmount);
+    }
 
 	function withdrawAffiliatesReferrerTokenFees(
 		address token,
@@ -131,6 +159,8 @@ contract Affiliates is State, AffiliatesEvents {
 		uint256 withdrawAmount = referrerTokenBalance > amount ? amount : referrerTokenBalance;
 
 		require(withdrawAmount > 0, "Affiliates: cannot withdraw zero amount");
+
+		require(referralsList[referrer].length() >= _getMinReferralsToPayout(), "Your referrals has not reached the minimum request");
 
 		if (referrerTokenBalance > 0) {
 			uint256 newReferrerTokenBalance = referrerTokenBalance.sub(withdrawAmount);
@@ -147,12 +177,12 @@ contract Affiliates is State, AffiliatesEvents {
 		}
 	}
 
-	function withdrawAllAffiliatesReferrerTokenFees(
-		address receiver
-	) external {
+	function withdrawAllAffiliatesReferrerTokenFees(address receiver) external {
 		require(receiver != address(0), "Affiliates: cannot withdraw to zero address");
 		address referrer = msg.sender;
-		
+
+		require(referralsList[referrer].length() >= _getMinReferralsToPayout(), "Your referrals has not reached the minimum request");
+
 		(address[] memory tokenAddresses, uint256[] memory tokenBalances) = getAffiliatesReferrerBalances(referrer);
 		for (uint256 i; i < tokenAddresses.length; i++) {
 			withdrawAffiliatesReferrerTokenFees(tokenAddresses[i], receiver, tokenBalances[i]);

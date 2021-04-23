@@ -96,6 +96,11 @@ contract State is Objects, ReentrancyGuard, Ownable {
 	mapping(address => EnumerableAddressSet.AddressSet) internal affiliatesReferrerTokensList; // addresses of tokens in which commissions were paid to referrers
 	mapping(address => mapping(address => uint256)) public affiliatesReferrerBalances; // [referrerAddress][tokenAddress] is a referrer's token balance of accrued fees
 	mapping(address => address) public affiliatesUserReferrer; // User => referrer (affiliate)
+	mapping(address => EnumerableAddressSet.AddressSet) internal referralsList; // list of referral addresses that owned by the referrer
+
+	uint256 public affiliateSOVBonusPercent = 10 * 10**18;
+	uint256 public minReferralsToPayout = 3;
+	address public sovTokenAddress; // For affiliates SOV Bonus proccess
 
 	function _setTarget(bytes4 sig, address target) internal {
 		logicTargets[sig] = target;

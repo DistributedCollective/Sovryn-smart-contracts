@@ -22,6 +22,8 @@ contract ProtocolSettingsEvents {
 
 	event SetAffiliateFeePercent(address indexed sender, uint256 oldValue, uint256 newValue);
 
+	event SetAffiliateSOVBonusPercent(address indexed sender, uint256 oldValue, uint256 newValue);
+
 	event SetLiquidationIncentivePercent(address indexed sender, uint256 oldValue, uint256 newValue);
 
 	event SetMaxSwapSize(address indexed sender, uint256 oldValue, uint256 newValue);
@@ -58,4 +60,8 @@ contract ProtocolSettingsEvents {
 	event SetRebatePercent(address indexed sender, uint256 oldRebatePercent, uint256 newRebatePercent);
 
 	event SetProtocolAddress(address indexed sender, address indexed oldProtocol, address indexed newProtocol);
+
+	event SetMinReferralsToPayoutAffiliates(address indexed sender, uint256 indexed oldMinReferrals, uint256 indexed newMinReferrals);
+
+	event SetSOVTokenAddress(address indexed sender, address indexed oldTokenAddress, address indexed newTokenAddress);
 }

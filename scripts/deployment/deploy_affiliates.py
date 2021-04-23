@@ -2,6 +2,7 @@ from brownie import *
 from brownie.network.contract import InterfaceContainer
 from brownie.network.state import _add_contract, _remove_contract
 from scripts.deployment.deploy_loanToken import deployLoanTokens
+from scripts.deployment.deploy_everything import deployMoCMockup,deployRSKMockup
 import shared
 import json
 from munch import Munch
@@ -11,6 +12,9 @@ script to deploy the loan tokens. can be used to deploy loan tokens separately, 
 if deploying separetly, the addresses of the existing contracts need to be set.
 '''
 def main():
+    with open('./scripts/swapTest/swap_test.json') as config_file:
+        data = json.load(config_file)
+
     thisNetwork = network.show_active()
     ##Affiliates
     # == Load config =======================================================================================================================
@@ -33,17 +37,29 @@ def main():
 
     tokens = Munch()
     if thisNetwork == "development":
-        wrbtcAddress = '0x602C71e4DAC47a042Ee7f46E0aee17F94A3bA0B6'
-        susdAddress = '0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87'
-        protocolAddress = '0x2c15A315610Bfa5248E4CbCbd693320e9D8E03Cc'
+        wrbtcAddress = data['WRBTC']
+        susdAddress = data['SUSD']
+        protocolAddress = data['sovrynProtocol']
+        sovTokenAddress = data['SOV']
         tokens.wrbtc = Contract.from_abi("TestWrbtc", address = wrbtcAddress, abi = TestWrbtc.abi, owner = acct)
         tokens.susd = Contract.from_abi("TestToken", address = susdAddress, abi = TestToken.abi, owner = acct)
+    else:
+        sovTokenAddress = contracts['SOV']
+
 
     print("Deploying Affiliates.")
     affiliates = acct.deploy(Affiliates)
     print("Calling replaceContract.")
     sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovrynBrownie.abi, owner=acct)
     sovryn.replaceContract(affiliates.address)
+
+    sovToken = Contract.from_abi("SOV", address=sovTokenAddress, abi=SOV.abi, owner=acct)
+    print("Set SOV Token address in protocol settings")
+    sovryn.setSOVTokenAddress(sovToken.address)
+    print("sovToken address loaded:", sovryn.sovTokenAddress())
+    
+    with open('./scripts/swapTest/swap_test.json', 'w') as configFile:
+        json.dump(data, configFile)
 
     # Test integration
     if thisNetwork == "development":

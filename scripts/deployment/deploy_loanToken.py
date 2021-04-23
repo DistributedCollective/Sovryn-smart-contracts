@@ -257,6 +257,9 @@ def testAffiliatesIntegration(acct, sovryn, loanTokenAddress, underlyingToken, c
     latestAffiliateBalanceBeforeWithdrawal = sovryn.affiliatesReferrerBalances(referrerAddress, underlyingToken)
     previousBalanceInTokenContract = underlyingToken.balanceOf(referrerAddress)
 
+    # Change the min referrals to payout to 1 for testing purposes
+    sovryn.setMinReferralsToPayoutAffiliates(1)
+
     print("\n-- TEST WITHDRAW AFFILIATE BALANCE ---")
     withdrawAffiliateBalanceTx = sovryn.withdrawAffiliatesReferrerTokenFees(underlyingToken, referrerAddress, affiliatesRewardBalanceOnChain, {'from': referrerAddress})
     withdrawAffiliateBalanceTx.info

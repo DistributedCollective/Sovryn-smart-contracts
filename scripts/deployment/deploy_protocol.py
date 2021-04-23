@@ -33,7 +33,7 @@ def deployProtocol(acct, tokens, mocOracleAddress, rskOracleAddress):
     #feeds = acct.deploy(PriceFeedsLocal, tokens.wrbtc.address, sovryn.address)
     priceFeedMoC = acct.deploy(PriceFeedsMoC, mocOracleAddress, rskOracleAddress)
     #2nd address should actually be the protocol token address, not the protocol address
-    feeds = acct.deploy(PriceFeeds, tokens.wrbtc.address, sovryn.address, tokens.susd.address)
+    feeds = acct.deploy(PriceFeeds, tokens.wrbtc.address, tokens.sov.address, tokens.susd.address)
     feeds.setPriceFeed([tokens.wrbtc.address], [priceFeedMoC.address])
 
     print("Deploying ProtocolSettings.")

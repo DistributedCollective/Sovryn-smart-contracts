@@ -30,6 +30,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.setTradingFeePercent.selector, target);
 		_setTarget(this.setBorrowingFeePercent.selector, target);
 		_setTarget(this.setAffiliateFeePercent.selector, target);
+		_setTarget(this.setAffiliateSOVBonusPercent.selector, target);
 		_setTarget(this.setLiquidationIncentivePercent.selector, target);
 		_setTarget(this.setMaxDisagreement.selector, target);
 		_setTarget(this.setSourceBuffer.selector, target);
@@ -49,6 +50,8 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.setRolloverBaseReward.selector, target);
 		_setTarget(this.setRebatePercent.selector, target);
 		_setTarget(this.setSovrynProtocolAddress.selector, target);
+		_setTarget(this.setSOVTokenAddress.selector, target);
+		_setTarget(this.setMinReferralsToPayoutAffiliates.selector, target);
 	}
 
 	/**
@@ -60,6 +63,24 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		protocolAddress = newProtocolAddress;
 
 		emit SetProtocolAddress(msg.sender, oldProtocolAddress, newProtocolAddress);
+	}
+
+	function setSOVTokenAddress(address newSovTokenAddress) external onlyOwner {
+		require(Address.isContract(newSovTokenAddress), "newSovTokenAddress not a contract");
+
+		address oldTokenAddress = sovTokenAddress;
+		sovTokenAddress = newSovTokenAddress;
+
+		emit SetSOVTokenAddress(msg.sender, oldTokenAddress, newSovTokenAddress);
+	}
+
+	function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external onlyOwner {
+		require(newMinReferrals > 0, "Minimum referrals must be greater than 0");
+
+		uint256 oldMinReferrals = minReferralsToPayout;
+		minReferralsToPayout = newMinReferrals;
+
+		emit SetMinReferralsToPayoutAffiliates(msg.sender, oldMinReferrals, newMinReferrals);
 	}
 
 	function setPriceFeedContract(address newContract) external onlyOwner {
@@ -137,6 +158,14 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		affiliateFeePercent = newValue;
 
 		emit SetAffiliateFeePercent(msg.sender, oldValue, newValue);
+	}
+
+	function setAffiliateSOVBonusPercent(uint256 newValue) external onlyOwner {
+		require(newValue <= 10**20, "Value too high");
+		uint256 oldValue = affiliateSOVBonusPercent;
+		affiliateSOVBonusPercent = newValue;
+
+		emit SetAffiliateSOVBonusPercent(msg.sender, oldValue, newValue);
 	}
 
 	function setLiquidationIncentivePercent(uint256 newValue) external onlyOwner {

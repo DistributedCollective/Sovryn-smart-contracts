@@ -41,13 +41,19 @@ def main():
         acct = accounts.load("rskdeployer")
     else:
         raise Exception("network not supported")
-    
+
     if('WRBTC' in configData and 'SUSD' in configData):
         tokens = readTokens(acct, configData['WRBTC'], configData['SUSD'])
     elif('SUSD' in configData):
         tokens = deployWRBTC(acct, configData['SUSD'])
     else:
         tokens = deployTokens(acct)
+
+    print("Deploying SOV token")
+    sovToken = accounts[0].deploy(SOV, 10**26)
+    sovTokenAddress = sovToken.address
+    print("SOV token address: ", sovTokenAddress)
+    tokens.sov = sovToken
         
     if(not 'mocOracleAddress' in configData):
         mocOracle = deployMoCMockup(acct)
@@ -73,6 +79,7 @@ def main():
     configData["SUSD"] = tokens.susd.address
     configData["loanTokenSUSD"] = loanTokenSUSD.address
     configData["loanTokenRBTC"] = loanTokenWRBTC.address
+    configData["SOV"] = tokens.sov.address
 
     with open('./scripts/swapTest/swap_test.json', 'w') as configFile:
         json.dump(configData, configFile)
