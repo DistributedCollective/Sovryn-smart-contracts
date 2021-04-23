@@ -7,8 +7,6 @@ import "../openzeppelin/ERC20.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
 import "../openzeppelin/Ownable.sol";
-import "../token/SOV.sol";
-
 
 // MasterChef is the master of RSOV. He can make RSOV and he is a fair guy.
 //
@@ -20,6 +18,11 @@ import "../token/SOV.sol";
 contract LiquidityMining is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
+
+    uint256 public constant PRECISION = 1e12;
+    // Bonus multiplier for early RSOV makers.
+    // During bonus period each passed block will be calculated like N passed blocks, where N = BONUS_MULTIPLIER
+    uint256 public constant BONUS_MULTIPLIER = 10;
 
     //TODO check if we can use uint128 instead of uint256 to save 1 storage slot for each user
     // Info of each user.
@@ -38,6 +41,7 @@ contract LiquidityMining is Ownable {
         //   3. User's `amount` gets updated.
         //   4. User's `rewardDebt` gets updated.
     }
+
     //TODO probably, we can save slots here, not sure we will have a lot of pools
     // Info of each pool.
     struct PoolInfo {
@@ -46,29 +50,25 @@ contract LiquidityMining is Ownable {
         uint256 lastRewardBlock; // Last block number that RSOVs distribution occurs.
         uint256 accRSOVPerShare; // Accumulated RSOVs per share, times 1e12. See below.
     }
+
     // The RSOV TOKEN!
     ERC20 public RSOV;
+    // The block number when RSOV mining starts.
+    uint256 public startBlock;
     // Block number when bonus RSOV period ends.
     uint256 public bonusEndBlock;
     // RSOV tokens created per block.
     uint256 public RSOVPerBlock;
-    // Bonus muliplier for early RSOV makers.
-    uint256 public constant BONUS_MULTIPLIER = 10;
     // Info of each pool.
     PoolInfo[] public poolInfo;
     // Info of each user that stakes LP tokens.
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
-    // Total allocation poitns. Must be the sum of all allocation points in all pools.
+    // Total allocation points. Must be the sum of all allocation points in all pools.
     uint256 public totalAllocPoint = 0;
-    // The block number when RSOV mining starts.
-    uint256 public startBlock;
+
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
-    event EmergencyWithdraw(
-        address indexed user,
-        uint256 indexed pid,
-        uint256 amount
-    );
+    event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
     function initialize(
         ERC20 _RSOV,
@@ -77,10 +77,11 @@ contract LiquidityMining is Ownable {
         uint256 _bonusEndBlock
     ) public onlyOwner {
         require(address(RSOV) == address(0), "unauthorized");
+
         RSOV = _RSOV;
         RSOVPerBlock = _RSOVPerBlock;
-        bonusEndBlock = _bonusEndBlock;
         startBlock = _startBlock;
+        bonusEndBlock = _bonusEndBlock;
     }
 
     function poolLength() external view returns (uint256) {
@@ -89,6 +90,7 @@ contract LiquidityMining is Ownable {
 
     // Add a new lp to the pool. Can only be called by the owner.
     //TODO transaction should be reverted in this case
+    //TODO add mapping (_lpToken => poolInfo.lenght before adding)
     // XXX DO NOT add the same LP token more than once. Rewards will be messed up if you do.
     function add(
         uint256 _allocPoint,
@@ -98,8 +100,8 @@ contract LiquidityMining is Ownable {
         if (_withUpdate) {
             massUpdatePools();
         }
-        uint256 lastRewardBlock =
-            block.number > startBlock ? block.number : startBlock;
+
+        uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
         poolInfo.push(
             PoolInfo({
@@ -120,6 +122,7 @@ contract LiquidityMining is Ownable {
         if (_withUpdate) {
             massUpdatePools();
         }
+
         totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(
             _allocPoint
         );
@@ -145,7 +148,6 @@ contract LiquidityMining is Ownable {
         }
     }
 
-    
     function _pendingRSOV(uint256 _pid, address _user)
         internal
         view
@@ -153,6 +155,7 @@ contract LiquidityMining is Ownable {
     {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
+
         uint256 accRSOVPerShare = pool.accRSOVPerShare;
         uint256 lpSupply = pool.lpToken.balanceOf(address(this));
         if (block.number > pool.lastRewardBlock && lpSupply != 0) {
@@ -163,24 +166,18 @@ contract LiquidityMining is Ownable {
                     totalAllocPoint
                 );
             accRSOVPerShare = accRSOVPerShare.add(
-                RSOVReward.mul(1e12).div(lpSupply)
+                RSOVReward.mul(PRECISION).div(lpSupply)
             );
         }
-        return user.amount.mul(accRSOVPerShare).div(1e12).sub(user.rewardDebt);
+        return user.amount.mul(accRSOVPerShare).div(PRECISION).sub(user.rewardDebt);
     }
 
-
     // View function to see pending RSOVs on frontend.
-    function pendingRSOV(uint256 _pid, address _user)
-        external
-        view
-        returns (uint256)
-    {
+    function pendingRSOV(uint256 _pid, address _user) external view returns (uint256) {
         return _pendingRSOV(_pid, _user);
     }
 
-
-    // Update reward vairables for all pools. Be careful of gas spending!
+    // Update reward variables for all pools. Be careful of gas spending!
     function massUpdatePools() public {
         uint256 length = poolInfo.length;
         for (uint256 pid = 0; pid < length; ++pid) {
@@ -191,14 +188,18 @@ contract LiquidityMining is Ownable {
     // Update reward variables of the given pool to be up-to-date.
     function updatePool(uint256 _pid) public {
         PoolInfo storage pool = poolInfo[_pid];
+
+        //this pool has been updated recently
         if (block.number <= pool.lastRewardBlock) {
             return;
         }
+
         uint256 lpSupply = pool.lpToken.balanceOf(address(this));
         if (lpSupply == 0) {
             pool.lastRewardBlock = block.number;
             return;
         }
+
         uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
         uint256 RSOVReward =
             multiplier.mul(RSOVPerBlock).mul(pool.allocPoint).div(
@@ -209,30 +210,28 @@ contract LiquidityMining is Ownable {
         //todo original code minted tokens here, we have to supply tokens to this contract instead
         //RSOV.mint(address(this), RSOVReward);
         pool.accRSOVPerShare = pool.accRSOVPerShare.add(
-            RSOVReward.mul(1e12).div(lpSupply)
+            RSOVReward.mul(PRECISION).div(lpSupply)
         );
         pool.lastRewardBlock = block.number;
     }
 
-    // Deposit LP tokens to MasterChef for RSOV allocation.
+    // Deposit LP tokens to LiquidityMining for RSOV allocation.
     function deposit(uint256 _pid, uint256 _amount) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
+
         updatePool(_pid);
+
         if (user.amount > 0) {
             uint256 pending =
-                user.amount.mul(pool.accRSOVPerShare).div(1e12).sub(
+                user.amount.mul(pool.accRSOVPerShare).div(PRECISION).sub(
                     user.rewardDebt
                 );
             safeRSOVTransfer(msg.sender, pending);
         }
-        pool.lpToken.safeTransferFrom(
-            address(msg.sender),
-            address(this),
-            _amount
-        );
+        pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
         user.amount = user.amount.add(_amount);
-        user.rewardDebt = user.amount.mul(pool.accRSOVPerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accRSOVPerShare).div(PRECISION);
         emit Deposit(msg.sender, _pid, _amount);
     }
 
@@ -240,19 +239,22 @@ contract LiquidityMining is Ownable {
         deposit(_pid, 0);
     }
 
-    // Withdraw LP tokens from MasterChef.
+    // Withdraw LP tokens from LiquidityMining.
     function withdraw(uint256 _pid, uint256 _amount) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "withdraw: not good");
+
         updatePool(_pid);
+
         uint256 pending =
-            user.amount.mul(pool.accRSOVPerShare).div(1e12).sub(
+            user.amount.mul(pool.accRSOVPerShare).div(PRECISION).sub(
                 user.rewardDebt
             );
         safeRSOVTransfer(msg.sender, pending);
         user.amount = user.amount.sub(_amount);
-        user.rewardDebt = user.amount.mul(pool.accRSOVPerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accRSOVPerShare).div(PRECISION);
+
         pool.lpToken.safeTransfer(address(msg.sender), _amount);
         emit Withdraw(msg.sender, _pid, _amount);
     }
@@ -261,13 +263,13 @@ contract LiquidityMining is Ownable {
     function emergencyWithdraw(uint256 _pid) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
+
         pool.lpToken.safeTransfer(address(msg.sender), user.amount);
         emit EmergencyWithdraw(msg.sender, _pid, user.amount);
         user.amount = 0;
         user.rewardDebt = 0;
     }
 
-    //TODO it can be RSOV or SOV, depends on an implementation of `updatePool`
     // Safe RSOV transfer function, just in case if rounding error causes pool to not have enough RSOVs.
     function safeRSOVTransfer(address _to, uint256 _amount) internal {
         uint256 RSOVBal = RSOV.balanceOf(address(this));
@@ -278,9 +280,7 @@ contract LiquidityMining is Ownable {
         }
     }
 
-
     // Custom logic - helpers
-
 
     function getPoolInfos() external view returns(PoolInfo[] memory poolInfos){
         return poolInfo;
