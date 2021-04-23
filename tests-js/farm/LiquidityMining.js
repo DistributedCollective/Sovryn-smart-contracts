@@ -58,15 +58,98 @@ contract("LiquidityMining:", (accounts) => {
             liquidityMining = await LiquidityMining.new();
             await expectRevert(
                 liquidityMining.initialize(ZERO_ADDRESS, RSOVPerBlock, startBlock, bonusEndBlock),
-                "Token address invalid"
+                "Invalid token address"
             );
         });
     });
 
     describe("add", () => {
-        it("should be able to add lp token", async () => {
-            await liquidityMining.add(1, token1.address, false);
+        it("should be able to add pool token", async () => {
+            let allocationPoint = new BN(1);
+            let tx = await liquidityMining.add(token1.address, allocationPoint, false);
 
+            expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(allocationPoint);
+
+            let poolInfo = await liquidityMining.poolInfo(0);
+            expect(poolInfo.poolToken).equal(token1.address);
+            expect(poolInfo.allocationPoint).bignumber.equal(allocationPoint);
+            //TODO update
+            // expect(poolInfo.lastRewardBlock).bignumber.equal(startBlock);
+            expect(poolInfo.accumulatedRSOVPerShare).bignumber.equal(new BN(0));
+
+            expect(await liquidityMining.getPoolLength()).bignumber.equal(new BN(1));
+
+            expectEvent(tx, "PoolTokenAdded", {
+                user: root,
+                poolToken: token1.address,
+                allocationPoint: allocationPoint
+            });
+        });
+
+        it("should be able to add pool token and update pools", async () => {
+            //TODO implement
+        });
+
+        it("fails if the 0 allocation point is passed", async () => {
+            await expectRevert(
+                liquidityMining.add(token1.address, new BN(0), false),
+                "Invalid allocation point"
+            );
+        });
+
+        it("fails if the 0 address is passed as token address", async () => {
+            await expectRevert(
+                liquidityMining.add(ZERO_ADDRESS, new BN(1), false),
+                "Invalid token address"
+            );
+        });
+
+        it("fails if token already added", async () => {
+            await liquidityMining.add(token1.address, new BN(1), false);
+            await expectRevert(
+                liquidityMining.add(token1.address, new BN(1), false),
+                "Token already added"
+            );
+        });
+
+    });
+
+    describe("update", () => {
+        it("should be able to update pool token", async () => {
+            let oldAllocationPoint = new BN(1);
+            await liquidityMining.add(token1.address, oldAllocationPoint, false);
+
+            let newAllocationPoint = new BN(2);
+            let tx = await liquidityMining.update(token1.address, newAllocationPoint, false);
+
+            expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(newAllocationPoint);
+
+            let poolInfo = await liquidityMining.poolInfo(0);
+            expect(poolInfo.poolToken).equal(token1.address);
+            expect(poolInfo.allocationPoint).bignumber.equal(newAllocationPoint);
+            //TODO update
+            // expect(poolInfo.lastRewardBlock).bignumber.equal(startBlock);
+            expect(poolInfo.accumulatedRSOVPerShare).bignumber.equal(new BN(0));
+
+            expect(await liquidityMining.getPoolLength()).bignumber.equal(new BN(1));
+
+            expectEvent(tx, "PoolTokenUpdated", {
+                user: root,
+                poolToken: token1.address,
+                newAllocationPoint: newAllocationPoint,
+                oldAllocationPoint: oldAllocationPoint
+            });
+        });
+
+        it("should be able to update pool token and update pools", async () => {
+            //TODO implement
+        });
+
+        it("fails if token wasn't added", async () => {
+            await expectRevert(
+                liquidityMining.update(token1.address, new BN(1), false),
+                "Pool token not found"
+            );
         });
 
     });
