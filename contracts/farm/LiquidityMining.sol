@@ -8,10 +8,8 @@ import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
 import "../openzeppelin/Ownable.sol";
 
-// MasterChef is the master of RSOV. He can make RSOV and he is a fair guy.
-//
 // Note that it's ownable and the owner wields tremendous power. The ownership
-// will be transferred to a governance smart contract once RSOV is sufficiently
+// will be transferred to a governance smart contract once reward tokens is sufficiently
 // distributed and the community can show to govern itself.
 //
 // Have fun reading it. Hopefully it's bug-free. God bless.
@@ -20,7 +18,7 @@ contract LiquidityMining is Ownable {
 	using SafeERC20 for IERC20;
 
 	uint256 public constant PRECISION = 1e12;
-	// Bonus multiplier for early RSOV makers.
+	// Bonus multiplier for early liquidity providers.
 	// During bonus period each passed block will be calculated like N passed blocks, where N = BONUS_MULTIPLIER
 	uint256 public constant BONUS_BLOCK_MULTIPLIER = 10;
 
@@ -30,13 +28,13 @@ contract LiquidityMining is Ownable {
 		uint256 amount; // How many pool tokens the user has provided.
 		uint256 rewardDebt; // Reward debt. See explanation below.
 		//
-		// We do some fancy math here. Basically, any point in time, the amount of RSOVs
+		// We do some fancy math here. Basically, any point in time, the amount of reward tokens
 		// entitled to a user but is accumulated to be distributed is:
 		//
-		//   accumulated reward = (user.amount * pool.accumulatedRSOVPerShare) - user.rewardDebt
+		//   accumulated reward = (user.amount * pool.accumulatedRewardPerShare) - user.rewardDebt
 		//
 		// Whenever a user deposits or withdraws LP tokens to a pool. Here's what happens:
-		//   1. The pool's `accumulatedRSOVPerShare` (and `lastRewardBlock`) gets updated.
+		//   1. The pool's `accumulatedRewardPerShare` (and `lastRewardBlock`) gets updated.
 		//   2. User receives the accumulated reward sent to his/her address.
 		//   3. User's `amount` gets updated.
 		//   4. User's `rewardDebt` gets updated.
@@ -46,24 +44,23 @@ contract LiquidityMining is Ownable {
 	// Info of each pool.
 	struct PoolInfo {
 		IERC20 poolToken; // Address of LP token contract.
-		uint256 allocationPoint; // How many allocation points assigned to this pool. RSOVs to distribute per block.
-		uint256 lastRewardBlock; // Last block number that RSOVs distribution occurs.
-		uint256 accumulatedRSOVPerShare; // Accumulated RSOVs per share, times 1e12. See below.
+		uint256 allocationPoint; // How many allocation points assigned to this pool. Amount of reward tokens to distribute per block.
+		uint256 lastRewardBlock; // Last block number that reward tokens distribution occurs.
+		uint256 accumulatedRewardPerShare; // Accumulated amount of reward tokens per share, times 1e12. See below.
 	}
 
-	// The RSOV TOKEN!
+	// The reward token
 	ERC20 public RSOV;
 	// RSOV tokens created per block.
-	uint256 public RSOVPerBlock;
-	// The block number when RSOV mining starts.
+	uint256 public rewardTokensPerBlock;
+	// The block number when reward token mining starts.
 	uint256 public startBlock;
-	// Block number when bonus RSOV period ends.
+	// Block number when bonus reward token period ends.
 	uint256 public bonusEndBlock;
 
 	//TODO check of we still need this array
 	// Info of each pool.
 	PoolInfo[] public poolInfoList;
-	// TODO use _lpToken instead of _pid in all functions
 	mapping(address => uint256) poolIdList;
 
 	// Info of each user that stakes LP tokens.
@@ -80,7 +77,7 @@ contract LiquidityMining is Ownable {
 	//TODO _startBlock, _bonusEndBlock - start/stop button with updating start and bonus end blocks
 	function initialize(
 		ERC20 _RSOV,
-		uint256 _RSOVPerBlock,
+		uint256 _rewardTokensPerBlock,
 		uint256 _startBlock,
 		uint256 _bonusEndBlock
 	) public onlyOwner {
@@ -88,7 +85,7 @@ contract LiquidityMining is Ownable {
 		require(address(_RSOV) != address(0), "Invalid token address");
 
 		RSOV = _RSOV;
-		RSOVPerBlock = _RSOVPerBlock;
+		rewardTokensPerBlock = _rewardTokensPerBlock;
 		startBlock = _startBlock;
 		bonusEndBlock = _bonusEndBlock;
 	}
@@ -113,7 +110,7 @@ contract LiquidityMining is Ownable {
 			poolToken: IERC20(_poolToken),
 			allocationPoint: _allocationPoint,
 			lastRewardBlock: lastRewardBlock,
-			accumulatedRSOVPerShare: 0
+			accumulatedRewardPerShare: 0
 		}));
 		//indexing starts from 1 in order to check whether token was already added
 		poolIdList[_poolToken] = poolInfoList.length;
@@ -121,7 +118,7 @@ contract LiquidityMining is Ownable {
 		emit PoolTokenAdded(msg.sender, _poolToken, _allocationPoint);
 	}
 
-	// Update the given pool's RSOV allocation point. Can only be called by the owner.
+	// Update the given pool's reward tokens allocation point. Can only be called by the owner.
 	function update(address _poolToken, uint256 _allocationPoint, bool _withUpdate) public onlyOwner {
 		uint256 poolId = _getPoolId(_poolToken);
 
@@ -151,14 +148,14 @@ contract LiquidityMining is Ownable {
 		PoolInfo storage pool = poolInfoList[_poolId];
 		UserInfo storage user = userInfoMap[_poolId][_user];
 
-		uint256 accRSOVPerShare = pool.accumulatedRSOVPerShare;
-		uint256 lpSupply = pool.poolToken.balanceOf(address(this));
-		if (block.number > pool.lastRewardBlock && lpSupply != 0) {
+		uint256 accumulatedRewardPerShare = pool.accumulatedRewardPerShare;
+		uint256 poolTokenBalance = pool.poolToken.balanceOf(address(this));
+		if (block.number > pool.lastRewardBlock && poolTokenBalance != 0) {
 			uint256 passedBlocks = getPassedBlocksWithBonusMultiplier(pool.lastRewardBlock, block.number);
-			uint256 RSOVReward = passedBlocks.mul(RSOVPerBlock).mul(pool.allocationPoint).div(totalAllocationPoint);
-			accRSOVPerShare = accRSOVPerShare.add(RSOVReward.mul(PRECISION).div(lpSupply));
+			uint256 accumulatedReward = passedBlocks.mul(rewardTokensPerBlock).mul(pool.allocationPoint).div(totalAllocationPoint);
+			accumulatedRewardPerShare = accumulatedRewardPerShare.add(accumulatedReward.mul(PRECISION).div(poolTokenBalance));
 		}
-		return user.amount.mul(accRSOVPerShare).div(PRECISION).sub(user.rewardDebt);
+		return user.amount.mul(accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
 	}
 
 	// View function to see accumulated reward on frontend.
@@ -189,19 +186,19 @@ contract LiquidityMining is Ownable {
 			return;
 		}
 
-		uint256 lpSupply = pool.poolToken.balanceOf(address(this));
-		if (lpSupply == 0) {
+		uint256 poolTokenBalance = pool.poolToken.balanceOf(address(this));
+		if (poolTokenBalance == 0) {
 			pool.lastRewardBlock = block.number;
 			return;
 		}
 
-		uint256 multiplier = getPassedBlocksWithBonusMultiplier(pool.lastRewardBlock, block.number);
-		uint256 RSOVReward = multiplier.mul(RSOVPerBlock).mul(pool.allocationPoint).div(totalAllocationPoint);
+		uint256 passedBlocks = getPassedBlocksWithBonusMultiplier(pool.lastRewardBlock, block.number);
+		uint256 accumulatedReward = passedBlocks.mul(rewardTokensPerBlock).mul(pool.allocationPoint).div(totalAllocationPoint);
 		//TODO I think we can use RSOV.mint(RSOVReward), but this contract should have an appropriate amount of SOV
 		//TODO or as you mentioned this contract should have an appropriate amount of RSOV
 		//todo original code minted tokens here, we have to supply tokens to this contract instead
 		//RSOV.mint(address(this), RSOVReward);
-		pool.accumulatedRSOVPerShare = pool.accumulatedRSOVPerShare.add(RSOVReward.mul(PRECISION).div(lpSupply));
+		pool.accumulatedRewardPerShare = pool.accumulatedRewardPerShare.add(accumulatedReward.mul(PRECISION).div(poolTokenBalance));
 		pool.lastRewardBlock = block.number;
 	}
 
@@ -214,12 +211,12 @@ contract LiquidityMining is Ownable {
 		_updatePool(poolId);
 
 		if (user.amount > 0) {
-			uint256 accumulatedReward = user.amount.mul(pool.accumulatedRSOVPerShare).div(PRECISION).sub(user.rewardDebt);
+			uint256 accumulatedReward = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
 			_safeRSOVTransfer(msg.sender, accumulatedReward);
 		}
 		pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 		user.amount = user.amount.add(_amount);
-		user.rewardDebt = user.amount.mul(pool.accumulatedRSOVPerShare).div(PRECISION);
+		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
 		emit Deposit(msg.sender, poolId, _amount);
 	}
 
@@ -236,10 +233,10 @@ contract LiquidityMining is Ownable {
 
 		_updatePool(poolId);
 
-		uint256 accumulatedReward = user.amount.mul(pool.accumulatedRSOVPerShare).div(PRECISION).sub(user.rewardDebt);
+		uint256 accumulatedReward = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
 		_safeRSOVTransfer(msg.sender, accumulatedReward);
 		user.amount = user.amount.sub(_amount);
-		user.rewardDebt = user.amount.mul(pool.accumulatedRSOVPerShare).div(PRECISION);
+		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
 
 		pool.poolToken.safeTransfer(address(msg.sender), _amount);
 		emit Withdraw(msg.sender, poolId, _amount);

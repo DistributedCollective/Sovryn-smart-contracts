@@ -12,7 +12,7 @@ contract("LiquidityMining:", (accounts) => {
     const name = "Test RSOV Token";
     const symbol = "TST";
 
-    const RSOVPerBlock = new BN(3);
+    const rewardTokensPerBlock = new BN(3);
     const startBlock = new BN(100);
     const bonusEndBlock = new BN(1000);
 
@@ -31,25 +31,25 @@ contract("LiquidityMining:", (accounts) => {
         token3 = await TestToken.new("Test token 3", "TST-3", 18, TOTAL_SUPPLY);
 
         liquidityMining = await LiquidityMining.new();
-        await liquidityMining.initialize(RSOVToken.address, RSOVPerBlock, startBlock, bonusEndBlock);
+        await liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, bonusEndBlock);
     });
 
     describe("initialize", () => {
         it("sets the expected values", async () => {
             let _RSOV = await liquidityMining.RSOV();
-            let _RSOVPerBlock = await liquidityMining.RSOVPerBlock();
+            let _rewardTokensPerBlock = await liquidityMining.rewardTokensPerBlock();
             let _startBlock = await liquidityMining.startBlock();
             let _bonusEndBlock = await liquidityMining.bonusEndBlock();
 
             expect(_RSOV).equal(RSOVToken.address);
-            expect(_RSOVPerBlock).bignumber.equal(RSOVPerBlock);
+            expect(_rewardTokensPerBlock).bignumber.equal(rewardTokensPerBlock);
             expect(_startBlock).bignumber.equal(startBlock);
             expect(_bonusEndBlock).bignumber.equal(bonusEndBlock);
         });
 
         it("fails if already initialized", async () => {
             await expectRevert(
-                liquidityMining.initialize(RSOVToken.address, RSOVPerBlock, startBlock, bonusEndBlock),
+                liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, bonusEndBlock),
                 "Already initialized"
             );
         });
@@ -57,7 +57,7 @@ contract("LiquidityMining:", (accounts) => {
         it("fails if the 0 address is passed as token address", async () => {
             liquidityMining = await LiquidityMining.new();
             await expectRevert(
-                liquidityMining.initialize(ZERO_ADDRESS, RSOVPerBlock, startBlock, bonusEndBlock),
+                liquidityMining.initialize(ZERO_ADDRESS, rewardTokensPerBlock, startBlock, bonusEndBlock),
                 "Invalid token address"
             );
         });
@@ -70,12 +70,12 @@ contract("LiquidityMining:", (accounts) => {
 
             expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(allocationPoint);
 
-            let poolInfo = await liquidityMining.poolInfo(0);
+            let poolInfo = await liquidityMining.poolInfoList(0);
             expect(poolInfo.poolToken).equal(token1.address);
             expect(poolInfo.allocationPoint).bignumber.equal(allocationPoint);
             //TODO update
             // expect(poolInfo.lastRewardBlock).bignumber.equal(startBlock);
-            expect(poolInfo.accumulatedRSOVPerShare).bignumber.equal(new BN(0));
+            expect(poolInfo.accumulatedRewardPerShare).bignumber.equal(new BN(0));
 
             expect(await liquidityMining.getPoolLength()).bignumber.equal(new BN(1));
 
@@ -124,12 +124,12 @@ contract("LiquidityMining:", (accounts) => {
 
             expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(newAllocationPoint);
 
-            let poolInfo = await liquidityMining.poolInfo(0);
+            let poolInfo = await liquidityMining.poolInfoList(0);
             expect(poolInfo.poolToken).equal(token1.address);
             expect(poolInfo.allocationPoint).bignumber.equal(newAllocationPoint);
             //TODO update
             // expect(poolInfo.lastRewardBlock).bignumber.equal(startBlock);
-            expect(poolInfo.accumulatedRSOVPerShare).bignumber.equal(new BN(0));
+            expect(poolInfo.accumulatedRewardPerShare).bignumber.equal(new BN(0));
 
             expect(await liquidityMining.getPoolLength()).bignumber.equal(new BN(1));
 
