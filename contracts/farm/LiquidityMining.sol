@@ -27,17 +27,17 @@ contract LiquidityMining is Ownable {
 	//TODO check if we can use uint128 instead of uint256 to save 1 storage slot for each user
 	// Info of each user.
 	struct UserInfo {
-		uint256 amount; // How many LP tokens the user has provided.
+		uint256 amount; // How many pool tokens the user has provided.
 		uint256 rewardDebt; // Reward debt. See explanation below.
 		//
 		// We do some fancy math here. Basically, any point in time, the amount of RSOVs
-		// entitled to a user but is pending to be distributed is:
+		// entitled to a user but is accumulated to be distributed is:
 		//
-		//   pending reward = (user.amount * pool.accRSOVPerShare) - user.rewardDebt
+		//   accumulated reward = (user.amount * pool.accumulatedRSOVPerShare) - user.rewardDebt
 		//
 		// Whenever a user deposits or withdraws LP tokens to a pool. Here's what happens:
-		//   1. The pool's `accRSOVPerShare` (and `lastRewardBlock`) gets updated.
-		//   2. User receives the pending reward sent to his/her address.
+		//   1. The pool's `accumulatedRSOVPerShare` (and `lastRewardBlock`) gets updated.
+		//   2. User receives the accumulated reward sent to his/her address.
 		//   3. User's `amount` gets updated.
 		//   4. User's `rewardDebt` gets updated.
 	}
@@ -62,12 +62,12 @@ contract LiquidityMining is Ownable {
 
 	//TODO check of we still need this array
 	// Info of each pool.
-	PoolInfo[] public poolInfo;
+	PoolInfo[] public poolInfoList;
 	// TODO use _lpToken instead of _pid in all functions
-	mapping(address => uint256) poolIds;
+	mapping(address => uint256) poolIdList;
 
 	// Info of each user that stakes LP tokens.
-	mapping(uint256 => mapping(address => UserInfo)) public userInfo;
+	mapping(uint256 => mapping(address => UserInfo)) public userInfoMap;
 	// Total allocation points. Must be the sum of all allocation points in all pools.
 	uint256 public totalAllocationPoint;
 
@@ -93,11 +93,14 @@ contract LiquidityMining is Ownable {
 		bonusEndBlock = _bonusEndBlock;
 	}
 
+	//TODO what about removing pool tokens?
+	//TODO we can use a workaround - update(_allocationPoint = 0)
+
 	// Add a new lp to the pool. Can only be called by the owner.
 	function add(address _poolToken, uint256 _allocationPoint, bool _withUpdate) public onlyOwner {
 		require(_allocationPoint > 0, "Invalid allocation point");
 		require(_poolToken != address(0), "Invalid token address");
-		require(poolIds[_poolToken] == 0, "Token already added");
+		require(poolIdList[_poolToken] == 0, "Token already added");
 
 		if (_withUpdate) {
 			updateAllPools();
@@ -106,14 +109,14 @@ contract LiquidityMining is Ownable {
 		uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
 		totalAllocationPoint = totalAllocationPoint.add(_allocationPoint);
 
-		poolInfo.push(PoolInfo({
+		poolInfoList.push(PoolInfo({
 			poolToken: IERC20(_poolToken),
 			allocationPoint: _allocationPoint,
 			lastRewardBlock: lastRewardBlock,
 			accumulatedRSOVPerShare: 0
 		}));
 		//indexing starts from 1 in order to check whether token was already added
-		poolIds[_poolToken] = poolInfo.length;
+		poolIdList[_poolToken] = poolInfoList.length;
 
 		emit PoolTokenAdded(msg.sender, _poolToken, _allocationPoint);
 	}
@@ -126,9 +129,9 @@ contract LiquidityMining is Ownable {
 			updateAllPools();
 		}
 
-		uint256 previousAllocationPoint = poolInfo[poolId].allocationPoint;
+		uint256 previousAllocationPoint = poolInfoList[poolId].allocationPoint;
 		totalAllocationPoint = totalAllocationPoint.sub(previousAllocationPoint).add(_allocationPoint);
-		poolInfo[poolId].allocationPoint = _allocationPoint;
+		poolInfoList[poolId].allocationPoint = _allocationPoint;
 
 		emit PoolTokenUpdated(msg.sender, _poolToken, _allocationPoint, previousAllocationPoint);
 	}
@@ -144,29 +147,29 @@ contract LiquidityMining is Ownable {
 		}
 	}
 
-	function _pendingRSOV(uint256 _poolId, address _user) internal view returns (uint256) {
-		PoolInfo storage pool = poolInfo[_poolId];
-		UserInfo storage user = userInfo[_poolId][_user];
+	function _getAccumulatedReward(uint256 _poolId, address _user) internal view returns (uint256) {
+		PoolInfo storage pool = poolInfoList[_poolId];
+		UserInfo storage user = userInfoMap[_poolId][_user];
 
 		uint256 accRSOVPerShare = pool.accumulatedRSOVPerShare;
 		uint256 lpSupply = pool.poolToken.balanceOf(address(this));
 		if (block.number > pool.lastRewardBlock && lpSupply != 0) {
-			uint256 multiplier = getPassedBlocksWithBonusMultiplier(pool.lastRewardBlock, block.number);
-			uint256 RSOVReward = multiplier.mul(RSOVPerBlock).mul(pool.allocationPoint).div(totalAllocationPoint);
+			uint256 passedBlocks = getPassedBlocksWithBonusMultiplier(pool.lastRewardBlock, block.number);
+			uint256 RSOVReward = passedBlocks.mul(RSOVPerBlock).mul(pool.allocationPoint).div(totalAllocationPoint);
 			accRSOVPerShare = accRSOVPerShare.add(RSOVReward.mul(PRECISION).div(lpSupply));
 		}
 		return user.amount.mul(accRSOVPerShare).div(PRECISION).sub(user.rewardDebt);
 	}
 
-	// View function to see pending RSOVs on frontend.
-	function pendingRSOV(address _poolToken, address _user) external returns (uint256) {
+	// View function to see accumulated reward on frontend.
+	function getAccumulatedReward(address _poolToken, address _user) external returns (uint256) {
 		uint256 poolId = _getPoolId(_poolToken);
-		return _pendingRSOV(poolId, _user);
+		return _getAccumulatedReward(poolId, _user);
 	}
 
 	// Update reward variables for all pools. Be careful of gas spending!
 	function updateAllPools() public {
-		uint256 length = poolInfo.length;
+		uint256 length = poolInfoList.length;
 		for (uint256 pid = 0; pid < length; ++pid) {
 			_updatePool(pid);
 		}
@@ -179,7 +182,7 @@ contract LiquidityMining is Ownable {
 
 	// Update reward variables of the given pool to be up-to-date.
 	function _updatePool(uint256 _poolId) internal {
-		PoolInfo storage pool = poolInfo[_poolId];
+		PoolInfo storage pool = poolInfoList[_poolId];
 
 		//this pool has been updated recently
 		if (block.number <= pool.lastRewardBlock) {
@@ -205,14 +208,14 @@ contract LiquidityMining is Ownable {
 	// Deposit LP tokens to LiquidityMining for RSOV allocation.
 	function deposit(address _poolToken, uint256 _amount) public {
 		uint256 poolId = _getPoolId(_poolToken);
-		PoolInfo storage pool = poolInfo[poolId];
-		UserInfo storage user = userInfo[poolId][msg.sender];
+		PoolInfo storage pool = poolInfoList[poolId];
+		UserInfo storage user = userInfoMap[poolId][msg.sender];
 
 		_updatePool(poolId);
 
 		if (user.amount > 0) {
-			uint256 pending = user.amount.mul(pool.accumulatedRSOVPerShare).div(PRECISION).sub(user.rewardDebt);
-			_safeRSOVTransfer(msg.sender, pending);
+			uint256 accumulatedReward = user.amount.mul(pool.accumulatedRSOVPerShare).div(PRECISION).sub(user.rewardDebt);
+			_safeRSOVTransfer(msg.sender, accumulatedReward);
 		}
 		pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 		user.amount = user.amount.add(_amount);
@@ -227,14 +230,14 @@ contract LiquidityMining is Ownable {
 	// Withdraw LP tokens from LiquidityMining.
 	function withdraw(address _poolToken, uint256 _amount) public {
 		uint256 poolId = _getPoolId(_poolToken);
-		PoolInfo storage pool = poolInfo[poolId];
-		UserInfo storage user = userInfo[poolId][msg.sender];
+		PoolInfo storage pool = poolInfoList[poolId];
+		UserInfo storage user = userInfoMap[poolId][msg.sender];
 		require(user.amount >= _amount, "withdraw: not good");
 
 		_updatePool(poolId);
 
-		uint256 pending = user.amount.mul(pool.accumulatedRSOVPerShare).div(PRECISION).sub(user.rewardDebt);
-		_safeRSOVTransfer(msg.sender, pending);
+		uint256 accumulatedReward = user.amount.mul(pool.accumulatedRSOVPerShare).div(PRECISION).sub(user.rewardDebt);
+		_safeRSOVTransfer(msg.sender, accumulatedReward);
 		user.amount = user.amount.sub(_amount);
 		user.rewardDebt = user.amount.mul(pool.accumulatedRSOVPerShare).div(PRECISION);
 
@@ -245,8 +248,8 @@ contract LiquidityMining is Ownable {
 	// Withdraw without caring about rewards. EMERGENCY ONLY.
 	function emergencyWithdraw(address _poolToken) public {
 		uint256 poolId = _getPoolId(_poolToken);
-		PoolInfo storage pool = poolInfo[poolId];
-		UserInfo storage user = userInfo[poolId][msg.sender];
+		PoolInfo storage pool = poolInfoList[poolId];
+		UserInfo storage user = userInfoMap[poolId][msg.sender];
 
 		pool.poolToken.safeTransfer(address(msg.sender), user.amount);
 		emit EmergencyWithdraw(msg.sender, poolId, user.amount);
@@ -268,7 +271,7 @@ contract LiquidityMining is Ownable {
 	}
 
 	function _getPoolId(address _poolToken) internal returns (uint256) {
-		uint256 poolId = poolIds[_poolToken];
+		uint256 poolId = poolIdList[_poolToken];
 		require(poolId > 0, "Pool token not found");
 		return poolId - 1;
 	}
@@ -276,35 +279,51 @@ contract LiquidityMining is Ownable {
 	// Custom logic - helpers
 
 	function getPoolLength() external view returns (uint256) {
-		return poolInfo.length;
+		return poolInfoList.length;
 	}
 
-	function getPoolInfos() external view returns (PoolInfo[] memory poolInfos) {
-		return poolInfo;
+	function getPoolInfoList() external view returns (PoolInfo[] memory) {
+		return poolInfoList;
 	}
 
-	function getOptimisedUserInfos(address _user) external view returns (uint256[2][] memory userInfos) {
-		uint256 length = poolInfo.length;
-		userInfos = new uint256[2][](length);
-		for (uint256 pid = 0; pid < length; ++pid) {
-			userInfos[pid][0] = userInfo[pid][_user].amount;
-			userInfos[pid][1] = _pendingRSOV(pid, _user);
+	/**
+	 * @notice returns list of [amount, accumulatedReward] for the given user for each pool token
+	 * @param _user the address of the user
+	 */
+	function getUserBalanceList(address _user) external view returns (uint256[2][] memory) {
+		uint256 length = poolInfoList.length;
+		uint256[2][] memory userBalanceList = new uint256[2][](length);
+		for (uint256 i = 0; i < length; i++) {
+			userBalanceList[i][0] = userInfoMap[i][_user].amount;
+			userBalanceList[i][1] = _getAccumulatedReward(i, _user);
 		}
+		return userBalanceList;
 	}
 
-	function getUserInfos(address _user) external view returns (UserInfo[] memory userInfos) {
-		uint256 length = poolInfo.length;
-		userInfos = new UserInfo[](length);
-		for (uint256 pid = 0; pid < length; ++pid) {
-			userInfos[pid] = userInfo[pid][_user];
+	/**
+	 * @notice returns list of UserInfo for the given user for each pool token
+	 * @param _user the address of the user
+	 */
+	function getUserInfoList(address _user) external view returns (UserInfo[] memory) {
+		uint256 length = poolInfoList.length;
+		UserInfo[] memory userInfoList = new UserInfo[](length);
+		for (uint256 i = 0; i < length; i++) {
+			userInfoList[i] = userInfoMap[i][_user];
 		}
+		return userInfoList;
 	}
 
-	function getPendingRSOV(address _user) external view returns (uint256[] memory pending) {
-		uint256 length = poolInfo.length;
-		pending = new uint256[](length);
-		for (uint256 pid = 0; pid < length; ++pid) {
-			pending[pid] = _pendingRSOV(pid, _user);
+	/**
+	 * @notice returns accumulated reward for the given user for each pool token
+	 * @param _user the address of the user
+	 */
+	function getAccumulatedRewardList(address _user) external view returns (uint256[] memory) {
+		uint256 length = poolInfoList.length;
+		uint256[] memory rewardList = new uint256[](length);
+		for (uint256 i = 0; i < length; i++) {
+			rewardList[i] = _getAccumulatedReward(i, _user);
 		}
+		return rewardList;
 	}
+
 }
