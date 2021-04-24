@@ -134,7 +134,7 @@ contract LiquidityMining is Ownable {
 	}
 
 	// Return reward multiplier over the given _from to _to block.
-	function getPassedBlocksWithBonusMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
+	function _getPassedBlocksWithBonusMultiplier(uint256 _from, uint256 _to) internal view returns (uint256) {
 		if (_to <= bonusEndBlock) {
 			return _to.sub(_from).mul(BONUS_BLOCK_MULTIPLIER);
 		} else if (_from >= bonusEndBlock) {
@@ -144,24 +144,23 @@ contract LiquidityMining is Ownable {
 		}
 	}
 
-	function _getAccumulatedReward(uint256 _poolId, address _user) internal view returns (uint256) {
+	function _getUserAccumulatedReward(uint256 _poolId, address _user) internal view returns (uint256) {
 		PoolInfo storage pool = poolInfoList[_poolId];
 		UserInfo storage user = userInfoMap[_poolId][_user];
 
 		uint256 accumulatedRewardPerShare = pool.accumulatedRewardPerShare;
 		uint256 poolTokenBalance = pool.poolToken.balanceOf(address(this));
 		if (block.number > pool.lastRewardBlock && poolTokenBalance != 0) {
-			uint256 passedBlocks = getPassedBlocksWithBonusMultiplier(pool.lastRewardBlock, block.number);
-			uint256 accumulatedReward = passedBlocks.mul(rewardTokensPerBlock).mul(pool.allocationPoint).div(totalAllocationPoint);
-			accumulatedRewardPerShare = accumulatedRewardPerShare.add(accumulatedReward.mul(PRECISION).div(poolTokenBalance));
+			(, uint256 accumulatedRewardPerShare_) = _getPoolAccumulatedReward(pool);
+			accumulatedRewardPerShare = accumulatedRewardPerShare.add(accumulatedRewardPerShare_);
 		}
 		return user.amount.mul(accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
 	}
 
 	// View function to see accumulated reward on frontend.
-	function getAccumulatedReward(address _poolToken, address _user) external returns (uint256) {
+	function getUserAccumulatedReward(address _poolToken, address _user) external returns (uint256) {
 		uint256 poolId = _getPoolId(_poolToken);
-		return _getAccumulatedReward(poolId, _user);
+		return _getUserAccumulatedReward(poolId, _user);
 	}
 
 	// Update reward variables for all pools. Be careful of gas spending!
@@ -192,14 +191,23 @@ contract LiquidityMining is Ownable {
 			return;
 		}
 
-		uint256 passedBlocks = getPassedBlocksWithBonusMultiplier(pool.lastRewardBlock, block.number);
-		uint256 accumulatedReward = passedBlocks.mul(rewardTokensPerBlock).mul(pool.allocationPoint).div(totalAllocationPoint);
-		//TODO I think we can use RSOV.mint(RSOVReward), but this contract should have an appropriate amount of SOV
+		(uint256 accumulatedReward_, uint256 accumulatedRewardPerShare_) = _getPoolAccumulatedReward(pool);
+		pool.accumulatedRewardPerShare = pool.accumulatedRewardPerShare.add(accumulatedRewardPerShare_);
+		pool.lastRewardBlock = block.number;
+
+		//TODO I think we can use RSOV.mint(accumulatedReward), but this contract should have an appropriate amount of SOV
 		//TODO or as you mentioned this contract should have an appropriate amount of RSOV
 		//todo original code minted tokens here, we have to supply tokens to this contract instead
-		//RSOV.mint(address(this), RSOVReward);
-		pool.accumulatedRewardPerShare = pool.accumulatedRewardPerShare.add(accumulatedReward.mul(PRECISION).div(poolTokenBalance));
-		pool.lastRewardBlock = block.number;
+		//RSOV.mint(address(this), accumulatedReward_);
+	}
+
+	function _getPoolAccumulatedReward(PoolInfo storage pool) internal view returns (uint256, uint256) {
+		uint256 passedBlocks = _getPassedBlocksWithBonusMultiplier(pool.lastRewardBlock, block.number);
+		uint256 accumulatedReward = passedBlocks.mul(rewardTokensPerBlock).mul(pool.allocationPoint).div(totalAllocationPoint);
+
+		uint256 poolTokenBalance = pool.poolToken.balanceOf(address(this));
+		uint256 accumulatedRewardPerShare = accumulatedReward.mul(PRECISION).div(poolTokenBalance);
+		return (accumulatedReward, accumulatedRewardPerShare);
 	}
 
 	// Deposit LP tokens to LiquidityMining for RSOV allocation.
@@ -210,12 +218,14 @@ contract LiquidityMining is Ownable {
 
 		_updatePool(poolId);
 
+		//pay reward for the previous amount of deposited tokens
 		if (user.amount > 0) {
 			uint256 accumulatedReward = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
-			_safeRSOVTransfer(msg.sender, accumulatedReward);
+			_safeTransfer(msg.sender, accumulatedReward);
 		}
 		pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 		user.amount = user.amount.add(_amount);
+		//reward accumulated before amount update (should be subtracted during next payment)
 		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
 		emit Deposit(msg.sender, poolId, _amount);
 	}
@@ -234,7 +244,7 @@ contract LiquidityMining is Ownable {
 		_updatePool(poolId);
 
 		uint256 accumulatedReward = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
-		_safeRSOVTransfer(msg.sender, accumulatedReward);
+		_safeTransfer(msg.sender, accumulatedReward);
 		user.amount = user.amount.sub(_amount);
 		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
 
@@ -255,7 +265,7 @@ contract LiquidityMining is Ownable {
 	}
 
 	// Safe RSOV transfer function, just in case if rounding error causes pool to not have enough RSOVs.
-	function _safeRSOVTransfer(address _to, uint256 _amount) internal {
+	function _safeTransfer(address _to, uint256 _amount) internal {
 		uint256 RSOVBal = RSOV.balanceOf(address(this));
 		if (_amount > RSOVBal) {
 			_amount = RSOVBal;
@@ -292,7 +302,7 @@ contract LiquidityMining is Ownable {
 		uint256[2][] memory userBalanceList = new uint256[2][](length);
 		for (uint256 i = 0; i < length; i++) {
 			userBalanceList[i][0] = userInfoMap[i][_user].amount;
-			userBalanceList[i][1] = _getAccumulatedReward(i, _user);
+			userBalanceList[i][1] = _getUserAccumulatedReward(i, _user);
 		}
 		return userBalanceList;
 	}
@@ -314,11 +324,11 @@ contract LiquidityMining is Ownable {
 	 * @notice returns accumulated reward for the given user for each pool token
 	 * @param _user the address of the user
 	 */
-	function getAccumulatedRewardList(address _user) external view returns (uint256[] memory) {
+	function getUserAccumulatedRewardList(address _user) external view returns (uint256[] memory) {
 		uint256 length = poolInfoList.length;
 		uint256[] memory rewardList = new uint256[](length);
 		for (uint256 i = 0; i < length; i++) {
-			rewardList[i] = _getAccumulatedReward(i, _user);
+			rewardList[i] = _getUserAccumulatedReward(i, _user);
 		}
 		return rewardList;
 	}
