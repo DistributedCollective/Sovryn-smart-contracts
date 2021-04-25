@@ -44,7 +44,7 @@ contract PriceFeeds is Constants, Ownable {
 	}
 
 	function queryPrecision(address sourceToken, address destToken) public view returns (uint256) {
-		return sourceToken != destToken ? _getDecimalPrecision(sourceToken, destToken) : 10**18;
+		return _getDecimalPrecision(sourceToken, destToken);
 	}
 
 	//// NOTE: This function returns 0 during a pause, rather than a revert. Ensure calling contracts handle correctly. ///
@@ -232,12 +232,8 @@ contract PriceFeeds is Constants, Ownable {
 		if (sourceToken == destToken) {
 			return 10**18;
 		} else {
-			uint256 sourceTokenDecimals = decimals[sourceToken];
-			if (sourceTokenDecimals == 0) sourceTokenDecimals = IERC20(sourceToken).decimals();
-
-			uint256 destTokenDecimals = decimals[destToken];
-			if (destTokenDecimals == 0) destTokenDecimals = IERC20(destToken).decimals();
-
+			uint256 sourceTokenDecimals = decimals[sourceToken] > 0 ? decimals[sourceToken] : IERC20(sourceToken).decimals();
+			uint256 destTokenDecimals = decimals[destToken] > 0 ? decimals[destToken] : IERC20(destToken).decimals();
 			if (destTokenDecimals >= sourceTokenDecimals) return 10**(SafeMath.sub(18, destTokenDecimals - sourceTokenDecimals));
 			else return 10**(SafeMath.add(18, sourceTokenDecimals - destTokenDecimals));
 		}

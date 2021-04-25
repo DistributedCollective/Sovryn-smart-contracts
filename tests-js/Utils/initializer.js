@@ -35,6 +35,10 @@ const CONSTANTS = {
 	ONE_ADDRESS: "0x0000000000000000000000000000000000000001",
 	MAX_UINT: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 };
+const getTestToken = async ({ decimals = 18, totalSupply = wei("100000000", "ether") }) => {
+	const token = await TestToken.new("TST", "TST", decimals, totalSupply);
+	return token;
+};
 
 const getSUSD = async () => {
 	const susd = await TestToken.new("SUSD", "SUSD", 18, totalSupply);
@@ -343,6 +347,7 @@ const verify_sov_reward_payment = async (logs, FeesEvents, SOV, borrower, loan_i
 };
 
 module.exports = {
+	getTestToken,
 	getSUSD,
 	getRBTC,
 	getWRBTC,
