@@ -69,11 +69,12 @@ contract("Affiliates", (accounts) => {
 			await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
 		}
 	});
+	let swapsSovryn;
 	beforeEach(async () => {
 		//initialize
 		feeds = await PriceFeedsLocal.new(testWrbtc.address, sovryn.address);
 		await feeds.setRates(doc.address, testWrbtc.address, wei("0.01", "ether"));
-		const swapsSovryn = await SwapsImplSovrynSwap.new();
+		swapsSovryn = await SwapsImplSovrynSwap.new();
 		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
 		await sovryn.setSupportedTokens([doc.address, testWrbtc.address], [true, true]);
@@ -132,6 +133,11 @@ contract("Affiliates", (accounts) => {
 		//Giving some testRbtc to sovrynAddress (by minting some testRbtc),so that it can open position in wRBTC.
 		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
 	});
+	it("Should not be able to set the minReferralsPayout to 0", async() => {
+		await expectRevert(sovryn.setMinReferralsToPayoutAffiliates(0, { from: referrer }), "unauthorized")
+		await expectRevert(sovryn.setMinReferralsToPayoutAffiliates(0), "Minimum referrals must be greater than 0");
+	});
+
 	it("User Margin Trade with Affiliate runs correctly", async () => {
 		//expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
 		const leverageAmount = web3.utils.toWei("3", "ether");
@@ -163,6 +169,17 @@ contract("Affiliates", (accounts) => {
 			referrer: referrer,
 			feeToken: doc.address,
 			fee: referrerFee.toString(),
+		});
+
+		sovrynSwapContractRegistryAddress = await sovryn.sovrynSwapContractRegistryAddress()
+		const sovRate = await swapsSovryn.internalExpectedRate(doc.address, tokenSOV.address, referrerFee, sovrynSwapContractRegistryAddress)
+
+		sovBonusAmount = sovRate * referrerFee / Math.pow(10,18)
+		sovBonusAmount = sovBonusAmount.toString()
+
+		await expectEvent.inTransaction(tx.receipt.rawLogs[0].transactionHash, Affiliates, "SetAffiliatesSOVBonus", {
+			referrer: referrer,
+			sovBonusAmount: sovBonusAmount
 		});
 
 		const tokensList = await sovryn.getAffiliatesReferrerTokensList(referrer);
