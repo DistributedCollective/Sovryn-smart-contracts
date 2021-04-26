@@ -27,6 +27,7 @@ contract LiquidityMining is Ownable {
 	struct UserInfo {
 		uint256 amount; // How many pool tokens the user has provided.
 		uint256 rewardDebt; // Reward debt. See explanation below.
+		uint256 accumulatedReward; //Reward that's ready to be transferred
 		//
 		// We do some fancy math here. Basically, any point in time, the amount of reward tokens
 		// entitled to a user but is accumulated to be distributed is:
@@ -70,7 +71,6 @@ contract LiquidityMining is Ownable {
 
 	// Info of each user that stakes LP tokens.
 	mapping(uint256 => mapping(address => UserInfo)) public userInfoMap;
-	//TODO we don't need it if we are going to use RSOV.mint
 	// Total balance this contract should have to handle withdrawal for all users
 	uint256 public totalUsersBalance;
 
@@ -122,7 +122,11 @@ contract LiquidityMining is Ownable {
 		require(_receiver != address(0), "receiver address invalid");
 		require(_amount != 0, "amount invalid");
 
-		_safeTransfer(_receiver, _amount);
+		uint256 RSOVBal = RSOV.balanceOf(address(this));
+		if (_amount > RSOVBal) {
+			_amount = RSOVBal;
+		}
+		require(RSOV.transfer(_receiver, _amount), "transfer failed");
 		emit RSOVTransferred(_receiver, _amount);
 	}
 
@@ -236,6 +240,7 @@ contract LiquidityMining is Ownable {
 
 		//todo original code minted tokens here, we have to supply tokens to this contract instead
 		//TODO RSOV.transferFrom ?
+		//TODO remove totalUsersBalance filed if we are going to use transferFrom or mint
 		//RSOV.mint(address(this), accumulatedReward_);
 		totalUsersBalance = totalUsersBalance.add(accumulatedReward_);
 	}
@@ -256,16 +261,16 @@ contract LiquidityMining is Ownable {
 		UserInfo storage user = userInfoMap[poolId][msg.sender];
 
 		_updatePool(poolId);
+		_updateReward(pool, user);
 
-		if (user.amount > 0) {
-			//TODO shouldn't update user profile instead of transferring tokens during a deposit ?
-			//pay reward for the previous amount of deposited tokens
-			uint256 accumulatedReward = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
-			_safeTransfer(msg.sender, accumulatedReward);
+		if (_amount == 0) {
+			//claimReward -> deposit(_amount = 0)
+			_transferReward(user);
+		} else {
+			user.amount = user.amount.add(_amount);
+			pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 		}
-		pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
-		user.amount = user.amount.add(_amount);
-		//reward accumulated before amount update (should be subtracted during next payment)
+		//reward accumulated before amount update (should be subtracted during next reward calculation)
 		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
 		emit Deposit(msg.sender, poolId, _amount);
 	}
@@ -279,19 +284,32 @@ contract LiquidityMining is Ownable {
 		uint256 poolId = _getPoolId(_poolToken);
 		PoolInfo storage pool = poolInfoList[poolId];
 		UserInfo storage user = userInfoMap[poolId][msg.sender];
-		require(user.amount >= _amount, "withdraw: not good");
+		require(user.amount >= _amount, "Not enough balance");
 
 		_updatePool(poolId);
-
-		uint256 accumulatedReward = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
-		_safeTransfer(msg.sender, accumulatedReward);
-		totalUsersBalance = totalUsersBalance.sub(accumulatedReward);
+		_updateReward(pool, user);
+		_transferReward(user);
 
 		user.amount = user.amount.sub(_amount);
-		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
-
 		pool.poolToken.safeTransfer(address(msg.sender), _amount);
+		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
 		emit Withdraw(msg.sender, poolId, _amount);
+	}
+
+	function _updateReward(PoolInfo storage pool, UserInfo storage user) internal {
+		//update user accumulated reward
+		if (user.amount > 0) {
+			//add reward for the previous amount of deposited tokens
+			uint256 accumulatedReward = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
+			user.accumulatedReward = user.accumulatedReward.add(accumulatedReward);
+		}
+	}
+
+	function _transferReward(UserInfo storage user) internal {
+		uint256 userAccumulatedReward = user.accumulatedReward;
+		totalUsersBalance = totalUsersBalance.sub(userAccumulatedReward);
+		user.accumulatedReward = 0;
+		require(RSOV.transfer(msg.sender, userAccumulatedReward), "transfer failed");
 	}
 
 	// Withdraw without caring about rewards. EMERGENCY ONLY.
@@ -301,18 +319,10 @@ contract LiquidityMining is Ownable {
 		UserInfo storage user = userInfoMap[poolId][msg.sender];
 
 		pool.poolToken.safeTransfer(address(msg.sender), user.amount);
-		emit EmergencyWithdraw(msg.sender, poolId, user.amount);
 		user.amount = 0;
 		user.rewardDebt = 0;
-	}
-
-	// Safe RSOV transfer function, just in case if rounding error causes pool to not have enough RSOVs.
-	function _safeTransfer(address _to, uint256 _amount) internal {
-		uint256 RSOVBal = RSOV.balanceOf(address(this));
-		if (_amount > RSOVBal) {
-			_amount = RSOVBal;
-		}
-		require(RSOV.transfer(_to, _amount), "transfer failed");
+		user.accumulatedReward = 0;
+		emit EmergencyWithdraw(msg.sender, poolId, user.amount);
 	}
 
 	function getPoolId(address _poolToken) public view returns (uint256) {
