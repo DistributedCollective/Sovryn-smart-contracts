@@ -63,12 +63,16 @@ contract LiquidityMining is Ownable {
 	//TODO check of we still need this array
 	// Info of each pool.
 	PoolInfo[] public poolInfoList;
+	// Mapping pool token address => pool id
 	mapping(address => uint256) poolIdList;
+	// Total allocation points. Must be the sum of all allocation points in all pools.
+	uint256 public totalAllocationPoint;
 
 	// Info of each user that stakes LP tokens.
 	mapping(uint256 => mapping(address => UserInfo)) public userInfoMap;
-	// Total allocation points. Must be the sum of all allocation points in all pools.
-	uint256 public totalAllocationPoint;
+	//TODO we don't need it if we are going to use RSOV.mint
+	// Total balance this contract should have to handle withdrawal for all users
+	uint256 public totalUsersBalance;
 
 	event RSOVTransferred(address indexed receiver, uint256 amount);
 	event PoolTokenAdded(address indexed user, address indexed poolToken, uint256 allocationPoint);
@@ -230,10 +234,10 @@ contract LiquidityMining is Ownable {
 		pool.accumulatedRewardPerShare = pool.accumulatedRewardPerShare.add(accumulatedRewardPerShare_);
 		pool.lastRewardBlock = block.number;
 
-		//TODO I think we can use RSOV.mint(accumulatedReward), but this contract should have an appropriate amount of SOV
-		//TODO or as you mentioned this contract should have an appropriate amount of RSOV
 		//todo original code minted tokens here, we have to supply tokens to this contract instead
+		//TODO RSOV.transferFrom ?
 		//RSOV.mint(address(this), accumulatedReward_);
+		totalUsersBalance = totalUsersBalance.add(accumulatedReward_);
 	}
 
 	function _getPoolAccumulatedReward(PoolInfo storage pool) internal view returns (uint256, uint256) {
@@ -281,6 +285,7 @@ contract LiquidityMining is Ownable {
 
 		uint256 accumulatedReward = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
 		_safeTransfer(msg.sender, accumulatedReward);
+		totalUsersBalance = totalUsersBalance.sub(accumulatedReward);
 
 		user.amount = user.amount.sub(_amount);
 		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
