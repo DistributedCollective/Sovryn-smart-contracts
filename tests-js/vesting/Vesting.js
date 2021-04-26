@@ -467,6 +467,50 @@ contract("Vesting", (accounts) => {
 
 	describe("withdrawTokens", () => {
 		let vesting;
+
+		it("should withdraw unlocked tokens (cliff = 3 weeks)", async () => {
+			//Save current amount
+			let previousAmount = await token.balanceOf(root);
+			let toStake = ONE_MILLON;
+
+			await increaseTime(3 * WEEK);
+
+			//Stake
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				root,
+				3 * WEEK,
+				3 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
+
+			let amountAfterStake = await token.balanceOf(root);
+
+			//time travel
+			await increaseTime(3 * WEEK);
+
+			//withdraw
+			let tx = await vesting.withdrawTokens(root);
+
+			//check event
+			expectEvent(tx, "TokensWithdrawn", {
+				caller: root,
+				receiver: root,
+			});
+
+			//verify amount
+			let amount = await token.balanceOf(root);
+
+			assert.equal(previousAmount.sub(new BN(toStake)).toString(), amountAfterStake.toString());
+			assert.equal(previousAmount.toString(), amount.toString());
+		});
+
 		it("should withdraw unlocked tokens", async () => {
 			//Save current amount
 			let previousAmount = await token.balanceOf(root);
