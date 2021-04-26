@@ -61,7 +61,6 @@ contract LiquidityMining is Ownable {
 	// Block number when eward token period ends.
 	uint256 public endBlock;
 
-	//TODO check of we still need this array
 	// Info of each pool.
 	PoolInfo[] public poolInfoList;
 	// Mapping pool token address => pool id
@@ -130,7 +129,12 @@ contract LiquidityMining is Ownable {
 		emit RSOVTransferred(_receiver, _amount);
 	}
 
-	// Add a new lp to the pool. Can only be called by the owner.
+	/**
+	 * @notice adds a new lp to the pool. Can only be called by the owner
+	 * @param _poolToken the address of pool token
+	 * @param _allocationPoint the allocation point (weight) for the given pool
+	 * @param _withUpdate the flag whether we need to update all pools
+	 */
 	function add(address _poolToken, uint256 _allocationPoint, bool _withUpdate) public onlyOwner {
 		require(_allocationPoint > 0, "Invalid allocation point");
 		require(_poolToken != address(0), "Invalid token address");
@@ -155,7 +159,12 @@ contract LiquidityMining is Ownable {
 		emit PoolTokenAdded(msg.sender, _poolToken, _allocationPoint);
 	}
 
-	// Update the given pool's reward tokens allocation point. Can only be called by the owner.
+	/**
+	 * @notice updates the given pool's reward tokens allocation point
+	 * @param _poolToken the address of pool token
+	 * @param _allocationPoint the allocation point (weight) for the given pool
+	 * @param _withUpdate the flag whether we need to update all pools
+	 */
 	function update(address _poolToken, uint256 _allocationPoint, bool _withUpdate) public onlyOwner {
 		uint256 poolId = _getPoolId(_poolToken);
 
@@ -172,7 +181,11 @@ contract LiquidityMining is Ownable {
 		emit PoolTokenUpdated(msg.sender, _poolToken, _allocationPoint, previousAllocationPoint);
 	}
 
-	// Return reward multiplier over the given _from to _to block.
+	/**
+	 * @notice returns reward multiplier over the given _from to _to block
+	 * @param _from the first block for a calculation
+	 * @param _to the last block for a calculation
+	 */
 	function _getPassedBlocksWithBonusMultiplier(uint256 _from, uint256 _to) internal view returns (uint256) {
 		//if mining was stopped, we shouldn't calculate blocks after end block
 		if (endBlock > 0 && _to > endBlock) {
@@ -200,13 +213,20 @@ contract LiquidityMining is Ownable {
 		return user.amount.mul(accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
 	}
 
-	// View function to see accumulated reward on frontend.
+	/**
+	 * @notice returns accumulated reward
+	 * @param _poolToken the address of pool token
+	 * @param _user the user address
+	 */
 	function getUserAccumulatedReward(address _poolToken, address _user) external view returns (uint256) {
 		uint256 poolId = _getPoolId(_poolToken);
 		return _getUserAccumulatedReward(poolId, _user);
 	}
 
-	// Update reward variables for all pools. Be careful of gas spending!
+	/**
+	 * @notice Updates reward variables for all pools.
+	 * @dev Be careful of gas spending!
+	 */
 	function updateAllPools() public {
 		uint256 length = poolInfoList.length;
 		for (uint256 i = 0; i < length; i++) {
@@ -214,12 +234,15 @@ contract LiquidityMining is Ownable {
 		}
 	}
 
+	/**
+	 * @notice Updates reward variables of the given pool to be up-to-date
+	 * @param _poolToken the address of pool token
+	 */
 	function updatePool(address _poolToken) public {
 		uint256 poolId = _getPoolId(_poolToken);
 		_updatePool(poolId);
 	}
 
-	// Update reward variables of the given pool to be up-to-date.
 	function _updatePool(uint256 _poolId) internal {
 		PoolInfo storage pool = poolInfoList[_poolId];
 
@@ -254,7 +277,11 @@ contract LiquidityMining is Ownable {
 		return (accumulatedReward, accumulatedRewardPerShare);
 	}
 
-	// Deposit LP tokens to LiquidityMining for RSOV allocation.
+	/**
+	 * @notice deposits pool tokens
+	 * @param _poolToken the address of pool token
+	 * @param _amount the amount of pool tokens
+	 */
 	function deposit(address _poolToken, uint256 _amount) public {
 		uint256 poolId = _getPoolId(_poolToken);
 		PoolInfo storage pool = poolInfoList[poolId];
@@ -275,11 +302,19 @@ contract LiquidityMining is Ownable {
 		emit Deposit(msg.sender, poolId, _amount);
 	}
 
+	/**
+	 * @notice transfers reward tokens
+	 * @param _poolToken the address of pool token
+	 */
 	function claimReward(address _poolToken) public {
 		deposit(_poolToken, 0);
 	}
 
-	// Withdraw LP tokens from LiquidityMining.
+	/**
+	 * @notice withdraws pool tokens and transfers reward tokens
+	 * @param _poolToken the address of pool token
+	 * @param _amount the amount of pool tokens
+	 */
 	function withdraw(address _poolToken, uint256 _amount) public {
 		uint256 poolId = _getPoolId(_poolToken);
 		PoolInfo storage pool = poolInfoList[poolId];
@@ -312,7 +347,11 @@ contract LiquidityMining is Ownable {
 		require(RSOV.transfer(msg.sender, userAccumulatedReward), "transfer failed");
 	}
 
-	// Withdraw without caring about rewards. EMERGENCY ONLY.
+	/**
+	 * @notice withdraws pool tokens without transferring reward tokens
+	 * @param _poolToken the address of pool token
+	 * @dev EMERGENCY ONLY
+	 */
 	function emergencyWithdraw(address _poolToken) public {
 		uint256 poolId = _getPoolId(_poolToken);
 		PoolInfo storage pool = poolInfoList[poolId];
@@ -325,6 +364,10 @@ contract LiquidityMining is Ownable {
 		emit EmergencyWithdraw(msg.sender, poolId, user.amount);
 	}
 
+	/**
+	 * @notice returns pool id
+	 * @param _poolToken the address of pool token
+	 */
 	function getPoolId(address _poolToken) public view returns (uint256) {
 		return _getPoolId(_poolToken);
 	}
@@ -335,12 +378,16 @@ contract LiquidityMining is Ownable {
 		return poolId - 1;
 	}
 
-	// Custom logic - helpers
-
+	/**
+	 * @notice returns count of pool tokens
+	 */
 	function getPoolLength() external view returns (uint256) {
 		return poolInfoList.length;
 	}
 
+	/**
+	 * @notice returns list of pool token's info
+	 */
 	function getPoolInfoList() external view returns (PoolInfo[] memory) {
 		return poolInfoList;
 	}
