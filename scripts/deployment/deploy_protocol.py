@@ -40,6 +40,9 @@ def deployProtocol(acct, tokens, mocOracleAddress, rskOracleAddress):
     settings = acct.deploy(ProtocolSettings)
     print("Calling replaceContract.")
     sovryn.replaceContract(settings.address)
+
+    # Set SOV Token Address
+    sovryn.setSOVTokenAddress(tokens.sov.address)
     
     print("Deploying Swaps.")
     swaps = acct.deploy(SwapsImplSovrynSwap)
