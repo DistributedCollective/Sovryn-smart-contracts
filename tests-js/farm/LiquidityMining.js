@@ -44,7 +44,6 @@ contract("LiquidityMining:", (accounts) => {
             let _rewardTokensPerBlock = await liquidityMining.rewardTokensPerBlock();
             let _startBlock = await liquidityMining.startBlock();
             let _bonusEndBlock = await liquidityMining.bonusEndBlock();
-            let _endBlock = await liquidityMining.endBlock();
 
             let blockNumber = tx.receipt.blockNumber;
 
@@ -52,7 +51,6 @@ contract("LiquidityMining:", (accounts) => {
             expect(_rewardTokensPerBlock).bignumber.equal(rewardTokensPerBlock);
             expect(_startBlock).bignumber.equal(startBlock.add(new BN(blockNumber)));
             expect(_bonusEndBlock).bignumber.equal(bonusEndBlock.add(new BN(blockNumber)));
-            expect(_endBlock).bignumber.equal(endBlock.add(new BN(blockNumber)));
         });
 
         //TODO add tests
@@ -74,6 +72,14 @@ contract("LiquidityMining:", (accounts) => {
                 "Invalid token address"
             );
         });
+    });
+
+    describe("stopMining", () => {
+
+    });
+
+    describe("transferRSOV", () => {
+
     });
 
     describe("add", () => {

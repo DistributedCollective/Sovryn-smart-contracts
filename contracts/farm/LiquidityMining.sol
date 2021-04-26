@@ -77,25 +77,36 @@ contract LiquidityMining is Ownable {
 	event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
 	event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
-	//TODO _startBlock, _bonusEndBlock, _endBlock - start/stop button with updating start and bonus end blocks
+	/**
+	 * @notice initialize mining
+	 * @param _RSOV reward token
+	 * @param _rewardTokensPerBlock number of reward tokens per block
+	 * @param _startBlock the number of blocks should be passed to start mining
+	 * @param _numberOfBonusBlocks the number of blocks when each block will be calculated as N blocks (BONUS_BLOCK_MULTIPLIER)
+	 */
 	function initialize(
 		ERC20 _RSOV,
 		uint256 _rewardTokensPerBlock,
 		uint256 _startBlock,
-		uint256 _bonusEndBlock,
-		uint256 _endBlock
+		uint256 _numberOfBonusBlocks
 	) public onlyOwner {
 		require(address(RSOV) == address(0), "Already initialized");
 		require(address(_RSOV) != address(0), "Invalid token address");
 		require(_startBlock > 0, "Invalid start block");
-		require(_endBlock > _startBlock, "Invalid end block");
-		require(_bonusEndBlock >= _startBlock && _bonusEndBlock <= _endBlock, "Invalid bonus end block");
 
 		RSOV = _RSOV;
 		rewardTokensPerBlock = _rewardTokensPerBlock;
 		startBlock = block.number + _startBlock;
-		bonusEndBlock = block.number + _bonusEndBlock;
-		endBlock = block.number + _endBlock;
+		bonusEndBlock = startBlock + _numberOfBonusBlocks;
+	}
+
+	/**
+	 * @notice stops mining by setting end block
+	 */
+	function stopMining() public onlyOwner {
+		require(endBlock == 0, "Already stopped");
+
+		endBlock = block.number;
 	}
 
 	/**
@@ -110,9 +121,6 @@ contract LiquidityMining is Ownable {
 		_safeTransfer(_receiver, _amount);
 		emit RSOVTransferred(_receiver, _amount);
 	}
-
-	//TODO what about removing pool tokens?
-	//TODO we can use a workaround - update(_allocationPoint = 0)
 
 	// Add a new lp to the pool. Can only be called by the owner.
 	function add(address _poolToken, uint256 _allocationPoint, bool _withUpdate) public onlyOwner {
@@ -145,6 +153,8 @@ contract LiquidityMining is Ownable {
 
 		if (_withUpdate) {
 			updateAllPools();
+		} else {
+			updatePool(_poolToken);
 		}
 
 		uint256 previousAllocationPoint = poolInfoList[poolId].allocationPoint;
@@ -156,6 +166,10 @@ contract LiquidityMining is Ownable {
 
 	// Return reward multiplier over the given _from to _to block.
 	function _getPassedBlocksWithBonusMultiplier(uint256 _from, uint256 _to) internal view returns (uint256) {
+		//if mining was stopped, we shouldn't calculate blocks after end block
+		if (endBlock > 0 && _to > endBlock) {
+			_to = endBlock;
+		}
 		if (_to <= bonusEndBlock) {
 			return _to.sub(_from).mul(BONUS_BLOCK_MULTIPLIER);
 		} else if (_from >= bonusEndBlock) {
@@ -187,12 +201,12 @@ contract LiquidityMining is Ownable {
 	// Update reward variables for all pools. Be careful of gas spending!
 	function updateAllPools() public {
 		uint256 length = poolInfoList.length;
-		for (uint256 pid = 0; pid < length; ++pid) {
-			_updatePool(pid);
+		for (uint256 i = 0; i < length; i++) {
+			_updatePool(i);
 		}
 	}
 
-	function updatePool(address _poolToken) external {
+	function updatePool(address _poolToken) public {
 		uint256 poolId = _getPoolId(_poolToken);
 		_updatePool(poolId);
 	}
@@ -267,6 +281,7 @@ contract LiquidityMining is Ownable {
 
 		uint256 accumulatedReward = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
 		_safeTransfer(msg.sender, accumulatedReward);
+
 		user.amount = user.amount.sub(_amount);
 		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
 
