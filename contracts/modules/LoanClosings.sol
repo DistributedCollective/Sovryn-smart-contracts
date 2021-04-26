@@ -963,6 +963,8 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 	/**
 	 * @notice Close a loan.
 	 *
+	 * @dev Wrapper for _closeLoan internal function.
+	 *
 	 * @param loanLocal 
 	 * @param loanParamsLocal
 	 * @param loanCloseAmount
@@ -1005,7 +1007,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 		/// via closeWithDeposit or if closing the loan in full by any method.
 		require(
 			closeType == CloseTypes.Deposit ||
-				loanLocal.principal == 0 || // loan fully closed
+				loanLocal.principal == 0 || /// loan fully closed
 				currentMargin > loanParamsLocal.maintenanceMargin,
 			"unhealthy position"
 		);
@@ -1023,10 +1025,10 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 	}
 
 	/**
-	 * @notice Close a loan.
+	 * @notice Internal function to close a loan.
 	 *
-	 * @param loanLocal 
-	 * @param loanCloseAmount
+	 * @param loanLocal The loan object.
+	 * @param loanCloseAmount The amount to close: principal or lower.
 	 *
 	 * @return ??
 	 * */
@@ -1049,6 +1051,16 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 		}
 	}
 
+	/**
+	 * @notice Compute the interest which neeeds to be refunded to the borrower
+	 *   (because full interest is paid on loan).
+	 *
+	 * @param loanParamsLocal The loan params.
+	 * @param loanLocal The loan object.
+	 * @param closePrincipal The amount of principal to close.
+	 *
+	 * @return interestRefundToBorrower The interest refund to the borrower.
+	 * */
 	function _settleInterest(
 		LoanParams memory loanParamsLocal,
 		Loan memory loanLocal,

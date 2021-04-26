@@ -22,7 +22,7 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
 	 * @param sourceToken The address of the source tokens.
 	 * @param destToken The address of destiny tokens.
 	 * @param user The user address.
- 	 * @param minSourceTokenAmount The minimum amount of source tokens to swap.
+	 * @param minSourceTokenAmount The minimum amount of source tokens to swap.
 	 * @param maxSourceTokenAmount The maximum amount of source tokens to swap.
 	 * @param requiredDestTokenAmount The required amount of destination tokens.
 	 * @param bypassFee To bypass or not the fee.
@@ -89,7 +89,7 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
 	 * @param vals The array of values.
 	 * @param loanId The Id of the associated loan.
 	 * @param miscBool True/false to bypassFee.
-     * @param loanDataBytes Additional loan data (not in use yet).
+	 * @param loanDataBytes Additional loan data (not in use yet).
 	 *
 	 * @return destTokenAmountReceived The amount of destiny tokens received.
 	 * @return sourceTokenAmountUsed The amount of source tokens used.
@@ -228,7 +228,7 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
 	 * @param destToken The address of the destiny tokens.
 	 * @param sourceTokenAmount The amount of the source tokens.
 	 *
-	 * @destTokenAmount The amount of destiny tokens.
+	 * @param destTokenAmount The amount of destiny tokens.
 	 * */
 	function _swapsExpectedReturn(
 		address sourceToken,

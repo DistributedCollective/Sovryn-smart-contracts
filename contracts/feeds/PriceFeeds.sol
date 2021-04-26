@@ -18,7 +18,7 @@ contract PriceFeeds is Constants, Ownable {
 	using SafeMath for uint256;
 
 	/* Events */
-	
+
 	event GlobalPricingPaused(address indexed sender, bool indexed isPaused);
 
 	/* Storage */
@@ -26,7 +26,7 @@ contract PriceFeeds is Constants, Ownable {
 	/// Mapping of PriceFeedsExt instances.
 	/// token => pricefeed
 	mapping(address => IPriceFeedsExt) public pricesFeeds;
-	
+
 	/// Decimals of supported tokens.
 	mapping(address => uint256) public decimals;
 
@@ -40,7 +40,7 @@ contract PriceFeeds is Constants, Ownable {
 
 	/**
 	 * @notice Contract deployment requires 3 parameters.
-	 * 
+	 *
 	 * @param _wrbtcTokenAddress The address of the wrapped wrBTC token.
 	 * @param _protocolTokenAddress The address of the protocol token.
 	 * @param _baseTokenAddress The address of the base token.
@@ -60,7 +60,7 @@ contract PriceFeeds is Constants, Ownable {
 
 	/**
 	 * @notice Calculate the price ratio between two tokens.
-	 * 
+	 *
 	 * @dev Public wrapper for _queryRate internal function.
 	 *
 	 * @param sourceToken The address of the source tokens.
@@ -152,7 +152,7 @@ contract PriceFeeds is Constants, Ownable {
 
 	/**
 	 * @notice Calculate the rBTC amount equivalent to a given token amount.
-	 * Native coin on RSK is rBTC. This code comes from Ethereum applications, 
+	 * Native coin on RSK is rBTC. This code comes from Ethereum applications,
 	 * so Eth refers to 10**18 weis of native coin, i.e.: 1 rBTC.
 	 *
 	 * @param tokenAddress The address of the token to calculate price.
@@ -368,7 +368,7 @@ contract PriceFeeds is Constants, Ownable {
 			if (sourceToken != address(baseToken) && sourceToken != protocolTokenAddress) {
 				IPriceFeedsExt _sourceFeed = pricesFeeds[sourceToken];
 				require(address(_sourceFeed) != address(0), "unsupported src feed");
-				
+
 				/// Query token price on priceFeedsExt instance.
 				sourceRate = _sourceFeed.latestAnswer();
 				require(sourceRate != 0 && (sourceRate >> 128) == 0, "price error");
@@ -380,7 +380,7 @@ contract PriceFeeds is Constants, Ownable {
 			if (destToken != address(baseToken) && destToken != protocolTokenAddress) {
 				IPriceFeedsExt _destFeed = pricesFeeds[destToken];
 				require(address(_destFeed) != address(0), "unsupported dst feed");
-				
+
 				/// Query token price on priceFeedsExt instance.
 				destRate = _destFeed.latestAnswer();
 				require(destRate != 0 && (destRate >> 128) == 0, "price error");
@@ -391,8 +391,8 @@ contract PriceFeeds is Constants, Ownable {
 			rate = sourceRate.mul(10**18).div(destRate);
 
 			precision = _getDecimalPrecision(sourceToken, destToken);
-		
-		/// Same tokens, return 1 with decimals.
+
+			/// Same tokens, return 1 with decimals.
 		} else {
 			rate = 10**18;
 			precision = 10**18;
@@ -411,8 +411,8 @@ contract PriceFeeds is Constants, Ownable {
 		/// Same tokens, return 1 with decimals.
 		if (sourceToken == destToken) {
 			return 10**18;
-		
-		/// Different tokens, query ERC20 precisions and return 18 +- diff.
+
+			/// Different tokens, query ERC20 precisions and return 18 +- diff.
 		} else {
 			uint256 sourceTokenDecimals = decimals[sourceToken];
 			if (sourceTokenDecimals == 0) sourceTokenDecimals = IERC20(sourceToken).decimals();
