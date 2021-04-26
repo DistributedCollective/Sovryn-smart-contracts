@@ -57,6 +57,8 @@ contract LiquidityMining is Ownable {
 	uint256 public startBlock;
 	// Block number when bonus reward token period ends.
 	uint256 public bonusEndBlock;
+	// Block number when eward token period ends.
+	uint256 public endBlock;
 
 	//TODO check of we still need this array
 	// Info of each pool.
@@ -68,26 +70,45 @@ contract LiquidityMining is Ownable {
 	// Total allocation points. Must be the sum of all allocation points in all pools.
 	uint256 public totalAllocationPoint;
 
+	event RSOVTransferred(address indexed receiver, uint256 amount);
 	event PoolTokenAdded(address indexed user, address indexed poolToken, uint256 allocationPoint);
 	event PoolTokenUpdated(address indexed user, address indexed poolToken, uint256 newAllocationPoint, uint256 oldAllocationPoint);
 	event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
 	event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
 	event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
-	//TODO _startBlock, _bonusEndBlock - start/stop button with updating start and bonus end blocks
+	//TODO _startBlock, _bonusEndBlock, _endBlock - start/stop button with updating start and bonus end blocks
 	function initialize(
 		ERC20 _RSOV,
 		uint256 _rewardTokensPerBlock,
 		uint256 _startBlock,
-		uint256 _bonusEndBlock
+		uint256 _bonusEndBlock,
+		uint256 _endBlock
 	) public onlyOwner {
 		require(address(RSOV) == address(0), "Already initialized");
 		require(address(_RSOV) != address(0), "Invalid token address");
+		require(_startBlock > 0, "Invalid start block");
+		require(_endBlock > _startBlock, "Invalid end block");
+		require(_bonusEndBlock >= _startBlock && _bonusEndBlock <= _endBlock, "Invalid bonus end block");
 
 		RSOV = _RSOV;
 		rewardTokensPerBlock = _rewardTokensPerBlock;
-		startBlock = _startBlock;
-		bonusEndBlock = _bonusEndBlock;
+		startBlock = block.number + _startBlock;
+		bonusEndBlock = block.number + _bonusEndBlock;
+		endBlock = block.number + _endBlock;
+	}
+
+	/**
+	 * @notice transfers RSOV tokens to given address
+	 * @param _receiver the address of the RSOV receiver
+	 * @param _amount the amount to be transferred
+	 */
+	function transferRSOV(address _receiver, uint256 _amount) public onlyOwner {
+		require(_receiver != address(0), "receiver address invalid");
+		require(_amount != 0, "amount invalid");
+
+		_safeTransfer(_receiver, _amount);
+		emit RSOVTransferred(_receiver, _amount);
 	}
 
 	//TODO what about removing pool tokens?
@@ -158,7 +179,7 @@ contract LiquidityMining is Ownable {
 	}
 
 	// View function to see accumulated reward on frontend.
-	function getUserAccumulatedReward(address _poolToken, address _user) external returns (uint256) {
+	function getUserAccumulatedReward(address _poolToken, address _user) external view returns (uint256) {
 		uint256 poolId = _getPoolId(_poolToken);
 		return _getUserAccumulatedReward(poolId, _user);
 	}
@@ -218,8 +239,9 @@ contract LiquidityMining is Ownable {
 
 		_updatePool(poolId);
 
-		//pay reward for the previous amount of deposited tokens
 		if (user.amount > 0) {
+			//TODO shouldn't update user profile instead of transferring tokens during a deposit ?
+			//pay reward for the previous amount of deposited tokens
 			uint256 accumulatedReward = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
 			_safeTransfer(msg.sender, accumulatedReward);
 		}
@@ -273,11 +295,11 @@ contract LiquidityMining is Ownable {
 		require(RSOV.transfer(_to, _amount), "transfer failed");
 	}
 
-	function getPoolId(address _poolToken) public returns (uint256) {
+	function getPoolId(address _poolToken) public view returns (uint256) {
 		return _getPoolId(_poolToken);
 	}
 
-	function _getPoolId(address _poolToken) internal returns (uint256) {
+	function _getPoolId(address _poolToken) internal view returns (uint256) {
 		uint256 poolId = poolIdList[_poolToken];
 		require(poolId > 0, "Pool token not found");
 		return poolId - 1;

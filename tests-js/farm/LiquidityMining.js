@@ -15,6 +15,7 @@ contract("LiquidityMining:", (accounts) => {
     const rewardTokensPerBlock = new BN(3);
     const startBlock = new BN(100);
     const bonusEndBlock = new BN(1000);
+    const endBlock = new BN(2000);
 
     let root, account1, account2, account3, account4;
     let RSOVToken, token1, token2, token3;
@@ -31,25 +32,37 @@ contract("LiquidityMining:", (accounts) => {
         token3 = await TestToken.new("Test token 3", "TST-3", 18, TOTAL_SUPPLY);
 
         liquidityMining = await LiquidityMining.new();
-        await liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, bonusEndBlock);
+        await liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, bonusEndBlock, endBlock);
     });
 
     describe("initialize", () => {
         it("sets the expected values", async () => {
+            liquidityMining = await LiquidityMining.new();
+            let tx = await liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, bonusEndBlock, endBlock);
+
             let _RSOV = await liquidityMining.RSOV();
             let _rewardTokensPerBlock = await liquidityMining.rewardTokensPerBlock();
             let _startBlock = await liquidityMining.startBlock();
             let _bonusEndBlock = await liquidityMining.bonusEndBlock();
+            let _endBlock = await liquidityMining.endBlock();
+
+            let blockNumber = tx.receipt.blockNumber;
 
             expect(_RSOV).equal(RSOVToken.address);
             expect(_rewardTokensPerBlock).bignumber.equal(rewardTokensPerBlock);
-            expect(_startBlock).bignumber.equal(startBlock);
-            expect(_bonusEndBlock).bignumber.equal(bonusEndBlock);
+            expect(_startBlock).bignumber.equal(startBlock.add(new BN(blockNumber)));
+            expect(_bonusEndBlock).bignumber.equal(bonusEndBlock.add(new BN(blockNumber)));
+            expect(_endBlock).bignumber.equal(endBlock.add(new BN(blockNumber)));
         });
+
+        //TODO add tests
+        // require(_startBlock > 0, "Invalid start block");
+        // require(_endBlock > _startBlock, "Invalid end block");
+        // require(_bonusEndBlock >= _startBlock && _bonusEndBlock <= _endBlock, "Invalid bonus end block");
 
         it("fails if already initialized", async () => {
             await expectRevert(
-                liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, bonusEndBlock),
+                liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, bonusEndBlock, endBlock),
                 "Already initialized"
             );
         });
@@ -57,7 +70,7 @@ contract("LiquidityMining:", (accounts) => {
         it("fails if the 0 address is passed as token address", async () => {
             liquidityMining = await LiquidityMining.new();
             await expectRevert(
-                liquidityMining.initialize(ZERO_ADDRESS, rewardTokensPerBlock, startBlock, bonusEndBlock),
+                liquidityMining.initialize(ZERO_ADDRESS, rewardTokensPerBlock, startBlock, bonusEndBlock, endBlock),
                 "Invalid token address"
             );
         });
