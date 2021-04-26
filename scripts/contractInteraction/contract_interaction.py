@@ -124,7 +124,9 @@ def main():
     #((impact/100 * 15000e10) + 15000e10) * rbtcBalance - ((impact/100 * 15000e10) + 15000e10) * (sovBalance * rbtcBalance / (sovBalance + amount ))  = amount
 
 #     createProposalSIP0015()
-    updateFeeController()
+
+#     updateFeeController()
+    replaceProtocolSettings()
 
 
 def loadConfig():
@@ -1328,6 +1330,20 @@ def sendSOVFromVestingRegistry():
 def updateFeeController():
     sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
     data = sovryn.setFeesController.encode_input(contracts['FeeSharingProxy'])
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def replaceProtocolSettings():
+    print("Deploying ProtocolSettings.")
+    settings = acct.deploy(ProtocolSettings)
+
+    print("Calling replaceContract.")
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(settings.address)
     print(data)
 
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
