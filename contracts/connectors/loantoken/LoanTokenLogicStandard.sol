@@ -36,7 +36,7 @@ import "./interfaces/FeedsLike.sol";
  * all prior borrows. This means that the total amount of interest flowing
  * into the lending pool is not directly changed by lenders entering or
  * exiting the pool. The entrance or exit of lenders only impacts how the
- * interest payments are split up. 
+ * interest payments are split up.
  *
  * For example, if there are 2 lenders with equal holdings each earning
  * 5% APR, but one of the lenders leave, then the remaining lender will earn
@@ -60,7 +60,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	/// DON'T ADD VARIABLES HERE, PLEASE
 
 	uint256 public constant VERSION = 5;
-	
+
 	/// @dev Used by flashBorrow function.
 	address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
 
@@ -184,7 +184,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	/**
 	 * @notice Borrow funds from the pool.
 	 * The underlying loan token may not be used as collateral.
-	 * 
+	 *
 	 * @param loanId The ID of the loan, 0 for a new loan.
 	 * @param withdrawAmount The amount to be withdrawn (actually borrowed).
 	 * @param initialLoanDuration The duration of the loan in seconds.
@@ -967,7 +967,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @param leverageAmount The multiple of exposure: 2x ... 5x. The leverage
 	 *   with 18 decimals.
 	 * @param collateralTokenAddress  The address of the token to be used as
-	 *   collateral. Cannot be the loan token address. 
+	 *   collateral. Cannot be the loan token address.
 	 * @param sentAddresses The addresses to send tokens: lender, borrower,
 	 *   receiver and manager.
 	 * @param sentAmounts The amounts to send to each address.
@@ -1105,12 +1105,12 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @notice Execute the ERC20 token's `transfer` function and reverts
 	 * upon failure the main purpose of this function is to prevent a non
 	 * standard ERC20 token from failing silently.
-     *
-     * @dev Wrappers around ERC20 operations that throw on failure (when the
+	 *
+	 * @dev Wrappers around ERC20 operations that throw on failure (when the
 	 * token contract returns false). Tokens that return no value (and instead
 	 * revert or throw on failure) are also supported, non-reverting calls are
 	 * assumed to be successful.
-     *
+	 *
 	 * @param token The ERC20 token address.
 	 * @param to The target address.
 	 * @param amount The transfer amount.
@@ -1129,12 +1129,12 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @notice Execute the ERC20 token's `transferFrom` function and reverts
 	 * upon failure the main purpose of this function is to prevent a non
 	 * standard ERC20 token from failing silently.
-     *
-     * @dev Wrappers around ERC20 operations that throw on failure (when the
+	 *
+	 * @dev Wrappers around ERC20 operations that throw on failure (when the
 	 * token contract returns false). Tokens that return no value (and instead
 	 * revert or throw on failure) are also supported, non-reverting calls are
 	 * assumed to be successful.
-     *
+	 *
 	 * @param token The ERC20 token address.
 	 * @param from The source address.
 	 * @param to The target address.

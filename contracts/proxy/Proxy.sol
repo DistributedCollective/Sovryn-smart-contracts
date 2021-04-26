@@ -6,9 +6,18 @@ pragma solidity ^0.5.17;
  * it is pointing to. This way upgradable contracts are possible on blockchain.
  *
  * Proxy contract is meant to be inherited and its internal functions
- * _setImplementation and _setProxyOwner to be called when upgrades become neccessary.
+ * _setImplementation and _setProxyOwner to be called when upgrades become
+ * neccessary.
  *
- * UpgradableProxy is the contract that inherits Proxy and wraps these functions.
+ * The loan token (iToken) contract as well as the protocol contract act as
+ * proxies, delegating all calls to underlying contracts. Therefore, if you
+ * want to interact with them using web3, you need to use the ABIs from the
+ * contracts containing the actual logic or the interface contract.
+ *   ABI for LoanToken contracts: LoanTokenLogicStandard
+ *   ABI for Protocol contract: ISovryn
+ *
+ * @dev UpgradableProxy is the contract that inherits Proxy and wraps these
+ * functions.
  * */
 contract Proxy {
 	bytes32 private constant KEY_IMPLEMENTATION = keccak256("key.implementation");
