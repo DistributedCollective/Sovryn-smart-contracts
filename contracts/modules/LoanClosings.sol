@@ -104,13 +104,10 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 	 * as base for the calculation.
 	 *
 	 * @param loanId The ID of the loan to roll over.
-	 * @param calldata The payload for the call. These loan DataBytes are
-	 *   additional loan data (not in use for token swaps).
+	 * /// param calldata The payload for the call. These loan DataBytes are
+	 * /// additional loan data (not in use for token swaps).
 	 * */
-	function rollover(
-		bytes32 loanId,
-		bytes calldata /// loanDataBytes: for future use.
-	) external nonReentrant {
+	function rollover(bytes32 loanId, bytes calldata) external nonReentrant {
 		// restrict to EOAs to prevent griefing attacks, during interest rate recalculation
 		require(msg.sender == tx.origin, "only EOAs can call");
 
@@ -158,7 +155,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 	 * @notice Close a position by swapping the collateral back to loan tokens
 	 * paying the lender and withdrawing the remainder.
 	 *
-     * @dev Public wrapper for _closeWithSwap internal function.
+	 * @dev Public wrapper for _closeWithSwap internal function.
 	 *
 	 * @param loanId The id of the loan.
 	 * @param receiver The receiver of the remainder (unused collateral + profit).
@@ -858,7 +855,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 
 	/**
 	 * @notice Swap collateral tokens for loan tokens.
-	 * 
+	 *
 	 * @param loanLocal The loan object.
 	 * @param loanParamsLocal The loan parameters.
 	 * @param swapAmount The amount to be swapped.
@@ -910,7 +907,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 	 *
 	 * @return destTokenAmountReceived The amount of destiny tokens received.
 	 * @return sourceTokenAmountUsed The amount of source tokens used.
-	 * @return collateralToLoanSwapRate The swap rate of collateral. 
+	 * @return collateralToLoanSwapRate The swap rate of collateral.
 	 * */
 	function _swapBackExcess(
 		Loan memory loanLocal,
@@ -965,12 +962,12 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 	 *
 	 * @dev Wrapper for _closeLoan internal function.
 	 *
-	 * @param loanLocal 
-	 * @param loanParamsLocal
-	 * @param loanCloseAmount
-	 * @param collateralCloseAmount
-	 * @param collateralToLoanSwapRate
-	 * @param closeType
+	 * @param loanLocal The loan object.
+	 * @param loanParamsLocal The loan params.
+	 * @param loanCloseAmount The amount to close: principal or lower.
+	 * @param collateralCloseAmount The amount of collateral to close.
+	 * @param collateralToLoanSwapRate The price rate collateral/loan token.
+	 * @param closeType The type of loan close.
 	 * */
 	function _finalizeClose(
 		Loan storage loanLocal,
@@ -1032,10 +1029,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 	 *
 	 * @return ??
 	 * */
-	function _closeLoan(
-		Loan storage loanLocal,
-		uint256 loanCloseAmount
-	) internal returns (uint256) {
+	function _closeLoan(Loan storage loanLocal, uint256 loanCloseAmount) internal returns (uint256) {
 		require(loanCloseAmount != 0, "nothing to close");
 
 		if (loanCloseAmount == loanLocal.principal) {
