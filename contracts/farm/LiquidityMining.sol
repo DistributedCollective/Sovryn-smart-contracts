@@ -1,8 +1,6 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-/// SPDX-License-Identifier: MIT
-
 import "../openzeppelin/ERC20.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
@@ -11,8 +9,6 @@ import "../openzeppelin/Ownable.sol";
 // Note that it's ownable and the owner wields tremendous power. The ownership
 // will be transferred to a governance smart contract once reward tokens is sufficiently
 // distributed and the community can show to govern itself.
-//
-// Have fun reading it. Hopefully it's bug-free. God bless.
 contract LiquidityMining is Ownable {
 	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
@@ -41,11 +37,10 @@ contract LiquidityMining is Ownable {
 		//   4. User's `rewardDebt` gets updated.
 	}
 
-	//TODO probably, we can save slots here, not sure we will have a lot of pools
 	// Info of each pool.
 	struct PoolInfo {
 		IERC20 poolToken; // Address of LP token contract.
-		uint256 allocationPoint; // How many allocation points assigned to this pool. Amount of reward tokens to distribute per block.
+		uint96 allocationPoint; // How many allocation points assigned to this pool. Amount of reward tokens to distribute per block.
 		uint256 lastRewardBlock; // Last block number that reward tokens distribution occurs.
 		uint256 accumulatedRewardPerShare; // Accumulated amount of reward tokens per share, times 1e12. See below.
 	}
@@ -135,7 +130,7 @@ contract LiquidityMining is Ownable {
 	 * @param _allocationPoint the allocation point (weight) for the given pool
 	 * @param _withUpdate the flag whether we need to update all pools
 	 */
-	function add(address _poolToken, uint256 _allocationPoint, bool _withUpdate) public onlyOwner {
+	function add(address _poolToken, uint96 _allocationPoint, bool _withUpdate) public onlyOwner {
 		require(_allocationPoint > 0, "Invalid allocation point");
 		require(_poolToken != address(0), "Invalid token address");
 		require(poolIdList[_poolToken] == 0, "Token already added");
@@ -165,7 +160,7 @@ contract LiquidityMining is Ownable {
 	 * @param _allocationPoint the allocation point (weight) for the given pool
 	 * @param _withUpdate the flag whether we need to update all pools
 	 */
-	function update(address _poolToken, uint256 _allocationPoint, bool _withUpdate) public onlyOwner {
+	function update(address _poolToken, uint96 _allocationPoint, bool _withUpdate) public onlyOwner {
 		uint256 poolId = _getPoolId(_poolToken);
 
 		if (_withUpdate) {
