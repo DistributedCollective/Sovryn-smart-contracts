@@ -37,7 +37,7 @@ contract AdvancedToken is AdvancedTokenStorage {
 	 *
 	 * @param _spender The account address that will be able to spend the tokens.
 	 * @param _value The amount of tokens allowed to spend.
-	 */
+	 * */
 	function approve(address _spender, uint256 _value) public returns (bool) {
 		allowed[msg.sender][_spender] = _value;
 		emit Approval(msg.sender, _spender, _value);

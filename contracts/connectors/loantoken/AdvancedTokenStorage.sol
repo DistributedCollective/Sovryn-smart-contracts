@@ -9,8 +9,8 @@ import "./LoanTokenBase.sol";
 
 /**
  * @title Advanced Token Storage contract.
- * @notice This contract code comes from bZx. bZx is a protocol for tokenized margin
- * trading and lending https://bzx.network similar to the dYdX protocol.
+ * @notice This contract code comes from bZx. bZx is a protocol for tokenized
+ * margin trading and lending https://bzx.network similar to the dYdX protocol.
  *
  * AdvancedTokenStorage implements standard ERC-20 getters functionality:
  * totalSupply, balanceOf, allowance and some events.
@@ -61,11 +61,11 @@ contract AdvancedTokenStorage is LoanTokenBase {
 
 	/**
 	 * @notice Get the amount of iTokens allowed to be spent by a
-	 * given account on behalf of the owner.
+	 *   given account on behalf of the owner.
 	 * @param _owner The account owner of the iTokens.
 	 * @param _spender The account allowed to send the iTokens.
 	 * @return The number of iTokens an account is allowing the spender
-	 * to send on its behalf.
+	 *   to send on its behalf.
 	 * */
 	function allowance(address _owner, address _spender) public view returns (uint256) {
 		return allowed[_owner][_spender];
