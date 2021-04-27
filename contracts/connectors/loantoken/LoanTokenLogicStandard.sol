@@ -273,8 +273,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * serves as collateral for the loan, and then pay ongoing interest
 	 * payments on the money they borrow.
 	 *
- 	 * Margin trading = taking a loan and swapping it:
- 	 * In order to open a margin trade position,
+	 * Margin trading = taking a loan and swapping it:
+	 * In order to open a margin trade position,
 	 *  1.- The user calls marginTrade on the loan token contract.
 	 *  2.- The loan token contract provides the loan and sends it for processing
 	 *    to the protocol proxy contract.

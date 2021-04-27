@@ -5,6 +5,12 @@ pragma solidity ^0.5.17;
  * @notice The proxy performs delegated calls to the contract implementation
  * it is pointing to. This way upgradable contracts are possible on blockchain.
  *
+ * Delegating proxy contracts are widely used for both upgradeability and gas
+ * savings. These proxies rely on a logic contract (also known as implementation
+ * contract or master copy) that is called using delegatecall. This allows
+ * proxies to keep a persistent state (storage and balance) while the code is
+ * delegated to the logic contract.
+ *
  * Proxy contract is meant to be inherited and its internal functions
  * _setImplementation and _setProxyOwner to be called when upgrades become
  * neccessary.

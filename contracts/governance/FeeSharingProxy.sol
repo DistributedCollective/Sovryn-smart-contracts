@@ -171,7 +171,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 	}
 
 	/**
-	 * @notice Withdraw accumulated fee the message sender.
+	 * @notice Withdraw accumulated fee to the message sender.
 	 *
 	 * The Sovryn protocol collects fees on every trade/swap and loan.
 	 * These fees will be distributed to SOV stakers based on their voting

@@ -20,7 +20,7 @@ import "../swaps/SwapsUser.sol";
  * @notice This contract code comes from bZx. bZx is a protocol for tokenized
  * margin trading and lending https://bzx.network similar to the dYdX protocol.
  *
- * This contract contains functions to query a loan data and to modify its status
+ * This contract contains functions to query loan data and to modify its status
  * by withdrawing or depositing collateral.
  * */
 contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper {
@@ -42,12 +42,21 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		uint256 maxSeizable;
 	}
 
+	/// @notice Empty public constructor.
 	constructor() public {}
 
+	/**
+	 * @notice Fallback function is to react to receiving value (rBTC).
+	 * */
 	function() external {
 		revert("fallback not allowed");
 	}
 
+	/**
+	 * @notice Set initial values of proxy targets.
+	 *
+	 * @param target The address of the logic contract instance.
+	 * */
 	function initialize(address target) external onlyOwner {
 		_setTarget(this.depositCollateral.selector, target);
 		_setTarget(this.withdrawCollateral.selector, target);
@@ -61,6 +70,14 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		_setTarget(this.getActiveLoans.selector, target);
 	}
 
+	/**
+	 * @notice Deposit the loan collateral.
+	 *
+	 * @param loanId A unique ID representing the loan.
+	 * @param depositAmount The amount to be deposited.
+	 * 
+	 * @return actualWithdrawAmount The amount withdrawn taking into account drawdowns.
+	 * */
 	function depositCollateral(
 		bytes32 loanId,
 		uint256 depositAmount /// must match msg.value if ether is sent
@@ -86,6 +103,15 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		emit DepositCollateral(loanId, depositAmount, collateralToLoanRate);
 	}
 
+	/**
+	 * @notice Withdraw the loan collateral.
+	 *
+	 * @param loanId A unique ID representing the loan.
+	 * @param receiver The account getting the withdrawal.
+	 * @param withdrawAmount The amount to be withdrawn.
+	 * 
+	 * @return actualWithdrawAmount The amount withdrawn taking into account drawdowns.
+	 * */
 	function withdrawCollateral(
 		bytes32 loanId,
 		address receiver,
@@ -122,6 +148,13 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		}
 	}
 
+	/**
+	 * @notice Withdraw accrued loan interest.
+	 *
+	 * @dev Wrapper for _payInterest internal function.
+	 *
+	 * @param loanToken The loan token address.
+	 * */
 	function withdrawAccruedInterest(address loanToken) external {
 		/// Pay outstanding interest to lender.
 		_payInterest(
@@ -130,6 +163,16 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		);
 	}
 
+	/**
+	 * @notice Extend the loan duration.
+	 *
+	 * @param loanId A unique ID representing the loan.
+	 * @param depositAmount The amount to be deposited.
+	 * @param useCollateral Whether pay interests w/ the collateral.
+     * @param calldata The payload for the call. These loan DataBytes are additional loan data (not in use for token swaps).
+	 * 
+	 * @return secondsExtended The amount of time in seconds the loan is extended.
+	 * */
 	function extendLoanDuration(
 		bytes32 loanId,
 		uint256 depositAmount,
@@ -200,6 +243,15 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 			.add(depositAmount);
 	}
 
+	/**
+	 * @notice Reduce the loan duration.
+	 *
+	 * @param loanId A unique ID representing the loan.
+	 * @param receiver The account getting the withdrawal.
+	 * @param withdrawAmount The amount to be withdrawn.
+	 * 
+	 * @return secondsReduced The amount of time in seconds the loan is reduced.
+	 * */	
 	function reduceLoanDuration(
 		bytes32 loanId,
 		address receiver,
@@ -257,6 +309,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	 *
 	 * @param lender The lender address.
 	 * @param loanToken The loan token address.
+	 *
 	 * @return interestPaid The total amount of interest that has been paid to a lender so far.
 	 * @return interestPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet.
 	 * @return interestOwedPerDay The amount of interest the lender is earning per day.
@@ -321,21 +374,21 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	}
 
 	/**
-	 * @notice Get user loans.
+	 * @notice Get all user loans.
 	 *
 	 * Only returns data for loans that are active.
 	 *
 	 * @param user The user address.
-	 * @param start The block number the loan starts.
-	 * @param count The parameter to calculate loan end.
+	 * @param start The lower loan ID to start with.
+	 * @param count The maximum number of results.
 	 * @param loanType The type of loan.
 	 *   loanType 0: all loans.
 	 *   loanType 1: margin trade loans.
 	 *   loanType 2: non-margin trade loans.
 	 * @param isLender Whether the user is lender or borrower.
-	 * @param unsafeOnly The safe parameter (True/False).
+	 * @param unsafeOnly The safe filter (True/False).
 	 *
-	 * @return loansData The data structure w/ loan information.
+	 * @return loansData The array of loans as query result.
 	 * */
 	function getUserLoans(
 		address user,
@@ -378,8 +431,8 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	}
 
 	/**
-	 * @notice Get a loan data structure.
-	 * 
+	 * @notice Get one loan data structure by matching ID.
+	 *
 	 * Wrapper to internal _getLoan call.
 	 *
 	 * @param loanId A unique ID representing the loan.
@@ -395,6 +448,15 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 			);
 	}
 
+	/**
+	 * @notice Get all active loans.
+	 *
+	 * @param start The lower loan ID to start with.
+	 * @param count The maximum number of results.
+	 * @param unsafeOnly The safe filter (True/False).
+	 *
+	 * @return loansData The data structure w/ loan information.
+	 * */
 	function getActiveLoans(
 		uint256 start,
 		uint256 count,
@@ -413,8 +475,8 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 			}
 			LoanReturnData memory loanData =
 				_getLoan(
-					activeLoansSet.get(i + start - 1), // loanId
-					0, // loanType
+					activeLoansSet.get(i + start - 1), /// loanId
+					0, /// loanType
 					unsafeOnly
 				);
 			if (loanData.loanId == 0) continue;
@@ -431,16 +493,16 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	}
 
 	/**
-	 * @notice Internal function to get a loan data structure.
+	 * @notice Internal function to get one loan data structure.
 	 *
 	 * @param loanId A unique ID representing the loan.
 	 * @param loanType The type of loan.
 	 *   loanType 0: all loans.
 	 *   loanType 1: margin trade loans.
 	 *   loanType 2: non-margin trade loans.
-	 * @param unsafeOnly The safe parameter (True/False).
+	 * @param unsafeOnly The safe filter (True/False).
 	 *
-	 * @return loansData The data structure w/ loan information.
+	 * @return loansData The data structure w/ the loan information.
 	 * */
 	function _getLoan(
 		bytes32 loanId,
@@ -502,27 +564,34 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 			});
 	}
 
+	/**
+	 * @notice Internal function to collect interest from the collateral.
+	 *
+	 * @param loanLocal The loan object.
+	 * @param loanParamsLocal The loan parameters.
+	 * @param depositAmount The amount of underlying tokens provided on the loan.
+	 * */
 	function _doCollateralSwap(
 		Loan storage loanLocal,
 		LoanParams memory loanParamsLocal,
 		uint256 depositAmount
 	) internal {
-		// reverts in _loanSwap if amountNeeded can't be bought
+		/// Reverts in _loanSwap if amountNeeded can't be bought.
 		(, uint256 sourceTokenAmountUsed, ) =
 			_loanSwap(
 				loanLocal.id,
 				loanParamsLocal.collateralToken,
 				loanParamsLocal.loanToken,
 				loanLocal.borrower,
-				loanLocal.collateral, // minSourceTokenAmount
-				0, // maxSourceTokenAmount (0 means minSourceTokenAmount)
-				depositAmount, // requiredDestTokenAmount (partial spend of loanLocal.collateral to fill this amount)
-				true, // bypassFee
-				"" // loanDataBytes
+				loanLocal.collateral, /// minSourceTokenAmount
+				0, /// maxSourceTokenAmount (0 means minSourceTokenAmount)
+				depositAmount, /// requiredDestTokenAmount (partial spend of loanLocal.collateral to fill this amount)
+				true, /// bypassFee
+				"" /// loanDataBytes
 			);
 		loanLocal.collateral = loanLocal.collateral.sub(sourceTokenAmountUsed);
 
-		// ensure the loan is still healthy
+		/// Ensure the loan is still healthy.
 		(uint256 currentMargin, ) =
 			IPriceFeeds(priceFeeds).getCurrentMargin(
 				loanParamsLocal.loanToken,
