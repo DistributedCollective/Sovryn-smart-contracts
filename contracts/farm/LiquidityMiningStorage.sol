@@ -44,7 +44,7 @@ contract LiquidityMiningStorage is Ownable {
 	uint256 public endBlock;
 
 	//Wrapper contract which will be a proxy between user and LM
-	address wrapper;
+	address public wrapper;
 
 	// Info of each pool.
 	PoolInfo[] public poolInfoList;

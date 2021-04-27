@@ -19,7 +19,7 @@ contract("LiquidityMiningLogic:", (accounts) => {
 
 	let root, account1, account2, account3, account4;
 	let RSOVToken, token1, token2, token3;
-	let liquidityMining;
+	let liquidityMining, wrapper;
 
 	before(async () => {
 		[root, account1, account2, account3, account4, ...accounts] = accounts;
@@ -30,35 +30,51 @@ contract("LiquidityMiningLogic:", (accounts) => {
 		token1 = await TestToken.new("Test token 1", "TST-1", 18, TOTAL_SUPPLY);
 		token2 = await TestToken.new("Test token 2", "TST-2", 18, TOTAL_SUPPLY);
 		token3 = await TestToken.new("Test token 3", "TST-3", 18, TOTAL_SUPPLY);
+		wrapper = account1;
 
 		await deployLiquidityMining();
-		await liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, numberOfBonusBlocks);
+		await liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, numberOfBonusBlocks, wrapper);
 	});
 
 	describe("initialize", () => {
 		it("sets the expected values", async () => {
 			await deployLiquidityMining();
-			let tx = await liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, numberOfBonusBlocks);
+			let tx = await liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, numberOfBonusBlocks, wrapper);
 
 			let _RSOV = await liquidityMining.RSOV();
 			let _rewardTokensPerBlock = await liquidityMining.rewardTokensPerBlock();
 			let _startBlock = await liquidityMining.startBlock();
 			let _bonusEndBlock = await liquidityMining.bonusEndBlock();
+			let _wrapper = await liquidityMining.wrapper();
 
-			let blockNumber = tx.receipt.blockNumber;
+			let blockNumber = new BN(tx.receipt.blockNumber);
 
 			expect(_RSOV).equal(RSOVToken.address);
 			expect(_rewardTokensPerBlock).bignumber.equal(rewardTokensPerBlock);
-			expect(_startBlock).bignumber.equal(startBlock.add(new BN(blockNumber)));
-			expect(_bonusEndBlock).bignumber.equal(startBlock.add(new BN(blockNumber).add(numberOfBonusBlocks)));
+			expect(_startBlock).bignumber.equal(startBlock.add(blockNumber));
+			expect(_bonusEndBlock).bignumber.equal(startBlock.add(blockNumber).add(numberOfBonusBlocks));
+			expect(_wrapper).equal(wrapper);
 		});
 
-		//TODO add tests
-		// require(_startBlock > 0, "Invalid start block");
+		it("fails if not an owner", async () => {
+			await deployLiquidityMining();
+			await expectRevert(
+				liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, numberOfBonusBlocks, wrapper, {from: account1}),
+				"unauthorized"
+			);
+		});
+
+		it("fails if _startBlock = 0", async () => {
+			await deployLiquidityMining();
+			await expectRevert(
+				liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, 0, numberOfBonusBlocks, wrapper),
+				"Invalid start block"
+			);
+		});
 
 		it("fails if already initialized", async () => {
 			await expectRevert(
-				liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, numberOfBonusBlocks),
+				liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, numberOfBonusBlocks, wrapper),
 				"Already initialized"
 			);
 		});
@@ -66,16 +82,55 @@ contract("LiquidityMiningLogic:", (accounts) => {
 		it("fails if the 0 address is passed as token address", async () => {
 			await deployLiquidityMining();
 			await expectRevert(
-				liquidityMining.initialize(ZERO_ADDRESS, rewardTokensPerBlock, startBlock, numberOfBonusBlocks),
+				liquidityMining.initialize(ZERO_ADDRESS, rewardTokensPerBlock, startBlock, numberOfBonusBlocks, wrapper),
 				"Invalid token address"
 			);
 		});
 	});
 
-	describe("setWrapper", () => {});
+	describe("setWrapper", () => {
+		it("sets the expected values", async () => {
+			let newWrapper = account2;
+			await liquidityMining.setWrapper(newWrapper);
 
-	describe("stopMining", () => {});
+			let _wrapper = await liquidityMining.wrapper();
+			expect(_wrapper).equal(newWrapper);
+		});
 
+		it("fails if not an owner", async () => {
+			await expectRevert(
+				liquidityMining.setWrapper(account2, {from: account1}),
+				"unauthorized"
+			);
+		});
+	});
+
+	describe("stopMining", () => {
+		it("should set end block", async () => {
+			let tx = await liquidityMining.stopMining();
+
+			let blockNumber = new BN(tx.receipt.blockNumber);
+			let _endBlock = await liquidityMining.endBlock();
+			expect(_endBlock).bignumber.equal(blockNumber);
+		});
+
+		it("fails if not an owner", async () => {
+			await expectRevert(
+				liquidityMining.stopMining({from: account1}),
+				"unauthorized"
+			);
+		});
+
+		it("fails if already stopped", async () => {
+			await liquidityMining.stopMining();
+			await expectRevert(
+				liquidityMining.stopMining(),
+				"Already stopped"
+			);
+		});
+	});
+
+	//TODO implement
 	describe("transferRSOV", () => {});
 
 	describe("add", () => {
