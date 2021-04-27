@@ -256,6 +256,31 @@ contract("LiquidityMiningLogic:", (accounts) => {
 		});
 	});
 
+	describe("deposit", () => {
+
+		let amount = new BN(1000);
+
+		beforeEach(async () => {
+			let allocationPoint = new BN(1);
+			await liquidityMining.add(token1.address, allocationPoint, false);
+			await mineBlock();
+
+			await token1.mint(account1, amount);
+			await token1.approve(liquidityMining.address, amount, {from: account1});
+		});
+
+		it("should be able to deposit", async () => {
+			let tx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+
+
+		});
+
+		it("should be able to deposit using wrapper", async () => {
+			//TODO implement
+		});
+
+	});
+
 	describe("getPassedBlocksWithBonusMultiplier", () => {
 
 		it("check calculation", async () => {
@@ -286,6 +311,45 @@ contract("LiquidityMiningLogic:", (accounts) => {
 			blocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(startBlock, bonusEndBlock);
 			expect(blocks).bignumber.equal(endBlock.sub(startBlock).mul(bonusBlockMultiplier));
 		});
+
+	});
+
+	describe("getUserAccumulatedReward", () => {
+
+		let amount1 = new BN(1000);
+		let amount2 = new BN(2000);
+
+		beforeEach(async () => {
+			let allocationPoint1 = new BN(1);
+			await liquidityMining.add(token1.address, allocationPoint1, false);
+
+			let allocationPoint2 = new BN(2);
+			await liquidityMining.add(token2.address, allocationPoint2, false);
+
+			await mineBlock();
+
+			await token1.mint(account1, amount1);
+			await token1.approve(liquidityMining.address, amount1, {from: account1});
+			await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, {from: account1});
+
+			await token2.mint(account2, amount2);
+			await token2.approve(liquidityMining.address, amount2, {from: account2});
+			await liquidityMining.deposit(token2.address, amount2, ZERO_ADDRESS, {from: account2});
+
+			await mineBlock();
+		});
+
+		it("check calculation", async () => {
+			//TODO implement
+
+			let reward1 = await liquidityMining.getUserAccumulatedReward(token1.address, account1);
+			let reward2 = await liquidityMining.getUserAccumulatedReward(token2.address, account2);
+			console.log(reward1.toString());
+			console.log(reward2.toString());
+
+		});
+
+		//TODO add more tests
 
 	});
 
