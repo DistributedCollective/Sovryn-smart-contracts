@@ -42,17 +42,6 @@ import "./interfaces/FeedsLike.sol";
  * 5% APR, but one of the lenders leave, then the remaining lender will earn
  * 10% APR since the interest payments don't have to be split between two
  * individuals.
- *
- * Trading: In order to open a margin trade position,
- *  1.- The user calls marginTrade on the loan token contract.
- *  2.- The loan token contract provides the loan and sends it for processing
- *    to the protocol proxy contract.
- *  3.- The protocol proxy contract uses the module LoanOpening to create a
- *    position and swaps the loan tokens to collateral tokens.
- *  4.- The Sovryn Swap network looks up the correct converter and swaps the
- *    tokens.
- * If successful, the position is being held by the protocol proxy contract,
- * which is why positions need to be closed at the protocol proxy contract.
  * */
 contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	using SignedSafeMath for int256;
@@ -283,6 +272,18 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * When trading on margin, investors first deposit some token that then
 	 * serves as collateral for the loan, and then pay ongoing interest
 	 * payments on the money they borrow.
+	 *
+ 	 * Margin trading = taking a loan and swapping it:
+ 	 * In order to open a margin trade position,
+	 *  1.- The user calls marginTrade on the loan token contract.
+	 *  2.- The loan token contract provides the loan and sends it for processing
+	 *    to the protocol proxy contract.
+	 *  3.- The protocol proxy contract uses the module LoanOpening to create a
+	 *    position and swaps the loan tokens to collateral tokens.
+	 *  4.- The Sovryn Swap network looks up the correct converter and swaps the
+	 *    tokens.
+	 * If successful, the position is being held by the protocol proxy contract,
+	 * which is why positions need to be closed at the protocol proxy contract.
 	 *
 	 * @param loanId The ID of the loan, 0 for a new loan.
 	 * @param leverageAmount The multiple of exposure: 2x ... 5x. The leverage with 18 decimals.

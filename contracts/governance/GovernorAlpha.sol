@@ -443,6 +443,8 @@ contract GovernorAlpha is SafeMath96 {
 
 		bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
 		address signatory = ecrecover(digest, v, r, s);
+
+		/// @dev Verify address is not null and PK is not null either.
 		require(RSKAddrValidator.checkPKNotZero(signatory), "GovernorAlpha::castVoteBySig: invalid signature");
 		return _castVote(signatory, proposalId, support);
 	}

@@ -440,6 +440,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 		bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
 		address signatory = ecrecover(digest, v, r, s);
+
+		/// @dev Verify address is not null and PK is not null either.
 		require(RSKAddrValidator.checkPKNotZero(signatory), "Staking::delegateBySig: invalid signature");
 		require(nonce == nonces[signatory]++, "Staking::delegateBySig: invalid nonce");
 		require(now <= expiry, "Staking::delegateBySig: signature expired");

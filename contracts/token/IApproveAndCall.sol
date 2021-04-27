@@ -11,7 +11,7 @@ interface IApproveAndCall {
 	 * @param _amount The amount was approved.
 	 * @param _token The address of token.
 	 * @param _data The data will be used for low level call.
-	 */
+	 * */
 	function receiveApproval(
 		address _sender,
 		uint256 _amount,

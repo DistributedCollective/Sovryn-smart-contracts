@@ -28,7 +28,7 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
 	/// Handles asset swaps using dex liquidity.
 	address public swapsImpl;
-	
+
 	/// Contract registry address of the Sovryn swap network.
 	address public sovrynSwapContractRegistryAddress;
 
@@ -37,13 +37,13 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
 	/// Loans: loanId => Loan
 	mapping(bytes32 => Loan) public loans;
-	
+
 	/// Loan parameters: loanParamsId => LoanParams
 	mapping(bytes32 => LoanParams) public loanParams;
 
 	/// lender => orderParamsId => Order
 	mapping(address => mapping(bytes32 => Order)) public lenderOrders;
-	
+
 	/// borrower => orderParamsId => Order
 	mapping(address => mapping(bytes32 => Order)) public borrowerOrders;
 
@@ -56,7 +56,7 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
 	/// lender => loanToken => LenderInterest object
 	mapping(address => mapping(address => LenderInterest)) public lenderInterest;
-	
+
 	/// loanId => LoanInterest object
 	mapping(bytes32 => LoanInterest) public loanInterest;
 
@@ -66,13 +66,13 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
 	/// Implementations set.
 	EnumerableBytes32Set.Bytes32Set internal logicTargetsSet;
-	
+
 	/// Active loans set.
 	EnumerableBytes32Set.Bytes32Set internal activeLoansSet;
 
 	/// Lender loans set.
 	mapping(address => EnumerableBytes32Set.Bytes32Set) internal lenderLoanSets;
-	
+
 	/// Borrow loans set.
 	mapping(address => EnumerableBytes32Set.Bytes32Set) internal borrowerLoanSets;
 
@@ -87,34 +87,34 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
 	/// Total interest fees received and not withdrawn per asset.
 	mapping(address => uint256) public lendingFeeTokensHeld;
-	
+
 	/// Total interest fees withdraw per asset.
 	/// lifetime fees = lendingFeeTokensHeld + lendingFeeTokensPaid
 	mapping(address => uint256) public lendingFeeTokensPaid;
 
 	/// 0.15% fee /// Fee paid for each trade.
 	uint256 public tradingFeePercent = 15 * 10**16;
-	
+
 	/// Total trading fees received and not withdrawn per asset.
 	mapping(address => uint256) public tradingFeeTokensHeld;
-	
+
 	/// Total trading fees withdraw per asset
 	/// lifetime fees = tradingFeeTokensHeld + tradingFeeTokensPaid
 	mapping(address => uint256) public tradingFeeTokensPaid;
 
 	/// 0.09% fee /// Origination fee paid for each loan.
 	uint256 public borrowingFeePercent = 9 * 10**16;
-	
+
 	/// Total borrowing fees received and not withdrawn per asset.
 	mapping(address => uint256) public borrowingFeeTokensHeld;
-	
+
 	/// Total borrowing fees withdraw per asset.
 	/// lifetime fees = borrowingFeeTokensHeld + borrowingFeeTokensPaid
 	mapping(address => uint256) public borrowingFeeTokensPaid;
 
 	/// Current protocol token deposit balance.
 	uint256 public protocolTokenHeld;
-	
+
 	/// Lifetime total payout of protocol token.
 	uint256 public protocolTokenPaid;
 
@@ -126,10 +126,10 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
 	/// loanPool => underlying
 	mapping(address => address) public loanPoolToUnderlying;
-	
+
 	/// underlying => loanPool
 	mapping(address => address) public underlyingToLoanPool;
-	
+
 	/// Loan pools set.
 	EnumerableBytes32Set.Bytes32Set internal loanPoolsSet;
 
