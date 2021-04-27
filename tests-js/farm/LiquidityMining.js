@@ -72,6 +72,8 @@ contract("LiquidityMiningLogic:", (accounts) => {
 		});
 	});
 
+	describe("setWrapper", () => {});
+
 	describe("stopMining", () => {});
 
 	describe("transferRSOV", () => {});

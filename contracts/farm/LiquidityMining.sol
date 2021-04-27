@@ -22,6 +22,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	event PoolTokenAdded(address indexed user, address indexed poolToken, uint256 allocationPoint);
 	event PoolTokenUpdated(address indexed user, address indexed poolToken, uint256 newAllocationPoint, uint256 oldAllocationPoint);
 	event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
+	event RewardClaimed(address indexed user, uint256 amount);
 	event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
 	event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
@@ -36,7 +37,8 @@ contract LiquidityMining is LiquidityMiningStorage {
 		IERC20 _RSOV,
 		uint256 _rewardTokensPerBlock,
 		uint256 _startBlock,
-		uint256 _numberOfBonusBlocks
+		uint256 _numberOfBonusBlocks,
+		address _wrapper
 	) public onlyOwner {
 		require(address(RSOV) == address(0), "Already initialized");
 		require(address(_RSOV) != address(0), "Invalid token address");
@@ -46,6 +48,15 @@ contract LiquidityMining is LiquidityMiningStorage {
 		rewardTokensPerBlock = _rewardTokensPerBlock;
 		startBlock = block.number + _startBlock;
 		bonusEndBlock = startBlock + _numberOfBonusBlocks;
+		wrapper = _wrapper;
+	}
+
+	/**
+	 * @notice sets wrapper proxy contract
+	 * @dev can be set to zero address to remove wrapper
+	 */
+	function setWrapper(address _wrapper) public onlyOwner {
+		wrapper = _wrapper;
 	}
 
 	/**
@@ -236,40 +247,45 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @notice deposits pool tokens
 	 * @param _poolToken the address of pool token
 	 * @param _amount the amount of pool tokens
-	 * @param _receiver the address of user, tokens will be deposited to it or to msg.sender
+	 * @param _user the address of user, tokens will be deposited to it or to msg.sender
 	 */
-	function deposit(address _poolToken, uint256 _amount, address _receiver) public {
-		address receiver = _receiver != address(0) ? _receiver : msg.sender;
+	function deposit(address _poolToken, uint256 _amount, address _user) public {
+		address userAddress = _user != address(0) ? _user : msg.sender;
 
 		uint256 poolId = _getPoolId(_poolToken);
 		PoolInfo storage pool = poolInfoList[poolId];
-		UserInfo storage user = userInfoMap[poolId][receiver];
+		UserInfo storage user = userInfoMap[poolId][userAddress];
 
 		_updatePool(poolId);
 		_updateReward(pool, user);
 
 		if (_amount > 0) {
 			user.amount = user.amount.add(_amount);
-			pool.poolToken.safeTransferFrom(address(receiver), address(this), _amount);
+			//TODO msg.sender - we need to transfer tokens from wrapper proxy contract
+			pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 		}
 		//reward accumulated before amount update (should be subtracted during next reward calculation)
 		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
-		emit Deposit(receiver, poolId, _amount);
+		emit Deposit(userAddress, poolId, _amount);
 	}
 
 	/**
 	 * @notice transfers reward tokens
 	 * @param _poolToken the address of pool token
+	 * @param _user the address of user to claim reward from
 	 */
-	function claimReward(address _poolToken) public {
+	function claimReward(address _poolToken, address _user) public {
+		address userAddress = _getUserAddress(_user);
+
 		uint256 poolId = _getPoolId(_poolToken);
 		PoolInfo storage pool = poolInfoList[poolId];
-		UserInfo storage user = userInfoMap[poolId][msg.sender];
+		UserInfo storage user = userInfoMap[poolId][userAddress];
 
 		_updatePool(poolId);
 		_updateReward(pool, user);
 
-		_transferReward(user);
+		//TODO msg.sender ?
+		_transferReward(user, userAddress);
 	}
 
 	/**
@@ -277,20 +293,34 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _poolToken the address of pool token
 	 * @param _amount the amount of pool tokens
 	 */
-	function withdraw(address _poolToken, uint256 _amount) public {
+	function withdraw(address _poolToken, uint256 _amount, address _user) public {
+		address userAddress = _getUserAddress(_user);
+
 		uint256 poolId = _getPoolId(_poolToken);
 		PoolInfo storage pool = poolInfoList[poolId];
-		UserInfo storage user = userInfoMap[poolId][msg.sender];
+		UserInfo storage user = userInfoMap[poolId][userAddress];
 		require(user.amount >= _amount, "Not enough balance");
 
 		_updatePool(poolId);
 		_updateReward(pool, user);
-		_transferReward(user);
+		//TODO msg.sender ?
+		_transferReward(user, userAddress);
 
 		user.amount = user.amount.sub(_amount);
-		pool.poolToken.safeTransfer(address(msg.sender), _amount);
+		//TODO msg.sender ?
+		pool.poolToken.safeTransfer(address(userAddress), _amount);
 		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
-		emit Withdraw(msg.sender, poolId, _amount);
+		emit Withdraw(userAddress, poolId, _amount);
+	}
+
+	function _getUserAddress(address _user) internal view returns (address) {
+		address userAddress = msg.sender;
+		if (_user != address(0)) {
+			//only wrapper can pass _user parameter
+			require(msg.sender == wrapper, "unauthorized");
+			userAddress = _user;
+		}
+		return userAddress;
 	}
 
 	function _updateReward(PoolInfo storage pool, UserInfo storage user) internal {
@@ -302,11 +332,12 @@ contract LiquidityMining is LiquidityMiningStorage {
 		}
 	}
 
-	function _transferReward(UserInfo storage user) internal {
-		uint256 userAccumulatedReward = user.accumulatedReward;
+	function _transferReward(UserInfo storage _user, address _userAddress) internal {
+		uint256 userAccumulatedReward = _user.accumulatedReward;
 		totalUsersBalance = totalUsersBalance.sub(userAccumulatedReward);
-		user.accumulatedReward = 0;
-		require(RSOV.transfer(msg.sender, userAccumulatedReward), "transfer failed");
+		_user.accumulatedReward = 0;
+		require(RSOV.transfer(_userAddress, userAccumulatedReward), "transfer failed");
+		emit RewardClaimed(_userAddress, userAccumulatedReward);
 	}
 
 	/**

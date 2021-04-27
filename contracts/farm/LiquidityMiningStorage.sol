@@ -1,5 +1,4 @@
 pragma solidity 0.5.17;
-pragma experimental ABIEncoderV2;
 
 import "../openzeppelin/ERC20.sol";
 import "../openzeppelin/SafeERC20.sol";
@@ -43,6 +42,9 @@ contract LiquidityMiningStorage is Ownable {
 	uint256 public bonusEndBlock;
 	// Block number when eward token period ends.
 	uint256 public endBlock;
+
+	//Wrapper contract which will be a proxy between user and LM
+	address wrapper;
 
 	// Info of each pool.
 	PoolInfo[] public poolInfoList;
