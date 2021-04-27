@@ -285,7 +285,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 		_updateReward(pool, user);
 
 		//TODO msg.sender ?
-		_transferReward(user, userAddress);
+		_transferReward(user, msg.sender);
 	}
 
 	/**
@@ -304,11 +304,11 @@ contract LiquidityMining is LiquidityMiningStorage {
 		_updatePool(poolId);
 		_updateReward(pool, user);
 		//TODO msg.sender ?
-		_transferReward(user, userAddress);
+		_transferReward(user, msg.sender);
 
 		user.amount = user.amount.sub(_amount);
 		//TODO msg.sender ?
-		pool.poolToken.safeTransfer(address(userAddress), _amount);
+		pool.poolToken.safeTransfer(address(msg.sender), _amount);
 		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
 		emit Withdraw(userAddress, _poolToken, _amount);
 	}
