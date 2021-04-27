@@ -38,7 +38,7 @@ def main():
     #lendToPool(contracts['iDOC'],contracts['DoC'], 1000e18)
     #setTransactionLimits(contracts['iDOC'], [contracts['DoC']], [21e18])
     #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [21e18])
-    #readTransactionLimits(contracts['iDOC'],  contracts['DoC'], contracts['WRBTC'])
+    readTransactionLimits(contracts['iUSDT'],  contracts['USDT'], contracts['WRBTC'])
 
     '''
     setupLoanParamsForCollaterals(contracts['iBPro'], [contracts['SOV']])
@@ -83,16 +83,22 @@ def main():
     # testV1Converter(contracts["ConverterSOV"], contracts["WRBTC"], contracts["SOV"])
     # transferSOVtoTokenSender()
     # addLiquidityV1(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
-    # addLiquidityV1UsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
+    #addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
+
+    #getBalance('0xdF298421cb18740a7059B0af532167FAa45e7a98', contracts['multisig'])
 
     # sendSOVFromVestingRegistry()
 
     # addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**15, 67 * 10**17])
     # addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [30 * 10**18, 200000 * 10**18])
 
-    removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 5 * 10**17, [contracts['WRBTC'], contracts['SOV']])
+    #removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 950e18, [contracts['WRBTC'], contracts['SOV']], [18e18,1])
+    #removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 1e18, [contracts['WRBTC'], contracts['SOV']], [19,1])
+
     # 2986.175 × 99% ~ 2957
     # removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 2957 * 10**18, [contracts['WRBTC'], contracts['SOV']])
+
+
 
     '''''
     startRate = 1e8/15000 *1e10
@@ -114,16 +120,22 @@ def main():
     print(rate)
     print(impact)
     '''
-
+    '''
     readSwapRate(contracts['SOV'], contracts['WRBTC'])
     readOwner(contracts['WRBTCtoSOVConverter'])
     #acceptOwnershipWithMultisig(contracts['WRBTCtoSOVConverter'])
-    readConversionFee(contracts['WRBTCtoSOVConverter'])
+    readConversionFee(contracts['WRBTCtoSOVConverter'])‚
     readConversionFee(contracts['ConverterUSDT'])
+    '''
+    #((impact/100 * 15000e10) + 15000e10) * rbtcBalance - ((impact/100 * 15000e10) + 15000e10) * (sovBalance * rbtcBalance / (sovBalance + amount ))  = amount  
 
-    #((impact/100 * 15000e10) + 15000e10) * rbtcBalance - ((impact/100 * 15000e10) + 15000e10) * (sovBalance * rbtcBalance / (sovBalance + amount ))  = amount
+    #sendFromMultisig('0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 20e18)
 
-    createProposalSIP0015()
+    #executeOnMultisig(112)
+
+    #readClaimBalanceOrigin('0x198F90c4A597366430c8D3b122b002F74A7C00C5')
+    #acct = accounts[0]
+    #acct.deploy(TestToken, "SUSD", "SUSD", 18, 1e50)
 
 
 def loadConfig():
@@ -872,11 +884,17 @@ def setAffiliateFeePercent(fee):
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
 
-def sendFromMultisig(amount):
+def sendFromMultisigToVesting(amount):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
     data = vestingRegistry.deposit.encode_input()
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(vestingRegistry.address,amount,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
+
+def sendFromMultisig(receiver, amount):
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(receiver,amount,'')
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
 
@@ -1246,6 +1264,7 @@ def getTargetAmountFromAMM(_sourceReserveBalance, _sourceReserveWeight, _targetR
     targetAmount = sovrynSwapFormula.crossReserveTargetAmount(_sourceReserveBalance, _sourceReserveWeight, _targetReserveBalance, _targetReserveWeight, _amount)
 
     print(targetAmount)
+    
 def addLiquidityV1FromMultisigUsingWrapper(converter, tokens, amounts):
     abiFile =  open('./scripts/contractInteraction/RBTCWrapperProxy.json')
     abi = json.load(abiFile)
@@ -1269,7 +1288,7 @@ def addLiquidityV1FromMultisigUsingWrapper(converter, tokens, amounts):
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
-def removeLiquidityV1toMultisigUsingWrapper(converter, amount, tokens):
+def removeLiquidityV1toMultisigUsingWrapper(converter, amount, tokens, minReturn):
     abiFile =  open('./scripts/contractInteraction/RBTCWrapperProxy.json')
     abi = json.load(abiFile)
     wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=contracts['RBTCWrapperProxy'], abi=abi, owner=acct)
@@ -1284,19 +1303,24 @@ def removeLiquidityV1toMultisigUsingWrapper(converter, amount, tokens):
     token = Contract.from_abi("ERC20", address=poolToken, abi=ERC20.abi, owner=acct)
     data = token.approve.encode_input(wrapperProxy.address, amount)
     print(data)
-
+    
     tx = multisig.submitTransaction(token.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
-
+    
     # removeLiquidityFromV1
-    data = wrapperProxy.removeLiquidityFromV1.encode_input(converter, amount, tokens, [1,1])
+    data = wrapperProxy.removeLiquidityFromV1.encode_input(converter, amount, tokens, minReturn)
     print(data)
 
     tx = multisig.submitTransaction(wrapperProxy.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
+def readClaimBalanceOrigin(address):
+    originClaimContract = Contract.from_abi("originClaim", address=contracts['OriginInvestorsClaim'], abi=OriginInvestorsClaim.abi, owner=acct)
+    amount = originClaimContract.investorsAmountsList(address)
+    print(amount)
+    
 def createProposalSIP0016():
 
     staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
