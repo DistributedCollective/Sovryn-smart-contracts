@@ -85,6 +85,11 @@ contract LiquidityMining is LiquidityMiningStorage {
 		emit RSOVTransferred(_receiver, _amount);
 	}
 
+	function getMissedBalance() public view returns (uint256) {
+		uint256 balance = RSOV.balanceOf(address(this));
+		return balance >= totalUsersBalance ? 0 : totalUsersBalance.sub(balance);
+	}
+
 	/**
 	 * @notice adds a new lp to the pool. Can only be called by the owner
 	 * @param _poolToken the address of pool token
@@ -262,8 +267,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 			user.amount = user.amount.add(_amount);
 			pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 		}
-		//reward accumulated before amount update (should be subtracted during next reward calculation)
-		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
+		_updateRewardDebt(pool, user);
 		emit Deposit(userAddress, _poolToken, _amount);
 	}
 
@@ -273,6 +277,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _user the address of user to claim reward from
 	 */
 	function claimReward(address _poolToken, address _user) public {
+		require(poolIdList[_poolToken] != 0, "Token not found");
 		address userAddress = _getUserAddress(_user);
 
 		uint256 poolId = _getPoolId(_poolToken);
@@ -281,8 +286,8 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 		_updatePool(poolId);
 		_updateReward(pool, user);
-		//send to user directly
-		_transferReward(user, userAddress);
+		_transferReward(user, userAddress); //send to user directly
+		_updateRewardDebt(pool, user);
 	}
 
 	/**
@@ -290,7 +295,8 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _poolToken the address of pool token
 	 * @param _amount the amount of pool tokens
 	 */
-	function withdraw(address _poolToken, uint256 _amount, address _user) public {
+	function withdraw(address _poolToken, uint256 _amount, bool _withReward, address _user) public {
+		require(poolIdList[_poolToken] != 0, "Token not found");
 		address userAddress = _getUserAddress(_user);
 
 		uint256 poolId = _getPoolId(_poolToken);
@@ -300,13 +306,13 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 		_updatePool(poolId);
 		_updateReward(pool, user);
-		//send to user directly
-		_transferReward(user, userAddress);
+		if (_withReward) {
+			_transferReward(user, userAddress); //send to user directly
+		}
 
 		user.amount = user.amount.sub(_amount);
-		//sent to the user or wrapper
-		pool.poolToken.safeTransfer(address(msg.sender), _amount);
-		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
+		pool.poolToken.safeTransfer(address(msg.sender), _amount); //sent to the user or wrapper
+		_updateRewardDebt(pool, user);
 		emit Withdraw(userAddress, _poolToken, _amount);
 	}
 
@@ -327,6 +333,11 @@ contract LiquidityMining is LiquidityMiningStorage {
 			uint256 accumulatedReward = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
 			user.accumulatedReward = user.accumulatedReward.add(accumulatedReward);
 		}
+	}
+
+	function _updateRewardDebt(PoolInfo storage pool, UserInfo storage user) internal {
+		//reward accumulated before amount update (should be subtracted during next reward calculation)
+		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
 	}
 
 	function _transferReward(UserInfo storage _user, address _userAddress) internal {
