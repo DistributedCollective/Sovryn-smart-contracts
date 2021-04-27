@@ -21,10 +21,10 @@ contract LiquidityMining is LiquidityMiningStorage {
 	event RSOVTransferred(address indexed receiver, uint256 amount);
 	event PoolTokenAdded(address indexed user, address indexed poolToken, uint256 allocationPoint);
 	event PoolTokenUpdated(address indexed user, address indexed poolToken, uint256 newAllocationPoint, uint256 oldAllocationPoint);
-	event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
+	event Deposit(address indexed user, address indexed poolToken, uint256 amount);
 	event RewardClaimed(address indexed user, uint256 amount);
-	event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
-	event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
+	event Withdraw(address indexed user, address indexed poolToken, uint256 amount);
+	event EmergencyWithdraw(address indexed user, address indexed poolToken, uint256 amount);
 
 	/**
 	 * @notice initialize mining
@@ -266,7 +266,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 		}
 		//reward accumulated before amount update (should be subtracted during next reward calculation)
 		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
-		emit Deposit(userAddress, poolId, _amount);
+		emit Deposit(userAddress, _poolToken, _amount);
 	}
 
 	/**
@@ -310,7 +310,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 		//TODO msg.sender ?
 		pool.poolToken.safeTransfer(address(userAddress), _amount);
 		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
-		emit Withdraw(userAddress, poolId, _amount);
+		emit Withdraw(userAddress, _poolToken, _amount);
 	}
 
 	function _getUserAddress(address _user) internal view returns (address) {
@@ -354,7 +354,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 		user.amount = 0;
 		user.rewardDebt = 0;
 		user.accumulatedReward = 0;
-		emit EmergencyWithdraw(msg.sender, poolId, user.amount);
+		emit EmergencyWithdraw(msg.sender, _poolToken, user.amount);
 	}
 
 	/**
