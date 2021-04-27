@@ -6,16 +6,16 @@ const { ZERO_ADDRESS } = constants;
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
 const TestToken = artifacts.require("TestToken");
-const LiquidityMining = artifacts.require("LiquidityMining");
+const LiquidityMiningLogic = artifacts.require("LiquidityMining");
+const LiquidityMiningProxy = artifacts.require("LiquidityMiningProxy");
 
-contract("LiquidityMining:", (accounts) => {
+contract("LiquidityMiningLogic:", (accounts) => {
     const name = "Test RSOV Token";
     const symbol = "TST";
 
     const rewardTokensPerBlock = new BN(3);
     const startBlock = new BN(100);
-    const bonusEndBlock = new BN(1000);
-    const endBlock = new BN(2000);
+    const numberOfBonusBlocks = new BN(1000);
 
     let root, account1, account2, account3, account4;
     let RSOVToken, token1, token2, token3;
@@ -31,14 +31,14 @@ contract("LiquidityMining:", (accounts) => {
         token2 = await TestToken.new("Test token 2", "TST-2", 18, TOTAL_SUPPLY);
         token3 = await TestToken.new("Test token 3", "TST-3", 18, TOTAL_SUPPLY);
 
-        liquidityMining = await LiquidityMining.new();
-        await liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, bonusEndBlock, endBlock);
+        await deployLiquidityMining();
+        await liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, numberOfBonusBlocks);
     });
 
     describe("initialize", () => {
         it("sets the expected values", async () => {
-            liquidityMining = await LiquidityMining.new();
-            let tx = await liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, bonusEndBlock, endBlock);
+            await deployLiquidityMining();
+            let tx = await liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, numberOfBonusBlocks);
 
             let _RSOV = await liquidityMining.RSOV();
             let _rewardTokensPerBlock = await liquidityMining.rewardTokensPerBlock();
@@ -50,25 +50,23 @@ contract("LiquidityMining:", (accounts) => {
             expect(_RSOV).equal(RSOVToken.address);
             expect(_rewardTokensPerBlock).bignumber.equal(rewardTokensPerBlock);
             expect(_startBlock).bignumber.equal(startBlock.add(new BN(blockNumber)));
-            expect(_bonusEndBlock).bignumber.equal(bonusEndBlock.add(new BN(blockNumber)));
+            expect(_bonusEndBlock).bignumber.equal(startBlock.add(new BN(blockNumber).add(numberOfBonusBlocks)));
         });
 
         //TODO add tests
         // require(_startBlock > 0, "Invalid start block");
-        // require(_endBlock > _startBlock, "Invalid end block");
-        // require(_bonusEndBlock >= _startBlock && _bonusEndBlock <= _endBlock, "Invalid bonus end block");
 
         it("fails if already initialized", async () => {
             await expectRevert(
-                liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, bonusEndBlock, endBlock),
+                liquidityMining.initialize(RSOVToken.address, rewardTokensPerBlock, startBlock, numberOfBonusBlocks),
                 "Already initialized"
             );
         });
 
         it("fails if the 0 address is passed as token address", async () => {
-            liquidityMining = await LiquidityMining.new();
+            await deployLiquidityMining();
             await expectRevert(
-                liquidityMining.initialize(ZERO_ADDRESS, rewardTokensPerBlock, startBlock, bonusEndBlock, endBlock),
+                liquidityMining.initialize(ZERO_ADDRESS, rewardTokensPerBlock, startBlock, numberOfBonusBlocks),
                 "Invalid token address"
             );
         });
@@ -172,5 +170,12 @@ contract("LiquidityMining:", (accounts) => {
         });
 
     });
+
+    async function deployLiquidityMining() {
+        let liquidityMiningLogic = await LiquidityMiningLogic.new();
+        let liquidityMiningProxy = await LiquidityMiningProxy.new();
+        await liquidityMiningProxy.setImplementation(liquidityMiningLogic.address);
+        liquidityMining = await LiquidityMiningLogic.at(liquidityMiningProxy.address);
+    }
 
 });
