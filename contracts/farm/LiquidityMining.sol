@@ -30,23 +30,23 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @notice initialize mining
 	 * @param _RSOV reward token
 	 * @param _rewardTokensPerBlock number of reward tokens per block
-	 * @param _startBlock the number of blocks should be passed to start mining
+	 * @param _startDelayBlocks the number of blocks should be passed to start mining
 	 * @param _numberOfBonusBlocks the number of blocks when each block will be calculated as N blocks (BONUS_BLOCK_MULTIPLIER)
 	 */
 	function initialize(
 		IERC20 _RSOV,
 		uint256 _rewardTokensPerBlock,
-		uint256 _startBlock,
+		uint256 _startDelayBlocks,
 		uint256 _numberOfBonusBlocks,
 		address _wrapper
 	) public onlyOwner {
 		require(address(RSOV) == address(0), "Already initialized");
 		require(address(_RSOV) != address(0), "Invalid token address");
-		require(_startBlock > 0, "Invalid start block");
+		require(_startDelayBlocks > 0, "Invalid start block");
 
 		RSOV = _RSOV;
 		rewardTokensPerBlock = _rewardTokensPerBlock;
-		startBlock = block.number + _startBlock;
+		startBlock = block.number + _startDelayBlocks;
 		bonusEndBlock = startBlock + _numberOfBonusBlocks;
 		wrapper = _wrapper;
 	}
@@ -153,7 +153,9 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _to the last block for a calculation
 	 */
 	function _getPassedBlocksWithBonusMultiplier(uint256 _from, uint256 _to) internal view returns (uint256) {
-		//if mining was stopped, we shouldn't calculate blocks after end block
+		if (_from < startBlock) {
+			_from = startBlock;
+		}
 		if (endBlock > 0 && _to > endBlock) {
 			_to = endBlock;
 		}
