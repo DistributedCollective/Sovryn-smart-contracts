@@ -80,7 +80,11 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _allocationPoint the allocation point (weight) for the given pool
 	 * @param _withUpdate the flag whether we need to update all pools
 	 */
-	function add(address _poolToken, uint96 _allocationPoint, bool _withUpdate) public onlyOwner {
+	function add(
+		address _poolToken,
+		uint96 _allocationPoint,
+		bool _withUpdate
+	) public onlyOwner {
 		require(_allocationPoint > 0, "Invalid allocation point");
 		require(_poolToken != address(0), "Invalid token address");
 		require(poolIdList[_poolToken] == 0, "Token already added");
@@ -92,12 +96,14 @@ contract LiquidityMining is LiquidityMiningStorage {
 		uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
 		totalAllocationPoint = totalAllocationPoint.add(_allocationPoint);
 
-		poolInfoList.push(PoolInfo({
-			poolToken: IERC20(_poolToken),
-			allocationPoint: _allocationPoint,
-			lastRewardBlock: lastRewardBlock,
-			accumulatedRewardPerShare: 0
-		}));
+		poolInfoList.push(
+			PoolInfo({
+				poolToken: IERC20(_poolToken),
+				allocationPoint: _allocationPoint,
+				lastRewardBlock: lastRewardBlock,
+				accumulatedRewardPerShare: 0
+			})
+		);
 		//indexing starts from 1 in order to check whether token was already added
 		poolIdList[_poolToken] = poolInfoList.length;
 
@@ -110,7 +116,11 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _allocationPoint the allocation point (weight) for the given pool
 	 * @param _withUpdate the flag whether we need to update all pools
 	 */
-	function update(address _poolToken, uint96 _allocationPoint, bool _withUpdate) public onlyOwner {
+	function update(
+		address _poolToken,
+		uint96 _allocationPoint,
+		bool _withUpdate
+	) public onlyOwner {
 		uint256 poolId = _getPoolId(_poolToken);
 
 		if (_withUpdate) {
@@ -376,5 +386,4 @@ contract LiquidityMining is LiquidityMiningStorage {
 		}
 		return rewardList;
 	}
-
 }
