@@ -236,25 +236,25 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @notice deposits pool tokens
 	 * @param _poolToken the address of pool token
 	 * @param _amount the amount of pool tokens
+	 * @param _receiver the address of user, tokens will be deposited to it or to msg.sender
 	 */
-	function deposit(address _poolToken, uint256 _amount) public {
+	function deposit(address _poolToken, uint256 _amount, address _receiver) public {
+		address receiver = _receiver != address(0) ? _receiver : msg.sender;
+
 		uint256 poolId = _getPoolId(_poolToken);
 		PoolInfo storage pool = poolInfoList[poolId];
-		UserInfo storage user = userInfoMap[poolId][msg.sender];
+		UserInfo storage user = userInfoMap[poolId][receiver];
 
 		_updatePool(poolId);
 		_updateReward(pool, user);
 
-		if (_amount == 0) {
-			//claimReward -> deposit(_amount = 0)
-			_transferReward(user);
-		} else {
+		if (_amount > 0) {
 			user.amount = user.amount.add(_amount);
-			pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
+			pool.poolToken.safeTransferFrom(address(receiver), address(this), _amount);
 		}
 		//reward accumulated before amount update (should be subtracted during next reward calculation)
 		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
-		emit Deposit(msg.sender, poolId, _amount);
+		emit Deposit(receiver, poolId, _amount);
 	}
 
 	/**
@@ -262,7 +262,14 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _poolToken the address of pool token
 	 */
 	function claimReward(address _poolToken) public {
-		deposit(_poolToken, 0);
+		uint256 poolId = _getPoolId(_poolToken);
+		PoolInfo storage pool = poolInfoList[poolId];
+		UserInfo storage user = userInfoMap[poolId][msg.sender];
+
+		_updatePool(poolId);
+		_updateReward(pool, user);
+
+		_transferReward(user);
 	}
 
 	/**
