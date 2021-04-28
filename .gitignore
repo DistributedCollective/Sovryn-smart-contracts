@@ -3,6 +3,7 @@ __pycache__
 .DS_Store
 .history
 .hypothesis/
+.gradle/
 build/
 reports/
 node_modules/
@@ -32,3 +33,6 @@ workspace.code-workspace
 node_modules
 artifacts/
 cache/
+contracts_bzx/
+tmp/
+tmp

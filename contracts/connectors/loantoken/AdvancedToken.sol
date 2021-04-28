@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.
+ * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
 
@@ -41,13 +41,12 @@ contract AdvancedToken is AdvancedTokenStorage {
 		uint256 _assetAmount,
 		uint256 _price
 	) internal returns (uint256) {
-		require(_tokenAmount <= balances[_who], "16");
-		// no need to require value <= totalSupply, since that would imply the
-		// sender's balance is greater than the totalSupply, which *should* be an assertion failure
+		//bzx compare
+		//TODO: Unit test
+		uint256 _balance = balances[_who].sub(_tokenAmount, "16");
 
-		uint256 _balance = balances[_who].sub(_tokenAmount);
+		// a rounding error may leave dust behind, so we clear this out
 		if (_balance <= 10) {
-			// we can't leave such small balance quantities
 			_tokenAmount = _tokenAmount.add(_balance);
 			_balance = 0;
 		}
@@ -57,7 +56,6 @@ contract AdvancedToken is AdvancedTokenStorage {
 
 		emit Burn(_who, _tokenAmount, _assetAmount, _price);
 		emit Transfer(_who, address(0), _tokenAmount);
-
 		return _balance;
 	}
 }

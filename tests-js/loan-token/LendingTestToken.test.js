@@ -26,7 +26,8 @@ const Affiliates = artifacts.require("Affiliates");
 
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 
-const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_more_of_lender_balance_should_not_fail } = require("./helpers");
+//const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_more_of_lender_balance_should_not_fail } = require("./helpers");
+const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_uint256_max_should_withdraw_total_balance } = require("./helpers");
 
 const wei = web3.utils.toWei;
 
@@ -103,6 +104,7 @@ contract("LoanTokenLending", (accounts) => {
 		// await loanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate);
 
 		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
+		console.log("after before each in JS");
 	});
 
 	describe("Test lending using TestToken", () => {
@@ -115,7 +117,8 @@ contract("LoanTokenLending", (accounts) => {
 		});
 
 		it("test cash out from the pool more of lender balance should not fail", async () => {
-			await cash_out_from_the_pool_more_of_lender_balance_should_not_fail(loanToken, lender, underlyingToken);
+			//await cash_out_from_the_pool_more_of_lender_balance_should_not_fail(loanToken, lender, underlyingToken);
+			await cash_out_from_the_pool_uint256_max_should_withdraw_total_balance(loanToken, lender, underlyingToken);
 		});
 
 		it("test profit", async () => {

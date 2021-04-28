@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.
+ * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
 
@@ -12,12 +12,14 @@ import "./interfaces/FeedsLike.sol";
 import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
 
 contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
+	using SafeMath for uint256;
 	using SignedSafeMath for int256;
 
 	// DON'T ADD VARIABLES HERE, PLEASE
 
-	uint256 public constant VERSION = 5;
+	uint256 public constant VERSION = 6;
 	address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
+	bytes32 internal constant iToken_ProfitSoFar = 0x37aa2b7d583612f016e4a4de4292cb015139b3d7762663d06a53964912ea2fb6; // keccak256("iToken_ProfitSoFar")
 
 	function() external {
 		revert("loan token logic - fallback not allowed");
@@ -40,61 +42,72 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		}
 	}
 
-	/*flashBorrow is disabled for the MVP, but is going to be added later.
-    therefore, it needs to be revised*/
+	/*
+    flashBorrow is disabled for the MVP, but is going to be added later.
+    therefore, it needs to be revised
+    
+    function flashBorrow(
+        uint256 borrowAmount,
+        address borrower,
+        address target,
+        string calldata signature,
+        bytes calldata data)
+        external
+        payable
+        nonReentrant
+        pausable(msg.sig)
+        returns (bytes memory)
+    {
+        require(borrowAmount != 0, "38");
 
-	function flashBorrow(
-		uint256 borrowAmount,
-		address borrower,
-		address target,
-		string calldata signature,
-		bytes calldata data
-	) external payable nonReentrant onlyFlashLoanWhitelisted(borrower) returns (bytes memory) {
-		require(borrowAmount != 0, "38");
+        _checkPause();
 
-		//AUDIT: the borrower parameter can be removed
-		require(borrower == msg.sender, "unauthorised usage of a whitelisted address");
+        _settleInterest();
 
-		_checkPause();
+        // save before balances
+        uint256 beforeEtherBalance = address(this).balance.sub(msg.value);
+        uint256 beforeAssetsBalance = _underlyingBalance()
+            .add(totalAssetBorrow());
 
-		_settleInterest();
+        // lock totalAssetSupply for duration of flash loan
+        _flTotalAssetSupply = beforeAssetsBalance;
 
-		// save before balances
-		uint256 beforeEtherBalance = address(this).balance.sub(msg.value);
-		uint256 beforeAssetsBalance = _underlyingBalance().add(totalAssetBorrow());
+        // transfer assets to calling contract
+        _safeTransfer(loanTokenAddress, borrower, borrowAmount, "39");
 
-		// lock totalAssetSupply for duration of flash loan
-		_flTotalAssetSupply = beforeAssetsBalance;
+		emit FlashBorrow(borrower, target, loanTokenAddress, borrowAmount);
 
-		// transfer assets to calling contract
-		_safeTransfer(loanTokenAddress, borrower, borrowAmount, "39");
+        bytes memory callData;
+        if (bytes(signature).length == 0) {
+            callData = data;
+        } else {
+            callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
+        }
 
-		bytes memory callData;
-		if (bytes(signature).length == 0) {
-			callData = data;
-		} else {
-			callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
-		}
+        // arbitrary call
+        (bool success, bytes memory returnData) = arbitraryCaller.call.value(msg.value)(
+            abi.encodeWithSelector(
+                0xde064e0d, // sendCall(address,bytes)
+                target,
+                callData
+            )
+        );
+        require(success, "call failed");
 
-		// arbitrary call
-		(bool success, bytes memory returnData) =
-			arbitraryCaller.call.value(msg.value)(
-				abi.encodeWithSelector(
-					0xde064e0d, // sendCall(address,bytes)
-					target,
-					callData
-				)
-			);
-		require(success, "arbitraryCaller.call failed");
+        // unlock totalAssetSupply
+        _flTotalAssetSupply = 0;
 
-		// unlock totalAssetSupply
-		_flTotalAssetSupply = 0;
+        // verifies return of flash loan
+        require(
+            address(this).balance >= beforeEtherBalance &&
+            _underlyingBalance()
+                .add(totalAssetBorrow()) >= beforeAssetsBalance,
+            "40"
+        );
 
-		// verifies return of flash loan
-		require(address(this).balance >= beforeEtherBalance && _underlyingBalance().add(totalAssetBorrow()) >= beforeAssetsBalance, "40");
-
-		return returnData;
-	}
+        return returnData;
+    }
+    */
 
 	/**
 	 * borrows funds from the pool. The underlying loan token may not be used as collateral.
@@ -118,7 +131,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	)
 		public
 		payable
-		nonReentrant //note: needs to be removed to allow flashloan use cases?
+		nonReentrant
 		hasEarlyAccessToken
 		returns (
 			uint256,
@@ -287,6 +300,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 				_from,
 				_to,
 				_value,
+				//allowed[_from][msg.sender]
 				ProtocolLike(sovrynContractAddress).isLoanPool(msg.sender) ? uint256(-1) : allowed[_from][msg.sender]
 			);
 	}
@@ -298,14 +312,13 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		uint256 _allowanceAmount
 	) internal returns (bool) {
 		if (_allowanceAmount != uint256(-1)) {
-			require(_value <= _allowanceAmount, "14");
-			allowed[_from][msg.sender] = _allowanceAmount.sub(_value);
+			allowed[_from][msg.sender] = _allowanceAmount.sub(_value, "14");
 		}
 
-		uint256 _balancesFrom = balances[_from];
-		require(_value <= _balancesFrom && _to != address(0), "14");
+		require(_to != address(0), "15");
 
-		uint256 _balancesFromNew = _balancesFrom.sub(_value);
+		uint256 _balancesFrom = balances[_from];
+		uint256 _balancesFromNew = _balancesFrom.sub(_value, "16");
 		balances[_from] = _balancesFromNew;
 
 		uint256 _balancesTo = balances[_to];
@@ -335,14 +348,13 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		uint256 _newBalance,
 		uint256 _currentPrice
 	) internal {
-		// keccak256("iToken_ProfitSoFar")
-		bytes32 slot = keccak256(abi.encodePacked(_user, uint256(0x37aa2b7d583612f016e4a4de4292cb015139b3d7762663d06a53964912ea2fb6)));
+		bytes32 slot = keccak256(abi.encodePacked(_user, iToken_ProfitSoFar));
 
-		uint256 _currentProfit;
-		if (_oldBalance != 0 && _newBalance != 0) {
-			_currentProfit = _profitOf(slot, _oldBalance, _currentPrice, checkpointPrices_[_user]);
-		} else if (_newBalance == 0) {
+		int256 _currentProfit;
+		if (_newBalance == 0) {
 			_currentPrice = 0;
+		} else if (_oldBalance != 0) {
+			_currentProfit = _profitOf(slot, _oldBalance, _currentPrice, checkpointPrices_[_user]);
 		}
 
 		assembly {
@@ -354,9 +366,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 	/* Public View functions */
 
-	function profitOf(address user) public view returns (uint256) {
-		// keccak256("iToken_ProfitSoFar")
-		bytes32 slot = keccak256(abi.encodePacked(user, uint256(0x37aa2b7d583612f016e4a4de4292cb015139b3d7762663d06a53964912ea2fb6)));
+	function profitOf(address user) public view returns (int256) {
+		bytes32 slot = keccak256(abi.encodePacked(user, iToken_ProfitSoFar));
 
 		return _profitOf(slot, balances[user], tokenPrice(), checkpointPrices_[user]);
 	}
@@ -366,31 +377,16 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		uint256 _balance,
 		uint256 _currentPrice,
 		uint256 _checkpointPrice
-	) internal view returns (uint256) {
+	) internal view returns (int256 profitSoFar) {
 		if (_checkpointPrice == 0) {
 			return 0;
 		}
-
-		uint256 profitSoFar;
-		uint256 profitDiff;
 
 		assembly {
 			profitSoFar := sload(slot)
 		}
 
-		if (_currentPrice > _checkpointPrice) {
-			profitDiff = _balance.mul(_currentPrice - _checkpointPrice).div(10**18);
-			profitSoFar = profitSoFar.add(profitDiff);
-		} else {
-			profitDiff = _balance.mul(_checkpointPrice - _currentPrice).div(10**18);
-			if (profitSoFar > profitDiff) {
-				profitSoFar = profitSoFar - profitDiff;
-			} else {
-				profitSoFar = 0;
-			}
-		}
-
-		return profitSoFar;
+		profitSoFar = int256(_currentPrice).sub(int256(_checkpointPrice)).mul(int256(_balance)).div(sWEI_PRECISION).add(profitSoFar);
 	}
 
 	function tokenPrice() public view returns (uint256 price) {
@@ -410,7 +406,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		uint256 totalSupply = _totalAssetSupply(0);
 		uint256 totalBorrow = totalAssetBorrow();
 		if (totalSupply > totalBorrow) {
-			return totalSupply.sub(totalBorrow);
+			return totalSupply - totalBorrow;
 		}
 	}
 
@@ -585,6 +581,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		require(burnAmount != 0, "19");
 
 		if (burnAmount > balanceOf(msg.sender)) {
+			require(burnAmount == uint256(-1), "32");
 			burnAmount = balanceOf(msg.sender);
 		}
 
@@ -724,7 +721,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, withdrawAmountExist)))];
 		// converting to initialMargin
 		leverageAmount = SafeMath.div(10**38, leverageAmount);
-		(sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress).borrowOrTradeFromPool.value(msgValue)( // newPrincipal, newCollateral
+		(sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress).borrowOrTradeFromPool.value(msgValue)( //newPrincipal,newCollateral
 			loanParamsId,
 			loanId,
 			withdrawAmountExist,
@@ -840,7 +837,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	function _avgBorrowInterestRate(uint256 assetBorrow) internal view returns (uint256) {
 		if (assetBorrow != 0) {
 			(uint256 interestOwedPerDay, ) = _getAllInterest();
-			return interestOwedPerDay.mul(10**20).div(assetBorrow).mul(365);
+			return interestOwedPerDay.mul(10**20).mul(365).div(assetBorrow);
 		}
 	}
 
@@ -946,6 +943,17 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 			return assetsBalance.add(interestUnPaid);
 		}
+	}
+
+	function _adjustValue(
+		uint256 interestRate,
+		uint256 maxDuration,
+		uint256 marginAmount
+	) internal pure returns (uint256) {
+		return
+			maxDuration != 0
+				? interestRate.mul(WEI_PERCENT_PRECISION).mul(maxDuration).div(365 days).div(marginAmount).add(WEI_PERCENT_PRECISION)
+				: WEI_PERCENT_PRECISION;
 	}
 
 	/**
