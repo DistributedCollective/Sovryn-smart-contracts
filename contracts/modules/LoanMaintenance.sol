@@ -169,7 +169,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	 * @param loanId A unique ID representing the loan.
 	 * @param depositAmount The amount to be deposited.
 	 * @param useCollateral Whether pay interests w/ the collateral.
-	 * // @param calldata The payload for the call. These loan DataBytes are additional loan data (not in use for token swaps).
+	 * // param calldata The payload for the call. These loan DataBytes are additional loan data (not in use for token swaps).
 	 *
 	 * @return secondsExtended The amount of time in seconds the loan is extended.
 	 * */
