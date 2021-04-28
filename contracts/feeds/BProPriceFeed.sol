@@ -7,7 +7,7 @@ import "../openzeppelin/Address.sol";
 
 /**
  * @title The BPro Price Feed contract.
- * 
+ *
  * This contract gets/sets the MoC (Money on Chain) address of its state
  * contract and queries its method bproUsdPrice to get bPro/USD valuation.
  * */
