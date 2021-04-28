@@ -272,15 +272,7 @@ contract("LiquidityMining", (accounts) => {
 			let blockNumber = new BN(tx.receipt.blockNumber);
 			checkPoolInfo(poolInfo, token1.address, allocationPoint, blockNumber, new BN(0));
 
-			//user balance in pool
-			let userInfo = await liquidityMining.getUserInfo(token1.address, account1);
-			expect(userInfo.amount).bignumber.equal(amount);
-			//LM balance of pool tokens
-			let liquidityMiningBalance = await token1.balanceOf(liquidityMining.address);
-			expect(liquidityMiningBalance).bignumber.equal(amount);
-			//user's balance of pool tokens
-			let userBalance = await token1.balanceOf(account1);
-			expect(userBalance).bignumber.equal(new BN(0));
+			await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
 
 			expectEvent(tx, "Deposit", {
 				user: account1,
@@ -323,15 +315,7 @@ contract("LiquidityMining", (accounts) => {
 			let blockNumber = new BN(tx.receipt.blockNumber);
 			checkPoolInfo(poolInfo, token1.address, allocationPoint, blockNumber, new BN(-1));
 
-			//user balance in pool
-			let userInfo = await liquidityMining.getUserInfo(token1.address, account1);
-			expect(userInfo.amount).bignumber.equal(amount);
-			//LM balance of pool tokens
-			let liquidityMiningBalance = await token1.balanceOf(liquidityMining.address);
-			expect(liquidityMiningBalance).bignumber.equal(amount);
-			//user's balance of pool tokens
-			let userBalance = await token1.balanceOf(account1);
-			expect(userBalance).bignumber.equal(new BN(0));
+			await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
 
 			//user's balance of reward token
 			let userRewardBalance = await SRVToken.balanceOf(account1);
@@ -340,30 +324,17 @@ contract("LiquidityMining", (accounts) => {
 
 		it("should be able to claim reward (will be claimed with SRV tokens)", async () => {
 			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
 			await SRVToken.transfer(liquidityMining.address, new BN(1000));
 
 			let tx = await liquidityMining.claimReward(token1.address, ZERO_ADDRESS, {from: account1});
 
 			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
-			let blockNumber = new BN(tx.receipt.blockNumber);
-			checkPoolInfo(poolInfo, token1.address, allocationPoint, blockNumber, new BN(-1));
+			let latestBlockNumber = new BN(tx.receipt.blockNumber);
+			checkPoolInfo(poolInfo, token1.address, allocationPoint, latestBlockNumber, new BN(-1));
 
-			//user balance in pool
-			let userInfo = await liquidityMining.getUserInfo(token1.address, account1);
-			expect(userInfo.amount).bignumber.equal(amount);
-			//LM balance of pool tokens
-			let liquidityMiningBalance = await token1.balanceOf(liquidityMining.address);
-			expect(liquidityMiningBalance).bignumber.equal(amount);
-			//user's balance of pool tokens
-			let userBalance = await token1.balanceOf(account1);
-			expect(userBalance).bignumber.equal(new BN(0));
-
-			//user's balance of reward token
-			let passedBlocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(depositTx.receipt.blockNumber, blockNumber);
-			let userReward = passedBlocks.mul(rewardTokensPerBlock);
-			let userRewardBalance = await SRVToken.balanceOf(account1);
-			expect(userRewardBalance).bignumber.equal(userReward);
-			expect(userInfo.accumulatedReward).bignumber.equal(new BN(0));
+			await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
+			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
 
 			expectEvent(tx, "RewardClaimed", {
 				user: account1,
@@ -402,15 +373,7 @@ contract("LiquidityMining", (accounts) => {
 			let blockNumber = new BN(tx.receipt.blockNumber);
 			checkPoolInfo(poolInfo, token1.address, allocationPoint, blockNumber, new BN(-1));
 
-			//user balance in pool
-			let userInfo = await liquidityMining.getUserInfo(token1.address, account1);
-			expect(userInfo.amount).bignumber.equal(new BN(0));
-			//LM balance of pool tokens
-			let liquidityMiningBalance = await token1.balanceOf(liquidityMining.address);
-			expect(liquidityMiningBalance).bignumber.equal(new BN(0));
-			//user's balance of pool tokens
-			let userBalance = await token1.balanceOf(account1);
-			expect(userBalance).bignumber.equal(amount);
+			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
 
 			//user's balance of reward token
 			let userRewardBalance = await SRVToken.balanceOf(account1);
@@ -425,30 +388,17 @@ contract("LiquidityMining", (accounts) => {
 
 		it("should be able to withdraw (with claiming reward)", async () => {
 			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
 			await SRVToken.transfer(liquidityMining.address, new BN(1000));
 
 			let tx = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, {from: account1});
 
 			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
-			let blockNumber = new BN(tx.receipt.blockNumber);
-			checkPoolInfo(poolInfo, token1.address, allocationPoint, blockNumber, new BN(-1));
+			let latestBlockNumber = new BN(tx.receipt.blockNumber);
+			checkPoolInfo(poolInfo, token1.address, allocationPoint, latestBlockNumber, new BN(-1));
 
-			//user balance in pool
-			let userInfo = await liquidityMining.getUserInfo(token1.address, account1);
-			expect(userInfo.amount).bignumber.equal(new BN(0));
-			//LM balance of pool tokens
-			let liquidityMiningBalance = await token1.balanceOf(liquidityMining.address);
-			expect(liquidityMiningBalance).bignumber.equal(new BN(0));
-			//user's balance of pool tokens
-			let userBalance = await token1.balanceOf(account1);
-			expect(userBalance).bignumber.equal(amount);
-
-			//user's balance of reward token
-			let passedBlocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(depositTx.receipt.blockNumber, blockNumber);
-			let userReward = passedBlocks.mul(rewardTokensPerBlock);
-			let userRewardBalance = await SRVToken.balanceOf(account1);
-			expect(userRewardBalance).bignumber.equal(userReward);
-			expect(userInfo.accumulatedReward).bignumber.equal(new BN(0));
+			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
+			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
 
 			expectEvent(tx, "Withdraw", {
 				user: account1,
@@ -563,6 +513,29 @@ contract("LiquidityMining", (accounts) => {
 		if (accumulatedRewardPerShare.toNumber() !== -1) {
 			expect(poolInfo.accumulatedRewardPerShare).bignumber.equal(accumulatedRewardPerShare);
 		}
+	}
+
+	async function checkUserPoolTokens(user, poolToken, _userAmount, _liquidityMiningBalance, _userBalance) {
+		//user balance in pool
+		let userInfo = await liquidityMining.getUserInfo(poolToken.address, user);
+		expect(userInfo.amount).bignumber.equal(_userAmount);
+		//LM balance of pool tokens
+		let liquidityMiningBalance = await poolToken.balanceOf(liquidityMining.address);
+		expect(liquidityMiningBalance).bignumber.equal(_liquidityMiningBalance);
+		//user's balance of pool tokens
+		let userBalance = await poolToken.balanceOf(user);
+		expect(userBalance).bignumber.equal(_userBalance);
+	}
+
+	//user's balance of reward token
+	async function checkUserReward(user, poolToken, depositBlockNumber, latestBlockNumber) {
+		let passedBlocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(depositBlockNumber, latestBlockNumber);
+		let userReward = passedBlocks.mul(rewardTokensPerBlock);
+		let userRewardBalance = await SRVToken.balanceOf(user);
+		expect(userRewardBalance).bignumber.equal(userReward);
+		let userInfo = await liquidityMining.getUserInfo(poolToken.address, user);
+		expect(userInfo.accumulatedReward).bignumber.equal(new BN(0));
+		return userReward;
 	}
 
 });
