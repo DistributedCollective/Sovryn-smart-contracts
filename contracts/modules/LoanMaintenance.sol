@@ -75,7 +75,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	 *
 	 * @param loanId A unique ID representing the loan.
 	 * @param depositAmount The amount to be deposited.
-	 * 
+	 *
 	 * @return actualWithdrawAmount The amount withdrawn taking into account drawdowns.
 	 * */
 	function depositCollateral(
@@ -109,7 +109,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	 * @param loanId A unique ID representing the loan.
 	 * @param receiver The account getting the withdrawal.
 	 * @param withdrawAmount The amount to be withdrawn.
-	 * 
+	 *
 	 * @return actualWithdrawAmount The amount withdrawn taking into account drawdowns.
 	 * */
 	function withdrawCollateral(
@@ -169,8 +169,8 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	 * @param loanId A unique ID representing the loan.
 	 * @param depositAmount The amount to be deposited.
 	 * @param useCollateral Whether pay interests w/ the collateral.
-     * @param calldata The payload for the call. These loan DataBytes are additional loan data (not in use for token swaps).
-	 * 
+	 * @param calldata The payload for the call. These loan DataBytes are additional loan data (not in use for token swaps).
+	 *
 	 * @return secondsExtended The amount of time in seconds the loan is extended.
 	 * */
 	function extendLoanDuration(
@@ -249,9 +249,9 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	 * @param loanId A unique ID representing the loan.
 	 * @param receiver The account getting the withdrawal.
 	 * @param withdrawAmount The amount to be withdrawn.
-	 * 
+	 *
 	 * @return secondsReduced The amount of time in seconds the loan is reduced.
-	 * */	
+	 * */
 	function reduceLoanDuration(
 		bytes32 loanId,
 		address receiver,
