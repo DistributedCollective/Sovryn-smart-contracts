@@ -6,9 +6,6 @@ import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
 import "./LiquidityMiningStorage.sol";
 
-// Note that it's ownable and the owner wields tremendous power. The ownership
-// will be transferred to a governance smart contract once reward tokens is sufficiently
-// distributed and the community can show to govern itself.
 contract LiquidityMining is LiquidityMiningStorage {
 	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
@@ -274,7 +271,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	/**
 	 * @notice transfers reward tokens
 	 * @param _poolToken the address of pool token
-	 * @param _user the address of user to claim reward from
+	 * @param _user the address of user to claim reward from (can be passed only by wrapper contract)
 	 */
 	function claimReward(address _poolToken, address _user) public {
 		require(poolIdList[_poolToken] != 0, "Token not found");
@@ -294,8 +291,9 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @notice withdraws pool tokens and transfers reward tokens
 	 * @param _poolToken the address of pool token
 	 * @param _amount the amount of pool tokens
+	 * @param _user the user address will be used to process a withdrawal (can be passed only by wrapper contract)
 	 */
-	function withdraw(address _poolToken, uint256 _amount, bool _withReward, address _user) public {
+	function withdraw(address _poolToken, uint256 _amount, address _user) public {
 		require(poolIdList[_poolToken] != 0, "Token not found");
 		address userAddress = _getUserAddress(_user);
 
@@ -306,9 +304,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 		_updatePool(poolId);
 		_updateReward(pool, user);
-		if (_withReward) {
-			_transferReward(user, userAddress); //send to user directly
-		}
+		_transferReward(user, userAddress); //send to user directly
 
 		user.amount = user.amount.sub(_amount);
 		pool.poolToken.safeTransfer(address(msg.sender), _amount); //sent to the user or wrapper
@@ -342,10 +338,13 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 	function _transferReward(UserInfo storage _user, address _userAddress) internal {
 		uint256 userAccumulatedReward = _user.accumulatedReward;
-		totalUsersBalance = totalUsersBalance.sub(userAccumulatedReward);
-		_user.accumulatedReward = 0;
-		require(RSOV.transfer(_userAddress, userAccumulatedReward), "transfer failed");
-		emit RewardClaimed(_userAddress, userAccumulatedReward);
+		uint256 balance = RSOV.balanceOf(address(this));
+		if (balance >= userAccumulatedReward) {
+			totalUsersBalance = totalUsersBalance.sub(userAccumulatedReward);
+			_user.accumulatedReward = 0;
+			require(RSOV.transfer(_userAddress, userAccumulatedReward), "transfer failed");
+			emit RewardClaimed(_userAddress, userAccumulatedReward);
+		}
 	}
 
 	/**
