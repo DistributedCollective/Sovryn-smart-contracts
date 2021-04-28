@@ -426,6 +426,42 @@ contract("LiquidityMining", (accounts) => {
 
 	});
 
+	describe("emergencyWithdraw", () => {
+		let allocationPoint = new BN(1);
+		let amount = new BN(1000);
+
+		beforeEach(async () => {
+			await liquidityMining.add(token1.address, allocationPoint, false);
+			await mineBlocks(1);
+
+			await token1.mint(account1, amount);
+			await token1.approve(liquidityMining.address, amount, {from: account1});
+		});
+
+		it("should be able to withdraw", async () => {
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+
+			let tx = await liquidityMining.emergencyWithdraw(token1.address, {from: account1});
+
+			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
+
+			let userInfo = await liquidityMining.getUserInfo(token1.address, account1);
+			expect(userInfo.rewardDebt).bignumber.equal(new BN(0));
+			expect(userInfo.accumulatedReward).bignumber.equal(new BN(0));
+
+			expectEvent(tx, "EmergencyWithdraw", {
+				user: account1,
+				poolToken: token1.address,
+				amount: amount,
+			});
+		});
+
+		it("fails if token pool token not found", async () => {
+			await expectRevert(liquidityMining.emergencyWithdraw(account1, {from: account1}), "Pool token not found");
+		});
+
+	});
+
 	describe("getPassedBlocksWithBonusMultiplier", () => {
 
 		it("check calculation", async () => {
@@ -492,6 +528,8 @@ contract("LiquidityMining", (accounts) => {
 		//TODO add more tests
 
 	});
+
+	//TODO add tests for public/external getters
 
 	async function deployLiquidityMining() {
 		let liquidityMiningLogic = await LiquidityMiningLogic.new();

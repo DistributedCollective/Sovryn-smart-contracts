@@ -357,11 +357,12 @@ contract LiquidityMining is LiquidityMiningStorage {
 		PoolInfo storage pool = poolInfoList[poolId];
 		UserInfo storage user = userInfoMap[poolId][msg.sender];
 
-		pool.poolToken.safeTransfer(address(msg.sender), user.amount);
+		uint256 userAmount = user.amount;
 		user.amount = 0;
 		user.rewardDebt = 0;
 		user.accumulatedReward = 0;
-		emit EmergencyWithdraw(msg.sender, _poolToken, user.amount);
+		pool.poolToken.safeTransfer(address(msg.sender), userAmount);
+		emit EmergencyWithdraw(msg.sender, _poolToken, userAmount);
 	}
 
 	/**
