@@ -15,7 +15,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	// During bonus period each passed block will be calculated like N passed blocks, where N = BONUS_MULTIPLIER
 	uint256 public constant BONUS_BLOCK_MULTIPLIER = 10;
 
-	event SRVTransferred(address indexed receiver, uint256 amount);
+	event SVRTransferred(address indexed receiver, uint256 amount);
 	event PoolTokenAdded(address indexed user, address indexed poolToken, uint256 allocationPoint);
 	event PoolTokenUpdated(address indexed user, address indexed poolToken, uint256 newAllocationPoint, uint256 oldAllocationPoint);
 	event Deposit(address indexed user, address indexed poolToken, uint256 amount);
@@ -25,23 +25,23 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 	/**
 	 * @notice initialize mining
-	 * @param _SRV reward token
+	 * @param _SVR reward token
 	 * @param _rewardTokensPerBlock number of reward tokens per block
 	 * @param _startDelayBlocks the number of blocks should be passed to start mining
 	 * @param _numberOfBonusBlocks the number of blocks when each block will be calculated as N blocks (BONUS_BLOCK_MULTIPLIER)
 	 */
 	function initialize(
-		IERC20 _SRV,
+		IERC20 _SVR,
 		uint256 _rewardTokensPerBlock,
 		uint256 _startDelayBlocks,
 		uint256 _numberOfBonusBlocks,
 		address _wrapper
 	) public onlyOwner {
-		require(address(SRV) == address(0), "Already initialized");
-		require(address(_SRV) != address(0), "Invalid token address");
+		require(address(SVR) == address(0), "Already initialized");
+		require(address(_SVR) != address(0), "Invalid token address");
 		require(_startDelayBlocks > 0, "Invalid start block");
 
-		SRV = _SRV;
+		SVR = _SVR;
 		rewardTokensPerBlock = _rewardTokensPerBlock;
 		startBlock = block.number + _startDelayBlocks;
 		bonusEndBlock = startBlock + _numberOfBonusBlocks;
@@ -66,24 +66,24 @@ contract LiquidityMining is LiquidityMiningStorage {
 	}
 
 	/**
-	 * @notice transfers SRV tokens to given address
-	 * @param _receiver the address of the SRV receiver
+	 * @notice transfers SVR tokens to given address
+	 * @param _receiver the address of the SVR receiver
 	 * @param _amount the amount to be transferred
 	 */
-	function transferSRV(address _receiver, uint256 _amount) public onlyOwner {
+	function transferSVR(address _receiver, uint256 _amount) public onlyOwner {
 		require(_receiver != address(0), "receiver address invalid");
 		require(_amount != 0, "amount invalid");
 
-		uint256 SRVBal = SRV.balanceOf(address(this));
-		if (_amount > SRVBal) {
-			_amount = SRVBal;
+		uint256 SVRBal = SVR.balanceOf(address(this));
+		if (_amount > SVRBal) {
+			_amount = SVRBal;
 		}
-		require(SRV.transfer(_receiver, _amount), "transfer failed");
-		emit SRVTransferred(_receiver, _amount);
+		require(SVR.transfer(_receiver, _amount), "transfer failed");
+		emit SVRTransferred(_receiver, _amount);
 	}
 
 	function getMissedBalance() public view returns (uint256) {
-		uint256 balance = SRV.balanceOf(address(this));
+		uint256 balance = SVR.balanceOf(address(this));
 		return balance >= totalUsersBalance ? 0 : totalUsersBalance.sub(balance);
 	}
 
@@ -338,11 +338,11 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 	function _transferReward(UserInfo storage _user, address _userAddress) internal {
 		uint256 userAccumulatedReward = _user.accumulatedReward;
-		uint256 balance = SRV.balanceOf(address(this));
+		uint256 balance = SVR.balanceOf(address(this));
 		if (balance >= userAccumulatedReward) {
 			totalUsersBalance = totalUsersBalance.sub(userAccumulatedReward);
 			_user.accumulatedReward = 0;
-			require(SRV.transfer(_userAddress, userAccumulatedReward), "transfer failed");
+			require(SVR.transfer(_userAddress, userAccumulatedReward), "transfer failed");
 			emit RewardClaimed(_userAddress, userAccumulatedReward);
 		}
 	}
