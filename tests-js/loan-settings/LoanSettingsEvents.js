@@ -1,5 +1,5 @@
 const { assert } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time, ether} = require("@openzeppelin/test-helpers");
+const { expectRevert, expectEvent, constants, BN, balance, time, ether } = require("@openzeppelin/test-helpers");
 
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
@@ -30,16 +30,14 @@ contract("LoanSettingsEvents", (accounts) => {
 	let lender, account1, account2, account3, account4;
 	let underlyingToken, testWrbtc;
 	let sovryn, loanToken;
-    let loanParams, loanParamsId, tx;
-
+	let loanParams, loanParamsId, tx;
 
 	before(async () => {
 		[lender, account1, account2, account3, account4, ...accounts] = accounts;
 	});
 
-
 	beforeEach(async () => {
-        //Token
+		//Token
 		underlyingToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 		testWrbtc = await TestWrbtc.new();
 
@@ -79,59 +77,53 @@ contract("LoanSettingsEvents", (accounts) => {
 
 		await testWrbtc.mint(sovryn.address, ether("500"));
 
-        loanParams = {
-            "id": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "active": false,
-            "owner": constants.ZERO_ADDRESS,
-            "loanToken": underlyingToken.address,
-            "collateralToken": testWrbtc.address,
-            "minInitialMargin": ether("50"),
-            "maintenanceMargin": ether("15"),
-            "maxLoanTerm": "2419200"
-        };
-   	});
+		loanParams = {
+			id: "0x0000000000000000000000000000000000000000000000000000000000000000",
+			active: false,
+			owner: constants.ZERO_ADDRESS,
+			loanToken: underlyingToken.address,
+			collateralToken: testWrbtc.address,
+			minInitialMargin: ether("50"),
+			maintenanceMargin: ether("15"),
+			maxLoanTerm: "2419200",
+		};
+	});
 
-    
 	describe("test LoanSettingsEvents", async () => {
 		it("test setupLoanParamsEvents", async () => {
-            tx = await sovryn.setupLoanParams([Object.values(loanParams)]);
+			tx = await sovryn.setupLoanParams([Object.values(loanParams)]);
 
-            await expectEvent(tx, "LoanParamsIdSetup", {owner: lender});
+			await expectEvent(tx, "LoanParamsIdSetup", { owner: lender });
 			assert(tx.logs[1]["id"] != "0x0");
 
-            await expectEvent(tx, "LoanParamsSetup", 
-                {
-                    owner: lender, 
-                    loanToken: underlyingToken.address, 
-                    collateralToken: testWrbtc.address, 
-                    minInitialMargin: ether("50"), 
-                    maintenanceMargin: ether("15"), 
-                    maxLoanTerm: "2419200"
-                }
-            );
+			await expectEvent(tx, "LoanParamsSetup", {
+				owner: lender,
+				loanToken: underlyingToken.address,
+				collateralToken: testWrbtc.address,
+				minInitialMargin: ether("50"),
+				maintenanceMargin: ether("15"),
+				maxLoanTerm: "2419200",
+			});
 			assert(tx.logs[0]["id"] != "0x0");
 		});
 
- 
-        it("test disableLoanParamsEvents", async () => {
+		it("test disableLoanParamsEvents", async () => {
 			tx = await sovryn.setupLoanParams([Object.values(loanParams)]);
 			loanParamsId = tx.logs[1].args.id;
 
-			tx = await sovryn.disableLoanParams([loanParamsId], { "from": lender });
+			tx = await sovryn.disableLoanParams([loanParamsId], { from: lender });
 
-            await expectEvent(tx, "LoanParamsIdDisabled", {owner: lender});
+			await expectEvent(tx, "LoanParamsIdDisabled", { owner: lender });
 			assert(tx.logs[1]["id"] != "0x0");
 
-            await expectEvent(tx, "LoanParamsDisabled", 
-                {
-                    owner: lender, 
-                    loanToken: underlyingToken.address, 
-                    collateralToken: testWrbtc.address, 
-                    minInitialMargin: ether("50"), 
-                    maintenanceMargin: ether("15"), 
-                    maxLoanTerm: "2419200"
-                }
-            );
+			await expectEvent(tx, "LoanParamsDisabled", {
+				owner: lender,
+				loanToken: underlyingToken.address,
+				collateralToken: testWrbtc.address,
+				minInitialMargin: ether("50"),
+				maintenanceMargin: ether("15"),
+				maxLoanTerm: "2419200",
+			});
 			assert(tx.logs[0]["id"] != "0x0");
 		});
 	});

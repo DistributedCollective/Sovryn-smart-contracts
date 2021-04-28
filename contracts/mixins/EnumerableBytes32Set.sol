@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.
+ * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
 
@@ -97,6 +97,17 @@ library EnumerableBytes32Set {
 	 * @dev Returns true if the value is in the set. O(1).
 	 */
 	function contains(Bytes32Set storage set, bytes32 value) internal view returns (bool) {
+		return set.index[value] != 0;
+	}
+
+	/**
+	 * @dev Returns true if the value is in the set. O(1).
+	 */
+	function containsAddress(Bytes32Set storage set, address addrvalue) internal view returns (bool) {
+		bytes32 value;
+		assembly {
+			value := addrvalue
+		}
 		return set.index[value] != 0;
 	}
 
