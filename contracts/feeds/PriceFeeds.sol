@@ -14,6 +14,17 @@ interface IPriceFeedsExt {
 	function latestAnswer() external view returns (uint256);
 }
 
+/**
+ * @title The Price Feeds contract.
+ *
+ * @notice This contract code comes from bZx. bZx is a protocol for tokenized
+ * margin trading and lending https://bzx.network similar to the dYdX protocol.
+ *
+ * This contract queries the price feeds contracts where
+ * oracles updates token prices computing relative token prices.
+ * And besides it includes some calculations about loans such as
+ * drawdown, margin and collateral.
+ * */
 contract PriceFeeds is Constants, Ownable {
 	using SafeMath for uint256;
 
@@ -101,7 +112,6 @@ contract PriceFeeds is Constants, Ownable {
 	 * @return destAmount The amount of destiny tokens equivalent in price
 	 *   to the amount of source tokens.
 	 * */
-
 	function queryReturn(
 		address sourceToken,
 		address destToken,

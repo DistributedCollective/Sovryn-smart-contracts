@@ -19,4 +19,6 @@ import "./objects/LoanInterestStruct.sol";
  * This contract inherints and aggregates several structures needed to handle
  * loans on the protocol.
  * */
-contract Objects is LoanStruct, LoanParamsStruct, OrderStruct, LenderInterestStruct, LoanInterestStruct {}
+contract Objects is LoanStruct, LoanParamsStruct, OrderStruct, LenderInterestStruct, LoanInterestStruct {
+
+}
