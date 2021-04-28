@@ -155,6 +155,8 @@ contract("LiquidityMining", (accounts) => {
 		});
 	});
 
+	//TODO getMissedBalance
+
 	describe("add", () => {
 		it("should be able to add pool token", async () => {
 			let allocationPoint = new BN(1);
@@ -528,6 +530,12 @@ contract("LiquidityMining", (accounts) => {
 		//TODO add more tests
 
 	});
+
+	//TODO add tricky cases
+	//1. add(pool1), deposit(user1, pool1), update(pool1), withdraw(user1, pool1)
+	//2. add(pool1), deposit(user1, pool1), deposit(user2, pool1), withdraw(user1, pool1), withdraw(user2, pool1)
+	//3. add(pool1), deposit(user1, pool1), add(pool2), withdraw(user1, pool1)
+	//4. add(pool1), deposit(user1, pool1), add(pool2), deposit(user2, pool2), withdraw(user1, pool1), withdraw(user2, pool2)
 
 	//TODO add tests for public/external getters
 
