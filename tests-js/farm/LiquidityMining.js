@@ -178,7 +178,7 @@ contract("LiquidityMining", (accounts) => {
 			});
 		});
 
-		it("should be able to add 2 pool tokens", async () => {
+		it("should be able to add 2 pool tokens and update pools", async () => {
 			let allocationPoint1 = new BN(1);
 			let tx1 = await liquidityMining.add(token1.address, allocationPoint1, false);
 
@@ -191,7 +191,7 @@ contract("LiquidityMining", (accounts) => {
 			});
 
 			let allocationPoint2 = new BN(2);
-			let tx2 = await liquidityMining.add(token2.address, allocationPoint2, false);
+			let tx2 = await liquidityMining.add(token2.address, allocationPoint2, true);
 
 			expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(allocationPoint1.add(allocationPoint2));
 
@@ -200,10 +200,10 @@ contract("LiquidityMining", (accounts) => {
 				poolToken: token2.address,
 				allocationPoint: allocationPoint2,
 			});
-		});
 
-		it("should be able to add pool token and update pools", async () => {
-			//TODO implement
+			let poolInfo1 = await liquidityMining.getPoolInfo(token1.address);
+			let poolInfo2 = await liquidityMining.getPoolInfo(token2.address);
+			expect(poolInfo1.lastRewardBlock).bignumber.equal(poolInfo2.lastRewardBlock);
 		});
 
 		it("fails if the 0 allocation point is passed", async () => {
