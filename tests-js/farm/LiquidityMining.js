@@ -230,12 +230,9 @@ contract("LiquidityMiningLogic:", (accounts) => {
 
 			expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(newAllocationPoint);
 
-			let poolInfo = await liquidityMining.poolInfoList(0);
-			expect(poolInfo.poolToken).equal(token1.address);
-			expect(poolInfo.allocationPoint).bignumber.equal(newAllocationPoint);
+			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
 			let blockNumber = new BN(tx.receipt.blockNumber);
-			expect(poolInfo.lastRewardBlock).bignumber.equal(blockNumber);
-			expect(poolInfo.accumulatedRewardPerShare).bignumber.equal(new BN(0));
+			checkPoolInfo(poolInfo, token1.address, newAllocationPoint, blockNumber, new BN(0));
 
 			expect(await liquidityMining.getPoolLength()).bignumber.equal(new BN(1));
 
@@ -257,13 +254,12 @@ contract("LiquidityMiningLogic:", (accounts) => {
 	});
 
 	describe("deposit", () => {
-
+		let allocationPoint = new BN(1);
 		let amount = new BN(1000);
 
 		beforeEach(async () => {
-			let allocationPoint = new BN(1);
 			await liquidityMining.add(token1.address, allocationPoint, false);
-			await mineBlock();
+			await mineBlocks(1);
 
 			await token1.mint(account1, amount);
 			await token1.approve(liquidityMining.address, amount, {from: account1});
@@ -272,11 +268,86 @@ contract("LiquidityMiningLogic:", (accounts) => {
 		it("should be able to deposit", async () => {
 			let tx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
 
+			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+			let blockNumber = new BN(tx.receipt.blockNumber);
+			checkPoolInfo(poolInfo, token1.address, allocationPoint, blockNumber, new BN(0));
 
+			let userInfo = await liquidityMining.getUserInfo(token1.address, account1);
+			expect(userInfo.amount).bignumber.equal(amount);
+			let liquidityMiningBalance = await token1.balanceOf(liquidityMining.address);
+			expect(liquidityMiningBalance).bignumber.equal(amount);
+			let userBalance = await token1.balanceOf(account1);
+			expect(userBalance).bignumber.equal(new BN(0));
+
+			expectEvent(tx, "Deposit", {
+				user: account1,
+				poolToken: token1.address,
+				amount: amount,
+			});
 		});
 
 		it("should be able to deposit using wrapper", async () => {
 			//TODO implement
+		});
+
+		it("fails if token pool token not found", async () => {
+			await expectRevert(
+				liquidityMining.deposit(account1, amount, ZERO_ADDRESS, {from: account1}),
+				"Pool token not found"
+			);
+		});
+
+	});
+
+	describe("withdraw", () => {
+		let allocationPoint = new BN(1);
+		let amount = new BN(1000);
+
+		beforeEach(async () => {
+			await liquidityMining.add(token1.address, allocationPoint, false);
+			await mineBlocks(1);
+
+			await token1.mint(account1, amount);
+			await token1.approve(liquidityMining.address, amount, {from: account1});
+
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+		});
+
+		it("should be able to withdraw (without claiming reward)", async () => {
+			let tx = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, {from: account1});
+
+			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+			let blockNumber = new BN(tx.receipt.blockNumber);
+			checkPoolInfo(poolInfo, token1.address, allocationPoint, blockNumber, new BN(-1));
+
+			let userInfo = await liquidityMining.getUserInfo(token1.address, account1);
+			expect(userInfo.amount).bignumber.equal(new BN(0));
+			let liquidityMiningBalance = await token1.balanceOf(liquidityMining.address);
+			expect(liquidityMiningBalance).bignumber.equal(new BN(0));
+			let userBalance = await token1.balanceOf(account1);
+			expect(userBalance).bignumber.equal(amount);
+
+			expectEvent(tx, "Withdraw", {
+				user: account1,
+				poolToken: token1.address,
+				amount: amount,
+			});
+		});
+
+		it("should be able to withdraw (with claiming reward)", async () => {
+
+		});
+
+		it("should be able to withdraw using wrapper", async () => {
+			//TODO implement
+		});
+
+		it("fails if token pool token not found", async () => {
+			await expectRevert(liquidityMining.withdraw(account1, amount, ZERO_ADDRESS, {from: account1}), "Pool token not found");
+		});
+
+		it("fails if token pool token not found", async () => {
+			await expectRevert(liquidityMining.withdraw(token1.address, amount.mul(new BN(2)), ZERO_ADDRESS, {from: account1}), "Not enough balance");
 		});
 
 	});
@@ -303,9 +374,7 @@ contract("LiquidityMiningLogic:", (accounts) => {
 			expect(blocks).bignumber.equal(numberOfBonusBlocks.mul(bonusBlockMultiplier).add(blocksAfterBonusPeriod));
 
 			//[startBlock, stopMining, ... bonusEndBlock]
-			await mineBlock();
-			await mineBlock();
-			await mineBlock();
+			await mineBlocks(5);
 			await liquidityMining.stopMining();
 			let endBlock = await liquidityMining.endBlock();
 			blocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(startBlock, bonusEndBlock);
@@ -358,6 +427,21 @@ contract("LiquidityMiningLogic:", (accounts) => {
 		let liquidityMiningProxy = await LiquidityMiningProxy.new();
 		await liquidityMiningProxy.setImplementation(liquidityMiningLogic.address);
 		liquidityMining = await LiquidityMiningLogic.at(liquidityMiningProxy.address);
+	}
+
+	async function mineBlocks(blocks) {
+		for (let i = 0; i < blocks; i++) {
+			await mineBlock();
+		}
+	}
+
+	function checkPoolInfo(poolInfo, token, allocationPoint, lastRewardBlock, accumulatedRewardPerShare) {
+		expect(poolInfo.poolToken).equal(token);
+		expect(poolInfo.allocationPoint).bignumber.equal(allocationPoint);
+		expect(poolInfo.lastRewardBlock).bignumber.equal(lastRewardBlock);
+		if (accumulatedRewardPerShare.toNumber() !== -1) {
+			expect(poolInfo.accumulatedRewardPerShare).bignumber.equal(accumulatedRewardPerShare);
+		}
 	}
 
 });

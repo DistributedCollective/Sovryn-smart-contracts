@@ -250,7 +250,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _user the address of user, tokens will be deposited to it or to msg.sender
 	 */
 	function deposit(address _poolToken, uint256 _amount, address _user) public {
-		require(poolIdList[_poolToken] != 0, "Token not found");
+		require(poolIdList[_poolToken] != 0, "Pool token not found");
 		address userAddress = _user != address(0) ? _user : msg.sender;
 
 		uint256 poolId = _getPoolId(_poolToken);
@@ -274,7 +274,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _user the address of user to claim reward from (can be passed only by wrapper contract)
 	 */
 	function claimReward(address _poolToken, address _user) public {
-		require(poolIdList[_poolToken] != 0, "Token not found");
+		require(poolIdList[_poolToken] != 0, "Pool token not found");
 		address userAddress = _getUserAddress(_user);
 
 		uint256 poolId = _getPoolId(_poolToken);
@@ -294,7 +294,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _user the user address will be used to process a withdrawal (can be passed only by wrapper contract)
 	 */
 	function withdraw(address _poolToken, uint256 _amount, address _user) public {
-		require(poolIdList[_poolToken] != 0, "Token not found");
+		require(poolIdList[_poolToken] != 0, "Pool token not found");
 		address userAddress = _getUserAddress(_user);
 
 		uint256 poolId = _getPoolId(_poolToken);
@@ -393,6 +393,15 @@ contract LiquidityMining is LiquidityMiningStorage {
 	}
 
 	/**
+	 * @notice returns pool info for the given token
+	 * @param _poolToken the address of pool token
+	 */
+	function getPoolInfo(address _poolToken) external view returns (PoolInfo memory) {
+		uint256 poolId = _getPoolId(_poolToken);
+		return poolInfoList[poolId];
+	}
+
+	/**
 	 * @notice returns list of [amount, accumulatedReward] for the given user for each pool token
 	 * @param _user the address of the user
 	 */
@@ -404,6 +413,16 @@ contract LiquidityMining is LiquidityMiningStorage {
 			userBalanceList[i][1] = _getUserAccumulatedReward(i, _user);
 		}
 		return userBalanceList;
+	}
+
+	/**
+	 * @notice returns UserInfo for the given pool and user
+	 * @param _poolToken the address of pool token
+	 * @param _user the address of the user
+	 */
+	function getUserInfo(address _poolToken, address _user) external view returns (UserInfo memory) {
+		uint256 poolId = _getPoolId(_poolToken);
+		return userInfoMap[poolId][_user];
 	}
 
 	/**

@@ -9,4 +9,10 @@ contract LiquidityMiningMockup is LiquidityMining {
         return _getPassedBlocksWithBonusMultiplier(_from, _to);
     }
 
+    function getPoolAccumulatedReward(address _poolToken) public view returns (uint256, uint256) {
+        uint256 poolId = _getPoolId(_poolToken);
+        PoolInfo storage pool = poolInfoList[poolId];
+        return _getPoolAccumulatedReward(pool);
+    }
+
 }
