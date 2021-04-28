@@ -14,11 +14,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	using SafeMath for uint256;
 	using SignedSafeMath for int256;
 
-	modifier settlesInterest() {
-		_settleInterest();
-		_;
-	}
-
 	// DON'T ADD VARIABLES HERE, PLEASE
 
 	uint256 public constant VERSION = 6;
@@ -931,12 +926,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	) internal pure returns (uint256) {
 		return
 			maxDuration != 0
-				? interestRate
-					.mul(WEI_PERCENT_PRECISION)
-					.mul(maxDuration)
-					.div(31536000) // 86400 * 365
-					.div(marginAmount)
-					.add(WEI_PERCENT_PRECISION)
+				? interestRate.mul(WEI_PERCENT_PRECISION).mul(maxDuration).div(365 days).div(marginAmount).add(WEI_PERCENT_PRECISION)
 				: WEI_PERCENT_PRECISION;
 	}
 
