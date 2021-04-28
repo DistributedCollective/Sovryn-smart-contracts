@@ -33,8 +33,8 @@ contract LiquidityMiningStorage is Ownable {
 	}
 
 	// The reward token
-	IERC20 public RSOV;
-	// RSOV tokens created per block.
+	IERC20 public SRV;
+	// SRV tokens created per block.
 	uint256 public rewardTokensPerBlock;
 	// The block number when reward token mining starts.
 	uint256 public startBlock;
