@@ -29,7 +29,7 @@ function randomValue() {
 /**
  * Function to get the current timestamp.
  * It expects no parameter.
- * 
+ *
  *  @return {number} Current Timestamp.
  */
 function currentTimestamp() {
@@ -53,13 +53,7 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 
 	beforeEach("Creating New Escrow Contract Instance.", async () => {
 		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(
-			rewardToken.address,
-			sov.address,
-			multisig,
-			zero,
-			{ from: creator }
-		);
+		escrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, zero, { from: creator });
 
 		// Marking the contract as active.
 		await escrowReward.init(zero, { from: multisig });
@@ -67,13 +61,7 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 
 	it("Multisig should be able to call the init() function.", async () => {
 		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(
-			rewardToken.address,
-			sov.address,
-			multisig,
-			zero,
-			{ from: creator }
-		);
+		escrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, zero, { from: creator });
 		await escrowReward.init(zero, { from: multisig });
 	});
 
@@ -134,5 +122,4 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 		await rewardToken.approve(escrowReward.address, reward, { from: multisig });
 		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
 	});
-
 });

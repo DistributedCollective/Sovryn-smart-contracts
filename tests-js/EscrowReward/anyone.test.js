@@ -29,7 +29,7 @@ function randomValue() {
 /**
  * Function to get the current timestamp.
  * It expects no parameter.
- * 
+ *
  *  @return {number} Current Timestamp.
  */
 function currentTimestamp() {
@@ -53,13 +53,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 
 	beforeEach("Creating New Escrow Contract Instance.", async () => {
 		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(
-			rewardToken.address,
-			sov.address,
-			multisig,
-			zero,
-			{ from: creator }
-		);
+		escrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, zero, { from: creator });
 
 		// Marking the contract as active.
 		await escrowReward.init(zero, { from: multisig });
@@ -67,13 +61,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 
 	it("Except Multisig, no one should be able to call the init() function.", async () => {
 		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(
-			rewardToken.address,
-			sov.address,
-			multisig,
-			zero,
-			{ from: creator }
-		);
+		escrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, zero, { from: creator });
 		await expectRevert(escrowReward.init(zero, { from: userOne }), "Only Multisig can call this.");
 	});
 
@@ -114,8 +102,8 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 	});
 
 	it("Anyone should be able to withdraw all his tokens and bonus in the Withdraw State.", async () => {
-		let value = (randomValue() + 100);
-		let reward = Math.ceil(value/100);
+		let value = randomValue() + 100;
+		let reward = Math.ceil(value / 100);
 		await sov.mint(userOne, value);
 		await sov.approve(escrowReward.address, value, { from: userOne });
 		await escrowReward.depositTokens(value, { from: userOne });
@@ -141,13 +129,12 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 	});
 
 	it("Multiple users should be able to withdraw all their tokens and corresponding rewards in the Withdraw State.", async () => {
-
-		let valueOne = (randomValue() + 100);
+		let valueOne = randomValue() + 100;
 		await sov.mint(userOne, valueOne);
 		await sov.approve(escrowReward.address, valueOne, { from: userOne });
 		await escrowReward.depositTokens(valueOne, { from: userOne });
 
-		let valueTwo = (randomValue() + 100);
+		let valueTwo = randomValue() + 100;
 		await sov.mint(userTwo, valueTwo);
 		await sov.approve(escrowReward.address, valueTwo, { from: userTwo });
 		await escrowReward.depositTokens(valueTwo, { from: userTwo });
@@ -157,7 +144,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
 
 		let totalDeposit = valueOne + valueTwo;
-		let reward = Math.ceil(totalDeposit/100);
+		let reward = Math.ceil(totalDeposit / 100);
 		await rewardToken.mint(multisig, reward);
 		await rewardToken.approve(escrowReward.address, reward, { from: multisig });
 		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
@@ -183,7 +170,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 
 	it("No one should be able to withdraw unless in the Withdraw State.", async () => {
 		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
-		let value = (randomValue() + 100);
+		let value = randomValue() + 100;
 		await sov.mint(userOne, value);
 		await sov.approve(escrowReward.address, value, { from: userOne });
 		await escrowReward.depositTokens(value, { from: userOne });
@@ -192,7 +179,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 	});
 
 	it("No one should be able to withdraw unless the Release Time has not set (i.e. Zero).", async () => {
-		let value = (randomValue() + 100);
+		let value = randomValue() + 100;
 		await sov.mint(userOne, value);
 		await sov.approve(escrowReward.address, value, { from: userOne });
 		await escrowReward.depositTokens(value, { from: userOne });
@@ -206,7 +193,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 
 	it("No one should be able to withdraw unless the Release Time has not passed.", async () => {
 		await escrowReward.updateReleaseTimestamp(currentTimestamp() + 1000, { from: multisig });
-		let value = (randomValue() + 100);
+		let value = randomValue() + 100;
 		await sov.mint(userOne, value);
 		await sov.approve(escrowReward.address, value, { from: userOne });
 		await escrowReward.depositTokens(value, { from: userOne });
@@ -217,5 +204,4 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 
 		await expectRevert(escrowReward.withdrawTokensAndReward({ from: userOne }), "The release time has not started yet.");
 	});
-
 });

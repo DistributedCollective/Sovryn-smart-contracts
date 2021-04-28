@@ -13,9 +13,9 @@ contract Escrow {
 
 	/* Storage */
 
-    /// @notice The total tokens deposited.
-    /// @dev Used for calculating the reward % share of users related to total deposit.
-    uint256 public totalDeposit;
+	/// @notice The total tokens deposited.
+	/// @dev Used for calculating the reward % share of users related to total deposit.
+	uint256 public totalDeposit;
 	/// @notice The release timestamp for the tokens deposited.
 	uint256 public releaseTime;
 
@@ -25,15 +25,15 @@ contract Escrow {
 	/// @notice The multisig contract which handles the fund.
 	address public multisig;
 
-    /// @notice The user balances.
-    mapping(address => uint256) userBalances;
+	/// @notice The user balances.
+	mapping(address => uint256) userBalances;
 
 	/// @notice The current contract status.
-    /// @notice Deployed - Deployed the contract.
-    /// @notice Deposit - Time to deposit in the contract by the users.
-    /// @notice Holding - Deposit is closed and now the holding period starts.
-    /// @notice Withdraw - Time to withdraw in the contract by the users.
-    /// @notice Expired - The contract is now closed completely.
+	/// @notice Deployed - Deployed the contract.
+	/// @notice Deposit - Time to deposit in the contract by the users.
+	/// @notice Holding - Deposit is closed and now the holding period starts.
+	/// @notice Withdraw - Time to withdraw in the contract by the users.
+	/// @notice Expired - The contract is now closed completely.
 	enum Status { Deployed, Deposit, Holding, Withdraw, Expired }
 	Status public status;
 
@@ -94,10 +94,10 @@ contract Escrow {
 		_;
 	}
 
-    modifier checkRelease() {
-        require(releaseTime != 0 && releaseTime <= block.timestamp, "The release time has not started yet.");
-        _;
-    }
+	modifier checkRelease() {
+		require(releaseTime != 0 && releaseTime <= block.timestamp, "The release time has not started yet.");
+		_;
+	}
 
 	/* Functions */
 
@@ -126,7 +126,7 @@ contract Escrow {
 	 * @dev Without calling this function, the contract will not start accepting tokens.
 	 */
 	function init(uint256 _releaseTime) public onlyMultisig checkStatus(Status.Deployed) {
-        releaseTime = _releaseTime;
+		releaseTime = _releaseTime;
 		status = Status.Deposit;
 
 		emit EscrowActivated();
@@ -147,7 +147,7 @@ contract Escrow {
 	/**
 	 * @notice Update Release Timestamp.
 	 * @param _newReleaseTime The new release timestamp for token release.
-     * @dev Zero is also a valid timestamp, if the release time is not scheduled yet.
+	 * @dev Zero is also a valid timestamp, if the release time is not scheduled yet.
 	 */
 	function updateReleaseTimestamp(uint256 _newReleaseTime) public onlyMultisig {
 		releaseTime = _newReleaseTime;
@@ -158,8 +158,8 @@ contract Escrow {
 	/**
 	 * @notice Deposit tokens to this contract by User.
 	 * @param _amount the amount of tokens deposited.
-     * @dev The contract has to be approved by the user inorder for this function to work.
-     * These tokens can be withdrawn/transferred during Holding State by the Multisig.
+	 * @dev The contract has to be approved by the user inorder for this function to work.
+	 * These tokens can be withdrawn/transferred during Holding State by the Multisig.
 	 */
 	function depositTokens(uint256 _amount) public checkStatus(Status.Deposit) {
 		require(_amount > 0, "Amount needs to be bigger than zero.");
@@ -167,35 +167,35 @@ contract Escrow {
 		bool txStatus = SOV.transferFrom(msg.sender, address(this), _amount);
 		require(txStatus, "Token transfer was not successful.");
 
-        userBalances[msg.sender] = userBalances[msg.sender].add(_amount);
-        totalDeposit = totalDeposit.add(_amount);
+		userBalances[msg.sender] = userBalances[msg.sender].add(_amount);
+		totalDeposit = totalDeposit.add(_amount);
 
 		emit TokenDeposit(msg.sender, _amount);
 	}
 
 	/**
 	 * @notice Update contract state to Holding.
-     * @dev Once called, the contract no longer accepts any more deposits.
-     * The multisig can now withdraw tokens from the contract after the contract is in Holding State.
+	 * @dev Once called, the contract no longer accepts any more deposits.
+	 * The multisig can now withdraw tokens from the contract after the contract is in Holding State.
 	 */
 	function changeStateToHolding() public onlyMultisig checkStatus(Status.Deposit) {
-        status = Status.Holding;
+		status = Status.Holding;
 
 		emit EscrowInHoldingState();
 	}
 
 	/**
 	 * @notice Withdraws all token from the contract by Multisig.
-     * @param _receiverAddress The address where the tokens has to be transferred. Zero address if the withdraw is to be done in Multisig.
+	 * @param _receiverAddress The address where the tokens has to be transferred. Zero address if the withdraw is to be done in Multisig.
 	 * @dev Can only be called after the token state is changed to Holding.
 	 */
 	function withdrawTokensByMultisig(address _receiverAddress) public onlyMultisig checkStatus(Status.Holding) {
-        address receiverAddress = msg.sender;
-        if(_receiverAddress != address(0)){
-            receiverAddress = _receiverAddress;
-        }
+		address receiverAddress = msg.sender;
+		if (_receiverAddress != address(0)) {
+			receiverAddress = _receiverAddress;
+		}
 
-        uint256 value = SOV.balanceOf(address(this));
+		uint256 value = SOV.balanceOf(address(this));
 		/// Sending the amount to multisig.
 		bool txStatus = SOV.transfer(receiverAddress, value);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
@@ -206,8 +206,8 @@ contract Escrow {
 	/**
 	 * @notice Deposit tokens to this contract by the Multisig.
 	 * @param _amount the amount of tokens deposited.
-     * @dev The contract has to be approved by the multisig inorder for this function to work.
-     * Once the token deposit is higher than the total deposits done, the contract state is changed to Withdraw.
+	 * @dev The contract has to be approved by the multisig inorder for this function to work.
+	 * Once the token deposit is higher than the total deposits done, the contract state is changed to Withdraw.
 	 */
 	function depositTokensByMultisig(uint256 _amount) public onlyMultisig checkStatus(Status.Holding) {
 		require(_amount > 0, "Amount needs to be bigger than zero.");
@@ -217,19 +217,19 @@ contract Escrow {
 
 		emit TokenDepositByMultisig(msg.sender, _amount);
 
-        if(SOV.balanceOf(address(this)) >= totalDeposit){
-            status = Status.Withdraw;
-            emit EscrowInWithdrawState();
-        }
+		if (SOV.balanceOf(address(this)) >= totalDeposit) {
+			status = Status.Withdraw;
+			emit EscrowInWithdrawState();
+		}
 	}
 
 	/**
 	 * @notice Withdraws token from the contract by User.
-     * @dev Only works after the contract state is in Withdraw.
+	 * @dev Only works after the contract state is in Withdraw.
 	 */
 	function withdrawTokens() public checkRelease checkStatus(Status.Withdraw) {
-        uint256 amount = userBalances[msg.sender];
-        userBalances[msg.sender] = 0;
+		uint256 amount = userBalances[msg.sender];
+		userBalances[msg.sender] = 0;
 		bool txStatus = SOV.transfer(msg.sender, amount);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
 
@@ -245,5 +245,4 @@ contract Escrow {
 	function getUserBalance(address _addr) public view returns (uint256 balance) {
 		return userBalances[_addr];
 	}
-
 }
