@@ -29,22 +29,12 @@ def main():
     balanceBefore = acct.balance()
     totalAmount = 0
 
-    # amounts examples: 269.231, 18.578
-    data = parseFile('./scripts/deployment/distribution/SCNC-1.csv', 10**15)
+    # amounts examples: 308.135, 441.555
+    data = parseFile('./scripts/deployment/distribution/team-origin.csv', 10**15)
     totalAmount += data["totalAmount"]
-    tokenSender.transferSOVusingList(data["receivers"], data["amounts"])
+    # tokenSender.transferSOVusingList(data["receivers"], data["amounts"])
 
-    # amounts examples: 1.875
-    data = parseFile('./scripts/deployment/distribution/SCNC-2.csv', 10**15)
-    totalAmount += data["totalAmount"]
-    tokenSender.transferSOVusingList(data["receivers"], data["amounts"])
-
-    # amounts examples: 63.53, 60.65, 25.99
-    data = parseFile('./scripts/deployment/distribution/SGMB.csv', 10**16)
-    totalAmount += data["totalAmount"]
-    tokenSender.transferSOVusingList(data["receivers"], data["amounts"])
-
-    # 6733.675
+    # 875.39
     print("=======================================")
     print("SOV amount:")
     print(totalAmount / 10**18)
