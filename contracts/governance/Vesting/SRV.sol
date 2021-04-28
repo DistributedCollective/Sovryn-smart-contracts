@@ -15,7 +15,7 @@ import "../ApprovalReceiver.sol";
  * Sovryn Reward Token
  */
 contract SRV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
-	string constant NAME = "Sovryn Reward Token";
+	string constant NAME = "Sovryn Reward Vesting Token";
 	string constant SYMBOL = "SRV";
 	uint8 constant DECIMALS = 18;
 
