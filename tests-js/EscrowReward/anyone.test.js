@@ -14,7 +14,7 @@ const { assert } = require("chai");
 
 // Some constants we would be using in the contract.
 let zero = new BN(0);
-const totalSupply = 1000000;
+const depositLimit = 75000;
 
 /**
  * Function to create a random value.
@@ -53,16 +53,16 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 
 	beforeEach("Creating New Escrow Contract Instance.", async () => {
 		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, zero, { from: creator });
+		escrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, zero, depositLimit, { from: creator });
 
 		// Marking the contract as active.
-		await escrowReward.init(zero, { from: multisig });
+		await escrowReward.init({ from: multisig });
 	});
 
 	it("Except Multisig, no one should be able to call the init() function.", async () => {
 		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, zero, { from: creator });
-		await expectRevert(escrowReward.init(zero, { from: userOne }), "Only Multisig can call this.");
+		escrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, zero, depositLimit, { from: creator });
+		await expectRevert(escrowReward.init({ from: userOne }), "Only Multisig can call this.");
 	});
 
 	it("Except Multisig, no one should be able to update the Multisig.", async () => {
@@ -71,6 +71,10 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 
 	it("Except Multisig, no one should be able to update the release time.", async () => {
 		await expectRevert(escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: userOne }), "Only Multisig can call this.");
+	});
+
+	it("Except Multisig, no one should be able to update the deposit limit.", async () => {
+		await expectRevert(escrowReward.updateDepositLimit(zero, { from: userOne }), "Only Multisig can call this.");
 	});
 
 	it("Anyone could deposit Tokens during Deposit State.", async () => {

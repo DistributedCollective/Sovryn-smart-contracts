@@ -44,13 +44,15 @@ contract EscrowReward is Escrow {
 	 * @param _SOV The SOV token address.
 	 * @param _multisig The owner of the tokens & contract.
 	 * @param _releaseTime The token release time, zero if undecided.
+	 * @param _depositLimit The amount of tokens we will be accepting.
 	 */
 	constructor(
 		address _rewardToken,
 		address _SOV,
 		address _multisig,
-		uint256 _releaseTime
-	) public Escrow(_SOV, _multisig, _releaseTime) {
+		uint256 _releaseTime,
+		uint256 _depositLimit
+	) public Escrow(_SOV, _multisig, _releaseTime, _depositLimit) {
 		if (_rewardToken != address(0)) {
 			rewardToken = IERC20(_rewardToken);
 		}

@@ -18,6 +18,8 @@ contract Escrow {
 	uint256 public totalDeposit;
 	/// @notice The release timestamp for the tokens deposited.
 	uint256 public releaseTime;
+	/// @notice The amount of token we would be accepting as deposit at max.
+	uint256 public depositLimit;
 
 	/// @notice The SOV token contract.
 	IERC20 public SOV;
@@ -62,10 +64,18 @@ contract Escrow {
 	/// @param _releaseTimestamp The updated release timestamp for the withdraw.
 	event TokenReleaseUpdated(address indexed _initiator, uint256 _releaseTimestamp);
 
+	/// @notice Emitted when the deposit limit is updated.
+	/// @param _initiator The address which initiated this event to be emitted.
+	/// @param _depositLimit The updated deposit limit.
+	event TokenDepositLimitUpdated(address indexed _initiator, uint256 _depositLimit);
+
 	/// @notice Emitted when a new token deposit is done by User.
 	/// @param _initiator The address which initiated this event to be emitted.
 	/// @param _amount The amount of token deposited.
 	event TokenDeposit(address indexed _initiator, uint256 _amount);
+
+	/// @notice Emitted when we reach the token deposit limit.
+	event DepositLimitReached();
 
 	/// @notice Emitted when a token withdraw is done by Multisig.
 	/// @param _initiator The address which initiated this event to be emitted.
@@ -106,11 +116,13 @@ contract Escrow {
 	 * @param _SOV The SOV token address.
 	 * @param _multisig The owner of the tokens & contract.
 	 * @param _releaseTime The token release time, zero if undecided.
+	 * @param _depositLimit The amount of tokens we will be accepting.
 	 */
 	constructor(
 		address _SOV,
 		address _multisig,
-		uint256 _releaseTime
+		uint256 _releaseTime,
+		uint256 _depositLimit
 	) public {
 		require(_SOV != address(0), "Invalid SOV Address.");
 		require(_multisig != address(0), "Locked token & contract owner address invalid.");
@@ -119,14 +131,14 @@ contract Escrow {
 		multisig = _multisig;
 
 		releaseTime = _releaseTime;
+		depositLimit = _depositLimit;
 	}
 
 	/**
 	 * @notice This function is called once after deployment for starting the deposit action.
 	 * @dev Without calling this function, the contract will not start accepting tokens.
 	 */
-	function init(uint256 _releaseTime) public onlyMultisig checkStatus(Status.Deployed) {
-		releaseTime = _releaseTime;
+	function init() public onlyMultisig checkStatus(Status.Deployed) {
 		status = Status.Deposit;
 
 		emit EscrowActivated();
@@ -156,6 +168,18 @@ contract Escrow {
 	}
 
 	/**
+	 * @notice Update Deposit Limit.
+	 * @param _newDepositLimit The new deposit limit.
+	 * @dev IMPORTANT: Should not decrease than already deposited.
+	 */
+	function updateDepositLimit(uint256 _newDepositLimit) public onlyMultisig {
+		require(_newDepositLimit >= totalDeposit, "Deposit already higher than the limit trying to be set.");
+		depositLimit = _newDepositLimit;
+
+		emit TokenDepositLimitUpdated(msg.sender, _newDepositLimit);
+	}
+
+	/**
 	 * @notice Deposit tokens to this contract by User.
 	 * @param _amount the amount of tokens deposited.
 	 * @dev The contract has to be approved by the user inorder for this function to work.
@@ -163,14 +187,21 @@ contract Escrow {
 	 */
 	function depositTokens(uint256 _amount) public checkStatus(Status.Deposit) {
 		require(_amount > 0, "Amount needs to be bigger than zero.");
+		uint256 amount = _amount;
 
-		bool txStatus = SOV.transferFrom(msg.sender, address(this), _amount);
+		if (totalDeposit.add(_amount) >= depositLimit) {
+			uint256 difference = totalDeposit.add(_amount).sub(depositLimit);
+			amount = _amount.sub(difference);
+			emit DepositLimitReached();
+		}
+
+		bool txStatus = SOV.transferFrom(msg.sender, address(this), amount);
 		require(txStatus, "Token transfer was not successful.");
 
-		userBalances[msg.sender] = userBalances[msg.sender].add(_amount);
-		totalDeposit = totalDeposit.add(_amount);
+		userBalances[msg.sender] = userBalances[msg.sender].add(amount);
+		totalDeposit = totalDeposit.add(amount);
 
-		emit TokenDeposit(msg.sender, _amount);
+		emit TokenDeposit(msg.sender, amount);
 	}
 
 	/**

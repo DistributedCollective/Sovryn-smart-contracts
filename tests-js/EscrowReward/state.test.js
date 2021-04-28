@@ -16,7 +16,7 @@ const { assert } = require("chai");
 let zero = 0;
 let zeroBN = new BN(0);
 let zeroAddress = constants.ZERO_ADDRESS;
-const totalSupply = 1000000;
+const depositLimit = 75000;
 let [deployedStatus, depositStatus, holdingStatus, withdrawStatus, expiredStatus] = [0, 1, 2, 3, 4];
 
 /**
@@ -47,6 +47,7 @@ function currentTimestamp() {
  * @param userAddr The user address for user balance and reward check.
  * @param totalDeposit The total tokens deposited by the user.
  * @param releaseTime The release timestamp for the tokens deposited.
+ * @param depositLimit The deposit limit for the contract.
  * @param totalRewardDeposit The total reward tokens deposited.
  * @param SOVAddress The SOV token contract.
  * @param rewardTokenAddress The Reward token contract.
@@ -61,6 +62,7 @@ async function checkStatus(
 	userAddr,
 	totalDeposit,
 	releaseTime,
+	depositLimit,
 	totalRewardDeposit,
 	SOVAddress,
 	rewardTokenAddress,
@@ -78,36 +80,40 @@ async function checkStatus(
 		assert.strictEqual(releaseTime, cValue.toNumber(), "The release time does not match.");
 	}
 	if (checkArray[2] == 1) {
+		let cValue = await contractInstance.depositLimit();
+		assert.strictEqual(depositLimit, cValue.toNumber(), "The deposit limit does not match.");
+	}
+	if (checkArray[3] == 1) {
 		let cValue = await contractInstance.totalRewardDeposit();
 		assert.strictEqual(totalRewardDeposit, cValue.toNumber(), "The new locked owner does not match.");
 	}
-	if (checkArray[3] == 1) {
+	if (checkArray[4] == 1) {
 		let cValue = await contractInstance.SOV();
 		assert.equal(SOVAddress, cValue, "The SOV Address does not match.");
 	}
-	if (checkArray[4] == 1) {
+	if (checkArray[5] == 1) {
 		let cValue = await contractInstance.rewardToken();
 		assert.equal(rewardTokenAddress, cValue, "The reward token address does not match.");
 	}
-	if (checkArray[5] == 1) {
+	if (checkArray[6] == 1) {
 		let cValue = await contractInstance.multisig();
 		assert.equal(multisigAddr, cValue, "The reward token address does not match.");
 	}
-	if (checkArray[6] == 1) {
+	if (checkArray[7] == 1) {
 		let cValue = 0;
 		await contractInstance.getUserBalance(userAddr).then((data) => {
 			cValue = data;
 		});
 		assert.equal(userDeposit, cValue.toNumber(), "The user deposit does not match.");
 	}
-	if (checkArray[7] == 1) {
+	if (checkArray[8] == 1) {
 		let cValue = 0;
 		await contractInstance.getReward(userAddr).then((data) => {
 			cValue = data;
 		});
 		assert.equal(userReward, cValue.toNumber(), "The user reward does not match.");
 	}
-	if (checkArray[8] == 1) {
+	if (checkArray[9] == 1) {
 		let cValue = await contractInstance.status();
 		assert.equal(status, cValue.toNumber(), "The contract status does not match.");
 	}
@@ -274,21 +280,24 @@ contract("Escrow Rewards (State)", (accounts) => {
 
 	beforeEach("Creating New Escrow Contract Instance.", async () => {
 		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, zero, { from: creator });
+		escrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, zero, depositLimit, { from: creator });
 
 		// Marking the contract as active.
-		await escrowReward.init(zero, { from: multisig });
+		await escrowReward.init({ from: multisig });
 	});
 
 	it("Creating an instance should set all the values correctly.", async () => {
 		let timestamp = currentTimestamp() + 1000;
-		let newEscrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, timestamp, { from: creator });
+		let newEscrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, timestamp, depositLimit, {
+			from: creator,
+		});
 		checkStatus(
 			newEscrowReward,
-			[1, 1, 1, 1, 1, 1, 1, 1, 1],
+			[1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 			creator,
 			zero,
 			timestamp,
+			depositLimit,
 			zero,
 			sov.address,
 			rewardToken.address,
@@ -302,8 +311,9 @@ contract("Escrow Rewards (State)", (accounts) => {
 	it("Calling the init() should update the contract status to Deposit.", async () => {
 		checkStatus(
 			escrowReward,
-			[0, 0, 0, 0, 0, 0, 0, 0, 1],
+			[0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
 			zeroAddress,
+			zero,
 			zero,
 			zero,
 			zero,
@@ -320,8 +330,9 @@ contract("Escrow Rewards (State)", (accounts) => {
 		await escrowReward.updateMultisig(newMultisig, { from: multisig });
 		checkStatus(
 			escrowReward,
-			[0, 0, 0, 0, 0, 1, 0, 0, 0],
+			[0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
 			zeroAddress,
+			zero,
 			zero,
 			zero,
 			zero,
@@ -339,10 +350,31 @@ contract("Escrow Rewards (State)", (accounts) => {
 		await escrowReward.updateReleaseTimestamp(timestamp, { from: multisig });
 		checkStatus(
 			escrowReward,
-			[0, 1, 0, 0, 0, 0, 0, 0, 0],
+			[0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
 			zeroAddress,
 			zero,
 			timestamp,
+			zero,
+			zero,
+			zeroAddress,
+			zeroAddress,
+			zeroAddress,
+			zero,
+			zero,
+			zero
+		);
+	});
+
+	it("Updating the deposit limit should update the deposit limit in contract.", async () => {
+		let value = randomValue() + 1;
+		await escrowReward.updateDepositLimit(value, { from: multisig });
+		checkStatus(
+			escrowReward,
+			[0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+			zeroAddress,
+			zero,
+			zero,
+			value,
 			zero,
 			zeroAddress,
 			zeroAddress,
@@ -360,8 +392,9 @@ contract("Escrow Rewards (State)", (accounts) => {
 		await escrowReward.depositTokens(value, { from: userOne });
 		checkStatus(
 			escrowReward,
-			[0, 0, 0, 0, 0, 0, 1, 0, 0],
+			[0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
 			userOne,
+			zero,
 			zero,
 			zero,
 			zero,
@@ -374,12 +407,64 @@ contract("Escrow Rewards (State)", (accounts) => {
 		);
 	});
 
+	it("Trying to deposit Tokens higher than the deposit limit should only take till the deposit limit.", async () => {
+		let limit = randomValue() + 1;
+		let value = randomValue() + limit;
+		await escrowReward.updateDepositLimit(limit, { from: multisig });
+
+		await sov.mint(userOne, value);
+		await sov.approve(escrowReward.address, value, { from: userOne });
+
+		let beforeUserTokenBalance = await getTokenBalances(userOne, sov, rewardToken);
+		await escrowReward.depositTokens(value, { from: userOne });
+		let afterUserTokenBalance = await getTokenBalances(userOne, sov, rewardToken);
+
+		assert.equal(
+			beforeUserTokenBalance[0].toNumber(),
+			afterUserTokenBalance[0].toNumber() + limit,
+			"The user SOV balance is not right."
+		);
+		checkStatus(
+			escrowReward,
+			[1, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+			userOne,
+			limit,
+			zero,
+			zero,
+			zero,
+			zeroAddress,
+			zeroAddress,
+			zeroAddress,
+			limit,
+			zero,
+			zero
+		);
+	});
+
+	it("Trying to deposit Tokens after the deposit limit has reached should refund entire amount.", async () => {
+		let limit = randomValue() + 1;
+		await escrowReward.updateDepositLimit(limit, { from: multisig });
+
+		await sov.mint(userOne, limit);
+		await sov.approve(escrowReward.address, limit, { from: userOne });
+		await escrowReward.depositTokens(limit, { from: userOne });
+
+		await sov.mint(userTwo, limit);
+		await sov.approve(escrowReward.address, limit, { from: userTwo });
+		let beforeUserTokenBalance = await getTokenBalances(userTwo, sov, rewardToken);
+		await escrowReward.depositTokens(limit, { from: userTwo });
+		let afterUserTokenBalance = await getTokenBalances(userTwo, sov, rewardToken);
+
+		assert.equal(beforeUserTokenBalance[0].toNumber(), afterUserTokenBalance[0].toNumber(), "The userTwo SOV balance is not right.");
+	});
+
 	it("Changing the contract to Holding State should update the contract state.", async () => {
 		await escrowReward.changeStateToHolding({ from: multisig });
 		checkStatus(
 			escrowReward,
-			[0, 0, 0, 0, 0, 0, 0, 0, 1],
+			[0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
 			zeroAddress,
+			zero,
 			zero,
 			zero,
 			zero,
@@ -422,8 +507,9 @@ contract("Escrow Rewards (State)", (accounts) => {
 
 		checkStatus(
 			escrowReward,
-			[0, 0, 0, 0, 0, 0, 0, 0, 1],
+			[0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
 			zeroAddress,
+			zero,
 			zero,
 			zero,
 			zero,
@@ -443,8 +529,9 @@ contract("Escrow Rewards (State)", (accounts) => {
 
 		checkStatus(
 			escrowReward,
-			[0, 0, 0, 0, 0, 0, 0, 0, 1],
+			[0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
 			zeroAddress,
+			zero,
 			zero,
 			zero,
 			zero,
@@ -464,8 +551,9 @@ contract("Escrow Rewards (State)", (accounts) => {
 		await escrowReward.updateRewardToken(newRewardToken.address, { from: multisig });
 		checkStatus(
 			escrowReward,
-			[0, 0, 0, 0, 1, 0, 0, 0, 0],
+			[0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
 			zeroAddress,
+			zero,
 			zero,
 			zero,
 			zero,
@@ -485,8 +573,9 @@ contract("Escrow Rewards (State)", (accounts) => {
 		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
 		checkStatus(
 			escrowReward,
-			[0, 0, 1, 0, 0, 0, 0, 0, 0],
+			[0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
 			zeroAddress,
+			zero,
 			zero,
 			zero,
 			reward,

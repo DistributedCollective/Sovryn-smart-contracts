@@ -14,7 +14,7 @@ const { assert } = require("chai");
 
 // Some constants we would be using in the contract.
 let zero = new BN(0);
-const totalSupply = 1000000;
+const depositLimit = 75000;
 
 /**
  * Function to create a random value.
@@ -53,16 +53,16 @@ contract("Escrow Rewards (Events)", (accounts) => {
 
 	beforeEach("Creating New Escrow Contract Instance.", async () => {
 		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, zero, { from: creator });
+		escrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, zero, depositLimit, { from: creator });
 
 		// Marking the contract as active.
-		await escrowReward.init(zero, { from: multisig });
+		await escrowReward.init({ from: multisig });
 	});
 
 	it("Calling the init() will emit EscrowActivated Event.", async () => {
 		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, zero, { from: creator });
-		let txReceipt = await escrowReward.init(zero, { from: multisig });
+		escrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, zero, depositLimit, { from: creator });
+		let txReceipt = await escrowReward.init({ from: multisig });
 		expectEvent(txReceipt, "EscrowActivated");
 	});
 
@@ -83,6 +83,14 @@ contract("Escrow Rewards (Events)", (accounts) => {
 		});
 	});
 
+	it("Updating the deposit limit should emit TokenDepositLimitUpdated Event.", async () => {
+		let txReceipt = await escrowReward.updateDepositLimit(zero, { from: multisig });
+		expectEvent(txReceipt, "TokenDepositLimitUpdated", {
+			_initiator: multisig,
+			_depositLimit: new BN(zero),
+		});
+	});
+
 	it("Depositing Tokens by Users should emit TokenDeposit Event.", async () => {
 		let value = randomValue() + 1;
 		await sov.mint(userOne, value);
@@ -92,6 +100,18 @@ contract("Escrow Rewards (Events)", (accounts) => {
 			_initiator: userOne,
 			_amount: new BN(value),
 		});
+	});
+
+	it("Reaching the Deposit Limit should emit TokenDeposit Event.", async () => {
+		let value = randomValue() + 1;
+
+		await escrowReward.updateDepositLimit(value, { from: multisig });
+
+		await sov.mint(userOne, value);
+		await sov.approve(escrowReward.address, value, { from: userOne });
+
+		let txReceipt = await escrowReward.depositTokens(value, { from: userOne });
+		expectEvent(txReceipt, "DepositLimitReached");
 	});
 
 	it("Changing the contract to Holding State should emit EscrowInHoldingState Event.", async () => {
