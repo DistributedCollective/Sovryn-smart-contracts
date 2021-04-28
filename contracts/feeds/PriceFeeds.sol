@@ -80,14 +80,9 @@ contract PriceFeeds is Constants, Ownable {
 
         sourceToDestSwapRate = destAmount.mul(precision).div(sourceAmount);
 
-        uint256 spreadValue =
-            sourceToDestSwapRate > rate
-                ? sourceToDestSwapRate - rate
-                : rate - sourceToDestSwapRate;
-
-        if (spreadValue != 0) {
+        if (rate > sourceToDestSwapRate) {
+            uint256 spreadValue = rate - sourceToDestSwapRate;
             spreadValue = spreadValue.mul(10**20).div(sourceToDestSwapRate);
-
             require(spreadValue <= maxSlippage, "price disagreement");
         }
     }
