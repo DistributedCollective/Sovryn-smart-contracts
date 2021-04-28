@@ -12,7 +12,7 @@ import "../ApprovalReceiver.sol";
 //TODO should be set as protocolTokenAddress (ProtocolSettings.setProtocolTokenAddress)
 //TODO PriceFeeds._protocolTokenAddress ?
 /**
- * Sovryn Reward Token
+ * Sovryn Reward Vesting Token
  */
 contract SRV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 	string constant NAME = "Sovryn Reward Vesting Token";
