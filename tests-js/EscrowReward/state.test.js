@@ -119,7 +119,7 @@ function currentTimestamp() {
  * 
  * @param addr The user/contract address.
  * @param sovContract The SOV Contract.
- * @param rewardTokenContract The Reward Contract.
+ * @param rewardTokenContract The Reward Token Contract.
  * 
  * @return [SOV Balance, Reward Token Balance].
  */
@@ -162,6 +162,19 @@ async function userDeposits(sovContract, escrowRewardContract, userOne, userTwo,
 	return values;
 }
 
+/**
+ * The function is used to check the withdraw status in the wallet standpoint.
+ * 
+ * @param sovContract The SOV Contract.
+ * @param rewardTokenContract The Reward Token Contract.
+ * @param escrowRewardContract The Escrow Reward Contract.
+ * @param multisig The multisig contract address.
+ * @param user The user address.
+ * @param index The user index in values array.
+ * @param values The values array containing the token deposits.
+ * @param totalValue The total deposits calculated from values.
+ * @param reward The reward tokens deposited.
+ */
 async function checkUserWithdraw(sovContract, rewardTokenContract, escrowRewardContract, multisig, user, index, values, totalValue, reward) {
 	let beforeUserBalance = await getTokenBalances(user, sovContract, rewardTokenContract);
 	let userReward = Math.floor(Math.floor(values[index] * reward) / totalValue);
@@ -173,6 +186,44 @@ async function checkUserWithdraw(sovContract, rewardTokenContract, escrowRewardC
 	assert.equal(afterUserBalance[0].toNumber(), beforeUserBalance[0].toNumber() + values[index], "User One SOV Token balance is not correct.")
 	assert.equal(afterUserBalance[1].toNumber(), beforeUserBalance[1].toNumber() + userReward, "User One Reward Token balance is not correct.")
 	checkStatus(escrowRewardContract, [0,0,0,0,0,0,1,1,0], user, zero, zero, zero, zeroAddress, zeroAddress, zeroAddress, zero, zero, zero);
+}
+
+/**
+ * The function to initiate the SOV and Reward Token Withdraw.
+ * 
+ * @param sov The SOV Contract.
+ * @param rewardToken The Reward Token Contract.
+ * @param escrowReward The Escrow Reward Contract.
+ * @param multisig The multisig address.
+ * @param userOne Different Users.
+ * @param userTwo Different Users.
+ * @param userThree Different Users.
+ * @param userFour Different Users.
+ * @param userFive Different Users.
+ * @param percentage The percentage of reward compared to the total SOV Deposit.
+ */
+async function sovAndRewardWithdraw(sov, rewardToken, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage) {
+	let values = await userDeposits(sov, escrowReward, userOne, userTwo, userThree, userFour, userFive);
+	let totalValue = values.reduce((a, b) => a + b, 0);
+	let reward = Math.ceil((totalValue * percentage)/100);
+
+	await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
+	await escrowReward.changeStateToHolding({ from: multisig });
+
+	await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
+
+	await rewardToken.mint(multisig, reward);
+	await rewardToken.approve(escrowReward.address, reward, { from: multisig });
+	await escrowReward.depositRewardByMultisig(reward, { from: multisig });
+
+	await sov.approve(escrowReward.address, totalValue, { from: multisig });
+	await escrowReward.depositTokensByMultisig(totalValue, { from: multisig });		
+
+	await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userOne, 0, values, totalValue, reward);
+	await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userTwo, 1, values, totalValue, reward);
+	await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userThree, 2, values, totalValue, reward);
+	await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFour, 3, values, totalValue, reward);
+	await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFive, 4, values, totalValue, reward);
 }
 
 contract("Escrow Rewards (State)", (accounts) => {
@@ -300,203 +351,43 @@ contract("Escrow Rewards (State)", (accounts) => {
 	});
 
 	it("SOV and Reward (0.001%) withdraw should update the contract state.", async () => {
-		let values = await userDeposits(sov, escrowReward, userOne, userTwo, userThree, userFour, userFive);
 		let percentage = 0.001;
-		let totalValue = values.reduce((a, b) => a + b, 0);
-		let reward = Math.ceil((totalValue * percentage)/100);
-	
-		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
-		await escrowReward.changeStateToHolding({ from: multisig });
-	
-		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
-	
-		await rewardToken.mint(multisig, reward);
-		await rewardToken.approve(escrowReward.address, reward, { from: multisig });
-		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
-	
-		await sov.approve(escrowReward.address, totalValue, { from: multisig });
-		await escrowReward.depositTokensByMultisig(totalValue, { from: multisig });		
-
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userOne, 0, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userTwo, 1, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userThree, 2, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFour, 3, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFive, 4, values, totalValue, reward);
+		sovAndRewardWithdraw(sov, rewardToken, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage)
 	});
 
 	it("SOV and Reward (0.01%) withdraw should update the contract state.", async () => {
-		let values = await userDeposits(sov, escrowReward, userOne, userTwo, userThree, userFour, userFive);
 		let percentage = 0.01;
-		let totalValue = values.reduce((a, b) => a + b, 0);
-		let reward = Math.ceil((totalValue * percentage)/100);
-	
-		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
-		await escrowReward.changeStateToHolding({ from: multisig });
-	
-		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
-	
-		await rewardToken.mint(multisig, reward);
-		await rewardToken.approve(escrowReward.address, reward, { from: multisig });
-		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
-	
-		await sov.approve(escrowReward.address, totalValue, { from: multisig });
-		await escrowReward.depositTokensByMultisig(totalValue, { from: multisig });		
-
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userOne, 0, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userTwo, 1, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userThree, 2, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFour, 3, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFive, 4, values, totalValue, reward);
+		sovAndRewardWithdraw(sov, rewardToken, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage)
 	});
 
 	it("SOV and Reward (0.1%) withdraw should update the contract state.", async () => {
-		let values = await userDeposits(sov, escrowReward, userOne, userTwo, userThree, userFour, userFive);
 		let percentage = 0.1;
-		let totalValue = values.reduce((a, b) => a + b, 0);
-		let reward = Math.ceil((totalValue * percentage)/100);
-	
-		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
-		await escrowReward.changeStateToHolding({ from: multisig });
-	
-		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
-	
-		await rewardToken.mint(multisig, reward);
-		await rewardToken.approve(escrowReward.address, reward, { from: multisig });
-		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
-	
-		await sov.approve(escrowReward.address, totalValue, { from: multisig });
-		await escrowReward.depositTokensByMultisig(totalValue, { from: multisig });		
-
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userOne, 0, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userTwo, 1, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userThree, 2, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFour, 3, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFive, 4, values, totalValue, reward);
+		sovAndRewardWithdraw(sov, rewardToken, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage)
 	});
 
 	it("SOV and Reward (1%) withdraw should update the contract state.", async () => {
-		let values = await userDeposits(sov, escrowReward, userOne, userTwo, userThree, userFour, userFive);
 		let percentage = 1;
-		let totalValue = values.reduce((a, b) => a + b, 0);
-		let reward = Math.ceil((totalValue * percentage)/100);
-	
-		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
-		await escrowReward.changeStateToHolding({ from: multisig });
-	
-		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
-	
-		await rewardToken.mint(multisig, reward);
-		await rewardToken.approve(escrowReward.address, reward, { from: multisig });
-		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
-	
-		await sov.approve(escrowReward.address, totalValue, { from: multisig });
-		await escrowReward.depositTokensByMultisig(totalValue, { from: multisig });		
-
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userOne, 0, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userTwo, 1, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userThree, 2, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFour, 3, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFive, 4, values, totalValue, reward);
+		sovAndRewardWithdraw(sov, rewardToken, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage)
 	});
 
 	it("SOV and Reward (10%) withdraw should update the contract state.", async () => {
-		let values = await userDeposits(sov, escrowReward, userOne, userTwo, userThree, userFour, userFive);
 		let percentage = 10;
-		let totalValue = values.reduce((a, b) => a + b, 0);
-		let reward = Math.ceil((totalValue * percentage)/100);
-	
-		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
-		await escrowReward.changeStateToHolding({ from: multisig });
-	
-		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
-	
-		await rewardToken.mint(multisig, reward);
-		await rewardToken.approve(escrowReward.address, reward, { from: multisig });
-		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
-	
-		await sov.approve(escrowReward.address, totalValue, { from: multisig });
-		await escrowReward.depositTokensByMultisig(totalValue, { from: multisig });		
-
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userOne, 0, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userTwo, 1, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userThree, 2, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFour, 3, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFive, 4, values, totalValue, reward);
+		sovAndRewardWithdraw(sov, rewardToken, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage)
 	});
 
 	it("SOV and Reward (50%) withdraw should update the contract state.", async () => {
-		let values = await userDeposits(sov, escrowReward, userOne, userTwo, userThree, userFour, userFive);
 		let percentage = 50;
-		let totalValue = values.reduce((a, b) => a + b, 0);
-		let reward = Math.ceil((totalValue * percentage)/100);
-	
-		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
-		await escrowReward.changeStateToHolding({ from: multisig });
-	
-		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
-	
-		await rewardToken.mint(multisig, reward);
-		await rewardToken.approve(escrowReward.address, reward, { from: multisig });
-		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
-	
-		await sov.approve(escrowReward.address, totalValue, { from: multisig });
-		await escrowReward.depositTokensByMultisig(totalValue, { from: multisig });		
-
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userOne, 0, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userTwo, 1, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userThree, 2, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFour, 3, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFive, 4, values, totalValue, reward);
+		sovAndRewardWithdraw(sov, rewardToken, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage)
 	});
 
 	it("SOV and Reward (100%) withdraw should update the contract state.", async () => {
-		let values = await userDeposits(sov, escrowReward, userOne, userTwo, userThree, userFour, userFive);
 		let percentage = 100;
-		let totalValue = values.reduce((a, b) => a + b, 0);
-		let reward = Math.ceil((totalValue * percentage)/100);
-	
-		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
-		await escrowReward.changeStateToHolding({ from: multisig });
-	
-		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
-	
-		await rewardToken.mint(multisig, reward);
-		await rewardToken.approve(escrowReward.address, reward, { from: multisig });
-		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
-	
-		await sov.approve(escrowReward.address, totalValue, { from: multisig });
-		await escrowReward.depositTokensByMultisig(totalValue, { from: multisig });		
-
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userOne, 0, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userTwo, 1, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userThree, 2, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFour, 3, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFive, 4, values, totalValue, reward);
+		sovAndRewardWithdraw(sov, rewardToken, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage)
 	});
 
 	it("SOV and Reward (200%) withdraw should update the contract state.", async () => {
-		let values = await userDeposits(sov, escrowReward, userOne, userTwo, userThree, userFour, userFive);
 		let percentage = 200;
-		let totalValue = values.reduce((a, b) => a + b, 0);
-		let reward = Math.ceil((totalValue * percentage)/100);
-	
-		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
-		await escrowReward.changeStateToHolding({ from: multisig });
-	
-		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
-	
-		await rewardToken.mint(multisig, reward);
-		await rewardToken.approve(escrowReward.address, reward, { from: multisig });
-		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
-	
-		await sov.approve(escrowReward.address, totalValue, { from: multisig });
-		await escrowReward.depositTokensByMultisig(totalValue, { from: multisig });		
-
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userOne, 0, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userTwo, 1, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userThree, 2, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFour, 3, values, totalValue, reward);
-		await checkUserWithdraw(sov, rewardToken, escrowReward, multisig, userFive, 4, values, totalValue, reward);
+		sovAndRewardWithdraw(sov, rewardToken, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage)
 	});
 
 });
