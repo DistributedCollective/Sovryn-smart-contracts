@@ -48,5 +48,8 @@ def main():
     withUpdate = False # can be False if we adding pool tokens before mining started
     liquidityMining.add(poolToken1, allocationPoint, withUpdate)
 
+    liquidityMining.transferOwnership(multisig)
+    liquidityMiningProxy.setProxyOwner(multisig)
+
     print("deployment cost:")
     print((balanceBefore - acct.balance()) / 10**18)
