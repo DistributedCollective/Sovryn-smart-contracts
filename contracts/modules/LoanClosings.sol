@@ -21,6 +21,8 @@ import "../mixins/RewardHelper.sol";
  *   deposit, close w/ swap. There are 2 functions for ending a loan on the
  *   protocol contract: closeWithSwap and closeWithDeposit. Margin trade
  *   positions are always closed with a swap.
+ *
+ * Loans are liquidated if the position goes below margin maintenance.
  * */
 contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper, RewardHelper {
 	uint256 internal constant MONTH = 365 days / 12;

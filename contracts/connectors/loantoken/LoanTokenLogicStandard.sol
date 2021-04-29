@@ -1356,10 +1356,13 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 	/**
 	 * @notice Check whether a function is paused.
+	 *
 	 * @dev Used to read externally from the smart contract to see if a
 	 *   function is paused.
-	 * @param funcId The function index.
-	 * @return isPaused Whether a function is paused: true or false.
+	 *
+	 * @param funcId The function ID, the selector.
+	 *
+	 * @return isPaused Whether the function is paused: true or false.
 	 * */
 	function checkPause(string memory funcId) public view returns (bool isPaused) {
 		bytes4 sig = bytes4(keccak256(abi.encodePacked(funcId)));
@@ -1376,7 +1379,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 *   It throws an exception in case it's not.
 	 * */
 	function _checkPause() internal view {
-		//keccak256("iToken_FunctionPause")
+		/// keccak256("iToken_FunctionPause")
 		bytes32 slot = keccak256(abi.encodePacked(msg.sig, uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)));
 		bool isPaused;
 		assembly {
