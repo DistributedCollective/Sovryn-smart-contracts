@@ -29,7 +29,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	address public pauser;
 
 	/* Events */
-	
+
 	event SetEarlyAccessToken(address oldValue, address newValue);
 
 	/* Modifiers */
@@ -77,7 +77,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	/**
 	 * @notice Set loan token parameters.
 	 *
-	 * @param loanParamsList The array of loan parameters. 
+	 * @param loanParamsList The array of loan parameters.
 	 * @param areTorqueLoans Whether the loan is a torque loan.
 	 * */
 	function setupLoanParams(LoanParamsStruct.LoanParams[] memory loanParamsList, bool areTorqueLoans) public onlyAdmin {
@@ -107,7 +107,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	/**
 	 * @notice Disable loan token parameters.
 	 *
-	 * @param collateralTokens The array of collateral tokens. 
+	 * @param collateralTokens The array of collateral tokens.
 	 * @param isTorqueLoans Whether the loan is a torque loan.
 	 * */
 	function disableLoanParams(address[] calldata collateralTokens, bool[] calldata isTorqueLoans) external onlyAdmin {
@@ -130,7 +130,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	 *   like so: 5% = 5000000000000000000 /// 18 digits precision.
 	 * rateMultiplier + baseRate can't exceed 100%
 	 *
-	 * @param _baseRate	 
+	 * @param _baseRate
 	 * @param _rateMultiplier
 	 * @param _lowUtilBaseRate
 	 * @param _lowUtilRateMultiplier
@@ -167,7 +167,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	 *
 	 * @dev Combining the hash of "iToken_FunctionPause" string and a function
 	 *   selector gets a slot to write a flag for pause state.
-	 * 
+	 *
 	 * @param funcId The ID of a function, the selector.
 	 * @param isPaused true/false value of the flag.
 	 * */
