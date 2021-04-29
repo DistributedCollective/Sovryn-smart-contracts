@@ -537,6 +537,39 @@ contract("LiquidityMining", (accounts) => {
 	//3. add(pool1), deposit(user1, pool1), add(pool2), withdraw(user1, pool1)
 	//4. add(pool1), deposit(user1, pool1), add(pool2), deposit(user2, pool2), withdraw(user1, pool1), withdraw(user2, pool2)
 
+	describe("deposit/withdraw", () => {
+		let allocationPoint = new BN(1);
+		let amount = new BN(1000);
+
+		beforeEach(async () => {
+			await token1.mint(account1, amount);
+			await token1.approve(liquidityMining.address, amount, {from: account1});
+
+			await token2.mint(account1, amount);
+			await token2.approve(liquidityMining.address, amount, {from: account1});
+		});
+
+		it("add, add, deposit", async () => {
+			await liquidityMining.add(token1.address, allocationPoint, false); //weight 1/1
+			await liquidityMining.add(token2.address, allocationPoint, false); //weight 1/2
+
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, {from: account1});
+
+			// await liquidityMining.update(token1.address, allocationPoint.mul(new BN(2)), true); //weight 2/3
+			await liquidityMining.updateAllPools();
+
+			let poolInfo1 = await liquidityMining.getPoolInfo(token1.address);
+			console.log(poolInfo1);
+
+			let poolInfo2 = await liquidityMining.getPoolInfo(token2.address);
+			console.log(poolInfo2);
+
+			//TODO check pool infos
+		});
+
+	});
+
 	//TODO add tests for public/external getters
 
 	async function deployLiquidityMining() {
