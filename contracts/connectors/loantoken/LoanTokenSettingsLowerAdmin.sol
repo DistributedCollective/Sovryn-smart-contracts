@@ -130,13 +130,23 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	 *   like so: 5% = 5000000000000000000 /// 18 digits precision.
 	 * rateMultiplier + baseRate can't exceed 100%
 	 *
-	 * @param _baseRate
-	 * @param _rateMultiplier
-	 * @param _lowUtilBaseRate
-	 * @param _lowUtilRateMultiplier
-	 * @param _targetLevel
-	 * @param _kinkLevel
-	 * @param _maxScaleRate
+	 * To maintain a healthy credit score, it's important to keep your
+	 * credit utilization rate (CUR) low (_lowUtilBaseRate). In general
+	 * you don't want your CUR to exceed 30%, but increasingly financial
+	 * experts are recommending that you don't want to go above 10% if you
+	 * really want an excellent credit score.
+	 *
+	 * Interest rates tend to cluster around the kink level of a kinked
+	 * interest rate model. More info at https://arxiv.org/pdf/2006.13922.pdf
+	 * and https://compound.finance/governance/proposals/12
+	 *
+	 * @param _baseRate The interest rate.
+	 * @param _rateMultiplier The precision multiplier for base rate.
+	 * @param _lowUtilBaseRate The credit utilization rate (CUR) low value.
+	 * @param _lowUtilRateMultiplier The precision multiplier for low util base rate.
+	 * @param _targetLevel The target level.
+	 * @param _kinkLevel The level that interest rates cluster on kinked model.
+	 * @param _maxScaleRate The maximum rate of the scale.
 	 * */
 	function setDemandCurve(
 		uint256 _baseRate,

@@ -93,7 +93,7 @@ library EnumerableBytes32Set {
 
 				/// Move the last value to the index where the deleted value is.
 				set.values[toDeleteIndex] = lastValue;
-				
+
 				/// Update the index for the moved value.
 				set.index[lastValue] = toDeleteIndex + 1; // All indexes are 1-based
 			}
@@ -123,7 +123,7 @@ library EnumerableBytes32Set {
 	}
 
 	/**
-     * @notice Get all set values.
+	 * @notice Get all set values.
 	 *
 	 * @param set The set of values.
 	 * @param start The offset of the returning set.
@@ -131,12 +131,12 @@ library EnumerableBytes32Set {
 	 *
 	 * @return An array with all values in the set. O(N).
 	 *
-     * @dev Note that there are no guarantees on the ordering of values inside the
-     * array, and it may change when more values are added or removed.
-     *
-     * WARNING: This function may run out of gas on large sets: use {length} and
-     * {get} instead in these cases.
-     */
+	 * @dev Note that there are no guarantees on the ordering of values inside the
+	 * array, and it may change when more values are added or removed.
+	 *
+	 * WARNING: This function may run out of gas on large sets: use {length} and
+	 * {get} instead in these cases.
+	 */
 	function enumerate(
 		Bytes32Set storage set,
 		uint256 start,
@@ -179,7 +179,7 @@ library EnumerableBytes32Set {
 	 *
 	 * @param set The set of values.
 	 * @param index The index of the value to return.
-     *
+	 *
 	 * @return the element stored at position `index` in the set. O(1).
 	 */
 	function get(Bytes32Set storage set, uint256 index) internal view returns (bytes32) {
