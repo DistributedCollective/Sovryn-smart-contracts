@@ -7,6 +7,13 @@ pragma solidity 0.5.17;
 
 import "../core/State.sol";
 
+/**
+ * @title The Liquidation Helper contract.
+ * @notice This contract code comes from bZx. bZx is a protocol for tokenized margin
+ * trading and lending https://bzx.network similar to the dYdX protocol.
+ *
+ * This contract computes the liquidation amount.
+ * */
 contract LiquidationHelper is State {
 	/**
 	 * @notice Compute how much needs to be liquidated in order to restore the
@@ -56,7 +63,7 @@ contract LiquidationHelper is State {
 			maxLiquidatable = principal;
 		}
 
-		// maxSeizable = maxLiquidatable * (1 + incentivePercent) / collateralToLoanRate
+		/// maxSeizable = maxLiquidatable * (1 + incentivePercent) / collateralToLoanRate
 		maxSeizable = maxLiquidatable.mul(incentivePercent.add(10**20));
 		maxSeizable = maxSeizable.div(collateralToLoanRate).div(100);
 		if (maxSeizable > collateral) {

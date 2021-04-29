@@ -12,25 +12,38 @@ contract ProtocolTokenHandler is Ownable {
 	using SafeERC20 for IERC20;
 	using ECDSA for bytes32;
 
+	/* Storage */
+	
 	address public protocolTokenAddress;
 	uint256 public requiredCount = 2;
 	mapping(address => bool) public isSigner;
 	mapping(address => uint256) public userNonce;
 
+	/* Events */
+	
 	event AddSigner(address indexed signer);
 	event RemoveSigner(address indexed signer);
 	event SetRequiredCount(uint256 indexed requiredCount);
 	event Deposit(address indexed sender, uint256 amount);
 	event Withdraw(address indexed caller, address indexed recipient, uint256 amount);
 
+	/* Functions */
+	
+	/**
+	 * @notice Deploy the contract and set protocol token address.
+	 *
+	 * @param protocolTokenAddress_ The address of protocol token.
+	 * */
 	constructor(address protocolTokenAddress_) public {
 		require(protocolTokenAddress_.isContract(), "protocol token address should be contract address");
 		protocolTokenAddress = protocolTokenAddress_;
 	}
 
 	/**
-	 * @param _signer address of signer added
-	 */
+	 * @notice Owner function to add a signer.
+	 *
+	 * @param _signer The address of signer added.
+	 * */
 	function addSigner(address _signer) external onlyOwner {
 		require(_signer != address(0), "signer address should not be zero address");
 		require(!_signer.isContract(), "signer address should not be contract address");
@@ -42,8 +55,10 @@ contract ProtocolTokenHandler is Ownable {
 	}
 
 	/**
-	 * @param _signer address of signer emoved
-	 */
+	 * @notice Owner function to remove a signer.
+	 *
+	 * @param _signer The address of signer removed.
+	 * */
 	function removeSigner(address _signer) external onlyOwner {
 		require(isSigner[_signer], "signer not set");
 
@@ -53,8 +68,10 @@ contract ProtocolTokenHandler is Ownable {
 	}
 
 	/**
-	 * @param requiredCount_ required amount of signs provided by users
-	 */
+	 * @notice Owner function to set the required number of signers.
+	 *
+	 * @param requiredCount_ The required amount of signs provided by users.
+	 * */
 	function setRequiredCount(uint256 requiredCount_) external onlyOwner {
 		require(requiredCount_ > 0, "required amount of signs should larger than zero");
 
@@ -64,10 +81,14 @@ contract ProtocolTokenHandler is Ownable {
 	}
 
 	/**
+	 * @notice Deposit an amount of protocol tokens into this contract.
+	 *
 	 * @dev Before calling this function to deposit protocol tokens,
-	 * users need approve this contract to be able to spend or transfer their protocol tokens.
-	 * @param _amount amount of protocol tokens deposited to this contract
-	 */
+	 * users need approve this contract to be able to spend or transfer
+	 * their protocol tokens.
+	 *
+	 * @param _amount The amount of protocol tokens deposited to this contract.
+	 * */
 	function deposit(uint256 _amount) external {
 		require(_amount > 0, "amount should larger than zero");
 
@@ -77,11 +98,13 @@ contract ProtocolTokenHandler is Ownable {
 	}
 
 	/**
-	 * @param _recipient address of recipient
-	 * @param _amount amount of tokens to be withdrawed
-	 * @param _nonce nonce to avoid replay attacks
-	 * @param _signs array includes signs from authorized signers, amount/length should equal to requiredCount
-	 */
+	 * @notice Withdraw protocol tokens from this contract with signers verification.
+	 *
+	 * @param _recipient The address of recipient.
+	 * @param _amount The amount of tokens to be withdrawn.
+	 * @param _nonce The nonce to avoid replay attacks.
+	 * @param _signs The array including signs from authorized signers, amount/length should equal to requiredCount.
+	 * */
 	function withdraw(
 		address _recipient,
 		uint256 _amount,
