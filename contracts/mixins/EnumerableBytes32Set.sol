@@ -8,7 +8,7 @@ pragma solidity 0.5.17;
 /**
  * @title Library for managing loan sets.
  *
- * @noticeSets have the following properties:
+ * @notice Sets have the following properties:
  *
  * - Elements are added, removed, and checked for existence in constant time
  * (O(1)).
