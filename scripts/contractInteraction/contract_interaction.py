@@ -1390,3 +1390,33 @@ def replaceProtocolSettings():
     tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
+
+def deployAffiliate():
+    # -------------------------------- 1. Replace the protocol settings contract ------------------------------
+    replaceProtocolSettings()
+
+    # -------------------------------- 2. Deploy the affiliates -----------------------------------------------
+    affiliates = acct.deploy(Affiliates)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(affiliates.address)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+    # Set SOVTokenAddress
+    sovToken = Contract.from_abi("SOV", address=contracts["SOV"], abi=SOV.abi, owner=acct)
+    data = sovryn.setSOVTokenAddress.encode_input(sovToken.address)
+    print("Set SOV Token address in protocol settings")
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+    print("sovToken address loaded:", sovryn.sovTokenAddress())
+
+    # -------------------------------- 3. Replace Token Logic Standard ----------------------------------------
+    replaceLoanTokenLogicOnAllContracts()
