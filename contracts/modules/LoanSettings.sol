@@ -9,13 +9,29 @@ pragma experimental ABIEncoderV2;
 import "../core/State.sol";
 import "../events/LoanSettingsEvents.sol";
 
+/**
+ * @title Loan Settings contract.
+ *
+ * @notice This contract code comes from bZx. bZx is a protocol for tokenized
+ * margin trading and lending https://bzx.network similar to the dYdX protocol.
+ *
+ * This contract contains functions to get and set loan parameters.
+ * */
 contract LoanSettings is State, LoanSettingsEvents {
 	constructor() public {}
 
+	/**
+	 * @notice Fallback function is to react to receiving value (rBTC).
+	 * */
 	function() external {
 		revert("LoanSettings - fallback not allowed");
 	}
 
+	/**
+	 * @notice Set function selectors on target contract.
+	 *
+	 * @param target The address of the target contract.
+	 * */
 	function initialize(address target) external onlyOwner {
 		_setTarget(this.setupLoanParams.selector, target);
 		_setTarget(this.disableLoanParams.selector, target);
@@ -24,14 +40,31 @@ contract LoanSettings is State, LoanSettingsEvents {
 		_setTarget(this.getTotalPrincipal.selector, target);
 	}
 
-	function setupLoanParams(LoanParams[] calldata loanParamsList) external returns (bytes32[] memory loanParamsIdList) {
+	/**
+	 * @notice Setup loan parameters, by looping every loan
+	 * and populating its parameters.
+	 *
+	 * @dev For each loan calls _setupLoanParams internal function.
+	 *
+	 * @param loanParamsList The array of loan parameters.
+	 *
+	 * @return loanParamsIdList The array of loan parameters IDs.
+	 * */
+	function setupLoanParams(
+		LoanParams[] calldata loanParamsList
+	) external returns (bytes32[] memory loanParamsIdList) {
 		loanParamsIdList = new bytes32[](loanParamsList.length);
 		for (uint256 i = 0; i < loanParamsList.length; i++) {
 			loanParamsIdList[i] = _setupLoanParams(loanParamsList[i]);
 		}
 	}
 
-	// Deactivates LoanParams for future loans. Active loans using it are unaffected.
+	/**
+	 * @notice Deactivate LoanParams for future loans. Active loans
+	 * using it are unaffected.
+	 *
+	 * @param loanParamsIdList The array of loan parameters IDs to deactivate.
+	 * */
 	function disableLoanParams(bytes32[] calldata loanParamsIdList) external {
 		for (uint256 i = 0; i < loanParamsIdList.length; i++) {
 			require(msg.sender == loanParams[loanParamsIdList[i]].owner, "unauthorized owner");
@@ -51,6 +84,13 @@ contract LoanSettings is State, LoanSettingsEvents {
 		}
 	}
 
+	/**
+	 * @notice Get loan parameters for every matching IDs.
+	 *
+	 * @param loanParamsIdList The array of loan parameters IDs to match.
+	 *
+	 * @return loanParamsList The result array of loan parameters.
+	 * */
 	function getLoanParams(bytes32[] memory loanParamsIdList) public view returns (LoanParams[] memory loanParamsList) {
 		loanParamsList = new LoanParams[](loanParamsIdList.length);
 		uint256 itemCount;
@@ -71,6 +111,16 @@ contract LoanSettings is State, LoanSettingsEvents {
 		}
 	}
 
+	/**
+	 * @notice Get loan parameters for an owner and a given page
+	 * defined by an offset and a limit.
+	 *
+	 * @param owner The address of the loan owner.
+	 * @param start The page offset.
+	 * @param count The page limit.
+	 *
+	 * @return loanParamsList The result array of loan parameters.
+	 * */
 	function getLoanParamsList(
 		address owner,
 		uint256 start,
@@ -100,10 +150,25 @@ contract LoanSettings is State, LoanSettingsEvents {
 		}
 	}
 
+	/**
+	 * @notice Get the total principal of the loans by a lender.
+	 *
+	 * @param lender The address of the lender.
+	 * @param loanToken The address of the token instance.
+	 *
+	 * @return The total principal of the loans.
+	 * */
 	function getTotalPrincipal(address lender, address loanToken) external view returns (uint256) {
 		return lenderInterest[lender][loanToken].principalTotal;
 	}
 
+	/**
+	 * @notice Setup a loan parameters.
+	 *
+	 * @param loanParamsLocal The loan parameters.
+	 *
+	 * @return loanParamsId The loan parameters ID.
+	 * */
 	function _setupLoanParams(LoanParams memory loanParamsLocal) internal returns (bytes32) {
 		bytes32 loanParamsId =
 			keccak256(
@@ -122,7 +187,7 @@ contract LoanSettings is State, LoanSettingsEvents {
 			loanParamsLocal.loanToken != address(0) &&
 				loanParamsLocal.collateralToken != address(0) &&
 				loanParamsLocal.minInitialMargin > loanParamsLocal.maintenanceMargin &&
-				(loanParamsLocal.maxLoanTerm == 0 || loanParamsLocal.maxLoanTerm > 3600), // a defined maxLoanTerm has to be greater than one hour
+				(loanParamsLocal.maxLoanTerm == 0 || loanParamsLocal.maxLoanTerm > 3600), /// A defined maxLoanTerm has to be greater than one hour.
 			"invalid params"
 		);
 

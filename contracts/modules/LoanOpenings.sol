@@ -32,6 +32,8 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 
 	/**
 	 * @notice Set function selectors on target contract.
+	 *
+	 * @param target The address of the target contract.
 	 * */
 	function initialize(address target) external onlyOwner {
 		_setTarget(this.borrowOrTradeFromPool.selector, target);
@@ -140,7 +142,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 	 * @param newPrincipal The updated amount of principal (current debt).
 	 *
 	 * @return The margin exposure.
-	 * */	
+	 * */
 	function getEstimatedMarginExposure(
 		address loanToken,
 		address collateralToken,
