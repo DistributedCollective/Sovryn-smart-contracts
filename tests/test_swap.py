@@ -80,4 +80,18 @@ def test_margin_trading_sending_collateral_tokens_with_smaller_rate(accounts, so
             {'value' : collateralTokenSent}
         )
 
-   
+
+'''
+    Should succeed with larger rate than maxSlippage in positive direction
+'''
+def test_check_price_disagreement_with_larger_rate(accounts, sovryn, loanToken, SUSD, WRBTC, chain, FeesEvents, SOV, priceFeeds):
+        rate = priceFeeds.checkPriceDisagreement(WRBTC.address, SUSD.address, 1e18, 2e22, 0)
+        assert(rate == 2e22)
+
+
+'''
+    Should fail with larger rate than maxSlippage in negative direction
+'''
+def test_check_price_disagreement_with_larger_rate(accounts, sovryn, loanToken, SUSD, WRBTC, chain, FeesEvents, SOV, priceFeeds):
+        with reverts("price disagreement"):
+            priceFeeds.checkPriceDisagreement(WRBTC.address, SUSD.address, 1e18, 1e18, 0)
