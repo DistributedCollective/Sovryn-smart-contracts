@@ -80,7 +80,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 			borrowingFeeTokensHeld[feeToken] = borrowingFeeTokensHeld[feeToken].add(borrowingFee);
 
 			emit PayBorrowingFee(user, feeToken, loanId, borrowingFee);
-			
+
 			/// Pay the token reward to the user.
 			_payFeeReward(user, loanId, feeToken, borrowingFee);
 		}

@@ -17,7 +17,7 @@ import "./FeesHelper.sol";
  *
  * This contract pays loan interests.
  * */
- contract InterestUser is VaultController, FeesHelper {
+contract InterestUser is VaultController, FeesHelper {
 	using SafeERC20 for IERC20;
 
 	/**

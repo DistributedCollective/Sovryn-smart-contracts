@@ -27,10 +27,7 @@ contract ProtocolTokenUser is State {
 	 * @return The protocol token address.
 	 * @return Withdrawal success (true/false).
 	 * */
-	function _withdrawProtocolToken(
-		address receiver,
-		uint256 amount
-	) internal returns (address, bool) {
+	function _withdrawProtocolToken(address receiver, uint256 amount) internal returns (address, bool) {
 		uint256 withdrawAmount = amount;
 
 		uint256 tokenBalance = protocolTokenHeld;

@@ -13,14 +13,14 @@ contract ProtocolTokenHandler is Ownable {
 	using ECDSA for bytes32;
 
 	/* Storage */
-	
+
 	address public protocolTokenAddress;
 	uint256 public requiredCount = 2;
 	mapping(address => bool) public isSigner;
 	mapping(address => uint256) public userNonce;
 
 	/* Events */
-	
+
 	event AddSigner(address indexed signer);
 	event RemoveSigner(address indexed signer);
 	event SetRequiredCount(uint256 indexed requiredCount);
@@ -28,7 +28,7 @@ contract ProtocolTokenHandler is Ownable {
 	event Withdraw(address indexed caller, address indexed recipient, uint256 amount);
 
 	/* Functions */
-	
+
 	/**
 	 * @notice Deploy the contract and set protocol token address.
 	 *
