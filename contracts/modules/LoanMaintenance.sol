@@ -42,7 +42,9 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		uint256 maxSeizable;
 	}
 
-	/// @notice Empty public constructor.
+	/**
+	 * @notice Empty public constructor.
+	 * */
 	constructor() public {}
 
 	/**

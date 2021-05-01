@@ -18,6 +18,9 @@ import "../events/LoanSettingsEvents.sol";
  * This contract contains functions to get and set loan parameters.
  * */
 contract LoanSettings is State, LoanSettingsEvents {
+	/**
+	 * @notice Empty public constructor.
+	 * */
 	constructor() public {}
 
 	/**
@@ -50,9 +53,7 @@ contract LoanSettings is State, LoanSettingsEvents {
 	 *
 	 * @return loanParamsIdList The array of loan parameters IDs.
 	 * */
-	function setupLoanParams(
-		LoanParams[] calldata loanParamsList
-	) external returns (bytes32[] memory loanParamsIdList) {
+	function setupLoanParams(LoanParams[] calldata loanParamsList) external returns (bytes32[] memory loanParamsIdList) {
 		loanParamsIdList = new bytes32[](loanParamsList.length);
 		for (uint256 i = 0; i < loanParamsList.length; i++) {
 			loanParamsIdList[i] = _setupLoanParams(loanParamsList[i]);
