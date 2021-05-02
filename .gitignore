@@ -27,3 +27,8 @@ solc-select
 node_modules
 artifacts/
 cache/
+contracts_bzx/
+contracts_flattened/
+flat_*.sol
+tmp/
+tmp
