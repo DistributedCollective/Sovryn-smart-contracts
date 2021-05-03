@@ -194,8 +194,7 @@ contract Escrow {
 		uint256 amount = _amount;
 
 		if (totalDeposit.add(_amount) >= depositLimit) {
-			uint256 difference = totalDeposit.add(_amount).sub(depositLimit);
-			amount = _amount.sub(difference);
+			amount = depositLimit.sub(totalDeposit);
 			emit DepositLimitReached();
 		}
 
