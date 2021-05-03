@@ -1,6 +1,6 @@
 pragma solidity ^0.5.17;
 
-import "./escrow.sol";
+import "./Escrow.sol";
 import "./ILockedSOV.sol";
 
 /**
