@@ -134,6 +134,8 @@ contract Escrow {
 
 		releaseTime = _releaseTime;
 		depositLimit = _depositLimit;
+
+		status = Status.Deployed;
 	}
 
 	/**
