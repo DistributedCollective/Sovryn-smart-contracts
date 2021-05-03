@@ -142,7 +142,7 @@ contract Escrow {
 	 * @notice This function is called once after deployment for starting the deposit action.
 	 * @dev Without calling this function, the contract will not start accepting tokens.
 	 */
-	function init() public onlyMultisig checkStatus(Status.Deployed) {
+	function init() external onlyMultisig checkStatus(Status.Deployed) {
 		status = Status.Deposit;
 
 		emit EscrowActivated();
