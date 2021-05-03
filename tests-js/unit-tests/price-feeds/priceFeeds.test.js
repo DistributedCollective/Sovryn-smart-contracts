@@ -1,9 +1,14 @@
 const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { deployMockContract, deployContract, provider } = waffle;
+const { utils } = ethers;
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
 const USDTPriceFeed = artifacts.require("USDTPriceFeed");
 const PriceFeeds = artifacts.require("PriceFeeds");
 const PriceFeedsMock = artifacts.require("PriceFeedsMock");
+
+const PriceFeedsArtifact = require("../../../artifacts/contracts/feeds/PriceFeeds.sol/PriceFeeds.json");
 
 const { getSUSD, getRBTC, getWRBTC, getBZRX, getSovryn, getPriceFeeds, getTestToken } = require("../../Utils/initializer.js");
 const wei = web3.utils.toWei;
@@ -43,6 +48,7 @@ contract("PriceFeeds", (accounts) => {
 			wei("30", "ether"), //mock rate
 			wei("100", "ether") //mock precision
 		);
+
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 		//swapsImpl = await SwapsImplSovrynSwap.new();
 	});
@@ -137,6 +143,54 @@ contract("PriceFeeds", (accounts) => {
 			await expect(ret[0]).to.be.bignumber.equal(new BN(0));
 			await expect(ret[1]).to.be.bignumber.equal(new BN(wei("1", "ether")));
 		});
+
+		it("getCurrentMarginAndCollateralSize collateralToken == loanToken", async () => {
+			let ret = await priceFeedsMock.getCurrentMarginAndCollateralSize(
+				accounts[9], //mock loan token address
+				accounts[9], //mock collateral token address
+				new BN(wei("100", "ether")), //loan token amount
+				new BN(wei("150", "ether")) //collateral token amount
+			);
+			await expect(ret[0]).to.be.bignumber.equal(new BN(wei("50", "ether")));
+			await expect(ret[1]).to.be.bignumber.equal(new BN(wei("45", "ether")));
+
+			ret = await priceFeedsMock.getCurrentMarginAndCollateralSize(
+				accounts[9], //mock loan token address
+				accounts[9], //mock collateral token address
+				new BN(wei("100", "ether")), //loan token amount
+				new BN(wei("30", "ether")) //collateral token amount
+			);
+			await expect(ret[0]).to.be.bignumber.equal(new BN(0));
+			await expect(ret[1]).to.be.bignumber.equal(new BN(wei("9", "ether")));
+
+			ret = await priceFeedsMock.getCurrentMarginAndCollateralSize(
+				accounts[9], //mock loan token address
+				accounts[9], //mock collateral token address
+				new BN(wei("0", "ether")), //loan token amount
+				new BN(wei("30", "ether")) //collateral token amount
+			);
+			await expect(ret[0]).to.be.bignumber.equal(new BN(0));
+			await expect(ret[1]).to.be.bignumber.equal(new BN(wei("9", "ether")));
+		});
+
+		it("getCurrentMarginAndCollateralSize collateralToken == loanToken", async () => {
+			const [sender, receiver] = provider.getWallets();
+			const mockPriceFeeds = await deployMockContract(sender, PriceFeedsArtifact.abi);
+			const loanTokenAmount = utils.parseEther("100"); //new BN(wei("100", "ether")); //loan token amount
+			const collateralTokenAmount = utils.parseEther("150"); //new BN(wei("150", "ether")); //collateral token amount
+			mockPriceFeeds.mock.amountInEth.returns(collateralTokenAmount);
+			mockPriceFeeds.mock.getCurrentMargin.returns(collateralTokenAmount.mul(3));
+
+			let ret = await mockPriceFeeds.getCurrentMarginAndCollateralSize(
+				accounts[9], //mock loan token address
+				accounts[9], //mock collateral token address
+				loanTokenAmount, //loan token amount
+				collateralTokenAmount //collateral token amount
+			);
+			await expect(ret[0]).to.be.bignumber.equal(collateralTokenAmount.mul(3));
+			await expect(ret[1]).to.be.bignumber.equal(collateralTokenAmount);
+		});
+
 		it("shouldLiquidate(...) runs correctly", async () => {
 			//30% margin initialized
 			let ret = await priceFeedsMock.shouldLiquidate(

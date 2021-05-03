@@ -7,6 +7,7 @@ require("@nomiclabs/hardhat-web3");
 require("hardhat-contract-sizer"); //yarn run hardhat size-contracts
 require("solidity-coverage"); // $ npx hardhat coverage
 require("hardhat-log-remover");
+require("@nomiclabs/hardhat-waffle");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
