@@ -130,6 +130,8 @@ contract Escrow {
 		SOV = IERC20(_SOV);
 		multisig = _multisig;
 
+		emit NewMultisig(msg.sender, _multisig);
+
 		releaseTime = _releaseTime;
 		depositLimit = _depositLimit;
 	}
