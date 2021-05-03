@@ -152,7 +152,7 @@ contract Escrow {
 	 * @notice Update Multisig.
 	 * @param _newMultisig The new owner of the tokens & contract.
 	 */
-	function updateMultisig(address _newMultisig) public onlyMultisig {
+	function updateMultisig(address _newMultisig) external onlyMultisig {
 		require(_newMultisig != address(0), "New Multisig address invalid.");
 
 		multisig = _newMultisig;
@@ -165,7 +165,7 @@ contract Escrow {
 	 * @param _newReleaseTime The new release timestamp for token release.
 	 * @dev Zero is also a valid timestamp, if the release time is not scheduled yet.
 	 */
-	function updateReleaseTimestamp(uint256 _newReleaseTime) public onlyMultisig {
+	function updateReleaseTimestamp(uint256 _newReleaseTime) external onlyMultisig {
 		releaseTime = _newReleaseTime;
 
 		emit TokenReleaseUpdated(msg.sender, _newReleaseTime);
@@ -176,7 +176,7 @@ contract Escrow {
 	 * @param _newDepositLimit The new deposit limit.
 	 * @dev IMPORTANT: Should not decrease than already deposited.
 	 */
-	function updateDepositLimit(uint256 _newDepositLimit) public onlyMultisig {
+	function updateDepositLimit(uint256 _newDepositLimit) external onlyMultisig {
 		require(_newDepositLimit >= totalDeposit, "Deposit already higher than the limit trying to be set.");
 		depositLimit = _newDepositLimit;
 
@@ -189,7 +189,7 @@ contract Escrow {
 	 * @dev The contract has to be approved by the user inorder for this function to work.
 	 * These tokens can be withdrawn/transferred during Holding State by the Multisig.
 	 */
-	function depositTokens(uint256 _amount) public checkStatus(Status.Deposit) {
+	function depositTokens(uint256 _amount) external checkStatus(Status.Deposit) {
 		require(_amount > 0, "Amount needs to be bigger than zero.");
 		uint256 amount = _amount;
 
@@ -212,7 +212,7 @@ contract Escrow {
 	 * @dev Once called, the contract no longer accepts any more deposits.
 	 * The multisig can now withdraw tokens from the contract after the contract is in Holding State.
 	 */
-	function changeStateToHolding() public onlyMultisig checkStatus(Status.Deposit) {
+	function changeStateToHolding() external onlyMultisig checkStatus(Status.Deposit) {
 		status = Status.Holding;
 
 		emit EscrowInHoldingState();
@@ -223,7 +223,7 @@ contract Escrow {
 	 * @param _receiverAddress The address where the tokens has to be transferred. Zero address if the withdraw is to be done in Multisig.
 	 * @dev Can only be called after the token state is changed to Holding.
 	 */
-	function withdrawTokensByMultisig(address _receiverAddress) public onlyMultisig checkStatus(Status.Holding) {
+	function withdrawTokensByMultisig(address _receiverAddress) external onlyMultisig checkStatus(Status.Holding) {
 		address receiverAddress = msg.sender;
 		if (_receiverAddress != address(0)) {
 			receiverAddress = _receiverAddress;
@@ -243,7 +243,7 @@ contract Escrow {
 	 * @dev The contract has to be approved by the multisig inorder for this function to work.
 	 * Once the token deposit is higher than the total deposits done, the contract state is changed to Withdraw.
 	 */
-	function depositTokensByMultisig(uint256 _amount) public onlyMultisig checkStatus(Status.Holding) {
+	function depositTokensByMultisig(uint256 _amount) external onlyMultisig checkStatus(Status.Holding) {
 		require(_amount > 0, "Amount needs to be bigger than zero.");
 
 		bool txStatus = SOV.transferFrom(msg.sender, address(this), _amount);
@@ -276,7 +276,7 @@ contract Escrow {
 	 * @notice Function to read the current token balance of a particular user.
 	 * @return _addr The user address whose balance has to be checked.
 	 */
-	function getUserBalance(address _addr) public view returns (uint256 balance) {
+	function getUserBalance(address _addr) external view returns (uint256 balance) {
 		return userBalances[_addr];
 	}
 }

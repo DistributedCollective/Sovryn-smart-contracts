@@ -63,7 +63,7 @@ contract EscrowReward is Escrow {
 	 * @notice Set the Locked SOV Contract Address if not already done.
 	 * @param _lockedSOV The Locked SOV Contract address.
 	 */
-	function updateLockedSOV(address _lockedSOV) public onlyMultisig {
+	function updateLockedSOV(address _lockedSOV) external onlyMultisig {
 		require(_lockedSOV != address(0), "Invalid Reward Token Address.");
 
 		lockedSOV = ILockedSOV(_lockedSOV);
@@ -76,7 +76,7 @@ contract EscrowReward is Escrow {
 	 * @param _amount the amount of tokens deposited.
 	 * @dev The contract has to be approved by the multisig inorder for this function to work.
 	 */
-	function depositRewardByMultisig(uint256 _amount) public onlyMultisig {
+	function depositRewardByMultisig(uint256 _amount) external onlyMultisig {
 		require(status != Status.Withdraw, "Reward Token deposit is only allowed before User Withdraw starts.");
 		require(_amount > 0, "Amount needs to be bigger than zero.");
 
@@ -91,10 +91,10 @@ contract EscrowReward is Escrow {
 	}
 
 	/**
-	 * @notice Withdraws token from the contract by User.
+	 * @notice Withdraws token and reward from the contract by User. Reward is gone to lockedSOV contract for future vesting.
 	 * @dev Only works after the contract state is in Withdraw.
 	 */
-	function withdrawTokensAndReward() public checkRelease checkStatus(Status.Withdraw) {
+	function withdrawTokensAndReward() external checkRelease checkStatus(Status.Withdraw) {
 		// Reward calculation have to be done initially as the User Balance is zeroed out .
 		uint256 reward = userBalances[msg.sender].mul(totalRewardDeposit).div(totalDeposit);
 		withdrawTokens();
@@ -111,7 +111,7 @@ contract EscrowReward is Escrow {
 	 * @param _addr The address of the user whose reward is to be read.
 	 * @return reward The reward received by the user.
 	 */
-	function getReward(address _addr) public view returns (uint256 reward) {
+	function getReward(address _addr) external view returns (uint256 reward) {
 		if (userBalances[_addr].mul(totalRewardDeposit) == 0) {
 			return 0;
 		}
