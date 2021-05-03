@@ -1,8 +1,8 @@
 // For this test, multisig wallet will be done by normal wallets.
 
 const EscrowReward = artifacts.require("EscrowReward");
+const LockedSOV = artifacts.require("LockedSOVMockup"); // Ideally should be using actual LockedSOV for testing.
 const SOV = artifacts.require("TestToken");
-const RewardToken = artifacts.require("TestToken");
 
 const {
 	BN, // Big Number support.
@@ -14,7 +14,7 @@ const { assert } = require("chai");
 
 // Some constants we would be using in the contract.
 let zero = new BN(0);
-const depositLimit = 75000;
+const depositLimit = 75000000;
 
 /**
  * Function to create a random value.
@@ -23,7 +23,7 @@ const depositLimit = 75000;
  * @return {number} Random Value.
  */
 function randomValue() {
-	return Math.floor(Math.random() * 1000);
+	return Math.floor(Math.random() * 1000000);
 }
 
 /**
@@ -37,7 +37,7 @@ function currentTimestamp() {
 }
 
 contract("Escrow Rewards (Any User Functions)", (accounts) => {
-	let escrowReward, sov, rewardToken;
+	let escrowReward, sov, lockedSOV;
 	let creator, multisig, newMultisig, safeVault, userOne, userTwo, userThree, userFour, userFive;
 
 	before("Initiating Accounts & Creating Test Token Instance.", async () => {
@@ -47,21 +47,25 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 
 		// Creating the instance of SOV Token.
 		sov = await SOV.new("Sovryn", "SOV", 18, zero);
-		// Creating the instance of Reward Token.
-		rewardToken = await RewardToken.new("Sovryn Reward", "SVR", 18, zero);
+
+		// Creating the instance of LockedSOV Contract.
+		lockedSOV = await LockedSOV.new(sov.address, [multisig]);
 	});
 
 	beforeEach("Creating New Escrow Contract Instance.", async () => {
 		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, zero, depositLimit, { from: creator });
+		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
 
 		// Marking the contract as active.
 		await escrowReward.init({ from: multisig });
+
+		// Adding the contract as an admin in the lockedSOV.
+		await lockedSOV.addAdmin(escrowReward.address, { from: multisig });
 	});
 
 	it("Except Multisig, no one should be able to call the init() function.", async () => {
 		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(rewardToken.address, sov.address, multisig, zero, depositLimit, { from: creator });
+		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
 		await expectRevert(escrowReward.init({ from: userOne }), "Only Multisig can call this.");
 	});
 
@@ -82,6 +86,16 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 		await sov.mint(userOne, value);
 		await sov.approve(escrowReward.address, value, { from: userOne });
 		await escrowReward.depositTokens(value, { from: userOne });
+	});
+
+	it("No one could deposit zero Tokens during Deposit State.", async () => {
+		await expectRevert(escrowReward.depositTokens(zero, { from: userOne }), "Amount needs to be bigger than zero.");
+	});
+
+	it("Before anyone can deposit Tokens during Deposit State, they should approve the escrow contract with the amount to send.", async () => {
+		let value = randomValue() + 1;
+		await sov.mint(userOne, value);
+		await expectRevert(escrowReward.depositTokens(value, { from: userOne }), "invalid transfer");
 	});
 
 	it("No one could deposit Tokens during any other State other than Deposit.", async () => {
@@ -114,8 +128,8 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
 		await escrowReward.changeStateToHolding({ from: multisig });
 		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
-		await rewardToken.mint(multisig, reward);
-		await rewardToken.approve(escrowReward.address, reward, { from: multisig });
+		await sov.mint(multisig, reward);
+		await sov.approve(escrowReward.address, reward, { from: multisig });
 		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
 		await sov.approve(escrowReward.address, value, { from: multisig });
 		await escrowReward.depositTokensByMultisig(value, { from: multisig });
@@ -149,8 +163,8 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 
 		let totalDeposit = valueOne + valueTwo;
 		let reward = Math.ceil(totalDeposit / 100);
-		await rewardToken.mint(multisig, reward);
-		await rewardToken.approve(escrowReward.address, reward, { from: multisig });
+		await sov.mint(multisig, reward);
+		await sov.approve(escrowReward.address, reward, { from: multisig });
 		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
 
 		await sov.approve(escrowReward.address, totalDeposit, { from: multisig });
