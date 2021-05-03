@@ -1,6 +1,7 @@
 pragma solidity ^0.5.17;
 
 import "./escrow.sol";
+import "./ILockedSOV.sol";
 
 /**
  *  @title A reward distribution contract for Sovryn Ethereum Pool Escrow Contract.
@@ -16,15 +17,15 @@ contract EscrowReward is Escrow {
 	/// @dev Used for calculating the reward % share of users related to total deposit.
 	uint256 public totalRewardDeposit;
 
-	/// @notice The Reward token contract.
-	IERC20 public rewardToken;
+	/// @notice The Locked SOV contract.
+	ILockedSOV public lockedSOV;
 
 	/* Events */
 
-	/// @notice Emitted when the Reward Token address is updated.
+	/// @notice Emitted when the Locked SOV Contract address is updated.
 	/// @param _initiator The address which initiated this event to be emitted.
-	/// @param _rewardToken The address of the Reward Token Contract.
-	event RewardTokenUpdated(address indexed _initiator, address indexed _rewardToken);
+	/// @param _lockedSOV The address of the Locked SOV Contract.
+	event LockedSOVUpdated(address indexed _initiator, address indexed _lockedSOV);
 
 	/// @notice Emitted when a new reward token deposit is done by Multisig.
 	/// @param _initiator The address which initiated this event to be emitted.
@@ -40,34 +41,34 @@ contract EscrowReward is Escrow {
 
 	/**
 	 * @notice Setup the required parameters.
-	 * @param _rewardToken The Reward Token address.
+	 * @param _lockedSOV The Locked SOV Contract address.
 	 * @param _SOV The SOV token address.
 	 * @param _multisig The owner of the tokens & contract.
 	 * @param _releaseTime The token release time, zero if undecided.
 	 * @param _depositLimit The amount of tokens we will be accepting.
 	 */
 	constructor(
-		address _rewardToken,
+		address _lockedSOV,
 		address _SOV,
 		address _multisig,
 		uint256 _releaseTime,
 		uint256 _depositLimit
 	) public Escrow(_SOV, _multisig, _releaseTime, _depositLimit) {
-		if (_rewardToken != address(0)) {
-			rewardToken = IERC20(_rewardToken);
+		if (_lockedSOV != address(0)) {
+			lockedSOV = ILockedSOV(_lockedSOV);
 		}
 	}
 
 	/**
-	 * @notice Set the Reward Token Address if not already done.
-	 * @param _rewardToken The Reward Token address.
+	 * @notice Set the Locked SOV Contract Address if not already done.
+	 * @param _lockedSOV The Locked SOV Contract address.
 	 */
-	function updateRewardToken(address _rewardToken) public onlyMultisig {
-		require(_rewardToken != address(0), "Invalid Reward Token Address.");
+	function updateLockedSOV(address _lockedSOV) public onlyMultisig {
+		require(_lockedSOV != address(0), "Invalid Reward Token Address.");
 
-		rewardToken = IERC20(_rewardToken);
+		lockedSOV = ILockedSOV(_lockedSOV);
 
-		emit RewardTokenUpdated(msg.sender, _rewardToken);
+		emit LockedSOVUpdated(msg.sender, _lockedSOV);
 	}
 
 	/**
@@ -79,10 +80,12 @@ contract EscrowReward is Escrow {
 		require(status != Status.Withdraw, "Reward Token deposit is only allowed before User Withdraw starts.");
 		require(_amount > 0, "Amount needs to be bigger than zero.");
 
-		bool txStatus = rewardToken.transferFrom(msg.sender, address(this), _amount);
+		bool txStatus = SOV.transferFrom(msg.sender, address(this), _amount);
 		require(txStatus, "Token transfer was not successful.");
 
 		totalRewardDeposit = totalRewardDeposit.add(_amount);
+		txStatus = SOV.approve(address(lockedSOV), totalRewardDeposit);
+		require(txStatus, "Token Approval was not successful.");
 
 		emit RewardDepositByMultisig(msg.sender, _amount);
 	}
@@ -96,8 +99,7 @@ contract EscrowReward is Escrow {
 		uint256 reward = userBalances[msg.sender].mul(totalRewardDeposit).div(totalDeposit);
 		withdrawTokens();
 
-		bool txStatus = rewardToken.transfer(msg.sender, reward);
-		require(txStatus, "Token transfer was not successful. Check receiver address.");
+		lockedSOV.depositSOV(msg.sender, reward);
 
 		emit RewardTokenWithdraw(msg.sender, reward);
 	}

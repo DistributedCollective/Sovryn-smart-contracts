@@ -125,7 +125,7 @@ contract Escrow {
 		uint256 _depositLimit
 	) public {
 		require(_SOV != address(0), "Invalid SOV Address.");
-		require(_multisig != address(0), "Locked token & contract owner address invalid.");
+		require(_multisig != address(0), "Invalid Multisig Address.");
 
 		SOV = IERC20(_SOV);
 		multisig = _multisig;
