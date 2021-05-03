@@ -122,7 +122,7 @@ contract SwapsExternal is VaultController, SwapsUser {
 	 * @param destToken The address of the destiny token instance.
 	 * @param sourceTokenAmount The amount of source tokens.
 	 *
-	 * @return 
+	 * @return The expected return value.
 	 * */
 	function getSwapExpectedReturn(
 		address sourceToken,
