@@ -180,16 +180,7 @@ async function userDeposits(sovContract, escrowRewardContract, userOne, userTwo,
  * @param totalValue The total deposits calculated from values.
  * @param reward The reward tokens deposited.
  */
-async function checkUserWithdraw(
-	sovContract,
-	lockedSOVContract,
-	escrowRewardContract,
-	user,
-	index,
-	values,
-	totalValue,
-	reward
-) {
+async function checkUserWithdraw(sovContract, lockedSOVContract, escrowRewardContract, user, index, values, totalValue, reward) {
 	let beforeUserBalance = await getTokenBalances(user, sovContract, lockedSOVContract);
 	let userReward = Math.floor(Math.floor(values[index] * reward) / totalValue);
 	let userContractReward = await escrowRewardContract.getReward(user);

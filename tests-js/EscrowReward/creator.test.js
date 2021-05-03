@@ -72,12 +72,18 @@ contract("Escrow Rewards (Creator Functions)", (accounts) => {
 
 	it("Creator should not be able to create Escrow Contract without specifying the sov contract.", async () => {
 		// Creating the contract instance.
-		await expectRevert(EscrowReward.new(lockedSOV.address, zeroAddress, multisig, zero, depositLimit, { from: creator }), "Invalid SOV Address.");
+		await expectRevert(
+			EscrowReward.new(lockedSOV.address, zeroAddress, multisig, zero, depositLimit, { from: creator }),
+			"Invalid SOV Address."
+		);
 	});
 
 	it("Creator should not be able to create Escrow Contract without specifying the Multisig.", async () => {
 		// Creating the contract instance.
-		await expectRevert(EscrowReward.new(lockedSOV.address, sov.address, zeroAddress, zero, depositLimit, { from: creator }), "Invalid Multisig Address.");
+		await expectRevert(
+			EscrowReward.new(lockedSOV.address, sov.address, zeroAddress, zero, depositLimit, { from: creator }),
+			"Invalid Multisig Address."
+		);
 	});
 
 	it("Creator should not be able to call the init() function.", async () => {

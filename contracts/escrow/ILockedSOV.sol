@@ -6,12 +6,10 @@ pragma solidity ^0.5.17;
  *  @dev This is not a complete interface of the Locked SOV Contract.
  */
 interface ILockedSOV {
-
 	/**
 	 * @notice Adds SOV to the locked balance of a user.
 	 * @param _userAddress The user whose locked balance has to be updated with _sovAmount.
-     * @param _sovAmount The amount of SOV to be added to the locked balance.
+	 * @param _sovAmount The amount of SOV to be added to the locked balance.
 	 */
 	function depositSOV(address _userAddress, uint256 _sovAmount) external;
-
 }

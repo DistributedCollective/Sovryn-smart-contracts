@@ -91,7 +91,10 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 		await sov.mint(userOne, value);
 		await sov.approve(escrowReward.address, value, { from: userOne });
 		await escrowReward.depositTokens(value, { from: userOne });
-		await expectRevert(escrowReward.updateDepositLimit(value - 1, { from: multisig }), "Deposit already higher than the limit trying to be set.");
+		await expectRevert(
+			escrowReward.updateDepositLimit(value - 1, { from: multisig }),
+			"Deposit already higher than the limit trying to be set."
+		);
 	});
 
 	it("Multisig should be able to change the contract to Holding State.", async () => {
@@ -180,7 +183,10 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 		let reward = randomValue() + 1;
 		await sov.mint(multisig, reward);
 		await sov.approve(escrowReward.address, reward, { from: multisig });
-		await expectRevert(escrowReward.depositRewardByMultisig(reward, { from: multisig }), "Reward Token deposit is only allowed before User Withdraw starts.");
+		await expectRevert(
+			escrowReward.depositRewardByMultisig(reward, { from: multisig }),
+			"Reward Token deposit is only allowed before User Withdraw starts."
+		);
 	});
 
 	it("Multisig should not be able to deposit zero reward tokens using depositRewardByMultisig.", async () => {
