@@ -13,11 +13,11 @@ import "../openzeppelin/Address.sol";
  * */
 contract PriceFeedRSKOracle is IPriceFeedsExt, Ownable {
 	/* Storage */
-	
+
 	address public rskOracleAddress;
 
 	/* Events */
-	
+
 	event SetRSKOracleAddress(address indexed rskOracleAddress, address changerAddress);
 
 	/* Functions */

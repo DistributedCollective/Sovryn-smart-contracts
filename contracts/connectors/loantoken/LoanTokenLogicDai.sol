@@ -158,7 +158,7 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
 	 *   If the loan is not paid back until then, it'll need to be rolled over.
 	 * @param collateralTokenSent The amount of collateral tokens provided by the user.
 	 *   (150% of the withdrawn amount worth in collateral tokens).
-	 * @param collateralTokenAddress The address of the token to be used as
+	 * @param collateralToken The address of the token to be used as
 	 *   collateral. Cannot be the loan token address.
 	 * @param borrower The one paying for the collateral.
 	 * @param receiver The one receiving the withdrawn amount.
@@ -170,7 +170,7 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
 		uint256 withdrawAmount,
 		uint256 initialLoanDuration, /// Duration in seconds.
 		uint256 collateralTokenSent, /// If 0, loanId must be provided; any rBTC sent must equal this value.
-		address collateralTokenAddress, /// If address(0), this means rBTC and rBTC must be sent with the call or loanId must be provided.
+		address collateralToken, /// If address(0), this means rBTC and rBTC must be sent with the call or loanId must be provided.
 		address borrower,
 		address receiver,
 		bytes memory /// loanDataBytes: arbitrary order data (for future use).
@@ -264,8 +264,6 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
 
 	/**
 	 * @notice The current Maker DSR normalized to APR.
-	 *
-	 * @param _value The normalized DSR.
 	 * */
 	function dsr() public view returns (uint256) {
 		return
@@ -451,8 +449,6 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
 
 	/**
 	 * @notice Internal deposit.
-	 *
-	 * @param _value The amount of DAI to move.
 	 * */
 	function _dsrDeposit() internal {
 		uint256 localBalance = _getDai().balanceOf(address(this));

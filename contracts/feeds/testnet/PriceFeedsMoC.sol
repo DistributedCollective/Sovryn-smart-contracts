@@ -16,17 +16,17 @@ interface Medianizer {
  * */
 contract PriceFeedsMoC is IPriceFeedsExt, Ownable {
 	/* Storage */
-	
+
 	address public mocOracleAddress;
 	address public rskOracleAddress;
 
 	/* Events */
-	
+
 	event SetMoCOracleAddress(address indexed mocOracleAddress, address changerAddress);
 	event SetRSKOracleAddress(address indexed rskOracleAddress, address changerAddress);
 
 	/* Functions */
-	
+
 	/**
 	 * @notice Initialize a new MoC Oracle.
 	 *
