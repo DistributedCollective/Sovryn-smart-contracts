@@ -15,7 +15,6 @@ ignore
 *.txt
 *.log
 !requirements.txt
-package-lock.json
 *_ignore_*
 *_joined_*
 coverage
