@@ -38,7 +38,7 @@ def main():
     #lendToPool(contracts['iDOC'],contracts['DoC'], 1000e18)
     #setTransactionLimits(contracts['iDOC'], [contracts['DoC']], [21e18])
     #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [21e18])
-    readTransactionLimits(contracts['iUSDT'],  contracts['USDT'], contracts['WRBTC'])
+    #readTransactionLimits(contracts['iUSDT'],  contracts['USDT'], contracts['WRBTC'])
 
     '''
     setupLoanParamsForCollaterals(contracts['iBPro'], [contracts['SOV']])
@@ -96,7 +96,7 @@ def main():
     #removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 1e18, [contracts['WRBTC'], contracts['SOV']], [19,1])
 
     # 2986.175 × 99% ~ 2957
-    # removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 2957 * 10**18, [contracts['WRBTC'], contracts['SOV']])
+    #removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 590 * 10**18, [contracts['WRBTC'], contracts['SOV']], [14e18,1])
 
 
 
@@ -123,19 +123,29 @@ def main():
     '''
     readSwapRate(contracts['SOV'], contracts['WRBTC'])
     readOwner(contracts['WRBTCtoSOVConverter'])
-    #acceptOwnershipWithMultisig(contracts['WRBTCtoSOVConverter'])
+    acceptOwnershipWithMultisig(contracts['WRBTCtoSOVConverter'])
     readConversionFee(contracts['WRBTCtoSOVConverter'])‚
     readConversionFee(contracts['ConverterUSDT'])
     '''
     #((impact/100 * 15000e10) + 15000e10) * rbtcBalance - ((impact/100 * 15000e10) + 15000e10) * (sovBalance * rbtcBalance / (sovBalance + amount ))  = amount  
 
-    #sendFromMultisig('0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 20e18)
+    #sendFromMultisig('0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 15e18)
 
     #executeOnMultisig(112)
 
-    #readClaimBalanceOrigin('0x198F90c4A597366430c8D3b122b002F74A7C00C5')
+    #readClaimBalanceOrigin('0xeD8E327DbADB165A3c2432EE4C058F476C87eCc6')
     #acct = accounts[0]
     #acct.deploy(TestToken, "SUSD", "SUSD", 18, 1e50)
+
+    #addOwnerToMultisig('0x4C3d3505d34213751c4b4d621cB6bDe7E664E222')
+
+    #addAdmin('0xEB7abD5e72B820E0a330699d99bF5c0DF76e794d', '0x52E4419b9D33C6e0ceb2e7c01D3aA1a04b21668C')
+    #isVestingAdmin('0xEB7abD5e72B820E0a330699d99bF5c0DF76e794d', '0x52E4419b9D33C6e0ceb2e7c01D3aA1a04b21668C')
+
+    #replaceOwnerOnMultisig(acct, '0x9E0816a71B53ca67201a5088df960fE90910DE55')
+    #readOwnersOfAllContracts()
+    #checkVotingPower('0x7BE508451CD748bA55dcbe75c8067F9420909b49')
+    readVestingContractForAddress('0x6d17a1912e5685c6d0913a2099449fcddba10051')
 
 
 def loadConfig():
@@ -1347,3 +1357,44 @@ def sendSOVFromVestingRegistry():
     tx = multisig.submitTransaction(vestingRegistry.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
+
+def printMultisigOwners():
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    print(multisig.getOwners())
+
+def addAdmin(admin, vestingRegistryAddress):
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=vestingRegistryAddress, abi=VestingRegistry.abi, owner=acct)
+    data = vestingRegistry.addAdmin.encode_input(admin)
+    tx = multisig.submitTransaction(vestingRegistry.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def isVestingAdmin(admin, vestingRegistryAddress):
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=vestingRegistryAddress, abi=VestingRegistry.abi, owner=acct)
+    print(vestingRegistry.admins(admin))
+
+def replaceOwnerOnMultisig(oldOwner, newOwner):
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    data = multisig.replaceOwner.encode_input(oldOwner, newOwner)
+    tx = multisig.submitTransaction(multisig.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId);
+
+def readOwnersOfAllContracts():
+    for contractName in contracts:
+        #print(contractName)
+        contract = Contract.from_abi("Ownable", address=contracts[contractName], abi=LoanToken.abi, owner=acct)
+        if(contractName != 'multisig' and contractName != 'WRBTC' and contractName != 'og'  and contractName != 'USDT' and contractName != 'medianizer' and contractName != 'USDTtoUSDTOracleAMM' and contractName != 'GovernorOwner'  and contractName != 'GovernorAdmin' and contractName != 'SovrynSwapFormula' and contractName != 'MOCState' and contractName != 'USDTPriceFeed' and contractName != 'FeeSharingProxy'  and contractName != 'TimelockOwner'  and contractName != 'TimelockAdmin' and contractName != 'AdoptionFund' and contractName != 'DevelopmentFund'):
+            owner = contract.owner()
+            if(owner != contracts['multisig']):
+                print("owner of ", contractName, " is ", owner)
+
+def readVestingContractForAddress(userAddress):
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    address = vestingRegistry.getVesting(userAddress)
+    if(address == '0x0000000000000000000000000000000000000000'):
+        vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+        address = vestingRegistry.getVesting(userAddress)
+    
+    print(address)
