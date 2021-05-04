@@ -99,10 +99,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 * @param pools The array of addresses of new loan pool instances.
 	 * @param assets The array of addresses of the corresponding underlying tokens.
 	 * */
-	function setLoanPool(
-		address[] calldata pools,
-		address[] calldata assets
-	) external onlyOwner {
+	function setLoanPool(address[] calldata pools, address[] calldata assets) external onlyOwner {
 		require(pools.length == assets.length, "count mismatch");
 
 		for (uint256 i = 0; i < pools.length; i++) {
@@ -263,7 +260,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @return The withdrawn amount.
 	 * */
-	 function withdrawFees(address token, address receiver) external returns (uint256) {
+	function withdrawFees(address token, address receiver) external returns (uint256) {
 		require(msg.sender == feesController, "unauthorized");
 
 		uint256 lendingBalance = lendingFeeTokensHeld[token];
@@ -343,7 +340,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @return Whether withdrawal was successful.
 	 * */
-	 function withdrawTradingFees(
+	function withdrawTradingFees(
 		address token,
 		address receiver,
 		uint256 amount

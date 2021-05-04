@@ -15,7 +15,7 @@ import "./AdvancedTokenStorage.sol";
  * AdvancedToken implements standard ERC-20 approval, mint and burn token functionality.
  * Logic (AdvancedToken) is kept aside from storage (AdvancedTokenStorage).
  *
- * For example, LoanTokenLogicDai contract uses AdvancedToken::_mint() to mints
+ * For example, LoanTokenLogicDai contract uses AdvancedToken::_mint() to mint
  * its Loan Dai iTokens.
  * */
 contract AdvancedToken is AdvancedTokenStorage {

@@ -594,6 +594,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 	/**
 	 * @notice Get interest rate.
+	 *
 	 * @return Interest that lenders are currently receiving when supplying to
 	 * the pool.
 	 * */
@@ -804,8 +805,10 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 	/**
 	 * @notice A wrapper for AdvancedToken::_mint
+	 *
 	 * @param receiver The account getting the minted tokens.
 	 * @param depositAmount The amount of underlying tokens provided on the loan.
+	 *
 	 * @return The amount of loan tokens minted.
 	 * */
 	function _mintToken(address receiver, uint256 depositAmount) internal returns (uint256 mintAmount) {
@@ -833,7 +836,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 	/**
 	 * @notice A wrapper for AdvancedToken::_burn
+	 *
 	 * @param burnAmount The amount of loan tokens to redeem.
+	 *
 	 * @return The amount of underlying tokens payed to lender.
 	 * */
 	function _burnToken(uint256 burnAmount) internal returns (uint256 loanAmountPaid) {
