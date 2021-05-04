@@ -560,7 +560,7 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
 	/**
 	 * @notice Multiplication function for DAI maths.
 	 *
-	 * @dev used for multiplications involving ray's. Precision is lost. 
+	 * @dev used for multiplications involving ray's. Precision is lost.
 	 * */
 	function rmul(uint256 x, uint256 y) internal pure returns (uint256 z) {
 		require(y == 0 || (z = x * y) / y == x);
@@ -579,7 +579,7 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
 	 * as 210; rpow(210, 2, 100) should return 441 (the two-decimal digit
 	 * fixed-point representation of 2.1^2 = 4.41). In the current
 	 * implementation, 10^27 is passed for base, making x and the rpow
-	 * result both of type ray in standard MCD fixed-point terminology. 
+	 * result both of type ray in standard MCD fixed-point terminology.
 	 * */
 	function rpow(
 		uint256 x,

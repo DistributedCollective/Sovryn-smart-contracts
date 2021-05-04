@@ -12,14 +12,20 @@ import "../openzeppelin/Address.sol";
  * getting the price and the last timestamp from an external oracle contract.
  * */
 contract PriceFeedRSKOracle is IPriceFeedsExt, Ownable {
+	/* Storage */
+	
 	address public rskOracleAddress;
 
+	/* Events */
+	
 	event SetRSKOracleAddress(address indexed rskOracleAddress, address changerAddress);
+
+	/* Functions */
 
 	/**
 	 * @notice Initialize a new RSK Oracle.
 	 *
-	 * @param _rskOracleAddress RSK Oracle address.
+	 * @param _rskOracleAddress The RSK Oracle address.
 	 * */
 	constructor(address _rskOracleAddress) public {
 		setRSKOracleAddress(_rskOracleAddress);
