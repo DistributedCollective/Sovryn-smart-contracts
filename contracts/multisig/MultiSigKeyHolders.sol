@@ -6,12 +6,12 @@ import "../openzeppelin/Ownable.sol";
 /**
  * @title Multi Signature Key Holders contract.
  *
- * This contract contains the implementation of functions to add and remove 
+ * This contract contains the implementation of functions to add and remove
  * key holders w/ rBTC and BTC addresses.
  * */
 contract MultiSigKeyHolders is Ownable {
 	/* Storage */
-	
+
 	uint256 public constant MAX_OWNER_COUNT = 50;
 
 	string private constant ERROR_INVALID_ADDRESS = "Invalid address";
@@ -22,7 +22,7 @@ contract MultiSigKeyHolders is Ownable {
 
 	/// List of Ethereum addresses.
 	address[] private ethereumAddresses;
-	
+
 	/// Required number of signatures for the Ethereum multisig.
 	uint256 public ethereumRequired = 2;
 
@@ -31,7 +31,7 @@ contract MultiSigKeyHolders is Ownable {
 
 	/// List of Bitcoin addresses.
 	string[] private bitcoinAddresses;
-	
+
 	/// Required number of signatures for the Bitcoin multisig.
 	uint256 public bitcoinRequired = 2;
 
@@ -51,7 +51,7 @@ contract MultiSigKeyHolders is Ownable {
 	event BitcoinRequirementChanged(uint256 required);
 
 	/* Modifiers */
-	
+
 	modifier validRequirement(uint256 ownerCount, uint256 _required) {
 		require(ownerCount <= MAX_OWNER_COUNT && _required <= ownerCount && _required != 0 && ownerCount != 0, ERROR_INVALID_REQUIRED);
 		_;
