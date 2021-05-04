@@ -61,8 +61,6 @@ contract ISovrynBrownie is
 
 	function setAffiliateFeePercent(uint256 newValue) external;
 
-	function setAffiliateSOVBonusPercent(uint256 newValue) external;
-
 	function setLiquidationIncentivePercent(uint256 newAmount) external;
 
 	function setMaxDisagreement(uint256 newAmount) external;
@@ -317,16 +315,6 @@ contract ISovrynBrownie is
 	function getLegacyOracle(address ref) external view returns (address);
 
 	////// Affiliates Module //////
-
-	function getAffiliatesReferrerBalances(address referrer)
-		external
-		view
-		returns (address[] memory referrerTokensList, uint256[] memory referrerTokensBalances);
-
-	function getAffiliatesReferrerTokensList(address referrer) external view returns (address[] memory tokensList);
-
-	function getAffiliatesReferrerTokenBalance(address referrer, address token) external view returns (uint256);
-
 	function getUserNotFirstTradeFlag(address user) external view returns (bool);
 
 	function setUserNotFirstTradeFlag(address user) external view returns (bool);
@@ -336,16 +324,6 @@ contract ISovrynBrownie is
 		address token,
 		uint256 tradingFeeTokenBaseAmount
 	) external returns (uint256 referrerTradingFee);
-
-	function withdrawAffiliatesReferrerTokenFees(
-		address token,
-		address receiver,
-		uint256 amount
-	) external returns (uint256 withdrawAmount);
-
-	function withdrawAllAffiliatesReferrerTokenFees(
-		address receiver
-	) external;
 
 	function setAffiliatesUserReferrer(address user, address referrer) external; //onlyCallableByLoanPools
 

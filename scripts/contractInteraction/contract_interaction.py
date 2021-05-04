@@ -884,14 +884,6 @@ def setAffiliateFeePercent(fee):
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
 
-def setAffiliateSOVBonusPercent(percentBonus):
-    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
-    data = sovryn.setAffiliateSOVBonusPercent.encode_input(percentBonus)
-    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
-    tx = multisig.submitTransaction(sovryn.address,0,data)
-    txId = tx.events["Submission"]["transactionId"]
-    print(txId);
-
 def setMinReferralsToPayout(minReferrals):
     sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
     data = sovryn.setMinReferralsToPayoutAffiliates.encode_input(minReferrals)

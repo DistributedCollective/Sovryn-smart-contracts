@@ -103,6 +103,18 @@ def deployProtocol(acct, tokens, mocOracleAddress, rskOracleAddress):
     affiliates = acct.deploy(Affiliates)
     print("Calling replaceContract.")
     sovryn.replaceContract(affiliates.address)
+
+    # LockedSov
+    print("Deploying LockedSov.")
+    lockedSov = acct.deploy(LockedSovMockup)
+    print("Calling replaceContract.")
+    sovryn.replaceContract(lockedSov.address)
+
+    # print("Deploying LockedSOV.")
+    # lockedSOV = acct.deploy(LockedSOVMockup, tokens.sov.address, [acct])
+    # print("Calling replaceContract.")
+    # print(lockedSOV.address)
+    # sovryn.replaceContract(lockedSOV.address)
     
     return (sovryn, feeds)
     ## SwapExternal

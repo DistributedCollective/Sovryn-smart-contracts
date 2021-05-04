@@ -30,7 +30,6 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.setTradingFeePercent.selector, target);
 		_setTarget(this.setBorrowingFeePercent.selector, target);
 		_setTarget(this.setAffiliateFeePercent.selector, target);
-		_setTarget(this.setAffiliateSOVBonusPercent.selector, target);
 		_setTarget(this.setLiquidationIncentivePercent.selector, target);
 		_setTarget(this.setMaxDisagreement.selector, target);
 		_setTarget(this.setSourceBuffer.selector, target);
@@ -158,14 +157,6 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		affiliateFeePercent = newValue;
 
 		emit SetAffiliateFeePercent(msg.sender, oldValue, newValue);
-	}
-
-	function setAffiliateSOVBonusPercent(uint256 newValue) external onlyOwner {
-		require(newValue <= 10**20, "Value too high");
-		uint256 oldValue = affiliateSOVBonusPercent;
-		affiliateSOVBonusPercent = newValue;
-
-		emit SetAffiliateSOVBonusPercent(msg.sender, oldValue, newValue);
 	}
 
 	function setLiquidationIncentivePercent(uint256 newValue) external onlyOwner {

@@ -22,8 +22,6 @@ contract ProtocolSettingsEvents {
 
 	event SetAffiliateFeePercent(address indexed sender, uint256 oldValue, uint256 newValue);
 
-	event SetAffiliateSOVBonusPercent(address indexed sender, uint256 oldValue, uint256 newValue);
-
 	event SetLiquidationIncentivePercent(address indexed sender, uint256 oldValue, uint256 newValue);
 
 	event SetMaxSwapSize(address indexed sender, uint256 oldValue, uint256 newValue);

@@ -10,16 +10,13 @@ contract AffiliatesEvents {
 
 	event SetAffiliatesReferrerFail(address indexed user, address indexed referrer, bool alreadySet, bool userNotFirstTrade);
 
-	event WithdrawAffiliatesReferrerTokenFees(
-		address indexed referrer,
-		address indexed receiver,
-		address indexed tokenAddress,
-		uint256 amount
-	);
-
 	event SetUserNotFirstTradeFlag(address indexed user);
 
-	event PayTradingFeeToAffiliate(address indexed referrer, address indexed feeToken, uint256 fee);
-
-	event SetAffiliatesSOVBonus(address indexed referrer, uint256 indexed sovBonusAmount);
+	event PayTradingFeeToAffiliate(
+		address indexed referrer,
+		address indexed token,
+		bool indexed isHeld,
+		uint256 tradingFeeTokenAmount,
+		uint256 sovBonusAmount
+	);
 }
