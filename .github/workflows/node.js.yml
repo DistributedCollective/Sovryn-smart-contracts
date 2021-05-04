@@ -3,7 +3,11 @@
 
 name: Node.js CI
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+    branches:
+      - development
 
 jobs:
   build:
@@ -22,4 +26,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm i
-    - run: npm run test-js
+    - run: npm run prettier-check
+    - run: npm run coverage
+    - run: cat coverage/lcov.info | coveralls
