@@ -231,7 +231,7 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
 	 * @param leverageAmount The multiple of exposure: 2x ... 5x. The leverage with 18 decimals.
 	 * @param loanTokenSent The number of loan tokens provided by the user.
 	 * @param collateralTokenSent The amount of collateral tokens provided by the user.
-	 * @param collateralTokenAddress The token address of collateral.
+	 * @param collateralToken The token address of collateral.
 	 * @param trader The account that performs this trade.
 	 *
 	 * @return New principal and new collateral added to trade.
@@ -241,7 +241,7 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
 		uint256 leverageAmount, /// Expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5).
 		uint256 loanTokenSent,
 		uint256 collateralTokenSent,
-		address collateralTokenAddress,
+		address collateralToken,
 		address trader,
 		bytes memory loanDataBytes /// Arbitrary order data.
 	)
