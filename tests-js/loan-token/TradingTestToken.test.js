@@ -91,14 +91,16 @@ contract("LoanTokenTrading", (accounts) => {
 		it("Test margin trading sending collateral tokens", async () => {
 			const loanSize = new BN(10000).mul(oneEth);
 			await SUSD.mint(loanToken.address, loanSize.mul(new BN(12)));
+
 			//   address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
 			const collateralTokenSent = await sovryn.getRequiredCollateral(
-				SUSD.address,
-				RBTC.address,
-				loanSize.mul(new BN(2)),
-				new BN(50).mul(oneEth),
-				false
+				SUSD.address, //loanToken
+				RBTC.address, //collateralToken
+				loanSize.mul(new BN(2)), //newPrincipal loanSize*2 ethers
+				new BN(50).mul(oneEth), //leverage amount (5x leverage)
+				false //false means we are trading (true if borrowing) - the loan is stored and processed in the loanToken contract
 			);
+
 			await RBTC.mint(accounts[0], collateralTokenSent);
 			await RBTC.mint(accounts[2], collateralTokenSent);
 			// important! WRBTC is being held by the loanToken contract itself, all other tokens are transfered directly from
@@ -106,7 +108,7 @@ contract("LoanTokenTrading", (accounts) => {
 			await RBTC.approve(loanToken.address, collateralTokenSent);
 			await RBTC.approve(loanToken.address, collateralTokenSent, { from: accounts[2] });
 
-			const leverageAmount = new BN(5).mul(oneEth);
+			const leverageAmount = new BN(5).mul(oneEth); // 5x leverage
 			const value = 0;
 			await margin_trading_sending_collateral_tokens(
 				accounts,

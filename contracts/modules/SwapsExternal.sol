@@ -66,8 +66,8 @@ contract SwapsExternal is VaultController, SwapsUser {
 		address returnToSender,
 		uint256 sourceTokenAmount,
 		uint256 requiredDestTokenAmount,
-		bytes calldata swapData
-	) external payable nonReentrant returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
+		bytes memory swapData
+	) public payable nonReentrant returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
 		require(sourceTokenAmount != 0, "sourceTokenAmount == 0");
 
 		/// @dev Get payed value, be it rBTC or tokenized.
@@ -82,7 +82,14 @@ contract SwapsExternal is VaultController, SwapsUser {
 			wrbtcToken.deposit.value(sourceTokenAmount)();
 		} else {
 			/// @dev Transfer tokens from sender to this contract.
+			IERC20 sourceTokenContract = IERC20(sourceToken);
+
+			uint256 balanceBefore = sourceTokenContract.balanceOf(address(this));
+
 			IERC20(sourceToken).safeTransferFrom(msg.sender, address(this), sourceTokenAmount);
+
+			// explicit balance check so that we can support deflationary tokens
+			sourceTokenAmount = sourceTokenContract.balanceOf(address(this)).sub(balanceBefore);
 		}
 
 		/// @dev Perform the swap w/ tokens.

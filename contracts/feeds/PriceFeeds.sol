@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.
+ * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
 
@@ -117,6 +117,9 @@ contract PriceFeeds is Constants, Ownable {
 		address destToken,
 		uint256 sourceAmount
 	) public view returns (uint256 destAmount) {
+		if (globalPricingPaused) {
+			return 0;
+		}
 		(uint256 rate, uint256 precision) = _queryRate(sourceToken, destToken);
 
 		destAmount = sourceAmount.mul(rate).div(precision);
@@ -147,6 +150,7 @@ contract PriceFeeds is Constants, Ownable {
 		uint256 destAmount,
 		uint256 maxSlippage
 	) public view returns (uint256 sourceToDestSwapRate) {
+		require(!globalPricingPaused, "pricing is paused");
 		(uint256 rate, uint256 precision) = _queryRate(sourceToken, destToken);
 
 		sourceToDestSwapRate = destAmount.mul(precision).div(sourceAmount);
@@ -349,11 +353,9 @@ contract PriceFeeds is Constants, Ownable {
 	 * @param isPaused The new status of pause (true/false).
 	 * */
 	function setGlobalPricingPaused(bool isPaused) external onlyOwner {
-		if (globalPricingPaused != isPaused) {
-			globalPricingPaused = isPaused;
+		globalPricingPaused = isPaused;
 
-			emit GlobalPricingPaused(msg.sender, isPaused);
-		}
+		emit GlobalPricingPaused(msg.sender, isPaused);
 	}
 
 	/*

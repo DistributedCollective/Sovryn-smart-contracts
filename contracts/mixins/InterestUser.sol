@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.
+ * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
 
@@ -31,7 +31,9 @@ contract InterestUser is VaultController, FeesHelper {
 
 		uint256 interestOwedNow = 0;
 		if (lenderInterestLocal.owedPerDay != 0 && lenderInterestLocal.updatedTimestamp != 0) {
-			interestOwedNow = block.timestamp.sub(lenderInterestLocal.updatedTimestamp).mul(lenderInterestLocal.owedPerDay).div(86400);
+			interestOwedNow = block.timestamp.sub(lenderInterestLocal.updatedTimestamp).mul(lenderInterestLocal.owedPerDay).div(1 days);
+
+			lenderInterestLocal.updatedTimestamp = block.timestamp;
 
 			if (interestOwedNow > lenderInterestLocal.owedTotal) interestOwedNow = lenderInterestLocal.owedTotal;
 
@@ -41,9 +43,9 @@ contract InterestUser is VaultController, FeesHelper {
 
 				_payInterestTransfer(lender, interestToken, interestOwedNow);
 			}
+		} else {
+			lenderInterestLocal.updatedTimestamp = block.timestamp;
 		}
-
-		lenderInterestLocal.updatedTimestamp = block.timestamp;
 	}
 
 	/**
@@ -58,6 +60,8 @@ contract InterestUser is VaultController, FeesHelper {
 		uint256 interestOwedNow
 	) internal {
 		uint256 lendingFee = interestOwedNow.mul(lendingFeePercent).div(10**20);
+		//TODO: refactor: data incapsulation violation and DRY design principles
+		//uint256 lendingFee = interestOwedNow.mul(lendingFeePercent).divCeil(10**20); is better but produces errors in tests because of this
 
 		_payLendingFee(lender, interestToken, lendingFee);
 

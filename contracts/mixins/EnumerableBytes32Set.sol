@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.
+ * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
 
@@ -123,6 +123,17 @@ library EnumerableBytes32Set {
 	}
 
 	/**
+	 * @dev Returns true if the value is in the set. O(1).
+	 */
+	function containsAddress(Bytes32Set storage set, address addrvalue) internal view returns (bool) {
+		bytes32 value;
+		assembly {
+			value := addrvalue
+		}
+		return set.index[value] != 0;
+	}
+
+	/**
 	 * @notice Get all set values.
 	 *
 	 * @param set The set of values.
@@ -136,7 +147,7 @@ library EnumerableBytes32Set {
 	 *
 	 * WARNING: This function may run out of gas on large sets: use {length} and
 	 * {get} instead in these cases.
-	 */
+     */
 	function enumerate(
 		Bytes32Set storage set,
 		uint256 start,

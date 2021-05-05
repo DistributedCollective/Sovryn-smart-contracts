@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.
+ * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
 
@@ -35,7 +35,7 @@ import "./Pausable.sol";
  * positions, they automatically receive pTokens. The system is also designed to
  * use the BZRX tokens, which are only used to pay fees on the network currently.
  * */
-contract LoanTokenBase is ReentrancyGuard, Ownable {
+contract LoanTokenBase is ReentrancyGuard, Ownable, Pausable {
 	uint256 internal constant WEI_PRECISION = 10**18;
 	uint256 internal constant WEI_PERCENT_PRECISION = 10**20;
 

@@ -128,9 +128,8 @@ contract LoanSettings is State, LoanSettingsEvents {
 		uint256 count
 	) external view returns (bytes32[] memory loanParamsList) {
 		EnumerableBytes32Set.Bytes32Set storage set = userLoanParamSets[owner];
-
-		uint256 end = count.min256(set.values.length);
-		if (end == 0 || start >= end) {
+		uint256 end = start.add(count).min256(set.length());
+		if (start >= end) {
 			return loanParamsList;
 		}
 
