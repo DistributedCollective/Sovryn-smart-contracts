@@ -10,10 +10,10 @@ import "./LoanTokenLogicStandard.sol";
 import "../../interfaces/IChai.sol";
 
 contract LoanTokenLogicDai is LoanTokenLogicStandard {
-    uint256 constant RAY = 10**27;
+	uint256 constant RAY = 10**27;
 
-    // Mainnet
-    /*IChai public constant chai = IChai(0x06AF07097C9Eeb7fD685c692751D5C66dB49c215);
+	// Mainnet
+	/*IChai public constant chai = IChai(0x06AF07097C9Eeb7fD685c692751D5C66dB49c215);
     IPot public constant pot = IPot(0x197E90f9FAD81970bA7976f33CbD77088E5D7cf7);
     IERC20 public constant dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);*/
 
@@ -150,7 +150,7 @@ contract LoanTokenLogicDai is LoanTokenLogicStandard {
         address collateralToken, // if address(0), this means ETH and ETH must be sent with the call or loanId must be provided
         address borrower,
         address receiver,
-        bytes memory /*loanDataBytes*/ // arbitrary order data (for future use)
+        bytes memory // arbitrary order data (for future use) /*loanDataBytes*/
     )
         public
         payable

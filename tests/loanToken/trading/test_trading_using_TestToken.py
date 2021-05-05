@@ -11,7 +11,6 @@ test script for testing the loan token trading logic with 2 TestTokens.
 import pytest
 from loanToken.trading.shared_trading_functions import *
 
-
 '''
 verifies that the loan token address is set on the contract
 '''
@@ -37,7 +36,7 @@ process:
 1. send the margin trade tx with the passed parameter (NOTE: the token transfer needs to be approved already)
 2. TODO verify the trade event and balances are correct
 ''' 
-def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, RBTC, chain, FeesEvents, SOV):
+def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, RBTC, chain, FeesEvents, SOV, priceFeeds):
     loanSize = 10000e18
     SUSD.mint(loanToken.address, loanSize * 12)
     #   address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
@@ -52,7 +51,7 @@ def test_margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, S
     leverageAmount = 5e18
     value = 0
     margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, SUSD, RBTC, loanSize, collateralTokenSent,
-                                             leverageAmount, value)
+                                             leverageAmount, value, priceFeeds)
     margin_trading_sending_collateral_tokens_sov_reward_payment(accounts[2], loanToken, RBTC, collateralTokenSent,
                                                                 leverageAmount, value, chain, FeesEvents, SOV)
 
@@ -133,3 +132,37 @@ def test_getMaxEscrowAmount(loanToken, set_demand_curve, lend_to_pool):
     #note maxLoanSize != supply because getMaxEscrowAmount assumes an interest rate of 100%, but less is actually used
     #checked the correctnessby printing the value but don't add a manual check here because no time and having issues with brownie
     #ReturnValue
+
+def test_margin_trading_without_early_access_token_should_fail(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain, TestToken):
+    # prepare early access token
+    early_access_token = accounts[0].deploy(TestToken, "Sovryn Early Access Token", "SEAT", 1, 10)
+    early_access_token.transfer(accounts[1], early_access_token.balanceOf(accounts[0]))
+    loanToken.setEarlyAccessToken(early_access_token.address)
+
+    with reverts("No early access tokens"):
+        margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain, False) 
+
+
+def test_increasing_position_of_other_trader_should_fail(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, chain, SOV, FeesEvents,lend_to_pool,open_margin_trade_position):
+    #prepare the test
+    (receiver, _) = lend_to_pool()
+    #trader=accounts[1] on this call
+    (loan_id, trader, loan_token_sent, leverage_amount) = open_margin_trade_position()
+
+    #deposit collateral to add margin to the loan created above
+    RBTC.approve(sovryn, 1e18)
+    tx = sovryn.depositCollateral(loan_id, 1e18)
+    RBTC.transfer(accounts[2], 1e18)
+    RBTC.approve(loanToken, 1e18, {'from':accounts[2]})
+
+    with reverts("unauthorized use of existing loan"):
+        tx = loanToken.marginTrade(
+            loan_id, #loanId  (0 for new loans)
+            2e18, # leverageAmount
+            0, #loanTokenSent
+            1000, # no collateral token sent
+            RBTC.address, #collateralTokenAddress
+            accounts[1], #trader,
+            b'', #loanDataBytes (only required with ether)
+            {'from':accounts[2]}
+        )

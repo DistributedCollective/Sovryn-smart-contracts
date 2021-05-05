@@ -26,7 +26,7 @@ def deployProtocol(acct, tokens, mocOracleAddress, rskOracleAddress):
 
     print("Deploying sovrynProtocol.")
     sovrynproxy = acct.deploy(sovrynProtocol)
-    sovryn = Contract.from_abi("sovryn", address=sovrynproxy.address, abi=interface.ISovryn.abi, owner=acct)
+    sovryn = Contract.from_abi("sovryn", address=sovrynproxy.address, abi=interface.ISovrynBrownie.abi, owner=acct)
     _add_contract(sovryn)
 
     print("Deploying PriceFeeds.")
@@ -87,5 +87,11 @@ def deployProtocol(acct, tokens, mocOracleAddress, rskOracleAddress):
     loanClosings = acct.deploy(LoanClosings)
     print("Calling replaceContract.")
     sovryn.replaceContract(loanClosings.address)
+
+    ## SwapExternal
+    print("Deploying SwapExternal.")
+    swapExternal = acct.deploy(SwapsExternal)
+    print("Calling replaceContract.")
+    sovryn.replaceContract(swapExternal.address)
 
     return (sovryn, feeds)

@@ -212,3 +212,180 @@ def test_borrow_insufficient_collateral_should_fail(accounts,loanToken,sovryn,se
             b''                             # bytes memory loanDataBytes
         )
     
+def test_borrow_without_early_access_token_should_fail_if_required(TestToken,accounts,loanToken,sovryn,set_demand_curve,lend_to_pool, SUSD, RBTC):
+    # prepare the test
+    lend_to_pool()
+    set_demand_curve()
+
+    # prepare early access token
+    early_access_token = accounts[0].deploy(TestToken, "Sovryn Early Access Token", "SEAT", 1, 10)
+    early_access_token.transfer(accounts[1], early_access_token.balanceOf(accounts[0]))
+    loanToken.setEarlyAccessToken(early_access_token.address)
+
+    # determine borrowing parameter
+    withdrawAmount = 10e18 #i want to borrow 10 USD
+    # compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
+    collateralTokenSent = sovryn.getRequiredCollateral(SUSD.address,RBTC.address,withdrawAmount,50e18, True)
+    print("sending collateral",collateralTokenSent)
+
+    #approve the transfer of the collateral
+    RBTC.approve(loanToken.address, collateralTokenSent)
+
+    with reverts("No early access tokens"):
+        loanToken.borrow(
+            "0",                            # bytes32 loanId
+            withdrawAmount ,                # uint256 withdrawAmount
+            24*60*60,                       # uint256 initialLoanDuration
+            collateralTokenSent,            # uint256 collateralTokenSent
+            RBTC.address,                   # address collateralTokenAddress
+            accounts[0],                    # address borrower
+            accounts[1],                    # address receiver
+            b''                             # bytes memory loanDataBytes
+        )
+
+'''
+borrows some funds from account 0 and then takes out some more from account 2 with 'borrow' without paying
+should fail.
+'''
+def test_borrow_from_foreign_loan_should_fail(accounts,loanToken,sovryn,set_demand_curve,lend_to_pool, SUSD, RBTC, FeesEvents, SOV):
+    # prepare the test
+    lend_to_pool()
+    set_demand_curve()
+
+    # determine borrowing parameter
+    withdrawAmount = 10e18 #i want to borrow 10 USD
+    # compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan 
+    collateralTokenSent = 2* sovryn.getRequiredCollateral(SUSD.address,RBTC.address,withdrawAmount,50e18, True)
+    print("collateral needed", collateralTokenSent)
+    durationInSeconds = 60*60*24*10 #10 days
+    
+    #approve the transfer of the collateral
+    RBTC.approve(loanToken.address, collateralTokenSent)
+
+    borrower = accounts[0]
+
+    # borrow some funds
+    tx = loanToken.borrow(
+        "0",                            # bytes32 loanId
+        withdrawAmount,                 # uint256 withdrawAmount
+        durationInSeconds,              # uint256 initialLoanDuration
+        collateralTokenSent,            # uint256 collateralTokenSent
+        RBTC.address,                   # address collateralTokenAddress
+        borrower,                       # address borrower
+        accounts[1],                    # address receiver
+        b''                             # bytes memory loanDataBytes
+    )
+    borrow_event = tx.events['Borrow']
+    loanId = borrow_event['loanId']
+
+    RBTC.transfer(accounts[2], collateralTokenSent)
+    #approve the transfer of the collateral
+    RBTC.approve(loanToken.address, collateralTokenSent, {'from': accounts[2]})
+
+    with reverts("unauthorized use of existing loan"):
+        tx = loanToken.borrow(
+            loanId,                            # bytes32 loanId
+            withdrawAmount/2,                 # uint256 withdrawAmount
+            durationInSeconds,              # uint256 initialLoanDuration
+            1,            # uint256 collateralTokenSent
+            RBTC.address,                   # address collateralTokenAddress
+            borrower,                       # address borrower
+            accounts[2],                    # address receiver
+            b'',                             # bytes memory loanDataBytes
+            {'from': accounts[2]}
+        )
+
+'''
+borrows some funds from account 0 and then takes out some more from account 2 with a marginTrade without paying
+should fail.
+'''   
+def test_margin_trade_from_foreign_loan_should_fail(accounts,loanToken,sovryn,set_demand_curve,lend_to_pool, SUSD, RBTC, FeesEvents, SOV, priceFeeds):
+
+    # prepare the test
+    lend_to_pool()
+    set_demand_curve()
+
+    # determine borrowing parameter
+    withdrawAmount = 10e18 #i want to borrow 10 USD
+    # compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan 
+    collateralTokenSent = 2* sovryn.getRequiredCollateral(SUSD.address,RBTC.address,withdrawAmount,50e18, True)
+    print("collateral needed", collateralTokenSent)
+    durationInSeconds = 60*60*24*10 #10 days
+    
+    #approve the transfer of the collateral
+    RBTC.approve(loanToken.address, collateralTokenSent)
+
+    borrower = accounts[0]
+
+    # borrow some funds
+    tx = loanToken.borrow(
+        "0",                            # bytes32 loanId
+        withdrawAmount,                 # uint256 withdrawAmount
+        durationInSeconds,              # uint256 initialLoanDuration
+        collateralTokenSent,            # uint256 collateralTokenSent
+        RBTC.address,                   # address collateralTokenAddress
+        borrower,                       # address borrower
+        accounts[1],                    # address receiver
+        b''                             # bytes memory loanDataBytes
+    )
+    borrow_event = tx.events['Borrow']
+    loanId = borrow_event['loanId']
+
+    SUSD.transfer(accounts[2], collateralTokenSent)
+    #approve the transfer of the collateral
+    SUSD.approve(loanToken.address, collateralTokenSent, {'from': accounts[2]})
+
+    with reverts("borrower mismatch"):
+        tx = loanToken.marginTrade(
+            loanId, #loanId  (0 for new loans)
+            1e18, # leverageAmount
+            10000000, #loanTokenSent
+            0, # no collateral token sent
+            RBTC.address, #collateralTokenAddress
+            accounts[2], #trader,
+            b'', #loanDataBytes (only required with ether)
+            {'from': accounts[2]}
+        )
+
+'''
+margin trades from account 0 and then borrows from same loan.
+should fail.
+'''
+def test_borrow_from_trade_position_should_fail(accounts,loanToken,sovryn,set_demand_curve,lend_to_pool, SUSD, RBTC, FeesEvents, SOV):
+    # prepare the test
+    lend_to_pool()
+    set_demand_curve()
+
+    # determine borrowing parameter
+    withdrawAmount = 10e18 #i want to borrow 10 USD
+    
+    #approve the transfer of the collateral
+    SUSD.approve(loanToken.address, withdrawAmount)
+
+    tx = loanToken.marginTrade(
+        0, #loanId  (0 for new loans)
+        1e18, # leverageAmount
+        withdrawAmount, #loanTokenSent
+        0, # no collateral token sent
+        RBTC.address, #collateralTokenAddress
+        accounts[0], #trader,
+        b'', #loanDataBytes (only required with ether)
+    )
+    borrow_event = tx.events['Trade']
+    loanId = borrow_event['loanId']
+
+    #approve the transfer of the collateral
+    RBTC.approve(loanToken.address, withdrawAmount)
+
+    with reverts("loanParams mismatch"):
+        tx = loanToken.borrow(
+            loanId,                            # bytes32 loanId
+            withdrawAmount/10,                 # uint256 withdrawAmount
+            60*60*24*10,              # uint256 initialLoanDuration
+            1,            # uint256 collateralTokenSent
+            RBTC.address,                   # address collateralTokenAddress
+            accounts[0],                       # address borrower
+            accounts[0],                    # address receiver
+            b'',                             # bytes memory loanDataBytes
+            {'from': accounts[0]}
+        )

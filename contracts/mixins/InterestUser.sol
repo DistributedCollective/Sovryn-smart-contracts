@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.
+ * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
 
@@ -11,51 +11,42 @@ import "../mixins/VaultController.sol";
 import "./FeesHelper.sol";
 
 contract InterestUser is VaultController, FeesHelper {
-    using SafeERC20 for IERC20;
+	using SafeERC20 for IERC20;
 
-    function _payInterest(address lender, address interestToken) internal {
-        LenderInterest storage lenderInterestLocal =
-            lenderInterest[lender][interestToken];
+	function _payInterest(address lender, address interestToken) internal {
+		LenderInterest storage lenderInterestLocal = lenderInterest[lender][interestToken];
 
-        uint256 interestOwedNow = 0;
-        if (
-            lenderInterestLocal.owedPerDay != 0 &&
-            lenderInterestLocal.updatedTimestamp != 0
-        ) {
-            interestOwedNow = block
-                .timestamp
-                .sub(lenderInterestLocal.updatedTimestamp)
-                .mul(lenderInterestLocal.owedPerDay)
-                .div(86400);
+		uint256 interestOwedNow = 0;
+		if (lenderInterestLocal.owedPerDay != 0 && lenderInterestLocal.updatedTimestamp != 0) {
+			interestOwedNow = block.timestamp.sub(lenderInterestLocal.updatedTimestamp).mul(lenderInterestLocal.owedPerDay).div(1 days);
 
-            if (interestOwedNow > lenderInterestLocal.owedTotal)
-                interestOwedNow = lenderInterestLocal.owedTotal;
+			lenderInterestLocal.updatedTimestamp = block.timestamp;
 
-            if (interestOwedNow != 0) {
-                lenderInterestLocal.paidTotal = lenderInterestLocal
-                    .paidTotal
-                    .add(interestOwedNow);
-                lenderInterestLocal.owedTotal = lenderInterestLocal
-                    .owedTotal
-                    .sub(interestOwedNow);
+			if (interestOwedNow > lenderInterestLocal.owedTotal) interestOwedNow = lenderInterestLocal.owedTotal;
 
-                _payInterestTransfer(lender, interestToken, interestOwedNow);
-            }
-        }
+			if (interestOwedNow != 0) {
+				lenderInterestLocal.paidTotal = lenderInterestLocal.paidTotal.add(interestOwedNow);
+				lenderInterestLocal.owedTotal = lenderInterestLocal.owedTotal.sub(interestOwedNow);
 
-        lenderInterestLocal.updatedTimestamp = block.timestamp;
-    }
+				_payInterestTransfer(lender, interestToken, interestOwedNow);
+			}
+		} else {
+			lenderInterestLocal.updatedTimestamp = block.timestamp;
+		}
+	}
 
-    function _payInterestTransfer(
-        address lender,
-        address interestToken,
-        uint256 interestOwedNow
-    ) internal {
-        uint256 lendingFee = interestOwedNow.mul(lendingFeePercent).div(10**20);
+	function _payInterestTransfer(
+		address lender,
+		address interestToken,
+		uint256 interestOwedNow
+	) internal {
+		uint256 lendingFee = interestOwedNow.mul(lendingFeePercent).div(10**20);
+		//TODO: refactor: data incapsulation violation and DRY design principles
+		//uint256 lendingFee = interestOwedNow.mul(lendingFeePercent).divCeil(10**20); is better but produces errors in tests because of this
 
-        _payLendingFee(lender, interestToken, lendingFee);
+		_payLendingFee(lender, interestToken, lendingFee);
 
-        // transfers the interest to the lender, less the interest fee
-        vaultWithdraw(interestToken, lender, interestOwedNow.sub(lendingFee));
-    }
+		// transfers the interest to the lender, less the interest fee
+		vaultWithdraw(interestToken, lender, interestOwedNow.sub(lendingFee));
+	}
 }

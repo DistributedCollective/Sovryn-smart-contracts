@@ -3,6 +3,7 @@ __pycache__
 .DS_Store
 .history
 .hypothesis/
+.gradle/
 build/
 reports/
 node_modules/
@@ -22,3 +23,11 @@ coverage.json
 .vscode
 yarn.lock
 solc-select
+.idea/
+.env
+node_modules
+artifacts/
+cache/
+contracts_bzx/
+tmp/
+tmp

@@ -2,71 +2,71 @@
 # https://eth-brownie.readthedocs.io/en/stable/config.html
 
 project_structure:
-    build: build
-    contracts: contracts
-    interfaces: interfaces
-    reports: reports
-    scripts: scripts
-    tests: tests
+  build: build
+  contracts: contracts
+  interfaces: interfaces
+  reports: reports
+  scripts: scripts
+  tests: tests
 
 networks:
-    default: development
-    development:
-        gas_limit: 6800000
-        gas_price: 65000000
-        reverting_tx_gas_limit: 8000000
-        default_contract_owner: true
-        cmd_settings:
-            port: 8545
-            gas_limit: 6800000
-            accounts: 10
-            evm_version: istanbul
-            mnemonic: brownie
-            block_time: 0
-            default_balance: 1000000
-            #time: 2020-05-08T14:54:08+0000
-    live:
-        cmd_settings:
-            port: 443
-        gas_limit: 6800000
-        gas_price: 65000010 # 8000000000
-        reverting_tx_gas_limit: false
-        default_contract_owner: false
+  default: development
+  development:
+    gas_limit: 6800000
+    gas_price: 65000000
+    reverting_tx_gas_limit: 8000000
+    default_contract_owner: true
+    cmd_settings:
+      port: 8545
+      gas_limit: 6800000
+      accounts: 10
+      evm_version: istanbul
+      mnemonic: brownie
+      block_time: 0
+      default_balance: 1000000
+      #time: 2020-05-08T14:54:08+0000
+  live:
+    cmd_settings:
+      port: 443
+    gas_limit: 6800000
+    gas_price: 60000010 # 8000000000
+    reverting_tx_gas_limit: false
+    default_contract_owner: false
 
 compiler:
-    evm_version: null
-    solc:
-        version: null
-        optimizer:
-            enabled: true
-            runs: 200
-        remappings: null
+  evm_version: null
+  solc:
+    version: null
+    optimizer:
+      enabled: true
+      runs: 200
+    remappings: null
 
 console:
-    show_colors: true
-    color_style: monokai
-    auto_suggest: true
-    completions: true
+  show_colors: true
+  color_style: monokai
+  auto_suggest: true
+  completions: true
 
 reports:
-    exclude_paths:
-        - contracts/testhelpers/**/*.*
-        - contracts/openzeppelin/**/*.*
-        - contracts/feeds/testnet/**/*.*
-    exclude_contracts:
-        - Address
-        - Context
-        - Ownable
-        - ReentrancyGuard
-        - SafeERC20
-        - SafeMath
-        - EnumerableBytes32Set
+  exclude_paths:
+    - contracts/testhelpers/**/*.*
+    - contracts/openzeppelin/**/*.*
+    - contracts/feeds/testnet/**/*.*
+  exclude_contracts:
+    - Address
+    - Context
+    - Ownable
+    - ReentrancyGuard
+    - SafeERC20
+    - SafeMath
+    - EnumerableBytes32Set
 
 hypothesis:
-    deadline: null
-    max_examples: 50
-    report_multiple_bugs: False
-    stateful_step_count: 10
+  deadline: null
+  max_examples: 50
+  report_multiple_bugs: False
+  stateful_step_count: 10
 
 autofetch_sources: false
 dependencies: null

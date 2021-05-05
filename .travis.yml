@@ -1,4 +1,6 @@
 language: node_js
+os: linux
+dist: xenial
 node_js:
   - "10"
 
@@ -6,12 +8,13 @@ cache:
   directories:
   - node_modules
 
-before_script:
+before_install:
   - export NODE_OPTIONS=--max_old_space_size=4096
+
+install:
   - npm install
 
 script:
-  - npm run prettier
   - npm run lint-contracts
   - npm run test-js
 

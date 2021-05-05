@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.
+ * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
 
@@ -11,47 +11,37 @@ import "./interfaces/ProtocolLike.sol";
 import "./interfaces/FeedsLike.sol";
 
 contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
-    using SignedSafeMath for int256;
+	using SafeMath for uint256;
+	using SignedSafeMath for int256;
 
-    // It is important to maintain the variables order so the delegate calls can access sovrynContractAddress and wrbtcTokenAddress
-    address public wrbtcTokenAddress;
-    address internal target_;
+	// DON'T ADD VARIABLES HERE, PLEASE
 
-    uint256 public constant VERSION = 5;
-    address internal constant arbitraryCaller =
-        0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
+	uint256 public constant VERSION = 6;
+	address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
+	bytes32 internal constant iToken_ProfitSoFar = 0x37aa2b7d583612f016e4a4de4292cb015139b3d7762663d06a53964912ea2fb6; // keccak256("iToken_ProfitSoFar")
 
-    function() external {
-        revert("loan token logic - fallback not allowed");
-    }
+	function() external {
+		revert("loan token logic - fallback not allowed");
+	}
 
-    /* Public functions */
+	/* Public functions */
 
-    function mint(address receiver, uint256 depositAmount)
-        external
-        nonReentrant
-        returns (uint256 mintAmount)
-    {
-        //temporary: limit transaction size
-        if (transactionLimit[loanTokenAddress] > 0)
-            require(depositAmount <= transactionLimit[loanTokenAddress]);
+	function mint(address receiver, uint256 depositAmount) external nonReentrant hasEarlyAccessToken returns (uint256 mintAmount) {
+		//temporary: limit transaction size
+		if (transactionLimit[loanTokenAddress] > 0) require(depositAmount <= transactionLimit[loanTokenAddress]);
 
-        return _mintToken(receiver, depositAmount);
-    }
+		return _mintToken(receiver, depositAmount);
+	}
 
-    function burn(address receiver, uint256 burnAmount)
-        external
-        nonReentrant
-        returns (uint256 loanAmountPaid)
-    {
-        loanAmountPaid = _burnToken(burnAmount);
+	function burn(address receiver, uint256 burnAmount) external nonReentrant returns (uint256 loanAmountPaid) {
+		loanAmountPaid = _burnToken(burnAmount);
 
-        if (loanAmountPaid != 0) {
-            _safeTransfer(loanTokenAddress, receiver, loanAmountPaid, "5");
-        }
-    }
+		if (loanAmountPaid != 0) {
+			_safeTransfer(loanTokenAddress, receiver, loanAmountPaid, "5");
+		}
+	}
 
-    /*
+	/*
     flashBorrow is disabled for the MVP, but is going to be added later.
     therefore, it needs to be revised
     
@@ -65,7 +55,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         payable
         nonReentrant
         pausable(msg.sig)
-        settlesInterest
         returns (bytes memory)
     {
         require(borrowAmount != 0, "38");
@@ -84,6 +73,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
         // transfer assets to calling contract
         _safeTransfer(loanTokenAddress, borrower, borrowAmount, "39");
+
+		emit FlashBorrow(borrower, target, loanTokenAddress, borrowAmount);
 
         bytes memory callData;
         if (bytes(signature).length == 0) {
@@ -140,6 +131,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         public
         payable
         nonReentrant //note: needs to be removed to allow flashloan use cases
+		hasEarlyAccessToken
         returns (
             uint256,
             uint256 // returns new principal and new collateral added to loan
@@ -163,6 +155,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
                 loanId != 0,
             "9"
         );
+
+		// ensures authorized use of existing loan
+		require(loanId == 0 || msg.sender == borrower, "unauthorized use of existing loan");
 
         if (collateralTokenAddress == address(0)) {
             collateralTokenAddress = wrbtcTokenAddress;
@@ -221,6 +216,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         public
         payable
         nonReentrant //note: needs to be removed to allow flashloan use cases
+		hasEarlyAccessToken
         returns (
             uint256 newPrincipal,
             uint256 newCollateral // returns new principal and new collateral added to trade
@@ -235,6 +231,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		}
 
 		require(collateralTokenAddress != loanTokenAddress, "11");
+
+		// ensures authorized use of existing loan
+		require(loanId == 0 || msg.sender == trader, "unauthorized use of existing loan");
 
 		//temporary: limit transaction size
         uint256 limit = transactionLimit[collateralTokenAddress];
@@ -308,14 +307,13 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         uint256 _allowanceAmount
     ) internal returns (bool) {
         if (_allowanceAmount != uint256(-1)) {
-            require(_value <= _allowanceAmount, "14");
-            allowed[_from][msg.sender] = _allowanceAmount.sub(_value);
+			allowed[_from][msg.sender] = _allowanceAmount.sub(_value, "14");
         }
 
-        uint256 _balancesFrom = balances[_from];
-        require(_value <= _balancesFrom && _to != address(0), "14");
+		require(_to != address(0), "15");
 
-        uint256 _balancesFromNew = _balancesFrom.sub(_value);
+		uint256 _balancesFrom = balances[_from];
+		uint256 _balancesFromNew = _balancesFrom.sub(_value, "16");
         balances[_from] = _balancesFromNew;
 
         uint256 _balancesTo = balances[_to];
@@ -350,28 +348,20 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         uint256 _newBalance,
         uint256 _currentPrice
     ) internal {
-        // keccak256("iToken_ProfitSoFar")
         bytes32 slot =
             keccak256(
                 abi.encodePacked(
                     _user,
-                    uint256(
-                        0x37aa2b7d583612f016e4a4de4292cb015139b3d7762663d06a53964912ea2fb6
-                    )
+                    iToken_ProfitSoFar
                 )
             );
 
-        uint256 _currentProfit;
-        if (_oldBalance != 0 && _newBalance != 0) {
-            _currentProfit = _profitOf(
-                slot,
-                _oldBalance,
-                _currentPrice,
-                checkpointPrices_[_user]
-            );
-        } else if (_newBalance == 0) {
-            _currentPrice = 0;
-        }
+        int256 _currentProfit;
+		if (_newBalance == 0) {
+			_currentPrice = 0;
+		} else if (_oldBalance != 0) {
+			_currentProfit = _profitOf(slot, _oldBalance, _currentPrice, checkpointPrices_[_user]);
+		}
 
         assembly {
             sstore(slot, _currentProfit)
@@ -383,15 +373,12 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
     /* Public View functions */
 
-    function profitOf(address user) public view returns (uint256) {
-        // keccak256("iToken_ProfitSoFar")
+    function profitOf(address user) public view returns (int256) {
         bytes32 slot =
             keccak256(
                 abi.encodePacked(
                     user,
-                    uint256(
-                        0x37aa2b7d583612f016e4a4de4292cb015139b3d7762663d06a53964912ea2fb6
-                    )
+                    iToken_ProfitSoFar
                 )
             );
 
@@ -409,35 +396,16 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         uint256 _balance,
         uint256 _currentPrice,
         uint256 _checkpointPrice
-    ) internal view returns (uint256) {
+    ) internal view returns (int256 profitSoFar) {
         if (_checkpointPrice == 0) {
             return 0;
         }
-
-        uint256 profitSoFar;
-        uint256 profitDiff;
 
         assembly {
             profitSoFar := sload(slot)
         }
 
-        if (_currentPrice > _checkpointPrice) {
-            profitDiff = _balance.mul(_currentPrice - _checkpointPrice).div(
-                10**18
-            );
-            profitSoFar = profitSoFar.add(profitDiff);
-        } else {
-            profitDiff = _balance.mul(_checkpointPrice - _currentPrice).div(
-                10**18
-            );
-            if (profitSoFar > profitDiff) {
-                profitSoFar = profitSoFar - profitDiff;
-            } else {
-                profitSoFar = 0;
-            }
-        }
-
-        return profitSoFar;
+		profitSoFar = int256(_currentPrice).sub(int256(_checkpointPrice)).mul(int256(_balance)).div(sWEI_PRECISION).add(profitSoFar);
     }
 
     function tokenPrice() public view returns (uint256 price) {
@@ -461,7 +429,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         uint256 totalSupply = _totalAssetSupply(0);
         uint256 totalBorrow = totalAssetBorrow();
         if (totalSupply > totalBorrow) {
-            return totalSupply.sub(totalBorrow);
+			return totalSupply - totalBorrow;
         }
     }
 
@@ -708,6 +676,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         require(burnAmount != 0, "19");
 
         if (burnAmount > balanceOf(msg.sender)) {
+			require(burnAmount == uint256(-1), "32");
             burnAmount = balanceOf(msg.sender);
         }
 
@@ -1045,7 +1014,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
     {
         if (assetBorrow != 0) {
             (uint256 interestOwedPerDay, ) = _getAllInterest();
-            return interestOwedPerDay.mul(10**20).div(assetBorrow).mul(365);
+			return interestOwedPerDay.mul(10**20).mul(365).div(assetBorrow);
         }
     }
 
@@ -1209,6 +1178,17 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
             return assetsBalance.add(interestUnPaid);
         }
     }
+
+	function _adjustValue(
+		uint256 interestRate,
+		uint256 maxDuration,
+		uint256 marginAmount
+	) internal pure returns (uint256) {
+		return
+			maxDuration != 0
+				? interestRate.mul(WEI_PERCENT_PRECISION).mul(maxDuration).div(365 days).div(marginAmount).add(WEI_PERCENT_PRECISION)
+				: WEI_PERCENT_PRECISION;
+	}
 
     /**
      * used to read externally from the smart contract to see if a function is paused
