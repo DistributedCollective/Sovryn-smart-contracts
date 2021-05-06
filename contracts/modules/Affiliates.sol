@@ -133,6 +133,8 @@ contract Affiliates is State, AffiliatesEvents {
 		uint256 tradingFeeTokenBaseAmount
 	) external onlyCallableInternal returns (uint256 referrerBonusSovAmount) {
 		bool isHeld = referralsList[referrer].length() >= _getMinReferralsToPayout() ? false : true;
+		bool bonusPaymentIsSuccess = true;
+		uint256 paidReferrerBonusSovAmount;
 
 		if (tradingFeeTokenBaseAmount > 0) {
 			referrerBonusSovAmount = _getSovBonusAmount(token, tradingFeeTokenBaseAmount);
@@ -146,13 +148,36 @@ contract Affiliates is State, AffiliatesEvents {
 				// Call depositSOV() in LockedSov contract
 				// Set the affiliaterewardsheld = 0
 				affiliateRewardsHeld[referrer] = 0;
-				referrerBonusSovAmount = referrerBonusSovAmount.add(rewardsHeldByProtocol);
-				IERC20(sovTokenAddress).approve(lockedSOVAddress, referrerBonusSovAmount);
-				ILockedSOV(lockedSOVAddress).depositSOV(referrer, referrerBonusSovAmount);
+				paidReferrerBonusSovAmount = referrerBonusSovAmount.add(rewardsHeldByProtocol);
+				IERC20(sovTokenAddress).approve(lockedSOVAddress, paidReferrerBonusSovAmount);
+
+				(bool success, ) =
+					lockedSOVAddress.call(abi.encodeWithSignature("depositSOV(address,uint256)", referrer, paidReferrerBonusSovAmount));
+
+				if (!success) {
+					bonusPaymentIsSuccess = false;
+				}
 			}
 		}
 
-		emit PayTradingFeeToAffiliate(referrer, token, isHeld, tradingFeeTokenBaseAmount, referrerBonusSovAmount);
+		if (bonusPaymentIsSuccess) {
+			emit PayTradingFeeToAffiliate(
+				referrer,
+				token,
+				isHeld,
+				tradingFeeTokenBaseAmount,
+				referrerBonusSovAmount,
+				paidReferrerBonusSovAmount
+			);
+		} else {
+			emit PayTradingFeeToAffiliateFail(
+				referrer,
+				token,
+				tradingFeeTokenBaseAmount,
+				referrerBonusSovAmount,
+				paidReferrerBonusSovAmount
+			);
+		}
 
 		return referrerBonusSovAmount;
 	}

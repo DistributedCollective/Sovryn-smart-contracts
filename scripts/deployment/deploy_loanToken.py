@@ -285,7 +285,7 @@ def testAffiliatesIntegration(acct, sovryn, loanTokenAddress, underlyingToken, c
     )
     tx2.info()
 
-    submittedAffiliatesReward = tx2.events['PayTradingFeeToAffiliate']['sovBonusAmount']
+    submittedAffiliatesReward = tx2.events['PayTradingFeeToAffiliate']['sovBonusAmountPaid']
     isHeld = tx2.events['PayTradingFeeToAffiliate']['isHeld']
 
     # since min referrals to payout is fullfilled, need to make sure the held rewards is zero, and the submitted rewards = previousRewardsHeld + currentReward

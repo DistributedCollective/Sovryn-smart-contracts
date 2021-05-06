@@ -5,6 +5,7 @@ const LoanToken = artifacts.require("LoanToken");
 const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic"); //added functionality for isolated unit testing
 // const LockedSovMockup = artifacts.require("LockedSovMockup");
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
+const LockedSOVFailedMockup = artifacts.require("LockedSOVFailedMockup");
 
 const TestWrbtc = artifacts.require("TestWrbtc");
 const TestToken = artifacts.require("TestToken");
@@ -236,17 +237,19 @@ contract("Affiliates", (accounts) => {
 		isHeld = decode[0].args['isHeld']
 		sovBonusAmountShouldBePaid = await feeds.queryReturn(doc.address, tokenSOV.address, (affiliatesFeePercentage*tradingFeeAmount/Math.pow(10,20)).toString())
 		submittedSovBonusAmount = decode[0].args["sovBonusAmount"]
+		paidSovBonusAmount = decode[0].args["sovBonusAmountPaid"]
 		affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer)
-		expect(sovBonusAmountShouldBePaid.toString(), "Incorrect sov bonus amount calculation").to.be.equal((submittedSovBonusAmount - previousAffiliateRewardsHeld).toString())
+
+		expect(sovBonusAmountShouldBePaid.toString(), "Incorrect sov bonus amount calculation").to.be.equal((submittedSovBonusAmount).toString())
 		expect(submittedToken).to.eql(doc.address)
 		expect(submittedReferrer).to.eql(referrer)
 
-		expect(( new BN(parseInt(previousAffiliateRewardsHeld)).add(new BN(parseInt(sovBonusAmountShouldBePaid))) ).toString(), "Incorrect sov bonus amount calculation").to.be.equal(submittedSovBonusAmount.toString())
+		expect(( new BN(parseInt(previousAffiliateRewardsHeld)).add(new BN(parseInt(sovBonusAmountShouldBePaid))) ).toString(), "Incorrect sov bonus amount calculation").to.be.equal(paidSovBonusAmount.toString())
 		expect(affiliateRewardsHeld.toString(), "Affiliates rewards should be 0 after rewards is sent").to.eql((new BN(0)).toString())
 		expect(isHeld, "Token should be sent since the minimum referrals to payout has not been fullfilled").to.eql(false)
 
 		lockedSOVBalance = await lockedSOV.getLockedBalance(referrer)
-		expect(lockedSOVBalance.toString(), "Locked sov balance should be 0").to.eql(submittedSovBonusAmount.toString())
+		expect(lockedSOVBalance.toString(), "Locked sov balance should be 0").to.eql(paidSovBonusAmount.toString())
 	});
 
 	it("User Margin Trade with Affiliate runs correctly when  minimum referrals set to 1", async () => {
@@ -284,7 +287,7 @@ contract("Affiliates", (accounts) => {
 		isHeld = decode[0].args['isHeld']
 		affiliatesFeePercentage = await sovryn.affiliateFeePercent()
 		sovBonusAmountShouldBePaid = await feeds.queryReturn(doc.address, tokenSOV.address, (affiliatesFeePercentage*tradingFeeAmount/Math.pow(10,20)).toString())
-		submittedSovBonusAmount = decode[0].args["sovBonusAmount"]
+		submittedSovBonusAmount = decode[0].args["sovBonusAmountPaid"]
 		affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer)
 		expect(sovBonusAmountShouldBePaid.toString(), "Incorrect sov bonus amount calculation").to.be.equal(submittedSovBonusAmount)
 		expect(submittedToken).to.eql(doc.address)
@@ -295,6 +298,50 @@ contract("Affiliates", (accounts) => {
 
 		lockedSOVBalance = await lockedSOV.getLockedBalance(referrer)
 		expect(lockedSOVBalance.toString(), "Locked sov balance is not matched").to.eql(sovBonusAmountShouldBePaid.toString())
+	});
+
+	it("PayTradingFeeToAffiliateFail event should be fired in case lock sov reverted", async () => {
+		// deploy lockedSOVFailedMockup and set to protocol
+		await sovryn.setLockedSOVAddress((await LockedSOVFailedMockup.new(tokenSOV.address, [owner])).address);
+
+		await sovryn.setMinReferralsToPayoutAffiliates(1);
+		//expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
+		const leverageAmount = web3.utils.toWei("3", "ether");
+		//loan tokens sent to iToken contract to start Margin Trading
+		const loanTokenSent = web3.utils.toWei("20", "ether");
+		// AUDIT: should the call be allowed from arbitrary address to set an affiliate in
+		// LoanTokenLogicStandard.marginTradeAffiliate?
+		const tx = await loanTokenV2.marginTradeAffiliate(
+			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			leverageAmount, // leverageAmount
+			loanTokenSent, // loanTokenSent
+			0, // no collateral token sent
+			testWrbtc.address, // collateralTokenAddress
+			trader,
+			referrer, // affiliates referrer
+			"0x", // loanDataBytes (only required with ether)
+			{ from: trader }
+		);
+		
+
+		const event_failed_name = "PayTradingFeeToAffiliateFail";
+		const decodeFailed = decodeLogs(tx.receipt.rawLogs, Affiliates, event_failed_name);
+		if (!decodeFailed.length) {
+			throw "Event PayTradingFeeToAffiliateFail is not fired properly"
+		}
+
+		// We need to make sure that the fail log event is fired
+		tradingFeeAmount = decodeFailed[0].args["tradingFeeTokenAmount"]
+		submittedToken = decodeFailed[0].args["token"]
+		submittedReferrer = decodeFailed[0].args["referrer"]
+		sovBonusAmount = decodeFailed[0].args["sovBonusAmount"]
+		affiliatesFeePercentage = await sovryn.affiliateFeePercent()
+		sovBonusAmountShouldBePaid = await feeds.queryReturn(doc.address, tokenSOV.address, (affiliatesFeePercentage*tradingFeeAmount/Math.pow(10,20)).toString())
+		expect(await sovryn.getUserNotFirstTradeFlag(trader), "userNotFirstTradeFlag has not been set to true").to.be.true;
+		expect(await sovryn.affiliatesUserReferrer(trader), "Incorrect User Affiliate Referrer set").to.be.equal(referrer);
+		expect(sovBonusAmountShouldBePaid.toString(), "Incorrect sov bonus amount calculation").to.be.equal(sovBonusAmount)
+		expect(submittedToken).to.eql(doc.address)
+		expect(submittedReferrer).to.eql(referrer)
 	});
 
 	it("Only the first trade users can be assigned Affiliates Referrer", async () => {
