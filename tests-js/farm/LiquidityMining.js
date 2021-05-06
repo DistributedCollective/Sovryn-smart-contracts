@@ -702,7 +702,140 @@ describe("LiquidityMining", () => {
 		});
 	});
 
-	//TODO add tests for public/external getters
+	describe("external getters", () => {
+		let allocationPoint = new BN(1);
+		let amount = new BN(1000);
+
+		beforeEach(async () => {
+			await token1.mint(account1, amount);
+			await token1.approve(liquidityMining.address, amount, {from: account1});
+			await liquidityMining.add(token1.address, allocationPoint, false);
+		});
+
+		it('PRECISION', async () => {
+			expect(await liquidityMining.PRECISION()).bignumber.equal(new BN(1e12));
+		});
+
+		it('BONUS_BLOCK_MULTIPLIER', async () => {
+			expect(await liquidityMining.BONUS_BLOCK_MULTIPLIER()).bignumber.equal('10');
+		});
+
+		it('getMissedBalance', async () => {
+			let missedBalance = await liquidityMining.getMissedBalance();
+			expect(missedBalance).bignumber.equal('0');
+
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.updatePool(token1.address);
+
+			missedBalance = await liquidityMining.getMissedBalance();
+			expect(missedBalance).bignumber.equal('30');
+		});
+
+		it('getUserAccumulatedReward', async () => {
+			// real tests are elsewhere in this file
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			await mineBlock();
+			const reward1 = await liquidityMining.getUserAccumulatedReward(token1.address, account1);
+			const reward2 = await liquidityMining.getUserAccumulatedReward(token1.address, account2);
+			expect(reward1).bignumber.equal('30');
+			expect(reward2).bignumber.equal('0');
+		});
+
+		it('getPoolId', async () => {
+			const poolId = await liquidityMining.getPoolId(token1.address);
+			expect(poolId).bignumber.equal('0');
+			await expectRevert(
+				liquidityMining.getPoolId(token2.address),
+				"Pool token not found"
+			);
+			await liquidityMining.add(token2.address, allocationPoint, false);
+			const poolId2 = await liquidityMining.getPoolId(token2.address);
+			expect(poolId2).bignumber.equal('1');
+		});
+
+		it('getPoolLength', async () => {
+			let length = await liquidityMining.getPoolLength();
+			expect(length).bignumber.equal('1');
+
+			await liquidityMining.add(token2.address, allocationPoint, false);
+			length = await liquidityMining.getPoolLength();
+			expect(length).bignumber.equal('2');
+		});
+
+		it('getPoolInfoList', async () => {
+			const infoList = await liquidityMining.getPoolInfoList();
+			expect(infoList).to.be.an('array');
+			expect(infoList.length).equal(1);
+			const info = infoList[0];
+			expect(info.poolToken).equal(token1.address);
+			expect(info.allocationPoint).equal(allocationPoint.toString());
+			expect(info.accumulatedRewardPerShare).equal('0');
+			expect(info.lastRewardBlock).equal((await web3.eth.getBlockNumber()).toString());
+		});
+
+		it('getPoolInfo', async () => {
+			const info = await liquidityMining.getPoolInfo(token1.address);
+			expect(info.poolToken).equal(token1.address);
+			expect(info.allocationPoint).equal(allocationPoint.toString());
+			expect(info.accumulatedRewardPerShare).equal('0');
+			expect(info.lastRewardBlock).equal((await web3.eth.getBlockNumber()).toString());
+
+			await expectRevert(
+				liquidityMining.getPoolInfo(token2.address),
+				"Pool token not found"
+			);
+		});
+
+		it('getUserBalanceList', async () => {
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			await mineBlock();
+			const balanceList = await liquidityMining.getUserBalanceList(account1);
+
+			expect(balanceList).to.be.an('array');
+			expect(balanceList.length).equal(1);
+			const balanceData = balanceList[0];
+			expect(balanceData).to.be.an('array');
+			expect(balanceData[0]).bignumber.equal(amount);
+			expect(balanceData[1]).bignumber.equal('30');
+		});
+
+		it('getUserInfo', async () => {
+			await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, {from: account1});
+
+			let userInfo = await liquidityMining.getUserInfo(token1.address, account1);
+			expect(userInfo.amount).bignumber.equal('500');
+			expect(userInfo.accumulatedReward).bignumber.equal('0'); // XXX: not yet updated -- funny?
+			expect(userInfo.rewardDebt).bignumber.equal('0'); // not yet updated either
+
+			// deposit updates it.
+			await liquidityMining.deposit(token1.address, new BN(1), ZERO_ADDRESS, {from: account1});
+			userInfo = await liquidityMining.getUserInfo(token1.address, account1);
+			expect(userInfo.amount).bignumber.equal('501');
+			expect(userInfo.accumulatedReward).bignumber.equal('30');
+			expect(userInfo.rewardDebt).bignumber.equal('30');
+		});
+
+		it('getUserInfoList', async () => {
+			await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, {from: account1});
+
+			let userInfoList = await liquidityMining.getUserInfoList(account1);
+			expect(userInfoList).to.be.an('array');
+			expect(userInfoList.length).equal(1);
+			const userInfo = userInfoList[0];
+			expect(userInfo.amount).bignumber.equal('500');
+			expect(userInfo.accumulatedReward).bignumber.equal('0');
+			expect(userInfo.rewardDebt).bignumber.equal('0');
+		});
+
+		it('getUserAccumulatedRewardList', async () => {
+			await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, {from: account1});
+
+			let rewardList = await liquidityMining.getUserAccumulatedRewardList(account1);
+			expect(rewardList).to.be.an('array');
+			expect(rewardList.length).equal(1);
+			expect(rewardList[0]).bignumber.equal('0');
+		});
+	});
 
 	async function deployLiquidityMining() {
 		let liquidityMiningLogic = await LiquidityMiningLogic.new();
