@@ -5,6 +5,7 @@ import "../openzeppelin/ERC20.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
 import "./LiquidityMiningStorage.sol";
+import "../escrow/ILockedSOV.sol";
 
 contract LiquidityMining is LiquidityMiningStorage {
 	using SafeMath for uint256;
@@ -14,6 +15,9 @@ contract LiquidityMining is LiquidityMiningStorage {
 	// Bonus multiplier for early liquidity providers.
 	// During bonus period each passed block will be calculated like N passed blocks, where N = BONUS_MULTIPLIER
 	uint256 public constant BONUS_BLOCK_MULTIPLIER = 10;
+
+	/// @dev The locked token to transfer rewards with.
+	IERC20 public lockedSOV;
 
 	event SVRTransferred(address indexed receiver, uint256 amount);
 	event PoolTokenAdded(address indexed user, address indexed poolToken, uint256 allocationPoint);
@@ -342,7 +346,9 @@ contract LiquidityMining is LiquidityMiningStorage {
 		if (balance >= userAccumulatedReward) {
 			totalUsersBalance = totalUsersBalance.sub(userAccumulatedReward);
 			_user.accumulatedReward = 0;
-			require(SVR.transfer(_userAddress, userAccumulatedReward), "transfer failed");
+			/// require(lockedSOV.transfer(_userAddress, userAccumulatedReward), "transfer failed");
+			require(lockedSOV.depositSOV(_userAddress, userAccumulatedReward), "transfer failed");
+			/// require(SVR.transfer(_userAddress, userAccumulatedReward), "transfer failed");
 			emit RewardClaimed(_userAddress, userAccumulatedReward);
 		}
 	}
