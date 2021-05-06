@@ -1404,6 +1404,12 @@ def deployAffiliate():
     print("Set SOV Token address in protocol settings")
     print(data)
 
+    # Set LockedSOVAddress
+    lockedSOV = Contract.from_abi("LockedSOVMockup", address=contracts["lockedSOV"], abi=LockedSOVMockup.abi, owner=acct)
+    data = sovryn.setLockedSOVAddress.encode_input(lockedSOV.address)
+    print("Set Locked SOV address in protocol settings")
+    print(data)
+
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]

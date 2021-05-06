@@ -44,6 +44,8 @@ contract ISovryn is
 
 	function setSOVTokenAddress(address newSovTokenAddress) external;
 
+	function setLockedSOVAddress(address newSOVLockedAddress) external;
+
 	function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external;
 
 	function setPriceFeedContract(address newContract) external;

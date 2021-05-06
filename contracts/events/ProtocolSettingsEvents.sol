@@ -62,4 +62,6 @@ contract ProtocolSettingsEvents {
 	event SetMinReferralsToPayoutAffiliates(address indexed sender, uint256 indexed oldMinReferrals, uint256 indexed newMinReferrals);
 
 	event SetSOVTokenAddress(address indexed sender, address indexed oldTokenAddress, address indexed newTokenAddress);
+
+	event SetLockedSOVAddress(address indexed sender, address indexed oldAddress, address indexed newAddress);
 }

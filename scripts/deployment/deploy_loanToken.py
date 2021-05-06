@@ -207,6 +207,9 @@ def testAffiliatesIntegration(acct, sovryn, loanTokenAddress, underlyingToken, c
     # Change the min referrals to payout to 3 for testing purposes
     sovryn.setMinReferralsToPayoutAffiliates(3)
 
+    sovToken = Contract.from_abi("SOV", address=sovryn.sovTokenAddress(), abi=SOV.abi, owner=acct)
+    sovToken.mint(sovryn.address, 1000e18)
+
     print('\n TESTING THE AFFILIATES INTEGRATION')
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     

@@ -43,6 +43,8 @@ contract ISovrynBrownie is
 
 	function setSOVTokenAddress(address newSovTokenAddress) external;
 
+	function setLockedSOVAddress(address newLockedSOVAddress) external;
+
 	function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external;
 
 	function setPriceFeedContract(address newContract) external;

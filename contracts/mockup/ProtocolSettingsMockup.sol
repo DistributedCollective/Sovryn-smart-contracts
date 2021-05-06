@@ -41,6 +41,7 @@ contract ProtocolSettingsMockup is ProtocolSettings {
 		_setTarget(this.setWrbtcToken.selector, target);
 		_setTarget(this.setProtocolTokenAddress.selector, target);
 		_setTarget(this.setSOVTokenAddress.selector, target);
+		_setTarget(this.setLockedSOVAddress.selector, target);
 		_setTarget(this.setMinReferralsToPayoutAffiliates.selector, target);
 		_setTarget(this.setRolloverBaseReward.selector, target);
 

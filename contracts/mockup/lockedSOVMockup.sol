@@ -2,14 +2,13 @@ pragma solidity ^0.5.17;
 
 import "../openzeppelin/SafeMath.sol";
 import "../interfaces/IERC20.sol";
-import "../core/State.sol";
 
 /**
  *  @title An interface for the Locked SOV Contract.
  *  @author Franklin Richards - powerhousefrank@protonmail.com
  *  @dev This is not a complete interface of the Locked SOV Contract.
  */
-contract LockedSOVMockup is State {
+contract LockedSOVMockup {
 	using SafeMath for uint256;
 
 	/* Storage */
@@ -54,10 +53,6 @@ contract LockedSOVMockup is State {
 		for (uint256 index = 0; index < _admins.length; index++) {
 			isAdmin[_admins[index]] = true;
 		}
-	}
-
-	function initialize(address target) external {
-		_setTarget(this.depositSOV.selector, target);
 	}
 
 	/**

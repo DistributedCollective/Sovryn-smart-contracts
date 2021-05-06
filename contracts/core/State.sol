@@ -99,6 +99,7 @@ contract State is Objects, ReentrancyGuard, Ownable {
 	uint256 public minReferralsToPayout = 3;
 	mapping(address => uint256) public affiliateRewardsHeld; // Total affiliate rewards that held in the protocol (Because the minimum referrals is less than the rule)
 	address public sovTokenAddress; // For affiliates SOV Bonus proccess
+	address public lockedSOVAddress;
 
 	function _setTarget(bytes4 sig, address target) internal {
 		logicTargets[sig] = target;

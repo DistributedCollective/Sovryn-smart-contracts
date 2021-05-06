@@ -3,8 +3,8 @@ const { assert } = require("chai");
 const sovrynProtocol = artifacts.require("sovrynProtocol");
 const LoanToken = artifacts.require("LoanToken");
 const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic"); //added functionality for isolated unit testing
-const LockedSovMockup = artifacts.require("LockedSovMockup");
-// const LockedSOVMockup = artifacts.require("LockedSOVMockup");
+// const LockedSovMockup = artifacts.require("LockedSovMockup");
+const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 
 const TestWrbtc = artifacts.require("TestWrbtc");
 const TestToken = artifacts.require("TestToken");
@@ -37,6 +37,7 @@ contract("Affiliates", (accounts) => {
 	let testWrbtc;
 	let doc;
 	let tokenSOV;
+	let lockedSOV;
 	let sovryn;
 	let loanTokenV2;
 	let feeds;
@@ -57,7 +58,7 @@ contract("Affiliates", (accounts) => {
 		await sovryn.replaceContract((await SwapsExternal.new()).address);
 		await sovryn.replaceContract((await LoanOpenings.new()).address);
 		await sovryn.replaceContract((await Affiliates.new()).address);
-		await sovryn.replaceContract((await LockedSovMockup.new()).address);
+		// await sovryn.replaceContract((await LockedSovMockup.new()).address);
 
 		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
 
@@ -76,6 +77,8 @@ contract("Affiliates", (accounts) => {
 			await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
 		}
 
+		await sovryn.setLockedSOVAddress((await LockedSOVMockup.new(tokenSOV.address, [owner])).address);
+		lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
 		// await sovryn.replaceContract((await LockedSOVMockup.new(tokenSOV.address, [owner])).address);
 	});
 	let swapsSovryn;
@@ -140,6 +143,9 @@ contract("Affiliates", (accounts) => {
 		await doc.approve(loanToken.address, web3.utils.toWei("100", "ether"), { from: trader });
 		//Giving some testRbtc to sovrynAddress (by minting some testRbtc),so that it can open position in wRBTC.
 		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
+
+		//Giving some SOV Token to sovrynAddress (For affiliates rewards purposes)
+		await tokenSOV.mint(sovryn.address, wei("500", "ether"));
 	});
 
 	it("Should not be able to set the minReferralsPayout to 0", async() => {
@@ -196,6 +202,9 @@ contract("Affiliates", (accounts) => {
 		expect(affiliateRewardsHeld.toString(), "SOV Bonus amount that stored in the affiliateRewardsHeld is incorrect").to.be.equal(sovBonusAmountShouldBePaid.toString())
 		expect(isHeld, "Token should not be sent since the minimum referrals to payout has not been fullfilled").to.eql(true)
 
+		lockedSOVBalance = await lockedSOV.getLockedBalance(referrer)
+		expect(lockedSOVBalance.toString(), "Locked sov balance should be 0").to.eql((new BN(0)).toString())
+
 
 
 
@@ -235,6 +244,9 @@ contract("Affiliates", (accounts) => {
 		expect(( new BN(parseInt(previousAffiliateRewardsHeld)).add(new BN(parseInt(sovBonusAmountShouldBePaid))) ).toString(), "Incorrect sov bonus amount calculation").to.be.equal(submittedSovBonusAmount.toString())
 		expect(affiliateRewardsHeld.toString(), "Affiliates rewards should be 0 after rewards is sent").to.eql((new BN(0)).toString())
 		expect(isHeld, "Token should be sent since the minimum referrals to payout has not been fullfilled").to.eql(false)
+
+		lockedSOVBalance = await lockedSOV.getLockedBalance(referrer)
+		expect(lockedSOVBalance.toString(), "Locked sov balance should be 0").to.eql(submittedSovBonusAmount.toString())
 	});
 
 	it("User Margin Trade with Affiliate runs correctly when  minimum referrals set to 1", async () => {
@@ -280,6 +292,9 @@ contract("Affiliates", (accounts) => {
 		// Since the minimum referrals to payout is set to 1, make sure the affiliateRewardsHeld is correct
 		expect(affiliateRewardsHeld.toString(), "SOV Bonus amount that stored in the affiliateRewardsHeld is incorrect").to.be.equal((new BN(0)).toString())
 		expect(isHeld, "Token should be sent since the minimum referrals to payout has not been fullfilled").to.eql(false)
+
+		lockedSOVBalance = await lockedSOV.getLockedBalance(referrer)
+		expect(lockedSOVBalance.toString(), "Locked sov balance is not matched").to.eql(sovBonusAmountShouldBePaid.toString())
 	});
 
 	it("Only the first trade users can be assigned Affiliates Referrer", async () => {

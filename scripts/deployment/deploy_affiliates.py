@@ -41,10 +41,12 @@ def main():
         susdAddress = data['SUSD']
         protocolAddress = data['sovrynProtocol']
         sovTokenAddress = data['SOV']
+        lockedSOVAddress = data['lockedSOV']
         tokens.wrbtc = Contract.from_abi("TestWrbtc", address = wrbtcAddress, abi = TestWrbtc.abi, owner = acct)
         tokens.susd = Contract.from_abi("TestToken", address = susdAddress, abi = TestToken.abi, owner = acct)
     else:
         sovTokenAddress = contracts['SOV']
+        lockedSOVAddress = contracts['lockedSOV']
 
 
     print("Deploying Affiliates.")
@@ -57,6 +59,10 @@ def main():
     print("Set SOV Token address in protocol settings")
     sovryn.setSOVTokenAddress(sovToken.address)
     print("sovToken address loaded:", sovryn.sovTokenAddress())
+
+    print("Set lockedSOV address in protocol settings")
+    sovryn.setLockedSOVAddress(lockedSOVAddress)
+    print("lockedSOV address loaded:", sovryn.lockedSOVAddress())
     
     with open('./scripts/swapTest/swap_test.json', 'w') as configFile:
         json.dump(data, configFile)

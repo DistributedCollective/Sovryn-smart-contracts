@@ -68,6 +68,12 @@ def main():
         configData['mocState'] = mocState.address
         
     (sovryn, feeds) = deployProtocol(acct, tokens, configData['mocOracleAddress'], configData['rskOracleAddress'])
+
+    print("Deploying LockedSOV.")
+    lockedSOV = acct.deploy(LockedSOVMockup, tokens.sov.address, [acct])
+    sovryn.setLockedSOVAddress(lockedSOV.address)
+    print("LockedSOV address: ", lockedSOV.address)
+
     (loanTokenSUSD, loanTokenWRBTC, loanTokenSettingsSUSD,
      loanTokenSettingsWRBTC) = deployLoanTokens(acct, sovryn, tokens)
 
@@ -80,6 +86,7 @@ def main():
     configData["loanTokenSUSD"] = loanTokenSUSD.address
     configData["loanTokenRBTC"] = loanTokenWRBTC.address
     configData["SOV"] = tokens.sov.address
+    configData["lockedSOV"] = lockedSOV.address
 
     with open('./scripts/swapTest/swap_test.json', 'w') as configFile:
         json.dump(configData, configFile)

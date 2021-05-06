@@ -50,6 +50,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.setRebatePercent.selector, target);
 		_setTarget(this.setSovrynProtocolAddress.selector, target);
 		_setTarget(this.setSOVTokenAddress.selector, target);
+		_setTarget(this.setLockedSOVAddress.selector, target);
 		_setTarget(this.setMinReferralsToPayoutAffiliates.selector, target);
 	}
 
@@ -71,6 +72,15 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		sovTokenAddress = newSovTokenAddress;
 
 		emit SetSOVTokenAddress(msg.sender, oldTokenAddress, newSovTokenAddress);
+	}
+
+	function setLockedSOVAddress(address newLockedSOVAddress) external onlyOwner {
+		require(Address.isContract(newLockedSOVAddress), "newLockSOVAddress not a contract");
+
+		address oldLockedSOVAddress = lockedSOVAddress;
+		lockedSOVAddress = newLockedSOVAddress;
+
+		emit SetLockedSOVAddress(msg.sender, oldLockedSOVAddress, newLockedSOVAddress);
 	}
 
 	function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external onlyOwner {

@@ -147,7 +147,8 @@ contract Affiliates is State, AffiliatesEvents {
 				// Set the affiliaterewardsheld = 0
 				affiliateRewardsHeld[referrer] = 0;
 				referrerBonusSovAmount = referrerBonusSovAmount.add(rewardsHeldByProtocol);
-				ILockedSOV(protocolAddress).depositSOV(referrer, referrerBonusSovAmount);
+				IERC20(sovTokenAddress).approve(lockedSOVAddress, referrerBonusSovAmount);
+				ILockedSOV(lockedSOVAddress).depositSOV(referrer, referrerBonusSovAmount);
 			}
 		}
 
