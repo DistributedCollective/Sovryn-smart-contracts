@@ -9,7 +9,7 @@ const TestToken = artifacts.require("TestToken");
 const LiquidityMiningLogic = artifacts.require("LiquidityMiningMockup");
 const LiquidityMiningProxy = artifacts.require("LiquidityMiningProxy");
 
-contract("LiquidityMining", (accounts) => {
+describe("LiquidityMining", () => {
 	const name = "Test SVR Token";
 	const symbol = "TST";
 
@@ -17,11 +17,13 @@ contract("LiquidityMining", (accounts) => {
 	const startDelayBlocks = new BN(1);
 	const numberOfBonusBlocks = new BN(50);
 
+	let accounts
 	let root, account1, account2, account3, account4;
 	let SVRToken, token1, token2, token3;
 	let liquidityMining, wrapper;
 
 	before(async () => {
+		accounts = await web3.eth.getAccounts();
 		[root, account1, account2, account3, account4, ...accounts] = accounts;
 	});
 
