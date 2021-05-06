@@ -2,7 +2,27 @@
 '''
 This script serves the purpose of interacting with existing smart contracts on the testnet or mainnet.
 '''
+'''
+merged bzx compare requires redeploy of the following contracts (PR #189, issue #117) 
+LoanTokenLogicStandard 
+LoanTokenLogicWRBTC 
+> replaceLoanTokenLogicOnAllContracts()
 
+SwapsExternal 
+> redeploySwapsExternal()
+LoanSettings
+> replaceLoanSettings()
+LoanMaintenance
+> replaceLoanMaintenance()
+LoanOpenings 
+> replaceLoanOpenings()
+LoanClosings 
+> replaceLoanClosings()
+Protocol 
+> replaceProtocolSettings()
+PriceFeeds - no need to replace, there is only SafeMath added functions
+
+'''
 from brownie import *
 from brownie.network.contract import InterfaceContainer
 import json
@@ -14,6 +34,15 @@ def main():
     #load the contracts and acct depending on the network
     loadConfig()
     #call the function you want here
+    
+    
+    #replaceProtocolSettings()
+    #replaceLoanOpenings()
+    #replaceLoanMaintenance()
+    #replaceLoanTokenLogicOnAllContracts()
+    #redeploySwapsExternal()
+    replaceLoanClosings()
+    
     #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOC'])
     #readPrice(contracts['WRBTC'], contracts['USDT'])
     # testTradeOpeningAndClosingWithCollateral(contracts['sovrynProtocol'], contracts['iUSDT'], contracts['USDT'], contracts['WRBTC'], 1e14, 2e18, True, 1e14)
@@ -27,8 +56,6 @@ def main():
     #getBalance(contracts['WRBTC'], '0xE5646fEAf7f728C12EcB34D14b4396Ab94174827')
     #getBalance(contracts['WRBTC'], '0x7BE508451Cd748Ba55dcBE75c8067f9420909b49')
     #readLoan('0xb2bbd9135a7cfbc5adda48e90430923108ad6358418b7ac27c9edcf2d44911e5')
-    #replaceLoanClosings()
-
     #updateAllLogicContracts()
     #readOwner(contracts['iDOC'])
     #readTransactionLimits(contracts['iDOC'],  contracts['DoC'],  contracts['WRBTC'])
@@ -38,7 +65,7 @@ def main():
     #lendToPool(contracts['iDOC'],contracts['DoC'], 1000e18)
     #setTransactionLimits(contracts['iDOC'], [contracts['DoC']], [21e18])
     #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [21e18])
-    readTransactionLimits(contracts['iUSDT'],  contracts['USDT'], contracts['WRBTC'])
+    #readTransactionLimits(contracts['iUSDT'],  contracts['USDT'], contracts['WRBTC'])
 
     '''
     setupLoanParamsForCollaterals(contracts['iBPro'], [contracts['SOV']])
@@ -356,7 +383,7 @@ def rollover(loanId):
     print(tx.info())
     
 def replaceLoanClosings():
-    print("replacing loan openings")
+    print("replacing loan closings")
     loanClosings = acct.deploy(LoanClosings)
     sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
     data = sovryn.replaceContract.encode_input(loanClosings.address)
@@ -642,11 +669,25 @@ def replaceSwapsExternal():
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
 
+def redeploySwapsExternal():
+    print('replacing swaps external')
+    swapsExternal = acct.deploy(SwapsExternal)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(swapsExternal.address)
+    print(data)
+    
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
+
 def replaceLoanOpenings():
     print("replacing loan openings")
     loanOpenings = acct.deploy(LoanOpenings)
     sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
     data = sovryn.replaceContract.encode_input(loanOpenings.address)
+    print(data)
+
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
@@ -1347,5 +1388,41 @@ def sendSOVFromVestingRegistry():
 
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(vestingRegistry.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def replaceProtocolSettings():
+    print("replacing protocol settings")
+    settings = acct.deploy(ProtocolSettings)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(settings.address)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def replaceLoanSettings():
+    print("replacing loan settings")
+    loanSettings = acct.deploy(LoanSettings)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(loanSettings.address)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def replaceLoanMaintenance():
+    print("replacing loan openings")
+    loanMaintenance = acct.deploy(LoanMaintenance)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(loanMaintenance.address)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
