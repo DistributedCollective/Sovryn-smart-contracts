@@ -676,20 +676,30 @@ describe("LiquidityMining", () => {
 			await liquidityMining.add(token2.address, allocationPoint, false); //weight 1/2
 
 			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
-			await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, {from: account1}); // 1 block passed
 
 			// await liquidityMining.update(token1.address, allocationPoint.mul(new BN(2)), true); //weight 2/3
-			await liquidityMining.updateAllPools();
+			await liquidityMining.updateAllPools(); // 2 blocks passed from first deposit
 
-			let poolInfo1 = await liquidityMining.getPoolInfo(token1.address);
-			console.log(poolInfo1);
+			const currentBlockNumber = await web3.eth.getBlockNumber();
 
-			let poolInfo2 = await liquidityMining.getPoolInfo(token2.address);
-			console.log(poolInfo2);
+			// 3 tokens per share per block, times bonus multiplier (10), times precision (1e12), times weight (1/2), divided by total shares
+			const expectedAccumulatedRewardPerBlock = rewardTokensPerBlock.mul(new BN(10)).mul(new BN(1e12)).div(new BN(2)).div(amount);
 
-			//TODO check pool infos
+			const poolInfo1 = await liquidityMining.getPoolInfo(token1.address);
+			expect(poolInfo1.poolToken).equal(token1.address);
+			expect(poolInfo1.allocationPoint).equal('1');
+			expect(poolInfo1.lastRewardBlock).equal(currentBlockNumber.toString());
+			// token1 deposit has been there for 2 blocks because of automining
+			expect(poolInfo1.accumulatedRewardPerShare).equal(expectedAccumulatedRewardPerBlock.mul(new BN(2)).toString());
+
+			const poolInfo2 = await liquidityMining.getPoolInfo(token2.address);
+			expect(poolInfo2.poolToken).equal(token2.address);
+			expect(poolInfo2.allocationPoint).equal('1');
+			expect(poolInfo1.lastRewardBlock).equal(currentBlockNumber.toString());
+			// token2 deposit has been there for only 1 block
+			expect(poolInfo2.accumulatedRewardPerShare).equal(expectedAccumulatedRewardPerBlock.toString());
 		});
-
 	});
 
 	//TODO add tests for public/external getters
