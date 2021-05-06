@@ -720,6 +720,53 @@ describe("LiquidityMining", () => {
 			expect(await liquidityMining.BONUS_BLOCK_MULTIPLIER()).bignumber.equal('10');
 		});
 
+		it('SVR', async () => {
+			expect(await liquidityMining.SVR()).equal(SVRToken.address);
+		});
+
+		it('rewardTokensPerBlock', async () => {
+			expect(await liquidityMining.rewardTokensPerBlock()).bignumber.equal(rewardTokensPerBlock);
+		});
+
+		it('startBlock', async () => {
+			expect(await liquidityMining.startBlock()).bignumber.gt('0');
+		});
+
+		it('bonusEndBlock', async () => {
+			const startBlock = await liquidityMining.startBlock()
+			expect(await liquidityMining.bonusEndBlock()).bignumber.equal(startBlock.add(numberOfBonusBlocks));
+		});
+
+		it('endBlock', async () => {
+			expect(await liquidityMining.endBlock()).bignumber.equal('0');
+		});
+
+		it('wrapper', async () => {
+			expect(await liquidityMining.wrapper()).equal(wrapper);
+		});
+
+		it('totalAllocationPoint', async () => {
+			expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(allocationPoint);
+			await liquidityMining.add(token2.address, allocationPoint, false);
+			expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(allocationPoint.mul(new BN(2)));
+		});
+
+		it('totalUsersBalance', async () => {
+			expect(await liquidityMining.totalUsersBalance()).bignumber.equal('0');
+
+			await liquidityMining.updateAllPools();
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			expect(await liquidityMining.totalUsersBalance()).bignumber.equal('0');
+
+			await liquidityMining.updateAllPools();
+			expect(await liquidityMining.totalUsersBalance()).bignumber.equal('30');
+		});
+
+		// could still test these, but I don't see much point:
+		// PoolInfo[] public poolInfoList;
+		// mapping(address => uint256) poolIdList;
+		// mapping(uint256 => mapping(address => UserInfo)) public userInfoMap;
+
 		it('getMissedBalance', async () => {
 			let missedBalance = await liquidityMining.getMissedBalance();
 			expect(missedBalance).bignumber.equal('0');
