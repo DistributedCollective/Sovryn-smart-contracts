@@ -4,9 +4,9 @@ import "../openzeppelin/SafeMath.sol";
 import "../interfaces/IERC20.sol";
 
 /**
- *  @title An interface for the Locked SOV Contract.
+ *  @title An mockup for the Locked SOV Contract.
  *  @author Franklin Richards - powerhousefrank@protonmail.com
- *  @dev This is not a complete interface of the Locked SOV Contract.
+ *  @dev This is not a complete mockup of the Locked SOV Contract.
  */
 contract LockedSOVMockup {
 	using SafeMath for uint256;
@@ -16,9 +16,9 @@ contract LockedSOVMockup {
 	/// @notice The SOV token contract.
 	IERC20 public SOV;
 
-	/// @notice The user balances.
+	/// @notice The locked user balances.
 	mapping(address => uint256) lockedBalances;
-	/// @notice The user balances.
+	/// @notice The contracts/wallets with admin power.
 	mapping(address => bool) isAdmin;
 
 	/* Events */
