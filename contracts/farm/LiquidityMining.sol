@@ -5,21 +5,28 @@ import "../openzeppelin/ERC20.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
 import "./LiquidityMiningStorage.sol";
-import "../escrow/ILockedSOV.sol";
+import "../mockup/LockedSOVMockup.sol";
 
 contract LiquidityMining is LiquidityMiningStorage {
 	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
 
+	/* Storage */
+	
 	uint256 public constant PRECISION = 1e12;
 	// Bonus multiplier for early liquidity providers.
 	// During bonus period each passed block will be calculated like N passed blocks, where N = BONUS_MULTIPLIER
 	uint256 public constant BONUS_BLOCK_MULTIPLIER = 10;
 
-	/// @dev The locked token to transfer rewards with.
-	IERC20 public lockedSOV;
+	/// @dev The SOV token
+	IERC20 public SOV;
 
-	event SVRTransferred(address indexed receiver, uint256 amount);
+	/// @dev The locked vault contract to deposit LP's rewards into.
+	LockedSOVMockup public lockedSOV;
+
+	/* Events */
+
+	event SOVTransferred(address indexed receiver, uint256 amount);
 	event PoolTokenAdded(address indexed user, address indexed poolToken, uint256 allocationPoint);
 	event PoolTokenUpdated(address indexed user, address indexed poolToken, uint256 newAllocationPoint, uint256 oldAllocationPoint);
 	event Deposit(address indexed user, address indexed poolToken, uint256 amount);
@@ -27,29 +34,40 @@ contract LiquidityMining is LiquidityMiningStorage {
 	event Withdraw(address indexed user, address indexed poolToken, uint256 amount);
 	event EmergencyWithdraw(address indexed user, address indexed poolToken, uint256 amount);
 
+	/* Functions */
+
 	/**
-	 * @notice initialize mining
-	 * @param _SVR reward token
-	 * @param _rewardTokensPerBlock number of reward tokens per block
-	 * @param _startDelayBlocks the number of blocks should be passed to start mining
-	 * @param _numberOfBonusBlocks the number of blocks when each block will be calculated as N blocks (BONUS_BLOCK_MULTIPLIER)
+	 * @notice Initialize mining.
+	 *
+	 * @param _SOV The SOV token.
+	 * @param _rewardTokensPerBlock The number of reward tokens per block.
+	 * @param _startDelayBlocks The number of blocks should be passed to start
+	 *   mining.
+	 * @param _numberOfBonusBlocks The number of blocks when each block will
+	 *   be calculated as N blocks (BONUS_BLOCK_MULTIPLIER).
+	 * @param _lockedSOV The contract instance address of the lockedSOV vault.
+	 *   SOV rewards are not paid directly to liquidity providers. Instead they
+	 *   are deposited into a lockedSOV vault contract.
 	 */
 	function initialize(
-		IERC20 _SVR,
+		IERC20 _SOV,
 		uint256 _rewardTokensPerBlock,
 		uint256 _startDelayBlocks,
 		uint256 _numberOfBonusBlocks,
-		address _wrapper
+		address _wrapper,
+		LockedSOVMockup _lockedSOV
 	) public onlyOwner {
-		require(address(SVR) == address(0), "Already initialized");
-		require(address(_SVR) != address(0), "Invalid token address");
+		/// @dev Non-idempotent function. Must be called just once.
+		require(address(SOV) == address(0), "Already initialized");
+		require(address(_SOV) != address(0), "Invalid token address");
 		require(_startDelayBlocks > 0, "Invalid start block");
 
-		SVR = _SVR;
+		SOV = _SOV;
 		rewardTokensPerBlock = _rewardTokensPerBlock;
 		startBlock = block.number + _startDelayBlocks;
 		bonusEndBlock = startBlock + _numberOfBonusBlocks;
 		wrapper = _wrapper;
+		lockedSOV = _lockedSOV;
 	}
 
 	/**
@@ -70,24 +88,37 @@ contract LiquidityMining is LiquidityMiningStorage {
 	}
 
 	/**
-	 * @notice transfers SVR tokens to given address
-	 * @param _receiver the address of the SVR receiver
-	 * @param _amount the amount to be transferred
-	 */
-	function transferSVR(address _receiver, uint256 _amount) public onlyOwner {
-		require(_receiver != address(0), "receiver address invalid");
-		require(_amount != 0, "amount invalid");
+	 * @notice Transfers SOV tokens to given address.
+	 *   Owner use this function to withdraw SOV from LM contract
+	 *   into another account.
+	 * @param _receiver The address of the SOV receiver.
+	 * @param _amount The amount to be transferred.
+	 * */
+	function transferSOV(address _receiver, uint256 _amount) public onlyOwner {
+		require(_receiver != address(0), "Receiver address invalid");
+		require(_amount != 0, "Amount invalid");
 
-		uint256 SVRBal = SVR.balanceOf(address(this));
-		if (_amount > SVRBal) {
-			_amount = SVRBal;
+		/// @dev Do not transfer more SOV than available.
+		uint256 SOVBal = SOV.balanceOf(address(this));
+		if (_amount > SOVBal) {
+			_amount = SOVBal;
 		}
-		require(SVR.transfer(_receiver, _amount), "transfer failed");
-		emit SVRTransferred(_receiver, _amount);
+
+		/// @dev The actual transfer.
+		require(SOV.transfer(_receiver, _amount), "Transfer failed");
+
+		/// @dev Event log.
+		emit SOVTransferred(_receiver, _amount);
 	}
 
+	/**
+	 * @notice Get the missed SOV balance of LM contract.
+	 *
+	 * @return The amount of SOV tokens according to totalUsersBalance
+	 *   in excess of actual SOV balance of the LM contract. 
+	 * */
 	function getMissedBalance() public view returns (uint256) {
-		uint256 balance = SVR.balanceOf(address(this));
+		uint256 balance = SOV.balanceOf(address(this));
 		return balance >= totalUsersBalance ? 0 : totalUsersBalance.sub(balance);
 	}
 
@@ -340,15 +371,28 @@ contract LiquidityMining is LiquidityMiningStorage {
 		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
 	}
 
+	/**
+	 * @notice Send reward in SOV to the lockedSOV vault.
+	 * @param _user The user info, to get its reward share.
+	 * @param _userAddress The address of the user, to send SOV in its behalf.
+	 * */
 	function _transferReward(UserInfo storage _user, address _userAddress) internal {
 		uint256 userAccumulatedReward = _user.accumulatedReward;
-		uint256 balance = SVR.balanceOf(address(this));
+		
+		/// @dev Transfer if enough SOV balance on this LM contract.
+		uint256 balance = SOV.balanceOf(address(this));
 		if (balance >= userAccumulatedReward) {
 			totalUsersBalance = totalUsersBalance.sub(userAccumulatedReward);
 			_user.accumulatedReward = 0;
-			/// require(lockedSOV.transfer(_userAddress, userAccumulatedReward), "transfer failed");
-			require(lockedSOV.depositSOV(_userAddress, userAccumulatedReward), "transfer failed");
-			/// require(SVR.transfer(_userAddress, userAccumulatedReward), "transfer failed");
+
+			/// @dev Instead of transferring the reward to the LP (user),
+			///   deposit it into lockedSOV vault contract, but first
+			///   SOV deposit must be approved to move the SOV tokens
+			///   from this LM contract into the lockedSOV vault.
+			SOV.approve(address(lockedSOV), userAccumulatedReward);
+			lockedSOV.depositSOV(_userAddress, userAccumulatedReward);
+			
+			/// @dev Event log.
 			emit RewardClaimed(_userAddress, userAccumulatedReward);
 		}
 	}
