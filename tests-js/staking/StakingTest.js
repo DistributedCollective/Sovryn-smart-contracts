@@ -30,6 +30,7 @@ contract("Staking", (accounts) => {
 	let MAX_VOTING_WEIGHT;
 
 	let kickoffTS, inThreeYears;
+	let currentChainId;
 
 	before(async () => {
 		[root, a1, a2, a3, ...accounts] = accounts;
