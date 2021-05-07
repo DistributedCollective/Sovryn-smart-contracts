@@ -89,7 +89,6 @@ contract("Staking", (accounts) => {
 		let loanClosingsWith = await LoanClosingsWith.new();
 		await protocol.replaceContract(loanClosingsWith.address);
 
-
 		protocol = await ProtocolSettings.at(protocol.address);
 
 		//Loan token
