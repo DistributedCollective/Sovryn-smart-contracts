@@ -31,9 +31,22 @@ def main():
 
     #updateAllLogicContracts()
     #readOwner(contracts['iDOC'])
-    #readTransactionLimits(contracts['iDOC'],  contracts['DoC'],  contracts['WRBTC'])
-    #setTransactionLimits(contracts['iDOC'], [contracts['DoC'],  contracts['WRBTC']], [0, 0])
-    #setTransactionLimits(contracts['iRBTC'], [contracts['DoC'],  contracts['WRBTC']], [0, 0])
+    '''
+    print("iDOC")
+    readTransactionLimits(contracts['iDOC'],  contracts['DoC'],  contracts['WRBTC'],  contracts['USDT'], contracts['BPro'])
+    print("iRBTC")
+    readTransactionLimits(contracts['iRBTC'],  contracts['DoC'],  contracts['WRBTC'],  contracts['USDT'], contracts['BPro'])
+    print("iUSDT")
+    readTransactionLimits(contracts['iUSDT'],  contracts['DoC'],  contracts['WRBTC'],  contracts['USDT'], contracts['BPro'])
+    print("iBPro")
+    readTransactionLimits(contracts['iBPro'],  contracts['DoC'],  contracts['WRBTC'],  contracts['USDT'], contracts['BPro'])
+    
+    setTransactionLimits(contracts['iDOC'], [contracts['DoC'],  contracts['WRBTC'],  contracts['USDT'], contracts['BPro']], [100000e18, 18e17, 100000e18, 15e17])
+    setTransactionLimits(contracts['iRBTC'], [contracts['DoC'],  contracts['WRBTC'],  contracts['USDT'], contracts['BPro']], [100000e18, 18e17, 100000e18, 15e17])
+    setTransactionLimits(contracts['iUSDT'], [contracts['DoC'],  contracts['WRBTC'],  contracts['USDT'], contracts['BPro']], [100000e18, 18e17, 100000e18, 15e17])
+    setTransactionLimits(contracts['iBPro'], [contracts['DoC'],  contracts['WRBTC'],  contracts['USDT'], contracts['BPro']], [100000e18, 18e17, 100000e18, 15e17])
+    '''
+    #setTransactionLimits(contracts['iRBTC'], [contracts['DoC'], contracts['USDT'],  contracts['WRBTC']], [0, 0])
     #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [0])
     #lendToPool(contracts['iDOC'],contracts['DoC'], 1000e18)
     #setTransactionLimits(contracts['iDOC'], [contracts['DoC']], [21e18])
@@ -58,7 +71,7 @@ def main():
     # transferSOVtoOriginInvestorsClaim()
 
     # createVesting()
-    # transferSOVtoVestingRegistry()
+    #transferSOVtoVestingRegistry(contracts['VestingRegistry3'], 50148e18)
     # stakeTokens2()
 
     # triggerEmergencyStop(contracts['iUSDT'], False)
@@ -137,15 +150,19 @@ def main():
     #acct = accounts[0]
     #acct.deploy(TestToken, "SUSD", "SUSD", 18, 1e50)
 
-    #addOwnerToMultisig('0x4C3d3505d34213751c4b4d621cB6bDe7E664E222')
+    #addOwnerToMultisig('0xb1c5C1B84E33CD32a153f1eB120e9Bd7109cc435')
 
-    #addAdmin('0xEB7abD5e72B820E0a330699d99bF5c0DF76e794d', '0x52E4419b9D33C6e0ceb2e7c01D3aA1a04b21668C')
+    #addAdmin('0xEB7abD5e72B820E0a330699d99bF5c0DF76e794d', contracts['VestingRegistry3'])
     #isVestingAdmin('0xEB7abD5e72B820E0a330699d99bF5c0DF76e794d', '0x52E4419b9D33C6e0ceb2e7c01D3aA1a04b21668C')
 
     #replaceOwnerOnMultisig(acct, '0x9E0816a71B53ca67201a5088df960fE90910DE55')
     #readOwnersOfAllContracts()
     #checkVotingPower('0x7BE508451CD748bA55dcbe75c8067F9420909b49')
-    readVestingContractForAddress('0x6d17a1912e5685c6d0913a2099449fcddba10051')
+    #readVestingContractForAddress('0x6d17a1912e5685c6d0913a2099449fcddba10051')
+
+    #readStakingKickOff()
+
+    readLMVestingContractForAddress('0x00d1f4bC67C8c38630e76dD27038F2A1Bbf1FDD1')
 
 
 def loadConfig():
@@ -406,7 +423,11 @@ def mintEarlyAccessTokens(contractAddress, userAddress):
     
 def setTransactionLimits(loanTokenAddress, addresses, limits):
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
-    tx = localLoanToken.setTransactionLimits(addresses,limits)
+    data = localLoanToken.setTransactionLimits.encode_input(addresses,limits)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(loanTokenAddress,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId);
 
 def setTransactionLimitsOld(loanTokenAddress, settingsAddress, logicAddress, addresses, limits):
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
@@ -417,12 +438,16 @@ def setTransactionLimitsOld(loanTokenAddress, settingsAddress, logicAddress, add
     localLoanToken.setTarget(logicAddress)
     
 
-def readTransactionLimits(loanTokenAddress, SUSD, RBTC):
+def readTransactionLimits(loanTokenAddress, SUSD, RBTC, USDT, BPro):
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
     limit = localLoanToken.transactionLimit(RBTC)
     print("RBTC limit, ",limit)
     limit = localLoanToken.transactionLimit(SUSD)
-    print("USD limit, ",limit)
+    print("DOC limit, ",limit)
+    limit = localLoanToken.transactionLimit(USDT)
+    print("USDT limit, ",limit)
+    limit = localLoanToken.transactionLimit(BPro)
+    print("BPro limit, ",limit)
     
 def readLiquidity():
     loanToken = Contract.from_abi("loanToken", address=contracts['iRBTC'], abi=LoanTokenLogicStandard.abi, owner=acct)
@@ -691,6 +716,7 @@ def replaceLoanTokenLogicOnAllContracts():
     print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
     replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
 
+
 def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
     data = loanToken.setTarget.encode_input(logicAddress)
@@ -947,11 +973,8 @@ def createVesting():
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
-def transferSOVtoVestingRegistry():
-    # 271,865.38 SOV
-    amount = 27186538 * 10**16
+def transferSOVtoVestingRegistry(vestingRegistryAddress, amount):
 
-    vestingRegistryAddress = contracts['VestingRegistry']
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
     data = SOVtoken.transfer.encode_input(vestingRegistryAddress, amount)
     print(data)
@@ -1398,3 +1421,12 @@ def readVestingContractForAddress(userAddress):
         address = vestingRegistry.getVesting(userAddress)
     
     print(address)
+
+def readLMVestingContractForAddress(userAddress):
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry3'], abi=VestingRegistry.abi, owner=acct)
+    address = vestingRegistry.getVesting(userAddress)
+    print(address)
+
+def readStakingKickOff():
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    print(staking.kickoffTS())
