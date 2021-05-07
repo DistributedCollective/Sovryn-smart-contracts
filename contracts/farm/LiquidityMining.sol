@@ -5,7 +5,7 @@ import "../openzeppelin/ERC20.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
 import "./LiquidityMiningStorage.sol";
-import "../mockup/LockedSOVMockup.sol";
+import "../escrow/ILockedSOV.sol";
 
 contract LiquidityMining is LiquidityMiningStorage {
 	using SafeMath for uint256;
@@ -22,7 +22,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	IERC20 public SOV;
 
 	/// @dev The locked vault contract to deposit LP's rewards into.
-	LockedSOVMockup public lockedSOV;
+	ILockedSOV public lockedSOV;
 
 	/* Events */
 
@@ -55,7 +55,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 		uint256 _startDelayBlocks,
 		uint256 _numberOfBonusBlocks,
 		address _wrapper,
-		LockedSOVMockup _lockedSOV
+		ILockedSOV _lockedSOV
 	) public onlyOwner {
 		/// @dev Non-idempotent function. Must be called just once.
 		require(address(SOV) == address(0), "Already initialized");
@@ -67,6 +67,15 @@ contract LiquidityMining is LiquidityMiningStorage {
 		startBlock = block.number + _startDelayBlocks;
 		bonusEndBlock = startBlock + _numberOfBonusBlocks;
 		wrapper = _wrapper;
+		lockedSOV = _lockedSOV;
+	}
+
+	/**
+	 * @notice Set lockedSOV contract.
+	 * @param _lockedSOV The contract instance address of the lockedSOV vault.
+	 */
+	function setLockedSOV(ILockedSOV _lockedSOV) public onlyOwner {
+		require(address(_lockedSOV) != address(0), "Invalid lockedSOV Address.");
 		lockedSOV = _lockedSOV;
 	}
 
