@@ -16,7 +16,8 @@ LoanMaintenance
 > replaceLoanMaintenance()
 LoanOpenings 
 > replaceLoanOpenings()
-LoanClosings 
+LoanClosingsBase
+LoanClosingsWith
 > replaceLoanClosings()
 Protocol 
 > replaceProtocolSettings()
@@ -36,11 +37,11 @@ def main():
     #call the function you want here
     
     
-    #replaceProtocolSettings()
-    #replaceLoanOpenings()
-    #replaceLoanMaintenance()
-    #replaceLoanTokenLogicOnAllContracts()
-    #redeploySwapsExternal()
+    replaceProtocolSettings()
+    replaceLoanOpenings()
+    replaceLoanMaintenance()
+    replaceLoanTokenLogicOnAllContracts()
+    redeploySwapsExternal()
     replaceLoanClosings()
     
     #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOC'])
@@ -384,11 +385,17 @@ def rollover(loanId):
     
 def replaceLoanClosings():
     sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    
+    print('replacing loan closings base')
+    loanClosingsBase = acct.deploy(LoanClosingsBase)
     data = sovryn.replaceContract.encode_input(loanClosingsBase.address)
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
+
+    print('replacing loan closings with')
+    loanClosingsWith = acct.deploy(LoanClosingsWith)
     data = sovryn.replaceContract.encode_input(loanClosingsWith.address)
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(sovryn.address,0,data)
@@ -719,10 +726,14 @@ def replaceSwapsImplSovrynSwap():
 def replaceLoanTokenLogicOnAllContracts():
     print("replacing loan token logic")
     logicContract = acct.deploy(LoanTokenLogicStandard)
-    print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
+    print('new LoanTokenLogicStandard contract for loan tokens: ' + logicContract.address)
+    print('new LoanTokenLogicStandard contract for iDoC')
     replaceLoanTokenLogic(contracts['iDOC'],logicContract.address)
+    print('new LoanTokenLogicStandard contract for iUSDT')
     replaceLoanTokenLogic(contracts['iUSDT'],logicContract.address)
+    print('new LoanTokenLogicStandard contract for iBPro')
     replaceLoanTokenLogic(contracts['iBPro'],logicContract.address)
+
     logicContract = acct.deploy(LoanTokenLogicWrbtc)
     print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
     replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
@@ -1419,7 +1430,7 @@ def replaceLoanSettings():
     print(txId)
 
 def replaceLoanMaintenance():
-    print("replacing loan openings")
+    print("replacing loan maintenance")
     loanMaintenance = acct.deploy(LoanMaintenance)
     sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
     data = sovryn.replaceContract.encode_input(loanMaintenance.address)
