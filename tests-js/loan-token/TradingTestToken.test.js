@@ -59,7 +59,7 @@ contract("LoanTokenTrading", (accounts) => {
 		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 
-		SOV = await getSOV(sovryn, priceFeeds, SUSD);
+		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 	});
 
 	describe("Test the loan token trading logic with 2 TestTokens.", () => {
@@ -79,7 +79,7 @@ contract("LoanTokenTrading", (accounts) => {
 		*/
 		it("Test margin trading sending loan tokens", async () => {
 			await margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, false);
-			await margin_trading_sov_reward_payment(accounts, loanToken, SUSD, RBTC, SOV, FeesEvents);
+			await margin_trading_sov_reward_payment(accounts, loanToken, SUSD, RBTC, SOV, FeesEvents, sovryn);
 		});
 
 		/*
@@ -129,7 +129,8 @@ contract("LoanTokenTrading", (accounts) => {
 				leverageAmount,
 				value,
 				FeesEvents,
-				SOV
+				SOV,
+				sovryn
 			);
 		});
 		/*

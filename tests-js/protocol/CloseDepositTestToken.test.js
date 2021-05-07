@@ -25,6 +25,8 @@ const {
 	verify_sov_reward_payment,
 } = require("../Utils/initializer.js");
 
+const LockedSOVMockup = artifacts.require("LockedSOVMockup");
+
 const wei = web3.utils.toWei;
 
 const oneEth = new BN(wei("1", "ether"));
@@ -61,7 +63,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
 		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
-		SOV = await getSOV(sovryn, priceFeeds, SUSD);
+		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 	});
 
 	const internal_test_close_with_deposit = async (
@@ -86,7 +88,8 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		await SUSD.approve(sovryn.address, deposit_amount, { from: borrower });
 		const { rate, precision } = await priceFeeds.queryRate(initial_loan["collateralToken"], initial_loan["loanToken"]);
 
-		const sov_borrower_initial_balance = await SOV.balanceOf(borrower);
+		lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+		const sov_borrower_initial_balance = (await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower));
 
 		const tx = await sovryn.closeWithDeposit(loan_id, receiver, deposit_amount, { from: borrower });
 		const receipt = tx.receipt;
@@ -155,7 +158,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		expect(transfer_to_lender["to"] == loanToken.address).to.be.true;
 		expect(transfer_to_lender["value"]).eq(loan_close_amount_less_interest.toString());
 
-		await verify_sov_reward_payment(receipt.rawLogs, FeesEvents, SOV, borrower, loan_id, sov_borrower_initial_balance, 1);
+		await verify_sov_reward_payment(receipt.rawLogs, FeesEvents, SOV, borrower, loan_id, sov_borrower_initial_balance, 1, sovryn);
 	};
 
 	describe("Tests the close with deposit. ", () => {

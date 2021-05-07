@@ -26,6 +26,7 @@ const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 
 const Affiliates = artifacts.require("Affiliates");
+const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
@@ -59,9 +60,10 @@ const getBZRX = async () => {
 	return bzrx;
 };
 
-const getSOV = async (sovryn, priceFeeds, SUSD) => {
+const getSOV = async (sovryn, priceFeeds, SUSD, accounts) => {
 	const sov = await TestToken.new("SOV", "SOV", 18, totalSupply);
 	await sovryn.setProtocolTokenAddress(sov.address);
+	await sovryn.setLockedSOVAddress((await LockedSOVMockup.new(sov.address, [accounts[0]])).address);
 
 	await priceFeeds.setRates(SUSD.address, sov.address, oneEth);
 
@@ -333,7 +335,7 @@ function decodeLogs(logs, emitter, eventName) {
 		.map((decoded) => ({ event: eventName, args: decoded }));
 }
 
-const verify_sov_reward_payment = async (logs, FeesEvents, SOV, borrower, loan_id, sov_initial_balance, expected_events_number) => {
+const verify_sov_reward_payment = async (logs, FeesEvents, SOV, borrower, loan_id, sov_initial_balance, expected_events_number, sovryn) => {
 	const earn_reward_events = decodeLogs(logs, FeesEvents, "EarnReward");
 	const len = earn_reward_events.length;
 	expect(len).to.equal(expected_events_number);
@@ -347,7 +349,10 @@ const verify_sov_reward_payment = async (logs, FeesEvents, SOV, borrower, loan_i
 		reward = reward.add(new BN(args["amount"]));
 	}
 
-	expect(await SOV.balanceOf(borrower)).to.be.a.bignumber.equal(sov_initial_balance.add(reward));
+	lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+	expect((await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower))).to.be.a.bignumber.equal(
+		sov_initial_balance.add(reward)
+	);
 };
 
 module.exports = {

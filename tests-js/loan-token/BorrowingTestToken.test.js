@@ -54,7 +54,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 
-		SOV = await getSOV(sovryn, priceFeeds, SUSD);
+		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 	});
 
 	describe("Test borrow", () => {
@@ -115,7 +115,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 			// assert the user received the borrowed amount
 			expect(await SUSD.balanceOf(account1)).to.be.a.bignumber.equal(expectedBalance);
-			await verify_sov_reward_payment(receipt.rawLogs, FeesEvents, SOV, owner, args["loanId"], sov_initial_balance, 1);
+			await verify_sov_reward_payment(receipt.rawLogs, FeesEvents, SOV, owner, args["loanId"], sov_initial_balance, 1, sovryn);
 		});
 
 		it("Test borrow 0 collateral should fail", async () => {

@@ -183,12 +183,16 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 		}
 
 		if (rewardAmount != 0) {
-			address rewardToken;
-			(rewardToken, success) = _withdrawProtocolToken(user, rewardAmount);
+			IERC20(protocolTokenAddress).approve(lockedSOVAddress, rewardAmount);
+
+			(bool success, ) = lockedSOVAddress.call(abi.encodeWithSignature("depositSOV(address,uint256)", user, rewardAmount));
+
 			if (success) {
 				protocolTokenPaid = protocolTokenPaid.add(rewardAmount);
 
-				emit EarnReward(user, rewardToken, loanId, rewardAmount);
+				emit EarnReward(user, protocolTokenAddress, loanId, rewardAmount);
+			} else {
+				emit EarnReward(user, protocolTokenAddress, loanId, rewardAmount);
 			}
 		}
 	}

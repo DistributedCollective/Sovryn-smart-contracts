@@ -3,6 +3,7 @@ const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const FeesEvents = artifacts.require("FeesEvents");
 const { increaseTime } = require("../Utils/Ethereum");
+const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 
 const {
 	getSUSD,
@@ -69,7 +70,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
 		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
-		SOV = await getSOV(sovryn, priceFeeds, SUSD);
+		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 	});
 
 	describe("Test extending and reducing loan durations.", () => {
@@ -246,10 +247,14 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			const deposit_amount = owed_per_day.mul(days_to_extend);
 
 			await increaseTime(10 * 24 * 60 * 60);
-			const borrower_initial_balance = await SOV.balanceOf(borrower);
+			lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+			const borrower_initial_balance_before_extend = (await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower));
 
 			const loanMaintenance = await LoanMaintenance.at(sovryn.address);
 			const { receipt } = await loanMaintenance.extendLoanDuration(loan_id, deposit_amount, true, "0x", { from: borrower });
+			const borrower_initial_balance = borrower_initial_balance_before_extend.sub(
+				(await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower))
+			);
 
 			const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnReward");
 			const args = decode[0].args;
@@ -352,10 +357,15 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			const receiver = accounts[3];
 
 			await increaseTime(10 * 24 * 60 * 60);
-			const borrower_initial_balance = await SOV.balanceOf(borrower);
+			lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+			const borrower_initial_balance_before_reduce = (await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower));
 
 			const loanMaintenance = await LoanMaintenance.at(sovryn.address);
 			const { receipt } = await loanMaintenance.reduceLoanDuration(loan_id, receiver, withdraw_amount, { from: borrower });
+
+			const borrower_initial_balance = borrower_initial_balance_before_reduce.sub(
+				(await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower))
+			);
 
 			const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnReward");
 			const args = decode[0].args;

@@ -55,7 +55,7 @@ contract("LoanTokenTrading", (accounts) => {
 		loanTokenWRBTC = await getLoanTokenWRBTC(LoanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 
-		SOV = await getSOV(sovryn, priceFeeds, SUSD);
+		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 	});
 
 	describe("test the loan token trading logic with SUSD test token as collateral token and the wBTC as underlying loan token. ", () => {
@@ -69,7 +69,7 @@ contract("LoanTokenTrading", (accounts) => {
     */
 		it("Test margin trading sending loan tokens", async () => {
 			await margin_trading_sending_loan_tokens(accounts, sovryn, loanTokenWRBTC, WRBTC, SUSD, priceFeeds, false);
-			await margin_trading_sov_reward_payment(accounts, loanTokenWRBTC, WRBTC, SUSD, SOV, FeesEvents);
+			await margin_trading_sov_reward_payment(accounts, loanTokenWRBTC, WRBTC, SUSD, SOV, FeesEvents, sovryn);
 		});
 		it("Test margin trading sending collateral tokens", async () => {
 			const loanSize = oneEth;
@@ -111,7 +111,8 @@ contract("LoanTokenTrading", (accounts) => {
 				leverageAmount,
 				value,
 				FeesEvents,
-				SOV
+				SOV,
+				sovryn
 			);
 		});
 
