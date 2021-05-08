@@ -196,6 +196,8 @@ contract LockedSOV {
 		uint256 _sovAmount,
 		uint256 _basisPoint
 	) external {
+		// 10000 is not included because if 100% is unlocked, then LockedSOV is not required to be used.
+		require(_basisPoint < 10000, "Basis Point has to be less than 10000.");
 		bool txStatus = SOV.transferFrom(msg.sender, address(this), _sovAmount);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
 
