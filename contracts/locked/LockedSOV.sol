@@ -125,8 +125,8 @@ contract LockedSOV {
 
 		SOV = IERC20(_SOV);
 		vestingRegistry = VestingRegistry(_vestingRegistry);
-		cliff = _cliff * fourWeeks();
-		duration = _duration * fourWeeks();
+		cliff = _cliff * 4 weeks;
+		duration = _duration * 4 weeks;
 
 		for (uint256 index = 0; index < _admins.length; index++) {
 			isAdmin[_admins[index]] = true;
@@ -179,8 +179,8 @@ contract LockedSOV {
 
 		vestingRegistry = VestingRegistry(_vestingRegistry);
 
-		cliff = _cliff * fourWeeks();
-		duration = _duration * fourWeeks();
+		cliff = _cliff * 4 weeks;
+		duration = _duration * 4 weeks;
 
 		emit RegistryCliffAndDurationUpdated(msg.sender, _vestingRegistry, _cliff, _duration);
 	}
@@ -343,15 +343,6 @@ contract LockedSOV {
 	}
 
 	/* Getter or Read Functions */
-
-	/**
-	 * @notice This returns four weeks duration in unix timestamp.
-	 * @return _duration This returns 2419200.
-	 * @dev This is calculated based on 4 * 7 days * 24 hours * 60 minutes * 60 seconds.
-	 */
-	function fourWeeks() public pure returns (uint256 _duration) {
-		return 4 weeks;
-	}
 
 	/**
 	 * @notice The function to get the locked balance of a user.
