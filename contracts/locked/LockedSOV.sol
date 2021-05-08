@@ -122,6 +122,7 @@ contract LockedSOV {
 	) public {
 		require(_SOV != address(0), "Invalid SOV Address.");
 		require(_vestingRegistry != address(0), "Vesting registry address is invalid.");
+		require(_duration < 37, "Duration is too long.");
 
 		SOV = IERC20(_SOV);
 		vestingRegistry = VestingRegistry(_vestingRegistry);
