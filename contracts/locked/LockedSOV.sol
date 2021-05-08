@@ -177,6 +177,7 @@ contract LockedSOV {
 		require(address(vestingRegistry) != _vestingRegistry, "Vesting Registry has to be different for changing duration and cliff.");
 		/// If duration is also zero, then it is similar to Unlocked SOV.
 		require(_duration != 0, "Duration cannot be zero.");
+		require(_duration < 37, "Duration is too long.");
 
 		vestingRegistry = VestingRegistry(_vestingRegistry);
 
@@ -229,7 +230,7 @@ contract LockedSOV {
 	 * @notice A function to withdraw the unlocked balance.
 	 * @param _receiverAddress If specified, the unlocked balance will go to this address, else to msg.sender.
 	 */
-	function withdraw(address _receiverAddress) external {
+	function withdraw(address _receiverAddress) public {
 		address userAddr = _receiverAddress;
 		if (_receiverAddress == address(0)) {
 			userAddr = msg.sender;
@@ -242,6 +243,20 @@ contract LockedSOV {
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
 
 		emit Withdrawn(msg.sender, userAddr, amount);
+	}
+
+	/**
+	 * @notice Creates vesting if not already created and Stakes tokens for a user.
+	 * @dev Only use this function if the `duration` is small.
+	 */
+	function createVestingAndStake() external {
+		address vestingAddr = _getVesting(msg.sender);
+
+		if (vestingAddr == address(0)) {
+			vestingAddr = createVesting();
+		}
+
+		_stakeTokens(vestingAddr);
 	}
 
 	/**
@@ -258,7 +273,7 @@ contract LockedSOV {
 	 * @notice Stakes tokens for a user who already have a vesting created.
 	 * @dev The user should already have a vesting created, else this function will throw error.
 	 */
-	function stakeTokens() external {
+	function stakeTokens() public {
 		VestingLogic vesting = VestingLogic(_getVesting(msg.sender));
 
 		require(cliff == vesting.cliff() && duration == vesting.duration(), "Wrong Vesting Schedule.");
@@ -267,17 +282,13 @@ contract LockedSOV {
 	}
 
 	/**
-	 * @notice Creates vesting if not already created and Stakes tokens for a user.
-	 * @dev Only use this function if the `duration` is small.
+	 * @notice Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created.
+	 * @param _receiverAddress If specified, the unlocked balance will go to this address, else to msg.sender.
+	 * @dev The user should already have a vesting created, else this function will throw error.
 	 */
-	function createVestingAndStake() external {
-		address vestingAddr = _getVesting(msg.sender);
-
-		if (vestingAddr == address(0)) {
-			vestingAddr = createVesting();
-		}
-
-		_stakeTokens(vestingAddr);
+	function withdrawAndStakeTokens(address _receiverAddress) external {
+		withdraw(_receiverAddress);
+		stakeTokens();
 	}
 
 	/**
