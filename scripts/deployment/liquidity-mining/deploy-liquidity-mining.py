@@ -1,3 +1,13 @@
+'''
+Steps for deploying liquidity mining
+ 
+1. Run this deployment script
+2. Deploy the wrapper proxy
+3. Set wrapper proxy on LMcontract
+4. Set lockedSOV as admin of VestingRegistry3
+5. If on mainnet: transfer SOV from adoption pool
+'''
+
 from brownie import *
 
 import time
@@ -26,30 +36,40 @@ def main():
     multisig = contracts['multisig']
 
     balanceBefore = acct.balance()
-
+    
     # == LiquidityMining ===================================================================================================================
-    SVRtoken = acct.deploy(SVR, contracts['SOV'], contracts['Staking'])
+    SOVToken = Contract.from_abi("SOV", address = contracts['SOV'], abi=TestToken.abi, owner = acct)
+
+    lockedSOV = acct.deploy(LockedSOV, contracts['SOV'], contracts['VestingRegistry3'], 1, 10, [contracts['multisig']])
 
     liquidityMiningLogic = acct.deploy(LiquidityMining)
     liquidityMiningProxy = acct.deploy(LiquidityMiningProxy)
     liquidityMiningProxy.setImplementation(liquidityMiningLogic.address)
     liquidityMining = Contract.from_abi("LiquidityMining", address=liquidityMiningProxy.address, abi=LiquidityMining.abi, owner=acct)
-
+    
     # TODO define values
-    rewardTokensPerBlock = 100 # 100 / 10**18
-    startDelayBlocks = 2880 # ~1 day in blocks (assuming 30s blocks)
-    numberOfBonusBlocks = 2880 # ~1 day in blocks (assuming 30s blocks)
+    rewardTokensPerBlock = 1736e14 # 500 SOV per day
+    startDelayBlocks = 1 # ~1 day in blocks (assuming 30s blocks)
+    numberOfBonusBlocks = 1 # ~1 day in blocks (assuming 30s blocks)
     wrapper = "0x0000000000000000000000000000000000000000" # can be updated later using setWrapper
-    liquidityMining.initialize(SVRtoken.address, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper)
-
+    liquidityMining.initialize(contracts['SOV'], rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address)
+    
+    
     # TODO prepare pool tokens list
-    poolToken1 = contracts['iDOC']
-    allocationPoint = 1 # token weight = allocationPoint / SUM of allocationPoints for all pool tokens
+    poolTokens = [contracts['iDOC'], contracts['iUSDT'], contracts['iRBTC'], contracts['iBPro'], contracts['ConverterDOC'], contracts['ConverterUSDT'], contracts['ConverterSOV']]
+    allocationPoints = [1,1,1,1,2,2,3]
+    # token weight = allocationPoint / SUM of allocationPoints for all pool tokens
     withUpdate = False # can be False if we adding pool tokens before mining started
-    liquidityMining.add(poolToken1, allocationPoint, withUpdate)
+    for i in range(0,len(poolTokens)):
+        print('adding pool', i)
+        liquidityMining.add(poolTokens[i], allocationPoints[i], withUpdate)
 
     liquidityMining.transferOwnership(multisig)
     liquidityMiningProxy.setProxyOwner(multisig)
+
+    if thisNetwork == "testnet":
+        print('transferring SOV')
+        SOVToken.transfer(liquidityMiningProxy.address, 50000e18)
 
     print("deployment cost:")
     print((balanceBefore - acct.balance()) / 10**18)

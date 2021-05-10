@@ -162,7 +162,13 @@ def main():
 
     #readStakingKickOff()
 
-    readLMVestingContractForAddress('0x00d1f4bC67C8c38630e76dD27038F2A1Bbf1FDD1')
+    #readLMVestingContractForAddress('0x00d1f4bC67C8c38630e76dD27038F2A1Bbf1FDD1')
+
+    
+
+    transferTokensFromWallet(contracts['SOV'], contracts['LiquidityMiningProxy'], 50000e18)
+    setWrapperOnLM()
+    addAdmin(contracts['LockedSOV'], contracts['VestingRegistry3'])
 
 
 def loadConfig():
@@ -1430,3 +1436,15 @@ def readLMVestingContractForAddress(userAddress):
 def readStakingKickOff():
     staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
     print(staking.kickoffTS())
+
+def setWrapperOnLM():
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
+    data = lm.setWrapper.encode_input(contracts['RBTCWrapperProxy'])
+    tx = multisig.submitTransaction(multisig.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId);
+
+def transferTokensFromWallet(tokenContract, receiver, amount):
+    token = Contract.from_abi("Token", address= tokenContract, abi = TestToken.abi, owner=acct)
+    token.transfer(receiver, amount)
