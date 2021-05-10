@@ -83,10 +83,14 @@ def deployProtocol(acct, tokens, mocOracleAddress, rskOracleAddress):
     sovryn.replaceContract(loanMaintenance.address)
 
     ## LoanClosings
-    print("Deploying LoanClosings.")
-    loanClosings = acct.deploy(LoanClosings)
+    print("Deploying LoanClosingsBase.")
+    loanClosingsBase = acct.deploy(LoanClosingsBase)
     print("Calling replaceContract.")
-    sovryn.replaceContract(loanClosings.address)
+    sovryn.replaceContract(loanClosingsBase.address)
+    print("Deploying LoanClosingsWith.")
+    loanClosingsWith = acct.deploy(LoanClosingsWith)
+    print("Calling replaceContract.")
+    sovryn.replaceContract(loanClosingsWith.address)
 
     ## SwapExternal
     print("Deploying SwapExternal.")
