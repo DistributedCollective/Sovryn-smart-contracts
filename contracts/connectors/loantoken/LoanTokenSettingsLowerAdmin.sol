@@ -23,7 +23,6 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 
 	//Add new variables here on the bottom
 	address public earlyAccessToken;
-	address public pauser;
 
 	event SetEarlyAccessToken(address oldValue, address newValue);
 
@@ -43,11 +42,6 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	function setAdmin(address _admin) public onlyOwner {
 		admin = _admin;
 	}
-
-	function setPauser(address _pauser) public onlyOwner {
-		pauser = _pauser;
-	}
-
 	function() external {
 		revert("LoanTokenSettingsLowerAdmin - fallback not allowed");
 	}
@@ -113,24 +107,6 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 		targetLevel = _targetLevel; // 80 ether
 		kinkLevel = _kinkLevel; // 90 ether
 		maxScaleRate = _maxScaleRate; // 100 ether
-	}
-
-	function toggleFunctionPause(
-		string memory funcId, // example: "mint(uint256,uint256)"
-		bool isPaused
-	) public {
-		require(msg.sender == pauser, "onlyPauser");
-		// keccak256("iToken_FunctionPause")
-		bytes32 slot =
-			keccak256(
-				abi.encodePacked(
-					bytes4(keccak256(abi.encodePacked(funcId))),
-					uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
-				)
-			);
-		assembly {
-			sstore(slot, isPaused)
-		}
 	}
 
 	/**
