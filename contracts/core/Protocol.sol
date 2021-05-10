@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.
+ * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
 
@@ -8,7 +8,6 @@ pragma experimental ABIEncoderV2;
 
 import "./State.sol";
 
-//@todo can I change this proxy to EIP-1822 proxy standard, please. https://eips.ethereum.org/EIPS/eip-1822.
 contract sovrynProtocol is State {
 	function() external payable {
 		if (gasleft() <= 2300) {

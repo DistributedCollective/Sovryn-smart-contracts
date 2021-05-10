@@ -147,7 +147,8 @@ contract("LoanTokenLending", (accounts) => {
 			const total_deposit_amount = new BN(wei("200", "ether"));
 			await loanToken.mintWithBTC(lender, { value: total_deposit_amount.toString() });
 			const balance_after_lending = await web3.eth.getBalance(lender);
-			await loanToken.burnToBTC(lender, total_deposit_amount.mul(new BN(2)).toString());
+			await expectRevert(loanToken.burnToBTC(lender, total_deposit_amount.mul(new BN(2)).toString()), "32");
+			await loanToken.burnToBTC(lender, constants.MAX_UINT256);
 			expect(await loanToken.balanceOf(lender)).to.be.a.bignumber.equal(new BN(0));
 		});
 	});
