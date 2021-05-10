@@ -8,9 +8,11 @@ const TOTAL_SUPPLY = etherMantissa(1000000000);
 const TestToken = artifacts.require("TestToken");
 const LiquidityMiningLogic = artifacts.require("LiquidityMiningMockup");
 const LiquidityMiningProxy = artifacts.require("LiquidityMiningProxy");
+const TestLockedSOV = artifacts.require("LockedSOVMockup");
 
-describe("LiquidityMining", () => {
-	const name = "Test SVR Token";
+
+contract("LiquidityMining", (accounts) => {
+	const name = "Test SOV Token";
 	const symbol = "TST";
 
 	const rewardTokensPerBlock = new BN(3);
@@ -19,8 +21,9 @@ describe("LiquidityMining", () => {
 
 	let accounts
 	let root, account1, account2, account3, account4;
-	let SVRToken, token1, token2, token3;
+	let SOVToken, token1, token2, token3;
 	let liquidityMining, wrapper;
+	let lockedSOVAdmins;
 
 	before(async () => {
 		accounts = await web3.eth.getAccounts();
@@ -28,22 +31,25 @@ describe("LiquidityMining", () => {
 	});
 
 	beforeEach(async () => {
-		SVRToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
+		SOVToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 		token1 = await TestToken.new("Test token 1", "TST-1", 18, TOTAL_SUPPLY);
 		token2 = await TestToken.new("Test token 2", "TST-2", 18, TOTAL_SUPPLY);
 		token3 = await TestToken.new("Test token 3", "TST-3", 18, TOTAL_SUPPLY);
 		wrapper = account1;
+		lockedSOVAdmins = [account1, account2];
+
+		lockedSOV = await TestLockedSOV.new(SOVToken.address, lockedSOVAdmins);
 
 		await deployLiquidityMining();
-		await liquidityMining.initialize(SVRToken.address, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper);
+		await liquidityMining.initialize(SOVToken.address, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address);
 	});
 
 	describe("initialize", () => {
 		it("sets the expected values", async () => {
 			await deployLiquidityMining();
-			let tx = await liquidityMining.initialize(SVRToken.address, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper);
+			let tx = await liquidityMining.initialize(SOVToken.address, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address);
 
-			let _SVR = await liquidityMining.SVR();
+			let _SOV = await liquidityMining.SOV();
 			let _rewardTokensPerBlock = await liquidityMining.rewardTokensPerBlock();
 			let _startBlock = await liquidityMining.startBlock();
 			let _bonusEndBlock = await liquidityMining.bonusEndBlock();
@@ -51,7 +57,7 @@ describe("LiquidityMining", () => {
 
 			let blockNumber = new BN(tx.receipt.blockNumber);
 
-			expect(_SVR).equal(SVRToken.address);
+			expect(_SOV).equal(SOVToken.address);
 			expect(_rewardTokensPerBlock).bignumber.equal(rewardTokensPerBlock);
 			expect(_startBlock).bignumber.equal(startDelayBlocks.add(blockNumber));
 			expect(_bonusEndBlock).bignumber.equal(startDelayBlocks.add(blockNumber).add(numberOfBonusBlocks));
@@ -61,7 +67,7 @@ describe("LiquidityMining", () => {
 		it("fails if not an owner", async () => {
 			await deployLiquidityMining();
 			await expectRevert(
-				liquidityMining.initialize(SVRToken.address, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, {from: account1}),
+				liquidityMining.initialize(SOVToken.address, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address, {from: account1}),
 				"unauthorized"
 			);
 		});
@@ -69,14 +75,14 @@ describe("LiquidityMining", () => {
 		it("fails if _startBlock = 0", async () => {
 			await deployLiquidityMining();
 			await expectRevert(
-				liquidityMining.initialize(SVRToken.address, rewardTokensPerBlock, 0, numberOfBonusBlocks, wrapper),
+				liquidityMining.initialize(SOVToken.address, rewardTokensPerBlock, 0, numberOfBonusBlocks, wrapper, lockedSOV.address),
 				"Invalid start block"
 			);
 		});
 
 		it("fails if already initialized", async () => {
 			await expectRevert(
-				liquidityMining.initialize(SVRToken.address, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper),
+				liquidityMining.initialize(SOVToken.address, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address),
 				"Already initialized"
 			);
 		});
@@ -84,7 +90,7 @@ describe("LiquidityMining", () => {
 		it("fails if the 0 address is passed as token address", async () => {
 			await deployLiquidityMining();
 			await expectRevert(
-				liquidityMining.initialize(ZERO_ADDRESS, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper),
+				liquidityMining.initialize(ZERO_ADDRESS, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address),
 				"Invalid token address"
 			);
 		});
@@ -132,28 +138,28 @@ describe("LiquidityMining", () => {
 		});
 	});
 
-	describe("transferSVR", () => {
-		it("should be able to transfer SVR", async () => {
+	describe("transferSOV", () => {
+		it("should be able to transfer SOV", async () => {
 			let amount = new BN(1000);
-			await SVRToken.transfer(liquidityMining.address, amount);
+			await SOVToken.transfer(liquidityMining.address, amount);
 
-			let balanceBefore = await SVRToken.balanceOf(account1);
-			await liquidityMining.transferSVR(account1, amount);
-			let balanceAfter = await SVRToken.balanceOf(account1);
+			let balanceBefore = await SOVToken.balanceOf(account1);
+			await liquidityMining.transferSOV(account1, amount);
+			let balanceAfter = await SOVToken.balanceOf(account1);
 
 			expect(amount).bignumber.equal(balanceAfter.sub(balanceBefore));
 		});
 
 		it("only owner should be able to transfer", async () => {
-			await expectRevert(liquidityMining.transferSVR(account1, 1000, { from: account1 }), "unauthorized");
+			await expectRevert(liquidityMining.transferSOV(account1, 1000, { from: account1 }), "unauthorized");
 		});
 
 		it("fails if the 0 address is passed as receiver address", async () => {
-			await expectRevert(liquidityMining.transferSVR(ZERO_ADDRESS, 1000), "receiver address invalid");
+			await expectRevert(liquidityMining.transferSOV(ZERO_ADDRESS, 1000), "Receiver address invalid");
 		});
 
 		it("fails if the 0 is passed as an amount", async () => {
-			await expectRevert(liquidityMining.transferSVR(account1, 0), "amount invalid");
+			await expectRevert(liquidityMining.transferSOV(account1, 0), "Amount invalid");
 		});
 	});
 
@@ -310,7 +316,7 @@ describe("LiquidityMining", () => {
 			await token1.approve(liquidityMining.address, amount, {from: account1});
 		});
 
-		it("should be able to claim reward (will not be claimed without SVR tokens)", async () => {
+		it("should be able to claim reward (will not be claimed without SOV tokens)", async () => {
 			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
 
 			let tx = await liquidityMining.claimReward(token1.address, ZERO_ADDRESS, {from: account1});
@@ -321,15 +327,16 @@ describe("LiquidityMining", () => {
 
 			await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
 
-			//user's balance of reward token
-			let userRewardBalance = await SVRToken.balanceOf(account1);
+			// User's balance of locked reward
+			// let userRewardBalance = await SVRToken.balanceOf(account1);
+			let userRewardBalance = await lockedSOV.getLockedBalance(account1);
 			expect(userRewardBalance).bignumber.equal(new BN(0));
 		});
 
-		it("should be able to claim reward (will be claimed with SVR tokens)", async () => {
+		it("should be able to claim reward (will be claimed with SOV tokens)", async () => {
 			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
 			let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
-			await SVRToken.transfer(liquidityMining.address, new BN(1000));
+			await SOVToken.transfer(liquidityMining.address, new BN(1000));
 
 			let tx = await liquidityMining.claimReward(token1.address, ZERO_ADDRESS, {from: account1});
 
@@ -379,8 +386,8 @@ describe("LiquidityMining", () => {
 
 			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
 
-			//user's balance of reward token
-			let userRewardBalance = await SVRToken.balanceOf(account1);
+			// User's balance on lockedSOV vault
+			let userRewardBalance = await lockedSOV.getLockedBalance(account1);
 			expect(userRewardBalance).bignumber.equal(new BN(0));
 
 			expectEvent(tx, "Withdraw", {
@@ -393,7 +400,7 @@ describe("LiquidityMining", () => {
 		it("should be able to withdraw (with claiming reward)", async () => {
 			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
 			let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
-			await SVRToken.transfer(liquidityMining.address, new BN(1000));
+			await SOVToken.transfer(liquidityMining.address, new BN(1000));
 
 			let tx = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, {from: account1});
 
@@ -1159,7 +1166,8 @@ describe("LiquidityMining", () => {
 	async function checkUserReward(user, poolToken, depositBlockNumber, latestBlockNumber) {
 		let passedBlocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(depositBlockNumber, latestBlockNumber);
 		let userReward = passedBlocks.mul(rewardTokensPerBlock);
-		let userRewardBalance = await SVRToken.balanceOf(user);
+		// let userRewardBalance = await SVRToken.balanceOf(user);
+		let userRewardBalance = await lockedSOV.getLockedBalance(user);
 		expect(userRewardBalance).bignumber.equal(userReward);
 		let userInfo = await liquidityMining.getUserInfo(poolToken.address, user);
 		expect(userInfo.accumulatedReward).bignumber.equal(new BN(0));
