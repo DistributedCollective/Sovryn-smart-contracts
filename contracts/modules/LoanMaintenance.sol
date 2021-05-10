@@ -125,7 +125,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		bytes32 loanId,
 		uint256 depositAmount,
 		bool useCollateral,
-		bytes calldata /*loanDataBytes*/ // for future use
+		bytes calldata // for future use /*loanDataBytes*/
 	) external payable nonReentrant returns (uint256 secondsExtended) {
 		require(depositAmount != 0, "depositAmount is 0");
 		Loan storage loanLocal = loans[loanId];
@@ -317,8 +317,8 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	) external view returns (LoanReturnData[] memory loansData) {
 		EnumerableBytes32Set.Bytes32Set storage set = isLender ? lenderLoanSets[user] : borrowerLoanSets[user];
 
-		uint256 end = count.min256(set.values.length);
-		if (end == 0 || start >= end) {
+		uint256 end = start.add(count).min256(set.length());
+		if (start >= end) {
 			return loansData;
 		}
 
@@ -361,8 +361,8 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		uint256 count,
 		bool unsafeOnly
 	) external view returns (LoanReturnData[] memory loansData) {
-		uint256 end = count.min256(activeLoansSet.values.length);
-		if (end == 0 || start >= end) {
+		uint256 end = start.add(count).min256(activeLoansSet.length());
+		if (start >= end) {
 			return loansData;
 		}
 

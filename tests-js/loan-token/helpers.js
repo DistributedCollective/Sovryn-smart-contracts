@@ -166,6 +166,8 @@ const cash_out_from_the_pool = async (loanToken, lender, underlyingToken, lendBT
 	}
 };
 
+/*
+//
 const cash_out_from_the_pool_more_of_lender_balance_should_not_fail = async (loanToken, lender, underlyingToken) => {
 	const initial_balance = await underlyingToken.balanceOf(lender);
 	const amount_withdrawn = new BN(wei("100", "ether"));
@@ -180,6 +182,23 @@ const cash_out_from_the_pool_more_of_lender_balance_should_not_fail = async (loa
 	expect(await loanToken.balanceOf(lender)).to.be.a.bignumber.equal(new BN(0));
 	expect(await loanToken.tokenPrice()).to.be.a.bignumber.equal(await loanToken.initialPrice());
 	expect(await underlyingToken.balanceOf(lender)).to.be.a.bignumber.equal(initial_balance);
+};*/
+
+const cash_out_from_the_pool_uint256_max_should_withdraw_total_balance = async (loanToken, lender, underlyingToken) => {
+	const initial_balance = await underlyingToken.balanceOf(lender);
+	const amount_withdrawn = new BN(wei("100", "ether"));
+	const total_deposit_amount = amount_withdrawn.mul(new BN(2));
+
+	expect(initial_balance.gt(total_deposit_amount)).to.be.true;
+
+	await underlyingToken.approve(loanToken.address, total_deposit_amount.toString());
+	await loanToken.mint(lender, total_deposit_amount.toString());
+	await expectRevert(loanToken.burn(lender, total_deposit_amount.mul(new BN(2))), "32");
+	await loanToken.burn(lender, constants.MAX_UINT256);
+
+	expect(await loanToken.balanceOf(lender)).to.be.a.bignumber.equal(new BN(0));
+	expect(await loanToken.tokenPrice()).to.be.a.bignumber.equal(await loanToken.initialPrice());
+	expect(await underlyingToken.balanceOf(lender)).to.be.a.bignumber.equal(initial_balance);
 };
 
 module.exports = {
@@ -190,5 +209,6 @@ module.exports = {
 	verify_lending_result_and_itoken_price_change,
 	lend_to_the_pool,
 	cash_out_from_the_pool,
-	cash_out_from_the_pool_more_of_lender_balance_should_not_fail,
+	//cash_out_from_the_pool_more_of_lender_balance_should_not_fail,
+	cash_out_from_the_pool_uint256_max_should_withdraw_total_balance,
 };

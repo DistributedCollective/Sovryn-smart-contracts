@@ -1,7 +1,4 @@
-
-
-
-
+[![Node.js CI](https://github.com/DistributedCollective/Sovryn-smart-contracts/actions/workflows/node.js.yml/badge.svg)](https://github.com/DistributedCollective/Sovryn-smart-contracts/actions/workflows/node.js.yml) [![Build Status](https://travis-ci.org/DistributedCollective/Sovryn-smart-contracts.svg?branch=development)](https://travis-ci.org/DistributedCollective/Sovryn-smart-contracts) [![Coverage Status](https://coveralls.io/repos/github/DistributedCollective/Sovryn-smart-contracts/badge.svg?branch=development)](https://coveralls.io/github/DistributedCollective/Sovryn-smart-contracts?branch=development)
 
 # Sovryn v 0.1 Smart Contracts
 

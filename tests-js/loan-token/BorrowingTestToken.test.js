@@ -79,7 +79,8 @@ contract("LoanTokenBorrowing", (accounts) => {
 			const principal = withdrawAmount
 				.mul(oneEth)
 				.div(oneEth.sub(interestRate.mul(new BN(durationInSeconds)).mul(oneEth).div(new BN(31536000)).div(hunEth)));
-			const borrowingFee = (await sovryn.borrowingFeePercent()).mul(collateralTokenSent).div(hunEth);
+			//TODO: refactor formula to remove rounding error subn(1)
+			const borrowingFee = (await sovryn.borrowingFeePercent()).mul(collateralTokenSent).div(hunEth); /*.addn(1)*/
 			const expectedBalance = (await SUSD.balanceOf(account1)).add(withdrawAmount);
 			// approve the transfer of the collateral
 			await RBTC.approve(loanToken.address, collateralTokenSent);

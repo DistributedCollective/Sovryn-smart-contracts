@@ -1,5 +1,5 @@
 const { assert } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time, ether} = require("@openzeppelin/test-helpers");
+const { expectRevert, expectEvent, constants, BN, balance, time, ether } = require("@openzeppelin/test-helpers");
 
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
@@ -30,16 +30,14 @@ contract("LoanSettings", (accounts) => {
 	let lender, account1, account2, account3, account4;
 	let underlyingToken, testWrbtc;
 	let sovryn, loanToken;
-    let loanParams, loanParamsId;
-
+	let loanParams, loanParamsId;
 
 	before(async () => {
 		[lender, account1, account2, account3, account4, ...accounts] = accounts;
 	});
 
-
 	beforeEach(async () => {
-        //Token
+		//Token
 		underlyingToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 		testWrbtc = await TestWrbtc.new();
 
@@ -79,78 +77,72 @@ contract("LoanSettings", (accounts) => {
 
 		await testWrbtc.mint(sovryn.address, ether("500"));
 
-        loanParams = {
-            "id": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "active": false,
-            "owner": constants.ZERO_ADDRESS,
-            "loanToken": underlyingToken.address,
-            "collateralToken": testWrbtc.address,
-            "minInitialMargin": ether("50"),
-            "maintenanceMargin": ether("15"),
-            "maxLoanTerm": "2419200"
-        };
-   
-        let tx = await sovryn.setupLoanParams([Object.values(loanParams)]);
-        loanParamsId = tx.logs[1].args.id;
+		loanParams = {
+			id: "0x0000000000000000000000000000000000000000000000000000000000000000",
+			active: false,
+			owner: constants.ZERO_ADDRESS,
+			loanToken: underlyingToken.address,
+			collateralToken: testWrbtc.address,
+			minInitialMargin: ether("50"),
+			maintenanceMargin: ether("15"),
+			maxLoanTerm: "2419200",
+		};
+
+		let tx = await sovryn.setupLoanParams([Object.values(loanParams)]);
+		loanParamsId = tx.logs[1].args.id;
 	});
 
-    
 	describe("test LoanSettings", async () => {
 		it("test setup removeLoanParams", async () => {
-            let loanParamsAfter = (await sovryn.getLoanParams([loanParamsId]))[0];
-            
-            assert(loanParamsAfter["id"] != "0x0");
-            assert(loanParamsAfter["active"]);
-            assert(loanParamsAfter["owner"] == lender);
-            assert(loanParamsAfter["loanToken"] == underlyingToken.address);
+			let loanParamsAfter = (await sovryn.getLoanParams([loanParamsId]))[0];
 
+			assert(loanParamsAfter["id"] != "0x0");
+			assert(loanParamsAfter["active"]);
+			assert(loanParamsAfter["owner"] == lender);
+			assert(loanParamsAfter["loanToken"] == underlyingToken.address);
 
-            await expectRevert(sovryn.disableLoanParams([loanParamsId], { "from": accounts[0] }), "unauthorized owner");
-    
-            await sovryn.disableLoanParams([loanParamsId], { "from": lender });
-            assert((await sovryn.getLoanParams([loanParamsId]))[0]["id"] != "0x0");
+			await expectRevert(sovryn.disableLoanParams([loanParamsId], { from: accounts[0] }), "unauthorized owner");
+
+			await sovryn.disableLoanParams([loanParamsId], { from: lender });
+			assert((await sovryn.getLoanParams([loanParamsId]))[0]["id"] != "0x0");
 		});
 
- 
-        it("test disableLoanParams", async () => {
-            await sovryn.disableLoanParams([loanParamsId], { "from": lender });
+		it("test disableLoanParams", async () => {
+			await sovryn.disableLoanParams([loanParamsId], { from: lender });
 
-            let loanParamsAfter = (await sovryn.getLoanParams([loanParamsId]))[0];
+			let loanParamsAfter = (await sovryn.getLoanParams([loanParamsId]))[0];
 
-            assert(loanParamsAfter["id"] != "0x0");
-            assert(loanParamsAfter["active"] == false); // false because we disabled Loan Param just before
-            assert(loanParamsAfter["owner"] == lender);
-            assert(loanParamsAfter["loanToken"] == underlyingToken.address);
-            assert(loanParamsAfter["collateralToken"] == testWrbtc.address);
-            assert(loanParamsAfter["minInitialMargin"] == ether("50"));
-            assert(loanParamsAfter["maintenanceMargin"] == ether("15"));
-            assert(loanParamsAfter["maxLoanTerm"] == "2419200");
+			assert(loanParamsAfter["id"] != "0x0");
+			assert(loanParamsAfter["active"] == false); // false because we disabled Loan Param just before
+			assert(loanParamsAfter["owner"] == lender);
+			assert(loanParamsAfter["loanToken"] == underlyingToken.address);
+			assert(loanParamsAfter["collateralToken"] == testWrbtc.address);
+			assert(loanParamsAfter["minInitialMargin"] == ether("50"));
+			assert(loanParamsAfter["maintenanceMargin"] == ether("15"));
+			assert(loanParamsAfter["maxLoanTerm"] == "2419200");
 		});
 
+		it("test getLoanParams", async () => {
+			let loanParamsAfter = (await sovryn.getLoanParams([loanParamsId]))[0];
 
-        it("test getLoanParams", async () => {
-            let loanParamsAfter = (await sovryn.getLoanParams([loanParamsId]))[0];
-
-            assert(loanParamsAfter["id"] != "0x0");
-            assert(loanParamsAfter["active"]); 
-            assert(loanParamsAfter["owner"] == lender);
-            assert(loanParamsAfter["loanToken"] == underlyingToken.address);
-            assert(loanParamsAfter["collateralToken"] == testWrbtc.address);
-            assert(loanParamsAfter["minInitialMargin"] == ether("50"));
-            assert(loanParamsAfter["maintenanceMargin"] == ether("15"));
-            assert(loanParamsAfter["maxLoanTerm"] == "2419200");
+			assert(loanParamsAfter["id"] != "0x0");
+			assert(loanParamsAfter["active"]);
+			assert(loanParamsAfter["owner"] == lender);
+			assert(loanParamsAfter["loanToken"] == underlyingToken.address);
+			assert(loanParamsAfter["collateralToken"] == testWrbtc.address);
+			assert(loanParamsAfter["minInitialMargin"] == ether("50"));
+			assert(loanParamsAfter["maintenanceMargin"] == ether("15"));
+			assert(loanParamsAfter["maxLoanTerm"] == "2419200");
 		});
-
 
 		it("test getLoanParamsList", async () => {
-            let loanParamsList = await sovryn.getLoanParamsList(lender, 0, 1);
-            assert(loanParamsList[0] == loanParamsId);
+			let loanParamsList = await sovryn.getLoanParamsList(lender, 0, 1);
+			assert(loanParamsList[0] == loanParamsId);
 		});
-        
 
 		it("test getTotalPrincipal", async () => {
-            let totalPrincipal = await sovryn.getTotalPrincipal(lender, underlyingToken.address);
-            assert(totalPrincipal == 0);
+			let totalPrincipal = await sovryn.getTotalPrincipal(lender, underlyingToken.address);
+			assert(totalPrincipal == 0);
 		});
 	});
 });
