@@ -43,6 +43,10 @@
     "WRBTCtoSOVConverter": "0x38729759415b27F70D5ca91CE357c45214B95Cf4",
     "RBTCWrapperProxy": "0x106f117Af68586A994234E208c29DE0f1A764C60",
 
-    "SovrynSwapFormula":"0x7FF1C363b5600834bce7c514B01109eF1c103507"
+    "SovrynSwapFormula":"0x7FF1C363b5600834bce7c514B01109eF1c103507",
+
+    "LockedSOV": "",
+
+    "EscrowReward": ""
 
 }

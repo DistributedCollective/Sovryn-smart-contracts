@@ -95,14 +95,11 @@ contract("GovernorAlpha#queue/1", (accounts) => {
 			await advanceBlocks(30);
 			//await setTime(100);
 
-			await gov
-				.queue(proposalId1)
-				.then(
-					await expectRevert(
-						gov.queue(proposalId2),
-						"revert GovernorAlpha::_queueOrRevert: proposal action already queued at eta"
-					)
-				);
+			await gov.queue(proposalId1);
+			await expectRevert(
+				gov.queue(proposalId2),
+				"revert GovernorAlpha::_queueOrRevert: proposal action already queued at eta"
+			);
 
 			await increaseTime(60);
 			//await setTime(101);
