@@ -11,7 +11,7 @@ const LiquidityMiningProxy = artifacts.require("LiquidityMiningProxy");
 const TestLockedSOV = artifacts.require("LockedSOVMockup");
 
 
-contract("LiquidityMining", (accounts) => {
+describe("LiquidityMining", () => {
 	const name = "Test SOV Token";
 	const symbol = "TST";
 
@@ -328,7 +328,7 @@ contract("LiquidityMining", (accounts) => {
 			await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
 
 			// User's balance of locked reward
-			// let userRewardBalance = await SVRToken.balanceOf(account1);
+			// let userRewardBalance = await SOVToken.balanceOf(account1);
 			let userRewardBalance = await lockedSOV.getLockedBalance(account1);
 			expect(userRewardBalance).bignumber.equal(new BN(0));
 		});
@@ -674,7 +674,7 @@ contract("LiquidityMining", (accounts) => {
 			}
 
 			// make sure the pool has tokens to distribute
-			await SVRToken.transfer(liquidityMining.address, new BN(1000));
+			await SOVToken.transfer(liquidityMining.address, new BN(1000));
 		});
 
 		it("add, add, deposit, deposit", async () => {
@@ -719,7 +719,7 @@ contract("LiquidityMining", (accounts) => {
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const rewardAmount = await SVRToken.balanceOf(account1);
+			const rewardAmount = await SOVToken.balanceOf(account1);
 
 			// reward per block 30 (because of bonus period), 1 block with weight 1/2 = 15, 1 block with weight 2/3 = 20
 			const expectedRewardAmount = new BN('35');
@@ -767,8 +767,8 @@ contract("LiquidityMining", (accounts) => {
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const reward1 = await SVRToken.balanceOf(account1);
-			const reward2 = await SVRToken.balanceOf(account2);
+			const reward1 = await SOVToken.balanceOf(account1);
+			const reward2 = await SOVToken.balanceOf(account2);
 
 			// reward per block 30 (because of bonus period), 2 block with 100% shares = 60, 1 block with 50% shares = 15
 			const expectedReward1 = new BN('75');
@@ -829,7 +829,7 @@ contract("LiquidityMining", (accounts) => {
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const rewardAmount = await SVRToken.balanceOf(account1);
+			const rewardAmount = await SOVToken.balanceOf(account1);
 
 			// reward per block 30 (because of bonus period),
 			// because add was called without updating the pool, the new weight is used for all blocks
@@ -861,7 +861,7 @@ contract("LiquidityMining", (accounts) => {
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const rewardAmount = await SVRToken.balanceOf(account1);
+			const rewardAmount = await SOVToken.balanceOf(account1);
 
 			// reward per block 30 (because of bonus period),
 			// because add was called WITH updating the pools, old weight is for 1 block and new weight is for 1 block
@@ -900,8 +900,8 @@ contract("LiquidityMining", (accounts) => {
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const reward1 = await SVRToken.balanceOf(account1);
-			const reward2 = await SVRToken.balanceOf(account2);
+			const reward1 = await SOVToken.balanceOf(account1);
+			const reward2 = await SOVToken.balanceOf(account2);
 
 			// reward per block 30 (because of bonus period)
 			// deposit 1 has 1 block with weight 1/1 (30) and 2 blocks with weight 1/2 (15*2 = 30)
@@ -965,7 +965,7 @@ contract("LiquidityMining", (accounts) => {
 		});
 
 		it('SVR', async () => {
-			expect(await liquidityMining.SVR()).equal(SVRToken.address);
+			expect(await liquidityMining.SVR()).equal(SOVToken.address);
 		});
 
 		it('rewardTokensPerBlock', async () => {
@@ -1166,7 +1166,7 @@ contract("LiquidityMining", (accounts) => {
 	async function checkUserReward(user, poolToken, depositBlockNumber, latestBlockNumber) {
 		let passedBlocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(depositBlockNumber, latestBlockNumber);
 		let userReward = passedBlocks.mul(rewardTokensPerBlock);
-		// let userRewardBalance = await SVRToken.balanceOf(user);
+		// let userRewardBalance = await SOVToken.balanceOf(user);
 		let userRewardBalance = await lockedSOV.getLockedBalance(user);
 		expect(userRewardBalance).bignumber.equal(userReward);
 		let userInfo = await liquidityMining.getUserInfo(poolToken.address, user);
