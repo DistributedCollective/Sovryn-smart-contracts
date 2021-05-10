@@ -9,6 +9,7 @@ const TestToken = artifacts.require("TestToken");
 const LiquidityMiningLogic = artifacts.require("LiquidityMiningMockup");
 const LiquidityMiningProxy = artifacts.require("LiquidityMiningProxy");
 const TestLockedSOV = artifacts.require("LockedSOVMockup");
+const TestLockedSOV2 = artifacts.require("LockedSOVMockup");
 
 contract("LiquidityMining", (accounts) => {
 	const name = "Test SOV Token";
@@ -36,6 +37,7 @@ contract("LiquidityMining", (accounts) => {
 		lockedSOVAdmins = [account1, account2];
 
 		lockedSOV = await TestLockedSOV.new(SOVToken.address, lockedSOVAdmins);
+		lockedSOV2 = await TestLockedSOV2.new(SOVToken.address, lockedSOVAdmins);
 
 		await deployLiquidityMining();
 		await liquidityMining.initialize(SOVToken.address, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address);
@@ -93,6 +95,23 @@ contract("LiquidityMining", (accounts) => {
 		});
 	});
 
+	describe("setLockedSOV", () => {
+		it("sets the expected values", async () => {
+			let newLockedSOV = lockedSOV2.address;
+			await liquidityMining.setLockedSOV(newLockedSOV);
+
+			let _lockedSOV = await liquidityMining.lockedSOV();
+			expect(_lockedSOV).equal(newLockedSOV);
+		});
+
+		it("fails if not an owner", async () => {
+			await expectRevert(
+				liquidityMining.setWrapper(account2, {from: account1}),
+				"unauthorized"
+			);
+		});
+	});
+	
 	describe("setWrapper", () => {
 		it("sets the expected values", async () => {
 			let newWrapper = account2;
