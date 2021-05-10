@@ -107,7 +107,7 @@ contract("LiquidityMining", (accounts) => {
 		it("fails if not an owner", async () => {
 			let newLockedSOV = lockedSOV2.address;
 			await expectRevert(
-				liquidityMining.setWrapper(newLockedSOV, {from: account1}), "unauthorized");
+				liquidityMining.setLockedSOV(newLockedSOV, {from: account1}), "unauthorized");
 		});
 	});
 	
