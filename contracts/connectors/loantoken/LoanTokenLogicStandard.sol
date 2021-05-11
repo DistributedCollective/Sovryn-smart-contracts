@@ -931,33 +931,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	}
 
 	/**
-	 * used to read externally from the smart contract to see if a function is paused
-	 * returns a bool
-	 * */
-	function checkPause(string memory funcId) public view returns (bool isPaused) {
-		bytes4 sig = bytes4(keccak256(abi.encodePacked(funcId)));
-		bytes32 slot = keccak256(abi.encodePacked(sig, uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)));
-		assembly {
-			isPaused := sload(slot)
-		}
-		return isPaused;
-	}
-
-	/**
-	 * used for internal verification if the called function is paused.
-	 * throws an exception in case it's not
-	 * */
-	function _checkPause() internal view {
-		//keccak256("iToken_FunctionPause")
-		bytes32 slot = keccak256(abi.encodePacked(msg.sig, uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)));
-		bool isPaused;
-		assembly {
-			isPaused := sload(slot)
-		}
-		require(!isPaused, "unauthorized");
-	}
-
-	/**
 	 * @notice adjusts the loan size to make sure the expected exposure remains after prepaying the interest
 	 * @dev loanSizeWithInterest = loanSizeBeforeInterest * 100 / (100 - interestForDuration)
 	 * @param interestRate the interest rate to pay on the position

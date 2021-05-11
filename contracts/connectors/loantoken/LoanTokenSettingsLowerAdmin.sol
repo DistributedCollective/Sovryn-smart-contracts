@@ -42,6 +42,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	function setAdmin(address _admin) public onlyOwner {
 		admin = _admin;
 	}
+
 	function() external {
 		revert("LoanTokenSettingsLowerAdmin - fallback not allowed");
 	}
