@@ -10,12 +10,24 @@ import time;
 import copy
 
 def main():
-    
+
     # Load the contracts and acct depending on the network.
     loadConfig()
+
+    balanceBefore = acct.balance()
+
     # Call the function you want here
+    currentVotingPower(acct)
     createProposalSIP0017()
     createProposalSIP0018()
+
+    balanceAfter = acct.balance()
+
+    print("=============================================================")
+    print("RSK Before Balance:  ", balanceBefore)
+    print("RSK After Balance:   ", balanceAfter)
+    print("Gas Used:            ", balanceBefore - balanceAfter)
+    print("=============================================================")
 
 def loadConfig():
     global contracts, acct
