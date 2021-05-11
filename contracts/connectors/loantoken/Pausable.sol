@@ -22,7 +22,13 @@ contract Pausable is Ownable {
 	bytes32 internal constant Pausable_FunctionPause = 0xa7143c84d793a15503da6f19bf9119a2dac94448ca45d77c8bf08f57b2e91047;
 
 	address public pauser;
-/*
+
+	modifier pausable() {
+		_checkPause();
+		_;
+	}
+
+	/*
 	modifier pausable(bytes4 sig) {
 		require(!_isPaused(sig), "unauthorized");
 		_;
@@ -38,7 +44,7 @@ contract Pausable is Ownable {
 	 *
 	 * @return isPaused Whether the function is paused: true or false.
 	 * */
-/*	function _isPaused(bytes4 sig) internal view returns (bool isPaused) {
+	/*	function _isPaused(bytes4 sig) internal view returns (bool isPaused) {
 		bytes32 slot = keccak256(abi.encodePacked(sig, Pausable_FunctionPause));
 		assembly {
 			isPaused := sload(slot)
@@ -51,7 +57,13 @@ contract Pausable is Ownable {
 	 * */
 	function checkPause(string memory signature) public view returns (bool isPaused) {
 		///keccak256("iToken_FunctionPause")
-		bytes32 slot = keccak256(abi.encodePacked(bytes4(keccak256(bytes(signature))), uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)));
+		bytes32 slot =
+			keccak256(
+				abi.encodePacked(
+					bytes4(keccak256(bytes(signature))),
+					uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
+				)
+			);
 		assembly {
 			isPaused := sload(slot)
 		}

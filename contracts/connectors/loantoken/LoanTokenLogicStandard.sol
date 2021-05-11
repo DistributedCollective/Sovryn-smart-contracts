@@ -54,12 +54,10 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         external
         payable
         nonReentrant
-        pausable(msg.sig)
+        pausable
         returns (bytes memory)
     {
         require(borrowAmount != 0, "38");
-
-        _checkPause();
 
         _settleInterest();
 
@@ -132,14 +130,13 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		payable
 		nonReentrant
 		hasEarlyAccessToken
+		pausable
 		returns (
 			uint256,
 			uint256 // returns new principal and new collateral added to loan
 		)
 	{
 		require(withdrawAmount != 0, "6");
-
-		_checkPause();
 
 		//temporary: limit transaction size
 		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
@@ -204,13 +201,12 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		payable
 		nonReentrant //note: needs to be removed to allow flashloan use cases
 		hasEarlyAccessToken
+		pausable
 		returns (
 			uint256,
 			uint256 // returns new principal and new collateral added to trade
 		)
 	{
-		_checkPause();
-
 		if (collateralTokenAddress == address(0)) {
 			collateralTokenAddress = wrbtcTokenAddress;
 		}
@@ -665,8 +661,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		address[4] memory sentAddresses,
 		uint256[5] memory sentAmounts,
 		bytes memory loanDataBytes
-	) internal returns (uint256, uint256) {
-		_checkPause();
+	) internal pausable returns (uint256, uint256) {
 		require(
 			sentAmounts[1] <= _underlyingBalance() && // newPrincipal (borrowed amount + fees)
 				sentAddresses[1] != address(0), // borrower

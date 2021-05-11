@@ -126,7 +126,10 @@ contract("LoanTokenAdministration", (accounts) => {
 			await localLoanToken.setPauser(accounts[0]);
 			await localLoanToken.toggleFunctionPause(functionSignature, true);
 
-			await expectRevert(open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]), "Function paused. It cannot be executed.");
+			await expectRevert(
+				open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]),
+				"Function paused. It cannot be executed."
+			);
 
 			// check if checkPause returns true
 			assert(localLoanToken.checkPause(functionSignature));

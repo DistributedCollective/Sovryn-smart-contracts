@@ -131,22 +131,25 @@ contract("Whether Pausable Margin Trading is reverting properly on Pause state",
 		const leverageAmount = web3.utils.toWei("3", "ether");
 		const loanTokenSent = web3.utils.toWei("20", "ether");
 
-        // Pause the given function and make sure the function can't be called
-        let functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,bytes)";
-        await loanTokenV2.setPauser(accounts[0], { from: owner });
-        await loanTokenV2.toggleFunctionPause(functionSignature, true, { from: accounts[0] });
-        
-        await expectRevert(loanTokenV2.marginTrade(
-			constants.ZERO_BYTES32, // loanId  (0 for new loans)
-			leverageAmount, // leverageAmount
-			loanTokenSent, // loanTokenSent
-			0, // no collateral token sent
-			testWrbtc.address, // collateralTokenAddress
-			owner, //trader, // trader,
-			//referrer, // affiliates referrer
-			"0x", // loanDataBytes (only required with ether)
-			{ from: owner }
-		), "Function paused. It cannot be executed.");
+		// Pause the given function and make sure the function can't be called
+		let functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,bytes)";
+		await loanTokenV2.setPauser(accounts[0], { from: owner });
+		await loanTokenV2.toggleFunctionPause(functionSignature, true, { from: accounts[0] });
+
+		await expectRevert(
+			loanTokenV2.marginTrade(
+				constants.ZERO_BYTES32, // loanId  (0 for new loans)
+				leverageAmount, // leverageAmount
+				loanTokenSent, // loanTokenSent
+				0, // no collateral token sent
+				testWrbtc.address, // collateralTokenAddress
+				owner, //trader, // trader,
+				//referrer, // affiliates referrer
+				"0x", // loanDataBytes (only required with ether)
+				{ from: owner }
+			),
+			"Function paused. It cannot be executed."
+		);
 		// expect(await sovryn.getUserNotFirstTradeFlag(owner), "sovryn.getUserNotFirstTradeFlag(trader) should be true").to.be.true;
 	});
 });
