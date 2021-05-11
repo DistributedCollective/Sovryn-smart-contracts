@@ -45,7 +45,7 @@ def loadConfig():
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
     else:
-        raise Exception("network not supported")
+        raise Exception("Network not supported.")
     contracts = json.load(configFile)
     acct = accounts.load("rskdeployer")
 
