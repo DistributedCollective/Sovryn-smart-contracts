@@ -46,6 +46,18 @@ contract Pausable is Ownable {
 	}*/
 
 	/**
+	 * @notice Public verification if the called function is paused.
+	 * @return isPaused The current pause status.
+	 * */
+	function checkPause(string memory signature) public view returns (bool isPaused) {
+		///keccak256("iToken_FunctionPause")
+		bytes32 slot = keccak256(abi.encodePacked(bytes4(keccak256(bytes(signature))), uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)));
+		assembly {
+			isPaused := sload(slot)
+		}
+	}
+
+	/**
 	 * @notice Used for internal verification if the called function is paused.
 	 *   Throws an exception in case it's not.
 	 * */
