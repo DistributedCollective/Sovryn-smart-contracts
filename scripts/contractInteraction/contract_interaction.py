@@ -165,10 +165,18 @@ def main():
     #readLMVestingContractForAddress('0x00d1f4bC67C8c38630e76dD27038F2A1Bbf1FDD1')
 
     
+    
+    #transferTokensFromWallet(contracts['SOV'], contracts['LiquidityMiningProxy'], 50000e18)
+    #setWrapperOnLM()
+    #addAdmin(contracts['LockedSOV'], contracts['VestingRegistry3'])
+    
 
-    transferTokensFromWallet(contracts['SOV'], contracts['LiquidityMiningProxy'], 50000e18)
-    setWrapperOnLM()
-    addAdmin(contracts['LockedSOV'], contracts['VestingRegistry3'])
+    #addLiquidityV2UsingWrapper(contracts['ConverterUSDT'], contracts['USDT'], 1e18)
+    #getPoolId(contracts['(WR)BTC/DOC2'])
+    #getPoolId(contracts['(WR)BTC/USDT2'])
+    #getPoolId(contracts['iRBTC'])
+    getLMInfo()
+    #readOwner(contracts['LiquidityMiningProxy'])
 
 
 def loadConfig():
@@ -1281,6 +1289,18 @@ def addLiquidityV1UsingWrapper(converter, tokens, amounts):
     tx = wrapperProxy.addLiquidityToV1(converter, tokens, amounts, 1, {'value': amounts[0]})
     print(tx)
 
+def addLiquidityV2UsingWrapper(converter, tokenAddress, amount):
+    abiFile =  open('./scripts/contractInteraction/RBTCWrapperProxy.json')
+    abi = json.load(abiFile)
+    wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=contracts['RBTCWrapperProxy'], abi=abi, owner=acct)
+
+    token = Contract.from_abi("ERC20", address=tokenAddress, abi=ERC20.abi, owner=acct)
+    token.approve(wrapperProxy.address, amount)
+
+    tx = wrapperProxy.addLiquidityToV2(converter, tokenAddress, amount, 1, {'allow_revert':True})
+    print(tx)
+    
+
 def getTargetAmountFromAMM(_sourceReserveBalance, _sourceReserveWeight, _targetReserveBalance, _targetReserveWeight, _amount):
     abiFile =  open('./scripts/contractInteraction/SovrynSwapFormula.json')
     abi = json.load(abiFile)
@@ -1448,3 +1468,14 @@ def setWrapperOnLM():
 def transferTokensFromWallet(tokenContract, receiver, amount):
     token = Contract.from_abi("Token", address= tokenContract, abi = TestToken.abi, owner=acct)
     token.transfer(receiver, amount)
+
+def getPoolId(poolToken):
+    lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
+    print(lm.getPoolId(poolToken))
+    
+
+def getLMInfo():
+    lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
+    print(lm.getPoolLength()) 
+    print(lm.getPoolInfoList())
+    print(lm.wrapper())

@@ -15,6 +15,11 @@
         "internalType": "contract IContractRegistry",
         "name": "_registry",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "liquidityMiningAddress",
+        "type": "address"
       }
     ],
     "payable": false,
@@ -122,6 +127,12 @@
         "internalType": "uint256[]",
         "name": "_reserveAmounts",
         "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "_poolTokenAmount",
+        "type": "uint256"
       }
     ],
     "name": "LiquidityRemovedFromV1",
@@ -189,6 +200,21 @@
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "liquidityMiningContract",
+    "outputs": [
+      {
+        "internalType": "contract LiquidityMining",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -353,6 +379,11 @@
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "_reserveAddress",
+        "type": "address"
+      },
+      {
         "internalType": "uint256",
         "name": "_amount",
         "type": "uint256"
@@ -363,7 +394,7 @@
         "type": "uint256"
       }
     ],
-    "name": "addLiquidity",
+    "name": "addLiquidityToV2",
     "outputs": [
       {
         "internalType": "uint256",
@@ -420,6 +451,11 @@
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "_reserveAddress",
+        "type": "address"
+      },
+      {
         "internalType": "uint256",
         "name": "_amount",
         "type": "uint256"
@@ -430,7 +466,7 @@
         "type": "uint256"
       }
     ],
-    "name": "removeLiquidity",
+    "name": "removeLiquidityFromV2",
     "outputs": [
       {
         "internalType": "uint256",
