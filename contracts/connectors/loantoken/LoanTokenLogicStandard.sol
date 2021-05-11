@@ -919,17 +919,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		}
 	}
 
-	function _adjustValue(
-		uint256 interestRate,
-		uint256 maxDuration,
-		uint256 marginAmount
-	) internal pure returns (uint256) {
-		return
-			maxDuration != 0
-				? interestRate.mul(WEI_PERCENT_PRECISION).mul(maxDuration).div(365 days).div(marginAmount).add(WEI_PERCENT_PRECISION)
-				: WEI_PERCENT_PRECISION;
-	}
-
 	/**
 	 * @notice adjusts the loan size to make sure the expected exposure remains after prepaying the interest
 	 * @dev loanSizeWithInterest = loanSizeBeforeInterest * 100 / (100 - interestForDuration)
