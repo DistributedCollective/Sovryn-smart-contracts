@@ -13,6 +13,7 @@ def main():
     
     #load the contracts and acct depending on the network
     loadConfig()
+
     #call the function you want here
     #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOC'])
     #readPrice(contracts['WRBTC'], contracts['USDT'])
@@ -38,7 +39,7 @@ def main():
     #lendToPool(contracts['iDOC'],contracts['DoC'], 1000e18)
     #setTransactionLimits(contracts['iDOC'], [contracts['DoC']], [21e18])
     #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [21e18])
-    readTransactionLimits(contracts['iUSDT'],  contracts['USDT'], contracts['WRBTC'])
+    # readTransactionLimits(contracts['iUSDT'],  contracts['USDT'], contracts['WRBTC'])
 
     '''
     setupLoanParamsForCollaterals(contracts['iBPro'], [contracts['SOV']])
@@ -48,8 +49,6 @@ def main():
     '''
 
     #setSupportedToken(contracts['SOV'])
-
-    #createProposalSIP008()
 
     # setLendingFee(10**19)
     # setTradingFee(15 * 10**16)
@@ -66,14 +65,10 @@ def main():
     # triggerEmergencyStop(contracts['iDOC'], False)
     # triggerEmergencyStop(contracts['iRBTC'], False)
 
-    # createProposalSIP0014()
-
     # addInvestorToBlacklist()
     # stake80KTokens()
 
-    # createProposalSIP0015()
-
-     # transferSOVtoTokenSender()
+    # transferSOVtoTokenSender()
 
     # transferSOVtoScriptAccount()
     #transferSOVtoTokenSender()
@@ -137,14 +132,23 @@ def main():
     #acct = accounts[0]
     #acct.deploy(TestToken, "SUSD", "SUSD", 18, 1e50)
 
-
 def loadConfig():
     global contracts, acct
-    this_network = network.show_active()
-    if this_network == "rsk-mainnet":
-        configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
-    elif this_network == "testnet":
+    thisNetwork = network.show_active()
+    if thisNetwork == "development":
+        acct = accounts[0]
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "rsk-testnet":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "rsk-mainnet":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
+    else:
+        raise Exception("Network not supported.")
     contracts = json.load(configFile)
     acct = accounts.load("rskdeployer")
     
@@ -758,96 +762,6 @@ def setEarlyAccessToken(loanTokenAddress, EATokenAddress):
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
 
-def createProposalSIP005():
-    dummyAddress = contracts['GovernorOwner']
-    dummyContract = Contract.from_abi("DummyContract", address=dummyAddress, abi=DummyContract.abi, owner=acct)
-
-    # action
-    target = contracts['VestingRegistry']
-    signature = "approveTokens(address,address,address)"
-    data = dummyContract.approveTokens.encode_input(contracts['CSOV1'], contracts['CSOV2'], contracts['SOV'])
-    data = "0x" + data[10:]
-    description = "SIP-0005: Redeeming cSOV for SOV. Details:  , sha256: "
-
-    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
-    print(governor.address)
-
-    print([target])
-    print([0])
-    print([signature])
-    print([data])
-    print(description)
-
-    # # create proposal
-    # governor.propose(
-    #     [target],
-    #     [0],
-    #     [signature],
-    #     [data],
-    #     description)
-
-
-def checkVotingPower(address):
-
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
-
-    votingPower = staking.getCurrentVotes(address)
-
-    print('======================================')
-    print('Your Address: '+str(address))
-    print('Your Voting Power: '+str(votingPower))
-    print('======================================')
-
-def createProposalSIP006():
-    # action
-    target = contracts['SOV']
-    signature = "name()"
-    data = "0x"
-    description = "SIP-0006 (A1): Origin Pre-Sale: Amendment 1, Details:  https://github.com/DistributedCollective/SIPS/blob/92036332c739d39e2df2fb15a21e8cbc05182ee7/SIP-0006(A1).md, sha256: 5f832f8e78b461d6d637410b55a66774925756489222f8aa13b37f1828a1aa4b"
-
-    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
-
-    print('Governor Address:    '+governor.address)
-    print('Target:              '+str([target]))
-    print('Values:              '+str([0]))
-    print('Signature:           '+str([signature]))
-    print('Data:                '+str([data]))
-    print('Description:         '+str(description))
-    print('======================================')
-
-    # # create proposal
-    # governor.propose(
-    #     [target],
-    #     [0],
-    #     [signature],
-    #     [data],
-    #     description)
-
-def createProposalSIP008():
-    # action
-    target = contracts['SOV']
-    signature = "symbol()"
-    data = "0x"
-    description = "SIP-0008: Sovryn Bug Bounty Program, Details:  https://github.com/DistributedCollective/SIPS/blob/a8cf098d21e5d4b0357906687374a4320c4f00bd/SIP-0008.md, sha256: a201aa8d031e5c95d4a63cc86758adb1e4a65f6a0a915eb7499d0cac332e75ba"
-
-    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
-
-    print('Governor Address:    '+governor.address)
-    print('Target:              '+str([target]))
-    print('Values:              '+str([0]))
-    print('Signature:           '+str([signature]))
-    print('Data:                '+str([data]))
-    print('Description:         '+str(description))
-    print('======================================')
-
-    # # create proposal
-    # governor.propose(
-    #     [target],
-    #     [0],
-    #     [signature],
-    #     [data],
-    #     description)
-
 def queueProposal(id):
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
     tx = governor.queue(id)
@@ -901,6 +815,7 @@ def mintNFT(contractAddress, receiver):
     abi = json.load(abiFile)
     nft = Contract.from_abi("NFT", address=contractAddress, abi=abi, owner=acct)
     nft.mint(receiver)
+
 def transferSOVtoOriginInvestorsClaim():
     originInvestorsClaimAddress = contracts['OriginInvestorsClaim']
     if (originInvestorsClaimAddress == ''):
@@ -1048,36 +963,6 @@ def determineFundsAtRisk():
     print('total potential borrowed: ', possible/1e18)
     print('could have been stolen: ', (possible - sum)/1e18)
 
-def createProposalSIP0014():
-    # 1,500,000 SOV
-    amount = 1500000 * 10**18
-    governorVault = Contract.from_abi("GovernorVault", address=contracts['GovernorVaultOwner'], abi=GovernorVault.abi, owner=acct)
-
-    # action
-    target = contracts['GovernorVaultOwner']
-    signature = "transferTokens(address,address,uint256)"
-    data = governorVault.transferTokens.encode_input(contracts['multisig'], contracts['SOV'], amount)
-    data = "0x" + data[10:]
-    description = "SIP-0014: Strategic Investment, Details: https://github.com/DistributedCollective/SIPS/blob/7b90ebcb4e135b931210b3cea22698084de9d641/SIP-0014.md, sha256: 780d4db45ae09e30516ad11b0332f68a101775ed418f68f1aaf1af93e37e519f"
-
-    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
-
-    print('Governor Address:    '+governor.address)
-    print('Target:              '+str([target]))
-    print('Values:              '+str([0]))
-    print('Signature:           '+str([signature]))
-    print('Data:                '+str([data]))
-    print('Description:         '+str(description))
-    print('======================================')
-
-    # # create proposal
-    # governor.propose(
-    #     [target],
-    #     [0],
-    #     [signature],
-    #     [data],
-    #     description)
-
 def addInvestorToBlacklist():
     # we need to process CSOV->SOV exchnage manually,
     # investor address should be added to blacklist in VestingRegistry
@@ -1108,32 +993,6 @@ def stake80KTokens():
     # tx = multisig.submitTransaction(vestingRegistry.address,0,data)
     # txId = tx.events["Submission"]["transactionId"]
     # print(txId)
-
-def createProposalSIP0015():
-
-    # action
-    target = contracts['SOV']
-    signature = "symbol()"
-    data = "0x"
-    description = "SIP-0015: Sovryn Treasury Management, Details: https://github.com/DistributedCollective/SIPS/blob/977d1ebf73f954071ffd8a787c2660c41e069e0f/SIP-0015.md, sha256: c5cdd1557f9637816c2fb2ae4ac847ffba1eacd4599488bcda793b7945798ddf"
-
-    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorAdmin'], abi=GovernorAlpha.abi, owner=acct)
-
-    print('Governor Address:    '+governor.address)
-    print('Target:              '+str([target]))
-    print('Values:              '+str([0]))
-    print('Signature:           '+str([signature]))
-    print('Data:                '+str([data]))
-    print('Description:         '+str(description))
-    print('======================================')
-
-    # # create proposal
-    # governor.propose(
-    #     [target],
-    #     [0],
-    #     [signature],
-    #     [data],
-    #     description)
 
 def transferSOVtoTokenSender():
     # 875.39 SOV
@@ -1319,35 +1178,6 @@ def readClaimBalanceOrigin(address):
     amount = originClaimContract.investorsAmountsList(address)
     print(amount)
     
-def createProposalSIP0016():
-
-    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
-
-    # action
-    target = contracts['Staking']
-    signature = "setImplementation(address)"
-    data = staking.setImplementation.encode_input(contracts['StakingLogic2'])
-    data = "0x" + data[10:]
-    description = "SIP-0016: Proposal to upgrade Staking contract - apply fix to unlock Origin Vesting contracts, Details: https://github.com/DistributedCollective/SIPS/blob/128a524ec5a8aa533a3dbadcda115acc71c86182/SIP-0016.md, sha256: 666f8a71dae650ba9a3673bad82ae1524fe486c9e6702a75d9a566b743497d73"
-
-    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
-
-    print('Governor Address:    '+governor.address)
-    print('Target:              '+str([target]))
-    print('Values:              '+str([0]))
-    print('Signature:           '+str([signature]))
-    print('Data:                '+str([data]))
-    print('Description:         '+str(description))
-    print('======================================')
-
-    # # create proposal
-    # governor.propose(
-    #     [target],
-    #     [0],
-    #     [signature],
-    #     [data],
-    #     description)
-
 def sendSOVFromVestingRegistry():
     amount = 307470805 * 10**14
     vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
