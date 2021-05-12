@@ -47,7 +47,6 @@ def loadConfig():
     else:
         raise Exception("Network not supported.")
     contracts = json.load(configFile)
-    acct = accounts.load("rskdeployer")
 
 def hasApproval(tokenContractAddr, sender, receiver):
     tokenContract = Contract.from_abi("Token", address=tokenContractAddr, abi=TestToken.abi, owner=sender)
@@ -197,7 +196,7 @@ def createProposalSIP0018():
     value = [0]
     signature = ["symbol()"]
     data = ["0x"]
-    description = "SIP-0018: , Details: , sha256: "
+    description = "SIP-0018: BabelFish Token Sale via Origins, Details: https://github.com/DistributedCollective/SIPS/blob/deae0e5/SIP-0018.md, sha256: 0835ca66ac82c7df3de4b1b48c63ebd2fe076969ffd5d505ba186fb24c19bc55"
 
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
