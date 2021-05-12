@@ -87,24 +87,15 @@ contract("Locked SOV (Creator Functions)", (accounts) => {
 	});
 
 	it("Creator should not be able to create Locked SOV Contract without specifying the sov contract.", async () => {
-		await expectRevert(
-			LockedSOV.new(zeroAddress, vestingRegistry.address, cliff, duration, [admin]),
-			"Invalid SOV Address."
-		);
+		await expectRevert(LockedSOV.new(zeroAddress, vestingRegistry.address, cliff, duration, [admin]), "Invalid SOV Address.");
 	});
 
 	it("Creator should not be able to create Locked SOV Contract without specifying the vesting registry.", async () => {
-		await expectRevert(
-			LockedSOV.new(sov.address, zeroAddress, cliff, duration, [admin]),
-			"Vesting registry address is invalid."
-		);
+		await expectRevert(LockedSOV.new(sov.address, zeroAddress, cliff, duration, [admin]), "Vesting registry address is invalid.");
 	});
 
 	it("Creator should not be able to create Locked SOV Contract with duration higher than 36.", async () => {
-		await expectRevert(
-			LockedSOV.new(sov.address, vestingRegistry.address, cliff, 100, [admin]),
-			"Duration is too long."
-		);
+		await expectRevert(LockedSOV.new(sov.address, vestingRegistry.address, cliff, 100, [admin]), "Duration is too long.");
 	});
 
 	it("Except Admin, creator should not be able to add an admin.", async () => {
@@ -116,11 +107,13 @@ contract("Locked SOV (Creator Functions)", (accounts) => {
 	});
 
 	it("Except Admin, creator should not be able to change the vestingRegistry, cliff and/or duration.", async () => {
-		await expectRevert(lockedSOV.changeRegistryCliffAndDuration(vestingRegistry.address, cliff+1, duration+1, { from: creator }), "Only admin can call this.");
+		await expectRevert(
+			lockedSOV.changeRegistryCliffAndDuration(vestingRegistry.address, cliff + 1, duration + 1, { from: creator }),
+			"Only admin can call this."
+		);
 	});
 
 	it("Except Admin, creator should not be able to start migration.", async () => {
 		await expectRevert(lockedSOV.startMigration(newLockedSOV.address, { from: creator }), "Only admin can call this.");
 	});
-
 });

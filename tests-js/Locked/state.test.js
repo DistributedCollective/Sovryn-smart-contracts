@@ -19,7 +19,7 @@ let zero = new BN(0);
 let zeroAddress = constants.ZERO_ADDRESS;
 let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
 let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
-let fourWeeks = 4*7*24*60*60;
+let fourWeeks = 4 * 7 * 24 * 60 * 60;
 
 /**
  * Function to create a random value.
@@ -65,11 +65,11 @@ async function checkStatus(
 	}
 	if (checkArray[1] == 1) {
 		let cValue = await contractInstance.cliff();
-		assert.strictEqual(cliff, cValue.toNumber()/fourWeeks, "The cliff does not match.");
+		assert.strictEqual(cliff, cValue.toNumber() / fourWeeks, "The cliff does not match.");
 	}
 	if (checkArray[2] == 1) {
 		let cValue = await contractInstance.duration();
-		assert.strictEqual(duration, cValue.toNumber()/fourWeeks, "The duration does not match.");
+		assert.strictEqual(duration, cValue.toNumber() / fourWeeks, "The duration does not match.");
 	}
 	if (checkArray[3] == 1) {
 		let cValue = await contractInstance.vestingRegistry();
@@ -175,20 +175,80 @@ contract("Locked SOV (State)", (accounts) => {
 	});
 
 	it("Creating an instance should set all the values correctly.", async () => {
-		await checkStatus(lockedSOV,[1,1,1,1,1,1,1,1], userOne, false, cliff, duration, vestingRegistry.address, zeroAddress, zero, zero, false);
-		await checkStatus(lockedSOV,[1,1,1,1,1,1,1,1], admin, false, cliff, duration, vestingRegistry.address, zeroAddress, zero, zero, true);
+		await checkStatus(
+			lockedSOV,
+			[1, 1, 1, 1, 1, 1, 1, 1],
+			userOne,
+			false,
+			cliff,
+			duration,
+			vestingRegistry.address,
+			zeroAddress,
+			zero,
+			zero,
+			false
+		);
+		await checkStatus(
+			lockedSOV,
+			[1, 1, 1, 1, 1, 1, 1, 1],
+			admin,
+			false,
+			cliff,
+			duration,
+			vestingRegistry.address,
+			zeroAddress,
+			zero,
+			zero,
+			true
+		);
 	});
 
 	it("Adding a new user as Admin should correctly reflect in contract.", async () => {
 		await lockedSOV.addAdmin(newAdmin, { from: admin });
-		await checkStatus(lockedSOV,[1,1,1,1,1,1,1,1], newAdmin, false, cliff, duration, vestingRegistry.address, zeroAddress, zero, zero, true);
+		await checkStatus(
+			lockedSOV,
+			[1, 1, 1, 1, 1, 1, 1, 1],
+			newAdmin,
+			false,
+			cliff,
+			duration,
+			vestingRegistry.address,
+			zeroAddress,
+			zero,
+			zero,
+			true
+		);
 	});
 
 	it("Removing a new user as Admin should correctly reflect in contract.", async () => {
 		await lockedSOV.addAdmin(newAdmin, { from: admin });
-		await checkStatus(lockedSOV,[1,1,1,1,1,1,1,1], newAdmin, false, cliff, duration, vestingRegistry.address, zeroAddress, zero, zero, true);
+		await checkStatus(
+			lockedSOV,
+			[1, 1, 1, 1, 1, 1, 1, 1],
+			newAdmin,
+			false,
+			cliff,
+			duration,
+			vestingRegistry.address,
+			zeroAddress,
+			zero,
+			zero,
+			true
+		);
 		await lockedSOV.removeAdmin(newAdmin, { from: admin });
-		await checkStatus(lockedSOV,[1,1,1,1,1,1,1,1], newAdmin, false, cliff, duration, vestingRegistry.address, zeroAddress, zero, zero, false);
+		await checkStatus(
+			lockedSOV,
+			[1, 1, 1, 1, 1, 1, 1, 1],
+			newAdmin,
+			false,
+			cliff,
+			duration,
+			vestingRegistry.address,
+			zeroAddress,
+			zero,
+			zero,
+			false
+		);
 	});
 
 	it("Updating the vestingRegistry, cliff and/or duration should correctly reflect in contract.", async () => {
@@ -199,8 +259,20 @@ contract("Locked SOV (State)", (accounts) => {
 			feeSharingProxy.address,
 			creator // This should be Governance Timelock Contract.
 		);
-		await lockedSOV.changeRegistryCliffAndDuration(newVestingRegistry.address, cliff+1, duration+1, { from: admin });
-		await checkStatus(lockedSOV,[1,1,1,1,1,1,1,1], admin, false, cliff+1, duration+1, newVestingRegistry.address, zeroAddress, zero, zero, true);
+		await lockedSOV.changeRegistryCliffAndDuration(newVestingRegistry.address, cliff + 1, duration + 1, { from: admin });
+		await checkStatus(
+			lockedSOV,
+			[1, 1, 1, 1, 1, 1, 1, 1],
+			admin,
+			false,
+			cliff + 1,
+			duration + 1,
+			newVestingRegistry.address,
+			zeroAddress,
+			zero,
+			zero,
+			true
+		);
 	});
 
 	it("Depositing Tokens using deposit() should update the user balances based on basis point.", async () => {
@@ -208,7 +280,19 @@ contract("Locked SOV (State)", (accounts) => {
 		let value = await userDeposits(sov, lockedSOV, userOne, userOne, basisPoint);
 		let unlockedBal = Math.floor((value * basisPoint) / 10000);
 		let lockedBal = value - unlockedBal;
-		await checkStatus(lockedSOV,[1,1,1,1,1,1,1,1], userOne, false, cliff, duration, vestingRegistry.address, zeroAddress, lockedBal, unlockedBal, false);
+		await checkStatus(
+			lockedSOV,
+			[1, 1, 1, 1, 1, 1, 1, 1],
+			userOne,
+			false,
+			cliff,
+			duration,
+			vestingRegistry.address,
+			zeroAddress,
+			lockedBal,
+			unlockedBal,
+			false
+		);
 	});
 
 	it("Depositing Tokens using depositSOV() should update the user locked balances.", async () => {
@@ -216,7 +300,19 @@ contract("Locked SOV (State)", (accounts) => {
 		await sov.mint(userOne, value);
 		await sov.approve(lockedSOV.address, value, { from: userOne });
 		await lockedSOV.depositSOV(userOne, value, { from: userOne });
-		await checkStatus(lockedSOV,[1,1,1,1,1,1,1,1], userOne, false, cliff, duration, vestingRegistry.address, zeroAddress, value, zero, false);
+		await checkStatus(
+			lockedSOV,
+			[1, 1, 1, 1, 1, 1, 1, 1],
+			userOne,
+			false,
+			cliff,
+			duration,
+			vestingRegistry.address,
+			zeroAddress,
+			value,
+			zero,
+			false
+		);
 	});
 
 	it("Withdrawing unlocked tokens themselves using withdraw() should update the unlocked balance and should not affect locked balance.", async () => {
@@ -227,7 +323,19 @@ contract("Locked SOV (State)", (accounts) => {
 		let beforeBal = await getTokenBalances(userOne, sov, lockedSOV);
 		await lockedSOV.withdraw(zeroAddress, { from: userOne });
 		let afterBal = await getTokenBalances(userOne, sov, lockedSOV);
-		await checkStatus(lockedSOV,[1,1,1,1,1,1,1,1], userOne, false, cliff, duration, vestingRegistry.address, zeroAddress, lockedBal, zero, false);
+		await checkStatus(
+			lockedSOV,
+			[1, 1, 1, 1, 1, 1, 1, 1],
+			userOne,
+			false,
+			cliff,
+			duration,
+			vestingRegistry.address,
+			zeroAddress,
+			lockedBal,
+			zero,
+			false
+		);
 		assert.equal(afterBal[0].toNumber(), beforeBal[0].toNumber() + unlockedBal, "Correct amount was not withdrawn.");
 	});
 
@@ -257,13 +365,13 @@ contract("Locked SOV (State)", (accounts) => {
 		assert.notEqual(vestingAddr, zeroAddress, "Vesting Address should not be zero.");
 
 		let balance = await staking.balanceOf(vestingAddr);
-		let lockedValue = Math.ceil(value * basisPoint / 10000);
+		let lockedValue = Math.ceil((value * basisPoint) / 10000);
 		assert.equal(balance.toNumber(), Math.ceil(lockedValue), "Staking Balance does not match");
 
 		let getStakes = await staking.getStakes(vestingAddr);
-		assert.equal(getStakes.stakes[0].toNumber(), Math.ceil(lockedValue - (Math.floor(lockedValue/duration) * (duration - 1))));
+		assert.equal(getStakes.stakes[0].toNumber(), Math.ceil(lockedValue - Math.floor(lockedValue / duration) * (duration - 1)));
 		for (let index = 1; index < getStakes.dates.length; index++) {
-			assert.equal(getStakes.stakes[index].toNumber(), Math.floor(lockedValue/duration));
+			assert.equal(getStakes.stakes[index].toNumber(), Math.floor(lockedValue / duration));
 		}
 	});
 
@@ -289,15 +397,14 @@ contract("Locked SOV (State)", (accounts) => {
 		assert.notEqual(vestingAddr, zeroAddress, "Vesting Address should not be zero.");
 
 		let balance = await staking.balanceOf(vestingAddr);
-		let lockedValue = Math.ceil(value * basisPoint / 10000);
+		let lockedValue = Math.ceil((value * basisPoint) / 10000);
 		assert.equal(balance.toNumber(), Math.ceil(lockedValue), "Staking Balance does not match");
 
 		let getStakes = await staking.getStakes(vestingAddr);
-		assert.equal(getStakes.stakes[0].toNumber(), Math.ceil(lockedValue - (Math.floor(lockedValue/duration) * (duration - 1))));
+		assert.equal(getStakes.stakes[0].toNumber(), Math.ceil(lockedValue - Math.floor(lockedValue / duration) * (duration - 1)));
 		for (let index = 1; index < getStakes.dates.length; index++) {
-			assert.equal(getStakes.stakes[index].toNumber(), Math.floor(lockedValue/duration));
+			assert.equal(getStakes.stakes[index].toNumber(), Math.floor(lockedValue / duration));
 		}
-
 	});
 
 	// TODO from here
@@ -320,21 +427,44 @@ contract("Locked SOV (State)", (accounts) => {
 		assert.notEqual(vestingAddr, zeroAddress, "Vesting Address should not be zero.");
 
 		let balance = await staking.balanceOf(vestingAddr);
-		let lockedValue = Math.ceil(value * basisPoint / 10000);
+		let lockedValue = Math.ceil((value * basisPoint) / 10000);
 		assert.equal(balance.toNumber(), Math.ceil(lockedValue), "Staking Balance does not match");
 
 		let getStakes = await staking.getStakes(vestingAddr);
-		assert.equal(getStakes.stakes[0].toNumber(), Math.ceil(lockedValue - (Math.floor(lockedValue/duration) * (duration - 1))));
+		assert.equal(getStakes.stakes[0].toNumber(), Math.ceil(lockedValue - Math.floor(lockedValue / duration) * (duration - 1)));
 		for (let index = 1; index < getStakes.dates.length; index++) {
-			assert.equal(getStakes.stakes[index].toNumber(), Math.floor(lockedValue/duration));
+			assert.equal(getStakes.stakes[index].toNumber(), Math.floor(lockedValue / duration));
 		}
-
 	});
 
 	it("Starting the migration should update the contract status correctly.", async () => {
-		await checkStatus(lockedSOV,[1,1,1,1,1,1,1,1], userThree, false, cliff, duration, vestingRegistry.address, zeroAddress, zero, zero, false);
+		await checkStatus(
+			lockedSOV,
+			[1, 1, 1, 1, 1, 1, 1, 1],
+			userThree,
+			false,
+			cliff,
+			duration,
+			vestingRegistry.address,
+			zeroAddress,
+			zero,
+			zero,
+			false
+		);
 		await lockedSOV.startMigration(newLockedSOV.address, { from: admin });
-		await checkStatus(lockedSOV,[1,1,1,1,1,1,1,1], userThree, true, cliff, duration, vestingRegistry.address, newLockedSOV.address, zero, zero, false);
+		await checkStatus(
+			lockedSOV,
+			[1, 1, 1, 1, 1, 1, 1, 1],
+			userThree,
+			true,
+			cliff,
+			duration,
+			vestingRegistry.address,
+			newLockedSOV.address,
+			zero,
+			zero,
+			false
+		);
 	});
 
 	it("Using transfer() should correctly transfer locked token to new locked sov.", async () => {
@@ -347,11 +477,58 @@ contract("Locked SOV (State)", (accounts) => {
 		// Migratioin started by Admin
 		await lockedSOV.startMigration(newLockedSOV.address, { from: admin });
 
-		await checkStatus(lockedSOV,[1,1,1,1,1,1,1,1], userOne, true, cliff, duration, vestingRegistry.address, newLockedSOV.address, value, zero, false);
-		await checkStatus(newLockedSOV,[1,1,1,1,1,1,1,1], userOne, false, cliff, duration, vestingRegistry.address, zeroAddress, zero, zero, false);
+		await checkStatus(
+			lockedSOV,
+			[1, 1, 1, 1, 1, 1, 1, 1],
+			userOne,
+			true,
+			cliff,
+			duration,
+			vestingRegistry.address,
+			newLockedSOV.address,
+			value,
+			zero,
+			false
+		);
+		await checkStatus(
+			newLockedSOV,
+			[1, 1, 1, 1, 1, 1, 1, 1],
+			userOne,
+			false,
+			cliff,
+			duration,
+			vestingRegistry.address,
+			zeroAddress,
+			zero,
+			zero,
+			false
+		);
 		await lockedSOV.transfer({ from: userOne });
-		await checkStatus(lockedSOV,[1,1,1,1,1,1,1,1], userOne, true, cliff, duration, vestingRegistry.address, newLockedSOV.address, zero, zero, false);
-		await checkStatus(newLockedSOV,[1,1,1,1,1,1,1,1], userOne, false, cliff, duration, vestingRegistry.address, zeroAddress, value, zero, false);
+		await checkStatus(
+			lockedSOV,
+			[1, 1, 1, 1, 1, 1, 1, 1],
+			userOne,
+			true,
+			cliff,
+			duration,
+			vestingRegistry.address,
+			newLockedSOV.address,
+			zero,
+			zero,
+			false
+		);
+		await checkStatus(
+			newLockedSOV,
+			[1, 1, 1, 1, 1, 1, 1, 1],
+			userOne,
+			false,
+			cliff,
+			duration,
+			vestingRegistry.address,
+			zeroAddress,
+			value,
+			zero,
+			false
+		);
 	});
-
 });

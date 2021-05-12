@@ -85,7 +85,10 @@ contract("Locked SOV (Any User Functions)", (accounts) => {
 	});
 
 	it("Except Admin, no one should be able to change the vestingRegistry, cliff and/or duration.", async () => {
-		await expectRevert(lockedSOV.changeRegistryCliffAndDuration(vestingRegistry.address, cliff+1, duration+1, { from: userOne }), "Only admin can call this.");
+		await expectRevert(
+			lockedSOV.changeRegistryCliffAndDuration(vestingRegistry.address, cliff + 1, duration + 1, { from: userOne }),
+			"Only admin can call this."
+		);
 	});
 
 	it("Anyone could deposit Tokens using deposit().", async () => {
@@ -139,7 +142,10 @@ contract("Locked SOV (Any User Functions)", (accounts) => {
 	});
 
 	it("No one can use createVestingAndStake() if he does not have any locked sov balance.", async () => {
-		await expectRevert(lockedSOV.createVestingAndStake({ from: userOne }), "Staking::stake: amount of tokens to stake needs to be bigger than 0");
+		await expectRevert(
+			lockedSOV.createVestingAndStake({ from: userOne }),
+			"Staking::stake: amount of tokens to stake needs to be bigger than 0"
+		);
 	});
 
 	it("Anyone can create a vesting schedule using createVesting() even with no locked sov balance.", async () => {
@@ -209,5 +215,4 @@ contract("Locked SOV (Any User Functions)", (accounts) => {
 
 		await expectRevert(lockedSOV.transfer({ from: userOne }), "Migration has not yet started.");
 	});
-
 });

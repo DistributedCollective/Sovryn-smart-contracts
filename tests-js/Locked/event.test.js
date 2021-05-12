@@ -101,7 +101,9 @@ contract("Locked SOV (Events)", (accounts) => {
 			feeSharingProxy.address,
 			creator // This should be Governance Timelock Contract.
 		);
-		let txReceipt = await lockedSOV.changeRegistryCliffAndDuration(newVestingRegistry.address, cliff+1, duration+1, { from: admin });
+		let txReceipt = await lockedSOV.changeRegistryCliffAndDuration(newVestingRegistry.address, cliff + 1, duration + 1, {
+			from: admin,
+		});
 		expectEvent(txReceipt, "RegistryCliffAndDurationUpdated", {
 			_initiator: admin,
 			_vestingRegistry: newVestingRegistry.address,
@@ -174,7 +176,7 @@ contract("Locked SOV (Events)", (accounts) => {
 		expectEvent(txReceipt, "Withdrawn", {
 			_initiator: userOne,
 			_userAddress: userOne,
-			_sovAmount: new BN(Math.floor(value/2)),
+			_sovAmount: new BN(Math.floor(value / 2)),
 		});
 	});
 
@@ -188,7 +190,7 @@ contract("Locked SOV (Events)", (accounts) => {
 		expectEvent(txReceipt, "Withdrawn", {
 			_initiator: userOne,
 			_userAddress: userTwo,
-			_sovAmount: new BN(Math.floor(value/2)),
+			_sovAmount: new BN(Math.floor(value / 2)),
 		});
 	});
 
@@ -207,7 +209,7 @@ contract("Locked SOV (Events)", (accounts) => {
 		expectEvent(txReceipt, "TokenStaked", {
 			_initiator: userOne,
 			_vesting: vestingAddr,
-			_amount: new BN(Math.ceil(value/2)),
+			_amount: new BN(Math.ceil(value / 2)),
 		});
 	});
 
@@ -232,7 +234,7 @@ contract("Locked SOV (Events)", (accounts) => {
 		expectEvent(txReceipt, "TokenStaked", {
 			_initiator: userOne,
 			_vesting: vestingAddr,
-			_amount: new BN(Math.ceil(value/2)),
+			_amount: new BN(Math.ceil(value / 2)),
 		});
 	});
 
@@ -247,12 +249,12 @@ contract("Locked SOV (Events)", (accounts) => {
 		expectEvent(txReceipt, "Withdrawn", {
 			_initiator: userOne,
 			_userAddress: userOne,
-			_sovAmount: new BN(Math.floor(value/2)),
+			_sovAmount: new BN(Math.floor(value / 2)),
 		});
 		expectEvent(txReceipt, "TokenStaked", {
 			_initiator: userOne,
 			_vesting: vestingAddr,
-			_amount: new BN(Math.ceil(value/2)),
+			_amount: new BN(Math.ceil(value / 2)),
 		});
 	});
 
@@ -277,7 +279,7 @@ contract("Locked SOV (Events)", (accounts) => {
 		let txReceipt = await lockedSOV.transfer({ from: userOne });
 		expectEvent(txReceipt, "UserTransfered", {
 			_initiator: userOne,
-			_amount: new BN(Math.ceil(value/2)),
+			_amount: new BN(Math.ceil(value / 2)),
 		});
 	});
 });

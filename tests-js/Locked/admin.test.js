@@ -106,11 +106,14 @@ contract("Locked SOV (Admin Functions)", (accounts) => {
 			feeSharingProxy.address,
 			creator // This should be Governance Timelock Contract.
 		);
-		await lockedSOV.changeRegistryCliffAndDuration(newVestingRegistry.address, cliff+1, duration+1, { from: admin });
+		await lockedSOV.changeRegistryCliffAndDuration(newVestingRegistry.address, cliff + 1, duration + 1, { from: admin });
 	});
 
 	it("Admin should not be able to change the cliff and/or duration without changing the vesting registry.", async () => {
-		await expectRevert(lockedSOV.changeRegistryCliffAndDuration(vestingRegistry.address, cliff+1, duration+1, { from: admin }), "Vesting Registry has to be different for changing duration and cliff.");
+		await expectRevert(
+			lockedSOV.changeRegistryCliffAndDuration(vestingRegistry.address, cliff + 1, duration + 1, { from: admin }),
+			"Vesting Registry has to be different for changing duration and cliff."
+		);
 	});
 
 	it("Admin should not be able to change the duration as zero.", async () => {
@@ -121,7 +124,10 @@ contract("Locked SOV (Admin Functions)", (accounts) => {
 			feeSharingProxy.address,
 			creator // This should be Governance Timelock Contract.
 		);
-		await expectRevert(lockedSOV.changeRegistryCliffAndDuration(newVestingRegistry.address, cliff+1, 0, { from: admin }), "Duration cannot be zero.");
+		await expectRevert(
+			lockedSOV.changeRegistryCliffAndDuration(newVestingRegistry.address, cliff + 1, 0, { from: admin }),
+			"Duration cannot be zero."
+		);
 	});
 
 	it("Admin should not be able to change the duration higher than 36.", async () => {
@@ -132,7 +138,10 @@ contract("Locked SOV (Admin Functions)", (accounts) => {
 			feeSharingProxy.address,
 			creator // This should be Governance Timelock Contract.
 		);
-		await expectRevert(lockedSOV.changeRegistryCliffAndDuration(newVestingRegistry.address, cliff+1, 100, { from: admin }), "Duration is too long.");
+		await expectRevert(
+			lockedSOV.changeRegistryCliffAndDuration(newVestingRegistry.address, cliff + 1, 100, { from: admin }),
+			"Duration is too long."
+		);
 	});
 
 	it("Admin should be able to start migration.", async () => {
