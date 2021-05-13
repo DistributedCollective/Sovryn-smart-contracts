@@ -32,11 +32,11 @@ contract LockedSOV {
 	ILockedSOV public newLockedSOV;
 
 	/// @notice The locked user balances.
-	mapping(address => uint256) lockedBalances;
+	mapping(address => uint256) public lockedBalances;
 	/// @notice The unlocked user balances.
-	mapping(address => uint256) unlockedBalances;
+	mapping(address => uint256) public unlockedBalances;
 	/// @notice The contracts/wallets with admin power.
-	mapping(address => bool) isAdmin;
+	mapping(address => bool) public isAdmin;
 
 	/* Events */
 
