@@ -264,6 +264,20 @@ contract("FeeSharingProxy:", (accounts) => {
 			await expectRevert(feeSharingProxy.transferTokens(SOVToken.address, 1000), "invalid transfer");
 		});
 
+		it("Shouldn't be able to transfer tokens when protocol is paused", async () => {
+			// Set global protocol pause to on
+			loanToken.toggleProtocolPause(true);
+			
+			// stake - getPriorTotalVotingPower
+			let totalStake = 1000;
+			await stake(totalStake, root);
+
+			let amount = 1000;
+			await SOVToken.approve(feeSharingProxy.address, amount * 7);
+
+			let tx = await feeSharingProxy.transferTokens(SOVToken.address, amount);
+		
+		});
 		it("Should be able to transfer tokens", async () => {
 			// stake - getPriorTotalVotingPower
 			let totalStake = 1000;

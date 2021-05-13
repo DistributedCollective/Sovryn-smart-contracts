@@ -6,6 +6,7 @@
 pragma solidity 0.5.17;
 
 import "../../openzeppelin/Ownable.sol";
+import "../../core/State.sol";
 
 /**
  * @title bZx Pausable contract.
@@ -22,6 +23,12 @@ contract Pausable is Ownable {
 	bytes32 internal constant Pausable_FunctionPause = 0xa7143c84d793a15503da6f19bf9119a2dac94448ca45d77c8bf08f57b2e91047;
 
 	address public pauser;
+
+	/// @notice Pause state flag for module granurality.
+	mapping (address => bool) public moduleIsPaused;
+	
+	/// @notice Pause global state flag. It pauses the whole protocol.
+	bool public protocolPaused;
 
 	modifier pausable() {
 		_checkPause();
@@ -114,5 +121,20 @@ contract Pausable is Ownable {
 		assembly {
 			sstore(slot, isPaused)
 		}
+	}
+
+	function toggleProtocolPause(
+		bool isPaused
+	) public {
+		// require(msg.sender == pauser, "onlyPauser");
+		protocolPaused = isPaused;
+	}
+
+	function toggleModulePause(
+		address module,
+		bool isPaused
+	) public {
+		// require(msg.sender == pauser, "onlyPauser");
+		moduleIsPaused[module] = isPaused;
 	}
 }

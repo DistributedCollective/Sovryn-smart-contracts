@@ -1,9 +1,11 @@
 pragma solidity ^0.5.17;
 
+import "../connectors/loantoken/Pausable.sol";
+
 /**
  * @title Base Proxy Contract
  */
-contract Proxy {
+contract Proxy is Pausable {
 	bytes32 private constant KEY_IMPLEMENTATION = keccak256("key.implementation");
 	bytes32 private constant KEY_OWNER = keccak256("key.proxy.owner");
 
@@ -74,6 +76,16 @@ contract Proxy {
 	function() external payable {
 		address implementation = getImplementation();
 		require(implementation != address(0), "Proxy::(): implementation not found");
+
+		/// @dev Check pause flags before proceeding.
+		/// @dev Protocol level pause
+		require(!protocolPaused, "Proxy::(): Protocol is paused.");
+
+		/// @dev Module level pause
+		require(!moduleIsPaused[implementation], "Proxy::(): Module is paused.");
+
+		/// @dev Function level pause
+		_checkPause();
 
 		assembly {
 			let pointer := mload(0x40)
