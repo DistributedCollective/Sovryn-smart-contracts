@@ -196,7 +196,7 @@ def createProposalSIP0018():
     value = [0]
     signature = ["symbol()"]
     data = ["0x"]
-    description = "SIP-0018: BabelFish Token Sale via Origins, Details: https://github.com/DistributedCollective/SIPS/blob/deae0e5/SIP-0018.md, sha256: 0835ca66ac82c7df3de4b1b48c63ebd2fe076969ffd5d505ba186fb24c19bc55"
+    description = "SIP-0018: BabelFish Token Sale via Origins, Details: https://github.com/DistributedCollective/SIPS/blob/f8a726d/SIP-0018.md, sha256: 75df76b1e7b2a5c1cdf1192e817573f3794afbd47c19bf85abda04f222a12ecb"
 
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
