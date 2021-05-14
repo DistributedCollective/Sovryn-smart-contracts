@@ -68,7 +68,7 @@ def main():
     # addInvestorToBlacklist()
     # stake80KTokens()
 
-    # transferSOVtoTokenSender()
+    transferSOVtoTokenSender()
 
     # transferSOVtoScriptAccount()
     #transferSOVtoTokenSender()
@@ -995,8 +995,8 @@ def stake80KTokens():
     # print(txId)
 
 def transferSOVtoTokenSender():
-    # 875.39 SOV
-    amount = 87539 * 10**16
+    # 114.71861488 SOV
+    amount = 11471861488 * 10**10
 
     tokenSenderAddress = contracts['TokenSender']
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
