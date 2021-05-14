@@ -4,6 +4,7 @@ import "../openzeppelin/ERC20.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
 import "../openzeppelin/Ownable.sol";
+import "../escrow/ILockedSOV.sol";
 
 contract LiquidityMiningStorage is Ownable {
 	// Info of each user.
@@ -32,6 +33,7 @@ contract LiquidityMiningStorage is Ownable {
 		uint256 accumulatedRewardPerShare; // Accumulated amount of reward tokens per share, times 1e12. See below.
 	}
 
+	//TODO why do we need it ?
 	// The reward token
 	IERC20 public SVR;
 	// SVR tokens created per block.
@@ -57,4 +59,11 @@ contract LiquidityMiningStorage is Ownable {
 	mapping(uint256 => mapping(address => UserInfo)) public userInfoMap;
 	// Total balance this contract should have to handle withdrawal for all users
 	uint256 public totalUsersBalance;
+
+	/// @dev The SOV token
+	IERC20 public SOV;
+
+	/// @dev The locked vault contract to deposit LP's rewards into.
+	ILockedSOV public lockedSOV;
+
 }

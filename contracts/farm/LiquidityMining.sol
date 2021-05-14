@@ -5,13 +5,12 @@ import "../openzeppelin/ERC20.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
 import "./LiquidityMiningStorage.sol";
-import "../escrow/ILockedSOV.sol";
 
 contract LiquidityMining is LiquidityMiningStorage {
 	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
 
-	/* Storage */
+	/* Constants */
 	
 	uint256 public constant PRECISION = 1e12;
 	// Bonus multiplier for early liquidity providers.
@@ -20,12 +19,6 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 	//TODO do we need to make it settable?
 	uint256 public constant SECONDS_PER_BLOCK = 30;
-
-	/// @dev The SOV token
-	IERC20 public SOV;
-
-	/// @dev The locked vault contract to deposit LP's rewards into.
-	ILockedSOV public lockedSOV;
 
 	/* Events */
 
