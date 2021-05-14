@@ -297,15 +297,9 @@ contract LiquidityMining is LiquidityMiningStorage {
 	}
 
 	function _getPoolAccumulatedReward(PoolInfo storage _pool) internal view returns (uint256, uint256) {
-		uint256 passedBlocks = _getPassedBlocksWithBonusMultiplier(_pool.lastRewardBlock, block.number);
-		uint256 accumulatedReward = passedBlocks.mul(rewardTokensPerBlock).mul(_pool.allocationPoint).div(totalAllocationPoint);
-
-		uint256 poolTokenBalance = _pool.poolToken.balanceOf(address(this));
-		uint256 accumulatedRewardPerShare = accumulatedReward.mul(PRECISION).div(poolTokenBalance);
-		return (accumulatedReward, accumulatedRewardPerShare);
+		return _getPoolAccumulatedReward(_pool, 0, _pool.lastRewardBlock, block.number);
 	}
 
-	//TODO use it for _getPoolAccumulatedReward
 	function _getPoolAccumulatedReward(
 		PoolInfo storage _pool,
 		uint256 _additionalAmount,
