@@ -23,7 +23,7 @@ describe("LiquidityMining", () => {
 	let root, account1, account2, account3, account4;
 	let SOVToken, token1, token2, token3;
 	let liquidityMining, wrapper;
-	let lockedSOVAdmins;
+	let lockedSOVAdmins, lockedSOV;
 
 	before(async () => {
 		accounts = await web3.eth.getAccounts();
@@ -811,7 +811,7 @@ describe("LiquidityMining", () => {
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const rewardAmount = await SOVToken.balanceOf(account1);
+			const rewardAmount = await lockedSOV.getLockedBalance(account1);
 
 			// reward per block 30 (because of bonus period), 1 block with weight 1/2 = 15, 1 block with weight 2/3 = 20
 			const expectedRewardAmount = new BN('35');
@@ -859,8 +859,8 @@ describe("LiquidityMining", () => {
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const reward1 = await SOVToken.balanceOf(account1);
-			const reward2 = await SOVToken.balanceOf(account2);
+			const reward1 = await lockedSOV.getLockedBalance(account1);
+			const reward2 = await lockedSOV.getLockedBalance(account2);
 
 			// reward per block 30 (because of bonus period), 2 block with 100% shares = 60, 1 block with 50% shares = 15
 			const expectedReward1 = new BN('75');
@@ -921,7 +921,7 @@ describe("LiquidityMining", () => {
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const rewardAmount = await SOVToken.balanceOf(account1);
+			const rewardAmount = await lockedSOV.getLockedBalance(account1);
 
 			// reward per block 30 (because of bonus period),
 			// because add was called without updating the pool, the new weight is used for all blocks
@@ -953,7 +953,7 @@ describe("LiquidityMining", () => {
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const rewardAmount = await SOVToken.balanceOf(account1);
+			const rewardAmount = await lockedSOV.getLockedBalance(account1);
 
 			// reward per block 30 (because of bonus period),
 			// because add was called WITH updating the pools, old weight is for 1 block and new weight is for 1 block
@@ -992,8 +992,8 @@ describe("LiquidityMining", () => {
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const reward1 = await SOVToken.balanceOf(account1);
-			const reward2 = await SOVToken.balanceOf(account2);
+			const reward1 = await lockedSOV.getLockedBalance(account1);
+			const reward2 = await lockedSOV.getLockedBalance(account2);
 
 			// reward per block 30 (because of bonus period)
 			// deposit 1 has 1 block with weight 1/1 (30) and 2 blocks with weight 1/2 (15*2 = 30)
