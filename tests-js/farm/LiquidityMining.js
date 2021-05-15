@@ -1057,7 +1057,7 @@ describe("LiquidityMining", () => {
 		});
 
 		it('SVR', async () => {
-			expect(await liquidityMining.SVR()).equal(SOVToken.address);
+			expect(await liquidityMining.SOV()).equal(SOVToken.address);
 		});
 
 		it('rewardTokensPerBlock', async () => {

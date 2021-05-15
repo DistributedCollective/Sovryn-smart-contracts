@@ -33,9 +33,6 @@ contract LiquidityMiningStorage is Ownable {
 		uint256 accumulatedRewardPerShare; // Accumulated amount of reward tokens per share, times 1e12. See below.
 	}
 
-	//TODO why do we need it ?
-	// The reward token
-	IERC20 public SVR;
 	// SVR tokens created per block.
 	uint256 public rewardTokensPerBlock;
 	// The block number when reward token mining starts.
