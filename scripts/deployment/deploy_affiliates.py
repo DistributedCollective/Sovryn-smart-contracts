@@ -37,6 +37,7 @@ def main():
 
     tokens = Munch()
     if thisNetwork == "development":
+        # For development use the locked sov mockup that has been deployed from deploy_everything.py previously
         wrbtcAddress = data['WRBTC']
         susdAddress = data['SUSD']
         protocolAddress = data['sovrynProtocol']
@@ -45,6 +46,7 @@ def main():
         tokens.wrbtc = Contract.from_abi("TestWrbtc", address = wrbtcAddress, abi = TestWrbtc.abi, owner = acct)
         tokens.susd = Contract.from_abi("TestToken", address = susdAddress, abi = TestToken.abi, owner = acct)
     else:
+        # For testnet and mainnet, we assumed that the LockedSOV has been deployed, so we just use the address from the config file
         sovTokenAddress = contracts['SOV']
         lockedSOVAddress = contracts['lockedSOV']
 
