@@ -192,7 +192,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 
 				emit EarnReward(user, protocolTokenAddress, loanId, rewardAmount);
 			} else {
-				emit EarnReward(user, protocolTokenAddress, loanId, rewardAmount);
+				emit EarnRewardFail(user, protocolTokenAddress, loanId, rewardAmount);
 			}
 		}
 	}
