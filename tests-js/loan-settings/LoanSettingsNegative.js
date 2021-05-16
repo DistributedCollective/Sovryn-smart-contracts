@@ -1,5 +1,5 @@
 const { assert } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time, ether} = require("@openzeppelin/test-helpers");
+const { expectRevert, expectEvent, constants, BN, balance, time, ether } = require("@openzeppelin/test-helpers");
 
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
@@ -30,16 +30,14 @@ contract("LoanSettingsNegative", (accounts) => {
 	let lender, account1, account2, account3, account4;
 	let underlyingToken, testWrbtc;
 	let sovryn, loanToken;
-    let loanParams, loanParamsId, tx;
-
+	let loanParams, loanParamsId, tx;
 
 	before(async () => {
 		[lender, account1, account2, account3, account4, ...accounts] = accounts;
 	});
 
-
 	beforeEach(async () => {
-        //Token
+		//Token
 		underlyingToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 		testWrbtc = await TestWrbtc.new();
 
@@ -79,34 +77,31 @@ contract("LoanSettingsNegative", (accounts) => {
 
 		await testWrbtc.mint(sovryn.address, ether("500"));
 
-        loanParams = {
-            "id": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "active": false,
-            "owner": constants.ZERO_ADDRESS,
-            "loanToken": underlyingToken.address,
-            "collateralToken": testWrbtc.address,
-            "minInitialMargin": ether("50"),
-            "maintenanceMargin": ether("15"),
-            "maxLoanTerm": "2419200"
-        };
+		loanParams = {
+			id: "0x0000000000000000000000000000000000000000000000000000000000000000",
+			active: false,
+			owner: constants.ZERO_ADDRESS,
+			loanToken: underlyingToken.address,
+			collateralToken: testWrbtc.address,
+			minInitialMargin: ether("50"),
+			maintenanceMargin: ether("15"),
+			maxLoanTerm: "2419200",
+		};
 
 		tx = await sovryn.setupLoanParams([Object.values(loanParams)]);
-        loanParamsId = tx.logs[1].args.id;
-   	});
+		loanParamsId = tx.logs[1].args.id;
+	});
 
-    
 	describe("test LoanSettingsNegative", async () => {
 		it("test disable unauthorized owner LoanSettings", async () => {
-			await expectRevert(sovryn.disableLoanParams([loanParamsId], { "from": account1 }), "unauthorized owner");
+			await expectRevert(sovryn.disableLoanParams([loanParamsId], { from: account1 }), "unauthorized owner");
 		});
-
 
 		it("test LoanSettings loanParam exists", async () => {
 			await expectRevert(sovryn.setupLoanParams([Object.values(loanParams), Object.values(loanParams)]), "loanParams exists");
 		});
 
-
-        it("test LoanSettings other requires", async () => {
+		it("test LoanSettings other requires", async () => {
 			let localLoanParams;
 
 			localLoanParams = JSON.parse(JSON.stringify(loanParams));
@@ -117,18 +112,18 @@ contract("LoanSettingsNegative", (accounts) => {
 
 			localLoanParams = JSON.parse(JSON.stringify(loanParams));
 			localLoanParams["minInitialMargin"] = ether("50");
-			localLoanParams["maintenanceMargin"] = ether("15");			
+			localLoanParams["maintenanceMargin"] = ether("15");
 			localLoanParams["collateralToken"] = constants.ZERO_ADDRESS;
 			await expectRevert(sovryn.setupLoanParams([Object.values(localLoanParams)]), "invalid params");
 
 			localLoanParams = JSON.parse(JSON.stringify(loanParams));
-			localLoanParams["maintenanceMargin"] = ether("15");			
+			localLoanParams["maintenanceMargin"] = ether("15");
 			localLoanParams["minInitialMargin"] = ether("10");
 			await expectRevert(sovryn.setupLoanParams([Object.values(localLoanParams)]), "invalid params");
 
 			localLoanParams = JSON.parse(JSON.stringify(loanParams));
 			localLoanParams["minInitialMargin"] = ether("50");
-			localLoanParams["maintenanceMargin"] = ether("15");			
+			localLoanParams["maintenanceMargin"] = ether("15");
 			localLoanParams["maxLoanTerm"] = 1;
 			await expectRevert(sovryn.setupLoanParams([Object.values(localLoanParams)]), "invalid params");
 		});

@@ -21,7 +21,7 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 	//because it's not shared state anyway and only used by this contract
 	uint256 public constant paySwapExcessToBorrowerThreshold = 10000000000000;
 
-	uint constant public TINY_AMOUNT = 25 * 10**13;
+	uint256 public constant TINY_AMOUNT = 25 * 10**13;
 
 	enum CloseTypes { Deposit, Swap, Liquidation }
 
@@ -184,14 +184,14 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 
 		if (loanCloseAmount < maxLiquidatable) {
 			//close maxLiquidatable if tiny position will remain
-            uint remainingAmount = maxLiquidatable - loanCloseAmount;
-            remainingAmount = _getAmountInRbtc(loanParamsLocal.loanToken, remainingAmount);
-            if (remainingAmount <= TINY_AMOUNT) {
-                loanCloseAmount = maxLiquidatable;
-                seizedAmount = maxSeizable;
-            } else {
-                seizedAmount = maxSeizable.mul(loanCloseAmount).div(maxLiquidatable);
-            }
+			uint256 remainingAmount = maxLiquidatable - loanCloseAmount;
+			remainingAmount = _getAmountInRbtc(loanParamsLocal.loanToken, remainingAmount);
+			if (remainingAmount <= TINY_AMOUNT) {
+				loanCloseAmount = maxLiquidatable;
+				seizedAmount = maxSeizable;
+			} else {
+				seizedAmount = maxSeizable.mul(loanCloseAmount).div(maxLiquidatable);
+			}
 		} else if (loanCloseAmount > maxLiquidatable) {
 			// adjust down the close amount to the max
 			loanCloseAmount = maxLiquidatable;
@@ -353,25 +353,25 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 			_withdrawAsset(loanParamsLocal.collateralToken, msg.sender, rolloverReward);
 		}
 
-        //close whole loan if tiny position will remain
-        if (_getAmountInRbtc(loanParamsLocal.loanToken, loanLocal.principal) <= TINY_AMOUNT) {
-            _closeWithDeposit(
-                loanLocal.id,
-                loanLocal.borrower, //TODO loanLocal.borrower ?
-                loanLocal.principal
-            );
-        } else {
-            (uint256 currentMargin, ) =
+		//close whole loan if tiny position will remain
+		if (_getAmountInRbtc(loanParamsLocal.loanToken, loanLocal.principal) <= TINY_AMOUNT) {
+			_closeWithDeposit(
+				loanLocal.id,
+				loanLocal.borrower, //TODO loanLocal.borrower ?
+				loanLocal.principal
+			);
+		} else {
+			(uint256 currentMargin, ) =
 				IPriceFeeds(priceFeeds).getCurrentMargin(
 					loanParamsLocal.loanToken,
 					loanParamsLocal.collateralToken,
 					loanLocal.principal,
 					loanLocal.collateral
 				);
-				require(
-					currentMargin > 3 ether, // ensure there's more than 3% margin remaining
-					"unhealthy position"
-				);
+			require(
+				currentMargin > 3 ether, // ensure there's more than 3% margin remaining
+				"unhealthy position"
+			);
 		}
 	}
 
@@ -405,8 +405,8 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 		// can't close more than the full principal
 		loanCloseAmount = depositAmount > loanLocal.principal ? loanLocal.principal : depositAmount;
 
-        //close whole loan if tiny position will remain
-        uint remainingAmount = loanLocal.principal - loanCloseAmount;
+		//close whole loan if tiny position will remain
+		uint256 remainingAmount = loanLocal.principal - loanCloseAmount;
 		if (remainingAmount > 0) {
 			remainingAmount = _getAmountInRbtc(loanParamsLocal.loanToken, remainingAmount);
 			if (remainingAmount <= TINY_AMOUNT) {
@@ -662,20 +662,20 @@ contract LoanClosings is LoanClosingsEvents, VaultController, InterestUser, Swap
 	 * */
 	function worthTheTransfer(address asset, uint256 amount) internal returns (bool) {
 		uint256 amountInRbtc = _getAmountInRbtc(asset, amount);
-        emit swapExcess(amountInRbtc > paySwapExcessToBorrowerThreshold, amount, amountInRbtc, paySwapExcessToBorrowerThreshold);
-        return amountInRbtc > paySwapExcessToBorrowerThreshold;
-    }
+		emit swapExcess(amountInRbtc > paySwapExcessToBorrowerThreshold, amount, amountInRbtc, paySwapExcessToBorrowerThreshold);
+		return amountInRbtc > paySwapExcessToBorrowerThreshold;
+	}
 
-    /**
-     * @dev returns amount of the asset converted to RBTC
-     * @param asset the asset to be transferred
-     * @param amount the amount to be transferred
-     * @return amount in RBTC
-     * */
-    function _getAmountInRbtc(address asset, uint256 amount) internal returns (uint) {
-        (uint256 rbtcRate, uint256 rbtcPrecision) = IPriceFeeds(priceFeeds).queryRate(asset, address(wrbtcToken));
-        return amount.mul(rbtcRate).div(rbtcPrecision);
-    }
+	/**
+	 * @dev returns amount of the asset converted to RBTC
+	 * @param asset the asset to be transferred
+	 * @param amount the amount to be transferred
+	 * @return amount in RBTC
+	 * */
+	function _getAmountInRbtc(address asset, uint256 amount) internal returns (uint256) {
+		(uint256 rbtcRate, uint256 rbtcPrecision) = IPriceFeeds(priceFeeds).queryRate(asset, address(wrbtcToken));
+		return amount.mul(rbtcRate).div(rbtcPrecision);
+	}
 
 	/**
 	 * swaps a share of a loan's collateral or the complete collateral in order to cover the principle.

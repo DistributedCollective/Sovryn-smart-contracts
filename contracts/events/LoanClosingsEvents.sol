@@ -49,15 +49,15 @@ contract LoanClosingsEvents {
 	);
 
 	event Rollover(
-        address indexed user,
-        address indexed lender,
-        bytes32 indexed loanId,
-        uint principal,
-        uint collateral,
-        uint endTimestamp,
-        address rewardReceiver,
-        uint reward
-    );
+		address indexed user,
+		address indexed lender,
+		bytes32 indexed loanId,
+		uint256 principal,
+		uint256 collateral,
+		uint256 endTimestamp,
+		address rewardReceiver,
+		uint256 reward
+	);
 
 	event swapExcess(bool shouldRefund, uint256 amount, uint256 amountInRbtc, uint256 threshold);
 }
