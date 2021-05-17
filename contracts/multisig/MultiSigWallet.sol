@@ -98,7 +98,7 @@ contract MultiSigWallet {
 	/*
 	 * Public functions
 	 */
-	
+
 	/**
 	 * @notice Contract constructor sets initial owners and required number
 	 *   of confirmations.
@@ -302,7 +302,7 @@ contract MultiSigWallet {
 	/*
 	 * Internal functions
 	 */
-	
+
 	/**
 	 * @notice Adds a new transaction to the transaction mapping,
 	 *   if transaction does not exist yet.
