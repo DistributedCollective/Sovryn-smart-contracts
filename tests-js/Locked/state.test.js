@@ -122,7 +122,7 @@ async function getTokenBalances(addr, sovContract, lockedSOVContract) {
  * @returns value The token amount which was deposited by user.
  */
 async function userDeposits(sovContract, lockedSOVContract, sender, receiver, basisPoint) {
-	let value = randomValue() + 1;
+	let value = randomValue() + 10;
 	await sovContract.mint(sender, value);
 	await sovContract.approve(lockedSOVContract.address, value, { from: sender });
 	await lockedSOVContract.deposit(receiver, value, basisPoint, { from: sender });
@@ -350,7 +350,7 @@ contract("Locked SOV (State)", (accounts) => {
 	});
 
 	it("Using createVestingAndStake() should create vesting address and stake tokens correctly.", async () => {
-		let value = randomValue() + 1;
+		let value = randomValue() + 10;
 		await sov.mint(userThree, value);
 		await sov.approve(lockedSOV.address, value, { from: userThree });
 		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
@@ -384,7 +384,7 @@ contract("Locked SOV (State)", (accounts) => {
 	});
 
 	it("Using stakeTokens() should correctly stake the locked tokens.", async () => {
-		let value = randomValue() + 1;
+		let value = randomValue() + 10;
 		await sov.mint(userOne, value);
 		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
@@ -409,7 +409,7 @@ contract("Locked SOV (State)", (accounts) => {
 
 	// TODO from here
 	it("Using withdrawAndStakeTokens() should correctly withdraw all unlocked tokens and stake locked tokens correctly.", async () => {
-		let value = randomValue() + 1;
+		let value = randomValue() + 10;
 		await sov.mint(userTwo, value);
 		await sov.approve(lockedSOV.address, value, { from: userTwo });
 		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
@@ -468,7 +468,7 @@ contract("Locked SOV (State)", (accounts) => {
 	});
 
 	it("Using transfer() should correctly transfer locked token to new locked sov.", async () => {
-		let value = randomValue() + 1;
+		let value = randomValue() + 10;
 		await sov.mint(userOne, value);
 		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let basisPoint = 0;

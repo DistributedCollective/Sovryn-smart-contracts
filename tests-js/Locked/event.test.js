@@ -113,7 +113,7 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Depositing Tokens using deposit() to own account should emit Deposited.", async () => {
-		let value = randomValue() + 1;
+		let value = randomValue() + 10;
 		await sov.mint(userOne, value);
 		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let basisPoint = randomValue();
@@ -127,7 +127,7 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Depositing Tokens using deposit() to another account should emit Deposited.", async () => {
-		let value = randomValue() + 1;
+		let value = randomValue() + 10;
 		await sov.mint(userOne, value);
 		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let basisPoint = randomValue();
@@ -141,7 +141,7 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Depositing Tokens using depositSOV() to own account should emit Deposited.", async () => {
-		let value = randomValue() + 1;
+		let value = randomValue() + 10;
 		await sov.mint(userOne, value);
 		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let txReceipt = await lockedSOV.depositSOV(userOne, value, { from: userOne });
@@ -167,7 +167,7 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Withdrawing unlocked Tokens to own account using withdraw() should emit Withdrawn.", async () => {
-		let value = randomValue() + 1;
+		let value = randomValue() + 10;
 		await sov.mint(userOne, value);
 		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
@@ -181,7 +181,7 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Withdrawing unlocked Tokens to another account using withdraw() should emit Withdrawn.", async () => {
-		let value = randomValue() + 1;
+		let value = randomValue() + 10;
 		await sov.mint(userOne, value);
 		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
@@ -195,7 +195,7 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Using createVestingAndStake() should emit both VestingCreated and TokenStaked.", async () => {
-		let value = randomValue() + 1;
+		let value = randomValue() + 10;
 		await sov.mint(userOne, value);
 		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
@@ -223,7 +223,7 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Using stakeTokens() should emit TokenStaked.", async () => {
-		let value = randomValue() + 1;
+		let value = randomValue() + 10;
 		await sov.mint(userOne, value);
 		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
@@ -239,7 +239,7 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Using withdrawAndStakeTokens() should emit Withdrawn and TokenStaked.", async () => {
-		let value = randomValue() + 1;
+		let value = randomValue() + 10;
 		await sov.mint(userOne, value);
 		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
@@ -267,7 +267,7 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Transfering locked balance using transfer() should emit UserTransfered.", async () => {
-		let value = randomValue() + 1;
+		let value = randomValue() + 10;
 		await sov.mint(userOne, value);
 		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
