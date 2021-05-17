@@ -198,6 +198,24 @@ contract LockedSOV {
 		uint256 _sovAmount,
 		uint256 _basisPoint
 	) external {
+		_deposit(_userAddress, _sovAmount, _basisPoint);
+	}
+
+	/**
+	 * @notice Adds SOV to the locked balance of a user.
+	 * @param _userAddress The user whose locked balance has to be updated with _sovAmount.
+	 * @param _sovAmount The amount of SOV to be added to the locked balance.
+	 * @dev This is here because there are dependency with other contracts.
+	 */
+	function depositSOV(address _userAddress, uint256 _sovAmount) external {
+		_deposit(_userAddress, _sovAmount, 0);
+	}
+
+	function _deposit(
+		address _userAddress,
+		uint256 _sovAmount,
+		uint256 _basisPoint
+	) private {
 		// 10000 is not included because if 100% is unlocked, then LockedSOV is not required to be used.
 		require(_basisPoint < 10000, "Basis Point has to be less than 10000.");
 		bool txStatus = SOV.transferFrom(msg.sender, address(this), _sovAmount);
@@ -209,22 +227,6 @@ contract LockedSOV {
 		lockedBalances[_userAddress] = lockedBalances[_userAddress].add(_sovAmount).sub(unlockedBal);
 
 		emit Deposited(msg.sender, _userAddress, _sovAmount, _basisPoint);
-	}
-
-	/**
-	 * @notice Adds SOV to the locked balance of a user.
-	 * @param _userAddress The user whose locked balance has to be updated with _sovAmount.
-	 * @param _sovAmount The amount of SOV to be added to the locked balance.
-	 * @dev This is here because there are dependency with other contracts.
-	 */
-	//TODO use _deposit here
-	function depositSOV(address _userAddress, uint256 _sovAmount) external {
-		bool txStatus = SOV.transferFrom(msg.sender, address(this), _sovAmount);
-		require(txStatus, "Token transfer was not successful. Check receiver address.");
-
-		lockedBalances[_userAddress] = lockedBalances[_userAddress].add(_sovAmount);
-
-		emit Deposited(msg.sender, _userAddress, _sovAmount, 0);
 	}
 
 	/**
