@@ -19,7 +19,7 @@
 First install all the npm packages:
 
 ```
-npm i
+npm ci
 ```
 
 And then install all the python packages using pip3:
@@ -63,6 +63,7 @@ To check the test coverage of JS:
 ```
 npm run coverage
 ```
+
 Note: Sometimes it might show an error "JavaScript heap out of memory", then please increase the memory allocation using:
 
 ```
@@ -74,19 +75,33 @@ If still the error persists, make sure that you closed the shell and opened anot
 ## Deployment on RSK testnet
 
 1. Add account with RBTC balance to brownie
+
 ```bash
 brownie accounts new rskdeployer
 ```
+
 2. Add network Rsk-testnet
+
+```bash
+brownie networks add rsk testnet host=https://testnet.sovryn.app/rpc chainid=31
+```
+
+OR
+
 ```bash
 brownie networks add rsk testnet host=https://public-node.testnet.rsk.co chainid=31
 ```
+
+Note: If you want to work with mainnet, please use host as `wss://mainnet.sovryn.app/ws` and chainid as `30`
+
 3. Deploy contracts locally
+
 ```bash
 brownie run deploy_everything.py
 ```
 
 or use an absolute path to the script
+
 ```bash
 brownie run ~/Code/Sovryn-smart-contracts/scripts/deployment/deploy_everything.py
 ```
@@ -98,6 +113,7 @@ brownie run deploy_everything.py --network testnet
 ```
 
 or use an absolute path to the script
+
 ```bash
 brownie run ~/Code/Sovryn-smart-contracts/scripts/deployment/deploy_everything.py --network testnet
 ```
@@ -105,18 +121,23 @@ brownie run ~/Code/Sovryn-smart-contracts/scripts/deployment/deploy_everything.p
 ## Sovryn Swap joint testing for RSK (local)
 
 1. Start `ganache` with
+
 ```bash
 ganache-cli --gasLimit 6800000 --port 8545
 ```
+
 Overriding default `brownie` port will make it connect to our local chain and keep it open.
+
 If you changed the port in the brownie config, use that port instead.
 
 2. Deploy contracts
+
 ```bash
 brownie run deploy_everything.py
 ```
 
 or use an absolute path to the script
+
 ```bash
 brownie run ~/Code/Sovryn-smart-contracts/scripts/deployment/deploy_everything.py
 ```
@@ -130,11 +151,13 @@ brownie run ~/Code/Sovryn-smart-contracts/scripts/deployment/deploy_everything.p
 6. After deployment, copy the address of the deployed `ContractRegistry` and update the `scripts/swap_test.json` accordingly.
 
 7. Run the `swap_test.py` script to set the SovrynSwap ContractRegistry address
+
 ```bash
 brownie run swap_test.py
 ```
 
 or use an absolute path to the script
+
 ```bash
 brownie run ~/Code/Sovryn-smart-contracts/scripts/swapTest/swap_test.py
 ```
@@ -565,6 +588,12 @@ The function which pays the reward is `PayFeeReward` from `FeesHelper.sol`.
 
 #### 9.3 Withdraw
 The protocol can withdraw SOV tokens using `sovryn.withdrawProtocolToken()` from `ProtocolSettings.sol`. This function is executable only by the owner.
+
+## Contributing
+
+<a href="https://github.com/DistributedCollective/Sovryn-smart-contracts/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=DistributedCollective/Sovryn-smart-contracts" />
+</a>
 
 ## License
 
