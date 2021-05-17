@@ -11,7 +11,7 @@ import "./ILockedSOV.sol";
  *  @author Franklin Richards - powerhousefrank@protonmail.com
  *  @notice This contract is used to receive reward from other contracts, Create Vesting and Stake Tokens.
  */
-contract LockedSOV {
+contract LockedSOV is ILockedSOV {
 	using SafeMath for uint256;
 
 	/* Storage */

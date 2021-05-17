@@ -45,6 +45,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _lockedSOV The contract instance address of the lockedSOV vault.
 	 *   SOV rewards are not paid directly to liquidity providers. Instead they
 	 *   are deposited into a lockedSOV vault contract.
+	 * @param _basisPoint The % (in Basis Point) which determines how much will be unlocked immediately.
 	 */
 	function initialize(
 		IERC20 _SOV,
@@ -52,12 +53,14 @@ contract LiquidityMining is LiquidityMiningStorage {
 		uint256 _startDelayBlocks,
 		uint256 _numberOfBonusBlocks,
 		address _wrapper,
-		ILockedSOV _lockedSOV
+		ILockedSOV _lockedSOV,
+		uint256 _basisPoint
 	) public onlyOwner {
 		/// @dev Non-idempotent function. Must be called just once.
 		require(address(SOV) == address(0), "Already initialized");
 		require(address(_SOV) != address(0), "Invalid token address");
 		require(_startDelayBlocks > 0, "Invalid start block");
+		require(_basisPoint < 10000, "Basis Point has to be less than 10000.");
 
 		SOV = _SOV;
 		rewardTokensPerBlock = _rewardTokensPerBlock;
@@ -65,15 +68,26 @@ contract LiquidityMining is LiquidityMiningStorage {
 		bonusEndBlock = startBlock + _numberOfBonusBlocks;
 		wrapper = _wrapper;
 		lockedSOV = _lockedSOV;
+		basisPoint = _basisPoint;
 	}
 
 	/**
-	 * @notice Set lockedSOV contract.
+	 * @notice Sets lockedSOV contract.
 	 * @param _lockedSOV The contract instance address of the lockedSOV vault.
 	 */
 	function setLockedSOV(ILockedSOV _lockedSOV) public onlyOwner {
 		require(address(_lockedSOV) != address(0), "Invalid lockedSOV Address.");
 		lockedSOV = _lockedSOV;
+	}
+
+	/**
+	 * @notice Sets basisPoint.
+	 * @param _basisPoint The % (in Basis Point) which determines how much will be unlocked immediately.
+	 * @dev @dev 10000 is 100%
+	 */
+	function setBasisPoint(uint256 _basisPoint) public onlyOwner {
+		require(_basisPoint < 10000, "Basis Point has to be less than 10000.");
+		basisPoint = _basisPoint;
 	}
 
 	/**
@@ -433,7 +447,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 			///   SOV deposit must be approved to move the SOV tokens
 			///   from this LM contract into the lockedSOV vault.
 			SOV.approve(address(lockedSOV), userAccumulatedReward);
-			lockedSOV.depositSOV(_userAddress, userAccumulatedReward);
+			lockedSOV.deposit(_userAddress, userAccumulatedReward, basisPoint);
 
 			//TODO should it be settable ?
 			//_basisPoint

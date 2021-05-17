@@ -18,6 +18,8 @@ describe("LiquidityMining", () => {
 	const startDelayBlocks = new BN(1);
 	const numberOfBonusBlocks = new BN(50);
 
+	const basisPoint = new BN(0);
+
 	let accounts;
 	let root, account1, account2, account3, account4;
 	let SOVToken, token1, token2, token3;
@@ -46,7 +48,8 @@ describe("LiquidityMining", () => {
 			startDelayBlocks,
 			numberOfBonusBlocks,
 			wrapper,
-			lockedSOV.address
+			lockedSOV.address,
+			basisPoint
 		);
 	});
 
@@ -59,7 +62,8 @@ describe("LiquidityMining", () => {
 				startDelayBlocks,
 				numberOfBonusBlocks,
 				wrapper,
-				lockedSOV.address
+				lockedSOV.address,
+				basisPoint
 			);
 
 			let _SOV = await liquidityMining.SOV();
@@ -87,6 +91,7 @@ describe("LiquidityMining", () => {
 					numberOfBonusBlocks,
 					wrapper,
 					lockedSOV.address,
+					basisPoint,
 					{ from: account1 }
 				),
 				"unauthorized"
@@ -96,7 +101,7 @@ describe("LiquidityMining", () => {
 		it("fails if _startBlock = 0", async () => {
 			await deployLiquidityMining();
 			await expectRevert(
-				liquidityMining.initialize(SOVToken.address, rewardTokensPerBlock, 0, numberOfBonusBlocks, wrapper, lockedSOV.address),
+				liquidityMining.initialize(SOVToken.address, rewardTokensPerBlock, 0, numberOfBonusBlocks, wrapper, lockedSOV.address, basisPoint),
 				"Invalid start block"
 			);
 		});
@@ -109,7 +114,8 @@ describe("LiquidityMining", () => {
 					startDelayBlocks,
 					numberOfBonusBlocks,
 					wrapper,
-					lockedSOV.address
+					lockedSOV.address,
+					basisPoint
 				),
 				"Already initialized"
 			);
@@ -124,7 +130,8 @@ describe("LiquidityMining", () => {
 					startDelayBlocks,
 					numberOfBonusBlocks,
 					wrapper,
-					lockedSOV.address
+					lockedSOV.address,
+					basisPoint
 				),
 				"Invalid token address"
 			);

@@ -4,7 +4,7 @@ import "../openzeppelin/ERC20.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
 import "../openzeppelin/Ownable.sol";
-import "../escrow/ILockedSOV.sol";
+import "../locked/ILockedSOV.sol";
 
 contract LiquidityMiningStorage is Ownable {
 	// Info of each user.
@@ -62,4 +62,8 @@ contract LiquidityMiningStorage is Ownable {
 
 	/// @dev The locked vault contract to deposit LP's rewards into.
 	ILockedSOV public lockedSOV;
+
+	// The % (in Basis Point) which determines how much will be unlocked immediately.
+	/// @dev 10000 is 100%
+	uint256 public basisPoint;
 }
