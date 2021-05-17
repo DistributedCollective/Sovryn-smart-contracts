@@ -147,7 +147,7 @@ library EnumerableBytes32Set {
 	 *
 	 * WARNING: This function may run out of gas on large sets: use {length} and
 	 * {get} instead in these cases.
-     */
+	 */
 	function enumerate(
 		Bytes32Set storage set,
 		uint256 start,

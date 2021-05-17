@@ -132,7 +132,7 @@ contract("DevelopmentFund (Events)", (accounts) => {
 	});
 
 	it("Depositing Token should emit the TokenDeposit event.", async () => {
-		let value = randomValue();
+		let value = randomValue() + 1;
 		await testToken.mint(userOne, value);
 		await testToken.approve(developmentFund.address, value, { from: userOne });
 		let txReceipt = await developmentFund.depositTokens(value, { from: userOne });
