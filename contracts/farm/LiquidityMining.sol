@@ -432,7 +432,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @notice Send reward in SOV to the lockedSOV vault.
 	 * @param _user The user info, to get its reward share.
 	 * @param _userAddress The address of the user, to send SOV in its behalf.
-	 * */
+	 */
 	function _transferReward(UserInfo storage _user, address _userAddress) internal {
 		uint256 userAccumulatedReward = _user.accumulatedReward;
 
@@ -449,13 +449,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 			SOV.approve(address(lockedSOV), userAccumulatedReward);
 			lockedSOV.deposit(_userAddress, userAccumulatedReward, basisPoint);
 
-			//TODO should it be settable ?
-			//_basisPoint
-
-			//TODO do we need to use it instead of depositSOV
-			//lockedSOV.deposit
-
-			//			withdrawAndStakeTokens
+			lockedSOV.withdrawAndStakeTokensFrom(_userAddress, _userAddress);
 
 			/// @dev Event log.
 			emit RewardClaimed(_userAddress, userAccumulatedReward);

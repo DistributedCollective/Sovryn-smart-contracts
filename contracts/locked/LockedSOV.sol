@@ -30,6 +30,8 @@ contract LockedSOV is ILockedSOV {
 	VestingRegistry public vestingRegistry;
 	/// @notice The New (Future) Locked SOV.
 	ILockedSOV public newLockedSOV;
+	/// @notice The Liquidity Mining contract address.
+	address public liquidityMining;
 
 	/// @notice The locked user balances.
 	mapping(address => uint256) lockedBalances;
@@ -136,6 +138,12 @@ contract LockedSOV is ILockedSOV {
 
 	/* Public or External Functions */
 
+	//TODO who should have an access ?
+	function setLiquidityMining(address _liquidityMining) public onlyAdmin {
+		require(_liquidityMining != address(0), "Liquidity mining address is invalid.");
+		liquidityMining = _liquidityMining;
+	}
+
 	/**
 	 * @notice The function to add a new admin.
 	 * @param _newAdmin The address of the new admin.
@@ -234,18 +242,22 @@ contract LockedSOV is ILockedSOV {
 	 * @param _receiverAddress If specified, the unlocked balance will go to this address, else to msg.sender.
 	 */
 	function withdraw(address _receiverAddress) public {
+		_withdraw(msg.sender, _receiverAddress);
+	}
+
+	function _withdraw(address _sender, address _receiverAddress) private {
 		address userAddr = _receiverAddress;
 		if (_receiverAddress == address(0)) {
-			userAddr = msg.sender;
+			userAddr = _sender;
 		}
 
-		uint256 amount = unlockedBalances[msg.sender];
-		unlockedBalances[msg.sender] = 0;
+		uint256 amount = unlockedBalances[_sender];
+		unlockedBalances[_sender] = 0;
 
 		bool txStatus = SOV.transfer(userAddr, amount);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
 
-		emit Withdrawn(msg.sender, userAddr, amount);
+		emit Withdrawn(_sender, userAddr, amount);
 	}
 
 	/**
@@ -253,10 +265,14 @@ contract LockedSOV is ILockedSOV {
 	 * @dev Only use this function if the `duration` is small.
 	 */
 	function createVestingAndStake() public {
-		address vestingAddr = _getVesting(msg.sender);
+		_createVestingAndStake(msg.sender);
+	}
+
+	function _createVestingAndStake(address _sender) private {
+		address vestingAddr = _getVesting(_sender);
 
 		if (vestingAddr == address(0)) {
-			vestingAddr = createVesting();
+			vestingAddr = _createVesting(_sender);
 		}
 
 		_stakeTokens(vestingAddr);
@@ -268,8 +284,6 @@ contract LockedSOV is ILockedSOV {
 	 */
 	function createVesting() public returns (address _vestingAddress) {
 		_vestingAddress = _createVesting(msg.sender);
-
-		emit VestingCreated(msg.sender, _vestingAddress);
 	}
 
 	/**
@@ -287,11 +301,26 @@ contract LockedSOV is ILockedSOV {
 	/**
 	 * @notice Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created.
 	 * @param _receiverAddress If specified, the unlocked balance will go to this address, else to msg.sender.
-	 * @dev The user should already have a vesting created, else this function will throw error.
 	 */
 	function withdrawAndStakeTokens(address _receiverAddress) external {
 		withdraw(_receiverAddress);
 		createVestingAndStake();
+	}
+
+	/**
+	 * @notice Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created.
+	 * @param _userAddress The address of user tokens will be withdrawn.
+	 * @param _receiverAddress If specified, the unlocked balance will go to this address, else to msg.sender.
+	 */
+	function withdrawAndStakeTokensFrom(address _userAddress, address _receiverAddress) external {
+		require(msg.sender == liquidityMining, "unauthorized");
+
+		_withdrawAndStakeTokens(_userAddress, _receiverAddress);
+	}
+
+	function _withdrawAndStakeTokens(address _sender, address _receiverAddress) private {
+		_withdraw(_sender, _receiverAddress);
+		_createVestingAndStake(_sender);
 	}
 
 	/**
@@ -331,7 +360,8 @@ contract LockedSOV is ILockedSOV {
 	function _createVesting(address _tokenOwner) internal returns (address _vestingAddress) {
 		/// Here zero is given in place of amount, as amount is not really used in `vestingRegistry.createVesting()`.
 		vestingRegistry.createVesting(_tokenOwner, 0, cliff, duration);
-		return _getVesting(_tokenOwner);
+		_vestingAddress = _getVesting(_tokenOwner);
+		emit VestingCreated(msg.sender, _vestingAddress);
 	}
 
 	/**
