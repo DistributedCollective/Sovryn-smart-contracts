@@ -57,6 +57,15 @@ def getFeesGlobal():
     
     contract = Contract.from_abi("State", address=contractAddress, abi=State.abi)
 
+    print("  Protocol balance: ", contract.balance())
+    # print("  Loan Pools List: ", contract.getLoanPoolsList(0, 100))
+    print("  loanPoolToUnderlying(iUSDT): ", contract.loanPoolToUnderlying(contracts["iUSDT"]))
+    print("  loanPoolToUnderlying(iBPro): ", contract.loanPoolToUnderlying(contracts["iBPro"]))
+    print("  loanPoolToUnderlying(iDOC): ", contract.loanPoolToUnderlying(contracts["iDOC"]))
+    print("  loanPoolToUnderlying(iRBTC): ", contract.loanPoolToUnderlying(contracts["iRBTC"]))
+    # print("  loanPoolToUnderlying(iDOCLogic): ", contract.loanPoolToUnderlying(contracts["iDOCLogic"]))
+    # print("  loanPoolToUnderlying(iRBTCLogic): ", contract.loanPoolToUnderlying(contracts["iRBTCLogic"]))
+    
     print("  tradingFeePercent: ", contract.tradingFeePercent()/1e18)
     print("  borrowingFeePercent: ", contract.borrowingFeePercent()/1e18)
     print("  protocolTokenHeld: ", contract.protocolTokenHeld()/1e18)
@@ -74,6 +83,8 @@ def getFeesPerToken(tokenName):
     else:
         acct = contracts[tokenName]
     print("  On token ", tokenName, " at address ", acct)
+
+    print("    underlyingToLoanPool: ", contract.underlyingToLoanPool(acct))
 
     print("    lendingFeeTokensHeld: ", contract.lendingFeeTokensHeld(acct)/1e18)
     print("    lendingFeeTokensPaid: ", contract.lendingFeeTokensPaid(acct)/1e18)
