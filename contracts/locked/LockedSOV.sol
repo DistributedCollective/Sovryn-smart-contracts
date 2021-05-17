@@ -217,6 +217,7 @@ contract LockedSOV {
 	 * @param _sovAmount The amount of SOV to be added to the locked balance.
 	 * @dev This is here because there are dependency with other contracts.
 	 */
+	//TODO use _deposit here
 	function depositSOV(address _userAddress, uint256 _sovAmount) external {
 		bool txStatus = SOV.transferFrom(msg.sender, address(this), _sovAmount);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
@@ -249,7 +250,7 @@ contract LockedSOV {
 	 * @notice Creates vesting if not already created and Stakes tokens for a user.
 	 * @dev Only use this function if the `duration` is small.
 	 */
-	function createVestingAndStake() external {
+	function createVestingAndStake() public {
 		address vestingAddr = _getVesting(msg.sender);
 
 		if (vestingAddr == address(0)) {
@@ -288,7 +289,7 @@ contract LockedSOV {
 	 */
 	function withdrawAndStakeTokens(address _receiverAddress) external {
 		withdraw(_receiverAddress);
-		stakeTokens();
+		createVestingAndStake();
 	}
 
 	/**
