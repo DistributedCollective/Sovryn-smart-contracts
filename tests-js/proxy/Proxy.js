@@ -26,9 +26,9 @@ contract("Proxy", (accounts) => {
 	describe("setProxyOwner", async () => {
 		it("Should be able to transfer ownership", async () => {
 			let tx = await proxy.setProxyOwner(account1, { from: accountOwner });
-			expectEvent(tx, "OwnershipTransferred", {
-				_oldOwner: accountOwner,
-				_newOwner: account1,
+			expectEvent(tx, "AdminChanged", {
+				previousAdmin: accountOwner,
+				newAdmin: account1,
 			});
 
 			let owner = await proxy.getProxyOwner.call();
@@ -47,9 +47,8 @@ contract("Proxy", (accounts) => {
 	describe("setImplementation", async () => {
 		it("Should be able to set implementation", async () => {
 			let tx = await proxy.setImplementation(implementation.address, { from: accountOwner });
-			expectEvent(tx, "ImplementationChanged", {
-				_oldImplementation: ZERO_ADDRESS,
-				_newImplementation: implementation.address,
+			expectEvent(tx, "Upgraded", {
+				implementation: implementation.address,
 			});
 
 			let returnedImplementation = await proxy.getImplementation.call();
