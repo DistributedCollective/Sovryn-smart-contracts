@@ -121,9 +121,25 @@ contract("Whether Pausable Margin Trading is reverting properly on Pause state",
 		await doc.transfer(loanTokenV2.address, wei("500", "ether"));
 		await doc.approve(loanToken.address, web3.utils.toWei("20", "ether"));
 	});
-	it("Margin trading  with 3X leverage with DOC token and topUp position by 12rwBTC", async () => {
-		// setting up interest rates
-		//Giving some testRbtc to sovrynAddress (by minting some testRbtc),so  that it can open position in wRBTC.
+	it("Pause/Resume a function and check the pause function status", async () => {
+		let functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,bytes)";
+		await loanTokenV2.setPauser(accounts[0], { from: owner });
+		
+        // Pause a function
+        await loanTokenV2.toggleFunctionPause(functionSignature, true, { from: accounts[0] });
+
+        // Verify it is paused
+        assert.ok(await loanTokenV2.checkPause(functionSignature) === true);
+
+		// Unpause a function
+        await loanTokenV2.toggleFunctionPause(functionSignature, false, { from: accounts[0] });
+        
+        // Verify it is not paused
+        assert.ok(await loanTokenV2.checkPause(functionSignature) === false);
+    });
+	it("Pausing margin trading", async () => {
+		// Setting up interest rates
+		// Giving some testRbtc to sovrynAddress (by minting some testRbtc), so that it can open position in wRBTC.
 		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
 
 		// assert.equal(await sovryn.protocolAddress(), sovryn.address);
@@ -136,6 +152,10 @@ contract("Whether Pausable Margin Trading is reverting properly on Pause state",
 		await loanTokenV2.setPauser(accounts[0], { from: owner });
 		await loanTokenV2.toggleFunctionPause(functionSignature, true, { from: accounts[0] });
 
+        // Verify it is paused
+        assert.ok(await loanTokenV2.checkPause(functionSignature) === true);
+
+        // Call margin trading
 		await expectRevert(
 			loanTokenV2.marginTrade(
 				constants.ZERO_BYTES32, // loanId  (0 for new loans)
@@ -150,6 +170,25 @@ contract("Whether Pausable Margin Trading is reverting properly on Pause state",
 			),
 			"Function paused. It cannot be executed."
 		);
-		// expect(await sovryn.getUserNotFirstTradeFlag(owner), "sovryn.getUserNotFirstTradeFlag(trader) should be true").to.be.true;
+
+        // Unpause the given function
+        await loanTokenV2.toggleFunctionPause(functionSignature, false, { from: accounts[0] });
+
+        // Verify it is not paused
+        assert.ok(await loanTokenV2.checkPause(functionSignature) === false);
+
+        // This one should work
+        // Call margin trading
+        await loanTokenV2.marginTrade(
+            constants.ZERO_BYTES32, // loanId  (0 for new loans)
+            leverageAmount, // leverageAmount
+            loanTokenSent, // loanTokenSent
+            0, // no collateral token sent
+            testWrbtc.address, // collateralTokenAddress
+            owner, //trader, // trader,
+            //referrer, // affiliates referrer
+            "0x", // loanDataBytes (only required with ether)
+            { from: owner }
+        );
 	});
 });

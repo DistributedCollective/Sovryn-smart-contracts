@@ -25,8 +25,8 @@ contract Pausable is Ownable {
 	address public pauser;
 
 	/// @notice Pause state flag for module granurality.
-	mapping (address => bool) public moduleIsPaused;
-	
+	mapping(address => bool) public moduleIsPaused;
+
 	/// @notice Pause global state flag. It pauses the whole protocol.
 	bool public protocolPaused;
 
@@ -123,17 +123,26 @@ contract Pausable is Ownable {
 		}
 	}
 
-	function toggleProtocolPause(
-		bool isPaused
-	) public {
+	function _debug_toggleFunctionPause(
+		string memory funcId
+	) public view returns (bytes32) {
+		/// keccak256("iToken_FunctionPause")
+		bytes32 slot =
+			keccak256(
+				abi.encodePacked(
+					bytes4(keccak256(abi.encodePacked(funcId))),
+					uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
+				)
+			);
+		return slot;
+	}
+
+	function toggleProtocolPause(bool isPaused) public {
 		// require(msg.sender == pauser, "onlyPauser");
 		protocolPaused = isPaused;
 	}
 
-	function toggleModulePause(
-		address module,
-		bool isPaused
-	) public {
+	function toggleModulePause(address module, bool isPaused) public {
 		// require(msg.sender == pauser, "onlyPauser");
 		moduleIsPaused[module] = isPaused;
 	}

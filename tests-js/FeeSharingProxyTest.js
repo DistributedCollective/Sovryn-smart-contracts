@@ -58,9 +58,9 @@ contract("FeeSharingProxy:", (accounts) => {
 
 		//Staking
 		let stakingLogic = await StakingLogic.new(SOVToken.address);
-		staking = await StakingProxy.new(SOVToken.address);
-		await staking.setImplementation(stakingLogic.address);
-		staking = await StakingLogic.at(staking.address);
+		stakingProxy = await StakingProxy.new(SOVToken.address);
+		await stakingProxy.setImplementation(stakingLogic.address);
+		staking = await StakingLogic.at(stakingProxy.address);
 
 		//Protocol
 		protocol = await Protocol.new();
@@ -81,9 +81,9 @@ contract("FeeSharingProxy:", (accounts) => {
 		//Loan token
 		loanTokenSettings = await LoanTokenSettings.new();
 		loanTokenLogic = await LoanTokenLogic.new();
-		loanToken = await LoanToken.new(root, loanTokenLogic.address, protocol.address, wrbtc.address);
-		await loanToken.initialize(susd.address, "iSUSD", "iSUSD");
-		loanToken = await LoanTokenLogic.at(loanToken.address);
+		loanTokenProxy = await LoanToken.new(root, loanTokenLogic.address, protocol.address, wrbtc.address);
+		await loanTokenProxy.initialize(susd.address, "iSUSD", "iSUSD");
+		loanToken = await LoanTokenLogic.at(loanTokenProxy.address);
 		await loanToken.setAdmin(root);
 		await protocol.setLoanPool([loanToken.address], [susd.address]);
 		//FeeSharingProxy
@@ -266,8 +266,12 @@ contract("FeeSharingProxy:", (accounts) => {
 
 		it("Shouldn't be able to transfer tokens when protocol is paused", async () => {
 			// Set global protocol pause to on
-			loanToken.toggleProtocolPause(true);
-			
+			await stakingProxy.toggleProtocolPause(true);
+
+			// Verify it is paused
+			assert.ok(await stakingProxy.protocolPaused() === true);
+			// let kk = await loanToken.profitOf(SOVToken.address);
+
 			// stake - getPriorTotalVotingPower
 			let totalStake = 1000;
 			await stake(totalStake, root);
@@ -275,8 +279,16 @@ contract("FeeSharingProxy:", (accounts) => {
 			let amount = 1000;
 			await SOVToken.approve(feeSharingProxy.address, amount * 7);
 
-			let tx = await feeSharingProxy.transferTokens(SOVToken.address, amount);
-		
+			// Set global protocol pause to on for loanToken
+			await loanTokenProxy.toggleProtocolPause(true);
+
+			// Verify it is paused
+			assert.ok(await loanTokenProxy.protocolPaused() === true);
+
+			await expectRevert(
+				feeSharingProxy.transferTokens(SOVToken.address, amount),
+				"Proxy::(): Protocol is paused."
+			);
 		});
 		it("Should be able to transfer tokens", async () => {
 			// stake - getPriorTotalVotingPower
@@ -524,6 +536,34 @@ contract("FeeSharingProxy:", (accounts) => {
 			expect(processedCheckpoints.toNumber()).to.be.equal(10);
 		});
 
+		it("Shouldn't be able to process 10 checkpoints when protocol is paused", async () => {
+			//stake - getPriorTotalVotingPower
+			await stake(900, root);
+			let userStake = 100;
+			if (MOCK_PRIOR_WEIGHTED_STAKE) {
+				await staking.MOCK_priorWeightedStake(userStake * 10);
+			}
+			await SOVToken.transfer(account1, userStake);
+			await stake(userStake, account1);
+
+			//mock data
+			await createCheckpoints(10);
+
+			// Set global protocol pause to on for loanToken
+			loanToken.toggleProtocolPause(true);
+
+			await expectRevert(feeSharingProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, { from: account1 }), "Proxy::(): Protocol is paused.");
+
+			// Set global protocol pause to off for loanToken
+			loanToken.toggleProtocolPause(false);
+
+			let tx = await feeSharingProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, { from: account1 });
+			console.log("\nwithdraw(checkpoints = 10).gasUsed: " + tx.receipt.gasUsed);
+			//processedCheckpoints
+			let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+			expect(processedCheckpoints.toNumber()).to.be.equal(10);
+		});
+
 		it("Should be able to process 10 checkpoints and 3 withdrawal", async () => {
 			//stake - getPriorTotalVotingPower
 			await stake(900, root);
@@ -652,7 +692,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
 		});
 
-		it("should compute the weighted stake and show gas usage", async () => {
+		it("Should compute the weighted stake and show gas usage", async () => {
 			await stake(100, root);
 			let kickoffTS = await staking.kickoffTS.call();
 			let stakingDate = kickoffTS.add(new BN(MAX_DURATION));

@@ -56,6 +56,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
         nonReentrant
         returns (bytes memory)
     {
+		/// @dev bZx function level pause
+		_checkPause();
+
         require(borrowAmount != 0, "38");
 
         _settleInterest();
@@ -134,6 +137,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			uint256 // returns new principal and new collateral added to loan
 		)
 	{
+		/// @dev bZx function level pause
+		_checkPause();
+
 		require(withdrawAmount != 0, "6");
 
 		//temporary: limit transaction size
@@ -204,6 +210,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			uint256 // returns new principal and new collateral added to trade
 		)
 	{
+		/// @dev bZx function level pause
+		_checkPause();
+
 		if (collateralTokenAddress == address(0)) {
 			collateralTokenAddress = wrbtcTokenAddress;
 		}
@@ -659,6 +668,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		uint256[5] memory sentAmounts,
 		bytes memory loanDataBytes
 	) internal returns (uint256, uint256) {
+		/// @dev bZx function level pause
+		_checkPause();
+
 		require(
 			sentAmounts[1] <= _underlyingBalance() && // newPrincipal (borrowed amount + fees)
 				sentAddresses[1] != address(0), // borrower
