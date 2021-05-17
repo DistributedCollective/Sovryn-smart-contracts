@@ -16,8 +16,8 @@ contract Proxy {
 	/// According to EIP-1967 standard.
 	bytes32 private constant KEY_OWNER = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
 
-	event OwnershipTransferred(address indexed _oldOwner, address indexed _newOwner);
-	event ImplementationChanged(address indexed _oldImplementation, address indexed _newImplementation);
+	event AdminChanged(address previousAdmin, address newAdmin);
+	event Upgraded(address indexed implementation);
 
 	/**
 	 * @notice Sets sender as an owner
@@ -59,7 +59,7 @@ contract Proxy {
 
 	function _setProxyOwner(address _owner) internal {
 		require(_owner != address(0), "Proxy::setProxyOwner: invalid address");
-		
+
 		/// @dev EIP-1967 standard event log.
 		emit AdminChanged(getProxyOwner(), _owner);
 
