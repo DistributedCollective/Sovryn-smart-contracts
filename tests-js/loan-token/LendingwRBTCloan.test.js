@@ -14,7 +14,8 @@ const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
-const LoanClosings = artifacts.require("LoanClosings");
+const LoanClosingsBase = artifacts.require("LoanClosingsBase");
+const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 const SwapsExternal = artifacts.require("SwapsExternal");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
@@ -55,7 +56,8 @@ contract("LoanTokenLending", (accounts) => {
 		const sovrynproxy = await sovrynProtocol.new();
 		sovryn = await ISovryn.at(sovrynproxy.address);
 
-		await sovryn.replaceContract((await LoanClosings.new()).address);
+		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
+		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
 		await sovryn.replaceContract((await ProtocolSettings.new()).address);
 		await sovryn.replaceContract((await LoanSettings.new()).address);
 		await sovryn.replaceContract((await LoanMaintenance.new()).address);
@@ -147,7 +149,8 @@ contract("LoanTokenLending", (accounts) => {
 			const total_deposit_amount = new BN(wei("200", "ether"));
 			await loanToken.mintWithBTC(lender, { value: total_deposit_amount.toString() });
 			const balance_after_lending = await web3.eth.getBalance(lender);
-			await loanToken.burnToBTC(lender, total_deposit_amount.mul(new BN(2)).toString());
+			await expectRevert(loanToken.burnToBTC(lender, total_deposit_amount.mul(new BN(2)).toString()), "32");
+			await loanToken.burnToBTC(lender, constants.MAX_UINT256);
 			expect(await loanToken.balanceOf(lender)).to.be.a.bignumber.equal(new BN(0));
 		});
 	});

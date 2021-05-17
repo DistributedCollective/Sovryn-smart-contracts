@@ -240,6 +240,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address receiver,
 		bool isGovernance
 	) internal {
+		until = _adjustDateForOrigin(until);
 		_validateWithdrawParams(amount, until);
 
 		//determine the receiver

@@ -182,8 +182,9 @@ const margin_trading_sending_collateral_tokens = async (
 	const args = decode[0].args;
 
 	expect(args["positionSize"]).to.eq(
-		new BN(args["borrowedAmount"]).mul(new BN(args["entryPrice"])).div(oneEth).add(collateralTokenSent).toString()
-	);
+		new BN(args["borrowedAmount"]).mul(new BN(args["entryPrice"]) /*.addn(1)*/).div(oneEth).add(collateralTokenSent).toString()
+	); //addn(1) - rounding error if used with p3.9 from bzx peckshield-audit-report-bZxV2-v1.0rc1.pdf; cannot be applied solely as it drives to some other tests failure
+
 	expect(args["borrowedAmount"]).to.eq(
 		loanSize
 			.mul(collateralTokenSent)
@@ -192,7 +193,12 @@ const margin_trading_sending_collateral_tokens = async (
 			.toString()
 	);
 	expect(args["interestRate"]).to.eq("0");
-	expect(args["entryPrice"]).to.eq(rate.mul(new BN(9985)).div(new BN(10000)).toString());
+	expect(args["entryPrice"]).to.eq(
+		rate
+			.mul(new BN(9985))
+			.div(new BN(10000)) /*.sub(new BN(1))*/
+			.toString()
+	); //9985 == (1-0.15/100); sub(1) - rounding error // p3.9 from bzx peckshield-audit-report-bZxV2-v1.0rc1.pdf; cannot be applied solely as it drives to some other tests failure
 	expect(args["entryLeverage"]).to.eq(leverageAmount.toString());
 };
 
@@ -448,15 +454,12 @@ const internal_test_close_margin_trade = async (
 		? principal_.mul(swap_amount).div(collateral_)
 		: new BN(0);
 
-	// console.log(principal_.toString(), collateral_.toString());
-
 	const interest_refund_to_borrower = new BN(initial_loan["interestDepositRemaining"]).mul(loan_close_amount).div(principal_);
 
 	const loan_close_amount_less_interest =
 		!loan_close_amount.eq(new BN(0)) && loan_close_amount.gte(interest_refund_to_borrower)
 			? loan_close_amount.sub(interest_refund_to_borrower)
 			: interest_refund_to_borrower;
-	// console.log(loan_close_amount.toString(), interest_refund_to_borrower.toString());
 
 	const trading_fee_percent = await sovryn.tradingFeePercent();
 	const aux_trading_fee = return_token_is_collateral ? loan_close_amount_less_interest : swap_amount;
@@ -465,8 +468,6 @@ const internal_test_close_margin_trade = async (
 	const source_token_amount_used = return_token_is_collateral
 		? loan_close_amount_less_interest.add(trading_fee).mul(precision).div(trade_rate)
 		: swap_amount;
-	// console.log(trading_fee.toString(), loan_close_amount_less_interest.toString());
-	// console.log(swap_amount.toString());
 
 	const dest_token_amount_received = return_token_is_collateral
 		? loan_close_amount_less_interest
@@ -491,8 +492,6 @@ const internal_test_close_margin_trade = async (
 	const new_collateral = !used_collateral.eq(new BN(0)) ? collateral_.sub(used_collateral) : collateral_;
 	const new_principal = loan_close_amount.eq(principal_) ? new BN(0) : principal_.sub(loan_close_amount);
 
-	// if (return_token_is_collateral && collateral_.gt(swap_amount)) console.log(new_principal.toString());
-
 	let current_margin = new_collateral.mul(trade_rate).mul(oneEth).div(precision).div(oneEth);
 	current_margin =
 		!new_principal.eq(new BN(0)) && current_margin.gte(new_principal)
@@ -507,8 +506,6 @@ const internal_test_close_margin_trade = async (
 	expect(args["sourceToken"]).to.equal(collateral_token_.toString());
 	expect(args["destToken"] == loan_token_).to.be.true;
 	expect(args["borrower"] == trader).to.be.true;
-	// console.log("source token amount used", args["sourceAmount"]);
-	// console.log("source token amount expected", source_token_amount_used.toString());
 
 	// 10000 is the source buffer used by the sovryn swap connector
 	// expect(new BN(args["sourceAmount"]).sub(source_token_amount_used).lte(new BN(10000))).to.be.true;
@@ -537,7 +534,12 @@ const internal_test_close_margin_trade = async (
 };
 
 const get_estimated_margin_details = async (loanToken, collateralToken, loanSize, collateralTokenSent, leverageAmount) => {
+	// leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress
 	const result = await loanToken.getEstimatedMarginDetails(leverageAmount, 0, collateralTokenSent, collateralToken.address);
+	//"2003004506760140211"; collateralTokenSent
+	//"5000000000000000000"; leverageAmount
+	//"20000000000000000000000"; loanSize
+	//"100150225338007010550000"; result[0]
 
 	expect(result[0]).to.be.a.bignumber.eq(
 		loanSize
@@ -546,12 +548,6 @@ const get_estimated_margin_details = async (loanToken, collateralToken, loanSize
 			.div(new BN(10).pow(new BN(36)))
 	);
 	expect(result[2].eq(new BN(0))).to.be.true;
-	// console.log("principal", result[0]);
-	// console.log("collateral", result[1]);
-	// console.log("interestRate", result[2]);
-	// console.log("loanSize", loanSize);
-	// console.log("collateralTokenSent", collateralTokenSent);
-	// console.log("leverageAmount", leverageAmount);
 };
 
 module.exports = {

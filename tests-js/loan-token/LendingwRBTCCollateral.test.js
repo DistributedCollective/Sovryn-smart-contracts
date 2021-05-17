@@ -12,7 +12,8 @@ const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
-const LoanClosings = artifacts.require("LoanClosings");
+const LoanClosingsBase = artifacts.require("LoanClosingsBase");
+const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 const SwapsExternal = artifacts.require("SwapsExternal");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
@@ -21,7 +22,7 @@ const SwapsImplLocal = artifacts.require("SwapsImplLocal");
 
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 
-const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_more_of_lender_balance_should_not_fail } = require("./helpers");
+const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_uint256_max_should_withdraw_total_balance } = require("./helpers");
 
 const wei = web3.utils.toWei;
 
@@ -44,7 +45,8 @@ contract("LoanTokenLending", (accounts) => {
 		const sovrynproxy = await sovrynProtocol.new();
 		sovryn = await ISovryn.at(sovrynproxy.address);
 
-		await sovryn.replaceContract((await LoanClosings.new()).address);
+		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
+		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
 		await sovryn.replaceContract((await ProtocolSettings.new()).address);
 		await sovryn.replaceContract((await LoanSettings.new()).address);
 		await sovryn.replaceContract((await LoanMaintenance.new()).address);
@@ -109,7 +111,8 @@ contract("LoanTokenLending", (accounts) => {
 		});
 
 		it("test cash out from the pool more of lender balance should not fail", async () => {
-			await cash_out_from_the_pool_more_of_lender_balance_should_not_fail(loanToken, lender, underlyingToken);
+			//await cash_out_from_the_pool_more_of_lender_balance_should_not_fail(loanToken, lender, underlyingToken);
+			await cash_out_from_the_pool_uint256_max_should_withdraw_total_balance(loanToken, lender, underlyingToken);
 		});
 	});
 });
