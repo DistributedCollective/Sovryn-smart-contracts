@@ -7,14 +7,28 @@ pragma solidity 0.5.17;
 
 import "../core/State.sol";
 
+/**
+ * @title The Liquidation Helper contract.
+ * @notice This contract code comes from bZx. bZx is a protocol for tokenized margin
+ * trading and lending https://bzx.network similar to the dYdX protocol.
+ *
+ * This contract computes the liquidation amount.
+ * */
 contract LiquidationHelper is State {
 	/**
-	 * computes how much needs to be liquidated in order to restore the desired margin (maintenance + 5%)
-	 * @param principal total borrowed amount (in loan tokens)
-	 * @param collateral the collateral (in collateral tokens)
-	 * @param currentMargin the current margin
-	 * @param maintenanceMargin the maintenance (minimum) margin
-	 * @param collateralToLoanRate the exchange rate from collateral to loan tokens
+	 * @notice Compute how much needs to be liquidated in order to restore the
+	 * desired margin (maintenance + 5%).
+	 *
+	 * @param principal The total borrowed amount (in loan tokens).
+	 * @param collateral The collateral (in collateral tokens).
+	 * @param currentMargin The current margin.
+	 * @param maintenanceMargin The maintenance (minimum) margin.
+	 * @param collateralToLoanRate The exchange rate from collateral to loan
+	 *   tokens.
+	 *
+	 * @return maxLiquidatable The collateral you can get liquidating.
+	 * @return maxSeizable The loan you available for liquidation.
+	 * @return incentivePercent The discount on collateral.
 	 * */
 	function _getLiquidationAmounts(
 		uint256 principal,
@@ -38,9 +52,10 @@ contract LiquidationHelper is State {
 			return (principal, collateral, currentMargin);
 		}
 
-		uint256 desiredMargin = maintenanceMargin.add(5 ether); // 5 percentage points above maintenance
+		/// 5 percentage points above maintenance.
+		uint256 desiredMargin = maintenanceMargin.add(5 ether);
 
-		// maxLiquidatable = ((1 + desiredMargin)*principal - collateralToLoanRate*collateral) / (desiredMargin - 0.05)
+		/// maxLiquidatable = ((1 + desiredMargin)*principal - collateralToLoanRate*collateral) / (desiredMargin - 0.05)
 		maxLiquidatable = desiredMargin.add(10**20).mul(principal).div(10**20);
 		maxLiquidatable = maxLiquidatable.sub(collateral.mul(collateralToLoanRate).div(10**18));
 		maxLiquidatable = maxLiquidatable.mul(10**20).div(desiredMargin.sub(incentivePercent));
@@ -48,7 +63,7 @@ contract LiquidationHelper is State {
 			maxLiquidatable = principal;
 		}
 
-		// maxSeizable = maxLiquidatable * (1 + incentivePercent) / collateralToLoanRate
+		/// maxSeizable = maxLiquidatable * (1 + incentivePercent) / collateralToLoanRate
 		maxSeizable = maxLiquidatable.mul(incentivePercent.add(10**20));
 		maxSeizable = maxSeizable.div(collateralToLoanRate).div(100);
 		if (maxSeizable > collateral) {
