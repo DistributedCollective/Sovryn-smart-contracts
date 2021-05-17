@@ -20,7 +20,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
 	bytes32 internal constant iToken_ProfitSoFar = 0x37aa2b7d583612f016e4a4de4292cb015139b3d7762663d06a53964912ea2fb6; // keccak256("iToken_ProfitSoFar")
 
-	uint constant public TINY_AMOUNT = 25 * 10**13;
+	uint256 public constant TINY_AMOUNT = 25 * 10**13;
 
 	function() external {
 		revert("loan token logic - fallback not allowed");
@@ -635,16 +635,16 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	}
 
 	/**
-     * @dev returns amount of the asset converted to RBTC
-     * @param asset the asset to be transferred
-     * @param amount the amount to be transferred
-     * @return amount in RBTC
-     * */
-    function _getAmountInRbtc(address asset, uint256 amount) internal returns (uint) {
-        (uint256 rbtcRate, uint256 rbtcPrecision) =
-        	FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(asset, wrbtcTokenAddress);
-        return amount.mul(rbtcRate).div(rbtcPrecision);
-    }
+	 * @dev returns amount of the asset converted to RBTC
+	 * @param asset the asset to be transferred
+	 * @param amount the amount to be transferred
+	 * @return amount in RBTC
+	 * */
+	function _getAmountInRbtc(address asset, uint256 amount) internal returns (uint256) {
+		(uint256 rbtcRate, uint256 rbtcPrecision) =
+			FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(asset, wrbtcTokenAddress);
+		return amount.mul(rbtcRate).div(rbtcPrecision);
+	}
 
 	function _getInterestRateAndBorrowAmount(
 		uint256 borrowAmount,
