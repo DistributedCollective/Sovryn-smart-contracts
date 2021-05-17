@@ -11,7 +11,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	using SafeERC20 for IERC20;
 
 	/* Constants */
-	
+
 	uint256 public constant PRECISION = 1e12;
 	// Bonus multiplier for early liquidity providers.
 	// During bonus period each passed block will be calculated like N passed blocks, where N = BONUS_MULTIPLIER
@@ -121,7 +121,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @notice Get the missed SOV balance of LM contract.
 	 *
 	 * @return The amount of SOV tokens according to totalUsersBalance
-	 *   in excess of actual SOV balance of the LM contract. 
+	 *   in excess of actual SOV balance of the LM contract.
 	 * */
 	function getMissedBalance() public view returns (uint256) {
 		uint256 balance = SOV.balanceOf(address(this));
@@ -240,7 +240,11 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _amount the amount of tokens to be deposited
 	 * @param _duration the duration of liquidity providing in seconds
 	 */
-	function getEstimatedReward(address _poolToken, uint256 _amount, uint256 _duration) external view returns (uint256) {
+	function getEstimatedReward(
+		address _poolToken,
+		uint256 _amount,
+		uint256 _duration
+	) external view returns (uint256) {
 		uint256 poolId = _getPoolId(_poolToken);
 		PoolInfo storage pool = poolInfoList[poolId];
 		uint256 start = block.number;
@@ -315,7 +319,11 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _amount the amount of pool tokens
 	 * @param _user the address of user, tokens will be deposited to it or to msg.sender
 	 */
-	function deposit(address _poolToken, uint256 _amount, address _user) public {
+	function deposit(
+		address _poolToken,
+		uint256 _amount,
+		address _user
+	) public {
 		require(poolIdList[_poolToken] != 0, "Pool token not found");
 		address userAddress = _user != address(0) ? _user : msg.sender;
 
@@ -359,7 +367,11 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _amount the amount of pool tokens
 	 * @param _user the user address will be used to process a withdrawal (can be passed only by wrapper contract)
 	 */
-	function withdraw(address _poolToken, uint256 _amount, address _user) public {
+	function withdraw(
+		address _poolToken,
+		uint256 _amount,
+		address _user
+	) public {
 		require(poolIdList[_poolToken] != 0, "Pool token not found");
 		address userAddress = _getUserAddress(_user);
 
@@ -409,7 +421,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * */
 	function _transferReward(UserInfo storage _user, address _userAddress) internal {
 		uint256 userAccumulatedReward = _user.accumulatedReward;
-		
+
 		/// @dev Transfer if enough SOV balance on this LM contract.
 		uint256 balance = SOV.balanceOf(address(this));
 		if (balance >= userAccumulatedReward) {
@@ -422,7 +434,15 @@ contract LiquidityMining is LiquidityMiningStorage {
 			///   from this LM contract into the lockedSOV vault.
 			SOV.approve(address(lockedSOV), userAccumulatedReward);
 			lockedSOV.depositSOV(_userAddress, userAccumulatedReward);
-			
+
+			//TODO should it be settable ?
+			//_basisPoint
+
+			//TODO do we need to use it instead of depositSOV
+			//lockedSOV.deposit
+
+			//			withdrawAndStakeTokens
+
 			/// @dev Event log.
 			emit RewardClaimed(_userAddress, userAccumulatedReward);
 		}
