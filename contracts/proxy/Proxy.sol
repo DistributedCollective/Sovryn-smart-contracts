@@ -4,8 +4,17 @@ pragma solidity ^0.5.17;
  * @title Base Proxy Contract
  */
 contract Proxy {
-	bytes32 private constant KEY_IMPLEMENTATION = keccak256("key.implementation");
-	bytes32 private constant KEY_OWNER = keccak256("key.proxy.owner");
+	/// @dev The storage slot 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc
+	/// (obtained as bytes32(uint256(keccak256('eip1967.proxy.implementation')) - 1))
+	/// should hold the address of the logic contract that the proxy delegates to.
+	/// According to EIP-1967 standard.
+	bytes32 private constant KEY_IMPLEMENTATION = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
+
+	/// @dev The storage slot 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103
+	/// (obtained as bytes32(uint256(keccak256('eip1967.proxy.admin')) - 1))
+	/// should hold the address that is allowed to upgrade the logic contract address.
+	/// According to EIP-1967 standard.
+	bytes32 private constant KEY_OWNER = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
 
 	event OwnershipTransferred(address indexed _oldOwner, address indexed _newOwner);
 	event ImplementationChanged(address indexed _oldImplementation, address indexed _newImplementation);
@@ -27,7 +36,9 @@ contract Proxy {
 
 	function _setImplementation(address _implementation) internal {
 		require(_implementation != address(0), "Proxy::setImplementation: invalid address");
-		emit ImplementationChanged(getImplementation(), _implementation);
+
+		/// @dev EIP-1967 standard event log.
+		emit Upgraded(_implementation);
 
 		bytes32 key = KEY_IMPLEMENTATION;
 		assembly {
@@ -48,7 +59,9 @@ contract Proxy {
 
 	function _setProxyOwner(address _owner) internal {
 		require(_owner != address(0), "Proxy::setProxyOwner: invalid address");
-		emit OwnershipTransferred(getProxyOwner(), _owner);
+		
+		/// @dev EIP-1967 standard event log.
+		emit AdminChanged(getProxyOwner(), _owner);
 
 		bytes32 key = KEY_OWNER;
 		assembly {
