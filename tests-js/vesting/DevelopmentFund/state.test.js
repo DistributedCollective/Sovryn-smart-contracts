@@ -246,7 +246,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 	});
 
 	it("Adding new Deposit should update the remaining token and contract token balance.", async () => {
-		let value = randomValue();
+		let value = randomValue() + 1;
 		await testToken.mint(userOne, value);
 		await testToken.approve(developmentFund.address, value, { from: userOne });
 		await developmentFund.depositTokens(value, { from: userOne });
@@ -259,7 +259,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 	});
 
 	it("The contract should be approved to make token transfer for deposit.", async () => {
-		let value = randomValue();
+		let value = randomValue() + 1;
 		await expectRevert(developmentFund.depositTokens(value, { from: userOne }), "invalid transfer");
 	});
 
@@ -268,7 +268,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 	});
 
 	it("Updating the release schedule should update the lastReleaseTime, releaseDuration and releaseTokenAmount.", async () => {
-		let newReleaseTime = randomValue();
+		let newReleaseTime = randomValue() + 1;
 		releaseTokenAmount = createReleaseTokenAmount();
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
 		await testToken.mint(governance, totalReleaseTokenAmount);
@@ -291,7 +291,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 
 	it("Updating the release schedule twice should update the lastReleaseTime, releaseDuration and releaseTokenAmount accordingly.", async () => {
 		// First Time
-		let newReleaseTime = randomValue();
+		let newReleaseTime = randomValue() + 1;
 		releaseTokenAmount = createReleaseTokenAmount();
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
 		await testToken.mint(governance, totalReleaseTokenAmount);
@@ -312,7 +312,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 		assert.equal(tokenBalance.toNumber(), totalReleaseTokenAmount, "Token Balance in contract does not match the correct amount.");
 
 		// Second Time
-		newReleaseTime = randomValue();
+		newReleaseTime = randomValue() + 1;
 		releaseTokenAmount = createReleaseTokenAmount();
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
 		await testToken.mint(governance, totalReleaseTokenAmount);
@@ -335,7 +335,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 
 	it("While updating release schedule, extra tokens should be sent back.", async () => {
 		let previousReleaseTokenAmount = totalReleaseTokenAmount;
-		let newReleaseTime = randomValue();
+		let newReleaseTime = randomValue() + 1;
 		releaseTokenAmount = createReleaseTokenAmount();
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
 
@@ -372,7 +372,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 	});
 
 	it("While updating release schedule, deficient tokens should be sent to contract.", async () => {
-		let newReleaseTime = randomValue();
+		let newReleaseTime = randomValue() + 1;
 		releaseTokenAmount = createReleaseTokenAmount();
 		let newTotalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
 		if (newTotalReleaseTokenAmount <= totalReleaseTokenAmount) {
@@ -410,7 +410,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 	});
 
 	it("Unequal array for duration and tokens should not be accepted for token release schedule.", async () => {
-		let newReleaseTime = randomValue();
+		let newReleaseTime = randomValue() + 1;
 		releaseTokenAmount = createReleaseTokenAmount();
 		releaseTokenAmount.pop();
 		await expectRevert(
@@ -420,7 +420,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 	});
 
 	it("Transferring all tokens to a safeVault by Unlocked Token Owner should update the remainingToken.", async () => {
-		let value = randomValue();
+		let value = randomValue() + 1;
 		await testToken.mint(userOne, value);
 		await testToken.approve(developmentFund.address, value, { from: userOne });
 		await developmentFund.depositTokens(value, { from: userOne });
@@ -535,7 +535,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 	});
 
 	it("Transferring all tokens to a receiver by Locked Token should update the remainingToken.", async () => {
-		let value = randomValue();
+		let value = randomValue() + 1;
 		await testToken.mint(userOne, value);
 		await testToken.approve(developmentFund.address, value, { from: userOne });
 		await developmentFund.depositTokens(value, { from: userOne });
