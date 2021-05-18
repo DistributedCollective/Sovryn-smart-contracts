@@ -153,10 +153,10 @@ contract LockedSOVMockup {
 	}
 
 	function _createVestingAndStake(address _sender) private {
-		uint256 amount = lockedBalances[msg.sender];
-		lockedBalances[msg.sender] = 0;
+		uint256 amount = lockedBalances[_sender];
+		lockedBalances[_sender] = 0;
 
-		emit TokensStaked(msg.sender, address(0), amount);
+		emit TokensStaked(_sender, address(0), amount);
 	}
 
 	/**
@@ -167,4 +167,14 @@ contract LockedSOVMockup {
 	function getLockedBalance(address _addr) public view returns (uint256 _balance) {
 		return lockedBalances[_addr];
 	}
+
+	/**
+	 * @notice The function to get the unlocked balance of a user.
+	 * @param _addr The address of the user to check the unlocked balance.
+	 * @return _balance The unlocked balance of the address `_addr`.
+	 */
+	function getUnlockedBalance(address _addr) external view returns (uint256 _balance) {
+		return unlockedBalances[_addr];
+	}
+
 }

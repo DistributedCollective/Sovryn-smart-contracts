@@ -275,7 +275,7 @@ contract LockedSOV is ILockedSOV {
 			vestingAddr = _createVesting(_sender);
 		}
 
-		_stakeTokens(vestingAddr);
+		_stakeTokens(_sender, vestingAddr);
 	}
 
 	/**
@@ -295,7 +295,7 @@ contract LockedSOV is ILockedSOV {
 
 		require(cliff == vesting.cliff() && duration == vesting.duration(), "Wrong Vesting Schedule.");
 
-		_stakeTokens(address(vesting));
+		_stakeTokens(msg.sender, address(vesting));
 	}
 
 	/**
@@ -370,14 +370,14 @@ contract LockedSOV is ILockedSOV {
 	 * @notice Stakes the tokens in a particular vesting contract.
 	 * @param _vesting The Vesting Contract Address.
 	 */
-	function _stakeTokens(address _vesting) internal {
-		uint256 amount = lockedBalances[msg.sender];
-		lockedBalances[msg.sender] = 0;
+	function _stakeTokens(address _sender, address _vesting) internal {
+		uint256 amount = lockedBalances[_sender];
+		lockedBalances[_sender] = 0;
 
 		SOV.approve(_vesting, amount);
 		VestingLogic(_vesting).stakeTokens(amount);
 
-		emit TokensStaked(msg.sender, _vesting, amount);
+		emit TokensStaked(_sender, _vesting, amount);
 	}
 
 	/* Getter or Read Functions */
