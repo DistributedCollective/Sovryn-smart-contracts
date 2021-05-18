@@ -79,7 +79,7 @@ contract LockedSOV is ILockedSOV {
 	/// @param _initiator The address which initiated this event to be emitted.
 	/// @param _vesting The Vesting Contract.
 	/// @param _amount The amount of locked tokens staked by the user.
-	event TokensStaked(address indexed _initiator, address indexed _vesting, uint256 _amount);
+	event TokenStaked(address indexed _initiator, address indexed _vesting, uint256 _amount);
 
 	/// @notice Emitted when an admin initiates a migration to new Locked SOV Contract.
 	/// @param _initiator The address which initiated this event to be emitted.
@@ -142,8 +142,8 @@ contract LockedSOV is ILockedSOV {
 	 * @dev Only callable by an Admin.
 	 */
 	function addAdmin(address _newAdmin) public onlyAdmin {
-		require(_newAdmin != address(0), "Invalid Address");
-		require(!isAdmin[_newAdmin], "Address is already admin");
+		require(_newAdmin != address(0), "Invalid Address.");
+		require(!isAdmin[_newAdmin], "Address is already admin.");
 		isAdmin[_newAdmin] = true;
 
 		emit AdminAdded(msg.sender, _newAdmin);
@@ -155,7 +155,7 @@ contract LockedSOV is ILockedSOV {
 	 * @dev Only callable by an Admin.
 	 */
 	function removeAdmin(address _adminToRemove) public onlyAdmin {
-		require(isAdmin[_adminToRemove], "Address is not an admin");
+		require(isAdmin[_adminToRemove], "Address is not an admin.");
 		isAdmin[_adminToRemove] = false;
 
 		emit AdminRemoved(msg.sender, _adminToRemove);
@@ -369,7 +369,7 @@ contract LockedSOV is ILockedSOV {
 		SOV.approve(_vesting, amount);
 		VestingLogic(_vesting).stakeTokens(amount);
 
-		emit TokensStaked(_sender, _vesting, amount);
+		emit TokenStaked(_sender, _vesting, amount);
 	}
 
 	/* Getter or Read Functions */
