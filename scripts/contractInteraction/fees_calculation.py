@@ -55,10 +55,10 @@ def getFeesGlobal():
     contractAddress = contracts['sovrynProtocol']
     print("Querying sovrynProtocol at address: ", contractAddress)
     
-    contract = Contract.from_abi("State", address=contractAddress, abi=State.abi)
+    contract = Contract.from_abi("sovryn", address=contractAddress, abi=interface.ISovrynBrownie.abi, owner=acct)
 
     print("  Protocol balance: ", contract.balance())
-    # print("  Loan Pools List: ", contract.getLoanPoolsList(0, 100))
+    print("  Loan Pools List: ", contract.getLoanPoolsList(0, 10))
     print("  loanPoolToUnderlying(iUSDT): ", contract.loanPoolToUnderlying(contracts["iUSDT"]))
     print("  loanPoolToUnderlying(iBPro): ", contract.loanPoolToUnderlying(contracts["iBPro"]))
     print("  loanPoolToUnderlying(iDOC): ", contract.loanPoolToUnderlying(contracts["iDOC"]))
@@ -79,18 +79,18 @@ def getFeesPerToken(tokenName):
     contract = Contract.from_abi("State", address=contractAddress, abi=State.abi)
 
     if tokenName == 'rBTC':
-        acct = '0x0000000000000000000000000000000000000000'
+        tokenAddress = '0x0000000000000000000000000000000000000000'
     else:
-        acct = contracts[tokenName]
-    print("  On token ", tokenName, " at address ", acct)
+        tokenAddress = contracts[tokenName]
+    print("  On token ", tokenName, " at address ", tokenAddress)
 
-    print("    underlyingToLoanPool: ", contract.underlyingToLoanPool(acct))
+    print("    underlyingToLoanPool: ", contract.underlyingToLoanPool(tokenAddress))
 
-    print("    lendingFeeTokensHeld: ", contract.lendingFeeTokensHeld(acct)/1e18)
-    print("    lendingFeeTokensPaid: ", contract.lendingFeeTokensPaid(acct)/1e18)
-    print("    tradingFeeTokensHeld: ", contract.tradingFeeTokensHeld(acct)/1e18)
-    print("    tradingFeeTokensPaid: ", contract.tradingFeeTokensPaid(acct)/1e18)
-    print("    borrowingFeeTokensHeld: ", contract.borrowingFeeTokensHeld(acct)/1e18)
-    print("    borrowingFeeTokensPaid: ", contract.borrowingFeeTokensPaid(acct)/1e18)
+    print("    lendingFeeTokensHeld: ", contract.lendingFeeTokensHeld(tokenAddress)/1e18)
+    print("    lendingFeeTokensPaid: ", contract.lendingFeeTokensPaid(tokenAddress)/1e18)
+    print("    tradingFeeTokensHeld: ", contract.tradingFeeTokensHeld(tokenAddress)/1e18)
+    print("    tradingFeeTokensPaid: ", contract.tradingFeeTokensPaid(tokenAddress)/1e18)
+    print("    borrowingFeeTokensHeld: ", contract.borrowingFeeTokensHeld(tokenAddress)/1e18)
+    print("    borrowingFeeTokensPaid: ", contract.borrowingFeeTokensPaid(tokenAddress)/1e18)
     
     
