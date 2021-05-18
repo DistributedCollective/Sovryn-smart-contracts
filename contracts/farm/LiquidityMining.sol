@@ -371,7 +371,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 		_updatePool(poolId);
 		_updateReward(pool, user);
-		_transferReward(user, userAddress); //send to user directly
+		_transferReward(user, userAddress, true);
 		_updateRewardDebt(pool, user);
 	}
 
@@ -396,7 +396,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 		_updatePool(poolId);
 		_updateReward(pool, user);
-		_transferReward(user, userAddress); //send to user directly
+		_transferReward(user, userAddress, false);
 
 		user.amount = user.amount.sub(_amount);
 		pool.poolToken.safeTransfer(address(msg.sender), _amount); //sent to the user or wrapper
@@ -433,7 +433,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _user The user info, to get its reward share.
 	 * @param _userAddress The address of the user, to send SOV in its behalf.
 	 */
-	function _transferReward(UserInfo storage _user, address _userAddress) internal {
+	function _transferReward(UserInfo storage _user, address _userAddress, bool _isClaimingReward) internal {
 		uint256 userAccumulatedReward = _user.accumulatedReward;
 
 		/// @dev Transfer if enough SOV balance on this LM contract.
@@ -449,7 +449,9 @@ contract LiquidityMining is LiquidityMiningStorage {
 			SOV.approve(address(lockedSOV), userAccumulatedReward);
 			lockedSOV.deposit(_userAddress, userAccumulatedReward, basisPoint);
 
-			lockedSOV.withdrawAndStakeTokensFrom(_userAddress, _userAddress);
+			if (_isClaimingReward) {
+				lockedSOV.withdrawAndStakeTokensFrom(_userAddress);
+			}
 
 			/// @dev Event log.
 			emit RewardClaimed(_userAddress, userAccumulatedReward);

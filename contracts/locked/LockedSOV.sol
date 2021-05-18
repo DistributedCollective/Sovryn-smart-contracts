@@ -310,17 +310,10 @@ contract LockedSOV is ILockedSOV {
 	/**
 	 * @notice Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created.
 	 * @param _userAddress The address of user tokens will be withdrawn.
-	 * @param _receiverAddress If specified, the unlocked balance will go to this address, else to msg.sender.
 	 */
-	function withdrawAndStakeTokensFrom(address _userAddress, address _receiverAddress) external {
-		require(msg.sender == liquidityMining, "unauthorized");
-
-		_withdrawAndStakeTokens(_userAddress, _receiverAddress);
-	}
-
-	function _withdrawAndStakeTokens(address _sender, address _receiverAddress) private {
-		_withdraw(_sender, _receiverAddress);
-		_createVestingAndStake(_sender);
+	function withdrawAndStakeTokensFrom(address _userAddress) external {
+		_withdraw(_userAddress, _userAddress);
+		_createVestingAndStake(_userAddress);
 	}
 
 	/**

@@ -29,7 +29,6 @@ interface ILockedSOV {
 	/**
 	 * @notice Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created.
 	 * @param _userAddress The address of user tokens will be withdrawn.
-	 * @param _receiverAddress If specified, the unlocked balance will go to this address, else to msg.sender.
 	 */
-	function withdrawAndStakeTokensFrom(address _userAddress, address _receiverAddress) external;
+	function withdrawAndStakeTokensFrom(address _userAddress) external;
 }
