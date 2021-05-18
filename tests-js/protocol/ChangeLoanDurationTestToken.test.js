@@ -4,6 +4,7 @@ const LoanMaintenance = artifacts.require("LoanMaintenance");
 const FeesEvents = artifacts.require("FeesEvents");
 const { increaseTime } = require("../Utils/Ethereum");
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
+const LockedSOVFailedMockup = artifacts.require("LockedSOVFailedMockup");
 
 const {
 	getSUSD,
@@ -225,6 +226,47 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			expect((await SUSD.balanceOf(sovryn.address)).lte(initial_loan_token_lender_balance.add(deposit_amount))).to.be.true;
 		});
 
+		it("EarnRewardFail events should be fired if lockedSOV reverted when extend loan_duration with collateral sov token reward payment", async () => {
+			// prepare the test
+			await sovryn.setLockedSOVAddress((await LockedSOVFailedMockup.new(SOV.address, [owner])).address);
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, owner);
+			const [loan_id, borrower] = await borrow_indefinite_loan(
+				loanToken,
+				sovryn,
+				SUSD,
+				RBTC,
+				accounts,
+				(withdraw_amount = new BN(10).mul(oneEth).toString()),
+				(margin = new BN(50).mul(oneEth).toString()),
+				(duration_in_seconds = 60 * 60 * 24 * 20)
+			);
+
+			const initial_loan_interest_data = await sovryn.getLoanInterestData(loan_id);
+
+			const days_to_extend = new BN(10);
+			const owed_per_day = initial_loan_interest_data["interestOwedPerDay"];
+			const deposit_amount = owed_per_day.mul(days_to_extend);
+
+			await increaseTime(10 * 24 * 60 * 60);
+			lockedSOV = await LockedSOVFailedMockup.at(await sovryn.lockedSOVAddress());
+			const borrower_initial_balance_before_extend = (await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower));
+
+			const loanMaintenance = await LoanMaintenance.at(sovryn.address);
+			const { receipt } = await loanMaintenance.extendLoanDuration(loan_id, deposit_amount, true, "0x", { from: borrower });
+			const borrower_initial_balance = borrower_initial_balance_before_extend.sub(
+				(await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower))
+			);
+
+			expect(borrower_initial_balance_before_extend.toString()).to.eq(borrower_initial_balance.toString());
+
+			const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnRewardFail");
+			const args = decode[0].args;
+			expect(args["receiver"] == borrower).to.be.true;
+			expect(args["token"] == SOV.address).to.be.true;
+			expect(args["loanId"] == loan_id).to.be.true;
+		});
+
 		it("Test extend loan_duration with collateral sov token reward payment", async () => {
 			// prepare the test
 			await set_demand_curve(loanToken);
@@ -330,6 +372,63 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			expect((await SUSD.balanceOf(receiver)).eq(initial_receiver_balance.add(withdraw_amount))).to.be.true;
 			// Due to block timestamp could be paying outstanding interest to lender or not
 			expect((await SUSD.balanceOf(sovryn.address)).lte(initial_loan_token_lender_balance.sub(withdraw_amount))).to.be.true;
+		});
+
+		it("EarnRewardFail events should be fired if lockedSOV reverted when Test reduce loan_duration with collateral sov token reward payment", async () => {
+			// prepare the test
+			await sovryn.setLockedSOVAddress((await LockedSOVFailedMockup.new(SOV.address, [owner])).address);
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, owner);
+			const duration_in_seconds = 20 * 24 * 60 * 60; // 20 days
+			const [loan_id, borrower] = await borrow_indefinite_loan(
+				loanToken,
+				sovryn,
+				SUSD,
+				RBTC,
+				accounts,
+				new BN(10).mul(oneEth).toString(),
+				new BN(50).mul(oneEth).toString(),
+				duration_in_seconds
+			);
+
+			const initial_loan_interest_data = await sovryn.getLoanInterestData(loan_id);
+
+			const days_to_reduce = new BN(5);
+			const owed_per_day = initial_loan_interest_data["interestOwedPerDay"];
+			const withdraw_amount = owed_per_day.mul(days_to_reduce);
+
+			const receiver = accounts[3];
+
+			await increaseTime(10 * 24 * 60 * 60);
+			lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+			const borrower_initial_balance_before_reduce = (await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower));
+
+			const loanMaintenance = await LoanMaintenance.at(sovryn.address);
+			const { receipt } = await loanMaintenance.reduceLoanDuration(loan_id, receiver, withdraw_amount, { from: borrower });
+
+			const borrower_initial_balance = borrower_initial_balance_before_reduce.sub(
+				(await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower))
+			);
+
+			expect(borrower_initial_balance_before_reduce.toString()).to.eq(borrower_initial_balance.toString());
+
+			const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnRewardFail");
+			const args = decode[0].args;
+			expect(args["receiver"] == borrower).to.be.true;
+			expect(args["token"] == SOV.address).to.be.true;
+			expect(args["loanId"] == loan_id).to.be.true;
+		});
+
+		it("Test reduce loan_duration 0 withdraw should fail", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
+			const receiver = accounts[3];
+
+			const loanMaintenance = await LoanMaintenance.at(sovryn.address);
+			await expectRevert(loanMaintenance.reduceLoanDuration(loan_id, receiver, 0, { from: borrower }), "withdrawAmount is 0");
 		});
 
 		it("Test reduce loan_duration with collateral sov token reward payment", async () => {

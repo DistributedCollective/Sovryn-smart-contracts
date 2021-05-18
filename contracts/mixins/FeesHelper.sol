@@ -9,10 +9,9 @@ import "../core/State.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../feeds/IPriceFeeds.sol";
 import "../events/FeesEvents.sol";
-import "../mixins/ProtocolTokenUser.sol";
 import "../modules/interfaces/ProtocolAffiliatesInterface.sol";
 
-contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
+contract FeesHelper is State, FeesEvents {
 	using SafeERC20 for IERC20;
 
 	// calculate trading fee
