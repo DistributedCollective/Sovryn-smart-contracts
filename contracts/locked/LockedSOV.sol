@@ -32,11 +32,11 @@ contract LockedSOV is ILockedSOV {
 	ILockedSOV public newLockedSOV;
 
 	/// @notice The locked user balances.
-	mapping(address => uint256) lockedBalances;
+	mapping(address => uint256) private lockedBalances;
 	/// @notice The unlocked user balances.
-	mapping(address => uint256) unlockedBalances;
+	mapping(address => uint256) private unlockedBalances;
 	/// @notice The contracts/wallets with admin power.
-	mapping(address => bool) isAdmin;
+	mapping(address => bool) private isAdmin;
 
 	/* Events */
 
@@ -390,5 +390,14 @@ contract LockedSOV is ILockedSOV {
 	 */
 	function getUnlockedBalance(address _addr) external view returns (uint256 _balance) {
 		return unlockedBalances[_addr];
+	}
+
+	/**
+	 * @notice The function to check is an address is admin or not.
+	 * @param _addr The address of the user to check the admin status.
+	 * @return _status True if admin, False otherwise.
+	 */
+	function adminStatus(address _addr) external view returns (bool _status) {
+		return isAdmin[_addr];
 	}
 }

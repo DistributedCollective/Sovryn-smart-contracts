@@ -76,14 +76,14 @@ contract DevelopmentFund {
 
 	/// @notice Emitted when a unlocked owner transfers all the tokens to a safe vault.
 	/// @param _initiator The address which initiated this event to be emitted.
-	/// @param _receiver The address which receives this token withdrawed.
+	/// @param _receiver The address which receives this token withdrawn.
 	/// @param _amount The total amount of token transferred.
 	/// @dev This is done in an emergency situation only to a predetermined wallet by locked token owner.
 	event LockedTokenTransferByUnlockedOwner(address indexed _initiator, address indexed _receiver, uint256 _amount);
 
 	/// @notice Emitted when a unlocked owner withdraws the released tokens.
 	/// @param _initiator The address which initiated this event to be emitted.
-	/// @param _amount The total amount of token withdrawed.
+	/// @param _amount The total amount of token withdrawn.
 	/// @param _releaseCount The total number of releases done based on duration.
 	event UnlockedTokenWithdrawalByUnlockedOwner(address indexed _initiator, uint256 _amount, uint256 _releaseCount);
 

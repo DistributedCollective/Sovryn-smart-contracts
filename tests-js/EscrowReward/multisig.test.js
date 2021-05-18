@@ -163,7 +163,7 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 	});
 
 	it("Multisig should be approved before depositing reward tokens using depositRewardByMultisig.", async () => {
-		await expectRevert(escrowReward.depositRewardByMultisig(randomValue(), { from: multisig }), "invalid transfer");
+		await expectRevert(escrowReward.depositRewardByMultisig(randomValue() + 1, { from: multisig }), "invalid transfer");
 	});
 
 	it("Multisig should not be able to deposit reward tokens using depositRewardByMultisig during Withdraw State.", async () => {

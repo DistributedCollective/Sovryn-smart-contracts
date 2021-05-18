@@ -8,7 +8,23 @@ pragma experimental ABIEncoderV2;
 
 import "./State.sol";
 
+/**
+ * @title Sovryn Protocol contract.
+ * @notice This contract code comes from bZx. bZx is a protocol for tokenized
+ * margin trading and lending https://bzx.network similar to the dYdX protocol.
+ *
+ * This contract contains the proxy functionality to deploy Protocol anchor
+ * and logic apart, turning it upgradable.
+ *
+ * @dev TODO: can I change this proxy to EIP-1822 proxy standard, please.
+ *   https://eips.ethereum.org/EIPS/eip-1822
+ * */
 contract sovrynProtocol is State {
+	/**
+	 * @notice Fallback function performs a delegate call
+	 * to the actual implementation address is pointing this proxy.
+	 * Returns whatever the implementation call returns.
+	 * */
 	function() external payable {
 		if (gasleft() <= 2300) {
 			return;
@@ -33,11 +49,20 @@ contract sovrynProtocol is State {
 		}
 	}
 
+	/**
+	 * @notice External owner target initializer.
+	 * @param target The target addresses.
+	 * */
 	function replaceContract(address target) external onlyOwner {
 		(bool success, ) = target.delegatecall(abi.encodeWithSignature("initialize(address)", target));
 		require(success, "setup failed");
 	}
 
+	/**
+	 * @notice External owner setter for target addresses.
+	 * @param sigsArr The array of signatures.
+	 * @param targetsArr The array of addresses.
+	 * */
 	function setTargets(string[] calldata sigsArr, address[] calldata targetsArr) external onlyOwner {
 		require(sigsArr.length == targetsArr.length, "count mismatch");
 
@@ -46,6 +71,11 @@ contract sovrynProtocol is State {
 		}
 	}
 
+	/**
+	 * @notice External getter for target addresses.
+	 * @param sig The signature.
+	 * @return The address for a given signature.
+	 * */
 	function getTarget(string calldata sig) external view returns (address) {
 		return logicTargets[bytes4(keccak256(abi.encodePacked(sig)))];
 	}
