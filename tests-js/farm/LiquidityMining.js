@@ -138,6 +138,22 @@ describe("LiquidityMining", () => {
 				"Invalid token address"
 			);
 		});
+
+		it("fails if basisPoint >= 10000", async () => {
+			await deployLiquidityMining();
+			await expectRevert(
+				liquidityMining.initialize(
+					SOVToken.address,
+					rewardTokensPerBlock,
+					startDelayBlocks,
+					numberOfBonusBlocks,
+					wrapper,
+					lockedSOV.address,
+					12345
+				),
+				"Basis Point has to be less than 10000."
+			);
+		});
 	});
 
 	describe("setLockedSOV", () => {
@@ -171,7 +187,7 @@ describe("LiquidityMining", () => {
 			await expectRevert(liquidityMining.setBasisPoint(1000, { from: account1 }), "unauthorized");
 		});
 
-		it("fails if zero address passed", async () => {
+		it("fails if basisPoint >= 10000", async () => {
 			await expectRevert(liquidityMining.setBasisPoint(100000), "Basis Point has to be less than 10000.");
 		});
 	});
@@ -233,8 +249,6 @@ describe("LiquidityMining", () => {
 			await expectRevert(liquidityMining.transferSOV(account1, 0), "Amount invalid");
 		});
 	});
-
-	//TODO getMissedBalance
 
 	describe("add", () => {
 		it("should be able to add pool token", async () => {
@@ -326,7 +340,18 @@ describe("LiquidityMining", () => {
 		});
 
 		it("should be able to update pool token and update pools", async () => {
-			//TODO implement
+			let oldAllocationPoint = new BN(1);
+			await liquidityMining.add(token1.address, oldAllocationPoint, false);
+
+			await liquidityMining.add(token2.address, oldAllocationPoint, false);
+
+			let newAllocationPoint = new BN(2);
+			let tx = await liquidityMining.update(token1.address, newAllocationPoint, true);
+
+			expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(oldAllocationPoint.add(newAllocationPoint));
+
+			let poolInfo = await liquidityMining.getPoolInfo(token2.address);
+			expect(poolInfo.lastRewardBlock).bignumber.equal(new BN(tx.receipt.blockNumber));
 		});
 
 		it("fails if token wasn't added", async () => {
@@ -362,8 +387,20 @@ describe("LiquidityMining", () => {
 			});
 		});
 
-		it("should be able to deposit using wrapper", async () => {
-			//TODO implement
+		it("should be able to deposit using wrapper (another account)", async () => {
+			let tx = await liquidityMining.deposit(token1.address, amount, account2, { from: account1 });
+
+			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+			let blockNumber = new BN(tx.receipt.blockNumber);
+			checkPoolInfo(poolInfo, token1.address, allocationPoint, blockNumber, new BN(0));
+
+			await checkUserPoolTokens(account2, token1, amount, amount, new BN(0));
+
+			expectEvent(tx, "Deposit", {
+				user: account2,
+				poolToken: token1.address,
+				amount: amount,
+			});
 		});
 
 		it("fails if token pool token not found", async () => {
@@ -425,8 +462,30 @@ describe("LiquidityMining", () => {
 			});
 		});
 
-		it("should be able to claim reward using wrapper", async () => {
-			//TODO implement
+		it("should be able to claim reward using wrapper (another account)", async () => {
+			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+			let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
+			await SOVToken.transfer(liquidityMining.address, new BN(1000));
+
+			let tx = await liquidityMining.claimReward(token1.address, account1, { from: account2 });
+
+			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+			let latestBlockNumber = new BN(tx.receipt.blockNumber);
+			checkPoolInfo(poolInfo, token1.address, allocationPoint, latestBlockNumber, new BN(-1));
+
+			await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
+			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
+
+			//withdrawAndStakeTokensFrom was invoked
+			let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
+			let lockedBalance = await lockedSOV.getLockedBalance(account1);
+			expect(unlockedBalance).bignumber.equal(new BN(0));
+			expect(lockedBalance).bignumber.equal(new BN(0));
+
+			expectEvent(tx, "RewardClaimed", {
+				user: account1,
+				amount: userReward,
+			});
 		});
 
 		it("fails if token pool token not found", async () => {
@@ -502,8 +561,19 @@ describe("LiquidityMining", () => {
 			});
 		});
 
-		it("should be able to withdraw using wrapper", async () => {
-			//TODO implement
+		it("should be able to withdraw using wrapper (another account)", async () => {
+			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+			let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
+			await SOVToken.transfer(liquidityMining.address, new BN(1000));
+
+			let tx = await liquidityMining.withdraw(token1.address, amount, account1, { from: account2 });
+
+			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+			let latestBlockNumber = new BN(tx.receipt.blockNumber);
+			checkPoolInfo(poolInfo, token1.address, allocationPoint, latestBlockNumber, new BN(-1));
+
+			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
+			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
 		});
 
 		it("fails if token pool token not found", async () => {
