@@ -5,6 +5,13 @@
 
 pragma solidity 0.5.17;
 
+/**
+ * @title The Protocol Settings Events contract.
+ * @notice This contract code comes from bZx. bZx is a protocol for tokenized
+ * margin trading and lending https://bzx.network similar to the dYdX protocol.
+ *
+ * This contract contains the events for protocol settings operations.
+ * */
 contract ProtocolSettingsEvents {
 	event SetPriceFeedContract(address indexed sender, address oldValue, address newValue);
 

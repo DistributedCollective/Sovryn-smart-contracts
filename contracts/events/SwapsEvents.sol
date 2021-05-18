@@ -5,6 +5,13 @@
 
 pragma solidity 0.5.17;
 
+/**
+ * @title The Swaps Events contract.
+ * @notice This contract code comes from bZx. bZx is a protocol for tokenized
+ * margin trading and lending https://bzx.network similar to the dYdX protocol.
+ *
+ * This contract contains the events for swap operations.
+ * */
 contract SwapsEvents {
 	event LoanSwap(
 		bytes32 indexed loanId,

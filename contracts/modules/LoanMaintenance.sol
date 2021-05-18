@@ -14,6 +14,15 @@ import "../mixins/InterestUser.sol";
 import "../mixins/LiquidationHelper.sol";
 import "../swaps/SwapsUser.sol";
 
+/**
+ * @title Loan Maintenance contract.
+ *
+ * @notice This contract code comes from bZx. bZx is a protocol for tokenized
+ * margin trading and lending https://bzx.network similar to the dYdX protocol.
+ *
+ * This contract contains functions to query loan data and to modify its status
+ * by withdrawing or depositing collateral.
+ * */
 contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper {
 	struct LoanReturnData {
 		bytes32 loanId;
@@ -23,7 +32,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		uint256 collateral;
 		uint256 interestOwedPerDay;
 		uint256 interestDepositRemaining;
-		uint256 startRate; // collateralToLoanRate
+		uint256 startRate; /// collateralToLoanRate
 		uint256 startMargin;
 		uint256 maintenanceMargin;
 		uint256 currentMargin;
@@ -33,12 +42,23 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		uint256 maxSeizable;
 	}
 
+	/**
+	 * @notice Empty public constructor.
+	 * */
 	constructor() public {}
 
+	/**
+	 * @notice Fallback function is to react to receiving value (rBTC).
+	 * */
 	function() external {
 		revert("fallback not allowed");
 	}
 
+	/**
+	 * @notice Set initial values of proxy targets.
+	 *
+	 * @param target The address of the logic contract instance.
+	 * */
 	function initialize(address target) external onlyOwner {
 		_setTarget(this.depositCollateral.selector, target);
 		_setTarget(this.withdrawCollateral.selector, target);
@@ -52,9 +72,17 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		_setTarget(this.getActiveLoans.selector, target);
 	}
 
+	/**
+	 * @notice Deposit the loan collateral.
+	 *
+	 * @param loanId A unique ID representing the loan.
+	 * @param depositAmount The amount to be deposited.
+	 *
+	 * @return actualWithdrawAmount The amount withdrawn taking into account drawdowns.
+	 * */
 	function depositCollateral(
 		bytes32 loanId,
-		uint256 depositAmount // must match msg.value if ether is sent
+		uint256 depositAmount /// must match msg.value if ether is sent
 	) external payable nonReentrant {
 		require(depositAmount != 0, "depositAmount is 0");
 		Loan storage loanLocal = loans[loanId];
@@ -77,6 +105,15 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		emit DepositCollateral(loanId, depositAmount, collateralToLoanRate);
 	}
 
+	/**
+	 * @notice Withdraw the loan collateral.
+	 *
+	 * @param loanId A unique ID representing the loan.
+	 * @param receiver The account getting the withdrawal.
+	 * @param withdrawAmount The amount to be withdrawn.
+	 *
+	 * @return actualWithdrawAmount The amount withdrawn taking into account drawdowns.
+	 * */
 	function withdrawCollateral(
 		bytes32 loanId,
 		address receiver,
@@ -113,19 +150,36 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		}
 	}
 
+	/**
+	 * @notice Withdraw accrued loan interest.
+	 *
+	 * @dev Wrapper for _payInterest internal function.
+	 *
+	 * @param loanToken The loan token address.
+	 * */
 	function withdrawAccruedInterest(address loanToken) external {
-		// pay outstanding interest to lender
+		/// Pay outstanding interest to lender.
 		_payInterest(
-			msg.sender, // lender
+			msg.sender, /// Lender.
 			loanToken
 		);
 	}
 
+	/**
+	 * @notice Extend the loan duration.
+	 *
+	 * @param loanId A unique ID representing the loan.
+	 * @param depositAmount The amount to be deposited.
+	 * @param useCollateral Whether pay interests w/ the collateral.
+	 * // param calldata The payload for the call. These loan DataBytes are additional loan data (not in use for token swaps).
+	 *
+	 * @return secondsExtended The amount of time in seconds the loan is extended.
+	 * */
 	function extendLoanDuration(
 		bytes32 loanId,
 		uint256 depositAmount,
 		bool useCollateral,
-		bytes calldata // for future use /*loanDataBytes*/
+		bytes calldata /// loanDataBytes, for future use.
 	) external payable nonReentrant returns (uint256 secondsExtended) {
 		require(depositAmount != 0, "depositAmount is 0");
 		Loan storage loanLocal = loans[loanId];
@@ -136,14 +190,15 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		require(loanParamsLocal.maxLoanTerm == 0, "indefinite-term only");
 		require(msg.value == 0 || (!useCollateral && loanParamsLocal.loanToken == address(wrbtcToken)), "wrong asset sent");
 
-		// pay outstanding interest to lender
+		/// Pay outstanding interest to lender.
 		_payInterest(loanLocal.lender, loanParamsLocal.loanToken);
 
 		LoanInterest storage loanInterestLocal = loanInterest[loanLocal.id];
 
 		_settleFeeRewardForInterestExpense(loanInterestLocal, loanLocal.id, loanParamsLocal.loanToken, loanLocal.borrower, block.timestamp);
 
-		// Handle back interest: calculates interest owned since the loan endtime passed but the loan remained open
+		/// Handle back interest: calculates interest owned since the loan
+		/// endtime passed but the loan remained open.
 		uint256 backInterestOwed;
 		if (block.timestamp > loanLocal.endTimestamp) {
 			backInterestOwed = block.timestamp.sub(loanLocal.endTimestamp);
@@ -153,7 +208,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 			require(depositAmount > backInterestOwed, "deposit cannot cover back interest");
 		}
 
-		// deposit interest
+		/// Deposit interest.
 		if (useCollateral) {
 			_doCollateralSwap(loanLocal, loanParamsLocal, depositAmount);
 		} else {
@@ -168,7 +223,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		if (backInterestOwed != 0) {
 			depositAmount = depositAmount.sub(backInterestOwed);
 
-			// pay out backInterestOwed
+			/// Pay out backInterestOwed
 			_payInterestTransfer(loanLocal.lender, loanParamsLocal.loanToken, backInterestOwed);
 		}
 
@@ -180,7 +235,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 
 		uint256 maxDuration = loanLocal.endTimestamp.sub(block.timestamp);
 
-		// loan term has to at least be greater than one hour
+		/// Loan term has to at least be greater than one hour.
 		require(maxDuration > 3600, "loan too short");
 
 		loanInterestLocal.depositTotal = loanInterestLocal.depositTotal.add(depositAmount);
@@ -190,6 +245,15 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 			.add(depositAmount);
 	}
 
+	/**
+	 * @notice Reduce the loan duration.
+	 *
+	 * @param loanId A unique ID representing the loan.
+	 * @param receiver The account getting the withdrawal.
+	 * @param withdrawAmount The amount to be withdrawn.
+	 *
+	 * @return secondsReduced The amount of time in seconds the loan is reduced.
+	 * */
 	function reduceLoanDuration(
 		bytes32 loanId,
 		address receiver,
@@ -204,7 +268,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		require(loanParamsLocal.maxLoanTerm == 0, "indefinite-term only");
 		require(loanLocal.endTimestamp > block.timestamp, "loan term has ended");
 
-		// pay outstanding interest to lender
+		/// Pay outstanding interest to lender.
 		_payInterest(loanLocal.lender, loanParamsLocal.loanToken);
 
 		LoanInterest storage loanInterestLocal = loanInterest[loanLocal.id];
@@ -214,7 +278,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		uint256 interestDepositRemaining = loanLocal.endTimestamp.sub(block.timestamp).mul(loanInterestLocal.owedPerDay).div(86400);
 		require(withdrawAmount < interestDepositRemaining, "withdraw amount too high");
 
-		// withdraw interest
+		/// Withdraw interest.
 		if (loanParamsLocal.loanToken == address(wrbtcToken)) {
 			vaultEtherWithdraw(receiver, withdrawAmount);
 		} else {
@@ -231,7 +295,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 
 		uint256 maxDuration = loanLocal.endTimestamp.sub(block.timestamp);
 
-		// loan term has to at least be greater than one hour
+		/// Loan term has to at least be greater than one hour.
 		require(maxDuration > 3600, "loan too short");
 
 		loanInterestLocal.depositTotal = loanInterestLocal.depositTotal.sub(withdrawAmount);
@@ -241,15 +305,20 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 			.sub(withdrawAmount);
 	}
 
-	/// @dev Gets current lender interest data totals for all loans with a specific oracle and interest token
-	/// @param lender The lender address
-	/// @param loanToken The loan token address
-	/// @return interestPaid The total amount of interest that has been paid to a lender so far
-	/// @return interestPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet
-	/// @return interestOwedPerDay The amount of interest the lender is earning per day
-	/// @return interestUnPaid The total amount of interest the lender is owned and not yet withdrawn
-	/// @return interestFeePercent The fee retained by the protocol before interest is paid to the lender
-	/// @return principalTotal The total amount of outstading principal the lender has loaned
+	/**
+	 * @notice Get current lender interest data totals for all loans
+	 *   with a specific oracle and interest token.
+	 *
+	 * @param lender The lender address.
+	 * @param loanToken The loan token address.
+	 *
+	 * @return interestPaid The total amount of interest that has been paid to a lender so far.
+	 * @return interestPaidDate The date of the last interest pay out, or 0 if no interest has been withdrawn yet.
+	 * @return interestOwedPerDay The amount of interest the lender is earning per day.
+	 * @return interestUnPaid The total amount of interest the lender is owned and not yet withdrawn.
+	 * @return interestFeePercent The fee retained by the protocol before interest is paid to the lender.
+	 * @return principalTotal The total amount of outstanding principal the lender has loaned.
+	 * */
 	function getLenderInterestData(address lender, address loanToken)
 		external
 		view
@@ -277,12 +346,16 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		);
 	}
 
-	/// @dev Gets current interest data for a loan
-	/// @param loanId A unique id representing the loan
-	/// @return loanToken The loan token that interest is paid in
-	/// @return interestOwedPerDay The amount of interest the borrower is paying per day
-	/// @return interestDepositTotal The total amount of interest the borrower has deposited
-	/// @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender
+	/**
+	 * @notice Get current interest data for a loan.
+	 *
+	 * @param loanId A unique ID representing the loan.
+	 *
+	 * @return loanToken The loan token that interest is paid in.
+	 * @return interestOwedPerDay The amount of interest the borrower is paying per day.
+	 * @return interestDepositTotal The total amount of interest the borrower has deposited.
+	 * @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender.
+	 * */
 	function getLoanInterestData(bytes32 loanId)
 		external
 		view
@@ -302,11 +375,23 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		interestDepositRemaining = endTimestamp > interestTime ? endTimestamp.sub(interestTime).mul(interestOwedPerDay).div(86400) : 0;
 	}
 
-	// Only returns data for loans that are active
-	// loanType 0: all loans
-	// loanType 1: margin trade loans
-	// loanType 2: non-margin trade loans
-	// only active loans are returned
+	/**
+	 * @notice Get all user loans.
+	 *
+	 * Only returns data for loans that are active.
+	 *
+	 * @param user The user address.
+	 * @param start The lower loan ID to start with.
+	 * @param count The maximum number of results.
+	 * @param loanType The type of loan.
+	 *   loanType 0: all loans.
+	 *   loanType 1: margin trade loans.
+	 *   loanType 2: non-margin trade loans.
+	 * @param isLender Whether the user is lender or borrower.
+	 * @param unsafeOnly The safe filter (True/False).
+	 *
+	 * @return loansData The array of loans as query result.
+	 * */
 	function getUserLoans(
 		address user,
 		uint256 start,
@@ -330,7 +415,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 			}
 			LoanReturnData memory loanData =
 				_getLoan(
-					set.get(i + start - 1), // loanId
+					set.get(i + start - 1), /// loanId
 					loanType,
 					unsafeOnly
 				);
@@ -347,15 +432,33 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		}
 	}
 
+	/**
+	 * @notice Get one loan data structure by matching ID.
+	 *
+	 * Wrapper to internal _getLoan call.
+	 *
+	 * @param loanId A unique ID representing the loan.
+	 *
+	 * @return loansData The data structure w/ loan information.
+	 * */
 	function getLoan(bytes32 loanId) external view returns (LoanReturnData memory loanData) {
 		return
 			_getLoan(
 				loanId,
-				0, // loanType
-				false // unsafeOnly
+				0, /// loanType
+				false /// unsafeOnly
 			);
 	}
 
+	/**
+	 * @notice Get all active loans.
+	 *
+	 * @param start The lower loan ID to start with.
+	 * @param count The maximum number of results.
+	 * @param unsafeOnly The safe filter (True/False).
+	 *
+	 * @return loansData The data structure w/ loan information.
+	 * */
 	function getActiveLoans(
 		uint256 start,
 		uint256 count,
@@ -374,8 +477,8 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 			}
 			LoanReturnData memory loanData =
 				_getLoan(
-					activeLoansSet.get(i + start - 1), // loanId
-					0, // loanType
+					activeLoansSet.get(i + start - 1), /// loanId
+					0, /// loanType
 					unsafeOnly
 				);
 			if (loanData.loanId == 0) continue;
@@ -391,6 +494,18 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		}
 	}
 
+	/**
+	 * @notice Internal function to get one loan data structure.
+	 *
+	 * @param loanId A unique ID representing the loan.
+	 * @param loanType The type of loan.
+	 *   loanType 0: all loans.
+	 *   loanType 1: margin trade loans.
+	 *   loanType 2: non-margin trade loans.
+	 * @param unsafeOnly The safe filter (True/False).
+	 *
+	 * @return loansData The data structure w/ the loan information.
+	 * */
 	function _getLoan(
 		bytes32 loanId,
 		uint256 loanType,
@@ -451,27 +566,34 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 			});
 	}
 
+	/**
+	 * @notice Internal function to collect interest from the collateral.
+	 *
+	 * @param loanLocal The loan object.
+	 * @param loanParamsLocal The loan parameters.
+	 * @param depositAmount The amount of underlying tokens provided on the loan.
+	 * */
 	function _doCollateralSwap(
 		Loan storage loanLocal,
 		LoanParams memory loanParamsLocal,
 		uint256 depositAmount
 	) internal {
-		// reverts in _loanSwap if amountNeeded can't be bought
+		/// Reverts in _loanSwap if amountNeeded can't be bought.
 		(, uint256 sourceTokenAmountUsed, ) =
 			_loanSwap(
 				loanLocal.id,
 				loanParamsLocal.collateralToken,
 				loanParamsLocal.loanToken,
 				loanLocal.borrower,
-				loanLocal.collateral, // minSourceTokenAmount
-				0, // maxSourceTokenAmount (0 means minSourceTokenAmount)
-				depositAmount, // requiredDestTokenAmount (partial spend of loanLocal.collateral to fill this amount)
-				true, // bypassFee
-				"" // loanDataBytes
+				loanLocal.collateral, /// minSourceTokenAmount
+				0, /// maxSourceTokenAmount (0 means minSourceTokenAmount)
+				depositAmount, /// requiredDestTokenAmount (partial spend of loanLocal.collateral to fill this amount)
+				true, /// bypassFee
+				"" /// loanDataBytes
 			);
 		loanLocal.collateral = loanLocal.collateral.sub(sourceTokenAmountUsed);
 
-		// ensure the loan is still healthy
+		/// Ensure the loan is still healthy.
 		(uint256 currentMargin, ) =
 			IPriceFeeds(priceFeeds).getCurrentMargin(
 				loanParamsLocal.loanToken,
