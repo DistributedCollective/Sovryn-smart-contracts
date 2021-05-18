@@ -15,10 +15,8 @@ contract LiquidityMining is LiquidityMiningStorage {
 	uint256 public constant PRECISION = 1e12;
 	// Bonus multiplier for early liquidity providers.
 	// During bonus period each passed block will be calculated like N passed blocks, where N = BONUS_MULTIPLIER
-	//TODO do we need to make it settable?
 	uint256 public constant BONUS_BLOCK_MULTIPLIER = 10;
 
-	//TODO do we need to make it settable?
 	uint256 public constant SECONDS_PER_BLOCK = 30;
 
 	/* Events */
