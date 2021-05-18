@@ -9,6 +9,7 @@ const TestToken = artifacts.require("TestToken");
 const LiquidityMiningLogic = artifacts.require("LiquidityMiningMockup");
 const LiquidityMiningProxy = artifacts.require("LiquidityMiningProxy");
 const TestLockedSOV = artifacts.require("LockedSOVMockup");
+const Wrapper = artifacts.require("RBTCWrapperProxyMockup");
 
 describe("LiquidityMining", () => {
 	const name = "Test SOV Token";
@@ -38,7 +39,6 @@ describe("LiquidityMining", () => {
 		token1 = await TestToken.new("Test token 1", "TST-1", 18, TOTAL_SUPPLY);
 		token2 = await TestToken.new("Test token 2", "TST-2", 18, TOTAL_SUPPLY);
 		token3 = await TestToken.new("Test token 3", "TST-3", 18, TOTAL_SUPPLY);
-		wrapper = account1;
 		lockedSOVAdmins = [account1, account2];
 
 		lockedSOV = await TestLockedSOV.new(SOVToken.address, lockedSOVAdmins);
@@ -49,7 +49,7 @@ describe("LiquidityMining", () => {
 			rewardTokensPerBlock,
 			startDelayBlocks,
 			numberOfBonusBlocks,
-			wrapper,
+			wrapper.address,
 			lockedSOV.address,
 			basisPoint
 		);
@@ -63,7 +63,7 @@ describe("LiquidityMining", () => {
 				rewardTokensPerBlock,
 				startDelayBlocks,
 				numberOfBonusBlocks,
-				wrapper,
+				wrapper.address,
 				lockedSOV.address,
 				basisPoint
 			);
@@ -80,7 +80,7 @@ describe("LiquidityMining", () => {
 			expect(_rewardTokensPerBlock).bignumber.equal(rewardTokensPerBlock);
 			expect(_startBlock).bignumber.equal(startDelayBlocks.add(blockNumber));
 			expect(_bonusEndBlock).bignumber.equal(startDelayBlocks.add(blockNumber).add(numberOfBonusBlocks));
-			expect(_wrapper).equal(wrapper);
+			expect(_wrapper).equal(wrapper.address);
 		});
 
 		it("fails if not an owner", async () => {
@@ -91,7 +91,7 @@ describe("LiquidityMining", () => {
 					rewardTokensPerBlock,
 					startDelayBlocks,
 					numberOfBonusBlocks,
-					wrapper,
+					wrapper.address,
 					lockedSOV.address,
 					basisPoint,
 					{ from: account1 }
@@ -103,7 +103,7 @@ describe("LiquidityMining", () => {
 		it("fails if _startBlock = 0", async () => {
 			await deployLiquidityMining();
 			await expectRevert(
-				liquidityMining.initialize(SOVToken.address, rewardTokensPerBlock, 0, numberOfBonusBlocks, wrapper, lockedSOV.address, basisPoint),
+				liquidityMining.initialize(SOVToken.address, rewardTokensPerBlock, 0, numberOfBonusBlocks, wrapper.address, lockedSOV.address, basisPoint),
 				"Invalid start block"
 			);
 		});
@@ -115,7 +115,7 @@ describe("LiquidityMining", () => {
 					rewardTokensPerBlock,
 					startDelayBlocks,
 					numberOfBonusBlocks,
-					wrapper,
+					wrapper.address,
 					lockedSOV.address,
 					basisPoint
 				),
@@ -131,7 +131,7 @@ describe("LiquidityMining", () => {
 					rewardTokensPerBlock,
 					startDelayBlocks,
 					numberOfBonusBlocks,
-					wrapper,
+					wrapper.address,
 					lockedSOV.address,
 					basisPoint
 				),
@@ -147,7 +147,7 @@ describe("LiquidityMining", () => {
 					rewardTokensPerBlock,
 					startDelayBlocks,
 					numberOfBonusBlocks,
-					wrapper,
+					wrapper.address,
 					lockedSOV.address,
 					12345
 				),
@@ -387,7 +387,7 @@ describe("LiquidityMining", () => {
 			});
 		});
 
-		it("should be able to deposit using wrapper (another account)", async () => {
+		it("should be able to deposit using wrapper", async () => {
 			let tx = await liquidityMining.deposit(token1.address, amount, account2, { from: account1 });
 
 			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
@@ -462,12 +462,12 @@ describe("LiquidityMining", () => {
 			});
 		});
 
-		it("should be able to claim reward using wrapper (another account)", async () => {
+		it("should be able to claim reward using wrapper", async () => {
 			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 			let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
 			await SOVToken.transfer(liquidityMining.address, new BN(1000));
 
-			let tx = await liquidityMining.claimReward(token1.address, account1, { from: account2 });
+			let tx = await wrapper.claimReward(token1.address, { from: account1 });
 
 			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
 			let latestBlockNumber = new BN(tx.receipt.blockNumber);
@@ -481,11 +481,6 @@ describe("LiquidityMining", () => {
 			let lockedBalance = await lockedSOV.getLockedBalance(account1);
 			expect(unlockedBalance).bignumber.equal(new BN(0));
 			expect(lockedBalance).bignumber.equal(new BN(0));
-
-			expectEvent(tx, "RewardClaimed", {
-				user: account1,
-				amount: userReward,
-			});
 		});
 
 		it("fails if token pool token not found", async () => {
@@ -561,12 +556,12 @@ describe("LiquidityMining", () => {
 			});
 		});
 
-		it("should be able to withdraw using wrapper (another account)", async () => {
+		it("should be able to withdraw using wrapper", async () => {
 			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 			let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
 			await SOVToken.transfer(liquidityMining.address, new BN(1000));
 
-			let tx = await liquidityMining.withdraw(token1.address, amount, account1, { from: account2 });
+			let tx = await wrapper.withdraw(token1.address, amount, { from: account1 });
 
 			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
 			let latestBlockNumber = new BN(tx.receipt.blockNumber);
@@ -1241,7 +1236,7 @@ describe("LiquidityMining", () => {
 		});
 
 		it("wrapper", async () => {
-			expect(await liquidityMining.wrapper()).equal(wrapper);
+			expect(await liquidityMining.wrapper()).equal(wrapper.address);
 		});
 
 		it("totalAllocationPoint", async () => {
@@ -1382,6 +1377,8 @@ describe("LiquidityMining", () => {
 		let liquidityMiningProxy = await LiquidityMiningProxy.new();
 		await liquidityMiningProxy.setImplementation(liquidityMiningLogic.address);
 		liquidityMining = await LiquidityMiningLogic.at(liquidityMiningProxy.address);
+
+		wrapper = await Wrapper.new(liquidityMining.address);
 	}
 
 	async function mineBlocks(blocks) {
