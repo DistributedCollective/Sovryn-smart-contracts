@@ -140,6 +140,42 @@ describe("LiquidityMining", () => {
 		});
 	});
 
+	describe("setLockedSOV", () => {
+		it("sets the expected values", async () => {
+			let newLockedSOV = account2;
+			await liquidityMining.setLockedSOV(newLockedSOV);
+
+			let _lockedSOV = await liquidityMining.lockedSOV();
+			expect(_lockedSOV).equal(newLockedSOV);
+		});
+
+		it("fails if not an owner", async () => {
+			await expectRevert(liquidityMining.setLockedSOV(account2, { from: account1 }), "unauthorized");
+		});
+
+		it("fails if zero address passed", async () => {
+			await expectRevert(liquidityMining.setLockedSOV(ZERO_ADDRESS), "Invalid lockedSOV Address.");
+		});
+	});
+
+	describe("setBasisPoint", () => {
+		it("sets the expected values", async () => {
+			let newBasisPoint = new BN(2000);
+			await liquidityMining.setBasisPoint(newBasisPoint);
+
+			let _basisPoint = await liquidityMining.basisPoint();
+			expect(_basisPoint).bignumber.equal(newBasisPoint);
+		});
+
+		it("fails if not an owner", async () => {
+			await expectRevert(liquidityMining.setBasisPoint(1000, { from: account1 }), "unauthorized");
+		});
+
+		it("fails if zero address passed", async () => {
+			await expectRevert(liquidityMining.setBasisPoint(100000), "Basis Point has to be less than 10000.");
+		});
+	});
+
 	describe("setWrapper", () => {
 		it("sets the expected values", async () => {
 			let newWrapper = account2;
