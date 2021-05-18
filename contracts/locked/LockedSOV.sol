@@ -30,8 +30,6 @@ contract LockedSOV is ILockedSOV {
 	VestingRegistry public vestingRegistry;
 	/// @notice The New (Future) Locked SOV.
 	ILockedSOV public newLockedSOV;
-	/// @notice The Liquidity Mining contract address.
-	address public liquidityMining;
 
 	/// @notice The locked user balances.
 	mapping(address => uint256) lockedBalances;
@@ -137,12 +135,6 @@ contract LockedSOV is ILockedSOV {
 	}
 
 	/* Public or External Functions */
-
-	//TODO who should have an access ?
-	function setLiquidityMining(address _liquidityMining) public onlyAdmin {
-		require(_liquidityMining != address(0), "Liquidity mining address is invalid.");
-		liquidityMining = _liquidityMining;
-	}
 
 	/**
 	 * @notice The function to add a new admin.
