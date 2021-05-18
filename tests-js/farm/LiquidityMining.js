@@ -18,7 +18,9 @@ describe("LiquidityMining", () => {
 	const startDelayBlocks = new BN(1);
 	const numberOfBonusBlocks = new BN(50);
 
-	const basisPoint = new BN(0);
+	// The % (in Basis Point) which determines how much will be unlocked immediately.
+	/// @dev 10000 is 100%
+	const basisPoint = new BN(1000); //10%
 
 	let accounts;
 	let root, account1, account2, account3, account4;
@@ -357,7 +359,6 @@ describe("LiquidityMining", () => {
 			await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
 
 			// User's balance of locked reward
-			// let userRewardBalance = await SOVToken.balanceOf(account1);
 			let userRewardBalance = await lockedSOV.getLockedBalance(account1);
 			expect(userRewardBalance).bignumber.equal(new BN(0));
 		});
@@ -375,6 +376,12 @@ describe("LiquidityMining", () => {
 
 			await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
 			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
+
+			//withdrawAndStakeTokensFrom was invoked
+			let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
+			let lockedBalance = await lockedSOV.getLockedBalance(account1);
+			expect(unlockedBalance).bignumber.equal(new BN(0));
+			expect(lockedBalance).bignumber.equal(new BN(0));
 
 			expectEvent(tx, "RewardClaimed", {
 				user: account1,
@@ -438,6 +445,14 @@ describe("LiquidityMining", () => {
 
 			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
 			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
+
+			//withdrawAndStakeTokensFrom was not invoked
+			let expectedUnlockedBalance = userReward.mul(basisPoint).div(new BN(10000));
+			let expectedLockedBalance = userReward.sub(expectedUnlockedBalance);
+			let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
+			let lockedBalance = await lockedSOV.getLockedBalance(account1);
+			expect(unlockedBalance).bignumber.equal(expectedUnlockedBalance);
+			expect(lockedBalance).bignumber.equal(expectedLockedBalance);
 
 			expectEvent(tx, "Withdraw", {
 				user: account1,
@@ -839,7 +854,9 @@ describe("LiquidityMining", () => {
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const rewardAmount = await lockedSOV.getLockedBalance(account1);
+			const lockedAmount = await lockedSOV.getLockedBalance(account1);
+			const unlockedAmount = await lockedSOV.getUnlockedBalance(account1);
+			const rewardAmount = lockedAmount.add(unlockedAmount);
 
 			// reward per block 30 (because of bonus period), 1 block with weight 1/2 = 15, 1 block with weight 2/3 = 20
 			const expectedRewardAmount = new BN("35");
@@ -886,8 +903,13 @@ describe("LiquidityMining", () => {
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const reward1 = await lockedSOV.getLockedBalance(account1);
-			const reward2 = await lockedSOV.getLockedBalance(account2);
+			const lockedAmount1 = await lockedSOV.getLockedBalance(account1);
+			const unlockedAmount1 = await lockedSOV.getUnlockedBalance(account1);
+			const reward1 = lockedAmount1.add(unlockedAmount1);
+
+			const lockedAmount2 = await lockedSOV.getLockedBalance(account2);
+			const unlockedAmount2 = await lockedSOV.getUnlockedBalance(account2);
+			const reward2 = lockedAmount2.add(unlockedAmount2);
 
 			// reward per block 30 (because of bonus period), 2 block with 100% shares = 60, 1 block with 50% shares = 15
 			const expectedReward1 = new BN("75");
@@ -948,7 +970,9 @@ describe("LiquidityMining", () => {
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const rewardAmount = await lockedSOV.getLockedBalance(account1);
+			const lockedAmount = await lockedSOV.getLockedBalance(account1);
+			const unlockedAmount = await lockedSOV.getUnlockedBalance(account1);
+			const rewardAmount = lockedAmount.add(unlockedAmount);
 
 			// reward per block 30 (because of bonus period),
 			// because add was called without updating the pool, the new weight is used for all blocks
@@ -980,7 +1004,9 @@ describe("LiquidityMining", () => {
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const rewardAmount = await lockedSOV.getLockedBalance(account1);
+			const lockedAmount = await lockedSOV.getLockedBalance(account1);
+			const unlockedAmount = await lockedSOV.getUnlockedBalance(account1);
+			const rewardAmount = lockedAmount.add(unlockedAmount);
 
 			// reward per block 30 (because of bonus period),
 			// because add was called WITH updating the pools, old weight is for 1 block and new weight is for 1 block
@@ -1018,8 +1044,13 @@ describe("LiquidityMining", () => {
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const reward1 = await lockedSOV.getLockedBalance(account1);
-			const reward2 = await lockedSOV.getLockedBalance(account2);
+			const lockedAmount1 = await lockedSOV.getLockedBalance(account1);
+			const unlockedAmount1 = await lockedSOV.getUnlockedBalance(account1);
+			const reward1 = lockedAmount1.add(unlockedAmount1);
+
+			const lockedAmount2 = await lockedSOV.getLockedBalance(account2);
+			const unlockedAmount2 = await lockedSOV.getUnlockedBalance(account2);
+			const reward2 = lockedAmount2.add(unlockedAmount2);
 
 			// reward per block 30 (because of bonus period)
 			// deposit 1 has 1 block with weight 1/1 (30) and 2 blocks with weight 1/2 (15*2 = 30)
@@ -1278,9 +1309,6 @@ describe("LiquidityMining", () => {
 	async function checkUserReward(user, poolToken, depositBlockNumber, latestBlockNumber) {
 		let passedBlocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(depositBlockNumber, latestBlockNumber);
 		let userReward = passedBlocks.mul(rewardTokensPerBlock);
-		// let userRewardBalance = await SOVToken.balanceOf(user);
-		let userRewardBalance = await lockedSOV.getLockedBalance(user);
-		expect(userRewardBalance).bignumber.equal(userReward);
 		let userInfo = await liquidityMining.getUserInfo(poolToken.address, user);
 		expect(userInfo.accumulatedReward).bignumber.equal(new BN(0));
 		return userReward;
