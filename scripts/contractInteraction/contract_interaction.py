@@ -71,7 +71,7 @@ def main():
     # transferSOVtoOriginInvestorsClaim()
 
     # createVesting()
-    #transferSOVtoVestingRegistry(contracts['VestingRegistry3'], 50148e18)
+    transferSOVtoVestingRegistry(contracts['VestingRegistry3'], 75222e18)
     # stakeTokens2()
 
     # triggerEmergencyStop(contracts['iUSDT'], False)
@@ -175,9 +175,15 @@ def main():
     #getPoolId(contracts['(WR)BTC/DOC2'])
     #getPoolId(contracts['(WR)BTC/USDT2'])
     #getPoolId(contracts['iRBTC'])
-    getLMInfo()
+    #getLMInfo()
     #readOwner(contracts['LiquidityMiningProxy'])
 
+    #sendTokensFromMultisig(contracts["SOV"], '0xF80e86B480D8639132eA255e14B8e255887cb8F6', 1633986e16)
+    #setLockedSOV(contracts['LockedSOV'])
+
+    #acct.transfer('0xD01A3bA68E7acdD8A5EBaB68d6d6CfA313fec272', 0.5e18)
+
+    #getBalance(contracts['iUSDT'], '0x2064242b697830535A2d76BE352e82Cf85E0EC2c')
 
 def loadConfig():
     global contracts, acct
@@ -935,6 +941,16 @@ def sendFromMultisig(receiver, amount):
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
 
+def sendTokensFromMultisig(token, receiver, amount):
+    tokenContract = Contract.from_abi("Token", address=token, abi=TestToken.abi, owner=acct)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    data = tokenContract.transfer.encode_input(receiver, amount)
+    print(data)
+    tx = multisig.submitTransaction(token,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+    
+
 def mintNFT(contractAddress, receiver):
     abiFile =  open('./scripts/contractInteraction/SovrynNft.json')
     abi = json.load(abiFile)
@@ -1461,7 +1477,7 @@ def setWrapperOnLM():
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
     data = lm.setWrapper.encode_input(contracts['RBTCWrapperProxy'])
-    tx = multisig.submitTransaction(multisig.address,0,data)
+    tx = multisig.submitTransaction(lm.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print("txid",txId);
 
@@ -1479,3 +1495,11 @@ def getLMInfo():
     print(lm.getPoolLength()) 
     print(lm.getPoolInfoList())
     print(lm.wrapper())
+
+def setLockedSOV(newLockedSOV): 
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)   
+    lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
+    data = lm.setLockedSOV.encode_input(newLockedSOV)
+    tx = multisig.submitTransaction(lm.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId);
