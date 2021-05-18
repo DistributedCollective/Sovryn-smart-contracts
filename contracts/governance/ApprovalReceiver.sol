@@ -4,18 +4,18 @@ import "./ErrorDecoder.sol";
 import "../token/IApproveAndCall.sol";
 
 /**
- * Base contract for receiving approval from SOV token
+ * @title Base contract for receiving approval from SOV token.
  */
 contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 	modifier onlyThisContract() {
-		//accepts calls only from receiveApproval function
+		// Accepts calls only from receiveApproval function.
 		require(msg.sender == address(this), "unauthorized");
 		_;
 	}
 
 	/**
-	 * @notice receives approval from SOV token
-	 * @param _data the data will be used for low level call
+	 * @notice Receives approval from SOV token.
+	 * @param _data The data will be used for low level call.
 	 */
 	function receiveApproval(
 		address _sender,
@@ -23,11 +23,11 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 		address _token,
 		bytes calldata _data
 	) external {
-		//accepts calls only from SOV token
+		// Accepts calls only from SOV token.
 		require(msg.sender == _getToken(), "unauthorized");
 		require(msg.sender == _token, "unauthorized");
 
-		//only allowed methods
+		// Only allowed methods.
 		bool isAllowed = false;
 		bytes4[] memory selectors = _getSelectors();
 		bytes4 sig = _getSig(_data);
@@ -39,7 +39,7 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 		}
 		require(isAllowed, "method is not allowed");
 
-		//check sender and amount
+		// Check sender and amount.
 		address sender;
 		uint256 amount;
 		(, sender, amount) = abi.decode(abi.encodePacked(bytes28(0), _data), (bytes32, address, uint256));
@@ -50,23 +50,28 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 	}
 
 	/**
-	 * @notice returns token address, only this address can be a sender for receiveApproval
-	 * @dev should be overridden in child contracts, otherwise error will be thrown
+	 * @notice Returns token address, only this address can be a sender for receiveApproval.
+	 * @dev Should be overridden in child contracts, otherwise error will be thrown.
+	 * @return By default, 0x. When overriden, the token address making the call.
 	 */
 	function _getToken() internal view returns (address) {
 		return address(0);
 	}
 
 	/**
-	 * @notice returns list of function selectors allowed to be invoked
-	 * @dev should be overridden in child contracts, otherwise error will be thrown
+	 * @notice Returns list of function selectors allowed to be invoked.
+	 * @dev Should be overridden in child contracts, otherwise error will be thrown.
+	 * @return By default, empty array. When overriden, allowed selectors.
 	 */
 	function _getSelectors() internal view returns (bytes4[] memory) {
 		return new bytes4[](0);
 	}
 
+	/**
+	 * @notice Makes call and reverts w/ enhanced error message.
+	 * @param _data Error message as bytes.
+	 */
 	function _call(bytes memory _data) internal {
-		//makes call and reads error message
 		(bool success, bytes memory returnData) = address(this).call(_data);
 		if (!success) {
 			if (returnData.length <= ERROR_MESSAGE_SHIFT) {
@@ -77,6 +82,21 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 		}
 	}
 
+	/**
+	 * @notice Extracts the called function selector, a hash of the signature.
+	 * @dev The first four bytes of the call data for a function call specifies
+	 * the function to be called. It is the first (left, high-order in big-endian)
+	 * four bytes of the Keccak-256 (SHA-3) hash of the signature of the function.
+	 * Solidity doesn't yet support a casting of byte[4] to bytes4.
+	 * Example:
+	 *  msg.data:
+	 *    0xcdcd77c000000000000000000000000000000000000000000000000000000000000
+	 *    000450000000000000000000000000000000000000000000000000000000000000001
+	 *  selector (or method ID): 0xcdcd77c0
+	 *  signature: baz(uint32,bool)
+	 * @param _data The msg.data from the low level call.
+	 * @return sig First 4 bytes of msg.data i.e. the selector, hash of the signature.
+	 */
 	function _getSig(bytes memory _data) internal pure returns (bytes4 sig) {
 		assembly {
 			sig := mload(add(_data, 32))

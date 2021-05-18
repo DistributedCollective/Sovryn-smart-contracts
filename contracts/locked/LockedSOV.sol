@@ -32,11 +32,11 @@ contract LockedSOV {
 	ILockedSOV public newLockedSOV;
 
 	/// @notice The locked user balances.
-	mapping(address => uint256) lockedBalances;
+	mapping(address => uint256) private lockedBalances;
 	/// @notice The unlocked user balances.
-	mapping(address => uint256) unlockedBalances;
+	mapping(address => uint256) private unlockedBalances;
 	/// @notice The contracts/wallets with admin power.
-	mapping(address => bool) isAdmin;
+	mapping(address => bool) private isAdmin;
 
 	/* Events */
 
@@ -79,7 +79,7 @@ contract LockedSOV {
 	/// @param _initiator The address which initiated this event to be emitted.
 	/// @param _vesting The Vesting Contract.
 	/// @param _amount The amount of locked tokens staked by the user.
-	event TokensStaked(address indexed _initiator, address indexed _vesting, uint256 _amount);
+	event TokenStaked(address indexed _initiator, address indexed _vesting, uint256 _amount);
 
 	/// @notice Emitted when an admin initiates a migration to new Locked SOV Contract.
 	/// @param _initiator The address which initiated this event to be emitted.
@@ -142,8 +142,8 @@ contract LockedSOV {
 	 * @dev Only callable by an Admin.
 	 */
 	function addAdmin(address _newAdmin) public onlyAdmin {
-		require(_newAdmin != address(0), "Invalid Address");
-		require(!isAdmin[_newAdmin], "Address is already admin");
+		require(_newAdmin != address(0), "Invalid Address.");
+		require(!isAdmin[_newAdmin], "Address is already admin.");
 		isAdmin[_newAdmin] = true;
 
 		emit AdminAdded(msg.sender, _newAdmin);
@@ -155,7 +155,7 @@ contract LockedSOV {
 	 * @dev Only callable by an Admin.
 	 */
 	function removeAdmin(address _adminToRemove) public onlyAdmin {
-		require(isAdmin[_adminToRemove], "Address is not an admin");
+		require(isAdmin[_adminToRemove], "Address is not an admin.");
 		isAdmin[_adminToRemove] = false;
 
 		emit AdminRemoved(msg.sender, _adminToRemove);
@@ -253,7 +253,7 @@ contract LockedSOV {
 		address vestingAddr = _getVesting(msg.sender);
 
 		if (vestingAddr == address(0)) {
-			vestingAddr = createVesting();
+			vestingAddr = _createVesting(msg.sender);
 		}
 
 		_stakeTokens(vestingAddr);
@@ -265,8 +265,6 @@ contract LockedSOV {
 	 */
 	function createVesting() public returns (address _vestingAddress) {
 		_vestingAddress = _createVesting(msg.sender);
-
-		emit VestingCreated(msg.sender, _vestingAddress);
 	}
 
 	/**
@@ -328,7 +326,9 @@ contract LockedSOV {
 	function _createVesting(address _tokenOwner) internal returns (address _vestingAddress) {
 		/// Here zero is given in place of amount, as amount is not really used in `vestingRegistry.createVesting()`.
 		vestingRegistry.createVesting(_tokenOwner, 0, cliff, duration);
-		return _getVesting(_tokenOwner);
+
+		_vestingAddress = _getVesting(_tokenOwner);
+		emit VestingCreated(_tokenOwner, _vestingAddress);
 	}
 
 	/**
@@ -351,7 +351,7 @@ contract LockedSOV {
 		SOV.approve(_vesting, amount);
 		VestingLogic(_vesting).stakeTokens(amount);
 
-		emit TokensStaked(msg.sender, _vesting, amount);
+		emit TokenStaked(msg.sender, _vesting, amount);
 	}
 
 	/* Getter or Read Functions */
@@ -372,5 +372,14 @@ contract LockedSOV {
 	 */
 	function getUnlockedBalance(address _addr) external view returns (uint256 _balance) {
 		return unlockedBalances[_addr];
+	}
+
+	/**
+	 * @notice The function to check is an address is admin or not.
+	 * @param _addr The address of the user to check the admin status.
+	 * @return _status True if admin, False otherwise.
+	 */
+	function adminStatus(address _addr) external view returns (bool _status) {
+		return isAdmin[_addr];
 	}
 }
