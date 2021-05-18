@@ -945,17 +945,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		}
 	}
 
-	function _adjustValue(
-		uint256 interestRate,
-		uint256 maxDuration,
-		uint256 marginAmount
-	) internal pure returns (uint256) {
-		return
-			maxDuration != 0
-				? interestRate.mul(WEI_PERCENT_PRECISION).mul(maxDuration).div(365 days).div(marginAmount).add(WEI_PERCENT_PRECISION)
-				: WEI_PERCENT_PRECISION;
-	}
-
 	/**
 	 * used to read externally from the smart contract to see if a function is paused
 	 * returns a bool

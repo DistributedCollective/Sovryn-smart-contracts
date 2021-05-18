@@ -37,6 +37,7 @@
     "hardhat": "^2.0.11",
     "hardhat-contract-sizer": "^2.0.2",
     "hardhat-deploy": "^0.7.0-beta.46",
+    "hardhat-docgen": "^1.1.1",
     "hardhat-log-remover": "^2.0.0",
     "husky": "^4.3.6",
     "mocha": "^8.2.1",
@@ -51,11 +52,17 @@
   },
   "scripts": {
     "analyze-contracts": "slither .",
-    "prettier": "prettier --write {,*/**/}*.{js,test.js,sol}",
-    "lint-contracts": "solhint contracts/**/*.sol",
+    "prettier": "npm run prettier-sol && npm run prettier-js",
+    "prettier-sol": "prettier --write contracts/{**/*,**/**/*,**/**/**/*}.sol",
+    "prettier-js": "prettier --write tests-js/{*,**/*,**/**/*}.{js,test.js}",
+    "prettier-check": "npm run prettier-check-sol && npm run prettier-check-js",
+    "prettier-check-sol": "prettier --check contracts/{**/*,**/**/*,**/**/**/*}.sol",
+    "prettier-check-js": "prettier --check tests-js/{*,**/*,**/**/*}.{js,test.js}",
+    "lint-contracts": "solhint contracts/{**/*,**/**/*,**/**/**/*}.sol",
     "test": "brownie test",
     "test-js": "echo Executing pure Hardhat test cases ... && npx hardhat test && echo Executing test cases using Ganache ... && npx hardhat --config hardhat-ganache-tests.config.js --network ganache test",
     "coverage": "npx hardhat coverage",
+    "doc": "yarn run hardhat docgen",
     "mocha-test-single": "mocha --timeout 10000 --exit --recursive"
   },
   "husky": {

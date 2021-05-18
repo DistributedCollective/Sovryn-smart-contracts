@@ -45,10 +45,17 @@
     "VestingRegistry2": "0x0a9bDbf5e104a30fb4c99f6812FB85B60Fd8D372",
     "OriginInvestorsClaim": "0xE0f5BF8d0C58d9c8A078DB75A9D379E6CDF3149E",
     "OrigingVestingCreator": "0xea173A078bA12673a8bef6DFa47A8E8f130B4939",
+
+    "VestingRegistry3": "0x14F3FE332e21Ef3f5d244C45C8D5fbFcEF2FB5c9",
+
     "contributorNFT": "0x8ffB12De9e7602843e4792DB0bC2863e9d137d06",
 
     "TokenSender": "0x31Ec06eB090Af6EEbfF5cF52084e9BCc3D7d9248",
 
     "WRBTCtoSOVConverter": "0x1D2c04967e8B17168310fd7035cC219dE477BE82",
-    "RBTCWrapperProxy":  "0xA3B6E18B9A4ECAE44C7355458Ae7Db8874018C22"
+    "RBTCWrapperProxy":  "0xA3B6E18B9A4ECAE44C7355458Ae7Db8874018C22",
+
+    "LockedSOV": "",
+
+    "EscrowReward": ""
 }

@@ -319,5 +319,4 @@ contract WeightedStaking is Checkpoints {
 		}
 		return date;
 	}
-
 }
