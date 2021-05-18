@@ -12,28 +12,35 @@ import "./interfaces/ProtocolSettingsLike.sol";
 contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	using SafeMath for uint256;
 
-	// It is important to maintain the variables order so the delegate calls can access sovrynContractAddress
+	/* Storage */
 
-	// ------------- MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
+	/// @dev It is important to maintain the variables order so the delegate
+	/// calls can access sovrynContractAddress
+
+	/// ------------- MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 	address public sovrynContractAddress;
 	address public wrbtcTokenAddress;
 	address internal target_;
 	address public admin;
-	// ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
+	/// ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 
-	//Add new variables here on the bottom
+	/// @dev Add new variables here on the bottom.
 	address public earlyAccessToken;
 	address public pauser;
 	mapping(address => bool) public flashLoanWhiteList; //#123 whitelist flashloans
 
+	/* Events */
+
 	event SetEarlyAccessToken(address oldValue, address newValue);
+
+	/* Modifiers */
 
 	modifier hasEarlyAccessToken() {
 		if (earlyAccessToken != address(0)) require(IERC20(earlyAccessToken).balanceOf(msg.sender) > 0, "No early access tokens");
 		_;
 	}
 
-	//@todo check for restrictions in this contract
+	/// @dev TODO: Check for restrictions in this contract.
 	modifier onlyAdmin() {
 		require(isOwner() || msg.sender == admin, "unauthorized");
 		_;
@@ -44,7 +51,11 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 		_;
 	}
 
+	/* Events */
+
 	event SetTransactionLimits(address[] addresses, uint256[] limits);
+
+	/* Functions */
 
 	function addToFlashLoanWhileList(address addressToAdd) public onlyAdmin {
 		flashLoanWhiteList[addressToAdd] = true;
@@ -54,18 +65,35 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 		delete flashLoanWhiteList[addressToAdd];
 	}
 
+	/**
+	 * @notice Set admin account.
+	 * @param _admin The address of the account to grant admin permissions.
+	 * */
 	function setAdmin(address _admin) public onlyOwner {
 		admin = _admin;
 	}
 
+	/**
+	 * @notice Set pauser account.
+	 * @param _pauser The address of the account to grant pause permissions.
+	 * */
 	function setPauser(address _pauser) public onlyOwner {
 		pauser = _pauser;
 	}
 
+	/**
+	 * @notice Fallback function not allowed
+	 * */
 	function() external {
 		revert("LoanTokenSettingsLowerAdmin - fallback not allowed");
 	}
 
+	/**
+	 * @notice Set loan token parameters.
+	 *
+	 * @param loanParamsList The array of loan parameters.
+	 * @param areTorqueLoans Whether the loan is a torque loan.
+	 * */
 	function setupLoanParams(LoanParamsStruct.LoanParams[] memory loanParamsList, bool areTorqueLoans) public onlyAdmin {
 		bytes32[] memory loanParamsIdList;
 		address _loanTokenAddress = loanTokenAddress;
@@ -82,7 +110,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 					keccak256(
 						abi.encodePacked(
 							loanParamsList[i].collateralToken,
-							areTorqueLoans // isTorqueLoan
+							areTorqueLoans /// isTorqueLoan
 						)
 					)
 				)
@@ -90,6 +118,12 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 		}
 	}
 
+	/**
+	 * @notice Disable loan token parameters.
+	 *
+	 * @param collateralTokens The array of collateral tokens.
+	 * @param isTorqueLoans Whether the loan is a torque loan.
+	 * */
 	function disableLoanParams(address[] calldata collateralTokens, bool[] calldata isTorqueLoans) external onlyAdmin {
 		require(collateralTokens.length == isTorqueLoans.length, "count mismatch");
 
@@ -103,8 +137,31 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 		ProtocolSettingsLike(sovrynContractAddress).disableLoanParams(loanParamsIdList);
 	}
 
-	// These params should be percentages represented like so: 5% = 5000000000000000000
-	// rateMultiplier + baseRate can't exceed 100%
+	/**
+	 * @notice Set loan token parameters about the demand curve.
+	 *
+	 * @dev These params should be percentages represented
+	 *   like so: 5% = 5000000000000000000 /// 18 digits precision.
+	 * rateMultiplier + baseRate can't exceed 100%
+	 *
+	 * To maintain a healthy credit score, it's important to keep your
+	 * credit utilization rate (CUR) low (_lowUtilBaseRate). In general
+	 * you don't want your CUR to exceed 30%, but increasingly financial
+	 * experts are recommending that you don't want to go above 10% if you
+	 * really want an excellent credit score.
+	 *
+	 * Interest rates tend to cluster around the kink level of a kinked
+	 * interest rate model. More info at https://arxiv.org/pdf/2006.13922.pdf
+	 * and https://compound.finance/governance/proposals/12
+	 *
+	 * @param _baseRate The interest rate.
+	 * @param _rateMultiplier The precision multiplier for base rate.
+	 * @param _lowUtilBaseRate The credit utilization rate (CUR) low value.
+	 * @param _lowUtilRateMultiplier The precision multiplier for low util base rate.
+	 * @param _targetLevel The target level.
+	 * @param _kinkLevel The level that interest rates cluster on kinked model.
+	 * @param _maxScaleRate The maximum rate of the scale.
+	 * */
 	function setDemandCurve(
 		uint256 _baseRate,
 		uint256 _rateMultiplier,
@@ -124,17 +181,26 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 		lowUtilBaseRate = _lowUtilBaseRate;
 		lowUtilRateMultiplier = _lowUtilRateMultiplier;
 
-		targetLevel = _targetLevel; // 80 ether
-		kinkLevel = _kinkLevel; // 90 ether
-		maxScaleRate = _maxScaleRate; // 100 ether
+		targetLevel = _targetLevel; /// 80 ether
+		kinkLevel = _kinkLevel; /// 90 ether
+		maxScaleRate = _maxScaleRate; /// 100 ether
 	}
 
+	/**
+	 * @notice Set the pause flag for a function to true or false.
+	 *
+	 * @dev Combining the hash of "iToken_FunctionPause" string and a function
+	 *   selector gets a slot to write a flag for pause state.
+	 *
+	 * @param funcId The ID of a function, the selector.
+	 * @param isPaused true/false value of the flag.
+	 * */
 	function toggleFunctionPause(
-		string memory funcId, // example: "mint(uint256,uint256)"
+		string memory funcId, /// example: "mint(uint256,uint256)"
 		bool isPaused
 	) public {
 		require(msg.sender == pauser, "onlyPauser");
-		// keccak256("iToken_FunctionPause")
+		/// keccak256("iToken_FunctionPause")
 		bytes32 slot =
 			keccak256(
 				abi.encodePacked(
@@ -148,9 +214,9 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	}
 
 	/**
-	 * sets the transaction limit per token address
-	 * @param addresses the token addresses
-	 * @param limits the limit denominated in the currency of the token address
+	 * Set the transaction limit per token address.
+	 * @param addresses The token addresses.
+	 * @param limits The limit denominated in the currency of the token address.
 	 * */
 	function setTransactionLimits(address[] memory addresses, uint256[] memory limits) public onlyAdmin {
 		require(addresses.length == limits.length, "mismatched array lengths");
@@ -160,15 +226,20 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 		emit SetTransactionLimits(addresses, limits);
 	}
 
+	/**
+	 *	@notice Update the loan token parameters.
+	 *	@param _name The new name of the loan token.
+	 *	@param _symbol The new symbol of the loan token.
+	 * */
 	function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol) public onlyAdmin {
 		name = _name;
 		symbol = _symbol;
 	}
 
 	/**
-	 *	@notice set early access token
-	 *	@param _earlyAccessTokenAddress the early access token
-	 */
+	 *	@notice Set early access token.
+	 *	@param _earlyAccessTokenAddress The early access token.
+	 * */
 	function setEarlyAccessToken(address _earlyAccessTokenAddress) public onlyAdmin {
 		address oldEarlyAccessToken = earlyAccessToken;
 		earlyAccessToken = _earlyAccessTokenAddress;

@@ -3,31 +3,45 @@ pragma experimental ABIEncoderV2;
 
 import "../openzeppelin/Ownable.sol";
 
+/**
+ * @title Multi Signature Key Holders contract.
+ *
+ * This contract contains the implementation of functions to add and remove
+ * key holders w/ rBTC and BTC addresses.
+ * */
 contract MultiSigKeyHolders is Ownable {
+	/* Storage */
+
 	uint256 public constant MAX_OWNER_COUNT = 50;
 
 	string private constant ERROR_INVALID_ADDRESS = "Invalid address";
 	string private constant ERROR_INVALID_REQUIRED = "Invalid required";
 
-	//flag and index for Ethereum address
+	/// Flag and index for Ethereum address.
 	mapping(address => Data) private isEthereumAddressAdded;
-	//list of Ethereum addresses
+
+	/// List of Ethereum addresses.
 	address[] private ethereumAddresses;
-	//required number of signatures for the Ethereum multisig
+
+	/// Required number of signatures for the Ethereum multisig.
 	uint256 public ethereumRequired = 2;
 
-	//flag and index for Bitcoin address
+	/// Flag and index for Bitcoin address.
 	mapping(string => Data) private isBitcoinAddressAdded;
-	//list of Bitcoin addresses
+
+	/// List of Bitcoin addresses.
 	string[] private bitcoinAddresses;
-	//required number of signatures for the Bitcoin multisig
+
+	/// Required number of signatures for the Bitcoin multisig.
 	uint256 public bitcoinRequired = 2;
 
-	//helps removing items from array
+	/// Helps removing items from array.
 	struct Data {
 		bool added;
 		uint248 index;
 	}
+
+	/* Events */
 
 	event EthereumAddressAdded(address indexed account);
 	event EthereumAddressRemoved(address indexed account);
@@ -36,29 +50,37 @@ contract MultiSigKeyHolders is Ownable {
 	event BitcoinAddressRemoved(string account);
 	event BitcoinRequirementChanged(uint256 required);
 
+	/* Modifiers */
+
 	modifier validRequirement(uint256 ownerCount, uint256 _required) {
 		require(ownerCount <= MAX_OWNER_COUNT && _required <= ownerCount && _required != 0 && ownerCount != 0, ERROR_INVALID_REQUIRED);
 		_;
 	}
 
+	/* Functions */
+
 	/**
-	 * @notice adds ethereum address to the key holders
-	 * @param _address the address to be added
-	 */
+	 * @notice Add rBTC address to the key holders.
+	 * @param _address The address to be added.
+	 * */
 	function addEthereumAddress(address _address) public onlyOwner {
 		_addEthereumAddress(_address);
 	}
 
 	/**
-	 * @notice adds ethereum addresses to the key holders
-	 * @param _address the addresses to be added
-	 */
+	 * @notice Add rBTC addresses to the key holders.
+	 * @param _address The addresses to be added.
+	 * */
 	function addEthereumAddresses(address[] memory _address) public onlyOwner {
 		for (uint256 i = 0; i < _address.length; i++) {
 			_addEthereumAddress(_address[i]);
 		}
 	}
 
+	/**
+	 * @notice Internal function to add rBTC address to the key holders.
+	 * @param _address The address to be added.
+	 * */
 	function _addEthereumAddress(address _address) internal {
 		require(_address != address(0), ERROR_INVALID_ADDRESS);
 
@@ -71,23 +93,27 @@ contract MultiSigKeyHolders is Ownable {
 	}
 
 	/**
-	 * @notice removes ethereum address to the key holders
-	 * @param _address the address to be removed
-	 */
+	 * @notice Remove rBTC address to the key holders.
+	 * @param _address The address to be removed.
+	 * */
 	function removeEthereumAddress(address _address) public onlyOwner {
 		_removeEthereumAddress(_address);
 	}
 
 	/**
-	 * @notice removes ethereum addresses to the key holders
-	 * @param _address the addresses to be removed
-	 */
+	 * @notice Remove rBTC addresses to the key holders.
+	 * @param _address The addresses to be removed.
+	 * */
 	function removeEthereumAddresses(address[] memory _address) public onlyOwner {
 		for (uint256 i = 0; i < _address.length; i++) {
 			_removeEthereumAddress(_address[i]);
 		}
 	}
 
+	/**
+	 * @notice Internal function to remove rBTC address to the key holders.
+	 * @param _address The address to be removed.
+	 * */
 	function _removeEthereumAddress(address _address) internal {
 		require(_address != address(0), ERROR_INVALID_ADDRESS);
 
@@ -105,43 +131,51 @@ contract MultiSigKeyHolders is Ownable {
 	}
 
 	/**
-	 * @notice returns whether ethereum address is a key holder
-	 * @param _address the ethereum address to be checked
-	 */
+	 * @notice Get whether rBTC address is a key holder.
+	 * @param _address The rBTC address to be checked.
+	 * */
 	function isEthereumAddressOwner(address _address) public view returns (bool) {
 		return isEthereumAddressAdded[_address].added;
 	}
 
 	/**
-	 * @notice returns array of ethereum key holders
-	 */
+	 * @notice Get array of rBTC key holders.
+	 * */
 	function getEthereumAddresses() public view returns (address[] memory) {
 		return ethereumAddresses;
 	}
 
+	/**
+	 * @notice Set flag ethereumRequired to true/false.
+	 * @param _required The new value of the ethereumRequired flag.
+	 * */
 	function changeEthereumRequirement(uint256 _required) public onlyOwner validRequirement(ethereumAddresses.length, _required) {
 		ethereumRequired = _required;
 		emit EthereumRequirementChanged(_required);
 	}
 
 	/**
-	 * @notice adds bitcoin address to the key holders
-	 * @param _address the address to be added
-	 */
+	 * @notice Add bitcoin address to the key holders.
+	 * @param _address The address to be added.
+	 * */
 	function addBitcoinAddress(string memory _address) public onlyOwner {
 		_addBitcoinAddress(_address);
 	}
 
 	/**
-	 * @notice adds bitcoin addresses to the key holders
-	 * @param _address the addresses to be added
-	 */
+	 * @notice Add bitcoin addresses to the key holders.
+	 * @param _address The addresses to be added.
+	 * */
 	function addBitcoinAddresses(string[] memory _address) public onlyOwner {
 		for (uint256 i = 0; i < _address.length; i++) {
 			_addBitcoinAddress(_address[i]);
 		}
 	}
 
+	/**
+	 * @notice Internal function to add bitcoin address to the key holders.
+	 * @param _address The address to be added.
+	 * */
 	function _addBitcoinAddress(string memory _address) internal {
 		require(bytes(_address).length != 0, ERROR_INVALID_ADDRESS);
 
@@ -154,23 +188,27 @@ contract MultiSigKeyHolders is Ownable {
 	}
 
 	/**
-	 * @notice removes bitcoin address to the key holders
-	 * @param _address the address to be removed
-	 */
+	 * @notice Remove bitcoin address to the key holders.
+	 * @param _address The address to be removed.
+	 * */
 	function removeBitcoinAddress(string memory _address) public onlyOwner {
 		_removeBitcoinAddress(_address);
 	}
 
 	/**
-	 * @notice removes bitcoin addresses to the key holders
-	 * @param _address the addresses to be removed
-	 */
+	 * @notice Remove bitcoin addresses to the key holders.
+	 * @param _address The addresses to be removed.
+	 * */
 	function removeBitcoinAddresses(string[] memory _address) public onlyOwner {
 		for (uint256 i = 0; i < _address.length; i++) {
 			_removeBitcoinAddress(_address[i]);
 		}
 	}
 
+	/**
+	 * @notice Internal function to remove bitcoin address to the key holders.
+	 * @param _address The address to be removed.
+	 * */
 	function _removeBitcoinAddress(string memory _address) internal {
 		require(bytes(_address).length != 0, ERROR_INVALID_ADDRESS);
 
@@ -188,30 +226,34 @@ contract MultiSigKeyHolders is Ownable {
 	}
 
 	/**
-	 * @notice returns whether bitcoin address is a key holder
-	 * @param _address the bitcoin address to be checked
-	 */
+	 * @notice Get whether bitcoin address is a key holder.
+	 * @param _address The bitcoin address to be checked.
+	 * */
 	function isBitcoinAddressOwner(string memory _address) public view returns (bool) {
 		return isBitcoinAddressAdded[_address].added;
 	}
 
 	/**
-	 * @notice returns array of bitcoin key holders
-	 */
+	 * @notice Get array of bitcoin key holders.
+	 * */
 	function getBitcoinAddresses() public view returns (string[] memory) {
 		return bitcoinAddresses;
 	}
 
+	/**
+	 * @notice Set flag bitcoinRequired to true/false.
+	 * @param _required The new value of the bitcoinRequired flag.
+	 * */
 	function changeBitcoinRequirement(uint256 _required) public onlyOwner validRequirement(bitcoinAddresses.length, _required) {
 		bitcoinRequired = _required;
 		emit BitcoinRequirementChanged(_required);
 	}
 
 	/**
-	 * @notice adds ethereum and bitcoin addresses to the key holders
-	 * @param _ethereumAddress the ethereum addresses to be added
-	 * @param _bitcoinAddress the bitcoin addresses to be added
-	 */
+	 * @notice Add rBTC and bitcoin addresses to the key holders.
+	 * @param _ethereumAddress the rBTC addresses to be added.
+	 * @param _bitcoinAddress the bitcoin addresses to be added.
+	 * */
 	function addEthereumAndBitcoinAddresses(address[] memory _ethereumAddress, string[] memory _bitcoinAddress) public onlyOwner {
 		for (uint256 i = 0; i < _ethereumAddress.length; i++) {
 			_addEthereumAddress(_ethereumAddress[i]);
@@ -222,10 +264,10 @@ contract MultiSigKeyHolders is Ownable {
 	}
 
 	/**
-	 * @notice removes ethereum and bitcoin addresses to the key holders
-	 * @param _ethereumAddress the ethereum addresses to be removed
-	 * @param _bitcoinAddress the bitcoin addresses to be removed
-	 */
+	 * @notice Remove rBTC and bitcoin addresses to the key holders.
+	 * @param _ethereumAddress The rBTC addresses to be removed.
+	 * @param _bitcoinAddress The bitcoin addresses to be removed.
+	 * */
 	function removeEthereumAndBitcoinAddresses(address[] memory _ethereumAddress, string[] memory _bitcoinAddress) public onlyOwner {
 		for (uint256 i = 0; i < _ethereumAddress.length; i++) {
 			_removeEthereumAddress(_ethereumAddress[i]);
