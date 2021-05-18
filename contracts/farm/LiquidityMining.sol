@@ -5,24 +5,21 @@ import "../openzeppelin/ERC20.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
 import "./LiquidityMiningStorage.sol";
-import "../escrow/ILockedSOV.sol";
 
 contract LiquidityMining is LiquidityMiningStorage {
 	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
 
-	/* Storage */
+	/* Constants */
 	
 	uint256 public constant PRECISION = 1e12;
 	// Bonus multiplier for early liquidity providers.
 	// During bonus period each passed block will be calculated like N passed blocks, where N = BONUS_MULTIPLIER
+	//TODO do we need to make it settable?
 	uint256 public constant BONUS_BLOCK_MULTIPLIER = 10;
 
-	/// @dev The SOV token
-	IERC20 public SOV;
-
-	/// @dev The locked vault contract to deposit LP's rewards into.
-	ILockedSOV public lockedSOV;
+	//TODO do we need to make it settable?
+	uint256 public constant SECONDS_PER_BLOCK = 30;
 
 	/* Events */
 
@@ -238,6 +235,21 @@ contract LiquidityMining is LiquidityMiningStorage {
 	}
 
 	/**
+	 * @notice returns estimated reward
+	 * @param _poolToken the address of pool token
+	 * @param _amount the amount of tokens to be deposited
+	 * @param _duration the duration of liquidity providing in seconds
+	 */
+	function getEstimatedReward(address _poolToken, uint256 _amount, uint256 _duration) external view returns (uint256) {
+		uint256 poolId = _getPoolId(_poolToken);
+		PoolInfo storage pool = poolInfoList[poolId];
+		uint256 start = block.number;
+		uint256 end = start.add(_duration.div(SECONDS_PER_BLOCK));
+		(, uint256 accumulatedRewardPerShare) = _getPoolAccumulatedReward(pool, _amount, start, end);
+		return _amount.mul(accumulatedRewardPerShare).div(PRECISION);
+	}
+
+	/**
 	 * @notice Updates reward variables for all pools.
 	 * @dev Be careful of gas spending!
 	 */
@@ -278,11 +290,21 @@ contract LiquidityMining is LiquidityMiningStorage {
 		totalUsersBalance = totalUsersBalance.add(accumulatedReward_);
 	}
 
-	function _getPoolAccumulatedReward(PoolInfo storage pool) internal view returns (uint256, uint256) {
-		uint256 passedBlocks = _getPassedBlocksWithBonusMultiplier(pool.lastRewardBlock, block.number);
-		uint256 accumulatedReward = passedBlocks.mul(rewardTokensPerBlock).mul(pool.allocationPoint).div(totalAllocationPoint);
+	function _getPoolAccumulatedReward(PoolInfo storage _pool) internal view returns (uint256, uint256) {
+		return _getPoolAccumulatedReward(_pool, 0, _pool.lastRewardBlock, block.number);
+	}
 
-		uint256 poolTokenBalance = pool.poolToken.balanceOf(address(this));
+	function _getPoolAccumulatedReward(
+		PoolInfo storage _pool,
+		uint256 _additionalAmount,
+		uint256 _startBlock,
+		uint256 _endBlock
+	) internal view returns (uint256, uint256) {
+		uint256 passedBlocks = _getPassedBlocksWithBonusMultiplier(_startBlock, _endBlock);
+		uint256 accumulatedReward = passedBlocks.mul(rewardTokensPerBlock).mul(_pool.allocationPoint).div(totalAllocationPoint);
+
+		uint256 poolTokenBalance = _pool.poolToken.balanceOf(address(this));
+		poolTokenBalance = poolTokenBalance.add(_additionalAmount);
 		uint256 accumulatedRewardPerShare = accumulatedReward.mul(PRECISION).div(poolTokenBalance);
 		return (accumulatedReward, accumulatedRewardPerShare);
 	}
