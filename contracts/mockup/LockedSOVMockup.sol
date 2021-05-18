@@ -37,6 +37,10 @@ contract LockedSOVMockup {
 
 	event Deposited(address indexed _initiator, address indexed _userAddress, uint256 _sovAmount, uint256 _basisPoint);
 
+	event Withdrawn(address indexed _initiator, address indexed _userAddress, uint256 _sovAmount);
+
+	event TokensStaked(address indexed _initiator, address indexed _vesting, uint256 _amount);
+
 	/* Modifiers */
 
 	modifier onlyAdmin {
@@ -122,6 +126,37 @@ contract LockedSOVMockup {
 		lockedBalances[_userAddress] = lockedBalances[_userAddress].add(_sovAmount).sub(unlockedBal);
 
 		emit Deposited(msg.sender, _userAddress, _sovAmount, _basisPoint);
+	}
+
+	/**
+	 * @notice Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created.
+	 * @param _userAddress The address of user tokens will be withdrawn.
+	 */
+	function withdrawAndStakeTokensFrom(address _userAddress) external {
+		_withdraw(_userAddress, _userAddress);
+		_createVestingAndStake(_userAddress);
+	}
+
+	function _withdraw(address _sender, address _receiverAddress) private {
+		address userAddr = _receiverAddress;
+		if (_receiverAddress == address(0)) {
+			userAddr = _sender;
+		}
+
+		uint256 amount = unlockedBalances[_sender];
+		unlockedBalances[_sender] = 0;
+
+		bool txStatus = SOV.transfer(userAddr, amount);
+		require(txStatus, "Token transfer was not successful. Check receiver address.");
+
+		emit Withdrawn(_sender, userAddr, amount);
+	}
+
+	function _createVestingAndStake(address _sender) private {
+		uint256 amount = lockedBalances[msg.sender];
+		lockedBalances[msg.sender] = 0;
+
+		emit TokensStaked(msg.sender, address(0), amount);
 	}
 
 	/**
