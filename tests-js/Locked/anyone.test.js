@@ -180,15 +180,6 @@ contract("Locked SOV (Any User Functions)", (accounts) => {
 		await lockedSOV.withdrawAndStakeTokens(userOne, { from: userOne });
 	});
 
-	it("No one can use withdrawAndStakeTokens() who does not have a vesting contract.", async () => {
-		let value = randomValue() + 10;
-		await sov.mint(userFour, value);
-		await sov.approve(lockedSOV.address, value, { from: userFour });
-		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
-		await lockedSOV.deposit(userFour, value, basisPoint, { from: userFour });
-		await expectRevert(lockedSOV.withdrawAndStakeTokens(userFour, { from: userFour }), "function call to a non-contract account");
-	});
-
 	it("Except Admin, no one should be able to start migration.", async () => {
 		await expectRevert(lockedSOV.startMigration(newLockedSOV.address, { from: userOne }), "Only admin can call this.");
 	});
