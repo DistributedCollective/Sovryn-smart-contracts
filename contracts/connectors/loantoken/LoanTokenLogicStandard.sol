@@ -212,6 +212,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		require(withdrawAmount != 0, "6");
 
 		_checkPause();
+		_checkNotInTheSameBlock();
 
 		/// Temporary: limit transaction size.
 		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
@@ -316,6 +317,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		)
 	{
 		_checkPause();
+		_checkNotInTheSameBlock();
 
 		if (collateralTokenAddress == address(0)) {
 			collateralTokenAddress = wrbtcTokenAddress;
@@ -982,6 +984,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		bytes memory loanDataBytes
 	) internal returns (uint256, uint256) {
 		_checkPause();
+		_checkNotInTheSameBlock();
 		require(
 			sentAmounts[1] <= _underlyingBalance() && /// newPrincipal (borrowed amount + fees)
 				sentAddresses[1] != address(0), /// The borrower.
@@ -1380,6 +1383,27 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			isPaused := sload(slot)
 		}
 		require(!isPaused, "unauthorized");
+	}
+
+	/**
+	 * @notice Make sure caller did not perform any previous operation in the
+	 *   current block.
+	 *
+	 * @dev To protect from the lending fees manipulation using flash loan we
+	 * need to prevent lending and withdrawing from the pools in the same
+	 * tx/block by the same account.
+	 * */
+	function _checkNotInTheSameBlock() internal view {
+		uint256 _currentBlock;
+
+		/// @dev Get and buffer current block.
+		_currentBlock = block.number;
+
+		/// @dev Check there are no previous txs in this block coming from same account.
+		require(!hasInteracted[_currentBlock][msg.sender], "Avoiding flash loan attack: several txs in same block from same account.");
+		
+		/// @dev Update previous activity mapping.
+		hasInteracted[_currentBlock][msg.sender] = true;
 	}
 
 	/**
