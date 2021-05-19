@@ -54,7 +54,7 @@ def main():
     wrapper = "0x0000000000000000000000000000000000000000" # can be updated later using setWrapper
     # The % (in Basis Point) which determines how much will be unlocked immediately.
     # 10000 is 100%
-    basisPoint = 100 # 1%
+    basisPoint = 0 # 0%
     liquidityMining.initialize(contracts['SOV'], rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address, basisPoint)
 
     # TODO prepare pool tokens list
