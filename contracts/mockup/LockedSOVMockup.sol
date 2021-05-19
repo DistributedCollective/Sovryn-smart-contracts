@@ -176,5 +176,4 @@ contract LockedSOVMockup {
 	function getUnlockedBalance(address _addr) external view returns (uint256 _balance) {
 		return unlockedBalances[_addr];
 	}
-
 }

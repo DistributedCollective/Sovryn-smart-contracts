@@ -13,11 +13,11 @@ interface ILockedSOV {
 	 * @param _sovAmount The amount of SOV to be added to the locked and/or unlocked balance.
 	 * @param _basisPoint The % (in Basis Point)which determines how much will be unlocked immediately.
 	 */
-		function deposit(
-			address _userAddress,
-			uint256 _sovAmount,
-			uint256 _basisPoint
-		) external;
+	function deposit(
+		address _userAddress,
+		uint256 _sovAmount,
+		uint256 _basisPoint
+	) external;
 
 	/**
 	 * @notice Adds SOV to the locked balance of a user.

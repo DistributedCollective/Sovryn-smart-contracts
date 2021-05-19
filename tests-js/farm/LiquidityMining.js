@@ -103,7 +103,15 @@ describe("LiquidityMining", () => {
 		it("fails if _startBlock = 0", async () => {
 			await deployLiquidityMining();
 			await expectRevert(
-				liquidityMining.initialize(SOVToken.address, rewardTokensPerBlock, 0, numberOfBonusBlocks, wrapper.address, lockedSOV.address, basisPoint),
+				liquidityMining.initialize(
+					SOVToken.address,
+					rewardTokensPerBlock,
+					0,
+					numberOfBonusBlocks,
+					wrapper.address,
+					lockedSOV.address,
+					basisPoint
+				),
 				"Invalid start block"
 			);
 		});

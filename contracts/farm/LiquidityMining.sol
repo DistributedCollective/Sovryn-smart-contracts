@@ -431,7 +431,11 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _user The user info, to get its reward share.
 	 * @param _userAddress The address of the user, to send SOV in its behalf.
 	 */
-	function _transferReward(UserInfo storage _user, address _userAddress, bool _isClaimingReward) internal {
+	function _transferReward(
+		UserInfo storage _user,
+		address _userAddress,
+		bool _isClaimingReward
+	) internal {
 		uint256 userAccumulatedReward = _user.accumulatedReward;
 
 		/// @dev Transfer if enough SOV balance on this LM contract.
