@@ -66,6 +66,7 @@ def main():
         print('adding pool', i)
         liquidityMining.add(poolTokens[i], allocationPoints[i], withUpdate)
 
+    liquidityMiningProxy.addAdmin(multisig)
     liquidityMiningProxy.setProxyOwner(multisig)
     liquidityMining.transferOwnership(multisig)
 

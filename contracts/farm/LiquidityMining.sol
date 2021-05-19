@@ -53,7 +53,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 		address _wrapper,
 		ILockedSOV _lockedSOV,
 		uint256 _basisPoint
-	) public onlyOwner {
+	) public onlyAuthorized {
 		/// @dev Non-idempotent function. Must be called just once.
 		require(address(SOV) == address(0), "Already initialized");
 		require(address(_SOV) != address(0), "Invalid token address");
@@ -73,7 +73,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @notice Sets lockedSOV contract.
 	 * @param _lockedSOV The contract instance address of the lockedSOV vault.
 	 */
-	function setLockedSOV(ILockedSOV _lockedSOV) public onlyOwner {
+	function setLockedSOV(ILockedSOV _lockedSOV) public onlyAuthorized {
 		require(address(_lockedSOV) != address(0), "Invalid lockedSOV Address.");
 		lockedSOV = _lockedSOV;
 	}
@@ -83,7 +83,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _basisPoint The % (in Basis Point) which determines how much will be unlocked immediately.
 	 * @dev @dev 10000 is 100%
 	 */
-	function setBasisPoint(uint256 _basisPoint) public onlyOwner {
+	function setBasisPoint(uint256 _basisPoint) public onlyAuthorized {
 		require(_basisPoint < 10000, "Basis Point has to be less than 10000.");
 		basisPoint = _basisPoint;
 	}
@@ -92,14 +92,14 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @notice sets wrapper proxy contract
 	 * @dev can be set to zero address to remove wrapper
 	 */
-	function setWrapper(address _wrapper) public onlyOwner {
+	function setWrapper(address _wrapper) public onlyAuthorized {
 		wrapper = _wrapper;
 	}
 
 	/**
 	 * @notice stops mining by setting end block
 	 */
-	function stopMining() public onlyOwner {
+	function stopMining() public onlyAuthorized {
 		require(endBlock == 0, "Already stopped");
 
 		endBlock = block.number;
@@ -112,7 +112,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _receiver The address of the SOV receiver.
 	 * @param _amount The amount to be transferred.
 	 * */
-	function transferSOV(address _receiver, uint256 _amount) public onlyOwner {
+	function transferSOV(address _receiver, uint256 _amount) public onlyAuthorized {
 		require(_receiver != address(0), "Receiver address invalid");
 		require(_amount != 0, "Amount invalid");
 
@@ -150,7 +150,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 		address _poolToken,
 		uint96 _allocationPoint,
 		bool _withUpdate
-	) public onlyOwner {
+	) public onlyAuthorized {
 		require(_allocationPoint > 0, "Invalid allocation point");
 		require(_poolToken != address(0), "Invalid token address");
 		require(poolIdList[_poolToken] == 0, "Token already added");
@@ -186,7 +186,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 		address _poolToken,
 		uint96 _allocationPoint,
 		bool _withUpdate
-	) public onlyOwner {
+	) public onlyAuthorized {
 		uint256 poolId = _getPoolId(_poolToken);
 
 		if (_withUpdate) {
