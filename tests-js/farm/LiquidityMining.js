@@ -164,6 +164,41 @@ describe("LiquidityMining", () => {
 		});
 	});
 
+	describe("addAdmin", () => {
+		it("adds admin", async () => {
+			let tx = await liquidityMining.addAdmin(account1);
+
+			expectEvent(tx, "AdminAdded", {
+				admin: account1,
+			});
+
+			let isAdmin = await liquidityMining.admins(account1);
+			expect(isAdmin).equal(true);
+		});
+
+		it("fails sender isn't an owner", async () => {
+			await expectRevert(liquidityMining.addAdmin(account1, { from: account1 }), "unauthorized");
+		});
+	});
+
+	describe("removeAdmin", () => {
+		it("adds admin", async () => {
+			await liquidityMining.addAdmin(account1);
+			let tx = await liquidityMining.removeAdmin(account1);
+
+			expectEvent(tx, "AdminRemoved", {
+				admin: account1,
+			});
+
+			let isAdmin = await liquidityMining.admins(account1);
+			expect(isAdmin).equal(false);
+		});
+
+		it("fails sender isn't an owner", async () => {
+			await expectRevert(liquidityMining.removeAdmin(account1, { from: account1 }), "unauthorized");
+		});
+	});
+
 	describe("setLockedSOV", () => {
 		it("sets the expected values", async () => {
 			let newLockedSOV = account2;

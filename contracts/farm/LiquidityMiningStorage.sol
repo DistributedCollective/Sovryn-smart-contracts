@@ -3,10 +3,10 @@ pragma solidity 0.5.17;
 import "../openzeppelin/ERC20.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
-import "../openzeppelin/Ownable.sol";
 import "../locked/ILockedSOV.sol";
+import "../utils/AdminRole.sol";
 
-contract LiquidityMiningStorage is Ownable {
+contract LiquidityMiningStorage is AdminRole {
 	// Info of each user.
 	struct UserInfo {
 		uint256 amount; // How many pool tokens the user has provided.
