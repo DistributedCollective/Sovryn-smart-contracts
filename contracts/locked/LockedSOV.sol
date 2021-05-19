@@ -11,7 +11,7 @@ import "./ILockedSOV.sol";
  *  @author Franklin Richards - powerhousefrank@protonmail.com
  *  @notice This contract is used to receive reward from other contracts, Create Vesting and Stake Tokens.
  */
-contract LockedSOV {
+contract LockedSOV is ILockedSOV {
 	using SafeMath for uint256;
 
 	/* Storage */
@@ -198,6 +198,24 @@ contract LockedSOV {
 		uint256 _sovAmount,
 		uint256 _basisPoint
 	) external {
+		_deposit(_userAddress, _sovAmount, _basisPoint);
+	}
+
+	/**
+	 * @notice Adds SOV to the locked balance of a user.
+	 * @param _userAddress The user whose locked balance has to be updated with _sovAmount.
+	 * @param _sovAmount The amount of SOV to be added to the locked balance.
+	 * @dev This is here because there are dependency with other contracts.
+	 */
+	function depositSOV(address _userAddress, uint256 _sovAmount) external {
+		_deposit(_userAddress, _sovAmount, 0);
+	}
+
+	function _deposit(
+		address _userAddress,
+		uint256 _sovAmount,
+		uint256 _basisPoint
+	) private {
 		// 10000 is not included because if 100% is unlocked, then LockedSOV is not required to be used.
 		require(_basisPoint < 10000, "Basis Point has to be less than 10000.");
 		bool txStatus = SOV.transferFrom(msg.sender, address(this), _sovAmount);
@@ -212,51 +230,44 @@ contract LockedSOV {
 	}
 
 	/**
-	 * @notice Adds SOV to the locked balance of a user.
-	 * @param _userAddress The user whose locked balance has to be updated with _sovAmount.
-	 * @param _sovAmount The amount of SOV to be added to the locked balance.
-	 * @dev This is here because there are dependency with other contracts.
-	 */
-	function depositSOV(address _userAddress, uint256 _sovAmount) external {
-		bool txStatus = SOV.transferFrom(msg.sender, address(this), _sovAmount);
-		require(txStatus, "Token transfer was not successful. Check receiver address.");
-
-		lockedBalances[_userAddress] = lockedBalances[_userAddress].add(_sovAmount);
-
-		emit Deposited(msg.sender, _userAddress, _sovAmount, 0);
-	}
-
-	/**
 	 * @notice A function to withdraw the unlocked balance.
 	 * @param _receiverAddress If specified, the unlocked balance will go to this address, else to msg.sender.
 	 */
 	function withdraw(address _receiverAddress) public {
+		_withdraw(msg.sender, _receiverAddress);
+	}
+
+	function _withdraw(address _sender, address _receiverAddress) private {
 		address userAddr = _receiverAddress;
 		if (_receiverAddress == address(0)) {
-			userAddr = msg.sender;
+			userAddr = _sender;
 		}
 
-		uint256 amount = unlockedBalances[msg.sender];
-		unlockedBalances[msg.sender] = 0;
+		uint256 amount = unlockedBalances[_sender];
+		unlockedBalances[_sender] = 0;
 
 		bool txStatus = SOV.transfer(userAddr, amount);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
 
-		emit Withdrawn(msg.sender, userAddr, amount);
+		emit Withdrawn(_sender, userAddr, amount);
 	}
 
 	/**
 	 * @notice Creates vesting if not already created and Stakes tokens for a user.
 	 * @dev Only use this function if the `duration` is small.
 	 */
-	function createVestingAndStake() external {
-		address vestingAddr = _getVesting(msg.sender);
+	function createVestingAndStake() public {
+		_createVestingAndStake(msg.sender);
+	}
+
+	function _createVestingAndStake(address _sender) private {
+		address vestingAddr = _getVesting(_sender);
 
 		if (vestingAddr == address(0)) {
-			vestingAddr = _createVesting(msg.sender);
+			vestingAddr = _createVesting(_sender);
 		}
 
-		_stakeTokens(vestingAddr);
+		_stakeTokens(_sender, vestingAddr);
 	}
 
 	/**
@@ -276,17 +287,25 @@ contract LockedSOV {
 
 		require(cliff == vesting.cliff() && duration == vesting.duration(), "Wrong Vesting Schedule.");
 
-		_stakeTokens(address(vesting));
+		_stakeTokens(msg.sender, address(vesting));
 	}
 
 	/**
 	 * @notice Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created.
 	 * @param _receiverAddress If specified, the unlocked balance will go to this address, else to msg.sender.
-	 * @dev The user should already have a vesting created, else this function will throw error.
 	 */
 	function withdrawAndStakeTokens(address _receiverAddress) external {
 		withdraw(_receiverAddress);
-		stakeTokens();
+		createVestingAndStake();
+	}
+
+	/**
+	 * @notice Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created.
+	 * @param _userAddress The address of user tokens will be withdrawn.
+	 */
+	function withdrawAndStakeTokensFrom(address _userAddress) external {
+		_withdraw(_userAddress, _userAddress);
+		_createVestingAndStake(_userAddress);
 	}
 
 	/**
@@ -326,9 +345,8 @@ contract LockedSOV {
 	function _createVesting(address _tokenOwner) internal returns (address _vestingAddress) {
 		/// Here zero is given in place of amount, as amount is not really used in `vestingRegistry.createVesting()`.
 		vestingRegistry.createVesting(_tokenOwner, 0, cliff, duration);
-
 		_vestingAddress = _getVesting(_tokenOwner);
-		emit VestingCreated(_tokenOwner, _vestingAddress);
+		emit VestingCreated(msg.sender, _vestingAddress);
 	}
 
 	/**
@@ -344,14 +362,14 @@ contract LockedSOV {
 	 * @notice Stakes the tokens in a particular vesting contract.
 	 * @param _vesting The Vesting Contract Address.
 	 */
-	function _stakeTokens(address _vesting) internal {
-		uint256 amount = lockedBalances[msg.sender];
-		lockedBalances[msg.sender] = 0;
+	function _stakeTokens(address _sender, address _vesting) internal {
+		uint256 amount = lockedBalances[_sender];
+		lockedBalances[_sender] = 0;
 
 		SOV.approve(_vesting, amount);
 		VestingLogic(_vesting).stakeTokens(amount);
 
-		emit TokenStaked(msg.sender, _vesting, amount);
+		emit TokenStaked(_sender, _vesting, amount);
 	}
 
 	/* Getter or Read Functions */

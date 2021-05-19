@@ -258,6 +258,26 @@ contract("Locked SOV (Events)", (accounts) => {
 		});
 	});
 
+	it("Using withdrawAndStakeTokensFrom() should emit Withdrawn and TokenStaked.", async () => {
+		let value = randomValue() + 10;
+		await sov.mint(userOne, value);
+		await sov.approve(lockedSOV.address, value, { from: userOne });
+		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
+		await lockedSOV.deposit(userOne, value, basisPoint, { from: userOne });
+		let vestingAddr = await vestingRegistry.getVesting(userOne);
+		let txReceipt = await lockedSOV.withdrawAndStakeTokensFrom(userOne, { from: userTwo });
+		expectEvent(txReceipt, "Withdrawn", {
+			_initiator: userOne,
+			_userAddress: userOne,
+			_sovAmount: new BN(Math.floor(value / 2)),
+		});
+		expectEvent(txReceipt, "TokenStaked", {
+			_initiator: userOne,
+			_vesting: vestingAddr,
+			_amount: new BN(Math.ceil(value / 2)),
+		});
+	});
+
 	it("Starting migration should emit MigrationStarted.", async () => {
 		let txReceipt = await lockedSOV.startMigration(newLockedSOV.address, { from: admin });
 		expectEvent(txReceipt, "MigrationStarted", {

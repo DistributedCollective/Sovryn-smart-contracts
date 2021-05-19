@@ -11,14 +11,12 @@ contract LiquidityMining is LiquidityMiningStorage {
 	using SafeERC20 for IERC20;
 
 	/* Constants */
-	
+
 	uint256 public constant PRECISION = 1e12;
 	// Bonus multiplier for early liquidity providers.
 	// During bonus period each passed block will be calculated like N passed blocks, where N = BONUS_MULTIPLIER
-	//TODO do we need to make it settable?
 	uint256 public constant BONUS_BLOCK_MULTIPLIER = 10;
 
-	//TODO do we need to make it settable?
 	uint256 public constant SECONDS_PER_BLOCK = 30;
 
 	/* Events */
@@ -45,6 +43,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _lockedSOV The contract instance address of the lockedSOV vault.
 	 *   SOV rewards are not paid directly to liquidity providers. Instead they
 	 *   are deposited into a lockedSOV vault contract.
+	 * @param _basisPoint The % (in Basis Point) which determines how much will be unlocked immediately.
 	 */
 	function initialize(
 		IERC20 _SOV,
@@ -52,12 +51,14 @@ contract LiquidityMining is LiquidityMiningStorage {
 		uint256 _startDelayBlocks,
 		uint256 _numberOfBonusBlocks,
 		address _wrapper,
-		ILockedSOV _lockedSOV
-	) public onlyOwner {
+		ILockedSOV _lockedSOV,
+		uint256 _basisPoint
+	) public onlyAuthorized {
 		/// @dev Non-idempotent function. Must be called just once.
 		require(address(SOV) == address(0), "Already initialized");
 		require(address(_SOV) != address(0), "Invalid token address");
 		require(_startDelayBlocks > 0, "Invalid start block");
+		require(_basisPoint < 10000, "Basis Point has to be less than 10000.");
 
 		SOV = _SOV;
 		rewardTokensPerBlock = _rewardTokensPerBlock;
@@ -65,29 +66,40 @@ contract LiquidityMining is LiquidityMiningStorage {
 		bonusEndBlock = startBlock + _numberOfBonusBlocks;
 		wrapper = _wrapper;
 		lockedSOV = _lockedSOV;
+		basisPoint = _basisPoint;
 	}
 
 	/**
-	 * @notice Set lockedSOV contract.
+	 * @notice Sets lockedSOV contract.
 	 * @param _lockedSOV The contract instance address of the lockedSOV vault.
 	 */
-	function setLockedSOV(ILockedSOV _lockedSOV) public onlyOwner {
+	function setLockedSOV(ILockedSOV _lockedSOV) public onlyAuthorized {
 		require(address(_lockedSOV) != address(0), "Invalid lockedSOV Address.");
 		lockedSOV = _lockedSOV;
+	}
+
+	/**
+	 * @notice Sets basisPoint.
+	 * @param _basisPoint The % (in Basis Point) which determines how much will be unlocked immediately.
+	 * @dev @dev 10000 is 100%
+	 */
+	function setBasisPoint(uint256 _basisPoint) public onlyAuthorized {
+		require(_basisPoint < 10000, "Basis Point has to be less than 10000.");
+		basisPoint = _basisPoint;
 	}
 
 	/**
 	 * @notice sets wrapper proxy contract
 	 * @dev can be set to zero address to remove wrapper
 	 */
-	function setWrapper(address _wrapper) public onlyOwner {
+	function setWrapper(address _wrapper) public onlyAuthorized {
 		wrapper = _wrapper;
 	}
 
 	/**
 	 * @notice stops mining by setting end block
 	 */
-	function stopMining() public onlyOwner {
+	function stopMining() public onlyAuthorized {
 		require(endBlock == 0, "Already stopped");
 
 		endBlock = block.number;
@@ -100,7 +112,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _receiver The address of the SOV receiver.
 	 * @param _amount The amount to be transferred.
 	 * */
-	function transferSOV(address _receiver, uint256 _amount) public onlyOwner {
+	function transferSOV(address _receiver, uint256 _amount) public onlyAuthorized {
 		require(_receiver != address(0), "Receiver address invalid");
 		require(_amount != 0, "Amount invalid");
 
@@ -121,7 +133,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @notice Get the missed SOV balance of LM contract.
 	 *
 	 * @return The amount of SOV tokens according to totalUsersBalance
-	 *   in excess of actual SOV balance of the LM contract. 
+	 *   in excess of actual SOV balance of the LM contract.
 	 * */
 	function getMissedBalance() public view returns (uint256) {
 		uint256 balance = SOV.balanceOf(address(this));
@@ -138,7 +150,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 		address _poolToken,
 		uint96 _allocationPoint,
 		bool _withUpdate
-	) public onlyOwner {
+	) public onlyAuthorized {
 		require(_allocationPoint > 0, "Invalid allocation point");
 		require(_poolToken != address(0), "Invalid token address");
 		require(poolIdList[_poolToken] == 0, "Token already added");
@@ -174,7 +186,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 		address _poolToken,
 		uint96 _allocationPoint,
 		bool _withUpdate
-	) public onlyOwner {
+	) public onlyAuthorized {
 		uint256 poolId = _getPoolId(_poolToken);
 
 		if (_withUpdate) {
@@ -240,7 +252,11 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _amount the amount of tokens to be deposited
 	 * @param _duration the duration of liquidity providing in seconds
 	 */
-	function getEstimatedReward(address _poolToken, uint256 _amount, uint256 _duration) external view returns (uint256) {
+	function getEstimatedReward(
+		address _poolToken,
+		uint256 _amount,
+		uint256 _duration
+	) external view returns (uint256) {
 		uint256 poolId = _getPoolId(_poolToken);
 		PoolInfo storage pool = poolInfoList[poolId];
 		uint256 start = block.number;
@@ -315,7 +331,11 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _amount the amount of pool tokens
 	 * @param _user the address of user, tokens will be deposited to it or to msg.sender
 	 */
-	function deposit(address _poolToken, uint256 _amount, address _user) public {
+	function deposit(
+		address _poolToken,
+		uint256 _amount,
+		address _user
+	) public {
 		require(poolIdList[_poolToken] != 0, "Pool token not found");
 		address userAddress = _user != address(0) ? _user : msg.sender;
 
@@ -349,7 +369,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 		_updatePool(poolId);
 		_updateReward(pool, user);
-		_transferReward(user, userAddress); //send to user directly
+		_transferReward(user, userAddress, true);
 		_updateRewardDebt(pool, user);
 	}
 
@@ -359,7 +379,11 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _amount the amount of pool tokens
 	 * @param _user the user address will be used to process a withdrawal (can be passed only by wrapper contract)
 	 */
-	function withdraw(address _poolToken, uint256 _amount, address _user) public {
+	function withdraw(
+		address _poolToken,
+		uint256 _amount,
+		address _user
+	) public {
 		require(poolIdList[_poolToken] != 0, "Pool token not found");
 		address userAddress = _getUserAddress(_user);
 
@@ -370,7 +394,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 		_updatePool(poolId);
 		_updateReward(pool, user);
-		_transferReward(user, userAddress); //send to user directly
+		_transferReward(user, userAddress, false);
 
 		user.amount = user.amount.sub(_amount);
 		pool.poolToken.safeTransfer(address(msg.sender), _amount); //sent to the user or wrapper
@@ -406,10 +430,14 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @notice Send reward in SOV to the lockedSOV vault.
 	 * @param _user The user info, to get its reward share.
 	 * @param _userAddress The address of the user, to send SOV in its behalf.
-	 * */
-	function _transferReward(UserInfo storage _user, address _userAddress) internal {
+	 */
+	function _transferReward(
+		UserInfo storage _user,
+		address _userAddress,
+		bool _isClaimingReward
+	) internal {
 		uint256 userAccumulatedReward = _user.accumulatedReward;
-		
+
 		/// @dev Transfer if enough SOV balance on this LM contract.
 		uint256 balance = SOV.balanceOf(address(this));
 		if (balance >= userAccumulatedReward) {
@@ -421,8 +449,12 @@ contract LiquidityMining is LiquidityMiningStorage {
 			///   SOV deposit must be approved to move the SOV tokens
 			///   from this LM contract into the lockedSOV vault.
 			SOV.approve(address(lockedSOV), userAccumulatedReward);
-			lockedSOV.depositSOV(_userAddress, userAccumulatedReward);
-			
+			lockedSOV.deposit(_userAddress, userAccumulatedReward, basisPoint);
+
+			if (_isClaimingReward) {
+				lockedSOV.withdrawAndStakeTokensFrom(_userAddress);
+			}
+
 			/// @dev Event log.
 			emit RewardClaimed(_userAddress, userAccumulatedReward);
 		}

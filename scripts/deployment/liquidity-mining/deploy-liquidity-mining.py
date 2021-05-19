@@ -52,7 +52,10 @@ def main():
     startDelayBlocks = 10 # ~1 day in blocks (assuming 30s blocks)
     numberOfBonusBlocks = 1 # ~1 day in blocks (assuming 30s blocks)
     wrapper = "0x0000000000000000000000000000000000000000" # can be updated later using setWrapper
-    liquidityMining.initialize(contracts['SOV'], rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address)
+    # The % (in Basis Point) which determines how much will be unlocked immediately.
+    # 10000 is 100%
+    basisPoint = 100 # 1%
+    liquidityMining.initialize(contracts['SOV'], rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address, basisPoint)
 
     # TODO prepare pool tokens list
     poolTokens = [contracts['iDOC'], contracts['iUSDT'], contracts['iRBTC'], contracts['iBPro'], contracts['(WR)BTC/USDT1'], contracts['(WR)BTC/USDT2'], contracts['(WR)BTC/DOC1'], contracts['(WR)BTC/DOC2'], contracts['(WR)BTC/BPRO1'], contracts['(WR)BTC/BPRO2'], contracts['(WR)BTC/SOV']]
@@ -63,6 +66,7 @@ def main():
         print('adding pool', i)
         liquidityMining.add(poolTokens[i], allocationPoints[i], withUpdate)
 
+    liquidityMiningProxy.addAdmin(multisig)
     liquidityMiningProxy.setProxyOwner(multisig)
     liquidityMining.transferOwnership(multisig)
 

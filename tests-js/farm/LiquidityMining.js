@@ -9,7 +9,7 @@ const TestToken = artifacts.require("TestToken");
 const LiquidityMiningLogic = artifacts.require("LiquidityMiningMockup");
 const LiquidityMiningProxy = artifacts.require("LiquidityMiningProxy");
 const TestLockedSOV = artifacts.require("LockedSOVMockup");
-
+const Wrapper = artifacts.require("RBTCWrapperProxyMockup");
 
 describe("LiquidityMining", () => {
 	const name = "Test SOV Token";
@@ -19,7 +19,11 @@ describe("LiquidityMining", () => {
 	const startDelayBlocks = new BN(1);
 	const numberOfBonusBlocks = new BN(50);
 
-	let accounts
+	// The % (in Basis Point) which determines how much will be unlocked immediately.
+	/// @dev 10000 is 100%
+	const basisPoint = new BN(1000); //10%
+
+	let accounts;
 	let root, account1, account2, account3, account4;
 	let SOVToken, token1, token2, token3;
 	let liquidityMining, wrapper;
@@ -35,19 +39,34 @@ describe("LiquidityMining", () => {
 		token1 = await TestToken.new("Test token 1", "TST-1", 18, TOTAL_SUPPLY);
 		token2 = await TestToken.new("Test token 2", "TST-2", 18, TOTAL_SUPPLY);
 		token3 = await TestToken.new("Test token 3", "TST-3", 18, TOTAL_SUPPLY);
-		wrapper = account1;
 		lockedSOVAdmins = [account1, account2];
 
 		lockedSOV = await TestLockedSOV.new(SOVToken.address, lockedSOVAdmins);
 
 		await deployLiquidityMining();
-		await liquidityMining.initialize(SOVToken.address, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address);
+		await liquidityMining.initialize(
+			SOVToken.address,
+			rewardTokensPerBlock,
+			startDelayBlocks,
+			numberOfBonusBlocks,
+			wrapper.address,
+			lockedSOV.address,
+			basisPoint
+		);
 	});
 
 	describe("initialize", () => {
 		it("sets the expected values", async () => {
 			await deployLiquidityMining();
-			let tx = await liquidityMining.initialize(SOVToken.address, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address);
+			let tx = await liquidityMining.initialize(
+				SOVToken.address,
+				rewardTokensPerBlock,
+				startDelayBlocks,
+				numberOfBonusBlocks,
+				wrapper.address,
+				lockedSOV.address,
+				basisPoint
+			);
 
 			let _SOV = await liquidityMining.SOV();
 			let _rewardTokensPerBlock = await liquidityMining.rewardTokensPerBlock();
@@ -61,13 +80,22 @@ describe("LiquidityMining", () => {
 			expect(_rewardTokensPerBlock).bignumber.equal(rewardTokensPerBlock);
 			expect(_startBlock).bignumber.equal(startDelayBlocks.add(blockNumber));
 			expect(_bonusEndBlock).bignumber.equal(startDelayBlocks.add(blockNumber).add(numberOfBonusBlocks));
-			expect(_wrapper).equal(wrapper);
+			expect(_wrapper).equal(wrapper.address);
 		});
 
 		it("fails if not an owner", async () => {
 			await deployLiquidityMining();
 			await expectRevert(
-				liquidityMining.initialize(SOVToken.address, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address, {from: account1}),
+				liquidityMining.initialize(
+					SOVToken.address,
+					rewardTokensPerBlock,
+					startDelayBlocks,
+					numberOfBonusBlocks,
+					wrapper.address,
+					lockedSOV.address,
+					basisPoint,
+					{ from: account1 }
+				),
 				"unauthorized"
 			);
 		});
@@ -75,14 +103,30 @@ describe("LiquidityMining", () => {
 		it("fails if _startBlock = 0", async () => {
 			await deployLiquidityMining();
 			await expectRevert(
-				liquidityMining.initialize(SOVToken.address, rewardTokensPerBlock, 0, numberOfBonusBlocks, wrapper, lockedSOV.address),
+				liquidityMining.initialize(
+					SOVToken.address,
+					rewardTokensPerBlock,
+					0,
+					numberOfBonusBlocks,
+					wrapper.address,
+					lockedSOV.address,
+					basisPoint
+				),
 				"Invalid start block"
 			);
 		});
 
 		it("fails if already initialized", async () => {
 			await expectRevert(
-				liquidityMining.initialize(SOVToken.address, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address),
+				liquidityMining.initialize(
+					SOVToken.address,
+					rewardTokensPerBlock,
+					startDelayBlocks,
+					numberOfBonusBlocks,
+					wrapper.address,
+					lockedSOV.address,
+					basisPoint
+				),
 				"Already initialized"
 			);
 		});
@@ -90,9 +134,104 @@ describe("LiquidityMining", () => {
 		it("fails if the 0 address is passed as token address", async () => {
 			await deployLiquidityMining();
 			await expectRevert(
-				liquidityMining.initialize(ZERO_ADDRESS, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address),
+				liquidityMining.initialize(
+					ZERO_ADDRESS,
+					rewardTokensPerBlock,
+					startDelayBlocks,
+					numberOfBonusBlocks,
+					wrapper.address,
+					lockedSOV.address,
+					basisPoint
+				),
 				"Invalid token address"
 			);
+		});
+
+		it("fails if basisPoint >= 10000", async () => {
+			await deployLiquidityMining();
+			await expectRevert(
+				liquidityMining.initialize(
+					SOVToken.address,
+					rewardTokensPerBlock,
+					startDelayBlocks,
+					numberOfBonusBlocks,
+					wrapper.address,
+					lockedSOV.address,
+					12345
+				),
+				"Basis Point has to be less than 10000."
+			);
+		});
+	});
+
+	describe("addAdmin", () => {
+		it("adds admin", async () => {
+			let tx = await liquidityMining.addAdmin(account1);
+
+			expectEvent(tx, "AdminAdded", {
+				admin: account1,
+			});
+
+			let isAdmin = await liquidityMining.admins(account1);
+			expect(isAdmin).equal(true);
+		});
+
+		it("fails sender isn't an owner", async () => {
+			await expectRevert(liquidityMining.addAdmin(account1, { from: account1 }), "unauthorized");
+		});
+	});
+
+	describe("removeAdmin", () => {
+		it("adds admin", async () => {
+			await liquidityMining.addAdmin(account1);
+			let tx = await liquidityMining.removeAdmin(account1);
+
+			expectEvent(tx, "AdminRemoved", {
+				admin: account1,
+			});
+
+			let isAdmin = await liquidityMining.admins(account1);
+			expect(isAdmin).equal(false);
+		});
+
+		it("fails sender isn't an owner", async () => {
+			await expectRevert(liquidityMining.removeAdmin(account1, { from: account1 }), "unauthorized");
+		});
+	});
+
+	describe("setLockedSOV", () => {
+		it("sets the expected values", async () => {
+			let newLockedSOV = account2;
+			await liquidityMining.setLockedSOV(newLockedSOV);
+
+			let _lockedSOV = await liquidityMining.lockedSOV();
+			expect(_lockedSOV).equal(newLockedSOV);
+		});
+
+		it("fails if not an owner", async () => {
+			await expectRevert(liquidityMining.setLockedSOV(account2, { from: account1 }), "unauthorized");
+		});
+
+		it("fails if zero address passed", async () => {
+			await expectRevert(liquidityMining.setLockedSOV(ZERO_ADDRESS), "Invalid lockedSOV Address.");
+		});
+	});
+
+	describe("setBasisPoint", () => {
+		it("sets the expected values", async () => {
+			let newBasisPoint = new BN(2000);
+			await liquidityMining.setBasisPoint(newBasisPoint);
+
+			let _basisPoint = await liquidityMining.basisPoint();
+			expect(_basisPoint).bignumber.equal(newBasisPoint);
+		});
+
+		it("fails if not an owner", async () => {
+			await expectRevert(liquidityMining.setBasisPoint(1000, { from: account1 }), "unauthorized");
+		});
+
+		it("fails if basisPoint >= 10000", async () => {
+			await expectRevert(liquidityMining.setBasisPoint(100000), "Basis Point has to be less than 10000.");
 		});
 	});
 
@@ -106,10 +245,7 @@ describe("LiquidityMining", () => {
 		});
 
 		it("fails if not an owner", async () => {
-			await expectRevert(
-				liquidityMining.setWrapper(account2, {from: account1}),
-				"unauthorized"
-			);
+			await expectRevert(liquidityMining.setWrapper(account2, { from: account1 }), "unauthorized");
 		});
 	});
 
@@ -123,18 +259,12 @@ describe("LiquidityMining", () => {
 		});
 
 		it("fails if not an owner", async () => {
-			await expectRevert(
-				liquidityMining.stopMining({from: account1}),
-				"unauthorized"
-			);
+			await expectRevert(liquidityMining.stopMining({ from: account1 }), "unauthorized");
 		});
 
 		it("fails if already stopped", async () => {
 			await liquidityMining.stopMining();
-			await expectRevert(
-				liquidityMining.stopMining(),
-				"Already stopped"
-			);
+			await expectRevert(liquidityMining.stopMining(), "Already stopped");
 		});
 	});
 
@@ -162,8 +292,6 @@ describe("LiquidityMining", () => {
 			await expectRevert(liquidityMining.transferSOV(account1, 0), "Amount invalid");
 		});
 	});
-
-	//TODO getMissedBalance
 
 	describe("add", () => {
 		it("should be able to add pool token", async () => {
@@ -255,7 +383,18 @@ describe("LiquidityMining", () => {
 		});
 
 		it("should be able to update pool token and update pools", async () => {
-			//TODO implement
+			let oldAllocationPoint = new BN(1);
+			await liquidityMining.add(token1.address, oldAllocationPoint, false);
+
+			await liquidityMining.add(token2.address, oldAllocationPoint, false);
+
+			let newAllocationPoint = new BN(2);
+			let tx = await liquidityMining.update(token1.address, newAllocationPoint, true);
+
+			expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(oldAllocationPoint.add(newAllocationPoint));
+
+			let poolInfo = await liquidityMining.getPoolInfo(token2.address);
+			expect(poolInfo.lastRewardBlock).bignumber.equal(new BN(tx.receipt.blockNumber));
 		});
 
 		it("fails if token wasn't added", async () => {
@@ -272,11 +411,11 @@ describe("LiquidityMining", () => {
 			await mineBlocks(1);
 
 			await token1.mint(account1, amount);
-			await token1.approve(liquidityMining.address, amount, {from: account1});
+			await token1.approve(liquidityMining.address, amount, { from: account1 });
 		});
 
 		it("should be able to deposit", async () => {
-			let tx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			let tx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
 			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
 			let blockNumber = new BN(tx.receipt.blockNumber);
@@ -292,16 +431,24 @@ describe("LiquidityMining", () => {
 		});
 
 		it("should be able to deposit using wrapper", async () => {
-			//TODO implement
+			let tx = await liquidityMining.deposit(token1.address, amount, account2, { from: account1 });
+
+			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+			let blockNumber = new BN(tx.receipt.blockNumber);
+			checkPoolInfo(poolInfo, token1.address, allocationPoint, blockNumber, new BN(0));
+
+			await checkUserPoolTokens(account2, token1, amount, amount, new BN(0));
+
+			expectEvent(tx, "Deposit", {
+				user: account2,
+				poolToken: token1.address,
+				amount: amount,
+			});
 		});
 
 		it("fails if token pool token not found", async () => {
-			await expectRevert(
-				liquidityMining.deposit(account1, amount, ZERO_ADDRESS, {from: account1}),
-				"Pool token not found"
-			);
+			await expectRevert(liquidityMining.deposit(account1, amount, ZERO_ADDRESS, { from: account1 }), "Pool token not found");
 		});
-
 	});
 
 	describe("claimReward", () => {
@@ -313,13 +460,13 @@ describe("LiquidityMining", () => {
 			await mineBlocks(1);
 
 			await token1.mint(account1, amount);
-			await token1.approve(liquidityMining.address, amount, {from: account1});
+			await token1.approve(liquidityMining.address, amount, { from: account1 });
 		});
 
 		it("should be able to claim reward (will not be claimed without SOV tokens)", async () => {
-			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
-			let tx = await liquidityMining.claimReward(token1.address, ZERO_ADDRESS, {from: account1});
+			let tx = await liquidityMining.claimReward(token1.address, ZERO_ADDRESS, { from: account1 });
 
 			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
 			let blockNumber = new BN(tx.receipt.blockNumber);
@@ -328,17 +475,16 @@ describe("LiquidityMining", () => {
 			await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
 
 			// User's balance of locked reward
-			// let userRewardBalance = await SOVToken.balanceOf(account1);
 			let userRewardBalance = await lockedSOV.getLockedBalance(account1);
 			expect(userRewardBalance).bignumber.equal(new BN(0));
 		});
 
 		it("should be able to claim reward (will be claimed with SOV tokens)", async () => {
-			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 			let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
 			await SOVToken.transfer(liquidityMining.address, new BN(1000));
 
-			let tx = await liquidityMining.claimReward(token1.address, ZERO_ADDRESS, {from: account1});
+			let tx = await liquidityMining.claimReward(token1.address, ZERO_ADDRESS, { from: account1 });
 
 			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
 			let latestBlockNumber = new BN(tx.receipt.blockNumber);
@@ -347,6 +493,12 @@ describe("LiquidityMining", () => {
 			await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
 			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
 
+			//withdrawAndStakeTokensFrom was invoked
+			let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
+			let lockedBalance = await lockedSOV.getLockedBalance(account1);
+			expect(unlockedBalance).bignumber.equal(new BN(0));
+			expect(lockedBalance).bignumber.equal(new BN(0));
+
 			expectEvent(tx, "RewardClaimed", {
 				user: account1,
 				amount: userReward,
@@ -354,13 +506,29 @@ describe("LiquidityMining", () => {
 		});
 
 		it("should be able to claim reward using wrapper", async () => {
-			//TODO implement
+			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+			let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
+			await SOVToken.transfer(liquidityMining.address, new BN(1000));
+
+			let tx = await wrapper.claimReward(token1.address, { from: account1 });
+
+			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+			let latestBlockNumber = new BN(tx.receipt.blockNumber);
+			checkPoolInfo(poolInfo, token1.address, allocationPoint, latestBlockNumber, new BN(-1));
+
+			await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
+			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
+
+			//withdrawAndStakeTokensFrom was invoked
+			let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
+			let lockedBalance = await lockedSOV.getLockedBalance(account1);
+			expect(unlockedBalance).bignumber.equal(new BN(0));
+			expect(lockedBalance).bignumber.equal(new BN(0));
 		});
 
 		it("fails if token pool token not found", async () => {
-			await expectRevert(liquidityMining.claimReward(account1, ZERO_ADDRESS, {from: account1}), "Pool token not found");
+			await expectRevert(liquidityMining.claimReward(account1, ZERO_ADDRESS, { from: account1 }), "Pool token not found");
 		});
-
 	});
 
 	describe("withdraw", () => {
@@ -372,13 +540,13 @@ describe("LiquidityMining", () => {
 			await mineBlocks(1);
 
 			await token1.mint(account1, amount);
-			await token1.approve(liquidityMining.address, amount, {from: account1});
+			await token1.approve(liquidityMining.address, amount, { from: account1 });
 		});
 
 		it("should be able to withdraw (without claiming reward)", async () => {
-			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
-			let tx = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			let tx = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
 			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
 			let blockNumber = new BN(tx.receipt.blockNumber);
@@ -398,11 +566,11 @@ describe("LiquidityMining", () => {
 		});
 
 		it("should be able to withdraw (with claiming reward)", async () => {
-			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 			let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
 			await SOVToken.transfer(liquidityMining.address, new BN(1000));
 
-			let tx = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			let tx = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
 			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
 			let latestBlockNumber = new BN(tx.receipt.blockNumber);
@@ -410,6 +578,14 @@ describe("LiquidityMining", () => {
 
 			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
 			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
+
+			//withdrawAndStakeTokensFrom was not invoked
+			let expectedUnlockedBalance = userReward.mul(basisPoint).div(new BN(10000));
+			let expectedLockedBalance = userReward.sub(expectedUnlockedBalance);
+			let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
+			let lockedBalance = await lockedSOV.getLockedBalance(account1);
+			expect(unlockedBalance).bignumber.equal(expectedUnlockedBalance);
+			expect(lockedBalance).bignumber.equal(expectedLockedBalance);
 
 			expectEvent(tx, "Withdraw", {
 				user: account1,
@@ -424,17 +600,30 @@ describe("LiquidityMining", () => {
 		});
 
 		it("should be able to withdraw using wrapper", async () => {
-			//TODO implement
+			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+			let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
+			await SOVToken.transfer(liquidityMining.address, new BN(1000));
+
+			let tx = await wrapper.withdraw(token1.address, amount, { from: account1 });
+
+			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+			let latestBlockNumber = new BN(tx.receipt.blockNumber);
+			checkPoolInfo(poolInfo, token1.address, allocationPoint, latestBlockNumber, new BN(-1));
+
+			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount, wrapper.address);
+			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
 		});
 
 		it("fails if token pool token not found", async () => {
-			await expectRevert(liquidityMining.withdraw(account1, amount, ZERO_ADDRESS, {from: account1}), "Pool token not found");
+			await expectRevert(liquidityMining.withdraw(account1, amount, ZERO_ADDRESS, { from: account1 }), "Pool token not found");
 		});
 
 		it("fails if token pool token not found", async () => {
-			await expectRevert(liquidityMining.withdraw(token1.address, amount.mul(new BN(2)), ZERO_ADDRESS, {from: account1}), "Not enough balance");
+			await expectRevert(
+				liquidityMining.withdraw(token1.address, amount.mul(new BN(2)), ZERO_ADDRESS, { from: account1 }),
+				"Not enough balance"
+			);
 		});
-
 	});
 
 	describe("emergencyWithdraw", () => {
@@ -446,13 +635,13 @@ describe("LiquidityMining", () => {
 			await mineBlocks(1);
 
 			await token1.mint(account1, amount);
-			await token1.approve(liquidityMining.address, amount, {from: account1});
+			await token1.approve(liquidityMining.address, amount, { from: account1 });
 		});
 
 		it("should be able to withdraw", async () => {
-			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
-			let tx = await liquidityMining.emergencyWithdraw(token1.address, {from: account1});
+			let tx = await liquidityMining.emergencyWithdraw(token1.address, { from: account1 });
 
 			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
 
@@ -468,13 +657,11 @@ describe("LiquidityMining", () => {
 		});
 
 		it("fails if token pool token not found", async () => {
-			await expectRevert(liquidityMining.emergencyWithdraw(account1, {from: account1}), "Pool token not found");
+			await expectRevert(liquidityMining.emergencyWithdraw(account1, { from: account1 }), "Pool token not found");
 		});
-
 	});
 
 	describe("getPassedBlocksWithBonusMultiplier", () => {
-
 		it("check calculation", async () => {
 			let bonusBlockMultiplier = await liquidityMining.BONUS_BLOCK_MULTIPLIER();
 			let startBlock = await liquidityMining.startBlock();
@@ -491,7 +678,10 @@ describe("LiquidityMining", () => {
 
 			//[startBlock, bonusEndBlock + 100]
 			let blocksAfterBonusPeriod = new BN(100);
-			blocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(startBlock, bonusEndBlock.add(new BN(blocksAfterBonusPeriod)));
+			blocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(
+				startBlock,
+				bonusEndBlock.add(new BN(blocksAfterBonusPeriod))
+			);
 			expect(blocks).bignumber.equal(numberOfBonusBlocks.mul(bonusBlockMultiplier).add(blocksAfterBonusPeriod));
 
 			//[startBlock, stopMining, ... bonusEndBlock]
@@ -501,11 +691,9 @@ describe("LiquidityMining", () => {
 			blocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(startBlock, bonusEndBlock);
 			expect(blocks).bignumber.equal(endBlock.sub(startBlock).mul(bonusBlockMultiplier));
 		});
-
 	});
 
 	describe("getUserAccumulatedReward", () => {
-
 		const amount1 = new BN(1000);
 		const amount2 = new BN(2000);
 		const allocationPoint1 = new BN(1);
@@ -521,8 +709,8 @@ describe("LiquidityMining", () => {
 			await token1.mint(account1, amount1);
 			await token2.mint(account2, amount2);
 
-			await token1.approve(liquidityMining.address, amount1, {from: account1});
-			await token2.approve(liquidityMining.address, amount2, {from: account2});
+			await token1.approve(liquidityMining.address, amount1, { from: account1 });
+			await token2.approve(liquidityMining.address, amount2, { from: account2 });
 
 			bonusBlockMultiplier = await liquidityMining.BONUS_BLOCK_MULTIPLIER();
 			bonusEndBlock = await liquidityMining.bonusEndBlock();
@@ -531,13 +719,13 @@ describe("LiquidityMining", () => {
 		it("check calculation for no deposits", async () => {
 			const reward1 = await liquidityMining.getUserAccumulatedReward(token1.address, account1);
 			const reward2 = await liquidityMining.getUserAccumulatedReward(token2.address, account2);
-			expect(reward1).bignumber.equal('0');
-			expect(reward2).bignumber.equal('0');
+			expect(reward1).bignumber.equal("0");
+			expect(reward2).bignumber.equal("0");
 		});
 
 		it("check calculation for single user, token 1, bonus period off", async () => {
 			await advanceBlocks(bonusEndBlock);
-			await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, { from: account1 });
 			await mineBlock();
 			let reward = await liquidityMining.getUserAccumulatedReward(token1.address, account1);
 
@@ -546,17 +734,17 @@ describe("LiquidityMining", () => {
 			// token 1 counts as 1/3 of the pool
 			// reward = 1 * 3 * 1/3 = 1
 			const expectedReward = rewardTokensPerBlock.mul(allocationPoint1).div(totalAllocationPoint);
-			expect(expectedReward).bignumber.equal('1'); // sanity check
+			expect(expectedReward).bignumber.equal("1"); // sanity check
 			expect(reward).bignumber.equal(expectedReward);
 
 			await mineBlock();
 			reward = await liquidityMining.getUserAccumulatedReward(token1.address, account1);
-			expect(reward).bignumber.equal('2');
+			expect(reward).bignumber.equal("2");
 		});
 
 		it("check calculation for single user, token 2, bonus period off", async () => {
 			await advanceBlocks(bonusEndBlock);
-			await liquidityMining.deposit(token2.address, amount2, ZERO_ADDRESS, {from: account2});
+			await liquidityMining.deposit(token2.address, amount2, ZERO_ADDRESS, { from: account2 });
 			await mineBlock();
 			let reward = await liquidityMining.getUserAccumulatedReward(token2.address, account2);
 
@@ -565,16 +753,16 @@ describe("LiquidityMining", () => {
 			// token 2 counts as 2/3 of the pool
 			// reward = 1 * 3 * 2/3 = 2
 			const expectedReward = rewardTokensPerBlock.mul(allocationPoint2).div(totalAllocationPoint);
-			expect(expectedReward).bignumber.equal('2'); // sanity check
+			expect(expectedReward).bignumber.equal("2"); // sanity check
 			expect(reward).bignumber.equal(expectedReward);
 
 			await mineBlock();
 			reward = await liquidityMining.getUserAccumulatedReward(token2.address, account2);
-			expect(reward).bignumber.equal('4');
+			expect(reward).bignumber.equal("4");
 		});
 
 		it("check calculation for single user, token 1, bonus period on", async () => {
-			await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, { from: account1 });
 			await mineBlock();
 			const reward = await liquidityMining.getUserAccumulatedReward(token1.address, account1);
 
@@ -583,12 +771,12 @@ describe("LiquidityMining", () => {
 			// token 1 counts as 1/3 of the pool
 			// reward = 10 * 3 * 1/3 = 10
 			const expectedReward = rewardTokensPerBlock.mul(bonusBlockMultiplier).mul(allocationPoint1).div(totalAllocationPoint);
-			expect(expectedReward).bignumber.equal('10'); // sanity check
+			expect(expectedReward).bignumber.equal("10"); // sanity check
 			expect(reward).bignumber.equal(expectedReward);
 		});
 
 		it("check calculation for single user, token 1, bonus period on, smaller amount", async () => {
-			await liquidityMining.deposit(token1.address, new BN(1), ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token1.address, new BN(1), ZERO_ADDRESS, { from: account1 });
 			await mineBlock();
 			const reward = await liquidityMining.getUserAccumulatedReward(token1.address, account1);
 
@@ -597,11 +785,11 @@ describe("LiquidityMining", () => {
 			// token 1 counts as 1/3 of the pool
 			// reward = 10 * 3 * 1/3 = 10
 			// Note that the actual amount deposited plays no role here
-			expect(reward).bignumber.equal('10');
+			expect(reward).bignumber.equal("10");
 		});
 
 		it("check calculation for single user, token 2, bonus period on", async () => {
-			await liquidityMining.deposit(token2.address, amount2, ZERO_ADDRESS, {from: account2});
+			await liquidityMining.deposit(token2.address, amount2, ZERO_ADDRESS, { from: account2 });
 			await mineBlock();
 			const reward = await liquidityMining.getUserAccumulatedReward(token2.address, account2);
 
@@ -610,17 +798,17 @@ describe("LiquidityMining", () => {
 			// token 2 counts as 2/3 of the pool
 			// reward = 10 * 3 * 2/3 = 20
 			const expectedReward = rewardTokensPerBlock.mul(bonusBlockMultiplier).mul(allocationPoint2).div(totalAllocationPoint);
-			expect(expectedReward).bignumber.equal('20'); // sanity check
+			expect(expectedReward).bignumber.equal("20"); // sanity check
 			expect(reward).bignumber.equal(expectedReward);
 		});
 
 		it("check calculation for two users and tokens", async () => {
-			await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, { from: account1 });
 			// because automining is on, the following will advance a block
-			await liquidityMining.deposit(token2.address, amount2, ZERO_ADDRESS, {from: account2});
+			await liquidityMining.deposit(token2.address, amount2, ZERO_ADDRESS, { from: account2 });
 			// sanity checks
-			expect(await liquidityMining.getUserAccumulatedReward(token1.address, account1)).bignumber.equal('10');
-			expect(await liquidityMining.getUserAccumulatedReward(token2.address, account2)).bignumber.equal('0');
+			expect(await liquidityMining.getUserAccumulatedReward(token1.address, account1)).bignumber.equal("10");
+			expect(await liquidityMining.getUserAccumulatedReward(token2.address, account2)).bignumber.equal("0");
 			await mineBlock();
 
 			const reward1 = await liquidityMining.getUserAccumulatedReward(token1.address, account1);
@@ -630,22 +818,22 @@ describe("LiquidityMining", () => {
 			// for the second block:
 			// - user 1 still owns 100% of the shares for token1, so same reward (total 10 + 10 = 20)
 			// - user 2 owns 100% of the shares for token2, so same reward as in the other cases
-			expect(reward1).bignumber.equal('20');
-			expect(reward2).bignumber.equal('20');
+			expect(reward1).bignumber.equal("20");
+			expect(reward2).bignumber.equal("20");
 		});
 
 		it("check calculation for two users, same token (shares taken into account)", async () => {
 			const token = token1;
 			const amount = amount1;
 			await token.mint(account2, amount);
-			await token.approve(liquidityMining.address, amount, {from: account2});
+			await token.approve(liquidityMining.address, amount, { from: account2 });
 
-			await liquidityMining.deposit(token.address, amount, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token.address, amount, ZERO_ADDRESS, { from: account1 });
 			// because automining is on, the following will advance a block
-			await liquidityMining.deposit(token.address, amount, ZERO_ADDRESS, {from: account2});
+			await liquidityMining.deposit(token.address, amount, ZERO_ADDRESS, { from: account2 });
 			// sanity checks
-			expect(await liquidityMining.getUserAccumulatedReward(token.address, account1)).bignumber.equal('10');
-			expect(await liquidityMining.getUserAccumulatedReward(token.address, account2)).bignumber.equal('0');
+			expect(await liquidityMining.getUserAccumulatedReward(token.address, account1)).bignumber.equal("10");
+			expect(await liquidityMining.getUserAccumulatedReward(token.address, account2)).bignumber.equal("0");
 			await mineBlock();
 
 			const reward1 = await liquidityMining.getUserAccumulatedReward(token.address, account1);
@@ -655,13 +843,12 @@ describe("LiquidityMining", () => {
 			// for the second block:
 			// - user 1 owns 1/2 of the shares => expected reward = 5 (total 10 + 5 = 15)
 			// - user 2 owns 1/2 of the shares => expected reward = 5
-			expect(reward1).bignumber.equal('15');
-			expect(reward2).bignumber.equal('5');
+			expect(reward1).bignumber.equal("15");
+			expect(reward2).bignumber.equal("5");
 		});
 	});
 
 	describe("getEstimatedReward", () => {
-
 		const amount1 = new BN(1000);
 		const amount2 = new BN(2000);
 		const amount3 = new BN(4000);
@@ -680,8 +867,8 @@ describe("LiquidityMining", () => {
 			await token1.mint(account2, amount2);
 			await token1.mint(account3, amount3);
 
-			await token1.approve(liquidityMining.address, amount1, {from: account1});
-			await token1.approve(liquidityMining.address, amount2, {from: account2});
+			await token1.approve(liquidityMining.address, amount1, { from: account1 });
+			await token1.approve(liquidityMining.address, amount2, { from: account2 });
 
 			bonusBlockMultiplier = await liquidityMining.BONUS_BLOCK_MULTIPLIER();
 			bonusEndBlock = await liquidityMining.bonusEndBlock();
@@ -721,8 +908,8 @@ describe("LiquidityMining", () => {
 			let blocks = new BN(100);
 			let duration = secondsPerBlock.mul(blocks);
 
-			await token1.approve(liquidityMining.address, amount1, {from: account1});
-			await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, {from: account1});
+			await token1.approve(liquidityMining.address, amount1, { from: account1 });
+			await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, { from: account1 });
 
 			let estimatedReward = await liquidityMining.getEstimatedReward(token1.address, amount3, duration);
 			let expectedReward = rewardTokensPerBlock.mul(blocks);
@@ -739,10 +926,10 @@ describe("LiquidityMining", () => {
 			let blocks = new BN(1000);
 			let duration = secondsPerBlock.mul(blocks);
 
-			await token1.approve(liquidityMining.address, amount1, {from: account1});
-			await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, {from: account1});
-			await token1.approve(liquidityMining.address, amount2, {from: account2});
-			await liquidityMining.deposit(token1.address, amount2, ZERO_ADDRESS, {from: account2});
+			await token1.approve(liquidityMining.address, amount1, { from: account1 });
+			await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, { from: account1 });
+			await token1.approve(liquidityMining.address, amount2, { from: account2 });
+			await liquidityMining.deposit(token1.address, amount2, ZERO_ADDRESS, { from: account2 });
 
 			let estimatedReward = await liquidityMining.getEstimatedReward(token1.address, amount3, duration);
 			let expectedReward = rewardTokensPerBlock.mul(blocks);
@@ -761,7 +948,7 @@ describe("LiquidityMining", () => {
 			for (let token of [token1, token2]) {
 				for (let account of [account1, account2]) {
 					await token.mint(account, amount);
-					await token.approve(liquidityMining.address, amount, {from: account});
+					await token.approve(liquidityMining.address, amount, { from: account });
 				}
 			}
 
@@ -773,8 +960,8 @@ describe("LiquidityMining", () => {
 			await liquidityMining.add(token1.address, allocationPoint, false); //weight 1/1
 			await liquidityMining.add(token2.address, allocationPoint, false); //weight 1/2
 
-			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
-			await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, {from: account1}); // 1 block passed
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+			await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, { from: account1 }); // 1 block passed
 
 			// await liquidityMining.update(token1.address, allocationPoint.mul(new BN(2)), true); //weight 2/3
 			await liquidityMining.updateAllPools(); // 2 blocks passed from first deposit
@@ -786,35 +973,37 @@ describe("LiquidityMining", () => {
 
 			const poolInfo1 = await liquidityMining.getPoolInfo(token1.address);
 			expect(poolInfo1.poolToken).equal(token1.address);
-			expect(poolInfo1.allocationPoint).equal('1');
+			expect(poolInfo1.allocationPoint).equal("1");
 			expect(poolInfo1.lastRewardBlock).equal(currentBlockNumber.toString());
 			// token1 deposit has been there for 2 blocks because of automining
 			expect(poolInfo1.accumulatedRewardPerShare).equal(expectedAccumulatedRewardPerBlock.mul(new BN(2)).toString());
 
 			const poolInfo2 = await liquidityMining.getPoolInfo(token2.address);
 			expect(poolInfo2.poolToken).equal(token2.address);
-			expect(poolInfo2.allocationPoint).equal('1');
+			expect(poolInfo2.allocationPoint).equal("1");
 			expect(poolInfo1.lastRewardBlock).equal(currentBlockNumber.toString());
 			// token2 deposit has been there for only 1 block
 			expect(poolInfo2.accumulatedRewardPerShare).equal(expectedAccumulatedRewardPerBlock.toString());
 		});
 
 		// tricky case 1
-		it('add(pool1), add(pool2), deposit(user1, pool1), update(pool1), withdraw(user1, pool1)', async () => {
+		it("add(pool1), add(pool2), deposit(user1, pool1), update(pool1), withdraw(user1, pool1)", async () => {
 			await liquidityMining.add(token1.address, allocationPoint, false); //weight 1/1
 			await liquidityMining.add(token2.address, allocationPoint, false); //weight 1/2
 
-			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
-			await liquidityMining.update(token1.address, new BN('2'), false); // 1 block passed, new weight 2/3
-			const tx = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, {from: account1}); // 2 blocks passed
+			await liquidityMining.update(token1.address, new BN("2"), false); // 1 block passed, new weight 2/3
+			const tx = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, { from: account1 }); // 2 blocks passed
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const rewardAmount = await lockedSOV.getLockedBalance(account1);
+			const lockedAmount = await lockedSOV.getLockedBalance(account1);
+			const unlockedAmount = await lockedSOV.getUnlockedBalance(account1);
+			const rewardAmount = lockedAmount.add(unlockedAmount);
 
 			// reward per block 30 (because of bonus period), 1 block with weight 1/2 = 15, 1 block with weight 2/3 = 20
-			const expectedRewardAmount = new BN('35');
+			const expectedRewardAmount = new BN("35");
 			expect(rewardAmount).bignumber.equal(expectedRewardAmount);
 
 			await checkUserPoolTokens(
@@ -838,35 +1027,39 @@ describe("LiquidityMining", () => {
 		});
 
 		// tricky case 2
-		it('add(pool1), deposit(user1, pool1), deposit(user2, pool1), withdraw(user1, pool1), withdraw(user2, pool1)', async () => {
-
+		it("add(pool1), deposit(user1, pool1), deposit(user2, pool1), withdraw(user1, pool1), withdraw(user2, pool1)", async () => {
 			await liquidityMining.add(token1.address, allocationPoint, false); //weight 1/1
 
 			// deposit 1: 0 blocks, deposit 2: 0 blocks
-			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
 			// deposit 1: 1 blocks (100% shares), deposit 2: 0 blocks
 			await mineBlock();
 
 			// deposit 1: 2 blocks (100% shares), deposit 2: 0 blocks
-			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account2});
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account2 });
 
 			// deposit 1: 3 blocks (50% shares), deposit 2: 1 blocks (50% shares)
-			const withdrawTx1 = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, {from: account1})
+			const withdrawTx1 = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
 			// deposit 1: 3 blocks (withdrawn), deposit 2: 2 blocks (100% shares)
-			const withdrawTx2 = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, {from: account2})
+			const withdrawTx2 = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, { from: account2 });
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const reward1 = await lockedSOV.getLockedBalance(account1);
-			const reward2 = await lockedSOV.getLockedBalance(account2);
+			const lockedAmount1 = await lockedSOV.getLockedBalance(account1);
+			const unlockedAmount1 = await lockedSOV.getUnlockedBalance(account1);
+			const reward1 = lockedAmount1.add(unlockedAmount1);
+
+			const lockedAmount2 = await lockedSOV.getLockedBalance(account2);
+			const unlockedAmount2 = await lockedSOV.getUnlockedBalance(account2);
+			const reward2 = lockedAmount2.add(unlockedAmount2);
 
 			// reward per block 30 (because of bonus period), 2 block with 100% shares = 60, 1 block with 50% shares = 15
-			const expectedReward1 = new BN('75');
+			const expectedReward1 = new BN("75");
 
 			// reward per block 30 (because of bonus period), 1 block with 50% shares = 15, 1 block with 100% shares = 30
-			const expectedReward2 = new BN('45');
+			const expectedReward2 = new BN("45");
 
 			expect(reward1).bignumber.equal(expectedReward1);
 			expect(reward2).bignumber.equal(expectedReward2);
@@ -907,26 +1100,28 @@ describe("LiquidityMining", () => {
 		});
 
 		// tricky case 3a
-		it('add(pool1), deposit(user1, pool1), add(pool2, no update), withdraw(user1, pool1)', async () => {
+		it("add(pool1), deposit(user1, pool1), add(pool2, no update), withdraw(user1, pool1)", async () => {
 			await liquidityMining.add(token1.address, allocationPoint, false); //weight 1/1
 
 			// deposit: 0 blocks
-			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
 			// deposit: 1 blocks, note: pool1 is NOT updated
 			await liquidityMining.add(token2.address, new BN(2), false); // new weight: 1/3
 
 			// deposit: 2 blocks
-			await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const rewardAmount = await lockedSOV.getLockedBalance(account1);
+			const lockedAmount = await lockedSOV.getLockedBalance(account1);
+			const unlockedAmount = await lockedSOV.getUnlockedBalance(account1);
+			const rewardAmount = lockedAmount.add(unlockedAmount);
 
 			// reward per block 30 (because of bonus period),
 			// because add was called without updating the pool, the new weight is used for all blocks
 			// so 2 blocks with weight 1/3 = 20
-			const expectedRewardAmount = new BN('20');
+			const expectedRewardAmount = new BN("20");
 			expect(rewardAmount).bignumber.equal(expectedRewardAmount);
 
 			await checkUserPoolTokens(
@@ -939,26 +1134,28 @@ describe("LiquidityMining", () => {
 		});
 
 		// tricky case 3b
-		it('add(pool1), deposit(user1, pool1), add(pool2, update), withdraw(user1, pool1)', async () => {
+		it("add(pool1), deposit(user1, pool1), add(pool2, update), withdraw(user1, pool1)", async () => {
 			await liquidityMining.add(token1.address, allocationPoint, false); //weight 1/1
 
 			// deposit: 0 blocks
-			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
 			// deposit: 1 blocks, note: pool1 IS updated
 			await liquidityMining.add(token2.address, new BN(2), true); // new weight: 1/3
 
 			// deposit: 2 blocks
-			await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const rewardAmount = await lockedSOV.getLockedBalance(account1);
+			const lockedAmount = await lockedSOV.getLockedBalance(account1);
+			const unlockedAmount = await lockedSOV.getUnlockedBalance(account1);
+			const rewardAmount = lockedAmount.add(unlockedAmount);
 
 			// reward per block 30 (because of bonus period),
 			// because add was called WITH updating the pools, old weight is for 1 block and new weight is for 1 block
 			// so 1 block with weight 1/1 = 30 and 1 block with weight 1/3 = 10
-			const expectedRewardAmount = new BN('40');
+			const expectedRewardAmount = new BN("40");
 			expect(rewardAmount).bignumber.equal(expectedRewardAmount);
 
 			await checkUserPoolTokens(
@@ -971,36 +1168,40 @@ describe("LiquidityMining", () => {
 		});
 
 		// tricky case 4
-		it('add(pool1), deposit(user1, pool1), add(pool2), deposit(user2, pool2), withdraw(user1, pool1), withdraw(user2, pool2)', async () => {
-
+		it("add(pool1), deposit(user1, pool1), add(pool2), deposit(user2, pool2), withdraw(user1, pool1), withdraw(user2, pool2)", async () => {
 			await liquidityMining.add(token1.address, allocationPoint, false); //weight 1/1
 
 			// deposit 1: 0 blocks, deposit 2: 0 blocks
-			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
 			// deposit 1: 1 blocks (weight 1/1), deposit 2: 0 blocks. pool is updated
 			await liquidityMining.add(token2.address, allocationPoint, true); //weight 1/2
 
 			// deposit 1: 2 blocks (weight 1/2), deposit 2: 0 blocks
-			await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, {from: account2});
+			await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, { from: account2 });
 
 			// deposit 1: 3 blocks (weight 1/2), deposit 2: 1 blocks (weight 1/2)
-			const withdrawTx1 = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, {from: account1})
+			const withdrawTx1 = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
 			// deposit 1: 3 blocks (withdrawn), deposit 2: 2 blocks (weight 1/2)
-			const withdrawTx2 = await liquidityMining.withdraw(token2.address, amount, ZERO_ADDRESS, {from: account2})
+			const withdrawTx2 = await liquidityMining.withdraw(token2.address, amount, ZERO_ADDRESS, { from: account2 });
 
 			await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
 
-			const reward1 = await lockedSOV.getLockedBalance(account1);
-			const reward2 = await lockedSOV.getLockedBalance(account2);
+			const lockedAmount1 = await lockedSOV.getLockedBalance(account1);
+			const unlockedAmount1 = await lockedSOV.getUnlockedBalance(account1);
+			const reward1 = lockedAmount1.add(unlockedAmount1);
+
+			const lockedAmount2 = await lockedSOV.getLockedBalance(account2);
+			const unlockedAmount2 = await lockedSOV.getUnlockedBalance(account2);
+			const reward2 = lockedAmount2.add(unlockedAmount2);
 
 			// reward per block 30 (because of bonus period)
 			// deposit 1 has 1 block with weight 1/1 (30) and 2 blocks with weight 1/2 (15*2 = 30)
-			const expectedReward1 = new BN('60');
+			const expectedReward1 = new BN("60");
 
 			// deposit 2 has 2 blocks with weight 1/2 (15 * 2 = 30)
-			const expectedReward2 = new BN('30');
+			const expectedReward2 = new BN("30");
 
 			expect(reward1).bignumber.equal(expectedReward1);
 			expect(reward2).bignumber.equal(expectedReward2);
@@ -1044,58 +1245,58 @@ describe("LiquidityMining", () => {
 
 		beforeEach(async () => {
 			await token1.mint(account1, amount);
-			await token1.approve(liquidityMining.address, amount, {from: account1});
+			await token1.approve(liquidityMining.address, amount, { from: account1 });
 			await liquidityMining.add(token1.address, allocationPoint, false);
 		});
 
-		it('PRECISION', async () => {
+		it("PRECISION", async () => {
 			expect(await liquidityMining.PRECISION()).bignumber.equal(new BN(1e12));
 		});
 
-		it('BONUS_BLOCK_MULTIPLIER', async () => {
-			expect(await liquidityMining.BONUS_BLOCK_MULTIPLIER()).bignumber.equal('10');
+		it("BONUS_BLOCK_MULTIPLIER", async () => {
+			expect(await liquidityMining.BONUS_BLOCK_MULTIPLIER()).bignumber.equal("10");
 		});
 
-		it('SVR', async () => {
+		it("SVR", async () => {
 			expect(await liquidityMining.SOV()).equal(SOVToken.address);
 		});
 
-		it('rewardTokensPerBlock', async () => {
+		it("rewardTokensPerBlock", async () => {
 			expect(await liquidityMining.rewardTokensPerBlock()).bignumber.equal(rewardTokensPerBlock);
 		});
 
-		it('startBlock', async () => {
-			expect(await liquidityMining.startBlock()).bignumber.gt('0');
+		it("startBlock", async () => {
+			expect(await liquidityMining.startBlock()).bignumber.gt("0");
 		});
 
-		it('bonusEndBlock', async () => {
-			const startBlock = await liquidityMining.startBlock()
+		it("bonusEndBlock", async () => {
+			const startBlock = await liquidityMining.startBlock();
 			expect(await liquidityMining.bonusEndBlock()).bignumber.equal(startBlock.add(numberOfBonusBlocks));
 		});
 
-		it('endBlock', async () => {
-			expect(await liquidityMining.endBlock()).bignumber.equal('0');
+		it("endBlock", async () => {
+			expect(await liquidityMining.endBlock()).bignumber.equal("0");
 		});
 
-		it('wrapper', async () => {
-			expect(await liquidityMining.wrapper()).equal(wrapper);
+		it("wrapper", async () => {
+			expect(await liquidityMining.wrapper()).equal(wrapper.address);
 		});
 
-		it('totalAllocationPoint', async () => {
+		it("totalAllocationPoint", async () => {
 			expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(allocationPoint);
 			await liquidityMining.add(token2.address, allocationPoint, false);
 			expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(allocationPoint.mul(new BN(2)));
 		});
 
-		it('totalUsersBalance', async () => {
-			expect(await liquidityMining.totalUsersBalance()).bignumber.equal('0');
+		it("totalUsersBalance", async () => {
+			expect(await liquidityMining.totalUsersBalance()).bignumber.equal("0");
 
 			await liquidityMining.updateAllPools();
-			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
-			expect(await liquidityMining.totalUsersBalance()).bignumber.equal('0');
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+			expect(await liquidityMining.totalUsersBalance()).bignumber.equal("0");
 
 			await liquidityMining.updateAllPools();
-			expect(await liquidityMining.totalUsersBalance()).bignumber.equal('30');
+			expect(await liquidityMining.totalUsersBalance()).bignumber.equal("30");
 		});
 
 		// could still test these, but I don't see much point:
@@ -1103,120 +1304,114 @@ describe("LiquidityMining", () => {
 		// mapping(address => uint256) poolIdList;
 		// mapping(uint256 => mapping(address => UserInfo)) public userInfoMap;
 
-		it('getMissedBalance', async () => {
+		it("getMissedBalance", async () => {
 			let missedBalance = await liquidityMining.getMissedBalance();
-			expect(missedBalance).bignumber.equal('0');
+			expect(missedBalance).bignumber.equal("0");
 
-			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 			await liquidityMining.updatePool(token1.address);
 
 			missedBalance = await liquidityMining.getMissedBalance();
-			expect(missedBalance).bignumber.equal('30');
+			expect(missedBalance).bignumber.equal("30");
 		});
 
-		it('getUserAccumulatedReward', async () => {
+		it("getUserAccumulatedReward", async () => {
 			// real tests are elsewhere in this file
-			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 			await mineBlock();
 			const reward1 = await liquidityMining.getUserAccumulatedReward(token1.address, account1);
 			const reward2 = await liquidityMining.getUserAccumulatedReward(token1.address, account2);
-			expect(reward1).bignumber.equal('30');
-			expect(reward2).bignumber.equal('0');
+			expect(reward1).bignumber.equal("30");
+			expect(reward2).bignumber.equal("0");
 		});
 
-		it('getPoolId', async () => {
+		it("getPoolId", async () => {
 			const poolId = await liquidityMining.getPoolId(token1.address);
-			expect(poolId).bignumber.equal('0');
-			await expectRevert(
-				liquidityMining.getPoolId(token2.address),
-				"Pool token not found"
-			);
+			expect(poolId).bignumber.equal("0");
+			await expectRevert(liquidityMining.getPoolId(token2.address), "Pool token not found");
 			await liquidityMining.add(token2.address, allocationPoint, false);
 			const poolId2 = await liquidityMining.getPoolId(token2.address);
-			expect(poolId2).bignumber.equal('1');
+			expect(poolId2).bignumber.equal("1");
 		});
 
-		it('getPoolLength', async () => {
+		it("getPoolLength", async () => {
 			let length = await liquidityMining.getPoolLength();
-			expect(length).bignumber.equal('1');
+			expect(length).bignumber.equal("1");
 
 			await liquidityMining.add(token2.address, allocationPoint, false);
 			length = await liquidityMining.getPoolLength();
-			expect(length).bignumber.equal('2');
+			expect(length).bignumber.equal("2");
 		});
 
-		it('getPoolInfoList', async () => {
+		it("getPoolInfoList", async () => {
 			const infoList = await liquidityMining.getPoolInfoList();
-			expect(infoList).to.be.an('array');
+			expect(infoList).to.be.an("array");
 			expect(infoList.length).equal(1);
 			const info = infoList[0];
 			expect(info.poolToken).equal(token1.address);
 			expect(info.allocationPoint).equal(allocationPoint.toString());
-			expect(info.accumulatedRewardPerShare).equal('0');
+			expect(info.accumulatedRewardPerShare).equal("0");
 			expect(info.lastRewardBlock).equal((await web3.eth.getBlockNumber()).toString());
 		});
 
-		it('getPoolInfo', async () => {
+		it("getPoolInfo", async () => {
 			const info = await liquidityMining.getPoolInfo(token1.address);
 			expect(info.poolToken).equal(token1.address);
 			expect(info.allocationPoint).equal(allocationPoint.toString());
-			expect(info.accumulatedRewardPerShare).equal('0');
+			expect(info.accumulatedRewardPerShare).equal("0");
 			expect(info.lastRewardBlock).equal((await web3.eth.getBlockNumber()).toString());
 
-			await expectRevert(
-				liquidityMining.getPoolInfo(token2.address),
-				"Pool token not found"
-			);
+			await expectRevert(liquidityMining.getPoolInfo(token2.address), "Pool token not found");
 		});
 
-		it('getUserBalanceList', async () => {
-			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {from: account1});
+		it("getUserBalanceList", async () => {
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 			await mineBlock();
 			const balanceList = await liquidityMining.getUserBalanceList(account1);
 
-			expect(balanceList).to.be.an('array');
+			expect(balanceList).to.be.an("array");
 			expect(balanceList.length).equal(1);
 			const balanceData = balanceList[0];
-			expect(balanceData).to.be.an('array');
+			expect(balanceData).to.be.an("array");
 			expect(balanceData[0]).bignumber.equal(amount);
-			expect(balanceData[1]).bignumber.equal('30');
+			expect(balanceData[1]).bignumber.equal("30");
 		});
 
-		it('getUserInfo', async () => {
-			await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, {from: account1});
+		it("getUserInfo", async () => {
+			await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, { from: account1 });
 
 			let userInfo = await liquidityMining.getUserInfo(token1.address, account1);
-			expect(userInfo.amount).bignumber.equal('500');
-			expect(userInfo.accumulatedReward).bignumber.equal('0'); // XXX: not yet updated -- funny?
-			expect(userInfo.rewardDebt).bignumber.equal('0'); // not yet updated either
+			expect(userInfo.amount).bignumber.equal("500");
+			expect(userInfo.accumulatedReward).bignumber.equal("0"); // XXX: not yet updated -- funny?
+			expect(userInfo.rewardDebt).bignumber.equal("0"); // not yet updated either
 
 			// deposit updates it.
-			await liquidityMining.deposit(token1.address, new BN(1), ZERO_ADDRESS, {from: account1});
+			await liquidityMining.deposit(token1.address, new BN(1), ZERO_ADDRESS, { from: account1 });
 			userInfo = await liquidityMining.getUserInfo(token1.address, account1);
-			expect(userInfo.amount).bignumber.equal('501');
-			expect(userInfo.accumulatedReward).bignumber.equal('30');
-			expect(userInfo.rewardDebt).bignumber.equal('30');
+			expect(userInfo.amount).bignumber.equal("501");
+			expect(userInfo.accumulatedReward).bignumber.equal("30");
+			expect(userInfo.rewardDebt).bignumber.equal("30");
 		});
 
-		it('getUserInfoList', async () => {
-			await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, {from: account1});
+		it("getUserInfoList", async () => {
+			await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, { from: account1 });
 
 			let userInfoList = await liquidityMining.getUserInfoList(account1);
-			expect(userInfoList).to.be.an('array');
+			expect(userInfoList).to.be.an("array");
 			expect(userInfoList.length).equal(1);
 			const userInfo = userInfoList[0];
-			expect(userInfo.amount).bignumber.equal('500');
-			expect(userInfo.accumulatedReward).bignumber.equal('0');
-			expect(userInfo.rewardDebt).bignumber.equal('0');
+			expect(userInfo.amount).bignumber.equal("500");
+			expect(userInfo.accumulatedReward).bignumber.equal("0");
+			expect(userInfo.rewardDebt).bignumber.equal("0");
 		});
 
-		it('getUserAccumulatedRewardList', async () => {
-			await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, {from: account1});
+		it("getUserAccumulatedRewardList", async () => {
+			await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, { from: account1 });
 
 			let rewardList = await liquidityMining.getUserAccumulatedRewardList(account1);
-			expect(rewardList).to.be.an('array');
+			expect(rewardList).to.be.an("array");
 			expect(rewardList.length).equal(1);
-			expect(rewardList[0]).bignumber.equal('0');
+			expect(rewardList[0]).bignumber.equal("0");
 		});
 	});
 
@@ -1225,6 +1420,8 @@ describe("LiquidityMining", () => {
 		let liquidityMiningProxy = await LiquidityMiningProxy.new();
 		await liquidityMiningProxy.setImplementation(liquidityMiningLogic.address);
 		liquidityMining = await LiquidityMiningLogic.at(liquidityMiningProxy.address);
+
+		wrapper = await Wrapper.new(liquidityMining.address);
 	}
 
 	async function mineBlocks(blocks) {
@@ -1242,7 +1439,7 @@ describe("LiquidityMining", () => {
 		}
 	}
 
-	async function checkUserPoolTokens(user, poolToken, _userAmount, _liquidityMiningBalance, _userBalance) {
+	async function checkUserPoolTokens(user, poolToken, _userAmount, _liquidityMiningBalance, _userBalance, wrapper) {
 		//user balance in pool
 		let userInfo = await liquidityMining.getUserInfo(poolToken.address, user);
 		expect(userInfo.amount).bignumber.equal(_userAmount);
@@ -1251,6 +1448,9 @@ describe("LiquidityMining", () => {
 		expect(liquidityMiningBalance).bignumber.equal(_liquidityMiningBalance);
 		//user's balance of pool tokens
 		let userBalance = await poolToken.balanceOf(user);
+		if (wrapper !== undefined) {
+			userBalance = await poolToken.balanceOf(wrapper);
+		}
 		expect(userBalance).bignumber.equal(_userBalance);
 	}
 
@@ -1258,9 +1458,6 @@ describe("LiquidityMining", () => {
 	async function checkUserReward(user, poolToken, depositBlockNumber, latestBlockNumber) {
 		let passedBlocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(depositBlockNumber, latestBlockNumber);
 		let userReward = passedBlocks.mul(rewardTokensPerBlock);
-		// let userRewardBalance = await SOVToken.balanceOf(user);
-		let userRewardBalance = await lockedSOV.getLockedBalance(user);
-		expect(userRewardBalance).bignumber.equal(userReward);
 		let userInfo = await liquidityMining.getUserInfo(poolToken.address, user);
 		expect(userInfo.accumulatedReward).bignumber.equal(new BN(0));
 		return userReward;
