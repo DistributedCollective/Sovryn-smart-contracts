@@ -567,7 +567,7 @@ describe("LiquidityMining", () => {
 			let latestBlockNumber = new BN(tx.receipt.blockNumber);
 			checkPoolInfo(poolInfo, token1.address, allocationPoint, latestBlockNumber, new BN(-1));
 
-			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
+			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount, wrapper.address);
 			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
 		});
 
@@ -1396,7 +1396,7 @@ describe("LiquidityMining", () => {
 		}
 	}
 
-	async function checkUserPoolTokens(user, poolToken, _userAmount, _liquidityMiningBalance, _userBalance) {
+	async function checkUserPoolTokens(user, poolToken, _userAmount, _liquidityMiningBalance, _userBalance, wrapper) {
 		//user balance in pool
 		let userInfo = await liquidityMining.getUserInfo(poolToken.address, user);
 		expect(userInfo.amount).bignumber.equal(_userAmount);
@@ -1405,6 +1405,9 @@ describe("LiquidityMining", () => {
 		expect(liquidityMiningBalance).bignumber.equal(_liquidityMiningBalance);
 		//user's balance of pool tokens
 		let userBalance = await poolToken.balanceOf(user);
+		if (wrapper !== undefined) {
+			userBalance = await poolToken.balanceOf(wrapper);
+		}
 		expect(userBalance).bignumber.equal(_userBalance);
 	}
 
