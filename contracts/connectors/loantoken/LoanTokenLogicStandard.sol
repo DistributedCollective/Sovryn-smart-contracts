@@ -212,7 +212,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		require(withdrawAmount != 0, "6");
 
 		_checkPause();
-		_checkNotInTheSameBlock();
 
 		/// Temporary: limit transaction size.
 		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
@@ -317,7 +316,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		)
 	{
 		_checkPause();
-		_checkNotInTheSameBlock();
 
 		if (collateralTokenAddress == address(0)) {
 			collateralTokenAddress = wrbtcTokenAddress;
@@ -1393,7 +1391,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * need to prevent lending and withdrawing from the pools in the same
 	 * tx/block by the same account.
 	 * */
-	function _checkNotInTheSameBlock() internal view {
+	function _checkNotInTheSameBlock() internal {
 		uint256 _currentBlock;
 
 		/// @dev Get and buffer current block.
@@ -1401,7 +1399,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 		/// @dev Check there are no previous txs in this block coming from same account.
 		require(!hasInteracted[_currentBlock][msg.sender], "Avoiding flash loan attack: several txs in same block from same account.");
-		
+
 		/// @dev Update previous activity mapping.
 		hasInteracted[_currentBlock][msg.sender] = true;
 	}
