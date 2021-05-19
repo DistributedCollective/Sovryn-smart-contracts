@@ -83,7 +83,7 @@ describe("LiquidityMining", () => {
 			expect(_wrapper).equal(wrapper.address);
 		});
 
-		it("fails if not an owner", async () => {
+		it("fails if not an owner or an admin", async () => {
 			await deployLiquidityMining();
 			await expectRevert(
 				liquidityMining.initialize(
@@ -97,6 +97,18 @@ describe("LiquidityMining", () => {
 					{ from: account1 }
 				),
 				"unauthorized"
+			);
+
+			await liquidityMining.addAdmin(account1);
+			await liquidityMining.initialize(
+				SOVToken.address,
+				rewardTokensPerBlock,
+				startDelayBlocks,
+				numberOfBonusBlocks,
+				wrapper.address,
+				lockedSOV.address,
+				basisPoint,
+				{ from: account1 }
 			);
 		});
 
@@ -208,8 +220,11 @@ describe("LiquidityMining", () => {
 			expect(_lockedSOV).equal(newLockedSOV);
 		});
 
-		it("fails if not an owner", async () => {
+		it("fails if not an owner and an admin", async () => {
 			await expectRevert(liquidityMining.setLockedSOV(account2, { from: account1 }), "unauthorized");
+
+			await liquidityMining.addAdmin(account1);
+			await liquidityMining.setLockedSOV(account2, { from: account1 });
 		});
 
 		it("fails if zero address passed", async () => {
@@ -226,8 +241,11 @@ describe("LiquidityMining", () => {
 			expect(_basisPoint).bignumber.equal(newBasisPoint);
 		});
 
-		it("fails if not an owner", async () => {
+		it("fails if not an owner or an admin", async () => {
 			await expectRevert(liquidityMining.setBasisPoint(1000, { from: account1 }), "unauthorized");
+
+			await liquidityMining.addAdmin(account1);
+			await liquidityMining.setBasisPoint(1000, { from: account1 });
 		});
 
 		it("fails if basisPoint >= 10000", async () => {
@@ -244,8 +262,11 @@ describe("LiquidityMining", () => {
 			expect(_wrapper).equal(newWrapper);
 		});
 
-		it("fails if not an owner", async () => {
+		it("fails if not an owner or an admin", async () => {
 			await expectRevert(liquidityMining.setWrapper(account2, { from: account1 }), "unauthorized");
+
+			await liquidityMining.addAdmin(account1);
+			await liquidityMining.setWrapper(account2, { from: account1 });
 		});
 	});
 
@@ -258,8 +279,11 @@ describe("LiquidityMining", () => {
 			expect(_endBlock).bignumber.equal(blockNumber);
 		});
 
-		it("fails if not an owner", async () => {
+		it("fails if not an owner or an admin", async () => {
 			await expectRevert(liquidityMining.stopMining({ from: account1 }), "unauthorized");
+
+			await liquidityMining.addAdmin(account1);
+			await liquidityMining.stopMining({ from: account1 });
 		});
 
 		it("fails if already stopped", async () => {
@@ -280,8 +304,11 @@ describe("LiquidityMining", () => {
 			expect(amount).bignumber.equal(balanceAfter.sub(balanceBefore));
 		});
 
-		it("only owner should be able to transfer", async () => {
+		it("only owner or admin should be able to transfer", async () => {
 			await expectRevert(liquidityMining.transferSOV(account1, 1000, { from: account1 }), "unauthorized");
+
+			await liquidityMining.addAdmin(account1);
+			await liquidityMining.transferSOV(account1, 1000, { from: account1 });
 		});
 
 		it("fails if the 0 address is passed as receiver address", async () => {
@@ -356,6 +383,13 @@ describe("LiquidityMining", () => {
 			await liquidityMining.add(token1.address, new BN(1), false);
 			await expectRevert(liquidityMining.add(token1.address, new BN(1), false), "Token already added");
 		});
+
+		it("only owner or admin should be able to add pool token", async () => {
+			await expectRevert(liquidityMining.add(token2.address, new BN(1), false, {from: account1}), "unauthorized");
+
+			await liquidityMining.addAdmin(account1);
+			await liquidityMining.add(token2.address, new BN(1), false, {from: account1});
+		});
 	});
 
 	describe("update", () => {
@@ -399,6 +433,14 @@ describe("LiquidityMining", () => {
 
 		it("fails if token wasn't added", async () => {
 			await expectRevert(liquidityMining.update(token1.address, new BN(1), false), "Pool token not found");
+		});
+
+		it("only owner or admin should be able to update pool token", async () => {
+			await liquidityMining.add(token2.address, new BN(1), false);
+			await expectRevert(liquidityMining.update(token2.address, new BN(1), false, {from: account1}), "unauthorized");
+
+			await liquidityMining.addAdmin(account1);
+			await liquidityMining.update(token2.address, new BN(1), false, {from: account1});
 		});
 	});
 
