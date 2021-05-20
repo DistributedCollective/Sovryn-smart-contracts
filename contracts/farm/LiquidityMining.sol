@@ -43,7 +43,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _lockedSOV The contract instance address of the lockedSOV vault.
 	 *   SOV rewards are not paid directly to liquidity providers. Instead they
 	 *   are deposited into a lockedSOV vault contract.
-	 * @param _basisPoint The % (in Basis Point) which determines how much will be unlocked immediately.
+	 * @param _unlockedImmediatelyPercent The % which determines how much will be unlocked immediately.
 	 */
 	function initialize(
 		IERC20 _SOV,
@@ -52,13 +52,13 @@ contract LiquidityMining is LiquidityMiningStorage {
 		uint256 _numberOfBonusBlocks,
 		address _wrapper,
 		ILockedSOV _lockedSOV,
-		uint256 _basisPoint
+		uint256 _unlockedImmediatelyPercent
 	) public onlyAuthorized {
 		/// @dev Non-idempotent function. Must be called just once.
 		require(address(SOV) == address(0), "Already initialized");
 		require(address(_SOV) != address(0), "Invalid token address");
 		require(_startDelayBlocks > 0, "Invalid start block");
-		require(_basisPoint < 10000, "Basis Point has to be less than 10000.");
+		require(_unlockedImmediatelyPercent < 10000, "Unlocked immediately percent has to be less than 10000.");
 
 		SOV = _SOV;
 		rewardTokensPerBlock = _rewardTokensPerBlock;
@@ -66,7 +66,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 		bonusEndBlock = startBlock + _numberOfBonusBlocks;
 		wrapper = _wrapper;
 		lockedSOV = _lockedSOV;
-		basisPoint = _basisPoint;
+		unlockedImmediatelyPercent = _unlockedImmediatelyPercent;
 	}
 
 	/**
@@ -79,13 +79,13 @@ contract LiquidityMining is LiquidityMiningStorage {
 	}
 
 	/**
-	 * @notice Sets basisPoint.
-	 * @param _basisPoint The % (in Basis Point) which determines how much will be unlocked immediately.
+	 * @notice Sets unlocked immediately percent.
+	 * @param _unlockedImmediatelyPercent The % which determines how much will be unlocked immediately.
 	 * @dev @dev 10000 is 100%
 	 */
-	function setBasisPoint(uint256 _basisPoint) public onlyAuthorized {
-		require(_basisPoint < 10000, "Basis Point has to be less than 10000.");
-		basisPoint = _basisPoint;
+	function setUnlockedImmediatelyPercent(uint256 _unlockedImmediatelyPercent) public onlyAuthorized {
+		require(_unlockedImmediatelyPercent < 10000, "Unlocked immediately percent has to be less than 10000.");
+		unlockedImmediatelyPercent = _unlockedImmediatelyPercent;
 	}
 
 	/**
@@ -451,7 +451,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 			///   SOV deposit must be approved to move the SOV tokens
 			///   from this LM contract into the lockedSOV vault.
 			SOV.approve(address(lockedSOV), userAccumulatedReward);
-			lockedSOV.deposit(_userAddress, userAccumulatedReward, basisPoint);
+			lockedSOV.deposit(_userAddress, userAccumulatedReward, unlockedImmediatelyPercent);
 
 			if (_isClaimingReward) {
 				lockedSOV.withdrawAndStakeTokensFrom(_userAddress);

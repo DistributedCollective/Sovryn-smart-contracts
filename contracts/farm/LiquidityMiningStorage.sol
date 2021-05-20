@@ -63,7 +63,7 @@ contract LiquidityMiningStorage is AdminRole {
 	/// @dev The locked vault contract to deposit LP's rewards into.
 	ILockedSOV public lockedSOV;
 
-	// The % (in Basis Point) which determines how much will be unlocked immediately.
+	// The % which determines how much will be unlocked immediately.
 	/// @dev 10000 is 100%
-	uint256 public basisPoint;
+	uint256 public unlockedImmediatelyPercent;
 }

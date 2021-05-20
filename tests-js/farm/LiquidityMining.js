@@ -19,9 +19,9 @@ describe("LiquidityMining", () => {
 	const startDelayBlocks = new BN(1);
 	const numberOfBonusBlocks = new BN(50);
 
-	// The % (in Basis Point) which determines how much will be unlocked immediately.
+	// The % which determines how much will be unlocked immediately.
 	/// @dev 10000 is 100%
-	const basisPoint = new BN(1000); //10%
+	const unlockedImmediatelyPercent = new BN(1000); //10%
 
 	let accounts;
 	let root, account1, account2, account3, account4;
@@ -51,7 +51,7 @@ describe("LiquidityMining", () => {
 			numberOfBonusBlocks,
 			wrapper.address,
 			lockedSOV.address,
-			basisPoint
+			unlockedImmediatelyPercent
 		);
 	});
 
@@ -65,7 +65,7 @@ describe("LiquidityMining", () => {
 				numberOfBonusBlocks,
 				wrapper.address,
 				lockedSOV.address,
-				basisPoint
+				unlockedImmediatelyPercent
 			);
 
 			let _SOV = await liquidityMining.SOV();
@@ -93,7 +93,7 @@ describe("LiquidityMining", () => {
 					numberOfBonusBlocks,
 					wrapper.address,
 					lockedSOV.address,
-					basisPoint,
+					unlockedImmediatelyPercent,
 					{ from: account1 }
 				),
 				"unauthorized"
@@ -107,7 +107,7 @@ describe("LiquidityMining", () => {
 				numberOfBonusBlocks,
 				wrapper.address,
 				lockedSOV.address,
-				basisPoint,
+				unlockedImmediatelyPercent,
 				{ from: account1 }
 			);
 		});
@@ -122,7 +122,7 @@ describe("LiquidityMining", () => {
 					numberOfBonusBlocks,
 					wrapper.address,
 					lockedSOV.address,
-					basisPoint
+					unlockedImmediatelyPercent
 				),
 				"Invalid start block"
 			);
@@ -137,7 +137,7 @@ describe("LiquidityMining", () => {
 					numberOfBonusBlocks,
 					wrapper.address,
 					lockedSOV.address,
-					basisPoint
+					unlockedImmediatelyPercent
 				),
 				"Already initialized"
 			);
@@ -153,13 +153,13 @@ describe("LiquidityMining", () => {
 					numberOfBonusBlocks,
 					wrapper.address,
 					lockedSOV.address,
-					basisPoint
+					unlockedImmediatelyPercent
 				),
 				"Invalid token address"
 			);
 		});
 
-		it("fails if basisPoint >= 10000", async () => {
+		it("fails if unlockedImmediatelyPercent >= 10000", async () => {
 			await deployLiquidityMining();
 			await expectRevert(
 				liquidityMining.initialize(
@@ -171,7 +171,7 @@ describe("LiquidityMining", () => {
 					lockedSOV.address,
 					12345
 				),
-				"Basis Point has to be less than 10000."
+				"Unlocked immediately percent has to be less than 10000."
 			);
 		});
 	});
@@ -232,24 +232,24 @@ describe("LiquidityMining", () => {
 		});
 	});
 
-	describe("setBasisPoint", () => {
+	describe("setUnlockedImmediatelyPercent", () => {
 		it("sets the expected values", async () => {
-			let newBasisPoint = new BN(2000);
-			await liquidityMining.setBasisPoint(newBasisPoint);
+			let newUnlockedImmediatelyPercent = new BN(2000);
+			await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
 
-			let _basisPoint = await liquidityMining.basisPoint();
-			expect(_basisPoint).bignumber.equal(newBasisPoint);
+			let _unlockedImmediatelyPercent = await liquidityMining.unlockedImmediatelyPercent();
+			expect(_unlockedImmediatelyPercent).bignumber.equal(newUnlockedImmediatelyPercent);
 		});
 
 		it("fails if not an owner or an admin", async () => {
-			await expectRevert(liquidityMining.setBasisPoint(1000, { from: account1 }), "unauthorized");
+			await expectRevert(liquidityMining.setUnlockedImmediatelyPercent(1000, { from: account1 }), "unauthorized");
 
 			await liquidityMining.addAdmin(account1);
-			await liquidityMining.setBasisPoint(1000, { from: account1 });
+			await liquidityMining.setUnlockedImmediatelyPercent(1000, { from: account1 });
 		});
 
-		it("fails if basisPoint >= 10000", async () => {
-			await expectRevert(liquidityMining.setBasisPoint(100000), "Basis Point has to be less than 10000.");
+		it("fails if unlockedImmediatelyPercent >= 10000", async () => {
+			await expectRevert(liquidityMining.setUnlockedImmediatelyPercent(100000), "Unlocked immediately percent has to be less than 10000.");
 		});
 	});
 
@@ -622,7 +622,7 @@ describe("LiquidityMining", () => {
 			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
 
 			//withdrawAndStakeTokensFrom was not invoked
-			let expectedUnlockedBalance = userReward.mul(basisPoint).div(new BN(10000));
+			let expectedUnlockedBalance = userReward.mul(unlockedImmediatelyPercent).div(new BN(10000));
 			let expectedLockedBalance = userReward.sub(expectedUnlockedBalance);
 			let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
 			let lockedBalance = await lockedSOV.getLockedBalance(account1);
