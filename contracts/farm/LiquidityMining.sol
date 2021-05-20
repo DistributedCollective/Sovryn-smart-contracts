@@ -347,8 +347,8 @@ contract LiquidityMining is LiquidityMiningStorage {
 		_updateReward(pool, user);
 
 		if (_amount > 0) {
-			user.amount = user.amount.add(_amount);
 			pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
+			user.amount = user.amount.add(_amount);
 		}
 		_updateRewardDebt(pool, user);
 		emit Deposit(userAddress, _poolToken, _amount);
