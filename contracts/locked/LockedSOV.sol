@@ -295,8 +295,8 @@ contract LockedSOV is ILockedSOV {
 	 * @param _receiverAddress If specified, the unlocked balance will go to this address, else to msg.sender.
 	 */
 	function withdrawAndStakeTokens(address _receiverAddress) external {
-		withdraw(_receiverAddress);
-		createVestingAndStake();
+		_withdraw(msg.sender, _receiverAddress);
+		_createVestingAndStake(msg.sender);
 	}
 
 	/**
