@@ -141,7 +141,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	}
 
 	/**
-	 * @notice adds a new lp to the pool. Can only be called by the owner
+	 * @notice adds a new lp to the pool. Can only be called by the owner or an admin
 	 * @param _poolToken the address of pool token
 	 * @param _allocationPoint the allocation point (weight) for the given pool
 	 * @param _withUpdate the flag whether we need to update all pools
@@ -180,16 +180,16 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @notice updates the given pool's reward tokens allocation point
 	 * @param _poolToken the address of pool token
 	 * @param _allocationPoint the allocation point (weight) for the given pool
-	 * @param _withUpdate the flag whether we need to update all pools
+	 * @param _updateAllFlag the flag whether we need to update all pools
 	 */
 	function update(
 		address _poolToken,
 		uint96 _allocationPoint,
-		bool _withUpdate
+		bool _updateAllFlag
 	) public onlyAuthorized {
 		uint256 poolId = _getPoolId(_poolToken);
 
-		if (_withUpdate) {
+		if (_updateAllFlag) {
 			updateAllPools();
 		} else {
 			updatePool(_poolToken);
@@ -344,9 +344,11 @@ contract LiquidityMining is LiquidityMiningStorage {
 		UserInfo storage user = userInfoMap[poolId][userAddress];
 
 		_updatePool(poolId);
+		//sends reward directly to the user
 		_updateReward(pool, user);
 
 		if (_amount > 0) {
+			//receives pool tokens from msg.sender, it can be user or WrapperProxy contract
 			pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 			user.amount = user.amount.add(_amount);
 		}
