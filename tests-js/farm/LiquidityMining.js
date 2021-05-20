@@ -505,20 +505,10 @@ describe("LiquidityMining", () => {
 			await token1.approve(liquidityMining.address, amount, { from: account1 });
 		});
 
-		it("should be able to claim reward (will not be claimed without SOV tokens)", async () => {
+		it("shouldn't be able to claim reward (will not be claimed without SOV tokens)", async () => {
 			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
-			let tx = await liquidityMining.claimReward(token1.address, ZERO_ADDRESS, { from: account1 });
-
-			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
-			let blockNumber = new BN(tx.receipt.blockNumber);
-			checkPoolInfo(poolInfo, token1.address, allocationPoint, blockNumber, new BN(-1));
-
-			await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
-
-			// User's balance of locked reward
-			let userRewardBalance = await lockedSOV.getLockedBalance(account1);
-			expect(userRewardBalance).bignumber.equal(new BN(0));
+			await expectRevert(liquidityMining.claimReward(token1.address, ZERO_ADDRESS, { from: account1 }), "Claiming reward failed");
 		});
 
 		it("should be able to claim reward (will be claimed with SOV tokens)", async () => {

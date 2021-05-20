@@ -459,6 +459,8 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 			/// @dev Event log.
 			emit RewardClaimed(_userAddress, userAccumulatedReward);
+		} else {
+			require(!_isClaimingReward, "Claiming reward failed");
 		}
 	}
 
