@@ -57,6 +57,8 @@ def main():
     basisPoint = 0 # 0%
     liquidityMining.initialize(contracts['SOV'], rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address, basisPoint)
 
+    # TODO Dummy pool token should be ERC20
+
     # TODO prepare pool tokens list
     poolTokens = [contracts['iDOC'], contracts['iUSDT'], contracts['iRBTC'], contracts['iBPro'], contracts['(WR)BTC/USDT1'], contracts['(WR)BTC/USDT2'], contracts['(WR)BTC/DOC1'], contracts['(WR)BTC/DOC2'], contracts['(WR)BTC/BPRO1'], contracts['(WR)BTC/BPRO2'], contracts['(WR)BTC/SOV']]
     allocationPoints = [1,1,1,1,2,2,2,2,2,2,4]

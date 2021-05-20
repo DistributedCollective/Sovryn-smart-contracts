@@ -15,6 +15,8 @@ describe("LiquidityMining", () => {
 	const name = "Test SOV Token";
 	const symbol = "TST";
 
+	const PRECISION = 1e12;
+
 	const rewardTokensPerBlock = new BN(3);
 	const startDelayBlocks = new BN(1);
 	const numberOfBonusBlocks = new BN(50);
@@ -1269,6 +1271,115 @@ describe("LiquidityMining", () => {
 				amount: reward2,
 			});
 		});
+	});
+
+	describe("LM configuration", () => {
+		//Maximum reward per week: 100K SOV (or 100M SOV)
+		//Maximum reward per block: 4.9604 SOV (4.9604 * 2880 * 7 = 100001.664)
+
+		const REWARD_TOKENS_PER_BLOCK = new BN(49604).mul(new BN(10**14)).mul(new BN(1000));
+		// const REWARD_TOKENS_PER_BLOCK = new BN(49604).mul(new BN(10**14));
+
+		//SOV/BTC pool 40K per week
+		//ETH/BTC pool 37.5K per week (from second week)
+		//Dummy pool 100K - SOV/BTC pool (- ETH/BTC pool)
+
+		const MAX_ALLOCATION_POINT = 		new BN(100000).mul(new BN(1000));
+		// const MAX_ALLOCATION_POINT = 		new BN(100000);
+		const ALLOCATION_POINT_SOV_BTC = 	new BN(40000);
+		const ALLOCATION_POINT_ETH_BTC = 	new BN(37500);
+
+		const ALLOCATION_POINT_SOV_BTC_2 = 	new BN(30000);
+
+		const amount = new BN(1000);
+
+		beforeEach(async () => {
+			await deployLiquidityMining();
+			await liquidityMining.initialize(
+				SOVToken.address,
+				REWARD_TOKENS_PER_BLOCK,
+				startDelayBlocks,
+				numberOfBonusBlocks,
+				wrapper.address,
+				lockedSOV.address,
+				0
+			);
+
+			for (let token of [token1, token2]) {
+				for (let account of [account1, account2]) {
+					await token.mint(account, amount);
+					await token.approve(liquidityMining.address, amount, { from: account });
+				}
+			}
+
+			//turn off bonus period
+			let bonusEndBlock = await liquidityMining.bonusEndBlock();
+			await advanceBlocks(bonusEndBlock);
+		});
+
+		it("dummy pool + 1 pool", async () => {
+			let dummyPool = token3.address;
+
+			let SOVBTCpool = token1.address;
+			// let ETHBTCpoll = token2.address;
+
+			await liquidityMining.add(SOVBTCpool, ALLOCATION_POINT_SOV_BTC, false); //weight 40000 / 100000
+			await liquidityMining.add(dummyPool, MAX_ALLOCATION_POINT.sub(ALLOCATION_POINT_SOV_BTC), false); //weight (100000 - 40000) / 100000
+
+			await liquidityMining.deposit(SOVBTCpool, amount, ZERO_ADDRESS, { from: account1 });
+
+			//reward won't be claimed because liquidityMining doesn't have enough SOV balance
+			//user reward will be updated
+			//10 blocks passed since last deposit
+			await mineBlocks(9);
+			await liquidityMining.withdraw(SOVBTCpool, amount, ZERO_ADDRESS, { from: account1 });
+
+			const userInfo = await liquidityMining.getUserInfo(SOVBTCpool, account1);
+			//10 blocks passed
+			let passedBlocks = 10;
+			let expectedUserReward = REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks)).mul(ALLOCATION_POINT_SOV_BTC).div(MAX_ALLOCATION_POINT);
+			expect(userInfo.accumulatedReward).bignumber.equal(expectedUserReward);
+			console.log(expectedUserReward.toString());
+		});
+
+		it("dummy pool + 2 pools", async () => {
+			let dummyPool = token3.address;
+
+			let SOVBTCpool = token1.address;
+			let ETHBTCpoll = token2.address;
+
+			await liquidityMining.add(SOVBTCpool, ALLOCATION_POINT_SOV_BTC, false); //weight 40000 / 100000
+			const DUMMY_ALLOCATION_POINT = MAX_ALLOCATION_POINT.sub(ALLOCATION_POINT_SOV_BTC);
+			await liquidityMining.add(dummyPool, DUMMY_ALLOCATION_POINT, false); //weight (100000 - 40000) / 100000
+
+			await liquidityMining.deposit(SOVBTCpool, amount, ZERO_ADDRESS, { from: account1 });
+
+			await mineBlocks(9);
+			await liquidityMining.updateAllPools(); // 10 blocks passed from first deposit
+
+			//update config
+			await liquidityMining.update(SOVBTCpool, ALLOCATION_POINT_SOV_BTC_2, false); //weight 30000 / 100000
+			await liquidityMining.add(ETHBTCpoll, ALLOCATION_POINT_ETH_BTC, false); //weight 37500 / 100000
+			const DUMMY_ALLOCATION_POINT_2 = MAX_ALLOCATION_POINT.sub(ALLOCATION_POINT_SOV_BTC_2).sub(ALLOCATION_POINT_ETH_BTC);
+			await liquidityMining.update(dummyPool, DUMMY_ALLOCATION_POINT_2, false); //weight (100000 - 30000 - 37500) / 100000
+			await liquidityMining.updateAllPools();
+
+			//reward won't be claimed because liquidityMining doesn't have enough SOV balance
+			//user reward will be updated
+			//10 blocks + 5 blocks passed
+			await liquidityMining.withdraw(SOVBTCpool, amount, ZERO_ADDRESS, { from: account1 });
+
+			const userInfo = await liquidityMining.getUserInfo(SOVBTCpool, account1);
+			//10 blocks + 5 blocks passed
+			let passedBlocks = 10;
+			let expectedUserReward = REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks)).mul(ALLOCATION_POINT_SOV_BTC).div(MAX_ALLOCATION_POINT);
+			passedBlocks = 5;
+			expectedUserReward = expectedUserReward
+				.add(REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks)).mul(ALLOCATION_POINT_SOV_BTC_2).div(MAX_ALLOCATION_POINT));
+			expect(userInfo.accumulatedReward).bignumber.equal(expectedUserReward);
+			console.log(expectedUserReward.toString());
+		});
+
 	});
 
 	describe("external getters", () => {
