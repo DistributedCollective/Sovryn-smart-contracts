@@ -472,6 +472,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 		PoolInfo storage pool = poolInfoList[poolId];
 		UserInfo storage user = userInfoMap[poolId][msg.sender];
 
+		totalUsersBalance = totalUsersBalance.sub(user.accumulatedReward);
 		uint256 userAmount = user.amount;
 		user.amount = 0;
 		user.rewardDebt = 0;
