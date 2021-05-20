@@ -3,8 +3,10 @@ const { BN } = require("@openzeppelin/test-helpers");
 const {
 	margin_trading_sending_loan_tokens,
 	margin_trading_sov_reward_payment,
+	margin_trading_sov_reward_payment_with_special_rebates,
 	margin_trading_sending_collateral_tokens,
 	margin_trading_sending_collateral_tokens_sov_reward_payment,
+	margin_trading_sending_collateral_tokens_sov_reward_payment_with_special_rebates,
 	close_complete_margin_trade_wrbtc,
 } = require("./tradingFunctions");
 
@@ -70,6 +72,7 @@ contract("LoanTokenTrading", (accounts) => {
 		it("Test margin trading sending loan tokens", async () => {
 			await margin_trading_sending_loan_tokens(accounts, sovryn, loanTokenWRBTC, WRBTC, SUSD, priceFeeds, false);
 			await margin_trading_sov_reward_payment(accounts, loanTokenWRBTC, WRBTC, SUSD, SOV, FeesEvents, sovryn);
+			await margin_trading_sov_reward_payment_with_special_rebates(accounts, loanTokenWRBTC, WRBTC, SUSD, SOV, FeesEvents, sovryn);
 		});
 		it("Test margin trading sending collateral tokens", async () => {
 			const loanSize = oneEth;
@@ -106,6 +109,53 @@ contract("LoanTokenTrading", (accounts) => {
 			await margin_trading_sending_collateral_tokens_sov_reward_payment(
 				accounts[2],
 				loanTokenWRBTC,
+				WRBTC,
+				SUSD,
+				collateralTokenSent,
+				leverageAmount,
+				value,
+				FeesEvents,
+				SOV,
+				sovryn
+			);
+		});
+
+		it("Test margin trading sending collateral tokens with special rebates", async () => {
+			const loanSize = oneEth;
+			//  make sure there are sufficient funds on the contract
+			await loanTokenWRBTC.mintWithBTC(accounts[0], { value: loanSize.mul(new BN(6)) });
+			await loanTokenWRBTC.mintWithBTC(accounts[2], { value: loanSize.mul(new BN(6)) });
+			// compute the amount of collateral tokens needed
+			const collateralTokenSent = await sovryn.getRequiredCollateral(
+				WRBTC.address,
+				SUSD.address,
+				loanSize.mul(new BN(2)),
+				new BN(50).mul(oneEth),
+				false
+			);
+			await SUSD.mint(accounts[0], collateralTokenSent);
+			await SUSD.mint(accounts[2], collateralTokenSent);
+			// important! WRBTC is being held by the loanToken contract itself, all other tokens are transfered directly from
+			// the sender and need approval
+			await SUSD.approve(loanTokenWRBTC.address, collateralTokenSent);
+			await SUSD.approve(loanTokenWRBTC.address, collateralTokenSent, { from: accounts[2] });
+			const leverageAmount = new BN(5).mul(oneEth);
+			const value = 0;
+			await margin_trading_sending_collateral_tokens(
+				accounts,
+				loanTokenWRBTC,
+				WRBTC,
+				SUSD,
+				loanSize,
+				collateralTokenSent,
+				leverageAmount,
+				value,
+				priceFeeds
+			);
+			await margin_trading_sending_collateral_tokens_sov_reward_payment_with_special_rebates(
+				accounts[2],
+				loanTokenWRBTC,
+				WRBTC,
 				SUSD,
 				collateralTokenSent,
 				leverageAmount,

@@ -60,9 +60,20 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
 			const rate = new BN(10).pow(new BN(21));
 			await liquidate(accounts, loanToken, SUSD, set_demand_curve, RBTC, sovryn, priceFeeds, rate, WRBTC, FeesEvents, SOV);
 		});
+
+		it("Test liquidate with rate 1e21 (special rebates)", async () => {
+			const rate = new BN(10).pow(new BN(21));
+			await liquidate(accounts, loanToken, SUSD, set_demand_curve, RBTC, sovryn, priceFeeds, rate, WRBTC, FeesEvents, SOV, true);
+		});
+
 		it("Test liquidate with rate 6.7e21", async () => {
 			const rate = new BN(67).mul(new BN(10).pow(new BN(20)));
 			await liquidate(accounts, loanToken, SUSD, set_demand_curve, RBTC, sovryn, priceFeeds, rate, WRBTC, FeesEvents, SOV);
+		});
+
+		it("Test liquidate with rate 6.7e21 (special rebates)", async () => {
+			const rate = new BN(67).mul(new BN(10).pow(new BN(20)));
+			await liquidate(accounts, loanToken, SUSD, set_demand_curve, RBTC, sovryn, priceFeeds, rate, WRBTC, FeesEvents, SOV, true);
 		});
 
 		/*

@@ -21,8 +21,12 @@ const liquidate = async (
 	rate,
 	WRBTC,
 	FeesEvents,
-	SOV
+	SOV,
+	isSpecialRebates = false,
 ) => {
+	if(isSpecialRebates) {
+		await sovryn.setSpecialRebates(underlyingToken.address, collateralToken.address, wei("70", "ether"))
+	}
 	// set the demand curve to set interest rates
 	await set_demand_curve(loanToken);
 	const lender = accounts[0];
@@ -71,7 +75,7 @@ const liquidate = async (
 		priceFeeds
 	);
 	if (underlyingToken.address != WRBTC.address)
-		await verify_sov_reward_payment(receipt.rawLogs, FeesEvents, SOV, borrower, loan_id, sov_borrower_initial_balance, 1, sovryn);
+		await verify_sov_reward_payment(receipt.rawLogs, FeesEvents, SOV, borrower, loan_id, sov_borrower_initial_balance, 1, underlyingToken.address, collateralToken.address, sovryn);
 };
 
 /*

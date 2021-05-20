@@ -812,6 +812,14 @@ def setMinReferralsToPayout(minReferrals):
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
 
+def setSpecialRebates(sourceTokenAddress, destTokenAddress, specialRebatesPercent):
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.setSpecialRebates.encode_input(sourceTokenAddress, destTokenAddress, specialRebatesPercent)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
+
 def sendFromMultisigToVesting(amount):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
     data = vestingRegistry.deposit.encode_input()

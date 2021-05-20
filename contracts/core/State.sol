@@ -174,6 +174,8 @@ contract State is Objects, ReentrancyGuard, Ownable {
 	address public sovTokenAddress; // For affiliates SOV Bonus proccess
 	address public lockedSOVAddress;
 
+	mapping(address => mapping(address => uint)) public specialRebates; // Special rate rebates for spesific pair -- if not set, then use the default one
+
 	/**
 	 * @notice Add signature and target to storage.
 	 * */

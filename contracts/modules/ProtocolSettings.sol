@@ -67,6 +67,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.setProtocolTokenAddress.selector, target);
 		_setTarget(this.setRolloverBaseReward.selector, target);
 		_setTarget(this.setRebatePercent.selector, target);
+		_setTarget(this.setSpecialRebates.selector, target);
 		_setTarget(this.setSovrynProtocolAddress.selector, target);
 		_setTarget(this.setSOVTokenAddress.selector, target);
 		_setTarget(this.setLockedSOVAddress.selector, target);
@@ -565,5 +566,20 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		feeRebatePercent = rebatePercent;
 
 		emit SetRebatePercent(msg.sender, oldRebatePercent, rebatePercent);
+	}
+
+	/**
+	 * @notice Set the special fee rebate percent for specific pair
+	 *
+	 * @param specialRebatesPercent The new special fee rebate percent.
+	 * */
+	function setSpecialRebates(address sourceToken, address destToken, uint256 specialRebatesPercent) external onlyOwner {
+		// Set max special rebates to 1000%
+		require(specialRebatesPercent <= 10**21, "Special fee rebate is too high");
+
+		uint256 oldSpecialRebatesPercent = specialRebates[sourceToken][destToken];
+		specialRebates[sourceToken][destToken] = specialRebatesPercent;
+
+		emit SetSpecialRebates(msg.sender, sourceToken, destToken, oldSpecialRebatesPercent, specialRebatesPercent);
 	}
 }
