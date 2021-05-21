@@ -72,8 +72,9 @@ contract LockedSOV is ILockedSOV {
 
 	/// @notice Emitted when a user creates a vesting for himself.
 	/// @param _initiator The address which initiated this event to be emitted.
+	/// @param _userAddress The user whose unlocked balance has to be withdrawn.
 	/// @param _vesting The Vesting Contract.
-	event VestingCreated(address indexed _initiator, address indexed _vesting);
+	event VestingCreated(address indexed _initiator, address indexed _userAddress, address indexed _vesting);
 
 	/// @notice Emitted when a user stakes tokens.
 	/// @param _initiator The address which initiated this event to be emitted.
@@ -346,7 +347,7 @@ contract LockedSOV is ILockedSOV {
 		/// Here zero is given in place of amount, as amount is not really used in `vestingRegistry.createVesting()`.
 		vestingRegistry.createVesting(_tokenOwner, 0, cliff, duration);
 		_vestingAddress = _getVesting(_tokenOwner);
-		emit VestingCreated(msg.sender, _vestingAddress);
+		emit VestingCreated(msg.sender, _tokenOwner, _vestingAddress);
 	}
 
 	/**

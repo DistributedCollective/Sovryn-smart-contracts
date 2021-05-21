@@ -204,6 +204,7 @@ contract("Locked SOV (Events)", (accounts) => {
 		let vestingAddr = await vestingRegistry.getVesting(userOne);
 		expectEvent(txReceipt, "VestingCreated", {
 			_initiator: userOne,
+			_userAddress: userOne,
 			_vesting: vestingAddr,
 		});
 		expectEvent(txReceipt, "TokenStaked", {
@@ -218,6 +219,7 @@ contract("Locked SOV (Events)", (accounts) => {
 		let vestingAddr = await vestingRegistry.getVesting(userOne);
 		expectEvent(txReceipt, "VestingCreated", {
 			_initiator: userOne,
+			_userAddress: userOne,
 			_vesting: vestingAddr,
 		});
 	});
