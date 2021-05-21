@@ -103,8 +103,6 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	}
 
 	function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external onlyOwner {
-		require(newMinReferrals > 0, "Minimum referrals must be greater than 0");
-
 		uint256 oldMinReferrals = minReferralsToPayout;
 		minReferralsToPayout = newMinReferrals;
 

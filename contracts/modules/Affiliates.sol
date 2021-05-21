@@ -84,16 +84,6 @@ contract Affiliates is State, AffiliatesEvents {
 		}
 	}
 
-	//AUDIT Do we need to allow an owner to nullify a referrer for some reason?
-	/*
-    function affiliatesRemoveUserReferrer(address user, address referrer) external onlyOwner {
-        if(referrer != address(0) && getUserNotFirstTradeFlag[user]) {
-            delete affiliatesUserReferrer[user];
-            //TODO: event with the reason for removing referrer
-        }
-    }
-    */
-
 	function _getAffiliatesTradingFeePercent() internal view returns (uint256) {
 		return affiliateFeePercent;
 	}
@@ -142,7 +132,6 @@ contract Affiliates is State, AffiliatesEvents {
 		bool bonusPaymentIsSuccess = true;
 		uint256 paidReferrerBonusSovAmount;
 
-		
 		referrerBonusSovAmount = _getSovBonusAmount(token, tradingFeeTokenBaseAmount);
 		uint256 rewardsHeldByProtocol = affiliateRewardsHeld[referrer];
 

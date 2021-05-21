@@ -147,11 +147,6 @@ contract("Affiliates", (accounts) => {
 		await tokenSOV.mint(sovryn.address, wei("500", "ether"));
 	});
 
-	it("Should not be able to set the minReferralsPayout to 0", async () => {
-		await expectRevert(sovryn.setMinReferralsToPayoutAffiliates(0, { from: referrer }), "unauthorized");
-		await expectRevert(sovryn.setMinReferralsToPayoutAffiliates(0), "Minimum referrals must be greater than 0");
-	});
-
 	it("Should not be able to set the affiliateFeePercent more than 100%", async () => {
 		const valueExperiment = wei("101", "ether");
 		await expectRevert(sovryn.setAffiliateFeePercent(0, { from: referrer }), "unauthorized");
