@@ -80,7 +80,10 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @return The amount of loan tokens minted.
 	 * */
 	function mint(address receiver, uint256 depositAmount) external nonReentrant hasEarlyAccessToken returns (uint256 mintAmount) {
-		/// Temporary: limit transaction size
+		/// @dev To avoid flash loan attacks.
+		_checkNotInTheSameBlock();
+
+		/// @dev Temporary: limit transaction size
 		if (transactionLimit[loanTokenAddress] > 0) require(depositAmount <= transactionLimit[loanTokenAddress]);
 
 		return _mintToken(receiver, depositAmount);
@@ -99,6 +102,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @return The amount of underlying tokens payed to lender.
 	 * */
 	function burn(address receiver, uint256 burnAmount) external nonReentrant returns (uint256 loanAmountPaid) {
+		/// @dev To avoid flash loan attacks.
+		_checkNotInTheSameBlock();
+
 		loanAmountPaid = _burnToken(burnAmount);
 
 		if (loanAmountPaid != 0) {
