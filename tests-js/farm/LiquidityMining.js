@@ -6,6 +6,7 @@ const { ZERO_ADDRESS } = constants;
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
 const TestToken = artifacts.require("TestToken");
+const LiquidityMiningConfigToken = artifacts.require("LiquidityMiningConfigToken");
 const LiquidityMiningLogic = artifacts.require("LiquidityMiningMockup");
 const LiquidityMiningProxy = artifacts.require("LiquidityMiningProxy");
 const TestLockedSOV = artifacts.require("LockedSOVMockup");
@@ -27,7 +28,7 @@ describe("LiquidityMining", () => {
 
 	let accounts;
 	let root, account1, account2, account3, account4;
-	let SOVToken, token1, token2, token3;
+	let SOVToken, token1, token2, token3, liquidityMiningConfigToken;
 	let liquidityMining, wrapper;
 	let lockedSOVAdmins, lockedSOV;
 
@@ -41,6 +42,7 @@ describe("LiquidityMining", () => {
 		token1 = await TestToken.new("Test token 1", "TST-1", 18, TOTAL_SUPPLY);
 		token2 = await TestToken.new("Test token 2", "TST-2", 18, TOTAL_SUPPLY);
 		token3 = await TestToken.new("Test token 3", "TST-3", 18, TOTAL_SUPPLY);
+		liquidityMiningConfigToken = await LiquidityMiningConfigToken.new();
 		lockedSOVAdmins = [account1, account2];
 
 		lockedSOV = await TestLockedSOV.new(SOVToken.address, lockedSOVAdmins);
@@ -56,7 +58,7 @@ describe("LiquidityMining", () => {
 			unlockedImmediatelyPercent
 		);
 	});
-
+/*
 	describe("initialize", () => {
 		it("sets the expected values", async () => {
 			await deployLiquidityMining();
@@ -1272,7 +1274,7 @@ describe("LiquidityMining", () => {
 			});
 		});
 	});
-
+*/
 	describe("LM configuration", () => {
 		//Maximum reward per week: 100K SOV (or 100M SOV)
 		//Maximum reward per block: 4.9604 SOV (4.9604 * 2880 * 7 = 100001.664)
@@ -1318,10 +1320,9 @@ describe("LiquidityMining", () => {
 		});
 
 		it("dummy pool + 1 pool", async () => {
-			let dummyPool = token3.address;
+			let dummyPool = liquidityMiningConfigToken.address;
 
 			let SOVBTCpool = token1.address;
-			// let ETHBTCpoll = token2.address;
 
 			await liquidityMining.add(SOVBTCpool, ALLOCATION_POINT_SOV_BTC, false); //weight 40000 / 100000
 			await liquidityMining.add(dummyPool, MAX_ALLOCATION_POINT.sub(ALLOCATION_POINT_SOV_BTC), false); //weight (100000 - 40000) / 100000
@@ -1343,7 +1344,7 @@ describe("LiquidityMining", () => {
 		});
 
 		it("dummy pool + 2 pools", async () => {
-			let dummyPool = token3.address;
+			let dummyPool = liquidityMiningConfigToken.address;
 
 			let SOVBTCpool = token1.address;
 			let ETHBTCpoll = token2.address;
@@ -1352,15 +1353,19 @@ describe("LiquidityMining", () => {
 			const DUMMY_ALLOCATION_POINT = MAX_ALLOCATION_POINT.sub(ALLOCATION_POINT_SOV_BTC);
 			await liquidityMining.add(dummyPool, DUMMY_ALLOCATION_POINT, false); //weight (100000 - 40000) / 100000
 
-			await liquidityMining.deposit(SOVBTCpool, amount, ZERO_ADDRESS, { from: account1 });
+			// await liquidityMining.deposit(SOVBTCpool, amount, ZERO_ADDRESS, { from: account1 });
 
 			await mineBlocks(9);
 			await liquidityMining.updateAllPools(); // 10 blocks passed from first deposit
 
 			//update config
-			await liquidityMining.update(SOVBTCpool, ALLOCATION_POINT_SOV_BTC_2, false); //weight 30000 / 100000
+			// await liquidityMining.update(SOVBTCpool, ALLOCATION_POINT_SOV_BTC_2, false); //weight 30000 / 100000
+
+			await liquidityMining.deposit(SOVBTCpool, amount, ZERO_ADDRESS, { from: account1 });
+
+			await mineBlocks(1);
 			await liquidityMining.add(ETHBTCpoll, ALLOCATION_POINT_ETH_BTC, false); //weight 37500 / 100000
-			const DUMMY_ALLOCATION_POINT_2 = MAX_ALLOCATION_POINT.sub(ALLOCATION_POINT_SOV_BTC_2).sub(ALLOCATION_POINT_ETH_BTC);
+			const DUMMY_ALLOCATION_POINT_2 = MAX_ALLOCATION_POINT.sub(ALLOCATION_POINT_SOV_BTC).sub(ALLOCATION_POINT_ETH_BTC);
 			await liquidityMining.update(dummyPool, DUMMY_ALLOCATION_POINT_2, false); //weight (100000 - 30000 - 37500) / 100000
 			await liquidityMining.updateAllPools();
 
@@ -1374,14 +1379,15 @@ describe("LiquidityMining", () => {
 			let passedBlocks = 10;
 			let expectedUserReward = REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks)).mul(ALLOCATION_POINT_SOV_BTC).div(MAX_ALLOCATION_POINT);
 			passedBlocks = 5;
+			expectedUserReward = new BN(0);
 			expectedUserReward = expectedUserReward
-				.add(REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks)).mul(ALLOCATION_POINT_SOV_BTC_2).div(MAX_ALLOCATION_POINT));
+				.add(REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks)).mul(ALLOCATION_POINT_SOV_BTC).div(MAX_ALLOCATION_POINT));
 			expect(userInfo.accumulatedReward).bignumber.equal(expectedUserReward);
 			console.log(expectedUserReward.toString());
 		});
 
 	});
-
+/*
 	describe("external getters", () => {
 		let allocationPoint = new BN(1);
 		let amount = new BN(1000);
@@ -1557,7 +1563,7 @@ describe("LiquidityMining", () => {
 			expect(rewardList[0]).bignumber.equal("0");
 		});
 	});
-
+*/
 	async function deployLiquidityMining() {
 		let liquidityMiningLogic = await LiquidityMiningLogic.new();
 		let liquidityMiningProxy = await LiquidityMiningProxy.new();
