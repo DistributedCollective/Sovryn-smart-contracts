@@ -869,6 +869,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @dev Internal sync required on every loan trade before starting.
 	 * */
 	function _settleInterest() internal {
+		/// @dev To avoid flash loan attacks.
 		uint88 ts = uint88(block.timestamp);
 		if (lastSettleTime_ != ts) {
 			ProtocolLike(sovrynContractAddress).withdrawAccruedInterest(loanTokenAddress);
@@ -981,8 +982,12 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		uint256[5] memory sentAmounts,
 		bytes memory loanDataBytes
 	) internal returns (uint256, uint256) {
+		/// @dev To avoid running when paused.
 		_checkPause();
+
+		/// @dev To avoid flash loan attacks.
 		_checkNotInTheSameBlock();
+
 		require(
 			sentAmounts[1] <= _underlyingBalance() && /// newPrincipal (borrowed amount + fees)
 				sentAddresses[1] != address(0), /// The borrower.

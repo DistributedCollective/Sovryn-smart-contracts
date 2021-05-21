@@ -79,7 +79,7 @@ def test_margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, W
     # deposits to the loan token
     loanToken.mint(accounts[0], flashLoanAmount)
 
-    print("reepating the trade but with the attack flash loan")
+    print("Repeating the trade but with the attack flash loan")
 
     # sets up interest rates
     baseRate = 1e18
