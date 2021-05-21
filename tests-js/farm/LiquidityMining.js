@@ -522,6 +522,9 @@ describe("LiquidityMining", () => {
 
 			let tx = await liquidityMining.claimReward(token1.address, ZERO_ADDRESS, { from: account1 });
 
+			let totalUsersBalance = await liquidityMining.totalUsersBalance();
+			expect(totalUsersBalance).bignumber.equal(new BN(0));
+
 			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
 			let latestBlockNumber = new BN(tx.receipt.blockNumber);
 			checkPoolInfo(poolInfo, token1.address, allocationPoint, latestBlockNumber, new BN(-1));
@@ -608,6 +611,9 @@ describe("LiquidityMining", () => {
 
 			let tx = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
+			let totalUsersBalance = await liquidityMining.totalUsersBalance();
+			expect(totalUsersBalance).bignumber.equal(new BN(0));
+
 			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
 			let latestBlockNumber = new BN(tx.receipt.blockNumber);
 			checkPoolInfo(poolInfo, token1.address, allocationPoint, latestBlockNumber, new BN(-1));
@@ -678,6 +684,9 @@ describe("LiquidityMining", () => {
 			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
 			let tx = await liquidityMining.emergencyWithdraw(token1.address, { from: account1 });
+
+			let totalUsersBalance = await liquidityMining.totalUsersBalance();
+			expect(totalUsersBalance).bignumber.equal(new BN(0));
 
 			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
 
