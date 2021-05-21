@@ -46,4 +46,7 @@ contract LoanTokenBase is ReentrancyGuard, Ownable, Pausable {
 
 	mapping(address => uint256) public transactionLimit; // the maximum trading/borrowing/lending limit per token address
 	// 0 -> no limit
+
+	/** The address of the liquidity mining contract */
+	address public liquidityMiningAddress;
 }

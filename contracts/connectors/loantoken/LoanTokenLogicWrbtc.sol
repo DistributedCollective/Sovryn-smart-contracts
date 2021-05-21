@@ -6,15 +6,21 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./LoanTokenLogicStandard.sol";
+import "./LoanTokenLogicLM.sol";
 
-contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
-	function mintWithBTC(address receiver) external payable nonReentrant returns (uint256 mintAmount) {
-		return _mintToken(receiver, msg.value);
+contract LoanTokenLogicWrbtc is LoanTokenLogicLM {
+	function mintWithBTC(address receiver, bool useLM) external payable nonReentrant returns (uint256 mintAmount) {
+		if (useLM) return _mintWithLM(receiver, msg.value);
+		else return _mintToken(receiver, msg.value);
 	}
 
-	function burnToBTC(address receiver, uint256 burnAmount) external nonReentrant returns (uint256 loanAmountPaid) {
-		loanAmountPaid = _burnToken(burnAmount);
+	function burnToBTC(
+		address receiver,
+		uint256 burnAmount,
+		bool useLM
+	) external nonReentrant returns (uint256 loanAmountPaid) {
+		if (useLM) loanAmountPaid = _burnFromLM(receiver, burnAmount);
+		else loanAmountPaid = _burnToken(burnAmount);
 
 		if (loanAmountPaid != 0) {
 			IWrbtcERC20(wrbtcTokenAddress).withdraw(loanAmountPaid);

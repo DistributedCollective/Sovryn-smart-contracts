@@ -62,5 +62,4 @@ contract LiquidityMiningStorage is Ownable {
 
 	/// @dev The locked vault contract to deposit LP's rewards into.
 	ILockedSOV public lockedSOV;
-
 }

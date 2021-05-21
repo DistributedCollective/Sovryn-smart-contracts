@@ -9,6 +9,7 @@ pragma experimental ABIEncoderV2;
 import "./LoanTokenSettingsLowerAdmin.sol";
 import "./interfaces/ProtocolLike.sol";
 import "./interfaces/FeedsLike.sol";
+import "./interfaces/ILiquidityMining.sol";
 
 contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	using SafeMath for uint256;
@@ -27,15 +28,13 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	/* Public functions */
 
 	function mint(address receiver, uint256 depositAmount) external nonReentrant hasEarlyAccessToken returns (uint256 mintAmount) {
-		//temporary: limit transaction size
-		if (transactionLimit[loanTokenAddress] > 0) require(depositAmount <= transactionLimit[loanTokenAddress]);
-
 		return _mintToken(receiver, depositAmount);
 	}
 
 	function burn(address receiver, uint256 burnAmount) external nonReentrant returns (uint256 loanAmountPaid) {
 		loanAmountPaid = _burnToken(burnAmount);
 
+		//this needs to be here and not in _burnTokens because of the WRBTC implementation
 		if (loanAmountPaid != 0) {
 			_safeTransfer(loanTokenAddress, receiver, loanAmountPaid, "5");
 		}
@@ -305,8 +304,12 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		// handle checkpoint update
 		uint256 _currentPrice = tokenPrice();
 
-		_updateCheckpoints(_from, _balancesFrom, _balancesFromNew, _currentPrice);
-		_updateCheckpoints(_to, _balancesTo, _balancesToNew, _currentPrice);
+		//checkpoints are not being used by the smart contract logic itself, but just for external use (query the profit)
+		//only update the checkpoints of a user if he's not depositing to / withdrawing from the lending pool
+		if (_from != liquidityMiningAddress && _to != liquidityMiningAddress) {
+			_updateCheckpoints(_from, _balancesFrom, _balancesFromNew, _currentPrice);
+			_updateCheckpoints(_to, _balancesTo, _balancesToNew, _currentPrice);
+		}
 
 		emit Transfer(_from, _to, _value);
 		return true;
@@ -345,7 +348,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 	function profitOf(address user) public view returns (int256) {
 		bytes32 slot = keccak256(abi.encodePacked(user, iToken_ProfitSoFar));
-
+		//TODO + LM balance
 		return _profitOf(slot, balances[user], tokenPrice(), checkpointPrices_[user]);
 	}
 
@@ -531,12 +534,44 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 	/* Internal functions */
 
+	/**
+	 * @notice transfers the underlying asset from the msg.sender and mints tokens for the receiver
+	 * @param receiver the address of the iToken receiver
+	 * @param depositAmount the amount of underlying assets to be deposited
+	 * @return the amount of iTokens issued
+	 */
 	function _mintToken(address receiver, uint256 depositAmount) internal returns (uint256 mintAmount) {
+		uint256 currentPrice;
+
+		//calculate amount to mint and transfer the underlying asset
+		(mintAmount, currentPrice) = _prepareMinting(depositAmount);
+
+		//compute balances needed for checkpoint update, considering that the user might have a pool token balance
+		//on the liquidity mining contract
+		uint256 balanceOnLM = 0;
+		if (liquidityMiningAddress != address(0))
+			balanceOnLM = ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(address(this), receiver);
+		uint256 oldBalance = balances[receiver].add(balanceOnLM);
+		uint256 newBalance = oldBalance.add(mintAmount);
+
+		//mint the tokens to the receiver
+		_mint(receiver, mintAmount, depositAmount, currentPrice);
+
+		//update the checkpoint of the receiver
+		_updateCheckpoints(receiver, oldBalance, newBalance, currentPrice);
+	}
+
+	/**
+	 * calculates the amount of tokens to mint and transfers the underlying asset to this contract
+	 * @param depositAmount the amount of the underyling asset deposited
+	 * @return the amount to be minted
+	 */
+	function _prepareMinting(uint256 depositAmount) internal returns (uint256 mintAmount, uint256 currentPrice) {
 		require(depositAmount != 0, "17");
 
 		_settleInterest();
 
-		uint256 currentPrice = _tokenPrice(_totalAssetSupply(0));
+		currentPrice = _tokenPrice(_totalAssetSupply(0));
 		mintAmount = depositAmount.mul(10**18).div(currentPrice);
 
 		if (msg.value == 0) {
@@ -544,14 +579,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		} else {
 			IWrbtc(wrbtcTokenAddress).deposit.value(depositAmount)();
 		}
-
-		uint256 oldBalance = balances[receiver];
-		_updateCheckpoints(
-			receiver,
-			oldBalance,
-			_mint(receiver, mintAmount, depositAmount, currentPrice), // newBalance
-			currentPrice
-		);
 	}
 
 	function _burnToken(uint256 burnAmount) internal returns (uint256 loanAmountPaid) {
@@ -572,15 +599,19 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		loanAmountPaid = loanAmountOwed;
 		require(loanAmountPaid <= loanAmountAvailableInContract, "37");
 
-		uint256 oldBalance = balances[msg.sender];
+		//compute balances needed for checkpoint update, considering that the user might have a pool token balance
+		//on the liquidity mining contract
+		uint256 balanceOnLM = 0;
+		if (liquidityMiningAddress != address(0))
+			balanceOnLM = ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(address(this), msg.sender);
+		uint256 oldBalance = balances[msg.sender].add(balanceOnLM);
+		uint256 newBalance = oldBalance.sub(burnAmount);
+
+		_burn(msg.sender, burnAmount, loanAmountPaid, currentPrice);
 
 		//this function does not only update the checkpoints but also the current profit of the user
-		_updateCheckpoints(
-			msg.sender,
-			oldBalance,
-			_burn(msg.sender, burnAmount, loanAmountPaid, currentPrice), // newBalance
-			currentPrice
-		);
+		//all for external use only
+		_updateCheckpoints(msg.sender, oldBalance, newBalance, currentPrice);
 	}
 
 	function _settleInterest() internal {
