@@ -438,12 +438,30 @@ contract("Affiliates", (accounts) => {
 	});
 
 	it("Test referralList when set Affiliates referrer", async () => {
-		const tx = await loanTokenV2.setAffiliatesReferrer(trader, referrer); // can be called only from loan tokens pool addresses
+		let tx = await loanTokenV2.setAffiliatesReferrer(trader, referrer); // can be called only from loan tokens pool addresses
 		await expectEvent.inTransaction(tx.receipt.rawLogs[0].transactionHash, Affiliates, "SetAffiliatesReferrer", {
 			user: trader,
 			referrer: referrer,
 		});
 		let refList = await sovryn.getReferralsList(referrer);
 		expect(refList[0], "Referrals list is not matched").to.be.equal(trader);
+
+		tx = await loanTokenV2.setAffiliatesReferrer(accounts[9], referrer);
+		refList = await sovryn.getReferralsList(referrer);
+		expect(refList.length).to.be.equal(2);
+	});
+
+	it("Test referralList won't be duplicate when set Affiliates referrer twice", async () => {
+		let tx = await loanTokenV2.setAffiliatesReferrer(trader, referrer); // can be called only from loan tokens pool addresses
+		await expectEvent.inTransaction(tx.receipt.rawLogs[0].transactionHash, Affiliates, "SetAffiliatesReferrer", {
+			user: trader,
+			referrer: referrer,
+		});
+		let refList = await sovryn.getReferralsList(referrer);
+		expect(refList[0], "Referrals list is not matched").to.be.equal(trader);
+
+		tx = await loanTokenV2.setAffiliatesReferrer(trader, referrer); // can be called only from loan tokens pool addresses
+		refList = await sovryn.getReferralsList(referrer);
+		expect(refList.length).to.be.equal(1);
 	});
 });

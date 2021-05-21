@@ -60,7 +60,7 @@ contract Affiliates is State, AffiliatesEvents {
 		result.success = !(result.userNotFirstTradeFlag || result.alreadySet || user == referrer);
 		if (result.success) {
 			affiliatesUserReferrer[user] = referrer;
-			if (!referralsList[referrer].contains(user)) referralsList[referrer].add(user);
+			referralsList[referrer].add(user);
 			emit SetAffiliatesReferrer(user, referrer);
 		} else {
 			emit SetAffiliatesReferrerFail(user, referrer, result.alreadySet, result.userNotFirstTradeFlag);
@@ -142,27 +142,26 @@ contract Affiliates is State, AffiliatesEvents {
 		bool bonusPaymentIsSuccess = true;
 		uint256 paidReferrerBonusSovAmount;
 
-		if (tradingFeeTokenBaseAmount > 0) {
-			referrerBonusSovAmount = _getSovBonusAmount(token, tradingFeeTokenBaseAmount);
-			uint256 rewardsHeldByProtocol = affiliateRewardsHeld[referrer];
+		
+		referrerBonusSovAmount = _getSovBonusAmount(token, tradingFeeTokenBaseAmount);
+		uint256 rewardsHeldByProtocol = affiliateRewardsHeld[referrer];
 
-			if (isHeld) {
-				// If referrals less than minimum, temp the rewards sov to the storage
-				affiliateRewardsHeld[referrer] = rewardsHeldByProtocol.add(referrerBonusSovAmount);
-			} else {
-				// If referrals >= minimum, directly send all of the remain rewards to locked sov
-				// Call depositSOV() in LockedSov contract
-				// Set the affiliaterewardsheld = 0
-				affiliateRewardsHeld[referrer] = 0;
-				paidReferrerBonusSovAmount = referrerBonusSovAmount.add(rewardsHeldByProtocol);
-				IERC20(sovTokenAddress).approve(lockedSOVAddress, paidReferrerBonusSovAmount);
+		if (isHeld) {
+			// If referrals less than minimum, temp the rewards sov to the storage
+			affiliateRewardsHeld[referrer] = rewardsHeldByProtocol.add(referrerBonusSovAmount);
+		} else {
+			// If referrals >= minimum, directly send all of the remain rewards to locked sov
+			// Call depositSOV() in LockedSov contract
+			// Set the affiliaterewardsheld = 0
+			affiliateRewardsHeld[referrer] = 0;
+			paidReferrerBonusSovAmount = referrerBonusSovAmount.add(rewardsHeldByProtocol);
+			IERC20(sovTokenAddress).approve(lockedSOVAddress, paidReferrerBonusSovAmount);
 
-				(bool success, ) =
-					lockedSOVAddress.call(abi.encodeWithSignature("depositSOV(address,uint256)", referrer, paidReferrerBonusSovAmount));
+			(bool success, ) =
+				lockedSOVAddress.call(abi.encodeWithSignature("depositSOV(address,uint256)", referrer, paidReferrerBonusSovAmount));
 
-				if (!success) {
-					bonusPaymentIsSuccess = false;
-				}
+			if (!success) {
+				bonusPaymentIsSuccess = false;
 			}
 		}
 
