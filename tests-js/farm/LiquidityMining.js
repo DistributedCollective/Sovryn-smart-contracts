@@ -58,7 +58,7 @@ describe("LiquidityMining", () => {
 			unlockedImmediatelyPercent
 		);
 	});
-/*
+
 	describe("initialize", () => {
 		it("sets the expected values", async () => {
 			await deployLiquidityMining();
@@ -1274,7 +1274,7 @@ describe("LiquidityMining", () => {
 			});
 		});
 	});
-*/
+
 	describe("LM configuration", () => {
 		//Maximum reward per week: 100K SOV (or 100M SOV)
 		//Maximum reward per block: 4.9604 SOV (4.9604 * 2880 * 7 = 100001.664)
@@ -1353,19 +1353,18 @@ describe("LiquidityMining", () => {
 			const DUMMY_ALLOCATION_POINT = MAX_ALLOCATION_POINT.sub(ALLOCATION_POINT_SOV_BTC);
 			await liquidityMining.add(dummyPool, DUMMY_ALLOCATION_POINT, false); //weight (100000 - 40000) / 100000
 
-			// await liquidityMining.deposit(SOVBTCpool, amount, ZERO_ADDRESS, { from: account1 });
+			await liquidityMining.deposit(SOVBTCpool, amount, ZERO_ADDRESS, { from: account1 });
 
 			await mineBlocks(9);
 			await liquidityMining.updateAllPools(); // 10 blocks passed from first deposit
 
 			//update config
-			// await liquidityMining.update(SOVBTCpool, ALLOCATION_POINT_SOV_BTC_2, false); //weight 30000 / 100000
+			//this method will also update pool reward using previous allocation point,
+			//so this block should be add to calculation with old values
+			await liquidityMining.update(SOVBTCpool, ALLOCATION_POINT_SOV_BTC_2, false); //weight 30000 / 100000
 
-			await liquidityMining.deposit(SOVBTCpool, amount, ZERO_ADDRESS, { from: account1 });
-
-			await mineBlocks(1);
 			await liquidityMining.add(ETHBTCpoll, ALLOCATION_POINT_ETH_BTC, false); //weight 37500 / 100000
-			const DUMMY_ALLOCATION_POINT_2 = MAX_ALLOCATION_POINT.sub(ALLOCATION_POINT_SOV_BTC).sub(ALLOCATION_POINT_ETH_BTC);
+			const DUMMY_ALLOCATION_POINT_2 = MAX_ALLOCATION_POINT.sub(ALLOCATION_POINT_SOV_BTC_2).sub(ALLOCATION_POINT_ETH_BTC);
 			await liquidityMining.update(dummyPool, DUMMY_ALLOCATION_POINT_2, false); //weight (100000 - 30000 - 37500) / 100000
 			await liquidityMining.updateAllPools();
 
@@ -1376,18 +1375,17 @@ describe("LiquidityMining", () => {
 
 			const userInfo = await liquidityMining.getUserInfo(SOVBTCpool, account1);
 			//10 blocks + 5 blocks passed
-			let passedBlocks = 10;
+			let passedBlocks = 10 + 1; //block should be add to calculation with old values
 			let expectedUserReward = REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks)).mul(ALLOCATION_POINT_SOV_BTC).div(MAX_ALLOCATION_POINT);
-			passedBlocks = 5;
-			expectedUserReward = new BN(0);
+			passedBlocks = 5 - 1; //block should be removed from calculation with new values
 			expectedUserReward = expectedUserReward
-				.add(REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks)).mul(ALLOCATION_POINT_SOV_BTC).div(MAX_ALLOCATION_POINT));
+				.add(REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks)).mul(ALLOCATION_POINT_SOV_BTC_2).div(MAX_ALLOCATION_POINT));
 			expect(userInfo.accumulatedReward).bignumber.equal(expectedUserReward);
 			console.log(expectedUserReward.toString());
 		});
 
 	});
-/*
+
 	describe("external getters", () => {
 		let allocationPoint = new BN(1);
 		let amount = new BN(1000);
@@ -1563,7 +1561,7 @@ describe("LiquidityMining", () => {
 			expect(rewardList[0]).bignumber.equal("0");
 		});
 	});
-*/
+
 	async function deployLiquidityMining() {
 		let liquidityMiningLogic = await LiquidityMiningLogic.new();
 		let liquidityMiningProxy = await LiquidityMiningProxy.new();
