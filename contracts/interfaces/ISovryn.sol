@@ -327,7 +327,9 @@ contract ISovryn is
 		uint256 tradingFeeTokenBaseAmount
 	) external returns (uint256 referrerTradingFee);
 
-	function setAffiliatesUserReferrer(address user, address referrer) external; //onlyCallableByLoanPools
+	function setAffiliatesReferrer(address user, address referrer) external; //onlyCallableByLoanPools
+
+	function getReferralsList(address referrer) external view returns (address[] memory refList);
 
 	// function getAffiliatesUserReferrer(address user) external returns ; //AUDIT: do we need it to be public?
 }

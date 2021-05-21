@@ -30,6 +30,7 @@ contract Affiliates is State, AffiliatesEvents {
 	function initialize(address target) external onlyOwner {
 		_setTarget(this.setAffiliatesReferrer.selector, target);
 		_setTarget(this.getUserNotFirstTradeFlag.selector, target);
+		_setTarget(this.getReferralsList.selector, target);
 		_setTarget(this.setUserNotFirstTradeFlag.selector, target);
 		_setTarget(this.payTradingFeeToAffiliatesReferrer.selector, target);
 	}
@@ -64,6 +65,11 @@ contract Affiliates is State, AffiliatesEvents {
 		} else {
 			emit SetAffiliatesReferrerFail(user, referrer, result.alreadySet, result.userNotFirstTradeFlag);
 		}
+	}
+
+	function getReferralsList(address referrer) public view returns (address[] memory refList) {
+		refList = referralsList[referrer].enumerate();
+		return refList;
 	}
 
 	function getUserNotFirstTradeFlag(address user) public view returns (bool) {
