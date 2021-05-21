@@ -336,6 +336,28 @@ contract LiquidityMining is LiquidityMiningStorage {
 		uint256 _amount,
 		address _user
 	) public {
+		_deposit(_poolToken, _amount, _user, false);
+	}
+
+	/**
+	 * @notice if the lending pools directly mint/transfer tokens to this address, process it like a user deposit
+	 * @dev only callable by the pool which issues the tokens
+	 * @param _user the user address
+	 * @param _amount the minted amount
+	 */
+	function onTokensDeposited(address _user, uint256 _amount) public {
+		//the msg.sender is the pool token. if the msg.sender is not a valid pool token, _deposit will revert
+		_deposit(msg.sender, _amount, _user, true);
+	}
+
+	/**
+	 * @notice internal function for depositing pool tokens
+	 * @param _poolToken the address of pool token
+	 * @param _amount the amount of pool tokens
+	 * @param _user the address of user, tokens will be deposited to it or to msg.sender
+	 * @param alreadyTransferred true if the pool tokens have already been transferred
+	 */
+	function _deposit(address _poolToken, uint256 _amount, address _user, bool alreadyTransferred) internal{
 		require(poolIdList[_poolToken] != 0, "Pool token not found");
 		address userAddress = _user != address(0) ? _user : msg.sender;
 
@@ -349,7 +371,8 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 		if (_amount > 0) {
 			//receives pool tokens from msg.sender, it can be user or WrapperProxy contract
-			pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
+			if(!alreadyTransferred)
+				pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 			user.amount = user.amount.add(_amount);
 		}
 		_updateRewardDebt(pool, user);
@@ -539,7 +562,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _poolToken the address of pool token
 	 * @param _user the address of the user
 	 */
-	function getUserInfo(address _poolToken, address _user) external view returns (UserInfo memory) {
+	function getUserInfo(address _poolToken, address _user) public view returns (UserInfo memory) {
 		uint256 poolId = _getPoolId(_poolToken);
 		return userInfoMap[poolId][_user];
 	}
@@ -569,4 +592,16 @@ contract LiquidityMining is LiquidityMiningStorage {
 		}
 		return rewardList;
 	}
+
+	/**
+	 * @notice returns the pool token balance a user has on the contract
+	 * @param _poolToken the address of pool token
+	 * @param _user the address of the user
+	 */
+	function getUserPoolTokenBalance(address _poolToken, address _user) external view returns (uint256){
+		UserInfo memory ui = getUserInfo(_poolToken, _user);
+		return ui.amount;
+	}
+
+
 }

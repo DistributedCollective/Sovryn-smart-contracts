@@ -1395,6 +1395,12 @@ describe("LiquidityMining", () => {
 
 	});
 
+	describe("onTokensDeposited", () => {
+		it("should revert if the sender is not a valid pool token", async () => {
+			await expectRevert(liquidityMining.onTokensDeposited(ZERO_ADDRESS, new BN(1000)), "Pool token not found");
+		});
+	});
+
 	describe("external getters", () => {
 		let allocationPoint = new BN(1);
 		let amount = new BN(1000);
@@ -1568,6 +1574,12 @@ describe("LiquidityMining", () => {
 			expect(rewardList).to.be.an("array");
 			expect(rewardList.length).equal(1);
 			expect(rewardList[0]).bignumber.equal("0");
+		});
+
+		it("getUserPoolTokenBalance", async()=>{
+			await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, { from: account1 });
+			let poolTokenBalance = await liquidityMining.getUserPoolTokenBalance(token1.address, account1);
+			expect(poolTokenBalance).bignumber.equal(new BN(500));
 		});
 	});
 
