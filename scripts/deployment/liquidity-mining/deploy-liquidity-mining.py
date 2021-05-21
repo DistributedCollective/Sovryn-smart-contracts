@@ -48,21 +48,40 @@ def main():
     liquidityMining = Contract.from_abi("LiquidityMining", address=liquidityMiningProxy.address, abi=LiquidityMining.abi, owner=acct)
     
     # TODO define values
-    rewardTokensPerBlock = 1736e14 # 500 SOV per day
-    startDelayBlocks = 10 # ~1 day in blocks (assuming 30s blocks)
+    # Maximum reward per week: 100M SOV
+    # Maximum reward per block: 4.9604 SOV (4.9604 * 2880 * 7 = 100001.664)
+
+    # we need to multiply by 1000 to have 100 M
+    rewardTokensPerBlock = 49604 * 10**14 * 1000 #100M per week
+
+    # ~1 day in blocks (assuming 30s blocks)
+    BLOCKS_PER_DAY = 2880
+    BLOCKS_PER_HOUR = 120
+    startDelayBlocks = 3 * BLOCKS_PER_DAY - 0 * BLOCKS_PER_HOUR
     numberOfBonusBlocks = 1 # ~1 day in blocks (assuming 30s blocks)
     wrapper = "0x0000000000000000000000000000000000000000" # can be updated later using setWrapper
-    liquidityMining.initialize(contracts['SOV'], rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address)
+    # The % (in Basis Point) which determines how much will be unlocked immediately.
+    # 10000 is 100%
+    unlockedImmediatelyPercent = 0 # 0%
+    liquidityMining.initialize(contracts['SOV'], rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address, unlockedImmediatelyPercent)
+
+    # TODO Dummy pool token should be ERC20
+    liquidityMiningConfigToken = acct.deploy(LiquidityMiningConfigToken)
 
     # TODO prepare pool tokens list
-    poolTokens = [contracts['iDOC'], contracts['iUSDT'], contracts['iRBTC'], contracts['iBPro'], contracts['(WR)BTC/USDT1'], contracts['(WR)BTC/USDT2'], contracts['(WR)BTC/DOC1'], contracts['(WR)BTC/DOC2'], contracts['(WR)BTC/BPRO1'], contracts['(WR)BTC/BPRO2'], contracts['(WR)BTC/SOV']]
-    allocationPoints = [1,1,1,1,2,2,2,2,2,2,4]
+    poolTokens = [contracts['(WR)BTC/SOV'], liquidityMiningConfigToken.address]
+    # we need to multiply by 1000 to have 100 M
+    MAX_ALLOCATION_POINT = 100000 * 1000 # 100 M
+    # we don't need 10**18 here, it's just a proportion between tokens
+    ALLOCATION_POINT_SOV_BTC = 40000 # 40 K
+    allocationPoints = [ALLOCATION_POINT_SOV_BTC, MAX_ALLOCATION_POINT - ALLOCATION_POINT_SOV_BTC]
     # token weight = allocationPoint / SUM of allocationPoints for all pool tokens
     withUpdate = False # can be False if we adding pool tokens before mining started
     for i in range(0,len(poolTokens)):
         print('adding pool', i)
         liquidityMining.add(poolTokens[i], allocationPoints[i], withUpdate)
 
+    liquidityMiningProxy.addAdmin(multisig)
     liquidityMiningProxy.setProxyOwner(multisig)
     liquidityMining.transferOwnership(multisig)
 

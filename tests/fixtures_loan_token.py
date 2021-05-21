@@ -60,8 +60,12 @@ def loanOpenings(LoanOpenings, accounts, sovryn, Constants, priceFeeds, swapsImp
     sovryn.setSwapsImplContract(swapsImpl.address )
     
 @pytest.fixture(scope="module", autouse=True)
-def loanClosings(LoanClosings, accounts, sovryn, Constants, priceFeeds, swapsImpl):
-    sovryn.replaceContract(accounts[0].deploy(LoanClosings))
+def loanClosingsBase(LoanClosingsBase, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+    sovryn.replaceContract(accounts[0].deploy(LoanClosingsBase))
+
+@pytest.fixture(scope="module", autouse=True)
+def loanClosingsWith(LoanClosingsWith, accounts, sovryn, Constants, priceFeeds, swapsImpl):
+    sovryn.replaceContract(accounts[0].deploy(LoanClosingsWith))
 
 
 '''
