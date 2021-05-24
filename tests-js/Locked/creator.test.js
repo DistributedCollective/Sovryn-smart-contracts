@@ -21,26 +21,6 @@ let zeroAddress = constants.ZERO_ADDRESS;
 let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
 let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 
-/**
- * Function to create a random value.
- * It expects no parameter.
- *
- * @return {number} Random Value.
- */
-function randomValue() {
-	return Math.floor(Math.random() * 10000);
-}
-
-/**
- * Function to get the current timestamp.
- * It expects no parameter.
- *
- *  @return {number} Current Timestamp.
- */
-function currentTimestamp() {
-	return Math.floor(Date.now() / 1000);
-}
-
 contract("Locked SOV (Creator Functions)", (accounts) => {
 	let sov, lockedSOV, newLockedSOV, vestingRegistry, vestingLogic, stakingLogic;
 	let creator, admin, newAdmin, userOne, userTwo, userThree, userFour, userFive;

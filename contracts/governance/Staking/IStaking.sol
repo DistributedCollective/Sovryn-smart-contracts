@@ -1,5 +1,9 @@
 pragma solidity ^0.5.17;
 
+/**
+ * @title Interface for contract governance/Staking/Staking.sol
+ * @dev Interfaces are used to cast a contract address into a callable instance.
+ */
 interface IStaking {
 	function stakesBySchedule(
 		uint256 amount,

@@ -5,6 +5,13 @@
 
 pragma solidity 0.5.17;
 
+/**
+ * @title The Loan Settings Events contract.
+ * @notice This contract code comes from bZx. bZx is a protocol for tokenized
+ * margin trading and lending https://bzx.network similar to the dYdX protocol.
+ *
+ * This contract contains the events for loan settings operations.
+ * */
 contract LoanSettingsEvents {
 	event LoanParamsSetup(
 		bytes32 indexed id,
