@@ -786,6 +786,19 @@ contract("Staking", (accounts) => {
 			await expect(userBalance).to.be.bignumber.equal(new BN(amount - punishedAmount));
 		});
 
+		it("Should be able to withdraw second time", async () => {
+			let amount = "1000";
+			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			let lockedTS = await getTimeFromKickoff(duration);
+			await staking.stake(amount, lockedTS, root, root);
+
+			await staking.withdraw(amount, lockedTS, root);
+
+			await staking.stake(amount, lockedTS, root, root);
+
+			await staking.withdraw(amount, lockedTS, root);
+		});
+
 		it("Should be able to withdraw earlier for any lock date", async () => {
 			let amount = "10000";
 
