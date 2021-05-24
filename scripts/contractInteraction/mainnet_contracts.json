@@ -50,16 +50,24 @@
     "OriginInvestorsClaim": "0xE0f5BF8d0C58d9c8A078DB75A9D379E6CDF3149E",
     "OrigingVestingCreator": "0xea173A078bA12673a8bef6DFa47A8E8f130B4939",
 
-    "VestingRegistry3": "0x14F3FE332e21Ef3f5d244C45C8D5fbFcEF2FB5c9",
-
     "contributorNFT": "0x8ffB12De9e7602843e4792DB0bC2863e9d137d06",
 
     "TokenSender": "0x31Ec06eB090Af6EEbfF5cF52084e9BCc3D7d9248",
 
     "WRBTCtoSOVConverter": "0x1D2c04967e8B17168310fd7035cC219dE477BE82",
-    "RBTCWrapperProxy":  "0xA3B6E18B9A4ECAE44C7355458Ae7Db8874018C22",
+    "RBTCWrapperProxy":  "0xa917BF723433d020a15629eba71f6C2a6B38e52d",
 
-    "LockedSOV": "",
+    "LockedSOV": "0xB4e4517cA4Edf591Dcafb702999F04f02E57D978",
+    "LiquidityMiningLogic": "0xbD50232e6fbFa43c95062D1a9d6ecf5439906C21",
+    "LiquidityMiningProxy": "0xf730af26e87D9F55E46A6C447ED2235C385E55e0",
 
-    "EscrowReward": ""
+    "EscrowReward": "",
+
+    "(WR)BTC/USDT1": "",
+    "(WR)BTC/USDT2": "",
+    "(WR)BTC/DOC1": "",
+    "(WR)BTC/DOC2": "",
+    "(WR)BTC/BPRO1": "",
+    "(WR)BTC/BPRO2": "",
+    "(WR)BTC/SOV": "0x09c5faf7723b13434abdf1a65ab1b667bc02a902"
 }

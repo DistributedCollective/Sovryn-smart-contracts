@@ -15,170 +15,15 @@ def main():
     loadConfig()
 
     #call the function you want here
-    #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOC'])
-    #readPrice(contracts['WRBTC'], contracts['USDT'])
-    # testTradeOpeningAndClosingWithCollateral(contracts['sovrynProtocol'], contracts['iUSDT'], contracts['USDT'], contracts['WRBTC'], 1e14, 2e18, True, 1e14)
-    #setupMarginLoanParams(contracts['DoC'],  contracts['iRBTC'])
-    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e14, 5e18, True, 1e15)
-    #buyWRBTC()
-    #swapTokens(0.027e18,400e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['USDT'])
-    #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
-    #liquidate(contracts['sovrynProtocol'], '0xc9b8227bcf953e45f16d5d9a8a74cad92f403b90d0daf00900bb02e4a35c542c')
-    #readLiquidity()
-    #getBalance(contracts['WRBTC'], '0xE5646fEAf7f728C12EcB34D14b4396Ab94174827')
-    #getBalance(contracts['WRBTC'], '0x7BE508451Cd748Ba55dcBE75c8067f9420909b49')
-    #readLoan('0xb2bbd9135a7cfbc5adda48e90430923108ad6358418b7ac27c9edcf2d44911e5')
-    #replaceLoanClosings()
-
-    #updateAllLogicContracts()
-    #readOwner(contracts['iDOC'])
-    '''
-    print("iDOC")
-    readTransactionLimits(contracts['iDOC'],  contracts['DoC'],  contracts['WRBTC'],  contracts['USDT'], contracts['BPro'])
-    print("iRBTC")
-    readTransactionLimits(contracts['iRBTC'],  contracts['DoC'],  contracts['WRBTC'],  contracts['USDT'], contracts['BPro'])
-    print("iUSDT")
-    readTransactionLimits(contracts['iUSDT'],  contracts['DoC'],  contracts['WRBTC'],  contracts['USDT'], contracts['BPro'])
-    print("iBPro")
-    readTransactionLimits(contracts['iBPro'],  contracts['DoC'],  contracts['WRBTC'],  contracts['USDT'], contracts['BPro'])
     
-    setTransactionLimits(contracts['iDOC'], [contracts['DoC'],  contracts['WRBTC'],  contracts['USDT'], contracts['BPro']], [100000e18, 18e17, 100000e18, 15e17])
-    setTransactionLimits(contracts['iRBTC'], [contracts['DoC'],  contracts['WRBTC'],  contracts['USDT'], contracts['BPro']], [100000e18, 18e17, 100000e18, 15e17])
-    setTransactionLimits(contracts['iUSDT'], [contracts['DoC'],  contracts['WRBTC'],  contracts['USDT'], contracts['BPro']], [100000e18, 18e17, 100000e18, 15e17])
-    setTransactionLimits(contracts['iBPro'], [contracts['DoC'],  contracts['WRBTC'],  contracts['USDT'], contracts['BPro']], [100000e18, 18e17, 100000e18, 15e17])
-    '''
-    #setTransactionLimits(contracts['iRBTC'], [contracts['DoC'], contracts['USDT'],  contracts['WRBTC']], [0, 0])
-    #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [0])
-    #lendToPool(contracts['iDOC'],contracts['DoC'], 1000e18)
-    #setTransactionLimits(contracts['iDOC'], [contracts['DoC']], [21e18])
-    #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [21e18])
-    # readTransactionLimits(contracts['iUSDT'],  contracts['USDT'], contracts['WRBTC'])
-
-    '''
-    setupLoanParamsForCollaterals(contracts['iBPro'], [contracts['SOV']])
-    setupLoanParamsForCollaterals(contracts['iDOC'], [contracts['SOV']])
-    setupLoanParamsForCollaterals(contracts['iUSDT'], [contracts['SOV']])
-    setupLoanParamsForCollaterals(contracts['iRBTC'], [contracts['SOV']])
-    '''
-
-    #setSupportedToken(contracts['SOV'])
-
-    # setLendingFee(10**19)
-    # setTradingFee(15 * 10**16)
-    # setBorrowingFee(9 * 10**16)
-
-    # transferSOVtoOriginInvestorsClaim()
-
-    # createVesting()
-    # transferSOVtoVestingRegistry()
-    # stakeTokens2()
-
-    # triggerEmergencyStop(contracts['iUSDT'], False)
-    # triggerEmergencyStop(contracts['iBPro'], False)
-    # triggerEmergencyStop(contracts['iDOC'], False)
-    # triggerEmergencyStop(contracts['iRBTC'], False)
-
-    # addInvestorToBlacklist()
-    # stake80KTokens()
-
-    # transferSOVtoTokenSender()
-
-    # transferSOVtoScriptAccount()
-    #transferSOVtoTokenSender()
-    #readBalanceFromAMM()
-    #checkRates()
-
-    # testV1Converter(contracts["ConverterSOV"], contracts["WRBTC"], contracts["SOV"])
-    # transferSOVtoTokenSender()
-    # addLiquidityV1(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
-    #addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
-
-    #getBalance('0xdF298421cb18740a7059B0af532167FAa45e7a98', contracts['multisig'])
-
-    # sendSOVFromVestingRegistry()
-
-    # addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**15, 67 * 10**17])
-    # addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [30 * 10**18, 200000 * 10**18])
-
-    #removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 950e18, [contracts['WRBTC'], contracts['SOV']], [18e18,1])
-    #removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 1e18, [contracts['WRBTC'], contracts['SOV']], [19,1])
-
-    # 2986.175 × 99% ~ 2957
-    #removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 590 * 10**18, [contracts['WRBTC'], contracts['SOV']], [14e18,1])
 
 
-
-    '''''
-    startRate = 1e8/15000 *1e10
-    print(startRate)
-    sovBalance = 100000 * 1e18
-    rbtcBalance = sovBalance / startRate 
-    print(rbtcBalance)
-    product = sovBalance * rbtcBalance
-    amount = 1000 *1e18
-    getTargetAmountFromAMM(sovBalance, 50000, rbtcBalance, 50000, amount)
-
-
-    newTargetBalance = product / (sovBalance + amount )
-    targetAmount = rbtcBalance-newTargetBalance
-    #targetAmount = rbtcBalance * (1-sovBalance/(sovBalance + amount))
-    rate = amount / targetAmount
-    impact =  100*(rate - startRate)/startRate
-    print(targetAmount)
-    print(rate)
-    print(impact)
-    '''
-    '''
-    readSwapRate(contracts['SOV'], contracts['WRBTC'])
-    readOwner(contracts['WRBTCtoSOVConverter'])
-    acceptOwnershipWithMultisig(contracts['WRBTCtoSOVConverter'])
-    readConversionFee(contracts['WRBTCtoSOVConverter'])‚
-    readConversionFee(contracts['ConverterUSDT'])
-    '''
-    #((impact/100 * 15000e10) + 15000e10) * rbtcBalance - ((impact/100 * 15000e10) + 15000e10) * (sovBalance * rbtcBalance / (sovBalance + amount ))  = amount  
-
-    #sendFromMultisig('0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 15e18)
-
-    #executeOnMultisig(112)
-
-    #readClaimBalanceOrigin('0xeD8E327DbADB165A3c2432EE4C058F476C87eCc6')
-    #acct = accounts[0]
-    #acct.deploy(TestToken, "SUSD", "SUSD", 18, 1e50)
-
-    #addOwnerToMultisig('0xb1c5C1B84E33CD32a153f1eB120e9Bd7109cc435')
-
-    #addAdmin('0xEB7abD5e72B820E0a330699d99bF5c0DF76e794d', contracts['VestingRegistry3'])
-    #isVestingAdmin('0xEB7abD5e72B820E0a330699d99bF5c0DF76e794d', '0x52E4419b9D33C6e0ceb2e7c01D3aA1a04b21668C')
-
-    #replaceOwnerOnMultisig(acct, '0x9E0816a71B53ca67201a5088df960fE90910DE55')
-    #readOwnersOfAllContracts()
-    #checkVotingPower('0x7BE508451CD748bA55dcbe75c8067F9420909b49')
-    #readVestingContractForAddress('0x6d17a1912e5685c6d0913a2099449fcddba10051')
-
-    #readStakingKickOff()
-
-    #readLMVestingContractForAddress('0x00d1f4bC67C8c38630e76dD27038F2A1Bbf1FDD1')
-
-
-
-    #transferTokensFromWallet(contracts['SOV'], contracts['LiquidityMiningProxy'], 50000e18)
+    #transferTokensFromWallet(contracts['SOV'], contracts['LiquidityMiningProxy'], 40000e18)
+    sendTokensFromMultisig(contracts['SOV'], contracts['LiquidityMiningProxy'], 40000e18)
     #setWrapperOnLM()
     #addAdmin(contracts['LockedSOV'], contracts['VestingRegistry3'])
 
 
-    #addLiquidityV2UsingWrapper(contracts['ConverterUSDT'], contracts['USDT'], 1e18)
-    #getPoolId(contracts['(WR)BTC/DOC2'])
-    #getPoolId(contracts['(WR)BTC/USDT2'])
-    #getPoolId(contracts['iRBTC'])
-    #getLMInfo()
-    #readOwner(contracts['LiquidityMiningProxy'])
-
-    #sendTokensFromMultisig(contracts["SOV"], '0xF80e86B480D8639132eA255e14B8e255887cb8F6', 1633986e16)
-    #setLockedSOV(contracts['LockedSOV'])
-
-    #acct.transfer('0xD01A3bA68E7acdD8A5EBaB68d6d6CfA313fec272', 0.5e18)
-
-    #getBalance(contracts['iUSDT'], '0x2064242b697830535A2d76BE352e82Cf85E0EC2c')
 
 def loadConfig():
     global contracts, acct
@@ -198,7 +43,7 @@ def loadConfig():
     else:
         raise Exception("Network not supported.")
     contracts = json.load(configFile)
-    acct = accounts.load("rskdeployer")
+
     
 def readLendingFee():
     sovryn = Contract.from_abi("sovryn", address='0xBAC609F5C8bb796Fa5A31002f12aaF24B7c35818', abi=interface.ISovrynBrownie.abi, owner=acct)

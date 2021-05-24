@@ -55,9 +55,9 @@ def main():
     rewardTokensPerBlock = 49604 * 10**14 * 1000 #100M per week
 
     # ~1 day in blocks (assuming 30s blocks)
-    BLOCKS_PER_DAY = 2880
-    BLOCKS_PER_HOUR = 120
-    startDelayBlocks = 3 * BLOCKS_PER_DAY - 0 * BLOCKS_PER_HOUR
+    BLOCKS_PER_DAY = 2740
+    BLOCKS_PER_HOUR = 114
+    startDelayBlocks = 3 * BLOCKS_PER_DAY - 2 * BLOCKS_PER_HOUR
     numberOfBonusBlocks = 1 # ~1 day in blocks (assuming 30s blocks)
     wrapper = "0x0000000000000000000000000000000000000000" # can be updated later using setWrapper
     # The % (in Basis Point) which determines how much will be unlocked immediately.
