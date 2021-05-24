@@ -72,4 +72,3 @@ contract FlashLoanerTest is Ownable {
 
 	event BalanceOf(uint256 balance);
 }
-

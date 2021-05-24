@@ -12,4 +12,3 @@ interface ITokenFlashLoanTest {
 		bytes calldata data
 	) external payable returns (bytes memory);
 }
-
