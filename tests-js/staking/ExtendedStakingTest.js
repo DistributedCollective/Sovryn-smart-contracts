@@ -110,7 +110,7 @@ contract("Staking", (accounts) => {
 		kickoffTS = await staking.kickoffTS.call();
 		inOneWeek = kickoffTS.add(new BN(DELAY));
 	});
-/*
+
 	describe("stake", () => {
 		it("Amount should be positive", async () => {
 			await expectRevert(staking.stake(0, inOneWeek, root, root), "amount of tokens to stake needs to be bigger than 0");
@@ -661,9 +661,9 @@ contract("Staking", (accounts) => {
 			expect(await staking.weightScaling.call()).to.be.bignumber.equal(new BN(7));
 		});
 	});
-*/
+
 	describe("withdraw", () => {
-/*
+
 		it("Amount of tokens to be withdrawn needs to be bigger than 0", async () => {
 			let amount = "1000";
 			let duration = new BN(TWO_WEEKS).mul(new BN(2));
@@ -786,7 +786,7 @@ contract("Staking", (accounts) => {
 			await expect(feeSharingBalance).to.be.bignumber.equal(new BN(punishedAmount));
 			await expect(userBalance).to.be.bignumber.equal(new BN(amount - punishedAmount));
 		});
-*/
+
 		it("Should be able to withdraw second time", async () => {
 			let amount = "1000";
 			let duration = new BN(TWO_WEEKS).mul(new BN(2));
@@ -799,7 +799,20 @@ contract("Staking", (accounts) => {
 
 			await staking.withdraw(amount, lockedTS, root);
 		});
-/*
+
+		it("Should be able to withdraw second time after partial withdraw", async () => {
+			let amount = new BN(1000);
+			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			let lockedTS = await getTimeFromKickoff(duration);
+			await staking.stake(amount, lockedTS, root, root);
+
+			await staking.withdraw(amount.sub(new BN(1)), lockedTS, root);
+
+			await staking.stake(amount, lockedTS, root, root);
+
+			await staking.withdraw(amount.add(new BN(1)), lockedTS, root);
+		});
+
 		it("Should be able to withdraw earlier for any lock date", async () => {
 			let amount = "10000";
 
@@ -848,8 +861,7 @@ contract("Staking", (accounts) => {
 			}
 		});
 	});
- */
-/*
+
 	describe("unlockAllTokens", () => {
 		it("Only owner should be able to unlock all tokens", async () => {
 			await expectRevert(staking.unlockAllTokens({ from: account1 }), "unauthorized");
@@ -944,7 +956,7 @@ contract("Staking", (accounts) => {
 			balance = await staking.balanceOf_MultipliedByTwo.call(root);
 			expect(balance.toNumber()).to.be.equal(amount * 2);
 		});
- */
+
 	});
 
 	async function getTimeFromKickoff(delay) {
