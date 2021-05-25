@@ -3,9 +3,14 @@ const { assert } = require("chai");
 const sovrynProtocol = artifacts.require("sovrynProtocol");
 const LoanToken = artifacts.require("LoanToken");
 const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic"); //added functionality for isolated unit testing
-// const LockedSovMockup = artifacts.require("LockedSovMockup");
-const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 const LockedSOVFailedMockup = artifacts.require("LockedSOVFailedMockup");
+const LockedSOV = artifacts.require("LockedSOV");
+const StakingLogic = artifacts.require("Staking");
+const StakingProxy = artifacts.require("StakingProxy");
+const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
+const VestingLogic = artifacts.require("VestingLogic");
+const VestingFactory = artifacts.require("VestingFactory");
+const VestingRegistry = artifacts.require("VestingRegistry3");
 
 const TestWrbtc = artifacts.require("TestWrbtc");
 const TestToken = artifacts.require("TestToken");
@@ -30,6 +35,9 @@ const { expect } = require("hardhat");
 const TOTAL_SUPPLY = "10000000000000000000000000";
 
 const { decodeLogs } = require("./Utils/initializer.js");
+
+let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
+let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 
 contract("Affiliates", (accounts) => {
 	let loanTokenLogic;
@@ -57,7 +65,6 @@ contract("Affiliates", (accounts) => {
 		await sovryn.replaceContract((await SwapsExternal.new()).address);
 		await sovryn.replaceContract((await LoanOpenings.new()).address);
 		await sovryn.replaceContract((await Affiliates.new()).address);
-		// await sovryn.replaceContract((await LockedSovMockup.new()).address);
 
 		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
 
@@ -76,9 +83,30 @@ contract("Affiliates", (accounts) => {
 			await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
 		}
 
-		await sovryn.setLockedSOVAddress((await LockedSOVMockup.new(tokenSOV.address, [owner])).address);
-		lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
-		// await sovryn.replaceContract((await LockedSOVMockup.new(tokenSOV.address, [owner])).address);
+		// Creating the Staking Instance.
+		stakingLogic = await StakingLogic.new(tokenSOV.address);
+		staking = await StakingProxy.new(tokenSOV.address);
+		await staking.setImplementation(stakingLogic.address);
+		staking = await StakingLogic.at(staking.address);
+
+		// Creating the FeeSharing Instance.
+		feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, staking.address);
+
+		// Creating the Vesting Instance.
+		vestingLogic = await VestingLogic.new();
+		vestingFactory = await VestingFactory.new(vestingLogic.address);
+		vestingRegistry = await VestingRegistry.new(
+			vestingFactory.address,
+			tokenSOV.address,
+			staking.address,
+			feeSharingProxy.address,
+			owner // This should be Governance Timelock Contract.
+		);
+		vestingFactory.transferOwnership(vestingRegistry.address);
+
+		// Creating the instance of newLockedSOV Contract.
+		await sovryn.setLockedSOVAddress((await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])).address);
+		lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 	});
 	let swapsSovryn;
 	beforeEach(async () => {
