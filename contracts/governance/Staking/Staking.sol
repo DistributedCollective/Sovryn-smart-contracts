@@ -7,6 +7,8 @@ import "../../rsk/RSKAddrValidator.sol";
 import "../Vesting/ITeamVesting.sol";
 import "../ApprovalReceiver.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @title Staking contract.
  * @notice Pay-in and pay-out function for staking and withdrawing tokens.
@@ -100,10 +102,10 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		/// @dev Increase stake.
 		_increaseStake(sender, amount, stakeFor, until);
 
-		if (previousBalance == 0) {
-			/// @dev Regular delegation if it's a first stake.
-			_delegate(stakeFor, delegatee, until);
-		} else {
+//		if (previousBalance == 0) {
+//			/// @dev Regular delegation if it's a first stake.
+//			_delegate(stakeFor, delegatee, until);
+//		} else {
 			address previousDelegatee = delegates[stakeFor][until];
 			if (previousDelegatee != delegatee) {
 				/// @dev Update delegatee.
@@ -118,7 +120,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 			/// @dev Increase stake.
 			_increaseDelegateStake(delegatee, until, amount);
-		}
+//		}
 	}
 
 	/**
@@ -481,8 +483,14 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address delegatee,
 		uint256 lockedTS
 	) internal {
+		console.log("[1]");
+
 		address currentDelegate = delegates[delegator][lockedTS];
+		console.log("currentDelegate = %s", currentDelegate);
+
 		uint96 delegatorBalance = currentBalance(delegator, lockedTS);
+		console.log("delegatorBalance = %s", delegatorBalance);
+
 		delegates[delegator][lockedTS] = delegatee;
 
 		emit DelegateChanged(delegator, lockedTS, currentDelegate, delegatee);
@@ -505,6 +513,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 lockedTS
 	) internal {
 		if (srcRep != dstRep && amount > 0) {
+			console.log("[2]");
+
 			if (srcRep != address(0)) _decreaseDelegateStake(srcRep, lockedTS, amount);
 
 			if (dstRep != address(0)) _increaseDelegateStake(dstRep, lockedTS, amount);
