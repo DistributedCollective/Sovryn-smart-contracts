@@ -56,7 +56,7 @@ contract("Vesting", (accounts) => {
 
 		kickoffTS = await staking.kickoffTS.call();
 	});
-
+/*
 	describe("constructor", () => {
 		it("sets the expected values", async () => {
 			let vestingInstance = await Vesting.new(
@@ -464,7 +464,7 @@ contract("Vesting", (accounts) => {
 			}
 		});
 	});
-
+*/
 	describe("withdrawTokens", () => {
 		let vesting;
 
@@ -569,10 +569,15 @@ contract("Vesting", (accounts) => {
 			);
 			vesting = await VestingLogic.at(vesting.address);
 
+			console.log("[0]");
+			let stakes = await staking.getStakes(vesting.address);
+			console.log(stakes.dates.length);
+			stakes.dates.forEach(date => console.log(date.toString()));
+
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 
-			await increaseTime(52 * WEEK);
+			await increaseTime(50 * WEEK);
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 
@@ -581,8 +586,19 @@ contract("Vesting", (accounts) => {
 			//time travel
 			await increaseTime(104 * WEEK);
 
+			console.log("[1]");
+			stakes = await staking.getStakes(vesting.address);
+			console.log(stakes.dates.length);
+			stakes.dates.forEach(date => console.log(date.toString()));
+
 			//withdraw
 			let tx = await vesting.withdrawTokens(root);
+
+			console.log("[2]");
+			stakes = await staking.getStakes(vesting.address);
+			console.log(stakes.dates.length);
+			stakes.dates.forEach(date => console.log(date.toString()));
+			// stakes.stakes.forEach(stake => console.log(stake.toString()));
 
 			//check event
 			expectEvent(tx, "TokensWithdrawn", {

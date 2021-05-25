@@ -9,6 +9,8 @@ import "./IVesting.sol";
 import "../ApprovalReceiver.sol";
 import "./VestingStorage.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @title Vesting Logic contract.
  * @notice Staking, delegating and withdrawal functionality.
@@ -146,6 +148,10 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 		} else {
 			end = block.timestamp;
 		}
+
+		console.log("block.timestamp = %s", block.timestamp);
+		console.log("startDate = %s", startDate);
+		console.log("end = %s", end);
 
 		/// @dev Withdraw for each unlocked position.
 		for (uint256 i = startDate + cliff; i <= end; i += FOUR_WEEKS) {

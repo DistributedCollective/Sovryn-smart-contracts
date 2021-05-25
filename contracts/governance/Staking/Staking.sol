@@ -6,6 +6,10 @@ import "./IStaking.sol";
 import "../../rsk/RSKAddrValidator.sol";
 import "../Vesting/ITeamVesting.sol";
 import "../ApprovalReceiver.sol";
+import "../../openzeppelin/Address.sol";
+import "../../openzeppelin/SafeMath.sol";
+
+import "hardhat/console.sol";
 
 /**
  * @title Staking contract.
@@ -19,6 +23,9 @@ import "../ApprovalReceiver.sol";
  * early unstaking.
  * */
 contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
+	using Address for address payable;
+	using SafeMath for uint256;
+
 	/**
 	 * @notice Stake the given amount for the given duration of time.
 	 * @param amount The number of tokens to stake.
@@ -235,6 +242,16 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address receiver
 	) public {
 		_withdraw(amount, until, receiver, false);
+
+		if (msg.sender.isContract()) {
+			uint256 previousLock = until.sub(TWO_WEEKS);
+			uint96 stake = getPriorUserStakeByDate(msg.sender, previousLock, block.number - 1);
+			if (stake > 0) {
+				console.log("previousLock = %s", previousLock);
+				console.log("stake = %s", stake);
+				_withdraw(stake, previousLock, receiver, false);
+			}
+		}
 	}
 
 	/**
