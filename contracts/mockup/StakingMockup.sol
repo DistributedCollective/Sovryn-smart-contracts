@@ -38,4 +38,15 @@ contract StakingMockup is Staking {
 	) public {
 		super.getPriorWeightedStake(account, blockNumber, date);
 	}
+
+	function setDelegateStake(
+		address delegatee,
+		uint256 lockedTS,
+		uint96 value
+	) public {
+		uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
+		uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
+		_writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, 0);
+	}
+
 }

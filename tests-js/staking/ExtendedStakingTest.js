@@ -69,10 +69,10 @@ contract("Staking", (accounts) => {
 		wrbtc = await TestWrbtc.new();
 
 		//staking
-		let stakingLogic = await StakingLogic.new(token.address);
+		let stakingLogic = await StakingMockup.new(token.address);
 		staking = await StakingProxy.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
-		staking = await StakingLogic.at(staking.address);
+		staking = await StakingMockup.at(staking.address);
 
 		//Protocol
 		protocol = await Protocol.new();
@@ -811,6 +811,21 @@ contract("Staking", (accounts) => {
 			await staking.stake(amount, lockedTS, root, root);
 
 			await staking.withdraw(amount.add(new BN(1)), lockedTS, root);
+		});
+
+		it("Should be able to withdraw second time (emulate issue with delegate checkpoint)", async () => {
+			let amount = "1000";
+			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			let lockedTS = await getTimeFromKickoff(duration);
+			await staking.stake(amount, lockedTS, root, root);
+
+			await staking.withdraw(amount, lockedTS, root);
+
+			await staking.stake(amount, lockedTS, root, root);
+
+			await staking.setDelegateStake(root, lockedTS, 0);
+
+			await staking.withdraw(amount, lockedTS, root);
 		});
 
 		it("Should be able to withdraw earlier for any lock date", async () => {
