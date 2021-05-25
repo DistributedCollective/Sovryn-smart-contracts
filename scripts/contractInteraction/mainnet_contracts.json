@@ -69,5 +69,7 @@
     "(WR)BTC/DOC2": "",
     "(WR)BTC/BPRO1": "",
     "(WR)BTC/BPRO2": "",
-    "(WR)BTC/SOV": "0x09c5faf7723b13434abdf1a65ab1b667bc02a902"
+    "(WR)BTC/SOV": "0x09c5faf7723b13434abdf1a65ab1b667bc02a902",
+    "(WR)BTC/ETH": "",
+    "LiquidityMiningConfigToken": "0x513B0f20027BDc6bc2fE9e28A9d4B40d20730Dca"
 }
