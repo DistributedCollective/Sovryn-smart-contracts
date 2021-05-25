@@ -12,81 +12,157 @@ import "../openzeppelin/Ownable.sol";
 import "../openzeppelin/SafeMath.sol";
 import "../interfaces/IWrbtcERC20.sol";
 
+/**
+ * @title State contract.
+ * @notice This contract code comes from bZx. bZx is a protocol for tokenized
+ * margin trading and lending https://bzx.network similar to the dYdX protocol.
+ *
+ * This contract contains the storage values of the Protocol.
+ * */
 contract State is Objects, ReentrancyGuard, Ownable {
 	using SafeMath for uint256;
 	using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set;
 
-	address public priceFeeds; // handles asset reference price lookups
-	address public swapsImpl; // handles asset swaps using dex liquidity
-	address public sovrynSwapContractRegistryAddress; // contract registry address of the sovryn swap network
+	/// Handles asset reference price lookups.
+	address public priceFeeds;
 
-	mapping(bytes4 => address) public logicTargets; // implementations of protocol functions
+	/// Handles asset swaps using dex liquidity.
+	address public swapsImpl;
 
-	mapping(bytes32 => Loan) public loans; // loanId => Loan
-	mapping(bytes32 => LoanParams) public loanParams; // loanParamsId => LoanParams
+	/// Contract registry address of the Sovryn swap network.
+	address public sovrynSwapContractRegistryAddress;
 
-	mapping(address => mapping(bytes32 => Order)) public lenderOrders; // lender => orderParamsId => Order
-	mapping(address => mapping(bytes32 => Order)) public borrowerOrders; // borrower => orderParamsId => Order
+	/// Implementations of protocol functions.
+	mapping(bytes4 => address) public logicTargets;
 
-	mapping(bytes32 => mapping(address => bool)) public delegatedManagers; // loanId => delegated => approved
+	/// Loans: loanId => Loan
+	mapping(bytes32 => Loan) public loans;
 
-	// Interest
-	mapping(address => mapping(address => LenderInterest)) public lenderInterest; // lender => loanToken => LenderInterest object
-	mapping(bytes32 => LoanInterest) public loanInterest; // loanId => LoanInterest object
+	/// Loan parameters: loanParamsId => LoanParams
+	mapping(bytes32 => LoanParams) public loanParams;
 
-	// Internals
-	EnumerableBytes32Set.Bytes32Set internal logicTargetsSet; // implementations set
-	EnumerableBytes32Set.Bytes32Set internal activeLoansSet; // active loans set
+	/// lender => orderParamsId => Order
+	mapping(address => mapping(bytes32 => Order)) public lenderOrders;
 
-	mapping(address => EnumerableBytes32Set.Bytes32Set) internal lenderLoanSets; // lender loans set
-	mapping(address => EnumerableBytes32Set.Bytes32Set) internal borrowerLoanSets; // borrow loans set
-	mapping(address => EnumerableBytes32Set.Bytes32Set) internal userLoanParamSets; // user loan params set
+	/// borrower => orderParamsId => Order
+	mapping(address => mapping(bytes32 => Order)) public borrowerOrders;
 
-	address public feesController; // address controlling fee withdrawals
+	/// loanId => delegated => approved
+	mapping(bytes32 => mapping(address => bool)) public delegatedManagers;
 
-	uint256 public lendingFeePercent = 10**19; // 10% fee                               // fee taken from lender interest payments
-	mapping(address => uint256) public lendingFeeTokensHeld; // total interest fees received and not withdrawn per asset
-	mapping(address => uint256) public lendingFeeTokensPaid; // total interest fees withdraw per asset (lifetime fees = lendingFeeTokensHeld + lendingFeeTokensPaid)
+	/**
+	 *** Interest ***
+	 **/
 
-	uint256 public tradingFeePercent = 15 * 10**16; // 0.15% fee                        // fee paid for each trade
-	mapping(address => uint256) public tradingFeeTokensHeld; // total trading fees received and not withdrawn per asset
-	mapping(address => uint256) public tradingFeeTokensPaid; // total trading fees withdraw per asset (lifetime fees = tradingFeeTokensHeld + tradingFeeTokensPaid)
+	/// lender => loanToken => LenderInterest object
+	mapping(address => mapping(address => LenderInterest)) public lenderInterest;
 
-	uint256 public borrowingFeePercent = 9 * 10**16; // 0.09% fee                       // origination fee paid for each loan
-	mapping(address => uint256) public borrowingFeeTokensHeld; // total borrowing fees received and not withdrawn per asset
-	mapping(address => uint256) public borrowingFeeTokensPaid; // total borrowing fees withdraw per asset (lifetime fees = borrowingFeeTokensHeld + borrowingFeeTokensPaid)
+	/// loanId => LoanInterest object
+	mapping(bytes32 => LoanInterest) public loanInterest;
 
-	uint256 public protocolTokenHeld; // current protocol token deposit balance
-	uint256 public protocolTokenPaid; // lifetime total payout of protocol token
+	/**
+	 *** Internals ***
+	 **/
 
-	uint256 public affiliateFeePercent = 30 * 10**18; // 30% fee share                  // fee share for affiliate program
+	/// Implementations set.
+	EnumerableBytes32Set.Bytes32Set internal logicTargetsSet;
 
-	uint256 public liquidationIncentivePercent = 5 * 10**18; // 5% collateral discount  // discount on collateral for liquidators
+	/// Active loans set.
+	EnumerableBytes32Set.Bytes32Set internal activeLoansSet;
 
-	mapping(address => address) public loanPoolToUnderlying; // loanPool => underlying
-	mapping(address => address) public underlyingToLoanPool; // underlying => loanPool
-	EnumerableBytes32Set.Bytes32Set internal loanPoolsSet; // loan pools set
+	/// Lender loans set.
+	mapping(address => EnumerableBytes32Set.Bytes32Set) internal lenderLoanSets;
 
-	mapping(address => bool) public supportedTokens; // supported tokens for swaps
+	/// Borrow loans set.
+	mapping(address => EnumerableBytes32Set.Bytes32Set) internal borrowerLoanSets;
 
-	uint256 public maxDisagreement = 5 * 10**18; // % disagreement between swap rate and reference rate
+	/// User loan params set.
+	mapping(address => EnumerableBytes32Set.Bytes32Set) internal userLoanParamSets;
 
-	uint256 public sourceBuffer = 10000; // used as buffer for swap source amount estimations
+	/// Address controlling fee withdrawals.
+	address public feesController;
 
-	uint256 public maxSwapSize = 50 ether; // maximum support swap size in BTC
+	/// 10% fee /// Fee taken from lender interest payments.
+	uint256 public lendingFeePercent = 10**19;
 
-	mapping(address => uint256) public borrowerNonce; // nonce per borrower. used for loan id creation.
+	/// Total interest fees received and not withdrawn per asset.
+	mapping(address => uint256) public lendingFeeTokensHeld;
 
-	uint256 public rolloverBaseReward = 16800000000000; // Rollover transaction costs around 0.0000168 rBTC, it is denominated in wRBTC
-	uint256 public rolloverFlexFeePercent = 0.1 ether; // 0.1%
+	/// Total interest fees withdraw per asset.
+	/// lifetime fees = lendingFeeTokensHeld + lendingFeeTokensPaid
+	mapping(address => uint256) public lendingFeeTokensPaid;
+
+	/// 0.15% fee /// Fee paid for each trade.
+	uint256 public tradingFeePercent = 15 * 10**16;
+
+	/// Total trading fees received and not withdrawn per asset.
+	mapping(address => uint256) public tradingFeeTokensHeld;
+
+	/// Total trading fees withdraw per asset
+	/// lifetime fees = tradingFeeTokensHeld + tradingFeeTokensPaid
+	mapping(address => uint256) public tradingFeeTokensPaid;
+
+	/// 0.09% fee /// Origination fee paid for each loan.
+	uint256 public borrowingFeePercent = 9 * 10**16;
+
+	/// Total borrowing fees received and not withdrawn per asset.
+	mapping(address => uint256) public borrowingFeeTokensHeld;
+
+	/// Total borrowing fees withdraw per asset.
+	/// lifetime fees = borrowingFeeTokensHeld + borrowingFeeTokensPaid
+	mapping(address => uint256) public borrowingFeeTokensPaid;
+
+	/// Current protocol token deposit balance.
+	uint256 public protocolTokenHeld;
+
+	/// Lifetime total payout of protocol token.
+	uint256 public protocolTokenPaid;
+
+	/// 30% fee share /// Fee share for affiliate program.
+	uint256 public affiliateFeePercent = 30 * 10**18;
+
+	/// 5% collateral discount /// Discount on collateral for liquidators.
+	uint256 public liquidationIncentivePercent = 5 * 10**18;
+
+	/// loanPool => underlying
+	mapping(address => address) public loanPoolToUnderlying;
+
+	/// underlying => loanPool
+	mapping(address => address) public underlyingToLoanPool;
+
+	/// Loan pools set.
+	EnumerableBytes32Set.Bytes32Set internal loanPoolsSet;
+
+	/// Supported tokens for swaps.
+	mapping(address => bool) public supportedTokens;
+
+	/// % disagreement between swap rate and reference rate.
+	uint256 public maxDisagreement = 5 * 10**18;
+
+	/// Used as buffer for swap source amount estimations.
+	uint256 public sourceBuffer = 10000;
+
+	/// Maximum support swap size in rBTC
+	uint256 public maxSwapSize = 50 ether;
+
+	/// Nonce per borrower. Used for loan id creation.
+	mapping(address => uint256) public borrowerNonce;
+
+	// Rollover transaction costs around 0.0000168 rBTC, it is denominated in wrBTC.
+	uint256 public rolloverBaseReward = 16800000000000;
+	uint256 public rolloverFlexFeePercent = 0.1 ether; /// 0.1%
 
 	IWrbtcERC20 public wrbtcToken;
 	address public protocolTokenAddress;
 
-	uint256 public feeRebatePercent = 50 * 10**18; // 50% fee rebate                     // potocolToken reward to user, it is worth % of trading/borrowing fee
+	/// 50% fee rebate /// potocolToken reward to user, it is worth % of trading/borrowing fee.
+	uint256 public feeRebatePercent = 50 * 10**18;
 
 	address public admin;
 
+	/**
+	 * @notice Add signature and target to storage.
+	 * */
 	function _setTarget(bytes4 sig, address target) internal {
 		logicTargets[sig] = target;
 

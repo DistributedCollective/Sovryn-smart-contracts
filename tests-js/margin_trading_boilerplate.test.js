@@ -14,9 +14,8 @@ const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
 const SwapsExternal = artifacts.require("SwapsExternal");
-//const LoanClosingsBase = artifacts.require("LoanClosingsBase");
-//const LoanClosingsWith = artifacts.require("LoanClosingsWith");
-const LoanClosings = artifacts.require("LoanClosings");
+const LoanClosingsBase = artifacts.require("LoanClosingsBase");
+const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
@@ -43,9 +42,8 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 		// Deploying sovrynProtocol
 		const sovrynproxy = await sovrynProtocol.new();
 		sovryn = await ISovryn.at(sovrynproxy.address);
-		//await sovryn.replaceContract((await LoanClosingsBase.new()).address);
-		//await sovryn.replaceContract((await LoanClosingsWith.new()).address);
-		await sovryn.replaceContract((await LoanClosings.new()).address);
+		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
+		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
 		await sovryn.replaceContract((await ProtocolSettings.new()).address);
 		await sovryn.replaceContract((await LoanSettings.new()).address);
 		await sovryn.replaceContract((await LoanMaintenance.new()).address);

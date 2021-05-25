@@ -140,7 +140,7 @@ contract("DevelopmentFund (Multisig Functions)", (accounts) => {
 	});
 
 	it("Unlocked Token Owner should be able to transfer all tokens to safeVault.", async () => {
-		let value = randomValue();
+		let value = randomValue() + 1;
 		await testToken.mint(userOne, value);
 		await testToken.approve(developmentFund.address, value, { from: userOne });
 		await developmentFund.depositTokens(value, { from: userOne });
@@ -225,7 +225,7 @@ contract("DevelopmentFund (Multisig Functions)", (accounts) => {
 		await testToken.mint(governance, totalReleaseTokenAmount);
 		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: governance });
 		await developmentFund.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount, { from: governance });
-		let value = randomValue();
+		let value = randomValue() + 1;
 		await expectRevert(developmentFund.withdrawTokensByUnlockedTokenOwner(value, { from: multisig }), "No release schedule reached.");
 	});
 

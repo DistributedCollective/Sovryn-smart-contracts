@@ -10,9 +10,22 @@ import "../core/State.sol";
 import "../mixins/VaultController.sol";
 import "./FeesHelper.sol";
 
+/**
+ * @title The Interest User contract.
+ * @notice This contract code comes from bZx. bZx is a protocol for tokenized margin
+ * trading and lending https://bzx.network similar to the dYdX protocol.
+ *
+ * This contract pays loan interests.
+ * */
 contract InterestUser is VaultController, FeesHelper {
 	using SafeERC20 for IERC20;
 
+	/**
+	 * @notice Internal function to pay interest of a loan.
+	 * @dev Calls _payInterestTransfer internal function to transfer tokens.
+	 * @param lender The account address of the lender.
+	 * @param interestToken The token address to pay interest with.
+	 * */
 	function _payInterest(address lender, address interestToken) internal {
 		LenderInterest storage lenderInterestLocal = lenderInterest[lender][interestToken];
 
@@ -35,6 +48,12 @@ contract InterestUser is VaultController, FeesHelper {
 		}
 	}
 
+	/**
+	 * @notice Internal function to transfer tokens for the interest of a loan.
+	 * @param lender The account address of the lender.
+	 * @param interestToken The token address to pay interest with.
+	 * @param interestOwedNow The amount of interest to pay.
+	 * */
 	function _payInterestTransfer(
 		address lender,
 		address interestToken,
@@ -46,7 +65,7 @@ contract InterestUser is VaultController, FeesHelper {
 
 		_payLendingFee(lender, interestToken, lendingFee);
 
-		// transfers the interest to the lender, less the interest fee
+		/// Transfers the interest to the lender, less the interest fee.
 		vaultWithdraw(interestToken, lender, interestOwedNow.sub(lendingFee));
 	}
 }

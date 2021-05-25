@@ -175,5 +175,16 @@ contract("LoanTokenAdministration", (accounts) => {
 			const new_early_access_token = await TestToken.new("Sovryn Early Access Token", "SEAT", 1, 10);
 			await expectRevert(loanToken.setEarlyAccessToken(new_early_access_token.address, { from: accounts[1] }), "unauthorized");
 		});
+		
+		it("Should succeed with larger rate than maxSlippage in positive direction", async() => {
+			const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+			let rate = await priceFeeds.checkPriceDisagreement(WRBTC.address, SUSD.address, wei("1", "ether"), wei("20000", "ether"), 0)
+			assert(rate == wei("20000", "ether"));
+		})
+
+		it("Should fail with larger rate than maxSlippage in negative direction", async() => {
+			const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+			await expectRevert(priceFeeds.checkPriceDisagreement(WRBTC.address, SUSD.address, wei("1", "ether"), wei("1", "ether"), 0), "price disagreement")
+		})
 	});
 });

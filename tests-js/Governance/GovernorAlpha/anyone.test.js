@@ -387,7 +387,7 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
 	});
 
 	it("All actions mentioned in the queue of a proposal should be executed correctly.", async () => {
-		let value = randomValue();
+		let value = randomValue() + 1;
 		// Proposal Parameters
 		targets = [setGet.address];
 		values = [new BN("0")];
