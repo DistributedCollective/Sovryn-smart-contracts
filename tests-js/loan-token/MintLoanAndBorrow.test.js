@@ -33,7 +33,7 @@ const hunEth = new BN(wei("100", "ether"));
 // This decodes longs for a single event type, and returns a decoded object in
 // the same form truffle-contract uses on its receipts
 
-contract("LoanTokenBorrowing", (accounts) => {
+contract("LoanTokenBorrowing & MintLoanAndBorrowTest", (accounts) => {
 	let owner, account1;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV;
 
@@ -58,7 +58,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 		SOV = await getSOV(sovryn, priceFeeds, SUSD);
 	});
 
-	describe("Test borrow", () => {
+	describe("Flash loan attack", () => {
 		it("Test borrow", async () => {
 			// prepare the test
 			await set_demand_curve(loanToken);
@@ -67,8 +67,8 @@ contract("LoanTokenBorrowing", (accounts) => {
 			const withdrawAmount = tenEth;
 			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
 			const collateralTokenSent = await sovryn.getRequiredCollateral(
-				SUSD.address,
-				RBTC.address,
+				SUSD.address, // loan token == underlying token
+				RBTC.address, // collateral token
 				withdrawAmount,
 				new BN(10).pow(new BN(18)).mul(new BN(50)),
 				true
@@ -120,6 +120,10 @@ contract("LoanTokenBorrowing", (accounts) => {
 		});
 
 		it("Mint, Borrow and Burn in 1 tx should fail", async () => {
+            // underlying token is SUSD
+            // loan pool token is iSUSD (loanToken)
+            // collateral token is RBTC
+
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
 
@@ -147,56 +151,58 @@ contract("LoanTokenBorrowing", (accounts) => {
 			await RBTC.approve(loanToken.address, collateralTokenSent);
 			const sov_initial_balance = await SOV.balanceOf(owner);
 
-			// borrow some funds
-			/*const { tx, receipt } = await loanToken.borrow(
-				"0x0", // bytes32 loanId
-				withdrawAmount, // uint256 withdrawAmount
-				durationInSeconds, // uint256 initialLoanDuration
-				collateralTokenSent, // uint256 collateralTokenSent
-				RBTC.address, // address collateralTokenAddress
-				owner, // address borrower
-				account1, // address receiver
-				web3.utils.fromAscii("") // bytes memory loanDataBytes
-			);*/
-			
-            // Deploy test contract
-            const mintLoanAndBorrowTest = await MintLoanAndBorrowTest.new();
+            const hackAmount = hunEth;
 
-            // Check balances
-            console.log("\nsov_initial_balance: " + await SOV.balanceOf(owner));
-            /// sov_initial_balance: 99999999999999999999999999999900000000000000000000
 
-            console.log("\nRBTC_initial_balance: " + await RBTC.balanceOf(owner));
-            /// RBTC_initial_balance: 100000000000000000000000000000000000000000000000000
+			// Deploy test contract
+			const mintLoanAndBorrowTest = await MintLoanAndBorrowTest.new();
 
-            // Send tokens to test contract
+			// Check balances
+			console.log("\nsov_initial_balance: " + (await SOV.balanceOf(owner)));
+			/// SOV_initial_balance: 99999999999999999999999999999900000000000000000000
+
+			console.log("\nRBTC_initial_balance: " + (await RBTC.balanceOf(owner)));
+			/// RBTC_initial_balance: 100000000000000000000000000000000000000000000000000
+
+			console.log("\nSUSD_initial_balance: " + (await SUSD.balanceOf(owner)));
+			/// SUSD_initial_balance: 100000000000000000000000000000000000000000000000000
+
             console.log("\nTest contract address: " + mintLoanAndBorrowTest.address);
-            await RBTC.transfer(mintLoanAndBorrowTest.address, collateralTokenSent);
 
-            // Check balances
-            console.log("\nRBTC balance on test contract: " + await RBTC.balanceOf(mintLoanAndBorrowTest.address));
-            /// RBTC balance on test contract: 1501350000000000
+			// Send underlying tokens SUSD to the test contract. Later it will spend those
+            // on hacking the lending pool.
+			await SUSD.transfer(mintLoanAndBorrowTest.address, hackAmount);
 
-            // Approve the transfer of the collateral
-            // This should be done by the very test contract, not by the owner.
+			// Send collateral tokens RBTC to the test contract. Later it will spend those
+            // on borrowing.
+			await RBTC.transfer(mintLoanAndBorrowTest.address, collateralTokenSent);
+
+			// Check underlying token balance of test contract.
+			console.log("\nSUSD balance on test contract: " + (await SUSD.balanceOf(mintLoanAndBorrowTest.address)));
+			/// SUSD balance on test contract: 100000000000000000000
+
+            // Check underlying token balance of test contract w/ contract function.
+			console.log("\nSUSD balance on test contract: " + (await mintLoanAndBorrowTest.getBalance(SUSD.address)));
+
+            // Check collateral token balance of test contract.
+			console.log("\nRBTC balance on test contract: " + (await RBTC.balanceOf(mintLoanAndBorrowTest.address)));
+			/// RBTC balance on test contract: 1501350000000000
+
+			// Approve the transfer of the collateral.
+			// This should be done by the very test contract, not by the owner.
 			// await RBTC.approve(loanToken.address, collateralTokenSent);
 
-            await mintLoanAndBorrowTest.callMintAndBorrowAndBurn(
-                RBTC.address, // address collateralTokenAddress
-                loanToken.address,
-                collateralTokenSent,
-                withdrawAmount,
-                1 // rBTC amount to hack the lending pool
-            );
-            expectRevert(
+            // Call the test contract hack.
+			await expectRevert(
 				mintLoanAndBorrowTest.callMintAndBorrowAndBurn(
-					RBTC.address, // address collateralTokenAddress
-                    loanToken.address,
-					collateralTokenSent,
+                    SUSD.address, // address of the underlying token
+                    loanToken.address, // address of the lending pool token
+                    RBTC.address, // address of the collateral token
+                    hackAmount, // rBTC amount to hack the lending pool
                     withdrawAmount,
-                    1
-				),
-				"8"
+                    collateralTokenSent
+                ),
+				"Avoiding flash loan attack: several txs in same block from same account."
 			);
 		});
 	});
