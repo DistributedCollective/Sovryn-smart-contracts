@@ -100,6 +100,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		/// @dev Increase stake.
 		_increaseStake(sender, amount, stakeFor, until);
 
+		/// @dev previous version wasn't increasing delegate checkpoint balance for the same delegatee for zero balance
 		address previousDelegatee = delegates[stakeFor][until];
 		if (previousDelegatee != delegatee) {
 			/// @dev Update delegatee.
