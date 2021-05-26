@@ -244,7 +244,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address receiver
 	) public {
 		_withdraw(amount, until, receiver, false);
-		_withdrawPrevious(amount, until, receiver, false);
+		///@dev "- FOUR_WEEKS" - we don't need to withdraw stake for date > block.timestamp
+		_withdrawNext(amount, until.sub(FOUR_WEEKS), receiver, false);
 	}
 
 	/**
@@ -262,8 +263,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		require(vestingWhitelist[msg.sender], "unauthorized");
 
 		_withdraw(amount, until, receiver, true);
-		///@dev we use "+ FOUR_WEEKS" to withdraw the latest stake
-		_withdrawPrevious(amount, until + FOUR_WEEKS, receiver, true);
+		_withdrawNext(amount, until, receiver, true);
 	}
 
 	/**
@@ -335,14 +335,14 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		emit TokensWithdrawn(msg.sender, receiver, amount);
 	}
 
-	function _withdrawPrevious(
+	function _withdrawNext(
 		uint96 amount,
 		uint256 until,
 		address receiver,
 		bool isGovernance
 	) internal {
 		if (msg.sender.isContract()) {
-			uint256 previousLock = until - TWO_WEEKS;
+			uint256 previousLock = until.add(TWO_WEEKS);
 			uint96 stake = getPriorUserStakeByDate(msg.sender, previousLock, block.number - 1);
 			if (stake > 0) {
 				_withdraw(stake, previousLock, receiver, isGovernance);
@@ -412,7 +412,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param lockDate the date if the position to delegate.
 	 * */
 	function delegate(address delegatee, uint256 lockDate) public {
-		return _delegate(msg.sender, delegatee, lockDate);
+		_delegate(msg.sender, delegatee, lockDate);
+		_delegateNext(msg.sender, delegatee, lockDate);
 	}
 
 	/**
@@ -473,7 +474,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		require(RSKAddrValidator.checkPKNotZero(signatory), "Staking::delegateBySig: invalid signature");
 		require(nonce == nonces[signatory]++, "Staking::delegateBySig: invalid nonce");
 		require(now <= expiry, "Staking::delegateBySig: signature expired");
-		return _delegate(signatory, delegatee, lockDate);
+		_delegate(signatory, delegatee, lockDate);
+		_delegateNext(signatory, delegatee, lockDate);
 	}
 
 	/**
@@ -515,6 +517,17 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		emit DelegateChanged(delegator, lockedTS, currentDelegate, delegatee);
 
 		_moveDelegates(currentDelegate, delegatee, delegatorBalance, lockedTS);
+	}
+
+	function _delegateNext(
+		address delegator,
+		address delegatee,
+		uint256 lockedTS
+	) internal {
+		if (msg.sender.isContract()) {
+			uint256 previousLock = lockedTS.add(TWO_WEEKS);
+			_delegate(delegator, delegatee, previousLock);
+		}
 	}
 
 	/**

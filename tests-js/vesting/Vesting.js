@@ -149,6 +149,7 @@ contract("Vesting", (accounts) => {
 	describe("delegate", () => {
 		let vesting;
 		it("should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff", async () => {
+			let toStake = ONE_MILLON;
 			vesting = await Vesting.new(
 				vestingLogic.address,
 				token.address,
@@ -159,8 +160,13 @@ contract("Vesting", (accounts) => {
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
-			await token.approve(vesting.address, ONE_MILLON);
-			await vesting.stakeTokens(ONE_MILLON);
+
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
+
+			await increaseTime(50 * WEEK);
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
 
 			//check delegatee
 			let data = await staking.getStakes.call(vesting.address);
