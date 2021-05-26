@@ -149,10 +149,6 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 			end = block.timestamp;
 		}
 
-		console.log("block.timestamp = %s", block.timestamp);
-		console.log("startDate = %s", startDate);
-		console.log("end = %s", end);
-
 		/// @dev Withdraw for each unlocked position.
 		for (uint256 i = startDate + cliff; i <= end; i += FOUR_WEEKS) {
 			/// @dev Read amount to withdraw.

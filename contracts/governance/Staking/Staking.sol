@@ -5,11 +5,10 @@ import "./WeightedStaking.sol";
 import "./IStaking.sol";
 import "../../rsk/RSKAddrValidator.sol";
 import "../Vesting/ITeamVesting.sol";
+import "../Vesting/IVesting.sol";
 import "../ApprovalReceiver.sol";
 import "../../openzeppelin/Address.sol";
 import "../../openzeppelin/SafeMath.sol";
-
-import "hardhat/console.sol";
 
 /**
  * @title Staking contract.
@@ -25,6 +24,9 @@ import "hardhat/console.sol";
 contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	using Address for address payable;
 	using SafeMath for uint256;
+
+	/// @notice Constant used for computing the vesting dates.
+	uint256 constant TWO_WEEKS = 2 weeks;
 
 	/**
 	 * @notice Stake the given amount for the given duration of time.
@@ -244,12 +246,14 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		_withdraw(amount, until, receiver, false);
 
 		if (msg.sender.isContract()) {
-			uint256 previousLock = until.sub(TWO_WEEKS);
-			uint96 stake = getPriorUserStakeByDate(msg.sender, previousLock, block.number - 1);
-			if (stake > 0) {
-				console.log("previousLock = %s", previousLock);
-				console.log("stake = %s", stake);
-				_withdraw(stake, previousLock, receiver, false);
+			uint256 startDate = IVesting(msg.sender).startDate();
+			uint256 cliff = IVesting(msg.sender).cliff();
+
+			for (uint256 i = until - TWO_WEEKS; i >= startDate + cliff; i -= TWO_WEEKS) {
+				uint96 stake = getPriorUserStakeByDate(msg.sender, i, block.number - 1);
+//				if (stake > 0) {
+//					_withdraw(stake, i, receiver, false);
+//				}
 			}
 		}
 	}
