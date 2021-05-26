@@ -10,6 +10,8 @@ import "../ApprovalReceiver.sol";
 import "../../openzeppelin/Address.sol";
 import "../../openzeppelin/SafeMath.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @title Staking contract.
  * @notice Pay-in and pay-out function for staking and withdrawing tokens.
@@ -245,17 +247,25 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	) public {
 		_withdraw(amount, until, receiver, false);
 
-		if (msg.sender.isContract()) {
-			uint256 startDate = IVesting(msg.sender).startDate();
-			uint256 cliff = IVesting(msg.sender).cliff();
-
-			for (uint256 i = until - TWO_WEEKS; i >= startDate + cliff; i -= TWO_WEEKS) {
-				uint96 stake = getPriorUserStakeByDate(msg.sender, i, block.number - 1);
+//		if (msg.sender.isContract()) {
+//			uint256 startDate = IVesting(msg.sender).startDate();
+//			uint256 cliff = IVesting(msg.sender).cliff();
+//
+//			console.log("========================================================");
+//			console.log("until = %s", until);
+//			console.log("startDate = %s", startDate);
+//			console.log("cliff = %s", cliff);
+//
+//			for (uint256 i = until - TWO_WEEKS; i >= startDate + cliff; i -= TWO_WEEKS) {
+//				console.log("i = %s", i);
+//
+//				uint96 stake = getPriorUserStakeByDate(msg.sender, i, block.number - 1);
+//				console.log("stake = %s", stake);
 //				if (stake > 0) {
 //					_withdraw(stake, i, receiver, false);
 //				}
-			}
-		}
+//			}
+//		}
 	}
 
 	/**
