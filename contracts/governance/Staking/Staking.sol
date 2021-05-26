@@ -142,7 +142,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 		/// @dev Update checkpoints.
 		/// @dev TODO James: Can reading stake at block.number -1 cause trouble with multiple tx in a block?
-		uint96 amount = getPriorUserStakeByDate(msg.sender, previousLock, block.number - 1);
+		uint96 amount = _getPriorUserStakeByDate(msg.sender, previousLock, block.number - 1);
 		require(amount > 0, "Staking::extendStakingDuration: nothing staked until the previous lock date");
 		_decreaseUserStake(msg.sender, previousLock, amount);
 		_increaseUserStake(msg.sender, until, amount);
@@ -343,7 +343,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	) internal {
 		if (msg.sender.isContract()) {
 			uint256 previousLock = until.add(TWO_WEEKS);
-			uint96 stake = getPriorUserStakeByDate(msg.sender, previousLock, block.number - 1);
+			uint96 stake = _getPriorUserStakeByDate(msg.sender, previousLock, block.number - 1);
 			if (stake > 0) {
 				_withdraw(stake, previousLock, receiver, isGovernance);
 			}
@@ -380,7 +380,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * */
 	function _validateWithdrawParams(uint96 amount, uint256 until) internal view {
 		require(amount > 0, "Staking::withdraw: amount of tokens to be withdrawn needs to be bigger than 0");
-		uint96 balance = getPriorUserStakeByDate(msg.sender, until, block.number - 1);
+		uint96 balance = _getPriorUserStakeByDate(msg.sender, until, block.number - 1);
 		require(amount <= balance, "Staking::withdraw: not enough balance");
 	}
 

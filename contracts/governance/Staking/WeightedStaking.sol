@@ -245,7 +245,7 @@ contract WeightedStaking is Checkpoints {
 		uint256 startDate,
 		uint256 blockNumber
 	) public view returns (uint96 power) {
-		uint96 staked = getPriorUserStakeByDate(account, date, blockNumber);
+		uint96 staked = _getPriorUserStakeByDate(account, date, blockNumber);
 		if (staked > 0) {
 			uint96 weight = computeWeightByDate(date, startDate);
 			power = mul96(staked, weight, "WeightedStaking::weightedStakeByDate: multiplication overflow") / WEIGHT_FACTOR;
@@ -268,7 +268,7 @@ contract WeightedStaking is Checkpoints {
 		address account,
 		uint256 date,
 		uint256 blockNumber
-	) public view returns (uint96) {
+	) external view returns (uint96) {
 		uint96 priorStake = _getPriorUserStakeByDate(account, date, blockNumber);
 		if (priorStake == 0 && msg.sender.isContract()) {
 			priorStake = 1;
@@ -280,7 +280,7 @@ contract WeightedStaking is Checkpoints {
 		address account,
 		uint256 date,
 		uint256 blockNumber
-	) private view returns (uint96) {
+	) internal view returns (uint96) {
 		require(blockNumber < block.number, "WeightedStaking::getPriorUserStakeAndDate: not yet determined");
 
 		date = _adjustDateForOrigin(date);
