@@ -321,6 +321,41 @@ contract("Staking", (accounts) => {
 		});
 	});
 
+	describe("addAdmin", () => {
+		it("adds admin", async () => {
+			let tx = await staking.addAdmin(a1);
+
+			expectEvent(tx, "AdminAdded", {
+				admin: a1,
+			});
+
+			let isAdmin = await staking.admins(a1);
+			expect(isAdmin).equal(true);
+		});
+
+		it("fails sender isn't an owner", async () => {
+			await expectRevert(staking.addAdmin(a1, { from: a1 }), "unauthorized");
+		});
+	});
+
+	describe("removeAdmin", () => {
+		it("adds admin", async () => {
+			await staking.addAdmin(a1);
+			let tx = await staking.removeAdmin(a1);
+
+			expectEvent(tx, "AdminRemoved", {
+				admin: a1,
+			});
+
+			let isAdmin = await staking.admins(a1);
+			expect(isAdmin).equal(false);
+		});
+
+		it("fails sender isn't an owner", async () => {
+			await expectRevert(staking.removeAdmin(a1, { from: a1 }), "unauthorized");
+		});
+	});
+
 	function getAmountWithWeight(amount) {
 		return new BN(MAX_VOTING_WEIGHT.toNumber() + 1).mul(new BN(amount));
 	}

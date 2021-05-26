@@ -23,10 +23,33 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	using SafeMath for uint256;
 
 	/// @notice Constant used for computing the vesting dates.
-	uint256 constant TWO_WEEKS = 2 weeks;
-
-	/// @notice Constant used for computing the vesting dates.
 	uint256 constant FOUR_WEEKS = 4 weeks;
+
+	/**
+	 * @dev Throws if called by any account other than the owner or admin.
+	 */
+	modifier onlyAuthorized() {
+		require(isOwner() || admins[msg.sender], "unauthorized");
+		_;
+	}
+
+	/**
+	 * @notice Add account to ACL.
+	 * @param _admin The addresses of the account to grant permissions.
+	 * */
+	function addAdmin(address _admin) public onlyOwner {
+		admins[_admin] = true;
+		emit AdminAdded(_admin);
+	}
+
+	/**
+	 * @notice Remove account from ACL.
+	 * @param _admin The addresses of the account to revoke permissions.
+	 * */
+	function removeAdmin(address _admin) public onlyOwner {
+		admins[_admin] = false;
+		emit AdminRemoved(_admin);
+	}
 
 	/**
 	 * @notice Stake the given amount for the given duration of time.
@@ -272,7 +295,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
 	 * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting.
 	 * */
-	function governanceWithdrawVesting(address vesting, address receiver) public onlyOwner {
+	function governanceWithdrawVesting(address vesting, address receiver) public onlyAuthorized {
 		vestingWhitelist[vesting] = true;
 		ITeamVesting(vesting).governanceWithdrawTokens(receiver);
 		vestingWhitelist[vesting] = false;

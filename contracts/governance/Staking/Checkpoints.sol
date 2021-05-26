@@ -31,6 +31,10 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	/// @notice An event emitted when a staking period gets extended.
 	event ExtendedStakingDuration(address indexed staker, uint256 previousDate, uint256 newDate);
 
+	event AdminAdded(address admin);
+
+	event AdminRemoved(address admin);
+
 	/**
 	 * @notice Increases the user's stake for a giving lock date and writes a checkpoint.
 	 * @param account The user address.

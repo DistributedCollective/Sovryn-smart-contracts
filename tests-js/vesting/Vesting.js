@@ -739,8 +739,9 @@ contract("Vesting", (accounts) => {
 
 			let amountAfterStake = await token.balanceOf(root);
 
+			await staking.addAdmin(a1);
 			//governance withdraw until duration must withdraw all staked tokens without fees
-			let tx = await staking.governanceWithdrawVesting(vesting.address, root);
+			let tx = await staking.governanceWithdrawVesting(vesting.address, root, {from: a1});
 
 			expectEvent(tx, "VestingTokensWithdrawn", {
 				vesting: vesting.address,

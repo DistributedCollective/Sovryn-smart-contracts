@@ -116,4 +116,7 @@ contract StakingStorage is Ownable {
 	/// @notice List of vesting contracts, tokens for these contracts won't be slashed if unstaked by governance.
 	/// @dev vestingWhitelist[contract] is true/false.
 	mapping(address => bool) public vestingWhitelist;
+
+	/// @dev user => flag whether user has admin role.
+	mapping(address => bool) public admins;
 }
