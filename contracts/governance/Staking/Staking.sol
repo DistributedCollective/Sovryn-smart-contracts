@@ -25,6 +25,9 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	/// @notice Constant used for computing the vesting dates.
 	uint256 constant TWO_WEEKS = 2 weeks;
 
+	/// @notice Constant used for computing the vesting dates.
+	uint256 constant FOUR_WEEKS = 4 weeks;
+
 	/**
 	 * @notice Stake the given amount for the given duration of time.
 	 * @param amount The number of tokens to stake.
@@ -259,7 +262,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		require(vestingWhitelist[msg.sender], "unauthorized");
 
 		_withdraw(amount, until, receiver, true);
-		_withdrawPrevious(amount, until, receiver, true);
+		///@dev we use "+ FOUR_WEEKS" to withdraw the latest stake
+		_withdrawPrevious(amount, until + FOUR_WEEKS, receiver, true);
 	}
 
 	/**

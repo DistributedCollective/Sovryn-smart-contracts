@@ -727,7 +727,7 @@ contract("Vesting", (accounts) => {
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 
-			await increaseTime(52 * WEEK);
+			await increaseTime(50 * WEEK);
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 
