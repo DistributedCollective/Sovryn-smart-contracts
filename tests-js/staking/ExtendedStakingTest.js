@@ -822,10 +822,38 @@ contract("Staking", (accounts) => {
 			await staking.withdraw(amount, lockedTS, root);
 
 			await staking.stake(amount, lockedTS, root, root);
-
 			await staking.setDelegateStake(root, lockedTS, 0);
 
 			await staking.withdraw(amount, lockedTS, root);
+		});
+
+		it("Should be able to extend stake after second stake (emulate issue with delegate checkpoint)", async () => {
+			let amount = "1000";
+			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			let lockedTS = await getTimeFromKickoff(duration);
+			await staking.stake(amount, lockedTS, root, root);
+
+			await staking.withdraw(amount, lockedTS, root);
+
+			await staking.stake(amount, lockedTS, root, root);
+			await staking.setDelegateStake(root, lockedTS, 0);
+
+			let lockedTS2 = await getTimeFromKickoff(duration.mul(new BN(3)));
+			await staking.extendStakingDuration(lockedTS, lockedTS2);
+		});
+
+		it("Should be able to delegate stake after second stake (emulate issue with delegate checkpoint)", async () => {
+			let amount = "1000";
+			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			let lockedTS = await getTimeFromKickoff(duration);
+			await staking.stake(amount, lockedTS, root, root);
+
+			await staking.withdraw(amount, lockedTS, root);
+
+			await staking.stake(amount, lockedTS, root, root);
+			await staking.setDelegateStake(root, lockedTS, 0);
+
+			await staking.delegate(account1, lockedTS);
 		});
 
 		it("Should be able to withdraw earlier for any lock date", async () => {
