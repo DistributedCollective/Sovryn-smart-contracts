@@ -9,8 +9,6 @@ import "./IVesting.sol";
 import "../ApprovalReceiver.sol";
 import "./VestingStorage.sol";
 
-import "hardhat/console.sol";
-
 /**
  * @title Vesting Logic contract.
  * @notice Staking, delegating and withdrawal functionality.

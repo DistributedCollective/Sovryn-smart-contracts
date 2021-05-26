@@ -56,7 +56,7 @@ contract("Vesting", (accounts) => {
 
 		kickoffTS = await staking.kickoffTS.call();
 	});
-/*
+
 	describe("constructor", () => {
 		it("sets the expected values", async () => {
 			let vestingInstance = await Vesting.new(
@@ -464,10 +464,10 @@ contract("Vesting", (accounts) => {
 			}
 		});
 	});
-*/
+
 	describe("withdrawTokens", () => {
 		let vesting;
-/*
+
 		it("should withdraw unlocked tokens (cliff = 3 weeks)", async () => {
 			//Save current amount
 			let previousAmount = await token.balanceOf(root);
@@ -551,7 +551,7 @@ contract("Vesting", (accounts) => {
 			assert.equal(previousAmount.sub(new BN(toStake)).toString(), amountAfterStake.toString());
 			assert.equal(previousAmount.toString(), amount.toString());
 		});
-*/
+
 		it("should withdraw unlocked tokens for 2 stakes", async () => {
 			//Save current amount
 			let previousAmount = await token.balanceOf(root);
@@ -569,11 +569,6 @@ contract("Vesting", (accounts) => {
 			);
 			vesting = await VestingLogic.at(vesting.address);
 
-			console.log("[0]");
-			let stakes = await staking.getStakes(vesting.address);
-			console.log(stakes.dates.length);
-			stakes.dates.forEach(date => console.log(date.toString()));
-
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 
@@ -586,19 +581,8 @@ contract("Vesting", (accounts) => {
 			//time travel
 			await increaseTime(104 * WEEK);
 
-			console.log("[1]");
-			stakes = await staking.getStakes(vesting.address);
-			console.log(stakes.dates.length);
-			stakes.dates.forEach(date => console.log(date.toString()));
-
 			//withdraw
 			let tx = await vesting.withdrawTokens(root);
-
-			console.log("[2]");
-			stakes = await staking.getStakes(vesting.address);
-			console.log(stakes.dates.length);
-			stakes.dates.forEach(date => console.log(date.toString()));
-			// stakes.stakes.forEach(stake => console.log(stake.toString()));
 
 			//check event
 			expectEvent(tx, "TokensWithdrawn", {
@@ -612,7 +596,7 @@ contract("Vesting", (accounts) => {
 			assert.equal(previousAmount.sub(new BN(toStake).mul(new BN(2))).toString(), amountAfterStake.toString());
 			assert.equal(previousAmount.toString(), amount.toString());
 		});
-/*
+
 		it("should do nothing if withdrawing a second time", async () => {
 			// This part should be tested on staking contract, function getPriorUserStakeByDate
 			let previousAmount = await token.balanceOf(root);
@@ -766,9 +750,9 @@ contract("Vesting", (accounts) => {
 			let vestingBalance = await staking.balanceOf(vesting.address);
 			expect(vestingBalance).to.be.bignumber.equal(new BN(0));
 		});
- */
+
 	});
-/*
+
 	describe("collectDividends", async () => {
 		it("should fail if the caller is neither owner nor token owner", async () => {
 			let vesting = await Vesting.new(
@@ -888,5 +872,5 @@ contract("Vesting", (accounts) => {
 			await vesting.migrateToNewStakingContract({ from: a1 });
 		});
 	});
- */
+
 });

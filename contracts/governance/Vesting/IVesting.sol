@@ -8,11 +8,7 @@ pragma solidity ^0.5.17;
  * at a vesting instance.
  */
 interface IVesting {
-	function cliff() external returns (uint256);
-
 	function duration() external returns (uint256);
-
-	function startDate() external returns (uint256);
 
 	function endDate() external returns (uint256);
 

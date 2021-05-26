@@ -2,6 +2,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./Checkpoints.sol";
+import "../../openzeppelin/Address.sol";
 
 /**
  * @title Weighted Staking contract.
@@ -14,6 +15,7 @@ import "./Checkpoints.sol";
  * FeeSharingProxy and GovernorAlpha invoke Staking instance functions.
  * */
 contract WeightedStaking is Checkpoints {
+	using Address for address payable;
 	/************* TOTAL VOTING POWER COMPUTATION ************************/
 
 	/**
@@ -267,6 +269,18 @@ contract WeightedStaking is Checkpoints {
 		uint256 date,
 		uint256 blockNumber
 	) public view returns (uint96) {
+		uint96 priorStake = _getPriorUserStakeByDate(account, date, blockNumber);
+		if (priorStake == 0 && msg.sender.isContract()) {
+			priorStake = 1;
+		}
+		return priorStake;
+	}
+
+	function _getPriorUserStakeByDate(
+		address account,
+		uint256 date,
+		uint256 blockNumber
+	) private view returns (uint96) {
 		require(blockNumber < block.number, "WeightedStaking::getPriorUserStakeAndDate: not yet determined");
 
 		date = _adjustDateForOrigin(date);

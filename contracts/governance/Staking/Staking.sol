@@ -5,12 +5,8 @@ import "./WeightedStaking.sol";
 import "./IStaking.sol";
 import "../../rsk/RSKAddrValidator.sol";
 import "../Vesting/ITeamVesting.sol";
-import "../Vesting/IVesting.sol";
 import "../ApprovalReceiver.sol";
-import "../../openzeppelin/Address.sol";
 import "../../openzeppelin/SafeMath.sol";
-
-import "hardhat/console.sol";
 
 /**
  * @title Staking contract.
@@ -24,7 +20,6 @@ import "hardhat/console.sol";
  * early unstaking.
  * */
 contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
-	using Address for address payable;
 	using SafeMath for uint256;
 
 	/// @notice Constant used for computing the vesting dates.
@@ -246,26 +241,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address receiver
 	) public {
 		_withdraw(amount, until, receiver, false);
-
-//		if (msg.sender.isContract()) {
-//			uint256 startDate = IVesting(msg.sender).startDate();
-//			uint256 cliff = IVesting(msg.sender).cliff();
-//
-//			console.log("========================================================");
-//			console.log("until = %s", until);
-//			console.log("startDate = %s", startDate);
-//			console.log("cliff = %s", cliff);
-//
-//			for (uint256 i = until - TWO_WEEKS; i >= startDate + cliff; i -= TWO_WEEKS) {
-//				console.log("i = %s", i);
-//
-//				uint96 stake = getPriorUserStakeByDate(msg.sender, i, block.number - 1);
-//				console.log("stake = %s", stake);
-//				if (stake > 0) {
-//					_withdraw(stake, i, receiver, false);
-//				}
-//			}
-//		}
+		_withdrawPrevious(amount, until, receiver, false);
 	}
 
 	/**
@@ -283,6 +259,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		require(vestingWhitelist[msg.sender], "unauthorized");
 
 		_withdraw(amount, until, receiver, true);
+		_withdrawPrevious(amount, until, receiver, true);
 	}
 
 	/**
@@ -318,6 +295,9 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address receiver,
 		bool isGovernance
 	) internal {
+		if (amount == 1) {
+			return;
+		}
 		until = _adjustDateForOrigin(until);
 		_validateWithdrawParams(amount, until);
 
@@ -349,6 +329,21 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		require(success, "Staking::withdraw: Token transfer failed");
 
 		emit TokensWithdrawn(msg.sender, receiver, amount);
+	}
+
+	function _withdrawPrevious(
+		uint96 amount,
+		uint256 until,
+		address receiver,
+		bool isGovernance
+	) internal {
+		if (msg.sender.isContract()) {
+			uint256 previousLock = until - TWO_WEEKS;
+			uint96 stake = getPriorUserStakeByDate(msg.sender, previousLock, block.number - 1);
+			if (stake > 0) {
+				_withdraw(stake, previousLock, receiver, isGovernance);
+			}
+		}
 	}
 
 	/**
@@ -511,8 +506,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	) internal {
 		address currentDelegate = delegates[delegator][lockedTS];
 		uint96 delegatorBalance = currentBalance(delegator, lockedTS);
-
 		delegates[delegator][lockedTS] = delegatee;
+
 		emit DelegateChanged(delegator, lockedTS, currentDelegate, delegatee);
 
 		_moveDelegates(currentDelegate, delegatee, delegatorBalance, lockedTS);
