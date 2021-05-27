@@ -128,7 +128,8 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 		//		delegate checkpoint wasn't updating for the second and next stakes for the same date
 		//		if first stake was withdrawn completely and stake was delegated to the staker
 		//		(no delegation to another address).
-		if (staked != 0) {
+		// @dev It can be greater than 0, but inconsistent after 3 transactions
+		if (staked > value) {
 			newStake = sub96(staked, value, "Staking::_decreaseDelegateStake: staked amount underflow");
 		}
 		_writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, newStake);
