@@ -122,8 +122,12 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	) internal {
 		uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
 		uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
-		/// @dev previous version wasn't increasing delegate checkpoint balance for the same delegatee for zero balance
 		uint96 newStake = 0;
+		// @dev We need to check delegate checkpoint value here,
+		//		because we had an issue in `stake` function:
+		//		delegate checkpoint wasn't updating for the second and next stakes for the same date
+		//		if first stake was withdrawn completely and stake was delegated to the staker
+		//		(no delegation to another address).
 		if (staked != 0) {
 			newStake = sub96(staked, value, "Staking::_decreaseDelegateStake: staked amount underflow");
 		}

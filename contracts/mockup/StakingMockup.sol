@@ -39,6 +39,9 @@ contract StakingMockup is Staking {
 		super.getPriorWeightedStake(account, blockNumber, date);
 	}
 
+	/**
+	* @dev We need this function to simulate zero delegate checkpoint value.
+	*/
 	function setDelegateStake(
 		address delegatee,
 		uint256 lockedTS,

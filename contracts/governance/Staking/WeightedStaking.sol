@@ -270,12 +270,21 @@ contract WeightedStaking is Checkpoints {
 		uint256 blockNumber
 	) external view returns (uint96) {
 		uint96 priorStake = _getPriorUserStakeByDate(account, date, blockNumber);
+		// @dev we need to modify function in order to workaround issue with Vesting.withdrawTokens:
+		//		return 1 instead of 0 if message sender is a contract.
 		if (priorStake == 0 && msg.sender.isContract()) {
 			priorStake = 1;
 		}
 		return priorStake;
 	}
 
+	/**
+	 * @notice Determine the prior number of stake for an account until a
+	 * 		certain lock date as of a block number.
+	 * @dev All functions of Staking contract use this internal version,
+	 * 		we need to modify public function in order to workaround issue with Vesting.withdrawTokens:
+	 * return 1 instead of 0 if message sender is a contract.
+	 * */
 	function _getPriorUserStakeByDate(
 		address account,
 		uint256 date,

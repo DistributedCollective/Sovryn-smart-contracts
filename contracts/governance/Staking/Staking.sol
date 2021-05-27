@@ -132,7 +132,10 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		/// @dev Increase stake.
 		_increaseStake(sender, amount, stakeFor, until);
 
-		/// @dev previous version wasn't increasing delegate checkpoint balance for the same delegatee for zero balance
+		// @dev Previous version wasn't working properly for the following case:
+		//		delegate checkpoint wasn't updating for the second and next stakes for the same date
+		//		if  first stake was withdrawn completely and stake was delegated to the staker
+		//		(no delegation to another address).
 		address previousDelegatee = delegates[stakeFor][until];
 		if (previousDelegatee != delegatee) {
 			/// @dev Update delegatee.
@@ -267,7 +270,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address receiver
 	) public {
 		_withdraw(amount, until, receiver, false);
-		///@dev "- FOUR_WEEKS" - we don't need to withdraw stake for date > block.timestamp
+		// @dev "- FOUR_WEEKS" - we don't need to withdraw stake for date > block.timestamp
+		// 		withdraws tokens for lock date 2 weeks earlier than given lock date if sender is a contract
 		_withdrawNext(amount, until.sub(FOUR_WEEKS), receiver, false);
 	}
 
@@ -286,6 +290,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		require(vestingWhitelist[msg.sender], "unauthorized");
 
 		_withdraw(amount, until, receiver, true);
+		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
+		//		we don't need to block.timestamp here
 		_withdrawNext(amount, until, receiver, true);
 	}
 
@@ -322,7 +328,9 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address receiver,
 		bool isGovernance
 	) internal {
-		if (amount == 1) {
+		// @dev it's very unlikely some one will have 1/10**18 SOV staked in Vesting contract
+		//		this check is a part of workaround for Vesting.withdrawTokens issue
+		if (amount == 1 && msg.sender.isContract()) {
 			return;
 		}
 		until = _adjustDateForOrigin(until);
@@ -358,6 +366,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		emit TokensWithdrawn(msg.sender, receiver, amount);
 	}
 
+	// @dev withdraws tokens for lock date 2 weeks later than given lock date
 	function _withdrawNext(
 		uint96 amount,
 		uint256 until,
@@ -367,7 +376,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		if (msg.sender.isContract()) {
 			uint256 previousLock = until.add(TWO_WEEKS);
 			uint96 stake = _getPriorUserStakeByDate(msg.sender, previousLock, block.number - 1);
-			if (stake > 0) {
+			if (stake > 1) {
 				_withdraw(stake, previousLock, receiver, isGovernance);
 			}
 		}
@@ -436,6 +445,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * */
 	function delegate(address delegatee, uint256 lockDate) public {
 		_delegate(msg.sender, delegatee, lockDate);
+		// @dev delegates tokens for lock date 2 weeks later than given lock date
+		//		if message sender is a contract
 		_delegateNext(msg.sender, delegatee, lockDate);
 	}
 
@@ -498,6 +509,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		require(nonce == nonces[signatory]++, "Staking::delegateBySig: invalid nonce");
 		require(now <= expiry, "Staking::delegateBySig: signature expired");
 		_delegate(signatory, delegatee, lockDate);
+		// @dev delegates tokens for lock date 2 weeks later than given lock date
+		//		if message sender is a contract
 		_delegateNext(signatory, delegatee, lockDate);
 	}
 
@@ -542,6 +555,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		_moveDelegates(currentDelegate, delegatee, delegatorBalance, lockedTS);
 	}
 
+	// @dev delegates tokens for lock date 2 weeks later than given lock date
+	//		if message sender is a contract
 	function _delegateNext(
 		address delegator,
 		address delegatee,

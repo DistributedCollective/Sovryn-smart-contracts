@@ -118,5 +118,7 @@ contract StakingStorage is Ownable {
 	mapping(address => bool) public vestingWhitelist;
 
 	/// @dev user => flag whether user has admin role.
+	/// @dev multisig should be an admin, admin can invoke only governanceWithdrawVesting function,
+	/// 	this function works only with Team Vesting contracts
 	mapping(address => bool) public admins;
 }
