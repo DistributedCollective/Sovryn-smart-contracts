@@ -14,38 +14,41 @@ import "./ITokenFlashLoanTest.sol";
  *   1.- provides a big amount of underlying tokens.
  *   2.- executes a transaction.
  *   3.- expectes the big amount of underlying tokens to be returned, otherwise reverts.
+ *
+ * @dev Flash Loans are uncolaterized loans that are required to be returned
+ *   in the same transaction. There is no real world analogy. the closes you
+ *   can compare is with overnight market or Repurchase Agreement but
+ *   without collateral.
  * */
 contract FlashLoanMockup is Ownable, ReentrancyGuard {
-    /* Storage */
-    /// @dev Used by flashBorrow to call using an arbitrary address.
+	/* Storage */
+	/// @dev Used by flashBorrow to call using an arbitrary address.
 	address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
 
-    /// @dev The address of the underlying token.
-    address loanTokenAddress;
+	/// @dev The address of the underlying token.
+	address loanTokenAddress;
 
-    /* Events */
-    event FlashBorrow(uint256 borrowAmount, address borrower, address target, string signature, bytes data);
+	/* Events */
+	event FlashBorrow(uint256 borrowAmount, address borrower, address target, string signature, bytes data);
 
-    /* Functions */
+	/* Functions */
 
-    /**
-     * @notice Set the parameters of the fake loan pool.
-     * @param _loanTokenAddress The address of the underlying token.
-     * */
-	function settings(
-        address _loanTokenAddress
-	) external onlyOwner {
-        loanTokenAddress = _loanTokenAddress;
-    }
+	/**
+	 * @notice Set the parameters of the fake loan pool.
+	 * @param _loanTokenAddress The address of the underlying token.
+	 * */
+	function settings(address _loanTokenAddress) external onlyOwner {
+		loanTokenAddress = _loanTokenAddress;
+	}
 
-    /**
-     * @notice Execute the FL.
-     * @param borrowAmount The borrowing principal.
-     * @param borrower The address of the borrower to send the tokens to.
-     * @param target The address of the contract to callback.
-     * @param signature The callback function signature.
-     * @param data The callback input data payload.
-     * */
+	/**
+	 * @notice Execute the FL.
+	 * @param borrowAmount The borrowing principal.
+	 * @param borrower The address of the borrower to send the tokens to.
+	 * @param target The address of the contract to callback.
+	 * @param signature The callback function signature.
+	 * @param data The callback input data payload.
+	 * */
 	function flashBorrow(
 		uint256 borrowAmount,
 		address borrower,
@@ -53,41 +56,40 @@ contract FlashLoanMockup is Ownable, ReentrancyGuard {
 		string calldata signature,
 		bytes calldata data
 	) external payable nonReentrant returns (bytes memory) {
-        /// @dev Save the token balance previous to sending the tokens.
-        uint256 beforeUnderlyingBalance = IERC20(loanTokenAddress).balanceOf(address(this));
+		/// @dev Save the token balance previous to sending the tokens.
+		uint256 beforeUnderlyingBalance = IERC20(loanTokenAddress).balanceOf(address(this));
 
-        /// @dev Transfer the tokens to the borrower.
-        _safeTransfer(loanTokenAddress, borrower, borrowAmount, "flashBorrow::Cannot send tokens to calling contract.");
+		/// @dev Transfer the tokens to the borrower.
+		_safeTransfer(loanTokenAddress, borrower, borrowAmount, "flashBorrow::Cannot send tokens to calling contract.");
 
-        /// @dev Event log.
-        emit FlashBorrow(borrowAmount, borrower, target, signature, data);
+		/// @dev Event log.
+		emit FlashBorrow(borrowAmount, borrower, target, signature, data);
 
-        /// @dev signature + data => callData
-        bytes memory callData;
-        if (bytes(signature).length == 0) {
-            callData = data;
-        } else {
-            callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
-        }
+		/// @dev signature + data => callData
+		bytes memory callData;
+		if (bytes(signature).length == 0) {
+			callData = data;
+		} else {
+			callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
+		}
 
-        /// @dev Execute arbitrary call.
-        (bool success, bytes memory returnData) = arbitraryCaller.call.value(msg.value)(
-            abi.encodeWithSelector(
-                0xde064e0d, /// sendCall(address,bytes)
-                target,
-                callData
-            )
-        );
-        require(success, "flashBorrow::Call failed.");
+		/// @dev Execute the callback function.
+		(bool success, bytes memory returnData) =
+			target.call(
+				callData
+			);
+     
+		// require(success, "flashBorrow::Call failed.");
+        require(success, string (returnData));
 
-        /// @dev Verify return of flash loan.
-        require(
+		/// @dev Verify return of flash loan.
+		require(
             beforeUnderlyingBalance <= IERC20(loanTokenAddress).balanceOf(address(this)),
             "flashBorrow::Flash loan not returned."
         );
 
-        return returnData;
-    }
+		return returnData;
+	}
 
 	/**
 	 * @notice Execute the ERC20 token's `transfer` function and reverts

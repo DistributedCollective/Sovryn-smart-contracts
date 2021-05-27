@@ -208,10 +208,9 @@ contract("LoanTokenBorrowing & MintLoanAndBorrowTest", (accounts) => {
 		});
 
 		it("Flash loan attack should fail", async () => {
+			// **** SETUP LOAN POOL TO BE HACKED, iSUSD **** //
 
-            // **** SETUP LOAN POOL TO BE HACKED, iSUSD **** //
-
-            // underlying token is SUSD
+			// underlying token is SUSD
 			// loan pool token to hack is iSUSD (loanToken)
 			// collateral token is RBTC
 
@@ -242,70 +241,85 @@ contract("LoanTokenBorrowing & MintLoanAndBorrowTest", (accounts) => {
 			await RBTC.approve(loanToken.address, collateralTokenSent);
 			const sov_initial_balance = await SOV.balanceOf(owner);
 
-			const hackAmount = hunEth;
+			const hackAmount1 = tenEth;
+			const hackAmount2 = hunEth;
 
-            // **** DEPLOY ATTACK AND 3RD PARTY FL CONTRACTS **** //
+			// **** DEPLOY ATTACK AND 3RD PARTY FL CONTRACTS **** //
 
 			// Deploy third party flash loan provider contract.
-            const flashLoanMockup = await FlashLoanMockup.new();
+			const flashLoanMockup = await FlashLoanMockup.new();
 
-            // Fill it up with underlying tokens to provide funds when FL-ing hackAmount.
-            await SUSD.transfer(flashLoanMockup.address, hackAmount);
+			// Fill it up with underlying tokens to provide funds when FL-ing hackAmount.
+			await SUSD.transfer(flashLoanMockup.address, hackAmount2);
 
-            // Setup underlying token on FL mockup contract.
-            await flashLoanMockup.settings(SUSD.address);
+			// Setup underlying token on FL mockup contract.
+			await flashLoanMockup.settings(SUSD.address);
 
-   			// Deploy hack contract.
-            const flashLoanAttack = await FlashLoanAttack.new();
+			// Deploy hack contract.
+			const flashLoanAttack = await FlashLoanAttack.new();
 
-   			// Configure hack contract.
-            await flashLoanAttack.hackSettings(
-                loanToken.address, // iTokenToHack
-                RBTC.address, // collateralToken
-                withdrawAmount,
-                collateralTokenSent
-            );
+			// Configure hack contract.
+			await flashLoanAttack.hackSettings(
+				loanToken.address, // iTokenToHack
+				RBTC.address, // collateralToken
+				withdrawAmount,
+				collateralTokenSent
+			);
 
 			// Fill it up with collateral tokens RBTC. Later it will spend those
 			// on unfair borrowing.
 			await RBTC.transfer(flashLoanAttack.address, collateralTokenSent);
 
-
-            // **** RUN ATTACK **** //
+			// **** BALANCES **** //
 
 			// Check owner balances
 			console.log("\nRBTC owner balance: " + (await RBTC.balanceOf(owner)));
-			/// RBTC owner balance: 100000000000000000000000000000000000000000000000000
+			/// RBTC owner balance: 99999999999999999999999999999999998498650000000000
 
 			console.log("\nSUSD owner balance: " + (await SUSD.balanceOf(owner)));
-			/// SUSD owner balance: 100000000000000000000000000000000000000000000000000
+			/// SUSD owner balance: 99999999999999999999999999999900000000000000000000
 
-            // Check flashLoanMockup & flashLoanAttack contract addresses.
+			// Check flashLoanMockup & flashLoanAttack contract addresses.
 			console.log("\nflashLoanMockup contract address: " + flashLoanMockup.address);
-            console.log("\nflashLoanAttack contract address: " + flashLoanAttack.address);
+			console.log("\nflashLoanAttack contract address: " + flashLoanAttack.address);
 
 			// Check underlying token balance of flashLoanMockup contract.
 			console.log("\nSUSD balance on flashLoanMockup contract: " + (await SUSD.balanceOf(flashLoanMockup.address)));
-			/// SUSD balance on flashLoanMockup contract: 
+			/// SUSD balance on flashLoanMockup contract: 100000000000000000000 (hunEth)
 
 			// Check underlying token balance of flashLoanAttack contract.
 			console.log("\nSUSD balance on flashLoanAttack contract: " + (await SUSD.balanceOf(flashLoanAttack.address)));
-            /// SUSD balance on flashLoanAttack contract: 
+			/// SUSD balance on flashLoanAttack contract: 0
 
 			// Check collateral token balance of flashLoanMockup contract.
 			console.log("\nRBTC balance on flashLoanMockup contract: " + (await RBTC.balanceOf(flashLoanMockup.address)));
-			/// RBTC balance on flashLoanMockup contract: 
+			/// RBTC balance on flashLoanMockup contract: 0
 
 			// Check collateral token balance of flashLoanAttack contract.
 			console.log("\nRBTC balance on flashLoanAttack contract: " + (await RBTC.balanceOf(flashLoanAttack.address)));
-            /// RBTC balance on flashLoanAttack contract: 
+			/// RBTC balance on flashLoanAttack contract: 1501350000000000
+
+            // **** RUN ATTACK directly (no FL) **** //
+
+			// Fill it up with underlying tokens to attack directly w/o FL.
+			await SUSD.transfer(flashLoanAttack.address, hackAmount1);
+
+			await expectRevert(
+				flashLoanAttack.hackTheLoanPool(
+					SUSD.address, // address of the underlying token
+					hackAmount1 // rBTC amount to hack the lending pool
+				),
+				"Avoiding flash loan attack: several txs in same block from same account."
+			);
+
+            // **** RUN ATTACK through FL contract **** //
 
 			// Call the flashLoanAttack to run the attack.
 			await expectRevert(
 				flashLoanAttack.doStuffWithFlashLoan(
 					SUSD.address, // address of the underlying token
 					flashLoanMockup.address, // address of the lending pool to request the FL.
-					hackAmount // rBTC amount to hack the lending pool
+					hackAmount2 // rBTC amount to hack the lending pool
 				),
 				"Avoiding flash loan attack: several txs in same block from same account."
 			);
