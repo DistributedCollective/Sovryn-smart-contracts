@@ -5,12 +5,19 @@
 
 pragma solidity 0.5.17;
 
+/**
+ * @title The Lender Interest.
+ * @notice This contract code comes from bZx. bZx is a protocol for tokenized
+ * margin trading and lending https://bzx.network similar to the dYdX protocol.
+ *
+ * This contract contains the storage structure of the Lender Interest.
+ * */
 contract LenderInterestStruct {
 	struct LenderInterest {
-		uint256 principalTotal; // total borrowed amount outstanding of asset
-		uint256 owedPerDay; // interest owed per day for all loans of asset
-		uint256 owedTotal; // total interest owed for all loans of asset (assuming they go to full term)
-		uint256 paidTotal; // total interest paid so far for asset
-		uint256 updatedTimestamp; // last update
+		uint256 principalTotal; /// Total borrowed amount outstanding of asset.
+		uint256 owedPerDay; /// Interest owed per day for all loans of asset.
+		uint256 owedTotal; /// Total interest owed for all loans of asset (assuming they go to full term).
+		uint256 paidTotal; /// Total interest paid so far for asset.
+		uint256 updatedTimestamp; /// Last update.
 	}
 }

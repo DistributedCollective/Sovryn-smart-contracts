@@ -30,15 +30,27 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicLM {
 
 	/* Internal functions */
 
-	// sentAddresses[0]: lender
-	// sentAddresses[1]: borrower
-	// sentAddresses[2]: receiver
-	// sentAddresses[3]: manager
-	// sentAmounts[0]: interestRate
-	// sentAmounts[1]: newPrincipal
-	// sentAmounts[2]: interestInitialAmount
-	// sentAmounts[3]: loanTokenSent
-	// sentAmounts[4]: collateralTokenSent
+	/**
+	 * @notice Handle transfers prior to adding newPrincipal to loanTokenSent.
+	 *
+	 * @param collateralTokenAddress The address of the collateral token.
+	 * @param sentAddresses The array of addresses:
+	 *   sentAddresses[0]: lender
+	 *   sentAddresses[1]: borrower
+	 *   sentAddresses[2]: receiver
+	 *   sentAddresses[3]: manager
+	 *
+	 * @param sentAmounts The array of amounts:
+	 *   sentAmounts[0]: interestRate
+	 *   sentAmounts[1]: newPrincipal
+	 *   sentAmounts[2]: interestInitialAmount
+	 *   sentAmounts[3]: loanTokenSent
+	 *   sentAmounts[4]: collateralTokenSent
+	 *
+	 * @param withdrawalAmount The amount to withdraw.
+	 *
+	 * @return msgValue The amount of value sent.
+	 * */
 	function _verifyTransfers(
 		address collateralTokenAddress,
 		address[4] memory sentAddresses,
@@ -57,7 +69,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicLM {
 		msgValue = msg.value;
 
 		if (withdrawalAmount != 0) {
-			// withdrawOnOpen == true
+			/// withdrawOnOpen == true
 			IWrbtcERC20(_wrbtcToken).withdraw(withdrawalAmount);
 			Address.sendValue(receiver, withdrawalAmount);
 			if (newPrincipal > withdrawalAmount) {

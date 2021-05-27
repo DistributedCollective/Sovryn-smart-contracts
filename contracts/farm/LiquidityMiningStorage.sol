@@ -3,10 +3,10 @@ pragma solidity 0.5.17;
 import "../openzeppelin/ERC20.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
-import "../openzeppelin/Ownable.sol";
-import "../escrow/ILockedSOV.sol";
+import "../locked/ILockedSOV.sol";
+import "../utils/AdminRole.sol";
 
-contract LiquidityMiningStorage is Ownable {
+contract LiquidityMiningStorage is AdminRole {
 	// Info of each user.
 	struct UserInfo {
 		uint256 amount; // How many pool tokens the user has provided.
@@ -62,4 +62,8 @@ contract LiquidityMiningStorage is Ownable {
 
 	/// @dev The locked vault contract to deposit LP's rewards into.
 	ILockedSOV public lockedSOV;
+
+	// The % which determines how much will be unlocked immediately.
+	/// @dev 10000 is 100%
+	uint256 public unlockedImmediatelyPercent;
 }

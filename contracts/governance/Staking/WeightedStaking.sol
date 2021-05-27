@@ -3,20 +3,30 @@ pragma experimental ABIEncoderV2;
 
 import "./Checkpoints.sol";
 
+/**
+ * @title Weighted Staking contract.
+ * @notice Computation of power and votes used by FeeSharingProxy and
+ * GovernorAlpha and Staking contracts w/ mainly 3 public functions:
+ *   + getPriorTotalVotingPower => Total voting power.
+ *   + getPriorVotes  => Delegatee voting power.
+ *   + getPriorWeightedStake  => User Weighted Stake.
+ * Staking contract inherits WeightedStaking.
+ * FeeSharingProxy and GovernorAlpha invoke Staking instance functions.
+ * */
 contract WeightedStaking is Checkpoints {
 	/************* TOTAL VOTING POWER COMPUTATION ************************/
 
 	/**
-	 * @notice computes the total voting power at a given time
-	 * @param time the timestamp for which to calculate the total voting power
-	 * @return the total voting power at the given time
+	 * @notice Compute the total voting power at a given time.
+	 * @param time The timestamp for which to calculate the total voting power.
+	 * @return The total voting power at the given time.
 	 * */
 	function getPriorTotalVotingPower(uint32 blockNumber, uint256 time) public view returns (uint96 totalVotingPower) {
-		//start the computation with the exact or previous unlocking date (voting weight remians the same until the next break point)
+		/// @dev Start the computation with the exact or previous unlocking date (voting weight remians the same until the next break point).
 		uint256 start = timestampToLockDate(time);
 		uint256 end = start + MAX_DURATION;
 
-		//max 78 iterations
+		/// @dev Max 78 iterations.
 		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
 			totalVotingPower = add96(
 				totalVotingPower,
@@ -27,10 +37,11 @@ contract WeightedStaking is Checkpoints {
 	}
 
 	/**
-	 * @notice computes the voting power for a secific date
-	 * @param date the staking date to compute the power for
-	 * @param startDate the date for which we need to know the power of the stake
-	 * @param blockNumber the block number. needed for checkpointing.
+	 * @notice Compute the voting power for a specific date.
+	 * Power = stake * weight
+	 * @param date The staking date to compute the power for.
+	 * @param startDate The date for which we need to know the power of the stake.
+	 * @param blockNumber The block number, needed for checkpointing.
 	 * */
 	function _totalPowerByDate(
 		uint256 date,
@@ -39,17 +50,20 @@ contract WeightedStaking is Checkpoints {
 	) internal view returns (uint96 power) {
 		uint96 weight = computeWeightByDate(date, startDate);
 		uint96 staked = getPriorTotalStakesForDate(date, blockNumber);
-		//weight is multiplied by some factor to allow decimals.
+		/// @dev weight is multiplied by some factor to allow decimals.
 		power = mul96(staked, weight, "WeightedStaking::_totalPowerByDate: multiplication overflow") / WEIGHT_FACTOR;
 	}
 
 	/**
-	 * @notice Determine the prior number of stake for an unlocking date as of a block number
-	 * @dev Block number must be a finalized block or else this function will revert to prevent misinformation.
-	 * @param date The date to check the stakes for
-	 * @param blockNumber The block number to get the vote balance at
-	 * @return The number of votes the account had as of the given block
-	 */
+	 * @notice Determine the prior number of stake for an unlocking date as of a block number.
+	 * @dev Block number must be a finalized block or else this function will
+	 * revert to prevent misinformation.
+	 * TODO: WeightedStaking::getPriorTotalStakesForDate should probably better
+	 * be internal instead of a public function.
+	 * @param date The date to check the stakes for.
+	 * @param blockNumber The block number to get the vote balance at.
+	 * @return The number of votes the account had as of the given block.
+	 * */
 	function getPriorTotalStakesForDate(uint256 date, uint256 blockNumber) public view returns (uint96) {
 		require(blockNumber < block.number, "WeightedStaking::getPriorTotalStakesForDate: not yet determined");
 
@@ -88,22 +102,24 @@ contract WeightedStaking is Checkpoints {
 
 	/**
 	 * @notice Determine the prior number of votes for a delegatee as of a block number.
-	 * @dev Block number must be a finalized block or else this function will revert to prevent misinformation.
+	 * Iterate through checkpoints adding up voting power.
+	 * @dev Block number must be a finalized block or else this function will revert
+	 * to prevent misinformation.
 	 *      Used for Voting, not for fee sharing.
-	 * @param account The address of the account to check
-	 * @param blockNumber The block number to get the vote balance at
-	 * @return The number of votes the delegatee had as of the given block
-	 */
+	 * @param account The address of the account to check.
+	 * @param blockNumber The block number to get the vote balance at.
+	 * @return The number of votes the delegatee had as of the given block.
+	 * */
 	function getPriorVotes(
 		address account,
 		uint256 blockNumber,
 		uint256 date
 	) public view returns (uint96 votes) {
-		//if date is not an exact break point, start weight computation from the previous break point (alternative would be the next)
+		/// @dev If date is not an exact break point, start weight computation from the previous break point (alternative would be the next).
 		uint256 start = timestampToLockDate(date);
 		uint256 end = start + MAX_DURATION;
 
-		//max 78 iterations
+		/// @dev Max 78 iterations.
 		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
 			votes = add96(
 				votes,
@@ -114,10 +130,11 @@ contract WeightedStaking is Checkpoints {
 	}
 
 	/**
-	 * @notice computes the voting power for a secific date
-	 * @param date the staking date to compute the power for
-	 * @param startDate the date for which we need to know the power of the stake
-	 * @param blockNumber the block number. needed for checkpointing.
+	 * @notice Compute the voting power for a specific date.
+	 * Power = stake * weight
+	 * @param date The staking date to compute the power for.
+	 * @param startDate The date for which we need to know the power of the stake.
+	 * @param blockNumber The block number, needed for checkpointing.
 	 * */
 	function _totalPowerByDateForDelegatee(
 		address account,
@@ -131,12 +148,15 @@ contract WeightedStaking is Checkpoints {
 	}
 
 	/**
-	 * @notice Determine the prior number of stake for an account as of a block number
-	 * @dev Block number must be a finalized block or else this function will revert to prevent misinformation.
-	 * @param account The address of the account to check
-	 * @param blockNumber The block number to get the vote balance at
-	 * @return The number of votes the account had as of the given block
-	 */
+	 * @notice Determine the prior number of stake for an account as of a block number.
+	 * @dev Block number must be a finalized block or else this function will
+	 * revert to prevent misinformation.
+	 * TODO: WeightedStaking::getPriorStakeByDateForDelegatee should probably better
+	 * be internal instead of a public function.
+	 * @param account The address of the account to check.
+	 * @param blockNumber The block number to get the vote balance at.
+	 * @return The number of votes the account had as of the given block.
+	 * */
 	function getPriorStakeByDateForDelegatee(
 		address account,
 		uint256 date,
@@ -149,12 +169,12 @@ contract WeightedStaking is Checkpoints {
 			return 0;
 		}
 
-		// First check most recent balance
+		/// @dev First check most recent balance.
 		if (delegateStakingCheckpoints[account][date][nCheckpoints - 1].fromBlock <= blockNumber) {
 			return delegateStakingCheckpoints[account][date][nCheckpoints - 1].stake;
 		}
 
-		// Next check implicit zero balance
+		/// @dev Next check implicit zero balance.
 		if (delegateStakingCheckpoints[account][date][0].fromBlock > blockNumber) {
 			return 0;
 		}
@@ -162,7 +182,7 @@ contract WeightedStaking is Checkpoints {
 		uint32 lower = 0;
 		uint32 upper = nCheckpoints - 1;
 		while (upper > lower) {
-			uint32 center = upper - (upper - lower) / 2; // ceil, avoiding overflow
+			uint32 center = upper - (upper - lower) / 2; /// @dev ceil, avoiding overflow.
 			Checkpoint memory cp = delegateStakingCheckpoints[account][date][center];
 			if (cp.fromBlock == blockNumber) {
 				return cp.stake;
@@ -178,23 +198,28 @@ contract WeightedStaking is Checkpoints {
 	/*************************** User Weighted Stake computation for fee sharing *******************************/
 
 	/**
-	 * @notice Determine the prior weighted stake for an account as of a block number
-	 * @dev Block number must be a finalized block or else this function will revert to prevent misinformation.
+	 * @notice Determine the prior weighted stake for an account as of a block number.
+	 * Iterate through checkpoints adding up voting power.
+	 * @dev Block number must be a finalized block or else this function will
+	 * revert to prevent misinformation.
 	 *      Used for fee sharing, not voting.
-	 * @param account The address of the account to check
-	 * @param blockNumber The block number to get the vote balance at
-	 * @return The weighted stake the account had as of the given block
-	 */
+	 * TODO: WeightedStaking::getPriorWeightedStake is using the variable name "votes"
+	 * to add up token stake, and that could be misleading.
+	 *
+	 * @param account The address of the account to check.
+	 * @param blockNumber The block number to get the vote balance at.
+	 * @return The weighted stake the account had as of the given block.
+	 * */
 	function getPriorWeightedStake(
 		address account,
 		uint256 blockNumber,
 		uint256 date
 	) public view returns (uint96 votes) {
-		//if date is not an exact break point, start weight computation from the previous break point (alternative would be the next)
+		/// @dev If date is not an exact break point, start weight computation from the previous break point (alternative would be the next).
 		uint256 start = timestampToLockDate(date);
 		uint256 end = start + MAX_DURATION;
 
-		//max 78 iterations
+		/// @dev Max 78 iterations.
 		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
 			uint96 weightedStake = weightedStakeByDate(account, i, start, blockNumber);
 			if (weightedStake > 0) {
@@ -204,10 +229,13 @@ contract WeightedStaking is Checkpoints {
 	}
 
 	/**
-	 * @notice computes the voting power for a secific date
-	 * @param date the staking date to compute the power for
-	 * @param startDate the date for which we need to know the power of the stake
-	 * @param blockNumber the block number. needed for checkpointing.
+	 * @notice Compute the voting power for a specific date.
+	 * Power = stake * weight
+	 * TODO: WeightedStaking::weightedStakeByDate should probably better
+	 * be internal instead of a public function.
+	 * @param date The staking date to compute the power for.
+	 * @param startDate The date for which we need to know the power of the stake.
+	 * @param blockNumber The block number, needed for checkpointing.
 	 * */
 	function weightedStakeByDate(
 		address account,
@@ -225,13 +253,15 @@ contract WeightedStaking is Checkpoints {
 	}
 
 	/**
-	 * @notice Determine the prior number of stake for an account until a certain lock date as of a block number
-	 * @dev Block number must be a finalized block or else this function will revert to prevent misinformation.
-	 * @param account The address of the account to check
-	 * @param date the lock date
-	 * @param blockNumber The block number to get the vote balance at
-	 * @return The number of votes the account had as of the given block
-	 */
+	 * @notice Determine the prior number of stake for an account until a
+	 * certain lock date as of a block number.
+	 * @dev Block number must be a finalized block or else this function
+	 * will revert to prevent misinformation.
+	 * @param account The address of the account to check.
+	 * @param date The lock date.
+	 * @param blockNumber The block number to get the vote balance at.
+	 * @return The number of votes the account had as of the given block.
+	 * */
 	function getPriorUserStakeByDate(
 		address account,
 		uint256 date,
@@ -245,12 +275,12 @@ contract WeightedStaking is Checkpoints {
 			return 0;
 		}
 
-		// First check most recent balance
+		/// @dev First check most recent balance.
 		if (userStakingCheckpoints[account][date][nCheckpoints - 1].fromBlock <= blockNumber) {
 			return userStakingCheckpoints[account][date][nCheckpoints - 1].stake;
 		}
 
-		// Next check implicit zero balance
+		/// @dev Next check implicit zero balance.
 		if (userStakingCheckpoints[account][date][0].fromBlock > blockNumber) {
 			return 0;
 		}
@@ -258,7 +288,7 @@ contract WeightedStaking is Checkpoints {
 		uint32 lower = 0;
 		uint32 upper = nCheckpoints - 1;
 		while (upper > lower) {
-			uint32 center = upper - (upper - lower) / 2; // ceil, avoiding overflow
+			uint32 center = upper - (upper - lower) / 2; /// @dev ceil, avoiding overflow.
 			Checkpoint memory cp = userStakingCheckpoints[account][date][center];
 			if (cp.fromBlock == blockNumber) {
 				return cp.stake;
@@ -274,17 +304,17 @@ contract WeightedStaking is Checkpoints {
 	/**************** SHARED FUNCTIONS *********************/
 
 	/**
-	 * @notice compute the weight for a specific date
-	 * @param date the unlocking date
-	 * @param startDate we compute the weight for the tokens staked until 'date' on 'startDate'
+	 * @notice Compute the weight for a specific date.
+	 * @param date The unlocking date.
+	 * @param startDate We compute the weight for the tokens staked until 'date' on 'startDate'.
 	 * */
 	function computeWeightByDate(uint256 date, uint256 startDate) public pure returns (uint96 weight) {
 		require(date >= startDate, "WeightedStaking::computeWeightByDate: date needs to be bigger than startDate");
 		uint256 remainingTime = (date - startDate);
 		require(MAX_DURATION >= remainingTime, "Staking::computeWeightByDate:remaining time can't be bigger than max duration");
-		// x = max days - remaining days
+		/// @dev x = max days - remaining days
 		uint96 x = uint96(MAX_DURATION - remainingTime) / (1 days);
-		//w = (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)
+		/// @dev w = (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)
 		weight = add96(
 			WEIGHT_FACTOR,
 			mul96(
@@ -297,15 +327,19 @@ contract WeightedStaking is Checkpoints {
 	}
 
 	/**
-	 * @notice unstaking is posisble every 2 weeks only. this means, to calculate the key value for the staking
-	 * checkpoints, we need to map the intended timestamp to the closest available date
-	 * @param timestamp the unlocking timestamp
-	 * @return the actual unlocking date (might be up to 2 weeks shorter than intended)
+	 * @notice Unstaking is possible every 2 weeks only. This means, to
+	 * calculate the key value for the staking checkpoints, we need to
+	 * map the intended timestamp to the closest available date.
+	 * @param timestamp The unlocking timestamp.
+	 * @return The actual unlocking date (might be up to 2 weeks shorter than intended).
 	 * */
 	function timestampToLockDate(uint256 timestamp) public view returns (uint256 lockDate) {
 		require(timestamp >= kickoffTS, "WeightedStaking::timestampToLockDate: timestamp lies before contract creation");
-		//if staking timestamp does not match any of the unstaking dates, set the lockDate to the closest one before the timestamp
-		//e.g. passed timestamps lies 7 weeks after kickoff -> only stake for 6 weeks
+		/**
+		 * @dev If staking timestamp does not match any of the unstaking dates
+		 * , set the lockDate to the closest one before the timestamp.
+		 * E.g. Passed timestamps lies 7 weeks after kickoff -> only stake for 6 weeks.
+		 * */
 		uint256 periodFromKickoff = (timestamp - kickoffTS) / TWO_WEEKS;
 		lockDate = periodFromKickoff * TWO_WEEKS + kickoffTS;
 	}
