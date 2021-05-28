@@ -95,7 +95,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 		if (tradingFee != 0) {
 			if (affiliatesUserReferrer[user] != address(0)) {
 				affiliatesTradingFee = _payTradingFeeToAffiliate(affiliatesUserReferrer[user], feeToken, protocolTradingFee);
-				protocolTradingFee = protocolTradingFee.sub(protocolTradingFee.mul(affiliateFeePercent).div(10**20));
+				protocolTradingFee = (protocolTradingFee.sub(protocolTradingFee.mul(affiliateFeePercent).div(10**20))).sub(protocolTradingFee.mul(affiliateTradingTokenFeePercent).div(10**20));
 			}
 
 			/// Increase the storage variable keeping track of the accumulated fees.

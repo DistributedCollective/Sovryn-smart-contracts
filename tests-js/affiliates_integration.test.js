@@ -207,17 +207,24 @@ contract("Affiliates", (accounts) => {
 
         let event_name = "PayTradingFeeToAffiliate";
 		let decode = decodeLogs(tx.receipt.rawLogs, Affiliates, event_name);
+		let referrerFee = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
 		if (!decode.length) {
 			throw "Event PayTradingFeeToAffiliate is not fired properly";
 		}
 
         let isHeld = decode[0].args["isHeld"];
         let affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer)
-        let submittedAffiliatesReward = decode[0].args['sovBonusAmount']
-        expect(isHeld, "First trade affiliates reward must be in held").to.be.true;
+		let submittedAffiliatesReward = decode[0].args['sovBonusAmount']
+		let submittedTokenBonusAmount = decode[0].args["tokenBonusAmount"];
+		expect(isHeld, "First trade affiliates reward must be in held").to.be.true;
+		expect(referrerFee.toString(), "Token bonus rewards is not matched").to.be.equal(submittedTokenBonusAmount.toString());
 
         let checkedValueShouldBe = affiliateRewardsHeld - previousAffiliateRewardsHeld
-        expect(checkedValueShouldBe.toString(), "Affiliates bonus rewards is not matched").to.be.equal(submittedAffiliatesReward.toString())
+		expect(checkedValueShouldBe.toString(), "Affiliates bonus rewards is not matched").to.be.equal(submittedAffiliatesReward.toString())
+		
+		// Check lockedSOV Balance of the referrer
+		let referrerBalanceInLockedSOV = await lockedSOV.getLockedBalance(referrer)
+		expect(referrerBalanceInLockedSOV.toString(), "Referrer balance in lockedSOV is not matched").to.be.equal(new BN(0).toString())
 
         // Change the min referrals to payout to 1
         await sovryn.setMinReferralsToPayoutAffiliates(1)
@@ -244,15 +251,37 @@ contract("Affiliates", (accounts) => {
         expect(isHeld, "First trade affiliates reward must not be in held").to.be.false;
 
         affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer)
-        submittedAffiliatesReward = decode[0].args['sovBonusAmount']
-        sovBonusAmountPaid = decode[0].args['sovBonusAmountPaid']
+		submittedAffiliatesReward = decode[0].args['sovBonusAmount']
+		submittedTokenBonusAmount = decode[0].args["tokenBonusAmount"];
+		sovBonusAmountPaid = decode[0].args['sovBonusAmountPaid']
 
-        expect(affiliateRewardsHeld.toString(), "affiliateRewardHeld should be zero at this point").to.be.equal(new BN(0).toString());
+		expect(affiliateRewardsHeld.toString(), "affiliateRewardHeld should be zero at this point").to.be.equal(new BN(0).toString());
+		expect(referrerFee.toString(), "Token bonus rewards is not matched").to.be.equal(submittedTokenBonusAmount.toString());
 
         checkSovBonusAmountPaid = new BN(submittedAffiliatesReward).add(new BN(previousAffiliateRewardsHeld))
         expect(checkSovBonusAmountPaid.toString(), "Affiliates bonus rewards paid is not matched").to.be.equal(sovBonusAmountPaid.toString())
 
         checkedValueShouldBe = new BN(affiliateRewardsHeld).add(new BN(previousAffiliateRewardsHeld));
-        expect(checkedValueShouldBe.toString(), "Affiliates bonus rewards is not matched").to.be.equal(submittedAffiliatesReward.toString())
+		expect(checkedValueShouldBe.toString(), "Affiliates bonus rewards is not matched").to.be.equal(submittedAffiliatesReward.toString())
+
+		// Check lockedSOV Balance of the referrer
+		referrerBalanceInLockedSOV = await lockedSOV.getLockedBalance(referrer)
+		expect(referrerBalanceInLockedSOV.toString(), "Referrer balance in lockedSOV is not matched").to.be.equal(checkSovBonusAmountPaid.toString())
+
+		// Do withdrawal
+		let referrerTokenBalance = await doc.balanceOf(referrer)
+		let referrerFee2 = new BN(referrerFee).add(new BN(submittedTokenBonusAmount));
+		tx = await sovryn.withdrawAllAffiliatesReferrerTokenFees(referrer, { from: referrer });
+		const referrerFeeAfterWithdrawal = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
+		let referrerTokenBalanceAfterWithdrawal = await doc.balanceOf(referrer)
+		expect(referrerFeeAfterWithdrawal, "Incorrect all balance after all DoC withdraw").to.be.bignumber.equal(new BN(0));
+		expect((referrerTokenBalanceAfterWithdrawal.sub(referrerTokenBalance)).toString()).to.be.equal(referrerFee2.toString());
+
+		await expectEvent.inTransaction(tx.receipt.rawLogs[0].transactionHash, Affiliates, "WithdrawAffiliatesReferrerTokenFees", {
+			referrer: referrer,
+			receiver: referrer,
+			tokenAddress: doc.address,
+			amount: referrerFee2.toString(),
+		});
 	})
 });

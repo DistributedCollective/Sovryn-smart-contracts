@@ -29,6 +29,8 @@ contract ProtocolSettingsEvents {
 
 	event SetAffiliateFeePercent(address indexed sender, uint256 oldValue, uint256 newValue);
 
+	event SetAffiliateTradingTokenFeePercent(address indexed sender, uint256 oldValue, uint256 newValue);
+
 	event SetLiquidationIncentivePercent(address indexed sender, uint256 oldValue, uint256 newValue);
 
 	event SetMaxSwapSize(address indexed sender, uint256 oldValue, uint256 newValue);

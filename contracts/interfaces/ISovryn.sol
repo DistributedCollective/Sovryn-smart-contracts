@@ -330,4 +330,21 @@ contract ISovryn is
 	function setAffiliatesReferrer(address user, address referrer) external; //onlyCallableByLoanPools
 
 	function getReferralsList(address referrer) external view returns (address[] memory refList);
+
+	function getAffiliatesReferrerBalances(address referrer)
+		external
+		view
+		returns (address[] memory referrerTokensList, uint256[] memory referrerTokensBalances);
+
+	function getAffiliatesReferrerTokensList(address referrer) external view returns (address[] memory tokensList);
+
+	function getAffiliatesReferrerTokenBalance(address referrer, address token) external view returns (uint256);
+
+	function withdrawAffiliatesReferrerTokenFees(
+		address token,
+		address receiver,
+		uint256 amount
+	) external returns (uint256 withdrawAmount);
+
+	function withdrawAllAffiliatesReferrerTokenFees(address receiver) external;
 }

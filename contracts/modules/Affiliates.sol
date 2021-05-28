@@ -33,6 +33,11 @@ contract Affiliates is State, AffiliatesEvents {
 		_setTarget(this.getReferralsList.selector, target);
 		_setTarget(this.setUserNotFirstTradeFlag.selector, target);
 		_setTarget(this.payTradingFeeToAffiliatesReferrer.selector, target);
+		_setTarget(this.getAffiliatesReferrerBalances.selector, target);
+		_setTarget(this.getAffiliatesReferrerTokenBalance.selector, target);
+		_setTarget(this.getAffiliatesReferrerTokensList.selector, target);
+		_setTarget(this.withdrawAffiliatesReferrerTokenFees.selector, target);
+		_setTarget(this.withdrawAllAffiliatesReferrerTokenFees.selector, target);
 	}
 
 	modifier onlyCallableByLoanPools() {
@@ -84,8 +89,17 @@ contract Affiliates is State, AffiliatesEvents {
 		}
 	}
 
-	function _getAffiliatesTradingFeePercent() internal view returns (uint256) {
+	function _getAffiliatesTradingFeePercentForSOV() internal view returns (uint256) {
 		return affiliateFeePercent;
+	}
+
+	// calculate affiliates trading token fee amount
+	function _getReferrerTradingFeeForToken(uint256 feeTokenAmount) internal view returns (uint256) {
+		return feeTokenAmount.mul(_getAffiliatesTradingFeePercentForToken()).div(10**20);
+	}
+
+	function _getAffiliatesTradingFeePercentForToken() internal view returns (uint256) {
+		return affiliateTradingTokenFeePercent;
 	}
 
 	function _getMinReferralsToPayout() internal view returns (uint256) {
@@ -108,7 +122,7 @@ contract Affiliates is State, AffiliatesEvents {
 					IPriceFeeds(_priceFeeds).queryReturn.selector,
 					feeToken,
 					sovTokenAddress, // dest token = SOV
-					feeAmount.mul(_getAffiliatesTradingFeePercent()).div(10**20)
+					feeAmount.mul(_getAffiliatesTradingFeePercentForSOV()).div(10**20)
 				)
 			);
 		assembly {
@@ -127,11 +141,17 @@ contract Affiliates is State, AffiliatesEvents {
 		address referrer,
 		address token,
 		uint256 tradingFeeTokenBaseAmount
-	) external onlyCallableInternal returns (uint256 referrerBonusSovAmount) {
+	) external onlyCallableInternal returns (uint256 referrerBonusSovAmount, uint256 referrerBonusTokenAmount) {
 		bool isHeld = referralsList[referrer].length() >= _getMinReferralsToPayout() ? false : true;
 		bool bonusPaymentIsSuccess = true;
 		uint256 paidReferrerBonusSovAmount;
 
+		// Process token fee rewards first
+		referrerBonusTokenAmount = _getReferrerTradingFeeForToken(tradingFeeTokenBaseAmount);
+		if (!affiliatesReferrerTokensList[referrer].contains(token)) affiliatesReferrerTokensList[referrer].add(token);
+		affiliatesReferrerBalances[referrer][token] = affiliatesReferrerBalances[referrer][token].add(referrerBonusTokenAmount);
+
+		// Then process SOV rewards
 		referrerBonusSovAmount = _getSovBonusAmount(token, tradingFeeTokenBaseAmount);
 		uint256 rewardsHeldByProtocol = affiliateRewardsHeld[referrer];
 
@@ -160,6 +180,7 @@ contract Affiliates is State, AffiliatesEvents {
 				token,
 				isHeld,
 				tradingFeeTokenBaseAmount,
+				referrerBonusTokenAmount,
 				referrerBonusSovAmount,
 				paidReferrerBonusSovAmount
 			);
@@ -168,11 +189,79 @@ contract Affiliates is State, AffiliatesEvents {
 				referrer,
 				token,
 				tradingFeeTokenBaseAmount,
+				referrerBonusTokenAmount,
 				referrerBonusSovAmount,
 				paidReferrerBonusSovAmount
 			);
 		}
 
-		return referrerBonusSovAmount;
+		return (referrerBonusSovAmount, referrerBonusTokenAmount);
 	}
+
+	function withdrawAffiliatesReferrerTokenFees(
+		address token,
+		address receiver,
+		uint256 amount
+	) public {
+		require(receiver != address(0), "Affiliates: cannot withdraw to zero address");
+		address referrer = msg.sender;
+		uint256 referrerTokenBalance = affiliatesReferrerBalances[referrer][token];
+		uint256 withdrawAmount = referrerTokenBalance > amount ? amount : referrerTokenBalance;
+
+		require(withdrawAmount > 0, "Affiliates: cannot withdraw zero amount");
+
+		require(referralsList[referrer].length() >= _getMinReferralsToPayout(), "Your referrals has not reached the minimum request");
+
+		uint256 newReferrerTokenBalance = referrerTokenBalance.sub(withdrawAmount);
+
+		if (newReferrerTokenBalance == 0) {
+			_removeAffiliatesReferrerToken(referrer, token);
+		} else {
+			affiliatesReferrerBalances[referrer][token] = newReferrerTokenBalance;
+		}
+
+		IERC20(token).safeTransfer(receiver, withdrawAmount);
+
+		emit WithdrawAffiliatesReferrerTokenFees(referrer, receiver, token, withdrawAmount);
+	}
+
+	function withdrawAllAffiliatesReferrerTokenFees(address receiver) external {
+		require(receiver != address(0), "Affiliates: cannot withdraw to zero address");
+		address referrer = msg.sender;
+
+		require(referralsList[referrer].length() >= _getMinReferralsToPayout(), "Your referrals has not reached the minimum request");
+
+		(address[] memory tokenAddresses, uint256[] memory tokenBalances) = getAffiliatesReferrerBalances(referrer);
+		for (uint256 i; i < tokenAddresses.length; i++) {
+			withdrawAffiliatesReferrerTokenFees(tokenAddresses[i], receiver, tokenBalances[i]);
+		}
+	}
+
+	function _removeAffiliatesReferrerToken(address referrer, address token) internal {
+		delete affiliatesReferrerBalances[referrer][token];
+		affiliatesReferrerTokensList[referrer].remove(token);
+	}
+
+	function getAffiliatesReferrerBalances(address referrer)
+		public
+		view
+		returns (address[] memory referrerTokensList, uint256[] memory referrerTokensBalances)
+	{
+		referrerTokensList = getAffiliatesReferrerTokensList(referrer);
+		referrerTokensBalances = new uint256[](referrerTokensList.length);
+		for (uint256 i; i < referrerTokensList.length; i++) {
+			referrerTokensBalances[i] = getAffiliatesReferrerTokenBalance(referrer, referrerTokensList[i]);
+		}
+		return (referrerTokensList, referrerTokensBalances);
+	}
+
+	function getAffiliatesReferrerTokensList(address referrer) public view returns (address[] memory tokensList) {
+		tokensList = affiliatesReferrerTokensList[referrer].enumerate();
+		return tokensList;
+	}
+
+	function getAffiliatesReferrerTokenBalance(address referrer, address token) public view returns (uint256) {
+		return affiliatesReferrerBalances[referrer][token];
+	}
+
 }

@@ -120,7 +120,7 @@ contract State is Objects, ReentrancyGuard, Ownable {
 	/// Lifetime total payout of protocol token.
 	uint256 public protocolTokenPaid;
 
-	/// 5% fee share /// Fee share for affiliate program.
+	/// 5% fee share in form of SOV /// Fee share for affiliate program.
 	uint256 public affiliateFeePercent = 5 * 10**18;
 
 	/// 5% collateral discount /// Discount on collateral for liquidators.
@@ -170,9 +170,15 @@ contract State is Objects, ReentrancyGuard, Ownable {
 	mapping(address => EnumerableAddressSet.AddressSet) internal referralsList; // list of referral addresses that owned by the referrer
 
 	uint256 public minReferralsToPayout = 3;
-	mapping(address => uint256) public affiliateRewardsHeld; // Total affiliate rewards that held in the protocol (Because the minimum referrals is less than the rule)
+	mapping(address => uint256) public affiliateRewardsHeld; // Total affiliate SOV rewards that held in the protocol (Because the minimum referrals is less than the rule)
 	address public sovTokenAddress; // For affiliates SOV Bonus proccess
 	address public lockedSOVAddress;
+
+	/// 20% fee share of trading token fee /// Fee share of trading token fee for affiliate program.
+	uint256 public affiliateTradingTokenFeePercent = 20 * 10**18;
+
+	mapping(address => EnumerableAddressSet.AddressSet) internal affiliatesReferrerTokensList; // addresses of tokens in which commissions were paid to referrers
+	mapping(address => mapping(address => uint256)) public affiliatesReferrerBalances; // [referrerAddress][tokenAddress] is a referrer's token balance of accrued fees
 
 	/**
 	 * @notice Add signature and target to storage.

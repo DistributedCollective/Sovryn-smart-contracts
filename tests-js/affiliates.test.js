@@ -205,6 +205,7 @@ contract("Affiliates", (accounts) => {
 
 		let event_name = "PayTradingFeeToAffiliate";
 		let decode = decodeLogs(tx.receipt.rawLogs, Affiliates, event_name);
+		const referrerFee = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
 		if (!decode.length) {
 			throw "Event PayTradingFeeToAffiliate is not fired properly";
 		}
@@ -220,10 +221,12 @@ contract("Affiliates", (accounts) => {
 			((affiliatesFeePercentage * tradingFeeAmount) / Math.pow(10, 20)).toString()
 		);
 		submittedSovBonusAmount = decode[0].args["sovBonusAmount"];
+		submittedTokenBonusAmount = decode[0].args["tokenBonusAmount"];
 		affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
 		expect(sovBonusAmountShouldBePaid.toString(), "Incorrect sov bonus amount calculation").to.be.equal(submittedSovBonusAmount);
 		expect(submittedToken).to.eql(doc.address);
 		expect(submittedReferrer).to.eql(referrer);
+		expect(referrerFee.toString()).to.be.equal(submittedTokenBonusAmount.toString());
 		// Since the minimum referrals to payout is set to 3, make sure the affiliateRewardsHeld is correct
 		expect(affiliateRewardsHeld.toString(), "SOV Bonus amount that stored in the affiliateRewardsHeld is incorrect").to.be.equal(
 			sovBonusAmountShouldBePaid.toString()
@@ -309,6 +312,7 @@ contract("Affiliates", (accounts) => {
 
 		const event_name = "PayTradingFeeToAffiliate";
 		const decode = decodeLogs(tx.receipt.rawLogs, Affiliates, event_name);
+		const referrerFee = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
 		if (!decode.length) {
 			throw "Event PayTradingFeeToAffiliate is not fired properly";
 		}
@@ -324,10 +328,12 @@ contract("Affiliates", (accounts) => {
 			((affiliatesFeePercentage * tradingFeeAmount) / Math.pow(10, 20)).toString()
 		);
 		submittedSovBonusAmount = decode[0].args["sovBonusAmountPaid"];
+		submittedTokenBonusAmount = decode[0].args["tokenBonusAmount"];
 		affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
 		expect(sovBonusAmountShouldBePaid.toString(), "Incorrect sov bonus amount calculation").to.be.equal(submittedSovBonusAmount);
 		expect(submittedToken).to.eql(doc.address);
 		expect(submittedReferrer).to.eql(referrer);
+		expect(referrerFee.toString()).to.be.equal(submittedTokenBonusAmount.toString());
 		// Since the minimum referrals to payout is set to 1, make sure the affiliateRewardsHeld is correct
 		expect(affiliateRewardsHeld.toString(), "SOV Bonus amount that stored in the affiliateRewardsHeld is incorrect").to.be.equal(
 			new BN(0).toString()
@@ -486,5 +492,351 @@ contract("Affiliates", (accounts) => {
 		tx = await loanTokenV2.setAffiliatesReferrer(trader, referrer); // can be called only from loan tokens pool addresses
 		refList = await sovryn.getReferralsList(referrer);
 		expect(refList.length).to.be.equal(1);
+	});
+
+	it("Withdraw all token will revert if receiver is zero address", async () => {
+		await expectRevert(sovryn.withdrawAllAffiliatesReferrerTokenFees(constants.ZERO_ADDRESS, { from: referrer }), "Affiliates: cannot withdraw to zero address")
+	})
+
+	it("Withdraw all token will revert if minimum affiliates to payout is not fulfilled", async () => {
+		await expectRevert(sovryn.withdrawAllAffiliatesReferrerTokenFees(referrer, { from: referrer }), "Your referrals has not reached the minimum request")
+	})
+
+	it("Affiliates referrer withdraw fees should revert because of the minimum request is not fullfilled", async () => {
+		const leverageAmount = web3.utils.toWei("3", "ether");
+		//loan tokens sent to iToken contract to start Margin Trading
+		const loanTokenSent = web3.utils.toWei("20", "ether");
+		// AUDIT: should the call be allowed from arbitrary address to set an affiliate in
+		// LoanTokenLogicStandard.marginTradeAffiliate?
+		const tx = await loanTokenV2.marginTradeAffiliate(
+			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			leverageAmount, // leverageAmount
+			loanTokenSent, // loanTokenSent
+			0, // no collateral token sent
+			testWrbtc.address, // collateralTokenAddress
+			trader,
+			referrer, // affiliates referrer
+			"0x", // loanDataBytes (only required with ether)
+			{ from: trader }
+		);
+
+		//WITHDRAW AFFILIATE FEES
+		//FAIL
+		const referrerFee = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
+		await expectRevert(
+			sovryn.withdrawAffiliatesReferrerTokenFees(doc.address, constants.ZERO_ADDRESS, referrerFee, { from: referrer }),
+			"Affiliates: cannot withdraw to zero address"
+		);
+		await expectRevert(
+			sovryn.withdrawAffiliatesReferrerTokenFees(doc.address, referrer, 0, { from: referrer }),
+			"Affiliates: cannot withdraw zero amount"
+		);
+
+		await expectRevert(
+			sovryn.withdrawAffiliatesReferrerTokenFees(doc.address, referrer, referrerFee, { from: referrer }),
+			"Your referrals has not reached the minimum request"
+		);
+	})
+
+	it("Affiliates Referrer withdraw fees in two tokens works correctly with min referrals to payout is 0", async () => {
+		await sovryn.setMinReferralsToPayoutAffiliates(1);
+		const leverageAmount = web3.utils.toWei("3", "ether");
+		//loan tokens sent to iToken contract to start Margin Trading
+		const loanTokenSent = web3.utils.toWei("20", "ether");
+
+		const leverageAmount2 = web3.utils.toWei("3", "ether");
+		//loan tokens sent to iToken contract to start Margin Trading
+		const loanTokenSent2 = web3.utils.toWei("20", "ether");
+
+		//add another pair
+		//loanTokenLogic = await MockLoanTokenLogic.new();
+		//testWrbtc = await TestWrbtc.new();
+		eur = await TestToken.new("euro on chain 2", "EUR", 18, wei("20000", "ether"));
+		const loanToken2 = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
+		await loanToken2.initialize(eur.address, "SEUR", "SEUR");
+
+		// loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address);
+		loanToken2V2 = await MockLoanTokenLogic.at(loanToken2.address); //mocked for ad-hoc logic for isolated testing
+		const loanTokenAddress2 = await loanToken2.loanTokenAddress();
+		if (owner == (await sovryn.owner())) {
+			await sovryn.setLoanPool([loanToken2V2.address], [loanTokenAddress2]);
+		}
+		await feeds.setRates(eur.address, testWrbtc.address, wei("0.01", "ether"));
+		await sovryn.setSupportedTokens([eur.address], [true]);
+
+		{
+			/**
+			struct LoanParams {
+				bytes32 id; // id of loan params object
+				bool active; // if false, this object has been disabled by the owner and can't be used for future loans
+				address owner; // owner of this object
+				address loanToken; // the token being loaned
+				address collateralToken; // the required collateral token
+				uint256 minInitialMargin; // the minimum allowed initial margin
+				uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
+				uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
+			}
+		*/
+		}
+		params = [
+			"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object
+			false, // bool active; // if false, this object has been disabled by the owner and can't be used for future loans
+			owner, // address owner; // owner of this object
+			eur.address, // address loanToken; // the token being loaned
+			testWrbtc.address, // address collateralToken; // the required collateral token
+			wei("20", "ether"), // uint256 minInitialMargin; // the minimum allowed initial margin
+			wei("15", "ether"), // uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
+			2419200, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
+		];
+
+		//await loanTokenV2.setupLoanParams([params], true);
+		await loanToken2V2.setupLoanParams([params], false);
+
+		// setting up interest rates
+		const baseRate = wei("1", "ether");
+		const rateMultiplier = wei("20.25", "ether");
+		const targetLevel = wei("80", "ether");
+		const kinkLevel = wei("90", "ether");
+		const maxScaleRate = wei("100", "ether");
+		await loanToken2V2.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate);
+
+		// GIVING SOME DOC tokens to loanToken so that we can borrow from loanToken
+		await eur.transfer(loanToken2V2.address, wei("500", "ether"));
+		await eur.transfer(trader, wei("20", "ether"));
+		//trader approves to LoanToken loan amount for trading
+		await eur.approve(loanToken2.address, web3.utils.toWei("20", "ether"), { from: trader });
+		//Giving some more testRbtc to sovrynAddress (by minting some testRbtc),so that it can open position in wRBTC.
+		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
+
+		//margin trade afiliate 2 tokens
+		await loanTokenV2.marginTradeAffiliate(
+			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			leverageAmount, // leverageAmount
+			loanTokenSent, // loanTokenSent
+			0, // no collateral token sent
+			testWrbtc.address, // collateralTokenAddress
+			trader,
+			referrer, // affiliates referrer
+			"0x", // loanDataBytes (only required with ether)
+			{ from: trader }
+		);
+		const referrerFee = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
+
+		await loanToken2V2.marginTradeAffiliate(
+			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			leverageAmount2, // leverageAmount
+			loanTokenSent2, // loanTokenSent
+			0, // no collateral token sent
+			testWrbtc.address, // collateralTokenAddress
+			trader,
+			referrer, // affiliates referrer
+			"0x", // loanDataBytes (only required with ether)
+			{ from: trader }
+		);
+		const referrerFee2 = await sovryn.affiliatesReferrerBalances(referrer, eur.address);
+
+		//WITHDRAW AFFILIATE FEES
+		//FAIL
+		await expectRevert(
+			sovryn.withdrawAffiliatesReferrerTokenFees(doc.address, constants.ZERO_ADDRESS, referrerFee, { from: referrer }),
+			"Affiliates: cannot withdraw to zero address"
+		);
+		await expectRevert(
+			sovryn.withdrawAffiliatesReferrerTokenFees(eur.address, constants.ZERO_ADDRESS, referrerFee2, { from: referrer }),
+			"Affiliates: cannot withdraw to zero address"
+		);
+		await expectRevert(
+			sovryn.withdrawAffiliatesReferrerTokenFees(doc.address, referrer, 0, { from: referrer }),
+			"Affiliates: cannot withdraw zero amount"
+		);
+		await expectRevert(
+			sovryn.withdrawAffiliatesReferrerTokenFees(eur.address, referrer, 0, { from: referrer }),
+			"Affiliates: cannot withdraw zero amount"
+		);
+
+		//SUCCESS
+		//partial withdraw
+		let tx;
+		tx = await sovryn.withdrawAffiliatesReferrerTokenFees(doc.address, referrer, referrerFee.divn(2), { from: referrer });
+		const newReferrerFee = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
+		expect(newReferrerFee, "Incorrect partial balance after half DoC withdraw").to.be.bignumber.equal(referrerFee.divn(2));
+
+		await expectEvent.inTransaction(tx.receipt.rawLogs[0].transactionHash, Affiliates, "WithdrawAffiliatesReferrerTokenFees", {
+			referrer: referrer,
+			receiver: referrer,
+			tokenAddress: doc.address,
+			amount: referrerFee.divn(2).toString(),
+		});
+
+		await sovryn.withdrawAffiliatesReferrerTokenFees(eur.address, referrer, referrerFee2.divn(4), { from: referrer });
+		const newReferrerFee2 = await sovryn.affiliatesReferrerBalances(referrer, eur.address);
+
+		expect(newReferrerFee2, "Incorrect partial balance after a quarter EUR withdraw").to.be.bignumber.equal(
+			referrerFee2.muln(3).divn(4)
+		);
+
+		let refBalances = await sovryn.getAffiliatesReferrerBalances(referrer);
+
+		//complete withdraw
+		await sovryn.withdrawAffiliatesReferrerTokenFees(doc.address, referrer, newReferrerFee, { from: referrer });
+		expect(await doc.balanceOf(referrer), "Incorrect DoC withdraw amount").to.be.bignumber.equal(referrerFee);
+		expect(
+			await sovryn.affiliatesReferrerBalances(referrer, doc.address),
+			"Affiliate Referrer's balance of DoC should be zero after withdrawal"
+		).to.be.bignumber.equal(new BN(0));
+
+		// now the DoC token and it's balance for the referrer should be removed from the list
+		refBalances = await sovryn.getAffiliatesReferrerBalances(referrer);
+		expect(refBalances["referrerTokensList"][0]).to.eql(eur.address);
+		expect(refBalances["referrerTokensList"]).to.have.length(1);
+		expect(refBalances["referrerTokensBalances"][0]).to.be.bignumber.equal(new BN(Math.pow(10, 15)).muln(18));
+		expect(refBalances["referrerTokensBalances"]).to.have.length(1);
+
+		await sovryn.withdrawAffiliatesReferrerTokenFees(eur.address, referrer, newReferrerFee2, { from: referrer });
+		expect(await eur.balanceOf(referrer), "Incorrect EUR withdraw amount").to.be.bignumber.equal(referrerFee2);
+		expect(
+			await sovryn.affiliatesReferrerBalances(referrer, eur.address),
+			"Affiliate Referrer's balance of EUR should be zero after withdrawal"
+		).to.be.bignumber.equal(new BN(0));
+
+		refBalances = await sovryn.getAffiliatesReferrerBalances(referrer);
+		expect(refBalances["referrerTokensList"][0], "After withdrawal the token should be deleted from the referrers list").to.be
+			.undefined;
+		expect(refBalances["referrerTokensBalances"][0], "After withdrawal the token balances should be deleted from the referrers list").to
+			.be.undefined;
+	});
+
+
+	it("Affiliates Referrer withdraw all fees for two tokens works correctly with min referrals to payout is 0", async () => {
+		await sovryn.setMinReferralsToPayoutAffiliates(1);
+		const leverageAmount = web3.utils.toWei("3", "ether");
+		//loan tokens sent to iToken contract to start Margin Trading
+		const loanTokenSent = web3.utils.toWei("20", "ether");
+
+		const leverageAmount2 = web3.utils.toWei("3", "ether");
+		//loan tokens sent to iToken contract to start Margin Trading
+		const loanTokenSent2 = web3.utils.toWei("10", "ether");
+
+		//add another pair
+		//loanTokenLogic = await MockLoanTokenLogic.new();
+		//testWrbtc = await TestWrbtc.new();
+		eur = await TestToken.new("euro on chain 2", "EUR", 18, wei("20000", "ether"));
+		const loanToken2 = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
+		await loanToken2.initialize(eur.address, "SEUR", "SEUR");
+
+		// loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address);
+		loanToken2V2 = await MockLoanTokenLogic.at(loanToken2.address); //mocked for ad-hoc logic for isolated testing
+		const loanTokenAddress2 = await loanToken2.loanTokenAddress();
+		if (owner == (await sovryn.owner())) {
+			await sovryn.setLoanPool([loanToken2V2.address], [loanTokenAddress2]);
+		}
+		await feeds.setRates(eur.address, testWrbtc.address, wei("0.01", "ether"));
+		await sovryn.setSupportedTokens([eur.address], [true]);
+
+		params = [
+			"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object
+			false, // bool active; // if false, this object has been disabled by the owner and can't be used for future loans
+			owner, // address owner; // owner of this object
+			eur.address, // address loanToken; // the token being loaned
+			testWrbtc.address, // address collateralToken; // the required collateral token
+			wei("20", "ether"), // uint256 minInitialMargin; // the minimum allowed initial margin
+			wei("15", "ether"), // uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
+			2419200, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
+		];
+
+		//await loanTokenV2.setupLoanParams([params], true);
+		await loanToken2V2.setupLoanParams([params], false);
+
+		// setting up interest rates
+		const baseRate = wei("1", "ether");
+		const rateMultiplier = wei("20.25", "ether");
+		const targetLevel = wei("80", "ether");
+		const kinkLevel = wei("90", "ether");
+		const maxScaleRate = wei("100", "ether");
+		await loanToken2V2.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate);
+
+		// GIVING SOME DOC tokens to loanToken so that we can borrow from loanToken
+		await eur.transfer(loanToken2V2.address, wei("500", "ether"));
+		await eur.transfer(trader, wei("20", "ether"));
+		//trader approves to LoanToken loan amount for trading
+		await eur.approve(loanToken2.address, web3.utils.toWei("20", "ether"), { from: trader });
+		//Giving some more testRbtc to sovrynAddress (by minting some testRbtc),so that it can open position in wRBTC.
+		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
+
+		//margin trade afiliate 2 tokens
+		await loanTokenV2.marginTradeAffiliate(
+			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			leverageAmount, // leverageAmount
+			loanTokenSent, // loanTokenSent
+			0, // no collateral token sent
+			testWrbtc.address, // collateralTokenAddress
+			trader,
+			referrer, // affiliates referrer
+			"0x", // loanDataBytes (only required with ether)
+			{ from: trader }
+		);
+		const referrerFee = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
+
+		await loanToken2V2.marginTradeAffiliate(
+			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			leverageAmount2, // leverageAmount
+			loanTokenSent2, // loanTokenSent
+			0, // no collateral token sent
+			testWrbtc.address, // collateralTokenAddress
+			trader,
+			referrer, // affiliates referrer
+			"0x", // loanDataBytes (only required with ether)
+			{ from: trader }
+		);
+		const referrerFee2 = await sovryn.affiliatesReferrerBalances(referrer, eur.address);
+
+		//WITHDRAW AFFILIATE FEES
+		//FAIL
+		await expectRevert(
+			sovryn.withdrawAffiliatesReferrerTokenFees(doc.address, constants.ZERO_ADDRESS, referrerFee, { from: referrer }),
+			"Affiliates: cannot withdraw to zero address"
+		);
+		await expectRevert(
+			sovryn.withdrawAffiliatesReferrerTokenFees(eur.address, constants.ZERO_ADDRESS, referrerFee2, { from: referrer }),
+			"Affiliates: cannot withdraw to zero address"
+		);
+		await expectRevert(
+			sovryn.withdrawAffiliatesReferrerTokenFees(doc.address, referrer, 0, { from: referrer }),
+			"Affiliates: cannot withdraw zero amount"
+		);
+		await expectRevert(
+			sovryn.withdrawAffiliatesReferrerTokenFees(eur.address, referrer, 0, { from: referrer }),
+			"Affiliates: cannot withdraw zero amount"
+		);
+
+		//SUCCESS
+		//withdraw all
+		let tx;
+		tx = await sovryn.withdrawAllAffiliatesReferrerTokenFees(referrer, { from: referrer });
+		const newReferrerFee = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
+		expect(newReferrerFee, "Incorrect all balance after all DoC withdraw").to.be.bignumber.equal(new BN(0));
+
+		await expectEvent.inTransaction(tx.receipt.rawLogs[0].transactionHash, Affiliates, "WithdrawAffiliatesReferrerTokenFees", {
+			referrer: referrer,
+			receiver: referrer,
+			tokenAddress: doc.address,
+			amount: referrerFee.toString(),
+		});
+
+		const newReferrerFee2 = await sovryn.affiliatesReferrerBalances(referrer, eur.address);
+		expect(newReferrerFee2, "Incorrect all balance after all EUR withdraw").to.be.bignumber.equal(new BN(0));
+
+		await expectEvent.inTransaction(tx.receipt.rawLogs[1].transactionHash, Affiliates, "WithdrawAffiliatesReferrerTokenFees", {
+			referrer: referrer,
+			receiver: referrer,
+			tokenAddress: eur.address,
+			amount: referrerFee2.toString(),
+		});
+
+		let refBalances = await sovryn.getAffiliatesReferrerBalances(referrer);
+		expect(refBalances["referrerTokensList"][0], "After withdrawal the token should be deleted from the referrers list").to.be
+			.undefined;
+		expect(refBalances["referrerTokensBalances"][0], "After withdrawal the token balances should be deleted from the referrers list").to
+			.be.undefined;
 	});
 });
