@@ -563,15 +563,15 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 lockedTS
 	) internal {
 		if (msg.sender.isContract()) {
+			uint256 nextLock = lockedTS.add(TWO_WEEKS);
 			address currentDelegate = delegates[delegator][nextLock];
 			if (currentDelegate != delegatee) {
-				uint256 nextLock = lockedTS.add(TWO_WEEKS);
 				_delegate(delegator, delegatee, nextLock);
 			}
 			// @dev workaround for the issue with a delegation of the latest stake
+			nextLock = nextLock.add(TWO_WEEKS);
 			currentDelegate = delegates[delegator][nextLock];
 			if (currentDelegate != delegatee) {
-				nextLock = nextLock.add(TWO_WEEKS);
 				_delegate(delegator, delegatee, nextLock);
 			}
 		}
