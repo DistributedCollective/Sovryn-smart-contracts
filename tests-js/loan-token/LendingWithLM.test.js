@@ -1,4 +1,4 @@
-const { expect } = require("chai");
+const { expect, assert } = require("chai");
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 const { increaseTime } = require("../Utils/Ethereum");
 
@@ -10,7 +10,7 @@ const ProtocolSettings = artifacts.require("ProtocolSettings");
 const ISovryn = artifacts.require("ISovryn");
 
 const LoanToken = artifacts.require("LoanToken");
-const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
+const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
@@ -22,6 +22,9 @@ const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplLocal = artifacts.require("SwapsImplLocal");
 
+const LiquidityMiningLogic = artifacts.require("LiquidityMiningMockup");
+const LiquidityMiningProxy = artifacts.require("LiquidityMiningProxy");
+
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 
 //const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_more_of_lender_balance_should_not_fail } = require("./helpers");
@@ -29,19 +32,18 @@ const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_uint256
 
 const wei = web3.utils.toWei;
 
-contract("LoanTokenLending", (accounts) => {
+contract("LoanTokenLogicLM", (accounts) => {
 	const name = "Test token";
 	const symbol = "TST";
 
 	let lender, account1, account2, account3, account4;
 	let underlyingToken, testWrbtc;
 	let sovryn, loanToken;
+	let liquidityMining;
 
 	before(async () => {
 		[lender, account1, account2, account3, account4, ...accounts] = accounts;
-	});
 
-	beforeEach(async () => {
 		//Token
 		underlyingToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 		testWrbtc = await TestWrbtc.new();
@@ -73,10 +75,10 @@ contract("LoanTokenLending", (accounts) => {
 		);
 		await sovryn.setFeesController(lender);
 
-		loanTokenLogicStandard = await LoanTokenLogicStandard.new();
-		loanToken = await LoanToken.new(lender, loanTokenLogicStandard.address, sovryn.address, testWrbtc.address);
+		loanTokenLogicLM = await LoanTokenLogicLM.new();
+		loanToken = await LoanToken.new(lender, loanTokenLogicLM.address, sovryn.address, testWrbtc.address);
 		await loanToken.initialize(underlyingToken.address, name, symbol); //iToken
-		loanToken = await LoanTokenLogicStandard.at(loanToken.address);
+		loanToken = await LoanTokenLogicLM.at(loanToken.address);
 
 		params = [
 			"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object
@@ -102,49 +104,65 @@ contract("LoanTokenLending", (accounts) => {
 
 		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
 		console.log("after before each in JS");
+
+		await deployLiquidityMining();
+
+		await loanToken.setLiquidityMiningAddress(liquidityMining.address);
+
+		await liquidityMining.add(loanToken.address, 10, false);
+		
 	});
 
-	describe("Test lending using TestToken", () => {
-		it("test lend to the pool", async () => {
-			await lend_to_the_pool(loanToken, lender, underlyingToken, testWrbtc, sovryn);
+	describe("Test lending with liquidity mining", () => {
+		it("Should lend to the pool and deposit the pool tokens at the liquidity mining contract", async () => {
+			//await lend_to_the_pool(loanToken, lender, underlyingToken, testWrbtc, sovryn);
+            const depositAmount = new BN(wei("400", "ether"));
+            await underlyingToken.approve(loanToken.address, depositAmount);
+            await loanToken.mint(lender, depositAmount, true);
+			const userInfo = await liquidityMining.getUserInfo(loanToken.address, lender);
+			//expected: user pool token balance is 0, but balance of LM contract increased
+			expect(await loanToken.balanceOf(lender)).bignumber.equal("0");
+			expect(userInfo.amount).bignumber.equal(depositAmount);
 		});
 
-		it("test cash out from the pool", async () => {
-			await cash_out_from_the_pool(loanToken, lender, underlyingToken, false);
+		it("Should lend to the pool without depositing the pool tokens at the liquidity mining contract", async () => {
+			const depositAmount = new BN(wei("400", "ether"));
+            await underlyingToken.approve(loanToken.address, depositAmount);
+            await loanToken.mint(lender, depositAmount, false);
+			const userInfo = await liquidityMining.getUserInfo(loanToken.address, lender);
+			//expected: user pool token balance increased by the deposited amount, LM balance stays unchanged
+			expect(await loanToken.balanceOf(lender)).bignumber.equal(depositAmount);
+			expect(userInfo.amount).bignumber.equal(depositAmount);
+		});
+		/**
+        it("Should remove the pool tokens from the liquidity mining pool and burn them", async () => {
+			const depositAmount = new BN(wei("400", "ether"));
+			await loanToken.burn(lender, depositAmount, true);
 		});
 
-		it("test cash out from the pool more of lender balance should not fail", async () => {
-			//await cash_out_from_the_pool_more_of_lender_balance_should_not_fail(loanToken, lender, underlyingToken);
-			await cash_out_from_the_pool_uint256_max_should_withdraw_total_balance(loanToken, lender, underlyingToken);
+        it("Should burn pool tokens without removing them from the LM pool", async () => {
+			const depositAmount = new BN(wei("400", "ether"));
+			await loanToken.burn(lender, depositAmount, false);
 		});
 
-		it("test profit", async () => {
-			await lend_to_the_pool(loanToken, lender, underlyingToken, testWrbtc, sovryn);
-
-			// above functionn also opens a trading position, so I need to add some more funds to be able to withdraw everything
-			const balanceOf0 = await loanToken.assetBalanceOf(lender);
-			await underlyingToken.approve(loanToken.address, balanceOf0.toString());
-			await loanToken.mint(account2, balanceOf0.toString());
-			const profitBefore = await loanToken.profitOf(lender);
-			const iTokenBalance = await loanToken.balanceOf(lender);
-
-			// burn everything -> profit should be 0
-			await loanToken.burn(lender, iTokenBalance.toString());
-			const profitInt = await loanToken.profitOf(lender);
-
-			// lend again and wait some time -> profit should rise again, but less than before, because there are more funds in the pool.
-			await underlyingToken.approve(loanToken.address, balanceOf0.add(new BN(wei("100", "ether"))).toString());
-			await loanToken.mint(lender, balanceOf0.toString());
-			await underlyingToken.approve(loanToken.address, balanceOf0.add(new BN(wei("100", "ether"))).toString());
-
-			await increaseTime(10000);
-
-			const profitAfter = await loanToken.profitOf(lender);
-
-			expect(profitInt).to.be.a.bignumber.equal(new BN(0));
-			expect(profitAfter.gt(new BN(0))).to.be.true;
-			expect(profitAfter.lt(profitBefore)).to.be.true;
-		});
-
+		
+		 * missing:
+		 * test lm connection with wrbtc
+		 * test the setter
+		 * fix test for tx limits lending (because removed)
+		 */
+		
 	});
+
+	async function deployLiquidityMining() {
+		let liquidityMiningLogic = await LiquidityMiningLogic.new();
+		let liquidityMiningProxy = await LiquidityMiningProxy.new();
+		await liquidityMiningProxy.setImplementation(liquidityMiningLogic.address);
+		liquidityMining = await LiquidityMiningLogic.at(liquidityMiningProxy.address);
+
+		//dummy settings
+		await liquidityMining.initialize(
+			loanToken.address, 10, 1, 1, account1, account1, 0
+		);
+	}
 });

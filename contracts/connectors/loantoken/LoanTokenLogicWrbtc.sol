@@ -9,6 +9,7 @@ pragma experimental ABIEncoderV2;
 import "./LoanTokenLogicLM.sol";
 
 contract LoanTokenLogicWrbtc is LoanTokenLogicLM {
+	
 	function mintWithBTC(address receiver, bool useLM) external payable nonReentrant returns (uint256 mintAmount) {
 		if (useLM) return _mintWithLM(receiver, msg.value);
 		else return _mintToken(receiver, msg.value);

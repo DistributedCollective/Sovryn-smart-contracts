@@ -123,7 +123,7 @@ contract("LoanTokenLending", (accounts) => {
 			const actual_initial_balance = new BN(await web3.eth.getBalance(lender));
 
 			await verify_start_conditions(testWrbtc, loanToken, lender, initial_balance, deposit_amount);
-			await loanToken.mintWithBTC(lender, { value: deposit_amount });
+			await loanToken.mintWithBTC(lender, false, { value: deposit_amount });
 
 			initial_balance = new BN(wei("5", "ether"));
 			await verify_lending_result_and_itoken_price_change(
@@ -147,10 +147,10 @@ contract("LoanTokenLending", (accounts) => {
 
 		it("test cash out from the pool more of lender balance should not fail", async () => {
 			const total_deposit_amount = new BN(wei("200", "ether"));
-			await loanToken.mintWithBTC(lender, { value: total_deposit_amount.toString() });
+			await loanToken.mintWithBTC(lender, false, { value: total_deposit_amount.toString() });
 			const balance_after_lending = await web3.eth.getBalance(lender);
-			await expectRevert(loanToken.burnToBTC(lender, total_deposit_amount.mul(new BN(2)).toString()), "32");
-			await loanToken.burnToBTC(lender, constants.MAX_UINT256);
+			await expectRevert(loanToken.burnToBTC(lender, total_deposit_amount.mul(new BN(2)).toString(), false), "32");
+			await loanToken.burnToBTC(lender, constants.MAX_UINT256, false);
 			expect(await loanToken.balanceOf(lender)).to.be.a.bignumber.equal(new BN(0));
 		});
 	});

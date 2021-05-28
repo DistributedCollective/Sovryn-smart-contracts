@@ -291,17 +291,6 @@ contract("LoanTokenTrading", (accounts) => {
 			expect(maxEscrowAmount1x.eq(maxEscrowAmount4x.mul(new BN(4)))).to.be.true;
 		});
 
-		it("Test margin trading without early access token should fail", async () => {
-			const early_access_token = await TestToken.new("Sovryn Early Access Token", "SEAT", 1, 10);
-			await early_access_token.transfer(accounts[1], await early_access_token.balanceOf(accounts[0]));
-			await loanToken.setEarlyAccessToken(early_access_token.address);
-
-			await expectRevert(
-				margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, false),
-				"No early access tokens"
-			);
-		});
-
 		it("Test increasing position of other trader should fail", async () => {
 			// prepare the test
 			await set_demand_curve(loanToken);

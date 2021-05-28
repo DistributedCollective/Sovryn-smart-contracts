@@ -4,8 +4,16 @@ pragma experimental ABIEncoderV2;
 import "./LoanTokenLogicStandard.sol";
 
 contract LoanTokenLogicLM is LoanTokenLogicStandard {
-	function mintWithLM(address receiver, uint256 depositAmount) external nonReentrant hasEarlyAccessToken returns (uint256 minted) {
-		return _mintWithLM(receiver, depositAmount);
+	/**
+	 * @notice deposit into the lending pool and optionally participate at the Liquidity Mining Program
+	 * @param receiver the receiver of the tokens
+	 * @param depositAmount The amount of underlying tokens provided on the loan. 
+	 *						(Not the number of loan tokens to mint).
+	 * @param useLM if true -> deposit the pool tokens into the Liquidity Mining contract
+	 */
+	function mint(address receiver, uint256 depositAmount, bool useLM) external nonReentrant returns (uint256 minted) {
+		if(useLM) return _mintWithLM(receiver, depositAmount);
+		else return _mintToken(receiver, depositAmount);
 	}
 
 	function _mintWithLM(address receiver, uint256 depositAmount) internal returns (uint256 minted) {
@@ -19,11 +27,19 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
 		ILiquidityMining(liquidityMiningAddress).onTokensDeposited(receiver, minted);
 	}
 
-	function burnFromLM(address receiver, uint256 burnAmount) external nonReentrant returns (uint256 repayed) {
-		repayed = _burnFromLM(receiver, burnAmount);
+	/**
+	 * @notice withdraws from the lending pool and optionally retrieves the pool tokens from the 
+	 *         Liquidity Mining Contract
+	 * @param receiver the receiver of the underlying tokens
+	 * @param burnAmount The amount of pool tokens to redeem.
+	 * @param useLM if true -> deposit the pool tokens into the Liquidity Mining contract
+	 */
+	function burn(address receiver, uint256 burnAmount, bool useLM) external nonReentrant returns (uint256 redeemed) {
+		if(useLM) redeemed = _burnFromLM(receiver, burnAmount);
+		else redeemed = _burnToken(burnAmount);
 		//this needs to be here and not in _burnTokens because of the WRBTC implementation
-		if (repayed != 0) {
-			_safeTransfer(loanTokenAddress, receiver, repayed, "asset transfer failed");
+		if (redeemed != 0) {
+			_safeTransfer(loanTokenAddress, receiver, redeemed, "asset transfer failed");
 		}
 	}
 
@@ -34,8 +50,10 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
 		return _burnToken(burnAmount);
 	}
 
-	//todo: ensure that the user can still access his tokens on the old contract if this is changed
-	//potentially only allow it to be set once
+	/**
+	 * @notice sets the liquidity mining contract address
+	 * @param LMAddress the address of the liquidity mining contract
+	 */
 	function setLiquidityMiningAddress(address LMAddress) external onlyOwner {
 		liquidityMiningAddress = LMAddress;
 	}
