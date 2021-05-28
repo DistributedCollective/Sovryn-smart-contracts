@@ -374,10 +374,10 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		bool isGovernance
 	) internal {
 		if (msg.sender.isContract()) {
-			uint256 previousLock = until.add(TWO_WEEKS);
-			uint96 stake = _getPriorUserStakeByDate(msg.sender, previousLock, block.number - 1);
+			uint256 nextLock = until.add(TWO_WEEKS);
+			uint96 stake = _getPriorUserStakeByDate(msg.sender, nextLock, block.number - 1);
 			if (stake > 1) {
-				_withdraw(stake, previousLock, receiver, isGovernance);
+				_withdraw(stake, nextLock, receiver, isGovernance);
 			}
 		}
 	}
@@ -563,8 +563,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 lockedTS
 	) internal {
 		if (msg.sender.isContract()) {
-			uint256 previousLock = lockedTS.add(TWO_WEEKS);
-			_delegate(delegator, delegatee, previousLock);
+			uint256 nextLock = lockedTS.add(TWO_WEEKS);
+			_delegate(delegator, delegatee, nextLock);
 		}
 	}
 
