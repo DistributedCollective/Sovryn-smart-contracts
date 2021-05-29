@@ -270,9 +270,9 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address receiver
 	) public {
 		_withdraw(amount, until, receiver, false);
-		// @dev "- FOUR_WEEKS" - we don't need to withdraw stake for date > block.timestamp
-		// 		withdraws tokens for lock date 2 weeks earlier than given lock date if sender is a contract
-		_withdrawNext(amount, until.sub(FOUR_WEEKS), receiver, false);
+		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
+		//		we need to check block.timestamp here
+		_withdrawNext(amount, until, receiver, false);
 	}
 
 	/**
@@ -291,7 +291,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 		_withdraw(amount, until, receiver, true);
 		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
-		//		we don't need to block.timestamp here
+		//		we don't need to check block.timestamp here
 		_withdrawNext(amount, until, receiver, true);
 	}
 
@@ -375,9 +375,11 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	) internal {
 		if (msg.sender.isContract()) {
 			uint256 nextLock = until.add(TWO_WEEKS);
-			uint96 stake = _getPriorUserStakeByDate(msg.sender, nextLock, block.number - 1);
-			if (stake > 1) {
-				_withdraw(stake, nextLock, receiver, isGovernance);
+			if (isGovernance || block.timestamp >= nextLock) {
+				uint96 stake = _getPriorUserStakeByDate(msg.sender, nextLock, block.number - 1);
+				if (stake > 1) {
+					_withdraw(stake, nextLock, receiver, isGovernance);
+				}
 			}
 		}
 	}

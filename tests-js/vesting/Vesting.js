@@ -603,6 +603,87 @@ contract("Vesting", (accounts) => {
 			assert.equal(previousAmount.toString(), amount.toString());
 		});
 
+		it("should withdraw unlocked tokens for 2 stakes (current time >= last locking date of the second stake)", async () => {
+			//Save current amount
+			let previousAmount = await token.balanceOf(root);
+			let toStake = ONE_MILLON;
+
+			//Stake
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				root,
+				4 * WEEK,
+				20 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
+
+			await increaseTime(2 * WEEK);
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
+
+			let amountAfterStake = await token.balanceOf(root);
+
+			//time travel
+			await increaseTime(20 * WEEK);
+
+			//withdraw
+			let tx = await vesting.withdrawTokens(root);
+
+			//check event
+			expectEvent(tx, "TokensWithdrawn", {
+				caller: root,
+				receiver: root,
+			});
+
+			//verify amount
+			let amount = await token.balanceOf(root);
+
+			assert.equal(previousAmount.sub(new BN(toStake).mul(new BN(2))).toString(), amountAfterStake.toString());
+			assert.equal(previousAmount.toString(), amount.toString());
+		});
+
+		it("should withdraw unlocked tokens for 2 stakes (shouldn't withdraw the latest stake)", async () => {
+			//Save current amount
+			let previousAmount = await token.balanceOf(root);
+			let toStake = ONE_MILLON;
+
+			//Stake
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				root,
+				4 * WEEK,
+				20 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
+
+			await increaseTime(2 * WEEK);
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
+
+			let amountAfterStake = await token.balanceOf(root);
+
+			//time travel
+			await increaseTime(18 * WEEK);
+
+			//withdraw
+			await vesting.withdrawTokens(root);
+
+			let stakes = await staking.getStakes(vesting.address);
+			expect(stakes.dates.length).equal(1);
+		});
+
 		it("should do nothing if withdrawing a second time", async () => {
 			// This part should be tested on staking contract, function getPriorUserStakeByDate
 			let previousAmount = await token.balanceOf(root);
