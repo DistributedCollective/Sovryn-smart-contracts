@@ -78,8 +78,6 @@ contract FlashLoanMockup is Ownable, ReentrancyGuard {
 			target.call(
 				callData
 			);
-     
-		// require(success, "flashBorrow::Call failed.");
         require(success, string (returnData));
 
 		/// @dev Verify return of flash loan.

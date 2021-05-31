@@ -1,5 +1,6 @@
 const { expect } = require("chai");
-const { expectRevert, BN, expectEvent } = require("@openzeppelin/test-helpers");
+const { constants, expectRevert, BN, expectEvent } = require("@openzeppelin/test-helpers");
+const { blockNumber, increaseTime } = require("../Utils/Ethereum");
 const FeesEvents = artifacts.require("FeesEvents");
 const TestToken = artifacts.require("TestToken");
 const LoanOpenings = artifacts.require("LoanOpenings");
@@ -48,7 +49,7 @@ contract("LoanTokenBorrowing & MintLoanAndBorrowTest", (accounts) => {
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
@@ -323,6 +324,144 @@ contract("LoanTokenBorrowing & MintLoanAndBorrowTest", (accounts) => {
 				),
 				"Avoiding flash loan attack: several txs in same block from same account."
 			);
+		});
+
+		it("Loan attack w/o FL should success", async () => {
+			// Equivalent to Pyhton test_margin_trading_sending_loan_tokens
+
+			// **** SETUP LOAN POOL TO BE ALTERED, iSUSD **** //
+
+            const underlyingToken = SUSD;
+            // loan pool token to alter is iSUSD (loanToken)
+            const collateralToken = WRBTC;
+
+            console.log("PREPARATION");
+
+            // Amount to be sent for margin trade
+            loan_token_sent = oneEth; // new BN(10).pow(new BN(18));
+            console.log("Amount to be sent for margin trade, loan_token_sent: " + loan_token_sent);
+			// Amount to be sent for margin trade, loan_token_sent: 1000000000000000000 (1 Eth)
+            
+			console.log("Legitimate users add liquidity to the loan token");
+
+			const baseLiquidity = loan_token_sent.mul(new BN(11)).div(new BN(10)); // loan_token_sent * 1.1
+			console.log("baseLiquidity: ", baseLiquidity.toString());
+			// baseLiquidity: 1100000000000000000 (1.1 SUSD)
+
+			// Give liquidity to the provider 1.
+			await underlyingToken.mint(accounts[1], baseLiquidity);
+
+			// Transfer liquidity (1.1 SUSD) to the loan pool.
+			await underlyingToken.approve(loanToken.address, baseLiquidity, {"from": accounts[1]});
+			await loanToken.mint(accounts[1], baseLiquidity, {"from": accounts[1]});
+		
+			// Set up interest rates.
+			var baseRate = oneEth;
+			var rateMultiplier = oneEth.mul(new BN(2025)).div(new BN(100)); // 20.25e18
+			var targetLevel = oneEth.mul(new BN(80)); // 80*10**18
+			var kinkLevel = oneEth.mul(new BN(90)); // 90*10**18
+			var maxScaleRate = oneEth.mul(new BN(100)); // 100*10**18
+			await loanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate);
+			var borrowInterestRate = await loanToken.borrowInterestRate();
+			console.log("Base borrow interest rate (not adjusted by utilization): ", borrowInterestRate.div(oneEth).toString());
+			// Base borrow interest rate (not adjusted by utilization): 17
+
+			console.log("First trade, without the attack strategy");
+
+			// Give liquidity to the trader 0.
+			await underlyingToken.mint(accounts[0], loan_token_sent);
+
+			// Ready to transfer it to the loan pool.
+			await underlyingToken.approve(loanToken.address, loan_token_sent);
+			
+			// Send the margin trade transaction.
+			var leverage_amount = oneEth;
+			var collateral_sent = new BN(0);
+			var { receipt } = await loanToken.marginTrade(
+				constants.ZERO_BYTES32, // loanId  (0 for new loans)
+				leverage_amount.toString(),
+				loan_token_sent.toString(),
+				collateral_sent.toString(), // no collateral token sent
+				collateralToken.address,
+				accounts[0], // trader
+				"0x" // loanDataBytes (only required with ether)
+			);
+
+			// Get loan info from logs.
+			var decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Trade");
+			var args = decode[0].args;
+			var loan_id = args["loanId"];
+			var positionSize = args["positionSize"];
+			var loan = await sovryn.getLoan(loan_id);
+		
+			// Interest paid per day is high because of high utilization rate.
+			console.log("Interest per day (without attack): ", loan["interestOwedPerDay"]/10**15);
+			expect(loan["interestOwedPerDay"]/10**15).to.equal(0.740444139368747);
+
+			// Repays the loan (so that the tokens are there to be loaned again).
+			await sovryn.closeWithSwap(loan_id, accounts[0], positionSize, false, "0x");
+		
+			// Now do the same loan again, but use a flash loan to lower interest.
+
+			// Amount attacker will get in flash loan
+			// that means attacker can borrow at the base rate,
+			// regardless of actual utilization rate
+			// by temporarily lowering utilization rate with a flash loan
+			// from a third-party.
+			const flashLoanAmount = loan_token_sent.mul(new BN(100));
+
+			// We simulate the flash loan by minting tokens to the attacker account
+			// the attacker already owns loan_token_sent before the loan
+			// begin flash loan attack:
+			await underlyingToken.mint(accounts[0], loan_token_sent + flashLoanAmount);
+
+			// Deposit liquidity 100 SUSD to the loan token.
+			await underlyingToken.approve(loanToken.address, loan_token_sent + flashLoanAmount);
+			await loanToken.mint(accounts[0], flashLoanAmount);
+		
+			console.log("Repeating the trade but with the attack flash loan.");
+/* Second time, NOT NECESSARY
+			// Set up interest rates.
+			baseRate = oneEth;
+			rateMultiplier = oneEth.mul(new BN(2025)).div(new BN(100)); // 20.25e18
+			targetLevel = oneEth.mul(new BN(80)); // 80*10**18
+			kinkLevel = oneEth.mul(new BN(90)); // 90*10**18
+			maxScaleRate = oneEth.mul(new BN(100)); // 100*10**18
+			await loanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate);
+*/
+			borrowInterestRate = await loanToken.borrowInterestRate();
+			console.log("Base borrow interest rate (not adjusted by utilization): ", borrowInterestRate.div(oneEth).toString());
+			// Base borrow interest rate (not adjusted by utilization): 17
+
+			// Send the margin trade transaction.
+			leverage_amount = oneEth;
+			collateral_sent = new BN(0);
+			var { receipt } = await loanToken.marginTrade(
+				constants.ZERO_BYTES32, // loanId  (0 for new loans)
+				leverage_amount.toString(),
+				loan_token_sent.toString(),
+				collateral_sent.toString(), // no collateral token sent
+				collateralToken.address,
+				accounts[0], // trader
+				"0x" // loanDataBytes (only required with ether)
+			);
+
+			// Get loan info from logs.
+			decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Trade");
+			args = decode[0].args;
+			loan_id = args["loanId"];
+			positionSize = args["positionSize"];
+			loan = await sovryn.getLoan(loan_id);
+		
+			// Interest paid per day is lower than without flash loan.
+			console.log("Interest per day (with attack): ", loan["interestOwedPerDay"]/10**15);
+			expect(loan["interestOwedPerDay"]/10**15).to.equal(0.477533704995224);
+
+			// Conclusion:
+			// With low liquidity of 1.1 SUSD, trading 1 SUSD (high utilization: ~91%)
+			// yields a daily interest of 0.74%
+			// With high liquidity of 100 SUSD, trading 1 SUSD (low utilization: 1%)
+			// yields a daily interest of 0.47%
 		});
 	});
 });

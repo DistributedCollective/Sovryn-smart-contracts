@@ -67,6 +67,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	/**
 	 * @notice Mint loan token wrapper.
 	 * Adds a check before calling low level _mintToken function.
+	 * This function is called by a user to provide liquidity to a loan pool.
+	 * To get back the provided underlying tokens, the user calls burn function.
 	 * The function retrieves the tokens from the message sender, so make sure
 	 * to first approve the loan token contract to access your funds. This is
 	 * done by calling approve(address spender, uint amount) on the ERC20
@@ -75,7 +77,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 *
 	 * @param receiver The account getting the minted tokens.
 	 * @param depositAmount The amount of underlying tokens provided on the
-	 *   loan. (Not the number of loan tokens to mint).
+	 *   deposit. (Not the number of loan tokens to mint).
 	 *
 	 * @return The amount of loan tokens minted.
 	 * */
@@ -91,8 +93,10 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 	/**
 	 * @notice Burn loan token wrapper.
+	 * This function is called by a loan pool liquidity provider requests
+	 * its underlying tokens back.
 	 * Adds a pay-out transfer after calling low level _burnToken function.
-	 * In order to withdraw funds to the pool, call burn on the respective
+	 * In order to withdraw funds from the pool, call burn on the respective
 	 * loan token contract. This will burn your loan tokens and send you the
 	 * underlying token in exchange.
 	 *
