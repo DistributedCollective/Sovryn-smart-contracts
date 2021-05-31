@@ -17,7 +17,7 @@ def main():
 
     # Call the function you want here
     currentVotingPower(acct)
-    createProposalSIP0021()
+    createProposalSIP0019()
 
     balanceAfter = acct.balance()
 
@@ -200,13 +200,13 @@ def createProposalSIP0018():
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
 
-def createProposalSIP0021():
+def createProposalSIP0019():
     # Action
     target = [contracts['SOV']]
     value = [0]
     signature = ["name()"]
     data = ["0x"]
-    description = "SIP-0021: Exchequer Committee 2021 Budget, Details: https://github.com/DistributedCollective/SIPS/blob/ /SIP-0021.md, sha256: "
+    description = "SIP-0019: Exchequer Committee 2021 Budget, Details: https://github.com/DistributedCollective/SIPS/blob/2a3c5a7/SIP-0019.md, sha256: dfc958c3e84e7bbfb7d8f3e944fbd73ebc8f05dabd6fdd16b8c2884607c52b88"
 
     # Create Proposal
     createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
