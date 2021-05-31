@@ -13,7 +13,7 @@ def main():
 
     if thisNetwork == "development":
         acct = accounts[0]
-    elif thisNetwork == "testnet" or thisNetwork == "rsk-mainnet":
+    elif thisNetwork == "testnet" or thisNetwork == "rsk-mainnet" or thisNetwork == "arb-testnet":
         acct = accounts.load("rskdeployer")
     else:
         raise Exception("network not supported")
@@ -44,7 +44,7 @@ def deployProtocol(acct, tokens, mocOracleAddress, rskOracleAddress):
     print("Deploying Swaps.")
     swaps = acct.deploy(SwapsImplSovrynSwap)
     #do not deploy the sovryn swap mockup on mainnet
-    if network.show_active() == "development":
+    if network.show_active() == "development" or thisNetwork == "arb-testnet":
         sovrynSwapSimulator = acct.deploy(TestSovrynSwap, feeds.address)
         sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address)
     sovryn.setSupportedTokens([tokens.susd.address, tokens.wrbtc.address],[True, True])
