@@ -17,7 +17,7 @@ def main():
     #call the function you want here
     # addTestETHPoolToken()
     # addETHPoolToken()
-    # updatePoolToken()
+    updatePoolToken()
 
 
 def loadConfig():
@@ -82,7 +82,7 @@ def updatePoolToken():
 
     print("ALLOCATION_POINT_CONFIG_TOKEN: ", ALLOCATION_POINT_CONFIG_TOKEN)
 
-    data = lm.update.encode_input(contracts['(WR)BTC/SOV'],ALLOCATION_POINT_BTC_ETH,False)
+    data = lm.update.encode_input(contracts['(WR)BTC/SOV'],ALLOCATION_POINT_BTC_SOV,False)
     tx = multisig.submitTransaction(lm.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print("txid",txId)
