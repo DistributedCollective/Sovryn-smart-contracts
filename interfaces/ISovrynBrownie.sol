@@ -325,7 +325,7 @@ contract ISovrynBrownie is
 		address referrer,
 		address token,
 		uint256 tradingFeeTokenBaseAmount
-	) external returns (uint256 referrerTradingFee);
+	) external returns (uint256 affiliatesBonusSOVAmount, uint256 affiliatesBonusTokenAmount);
 
 	function setAffiliatesReferrer(address user, address referrer) external; //onlyCallableByLoanPools
 

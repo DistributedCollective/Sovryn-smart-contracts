@@ -69,8 +69,8 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 		address referrer,
 		address feeToken,
 		uint256 tradingFee
-	) internal returns (uint256 affiliatesTradingFee) {
-		affiliatesTradingFee = ProtocolAffiliatesInterface(protocolAddress).payTradingFeeToAffiliatesReferrer(
+	) internal returns (uint256 affiliatesBonusSOVAmount, uint256 affiliatesBonusTokenAmount) {
+		(affiliatesBonusSOVAmount, affiliatesBonusTokenAmount) = ProtocolAffiliatesInterface(protocolAddress).payTradingFeeToAffiliatesReferrer(
 			referrer,
 			feeToken,
 			tradingFee
@@ -90,11 +90,10 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 		address feeToken,
 		uint256 tradingFee
 	) internal {
-		uint256 affiliatesTradingFee;
 		uint256 protocolTradingFee = tradingFee; //trading fee paid to protocol
 		if (tradingFee != 0) {
 			if (affiliatesUserReferrer[user] != address(0)) {
-				affiliatesTradingFee = _payTradingFeeToAffiliate(affiliatesUserReferrer[user], feeToken, protocolTradingFee);
+				_payTradingFeeToAffiliate(affiliatesUserReferrer[user], feeToken, protocolTradingFee);
 				protocolTradingFee = (protocolTradingFee.sub(protocolTradingFee.mul(affiliateFeePercent).div(10**20))).sub(protocolTradingFee.mul(affiliateTradingTokenFeePercent).div(10**20));
 			}
 
