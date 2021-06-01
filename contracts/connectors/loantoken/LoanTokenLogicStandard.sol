@@ -343,6 +343,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		/// @dev Compute the worth of the total deposit in loan tokens.
 		/// (loanTokenSent + convert(collateralTokenSent))
 		/// No actual swap happening here.
+
 		uint256 totalDeposit = _totalDeposit(collateralTokenAddress, collateralTokenSent, loanTokenSent);
 		require(totalDeposit != 0, "12");
 
@@ -361,7 +362,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		sentAmounts[4] = collateralTokenSent;
 
 		_settleInterest();
-
 		(sentAmounts[1], sentAmounts[0]) = _getMarginBorrowAmountAndRate( /// borrowAmount, interestRate
 			leverageAmount,
 			sentAmounts[1] /// depositAmount
@@ -920,7 +920,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 			/// @dev Probably not the same due to the price difference.
 			if (collateralTokenAmount != collateralTokenSent) {
-				//scale the loan token amount accordingly, so we'll get the expected position size in the end
+				/// @dev Scale the loan token amount accordingly, so we'll get the expected position size in the end.
 				loanTokenAmount = loanTokenAmount.mul(collateralTokenAmount).div(collateralTokenSent);
 			}
 

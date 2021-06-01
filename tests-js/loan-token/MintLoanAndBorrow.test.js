@@ -160,16 +160,16 @@ contract("LoanTokenBorrowing & MintLoanAndBorrowTest", (accounts) => {
 			const mintLoanAndBorrowTest = await MintLoanAndBorrowTest.new();
 
 			// Check balances
-			console.log("\nsov_initial_balance: " + (await SOV.balanceOf(owner)));
+			console.log("SOV_initial_balance: " + (await SOV.balanceOf(owner)));
 			/// SOV_initial_balance: 99999999999999999999999999999900000000000000000000
 
-			console.log("\nRBTC_initial_balance: " + (await RBTC.balanceOf(owner)));
+			console.log("RBTC_initial_balance: " + (await RBTC.balanceOf(owner)));
 			/// RBTC_initial_balance: 100000000000000000000000000000000000000000000000000
 
-			console.log("\nSUSD_initial_balance: " + (await SUSD.balanceOf(owner)));
+			console.log("SUSD_initial_balance: " + (await SUSD.balanceOf(owner)));
 			/// SUSD_initial_balance: 100000000000000000000000000000000000000000000000000
 
-			console.log("\nTest contract address: " + mintLoanAndBorrowTest.address);
+			console.log("Test contract address: " + mintLoanAndBorrowTest.address);
 
 			// Send underlying tokens SUSD to the test contract. Later it will spend those
 			// on hacking the lending pool.
@@ -180,14 +180,14 @@ contract("LoanTokenBorrowing & MintLoanAndBorrowTest", (accounts) => {
 			await RBTC.transfer(mintLoanAndBorrowTest.address, collateralTokenSent);
 
 			// Check underlying token balance of test contract.
-			console.log("\nSUSD balance on test contract: " + (await SUSD.balanceOf(mintLoanAndBorrowTest.address)));
+			console.log("SUSD balance on test contract: " + (await SUSD.balanceOf(mintLoanAndBorrowTest.address)));
 			/// SUSD balance on test contract: 100000000000000000000
 
 			// Check underlying token balance of test contract w/ contract function.
-			console.log("\nSUSD balance on test contract: " + (await mintLoanAndBorrowTest.getBalance(SUSD.address)));
+			console.log("SUSD balance on test contract: " + (await mintLoanAndBorrowTest.getBalance(SUSD.address)));
 
 			// Check collateral token balance of test contract.
-			console.log("\nRBTC balance on test contract: " + (await RBTC.balanceOf(mintLoanAndBorrowTest.address)));
+			console.log("RBTC balance on test contract: " + (await RBTC.balanceOf(mintLoanAndBorrowTest.address)));
 			/// RBTC balance on test contract: 1501350000000000
 
 			// Approve the transfer of the collateral.
@@ -274,33 +274,33 @@ contract("LoanTokenBorrowing & MintLoanAndBorrowTest", (accounts) => {
 			// **** BALANCES **** //
 
 			// Check owner balances
-			console.log("\nRBTC owner balance: " + (await RBTC.balanceOf(owner)));
+			console.log("RBTC owner balance: " + (await RBTC.balanceOf(owner)));
 			/// RBTC owner balance: 99999999999999999999999999999999998498650000000000
 
-			console.log("\nSUSD owner balance: " + (await SUSD.balanceOf(owner)));
+			console.log("SUSD owner balance: " + (await SUSD.balanceOf(owner)));
 			/// SUSD owner balance: 99999999999999999999999999999900000000000000000000
 
 			// Check flashLoanMockup & flashLoanAttack contract addresses.
-			console.log("\nflashLoanMockup contract address: " + flashLoanMockup.address);
-			console.log("\nflashLoanAttack contract address: " + flashLoanAttack.address);
+			console.log("flashLoanMockup contract address: " + flashLoanMockup.address);
+			console.log("flashLoanAttack contract address: " + flashLoanAttack.address);
 
 			// Check underlying token balance of flashLoanMockup contract.
-			console.log("\nSUSD balance on flashLoanMockup contract: " + (await SUSD.balanceOf(flashLoanMockup.address)));
+			console.log("SUSD balance on flashLoanMockup contract: " + (await SUSD.balanceOf(flashLoanMockup.address)));
 			/// SUSD balance on flashLoanMockup contract: 100000000000000000000 (hunEth)
 
 			// Check underlying token balance of flashLoanAttack contract.
-			console.log("\nSUSD balance on flashLoanAttack contract: " + (await SUSD.balanceOf(flashLoanAttack.address)));
+			console.log("SUSD balance on flashLoanAttack contract: " + (await SUSD.balanceOf(flashLoanAttack.address)));
 			/// SUSD balance on flashLoanAttack contract: 0
 
 			// Check collateral token balance of flashLoanMockup contract.
-			console.log("\nRBTC balance on flashLoanMockup contract: " + (await RBTC.balanceOf(flashLoanMockup.address)));
+			console.log("RBTC balance on flashLoanMockup contract: " + (await RBTC.balanceOf(flashLoanMockup.address)));
 			/// RBTC balance on flashLoanMockup contract: 0
 
 			// Check collateral token balance of flashLoanAttack contract.
-			console.log("\nRBTC balance on flashLoanAttack contract: " + (await RBTC.balanceOf(flashLoanAttack.address)));
+			console.log("RBTC balance on flashLoanAttack contract: " + (await RBTC.balanceOf(flashLoanAttack.address)));
 			/// RBTC balance on flashLoanAttack contract: 1501350000000000
 
-            // **** RUN ATTACK directly (no FL) **** //
+			// **** RUN ATTACK directly (no FL) **** //
 
 			// Fill it up with underlying tokens to attack directly w/o FL.
 			await SUSD.transfer(flashLoanAttack.address, hackAmount1);
@@ -313,7 +313,7 @@ contract("LoanTokenBorrowing & MintLoanAndBorrowTest", (accounts) => {
 				"Avoiding flash loan attack: several txs in same block from same account."
 			);
 
-            // **** RUN ATTACK through FL contract **** //
+			// **** RUN ATTACK through FL contract **** //
 
 			// Call the flashLoanAttack to run the attack.
 			await expectRevert(
@@ -331,20 +331,20 @@ contract("LoanTokenBorrowing & MintLoanAndBorrowTest", (accounts) => {
 
 			// **** SETUP LOAN POOL TO BE ALTERED, iSUSD **** //
 
-            const underlyingToken = SUSD;
-            // loan pool token to alter is iSUSD (loanToken)
-            const collateralToken = WRBTC;
+			const underlyingToken = SUSD;
+			// loan pool token to alter is iSUSD (loanToken)
+			const collateralToken = WRBTC;
 
-            console.log("PREPARATION");
+			console.log("PREPARATION");
 
-            // Amount to be sent for margin trade
-            loan_token_sent = oneEth; // new BN(10).pow(new BN(18));
-            console.log("Amount to be sent for margin trade, loan_token_sent: " + loan_token_sent);
+			// Amount to be sent for margin trade
+			loan_token_sent = oneEth; // new BN(10).pow(new BN(18));
+			console.log("Amount to be sent for margin trade, loan_token_sent: " + loan_token_sent);
 			// Amount to be sent for margin trade, loan_token_sent: 1000000000000000000 (1 Eth)
-            
+
 			console.log("Legitimate users add liquidity to the loan token");
 
-			const baseLiquidity = loan_token_sent.mul(new BN(11)).div(new BN(10)); // loan_token_sent * 1.1
+			const baseLiquidity = loan_token_sent.mul(new BN(105)).div(new BN(100)); // loan_token_sent * 1.1
 			console.log("baseLiquidity: ", baseLiquidity.toString());
 			// baseLiquidity: 1100000000000000000 (1.1 SUSD)
 
@@ -352,9 +352,9 @@ contract("LoanTokenBorrowing & MintLoanAndBorrowTest", (accounts) => {
 			await underlyingToken.mint(accounts[1], baseLiquidity);
 
 			// Transfer liquidity (1.1 SUSD) to the loan pool.
-			await underlyingToken.approve(loanToken.address, baseLiquidity, {"from": accounts[1]});
-			await loanToken.mint(accounts[1], baseLiquidity, {"from": accounts[1]});
-		
+			await underlyingToken.approve(loanToken.address, baseLiquidity, { from: accounts[1] });
+			await loanToken.mint(accounts[1], baseLiquidity, { from: accounts[1] });
+
 			// Set up interest rates.
 			var baseRate = oneEth;
 			var rateMultiplier = oneEth.mul(new BN(2025)).div(new BN(100)); // 20.25e18
@@ -373,7 +373,7 @@ contract("LoanTokenBorrowing & MintLoanAndBorrowTest", (accounts) => {
 
 			// Ready to transfer it to the loan pool.
 			await underlyingToken.approve(loanToken.address, loan_token_sent);
-			
+
 			// Send the margin trade transaction.
 			var leverage_amount = oneEth;
 			var collateral_sent = new BN(0);
@@ -393,14 +393,14 @@ contract("LoanTokenBorrowing & MintLoanAndBorrowTest", (accounts) => {
 			var loan_id = args["loanId"];
 			var positionSize = args["positionSize"];
 			var loan = await sovryn.getLoan(loan_id);
-		
+
 			// Interest paid per day is high because of high utilization rate.
-			console.log("Interest per day (without attack): ", loan["interestOwedPerDay"]/10**15);
-			expect(loan["interestOwedPerDay"]/10**15).to.equal(0.740444139368747);
+			console.log("Interest per day (without attack): ", loan["interestOwedPerDay"] / 10 ** 15);
+			expect(loan["interestOwedPerDay"] / 10 ** 15).to.equal(1.768000054768636);
 
 			// Repays the loan (so that the tokens are there to be loaned again).
 			await sovryn.closeWithSwap(loan_id, accounts[0], positionSize, false, "0x");
-		
+
 			// Now do the same loan again, but use a flash loan to lower interest.
 
 			// Amount attacker will get in flash loan
@@ -418,9 +418,9 @@ contract("LoanTokenBorrowing & MintLoanAndBorrowTest", (accounts) => {
 			// Deposit liquidity 100 SUSD to the loan token.
 			await underlyingToken.approve(loanToken.address, loan_token_sent + flashLoanAmount);
 			await loanToken.mint(accounts[0], flashLoanAmount);
-		
+
 			console.log("Repeating the trade but with the attack flash loan.");
-/* Second time, NOT NECESSARY
+			/* Second time, NOT NECESSARY
 			// Set up interest rates.
 			baseRate = oneEth;
 			rateMultiplier = oneEth.mul(new BN(2025)).div(new BN(100)); // 20.25e18
@@ -428,7 +428,8 @@ contract("LoanTokenBorrowing & MintLoanAndBorrowTest", (accounts) => {
 			kinkLevel = oneEth.mul(new BN(90)); // 90*10**18
 			maxScaleRate = oneEth.mul(new BN(100)); // 100*10**18
 			await loanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate);
-*/
+			*/
+
 			borrowInterestRate = await loanToken.borrowInterestRate();
 			console.log("Base borrow interest rate (not adjusted by utilization): ", borrowInterestRate.div(oneEth).toString());
 			// Base borrow interest rate (not adjusted by utilization): 17
@@ -452,16 +453,63 @@ contract("LoanTokenBorrowing & MintLoanAndBorrowTest", (accounts) => {
 			loan_id = args["loanId"];
 			positionSize = args["positionSize"];
 			loan = await sovryn.getLoan(loan_id);
-		
+
 			// Interest paid per day is lower than without flash loan.
-			console.log("Interest per day (with attack): ", loan["interestOwedPerDay"]/10**15);
-			expect(loan["interestOwedPerDay"]/10**15).to.equal(0.477533704995224);
+			console.log("Interest per day (with attack): ", loan["interestOwedPerDay"] / 10 ** 15);
+			expect(loan["interestOwedPerDay"] / 10 ** 15).to.equal(0.477533704995224);
 
 			// Conclusion:
-			// With low liquidity of 1.1 SUSD, trading 1 SUSD (high utilization: ~91%)
-			// yields a daily interest of 0.74%
-			// With high liquidity of 100 SUSD, trading 1 SUSD (low utilization: 1%)
-			// yields a daily interest of 0.47%
+			// Providing low liquidity of 1.1 SUSD, trading 1 SUSD (high utilization: ~91%)
+			//   costs a daily interest of 0.74%
+			// Providing high liquidity of 100 SUSD, trading 1 SUSD (low utilization: 1%)
+			//   costs a daily interest of 0.47%
+
+			/*
+				Profiling interest and deposit values:
+
+				104/100 (1.040 SUSD):
+					sentAmounts[1] = 1055799386991083000 (1.055 SUSD)
+					_underlyingBalance() = 1040000000000000000 (1.040 SUSD)
+
+				_borrowOrTrade::sentAmounts
+				borrow::
+					sentAmounts[1] = withdrawAmount;
+					borrow::withdrawAmount
+				marginTrade::
+					sentAmounts[1] = totalDeposit; /// Total amount of deposit.
+					uint256 totalDeposit = _totalDeposit(collateralTokenAddress, collateralTokenSent, loanTokenSent);
+					marginTrade::loanTokenSent
+						loan_token_sent = oneEth;
+
+				uint256 totalDeposit = _totalDeposit(collateralTokenAddress, collateralTokenSent, loanTokenSent);
+					collateralTokenSent = 0
+					loanTokenSent = 1000000000000000000 (1 SUSD)
+					totalDeposit = 1000000000000000000 (1 SUSD)
+
+				(sentAmounts[1], sentAmounts[0]) = _getMarginBorrowAmountAndRate( /// borrowAmount, interestRate
+					leverageAmount,
+					sentAmounts[1] /// depositAmount
+				);
+					depositAmount => borrowAmount
+						1.000 => 1.055799
+
+				So, edge case near liquidity = 1.055800
+
+				Limit point: 105/100 (1.050 SUSD):
+					borrowAmount = 1.049504001533521828
+					interest: 1.768000054768636
+
+				Conclusion:
+
+				Interest curve is not very extreme. It's value swifts around 1.76%
+				(higher bound) and 0.47% (lower bound) w/ liquidities ranging
+				from 1.050 SUSD to 100 SUSD and margin trading depositAmount of 1 SUSD.
+
+				So an attack (flash loan or not, although FL are not allowed anymore
+				due to check implemented on NotInTheSameBlock branch) would give
+				the LP an advantage of getting loans with a lower interest of
+				around 1.3% on most extreme case (maximum utilization of the loan pool).
+			*/
 		});
 	});
 });

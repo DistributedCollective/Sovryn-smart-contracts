@@ -74,17 +74,11 @@ contract FlashLoanMockup is Ownable, ReentrancyGuard {
 		}
 
 		/// @dev Execute the callback function.
-		(bool success, bytes memory returnData) =
-			target.call(
-				callData
-			);
-        require(success, string (returnData));
+		(bool success, bytes memory returnData) = target.call(callData);
+		require(success, string(returnData));
 
 		/// @dev Verify return of flash loan.
-		require(
-            beforeUnderlyingBalance <= IERC20(loanTokenAddress).balanceOf(address(this)),
-            "flashBorrow::Flash loan not returned."
-        );
+		require(beforeUnderlyingBalance <= IERC20(loanTokenAddress).balanceOf(address(this)), "flashBorrow::Flash loan not returned.");
 
 		return returnData;
 	}
