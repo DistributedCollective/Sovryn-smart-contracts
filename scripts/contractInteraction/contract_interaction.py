@@ -133,9 +133,13 @@ def main():
     #acct.deploy(TestToken, "SUSD", "SUSD", 18, 1e50)
 
     # print("iUSDT:")
-    readLoanTokenData(contracts["iUSDT"])
+    # readLoanTokenData(contracts["iUSDT"])
+    # print("iDOC:")
+    # readLoanTokenData(contracts["iDOC"])
+    # print("iRBTC:")
+    # readLoanTokenData(contracts["iRBTC"])
 
-    # setupLoanTokensRates()
+    setupLoanTokensRates()
 
 def loadConfig():
     global contracts, acct
@@ -180,41 +184,49 @@ def setupLoanTokensRates():
     # === USD ===
     # Base rate: 6%
     # Multiplier: 15%
-    # Threshold: 60%
+    # Threshold: 75%
     # Maximum: 150%
-    loanTokenAddress = contracts["iUSDT"]
     baseRate = 6 * DECIMALS
     rateMultiplier = 15 * DECIMALS
-    # TODO 0 ?
     targetLevel = 0 * DECIMALS
-    kinkLevel = 60 * DECIMALS # threshold
+    kinkLevel = 75 * DECIMALS # threshold
     maxScaleRate = 150 * DECIMALS
+
+    loanTokenAddress = contracts["iDOC"]
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
     data = loanToken.setDemandCurve.encode_input(baseRate,rateMultiplier,baseRate,rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
     print(data)
-    # tx = multisig.submitTransaction(loanToken.address,0,data)
-    # txId = tx.events["Submission"]["transactionId"]
-    # print(txId)
+    tx = multisig.submitTransaction(loanToken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
 
-    # === BTC + ETH ===
+    # === DOC ===
+    loanTokenAddress = contracts["iUSDT"]
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
+    data = loanToken.setDemandCurve.encode_input(baseRate,rateMultiplier,baseRate,rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
+    print(data)
+    tx = multisig.submitTransaction(loanToken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+    # === BTC ===
     # Base rate: 2%
     # Multiplier: 8%
-    # Threshold: 80%
-    # Maximum: 100%
-    # TODO set contract name
-    loanTokenAddress = contracts[""]
+    # Threshold: 75%
+    # Maximum: 150%
     baseRate = 2 * DECIMALS
     rateMultiplier = 8 * DECIMALS
-    # TODO 0 ?
     targetLevel = 0 * DECIMALS
-    kinkLevel = 80 * DECIMALS # threshold
-    maxScaleRate = 100 * DECIMALS
+    kinkLevel = 75 * DECIMALS # threshold
+    maxScaleRate = 150 * DECIMALS
+
+    loanTokenAddress = contracts["iRBTC"]
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
     data = loanToken.setDemandCurve.encode_input(baseRate,rateMultiplier,baseRate,rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
     print(data)
-    # tx = multisig.submitTransaction(loanToken.address,0,data)
-    # txId = tx.events["Submission"]["transactionId"]
-    # print(txId)
+    tx = multisig.submitTransaction(loanToken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
 
 def readLoanTokenData(loanTokenAddress):
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
