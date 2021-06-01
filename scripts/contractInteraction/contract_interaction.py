@@ -1243,6 +1243,17 @@ def deployAffiliate():
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
+    # Set protocolAddress
+    data = sovryn.setSovrynProtocolAddress.encode_input(sovryn.address)
+    print("Set Protocol Address in protocol settings")
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+    print("protocol address loaded:", sovryn.protocolAddress())
+
     # Set SOVTokenAddress
     sovToken = Contract.from_abi("SOV", address=contracts["SOV"], abi=SOV.abi, owner=acct)
     data = sovryn.setSOVTokenAddress.encode_input(sovToken.address)
@@ -1267,5 +1278,40 @@ def deployAffiliate():
     print(txId)
     print("lockedSOV address loaded:", sovryn.sovTokenAddress())
 
-    # -------------------------------- 3. Replace Token Logic Standard ----------------------------------------
+    # ---------------------------- 3. Redeploy modules which implement InterestUser and SwapsUser -----------------------
+    # LoanClosingsBase
+    # LoanClosingsWith
+    replaceLoanClosings()
+    # LoanOpenings
+    replaceLoanOpenings()
+    # LoanMaintenance
+    replaceLoanMaintenance()
+    # SwapsExternal
+    redeploySwapsExternal()
+
+    # -------------------------------- 4. Replace Token Logic Standard ----------------------------------------
     replaceLoanTokenLogicOnAllContracts()
+
+def replaceLoanMaintenance():
+    print("replacing loan maintenance")
+    loanMaintenance = acct.deploy(LoanMaintenance)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(loanMaintenance.address)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def redeploySwapsExternal():
+    print('replacing swaps external')
+    swapsExternal = acct.deploy(SwapsExternal)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(swapsExternal.address)
+    print(data)
+    
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);

@@ -219,6 +219,7 @@ def testAffiliatesIntegration(acct, sovryn, loanTokenAddress, underlyingToken, c
     referrerAddress = accounts[9]
     print('\n Referrer address : ', referrerAddress)
     previousAffiliateRewardsHeld = sovryn.affiliateRewardsHeld(referrerAddress)
+    previousTokenRewardBalance = sovryn.affiliatesReferrerBalances(referrerAddress, underlyingToken.address)
     
     print(sovryn.protocolAddress())
     tx = loanToken.marginTradeAffiliate(
@@ -255,7 +256,7 @@ def testAffiliatesIntegration(acct, sovryn, loanTokenAddress, underlyingToken, c
     # since min referrals to payout is not fullfilled, need to make sure the held rewards is correct
     affiliateRewardsHeld = sovryn.affiliateRewardsHeld(referrerAddress)
     checkedValueShouldBe = affiliateRewardsHeld - previousAffiliateRewardsHeld
-    if submittedTokenReward != sovryn.affiliatesReferrerBalances(referrerAddress, underlyingToken.address):
+    if submittedTokenReward != (sovryn.affiliatesReferrerBalances(referrerAddress, underlyingToken.address) - previousTokenRewardBalance):
         raise Exception("Token reward is invalid")
     if checkedValueShouldBe != submittedAffiliatesReward:
         raise Exception("Affiliates reward is invalid")
@@ -269,12 +270,13 @@ def testAffiliatesIntegration(acct, sovryn, loanTokenAddress, underlyingToken, c
     print("position size is ", collateral)
     tx = sovryn.closeWithSwap(loanId, acct, collateral, True, b'')
 
-    submittedTokenReward = submittedTokenReward + tx.events['PayTradingFeeToAffiliate']['tokenBonusAmount']
+    # submittedTokenReward = submittedTokenReward + tx.events['PayTradingFeeToAffiliate']['tokenBonusAmount']
 
     # Change the min referrals to payout to 1 for testing purposes
     sovryn.setMinReferralsToPayoutAffiliates(1)
 
     previousAffiliateRewardsHeld = sovryn.affiliateRewardsHeld(referrerAddress)
+    previousTokenRewardBalance = sovryn.affiliatesReferrerBalances(referrerAddress, underlyingToken.address)
     print("\n-- CHECK AFFILIATE REWARD BALANCE WITH 1 MINIMUM REFERRALS")
     tx2 = loanToken.marginTradeAffiliate(
         "0", #loanId  (0 for new loans)
@@ -290,14 +292,15 @@ def testAffiliatesIntegration(acct, sovryn, loanTokenAddress, underlyingToken, c
     tx2.info()
 
     submittedAffiliatesReward = tx2.events['PayTradingFeeToAffiliate']['sovBonusAmountPaid']
-    submittedTokenReward = submittedTokenReward + tx2.events['PayTradingFeeToAffiliate']['tokenBonusAmount']
+    # submittedTokenReward = submittedTokenReward + tx2.events['PayTradingFeeToAffiliate']['tokenBonusAmount']
+    submittedTokenReward =  tx2.events['PayTradingFeeToAffiliate']['tokenBonusAmount']
     isHeld = tx2.events['PayTradingFeeToAffiliate']['isHeld']
 
     # since min referrals to payout is fullfilled, need to make sure the held rewards is zero, and the submitted rewards = previousRewardsHeld + currentReward
     affiliateRewardsHeld = sovryn.affiliateRewardsHeld(referrerAddress)
     # Since the amount for both tx and tx2 is the same, we can assume tx's sovBonusAmount as tx2's sovBonusAmount
     checkedValueShouldBe = defaultSovBonusAmountPerTrade + previousAffiliateRewardsHeld
-    if submittedTokenReward != sovryn.affiliatesReferrerBalances(referrerAddress, underlyingToken.address):
+    if submittedTokenReward != (sovryn.affiliatesReferrerBalances(referrerAddress, underlyingToken.address) - previousTokenRewardBalance):
         raise Exception("Token reward is invalid")
     if affiliateRewardsHeld != 0:
         raise Exception("Affiliates reward should be zero at this point")
