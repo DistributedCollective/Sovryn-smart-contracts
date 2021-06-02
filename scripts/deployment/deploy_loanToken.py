@@ -24,7 +24,7 @@ def main():
         raise Exception("network not supported")
 
     tokens = Munch()
-    if thisNetwork == "development" or thisNetwork == "arb-testnet":
+    if thisNetwork == "development":
         tokens.wrbtc = Contract.from_abi("TestWrbtc", address = wrbtcAddress, abi = TestWrbtc.abi, owner = acct)
     else:
         tokens.wrbtc = Contract.from_abi("WRBTC", address = wrbtcAddress, abi = WRBTC.abi, owner = acct)
@@ -43,7 +43,7 @@ def deployLoanTokens(acct, sovryn, tokens):
     print("initializing the lending pool with some tokens, so we do not run out of funds")
     tokens.susd.approve(contractSUSD.address,1000e18) #1k $
     contractSUSD.mint(acct, 1000e18)
-    if network.show_active() == "development" or network.show_active() == "arb-testnet":
+    if network.show_active() == "development":
         testDeployment(acct, sovryn,contractSUSD.address, tokens.susd, tokens.wrbtc, 21e18, 0)
     
     print('\n DEPLOYING IWRBTC')
@@ -51,7 +51,7 @@ def deployLoanTokens(acct, sovryn, tokens):
     print("initializing the lending pool with some tokens, so we do not run out of funds")
     contractWRBTC = Contract.from_abi("loanToken", address=contractWRBTC.address, abi=LoanTokenLogicWrbtc.abi, owner=acct)
     contractWRBTC.mintWithBTC(acct, {'value':0.1e18})#0.1 BTC
-    if network.show_active() == "development" or network.show_active() == "arb-testnet":
+    if network.show_active() == "development":
         testDeployment(acct, sovryn, contractWRBTC.address, tokens.wrbtc, tokens.susd, 0.0021e18, 0.0021e18)
 
     return (contractSUSD, contractWRBTC, loanTokenSettingsSUSD, loanTokenSettingsWRBTC)
