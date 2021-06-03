@@ -1,5 +1,5 @@
 const { expect, assert } = require("chai");
-const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 const { increaseTime, etherMantissa, mineBlock, advanceBlocks } = require("../Utils/Ethereum");
 
 const TestToken = artifacts.require("TestToken");
@@ -70,36 +70,36 @@ contract("LoanTokenLogicLM", (accounts) => {
 			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount);
 			//expect the Mint event to mention the lender
 			expectEvent(tx, "Mint", {
-				'_to': lender, 
-				'_tokenAmount': depositAmount, 
-				'_assetAmount': depositAmount
+				'minter': lender, 
+				'tokenAmount': depositAmount, 
+				'assetAmount': depositAmount
 			});
 		});
 
 		it("Should lend to the pool without depositing the pool tokens at the liquidity mining contract", async () => {
             await underlyingToken.approve(loanToken.address, depositAmount);
-            await loanToken.mint(lender, depositAmount, false);
+            const tx = await loanToken.mint(lender, depositAmount, false);
 			const userInfo = await liquidityMining.getUserInfo(loanToken.address, lender);
 			//expected: user pool token balance increased by the deposited amount, LM balance stays unchanged
 			expect(await loanToken.balanceOf(lender)).bignumber.equal(depositAmount);
 			expect(userInfo.amount).bignumber.equal(depositAmount);
 			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount.mul(new BN('2')));
-			//expect the Burn event to mention the lender
-			expectEvent(tx, "Burn", {
-				'_who': lender, 
-				'_tokenAmount': depositAmount, 
-				'_assetAmount': depositAmount
-			});
 		});
 		
         it("Should remove the pool tokens from the liquidity mining pool and burn them", async () => {
 			let userInfo = await liquidityMining.getUserInfo(loanToken.address, lender);
-			await loanToken.burn(lender, userInfo.amount, true);
+			const tx = await loanToken.burn(lender, userInfo.amount, true);
 			userInfo = await liquidityMining.getUserInfo(loanToken.address, lender);
 			//expected: user pool token balance stayed the same but LM balance is 0
 			expect(await loanToken.balanceOf(lender)).bignumber.equal(depositAmount);
 			expect(userInfo.amount).bignumber.equal('0');
 			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount);
+			//expect the Burn event to mention the lender
+			expectEvent(tx, "Burn", {
+				'burner': lender, 
+				'tokenAmount': depositAmount, 
+				'assetAmount': depositAmount
+			});
 		});
 
 		
@@ -114,7 +114,7 @@ contract("LoanTokenLogicLM", (accounts) => {
 	describe("Test WRBTC lending with liquidity mining", () =>{
 		it("Should lend to the pool and deposit the pool tokens at the liquidity mining contract", async () => {
 			//await lend_to_the_pool(loanToken, lender, underlyingToken, testWrbtc, sovryn);
-            await loanTokenWRBTC.mintWithBTC(lender, true, {'value': depositAmount});
+            const tx = await loanTokenWRBTC.mintWithBTC(lender, true, {'value': depositAmount});
 			const userInfo = await liquidityMining.getUserInfo(loanTokenWRBTC.address, lender);
 			//expected: user pool token balance is 0, but balance of LM contract increased
 			expect(await loanTokenWRBTC.balanceOf(lender)).bignumber.equal("0");
@@ -122,9 +122,9 @@ contract("LoanTokenLogicLM", (accounts) => {
 			expect(await loanTokenWRBTC.totalSupply()).bignumber.equal(depositAmount);
 			//expect the Mint event to mention the lender
 			expectEvent(tx, "Mint", {
-				'_to': lender, 
-				'_tokenAmount': depositAmount, 
-				'_assetAmount': depositAmount
+				'minter': lender, 
+				'tokenAmount': depositAmount, 
+				'assetAmount': depositAmount
 			});
 		});
 
@@ -139,12 +139,18 @@ contract("LoanTokenLogicLM", (accounts) => {
 		
         it("Should remove the pool tokens from the liquidity mining pool and burn them", async () => {
 			let userInfo = await liquidityMining.getUserInfo(loanTokenWRBTC.address, lender);
-			await loanTokenWRBTC.burnToBTC(lender, userInfo.amount, true);
+			const tx = await loanTokenWRBTC.burnToBTC(lender, userInfo.amount, true);
 			userInfo = await liquidityMining.getUserInfo(loanTokenWRBTC.address, lender);
 			//expected: user pool token balance stayed the same but LM balance is 0
 			expect(await loanTokenWRBTC.balanceOf(lender)).bignumber.equal(depositAmount);
 			expect(userInfo.amount).bignumber.equal('0');
 			expect(await loanTokenWRBTC.totalSupply()).bignumber.equal(depositAmount);
+			//expect the Burn event to mention the lender
+			expectEvent(tx, "Burn", {
+				'burner': lender, 
+				'tokenAmount': depositAmount, 
+				'assetAmount': depositAmount
+			});
 		});
 
 		
