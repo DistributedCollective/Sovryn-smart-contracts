@@ -20,7 +20,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicLM {
 		uint256 burnAmount,
 		bool useLM
 	) external nonReentrant returns (uint256 loanAmountPaid) {
-		if (useLM) loanAmountPaid = _burnFromLM(receiver, burnAmount);
+		if (useLM) loanAmountPaid = _burnFromLM(burnAmount);
 		else loanAmountPaid = _burnToken(burnAmount);
 
 		if (loanAmountPaid != 0) {

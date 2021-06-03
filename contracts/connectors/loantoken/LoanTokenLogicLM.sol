@@ -30,12 +30,12 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
 	/**
 	 * @notice withdraws from the lending pool and optionally retrieves the pool tokens from the 
 	 *         Liquidity Mining Contract
-	 * @param receiver the receiver of the underlying tokens
+	 * @param receiver the receiver of the underlying tokens. note: potetial LM rewards are always sent to the msg.sender
 	 * @param burnAmount The amount of pool tokens to redeem.
 	 * @param useLM if true -> deposit the pool tokens into the Liquidity Mining contract
 	 */
 	function burn(address receiver, uint256 burnAmount, bool useLM) external nonReentrant returns (uint256 redeemed) {
-		if(useLM) redeemed = _burnFromLM(receiver, burnAmount);
+		if(useLM) redeemed = _burnFromLM(burnAmount);
 		else redeemed = _burnToken(burnAmount);
 		//this needs to be here and not in _burnTokens because of the WRBTC implementation
 		if (redeemed != 0) {
@@ -43,9 +43,9 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
 		}
 	}
 
-	function _burnFromLM(address receiver, uint256 burnAmount) internal returns (uint256) {
-		//withdraw pool tokens to the message sender, but LM rewards to the receiver
-		ILiquidityMining(liquidityMiningAddress).withdraw(msg.sender, burnAmount, receiver);
+	function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
+		//withdraw pool tokens and LM rewards to the passed address
+		ILiquidityMining(liquidityMiningAddress).withdraw(address(this), burnAmount, msg.sender);
 		//burn the tokens of the msg.sender
 		return _burnToken(burnAmount);
 	}

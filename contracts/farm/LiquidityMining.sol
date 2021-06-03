@@ -427,7 +427,16 @@ contract LiquidityMining is LiquidityMiningStorage {
 		_transferReward(user, userAddress, false);
 
 		user.amount = user.amount.sub(_amount);
-		pool.poolToken.safeTransfer(address(msg.sender), _amount); //sent to the user or wrapper
+		
+		//msg.sender is wrapper -> send to wrapper
+		if(msg.sender == wrapper){
+			pool.poolToken.safeTransfer(address(msg.sender), _amount);
+		}
+		//msg.sender is user or pool token (lending pool) -> send to user	 
+		else{
+			pool.poolToken.safeTransfer(userAddress, _amount);
+		}
+			
 		_updateRewardDebt(pool, user);
 		emit Withdraw(userAddress, _poolToken, _amount);
 	}
@@ -436,7 +445,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 		address userAddress = msg.sender;
 		if (_user != address(0)) {
 			//only wrapper can pass _user parameter
-			require(msg.sender == wrapper && _user == tx.origin, "unauthorized");
+			require(msg.sender == wrapper && _user == tx.origin || poolIdList[msg.sender] != 0, "only wrapper or pools may withdraw for a user");
 			userAddress = _user;
 		}
 		return userAddress;
