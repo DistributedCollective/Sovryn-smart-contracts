@@ -694,10 +694,13 @@ describe("LiquidityMining", () => {
 			expect(userInfo.rewardDebt).bignumber.equal(new BN(0));
 			expect(userInfo.accumulatedReward).bignumber.equal(new BN(0));
 
+			let bonusBlockMultiplier = await liquidityMining.BONUS_BLOCK_MULTIPLIER();
+			let expectedAccumulatedReward = rewardTokensPerBlock.mul(bonusBlockMultiplier);
 			expectEvent(tx, "EmergencyWithdraw", {
 				user: account1,
 				poolToken: token1.address,
 				amount: amount,
+				accumulatedReward: expectedAccumulatedReward
 			});
 		});
 

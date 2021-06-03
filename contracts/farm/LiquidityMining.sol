@@ -27,7 +27,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	event Deposit(address indexed user, address indexed poolToken, uint256 amount);
 	event RewardClaimed(address indexed user, uint256 amount);
 	event Withdraw(address indexed user, address indexed poolToken, uint256 amount);
-	event EmergencyWithdraw(address indexed user, address indexed poolToken, uint256 amount);
+	event EmergencyWithdraw(address indexed user, address indexed poolToken, uint256 amount, uint256 accumulatedReward);
 
 	/* Functions */
 
@@ -497,13 +497,20 @@ contract LiquidityMining is LiquidityMiningStorage {
 		PoolInfo storage pool = poolInfoList[poolId];
 		UserInfo storage user = userInfoMap[poolId][msg.sender];
 
+		_updatePool(poolId);
+		_updateReward(pool, user);
+
 		totalUsersBalance = totalUsersBalance.sub(user.accumulatedReward);
 		uint256 userAmount = user.amount;
+		uint256 userAccumulatedReward = user.accumulatedReward;
 		user.amount = 0;
 		user.rewardDebt = 0;
 		user.accumulatedReward = 0;
 		pool.poolToken.safeTransfer(address(msg.sender), userAmount);
-		emit EmergencyWithdraw(msg.sender, _poolToken, userAmount);
+
+		_updateRewardDebt(pool, user);
+
+		emit EmergencyWithdraw(msg.sender, _poolToken, userAmount, userAccumulatedReward);
 	}
 
 	/**
