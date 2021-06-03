@@ -354,7 +354,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @notice internal function for depositing pool tokens
 	 * @param _poolToken the address of pool token
 	 * @param _amount the amount of pool tokens
-	 * @param _user the address of user, tokens will be deposited to it or to msg.sender
+	 * @param _user the address of user, tokens will be deposited to it
 	 * @param alreadyTransferred true if the pool tokens have already been transferred
 	 */
 	function _deposit(address _poolToken, uint256 _amount, address _user, bool alreadyTransferred) internal{
