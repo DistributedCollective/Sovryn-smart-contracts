@@ -370,7 +370,7 @@ contract LockedSOV is ILockedSOV {
 		uint256 amount = lockedBalances[_sender];
 		lockedBalances[_sender] = 0;
 
-		SOV.approve(_vesting, amount);
+		require(SOV.approve(_vesting, amount), "Approve failed.");
 		VestingLogic(_vesting).stakeTokens(amount);
 
 		emit TokenStaked(_sender, _vesting, amount);
