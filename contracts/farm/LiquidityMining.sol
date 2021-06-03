@@ -473,7 +473,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 			///   deposit it into lockedSOV vault contract, but first
 			///   SOV deposit must be approved to move the SOV tokens
 			///   from this LM contract into the lockedSOV vault.
-			SOV.approve(address(lockedSOV), userAccumulatedReward);
+			require(SOV.approve(address(lockedSOV), userAccumulatedReward), "Approve failed");
 			lockedSOV.deposit(_userAddress, userAccumulatedReward, unlockedImmediatelyPercent);
 
 			if (_isClaimingReward) {
