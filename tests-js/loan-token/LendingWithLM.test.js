@@ -62,12 +62,18 @@ contract("LoanTokenLogicLM", (accounts) => {
 		it("Should lend to the pool and deposit the pool tokens at the liquidity mining contract", async () => {
 			//await lend_to_the_pool(loanToken, lender, underlyingToken, testWrbtc, sovryn);
             await underlyingToken.approve(loanToken.address, depositAmount);
-            await loanToken.mint(lender, depositAmount, true);
+            const tx = await loanToken.mint(lender, depositAmount, true);
 			const userInfo = await liquidityMining.getUserInfo(loanToken.address, lender);
 			//expected: user pool token balance is 0, but balance of LM contract increased
 			expect(await loanToken.balanceOf(lender)).bignumber.equal("0");
 			expect(userInfo.amount).bignumber.equal(depositAmount);
 			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount);
+			//expect the Mint event to mention the lender
+			expectEvent(tx, "Mint", {
+				'_to': lender, 
+				'_tokenAmount': depositAmount, 
+				'_assetAmount': depositAmount
+			});
 		});
 
 		it("Should lend to the pool without depositing the pool tokens at the liquidity mining contract", async () => {
@@ -78,6 +84,12 @@ contract("LoanTokenLogicLM", (accounts) => {
 			expect(await loanToken.balanceOf(lender)).bignumber.equal(depositAmount);
 			expect(userInfo.amount).bignumber.equal(depositAmount);
 			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount.mul(new BN('2')));
+			//expect the Burn event to mention the lender
+			expectEvent(tx, "Burn", {
+				'_who': lender, 
+				'_tokenAmount': depositAmount, 
+				'_assetAmount': depositAmount
+			});
 		});
 		
         it("Should remove the pool tokens from the liquidity mining pool and burn them", async () => {
@@ -96,13 +108,6 @@ contract("LoanTokenLogicLM", (accounts) => {
 			expect(await loanToken.balanceOf(lender)).bignumber.equal('0');
 			expect(await loanToken.totalSupply()).bignumber.equal('0');
 		});
-
-		
-
-		/** 
-		 * missing:
-		 * fix test for tx limits lending (because removed)
-		 */
 		
 	});
 
@@ -115,6 +120,12 @@ contract("LoanTokenLogicLM", (accounts) => {
 			expect(await loanTokenWRBTC.balanceOf(lender)).bignumber.equal("0");
 			expect(userInfo.amount).bignumber.equal(depositAmount);
 			expect(await loanTokenWRBTC.totalSupply()).bignumber.equal(depositAmount);
+			//expect the Mint event to mention the lender
+			expectEvent(tx, "Mint", {
+				'_to': lender, 
+				'_tokenAmount': depositAmount, 
+				'_assetAmount': depositAmount
+			});
 		});
 
 		it("Should lend to the pool without depositing the pool tokens at the liquidity mining contract", async () => {

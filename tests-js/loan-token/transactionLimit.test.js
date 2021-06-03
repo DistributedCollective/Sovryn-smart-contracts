@@ -109,13 +109,13 @@ contract("LoanTokenTransactionLimit", (accounts) => {
 		});
 
 		// leding should fail if the transfered amount exceeds the transaction limit
-		it("Test lending exceeding limit should fail", async () => {
+		it("Test lending exceeding limit should succeed", async () => {
 			await set_transaction_limit(
 				accounts[0],
 				[SUSD.address, RBTC.address],
 				[new BN(21).mul(oneEth).div(new BN(10)), new BN(21).mul(oneEth).div(new BN(10000))]
 			);
-			expectRevert.unspecified(lend_to_pool(loanToken, SUSD, owner));
+			await lend_to_pool(loanToken, SUSD, owner);
 		});
 
 		// margin trading should succeed if the transfered amount does not exceed the transaction limit
