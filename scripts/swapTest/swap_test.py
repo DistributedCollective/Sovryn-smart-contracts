@@ -22,6 +22,9 @@ def main():
     else:
         raise Exception("network not supported")
 
+    nonce = web3.eth.getTransactionCount(str(acct), "pending")
+    print("nonce: ", nonce)
+
     setup()
     if this_network == "development":
         margin_pool_setup()
