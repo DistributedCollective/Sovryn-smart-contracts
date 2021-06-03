@@ -17,7 +17,7 @@ def main():
 
     if this_network == "development":
         acct = accounts[0]
-    elif this_network == "testnet":
+    elif this_network == "testnet" or this_network == "arb-testnet":
         acct = accounts.load("rskdeployer")
     else:
         raise Exception("network not supported")
