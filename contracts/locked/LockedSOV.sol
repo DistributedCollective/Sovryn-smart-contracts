@@ -14,6 +14,9 @@ import "./ILockedSOV.sol";
 contract LockedSOV is ILockedSOV {
 	using SafeMath for uint256;
 
+	uint256 public constant MAX_BASIS_POINT = 10000;
+	uint256 public constant MAX_DURATION = 37;
+
 	/* Storage */
 
 	/// @notice True if the migration to a new Locked SOV Contract has started.
@@ -123,7 +126,7 @@ contract LockedSOV is ILockedSOV {
 	) public {
 		require(_SOV != address(0), "Invalid SOV Address.");
 		require(_vestingRegistry != address(0), "Vesting registry address is invalid.");
-		require(_duration < 37, "Duration is too long.");
+		require(_duration < MAX_DURATION, "Duration is too long.");
 
 		SOV = IERC20(_SOV);
 		vestingRegistry = VestingRegistry(_vestingRegistry);
@@ -178,7 +181,7 @@ contract LockedSOV is ILockedSOV {
 		require(address(vestingRegistry) != _vestingRegistry, "Vesting Registry has to be different for changing duration and cliff.");
 		/// If duration is also zero, then it is similar to Unlocked SOV.
 		require(_duration != 0, "Duration cannot be zero.");
-		require(_duration < 37, "Duration is too long.");
+		require(_duration < MAX_DURATION, "Duration is too long.");
 
 		vestingRegistry = VestingRegistry(_vestingRegistry);
 
@@ -217,12 +220,12 @@ contract LockedSOV is ILockedSOV {
 		uint256 _sovAmount,
 		uint256 _basisPoint
 	) private {
-		// 10000 is not included because if 100% is unlocked, then LockedSOV is not required to be used.
-		require(_basisPoint < 10000, "Basis Point has to be less than 10000.");
+		// MAX_BASIS_POINT is not included because if 100% is unlocked, then LockedSOV is not required to be used.
+		require(_basisPoint < MAX_BASIS_POINT, "Basis Point has to be less than 10000.");
 		bool txStatus = SOV.transferFrom(msg.sender, address(this), _sovAmount);
 		require(txStatus, "Token transfer was not successful. Check receiver address.");
 
-		uint256 unlockedBal = _sovAmount.mul(_basisPoint).div(10000);
+		uint256 unlockedBal = _sovAmount.mul(_basisPoint).div(MAX_BASIS_POINT);
 
 		unlockedBalances[_userAddress] = unlockedBalances[_userAddress].add(unlockedBal);
 		lockedBalances[_userAddress] = lockedBalances[_userAddress].add(_sovAmount).sub(unlockedBal);
