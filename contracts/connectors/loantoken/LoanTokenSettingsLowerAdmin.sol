@@ -27,6 +27,8 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	/// @dev Add new variables here on the bottom.
 	address public earlyAccessToken; //not used anymore, but staying for upgradability
 	address public pauser;
+	/** The address of the liquidity mining contract */
+	address public liquidityMiningAddress;
 
 
 	/// @dev TODO: Check for restrictions in this contract.
