@@ -64,6 +64,8 @@ contract ISovryn is
 
 	function setAffiliateFeePercent(uint256 newValue) external;
 
+	function setAffiliateTradingTokenFeePercent(uint256 newValue) external;
+
 	function setLiquidationIncentivePercent(uint256 newAmount) external;
 
 	function setMaxDisagreement(uint256 newAmount) external;

@@ -1227,6 +1227,20 @@ def replaceProtocolSettings():
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
+def replaceLoanSettings():
+    print("Deploying LoanSettings.")
+    settings = acct.deploy(LoanSettings)
+
+    print("Calling replaceContract.")
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(settings.address)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
 def deployAffiliate():
     loadConfig()
     # -------------------------------- 1. Replace the protocol settings contract ------------------------------
@@ -1278,6 +1292,15 @@ def deployAffiliate():
     print(txId)
     print("lockedSOV address loaded:", sovryn.sovTokenAddress())
 
+    # Set minReferralsToPayout
+    setMinReferralsToPayout(3)
+
+    # Set affiliateTradingTokenFeePercent
+    setAffiliateTradingTokenFeePercent(20 * 10**18)
+
+    # Set affiliateFeePercent
+    setAffiliateFeePercent(5 * 10**18)
+
     # ---------------------------- 3. Redeploy modules which implement InterestUser and SwapsUser -----------------------
     # LoanClosingsBase
     # LoanClosingsWith
@@ -1288,6 +1311,8 @@ def deployAffiliate():
     replaceLoanMaintenance()
     # SwapsExternal
     redeploySwapsExternal()
+    # LoanSettings()
+    replaceLoanSettings()
 
     # -------------------------------- 4. Replace Token Logic Standard ----------------------------------------
     replaceLoanTokenLogicOnAllContracts()

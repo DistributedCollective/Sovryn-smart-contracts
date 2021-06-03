@@ -24,6 +24,7 @@ contract ProtocolSettingsMockup is ProtocolSettings {
 		_setTarget(this.setTradingFeePercent.selector, target);
 		_setTarget(this.setBorrowingFeePercent.selector, target);
 		_setTarget(this.setAffiliateFeePercent.selector, target);
+		_setTarget(this.setAffiliateTradingTokenFeePercent.selector, target);
 		_setTarget(this.setLiquidationIncentivePercent.selector, target);
 		_setTarget(this.setMaxDisagreement.selector, target);
 		_setTarget(this.setSourceBuffer.selector, target);
