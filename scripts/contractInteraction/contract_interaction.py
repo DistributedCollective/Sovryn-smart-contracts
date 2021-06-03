@@ -19,7 +19,8 @@ def main():
 
 
     #transferTokensFromWallet(contracts['SOV'], contracts['LiquidityMiningProxy'], 40000e18)
-    sendTokensFromMultisig(contracts['SOV'], contracts['LiquidityMiningProxy'], 35000e18)
+    #print(841.333008017903566e18)
+    #sendTokensFromMultisig(contracts['MOC'], '0x9Cf4CC7185E957C63f0BA6a4D793F594c702AD66', 841.333008017903566e18)
     #setWrapperOnLM()
     #addAdmin(contracts['LockedSOV'], contracts['VestingRegistry3'])
     #setFeesController()
@@ -49,7 +50,7 @@ def main():
     #replaceOwnerOnMultisig('0x37A706259F5201C03f6Cb556A960F30F86842d01', '0x4C3d3505d34213751c4b4d621cB6bDe7E664E222', '0xEaBB83a1cEFc5f50C83BC4252C618d3294152A86')
     #upgradeAggregator('0x37A706259F5201C03f6Cb556A960F30F86842d01','0x3E9De61dC23D4BC1b84D174781809e5820cfceb7')
     
-    #addLiquidityV1FromMultisigUsingWrapper(contracts['RBTCWrapperProxyWithoutLM'], contracts['ConverterETHs'], [contracts['WRBTC'], contracts['ETHs']], [25e18,352e18], 248e18)
+    #addLiquidityV1FromMultisigUsingWrapper(contracts['RBTCWrapperProxyWithoutLM'], contracts['ConverterMOC'], [contracts['WRBTC'], contracts['MOC']], [2.5e18,211000e18], 249e18)
     #addLiquidityV1UsingWrapper(contracts['RBTCWrapperProxyWithoutLM'], contracts['ConverterETHs'], [contracts['WRBTC'], contracts['ETHs']], [0.002e18,0.01e18])
     #readWRBTCAddressFromWrapper(contracts['RBTCWrapperProxyWithoutLM'])
 
@@ -61,6 +62,13 @@ def main():
     #confirmMS(149)
 
     #readOwner(contracts['ConverterUSDT'])
+    
+    #confirmMS(150)
+    #confirmMS(151)
+    #confirmMS(152)
+
+    #addMOCPoolToken()
+    readMaxAffiliateFee()
 
 def loadConfig():
     global contracts, acct
@@ -1121,6 +1129,7 @@ def addLiquidityV1FromMultisigUsingWrapper(wrapper, converter, tokens, amounts, 
     tx = multisig.submitTransaction(wrapperProxy.address,amounts[0],data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
+    
 
 def removeLiquidityV1toMultisigUsingWrapper(wrapper, converter, amount, tokens, minReturn):
     abiFile =  open('./scripts/contractInteraction/RBTCWrapperProxy.json')
@@ -1319,3 +1328,27 @@ def readWRBTCAddressFromWrapper(wrapper):
 def confirmMS(txid):
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     multisig.confirmTransaction(txid)
+
+def addMOCPoolToken():
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
+    MAX_ALLOCATION_POINT = 100000 * 1000 # 100 M
+    ALLOCATION_POINT_BTC_SOV = 30000 # (WR)BTC/SOV
+    ALLOCATION_POINT_BTC_ETH = 35000 # or 30000 (WR)BTC/ETH
+    ALLOCATION_POINT_DEFAULT = 1 # (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2 | (WR)BTC/MOC
+    ALLOCATION_POINT_CONFIG_TOKEN = MAX_ALLOCATION_POINT - ALLOCATION_POINT_BTC_SOV - ALLOCATION_POINT_BTC_ETH - ALLOCATION_POINT_DEFAULT * 7
+    print("ALLOCATION_POINT_CONFIG_TOKEN: ", ALLOCATION_POINT_CONFIG_TOKEN)
+    data = lm.add.encode_input(contracts['(WR)BTC/MOC'],1,False)
+    tx = multisig.submitTransaction(lm.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId)
+    data = lm.update.encode_input(contracts['LiquidityMiningConfigToken'],ALLOCATION_POINT_CONFIG_TOKEN,True)
+    tx = multisig.submitTransaction(lm.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId)
+
+def readMaxAffiliateFee():
+    abiFile =  open('./scripts/contractInteraction/SovrynSwapNetwork.json')
+    abi = json.load(abiFile)
+    swapNetwork = Contract.from_abi("SovrynSwapNetwork", address=contracts['swapNetwork'], abi=abi, owner=acct)
+    print(swapNetwork.maxAffiliateFee())
