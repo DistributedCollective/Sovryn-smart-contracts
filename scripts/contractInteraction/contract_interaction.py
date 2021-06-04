@@ -1297,7 +1297,10 @@ def deployTradingRebatesUsingLockedSOV():
 
     sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
 
-    # ----------------------------- 1. Set protocol token address using SOV address ------------------------------
+    # ----------------------------- 1. Replace Protocol Settings ------------------------------
+    replaceProtocolSettings()
+
+    # ----------------------------- 2. Set protocol token address using SOV address ------------------------------
     sovToken = Contract.from_abi("SOV", address=contracts["SOV"], abi=SOV.abi, owner=acct)
     data = sovryn.setProtocolTokenAddress.encode_input(sovToken.address)
     print("Set Protocol Token address in protocol settings")
@@ -1309,7 +1312,7 @@ def deployTradingRebatesUsingLockedSOV():
     print(txId)
     print("protocol token address loaded:", sovryn.sovTokenAddress())
 
-    # ----------------------------- 2. Set LockedSOV address -------------------------------------------
+    # ----------------------------- 3. Set LockedSOV address -------------------------------------------
     lockedSOV = Contract.from_abi("LockedSOV", address=contracts["LockedSOV"], abi=LockedSOV.abi, owner=acct)
     data = sovryn.setLockedSOVAddress.encode_input(lockedSOV.address)
     print("Set Locked SOV address in protocol settings")
@@ -1321,15 +1324,13 @@ def deployTradingRebatesUsingLockedSOV():
     print(txId)
     print("lockedSOV address loaded:", sovryn.sovTokenAddress())
 
-    # ----------------------------- 3. Set default feeRebatePercent -------------------------------------------
+    # ----------------------------- 4. Set default feeRebatePercent -------------------------------------------
     setDefaultRebatesPercentage(50 * 10**18)
 
     # TODO
     # setSpecialRebates("sourceTokenAddress", "destTokenAddress", 10 * 10**18)
 
-    # ---------------------------- 4. Redeploy modules which implement InterestUser and SwapsUser -----------------------
-    # ProtocolSettings
-    replaceProtocolSettings()
+    # ---------------------------- 5. Redeploy modules which implement InterestUser and SwapsUser -----------------------
     # LoanClosingsBase
     # LoanClosingsWith
     replaceLoanClosings()
