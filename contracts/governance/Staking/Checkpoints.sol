@@ -35,6 +35,10 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 
 	event AdminRemoved(address admin);
 
+	event ContractCodeHashAdded(bytes32 hash);
+
+	event ContractCodeHashRemoved(bytes32 hash);
+
 	/**
 	 * @notice Increases the user's stake for a giving lock date and writes a checkpoint.
 	 * @param account The user address.

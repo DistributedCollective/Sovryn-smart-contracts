@@ -175,6 +175,7 @@ contract("Vesting", (accounts) => {
 				expect(delegatee).equal(a2);
 			}
 
+			await staking.addContractCodeHash(vesting.address);
 			//delegate
 			let tx = await vesting.delegate(a1, { from: a2 });
 
@@ -587,6 +588,7 @@ contract("Vesting", (accounts) => {
 			//time travel
 			await increaseTime(104 * WEEK);
 
+			await staking.addContractCodeHash(vesting.address);
 			//withdraw
 			let tx = await vesting.withdrawTokens(root);
 

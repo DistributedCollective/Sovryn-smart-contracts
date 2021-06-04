@@ -310,6 +310,47 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	}
 
 	/**
+	 * @notice Add vesting contract's code hash to a map of code hashes.
+	 * @param vesting The address of Vesting contract.
+	 * @dev We need it to use _isVestingContract() function instead of isContract()
+	 */
+	function addContractCodeHash(address vesting) public onlyAuthorized {
+		bytes32 codeHash = _getCodeHash(vesting);
+		vestingCodeHashes[codeHash] = true;
+		emit ContractCodeHashAdded(codeHash);
+	}
+
+	/**
+	 * @notice Add vesting contract's code hash to a map of code hashes.
+	 * @param vesting The address of Vesting contract.
+	 * @dev We need it to use _isVestingContract() function instead of isContract()
+	 */
+	function removeContractCodeHash(address vesting) public onlyAuthorized {
+		bytes32 codeHash = _getCodeHash(vesting);
+		vestingCodeHashes[codeHash] = false;
+		emit ContractCodeHashRemoved(codeHash);
+	}
+
+	/**
+	 * @notice Return flag whether message sender is a registered vesting contract.
+	 */
+	function _isVestingContract() internal view returns (bool) {
+		bytes32 codeHash = _getCodeHash(msg.sender);
+		return vestingCodeHashes[codeHash];
+	}
+
+	/**
+	 * @notice Return hash of contract code
+	 */
+	function _getCodeHash(address _contract) internal view returns (bytes32) {
+		bytes32 codeHash;
+		assembly {
+			codeHash := extcodehash(_contract)
+		}
+		return codeHash;
+	}
+
+	/**
 	 * @notice Send user' staked tokens to a receiver taking into account punishments.
 	 * Sovryn encourages long-term commitment and thinking. When/if you unstake before
 	 * the end of the staking period, a percentage of the original staking amount will
@@ -330,7 +371,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	) internal {
 		// @dev it's very unlikely some one will have 1/10**18 SOV staked in Vesting contract
 		//		this check is a part of workaround for Vesting.withdrawTokens issue
-		if (amount == 1 && msg.sender.isContract()) {
+		if (amount == 1 && _isVestingContract()) {
 			return;
 		}
 		until = _adjustDateForOrigin(until);
@@ -373,7 +414,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address receiver,
 		bool isGovernance
 	) internal {
-		if (msg.sender.isContract()) {
+		if (_isVestingContract()) {
 			uint256 nextLock = until.add(TWO_WEEKS);
 			if (isGovernance || block.timestamp >= nextLock) {
 				uint96 stake = _getPriorUserStakeByDate(msg.sender, nextLock, block.number - 1);
@@ -564,7 +605,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address delegatee,
 		uint256 lockedTS
 	) internal {
-		if (msg.sender.isContract()) {
+		if (_isVestingContract()) {
 			uint256 nextLock = lockedTS.add(TWO_WEEKS);
 			address currentDelegate = delegates[delegator][nextLock];
 			if (currentDelegate != delegatee) {

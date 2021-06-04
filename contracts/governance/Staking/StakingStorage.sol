@@ -121,4 +121,7 @@ contract StakingStorage is Ownable {
 	/// @dev multisig should be an admin, admin can invoke only governanceWithdrawVesting function,
 	/// 	this function works only with Team Vesting contracts
 	mapping(address => bool) public admins;
+
+	/// @dev vesting contract code hash => flag whether it's registered code hash
+	mapping(bytes32 => bool) public vestingCodeHashes;
 }
