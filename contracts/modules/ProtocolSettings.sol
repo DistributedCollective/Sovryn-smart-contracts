@@ -72,6 +72,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.setSOVTokenAddress.selector, target);
 		_setTarget(this.setLockedSOVAddress.selector, target);
 		_setTarget(this.setMinReferralsToPayoutAffiliates.selector, target);
+		_setTarget(this.getSpecialRebates.selector, target);
 	}
 
 	/**
@@ -581,5 +582,17 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		specialRebates[sourceToken][destToken] = specialRebatesPercent;
 
 		emit SetSpecialRebates(msg.sender, sourceToken, destToken, oldSpecialRebatesPercent, specialRebatesPercent);
+	}
+
+	/**
+	 * @notice Get a rebate percent of specific pairs.
+	 *
+	 * @param sourceTokenAddress The source of pairs.
+	 * @param destTokenAddress The dest of pairs.
+	 *
+	 * @return The percent rebates of the pairs.
+	 * */
+	function getSpecialRebates(address sourceTokenAddress, address destTokenAddress) external view returns (uint256 specialRebatesPercent) {
+		return specialRebates[sourceTokenAddress][destTokenAddress];
 	}
 }

@@ -113,6 +113,8 @@ contract ISovrynBrownie is
 
 	function setSpecialRebates(address sourceToken, address destToken, uint256 specialRebatesPercent) external;
 
+	function getSpecialRebates(address sourceToken, address destToken) external view returns(uint256 specialRebatesPercent);
+
 	////// Loan Settings //////
 
 	function setupLoanParams(LoanParams[] calldata loanParamsList) external returns (bytes32[] memory loanParamsIdList);

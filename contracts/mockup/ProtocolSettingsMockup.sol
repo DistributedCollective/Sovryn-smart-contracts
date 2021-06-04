@@ -48,5 +48,6 @@ contract ProtocolSettingsMockup is ProtocolSettings {
 		_setTarget(this.setLendingFeeTokensHeld.selector, target);
 		_setTarget(this.setTradingFeeTokensHeld.selector, target);
 		_setTarget(this.setBorrowingFeeTokensHeld.selector, target);
+		_setTarget(this.getSpecialRebates.selector, target);
 	}
 }

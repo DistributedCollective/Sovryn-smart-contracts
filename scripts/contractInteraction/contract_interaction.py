@@ -820,6 +820,14 @@ def setSpecialRebates(sourceTokenAddress, destTokenAddress, specialRebatesPercen
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
 
+def setDefaultRebatesPercentage(rebatePercent):
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.setRebatePercent.encode_input(rebatePercent)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
+
 def sendFromMultisigToVesting(amount):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
     data = vestingRegistry.deposit.encode_input()
@@ -1227,6 +1235,20 @@ def replaceProtocolSettings():
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
+def replaceLoanSettings():
+    print("Deploying LoanSettings.")
+    settings = acct.deploy(LoanSettings)
+
+    print("Calling replaceContract.")
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(settings.address)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
 def deployAffiliate():
     loadConfig()
     # -------------------------------- 1. Replace the protocol settings contract ------------------------------
@@ -1299,7 +1321,15 @@ def deployTradingRebatesUsingLockedSOV():
     print(txId)
     print("lockedSOV address loaded:", sovryn.sovTokenAddress())
 
-    # ---------------------------- 3. Redeploy modules which implement InterestUser and SwapsUser -----------------------
+    # ----------------------------- 3. Set default feeRebatePercent -------------------------------------------
+    setDefaultRebatesPercentage(50 * 10**18)
+
+    # TODO
+    # setSpecialRebates("sourceTokenAddress", "destTokenAddress", 10 * 10**18)
+
+    # ---------------------------- 4. Redeploy modules which implement InterestUser and SwapsUser -----------------------
+    # ProtocolSettings
+    replaceProtocolSettings()
     # LoanClosingsBase
     # LoanClosingsWith
     replaceLoanClosings()
@@ -1309,6 +1339,8 @@ def deployTradingRebatesUsingLockedSOV():
     replaceLoanMaintenance()
     # SwapsExternal
     redeploySwapsExternal()
+    # LoanSettings
+    replaceLoanSettings()
 
 
 def replaceLoanMaintenance():
