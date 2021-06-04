@@ -13,8 +13,8 @@ def main():
     balanceAfter = acct.balance()
 
     print("=============================================================")
-    print("ETH Before Balance:  ", balanceBefore)
-    print("ETH After Balance:   ", balanceAfter)
+    print("BNB Before Balance:  ", balanceBefore)
+    print("BNB After Balance:   ", balanceAfter)
     print("Gas Used:            ", balanceBefore - balanceAfter)
     print("=============================================================")
 
@@ -23,15 +23,12 @@ def loadConfig():
     thisNetwork = network.show_active()
 
     # == Load config =======================================================================================================================
-    if thisNetwork == "development":
-        acct = accounts[0]
-        configFile =  open('./scripts/pancakeswap/eth_testnet_contracts.json')
-    elif thisNetwork == "rinkeby":
+    if thisNetwork == "binance-testnet":
         acct = accounts.load("rskdeployer")
-        configFile =  open('./scripts/pancakeswap/eth_testnet_contracts.json')
-    elif thisNetwork == "mainnet":
+        configFile =  open('./scripts/pancakeswap/bsc_testnet_contracts.json')
+    elif thisNetwork == "binance-mainnet":
         acct = accounts.load("rskdeployer")
-        configFile =  open('./scripts/pancakeswap/eth_mainnet_contracts.json')
+        configFile =  open('./scripts/pancakeswap/bsc_mainnet_contracts.json')
     else:
         raise Exception("network not supported")
 
@@ -39,12 +36,12 @@ def loadConfig():
     contracts = json.load(configFile)
 
 # == PancakeSwap Pool Deployment ==================================
-def deployPoolFromMultisig(ethAmount, eSOVAmount):
-    eSOV = Contract.from_abi("SOV", address = contracts['eSOV'], abi = SOV.abi, owner = acct)    
+def deployPoolFromMultisig(bnbAmount, bSOVAmount):
+    bSOV = Contract.from_abi("SOV", address = contracts['bSOV'], abi = SOV.abi, owner = acct)    
     pancakeRouter02 = Contract.from_abi("IPancakeRouter02", address=contracts['PancakeRouter02'], abi=interface.IPancakeRouter02.abi, owner=acct)
 
     # Checks if user has approved PancakeSwap for transfer. If not, will do the transfer.
-    checkTokenApproval(eSOV, acct, pancakeRouter02.address, eSOVAmount)
+    checkTokenApproval(bSOV, acct, pancakeRouter02.address, bSOVAmount)
     
     # Creating PancakeSwap Pool
     thirtyMinutes = 30 * 60
@@ -54,16 +51,16 @@ def deployPoolFromMultisig(ethAmount, eSOVAmount):
     print("=============================================================")
     print("Interaction Parameters (Pool Creation)")
     print("=============================================================")
-    print("eSOV Token:                  ", eSOV.address)
-    print("amountTokenDesired:          ", eSOVAmount)
-    print("amountTokenMin:              ", eSOVAmount)
-    print("amountETHMin:                ", ethAmount)
+    print("bSOV Token:                  ", bSOV.address)
+    print("amountTokenDesired:          ", bSOVAmount)
+    print("amountTokenMin:              ", bSOVAmount)
+    print("amountBNBMin:                ", bnbAmount)
     print("to:                          ", acct)
     print("deadline:                    ", deadline)
     print("=============================================================")
     print("Current Timestamp:           ", currentTimestamp)
     print("=============================================================")
-    tx = pancakeRouter02.addLiquidityETH(eSOV.address, eSOVAmount, eSOVAmount, ethAmount, acct, deadline, { 'value': ethAmount })
+    tx = pancakeRouter02.addLiquidityETH(bSOV.address, bSOVAmount, bSOVAmount, bnbAmount, acct, deadline, { 'value': bnbAmount })
     tx.info()
 
 def checkTokenApproval(token, owner, spender, amount):

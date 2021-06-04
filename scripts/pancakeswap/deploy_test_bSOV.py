@@ -7,12 +7,12 @@ def main():
 
     balanceBefore = acct.balance()
     # Function Call
-    deploy_eSOV()
+    deploy_bSOV()
     balanceAfter = acct.balance()
 
     print("=============================================================")
-    print("ETH Before Balance:  ", balanceBefore)
-    print("ETH After Balance:   ", balanceAfter)
+    print("BNB Before Balance:  ", balanceBefore)
+    print("BNB After Balance:   ", balanceAfter)
     print("Gas Used:            ", balanceBefore - balanceAfter)
     print("=============================================================")
 
@@ -21,23 +21,20 @@ def loadConfig():
     thisNetwork = network.show_active()
 
     # == Load config ==============================================
-    if thisNetwork == "development":
-        acct = accounts[0]
-        configFile =  open('./scripts/pancakeswap/eth_testnet_contracts.json')
-    elif thisNetwork == "rinkeby":
+    if thisNetwork == "binance-testnet":
         acct = accounts.load("rskdeployer")
-        configFile =  open('./scripts/pancakeswap/eth_testnet_contracts.json')
-    elif thisNetwork == "mainnet":
+        configFile =  open('./scripts/pancakeswap/bsc_testnet_contracts.json')
+    elif thisNetwork == "binance-mainnet":
         acct = accounts.load("rskdeployer")
-        configFile =  open('./scripts/pancakeswap/eth_mainnet_contracts.json')
+        configFile =  open('./scripts/pancakeswap/bsc_mainnet_contracts.json')
     else:
         raise Exception("network not supported")
 
     # Load deployed contracts addresses
     contracts = json.load(configFile)
 
-# == eSOV Deployment ==========================================
-def deploy_eSOV():
+# == bSOV Deployment ==========================================
+def deploy_bSOV():
     tokenAmount = 10**26 # 100 Million Equivalent
     print("=============================================================")
     print("Deployment Parameters")
@@ -45,11 +42,11 @@ def deploy_eSOV():
     print("Token Balance:   ", tokenAmount)
     print("=============================================================")
 
-    eSOVtoken = acct.deploy(SOV, tokenAmount)
-    tokenAmount = eSOVtoken.balanceOf(acct)
+    bSOVtoken = acct.deploy(SOV, tokenAmount)
+    tokenAmount = bSOVtoken.balanceOf(acct)
     print("=============================================================")
     print("Deployed Details")
     print("=============================================================")
-    print("eSOV Address:  ", eSOVtoken)
+    print("bSOV Address:  ", bSOVtoken)
     print("Token Balance: ", tokenAmount)
     print("=============================================================")

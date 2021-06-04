@@ -1,9 +1,9 @@
-/// @dev https://github.com/pancakeswap/pancake-swap-periphery/blob/master/contracts/interfaces/IPancakeRouter02.sol (pragma changed)
+/// @dev https://github.com/pancakeswap/pancake-swap-periphery/blob/master/contracts/interfaces/IPancakeRouter02.sol (with minor changes)
 pragma solidity ^0.5.17;
 
 import './IPancakeRouter01.sol';
 
-interface IPancakeRouter02 is IPancakeRouter01 {
+contract IPancakeRouter02 is IPancakeRouter01 {
     function removeLiquidityETHSupportingFeeOnTransferTokens(
         address token,
         uint liquidity,

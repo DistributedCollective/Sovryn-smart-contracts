@@ -9,15 +9,15 @@ def main():
 
     balanceBefore = acct.balance()
     # Function Call
-    # tokenTransfer(contracts['multisig'], eSOVAmount) # Change eSOVAmount with the amount of eSOV to be transferred.
+    # tokenTransfer(contracts['multisig'], bSOVAmount) # Change bSOVAmount with the amount of bSOV to be transferred.
     deployPoolFromMultisig(10e18, 500e18)
     # confirmTransaction() # Need to add a transaction ID as parameter.
     # executeOnMultisig() # Need to add a transaction ID as parameter.
     balanceAfter = acct.balance()
 
     print("=============================================================")
-    print("ETH Before Balance:  ", balanceBefore)
-    print("ETH After Balance:   ", balanceAfter)
+    print("BNB Before Balance:  ", balanceBefore)
+    print("BNB After Balance:   ", balanceAfter)
     print("Gas Used:            ", balanceBefore - balanceAfter)
     print("=============================================================")
 
@@ -26,15 +26,12 @@ def loadConfig():
     thisNetwork = network.show_active()
 
     # == Load config =======================================================================================================================
-    if thisNetwork == "development":
-        acct = accounts[0]
-        configFile =  open('./scripts/pancakeswap/eth_testnet_contracts.json')
-    elif thisNetwork == "rinkeby":
+    if thisNetwork == "binance-testnet":
         acct = accounts.load("rskdeployer")
-        configFile =  open('./scripts/pancakeswap/eth_testnet_contracts.json')
-    elif thisNetwork == "mainnet":
+        configFile =  open('./scripts/pancakeswap/bsc_testnet_contracts.json')
+    elif thisNetwork == "binance-mainnet":
         acct = accounts.load("rskdeployer")
-        configFile =  open('./scripts/pancakeswap/eth_mainnet_contracts.json')
+        configFile =  open('./scripts/pancakeswap/bsc_mainnet_contracts.json')
     else:
         raise Exception("network not supported")
 
@@ -42,54 +39,54 @@ def loadConfig():
     contracts = json.load(configFile)
 
 # == PancakeSwap Pool Deployment ==================================
-def deployPoolFromMultisig(ethAmount, eSOVAmount):
-    eSOV = Contract.from_abi("SOV", address = contracts['eSOV'], abi = SOV.abi, owner = acct)
+def deployPoolFromMultisig(bnbAmount, bSOVAmount):
+    bSOV = Contract.from_abi("SOV", address = contracts['bSOV'], abi = SOV.abi, owner = acct)
     ethMultisig = Contract.from_abi("MultiSig", address=contracts['ethMultisig'], abi=MultiSigWallet.abi, owner=acct)
     pancakeRouter02 = Contract.from_abi("IPancakeRouter02", address=contracts['PancakeRouter02'], abi=interface.IPancakeRouter02.abi, owner=acct)
 
-    # Checks if multisig has enough eth balance. If not enough, will transfer in case of test network.
-    checkETHBalanceAndTransfer(ethMultisig, ethAmount)
+    # Checks if multisig has enough BNB balance. If not enough, will transfer in case of test network.
+    checkBnbBalanceAndTransfer(ethMultisig, bnbAmount)
 
     # Checks if multisig has enough token balance. If not enough, will transfer in case of test network.
-    checkTokenBalanceAndTransfer(eSOV, ethMultisig.address, eSOVAmount)
+    checkTokenBalanceAndTransfer(bSOV, ethMultisig.address, bSOVAmount)
 
     # Checks if multisig has approved PancakeSwap for transfer. If not, will do the transfer.
-    checkTokenApprovalInMultisig(eSOV, ethMultisig.address, pancakeRouter02.address, eSOVAmount)
+    checkTokenApprovalInMultisig(bSOV, ethMultisig.address, pancakeRouter02.address, bSOVAmount)
     
     # Creating PancakeSwap Pool
     thirtyMinutes = 30 * 60
     currentTimestamp = int(time.time())
     deadline = currentTimestamp + thirtyMinutes
-    data = pancakeRouter02.addLiquidityETH.encode_input(eSOV.address, eSOVAmount, eSOVAmount, ethAmount, ethMultisig.address, deadline)
+    data = pancakeRouter02.addLiquidityETH.encode_input(bSOV.address, bSOVAmount, bSOVAmount, bnbAmount, ethMultisig.address, deadline)
     # https://github.com/pancakeswap/pancake-swap-periphery/blob/master/contracts/PancakeRouter.sol#L61
     print("=============================================================")
     print("Interaction Parameters (Pool Creation)")
     print("=============================================================")
-    print("eSOV Token:                  ", eSOV.address)
-    print("amountTokenDesired:          ", eSOVAmount)
-    print("amountTokenMin:              ", eSOVAmount)
-    print("amountETHMin:                ", ethAmount)
+    print("bSOV Token:                  ", bSOV.address)
+    print("amountTokenDesired:          ", bSOVAmount)
+    print("amountTokenMin:              ", bSOVAmount)
+    print("amountBNBMin:                ", bnbAmount)
     print("to:                          ", ethMultisig.address)
     print("deadline:                    ", deadline)
     print("Encoded Data:                ", data)
     print("=============================================================")
     print("Current Timestamp:           ", currentTimestamp)
     print("=============================================================")
-    submitTransaction(pancakeRouter02.address, ethAmount, data)
+    submitTransaction(pancakeRouter02.address, bnbAmount, data)
 
 # Checks if enough balance is there in a receiver, if not, will transfer the difference.
-def checkETHBalanceAndTransfer(receiver, ethAmount):
+def checkBnbBalanceAndTransfer(receiver, bnbAmount):
     bal = receiver.balance()
-    if(bal < ethAmount):
+    if(bal < bnbAmount):
         if network.show_active() == "rinkeby":
-            acct.transfer(receiver.address, ethAmount - bal)
+            acct.transfer(receiver.address, bnbAmount - bal)
         else:
-            print("Not enough eth balance in address.")
+            print("Not enough BNB balance in address.")
             sys.exit()
 
-# Just a function to take out eth from multisig.
-def ethTransferOutFromMultisig(receiver, ethAmount):
-    submitTransaction(receiver, ethAmount, '0x')
+# Just a function to take out BNB from multisig.
+def bnbTransferOutFromMultisig(receiver, bnbAmount):
+    submitTransaction(receiver, bnbAmount, '0x')
 
 # Checks user token balance, and if not enough balance, will either quit the program (mainnet) or replenish (testnet)
 def checkTokenBalanceAndTransfer(token, addr, amount):
@@ -101,16 +98,16 @@ def checkTokenBalanceAndTransfer(token, addr, amount):
             print("Not enough token balance in address.")
             sys.exit()
 
-# Makes the token transfer to `receiver` for the amount of `eSOVAmount`.
-def tokenTransfer(receiver, eSOVAmount):
-    eSOV = Contract.from_abi("SOV", address = contracts['eSOV'], abi = SOV.abi, owner = acct)
+# Makes the token transfer to `receiver` for the amount of `bSOVAmount`.
+def tokenTransfer(receiver, bSOVAmount):
+    bSOV = Contract.from_abi("SOV", address = contracts['bSOV'], abi = SOV.abi, owner = acct)
     print("=============================================================")
     print("Interaction Parameters (Token Transfer)")
     print("=============================================================")
     print("Receiver:                ", receiver)
-    print("eSOV Amount:             ", eSOVAmount)
+    print("bSOV Amount:             ", bSOVAmount)
     print("=============================================================")
-    tx = eSOV.transfer(receiver, eSOVAmount)
+    tx = bSOV.transfer(receiver, bSOVAmount)
     tx.info()
 
 # Checks if enough token approval is there in spender from owner. If not, it will make the allowance. This one is made for multisig.

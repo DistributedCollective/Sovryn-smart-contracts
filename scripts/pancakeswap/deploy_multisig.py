@@ -11,8 +11,8 @@ def main():
     balanceAfter = acct.balance()
 
     print("=============================================================")
-    print("ETH Before Balance:  ", balanceBefore)
-    print("ETH After Balance:   ", balanceAfter)
+    print("BNB Before Balance:  ", balanceBefore)
+    print("BNB After Balance:   ", balanceAfter)
     print("Gas Used:            ", balanceBefore - balanceAfter)
     print("=============================================================")
 
@@ -21,15 +21,12 @@ def loadConfig():
     thisNetwork = network.show_active()
 
     # == Load config =======================================================================================================================
-    if thisNetwork == "development":
-        acct = accounts[0]
-        configFile =  open('./scripts/pancakeswap/eth_testnet_contracts.json')
-    elif thisNetwork == "rinkeby":
+    if thisNetwork == "binance-testnet":
         acct = accounts.load("rskdeployer")
-        configFile =  open('./scripts/pancakeswap/eth_testnet_contracts.json')
-    elif thisNetwork == "mainnet":
+        configFile =  open('./scripts/pancakeswap/bsc_testnet_contracts.json')
+    elif thisNetwork == "binance-mainnet":
         acct = accounts.load("rskdeployer")
-        configFile =  open('./scripts/pancakeswap/eth_mainnet_contracts.json')
+        configFile =  open('./scripts/pancakeswap/bsc_mainnet_contracts.json')
     else:
         raise Exception("network not supported")
 
