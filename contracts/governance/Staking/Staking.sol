@@ -5,6 +5,7 @@ import "./WeightedStaking.sol";
 import "./IStaking.sol";
 import "../../rsk/RSKAddrValidator.sol";
 import "../Vesting/ITeamVesting.sol";
+import "../Vesting/IVesting.sol";
 import "../ApprovalReceiver.sol";
 import "../../openzeppelin/SafeMath.sol";
 
@@ -611,11 +612,15 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 			if (currentDelegate != delegatee) {
 				_delegate(delegator, delegatee, nextLock);
 			}
+
 			// @dev workaround for the issue with a delegation of the latest stake
-			nextLock = nextLock.add(TWO_WEEKS);
-			currentDelegate = delegates[delegator][nextLock];
-			if (currentDelegate != delegatee) {
-				_delegate(delegator, delegatee, nextLock);
+			uint256 endDate = IVesting(msg.sender).endDate();
+			nextLock = lockedTS.add(FOUR_WEEKS);
+			if (nextLock == endDate) {
+				currentDelegate = delegates[delegator][nextLock];
+				if (currentDelegate != delegatee) {
+					_delegate(delegator, delegatee, nextLock);
+				}
 			}
 		}
 	}
@@ -732,7 +737,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param account The address to get stakes.
 	 * @return The arrays of dates and stakes.
 	 * */
-	function getStakes(address account) external view returns (uint256[] memory dates, uint96[] memory stakes) {
+	function getStakes(address account) public view returns (uint256[] memory dates, uint96[] memory stakes) {
 		uint256 latest = timestampToLockDate(block.timestamp + MAX_DURATION);
 
 		/// @dev Calculate stakes.
