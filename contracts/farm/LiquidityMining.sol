@@ -431,7 +431,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 		address userAddress = msg.sender;
 		if (_user != address(0)) {
 			//only wrapper can pass _user parameter
-			require(msg.sender == wrapper && _user == tx.origin, "unauthorized");
+			require(msg.sender == wrapper, "unauthorized");
 			userAddress = _user;
 		}
 		return userAddress;
