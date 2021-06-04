@@ -17,7 +17,7 @@ const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV = artifacts.require("SOV");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
-const VestingLogic = artifacts.require("VestingLogic");
+const VestingLogic = artifacts.require("VestingLogicMockup");
 const Vesting = artifacts.require("TeamVesting");
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
@@ -148,7 +148,7 @@ contract("Vesting", (accounts) => {
 
 	describe("delegate", () => {
 		let vesting;
-		it("should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff", async () => {
+		it("should stake tokens 2 times and delegate voting power", async () => {
 			let toStake = ONE_MILLON;
 			vesting = await Vesting.new(
 				vestingLogic.address,
@@ -165,6 +165,46 @@ contract("Vesting", (accounts) => {
 			await vesting.stakeTokens(toStake);
 
 			await increaseTime(50 * WEEK);
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
+
+			//check delegatee
+			let data = await staking.getStakes.call(vesting.address);
+			for (let i = 0; i < data.dates.length; i++) {
+				let delegatee = await staking.delegates(vesting.address, data.dates[i]);
+				expect(delegatee).equal(a2);
+			}
+
+			await staking.addContractCodeHash(vesting.address);
+			//delegate
+			let tx = await vesting.delegate(a1, { from: a2 });
+
+			expectEvent(tx, "VotesDelegated", {
+				caller: a2,
+				delegatee: a1,
+			});
+
+			//check new delegatee
+			data = await staking.getStakes.call(vesting.address);
+			for (let i = 0; i < data.dates.length; i++) {
+				let delegatee = await staking.delegates(vesting.address, data.dates[i]);
+				expect(delegatee).equal(a1);
+			}
+		});
+
+		it("should stake tokens 1 time and delegate voting power (using vesting logic with bug in delegation)", async () => {
+			let toStake = ONE_MILLON;
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				a2,
+				26 * WEEK,
+				106 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 
