@@ -377,7 +377,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 			uint256 nextLock = until.add(TWO_WEEKS);
 			if (isGovernance || block.timestamp >= nextLock) {
 				uint96 stake = _getPriorUserStakeByDate(msg.sender, nextLock, block.number - 1);
-				if (stake > 1) {
+				if (stake > 0) {
 					_withdraw(stake, nextLock, receiver, isGovernance);
 				}
 			}
