@@ -72,6 +72,9 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.setSOVTokenAddress.selector, target);
 		_setTarget(this.setLockedSOVAddress.selector, target);
 		_setTarget(this.setMinReferralsToPayoutAffiliates.selector, target);
+		_setTarget(this.getProtocolAddress.selector, target);
+		_setTarget(this.getSovTokenAddress.selector, target);
+		_setTarget(this.getLockedSOVAddress.selector, target);
 	}
 
 	/**
@@ -577,5 +580,17 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		feeRebatePercent = rebatePercent;
 
 		emit SetRebatePercent(msg.sender, oldRebatePercent, rebatePercent);
+	}
+
+	function getProtocolAddress() external view returns (address) {
+		return protocolAddress;
+	}
+
+	function getSovTokenAddress() external view returns (address) {
+		return sovTokenAddress;
+	}
+
+	function getLockedSOVAddress() external view returns (address) {
+		return lockedSOVAddress;
 	}
 }

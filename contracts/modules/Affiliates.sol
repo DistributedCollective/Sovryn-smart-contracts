@@ -38,6 +38,10 @@ contract Affiliates is State, AffiliatesEvents {
 		_setTarget(this.getAffiliatesReferrerTokensList.selector, target);
 		_setTarget(this.withdrawAffiliatesReferrerTokenFees.selector, target);
 		_setTarget(this.withdrawAllAffiliatesReferrerTokenFees.selector, target);
+		_setTarget(this.getMinReferralsToPayout.selector, target);
+		_setTarget(this.getAffiliatesUserReferrer.selector, target);
+		_setTarget(this.getAffiliateRewardsHeld.selector, target);
+		_setTarget(this.getAffiliateTradingTokenFeePercent.selector, target);
 	}
 
 	modifier onlyCallableByLoanPools() {
@@ -95,14 +99,14 @@ contract Affiliates is State, AffiliatesEvents {
 
 	// calculate affiliates trading token fee amount
 	function _getReferrerTradingFeeForToken(uint256 feeTokenAmount) internal view returns (uint256) {
-		return feeTokenAmount.mul(_getAffiliatesTradingFeePercentForToken()).div(10**20);
+		return feeTokenAmount.mul(getAffiliateTradingTokenFeePercent()).div(10**20);
 	}
 
-	function _getAffiliatesTradingFeePercentForToken() internal view returns (uint256) {
+	function getAffiliateTradingTokenFeePercent() public view returns (uint256) {
 		return affiliateTradingTokenFeePercent;
 	}
 
-	function _getMinReferralsToPayout() internal view returns (uint256) {
+	function getMinReferralsToPayout() public view returns (uint256) {
 		return minReferralsToPayout;
 	}
 
@@ -142,7 +146,7 @@ contract Affiliates is State, AffiliatesEvents {
 		address token,
 		uint256 tradingFeeTokenBaseAmount
 	) external onlyCallableInternal returns (uint256 referrerBonusSovAmount, uint256 referrerBonusTokenAmount) {
-		bool isHeld = referralsList[referrer].length() >= _getMinReferralsToPayout() ? false : true;
+		bool isHeld = referralsList[referrer].length() >= getMinReferralsToPayout() ? false : true;
 		bool bonusPaymentIsSuccess = true;
 		uint256 paidReferrerBonusSovAmount;
 
@@ -210,7 +214,7 @@ contract Affiliates is State, AffiliatesEvents {
 
 		require(withdrawAmount > 0, "Affiliates: cannot withdraw zero amount");
 
-		require(referralsList[referrer].length() >= _getMinReferralsToPayout(), "Your referrals has not reached the minimum request");
+		require(referralsList[referrer].length() >= getMinReferralsToPayout(), "Your referrals has not reached the minimum request");
 
 		uint256 newReferrerTokenBalance = referrerTokenBalance.sub(withdrawAmount);
 
@@ -229,7 +233,7 @@ contract Affiliates is State, AffiliatesEvents {
 		require(receiver != address(0), "Affiliates: cannot withdraw to zero address");
 		address referrer = msg.sender;
 
-		require(referralsList[referrer].length() >= _getMinReferralsToPayout(), "Your referrals has not reached the minimum request");
+		require(referralsList[referrer].length() >= getMinReferralsToPayout(), "Your referrals has not reached the minimum request");
 
 		(address[] memory tokenAddresses, uint256[] memory tokenBalances) = getAffiliatesReferrerBalances(referrer);
 		for (uint256 i; i < tokenAddresses.length; i++) {
@@ -264,4 +268,11 @@ contract Affiliates is State, AffiliatesEvents {
 		return affiliatesReferrerBalances[referrer][token];
 	}
 
+	function getAffiliatesUserReferrer(address user) public view returns (address) {
+		return affiliatesUserReferrer[user];
+	}
+
+	function getAffiliateRewardsHeld(address referrer) public view returns(uint256) {
+		return affiliateRewardsHeld[referrer];
+	}
 }

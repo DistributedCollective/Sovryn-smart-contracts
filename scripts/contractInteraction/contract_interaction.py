@@ -1266,7 +1266,7 @@ def deployAffiliate():
     tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
-    print("protocol address loaded:", sovryn.protocolAddress())
+    print("protocol address loaded:", sovryn.getProtocolAddress())
 
     # Set SOVTokenAddress
     sovToken = Contract.from_abi("SOV", address=contracts["SOV"], abi=SOV.abi, owner=acct)
@@ -1278,7 +1278,7 @@ def deployAffiliate():
     tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
-    print("sovToken address loaded:", sovryn.sovTokenAddress())
+    print("sovToken address loaded:", sovryn.getSovTokenAddress())
 
     # Set LockedSOVAddress
     lockedSOV = Contract.from_abi("LockedSOV", address=contracts["LockedSOV"], abi=LockedSOV.abi, owner=acct)
@@ -1290,7 +1290,7 @@ def deployAffiliate():
     tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
-    print("lockedSOV address loaded:", sovryn.sovTokenAddress())
+    print("lockedSOV address loaded:", lockedSOV.address)
 
     # Set minReferralsToPayout
     setMinReferralsToPayout(3)

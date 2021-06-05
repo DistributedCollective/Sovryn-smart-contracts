@@ -353,4 +353,18 @@ contract ISovrynBrownie is
 	) external;
 
 	// function getAffiliatesUserReferrer(address user) external returns ; //AUDIT: do we need it to be public?
+
+	function getProtocolAddress() external view returns (address);
+
+	function getSovTokenAddress() external view returns (address);
+
+	function getLockedSOVAddress() external view returns (address);
+
+	function getMinReferralsToPayout() external view returns (uint256);
+
+	function getAffiliatesUserReferrer(address user) external view returns (address referrer);
+
+	function getAffiliateRewardsHeld(address referrer) external view returns (uint256);
+
+	function getAffiliateTradingTokenFeePercent() external view returns (uint256 affiliateTradingTokenFeePercent);
 }

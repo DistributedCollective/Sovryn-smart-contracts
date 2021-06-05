@@ -349,4 +349,18 @@ contract ISovryn is
 	) external returns (uint256 withdrawAmount);
 
 	function withdrawAllAffiliatesReferrerTokenFees(address receiver) external;
+
+	function getProtocolAddress() external view returns (address);
+
+	function getSovTokenAddress() external view returns (address);
+
+	function getLockedSOVAddress() external view returns (address);
+
+	function getMinReferralsToPayout() external view returns (uint256);
+
+	function getAffiliatesUserReferrer(address user) external view returns (address referrer);
+
+	function getAffiliateRewardsHeld(address referrer) external view returns (uint256);
+
+	function getAffiliateTradingTokenFeePercent() external view returns (uint256 affiliateTradingTokenFeePercent);
 }
