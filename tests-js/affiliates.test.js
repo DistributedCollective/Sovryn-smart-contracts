@@ -201,7 +201,7 @@ contract("Affiliates", (accounts) => {
 		);
 
 		expect(await sovryn.getUserNotFirstTradeFlag(trader), "userNotFirstTradeFlag has not been set to true").to.be.true;
-		expect(await sovryn.affiliatesUserReferrer(trader), "Incorrect User Affiliate Referrer set").to.be.equal(referrer);
+		expect(await sovryn.getAffiliatesUserReferrer(trader), "Incorrect User Affiliate Referrer set").to.be.equal(referrer);
 
 		let event_name = "PayTradingFeeToAffiliate";
 		let decode = decodeLogs(tx.receipt.rawLogs, Affiliates, event_name);
@@ -222,7 +222,7 @@ contract("Affiliates", (accounts) => {
 		);
 		submittedSovBonusAmount = decode[0].args["sovBonusAmount"];
 		submittedTokenBonusAmount = decode[0].args["tokenBonusAmount"];
-		affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+		affiliateRewardsHeld = await sovryn.getAffiliateRewardsHeld(referrer);
 		expect(sovBonusAmountShouldBePaid.toString(), "Incorrect sov bonus amount calculation").to.be.equal(submittedSovBonusAmount);
 		expect(submittedToken).to.eql(doc.address);
 		expect(submittedReferrer).to.eql(referrer);
@@ -268,7 +268,7 @@ contract("Affiliates", (accounts) => {
 		);
 		submittedSovBonusAmount = decode[0].args["sovBonusAmount"];
 		paidSovBonusAmount = decode[0].args["sovBonusAmountPaid"];
-		affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+		affiliateRewardsHeld = await sovryn.getAffiliateRewardsHeld(referrer);
 
 		expect(sovBonusAmountShouldBePaid.toString(), "Incorrect sov bonus amount calculation").to.be.equal(
 			submittedSovBonusAmount.toString()
@@ -308,7 +308,7 @@ contract("Affiliates", (accounts) => {
 		);
 
 		expect(await sovryn.getUserNotFirstTradeFlag(trader), "userNotFirstTradeFlag has not been set to true").to.be.true;
-		expect(await sovryn.affiliatesUserReferrer(trader), "Incorrect User Affiliate Referrer set").to.be.equal(referrer);
+		expect(await sovryn.getAffiliatesUserReferrer(trader), "Incorrect User Affiliate Referrer set").to.be.equal(referrer);
 
 		const event_name = "PayTradingFeeToAffiliate";
 		const decode = decodeLogs(tx.receipt.rawLogs, Affiliates, event_name);
@@ -329,7 +329,7 @@ contract("Affiliates", (accounts) => {
 		);
 		submittedSovBonusAmount = decode[0].args["sovBonusAmountPaid"];
 		submittedTokenBonusAmount = decode[0].args["tokenBonusAmount"];
-		affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+		affiliateRewardsHeld = await sovryn.getAffiliateRewardsHeld(referrer);
 		expect(sovBonusAmountShouldBePaid.toString(), "Incorrect sov bonus amount calculation").to.be.equal(submittedSovBonusAmount);
 		expect(submittedToken).to.eql(doc.address);
 		expect(submittedReferrer).to.eql(referrer);
@@ -385,7 +385,7 @@ contract("Affiliates", (accounts) => {
 			((affiliatesFeePercentage * tradingFeeAmount) / Math.pow(10, 20)).toString()
 		);
 		expect(await sovryn.getUserNotFirstTradeFlag(trader), "userNotFirstTradeFlag has not been set to true").to.be.true;
-		expect(await sovryn.affiliatesUserReferrer(trader), "Incorrect User Affiliate Referrer set").to.be.equal(referrer);
+		expect(await sovryn.getAffiliatesUserReferrer(trader), "Incorrect User Affiliate Referrer set").to.be.equal(referrer);
 		expect(sovBonusAmountShouldBePaid.toString(), "Incorrect sov bonus amount calculation").to.be.equal(sovBonusAmount);
 		expect(submittedToken).to.eql(doc.address);
 		expect(submittedReferrer).to.eql(referrer);
@@ -397,7 +397,7 @@ contract("Affiliates", (accounts) => {
 			user: trader,
 		});
 		tx = await loanTokenV2.setAffiliatesReferrer(trader, referrer); // can be called only from loan tokens pool addresses
-		expect(await sovryn.affiliatesUserReferrer(trader), "Referrer cannot be set for non first trade users").to.be.equal(
+		expect(await sovryn.getAffiliatesUserReferrer(trader), "Referrer cannot be set for non first trade users").to.be.equal(
 			constants.ZERO_ADDRESS
 		);
 
@@ -414,13 +414,13 @@ contract("Affiliates", (accounts) => {
 			referrer: referrer,
 		});
 		await loanTokenV2.setAffiliatesReferrer(trader, account1); // try to replace referrer
-		expect(await sovryn.affiliatesUserReferrer(trader), "Affiliates Referrer is set once and cannot be changed").to.be.equal(referrer);
+		expect(await sovryn.getAffiliatesUserReferrer(trader), "Affiliates Referrer is set once and cannot be changed").to.be.equal(referrer);
 	});
 
 	it("Users cannot be self-referrers", async () => {
 		// try to replace referrer
 		await loanTokenV2.setAffiliatesReferrer(trader, trader); // can be called only from loan tokens pool addresses
-		expect(await sovryn.affiliatesUserReferrer(trader), "Affiliates Referrer is set once and cannot be changed").to.be.equal(
+		expect(await sovryn.getAffiliatesUserReferrer(trader), "Affiliates Referrer is set once and cannot be changed").to.be.equal(
 			constants.ZERO_ADDRESS
 		);
 	});
