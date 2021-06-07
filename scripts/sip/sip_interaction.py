@@ -18,8 +18,8 @@ def main():
 
     # Call the function you want here
     currentVotingPower(acct)
-    createProposalSIP0017()
-    createProposalSIP0018()
+
+    createProposalSIP0020()
 
     balanceAfter = acct.balance()
 
@@ -188,7 +188,7 @@ def createProposalSIP0017():
     description = "SIP-0017: Money on Chain's MOC Listing and Incentivization Strategy, Details: https://github.com/DistributedCollective/SIPS/blob/6e577af/SIP-0017.md, sha256: 2bb188713390b56aced2209095843e2465328ab6ff97c0439d2c918d8386efc0"
 
     # Create Proposal
-    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+    # createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
 
 def createProposalSIP0018():
     # Action
@@ -199,4 +199,20 @@ def createProposalSIP0018():
     description = "SIP-0018: BabelFish Token Sale via Origins, Details: https://github.com/DistributedCollective/SIPS/blob/f8a726d/SIP-0018.md, sha256: 75df76b1e7b2a5c1cdf1192e817573f3794afbd47c19bf85abda04f222a12ecb"
 
     # Create Proposal
-    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+    # createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+def createProposalSIP0020():
+
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking'], contracts['Staking']]
+    values = [0, 0]
+    signatures = ["setImplementation(address)", "addAdmin(address)"]
+    data1 = staking.setImplementation.encode_input(contracts['StakingLogic3'])
+    data2 = staking.addAdmin.encode_input(contracts['multisig'])
+    datas = ["0x" + data1[10:], "0x" + data2[10:]]
+    description = "SIP-0020: Staking contract updates, Details: https://github.com/DistributedCollective/SIPS/blob/91ea9de/SIP-0020.md, sha256: c1d39606ef53067d55b3e8a05a266918fa7bad09ecc2c1afcef7c68b2eac3cd0"
+
+    # Create Proposal
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
