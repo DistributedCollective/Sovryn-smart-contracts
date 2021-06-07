@@ -10,7 +10,8 @@ def main():
     balanceBefore = acct.balance()
     # Function Call
     # tokenTransfer(contracts['multisig'], bSOVAmount) # Change bSOVAmount with the amount of bSOV to be transferred.
-    deployPoolFromMultisig(10e18, 500e18)
+    # deployPoolFromMultisig(10e18, 500e18) ## previous settings probably right for mainet, but too high for a regular faucet interaction on testnet.
+    deployPoolFromMultisig(.1e18, 5e18)
     # confirmTransaction() # Need to add a transaction ID as parameter.
     # executeOnMultisig() # Need to add a transaction ID as parameter.
     balanceAfter = acct.balance()
@@ -78,7 +79,7 @@ def deployPoolFromMultisig(bnbAmount, bSOVAmount):
 def checkBnbBalanceAndTransfer(receiver, bnbAmount):
     bal = receiver.balance()
     if(bal < bnbAmount):
-        if network.show_active() == "rinkeby":
+        if network.show_active() == "binance-testnet":
             acct.transfer(receiver.address, bnbAmount - bal)
         else:
             print("Not enough BNB balance in address.")
@@ -92,7 +93,7 @@ def bnbTransferOutFromMultisig(receiver, bnbAmount):
 def checkTokenBalanceAndTransfer(token, addr, amount):
     addrBalance = token.balanceOf(addr)
     if(addrBalance < amount):
-        if network.show_active() == "rinkeby":
+        if network.show_active() == "binance-testnet":
             tokenTransfer(addr, amount)
         else:
             print("Not enough token balance in address.")

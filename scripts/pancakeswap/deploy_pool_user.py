@@ -9,7 +9,8 @@ def main():
 
     balanceBefore = acct.balance()
     # Function Call
-    deployPoolFromMultisig(10e18, 500e18)
+    # deployPool(10e18, 500e18) ## previous settings probably right for mainet, but too high for a regular faucet interaction on testnet.
+    deployPool(.1e18, 5e18)
     balanceAfter = acct.balance()
 
     print("=============================================================")
@@ -36,7 +37,7 @@ def loadConfig():
     contracts = json.load(configFile)
 
 # == PancakeSwap Pool Deployment ==================================
-def deployPoolFromMultisig(bnbAmount, bSOVAmount):
+def deployPool(bnbAmount, bSOVAmount):
     bSOV = Contract.from_abi("SOV", address = contracts['bSOV'], abi = SOV.abi, owner = acct)    
     pancakeRouter02 = Contract.from_abi("IPancakeRouter02", address=contracts['PancakeRouter02'], abi=interface.IPancakeRouter02.abi, owner=acct)
 

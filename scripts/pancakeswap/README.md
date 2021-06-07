@@ -45,16 +45,16 @@ If checking on testnet, these steps will create the pool. If on mainnet, another
 NOTE: Dev experience advised to run the script and to make some edits suggested.
 
 
-### Mainnet
+### Brownie Configuration for Binance Network
 
 Add new BSC networks to brownie:
 
 ```
-brownie networks add "Ethereum" "binance-mainnet" host="https://bsc​-dataseed1.defibit.io/" chainid=56
+brownie networks add "BSC" "binance-mainnet" host="https://bsc​-dataseed1.defibit.io/" chainid=56
 ```
 
 ```
-brownie networks add "Ethereum" "binance-testnet" host="https://data-seed-prebsc-1-s1.binance.org:8545/" chainid=97
+brownie networks add "BSC" "binance-testnet" host="https://data-seed-prebsc-1-s1.binance.org:8545/" chainid=97
 ```
 
 ### Mainnet
@@ -112,3 +112,12 @@ NOTE: If you want to create a pool with EOA, use [`deploy_pool_user.py`](./deplo
 1. Please don't forget to set end points (RPC) for brownie networks (`binance-mainnet` and `binance-testnet`). Use your own full node, or any provider like [BSC RPC Endpoints](https://docs.binance.org/smart-chain/developer/rpc.html).
 
 2. If the multisig does not have enough tokens or BNB to provide liquidity, it is taken from the account which is running it. Please make sure you have enough liquidity present in either your account or multisig.
+
+The deploy script w/ no multisig (`deploy_pool_user.py`) and also the multisign script (`deploy_pool.py`) on line 12 has a default configuration values for the amount of BNB and bSOV to spend when deploying the pool:
+
+```
+    # deployPool(10e18, 500e18) ## previous settings probably right for mainet, but too high for a regular faucet interaction on testnet.
+    deployPool(.1e18, 5e18)
+```
+
+So, be sure to set these values properly on mainnet before running the scripts.

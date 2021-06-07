@@ -1,8 +1,8 @@
 {
-    "multisigOwner1": "",
-    "multisigOwner2": "",
-    "multisigOwner3": "",
-    "ethMultisig": "",
+    "multisigOwner1": "0xCc8c540D19b8fDd8D2EBC0d9C227f1599233c168",
+    "multisigOwner2": "0x524a74C13a38BeA6666a99AEb70B84A49F240e2d",
+    "multisigOwner3": "0xfCB7FBaB730e58FC13Db196c8cd6C9376DaE278C",
+    "ethMultisig": "0xF1D0e466eBEa5711E3d509B4eDe521aDEC0d19b4",
     "PancakeRouter02": "0xD99D1c33F9fC3444f8101754aBC46c52416550D1",
-    "bSOV": ""
+    "bSOV": "0xDC709C7880cd2034651855D4E21C8413b99aa7A8"
 }
