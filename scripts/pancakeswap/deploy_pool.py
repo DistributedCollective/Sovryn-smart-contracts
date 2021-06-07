@@ -10,8 +10,8 @@ def main():
     balanceBefore = acct.balance()
     # Function Call
     # tokenTransfer(contracts['multisig'], bSOVAmount) # Change bSOVAmount with the amount of bSOV to be transferred.
-    # deployPoolFromMultisig(10e18, 500e18) ## previous settings probably right for mainet, but too high for a regular faucet interaction on testnet.
-    deployPoolFromMultisig(.1e18, 5e18)
+    deployPoolFromMultisig(10e18, 500e18)
+    # deployPoolFromMultisig(.1e10, 5e10) # testnet settings (mainet settings are too high for a regular faucet interaction).
     # confirmTransaction() # Need to add a transaction ID as parameter.
     # executeOnMultisig() # Need to add a transaction ID as parameter.
     balanceAfter = acct.balance()
@@ -25,6 +25,8 @@ def main():
 def loadConfig():
     global contracts, acct
     thisNetwork = network.show_active()
+
+    ### IMPORTANT! rskdeployer account should be the same as multisig's owner1
 
     # == Load config =======================================================================================================================
     if thisNetwork == "binance-testnet":
@@ -42,23 +44,23 @@ def loadConfig():
 # == PancakeSwap Pool Deployment ==================================
 def deployPoolFromMultisig(bnbAmount, bSOVAmount):
     bSOV = Contract.from_abi("SOV", address = contracts['bSOV'], abi = SOV.abi, owner = acct)
-    ethMultisig = Contract.from_abi("MultiSig", address=contracts['ethMultisig'], abi=MultiSigWallet.abi, owner=acct)
+    bscMultisig = Contract.from_abi("MultiSig", address=contracts['bscMultisig'], abi=MultiSigWallet.abi, owner=acct)
     pancakeRouter02 = Contract.from_abi("IPancakeRouter02", address=contracts['PancakeRouter02'], abi=interface.IPancakeRouter02.abi, owner=acct)
 
     # Checks if multisig has enough BNB balance. If not enough, will transfer in case of test network.
-    checkBnbBalanceAndTransfer(ethMultisig, bnbAmount)
+    checkBnbBalanceAndTransfer(bscMultisig, bnbAmount)
 
     # Checks if multisig has enough token balance. If not enough, will transfer in case of test network.
-    checkTokenBalanceAndTransfer(bSOV, ethMultisig.address, bSOVAmount)
+    checkTokenBalanceAndTransfer(bSOV, bscMultisig.address, bSOVAmount)
 
     # Checks if multisig has approved PancakeSwap for transfer. If not, will do the transfer.
-    checkTokenApprovalInMultisig(bSOV, ethMultisig.address, pancakeRouter02.address, bSOVAmount)
+    checkTokenApprovalInMultisig(bSOV, bscMultisig.address, pancakeRouter02.address, bSOVAmount)
     
     # Creating PancakeSwap Pool
     thirtyMinutes = 30 * 60
     currentTimestamp = int(time.time())
     deadline = currentTimestamp + thirtyMinutes
-    data = pancakeRouter02.addLiquidityETH.encode_input(bSOV.address, bSOVAmount, bSOVAmount, bnbAmount, ethMultisig.address, deadline)
+    data = pancakeRouter02.addLiquidityETH.encode_input(bSOV.address, bSOVAmount, bSOVAmount, bnbAmount, bscMultisig.address, deadline)
     # https://github.com/pancakeswap/pancake-swap-periphery/blob/master/contracts/PancakeRouter.sol#L61
     print("=============================================================")
     print("Interaction Parameters (Pool Creation)")
@@ -67,7 +69,7 @@ def deployPoolFromMultisig(bnbAmount, bSOVAmount):
     print("amountTokenDesired:          ", bSOVAmount)
     print("amountTokenMin:              ", bSOVAmount)
     print("amountBNBMin:                ", bnbAmount)
-    print("to:                          ", ethMultisig.address)
+    print("to:                          ", bscMultisig.address)
     print("deadline:                    ", deadline)
     print("Encoded Data:                ", data)
     print("=============================================================")
@@ -127,8 +129,8 @@ def checkTokenApprovalInMultisig(token, owner, spender, amount):
 
 # Submits the transaction in multisig.
 def submitTransaction(target, value, data):
-    ethMultisig = Contract.from_abi("MultiSig", address=contracts['ethMultisig'], abi=MultiSigWallet.abi, owner=acct)
-    tx = ethMultisig.submitTransaction(target, value, data)
+    bscMultisig = Contract.from_abi("MultiSig", address=contracts['bscMultisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = bscMultisig.submitTransaction(target, value, data)
     txId = tx.events["Submission"]["transactionId"]
     print("=============================================================")
     print("Return Parameters (Multisig Submission)")
@@ -139,18 +141,18 @@ def submitTransaction(target, value, data):
 
 # Confirm the transaction in multisig.
 def confirmTransaction(transactionId):
-    ethMultisig = Contract.from_abi("MultiSig", address=contracts['ethMultisig'], abi=MultiSigWallet.abi, owner=acct)
+    bscMultisig = Contract.from_abi("MultiSig", address=contracts['bscMultisig'], abi=MultiSigWallet.abi, owner=acct)
     print("=============================================================")
     print("Interaction Parameters (Multisig Confirmation)")
     print("=============================================================")
     print("Transaction ID:          ", transactionId)
     print("=============================================================")
-    tx = ethMultisig.confirmTransaction(transactionId)
+    tx = bscMultisig.confirmTransaction(transactionId)
     tx.info()
 
 # Execute the transaction in multisig.
 def executeOnMultisig(transactionId):
-    multisig = Contract.from_abi("MultiSig", address=contracts['ethMultisig'], abi=MultiSigWallet.abi, owner=acct)
+    multisig = Contract.from_abi("MultiSig", address=contracts['bscMultisig'], abi=MultiSigWallet.abi, owner=acct)
     print("=============================================================")
     print("Interaction Parameters (Multisig Execution)")
     print("=============================================================")

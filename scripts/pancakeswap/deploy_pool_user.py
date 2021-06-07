@@ -9,8 +9,8 @@ def main():
 
     balanceBefore = acct.balance()
     # Function Call
-    # deployPool(10e18, 500e18) ## previous settings probably right for mainet, but too high for a regular faucet interaction on testnet.
-    deployPool(.1e18, 5e18)
+    deployPool(10e18, 500e18)
+    # deployPool(.1e18, 5e18) # testnet settings (mainet settings are too high for a regular faucet interaction).
     balanceAfter = acct.balance()
 
     print("=============================================================")
