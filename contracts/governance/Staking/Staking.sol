@@ -27,32 +27,6 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	uint256 constant FOUR_WEEKS = 4 weeks;
 
 	/**
-	 * @dev Throws if called by any account other than the owner or admin.
-	 */
-	modifier onlyAuthorized() {
-		require(isOwner() || admins[msg.sender], "unauthorized");
-		_;
-	}
-
-	/**
-	 * @notice Add account to ACL.
-	 * @param _admin The addresses of the account to grant permissions.
-	 * */
-	function addAdmin(address _admin) public onlyOwner {
-		admins[_admin] = true;
-		emit AdminAdded(_admin);
-	}
-
-	/**
-	 * @notice Remove account from ACL.
-	 * @param _admin The addresses of the account to revoke permissions.
-	 * */
-	function removeAdmin(address _admin) public onlyOwner {
-		admins[_admin] = false;
-		emit AdminRemoved(_admin);
-	}
-
-	/**
 	 * @notice Stake the given amount for the given duration of time.
 	 * @param amount The number of tokens to stake.
 	 * @param until Timestamp indicating the date until which to stake.
@@ -308,47 +282,6 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		vestingWhitelist[vesting] = false;
 
 		emit VestingTokensWithdrawn(vesting, receiver);
-	}
-
-	/**
-	 * @notice Add vesting contract's code hash to a map of code hashes.
-	 * @param vesting The address of Vesting contract.
-	 * @dev We need it to use _isVestingContract() function instead of isContract()
-	 */
-	function addContractCodeHash(address vesting) public onlyAuthorized {
-		bytes32 codeHash = _getCodeHash(vesting);
-		vestingCodeHashes[codeHash] = true;
-		emit ContractCodeHashAdded(codeHash);
-	}
-
-	/**
-	 * @notice Add vesting contract's code hash to a map of code hashes.
-	 * @param vesting The address of Vesting contract.
-	 * @dev We need it to use _isVestingContract() function instead of isContract()
-	 */
-	function removeContractCodeHash(address vesting) public onlyAuthorized {
-		bytes32 codeHash = _getCodeHash(vesting);
-		vestingCodeHashes[codeHash] = false;
-		emit ContractCodeHashRemoved(codeHash);
-	}
-
-	/**
-	 * @notice Return flag whether message sender is a registered vesting contract.
-	 */
-	function _isVestingContract() internal view returns (bool) {
-		bytes32 codeHash = _getCodeHash(msg.sender);
-		return vestingCodeHashes[codeHash];
-	}
-
-	/**
-	 * @notice Return hash of contract code
-	 */
-	function _getCodeHash(address _contract) internal view returns (bytes32) {
-		bytes32 codeHash;
-		assembly {
-			codeHash := extcodehash(_contract)
-		}
-		return codeHash;
 	}
 
 	/**
