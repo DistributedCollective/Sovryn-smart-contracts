@@ -204,13 +204,14 @@ def createProposalSIP0018():
 def createProposalSIP0020():
 
     staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    stakingLogic = Contract.from_abi("StakingLogic3", address=contracts['StakingLogic3'], abi=Staking.abi, owner=acct)
 
     # Action
     targets = [contracts['Staking'], contracts['Staking']]
     values = [0, 0]
     signatures = ["setImplementation(address)", "addAdmin(address)"]
     data1 = staking.setImplementation.encode_input(contracts['StakingLogic3'])
-    data2 = staking.addAdmin.encode_input(contracts['multisig'])
+    data2 = stakingLogic.addAdmin.encode_input(contracts['multisig'])
     datas = ["0x" + data1[10:], "0x" + data2[10:]]
     description = "SIP-0020: Staking contract updates, Details: https://github.com/DistributedCollective/SIPS/blob/91ea9de/SIP-0020.md, sha256: c1d39606ef53067d55b3e8a05a266918fa7bad09ecc2c1afcef7c68b2eac3cd0"
 
