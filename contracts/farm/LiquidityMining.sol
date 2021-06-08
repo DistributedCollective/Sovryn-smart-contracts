@@ -25,7 +25,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	event PoolTokenAdded(address indexed user, address indexed poolToken, uint256 allocationPoint);
 	event PoolTokenUpdated(address indexed user, address indexed poolToken, uint256 newAllocationPoint, uint256 oldAllocationPoint);
 	event Deposit(address indexed user, address indexed poolToken, uint256 amount);
-	event RewardClaimed(address indexed user, uint256 amount);
+	event RewardClaimed(address indexed user, address indexed poolToken, uint256 amount);
 	event Withdraw(address indexed user, address indexed poolToken, uint256 amount);
 	event EmergencyWithdraw(address indexed user, address indexed poolToken, uint256 amount);
 
@@ -429,7 +429,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 		_updatePool(_poolId);
 		_updateReward(pool, user);
-		_transferReward(user, _userAddress, _isStakingTokens, true);
+		_transferReward(address(pool.poolToken), user, _userAddress, _isStakingTokens, true);
 		_updateRewardDebt(pool, user);
 	}
 
@@ -468,7 +468,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 		_updatePool(poolId);
 		_updateReward(pool, user);
-		_transferReward(user, userAddress, false, false);
+		_transferReward(_poolToken, user, userAddress, false, false);
 
 		user.amount = user.amount.sub(_amount);
 		
@@ -517,6 +517,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _isCheckingBalance The flag whether we need to throw error or don't process reward if SOV balance isn't enough
 	 */
 	function _transferReward(
+		address _poolToken,
 		UserInfo storage _user,
 		address _userAddress,
 		bool _isStakingTokens,
@@ -542,7 +543,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 			}
 
 			/// @dev Event log.
-			emit RewardClaimed(_userAddress, userAccumulatedReward);
+			emit RewardClaimed(_userAddress, _poolToken, userAccumulatedReward);
 		} else {
 			require(!_isCheckingBalance, "Claiming reward failed");
 		}
