@@ -192,10 +192,10 @@ contract LiquidityMining is LiquidityMiningStorage {
 		} else {
 			updatePool(_poolToken);
 		}
-		_updateAllocationPoint(_poolToken, _allocationPoint);
+		_updateToken(_poolToken, _allocationPoint);
 	}
 
-	function _updateAllocationPoint(address _poolToken, uint96 _allocationPoint) internal {
+	function _updateToken(address _poolToken, uint96 _allocationPoint) internal {
 		uint256 poolId = _getPoolId(_poolToken);
 
 		uint256 previousAllocationPoint = poolInfoList[poolId].allocationPoint;
@@ -211,7 +211,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _allocationPoints array of allocation points (weight) for the given pools
 	 * @param _updateAllFlag the flag whether we need to update all pools
 	 */
-	function updateAllocationPoints(
+	function updateTokens(
 		address[] calldata _poolTokens,
 		uint96[] calldata _allocationPoints,
 		bool _updateAllFlag
@@ -225,7 +225,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 			if (!_updateAllFlag) {
 				updatePool(_poolTokens[i]);
 			}
-			_updateAllocationPoint(_poolTokens[i], _allocationPoints[i]);
+			_updateToken(_poolTokens[i], _allocationPoints[i]);
 		}
 	}
 
@@ -434,10 +434,10 @@ contract LiquidityMining is LiquidityMiningStorage {
 	}
 
 	/**
-	 * @notice transfers reward tokens for all pools
+	 * @notice transfers reward tokens from all pools
 	 * @param _user the address of user to claim reward from (can be passed only by wrapper contract)
 	 */
-	function claimRewardForAllPools(address _user) external {
+	function claimRewardFromAllPools(address _user) external {
 		address userAddress = _getUserAddress(_user);
 
 		for (uint256 i = 0; i < poolInfoList.length; i++) {
