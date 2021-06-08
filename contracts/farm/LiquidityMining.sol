@@ -25,7 +25,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 	event PoolTokenAdded(address indexed user, address indexed poolToken, uint256 allocationPoint);
 	event PoolTokenUpdated(address indexed user, address indexed poolToken, uint256 newAllocationPoint, uint256 oldAllocationPoint);
 	event Deposit(address indexed user, address indexed poolToken, uint256 amount);
-	event RewardClaimed(address indexed user, uint256 amount);
+	event RewardClaimed(address indexed user, address indexed poolToken, uint256 amount);
 	event Withdraw(address indexed user, address indexed poolToken, uint256 amount);
 	event EmergencyWithdraw(address indexed user, address indexed poolToken, uint256 amount);
 
@@ -187,19 +187,46 @@ contract LiquidityMining is LiquidityMiningStorage {
 		uint96 _allocationPoint,
 		bool _updateAllFlag
 	) public onlyAuthorized {
-		uint256 poolId = _getPoolId(_poolToken);
-
 		if (_updateAllFlag) {
 			updateAllPools();
 		} else {
 			updatePool(_poolToken);
 		}
+		_updateToken(_poolToken, _allocationPoint);
+	}
+
+	function _updateToken(address _poolToken, uint96 _allocationPoint) internal {
+		uint256 poolId = _getPoolId(_poolToken);
 
 		uint256 previousAllocationPoint = poolInfoList[poolId].allocationPoint;
 		totalAllocationPoint = totalAllocationPoint.sub(previousAllocationPoint).add(_allocationPoint);
 		poolInfoList[poolId].allocationPoint = _allocationPoint;
 
 		emit PoolTokenUpdated(msg.sender, _poolToken, _allocationPoint, previousAllocationPoint);
+	}
+
+	/**
+	 * @notice updates the given pools' reward tokens allocation points
+	 * @param _poolTokens array of addresses of pool tokens
+	 * @param _allocationPoints array of allocation points (weight) for the given pools
+	 * @param _updateAllFlag the flag whether we need to update all pools
+	 */
+	function updateTokens(
+		address[] calldata _poolTokens,
+		uint96[] calldata _allocationPoints,
+		bool _updateAllFlag
+	) external onlyAuthorized {
+		require(_poolTokens.length == _allocationPoints.length, "Arrays mismatch");
+
+		if (_updateAllFlag) {
+			updateAllPools();
+		}
+		for (uint256 i = 0; i < _poolTokens.length; i++) {
+			if (!_updateAllFlag) {
+				updatePool(_poolTokens[i]);
+			}
+			_updateToken(_poolTokens[i], _allocationPoints[i]);
+		}
 	}
 
 	/**
@@ -390,17 +417,34 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _user the address of user to claim reward from (can be passed only by wrapper contract)
 	 */
 	function claimReward(address _poolToken, address _user) public {
-		require(poolIdList[_poolToken] != 0, "Pool token not found");
 		address userAddress = _getUserAddress(_user);
 
 		uint256 poolId = _getPoolId(_poolToken);
-		PoolInfo storage pool = poolInfoList[poolId];
-		UserInfo storage user = userInfoMap[poolId][userAddress];
+		_claimReward(poolId, userAddress, true);
+	}
 
-		_updatePool(poolId);
+	function _claimReward(uint256 _poolId, address _userAddress, bool _isStakingTokens) internal {
+		PoolInfo storage pool = poolInfoList[_poolId];
+		UserInfo storage user = userInfoMap[_poolId][_userAddress];
+
+		_updatePool(_poolId);
 		_updateReward(pool, user);
-		_transferReward(user, userAddress, true);
+		_transferReward(address(pool.poolToken), user, _userAddress, _isStakingTokens, true);
 		_updateRewardDebt(pool, user);
+	}
+
+	/**
+	 * @notice transfers reward tokens from all pools
+	 * @param _user the address of user to claim reward from (can be passed only by wrapper contract)
+	 */
+	function claimRewardFromAllPools(address _user) external {
+		address userAddress = _getUserAddress(_user);
+
+		for (uint256 i = 0; i < poolInfoList.length; i++) {
+			uint256 poolId = i;
+			_claimReward(poolId, userAddress, false);
+		}
+		lockedSOV.withdrawAndStakeTokensFrom(userAddress);
 	}
 
 	/**
@@ -424,7 +468,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 		_updatePool(poolId);
 		_updateReward(pool, user);
-		_transferReward(user, userAddress, false);
+		_transferReward(_poolToken, user, userAddress, false, false);
 
 		user.amount = user.amount.sub(_amount);
 		
@@ -469,11 +513,15 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @notice Send reward in SOV to the lockedSOV vault.
 	 * @param _user The user info, to get its reward share.
 	 * @param _userAddress The address of the user, to send SOV in its behalf.
+	 * @param _isStakingTokens The flag whether we need to stake tokens
+	 * @param _isCheckingBalance The flag whether we need to throw error or don't process reward if SOV balance isn't enough
 	 */
 	function _transferReward(
+		address _poolToken,
 		UserInfo storage _user,
 		address _userAddress,
-		bool _isClaimingReward
+		bool _isStakingTokens,
+		bool _isCheckingBalance
 	) internal {
 		uint256 userAccumulatedReward = _user.accumulatedReward;
 
@@ -490,14 +538,14 @@ contract LiquidityMining is LiquidityMiningStorage {
 			SOV.approve(address(lockedSOV), userAccumulatedReward);
 			lockedSOV.deposit(_userAddress, userAccumulatedReward, unlockedImmediatelyPercent);
 
-			if (_isClaimingReward) {
+			if (_isStakingTokens) {
 				lockedSOV.withdrawAndStakeTokensFrom(_userAddress);
 			}
 
 			/// @dev Event log.
-			emit RewardClaimed(_userAddress, userAccumulatedReward);
+			emit RewardClaimed(_userAddress, _poolToken, userAccumulatedReward);
 		} else {
-			require(!_isClaimingReward, "Claiming reward failed");
+			require(!_isCheckingBalance, "Claiming reward failed");
 		}
 	}
 
