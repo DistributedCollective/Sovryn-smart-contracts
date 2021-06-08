@@ -44,6 +44,18 @@ If checking on testnet, these steps will create the pool. If on mainnet, another
 
 NOTE: Dev experience advised to run the script and to make some edits suggested.
 
+### Prerequisite: Brownie Configuration for Ethereum Network
+
+Add new BSC networks to brownie:
+
+```
+brownie networks modify "rinkeby" host="ENTER_INFURA_OR_OTHER_RPC_ENDPOINT"
+```
+
+```
+brownie networks modify "mainnet" host="ENTER_INFURA_OR_OTHER_RPC_ENDPOINT"
+```
+
 ### Mainnet
 
 1. Go to [`eth_mainnet_contracts.json`](./eth_mainnet_contracts.json) and add the values for Multisig Admins. (NOTE: UniswapV2Router02 is taken from [Uniswap's Docs](https://uniswap.org/docs/v2/smart-contracts/router02/#address) and eSOV is taken from [Sovryn Wiki](https://wiki.sovryn.app/en/technical-documents/mainnet-contract-addresses). Please don't change it unless you know what you are doing.)
