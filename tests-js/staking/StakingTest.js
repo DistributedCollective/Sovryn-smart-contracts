@@ -31,6 +31,7 @@ contract("Staking", (accounts) => {
 	let MAX_VOTING_WEIGHT;
 
 	let kickoffTS, inThreeYears;
+	let currentChainId;
 
 	let vestingLogic1, vestingLogic2;
 

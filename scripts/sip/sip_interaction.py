@@ -6,8 +6,7 @@ This script serves the purpose of interacting with governance (SIP) on the testn
 from brownie import *
 from brownie.network.contract import InterfaceContainer
 import json
-import time;
-import copy
+import time
 
 def main():
 
@@ -20,6 +19,7 @@ def main():
     currentVotingPower(acct)
 
     createProposalSIP0020()
+    createProposalSIP0019()
 
     balanceAfter = acct.balance()
 
@@ -53,8 +53,8 @@ def hasApproval(tokenContractAddr, sender, receiver):
     allowance = tokenContract.allowance(sender, receiver)
     print("Allowance: ", allowance/1e18)
     
-def checkIfUserHasToken(EAT, user):
-    tokenContract = Contract.from_abi("Token", address=EAT, abi=TestToken.abi, owner=user)
+def checkIfUserHasToken(tokenAddr, user):
+    tokenContract = Contract.from_abi("Token", address=tokenAddr, abi=TestToken.abi, owner=user)
     balance = tokenContract.balanceOf(user)
     print("Token Balance: ", balance)
 
@@ -68,12 +68,12 @@ def currentVotingPower(acctAddress):
     votingPower = staking.getCurrentVotes(acctAddress)
     proposalThreshold = governor.proposalThreshold()
 
-    print('======================================')
+    print('=============================================================')
     print('Your Address:        '+str(acctAddress))
     print('Your Token Balance:  '+str(balance))
     print('Your Voting Power:   '+str(votingPower))
     print('Proposal Threshold:  '+str(proposalThreshold))
-    print('======================================')
+    print('=============================================================')
 
 def queueProposal(id):
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
@@ -88,17 +88,18 @@ def executeProposal(id):
 def createProposal(governorAddr, target, value, signature, data, description):
     governor = Contract.from_abi("GovernorAlpha", address=governorAddr, abi=GovernorAlpha.abi, owner=acct)
 
-    print('======================================')
+    print('=============================================================')
     print('Governor Address:    '+governor.address)
     print('Target:              '+str(target))
     print('Values:              '+str(value))
     print('Signature:           '+str(signature))
     print('Data:                '+str(data))
     print('Description:         '+str(description))
-    print('======================================')
+    print('=============================================================')
 
     # Create Proposal
-    # governor.propose(target, value, signature, data, description)
+    # tx = governor.propose(target, value, signature, data, description)
+    # tx.info()
 
 def createProposalSIP0005():
     dummyAddress = contracts['GovernorOwner']
@@ -188,7 +189,7 @@ def createProposalSIP0017():
     description = "SIP-0017: Money on Chain's MOC Listing and Incentivization Strategy, Details: https://github.com/DistributedCollective/SIPS/blob/6e577af/SIP-0017.md, sha256: 2bb188713390b56aced2209095843e2465328ab6ff97c0439d2c918d8386efc0"
 
     # Create Proposal
-    # createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
 
 def createProposalSIP0018():
     # Action
@@ -199,7 +200,18 @@ def createProposalSIP0018():
     description = "SIP-0018: BabelFish Token Sale via Origins, Details: https://github.com/DistributedCollective/SIPS/blob/f8a726d/SIP-0018.md, sha256: 75df76b1e7b2a5c1cdf1192e817573f3794afbd47c19bf85abda04f222a12ecb"
 
     # Create Proposal
-    # createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+def createProposalSIP0019():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["name()"]
+    data = ["0x"]
+    description = "SIP-0019: Exchequer Committee 2021 Budget, Details: https://github.com/DistributedCollective/SIPS/blob/2a3c5a7/SIP-0019.md, sha256: dfc958c3e84e7bbfb7d8f3e944fbd73ebc8f05dabd6fdd16b8c2884607c52b88"
+
+    # Create Proposal
+    createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
 
 def createProposalSIP0020():
 
