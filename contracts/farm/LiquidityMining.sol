@@ -187,19 +187,46 @@ contract LiquidityMining is LiquidityMiningStorage {
 		uint96 _allocationPoint,
 		bool _updateAllFlag
 	) public onlyAuthorized {
-		uint256 poolId = _getPoolId(_poolToken);
-
 		if (_updateAllFlag) {
 			updateAllPools();
 		} else {
 			updatePool(_poolToken);
 		}
+		_updateAllocationPoint(_poolToken, _allocationPoint);
+	}
+
+	function _updateAllocationPoint(address _poolToken, uint96 _allocationPoint) internal {
+		uint256 poolId = _getPoolId(_poolToken);
 
 		uint256 previousAllocationPoint = poolInfoList[poolId].allocationPoint;
 		totalAllocationPoint = totalAllocationPoint.sub(previousAllocationPoint).add(_allocationPoint);
 		poolInfoList[poolId].allocationPoint = _allocationPoint;
 
 		emit PoolTokenUpdated(msg.sender, _poolToken, _allocationPoint, previousAllocationPoint);
+	}
+
+	/**
+	 * @notice updates the given pools' reward tokens allocation points
+	 * @param _poolTokens array of addresses of pool tokens
+	 * @param _allocationPoints array of allocation points (weight) for the given pools
+	 * @param _updateAllFlag the flag whether we need to update all pools
+	 */
+	function updateAllocationPoints(
+		address[] memory _poolTokens,
+		uint96[] memory _allocationPoints,
+		bool _updateAllFlag
+	) public onlyAuthorized {
+		require(_poolTokens.length == _allocationPoints.length, "Arrays mismatch");
+
+		if (_updateAllFlag) {
+			updateAllPools();
+		}
+		for (uint256 i = 0; i < _poolTokens.length; i++) {
+			if (!_updateAllFlag) {
+				updatePool(_poolTokens[i]);
+			}
+			_updateAllocationPoint(_poolTokens[i], _allocationPoints[i]);
+		}
 	}
 
 	/**
