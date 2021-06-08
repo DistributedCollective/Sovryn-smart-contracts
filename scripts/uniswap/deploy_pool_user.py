@@ -33,7 +33,7 @@ def loadConfig():
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/uniswap/eth_mainnet_contracts.json')
     else:
-        raise Exception("network not supported")
+        raise Exception("Network not supported.")
 
     # Load deployed contracts addresses
     contracts = json.load(configFile)
