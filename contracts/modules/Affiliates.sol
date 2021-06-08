@@ -11,7 +11,7 @@ import "../mixins/EnumerableBytes32Set.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../events/AffiliatesEvents.sol";
 import "../feeds/IPriceFeeds.sol";
-import "../escrow/ILockedSOV.sol";
+import "../locked/ILockedSOV.sol";
 
 contract Affiliates is State, AffiliatesEvents {
 	/*

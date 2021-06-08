@@ -35,3 +35,5 @@ cache/
 contracts_bzx/
 tmp/
 tmp
+/temp/
+/out/
