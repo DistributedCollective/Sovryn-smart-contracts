@@ -105,7 +105,11 @@ contract("Affiliates", (accounts) => {
 		vestingFactory.transferOwnership(vestingRegistry.address);
 
 		// Creating the instance of newLockedSOV Contract.
-		await sovryn.setLockedSOVAddress((await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])).address);
+		await sovryn.setLockedSOVAddress(
+			(
+				await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])
+			).address
+		);
 		lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 	});
 	let swapsSovryn;
@@ -414,7 +418,9 @@ contract("Affiliates", (accounts) => {
 			referrer: referrer,
 		});
 		await loanTokenV2.setAffiliatesReferrer(trader, account1); // try to replace referrer
-		expect(await sovryn.getAffiliatesUserReferrer(trader), "Affiliates Referrer is set once and cannot be changed").to.be.equal(referrer);
+		expect(await sovryn.getAffiliatesUserReferrer(trader), "Affiliates Referrer is set once and cannot be changed").to.be.equal(
+			referrer
+		);
 	});
 
 	it("Users cannot be self-referrers", async () => {
@@ -495,12 +501,18 @@ contract("Affiliates", (accounts) => {
 	});
 
 	it("Withdraw all token will revert if receiver is zero address", async () => {
-		await expectRevert(sovryn.withdrawAllAffiliatesReferrerTokenFees(constants.ZERO_ADDRESS, { from: referrer }), "Affiliates: cannot withdraw to zero address")
-	})
+		await expectRevert(
+			sovryn.withdrawAllAffiliatesReferrerTokenFees(constants.ZERO_ADDRESS, { from: referrer }),
+			"Affiliates: cannot withdraw to zero address"
+		);
+	});
 
 	it("Withdraw all token will revert if minimum affiliates to payout is not fulfilled", async () => {
-		await expectRevert(sovryn.withdrawAllAffiliatesReferrerTokenFees(referrer, { from: referrer }), "Your referrals has not reached the minimum request")
-	})
+		await expectRevert(
+			sovryn.withdrawAllAffiliatesReferrerTokenFees(referrer, { from: referrer }),
+			"Your referrals has not reached the minimum request"
+		);
+	});
 
 	it("Affiliates referrer withdraw fees should revert because of the minimum request is not fullfilled", async () => {
 		const leverageAmount = web3.utils.toWei("3", "ether");
@@ -536,7 +548,7 @@ contract("Affiliates", (accounts) => {
 			sovryn.withdrawAffiliatesReferrerTokenFees(doc.address, referrer, referrerFee, { from: referrer }),
 			"Your referrals has not reached the minimum request"
 		);
-	})
+	});
 
 	it("Affiliates Referrer withdraw fees in two tokens works correctly with min referrals to payout is 0", async () => {
 		await sovryn.setMinReferralsToPayoutAffiliates(1);
@@ -705,7 +717,6 @@ contract("Affiliates", (accounts) => {
 		expect(refBalances["referrerTokensBalances"][0], "After withdrawal the token balances should be deleted from the referrers list").to
 			.be.undefined;
 	});
-
 
 	it("Affiliates Referrer withdraw all fees for two tokens works correctly with min referrals to payout is 0", async () => {
 		await sovryn.setMinReferralsToPayoutAffiliates(1);

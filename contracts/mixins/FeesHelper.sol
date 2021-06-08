@@ -63,6 +63,8 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 	 * @dev settles the trading fee and pays the token reward to the user.
 	 * @param referrer the affiliate referrer address to send the reward to
 	 * @param feeToken the address of the token in which the trading fee is paid
+	 * @return affiliatesBonusSOVAmount the total SOV amount that is distributed to the referrer
+	 * @return affiliatesBonusTokenAmount the total Token Base on the trading fee pairs that is distributed to the referrer
 	 * */
 
 	function _payTradingFeeToAffiliate(
@@ -70,11 +72,8 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 		address feeToken,
 		uint256 tradingFee
 	) internal returns (uint256 affiliatesBonusSOVAmount, uint256 affiliatesBonusTokenAmount) {
-		(affiliatesBonusSOVAmount, affiliatesBonusTokenAmount) = ProtocolAffiliatesInterface(protocolAddress).payTradingFeeToAffiliatesReferrer(
-			referrer,
-			feeToken,
-			tradingFee
-		);
+		(affiliatesBonusSOVAmount, affiliatesBonusTokenAmount) = ProtocolAffiliatesInterface(protocolAddress)
+			.payTradingFeeToAffiliatesReferrer(referrer, feeToken, tradingFee);
 	}
 
 	/**
@@ -94,7 +93,9 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 		if (tradingFee != 0) {
 			if (affiliatesUserReferrer[user] != address(0)) {
 				_payTradingFeeToAffiliate(affiliatesUserReferrer[user], feeToken, protocolTradingFee);
-				protocolTradingFee = (protocolTradingFee.sub(protocolTradingFee.mul(affiliateFeePercent).div(10**20))).sub(protocolTradingFee.mul(affiliateTradingTokenFeePercent).div(10**20));
+				protocolTradingFee = (protocolTradingFee.sub(protocolTradingFee.mul(affiliateFeePercent).div(10**20))).sub(
+					protocolTradingFee.mul(affiliateTradingTokenFeePercent).div(10**20)
+				);
 			}
 
 			/// Increase the storage variable keeping track of the accumulated fees.

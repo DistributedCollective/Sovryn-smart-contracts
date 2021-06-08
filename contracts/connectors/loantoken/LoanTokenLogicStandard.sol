@@ -378,9 +378,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		address collateralTokenAddress,
 		address trader,
 		address affiliateReferrer, // the user was brought by the affiliate (referrer)
-		bytes memory loanDataBytes // arbitrary order data
+		bytes calldata loanDataBytes // arbitrary order data
 	)
-		public
+		external
 		payable
 		returns (
 			uint256,

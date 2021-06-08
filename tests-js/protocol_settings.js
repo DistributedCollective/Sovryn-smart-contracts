@@ -28,8 +28,8 @@ contract("Affliates", (accounts) => {
 		await expectRevert(sovryn.setSOVTokenAddress(constants.ZERO_ADDRESS, { from: accounts[1] }), "unauthorized");
 		await expectRevert(sovryn.setSOVTokenAddress(constants.ZERO_ADDRESS), "newSovTokenAddress not a contract");
 
-		await sovryn.setSOVTokenAddress(sov.address)
-		expect(await sovryn.getSovTokenAddress() == sov.address).to.be.true;
+		await sovryn.setSOVTokenAddress(sov.address);
+		expect((await sovryn.getSovTokenAddress()) == sov.address).to.be.true;
 	});
 
 	// Should successfully set the locked SOV address
@@ -41,8 +41,8 @@ contract("Affliates", (accounts) => {
 		await expectRevert(sovryn.setLockedSOVAddress(constants.ZERO_ADDRESS, { from: accounts[1] }), "unauthorized");
 		await expectRevert(sovryn.setLockedSOVAddress(constants.ZERO_ADDRESS), "newLockSOVAddress not a contract");
 
-		await sovryn.setLockedSOVAddress(lockedSOV.address)
-		expect(await sovryn.getLockedSOVAddress() == lockedSOV.address).to.be.true;
+		await sovryn.setLockedSOVAddress(lockedSOV.address);
+		expect((await sovryn.getLockedSOVAddress()) == lockedSOV.address).to.be.true;
 	});
 
 	// Should successfully set the Affiliate Fee Percent
@@ -54,7 +54,7 @@ contract("Affliates", (accounts) => {
 		// Should revert if value too high
 		await expectRevert(sovryn.setAffiliateFeePercent(invalidAffiliateFeePercent), "value too high");
 
-		await sovryn.setAffiliateFeePercent(affiliateFeePercent)
+		await sovryn.setAffiliateFeePercent(affiliateFeePercent);
 		expect((await sovryn.affiliateFeePercent()).toString() == affiliateFeePercent).to.be.true;
 	});
 
@@ -64,11 +64,14 @@ contract("Affliates", (accounts) => {
 		const affiliateTradingTokenFeePercent = web3.utils.toWei("20", "ether");
 		const invalidAffiliateTradingTokenFeePercent = web3.utils.toWei("101", "ether");
 		// Should revert if set with non owner
-		await expectRevert(sovryn.setAffiliateTradingTokenFeePercent(affiliateTradingTokenFeePercent, { from: accounts[1] }), "unauthorized");
+		await expectRevert(
+			sovryn.setAffiliateTradingTokenFeePercent(affiliateTradingTokenFeePercent, { from: accounts[1] }),
+			"unauthorized"
+		);
 		// Should revert if value too high
 		await expectRevert(sovryn.setAffiliateTradingTokenFeePercent(invalidAffiliateTradingTokenFeePercent), "value too high");
 
-		await sovryn.setAffiliateTradingTokenFeePercent(affiliateTradingTokenFeePercent)
+		await sovryn.setAffiliateTradingTokenFeePercent(affiliateTradingTokenFeePercent);
 		expect((await sovryn.affiliateTradingTokenFeePercent()).toString() == affiliateTradingTokenFeePercent).to.be.true;
 	});
 });

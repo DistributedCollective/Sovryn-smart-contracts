@@ -65,7 +65,7 @@ contract Affiliates is State, AffiliatesEvents {
 		SetAffiliatesReferrerResult memory result;
 
 		result.userNotFirstTradeFlag = getUserNotFirstTradeFlag(user);
-		result.alreadySet = affiliatesUserReferrer[user] != address(0) ? true : false;
+		result.alreadySet = affiliatesUserReferrer[user] != address(0); 
 		result.success = !(result.userNotFirstTradeFlag || result.alreadySet || user == referrer);
 		if (result.success) {
 			affiliatesUserReferrer[user] = referrer;
@@ -76,7 +76,7 @@ contract Affiliates is State, AffiliatesEvents {
 		}
 	}
 
-	function getReferralsList(address referrer) public view returns (address[] memory refList) {
+	function getReferralsList(address referrer) external view returns (address[] memory refList) {
 		refList = referralsList[referrer].enumerate();
 		return refList;
 	}
@@ -126,7 +126,7 @@ contract Affiliates is State, AffiliatesEvents {
 					IPriceFeeds(_priceFeeds).queryReturn.selector,
 					feeToken,
 					sovTokenAddress, // dest token = SOV
-					feeAmount.mul(_getAffiliatesTradingFeePercentForSOV()).div(10**20)
+					feeAmount.mul(_getAffiliatesTradingFeePercentForSOV()).div(1e20)
 				)
 			);
 		assembly {
@@ -146,7 +146,7 @@ contract Affiliates is State, AffiliatesEvents {
 		address token,
 		uint256 tradingFeeTokenBaseAmount
 	) external onlyCallableInternal returns (uint256 referrerBonusSovAmount, uint256 referrerBonusTokenAmount) {
-		bool isHeld = referralsList[referrer].length() >= getMinReferralsToPayout() ? false : true;
+		bool isHeld = referralsList[referrer].length() < getMinReferralsToPayout();
 		bool bonusPaymentIsSuccess = true;
 		uint256 paidReferrerBonusSovAmount;
 
@@ -272,7 +272,7 @@ contract Affiliates is State, AffiliatesEvents {
 		return affiliatesUserReferrer[user];
 	}
 
-	function getAffiliateRewardsHeld(address referrer) public view returns(uint256) {
+	function getAffiliateRewardsHeld(address referrer) public view returns (uint256) {
 		return affiliateRewardsHeld[referrer];
 	}
 }
