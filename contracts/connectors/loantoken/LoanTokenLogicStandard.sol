@@ -9,7 +9,7 @@ pragma experimental ABIEncoderV2;
 import "./LoanTokenSettingsLowerAdmin.sol";
 import "./interfaces/ProtocolLike.sol";
 import "./interfaces/FeedsLike.sol";
-import "./interfaces/ILiquidityMining.sol";
+import "../../farm/ILiquidityMining.sol";
 
 /**
  * @title Loan Token Logic Standard contract.
