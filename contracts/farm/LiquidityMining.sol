@@ -423,13 +423,13 @@ contract LiquidityMining is LiquidityMiningStorage {
 		_claimReward(poolId, userAddress, true);
 	}
 
-	function _claimReward(uint256 _poolId, address _userAddress, bool _isClaimingReward) internal {
+	function _claimReward(uint256 _poolId, address _userAddress, bool _isStakingTokens) internal {
 		PoolInfo storage pool = poolInfoList[_poolId];
 		UserInfo storage user = userInfoMap[_poolId][_userAddress];
 
 		_updatePool(_poolId);
 		_updateReward(pool, user);
-		_transferReward(user, _userAddress, _isClaimingReward);
+		_transferReward(user, _userAddress, _isStakingTokens, true);
 		_updateRewardDebt(pool, user);
 	}
 
@@ -468,7 +468,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 		_updatePool(poolId);
 		_updateReward(pool, user);
-		_transferReward(user, userAddress, false);
+		_transferReward(user, userAddress, false, false);
 
 		user.amount = user.amount.sub(_amount);
 		
@@ -513,11 +513,14 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @notice Send reward in SOV to the lockedSOV vault.
 	 * @param _user The user info, to get its reward share.
 	 * @param _userAddress The address of the user, to send SOV in its behalf.
+	 * @param _isStakingTokens The flag whether we need to stake tokens
+	 * @param _isCheckingBalance The flag whether we need to throw error or don't process reward if SOV balance isn't enough
 	 */
 	function _transferReward(
 		UserInfo storage _user,
 		address _userAddress,
-		bool _isClaimingReward
+		bool _isStakingTokens,
+		bool _isCheckingBalance
 	) internal {
 		uint256 userAccumulatedReward = _user.accumulatedReward;
 
@@ -534,14 +537,14 @@ contract LiquidityMining is LiquidityMiningStorage {
 			SOV.approve(address(lockedSOV), userAccumulatedReward);
 			lockedSOV.deposit(_userAddress, userAccumulatedReward, unlockedImmediatelyPercent);
 
-			if (_isClaimingReward) {
+			if (_isStakingTokens) {
 				lockedSOV.withdrawAndStakeTokensFrom(_userAddress);
 			}
 
 			/// @dev Event log.
 			emit RewardClaimed(_userAddress, userAccumulatedReward);
 		} else {
-			require(!_isClaimingReward, "Claiming reward failed");
+			require(!_isCheckingBalance, "Claiming reward failed");
 		}
 	}
 
