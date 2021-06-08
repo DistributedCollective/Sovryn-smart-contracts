@@ -28,18 +28,17 @@ def loadConfig():
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/pancakeswap/bsc_mainnet_contracts.json')
     else:
-        raise Exception("network not supported")
+        raise Exception("Network not supported.")
 
     # Load deployed contracts addresses
     contracts = json.load(configFile)
 
 # == Multisig Deployment ======================================
 def deployMultisig():
-    multisigOwner1, multisigOwner2, multisigOwner3 = contracts["multisigOwner1"], contracts["multisigOwner2"], contracts["multisigOwner3"]
-    owners = [multisigOwner1, multisigOwner2, multisigOwner3]
+    owners = contracts["multisigOwners"]
     requiredConf = 1
     if network.show_active() == "mainnet":
-        requiredConf = 2
+        requiredConf = int(len(owners)/2 + 1)
     print("=============================================================")
     print("Deployment Parameters")
     print("=============================================================")
