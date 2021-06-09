@@ -17,7 +17,7 @@ const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV = artifacts.require("SOV");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
-const VestingLogic = artifacts.require("VestingLogic");
+const VestingLogic = artifacts.require("VestingLogicMockup");
 const Vesting = artifacts.require("TeamVesting");
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
@@ -148,7 +148,8 @@ contract("Vesting", (accounts) => {
 
 	describe("delegate", () => {
 		let vesting;
-		it("should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff", async () => {
+		it("should stake tokens 2 times and delegate voting power", async () => {
+			let toStake = ONE_MILLON;
 			vesting = await Vesting.new(
 				vestingLogic.address,
 				token.address,
@@ -159,8 +160,13 @@ contract("Vesting", (accounts) => {
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
-			await token.approve(vesting.address, ONE_MILLON);
-			await vesting.stakeTokens(ONE_MILLON);
+
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
+
+			await increaseTime(50 * WEEK);
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
 
 			//check delegatee
 			let data = await staking.getStakes.call(vesting.address);
@@ -169,6 +175,47 @@ contract("Vesting", (accounts) => {
 				expect(delegatee).equal(a2);
 			}
 
+			await staking.addContractCodeHash(vesting.address);
+			//delegate
+			let tx = await vesting.delegate(a1, { from: a2 });
+
+			expectEvent(tx, "VotesDelegated", {
+				caller: a2,
+				delegatee: a1,
+			});
+
+			//check new delegatee
+			data = await staking.getStakes.call(vesting.address);
+			for (let i = 0; i < data.dates.length; i++) {
+				let delegatee = await staking.delegates(vesting.address, data.dates[i]);
+				expect(delegatee).equal(a1);
+			}
+		});
+
+		it("should stake tokens 1 time and delegate voting power (using vesting logic with bug in delegation)", async () => {
+			let toStake = ONE_MILLON;
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				a2,
+				26 * WEEK,
+				106 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
+
+			//check delegatee
+			let data = await staking.getStakes.call(vesting.address);
+			for (let i = 0; i < data.dates.length; i++) {
+				let delegatee = await staking.delegates(vesting.address, data.dates[i]);
+				expect(delegatee).equal(a2);
+			}
+
+			await staking.addContractCodeHash(vesting.address);
 			//delegate
 			let tx = await vesting.delegate(a1, { from: a2 });
 
@@ -572,7 +619,7 @@ contract("Vesting", (accounts) => {
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 
-			await increaseTime(52 * WEEK);
+			await increaseTime(50 * WEEK);
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 
@@ -580,6 +627,52 @@ contract("Vesting", (accounts) => {
 
 			//time travel
 			await increaseTime(104 * WEEK);
+
+			await staking.addContractCodeHash(vesting.address);
+			//withdraw
+			let tx = await vesting.withdrawTokens(root);
+
+			//check event
+			expectEvent(tx, "TokensWithdrawn", {
+				caller: root,
+				receiver: root,
+			});
+
+			//verify amount
+			let amount = await token.balanceOf(root);
+
+			assert.equal(previousAmount.sub(new BN(toStake).mul(new BN(2))).toString(), amountAfterStake.toString());
+			assert.equal(previousAmount.toString(), amount.toString());
+		});
+
+		it("should withdraw unlocked tokens for 2 stakes (current time >= last locking date of the second stake)", async () => {
+			//Save current amount
+			let previousAmount = await token.balanceOf(root);
+			let toStake = ONE_MILLON;
+
+			//Stake
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				root,
+				4 * WEEK,
+				20 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
+
+			await increaseTime(2 * WEEK);
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
+
+			let amountAfterStake = await token.balanceOf(root);
+
+			//time travel
+			await increaseTime(20 * WEEK);
 
 			//withdraw
 			let tx = await vesting.withdrawTokens(root);
@@ -595,6 +688,42 @@ contract("Vesting", (accounts) => {
 
 			assert.equal(previousAmount.sub(new BN(toStake).mul(new BN(2))).toString(), amountAfterStake.toString());
 			assert.equal(previousAmount.toString(), amount.toString());
+		});
+
+		it("should withdraw unlocked tokens for 2 stakes (shouldn't withdraw the latest stake)", async () => {
+			//Save current amount
+			let previousAmount = await token.balanceOf(root);
+			let toStake = ONE_MILLON;
+
+			//Stake
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				root,
+				4 * WEEK,
+				20 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
+
+			await increaseTime(2 * WEEK);
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
+
+			let amountAfterStake = await token.balanceOf(root);
+
+			//time travel
+			await increaseTime(18 * WEEK);
+
+			//withdraw
+			await vesting.withdrawTokens(root);
+
+			let stakes = await staking.getStakes(vesting.address);
+			expect(stakes.dates.length).equal(1);
 		});
 
 		it("should do nothing if withdrawing a second time", async () => {
@@ -727,14 +856,15 @@ contract("Vesting", (accounts) => {
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 
-			await increaseTime(52 * WEEK);
+			await increaseTime(50 * WEEK);
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 
 			let amountAfterStake = await token.balanceOf(root);
 
+			await staking.addAdmin(a1);
 			//governance withdraw until duration must withdraw all staked tokens without fees
-			let tx = await staking.governanceWithdrawVesting(vesting.address, root);
+			let tx = await staking.governanceWithdrawVesting(vesting.address, root, {from: a1});
 
 			expectEvent(tx, "VestingTokensWithdrawn", {
 				vesting: vesting.address,
@@ -750,6 +880,7 @@ contract("Vesting", (accounts) => {
 			let vestingBalance = await staking.balanceOf(vesting.address);
 			expect(vestingBalance).to.be.bignumber.equal(new BN(0));
 		});
+
 	});
 
 	describe("collectDividends", async () => {
@@ -871,4 +1002,5 @@ contract("Vesting", (accounts) => {
 			await vesting.migrateToNewStakingContract({ from: a1 });
 		});
 	});
+
 });

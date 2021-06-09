@@ -29,9 +29,9 @@ If you have to run a test under ganache, just put `;with Ganache` in the end of 
 
 run 
 ```
-npm run-script tests-js
+npm run-script test-js
 ```
-to run all the tests-js tests. See `package.json `section `scripts`.
+to run all the test-js tests. See `package.json `section `scripts`.
 
 ## **BLOCKCHAIN INTERACTION**
 

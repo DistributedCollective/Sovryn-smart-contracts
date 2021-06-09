@@ -38,4 +38,27 @@ contract StakingMockup is Staking {
 	) public {
 		super.getPriorWeightedStake(account, blockNumber, date);
 	}
+
+	/**
+	* @dev We need this function to simulate zero delegate checkpoint value.
+	*/
+	function setDelegateStake(
+		address delegatee,
+		uint256 lockedTS,
+		uint96 value
+	) public {
+		uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
+		uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
+		_writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, 0);
+	}
+
+	function getCodeHash(address _contract) public view returns (bytes32) {
+		return _getCodeHash(_contract);
+	}
+
+	function isVestingContract(address _contract) public view returns (bool) {
+		bytes32 codeHash = _getCodeHash(_contract);
+		return vestingCodeHashes[codeHash];
+	}
+
 }
