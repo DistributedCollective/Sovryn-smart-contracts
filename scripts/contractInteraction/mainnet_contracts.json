@@ -80,5 +80,6 @@
     "(WR)BTC/SOV": "0x09c5faf7723b13434abdf1a65ab1b667bc02a902",
     "(WR)BTC/ETH": "0xF41Ed702df2B84AcE02772C6a0D8AE46465aA5F4",
     "(WR)BTC/MOC" : "0x7fef930ebaa90B2f8619722AdC55e3f1d965b79b",
+    "(WR)BTC/XUSD": "",
     "LiquidityMiningConfigToken": "0x513B0f20027BDc6bc2fE9e28A9d4B40d20730Dca"
 }

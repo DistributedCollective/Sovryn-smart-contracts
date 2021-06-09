@@ -79,17 +79,14 @@ def updateETHPoolToken():
     ALLOCATION_POINT_BTC_SOV = 30000 # (WR)BTC/SOV
     # 25K SOV for ETH/BTC pool
     ALLOCATION_POINT_BTC_ETH = 25000 # (WR)BTC/ETH
+    # 35K SOV for XUSD/BTC pool per week
+    ALLOCATION_POINT_BTC_XUSD = 35000 # (WR)BTC/XUSD
     ALLOCATION_POINT_DEFAULT = 1 # (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2 | (WR)BTC/MOC
-    ALLOCATION_POINT_CONFIG_TOKEN = MAX_ALLOCATION_POINT - ALLOCATION_POINT_BTC_SOV - ALLOCATION_POINT_BTC_ETH - ALLOCATION_POINT_DEFAULT * 7
+    ALLOCATION_POINT_CONFIG_TOKEN = MAX_ALLOCATION_POINT - ALLOCATION_POINT_BTC_SOV - ALLOCATION_POINT_BTC_ETH - ALLOCATION_POINT_BTC_XUSD - ALLOCATION_POINT_DEFAULT * 7
 
     print("ALLOCATION_POINT_CONFIG_TOKEN: ", ALLOCATION_POINT_CONFIG_TOKEN)
 
-    data = lm.update.encode_input(contracts['(WR)BTC/SOV'],ALLOCATION_POINT_BTC_SOV,True)
-    tx = multisig.submitTransaction(lm.address,0,data)
-    txId = tx.events["Submission"]["transactionId"]
-    print("txid",txId)
-
-    data = lm.update.encode_input(contracts['(WR)BTC/ETH'],ALLOCATION_POINT_BTC_ETH,True)
+    data = lm.add.encode_input(contracts['(WR)BTC/XUSD'],ALLOCATION_POINT_BTC_XUSD,True)
     tx = multisig.submitTransaction(lm.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print("txid",txId)
