@@ -24,9 +24,13 @@ def main():
     # load deployed contracts addresses
     contracts = json.load(configFile)
 
-    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
-    vestingRegistry2 = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry2'], abi=VestingRegistry.abi, owner=acct)
-    vestingRegistry3 = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry3'], abi=VestingRegistry.abi, owner=acct)
+    stakingMockup = Contract.from_abi("StakingMockup", address="0xf0bd337474B63745a840C583B66808e2A0949459", abi=StakingMockup.abi, owner=acct)
+
+    registryAddresses = [contracts['VestingRegistry'], contracts['VestingRegistry2'], contracts['VestingRegistry3']]
+    registries = []
+    for i in registryAddresses:
+        registry = Contract.from_abi("VestingRegistry", address=i, abi=VestingRegistry.abi, owner=acct)
+        registries.append(registry)
 
     data = parseFile('./scripts/deployment/distribution/token-owners-list.csv')
 
@@ -34,19 +38,14 @@ def main():
 
     for teamVesting in data:
         tokenOwner = teamVesting
-        vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
-        if (vestingAddress == ZERO_ADDRESS):
-            vestingAddress = vestingRegistry.getVesting(tokenOwner)
-        if (vestingAddress == ZERO_ADDRESS):
-            vestingAddress = vestingRegistry2.getTeamVesting(tokenOwner)
-        if (vestingAddress == ZERO_ADDRESS):
-            vestingAddress = vestingRegistry2.getVesting(tokenOwner)
-        if (vestingAddress == ZERO_ADDRESS):
-            vestingAddress = vestingRegistry3.getTeamVesting(tokenOwner)
-        if (vestingAddress == ZERO_ADDRESS):
-            vestingAddress = vestingRegistry3.getVesting(tokenOwner)
-
-        print(vestingAddress)
+        vestingAddress = ZERO_ADDRESS
+        for registry in registries:
+            if (vestingAddress == ZERO_ADDRESS):
+                vestingAddress = registry.getTeamVesting(tokenOwner)
+            if (vestingAddress == ZERO_ADDRESS):
+                vestingAddress = registry.getVesting(tokenOwner)
+        codeHash = stakingMockup.getCodeHash(vestingAddress)
+        print("vesting: " + str(vestingAddress) + ", codeHash: " + str(codeHash))
 
 def parseFile(fileName):
     print(fileName)
