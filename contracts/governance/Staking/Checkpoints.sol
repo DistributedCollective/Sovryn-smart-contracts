@@ -31,6 +31,14 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	/// @notice An event emitted when a staking period gets extended.
 	event ExtendedStakingDuration(address indexed staker, uint256 previousDate, uint256 newDate);
 
+	event AdminAdded(address admin);
+
+	event AdminRemoved(address admin);
+
+	event ContractCodeHashAdded(bytes32 hash);
+
+	event ContractCodeHashRemoved(bytes32 hash);
+
 	/**
 	 * @notice Increases the user's stake for a giving lock date and writes a checkpoint.
 	 * @param account The user address.
@@ -101,7 +109,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	) internal {
 		uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
 		uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
-		uint96 newStake = add96(staked, value, "Staking::_increaseDelegateeStake: staked amount overflow");
+		uint96 newStake = add96(staked, value, "Staking::_increaseDelegateStake: staked amount overflow");
 		_writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, newStake);
 	}
 
@@ -118,7 +126,16 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	) internal {
 		uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
 		uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
-		uint96 newStake = sub96(staked, value, "Staking::_decreaseDailyStake: staked amount underflow");
+		uint96 newStake = 0;
+		// @dev We need to check delegate checkpoint value here,
+		//		because we had an issue in `stake` function:
+		//		delegate checkpoint wasn't updating for the second and next stakes for the same date
+		//		if first stake was withdrawn completely and stake was delegated to the staker
+		//		(no delegation to another address).
+		// @dev It can be greater than 0, but inconsistent after 3 transactions
+		if (staked > value) {
+			newStake = sub96(staked, value, "Staking::_decreaseDelegateStake: staked amount underflow");
+		}
 		_writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, newStake);
 	}
 

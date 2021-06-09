@@ -39,7 +39,7 @@ contract LiquidityMiningStorage is AdminRole {
 	uint256 public startBlock;
 	// Block number when bonus reward token period ends.
 	uint256 public bonusEndBlock;
-	// Block number when eward token period ends.
+	// Block number when reward token period ends.
 	uint256 public endBlock;
 
 	//Wrapper contract which will be a proxy between user and LM

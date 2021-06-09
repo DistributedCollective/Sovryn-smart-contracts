@@ -28,7 +28,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	event Deposit(address indexed user, address indexed poolToken, uint256 amount);
 	event RewardClaimed(address indexed user, address indexed poolToken, uint256 amount);
 	event Withdraw(address indexed user, address indexed poolToken, uint256 amount);
-	event EmergencyWithdraw(address indexed user, address indexed poolToken, uint256 amount);
+	event EmergencyWithdraw(address indexed user, address indexed poolToken, uint256 amount, uint256 accumulatedReward);
 
 	/* Functions */
 
@@ -54,7 +54,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		address _wrapper,
 		ILockedSOV _lockedSOV,
 		uint256 _unlockedImmediatelyPercent
-	) public onlyAuthorized {
+	) external onlyAuthorized {
 		/// @dev Non-idempotent function. Must be called just once.
 		require(address(SOV) == address(0), "Already initialized");
 		require(address(_SOV) != address(0), "Invalid token address");
@@ -74,7 +74,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 * @notice Sets lockedSOV contract.
 	 * @param _lockedSOV The contract instance address of the lockedSOV vault.
 	 */
-	function setLockedSOV(ILockedSOV _lockedSOV) public onlyAuthorized {
+	function setLockedSOV(ILockedSOV _lockedSOV) external onlyAuthorized {
 		require(address(_lockedSOV) != address(0), "Invalid lockedSOV Address.");
 		lockedSOV = _lockedSOV;
 	}
@@ -84,7 +84,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 * @param _unlockedImmediatelyPercent The % which determines how much will be unlocked immediately.
 	 * @dev @dev 10000 is 100%
 	 */
-	function setUnlockedImmediatelyPercent(uint256 _unlockedImmediatelyPercent) public onlyAuthorized {
+	function setUnlockedImmediatelyPercent(uint256 _unlockedImmediatelyPercent) external onlyAuthorized {
 		require(_unlockedImmediatelyPercent < 10000, "Unlocked immediately percent has to be less than 10000.");
 		unlockedImmediatelyPercent = _unlockedImmediatelyPercent;
 	}
@@ -93,14 +93,14 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 * @notice sets wrapper proxy contract
 	 * @dev can be set to zero address to remove wrapper
 	 */
-	function setWrapper(address _wrapper) public onlyAuthorized {
+	function setWrapper(address _wrapper) external onlyAuthorized {
 		wrapper = _wrapper;
 	}
 
 	/**
 	 * @notice stops mining by setting end block
 	 */
-	function stopMining() public onlyAuthorized {
+	function stopMining() external onlyAuthorized {
 		require(endBlock == 0, "Already stopped");
 
 		endBlock = block.number;
@@ -113,7 +113,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 * @param _receiver The address of the SOV receiver.
 	 * @param _amount The amount to be transferred.
 	 * */
-	function transferSOV(address _receiver, uint256 _amount) public onlyAuthorized {
+	function transferSOV(address _receiver, uint256 _amount) external onlyAuthorized {
 		require(_receiver != address(0), "Receiver address invalid");
 		require(_amount != 0, "Amount invalid");
 
@@ -136,7 +136,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 * @return The amount of SOV tokens according to totalUsersBalance
 	 *   in excess of actual SOV balance of the LM contract.
 	 * */
-	function getMissedBalance() public view returns (uint256) {
+	function getMissedBalance() external view returns (uint256) {
 		uint256 balance = SOV.balanceOf(address(this));
 		return balance >= totalUsersBalance ? 0 : totalUsersBalance.sub(balance);
 	}
@@ -151,7 +151,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		address _poolToken,
 		uint96 _allocationPoint,
 		bool _withUpdate
-	) public onlyAuthorized {
+	) external onlyAuthorized {
 		require(_allocationPoint > 0, "Invalid allocation point");
 		require(_poolToken != address(0), "Invalid token address");
 		require(poolIdList[_poolToken] == 0, "Token already added");
@@ -187,7 +187,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		address _poolToken,
 		uint96 _allocationPoint,
 		bool _updateAllFlag
-	) public onlyAuthorized {
+	) external onlyAuthorized {
 		if (_updateAllFlag) {
 			updateAllPools();
 		} else {
@@ -363,7 +363,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		address _poolToken,
 		uint256 _amount,
 		address _user
-	) public {
+	) external {
 		_deposit(_poolToken, _amount, _user, false);
 	}
 
@@ -373,7 +373,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 * @param _user the user address
 	 * @param _amount the minted amount
 	 */
-	function onTokensDeposited(address _user, uint256 _amount) public {
+	function onTokensDeposited(address _user, uint256 _amount) external {
 		//the msg.sender is the pool token. if the msg.sender is not a valid pool token, _deposit will revert
 		_deposit(msg.sender, _amount, _user, true);
 	}
@@ -382,7 +382,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 * @notice internal function for depositing pool tokens
 	 * @param _poolToken the address of pool token
 	 * @param _amount the amount of pool tokens
-	 * @param _user the address of user, tokens will be deposited to it or to msg.sender
+	 * @param _user the address of user, tokens will be deposited to it
 	 * @param alreadyTransferred true if the pool tokens have already been transferred
 	 */
 	function _deposit(
@@ -417,7 +417,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 * @param _poolToken the address of pool token
 	 * @param _user the address of user to claim reward from (can be passed only by wrapper contract)
 	 */
-	function claimReward(address _poolToken, address _user) public {
+	function claimReward(address _poolToken, address _user) external {
 		address userAddress = _getUserAddress(_user);
 
 		uint256 poolId = _getPoolId(_poolToken);
@@ -458,7 +458,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		address _poolToken,
 		uint256 _amount,
 		address _user
-	) public {
+	) external {
 		require(poolIdList[_poolToken] != 0, "Pool token not found");
 		address userAddress = _getUserAddress(_user);
 
@@ -472,16 +472,16 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		_transferReward(_poolToken, user, userAddress, false, false);
 
 		user.amount = user.amount.sub(_amount);
-		
+
 		//msg.sender is wrapper -> send to wrapper
 		if(msg.sender == wrapper){
 			pool.poolToken.safeTransfer(address(msg.sender), _amount);
 		}
-		//msg.sender is user or pool token (lending pool) -> send to user	 
+		//msg.sender is user or pool token (lending pool) -> send to user
 		else{
 			pool.poolToken.safeTransfer(userAddress, _amount);
 		}
-			
+
 		_updateRewardDebt(pool, user);
 		emit Withdraw(userAddress, _poolToken, _amount);
 	}
@@ -490,7 +490,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		address userAddress = msg.sender;
 		if (_user != address(0)) {
 			//only wrapper can pass _user parameter
-			require(msg.sender == wrapper && _user == tx.origin || poolIdList[msg.sender] != 0, "only wrapper or pools may withdraw for a user");
+			require(msg.sender == wrapper || poolIdList[msg.sender] != 0, "only wrapper or pools may withdraw for a user");
 			userAddress = _user;
 		}
 		return userAddress;
@@ -536,7 +536,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 			///   deposit it into lockedSOV vault contract, but first
 			///   SOV deposit must be approved to move the SOV tokens
 			///   from this LM contract into the lockedSOV vault.
-			SOV.approve(address(lockedSOV), userAccumulatedReward);
+			require(SOV.approve(address(lockedSOV), userAccumulatedReward), "Approve failed");
 			lockedSOV.deposit(_userAddress, userAccumulatedReward, unlockedImmediatelyPercent);
 
 			if (_isStakingTokens) {
@@ -555,25 +555,32 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 * @param _poolToken the address of pool token
 	 * @dev EMERGENCY ONLY
 	 */
-	function emergencyWithdraw(address _poolToken) public {
+	function emergencyWithdraw(address _poolToken) external {
 		uint256 poolId = _getPoolId(_poolToken);
 		PoolInfo storage pool = poolInfoList[poolId];
 		UserInfo storage user = userInfoMap[poolId][msg.sender];
 
+		_updatePool(poolId);
+		_updateReward(pool, user);
+
 		totalUsersBalance = totalUsersBalance.sub(user.accumulatedReward);
 		uint256 userAmount = user.amount;
+		uint256 userAccumulatedReward = user.accumulatedReward;
 		user.amount = 0;
 		user.rewardDebt = 0;
 		user.accumulatedReward = 0;
 		pool.poolToken.safeTransfer(address(msg.sender), userAmount);
-		emit EmergencyWithdraw(msg.sender, _poolToken, userAmount);
+
+		_updateRewardDebt(pool, user);
+
+		emit EmergencyWithdraw(msg.sender, _poolToken, userAmount, userAccumulatedReward);
 	}
 
 	/**
 	 * @notice returns pool id
 	 * @param _poolToken the address of pool token
 	 */
-	function getPoolId(address _poolToken) public view returns (uint256) {
+	function getPoolId(address _poolToken) external view returns (uint256) {
 		return _getPoolId(_poolToken);
 	}
 
@@ -665,4 +672,5 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		UserInfo memory ui = getUserInfo(_poolToken, _user);
 		return ui.amount;
 	}
+
 }
