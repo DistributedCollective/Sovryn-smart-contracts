@@ -132,25 +132,26 @@ def main():
     #acct = accounts[0]
     #acct.deploy(TestToken, "SUSD", "SUSD", 18, 1e50)
 
+    buyWRBTC(0.1e18)
+
 def loadConfig():
     global contracts, acct
     thisNetwork = network.show_active()
     if thisNetwork == "development":
         acct = accounts[0]
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
-    elif thisNetwork == "testnet":
-        acct = accounts.load("rskdeployer")
-        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
-    elif thisNetwork == "rsk-testnet":
+    elif thisNetwork == "testnet" or thisNetwork == "rsk-testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "arb-testnet":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/arbitrum_testnet_contracts.json')
     else:
         raise Exception("Network not supported.")
     contracts = json.load(configFile)
-    acct = accounts.load("rskdeployer")
     
 def readLendingFee():
     sovryn = Contract.from_abi("sovryn", address='0xBAC609F5C8bb796Fa5A31002f12aaF24B7c35818', abi=interface.ISovrynBrownie.abi, owner=acct)
@@ -398,9 +399,9 @@ def getBalance(contractAddress, acct):
     contract = Contract.from_abi("Token", address=contractAddress, abi=LoanToken.abi, owner=acct)
     print(contract.balanceOf(acct))
     
-def buyWRBTC():
+def buyWRBTC(amount):
     contract = Contract.from_abi("WRBTC", address=contracts["WRBTC"], abi=WRBTC.abi, owner=acct)
-    tx = contract.deposit({'value':1e18})
+    tx = contract.deposit({'value':amount})
     tx.info()
     print("new balance", getBalance(contracts["WRBTC"], acct))
     

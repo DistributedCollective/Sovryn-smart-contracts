@@ -31,13 +31,11 @@ def main():
         test_loan_address()
     test_margin_trading_sending_collateral_tokens()
     test_margin_trading_sending_loan_tokens()
-    if this_network == "development":
+    if this_network == "development" or network.show_active() == "arb-testnet":
         test_lend_to_the_pool()
         test_cash_out_from_the_pool()
         test_cash_out_from_the_pool_more_of_lender_balance()
-        test_supply_interest_fee()
         test_transfer()
-        test_liquidate()
     
 
 def setup():
@@ -46,13 +44,15 @@ def setup():
     sovryn_address = data["sovrynProtocol"]
     contract_registry_address = data["contractRegistry"]
     loan_token_address = data["loanTokenSUSD"]
+    loan_token_rbtc_address = data["loanTokenRBTC"]
     SUSD_address = data["SUSD"]
     RBTC_address = data["WRBTC"]
 
     sovryn = Contract.from_abi("sovryn", address=sovryn_address, abi=interface.ISovrynBrownie.abi, owner=acct)
     loan_token = Contract.from_abi("loanToken", address=loan_token_address, abi=LoanTokenLogicStandard.abi, owner=acct)
+    loan_token_rbtc = Contract.from_abi("loanToken", address=loan_token_rbtc_address, abi=LoanTokenLogicStandard.abi, owner=acct)
     SUSD = Contract.from_abi("TestToken", address=SUSD_address, abi=TestToken.abi, owner=acct)
-    RBTC = Contract.from_abi("TestToken", address=RBTC_address, abi=TestToken.abi, owner=acct)
+    RBTC = Contract.from_abi("TestWrbtc", address=RBTC_address, abi=TestToken.abi, owner=acct)
 
     print("Setting the SovrynSwap contract registry address")
     sovryn.setSovrynSwapContractRegistryAddress(contract_registry_address)  # 0x1280691943Ad9d6B0B9D19f4C62f318C071c41ab
@@ -99,7 +99,7 @@ def test_loan_address():
 
 
 def test_margin_trading_sending_collateral_tokens():
-    loan_token_sent = 10e18
+    loan_token_sent = 0.1e18
     leverage_amount = 2e18
 
     #SUSD.mint(loan_token.address,loan_token_sent*6)
@@ -129,7 +129,7 @@ def test_margin_trading_sending_collateral_tokens():
     print("Passed `test_margin_trading_sending_collateral_tokens`")
 
 def test_margin_trading_sending_loan_tokens():
-    loan_token_sent = 10e18
+    loan_token_sent = 1e18
     leverage_amount = 2e18
 
     #SUSD.mint(loan_token.address, loan_token_sent*3)
@@ -177,6 +177,7 @@ def test_margin_trading_sending_loan_tokens():
 
     print("Passed `test_margin_trading_sending_loan_tokens`")
 
+#def marginTrading
 
 def test_lend_to_the_pool():
     baseRate = 1e18
@@ -240,37 +241,11 @@ def test_cash_out_from_the_pool_more_of_lender_balance():
 
     print("Passed `test_cash_out_from_the_pool_more_of_lender_balance`")
 
-def test_supply_interest_fee():
-    SUSD.approve(loan_token.address,1e40)
-    loan_token.mint(acct, 1e30)
-
-    tx = loan_token.marginTrade(
-        "0", #loanId  (0 for new loans)
-        2e18, # leverageAmount
-        10e18, #loanTokenSent
-        0, # no collateral token sent
-        RBTC.address, #collateralTokenAddress
-        acct, #trader,
-        b'' #loanDataBytes (only required with ether)
-    )
-
-    tas = loan_token.totalAssetSupply()
-    print("total supply", tas/1e18);
-    tab = loan_token.totalAssetBorrow()
-    print("total asset borrowed", tab/1e18)
-    abir = loan_token.avgBorrowInterestRate()
-    print("average borrow interest rate", abir/1e18)
-    ir = loan_token.nextSupplyInterestRate(0)
-    print("interest rate", ir)
-
-    loan_token.mint(acct, 1e20)
-
-    print("Passed `test_supply_interest_fee`")
 
 def initialize_test_transfer(SUSD, accounts, _loan_token):
     sender = accounts[0]
     receiver = accounts[1]
-    amount_to_buy = 100e18
+    amount_to_buy = 1e18
     SUSD.approve(_loan_token.address, amount_to_buy)
     _loan_token.mint(sender, amount_to_buy)
     sender_initial_balance = _loan_token.balanceOf(sender)
@@ -290,37 +265,6 @@ def test_transfer():
     print("Passed `test_transfer`")
 
 
-def test_liquidate():
-    SUSD.approve(loan_token.address, 1e40)
-    lender = accounts[0]
-    borrower = accounts[1]
-    liquidator = accounts[2]
-    loan_token.mint(lender, 1e30)
-    loan_token_sent = 10e18
-    SUSD.mint(borrower, loan_token_sent)
-    SUSD.mint(liquidator, loan_token_sent)
 
-    SUSD.approve(loan_token.address, loan_token_sent, {'from': borrower})
-
-    tx = loan_token.marginTrade(
-        "0",  # loanId  (0 for new loans)
-        2e18,  # leverageAmount
-        loan_token_sent,  # loanTokenSent
-        0,  # no collateral token sent
-        RBTC.address,  # collateralTokenAddress
-        borrower,  # trader,
-        b'',  # loanDataBytes (only required with ether)
-        {'from': borrower}
-    )
-
-    loan_id = tx.events['Trade']['loanId']
-    loan = sovryn.getLoan(loan_id).dict()
-
-    print("Loan ", loan)
-
-    if not loan_id:
-        raise Exception("Failed to validate `test_liquidate` - loan expected")
-
-    print("Passed `test_liquidate`")
 
 

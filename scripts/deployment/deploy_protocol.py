@@ -44,7 +44,7 @@ def deployProtocol(acct, tokens, mocOracleAddress, rskOracleAddress):
     print("Deploying Swaps.")
     swaps = acct.deploy(SwapsImplSovrynSwap)
     #do not deploy the sovryn swap mockup on mainnet
-    if network.show_active() == "development":
+    if network.show_active() == "development" or network.show_active() == "arb-testnet":
         sovrynSwapSimulator = acct.deploy(TestSovrynSwap, feeds.address)
         sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address)
     sovryn.setSupportedTokens([tokens.susd.address, tokens.wrbtc.address],[True, True])

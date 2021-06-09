@@ -8,9 +8,9 @@ def deployTokens(acct):
     print("Deploying test tokens.")
     tokens = Munch()
     tokens.susd = acct.deploy(TestToken, "SUSD", "SUSD", 18, 1e50)
-    if network.show_active() == "development":
+    if network.show_active() == "development" or network.show_active() == "arb-testnet":
         tokens.wrbtc = acct.deploy(TestWrbtc) ## 0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87
-        tokens.wrbtc.deposit({'value':10e18})#needed because of local swap impl or sovryn swap simulator
+        tokens.wrbtc.deposit({'value':0.1e18})#needed because of local swap impl or sovryn swap simulator
         tokens.susd.mint(acct, 10000e18)
     else:
         tokens.wrbtc = acct.deploy(WRBTC)
