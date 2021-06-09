@@ -96,9 +96,7 @@ contract("VestingCreator", (accounts) => {
 			feeSharingProxy.address,
 			account4,
 			lockedSOV.address,
-			vestingRegistry.address,
-			vestingRegistry2.address,
-			vestingRegistry3.address
+			[vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
 		);
 
 		await vesting.addAdmin(vestingCreator.address);

@@ -175,9 +175,7 @@ contract("VestingRegistryMigrations", (accounts) => {
 				feeSharingProxy.address,
 				account1,
 				lockedSOV.address,
-				vestingRegistry.address,
-				vestingRegistry2.address,
-				vestingRegistry3.address
+				[vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
 			);
 
 			let cliff = FOUR_WEEKS;

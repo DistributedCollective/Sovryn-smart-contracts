@@ -4,9 +4,7 @@ import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 import "./IVestingFactory.sol";
 import "../../locked/LockedSOV.sol";
-import "./VestingRegistry.sol";
-import "./VestingRegistry2.sol";
-import "./VestingRegistry3.sol";
+import "./IVestingRegistry.sol";
 
 /**
  * @title Vesting Registry Storage Contract.
@@ -24,14 +22,8 @@ contract VestingRegistryStorage is Ownable {
 	///@notice the Locked SOV contract
 	LockedSOV public lockedSOV;
 	
-	///@notice the vesting registry contract
-	VestingRegistry public vestingRegistry;
-
-	///@notice the vesting registry2 contract
-	VestingRegistry2 public vestingRegistry2;
-
-	///@notice the vesting registry3 contract
-	VestingRegistry3 public vestingRegistry3;
+	///@notice the list of vesting registries
+	IVestingRegistry[] public vestingRegistries;
 
 	///@notice the SOV token contract
 	address public SOV;
@@ -63,7 +55,4 @@ contract VestingRegistryStorage is Ownable {
 	///@notice A record of all unique ids for a particular token owner
 	///@dev vestingsOf[tokenOwner] returns array of unique ids
 	mapping(address => uint256[]) public vestingsOf;
-
-	///@notice list of vestings addresses for a token owner created through previous regsitries
-	address[] public vestingAddresses;
 }
