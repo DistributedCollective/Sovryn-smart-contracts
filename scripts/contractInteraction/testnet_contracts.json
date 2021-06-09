@@ -62,6 +62,7 @@
     "EscrowReward": "",
     "LiquidityMiningProxy": "0xe28aEbA913c34EC8F10DF0D9C92D2Aa27545870e",
     "LiquidityMiningLogic": "0xcc71eD6bE602a522890061C6Bb1056443a306b11",
+    "LiquidityMiningLogic2": "0x8F4eB7ccAf17839beD4805f258d2442F154EC4D1",
 
     "ConverterETHs": "0xC8717501Bb0c6640069fcD8BF0DD13904F861abE",
 
