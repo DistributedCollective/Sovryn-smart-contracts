@@ -106,7 +106,7 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 		uint256 _cliff,
 		uint256 _duration
 	) public onlyAuthorized {
-		address vesting = _getOrCreateVesting(_tokenOwner, _amount, _cliff, _duration, uint256(VestingType.Vesting));
+		address vesting = _getOrCreateVesting(_tokenOwner, _cliff, _duration, uint256(VestingType.Vesting));
 		emit VestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount);
 	}
 
@@ -123,7 +123,7 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 		uint256 _cliff,
 		uint256 _duration
 	) public onlyAuthorized {
-		address vesting = _getOrCreateVesting(_tokenOwner, _amount, _cliff, _duration, uint256(VestingType.TeamVesting));
+		address vesting = _getOrCreateVesting(_tokenOwner, _cliff, _duration, uint256(VestingType.TeamVesting));
 		emit TeamVestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount);
 	}
 
@@ -162,7 +162,7 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 	) public view returns (address) {
 		uint256 type_ = uint256(VestingType.Vesting);
 		uint256 uid = uint256(keccak256(abi.encodePacked(_tokenOwner, type_, _cliff, _duration)));
-		return vestingContracts[_tokenOwner][uid];
+		return vestings[uid].vestingAddress;
 	}
 
 	/**
@@ -175,37 +175,34 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 	) public view returns (address) {
 		uint256 type_ = uint256(VestingType.TeamVesting);
 		uint256 uid = uint256(keccak256(abi.encodePacked(_tokenOwner, type_, _cliff, _duration)));
-		return vestingContracts[_tokenOwner][uid];
+		return vestings[uid].vestingAddress;
 	}
 
 	/**
 	 * @notice Internal function to deploy Vesting/Team Vesting contract
 	 * @param _tokenOwner the owner of the tokens
-	 * @param _amount the amount to be staked
 	 * @param _cliff the cliff in seconds
 	 * @param _duration the total duration in seconds
 	 * @param _type the type of vesting
 	 */
 	function _getOrCreateVesting(
 		address _tokenOwner,
-		uint256 _amount,
 		uint256 _cliff,
 		uint256 _duration,
 		uint256 _type
 	) internal returns (address) {
 		address vesting;
 		uint256 uid = uint256(keccak256(abi.encodePacked(_tokenOwner, _type, _cliff, _duration)));
-		if (vestingContracts[_tokenOwner][uid] == address(0)) {
+		if (vestings[uid].vestingAddress == address(0)) {
 			if (_type == 1) {
 				vesting = vestingFactory.deployVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy, _tokenOwner);
 			} else {
 				vesting = vestingFactory.deployTeamVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy, vestingOwner);
 			}
-			vestingContracts[_tokenOwner][uid] = vesting;
 			vestings[uid] = Vesting(_type, vesting);
 			vestingsOf[_tokenOwner].push(uid);
 		}
-		return vestingContracts[_tokenOwner][uid];
+		return vestings[uid].vestingAddress;
 	}
 
 	/**
@@ -225,7 +222,6 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 		for (uint256 i = 0; i < vestingAddresses.length; i++) {
 			VestingLogic vesting = VestingLogic(vestingAddresses[i]);
 			uint256 uid = uint256(keccak256(abi.encodePacked(_tokenOwner, vestingType, vesting.cliff(), vesting.duration())));
-			vestingContracts[_tokenOwner][uid] = vestingAddresses[i];
 			vestings[uid] = Vesting(vestingType, vestingAddresses[i]);
 			vestingsOf[_tokenOwner].push(uid);
 		}
@@ -249,7 +245,6 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 		for (uint256 i = 0; i < vestingAddresses.length; i++) {
 			VestingLogic vesting = VestingLogic(vestingAddresses[i]);
 			uint256 uid = uint256(keccak256(abi.encodePacked(_tokenOwner, vestingType, vesting.cliff(), vesting.duration())));
-			vestingContracts[_tokenOwner][uid] = vestingAddresses[i];
 			vestings[uid] = Vesting(vestingType, vestingAddresses[i]);
 			vestingsOf[_tokenOwner].push(uid);
 		}
@@ -262,11 +257,9 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 	function getVestingsOf(address _tokenOwner) external view returns (Vesting[] memory) {
 		uint256[] storage vestingIds = vestingsOf[_tokenOwner];
 		Vesting[] memory _vestings = new Vesting[](vestingIds.length);
-		uint256 j;
 		for (uint256 i = 0; i < vestingIds.length; i++) {
 			Vesting storage _vesting = vestings[vestingIds[i]];
-			_vestings[j] = Vesting(_vesting.vestingType, _vesting.vestingAddress);
-			j += 1;
+			_vestings[i] = Vesting(_vesting.vestingType, _vesting.vestingAddress);
 		}
 		return _vestings;
 	}

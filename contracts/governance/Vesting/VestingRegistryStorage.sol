@@ -23,7 +23,7 @@ contract VestingRegistryStorage is Ownable {
 
 	///@notice the Locked SOV contract
 	LockedSOV public lockedSOV;
-
+	
 	///@notice the vesting registry contract
 	VestingRegistry public vestingRegistry;
 
@@ -44,9 +44,6 @@ contract VestingRegistryStorage is Ownable {
 
 	///@notice the vesting owner (e.g. governance timelock address)
 	address public vestingOwner;
-
-	///@notice user => uid(hash of token owner, vesting type, cliff, duration) => vesting contract
-	mapping(address => mapping(uint256 => address)) public vestingContracts;
 
 	enum VestingType {
 		TeamVesting, //MultisigVesting

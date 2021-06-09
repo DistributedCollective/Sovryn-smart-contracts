@@ -28,7 +28,6 @@ contract VestingCreator is AdminRole {
 		uint256 cliff;
 		uint256 duration;
 		bool governanceControl; ///@dev true - tokens can be withdrawn by governance
-		address vestingAddress;
 	}
 
 	///@notice list of vesting to be processed
@@ -85,19 +84,15 @@ contract VestingCreator is AdminRole {
 			require(_tokenOwners[i] != address(0), "token owner cannot be 0 address");
 			require(_cliffs[i].mod(TWO_WEEKS) == 0, "cliffs should have intervals of two weeks");
 			require(_durations[i].mod(TWO_WEEKS) == 0, "durations should have intervals of two weeks");
-			address _vestingAddress = _getVesting(_tokenOwners[i], _cliffs[i], _durations[i], _governanceControls[i]);
-			if (_vestingAddress == address(0)) {
-				VestingData memory vestingData =
-					VestingData({
-						tokenOwner: _tokenOwners[i],
-						amount: _amounts[i],
-						cliff: _cliffs[i],
-						duration: _durations[i],
-						governanceControl: _governanceControls[i],
-						vestingAddress: _vestingAddress
-					});
-				vestingDataList.push(vestingData);
-			}
+			VestingData memory vestingData =
+				VestingData({
+					tokenOwner: _tokenOwners[i],
+					amount: _amounts[i],
+					cliff: _cliffs[i],
+					duration: _durations[i],
+					governanceControl: _governanceControls[i]
+				});
+			vestingDataList.push(vestingData);
 		}
 	}
 
@@ -118,8 +113,7 @@ contract VestingCreator is AdminRole {
 		require(vestingCreated == false, "staking not done for the previous vesting");
 		if (vestingDataList.length > 0) {
 			VestingData storage vestingData = vestingDataList[vestingDataList.length - 1];
-			address vesting = _createAndGetVesting(vestingData);
-			vestingDataList[vestingDataList.length - 1].vestingAddress = vesting;
+			_createAndGetVesting(vestingData);
 			vestingCreated = true;
 		}
 	}
@@ -132,11 +126,12 @@ contract VestingCreator is AdminRole {
 		require(vestingCreated == true, "cannot stake without vesting creation");
 		if (vestingDataList.length > 0) {
 			VestingData storage vestingData = vestingDataList[vestingDataList.length - 1];
-			if (vestingData.vestingAddress != address(0)) {
-				VestingLogic vesting = VestingLogic(vestingData.vestingAddress);
+			address vestingAddress = _getVesting(vestingData.tokenOwner, vestingData.cliff, vestingData.duration, vestingData.governanceControl);
+			if ( vestingAddress != address(0)) {
+				VestingLogic vesting = VestingLogic(vestingAddress);
 				SOV.approve(address(vesting), vestingData.amount);
 				vesting.stakeTokens(vestingData.amount);
-				emit TokensStaked(vestingData.vestingAddress, vestingData.tokenOwner, vestingData.amount);
+				emit TokensStaked(vestingAddress, vestingData.tokenOwner, vestingData.amount);
 				vestingCreated = false;
 				address tokenOwnerDetails = vestingData.tokenOwner;
 				delete vestingDataList[vestingDataList.length - 1];
@@ -174,7 +169,7 @@ contract VestingCreator is AdminRole {
 	 * @notice returns address after vesting creation
 	 */
 	function getVestingAddress() public view returns (address) {
-		return vestingDataList[vestingDataList.length - 1].vestingAddress;
+		return _getVesting(vestingDataList[vestingDataList.length - 1].tokenOwner, vestingDataList[vestingDataList.length - 1].cliff, vestingDataList[vestingDataList.length - 1].duration, vestingDataList[vestingDataList.length - 1].governanceControl);
 	}
 
 	/**
