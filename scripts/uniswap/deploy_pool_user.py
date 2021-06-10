@@ -29,6 +29,9 @@ def loadConfig():
     elif thisNetwork == "rinkeby":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/uniswap/eth_testnet_contracts.json')
+    elif thisNetwork == "ropsten":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/uniswap/eth_testnet_contracts.json')
     elif thisNetwork == "mainnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/uniswap/eth_mainnet_contracts.json')
