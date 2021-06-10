@@ -58,8 +58,7 @@ def main():
     #swapTokens(0.0013e18, 1, contracts['swapNetwork'], contracts['WRBTC'], contracts['ETHs'])
 
     #buyWRBTC(0.001e18)
-    confirmWithMS(190)
-    confirmWithMS(191)
+    transferTokensFromWallet(contracts['SOV'], contracts['LiquidityMiningProxy'], 10000e18)
 
 def loadConfig():
     global contracts, acct
@@ -1223,6 +1222,10 @@ def setWrapperOnLM():
     txId = tx.events["Submission"]["transactionId"]
     print("txid",txId);
 
+def setWrapperOnLMFromWallet():
+    lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
+    lm.setWrapper(contracts['RBTCWrapperProxy'])
+
 def transferTokensFromWallet(tokenContract, receiver, amount):
     token = Contract.from_abi("Token", address= tokenContract, abi = TestToken.abi, owner=acct)
     token.transfer(receiver, amount)
@@ -1246,6 +1249,10 @@ def setLockedSOV(newLockedSOV):
     txId = tx.events["Submission"]["transactionId"]
     print("txid",txId);
 
+def setLockedSOVFromWallet(newLockedSOV):
+    lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
+    lm.setLockedSOV(newLockedSOV)
+
 def setFeesController():
     sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
     data = sovryn.setFeesController.encode_input(contracts['FeeSharingProxy'])
@@ -1265,8 +1272,8 @@ def addPoolsToLM():
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     liquidityMining = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
     # TODO prepare pool tokens list
-    poolTokens = [contracts['(WR)BTC/USDT1'], contracts['(WR)BTC/USDT2'], contracts['(WR)BTC/DOC1'], contracts['(WR)BTC/DOC2'], contracts['(WR)BTC/BPRO1'], contracts['(WR)BTC/BPRO2']]
-    allocationPoints = [1, 1, 1, 1, 1, 1]
+    poolTokens = [contracts['(WR)BTC/SUSD1'], contracts['(WR)BTC/SUSD2']]
+    allocationPoints = [1, 1]
     # token weight = allocationPoint / SUM of allocationPoints for all pool tokens
     withUpdate = False # can be False if we adding pool tokens before mining started
     for i in range(0,len(poolTokens)):
@@ -1279,6 +1286,19 @@ def addPoolsToLM():
     print(data)
     tx = multisig.submitTransaction(liquidityMining.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
+
+def addPoolsToLMFromWallet():
+    liquidityMining = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
+    # TODO prepare pool tokens list
+    poolTokens = [contracts['(WR)BTC/SUSD1'], contracts['(WR)BTC/SUSD2']]
+    allocationPoints = [1, 1]
+    # token weight = allocationPoint / SUM of allocationPoints for all pool tokens
+    withUpdate = False # can be False if we adding pool tokens before mining started
+    for i in range(0,len(poolTokens)):
+        print('adding pool', i)
+        liquidityMining.add(poolTokens[i], allocationPoints[i], withUpdate)
+    liquidityMining.updateAllPools()
+
 
 def lookupCurrentPoolReserveBalances(userAddress):
     wrbtc = Contract.from_abi("TestToken", address = contracts['WRBTC'], abi = TestToken.abi, owner = acct)
