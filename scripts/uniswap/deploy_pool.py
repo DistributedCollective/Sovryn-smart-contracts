@@ -10,7 +10,7 @@ def main():
     balanceBefore = acct.balance()
     # Function Call
     # tokenTransfer(contracts['multisig'], eSOVAmount) # Change eSOVAmount with the amount of eSOV to be transferred.
-    deployPoolFromMultisig(10e18, 500e18)
+    # deployPoolFromMultisig(570e18, 50000e18)
     # confirmTransaction() # Need to add a transaction ID as parameter.
     # executeOnMultisig() # Need to add a transaction ID as parameter.
     balanceAfter = acct.balance()
@@ -32,6 +32,9 @@ def loadConfig():
     elif thisNetwork == "rinkeby":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/uniswap/eth_testnet_contracts.json')
+    elif thisNetwork == "ropsten":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/uniswap/eth_testnet_contracts.json')
     elif thisNetwork == "mainnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/uniswap/eth_mainnet_contracts.json')
@@ -47,12 +50,15 @@ def deployPoolFromMultisig(ethAmount, eSOVAmount):
     ethMultisig = Contract.from_abi("MultiSig", address=contracts['ethMultisig'], abi=MultiSigWallet.abi, owner=acct)
     uniswapV2Router02 = Contract.from_abi("IUniswapV2Router02", address=contracts['UniswapV2Router02'], abi=interface.IUniswapV2Router02.abi, owner=acct)
 
+    print("Checking if there is enough ETH Balance available in Multisig...")
     # Checks if multisig has enough eth balance. If not enough, will transfer in case of test network.
     checkETHBalanceAndTransfer(ethMultisig, ethAmount)
 
+    print("Checking if there is enough Token Balance available in Multisig...")
     # Checks if multisig has enough token balance. If not enough, will transfer in case of test network.
     checkTokenBalanceAndTransfer(eSOV, ethMultisig.address, eSOVAmount)
 
+    print("Checking if the Uniswap Router is approved with enough token...")
     # Checks if multisig has approved Uniswap for transfer. If not, will do the transfer.
     checkTokenApprovalInMultisig(eSOV, ethMultisig.address, uniswapV2Router02.address, eSOVAmount)
     
