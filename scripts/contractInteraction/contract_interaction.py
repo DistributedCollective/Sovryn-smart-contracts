@@ -18,8 +18,8 @@ def main():
     
 
 
-    #transferTokensFromWallet(contracts['SOV'], contracts['LiquidityMiningProxy'], 40000e18)
-    #sendTokensFromMultisig(contracts['SOV'], contracts['LiquidityMiningProxy'], 40000e18)
+    #transferTokensFromWallet(contracts['WRBTC'], '0x9Cf4CC7185E957C63f0BA6a4D793F594c702AD66', 0.001e18)
+    #sendTokensFromMultisig(contracts['XUSD'], '0x9Cf4CC7185E957C63f0BA6a4D793F594c702AD66', 40e18)
     #setWrapperOnLM()
     #addAdmin(contracts['LockedSOV'], contracts['VestingRegistry3'])
     #setFeesController()
@@ -39,7 +39,7 @@ def main():
     '''
     #0x37A706259F5201C03f6Cb556A960F30F86842d01  -ms aggregator
     #deployMultisig(['0xfe9d5402dc3c86cbaBE80231Cd48d98ba742D3f6','0x4C3d3505d34213751c4b4d621cB6bDe7E664E222',acct], 2)
-    sendFromMultisig('0x2064242b697830535A2d76BE352e82Cf85E0EC2c', 30e18)
+    #sendFromMultisig('0x2064242b697830535A2d76BE352e82Cf85E0EC2c', 30e18)
     #removeLiquidityV1toMultisigUsingWrapper(contracts['RBTCWrapperProxyWithoutLM'], contracts["ConverterETHs"], 90e18, [contracts['WRBTC'], contracts['ETHs']], [8e18,1])
 
     #amount = getBalance('0x09c5FAf7723B13434ABdF1A65AB1b667bc02a902', contracts['multisig'])
@@ -49,7 +49,7 @@ def main():
     #replaceOwnerOnMultisig('0x37A706259F5201C03f6Cb556A960F30F86842d01', '0x4C3d3505d34213751c4b4d621cB6bDe7E664E222', '0xEaBB83a1cEFc5f50C83BC4252C618d3294152A86')
     #upgradeAggregator('0x37A706259F5201C03f6Cb556A960F30F86842d01','0x3E9De61dC23D4BC1b84D174781809e5820cfceb7')
     
-    #addLiquidityV1FromMultisigUsingWrapper(contracts['RBTCWrapperProxyWithoutLM'], contracts['ConverterETHs'], [contracts['WRBTC'], contracts['ETHs']], [25e18,352e18], 248e18)
+    #addLiquidityV1FromMultisigUsingWrapper(contracts['RBTCWrapperProxyWithoutLM'], contracts['ConverterXUSD'], [contracts['WRBTC'], contracts['XUSD']], [28.66e18,1000000e18], 285e18)
     #addLiquidityV1UsingWrapper(contracts['RBTCWrapperProxyWithoutLM'], contracts['ConverterETHs'], [contracts['WRBTC'], contracts['ETHs']], [0.002e18,0.01e18])
     #readWRBTCAddressFromWrapper(contracts['RBTCWrapperProxyWithoutLM'])
 
@@ -57,7 +57,9 @@ def main():
 
     #swapTokens(0.0013e18, 1, contracts['swapNetwork'], contracts['WRBTC'], contracts['ETHs'])
 
-    buyWRBTC(0.1e18)
+    #buyWRBTC(0.001e18)
+    confirmWithMS(190)
+    confirmWithMS(191)
 
 def loadConfig():
     global contracts, acct
@@ -1311,3 +1313,7 @@ def readWRBTCAddressFromWrapper(wrapper):
     abi = json.load(abiFile)
     wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=wrapper, abi=abi, owner=acct)
     print(wrapperProxy.wrbtcTokenAddress())
+
+def confirmWithMS(id):
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    multisig.confirmTransaction(id)

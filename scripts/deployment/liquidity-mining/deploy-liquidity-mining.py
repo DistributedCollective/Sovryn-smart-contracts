@@ -28,19 +28,44 @@ def main():
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "arb-testnet":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/arbitrum_testnet_contracts.json')
     else:
         raise Exception("network not supported")
 
     # load deployed contracts addresses
     contracts = json.load(configFile)
-    multisig = contracts['multisig']
+    
+    if thisNetwork == "arb-testnet":
+        multisig = acct
+        SOV = acct.deploy(TestToken, "SOV", "SOV", 18, 100000000e18).address
+        #deploy the staking contracts
+        stakingLogic = acct.deploy(Staking)
+        staking = acct.deploy(StakingProxy, SOV)
+        staking.setImplementation(stakingLogic.address)
+        staking = Contract.from_abi("Staking", address=staking.address, abi=Staking.abi, owner=acct)
+        #deploy fee sharing contract
+        feeSharing = acct.deploy(FeeSharingProxy, contracts['sovrynProtocol'], staking.address)
+        # set fee sharing
+        staking.setFeeSharing(feeSharing.address)
+        vestingLogic = acct.deploy(VestingLogic)
+        vestingFactory = acct.deploy(VestingFactory, vestingLogic.address)
+        vestingRegistry = acct.deploy(VestingRegistry3, vestingFactory.address, SOV, staking.address, feeSharing.address, acct)
+        VestingRegistry = vestingRegistry.address
+        poolToken = contracts['(WR)BTC/SUSD']
+    else:
+        multisig = contracts['multisig']
+        SOV = contracts['SOV']
+        VestingRegistry = contracts['VestingRegistry3']
+        poolToken = contracts['(WR)BTC/SOV']
 
     balanceBefore = acct.balance()
     
     # == LiquidityMining ===================================================================================================================
-    SOVToken = Contract.from_abi("SOV", address = contracts['SOV'], abi=TestToken.abi, owner = acct)
+    SOVToken = Contract.from_abi("SOV", address = SOV, abi=TestToken.abi, owner = acct)
     
-    lockedSOV = acct.deploy(LockedSOV, contracts['SOV'], contracts['VestingRegistry3'], 1, 10, [contracts['multisig']])
+    lockedSOV = acct.deploy(LockedSOV, SOV, VestingRegistry, 1, 10, [multisig])
 
     liquidityMiningLogic = acct.deploy(LiquidityMining)
     liquidityMiningProxy = acct.deploy(LiquidityMiningProxy)
@@ -63,13 +88,13 @@ def main():
     # The % (in Basis Point) which determines how much will be unlocked immediately.
     # 10000 is 100%
     unlockedImmediatelyPercent = 0 # 0%
-    liquidityMining.initialize(contracts['SOV'], rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address, unlockedImmediatelyPercent)
+    liquidityMining.initialize(SOV, rewardTokensPerBlock, startDelayBlocks, numberOfBonusBlocks, wrapper, lockedSOV.address, unlockedImmediatelyPercent)
 
     # TODO Dummy pool token should be ERC20
     liquidityMiningConfigToken = acct.deploy(LiquidityMiningConfigToken)
 
     # TODO prepare pool tokens list
-    poolTokens = [contracts['(WR)BTC/SOV'], liquidityMiningConfigToken.address]
+    poolTokens = [poolToken, liquidityMiningConfigToken.address]
     # we need to multiply by 1000 to have 100 M
     MAX_ALLOCATION_POINT = 100000 * 1000 # 100 M
     # we don't need 10**18 here, it's just a proportion between tokens
