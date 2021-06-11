@@ -68,7 +68,9 @@ def main():
     #confirmMS(152)
 
     #addMOCPoolToken()
-    readMaxAffiliateFee()
+    # readMaxAffiliateFee()
+
+    transferSOVtoLM(100 * 10**18)
 
 def loadConfig():
     global contracts, acct
@@ -1352,3 +1354,14 @@ def readMaxAffiliateFee():
     abi = json.load(abiFile)
     swapNetwork = Contract.from_abi("SovrynSwapNetwork", address=contracts['swapNetwork'], abi=abi, owner=acct)
     print(swapNetwork.maxAffiliateFee())
+
+def transferSOVtoLM(amount):
+    liquidityMining = contracts['LiquidityMiningProxy']
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    data = SOVtoken.transfer.encode_input(liquidityMining, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(SOVtoken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
