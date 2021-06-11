@@ -150,7 +150,6 @@ def loadConfig():
     else:
         raise Exception("Network not supported.")
     contracts = json.load(configFile)
-    acct = accounts.load("rskdeployer")
     
 def readLendingFee():
     sovryn = Contract.from_abi("sovryn", address='0xBAC609F5C8bb796Fa5A31002f12aaF24B7c35818', abi=interface.ISovrynBrownie.abi, owner=acct)
@@ -402,7 +401,7 @@ def buyWRBTC():
     contract = Contract.from_abi("WRBTC", address=contracts["WRBTC"], abi=WRBTC.abi, owner=acct)
     tx = contract.deposit({'value':1e18})
     tx.info()
-    print("new balance", getBalance(contracts["WRBTC"], acct))
+    print("New balance: ", contract.balanceOf(acct))
     
 def mintEarlyAccessTokens(contractAddress, userAddress):
     contract = Contract.from_abi("EarlyAccessToken", address=contractAddress, abi=EarlyAccessToken.abi, owner=acct)
