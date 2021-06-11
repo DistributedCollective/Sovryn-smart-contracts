@@ -10,6 +10,7 @@ import "../openzeppelin/Ownable.sol";
 import "../interfaces/IERC20.sol";
 import "./PriceFeedsConstants.sol";
 
+
 interface IPriceFeedsExt {
 	function latestAnswer() external view returns (uint256);
 }
@@ -377,27 +378,27 @@ contract PriceFeeds is Constants, Ownable {
 		/// Different tokens, query prices and perform division.
 		if (sourceToken != destToken) {
 			uint256 sourceRate;
-			if (sourceToken != address(baseToken) && sourceToken != protocolTokenAddress) {
+			if (sourceToken == address(baseToken)) {
+				sourceRate = 10**18;
+			} else {
 				IPriceFeedsExt _sourceFeed = pricesFeeds[sourceToken];
 				require(address(_sourceFeed) != address(0), "unsupported src feed");
 
 				/// Query token price on priceFeedsExt instance.
 				sourceRate = _sourceFeed.latestAnswer();
 				require(sourceRate != 0 && (sourceRate >> 128) == 0, "price error");
-			} else {
-				sourceRate = sourceToken == protocolTokenAddress ? protocolTokenEthPrice : 10**18;
 			}
 
 			uint256 destRate;
-			if (destToken != address(baseToken) && destToken != protocolTokenAddress) {
+			if (destToken == address(baseToken)) {
+				destRate = 10 ** 18;
+			} else {
 				IPriceFeedsExt _destFeed = pricesFeeds[destToken];
 				require(address(_destFeed) != address(0), "unsupported dst feed");
 
 				/// Query token price on priceFeedsExt instance.
 				destRate = _destFeed.latestAnswer();
 				require(destRate != 0 && (destRate >> 128) == 0, "price error");
-			} else {
-				destRate = destToken == protocolTokenAddress ? protocolTokenEthPrice : 10**18;
 			}
 
 			rate = sourceRate.mul(10**18).div(destRate);
