@@ -10,7 +10,7 @@ def main():
     balanceBefore = acct.balance()
     # Function Call
     # tokenTransfer(contracts['multisig'], eSOVAmount) # Change eSOVAmount with the amount of eSOV to be transferred.
-    # deployPoolFromMultisig(570e18, 50000e18)
+    deployPoolFromMultisig(787e18, 49998e18)
     # confirmTransaction() # Need to add a transaction ID as parameter.
     # executeOnMultisig() # Need to add a transaction ID as parameter.
     balanceAfter = acct.balance()
@@ -63,17 +63,18 @@ def deployPoolFromMultisig(ethAmount, eSOVAmount):
     checkTokenApprovalInMultisig(eSOV, ethMultisig.address, uniswapV2Router02.address, eSOVAmount)
     
     # Creating Uniswap Pool
-    thirtyMinutes = 30 * 60
+    sixtyMinutes = 60 * 60
     currentTimestamp = int(time.time())
-    deadline = currentTimestamp + thirtyMinutes
-    data = uniswapV2Router02.addLiquidityETH.encode_input(eSOV.address, eSOVAmount, eSOVAmount, ethAmount, ethMultisig.address, deadline)
+    deadline = currentTimestamp + sixtyMinutes
+    amountTokenMin = eSOVAmount - 1e18
+    data = uniswapV2Router02.addLiquidityETH.encode_input(eSOV.address, eSOVAmount, amountTokenMin, ethAmount, ethMultisig.address, deadline)
     # https://uniswap.org/docs/v2/smart-contracts/router02/#addliquidityeth
     print("=============================================================")
     print("Interaction Parameters (Pool Creation)")
     print("=============================================================")
     print("eSOV Token:                  ", eSOV.address)
     print("amountTokenDesired:          ", eSOVAmount)
-    print("amountTokenMin:              ", eSOVAmount)
+    print("amountTokenMin:              ", amountTokenMin)
     print("amountETHMin:                ", ethAmount)
     print("to:                          ", ethMultisig.address)
     print("deadline:                    ", deadline)
