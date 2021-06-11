@@ -70,7 +70,10 @@ def main():
     #addMOCPoolToken()
     # readMaxAffiliateFee()
 
-    transferSOVtoLM(100 * 10**18)
+    # transferSOVtoLM(100 * 10**18)
+
+    # replaceLoanTokenLogicOnAllContracts()
+    setLiquidityMiningAddressOnAllContracts()
 
 def loadConfig():
     global contracts, acct
@@ -652,7 +655,7 @@ def replaceProtocolSettings():
 
 def replaceLoanTokenLogicOnAllContracts():
     print("replacing loan token logic")
-    logicContract = acct.deploy(LoanTokenLogicStandard)
+    logicContract = acct.deploy(LoanTokenLogicLM)
     print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
     replaceLoanTokenLogic(contracts['iDOC'],logicContract.address)
     replaceLoanTokenLogic(contracts['iUSDT'],logicContract.address)
@@ -664,6 +667,22 @@ def replaceLoanTokenLogicOnAllContracts():
 def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
     data = loanToken.setTarget.encode_input(logicAddress)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(loanToken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def setLiquidityMiningAddressOnAllContracts():
+    print("setting LM address")
+    setLiquidityMiningAddress(contracts['iDOC'])
+    setLiquidityMiningAddress(contracts['iUSDT'])
+    setLiquidityMiningAddress(contracts['iBPro'])
+    setLiquidityMiningAddress(contracts['iRBTC'])
+
+def setLiquidityMiningAddress(loanTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicLM.abi, owner=acct)
+    data = loanToken.setLiquidityMiningAddress.encode_input(contracts['LiquidityMiningProxy'])
+
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(loanToken.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
