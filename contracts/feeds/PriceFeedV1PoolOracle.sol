@@ -31,7 +31,11 @@ contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
 	 *
 	 * @param _v1PoolOracleAddress The V1 Pool Oracle address.
 	 * */
-	constructor(address _v1PoolOracleAddress, address _rBTCAddress, address _docAddress) public {
+	constructor(
+		address _v1PoolOracleAddress,
+		address _rBTCAddress,
+		address _docAddress
+	) public {
 		setV1PoolOracleAddress(_v1PoolOracleAddress);
 		setRBTCAddress(_rBTCAddress);
 		setDOCAddress(_docAddress);
@@ -44,35 +48,26 @@ contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
 	function latestAnswer() external view returns (uint256) {
 		require(rBTCAddress != address(0), "rBTC address has not been set");
 		require(docAddress != address(0), "DOC address has not been set");
+		
 		IV1PoolOracle _v1PoolOracle = IV1PoolOracle(v1PoolOracleAddress);
-		(uint256 _price) = _v1PoolOracle.latestAnswer();
+		// Need to check, if the requested asset is BTC
+		address liquidityPool = _v1PoolOracle.liquidityPool();
+		require(ILiquidityPoolV1Converter(liquidityPool).reserveTokens(0) != rBTCAddress || ILiquidityPoolV1Converter(liquidityPool).reserveTokens(1) != rBTCAddress, "wrBTC price feed cannot use the oracle v1 pool");
+
+		uint256 _price = _v1PoolOracle.latestAnswer();
 
 		// Need to convert to USD, since the V1 pool return value is based on BTC
 		uint256 priceInUSD = _convertAnswerToUsd(_price);
 		require(priceInUSD != 0, "price error");
 
-
 		return priceInUSD;
 	}
 
-	function _convertAnswerToUsd(uint256 _valueInBTC) private view returns (uint256){
+	function _convertAnswerToUsd(uint256 _valueInBTC) private view returns (uint256) {
 		uint256 valueInUSD;
 		address _priceFeeds = msg.sender;
 
-		(bool success, bytes memory data) =
-			_priceFeeds.staticcall(
-				abi.encodeWithSelector(
-					IPriceFeeds(_priceFeeds).queryReturn.selector,
-					rBTCAddress,
-					docAddress,
-					_valueInBTC
-				)
-			);
-		assembly {
-			if eq(success, 1) {
-				valueInUSD := mload(add(data, 32))
-			}
-		}
+		valueInUSD = IPriceFeeds(_priceFeeds).queryReturn(rBTCAddress, docAddress, _valueInBTC);
 
 		return valueInUSD;
 	}

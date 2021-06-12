@@ -10,7 +10,6 @@ import "../openzeppelin/Ownable.sol";
 import "../interfaces/IERC20.sol";
 import "./PriceFeedsConstants.sol";
 
-
 interface IPriceFeedsExt {
 	function latestAnswer() external view returns (uint256);
 }
@@ -391,7 +390,7 @@ contract PriceFeeds is Constants, Ownable {
 
 			uint256 destRate;
 			if (destToken == address(baseToken)) {
-				destRate = 10 ** 18;
+				destRate = 10**18;
 			} else {
 				IPriceFeedsExt _destFeed = pricesFeeds[destToken];
 				require(address(_destFeed) != address(0), "unsupported dst feed");
