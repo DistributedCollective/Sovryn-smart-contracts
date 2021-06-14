@@ -115,8 +115,11 @@ def updateLMConfig():
 
 def check():
     liquidityMining = Contract.from_abi("LiquidityMining", address=contracts['LiquidityMiningProxy'], abi=LiquidityMining.abi, owner=acct)
-    print(liquidityMining.getMissedBalance() / 10**18)
-    print(liquidityMining.totalUsersBalance() / 10**18)
+    print("MissedBalance: ", liquidityMining.getMissedBalance() / 10**18)
+    print("TotalUsersBalance: ", liquidityMining.totalUsersBalance() / 10**18)
+
+    print("Pool info list:")
+    print(liquidityMining.getPoolInfoList())
 
 def updateAllPools():
     liquidityMining = Contract.from_abi("LiquidityMining", address=contracts['LiquidityMiningProxy'], abi=LiquidityMining.abi, owner=acct)
