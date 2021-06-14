@@ -17,8 +17,10 @@ def main():
     #call the function you want here
     # addTestETHPoolToken()
     # addETHPoolToken()
-    # updateETHPoolToken()
+    # updateLMConfig()
 
+    check()
+    # updateAllPools()
 
 def loadConfig():
     global contracts, acct
@@ -70,7 +72,7 @@ def addETHPoolToken():
     txId = tx.events["Submission"]["transactionId"]
     print("txid",txId)
 
-def updateETHPoolToken():
+def updateLMConfig():
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
 
@@ -95,3 +97,18 @@ def updateETHPoolToken():
     tx = multisig.submitTransaction(lm.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print("txid",txId)
+
+def check():
+    liquidityMining = Contract.from_abi("LiquidityMining", address=contracts['LiquidityMiningProxy'], abi=LiquidityMining.abi, owner=acct)
+    print(liquidityMining.getMissedBalance() / 10**18)
+    print(liquidityMining.totalUsersBalance() / 10**18)
+
+def updateAllPools():
+    liquidityMining = Contract.from_abi("LiquidityMining", address=contracts['LiquidityMiningProxy'], abi=LiquidityMining.abi, owner=acct)
+    data = liquidityMining.updateAllPools.encode_input()
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(liquidityMining.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
