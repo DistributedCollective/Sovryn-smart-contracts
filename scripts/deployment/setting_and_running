@@ -16,7 +16,7 @@ MAINNET
 brownie networks add rsk rsk-mainnet host=https://mainnet.sovryn.app/rpc chainid=30
 
 #running
-brownie run scripts/contractInteraction/contractInteraction.py --network rsk-mainnet
+brownie run scripts/contractInteraction/contract_interaction.py --network rsk-mainnet
 
 #adding deployment example:
 #add alike function
