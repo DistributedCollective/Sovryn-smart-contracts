@@ -67,6 +67,9 @@ def loadConfig():
     elif thisNetwork == "testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet-ws":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
@@ -762,7 +765,7 @@ def setMinReferralsToPayout(minReferrals):
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
-    print('setMinReferralsToPayoutAffiliates set to ', minReferral, ' tx:')
+    print('setMinReferralsToPayoutAffiliates set to ', minReferrals, ' tx:')
     print(txId);
 
 def sendFromMultisigToVesting(amount):
@@ -1236,12 +1239,12 @@ def deployAffiliate():
     txId = tx.events["Submission"]["transactionId"]
     print('sovryn.setSovrynProtocolAddress tx:')
     print(txId)
-    print("protocol address loaded:", sovryn.getProtocolAddress())
+    print("protocol address loaded") #, sovryn.getProtocolAddress()) - not executed yet
 
     # Set SOVTokenAddress
-    # sovToken = Contract.from_abi("SOV", address=contracts["SOV"], abi=SOV.abi, owner=acct)
-    # data = sovryn.setSOVTokenAddress.encode_input(sovToken.address)
-    data = sovryn.setSOVTokenAddress.encode_input(contracts["SOV"])
+    sovToken = Contract.from_abi("SOV", address=contracts["SOV"], abi=SOV.abi, owner=acct)
+    data = sovryn.setSOVTokenAddress.encode_input(sovToken.address)
+    # data = sovryn.setSOVTokenAddress.encode_input(contracts["SOV"])
     print("Set SOV Token address in protocol settings")
     print(data)
 
@@ -1250,7 +1253,7 @@ def deployAffiliate():
     txId = tx.events["Submission"]["transactionId"]
     print('set SOV token address to ProtocolSettings tx:')
     print(txId)
-    print("sovToken address loaded:", sovryn.getSovTokenAddress())
+    print("sovToken address loaded") #, sovryn.getSovTokenAddress()) - not executed yet
 
     # Set LockedSOVAddress
     lockedSOV = Contract.from_abi("LockedSOV", address=contracts["LockedSOV"], abi=LockedSOV.abi, owner=acct)
