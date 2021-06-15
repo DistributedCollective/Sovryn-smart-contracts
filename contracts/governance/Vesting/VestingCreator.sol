@@ -28,6 +28,7 @@ contract VestingCreator is AdminRole {
 		uint256 cliff;
 		uint256 duration;
 		bool governanceControl; ///@dev true - tokens can be withdrawn by governance
+		uint256 vestingCreationType;
 	}
 
 	///@notice list of vesting to be processed
@@ -68,7 +69,8 @@ contract VestingCreator is AdminRole {
 		uint256[] memory _amounts,
 		uint256[] memory _cliffs,
 		uint256[] memory _durations,
-		bool[] memory _governanceControls
+		bool[] memory _governanceControls,
+		uint256[] memory _vestingCreationTypes
 	) public onlyAuthorized {
 		require(
 			_tokenOwners.length == _amounts.length &&
@@ -90,7 +92,8 @@ contract VestingCreator is AdminRole {
 					amount: _amounts[i],
 					cliff: _cliffs[i],
 					duration: _durations[i],
-					governanceControl: _governanceControls[i]
+					governanceControl: _governanceControls[i],
+					vestingCreationType: _vestingCreationTypes[i]
 				});
 			vestingDataList.push(vestingData);
 		}
@@ -126,7 +129,13 @@ contract VestingCreator is AdminRole {
 		require(vestingCreated == true, "cannot stake without vesting creation");
 		if (vestingDataList.length > 0) {
 			VestingData storage vestingData = vestingDataList[vestingDataList.length - 1];
-			address vestingAddress = _getVesting(vestingData.tokenOwner, vestingData.cliff, vestingData.duration, vestingData.governanceControl);
+			address vestingAddress = _getVesting(
+				vestingData.tokenOwner, 
+				vestingData.cliff, 
+				vestingData.duration, 
+				vestingData.governanceControl,
+				vestingData.vestingCreationType
+			);
 			if ( vestingAddress != address(0)) {
 				VestingLogic vesting = VestingLogic(vestingAddress);
 				SOV.approve(address(vesting), vestingData.amount);
@@ -169,7 +178,13 @@ contract VestingCreator is AdminRole {
 	 * @notice returns address after vesting creation
 	 */
 	function getVestingAddress() public view returns (address) {
-		return _getVesting(vestingDataList[vestingDataList.length - 1].tokenOwner, vestingDataList[vestingDataList.length - 1].cliff, vestingDataList[vestingDataList.length - 1].duration, vestingDataList[vestingDataList.length - 1].governanceControl);
+		return _getVesting(
+			vestingDataList[vestingDataList.length - 1].tokenOwner, 
+			vestingDataList[vestingDataList.length - 1].cliff, 
+			vestingDataList[vestingDataList.length - 1].duration, 
+			vestingDataList[vestingDataList.length - 1].governanceControl,
+			vestingDataList[vestingDataList.length - 1].vestingCreationType
+		);
 	}
 
 	/**
@@ -226,11 +241,28 @@ contract VestingCreator is AdminRole {
 	 */
 	function _createAndGetVesting(VestingData storage vestingData) internal returns (address vesting) {
 		if (vestingData.governanceControl) {
-			vestingRegistryLogic.createTeamVesting(vestingData.tokenOwner, vestingData.amount, vestingData.cliff, vestingData.duration);
+			vestingRegistryLogic.createTeamVesting(
+				vestingData.tokenOwner, 
+				vestingData.amount, 
+				vestingData.cliff, 
+				vestingData.duration, 
+				vestingData.vestingCreationType
+			);
 		} else {
-			vestingRegistryLogic.createVesting(vestingData.tokenOwner, vestingData.amount, vestingData.cliff, vestingData.duration);
+			vestingRegistryLogic.createVestingAddr(
+				vestingData.tokenOwner, 
+				vestingData.amount, 
+				vestingData.cliff, 
+				vestingData.duration,
+				vestingData.vestingCreationType);
 		}
-		return _getVesting(vestingData.tokenOwner, vestingData.cliff, vestingData.duration, vestingData.governanceControl);
+		return _getVesting(
+			vestingData.tokenOwner, 
+			vestingData.cliff, 
+			vestingData.duration, 
+			vestingData.governanceControl, 
+			vestingData.vestingCreationType
+		);
 	}
 
 	/**
@@ -240,12 +272,13 @@ contract VestingCreator is AdminRole {
 		address _tokenOwner,
 		uint256 _cliff,
 		uint256 _duration,
-		bool _governanceControl
+		bool _governanceControl,
+		uint256 _vestingCreationType
 	) internal view returns (address vestingAddress) {
 		if (_governanceControl) {
-			vestingAddress = vestingRegistryLogic.getTeamVesting(_tokenOwner, _cliff, _duration);
+			vestingAddress = vestingRegistryLogic.getTeamVesting(_tokenOwner, _cliff, _duration, _vestingCreationType);
 		} else {
-			vestingAddress = vestingRegistryLogic.getVestingAddr(_tokenOwner, _cliff, _duration);
+			vestingAddress = vestingRegistryLogic.getVestingAddr(_tokenOwner, _cliff, _duration, _vestingCreationType);
 		}
 	}
 }

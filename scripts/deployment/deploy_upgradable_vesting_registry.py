@@ -33,7 +33,6 @@ def main():
     stakingAddress = contracts['Staking']
     feeSharingAddress = contracts['FeeSharingProxy']
     lockedSOVAddress = contracts['LockedSOV']
-    vestingFactoryAddress = contracts['VestingFactory']
     vestingRegistryAddress = contracts['VestingRegistry']
     vestingRegistry2Address = contracts['VestingRegistry2']
     vestingRegistry3Address = contracts['VestingRegistry3']
@@ -41,6 +40,13 @@ def main():
     balanceBefore = acct.balance()
 
     # == VestingRegistry ===================================================================================================================
+
+    # deploy Initializable
+    initializable = acct.deploy(Initializable)
+
+    #deploy VestingFactory
+    vestingLogic = acct.deploy(VestingLogic)
+    vestingFactory = acct.deploy(VestingFactory, vestingLogic.address)
 
     # deploy VestingRegistryLogic
     vestingRegistryLogic = acct.deploy(VestingRegistryLogic)
@@ -53,18 +59,20 @@ def main():
         owner=acct)
 
     vestingRegistry.initialize(
-        vestingFactoryAddress, SOVAddress, stakingAddress, feeSharingAddress, teamVestingOwner, vestingRegistryAddress, vestingRegistry2Address, vestingRegistry3Address
+        vestingFactory.address, SOVAddress, stakingAddress, feeSharingAddress, teamVestingOwner, lockedSOVAddress,
+        [vestingRegistryAddress, vestingRegistry2Address, vestingRegistry3Address]
     )
 
-    vestingRegistryProxy.addAdmin(multisig)
+    vestingRegistryLogic.addAdmin(multisig)
     vestingRegistryProxy.setProxyOwner(multisig)
     vestingRegistry.transferOwnership(multisig)
 
     # deploy VestingCreator
-    vestingCreator = acct.deploy(vestingCreator, SOVAddress, vestingRegistry)
+    vestingCreator = acct.deploy(VestingCreator, SOVAddress, vestingRegistry)
 
     vestingCreator.transferOwnership(multisig)
-    vestingRegistry.addAdmin(vestingCreator)
+    vestingRegistryLogic.addAdmin(vestingCreator)
+    vestingRegistryLogic.addAdmin(lockedSOVAddress)
 
     print("deployment cost:")
     print((balanceBefore - acct.balance()) / 10**18)

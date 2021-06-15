@@ -354,7 +354,7 @@ contract("VestingRegistryLogic", (accounts) => {
 	});
 
 	describe("createVesting", () => {
-		it("should be able to create vesting", async () => {
+		it("should be able to create vesting - Bug Bounty", async () => {
 			await vesting.initialize(
 				vestingFactory.address,
 				SOV.address,
@@ -370,8 +370,9 @@ contract("VestingRegistryLogic", (accounts) => {
 
 			let cliff = FOUR_WEEKS;
 			let duration = FOUR_WEEKS.mul(new BN(20));
-			let tx = await vesting.createVesting(account2, amount, cliff, duration);
-			let vestingAddress = await vesting.getVestingAddr(account2, cliff, duration);
+			let vestingType = new BN(2);;//Bug Bounty
+			let tx = await vesting.createVestingAddr(account2, amount, cliff, duration, vestingType);
+			let vestingAddress = await vesting.getVestingAddr(account2, cliff, duration, vestingType);
 			await vesting.stakeTokens(vestingAddress, amount);
 
 			expectEvent(tx, "VestingCreated", {
@@ -380,6 +381,49 @@ contract("VestingRegistryLogic", (accounts) => {
 				cliff: cliff,
 				duration: duration,
 				amount: amount,
+				vestingCreationType: vestingType,
+			});
+
+			let balance = await SOV.balanceOf(vesting.address);
+			expect(balance.toString()).equal("0");
+
+			let vestingAddr = await VestingLogic.at(vestingAddress);
+			await checkVesting(vestingAddr, account2, cliff, duration, amount);
+
+			await expectRevert(vestingAddr.governanceWithdrawTokens(account2), "operation not supported");
+
+			let proxy = await UpgradableProxy.at(vestingAddress);
+			await expectRevert(proxy.setImplementation(account2), "revert");
+		});
+
+		it("should be able to create vesting - Team Salary", async () => {
+			await vesting.initialize(
+				vestingFactory.address,
+				SOV.address,
+				staking.address,
+				feeSharingProxy.address,
+				account1,
+				lockedSOV.address,
+				[vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
+			);
+
+			let amount = new BN(1000000);
+			await SOV.transfer(vesting.address, amount);
+
+			let cliff = FOUR_WEEKS;
+			let duration = FOUR_WEEKS.mul(new BN(20));
+			let vestingType = new BN(3);//Team Salary
+			let tx = await vesting.createVestingAddr(account2, amount, cliff, duration, vestingType);
+			let vestingAddress = await vesting.getVestingAddr(account2, cliff, duration, vestingType);
+			await vesting.stakeTokens(vestingAddress, amount);
+
+			expectEvent(tx, "VestingCreated", {
+				tokenOwner: account2,
+				vesting: vestingAddress,
+				cliff: cliff,
+				duration: duration,
+				amount: amount,
+				vestingCreationType: vestingType,
 			});
 
 			let balance = await SOV.balanceOf(vesting.address);
@@ -408,9 +452,10 @@ contract("VestingRegistryLogic", (accounts) => {
 			let amount = new BN(1000000);
 			let cliff = FOUR_WEEKS;
 			let duration = FOUR_WEEKS.mul(new BN(20));
+			let vestingType = new BN(3);//Team Salary
 
-			await vesting.createVesting(account2, amount, cliff, duration);
-			let vestingAddress = await vesting.getVestingAddr(account2, cliff, duration);
+			await vesting.createVestingAddr(account2, amount, cliff, duration, vestingType);
+			let vestingAddress = await vesting.getVestingAddr(account2, cliff, duration, vestingType);
 
 			await expectRevert(vesting.stakeTokens(vestingAddress, amount), "ERC20: transfer amount exceeds balance");
 		});
@@ -429,11 +474,12 @@ contract("VestingRegistryLogic", (accounts) => {
 			let amount = new BN(1000000);
 			let cliff = TEAM_VESTING_CLIFF;
 			let duration = TEAM_VESTING_DURATION;
+			let vestingType = new BN(3);//Team Salary
 
-			await expectRevert(vesting.createVesting(account2, amount, cliff, duration, { from: account1 }), "unauthorized");
+			await expectRevert(vesting.createVestingAddr(account2, amount, cliff, duration, vestingType, { from: account1 }), "unauthorized");
 
 			await vesting.addAdmin(account1);
-			await vesting.createVesting(account2, amount, cliff, duration, { from: account1 });
+			await vesting.createVestingAddr(account2, amount, cliff, duration, vestingType, { from: account1 });
 		});
 	});
 
@@ -458,7 +504,7 @@ contract("VestingRegistryLogic", (accounts) => {
 	});
 
 	describe("createTeamVesting", () => {
-		it("should be able to create vesting", async () => {
+		it("should be able to create team vesting", async () => {
 			await vesting.initialize(
 				vestingFactory.address,
 				SOV.address,
@@ -474,14 +520,16 @@ contract("VestingRegistryLogic", (accounts) => {
 
 			let cliff = TEAM_VESTING_CLIFF;
 			let duration = TEAM_VESTING_DURATION;
-			let tx = await vesting.createTeamVesting(account2, amount, cliff, duration);
-			let vestingAddress = await vesting.getTeamVesting(account2, cliff, duration);
+			let vestingType = new BN(3);//Team Salary
+			let tx = await vesting.createTeamVesting(account2, amount, cliff, duration, vestingType);
+			let vestingAddress = await vesting.getTeamVesting(account2, cliff, duration, vestingType);
 			expectEvent(tx, "TeamVestingCreated", {
 				tokenOwner: account2,
 				vesting: vestingAddress,
 				cliff: cliff,
 				duration: duration,
 				amount: amount,
+				vestingCreationType: vestingType,
 			});
 			let tx2 = await vesting.stakeTokens(vestingAddress, amount);
 			expectEvent(tx2, "TokensStaked", {
@@ -514,9 +562,10 @@ contract("VestingRegistryLogic", (accounts) => {
 			let amount = new BN(1000000);
 			let cliff = TEAM_VESTING_CLIFF;
 			let duration = TEAM_VESTING_DURATION;
+			let vestingType = new BN(3);//Team Salary
 
-			await vesting.createTeamVesting(account2, amount, cliff, duration);
-			let vestingAddress = await vesting.getTeamVesting(account2, cliff, duration);
+			await vesting.createTeamVesting(account2, amount, cliff, duration, vestingType);
+			let vestingAddress = await vesting.getTeamVesting(account2, cliff, duration, vestingType);
 
 			await expectRevert(vesting.stakeTokens(vestingAddress, amount), "ERC20: transfer amount exceeds balance");
 		});
@@ -535,11 +584,12 @@ contract("VestingRegistryLogic", (accounts) => {
 			let amount = new BN(1000000);
 			let cliff = TEAM_VESTING_CLIFF;
 			let duration = TEAM_VESTING_DURATION;
+			let vestingType = new BN(3);//Team Salary
 
-			await expectRevert(vesting.createTeamVesting(account2, amount, cliff, duration, { from: account1 }), "unauthorized");
+			await expectRevert(vesting.createTeamVesting(account2, amount, cliff, duration, vestingType, { from: account1 }), "unauthorized");
 
 			await vesting.addAdmin(account1);
-			await vesting.createTeamVesting(account2, amount, cliff, duration, { from: account1 });
+			await vesting.createTeamVesting(account2, amount, cliff, duration, vestingType, { from: account1 });
 		});
 	});
 
@@ -568,8 +618,9 @@ contract("VestingRegistryLogic", (accounts) => {
 
 			let cliff = TEAM_VESTING_CLIFF;
 			let duration = TEAM_VESTING_DURATION;
-			await vesting.createTeamVesting(account2, amount, cliff, duration);
-			let vestingAddress = await vesting.getTeamVesting(account2, cliff, duration);
+			let vestingType = new BN(3);//Team Salary
+			await vesting.createTeamVesting(account2, amount, cliff, duration, vestingType);
+			let vestingAddress = await vesting.getTeamVesting(account2, cliff, duration, vestingType);
 
 			await expectRevert(vesting.stakeTokens(vestingAddress, new BN(1000000), { from: account1 }), "unauthorized");
 
@@ -596,15 +647,19 @@ contract("VestingRegistryLogic", (accounts) => {
 			//Vesting
 			let cliff = FOUR_WEEKS;
 			let duration = FOUR_WEEKS.mul(new BN(20));
-			await vesting.createVesting(account2, amount, cliff, duration);
+			let vestingType = new BN(2);;//Bug Bounty
+			await vesting.createVestingAddr(account2, amount, cliff, duration, vestingType);
 
 			//TeamVesting
 			let teamCliff = TEAM_VESTING_CLIFF;
 			let teamDuration = TEAM_VESTING_DURATION;
-			await vesting.createTeamVesting(account2, amount, teamCliff, teamDuration);
+			vestingType = new BN(3);//Team Salary
+			await vesting.createTeamVesting(account2, amount, teamCliff, teamDuration, vestingType);
 
 			let vestingAddresses = await vesting.getVestingsOf(account2);
 			assert.equal(vestingAddresses.length.toString(), "2");
+			assert.equal(vestingAddresses[0].vestingCreationType, "2");
+			assert.equal(vestingAddresses[1].vestingCreationType, "3");
 		});
 	});
 
@@ -626,8 +681,9 @@ contract("VestingRegistryLogic", (accounts) => {
 			//Vesting
 			let cliff = FOUR_WEEKS;
 			let duration = FOUR_WEEKS.mul(new BN(20));
-			await vesting.createVesting(account2, amount, cliff, duration);
-			let vestingAddr = await vesting.getVestingAddr(account2, cliff, duration);
+			let vestingType = new BN(2);;//Bug Bounty
+			await vesting.createVestingAddr(account2, amount, cliff, duration, vestingType);
+			let vestingAddr = await vesting.getVestingAddr(account2, cliff, duration, vestingType);
 			let fields = await vesting.getVestingDetails(vestingAddr);
 			expect(cliff).to.be.bignumber.equal(fields.cliff);
 			expect(duration).to.be.bignumber.equal(fields.duration);
@@ -650,8 +706,9 @@ contract("VestingRegistryLogic", (accounts) => {
 			//TeamVesting
 			let teamCliff = TEAM_VESTING_CLIFF;
 			let teamDuration = TEAM_VESTING_DURATION;
-			await vesting.createTeamVesting(account2, amount, teamCliff, teamDuration);
-			let vestingAddr = await vesting.getTeamVesting(account2, teamCliff, teamDuration);
+			let vestingType = new BN(3);//Team Salary
+			await vesting.createTeamVesting(account2, amount, teamCliff, teamDuration, vestingType);
+			let vestingAddr = await vesting.getTeamVesting(account2, teamCliff, teamDuration, vestingType);
 			let fields = await vesting.getVestingDetails(vestingAddr);
 			expect(teamCliff).to.be.bignumber.equal(fields.cliff);
 			expect(teamDuration).to.be.bignumber.equal(fields.duration);

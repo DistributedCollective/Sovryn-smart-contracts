@@ -184,15 +184,15 @@ contract("VestingRegistryMigrations", (accounts) => {
 			let teamDuration = TEAM_VESTING_DURATION;
 
 			vestingFactory.transferOwnership(vesting.address);
-			let tx = await vesting.addDeployedVestings([account1, account2, account3]);
+			let tx = await vesting.addDeployedVestings([account1, account2, account3], [2, 3, 4]);
 			console.log("gasUsed = " + tx.receipt.gasUsed);
 
-			newVestingAddress = await vesting.getVestingAddr(account1, cliff, duration);
-			newVestingAddress2 = await vesting.getVestingAddr(account2, cliff, duration);
-			newVestingAddress3 = await vesting.getVestingAddr(account3, cliff, duration);
-			newTeamVestingAddress = await vesting.getTeamVesting(account1, teamCliff, teamDuration);
-			newTeamVestingAddress2 = await vesting.getTeamVesting(account2, teamCliff, teamDuration);
-			newTeamVestingAddress3 = await vesting.getTeamVesting(account3, teamCliff, teamDuration);
+			newVestingAddress = await vesting.getVestingAddr(account1, cliff, duration, 2);
+			newVestingAddress2 = await vesting.getVestingAddr(account2, cliff, duration, 3);
+			newVestingAddress3 = await vesting.getVestingAddr(account3, cliff, duration, 4);
+			newTeamVestingAddress = await vesting.getTeamVesting(account1, teamCliff, teamDuration, 2);
+			newTeamVestingAddress2 = await vesting.getTeamVesting(account2, teamCliff, teamDuration, 3);
+			newTeamVestingAddress3 = await vesting.getTeamVesting(account3, teamCliff, teamDuration, 4);
 
 			expect(vestingAddress).equal(newVestingAddress);
 			expect(vestingAddress2).equal(newVestingAddress2);
@@ -204,17 +204,23 @@ contract("VestingRegistryMigrations", (accounts) => {
 			let vestingAddresses = await vesting.getVestingsOf(account2);
 			assert.equal(vestingAddresses.length.toString(), "2");
 			assert.equal(vestingAddresses[0].vestingType, 1);
+			assert.equal(vestingAddresses[0].vestingCreationType, 3);
 			assert.equal(vestingAddresses[0].vestingAddress, newVestingAddress2);
 			assert.equal(vestingAddresses[1].vestingType, 0);
+			assert.equal(vestingAddresses[1].vestingCreationType, 3);
 			assert.equal(vestingAddresses[1].vestingAddress, newTeamVestingAddress2);
 		});
 
 		it("fails if the 0 address is passed", async () => {
-			await expectRevert(vesting.addDeployedVestings([ZERO_ADDRESS]), "token owner cannot be 0 address");
+			await expectRevert(vesting.addDeployedVestings([ZERO_ADDRESS], [1]), "token owner cannot be 0 address");
+		});
+
+		it("fails if the 0 address is passed", async () => {
+			await expectRevert(vesting.addDeployedVestings([account1], [0]), "vesting creation type must be greater than 0");
 		});
 
 		it("fails if sender isn't an owner", async () => {
-			await expectRevert(vesting.addDeployedVestings([account1], { from: account2 }), "unauthorized");
+			await expectRevert(vesting.addDeployedVestings([account1], [1], { from: account2 }), "unauthorized");
 		});
 	});
 });

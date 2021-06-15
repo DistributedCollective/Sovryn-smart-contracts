@@ -192,7 +192,8 @@ contract("VestingCreator", (accounts) => {
 					[new BN(3787.24), new BN(627.22), new BN(156.8), new BN(627.22), new BN(1000)],
 					[1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 26 * FOUR_WEEKS],
 					[26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS],
-					[false, false, true, true, false]
+					[false, false, true, true, false],
+					[1, 1, 1, 1, 1]
 				),
 				"arrays mismatch"
 			);
@@ -205,7 +206,8 @@ contract("VestingCreator", (accounts) => {
 					[new BN(3787.24), new BN(627.22), new BN(156.8), new BN(627.22), new BN(1000)],
 					[1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 106 * FOUR_WEEKS],
 					[26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 104 * FOUR_WEEKS],
-					[false, false, true, true, false]
+					[false, false, true, true, false],
+					[1, 1, 1, 1, 1]
 				),
 				"duration must be bigger than or equal to the cliff"
 			);
@@ -218,7 +220,8 @@ contract("VestingCreator", (accounts) => {
 					[new BN(0), new BN(627.22), new BN(156.8), new BN(627.22), new BN(1000)],
 					[1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 106 * FOUR_WEEKS],
 					[26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 104 * FOUR_WEEKS],
-					[false, false, true, true, false]
+					[false, false, true, true, false],
+					[1, 1, 1, 1, 1]
 				),
 				"vesting amount cannot be 0"
 			);
@@ -231,7 +234,8 @@ contract("VestingCreator", (accounts) => {
 					[new BN(3787.24), new BN(627.22), new BN(156.8), new BN(627.22), new BN(1000)],
 					[1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 106 * FOUR_WEEKS],
 					[26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 104 * FOUR_WEEKS],
-					[false, false, true, true, false]
+					[false, false, true, true, false],
+					[1, 1, 1, 1, 1]
 				),
 				"token owner cannot be 0 address"
 			);
@@ -244,7 +248,8 @@ contract("VestingCreator", (accounts) => {
 					[new BN(3787.24), new BN(627.22), new BN(156.8), new BN(627.22), new BN(1000)],
 					[1 * WEEK, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS],
 					[26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS],
-					[false, false, true, true, false]
+					[false, false, true, true, false],
+					[1, 1, 1, 1, 1]
 				),
 				"cliffs should have intervals of two weeks"
 			);
@@ -257,7 +262,8 @@ contract("VestingCreator", (accounts) => {
 					[new BN(3787.24), new BN(627.22), new BN(156.8), new BN(627.22), new BN(1000)],
 					[2 * WEEK, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS],
 					[3 * WEEK, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS],
-					[false, false, true, true, false]
+					[false, false, true, true, false],
+					[1, 1, 1, 1, 1]
 				),
 				"durations should have intervals of two weeks"
 			);
@@ -272,7 +278,8 @@ contract("VestingCreator", (accounts) => {
 				[new BN(3787), new BN(627), new BN(156), new BN(627), new BN(1000)],
 				[1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 26 * FOUR_WEEKS],
 				[26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 104 * FOUR_WEEKS],
-				[false, false, true, true, false]
+				[false, false, true, true, false],
+				[1, 1, 1, 1, 1]
 			);
 
 			let count = await vestingCreator.getUnprocessedCount();
@@ -549,7 +556,9 @@ contract("VestingCreator", (accounts) => {
 					true,
 					true,
 					false,
-				]
+				],
+				[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+				1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 			);
 
 			console.log("gasUsed = " + tx.receipt.gasUsed);
@@ -578,7 +587,8 @@ contract("VestingCreator", (accounts) => {
 				[new BN(3787.24), new BN(627.22), new BN(156.8), new BN(627.22), new BN(1000)],
 				[1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS],
 				[26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 9 * FOUR_WEEKS],
-				[false, false, true, true, true]
+				[false, false, true, true, true],
+				[1, 1, 1, 1, 1]
 			);
 
 			let period = await vestingCreator.getVestingPeriod();
@@ -599,7 +609,8 @@ contract("VestingCreator", (accounts) => {
 				[new BN(3787.24), new BN(627.22), new BN(156.8), new BN(627.22), new BN(1000)],
 				[1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS],
 				[26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 10 * FOUR_WEEKS],
-				[false, false, true, true, false]
+				[false, false, true, true, false],
+				[1, 1, 1, 1, 1]
 			);
 
 			let period = await vestingCreator.getVestingPeriod();
@@ -636,7 +647,8 @@ contract("VestingCreator", (accounts) => {
 				[new BN(3787.24), new BN(627.22), new BN(156.8), new BN(627.22), new BN(1000)],
 				[1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS],
 				[26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 10 * FOUR_WEEKS],
-				[false, false, true, true, false]
+				[false, false, true, true, false],
+				[1, 1, 1, 1, 1]
 			);
 			await vestingCreator.processVestingCreation();
 			await expectRevert(vestingCreator.processVestingCreation(), "staking not done for the previous vesting");
@@ -657,7 +669,8 @@ contract("VestingCreator", (accounts) => {
 				[new BN(3787), new BN(627), new BN(156), new BN(627), new BN(1000)],
 				[1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 26 * FOUR_WEEKS],
 				[26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 104 * FOUR_WEEKS],
-				[false, false, true, true, false]
+				[false, false, true, true, false],
+				[1, 1, 1, 1, 1]
 			);
 
 			let balance = await vestingCreator.getMissingBalance();
@@ -673,7 +686,8 @@ contract("VestingCreator", (accounts) => {
 				[new BN(3787), new BN(627), new BN(156), new BN(627), new BN(1000)],
 				[1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 26 * FOUR_WEEKS],
 				[26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 104 * FOUR_WEEKS],
-				[false, false, true, true, false]
+				[false, false, true, true, false],
+				[1, 1, 1, 1, 1]
 			);
 
 			let balance = await vestingCreator.getMissingBalance();
@@ -691,7 +705,8 @@ contract("VestingCreator", (accounts) => {
 				[new BN(3787), new BN(627), new BN(156), new BN(627), new BN(1000)],
 				[1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS],
 				[26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS],
-				[false, false, true, true, false]
+				[false, false, true, true, false],
+				[1, 1, 1, 1, 1]
 			);
 
 			let tx = await vestingCreator.removeNextVesting();
@@ -714,7 +729,8 @@ contract("VestingCreator", (accounts) => {
 				[new BN(3787), new BN(627), new BN(156), new BN(627), new BN(1000)],
 				[1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS, 1 * FOUR_WEEKS],
 				[26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS, 26 * FOUR_WEEKS],
-				[false, false, true, true, false]
+				[false, false, true, true, false],
+				[1, 1, 1, 1, 1]
 			);
 
 			let tx = await vestingCreator.clearVestingDataList();

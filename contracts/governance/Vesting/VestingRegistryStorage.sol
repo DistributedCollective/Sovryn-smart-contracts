@@ -45,6 +45,7 @@ contract VestingRegistryStorage is Ownable {
 	///@notice Vesting details
 	struct Vesting {
 		uint256 vestingType;
+		uint256 vestingCreationType;
 		address vestingAddress;
 	}
 

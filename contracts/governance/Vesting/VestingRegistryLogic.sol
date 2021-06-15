@@ -11,8 +11,22 @@ import "../../utils/AdminRole.sol";
 
 contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRole {
 	event SOVTransferred(address indexed receiver, uint256 amount);
-	event VestingCreated(address indexed tokenOwner, address vesting, uint256 cliff, uint256 duration, uint256 amount);
-	event TeamVestingCreated(address indexed tokenOwner, address vesting, uint256 cliff, uint256 duration, uint256 amount);
+	event VestingCreated(
+		address indexed tokenOwner, 
+		address vesting, 
+		uint256 cliff, 
+		uint256 duration, 
+		uint256 amount, 
+		uint256 vestingCreationType
+	);
+	event TeamVestingCreated(
+		address indexed tokenOwner, 
+		address vesting, 
+		uint256 cliff, 
+		uint256 duration, 
+		uint256 amount, 
+		uint256 vestingCreationType
+	);
 	event TokensStaked(address indexed vesting, uint256 amount);
 
 	/**
@@ -80,10 +94,11 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 	 * @notice adds vestings that were deployed in previous vesting registries
 	 * @dev migration of data from previous vesting registy contracts
 	 */
-	function addDeployedVestings(address[] memory _tokenOwners) public onlyAuthorized {
+	function addDeployedVestings(address[] memory _tokenOwners, uint256[] memory _vestingCreationTypes) public onlyAuthorized {
 		for (uint256 i = 0; i < _tokenOwners.length; i++) {
 			require(_tokenOwners[i] != address(0), "token owner cannot be 0 address");
-			_getDeployedVestings(_tokenOwners[i]);
+			require(_vestingCreationTypes[i] > 0, "vesting creation type must be greater than 0");
+			_getDeployedVestings(_tokenOwners[i], _vestingCreationTypes[i]);
 		}
 	}
 
@@ -93,6 +108,8 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 	 * @param _amount the amount to be staked
 	 * @param _cliff the cliff in seconds
 	 * @param _duration the total duration in seconds
+	 * @dev Calls a public createVestingAddr function with vestingCreationType. This is to accomodate the existing logic for LockedSOV
+	 * @dev vestingCreationType 1 = LockedSOV
 	 */
 	function createVesting(
 		address _tokenOwner,
@@ -100,8 +117,26 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 		uint256 _cliff,
 		uint256 _duration
 	) public onlyAuthorized {
-		address vesting = _getOrCreateVesting(_tokenOwner, _cliff, _duration, uint256(VestingType.Vesting));
-		emit VestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount);
+		createVestingAddr(_tokenOwner, _amount, _cliff, _duration, 1);
+	}
+
+	/**
+	 * @notice creates Vesting contract
+	 * @param _tokenOwner the owner of the tokens
+	 * @param _amount the amount to be staked
+	 * @param _cliff the cliff in seconds
+	 * @param _duration the total duration in seconds
+	 * @param _vestingCreationType the type of vesting created(e.g. Origin, Bug Bounty etc.)
+	 */
+	function createVestingAddr(
+		address _tokenOwner,
+		uint256 _amount,
+		uint256 _cliff,
+		uint256 _duration,
+		uint256 _vestingCreationType
+	) public onlyAuthorized {
+		address vesting = _getOrCreateVesting(_tokenOwner, _cliff, _duration, uint256(VestingType.Vesting), _vestingCreationType);
+		emit VestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount, _vestingCreationType);
 	}
 
 	/**
@@ -110,15 +145,17 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 	 * @param _amount the amount to be staked
 	 * @param _cliff the cliff in seconds
 	 * @param _duration the total duration in seconds
+	 * @param _vestingCreationType the type of vesting created(e.g. Origin, Bug Bounty etc.)
 	 */
 	function createTeamVesting(
 		address _tokenOwner,
 		uint256 _amount,
 		uint256 _cliff,
-		uint256 _duration
+		uint256 _duration,
+		uint256 _vestingCreationType
 	) public onlyAuthorized {
-		address vesting = _getOrCreateVesting(_tokenOwner, _cliff, _duration, uint256(VestingType.TeamVesting));
-		emit TeamVestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount);
+		address vesting = _getOrCreateVesting(_tokenOwner, _cliff, _duration, uint256(VestingType.TeamVesting), _vestingCreationType);
+		emit TeamVestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount, _vestingCreationType);
 	}
 
 	/**
@@ -140,9 +177,10 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 	 * @param _tokenOwner the owner of the tokens
 	 * @dev Calls a public getVestingAddr function with cliff and duration. This is to accomodate the existing logic for LockedSOV
 	 * @dev We need to use LockedSOV.changeRegistryCliffAndDuration function very judiciously
+	 * @dev vestingCreationType 1- LockedSOV
 	 */
 	function getVesting(address _tokenOwner) public view returns (address) {
-		return getVestingAddr(_tokenOwner, lockedSOV.cliff(), lockedSOV.duration());
+		return getVestingAddr(_tokenOwner, lockedSOV.cliff(), lockedSOV.duration(), 1);
 	}
 
 	/**
@@ -152,10 +190,11 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 	function getVestingAddr(
 		address _tokenOwner,
 		uint256 _cliff,
-		uint256 _duration
+		uint256 _duration,
+		uint256 _vestingCreationType
 	) public view returns (address) {
 		uint256 type_ = uint256(VestingType.Vesting);
-		uint256 uid = uint256(keccak256(abi.encodePacked(_tokenOwner, type_, _cliff, _duration)));
+		uint256 uid = uint256(keccak256(abi.encodePacked(_tokenOwner, type_, _cliff, _duration, _vestingCreationType)));
 		return vestings[uid].vestingAddress;
 	}
 
@@ -165,10 +204,11 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 	function getTeamVesting(
 		address _tokenOwner,
 		uint256 _cliff,
-		uint256 _duration
+		uint256 _duration,
+		uint256 _vestingCreationType
 	) public view returns (address) {
 		uint256 type_ = uint256(VestingType.TeamVesting);
-		uint256 uid = uint256(keccak256(abi.encodePacked(_tokenOwner, type_, _cliff, _duration)));
+		uint256 uid = uint256(keccak256(abi.encodePacked(_tokenOwner, type_, _cliff, _duration, _vestingCreationType)));
 		return vestings[uid].vestingAddress;
 	}
 
@@ -178,22 +218,24 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 	 * @param _cliff the cliff in seconds
 	 * @param _duration the total duration in seconds
 	 * @param _type the type of vesting
+	 * @param _vestingCreationType the type of vesting created(e.g. Origin, Bug Bounty etc.)
 	 */
 	function _getOrCreateVesting(
 		address _tokenOwner,
 		uint256 _cliff,
 		uint256 _duration,
-		uint256 _type
+		uint256 _type,
+		uint256 _vestingCreationType
 	) internal returns (address) {
 		address vesting;
-		uint256 uid = uint256(keccak256(abi.encodePacked(_tokenOwner, _type, _cliff, _duration)));
+		uint256 uid = uint256(keccak256(abi.encodePacked(_tokenOwner, _type, _cliff, _duration, _vestingCreationType)));
 		if (vestings[uid].vestingAddress == address(0)) {
 			if (_type == 1) {
 				vesting = vestingFactory.deployVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy, _tokenOwner);
 			} else {
 				vesting = vestingFactory.deployTeamVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy, vestingOwner);
 			}
-			vestings[uid] = Vesting(_type, vesting);
+			vestings[uid] = Vesting(_type, _vestingCreationType, vesting);
 			vestingsOf[_tokenOwner].push(uid);
 		}
 		return vestings[uid].vestingAddress;
@@ -202,7 +244,7 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 	/**
 	 * @notice returns the addresses of Vesting contracts from all three previous versions of Vesting Registry
 	 */
-	function _getDeployedVestings(address _tokenOwner) internal {
+	function _getDeployedVestings(address _tokenOwner, uint256 _vestingCreationType) internal {
 		uint256 vestingType = 1;
 		uint256 teamVestingType = 0;
 		uint256 uid;
@@ -210,15 +252,15 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 			address vestingAddress = vestingRegistries[i].getVesting(_tokenOwner);
 			if (vestingAddress != address(0)) {
 				VestingLogic vesting = VestingLogic(vestingAddress);
-				uid = uint256(keccak256(abi.encodePacked(_tokenOwner, vestingType, vesting.cliff(), vesting.duration())));
-				vestings[uid] = Vesting(vestingType, vestingAddress);
+				uid = uint256(keccak256(abi.encodePacked(_tokenOwner, vestingType, vesting.cliff(), vesting.duration(), _vestingCreationType)));
+				vestings[uid] = Vesting(vestingType, _vestingCreationType, vestingAddress);
 				vestingsOf[_tokenOwner].push(uid);
 			}
 			address teamVestingAddress = vestingRegistries[i].getTeamVesting(_tokenOwner);
 			if (teamVestingAddress != address(0)) {
 				VestingLogic vesting = VestingLogic(teamVestingAddress);
-				uid = uint256(keccak256(abi.encodePacked(_tokenOwner, teamVestingType, vesting.cliff(), vesting.duration())));
-				vestings[uid] = Vesting(teamVestingType, teamVestingAddress);
+				uid = uint256(keccak256(abi.encodePacked(_tokenOwner, teamVestingType, vesting.cliff(), vesting.duration(), _vestingCreationType)));
+				vestings[uid] = Vesting(teamVestingType, _vestingCreationType, teamVestingAddress);
 				vestingsOf[_tokenOwner].push(uid);
 			}
 		}
@@ -232,7 +274,7 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 		Vesting[] memory _vestings = new Vesting[](vestingIds.length);
 		for (uint256 i = 0; i < vestingIds.length; i++) {
 			Vesting storage _vesting = vestings[vestingIds[i]];
-			_vestings[i] = Vesting(_vesting.vestingType, _vesting.vestingAddress);
+			_vestings[i] = Vesting(_vesting.vestingType, _vesting.vestingCreationType, _vesting.vestingAddress);
 		}
 		return _vestings;
 	}
