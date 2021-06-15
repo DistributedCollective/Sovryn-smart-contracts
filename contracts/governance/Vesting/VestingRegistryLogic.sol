@@ -12,19 +12,19 @@ import "../../utils/AdminRole.sol";
 contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRole {
 	event SOVTransferred(address indexed receiver, uint256 amount);
 	event VestingCreated(
-		address indexed tokenOwner, 
-		address vesting, 
-		uint256 cliff, 
-		uint256 duration, 
-		uint256 amount, 
+		address indexed tokenOwner,
+		address vesting,
+		uint256 cliff,
+		uint256 duration,
+		uint256 amount,
 		uint256 vestingCreationType
 	);
 	event TeamVestingCreated(
-		address indexed tokenOwner, 
-		address vesting, 
-		uint256 cliff, 
-		uint256 duration, 
-		uint256 amount, 
+		address indexed tokenOwner,
+		address vesting,
+		uint256 cliff,
+		uint256 duration,
+		uint256 amount,
 		uint256 vestingCreationType
 	);
 	event TokensStaked(address indexed vesting, uint256 amount);
@@ -252,14 +252,18 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 			address vestingAddress = vestingRegistries[i].getVesting(_tokenOwner);
 			if (vestingAddress != address(0)) {
 				VestingLogic vesting = VestingLogic(vestingAddress);
-				uid = uint256(keccak256(abi.encodePacked(_tokenOwner, vestingType, vesting.cliff(), vesting.duration(), _vestingCreationType)));
+				uid = uint256(
+					keccak256(abi.encodePacked(_tokenOwner, vestingType, vesting.cliff(), vesting.duration(), _vestingCreationType))
+				);
 				vestings[uid] = Vesting(vestingType, _vestingCreationType, vestingAddress);
 				vestingsOf[_tokenOwner].push(uid);
 			}
 			address teamVestingAddress = vestingRegistries[i].getTeamVesting(_tokenOwner);
 			if (teamVestingAddress != address(0)) {
 				VestingLogic vesting = VestingLogic(teamVestingAddress);
-				uid = uint256(keccak256(abi.encodePacked(_tokenOwner, teamVestingType, vesting.cliff(), vesting.duration(), _vestingCreationType)));
+				uid = uint256(
+					keccak256(abi.encodePacked(_tokenOwner, teamVestingType, vesting.cliff(), vesting.duration(), _vestingCreationType))
+				);
 				vestings[uid] = Vesting(teamVestingType, _vestingCreationType, teamVestingAddress);
 				vestingsOf[_tokenOwner].push(uid);
 			}

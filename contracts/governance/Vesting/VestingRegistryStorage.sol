@@ -21,7 +21,7 @@ contract VestingRegistryStorage is Ownable {
 
 	///@notice the Locked SOV contract
 	LockedSOV public lockedSOV;
-	
+
 	///@notice the list of vesting registries
 	IVestingRegistry[] public vestingRegistries;
 

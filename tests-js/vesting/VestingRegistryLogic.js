@@ -370,7 +370,7 @@ contract("VestingRegistryLogic", (accounts) => {
 
 			let cliff = FOUR_WEEKS;
 			let duration = FOUR_WEEKS.mul(new BN(20));
-			let vestingType = new BN(2);;//Bug Bounty
+			let vestingType = new BN(2); //Bug Bounty
 			let tx = await vesting.createVestingAddr(account2, amount, cliff, duration, vestingType);
 			let vestingAddress = await vesting.getVestingAddr(account2, cliff, duration, vestingType);
 			await vesting.stakeTokens(vestingAddress, amount);
@@ -412,7 +412,7 @@ contract("VestingRegistryLogic", (accounts) => {
 
 			let cliff = FOUR_WEEKS;
 			let duration = FOUR_WEEKS.mul(new BN(20));
-			let vestingType = new BN(3);//Team Salary
+			let vestingType = new BN(3); //Team Salary
 			let tx = await vesting.createVestingAddr(account2, amount, cliff, duration, vestingType);
 			let vestingAddress = await vesting.getVestingAddr(account2, cliff, duration, vestingType);
 			await vesting.stakeTokens(vestingAddress, amount);
@@ -452,7 +452,7 @@ contract("VestingRegistryLogic", (accounts) => {
 			let amount = new BN(1000000);
 			let cliff = FOUR_WEEKS;
 			let duration = FOUR_WEEKS.mul(new BN(20));
-			let vestingType = new BN(3);//Team Salary
+			let vestingType = new BN(3); //Team Salary
 
 			await vesting.createVestingAddr(account2, amount, cliff, duration, vestingType);
 			let vestingAddress = await vesting.getVestingAddr(account2, cliff, duration, vestingType);
@@ -474,9 +474,12 @@ contract("VestingRegistryLogic", (accounts) => {
 			let amount = new BN(1000000);
 			let cliff = TEAM_VESTING_CLIFF;
 			let duration = TEAM_VESTING_DURATION;
-			let vestingType = new BN(3);//Team Salary
+			let vestingType = new BN(3); //Team Salary
 
-			await expectRevert(vesting.createVestingAddr(account2, amount, cliff, duration, vestingType, { from: account1 }), "unauthorized");
+			await expectRevert(
+				vesting.createVestingAddr(account2, amount, cliff, duration, vestingType, { from: account1 }),
+				"unauthorized"
+			);
 
 			await vesting.addAdmin(account1);
 			await vesting.createVestingAddr(account2, amount, cliff, duration, vestingType, { from: account1 });
@@ -520,7 +523,7 @@ contract("VestingRegistryLogic", (accounts) => {
 
 			let cliff = TEAM_VESTING_CLIFF;
 			let duration = TEAM_VESTING_DURATION;
-			let vestingType = new BN(3);//Team Salary
+			let vestingType = new BN(3); //Team Salary
 			let tx = await vesting.createTeamVesting(account2, amount, cliff, duration, vestingType);
 			let vestingAddress = await vesting.getTeamVesting(account2, cliff, duration, vestingType);
 			expectEvent(tx, "TeamVestingCreated", {
@@ -562,7 +565,7 @@ contract("VestingRegistryLogic", (accounts) => {
 			let amount = new BN(1000000);
 			let cliff = TEAM_VESTING_CLIFF;
 			let duration = TEAM_VESTING_DURATION;
-			let vestingType = new BN(3);//Team Salary
+			let vestingType = new BN(3); //Team Salary
 
 			await vesting.createTeamVesting(account2, amount, cliff, duration, vestingType);
 			let vestingAddress = await vesting.getTeamVesting(account2, cliff, duration, vestingType);
@@ -584,9 +587,12 @@ contract("VestingRegistryLogic", (accounts) => {
 			let amount = new BN(1000000);
 			let cliff = TEAM_VESTING_CLIFF;
 			let duration = TEAM_VESTING_DURATION;
-			let vestingType = new BN(3);//Team Salary
+			let vestingType = new BN(3); //Team Salary
 
-			await expectRevert(vesting.createTeamVesting(account2, amount, cliff, duration, vestingType, { from: account1 }), "unauthorized");
+			await expectRevert(
+				vesting.createTeamVesting(account2, amount, cliff, duration, vestingType, { from: account1 }),
+				"unauthorized"
+			);
 
 			await vesting.addAdmin(account1);
 			await vesting.createTeamVesting(account2, amount, cliff, duration, vestingType, { from: account1 });
@@ -618,7 +624,7 @@ contract("VestingRegistryLogic", (accounts) => {
 
 			let cliff = TEAM_VESTING_CLIFF;
 			let duration = TEAM_VESTING_DURATION;
-			let vestingType = new BN(3);//Team Salary
+			let vestingType = new BN(3); //Team Salary
 			await vesting.createTeamVesting(account2, amount, cliff, duration, vestingType);
 			let vestingAddress = await vesting.getTeamVesting(account2, cliff, duration, vestingType);
 
@@ -647,13 +653,13 @@ contract("VestingRegistryLogic", (accounts) => {
 			//Vesting
 			let cliff = FOUR_WEEKS;
 			let duration = FOUR_WEEKS.mul(new BN(20));
-			let vestingType = new BN(2);;//Bug Bounty
+			let vestingType = new BN(2); //Bug Bounty
 			await vesting.createVestingAddr(account2, amount, cliff, duration, vestingType);
 
 			//TeamVesting
 			let teamCliff = TEAM_VESTING_CLIFF;
 			let teamDuration = TEAM_VESTING_DURATION;
-			vestingType = new BN(3);//Team Salary
+			vestingType = new BN(3); //Team Salary
 			await vesting.createTeamVesting(account2, amount, teamCliff, teamDuration, vestingType);
 
 			let vestingAddresses = await vesting.getVestingsOf(account2);
@@ -681,7 +687,7 @@ contract("VestingRegistryLogic", (accounts) => {
 			//Vesting
 			let cliff = FOUR_WEEKS;
 			let duration = FOUR_WEEKS.mul(new BN(20));
-			let vestingType = new BN(2);;//Bug Bounty
+			let vestingType = new BN(2); //Bug Bounty
 			await vesting.createVestingAddr(account2, amount, cliff, duration, vestingType);
 			let vestingAddr = await vesting.getVestingAddr(account2, cliff, duration, vestingType);
 			let fields = await vesting.getVestingDetails(vestingAddr);
@@ -706,7 +712,7 @@ contract("VestingRegistryLogic", (accounts) => {
 			//TeamVesting
 			let teamCliff = TEAM_VESTING_CLIFF;
 			let teamDuration = TEAM_VESTING_DURATION;
-			let vestingType = new BN(3);//Team Salary
+			let vestingType = new BN(3); //Team Salary
 			await vesting.createTeamVesting(account2, amount, teamCliff, teamDuration, vestingType);
 			let vestingAddr = await vesting.getTeamVesting(account2, teamCliff, teamDuration, vestingType);
 			let fields = await vesting.getVestingDetails(vestingAddr);
