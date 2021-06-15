@@ -357,7 +357,12 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _user the address of user, tokens will be deposited to it
 	 * @param alreadyTransferred true if the pool tokens have already been transferred
 	 */
-	function _deposit(address _poolToken, uint256 _amount, address _user, bool alreadyTransferred) internal{
+	function _deposit(
+		address _poolToken,
+		uint256 _amount,
+		address _user,
+		bool alreadyTransferred
+	) internal {
 		require(poolIdList[_poolToken] != 0, "Pool token not found");
 		address userAddress = _user != address(0) ? _user : msg.sender;
 
@@ -371,8 +376,7 @@ contract LiquidityMining is LiquidityMiningStorage {
 
 		if (_amount > 0) {
 			//receives pool tokens from msg.sender, it can be user or WrapperProxy contract
-			if(!alreadyTransferred)
-				pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
+			if (!alreadyTransferred) pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 			user.amount = user.amount.add(_amount);
 		}
 		_updateRewardDebt(pool, user);
@@ -605,10 +609,8 @@ contract LiquidityMining is LiquidityMiningStorage {
 	 * @param _poolToken the address of pool token
 	 * @param _user the address of the user
 	 */
-	function getUserPoolTokenBalance(address _poolToken, address _user) external view returns (uint256){
+	function getUserPoolTokenBalance(address _poolToken, address _user) external view returns (uint256) {
 		UserInfo memory ui = getUserInfo(_poolToken, _user);
 		return ui.amount;
 	}
-
-
 }

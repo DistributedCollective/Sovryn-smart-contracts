@@ -65,7 +65,7 @@ contract Affiliates is State, AffiliatesEvents {
 		SetAffiliatesReferrerResult memory result;
 
 		result.userNotFirstTradeFlag = getUserNotFirstTradeFlag(user);
-		result.alreadySet = affiliatesUserReferrer[user] != address(0); 
+		result.alreadySet = affiliatesUserReferrer[user] != address(0);
 		result.success = !(result.userNotFirstTradeFlag || result.alreadySet || user == referrer);
 		if (result.success) {
 			affiliatesUserReferrer[user] = referrer;
