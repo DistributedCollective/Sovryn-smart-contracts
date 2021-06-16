@@ -39,7 +39,7 @@ def main():
     '''
     #0x37A706259F5201C03f6Cb556A960F30F86842d01  -ms aggregator
     #deployMultisig(['0xfe9d5402dc3c86cbaBE80231Cd48d98ba742D3f6','0x4C3d3505d34213751c4b4d621cB6bDe7E664E222',acct], 2)
-    sendFromMultisig('0x2064242b697830535A2d76BE352e82Cf85E0EC2c', 30e18)
+    #sendFromMultisig('0x2064242b697830535A2d76BE352e82Cf85E0EC2c', 30e18)
     #removeLiquidityV1toMultisigUsingWrapper(contracts['RBTCWrapperProxyWithoutLM'], contracts["ConverterETHs"], 90e18, [contracts['WRBTC'], contracts['ETHs']], [8e18,1])
 
     #amount = getBalance('0x09c5FAf7723B13434ABdF1A65AB1b667bc02a902', contracts['multisig'])
@@ -56,6 +56,23 @@ def main():
     #readSwapRate('0x542fDA317318eBF1d3DEAf76E0b632741A7e677d', '0x1D931Bf8656d795E50eF6D639562C5bD8Ac2B78f')
 
     #swapTokens(0.0013e18, 1, contracts['swapNetwork'], contracts['WRBTC'], contracts['ETHs'])
+
+    #disableLoanParams(contracts['iRBTC'], contracts['USDT'])
+    #readPriceFeedFor(contracts['USDT'])
+    #readPriceFeedFor(contracts['DoC'])
+
+    #readSwapRate(contracts['XUSD'], contracts['WRBTC'])
+    #readPrice(contracts['XUSD'], contracts['WRBTC'])
+    #readAdminOfLoanToken(contracts['iRBTC'])
+
+    #setAdminOnLoanToken(contracts['iRBTC'], acct)
+
+    #setupTorqueLoanParams(contracts['iRBTC'], contracts['WRBTC'], contracts['XUSD'])
+    
+    lendToPool(contracts['iXUSD'], contracts['XUSD'], 100e18)
+    testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iXUSD'], contracts['XUSD'], contracts['WRBTC'], 1e18, 2e18, False, 0)
+    testTradeOpeningAndClosingWithCollateral(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['XUSD'], 1e18, 2e18, False, 0)
+    
 
 def loadConfig():
     global contracts, acct
@@ -260,9 +277,13 @@ def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collat
     
     #assert the trade was processed as expected
     print(tx.info())
-    
+
+'''
+sets a collateral token address as collateral for borrowing
+'''
 def setupTorqueLoanParams(loanTokenAddress, underlyingTokenAddress, collateralTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    params = []
     setup = [
         b"0x0", ## id
         False, ## active
@@ -418,6 +439,9 @@ def checkOwnerIsAddress(contractAddress, expectedOwner):
     owner = contract.owner()
     print("owner == expectedOwner?", owner == expectedOwner)
 
+'''
+sets a collateral token address as collateral for margin trading
+'''
 def setupMarginLoanParams(collateralTokenAddress, loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     
@@ -557,7 +581,7 @@ def readSwapRate(source, destination):
     swapNetwork = Contract.from_abi("SovrynSwapNetwork", address=contracts['swapNetwork'], abi=abi, owner=acct)
     path = swapNetwork.conversionPath(source,destination)
     #print("path:", path)
-    expectedReturn = swapNetwork.getReturnByPath(path, 1e10)
+    expectedReturn = swapNetwork.getReturnByPath(path, 1e18)
     print('rate is ', expectedReturn)
     return expectedReturn[0]
 
@@ -1309,3 +1333,32 @@ def readWRBTCAddressFromWrapper(wrapper):
     abi = json.load(abiFile)
     wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=wrapper, abi=abi, owner=acct)
     print(wrapperProxy.wrbtcTokenAddress())
+
+
+def disableLoanParams(loanTokenAddress, collateralToken):
+    multisig = Contract.from_abi("MultiSig", address = contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
+    data = loanToken.disableLoanParams.encode_input([collateralToken, collateralToken], [False, True])
+    tx = multisig.submitTransaction(loanToken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def readPriceFeedFor(tokenAddress):
+    feeds = Contract.from_abi("PriceFeeds", address= contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = acct)
+    print(feeds.pricesFeeds(tokenAddress))
+
+def readAdminOfLoanToken(loanTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
+    print(loanToken.admin())
+
+def setAdminOnLoanToken(loanTokenAddress, admin):
+    multisig = Contract.from_abi("MultiSig", address = contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
+    data = loanToken.setAdmin.encode_input(admin)
+    tx = multisig.submitTransaction(loanToken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def confirmWithMS(txId):
+    multisig = Contract.from_abi("MultiSig", address = contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    multisig.confirmTransaction(txId)

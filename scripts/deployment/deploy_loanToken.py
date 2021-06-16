@@ -59,7 +59,7 @@ def deployLoanTokens(acct, sovryn, tokens):
 '''
 Deploys a single loan token contract and sets it up
 '''
-def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddresses, wrbtcAddress, multisig='', loanTokenLogicAddress=''):
+def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddresses, wrbtcAddress, multisig='', loanTokenLogicAddress='', baseRate = 1e18, rateMultiplier = 10e18, kinkLevel = 90e18, maxScaleRate = 100e18):
     
     print("Deploying LoanTokenLogicStandard")
     if (len(loanTokenLogicAddress) == 0):
@@ -150,19 +150,21 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
 
     print("setting up interest rates")
 
-    setupLoanTokenRates(acct, loanToken.address, loanTokenLogicAddress)
+    setupLoanTokenRates(acct, loanToken.address, loanTokenLogicAddress, baseRate, rateMultiplier, kinkLevel, maxScaleRate)
 
     return (loanToken, '')
 
 '''
 sets up the interest rates
 '''
-def setupLoanTokenRates(acct, loanTokenAddress, logicAddress):
-    baseRate = 1e18
-    rateMultiplier = 10e18
-    targetLevel=0
-    kinkLevel=90*10**18
-    maxScaleRate=100*10**18
+def setupLoanTokenRates(acct, loanTokenAddress, logicAddress, baseRate, rateMultiplier, kinkLevel, maxScaleRate):
+    '''
+    if utilization rate < kinkLevel:
+        interest rate = baseRate + rateMultiplier * utilizationRate
+    else:
+        scale up to maxScaleRate
+    '''
+    targetLevel=0 # unused -> that's why 0
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     localLoanToken.setDemandCurve(baseRate,rateMultiplier,baseRate,rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
     borrowInterestRate = localLoanToken.borrowInterestRate()
