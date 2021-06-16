@@ -17,10 +17,14 @@ def main():
     #call the function you want here
     # addTestETHPoolToken()
     # addETHPoolToken()
-    updateLMConfig()
+    # updateLMConfig()
 
     # check()
     # updateAllPools()
+
+    # lend()
+    # checkTxns()
+    checkUserBalance()
 
 def loadConfig():
     global contracts, acct
@@ -122,3 +126,28 @@ def updateAllPools():
     tx = multisig.submitTransaction(liquidityMining.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
+
+def lend():
+    token = Contract.from_abi("TestToken", address=contracts['DoC'], abi=TestToken.abi, owner=acct)
+    loanToken = Contract.from_abi("LoanTokenLogicLM", address=contracts['iDOC'], abi=LoanTokenLogicLM.abi, owner=acct)
+
+    print(acct)
+    token.approve(loanToken.address, 4 * 10**18)
+    loanToken.mint(acct, 2 * 10**18, False, {'allow_revert': True})
+    loanToken.mint(acct, 2 * 10**18, True, {'allow_revert': True})
+
+def checkTxns():
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+
+    # for i in range(229, 238):
+    #     print(i)
+    #     multisig.confirmTransaction(i)
+
+    for i in range(166, 174):
+        print(i)
+        print(multisig.transactions(i))
+
+def checkUserBalance():
+    liquidityMining = Contract.from_abi("LiquidityMining", address=contracts['LiquidityMiningProxy'], abi=LiquidityMining.abi, owner=acct)
+    poolId = liquidityMining.getUserPoolTokenBalance(contracts['iDOC'], acct)
+    print(poolId / 10**18)
