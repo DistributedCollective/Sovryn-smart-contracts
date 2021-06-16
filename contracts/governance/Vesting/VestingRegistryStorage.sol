@@ -1,6 +1,6 @@
 pragma solidity ^0.5.17;
 
-import "../../openzeppelin/Ownable.sol";
+import "../../utils/AdminRole.sol";
 import "../../interfaces/IERC20.sol";
 import "./IVestingFactory.sol";
 import "../../locked/LockedSOV.sol";
@@ -15,7 +15,7 @@ import "./IVestingRegistry.sol";
  * @dev Use Ownable as a parent to align storage structure for Logic and Proxy contracts.
  * */
 
-contract VestingRegistryStorage is Ownable {
+contract VestingRegistryStorage is AdminRole {
 	///@notice the vesting factory contract
 	IVestingFactory public vestingFactory;
 

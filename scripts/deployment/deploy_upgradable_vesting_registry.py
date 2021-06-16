@@ -18,6 +18,9 @@ def main():
         acct = accounts.load("rskdeployer")
         configFile = open(
             './scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "rsk-testnet":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
         configFile = open(
@@ -63,7 +66,7 @@ def main():
         [vestingRegistryAddress, vestingRegistry2Address, vestingRegistry3Address]
     )
 
-    vestingRegistryLogic.addAdmin(multisig)
+    vestingRegistryProxy.addAdmin(multisig)
     vestingRegistryProxy.setProxyOwner(multisig)
     vestingRegistry.transferOwnership(multisig)
 

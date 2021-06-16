@@ -7,9 +7,8 @@ import "./IVesting.sol";
 import "./ITeamVesting.sol";
 import "./VestingRegistryStorage.sol";
 import "../../openzeppelin/Initializable.sol";
-import "../../utils/AdminRole.sol";
 
-contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRole {
+contract VestingRegistryLogic is VestingRegistryStorage, Initializable {
 	event SOVTransferred(address indexed receiver, uint256 amount);
 	event VestingCreated(
 		address indexed tokenOwner,
@@ -109,7 +108,7 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 	 * @param _cliff the cliff in seconds
 	 * @param _duration the total duration in seconds
 	 * @dev Calls a public createVestingAddr function with vestingCreationType. This is to accomodate the existing logic for LockedSOV
-	 * @dev vestingCreationType 1 = LockedSOV
+	 * @dev vestingCreationType 0 = LockedSOV
 	 */
 	function createVesting(
 		address _tokenOwner,
@@ -117,7 +116,7 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 		uint256 _cliff,
 		uint256 _duration
 	) public onlyAuthorized {
-		createVestingAddr(_tokenOwner, _amount, _cliff, _duration, 1);
+		createVestingAddr(_tokenOwner, _amount, _cliff, _duration, 0);
 	}
 
 	/**
@@ -177,10 +176,10 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable, AdminRol
 	 * @param _tokenOwner the owner of the tokens
 	 * @dev Calls a public getVestingAddr function with cliff and duration. This is to accomodate the existing logic for LockedSOV
 	 * @dev We need to use LockedSOV.changeRegistryCliffAndDuration function very judiciously
-	 * @dev vestingCreationType 1- LockedSOV
+	 * @dev vestingCreationType 0 - LockedSOV
 	 */
 	function getVesting(address _tokenOwner) public view returns (address) {
-		return getVestingAddr(_tokenOwner, lockedSOV.cliff(), lockedSOV.duration(), 1);
+		return getVestingAddr(_tokenOwner, lockedSOV.cliff(), lockedSOV.duration(), 0);
 	}
 
 	/**
