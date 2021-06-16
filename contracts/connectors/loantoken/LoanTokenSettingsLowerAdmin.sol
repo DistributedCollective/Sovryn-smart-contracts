@@ -20,7 +20,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	/// ------------- MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 	address public sovrynContractAddress;
 	address public wrbtcTokenAddress;
-	address internal target_;
+	address public target_;
 	address public admin;
 	/// ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 
