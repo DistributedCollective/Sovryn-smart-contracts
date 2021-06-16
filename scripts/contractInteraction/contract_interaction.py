@@ -1452,3 +1452,14 @@ def readWRBTCAddressFromWrapper(wrapper):
     abi = json.load(abiFile)
     wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=wrapper, abi=abi, owner=acct)
     print(wrapperProxy.wrbtcTokenAddress())
+
+def deployOracleV1Pool():
+    # Before run this function, make sure we have deployed the new priceFeed.sol and re-register all of the asset to the priceFeed, because there are a logic changes in priceFeed.sol
+    oracleV1PoolPriceFeed = acct.deploy(PriceFeedV1PoolOracle, address= contracts['v1PoolAsset_that_we_want_to_register'], contracts['WRBTC'], contracts['DoC'])
+    print("new oracle v1 pool price feed: ", oracleV1PoolPriceFeed.address)
+    feeds = Contract.from_abi("PriceFeeds", address= contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = acct)
+    data = feeds.setPriceFeed.encode_input([contracts['asset_that_we_want_to_register']], [newPriceFeed.address])
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(feeds.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId);
