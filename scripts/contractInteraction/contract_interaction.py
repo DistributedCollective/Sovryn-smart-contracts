@@ -72,8 +72,11 @@ def main():
 
     # transferSOVtoLM(100 * 10**18)
 
-    # replaceLoanTokenLogicOnAllContracts()
+    replaceLoanTokenLogicOnAllContracts()
     setLiquidityMiningAddressOnAllContracts()
+    # getLiquidityMiningAddressOnAllContracts()
+
+    # checkTx()
 
 def loadConfig():
     global contracts, acct
@@ -423,9 +426,9 @@ def readLendingBalanceForUser(loanTokenAddress, userAddress):
     bal = loanToken.assetBalanceOf(userAddress)
     print('underlying token balance', bal)
     
-def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
-    loanToken.setTarget(logicAddress)
+# def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
+#     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
+#     loanToken.setTarget(logicAddress)
     
 def readOwner(contractAddress):
     contract = Contract.from_abi("loanToken", address=contractAddress, abi=LoanToken.abi, owner=acct)
@@ -480,11 +483,6 @@ def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTo
         0
     )
     tx.info()
-    
-
-def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
-    loanToken.setTarget(logicAddress)
     
 def readFromMedianizer():
     medianizer = Contract.from_abi("Medianizer", address=contracts['medianizer'], abi=PriceFeedsMoCMockup.abi, owner=acct)
@@ -687,6 +685,18 @@ def setLiquidityMiningAddress(loanTokenAddress):
     tx = multisig.submitTransaction(loanToken.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
+
+def getLiquidityMiningAddressOnAllContracts():
+    print("setting LM address")
+    getLiquidityMiningAddress(contracts['iDOC'])
+    getLiquidityMiningAddress(contracts['iUSDT'])
+    getLiquidityMiningAddress(contracts['iBPro'])
+    getLiquidityMiningAddress(contracts['iRBTC'])
+
+def getLiquidityMiningAddress(loanTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicLM.abi, owner=acct)
+    print(loanToken.liquidityMiningAddress())
+    print(loanToken.target_())
 
 def checkRates():
     print('reading price from WRBTC to DOC')
@@ -1384,3 +1394,10 @@ def transferSOVtoLM(amount):
     tx = multisig.submitTransaction(SOVtoken.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
+
+def checkTx():
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    print(multisig.transactions(216))
+
+    print(multisig.getConfirmationCount(216))
+    print(multisig.getConfirmations(216))
