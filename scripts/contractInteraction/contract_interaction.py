@@ -658,6 +658,7 @@ def replaceLoanTokenLogicOnAllContracts():
     replaceLoanTokenLogic(contracts['iDOC'],logicContract.address)
     replaceLoanTokenLogic(contracts['iUSDT'],logicContract.address)
     replaceLoanTokenLogic(contracts['iBPro'],logicContract.address)
+    replaceLoanTokenLogic(contracts['iXUSD'],logicContract.address)
     logicContract = acct.deploy(LoanTokenLogicWrbtc)
     print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
     replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
@@ -675,6 +676,7 @@ def setLiquidityMiningAddressOnAllContracts():
     setLiquidityMiningAddress(contracts['iDOC'])
     setLiquidityMiningAddress(contracts['iUSDT'])
     setLiquidityMiningAddress(contracts['iBPro'])
+    setLiquidityMiningAddress(contracts['iXUSD'])
     setLiquidityMiningAddress(contracts['iRBTC'])
 
 def setLiquidityMiningAddress(loanTokenAddress):
