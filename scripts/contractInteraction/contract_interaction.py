@@ -39,7 +39,7 @@ def main():
     '''
     #0x37A706259F5201C03f6Cb556A960F30F86842d01  -ms aggregator
     #deployMultisig(['0xfe9d5402dc3c86cbaBE80231Cd48d98ba742D3f6','0x4C3d3505d34213751c4b4d621cB6bDe7E664E222',acct], 2)
-    sendFromMultisig('0x2064242b697830535A2d76BE352e82Cf85E0EC2c', 30e18)
+    # sendFromMultisig('0x2064242b697830535A2d76BE352e82Cf85E0EC2c', 30e18)
     #removeLiquidityV1toMultisigUsingWrapper(contracts['RBTCWrapperProxyWithoutLM'], contracts["ConverterETHs"], 90e18, [contracts['WRBTC'], contracts['ETHs']], [8e18,1])
 
     #amount = getBalance('0x09c5FAf7723B13434ABdF1A65AB1b667bc02a902', contracts['multisig'])
@@ -56,6 +56,7 @@ def main():
     #readSwapRate('0x542fDA317318eBF1d3DEAf76E0b632741A7e677d', '0x1D931Bf8656d795E50eF6D639562C5bD8Ac2B78f')
 
     #swapTokens(0.0013e18, 1, contracts['swapNetwork'], contracts['WRBTC'], contracts['ETHs'])
+    readPoolTokenAddressFromAmmPoolV1Converter(contracts['WRBTCtoXUSDConverter'])
 
 def loadConfig():
     global contracts, acct
@@ -1309,3 +1310,9 @@ def readWRBTCAddressFromWrapper(wrapper):
     abi = json.load(abiFile)
     wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=wrapper, abi=abi, owner=acct)
     print(wrapperProxy.wrbtcTokenAddress())
+
+def readPoolTokenAddressFromAmmPoolV1Converter(converterAddress):
+    abiFile =  open('./scripts/contractInteraction/LiquidityPoolV1Converter.abi')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV1Converter", address=converterAddress, abi=abi, owner=acct)
+    print(converter.token())
