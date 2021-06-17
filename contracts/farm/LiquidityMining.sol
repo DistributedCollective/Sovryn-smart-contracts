@@ -404,8 +404,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 
 		if (_amount > 0) {
 			//receives pool tokens from msg.sender, it can be user or WrapperProxy contract
-			if(!alreadyTransferred)
-				pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
+			if (!alreadyTransferred) pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 			user.amount = user.amount.add(_amount);
 		}
 		_updateRewardDebt(pool, user);
@@ -424,7 +423,11 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		_claimReward(poolId, userAddress, true);
 	}
 
-	function _claimReward(uint256 _poolId, address _userAddress, bool _isStakingTokens) internal {
+	function _claimReward(
+		uint256 _poolId,
+		address _userAddress,
+		bool _isStakingTokens
+	) internal {
 		PoolInfo storage pool = poolInfoList[_poolId];
 		UserInfo storage user = userInfoMap[_poolId][_userAddress];
 
@@ -474,11 +477,11 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		user.amount = user.amount.sub(_amount);
 
 		//msg.sender is wrapper -> send to wrapper
-		if(msg.sender == wrapper){
+		if (msg.sender == wrapper) {
 			pool.poolToken.safeTransfer(address(msg.sender), _amount);
 		}
 		//msg.sender is user or pool token (lending pool) -> send to user
-		else{
+		else {
 			pool.poolToken.safeTransfer(userAddress, _amount);
 		}
 
@@ -672,5 +675,4 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		UserInfo memory ui = getUserInfo(_poolToken, _user);
 		return ui.amount;
 	}
-
 }

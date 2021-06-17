@@ -30,7 +30,6 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	/** The address of the liquidity mining contract */
 	address public liquidityMiningAddress;
 
-
 	/// @dev TODO: Check for restrictions in this contract.
 	modifier onlyAdmin() {
 		require(isOwner() || msg.sender == admin, "unauthorized");
@@ -213,5 +212,4 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 		name = _name;
 		symbol = _symbol;
 	}
-
 }

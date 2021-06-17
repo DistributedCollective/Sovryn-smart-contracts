@@ -72,7 +72,6 @@ contract LoanTokenBase is ReentrancyGuard, Ownable, Pausable {
 	mapping(address => uint256) internal checkpointPrices_;
 
 	// the maximum trading/borrowing/lending limit per token address
-	mapping(address => uint256) public transactionLimit; 
+	mapping(address => uint256) public transactionLimit;
 	// 0 -> no limit
-
 }
