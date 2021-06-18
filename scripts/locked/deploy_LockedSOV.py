@@ -27,20 +27,20 @@ def loadConfig():
     # == Load config =======================================================================================================================
     if thisNetwork == "development":
         acct = accounts[0]
-        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+        configFile = open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet":
         acct = accounts.load("rskdeployer")
-        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+        configFile = open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-testnet":
         acct = accounts.load("rskdeployer")
-        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+        configFile = open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
-        configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
+        configFile = open('./scripts/contractInteraction/mainnet_contracts.json')
     else:
-        raise Exception("network not supported")
+        raise Exception("Network not supported")
 
-    # load deployed contracts addresses
+    # Load deployed contracts addresses.
     contracts = json.load(configFile)
 
 # == Locked SOV Deployment ================================================================================================================
