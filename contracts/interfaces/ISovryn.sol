@@ -34,6 +34,10 @@ contract ISovryn is
 
 	////// Protocol Settings //////
 
+	function setAdmin(address newAdmin) external;
+
+	function getAdmin() external view returns (address);
+
 	function setPriceFeedContract(address newContract) external;
 
 	function setSwapsImplContract(address newContract) external;

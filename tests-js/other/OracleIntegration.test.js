@@ -8,6 +8,7 @@ const PriceFeedRSKOracleMockup = artifacts.require("PriceFeedRSKOracleMockup");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 
 const { getSUSD, getRBTC, getWRBTC, getBZRX, getSovryn, getPriceFeeds } = require("../Utils/initializer.js");
+const wei = web3.utils.toWei;
 
 contract("OracleIntegration", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, priceFeeds, swapsImpl;
@@ -54,10 +55,39 @@ contract("OracleIntegration", (accounts) => {
 	};
 
 	describe("OracleIntegration Tests", () => {
+		it("Test pause price feed should revert if not set by pauser", async () => {
+			const price_feeds = await PriceFeeds.new(WRBTC.address, BZRX.address, SUSD.address);
+			await expectRevert(price_feeds.setGlobalPricingPaused(true), "onlyPauser");
+			expect((await price_feeds.globalPricingPaused()) == false).to.be.true;
+		});
+
+		it("Test pause price feed", async () => {
+			const newPauser = accounts[9];
+
+			const price_feeds = await PriceFeeds.new(WRBTC.address, BZRX.address, SUSD.address);
+			await price_feeds.setPauser(newPauser);
+
+			expect((await price_feeds.pauser()) == newPauser).to.be.true;
+
+			await price_feeds.setGlobalPricingPaused(true, { from: newPauser });
+			expect((await price_feeds.globalPricingPaused()) == true).to.be.true;
+
+			expect((await price_feeds.queryReturn(WRBTC.address, BZRX.address, wei("1", "ether"))) == 0).to.be.true;
+
+			await expectRevert(
+				price_feeds.checkPriceDisagreement(WRBTC.address, BZRX.address, wei("1", "ether"), wei("1", "ether"), wei("1", "ether")),
+				"pricing is paused"
+			);
+		});
+
 		it("Test moc oracle integration", async () => {
 			const [price_feeds, price_feeds_moc] = await set_oracle(
-				(await price_feed_rsk_mockup()).address,
-				(await price_feed_moc_mockup()).address
+				(
+					await price_feed_rsk_mockup()
+				).address,
+				(
+					await price_feed_moc_mockup()
+				).address
 			);
 
 			let res = await price_feeds.queryPrecision(BZRX.address, WRBTC.address);

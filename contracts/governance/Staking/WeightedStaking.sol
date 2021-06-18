@@ -444,5 +444,4 @@ contract WeightedStaking is Checkpoints {
 		}
 		return codeHash;
 	}
-
 }

@@ -47,6 +47,8 @@ contract PriceFeeds is Constants, Ownable {
 	/// Flag to pause pricings.
 	bool public globalPricingPaused = false;
 
+	address public pauser;
+
 	/* Functions */
 
 	/**
@@ -67,6 +69,14 @@ contract PriceFeeds is Constants, Ownable {
 		_setWrbtcToken(_wrbtcTokenAddress);
 		_setProtocolTokenAddress(_protocolTokenAddress);
 		_setBaseToken(_baseTokenAddress);
+	}
+
+	/**
+	 * @notice Set pauser account.
+	 * @param _pauser The address of the account to grant pause permissions.
+	 * */
+	function setPauser(address _pauser) public onlyOwner {
+		pauser = _pauser;
 	}
 
 	/**
@@ -352,7 +362,8 @@ contract PriceFeeds is Constants, Ownable {
 	 *
 	 * @param isPaused The new status of pause (true/false).
 	 * */
-	function setGlobalPricingPaused(bool isPaused) external onlyOwner {
+	function setGlobalPricingPaused(bool isPaused) external {
+		require(msg.sender == pauser, "onlyPauser");
 		globalPricingPaused = isPaused;
 
 		emit GlobalPricingPaused(msg.sender, isPaused);

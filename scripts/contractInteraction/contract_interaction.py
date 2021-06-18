@@ -1309,3 +1309,77 @@ def readWRBTCAddressFromWrapper(wrapper):
     abi = json.load(abiFile)
     wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=wrapper, abi=abi, owner=acct)
     print(wrapperProxy.wrbtcTokenAddress())
+
+def tranfserProtocolAdminToAdminGovernance():
+    governorAdmin = contracts["GovernorAdmin"]
+
+    # Need to redeploy the protocol settings since there is additional function and logic changed
+    replaceProtocolSettings()
+
+    # Set the governorAdmin as admin of the protocol
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.setAdmin.encode_input(governorAdmin)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId)
+
+def transferProtocolOwnershipToOwnerGovernance():
+    governorOwner = contracts["GovernorOwner"]
+
+    # Need to redeploy the protocol settings since there is additional function and logic changed
+    replaceProtocolSettings()
+
+    # Set the governorOwner as owner of the protocol
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.transferOwnership.encode_input(governorOwner)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId)
+
+def transferPriceFeedOracleOwnershipToAdminGovernance():
+    governorAdmin = contracts["GovernorAdmin"]
+
+    # BProPriceFeeds --> transfer to admin governor
+    bProPriceFeed = Contract.from_abi("BProPriceFeed", address=contracts['BProPriceFeed'], abi=BProPriceFeed.abi, owner=acct)
+    data = bProPriceFeed.transferOwnership.encode_input(governorAdmin)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(bProPriceFeed.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId)
+
+    # PriceFeedRSKOracle --> transfer to admin governor
+    priceFeedRSKOracle = Contract.from_abi("PriceFeedRSKOracle", address=contracts['PriceFeedRSKOracle'], abi=PriceFeedRSKOracle.abi, owner=acct)
+    data = priceFeedRSKOracle.transferOwnership.encode_input(governorAdmin)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(priceFeedRSKOracle.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId)
+
+def transferPriceFeedGatewayPauserToMultisig():
+    # Need to redeploy the PriceFeeds.sol since the logic has changed (adding pauser role)
+    # To redeploy the priceFeeds, we need to re-register all of the assets into the pricefeeds
+
+    # PriceFeeds --> set the pauser to our multisig -- somehow, we still need to use multisig to pause the priceFeeds, since it takes too long if pause by governance
+    priceFeeds = Contract.from_abi("PriceFeeds", address=contracts['PriceFeeds'], abi=PriceFeeds.abi, owner=acct)
+    data = priceFeeds.setPauser.encode_input(contracts['multisig'])
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(priceFeeds.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId)
+
+def transferPriceFeedGatewayOwnershipToAdminGovernance():
+    loadConfig()
+    governorAdmin = contracts["GovernorAdmin"]
+
+    # Need to redeploy the PriceFeeds.sol since the logic has changed (adding pauser role)
+    # To redeploy the priceFeeds, we need to re-register all of the assets into the pricefeeds
+    
+    # PriceFeeds --> transfer to admin governor
+    priceFeeds = Contract.from_abi("PriceFeeds", address=contracts['PriceFeeds'], abi=PriceFeeds.abi, owner=acct)
+    data = priceFeeds.transferOwnership.encode_input(governorAdmin)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(priceFeeds.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId)
