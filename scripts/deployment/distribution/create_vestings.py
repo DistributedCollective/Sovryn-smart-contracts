@@ -75,7 +75,7 @@ def main():
         # stakes = staking.getStakes(vestingAddress)
         # print(stakes)
 
-    # 77967.45
+    # 87.01
     print("=======================================")
     print("SOV amount:")
     print(totalAmount / 10**18)

@@ -124,7 +124,7 @@ def main():
     #((impact/100 * 15000e10) + 15000e10) * rbtcBalance - ((impact/100 * 15000e10) + 15000e10) * (sovBalance * rbtcBalance / (sovBalance + amount ))  = amount
 
     # createProposalSIP0015()
-    transferSOVtoScriptAccount()
+    # transferSOVtoScriptAccount()
 
 
 def loadConfig():
@@ -1122,8 +1122,8 @@ def transferSOVtoTokenSender():
     print(txId)
 
 def transferSOVtoScriptAccount():
-    # 77967.45 SOV
-    amount = 7796745 * 10**16
+    # 87.01 SOV
+    amount = 8701 * 10**16
 
     # TODO set receiver address
     receiver = "0x27D55f5668eF4438635bdCE0aDCA083507E77752"
