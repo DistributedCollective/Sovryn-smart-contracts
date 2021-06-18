@@ -1,0 +1,17 @@
+{
+    "FISH_Token_Amount": "420000000",
+    "FISH_Token_Decimal": "18",
+    "FISH_Token": "",
+    "multisig": "",
+    "multisigOwners": [
+        "",
+        "0xb1c5C1B84E33CD32a153f1eB120e9Bd7109cc435",
+        "0xe1a148735f07bc5fe7cfb60499d325c8380488a8"
+    ],
+    "stakingLogic": "",
+    "staking": "",
+    "feeSharing": "0x0000000000000000000000000000000000000001",
+    "vestingLogic": "",
+    "vestingFactory": "",
+    "vestingRegistry": ""
+}
