@@ -34,8 +34,8 @@ def main():
     balanceBefore = acct.balance()
     totalAmount = 0
 
-    # amounts examples: 1163.50, 33.47, 40.00
-    data = parseFile('./scripts/deployment/distribution/vestings7.csv', 10**16)
+    # amounts examples: 66.93, 20.08
+    data = parseFile('./scripts/deployment/distribution/vestings8.csv', 10**16)
     totalAmount += data["totalAmount"]
 
     for teamVesting in data["teamVestingList"]:
