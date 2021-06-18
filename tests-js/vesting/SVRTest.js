@@ -4,7 +4,7 @@ const { expectRevert, expectEvent, constants, BN, balance, time } = require("@op
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV = artifacts.require("SOV");
-const RSOV = artifacts.require("RSOV");
+const SVR = artifacts.require("SVR");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const TWO_WEEKS = 1209600;
@@ -12,15 +12,15 @@ const HALF_YEAR = 182 * 86400;
 const ZERO_ADDRESS = constants.ZERO_ADDRESS;
 const ZERO = new BN(0);
 
-const NAME = "Sovryn Reward Token";
-const SYMBOL = "RSOV";
+const NAME = "Sovryn Vesting Reward Token";
+const SYMBOL = "SVR";
 const DECIMALS = 18;
 
 const WEEK = new BN(7 * 24 * 60 * 60);
 
-contract("RSOV:", (accounts) => {
+contract("SVR:", (accounts) => {
 	let root, account1, account2, account3;
-	let tokenSOV, tokenRSOV, staking;
+	let tokenSOV, tokenSVR, staking;
 
 	before(async () => {
 		[root, account1, account2, account3, ...accounts] = accounts;
@@ -34,12 +34,12 @@ contract("RSOV:", (accounts) => {
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 
-		tokenRSOV = await RSOV.new(tokenSOV.address, staking.address);
+		tokenSVR = await SVR.new(tokenSOV.address, staking.address);
 	});
 
 	describe("constructor:", () => {
 		it("sets the expected values", async () => {
-			let tokenTemp = await RSOV.new(tokenSOV.address, staking.address);
+			let tokenTemp = await SVR.new(tokenSOV.address, staking.address);
 
 			expect(await tokenTemp.name.call()).to.be.equal(NAME);
 			expect(await tokenTemp.symbol.call()).to.be.equal(SYMBOL);
@@ -50,25 +50,25 @@ contract("RSOV:", (accounts) => {
 		});
 
 		it("fails if SOV address is zero", async () => {
-			await expectRevert(RSOV.new(ZERO_ADDRESS, staking.address), "RSOV::SOV address invalid");
+			await expectRevert(SVR.new(ZERO_ADDRESS, staking.address), "SVR::SOV address invalid");
 		});
 
 		it("fails if staking address is zero", async () => {
-			await expectRevert(RSOV.new(tokenSOV.address, ZERO_ADDRESS), "RSOV::staking address invalid");
+			await expectRevert(SVR.new(tokenSOV.address, ZERO_ADDRESS), "SVR::staking address invalid");
 		});
 	});
 
 	describe("mint:", () => {
-		it("should be able to mint RSOV tokens", async () => {
+		it("should be able to mint SVR tokens", async () => {
 			let amount = new BN(1000);
 
 			await tokenSOV.transfer(account1, amount);
-			await tokenSOV.approve(tokenRSOV.address, amount, { from: account1 });
-			let tx = await tokenRSOV.mint(amount, { from: account1 });
+			await tokenSOV.approve(tokenSVR.address, amount, { from: account1 });
+			let tx = await tokenSVR.mint(amount, { from: account1 });
 
 			expect(await tokenSOV.balanceOf.call(account1)).to.be.bignumber.equal(ZERO);
-			expect(await tokenRSOV.balanceOf.call(account1)).to.be.bignumber.equal(amount);
-			expect(await tokenSOV.balanceOf.call(tokenRSOV.address)).to.be.bignumber.equal(amount);
+			expect(await tokenSVR.balanceOf.call(account1)).to.be.bignumber.equal(amount);
+			expect(await tokenSOV.balanceOf.call(tokenSVR.address)).to.be.bignumber.equal(amount);
 
 			expectEvent(tx, "Mint", {
 				sender: account1,
@@ -77,68 +77,68 @@ contract("RSOV:", (accounts) => {
 		});
 
 		it("fails if amount is zero", async () => {
-			await expectRevert(tokenRSOV.mint(0), "RSOV::mint: amount invalid");
+			await expectRevert(tokenSVR.mint(0), "SVR::mint: amount invalid");
 		});
 
 		it("fails if transfer is not approved", async () => {
-			await expectRevert(tokenRSOV.mint(100), "ERC20: transfer amount exceeds allowance");
+			await expectRevert(tokenSVR.mint(100), "ERC20: transfer amount exceeds allowance");
 		});
 	});
 
 	describe("mintWithApproval:", () => {
 		let amount = new BN(5000);
 
-		it("should be able to mint RSOV tokens", async () => {
+		it("should be able to mint SVR tokens", async () => {
 			await tokenSOV.transfer(account1, amount);
 
-			let contract = new web3.eth.Contract(tokenRSOV.abi, tokenRSOV.address);
+			let contract = new web3.eth.Contract(tokenSVR.abi, tokenSVR.address);
 			let sender = account1;
 			let data = contract.methods.mintWithApproval(sender, amount).encodeABI();
-			await tokenSOV.approveAndCall(tokenRSOV.address, amount, data, { from: sender });
+			await tokenSOV.approveAndCall(tokenSVR.address, amount, data, { from: sender });
 
 			expect(await tokenSOV.balanceOf.call(account1)).to.be.bignumber.equal(ZERO);
-			expect(await tokenRSOV.balanceOf.call(account1)).to.be.bignumber.equal(amount);
-			expect(await tokenSOV.balanceOf.call(tokenRSOV.address)).to.be.bignumber.equal(amount);
+			expect(await tokenSVR.balanceOf.call(account1)).to.be.bignumber.equal(amount);
+			expect(await tokenSOV.balanceOf.call(tokenSVR.address)).to.be.bignumber.equal(amount);
 		});
 
 		it("fails if invoked directly", async () => {
-			await expectRevert(tokenRSOV.mintWithApproval(account1, new BN(5000)), "unauthorized");
+			await expectRevert(tokenSVR.mintWithApproval(account1, new BN(5000)), "unauthorized");
 		});
 
 		it("fails if pass wrong method in data", async () => {
-			let contract = new web3.eth.Contract(tokenRSOV.abi, tokenRSOV.address);
+			let contract = new web3.eth.Contract(tokenSVR.abi, tokenSVR.address);
 			let data = contract.methods.mint(amount).encodeABI();
 
-			await expectRevert(tokenSOV.approveAndCall(tokenRSOV.address, amount, data, { from: account1 }), "method is not allowed");
+			await expectRevert(tokenSOV.approveAndCall(tokenSVR.address, amount, data, { from: account1 }), "method is not allowed");
 		});
 
 		it("fails if pass wrong method params in data", async () => {
-			let contract = new web3.eth.Contract(tokenRSOV.abi, tokenRSOV.address);
+			let contract = new web3.eth.Contract(tokenSVR.abi, tokenSVR.address);
 			let data = contract.methods.mintWithApproval(account1, new BN(0)).encodeABI();
 
-			await expectRevert(tokenSOV.approveAndCall(tokenRSOV.address, amount, data, { from: account1 }), "amount mismatch");
+			await expectRevert(tokenSOV.approveAndCall(tokenSVR.address, amount, data, { from: account1 }), "amount mismatch");
 		});
 	});
 
 	describe("receiveApproval:", () => {
 		it("fails if invoked directly", async () => {
 			let amount = new BN(5000);
-			let contract = new web3.eth.Contract(tokenRSOV.abi, tokenRSOV.address);
+			let contract = new web3.eth.Contract(tokenSVR.abi, tokenSVR.address);
 			let data = contract.methods.mintWithApproval(account1, amount).encodeABI();
-			await expectRevert(tokenRSOV.receiveApproval(account1, amount, tokenSOV.address, data), "unauthorized");
+			await expectRevert(tokenSVR.receiveApproval(account1, amount, tokenSOV.address, data), "unauthorized");
 		});
 	});
 
 	describe("burn:", () => {
-		it("should be able to burn RSOV tokens and stake for 13 positions", async () => {
+		it("should be able to burn SVR tokens and stake for 13 positions", async () => {
 			let initialAmount = 1000;
 			let amount = initialAmount;
 
 			await tokenSOV.transfer(account1, amount);
-			await tokenSOV.approve(tokenRSOV.address, amount, { from: account1 });
-			await tokenRSOV.mint(amount, { from: account1 });
+			await tokenSOV.approve(tokenSVR.address, amount, { from: account1 });
+			await tokenSVR.mint(amount, { from: account1 });
 
-			let tx = await tokenRSOV.burn(amount, { from: account1 });
+			let tx = await tokenSVR.burn(amount, { from: account1 });
 
 			let block = await web3.eth.getBlock("latest");
 			let timestamp = block.timestamp;
@@ -168,7 +168,7 @@ contract("RSOV:", (accounts) => {
 				expect(numUserStakingCheckpoints).to.be.bignumber.equal(new BN(1));
 			}
 
-			expect(await tokenRSOV.balanceOf.call(account1)).to.be.bignumber.equal(ZERO);
+			expect(await tokenSVR.balanceOf.call(account1)).to.be.bignumber.equal(ZERO);
 			expect(await tokenSOV.balanceOf.call(account1)).to.be.bignumber.equal(new BN(transferAmount));
 			expect(await tokenSOV.balanceOf.call(staking.address)).to.be.bignumber.equal(new BN(amount));
 			expect(transferAmount + amount).to.be.equal(initialAmount);
@@ -180,7 +180,7 @@ contract("RSOV:", (accounts) => {
 		});
 
 		it("fails if amount is zero", async () => {
-			await expectRevert(tokenRSOV.burn(0), "RSOV:: burn: amount invalid");
+			await expectRevert(tokenSVR.burn(0), "SVR:: burn: amount invalid");
 		});
 	});
 });

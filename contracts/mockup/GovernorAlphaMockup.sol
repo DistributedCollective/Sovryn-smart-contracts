@@ -15,4 +15,10 @@ contract GovernorAlphaMockup is GovernorAlpha {
 	function votingPeriod() public pure returns (uint256) {
 		return 10;
 	}
+
+	function queueProposals(uint256[] calldata proposalIds) external {
+		for (uint256 i = 0; i < proposalIds.length; i++) {
+			queue(proposalIds[i]);
+		}
+	}
 }
