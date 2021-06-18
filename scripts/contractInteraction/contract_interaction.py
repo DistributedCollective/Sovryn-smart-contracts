@@ -39,7 +39,7 @@ def main():
     '''
     #0x37A706259F5201C03f6Cb556A960F30F86842d01  -ms aggregator
     #deployMultisig(['0xfe9d5402dc3c86cbaBE80231Cd48d98ba742D3f6','0x4C3d3505d34213751c4b4d621cB6bDe7E664E222',acct], 2)
-    sendFromMultisig('0x2064242b697830535A2d76BE352e82Cf85E0EC2c', 30e18)
+    #sendFromMultisig('0x2064242b697830535A2d76BE352e82Cf85E0EC2c', 30e18)
     #removeLiquidityV1toMultisigUsingWrapper(contracts['RBTCWrapperProxyWithoutLM'], contracts["ConverterETHs"], 90e18, [contracts['WRBTC'], contracts['ETHs']], [8e18,1])
 
     #amount = getBalance('0x09c5FAf7723B13434ABdF1A65AB1b667bc02a902', contracts['multisig'])
@@ -75,7 +75,6 @@ def loadConfig():
     else:
         raise Exception("Network not supported.")
     contracts = json.load(configFile)
-
     
 def readLendingFee():
     sovryn = Contract.from_abi("sovryn", address='0xBAC609F5C8bb796Fa5A31002f12aaF24B7c35818', abi=interface.ISovrynBrownie.abi, owner=acct)
@@ -327,7 +326,7 @@ def buyWRBTC():
     contract = Contract.from_abi("WRBTC", address=contracts["WRBTC"], abi=WRBTC.abi, owner=acct)
     tx = contract.deposit({'value':1e18})
     tx.info()
-    print("new balance", getBalance(contracts["WRBTC"], acct))
+    print("New balance: ", contract.balanceOf(acct))
     
 def mintEarlyAccessTokens(contractAddress, userAddress):
     contract = Contract.from_abi("EarlyAccessToken", address=contractAddress, abi=EarlyAccessToken.abi, owner=acct)
