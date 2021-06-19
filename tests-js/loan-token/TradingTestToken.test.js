@@ -341,8 +341,8 @@ contract("LoanTokenTrading", (accounts) => {
 				wei("0.01", "ether"),
 				RBTC.address,
 				wei("0.02", "ether")
-			)
-		})
+			);
+		});
 
 		it("Check marginTrade with minPositionSize > 0 ", async () => {
 			await set_demand_curve(loanToken);
@@ -351,28 +351,25 @@ contract("LoanTokenTrading", (accounts) => {
 			await RBTC.approve(loanToken.address, oneEth, { from: accounts[2] });
 
 			await loanToken.marginTrade(
-					"0x0", // loanId  (0 for new loans)
-					wei("2", "ether"), // leverageAmount
-					0, // loanTokenSent (SUSD)
-					1000, // collateral token sent
-					RBTC.address, // collateralTokenAddress (RBTC)
-					accounts[1], // trader,
-					2000,
-					"0x", // loanDataBytes (only required with ether)
-					{ from: accounts[2] }
-				)
-		})
+				"0x0", // loanId  (0 for new loans)
+				wei("2", "ether"), // leverageAmount
+				0, // loanTokenSent (SUSD)
+				1000, // collateral token sent
+				RBTC.address, // collateralTokenAddress (RBTC)
+				accounts[1], // trader,
+				2000,
+				"0x", // loanDataBytes (only required with ether)
+				{ from: accounts[2] }
+			);
+		});
 
 		it("checkPriceDivergence should revert if min position size is greater than collateral", async () => {
 			await set_demand_curve(loanToken);
 
-			await expectRevert(loanToken.checkPriceDivergence(
-				new BN(2).mul(oneEth),
-				wei("2", "ether"),
-				0,
-				RBTC.address,
-				wei("1", "ether")
-			), "revert new collateral too low")
-		})
+			await expectRevert(
+				loanToken.checkPriceDivergence(new BN(2).mul(oneEth), wei("2", "ether"), 0, RBTC.address, wei("1", "ether")),
+				"revert new collateral too low"
+			);
+		});
 	});
 });

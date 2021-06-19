@@ -211,19 +211,14 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	{
 		require(withdrawAmount != 0, "6");
 
-        _checkPause();
+		_checkPause();
 
 		/// Temporary: limit transaction size.
 		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
 
-        require(msg.value == 0 || msg.value == collateralTokenSent, "7");
-        require(collateralTokenSent != 0 || loanId != 0, "8");
-        require(
-            collateralTokenAddress != address(0) ||
-                msg.value != 0 ||
-                loanId != 0,
-            "9"
-        );
+		require(msg.value == 0 || msg.value == collateralTokenSent, "7");
+		require(collateralTokenSent != 0 || loanId != 0, "8");
+		require(collateralTokenAddress != address(0) || msg.value != 0 || loanId != 0, "9");
 
 		/// @dev Ensure authorized use of existing loan.
 		require(loanId == 0 || msg.sender == borrower, "unauthorized use of existing loan");
@@ -375,7 +370,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 				sentAmounts,
 				loanDataBytes
 			);
-    }
+	}
 
 	/**
 	 * @notice Transfer tokens wrapper.
@@ -431,32 +426,27 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	) internal returns (bool) {
 		if (_allowanceAmount != uint256(-1)) {
 			allowed[_from][msg.sender] = _allowanceAmount.sub(_value, "14");
-        }
+		}
 
 		require(_to != address(0), "15");
 
 		uint256 _balancesFrom = balances[_from];
 		uint256 _balancesFromNew = _balancesFrom.sub(_value, "16");
-        balances[_from] = _balancesFromNew;
+		balances[_from] = _balancesFromNew;
 
-        uint256 _balancesTo = balances[_to];
-        uint256 _balancesToNew = _balancesTo.add(_value);
-        balances[_to] = _balancesToNew;
+		uint256 _balancesTo = balances[_to];
+		uint256 _balancesToNew = _balancesTo.add(_value);
+		balances[_to] = _balancesToNew;
 
 		/// @dev Handle checkpoint update.
 		uint256 _currentPrice = tokenPrice();
 
-        _updateCheckpoints(
-            _from,
-            _balancesFrom,
-            _balancesFromNew,
-            _currentPrice
-        );
-        _updateCheckpoints(_to, _balancesTo, _balancesToNew, _currentPrice);
+		_updateCheckpoints(_from, _balancesFrom, _balancesFromNew, _currentPrice);
+		_updateCheckpoints(_to, _balancesTo, _balancesToNew, _currentPrice);
 
-        emit Transfer(_from, _to, _value);
-        return true;
-    }
+		emit Transfer(_from, _to, _value);
+		return true;
+	}
 
 	/**
 	 * @notice Update the user's checkpoint price and profit so far.
@@ -485,11 +475,11 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			_currentProfit = _profitOf(slot, _oldBalance, _currentPrice, checkpointPrices_[_user]);
 		}
 
-        assembly {
-            sstore(slot, _currentProfit)
-        }
+		assembly {
+			sstore(slot, _currentProfit)
+		}
 
-        checkpointPrices_[_user] = _currentPrice;
+		checkpointPrices_[_user] = _currentPrice;
 	}
 
 	/* Public View functions */
@@ -499,23 +489,11 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @param user The user address.
 	 * @return The profit of a user.
 	 * */
-    function profitOf(address user) public view returns (int256) {
-        bytes32 slot =
-            keccak256(
-                abi.encodePacked(
-                    user,
-                    iToken_ProfitSoFar
-                )
-            );
+	function profitOf(address user) public view returns (int256) {
+		bytes32 slot = keccak256(abi.encodePacked(user, iToken_ProfitSoFar));
 
-        return
-            _profitOf(
-                slot,
-                balances[user],
-                tokenPrice(),
-                checkpointPrices_[user]
-            );
-    }
+		return _profitOf(slot, balances[user], tokenPrice(), checkpointPrices_[user]);
+	}
 
 	/**
 	 * @notice Profit calculation based on checkpoints of price.
@@ -535,12 +513,12 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			return 0;
 		}
 
-        assembly {
-            profitSoFar := sload(slot)
-        }
+		assembly {
+			profitSoFar := sload(slot)
+		}
 
 		profitSoFar = int256(_currentPrice).sub(int256(_checkpointPrice)).mul(int256(_balance)).div(sWEI_PRECISION).add(profitSoFar);
-    }
+	}
 
 	/**
 	 * @notice Loan token price calculation considering unpaid interests.
@@ -552,8 +530,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			(, interestUnPaid) = _getAllInterest();
 		}
 
-        return _tokenPrice(_totalAssetSupply(interestUnPaid));
-    }
+		return _tokenPrice(_totalAssetSupply(interestUnPaid));
+	}
 
 	/**
 	 * @notice Getter for the price checkpoint mapping.
@@ -699,51 +677,42 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 *
 	 * @return The principal, the collateral and the interestRate.
 	 * */
-    function getEstimatedMarginDetails(
-        uint256 leverageAmount,
-        uint256 loanTokenSent,
-        uint256 collateralTokenSent,
-        address collateralTokenAddress // address(0) means ETH
-    )
-        public
-        view
-        returns (
-            uint256 principal,
-            uint256 collateral,
-            uint256 interestRate
-        )
-    {
-        if (collateralTokenAddress == address(0)) {
-            collateralTokenAddress = wrbtcTokenAddress;
-        }
+	function getEstimatedMarginDetails(
+		uint256 leverageAmount,
+		uint256 loanTokenSent,
+		uint256 collateralTokenSent,
+		address collateralTokenAddress // address(0) means ETH
+	)
+		public
+		view
+		returns (
+			uint256 principal,
+			uint256 collateral,
+			uint256 interestRate
+		)
+	{
+		if (collateralTokenAddress == address(0)) {
+			collateralTokenAddress = wrbtcTokenAddress;
+		}
 
-        uint256 totalDeposit =
-            _totalDeposit(
-                collateralTokenAddress,
-                collateralTokenSent,
-                loanTokenSent
-            );
+		uint256 totalDeposit = _totalDeposit(collateralTokenAddress, collateralTokenSent, loanTokenSent);
 
-        (principal, interestRate) = _getMarginBorrowAmountAndRate(
-            leverageAmount,
-            totalDeposit
-        );
-        if (principal > _underlyingBalance()) {
-            return (0, 0, 0);
-        }
+		(principal, interestRate) = _getMarginBorrowAmountAndRate(leverageAmount, totalDeposit);
+		if (principal > _underlyingBalance()) {
+			return (0, 0, 0);
+		}
 
-        loanTokenSent = loanTokenSent.add(principal);
+		loanTokenSent = loanTokenSent.add(principal);
 
-        collateral = ProtocolLike(sovrynContractAddress)
-            .getEstimatedMarginExposure(
-            loanTokenAddress,
-            collateralTokenAddress,
-            loanTokenSent,
-            collateralTokenSent,
-            interestRate,
-            principal
-        );
-    }
+		collateral = ProtocolLike(sovrynContractAddress).getEstimatedMarginExposure(
+			loanTokenAddress,
+			collateralTokenAddress,
+			loanTokenSent,
+			collateralTokenSent,
+			interestRate,
+			principal
+		);
+	}
 
 	/**
 	 * @notice Calculate the deposit required to a given borrow.
@@ -814,37 +783,27 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 				true /// isTorqueLoan
 			);
 
-            (, , borrowAmount) = _getInterestRateAndBorrowAmount(
-                borrowAmount,
-                totalAssetSupply(),
-                initialLoanDuration
-            );
+			(, , borrowAmount) = _getInterestRateAndBorrowAmount(borrowAmount, totalAssetSupply(), initialLoanDuration);
 
-            if (borrowAmount > _underlyingBalance()) {
-                borrowAmount = 0;
-            }
-        }
-    }
+			if (borrowAmount > _underlyingBalance()) {
+				borrowAmount = 0;
+			}
+		}
+	}
 
-    function checkPriceDivergence(        
-        uint256 leverageAmount,
-        uint256 loanTokenSent,
-        uint256 collateralTokenSent,
-        address collateralTokenAddress, 
-        uint256 minReturn) 
-        public 
-        view
-    {
-        (, uint256 estimatedCollateral, ) = getEstimatedMarginDetails(
-            leverageAmount,
-            loanTokenSent,
-            collateralTokenSent,
-            collateralTokenAddress
-        );
-        require(estimatedCollateral >= minReturn, "new collateral too low");
-    }
+	function checkPriceDivergence(
+		uint256 leverageAmount,
+		uint256 loanTokenSent,
+		uint256 collateralTokenSent,
+		address collateralTokenAddress,
+		uint256 minReturn
+	) public view {
+		(, uint256 estimatedCollateral, ) =
+			getEstimatedMarginDetails(leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress);
+		require(estimatedCollateral >= minReturn, "new collateral too low");
+	}
 
-    /* Internal functions */
+	/* Internal functions */
 
 	/**
 	 * @notice A wrapper for AdvancedToken::_mint
@@ -857,31 +816,25 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	function _mintToken(address receiver, uint256 depositAmount) internal returns (uint256 mintAmount) {
 		require(depositAmount != 0, "17");
 
-        _settleInterest();
+		_settleInterest();
 
-        uint256 currentPrice = _tokenPrice(_totalAssetSupply(0));
-        mintAmount = depositAmount.mul(10**18).div(currentPrice);
+		uint256 currentPrice = _tokenPrice(_totalAssetSupply(0));
+		mintAmount = depositAmount.mul(10**18).div(currentPrice);
 
-        if (msg.value == 0) {
-            _safeTransferFrom(
-                loanTokenAddress,
-                msg.sender,
-                address(this),
-                depositAmount,
-                "18"
-            );
-        } else {
-            IWrbtc(wrbtcTokenAddress).deposit.value(depositAmount)();
-        }
+		if (msg.value == 0) {
+			_safeTransferFrom(loanTokenAddress, msg.sender, address(this), depositAmount, "18");
+		} else {
+			IWrbtc(wrbtcTokenAddress).deposit.value(depositAmount)();
+		}
 
-        uint256 oldBalance = balances[receiver];
-        _updateCheckpoints(
-            receiver,
-            oldBalance,
-            _mint(receiver, mintAmount, depositAmount, currentPrice), // newBalance
-            currentPrice
-        );
-    }
+		uint256 oldBalance = balances[receiver];
+		_updateCheckpoints(
+			receiver,
+			oldBalance,
+			_mint(receiver, mintAmount, depositAmount, currentPrice), // newBalance
+			currentPrice
+		);
+	}
 
 	/**
 	 * @notice A wrapper for AdvancedToken::_burn
@@ -893,22 +846,22 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	function _burnToken(uint256 burnAmount) internal returns (uint256 loanAmountPaid) {
 		require(burnAmount != 0, "19");
 
-        if (burnAmount > balanceOf(msg.sender)) {
+		if (burnAmount > balanceOf(msg.sender)) {
 			require(burnAmount == uint256(-1), "32");
-            burnAmount = balanceOf(msg.sender);
-        }
+			burnAmount = balanceOf(msg.sender);
+		}
 
-        _settleInterest();
+		_settleInterest();
 
-        uint256 currentPrice = _tokenPrice(_totalAssetSupply(0));
+		uint256 currentPrice = _tokenPrice(_totalAssetSupply(0));
 
-        uint256 loanAmountOwed = burnAmount.mul(currentPrice).div(10**18);
-        uint256 loanAmountAvailableInContract = _underlyingBalance();
+		uint256 loanAmountOwed = burnAmount.mul(currentPrice).div(10**18);
+		uint256 loanAmountAvailableInContract = _underlyingBalance();
 
-        loanAmountPaid = loanAmountOwed;
-        require(loanAmountPaid <= loanAmountAvailableInContract, "37");
+		loanAmountPaid = loanAmountOwed;
+		require(loanAmountPaid <= loanAmountAvailableInContract, "37");
 
-        uint256 oldBalance = balances[msg.sender];
+		uint256 oldBalance = balances[msg.sender];
 		/**
 		 * @dev This function does not only update the checkpoints but also
 		 * the current profit of the user.
@@ -928,16 +881,14 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 *
 	 * @dev Internal sync required on every loan trade before starting.
 	 * */
-    function _settleInterest() internal {
-        uint88 ts = uint88(block.timestamp);
-        if (lastSettleTime_ != ts) {
-            ProtocolLike(sovrynContractAddress).withdrawAccruedInterest(
-                loanTokenAddress
-            );
+	function _settleInterest() internal {
+		uint88 ts = uint88(block.timestamp);
+		if (lastSettleTime_ != ts) {
+			ProtocolLike(sovrynContractAddress).withdrawAccruedInterest(loanTokenAddress);
 
-            lastSettleTime_ = ts;
-        }
-    }
+			lastSettleTime_ = ts;
+		}
+	}
 
 	/**
 	 * @notice Compute what the deposit is worth in loan tokens using the swap rate
@@ -1070,9 +1021,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 		bool withdrawAmountExist = false; /// Default is false, but added just as to make sure.
 
-        if (withdrawAmount != 0) {
-            withdrawAmountExist = true;
-        }
+		if (withdrawAmount != 0) {
+			withdrawAmountExist = true;
+		}
 
 		bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, withdrawAmountExist)))];
 
@@ -1153,16 +1104,10 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			}
 		}
 
-        if (loanTokenSent != 0) {
-            _safeTransferFrom(
-                _loanTokenAddress,
-                msg.sender,
-                sovrynContractAddress,
-                loanTokenSent,
-                "29"
-            );
-        }
-    }
+		if (loanTokenSent != 0) {
+			_safeTransferFrom(_loanTokenAddress, msg.sender, sovrynContractAddress, loanTokenSent, "29");
+		}
+	}
 
 	/**
 	 * @notice Execute the ERC20 token's `transfer` function and reverts
@@ -1232,10 +1177,10 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		(bool success, bytes memory returndata) = token.call(data);
 		require(success, errorMsg);
 
-        if (returndata.length != 0) {
-            require(abi.decode(returndata, (bool)), errorMsg);
-        }
-    }
+		if (returndata.length != 0) {
+			require(abi.decode(returndata, (bool)), errorMsg);
+		}
+	}
 
 	/**
 	 * @notice Get the loan contract balance.
@@ -1245,7 +1190,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		return IERC20(loanTokenAddress).balanceOf(address(this));
 	}
 
-    /* Internal View functions */
+	/* Internal View functions */
 
 	/**
 	 * @notice Compute the token price.
@@ -1255,11 +1200,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	function _tokenPrice(uint256 assetSupply) internal view returns (uint256) {
 		uint256 totalTokenSupply = totalSupply_;
 
-        return
-            totalTokenSupply != 0
-                ? assetSupply.mul(10**18).div(totalTokenSupply)
-                : initialPrice;
-    }
+		return totalTokenSupply != 0 ? assetSupply.mul(10**18).div(totalTokenSupply) : initialPrice;
+	}
 
 	/**
 	 * @notice Compute the average borrow interest rate.
@@ -1328,58 +1270,42 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @param assetSupply The amount of loan tokens supplied.
 	 * @return The next borrow interest adjustment.
 	 * */
-    function _nextBorrowInterestRate2(
-        uint256 newBorrowAmount,
-        uint256 assetSupply
-    ) internal view returns (uint256 nextRate) {
-        uint256 utilRate =
-            _utilizationRate(
-                totalAssetBorrow().add(newBorrowAmount),
-                assetSupply
-            );
+	function _nextBorrowInterestRate2(uint256 newBorrowAmount, uint256 assetSupply) internal view returns (uint256 nextRate) {
+		uint256 utilRate = _utilizationRate(totalAssetBorrow().add(newBorrowAmount), assetSupply);
 
-        uint256 thisMinRate;
-        uint256 thisMaxRate;
-        uint256 thisBaseRate = baseRate;
-        uint256 thisRateMultiplier = rateMultiplier;
-        uint256 thisTargetLevel = targetLevel;
-        uint256 thisKinkLevel = kinkLevel;
-        uint256 thisMaxScaleRate = maxScaleRate;
+		uint256 thisMinRate;
+		uint256 thisMaxRate;
+		uint256 thisBaseRate = baseRate;
+		uint256 thisRateMultiplier = rateMultiplier;
+		uint256 thisTargetLevel = targetLevel;
+		uint256 thisKinkLevel = kinkLevel;
+		uint256 thisMaxScaleRate = maxScaleRate;
 
-        if (utilRate < thisTargetLevel) {
-            // target targetLevel utilization when utilization is under targetLevel
-            utilRate = thisTargetLevel;
-        }
+		if (utilRate < thisTargetLevel) {
+			// target targetLevel utilization when utilization is under targetLevel
+			utilRate = thisTargetLevel;
+		}
 
 		if (utilRate > thisKinkLevel) {
 			/// @dev Scale rate proportionally up to 100%
 			uint256 thisMaxRange = WEI_PERCENT_PRECISION - thisKinkLevel; /// Will not overflow.
 
-            utilRate -= thisKinkLevel;
-            if (utilRate > thisMaxRange) utilRate = thisMaxRange;
+			utilRate -= thisKinkLevel;
+			if (utilRate > thisMaxRange) utilRate = thisMaxRange;
 
-            thisMaxRate = thisRateMultiplier
-                .add(thisBaseRate)
-                .mul(thisKinkLevel)
-                .div(WEI_PERCENT_PRECISION);
+			thisMaxRate = thisRateMultiplier.add(thisBaseRate).mul(thisKinkLevel).div(WEI_PERCENT_PRECISION);
 
-            nextRate = utilRate
-                .mul(SafeMath.sub(thisMaxScaleRate, thisMaxRate))
-                .div(thisMaxRange)
-                .add(thisMaxRate);
-        } else {
-            nextRate = utilRate
-                .mul(thisRateMultiplier)
-                .div(WEI_PERCENT_PRECISION)
-                .add(thisBaseRate);
+			nextRate = utilRate.mul(SafeMath.sub(thisMaxScaleRate, thisMaxRate)).div(thisMaxRange).add(thisMaxRate);
+		} else {
+			nextRate = utilRate.mul(thisRateMultiplier).div(WEI_PERCENT_PRECISION).add(thisBaseRate);
 
-            thisMinRate = thisBaseRate;
-            thisMaxRate = thisRateMultiplier.add(thisBaseRate);
+			thisMinRate = thisBaseRate;
+			thisMaxRate = thisRateMultiplier.add(thisBaseRate);
 
-            if (nextRate < thisMinRate) nextRate = thisMinRate;
-            else if (nextRate > thisMaxRate) nextRate = thisMaxRate;
-        }
-    }
+			if (nextRate < thisMinRate) nextRate = thisMinRate;
+			else if (nextRate > thisMaxRate) nextRate = thisMaxRate;
+		}
+	}
 
 	/**
 	 * @notice Get two kind of interests: owed per day and yet to be paid.
@@ -1394,10 +1320,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			loanTokenAddress
 		);
 
-        interestUnPaid = interestUnPaid
-            .mul(SafeMath.sub(10**20, interestFeePercent))
-            .div(10**20);
-    }
+		interestUnPaid = interestUnPaid.mul(SafeMath.sub(10**20, interestFeePercent)).div(10**20);
+	}
 
 	/**
 	 * @notice Compute the loan size and interest rate.
@@ -1433,9 +1357,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 				assetsBalance = _underlyingBalance().add(totalAssetBorrow());
 			}
 
-            return assetsBalance.add(interestUnPaid);
-        }
-    }
+			return assetsBalance.add(interestUnPaid);
+		}
+	}
 
 	/**
 	 * @notice Check whether a function is paused.

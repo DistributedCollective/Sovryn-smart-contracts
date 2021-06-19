@@ -165,14 +165,35 @@ contract("LoanTokenLending", (accounts) => {
 		it("Check swapExternal with minReturn > 0 should revert if minReturn is not valid (higher)", async () => {
 			const balanceOf0 = await loanToken.assetBalanceOf(lender);
 			await underlyingToken.approve(sovryn.address, balanceOf0.add(new BN(wei("10", "ether"))).toString());
-			await expectRevert(sovryn.swapExternal(underlyingToken.address, testWrbtc.address, accounts[0], accounts[0], wei("1", "ether"), 0, wei("10", "ether"), "0x"), "destTokenAmountReceived too low");
-		})
+			await expectRevert(
+				sovryn.swapExternal(
+					underlyingToken.address,
+					testWrbtc.address,
+					accounts[0],
+					accounts[0],
+					wei("1", "ether"),
+					0,
+					wei("10", "ether"),
+					"0x"
+				),
+				"destTokenAmountReceived too low"
+			);
+		});
 
 		it("Check swapExternal with minReturn > 0 should revert if minReturn is valid", async () => {
 			const balanceOf0 = await loanToken.assetBalanceOf(lender);
 			await underlyingToken.approve(sovryn.address, balanceOf0.add(new BN(wei("10", "ether"))).toString());
 			// feeds price is set 0.01, so test minReturn with 0.01 as well for the 1 ether swap
-			await sovryn.swapExternal(underlyingToken.address, testWrbtc.address, accounts[0], accounts[0], wei("1", "ether"), 0, wei("0.01", "ether"), "0x")
-		})
+			await sovryn.swapExternal(
+				underlyingToken.address,
+				testWrbtc.address,
+				accounts[0],
+				accounts[0],
+				wei("1", "ether"),
+				0,
+				wei("0.01", "ether"),
+				"0x"
+			);
+		});
 	});
 });
