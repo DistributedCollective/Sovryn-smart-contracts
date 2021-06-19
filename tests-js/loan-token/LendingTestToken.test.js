@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
 const { increaseTime } = require("../Utils/Ethereum");
 
 const TestToken = artifacts.require("TestToken");
@@ -161,5 +161,18 @@ contract("LoanTokenLending", (accounts) => {
 			await loanToken.setEarlyAccessToken(early_access_token.address);
 			await lend_to_the_pool(loanToken, lender, underlyingToken, testWrbtc, sovryn);
 		});
+
+		it("Check swapExternal with minReturn > 0 should revert if minReturn is not valid (higher)", async () => {
+			const balanceOf0 = await loanToken.assetBalanceOf(lender);
+			await underlyingToken.approve(sovryn.address, balanceOf0.add(new BN(wei("10", "ether"))).toString());
+			await expectRevert(sovryn.swapExternal(underlyingToken.address, testWrbtc.address, accounts[0], accounts[0], wei("1", "ether"), 0, wei("10", "ether"), "0x"), "destTokenAmountReceived too low");
+		})
+
+		it("Check swapExternal with minReturn > 0 should revert if minReturn is valid", async () => {
+			const balanceOf0 = await loanToken.assetBalanceOf(lender);
+			await underlyingToken.approve(sovryn.address, balanceOf0.add(new BN(wei("10", "ether"))).toString());
+			// feeds price is set 0.01, so test minReturn with 0.01 as well for the 1 ether swap
+			await sovryn.swapExternal(underlyingToken.address, testWrbtc.address, accounts[0], accounts[0], wei("1", "ether"), 0, wei("0.01", "ether"), "0x")
+		})
 	});
 });

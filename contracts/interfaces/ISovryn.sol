@@ -302,4 +302,15 @@ contract ISovryn is
 	function setLegacyOracles(address[] calldata refs, address[] calldata oracles) external;
 
 	function getLegacyOracle(address ref) external view returns (address);
+
+	function swapExternal(
+		address sourceToken,
+		address destToken,
+		address receiver,
+		address returnToSender,
+		uint256 sourceTokenAmount,
+		uint256 requiredDestTokenAmount,
+		uint256 minReturn,
+		bytes calldata swapData
+	) external returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
 }
