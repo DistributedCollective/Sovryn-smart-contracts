@@ -18,7 +18,7 @@ def main():
     # addTestETHPoolToken()
     # addETHPoolToken()
     # updateLMConfig()
-    addXUSDtoken()
+    # addXUSDtoken()
 
     # check()
     # updateAllPools()
