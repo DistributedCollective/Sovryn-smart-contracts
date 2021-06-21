@@ -52,8 +52,17 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
 	}
 
 	function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
-		//withdraw pool tokens and LM rewards to the passed address
-		ILiquidityMining(liquidityMiningAddress).withdraw(address(this), burnAmount, msg.sender);
+		uint balanceOnLM = ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(address(this), msg.sender);
+		require(balanceOnLM.add(balanceOf(msg.sender)) >= burnAmount, "not enough balance");
+
+		if (balanceOnLM > 0) {
+			//withdraw pool tokens and LM rewards to the passed address
+			if (balanceOnLM < burnAmount) {
+				ILiquidityMining(liquidityMiningAddress).withdraw(address(this), balanceOnLM, msg.sender);
+			} else {
+				ILiquidityMining(liquidityMiningAddress).withdraw(address(this), burnAmount, msg.sender);
+			}
+		}
 		//burn the tokens of the msg.sender
 		return _burnToken(burnAmount);
 	}
