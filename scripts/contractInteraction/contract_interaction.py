@@ -41,7 +41,7 @@ def main():
     #0x37A706259F5201C03f6Cb556A960F30F86842d01  -ms aggregator
     #deployMultisig(['0xfe9d5402dc3c86cbaBE80231Cd48d98ba742D3f6','0x4C3d3505d34213751c4b4d621cB6bDe7E664E222',acct], 2)
     #sendFromMultisig('0x2064242b697830535A2d76BE352e82Cf85E0EC2c', 30e18)
-    #removeLiquidityV1toMultisigUsingWrapper(contracts['RBTCWrapperProxyWithoutLM'], contracts["ConverterETHs"], 301.1e18, [contracts['WRBTC'], contracts['ETHs']], [295e17,1])
+    #removeLiquidityV1toMultisigUsingWrapper(contracts['RBTCWrapperProxyWithoutLM'], contracts["ConverterETHs"], 90e18, [contracts['WRBTC'], contracts['ETHs']], [8e18,1])
 
     #amount = getBalance('0x09c5FAf7723B13434ABdF1A65AB1b667bc02a902', contracts['multisig'])
     #approval = hasApproval('0x09c5FAf7723B13434ABdF1A65AB1b667bc02a902', contracts['multisig'], contracts['RBTCWrapperProxyWithoutLM'])
@@ -62,7 +62,7 @@ def main():
     #confirmMS(149)
 
     #readOwner(contracts['ConverterUSDT'])
-    
+
     #confirmMS(150)
     #confirmMS(151)
     #confirmMS(152)
@@ -72,8 +72,8 @@ def main():
 
     # transferSOVtoLM(100 * 10**18)
 
-    replaceLoanTokenLogicOnAllContracts()
-    setLiquidityMiningAddressOnAllContracts()
+    # replaceLoanTokenLogicOnAllContracts()
+    # setLiquidityMiningAddressOnAllContracts()
     # getLiquidityMiningAddressOnAllContracts()
 
     # checkTx()
@@ -96,7 +96,6 @@ def loadConfig():
     else:
         raise Exception("Network not supported.")
     contracts = json.load(configFile)
-
     
 def readLendingFee():
     sovryn = Contract.from_abi("sovryn", address='0xBAC609F5C8bb796Fa5A31002f12aaF24B7c35818', abi=interface.ISovrynBrownie.abi, owner=acct)
@@ -348,7 +347,7 @@ def buyWRBTC():
     contract = Contract.from_abi("WRBTC", address=contracts["WRBTC"], abi=WRBTC.abi, owner=acct)
     tx = contract.deposit({'value':1e18})
     tx.info()
-    print("new balance", getBalance(contracts["WRBTC"], acct))
+    print("New balance: ", contract.balanceOf(acct))
     
 def mintEarlyAccessTokens(contractAddress, userAddress):
     contract = Contract.from_abi("EarlyAccessToken", address=contractAddress, abi=EarlyAccessToken.abi, owner=acct)
@@ -483,7 +482,7 @@ def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTo
         0
     )
     tx.info()
-    
+
 def readFromMedianizer():
     medianizer = Contract.from_abi("Medianizer", address=contracts['medianizer'], abi=PriceFeedsMoCMockup.abi, owner=acct)
     print(medianizer.peek())
@@ -1162,7 +1161,6 @@ def addLiquidityV1FromMultisigUsingWrapper(wrapper, converter, tokens, amounts, 
     tx = multisig.submitTransaction(wrapperProxy.address,amounts[0],data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
-    
 
 def removeLiquidityV1toMultisigUsingWrapper(wrapper, converter, amount, tokens, minReturn):
     abiFile =  open('./scripts/contractInteraction/RBTCWrapperProxy.json')
@@ -1174,7 +1172,7 @@ def removeLiquidityV1toMultisigUsingWrapper(wrapper, converter, amount, tokens, 
     converterAbi = json.load(converterAbiFile)
     converterContract = Contract.from_abi("LiquidityPoolV1Converter", address=converter, abi=converterAbi, owner=acct)
     poolToken = converterContract.anchor()
-    
+
     # approve
     token = Contract.from_abi("ERC20", address=poolToken, abi=ERC20.abi, owner=acct)
     data = token.approve.encode_input(wrapperProxy.address, amount)
@@ -1183,7 +1181,7 @@ def removeLiquidityV1toMultisigUsingWrapper(wrapper, converter, amount, tokens, 
     tx = multisig.submitTransaction(token.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
-    
+
     # removeLiquidityFromV1
     data = wrapperProxy.removeLiquidityFromV1.encode_input(converter, amount, tokens, minReturn)
     print(data)
@@ -1191,7 +1189,7 @@ def removeLiquidityV1toMultisigUsingWrapper(wrapper, converter, amount, tokens, 
     tx = multisig.submitTransaction(wrapperProxy.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
-    
+
 
 def readClaimBalanceOrigin(address):
     originClaimContract = Contract.from_abi("originClaim", address=contracts['OriginInvestorsClaim'], abi=OriginInvestorsClaim.abi, owner=acct)
