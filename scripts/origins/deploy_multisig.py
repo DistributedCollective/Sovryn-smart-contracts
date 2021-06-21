@@ -21,16 +21,16 @@ def loadConfig():
 
     if thisNetwork == "development":
         acct = accounts[0]
-        configFile = open('./scripts/origins/testnet.json')
+        configFile = open('./scripts/origins/values/development.json')
     elif thisNetwork == "testnet":
         acct = accounts.load("rskdeployer")
-        configFile = open('./scripts/origins/testnet.json')
+        configFile = open('./scripts/origins/values/testnet.json')
     elif thisNetwork == "rsk-testnet":
         acct = accounts.load("rskdeployer")
-        configFile = open('./scripts/origins/testnet.json')
+        configFile = open('./scripts/origins/values/testnet.json')
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
-        configFile = open('./scripts/origins/mainnet.json')
+        configFile = open('./scripts/origins/values/mainnet.json')
     else:
         raise Exception("Network not supported")
 
@@ -61,8 +61,10 @@ def deployMultisig():
 
 # =========================================================================================================================================
 def writeToJSON():
-    if thisNetwork == "testnet" or thisNetwork == "rsk-testnet":
-        fileHandle = open('./scripts/origins/testnet.json', "w")
+    if thisNetwork == "development":
+        fileHandle = open('./scripts/origins/values/development.json', "w")
+    elif thisNetwork == "testnet" or thisNetwork == "rsk-testnet":
+        fileHandle = open('./scripts/origins/values/testnet.json', "w")
     elif thisNetwork == "rsk-mainnet":
-        fileHandle = open('./scripts/origins/mainnet.json', "w")
+        fileHandle = open('./scripts/origins/values/mainnet.json', "w")
     json.dump(values, fileHandle, indent=4)
