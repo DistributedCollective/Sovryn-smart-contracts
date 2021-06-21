@@ -663,8 +663,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @return The user's balance of underlying token.
 	 * */
 	function assetBalanceOf(address _owner) public view returns (uint256) {
+		uint256 balanceOnLM = 0;
 		if (liquidityMiningAddress != address(0)) {
-			balanceOnLM = ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(address(this), receiver);
+			balanceOnLM = ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(address(this), _owner);
 		}
 		return balanceOf(_owner).add(balanceOnLM).mul(tokenPrice()).div(10**18);
 	}
