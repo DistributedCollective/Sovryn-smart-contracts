@@ -1,4 +1,4 @@
-const { assert, expect } = require("chai");
+const { assert } = require("chai");
 // const hre = require("hardhat"); access to the hardhat engine if needed
 // const { encodeParameters, etherMantissa, mineBlock, increaseTime, blockNumber, sendFallback } = require("./utilities/ethereum"); useful utilities
 
@@ -20,9 +20,10 @@ const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplLocal = artifacts.require("SwapsImplLocal");
-//const Affiliates = artifacts.require("Affiliates");
+const Affiliates = artifacts.require("Affiliates");
 
 const { BN, constants, balance, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
+const { expect } = require("hardhat");
 
 contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 	let loanTokenLogic;
@@ -49,9 +50,9 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 		await sovryn.replaceContract((await LoanMaintenance.new()).address);
 		await sovryn.replaceContract((await SwapsExternal.new()).address);
 		await sovryn.replaceContract((await LoanOpenings.new()).address);
-		//await sovryn.replaceContract((await Affiliates.new()).address);
+		await sovryn.replaceContract((await Affiliates.new()).address);
 
-		//await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
+		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
 
 		loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 		await loanToken.initialize(doc.address, "SUSD", "SUSD");
@@ -126,7 +127,7 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 		//Giving some testRbtc to sovrynAddress (by minting some testRbtc),so  that it can open position in wRBTC.
 		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
 
-		// assert.equal(await sovryn.protocolAddress(), sovryn.address);
+		assert.equal(await sovryn.protocolAddress(), sovryn.address);
 
 		const leverageAmount = web3.utils.toWei("3", "ether");
 		const loanTokenSent = web3.utils.toWei("20", "ether");
@@ -142,6 +143,6 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 			"0x", // loanDataBytes (only required with ether)
 			{ from: owner }
 		);
-		// expect(await sovryn.getUserNotFirstTradeFlag(owner), "sovryn.getUserNotFirstTradeFlag(trader) should be true").to.be.true;
+		expect(await sovryn.getUserNotFirstTradeFlag(owner), "sovryn.getUserNotFirstTradeFlag(trader) should be true").to.be.true;
 	});
 });

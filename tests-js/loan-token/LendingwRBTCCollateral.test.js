@@ -20,6 +20,8 @@ const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplLocal = artifacts.require("SwapsImplLocal");
 
+const Affiliates = artifacts.require("Affiliates");
+
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 
 const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_uint256_max_should_withdraw_total_balance } = require("./helpers");
@@ -52,6 +54,7 @@ contract("LoanTokenLending", (accounts) => {
 		await sovryn.replaceContract((await LoanMaintenance.new()).address);
 		await sovryn.replaceContract((await SwapsExternal.new()).address);
 		await sovryn.replaceContract((await LoanOpenings.new()).address);
+		await sovryn.replaceContract((await Affiliates.new()).address);
 
 		rBTC = await TestToken.new("RBTC", "RBTC", 18, wei("1000", "ether"));
 		await sovryn.setWrbtcToken(rBTC.address);
