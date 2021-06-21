@@ -66,9 +66,7 @@
     "LockedSOV": "0x6b94Da2d05039173d017359553D685Acfbaa782F",
     "EscrowReward": "",
     "LiquidityMiningProxy": "0xe28aEbA913c34EC8F10DF0D9C92D2Aa27545870e",
-    "LiquidityMiningLogic": "0xcc71eD6bE602a522890061C6Bb1056443a306b11",
-    "LiquidityMiningLogic2": "0x8F4eB7ccAf17839beD4805f258d2442F154EC4D1",
-    "LiquidityMiningLogic3": "0x4daf6b091dBF2921786120b8705260edc7cE5570",
+    "LiquidityMiningLogic": "0x4daf6b091dBF2921786120b8705260edc7cE5570",
 
     "ConverterETHs": "0xC8717501Bb0c6640069fcD8BF0DD13904F861abE",
 
