@@ -222,7 +222,8 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		if (_updateAllFlag) {
 			updateAllPools();
 		}
-		for (uint256 i = 0; i < _poolTokens.length; i++) {
+		uint256 length = _poolTokens.length;
+		for (uint256 i = 0; i < length; i++) {
 			if (!_updateAllFlag) {
 				updatePool(_poolTokens[i]);
 			}
@@ -444,7 +445,8 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	function claimRewardFromAllPools(address _user) external {
 		address userAddress = _getUserAddress(_user);
 
-		for (uint256 i = 0; i < poolInfoList.length; i++) {
+		uint256 length = poolInfoList.length;
+		for (uint256 i = 0; i < length; i++) {
 			uint256 poolId = i;
 			_claimReward(poolId, userAddress, false);
 		}

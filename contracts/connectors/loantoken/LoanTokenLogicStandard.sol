@@ -487,7 +487,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @param user The user address.
 	 * @return The profit of a user.
 	 * */
-	function profitOf(address user) public view returns (int256) {
+	function profitOf(address user) external view returns (int256) {
 		/// @dev keccak256("iToken_ProfitSoFar")
 		bytes32 slot = keccak256(abi.encodePacked(user, iToken_ProfitSoFar));
 		//TODO + LM balance
