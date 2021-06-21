@@ -80,10 +80,10 @@ def updateLMConfig():
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
 
-    # SOV/rBTC - 25k SOV
-    # ETH/rBTC - 20k SOV
-    # xUSD/rBTC - 20k SOV
-    # BNB/rBTC - 35k SOV
+    # SOV/rBTC - 15k SOV
+    # ETH/rBTC - 15k SOV
+    # xUSD/rBTC - 15k SOV
+    # BNB/rBTC - 15k SOV
 
     MAX_ALLOCATION_POINT = 100000 * 1000 # 100 M
     # SOV/rBTC - 25k SOV
