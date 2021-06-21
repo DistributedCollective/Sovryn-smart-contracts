@@ -38,6 +38,23 @@ contract("ProtocolSettings", (accounts) => {
 	});
 
 	describe("ProtocolSettings Tests", () => {
+		it("Set admin", async () => {
+			const dest = sovryn.address;
+			const val = 0;
+			const newAdmin = accounts[9];
+			let data = sovryn.contract.methods.setAdmin(newAdmin).encodeABI();
+			let tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+			expect((await sovryn.getAdmin()) == newAdmin).to.be.true;
+		});
+
+		it("Set admin will revert if set by not an owner", async () => {
+			const newAdmin = accounts[9];
+			await expectRevert(sovryn.setAdmin(newAdmin), "unauthorized");
+		});
+
 		it("Test setCoreParams", async () => {
 			const dest = sovryn.address;
 			const val = 0;

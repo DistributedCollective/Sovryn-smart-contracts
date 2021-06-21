@@ -23,6 +23,13 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 
+	address public admin;
+
+	modifier onlyAdmin() {
+		require(isOwner() || msg.sender == admin, "unauthorized");
+		_;
+	}
+
 	/**
 	 * @notice Empty public constructor.
 	 * */
@@ -67,6 +74,20 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.setProtocolTokenAddress.selector, target);
 		_setTarget(this.setRolloverBaseReward.selector, target);
 		_setTarget(this.setRebatePercent.selector, target);
+		_setTarget(this.setAdmin.selector, target);
+		_setTarget(this.getAdmin.selector, target);
+	}
+
+	/**
+	 * @notice Set admin account.
+	 * @param _admin The address of the account to grant admin permissions.
+	 * */
+	function setAdmin(address _admin) public onlyOwner {
+		admin = _admin;
+	}
+
+	function getAdmin() external view returns (address) {
+		return admin;
 	}
 
 	/**
@@ -74,7 +95,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newContract The address of the Price Feed new instance.
 	 * */
-	function setPriceFeedContract(address newContract) external onlyOwner {
+	function setPriceFeedContract(address newContract) external onlyAdmin {
 		address oldContract = priceFeeds;
 		priceFeeds = newContract;
 
@@ -86,7 +107,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newContract The address of the asset swapper new instance.
 	 * */
-	function setSwapsImplContract(address newContract) external onlyOwner {
+	function setSwapsImplContract(address newContract) external onlyAdmin {
 		address oldContract = swapsImpl;
 		swapsImpl = newContract;
 
@@ -99,7 +120,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 * @param pools The array of addresses of new loan pool instances.
 	 * @param assets The array of addresses of the corresponding underlying tokens.
 	 * */
-	function setLoanPool(address[] calldata pools, address[] calldata assets) external onlyOwner {
+	function setLoanPool(address[] calldata pools, address[] calldata assets) external onlyAdmin {
 		require(pools.length == assets.length, "count mismatch");
 
 		for (uint256 i = 0; i < pools.length; i++) {
@@ -128,7 +149,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 * @param toggles The array of flags indicating whether
 	 *   the corresponding token is supported or not.
 	 * */
-	function setSupportedTokens(address[] calldata addrs, bool[] calldata toggles) external onlyOwner {
+	function setSupportedTokens(address[] calldata addrs, bool[] calldata toggles) external onlyAdmin {
 		require(addrs.length == toggles.length, "count mismatch");
 
 		for (uint256 i = 0; i < addrs.length; i++) {
@@ -143,7 +164,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newValue The new value for lendingFeePercent.
 	 * */
-	function setLendingFeePercent(uint256 newValue) external onlyOwner {
+	function setLendingFeePercent(uint256 newValue) external onlyAdmin {
 		require(newValue <= 10**20, "value too high");
 		uint256 oldValue = lendingFeePercent;
 		lendingFeePercent = newValue;
@@ -156,7 +177,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newValue The new value for tradingFeePercent.
 	 * */
-	function setTradingFeePercent(uint256 newValue) external onlyOwner {
+	function setTradingFeePercent(uint256 newValue) external onlyAdmin {
 		require(newValue <= 10**20, "value too high");
 		uint256 oldValue = tradingFeePercent;
 		tradingFeePercent = newValue;
@@ -169,7 +190,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newValue The new value for borrowingFeePercent.
 	 * */
-	function setBorrowingFeePercent(uint256 newValue) external onlyOwner {
+	function setBorrowingFeePercent(uint256 newValue) external onlyAdmin {
 		require(newValue <= 10**20, "value too high");
 		uint256 oldValue = borrowingFeePercent;
 		borrowingFeePercent = newValue;
@@ -182,7 +203,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newValue The new value for affiliateFeePercent.
 	 * */
-	function setAffiliateFeePercent(uint256 newValue) external onlyOwner {
+	function setAffiliateFeePercent(uint256 newValue) external onlyAdmin {
 		require(newValue <= 10**20, "value too high");
 		uint256 oldValue = affiliateFeePercent;
 		affiliateFeePercent = newValue;
@@ -195,7 +216,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newValue The new value for liquidationIncentivePercent.
 	 * */
-	function setLiquidationIncentivePercent(uint256 newValue) external onlyOwner {
+	function setLiquidationIncentivePercent(uint256 newValue) external onlyAdmin {
 		require(newValue <= 10**20, "value too high");
 		uint256 oldValue = liquidationIncentivePercent;
 		liquidationIncentivePercent = newValue;
@@ -208,7 +229,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newValue The new value for maxDisagreement.
 	 * */
-	function setMaxDisagreement(uint256 newValue) external onlyOwner {
+	function setMaxDisagreement(uint256 newValue) external onlyAdmin {
 		maxDisagreement = newValue;
 	}
 
@@ -219,7 +240,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newValue The new value for the maximum source buffer.
 	 * */
-	function setSourceBuffer(uint256 newValue) external onlyOwner {
+	function setSourceBuffer(uint256 newValue) external onlyAdmin {
 		sourceBuffer = newValue;
 	}
 
@@ -228,7 +249,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newValue The new value for the maximum swap size.
 	 * */
-	function setMaxSwapSize(uint256 newValue) external onlyOwner {
+	function setMaxSwapSize(uint256 newValue) external onlyAdmin {
 		uint256 oldValue = maxSwapSize;
 		maxSwapSize = newValue;
 
@@ -244,7 +265,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newController The new address of the feesController.
 	 * */
-	function setFeesController(address newController) external onlyOwner {
+	function setFeesController(address newController) external onlyAdmin {
 		address oldController = feesController;
 		feesController = newController;
 
@@ -415,7 +436,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 * @return The protocol token address.
 	 * @return Withdrawal success (true/false).
 	 * */
-	function withdrawProtocolToken(address receiver, uint256 amount) external onlyOwner returns (address, bool) {
+	function withdrawProtocolToken(address receiver, uint256 amount) external onlyAdmin returns (address, bool) {
 		return _withdrawProtocolToken(receiver, amount);
 	}
 
@@ -424,7 +445,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param amount The tokens of fees to send.
 	 * */
-	function depositProtocolToken(uint256 amount) external onlyOwner {
+	function depositProtocolToken(uint256 amount) external onlyAdmin {
 		/// @dev Update local balance
 		protocolTokenHeld = protocolTokenHeld.add(amount);
 
@@ -460,7 +481,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param registryAddress the address of the registry contract.
 	 * */
-	function setSovrynSwapContractRegistryAddress(address registryAddress) external onlyOwner {
+	function setSovrynSwapContractRegistryAddress(address registryAddress) external onlyAdmin {
 		require(Address.isContract(registryAddress), "registryAddress not a contract");
 
 		address oldSovrynSwapContractRegistryAddress = sovrynSwapContractRegistryAddress;
@@ -474,7 +495,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param wrbtcTokenAddress The address of the wrBTC contract.
 	 * */
-	function setWrbtcToken(address wrbtcTokenAddress) external onlyOwner {
+	function setWrbtcToken(address wrbtcTokenAddress) external onlyAdmin {
 		require(Address.isContract(wrbtcTokenAddress), "wrbtcTokenAddress not a contract");
 
 		address oldwrbtcToken = address(wrbtcToken);
@@ -488,7 +509,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param _protocolTokenAddress The address of the protocol token contract.
 	 * */
-	function setProtocolTokenAddress(address _protocolTokenAddress) external onlyOwner {
+	function setProtocolTokenAddress(address _protocolTokenAddress) external onlyAdmin {
 		require(Address.isContract(_protocolTokenAddress), "_protocolTokenAddress not a contract");
 
 		address oldProtocolTokenAddress = protocolTokenAddress;
@@ -502,7 +523,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param baseRewardValue The base reward.
 	 * */
-	function setRolloverBaseReward(uint256 baseRewardValue) external onlyOwner {
+	function setRolloverBaseReward(uint256 baseRewardValue) external onlyAdmin {
 		require(baseRewardValue > 0, "Base reward is zero");
 
 		uint256 oldValue = rolloverBaseReward;
@@ -516,7 +537,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param rebatePercent The fee rebate percent.
 	 * */
-	function setRebatePercent(uint256 rebatePercent) external onlyOwner {
+	function setRebatePercent(uint256 rebatePercent) external onlyAdmin {
 		require(rebatePercent <= 10**20, "Fee rebate is too high");
 
 		uint256 oldRebatePercent = feeRebatePercent;
