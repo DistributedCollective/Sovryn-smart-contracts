@@ -68,6 +68,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	/**
 	 * @notice Mint loan token wrapper.
 	 * Adds a check before calling low level _mintToken function.
+	 * This function is called by a user to provide liquidity to a loan pool.
+	 * To get back the provided underlying tokens, the user calls burn function.
 	 * The function retrieves the tokens from the message sender, so make sure
 	 * to first approve the loan token contract to access your funds. This is
 	 * done by calling approve(address spender, uint amount) on the ERC20
@@ -76,12 +78,15 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 *
 	 * @param receiver The account getting the minted tokens.
 	 * @param depositAmount The amount of underlying tokens provided on the
-	 *   loan. (Not the number of loan tokens to mint).
+	 *   deposit. (Not the number of loan tokens to mint).
 	 *
 	 * @return The amount of loan tokens minted.
 	 * */
 	function mint(address receiver, uint256 depositAmount) external nonReentrant hasEarlyAccessToken returns (uint256 mintAmount) {
-		/// Temporary: limit transaction size
+		/// @dev To avoid flash loan attacks.
+		_checkNotInTheSameBlock();
+
+		/// @dev Temporary: limit transaction size
 		if (transactionLimit[loanTokenAddress] > 0) require(depositAmount <= transactionLimit[loanTokenAddress]);
 
 		return _mintToken(receiver, depositAmount);
@@ -89,8 +94,10 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 	/**
 	 * @notice Burn loan token wrapper.
+	 * This function is called by a loan pool liquidity provider requests
+	 * its underlying tokens back.
 	 * Adds a pay-out transfer after calling low level _burnToken function.
-	 * In order to withdraw funds to the pool, call burn on the respective
+	 * In order to withdraw funds from the pool, call burn on the respective
 	 * loan token contract. This will burn your loan tokens and send you the
 	 * underlying token in exchange.
 	 *
@@ -100,6 +107,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @return The amount of underlying tokens payed to lender.
 	 * */
 	function burn(address receiver, uint256 burnAmount) external nonReentrant returns (uint256 loanAmountPaid) {
+		/// @dev To avoid flash loan attacks.
+		_checkNotInTheSameBlock();
+
 		loanAmountPaid = _burnToken(burnAmount);
 
 		if (loanAmountPaid != 0) {
@@ -334,6 +344,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		/// @dev Compute the worth of the total deposit in loan tokens.
 		/// (loanTokenSent + convert(collateralTokenSent))
 		/// No actual swap happening here.
+
 		uint256 totalDeposit = _totalDeposit(collateralTokenAddress, collateralTokenSent, loanTokenSent);
 		require(totalDeposit != 0, "12");
 
@@ -352,7 +363,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		sentAmounts[4] = collateralTokenSent;
 
 		_settleInterest();
-
 		(sentAmounts[1], sentAmounts[0]) = _getMarginBorrowAmountAndRate( /// borrowAmount, interestRate
 			leverageAmount,
 			sentAmounts[1] /// depositAmount
@@ -892,6 +902,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @dev Internal sync required on every loan trade before starting.
 	 * */
 	function _settleInterest() internal {
+		/// @dev To avoid flash loan attacks.
 		uint88 ts = uint88(block.timestamp);
 		if (lastSettleTime_ != ts) {
 			ProtocolLike(sovrynContractAddress).withdrawAccruedInterest(loanTokenAddress);
@@ -932,7 +943,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 			/// @dev Probably not the same due to the price difference.
 			if (collateralTokenAmount != collateralTokenSent) {
-				//scale the loan token amount accordingly, so we'll get the expected position size in the end
+				/// @dev Scale the loan token amount accordingly, so we'll get the expected position size in the end.
 				loanTokenAmount = loanTokenAmount.mul(collateralTokenAmount).div(collateralTokenSent);
 			}
 
@@ -1004,7 +1015,12 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		uint256[5] memory sentAmounts,
 		bytes memory loanDataBytes
 	) internal returns (uint256, uint256) {
+		/// @dev To avoid running when paused.
 		_checkPause();
+
+		/// @dev To avoid flash loan attacks.
+		_checkNotInTheSameBlock();
+
 		require(
 			sentAmounts[1] <= _underlyingBalance() && /// newPrincipal (borrowed amount + fees)
 				sentAddresses[1] != address(0), /// The borrower.
@@ -1406,6 +1422,27 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			isPaused := sload(slot)
 		}
 		require(!isPaused, "unauthorized");
+	}
+
+	/**
+	 * @notice Make sure caller did not perform any previous operation in the
+	 *   current block.
+	 *
+	 * @dev To protect from the lending fees manipulation using flash loan we
+	 * need to prevent lending and withdrawing from the pools in the same
+	 * tx/block by the same account.
+	 * */
+	function _checkNotInTheSameBlock() internal {
+		uint256 _currentBlock;
+
+		/// @dev Get and buffer current block.
+		_currentBlock = block.number;
+
+		/// @dev Check there are no previous txs in this block coming from same account.
+		require(!hasInteracted[_currentBlock][msg.sender], "Avoiding flash loan attack: several txs in same block from same account.");
+
+		/// @dev Update previous activity mapping.
+		hasInteracted[_currentBlock][msg.sender] = true;
 	}
 
 	/**
