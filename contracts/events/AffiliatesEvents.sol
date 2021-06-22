@@ -17,6 +17,7 @@ contract AffiliatesEvents {
 		address indexed token,
 		bool indexed isHeld,
 		uint256 tradingFeeTokenAmount,
+		uint256 tokenBonusAmount,
 		uint256 sovBonusAmount,
 		uint256 sovBonusAmountPaid
 	);
@@ -25,7 +26,15 @@ contract AffiliatesEvents {
 		address indexed referrer,
 		address indexed token,
 		uint256 tradingFeeTokenAmount,
+		uint256 tokenBonusAmount,
 		uint256 sovBonusAmount,
 		uint256 sovBonusAmountTryingToPaid
+	);
+
+	event WithdrawAffiliatesReferrerTokenFees(
+		address indexed referrer,
+		address indexed receiver,
+		address indexed tokenAddress,
+		uint256 amount
 	);
 }

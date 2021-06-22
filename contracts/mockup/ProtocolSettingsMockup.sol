@@ -24,6 +24,7 @@ contract ProtocolSettingsMockup is ProtocolSettings {
 		_setTarget(this.setTradingFeePercent.selector, target);
 		_setTarget(this.setBorrowingFeePercent.selector, target);
 		_setTarget(this.setAffiliateFeePercent.selector, target);
+		_setTarget(this.setAffiliateTradingTokenFeePercent.selector, target);
 		_setTarget(this.setLiquidationIncentivePercent.selector, target);
 		_setTarget(this.setMaxDisagreement.selector, target);
 		_setTarget(this.setSourceBuffer.selector, target);
@@ -49,5 +50,9 @@ contract ProtocolSettingsMockup is ProtocolSettings {
 		_setTarget(this.setTradingFeeTokensHeld.selector, target);
 		_setTarget(this.setBorrowingFeeTokensHeld.selector, target);
 		_setTarget(this.getSpecialRebates.selector, target);
+
+		_setTarget(this.getProtocolAddress.selector, target);
+		_setTarget(this.getSovTokenAddress.selector, target);
+		_setTarget(this.getLockedSOVAddress.selector, target);
 	}
 }

@@ -22,12 +22,4 @@ contract FeesEvents {
 	event EarnReward(address indexed receiver, address indexed token, bytes32 indexed loanId, uint256 feeRebatePercent, uint256 amount);
 
 	event EarnRewardFail(address indexed receiver, address indexed token, bytes32 indexed loanId, uint256 feeRebatePercent, uint256 amount);
-
-	/*event PayTradingFeeToAffiliate(
-		address indexed payer,
-		address indexed affiliateReferrer,
-		address indexed token,
-		bytes32 loanId,
-		uint256 amount
-	);*/
 }

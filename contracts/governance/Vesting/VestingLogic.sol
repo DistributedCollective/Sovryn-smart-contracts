@@ -96,6 +96,8 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 		require(_delegatee != address(0), "delegatee address invalid");
 
 		/// @dev Withdraw for each unlocked position.
+		/// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
+		///		workaround found, but it doesn't work with TWO_WEEKS
 		for (uint256 i = startDate + cliff; i <= endDate; i += FOUR_WEEKS) {
 			staking.delegate(_delegatee, i);
 		}
@@ -148,6 +150,8 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 		}
 
 		/// @dev Withdraw for each unlocked position.
+		/// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
+		///		workaround found, but it doesn't work with TWO_WEEKS
 		for (uint256 i = startDate + cliff; i <= end; i += FOUR_WEEKS) {
 			/// @dev Read amount to withdraw.
 			stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1);

@@ -49,6 +49,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.setTradingFeePercent.selector, target);
 		_setTarget(this.setBorrowingFeePercent.selector, target);
 		_setTarget(this.setAffiliateFeePercent.selector, target);
+		_setTarget(this.setAffiliateTradingTokenFeePercent.selector, target);
 		_setTarget(this.setLiquidationIncentivePercent.selector, target);
 		_setTarget(this.setMaxDisagreement.selector, target);
 		_setTarget(this.setSourceBuffer.selector, target);
@@ -73,6 +74,9 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.setLockedSOVAddress.selector, target);
 		_setTarget(this.setMinReferralsToPayoutAffiliates.selector, target);
 		_setTarget(this.getSpecialRebates.selector, target);
+		_setTarget(this.getProtocolAddress.selector, target);
+		_setTarget(this.getSovTokenAddress.selector, target);
+		_setTarget(this.getLockedSOVAddress.selector, target);
 	}
 
 	/**
@@ -105,8 +109,6 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	}
 
 	function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external onlyOwner {
-		require(newMinReferrals > 0, "Minimum referrals must be greater than 0");
-
 		uint256 oldMinReferrals = minReferralsToPayout;
 		minReferralsToPayout = newMinReferrals;
 
@@ -232,6 +234,19 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		affiliateFeePercent = newValue;
 
 		emit SetAffiliateFeePercent(msg.sender, oldValue, newValue);
+	}
+
+	/**
+	 * @notice Set the value of affiliateTradingTokenFeePercent storage variable.
+	 *
+	 * @param newValue The new value for affiliateTradingTokenFeePercent.
+	 * */
+	function setAffiliateTradingTokenFeePercent(uint256 newValue) external onlyOwner {
+		require(newValue <= 10**20, "value too high");
+		uint256 oldValue = affiliateTradingTokenFeePercent;
+		affiliateTradingTokenFeePercent = newValue;
+
+		emit SetAffiliateTradingTokenFeePercent(msg.sender, oldValue, newValue);
 	}
 
 	/**
@@ -594,5 +609,17 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 * */
 	function getSpecialRebates(address sourceTokenAddress, address destTokenAddress) external view returns (uint256 specialRebatesPercent) {
 		return specialRebates[sourceTokenAddress][destTokenAddress];
+	}
+
+	function getProtocolAddress() external view returns (address) {
+		return protocolAddress;
+	}
+
+	function getSovTokenAddress() external view returns (address) {
+		return sovTokenAddress;
+	}
+
+	function getLockedSOVAddress() external view returns (address) {
+		return lockedSOVAddress;
 	}
 }

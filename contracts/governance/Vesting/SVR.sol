@@ -14,18 +14,18 @@ import "../ApprovalReceiver.sol";
 
 /**
  * @title Sovryn Reward Token.
- * @notice The RSOV token (Sovryn Reward Token) goal is to allow users to get
+ * @notice The RSOV token (Sovryn Vesting Reward Token) goal is to allow users to get
  * rewards through the generation of protocol fees. The mint function accepts
  * SOV tokens and mints the same amount of RSOV tokens. When burning RSOV
  * tokens, the user gets 1/14th of the tokens sent back to him and the rest
  * get staked in the user’s behalf with a schedule of 4 weeks cliff and period
  * 1 year duration.
  * */
-contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
+contract SVR is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 	/* Storage */
 
-	string constant NAME = "Sovryn Reward Token";
-	string constant SYMBOL = "RSOV";
+	string constant NAME = "Sovryn Vesting Reward Token";
+	string constant SYMBOL = "SVR";
 	uint8 constant DECIMALS = 18;
 
 	/// @notice Constants used for computing the vesting dates.
@@ -52,15 +52,15 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 	 * @param _staking The staking contract address.
 	 * */
 	constructor(address _SOV, address _staking) public ERC20Detailed(NAME, SYMBOL, DECIMALS) {
-		require(_SOV != address(0), "RSOV::SOV address invalid");
-		require(_staking != address(0), "RSOV::staking address invalid");
+		require(_SOV != address(0), "SVR::SOV address invalid");
+		require(_staking != address(0), "SVR::staking address invalid");
 
 		SOV = IERC20_(_SOV);
 		staking = IStaking(_staking);
 	}
 
 	/**
-	 * @notice Hold SOV tokens and mint the respective amount of RSOV tokens.
+	 * @notice Hold SOV tokens and mint the respective amount of SVR tokens.
 	 * @param _amount The amount of tokens to be mint.
 	 * */
 	function mint(uint96 _amount) public {
@@ -68,7 +68,7 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 	}
 
 	/**
-	 * @notice Hold SOV tokens and mint the respective amount of RSOV tokens.
+	 * @notice Hold SOV tokens and mint the respective amount of SVR tokens.
 	 * @dev This function will be invoked from receiveApproval.
 	 * @dev SOV.approveAndCall -> this.receiveApproval -> this.mintWithApproval
 	 * @param _sender The sender of SOV.approveAndCall
@@ -84,13 +84,13 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 	 * @param _amount The amount of tokens to be minted.
 	 * */
 	function _mintTo(address _sender, uint96 _amount) internal {
-		require(_amount > 0, "RSOV::mint: amount invalid");
+		require(_amount > 0, "SVR::mint: amount invalid");
 
 		/// @notice Holds SOV tokens.
 		bool success = SOV.transferFrom(_sender, address(this), _amount);
 		require(success);
 
-		/// @notice Mints RSOV tokens.
+		/// @notice Mints SVR tokens.
 		/// @dev uses openzeppelin/ERC20.sol internal _mint function
 		_mint(_sender, _amount);
 
@@ -98,11 +98,11 @@ contract RSOV is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
 	}
 
 	/**
-	 * @notice Burn RSOV tokens and stakes the respective amount SOV tokens in the user's behalf.
-	 * @param _amount The amount of tokens to be burnt.
-	 * */
+	 * @notice burns SVR tokens and stakes the respective amount SOV tokens in the user's behalf
+	 * @param _amount the amount of tokens to be burnt
+	 */
 	function burn(uint96 _amount) public {
-		require(_amount > 0, "RSOV:: burn: amount invalid");
+		require(_amount > 0, "SVR:: burn: amount invalid");
 
 		/// @notice Burns RSOV tokens.
 		_burn(msg.sender, _amount);

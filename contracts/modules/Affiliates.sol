@@ -11,7 +11,7 @@ import "../mixins/EnumerableBytes32Set.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../events/AffiliatesEvents.sol";
 import "../feeds/IPriceFeeds.sol";
-import "../escrow/ILockedSOV.sol";
+import "../locked/ILockedSOV.sol";
 
 contract Affiliates is State, AffiliatesEvents {
 	/*
@@ -30,8 +30,18 @@ contract Affiliates is State, AffiliatesEvents {
 	function initialize(address target) external onlyOwner {
 		_setTarget(this.setAffiliatesReferrer.selector, target);
 		_setTarget(this.getUserNotFirstTradeFlag.selector, target);
+		_setTarget(this.getReferralsList.selector, target);
 		_setTarget(this.setUserNotFirstTradeFlag.selector, target);
 		_setTarget(this.payTradingFeeToAffiliatesReferrer.selector, target);
+		_setTarget(this.getAffiliatesReferrerBalances.selector, target);
+		_setTarget(this.getAffiliatesReferrerTokenBalance.selector, target);
+		_setTarget(this.getAffiliatesReferrerTokensList.selector, target);
+		_setTarget(this.withdrawAffiliatesReferrerTokenFees.selector, target);
+		_setTarget(this.withdrawAllAffiliatesReferrerTokenFees.selector, target);
+		_setTarget(this.getMinReferralsToPayout.selector, target);
+		_setTarget(this.getAffiliatesUserReferrer.selector, target);
+		_setTarget(this.getAffiliateRewardsHeld.selector, target);
+		_setTarget(this.getAffiliateTradingTokenFeePercent.selector, target);
 	}
 
 	modifier onlyCallableByLoanPools() {
@@ -55,15 +65,20 @@ contract Affiliates is State, AffiliatesEvents {
 		SetAffiliatesReferrerResult memory result;
 
 		result.userNotFirstTradeFlag = getUserNotFirstTradeFlag(user);
-		result.alreadySet = affiliatesUserReferrer[user] != address(0) ? true : false;
+		result.alreadySet = affiliatesUserReferrer[user] != address(0);
 		result.success = !(result.userNotFirstTradeFlag || result.alreadySet || user == referrer);
 		if (result.success) {
 			affiliatesUserReferrer[user] = referrer;
-			if (!referralsList[referrer].contains(user)) referralsList[referrer].add(user);
+			referralsList[referrer].add(user);
 			emit SetAffiliatesReferrer(user, referrer);
 		} else {
 			emit SetAffiliatesReferrerFail(user, referrer, result.alreadySet, result.userNotFirstTradeFlag);
 		}
+	}
+
+	function getReferralsList(address referrer) external view returns (address[] memory refList) {
+		refList = referralsList[referrer].enumerate();
+		return refList;
 	}
 
 	function getUserNotFirstTradeFlag(address user) public view returns (bool) {
@@ -78,21 +93,20 @@ contract Affiliates is State, AffiliatesEvents {
 		}
 	}
 
-	//AUDIT Do we need to allow an owner to nullify a referrer for some reason?
-	/*
-    function affiliatesRemoveUserReferrer(address user, address referrer) external onlyOwner {
-        if(referrer != address(0) && getUserNotFirstTradeFlag[user]) {
-            delete affiliatesUserReferrer[user];
-            //TODO: event with the reason for removing referrer
-        }
-    }
-    */
-
-	function _getAffiliatesTradingFeePercent() internal view returns (uint256) {
+	function _getAffiliatesTradingFeePercentForSOV() internal view returns (uint256) {
 		return affiliateFeePercent;
 	}
 
-	function _getMinReferralsToPayout() internal view returns (uint256) {
+	// calculate affiliates trading token fee amount
+	function _getReferrerTradingFeeForToken(uint256 feeTokenAmount) internal view returns (uint256) {
+		return feeTokenAmount.mul(getAffiliateTradingTokenFeePercent()).div(10**20);
+	}
+
+	function getAffiliateTradingTokenFeePercent() public view returns (uint256) {
+		return affiliateTradingTokenFeePercent;
+	}
+
+	function getMinReferralsToPayout() public view returns (uint256) {
 		return minReferralsToPayout;
 	}
 
@@ -112,7 +126,7 @@ contract Affiliates is State, AffiliatesEvents {
 					IPriceFeeds(_priceFeeds).queryReturn.selector,
 					feeToken,
 					sovTokenAddress, // dest token = SOV
-					feeAmount.mul(_getAffiliatesTradingFeePercent()).div(10**20)
+					feeAmount.mul(_getAffiliatesTradingFeePercentForSOV()).div(1e20)
 				)
 			);
 		assembly {
@@ -131,32 +145,36 @@ contract Affiliates is State, AffiliatesEvents {
 		address referrer,
 		address token,
 		uint256 tradingFeeTokenBaseAmount
-	) external onlyCallableInternal returns (uint256 referrerBonusSovAmount) {
-		bool isHeld = referralsList[referrer].length() >= _getMinReferralsToPayout() ? false : true;
+	) external onlyCallableInternal returns (uint256 referrerBonusSovAmount, uint256 referrerBonusTokenAmount) {
+		bool isHeld = referralsList[referrer].length() < getMinReferralsToPayout();
 		bool bonusPaymentIsSuccess = true;
 		uint256 paidReferrerBonusSovAmount;
 
-		if (tradingFeeTokenBaseAmount > 0) {
-			referrerBonusSovAmount = _getSovBonusAmount(token, tradingFeeTokenBaseAmount);
-			uint256 rewardsHeldByProtocol = affiliateRewardsHeld[referrer];
+		// Process token fee rewards first
+		referrerBonusTokenAmount = _getReferrerTradingFeeForToken(tradingFeeTokenBaseAmount);
+		if (!affiliatesReferrerTokensList[referrer].contains(token)) affiliatesReferrerTokensList[referrer].add(token);
+		affiliatesReferrerBalances[referrer][token] = affiliatesReferrerBalances[referrer][token].add(referrerBonusTokenAmount);
 
-			if (isHeld) {
-				// If referrals less than minimum, temp the rewards sov to the storage
-				affiliateRewardsHeld[referrer] = rewardsHeldByProtocol.add(referrerBonusSovAmount);
-			} else {
-				// If referrals >= minimum, directly send all of the remain rewards to locked sov
-				// Call depositSOV() in LockedSov contract
-				// Set the affiliaterewardsheld = 0
-				affiliateRewardsHeld[referrer] = 0;
-				paidReferrerBonusSovAmount = referrerBonusSovAmount.add(rewardsHeldByProtocol);
-				IERC20(sovTokenAddress).approve(lockedSOVAddress, paidReferrerBonusSovAmount);
+		// Then process SOV rewards
+		referrerBonusSovAmount = _getSovBonusAmount(token, tradingFeeTokenBaseAmount);
+		uint256 rewardsHeldByProtocol = affiliateRewardsHeld[referrer];
 
-				(bool success, ) =
-					lockedSOVAddress.call(abi.encodeWithSignature("depositSOV(address,uint256)", referrer, paidReferrerBonusSovAmount));
+		if (isHeld) {
+			// If referrals less than minimum, temp the rewards sov to the storage
+			affiliateRewardsHeld[referrer] = rewardsHeldByProtocol.add(referrerBonusSovAmount);
+		} else {
+			// If referrals >= minimum, directly send all of the remain rewards to locked sov
+			// Call depositSOV() in LockedSov contract
+			// Set the affiliaterewardsheld = 0
+			affiliateRewardsHeld[referrer] = 0;
+			paidReferrerBonusSovAmount = referrerBonusSovAmount.add(rewardsHeldByProtocol);
+			IERC20(sovTokenAddress).approve(lockedSOVAddress, paidReferrerBonusSovAmount);
 
-				if (!success) {
-					bonusPaymentIsSuccess = false;
-				}
+			(bool success, ) =
+				lockedSOVAddress.call(abi.encodeWithSignature("depositSOV(address,uint256)", referrer, paidReferrerBonusSovAmount));
+
+			if (!success) {
+				bonusPaymentIsSuccess = false;
 			}
 		}
 
@@ -166,6 +184,7 @@ contract Affiliates is State, AffiliatesEvents {
 				token,
 				isHeld,
 				tradingFeeTokenBaseAmount,
+				referrerBonusTokenAmount,
 				referrerBonusSovAmount,
 				paidReferrerBonusSovAmount
 			);
@@ -174,11 +193,86 @@ contract Affiliates is State, AffiliatesEvents {
 				referrer,
 				token,
 				tradingFeeTokenBaseAmount,
+				referrerBonusTokenAmount,
 				referrerBonusSovAmount,
 				paidReferrerBonusSovAmount
 			);
 		}
 
-		return referrerBonusSovAmount;
+		return (referrerBonusSovAmount, referrerBonusTokenAmount);
+	}
+
+	function withdrawAffiliatesReferrerTokenFees(
+		address token,
+		address receiver,
+		uint256 amount
+	) public {
+		require(receiver != address(0), "Affiliates: cannot withdraw to zero address");
+		address referrer = msg.sender;
+		uint256 referrerTokenBalance = affiliatesReferrerBalances[referrer][token];
+		uint256 withdrawAmount = referrerTokenBalance > amount ? amount : referrerTokenBalance;
+
+		require(withdrawAmount > 0, "Affiliates: cannot withdraw zero amount");
+
+		require(referralsList[referrer].length() >= getMinReferralsToPayout(), "Your referrals has not reached the minimum request");
+
+		uint256 newReferrerTokenBalance = referrerTokenBalance.sub(withdrawAmount);
+
+		if (newReferrerTokenBalance == 0) {
+			_removeAffiliatesReferrerToken(referrer, token);
+		} else {
+			affiliatesReferrerBalances[referrer][token] = newReferrerTokenBalance;
+		}
+
+		IERC20(token).safeTransfer(receiver, withdrawAmount);
+
+		emit WithdrawAffiliatesReferrerTokenFees(referrer, receiver, token, withdrawAmount);
+	}
+
+	function withdrawAllAffiliatesReferrerTokenFees(address receiver) external {
+		require(receiver != address(0), "Affiliates: cannot withdraw to zero address");
+		address referrer = msg.sender;
+
+		require(referralsList[referrer].length() >= getMinReferralsToPayout(), "Your referrals has not reached the minimum request");
+
+		(address[] memory tokenAddresses, uint256[] memory tokenBalances) = getAffiliatesReferrerBalances(referrer);
+		for (uint256 i; i < tokenAddresses.length; i++) {
+			withdrawAffiliatesReferrerTokenFees(tokenAddresses[i], receiver, tokenBalances[i]);
+		}
+	}
+
+	function _removeAffiliatesReferrerToken(address referrer, address token) internal {
+		delete affiliatesReferrerBalances[referrer][token];
+		affiliatesReferrerTokensList[referrer].remove(token);
+	}
+
+	function getAffiliatesReferrerBalances(address referrer)
+		public
+		view
+		returns (address[] memory referrerTokensList, uint256[] memory referrerTokensBalances)
+	{
+		referrerTokensList = getAffiliatesReferrerTokensList(referrer);
+		referrerTokensBalances = new uint256[](referrerTokensList.length);
+		for (uint256 i; i < referrerTokensList.length; i++) {
+			referrerTokensBalances[i] = getAffiliatesReferrerTokenBalance(referrer, referrerTokensList[i]);
+		}
+		return (referrerTokensList, referrerTokensBalances);
+	}
+
+	function getAffiliatesReferrerTokensList(address referrer) public view returns (address[] memory tokensList) {
+		tokensList = affiliatesReferrerTokensList[referrer].enumerate();
+		return tokensList;
+	}
+
+	function getAffiliatesReferrerTokenBalance(address referrer, address token) public view returns (uint256) {
+		return affiliatesReferrerBalances[referrer][token];
+	}
+
+	function getAffiliatesUserReferrer(address user) public view returns (address) {
+		return affiliatesUserReferrer[user];
+	}
+
+	function getAffiliateRewardsHeld(address referrer) public view returns (uint256) {
+		return affiliateRewardsHeld[referrer];
 	}
 }

@@ -17,7 +17,6 @@ import "../events/LoanClosingsEvents.sol";
 import "../events/FeesEvents.sol";
 import "../events/SwapsEvents.sol";
 import "../events/AffiliatesEvents.sol";
-import "../events/FeesEvents.sol";
 
 contract ISovryn is
 	State,
@@ -63,6 +62,8 @@ contract ISovryn is
 	function setBorrowingFeePercent(uint256 newValue) external;
 
 	function setAffiliateFeePercent(uint256 newValue) external;
+
+	function setAffiliateTradingTokenFeePercent(uint256 newValue) external;
 
 	function setLiquidationIncentivePercent(uint256 newAmount) external;
 
@@ -330,9 +331,40 @@ contract ISovryn is
 		address referrer,
 		address token,
 		uint256 tradingFeeTokenBaseAmount
-	) external returns (uint256 referrerTradingFee);
+	) external returns (uint256 affiliatesBonusSOVAmount, uint256 affiliatesBonusTokenAmount);
 
-	function setAffiliatesUserReferrer(address user, address referrer) external; //onlyCallableByLoanPools
+	function setAffiliatesReferrer(address user, address referrer) external; //onlyCallableByLoanPools
 
-	// function getAffiliatesUserReferrer(address user) external returns ; //AUDIT: do we need it to be public?
+	function getReferralsList(address referrer) external view returns (address[] memory refList);
+
+	function getAffiliatesReferrerBalances(address referrer)
+		external
+		view
+		returns (address[] memory referrerTokensList, uint256[] memory referrerTokensBalances);
+
+	function getAffiliatesReferrerTokensList(address referrer) external view returns (address[] memory tokensList);
+
+	function getAffiliatesReferrerTokenBalance(address referrer, address token) external view returns (uint256);
+
+	function withdrawAffiliatesReferrerTokenFees(
+		address token,
+		address receiver,
+		uint256 amount
+	) external returns (uint256 withdrawAmount);
+
+	function withdrawAllAffiliatesReferrerTokenFees(address receiver) external;
+
+	function getProtocolAddress() external view returns (address);
+
+	function getSovTokenAddress() external view returns (address);
+
+	function getLockedSOVAddress() external view returns (address);
+
+	function getMinReferralsToPayout() external view returns (uint256);
+
+	function getAffiliatesUserReferrer(address user) external view returns (address referrer);
+
+	function getAffiliateRewardsHeld(address referrer) external view returns (uint256);
+
+	function getAffiliateTradingTokenFeePercent() external view returns (uint256 affiliateTradingTokenFeePercent);
 }

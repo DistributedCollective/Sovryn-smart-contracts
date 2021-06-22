@@ -46,8 +46,8 @@ contract("governorAlpha#castVote/2", (accounts) => {
 		currentChainId = (await ethers.provider.getNetwork()).chainId;
 		//let blockTimestamp = etherUnsigned(100);
 		//await setTime(blockTimestamp.toNumber());
-		block = await ethers.provider.getBlock("latest");
-		setNextBlockTimestamp(block.timestamp + 100);
+		const block = await ethers.provider.getBlock("latest");
+		await setNextBlockTimestamp(block.timestamp + 100);
 		token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
 
 		let stakingLogic = await StakingLogic.new(token.address);
