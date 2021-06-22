@@ -198,7 +198,7 @@ contract FeesHelper is State, FeesEvents {
 		if (specialRebates[feeToken][feeTokenPair] > 0) {
 			_feeRebatePercent = specialRebates[feeToken][feeTokenPair];
 		}
-		
+
 		/// Note: this should be refactored.
 		/// Calculate the reward amount, querying the price feed.
 		(bool success, bytes memory data) =

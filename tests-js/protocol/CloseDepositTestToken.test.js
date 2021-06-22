@@ -158,7 +158,18 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		expect(transfer_to_lender["to"] == loanToken.address).to.be.true;
 		expect(transfer_to_lender["value"]).eq(loan_close_amount_less_interest.toString());
 
-		await verify_sov_reward_payment(receipt.rawLogs, FeesEvents, SOV, borrower, loan_id, sov_borrower_initial_balance, 1, SUSD.address, RBTC.address, sovryn);
+		await verify_sov_reward_payment(
+			receipt.rawLogs,
+			FeesEvents,
+			SOV,
+			borrower,
+			loan_id,
+			sov_borrower_initial_balance,
+			1,
+			SUSD.address,
+			RBTC.address,
+			sovryn
+		);
 	};
 
 	describe("Tests the close with deposit. ", () => {
@@ -211,7 +222,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, accounts[2]);
 
-			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("300", "ether"))
+			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("300", "ether"));
 			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, borrower);
 
 			await increaseTime(10 * 24 * 60 * 60);

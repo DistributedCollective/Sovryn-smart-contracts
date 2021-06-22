@@ -115,7 +115,18 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 			// assert the user received the borrowed amount
 			expect(await SUSD.balanceOf(account1)).to.be.a.bignumber.equal(expectedBalance);
-			await verify_sov_reward_payment(receipt.rawLogs, FeesEvents, SOV, owner, args["loanId"], sov_initial_balance, 1, RBTC.address, SUSD.address, sovryn);
+			await verify_sov_reward_payment(
+				receipt.rawLogs,
+				FeesEvents,
+				SOV,
+				owner,
+				args["loanId"],
+				sov_initial_balance,
+				1,
+				RBTC.address,
+				SUSD.address,
+				sovryn
+			);
 		});
 
 		it("Test borrow with sepecial rebates percentage", async () => {
@@ -123,7 +134,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
 			// For borrowing, the token fee is the collateral token
-			await sovryn.setSpecialRebates(RBTC.address, SUSD.address, wei("300", "ether"))
+			await sovryn.setSpecialRebates(RBTC.address, SUSD.address, wei("300", "ether"));
 			// determine borrowing parameter
 			const withdrawAmount = tenEth;
 			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
@@ -177,7 +188,18 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 			// assert the user received the borrowed amount
 			expect(await SUSD.balanceOf(account1)).to.be.a.bignumber.equal(expectedBalance);
-			await verify_sov_reward_payment(receipt.rawLogs, FeesEvents, SOV, owner, args["loanId"], sov_initial_balance, 1, RBTC.address, SUSD.address, sovryn);
+			await verify_sov_reward_payment(
+				receipt.rawLogs,
+				FeesEvents,
+				SOV,
+				owner,
+				args["loanId"],
+				sov_initial_balance,
+				1,
+				RBTC.address,
+				SUSD.address,
+				sovryn
+			);
 		});
 
 		it("Test borrow 0 collateral should fail", async () => {

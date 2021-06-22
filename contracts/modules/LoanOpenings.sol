@@ -334,7 +334,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 			require(sentValues[3] == 0, "surplus loan token");
 
 			uint256 borrowingFee = _getBorrowingFee(sentValues[4]);
-			// need to temp into local state to avoid 
+			// need to temp into local state to avoid
 			address _collateralToken = loanParamsLocal.collateralToken;
 			address _loanToken = loanParamsLocal.loanToken;
 			if (borrowingFee != 0) {

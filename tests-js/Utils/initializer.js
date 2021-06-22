@@ -335,7 +335,18 @@ function decodeLogs(logs, emitter, eventName) {
 		.map((decoded) => ({ event: eventName, args: decoded }));
 }
 
-const verify_sov_reward_payment = async (logs, FeesEvents, SOV, borrower, loan_id, sov_initial_balance, expected_events_number, sourceTokenAddress, destTokenAddress, sovryn) => {
+const verify_sov_reward_payment = async (
+	logs,
+	FeesEvents,
+	SOV,
+	borrower,
+	loan_id,
+	sov_initial_balance,
+	expected_events_number,
+	sourceTokenAddress,
+	destTokenAddress,
+	sovryn
+) => {
 	const earn_reward_events = decodeLogs(logs, FeesEvents, "EarnReward");
 	const len = earn_reward_events.length;
 	expect(len).to.equal(expected_events_number);
@@ -344,8 +355,8 @@ const verify_sov_reward_payment = async (logs, FeesEvents, SOV, borrower, loan_i
 	let feeRebatePercent;
 	for (let i = 0; i < len; i++) {
 		const args = earn_reward_events[i].args;
-		if(await sovryn.specialRebates(sourceTokenAddress, destTokenAddress) > 0) {
-			feeRebatePercent = await sovryn.specialRebates(sourceTokenAddress, destTokenAddress)
+		if ((await sovryn.specialRebates(sourceTokenAddress, destTokenAddress)) > 0) {
+			feeRebatePercent = await sovryn.specialRebates(sourceTokenAddress, destTokenAddress);
 		} else {
 			feeRebatePercent = await sovryn.feeRebatePercent();
 		}

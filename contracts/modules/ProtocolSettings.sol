@@ -589,7 +589,11 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param specialRebatesPercent The new special fee rebate percent.
 	 * */
-	function setSpecialRebates(address sourceToken, address destToken, uint256 specialRebatesPercent) external onlyOwner {
+	function setSpecialRebates(
+		address sourceToken,
+		address destToken,
+		uint256 specialRebatesPercent
+	) external onlyOwner {
 		// Set max special rebates to 1000%
 		require(specialRebatesPercent <= 10**21, "Special fee rebate is too high");
 

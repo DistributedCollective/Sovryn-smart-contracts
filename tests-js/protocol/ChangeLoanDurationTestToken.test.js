@@ -76,15 +76,17 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 	describe("Test set new special rebates.", () => {
 		it("Test set new special rebates for specific pairs", async () => {
-			const invalidValue = wei("1001", "ether")
-			await expectRevert(sovryn.setSpecialRebates(SUSD.address, RBTC.address, 0, { from: accounts[8] }), "unauthorized")
+			const invalidValue = wei("1001", "ether");
+			await expectRevert(sovryn.setSpecialRebates(SUSD.address, RBTC.address, 0, { from: accounts[8] }), "unauthorized");
 			await expectRevert(sovryn.setSpecialRebates(SUSD.address, RBTC.address, invalidValue), "Special fee rebate is too high");
 
-			const validValue = wei("200", "ether")
-			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, validValue)
-			expect((await sovryn.specialRebates(SUSD.address, RBTC.address)).toString(), "Incorrect new special fee rebates").to.be.equal(validValue.toString());
-		})
-	})
+			const validValue = wei("200", "ether");
+			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, validValue);
+			expect((await sovryn.specialRebates(SUSD.address, RBTC.address)).toString(), "Incorrect new special fee rebates").to.be.equal(
+				validValue.toString()
+			);
+		});
+	});
 
 	describe("Test extending and reducing loan durations.", () => {
 		/*
@@ -272,7 +274,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 			expect(borrower_initial_balance_before_extend.toString()).to.eq(borrower_initial_balance.toString());
 
-			const feeRebatePercent = await sovryn.feeRebatePercent()
+			const feeRebatePercent = await sovryn.feeRebatePercent();
 			const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnRewardFail");
 			const args = decode[0].args;
 			expect(args["receiver"] == borrower).to.be.true;
@@ -286,7 +288,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			await sovryn.setLockedSOVAddress((await LockedSOVFailedMockup.new(SOV.address, [owner])).address);
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
-			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("200", "ether"))
+			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("200", "ether"));
 			const [loan_id, borrower] = await borrow_indefinite_loan(
 				loanToken,
 				sovryn,
@@ -316,7 +318,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 			expect(borrower_initial_balance_before_extend.toString()).to.eq(borrower_initial_balance.toString());
 
-			const feeRebatePercent = await sovryn.specialRebates(SUSD.address, RBTC.address)
+			const feeRebatePercent = await sovryn.specialRebates(SUSD.address, RBTC.address);
 			const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnRewardFail");
 			const args = decode[0].args;
 			expect(args["receiver"] == borrower).to.be.true;
@@ -356,7 +358,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 				(await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower))
 			);
 
-			const feeRebatePercent = await sovryn.feeRebatePercent()
+			const feeRebatePercent = await sovryn.feeRebatePercent();
 			const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnReward");
 			const args = decode[0].args;
 			expect(args["receiver"] == borrower).to.be.true;
@@ -370,7 +372,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			// prepare the test
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
-			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("200", "ether"))
+			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("200", "ether"));
 			const [loan_id, borrower] = await borrow_indefinite_loan(
 				loanToken,
 				sovryn,
@@ -398,7 +400,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 				(await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower))
 			);
 
-			const feeRebatePercent = await sovryn.specialRebates(SUSD.address, RBTC.address)
+			const feeRebatePercent = await sovryn.specialRebates(SUSD.address, RBTC.address);
 			const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnReward");
 			const args = decode[0].args;
 			expect(args["receiver"] == borrower).to.be.true;
@@ -514,7 +516,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 			expect(borrower_initial_balance_before_reduce.toString()).to.eq(borrower_initial_balance.toString());
 
-			const feeRebatePercent = await sovryn.feeRebatePercent()
+			const feeRebatePercent = await sovryn.feeRebatePercent();
 			const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnRewardFail");
 			const args = decode[0].args;
 			expect(args["receiver"] == borrower).to.be.true;
@@ -528,7 +530,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			await sovryn.setLockedSOVAddress((await LockedSOVFailedMockup.new(SOV.address, [owner])).address);
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
-			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("200", "ether"))
+			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("200", "ether"));
 			const duration_in_seconds = 20 * 24 * 60 * 60; // 20 days
 			const [loan_id, borrower] = await borrow_indefinite_loan(
 				loanToken,
@@ -562,7 +564,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 			expect(borrower_initial_balance_before_reduce.toString()).to.eq(borrower_initial_balance.toString());
 
-			const feeRebatePercent = await sovryn.specialRebates(SUSD.address, RBTC.address)
+			const feeRebatePercent = await sovryn.specialRebates(SUSD.address, RBTC.address);
 			const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnRewardFail");
 			const args = decode[0].args;
 			expect(args["receiver"] == borrower).to.be.true;
@@ -618,7 +620,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 				(await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower))
 			);
 
-			const feeRebatePercent = await sovryn.feeRebatePercent()
+			const feeRebatePercent = await sovryn.feeRebatePercent();
 			const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnReward");
 			const args = decode[0].args;
 			expect(args["receiver"] == borrower).to.be.true;
@@ -632,7 +634,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			// prepare the test
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
-			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("200", "ether"))
+			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("200", "ether"));
 			const duration_in_seconds = 20 * 24 * 60 * 60; // 20 days
 			const [loan_id, borrower] = await borrow_indefinite_loan(
 				loanToken,
@@ -664,7 +666,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 				(await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower))
 			);
 
-			const feeRebatePercent = await sovryn.specialRebates(SUSD.address, RBTC.address)
+			const feeRebatePercent = await sovryn.specialRebates(SUSD.address, RBTC.address);
 			const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnReward");
 			const args = decode[0].args;
 			expect(args["receiver"] == borrower).to.be.true;

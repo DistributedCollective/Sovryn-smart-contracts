@@ -180,7 +180,7 @@ contract State is Objects, ReentrancyGuard, Ownable {
 	mapping(address => EnumerableAddressSet.AddressSet) internal affiliatesReferrerTokensList; // addresses of tokens in which commissions were paid to referrers
 	mapping(address => mapping(address => uint256)) public affiliatesReferrerBalances; // [referrerAddress][tokenAddress] is a referrer's token balance of accrued fees
 
-	mapping(address => mapping(address => uint)) public specialRebates; // Special rate rebates for spesific pair -- if not set, then use the default one
+	mapping(address => mapping(address => uint256)) public specialRebates; // Special rate rebates for spesific pair -- if not set, then use the default one
 
 	/**
 	 * @notice Add signature and target to storage.

@@ -186,7 +186,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 
 		it("Test rollover with special rebates", async () => {
 			// prepare the test
-			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("300", "ether"))
+			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("300", "ether"));
 			const [borrower, loan, loan_id, endTimestamp] = await setup_rollover_test(
 				RBTC,
 				SUSD,

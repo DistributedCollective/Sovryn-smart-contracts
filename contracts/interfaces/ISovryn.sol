@@ -111,10 +111,13 @@ contract ISovryn is
 
 	function setRebatePercent(uint256 rebatePercent) external;
 
-	function setSpecialRebates(address sourceToken, address destToken, uint256 specialRebatesPercent) external;
+	function setSpecialRebates(
+		address sourceToken,
+		address destToken,
+		uint256 specialRebatesPercent
+	) external;
 
-	function getSpecialRebates(address sourceToken, address destToken) external view returns(uint256 specialRebatesPercent);
-	
+	function getSpecialRebates(address sourceToken, address destToken) external view returns (uint256 specialRebatesPercent);
 
 	////// Loan Settings //////
 
