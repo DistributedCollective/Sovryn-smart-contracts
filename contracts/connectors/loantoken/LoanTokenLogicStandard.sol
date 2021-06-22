@@ -1460,4 +1460,40 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			return assetBorrow.mul(10**20).div(assetSupply);
 		}
 	}
+
+	/**
+	 * @notice sets the liquidity mining contract address
+	 * @param LMAddress the address of the liquidity mining contract
+	 */
+	function setLiquidityMiningAddress(address LMAddress) external onlyOwner {
+		liquidityMiningAddress = LMAddress;
+	}
+
+	function _mintWithLM(address receiver, uint256 depositAmount) internal returns (uint256 minted) {
+		//mint the tokens for the receiver
+		minted = _mintToken(receiver, depositAmount);
+
+		//transfer the tokens from the receiver to the LM address
+		_internalTransferFrom(receiver, liquidityMiningAddress, minted, minted);
+
+		//inform the LM mining contract
+		ILiquidityMining(liquidityMiningAddress).onTokensDeposited(receiver, minted);
+	}
+
+	function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
+		uint balanceOnLM = ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(address(this), msg.sender);
+		require(balanceOnLM.add(balanceOf(msg.sender)) >= burnAmount, "not enough balance");
+
+		if (balanceOnLM > 0) {
+			//withdraw pool tokens and LM rewards to the passed address
+			if (balanceOnLM < burnAmount) {
+				ILiquidityMining(liquidityMiningAddress).withdraw(address(this), balanceOnLM, msg.sender);
+			} else {
+				ILiquidityMining(liquidityMiningAddress).withdraw(address(this), burnAmount, msg.sender);
+			}
+		}
+		//burn the tokens of the msg.sender
+		return _burnToken(burnAmount);
+	}
+
 }
