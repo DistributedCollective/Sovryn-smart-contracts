@@ -253,7 +253,10 @@ describe("LiquidityMining", () => {
 		});
 
 		it("fails if unlockedImmediatelyPercent >= 10000", async () => {
-			await expectRevert(liquidityMining.setUnlockedImmediatelyPercent(100000), "Unlocked immediately percent has to be less than 10000.");
+			await expectRevert(
+				liquidityMining.setUnlockedImmediatelyPercent(100000),
+				"Unlocked immediately percent has to be less than 10000."
+			);
 		});
 	});
 
@@ -389,10 +392,10 @@ describe("LiquidityMining", () => {
 		});
 
 		it("only owner or admin should be able to add pool token", async () => {
-			await expectRevert(liquidityMining.add(token2.address, new BN(1), false, {from: account1}), "unauthorized");
+			await expectRevert(liquidityMining.add(token2.address, new BN(1), false, { from: account1 }), "unauthorized");
 
 			await liquidityMining.addAdmin(account1);
-			await liquidityMining.add(token2.address, new BN(1), false, {from: account1});
+			await liquidityMining.add(token2.address, new BN(1), false, { from: account1 });
 		});
 	});
 
@@ -441,10 +444,10 @@ describe("LiquidityMining", () => {
 
 		it("only owner or admin should be able to update pool token", async () => {
 			await liquidityMining.add(token2.address, new BN(1), false);
-			await expectRevert(liquidityMining.update(token2.address, new BN(1), false, {from: account1}), "unauthorized");
+			await expectRevert(liquidityMining.update(token2.address, new BN(1), false, { from: account1 }), "unauthorized");
 
 			await liquidityMining.addAdmin(account1);
-			await liquidityMining.update(token2.address, new BN(1), false, {from: account1});
+			await liquidityMining.update(token2.address, new BN(1), false, { from: account1 });
 		});
 	});
 
@@ -845,7 +848,7 @@ describe("LiquidityMining", () => {
 				user: account1,
 				poolToken: token1.address,
 				amount: amount,
-				accumulatedReward: expectedAccumulatedReward
+				accumulatedReward: expectedAccumulatedReward,
 			});
 		});
 
@@ -1441,19 +1444,19 @@ describe("LiquidityMining", () => {
 		//Maximum reward per week: 100K SOV (or 100M SOV)
 		//Maximum reward per block: 4.9604 SOV (4.9604 * 2880 * 7 = 100001.664)
 
-		const REWARD_TOKENS_PER_BLOCK = new BN(49604).mul(new BN(10**14)).mul(new BN(1000));
+		const REWARD_TOKENS_PER_BLOCK = new BN(49604).mul(new BN(10 ** 14)).mul(new BN(1000));
 		// const REWARD_TOKENS_PER_BLOCK = new BN(49604).mul(new BN(10**14));
 
 		//SOV/BTC pool 40K per week
 		//ETH/BTC pool 37.5K per week (from second week)
 		//Dummy pool 100K - SOV/BTC pool (- ETH/BTC pool)
 
-		const MAX_ALLOCATION_POINT = 		new BN(100000).mul(new BN(1000));
+		const MAX_ALLOCATION_POINT = new BN(100000).mul(new BN(1000));
 		// const MAX_ALLOCATION_POINT = 		new BN(100000);
-		const ALLOCATION_POINT_SOV_BTC = 	new BN(40000);
-		const ALLOCATION_POINT_ETH_BTC = 	new BN(37500);
+		const ALLOCATION_POINT_SOV_BTC = new BN(40000);
+		const ALLOCATION_POINT_ETH_BTC = new BN(37500);
 
-		const ALLOCATION_POINT_SOV_BTC_2 = 	new BN(30000);
+		const ALLOCATION_POINT_SOV_BTC_2 = new BN(30000);
 
 		const amount = new BN(1000);
 
@@ -1500,7 +1503,9 @@ describe("LiquidityMining", () => {
 			const userInfo = await liquidityMining.getUserInfo(SOVBTCpool, account1);
 			//10 blocks passed
 			let passedBlocks = 10;
-			let expectedUserReward = REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks)).mul(ALLOCATION_POINT_SOV_BTC).div(MAX_ALLOCATION_POINT);
+			let expectedUserReward = REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks))
+				.mul(ALLOCATION_POINT_SOV_BTC)
+				.div(MAX_ALLOCATION_POINT);
 			expect(userInfo.accumulatedReward).bignumber.equal(expectedUserReward);
 			console.log(expectedUserReward.toString());
 		});
@@ -1538,14 +1543,16 @@ describe("LiquidityMining", () => {
 			const userInfo = await liquidityMining.getUserInfo(SOVBTCpool, account1);
 			//10 blocks + 5 blocks passed
 			let passedBlocks = 10 + 1; //block should be add to calculation with old values
-			let expectedUserReward = REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks)).mul(ALLOCATION_POINT_SOV_BTC).div(MAX_ALLOCATION_POINT);
+			let expectedUserReward = REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks))
+				.mul(ALLOCATION_POINT_SOV_BTC)
+				.div(MAX_ALLOCATION_POINT);
 			passedBlocks = 5 - 1; //block should be removed from calculation with new values
-			expectedUserReward = expectedUserReward
-				.add(REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks)).mul(ALLOCATION_POINT_SOV_BTC_2).div(MAX_ALLOCATION_POINT));
+			expectedUserReward = expectedUserReward.add(
+				REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks)).mul(ALLOCATION_POINT_SOV_BTC_2).div(MAX_ALLOCATION_POINT)
+			);
 			expect(userInfo.accumulatedReward).bignumber.equal(expectedUserReward);
 			console.log(expectedUserReward.toString());
 		});
-
 	});
 
 	describe("onTokensDeposited", () => {
@@ -1729,7 +1736,7 @@ describe("LiquidityMining", () => {
 			expect(rewardList[0]).bignumber.equal("0");
 		});
 
-		it("getUserPoolTokenBalance", async()=>{
+		it("getUserPoolTokenBalance", async () => {
 			await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, { from: account1 });
 			let poolTokenBalance = await liquidityMining.getUserPoolTokenBalance(token1.address, account1);
 			expect(poolTokenBalance).bignumber.equal(new BN(500));
