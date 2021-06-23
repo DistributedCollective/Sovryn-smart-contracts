@@ -8,6 +8,7 @@ from brownie.network.contract import InterfaceContainer
 import json
 import time;
 import copy
+from scripts.utils import * 
 
 def main():
     
@@ -19,7 +20,8 @@ def main():
 
 
     #transferTokensFromWallet(contracts['SOV'], contracts['LiquidityMiningProxy'], 40000e18)
-    #sendTokensFromMultisig(contracts['SOV'], contracts['LiquidityMiningProxy'], 40000e18)
+    #sendTokensFromMultisig(contracts['XUSD'], '0x09f6534B4ECaFC4f2679B9d2C62e6C9978f74376', 200000e18)
+    #sendTokensFromMultisig(contracts['XUSD'], '0xaB6e5c658F1ea88bC4fC8Fe87FDaa10d8Bf53C69', 200000e18)
     #setWrapperOnLM()
     #addAdmin(contracts['LockedSOV'], contracts['VestingRegistry3'])
     #setFeesController()
@@ -58,6 +60,11 @@ def main():
     #swapTokens(0.0013e18, 1, contracts['swapNetwork'], contracts['WRBTC'], contracts['ETHs'])
 
     #disableLoanParams(contracts['iRBTC'], contracts['USDT'])
+    #disableLoanParams(contracts['iBPro'], contracts['USDT'])
+    #disableLoanParams(contracts['iDOC'], contracts['USDT'])
+
+    #triggerEmergencyStop(contracts['iUSDT'], False)
+
     #readPriceFeedFor(contracts['USDT'])
     #readPriceFeedFor(contracts['DoC'])
 
@@ -69,9 +76,16 @@ def main():
 
     #setupTorqueLoanParams(contracts['iRBTC'], contracts['WRBTC'], contracts['XUSD'])
     
-    lendToPool(contracts['iXUSD'], contracts['XUSD'], 100e18)
-    testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iXUSD'], contracts['XUSD'], contracts['WRBTC'], 1e18, 2e18, False, 0)
-    testTradeOpeningAndClosingWithCollateral(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['XUSD'], 1e18, 2e18, False, 0)
+    #lendToPoolWithMS(contracts['iXUSD'], contracts['XUSD'], 1000000e18)
+    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iXUSD'], contracts['XUSD'], contracts['WRBTC'], 1e18, 2e18, False, 0)
+    #testTradeOpeningAndClosingWithCollateral(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['XUSD'], 1e18, 2e18, False, 0)
+    
+    #for txId in range(261, 272):
+    #    confirmWithMS(txId)
+
+    #testBorrow(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['USDT'])
+
+    addOwnerToMultisig('0x13Be55487D37FE3C66EE7305e1e9C1ac85de75Ae')
     
 
 def loadConfig():
@@ -116,6 +130,15 @@ def lendToPool(loanTokenAddress, tokenAddress, amount):
     if(token.allowance(acct, loanToken.address) < amount):
         token.approve(loanToken.address, amount)
     loanToken.mint(acct, amount)
+
+def lendToPoolWithMS(loanTokenAddress, tokenAddress, amount):
+    token = Contract.from_abi("TestToken", address = tokenAddress, abi = TestToken.abi, owner = acct)
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    if(token.allowance(contracts['multisig'], loanToken.address) < amount):
+        data = token.approve.encode_input(loanToken.address, amount)
+        sendWithMultisig(contracts['multisig'], token.address, data, acct)
+    data = loanToken.mint.encode_input(acct, amount)
+    sendWithMultisig(contracts['multisig'], loanToken.address, data, acct)
     
 def removeFromPool(loanTokenAddress, amount):
     loanToken = Contract.from_abi("loanToken", address = loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
@@ -244,7 +267,7 @@ def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collat
     testToken = Contract.from_abi("TestToken", address = collateralTokenAddress, abi = TestToken.abi, owner = acct)
     
     # determine borrowing parameter
-    withdrawAmount = 10e18 #i want to borrow 10 USD
+    withdrawAmount = 0.000010e18 #i want to borrow 10 USD
     # compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan 
     collateralTokenSent = 2* sovryn.getRequiredCollateral(underlyingTokenAddress,collateralTokenAddress,withdrawAmount,50e18, True)
     print("collateral needed", collateralTokenSent/1e18)
@@ -272,7 +295,7 @@ def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collat
         acct,                    # address borrower
         acct,                    # address receiver
         b'' ,                            # bytes memory loanDataBytes
-        {'value': collateralTokenSent}
+        {'value': 0, 'allow_revert': True}#collateralTokenSent
     )
     
     #assert the trade was processed as expected
@@ -894,8 +917,8 @@ def transferSOVtoVestingRegistry2():
 
 def triggerEmergencyStop(loanTokenAddress, turnOn):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
-    #functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,bytes)"
-    functionSignature = "borrow(bytes32,uint256,uint256,uint256,address,address,address,bytes)"
+    functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,bytes)"
+    #functionSignature = "borrow(bytes32,uint256,uint256,uint256,address,address,address,bytes)"
     data = loanToken.toggleFunctionPause.encode_input(functionSignature, turnOn)
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(loanToken.address,0,data)
