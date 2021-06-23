@@ -25,7 +25,8 @@ def main():
     #setFeesController()
     #withdrawFees()
     replaceProtocolSettings()
-    deployAffiliate()
+    # deployAffiliate()
+    deployTradingRebatesUsingLockedSOV()
 
     #addPoolsToLM()
 
@@ -1476,39 +1477,39 @@ def upgradeAggregator(multisig, newImpl):
     print(txId)
 
 def deployTradingRebatesUsingLockedSOV():
-    loadConfig()
+    # loadConfig()
 
     sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
 
     # ----------------------------- 1. Replace Protocol Settings ------------------------------
-    replaceProtocolSettings()
+    # replaceProtocolSettings()
 
     # ----------------------------- 2. Set protocol token address using SOV address ------------------------------
-    sovToken = Contract.from_abi("SOV", address=contracts["SOV"], abi=SOV.abi, owner=acct)
-    data = sovryn.setProtocolTokenAddress.encode_input(sovToken.address)
-    print("Set Protocol Token address in protocol settings")
-    print(data)
+    # sovToken = Contract.from_abi("SOV", address=contracts["SOV"], abi=SOV.abi, owner=acct)
+    # data = sovryn.setProtocolTokenAddress.encode_input(sovToken.address)
+    # print("Set Protocol Token address in protocol settings")
+    # print(data)
 
-    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
-    tx = multisig.submitTransaction(sovryn.address,0,data)
-    txId = tx.events["Submission"]["transactionId"]
-    print(txId)
-    print("protocol token address loaded:", sovryn.sovTokenAddress())
+    # multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    # tx = multisig.submitTransaction(sovryn.address,0,data)
+    # txId = tx.events["Submission"]["transactionId"]
+    # print(txId)
+    # print("protocol token address loaded:", sovryn.sovTokenAddress())
 
     # ----------------------------- 3. Set LockedSOV address -------------------------------------------
-    lockedSOV = Contract.from_abi("LockedSOV", address=contracts["LockedSOV"], abi=LockedSOV.abi, owner=acct)
-    data = sovryn.setLockedSOVAddress.encode_input(lockedSOV.address)
-    print("Set Locked SOV address in protocol settings")
-    print(data)
+    # lockedSOV = Contract.from_abi("LockedSOV", address=contracts["LockedSOV"], abi=LockedSOV.abi, owner=acct)
+    # data = sovryn.setLockedSOVAddress.encode_input(lockedSOV.address)
+    # print("Set Locked SOV address in protocol settings")
+    # print(data)
 
-    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
-    tx = multisig.submitTransaction(sovryn.address,0,data)
-    txId = tx.events["Submission"]["transactionId"]
-    print(txId)
-    print("lockedSOV address loaded:", sovryn.sovTokenAddress())
+    # multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    # tx = multisig.submitTransaction(sovryn.address,0,data)
+    # txId = tx.events["Submission"]["transactionId"]
+    # print(txId)
+    # print("lockedSOV address loaded:", sovryn.sovTokenAddress())
 
     # ----------------------------- 4. Set default feeRebatePercent -------------------------------------------
-    setDefaultRebatesPercentage(50 * 10**18)
+    setDefaultRebatesPercentage(10 * 10**18)
 
     # TODO
     # setSpecialRebates("sourceTokenAddress", "destTokenAddress", 10 * 10**18)
