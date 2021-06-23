@@ -74,8 +74,8 @@ contract("LoanTokenTrading", (accounts) => {
 		it("Test margin trading sending collateral tokens", async () => {
 			const loanSize = oneEth;
 			//  make sure there are sufficient funds on the contract
-			await loanTokenWRBTC.mintWithBTC(accounts[0], { value: loanSize.mul(new BN(6)) });
-			await loanTokenWRBTC.mintWithBTC(accounts[2], { value: loanSize.mul(new BN(6)) });
+			await loanTokenWRBTC.mintWithBTC(accounts[0], false, { value: loanSize.mul(new BN(6)) });
+			await loanTokenWRBTC.mintWithBTC(accounts[2], false,{ value: loanSize.mul(new BN(6)) });
 			// compute the amount of collateral tokens needed
 			const collateralTokenSent = await sovryn.getRequiredCollateral(
 				WRBTC.address,

@@ -25,7 +25,7 @@ const lend_btc_before_cashout = async (loanToken, total_deposit_amount, lender) 
 	expect(initial_balance.gt(total_deposit_amount)).to.be.true;
 
 	expect(await loanToken.checkpointPrice(lender)).to.be.a.bignumber.equal(new BN(0));
-	await loanToken.mintWithBTC(lender, { value: total_deposit_amount });
+	await loanToken.mintWithBTC(lender, false, { value: total_deposit_amount });
 	expect(await loanToken.checkpointPrice(lender)).to.be.a.bignumber.equal(await loanToken.initialPrice());
 
 	const loan_token_initial_balance = total_deposit_amount.div(await loanToken.initialPrice()).mul(new BN(wei("1", "ether")));
@@ -139,7 +139,7 @@ const cash_out_from_the_pool = async (loanToken, lender, underlyingToken, lendBT
 	if (lendBTC) {
 		initial_balance = await lend_btc_before_cashout(loanToken, total_deposit_amount, lender);
 		balance_after_lending = new BN(await web3.eth.getBalance(lender));
-		await loanToken.burnToBTC(lender, amount_withdrawn.toString());
+		await loanToken.burnToBTC(lender, amount_withdrawn.toString(), false);
 	} else {
 		initial_balance = await lend_tokens_before_cashout(loanToken, underlyingToken, total_deposit_amount, lender);
 		await loanToken.burn(lender, amount_withdrawn.toString());

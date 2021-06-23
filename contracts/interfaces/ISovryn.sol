@@ -5,6 +5,8 @@
 
 pragma solidity >=0.5.0 <0.6.0;
 pragma experimental ABIEncoderV2;
+//TODO: stored in ./interfaces only while brownie isn't removed
+//TODO: move to contracts/interfaces after with brownie is removed
 
 import "../core/State.sol";
 import "../events/ProtocolSettingsEvents.sol";
@@ -14,6 +16,7 @@ import "../events/LoanMaintenanceEvents.sol";
 import "../events/LoanClosingsEvents.sol";
 import "../events/FeesEvents.sol";
 import "../events/SwapsEvents.sol";
+import "../events/AffiliatesEvents.sol";
 
 contract ISovryn is
 	State,
@@ -22,7 +25,9 @@ contract ISovryn is
 	LoanOpeningsEvents,
 	LoanMaintenanceEvents,
 	LoanClosingsEvents,
-	SwapsEvents
+	SwapsEvents,
+	AffiliatesEvents,
+	FeesEvents
 {
 	////// Protocol //////
 
@@ -33,6 +38,14 @@ contract ISovryn is
 	function getTarget(string calldata sig) external view returns (address);
 
 	////// Protocol Settings //////
+
+	function setSovrynProtocolAddress(address newProtocolAddress) external;
+
+	function setSOVTokenAddress(address newSovTokenAddress) external;
+
+	function setLockedSOVAddress(address newSOVLockedAddress) external;
+
+	function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external;
 
 	function setPriceFeedContract(address newContract) external;
 
@@ -50,6 +63,8 @@ contract ISovryn is
 
 	function setAffiliateFeePercent(uint256 newValue) external;
 
+	function setAffiliateTradingTokenFeePercent(uint256 newValue) external;
+
 	function setLiquidationIncentivePercent(uint256 newAmount) external;
 
 	function setMaxDisagreement(uint256 newAmount) external;
@@ -59,8 +74,6 @@ contract ISovryn is
 	function setMaxSwapSize(uint256 newAmount) external;
 
 	function setFeesController(address newController) external;
-
-	function withdrawFees(address token, address receiver) external returns (uint256);
 
 	function withdrawLendingFees(
 		address token,
@@ -302,4 +315,51 @@ contract ISovryn is
 	function setLegacyOracles(address[] calldata refs, address[] calldata oracles) external;
 
 	function getLegacyOracle(address ref) external view returns (address);
+
+	////// Affiliates Module //////
+
+	function getUserNotFirstTradeFlag(address user) external view returns (bool);
+
+	function setUserNotFirstTradeFlag(address user) external view returns (bool);
+
+	function payTradingFeeToAffiliatesReferrer(
+		address referrer,
+		address token,
+		uint256 tradingFeeTokenBaseAmount
+	) external returns (uint256 affiliatesBonusSOVAmount, uint256 affiliatesBonusTokenAmount);
+
+	function setAffiliatesReferrer(address user, address referrer) external; //onlyCallableByLoanPools
+
+	function getReferralsList(address referrer) external view returns (address[] memory refList);
+
+	function getAffiliatesReferrerBalances(address referrer)
+		external
+		view
+		returns (address[] memory referrerTokensList, uint256[] memory referrerTokensBalances);
+
+	function getAffiliatesReferrerTokensList(address referrer) external view returns (address[] memory tokensList);
+
+	function getAffiliatesReferrerTokenBalance(address referrer, address token) external view returns (uint256);
+
+	function withdrawAffiliatesReferrerTokenFees(
+		address token,
+		address receiver,
+		uint256 amount
+	) external returns (uint256 withdrawAmount);
+
+	function withdrawAllAffiliatesReferrerTokenFees(address receiver) external;
+
+	function getProtocolAddress() external view returns (address);
+
+	function getSovTokenAddress() external view returns (address);
+
+	function getLockedSOVAddress() external view returns (address);
+
+	function getMinReferralsToPayout() external view returns (uint256);
+
+	function getAffiliatesUserReferrer(address user) external view returns (address referrer);
+
+	function getAffiliateRewardsHeld(address referrer) external view returns (uint256);
+
+	function getAffiliateTradingTokenFeePercent() external view returns (uint256 affiliateTradingTokenFeePercent);
 }

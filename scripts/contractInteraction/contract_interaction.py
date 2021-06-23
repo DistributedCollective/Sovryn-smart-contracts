@@ -26,7 +26,8 @@ def main():
     #addAdmin(contracts['LockedSOV'], contracts['VestingRegistry3'])
     #setFeesController()
     #withdrawFees()
-    #replaceProtocolSettings()
+    replaceProtocolSettings()
+    deployAffiliate()
 
     #addPoolsToLM()
 
@@ -51,7 +52,7 @@ def main():
     #replaceOwnerOnMultisig('0x37A706259F5201C03f6Cb556A960F30F86842d01', '0x4C3d3505d34213751c4b4d621cB6bDe7E664E222', '0xEaBB83a1cEFc5f50C83BC4252C618d3294152A86')
     #upgradeAggregator('0x37A706259F5201C03f6Cb556A960F30F86842d01','0x3E9De61dC23D4BC1b84D174781809e5820cfceb7')
     
-    #addLiquidityV1FromMultisigUsingWrapper(contracts['RBTCWrapperProxyWithoutLM'], contracts['ConverterETHs'], [contracts['WRBTC'], contracts['ETHs']], [25e18,352e18], 248e18)
+    #addLiquidityV1FromMultisigUsingWrapper(contracts['RBTCWrapperProxyWithoutLM'], contracts['ConverterMOC'], [contracts['WRBTC'], contracts['MOC']], [2.5e18,211000e18], 249e18)
     #addLiquidityV1UsingWrapper(contracts['RBTCWrapperProxyWithoutLM'], contracts['ConverterETHs'], [contracts['WRBTC'], contracts['ETHs']], [0.002e18,0.01e18])
     #readWRBTCAddressFromWrapper(contracts['RBTCWrapperProxyWithoutLM'])
 
@@ -87,6 +88,25 @@ def main():
 
     addOwnerToMultisig('0x13Be55487D37FE3C66EE7305e1e9C1ac85de75Ae')
     
+    #confirmMS(148)
+    #confirmMS(149)
+
+    #readOwner(contracts['ConverterUSDT'])
+
+    #confirmMS(150)
+    #confirmMS(151)
+    #confirmMS(152)
+
+    #addMOCPoolToken()
+    # readMaxAffiliateFee()
+
+    # transferSOVtoLM(100 * 10**18)
+
+    # replaceLoanTokenLogicOnAllContracts()
+    # setLiquidityMiningAddressOnAllContracts()
+    # getLiquidityMiningAddressOnAllContracts()
+
+    # checkTx()
 
 def loadConfig():
     global contracts, acct
@@ -95,6 +115,9 @@ def loadConfig():
         acct = accounts[0]
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet-ws":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-testnet":
@@ -106,7 +129,6 @@ def loadConfig():
     else:
         raise Exception("Network not supported.")
     contracts = json.load(configFile)
-
     
 def readLendingFee():
     sovryn = Contract.from_abi("sovryn", address='0xBAC609F5C8bb796Fa5A31002f12aaF24B7c35818', abi=interface.ISovrynBrownie.abi, owner=acct)
@@ -371,7 +393,7 @@ def buyWRBTC():
     contract = Contract.from_abi("WRBTC", address=contracts["WRBTC"], abi=WRBTC.abi, owner=acct)
     tx = contract.deposit({'value':1e18})
     tx.info()
-    print("new balance", getBalance(contracts["WRBTC"], acct))
+    print("New balance: ", contract.balanceOf(acct))
     
 def mintEarlyAccessTokens(contractAddress, userAddress):
     contract = Contract.from_abi("EarlyAccessToken", address=contractAddress, abi=EarlyAccessToken.abi, owner=acct)
@@ -449,9 +471,9 @@ def readLendingBalanceForUser(loanTokenAddress, userAddress):
     bal = loanToken.assetBalanceOf(userAddress)
     print('underlying token balance', bal)
     
-def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
-    loanToken.setTarget(logicAddress)
+# def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
+#     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
+#     loanToken.setTarget(logicAddress)
     
 def readOwner(contractAddress):
     contract = Contract.from_abi("loanToken", address=contractAddress, abi=LoanToken.abi, owner=acct)
@@ -509,12 +531,7 @@ def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTo
         0
     )
     tx.info()
-    
 
-def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=acct)
-    loanToken.setTarget(logicAddress)
-    
 def readFromMedianizer():
     medianizer = Contract.from_abi("Medianizer", address=contracts['medianizer'], abi=PriceFeedsMoCMockup.abi, owner=acct)
     print(medianizer.peek())
@@ -673,22 +690,14 @@ def replaceSwapsImplSovrynSwap():
     txId = tx.events["Submission"]["transactionId"]
     print(txId);
 
-def replaceProtocolSettings():
-    protocolSettings = acct.deploy(ProtocolSettings)
-    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
-    data = sovryn.replaceContract.encode_input(protocolSettings.address)
-    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
-    tx = multisig.submitTransaction(sovryn.address,0,data)
-    txId = tx.events["Submission"]["transactionId"]
-    print(txId);
-
 def replaceLoanTokenLogicOnAllContracts():
     print("replacing loan token logic")
-    logicContract = acct.deploy(LoanTokenLogicStandard)
+    logicContract = acct.deploy(LoanTokenLogicLM)
     print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
     replaceLoanTokenLogic(contracts['iDOC'],logicContract.address)
     replaceLoanTokenLogic(contracts['iUSDT'],logicContract.address)
     replaceLoanTokenLogic(contracts['iBPro'],logicContract.address)
+    replaceLoanTokenLogic(contracts['iXUSD'],logicContract.address)
     logicContract = acct.deploy(LoanTokenLogicWrbtc)
     print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
     replaceLoanTokenLogic(contracts['iRBTC'], logicContract.address)
@@ -700,6 +709,35 @@ def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
     tx = multisig.submitTransaction(loanToken.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
+
+def setLiquidityMiningAddressOnAllContracts():
+    print("setting LM address")
+    setLiquidityMiningAddress(contracts['iDOC'])
+    setLiquidityMiningAddress(contracts['iUSDT'])
+    setLiquidityMiningAddress(contracts['iBPro'])
+    setLiquidityMiningAddress(contracts['iXUSD'])
+    setLiquidityMiningAddress(contracts['iRBTC'])
+
+def setLiquidityMiningAddress(loanTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicLM.abi, owner=acct)
+    data = loanToken.setLiquidityMiningAddress.encode_input(contracts['LiquidityMiningProxy'])
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(loanToken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def getLiquidityMiningAddressOnAllContracts():
+    print("setting LM address")
+    getLiquidityMiningAddress(contracts['iDOC'])
+    getLiquidityMiningAddress(contracts['iUSDT'])
+    getLiquidityMiningAddress(contracts['iBPro'])
+    getLiquidityMiningAddress(contracts['iRBTC'])
+
+def getLiquidityMiningAddress(loanTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicLM.abi, owner=acct)
+    print(loanToken.liquidityMiningAddress())
+    print(loanToken.target_())
 
 def checkRates():
     print('reading price from WRBTC to DOC')
@@ -791,6 +829,33 @@ def setBorrowingFee(fee):
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
+    print(txId);
+
+def setAffiliateFeePercent(fee):
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.setAffiliateFeePercent.encode_input(fee)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print('sovryn.setAffiliateFeePercent for', fee, ' tx:')
+    print(txId);
+
+def setAffiliateTradingTokenFeePercent(percentFee):
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.setAffiliateTradingTokenFeePercent.encode_input(percentFee)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print('sovryn.setAffiliateTradingTokenFeePercent for ', percentFee, ' tx:')
+    print(txId);
+
+def setMinReferralsToPayout(minReferrals):
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.setMinReferralsToPayoutAffiliates.encode_input(minReferrals)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print('setMinReferralsToPayoutAffiliates set to ', minReferrals, ' tx:')
     print(txId);
 
 def sendFromMultisigToVesting(amount):
@@ -1174,7 +1239,7 @@ def removeLiquidityV1toMultisigUsingWrapper(wrapper, converter, amount, tokens, 
     converterAbi = json.load(converterAbiFile)
     converterContract = Contract.from_abi("LiquidityPoolV1Converter", address=converter, abi=converterAbi, owner=acct)
     poolToken = converterContract.anchor()
-    '''
+
     # approve
     token = Contract.from_abi("ERC20", address=poolToken, abi=ERC20.abi, owner=acct)
     data = token.approve.encode_input(wrapperProxy.address, amount)
@@ -1183,7 +1248,7 @@ def removeLiquidityV1toMultisigUsingWrapper(wrapper, converter, amount, tokens, 
     tx = multisig.submitTransaction(token.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
-    '''
+
     # removeLiquidityFromV1
     data = wrapperProxy.removeLiquidityFromV1.encode_input(converter, amount, tokens, minReturn)
     print(data)
@@ -1191,6 +1256,7 @@ def removeLiquidityV1toMultisigUsingWrapper(wrapper, converter, amount, tokens, 
     tx = multisig.submitTransaction(wrapperProxy.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
+
 
 def readClaimBalanceOrigin(address):
     originClaimContract = Contract.from_abi("originClaim", address=contracts['OriginInvestorsClaim'], abi=OriginInvestorsClaim.abi, owner=acct)
@@ -1207,6 +1273,140 @@ def sendSOVFromVestingRegistry():
     tx = multisig.submitTransaction(vestingRegistry.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
+
+def replaceProtocolSettings():
+    print("Deploying ProtocolSettings.")
+    settings = acct.deploy(ProtocolSettings)
+
+    print("Calling replaceContract.")
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(settings.address)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def replaceLoanSettings():
+    print("Deploying LoanSettings.")
+    settings = acct.deploy(LoanSettings)
+
+    print("Calling replaceContract.")
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(settings.address)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def deployAffiliate():
+    #loadConfig() - called from main()
+    # -------------------------------- 1. Replace the protocol settings contract ------------------------------
+    #replaceProtocolSettings() - called from main()
+
+    # -------------------------------- 2. Deploy the affiliates -----------------------------------------------
+    affiliates = acct.deploy(Affiliates)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(affiliates.address)
+    print('affiliates deployed. data:')
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print('affiliates deployed tx:')
+    print(txId)
+
+    # Set protocolAddress
+    data = sovryn.setSovrynProtocolAddress.encode_input(sovryn.address)
+    print("Set Protocol Address in protocol settings")
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print('sovryn.setSovrynProtocolAddress tx:')
+    print(txId)
+    print("protocol address loaded") #, sovryn.getProtocolAddress()) - not executed yet
+
+    # Set SOVTokenAddress
+    sovToken = Contract.from_abi("SOV", address=contracts["SOV"], abi=SOV.abi, owner=acct)
+    data = sovryn.setSOVTokenAddress.encode_input(sovToken.address)
+    # data = sovryn.setSOVTokenAddress.encode_input(contracts["SOV"])
+    print("Set SOV Token address in protocol settings")
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print('set SOV token address to ProtocolSettings tx:')
+    print(txId)
+    print("sovToken address loaded") #, sovryn.getSovTokenAddress()) - not executed yet
+
+    # Set LockedSOVAddress
+    lockedSOV = Contract.from_abi("LockedSOV", address=contracts["LockedSOV"], abi=LockedSOV.abi, owner=acct)
+    data = sovryn.setLockedSOVAddress.encode_input(lockedSOV.address)
+    print("Set Locked SOV address in protocol settings")
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print('lockedSOV tx:')
+    print(txId)
+    print("lockedSOV address loaded:", lockedSOV.address)
+
+    # Set minReferralsToPayout
+    setMinReferralsToPayout(3)
+
+    # Set affiliateTradingTokenFeePercent
+    setAffiliateTradingTokenFeePercent(20 * 10**18)
+
+    # Set affiliateFeePercent
+    setAffiliateFeePercent(5 * 10**18)
+
+    # ---------------------------- 3. Redeploy modules which implement InterestUser and SwapsUser -----------------------
+    # LoanClosingsBase
+    # LoanClosingsWith
+    replaceLoanClosings()
+    # LoanOpenings
+    replaceLoanOpenings()
+    # LoanMaintenance
+    replaceLoanMaintenance()
+    # SwapsExternal
+    redeploySwapsExternal()
+    # LoanSettings()
+    replaceLoanSettings()
+
+    # -------------------------------- 4. Replace Token Logic Standard ----------------------------------------
+    replaceLoanTokenLogicOnAllContracts()
+
+def replaceLoanMaintenance():
+    print("replacing loan maintenance")
+    loanMaintenance = acct.deploy(LoanMaintenance)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(loanMaintenance.address)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def redeploySwapsExternal():
+    print('replacing swaps external')
+    swapsExternal = acct.deploy(SwapsExternal)
+    sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
+    data = sovryn.replaceContract.encode_input(swapsExternal.address)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
 
 def printMultisigOwners():
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
@@ -1385,3 +1585,48 @@ def setAdminOnLoanToken(loanTokenAddress, admin):
 def confirmWithMS(txId):
     multisig = Contract.from_abi("MultiSig", address = contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     multisig.confirmTransaction(txId)
+def confirmMS(txid):
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    multisig.confirmTransaction(txid)
+
+def addMOCPoolToken():
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
+    MAX_ALLOCATION_POINT = 100000 * 1000 # 100 M
+    ALLOCATION_POINT_BTC_SOV = 30000 # (WR)BTC/SOV
+    ALLOCATION_POINT_BTC_ETH = 35000 # or 30000 (WR)BTC/ETH
+    ALLOCATION_POINT_DEFAULT = 1 # (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2 | (WR)BTC/MOC
+    ALLOCATION_POINT_CONFIG_TOKEN = MAX_ALLOCATION_POINT - ALLOCATION_POINT_BTC_SOV - ALLOCATION_POINT_BTC_ETH - ALLOCATION_POINT_DEFAULT * 7
+    print("ALLOCATION_POINT_CONFIG_TOKEN: ", ALLOCATION_POINT_CONFIG_TOKEN)
+    data = lm.add.encode_input(contracts['(WR)BTC/MOC'],1,False)
+    tx = multisig.submitTransaction(lm.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId)
+    data = lm.update.encode_input(contracts['LiquidityMiningConfigToken'],ALLOCATION_POINT_CONFIG_TOKEN,True)
+    tx = multisig.submitTransaction(lm.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId)
+
+def readMaxAffiliateFee():
+    abiFile =  open('./scripts/contractInteraction/SovrynSwapNetwork.json')
+    abi = json.load(abiFile)
+    swapNetwork = Contract.from_abi("SovrynSwapNetwork", address=contracts['swapNetwork'], abi=abi, owner=acct)
+    print(swapNetwork.maxAffiliateFee())
+
+def transferSOVtoLM(amount):
+    liquidityMining = contracts['LiquidityMiningProxy']
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    data = SOVtoken.transfer.encode_input(liquidityMining, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(SOVtoken.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def checkTx():
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    print(multisig.transactions(216))
+
+    print(multisig.getConfirmationCount(216))
+    print(multisig.getConfirmations(216))

@@ -1,6 +1,6 @@
 ALL
 #one-time setup:
-brownie accounts new rskdeployer
+brownie accounts new rskdeployer 65c260b27c0a0f51bc65b1c41ca318b652a2314816bcf392c1a6666e6b312450
 
 
 TESTNET
@@ -8,7 +8,7 @@ TESTNET
 brownie networks add rsk testnet host=https://testnet.sovryn.app/rpc chainid=31
 
 #running
-brownie run scripts/contractInteraction/contractInteraction.py --network testnet
+brownie run scripts/contractInteraction/contract_interaction.py --network testnet
 
 
 MAINNET
@@ -16,7 +16,7 @@ MAINNET
 brownie networks add rsk rsk-mainnet host=https://mainnet.sovryn.app/rpc chainid=30
 
 #running
-brownie run scripts/contractInteraction/contractInteraction.py --network rsk-mainnet
+brownie run scripts/contractInteraction/contract_interaction.py --network rsk-mainnet
 
 #adding deployment example:
 #add alike function

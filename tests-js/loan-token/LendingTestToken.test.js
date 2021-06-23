@@ -22,6 +22,8 @@ const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplLocal = artifacts.require("SwapsImplLocal");
 
+const Affiliates = artifacts.require("Affiliates");
+
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 
 //const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_more_of_lender_balance_should_not_fail } = require("./helpers");
@@ -56,6 +58,7 @@ contract("LoanTokenLending", (accounts) => {
 		await sovryn.replaceContract((await LoanMaintenance.new()).address);
 		await sovryn.replaceContract((await SwapsExternal.new()).address);
 		await sovryn.replaceContract((await LoanOpenings.new()).address);
+		await sovryn.replaceContract((await Affiliates.new()).address);
 
 		await sovryn.setWrbtcToken(testWrbtc.address);
 
@@ -146,20 +149,5 @@ contract("LoanTokenLending", (accounts) => {
 			expect(profitAfter.lt(profitBefore)).to.be.true;
 		});
 
-		it("test mint without early access token should fail if required", async () => {
-			// prepare early access token
-			const early_access_token = await TestToken.new("Sovryn Early Access Token", "SEAT", 1, 10);
-			await early_access_token.transfer(account1, (await early_access_token.balanceOf(lender)).toString());
-			await loanToken.setEarlyAccessToken(early_access_token.address);
-
-			await expectRevert(lend_to_the_pool(loanToken, lender, underlyingToken, testWrbtc, sovryn), "No early access tokens");
-		});
-
-		it("test mint with early access token", async () => {
-			// prepare early access token
-			const early_access_token = await TestToken.new("Sovryn Early Access Token", "SEAT", 1, 10);
-			await loanToken.setEarlyAccessToken(early_access_token.address);
-			await lend_to_the_pool(loanToken, lender, underlyingToken, testWrbtc, sovryn);
-		});
 	});
 });

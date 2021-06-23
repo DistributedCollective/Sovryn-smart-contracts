@@ -13,6 +13,10 @@ contract RBTCWrapperProxyMockup {
 		liquidityMining.claimReward(_poolToken, msg.sender);
 	}
 
+	function claimRewardFromAllPools() public {
+		liquidityMining.claimRewardFromAllPools(msg.sender);
+	}
+
 	function withdraw(address _poolToken, uint256 _amount) public {
 		liquidityMining.withdraw(_poolToken, _amount, msg.sender);
 	}
