@@ -77,6 +77,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.getProtocolAddress.selector, target);
 		_setTarget(this.getSovTokenAddress.selector, target);
 		_setTarget(this.getLockedSOVAddress.selector, target);
+		_setTarget(this.getFeeRebatePercent.selector, target);
 	}
 
 	/**
@@ -625,5 +626,9 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 
 	function getLockedSOVAddress() external view returns (address) {
 		return lockedSOVAddress;
+	}
+
+	function getFeeRebatePercent() external view returns (uint256) {
+		return feeRebatePercent;
 	}
 }

@@ -54,5 +54,6 @@ contract ProtocolSettingsMockup is ProtocolSettings {
 		_setTarget(this.getProtocolAddress.selector, target);
 		_setTarget(this.getSovTokenAddress.selector, target);
 		_setTarget(this.getLockedSOVAddress.selector, target);
+		_setTarget(this.getFeeRebatePercent.selector, target);
 	}
 }

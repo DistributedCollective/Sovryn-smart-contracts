@@ -363,6 +363,8 @@ contract ISovryn is
 
 	function getLockedSOVAddress() external view returns (address);
 
+	function getFeeRebatePercent() external view returns (uint256);
+
 	function getMinReferralsToPayout() external view returns (uint256);
 
 	function getAffiliatesUserReferrer(address user) external view returns (address referrer);
