@@ -106,113 +106,77 @@ contract("SwapsExternal", (accounts) => {
 	});
 
 	describe("SwapsExternal - Swap External", () => {
-        it("Doesn't allow fallback function calls", async () => {
+		it("Doesn't allow fallback function calls", async () => {
 			const swapsExternal = await SwapsExternal.new();
-            await expectRevert(
-                swapsExternal.send(wei("0.0000000000000001", "ether")),
-                "fallback function is not payable and was called with value 100"
-            );
+			await expectRevert(
+				swapsExternal.send(wei("0.0000000000000001", "ether")),
+				"fallback function is not payable and was called with value 100"
+			);
 			await expectRevert(swapsExternal.sendTransaction({}), "fallback not allowed");
 		});
 
-        it("Doesn't allow swaps if source token amount = 0", async () => {
-			await expectRevert(sovryn.swapExternal(
-                underlyingToken.address, 
-				testWrbtc.address, 
-                accounts[0], 
-                accounts[0], 
-                0, 
-                0, 
-                0, 
-                "0x"),
-                "sourceTokenAmount == 0");
+		it("Doesn't allow swaps if source token amount = 0", async () => {
+			await expectRevert(
+				sovryn.swapExternal(underlyingToken.address, testWrbtc.address, accounts[0], accounts[0], 0, 0, 0, "0x"),
+				"sourceTokenAmount == 0"
+			);
 		});
 
-        it("Doesn't allow swaps without enough allowance", async () => {
-			await expectRevert(sovryn.swapExternal(
-                underlyingToken.address, 
-				testWrbtc.address, 
-                accounts[0], 
-                accounts[0], 
-                hunEth, 
-                0, 
-                0, 
-                "0x"),
-                "SafeERC20: low-level call failed");
+		it("Doesn't allow swaps without enough allowance", async () => {
+			await expectRevert(
+				sovryn.swapExternal(underlyingToken.address, testWrbtc.address, accounts[0], accounts[0], hunEth, 0, 0, "0x"),
+				"SafeERC20: low-level call failed"
+			);
 		});
 
-        it("Doesn't allow swaps if token address contract unavailable", async () => {
-			await expectRevert(sovryn.swapExternal(
-                ZERO_ADDRESS, 
-				testWrbtc.address, 
-                accounts[0], 
-                accounts[0], 
-                100, 
-                0, 
-                0, 
-                "0x"),
-                "function call to a non-contract account");
+		it("Doesn't allow swaps if token address contract unavailable", async () => {
+			await expectRevert(
+				sovryn.swapExternal(ZERO_ADDRESS, testWrbtc.address, accounts[0], accounts[0], 100, 0, 0, "0x"),
+				"function call to a non-contract account"
+			);
 		});
 
 		it("Doesn't allow swaps if source token address is missing", async () => {
-            const assetBalance = await loanToken.assetBalanceOf(lender);
+			const assetBalance = await loanToken.assetBalanceOf(lender);
 			await underlyingToken.approve(sovryn.address, assetBalance.add(new BN(wei("10", "ether"))).toString());
-			await expectRevert(sovryn.swapExternal(
-                ZERO_ADDRESS,
-                testWrbtc.address, 
-                accounts[0], 
-                accounts[0], 
-                wei("1", "ether"), 
-                0, 
-                0, 
-                "0x", { value: wei("1", "ether") }),
-                "swap failed");
-		});	
-
-        it("Doesn't allow swaps if destination token is zero address", async () => {
-            const assetBalance = await loanToken.assetBalanceOf(lender);
-			await underlyingToken.approve(sovryn.address, assetBalance.add(new BN(wei("10", "ether"))).toString());
-			await expectRevert(sovryn.swapExternal(
-                underlyingToken.address,
-                ZERO_ADDRESS, 				 
-                accounts[0], 
-                accounts[0], 
-                100, 
-                0, 
-                0, 
-                "0x"),
-                "swap failed");
+			await expectRevert(
+				sovryn.swapExternal(ZERO_ADDRESS, testWrbtc.address, accounts[0], accounts[0], wei("1", "ether"), 0, 0, "0x", {
+					value: wei("1", "ether"),
+				}),
+				"swap failed"
+			);
 		});
 
-        it("Doesn't allow source token mismatch", async () => {
-            const assetBalance = await loanToken.assetBalanceOf(lender);
+		it("Doesn't allow swaps if destination token is zero address", async () => {
+			const assetBalance = await loanToken.assetBalanceOf(lender);
 			await underlyingToken.approve(sovryn.address, assetBalance.add(new BN(wei("10", "ether"))).toString());
-			await expectRevert(sovryn.swapExternal(
-                underlyingToken.address,
-                testWrbtc.address, 
-                accounts[0], 
-                accounts[0], 
-                wei("1", "ether"), 
-                0, 
-                0, 
-                "0x", { value: wei("1", "ether") }),
-                "sourceToken mismatch");
-		});	
+			await expectRevert(
+				sovryn.swapExternal(underlyingToken.address, ZERO_ADDRESS, accounts[0], accounts[0], 100, 0, 0, "0x"),
+				"swap failed"
+			);
+		});
 
-        it("Doesn't allow source token amount mismatch", async () => {
-            const assetBalance = await loanToken.assetBalanceOf(lender);
+		it("Doesn't allow source token mismatch", async () => {
+			const assetBalance = await loanToken.assetBalanceOf(lender);
+			await underlyingToken.approve(sovryn.address, assetBalance.add(new BN(wei("10", "ether"))).toString());
+			await expectRevert(
+				sovryn.swapExternal(underlyingToken.address, testWrbtc.address, accounts[0], accounts[0], wei("1", "ether"), 0, 0, "0x", {
+					value: wei("1", "ether"),
+				}),
+				"sourceToken mismatch"
+			);
+		});
+
+		it("Doesn't allow source token amount mismatch", async () => {
+			const assetBalance = await loanToken.assetBalanceOf(lender);
 			await testWrbtc.approve(sovryn.address, assetBalance.add(new BN(wei("10", "ether"))).toString());
-			await expectRevert(sovryn.swapExternal(
-                testWrbtc.address,
-                underlyingToken.address, 
-                accounts[0], 
-                accounts[0], 
-                wei("1", "ether"), 
-                0, 
-                0, 
-                "0x", { value: 100 }),
-                "sourceTokenAmount mismatch");
-		});		
+			await expectRevert(
+				sovryn.swapExternal(testWrbtc.address, underlyingToken.address, accounts[0], accounts[0], wei("1", "ether"), 0, 0, "0x", {
+					value: 100,
+				}),
+				"sourceTokenAmount mismatch"
+			);
+		});
 
 		it("Check swapExternal with minReturn > 0 should revert if minReturn is not valid (higher)", async () => {
 			const assetBalance = await loanToken.assetBalanceOf(lender);
@@ -246,7 +210,7 @@ contract("SwapsExternal", (accounts) => {
 				wei("0.01", "ether"),
 				"0x"
 			);
-            const fields = await sovryn.swapExternal.call(
+			const fields = await sovryn.swapExternal.call(
 				underlyingToken.address,
 				testWrbtc.address,
 				accounts[0],
@@ -256,22 +220,22 @@ contract("SwapsExternal", (accounts) => {
 				wei("0.01", "ether"),
 				"0x"
 			);
-            expectEvent(tx, "ExternalSwap", {
+			expectEvent(tx, "ExternalSwap", {
 				user: lender,
 				sourceToken: underlyingToken.address,
-                destToken: testWrbtc.address,
+				destToken: testWrbtc.address,
 				sourceAmount: wei("1", "ether"),
-                destAmount: fields.destTokenAmountReceived.toString(),
+				destAmount: fields.destTokenAmountReceived.toString(),
 			});
 
-            let destTokenAmount = await sovryn.getSwapExpectedReturn(underlyingToken.address, testWrbtc.address, wei("1", "ether"));
-            const trading_fee_percent = await sovryn.tradingFeePercent();
+			let destTokenAmount = await sovryn.getSwapExpectedReturn(underlyingToken.address, testWrbtc.address, wei("1", "ether"));
+			const trading_fee_percent = await sovryn.tradingFeePercent();
 			const trading_fee = destTokenAmount.mul(trading_fee_percent).div(hunEth);
-            let desTokenAmountAfterFee = destTokenAmount - trading_fee;
-            assert.equal(desTokenAmountAfterFee, fields.destTokenAmountReceived.toString());
-        });
+			let desTokenAmountAfterFee = destTokenAmount - trading_fee;
+			assert.equal(desTokenAmountAfterFee, fields.destTokenAmountReceived.toString());
+		});
 
-		it("Should be able to withdraw fees", async () => {	
+		it("Should be able to withdraw fees", async () => {
 			const assetBalance = await loanToken.assetBalanceOf(lender);
 			await underlyingToken.approve(sovryn.address, assetBalance.add(new BN(wei("10", "ether"))).toString());
 			// feeds price is set 0.01, so test minReturn with 0.01 as well for the 1 ether swap
@@ -307,7 +271,7 @@ contract("SwapsExternal", (accounts) => {
 			//await underlyingToken.transfer(lender, amount);
 			await underlyingToken.approve(staking.address, amount, { from: lender });
 			let kickoffTS = await staking.kickoffTS.call();
-			await staking.stake(amount, kickoffTS.add(new BN(TWO_WEEKS)), lender, lender, { from: lender});
+			await staking.stake(amount, kickoffTS.add(new BN(TWO_WEEKS)), lender, lender, { from: lender });
 
 			const tx = await feeSharingProxy.withdrawFees(underlyingToken.address);
 
@@ -321,7 +285,8 @@ contract("SwapsExternal", (accounts) => {
 		it("Check swapExternal with minReturn > 0 should revert if minReturn is valid", async () => {
 			await expectRevert(
 				sovryn.checkPriceDivergence(underlyingToken.address, testWrbtc.address, wei("1", "ether"), wei("2", "ether")),
-				"destTokenAmountReceived too low");
-        });
+				"destTokenAmountReceived too low"
+			);
+		});
 	});
 });
