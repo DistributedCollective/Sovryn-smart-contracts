@@ -12,6 +12,13 @@ def redeemFromAggregator(aggregatorAddress, tokenAddress, amount):
     aggregator = Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
     aggregator.redeem(tokenAddress, amount)
 
+def redeemFromAggregatorWithMS(aggregatorAddress, tokenAddress, amount):
+    abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
+    abi = json.load(abiFile)
+    aggregator = Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
+    data = aggregator.redeem.encode_input(tokenAddress, amount)
+    sendWithMultisig(conf.contracts['multisig'], aggregator.address, data, conf.acct)
+
 
 def upgradeAggregator(multisig, newImpl):
     abiFile =  open('./scripts/contractInteraction/ABIs/AggregatorProxy.json')

@@ -30,8 +30,6 @@ def main():
     #call the function you want here
     
 
-    checkRates()
-
 
 
 
