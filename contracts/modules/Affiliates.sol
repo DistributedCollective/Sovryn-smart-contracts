@@ -181,6 +181,7 @@ contract Affiliates is State, AffiliatesEvents {
 		if (bonusPaymentIsSuccess) {
 			emit PayTradingFeeToAffiliate(
 				referrer,
+				tx.origin, // trader
 				token,
 				isHeld,
 				tradingFeeTokenBaseAmount,
@@ -191,6 +192,7 @@ contract Affiliates is State, AffiliatesEvents {
 		} else {
 			emit PayTradingFeeToAffiliateFail(
 				referrer,
+				tx.origin, // trader
 				token,
 				tradingFeeTokenBaseAmount,
 				referrerBonusTokenAmount,

@@ -218,6 +218,8 @@ contract("Affiliates", (accounts) => {
 		let affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
 		let submittedAffiliatesReward = decode[0].args["sovBonusAmount"];
 		let submittedTokenBonusAmount = decode[0].args["tokenBonusAmount"];
+		let submittedReferrer = decode[0].args["referrer"];
+		let submittedTrader = decode[0].args["trader"];
 		expect(isHeld, "First trade affiliates reward must be in held").to.be.true;
 		expect(referrerFee.toString(), "Token bonus rewards is not matched").to.be.equal(submittedTokenBonusAmount.toString());
 
@@ -229,6 +231,9 @@ contract("Affiliates", (accounts) => {
 		// Check lockedSOV Balance of the referrer
 		let referrerBalanceInLockedSOV = await lockedSOV.getLockedBalance(referrer);
 		expect(referrerBalanceInLockedSOV.toString(), "Referrer balance in lockedSOV is not matched").to.be.equal(new BN(0).toString());
+
+		expect(submittedReferrer).to.eql(referrer);
+		expect(submittedTrader).to.eql(trader);
 
 		// Change the min referrals to payout to 1
 		await sovryn.setMinReferralsToPayoutAffiliates(1);
@@ -258,6 +263,8 @@ contract("Affiliates", (accounts) => {
 		submittedAffiliatesReward = decode[0].args["sovBonusAmount"];
 		submittedTokenBonusAmount = decode[0].args["tokenBonusAmount"];
 		sovBonusAmountPaid = decode[0].args["sovBonusAmountPaid"];
+		submittedReferrer = decode[0].args["referrer"];
+		submittedTrader = decode[0].args["trader"];
 
 		expect(affiliateRewardsHeld.toString(), "affiliateRewardHeld should be zero at this point").to.be.equal(new BN(0).toString());
 		expect(referrerFee.toString(), "Token bonus rewards is not matched").to.be.equal(submittedTokenBonusAmount.toString());
@@ -277,6 +284,9 @@ contract("Affiliates", (accounts) => {
 		expect(referrerBalanceInLockedSOV.toString(), "Referrer balance in lockedSOV is not matched").to.be.equal(
 			checkSovBonusAmountPaid.toString()
 		);
+
+		expect(submittedReferrer).to.eql(referrer);
+		expect(submittedTrader).to.eql(trader);
 
 		// Do withdrawal
 		let referrerTokenBalance = await doc.balanceOf(referrer);
