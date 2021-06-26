@@ -325,6 +325,7 @@ contract ISovrynBrownie is
 
 	function payTradingFeeToAffiliatesReferrer(
 		address referrer,
+		address trader,
 		address token,
 		uint256 tradingFeeTokenBaseAmount
 	) external returns (uint256 affiliatesBonusSOVAmount, uint256 affiliatesBonusTokenAmount);

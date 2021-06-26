@@ -14,6 +14,7 @@ interface ProtocolAffiliatesInterface {
 
 	function payTradingFeeToAffiliatesReferrer(
 		address affiliate,
+		address trader,
 		address token,
 		uint256 amount
 	) external returns (uint256 affiliatesBonusSOVAmount, uint256 affiliatesBonusTokenAmount);

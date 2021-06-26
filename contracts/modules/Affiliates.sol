@@ -143,6 +143,7 @@ contract Affiliates is State, AffiliatesEvents {
 	 */
 	function payTradingFeeToAffiliatesReferrer(
 		address referrer,
+		address trader,
 		address token,
 		uint256 tradingFeeTokenBaseAmount
 	) external onlyCallableInternal returns (uint256 referrerBonusSovAmount, uint256 referrerBonusTokenAmount) {
@@ -181,7 +182,7 @@ contract Affiliates is State, AffiliatesEvents {
 		if (bonusPaymentIsSuccess) {
 			emit PayTradingFeeToAffiliate(
 				referrer,
-				tx.origin, // trader
+				trader, // trader
 				token,
 				isHeld,
 				tradingFeeTokenBaseAmount,
@@ -192,7 +193,7 @@ contract Affiliates is State, AffiliatesEvents {
 		} else {
 			emit PayTradingFeeToAffiliateFail(
 				referrer,
-				tx.origin, // trader
+				trader, // trader
 				token,
 				tradingFeeTokenBaseAmount,
 				referrerBonusTokenAmount,

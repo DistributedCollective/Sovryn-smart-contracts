@@ -465,7 +465,7 @@ contract("Affiliates", (accounts) => {
 
 	it("payTradingFeeToAffiliatesReferrer() Should revert if not called by protocol", async () => {
 		await expectRevert(
-			sovryn.payTradingFeeToAffiliatesReferrer(referrer, tokenSOV.address, wei("1", "gwei")),
+			sovryn.payTradingFeeToAffiliatesReferrer(referrer, trader, tokenSOV.address, wei("1", "gwei")),
 			"Affiliates: not authorized"
 		);
 	});
