@@ -10,6 +10,7 @@ import "../openzeppelin/SafeERC20.sol";
 import "../feeds/IPriceFeeds.sol";
 import "../events/FeesEvents.sol";
 import "../mixins/ProtocolTokenUser.sol";
+import "../modules/interfaces/ProtocolAffiliatesInterface.sol";
 
 /**
  * @title The Fees Helper contract.
@@ -59,22 +60,49 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 	}
 
 	/**
+	 * @dev settles the trading fee and pays the token reward to the user.
+	 * @param referrer the affiliate referrer address to send the reward to
+	 * @param feeToken the address of the token in which the trading fee is paid
+	 * @return affiliatesBonusSOVAmount the total SOV amount that is distributed to the referrer
+	 * @return affiliatesBonusTokenAmount the total Token Base on the trading fee pairs that is distributed to the referrer
+	 * */
+
+	function _payTradingFeeToAffiliate(
+		address referrer,
+		address trader,
+		address feeToken,
+		uint256 tradingFee
+	) internal returns (uint256 affiliatesBonusSOVAmount, uint256 affiliatesBonusTokenAmount) {
+		(affiliatesBonusSOVAmount, affiliatesBonusTokenAmount) = ProtocolAffiliatesInterface(protocolAddress)
+			.payTradingFeeToAffiliatesReferrer(referrer, trader, feeToken, tradingFee);
+	}
+
+	/**
 	 * @notice Settle the trading fee and pay the token reward to the user.
 	 * @param user The address to send the reward to.
 	 * @param loanId The Id of the associated loan - used for logging only.
 	 * @param feeToken The address of the token in which the trading fee is paid.
 	 * */
+
 	function _payTradingFee(
 		address user,
 		bytes32 loanId,
 		address feeToken,
 		uint256 tradingFee
 	) internal {
+		uint256 protocolTradingFee = tradingFee; //trading fee paid to protocol
 		if (tradingFee != 0) {
-			/// Increase the storage variable keeping track of the accumulated fees.
-			tradingFeeTokensHeld[feeToken] = tradingFeeTokensHeld[feeToken].add(tradingFee);
+			if (affiliatesUserReferrer[user] != address(0)) {
+				_payTradingFeeToAffiliate(affiliatesUserReferrer[user], user, feeToken, protocolTradingFee);
+				protocolTradingFee = (protocolTradingFee.sub(protocolTradingFee.mul(affiliateFeePercent).div(10**20))).sub(
+					protocolTradingFee.mul(affiliateTradingTokenFeePercent).div(10**20)
+				);
+			}
 
-			emit PayTradingFee(user, feeToken, loanId, tradingFee);
+			/// Increase the storage variable keeping track of the accumulated fees.
+			tradingFeeTokensHeld[feeToken] = tradingFeeTokensHeld[feeToken].add(protocolTradingFee);
+
+			emit PayTradingFee(user, feeToken, loanId, protocolTradingFee);
 
 			/// Pay the token reward to the user.
 			_payFeeReward(user, loanId, feeToken, tradingFee);

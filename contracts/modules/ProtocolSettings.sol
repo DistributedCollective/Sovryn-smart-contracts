@@ -49,6 +49,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.setTradingFeePercent.selector, target);
 		_setTarget(this.setBorrowingFeePercent.selector, target);
 		_setTarget(this.setAffiliateFeePercent.selector, target);
+		_setTarget(this.setAffiliateTradingTokenFeePercent.selector, target);
 		_setTarget(this.setLiquidationIncentivePercent.selector, target);
 		_setTarget(this.setMaxDisagreement.selector, target);
 		_setTarget(this.setSourceBuffer.selector, target);
@@ -67,6 +68,49 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.setProtocolTokenAddress.selector, target);
 		_setTarget(this.setRolloverBaseReward.selector, target);
 		_setTarget(this.setRebatePercent.selector, target);
+		_setTarget(this.setSovrynProtocolAddress.selector, target);
+		_setTarget(this.setSOVTokenAddress.selector, target);
+		_setTarget(this.setLockedSOVAddress.selector, target);
+		_setTarget(this.setMinReferralsToPayoutAffiliates.selector, target);
+		_setTarget(this.getProtocolAddress.selector, target);
+		_setTarget(this.getSovTokenAddress.selector, target);
+		_setTarget(this.getLockedSOVAddress.selector, target);
+	}
+
+	/**
+	 * setting wrong address will break inter module functions calling
+	 * should be set once
+	 */
+	function setSovrynProtocolAddress(address newProtocolAddress) external onlyOwner {
+		address oldProtocolAddress = protocolAddress;
+		protocolAddress = newProtocolAddress;
+
+		emit SetProtocolAddress(msg.sender, oldProtocolAddress, newProtocolAddress);
+	}
+
+	function setSOVTokenAddress(address newSovTokenAddress) external onlyOwner {
+		require(Address.isContract(newSovTokenAddress), "newSovTokenAddress not a contract");
+
+		address oldTokenAddress = sovTokenAddress;
+		sovTokenAddress = newSovTokenAddress;
+
+		emit SetSOVTokenAddress(msg.sender, oldTokenAddress, newSovTokenAddress);
+	}
+
+	function setLockedSOVAddress(address newLockedSOVAddress) external onlyOwner {
+		require(Address.isContract(newLockedSOVAddress), "newLockSOVAddress not a contract");
+
+		address oldLockedSOVAddress = lockedSOVAddress;
+		lockedSOVAddress = newLockedSOVAddress;
+
+		emit SetLockedSOVAddress(msg.sender, oldLockedSOVAddress, newLockedSOVAddress);
+	}
+
+	function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external onlyOwner {
+		uint256 oldMinReferrals = minReferralsToPayout;
+		minReferralsToPayout = newMinReferrals;
+
+		emit SetMinReferralsToPayoutAffiliates(msg.sender, oldMinReferrals, newMinReferrals);
 	}
 
 	/**
@@ -188,6 +232,19 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		affiliateFeePercent = newValue;
 
 		emit SetAffiliateFeePercent(msg.sender, oldValue, newValue);
+	}
+
+	/**
+	 * @notice Set the value of affiliateTradingTokenFeePercent storage variable.
+	 *
+	 * @param newValue The new value for affiliateTradingTokenFeePercent.
+	 * */
+	function setAffiliateTradingTokenFeePercent(uint256 newValue) external onlyOwner {
+		require(newValue <= 10**20, "value too high");
+		uint256 oldValue = affiliateTradingTokenFeePercent;
+		affiliateTradingTokenFeePercent = newValue;
+
+		emit SetAffiliateTradingTokenFeePercent(msg.sender, oldValue, newValue);
 	}
 
 	/**
@@ -523,5 +580,17 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		feeRebatePercent = rebatePercent;
 
 		emit SetRebatePercent(msg.sender, oldRebatePercent, rebatePercent);
+	}
+
+	function getProtocolAddress() external view returns (address) {
+		return protocolAddress;
+	}
+
+	function getSovTokenAddress() external view returns (address) {
+		return sovTokenAddress;
+	}
+
+	function getLockedSOVAddress() external view returns (address) {
+		return lockedSOVAddress;
 	}
 }

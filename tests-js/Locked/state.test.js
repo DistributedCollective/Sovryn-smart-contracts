@@ -437,6 +437,35 @@ contract("Locked SOV (State)", (accounts) => {
 		}
 	});
 
+	it("Using withdrawAndStakeTokensFrom() should correctly withdraw all unlocked tokens and stake locked tokens correctly.", async () => {
+		let value = randomValue() + 10;
+		await sov.mint(userFour, value);
+		await sov.approve(lockedSOV.address, value, { from: userFour });
+		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
+		await lockedSOV.deposit(userFour, value, basisPoint, { from: userFour });
+
+		let unlockedBal = Math.floor((value * basisPoint) / 10000);
+		let beforeBal = await getTokenBalances(userFour, sov, lockedSOV);
+
+		await lockedSOV.withdrawAndStakeTokensFrom(userFour, { from: userOne });
+
+		let afterBal = await getTokenBalances(userFour, sov, lockedSOV);
+		assert.equal(afterBal[0].toNumber(), beforeBal[0].toNumber() + unlockedBal, "Correct amount was not withdrawn.");
+
+		vestingAddr = await vestingRegistry.getVesting(userFour);
+		assert.notEqual(vestingAddr, zeroAddress, "Vesting Address should not be zero.");
+
+		let balance = await staking.balanceOf(vestingAddr);
+		let lockedValue = Math.ceil((value * basisPoint) / 10000);
+		assert.equal(balance.toNumber(), Math.ceil(lockedValue), "Staking Balance does not match");
+
+		let getStakes = await staking.getStakes(vestingAddr);
+		assert.equal(getStakes.stakes[0].toNumber(), Math.ceil(lockedValue - Math.floor(lockedValue / duration) * (duration - 1)));
+		for (let index = 1; index < getStakes.dates.length; index++) {
+			assert.equal(getStakes.stakes[index].toNumber(), Math.floor(lockedValue / duration));
+		}
+	});
+
 	it("Starting the migration should update the contract status correctly.", async () => {
 		await checkStatus(
 			lockedSOV,

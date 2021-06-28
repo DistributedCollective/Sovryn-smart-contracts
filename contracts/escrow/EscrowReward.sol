@@ -1,7 +1,7 @@
 pragma solidity ^0.5.17;
 
 import "./Escrow.sol";
-import "./ILockedSOV.sol";
+import "../locked/ILockedSOV.sol";
 
 /**
  *  @title A reward distribution contract for Sovryn Ethereum Pool Escrow Contract.

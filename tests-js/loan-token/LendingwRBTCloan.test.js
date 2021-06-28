@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
-const { mineBlock, increaseTime } = require("../Utils/Ethereum");
+//const { mineBlock, increaseTime } = require("../Utils/Ethereum");
 
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
@@ -22,6 +22,8 @@ const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 
+const Affiliates = artifacts.require("Affiliates");
+
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 
 const {
@@ -31,6 +33,7 @@ const {
 	cash_out_from_the_pool,
 	cash_out_from_the_pool_more_of_lender_balance_should_not_fail,
 } = require("./helpers");
+//const { artifacts } = require("hardhat");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
@@ -63,6 +66,7 @@ contract("LoanTokenLending", (accounts) => {
 		await sovryn.replaceContract((await LoanMaintenance.new()).address);
 		await sovryn.replaceContract((await SwapsExternal.new()).address);
 		await sovryn.replaceContract((await LoanOpenings.new()).address);
+		await sovryn.replaceContract((await Affiliates.new()).address);
 
 		await sovryn.setWrbtcToken(testWrbtc.address);
 
@@ -123,7 +127,7 @@ contract("LoanTokenLending", (accounts) => {
 			const actual_initial_balance = new BN(await web3.eth.getBalance(lender));
 
 			await verify_start_conditions(testWrbtc, loanToken, lender, initial_balance, deposit_amount);
-			await loanToken.mintWithBTC(lender, { value: deposit_amount });
+			await loanToken.mintWithBTC(lender, false, { value: deposit_amount });
 
 			initial_balance = new BN(wei("5", "ether"));
 			await verify_lending_result_and_itoken_price_change(
@@ -147,10 +151,10 @@ contract("LoanTokenLending", (accounts) => {
 
 		it("test cash out from the pool more of lender balance should not fail", async () => {
 			const total_deposit_amount = new BN(wei("200", "ether"));
-			await loanToken.mintWithBTC(lender, { value: total_deposit_amount.toString() });
+			await loanToken.mintWithBTC(lender, false, { value: total_deposit_amount.toString() });
 			const balance_after_lending = await web3.eth.getBalance(lender);
-			await expectRevert(loanToken.burnToBTC(lender, total_deposit_amount.mul(new BN(2)).toString()), "32");
-			await loanToken.burnToBTC(lender, constants.MAX_UINT256);
+			await expectRevert(loanToken.burnToBTC(lender, total_deposit_amount.mul(new BN(2)).toString(), false), "32");
+			await loanToken.burnToBTC(lender, constants.MAX_UINT256, false);
 			expect(await loanToken.balanceOf(lender)).to.be.a.bignumber.equal(new BN(0));
 		});
 	});

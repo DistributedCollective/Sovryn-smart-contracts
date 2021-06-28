@@ -20,24 +20,15 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	/// ------------- MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 	address public sovrynContractAddress;
 	address public wrbtcTokenAddress;
-	address internal target_;
+	address public target_;
 	address public admin;
 	/// ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 
 	/// @dev Add new variables here on the bottom.
-	address public earlyAccessToken;
+	address public earlyAccessToken; //not used anymore, but staying for upgradability
 	address public pauser;
-
-	/* Events */
-
-	event SetEarlyAccessToken(address oldValue, address newValue);
-
-	/* Modifiers */
-
-	modifier hasEarlyAccessToken() {
-		if (earlyAccessToken != address(0)) require(IERC20(earlyAccessToken).balanceOf(msg.sender) > 0, "No early access tokens");
-		_;
-	}
+	/** The address of the liquidity mining contract */
+	address public liquidityMiningAddress;
 
 	/// @dev TODO: Check for restrictions in this contract.
 	modifier onlyAdmin() {
@@ -220,15 +211,5 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol) public onlyAdmin {
 		name = _name;
 		symbol = _symbol;
-	}
-
-	/**
-	 *	@notice Set early access token.
-	 *	@param _earlyAccessTokenAddress The early access token.
-	 * */
-	function setEarlyAccessToken(address _earlyAccessTokenAddress) public onlyAdmin {
-		address oldEarlyAccessToken = earlyAccessToken;
-		earlyAccessToken = _earlyAccessTokenAddress;
-		emit SetEarlyAccessToken(oldEarlyAccessToken, earlyAccessToken);
 	}
 }

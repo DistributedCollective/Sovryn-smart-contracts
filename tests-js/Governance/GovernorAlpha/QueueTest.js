@@ -93,19 +93,11 @@ contract("GovernorAlpha#queue/1", (accounts) => {
 			const txVote1 = await gov.castVote(proposalId1, true, { from: a1 });
 			const txVote2 = await gov.castVote(proposalId2, true, { from: a2 });
 			await advanceBlocks(30);
-			//await setTime(100);
 
-			await gov
-				.queue(proposalId1)
-				.then(
-					await expectRevert(
-						gov.queue(proposalId2),
-						"revert GovernorAlpha::_queueOrRevert: proposal action already queued at eta"
-					)
-				);
+			await expectRevert(gov.queueProposals([proposalId1, proposalId2]), "revert GovernorAlpha::_queueOrRevert: proposal action already queued at eta");
 
+			await gov.queue(proposalId1);
 			await increaseTime(60);
-			//await setTime(101);
 			const txQueue2 = await gov.queue(proposalId2);
 		});
 	});

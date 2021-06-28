@@ -13,8 +13,8 @@ const ISovryn = artifacts.require("ISovryn");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
+const LoanClosingsBase = artifacts.require("LoanClosingsBase");
 
 const SwapsExternal = artifacts.require("SwapsExternal");
 
@@ -24,6 +24,8 @@ const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
+
+const Affiliates = artifacts.require("Affiliates");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
@@ -109,8 +111,12 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
 	await sovryn.setSwapsImplContract(swaps.address);
 
 	// loanClosing
-	await sovryn.replaceContract((await LoanClosingsBase.new()).address);
 	await sovryn.replaceContract((await LoanClosingsWith.new()).address);
+	await sovryn.replaceContract((await LoanClosingsBase.new()).address);
+
+	// affiliates
+	await sovryn.replaceContract((await Affiliates.new()).address);
+
 	return sovryn;
 };
 
@@ -207,7 +213,7 @@ const lend_to_pool = async (loanToken, SUSD, lender) => {
 
 const lend_to_pool_iBTC = async (loanTokenWRBTC, lender) => {
 	const lend_amount = new BN(10).pow(new BN(21)).toString();
-	await loanTokenWRBTC.mintWithBTC(lender, { from: lender, value: lend_amount });
+	await loanTokenWRBTC.mintWithBTC(lender, false, { from: lender, value: lend_amount });
 	return [lender, lend_amount];
 };
 

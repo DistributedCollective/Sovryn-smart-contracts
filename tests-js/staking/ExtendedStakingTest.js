@@ -69,10 +69,10 @@ contract("Staking", (accounts) => {
 		wrbtc = await TestWrbtc.new();
 
 		//staking
-		let stakingLogic = await StakingLogic.new(token.address);
+		let stakingLogic = await StakingMockup.new(token.address);
 		staking = await StakingProxy.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
-		staking = await StakingLogic.at(staking.address);
+		staking = await StakingMockup.at(staking.address);
 
 		//Protocol
 		protocol = await Protocol.new();
@@ -663,6 +663,7 @@ contract("Staking", (accounts) => {
 	});
 
 	describe("withdraw", () => {
+
 		it("Amount of tokens to be withdrawn needs to be bigger than 0", async () => {
 			let amount = "1000";
 			let duration = new BN(TWO_WEEKS).mul(new BN(2));
@@ -784,6 +785,75 @@ contract("Staking", (accounts) => {
 
 			await expect(feeSharingBalance).to.be.bignumber.equal(new BN(punishedAmount));
 			await expect(userBalance).to.be.bignumber.equal(new BN(amount - punishedAmount));
+		});
+
+		it("Should be able to withdraw second time", async () => {
+			let amount = "1000";
+			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			let lockedTS = await getTimeFromKickoff(duration);
+			await staking.stake(amount, lockedTS, root, root);
+
+			await staking.withdraw(amount, lockedTS, root);
+
+			await staking.stake(amount, lockedTS, root, root);
+
+			await staking.withdraw(amount, lockedTS, root);
+		});
+
+		it("Should be able to withdraw second time after partial withdraw", async () => {
+			let amount = new BN(1000);
+			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			let lockedTS = await getTimeFromKickoff(duration);
+			await staking.stake(amount, lockedTS, root, root);
+
+			await staking.withdraw(amount.sub(new BN(1)), lockedTS, root);
+
+			await staking.stake(amount, lockedTS, root, root);
+
+			await staking.withdraw(amount.add(new BN(1)), lockedTS, root);
+		});
+
+		it("Should be able to withdraw second time (emulate issue with delegate checkpoint)", async () => {
+			let amount = "1000";
+			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			let lockedTS = await getTimeFromKickoff(duration);
+			await staking.stake(amount, lockedTS, root, root);
+
+			await staking.withdraw(amount, lockedTS, root);
+
+			await staking.stake(amount, lockedTS, root, root);
+			await staking.setDelegateStake(root, lockedTS, 0);
+
+			await staking.withdraw(amount, lockedTS, root);
+		});
+
+		it("Should be able to extend stake after second stake (emulate issue with delegate checkpoint)", async () => {
+			let amount = "1000";
+			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			let lockedTS = await getTimeFromKickoff(duration);
+			await staking.stake(amount, lockedTS, root, root);
+
+			await staking.withdraw(amount, lockedTS, root);
+
+			await staking.stake(amount, lockedTS, root, root);
+			await staking.setDelegateStake(root, lockedTS, 0);
+
+			let lockedTS2 = await getTimeFromKickoff(duration.mul(new BN(3)));
+			await staking.extendStakingDuration(lockedTS, lockedTS2);
+		});
+
+		it("Should be able to delegate stake after second stake (emulate issue with delegate checkpoint)", async () => {
+			let amount = "1000";
+			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			let lockedTS = await getTimeFromKickoff(duration);
+			await staking.stake(amount, lockedTS, root, root);
+
+			await staking.withdraw(amount, lockedTS, root);
+
+			await staking.stake(amount, lockedTS, root, root);
+			await staking.setDelegateStake(root, lockedTS, 0);
+
+			await staking.delegate(account1, lockedTS);
 		});
 
 		it("Should be able to withdraw earlier for any lock date", async () => {
@@ -929,6 +999,7 @@ contract("Staking", (accounts) => {
 			balance = await staking.balanceOf_MultipliedByTwo.call(root);
 			expect(balance.toNumber()).to.be.equal(amount * 2);
 		});
+
 	});
 
 	async function getTimeFromKickoff(delay) {

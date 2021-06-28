@@ -210,7 +210,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 	});
 
 	it("No one should be able to withdraw unless the Release Time has not passed.", async () => {
-		await escrowReward.updateReleaseTimestamp(currentTimestamp() + 1000, { from: multisig });
+		await escrowReward.updateReleaseTimestamp(currentTimestamp() + 3000, { from: multisig });
 		let value = randomValue() + 100;
 		await sov.mint(userOne, value);
 		await sov.approve(escrowReward.address, value, { from: userOne });
