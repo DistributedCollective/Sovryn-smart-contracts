@@ -89,4 +89,4 @@ def transferSOVtoLM(amount):
     data = SOVtoken.transfer.encode_input(liquidityMining, amount)
     print(data)
 
-    sendWithMultisig(conf.contracts['multisig'], SOVToken.address, data, conf.acct)
+    sendWithMultisig(conf.contracts['multisig'], SOVtoken.address, data, conf.acct)
