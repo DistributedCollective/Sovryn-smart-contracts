@@ -19,7 +19,7 @@ def lendToPoolWithMS(loanTokenAddress, tokenAddress, amount):
     if(token.allowance(conf.contracts['multisig'], loanToken.address) < amount):
         data = token.approve.encode_input(loanToken.address, amount)
         sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
-    data = loanToken.mint.encode_input(conf.acct, amount)
+    data = loanToken.mint.encode_input(conf.contracts['multisig'], amount)
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
 def removeFromPool(loanTokenAddress, amount):
