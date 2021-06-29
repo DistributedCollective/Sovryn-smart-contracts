@@ -22,17 +22,20 @@ def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTo
     print("path", path)
     expectedReturn = swapNetwork.getReturnByPath(path, amount)
     print("expected return ", expectedReturn)
-
-    tx = swapNetwork.convertByPath(
-        path,
-        amount,
-        minReturn,
-        "0x0000000000000000000000000000000000000000",
-        "0x0000000000000000000000000000000000000000",
-        0
-    )
-    tx.info()
-
+    
+    if(expectedReturn[0] > minReturn):
+        tx = swapNetwork.convertByPath(
+            path,
+            amount,
+            minReturn,
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            0
+        )
+        tx.info()
+    else:
+        print('retrun too low')
+    
     
 def addLiquidity(converter, reserve, amount):
     abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV2Converter.json')
@@ -42,6 +45,21 @@ def addLiquidity(converter, reserve, amount):
     print("price oracle", converter.priceOracle())
     tx = converter.addLiquidity(reserve, amount, 1)
     print(tx)
+
+def addLiquidityWithMS(converter, reserve, amount):
+    # approve
+    token = Contract.from_abi("ERC20", address=reserve, abi=ERC20.abi, owner=conf.acct)
+    data = token.approve.encode_input(converter, amount)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
+
+    #add liquidity
+    abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV2Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV2Converter", address=converter, abi=abi, owner=conf.acct)
+    data = converter.addLiquidity.encode_input(reserve, amount, 1)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], converter.address, data, conf.acct)
 
 def readBalanceFromAMM():
 
