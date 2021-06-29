@@ -340,6 +340,7 @@ contract ISovryn is
 		uint256 sourceTokenAmount,
 		uint256 minReturn
 	) public view;
+
 	////// Affiliates Module //////
 
 	function getUserNotFirstTradeFlag(address user) external view returns (bool);

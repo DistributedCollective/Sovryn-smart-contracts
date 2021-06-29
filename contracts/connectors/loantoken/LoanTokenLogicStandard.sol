@@ -390,7 +390,17 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	{
 		if (affiliateReferrer != address(0))
 			ProtocolAffiliatesInterface(sovrynContractAddress).setAffiliatesReferrer(trader, affiliateReferrer);
-		return marginTrade(loanId, leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress, trader, minReturn, loanDataBytes);
+		return
+			marginTrade(
+				loanId,
+				leverageAmount,
+				loanTokenSent,
+				collateralTokenSent,
+				collateralTokenAddress,
+				trader,
+				minReturn,
+				loanDataBytes
+			);
 	}
 
 	/**
@@ -1497,7 +1507,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	}
 
 	function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
-		uint balanceOnLM = ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(address(this), msg.sender);
+		uint256 balanceOnLM = ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(address(this), msg.sender);
 		require(balanceOnLM.add(balanceOf(msg.sender)) >= burnAmount, "not enough balance");
 
 		if (balanceOnLM > 0) {
@@ -1511,5 +1521,4 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		//burn the tokens of the msg.sender
 		return _burnToken(burnAmount);
 	}
-
 }
