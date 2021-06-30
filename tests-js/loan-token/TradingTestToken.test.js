@@ -316,7 +316,7 @@ contract("LoanTokenTrading", (accounts) => {
 					"0x", // loanDataBytes (only required with ether)
 					{ from: accounts[2] }
 				),
-				"unauthorized use of existing loan"
+				"401 use of existing loan"
 			);
 		});
 
@@ -357,7 +357,7 @@ contract("LoanTokenTrading", (accounts) => {
 
 			await expectRevert(
 				loanToken.checkPriceDivergence(new BN(2).mul(oneEth), wei("2", "ether"), 0, RBTC.address, wei("1", "ether")),
-				"revert new collateral too low"
+				"coll too low"
 			);
 		});
 	});

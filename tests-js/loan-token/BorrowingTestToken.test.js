@@ -121,7 +121,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 		it("Test borrow 0 collateral should fail", async () => {
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
-			expectRevert(
+			await expectRevert(
 				loanToken.borrow(
 					"0x0", // bytes32 loanId
 					10, // uint256 withdrawAmount
@@ -132,7 +132,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 					account1, // address receiver
 					"0x0" // bytes memory loanDataBytes
 				),
-				"8"
+				"7"
 			);
 		});
 
@@ -176,7 +176,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 		it("Test borrow invalid collateral should fail", async () => {
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
-			expectRevert(
+			await expectRevert(
 				loanToken.borrow(
 					"0x0", // bytes32 loanId
 					10, // uint256 withdrawAmount
@@ -187,7 +187,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 					account1, // address receiver
 					"0x0" // bytes memory loanDataBytes
 				),
-				"9"
+				"7"
 			);
 
 			expectRevert(
@@ -327,7 +327,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 					"0x0", // bytes memory loanDataBytes
 					{ from: accounts[2] }
 				),
-				"unauthorized use of existing loan"
+				"7"
 			);
 		});
 

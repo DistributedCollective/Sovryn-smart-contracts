@@ -61,7 +61,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @notice Fallback function is to react to receiving value (rBTC).
 	 * */
 	function() external {
-		revert("loan token logic - fallback not allowed");
+		// Due to contract size issue, need to keep the error message to 32 bytes length / we remove the revert function
+		// Remove revert function is fine as this fallback function is not payable, but the trade off is we cannot have the custom message for the fallback function error
+		// revert("loan token-fallback not allowed");
 	}
 
 	/* Public functions */
@@ -215,12 +217,15 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		/// Temporary: limit transaction size.
 		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
 
-		require(msg.value == 0 || msg.value == collateralTokenSent, "7");
-		require(collateralTokenSent != 0 || loanId != 0, "8");
-		require(collateralTokenAddress != address(0) || msg.value != 0 || loanId != 0, "9");
+		require( (msg.value == 0 || msg.value == collateralTokenSent) && (collateralTokenSent != 0 || loanId != 0) && (collateralTokenAddress != address(0) || msg.value != 0 || loanId != 0) && (loanId == 0 || msg.sender == borrower), "7");
+
+		/// @dev We have an issue regarding contract size code is too big. 1 of the solution is need to keep the error message 32 bytes length
+		// Temporarily, we combine this require to the above, so can save the contract size code
+		// require(collateralTokenSent != 0 || loanId != 0, "8");
+		// require(collateralTokenAddress != address(0) || msg.value != 0 || loanId != 0, "9");
 
 		/// @dev Ensure authorized use of existing loan.
-		require(loanId == 0 || msg.sender == borrower, "unauthorized use of existing loan");
+		// require(loanId == 0 || msg.sender == borrower, "401 use of existing loan");
 
 		if (collateralTokenAddress == address(0)) {
 			collateralTokenAddress = wrbtcTokenAddress;
@@ -325,7 +330,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		require(collateralTokenAddress != loanTokenAddress, "11");
 
 		/// @dev Ensure authorized use of existing loan.
-		require(loanId == 0 || msg.sender == trader, "unauthorized use of existing loan");
+		require(loanId == 0 || msg.sender == trader, "401 use of existing loan");
 
 		/// Temporary: limit transaction size.
 		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
@@ -840,7 +845,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	) public view {
 		(, uint256 estimatedCollateral, ) =
 			getEstimatedMarginDetails(leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress);
-		require(estimatedCollateral >= minReturn, "new collateral too low");
+		require(estimatedCollateral >= minReturn, "coll too low");
 	}
 
 	/* Internal functions */
@@ -969,7 +974,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			/// @dev Get the oracle rate from collateral -> loan
 			(uint256 collateralToLoanRate, uint256 collateralToLoanPrecision) =
 				FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(collateralTokenAddress, loanTokenAddress);
-			require((collateralToLoanRate != 0) && (collateralToLoanPrecision != 0), "invalid exchange rate for the collateral token");
+			require((collateralToLoanRate != 0) && (collateralToLoanPrecision != 0), "invalid rate collateral token");
 
 			/// @dev Compute the loan token amount with the oracle rate.
 			uint256 loanTokenAmount = collateralTokenSent.mul(collateralToLoanRate).div(collateralToLoanPrecision);
@@ -1508,7 +1513,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 	function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
 		uint256 balanceOnLM = ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(address(this), msg.sender);
-		require(balanceOnLM.add(balanceOf(msg.sender)) >= burnAmount, "not enough balance");
+		require(balanceOnLM.add(balanceOf(msg.sender)) >= burnAmount, "invalid balance"); // invalid balance
 
 		if (balanceOnLM > 0) {
 			//withdraw pool tokens and LM rewards to the passed address
