@@ -26,8 +26,8 @@ def main():
     #addAdmin(contracts['LockedSOV'], contracts['VestingRegistry3'])
     #setFeesController()
     #withdrawFees()
-    replaceProtocolSettings()
-    deployAffiliate()
+    # replaceProtocolSettings()
+    # deployAffiliate()
 
     #addPoolsToLM()
 
@@ -86,7 +86,7 @@ def main():
 
     #testBorrow(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['USDT'])
 
-    addOwnerToMultisig('0x13Be55487D37FE3C66EE7305e1e9C1ac85de75Ae')
+    # addOwnerToMultisig('0x13Be55487D37FE3C66EE7305e1e9C1ac85de75Ae')
     
     #confirmMS(148)
     #confirmMS(149)
@@ -102,8 +102,8 @@ def main():
 
     # transferSOVtoLM(100 * 10**18)
 
-    # replaceLoanTokenLogicOnAllContracts()
-    # setLiquidityMiningAddressOnAllContracts()
+    replaceLoanTokenLogicOnAllContracts()
+    setLiquidityMiningAddressOnAllContracts()
     # getLiquidityMiningAddressOnAllContracts()
 
     # checkTx()
