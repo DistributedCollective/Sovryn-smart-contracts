@@ -22,6 +22,7 @@ contract PreviousLoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
 	// ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 
 	event SetTransactionLimits(address[] addresses, uint256[] limits);
+	event ToggleFunctionPause(string funcId, bool isPaused);
 
 	//@todo check for restrictions in this contract
 	modifier onlyAdmin() {
@@ -111,21 +112,39 @@ contract PreviousLoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
 		maxScaleRate = _maxScaleRate; // 100 ether
 	}
 
+	/**
+	 * @notice Set the pause flag for a function to true or false.
+	 *
+	 * @dev Combining the hash of "iToken_FunctionPause" string and a function
+	 *   selector gets a slot to write a flag for pause state.
+	 *
+	 * @param funcId The ID of a function, the signature.
+	 * @param isPaused true/false value of the flag.
+	 *
+	 * @dev The function signature is defined as the canonical expression of the
+	 *   basic prototype without data location specifier, i.e. the function name
+	 *   with the parenthesised list of parameter types. Parameter types are split
+	 *   by a single comma - no spaces are used.
+	 *   The selector is the first (left, high-order in big-endian) four bytes of
+	 *   the Keccak-256 (SHA-3) hash of the signature of the function.
+	 * */
 	function toggleFunctionPause(
-		string memory funcId, // example: "mint(uint256,uint256)"
+		string memory funcId, /// Example: "mint(uint256,uint256)" ,i.e. function signature.
 		bool isPaused
 	) public onlyAdmin {
 		// keccak256("iToken_FunctionPause")
 		bytes32 slot =
 			keccak256(
 				abi.encodePacked(
-					bytes4(keccak256(abi.encodePacked(funcId))),
+					bytes4(keccak256(abi.encodePacked(funcId))), /// Function selector.
 					uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
 				)
 			);
 		assembly {
 			sstore(slot, isPaused)
 		}
+
+		emit ToggleFunctionPause(funcId, isPaused);
 	}
 
 	/**
