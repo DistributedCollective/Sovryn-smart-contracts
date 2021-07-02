@@ -357,7 +357,6 @@ contract("LoanTokenBorrowing", (accounts) => {
 			);
 		});
 
-
 		// borrows some funds from account 0 and then takes out some more from account 2 with 'borrow' without paying should fail.
 		it("Test borrow from foreign loan should fail", async () => {
 			//  prepare the test

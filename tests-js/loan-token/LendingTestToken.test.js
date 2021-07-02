@@ -153,6 +153,5 @@ contract("LoanTokenLending", (accounts) => {
 			expect(profitAfter.gt(new BN(0))).to.be.true;
 			expect(profitAfter.lt(profitBefore)).to.be.true;
 		});
-
 	});
 });
