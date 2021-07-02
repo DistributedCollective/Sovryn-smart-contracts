@@ -108,7 +108,9 @@ contract("Affiliates", (accounts) => {
 
 		// Creating the instance of newLockedSOV Contract.
 		await sovryn.setLockedSOVAddress(
-			(await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])).address
+			(
+				await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])
+			).address
 		);
 		lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 	});
@@ -311,7 +313,6 @@ contract("Affiliates", (accounts) => {
 	});
 
 	it("Test affiliates integration with underlying token with oracle v1Pool", async () => {
-
 		feeds = await PriceFeeds.new(testWrbtc.address, tokenSOV.address, doc.address);
 		testToken1 = await TestToken.new("test token 1", "TEST1", 18, wei("20000", "ether"));
 		testToken2 = await TestToken.new("test token 2", "TEST2", 18, wei("20000", "ether"));
@@ -323,17 +324,31 @@ contract("Affiliates", (accounts) => {
 		// Set tetToken1 feed - price 1Z BTC
 		// Set v1 convert mockup
 		liquidityV1ConverterMockupTestToken1 = await LiquidityPoolV1ConverterMockup.new(testToken1.address, testWrbtc.address);
-		priceFeedsV1PoolOracleMockupTestToken1 = await PriceFeedV1PoolOracleMockup.new(testToken1Price, liquidityV1ConverterMockupTestToken1.address);
-		priceFeedsV1PoolOracleTestToken1 = await PriceFeedV1PoolOracle.new(priceFeedsV1PoolOracleMockupTestToken1.address, testWrbtc.address, doc.address)
+		priceFeedsV1PoolOracleMockupTestToken1 = await PriceFeedV1PoolOracleMockup.new(
+			testToken1Price,
+			liquidityV1ConverterMockupTestToken1.address
+		);
+		priceFeedsV1PoolOracleTestToken1 = await PriceFeedV1PoolOracle.new(
+			priceFeedsV1PoolOracleMockupTestToken1.address,
+			testWrbtc.address,
+			doc.address
+		);
 
 		liquidityV1ConverterMockupTestToken2 = await LiquidityPoolV1ConverterMockup.new(testToken2.address, testWrbtc.address);
-		priceFeedsV1PoolOracleMockupTestToken2 = await PriceFeedV1PoolOracleMockup.new(testToken2Price, liquidityV1ConverterMockupTestToken2.address);
-		priceFeedsV1PoolOracleTestToken2 = await PriceFeedV1PoolOracle.new(priceFeedsV1PoolOracleMockupTestToken2.address, testWrbtc.address, doc.address)
+		priceFeedsV1PoolOracleMockupTestToken2 = await PriceFeedV1PoolOracleMockup.new(
+			testToken2Price,
+			liquidityV1ConverterMockupTestToken2.address
+		);
+		priceFeedsV1PoolOracleTestToken2 = await PriceFeedV1PoolOracle.new(
+			priceFeedsV1PoolOracleMockupTestToken2.address,
+			testWrbtc.address,
+			doc.address
+		);
 
 		// // Set rBTC feed - using rsk oracle
 		priceFeedsV1PoolOracleMockupBTC = await PriceFeedRSKOracleMockup.new();
 		await priceFeedsV1PoolOracleMockupBTC.setValue(wrBTCPrice);
-		priceFeedsV1PoolOracleBTC = await PriceFeedRSKOracle.new(priceFeedsV1PoolOracleMockupBTC.address)
+		priceFeedsV1PoolOracleBTC = await PriceFeedRSKOracle.new(priceFeedsV1PoolOracleMockupBTC.address);
 
 		// Set rBTC feed - using v1pool oracle
 		// liquidityV1ConverterMockupBTC = await LiquidityPoolV1ConverterMockup.new(testWrbtc.address, testWrbtc.address);
@@ -343,21 +358,47 @@ contract("Affiliates", (accounts) => {
 		// Set DOC feed -- price 1 BTC
 		liquidityV1ConverterMockupDOC = await LiquidityPoolV1ConverterMockup.new(doc.address, testWrbtc.address);
 		priceFeedsV1PoolOracleMockupDOC = await PriceFeedV1PoolOracleMockup.new(docPrice, liquidityV1ConverterMockupDOC.address);
-		priceFeedsV1PoolOracleDOC = await PriceFeedV1PoolOracle.new(priceFeedsV1PoolOracleMockupDOC.address, testWrbtc.address, doc.address)
+		priceFeedsV1PoolOracleDOC = await PriceFeedV1PoolOracle.new(
+			priceFeedsV1PoolOracleMockupDOC.address,
+			testWrbtc.address,
+			doc.address
+		);
 
 		// await feeds.setPriceFeed([testWrbtc.address, doc.address], [priceFeedsV1PoolOracle.address, priceFeedsV1PoolOracle.address])
-		await feeds.setPriceFeed([testToken1.address, testToken2.address, doc.address, testWrbtc.address], [priceFeedsV1PoolOracleTestToken1.address, priceFeedsV1PoolOracleTestToken2.address, priceFeedsV1PoolOracleDOC.address, priceFeedsV1PoolOracleBTC.address])
+		await feeds.setPriceFeed(
+			[testToken1.address, testToken2.address, doc.address, testWrbtc.address],
+			[
+				priceFeedsV1PoolOracleTestToken1.address,
+				priceFeedsV1PoolOracleTestToken2.address,
+				priceFeedsV1PoolOracleDOC.address,
+				priceFeedsV1PoolOracleBTC.address,
+			]
+		);
 
 		test1 = await feeds.queryRate(testToken1.address, doc.address);
-		expect(test1[0].toString()).to.be.equal((new BN(testToken1Price).mul(new BN(wrBTCPrice)).div(new BN(wei("1", "ether")))).toString())
-		test = await feeds.queryReturn(testToken1.address, doc.address, wei("2", "ether"))
-		expect(test.toString()).to.be.equal( (new BN(2).mul(new BN(testToken1Price).mul(new BN(wrBTCPrice)).div(new BN(wei("1", "ether"))) )).toString())
+		expect(test1[0].toString()).to.be.equal(
+			new BN(testToken1Price)
+				.mul(new BN(wrBTCPrice))
+				.div(new BN(wei("1", "ether")))
+				.toString()
+		);
+		test = await feeds.queryReturn(testToken1.address, doc.address, wei("2", "ether"));
+		expect(test.toString()).to.be.equal(
+			new BN(2).mul(new BN(testToken1Price).mul(new BN(wrBTCPrice)).div(new BN(wei("1", "ether")))).toString()
+		);
 
 		test1 = await feeds.queryRate(testToken1.address, testToken2.address);
 
-		expect(test1[0].toString()).to.be.equal((new BN(testToken1Price).div(new BN(testToken2Price)).mul(new BN(wei("1", "ether"))) ).toString())
-		test = await feeds.queryReturn(testToken1.address, testToken2.address, wei("2", "ether"))
-		expect(test.toString()).to.be.equal( new BN(2).mul((new BN(testToken1Price).div(new BN(testToken2Price)).mul(new BN(wei("1", "ether")))) ).toString() )
+		expect(test1[0].toString()).to.be.equal(
+			new BN(testToken1Price)
+				.div(new BN(testToken2Price))
+				.mul(new BN(wei("1", "ether")))
+				.toString()
+		);
+		test = await feeds.queryReturn(testToken1.address, testToken2.address, wei("2", "ether"));
+		expect(test.toString()).to.be.equal(
+			new BN(2).mul(new BN(testToken1Price).div(new BN(testToken2Price)).mul(new BN(wei("1", "ether")))).toString()
+		);
 
 		swapsSovryn = await SwapsImplSovrynSwap.new();
 		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
@@ -500,8 +541,15 @@ contract("Affiliates", (accounts) => {
 		// Set tetToken1 feed - price 2 BTC
 		// Set v1 convert mockup
 		liquidityV1ConverterMockupTestToken1 = await LiquidityPoolV1ConverterMockup.new(testToken1.address, testWrbtc.address);
-		priceFeedsV1PoolOracleMockupTestToken1 = await PriceFeedV1PoolOracleMockup.new(wei("1", "ether"), liquidityV1ConverterMockupTestToken1.address);
-		priceFeedsV1PoolOracleTestToken1 = await PriceFeedV1PoolOracle.new(priceFeedsV1PoolOracleMockupTestToken1.address, testWrbtc.address, doc.address)
+		priceFeedsV1PoolOracleMockupTestToken1 = await PriceFeedV1PoolOracleMockup.new(
+			wei("1", "ether"),
+			liquidityV1ConverterMockupTestToken1.address
+		);
+		priceFeedsV1PoolOracleTestToken1 = await PriceFeedV1PoolOracle.new(
+			priceFeedsV1PoolOracleMockupTestToken1.address,
+			testWrbtc.address,
+			doc.address
+		);
 
 		// // Set rBTC feed - using rsk oracle
 		// priceFeedsV1PoolOracleMockupBTC = await PriceFeedRSKOracleMockup.new();
@@ -511,18 +559,31 @@ contract("Affiliates", (accounts) => {
 		// Set rBTC feed - using v1pool oracle
 		liquidityV1ConverterMockupBTC = await LiquidityPoolV1ConverterMockup.new(testWrbtc.address, testWrbtc.address);
 		priceFeedsV1PoolOracleMockupBTC = await PriceFeedV1PoolOracleMockup.new(wei("8", "ether"), liquidityV1ConverterMockupBTC.address);
-		priceFeedsV1PoolOracleBTC = await PriceFeedV1PoolOracle.new(priceFeedsV1PoolOracleMockupBTC.address, testWrbtc.address, doc.address);
+		priceFeedsV1PoolOracleBTC = await PriceFeedV1PoolOracle.new(
+			priceFeedsV1PoolOracleMockupBTC.address,
+			testWrbtc.address,
+			doc.address
+		);
 
 		// Set DOC feed -- price 1 BTC
 		liquidityV1ConverterMockupDOC = await LiquidityPoolV1ConverterMockup.new(doc.address, testWrbtc.address);
 		priceFeedsV1PoolOracleMockupDOC = await PriceFeedV1PoolOracleMockup.new(wei("7", "ether"), liquidityV1ConverterMockupDOC.address);
-		priceFeedsV1PoolOracleDOC = await PriceFeedV1PoolOracle.new(priceFeedsV1PoolOracleMockupDOC.address, testWrbtc.address, doc.address)
+		priceFeedsV1PoolOracleDOC = await PriceFeedV1PoolOracle.new(
+			priceFeedsV1PoolOracleMockupDOC.address,
+			testWrbtc.address,
+			doc.address
+		);
 
 		// await feeds.setPriceFeed([testWrbtc.address, doc.address], [priceFeedsV1PoolOracle.address, priceFeedsV1PoolOracle.address])
-		await feeds.setPriceFeed([testToken1.address, doc.address, testWrbtc.address], [priceFeedsV1PoolOracleTestToken1.address, priceFeedsV1PoolOracleDOC.address, priceFeedsV1PoolOracleBTC.address])
+		await feeds.setPriceFeed(
+			[testToken1.address, doc.address, testWrbtc.address],
+			[priceFeedsV1PoolOracleTestToken1.address, priceFeedsV1PoolOracleDOC.address, priceFeedsV1PoolOracleBTC.address]
+		);
 
-		await expectRevert(feeds.queryRate(testToken1.address, doc.address), "wrBTC price feed cannot use the oracle v1 pool")
-		await expectRevert(feeds.queryReturn(testToken1.address, doc.address, wei("1", "ether")), "wrBTC price feed cannot use the oracle v1 pool")
-
+		await expectRevert(feeds.queryRate(testToken1.address, doc.address), "wrBTC price feed cannot use the oracle v1 pool");
+		await expectRevert(
+			feeds.queryReturn(testToken1.address, doc.address, wei("1", "ether")),
+			"wrBTC price feed cannot use the oracle v1 pool"
+		);
 	});
 });

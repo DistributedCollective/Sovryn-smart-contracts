@@ -48,11 +48,15 @@ contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
 	function latestAnswer() external view returns (uint256) {
 		require(rBTCAddress != address(0), "rBTC address has not been set");
 		require(docAddress != address(0), "DOC address has not been set");
-		
+
 		IV1PoolOracle _v1PoolOracle = IV1PoolOracle(v1PoolOracleAddress);
 		// Need to check, if the requested asset is BTC
 		address liquidityPool = _v1PoolOracle.liquidityPool();
-		require(ILiquidityPoolV1Converter(liquidityPool).reserveTokens(0) != rBTCAddress || ILiquidityPoolV1Converter(liquidityPool).reserveTokens(1) != rBTCAddress, "wrBTC price feed cannot use the oracle v1 pool");
+		require(
+			ILiquidityPoolV1Converter(liquidityPool).reserveTokens(0) != rBTCAddress ||
+				ILiquidityPoolV1Converter(liquidityPool).reserveTokens(1) != rBTCAddress,
+			"wrBTC price feed cannot use the oracle v1 pool"
+		);
 
 		uint256 _price = _v1PoolOracle.latestAnswer();
 
