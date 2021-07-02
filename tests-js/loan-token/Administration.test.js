@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { expectRevert, BN, expectEvent } = require("@openzeppelin/test-helpers");
 const TestToken = artifacts.require("TestToken");
 const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
 const LoanTokenSettingsLowerAdmin = artifacts.require("LoanTokenSettingsLowerAdmin");
@@ -124,7 +124,13 @@ contract("LoanTokenAdministration", (accounts) => {
 			// pause the given function and make sure the function can't be called anymore
 			let localLoanToken = await LoanTokenLogicStandard.at(loanToken.address);
 			await localLoanToken.setPauser(accounts[0]);
-			await localLoanToken.toggleFunctionPause(functionSignature, true);
+			let tx = await localLoanToken.toggleFunctionPause(functionSignature, true);
+
+			// Check event is properly emitted
+			await expectEvent.inTransaction(tx.receipt.rawLogs[0].transactionHash, LoanTokenLogicStandard, "ToggleFunctionPause", {
+				funcId: functionSignature,
+				isPaused: true,
+			});
 
 			await expectRevert(open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]), "unauthorized");
 
@@ -134,7 +140,14 @@ contract("LoanTokenAdministration", (accounts) => {
 			// reactivate the given function and make sure the function can be called again
 			localLoanToken = await LoanTokenLogicStandard.at(loanToken.address);
 			await localLoanToken.setPauser(accounts[0]);
-			await localLoanToken.toggleFunctionPause(functionSignature, false);
+			tx = await localLoanToken.toggleFunctionPause(functionSignature, false);
+
+			// Check event is properly emitted
+			await expectEvent.inTransaction(tx.receipt.rawLogs[0].transactionHash, LoanTokenLogicStandard, "ToggleFunctionPause", {
+				funcId: functionSignature,
+				isPaused: false,
+			});
+
 			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]);
 
 			// check if checkPause returns false
@@ -146,6 +159,5 @@ contract("LoanTokenAdministration", (accounts) => {
 			let localLoanToken = await LoanTokenLogicStandard.at(loanToken.address);
 			await expectRevert(localLoanToken.toggleFunctionPause("mint(address,uint256)", true, { from: accounts[1] }), "onlyPauser");
 		});
-
 	});
 });

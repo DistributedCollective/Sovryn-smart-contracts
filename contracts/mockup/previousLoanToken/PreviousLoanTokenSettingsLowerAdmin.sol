@@ -132,12 +132,11 @@ contract PreviousLoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
 		string memory funcId, /// Example: "mint(uint256,uint256)" ,i.e. function signature.
 		bool isPaused
 	) public onlyAdmin {
-		// keccak256("iToken_FunctionPause")
 		bytes32 slot =
 			keccak256(
 				abi.encodePacked(
 					bytes4(keccak256(abi.encodePacked(funcId))), /// Function selector.
-					uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
+					uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2) /// keccak256("iToken_FunctionPause")
 				)
 			);
 		assembly {
