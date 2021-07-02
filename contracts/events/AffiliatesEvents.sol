@@ -14,6 +14,7 @@ contract AffiliatesEvents {
 
 	event PayTradingFeeToAffiliate(
 		address indexed referrer,
+		address trader,
 		address indexed token,
 		bool indexed isHeld,
 		uint256 tradingFeeTokenAmount,
@@ -24,6 +25,7 @@ contract AffiliatesEvents {
 
 	event PayTradingFeeToAffiliateFail(
 		address indexed referrer,
+		address trader,
 		address indexed token,
 		uint256 tradingFeeTokenAmount,
 		uint256 tokenBonusAmount,

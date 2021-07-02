@@ -357,44 +357,6 @@ contract("LoanTokenBorrowing", (accounts) => {
 			);
 		});
 
-		it("Test borrow without early access token should fail if required", async () => {
-			//  prepare the test
-
-			await lend_to_pool(loanToken, SUSD, owner);
-			await set_demand_curve(loanToken);
-
-			// prepare early access token
-			const early_access_token = await TestToken.new("Sovryn Early Access Token", "SEAT", 1, 10);
-			await early_access_token.transfer(account1, await early_access_token.balanceOf(owner));
-			await loanToken.setEarlyAccessToken(early_access_token.address);
-
-			// determine borrowing parameter
-			const withdrawAmount = oneEth; // i want to borrow 10 USD
-			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
-			let collateralTokenSent = await sovryn.getRequiredCollateral(
-				SUSD.address,
-				RBTC.address,
-				withdrawAmount,
-				new BN(50).pow(new BN(18)),
-				true
-			);
-
-			//approve the transfer of the collateral
-			await RBTC.approve(loanToken.address, collateralTokenSent);
-			expectRevert(
-				loanToken.borrow(
-					"0x0", // bytes32 loanId
-					withdrawAmount, // uint256 withdrawAmount
-					24 * 60 * 60, // uint256 initialLoanDuration
-					collateralTokenSent, // uint256 collateralTokenSent
-					RBTC.address, // address collateralTokenAddress
-					owner, // address borrower
-					account1, // address receiver
-					"0x0" // bytes memory loanDataBytes
-				),
-				"No early access tokens"
-			);
-		});
 
 		// borrows some funds from account 0 and then takes out some more from account 2 with 'borrow' without paying should fail.
 		it("Test borrow from foreign loan should fail", async () => {

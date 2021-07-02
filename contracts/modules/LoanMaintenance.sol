@@ -73,10 +73,10 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	}
 
 	/**
-	 * @notice Deposit the loan collateral.
+	 * @notice Increase the margin of a position by depositing additional collateral.
 	 *
 	 * @param loanId A unique ID representing the loan.
-	 * @param depositAmount The amount to be deposited.
+	 * @param depositAmount The amount to be deposited in collateral tokens.
 	 *
 	 * @return actualWithdrawAmount The amount withdrawn taking into account drawdowns.
 	 * */
@@ -106,11 +106,11 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	}
 
 	/**
-	 * @notice Withdraw the loan collateral.
+	 * @notice Withdraw from the collateral. This reduces the margin of a position.
 	 *
 	 * @param loanId A unique ID representing the loan.
 	 * @param receiver The account getting the withdrawal.
-	 * @param withdrawAmount The amount to be withdrawn.
+	 * @param withdrawAmount The amount to be withdrawn in collateral tokens.
 	 *
 	 * @return actualWithdrawAmount The amount withdrawn taking into account drawdowns.
 	 * */
@@ -166,11 +166,12 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	}
 
 	/**
-	 * @notice Extend the loan duration.
+	 * @notice Extend the loan duration by as much time as depositAmount can buy.
 	 *
 	 * @param loanId A unique ID representing the loan.
-	 * @param depositAmount The amount to be deposited.
-	 * @param useCollateral Whether pay interests w/ the collateral.
+	 * @param depositAmount The amount to be deposited in loan tokens. Used to pay the interest for the new duration.
+	 * @param useCollateral Whether pay interests w/ the collateral. If true, depositAmount of loan tokens
+	 *						will be purchased with the collateral.
 	 * // param calldata The payload for the call. These loan DataBytes are additional loan data (not in use for token swaps).
 	 *
 	 * @return secondsExtended The amount of time in seconds the loan is extended.
@@ -253,11 +254,11 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	}
 
 	/**
-	 * @notice Reduce the loan duration.
+	 * @notice Reduce the loan duration by withdrawing from the deposited interest.
 	 *
 	 * @param loanId A unique ID representing the loan.
 	 * @param receiver The account getting the withdrawal.
-	 * @param withdrawAmount The amount to be withdrawn.
+	 * @param withdrawAmount The amount to be withdrawn in loan tokens.
 	 *
 	 * @return secondsReduced The amount of time in seconds the loan is reduced.
 	 * */

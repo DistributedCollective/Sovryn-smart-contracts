@@ -140,7 +140,7 @@ const prepare_liquidation = async (
 	await underlyingToken.approve(loanToken.address, new BN(10).pow(new BN(40)));
 	let value;
 	if (WRBTC.address == underlyingToken.address) {
-		await loanToken.mintWithBTC(lender, { value: new BN(10).pow(new BN(21)) });
+		await loanToken.mintWithBTC(lender, false, { value: new BN(10).pow(new BN(21)) });
 		value = loan_token_sent;
 	} else {
 		await loanToken.mint(lender, new BN(10).pow(new BN(21)));
