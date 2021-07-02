@@ -57,6 +57,7 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 
 		const sov = await TestToken.new("SOV", "SOV", 18, web3.utils.toWei("20000", "ether"));
 		await sovryn.setProtocolTokenAddress(sov.address);
+		await sovryn.setSOVTokenAddress(sov.address);
 		await sovryn.setLockedSOVAddress((await LockedSOVMockup.new(sov.address, [accounts[0]])).address);
 
 		loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);

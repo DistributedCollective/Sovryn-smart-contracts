@@ -79,6 +79,7 @@ contract("LoanTokenLending", (accounts) => {
 		tokenSOV = await SOV.new(TOTAL_SUPPLY);
 		await sovryn.setLockedSOVAddress((await LockedSOVMockup.new(tokenSOV.address, [lender])).address);
 		await sovryn.setProtocolTokenAddress(tokenSOV.address);
+		await sovryn.setSOVTokenAddress(tokenSOV.address);
 
 		loanTokenLogicStandard = await LoanTokenLogicStandard.new();
 		loanToken = await LoanToken.new(lender, loanTokenLogicStandard.address, sovryn.address, rBTC.address);

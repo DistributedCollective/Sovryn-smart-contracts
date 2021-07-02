@@ -207,7 +207,7 @@ contract FeesHelper is State, FeesEvents {
 				abi.encodeWithSelector(
 					IPriceFeeds(_priceFeeds).queryReturn.selector,
 					feeToken,
-					protocolTokenAddress, /// Price rewards using BZRX price rather than vesting token price.
+					sovTokenAddress, /// Price rewards using BZRX price rather than vesting token price.
 					feeAmount.mul(_feeRebatePercent).div(10**20)
 				)
 			);
@@ -218,16 +218,16 @@ contract FeesHelper is State, FeesEvents {
 		}
 
 		if (rewardAmount != 0) {
-			IERC20(protocolTokenAddress).approve(lockedSOVAddress, rewardAmount);
+			IERC20(sovTokenAddress).approve(lockedSOVAddress, rewardAmount);
 
 			(bool success, ) = lockedSOVAddress.call(abi.encodeWithSignature("depositSOV(address,uint256)", user, rewardAmount));
 
 			if (success) {
 				protocolTokenPaid = protocolTokenPaid.add(rewardAmount);
 
-				emit EarnReward(user, protocolTokenAddress, loanId, _feeRebatePercent, rewardAmount);
+				emit EarnReward(user, sovTokenAddress, loanId, _feeRebatePercent, rewardAmount);
 			} else {
-				emit EarnRewardFail(user, protocolTokenAddress, loanId, _feeRebatePercent, rewardAmount);
+				emit EarnRewardFail(user, sovTokenAddress, loanId, _feeRebatePercent, rewardAmount);
 			}
 		}
 	}
