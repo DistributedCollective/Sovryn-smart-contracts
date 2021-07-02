@@ -62,10 +62,10 @@ def main():
     #readTransactionLimits(contracts['iDOC'],  contracts['DoC'],  contracts['WRBTC'])
     #setTransactionLimits(contracts['iDOC'], [contracts['DoC'],  contracts['WRBTC']], [0, 0])
     #setTransactionLimits(contracts['iRBTC'], [contracts['DoC'],  contracts['WRBTC']], [0, 0])
-    #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [0])
+    #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['LoanTokenLogicStandard'], [contracts['DoC']], [0])
     #lendToPool(contracts['iDOC'],contracts['DoC'], 1000e18)
     #setTransactionLimits(contracts['iDOC'], [contracts['DoC']], [21e18])
-    #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [21e18])
+    #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['LoanTokenLogicStandard'], [contracts['DoC']], [21e18])
     #readTransactionLimits(contracts['iUSDT'],  contracts['USDT'], contracts['WRBTC'])
 
     '''

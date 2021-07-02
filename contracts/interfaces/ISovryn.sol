@@ -17,7 +17,6 @@ import "../events/LoanClosingsEvents.sol";
 import "../events/FeesEvents.sol";
 import "../events/SwapsEvents.sol";
 import "../events/AffiliatesEvents.sol";
-import "../events/FeesEvents.sol";
 
 contract ISovryn is
 	State,
@@ -325,6 +324,7 @@ contract ISovryn is
 
 	function payTradingFeeToAffiliatesReferrer(
 		address referrer,
+		address trader,
 		address token,
 		uint256 tradingFeeTokenBaseAmount
 	) external returns (uint256 affiliatesBonusSOVAmount, uint256 affiliatesBonusTokenAmount);

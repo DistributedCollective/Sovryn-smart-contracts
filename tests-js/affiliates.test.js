@@ -106,9 +106,7 @@ contract("Affiliates", (accounts) => {
 
 		// Creating the instance of newLockedSOV Contract.
 		await sovryn.setLockedSOVAddress(
-			(
-				await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])
-			).address
+			(await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])).address
 		);
 		lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 	});
@@ -217,6 +215,7 @@ contract("Affiliates", (accounts) => {
 		tradingFeeAmount = decode[0].args["tradingFeeTokenAmount"];
 		submittedToken = decode[0].args["token"];
 		submittedReferrer = decode[0].args["referrer"];
+		submittedTrader = decode[0].args["trader"];
 		isHeld = decode[0].args["isHeld"];
 		affiliatesFeePercentage = await sovryn.affiliateFeePercent();
 		sovBonusAmountShouldBePaid = await feeds.queryReturn(
@@ -230,6 +229,7 @@ contract("Affiliates", (accounts) => {
 		expect(sovBonusAmountShouldBePaid.toString(), "Incorrect sov bonus amount calculation").to.be.equal(submittedSovBonusAmount);
 		expect(submittedToken).to.eql(doc.address);
 		expect(submittedReferrer).to.eql(referrer);
+		expect(submittedTrader).to.eql(trader);
 		expect(referrerFee.toString()).to.be.equal(submittedTokenBonusAmount.toString());
 		// Since the minimum referrals to payout is set to 3, make sure the affiliateRewardsHeld is correct
 		expect(affiliateRewardsHeld.toString(), "SOV Bonus amount that stored in the affiliateRewardsHeld is incorrect").to.be.equal(
@@ -264,6 +264,7 @@ contract("Affiliates", (accounts) => {
 		tradingFeeAmount = decode[0].args["tradingFeeTokenAmount"];
 		submittedToken = decode[0].args["token"];
 		submittedReferrer = decode[0].args["referrer"];
+		submittedTrader = decode[0].args["trader"];
 		isHeld = decode[0].args["isHeld"];
 		sovBonusAmountShouldBePaid = await feeds.queryReturn(
 			doc.address,
@@ -279,6 +280,7 @@ contract("Affiliates", (accounts) => {
 		);
 		expect(submittedToken).to.eql(doc.address);
 		expect(submittedReferrer).to.eql(referrer);
+		expect(submittedTrader).to.eql(trader);
 
 		expect(
 			new BN(parseInt(previousAffiliateRewardsHeld)).add(new BN(parseInt(sovBonusAmountShouldBePaid))).toString(),
@@ -324,6 +326,7 @@ contract("Affiliates", (accounts) => {
 		tradingFeeAmount = decode[0].args["tradingFeeTokenAmount"];
 		submittedToken = decode[0].args["token"];
 		submittedReferrer = decode[0].args["referrer"];
+		submittedTrader = decode[0].args["trader"];
 		isHeld = decode[0].args["isHeld"];
 		affiliatesFeePercentage = await sovryn.affiliateFeePercent();
 		sovBonusAmountShouldBePaid = await feeds.queryReturn(
@@ -337,6 +340,7 @@ contract("Affiliates", (accounts) => {
 		expect(sovBonusAmountShouldBePaid.toString(), "Incorrect sov bonus amount calculation").to.be.equal(submittedSovBonusAmount);
 		expect(submittedToken).to.eql(doc.address);
 		expect(submittedReferrer).to.eql(referrer);
+		expect(submittedTrader).to.eql(trader);
 		expect(referrerFee.toString()).to.be.equal(submittedTokenBonusAmount.toString());
 		// Since the minimum referrals to payout is set to 1, make sure the affiliateRewardsHeld is correct
 		expect(affiliateRewardsHeld.toString(), "SOV Bonus amount that stored in the affiliateRewardsHeld is incorrect").to.be.equal(
@@ -381,6 +385,7 @@ contract("Affiliates", (accounts) => {
 		tradingFeeAmount = decodeFailed[0].args["tradingFeeTokenAmount"];
 		submittedToken = decodeFailed[0].args["token"];
 		submittedReferrer = decodeFailed[0].args["referrer"];
+		submittedTrader = decodeFailed[0].args["trader"];
 		sovBonusAmount = decodeFailed[0].args["sovBonusAmount"];
 		affiliatesFeePercentage = await sovryn.affiliateFeePercent();
 		sovBonusAmountShouldBePaid = await feeds.queryReturn(
@@ -393,6 +398,7 @@ contract("Affiliates", (accounts) => {
 		expect(sovBonusAmountShouldBePaid.toString(), "Incorrect sov bonus amount calculation").to.be.equal(sovBonusAmount);
 		expect(submittedToken).to.eql(doc.address);
 		expect(submittedReferrer).to.eql(referrer);
+		expect(submittedTrader).to.eql(trader);
 	});
 
 	it("Only the first trade users can be assigned Affiliates Referrer", async () => {
@@ -459,7 +465,7 @@ contract("Affiliates", (accounts) => {
 
 	it("payTradingFeeToAffiliatesReferrer() Should revert if not called by protocol", async () => {
 		await expectRevert(
-			sovryn.payTradingFeeToAffiliatesReferrer(referrer, tokenSOV.address, wei("1", "gwei")),
+			sovryn.payTradingFeeToAffiliatesReferrer(referrer, trader, tokenSOV.address, wei("1", "gwei")),
 			"Affiliates: not authorized"
 		);
 	});

@@ -213,7 +213,7 @@ const lend_to_pool = async (loanToken, SUSD, lender) => {
 
 const lend_to_pool_iBTC = async (loanTokenWRBTC, lender) => {
 	const lend_amount = new BN(10).pow(new BN(21)).toString();
-	await loanTokenWRBTC.mintWithBTC(lender, { from: lender, value: lend_amount });
+	await loanTokenWRBTC.mintWithBTC(lender, false, { from: lender, value: lend_amount });
 	return [lender, lend_amount];
 };
 
