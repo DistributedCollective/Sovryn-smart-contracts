@@ -4,6 +4,7 @@ import "./PriceFeeds.sol";
 import "./IV1PoolOracle.sol";
 import "../openzeppelin/Ownable.sol";
 import "../openzeppelin/Address.sol";
+import "../openzeppelin/SafeMath.sol";
 import "./IPriceFeeds.sol";
 
 /**
@@ -13,6 +14,7 @@ import "./IPriceFeeds.sol";
  * getting the price and the last timestamp from an external oracle contract.
  * */
 contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
+	using SafeMath for uint256;
 	/* Storage */
 
 	address public v1PoolOracleAddress;
@@ -68,12 +70,13 @@ contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
 	}
 
 	function _convertAnswerToUsd(uint256 _valueInBTC) private view returns (uint256) {
-		uint256 valueInUSD;
 		address _priceFeeds = msg.sender;
 
-		valueInUSD = IPriceFeeds(_priceFeeds).queryReturn(rBTCAddress, docAddress, _valueInBTC);
+		uint256 precision = IPriceFeeds(_priceFeeds).queryPrecision(rBTCAddress, docAddress);
+		uint256 valueInUSD = IPriceFeeds(_priceFeeds).queryReturn(rBTCAddress, docAddress, _valueInBTC);
 
-		return valueInUSD;
+		/// Need to multiply by query precision (doc's precision) and divide by 1*10^8 (Because the based price in v1 pool is in rBTC(8 decimals))
+		return valueInUSD.mul(precision).div(1e8);
 	}
 
 	/**
