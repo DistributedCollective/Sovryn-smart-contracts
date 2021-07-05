@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
-const {ContractFactory, utils} = require('ethers');
+const { ContractFactory, utils } = require("ethers");
 const { waffle } = require("hardhat");
 const { deployMockContract } = waffle;
 
@@ -14,23 +14,23 @@ contract("PriceFeeds", (accounts) => {
 	let priceFeeds, priceFeedsMock, sovryn;
 
 	describe("PriceFeed unit tests", async () => {
-        async function setup() {
-            SUSD = await getSUSD();
-            RBTC = await getRBTC();
-            WRBTC = await getWRBTC();
-            BZRX = await getBZRX();
-            const [sender, receiver] = accounts;
-            priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
-            priceFeedsMock = await deployMockContract(sender, WRBTC.address, BZRX.address, SUSD.address);
-            console.log(priceFeedsMock);
-            sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
-            const contractFactory = new ContractFactory(PriceFeeds.abi, PriceFeeds.bytecode, sender);
-            const contract = await contractFactory.deploy(priceFeedsMock.address);
-            return {sender, receiver, contract, mockERC20};
-          }
+		async function setup() {
+			SUSD = await getSUSD();
+			RBTC = await getRBTC();
+			WRBTC = await getWRBTC();
+			BZRX = await getBZRX();
+			const [sender, receiver] = accounts;
+			priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+			priceFeedsMock = await deployMockContract(sender, WRBTC.address, BZRX.address, SUSD.address);
+			console.log(priceFeedsMock);
+			sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+			const contractFactory = new ContractFactory(PriceFeeds.abi, PriceFeeds.bytecode, sender);
+			const contract = await contractFactory.deploy(priceFeedsMock.address);
+			return { sender, receiver, contract, mockERC20 };
+		}
 
 		it.only("amountInEth for wRBTC token should return passes amount", async () => {
-            await setup();
+			await setup();
 			const wrbtcToken = await priceFeeds.wrbtcToken();
 			await expect(await priceFeeds.amountInEth(wrbtcToken, new BN(wei("100", "ether")))).to.be.bignumber.equal(
 				new BN(wei("100", "ether"))

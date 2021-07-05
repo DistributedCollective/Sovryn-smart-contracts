@@ -9,7 +9,6 @@ contract("USDTPriceFeed", (accounts) => {
 		priceFeed = await USDTPriceFeed.new();
 	});
 	describe.only("USDTPriceFeed unit tests", async () => {
-
 		it("Exchange rate USDT/USDT should be 1", async () => {
 			await expect(await priceFeed.latestAnswer()).to.be.bignumber.equal(new BN(10).pow(new BN(18)));
 		});
