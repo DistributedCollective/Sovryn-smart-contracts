@@ -34,6 +34,8 @@ contract LoanToken is AdvancedTokenStorage {
 	address internal target_;
 	address public admin;
 
+	event TargetSet(address indexed changedBy, address indexed newTargetAddr);
+
 	/**
 	 * @notice Deploy loan token proxy.
 	 *   Sets ERC20 parameters of the token.
@@ -98,6 +100,7 @@ contract LoanToken is AdvancedTokenStorage {
 	function _setTarget(address _newTarget) internal {
 		require(Address.isContract(_newTarget), "target not a contract");
 		target_ = _newTarget;
+		emit TargetSet(msg.sender, _newTarget);
 	}
 
 	/**
