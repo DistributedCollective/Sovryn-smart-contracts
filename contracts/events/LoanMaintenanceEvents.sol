@@ -9,6 +9,6 @@ pragma solidity 0.5.17;
  * */
 contract LoanMaintenanceEvents {
 	event ContractReplaced(address indexed changedBy, address indexed newTargetAddr, bytes32 indexed module);
-	
+
 	event DepositCollateral(bytes32 loanId, uint256 depositAmount, uint256 rate);
 }

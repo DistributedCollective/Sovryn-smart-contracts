@@ -63,7 +63,6 @@ contract("Protocol", (accounts) => {
 	});
 
 	describe("Events - replaceContract", () => {
-
 		it("Test replaceContract - Affiliates", async () => {
 			let newAffiliatesAddr = await Affiliates.new();
 			let tx = await sovryn.replaceContract(newAffiliatesAddr.address);
