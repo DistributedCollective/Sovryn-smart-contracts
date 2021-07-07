@@ -40,8 +40,6 @@ contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
 		address _wRBTCAddress,
 		address _docAddress
 	) public {
-		require(_wRBTCAddress != address(0), "rBTC cant be zero address");
-		require(_docAddress != address(0), "DOC cant be zero address");
 		setV1PoolOracleAddress(_v1PoolOracleAddress);
 		setRBTCAddress(_wRBTCAddress);
 		setDOCAddress(_docAddress);
