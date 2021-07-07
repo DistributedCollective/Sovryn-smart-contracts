@@ -10,6 +10,7 @@ import "../core/State.sol";
 import "../events/ProtocolSettingsEvents.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../mixins/ProtocolTokenUser.sol";
+import "../modules/interfaces/ProtocolSwapExternalInterface.sol";
 
 /**
  * @title Protocol Settings contract.
@@ -19,7 +20,7 @@ import "../mixins/ProtocolTokenUser.sol";
  *
  * This contract contains functions to customize protocol settings.
  * */
-contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
+contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, ProtocolSwapExternalInterface {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 
@@ -339,11 +340,39 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		}
 
 		uint256 amount = lendingBalance.add(tradingBalance).add(borrowingBalance);
+
 		if (amount == 0) {
 			return amount;
 		}
 
-		IERC20(token).safeTransfer(receiver, amount);
+		// Swap all fee to wrbtc
+		// address sourceToken,
+		// address destToken,
+		// address receiver,
+		// address returnToSender,
+		// uint256 sourceTokenAmount,
+		// uint256 requiredDestTokenAmount,
+		// bytes memory swapData
+		(uint256 amountConvertedToWRBTC,) = ProtocolSwapExternalInterface(protocolAddress).swapExternal(
+			token,
+			address(wrbtcToken),
+			feesController, // set feeSharingProxy as receiver
+			protocolAddress, // protocol as the sender
+			amount,
+			0,
+			""
+		);
+		// (uint256 amountConvertedToWRBTC,) = protocolAddress.call(abi.encodeWithSignature("swapExternal(address,address,address,address,uint256,uint256,bytes)",
+		// 	token,
+		// 	address(wrbtcToken),
+		// 	feesController, // set feeSharingProxy as receiver
+		// 	protocolAddress, // protocol as the sender
+		// 	amount,
+		// 	0,
+		// 	"")
+		// );
+
+		IERC20(address(wrbtcToken)).safeTransfer(receiver, amountConvertedToWRBTC);
 
 		emit WithdrawFees(msg.sender, token, receiver, lendingBalance, tradingBalance, borrowingBalance);
 
