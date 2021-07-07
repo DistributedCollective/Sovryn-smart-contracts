@@ -108,7 +108,7 @@ def readPriceFeedFor(tokenAddress):
     print(feeds.pricesFeeds(tokenAddress))
 
 def deployOracleV1Pool():
-    oraclePoolAsset = "0x28A05da0939853F7Bc9D5A17C9550D2769eE93D3" #SOV/WRBTC -- for SOV asset
+    oraclePoolAsset = conf.contracts["OracleV1Pool-WRBTC/SOV"] #WRBTC/SOV -- for SOV asset
     oracleV1PoolPriceFeed = conf.acct.deploy(PriceFeedV1PoolOracle, oraclePoolAsset, conf.contracts['WRBTC'], conf.contracts['DoC'])
     print("new oracle v1 pool price feed: ", oracleV1PoolPriceFeed.address)
 
