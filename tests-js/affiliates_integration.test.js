@@ -314,8 +314,11 @@ contract("Affiliates", (accounts) => {
 
 	it("Test affiliates integration with underlying token with oracle v1Pool", async () => {
 		feeds = await PriceFeeds.new(testWrbtc.address, tokenSOV.address, doc.address);
-		testToken1 = await TestToken.new("test token 1", "TEST1", 18, wei("20000", "ether"));
-		testToken2 = await TestToken.new("test token 2", "TEST2", 18, wei("20000", "ether"));
+		testToken1Precision = 18
+		testToken2Precision = 18;
+		btcPrecision = 8;
+		testToken1 = await TestToken.new("test token 1", "TEST1", testToken1Precision, wei("20000", "ether"));
+		testToken2 = await TestToken.new("test token 2", "TEST2", testToken2Precision, wei("20000", "ether"));
 		testToken1Price = wei("2", "ether");
 		testToken2Price = wei("2", "ether");
 		wrBTCPrice = wei("8", "ether");
@@ -379,12 +382,15 @@ contract("Affiliates", (accounts) => {
 		expect(test1[0].toString()).to.be.equal(
 			new BN(testToken1Price)
 				.mul(new BN(wrBTCPrice))
-				.div(new BN(wei("1", "ether")))
+				.mul(new BN(10 ** (testToken1Precision - btcPrecision)))
+				.div(new BN(wei("1", "ether"))
+				)
 				.toString()
 		);
+
 		test = await feeds.queryReturn(testToken1.address, doc.address, wei("2", "ether"));
 		expect(test.toString()).to.be.equal(
-			new BN(2).mul(new BN(testToken1Price).mul(new BN(wrBTCPrice)).div(new BN(wei("1", "ether")))).toString()
+			new BN(2).mul(new BN(testToken1Price).mul(new BN(wrBTCPrice)).mul(new BN(10 ** (testToken1Precision - btcPrecision))).div(new BN(wei("1", "ether")))).toString()
 		);
 
 		test1 = await feeds.queryRate(testToken1.address, testToken2.address);

@@ -18,12 +18,12 @@ contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
 	/* Storage */
 
 	address public v1PoolOracleAddress;
-	address public rBTCAddress;
+	address public wRBTCAddress;
 	address public docAddress;
 
 	/* Events */
 	event SetV1PoolOracleAddress(address indexed v1PoolOracleAddress, address changerAddress);
-	event SetRBTCAddress(address indexed rBTCAddress, address changerAddress);
+	event SetWRBTCAddress(address indexed wRBTCAddress, address changerAddress);
 	event SetDOCAddress(address indexed docAddress, address changerAddress);
 
 	/* Functions */
@@ -32,14 +32,18 @@ contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
 	 * @notice Initialize a new V1 Pool Oracle.
 	 *
 	 * @param _v1PoolOracleAddress The V1 Pool Oracle address.
+	 * @param _wRBTCAddress The wrbtc token address.
+	 * @param _docAddress The doc token address.
 	 * */
 	constructor(
 		address _v1PoolOracleAddress,
-		address _rBTCAddress,
+		address _wRBTCAddress,
 		address _docAddress
 	) public {
+		require(_wRBTCAddress != address(0), "rBTC cant be zero address");
+		require(_docAddress != address(0), "DOC cant be zero address");
 		setV1PoolOracleAddress(_v1PoolOracleAddress);
-		setRBTCAddress(_rBTCAddress);
+		setRBTCAddress(_wRBTCAddress);
 		setDOCAddress(_docAddress);
 	}
 
@@ -48,15 +52,12 @@ contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
 	 * @return The price from Oracle.
 	 * */
 	function latestAnswer() external view returns (uint256) {
-		require(rBTCAddress != address(0), "rBTC address has not been set");
-		require(docAddress != address(0), "DOC address has not been set");
-
 		IV1PoolOracle _v1PoolOracle = IV1PoolOracle(v1PoolOracleAddress);
 		// Need to check, if the requested asset is BTC
 		address liquidityPool = _v1PoolOracle.liquidityPool();
 		require(
-			ILiquidityPoolV1Converter(liquidityPool).reserveTokens(0) != rBTCAddress ||
-				ILiquidityPoolV1Converter(liquidityPool).reserveTokens(1) != rBTCAddress,
+			ILiquidityPoolV1Converter(liquidityPool).reserveTokens(0) != wRBTCAddress ||
+				ILiquidityPoolV1Converter(liquidityPool).reserveTokens(1) != wRBTCAddress,
 			"wrBTC price feed cannot use the oracle v1 pool"
 		);
 
@@ -72,8 +73,8 @@ contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
 	function _convertAnswerToUsd(uint256 _valueInBTC) private view returns (uint256) {
 		address _priceFeeds = msg.sender;
 
-		uint256 precision = IPriceFeeds(_priceFeeds).queryPrecision(rBTCAddress, docAddress);
-		uint256 valueInUSD = IPriceFeeds(_priceFeeds).queryReturn(rBTCAddress, docAddress, _valueInBTC);
+		uint256 precision = IPriceFeeds(_priceFeeds).queryPrecision(wRBTCAddress, docAddress);
+		uint256 valueInUSD = IPriceFeeds(_priceFeeds).queryReturn(wRBTCAddress, docAddress, _valueInBTC);
 
 		/// Need to multiply by query precision (doc's precision) and divide by 1*10^8 (Because the based price in v1 pool is in rBTC(8 decimals))
 		return valueInUSD.mul(precision).div(1e8);
@@ -93,12 +94,12 @@ contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
 	/**
 	 * @notice Set the rBtc address. V1 pool based price is BTC, so need to convert the value from v1 pool to USD. That's why we need to get the price of the rBtc
 	 *
-	 * @param _rBTCAddress The rBTC address
+	 * @param _wRBTCAddress The rBTC address
 	 */
-	function setRBTCAddress(address _rBTCAddress) public onlyOwner {
-		require(_rBTCAddress != address(0), "rBTC address cannot be zero address");
-		rBTCAddress = _rBTCAddress;
-		emit SetRBTCAddress(rBTCAddress, msg.sender);
+	function setRBTCAddress(address _wRBTCAddress) public onlyOwner {
+		require(_wRBTCAddress != address(0), "wRBTC address cannot be zero address");
+		wRBTCAddress = _wRBTCAddress;
+		emit SetWRBTCAddress(wRBTCAddress, msg.sender);
 	}
 
 	/**
