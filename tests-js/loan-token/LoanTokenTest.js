@@ -106,7 +106,7 @@ contract("LoanTokenUpgrade", (accounts) => {
 			sovryn = await ISovryn.at(sovrynproxy.address);
 			loanTokenLogicStandard = await LoanTokenLogicStandard.new();
 			loanToken = await LoanToken.new(root, loanTokenLogicStandard.address, sovryn.address, testWrbtc.address);
-			let tx = await loanToken.setTarget(loanTokenLogicStandard.address, { from: root});
+			let tx = await loanToken.setTarget(loanTokenLogicStandard.address, { from: root });
 			expectEvent(tx, "TargetSet", {
 				changedBy: root,
 				newTargetAddr: loanTokenLogicStandard.address,
