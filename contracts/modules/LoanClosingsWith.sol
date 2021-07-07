@@ -45,6 +45,7 @@ contract LoanClosingsWith is
 	function initialize(address target) external onlyOwner {
 		_setTarget(this.closeWithDeposit.selector, target);
 		_setTarget(this.closeWithSwap.selector, target);
+		emit ContractReplaced(msg.sender, target, "LoanClosingsWith");
 	}
 
 	/**

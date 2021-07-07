@@ -13,6 +13,8 @@ pragma solidity 0.5.17;
  * This contract contains the events for protocol settings operations.
  * */
 contract ProtocolSettingsEvents {
+	event ContractReplaced(address indexed changedBy, address indexed newTargetAddr, bytes32 indexed module);
+	
 	event SetPriceFeedContract(address indexed sender, address oldValue, address newValue);
 
 	event SetSwapsImplContract(address indexed sender, address oldValue, address newValue);

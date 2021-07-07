@@ -41,6 +41,7 @@ contract LoanSettings is State, LoanSettingsEvents {
 		_setTarget(this.getLoanParams.selector, target);
 		_setTarget(this.getLoanParamsList.selector, target);
 		_setTarget(this.getTotalPrincipal.selector, target);
+		emit ContractReplaced(msg.sender, target, "LoanSettings");
 	}
 
 	/**

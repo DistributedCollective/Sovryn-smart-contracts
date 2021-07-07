@@ -39,6 +39,7 @@ contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, 
 	function initialize(address target) external onlyOwner {
 		_setTarget(this.liquidate.selector, target);
 		_setTarget(this.rollover.selector, target);
+		emit ContractReplaced(msg.sender, target, "LoanClosingsBase");
 	}
 
 	/**

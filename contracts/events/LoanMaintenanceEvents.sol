@@ -8,5 +8,7 @@ pragma solidity 0.5.17;
  * This contract contains the events for loan maintenance operations.
  * */
 contract LoanMaintenanceEvents {
+	event ContractReplaced(address indexed changedBy, address indexed newTargetAddr, bytes32 indexed module);
+	
 	event DepositCollateral(bytes32 loanId, uint256 depositAmount, uint256 rate);
 }

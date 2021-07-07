@@ -42,6 +42,7 @@ contract Affiliates is State, AffiliatesEvents {
 		_setTarget(this.getAffiliatesUserReferrer.selector, target);
 		_setTarget(this.getAffiliateRewardsHeld.selector, target);
 		_setTarget(this.getAffiliateTradingTokenFeePercent.selector, target);
+		emit ContractReplaced(msg.sender, target, "Affiliates");
 	}
 
 	modifier onlyCallableByLoanPools() {

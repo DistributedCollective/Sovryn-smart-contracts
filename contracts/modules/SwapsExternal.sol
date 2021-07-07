@@ -40,6 +40,7 @@ contract SwapsExternal is VaultController, SwapsUser {
 	function initialize(address target) external onlyOwner {
 		_setTarget(this.swapExternal.selector, target);
 		_setTarget(this.getSwapExpectedReturn.selector, target);
+		emit ContractReplaced(msg.sender, target, "SwapsExternal");
 	}
 
 	/**

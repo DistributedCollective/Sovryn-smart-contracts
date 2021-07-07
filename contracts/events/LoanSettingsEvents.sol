@@ -13,6 +13,8 @@ pragma solidity 0.5.17;
  * This contract contains the events for loan settings operations.
  * */
 contract LoanSettingsEvents {
+	event ContractReplaced(address indexed changedBy, address indexed newTargetAddr, bytes32 indexed module);
+	
 	event LoanParamsSetup(
 		bytes32 indexed id,
 		address owner,

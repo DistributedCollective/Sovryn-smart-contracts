@@ -70,6 +70,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		_setTarget(this.getUserLoans.selector, target);
 		_setTarget(this.getLoan.selector, target);
 		_setTarget(this.getActiveLoans.selector, target);
+		emit ContractReplaced(msg.sender, target, "LoanMaintenance");
 	}
 
 	/**

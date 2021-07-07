@@ -13,6 +13,8 @@ pragma solidity 0.5.17;
  * This contract contains the events for loan closing operations.
  * */
 contract LoanClosingsEvents {
+	event ContractReplaced(address indexed changedBy, address indexed newTargetAddr, bytes32 indexed module);
+	
 	/// topic0: 0x6349c1a02ec126f7f4fc6e6837e1859006e90e9901635c442d29271e77b96fb6
 	event CloseWithDeposit(
 		address indexed user,

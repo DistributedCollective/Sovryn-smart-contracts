@@ -13,6 +13,8 @@ pragma solidity 0.5.17;
  * This contract contains the events for loan openings operations.
  * */
 contract LoanOpeningsEvents {
+	event ContractReplaced(address indexed changedBy, address indexed newTargetAddr, bytes32 indexed module);
+	
 	/// topic0: 0x7bd8cbb7ba34b33004f3deda0fd36c92fc0360acbd97843360037b467a538f90
 	event Borrow(
 		address indexed user,

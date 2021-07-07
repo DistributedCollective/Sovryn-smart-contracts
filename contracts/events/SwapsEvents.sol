@@ -13,6 +13,8 @@ pragma solidity 0.5.17;
  * This contract contains the events for swap operations.
  * */
 contract SwapsEvents {
+	event ContractReplaced(address indexed changedBy, address indexed newTargetAddr, bytes32 indexed module);
+	
 	event LoanSwap(
 		bytes32 indexed loanId,
 		address indexed sourceToken,

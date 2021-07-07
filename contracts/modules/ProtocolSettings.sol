@@ -75,6 +75,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.getProtocolAddress.selector, target);
 		_setTarget(this.getSovTokenAddress.selector, target);
 		_setTarget(this.getLockedSOVAddress.selector, target);
+		emit ContractReplaced(msg.sender, target, "ProtocolSettings");
 	}
 
 	/**
