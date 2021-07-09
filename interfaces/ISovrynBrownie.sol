@@ -113,6 +113,10 @@ contract ISovrynBrownie is
 
 	function setRebatePercent(uint256 rebatePercent) external;
 
+	function pause() external;
+
+	function unpause() external;
+
 	////// Loan Settings //////
 
 	function setupLoanParams(LoanParams[] calldata loanParamsList) external returns (bytes32[] memory loanParamsIdList);
