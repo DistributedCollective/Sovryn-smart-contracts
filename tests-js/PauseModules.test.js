@@ -110,7 +110,6 @@ contract("Pause Modules", (accounts) => {
 	};
 
 	describe("Pause Affiliates", () => {
-
 		it("Should pause setting Affiliates referrer", async () => {
 			loanTokenLogic = await MockLoanTokenLogic.new();
 			testWrbtc = await TestWrbtc.new();
@@ -118,7 +117,7 @@ contract("Pause Modules", (accounts) => {
 			tokenSOV = await SOVToken.new(TOTAL_SUPPLY);
 			loanTokenV1 = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 			await loanTokenV1.initialize(doc.address, "SUSD", "SUSD");
-			loanTokenV2 = await MockLoanTokenLogic.at(loanTokenV1.address); 
+			loanTokenV2 = await MockLoanTokenLogic.at(loanTokenV1.address);
 			const loanTokenAddress = await loanTokenV1.loanTokenAddress();
 			//Unpaused to set loan pool
 			await sovryn.unpause();
@@ -131,7 +130,6 @@ contract("Pause Modules", (accounts) => {
 	});
 
 	describe("Pause LoanClosingBase", () => {
-
 		it("Test rollover reward payment", async () => {
 			// prepare the test
 			const [, initial_loan, loan_id] = await setup_rollover_test(RBTC, SUSD, accounts, loanToken, set_demand_curve, sovryn);
@@ -150,7 +148,6 @@ contract("Pause Modules", (accounts) => {
 	});
 
 	describe("Pause ProtocolSettings", () => {
-
 		it("Should pause setting SOV token address", async () => {
 			const sov = await TestToken.new("Sovryn", "SOV", 18, new BN(10).pow(new BN(50)));
 			await expectRevert(sovryn.setSOVTokenAddress(sov.address), "Paused");

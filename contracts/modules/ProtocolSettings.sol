@@ -598,11 +598,11 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 	}
 
 	function pause() external onlyOwner whenNotPaused {
-        paused = true;
-    }
+		paused = true;
+	}
 
 	function unpause() external onlyOwner {
 		require(paused, "Not paused");
-        paused = false;
-    }
+		paused = false;
+	}
 }

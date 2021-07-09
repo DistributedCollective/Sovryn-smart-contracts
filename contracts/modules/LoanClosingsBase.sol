@@ -23,14 +23,14 @@ import "./ModuleCommonFunctionalities.sol";
  *
  * Loans are liquidated if the position goes below margin maintenance.
  * */
-contract LoanClosingsBase is 
-	LoanClosingsEvents, 
-	VaultController, 
-	InterestUser, 
-	SwapsUser, 
-	LiquidationHelper, 
-	RewardHelper, 
-	ModuleCommonFunctionalities 
+contract LoanClosingsBase is
+	LoanClosingsEvents,
+	VaultController,
+	InterestUser,
+	SwapsUser,
+	LiquidationHelper,
+	RewardHelper,
+	ModuleCommonFunctionalities
 {
 	uint256 internal constant MONTH = 365 days / 12;
 	//0.00001 BTC, would be nicer in State.sol, but would require a redeploy of the complete protocol, so adding it here instead

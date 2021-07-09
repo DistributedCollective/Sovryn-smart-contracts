@@ -24,12 +24,12 @@ import "./ModuleCommonFunctionalities.sol";
  * This contract contains functions to query loan data and to modify its status
  * by withdrawing or depositing collateral.
  * */
-contract LoanMaintenance is 
-	LoanOpeningsEvents, 
-	LoanMaintenanceEvents, 
-	VaultController, 
-	InterestUser, 
-	SwapsUser, 
+contract LoanMaintenance is
+	LoanOpeningsEvents,
+	LoanMaintenanceEvents,
+	VaultController,
+	InterestUser,
+	SwapsUser,
 	LiquidationHelper,
 	ModuleCommonFunctionalities
 {
