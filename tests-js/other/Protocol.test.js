@@ -14,7 +14,7 @@ const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 contract("Protocol", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, priceFeeds;
 	const ONE_ADDRESS = "0x0000000000000000000000000000000000000001";
-	beforeEach(async () => {
+	before(async () => {
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
@@ -64,83 +64,67 @@ contract("Protocol", (accounts) => {
 
 	describe("Events - replaceContract", () => {
 		it("Test replaceContract - Affiliates", async () => {
+			const selector = "getUserNotFirstTradeFlag(address)";
+			let oldAffiliatesAddr = await sovryn.getTarget(selector);
 			let newAffiliatesAddr = await Affiliates.new();
 			let tx = await sovryn.replaceContract(newAffiliatesAddr.address);
-			expectEvent(tx, "ContractReplaced", {
-				changedBy: accounts[0],
-				newTargetAddr: newAffiliatesAddr.address,
+			let block = await web3.eth.getBlock(tx.receipt.blockNumber);
+			expectEvent(tx, "ProtocolModuleContractReplaced", {
+				prevModuleContractAddress: oldAffiliatesAddr,
+				newModuleContractAddress: newAffiliatesAddr.address,
 				module: ethers.utils.formatBytes32String("Affiliates"),
+				timeStamp: block.timestamp.toString(),
 			});
 		});
 
 		it("Test replaceContract - LoanClosingsBase", async () => {
 			let newLoanClosingsBaseAddr = await LoanClosingsBase.new();
 			let tx = await sovryn.replaceContract(newLoanClosingsBaseAddr.address);
-			expectEvent(tx, "ContractReplaced", {
-				changedBy: accounts[0],
-				newTargetAddr: newLoanClosingsBaseAddr.address,
-				module: ethers.utils.formatBytes32String("LoanClosingsBase"),
-			});
+			expectEvent(tx, "ProtocolModuleContractReplaced");
 		});
 
 		it("Test replaceContract - LoanClosingsWith", async () => {
 			let newLoanClosingsWithAddr = await LoanClosingsWith.new();
 			let tx = await sovryn.replaceContract(newLoanClosingsWithAddr.address);
-			expectEvent(tx, "ContractReplaced", {
-				changedBy: accounts[0],
-				newTargetAddr: newLoanClosingsWithAddr.address,
-				module: ethers.utils.formatBytes32String("LoanClosingsWith"),
-			});
+			expectEvent(tx, "ProtocolModuleContractReplaced");
 		});
 
 		it("Test replaceContract - LoanMaintenance", async () => {
 			let newLoanMaintenanceAddr = await LoanMaintenance.new();
 			let tx = await sovryn.replaceContract(newLoanMaintenanceAddr.address);
-			expectEvent(tx, "ContractReplaced", {
-				changedBy: accounts[0],
-				newTargetAddr: newLoanMaintenanceAddr.address,
-				module: ethers.utils.formatBytes32String("LoanMaintenance"),
-			});
+			expectEvent(tx, "ProtocolModuleContractReplaced");
 		});
 
 		it("Test replaceContract - LoanOpenings", async () => {
 			let newLoanOpeningsAddr = await LoanOpenings.new();
 			let tx = await sovryn.replaceContract(newLoanOpeningsAddr.address);
-			expectEvent(tx, "ContractReplaced", {
-				changedBy: accounts[0],
-				newTargetAddr: newLoanOpeningsAddr.address,
-				module: ethers.utils.formatBytes32String("LoanOpenings"),
-			});
+			expectEvent(tx, "ProtocolModuleContractReplaced");
 		});
 
 		it("Test replaceContract - LoanSettings", async () => {
 			let newLoanSettingsAddr = await LoanSettings.new();
 			let tx = await sovryn.replaceContract(newLoanSettingsAddr.address);
-			expectEvent(tx, "ContractReplaced", {
-				changedBy: accounts[0],
-				newTargetAddr: newLoanSettingsAddr.address,
-				module: ethers.utils.formatBytes32String("LoanSettings"),
-			});
+			expectEvent(tx, "ProtocolModuleContractReplaced");
 		});
 
 		it("Test replaceContract - ProtocolSettings", async () => {
+			const selector = "setSovrynProtocolAddress(address)";
+			let oldProtocolSettingsAddr = await sovryn.getTarget(selector);
 			let newProtocolSettingsAddr = await ProtocolSettings.new();
 			let tx = await sovryn.replaceContract(newProtocolSettingsAddr.address);
-			expectEvent(tx, "ContractReplaced", {
-				changedBy: accounts[0],
-				newTargetAddr: newProtocolSettingsAddr.address,
+			let block = await web3.eth.getBlock(tx.receipt.blockNumber);
+			expectEvent(tx, "ProtocolModuleContractReplaced", {		
+				prevModuleContractAddress: oldProtocolSettingsAddr,
+				newModuleContractAddress: newProtocolSettingsAddr.address,
 				module: ethers.utils.formatBytes32String("ProtocolSettings"),
+				timeStamp: block.timestamp.toString(),
 			});
 		});
 
 		it("Test replaceContract - SwapsExternal", async () => {
-			let newSwapsExternalAddr = await SwapsExternal.new();
+			let newSwapsExternalAddr =  await SwapsExternal.new();
 			let tx = await sovryn.replaceContract(newSwapsExternalAddr.address);
-			expectEvent(tx, "ContractReplaced", {
-				changedBy: accounts[0],
-				newTargetAddr: newSwapsExternalAddr.address,
-				module: ethers.utils.formatBytes32String("SwapsExternal"),
-			});
+			expectEvent(tx, "ProtocolModuleContractReplaced");
 		});
 	});
 });

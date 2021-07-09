@@ -60,6 +60,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	 * @param target The address of the logic contract instance.
 	 * */
 	function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.depositCollateral.selector];
 		_setTarget(this.depositCollateral.selector, target);
 		_setTarget(this.withdrawCollateral.selector, target);
 		_setTarget(this.withdrawAccruedInterest.selector, target);
@@ -70,7 +71,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		_setTarget(this.getUserLoans.selector, target);
 		_setTarget(this.getLoan.selector, target);
 		_setTarget(this.getActiveLoans.selector, target);
-		emit ContractReplaced(msg.sender, target, "LoanMaintenance");
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanMaintenance", block.timestamp);
 	}
 
 	/**

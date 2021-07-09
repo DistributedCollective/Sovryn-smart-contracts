@@ -5,6 +5,8 @@
 
 pragma solidity 0.5.17;
 
+import "./ModulesCommonEvents.sol";
+
 /**
  * @title The Loan Settings Events contract.
  * @notice This contract code comes from bZx. bZx is a protocol for tokenized
@@ -12,10 +14,8 @@ pragma solidity 0.5.17;
  *
  * This contract contains the events for loan settings operations.
  * */
-contract LoanSettingsEvents {
-	event ContractReplaced(address indexed changedBy, address indexed newTargetAddr, bytes32 indexed module);
-
-	event LoanParamsSetup(
+contract LoanSettingsEvents is ModulesCommonEvents {
+		event LoanParamsSetup(
 		bytes32 indexed id,
 		address owner,
 		address indexed loanToken,

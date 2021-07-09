@@ -95,22 +95,5 @@ contract("LoanTokenUpgrade", (accounts) => {
 			assert.equal(sovrynContractAddress, previousSovrynContractAddress);
 			assert.equal(wrbtcTokenAddress, previousWrbtcTokenAddress);
 		});
-
-		it("emit event while setting new target Contract Address", async () => {
-			const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
-			const TestWrbtc = artifacts.require("TestWrbtc");
-			const sovrynProtocol = artifacts.require("sovrynProtocol");
-			const ISovryn = artifacts.require("ISovryn");
-			testWrbtc = await TestWrbtc.new();
-			const sovrynproxy = await sovrynProtocol.new();
-			sovryn = await ISovryn.at(sovrynproxy.address);
-			loanTokenLogicStandard = await LoanTokenLogicStandard.new();
-			loanToken = await LoanToken.new(root, loanTokenLogicStandard.address, sovryn.address, testWrbtc.address);
-			let tx = await loanToken.setTarget(loanTokenLogicStandard.address, { from: root });
-			expectEvent(tx, "TargetSet", {
-				changedBy: root,
-				newTargetAddr: loanTokenLogicStandard.address,
-			});
-		});
 	});
 });
