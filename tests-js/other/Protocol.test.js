@@ -113,7 +113,7 @@ contract("Protocol", (accounts) => {
 			let newProtocolSettingsAddr = await ProtocolSettings.new();
 			let tx = await sovryn.replaceContract(newProtocolSettingsAddr.address);
 			let block = await web3.eth.getBlock(tx.receipt.blockNumber);
-			expectEvent(tx, "ProtocolModuleContractReplaced", {		
+			expectEvent(tx, "ProtocolModuleContractReplaced", {
 				prevModuleContractAddress: oldProtocolSettingsAddr,
 				newModuleContractAddress: newProtocolSettingsAddr.address,
 				module: ethers.utils.formatBytes32String("ProtocolSettings"),
@@ -122,7 +122,7 @@ contract("Protocol", (accounts) => {
 		});
 
 		it("Test replaceContract - SwapsExternal", async () => {
-			let newSwapsExternalAddr =  await SwapsExternal.new();
+			let newSwapsExternalAddr = await SwapsExternal.new();
 			let tx = await sovryn.replaceContract(newSwapsExternalAddr.address);
 			expectEvent(tx, "ProtocolModuleContractReplaced");
 		});
