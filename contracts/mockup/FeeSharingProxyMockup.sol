@@ -11,7 +11,7 @@ contract FeeSharingProxyMockup is FeeSharingProxy {
 
 	TestData public testData;
 
-	constructor(IProtocol _protocol, IStaking _staking) public FeeSharingProxy(_protocol, _staking) {}
+	constructor(IProtocol _protocol, IStaking _staking, address wRBTCAddress) public FeeSharingProxy(_protocol, _staking, wRBTCAddress) {}
 
 	function withdraw(
 		address _loanPoolToken,

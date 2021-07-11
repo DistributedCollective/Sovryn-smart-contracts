@@ -20,6 +20,7 @@ const LoanClosingsBase = artifacts.require("LoanClosingsBase");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 
 const LoanTokenLogic = artifacts.require("LoanTokenLogicStandard");
+const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
 
@@ -36,6 +37,8 @@ const FEE_WITHDRAWAL_INTERVAL = 86400;
 
 const MOCK_PRIOR_WEIGHTED_STAKE = false;
 
+const wei = web3.utils.toWei;
+
 contract("FeeSharingProxy:", (accounts) => {
 	const name = "Test SOVToken";
 	const symbol = "TST";
@@ -45,6 +48,7 @@ contract("FeeSharingProxy:", (accounts) => {
 	let protocol;
 	let loanTokenSettings, loanTokenLogic, loanToken;
 	let feeSharingProxy;
+	let loanTokenWrbtc;
 
 	before(async () => {
 		[root, account1, account2, account3, account4, ...accounts] = accounts;
@@ -87,34 +91,51 @@ contract("FeeSharingProxy:", (accounts) => {
 		await loanToken.setAdmin(root);
 		await protocol.setLoanPool([loanToken.address], [susd.address]);
 		//FeeSharingProxy
-		feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address);
+		feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address, wrbtc.address);
 		await protocol.setFeesController(feeSharingProxy.address);
+
+		// Set loan pool for wRBTC -- because our fee sharing proxy required the loanPool of wRBTC
+		loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
+		loanTokenWrbtc = await LoanToken.new(root, loanTokenLogicWrbtc.address, protocol.address, wrbtc.address);
+		await loanTokenWrbtc.initialize(wrbtc.address, "iWRBTC", "iWRBTC");
+
+		loanTokenWrbtc = await LoanTokenLogicWrbtc.at(loanTokenWrbtc.address);
+		const loanTokenAddressWrbtc = await loanTokenWrbtc.loanTokenAddress();
+		await protocol.setLoanPool([loanTokenWrbtc.address], [loanTokenAddressWrbtc]);
+
+		await wrbtc.mint(protocol.address, wei("500", "ether"));
+
+		await protocol.setWrbtcToken(wrbtc.address);
+		await protocol.setSovrynProtocolAddress(protocol.address);
 	});
 
 	describe("withdrawFees", () => {
 		it("Shouldn't be able to use zero token address", async () => {
-			await expectRevert(feeSharingProxy.withdrawFees(ZERO_ADDRESS), "FeeSharingProxy::withdrawFees: invalid address");
+			await expectRevert(feeSharingProxy.withdrawFees([ZERO_ADDRESS]), "FeeSharingProxy::withdrawFees: invalid address");
 		});
 
 		it("Shouldn't be able to withdraw second time in period", async () => {
 			//stake - getPriorTotalVotingPower
 			let totalStake = 1000;
+
 			await stake(totalStake, root);
 
 			//mock data
 			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 
-			await feeSharingProxy.withdrawFees(susd.address);
+			await feeSharingProxy.withdrawFees([susd.address]);
 
-			await expectRevert(feeSharingProxy.withdrawFees(susd.address), "FeeSharingProxy::withdrawFees: no tokens to withdraw");
+			await expectRevert(feeSharingProxy.withdrawFees([susd.address]), "FeeSharingProxy::withdrawFees: no tokens to withdraw");
 		});
 
-		it("Shouldn't be able to withdraw for unknown token", async () => {
-			await expectRevert(feeSharingProxy.withdrawFees(loanToken.address), "FeeSharingProxy::withdrawFees: loan token not found");
+		it("Shouldn't be able to withdraw if wRBTC loan pool does not exist", async () => {
+			// Unset the loanPool for wRBTC
+			await protocol.setLoanPool([loanTokenWrbtc.address], [ZERO_ADDRESS]);
+			await expectRevert(feeSharingProxy.withdrawFees([loanToken.address]), "FeeSharingProxy::withdrawFees: loan wRBTC not found");
 		});
 
 		it("Shouldn't be able to withdraw zero amount", async () => {
-			await expectRevert(feeSharingProxy.withdrawFees(susd.address), "FeeSharingProxy::withdrawFees: no tokens to withdraw");
+			await expectRevert(feeSharingProxy.withdrawFees([susd.address]), "FeeSharingProxy::withdrawFees: no tokens to withdraw");
 		});
 
 		it("ProtocolSettings.withdrawFees", async () => {
