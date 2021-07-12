@@ -47,6 +47,7 @@ const {
 
 contract("Pause Modules", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
+	let loanParams, loanParamsId;
 
 	before(async () => {
 		[owner, trader, referrer, account1, account2, ...accounts] = accounts;
@@ -74,7 +75,20 @@ contract("Pause Modules", (accounts) => {
 		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 		SOV = await getSOV(sovryn, priceFeeds, SUSD);
-		await sovryn.pause();
+
+		//Token
+		underlyingToken = await TestToken.new("Test token", "TST", 18, TOTAL_SUPPLY);
+
+		loanParams = {
+			id: "0x0000000000000000000000000000000000000000000000000000000000000000",
+			active: false,
+			owner: constants.ZERO_ADDRESS,
+			loanToken: underlyingToken.address,
+			collateralToken: loanTokenWRBTC.address,
+			minInitialMargin: wei("50", "ether"),
+			maintenanceMargin: wei("15", "ether"),
+			maxLoanTerm: "2419200",
+		};
 	});
 
 	const setup_rollover_test = async (RBTC, SUSD, accounts, loanToken, set_demand_curve, sovryn) => {
@@ -82,7 +96,7 @@ contract("Pause Modules", (accounts) => {
 		await SUSD.approve(loanToken.address, new BN(10).pow(new BN(40)));
 		const lender = accounts[0];
 		const borrower = accounts[1];
-		await sovryn.unpause();
+		await sovryn.toggleFreeze(false); //Unpaused
 		await loanToken.mint(lender, new BN(10).pow(new BN(30)));
 		const loan_token_sent = hunEth;
 		await SUSD.mint(borrower, loan_token_sent);
@@ -119,12 +133,10 @@ contract("Pause Modules", (accounts) => {
 			await loanTokenV1.initialize(doc.address, "SUSD", "SUSD");
 			loanTokenV2 = await MockLoanTokenLogic.at(loanTokenV1.address);
 			const loanTokenAddress = await loanTokenV1.loanTokenAddress();
-			//Unpaused to set loan pool
-			await sovryn.unpause();
 			if (owner == (await sovryn.owner())) {
 				await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
 			}
-			await sovryn.pause();
+			await sovryn.toggleFreeze(true); //Paused
 			await expectRevert(loanTokenV2.setAffiliatesReferrer(trader, referrer), "Paused");
 		});
 	});
@@ -142,7 +154,7 @@ contract("Pause Modules", (accounts) => {
 
 			const receiver = accounts[3];
 			expect((await RBTC.balanceOf(receiver)).toNumber() == 0).to.be.true;
-			await sovryn.pause();
+			await sovryn.toggleFreeze(true); //Paused
 			await expectRevert(sovryn.rollover(loan_id, "0x", { from: receiver }), "Paused");
 		});
 	});
@@ -170,7 +182,7 @@ contract("Pause Modules", (accounts) => {
 		});
 
 		it("Should set affiliate fee percent when Unpaused", async () => {
-			await sovryn.unpause();
+			await sovryn.toggleFreeze(false); //Unpaused
 			const affiliateTradingTokenFeePercent = web3.utils.toWei("20", "ether");
 			const invalidAffiliateTradingTokenFeePercent = web3.utils.toWei("101", "ether");
 			// Should revert if set with non owner
@@ -185,4 +197,31 @@ contract("Pause Modules", (accounts) => {
 			expect((await sovryn.affiliateTradingTokenFeePercent()).toString() == affiliateTradingTokenFeePercent).to.be.true;
 		});
 	});
+	describe("Pause LoanSettings", () => {
+		it("Able to setupLoanParams & disableLoanParamsEvents when unpaused", async () => {
+			let tx = await sovryn.setupLoanParams([Object.values(loanParams)]);
+			loanParamsId = tx.logs[1].args.id;
+
+			tx = await sovryn.disableLoanParams([loanParamsId], { from: owner });
+
+			await expectEvent(tx, "LoanParamsIdDisabled", { owner: owner});
+			assert(tx.logs[1]["id"] != "0x0");
+
+			await expectEvent(tx, "LoanParamsDisabled", {
+				owner: owner,
+				loanToken: underlyingToken.address,
+				collateralToken: loanTokenWRBTC.address,
+				minInitialMargin: wei("50", "ether"),
+				maintenanceMargin: wei("15", "ether"),
+				maxLoanTerm: "2419200",
+			});
+			assert(tx.logs[0]["id"] != "0x0");
+		});
+
+		it("setupLoanParams & disableLoanParamsEvents freezes when protocol is paused", async () => {
+			await sovryn.toggleFreeze(true); //Paused
+			await expectRevert(sovryn.setupLoanParams([Object.values(loanParams)]), "Paused");
+		});
+	});
+
 });

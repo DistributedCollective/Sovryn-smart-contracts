@@ -4,7 +4,7 @@ import "../core/State.sol";
 
 contract ModuleCommonFunctionalities is State {
 	modifier whenNotPaused() {
-		require(!paused, "Paused");
+		require(!pause, "Paused");
 		_;
 	}
 }

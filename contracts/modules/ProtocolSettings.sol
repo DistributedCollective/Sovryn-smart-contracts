@@ -76,8 +76,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		_setTarget(this.getProtocolAddress.selector, target);
 		_setTarget(this.getSovTokenAddress.selector, target);
 		_setTarget(this.getLockedSOVAddress.selector, target);
-		_setTarget(this.pause.selector, target);
-		_setTarget(this.unpause.selector, target);
+		_setTarget(this.toggleFreeze.selector, target);
 	}
 
 	/**
@@ -597,12 +596,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		return lockedSOVAddress;
 	}
 
-	function pause() external onlyOwner whenNotPaused {
-		paused = true;
-	}
-
-	function unpause() external onlyOwner {
-		require(paused, "Not paused");
-		paused = false;
+	function toggleFreeze(bool paused) external onlyOwner {
+		pause = paused;
 	}
 }

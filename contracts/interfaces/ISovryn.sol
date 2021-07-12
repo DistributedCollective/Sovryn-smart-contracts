@@ -111,9 +111,7 @@ contract ISovryn is
 
 	function setRebatePercent(uint256 rebatePercent) external;
 
-	function pause() external;
-
-	function unpause() external;
+	function toggleFreeze(bool paused) external;
 
 	////// Loan Settings //////
 
