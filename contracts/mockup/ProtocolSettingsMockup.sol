@@ -1,8 +1,9 @@
 pragma solidity 0.5.17;
 
 import "../modules/ProtocolSettings.sol";
+import "../modules/SwapsExternal.sol";
 
-contract ProtocolSettingsMockup is ProtocolSettings {
+contract ProtocolSettingsMockup is ProtocolSettings, SwapsExternal {
 	function setLendingFeeTokensHeld(address token, uint256 amout) public {
 		lendingFeeTokensHeld[token] = amout;
 	}
@@ -54,5 +55,7 @@ contract ProtocolSettingsMockup is ProtocolSettings {
 		_setTarget(this.getProtocolAddress.selector, target);
 		_setTarget(this.getSovTokenAddress.selector, target);
 		_setTarget(this.getLockedSOVAddress.selector, target);
+
+		_setTarget(this.swapExternal.selector, target);
 	}
 }

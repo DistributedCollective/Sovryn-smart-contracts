@@ -133,7 +133,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 		require(loanPoolToken != address(0), "FeeSharingProxy::withdrawFees: loan wRBTC not found");
 
 		uint256 amount = protocol.withdrawFees(_tokens, address(this));
-		require(amount > 0, "FeeSharingProxy::withdrawFees: no wRBTC to withdraw");
+		require(amount > 0, "FeeSharingProxy::withdrawFees: no tokens to withdraw");
 
 		/// @dev TODO can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
 		IERC20(wRBTCAddress).approve(loanPoolToken, amount);
