@@ -96,7 +96,12 @@ contract("Pause Modules", (accounts) => {
 		await SUSD.approve(loanToken.address, new BN(10).pow(new BN(40)));
 		const lender = accounts[0];
 		const borrower = accounts[1];
-		await sovryn.toggleFreeze(false); //Unpaused
+		let tx = await sovryn.togglePaused(false); //Unpaused
+		await expectEvent(tx, "TogglePaused", {
+			sender: owner,
+			oldFlag: true,
+			newFlag: false,
+		});
 		await loanToken.mint(lender, new BN(10).pow(new BN(30)));
 		const loan_token_sent = hunEth;
 		await SUSD.mint(borrower, loan_token_sent);
@@ -136,7 +141,12 @@ contract("Pause Modules", (accounts) => {
 			if (owner == (await sovryn.owner())) {
 				await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
 			}
-			await sovryn.toggleFreeze(true); //Paused
+			let tx = await sovryn.togglePaused(true); //Paused
+			await expectEvent(tx, "TogglePaused", {
+				sender: owner,
+				oldFlag: false,
+				newFlag: true,
+			});
 			await expectRevert(loanTokenV2.setAffiliatesReferrer(trader, referrer), "Paused");
 		});
 	});
@@ -154,7 +164,12 @@ contract("Pause Modules", (accounts) => {
 
 			const receiver = accounts[3];
 			expect((await RBTC.balanceOf(receiver)).toNumber() == 0).to.be.true;
-			await sovryn.toggleFreeze(true); //Paused
+			let tx = await sovryn.togglePaused(true); //Paused
+			await expectEvent(tx, "TogglePaused", {
+				sender: owner,
+				oldFlag: false,
+				newFlag: true,
+			});
 			await expectRevert(sovryn.rollover(loan_id, "0x", { from: receiver }), "Paused");
 		});
 	});
@@ -182,7 +197,12 @@ contract("Pause Modules", (accounts) => {
 		});
 
 		it("Should set affiliate fee percent when Unpaused", async () => {
-			await sovryn.toggleFreeze(false); //Unpaused
+			let tx = await sovryn.togglePaused(false); //Unpaused
+			await expectEvent(tx, "TogglePaused", {
+				sender: owner,
+				oldFlag: true,
+				newFlag: false,
+			});
 			const affiliateTradingTokenFeePercent = web3.utils.toWei("20", "ether");
 			const invalidAffiliateTradingTokenFeePercent = web3.utils.toWei("101", "ether");
 			// Should revert if set with non owner
@@ -219,7 +239,12 @@ contract("Pause Modules", (accounts) => {
 		});
 
 		it("setupLoanParams & disableLoanParamsEvents freezes when protocol is paused", async () => {
-			await sovryn.toggleFreeze(true); //Paused
+			let tx = await sovryn.togglePaused(true); //Paused
+			await expectEvent(tx, "TogglePaused", {
+				sender: owner,
+				oldFlag: false,
+				newFlag: true,
+			});
 			await expectRevert(sovryn.setupLoanParams([Object.values(loanParams)]), "Paused");
 		});
 	});
