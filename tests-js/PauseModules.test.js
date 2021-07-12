@@ -204,7 +204,7 @@ contract("Pause Modules", (accounts) => {
 
 			tx = await sovryn.disableLoanParams([loanParamsId], { from: owner });
 
-			await expectEvent(tx, "LoanParamsIdDisabled", { owner: owner});
+			await expectEvent(tx, "LoanParamsIdDisabled", { owner: owner });
 			assert(tx.logs[1]["id"] != "0x0");
 
 			await expectEvent(tx, "LoanParamsDisabled", {
@@ -223,5 +223,4 @@ contract("Pause Modules", (accounts) => {
 			await expectRevert(sovryn.setupLoanParams([Object.values(loanParams)]), "Paused");
 		});
 	});
-
 });
