@@ -68,19 +68,23 @@ contract("Protocol", (accounts) => {
 			let oldAffiliatesAddr = await sovryn.getTarget(selector);
 			let newAffiliatesAddr = await Affiliates.new();
 			let tx = await sovryn.replaceContract(newAffiliatesAddr.address);
-			let block = await web3.eth.getBlock(tx.receipt.blockNumber);
 			expectEvent(tx, "ProtocolModuleContractReplaced", {
 				prevModuleContractAddress: oldAffiliatesAddr,
 				newModuleContractAddress: newAffiliatesAddr.address,
 				module: ethers.utils.formatBytes32String("Affiliates"),
-				timeStamp: block.timestamp.toString(),
 			});
 		});
 
 		it("Test replaceContract - LoanClosingsBase", async () => {
+			const selector = "liquidate(bytes32,address,uint256)";
+			let oldLoanClosingsBaseAddr = await sovryn.getTarget(selector);
 			let newLoanClosingsBaseAddr = await LoanClosingsBase.new();
 			let tx = await sovryn.replaceContract(newLoanClosingsBaseAddr.address);
-			expectEvent(tx, "ProtocolModuleContractReplaced");
+			expectEvent(tx, "ProtocolModuleContractReplaced", {
+				prevModuleContractAddress: oldLoanClosingsBaseAddr,
+				newModuleContractAddress: newLoanClosingsBaseAddr.address,
+				module: ethers.utils.formatBytes32String("LoanClosingsBase"),
+			});
 		});
 
 		it("Test replaceContract - LoanClosingsWith", async () => {
@@ -112,12 +116,10 @@ contract("Protocol", (accounts) => {
 			let oldProtocolSettingsAddr = await sovryn.getTarget(selector);
 			let newProtocolSettingsAddr = await ProtocolSettings.new();
 			let tx = await sovryn.replaceContract(newProtocolSettingsAddr.address);
-			let block = await web3.eth.getBlock(tx.receipt.blockNumber);
 			expectEvent(tx, "ProtocolModuleContractReplaced", {
 				prevModuleContractAddress: oldProtocolSettingsAddr,
 				newModuleContractAddress: newProtocolSettingsAddr.address,
 				module: ethers.utils.formatBytes32String("ProtocolSettings"),
-				timeStamp: block.timestamp.toString(),
 			});
 		});
 

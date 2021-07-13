@@ -9,7 +9,6 @@ contract ModulesCommonEvents {
 	event ProtocolModuleContractReplaced(
 		address indexed prevModuleContractAddress,
 		address indexed newModuleContractAddress,
-		bytes32 indexed module,
-		uint256 timeStamp
+		bytes32 indexed module
 	);
 }

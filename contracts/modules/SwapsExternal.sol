@@ -41,7 +41,7 @@ contract SwapsExternal is VaultController, SwapsUser {
 		address prevModuleContractAddress = logicTargets[this.swapExternal.selector];
 		_setTarget(this.swapExternal.selector, target);
 		_setTarget(this.getSwapExpectedReturn.selector, target);
-		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "SwapsExternal", block.timestamp);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "SwapsExternal");
 	}
 
 	/**

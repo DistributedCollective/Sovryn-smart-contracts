@@ -42,7 +42,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 		_setTarget(this.getEstimatedMarginExposure.selector, target);
 		_setTarget(this.getRequiredCollateral.selector, target);
 		_setTarget(this.getBorrowAmount.selector, target);
-		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanOpenings", block.timestamp);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanOpenings");
 	}
 
 	/**

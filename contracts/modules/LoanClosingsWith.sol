@@ -46,7 +46,7 @@ contract LoanClosingsWith is
 		address prevModuleContractAddress = logicTargets[this.closeWithDeposit.selector];
 		_setTarget(this.closeWithDeposit.selector, target);
 		_setTarget(this.closeWithSwap.selector, target);
-		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanClosingsWith", block.timestamp);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanClosingsWith");
 	}
 
 	/**

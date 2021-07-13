@@ -40,7 +40,7 @@ contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, 
 		address prevModuleContractAddress = logicTargets[this.liquidate.selector];
 		_setTarget(this.liquidate.selector, target);
 		_setTarget(this.rollover.selector, target);
-		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanClosingsBase", block.timestamp);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanClosingsBase");
 	}
 
 	/**
