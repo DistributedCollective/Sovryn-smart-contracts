@@ -125,7 +125,7 @@ contract("LoanTokenAdministration", (accounts) => {
 			let localLoanToken = await LoanTokenLogicStandard.at(loanToken.address);
 			await localLoanToken.setPauser(accounts[0]);
 			let tx = await localLoanToken.toggleFunctionPause(functionSignature, true);
-			expectEvent(tx,"ToggleFunctionPaused", {
+			expectEvent(tx, "ToggleFunctionPaused", {
 				functionId: functionSignature,
 				prevFlag: false,
 				newFlag: true,
@@ -140,7 +140,7 @@ contract("LoanTokenAdministration", (accounts) => {
 			localLoanToken = await LoanTokenLogicStandard.at(loanToken.address);
 			await localLoanToken.setPauser(accounts[0]);
 			tx = await localLoanToken.toggleFunctionPause(functionSignature, false);
-			expectEvent(tx,"ToggleFunctionPaused", {
+			expectEvent(tx, "ToggleFunctionPaused", {
 				functionId: functionSignature,
 				prevFlag: true,
 				newFlag: false,
