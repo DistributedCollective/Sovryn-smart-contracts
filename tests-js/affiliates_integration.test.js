@@ -1,4 +1,6 @@
 const { assert } = require("chai");
+const { waffle } = require('hardhat');
+const { deployMockContract } = waffle;
 const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
 const sovrynProtocol = artifacts.require("sovrynProtocol");
 const LoanToken = artifacts.require("LoanToken");
@@ -23,9 +25,16 @@ const LoanClosingsBase = artifacts.require("LoanClosingsBase");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
+const PriceFeeds = artifacts.require("PriceFeeds");
+const PriceFeedRSKOracle = artifacts.require("PriceFeedRSKOracle");
+const PriceFeedRSKOracleMockup = artifacts.require("PriceFeedRSKOracleMockup");
+const PriceFeedV1PoolOracle = artifacts.require("PriceFeedV1PoolOracle");
+const LiquidityPoolV1ConverterMockup = artifacts.require("LiquidityPoolV1ConverterMockup");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 const Affiliates = artifacts.require("Affiliates");
+const IV1PoolOracle = artifacts.require("IV1PoolOracle")
+
 
 const { BN, constants, send, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const { expect } = require("hardhat");
@@ -46,10 +55,14 @@ contract("Affiliates", (accounts) => {
 	let loanTokenV2;
 	let feeds;
 	let wei = web3.utils.toWei;
+	let senderMock;
 	before(async () => {
 		[owner, trader, referrer, account1, account2, ...accounts] = accounts;
 	});
 	beforeEach(async () => {
+		const provider = waffle.provider;
+		[senderMock] = provider.getWallets();
+
 		// Deploying sovrynProtocol
 		const sovrynproxy = await sovrynProtocol.new();
 		sovryn = await ISovryn.at(sovrynproxy.address);
@@ -102,7 +115,9 @@ contract("Affiliates", (accounts) => {
 
 		// Creating the instance of newLockedSOV Contract.
 		await sovryn.setLockedSOVAddress(
-			(await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])).address
+			(
+				await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])
+			).address
 		);
 		lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 	});
@@ -302,5 +317,301 @@ contract("Affiliates", (accounts) => {
 			tokenAddress: doc.address,
 			amount: referrerFee2.toString(),
 		});
+	});
+
+	it("Test affiliates integration with underlying token with oracle v1Pool", async () => {
+		feeds = await PriceFeeds.new(testWrbtc.address, tokenSOV.address, doc.address);
+		testToken1Precision = 18;
+		testToken2Precision = 18;
+		btcPrecision = 8;
+		testToken1 = await TestToken.new("test token 1", "TEST1", testToken1Precision, wei("20000", "ether"));
+		testToken2 = await TestToken.new("test token 2", "TEST2", testToken2Precision, wei("20000", "ether"));
+		testToken1Price = wei("2", "ether");
+		testToken2Price = wei("2", "ether");
+		wrBTCPrice = wei("8", "ether");
+		docPrice = wei("7", "ether");
+
+		// Set tetToken1 feed - price 1Z BTC
+		// Set v1 convert mockup
+		liquidityV1ConverterMockupTestToken1 = await LiquidityPoolV1ConverterMockup.new(testToken1.address, testWrbtc.address);
+
+		priceFeedsV1PoolOracleMockupTestToken1 = await deployMockContract(senderMock, IV1PoolOracle.abi);
+		await priceFeedsV1PoolOracleMockupTestToken1.mock.latestAnswer.returns(testToken1Price);
+		await priceFeedsV1PoolOracleMockupTestToken1.mock.liquidityPool.returns(liquidityV1ConverterMockupTestToken1.address);
+
+		priceFeedsV1PoolOracleTestToken1 = await PriceFeedV1PoolOracle.new(
+			priceFeedsV1PoolOracleMockupTestToken1.address,
+			testWrbtc.address,
+			doc.address
+		);
+
+		liquidityV1ConverterMockupTestToken2 = await LiquidityPoolV1ConverterMockup.new(testToken2.address, testWrbtc.address);
+		priceFeedsV1PoolOracleMockupTestToken2 = await deployMockContract(senderMock, IV1PoolOracle.abi);
+		await priceFeedsV1PoolOracleMockupTestToken2.mock.latestAnswer.returns(testToken2Price);
+		await priceFeedsV1PoolOracleMockupTestToken2.mock.liquidityPool.returns(liquidityV1ConverterMockupTestToken2.address);
+
+		priceFeedsV1PoolOracleTestToken2 = await PriceFeedV1PoolOracle.new(
+			priceFeedsV1PoolOracleMockupTestToken2.address,
+			testWrbtc.address,
+			doc.address
+		);
+
+		// // Set rBTC feed - using rsk oracle
+		priceFeedsV1PoolOracleMockupBTC = await PriceFeedRSKOracleMockup.new();
+		await priceFeedsV1PoolOracleMockupBTC.setValue(wrBTCPrice);
+		priceFeedsV1PoolOracleBTC = await PriceFeedRSKOracle.new(priceFeedsV1PoolOracleMockupBTC.address);
+
+		// Set DOC feed -- price 1 BTC
+		liquidityV1ConverterMockupDOC = await LiquidityPoolV1ConverterMockup.new(doc.address, testWrbtc.address);
+		
+		priceFeedsV1PoolOracleMockupDOC = await deployMockContract(senderMock, IV1PoolOracle.abi);
+		await priceFeedsV1PoolOracleMockupDOC.mock.latestAnswer.returns(docPrice);
+		await priceFeedsV1PoolOracleMockupDOC.mock.liquidityPool.returns(liquidityV1ConverterMockupDOC.address);
+
+		priceFeedsV1PoolOracleDOC = await PriceFeedV1PoolOracle.new(
+			priceFeedsV1PoolOracleMockupDOC.address,
+			testWrbtc.address,
+			doc.address
+		);
+
+		// await feeds.setPriceFeed([testWrbtc.address, doc.address], [priceFeedsV1PoolOracle.address, priceFeedsV1PoolOracle.address])
+		await feeds.setPriceFeed(
+			[testToken1.address, testToken2.address, doc.address, testWrbtc.address],
+			[
+				priceFeedsV1PoolOracleTestToken1.address,
+				priceFeedsV1PoolOracleTestToken2.address,
+				priceFeedsV1PoolOracleDOC.address,
+				priceFeedsV1PoolOracleBTC.address,
+			]
+		);
+
+		test1 = await feeds.queryRate(testToken1.address, doc.address);
+		expect(test1[0].toString()).to.be.equal(
+			new BN(testToken1Price)
+				.mul(new BN(wrBTCPrice))
+				.mul(new BN(10 ** (testToken1Precision - btcPrecision)))
+				.div(new BN(wei("1", "ether")))
+				.toString()
+		);
+
+		test = await feeds.queryReturn(testToken1.address, doc.address, wei("2", "ether"));
+		expect(test.toString()).to.be.equal(
+			new BN(2)
+				.mul(
+					new BN(testToken1Price)
+						.mul(new BN(wrBTCPrice))
+						.mul(new BN(10 ** (testToken1Precision - btcPrecision)))
+						.div(new BN(wei("1", "ether")))
+				)
+				.toString()
+		);
+
+		test1 = await feeds.queryRate(testToken1.address, testToken2.address);
+
+		expect(test1[0].toString()).to.be.equal(
+			new BN(testToken1Price)
+				.div(new BN(testToken2Price))
+				.mul(new BN(wei("1", "ether")))
+				.toString()
+		);
+		test = await feeds.queryReturn(testToken1.address, testToken2.address, wei("2", "ether"));
+		expect(test.toString()).to.be.equal(
+			new BN(2).mul(new BN(testToken1Price).div(new BN(testToken2Price)).mul(new BN(wei("1", "ether")))).toString()
+		);
+
+		swapsSovryn = await SwapsImplSovrynSwap.new();
+		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
+		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
+		await sovryn.setSupportedTokens([doc.address, testWrbtc.address], [true, true]);
+		await sovryn.setPriceFeedContract(
+			feeds.address //priceFeeds
+		);
+		await sovryn.setSwapsImplContract(
+			swapsSovryn.address // swapsImpl
+		);
+		await sovryn.setFeesController(owner);
+		await sovryn.setWrbtcToken(testWrbtc.address);
+		await sovryn.setSOVTokenAddress(tokenSOV.address);
+
+		//  Change the min referrals to payout to 3 for testing purposes
+		await sovryn.setMinReferralsToPayoutAffiliates(3);
+		loanTokenLogic = await LoanTokenLogicStandard.new();
+
+		const loanTokenSent = wei("21", "ether");
+		const leverageAmount = web3.utils.toWei("2", "ether");
+		// underlyingToken.approve(loanTokenV2.address, loanTokenSent*2)
+
+		let previousAffiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+		let tx = await loanTokenV2.marginTradeAffiliate(
+			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			leverageAmount, // Leverage
+			loanTokenSent, // loanTokenSent
+			0, //
+			testWrbtc.address, // collateralTokenAddress
+			trader, // trader
+			referrer, // referrer address
+			"0x", // loanDataBytes (only required with ether)
+			{ from: trader }
+		);
+
+		await expectEvent.inTransaction(tx.receipt.rawLogs[0].transactionHash, Affiliates, "SetAffiliatesReferrer", {
+			user: trader,
+			referrer: referrer,
+		});
+
+		let referrerOnChain = await sovryn.affiliatesUserReferrer(trader);
+		expect(referrerOnChain, "Incorrect User Affiliate").to.be.equal(referrer);
+
+		notFirstTradeFlagOnChain = await sovryn.getUserNotFirstTradeFlag(trader);
+		expect(notFirstTradeFlagOnChain, "First trade flag is not updated").to.be.true;
+
+		let event_name = "PayTradingFeeToAffiliate";
+		let decode = decodeLogs(tx.receipt.rawLogs, Affiliates, event_name);
+		let referrerFee = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
+		if (!decode.length) {
+			throw "Event PayTradingFeeToAffiliate is not fired properly";
+		}
+
+		let isHeld = decode[0].args["isHeld"];
+		let affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+		let submittedAffiliatesReward = decode[0].args["sovBonusAmount"];
+		let submittedTokenBonusAmount = decode[0].args["tokenBonusAmount"];
+		expect(isHeld, "First trade affiliates reward must be in held").to.be.true;
+		expect(referrerFee.toString(), "Token bonus rewards is not matched").to.be.equal(submittedTokenBonusAmount.toString());
+
+		let checkedValueShouldBe = affiliateRewardsHeld - previousAffiliateRewardsHeld;
+		expect(checkedValueShouldBe.toString(), "Affiliates bonus rewards is not matched").to.be.equal(
+			submittedAffiliatesReward.toString()
+		);
+
+		// Check lockedSOV Balance of the referrer
+		let referrerBalanceInLockedSOV = await lockedSOV.getLockedBalance(referrer);
+		expect(referrerBalanceInLockedSOV.toString(), "Referrer balance in lockedSOV is not matched").to.be.equal(new BN(0).toString());
+
+		// Change the min referrals to payout to 1
+		await sovryn.setMinReferralsToPayoutAffiliates(1);
+
+		previousAffiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+		tx = await loanTokenV2.marginTradeAffiliate(
+			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			leverageAmount, // Leverage
+			loanTokenSent, // loanTokenSent
+			0, //
+			testWrbtc.address, // collateralTokenAddress
+			trader, // trader
+			referrer, // referrer address
+			"0x", // loanDataBytes (only required with ether)
+			{ from: trader }
+		);
+
+		decode = decodeLogs(tx.receipt.rawLogs, Affiliates, event_name);
+		if (!decode.length) {
+			throw "Event PayTradingFeeToAffiliate is not fired properly";
+		}
+
+		isHeld = decode[0].args["isHeld"];
+		expect(isHeld, "First trade affiliates reward must not be in held").to.be.false;
+
+		affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+		submittedAffiliatesReward = decode[0].args["sovBonusAmount"];
+		submittedTokenBonusAmount = decode[0].args["tokenBonusAmount"];
+		sovBonusAmountPaid = decode[0].args["sovBonusAmountPaid"];
+
+		expect(affiliateRewardsHeld.toString(), "affiliateRewardHeld should be zero at this point").to.be.equal(new BN(0).toString());
+		expect(referrerFee.toString(), "Token bonus rewards is not matched").to.be.equal(submittedTokenBonusAmount.toString());
+
+		checkSovBonusAmountPaid = new BN(submittedAffiliatesReward).add(new BN(previousAffiliateRewardsHeld));
+		expect(checkSovBonusAmountPaid.toString(), "Affiliates bonus rewards paid is not matched").to.be.equal(
+			sovBonusAmountPaid.toString()
+		);
+
+		checkedValueShouldBe = new BN(affiliateRewardsHeld).add(new BN(previousAffiliateRewardsHeld));
+		expect(checkedValueShouldBe.toString(), "Affiliates bonus rewards is not matched").to.be.equal(
+			submittedAffiliatesReward.toString()
+		);
+
+		// Check lockedSOV Balance of the referrer
+		referrerBalanceInLockedSOV = await lockedSOV.getLockedBalance(referrer);
+		expect(referrerBalanceInLockedSOV.toString(), "Referrer balance in lockedSOV is not matched").to.be.equal(
+			checkSovBonusAmountPaid.toString()
+		);
+
+		// Do withdrawal
+		let referrerTokenBalance = await doc.balanceOf(referrer);
+		let referrerFee2 = new BN(referrerFee).add(new BN(submittedTokenBonusAmount));
+		tx = await sovryn.withdrawAllAffiliatesReferrerTokenFees(referrer, { from: referrer });
+		const referrerFeeAfterWithdrawal = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
+		let referrerTokenBalanceAfterWithdrawal = await doc.balanceOf(referrer);
+		expect(referrerFeeAfterWithdrawal, "Incorrect all balance after all DoC withdraw").to.be.bignumber.equal(new BN(0));
+		expect(referrerTokenBalanceAfterWithdrawal.sub(referrerTokenBalance).toString()).to.be.equal(referrerFee2.toString());
+
+		await expectEvent.inTransaction(tx.receipt.rawLogs[0].transactionHash, Affiliates, "WithdrawAffiliatesReferrerTokenFees", {
+			referrer: referrer,
+			receiver: referrer,
+			tokenAddress: doc.address,
+			amount: referrerFee2.toString(),
+		});
+	});
+
+	it("Should revert if wrBTC price feed is set to v1 pool oracle", async () => {
+		feeds = await PriceFeeds.new(testWrbtc.address, tokenSOV.address, doc.address);
+		testToken1 = await TestToken.new("test token 1", "TEST1", 18, wei("20000", "ether"));
+
+		// Set tetToken1 feed - price 2 BTC
+		// Set v1 convert mockup
+		liquidityV1ConverterMockupTestToken1 = await LiquidityPoolV1ConverterMockup.new(testToken1.address, testWrbtc.address);
+
+		priceFeedsV1PoolOracleMockupTestToken1 = await deployMockContract(senderMock, IV1PoolOracle.abi);
+		await priceFeedsV1PoolOracleMockupTestToken1.mock.latestAnswer.returns(wei("1", "ether"));
+		await priceFeedsV1PoolOracleMockupTestToken1.mock.liquidityPool.returns(liquidityV1ConverterMockupTestToken1.address);
+
+		priceFeedsV1PoolOracleTestToken1 = await PriceFeedV1PoolOracle.new(
+			priceFeedsV1PoolOracleMockupTestToken1.address,
+			testWrbtc.address,
+			doc.address
+		);
+
+		// // Set rBTC feed - using rsk oracle
+		// priceFeedsV1PoolOracleMockupBTC = await PriceFeedRSKOracleMockup.new();
+		// await priceFeedsV1PoolOracleMockupBTC.setValue(wei("9", "ether"));
+		// priceFeedsV1PoolOracleBTC = await PriceFeedRSKOracle.new(priceFeedsV1PoolOracleMockupBTC.address)
+
+		// Set rBTC feed - using v1pool oracle
+		liquidityV1ConverterMockupBTC = await LiquidityPoolV1ConverterMockup.new(testWrbtc.address, testWrbtc.address);
+
+		priceFeedsV1PoolOracleMockupBTC = await deployMockContract(senderMock, IV1PoolOracle.abi);
+		await priceFeedsV1PoolOracleMockupBTC.mock.latestAnswer.returns(wei("8", "ether"));
+		await priceFeedsV1PoolOracleMockupBTC.mock.liquidityPool.returns(liquidityV1ConverterMockupBTC.address);
+
+		priceFeedsV1PoolOracleBTC = await PriceFeedV1PoolOracle.new(
+			priceFeedsV1PoolOracleMockupBTC.address,
+			testWrbtc.address,
+			doc.address
+		);
+
+		// Set DOC feed -- price 1 BTC
+		liquidityV1ConverterMockupDOC = await LiquidityPoolV1ConverterMockup.new(doc.address, testWrbtc.address);
+		
+		priceFeedsV1PoolOracleMockupDOC = await deployMockContract(senderMock, IV1PoolOracle.abi);
+		await priceFeedsV1PoolOracleMockupDOC.mock.latestAnswer.returns(wei("7", "ether"));
+		await priceFeedsV1PoolOracleMockupDOC.mock.liquidityPool.returns(liquidityV1ConverterMockupDOC.address);
+
+		priceFeedsV1PoolOracleDOC = await PriceFeedV1PoolOracle.new(
+			priceFeedsV1PoolOracleMockupDOC.address,
+			testWrbtc.address,
+			doc.address
+		);
+
+		// await feeds.setPriceFeed([testWrbtc.address, doc.address], [priceFeedsV1PoolOracle.address, priceFeedsV1PoolOracle.address])
+		await feeds.setPriceFeed(
+			[testToken1.address, doc.address, testWrbtc.address],
+			[priceFeedsV1PoolOracleTestToken1.address, priceFeedsV1PoolOracleDOC.address, priceFeedsV1PoolOracleBTC.address]
+		);
+
+		await expectRevert(feeds.queryRate(testToken1.address, doc.address), "wrBTC price feed cannot use the oracle v1 pool");
+		await expectRevert(
+			feeds.queryReturn(testToken1.address, doc.address, wei("1", "ether")),
+			"wrBTC price feed cannot use the oracle v1 pool"
+		);
 	});
 });
