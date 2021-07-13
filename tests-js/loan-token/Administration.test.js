@@ -146,6 +146,5 @@ contract("LoanTokenAdministration", (accounts) => {
 			let localLoanToken = await LoanTokenLogicStandard.at(loanToken.address);
 			await expectRevert(localLoanToken.toggleFunctionPause("mint(address,uint256)", true, { from: accounts[1] }), "onlyPauser");
 		});
-
 	});
 });
