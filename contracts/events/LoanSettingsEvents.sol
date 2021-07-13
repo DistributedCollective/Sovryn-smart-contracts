@@ -15,7 +15,7 @@ import "./ModulesCommonEvents.sol";
  * This contract contains the events for loan settings operations.
  * */
 contract LoanSettingsEvents is ModulesCommonEvents {
-		event LoanParamsSetup(
+	event LoanParamsSetup(
 		bytes32 indexed id,
 		address owner,
 		address indexed loanToken,
