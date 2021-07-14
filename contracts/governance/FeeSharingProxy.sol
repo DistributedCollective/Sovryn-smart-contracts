@@ -95,7 +95,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 	/// @notice An event emitted when user fee get withdrawn.
 	event UserFeeWithdrawn(address indexed sender, address indexed receiver, address indexed token, uint256 amount);
 
-	/// @notice An event emitted when user fee get withdrawn.
+	/// @notice An event emitted when user set wrbtc address.
 	event SetWrbtcToken(address indexed sender, address indexed oldWRBTCAddress, address indexed newWRBTCAddress);
 
 	/* Functions */

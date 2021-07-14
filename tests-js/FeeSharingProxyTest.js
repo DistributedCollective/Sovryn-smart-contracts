@@ -25,6 +25,7 @@ const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
 
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
+const FeeSharingProxyMockup = artifacts.require("FeeSharingProxyMockup");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
@@ -135,6 +136,26 @@ contract("FeeSharingProxy:", (accounts) => {
 		tradingFeePercent = await protocol.tradingFeePercent();
 		await lend_btc_before_cashout(loanTokenWrbtc, new BN(wei("10", "ether")), root);
 	});
+
+	describe("setWRBTCAddress", () => {
+		it("set wrbtc address should failed if not set by the owner", async () => {
+			await expectRevert(feeSharingProxy.setWRBTCAddress(wrbtc.address, {from: account1}), "unauthorized");
+		})
+
+		it("set wrbtc address should failed if not set by the owner", async () => {
+			const oldWrbtcAddress = await feeSharingProxy.wRBTCAddress();
+			newWrbtc = await TestWrbtc.new();
+			const tx = await feeSharingProxy.setWRBTCAddress(newWrbtc.address);
+			const newWrbtcAddress = await feeSharingProxy.wRBTCAddress();
+			expect(newWrbtcAddress).to.be.equal(newWrbtc.address);
+
+			expectEvent(tx, "SetWrbtcToken", {
+				sender: root,
+				oldWRBTCAddress: oldWrbtcAddress,
+				newWRBTCAddress: newWrbtc.address,
+			});
+		})
+	})
 
 	describe("withdrawFees", () => {
 		it("Shouldn't be able to use zero token address", async () => {
@@ -491,7 +512,52 @@ contract("FeeSharingProxy:", (accounts) => {
 			});
 		});
 
-		it("Should be able to withdraw", async () => {
+		it("Should be able to withdraw (token pool)", async () => {
+			//FeeSharingProxy
+			feeSharingProxy = await FeeSharingProxyMockup.new(protocol.address, staking.address, wrbtc.address);
+			await protocol.setFeesController(feeSharingProxy.address);
+
+			//stake - getPriorTotalVotingPower
+			let rootStake = 700;
+			await stake(rootStake, root);
+
+			let userStake = 300;
+			if (MOCK_PRIOR_WEIGHTED_STAKE) {
+				await staking.MOCK_priorWeightedStake(userStake * 10);
+			}
+			await SOVToken.transfer(account1, userStake);
+			await stake(userStake, account1);
+
+			// Mock (transfer loanToken to FeeSharingProxy contract)
+			const loanPoolTokenAddress = await protocol.underlyingToLoanPool(susd.address);
+			const amountLend = new BN(wei("500", "ether"));
+			await susd.approve(loanPoolTokenAddress, amountLend);
+			await loanToken.mint(feeSharingProxy.address, amountLend);
+
+			// Check ISUSD Balance for feeSharingProxy
+			const feeSharingProxyLoanBalanceToken = await loanToken.balanceOf(feeSharingProxy.address);
+			expect(feeSharingProxyLoanBalanceToken.toString()).to.be.equal(amountLend.toString());
+
+			// Withdraw ISUSD from feeSharingProxy
+			// const initial 
+			await feeSharingProxy.addCheckPoint(loanPoolTokenAddress, amountLend.toString());
+			let tx = await feeSharingProxy.trueWithdraw(loanToken.address, 10, ZERO_ADDRESS, { from: account1 });
+			const updatedFeeSharingProxyLoanBalanceToken = await loanToken.balanceOf(feeSharingProxy.address);
+			const updatedAccount1LoanBalanceToken = await loanToken.balanceOf(account1);
+			console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
+
+			expect(updatedFeeSharingProxyLoanBalanceToken.toString()).to.be.equal( ((amountLend * 7) / 10).toString() );
+			expect(updatedAccount1LoanBalanceToken.toString()).to.be.equal( ((amountLend * 3) / 10).toString() );
+
+			expectEvent(tx, "UserFeeWithdrawn", {
+				sender: account1,
+				receiver: account1,
+				token: loanToken.address,
+				amount: amountLend.mul(new BN(3)).div(new BN(10)),
+			});
+		});
+
+		it("Should be able to withdraw (wrbtc pool)", async () => {
 			//stake - getPriorTotalVotingPower
 			let rootStake = 700;
 			await stake(rootStake, root);
