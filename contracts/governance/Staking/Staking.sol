@@ -338,7 +338,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		bool success = SOVToken.transfer(receiver, amount);
 		require(success, "Staking::withdraw: Token transfer failed");
 
-		emit TokensWithdrawn(msg.sender, receiver, amount);
+		emit StakingWithdrawn(msg.sender, amount, until, receiver, isGovernance);
 	}
 
 	// @dev withdraws tokens for lock date 2 weeks later than given lock date
