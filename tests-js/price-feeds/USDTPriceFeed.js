@@ -8,10 +8,11 @@ contract("USDTPriceFeed", (accounts) => {
 	before(async () => {
 		priceFeed = await USDTPriceFeed.new();
 	});
-	describe.only("USDTPriceFeed unit tests", async () => {
+	describe("USDTPriceFeed unit tests", async () => {
 		it("Exchange rate USDT/USDT should be 1", async () => {
 			await expect(await priceFeed.latestAnswer()).to.be.bignumber.equal(new BN(10).pow(new BN(18)));
 		});
+		
 		it("Returns current block timestamp", async () => {
 			let block = await web3.eth.getBlock("latest");
 			await expect(await priceFeed.latestTimestamp()).to.be.bignumber.equal(new BN(block.timestamp));
