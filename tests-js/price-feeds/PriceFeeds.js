@@ -4,7 +4,7 @@ const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 
 const SOV = artifacts.require("SOV");
 const TestToken = artifacts.require("TestToken");
-const IV1PoolOracle = artifacts.require("IV1PoolOracle")
+const IV1PoolOracle = artifacts.require("IV1PoolOracle");
 const PriceFeeds = artifacts.require("PriceFeeds");
 const TestWrbtc = artifacts.require("TestWrbtc");
 const PriceFeedV1PoolOracle = artifacts.require("PriceFeedV1PoolOracle");
@@ -49,7 +49,7 @@ contract("PriceFeeds", (accounts) => {
 		liquidityV1ConverterMockupTestToken2 = await LiquidityPoolV1ConverterMockup.new(testToken2.address, testWrbtc.address);
 		priceFeedsV1PoolOracleMockupTestToken2 = await waffle.deployMockContract(sender, IV1PoolOracle.abi);
 		await priceFeedsV1PoolOracleMockupTestToken2.mock.latestAnswer.returns(testToken2Price);
-		await priceFeedsV1PoolOracleMockupTestToken2.mock.liquidityPool.returns(liquidityV1ConverterMockupTestToken2.address);	
+		await priceFeedsV1PoolOracleMockupTestToken2.mock.liquidityPool.returns(liquidityV1ConverterMockupTestToken2.address);
 		priceFeedsV1PoolOracleTestToken2 = await PriceFeedV1PoolOracle.new(
 			priceFeedsV1PoolOracleMockupTestToken2.address,
 			testWrbtc.address,
@@ -78,7 +78,7 @@ contract("PriceFeeds", (accounts) => {
 				priceFeedsV1PoolOracleTestToken1.address,
 				priceFeedsV1PoolOracleTestToken2.address,
 				priceFeedsV1PoolOracleDOC.address,
-				priceFeedsV1PoolOracleBTC.address
+				priceFeedsV1PoolOracleBTC.address,
 			]
 		);
 
@@ -86,7 +86,6 @@ contract("PriceFeeds", (accounts) => {
 	});
 
 	describe("PriceFeed unit tests", async () => {
-
 		it("amountInEth for wRBTC token should return passes amount", async () => {
 			const wrbtcToken = await priceFeeds.wrbtcToken();
 			await expect(await priceFeeds.amountInEth(wrbtcToken, new BN(wei("100", "ether")))).to.be.bignumber.equal(
@@ -131,8 +130,8 @@ contract("PriceFeeds", (accounts) => {
 
 			await expect(
 				await priceFeeds.getMaxDrawdown(
-					testToken1.address, 
-					testToken2.address, 
+					testToken1.address,
+					testToken2.address,
 					new BN(wei("100", "ether")),
 					new BN(wei("30", "ether")), // <36
 					new BN(20).mul(new BN(wei("1", "ether")))
@@ -149,8 +148,9 @@ contract("PriceFeeds", (accounts) => {
 					new BN(wei("150", "ether")), //collateral token amount
 					new BN(20).mul(new BN(10).pow(new BN(18)))
 				),
-			"unsupported src feed");
-		});	
+				"unsupported src feed"
+			);
+		});
 
 		it("getMaxDrawdown - unsupported dst feed", async () => {
 			await expectRevert(
@@ -161,8 +161,9 @@ contract("PriceFeeds", (accounts) => {
 					new BN(wei("150", "ether")), //collateral token amount
 					new BN(20).mul(new BN(10).pow(new BN(18)))
 				),
-			"unsupported dst feed");
-		});	
+				"unsupported dst feed"
+			);
+		});
 
 		it("getCurrentMargin collateralToken == loanToken", async () => {
 			let ret = await priceFeeds.getCurrentMargin(
@@ -195,7 +196,7 @@ contract("PriceFeeds", (accounts) => {
 
 		it("getCurrentMarginAndCollateralSize", async () => {
 			let ret = await priceFeeds.getCurrentMarginAndCollateralSize(
-				testToken1.address, 
+				testToken1.address,
 				testToken2.address,
 				new BN(wei("100", "ether")), //loan token amount
 				new BN(wei("100", "ether")) //collateral token amount
@@ -203,7 +204,7 @@ contract("PriceFeeds", (accounts) => {
 			await expect(ret[0]).to.be.bignumber.equal("233333333333333330000");
 			await expect(ret[1]).to.be.bignumber.equal(new BN(wei("200000000000000", "ether")));
 		});
-		
+
 		it("shouldLiquidate(...) runs correctly", async () => {
 			let ret = await priceFeeds.shouldLiquidate(
 				testToken1.address, //mock loan token address
@@ -215,8 +216,8 @@ contract("PriceFeeds", (accounts) => {
 			expect(ret).to.be.false; //50<=10
 
 			ret = await priceFeeds.shouldLiquidate(
-				testToken1.address, 
-				testToken2.address, 
+				testToken1.address,
+				testToken2.address,
 				new BN(wei("100", "ether")), //loan token amount
 				new BN(wei("450", "ether")), //collateral token amount
 				new BN(30).mul(new BN(wei("1", "ether"))) //maintenance margin
@@ -224,8 +225,8 @@ contract("PriceFeeds", (accounts) => {
 			expect(ret).to.be.false; //1399<=30
 
 			ret = await priceFeeds.shouldLiquidate(
-				testToken1.address, 
-				testToken2.address, 
+				testToken1.address,
+				testToken2.address,
 				new BN(wei("100", "ether")), //loan token amount
 				new BN(wei("450", "ether")), //collateral token amount
 				new BN(1500).mul(new BN(wei("1", "ether"))) //maintenance margin
@@ -282,25 +283,19 @@ contract("PriceFeeds", (accounts) => {
 		});
 
 		it("queryPrecision source token = dest token", async () => {
-			expect(await priceFeeds.queryPrecision(testToken1.address, testToken1.address)).to.be.bignumber.equal(new BN(wei("1", "ether")));
+			expect(await priceFeeds.queryPrecision(testToken1.address, testToken1.address)).to.be.bignumber.equal(
+				new BN(wei("1", "ether"))
+			);
 		});
-
 
 		it("should return destination token amount", async () => {
 			await expect(
-				await priceFeeds.queryReturn(
-					testToken1.address, 
-					testToken2.address,
-					new BN(wei("100", "ether")),
-				)
+				await priceFeeds.queryReturn(testToken1.address, testToken2.address, new BN(wei("100", "ether")))
 			).to.be.bignumber.equal(new BN(wei("30", "ether")));
 		});
 
 		it("should return default values when source token = dest token", async () => {
-			let ret = await priceFeeds.queryRate(
-				testToken1.address, 
-				testToken1.address
-			)
+			let ret = await priceFeeds.queryRate(testToken1.address, testToken1.address);
 			await expect(ret[0]).to.be.bignumber.equal(new BN(wei("1", "ether")));
 			await expect(ret[1]).to.be.bignumber.equal(new BN(wei("1", "ether")));
 		});
@@ -308,49 +303,44 @@ contract("PriceFeeds", (accounts) => {
 		it("should have price disagreements", async () => {
 			await expectRevert(
 				priceFeeds.checkPriceDisagreement(
-					testToken1.address, 
+					testToken1.address,
 					testToken2.address,
 					new BN(wei("100", "ether")),
 					new BN(wei("150", "ether")),
 					new BN(10).mul(new BN(wei("1", "ether")))
 				),
-			"price disagreement");
+				"price disagreement"
+			);
 		});
 
 		it("should return 0 destination token amount when paused", async () => {
 			await priceFeeds.setGlobalPricingPaused(true);
 			await expect(
-				await priceFeeds.queryReturn(
-					testToken1.address, 
-					testToken2.address,
-					new BN(wei("100", "ether")),
-				)
+				await priceFeeds.queryReturn(testToken1.address, testToken2.address, new BN(wei("100", "ether")))
 			).to.be.bignumber.equal(new BN(wei("0", "ether")));
 		});
 
 		it("should not check price disagreements when paused", async () => {
 			await expectRevert(
 				priceFeeds.checkPriceDisagreement(
-					testToken1.address, 
+					testToken1.address,
 					testToken2.address,
 					new BN(wei("100", "ether")),
 					new BN(wei("150", "ether")),
 					new BN(10).mul(new BN(wei("1", "ether")))
 				),
-			"pricing is paused");
+				"pricing is paused"
+			);
 		});
 
 		it("should revert for count mismatch while setting PriceFeed", async () => {
 			await expectRevert(
-					priceFeeds.setPriceFeed(
+				priceFeeds.setPriceFeed(
 					[testToken1.address, testToken2.address, doc.address, testWrbtc.address],
-					[
-						priceFeedsV1PoolOracleTestToken1.address,
-						priceFeedsV1PoolOracleTestToken2.address,
-						priceFeedsV1PoolOracleDOC.address
-					]
+					[priceFeedsV1PoolOracleTestToken1.address, priceFeedsV1PoolOracleTestToken2.address, priceFeedsV1PoolOracleDOC.address]
 				),
-			"count mismatch");
+				"count mismatch"
+			);
 		});
 
 		const getTestToken = async ({ decimals = 18, totalSupply = wei("100000000", "ether") }) => {
