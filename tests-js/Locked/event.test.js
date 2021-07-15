@@ -52,7 +52,7 @@ contract("Locked SOV (Events)", (accounts) => {
 		staking = await StakingLogic.at(staking.address);
 
 		// Creating the FeeSharing Instance.
-		feeSharingProxy = await FeeSharingProxy.new(zeroAddress, staking.address, wrbtc.address);
+		feeSharingProxy = await FeeSharingProxy.new(zeroAddress, staking.address);
 
 		// Creating the Vesting Instance.
 		vestingLogic = await VestingLogic.new();

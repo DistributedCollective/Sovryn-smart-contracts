@@ -48,7 +48,7 @@ contract("VestingRegistry", (accounts) => {
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 
-		feeSharingProxy = await FeeSharingProxy.new(ZERO_ADDRESS, staking.address, wrbtc.address);
+		feeSharingProxy = await FeeSharingProxy.new(ZERO_ADDRESS, staking.address);
 
 		vestingLogic = await VestingLogic.new();
 		vestingFactory = await VestingFactory.new(vestingLogic.address);

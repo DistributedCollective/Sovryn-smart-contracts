@@ -6,6 +6,7 @@ import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/Ownable.sol";
 import "./IFeeSharingProxy.sol";
 import "./Staking/IStaking.sol";
+import "../openzeppelin/Address.sol";
 
 /**
  * @title The FeeSharingProxy contract.
@@ -50,8 +51,6 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 	uint256 constant FEE_WITHDRAWAL_INTERVAL = 86400;
 
 	uint32 constant MAX_CHECKPOINTS = 100;
-	
-	address public wRBTCAddress;
 
 	IProtocol public protocol;
 	IStaking public staking;
@@ -95,26 +94,11 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 	/// @notice An event emitted when user fee get withdrawn.
 	event UserFeeWithdrawn(address indexed sender, address indexed receiver, address indexed token, uint256 amount);
 
-	/// @notice An event emitted when user set wrbtc address.
-	event SetWrbtcToken(address indexed sender, address indexed oldWRBTCAddress, address indexed newWRBTCAddress);
-
 	/* Functions */
 
-	constructor(IProtocol _protocol, IStaking _staking, address _wRBTCAddress) public {
+	constructor(IProtocol _protocol, IStaking _staking) public {
 		protocol = _protocol;
 		staking = _staking;
-		wRBTCAddress = _wRBTCAddress;
-	}
-
-	/**
-	 * @notice Set new wRBTC address
-	 *
-	 * @param newWRBTCAddress new wRBTC addres
-	 * */
-	function setWRBTCAddress(address newWRBTCAddress) external onlyOwner {
-		address oldWRBTCAddress = wRBTCAddress;
-		wRBTCAddress = newWRBTCAddress;
-		emit SetWrbtcToken(msg.sender, oldWRBTCAddress, newWRBTCAddress);
 	}
 
 	/**
@@ -126,8 +110,11 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 	 * */
 	function withdrawFees(address[] memory _tokens) public {
 		for (uint256 i = 0; i < _tokens.length; i++) {
- 			require(_tokens[i] != address(0), "FeeSharingProxy::withdrawFees: invalid address");
+			require(Address.isContract(_tokens[i]), "FeeSharingProxy::withdrawFees: token is not a contract");
 		}
+		
+		address wRBTCAddress = protocol.wrbtcToken();
+		require(wRBTCAddress != address(0), "FeeSharingProxy::withdrawFees: wRBTCAddress is not set");
 
 		address loanPoolToken = protocol.underlyingToLoanPool(wRBTCAddress);
 		require(loanPoolToken != address(0), "FeeSharingProxy::withdrawFees: loan wRBTC not found");
@@ -215,8 +202,11 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 		/// @dev Prevents processing all checkpoints because of block gas limit.
 		require(_maxCheckpoints > 0, "FeeSharingProxy::withdraw: _maxCheckpoints should be positive");
 
+		address wRBTCAddress = protocol.wrbtcToken();
+		require(wRBTCAddress != address(0), "FeeSharingProxy::withdraw: wRBTCAddress is not set");
+
 		address loanPoolTokenWRBTC = protocol.underlyingToLoanPool(wRBTCAddress);
-		require(loanPoolTokenWRBTC != address(0), "FeeSharingProxy::withdrawFees: loan wRBTC not found");
+		require(loanPoolTokenWRBTC != address(0), "FeeSharingProxy::withdraw: loan wRBTC not found");
 
 		address user = msg.sender;
 		if (_receiver == address(0)) {
@@ -386,6 +376,8 @@ interface IProtocol {
 	function withdrawFees(address[] calldata tokens, address receiver) external returns (uint256);
 
 	function underlyingToLoanPool(address token) external returns (address);
+
+	function wrbtcToken() external returns (address);
 }
 
 interface ILoanToken {

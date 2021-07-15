@@ -46,7 +46,7 @@ contract("Vesting", (accounts) => {
 
 		vestingLogic = await VestingLogic.new();
 
-		feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, constants.ZERO_ADDRESS, wrbtc.address);
+		feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, constants.ZERO_ADDRESS);
 
 		stakingLogic = await StakingLogic.new(token.address);
 		staking = await StakingProxy.new(token.address);

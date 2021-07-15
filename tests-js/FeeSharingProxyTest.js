@@ -101,7 +101,7 @@ contract("FeeSharingProxy:", (accounts) => {
 		await loanToken.setAdmin(root);
 		await protocol.setLoanPool([loanToken.address], [susd.address]);
 		//FeeSharingProxy
-		feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address, wrbtc.address);
+		feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address);
 		await protocol.setFeesController(feeSharingProxy.address);
 
 		// Set loan pool for wRBTC -- because our fee sharing proxy required the loanPool of wRBTC
@@ -137,29 +137,9 @@ contract("FeeSharingProxy:", (accounts) => {
 		await lend_btc_before_cashout(loanTokenWrbtc, new BN(wei("10", "ether")), root);
 	});
 
-	describe("setWRBTCAddress", () => {
-		it("set wrbtc address should failed if not set by the owner", async () => {
-			await expectRevert(feeSharingProxy.setWRBTCAddress(wrbtc.address, {from: account1}), "unauthorized");
-		})
-
-		it("set wrbtc address should failed if not set by the owner", async () => {
-			const oldWrbtcAddress = await feeSharingProxy.wRBTCAddress();
-			newWrbtc = await TestWrbtc.new();
-			const tx = await feeSharingProxy.setWRBTCAddress(newWrbtc.address);
-			const newWrbtcAddress = await feeSharingProxy.wRBTCAddress();
-			expect(newWrbtcAddress).to.be.equal(newWrbtc.address);
-
-			expectEvent(tx, "SetWrbtcToken", {
-				sender: root,
-				oldWRBTCAddress: oldWrbtcAddress,
-				newWRBTCAddress: newWrbtc.address,
-			});
-		})
-	})
-
 	describe("withdrawFees", () => {
 		it("Shouldn't be able to use zero token address", async () => {
-			await expectRevert(feeSharingProxy.withdrawFees([ZERO_ADDRESS]), "FeeSharingProxy::withdrawFees: invalid address");
+			await expectRevert(feeSharingProxy.withdrawFees([ZERO_ADDRESS]), "FeeSharingProxy::withdrawFees: token is not a contract");
 		});
 
 		it("Shouldn't be able to withdraw if wRBTC loan pool does not exist", async () => {
@@ -514,7 +494,7 @@ contract("FeeSharingProxy:", (accounts) => {
 
 		it("Should be able to withdraw (token pool)", async () => {
 			//FeeSharingProxy
-			feeSharingProxy = await FeeSharingProxyMockup.new(protocol.address, staking.address, wrbtc.address);
+			feeSharingProxy = await FeeSharingProxyMockup.new(protocol.address, staking.address);
 			await protocol.setFeesController(feeSharingProxy.address);
 
 			//stake - getPriorTotalVotingPower

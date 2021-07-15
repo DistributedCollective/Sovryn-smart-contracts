@@ -239,7 +239,7 @@ def setSupportedToken(tokenAddress):
 def deployConversionFeeSharingToWRBTC():
     print("Redeploy fee sharing proxy")
     # Redeploy feeSharingProxy
-    feeSharing = conf.acct.deploy(FeeSharingProxy, conf.contracts['sovrynProtocol'], conf.contracts['Staking'], conf.contracts["WRBTC"])
+    feeSharing = conf.acct.deploy(FeeSharingProxy, conf.contracts['sovrynProtocol'], conf.contracts['Staking'])
     print("Fee sharing proxy redeployed at: ", feeSharing.address)
 
     # Redeploy protocol settings
