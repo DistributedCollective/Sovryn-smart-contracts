@@ -35,7 +35,7 @@ def main():
     totalAmount = 0
 
     # amounts examples: 66.93, 20.08
-    data = parseFile('./scripts/deployment/distribution/vestings8.csv', 10**16)
+    data = parseFile('./scripts/deployment/distribution/vestings9.csv', 10**16)
     totalAmount += data["totalAmount"]
 
     for teamVesting in data["teamVestingList"]:
@@ -54,12 +54,12 @@ def main():
                 raise Exception("Address already has team vesting contract with different schedule")
         print("=======================================")
         if isTeam:
-            # vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
-            # vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
+            vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
+            vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
             print("TeamVesting: ", vestingAddress)
         else:
-            # vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
-            # vestingAddress = vestingRegistry.getVesting(tokenOwner)
+            vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
+            vestingAddress = vestingRegistry.getVesting(tokenOwner)
             print("Vesting: ", vestingAddress)
 
         print(tokenOwner)
@@ -68,14 +68,14 @@ def main():
         print(cliff)
         print(duration)
         print((duration - cliff) / FOUR_WEEKS + 1)
-        # SOVtoken.approve(vestingAddress, amount)
-        # vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=acct)
-        # vestingLogic.stakeTokens(amount)
+        SOVtoken.approve(vestingAddress, amount)
+        vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=acct)
+        vestingLogic.stakeTokens(amount)
 
         # stakes = staking.getStakes(vestingAddress)
         # print(stakes)
 
-    # 87.01
+    # 9872.3
     print("=======================================")
     print("SOV amount:")
     print(totalAmount / 10**18)
