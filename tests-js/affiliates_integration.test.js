@@ -69,13 +69,13 @@ contract("Affiliates", (accounts) => {
 
 		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
 		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
+		await ProtocolSettings.new()
 		await sovryn.replaceContract((await ProtocolSettings.new()).address);
 		await sovryn.replaceContract((await LoanSettings.new()).address);
 		await sovryn.replaceContract((await LoanMaintenance.new()).address);
 		await sovryn.replaceContract((await SwapsExternal.new()).address);
 		await sovryn.replaceContract((await LoanOpenings.new()).address);
 		await sovryn.replaceContract((await Affiliates.new()).address);
-
 		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
 
 		loanTokenLogic = await LoanTokenLogicStandard.new();

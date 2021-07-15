@@ -86,10 +86,12 @@ contract SwapsExternal is VaultController, SwapsUser {
 
 			uint256 balanceBefore = sourceTokenContract.balanceOf(address(this));
 
-			IERC20(sourceToken).safeTransferFrom(msg.sender, address(this), sourceTokenAmount);
+			if (address(this) != msg.sender) {
+				IERC20(sourceToken).safeTransferFrom(msg.sender, address(this), sourceTokenAmount);
 
-			// explicit balance check so that we can support deflationary tokens
-			sourceTokenAmount = sourceTokenContract.balanceOf(address(this)).sub(balanceBefore);
+				// explicit balance check so that we can support deflationary tokens
+				sourceTokenAmount = sourceTokenContract.balanceOf(address(this)).sub(balanceBefore);
+			}
 		}
 
 		/// @dev Perform the swap w/ tokens.
