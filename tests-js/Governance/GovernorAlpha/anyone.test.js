@@ -5,6 +5,7 @@ const TestToken = artifacts.require("TestToken");
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const SetGet = artifacts.require("setGet");
+const { ethers } = require("hardhat");
 
 const {
 	time, // Convert different time units to seconds. Available helpers are: seconds, minutes, hours, days, weeks and years.
@@ -111,7 +112,10 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
 		let value = zero;
 		let signature = "setPendingAdmin(address)";
 		let callData = encodeParameters(["address"], [governorAlpha.address]);
-		let currentBlock = await web3.eth.getBlock(await blockNumber());
+		let currentBlock = await ethers.provider.getBlock("latest");
+		//console.log(currentBlock.timestamp);
+		//let currentBlock = await web3.eth.getBlock(await blockNumber());
+		//let currentBlock = await ethers.provider.getBlock("latest");
 		eta = new BN(currentBlock.timestamp).add(new BN(delay + 1));
 
 		// Adding the setPendingAdmin() to the Timelock Queue.
@@ -383,7 +387,7 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
 	});
 
 	it("All actions mentioned in the queue of a proposal should be executed correctly.", async () => {
-		let value = randomValue();
+		let value = randomValue() + 1;
 		// Proposal Parameters
 		targets = [setGet.address];
 		values = [new BN("0")];

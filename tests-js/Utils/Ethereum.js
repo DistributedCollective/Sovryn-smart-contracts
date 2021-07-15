@@ -1,7 +1,8 @@
 "use strict";
 
 const BigNumber = require("bignumber.js");
-const ethers = require("ethers");
+//const ethers = require("ethers");
+const { ethers } = require("hardhat");
 
 function UInt256Max() {
 	return ethers.constants.MaxUint256;
@@ -66,12 +67,14 @@ function keccak256(values) {
 	return ethers.utils.keccak256(values);
 }
 
+// not working with hardhat, use hardhat_utils as a workaround
 function unlockedAccounts() {
 	let provider = web3.currentProvider;
 	if (provider._providers) provider = provider._providers.find((p) => p._ganacheProvider)._ganacheProvider;
 	return provider.manager.state.unlocked_accounts;
 }
 
+// not working with hardhat
 function unlockedAccount(a) {
 	return unlockedAccounts()[a.toLowerCase()];
 }
@@ -89,35 +92,66 @@ async function increaseTime(seconds) {
 	return rpc({ method: "evm_mine" });
 }
 
+// doesn't work with hardhat
 async function setTime(seconds) {
 	await rpc({ method: "evm_setTime", params: [new Date(seconds * 1000)] });
 }
 
+// doesn't work with hardhat
 async function freezeTime(seconds) {
 	await rpc({ method: "evm_freezeTime", params: [seconds] });
 	return rpc({ method: "evm_mine" });
 }
 
+// adapted for both truffle and hardhat
 async function advanceBlocks(blocks) {
-	let { result: num } = await rpc({ method: "eth_blockNumber" });
-	await rpc({ method: "evm_mineBlockNumber", params: [blocks + parseInt(num)] });
+	//let res = parseInt(await rpc({ method: "eth_blockNumber" }), 16);
+	//console.log(`await rpc({ method: "eth_blockNumber" }): ${res}`);
+	let currentBlockNumber = await blockNumber();
+	//console.log(`Ethereum::currentBlockNumber: ${currentBlockNumber}`);
+	//let { result: num } = await rpc({ method: "eth_blockNumber" });
+	//await rpc({ method: "evm_mineBlockNumber", params: [blocks + parseInt(num)] });
+	//await rpc({ method: "evm_mineBlockNumber", params: [blocks + num] });
+	for (let i = currentBlockNumber; i < blocks; i++) {
+		await mineBlock();
+	}
+}
+
+async function setNextBlockTimestamp(timestamp) {
+	await rpc({ method: "evm_setNextBlockTimestamp", params: [timestamp] });
 }
 
 async function blockNumber() {
 	let { result: num } = await rpc({ method: "eth_blockNumber" });
+	if (num === undefined) num = await rpc({ method: "eth_blockNumber" });
+	//let { result: num } = await rpc({ method: "eth_blockNumber" });
 	return parseInt(num);
+	//return num;
 }
 
+async function lastBlock() {
+	return await rpc({ method: "eth_getBlockByNumber", params: ["latest", true] });
+}
+
+// doesn't work with hardhat
 async function minerStart() {
 	return rpc({ method: "miner_start" });
 }
 
+// doesn't work with hardhat
 async function minerStop() {
 	return rpc({ method: "miner_stop" });
 }
 
+// adapted to work in both truffle and hardhat
 async function rpc(request) {
-	return new Promise((okay, fail) => web3.currentProvider.send(request, (err, res) => (err ? fail(err) : okay(res))));
+	try {
+		return await network.provider.request(request);
+	} catch (e) {
+		if (typeof network != "undefined") console.error(e);
+		//console.log("Ethereum.js rpc:: network is undefined. Trying web3.currentProvider.send...");
+		return new Promise((okay, fail) => web3.currentProvider.send(request, (err, res) => (err ? fail(err) : okay(res))));
+	}
 }
 
 async function both(contract, method, args = [], opts = {}) {
@@ -147,6 +181,7 @@ module.exports = {
 
 	advanceBlocks,
 	blockNumber,
+	lastBlock,
 	freezeTime,
 	increaseTime,
 	mineBlock,
@@ -155,7 +190,7 @@ module.exports = {
 	minerStop,
 	rpc,
 	setTime,
-
+	setNextBlockTimestamp,
 	both,
 	sendFallback,
 	UInt256Max,

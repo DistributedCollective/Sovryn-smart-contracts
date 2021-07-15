@@ -1,7 +1,16 @@
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
-const { etherUnsigned, encodeParameters, etherMantissa, mineBlock, setTime, increaseTime } = require("../../Utils/Ethereum");
+const {
+	etherUnsigned,
+	encodeParameters,
+	etherMantissa,
+	mineBlock,
+	setTime,
+	increaseTime,
+	setNextBlockTimestamp,
+	blockNumber,
+} = require("../../Utils/Ethereum");
 
 const path = require("path");
 const solparse = require("solparse");
@@ -23,27 +32,34 @@ const states = Object.entries(statesInverted).reduce((obj, [key, value]) => ({ .
 
 const TWO_PERCENTAGE_VOTES = etherMantissa(200000);
 const QUORUM_VOTES = etherMantissa(4000000);
+const QUORUM_VOTES_MUL_2 = etherMantissa(4000000 * 2);
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
 const DELAY = 86400 * 14;
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
+const QUORUM = 4;
+const MAJORITY = 50;
+
 contract("GovernorAlpha#state/1", (accounts) => {
-	let token, staking, gov, root, acct, delay, timelock;
+	let token, staking, gov, root, acct, acct2, delay, timelock;
 	let trivialProposal, targets, values, signatures, callDatas;
 
 	before(async () => {
-		[root, acct, ...accounts] = accounts;
+		[root, acct, acct2, ...accounts] = accounts;
 	});
 
 	beforeEach(async () => {
-		await setTime(100);
+		//await setTime(100);
+		block = await ethers.provider.getBlock("latest");
+		setNextBlockTimestamp(block.timestamp + 100);
+
 		token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
 
 		await deployGovernor();
 
 		await token.approve(staking.address, QUORUM_VOTES);
-		await staking.stake(QUORUM_VOTES, MAX_DURATION, root, root);
+		await staking.stake(QUORUM_VOTES, block.timestamp + MAX_DURATION, root, root);
 
 		await token.transfer(acct, QUORUM_VOTES);
 		await token.approve(staking.address, QUORUM_VOTES, { from: acct });
@@ -63,6 +79,7 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		signatures = ["getBalanceOf(address)"];
 		callDatas = [encodeParameters(["address"], [acct])];
 
+		await mineBlock();
 		await updateTime(staking);
 		await gov.propose(targets, values, signatures, callDatas, "do nothing");
 		proposalId = await gov.latestProposalIds.call(root);
@@ -91,7 +108,7 @@ contract("GovernorAlpha#state/1", (accounts) => {
 
 		await gov.cancel(newProposalId);
 
-		expect((await gov.state.call(+newProposalId)).toString()).to.be.equal(states["Canceled"]);
+		expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Canceled"]);
 	});
 
 	it("Defeated by time", async () => {
@@ -105,9 +122,6 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		await mineBlock();
 		await updateTime(staking);
 
-		let blockNumber = await web3.eth.getBlockNumber();
-		let block = await web3.eth.getBlock(blockNumber);
-
 		await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: accounts[3] });
 		let newProposalId = await gov.latestProposalIds.call(accounts[3]);
 		await mineBlock();
@@ -118,12 +132,20 @@ contract("GovernorAlpha#state/1", (accounts) => {
 
 		//2% of votes
 		let proposal = await gov.proposals.call(newProposalId);
-		expect(proposal.forVotes).to.be.bignumber.lessThan(proposal.quorum);
+		let totalVotes = proposal.forVotes.add(proposal.againstVotes);
+		expect(totalVotes).to.be.bignumber.lessThan(proposal.quorum);
 
 		expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Defeated"]);
 	});
 
 	it("Defeated by minPercentageVotes", async () => {
+		let stakeAmount = QUORUM_VOTES_MUL_2;
+		await token.transfer(acct2, stakeAmount);
+		await token.approve(staking.address, stakeAmount, { from: acct2 });
+		let kickoffTS = await staking.kickoffTS.call();
+		let stakingDate = kickoffTS.add(new BN(MAX_DURATION));
+		await staking.stake(stakeAmount, stakingDate, acct2, acct2, { from: acct2 });
+
 		await mineBlock();
 		await updateTime(staking);
 
@@ -133,12 +155,14 @@ contract("GovernorAlpha#state/1", (accounts) => {
 
 		await updateTime(staking);
 		await gov.castVote(newProposalId, true, { from: acct });
+		await gov.castVote(newProposalId, false, { from: acct2 });
 		await advanceBlocks(20);
 
 		//48% of votes
 		let proposal = await gov.proposals.call(newProposalId);
-		expect(proposal.forVotes).to.be.bignumber.greaterThan(proposal.quorum);
-		expect(proposal.forVotes.add(proposal.againstVotes)).to.be.bignumber.lessThan(proposal.minPercentage);
+		let totalVotes = proposal.forVotes.add(proposal.againstVotes);
+		expect(totalVotes).to.be.bignumber.greaterThan(proposal.quorum);
+		expect(proposal.forVotes).to.be.bignumber.lessThan(totalVotes.mul(new BN(MAJORITY)).div(new BN(100)));
 
 		expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Defeated"]);
 	});
@@ -194,11 +218,13 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		let p = await gov.proposals.call(newProposalId);
 		let eta = etherUnsigned(p.eta);
 
-		await setTime(eta.plus(gracePeriod).minus(1).toNumber());
+		//await setTime(eta.plus(gracePeriod).minus(1).toNumber());
+		setNextBlockTimestamp(eta.plus(gracePeriod).minus(1).toNumber());
 
 		expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Queued"]);
 
-		await increaseTime(eta.plus(gracePeriod).toNumber());
+		await increaseTime(1 /*eta.plus(gracePeriod).toNumber()*/);
+		await mineBlock();
 
 		expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Expired"]);
 	});
@@ -221,7 +247,8 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		let p = await gov.proposals.call(newProposalId);
 		let eta = etherUnsigned(p.eta);
 
-		await setTime(eta.plus(gracePeriod).minus(1).toNumber());
+		//await setTime(eta.plus(gracePeriod).minus(1).toNumber());
+		setNextBlockTimestamp(eta.plus(gracePeriod).minus(1).toNumber());
 
 		expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Queued"]);
 		await gov.execute(newProposalId, { from: acct });
@@ -229,7 +256,8 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Executed"]);
 
 		// still executed even though would be expired
-		await setTime(eta.plus(gracePeriod).toNumber());
+		// await setTime(eta.plus(gracePeriod).toNumber());
+		setNextBlockTimestamp(eta.plus(gracePeriod).toNumber());
 
 		expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Executed"]);
 	});
@@ -278,7 +306,7 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		delay = etherUnsigned(10);
 		await timelock.setDelayWithoutChecking(delay);
 
-		gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4, 50);
+		gov = await GovernorAlpha.new(timelock.address, staking.address, root, QUORUM, MAJORITY);
 
 		await timelock.harnessSetAdmin(gov.address);
 	}
@@ -290,8 +318,14 @@ async function advanceBlocks(number) {
 	}
 }
 
+async function getTimeFromKickoff(delay) {
+	let kickoffTS = await staking.kickoffTS.call();
+	return kickoffTS.add(new BN(delay));
+}
 async function updateTime(staking) {
 	let kickoffTS = await staking.kickoffTS.call();
 	let newTime = kickoffTS.add(new BN(DELAY).mul(new BN(2)));
-	await setTime(newTime);
+	// await setTime(newTime);
+	let block = await ethers.provider.getBlock("latest");
+	await setNextBlockTimestamp(Math.max(newTime.toNumber(), block.timestamp + 1));
 }

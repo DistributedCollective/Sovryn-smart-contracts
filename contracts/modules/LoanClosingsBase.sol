@@ -15,8 +15,13 @@ import "../swaps/SwapsUser.sol";
 import "../interfaces/ILoanPool.sol";
 import "../mixins/RewardHelper.sol";
 
-//AUDIT: rename the contract to avoid misuse and relying of stripped-down functionality
-//LoanClosingsPure, LoanClosingsLR?
+/**
+ * @title LoanClosingsBase contract.
+ * @notice Ways to close a loan: liquidation, rollover. Margin trade
+ *   positions are always closed with a swap.
+ *
+ * Loans are liquidated if the position goes below margin maintenance.
+ * */
 contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper, RewardHelper {
 	uint256 internal constant MONTH = 365 days / 12;
 	//0.00001 BTC, would be nicer in State.sol, but would require a redeploy of the complete protocol, so adding it here instead
@@ -37,11 +42,28 @@ contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, 
 	}
 
 	/**
-	 * liquidates a loan. the caller needs to approve the closeAmount prior to calling.
-	 * Will not liquidate more than is needed to restore the desired margin (maintenance +5%).
-	 * @param loanId the ID of the loan to liquidate
-	 * @param receiver the receiver of the seized amount
-	 * @param closeAmount the amount to close in loanTokens
+	 * @notice Liquidate an unhealty loan.
+	 *
+	 * @dev Public wrapper for _liquidate internal function.
+	 *
+	 * The caller needs to approve the closeAmount prior to calling. Will
+	 * not liquidate more than is needed to restore the desired margin
+	 * (maintenance +5%).
+	 *
+	 * Whenever the current margin of a loan falls below maintenance margin,
+	 * it needs to be liquidated. Anybody can initiate a liquidation and buy
+	 * the collateral tokens at a discounted rate (5%).
+	 *
+	 * @param loanId The ID of the loan to liquidate.
+	 *   loanId is the ID of the loan, which is created on loan opening.
+	 *   It can be obtained either by parsing the Trade event or by reading
+	 *   the open loans from the contract by calling getActiveLoans or getUserLoans.
+	 * @param receiver The receiver of the seized amount.
+	 * @param closeAmount The amount to close in loanTokens.
+	 *
+	 * @return loanCloseAmount The amount of the collateral token of the loan.
+	 * @return seizedAmount The seized amount in the collateral token.
+	 * @return seizedToken The loan token address.
 	 * */
 	function liquidate(
 		bytes32 loanId,
@@ -60,6 +82,28 @@ contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, 
 		return _liquidate(loanId, receiver, closeAmount);
 	}
 
+	/**
+	 * @notice Roll over a loan.
+	 *
+	 * @dev Public wrapper for _rollover internal function.
+	 *
+	 * Each loan has a duration. In case of a margin trade it is set to 28
+	 * days, in case of borrowing, it can be set by the user. On loan
+	 * openning, the user pays the interest for this duration in advance.
+	 * If closing early, he gets the excess refunded. If it is not closed
+	 * before the end date, it needs to be rolled over. On rollover the
+	 * interest is paid for the next period. In case of margin trading
+	 * it's 28 days, in case of borrowing it's a month.
+	 *
+	 * The function rollover on the protocol contract extends the loan
+	 * duration by the maximum term (28 days for margin trades at the moment
+	 * of writing), pays the interest to the lender and refunds the caller
+	 * for the gas cost by sending 2 * the gas cost using the fast gas price
+	 * as base for the calculation.
+	 *
+	 * @param loanId The ID of the loan to roll over.
+	 * // param calldata The payload for the call. These loan DataBytes are additional loan data (not in use for token swaps).
+	 * */
 	function rollover(
 		bytes32 loanId,
 		bytes calldata // for future use /*loanDataBytes*/
@@ -75,10 +119,23 @@ contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, 
 	}
 
 	/**
-	 * internal function for liquidating a loan.
-	 * @param loanId the ID of the loan to liquidate
-	 * @param receiver the receiver of the seized amount
-	 * @param closeAmount the amount to close in loanTokens
+	 * @notice Internal function for liquidating an unhealthy loan.
+	 *
+	 * The caller needs to approve the closeAmount prior to calling. Will
+	 * not liquidate more than is needed to restore the desired margin
+	 * (maintenance +5%).
+	 *
+	 * Whenever the current margin of a loan falls below maintenance margin,
+	 * it needs to be liquidated. Anybody can initiate a liquidation and buy
+	 * the collateral tokens at a discounted rate (5%).
+	 *
+	 * @param loanId The ID of the loan to liquidate.
+	 * @param receiver The receiver of the seized amount.
+	 * @param closeAmount The amount to close in loanTokens.
+	 *
+	 * @return loanCloseAmount The amount of the collateral token of the loan.
+	 * @return seizedAmount The seized amount in the collateral token.
+	 * @return seizedToken The loan token address.
 	 * */
 	function _liquidate(
 		bytes32 loanId,
@@ -164,12 +221,26 @@ contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, 
 			loanCloseAmount,
 			seizedAmount,
 			collateralToLoanRate,
-			0, // collateralToLoanSwapRate
 			currentMargin,
 			CloseTypes.Liquidation
 		);
 	}
 
+	/**
+	 * @notice Internal function for roll over a loan.
+	 *
+	 * Each loan has a duration. In case of a margin trade it is set to 28
+	 * days, in case of borrowing, it can be set by the user. On loan
+	 * openning, the user pays the interest for this duration in advance.
+	 * If closing early, he gets the excess refunded. If it is not closed
+	 * before the end date, it needs to be rolled over. On rollover the
+	 * interest is paid for the next period. In case of margin trading
+	 * it's 28 days, in case of borrowing it's a month.
+	 *
+	 * @param loanId The ID of the loan to roll over.
+	 * @param loanDataBytes The payload for the call. These loan DataBytes are
+	 *   additional loan data (not in use for token swaps).
+	 * */
 	function _rollover(bytes32 loanId, bytes memory loanDataBytes) internal {
 		Loan storage loanLocal = loans[loanId];
 		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
@@ -436,11 +507,16 @@ contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, 
 	}
 
 	/**
-	 * used to swap back excessive loan tokens to collateral tokens.
-	 * @param loanLocal the loan object
-	 * @param loanParamsLocal the loan parameters
-	 * @param swapAmount the amount to be swapped
-	 * @param loanDataBytes additional loan data (not in use for token swaps)
+	 * @notice Swap back excessive loan tokens to collateral tokens.
+	 *
+	 * @param loanLocal The loan object.
+	 * @param loanParamsLocal The loan parameters.
+	 * @param swapAmount The amount to be swapped.
+	 * @param loanDataBytes Additional loan data (not in use for token swaps).
+	 *
+	 * @return destTokenAmountReceived The amount of destiny tokens received.
+	 * @return sourceTokenAmountUsed The amount of source tokens used.
+	 * @return collateralToLoanSwapRate The swap rate of collateral.
 	 * */
 	function _swapBackExcess(
 		Loan memory loanLocal,
@@ -469,7 +545,13 @@ contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, 
 		require(sourceTokenAmountUsed <= swapAmount, "excessive source amount");
 	}
 
-	// withdraws asset to receiver
+	/**
+	 * @notice Withdraw asset to receiver.
+	 *
+	 * @param assetToken The loan token.
+	 * @param receiver The address of the receiver.
+	 * @param assetAmount The loan token amount.
+	 * */
 	function _withdrawAsset(
 		address assetToken,
 		address receiver,
@@ -484,58 +566,14 @@ contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, 
 		}
 	}
 
-	function _finalizeClose(
-		Loan storage loanLocal,
-		LoanParams storage loanParamsLocal,
-		uint256 loanCloseAmount,
-		uint256 collateralCloseAmount,
-		uint256 collateralToLoanSwapRate,
-		CloseTypes closeType
-	) internal {
-		_closeLoan(loanLocal, loanCloseAmount);
-
-		address _priceFeeds = priceFeeds;
-		uint256 currentMargin;
-		uint256 collateralToLoanRate;
-
-		// this is still called even with full loan close to return collateralToLoanRate
-		(bool success, bytes memory data) =
-			_priceFeeds.staticcall(
-				abi.encodeWithSelector(
-					IPriceFeeds(_priceFeeds).getCurrentMargin.selector,
-					loanParamsLocal.loanToken,
-					loanParamsLocal.collateralToken,
-					loanLocal.principal,
-					loanLocal.collateral
-				)
-			);
-		assembly {
-			if eq(success, 1) {
-				currentMargin := mload(add(data, 32))
-				collateralToLoanRate := mload(add(data, 64))
-			}
-		}
-		//// Note: We can safely skip the margin check if closing via closeWithDeposit or if closing the loan in full by any method ////
-		require(
-			closeType == CloseTypes.Deposit ||
-				loanLocal.principal == 0 || // loan fully closed
-				currentMargin > loanParamsLocal.maintenanceMargin,
-			"unhealthy position"
-		);
-
-		_emitClosingEvents(
-			loanParamsLocal,
-			loanLocal,
-			loanCloseAmount,
-			collateralCloseAmount,
-			collateralToLoanRate,
-			collateralToLoanSwapRate,
-			currentMargin,
-			closeType
-		);
-	}
-
-	function _closeLoan(Loan storage loanLocal, uint256 loanCloseAmount) internal returns (uint256) {
+	/**
+	 * @notice Internal function to close a loan.
+	 *
+	 * @param loanLocal The loan object.
+	 * @param loanCloseAmount The amount to close: principal or lower.
+	 *
+	 * */
+	function _closeLoan(Loan storage loanLocal, uint256 loanCloseAmount) internal {
 		require(loanCloseAmount != 0, "nothing to close");
 
 		if (loanCloseAmount == loanLocal.principal) {
@@ -606,7 +644,6 @@ contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, 
 		uint256 loanCloseAmount,
 		uint256 collateralCloseAmount,
 		uint256 collateralToLoanRate,
-		uint256 collateralToLoanSwapRate,
 		uint256 currentMargin,
 		CloseTypes closeType
 	) internal {

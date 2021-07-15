@@ -4,10 +4,13 @@ const { expectRevert, expectEvent, constants, BN, balance, time } = require("@op
 const { address, minerStart, minerStop, unlockedAccount, mineBlock, etherMantissa, etherUnsigned, setTime } = require("../Utils/Ethereum");
 
 const EIP712 = require("../Utils/EIP712");
+//const EIP712Ethers = require("../Utils/EIP712Ethers");
+const { getAccountsPrivateKeysBuffer } = require("../Utils/hardhat_utils");
 
-const StakingLogic = artifacts.require("Staking");
+const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
+const VestingLogic = artifacts.require("VestingLogic");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
@@ -16,18 +19,29 @@ const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1095));
 const DAY = 86400;
 const TWO_WEEKS = 1209600;
 
+//const { ethers } = require("hardhat");
+
 contract("Staking", (accounts) => {
 	const name = "Test token";
 	const symbol = "TST";
 
 	let root, a1, a2, a3, chainId;
+	let pA1;
 	let token, staking;
 	let MAX_VOTING_WEIGHT;
 
 	let kickoffTS, inThreeYears;
+	let currentChainId;
+
+	let vestingLogic1, vestingLogic2;
 
 	before(async () => {
 		[root, a1, a2, a3, ...accounts] = accounts;
+		[pkbRoot, pkbA1] = getAccountsPrivateKeysBuffer();
+		currentChainId = (await ethers.provider.getNetwork()).chainId;
+
+		vestingLogic1 = await VestingLogic.new();
+		vestingLogic2 = await VestingLogic.new();
 	});
 
 	beforeEach(async () => {
@@ -63,7 +77,7 @@ contract("Staking", (accounts) => {
 	});
 
 	describe("delegateBySig", () => {
-		const Domain = (staking) => ({ name: "SOVStaking", chainId, verifyingContract: staking.address });
+		const Domain = (staking) => ({ name: "SOVStaking", chainId: currentChainId, verifyingContract: staking.address });
 		const Types = {
 			Delegation: [
 				{ name: "delegatee", type: "address" },
@@ -98,8 +112,23 @@ contract("Staking", (accounts) => {
 					expiry,
 				},
 				Types,
-				unlockedAccount(a1).secretKey
+				pkbA1
+				//pA1.privateKey
+				//unlockedAccount(a1).secretKey
 			);
+			/*const { v, r, s } = EIP712Ethers.sign(
+				Domain(staking),
+				"Delegation",
+				{
+					delegatee,
+					lockDate,
+					nonce,
+					expiry,
+				},
+				Types,
+				pA1
+			);*/
+
 			await expectRevert(
 				staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s),
 				"revert Staking::delegateBySig: invalid nonce"
@@ -121,7 +150,7 @@ contract("Staking", (accounts) => {
 					expiry,
 				},
 				Types,
-				unlockedAccount(a1).secretKey
+				pkbA1
 			);
 			await expectRevert(
 				staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s),
@@ -144,8 +173,10 @@ contract("Staking", (accounts) => {
 					expiry,
 				},
 				Types,
-				unlockedAccount(a1).secretKey
+				pkbA1
+				//unlockedAccount(a1).secretKey
 			);
+
 			expect(await staking.delegates.call(a1, inThreeYears)).to.be.equal(address(0));
 			const tx = await staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s);
 			expect(tx.gasUsed < 80000);
@@ -176,14 +207,14 @@ contract("Staking", (accounts) => {
 
 			await token.approve(staking.address, "1000", { from: guy });
 
-			await minerStop();
+			//await minerStop();
 			let t1 = staking.stake("80", inThreeYears, a3, a3, { from: guy });
 
 			let t2 = staking.delegate(a3, inThreeYears, { from: guy });
 			let t3 = token.transfer(a2, 10, { from: guy });
 			let t4 = token.transfer(a2, 10, { from: guy });
 
-			await minerStart();
+			//await minerStart();
 			t1 = await t1;
 			t2 = await t2;
 			t3 = await t3;
@@ -294,6 +325,79 @@ contract("Staking", (accounts) => {
 			expect((await staking.getPriorVotes.call(a1, new BN(t3.receipt.blockNumber + 1), kickoffTS)).toString()).to.be.equal(
 				getAmountWithWeight("1111").toString()
 			);
+		});
+	});
+
+	describe("addAdmin", () => {
+		it("adds admin", async () => {
+			let tx = await staking.addAdmin(a1);
+
+			expectEvent(tx, "AdminAdded", {
+				admin: a1,
+			});
+
+			let isAdmin = await staking.admins(a1);
+			expect(isAdmin).equal(true);
+		});
+
+		it("fails sender isn't an owner", async () => {
+			await expectRevert(staking.addAdmin(a1, { from: a1 }), "unauthorized");
+		});
+	});
+
+	describe("removeAdmin", () => {
+		it("removes admin", async () => {
+			await staking.addAdmin(a1);
+			let tx = await staking.removeAdmin(a1);
+
+			expectEvent(tx, "AdminRemoved", {
+				admin: a1,
+			});
+
+			let isAdmin = await staking.admins(a1);
+			expect(isAdmin).equal(false);
+		});
+
+		it("fails sender isn't an owner", async () => {
+			await expectRevert(staking.removeAdmin(a1, { from: a1 }), "unauthorized");
+		});
+	});
+
+	describe("addContractCodeHash", () => {
+		it("adds hash", async () => {
+			let tx = await staking.addContractCodeHash(vestingLogic1.address);
+			let codeHash = await staking.getCodeHash(vestingLogic1.address);
+
+			expectEvent(tx, "ContractCodeHashAdded", {
+				hash: codeHash,
+			});
+
+			let isVestingContract = await staking.isVestingContract(vestingLogic2.address);
+			expect(isVestingContract).equal(true);
+			expect(vestingLogic1.address).not.equal(vestingLogic2.address);
+		});
+
+		it("fails sender isn't an owner", async () => {
+			await expectRevert(staking.addContractCodeHash(vestingLogic2.address, { from: a1 }), "unauthorized");
+		});
+	});
+
+	describe("removeContractCodeHash", () => {
+		it("remove hash", async () => {
+			await staking.addContractCodeHash(vestingLogic1.address);
+			let tx = await staking.removeContractCodeHash(vestingLogic1.address);
+			let codeHash = await staking.getCodeHash(vestingLogic1.address);
+
+			expectEvent(tx, "ContractCodeHashRemoved", {
+				hash: codeHash,
+			});
+
+			let isVestingContract = await staking.isVestingContract(vestingLogic2.address);
+			expect(isVestingContract).equal(false);
+		});
+
+		it("fails sender isn't an owner", async () => {
+			await expectRevert(staking.removeContractCodeHash(vestingLogic2.address, { from: a1 }), "unauthorized");
 		});
 	});
 

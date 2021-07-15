@@ -3,77 +3,72 @@ from brownie import *
 import time
 import json
 
+# TODO DEPRECATED
 def main():
     thisNetwork = network.show_active()
 
-    #@todo put correct variables
-    ownerQuorumVotes = 70
-    ownerMinPercentageVotes = 50
+    # == Governance Params =================================================================================================================
+    # TODO set correct variables
+    ownerQuorumVotes = 20
+    ownerMajorityPercentageVotes = 70
 
-    adminQuorumVotes = 4
-    adminMinPercentageVotes = 50
+    adminQuorumVotes = 5
+    adminMajorityPercentageVotes = 50
 
+    # == Load config =======================================================================================================================
     if thisNetwork == "development":
         acct = accounts[0]
-        # configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
-        guardian = acct
-        SOV = acct.deploy(TestToken, "SOV", "SOV", 18, 1e26).address
-        delay = 2*24*60*60
+        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+        ownerDelay = 3*60*60
+        adminDelay = 3*60*60
     elif thisNetwork == "testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
-        SOV = '0x04fa98E97A376a086e3BcAB99c076CB249e5740D'
-        delay = 3*60*60
+        ownerDelay = 2*24*60*60
+        adminDelay = 1*24*60*60
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
-        delay = 2*24*60*60
-        raise Exception("set guardian and SOV token!")
+        ownerDelay = 2*24*60*60
+        adminDelay = 1*24*60*60
     else:
         raise Exception("network not supported")
 
+
     # load deployed contracts addresses
     contracts = json.load(configFile)
-    protocolAddress = contracts['sovrynProtocol']
+    staking = contracts['staking']
     if (thisNetwork == "testnet" or thisNetwork == "rsk-mainnet"):
         guardian = contracts['multisig']
+    else:
+        guardian = acct
 
-    #deploy the staking contracts
-    stakingLogic = acct.deploy(Staking)
-    staking = acct.deploy(StakingProxy, SOV)
-    staking.setImplementation(stakingLogic.address)
-    staking = Contract.from_abi("Staking", address=staking.address, abi=Staking.abi, owner=acct)
-
-    #deploy fee sharing contract
-    feeSharing = acct.deploy(FeeSharingProxy, protocolAddress, staking.address)
-
-    # set fee sharing
-    staking.setFeeSharing(feeSharing.address)
-
+    # == Governor Owner ====================================================================================================================
     # [timelockOwner]
     #params: owner, delay
-    timelockOwner = acct.deploy(Timelock, acct, delay)
+    timelockOwner = acct.deploy(Timelock, acct, ownerDelay)
     #params: timelockOwner. staking, guardian
 
-    governorOwner = acct.deploy(GovernorAlpha, timelockOwner.address, staking.address, guardian, ownerQuorumVotes, ownerMinPercentageVotes)
+    governorOwner = acct.deploy(GovernorAlpha, timelockOwner.address, staking, guardian, ownerQuorumVotes, ownerMajorityPercentageVotes)
 
     dataString = timelockOwner.setPendingAdmin.encode_input(governorOwner.address)
     #2 days and 5 minutes from now
-    eta = round(time.time()) + delay + 300
+    eta = round(time.time()) + ownerDelay + 300
     print("schedule ownership(admin) transfer for ", eta)
     print(dataString[10:])
     timelockOwner.queueTransaction(timelockOwner.address, 0, "setPendingAdmin(address)", dataString[10:], eta)
 
+    # == Governor Admin ====================================================================================================================
     # [timelockAdmin]
     #params: admin, delay
-    timelockAdmin = acct.deploy(Timelock, acct, delay)
+    timelockAdmin = acct.deploy(Timelock, acct, adminDelay)
     #params: timelockAdmin. staking, guardian
 
-    governorAdmin = acct.deploy(GovernorAlpha, timelockAdmin.address, staking.address, guardian, adminQuorumVotes, adminMinPercentageVotes)
+    governorAdmin = acct.deploy(GovernorAlpha, timelockAdmin.address, staking, guardian, adminQuorumVotes, adminMajorityPercentageVotes)
 
     dataString = timelockAdmin.setPendingAdmin.encode_input(governorAdmin.address)
     #2 days and 5 minutes from now
-    eta = round(time.time()) + delay + 300
+    eta = round(time.time()) + adminDelay + 300
     print("schedule ownership(admin) transfer for ", eta)
     print(dataString[10:])
     timelockAdmin.queueTransaction(timelockAdmin.address, 0, "setPendingAdmin(address)", dataString[10:], eta)

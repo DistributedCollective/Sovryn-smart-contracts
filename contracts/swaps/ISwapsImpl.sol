@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.
+ * Copyright 2017-2021, bZeroX, LLC <https://bzx.network/>. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
 
@@ -22,4 +22,11 @@ interface ISwapsImpl {
 		uint256 sourceTokenAmount,
 		address optionalContractAddress
 	) external view returns (uint256);
+
+	function internalExpectedReturn(
+		address sourceTokenAddress,
+		address destTokenAddress,
+		uint256 sourceTokenAmount,
+		address sovrynSwapContractRegistryAddress
+	) external view returns (uint256 expectedReturn);
 }

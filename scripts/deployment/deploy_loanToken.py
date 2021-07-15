@@ -44,6 +44,7 @@ def deployLoanTokens(acct, sovryn, tokens):
     tokens.susd.approve(contractSUSD.address,1000e18) #1k $
     contractSUSD.mint(acct, 1000e18)
     if network.show_active() == "development":
+        testAffiliatesIntegration(acct, sovryn,contractSUSD.address, tokens.susd, tokens.wrbtc, 21e18, 0)
         testDeployment(acct, sovryn,contractSUSD.address, tokens.susd, tokens.wrbtc, 21e18, 0)
     
     print('\n DEPLOYING IWRBTC')
@@ -52,6 +53,7 @@ def deployLoanTokens(acct, sovryn, tokens):
     contractWRBTC = Contract.from_abi("loanToken", address=contractWRBTC.address, abi=LoanTokenLogicWrbtc.abi, owner=acct)
     contractWRBTC.mintWithBTC(acct, {'value':0.1e18})#0.1 BTC
     if network.show_active() == "development":
+        testAffiliatesIntegration(acct, sovryn, contractWRBTC.address, tokens.wrbtc, tokens.susd, 0.0021e18, 0.0021e18)
         testDeployment(acct, sovryn, contractWRBTC.address, tokens.wrbtc, tokens.susd, 0.0021e18, 0.0021e18)
 
     return (contractSUSD, contractWRBTC, loanTokenSettingsSUSD, loanTokenSettingsWRBTC)
@@ -59,7 +61,7 @@ def deployLoanTokens(acct, sovryn, tokens):
 '''
 Deploys a single loan token contract and sets it up
 '''
-def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddresses, wrbtcAddress, multisig='', loanTokenLogicAddress=''):
+def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddresses, wrbtcAddress, multisig='', loanTokenLogicAddress='', baseRate = 1e18, rateMultiplier = 10e18, kinkLevel = 90e18, maxScaleRate = 100e18):
     
     print("Deploying LoanTokenLogicStandard")
     if (len(loanTokenLogicAddress) == 0):
@@ -150,24 +152,26 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
 
     print("setting up interest rates")
 
-    setupLoanTokenRates(acct, loanToken.address, loanTokenLogicAddress)
+    setupLoanTokenRates(acct, loanToken.address, loanTokenLogicAddress, baseRate, rateMultiplier, kinkLevel, maxScaleRate)
 
     return (loanToken, '')
 
 '''
 sets up the interest rates
 '''
-def setupLoanTokenRates(acct, loanTokenAddress, logicAddress):
-    baseRate = 1e18
-    rateMultiplier = 10e18
-    targetLevel=0
-    kinkLevel=90*10**18
-    maxScaleRate=100*10**18
+def setupLoanTokenRates(acct, loanTokenAddress, logicAddress, baseRate, rateMultiplier, kinkLevel, maxScaleRate):
+    '''
+    if utilization rate < kinkLevel:
+        interest rate = baseRate + rateMultiplier * utilizationRate
+    else:
+        scale up to maxScaleRate
+    '''
+    targetLevel=0 # unused -> that's why 0
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
     localLoanToken.setDemandCurve(baseRate,rateMultiplier,baseRate,rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
     borrowInterestRate = localLoanToken.borrowInterestRate()
     print("borrowInterestRate: ",borrowInterestRate)
-    
+
 '''
 test the loan token contract by entering and closing a trade position
 '''
@@ -198,6 +202,112 @@ def testDeployment(acct, sovryn, loanTokenAddress, underlyingToken, collateralTo
     print("position size is ", collateral)
     tx = sovryn.closeWithSwap(loanId, acct, collateral, True, b'')
 
+'''
+test the affiliate margin trade by entering and closing a trade position
+'''
+def testAffiliatesIntegration(acct, sovryn, loanTokenAddress, underlyingToken, collateralToken, loanTokenSent, value):
+    # Change the min referrals to payout to 3 for testing purposes
+    sovryn.setMinReferralsToPayoutAffiliates(3)
 
+    sovToken = Contract.from_abi("SOV", address=sovryn.getSovTokenAddress(), abi=SOV.abi, owner=acct)
+    sovToken.mint(sovryn.address, 1000e18)
 
+    print('\n TESTING THE AFFILIATES INTEGRATION')
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    
+    if(value == 0):
+        underlyingToken.approve(loanToken.address, loanTokenSent*2)
+    
+    referrerAddress = accounts[9]
+    print('\n Referrer address : ', referrerAddress)
+    previousAffiliateRewardsHeld = sovryn.getAffiliateRewardsHeld(referrerAddress)
+    previousTokenRewardBalance = sovryn.getAffiliatesReferrerTokenBalance(referrerAddress, underlyingToken.address)
+    
+    print(sovryn.getProtocolAddress())
+    tx = loanToken.marginTradeAffiliate(
+        "0", #loanId  (0 for new loans)
+        2e18, # leverageAmount
+        loanTokenSent, #loanTokenSent
+        0, # no collateral token sent
+        collateralToken.address, #collateralTokenAddress
+        acct, #trader, 
+        referrerAddress,
+        b'', #loanDataBytes (only required with ether)
+        {'value': value}
+    )
+    tx.info()
+    defaultSovBonusAmountPerTrade = tx.events['PayTradingFeeToAffiliate']['sovBonusAmount']
 
+    # Check if the referrer is correct
+    print("\n--- CHECK REFERRER ---")
+    referrerOnChain = sovryn.getAffiliatesUserReferrer(acct)
+    if referrerOnChain != referrerAddress:
+        raise Exception("Referrer is not match!")
+    print("Check Referrer -- Passed")
+
+    print("\n--- CHECK TRADER NOT FIRST TRADE FLAG (MUST BE TRUE) ---")
+    notFirstTradeFlagOnChain = sovryn.getUserNotFirstTradeFlag(acct)
+    if notFirstTradeFlagOnChain == False:
+        raise Exception("Failed to change user first trade flag")
+    print("Check First Trade Flag -- Passed")
+
+    print("\n--- CHECK AFFILIATE REWARD BALANCE ---")
+    submittedAffiliatesReward = tx.events['PayTradingFeeToAffiliate']['sovBonusAmount']
+    submittedTokenReward = tx.events['PayTradingFeeToAffiliate']['tokenBonusAmount']
+    isHeld = tx.events['PayTradingFeeToAffiliate']['isHeld']
+    # since min referrals to payout is not fullfilled, need to make sure the held rewards is correct
+    affiliateRewardsHeld = sovryn.getAffiliateRewardsHeld(referrerAddress)
+    checkedValueShouldBe = affiliateRewardsHeld - previousAffiliateRewardsHeld
+    if submittedTokenReward != (sovryn.getAffiliatesReferrerTokenBalance(referrerAddress, underlyingToken.address) - previousTokenRewardBalance):
+        raise Exception("Token reward is invalid")
+    if checkedValueShouldBe != submittedAffiliatesReward:
+        raise Exception("Affiliates reward is invalid")
+    if isHeld == False:
+        raise Exception("Bonus should be held at this point, as the minimum referrals to payout is not fullfilled")
+    print("Check affiliate reward balance -- Passed with value (" , submittedAffiliatesReward , " & " , checkedValueShouldBe , ")\n")
+
+    loanId = tx.events['Trade']['loanId']
+    collateral = tx.events['Trade']['positionSize']
+    print("closing loan with id", loanId)
+    print("position size is ", collateral)
+    tx = sovryn.closeWithSwap(loanId, acct, collateral, True, b'')
+
+    # submittedTokenReward = submittedTokenReward + tx.events['PayTradingFeeToAffiliate']['tokenBonusAmount']
+
+    # Change the min referrals to payout to 1 for testing purposes
+    sovryn.setMinReferralsToPayoutAffiliates(1)
+
+    previousAffiliateRewardsHeld = sovryn.getAffiliateRewardsHeld(referrerAddress)
+    previousTokenRewardBalance = sovryn.getAffiliatesReferrerTokenBalance(referrerAddress, underlyingToken.address)
+    print("\n-- CHECK AFFILIATE REWARD BALANCE WITH 1 MINIMUM REFERRALS")
+    tx2 = loanToken.marginTradeAffiliate(
+        "0", #loanId  (0 for new loans)
+        2e18, # leverageAmount
+        loanTokenSent, #loanTokenSent
+        0, # no collateral token sent
+        collateralToken.address, #collateralTokenAddress
+        acct, #trader, 
+        referrerAddress,
+        b'', #loanDataBytes (only required with ether)
+        {'value': value}
+    )
+    tx2.info()
+
+    submittedAffiliatesReward = tx2.events['PayTradingFeeToAffiliate']['sovBonusAmountPaid']
+    # submittedTokenReward = submittedTokenReward + tx2.events['PayTradingFeeToAffiliate']['tokenBonusAmount']
+    submittedTokenReward =  tx2.events['PayTradingFeeToAffiliate']['tokenBonusAmount']
+    isHeld = tx2.events['PayTradingFeeToAffiliate']['isHeld']
+
+    # since min referrals to payout is fullfilled, need to make sure the held rewards is zero, and the submitted rewards = previousRewardsHeld + currentReward
+    affiliateRewardsHeld = sovryn.getAffiliateRewardsHeld(referrerAddress)
+    # Since the amount for both tx and tx2 is the same, we can assume tx's sovBonusAmount as tx2's sovBonusAmount
+    checkedValueShouldBe = defaultSovBonusAmountPerTrade + previousAffiliateRewardsHeld
+    if submittedTokenReward != (sovryn.getAffiliatesReferrerTokenBalance(referrerAddress, underlyingToken.address) - previousTokenRewardBalance):
+        raise Exception("Token reward is invalid")
+    if affiliateRewardsHeld != 0:
+        raise Exception("Affiliates reward should be zero at this point")
+    if checkedValueShouldBe != submittedAffiliatesReward:
+        raise Exception("Affiliates reward is invalid")
+    if isHeld == True:
+        raise Exception("Bonus should not be held at this point, as the minimum referrals to payout is fullfilled")
+    print("Check affiliate reward balance with 1 minimum referrals -- Passed with value (" , submittedAffiliatesReward , " & " , checkedValueShouldBe , ")\n")

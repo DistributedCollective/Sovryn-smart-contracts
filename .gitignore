@@ -3,6 +3,7 @@ __pycache__
 .DS_Store
 .history
 .hypothesis/
+.gradle/
 build/
 reports/
 node_modules/
@@ -16,7 +17,6 @@ ignore
 *.txt
 *.log
 !requirements.txt
-package-lock.json
 *_ignore_*
 *_joined_*
 coverage
@@ -28,3 +28,12 @@ artifacts
 cache
 .idea/
 workspace.code-workspace
+.env
+node_modules
+artifacts/
+cache/
+contracts_bzx/
+tmp/
+tmp
+/temp/
+/out/

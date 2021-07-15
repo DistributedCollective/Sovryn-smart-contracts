@@ -7,6 +7,7 @@ pragma solidity >=0.5.0 <0.6.0;
 pragma experimental ABIEncoderV2;
 //TODO: stored in ./interfaces only while brownie isn't removed
 //TODO: move to contracts/interfaces after with brownie is removed
+
 import "../core/State.sol";
 import "../events/ProtocolSettingsEvents.sol";
 import "../events/LoanSettingsEvents.sol";
@@ -15,6 +16,7 @@ import "../events/LoanMaintenanceEvents.sol";
 import "../events/LoanClosingsEvents.sol";
 import "../events/FeesEvents.sol";
 import "../events/SwapsEvents.sol";
+import "../events/AffiliatesEvents.sol";
 
 contract ISovryn is
 	State,
@@ -23,7 +25,9 @@ contract ISovryn is
 	LoanOpeningsEvents,
 	LoanMaintenanceEvents,
 	LoanClosingsEvents,
-	SwapsEvents
+	SwapsEvents,
+	AffiliatesEvents,
+	FeesEvents
 {
 	////// Protocol //////
 
@@ -36,6 +40,12 @@ contract ISovryn is
 	////// Protocol Settings //////
 
 	function setSovrynProtocolAddress(address newProtocolAddress) external;
+
+	function setSOVTokenAddress(address newSovTokenAddress) external;
+
+	function setLockedSOVAddress(address newSOVLockedAddress) external;
+
+	function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external;
 
 	function setPriceFeedContract(address newContract) external;
 
@@ -52,6 +62,8 @@ contract ISovryn is
 	function setBorrowingFeePercent(uint256 newValue) external;
 
 	function setAffiliateFeePercent(uint256 newValue) external;
+
+	function setAffiliateTradingTokenFeePercent(uint256 newValue) external;
 
 	function setLiquidationIncentivePercent(uint256 newAmount) external;
 
@@ -306,6 +318,21 @@ contract ISovryn is
 
 	////// Affiliates Module //////
 
+	function getUserNotFirstTradeFlag(address user) external view returns (bool);
+
+	function setUserNotFirstTradeFlag(address user) external view returns (bool);
+
+	function payTradingFeeToAffiliatesReferrer(
+		address referrer,
+		address trader,
+		address token,
+		uint256 tradingFeeTokenBaseAmount
+	) external returns (uint256 affiliatesBonusSOVAmount, uint256 affiliatesBonusTokenAmount);
+
+	function setAffiliatesReferrer(address user, address referrer) external; //onlyCallableByLoanPools
+
+	function getReferralsList(address referrer) external view returns (address[] memory refList);
+
 	function getAffiliatesReferrerBalances(address referrer)
 		external
 		view
@@ -315,23 +342,25 @@ contract ISovryn is
 
 	function getAffiliatesReferrerTokenBalance(address referrer, address token) external view returns (uint256);
 
-	function getUserNotFirstTradeFlag(address user) external view returns (bool);
-
-	function setUserNotFirstTradeFlag(address user) external view returns (bool);
-
-	function payTradingFeeToAffiliatesReferrer(
-		address referrer,
-		address token,
-		uint256 tradingFeeTokenBaseAmount
-	) external returns (uint256 referrerTradingFee);
-
 	function withdrawAffiliatesReferrerTokenFees(
 		address token,
 		address receiver,
 		uint256 amount
 	) external returns (uint256 withdrawAmount);
 
-	function setAffiliatesUserReferrer(address user, address referrer) external; //onlyCallableByLoanPools
+	function withdrawAllAffiliatesReferrerTokenFees(address receiver) external;
 
-	// function getAffiliatesUserReferrer(address user) external returns ; //AUDIT: do we need it to be public?
+	function getProtocolAddress() external view returns (address);
+
+	function getSovTokenAddress() external view returns (address);
+
+	function getLockedSOVAddress() external view returns (address);
+
+	function getMinReferralsToPayout() external view returns (uint256);
+
+	function getAffiliatesUserReferrer(address user) external view returns (address referrer);
+
+	function getAffiliateRewardsHeld(address referrer) external view returns (uint256);
+
+	function getAffiliateTradingTokenFeePercent() external view returns (uint256 affiliateTradingTokenFeePercent);
 }

@@ -6,15 +6,21 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./LoanTokenLogicStandard.sol";
+import "./LoanTokenLogicLM.sol";
 
 contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
-	function mintWithBTC(address receiver) external payable nonReentrant returns (uint256 mintAmount) {
-		return _mintToken(receiver, msg.value);
+	function mintWithBTC(address receiver, bool useLM) external payable nonReentrant returns (uint256 mintAmount) {
+		if (useLM) return _mintWithLM(receiver, msg.value);
+		else return _mintToken(receiver, msg.value);
 	}
 
-	function burnToBTC(address receiver, uint256 burnAmount) external nonReentrant returns (uint256 loanAmountPaid) {
-		loanAmountPaid = _burnToken(burnAmount);
+	function burnToBTC(
+		address receiver,
+		uint256 burnAmount,
+		bool useLM
+	) external nonReentrant returns (uint256 loanAmountPaid) {
+		if (useLM) loanAmountPaid = _burnFromLM(burnAmount);
+		else loanAmountPaid = _burnToken(burnAmount);
 
 		if (loanAmountPaid != 0) {
 			IWrbtcERC20(wrbtcTokenAddress).withdraw(loanAmountPaid);
@@ -24,15 +30,27 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
 
 	/* Internal functions */
 
-	// sentAddresses[0]: lender
-	// sentAddresses[1]: borrower
-	// sentAddresses[2]: receiver
-	// sentAddresses[3]: manager
-	// sentAmounts[0]: interestRate
-	// sentAmounts[1]: newPrincipal
-	// sentAmounts[2]: interestInitialAmount
-	// sentAmounts[3]: loanTokenSent
-	// sentAmounts[4]: collateralTokenSent
+	/**
+	 * @notice Handle transfers prior to adding newPrincipal to loanTokenSent.
+	 *
+	 * @param collateralTokenAddress The address of the collateral token.
+	 * @param sentAddresses The array of addresses:
+	 *   sentAddresses[0]: lender
+	 *   sentAddresses[1]: borrower
+	 *   sentAddresses[2]: receiver
+	 *   sentAddresses[3]: manager
+	 *
+	 * @param sentAmounts The array of amounts:
+	 *   sentAmounts[0]: interestRate
+	 *   sentAmounts[1]: newPrincipal
+	 *   sentAmounts[2]: interestInitialAmount
+	 *   sentAmounts[3]: loanTokenSent
+	 *   sentAmounts[4]: collateralTokenSent
+	 *
+	 * @param withdrawalAmount The amount to withdraw.
+	 *
+	 * @return msgValue The amount of value sent.
+	 * */
 	function _verifyTransfers(
 		address collateralTokenAddress,
 		address[4] memory sentAddresses,
@@ -51,7 +69,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
 		msgValue = msg.value;
 
 		if (withdrawalAmount != 0) {
-			// withdrawOnOpen == true
+			/// withdrawOnOpen == true
 			IWrbtcERC20(_wrbtcToken).withdraw(withdrawalAmount);
 			Address.sendValue(receiver, withdrawalAmount);
 			if (newPrincipal > withdrawalAmount) {
