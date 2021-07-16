@@ -2,7 +2,7 @@ const { assert } = require("chai");
 // const hre = require("hardhat"); access to the hardhat engine if needed
 // const { encodeParameters, etherMantissa, mineBlock, increaseTime, blockNumber, sendFallback } = require("./utilities/ethereum"); useful utilities
 
-const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
+const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
 const sovrynProtocol = artifacts.require("sovrynProtocol");
 const LoanToken = artifacts.require("LoanToken");
 
@@ -36,7 +36,7 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 		[owner, trader, referrer, account1, account2, ...accounts] = accounts;
 	});
 	beforeEach(async () => {
-		loanTokenLogic = await LoanTokenLogicStandard.new();
+		loanTokenLogic = await LoanTokenLogicLM.new();
 		testWrbtc = await TestWrbtc.new();
 		doc = await TestToken.new("dollar on chain", "DOC", 18, web3.utils.toWei("20000", "ether"));
 
@@ -57,7 +57,7 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 		loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 		await loanToken.initialize(doc.address, "SUSD", "SUSD");
 
-		loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address);
+		loanTokenV2 = await LoanTokenLogicLM.at(loanToken.address);
 		const loanTokenAddress = await loanToken.loanTokenAddress();
 		if (owner == (await sovryn.owner())) {
 			await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
