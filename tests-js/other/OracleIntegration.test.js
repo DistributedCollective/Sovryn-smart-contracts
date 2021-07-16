@@ -56,12 +56,8 @@ contract("OracleIntegration", (accounts) => {
 	describe("OracleIntegration Tests", () => {
 		it("Test moc oracle integration", async () => {
 			const [price_feeds, price_feeds_moc] = await set_oracle(
-				(
-					await price_feed_rsk_mockup()
-				).address,
-				(
-					await price_feed_moc_mockup()
-				).address
+				(await price_feed_rsk_mockup()).address,
+				(await price_feed_moc_mockup()).address
 			);
 
 			let res = await price_feeds.queryPrecision(BZRX.address, WRBTC.address);

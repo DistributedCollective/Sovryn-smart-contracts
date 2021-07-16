@@ -20,6 +20,9 @@ import "./FeesHelper.sol";
 contract InterestUser is VaultController, FeesHelper {
 	using SafeERC20 for IERC20;
 
+	/// Triggered whenever interest is paid to lender.
+	event PayInterestTransfer(address indexed interestToken, address indexed lender, uint256 effectiveInterest);
+
 	/**
 	 * @notice Internal function to pay interest of a loan.
 	 * @dev Calls _payInterestTransfer internal function to transfer tokens.
@@ -60,12 +63,15 @@ contract InterestUser is VaultController, FeesHelper {
 		uint256 interestOwedNow
 	) internal {
 		uint256 lendingFee = interestOwedNow.mul(lendingFeePercent).div(10**20);
-		//TODO: refactor: data incapsulation violation and DRY design principles
-		//uint256 lendingFee = interestOwedNow.mul(lendingFeePercent).divCeil(10**20); is better but produces errors in tests because of this
+		/// TODO: refactor: data incapsulation violation and DRY design principles
+		/// uint256 lendingFee = interestOwedNow.mul(lendingFeePercent).divCeil(10**20); is better but produces errors in tests because of this
 
 		_payLendingFee(lender, interestToken, lendingFee);
 
 		/// Transfers the interest to the lender, less the interest fee.
 		vaultWithdraw(interestToken, lender, interestOwedNow.sub(lendingFee));
+
+		/// Event Log
+		emit PayInterestTransfer(interestToken, lender, interestOwedNow.sub(lendingFee));
 	}
 }
