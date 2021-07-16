@@ -66,26 +66,28 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 
 			const end_interest_data_1 = await sovryn.getLenderInterestData(lender, SUSD.address);
 			expect(end_interest_data_1["interestPaid"] == "0").to.be.true;
-console.log("end_interest_data_1[interestUnPaid] = " + end_interest_data_1["interestUnPaid"]);
-console.log("end_interest_data_1[interestFeePercent] = " + end_interest_data_1["interestFeePercent"]);
+			// console.log("end_interest_data_1[interestUnPaid] = " + end_interest_data_1["interestUnPaid"]);
+			// console.log("end_interest_data_1[interestFeePercent] = " + end_interest_data_1["interestFeePercent"]);
 
-const feesApplied = new BN(end_interest_data_1["interestUnPaid"])
-.mul(end_interest_data_1["interestFeePercent"])
-.div(new BN(10).pow(new BN(20)));
+			const feesApplied = new BN(end_interest_data_1["interestUnPaid"])
+			.mul(end_interest_data_1["interestFeePercent"])
+			.div(new BN(10).pow(new BN(20)));
 
 			// lend to pool to call settle interest which calls withdrawAccruedInterest
 			// let tx = await lend_to_pool(loanToken, SUSD, owner);
+			// Instead of using lend_to_pool, use explicit transactions in order to capture
+			// the event PayInterestTransfer when loanToken.mint
 
-				const lend_amount = new BN(10).pow(new BN(30)).toString();
-				await SUSD.mint(lender, lend_amount);
-				await SUSD.approve(loanToken.address, lend_amount);
-				let tx = await loanToken.mint(lender, lend_amount);
+			const lend_amount = new BN(10).pow(new BN(30)).toString();
+			await SUSD.mint(lender, lend_amount);
+			await SUSD.approve(loanToken.address, lend_amount);
+			let tx = await loanToken.mint(lender, lend_amount);
 			
-
+			// Check the event PayInterestTransfer is reporting properly
 			await expectEvent.inTransaction(tx.receipt.rawLogs[0].transactionHash, InterestUser, "PayInterestTransfer", {
 				interestToken: loan["loanToken"],
 				lender: lender,
-				effectiveInterest: end_interest_data_1["interestUnPaid"] - feesApplied,
+				effectiveInterest: new BN(end_interest_data_1["interestUnPaid"]).sub(feesApplied),
 			});
 
 			const end_interest_data_2 = await sovryn.getLenderInterestData(lender, SUSD.address);
