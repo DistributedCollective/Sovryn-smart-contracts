@@ -18,9 +18,10 @@ def main():
     # Call the function you want here
     currentVotingPower(acct)
 
-    createProposalSIP0020()
-    createProposalSIP0019()
+    #createProposalSIP0020()
+    #createProposalSIP0019()
 
+    createProposalSIP0024()
     balanceAfter = acct.balance()
 
     print("=============================================================")
@@ -229,3 +230,14 @@ def createProposalSIP0020():
 
     # Create Proposal
     # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+    def createProposalSIP0024():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["name()"]
+    data = ["0x"]
+    description = "SIP-0024: Liquid SOV Incentive Rewards for Staking By Choice: https://github.com/DistributedCollective/SIPS/blob/08d69fd206/SIP-0024.md, sha256: 36cb8c1acd1913f301f9c522383a5a4a271c3bb95e104209661a0d9ed7e1d297"
+
+    # Create Proposal
+    createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
