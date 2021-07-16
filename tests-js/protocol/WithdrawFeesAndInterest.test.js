@@ -57,7 +57,7 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 			const initial_block_timestamp = lastBlock.timestamp;
 
 			const loan = await sovryn.getLoan(loan_id);
-//console.log("loan = " + loan);
+			//console.log("loan = " + loan);
 			const lender = loanToken.address;
 
 			// Time travel
@@ -70,8 +70,8 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 			// console.log("end_interest_data_1[interestFeePercent] = " + end_interest_data_1["interestFeePercent"]);
 
 			const feesApplied = new BN(end_interest_data_1["interestUnPaid"])
-			.mul(end_interest_data_1["interestFeePercent"])
-			.div(new BN(10).pow(new BN(20)));
+				.mul(end_interest_data_1["interestFeePercent"])
+				.div(new BN(10).pow(new BN(20)));
 
 			// lend to pool to call settle interest which calls withdrawAccruedInterest
 			// let tx = await lend_to_pool(loanToken, SUSD, owner);
@@ -82,7 +82,7 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 			await SUSD.mint(lender, lend_amount);
 			await SUSD.approve(loanToken.address, lend_amount);
 			let tx = await loanToken.mint(lender, lend_amount);
-			
+
 			// Check the event PayInterestTransfer is reporting properly
 			await expectEvent.inTransaction(tx.receipt.rawLogs[0].transactionHash, InterestUser, "PayInterestTransfer", {
 				interestToken: loan["loanToken"],
