@@ -2,7 +2,15 @@
 // (four bytes of the Keccak-256 or SHA-3 hash of the signature of the function)
 // Knowledge: In Solidiy selector = bytes4(keccak256(signature))
 // Install: npm i keccak256
-// Run: node ./scripts/getSelectors.js > functionSignatures.txt
+// Run: node ./scripts/getSelectors.js ./contracts functions > functionSignatures.txt
+// Run: node ./scripts/getSelectors.js ./contracts events > eventTopics.txt
+
+// Get the path where contracts are located
+var args = process.argv.slice(2);
+let path = String(args[0]);
+
+// Get the type of items to search on contracts
+let searchType = String(args[1]);
 
 const keccak256 = require("keccak256");
 
@@ -17,16 +25,24 @@ const fs = require("fs");
 // Parse a contract searching for function and event declarations
 var parseContract = function (fileContent) {
     fileContent = fileContent
-        .replace(/\/\/.*?\n/g, '\n') // remove comments like //
+        .replace(/\/\/[^\n]*\n/g, '\n') // remove comments like //
         .replace(/\/\*[\s\S]*?\*\//g, '') // remove comments like /* */
     ;
 
     var signatureList = {};
-    searchFunctions = new RegExp(/function [^\)]*\)/g); // focus on function declarations
-    while(null != (f = searchFunctions.exec(fileContent))) { // for every function found
+    if (searchType == 'functions') {
+        searchRegExp = new RegExp(/function [^\)]*\)/g); // focus on function declarations
+    } else if (searchType == 'events') {
+        searchRegExp = new RegExp(/event [^\)]*\)/g); // focus on event declarations
+    } else {
+        console.log("Error: Unknown searchType", searchType);
+        process.exit(1);
+    }
+    
+    while(null != (f = searchRegExp.exec(fileContent))) { // for every function or event found
         signature = 
             f[0]
-            .replace(/function /g, '') // remove "function " on every match
+            .replace(/(function|event) /g, '') // remove "function " or "event " on every match
             .replace(/([\(,])\s+/g, '$1') // remove whitespaces and newlines inmediatly after ( or ,
             .replace(/\s+\)/g, ')') // remove whitespaces and newlines inmediatly before )
             .replace(/\s.*?([,\)])/g, '$1') // remove var names and extra modifiers
@@ -57,7 +73,7 @@ var getDirectories = function (src, ext, callback) {
     glob(src + '/**/*' + ext, callback);
 };
 
-getDirectories('./contracts', '.sol', function (err, res) {
+getDirectories(path, '.sol', function (err, res) {
   if (err) {
     console.log('Error', err);
   } else {
