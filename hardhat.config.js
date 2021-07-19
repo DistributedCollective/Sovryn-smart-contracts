@@ -53,7 +53,7 @@ module.exports = {
 		flat: false,
 		only: [],
 		except: [],
-		spacing: 2,
+		spacing: 4,
 	},
 	contractSizer: {
 		alphaSort: false,
