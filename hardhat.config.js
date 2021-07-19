@@ -49,7 +49,7 @@ module.exports = {
 	},
 	abiExporter: {
 		path: "./artifacts/abi",
-		clear: false,
+		clear: true,
 		flat: false,
 		only: [],
 		except: [],
