@@ -597,6 +597,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 	}
 
 	function togglePaused(bool paused) external onlyOwner {
+		require(paused != pause, "Can't toggle");
 		pause = paused;
 		emit TogglePaused(msg.sender, !paused, paused);
 	}

@@ -142,6 +142,7 @@ contract("Pause Modules", (accounts) => {
 				await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
 			}
 			let tx = await sovryn.togglePaused(true); //Paused
+			await expectRevert(sovryn.togglePaused(true), "Can't toggle");
 			await expectEvent(tx, "TogglePaused", {
 				sender: owner,
 				oldFlag: false,
@@ -198,6 +199,7 @@ contract("Pause Modules", (accounts) => {
 
 		it("Should set affiliate fee percent when Unpaused", async () => {
 			let tx = await sovryn.togglePaused(false); //Unpaused
+			await expectRevert(sovryn.togglePaused(false), "Can't toggle");
 			await expectEvent(tx, "TogglePaused", {
 				sender: owner,
 				oldFlag: true,
