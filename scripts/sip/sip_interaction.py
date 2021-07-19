@@ -231,13 +231,13 @@ def createProposalSIP0020():
     # Create Proposal
     # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
 
-    def createProposalSIP0024():
+def createProposalSIP0024():
     # Action
     target = [contracts['SOV']]
     value = [0]
     signature = ["name()"]
     data = ["0x"]
-    description = "Liquid SOV Incentive Rewards for Fully Vested Stakers: https://github.com/DistributedCollective/SIPS/blob/08d69fd206/SIP-0024.md, sha256: 36cb8c1acd1913f301f9c522383a5a4a271c3bb95e104209661a0d9ed7e1d297"
+    description = "Liquid SOV Incentive Rewards for Fully Vested Stakers: https://github.com/DistributedCollective/SIPS/blob/5fcbcac9e7/SIP-0024.md, sha256: 05065938663108381afc1d30d97a0144d83fe15e53b8be79f4c0cec088ec1321"
 
     # Create Proposal
     createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
