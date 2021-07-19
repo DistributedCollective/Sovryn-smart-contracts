@@ -41,12 +41,12 @@ def confirmWithMS(txId):
     multisig = Contract.from_abi("MultiSig", address = conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     multisig.confirmTransaction(txId)
 
-def checkTx():
+def checkTx(txid):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
-    print(multisig.transactions(216))
+    print(multisig.transactions(txid))
 
-    print(multisig.getConfirmationCount(216))
-    print(multisig.getConfirmations(216))
+    print(multisig.getConfirmationCount(txid))
+    print(multisig.getConfirmations(txid))
 
 def transferSOVtoTokenSender():
     # 875.39 SOV
