@@ -3,9 +3,9 @@
 	"version": "1.0.0",
 	"description": "Smart contracts for the Sovryn protocol and external integrations.",
 	"keywords": [
-    "Sovryn",
-    "Bitcoin DeFi"
-  ],
+		"Sovryn",
+		"Bitcoin DeFi"
+	],
 	"author": "Sovryn 2020",
 	"license": "Apache-2.0",
 	"homepage": "https://sovryn.app",
@@ -39,7 +39,7 @@
 		"ethereumjs-abi": "^0.6.8",
 		"ethers": "^5.0.19",
 		"ganache-core": "^2.10.2",
-		"hardhat": "^2.0.11",
+		"hardhat": "^2.4.3",
 		"hardhat-abi-exporter": "^2.2.1",
 		"hardhat-contract-sizer": "^2.0.2",
 		"hardhat-deploy": "^0.7.0-beta.46",
