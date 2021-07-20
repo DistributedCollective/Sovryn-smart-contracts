@@ -22,9 +22,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Installing Packages
-        run: export NODE_OPTIONS="--max-old-space-size=7168" && npm ci
+        run: npm ci
       - name: Checking Formatting
         run: npm run lint && npm run prettier-check
+      - name: Increasing the memory
+        run: export NODE_OPTIONS="--max-old-space-size=7168"
       - name: Code Coverage
         run: npm run coverage
       - name: Coveralls GitHub Action
