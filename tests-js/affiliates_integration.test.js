@@ -1,5 +1,5 @@
 const { assert } = require("chai");
-const { waffle } = require('hardhat');
+const { waffle } = require("hardhat");
 const { deployMockContract } = waffle;
 const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
 const sovrynProtocol = artifacts.require("sovrynProtocol");
@@ -33,8 +33,7 @@ const LiquidityPoolV1ConverterMockup = artifacts.require("LiquidityPoolV1Convert
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 const Affiliates = artifacts.require("Affiliates");
-const IV1PoolOracle = artifacts.require("IV1PoolOracle")
-
+const IV1PoolOracle = artifacts.require("IV1PoolOracle");
 
 const { BN, constants, send, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const { expect } = require("hardhat");
@@ -115,9 +114,7 @@ contract("Affiliates", (accounts) => {
 
 		// Creating the instance of newLockedSOV Contract.
 		await sovryn.setLockedSOVAddress(
-			(
-				await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])
-			).address
+			(await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])).address
 		);
 		lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 	});
@@ -363,7 +360,7 @@ contract("Affiliates", (accounts) => {
 
 		// Set DOC feed -- price 1 BTC
 		liquidityV1ConverterMockupDOC = await LiquidityPoolV1ConverterMockup.new(doc.address, testWrbtc.address);
-		
+
 		priceFeedsV1PoolOracleMockupDOC = await deployMockContract(senderMock, IV1PoolOracle.abi);
 		await priceFeedsV1PoolOracleMockupDOC.mock.latestAnswer.returns(docPrice);
 		await priceFeedsV1PoolOracleMockupDOC.mock.liquidityPool.returns(liquidityV1ConverterMockupDOC.address);
@@ -591,7 +588,7 @@ contract("Affiliates", (accounts) => {
 
 		// Set DOC feed -- price 1 BTC
 		liquidityV1ConverterMockupDOC = await LiquidityPoolV1ConverterMockup.new(doc.address, testWrbtc.address);
-		
+
 		priceFeedsV1PoolOracleMockupDOC = await deployMockContract(senderMock, IV1PoolOracle.abi);
 		await priceFeedsV1PoolOracleMockupDOC.mock.latestAnswer.returns(wei("7", "ether"));
 		await priceFeedsV1PoolOracleMockupDOC.mock.liquidityPool.returns(liquidityV1ConverterMockupDOC.address);
