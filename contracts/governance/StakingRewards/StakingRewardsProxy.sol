@@ -11,4 +11,5 @@ import "../../proxy/UpgradableProxy.sol";
  * the possibility of being enhanced and re-deployed.
  * */
 contract StakingRewardsProxy is StakingRewardsStorage, UpgradableProxy {
+
 }

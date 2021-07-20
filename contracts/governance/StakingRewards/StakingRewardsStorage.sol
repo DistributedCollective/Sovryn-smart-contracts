@@ -16,7 +16,6 @@ import "../../openzeppelin/Ownable.sol";
  * at the beginning of each new staking interval.
  * */
 contract StakingRewardsStorage is Ownable {
-
 	/// @notice The SOV token contract.
 	IERC20 public SOV;
 

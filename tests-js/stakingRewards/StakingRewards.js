@@ -1,7 +1,17 @@
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
-const { address, minerStart, minerStop, unlockedAccount, mineBlock, etherMantissa, etherUnsigned, setTime, advanceBlocks } = require("../Utils/Ethereum");
+const {
+	address,
+	minerStart,
+	minerStop,
+	unlockedAccount,
+	mineBlock,
+	etherMantissa,
+	etherUnsigned,
+	setTime,
+	advanceBlocks,
+} = require("../Utils/Ethereum");
 
 const SOV_ABI = artifacts.require("SOV");
 const StakingLogic = artifacts.require("Staking");
@@ -40,10 +50,7 @@ contract("WeightedStaking", (accounts) => {
 		await stakingRewards.setImplementation(stakingRewardsLogic.address);
 		stakingRewards = await StakingRewards.at(stakingRewards.address);
 
-		await stakingRewards.initialize(
-			SOV.address,
-			staking.address
-		);
+		await stakingRewards.initialize(SOV.address, staking.address);
 
 		await SOV.transfer(a2, "10000000");
 		await SOV.approve(staking.address, "10000000", { from: a2 });
@@ -77,10 +84,10 @@ contract("WeightedStaking", (accounts) => {
 			await advanceBlocks(20000);
 			beforeBalance = await SOV.balanceOf(a2);
 			console.log(beforeBalance.toString());
-			let tx = await stakingRewards.collectReward({from: a2});
+			let tx = await stakingRewards.collectReward({ from: a2 });
 			//console.log(tx.receipt.blockNumber);
 			let afterBalance = await SOV.balanceOf(a2);
 			console.log(beforeBalance.toString(), afterBalance.toString());
 		});
-    });	
+	});
 });
