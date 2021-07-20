@@ -1,4 +1,4 @@
-/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable */
 require("chai")
 	.use(require("chai-as-promised"))
 	.use(require("chai-bn")(require("bn.js")))
@@ -10,7 +10,7 @@ const Decimal = require("decimal.js");
 Decimal.set({ precision: 100, rounding: Decimal.ROUND_DOWN, toExpPos: 40 });
 
 const ganache = require("ganache-core");
-/* eslint-enable import/no-extraneous-dependencies */
+/* eslint-enable */
 
 module.exports = {
 	contracts_directory: "./contracts",
