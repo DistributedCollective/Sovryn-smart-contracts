@@ -202,6 +202,7 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
 				ISwapsImpl(swapsImpl).internalSwap.selector,
 				addrs[0], /// sourceToken
 				addrs[1], /// destToken
+				addrs[2], /// receiverAddress
 				addrs[3], /// returnToSenderAddress
 				vals[0], /// minSourceTokenAmount
 				vals[1], /// maxSourceTokenAmount

@@ -368,4 +368,15 @@ contract ISovrynBrownie is
 	function getAffiliateRewardsHeld(address referrer) external view returns (uint256);
 
 	function getAffiliateTradingTokenFeePercent() external view returns (uint256 affiliateTradingTokenFeePercent);
+
+	function swapExternal(
+		address sourceToken,
+		address destToken,
+		address receiver,
+		address returnToSender,
+		uint256 sourceTokenAmount,
+		uint256 requiredDestTokenAmount,
+		uint256 minReturn,
+		bytes calldata swapData
+	) external returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
 }

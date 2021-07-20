@@ -45,7 +45,7 @@ contract TestSovrynSwap {
 		require(actualReturn >= _minReturn, "insufficient source tokens provided");
 
 		TestToken(address(_path[0])).burn(address(msg.sender), _amount);
-		TestToken(address(_path[1])).mint(address(msg.sender), actualReturn);
+		TestToken(address(_path[1])).mint(address(_beneficiary), actualReturn);
 		return actualReturn;
 	}
 
