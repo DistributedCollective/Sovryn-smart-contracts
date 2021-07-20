@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "./Checkpoints.sol";
 import "../../openzeppelin/Address.sol";
+import "hardhat/console.sol";
 
 /**
  * @title Weighted Staking contract.
@@ -228,6 +229,7 @@ contract WeightedStaking is Checkpoints {
 	) public view returns (uint96 votes) {
 		/// @dev If date is not an exact break point, start weight computation from the previous break point (alternative would be the next).
 		uint256 start = timestampToLockDate(date);
+		//console.log(start);
 		uint256 end = start + MAX_DURATION;
 
 		/// @dev Max 78 iterations.
@@ -299,6 +301,7 @@ contract WeightedStaking is Checkpoints {
 		uint256 date,
 		uint256 blockNumber
 	) internal view returns (uint96) {
+		//console.log(blockNumber, block.number);
 		require(blockNumber < block.number, "WeightedStaking::getPriorUserStakeAndDate: not yet determined");
 
 		date = _adjustDateForOrigin(date);
