@@ -3,9 +3,9 @@
 	"version": "1.0.0",
 	"description": "Smart contracts for the Sovryn protocol and external integrations.",
 	"keywords": [
-    "Sovryn",
-    "Bitcoin DeFi"
-  ],
+		"Sovryn",
+		"Bitcoin DeFi"
+	],
 	"author": "Sovryn 2020",
 	"license": "Apache-2.0",
 	"homepage": "https://sovryn.app",
