@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Installing Packages
-        run: npm ci
+        run: export NODE_OPTIONS="--max-old-space-size=7168" && npm ci
       - name: Checking Formatting
         run: npm run lint && npm run prettier-check
       - name: Code Coverage
