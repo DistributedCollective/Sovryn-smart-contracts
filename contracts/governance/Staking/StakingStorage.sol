@@ -124,4 +124,13 @@ contract StakingStorage is Ownable {
 
 	/// @dev vesting contract code hash => flag whether it's registered code hash
 	mapping(bytes32 => bool) public vestingCodeHashes;
+
+	/// @notice A record of tokens to be unstaked at a given time which per user address (address -> lockDate -> vest checkpoint)
+	/// @dev userVestingCheckpoints[user][date][index] is a checkpoint.
+	mapping(address => mapping(uint256 => mapping(uint32 => Checkpoint))) public userVestingCheckpoints;
+
+	/// @notice The number of total vesting checkpoints for each date per user.
+	/// @dev numUserVestingCheckpoints[user][date] is a number.
+	mapping(address => mapping(uint256 => uint32)) public numUserVestingCheckpoints;
+
 }

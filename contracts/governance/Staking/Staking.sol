@@ -146,7 +146,11 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint96 amount = _getPriorUserStakeByDate(msg.sender, previousLock, block.number - 1);
 		require(amount > 0, "Staking::extendStakingDuration: nothing staked until the previous lock date");
 		_decreaseUserStake(msg.sender, previousLock, amount);
+		_decreaseUserVestingStake(msg.sender, previousLock, amount);
+
 		_increaseUserStake(msg.sender, until, amount);
+		_increaseUserVestingStake(msg.sender, until, amount);
+		
 		_decreaseDailyStake(previousLock, amount);
 		_increaseDailyStake(until, amount);
 
@@ -188,6 +192,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		/// @dev Update checkpoints.
 		_increaseDailyStake(until, amount);
 		_increaseUserStake(stakeFor, until, amount);
+		_increaseUserVestingStake(stakeFor, until, amount);
 
 		emit TokensStaked(stakeFor, amount, until, balance);
 	}
@@ -317,6 +322,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		/// @dev Update the checkpoints.
 		_decreaseDailyStake(until, amount);
 		_decreaseUserStake(msg.sender, until, amount);
+		_decreaseUserVestingStake(msg.sender, until, amount);
 		_decreaseDelegateStake(delegates[msg.sender][until], until, amount);
 
 		/// @dev Early unstaking should be punished.
