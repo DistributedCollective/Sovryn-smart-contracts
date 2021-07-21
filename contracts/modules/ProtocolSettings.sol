@@ -596,7 +596,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		uint256 specialRebatesPercent
 	) external onlyOwner {
 		// Set max special rebates to 1000%
-		require(specialRebatesPercent <= 10**21, "Special fee rebate is too high");
+		require(specialRebatesPercent <= 1000e18, "Special fee rebate is too high");
 
 		uint256 oldSpecialRebatesPercent = specialRebates[sourceToken][destToken];
 		specialRebates[sourceToken][destToken] = specialRebatesPercent;
