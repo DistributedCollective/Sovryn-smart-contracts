@@ -19,6 +19,9 @@ import "../../openzeppelin/SafeMath.sol";
 contract StakingRewards is StakingRewardsStorage, Initializable {
 	using SafeMath for uint256;
 
+	/**
+	 * @notice Events
+	 * */
 	event SOVWithdrawn(address indexed receiver, uint256 amount);
 
 	/**
@@ -65,8 +68,9 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		for (uint256 i = withdrawls[msg.sender]; i < block.timestamp; i += TWO_WEEKS) {
 			weightedStake = weightedStake.add(_computeRewardForDate(msg.sender, block.number - 1, i));
 		}
-		bool success = _payReward(msg.sender, weightedStake);
-		if (success) withdrawls[msg.sender] = block.timestamp;
+		require(weightedStake > 0, "Nothing staked");
+		withdrawls[msg.sender] = block.timestamp;
+		_payReward(msg.sender, weightedStake);
 	}
 
 	/**
@@ -97,9 +101,9 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * */
 	function _payReward(address _sender, uint256 weightedStake) internal returns (bool) {
 		uint256 amount = weightedStake.mul(baseRate).div(divisor);
-		bool txStatus = SOV.transfer(_sender, amount);
-		require(txStatus, "Token transfer was not successful. Check receiver address.");
-		return txStatus;
+		require(SOV.balanceOf(address(this)) >= amount, "Not enough funds to reward user");
+		claimedBalances[_sender] += amount;
+		_transferSOV(_sender, amount);
 	}
 
 	/**
@@ -112,9 +116,18 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 
 		uint256 value = SOV.balanceOf(address(this));
 		/// Sending the amount to multisig.
-		bool txStatus = SOV.transfer(_receiverAddress, value);
-		require(txStatus, "Token transfer was not successful. Check receiver address.");
+		_transferSOV(_receiverAddress, value);
+	}
 
-		emit SOVWithdrawn(_receiverAddress, value);
+	/**
+	 * @notice transfers SOV tokens to given address
+	 * @param _receiver the address of the SOV receiver
+	 * @param _amount the amount to be transferred
+	 */
+	function _transferSOV(address _receiver, uint256 _amount) internal {
+		require(_receiver != address(0), "receiver address invalid");
+		require(_amount != 0, "amount invalid");
+		require(SOV.transfer(_receiver, _amount), "transfer failed");
+		emit SOVWithdrawn(_receiver, _amount);
 	}
 }

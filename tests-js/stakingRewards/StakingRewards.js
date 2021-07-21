@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { BN } = require("@openzeppelin/test-helpers");
+const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 
 const { increaseTime, advanceBlocks } = require("../Utils/Ethereum");
 
@@ -131,7 +131,7 @@ contract("StakingRewards", (accounts) => {
 			await staking.withdraw("30000", inThreeYears, a2, { from: a2 }); //Withdraw third stake
 			await staking.withdraw("10000", inTwoYears, a2, { from: a2 }); //Withdraw the last stake as well
 			beforeBalance = await SOV.balanceOf(a2);
-			await stakingRewards.collectReward({ from: a2 });
+			await expectRevert(stakingRewards.collectReward({ from: a2 }), "Nothing staked");
 			afterBalance = await SOV.balanceOf(a2);
 			let feeSharingBalance = await SOV.balanceOf.call(feeSharingProxy.address);
 			expect(afterBalance).to.be.bignumber.equal(beforeBalance);
