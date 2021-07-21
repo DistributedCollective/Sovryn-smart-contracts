@@ -240,6 +240,37 @@ contract WeightedStaking is Checkpoints {
 	}
 
 	/**
+	 * @notice Determine the prior weighted vested amount for an account as of a block number.
+	 * Iterate through checkpoints adding up voting power.
+	 * @dev Block number must be a finalized block or else this function will
+	 * revert to prevent misinformation.
+	 *      Used for fee sharing, not voting.
+	 * TODO: WeightedStaking::getPriorVestingWeightedStake is using the variable name "votes"
+	 * to add up token stake, and that could be misleading.
+	 *
+	 * @param account The address of the account to check.
+	 * @param blockNumber The block number to get the vote balance at.
+	 * @return The weighted stake the account had as of the given block.
+	 * */
+	function getPriorVestingWeightedStake(
+		address account,
+		uint256 blockNumber,
+		uint256 date
+	) public view returns (uint96 votes) {
+		/// @dev If date is not an exact break point, start weight computation from the previous break point (alternative would be the next).
+		uint256 start = timestampToLockDate(date);
+		uint256 end = start + MAX_DURATION;
+
+		/// @dev Max 78 iterations.
+		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
+			uint96 weightedStake = weightedStakeByDate(account, i, start, blockNumber);
+			if (weightedStake > 0) {
+				votes = add96(votes, weightedStake, "WeightedStaking::getPriorVestingWeightedStake: overflow on total weight computation");
+			}
+		}
+	}
+
+	/**
 	 * @notice Compute the voting power for a specific date.
 	 * Power = stake * weight
 	 * TODO: WeightedStaking::weightedStakeByDate should probably better

@@ -132,5 +132,4 @@ contract StakingStorage is Ownable {
 	/// @notice The number of total vesting checkpoints for each date per user.
 	/// @dev numUserVestingCheckpoints[user][date] is a number.
 	mapping(address => mapping(uint256 => uint32)) public numUserVestingCheckpoints;
-
 }

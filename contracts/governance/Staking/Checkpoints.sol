@@ -51,7 +51,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 		uint96 value
 	) internal {
 		uint32 nCheckpoints = numUserVestingCheckpoints[account][lockedTS];
-		uint96 vested = userVestingCheckpoints[account][lockedTS][nCheckpoints - 1].vest;
+		uint96 vested = userVestingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;
 		uint96 newVest = add96(vested, value, "Staking::_increaseUserVestingStake: vested amount overflow");
 		_writeUserVestingCheckpoint(account, lockedTS, nCheckpoints, newVest);
 	}
@@ -68,7 +68,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 		uint96 value
 	) internal {
 		uint32 nCheckpoints = numUserVestingCheckpoints[account][lockedTS];
-		uint96 vested = userVestingCheckpoints[account][lockedTS][nCheckpoints - 1].vest;
+		uint96 vested = userVestingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;
 		uint96 newVest = sub96(vested, value, "Staking::_decreaseUserVestingStake: vested amount underflow");
 		_writeUserVestingCheckpoint(account, lockedTS, nCheckpoints, newVest);
 	}
@@ -89,7 +89,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 		uint32 blockNumber = safe32(block.number, "Staking::_writeUserVestingCheckpoint: block number exceeds 32 bits");
 
 		if (nCheckpoints > 0 && userVestingCheckpoints[account][lockedTS][nCheckpoints - 1].fromBlock == blockNumber) {
-			userVestingCheckpoints[account][lockedTS][nCheckpoints - 1].vest = newVest;
+			userVestingCheckpoints[account][lockedTS][nCheckpoints - 1].stake = newVest;
 		} else {
 			userVestingCheckpoints[account][lockedTS][nCheckpoints] = Checkpoint(blockNumber, newVest);
 			numUserVestingCheckpoints[account][lockedTS] = nCheckpoints + 1;

@@ -271,6 +271,8 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 				/// @dev We need to use "checkpoint.blockNumber - 1" here to calculate weighted stake
 				/// For the same block like we did for total voting power in _writeTokenCheckpoint
 				weightedStake = staking.getPriorWeightedStake(_user, checkpoint.blockNumber - 1, checkpoint.timestamp);
+				// vestingWeightedStake = staking.getPriorVestingWeightedStake(_user, checkpoint.blockNumber - 1, checkpoint.timestamp);
+				// weightedStake = weightedStake.sub(vestingWeightedStake);
 				cachedWeightedStake = weightedStake;
 				cachedLockDate = lockDate;
 			}
