@@ -66,7 +66,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 			weightedStake = weightedStake.add(_computeRewardForDate(msg.sender, block.number - 1, i));
 		}
 		bool success = _payReward(msg.sender, weightedStake);
-		if(success) withdrawls[msg.sender] = block.timestamp;
+		if (success) withdrawls[msg.sender] = block.timestamp;
 	}
 
 	/**

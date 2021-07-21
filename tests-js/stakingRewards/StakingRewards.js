@@ -1,10 +1,7 @@
 const { expect } = require("chai");
-const { BN} = require("@openzeppelin/test-helpers");
+const { BN } = require("@openzeppelin/test-helpers");
 
-const {
-	increaseTime,
-	advanceBlocks,
-} = require("../Utils/Ethereum");
+const { increaseTime, advanceBlocks } = require("../Utils/Ethereum");
 
 const SOV_ABI = artifacts.require("SOV");
 const StakingLogic = artifacts.require("Staking");
