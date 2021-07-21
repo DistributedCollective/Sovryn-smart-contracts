@@ -36,4 +36,7 @@ contract StakingRewardsStorage is Ownable {
 
 	/// @notice Divisor
 	uint256 public divisor;
+
+	/// @notice User Address -> Last Withdrawn Timestamp
+	mapping(address => uint256) internal withdrawls;
 }

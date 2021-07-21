@@ -3,7 +3,6 @@ pragma solidity ^0.5.17;
 import "./StakingRewardsStorage.sol";
 import "../../openzeppelin/Initializable.sol";
 import "../../openzeppelin/SafeMath.sol";
-import "hardhat/console.sol";
 
 /**
  * @title Staking Rewards contract.
@@ -62,11 +61,12 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * */
 	function collectReward() public {
 		uint256 weightedStake;
-		for (uint256 i = startTime; i < block.timestamp; i += TWO_WEEKS) {
-			//console.log(startTime, block.timestamp);
+		if (withdrawls[msg.sender] == 0) withdrawls[msg.sender] = startTime;
+		for (uint256 i = withdrawls[msg.sender]; i < block.timestamp; i += TWO_WEEKS) {
 			weightedStake = weightedStake.add(_computeRewardForDate(msg.sender, block.number - 1, i));
 		}
-		_payReward(msg.sender, weightedStake);
+		bool success = _payReward(msg.sender, weightedStake);
+		if(success) withdrawls[msg.sender] = block.timestamp;
 	}
 
 	/**
@@ -79,9 +79,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		uint256 _block,
 		uint256 _date
 	) internal view returns (uint256 weightedStake) {
-		//console.log(_sender, _block, _date);
 		weightedStake = staking.getPriorWeightedStake(_sender, _block, _date);
-		console.log(weightedStake);
 		if (stopBlock > 0) {
 			uint256 previousWeightedStake = staking.getPriorWeightedStake(_sender, stopBlock, _date);
 			if (previousWeightedStake < weightedStake) {
@@ -97,10 +95,11 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * @param _sender User address
 	 * @param weightedStake the weighted stake
 	 * */
-	function _payReward(address _sender, uint256 weightedStake) internal {
+	function _payReward(address _sender, uint256 weightedStake) internal returns (bool) {
 		uint256 amount = weightedStake.mul(baseRate).div(divisor);
-		console.log(baseRate, divisor, amount);
-		SOV.transfer(_sender, amount);
+		bool txStatus = SOV.transfer(_sender, amount);
+		require(txStatus, "Token transfer was not successful. Check receiver address.");
+		return txStatus;
 	}
 
 	/**
