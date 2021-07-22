@@ -293,6 +293,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @param collateralTokenSent The amount of collateral tokens provided by the user.
 	 * @param collateralTokenAddress The token address of collateral.
 	 * @param trader The account that performs this trade.
+	 * @param loanDataBytes Additional loan data (not in use for token swaps).
 	 *
 	 * @return New principal and new collateral added to trade.
 	 * */
@@ -367,6 +368,21 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			);
 	}
 
+	/**
+	 * @notice Wrapper for marginTrade invoking setAffiliatesReferrer to track
+	 *   referral trade by affiliates program.
+	 *
+	 * @param loanId The ID of the loan, 0 for a new loan.
+	 * @param leverageAmount The multiple of exposure: 2x ... 5x. The leverage with 18 decimals.
+	 * @param loanTokenSent The number of loan tokens provided by the user.
+	 * @param collateralTokenSent The amount of collateral tokens provided by the user.
+	 * @param collateralTokenAddress The token address of collateral.
+	 * @param trader The account that performs this trade.
+	 * @param affiliateReferrer The address of the referrer from affiliates program.
+	 * @param loanDataBytes Additional loan data (not in use for token swaps).
+	 *
+	 * @return New principal and new collateral added to trade.
+	 */
 	function marginTradeAffiliate(
 		bytes32 loanId, // 0 if new loan
 		uint256 leverageAmount, // expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
@@ -374,14 +390,14 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		uint256 collateralTokenSent,
 		address collateralTokenAddress,
 		address trader,
-		address affiliateReferrer, // the user was brought by the affiliate (referrer)
-		bytes calldata loanDataBytes // arbitrary order data
+		address affiliateReferrer, /// The user was brought by the affiliate (referrer).
+		bytes calldata loanDataBytes /// Arbitrary order data.
 	)
 		external
 		payable
 		returns (
 			uint256,
-			uint256 // returns new principal and new collateral added to trade
+			uint256 /// Returns new principal and new collateral added to trade.
 		)
 	{
 		if (affiliateReferrer != address(0))
@@ -1072,7 +1088,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		);
 		require(sentAmounts[1] != 0, "25");
 
-		//REFACTOR: move to a general interface: ProtocolSettingsLike?
+		/// @dev Track this user with not-first-trade flag for affiliates program.
+		/// @dev REFACTOR: move to a general interface: ProtocolSettingsLike?
 		ProtocolAffiliatesInterface(sovrynContractAddress).setUserNotFirstTradeFlag(sentAddresses[1]);
 
 		return (sentAmounts[1], sentAmounts[4]); // newPrincipal, newCollateral

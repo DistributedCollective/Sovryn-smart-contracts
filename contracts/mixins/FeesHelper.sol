@@ -60,13 +60,16 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 	}
 
 	/**
-	 * @dev settles the trading fee and pays the token reward to the user.
-	 * @param referrer the affiliate referrer address to send the reward to
-	 * @param feeToken the address of the token in which the trading fee is paid
+	 * @notice Settle the trading fee and pay the token reward to the affiliates referrer.
+	 *
+	 * @param referrer The affiliate referrer address to send the reward to.
+	 * @param trader The account that performs this trade.
+	 * @param feeToken The address of the token in which the trading fee is paid.
+	 * @param tradingFee The amount of tokens accrued as fees on the trading.
+	 * 
 	 * @return affiliatesBonusSOVAmount the total SOV amount that is distributed to the referrer
 	 * @return affiliatesBonusTokenAmount the total Token Base on the trading fee pairs that is distributed to the referrer
 	 * */
-
 	function _payTradingFeeToAffiliate(
 		address referrer,
 		address trader,
@@ -82,21 +85,21 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 	 * @param user The address to send the reward to.
 	 * @param loanId The Id of the associated loan - used for logging only.
 	 * @param feeToken The address of the token in which the trading fee is paid.
+	 * @param tradingFee The amount of tokens accrued as fees on the trading.
 	 * */
-
 	function _payTradingFee(
 		address user,
 		bytes32 loanId,
 		address feeToken,
 		uint256 tradingFee
 	) internal {
-		uint256 protocolTradingFee = tradingFee; //trading fee paid to protocol
+		uint256 protocolTradingFee = tradingFee; /// Trading fee paid to protocol.
 		if (tradingFee != 0) {
 			if (affiliatesUserReferrer[user] != address(0)) {
 				_payTradingFeeToAffiliate(affiliatesUserReferrer[user], user, feeToken, protocolTradingFee);
-				protocolTradingFee = (protocolTradingFee.sub(protocolTradingFee.mul(affiliateFeePercent).div(10**20))).sub(
-					protocolTradingFee.mul(affiliateTradingTokenFeePercent).div(10**20)
-				);
+				protocolTradingFee =
+					(protocolTradingFee.sub(protocolTradingFee.mul(affiliateFeePercent).div(10**20)))
+					.sub(protocolTradingFee.mul(affiliateTradingTokenFeePercent).div(10**20));
 			}
 
 			/// Increase the storage variable keeping track of the accumulated fees.
