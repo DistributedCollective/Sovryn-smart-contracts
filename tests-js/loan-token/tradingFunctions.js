@@ -141,6 +141,7 @@ const margin_trading_sov_reward_payment = async (accounts, loanToken, underlying
 		collateral_sent.toString(), // no collateral token sent
 		collateralToken.address, // collateralTokenAddress
 		trader, // trader,
+		0,
 		"0x" // loanDataBytes (only required with ether)
 	);
 
@@ -288,6 +289,7 @@ const margin_trading_sending_collateral_tokens_sov_reward_payment = async (
 		collateralTokenSent,
 		collateralToken.address,
 		trader,
+		0,
 		"0x",
 		{
 			from: trader,

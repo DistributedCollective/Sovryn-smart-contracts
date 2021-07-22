@@ -2,6 +2,8 @@ const { expectRevert, expectEvent, BN, constants } = require("@openzeppelin/test
 
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
+const SOV = artifacts.require("SOV");
+const LockedSOV = artifacts.require("LockedSOV");
 
 const sovrynProtocol = artifacts.require("sovrynProtocol");
 const ProtocolSettings = artifacts.require("ProtocolSettings");
@@ -12,6 +14,7 @@ const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const SwapsExternal = artifacts.require("SwapsExternal");
+const Affiliates = artifacts.require("Affiliates");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
@@ -23,11 +26,17 @@ const StakingProxy = artifacts.require("StakingProxy");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 const ProtocolSettingsMockup = artifacts.require("ProtocolSettingsMockup");
 
+const VestingLogic = artifacts.require("VestingLogic");
+const VestingFactory = artifacts.require("VestingFactory");
+const VestingRegistry = artifacts.require("VestingRegistry3");
+
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 const { ZERO_ADDRESS } = constants;
 const wei = web3.utils.toWei;
 const hunEth = new BN(wei("100", "ether"));
 const TWO_WEEKS = 86400 * 14;
+let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
+let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 
 contract("SwapsExternal", (accounts) => {
 	const name = "Test token";
@@ -49,13 +58,19 @@ contract("SwapsExternal", (accounts) => {
 		const sovrynproxy = await sovrynProtocol.new();
 		sovryn = await ISovryn.at(sovrynproxy.address);
 
+		tokenSOV = await SOV.new(TOTAL_SUPPLY);
+
 		await sovryn.replaceContract((await ProtocolSettings.new()).address);
 		await sovryn.replaceContract((await ProtocolSettingsMockup.new()).address);
 		await sovryn.replaceContract((await LoanSettings.new()).address);
 		await sovryn.replaceContract((await LoanMaintenance.new()).address);
 		await sovryn.replaceContract((await SwapsExternal.new()).address);
+		await sovryn.replaceContract((await Affiliates.new()).address);
 
 		await sovryn.setWrbtcToken(testWrbtc.address);
+		await sovryn.setSovrynProtocolAddress(sovryn.address);
+		await sovryn.setSOVTokenAddress(tokenSOV.address);
+
 
 		feeds = await PriceFeedsLocal.new(testWrbtc.address, sovryn.address);
 		await feeds.setRates(underlyingToken.address, testWrbtc.address, wei("1", "ether"));
@@ -85,6 +100,24 @@ contract("SwapsExternal", (accounts) => {
 		//FeeSharingProxy
 		feeSharingProxy = await FeeSharingProxy.new(sovryn.address, staking.address);
 		await sovryn.setFeesController(feeSharingProxy.address);
+
+		// Creating the Vesting Instance.
+		vestingLogic = await VestingLogic.new();
+		vestingFactory = await VestingFactory.new(vestingLogic.address);
+		vestingRegistry = await VestingRegistry.new(
+			vestingFactory.address,
+			tokenSOV.address,
+			staking.address,
+			feeSharingProxy.address,
+			lender // This should be Governance Timelock Contract.
+		);
+		vestingFactory.transferOwnership(vestingRegistry.address);
+
+		await sovryn.setLockedSOVAddress(
+			(
+				await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [lender])
+			).address
+		);
 
 		params = [
 			"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object
