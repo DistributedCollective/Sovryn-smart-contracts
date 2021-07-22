@@ -38,7 +38,7 @@ contract("StakingRewards", (accounts) => {
 		let stakingLogic = await StakingLogic.new(SOV.address);
 		staking = await StakingProxy.new(SOV.address);
 		await staking.setImplementation(stakingLogic.address);
-		staking = await StakingLogic.at(staking.address);  //Test - 01/07/2021
+		staking = await StakingLogic.at(staking.address); //Test - 01/07/2021
 
 		kickoffTS = await staking.kickoffTS.call();
 		inOneWeek = kickoffTS.add(new BN(DELAY));

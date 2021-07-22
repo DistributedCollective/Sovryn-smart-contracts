@@ -18,7 +18,7 @@ import "../../openzeppelin/SafeMath.sol";
  * */
 contract StakingRewards is StakingRewardsStorage, Initializable {
 	using SafeMath for uint256;
-	
+
 	/* Events */
 
 	/// @notice Emitted when SOV is withdrawn
@@ -71,9 +71,9 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		uint256 lastFinalisedBlock = block.number - 1;
 		uint256 currentTS = block.timestamp;
 		address sender = msg.sender;
-		
+
 		if (withdrawls[sender] == 0) withdrawls[sender] = startTime;
-		for (uint256 i = withdrawls[sender]; i < currentTS ; i += TWO_WEEKS) {
+		for (uint256 i = withdrawls[sender]; i < currentTS; i += TWO_WEEKS) {
 			weightedStake = weightedStake.add(_computeRewardForDate(sender, lastFinalisedBlock, i));
 		}
 		require(weightedStake > 0, "nothing staked");
