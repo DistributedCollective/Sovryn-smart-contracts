@@ -18,17 +18,19 @@ import "../../openzeppelin/SafeMath.sol";
  * */
 contract StakingRewards is StakingRewardsStorage, Initializable {
 	using SafeMath for uint256;
+	
+	/* Events */
 
-	/**
-	 * @notice Events
-	 * */
+	/// @notice Emitted when SOV is withdrawn
+	/// @param receiver The address which recieves the SOV
+	/// @param amount The amount withdrawn from the Smart Contract
 	event SOVWithdrawn(address indexed receiver, uint256 amount);
 
 	/**
 	 * @notice Replace constructor with initialize function for Upgradable Contracts
 	 * This function will be called only once by the owner
 	 * */
-	function initialize(address _SOV, IStaking _staking) public onlyOwner initializer {
+	function initialize(address _SOV, IStaking _staking) external onlyOwner initializer {
 		require(_SOV != address(0), "Invalid SOV Address.");
 		SOV = IERC20(_SOV);
 		staking = _staking;
@@ -41,7 +43,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * cancellation continue accruing rewards until the end of the staking
 	 * period being rewarded
 	 * */
-	function stop() public onlyOwner {
+	function stop() external onlyOwner {
 		stopBlock = block.number;
 	}
 
@@ -51,7 +53,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * rate at the start of SIP-0024 is 29.75%. Base rate is annual
 	 * but we pay interest for 14 days, which is 1/26 of one staking year (1092 days)
 	 * @param _rate the base rate - it is the maximum interest rate(APY)
-	 * @param _divisor the amount to be transferred
+	 * @param _divisor divisor is set as 26 (num periods per year) * 10 (max voting weight) * 10000 (2975 -> 0.2975)
 	 * */
 	function setBaseRate(uint256 _rate, uint256 _divisor) external onlyOwner {
 		baseRate = _rate;
@@ -60,23 +62,29 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 
 	/**
 	 * @notice Collect rewards
-	 * @dev User calls this function to collect rewards
+	 * @dev User calls this function to collect SOV staking rewards as per the SIP-0024 program.
+	 * The weighted stake is calculated using getPriorWeightedStake. Block number sent to the functon
+	 * must be a finalised block, hence we deduct 1 from the current block
 	 * */
-	function collectReward() public {
+	function collectReward() external {
 		uint256 weightedStake;
-		if (withdrawls[msg.sender] == 0) withdrawls[msg.sender] = startTime;
-		for (uint256 i = withdrawls[msg.sender]; i < block.timestamp; i += TWO_WEEKS) {
-			weightedStake = weightedStake.add(_computeRewardForDate(msg.sender, block.number - 1, i));
+		uint256 lastFinalisedBlock = block.number - 1;
+		uint256 currentTS = block.timestamp;
+		address sender = msg.sender;
+		
+		if (withdrawls[sender] == 0) withdrawls[sender] = startTime;
+		for (uint256 i = withdrawls[sender]; i < currentTS ; i += TWO_WEEKS) {
+			weightedStake = weightedStake.add(_computeRewardForDate(sender, lastFinalisedBlock, i));
 		}
-		require(weightedStake > 0, "Nothing staked");
-		withdrawls[msg.sender] = block.timestamp;
-		_payReward(msg.sender, weightedStake);
+		require(weightedStake > 0, "nothing staked");
+		withdrawls[sender] = currentTS;
+		_payReward(sender, weightedStake);
 	}
 
 	/**
 	 * @notice Internal function to calculate weighted stake
 	 * @dev If the rewards program is stopped, the user will still continue to
-	 * earn till the end of staking period
+	 * earn till the end of staking period based on the stop block
 	 * */
 	function _computeRewardForDate(
 		address _sender,
@@ -101,7 +109,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * */
 	function _payReward(address _sender, uint256 weightedStake) internal returns (bool) {
 		uint256 amount = weightedStake.mul(baseRate).div(divisor);
-		require(SOV.balanceOf(address(this)) >= amount, "Not enough funds to reward user");
+		require(SOV.balanceOf(address(this)) >= amount, "not enough funds to reward user");
 		claimedBalances[_sender] += amount;
 		_transferSOV(_sender, amount);
 	}
