@@ -5,10 +5,11 @@ require("@nomiclabs/hardhat-ganache");
 require("@nomiclabs/hardhat-truffle5");
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-web3");
+require("@nomiclabs/hardhat-waffle");
 require("hardhat-contract-sizer"); //yarn run hardhat size-contracts
 require("solidity-coverage"); // $ npx hardhat coverage
 require("hardhat-log-remover");
-require('hardhat-docgen');
+require("hardhat-docgen");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -63,7 +64,7 @@ module.exports = {
 		grep: "^(?=.*; using Ganache).*",
 	},
 	docgen: {
-		path: './docs',
-		clear: true
-	}
+		path: "./docs",
+		clear: true,
+	},
 };

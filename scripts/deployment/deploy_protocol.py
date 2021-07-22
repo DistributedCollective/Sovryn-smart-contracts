@@ -33,13 +33,16 @@ def deployProtocol(acct, tokens, mocOracleAddress, rskOracleAddress):
     #feeds = acct.deploy(PriceFeedsLocal, tokens.wrbtc.address, sovryn.address)
     priceFeedMoC = acct.deploy(PriceFeedsMoC, mocOracleAddress, rskOracleAddress)
     #2nd address should actually be the protocol token address, not the protocol address
-    feeds = acct.deploy(PriceFeeds, tokens.wrbtc.address, sovryn.address, tokens.susd.address)
+    feeds = acct.deploy(PriceFeeds, tokens.wrbtc.address, tokens.sov.address, tokens.susd.address)
     feeds.setPriceFeed([tokens.wrbtc.address], [priceFeedMoC.address])
 
     print("Deploying ProtocolSettings.")
     settings = acct.deploy(ProtocolSettings)
     print("Calling replaceContract.")
     sovryn.replaceContract(settings.address)
+
+    # Set SOV Token Address
+    sovryn.setSOVTokenAddress(tokens.sov.address)
     
     print("Deploying Swaps.")
     swaps = acct.deploy(SwapsImplSovrynSwap)
@@ -63,6 +66,9 @@ def deployProtocol(acct, tokens, mocOracleAddress, rskOracleAddress):
     sovryn.setWrbtcToken(tokens.wrbtc.address)
     # needs to be replaced with an actual reward token address
     sovryn.setProtocolTokenAddress(sovryn.address)
+
+    # need to set sovryn protocol address for module interaction
+    sovryn.setSovrynProtocolAddress(sovryn.address)
 
     ## LoanSettings
     print("Deploying LoanSettings.")
@@ -92,6 +98,24 @@ def deployProtocol(acct, tokens, mocOracleAddress, rskOracleAddress):
     print("Calling replaceContract.")
     sovryn.replaceContract(loanClosingsWith.address)
 
+    ##Affiliates
+    print("Deploying Affiliates.")
+    affiliates = acct.deploy(Affiliates)
+    print("Calling replaceContract.")
+    sovryn.replaceContract(affiliates.address)
+
+    # LockedSov
+    # print("Deploying LockedSov.")
+    # lockedSov = acct.deploy(LockedSovMockup)
+    # print("Calling replaceContract.")
+    # sovryn.replaceContract(lockedSov.address)
+
+    # print("Deploying LockedSOV.")
+    # lockedSOV = acct.deploy(LockedSOVMockup, tokens.sov.address, [acct])
+    # sovryn.setLockedSOVAddress(lockedSOV.address)
+    # print("LockedSOV address: ", lockedSOV.address)
+    
+    return (sovryn, feeds)
     ## SwapExternal
     print("Deploying SwapExternal.")
     swapExternal = acct.deploy(SwapsExternal)

@@ -105,7 +105,7 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
 
 		/// @dev Note: the kyber connector uses .call() to interact with kyber
 		/// to avoid bubbling up. here we allow bubbling up.
-		destTokenAmountReceived = sovrynSwapNetwork.convertByPath(path, sourceTokenAmountUsed, minReturn, address(0), address(0), 0);
+		destTokenAmountReceived = sovrynSwapNetwork.convertByPath(path, sourceTokenAmountUsed, minReturn, receiverAddress, address(0), 0);
 
 		/// If the sender is not the protocol (calling with delegatecall),
 		/// return the remainder to the specified address.

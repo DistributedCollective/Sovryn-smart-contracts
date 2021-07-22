@@ -43,7 +43,7 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 	});
 
-	describe("Tests withdraw fees andn interest ", () => {
+	describe("Tests withdraw fees and interest ", () => {
 		it("Test withdraw accrued interest", async () => {
 			// prepare the test
 			await set_demand_curve(loanToken);

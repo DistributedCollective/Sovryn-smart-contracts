@@ -146,34 +146,5 @@ contract("LoanTokenAdministration", (accounts) => {
 			let localLoanToken = await LoanTokenLogicStandard.at(loanToken.address);
 			await expectRevert(localLoanToken.toggleFunctionPause("mint(address,uint256)", true, { from: accounts[1] }), "onlyPauser");
 		});
-
-		it("Test set early access token", async () => {
-			const old_early_access_token = await loanToken.earlyAccessToken();
-			const new_early_access_token = await TestToken.new("Sovryn Early Access Token", "SEAT", 1, 10);
-
-			const { receipt } = await loanToken.setEarlyAccessToken(new_early_access_token.address);
-
-			const event_name = "SetEarlyAccessToken";
-			const decode = decodeLogs(receipt.rawLogs, LoanTokenSettingsLowerAdmin, event_name);
-			if (decode.length) {
-				expect(decode[0].args["oldValue"] == old_early_access_token.address);
-				expect(decode[0].args["newValue"] == new_early_access_token.address);
-			} else {
-				const decode = decodeLogs(receipt.rawLogs, LoanTokenSettingsLowerAdmin, "(unknown)");
-				// When all the tests are run, the event is not recognized
-				expect(decode.length == 1);
-			}
-
-			expect((await loanToken.earlyAccessToken()) == new_early_access_token);
-
-			// set to 0
-			await loanToken.setEarlyAccessToken(CONSTANTS.ZERO_ADDRESS);
-			expect((await loanToken.earlyAccessToken()) == CONSTANTS.ZERO_ADDRESS);
-		});
-
-		it("Test set early access token with unauthorized user should fail", async () => {
-			const new_early_access_token = await TestToken.new("Sovryn Early Access Token", "SEAT", 1, 10);
-			await expectRevert(loanToken.setEarlyAccessToken(new_early_access_token.address, { from: accounts[1] }), "unauthorized");
-		});
 	});
 });
