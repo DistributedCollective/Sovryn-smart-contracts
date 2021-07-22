@@ -76,10 +76,7 @@ contract("governorAlpha#castVote/2", (accounts) => {
 			await mineBlock();
 
 			await gov.castVote(proposalId, true, { from: accounts[4] });
-			await expectRevert(
-				gov.castVote.call(proposalId, true, { from: accounts[4] }),
-				"GovernorAlpha::_castVote: voter already voted"
-			);
+			await expectRevert(gov.castVote.call(proposalId, true, { from: accounts[4] }), "GovernorAlpha::_castVote: voter already voted");
 		});
 	});
 
