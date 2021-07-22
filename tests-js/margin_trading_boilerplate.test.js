@@ -19,7 +19,7 @@ const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplLocal = artifacts.require("SwapsImplLocal");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 const Affiliates = artifacts.require("Affiliates");
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 
@@ -74,7 +74,7 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 		const feeds = await PriceFeedsLocal.new(testWrbtc.address, sovryn.address);
 		await feeds.setRates(doc.address, testWrbtc.address, wei("0.01", "ether"));
 
-		const swaps = await SwapsImplLocal.new();
+		const swaps = await SwapsImplSovrynSwap.new();
 		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
 
@@ -146,6 +146,7 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 			testWrbtc.address, // collateralTokenAddress
 			owner, //trader, // trader,
 			//referrer, // affiliates referrer
+			0,
 			"0x", // loanDataBytes (only required with ether)
 			{ from: owner }
 		);

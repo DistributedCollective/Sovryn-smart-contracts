@@ -205,6 +205,7 @@ contract("Affiliates", (accounts) => {
 			0, //
 			testWrbtc.address, // collateralTokenAddress
 			trader, // trader
+			0, // max slippage
 			referrer, // referrer address
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
@@ -260,6 +261,7 @@ contract("Affiliates", (accounts) => {
 			0, //
 			testWrbtc.address, // collateralTokenAddress
 			trader, // trader
+			0, // max slippage
 			referrer, // referrer address
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }

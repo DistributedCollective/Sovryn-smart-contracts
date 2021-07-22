@@ -200,6 +200,7 @@ contract("Affiliates", (accounts) => {
 			0, // no collateral token sent
 			testWrbtc.address, // collateralTokenAddress
 			trader,
+			0, // max slippage
 			referrer, // affiliates referrer
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
@@ -253,6 +254,7 @@ contract("Affiliates", (accounts) => {
 			0, // no collateral token sent
 			testWrbtc.address, // collateralTokenAddress
 			trader,
+			0, // max slippage
 			referrer, // affiliates referrer
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
@@ -311,6 +313,7 @@ contract("Affiliates", (accounts) => {
 			0, // no collateral token sent
 			testWrbtc.address, // collateralTokenAddress
 			trader,
+			0, // max slippage
 			referrer, // affiliates referrer
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
@@ -373,6 +376,7 @@ contract("Affiliates", (accounts) => {
 			0, // no collateral token sent
 			testWrbtc.address, // collateralTokenAddress
 			trader,
+			0, // max slippage
 			referrer, // affiliates referrer
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
@@ -450,6 +454,7 @@ contract("Affiliates", (accounts) => {
 			0, // no collateral token sent
 			testWrbtc.address, // collateralTokenAddress
 			trader, // trader,
+			0, // max slippage
 			//referrer, // affiliates referrer
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
@@ -536,6 +541,7 @@ contract("Affiliates", (accounts) => {
 			0, // no collateral token sent
 			testWrbtc.address, // collateralTokenAddress
 			trader,
+			0, // max slippage
 			referrer, // affiliates referrer
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
@@ -637,6 +643,7 @@ contract("Affiliates", (accounts) => {
 			0, // no collateral token sent
 			testWrbtc.address, // collateralTokenAddress
 			trader,
+			0, // max slippage
 			referrer, // affiliates referrer
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
@@ -650,6 +657,7 @@ contract("Affiliates", (accounts) => {
 			0, // no collateral token sent
 			testWrbtc.address, // collateralTokenAddress
 			trader,
+			0, // max slippage
 			referrer, // affiliates referrer
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
@@ -791,6 +799,7 @@ contract("Affiliates", (accounts) => {
 			0, // no collateral token sent
 			testWrbtc.address, // collateralTokenAddress
 			trader,
+			0, // max slippage
 			referrer, // affiliates referrer
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
@@ -804,6 +813,7 @@ contract("Affiliates", (accounts) => {
 			0, // no collateral token sent
 			testWrbtc.address, // collateralTokenAddress
 			trader,
+			0, // max slippage
 			referrer, // affiliates referrer
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }

@@ -244,6 +244,7 @@ const open_margin_trade_position = async (
 		0, // no collateral token sent
 		collateralToken, // collateralTokenAddress
 		trader, // trader,
+		0,
 		[], // loanDataBytes (only required with ether)
 		{ from: trader }
 	);
@@ -265,6 +266,7 @@ const open_margin_trade_position_iBTC = async (
 		0, // no collateral token sent
 		SUSD.address, // collateralTokenAddress
 		trader, // trader,
+		0,
 		[], // loanDataBytes (only required with ether)
 		{ from: trader, value: loan_token_sent }
 	);

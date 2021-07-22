@@ -205,7 +205,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 		it("Test borrow 0 collateral should fail", async () => {
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
-			expectRevert(
+			await expectRevert(
 				loanToken.borrow(
 					"0x0", // bytes32 loanId
 					10, // uint256 withdrawAmount
@@ -216,7 +216,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 					account1, // address receiver
 					"0x0" // bytes memory loanDataBytes
 				),
-				"8"
+				"7"
 			);
 		});
 
@@ -260,7 +260,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 		it("Test borrow invalid collateral should fail", async () => {
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
-			expectRevert(
+			await expectRevert(
 				loanToken.borrow(
 					"0x0", // bytes32 loanId
 					10, // uint256 withdrawAmount
@@ -271,7 +271,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 					account1, // address receiver
 					"0x0" // bytes memory loanDataBytes
 				),
-				"9"
+				"7"
 			);
 
 			expectRevert(
@@ -411,7 +411,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 					"0x0", // bytes memory loanDataBytes
 					{ from: accounts[2] }
 				),
-				"unauthorized use of existing loan"
+				"7"
 			);
 		});
 
@@ -447,7 +447,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 				RBTC.address, // address collateralTokenAddress
 				borrower, // address borrower
 				account1, // address receiver
-				"0x0" // bytes memory loanDataBytes
+				web3.utils.fromAscii("") // bytes memory loanDataBytes
 			);
 
 			const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Borrow");
@@ -465,6 +465,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 					0,
 					RBTC.address, // address collateralTokenAddress
 					accounts[2], // address receiver
+					0,
 					"0x0", // bytes memory loanDataBytes
 					{ from: accounts[2] }
 				),
@@ -491,6 +492,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 				0,
 				RBTC.address, // address collateralTokenAddress
 				accounts[0], // address receiver
+				0,
 				"0x" // bytes memory loanDataBytes
 			);
 
