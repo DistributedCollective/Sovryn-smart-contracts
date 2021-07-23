@@ -284,3 +284,11 @@ def deployTradingRebatesUsingLockedSOV():
     redeploySwapsExternal()
     # LoanSettings
     replaceLoanSettings()
+
+def setDefaultRebatesPercentage(rebatePercent):
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.setRebatePercent.encode_input(rebatePercent)
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
