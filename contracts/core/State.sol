@@ -175,17 +175,17 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
 	/// User => referrer (affiliate).
 	mapping(address => address) public affiliatesUserReferrer;
-	
+
 	/// List of referral addresses that owned by the referrer.
 	mapping(address => EnumerableAddressSet.AddressSet) internal referralsList;
-	
+
 	/// @dev Referral threshold for paying out to the referrer.
 	uint256 public minReferralsToPayout = 3;
-	
+
 	/// @dev Total affiliate SOV rewards that held in the protocol
 	///   (Because the minimum referrals is less than the rule)
 	mapping(address => uint256) public affiliateRewardsHeld;
-	
+
 	/// @dev For affiliates SOV Bonus proccess.
 	address public sovTokenAddress;
 	address public lockedSOVAddress;
@@ -196,7 +196,7 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
 	/// @dev Addresses of tokens in which commissions were paid to referrers.
 	mapping(address => EnumerableAddressSet.AddressSet) internal affiliatesReferrerTokensList;
-	
+
 	/// @dev [referrerAddress][tokenAddress] is a referrer's token balance of accrued fees.
 	mapping(address => mapping(address => uint256)) public affiliatesReferrerBalances;
 

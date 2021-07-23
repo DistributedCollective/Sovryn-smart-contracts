@@ -26,6 +26,7 @@ contract Affiliates is State, AffiliatesEvents {
 	/**
 	 * @notice Void constructor.
 	 */
+	// solhint-disable-next-line no-empty-blocks
 	constructor() public {}
 
 	/**
@@ -202,6 +203,7 @@ contract Affiliates is State, AffiliatesEvents {
 					feeAmount.mul(_getAffiliatesTradingFeePercentForSOV()).div(1e20)
 				)
 			);
+		/// solhint-disable-next-line no-inline-assembly
 		assembly {
 			if eq(success, 1) {
 				rewardAmount := mload(add(data, 32))
@@ -341,7 +343,7 @@ contract Affiliates is State, AffiliatesEvents {
 	 * @dev It's done by looping through its available tokens.
 	 * @param receiver The address of the withdrawal beneficiary.
 	 */
-	 function withdrawAllAffiliatesReferrerTokenFees(address receiver) external {
+	function withdrawAllAffiliatesReferrerTokenFees(address receiver) external {
 		require(receiver != address(0), "Affiliates: cannot withdraw to zero address");
 		address referrer = msg.sender;
 
@@ -358,7 +360,7 @@ contract Affiliates is State, AffiliatesEvents {
 	 * @param referrer The address of the referrer.
 	 * @param token The address of the token specifying the balance to remove.
 	 */
-	 function _removeAffiliatesReferrerToken(address referrer, address token) internal {
+	function _removeAffiliatesReferrerToken(address referrer, address token) internal {
 		delete affiliatesReferrerBalances[referrer][token];
 		affiliatesReferrerTokensList[referrer].remove(token);
 	}

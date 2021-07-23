@@ -66,7 +66,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 	 * @param trader The account that performs this trade.
 	 * @param feeToken The address of the token in which the trading fee is paid.
 	 * @param tradingFee The amount of tokens accrued as fees on the trading.
-	 * 
+	 *
 	 * @return affiliatesBonusSOVAmount the total SOV amount that is distributed to the referrer
 	 * @return affiliatesBonusTokenAmount the total Token Base on the trading fee pairs that is distributed to the referrer
 	 * */
@@ -97,9 +97,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 		if (tradingFee != 0) {
 			if (affiliatesUserReferrer[user] != address(0)) {
 				_payTradingFeeToAffiliate(affiliatesUserReferrer[user], user, feeToken, protocolTradingFee);
-				protocolTradingFee =
-					(protocolTradingFee.sub(protocolTradingFee.mul(affiliateFeePercent).div(10**20)))
-					.sub(protocolTradingFee.mul(affiliateTradingTokenFeePercent).div(10**20));
+				protocolTradingFee = (protocolTradingFee.sub(protocolTradingFee.mul(affiliateFeePercent).div(10**20))).sub(protocolTradingFee.mul(affiliateTradingTokenFeePercent).div(10**20));
 			}
 
 			/// Increase the storage variable keeping track of the accumulated fees.
@@ -204,6 +202,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 					feeAmount.mul(feeRebatePercent).div(10**20)
 				)
 			);
+		/// solhint-disable-next-line no-inline-assembly
 		assembly {
 			if eq(success, 1) {
 				rewardAmount := mload(add(data, 32))
