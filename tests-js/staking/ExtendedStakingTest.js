@@ -454,6 +454,7 @@ contract("Staking", (accounts) => {
 				staker: root,
 				previousDate: lockedTS,
 				newDate: await getTimeFromKickoff(MAX_DURATION),
+				amount: amount,
 			});
 		});
 
@@ -507,6 +508,7 @@ contract("Staking", (accounts) => {
 				staker: root,
 				previousDate: lockedTS,
 				newDate: newLockedTS,
+				amount: amount,
 			});
 		});
 	});

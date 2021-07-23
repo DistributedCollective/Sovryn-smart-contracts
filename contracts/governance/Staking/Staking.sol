@@ -161,7 +161,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		_decreaseDelegateStake(delegateFrom, previousLock, amount);
 		_increaseDelegateStake(delegateTo, until, amount);
 
-		emit ExtendedStakingDuration(msg.sender, previousLock, until);
+		emit ExtendedStakingDuration(msg.sender, previousLock, until, amount);
 	}
 
 	/**
