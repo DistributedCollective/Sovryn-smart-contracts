@@ -177,7 +177,7 @@ contract("StakingRewards", (accounts) => {
 			expect(afterBalance).to.be.bignumber.equal(beforeBalance);
 		});
 
-		it("should process for at max one year at a time", async () => {
+		it("should process for max duration at a time", async () => {
 			await increaseTime(7890000); //3 Months
 			await stakingRewards.stop();
 			beforeBalance = await SOV.balanceOf(a1);

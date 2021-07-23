@@ -19,8 +19,6 @@ import "../../openzeppelin/SafeMath.sol";
 contract StakingRewards is StakingRewardsStorage, Initializable {
 	using SafeMath for uint256;
 
-	/* Events */
-
 	/// @notice Emitted when SOV is withdrawn
 	/// @param receiver The address which recieves the SOV
 	/// @param amount The amount withdrawn from the Smart Contract
@@ -53,8 +51,8 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * rate at the start of SIP-0024 is 29.75%. Base rate is annual
 	 * but we pay interest for 14 days, which is 1/26 of one staking year (1092 days)
 	 * @param _rate the base rate - it is the maximum interest rate(APY)
-	 * @param _divisor divisor is set as 26 (num periods per year) * 10 (max voting weight) * 10000 (2975 -> 0.2975)
-	 * @param _duration Max duration for which rewards can be collected
+	 * @param _divisor divisor is set as 2600000 = 26 (num periods per year) * 10 (max voting weight) * 10000 (2975 -> 0.2975)
+	 * @param _duration Max duration for which rewards can be collected at a go
 	 * */
 	function setRates(
 		uint256 _rate,
@@ -71,8 +69,8 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * @dev User calls this function to collect SOV staking rewards as per the SIP-0024 program.
 	 * The weighted stake is calculated using getPriorWeightedStake. Block number sent to the functon
 	 * must be a finalised block, hence we deduct 1 from the current block. User is only allowed to withdraw
-	 * after intervals of 14 days. Also, rewards can be collected for a maximum duration. This
-	 * is to avoid Block Gas Limit failures. Approx gas usage for collecting one year rewards = 5164082
+	 * after intervals of 14 days. Rewards can be collected for a maximum duration at a time. This
+	 * is to avoid Block Gas Limit failures. Approx gas usage for collecting one year rewards = 5164082.
 	 * */
 	function collectReward() external {
 		uint256 count;
@@ -87,7 +85,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 			require(currentTS > withdrawals[sender], "allowed after 14 days");
 		}
 
-		for (uint256 i = withdrawals[sender]; i < currentTS && i < withdrawals[sender] + maxDuration; i += TWO_WEEKS) {
+		for (uint256 i = withdrawals[sender]; i < currentTS && i < withdrawals[sender].add(maxDuration); i += TWO_WEEKS) {
 			count++;
 			weightedStake = weightedStake.add(_computeRewardForDate(sender, lastFinalisedBlock, i));
 		}
@@ -99,7 +97,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	/**
 	 * @notice Internal function to calculate weighted stake
 	 * @dev If the rewards program is stopped, the user will still continue to
-	 * earn till the end of staking period based on the stop block
+	 * earn till the end of staking period based on the stop block.
 	 * */
 	function _computeRewardForDate(
 		address _sender,
@@ -116,29 +114,27 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	}
 
 	/**
-	 * @notice Internal function to calculate rewards
+	 * @notice Internal function to pay rewards
 	 * @dev Base rate is annual, but we pay interest for 14 days,
 	 * which is 1/26 of one staking year (1092 days)
 	 * @param _sender User address
 	 * @param weightedStake the weighted stake
 	 * */
-	function _payReward(address _sender, uint256 weightedStake) internal returns (bool) {
+	function _payReward(address _sender, uint256 weightedStake) internal {
 		uint256 amount = weightedStake.mul(baseRate).div(divisor);
 		require(SOV.balanceOf(address(this)) >= amount, "not enough funds to reward user");
-		claimedBalances[_sender] += amount;
+		claimedBalances[_sender] = claimedBalances[_sender].add(amount);
 		_transferSOV(_sender, amount);
 	}
 
 	/**
 	 * @notice Withdraws all token from the contract by Multisig.
-	 * @param _receiverAddress The address where the tokens has to be transferred. Zero address if the withdraw is to be done in Multisig.
-	 * @dev Can only be called after the token state is changed to Holding.
+	 * @param _receiverAddress The address where the tokens has to be transferred.
 	 */
 	function withdrawTokensByMultisig(address _receiverAddress) external onlyOwner {
 		require(_receiverAddress != address(0), "receiver address invalid");
 
 		uint256 value = SOV.balanceOf(address(this));
-		/// Sending the amount to multisig.
 		_transferSOV(_receiverAddress, value);
 	}
 

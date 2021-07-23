@@ -5,7 +5,7 @@ import "../../proxy/UpgradableProxy.sol";
 
 /**
  * @title StakingRewards Proxy contract.
- * @dev StakingRewards contract should be upgradable, use UpgradableProxy.
+ * @dev StakingRewards contract should be upgradable. Used UpgradableProxy.
  * StakingRewardsStorage is deployed with the upgradable functionality
  * by using this contract instead, that inherits from UpgradableProxy with
  * the possibility of being enhanced and re-deployed.
