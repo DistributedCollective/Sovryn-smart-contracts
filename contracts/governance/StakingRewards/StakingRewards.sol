@@ -56,7 +56,11 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * @param _divisor divisor is set as 26 (num periods per year) * 10 (max voting weight) * 10000 (2975 -> 0.2975)
 	 * @param _duration Max duration for which rewards can be collected
 	 * */
-	function setRates(uint256 _rate, uint256 _divisor, uint256 _duration) external onlyOwner {
+	function setRates(
+		uint256 _rate,
+		uint256 _divisor,
+		uint256 _duration
+	) external onlyOwner {
 		baseRate = _rate;
 		divisor = _divisor;
 		maxDuration = _duration;
@@ -83,7 +87,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 			require(currentTS > withdrawals[sender], "can only withdraw after 14 days");
 		}
 
-		for (uint256 i = withdrawals[sender]; i < currentTS && i < withdrawals[sender] + maxDuration ; i += TWO_WEEKS) {
+		for (uint256 i = withdrawals[sender]; i < currentTS && i < withdrawals[sender] + maxDuration; i += TWO_WEEKS) {
 			count++;
 			weightedStake = weightedStake.add(_computeRewardForDate(sender, lastFinalisedBlock, i));
 		}

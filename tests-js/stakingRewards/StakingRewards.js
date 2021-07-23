@@ -137,7 +137,7 @@ contract("StakingRewards", (accounts) => {
 		});
 
 		it("should NOT pay rewards for staking after the program stops", async () => {
-			await increaseTime(1209600); //2 Weeks 
+			await increaseTime(1209600); //2 Weeks
 			await staking.stake("10000", inTwoYears, a2, a2, { from: a2 });
 			beforeBalance = await SOV.balanceOf(a2);
 			await stakingRewards.collectReward({ from: a2 });
@@ -148,7 +148,7 @@ contract("StakingRewards", (accounts) => {
 		});
 
 		it("should stop getting rewards when the staking ends after the program stops", async () => {
-			await increaseTime(1209600); //2 Weeks 
+			await increaseTime(1209600); //2 Weeks
 			feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address);
 			await staking.setFeeSharing(feeSharingProxy.address);
 			await staking.withdraw("20000", inTwoYears, a2, { from: a2 }); //Withdraw second stake
@@ -161,7 +161,7 @@ contract("StakingRewards", (accounts) => {
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			let feeSharingBalance = await SOV.balanceOf.call(feeSharingProxy.address);
 			expect(afterBalance).to.be.bignumber.equal(beforeBalance);
-		});	
+		});
 
 		it("should process for at max one year at a time", async () => {
 			await increaseTime(7890000); //3 Months
@@ -172,7 +172,7 @@ contract("StakingRewards", (accounts) => {
 			rewards = afterBalance.sub(beforeBalance);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
-		});	
+		});
 
 		it("should be able to process again immdeiately when processing after the max duration", async () => {
 			beforeBalance = await SOV.balanceOf(a1);
@@ -181,14 +181,14 @@ contract("StakingRewards", (accounts) => {
 			rewards = afterBalance.sub(beforeBalance);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
-		});	
+		});
 
 		it("should revert withdraw all tokens if address is invalid", async () => {
-			await expectRevert(stakingRewards.withdrawTokensByMultisig(constants.ZERO_ADDRESS),"receiver address invalid");
+			await expectRevert(stakingRewards.withdrawTokensByMultisig(constants.ZERO_ADDRESS), "receiver address invalid");
 		});
 
 		it("should revert withdraw all tokens if sender isn't the owner", async () => {
-			await expectRevert(stakingRewards.withdrawTokensByMultisig(a3, { from: a3 }),"unauthorized");
+			await expectRevert(stakingRewards.withdrawTokensByMultisig(a3, { from: a3 }), "unauthorized");
 		});
 
 		it("should withdraw all tokens", async () => {
@@ -204,15 +204,15 @@ contract("StakingRewards", (accounts) => {
 		});
 
 		it("should revert if contract doesn't have enough funds to reward user", async () => {
-			await increaseTime(1209600); //2 Weeks 
+			await increaseTime(1209600); //2 Weeks
 			await expectRevert(stakingRewards.collectReward({ from: a1 }), "not enough funds to reward user");
-		});	
+		});
 
 		it("should revert if sender is a ZERO Address", async () => {
 			await expectRevert(
-				stakingRewards.collectReward({ from: constants.ZERO_ADDRESS }), 
+				stakingRewards.collectReward({ from: constants.ZERO_ADDRESS }),
 				"unknown account 0x0000000000000000000000000000000000000000"
 			);
-		});	
+		});
 	});
 });
