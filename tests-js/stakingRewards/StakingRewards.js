@@ -54,10 +54,15 @@ contract("StakingRewards", (accounts) => {
 		await SOV.transfer(a2, "10000000");
 		await SOV.approve(staking.address, "10000000", { from: a2 });
 
+		//Transferred SOVs to a3
+		await SOV.transfer(a3, "1000");
+		await SOV.approve(staking.address, "1000", { from: a3 });
+
 		//a2 stakes at intervals
 		await increaseTime(1209600); //2 Weeks
 		await staking.stake("10000", inOneYear, a1, a1, { from: a1 }); //Test - 15/07/2021
 		await staking.stake("10000", inOneYear, a2, a2, { from: a2 }); //Test - 15/07/2021
+		await staking.stake("100", inThreeYears, a3, a3, { from: a3 }); //Test - 15/07/2021
 		await increaseTime(1209600); //2 Weeks
 		await staking.stake("20000", inTwoYears, a1, a1, { from: a1 }); //Test - 29/07/2021
 		await staking.stake("20000", inTwoYears, a2, a2, { from: a2 }); //Test - 29/07/2021
@@ -82,7 +87,7 @@ contract("StakingRewards", (accounts) => {
 		});
 
 		it("should revert if rewards are claimed before completion of two weeks from start date", async () => {
-			await expectRevert(stakingRewards.collectReward({ from: a2 }), "can only withdraw after 14 days");
+			await expectRevert(stakingRewards.collectReward({ from: a2 }), "allowed after 14 days of start");
 		});
 
 		it("should compute and send rewards to the staker as applicable", async () => {
@@ -90,6 +95,15 @@ contract("StakingRewards", (accounts) => {
 			beforeBalance = await SOV.balanceOf(a2);
 			await stakingRewards.collectReward({ from: a2 }); //Test - 26/08/2021
 			afterBalance = await SOV.balanceOf(a2);
+			rewards = afterBalance.sub(beforeBalance);
+			totalRewards = new BN(totalRewards).add(new BN(rewards));
+			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
+		});
+
+		it("should compute and send rewards to the staker a3 as applicable", async () => {
+			beforeBalance = await SOV.balanceOf(a3);
+			await stakingRewards.collectReward({ from: a3 });
+			afterBalance = await SOV.balanceOf(a3);
 			rewards = afterBalance.sub(beforeBalance);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
@@ -111,7 +125,7 @@ contract("StakingRewards", (accounts) => {
 
 		it("should revert if the user tries to claim rewards early", async () => {
 			await increaseTime(86400); //One day
-			await expectRevert(stakingRewards.collectReward({ from: a2 }), "can only withdraw after 14 days");
+			await expectRevert(stakingRewards.collectReward({ from: a2 }), "allowed after 14 days");
 		});
 
 		it("should compute and send rewards to the staker after recalculating withdrawn stake", async () => {

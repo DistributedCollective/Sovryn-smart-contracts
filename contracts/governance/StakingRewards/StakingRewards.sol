@@ -81,10 +81,10 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		uint256 currentTS = block.timestamp;
 		address sender = msg.sender;
 		if (withdrawals[sender] == 0) {
-			require((currentTS.sub(startTime)) > TWO_WEEKS, "can only withdraw after 14 days");
+			require((currentTS.sub(startTime)) > TWO_WEEKS, "allowed after 14 days of start");
 			withdrawals[sender] = startTime;
 		} else {
-			require(currentTS > withdrawals[sender], "can only withdraw after 14 days");
+			require(currentTS > withdrawals[sender], "allowed after 14 days");
 		}
 
 		for (uint256 i = withdrawals[sender]; i < currentTS && i < withdrawals[sender] + maxDuration; i += TWO_WEEKS) {
