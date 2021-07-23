@@ -217,7 +217,13 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		/// Temporary: limit transaction size.
 		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
 
-		require( (msg.value == 0 || msg.value == collateralTokenSent) && (collateralTokenSent != 0 || loanId != 0) && (collateralTokenAddress != address(0) || msg.value != 0 || loanId != 0) && (loanId == 0 || msg.sender == borrower), "7");
+		require(
+			(msg.value == 0 || msg.value == collateralTokenSent) &&
+				(collateralTokenSent != 0 || loanId != 0) &&
+				(collateralTokenAddress != address(0) || msg.value != 0 || loanId != 0) &&
+				(loanId == 0 || msg.sender == borrower),
+			"7"
+		);
 
 		/// @dev We have an issue regarding contract size code is too big. 1 of the solution is need to keep the error message 32 bytes length
 		// Temporarily, we combine this require to the above, so can save the contract size code

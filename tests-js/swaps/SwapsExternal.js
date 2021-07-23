@@ -71,7 +71,6 @@ contract("SwapsExternal", (accounts) => {
 		await sovryn.setSovrynProtocolAddress(sovryn.address);
 		await sovryn.setSOVTokenAddress(tokenSOV.address);
 
-
 		feeds = await PriceFeedsLocal.new(testWrbtc.address, sovryn.address);
 		await feeds.setRates(underlyingToken.address, testWrbtc.address, wei("1", "ether"));
 		const swaps = await SwapsImplSovrynSwap.new();
@@ -114,9 +113,7 @@ contract("SwapsExternal", (accounts) => {
 		vestingFactory.transferOwnership(vestingRegistry.address);
 
 		await sovryn.setLockedSOVAddress(
-			(
-				await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [lender])
-			).address
+			(await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [lender])).address
 		);
 
 		params = [
