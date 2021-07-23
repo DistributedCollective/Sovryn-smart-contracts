@@ -97,7 +97,9 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 		if (tradingFee != 0) {
 			if (affiliatesUserReferrer[user] != address(0)) {
 				_payTradingFeeToAffiliate(affiliatesUserReferrer[user], user, feeToken, protocolTradingFee);
-				protocolTradingFee = (protocolTradingFee.sub(protocolTradingFee.mul(affiliateFeePercent).div(10**20))).sub(protocolTradingFee.mul(affiliateTradingTokenFeePercent).div(10**20));
+				protocolTradingFee = (protocolTradingFee.sub(protocolTradingFee.mul(affiliateFeePercent).div(10**20))).sub(
+					protocolTradingFee.mul(affiliateTradingTokenFeePercent).div(10**20)
+				);
 			}
 
 			/// Increase the storage variable keeping track of the accumulated fees.
@@ -202,7 +204,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 					feeAmount.mul(feeRebatePercent).div(10**20)
 				)
 			);
-		/// solhint-disable-next-line no-inline-assembly
+		// solhint-disable-next-line no-inline-assembly
 		assembly {
 			if eq(success, 1) {
 				rewardAmount := mload(add(data, 32))

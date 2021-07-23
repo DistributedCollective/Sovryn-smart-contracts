@@ -203,7 +203,7 @@ contract Affiliates is State, AffiliatesEvents {
 					feeAmount.mul(_getAffiliatesTradingFeePercentForSOV()).div(1e20)
 				)
 			);
-		/// solhint-disable-next-line no-inline-assembly
+		// solhint-disable-next-line no-inline-assembly
 		assembly {
 			if eq(success, 1) {
 				rewardAmount := mload(add(data, 32))
