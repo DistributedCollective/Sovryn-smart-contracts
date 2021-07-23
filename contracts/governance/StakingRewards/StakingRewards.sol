@@ -54,30 +54,41 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * but we pay interest for 14 days, which is 1/26 of one staking year (1092 days)
 	 * @param _rate the base rate - it is the maximum interest rate(APY)
 	 * @param _divisor divisor is set as 26 (num periods per year) * 10 (max voting weight) * 10000 (2975 -> 0.2975)
+	 * @param _duration Max duration for which rewards can be collected
 	 * */
-	function setBaseRate(uint256 _rate, uint256 _divisor) external onlyOwner {
+	function setRates(uint256 _rate, uint256 _divisor, uint256 _duration) external onlyOwner {
 		baseRate = _rate;
 		divisor = _divisor;
+		maxDuration = _duration;
 	}
 
 	/**
 	 * @notice Collect rewards
 	 * @dev User calls this function to collect SOV staking rewards as per the SIP-0024 program.
 	 * The weighted stake is calculated using getPriorWeightedStake. Block number sent to the functon
-	 * must be a finalised block, hence we deduct 1 from the current block
+	 * must be a finalised block, hence we deduct 1 from the current block. User is only allowed to withdraw
+	 * after intervals of 14 days. Also, rewards can be collected for a maximum duration. This
+	 * is to avoid Block Gas Limit failures. Approx gas usage for collecting one year rewards = 5164082
 	 * */
 	function collectReward() external {
+		uint256 count;
 		uint256 weightedStake;
 		uint256 lastFinalisedBlock = block.number - 1;
 		uint256 currentTS = block.timestamp;
 		address sender = msg.sender;
+		if (withdrawals[sender] == 0) {
+			require((currentTS.sub(startTime)) > TWO_WEEKS, "can only withdraw after 14 days");
+			withdrawals[sender] = startTime;
+		} else {
+			require(currentTS > withdrawals[sender], "can only withdraw after 14 days");
+		}
 
-		if (withdrawls[sender] == 0) withdrawls[sender] = startTime;
-		for (uint256 i = withdrawls[sender]; i < currentTS; i += TWO_WEEKS) {
+		for (uint256 i = withdrawals[sender]; i < currentTS && i < withdrawals[sender] + maxDuration ; i += TWO_WEEKS) {
+			count++;
 			weightedStake = weightedStake.add(_computeRewardForDate(sender, lastFinalisedBlock, i));
 		}
 		require(weightedStake > 0, "nothing staked");
-		withdrawls[sender] = currentTS;
+		withdrawals[sender] += count.mul(TWO_WEEKS);
 		_payReward(sender, weightedStake);
 	}
 

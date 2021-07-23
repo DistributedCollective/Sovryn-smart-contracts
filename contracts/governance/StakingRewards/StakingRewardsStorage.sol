@@ -25,6 +25,9 @@ contract StakingRewardsStorage is Ownable {
 	/// @notice 2 weeks in seconds.
 	uint256 constant TWO_WEEKS = 1209600;
 
+	/// @notice Maximum duration to collect rewards at one go
+	uint256 public maxDuration;
+
 	/// @notice Represents the time when the contract is deployed
 	uint256 public startTime;
 
@@ -38,8 +41,8 @@ contract StakingRewardsStorage is Ownable {
 	uint256 public divisor;
 
 	/// @notice User Address -> Last Withdrawn Timestamp
-	mapping(address => uint256) internal withdrawls;
+	mapping(address => uint256) public withdrawals;
 
-	/// @notice User Address -> Claimed Balance Timestamp
-	mapping(address => uint256) internal claimedBalances;
+	/// @notice User Address -> Claimed Balance
+	mapping(address => uint256) public claimedBalances;
 }
