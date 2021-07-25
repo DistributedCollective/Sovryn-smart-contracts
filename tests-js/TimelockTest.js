@@ -54,7 +54,7 @@ contract("Timelock", (accounts) => {
 
 	describe("setDelay", () => {
 		it("requires msg.sender to be Timelock", async () => {
-			await expectRevert(timelock.setDelay(delay, { from: root }), "revert Timelock::setDelay: Call must come from Timelock.");
+			await expectRevert(timelock.setDelay(delay, { from: root }), "Timelock::setDelay: Call must come from Timelock.");
 		});
 	});
 
@@ -62,7 +62,7 @@ contract("Timelock", (accounts) => {
 		it("requires msg.sender to be Timelock", async () => {
 			await expectRevert(
 				timelock.setPendingAdmin(newAdmin, { from: root }),
-				"revert Timelock::setPendingAdmin: Call must come from Timelock."
+				"Timelock::setPendingAdmin: Call must come from Timelock."
 			);
 		});
 	});
@@ -73,7 +73,7 @@ contract("Timelock", (accounts) => {
 		});
 
 		it("requires msg.sender to be pendingAdmin", async () => {
-			await expectRevert(timelock.acceptAdmin({ from: notAdmin }), "revert Timelock::acceptAdmin: Call must come from pendingAdmin.");
+			await expectRevert(timelock.acceptAdmin({ from: notAdmin }), "Timelock::acceptAdmin: Call must come from pendingAdmin.");
 		});
 
 		it("sets pendingAdmin to address 0 and changes admin", async () => {
@@ -112,7 +112,7 @@ contract("Timelock", (accounts) => {
 		it("requires admin to be msg.sender", async () => {
 			await expectRevert(
 				timelock.queueTransaction(target, value, signature, data, eta, { from: notAdmin }),
-				"revert Timelock::queueTransaction: Call must come from admin."
+				"Timelock::queueTransaction: Call must come from admin."
 			);
 		});
 
@@ -121,7 +121,7 @@ contract("Timelock", (accounts) => {
 
 			await expectRevert(
 				timelock.queueTransaction(target, value, signature, data, etaLessThanDelay, { from: root }),
-				"revert Timelock::queueTransaction: Estimated execution block must satisfy delay."
+				"Timelock::queueTransaction: Estimated execution block must satisfy delay."
 			);
 		});
 
@@ -170,7 +170,7 @@ contract("Timelock", (accounts) => {
 		it("requires admin to be msg.sender", async () => {
 			await expectRevert(
 				timelock.cancelTransaction(target, value, signature, data, eta, { from: notAdmin }),
-				"revert Timelock::cancelTransaction: Call must come from admin."
+				"Timelock::cancelTransaction: Call must come from admin."
 			);
 		});
 
@@ -247,7 +247,7 @@ contract("Timelock", (accounts) => {
 		it("requires admin to be msg.sender", async () => {
 			await expectRevert(
 				timelock.executeTransaction(target, value, signature, data, eta, { from: notAdmin }),
-				"revert Timelock::executeTransaction: Call must come from admin."
+				"Timelock::executeTransaction: Call must come from admin."
 			);
 		});
 
@@ -255,14 +255,14 @@ contract("Timelock", (accounts) => {
 			const differentEta = eta.plus(1);
 			await expectRevert(
 				timelock.executeTransaction(target, value, signature, data, differentEta, { from: root }),
-				"revert Timelock::executeTransaction: Transaction hasn't been queued."
+				"Timelock::executeTransaction: Transaction hasn't been queued."
 			);
 		});
 
 		it("requires timestamp to be greater than or equal to eta", async () => {
 			await expectRevert(
 				timelock.executeTransaction(target, value, signature, data, eta, { from: root }),
-				"revert Timelock::executeTransaction: Transaction hasn't surpassed time lock."
+				"Timelock::executeTransaction: Transaction hasn't surpassed time lock."
 			);
 		});
 
@@ -270,7 +270,7 @@ contract("Timelock", (accounts) => {
 			await setNextBlockTimestamp(blockTimestamp.plus(delay).plus(gracePeriod).plus(1).toNumber());
 			await expectRevert(
 				timelock.executeTransaction(target, value, signature, data, eta, { from: root }),
-				"revert Timelock::executeTransaction: Transaction is stale."
+				"Timelock::executeTransaction: Transaction is stale."
 			);
 		});
 
@@ -287,7 +287,7 @@ contract("Timelock", (accounts) => {
 			//eta = blockTimestamp.plus(delay).plus(100);
 			await expectRevert(
 				timelock.executeTransaction(target, value, signature, revertData, eta, { from: root }),
-				"revert Timelock::executeTransaction: Timelock::setDelay: Delay must exceed minimum delay."
+				"Timelock::executeTransaction: Timelock::setDelay: Delay must exceed minimum delay."
 			);
 		});
 
@@ -357,7 +357,7 @@ contract("Timelock", (accounts) => {
 		it("requires admin to be msg.sender", async () => {
 			await expectRevert(
 				timelock.executeTransaction(target, value, signature, data, eta, { from: notAdmin }),
-				"revert Timelock::executeTransaction: Call must come from admin."
+				"Timelock::executeTransaction: Call must come from admin."
 			);
 		});
 
@@ -365,14 +365,14 @@ contract("Timelock", (accounts) => {
 			const differentEta = eta.plus(1);
 			await expectRevert(
 				timelock.executeTransaction(target, value, signature, data, differentEta, { from: root }),
-				"revert Timelock::executeTransaction: Transaction hasn't been queued."
+				"Timelock::executeTransaction: Transaction hasn't been queued."
 			);
 		});
 
 		it("requires timestamp to be greater than or equal to eta", async () => {
 			await expectRevert(
 				timelock.executeTransaction(target, value, signature, data, eta, { from: root }),
-				"revert Timelock::executeTransaction: Transaction hasn't surpassed time lock."
+				"Timelock::executeTransaction: Transaction hasn't surpassed time lock."
 			);
 		});
 
@@ -386,7 +386,7 @@ contract("Timelock", (accounts) => {
 
 			await expectRevert(
 				timelock.executeTransaction(target, value, signature, data, eta, { from: root }),
-				"revert Timelock::executeTransaction: Transaction is stale."
+				"Timelock::executeTransaction: Transaction is stale."
 			);
 		});
 
