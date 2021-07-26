@@ -1088,7 +1088,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		);
 		require(sentAmounts[1] != 0, "25");
 
-		/// @dev Track this user with not-first-trade flag for affiliates program.
+		/// @dev Setting not-first-trade flag to prevent binding to an affiliate existing users post factum.
 		/// @dev REFACTOR: move to a general interface: ProtocolSettingsLike?
 		ProtocolAffiliatesInterface(sovrynContractAddress).setUserNotFirstTradeFlag(sentAddresses[1]);
 

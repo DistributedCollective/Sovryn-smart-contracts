@@ -15,7 +15,7 @@ import "../locked/ILockedSOV.sol";
 
 /**
  * @title Affiliates contract.
- * @notice Track affiliates and reward referrers with tokens.
+ * @notice Track referrals and reward referrers (affiliates) with tokens.
  *   In-detail specifications are found at https://wiki.sovryn.app/en/community/Affiliates
  * @dev Module: Affiliates upgradable
  *   Storage: from State, functions called from Protocol by delegatecall
@@ -40,8 +40,8 @@ contract Affiliates is State, AffiliatesEvents {
 	 * @notice Set delegate callable functions by proxy contract.
 	 * @dev This contract is designed as a module, this way logic can be
 	 *   expanded and upgraded w/o losing storage that is kept in the protocol (State.sol)
-	 *   initialize() is used to report to the proxy every external function in the module
-	 *   in order to be managed by its fallback redirector when called.
+	 *   initialize() is used to register in the proxy external (module) functions
+	 *   to be called via the proxy.
 	 * @param target The address of a new logic implementation.
 	 */
 	function initialize(address target) external onlyOwner {

@@ -170,16 +170,17 @@ contract State is Objects, ReentrancyGuard, Ownable {
 	 *** Affiliates ***
 	 **/
 
-	/// The flag is set on the user's first trade or borrowing.
+	/// The flag is set on the user's first trade.
 	mapping(address => bool) public userNotFirstTradeFlag;
 
 	/// User => referrer (affiliate).
 	mapping(address => address) public affiliatesUserReferrer;
 
-	/// List of referral addresses that owned by the referrer.
+	/// List of referral addresses affiliated to the referrer.
 	mapping(address => EnumerableAddressSet.AddressSet) internal referralsList;
 
 	/// @dev Referral threshold for paying out to the referrer.
+	///   The referrer reward is being accumulated and locked until the threshold is passed.
 	uint256 public minReferralsToPayout = 3;
 
 	/// @dev Total affiliate SOV rewards that held in the protocol
