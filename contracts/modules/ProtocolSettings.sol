@@ -42,6 +42,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 	 * @param target The address of the target contract.
 	 * */
 	function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.setPriceFeedContract.selector];
 		_setTarget(this.setPriceFeedContract.selector, target);
 		_setTarget(this.setSwapsImplContract.selector, target);
 		_setTarget(this.setLoanPool.selector, target);
@@ -77,6 +78,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		_setTarget(this.getSovTokenAddress.selector, target);
 		_setTarget(this.getLockedSOVAddress.selector, target);
 		_setTarget(this.togglePaused.selector, target);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "ProtocolSettings");
 	}
 
 	/**
