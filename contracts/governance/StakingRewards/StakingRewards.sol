@@ -52,14 +52,12 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	/**
 	 * @notice Sets the max duration
 	 * @dev Rewards can be collected for a maximum duration at a time. This
-	 * is to avoid Block Gas Limit failures. Setting it zero would mean that it will loop 
-	 * through the entire duration since the start of rewards program. 
-	 * It should ideally be set to a value, for which the rewards can be easily processed. 
+	 * is to avoid Block Gas Limit failures. Setting it zero would mean that it will loop
+	 * through the entire duration since the start of rewards program.
+	 * It should ideally be set to a value, for which the rewards can be easily processed.
 	 * @param _duration Max duration for which rewards can be collected at a go (in seconds)
 	 * */
-	function setMaxDuration(
-		uint256 _duration
-	) external onlyOwner {
+	function setMaxDuration(uint256 _duration) external onlyOwner {
 		maxDuration = _duration;
 	}
 

@@ -78,7 +78,7 @@ contract("StakingRewards", (accounts) => {
 	describe("Flow - StakingRewards", () => {
 		it("should revert if SOV Address is not a contract address", async () => {
 			await expectRevert(stakingRewards.initialize(a3, staking.address), "_SOV not a contract");
-		});	
+		});
 
 		it("should revert if SOV Address is invalid", async () => {
 			await expectRevert(stakingRewards.initialize(constants.ZERO_ADDRESS, staking.address), "Invalid SOV Address.");
