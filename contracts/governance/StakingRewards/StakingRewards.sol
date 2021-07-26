@@ -37,6 +37,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		SOV = IERC20(_SOV);
 		staking = _staking;
 		startTime = block.timestamp;
+		setMaxDuration(26 * TWO_WEEKS);
 	}
 
 	/**
@@ -57,7 +58,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * It should ideally be set to a value, for which the rewards can be easily processed.
 	 * @param _duration Max duration for which rewards can be collected at a go (in seconds)
 	 * */
-	function setMaxDuration(uint256 _duration) external onlyOwner {
+	function setMaxDuration(uint256 _duration) public onlyOwner {
 		maxDuration = _duration;
 	}
 

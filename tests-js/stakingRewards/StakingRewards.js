@@ -86,8 +86,6 @@ contract("StakingRewards", (accounts) => {
 			await SOV.transfer(stakingRewards.address, "10000000");
 			//Initialize
 			await stakingRewards.initialize(SOV.address, staking.address);
-			//Set Base Rate
-			await stakingRewards.setMaxDuration(26 * TWO_WEEKS);
 		});
 
 		it("should revert if rewards are claimed before completion of two weeks from start date", async () => {
