@@ -5,7 +5,7 @@ import "../Staking/IStaking.sol";
 import "../../openzeppelin/Ownable.sol";
 
 /**
- * @title Staking Rewards Storage contact.
+ * @title Staking Rewards Storage Contract.
  * @notice Just the storage part of staking rewards contract, no functions,
  * only constant, variables and required structures (mappings).
  * Used by StackingRewardsProxy.
@@ -19,11 +19,17 @@ contract StakingRewardsStorage is Ownable {
 	/// @notice The SOV token contract.
 	IERC20 public SOV;
 
-	///@notice the staking contract address
+	///@notice the staking proxy contract address
 	IStaking public staking;
 
 	/// @notice 2 weeks in seconds.
 	uint256 constant TWO_WEEKS = 1209600;
+
+	/// @notice Annual Base Rate - it is the maximum interest rate(APY)
+	uint256 constant BASE_RATE = 2975;
+
+	/// @notice DIVISOR is set as 2600000 = 26 (num periods per year) * 10 (max voting weight) * 10000 (2975 -> 0.2975)
+	uint256 constant DIVISOR = 2600000;
 
 	/// @notice Maximum duration to collect rewards at one go
 	uint256 public maxDuration;
@@ -33,12 +39,6 @@ contract StakingRewardsStorage is Ownable {
 
 	/// @notice Represents the block when the Staking Rewards pogram is stopped
 	uint256 public stopBlock;
-
-	/// @notice Annual Base Rate
-	uint256 public baseRate;
-
-	/// @notice Divisor
-	uint256 public divisor;
 
 	/// @notice User Address -> Last Withdrawn Timestamp
 	mapping(address => uint256) public withdrawals;

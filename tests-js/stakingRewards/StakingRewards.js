@@ -76,6 +76,10 @@ contract("StakingRewards", (accounts) => {
 	});
 
 	describe("Flow - StakingRewards", () => {
+		it("should revert if SOV Address is not a contract address", async () => {
+			await expectRevert(stakingRewards.initialize(a3, staking.address), "_SOV not a contract");
+		});	
+
 		it("should revert if SOV Address is invalid", async () => {
 			await expectRevert(stakingRewards.initialize(constants.ZERO_ADDRESS, staking.address), "Invalid SOV Address.");
 			//Staking Rewards Contract is loaded
@@ -83,7 +87,7 @@ contract("StakingRewards", (accounts) => {
 			//Initialize
 			await stakingRewards.initialize(SOV.address, staking.address);
 			//Set Base Rate
-			await stakingRewards.setRates(2975, 2600000, 26 * TWO_WEEKS);
+			await stakingRewards.setMaxDuration(26 * TWO_WEEKS);
 		});
 
 		it("should revert if rewards are claimed before completion of two weeks from start date", async () => {
@@ -95,15 +99,6 @@ contract("StakingRewards", (accounts) => {
 			beforeBalance = await SOV.balanceOf(a2);
 			await stakingRewards.collectReward({ from: a2 }); //Test - 26/08/2021
 			afterBalance = await SOV.balanceOf(a2);
-			rewards = afterBalance.sub(beforeBalance);
-			totalRewards = new BN(totalRewards).add(new BN(rewards));
-			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
-		});
-
-		it("should compute and send rewards to the staker a3 as applicable", async () => {
-			beforeBalance = await SOV.balanceOf(a3);
-			await stakingRewards.collectReward({ from: a3 });
-			afterBalance = await SOV.balanceOf(a3);
 			rewards = afterBalance.sub(beforeBalance);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
@@ -150,6 +145,16 @@ contract("StakingRewards", (accounts) => {
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
 		});
 
+		it("should compute and send rewards to the staker a3 as applicable", async () => {
+			beforeBalance = await SOV.balanceOf(a3);
+			let tx = await stakingRewards.collectReward({ from: a3 });
+			console.log("gasUsed: " + tx.receipt.gasUsed);
+			afterBalance = await SOV.balanceOf(a3);
+			rewards = afterBalance.sub(beforeBalance);
+			totalRewards = new BN(totalRewards).add(new BN(rewards));
+			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
+		});
+
 		it("should NOT pay rewards for staking after the program stops", async () => {
 			await increaseTime(1209600); //2 Weeks
 			await staking.stake("10000", inTwoYears, a2, a2, { from: a2 });
@@ -169,7 +174,7 @@ contract("StakingRewards", (accounts) => {
 			await staking.withdraw("30000", inThreeYears, a2, { from: a2 }); //Withdraw third stake
 			await staking.withdraw("10000", inTwoYears, a2, { from: a2 }); //Withdraw the last stake as well
 			beforeBalance = await SOV.balanceOf(a2);
-			await expectRevert(stakingRewards.collectReward({ from: a2 }), "nothing staked");
+			await expectRevert(stakingRewards.collectReward({ from: a2 }), "weightedStake is zero");
 			afterBalance = await SOV.balanceOf(a2);
 			rewards = afterBalance.sub(beforeBalance);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
@@ -198,23 +203,23 @@ contract("StakingRewards", (accounts) => {
 		});
 
 		it("should revert withdraw all tokens if address is invalid", async () => {
-			await expectRevert(stakingRewards.withdrawTokensByMultisig(constants.ZERO_ADDRESS), "receiver address invalid");
+			await expectRevert(stakingRewards.withdrawTokensByOwner(constants.ZERO_ADDRESS), "receiver address invalid");
 		});
 
 		it("should revert withdraw all tokens if sender isn't the owner", async () => {
-			await expectRevert(stakingRewards.withdrawTokensByMultisig(a3, { from: a3 }), "unauthorized");
+			await expectRevert(stakingRewards.withdrawTokensByOwner(a3, { from: a3 }), "unauthorized");
 		});
 
 		it("should withdraw all tokens", async () => {
 			beforeBalance = await SOV.balanceOf(a3);
-			await stakingRewards.withdrawTokensByMultisig(a3);
+			await stakingRewards.withdrawTokensByOwner(a3);
 			afterBalance = await SOV.balanceOf(a3);
 			let amount = new BN(10000000).sub(totalRewards);
 			expect(afterBalance.sub(beforeBalance)).to.be.bignumber.equal(amount);
 		});
 
 		it("should revert while withdrawing 0 amount", async () => {
-			await expectRevert(stakingRewards.withdrawTokensByMultisig(a3), "amount invalid");
+			await expectRevert(stakingRewards.withdrawTokensByOwner(a3), "amount invalid");
 		});
 
 		it("should revert if contract doesn't have enough funds to reward user", async () => {
