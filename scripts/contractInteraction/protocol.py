@@ -193,6 +193,15 @@ def deployAffiliate():
     # -------------------------------- 4. Replace Token Logic Standard ----------------------------------------
     replaceLoanTokenLogicOnAllContracts()
 
+def replaceAffiliates():
+    print("replacing Affiliates")
+    affiliates = conf.acct.deploy(Affiliates)
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.replaceContract.encode_input(affiliates.address)
+    print(data)
+
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+
 def replaceLoanMaintenance():
     print("replacing loan maintenance")
     loanMaintenance = conf.acct.deploy(LoanMaintenance)

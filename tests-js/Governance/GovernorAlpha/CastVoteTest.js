@@ -68,7 +68,7 @@ contract("governorAlpha#castVote/2", (accounts) => {
 
 	describe("We must revert if:", () => {
 		it("There does not exist a proposal with matching proposal id where the current block number is between the proposal's start block (exclusive) and end block (inclusive)", async () => {
-			await expectRevert(gov.castVote.call(proposalId, true), "revert GovernorAlpha::_castVote: voting is closed");
+			await expectRevert(gov.castVote.call(proposalId, true), "GovernorAlpha::_castVote: voting is closed");
 		});
 
 		it("Such proposal already has an entry in its voters set matching the sender", async () => {
@@ -76,10 +76,7 @@ contract("governorAlpha#castVote/2", (accounts) => {
 			await mineBlock();
 
 			await gov.castVote(proposalId, true, { from: accounts[4] });
-			await expectRevert(
-				gov.castVote.call(proposalId, true, { from: accounts[4] }),
-				"revert GovernorAlpha::_castVote: voter already voted"
-			);
+			await expectRevert(gov.castVote.call(proposalId, true, { from: accounts[4] }), "GovernorAlpha::_castVote: voter already voted");
 		});
 	});
 
@@ -143,7 +140,7 @@ contract("governorAlpha#castVote/2", (accounts) => {
 			it("reverts if the signatory is invalid", async () => {
 				await expectRevert(
 					gov.castVoteBySig(proposalId, false, 0, "0xbad", "0xbad"),
-					"revert GovernorAlpha::castVoteBySig: invalid signature"
+					"GovernorAlpha::castVoteBySig: invalid signature"
 				);
 			});
 
