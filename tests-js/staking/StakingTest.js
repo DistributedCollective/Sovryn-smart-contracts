@@ -93,7 +93,7 @@ contract("Staking", (accounts) => {
 				expiry = 0;
 			await expectRevert(
 				staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, 0, "0xbad", "0xbad"),
-				"revert Staking::delegateBySig: invalid signature"
+				"Staking::delegateBySig: invalid signature"
 			);
 		});
 
@@ -131,7 +131,7 @@ contract("Staking", (accounts) => {
 
 			await expectRevert(
 				staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s),
-				"revert Staking::delegateBySig: invalid nonce"
+				"Staking::delegateBySig: invalid nonce"
 			);
 		});
 
@@ -154,7 +154,7 @@ contract("Staking", (accounts) => {
 			);
 			await expectRevert(
 				staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s),
-				"revert Staking::delegateBySig: signature expired"
+				"Staking::delegateBySig: signature expired"
 			);
 		});
 
@@ -252,7 +252,7 @@ contract("Staking", (accounts) => {
 			let time = kickoffTS.add(new BN(DELAY));
 			await expectRevert(
 				staking.getPriorVotes.call(a1, 5e10, time),
-				"revert WeightedStaking::getPriorStakeByDateForDelegatee: not yet determined"
+				"WeightedStaking::getPriorStakeByDateForDelegatee: not yet determined"
 			);
 		});
 

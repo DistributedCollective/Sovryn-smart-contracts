@@ -75,4 +75,6 @@ contract ProtocolSettingsEvents is ModulesCommonEvents {
 	event SetSOVTokenAddress(address indexed sender, address indexed oldTokenAddress, address indexed newTokenAddress);
 
 	event SetLockedSOVAddress(address indexed sender, address indexed oldAddress, address indexed newAddress);
+
+	event TogglePaused(address indexed sender, bool indexed oldFlag, bool indexed newFlag);
 }
