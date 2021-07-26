@@ -93,27 +93,27 @@ contract("GovernorAlpha#propose/5", (accounts) => {
 			it("the length of the values, signatures or calldatas arrays are not the same length,", async () => {
 				await expectRevert(
 					gov.propose.call(targets.concat(root), values, signatures, callDatas, "do nothing"),
-					"revert GovernorAlpha::propose: proposal function information arity mismatch"
+					"GovernorAlpha::propose: proposal function information arity mismatch"
 				);
 
 				await expectRevert(
 					gov.propose.call(targets, values.concat(values), signatures, callDatas, "do nothing"),
-					"revert GovernorAlpha::propose: proposal function information arity mismatch"
+					"GovernorAlpha::propose: proposal function information arity mismatch"
 				);
 
 				await expectRevert(
 					gov.propose.call(targets, values, signatures.concat(signatures), callDatas, "do nothing"),
-					"revert GovernorAlpha::propose: proposal function information arity mismatch"
+					"GovernorAlpha::propose: proposal function information arity mismatch"
 				);
 
 				await expectRevert(
 					gov.propose.call(targets, values, signatures, callDatas.concat(callDatas), "do nothing"),
-					"revert GovernorAlpha::propose: proposal function information arity mismatch"
+					"GovernorAlpha::propose: proposal function information arity mismatch"
 				);
 			});
 
 			it("or if that length is zero or greater than Max Operations.", async () => {
-				await expectRevert(gov.propose.call([], [], [], [], "do nothing"), "revert GovernorAlpha::propose: must provide actions");
+				await expectRevert(gov.propose.call([], [], [], [], "do nothing"), "GovernorAlpha::propose: must provide actions");
 			});
 
 			describe("Additionally, if there exists a pending or active proposal from the same proposer, we must revert.", () => {
@@ -128,7 +128,7 @@ contract("GovernorAlpha#propose/5", (accounts) => {
 					await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: accounts[4] });
 					await expectRevert(
 						gov.propose.call(targets, values, signatures, callDatas, "do nothing", { from: accounts[4] }),
-						"revert GovernorAlpha::propose: one live proposal per proposer, found an already pending proposal"
+						"GovernorAlpha::propose: one live proposal per proposer, found an already pending proposal"
 					);
 				});
 
@@ -138,7 +138,7 @@ contract("GovernorAlpha#propose/5", (accounts) => {
 
 					await expectRevert(
 						gov.propose.call(targets, values, signatures, callDatas, "do nothing"),
-						"revert GovernorAlpha::propose: one live proposal per proposer, found an already active proposal"
+						"GovernorAlpha::propose: one live proposal per proposer, found an already active proposal"
 					);
 				});
 			});

@@ -351,9 +351,7 @@ contract ISovrynBrownie is
 		uint256 amount
 	) external returns (uint256 withdrawAmount);
 
-	function withdrawAllAffiliatesReferrerTokenFees(
-		address receiver
-	) external;
+	function withdrawAllAffiliatesReferrerTokenFees(address receiver) external;
 
 	// function getAffiliatesUserReferrer(address user) external returns ; //AUDIT: do we need it to be public?
 

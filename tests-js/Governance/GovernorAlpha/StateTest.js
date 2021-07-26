@@ -87,7 +87,7 @@ contract("GovernorAlpha#state/1", (accounts) => {
 	});
 
 	it("Invalid for proposal not found", async () => {
-		await expectRevert(gov.state.call("5"), "revert GovernorAlpha::state: invalid proposal id");
+		await expectRevert(gov.state.call("5"), "GovernorAlpha::state: invalid proposal id");
 	});
 
 	it("Pending", async () => {
@@ -292,7 +292,7 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		// await mineBlock();
 
 		//cancel proposal
-		await expectRevert(gov.cancel(proposalId, { from: acct }), "revert GovernorAlpha::cancel: sender isn't a guardian");
+		await expectRevert(gov.cancel(proposalId, { from: acct }), "GovernorAlpha::cancel: sender isn't a guardian");
 	});
 
 	async function deployGovernor() {
