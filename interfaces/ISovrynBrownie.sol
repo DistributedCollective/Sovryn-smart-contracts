@@ -120,6 +120,7 @@ contract ISovrynBrownie is
 	) external;
 
 	function getSpecialRebates(address sourceToken, address destToken) external view returns (uint256 specialRebatesPercent);
+	function togglePaused(bool paused) external;
 
 	////// Loan Settings //////
 

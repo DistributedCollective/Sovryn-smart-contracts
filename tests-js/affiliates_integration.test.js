@@ -1,7 +1,7 @@
 const { assert } = require("chai");
 const { waffle } = require("hardhat");
 const { deployMockContract } = waffle;
-const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
+const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
 const sovrynProtocol = artifacts.require("sovrynProtocol");
 const LoanToken = artifacts.require("LoanToken");
 const LockedSOV = artifacts.require("LockedSOV");
@@ -77,15 +77,15 @@ contract("Affiliates", (accounts) => {
 
 		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
 
-		loanTokenLogic = await LoanTokenLogicStandard.new();
+		loanTokenLogic = await LoanTokenLogicLM.new();
 		testWrbtc = await TestWrbtc.new();
 		doc = await TestToken.new("dollar on chain", "DOC", 18, wei("20000", "ether"));
 		tokenSOV = await SOV.new(TOTAL_SUPPLY);
 		loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 		await loanToken.initialize(doc.address, "SUSD", "SUSD");
 
-		// loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address);
-		loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address); //mocked for ad-hoc logic for isolated testing
+		// loanTokenV2 = await LoanTokenLogicLM.at(loanToken.address);
+		loanTokenV2 = await LoanTokenLogicLM.at(loanToken.address); //mocked for ad-hoc logic for isolated testing
 		const loanTokenAddress = await loanToken.loanTokenAddress();
 		if (owner == (await sovryn.owner())) {
 			await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
@@ -189,7 +189,7 @@ contract("Affiliates", (accounts) => {
 	it("Test affiliates integration with underlying token", async () => {
 		//  Change the min referrals to payout to 3 for testing purposes
 		await sovryn.setMinReferralsToPayoutAffiliates(3);
-		loanTokenLogic = await LoanTokenLogicStandard.new();
+		loanTokenLogic = await LoanTokenLogicLM.new();
 
 		const loanTokenSent = wei("21", "ether");
 		const leverageAmount = web3.utils.toWei("2", "ether");
@@ -435,7 +435,7 @@ contract("Affiliates", (accounts) => {
 
 		//  Change the min referrals to payout to 3 for testing purposes
 		await sovryn.setMinReferralsToPayoutAffiliates(3);
-		loanTokenLogic = await LoanTokenLogicStandard.new();
+		loanTokenLogic = await LoanTokenLogicLM.new();
 
 		const loanTokenSent = wei("21", "ether");
 		const leverageAmount = web3.utils.toWei("2", "ether");

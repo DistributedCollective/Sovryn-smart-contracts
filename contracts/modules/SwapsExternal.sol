@@ -10,6 +10,7 @@ import "../core/State.sol";
 import "../mixins/VaultController.sol";
 import "../swaps/SwapsUser.sol";
 import "../swaps/ISwapsImpl.sol";
+import "./ModuleCommonFunctionalities.sol";
 
 /**
  * @title Swaps External contract.
@@ -19,7 +20,7 @@ import "../swaps/ISwapsImpl.sol";
  *
  * This contract contains functions to calculate and execute swaps.
  * */
-contract SwapsExternal is VaultController, SwapsUser {
+contract SwapsExternal is VaultController, SwapsUser, ModuleCommonFunctionalities {
 	/**
 	 * @notice Empty public constructor.
 	 * */
@@ -38,9 +39,11 @@ contract SwapsExternal is VaultController, SwapsUser {
 	 * @param target The address of the target contract.
 	 * */
 	function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.swapExternal.selector];
 		_setTarget(this.swapExternal.selector, target);
 		_setTarget(this.getSwapExpectedReturn.selector, target);
 		_setTarget(this.checkPriceDivergence.selector, target);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "SwapsExternal");
 	}
 
 	/**
@@ -69,7 +72,7 @@ contract SwapsExternal is VaultController, SwapsUser {
 		uint256 requiredDestTokenAmount,
 		uint256 minReturn,
 		bytes memory swapData
-	) public payable nonReentrant returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
+	) public payable nonReentrant whenNotPaused returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
 		require(sourceTokenAmount != 0, "sourceTokenAmount == 0");
 		checkPriceDivergence(sourceToken, destToken, sourceTokenAmount, minReturn);
 
