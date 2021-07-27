@@ -233,3 +233,19 @@ def setSupportedToken(tokenAddress):
     sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     data = sovryn.setSupportedTokens.encode_input([tokenAddress],[True])
     sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+
+def upgradeStaking():
+    print('Deploying account:', conf.acct.address)
+    print("Upgrading staking")
+
+    # Deploy the staking logic contracts
+    # Commented out: Instead of redeploying logic again, use the previous logic for testnet
+    # stakingLogic = conf.acct.deploy(Staking)
+    # print("New staking logic address:", stakingLogic.address)
+    
+    # Get the proxy contract instance
+    stakingProxy = Contract.from_abi("StakingProxy", address=conf.contracts['Staking'], abi=StakingProxy.abi, owner=conf.acct)
+
+    # Register logic in Proxy
+    data = staking.setImplementation.encode_input(contracts['StakingLogic'])
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
