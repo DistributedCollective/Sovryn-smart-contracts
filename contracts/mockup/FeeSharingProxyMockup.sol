@@ -1,6 +1,6 @@
 pragma solidity ^0.5.17;
 
-import "../governance/FeeSharingProxy.sol";
+import "../governance/FeeSharingProxy/FeeSharingProxy.sol";
 
 contract FeeSharingProxyMockup is FeeSharingProxy {
 	struct TestData {
@@ -11,7 +11,10 @@ contract FeeSharingProxyMockup is FeeSharingProxy {
 
 	TestData public testData;
 
-	constructor(IProtocol _protocol, IStaking _staking) public FeeSharingProxy(_protocol, _staking) {}
+	constructor(IProtocol _protocol, IStaking _staking) public {
+		protocol = _protocol;
+		staking = _staking;
+	}
 
 	function withdraw(
 		address _loanPoolToken,

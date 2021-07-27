@@ -1,7 +1,7 @@
 pragma solidity ^0.5.17;
 
 /**
- * @title Interface for contract governance/FeeSharingProxy.sol
+ * @title Interface for contract governance/FeeSharingProxy/FeeSharingProxy.sol
  * @dev Interfaces are used to cast a contract address into a callable instance.
  * */
 interface IFeeSharingProxy {

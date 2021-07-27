@@ -25,6 +25,7 @@ const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
 
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
+const FeeSharingProxyGateway = artifacts.require("FeeSharingProxyGateway");
 const FeeSharingProxyMockup = artifacts.require("FeeSharingProxyMockup");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
@@ -55,6 +56,8 @@ contract("FeeSharingProxy:", (accounts) => {
 	let SOVToken, susd, wrbtc, staking;
 	let protocol;
 	let loanTokenSettings, loanTokenLogic, loanToken;
+	let feeSharingProxyGateway;
+	let feeSharingProxyLogic;
 	let feeSharingProxy;
 	let loanTokenWrbtc;
 	let tradingFeePercent;
@@ -100,8 +103,12 @@ contract("FeeSharingProxy:", (accounts) => {
 		loanToken = await LoanTokenLogic.at(loanToken.address);
 		await loanToken.setAdmin(root);
 		await protocol.setLoanPool([loanToken.address], [susd.address]);
+
 		//FeeSharingProxy
-		feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address);
+		feeSharingProxyLogic = await FeeSharingProxy.new();
+		feeSharingProxyGateway = await FeeSharingProxyGateway.new(protocol.address, staking.address);
+		await feeSharingProxyGateway.setImplementation(feeSharingProxyLogic.address);
+		feeSharingProxy = await FeeSharingProxy.at(feeSharingProxyGateway.address);
 		await protocol.setFeesController(feeSharingProxy.address);
 
 		// Set loan pool for wRBTC -- because our fee sharing proxy required the loanPool of wRBTC
@@ -136,6 +143,24 @@ contract("FeeSharingProxy:", (accounts) => {
 		tradingFeePercent = await protocol.tradingFeePercent();
 		await lend_btc_before_cashout(loanTokenWrbtc, new BN(wei("10", "ether")), root);
 	});
+
+	describe("FeeSharingProxyGateway", () => {
+		it("Check owner & implementation", async() => {
+			const proxyOwner = await feeSharingProxyGateway.getProxyOwner();
+			const implementation = await feeSharingProxyGateway.getImplementation();
+
+			expect(implementation).to.be.equal( feeSharingProxyLogic.address );
+			expect(proxyOwner).to.be.equal( root );
+		})
+
+		it("Set new implementation", async() => {
+			const newFeeSharingProxyLogic = await FeeSharingProxy.new();
+			const newFeeSharingProxyImpl = await feeSharingProxyGateway.setImplementation(newFeeSharingProxyLogic.address);
+			const newImplementation = await feeSharingProxyGateway.getImplementation();
+
+			expect(newImplementation).to.be.equal( newFeeSharingProxyLogic.address );
+		})
+	})
 
 	describe("withdrawFees", () => {
 		it("Shouldn't be able to use zero token address", async () => {

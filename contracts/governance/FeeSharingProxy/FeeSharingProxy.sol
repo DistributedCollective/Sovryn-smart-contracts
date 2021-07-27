@@ -1,12 +1,12 @@
 pragma solidity ^0.5.17;
 
-import "./Staking/SafeMath96.sol";
-import "../openzeppelin/SafeMath.sol";
-import "../openzeppelin/SafeERC20.sol";
-import "../openzeppelin/Ownable.sol";
-import "./IFeeSharingProxy.sol";
-import "./Staking/IStaking.sol";
-import "../openzeppelin/Address.sol";
+import "../Staking/SafeMath96.sol";
+import "../../openzeppelin/SafeMath.sol";
+import "../../openzeppelin/SafeERC20.sol";
+import "../../openzeppelin/Ownable.sol";
+import "../IFeeSharingProxy.sol";
+import "../../openzeppelin/Address.sol";
+import "./FeeSharingProxyStorage.sol";
 
 /**
  * @title The FeeSharingProxy contract.
@@ -41,44 +41,9 @@ import "../openzeppelin/Address.sol";
  * get pool tokens. It is planned to add the option to convert anything to rBTC
  * before withdrawing, but not yet implemented.
  * */
-contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
+contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingProxyStorage {
 	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
-
-	/* Storage */
-
-	/// @dev TODO FEE_WITHDRAWAL_INTERVAL, MAX_CHECKPOINTS
-	uint256 constant FEE_WITHDRAWAL_INTERVAL = 86400;
-
-	uint32 constant MAX_CHECKPOINTS = 100;
-
-	IProtocol public protocol;
-	IStaking public staking;
-
-	/// @notice Checkpoints by index per pool token address
-	mapping(address => mapping(uint256 => Checkpoint)) public tokenCheckpoints;
-
-	/// @notice The number of checkpoints for each pool token address.
-	mapping(address => uint32) public numTokenCheckpoints;
-
-	/// @notice
-	/// user => token => processed checkpoint
-	mapping(address => mapping(address => uint32)) public processedCheckpoints;
-
-	/// @notice Last time fees were withdrawn per pool token address:
-	/// token => time
-	mapping(address => uint256) public lastFeeWithdrawalTime;
-
-	/// @notice Amount of tokens that were transferred, but not saved in checkpoints.
-	/// token => amount
-	mapping(address => uint96) public unprocessedAmount;
-
-	struct Checkpoint {
-		uint32 blockNumber;
-		uint32 timestamp;
-		uint96 totalWeightedStake;
-		uint96 numTokens;
-	}
 
 	/* Events */
 
@@ -95,11 +60,6 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 	event UserFeeWithdrawn(address indexed sender, address indexed receiver, address indexed token, uint256 amount);
 
 	/* Functions */
-
-	constructor(IProtocol _protocol, IStaking _staking) public {
-		protocol = _protocol;
-		staking = _staking;
-	}
 
 	/**
 	 * @notice Withdraw fees for the given token:
@@ -364,22 +324,6 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 }
 
 /* Interfaces */
-
-interface IProtocol {
-	/**
-	 *
-	 * @param tokens The array address of the token instance.
-	 * @param receiver The address of the withdrawal recipient.
-	 *
-	 * @return The withdrawn total amount in wRBTC
-	 * */
-	function withdrawFees(address[] calldata tokens, address receiver) external returns (uint256);
-
-	function underlyingToLoanPool(address token) external returns (address);
-
-	function wrbtcToken() external returns (address);
-}
-
 interface ILoanToken {
 	function mint(address receiver, uint256 depositAmount) external returns (uint256 mintAmount);
 }

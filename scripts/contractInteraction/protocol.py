@@ -242,6 +242,11 @@ def deployConversionFeeSharingToWRBTC():
     feeSharing = conf.acct.deploy(FeeSharingProxy, conf.contracts['sovrynProtocol'], conf.contracts['Staking'])
     print("Fee sharing proxy redeployed at: ", feeSharing.address)
 
+    print("Set implementation for FeeSharingProxy logic")
+    feeSharingProxyGateway = Contract.from_abi("FeeSharingProxyGateway", address=contracts['FeeSharingProxy2'], abi=FeeSharingProxy.abi, owner=acct)
+    data = feeSharingProxyGateway.setImplementation.encode_input(feeSharing.address)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingProxyGateway.address, data, conf.acct)
+
     # Redeploy protocol settings
     replaceProtocolSettings()
 
@@ -250,3 +255,13 @@ def deployConversionFeeSharingToWRBTC():
 
     # Set Fees Controller
     setFeesController(feeSharing.address)
+
+def deployFeeSharingProxyGateway():
+    print("Deploy fee sharing proxy gateway")
+    feeSharingProxyGateway = conf.acct.deploy(FeeSharingProxyGateway, conf.contracts['sovrynProtocol'], conf.contracts['Staking'])
+    print(feeSharingProxyGateway.address)
+    print('FeeSharingProxyGateway owner: ', feeSharingProxyGateway.owner())
+    feeSharingProxyGateway.setProxyOwner(multisig)
+    print('New FeeSharingProxyGateway owner: ', feeSharingProxyGateway.owner())
+
+
