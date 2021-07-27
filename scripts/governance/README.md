@@ -31,6 +31,7 @@ brownie networks add rsk rsk-testnet host=https://testnet.sovryn.app/rpc chainid
 3. Interacting with Governance Contracts
 
 There are 5 different functions:
+
 - Calculate Voting Power
 - Stake Tokens
 - Current Voting Power
@@ -77,7 +78,7 @@ brownie run scripts/governance/last_proposal_created.py --network rsk-testnet
 
 - account : This is the account address used for checking the current voting power of that account, last proposal created by an account and also the account used for staking.
 - delegatee : The address of the delegatee (who will have the right to vote for the staked token).
-- SOV_Amount_To_Stake : This is the SOV amount to be staked. So, if you want to stake 1 SOV, then you only need to write `1`, not `1000000000000000000` (i.e. 1 * 10^18). The internal function will multiple the value passed here with `10^18`.
+- SOV_Amount_To_Stake : This is the SOV amount to be staked. So, if you want to stake 1 SOV, then you only need to write `1`, not `1000000000000000000` (i.e. 1 \* 10^18). The internal function will multiple the value passed here with `10^18`.
 - Time_To_Stake : This is the time in seconds to stake the tokens. Even though you pass a particular time, based on the closest two week block will be the stake time.
 - Proposal_Target : The address where the proposal will be executed.
 - Proposal_Signature : The function signature which will be called when the proposal is executed.

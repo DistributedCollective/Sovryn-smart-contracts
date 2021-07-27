@@ -8,19 +8,30 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [10.x, 12.x, 14.x]
+        node-version: [12.x, 14.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
-      with:
-        node-version: ${{ matrix.node-version }}
-    - run: npm ci
-    - run: npm run test-js
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Installing Packages
+        run: npm ci
+      - name: Checking Formatting
+        run: npm run lint && npm run prettier-check
+      - name: Increasing the memory
+        run: export NODE_OPTIONS="--max-old-space-size=7168"
+      - name: Running Test
+        run: npm run test-js
+      # - name: Code Coverage
+      #   run: npm run coverage
+      # - name: Coveralls GitHub Action
+      #   uses: coverallsapp/github-action@1.1.3
+      #   with:
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}

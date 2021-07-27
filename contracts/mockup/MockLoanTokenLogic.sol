@@ -2,10 +2,10 @@ pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../modules/Affiliates.sol";
-import "../connectors/loantoken/LoanTokenLogicStandard.sol";
+import "../connectors/loantoken/LoanTokenLogicLM.sol";
 import "../modules/interfaces/ProtocolAffiliatesInterface.sol";
 
-contract MockLoanTokenLogic is LoanTokenLogicStandard {
+contract MockLoanTokenLogic is LoanTokenLogicLM {
 	/*function getAffiliatesUserReferrer(address user) public view returns (address) {
 		return affiliatesUserReferrer[user]; // REFACTOR: will be useful if affiliatesUserReferrer visibillity is not public
 	}*/
