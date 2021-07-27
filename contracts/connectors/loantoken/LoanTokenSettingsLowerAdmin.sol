@@ -177,6 +177,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 		string memory funcId, /// example: "mint(uint256,uint256)"
 		bool isPaused
 	) public {
+		bool paused;
 		require(msg.sender == pauser, "onlyPauser");
 		/// keccak256("iToken_FunctionPause")
 		bytes32 slot =
@@ -186,6 +187,10 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 					uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
 				)
 			);
+		assembly {
+			paused := sload(slot)
+		}
+		require(paused != isPaused, "invalid");
 		assembly {
 			sstore(slot, isPaused)
 		}

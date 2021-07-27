@@ -130,7 +130,7 @@ contract("LoanTokenAdministration", (accounts) => {
 				prevFlag: false,
 				newFlag: true,
 			});
-
+			await expectRevert(localLoanToken.toggleFunctionPause(functionSignature, true), "invalid");
 			await expectRevert(open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]), "unauthorized");
 
 			// check if checkPause returns true
@@ -145,6 +145,7 @@ contract("LoanTokenAdministration", (accounts) => {
 				prevFlag: true,
 				newFlag: false,
 			});
+			await expectRevert(localLoanToken.toggleFunctionPause(functionSignature, false), "invalid");
 			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]);
 
 			// check if checkPause returns false
