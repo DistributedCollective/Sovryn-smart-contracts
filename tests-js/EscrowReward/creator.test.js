@@ -150,5 +150,4 @@ contract("Escrow Rewards (Creator Functions)", (accounts) => {
 		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
 		await escrowReward.withdrawTokensAndReward({ from: creator });
 	});
-
 });

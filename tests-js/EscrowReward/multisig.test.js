@@ -109,7 +109,10 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 	});
 
 	it("Multisig should not be able to withdraw all token to safeVault if not in Holding Phase.", async () => {
-		await expectRevert(newEscrowReward.withdrawTokensByMultisig(safeVault, { from: newMultisig }), "The contract is not in the right state.");
+		await expectRevert(
+			newEscrowReward.withdrawTokensByMultisig(safeVault, { from: newMultisig }),
+			"The contract is not in the right state."
+		);
 	});
 
 	it("Multisig should be approved before depositing reward tokens using depositRewardByMultisig.", async () => {

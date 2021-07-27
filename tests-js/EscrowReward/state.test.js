@@ -185,16 +185,8 @@ async function checkUserWithdraw(sovContract, lockedSOVContract, escrowRewardCon
 	// checkStatus(escrowRewardContract, [0,0,0,0,0,0,0,1,1,0], user, zero, zero, zero, zeroAddress, zeroAddress, zeroAddress, values[index], userReward, zero);
 	await escrowRewardContract.withdrawTokensAndReward({ from: user });
 	let afterUserBalance = await getTokenBalances(user, sovContract, lockedSOVContract);
-	assert.equal(
-		afterUserBalance[0],
-		beforeUserBalance[0] + values[index],
-		"User One SOV Token balance is not correct."
-	);
-	assert.equal(
-		afterUserBalance[1],
-		beforeUserBalance[1] + userReward,
-		"User One Reward Token balance is not correct."
-	);
+	assert.equal(afterUserBalance[0], beforeUserBalance[0] + values[index], "User One SOV Token balance is not correct.");
+	assert.equal(afterUserBalance[1], beforeUserBalance[1] + userReward, "User One Reward Token balance is not correct.");
 	await checkStatus(
 		escrowRewardContract,
 		[0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
@@ -252,26 +244,26 @@ async function sovAndRewardWithdraw(sov, lockedSOV, escrowReward, multisig, user
 
 /**
  * Function to create Escrow Reward.
- * 
- * @param {*} lockedSOV 
- * @param {*} sov 
- * @param {*} multisig 
- * @param {*} releaseTime 
- * @param {*} depositLimit 
- * @param {*} creator 
- * @returns 
+ *
+ * @param {*} lockedSOV
+ * @param {*} sov
+ * @param {*} multisig
+ * @param {*} releaseTime
+ * @param {*} depositLimit
+ * @param {*} creator
+ * @returns
  */
 async function createEscrowReward(lockedSOV, sov, multisig, releaseTime, depositLimit, creator) {
-		// Creating the contract instance.
-		let escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, releaseTime, depositLimit, { from: creator });
+	// Creating the contract instance.
+	let escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, releaseTime, depositLimit, { from: creator });
 
-		// Marking the contract as active.
-		await escrowReward.init({ from: multisig });
+	// Marking the contract as active.
+	await escrowReward.init({ from: multisig });
 
-		// Adding the contract as an admin in the lockedSOV.
-		await lockedSOV.addAdmin(escrowReward.address, { from: multisig });
+	// Adding the contract as an admin in the lockedSOV.
+	await lockedSOV.addAdmin(escrowReward.address, { from: multisig });
 
-		return escrowReward;
+	return escrowReward;
 }
 
 contract("Escrow Rewards (State)", (accounts) => {
@@ -424,15 +416,11 @@ contract("Escrow Rewards (State)", (accounts) => {
 		await sov.mint(userOne, value);
 		await sov.approve(escrowReward.address, value, { from: userOne });
 
-		let [beforeUserTokenBalance,] = await getTokenBalances(userOne, sov, lockedSOV);
+		let [beforeUserTokenBalance] = await getTokenBalances(userOne, sov, lockedSOV);
 		await escrowReward.depositTokens(value, { from: userOne });
-		let [afterUserTokenBalance,] = await getTokenBalances(userOne, sov, lockedSOV);
+		let [afterUserTokenBalance] = await getTokenBalances(userOne, sov, lockedSOV);
 
-		assert.equal(
-			beforeUserTokenBalance,
-			afterUserTokenBalance + limit,
-			"The user SOV balance is not right."
-		);
+		assert.equal(beforeUserTokenBalance, afterUserTokenBalance + limit, "The user SOV balance is not right.");
 		await checkStatus(
 			escrowReward,
 			[1, 0, 0, 0, 0, 0, 0, 1, 0, 0],
@@ -455,9 +443,9 @@ contract("Escrow Rewards (State)", (accounts) => {
 
 		await sov.mint(userTwo, value);
 		await sov.approve(escrowReward.address, value, { from: userTwo });
-		let [beforeUserTokenBalance, ] = await getTokenBalances(userTwo, sov, lockedSOV);
+		let [beforeUserTokenBalance] = await getTokenBalances(userTwo, sov, lockedSOV);
 		await escrowReward.depositTokens(value, { from: userTwo });
-		let [afterUserTokenBalance, ] = await getTokenBalances(userTwo, sov, lockedSOV);
+		let [afterUserTokenBalance] = await getTokenBalances(userTwo, sov, lockedSOV);
 
 		assert.equal(beforeUserTokenBalance, afterUserTokenBalance, "The userTwo SOV balance is not right.");
 	});
@@ -485,16 +473,16 @@ contract("Escrow Rewards (State)", (accounts) => {
 		let totalValue = await sov.balanceOf(escrowReward.address);
 
 		await escrowReward.withdrawTokensByMultisig(safeVault, { from: multisig });
-		let [contractBalance, ] = await getTokenBalances(escrowReward.address, sov, lockedSOV);
+		let [contractBalance] = await getTokenBalances(escrowReward.address, sov, lockedSOV);
 		assert.equal(contractBalance, zero, "Contract SOV Token balance should be zero.");
-		let [safeVaultBalance, ] = await getTokenBalances(safeVault, sov, lockedSOV);
+		let [safeVaultBalance] = await getTokenBalances(safeVault, sov, lockedSOV);
 		assert.equal(safeVaultBalance, totalValue, "SafeVault SOV Token balance is not correct.");
 	});
 
 	it("Multisig token deposit should change the contract state to Withdraw.", async () => {
 		let value = await sov.balanceOf(safeVault);
-		let totalValueOne = Math.ceil(value/2);
-		let totalValueTwo = Math.floor(value/2);
+		let totalValueOne = Math.ceil(value / 2);
+		let totalValueTwo = Math.floor(value / 2);
 
 		await sov.mint(multisig, value);
 		await sov.approve(escrowReward.address, value, { from: multisig });
@@ -515,7 +503,7 @@ contract("Escrow Rewards (State)", (accounts) => {
 			zero,
 			holdingStatus
 		);
-		let [contractBalance, ] = await getTokenBalances(escrowReward.address, sov, lockedSOV);
+		let [contractBalance] = await getTokenBalances(escrowReward.address, sov, lockedSOV);
 		assert.equal(contractBalance, totalValueOne, "Contract SOV Token balance is not correct.");
 
 		await escrowReward.depositTokensByMultisig(totalValueTwo, { from: multisig });
@@ -535,7 +523,7 @@ contract("Escrow Rewards (State)", (accounts) => {
 			zero,
 			withdrawStatus
 		);
-		[contractBalance, ] = await getTokenBalances(escrowReward.address, sov, lockedSOV);
+		[contractBalance] = await getTokenBalances(escrowReward.address, sov, lockedSOV);
 		assert.equal(contractBalance, value, "Contract SOV Token balance is not correct.");
 	});
 
