@@ -38,7 +38,7 @@ function currentTimestamp() {
 }
 
 contract("Escrow Rewards (Multisig Functions)", (accounts) => {
-	let escrowReward, sov, lockedSOV;
+	let escrowReward, newEscrowReward, sov, lockedSOV;
 	let creator, multisig, newMultisig, safeVault, userOne, userTwo, userThree, userFour, userFive;
 
 	before("Initiating Accounts & Creating Test Token Instance.", async () => {
@@ -51,9 +51,7 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 
 		// Creating the instance of LockedSOV Contract.
 		lockedSOV = await LockedSOV.new(sov.address, [multisig]);
-	});
 
-	beforeEach("Creating New Escrow Contract Instance.", async () => {
 		// Creating the contract instance.
 		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
 
@@ -66,12 +64,12 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 
 	it("Multisig should be able to call the init() function.", async () => {
 		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
-		await escrowReward.init({ from: multisig });
+		newEscrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
+		await newEscrowReward.init({ from: multisig });
 	});
 
 	it("Multisig should be able to update the Multisig.", async () => {
-		await escrowReward.updateMultisig(newMultisig, { from: multisig });
+		await newEscrowReward.updateMultisig(newMultisig, { from: multisig });
 	});
 
 	it("Multisig should not be able to update the Multisig with a Zero Address.", async () => {
@@ -90,6 +88,7 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 		let value = randomValue() + 1;
 		await sov.mint(userOne, value);
 		await sov.approve(escrowReward.address, value, { from: userOne });
+		await escrowReward.updateDepositLimit(value, { from: multisig });
 		await escrowReward.depositTokens(value, { from: userOne });
 		await expectRevert(
 			escrowReward.updateDepositLimit(value - 1, { from: multisig }),
@@ -102,48 +101,46 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 	});
 
 	it("Multisig should not be able to change the contract to Holding State twice.", async () => {
-		await escrowReward.changeStateToHolding({ from: multisig });
 		await expectRevert(escrowReward.changeStateToHolding({ from: multisig }), "The contract is not in the right state.");
 	});
 
 	it("Multisig should be able to withdraw all token to safeVault.", async () => {
-		await escrowReward.changeStateToHolding({ from: multisig });
-
 		await escrowReward.withdrawTokensByMultisig(safeVault, { from: multisig });
 	});
 
 	it("Multisig should not be able to withdraw all token to safeVault if not in Holding Phase.", async () => {
-		await expectRevert(escrowReward.withdrawTokensByMultisig(safeVault, { from: multisig }), "The contract is not in the right state.");
+		await expectRevert(newEscrowReward.withdrawTokensByMultisig(safeVault, { from: newMultisig }), "The contract is not in the right state.");
+	});
+
+	it("Multisig should be approved before depositing reward tokens using depositRewardByMultisig.", async () => {
+		await expectRevert(escrowReward.depositRewardByMultisig(randomValue() + 1, { from: multisig }), "invalid transfer");
+	});
+
+	it("Multisig should not be able to deposit zero reward tokens using depositRewardByMultisig.", async () => {
+		await expectRevert(escrowReward.depositRewardByMultisig(zero, { from: multisig }), "Amount needs to be bigger than zero.");
+	});
+
+	it("Multisig should be able to deposit reward tokens using depositRewardByMultisig.", async () => {
+		let reward = randomValue() + 1;
+		await sov.mint(multisig, reward);
+		await sov.approve(escrowReward.address, reward, { from: multisig });
+		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
 	});
 
 	it("Multisig should be able to deposit tokens using depositTokensByMultisig.", async () => {
 		let value = randomValue() + 1;
-		await sov.mint(userOne, value);
-		await sov.approve(escrowReward.address, value, { from: userOne });
-		await escrowReward.depositTokens(value, { from: userOne });
-
-		await escrowReward.changeStateToHolding({ from: multisig });
-
-		await escrowReward.withdrawTokensByMultisig(safeVault, { from: multisig });
-
 		await sov.mint(multisig, value);
 		await sov.approve(escrowReward.address, value, { from: multisig });
 		await escrowReward.depositTokensByMultisig(value, { from: multisig });
 	});
 
-	it("Multisig should not be able to deposit zero tokens using depositTokensByMultisig.", async () => {
-		let value = randomValue() + 1;
-		await sov.mint(userOne, value);
-		await sov.approve(escrowReward.address, value, { from: userOne });
-		await escrowReward.depositTokens(value, { from: userOne });
-
-		await escrowReward.changeStateToHolding({ from: multisig });
-
-		await expectRevert(escrowReward.depositTokensByMultisig(zero, { from: multisig }), "Amount needs to be bigger than zero.");
+	it("Multisig should not be able to deposit tokens using depositTokensByMultisig if not in Holding State.", async () => {
+		await expectRevert(newEscrowReward.depositTokensByMultisig(zero, { from: newMultisig }), "The contract is not in the right state.");
 	});
 
-	it("Multisig should not be able to deposit tokens using depositTokensByMultisig if not in Holding State.", async () => {
-		await expectRevert(escrowReward.depositTokensByMultisig(zero, { from: multisig }), "The contract is not in the right state.");
+	it("Multisig should not be able to deposit zero tokens using depositTokensByMultisig.", async () => {
+		await newEscrowReward.changeStateToHolding({ from: newMultisig });
+		await expectRevert(newEscrowReward.depositTokensByMultisig(zero, { from: newMultisig }), "Amount needs to be bigger than zero.");
 	});
 
 	it("Multisig should be able to update the Locked SOV Address.", async () => {
@@ -155,18 +152,16 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 		await expectRevert(escrowReward.updateLockedSOV(zeroAddress, { from: multisig }), "Invalid Reward Token Address.");
 	});
 
-	it("Multisig should be able to deposit reward tokens using depositRewardByMultisig.", async () => {
-		let reward = randomValue() + 1;
-		await sov.mint(multisig, reward);
-		await sov.approve(escrowReward.address, reward, { from: multisig });
-		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
-	});
-
-	it("Multisig should be approved before depositing reward tokens using depositRewardByMultisig.", async () => {
-		await expectRevert(escrowReward.depositRewardByMultisig(randomValue() + 1, { from: multisig }), "invalid transfer");
-	});
-
 	it("Multisig should not be able to deposit reward tokens using depositRewardByMultisig during Withdraw State.", async () => {
+		// Creating the contract instance.
+		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
+
+		// Marking the contract as active.
+		await escrowReward.init({ from: multisig });
+
+		// Adding the contract as an admin in the lockedSOV.
+		await lockedSOV.addAdmin(escrowReward.address, { from: multisig });
+
 		let value = randomValue() + 1;
 		await sov.mint(userOne, value);
 		await sov.approve(escrowReward.address, value, { from: userOne });
@@ -187,9 +182,5 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 			escrowReward.depositRewardByMultisig(reward, { from: multisig }),
 			"Reward Token deposit is only allowed before User Withdraw starts."
 		);
-	});
-
-	it("Multisig should not be able to deposit zero reward tokens using depositRewardByMultisig.", async () => {
-		await expectRevert(escrowReward.depositRewardByMultisig(zero, { from: multisig }), "Amount needs to be bigger than zero.");
 	});
 });

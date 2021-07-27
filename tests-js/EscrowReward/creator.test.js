@@ -52,9 +52,7 @@ contract("Escrow Rewards (Creator Functions)", (accounts) => {
 
 		// Creating the instance of LockedSOV Contract.
 		lockedSOV = await LockedSOV.new(sov.address, [multisig]);
-	});
 
-	beforeEach("Creating New Escrow Contract Instance.", async () => {
 		// Creating the contract instance.
 		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
 
@@ -67,7 +65,7 @@ contract("Escrow Rewards (Creator Functions)", (accounts) => {
 
 	it("Creator should be able to create Escrow Contract without specifying the locked sov contract.", async () => {
 		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(zeroAddress, sov.address, multisig, zero, depositLimit, { from: creator });
+		newEscrowReward = await EscrowReward.new(zeroAddress, sov.address, multisig, zero, depositLimit, { from: creator });
 	});
 
 	it("Creator should not be able to create Escrow Contract without specifying the sov contract.", async () => {
@@ -87,8 +85,6 @@ contract("Escrow Rewards (Creator Functions)", (accounts) => {
 	});
 
 	it("Creator should not be able to call the init() function.", async () => {
-		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
 		await expectRevert(escrowReward.init({ from: creator }), "Only Multisig can call this.");
 	});
 
@@ -132,47 +128,27 @@ contract("Escrow Rewards (Creator Functions)", (accounts) => {
 		await expectRevert(escrowReward.depositTokensByMultisig(zero, { from: creator }), "Only Multisig can call this.");
 	});
 
-	it("Creator should be able to withdraw all his tokens and bonus in the Withdraw State.", async () => {
-		let value = randomValue() + 100;
-		let reward = Math.ceil(value / 100);
-		await sov.mint(creator, value);
-		await sov.approve(escrowReward.address, value, { from: creator });
-		await escrowReward.depositTokens(value, { from: creator });
-
-		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
-		await escrowReward.changeStateToHolding({ from: multisig });
-		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
-
-		await sov.mint(multisig, reward);
-		await sov.approve(escrowReward.address, reward, { from: multisig });
-		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
-
-		await sov.approve(escrowReward.address, value, { from: multisig });
-		await escrowReward.depositTokensByMultisig(value, { from: multisig });
-
-		await escrowReward.withdrawTokensAndReward({ from: creator });
-	});
-
 	it("Creator should not be able to withdraw unless in the Withdraw State.", async () => {
 		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
-		let value = randomValue() + 100;
-		await sov.mint(creator, value);
-		await sov.approve(escrowReward.address, value, { from: creator });
-		await escrowReward.depositTokens(value, { from: creator });
-
 		await expectRevert(escrowReward.withdrawTokensAndReward({ from: creator }), "The contract is not in the right state.");
 	});
 
 	it("Creator should not be able to withdraw unless the Release Time has not passed.", async () => {
-		let value = randomValue() + 100;
-		await sov.mint(creator, value);
-		await sov.approve(escrowReward.address, value, { from: creator });
-		await escrowReward.depositTokens(value, { from: creator });
-		await escrowReward.changeStateToHolding({ from: multisig });
+		await escrowReward.updateReleaseTimestamp(currentTimestamp() + 100, { from: multisig });
+
+		let oldSOVBal = await sov.balanceOf(multisig);
 		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
+		let newSOVBal = await sov.balanceOf(multisig);
+		let value = newSOVBal - oldSOVBal;
 		await sov.approve(escrowReward.address, value, { from: multisig });
 		await escrowReward.depositTokensByMultisig(value, { from: multisig });
 
 		await expectRevert(escrowReward.withdrawTokensAndReward({ from: creator }), "The release time has not started yet.");
 	});
+
+	it("Creator should be able to withdraw all his tokens and bonus in the Withdraw State.", async () => {
+		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
+		await escrowReward.withdrawTokensAndReward({ from: creator });
+	});
+
 });

@@ -50,9 +50,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 
 		// Creating the instance of LockedSOV Contract.
 		lockedSOV = await LockedSOV.new(sov.address, [multisig]);
-	});
 
-	beforeEach("Creating New Escrow Contract Instance.", async () => {
 		// Creating the contract instance.
 		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
 
@@ -64,8 +62,6 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 	});
 
 	it("Except Multisig, no one should be able to call the init() function.", async () => {
-		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
 		await expectRevert(escrowReward.init({ from: userOne }), "Only Multisig can call this.");
 	});
 
@@ -119,6 +115,37 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 		await expectRevert(escrowReward.depositTokensByMultisig(zero, { from: userOne }), "Only Multisig can call this.");
 	});
 
+	it("No one should be able to withdraw unless the Release Time has not set (i.e. Zero).", async () => {
+		let oldSOVBal = await sov.balanceOf(multisig);
+		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
+		let newSOVBal = await sov.balanceOf(multisig);
+		let value = newSOVBal - oldSOVBal;
+		await sov.approve(escrowReward.address, value, { from: multisig });
+		await escrowReward.depositTokensByMultisig(value, { from: multisig });
+
+		await expectRevert(escrowReward.withdrawTokensAndReward({ from: userOne }), "The release time has not started yet.");
+	});
+
+	it("No one should be able to withdraw unless in the Withdraw State.", async () => {
+		// Creating the contract instance.
+		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
+
+		// Marking the contract as active.
+		await escrowReward.init({ from: multisig });
+
+		// Adding the contract as an admin in the lockedSOV.
+		await lockedSOV.addAdmin(escrowReward.address, { from: multisig });
+
+		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
+
+		await expectRevert(escrowReward.withdrawTokensAndReward({ from: userOne }), "The contract is not in the right state.");
+	});
+
+	it("No one should be able to withdraw unless the Release Time has not passed.", async () => {
+		await escrowReward.updateReleaseTimestamp(currentTimestamp() + 3000, { from: multisig });
+		await expectRevert(escrowReward.withdrawTokensAndReward({ from: userOne }), "The release time has not started yet.");
+	});
+
 	it("Anyone should be able to withdraw all his tokens and bonus in the Withdraw State.", async () => {
 		let value = randomValue() + 100;
 		let reward = Math.ceil(value / 100);
@@ -133,20 +160,19 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
 		await sov.approve(escrowReward.address, value, { from: multisig });
 		await escrowReward.depositTokensByMultisig(value, { from: multisig });
-
-		// TODO Delete the next few line.
-		// let contractRewardBalance = await escrowReward.totalRewardDeposit();
-		// console.log("Contract Reward Balance: "+contractRewardBalance);
-		// let userContractBalance = await escrowReward.getUserBalance(userOne);
-		// console.log("User Contract Balance: "+userContractBalance);
-		// let contractReward = await escrowReward.getReward(userOne);
-		// console.log("Calculated Reward: "+reward);
-		// console.log("Contract Reward: "+contractReward);
-
 		await escrowReward.withdrawTokensAndReward({ from: userOne });
 	});
 
 	it("Multiple users should be able to withdraw all their tokens and corresponding rewards in the Withdraw State.", async () => {
+		// Creating the contract instance.
+		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
+
+		// Marking the contract as active.
+		await escrowReward.init({ from: multisig });
+
+		// Adding the contract as an admin in the lockedSOV.
+		await lockedSOV.addAdmin(escrowReward.address, { from: multisig });
+
 		let valueOne = randomValue() + 100;
 		await sov.mint(userOne, valueOne);
 		await sov.approve(escrowReward.address, valueOne, { from: userOne });
@@ -170,56 +196,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 		await sov.approve(escrowReward.address, totalDeposit, { from: multisig });
 		await escrowReward.depositTokensByMultisig(totalDeposit, { from: multisig });
 
-		// TODO Delete the next few line.
-		// let contractRewardBalance = await escrowReward.totalRewardDeposit();
-		// console.log("Contract Reward Balance: "+contractRewardBalance);
-		// let userOneContractBalance = await escrowReward.getUserBalance(userOne);
-		// console.log("userOne Contract Balance: "+userOneContractBalance);
-		// let userTwoContractBalance = await escrowReward.getUserBalance(userTwo);
-		// console.log("userTwo Contract Balance: "+userTwoContractBalance);
-		// let userOneContractReward = await escrowReward.getReward(userOne);
-		// let userTwoContractReward = await escrowReward.getReward(userTwo);
-		// console.log("userOne Contract Reward: "+userOneContractReward);
-		// console.log("userTwo Contract Reward: "+userTwoContractReward);
-
 		await escrowReward.withdrawTokensAndReward({ from: userOne });
 		await escrowReward.withdrawTokensAndReward({ from: userTwo });
-	});
-
-	it("No one should be able to withdraw unless in the Withdraw State.", async () => {
-		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
-		let value = randomValue() + 100;
-		await sov.mint(userOne, value);
-		await sov.approve(escrowReward.address, value, { from: userOne });
-		await escrowReward.depositTokens(value, { from: userOne });
-
-		await expectRevert(escrowReward.withdrawTokensAndReward({ from: userOne }), "The contract is not in the right state.");
-	});
-
-	it("No one should be able to withdraw unless the Release Time has not set (i.e. Zero).", async () => {
-		let value = randomValue() + 100;
-		await sov.mint(userOne, value);
-		await sov.approve(escrowReward.address, value, { from: userOne });
-		await escrowReward.depositTokens(value, { from: userOne });
-		await escrowReward.changeStateToHolding({ from: multisig });
-		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
-		await sov.approve(escrowReward.address, value, { from: multisig });
-		await escrowReward.depositTokensByMultisig(value, { from: multisig });
-
-		await expectRevert(escrowReward.withdrawTokensAndReward({ from: userOne }), "The release time has not started yet.");
-	});
-
-	it("No one should be able to withdraw unless the Release Time has not passed.", async () => {
-		await escrowReward.updateReleaseTimestamp(currentTimestamp() + 3000, { from: multisig });
-		let value = randomValue() + 100;
-		await sov.mint(userOne, value);
-		await sov.approve(escrowReward.address, value, { from: userOne });
-		await escrowReward.depositTokens(value, { from: userOne });
-		await escrowReward.changeStateToHolding({ from: multisig });
-		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
-		await sov.approve(escrowReward.address, value, { from: multisig });
-		await escrowReward.depositTokensByMultisig(value, { from: multisig });
-
-		await expectRevert(escrowReward.withdrawTokensAndReward({ from: userOne }), "The release time has not started yet.");
 	});
 });
