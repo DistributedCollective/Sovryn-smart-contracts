@@ -11,7 +11,8 @@ def lendToPool(loanTokenAddress, tokenAddress, amount):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     if(token.allowance(conf.acct, loanToken.address) < amount):
         token.approve(loanToken.address, amount)
-    loanToken.mint(conf.acct, amount)
+    tx = loanToken.mint(conf.acct, amount)
+    tx.info()
 
 def lendToPoolWithMS(loanTokenAddress, tokenAddress, amount):
     token = Contract.from_abi("TestToken", address = tokenAddress, abi = TestToken.abi, owner = conf.acct)
@@ -24,7 +25,9 @@ def lendToPoolWithMS(loanTokenAddress, tokenAddress, amount):
 
 def removeFromPool(loanTokenAddress, amount):
     loanToken = Contract.from_abi("loanToken", address = loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
-    loanToken.burn(conf.acct, amount)
+    tx = loanToken.burn(conf.acct, amount)
+    tx.info()
+    return tx
 
 def readLoanTokenState(loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
@@ -347,16 +350,36 @@ def readLiquidity():
     bal = tokenContract.balanceOf(conf.contracts['ConverterUSDT'])
     print("supply of rBTC on swap", bal/1e18)
 
+def testSwapsExternal(underlyingTokenAddress, collateralTokenAddress, amount):
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    underlyingToken = Contract.from_abi("TestToken", address=underlyingTokenAddress, abi=ERC20.abi, owner=conf.acct)
+
+    receiver = conf.acct
+    tx = underlyingToken.approve(conf.contracts['sovrynProtocol'], amount)
+    tx.info()
+
+    tx = sovryn.swapExternal(
+        underlyingTokenAddress,
+        collateralTokenAddress,
+        receiver,
+        receiver,
+        amount,
+        0,
+        0,
+        b'',
+        {"value": 0, "allow_revert": True})
+    tx.info()
 
 # Notes: This function will do:
-# 1. tradeOpenAndClosingWithoutCollateral (using amountUnderlying that is sent)
-# 2. lendToPool (using amountUnderlying that is sent)
+# 1. tradeOpenAndClosingWithoutCollateral (using amountUnderlying that is sent in the arguments)
+# 2. lendToPool (using amountUnderlying that is sent in the arguments)
 # 3. removeFromPool (50% of the lending)
-# 4. tradeOpenAndClosingWithCollateral (using amountCollateral that is sent)
-# 5. Test borrow (using amountCollateral that is sent)
+# 4. tradeOpenAndClosingWithCollateral (using amountCollateral that is sent in the arguments)
+# 5. Test borrow (using amountCollateral that is sent in the arguments)
+# 6. SwapsExternal (using amountUnderlying that is sent in the arguments)
 #
 # WARN:
-# 1. make sure you have 2 times balance of underlyingTokenAddress
+# 1. make sure you have 3 times balance of underlyingTokenAddress
 # 2. make sure you have 2 times balance of amountCollateral
 def wrappedIntegrationTest(loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, amountUnderlying, amountCollateral):
     sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
@@ -392,12 +415,79 @@ def wrappedIntegrationTest(loanTokenAddress, underlyingTokenAddress, collateralT
 
     # ------------------------------------------------ Test Lend to Pool -------------------------------------------------------------------------------
     lendToPool(loanToken.address, underlyingTokenAddress, amountUnderlying)
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
+
+    # Verify
+    if prevUnderlyingBalance - updatedUnderlyingBalance != amountUnderlying:
+        raise Exception("Updated underyling balance is not matched with the amount that was lent")
+
+    prevUnderlyingBalance = updatedUnderlyingBalance
+    prevCollateralBalance = updatedCollateralBalance
 
     # ------------------------------------------------ Test Remove from Pool -------------------------------------------------------------------------------
     removeFromPool(loanToken.address, 0.5*(amountUnderlying))
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
+
+    prevUnderlyingBalance = updatedUnderlyingBalance
+    prevCollateralBalance = updatedCollateralBalance
 
     # ------------------------------------------------ Test Trade Open & Close with collateral -------------------------------------------------------------------------------
     testTradeOpeningAndClosingWithCollateral(sovryn.address, loanToken.address, underlyingTokenAddress, collateralTokenAddress, amountCollateral, 2e18, True, 0)
 
-    # # ------------------------------------------------ Test Borrow -------------------------------------------------------------------------------
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
+
+
+    prevUnderlyingBalance = updatedUnderlyingBalance
+    prevCollateralBalance = updatedCollateralBalance
+
+
+    # ------------------------------------------------ Test Borrow -------------------------------------------------------------------------------
     testBorrow(sovryn.address, loanToken.address, underlyingTokenAddress, collateralTokenAddress, amountCollateral)
+
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
+
+
+    # ------------------------------------------------ Test External Swap -------------------------------------------------------------------------------
+    testSwapsExternal(underlyingTokenAddress, collateralTokenAddress, amountUnderlying)
+
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
