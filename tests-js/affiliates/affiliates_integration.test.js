@@ -40,7 +40,7 @@ const { expect } = require("hardhat");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 
-const { decodeLogs } = require("./Utils/initializer.js");
+const { decodeLogs } = require("../Utils/initializer.js");
 let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
 let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 
