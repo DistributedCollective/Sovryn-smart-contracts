@@ -136,6 +136,7 @@ contract("Affiliates", (accounts) => {
 		await sovryn.setFeesController(owner);
 		await sovryn.setWrbtcToken(testWrbtc.address);
 		await sovryn.setSOVTokenAddress(tokenSOV.address);
+		await sovryn.setProtocolTokenAddress(sovryn.address);
 
 		{
 			/**
@@ -202,6 +203,7 @@ contract("Affiliates", (accounts) => {
 			0, //
 			testWrbtc.address, // collateralTokenAddress
 			trader, // trader
+			0, // max slippage
 			referrer, // referrer address
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
@@ -257,6 +259,7 @@ contract("Affiliates", (accounts) => {
 			0, //
 			testWrbtc.address, // collateralTokenAddress
 			trader, // trader
+			0, // max slippage
 			referrer, // referrer address
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
@@ -446,6 +449,7 @@ contract("Affiliates", (accounts) => {
 			0, //
 			testWrbtc.address, // collateralTokenAddress
 			trader, // trader
+			0, // max slippage
 			referrer, // referrer address
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
@@ -496,7 +500,8 @@ contract("Affiliates", (accounts) => {
 			0, //
 			testWrbtc.address, // collateralTokenAddress
 			trader, // trader
-			referrer, // referrer address
+			0, // max slippage
+			referrer, // referrer address,
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
 		);

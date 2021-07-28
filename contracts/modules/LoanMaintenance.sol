@@ -207,7 +207,14 @@ contract LoanMaintenance is
 
 		LoanInterest storage loanInterestLocal = loanInterest[loanLocal.id];
 
-		_settleFeeRewardForInterestExpense(loanInterestLocal, loanLocal.id, loanParamsLocal.loanToken, loanLocal.borrower, block.timestamp);
+		_settleFeeRewardForInterestExpense(
+			loanInterestLocal,
+			loanLocal.id,
+			loanParamsLocal.loanToken, /// fee token
+			loanParamsLocal.collateralToken, /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
+			loanLocal.borrower,
+			block.timestamp
+		);
 
 		/// Handle back interest: calculates interest owned since the loan
 		/// endtime passed but the loan remained open.
@@ -285,7 +292,14 @@ contract LoanMaintenance is
 
 		LoanInterest storage loanInterestLocal = loanInterest[loanLocal.id];
 
-		_settleFeeRewardForInterestExpense(loanInterestLocal, loanLocal.id, loanParamsLocal.loanToken, loanLocal.borrower, block.timestamp);
+		_settleFeeRewardForInterestExpense(
+			loanInterestLocal,
+			loanLocal.id,
+			loanParamsLocal.loanToken, /// fee token
+			loanParamsLocal.collateralToken, /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
+			loanLocal.borrower,
+			block.timestamp
+		);
 
 		uint256 interestDepositRemaining = loanLocal.endTimestamp.sub(block.timestamp).mul(loanInterestLocal.owedPerDay).div(86400);
 		require(withdrawAmount < interestDepositRemaining, "withdraw amount too high");

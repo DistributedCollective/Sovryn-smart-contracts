@@ -74,7 +74,7 @@ contract("Pause Modules", (accounts) => {
 		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
 		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
-		SOV = await getSOV(sovryn, priceFeeds, SUSD);
+		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
 		//Token
 		underlyingToken = await TestToken.new("Test token", "TST", 18, TOTAL_SUPPLY);
@@ -113,6 +113,7 @@ contract("Pause Modules", (accounts) => {
 			0, // no collateral token sent
 			RBTC.address, // collateralTokenAddress
 			borrower, // trader,
+			0, // slippage
 			"0x", // loanDataBytes (only required with ether)
 			{ from: borrower }
 		);
