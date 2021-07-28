@@ -106,3 +106,15 @@ def checkRates():
 def readPriceFeedFor(tokenAddress):
     feeds = Contract.from_abi("PriceFeeds", address= conf.contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = conf.acct)
     print(feeds.pricesFeeds(tokenAddress))
+
+def deployOracleV1Pool():
+    oraclePoolAsset = conf.contracts["OracleV1Pool-WRBTC/SOV"] #WRBTC/SOV -- for SOV asset
+    oracleV1PoolPriceFeed = conf.acct.deploy(PriceFeedV1PoolOracle, oraclePoolAsset, conf.contracts['WRBTC'], conf.contracts['DoC'])
+    print("new oracle v1 pool price feed: ", oracleV1PoolPriceFeed.address)
+
+    feeds = Contract.from_abi("PriceFeeds", address= conf.contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = conf.acct)
+    data = feeds.setPriceFeed.encode_input([conf.contracts['SOV']], [oracleV1PoolPriceFeed.address])
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    tx = multisig.submitTransaction(feeds.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid: ",txId)
