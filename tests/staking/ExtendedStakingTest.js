@@ -454,6 +454,7 @@ contract("Staking", (accounts) => {
 				staker: root,
 				previousDate: lockedTS,
 				newDate: await getTimeFromKickoff(MAX_DURATION),
+				amount: amount,
 			});
 		});
 
@@ -507,6 +508,7 @@ contract("Staking", (accounts) => {
 				staker: root,
 				previousDate: lockedTS,
 				newDate: newLockedTS,
+				amount: amount,
 			});
 		});
 	});
@@ -734,7 +736,7 @@ contract("Staking", (accounts) => {
 			expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
 			expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(2);
 
-			expectEvent(tx2, "TokensWithdrawn", {
+			expectEvent(tx2, "StakingWithdrawn", {
 				staker: root,
 				amount: new BN(amount / 2),
 			});

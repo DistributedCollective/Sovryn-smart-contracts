@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { BN } = require("@openzeppelin/test-helpers");
+const { BN, expectEvent } = require("@openzeppelin/test-helpers");
 const { increaseTime, blockNumber } = require("../Utils/Ethereum.js");
 
 const {
@@ -18,6 +18,8 @@ const {
 	lend_to_pool,
 	open_margin_trade_position,
 } = require("../Utils/initializer.js");
+
+const InterestUser = artifacts.require("InterestUser");
 
 contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 	let owner;
@@ -55,6 +57,7 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 			const initial_block_timestamp = lastBlock.timestamp;
 
 			const loan = await sovryn.getLoan(loan_id);
+			//console.log("loan = " + loan);
 			const lender = loanToken.address;
 
 			// Time travel
@@ -63,9 +66,30 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 
 			const end_interest_data_1 = await sovryn.getLenderInterestData(lender, SUSD.address);
 			expect(end_interest_data_1["interestPaid"] == "0").to.be.true;
+			// console.log("end_interest_data_1[interestUnPaid] = " + end_interest_data_1["interestUnPaid"]);
+			// console.log("end_interest_data_1[interestFeePercent] = " + end_interest_data_1["interestFeePercent"]);
+
+			const feesApplied = new BN(end_interest_data_1["interestUnPaid"])
+				.mul(end_interest_data_1["interestFeePercent"])
+				.div(new BN(10).pow(new BN(20)));
 
 			// lend to pool to call settle interest which calls withdrawAccruedInterest
-			await lend_to_pool(loanToken, SUSD, owner);
+			// let tx = await lend_to_pool(loanToken, SUSD, owner);
+			// Instead of using lend_to_pool, use explicit transactions in order to capture
+			// the event PayInterestTransfer when loanToken.mint
+
+			const lend_amount = new BN(10).pow(new BN(30)).toString();
+			await SUSD.mint(lender, lend_amount);
+			await SUSD.approve(loanToken.address, lend_amount);
+			let tx = await loanToken.mint(lender, lend_amount);
+
+			// Check the event PayInterestTransfer is reporting properly
+			await expectEvent.inTransaction(tx.receipt.rawLogs[0].transactionHash, InterestUser, "PayInterestTransfer", {
+				interestToken: loan["loanToken"],
+				lender: lender,
+				effectiveInterest: new BN(end_interest_data_1["interestUnPaid"]).sub(feesApplied),
+			});
+
 			const end_interest_data_2 = await sovryn.getLenderInterestData(lender, SUSD.address);
 
 			num = await blockNumber();
