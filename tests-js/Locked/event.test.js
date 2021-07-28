@@ -309,5 +309,4 @@ contract("Locked SOV (Events)", (accounts) => {
 			_amount: new BN(Math.ceil(value / 2)),
 		});
 	});
-
 });

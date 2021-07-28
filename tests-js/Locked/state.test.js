@@ -306,9 +306,9 @@ contract("Locked SOV (State)", (accounts) => {
 		let value = await userDeposits(sov, lockedSOV, userOne, userOne, basisPoint);
 		let unlockedBal = Math.floor((value * basisPoint) / 10000);
 		let lockedBal = value - unlockedBal + fLockedBal;
-		let [beforeBal,,] = await getTokenBalances(userOne, sov, lockedSOV);
+		let [beforeBal, ,] = await getTokenBalances(userOne, sov, lockedSOV);
 		await lockedSOV.withdraw(zeroAddress, { from: userOne });
-		let [afterBal,,] = await getTokenBalances(userOne, sov, lockedSOV);
+		let [afterBal, ,] = await getTokenBalances(userOne, sov, lockedSOV);
 		await checkStatus(
 			lockedSOV,
 			[1, 1, 1, 1, 1, 1, 1, 1],
@@ -329,9 +329,9 @@ contract("Locked SOV (State)", (accounts) => {
 		let basisPoint = 5000;
 		let value = await userDeposits(sov, lockedSOV, userOne, userOne, basisPoint);
 		let unlockedBal = Math.floor((value * basisPoint) / 10000);
-		let [beforeBal,,] = await getTokenBalances(userTwo, sov, lockedSOV);
+		let [beforeBal, ,] = await getTokenBalances(userTwo, sov, lockedSOV);
 		await lockedSOV.withdraw(userTwo, { from: userOne });
-		let [afterBal,,] = await getTokenBalances(userTwo, sov, lockedSOV);
+		let [afterBal, ,] = await getTokenBalances(userTwo, sov, lockedSOV);
 		assert.equal(afterBal, beforeBal + unlockedBal, "Correct amount was not withdrawn.");
 	});
 
@@ -407,11 +407,11 @@ contract("Locked SOV (State)", (accounts) => {
 		await lockedSOV.deposit(userTwo, value, basisPoint, { from: userTwo });
 
 		let unlockedBal = Math.floor((value * basisPoint) / 10000);
-		let [beforeBal,,] = await getTokenBalances(userTwo, sov, lockedSOV);
+		let [beforeBal, ,] = await getTokenBalances(userTwo, sov, lockedSOV);
 
 		await lockedSOV.withdrawAndStakeTokens(userTwo, { from: userTwo });
 
-		let [afterBal,,] = await getTokenBalances(userTwo, sov, lockedSOV);
+		let [afterBal, ,] = await getTokenBalances(userTwo, sov, lockedSOV);
 		assert.equal(afterBal, beforeBal + unlockedBal, "Correct amount was not withdrawn.");
 
 		vestingAddr = await vestingRegistry.getVesting(userTwo);
@@ -436,11 +436,11 @@ contract("Locked SOV (State)", (accounts) => {
 		await lockedSOV.deposit(userFour, value, basisPoint, { from: userFour });
 
 		let unlockedBal = Math.floor((value * basisPoint) / 10000);
-		let [beforeBal,,] = await getTokenBalances(userFour, sov, lockedSOV);
+		let [beforeBal, ,] = await getTokenBalances(userFour, sov, lockedSOV);
 
 		await lockedSOV.withdrawAndStakeTokensFrom(userFour, { from: userOne });
 
-		let [afterBal,,] = await getTokenBalances(userFour, sov, lockedSOV);
+		let [afterBal, ,] = await getTokenBalances(userFour, sov, lockedSOV);
 		assert.equal(afterBal, beforeBal + unlockedBal, "Correct amount was not withdrawn.");
 
 		vestingAddr = await vestingRegistry.getVesting(userFour);
