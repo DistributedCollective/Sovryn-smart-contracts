@@ -8,7 +8,7 @@ const ProtocolSettings = artifacts.require("ProtocolSettings");
 const ISovryn = artifacts.require("ISovryn");
 
 const LoanToken = artifacts.require("LoanToken");
-const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
+const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
@@ -18,9 +18,12 @@ const SwapsExternal = artifacts.require("SwapsExternal");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplLocal = artifacts.require("SwapsImplLocal");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 
 const Affiliates = artifacts.require("Affiliates");
+
+const SOV = artifacts.require("SOV");
+const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 
@@ -61,7 +64,7 @@ contract("LoanTokenLending", (accounts) => {
 
 		feeds = await PriceFeedsLocal.new(rBTC.address, sovryn.address);
 		await feeds.setRates(underlyingToken.address, rBTC.address, wei("0.01", "ether"));
-		const swaps = await SwapsImplLocal.new();
+		const swaps = await SwapsImplSovrynSwap.new();
 		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
 		await sovryn.setSupportedTokens([underlyingToken.address, rBTC.address], [true, true]);
@@ -73,10 +76,15 @@ contract("LoanTokenLending", (accounts) => {
 		);
 		await sovryn.setFeesController(lender);
 
-		loanTokenLogicStandard = await LoanTokenLogicStandard.new();
+		tokenSOV = await SOV.new(TOTAL_SUPPLY);
+		await sovryn.setLockedSOVAddress((await LockedSOVMockup.new(tokenSOV.address, [lender])).address);
+		await sovryn.setProtocolTokenAddress(tokenSOV.address);
+		await sovryn.setSOVTokenAddress(tokenSOV.address);
+
+		loanTokenLogicStandard = await LoanTokenLogicLM.new();
 		loanToken = await LoanToken.new(lender, loanTokenLogicStandard.address, sovryn.address, rBTC.address);
 		await loanToken.initialize(underlyingToken.address, name, symbol); //iToken
-		loanToken = await LoanTokenLogicStandard.at(loanToken.address);
+		loanToken = await LoanTokenLogicLM.at(loanToken.address);
 
 		params = [
 			"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object

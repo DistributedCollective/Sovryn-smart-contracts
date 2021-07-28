@@ -58,7 +58,7 @@ contract("GovernorAlpha#queue/1", (accounts) => {
 
 			const txVote1 = await gov.castVote(proposalId1, true, { from: a1 });
 			await advanceBlocks(10);
-			await expectRevert(gov.queue(proposalId1), "revert GovernorAlpha::_queueOrRevert: proposal action already queued at eta");
+			await expectRevert(gov.queue(proposalId1), "GovernorAlpha::_queueOrRevert: proposal action already queued at eta");
 		});
 
 		it("reverts on queueing overlapping actions in different proposals, works if waiting; using Ganache", async () => {
@@ -96,7 +96,7 @@ contract("GovernorAlpha#queue/1", (accounts) => {
 
 			await expectRevert(
 				gov.queueProposals([proposalId1, proposalId2]),
-				"revert GovernorAlpha::_queueOrRevert: proposal action already queued at eta"
+				"GovernorAlpha::_queueOrRevert: proposal action already queued at eta"
 			);
 
 			await gov.queue(proposalId1);

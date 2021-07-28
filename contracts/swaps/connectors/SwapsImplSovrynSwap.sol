@@ -54,7 +54,7 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
 	 *
 	 * @param sourceTokenAddress The address of the source tokens.
 	 * @param destTokenAddress The address of the destination tokens.
-	 * @param receiverAddress The address to receive the swapped tokens.
+	 * @param receiverAddress The address who will received the swap token results
 	 * @param returnToSenderAddress The address to return unspent tokens to (when called by the protocol, it's always the protocol contract).
 	 * @param minSourceTokenAmount The minimum amount of source tokens to swapped (only considered if requiredDestTokens == 0).
 	 * @param maxSourceTokenAmount The maximum amount of source tokens to swapped.
@@ -105,7 +105,7 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
 
 		/// @dev Note: the kyber connector uses .call() to interact with kyber
 		/// to avoid bubbling up. here we allow bubbling up.
-		destTokenAmountReceived = sovrynSwapNetwork.convertByPath(path, sourceTokenAmountUsed, minReturn, address(0), address(0), 0);
+		destTokenAmountReceived = sovrynSwapNetwork.convertByPath(path, sourceTokenAmountUsed, minReturn, receiverAddress, address(0), 0);
 
 		/// If the sender is not the protocol (calling with delegatecall),
 		/// return the remainder to the specified address.

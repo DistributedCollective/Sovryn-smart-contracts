@@ -11,6 +11,7 @@ import "../events/LoanOpeningsEvents.sol";
 import "../mixins/VaultController.sol";
 import "../mixins/InterestUser.sol";
 import "../swaps/SwapsUser.sol";
+import "./ModuleCommonFunctionalities.sol";
 
 /**
  * @title Loan Openings contract.
@@ -20,7 +21,7 @@ import "../swaps/SwapsUser.sol";
  *
  * This contract contains functions to borrow and trade.
  * */
-contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, SwapsUser {
+contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, SwapsUser, ModuleCommonFunctionalities {
 	constructor() public {}
 
 	/**
@@ -36,11 +37,13 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 	 * @param target The address of the target contract.
 	 * */
 	function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.borrowOrTradeFromPool.selector];
 		_setTarget(this.borrowOrTradeFromPool.selector, target);
 		_setTarget(this.setDelegatedManager.selector, target);
 		_setTarget(this.getEstimatedMarginExposure.selector, target);
 		_setTarget(this.getRequiredCollateral.selector, target);
 		_setTarget(this.getBorrowAmount.selector, target);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanOpenings");
 	}
 
 	/**
@@ -79,7 +82,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 		address[4] calldata sentAddresses,
 		uint256[5] calldata sentValues,
 		bytes calldata loanDataBytes
-	) external payable nonReentrant returns (uint256 newPrincipal, uint256 newCollateral) {
+	) external payable nonReentrant whenNotPaused returns (uint256 newPrincipal, uint256 newCollateral) {
 		require(msg.value == 0 || loanDataBytes.length != 0, "loanDataBytes required with ether");
 
 		/// Only callable by loan pools.
@@ -119,7 +122,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 		bytes32 loanId,
 		address delegated,
 		bool toggle
-	) external {
+	) external whenNotPaused {
 		require(loans[loanId].borrower == msg.sender, "unauthorized");
 
 		_setDelegatedManager(loanId, msg.sender, delegated, toggle);
@@ -334,11 +337,15 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 			require(sentValues[3] == 0, "surplus loan token");
 
 			uint256 borrowingFee = _getBorrowingFee(sentValues[4]);
+			// need to temp into local state to avoid
+			address _collateralToken = loanParamsLocal.collateralToken;
+			address _loanToken = loanParamsLocal.loanToken;
 			if (borrowingFee != 0) {
 				_payBorrowingFee(
 					sentAddresses[1], /// borrower
 					loanLocal.id,
-					loanParamsLocal.collateralToken,
+					_collateralToken, /// fee token
+					_loanToken, /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
 					borrowingFee
 				);
 
@@ -668,7 +675,14 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 
 		uint256 maxLoanTerm = loanParamsLocal.maxLoanTerm;
 
-		_settleFeeRewardForInterestExpense(loanInterestLocal, loanLocal.id, loanParamsLocal.loanToken, loanLocal.borrower, block.timestamp);
+		_settleFeeRewardForInterestExpense(
+			loanInterestLocal,
+			loanLocal.id,
+			loanParamsLocal.loanToken, /// fee token
+			loanParamsLocal.collateralToken, /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
+			loanLocal.borrower,
+			block.timestamp
+		);
 
 		uint256 previousDepositRemaining;
 		if (maxLoanTerm == 0 && loanLocal.endTimestamp != 0) {
