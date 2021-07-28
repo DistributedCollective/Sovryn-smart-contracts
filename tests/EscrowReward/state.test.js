@@ -5,6 +5,7 @@ const LockedSOV = artifacts.require("LockedSOVMockup"); // Ideally should be usi
 const SOV = artifacts.require("TestToken");
 
 const {
+	BN,
 	constants, // Assertions for transactions that should fail.
 } = require("@openzeppelin/test-helpers");
 
@@ -127,8 +128,8 @@ async function checkStatus(
  * @return [SOV Balance, Reward Token Balance].
  */
 async function getTokenBalances(addr, sovContract, lockedSOVContract) {
-	let sovBal = (await sovContract.balanceOf(addr)).toNumber();
-	let rewardBal = (await lockedSOVContract.getLockedBalance(addr)).toNumber();
+	let sovBal = new BN(await sovContract.balanceOf(addr));
+	let rewardBal = new BN(await lockedSOVContract.getLockedBalance(addr));
 	return [sovBal, rewardBal];
 }
 
@@ -185,8 +186,8 @@ async function checkUserWithdraw(sovContract, lockedSOVContract, escrowRewardCon
 	// checkStatus(escrowRewardContract, [0,0,0,0,0,0,0,1,1,0], user, zero, zero, zero, zeroAddress, zeroAddress, zeroAddress, values[index], userReward, zero);
 	await escrowRewardContract.withdrawTokensAndReward({ from: user });
 	let afterUserBalance = await getTokenBalances(user, sovContract, lockedSOVContract);
-	assert.equal(afterUserBalance[0], beforeUserBalance[0] + values[index], "User One SOV Token balance is not correct.");
-	assert.equal(afterUserBalance[1], beforeUserBalance[1] + userReward, "User One Reward Token balance is not correct.");
+	assert(afterUserBalance[0].eq(beforeUserBalance[0].add(new BN(values[index]))), "User One SOV Token balance is not correct.");
+	assert(afterUserBalance[1].eq(beforeUserBalance[1].add(new BN(userReward))), "User One Reward Token balance is not correct.");
 	await checkStatus(
 		escrowRewardContract,
 		[0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
@@ -420,7 +421,7 @@ contract("Escrow Rewards (State)", (accounts) => {
 		await escrowReward.depositTokens(value, { from: userOne });
 		let [afterUserTokenBalance] = await getTokenBalances(userOne, sov, lockedSOV);
 
-		assert.equal(beforeUserTokenBalance, afterUserTokenBalance + limit, "The user SOV balance is not right.");
+		assert(beforeUserTokenBalance.eq(afterUserTokenBalance.add(new BN(limit))), "The user SOV balance is not right.");
 		await checkStatus(
 			escrowReward,
 			[1, 0, 0, 0, 0, 0, 0, 1, 0, 0],
@@ -447,7 +448,7 @@ contract("Escrow Rewards (State)", (accounts) => {
 		await escrowReward.depositTokens(value, { from: userTwo });
 		let [afterUserTokenBalance] = await getTokenBalances(userTwo, sov, lockedSOV);
 
-		assert.equal(beforeUserTokenBalance, afterUserTokenBalance, "The userTwo SOV balance is not right.");
+		assert(beforeUserTokenBalance.eq(afterUserTokenBalance), "The userTwo SOV balance is not right.");
 	});
 
 	it("Changing the contract to Holding State should update the contract state.", async () => {
@@ -476,7 +477,7 @@ contract("Escrow Rewards (State)", (accounts) => {
 		let [contractBalance] = await getTokenBalances(escrowReward.address, sov, lockedSOV);
 		assert.equal(contractBalance, zero, "Contract SOV Token balance should be zero.");
 		let [safeVaultBalance] = await getTokenBalances(safeVault, sov, lockedSOV);
-		assert.equal(safeVaultBalance, totalValue, "SafeVault SOV Token balance is not correct.");
+		assert(safeVaultBalance.eq(totalValue), "SafeVault SOV Token balance is not correct.");
 	});
 
 	it("Multisig token deposit should change the contract state to Withdraw.", async () => {
@@ -524,7 +525,7 @@ contract("Escrow Rewards (State)", (accounts) => {
 			withdrawStatus
 		);
 		[contractBalance] = await getTokenBalances(escrowReward.address, sov, lockedSOV);
-		assert.equal(contractBalance, value, "Contract SOV Token balance is not correct.");
+		assert(contractBalance.eq(value), "Contract SOV Token balance is not correct.");
 	});
 
 	it("Updating the Reward Token Address should update the contract state.", async () => {

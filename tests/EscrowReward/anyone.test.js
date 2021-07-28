@@ -116,10 +116,10 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 	});
 
 	it("No one should be able to withdraw unless the Release Time has not set (i.e. Zero).", async () => {
-		let oldSOVBal = await sov.balanceOf(multisig);
+		let oldSOVBal = new BN(await sov.balanceOf(multisig));
 		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
-		let newSOVBal = await sov.balanceOf(multisig);
-		let value = newSOVBal - oldSOVBal;
+		let newSOVBal = new BN(await sov.balanceOf(multisig));
+		let value = newSOVBal.sub(oldSOVBal);
 		await sov.approve(escrowReward.address, value, { from: multisig });
 		await escrowReward.depositTokensByMultisig(value, { from: multisig });
 
