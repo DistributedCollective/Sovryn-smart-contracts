@@ -18,9 +18,12 @@ const SwapsExternal = artifacts.require("SwapsExternal");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplLocal = artifacts.require("SwapsImplLocal");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 
 const Affiliates = artifacts.require("Affiliates");
+
+const SOV = artifacts.require("SOV");
+const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 
@@ -61,7 +64,7 @@ contract("LoanTokenLending", (accounts) => {
 
 		feeds = await PriceFeedsLocal.new(rBTC.address, sovryn.address);
 		await feeds.setRates(underlyingToken.address, rBTC.address, wei("0.01", "ether"));
-		const swaps = await SwapsImplLocal.new();
+		const swaps = await SwapsImplSovrynSwap.new();
 		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
 		await sovryn.setSupportedTokens([underlyingToken.address, rBTC.address], [true, true]);
@@ -72,6 +75,11 @@ contract("LoanTokenLending", (accounts) => {
 			swaps.address // swapsImpl
 		);
 		await sovryn.setFeesController(lender);
+
+		tokenSOV = await SOV.new(TOTAL_SUPPLY);
+		await sovryn.setLockedSOVAddress((await LockedSOVMockup.new(tokenSOV.address, [lender])).address);
+		await sovryn.setProtocolTokenAddress(tokenSOV.address);
+		await sovryn.setSOVTokenAddress(tokenSOV.address);
 
 		loanTokenLogicStandard = await LoanTokenLogicLM.new();
 		loanToken = await LoanToken.new(lender, loanTokenLogicStandard.address, sovryn.address, rBTC.address);

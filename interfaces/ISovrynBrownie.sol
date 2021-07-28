@@ -113,6 +113,14 @@ contract ISovrynBrownie is
 
 	function setRebatePercent(uint256 rebatePercent) external;
 
+	function setSpecialRebates(
+		address sourceToken,
+		address destToken,
+		uint256 specialRebatesPercent
+	) external;
+
+	function getSpecialRebates(address sourceToken, address destToken) external view returns (uint256 specialRebatesPercent);
+
 	function togglePaused(bool paused) external;
 
 	////// Loan Settings //////
@@ -361,6 +369,8 @@ contract ISovrynBrownie is
 
 	function getLockedSOVAddress() external view returns (address);
 
+	function getFeeRebatePercent() external view returns (uint256);
+
 	function getMinReferralsToPayout() external view returns (uint256);
 
 	function getAffiliatesUserReferrer(address user) external view returns (address referrer);
@@ -368,4 +378,28 @@ contract ISovrynBrownie is
 	function getAffiliateRewardsHeld(address referrer) external view returns (uint256);
 
 	function getAffiliateTradingTokenFeePercent() external view returns (uint256 affiliateTradingTokenFeePercent);
+
+	function swapExternal(
+		address sourceToken,
+		address destToken,
+		address receiver,
+		address returnToSender,
+		uint256 sourceTokenAmount,
+		uint256 requiredDestTokenAmount,
+		uint256 minReturn,
+		bytes calldata swapData
+	) external returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
+
+	function getSwapExpectedReturn(
+		address sourceToken,
+		address destToken,
+		uint256 sourceTokenAmount
+	) external view returns (uint256);
+
+	function checkPriceDivergence(
+		address sourceToken,
+		address destToken,
+		uint256 sourceTokenAmount,
+		uint256 minReturn
+	) external view;
 }

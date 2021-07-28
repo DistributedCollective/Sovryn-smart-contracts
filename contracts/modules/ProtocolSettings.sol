@@ -70,13 +70,16 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		_setTarget(this.setProtocolTokenAddress.selector, target);
 		_setTarget(this.setRolloverBaseReward.selector, target);
 		_setTarget(this.setRebatePercent.selector, target);
+		_setTarget(this.setSpecialRebates.selector, target);
 		_setTarget(this.setSovrynProtocolAddress.selector, target);
 		_setTarget(this.setSOVTokenAddress.selector, target);
 		_setTarget(this.setLockedSOVAddress.selector, target);
 		_setTarget(this.setMinReferralsToPayoutAffiliates.selector, target);
+		_setTarget(this.getSpecialRebates.selector, target);
 		_setTarget(this.getProtocolAddress.selector, target);
 		_setTarget(this.getSovTokenAddress.selector, target);
 		_setTarget(this.getLockedSOVAddress.selector, target);
+		_setTarget(this.getFeeRebatePercent.selector, target);
 		_setTarget(this.togglePaused.selector, target);
 		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "ProtocolSettings");
 	}
@@ -586,6 +589,37 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		emit SetRebatePercent(msg.sender, oldRebatePercent, rebatePercent);
 	}
 
+	/**
+	 * @notice Set the special fee rebate percent for specific pair
+	 *
+	 * @param specialRebatesPercent The new special fee rebate percent.
+	 * */
+	function setSpecialRebates(
+		address sourceToken,
+		address destToken,
+		uint256 specialRebatesPercent
+	) external onlyOwner {
+		// Set max special rebates to 1000%
+		require(specialRebatesPercent <= 1000e18, "Special fee rebate is too high");
+
+		uint256 oldSpecialRebatesPercent = specialRebates[sourceToken][destToken];
+		specialRebates[sourceToken][destToken] = specialRebatesPercent;
+
+		emit SetSpecialRebates(msg.sender, sourceToken, destToken, oldSpecialRebatesPercent, specialRebatesPercent);
+	}
+
+	/**
+	 * @notice Get a rebate percent of specific pairs.
+	 *
+	 * @param sourceTokenAddress The source of pairs.
+	 * @param destTokenAddress The dest of pairs.
+	 *
+	 * @return The percent rebates of the pairs.
+	 * */
+	function getSpecialRebates(address sourceTokenAddress, address destTokenAddress) external view returns (uint256 specialRebatesPercent) {
+		return specialRebates[sourceTokenAddress][destTokenAddress];
+	}
+
 	function getProtocolAddress() external view returns (address) {
 		return protocolAddress;
 	}
@@ -596,6 +630,10 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 
 	function getLockedSOVAddress() external view returns (address) {
 		return lockedSOVAddress;
+	}
+
+	function getFeeRebatePercent() external view returns (uint256) {
+		return feeRebatePercent;
 	}
 
 	function togglePaused(bool paused) external onlyOwner {
