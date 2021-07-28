@@ -25,10 +25,10 @@ jobs:
         run: npm ci
       - name: Checking Formatting
         run: npm run lint && npm run prettier-check
-      - name: Increasing the memory
-        run: export NODE_OPTIONS="--max-old-space-size=7168"
       - name: Running Test
-        run: npm run test-js
+        run: npm run test
+      # - name: Increasing the memory
+      #   run: export NODE_OPTIONS="--max-old-space-size=7168"
       # - name: Code Coverage
       #   run: npm run coverage
       # - name: Coveralls GitHub Action
