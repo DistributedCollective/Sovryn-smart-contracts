@@ -763,7 +763,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 				collateralTokenAmount = newPrincipal.mul(sourceToDestPrecision).mul(marginAmount).div(sourceToDestRate).div(10**20);*/
 			}
 		}
-		// ./tests-js/loan-token/TradingTestToken.test.js
+		// ./tests/loan-token/TradingTestToken.test.js
 		if (isTorqueLoan && collateralTokenAmount != 0) {
 			collateralTokenAmount = collateralTokenAmount.mul(10**20).div(marginAmount).add(collateralTokenAmount);
 		}
