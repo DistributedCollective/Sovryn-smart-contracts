@@ -314,5 +314,5 @@ def upgradeStaking():
     stakingProxy = Contract.from_abi("StakingProxy", address=conf.contracts['Staking'], abi=StakingProxy.abi, owner=conf.acct)
 
     # Register logic in Proxy
-    data = staking.setImplementation.encode_input(contracts['StakingLogic'])
+    data = stakingProxy.setImplementation.encode_input(contracts['StakingLogic'])
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
