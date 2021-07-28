@@ -598,7 +598,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		address sourceToken,
 		address destToken,
 		uint256 specialRebatesPercent
-	) external onlyOwner {
+	) external onlyOwner whenNotPaused {
 		// Set max special rebates to 1000%
 		require(specialRebatesPercent <= 1000e18, "Special fee rebate is too high");
 

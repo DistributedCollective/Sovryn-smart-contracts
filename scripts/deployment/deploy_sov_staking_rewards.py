@@ -38,9 +38,6 @@ def main():
 
     # ================================ SOV Staking Rewards - SIP-0024 ===================================
 
-    # deploy Initializable
-    initializable = acct.deploy(Initializable)
-
     # deploy VestingRegistryLogic
     stakingRewardsLogic = acct.deploy(StakingRewards)
     stakingRewardsProxy = acct.deploy(StakingRewardsProxy)
