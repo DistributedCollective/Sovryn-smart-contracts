@@ -52,13 +52,11 @@ contract("Locked SOV (Creator Functions)", (accounts) => {
 			feeSharingProxy.address,
 			creator // This should be Governance Timelock Contract.
 		);
-		vestingFactory.transferOwnership(vestingRegistry.address);
+		await vestingFactory.transferOwnership(vestingRegistry.address);
 
 		// Creating the instance of newLockedSOV Contract.
 		newLockedSOV = await LockedSOV.new(sov.address, vestingRegistry.address, cliff, duration, [admin]);
-	});
 
-	beforeEach("Creating New Locked SOV Contract Instance.", async () => {
 		// Creating the instance of LockedSOV Contract.
 		lockedSOV = await LockedSOV.new(sov.address, vestingRegistry.address, cliff, duration, [admin]);
 

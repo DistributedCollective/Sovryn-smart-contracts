@@ -62,13 +62,12 @@ contract("Locked SOV (Any User Functions)", (accounts) => {
 			feeSharingProxy.address,
 			creator // This should be Governance Timelock Contract.
 		);
-		vestingFactory.transferOwnership(vestingRegistry.address);
+		await vestingFactory.transferOwnership(vestingRegistry.address);
 
 		// Creating the instance of newLockedSOV Contract.
 		newLockedSOV = await LockedSOV.new(sov.address, vestingRegistry.address, cliff, duration, [admin]);
-	});
+		await vestingRegistry.addAdmin(newLockedSOV.address);
 
-	beforeEach("Creating New Locked SOV Contract Instance.", async () => {
 		// Creating the instance of LockedSOV Contract.
 		lockedSOV = await LockedSOV.new(sov.address, vestingRegistry.address, cliff, duration, [admin]);
 
@@ -143,7 +142,7 @@ contract("Locked SOV (Any User Functions)", (accounts) => {
 
 	it("No one can use createVestingAndStake() if he does not have any locked sov balance.", async () => {
 		await expectRevert(
-			lockedSOV.createVestingAndStake({ from: userOne }),
+			newLockedSOV.createVestingAndStake({ from: userOne }),
 			"Staking::stake: amount of tokens to stake needs to be bigger than 0"
 		);
 	});
@@ -193,6 +192,16 @@ contract("Locked SOV (Any User Functions)", (accounts) => {
 		await expectRevert(lockedSOV.startMigration(newLockedSOV.address, { from: userOne }), "Only admin can call this.");
 	});
 
+	it("No one can transfer locked balance using transfer() unless migration has started.", async () => {
+		let value = randomValue() + 10;
+		await sov.mint(userOne, value);
+		await sov.approve(lockedSOV.address, value, { from: userOne });
+		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
+		await lockedSOV.deposit(userOne, value, basisPoint, { from: userOne });
+
+		await expectRevert(lockedSOV.transfer({ from: userOne }), "Migration has not yet started.");
+	});
+
 	it("Anyone can transfer locked balance using transfer().", async () => {
 		let value = randomValue() + 10;
 		await sov.mint(userOne, value);
@@ -204,15 +213,5 @@ contract("Locked SOV (Any User Functions)", (accounts) => {
 		await lockedSOV.startMigration(newLockedSOV.address, { from: admin });
 
 		await lockedSOV.transfer({ from: userOne });
-	});
-
-	it("No one can transfer locked balance using transfer() unless migration has started.", async () => {
-		let value = randomValue() + 10;
-		await sov.mint(userOne, value);
-		await sov.approve(lockedSOV.address, value, { from: userOne });
-		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
-		await lockedSOV.deposit(userOne, value, basisPoint, { from: userOne });
-
-		await expectRevert(lockedSOV.transfer({ from: userOne }), "Migration has not yet started.");
 	});
 });

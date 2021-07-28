@@ -104,9 +104,9 @@ async function checkStatus(
  * @return [SOV Balance, Locked Balance, Unlocked Balance].
  */
 async function getTokenBalances(addr, sovContract, lockedSOVContract) {
-	let sovBal = await sovContract.balanceOf(addr);
-	let lockedBal = await lockedSOVContract.getLockedBalance(addr);
-	let unlockedBal = await lockedSOVContract.getUnlockedBalance(addr);
+	let sovBal = (await sovContract.balanceOf(addr)).toNumber();
+	let lockedBal = (await lockedSOVContract.getLockedBalance(addr)).toNumber();
+	let unlockedBal = (await lockedSOVContract.getUnlockedBalance(addr)).toNumber();
 	return [sovBal, lockedBal, unlockedBal];
 }
 
@@ -160,13 +160,11 @@ contract("Locked SOV (State)", (accounts) => {
 			feeSharingProxy.address,
 			creator // This should be Governance Timelock Contract.
 		);
-		vestingFactory.transferOwnership(vestingRegistry.address);
+		await vestingFactory.transferOwnership(vestingRegistry.address);
 
 		// Creating the instance of newLockedSOV Contract.
 		newLockedSOV = await LockedSOV.new(sov.address, vestingRegistry.address, cliff, duration, [admin]);
-	});
 
-	beforeEach("Creating New Locked SOV Contract Instance.", async () => {
 		// Creating the instance of LockedSOV Contract.
 		lockedSOV = await LockedSOV.new(sov.address, vestingRegistry.address, cliff, duration, [admin]);
 
@@ -221,20 +219,6 @@ contract("Locked SOV (State)", (accounts) => {
 	});
 
 	it("Removing a new user as Admin should correctly reflect in contract.", async () => {
-		await lockedSOV.addAdmin(newAdmin, { from: admin });
-		await checkStatus(
-			lockedSOV,
-			[1, 1, 1, 1, 1, 1, 1, 1],
-			newAdmin,
-			false,
-			cliff,
-			duration,
-			vestingRegistry.address,
-			zeroAddress,
-			zero,
-			zero,
-			true
-		);
 		await lockedSOV.removeAdmin(newAdmin, { from: admin });
 		await checkStatus(
 			lockedSOV,
@@ -259,9 +243,9 @@ contract("Locked SOV (State)", (accounts) => {
 			feeSharingProxy.address,
 			creator // This should be Governance Timelock Contract.
 		);
-		await lockedSOV.changeRegistryCliffAndDuration(newVestingRegistry.address, cliff + 1, duration + 1, { from: admin });
+		await newLockedSOV.changeRegistryCliffAndDuration(newVestingRegistry.address, cliff + 1, duration + 1, { from: admin });
 		await checkStatus(
-			lockedSOV,
+			newLockedSOV,
 			[1, 1, 1, 1, 1, 1, 1, 1],
 			admin,
 			false,
@@ -296,6 +280,7 @@ contract("Locked SOV (State)", (accounts) => {
 	});
 
 	it("Depositing Tokens using depositSOV() should update the user locked balances.", async () => {
+		let [tokenBal, lockedBal, unlockedBal] = await getTokenBalances(userOne, sov, lockedSOV);
 		let value = randomValue() + 1;
 		await sov.mint(userOne, value);
 		await sov.approve(lockedSOV.address, value, { from: userOne });
@@ -309,20 +294,21 @@ contract("Locked SOV (State)", (accounts) => {
 			duration,
 			vestingRegistry.address,
 			zeroAddress,
-			value,
-			zero,
+			value + lockedBal,
+			zero + unlockedBal,
 			false
 		);
 	});
 
 	it("Withdrawing unlocked tokens themselves using withdraw() should update the unlocked balance and should not affect locked balance.", async () => {
+		let [, fLockedBal, fUnlockedBal] = await getTokenBalances(userOne, sov, lockedSOV);
 		let basisPoint = 5000;
 		let value = await userDeposits(sov, lockedSOV, userOne, userOne, basisPoint);
 		let unlockedBal = Math.floor((value * basisPoint) / 10000);
-		let lockedBal = value - unlockedBal;
-		let beforeBal = await getTokenBalances(userOne, sov, lockedSOV);
+		let lockedBal = value - unlockedBal + fLockedBal;
+		let [beforeBal,,] = await getTokenBalances(userOne, sov, lockedSOV);
 		await lockedSOV.withdraw(zeroAddress, { from: userOne });
-		let afterBal = await getTokenBalances(userOne, sov, lockedSOV);
+		let [afterBal,,] = await getTokenBalances(userOne, sov, lockedSOV);
 		await checkStatus(
 			lockedSOV,
 			[1, 1, 1, 1, 1, 1, 1, 1],
@@ -336,17 +322,17 @@ contract("Locked SOV (State)", (accounts) => {
 			zero,
 			false
 		);
-		assert.equal(afterBal[0].toNumber(), beforeBal[0].toNumber() + unlockedBal, "Correct amount was not withdrawn.");
+		assert.equal(afterBal, beforeBal + unlockedBal + fUnlockedBal, "Correct amount was not withdrawn.");
 	});
 
 	it("Withdrawing unlocked tokens to someone else using withdraw() should update the token balance of that user.", async () => {
 		let basisPoint = 5000;
 		let value = await userDeposits(sov, lockedSOV, userOne, userOne, basisPoint);
 		let unlockedBal = Math.floor((value * basisPoint) / 10000);
-		let beforeBal = await getTokenBalances(userTwo, sov, lockedSOV);
+		let [beforeBal,,] = await getTokenBalances(userTwo, sov, lockedSOV);
 		await lockedSOV.withdraw(userTwo, { from: userOne });
-		let afterBal = await getTokenBalances(userTwo, sov, lockedSOV);
-		assert.equal(afterBal[0].toNumber(), beforeBal[0].toNumber() + unlockedBal, "Correct amount was not withdrawn.");
+		let [afterBal,,] = await getTokenBalances(userTwo, sov, lockedSOV);
+		assert.equal(afterBal, beforeBal + unlockedBal, "Correct amount was not withdrawn.");
 	});
 
 	it("Using createVestingAndStake() should create vesting address and stake tokens correctly.", async () => {
@@ -384,6 +370,12 @@ contract("Locked SOV (State)", (accounts) => {
 	});
 
 	it("Using stakeTokens() should correctly stake the locked tokens.", async () => {
+		// Creating the instance of LockedSOV Contract.
+		lockedSOV = await LockedSOV.new(sov.address, vestingRegistry.address, cliff, duration, [admin]);
+
+		// Adding lockedSOV as an admin in the Vesting Registry.
+		await vestingRegistry.addAdmin(lockedSOV.address);
+
 		let value = randomValue() + 10;
 		await sov.mint(userOne, value);
 		await sov.approve(lockedSOV.address, value, { from: userOne });
@@ -407,7 +399,6 @@ contract("Locked SOV (State)", (accounts) => {
 		}
 	});
 
-	// TODO from here
 	it("Using withdrawAndStakeTokens() should correctly withdraw all unlocked tokens and stake locked tokens correctly.", async () => {
 		let value = randomValue() + 10;
 		await sov.mint(userTwo, value);
@@ -416,12 +407,12 @@ contract("Locked SOV (State)", (accounts) => {
 		await lockedSOV.deposit(userTwo, value, basisPoint, { from: userTwo });
 
 		let unlockedBal = Math.floor((value * basisPoint) / 10000);
-		let beforeBal = await getTokenBalances(userTwo, sov, lockedSOV);
+		let [beforeBal,,] = await getTokenBalances(userTwo, sov, lockedSOV);
 
 		await lockedSOV.withdrawAndStakeTokens(userTwo, { from: userTwo });
 
-		let afterBal = await getTokenBalances(userTwo, sov, lockedSOV);
-		assert.equal(afterBal[0].toNumber(), beforeBal[0].toNumber() + unlockedBal, "Correct amount was not withdrawn.");
+		let [afterBal,,] = await getTokenBalances(userTwo, sov, lockedSOV);
+		assert.equal(afterBal, beforeBal + unlockedBal, "Correct amount was not withdrawn.");
 
 		vestingAddr = await vestingRegistry.getVesting(userTwo);
 		assert.notEqual(vestingAddr, zeroAddress, "Vesting Address should not be zero.");
@@ -445,12 +436,12 @@ contract("Locked SOV (State)", (accounts) => {
 		await lockedSOV.deposit(userFour, value, basisPoint, { from: userFour });
 
 		let unlockedBal = Math.floor((value * basisPoint) / 10000);
-		let beforeBal = await getTokenBalances(userFour, sov, lockedSOV);
+		let [beforeBal,,] = await getTokenBalances(userFour, sov, lockedSOV);
 
 		await lockedSOV.withdrawAndStakeTokensFrom(userFour, { from: userOne });
 
-		let afterBal = await getTokenBalances(userFour, sov, lockedSOV);
-		assert.equal(afterBal[0].toNumber(), beforeBal[0].toNumber() + unlockedBal, "Correct amount was not withdrawn.");
+		let [afterBal,,] = await getTokenBalances(userFour, sov, lockedSOV);
+		assert.equal(afterBal, beforeBal + unlockedBal, "Correct amount was not withdrawn.");
 
 		vestingAddr = await vestingRegistry.getVesting(userFour);
 		assert.notEqual(vestingAddr, zeroAddress, "Vesting Address should not be zero.");
@@ -497,6 +488,15 @@ contract("Locked SOV (State)", (accounts) => {
 	});
 
 	it("Using transfer() should correctly transfer locked token to new locked sov.", async () => {
+		// Creating the instance of newLockedSOV Contract.
+		newLockedSOV = await LockedSOV.new(sov.address, vestingRegistry.address, cliff, duration, [admin]);
+
+		// Creating the instance of LockedSOV Contract.
+		lockedSOV = await LockedSOV.new(sov.address, vestingRegistry.address, cliff, duration, [admin]);
+
+		// Adding lockedSOV as an admin in the Vesting Registry.
+		await vestingRegistry.addAdmin(lockedSOV.address);
+
 		let value = randomValue() + 10;
 		await sov.mint(userOne, value);
 		await sov.approve(lockedSOV.address, value, { from: userOne });

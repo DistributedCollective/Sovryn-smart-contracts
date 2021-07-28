@@ -52,13 +52,11 @@ contract("Locked SOV (Admin Functions)", (accounts) => {
 			feeSharingProxy.address,
 			creator // This should be Governance Timelock Contract.
 		);
-		vestingFactory.transferOwnership(vestingRegistry.address);
+		await vestingFactory.transferOwnership(vestingRegistry.address);
 
 		// Creating the instance of newLockedSOV Contract.
 		newLockedSOV = await LockedSOV.new(sov.address, vestingRegistry.address, cliff, duration, [admin]);
-	});
 
-	beforeEach("Creating New Locked SOV Contract Instance.", async () => {
 		// Creating the instance of LockedSOV Contract.
 		lockedSOV = await LockedSOV.new(sov.address, vestingRegistry.address, cliff, duration, [admin]);
 
@@ -75,17 +73,22 @@ contract("Locked SOV (Admin Functions)", (accounts) => {
 	});
 
 	it("Admin should not be able to add another admin more than once.", async () => {
-		await lockedSOV.addAdmin(newAdmin, { from: admin });
 		await expectRevert(lockedSOV.addAdmin(newAdmin, { from: admin }), "Address is already admin.");
 	});
 
 	it("Admin should be able to remove an admin.", async () => {
-		await lockedSOV.addAdmin(newAdmin, { from: admin });
 		await lockedSOV.removeAdmin(newAdmin, { from: admin });
 	});
 
 	it("Admin should not be able to call removeAdmin() with a normal user address.", async () => {
 		await expectRevert(lockedSOV.removeAdmin(newAdmin, { from: admin }), "Address is not an admin.");
+	});
+
+	it("Admin should not be able to change the cliff and/or duration without changing the vesting registry.", async () => {
+		await expectRevert(
+			lockedSOV.changeRegistryCliffAndDuration(vestingRegistry.address, cliff + 1, duration + 1, { from: admin }),
+			"Vesting Registry has to be different for changing duration and cliff."
+		);
 	});
 
 	it("Admin should be able to change the vestingRegistry, cliff and/or duration.", async () => {
@@ -97,13 +100,6 @@ contract("Locked SOV (Admin Functions)", (accounts) => {
 			creator // This should be Governance Timelock Contract.
 		);
 		await lockedSOV.changeRegistryCliffAndDuration(newVestingRegistry.address, cliff + 1, duration + 1, { from: admin });
-	});
-
-	it("Admin should not be able to change the cliff and/or duration without changing the vesting registry.", async () => {
-		await expectRevert(
-			lockedSOV.changeRegistryCliffAndDuration(vestingRegistry.address, cliff + 1, duration + 1, { from: admin }),
-			"Vesting Registry has to be different for changing duration and cliff."
-		);
 	});
 
 	it("Admin should not be able to change the duration as zero.", async () => {
