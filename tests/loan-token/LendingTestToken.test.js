@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
 const { increaseTime } = require("../Utils/Ethereum");
 
 const TestToken = artifacts.require("TestToken");
@@ -20,11 +20,13 @@ const SwapsExternal = artifacts.require("SwapsExternal");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplLocal = artifacts.require("SwapsImplLocal");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 
 const Affiliates = artifacts.require("Affiliates");
 
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
+
+const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 
 //const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_more_of_lender_balance_should_not_fail } = require("./helpers");
 const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_uint256_max_should_withdraw_total_balance } = require("./helpers");
@@ -64,7 +66,7 @@ contract("LoanTokenLending", (accounts) => {
 
 		feeds = await PriceFeedsLocal.new(testWrbtc.address, sovryn.address);
 		await feeds.setRates(underlyingToken.address, testWrbtc.address, wei("0.01", "ether"));
-		const swaps = await SwapsImplLocal.new();
+		const swaps = await SwapsImplSovrynSwap.new();
 		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
 		await sovryn.setSupportedTokens([underlyingToken.address, testWrbtc.address], [true, true]);
@@ -75,6 +77,10 @@ contract("LoanTokenLending", (accounts) => {
 			swaps.address // swapsImpl
 		);
 		await sovryn.setFeesController(lender);
+		const sov = await TestToken.new("SOV", "SOV", 18, TOTAL_SUPPLY);
+		await sovryn.setProtocolTokenAddress(sov.address);
+		await sovryn.setSOVTokenAddress(sov.address);
+		await sovryn.setLockedSOVAddress((await LockedSOVMockup.new(sov.address, [accounts[0]])).address);
 
 		loanTokenLogicStandard = await LoanTokenLogicLM.new();
 		loanToken = await LoanToken.new(lender, loanTokenLogicStandard.address, sovryn.address, testWrbtc.address);
@@ -147,6 +153,40 @@ contract("LoanTokenLending", (accounts) => {
 			expect(profitInt).to.be.a.bignumber.equal(new BN(0));
 			expect(profitAfter.gt(new BN(0))).to.be.true;
 			expect(profitAfter.lt(profitBefore)).to.be.true;
+		});
+
+		it("Check swapExternal with minReturn > 0 should revert if minReturn is not valid (higher)", async () => {
+			const balanceOf0 = await loanToken.assetBalanceOf(lender);
+			await underlyingToken.approve(sovryn.address, balanceOf0.add(new BN(wei("10", "ether"))).toString());
+			await expectRevert(
+				sovryn.swapExternal(
+					underlyingToken.address,
+					testWrbtc.address,
+					accounts[0],
+					accounts[0],
+					wei("1", "ether"),
+					0,
+					wei("10", "ether"),
+					"0x"
+				),
+				"destTokenAmountReceived too low"
+			);
+		});
+
+		it("Check swapExternal with minReturn > 0 should revert if minReturn is valid", async () => {
+			const balanceOf0 = await loanToken.assetBalanceOf(lender);
+			await underlyingToken.approve(sovryn.address, balanceOf0.add(new BN(wei("10", "ether"))).toString());
+			// feeds price is set 0.01, so test minReturn with 0.01 as well for the 1 ether swap
+			await sovryn.swapExternal(
+				underlyingToken.address,
+				testWrbtc.address,
+				accounts[0],
+				accounts[0],
+				wei("1", "ether"),
+				0,
+				wei("0.01", "ether"),
+				"0x"
+			);
 		});
 	});
 });

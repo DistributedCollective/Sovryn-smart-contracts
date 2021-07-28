@@ -42,6 +42,7 @@ contract SwapsExternal is VaultController, SwapsUser, ModuleCommonFunctionalitie
 		address prevModuleContractAddress = logicTargets[this.swapExternal.selector];
 		_setTarget(this.swapExternal.selector, target);
 		_setTarget(this.getSwapExpectedReturn.selector, target);
+		_setTarget(this.checkPriceDivergence.selector, target);
 		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "SwapsExternal");
 	}
 
@@ -69,9 +70,11 @@ contract SwapsExternal is VaultController, SwapsUser, ModuleCommonFunctionalitie
 		address returnToSender,
 		uint256 sourceTokenAmount,
 		uint256 requiredDestTokenAmount,
+		uint256 minReturn,
 		bytes memory swapData
 	) public payable nonReentrant whenNotPaused returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
 		require(sourceTokenAmount != 0, "sourceTokenAmount == 0");
+		checkPriceDivergence(sourceToken, destToken, sourceTokenAmount, minReturn);
 
 		/// @dev Get payed value, be it rBTC or tokenized.
 		if (msg.value != 0) {
@@ -140,5 +143,24 @@ contract SwapsExternal is VaultController, SwapsUser, ModuleCommonFunctionalitie
 		uint256 sourceTokenAmount
 	) external view returns (uint256) {
 		return _swapsExpectedReturn(sourceToken, destToken, sourceTokenAmount);
+	}
+
+	/**
+	 * @notice Check the slippage based on the swapExpectedReturn.
+	 *
+	 * @param sourceToken The address of the source token instance.
+	 * @param destToken The address of the destiny token instance.
+	 * @param sourceTokenAmount The amount of source tokens.
+	 * @param minReturn The amount (max slippage) that will be compared to the swapsExpectedReturn.
+	 *
+	 */
+	function checkPriceDivergence(
+		address sourceToken,
+		address destToken,
+		uint256 sourceTokenAmount,
+		uint256 minReturn
+	) public view {
+		uint256 destTokenAmount = _swapsExpectedReturn(sourceToken, destToken, sourceTokenAmount);
+		require(destTokenAmount >= minReturn, "destTokenAmountReceived too low");
 	}
 }

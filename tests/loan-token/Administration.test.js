@@ -16,6 +16,7 @@ const {
 	lend_to_pool,
 	getPriceFeeds,
 	getSovryn,
+	getSOV,
 	decodeLogs,
 	open_margin_trade_position,
 	CONSTANTS,
@@ -45,6 +46,7 @@ contract("LoanTokenAdministration", (accounts) => {
 		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+		sov = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
 		const loanTokenLogicStandard = await getLoanTokenLogic();
 		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
@@ -119,7 +121,7 @@ contract("LoanTokenAdministration", (accounts) => {
 		*/
 		it("Test toggle function pause", async () => {
 			await lend_to_pool(loanToken, SUSD, owner);
-			const functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,bytes)";
+			const functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,uint256,bytes)";
 
 			// pause the given function and make sure the function can't be called anymore
 			let localLoanToken = await LoanTokenLogicStandard.at(loanToken.address);
@@ -145,6 +147,20 @@ contract("LoanTokenAdministration", (accounts) => {
 		it("Test toggle function pause with non admin should fail", async () => {
 			let localLoanToken = await LoanTokenLogicStandard.at(loanToken.address);
 			await expectRevert(localLoanToken.toggleFunctionPause("mint(address,uint256)", true, { from: accounts[1] }), "onlyPauser");
+		});
+
+		it("Should succeed with larger rate than maxSlippage in positive direction", async () => {
+			const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+			let rate = await priceFeeds.checkPriceDisagreement(WRBTC.address, SUSD.address, wei("1", "ether"), wei("20000", "ether"), 0);
+			assert(rate == wei("20000", "ether"));
+		});
+
+		it("Should fail with larger rate than maxSlippage in negative direction", async () => {
+			const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+			await expectRevert(
+				priceFeeds.checkPriceDisagreement(WRBTC.address, SUSD.address, wei("1", "ether"), wei("1", "ether"), 0),
+				"price disagreement"
+			);
 		});
 	});
 });
