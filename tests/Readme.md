@@ -6,7 +6,7 @@
 
 Available JSON-RPC methods: [https://hardhat.org/hardhat-network/#json-rpc-methods-support](https://hardhat.org/hardhat-network/#json-rpc-methods-support)
 
-Most methods implemented in `tests-js/Utils/Ethereum.js`. Feel free to add missing relevant functions here.
+Most methods implemented in `tests/Utils/Ethereum.js`. Feel free to add missing relevant functions here.
 
 In contrast with Truffle, there are no
 
@@ -16,15 +16,15 @@ evm_setTime, evm_freezeTime, miner_start, miner_stop
 
 and some other methods which are mostly replaceable with the HH supported methods.
 
-That may cause troubles with time-dependend tests when migrating to HH though. If this is the case then try to search in the tests-js dir for the pattern. Lookup the failing function that works in Truffle by its name.
+That may cause troubles with time-dependend tests when migrating to HH though. If this is the case then try to search in the tests dir for the pattern. Lookup the failing function that works in Truffle by its name.
 
-The best approach to transform tests from Truffle to HH is to look for a relevant pattern in `tests-js/Governance` and other tests in `tests-js` dir.
+The best approach to transform tests from Truffle to HH is to look for a relevant pattern in `tests/Governance` and other tests in `tests` dir.
 
 There are commented legacy Truffle methods like `setTime(...)` deliberately left commented to facilitate search for patterns while transitioning from Truffle to HH.
 
 ## **ACCOUNTS PK**
 
-Need to access test environment accounts Private Keys i.e. to test `ecrecover` or sign raw txs offchain? You got covered! Use [tests-js/Utils/hardhat_utils.js](Utils/hardhat_utils.js).
+Need to access test environment accounts Private Keys i.e. to test `ecrecover` or sign raw txs offchain? You got covered! Use [tests/Utils/hardhat_utils.js](Utils/hardhat_utils.js).
 
 ## **CONFIGS**
 
