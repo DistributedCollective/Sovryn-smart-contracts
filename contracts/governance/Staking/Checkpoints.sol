@@ -29,7 +29,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	event TokensUnlocked(uint256 amount);
 
 	/// @notice An event emitted when a staking period gets extended.
-	event ExtendedStakingDuration(address indexed staker, uint256 previousDate, uint256 newDate, uint256 amount);
+	event ExtendedStakingDuration(address indexed staker, uint256 previousDate, uint256 newDate, uint256 amountStaked);
 
 	event AdminAdded(address admin);
 
