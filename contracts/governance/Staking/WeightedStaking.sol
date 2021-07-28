@@ -240,37 +240,6 @@ contract WeightedStaking is Checkpoints {
 	}
 
 	/**
-	 * @notice Determine the prior weighted vested amount for an account as of a block number.
-	 * Iterate through checkpoints adding up voting power.
-	 * @dev Block number must be a finalized block or else this function will
-	 * revert to prevent misinformation.
-	 *      Used for fee sharing, not voting.
-	 * TODO: WeightedStaking::getPriorVestingWeightedStake is using the variable name "votes"
-	 * to add up token stake, and that could be misleading.
-	 *
-	 * @param account The address of the account to check.
-	 * @param blockNumber The block number to get the vote balance at.
-	 * @return The weighted stake the account had as of the given block.
-	 * */
-	function getPriorVestingWeightedStake(
-		address account,
-		uint256 blockNumber,
-		uint256 date
-	) public view returns (uint96 votes) {
-		/// @dev If date is not an exact break point, start weight computation from the previous break point (alternative would be the next).
-		uint256 start = timestampToLockDate(date);
-		uint256 end = start + MAX_DURATION;
-
-		/// @dev Max 78 iterations.
-		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
-			uint96 weightedStake = weightedStakeByDate(account, i, start, blockNumber);
-			if (weightedStake > 0) {
-				votes = add96(votes, weightedStake, "WeightedStaking::getPriorVestingWeightedStake: overflow on total weight computation");
-			}
-		}
-	}
-
-	/**
 	 * @notice Compute the voting power for a specific date.
 	 * Power = stake * weight
 	 * TODO: WeightedStaking::weightedStakeByDate should probably better
@@ -362,6 +331,133 @@ contract WeightedStaking is Checkpoints {
 			}
 		}
 		return userStakingCheckpoints[account][date][lower].stake;
+	}
+
+	/*************************** User Weighted Vesting Stake computation for fee sharing *******************************/
+
+	/**
+	 * @notice Determine the prior weighted vested amount for an account as of a block number.
+	 * Iterate through checkpoints adding up voting power.
+	 * @dev Block number must be a finalized block or else this function will
+	 * revert to prevent misinformation.
+	 *      Used for fee sharing, not voting.
+	 * TODO: WeightedStaking::getPriorVestingWeightedStake is using the variable name "votes"
+	 * to add up token stake, and that could be misleading.
+	 *
+	 * @param account The address of the account to check.
+	 * @param blockNumber The block number to get the vote balance at.
+	 * @return The weighted stake the account had as of the given block.
+	 * */
+	function getPriorVestingWeightedStake(
+		address account,
+		uint256 blockNumber,
+		uint256 date
+	) public view returns (uint96 votes) {
+		/// @dev If date is not an exact break point, start weight computation from the previous break point (alternative would be the next).
+		uint256 start = timestampToLockDate(date);
+		uint256 end = start + MAX_DURATION;
+
+		/// @dev Max 78 iterations.
+		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
+			uint96 weightedStake = weightedVestingStakeByDate(account, i, start, blockNumber);
+			if (weightedStake > 0) {
+				votes = add96(votes, weightedStake, "WeightedStaking::getPriorVestingWeightedStake: overflow on total weight computation");
+			}
+		}
+	}
+
+	/**
+	 * @notice Compute the voting power for a specific date.
+	 * Power = stake * weight
+	 * TODO: WeightedStaking::weightedVestingStakeByDate should probably better
+	 * be internal instead of a public function.
+	 * @param date The staking date to compute the power for.
+	 * @param startDate The date for which we need to know the power of the stake.
+	 * @param blockNumber The block number, needed for checkpointing.
+	 * */
+	function weightedVestingStakeByDate(
+		address account,
+		uint256 date,
+		uint256 startDate,
+		uint256 blockNumber
+	) public view returns (uint96 power) {
+		uint96 staked = _getPriorUserVestingStakeByDate(account, date, blockNumber);
+		if (staked > 0) {
+			uint96 weight = computeWeightByDate(date, startDate);
+			power = mul96(staked, weight, "WeightedStaking::weightedVestingStakeByDate: multiplication overflow") / WEIGHT_FACTOR;
+		} else {
+			power = 0;
+		}
+	}
+
+	/**
+	 * @notice Determine the prior number of stake for an account until a
+	 * certain lock date as of a block number.
+	 * @dev Block number must be a finalized block or else this function
+	 * will revert to prevent misinformation.
+	 * @param account The address of the account to check.
+	 * @param date The lock date.
+	 * @param blockNumber The block number to get the vote balance at.
+	 * @return The number of votes the account had as of the given block.
+	 * */
+	function getPriorUserVestingStakeByDate(
+		address account,
+		uint256 date,
+		uint256 blockNumber
+	) external view returns (uint96) {
+		uint96 priorStake = _getPriorUserVestingStakeByDate(account, date, blockNumber);
+		// @dev we need to modify function in order to workaround issue with Vesting.withdrawTokens:
+		//		return 1 instead of 0 if message sender is a contract.
+		if (priorStake == 0 && _isVestingContract()) {
+			priorStake = 1;
+		}
+		return priorStake;
+	}
+
+	/**
+	 * @notice Determine the prior number of stake for an account until a
+	 * 		certain lock date as of a block number.
+	 * @dev All functions of Staking contract use this internal version,
+	 * 		we need to modify public function in order to workaround issue with Vesting.withdrawTokens:
+	 * return 1 instead of 0 if message sender is a contract.
+	 * */
+	function _getPriorUserVestingStakeByDate(
+		address account,
+		uint256 date,
+		uint256 blockNumber
+	) internal view returns (uint96) {
+		require(blockNumber < block.number, "WeightedStaking::getPriorUserVestingStakeByDate: not yet determined");
+
+		date = _adjustDateForOrigin(date);
+		uint32 nCheckpoints = numUserVestingCheckpoints[account][date];
+		if (nCheckpoints == 0) {
+			return 0;
+		}
+
+		/// @dev First check most recent balance.
+		if (userVestingCheckpoints[account][date][nCheckpoints - 1].fromBlock <= blockNumber) {
+			return userVestingCheckpoints[account][date][nCheckpoints - 1].stake;
+		}
+
+		/// @dev Next check implicit zero balance.
+		if (userVestingCheckpoints[account][date][0].fromBlock > blockNumber) {
+			return 0;
+		}
+
+		uint32 lower = 0;
+		uint32 upper = nCheckpoints - 1;
+		while (upper > lower) {
+			uint32 center = upper - (upper - lower) / 2; /// @dev ceil, avoiding overflow.
+			Checkpoint memory cp = userVestingCheckpoints[account][date][center];
+			if (cp.fromBlock == blockNumber) {
+				return cp.stake;
+			} else if (cp.fromBlock < blockNumber) {
+				lower = center;
+			} else {
+				upper = center - 1;
+			}
+		}
+		return userVestingCheckpoints[account][date][lower].stake;
 	}
 
 	/**************** SHARED FUNCTIONS *********************/
