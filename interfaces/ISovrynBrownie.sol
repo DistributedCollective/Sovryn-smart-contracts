@@ -389,4 +389,17 @@ contract ISovrynBrownie is
 		uint256 minReturn,
 		bytes calldata swapData
 	) external returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
+
+	function getSwapExpectedReturn(
+		address sourceToken,
+		address destToken,
+		uint256 sourceTokenAmount
+	) external view returns (uint256);
+
+	function checkPriceDivergence(
+		address sourceToken,
+		address destToken,
+		uint256 sourceTokenAmount,
+		uint256 minReturn
+	) external view;
 }

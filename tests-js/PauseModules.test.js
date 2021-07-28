@@ -113,7 +113,7 @@ contract("Pause Modules", (accounts) => {
 			0, // no collateral token sent
 			RBTC.address, // collateralTokenAddress
 			borrower, // trader,
-			0,
+			0, // slippage
 			"0x", // loanDataBytes (only required with ether)
 			{ from: borrower }
 		);
