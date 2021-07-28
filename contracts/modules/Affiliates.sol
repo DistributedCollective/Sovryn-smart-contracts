@@ -89,7 +89,7 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
 	}
 
 	//REFACTOR move setUserNotFirstTradeFlag to ProtocolSettings?
-	function setUserNotFirstTradeFlag(address user) external onlyCallableByLoanPools {
+	function setUserNotFirstTradeFlag(address user) external onlyCallableByLoanPools whenNotPaused {
 		if (!userNotFirstTradeFlag[user]) {
 			userNotFirstTradeFlag[user] = true;
 			emit SetUserNotFirstTradeFlag(user);
