@@ -538,3 +538,7 @@ def wrappedIntegrationTest(loanTokenAddress, underlyingTokenAddress, collateralT
     updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
     print("Underlying balance: ", updatedUnderlyingBalance)
     print("Collateral balance: ", updatedCollateralBalance)
+
+
+
+    print(errorMsg)
