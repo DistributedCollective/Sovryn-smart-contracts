@@ -357,16 +357,17 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 
 			IERC20(tokens[i]).approve(protocolAddress, tempAmount);
 
-			(uint256 amountConvertedToWRBTC,) = ProtocolSwapExternalInterface(protocolAddress).swapExternal(
-				tokens[i], // source token address
-				address(wrbtcToken), // dest token address
-				feesController, // set feeSharingProxy as receiver
-				protocolAddress, // protocol as the sender
-				tempAmount, // source token amount
-				0, // reqDestToken
-				0, // slippage
-				"" // loan data bytes
-			);
+			(uint256 amountConvertedToWRBTC, ) =
+				ProtocolSwapExternalInterface(protocolAddress).swapExternal(
+					tokens[i], // source token address
+					address(wrbtcToken), // dest token address
+					feesController, // set feeSharingProxy as receiver
+					protocolAddress, // protocol as the sender
+					tempAmount, // source token amount
+					0, // reqDestToken
+					0, // slippage
+					"" // loan data bytes
+				);
 
 			totalWRBTCWithdrawn = totalWRBTCWithdrawn.add(amountConvertedToWRBTC);
 

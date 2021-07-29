@@ -321,10 +321,10 @@ contract("SwapsExternal", (accounts) => {
 
 			const tx = await feeSharingProxy.withdrawFees([underlyingToken.address]);
 
-			let swapFee = amount.mul(trading_fee_percent).div(new BN(wei("100", "ether")))
+			let swapFee = amount.mul(trading_fee_percent).div(new BN(wei("100", "ether")));
 
 			// need to sub by swap fee because at this point, protocol will received the trading fee again.
-			loanTokenWRBTCBalanceShouldBe = (amount.mul(new BN(1) )).sub(swapFee);
+			loanTokenWRBTCBalanceShouldBe = amount.mul(new BN(1)).sub(swapFee);
 
 			expectEvent(tx, "FeeWithdrawn", {
 				sender: lender,
