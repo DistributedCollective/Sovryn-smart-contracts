@@ -79,6 +79,15 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 		uint96 numTokens;
 	}
 
+	/// @notice A struct for initialising rewards to a block
+	struct VestingRewards {
+		uint32 rewardsUptoBlock;
+		uint96 amount;
+	}
+
+	/// @notice Vesting rewards per user.
+	mapping(address => VestingRewards) public previousVestingRewards;
+
 	/* Events */
 
 	/// @notice An event emitted when fee get withdrawn.
@@ -92,14 +101,6 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 
 	/// @notice An event emitted when user fee get withdrawn.
 	event UserFeeWithdrawn(address indexed sender, address indexed receiver, address indexed token, uint256 amount);
-
-	/// @notice A checkpoint for marking the stakes from a given block
-	struct VestingRewards {
-		uint32 rewardsUptoBlock;
-		uint96 amount;
-	}
-
-	mapping(address => VestingRewards) public previousVestingRewards;
 
 	/* Functions */
 
@@ -365,6 +366,19 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 		emit CheckpointAdded(msg.sender, _token, _numTokens);
 	}
 
+	/**
+	 * @notice Initialise previous accumulated rewards of a user.
+	 *
+	 * The Sovryn protocol collects fees on every trade/swap and loan.
+	 * These fees will be distributed to only SOV stakers instead of
+	 * both vesters and stakers to increase rewards of stakers. To keep
+	 * it fair, previous rewards are initialised and will be available
+	 * for claim.
+	 *
+	 * @param account Address of the vesting user
+	 * @param amount amount of tokens accumulated as reward
+	 * @param vestingRewardsUptoBlock The block number
+	 * */
 	function initialiseVestingRewards(
 		address account,
 		uint96 amount,

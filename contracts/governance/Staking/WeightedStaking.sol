@@ -391,7 +391,7 @@ contract WeightedStaking is Checkpoints {
 	}
 
 	/**
-	 * @notice Determine the prior number of stake for an account until a
+	 * @notice Determine the prior number of vested stake for an account until a
 	 * certain lock date as of a block number.
 	 * @dev Block number must be a finalized block or else this function
 	 * will revert to prevent misinformation.
@@ -415,7 +415,7 @@ contract WeightedStaking is Checkpoints {
 	}
 
 	/**
-	 * @notice Determine the prior number of stake for an account until a
+	 * @notice Determine the prior number of vested stake for an account until a
 	 * 		certain lock date as of a block number.
 	 * @dev All functions of Staking contract use this internal version,
 	 * 		we need to modify public function in order to workaround issue with Vesting.withdrawTokens:
