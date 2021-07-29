@@ -72,7 +72,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		for (uint256 i = 0; i < _tokens.length; i++) {
 			require(Address.isContract(_tokens[i]), "FeeSharingProxy::withdrawFees: token is not a contract");
 		}
-		
+
 		address wRBTCAddress = protocol.wrbtcToken();
 		require(wRBTCAddress != address(0), "FeeSharingProxy::withdrawFees: wRBTCAddress is not set");
 
@@ -178,8 +178,8 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		(amount, end) = _getAccumulatedFees(user, _loanPoolToken, _maxCheckpoints);
 
 		processedCheckpoints[user][_loanPoolToken] = end;
-		
-		if(loanPoolTokenWRBTC == _loanPoolToken) {
+
+		if (loanPoolTokenWRBTC == _loanPoolToken) {
 			// We will change, so that feeSharingProxy will directly burn then loanToken (IWRBTC) to rbtc and send to the user --- by call burnToBTC function
 			uint256 loanAmountPaid = ILoanTokenWRBTC(_loanPoolToken).burnToBTC(_receiver, amount, false);
 		} else {
@@ -329,5 +329,9 @@ interface ILoanToken {
 }
 
 interface ILoanTokenWRBTC {
-	function burnToBTC(address receiver, uint256 burnAmount, bool useLM) external returns (uint256 loanAmountPaid);
+	function burnToBTC(
+		address receiver,
+		uint256 burnAmount,
+		bool useLM
+	) external returns (uint256 loanAmountPaid);
 }
