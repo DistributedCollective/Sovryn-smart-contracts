@@ -5,6 +5,7 @@ import "../openzeppelin/SafeMath.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "./IFeeSharingProxy.sol";
 import "./Staking/IStaking.sol";
+import "../openzeppelin/Ownable.sol";
 
 /**
  * @title The FeeSharingProxy contract.
@@ -39,7 +40,7 @@ import "./Staking/IStaking.sol";
  * get pool tokens. It is planned to add the option to convert anything to rBTC
  * before withdrawing, but not yet implemented.
  * */
-contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
+contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
 
@@ -91,6 +92,14 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 
 	/// @notice An event emitted when user fee get withdrawn.
 	event UserFeeWithdrawn(address indexed sender, address indexed receiver, address indexed token, uint256 amount);
+
+	/// @notice A checkpoint for marking the stakes from a given block
+	struct VestingRewards {
+		uint32 rewardsUptoBlock;
+		uint96 amount;
+	}
+
+	mapping(address => VestingRewards) public previousVestingRewards;
 
 	/* Functions */
 
@@ -200,6 +209,12 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 		uint32 end;
 		(amount, end) = _getAccumulatedFees(user, _loanPoolToken, _maxCheckpoints);
 
+		VestingRewards memory vestingRewards = previousVestingRewards[user];
+		if (vestingRewards.amount > 0) {
+			amount = amount.add(vestingRewards.amount);
+			vestingRewards.amount = 0;
+		}
+
 		processedCheckpoints[user][_loanPoolToken] = end;
 
 		require(IERC20(_loanPoolToken).transfer(user, amount), "FeeSharingProxy::withdraw: withdrawal failed");
@@ -288,7 +303,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 		uint96 vestingWeightedStake = staking.getPriorVestingWeightedStake(account, blockNumber, timestamp);
 		weightedStake = staking.getPriorWeightedStake(account, blockNumber, timestamp);
 
-		weightedStake = weightedStake >= vestingWeightedStake ? weightedStake - vestingWeightedStake : vestingWeightedStake - weightedStake;
+		weightedStake = weightedStake - vestingWeightedStake;
 	}
 
 	/**
@@ -348,6 +363,20 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 			numTokenCheckpoints[_token] = nCheckpoints + 1;
 		}
 		emit CheckpointAdded(msg.sender, _token, _numTokens);
+	}
+
+	function initialiseVestingRewards(
+		address account,
+		uint96 amount,
+		uint32 vestingRewardsUptoBlock
+	) external onlyOwner {
+		require(account != address(0), "Staking::initialiseVestingRewards: invalid account");
+		require(amount != 0, "Staking::initialiseVestingRewards: zero amount");
+		require(vestingRewardsUptoBlock < block.number, "Staking::initialiseVestingRewards: invalid block number");
+		VestingRewards memory vestingRewards;
+		vestingRewards.rewardsUptoBlock = vestingRewardsUptoBlock;
+		vestingRewards.amount = amount;
+		previousVestingRewards[account] = vestingRewards;
 	}
 }
 
