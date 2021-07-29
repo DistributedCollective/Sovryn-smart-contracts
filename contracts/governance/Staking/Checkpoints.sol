@@ -19,8 +19,8 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	/// @notice An event emitted when tokens get staked.
 	event TokensStaked(address indexed staker, uint256 amount, uint256 lockedUntil, uint256 totalStaked);
 
-	/// @notice An event emitted when tokens get withdrawn.
-	event TokensWithdrawn(address indexed staker, address receiver, uint256 amount);
+	/// @notice An event emitted when staked tokens get withdrawn.
+	event StakingWithdrawn(address indexed staker, uint256 amount, uint256 until, address indexed receiver, bool isGovernance);
 
 	/// @notice An event emitted when vesting tokens get withdrawn.
 	event VestingTokensWithdrawn(address vesting, address receiver);
@@ -29,7 +29,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	event TokensUnlocked(uint256 amount);
 
 	/// @notice An event emitted when a staking period gets extended.
-	event ExtendedStakingDuration(address indexed staker, uint256 previousDate, uint256 newDate);
+	event ExtendedStakingDuration(address indexed staker, uint256 previousDate, uint256 newDate, uint256 amountStaked);
 
 	event AdminAdded(address admin);
 

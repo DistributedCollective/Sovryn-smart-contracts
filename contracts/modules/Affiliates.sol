@@ -12,8 +12,9 @@ import "../openzeppelin/SafeERC20.sol";
 import "../events/AffiliatesEvents.sol";
 import "../feeds/IPriceFeeds.sol";
 import "../locked/ILockedSOV.sol";
+import "./ModuleCommonFunctionalities.sol";
 
-contract Affiliates is State, AffiliatesEvents {
+contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
 	/*
     Module: Affiliates upgradable
     Storage: from State, functions called from Protocol by delegatecall
@@ -28,6 +29,7 @@ contract Affiliates is State, AffiliatesEvents {
 	}
 
 	function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.setAffiliatesReferrer.selector];
 		_setTarget(this.setAffiliatesReferrer.selector, target);
 		_setTarget(this.getUserNotFirstTradeFlag.selector, target);
 		_setTarget(this.getReferralsList.selector, target);
@@ -42,6 +44,7 @@ contract Affiliates is State, AffiliatesEvents {
 		_setTarget(this.getAffiliatesUserReferrer.selector, target);
 		_setTarget(this.getAffiliateRewardsHeld.selector, target);
 		_setTarget(this.getAffiliateTradingTokenFeePercent.selector, target);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "Affiliates");
 	}
 
 	modifier onlyCallableByLoanPools() {
@@ -61,7 +64,7 @@ contract Affiliates is State, AffiliatesEvents {
 		bool userNotFirstTradeFlag;
 	}
 
-	function setAffiliatesReferrer(address user, address referrer) external onlyCallableByLoanPools {
+	function setAffiliatesReferrer(address user, address referrer) external onlyCallableByLoanPools whenNotPaused {
 		SetAffiliatesReferrerResult memory result;
 
 		result.userNotFirstTradeFlag = getUserNotFirstTradeFlag(user);
@@ -86,7 +89,7 @@ contract Affiliates is State, AffiliatesEvents {
 	}
 
 	//REFACTOR move setUserNotFirstTradeFlag to ProtocolSettings?
-	function setUserNotFirstTradeFlag(address user) external onlyCallableByLoanPools {
+	function setUserNotFirstTradeFlag(address user) external onlyCallableByLoanPools whenNotPaused {
 		if (!userNotFirstTradeFlag[user]) {
 			userNotFirstTradeFlag[user] = true;
 			emit SetUserNotFirstTradeFlag(user);
@@ -146,7 +149,7 @@ contract Affiliates is State, AffiliatesEvents {
 		address trader,
 		address token,
 		uint256 tradingFeeTokenBaseAmount
-	) external onlyCallableInternal returns (uint256 referrerBonusSovAmount, uint256 referrerBonusTokenAmount) {
+	) external onlyCallableInternal whenNotPaused returns (uint256 referrerBonusSovAmount, uint256 referrerBonusTokenAmount) {
 		bool isHeld = referralsList[referrer].length() < getMinReferralsToPayout();
 		bool bonusPaymentIsSuccess = true;
 		uint256 paidReferrerBonusSovAmount;
@@ -212,7 +215,7 @@ contract Affiliates is State, AffiliatesEvents {
 		address token,
 		address receiver,
 		uint256 amount
-	) public {
+	) public whenNotPaused {
 		require(receiver != address(0), "Affiliates: cannot withdraw to zero address");
 		address referrer = msg.sender;
 		uint256 referrerTokenBalance = affiliatesReferrerBalances[referrer][token];
@@ -235,7 +238,7 @@ contract Affiliates is State, AffiliatesEvents {
 		emit WithdrawAffiliatesReferrerTokenFees(referrer, receiver, token, withdrawAmount);
 	}
 
-	function withdrawAllAffiliatesReferrerTokenFees(address receiver) external {
+	function withdrawAllAffiliatesReferrerTokenFees(address receiver) external whenNotPaused {
 		require(receiver != address(0), "Affiliates: cannot withdraw to zero address");
 		address referrer = msg.sender;
 
