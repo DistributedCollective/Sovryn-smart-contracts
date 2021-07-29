@@ -13,6 +13,7 @@ def lendToPool(loanTokenAddress, tokenAddress, amount):
         token.approve(loanToken.address, amount)
     tx = loanToken.mint(conf.acct, amount)
     tx.info()
+    return tx
 
 def lendToPoolWithMS(loanTokenAddress, tokenAddress, amount):
     token = Contract.from_abi("TestToken", address = tokenAddress, abi = TestToken.abi, owner = conf.acct)
@@ -102,6 +103,7 @@ def testTradeOpeningAndClosing(protocolAddress, loanTokenAddress, underlyingToke
         tx = sovryn.closeWithSwap(loanId, conf.acct, collateral, True, b'')
         tx.info()
 
+    return tx
 
 
 def testTradeOpeningAndClosingWithCollateral(protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, collateralTokenSent, leverage, testClose, sendValue):
@@ -143,9 +145,9 @@ def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collat
     testToken = Contract.from_abi("TestToken", address = collateralTokenAddress, abi = TestToken.abi, owner = conf.acct)
     
     # determine borrowing parameter
-    withdrawAmount = 0.000010e18 #i want to borrow 10 USD
+    withdrawAmount = amount #i want to borrow 10 USD
     # compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan 
-    collateralTokenSent = 2* sovryn.getRequiredCollateral(underlyingTokenAddress,collateralTokenAddress,withdrawAmount, amount, True)
+    collateralTokenSent = 2* sovryn.getRequiredCollateral(underlyingTokenAddress,collateralTokenAddress,withdrawAmount, 50e18, True)
     print("collateral needed", collateralTokenSent/1e18)
     durationInSeconds = 60*60*24*10 #10 days
     
@@ -393,7 +395,7 @@ def wrappedIntegrationTest(loanTokenAddress, underlyingTokenAddress, collateralT
 
     # ------------------------------------------------ Test Trade Open & Close without collateral ------------------------------------------------------
     print("Test Trade open and closing without collateral")
-    testTradeOpeningAndClosing(sovryn.address, loanToken.address, underlyingTokenAddress, collateralTokenAddress, amountUnderlying, 2e18, True,0)
+    tx = testTradeOpeningAndClosing(sovryn.address, loanToken.address, underlyingTokenAddress, collateralTokenAddress, amountUnderlying, 2e18, True,0)
 
     print("=============================== PREVIOUS BALANCE ====================================")
     print("Underlying balance: ", prevUnderlyingBalance)
@@ -405,44 +407,80 @@ def wrappedIntegrationTest(loanTokenAddress, underlyingTokenAddress, collateralT
     print("Underlying balance: ", updatedUnderlyingBalance)
     print("Collateral balance: ", updatedCollateralBalance)
 
+    transferEvents = tx.events['Transfer']
+    errorMsg = []
+    msg = ''
+
     # Verify
     if prevUnderlyingBalance - updatedUnderlyingBalance != amountUnderlying:
-        raise Exception("Updated underyling balance is not matched with the amount that was traded")
+        msg = "FAILED / INVALID STATE (TRADE OPENING & CLOSING WITHOUT COLLATERAL) : Updated underyling balance is not matched with the amount that was traded"
+        errorMsg.append(msg)
+        print(msg)
+    
+    if prevCollateralBalance + transferEvents[len(transferEvents)-1]['value'] != updatedCollateralBalance:
+        msg = "FAILED / INVALID STATE (TRADE OPENING & CLOSING WITHOUT COLLATERAL) : Updated collateral balance is not matched with the amount that was closed with swap"
+        errorMsg.append(msg)
+        print(msg)
 
     prevUnderlyingBalance = updatedUnderlyingBalance
     prevCollateralBalance = updatedCollateralBalance
     
 
     # ------------------------------------------------ Test Lend to Pool -------------------------------------------------------------------------------
-    lendToPool(loanToken.address, underlyingTokenAddress, amountUnderlying)
+    prevLoanTokenBalance = loanToken.balanceOf(conf.acct)
+
+    tx = lendToPool(loanToken.address, underlyingTokenAddress, amountUnderlying)
     print("=============================== PREVIOUS BALANCE ====================================")
     print("Underlying balance: ", prevUnderlyingBalance)
     print("Collateral balance: ", prevCollateralBalance)
+    print("Loantoken Balance: ", prevLoanTokenBalance)
 
     print("=============================== UPDATED BALANCE =====================================")
     updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
     updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    updatedLoanTokenBalance = loanToken.balanceOf(conf.acct)
     print("Underlying balance: ", updatedUnderlyingBalance)
     print("Collateral balance: ", updatedCollateralBalance)
+    print("Loantoken Balance: ", updatedLoanTokenBalance)
+
+    transferEvents = tx.events['Transfer']
 
     # Verify
     if prevUnderlyingBalance - updatedUnderlyingBalance != amountUnderlying:
-        raise Exception("Updated underyling balance is not matched with the amount that was lent")
+        msg = "FAILED / INVALID STATE (LEND TO POOL): Updated underyling balance is not matched with the amount that was lent"
+        errorMsg.append(msg)
+        print(msg)
+
+    if prevLoanTokenBalance + transferEvents[len(transferEvents)-1]['value'] != updatedLoanTokenBalance:
+        msg = "FAILED / INVALID STATE (LEND TO POOL) : Updated loanToken balance is not matched with the amount that was transferred from lending pool"
+        errorMsg.append(msg)
+        print(msg)
+
 
     prevUnderlyingBalance = updatedUnderlyingBalance
     prevCollateralBalance = updatedCollateralBalance
+    prevLoanTokenBalance = updatedLoanTokenBalance
 
     # ------------------------------------------------ Test Remove from Pool -------------------------------------------------------------------------------
     removeFromPool(loanToken.address, 0.5*(amountUnderlying))
     print("=============================== PREVIOUS BALANCE ====================================")
     print("Underlying balance: ", prevUnderlyingBalance)
     print("Collateral balance: ", prevCollateralBalance)
+    print("LoanToken Balance: ", prevLoanTokenBalance)
 
     print("=============================== UPDATED BALANCE =====================================")
     updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
     updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    updatedLoanTokenBalance = loanToken.balanceOf(conf.acct)
     print("Underlying balance: ", updatedUnderlyingBalance)
     print("Collateral balance: ", updatedCollateralBalance)
+    print("LoanToken Balance: ", updatedLoanTokenBalance)
+
+    # Verify
+    if prevLoanTokenBalance - 0.5*(amountUnderlying) != updatedLoanTokenBalance:
+        msg = "FAILED / INVALID STATE (REMOVE FROM POOL): Updated loanToken balance is not matched with the amount that was taken from lending pool"
+        errorMsg.append(msg)
+        print(msg)
 
     prevUnderlyingBalance = updatedUnderlyingBalance
     prevCollateralBalance = updatedCollateralBalance
@@ -477,6 +515,15 @@ def wrappedIntegrationTest(loanTokenAddress, underlyingTokenAddress, collateralT
     updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
     print("Underlying balance: ", updatedUnderlyingBalance)
     print("Collateral balance: ", updatedCollateralBalance)
+
+    # Verify
+    if updatedUnderlyingBalance - prevUnderlyingBalance != amountUnderlying:
+        msg = "FAILED / INVALID STATE (BORROWING): Updated underyling balance is not matched with the amount that was borrowed"
+        errorMsg.append(msg)
+        print(msg)
+
+    prevUnderlyingBalance = updatedUnderlyingBalance
+    prevCollateralBalance = updatedCollateralBalance
 
 
     # ------------------------------------------------ Test External Swap -------------------------------------------------------------------------------
