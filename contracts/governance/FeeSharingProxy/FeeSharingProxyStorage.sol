@@ -10,7 +10,7 @@ import "../Staking/IStaking.sol";
  * @title FeeSharingProxy Storage contact.
  * @notice Just the storage part of feeSharingProxy contract, no functions,
  * only constant, variables and required structures (mappings).
- * Used by FeeSharingProxyGateway.
+ * Used by FeeSharingProxy, and the implementation logic of FeeSharingProxy (FeeSharingLogic)
  *
  * */
 contract FeeSharingProxyStorage is Ownable {

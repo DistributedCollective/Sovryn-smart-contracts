@@ -1,8 +1,8 @@
 pragma solidity ^0.5.17;
 
-import "../governance/FeeSharingProxy/FeeSharingProxy.sol";
+import "../governance/FeeSharingProxy/FeeSharingLogic.sol";
 
-contract FeeSharingProxyMockup is FeeSharingProxy {
+contract FeeSharingProxyMockup is FeeSharingLogic {
 	struct TestData {
 		address loanPoolToken;
 		uint32 maxCheckpoints;

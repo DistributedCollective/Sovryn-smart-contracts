@@ -24,8 +24,8 @@ const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
 
+const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
-const FeeSharingProxyGateway = artifacts.require("FeeSharingProxyGateway");
 const FeeSharingProxyMockup = artifacts.require("FeeSharingProxyMockup");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
@@ -56,9 +56,9 @@ contract("FeeSharingProxy:", (accounts) => {
 	let SOVToken, susd, wrbtc, staking;
 	let protocol;
 	let loanTokenSettings, loanTokenLogic, loanToken;
-	let feeSharingProxyGateway;
-	let feeSharingProxyLogic;
+	let feeSharingProxyObj;
 	let feeSharingProxy;
+	let feeSharingLogic;
 	let loanTokenWrbtc;
 	let tradingFeePercent;
 	let mockPrice;
@@ -105,10 +105,10 @@ contract("FeeSharingProxy:", (accounts) => {
 		await protocol.setLoanPool([loanToken.address], [susd.address]);
 
 		//FeeSharingProxy
-		feeSharingProxyLogic = await FeeSharingProxy.new();
-		feeSharingProxyGateway = await FeeSharingProxyGateway.new(protocol.address, staking.address);
-		await feeSharingProxyGateway.setImplementation(feeSharingProxyLogic.address);
-		feeSharingProxy = await FeeSharingProxy.at(feeSharingProxyGateway.address);
+		feeSharingLogic = await FeeSharingLogic.new();
+		feeSharingProxyObj = await FeeSharingProxy.new(protocol.address, staking.address);
+		await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
+		feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
 		await protocol.setFeesController(feeSharingProxy.address);
 
 		// Set loan pool for wRBTC -- because our fee sharing proxy required the loanPool of wRBTC
@@ -144,21 +144,21 @@ contract("FeeSharingProxy:", (accounts) => {
 		await lend_btc_before_cashout(loanTokenWrbtc, new BN(wei("10", "ether")), root);
 	});
 
-	describe("FeeSharingProxyGateway", () => {
+	describe("FeeSharingProxy", () => {
 		it("Check owner & implementation", async() => {
-			const proxyOwner = await feeSharingProxyGateway.getProxyOwner();
-			const implementation = await feeSharingProxyGateway.getImplementation();
+			const proxyOwner = await feeSharingProxyObj.getProxyOwner();
+			const implementation = await feeSharingProxyObj.getImplementation();
 
-			expect(implementation).to.be.equal( feeSharingProxyLogic.address );
+			expect(implementation).to.be.equal( feeSharingLogic.address );
 			expect(proxyOwner).to.be.equal( root );
 		})
 
 		it("Set new implementation", async() => {
-			const newFeeSharingProxyLogic = await FeeSharingProxy.new();
-			const newFeeSharingProxyImpl = await feeSharingProxyGateway.setImplementation(newFeeSharingProxyLogic.address);
-			const newImplementation = await feeSharingProxyGateway.getImplementation();
+			const newFeeSharingLogic = await FeeSharingLogic.new();
+			await feeSharingProxyObj.setImplementation(newFeeSharingLogic.address);
+			const newImplementation = await feeSharingProxyObj.getImplementation();
 
-			expect(newImplementation).to.be.equal( newFeeSharingProxyLogic.address );
+			expect(newImplementation).to.be.equal( newFeeSharingLogic.address );
 		})
 	})
 
