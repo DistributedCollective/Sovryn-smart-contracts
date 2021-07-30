@@ -209,7 +209,7 @@ contract("StakingRewards", (accounts) => {
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
 		});
 
-		it("should be able to process again immdeiately when processing after the max duration", async () => {
+		it("should be able to process agaim immediately when processing after the max duration", async () => {
 			getRewards = await stakingRewards.getStakerCurrentReward({ from: a1 });
 			beforeBalance = await SOV.balanceOf(a1);
 			await stakingRewards.collectReward({ from: a1 });
