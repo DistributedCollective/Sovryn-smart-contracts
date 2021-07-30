@@ -47,6 +47,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * period being rewarded
 	 * */
 	function stop() external onlyOwner {
+		require(stopBlock == 0, "Already stopped");
 		stopBlock = block.number;
 	}
 
@@ -98,6 +99,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * @param _staker Staker address
 	 * @param _block Last finalised block
 	 * @param _date The date to compute prior weighted stakes
+	 * @return The weighted stake
 	 * */
 	function _computeRewardForDate(
 		address _staker,
@@ -148,5 +150,23 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		require(_amount != 0, "amount invalid");
 		require(SOV.transfer(_receiver, _amount), "transfer failed");
 		emit RewardWithdrawn(_receiver, _amount);
+	}
+
+	/**
+	 * @notice Get staker's current accumulated reward
+	 * @dev Collecting rewards can yeild slightly different values as there are mandatory checks
+	 * while withdrawing:
+	 * 1. User cannot withdraw within 14 days from the start/last withdrawn date
+	 * 2. The rewards can only be processed for a max duration at a time
+	 * @return The accumulated reward
+	 */
+	function getStakerCurrentReward() external view returns(uint256 amount) {
+		uint256 weightedStake;
+		uint256 i = withdrawals[msg.sender];
+		if (i == 0) i = startTime;
+		for (i; i < block.timestamp; i += TWO_WEEKS) {
+			weightedStake = weightedStake.add(_computeRewardForDate(msg.sender, block.number - 1, i));
+		}
+		amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
 	}
 }
