@@ -186,9 +186,9 @@ contract("StakingRewards", (accounts) => {
 			await staking.withdraw("30000", inThreeYears, a2, { from: a2 }); //Withdraw third stake
 			await staking.withdraw("10000", inTwoYears, a2, { from: a2 }); //Withdraw the last stake as well
 			await increaseTime(3600); //Increase a few blocks
-			await expectRevert(stakingRewards.getStakerCurrentReward(true, { from: a2 }), "weightedStake is zero");
+			const fields = await stakingRewards.getStakerCurrentReward(true, { from: a2 });
 			beforeBalance = await SOV.balanceOf(a2);
-			await expectRevert(stakingRewards.collectReward({ from: a2 }), "weightedStake is zero");
+			await expectRevert(stakingRewards.collectReward({ from: a2 }), "no valid reward");
 			afterBalance = await SOV.balanceOf(a2);
 			rewards = afterBalance.sub(beforeBalance);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));

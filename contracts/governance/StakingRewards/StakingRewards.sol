@@ -74,6 +74,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		uint256 withdrawalTime;
 		uint256 amount;
 		(withdrawalTime, amount) = getStakerCurrentReward(true);
+		require(withdrawalTime > 0 && amount > 0, "no valid reward");
 		withdrawals[msg.sender] = withdrawalTime;
 		_payReward(msg.sender, amount);
 	}
@@ -171,7 +172,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 			weightedStake = weightedStake.add(_computeRewardForDate(staker, lastFinalisedBlock, i));
 		}
 
-		require(weightedStake > 0, "weightedStake is zero");
+		if (weightedStake == 0) return (0, 0);
 		withdrawalTime += count.mul(TWO_WEEKS);
 		amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
 	}
