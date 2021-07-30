@@ -12,6 +12,7 @@ import "../openzeppelin/SafeERC20.sol";
 import "../events/AffiliatesEvents.sol";
 import "../feeds/IPriceFeeds.sol";
 import "../locked/ILockedSOV.sol";
+import "./ModuleCommonFunctionalities.sol";
 
 /**
  * @title Affiliates contract.
@@ -20,7 +21,7 @@ import "../locked/ILockedSOV.sol";
  * @dev Module: Affiliates upgradable
  *   Storage: from State, functions called from Protocol by delegatecall
  */
-contract Affiliates is State, AffiliatesEvents {
+contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
 	using SafeERC20 for IERC20;
 
 	/**
@@ -45,6 +46,7 @@ contract Affiliates is State, AffiliatesEvents {
 	 * @param target The address of a new logic implementation.
 	 */
 	function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.setAffiliatesReferrer.selector];
 		_setTarget(this.setAffiliatesReferrer.selector, target);
 		_setTarget(this.getUserNotFirstTradeFlag.selector, target);
 		_setTarget(this.getReferralsList.selector, target);
@@ -59,6 +61,7 @@ contract Affiliates is State, AffiliatesEvents {
 		_setTarget(this.getAffiliatesUserReferrer.selector, target);
 		_setTarget(this.getAffiliateRewardsHeld.selector, target);
 		_setTarget(this.getAffiliateTradingTokenFeePercent.selector, target);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "Affiliates");
 	}
 
 	/**
@@ -86,6 +89,7 @@ contract Affiliates is State, AffiliatesEvents {
 		bool userNotFirstTradeFlag;
 	}
 
+
 	/**
 	 * @notice Loan pool calls this function to tell affiliates
 	 *   a user coming from a referrer is trading and should be registered if not yet.
@@ -95,7 +99,7 @@ contract Affiliates is State, AffiliatesEvents {
 	 * @param user The address of the user that is trading on loan pools.
 	 * @param referrer The address of the referrer the user is coming from.
 	 */
-	function setAffiliatesReferrer(address user, address referrer) external onlyCallableByLoanPools {
+	function setAffiliatesReferrer(address user, address referrer) external onlyCallableByLoanPools whenNotPaused {
 		SetAffiliatesReferrerResult memory result;
 
 		result.userNotFirstTradeFlag = getUserNotFirstTradeFlag(user);
@@ -131,10 +135,9 @@ contract Affiliates is State, AffiliatesEvents {
 
 	/**
 	 * @notice Setter to toggle on the not-first-trade flag of a user.
-	 * @dev REFACTOR move setUserNotFirstTradeFlag to ProtocolSettings?
 	 * @param user The address of a given user.
 	 */
-	function setUserNotFirstTradeFlag(address user) external onlyCallableByLoanPools {
+	function setUserNotFirstTradeFlag(address user) external onlyCallableByLoanPools whenNotPaused {
 		if (!userNotFirstTradeFlag[user]) {
 			userNotFirstTradeFlag[user] = true;
 			emit SetUserNotFirstTradeFlag(user);
@@ -242,7 +245,7 @@ contract Affiliates is State, AffiliatesEvents {
 		address trader,
 		address token,
 		uint256 tradingFeeTokenBaseAmount
-	) external onlyCallableInternal returns (uint256 referrerBonusSovAmount, uint256 referrerBonusTokenAmount) {
+	) external onlyCallableInternal whenNotPaused returns (uint256 referrerBonusSovAmount, uint256 referrerBonusTokenAmount) {
 		bool isHeld = referralsList[referrer].length() < getMinReferralsToPayout();
 		bool bonusPaymentIsSuccess = true;
 		uint256 paidReferrerBonusSovAmount;
@@ -260,10 +263,13 @@ contract Affiliates is State, AffiliatesEvents {
 			/// If referrals less than minimum, temp the rewards SOV to the storage
 			affiliateRewardsHeld[referrer] = rewardsHeldByProtocol.add(referrerBonusSovAmount);
 		} else {
-			/// If referrals >= minimum, directly send all of the remain rewards to locked sov
-			/// Call depositSOV() in LockedSov contract
-			/// Set the affiliaterewardsheld = 0
-			affiliateRewardsHeld[referrer] = 0;
+			// If referrals >= minimum, directly send all of the remain rewards to locked sov
+			// Call depositSOV() in LockedSov contract
+			// Set the affiliaterewardsheld = 0
+			if (affiliateRewardsHeld[referrer] > 0) {
+				affiliateRewardsHeld[referrer] = 0;
+			}
+      
 			paidReferrerBonusSovAmount = referrerBonusSovAmount.add(rewardsHeldByProtocol);
 			IERC20(sovTokenAddress).approve(lockedSOVAddress, paidReferrerBonusSovAmount);
 
@@ -315,7 +321,7 @@ contract Affiliates is State, AffiliatesEvents {
 		address token,
 		address receiver,
 		uint256 amount
-	) public {
+	) public whenNotPaused {
 		require(receiver != address(0), "Affiliates: cannot withdraw to zero address");
 		address referrer = msg.sender;
 		uint256 referrerTokenBalance = affiliatesReferrerBalances[referrer][token];
@@ -343,7 +349,7 @@ contract Affiliates is State, AffiliatesEvents {
 	 * @dev It's done by looping through its available tokens.
 	 * @param receiver The address of the withdrawal beneficiary.
 	 */
-	function withdrawAllAffiliatesReferrerTokenFees(address receiver) external {
+	function withdrawAllAffiliatesReferrerTokenFees(address receiver) external whenNotPaused {
 		require(receiver != address(0), "Affiliates: cannot withdraw to zero address");
 		address referrer = msg.sender;
 

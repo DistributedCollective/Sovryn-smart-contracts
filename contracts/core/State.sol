@@ -201,6 +201,9 @@ contract State is Objects, ReentrancyGuard, Ownable {
 	/// @dev [referrerAddress][tokenAddress] is a referrer's token balance of accrued fees.
 	mapping(address => mapping(address => uint256)) public affiliatesReferrerBalances;
 
+	mapping(address => mapping(address => uint256)) public specialRebates; // Special rate rebates for spesific pair -- if not set, then use the default one
+	bool public pause; //Flag to pause all protocol modules
+
 	/**
 	 * @notice Add signature and target to storage.
 	 * @dev Protocol is a proxy and requires a way to add every
