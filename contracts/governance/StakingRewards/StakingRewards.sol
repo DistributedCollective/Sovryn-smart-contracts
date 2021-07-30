@@ -47,6 +47,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * period being rewarded
 	 * */
 	function stop() external onlyOwner {
+		require(stopBlock == 0, "Already stopped");
 		stopBlock = block.number;
 	}
 
@@ -70,25 +71,12 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * after intervals of 14 days.
 	 * */
 	function collectReward() external {
-		uint256 count;
-		uint256 weightedStake;
-		uint256 lastFinalisedBlock = block.number - 1;
-		uint256 currentTS = block.timestamp;
-		address staker = msg.sender;
-		if (withdrawals[staker] == 0) {
-			require((currentTS.sub(startTime)) > TWO_WEEKS, "allowed after 14 days of start");
-			withdrawals[staker] = startTime;
-		} else {
-			require(currentTS > withdrawals[staker], "allowed after 14 days");
-		}
-
-		for (uint256 i = withdrawals[staker]; i < currentTS && i < withdrawals[staker].add(maxDuration); i += TWO_WEEKS) {
-			count++;
-			weightedStake = weightedStake.add(_computeRewardForDate(staker, lastFinalisedBlock, i));
-		}
-		require(weightedStake > 0, "weightedStake is zero");
-		withdrawals[staker] += count.mul(TWO_WEEKS);
-		_payReward(staker, weightedStake);
+		uint256 withdrawalTime;
+		uint256 amount;
+		(withdrawalTime, amount) = getStakerCurrentReward(true);
+		require(withdrawalTime > 0 && amount > 0, "no valid reward");
+		withdrawals[msg.sender] = withdrawalTime;
+		_payReward(msg.sender, amount);
 	}
 
 	/**
@@ -98,6 +86,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * @param _staker Staker address
 	 * @param _block Last finalised block
 	 * @param _date The date to compute prior weighted stakes
+	 * @return The weighted stake
 	 * */
 	function _computeRewardForDate(
 		address _staker,
@@ -118,10 +107,9 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * @dev Base rate is annual, but we pay interest for 14 days,
 	 * which is 1/26 of one staking year (1092 days)
 	 * @param _staker User address
-	 * @param weightedStake the weighted stake
+	 * @param amount the reward amount
 	 * */
-	function _payReward(address _staker, uint256 weightedStake) internal {
-		uint256 amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
+	function _payReward(address _staker, uint256 amount) internal {
 		require(SOV.balanceOf(address(this)) >= amount, "not enough funds to reward user");
 		claimedBalances[_staker] = claimedBalances[_staker].add(amount);
 		_transferSOV(_staker, amount);
@@ -148,5 +136,44 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		require(_amount != 0, "amount invalid");
 		require(SOV.transfer(_receiver, _amount), "transfer failed");
 		emit RewardWithdrawn(_receiver, _amount);
+	}
+
+	/**
+	 * @notice Get staker's current accumulated reward
+	 * @dev The collectReward() function internally calls this function to calculate reward amount
+	 * @param considerMaxDuration True: Runs for the maximum duration - used in tx not to run out of gas
+	 * False - to query total rewards
+	 * @return The timestamp of last withdrawal
+	 * @return The accumulated reward
+	 */
+	function getStakerCurrentReward(bool considerMaxDuration) public view returns (uint256 withdrawalTime, uint256 amount) {
+		uint256 count;
+		uint256 weightedStake;
+		uint256 lastFinalisedBlock = block.number - 1;
+		uint256 currentTS = block.timestamp;
+		address staker = msg.sender;
+		uint256 duration;
+		if (withdrawals[staker] == 0) {
+			require((currentTS.sub(startTime)) > TWO_WEEKS, "allowed after 14 days of start");
+			withdrawalTime = startTime;
+		} else {
+			require(currentTS > withdrawals[staker], "allowed after 14 days");
+			withdrawalTime = withdrawals[staker];
+		}
+
+		if (considerMaxDuration) {
+			duration = maxDuration;
+		} else {
+			duration = currentTS;
+		}
+
+		for (uint256 i = withdrawalTime; i <= currentTS && i <= withdrawalTime.add(duration); i += TWO_WEEKS) {
+			count++;
+			weightedStake = weightedStake.add(_computeRewardForDate(staker, lastFinalisedBlock, i));
+		}
+
+		if (weightedStake == 0) return (0, 0);
+		withdrawalTime += count.mul(TWO_WEEKS);
+		amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
 	}
 }
