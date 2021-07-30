@@ -160,7 +160,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * 2. The rewards can only be processed for a max duration at a time
 	 * @return The accumulated reward
 	 */
-	function getStakerCurrentReward() external view returns(uint256 amount) {
+	function getStakerCurrentReward() external view returns (uint256 amount) {
 		uint256 weightedStake;
 		uint256 i = withdrawals[msg.sender];
 		if (i == 0) i = startTime;
