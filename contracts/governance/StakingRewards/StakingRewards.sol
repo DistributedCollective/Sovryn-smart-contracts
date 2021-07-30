@@ -141,8 +141,8 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	/**
 	 * @notice Get staker's current accumulated reward
 	 * @dev The collectReward() function internally calls this function to calculate reward amount
-	 * @param considerMaxDuration True: Runs for the maximum duration
-	 * False: Runs till the current timestamp
+	 * @param considerMaxDuration True: Runs for the maximum duration - used in tx not to run out of gas
+	 * False - to query total rewards
 	 * @return The timestamp of last withdrawal
 	 * @return The accumulated reward
 	 */
