@@ -134,7 +134,6 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
 
 	/**
 	 * @notice Setter to toggle on the not-first-trade flag of a user.
-	 * @dev REFACTOR move setUserNotFirstTradeFlag to ProtocolSettings?
 	 * @param user The address of a given user.
 	 */
 	function setUserNotFirstTradeFlag(address user) external onlyCallableByLoanPools whenNotPaused {
