@@ -400,4 +400,6 @@ contract ISovryn is
 	function getAffiliateRewardsHeld(address referrer) external view returns (uint256);
 
 	function getAffiliateTradingTokenFeePercent() external view returns (uint256 affiliateTradingTokenFeePercent);
+
+	function getAffiliatesTokenRewardsValueInRbtc(address referrer) external view returns (uint256 rbtcTotalAmount);
 }
