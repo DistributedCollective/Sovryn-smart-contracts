@@ -44,6 +44,7 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
 		_setTarget(this.getAffiliatesUserReferrer.selector, target);
 		_setTarget(this.getAffiliateRewardsHeld.selector, target);
 		_setTarget(this.getAffiliateTradingTokenFeePercent.selector, target);
+		_setTarget(this.getAffiliatesTokenRewardsValueInRbtc.selector, target);
 		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "Affiliates");
 	}
 
@@ -266,6 +267,38 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
 			referrerTokensBalances[i] = getAffiliatesReferrerTokenBalance(referrer, referrerTokensList[i]);
 		}
 		return (referrerTokensList, referrerTokensBalances);
+	}
+
+	/**
+	 * @dev Get all token rewards estimation value in rbtc.
+	 *
+	 * @param referrer Address of referrer.
+	 *
+	 * @return The value estimation in rbtc.
+	 */
+	function getAffiliatesTokenRewardsValueInRbtc(address referrer) external view returns (uint256 rbtcTotalAmount) {
+		address[] memory tokensList = getAffiliatesReferrerTokensList(referrer);
+		address _priceFeeds = priceFeeds;
+
+		for (uint256 i; i < tokensList.length; i++) {
+			// Get the value of each token in rbtc
+
+			(bool success, bytes memory data) =
+				_priceFeeds.staticcall(
+					abi.encodeWithSelector(
+						IPriceFeeds(_priceFeeds).queryReturn.selector,
+						tokensList[i], // source token
+						address(wrbtcToken), // dest token = SOV
+						affiliatesReferrerBalances[referrer][tokensList[i]] // total token rewards
+					)
+				);
+
+			assembly {
+				if eq(success, 1) {
+					rbtcTotalAmount := add(rbtcTotalAmount, mload(add(data, 32)))
+				}
+			}
+		}
 	}
 
 	function getAffiliatesReferrerTokensList(address referrer) public view returns (address[] memory tokensList) {
