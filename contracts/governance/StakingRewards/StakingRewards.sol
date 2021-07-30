@@ -159,7 +159,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 			require(currentTS > withdrawals[staker], "allowed after 14 days");
 			withdrawalTime = withdrawals[staker];
 		}
-		
+
 		if (isMaxDuration) {
 			duration = maxDuration;
 		} else {
@@ -170,7 +170,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 			count++;
 			weightedStake = weightedStake.add(_computeRewardForDate(staker, lastFinalisedBlock, i));
 		}
-		
+
 		require(weightedStake > 0, "weightedStake is zero");
 		withdrawalTime += count.mul(TWO_WEEKS);
 		amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
