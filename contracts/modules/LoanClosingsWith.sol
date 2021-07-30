@@ -14,6 +14,7 @@ import "../mixins/LiquidationHelper.sol";
 import "../swaps/SwapsUser.sol";
 import "../interfaces/ILoanPool.sol";
 import "../mixins/RewardHelper.sol";
+import "./ModuleCommonFunctionalities.sol";
 
 /**
  * @title LoanClosingsWith contract.
@@ -28,7 +29,8 @@ contract LoanClosingsWith is
 	VaultController,
 	InterestUser,
 	SwapsUser, /*LiquidationHelper,*/
-	RewardHelper
+	RewardHelper,
+	ModuleCommonFunctionalities
 {
 	//0.00001 BTC, would be nicer in State.sol, but would require a redeploy of the complete protocol, so adding it here instead
 	//because it's not shared state anyway and only used by this contract
@@ -45,8 +47,10 @@ contract LoanClosingsWith is
 	}
 
 	function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.closeWithDeposit.selector];
 		_setTarget(this.closeWithDeposit.selector, target);
 		_setTarget(this.closeWithSwap.selector, target);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanClosingsWith");
 	}
 
 	/**
@@ -73,6 +77,7 @@ contract LoanClosingsWith is
 		public
 		payable
 		nonReentrant
+		whenNotPaused
 		returns (
 			uint256 loanCloseAmount,
 			uint256 withdrawAmount,
@@ -111,6 +116,7 @@ contract LoanClosingsWith is
 	)
 		public
 		nonReentrant
+		whenNotPaused
 		returns (
 			uint256 loanCloseAmount,
 			uint256 withdrawAmount,
@@ -743,7 +749,14 @@ contract LoanClosingsWith is
 			interestTime = loanLocal.endTimestamp;
 		}
 
-		_settleFeeRewardForInterestExpense(loanInterestLocal, loanLocal.id, loanParamsLocal.loanToken, loanLocal.borrower, interestTime);
+		_settleFeeRewardForInterestExpense(
+			loanInterestLocal,
+			loanLocal.id,
+			loanParamsLocal.loanToken, /// fee token
+			loanParamsLocal.collateralToken, /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
+			loanLocal.borrower,
+			interestTime
+		);
 
 		uint256 owedPerDayRefund;
 		if (closePrincipal < loanLocal.principal) {

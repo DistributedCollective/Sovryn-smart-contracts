@@ -13,6 +13,7 @@ import "../mixins/VaultController.sol";
 import "../mixins/InterestUser.sol";
 import "../mixins/LiquidationHelper.sol";
 import "../swaps/SwapsUser.sol";
+import "./ModuleCommonFunctionalities.sol";
 
 /**
  * @title Loan Maintenance contract.
@@ -23,7 +24,15 @@ import "../swaps/SwapsUser.sol";
  * This contract contains functions to query loan data and to modify its status
  * by withdrawing or depositing collateral.
  * */
-contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper {
+contract LoanMaintenance is
+	LoanOpeningsEvents,
+	LoanMaintenanceEvents,
+	VaultController,
+	InterestUser,
+	SwapsUser,
+	LiquidationHelper,
+	ModuleCommonFunctionalities
+{
 	struct LoanReturnData {
 		bytes32 loanId;
 		address loanToken;
@@ -60,6 +69,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	 * @param target The address of the logic contract instance.
 	 * */
 	function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.depositCollateral.selector];
 		_setTarget(this.depositCollateral.selector, target);
 		_setTarget(this.withdrawCollateral.selector, target);
 		_setTarget(this.withdrawAccruedInterest.selector, target);
@@ -70,20 +80,21 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		_setTarget(this.getUserLoans.selector, target);
 		_setTarget(this.getLoan.selector, target);
 		_setTarget(this.getActiveLoans.selector, target);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanMaintenance");
 	}
 
 	/**
-	 * @notice Deposit the loan collateral.
+	 * @notice Increase the margin of a position by depositing additional collateral.
 	 *
 	 * @param loanId A unique ID representing the loan.
-	 * @param depositAmount The amount to be deposited.
+	 * @param depositAmount The amount to be deposited in collateral tokens.
 	 *
 	 * @return actualWithdrawAmount The amount withdrawn taking into account drawdowns.
 	 * */
 	function depositCollateral(
 		bytes32 loanId,
 		uint256 depositAmount /// must match msg.value if ether is sent
-	) external payable nonReentrant {
+	) external payable nonReentrant whenNotPaused {
 		require(depositAmount != 0, "depositAmount is 0");
 		Loan storage loanLocal = loans[loanId];
 		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
@@ -106,11 +117,11 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	}
 
 	/**
-	 * @notice Withdraw the loan collateral.
+	 * @notice Withdraw from the collateral. This reduces the margin of a position.
 	 *
 	 * @param loanId A unique ID representing the loan.
 	 * @param receiver The account getting the withdrawal.
-	 * @param withdrawAmount The amount to be withdrawn.
+	 * @param withdrawAmount The amount to be withdrawn in collateral tokens.
 	 *
 	 * @return actualWithdrawAmount The amount withdrawn taking into account drawdowns.
 	 * */
@@ -118,7 +129,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		bytes32 loanId,
 		address receiver,
 		uint256 withdrawAmount
-	) external nonReentrant returns (uint256 actualWithdrawAmount) {
+	) external nonReentrant whenNotPaused returns (uint256 actualWithdrawAmount) {
 		require(withdrawAmount != 0, "withdrawAmount is 0");
 		Loan storage loanLocal = loans[loanId];
 		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
@@ -157,7 +168,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	 *
 	 * @param loanToken The loan token address.
 	 * */
-	function withdrawAccruedInterest(address loanToken) external {
+	function withdrawAccruedInterest(address loanToken) external whenNotPaused {
 		/// Pay outstanding interest to lender.
 		_payInterest(
 			msg.sender, /// Lender.
@@ -166,11 +177,12 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	}
 
 	/**
-	 * @notice Extend the loan duration.
+	 * @notice Extend the loan duration by as much time as depositAmount can buy.
 	 *
 	 * @param loanId A unique ID representing the loan.
-	 * @param depositAmount The amount to be deposited.
-	 * @param useCollateral Whether pay interests w/ the collateral.
+	 * @param depositAmount The amount to be deposited in loan tokens. Used to pay the interest for the new duration.
+	 * @param useCollateral Whether pay interests w/ the collateral. If true, depositAmount of loan tokens
+	 *						will be purchased with the collateral.
 	 * // param calldata The payload for the call. These loan DataBytes are additional loan data (not in use for token swaps).
 	 *
 	 * @return secondsExtended The amount of time in seconds the loan is extended.
@@ -180,7 +192,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		uint256 depositAmount,
 		bool useCollateral,
 		bytes calldata /// loanDataBytes, for future use.
-	) external payable nonReentrant returns (uint256 secondsExtended) {
+	) external payable nonReentrant whenNotPaused returns (uint256 secondsExtended) {
 		require(depositAmount != 0, "depositAmount is 0");
 		Loan storage loanLocal = loans[loanId];
 		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
@@ -195,7 +207,14 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 
 		LoanInterest storage loanInterestLocal = loanInterest[loanLocal.id];
 
-		_settleFeeRewardForInterestExpense(loanInterestLocal, loanLocal.id, loanParamsLocal.loanToken, loanLocal.borrower, block.timestamp);
+		_settleFeeRewardForInterestExpense(
+			loanInterestLocal,
+			loanLocal.id,
+			loanParamsLocal.loanToken, /// fee token
+			loanParamsLocal.collateralToken, /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
+			loanLocal.borrower,
+			block.timestamp
+		);
 
 		/// Handle back interest: calculates interest owned since the loan
 		/// endtime passed but the loan remained open.
@@ -246,11 +265,11 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 	}
 
 	/**
-	 * @notice Reduce the loan duration.
+	 * @notice Reduce the loan duration by withdrawing from the deposited interest.
 	 *
 	 * @param loanId A unique ID representing the loan.
 	 * @param receiver The account getting the withdrawal.
-	 * @param withdrawAmount The amount to be withdrawn.
+	 * @param withdrawAmount The amount to be withdrawn in loan tokens.
 	 *
 	 * @return secondsReduced The amount of time in seconds the loan is reduced.
 	 * */
@@ -258,7 +277,7 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 		bytes32 loanId,
 		address receiver,
 		uint256 withdrawAmount
-	) external nonReentrant returns (uint256 secondsReduced) {
+	) external nonReentrant whenNotPaused returns (uint256 secondsReduced) {
 		require(withdrawAmount != 0, "withdrawAmount is 0");
 		Loan storage loanLocal = loans[loanId];
 		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
@@ -273,7 +292,14 @@ contract LoanMaintenance is LoanOpeningsEvents, LoanMaintenanceEvents, VaultCont
 
 		LoanInterest storage loanInterestLocal = loanInterest[loanLocal.id];
 
-		_settleFeeRewardForInterestExpense(loanInterestLocal, loanLocal.id, loanParamsLocal.loanToken, loanLocal.borrower, block.timestamp);
+		_settleFeeRewardForInterestExpense(
+			loanInterestLocal,
+			loanLocal.id,
+			loanParamsLocal.loanToken, /// fee token
+			loanParamsLocal.collateralToken, /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
+			loanLocal.borrower,
+			block.timestamp
+		);
 
 		uint256 interestDepositRemaining = loanLocal.endTimestamp.sub(block.timestamp).mul(loanInterestLocal.owedPerDay).div(86400);
 		require(withdrawAmount < interestDepositRemaining, "withdraw amount too high");

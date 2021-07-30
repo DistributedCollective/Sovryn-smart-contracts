@@ -2,6 +2,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./Checkpoints.sol";
+import "../../openzeppelin/Address.sol";
 
 /**
  * @title Weighted Staking contract.
@@ -14,6 +15,16 @@ import "./Checkpoints.sol";
  * FeeSharingProxy and GovernorAlpha invoke Staking instance functions.
  * */
 contract WeightedStaking is Checkpoints {
+	using Address for address payable;
+
+	/**
+	 * @dev Throws if called by any account other than the owner or admin.
+	 */
+	modifier onlyAuthorized() {
+		require(isOwner() || admins[msg.sender], "unauthorized");
+		_;
+	}
+
 	/************* TOTAL VOTING POWER COMPUTATION ************************/
 
 	/**
@@ -243,7 +254,7 @@ contract WeightedStaking is Checkpoints {
 		uint256 startDate,
 		uint256 blockNumber
 	) public view returns (uint96 power) {
-		uint96 staked = getPriorUserStakeByDate(account, date, blockNumber);
+		uint96 staked = _getPriorUserStakeByDate(account, date, blockNumber);
 		if (staked > 0) {
 			uint96 weight = computeWeightByDate(date, startDate);
 			power = mul96(staked, weight, "WeightedStaking::weightedStakeByDate: multiplication overflow") / WEIGHT_FACTOR;
@@ -266,7 +277,28 @@ contract WeightedStaking is Checkpoints {
 		address account,
 		uint256 date,
 		uint256 blockNumber
-	) public view returns (uint96) {
+	) external view returns (uint96) {
+		uint96 priorStake = _getPriorUserStakeByDate(account, date, blockNumber);
+		// @dev we need to modify function in order to workaround issue with Vesting.withdrawTokens:
+		//		return 1 instead of 0 if message sender is a contract.
+		if (priorStake == 0 && _isVestingContract()) {
+			priorStake = 1;
+		}
+		return priorStake;
+	}
+
+	/**
+	 * @notice Determine the prior number of stake for an account until a
+	 * 		certain lock date as of a block number.
+	 * @dev All functions of Staking contract use this internal version,
+	 * 		we need to modify public function in order to workaround issue with Vesting.withdrawTokens:
+	 * return 1 instead of 0 if message sender is a contract.
+	 * */
+	function _getPriorUserStakeByDate(
+		address account,
+		uint256 date,
+		uint256 blockNumber
+	) internal view returns (uint96) {
 		require(blockNumber < block.number, "WeightedStaking::getPriorUserStakeAndDate: not yet determined");
 
 		date = _adjustDateForOrigin(date);
@@ -352,5 +384,64 @@ contract WeightedStaking is Checkpoints {
 			date = adjustedDate + TWO_WEEKS;
 		}
 		return date;
+	}
+
+	/**
+	 * @notice Add account to ACL.
+	 * @param _admin The addresses of the account to grant permissions.
+	 * */
+	function addAdmin(address _admin) public onlyOwner {
+		admins[_admin] = true;
+		emit AdminAdded(_admin);
+	}
+
+	/**
+	 * @notice Remove account from ACL.
+	 * @param _admin The addresses of the account to revoke permissions.
+	 * */
+	function removeAdmin(address _admin) public onlyOwner {
+		admins[_admin] = false;
+		emit AdminRemoved(_admin);
+	}
+
+	/**
+	 * @notice Add vesting contract's code hash to a map of code hashes.
+	 * @param vesting The address of Vesting contract.
+	 * @dev We need it to use _isVestingContract() function instead of isContract()
+	 */
+	function addContractCodeHash(address vesting) public onlyAuthorized {
+		bytes32 codeHash = _getCodeHash(vesting);
+		vestingCodeHashes[codeHash] = true;
+		emit ContractCodeHashAdded(codeHash);
+	}
+
+	/**
+	 * @notice Add vesting contract's code hash to a map of code hashes.
+	 * @param vesting The address of Vesting contract.
+	 * @dev We need it to use _isVestingContract() function instead of isContract()
+	 */
+	function removeContractCodeHash(address vesting) public onlyAuthorized {
+		bytes32 codeHash = _getCodeHash(vesting);
+		vestingCodeHashes[codeHash] = false;
+		emit ContractCodeHashRemoved(codeHash);
+	}
+
+	/**
+	 * @notice Return flag whether message sender is a registered vesting contract.
+	 */
+	function _isVestingContract() internal view returns (bool) {
+		bytes32 codeHash = _getCodeHash(msg.sender);
+		return vestingCodeHashes[codeHash];
+	}
+
+	/**
+	 * @notice Return hash of contract code
+	 */
+	function _getCodeHash(address _contract) internal view returns (bytes32) {
+		bytes32 codeHash;
+		assembly {
+			codeHash := extcodehash(_contract)
+		}
+		return codeHash;
 	}
 }

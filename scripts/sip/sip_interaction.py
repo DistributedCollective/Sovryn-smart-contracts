@@ -6,8 +6,7 @@ This script serves the purpose of interacting with governance (SIP) on the testn
 from brownie import *
 from brownie.network.contract import InterfaceContainer
 import json
-import time;
-import copy
+import time
 
 def main():
 
@@ -18,9 +17,11 @@ def main():
 
     # Call the function you want here
     currentVotingPower(acct)
-    createProposalSIP0017()
-    createProposalSIP0018()
 
+    #createProposalSIP0020()
+    #createProposalSIP0019()
+
+    createProposalSIP0024()
     balanceAfter = acct.balance()
 
     print("=============================================================")
@@ -53,8 +54,8 @@ def hasApproval(tokenContractAddr, sender, receiver):
     allowance = tokenContract.allowance(sender, receiver)
     print("Allowance: ", allowance/1e18)
     
-def checkIfUserHasToken(EAT, user):
-    tokenContract = Contract.from_abi("Token", address=EAT, abi=TestToken.abi, owner=user)
+def checkIfUserHasToken(tokenAddr, user):
+    tokenContract = Contract.from_abi("Token", address=tokenAddr, abi=TestToken.abi, owner=user)
     balance = tokenContract.balanceOf(user)
     print("Token Balance: ", balance)
 
@@ -68,12 +69,12 @@ def currentVotingPower(acctAddress):
     votingPower = staking.getCurrentVotes(acctAddress)
     proposalThreshold = governor.proposalThreshold()
 
-    print('======================================')
+    print('=============================================================')
     print('Your Address:        '+str(acctAddress))
     print('Your Token Balance:  '+str(balance))
     print('Your Voting Power:   '+str(votingPower))
     print('Proposal Threshold:  '+str(proposalThreshold))
-    print('======================================')
+    print('=============================================================')
 
 def queueProposal(id):
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
@@ -88,17 +89,18 @@ def executeProposal(id):
 def createProposal(governorAddr, target, value, signature, data, description):
     governor = Contract.from_abi("GovernorAlpha", address=governorAddr, abi=GovernorAlpha.abi, owner=acct)
 
-    print('======================================')
+    print('=============================================================')
     print('Governor Address:    '+governor.address)
     print('Target:              '+str(target))
     print('Values:              '+str(value))
     print('Signature:           '+str(signature))
     print('Data:                '+str(data))
     print('Description:         '+str(description))
-    print('======================================')
+    print('=============================================================')
 
     # Create Proposal
-    # governor.propose(target, value, signature, data, description)
+    # tx = governor.propose(target, value, signature, data, description)
+    # tx.info()
 
 def createProposalSIP0005():
     dummyAddress = contracts['GovernorOwner']
@@ -200,3 +202,42 @@ def createProposalSIP0018():
 
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+def createProposalSIP0019():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["name()"]
+    data = ["0x"]
+    description = "SIP-0019: Exchequer Committee 2021 Budget, Details: https://github.com/DistributedCollective/SIPS/blob/2a3c5a7/SIP-0019.md, sha256: dfc958c3e84e7bbfb7d8f3e944fbd73ebc8f05dabd6fdd16b8c2884607c52b88"
+
+    # Create Proposal
+    createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
+
+def createProposalSIP0020():
+
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    stakingLogic = Contract.from_abi("StakingLogic3", address=contracts['StakingLogic3'], abi=Staking.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking'], contracts['Staking']]
+    values = [0, 0]
+    signatures = ["setImplementation(address)", "addAdmin(address)"]
+    data1 = staking.setImplementation.encode_input(contracts['StakingLogic3'])
+    data2 = stakingLogic.addAdmin.encode_input(contracts['multisig'])
+    datas = ["0x" + data1[10:], "0x" + data2[10:]]
+    description = "SIP-0020: Staking contract updates, Details: https://github.com/DistributedCollective/SIPS/blob/91ea9de/SIP-0020.md, sha256: c1d39606ef53067d55b3e8a05a266918fa7bad09ecc2c1afcef7c68b2eac3cd0"
+
+    # Create Proposal
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+def createProposalSIP0024():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["name()"]
+    data = ["0x"]
+    description = "SIP-0024: Liquid SOV Incentive Rewards for Fully Vested Stakers: https://github.com/DistributedCollective/SIPS/blob/5fcbcac9e7/SIP-0024.md, sha256: 05065938663108381afc1d30d97a0144d83fe15e53b8be79f4c0cec088ec1321"
+
+    # Create Proposal
+    createProposal(contracts['GovernorOwner'], target, value, signature, data, description)

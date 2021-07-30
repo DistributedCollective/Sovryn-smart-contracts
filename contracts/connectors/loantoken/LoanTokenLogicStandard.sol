@@ -9,6 +9,8 @@ pragma experimental ABIEncoderV2;
 import "./LoanTokenSettingsLowerAdmin.sol";
 import "./interfaces/ProtocolLike.sol";
 import "./interfaces/FeedsLike.sol";
+import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
+import "../../farm/ILiquidityMining.sol";
 
 /**
  * @title Loan Token Logic Standard contract.
@@ -61,7 +63,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @notice Fallback function is to react to receiving value (rBTC).
 	 * */
 	function() external {
-		revert("loan token logic - fallback not allowed");
+		// Due to contract size issue, need to keep the error message to 32 bytes length / we remove the revert function
+		// Remove revert function is fine as this fallback function is not payable, but the trade off is we cannot have the custom message for the fallback function error
+		// revert("loan token-fallback not allowed");
 	}
 
 	/* Public functions */
@@ -81,10 +85,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 *
 	 * @return The amount of loan tokens minted.
 	 * */
-	function mint(address receiver, uint256 depositAmount) external nonReentrant hasEarlyAccessToken returns (uint256 mintAmount) {
-		/// Temporary: limit transaction size
-		if (transactionLimit[loanTokenAddress] > 0) require(depositAmount <= transactionLimit[loanTokenAddress]);
-
+	function mint(address receiver, uint256 depositAmount) external nonReentrant returns (uint256 mintAmount) {
 		return _mintToken(receiver, depositAmount);
 	}
 
@@ -103,6 +104,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	function burn(address receiver, uint256 burnAmount) external nonReentrant returns (uint256 loanAmountPaid) {
 		loanAmountPaid = _burnToken(burnAmount);
 
+		//this needs to be here and not in _burnTokens because of the WRBTC implementation
 		if (loanAmountPaid != 0) {
 			_safeTransfer(loanTokenAddress, receiver, loanAmountPaid, "5");
 		}
@@ -205,7 +207,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		public
 		payable
 		nonReentrant /// Note: needs to be removed to allow flashloan use cases.
-		hasEarlyAccessToken
 		returns (
 			uint256,
 			uint256 /// Returns new principal and new collateral added to loan.
@@ -218,12 +219,21 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		/// Temporary: limit transaction size.
 		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
 
-		require(msg.value == 0 || msg.value == collateralTokenSent, "7");
-		require(collateralTokenSent != 0 || loanId != 0, "8");
-		require(collateralTokenAddress != address(0) || msg.value != 0 || loanId != 0, "9");
+		require(
+			(msg.value == 0 || msg.value == collateralTokenSent) &&
+				(collateralTokenSent != 0 || loanId != 0) &&
+				(collateralTokenAddress != address(0) || msg.value != 0 || loanId != 0) &&
+				(loanId == 0 || msg.sender == borrower),
+			"7"
+		);
+
+		/// @dev We have an issue regarding contract size code is too big. 1 of the solution is need to keep the error message 32 bytes length
+		// Temporarily, we combine this require to the above, so can save the contract size code
+		// require(collateralTokenSent != 0 || loanId != 0, "8");
+		// require(collateralTokenAddress != address(0) || msg.value != 0 || loanId != 0, "9");
 
 		/// @dev Ensure authorized use of existing loan.
-		require(loanId == 0 || msg.sender == borrower, "unauthorized use of existing loan");
+		// require(loanId == 0 || msg.sender == borrower, "401 use of existing loan");
 
 		if (collateralTokenAddress == address(0)) {
 			collateralTokenAddress = wrbtcTokenAddress;
@@ -306,18 +316,20 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		uint256 collateralTokenSent,
 		address collateralTokenAddress,
 		address trader,
+		uint256 minReturn, // minimum position size in the collateral tokens
 		bytes memory loanDataBytes /// Arbitrary order data.
 	)
 		public
 		payable
 		nonReentrant /// Note: needs to be removed to allow flashloan use cases.
-		hasEarlyAccessToken
 		returns (
 			uint256,
 			uint256 /// Returns new principal and new collateral added to trade.
 		)
 	{
 		_checkPause();
+
+		checkPriceDivergence(leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress, minReturn);
 
 		if (collateralTokenAddress == address(0)) {
 			collateralTokenAddress = wrbtcTokenAddress;
@@ -326,7 +338,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		require(collateralTokenAddress != loanTokenAddress, "11");
 
 		/// @dev Ensure authorized use of existing loan.
-		require(loanId == 0 || msg.sender == trader, "unauthorized use of existing loan");
+		require(loanId == 0 || msg.sender == trader, "401 use of existing loan");
 
 		/// Temporary: limit transaction size.
 		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
@@ -369,6 +381,39 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 				collateralTokenAddress,
 				sentAddresses,
 				sentAmounts,
+				loanDataBytes
+			);
+	}
+
+	function marginTradeAffiliate(
+		bytes32 loanId, // 0 if new loan
+		uint256 leverageAmount, // expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
+		uint256 loanTokenSent,
+		uint256 collateralTokenSent,
+		address collateralTokenAddress,
+		address trader,
+		uint256 minReturn, // minimum position size in the collateral tokens
+		address affiliateReferrer, // the user was brought by the affiliate (referrer)
+		bytes calldata loanDataBytes // arbitrary order data
+	)
+		external
+		payable
+		returns (
+			uint256,
+			uint256 // returns new principal and new collateral added to trade
+		)
+	{
+		if (affiliateReferrer != address(0))
+			ProtocolAffiliatesInterface(sovrynContractAddress).setAffiliatesReferrer(trader, affiliateReferrer);
+		return
+			marginTrade(
+				loanId,
+				leverageAmount,
+				loanTokenSent,
+				collateralTokenSent,
+				collateralTokenAddress,
+				trader,
+				minReturn,
 				loanDataBytes
 			);
 	}
@@ -442,8 +487,12 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		/// @dev Handle checkpoint update.
 		uint256 _currentPrice = tokenPrice();
 
-		_updateCheckpoints(_from, _balancesFrom, _balancesFromNew, _currentPrice);
-		_updateCheckpoints(_to, _balancesTo, _balancesToNew, _currentPrice);
+		//checkpoints are not being used by the smart contract logic itself, but just for external use (query the profit)
+		//only update the checkpoints of a user if he's not depositing to / withdrawing from the lending pool
+		if (_from != liquidityMiningAddress && _to != liquidityMiningAddress) {
+			_updateCheckpoints(_from, _balancesFrom, _balancesFromNew, _currentPrice);
+			_updateCheckpoints(_to, _balancesTo, _balancesToNew, _currentPrice);
+		}
 
 		emit Transfer(_from, _to, _value);
 		return true;
@@ -490,10 +539,10 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @param user The user address.
 	 * @return The profit of a user.
 	 * */
-	function profitOf(address user) public view returns (int256) {
+	function profitOf(address user) external view returns (int256) {
 		/// @dev keccak256("iToken_ProfitSoFar")
 		bytes32 slot = keccak256(abi.encodePacked(user, iToken_ProfitSoFar));
-
+		//TODO + LM balance
 		return _profitOf(slot, balances[user], tokenPrice(), checkpointPrices_[user]);
 	}
 
@@ -666,7 +715,11 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @return The user's balance of underlying token.
 	 * */
 	function assetBalanceOf(address _owner) public view returns (uint256) {
-		return balanceOf(_owner).mul(tokenPrice()).div(10**18);
+		uint256 balanceOnLM = 0;
+		if (liquidityMiningAddress != address(0)) {
+			balanceOnLM = ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(address(this), _owner);
+		}
+		return balanceOf(_owner).add(balanceOnLM).mul(tokenPrice()).div(10**18);
 	}
 
 	/**
@@ -683,7 +736,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		uint256 leverageAmount,
 		uint256 loanTokenSent,
 		uint256 collateralTokenSent,
-		address collateralTokenAddress /// address(0) means rBTC.
+		address collateralTokenAddress // address(0) means ETH
 	)
 		public
 		view
@@ -793,22 +846,58 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		}
 	}
 
+	function checkPriceDivergence(
+		uint256 leverageAmount,
+		uint256 loanTokenSent,
+		uint256 collateralTokenSent,
+		address collateralTokenAddress,
+		uint256 minReturn
+	) public view {
+		(, uint256 estimatedCollateral, ) =
+			getEstimatedMarginDetails(leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress);
+		require(estimatedCollateral >= minReturn, "coll too low");
+	}
+
 	/* Internal functions */
 
 	/**
-	 * @notice A wrapper for AdvancedToken::_mint
-	 *
-	 * @param receiver The account getting the minted tokens.
-	 * @param depositAmount The amount of underlying tokens provided on the loan.
-	 *
-	 * @return The amount of loan tokens minted.
-	 * */
+	 * @notice transfers the underlying asset from the msg.sender and mints tokens for the receiver
+	 * @param receiver the address of the iToken receiver
+	 * @param depositAmount the amount of underlying assets to be deposited
+	 * @return the amount of iTokens issued
+	 */
 	function _mintToken(address receiver, uint256 depositAmount) internal returns (uint256 mintAmount) {
+		uint256 currentPrice;
+
+		//calculate amount to mint and transfer the underlying asset
+		(mintAmount, currentPrice) = _prepareMinting(depositAmount);
+
+		//compute balances needed for checkpoint update, considering that the user might have a pool token balance
+		//on the liquidity mining contract
+		uint256 balanceOnLM = 0;
+		if (liquidityMiningAddress != address(0))
+			balanceOnLM = ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(address(this), receiver);
+		uint256 oldBalance = balances[receiver].add(balanceOnLM);
+		uint256 newBalance = oldBalance.add(mintAmount);
+
+		//mint the tokens to the receiver
+		_mint(receiver, mintAmount, depositAmount, currentPrice);
+
+		//update the checkpoint of the receiver
+		_updateCheckpoints(receiver, oldBalance, newBalance, currentPrice);
+	}
+
+	/**
+	 * calculates the amount of tokens to mint and transfers the underlying asset to this contract
+	 * @param depositAmount the amount of the underyling asset deposited
+	 * @return the amount to be minted
+	 */
+	function _prepareMinting(uint256 depositAmount) internal returns (uint256 mintAmount, uint256 currentPrice) {
 		require(depositAmount != 0, "17");
 
 		_settleInterest();
 
-		uint256 currentPrice = _tokenPrice(_totalAssetSupply(0));
+		currentPrice = _tokenPrice(_totalAssetSupply(0));
 		mintAmount = depositAmount.mul(10**18).div(currentPrice);
 
 		if (msg.value == 0) {
@@ -816,14 +905,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		} else {
 			IWrbtc(wrbtcTokenAddress).deposit.value(depositAmount)();
 		}
-
-		uint256 oldBalance = balances[receiver];
-		_updateCheckpoints(
-			receiver,
-			oldBalance,
-			_mint(receiver, mintAmount, depositAmount, currentPrice), /// newBalance
-			currentPrice
-		);
 	}
 
 	/**
@@ -851,18 +932,19 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		loanAmountPaid = loanAmountOwed;
 		require(loanAmountPaid <= loanAmountAvailableInContract, "37");
 
-		uint256 oldBalance = balances[msg.sender];
+		//compute balances needed for checkpoint update, considering that the user might have a pool token balance
+		//on the liquidity mining contract
+		uint256 balanceOnLM = 0;
+		if (liquidityMiningAddress != address(0))
+			balanceOnLM = ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(address(this), msg.sender);
+		uint256 oldBalance = balances[msg.sender].add(balanceOnLM);
+		uint256 newBalance = oldBalance.sub(burnAmount);
 
-		/**
-		 * @dev This function does not only update the checkpoints but also
-		 * the current profit of the user.
-		 * */
-		_updateCheckpoints(
-			msg.sender,
-			oldBalance,
-			_burn(msg.sender, burnAmount, loanAmountPaid, currentPrice), /// newBalance
-			currentPrice
-		);
+		_burn(msg.sender, burnAmount, loanAmountPaid, currentPrice);
+
+		//this function does not only update the checkpoints but also the current profit of the user
+		//all for external use only
+		_updateCheckpoints(msg.sender, oldBalance, newBalance, currentPrice);
 	}
 
 	/**
@@ -902,7 +984,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			/// @dev Get the oracle rate from collateral -> loan
 			(uint256 collateralToLoanRate, uint256 collateralToLoanPrecision) =
 				FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(collateralTokenAddress, loanTokenAddress);
-			require((collateralToLoanRate != 0) && (collateralToLoanPrecision != 0), "invalid exchange rate for the collateral token");
+			require((collateralToLoanRate != 0) && (collateralToLoanPrecision != 0), "invalid rate collateral token");
 
 			/// @dev Compute the loan token amount with the oracle rate.
 			uint256 loanTokenAmount = collateralTokenSent.mul(collateralToLoanRate).div(collateralToLoanPrecision);
@@ -1043,7 +1125,10 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		);
 		require(sentAmounts[1] != 0, "25");
 
-		return (sentAmounts[1], sentAmounts[4]); /// newPrincipal, newCollateral
+		//REFACTOR: move to a general interface: ProtocolSettingsLike?
+		ProtocolAffiliatesInterface(sovrynContractAddress).setUserNotFirstTradeFlag(sentAddresses[1]);
+
+		return (sentAmounts[1], sentAmounts[4]); // newPrincipal, newCollateral
 	}
 
 	/// sentAddresses[0]: lender
@@ -1285,7 +1370,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		uint256 thisMaxScaleRate = maxScaleRate;
 
 		if (utilRate < thisTargetLevel) {
-			/// @dev Target targetLevel utilization when utilization is under targetLevel
+			// target targetLevel utilization when utilization is under targetLevel
 			utilRate = thisTargetLevel;
 		}
 
@@ -1427,5 +1512,40 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			/// U = total_borrow / total_supply
 			return assetBorrow.mul(10**20).div(assetSupply);
 		}
+	}
+
+	/**
+	 * @notice sets the liquidity mining contract address
+	 * @param LMAddress the address of the liquidity mining contract
+	 */
+	function setLiquidityMiningAddress(address LMAddress) external onlyOwner {
+		liquidityMiningAddress = LMAddress;
+	}
+
+	function _mintWithLM(address receiver, uint256 depositAmount) internal returns (uint256 minted) {
+		//mint the tokens for the receiver
+		minted = _mintToken(receiver, depositAmount);
+
+		//transfer the tokens from the receiver to the LM address
+		_internalTransferFrom(receiver, liquidityMiningAddress, minted, minted);
+
+		//inform the LM mining contract
+		ILiquidityMining(liquidityMiningAddress).onTokensDeposited(receiver, minted);
+	}
+
+	function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
+		uint256 balanceOnLM = ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(address(this), msg.sender);
+		require(balanceOnLM.add(balanceOf(msg.sender)) >= burnAmount, "not enough balance");
+
+		if (balanceOnLM > 0) {
+			//withdraw pool tokens and LM rewards to the passed address
+			if (balanceOnLM < burnAmount) {
+				ILiquidityMining(liquidityMiningAddress).withdraw(address(this), balanceOnLM, msg.sender);
+			} else {
+				ILiquidityMining(liquidityMiningAddress).withdraw(address(this), burnAmount, msg.sender);
+			}
+		}
+		//burn the tokens of the msg.sender
+		return _burnToken(burnAmount);
 	}
 }

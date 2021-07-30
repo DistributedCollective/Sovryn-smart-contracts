@@ -6,6 +6,7 @@
 pragma solidity 0.5.17;
 
 import "./Objects.sol";
+import "../mixins/EnumerableAddressSet.sol";
 import "../mixins/EnumerableBytes32Set.sol";
 import "../openzeppelin/ReentrancyGuard.sol";
 import "../openzeppelin/Ownable.sol";
@@ -21,7 +22,8 @@ import "../interfaces/IWrbtcERC20.sol";
  * */
 contract State is Objects, ReentrancyGuard, Ownable {
 	using SafeMath for uint256;
-	using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set;
+	using EnumerableAddressSet for EnumerableAddressSet.AddressSet; // enumerable map of addresses
+	using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set; // enumerable map of bytes32 or addresses
 
 	/// Handles asset reference price lookups.
 	address public priceFeeds;
@@ -118,8 +120,8 @@ contract State is Objects, ReentrancyGuard, Ownable {
 	/// Lifetime total payout of protocol token.
 	uint256 public protocolTokenPaid;
 
-	/// 30% fee share /// Fee share for affiliate program.
-	uint256 public affiliateFeePercent = 30 * 10**18;
+	/// 5% fee share in form of SOV /// Fee share for affiliate program.
+	uint256 public affiliateFeePercent = 5 * 10**18;
 
 	/// 5% collateral discount /// Discount on collateral for liquidators.
 	uint256 public liquidationIncentivePercent = 5 * 10**18;
@@ -159,6 +161,27 @@ contract State is Objects, ReentrancyGuard, Ownable {
 	uint256 public feeRebatePercent = 50 * 10**18;
 
 	address public admin;
+
+	address public protocolAddress; // for modules interaction
+
+	mapping(address => bool) public userNotFirstTradeFlag; // The flag is set on the user's first trade or borrowing
+
+	mapping(address => address) public affiliatesUserReferrer; // User => referrer (affiliate)
+	mapping(address => EnumerableAddressSet.AddressSet) internal referralsList; // list of referral addresses that owned by the referrer
+
+	uint256 public minReferralsToPayout = 3;
+	mapping(address => uint256) public affiliateRewardsHeld; // Total affiliate SOV rewards that held in the protocol (Because the minimum referrals is less than the rule)
+	address public sovTokenAddress; // For affiliates SOV Bonus proccess
+	address public lockedSOVAddress;
+
+	/// 20% fee share of trading token fee /// Fee share of trading token fee for affiliate program.
+	uint256 public affiliateTradingTokenFeePercent = 20 * 10**18;
+
+	mapping(address => EnumerableAddressSet.AddressSet) internal affiliatesReferrerTokensList; // addresses of tokens in which commissions were paid to referrers
+	mapping(address => mapping(address => uint256)) public affiliatesReferrerBalances; // [referrerAddress][tokenAddress] is a referrer's token balance of accrued fees
+
+	mapping(address => mapping(address => uint256)) public specialRebates; // Special rate rebates for spesific pair -- if not set, then use the default one
+	bool public pause; //Flag to pause all protocol modules
 
 	/**
 	 * @notice Add signature and target to storage.
