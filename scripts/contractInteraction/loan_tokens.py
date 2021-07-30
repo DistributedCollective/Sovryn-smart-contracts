@@ -89,7 +89,7 @@ def testTradeOpeningAndClosing(protocolAddress, loanTokenAddress, underlyingToke
         conf.acct,  # trader,
         0, # slippage
         b'',  # loanDataBytes (only required with ether)
-        {'value': sendValue}
+        {'value': sendValue, 'allow_revert': True}
     )
     tx.info()
     loanId = tx.events['Trade']['loanId']
@@ -413,12 +413,12 @@ def wrappedIntegrationTest(loanTokenAddress, underlyingTokenAddress, collateralT
 
     # Verify
     if prevUnderlyingBalance - updatedUnderlyingBalance != amountUnderlying:
-        msg = "FAILED / INVALID STATE (TRADE OPENING & CLOSING WITHOUT COLLATERAL) : Updated underyling balance is not matched with the amount that was traded"
+        msg = 'FAILED / INVALID STATE (TRADE OPENING & CLOSING WITHOUT COLLATERAL) : Updated underyling balance: {0} is not matched with the amount that was traded: {1}'.format(prevUnderlyingBalance - updatedUnderlyingBalance, amountUnderlying)
         errorMsg.append(msg)
         print(msg)
     
     if prevCollateralBalance + transferEvents[len(transferEvents)-1]['value'] != updatedCollateralBalance:
-        msg = "FAILED / INVALID STATE (TRADE OPENING & CLOSING WITHOUT COLLATERAL) : Updated collateral balance is not matched with the amount that was closed with swap"
+        msg = 'FAILED / INVALID STATE (TRADE OPENING & CLOSING WITHOUT COLLATERAL) : Updated collateral balance: {0} is not matched with the amount that was closed with swap: {1}'.format(prevCollateralBalance + transferEvents[len(transferEvents)-1]['value'], updatedCollateralBalance)
         errorMsg.append(msg)
         print(msg)
 
@@ -447,12 +447,12 @@ def wrappedIntegrationTest(loanTokenAddress, underlyingTokenAddress, collateralT
 
     # Verify
     if prevUnderlyingBalance - updatedUnderlyingBalance != amountUnderlying:
-        msg = "FAILED / INVALID STATE (LEND TO POOL): Updated underyling balance is not matched with the amount that was lent"
+        msg = 'FAILED / INVALID STATE (LEND TO POOL): Updated underyling balance: {0} is not matched with the amount that was lent: {1}'.format(prevUnderlyingBalance - updatedUnderlyingBalance, amountUnderlying)
         errorMsg.append(msg)
         print(msg)
 
     if prevLoanTokenBalance + transferEvents[len(transferEvents)-1]['value'] != updatedLoanTokenBalance:
-        msg = "FAILED / INVALID STATE (LEND TO POOL) : Updated loanToken balance is not matched with the amount that was transferred from lending pool"
+        msg = 'FAILED / INVALID STATE (LEND TO POOL) : Updated loanToken balance: {0} is not matched with the amount that was transferred from lending pool: {1}'.format(prevLoanTokenBalance + transferEvents[len(transferEvents)-1]['value'], updatedLoanTokenBalance)
         errorMsg.append(msg)
         print(msg)
 
@@ -478,7 +478,7 @@ def wrappedIntegrationTest(loanTokenAddress, underlyingTokenAddress, collateralT
 
     # Verify
     if prevLoanTokenBalance - 0.5*(amountUnderlying) != updatedLoanTokenBalance:
-        msg = "FAILED / INVALID STATE (REMOVE FROM POOL): Updated loanToken balance is not matched with the amount that was taken from lending pool"
+        msg = 'FAILED / INVALID STATE (REMOVE FROM POOL): Updated loanToken balance: {0} is not matched with the amount that was taken from lending pool: {1}'.format(prevLoanTokenBalance - 0.5*(amountUnderlying), updatedLoanTokenBalance)
         errorMsg.append(msg)
         print(msg)
 
@@ -518,7 +518,7 @@ def wrappedIntegrationTest(loanTokenAddress, underlyingTokenAddress, collateralT
 
     # Verify
     if updatedUnderlyingBalance - prevUnderlyingBalance != amountUnderlying:
-        msg = "FAILED / INVALID STATE (BORROWING): Updated underyling balance is not matched with the amount that was borrowed"
+        msg = 'FAILED / INVALID STATE (BORROWING): Updated underyling balance {0} is not matched with the amount that was borrowed: {1}'.format(updatedUnderlyingBalance - prevUnderlyingBalance, amountUnderlying)
         errorMsg.append(msg)
         print(msg)
 
