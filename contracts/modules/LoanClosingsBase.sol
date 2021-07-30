@@ -14,6 +14,7 @@ import "../mixins/LiquidationHelper.sol";
 import "../swaps/SwapsUser.sol";
 import "../interfaces/ILoanPool.sol";
 import "../mixins/RewardHelper.sol";
+import "./ModuleCommonFunctionalities.sol";
 
 /**
  * @title LoanClosingsBase contract.
@@ -22,7 +23,15 @@ import "../mixins/RewardHelper.sol";
  *
  * Loans are liquidated if the position goes below margin maintenance.
  * */
-contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, SwapsUser, LiquidationHelper, RewardHelper {
+contract LoanClosingsBase is
+	LoanClosingsEvents,
+	VaultController,
+	InterestUser,
+	SwapsUser,
+	LiquidationHelper,
+	RewardHelper,
+	ModuleCommonFunctionalities
+{
 	uint256 internal constant MONTH = 365 days / 12;
 	//0.00001 BTC, would be nicer in State.sol, but would require a redeploy of the complete protocol, so adding it here instead
 	//because it's not shared state anyway and only used by this contract
@@ -37,8 +46,10 @@ contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, 
 	}
 
 	function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.liquidate.selector];
 		_setTarget(this.liquidate.selector, target);
 		_setTarget(this.rollover.selector, target);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanClosingsBase");
 	}
 
 	/**
@@ -73,6 +84,7 @@ contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, 
 		external
 		payable
 		nonReentrant
+		whenNotPaused
 		returns (
 			uint256 loanCloseAmount,
 			uint256 seizedAmount,
@@ -107,7 +119,7 @@ contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, 
 	function rollover(
 		bytes32 loanId,
 		bytes calldata // for future use /*loanDataBytes*/
-	) external nonReentrant {
+	) external nonReentrant whenNotPaused {
 		// restrict to EOAs to prevent griefing attacks, during interest rate recalculation
 		require(msg.sender == tx.origin, "only EOAs can call");
 
@@ -256,7 +268,14 @@ contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, 
 		LoanInterest storage loanInterestLocal = loanInterest[loanLocal.id];
 		LenderInterest storage lenderInterestLocal = lenderInterest[loanLocal.lender][loanParamsLocal.loanToken];
 
-		_settleFeeRewardForInterestExpense(loanInterestLocal, loanLocal.id, loanParamsLocal.loanToken, loanLocal.borrower, block.timestamp);
+		_settleFeeRewardForInterestExpense(
+			loanInterestLocal,
+			loanLocal.id,
+			loanParamsLocal.loanToken, /// fee token
+			loanParamsLocal.collateralToken, /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
+			loanLocal.borrower,
+			block.timestamp
+		);
 
 		// Handle back interest: calculates interest owned since the loan endtime passed but the loan remained open
 		uint256 backInterestTime;
@@ -605,7 +624,14 @@ contract LoanClosingsBase is LoanClosingsEvents, VaultController, InterestUser, 
 			interestTime = loanLocal.endTimestamp;
 		}
 
-		_settleFeeRewardForInterestExpense(loanInterestLocal, loanLocal.id, loanParamsLocal.loanToken, loanLocal.borrower, interestTime);
+		_settleFeeRewardForInterestExpense(
+			loanInterestLocal,
+			loanLocal.id,
+			loanParamsLocal.loanToken, /// fee token
+			loanParamsLocal.collateralToken, /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
+			loanLocal.borrower,
+			interestTime
+		);
 
 		uint256 owedPerDayRefund;
 		if (closePrincipal < loanLocal.principal) {
