@@ -300,19 +300,6 @@ contract("PriceFeeds", (accounts) => {
 			await expect(ret[1]).to.be.bignumber.equal(new BN(wei("1", "ether")));
 		});
 
-		it("should have price disagreements", async () => {
-			await expectRevert(
-				priceFeeds.checkPriceDisagreement(
-					testToken1.address,
-					testToken2.address,
-					new BN(wei("100", "ether")),
-					new BN(wei("150", "ether")),
-					new BN(10).mul(new BN(wei("1", "ether")))
-				),
-				"price disagreement"
-			);
-		});
-
 		it("should return 0 destination token amount when paused", async () => {
 			await priceFeeds.setGlobalPricingPaused(true);
 			await expect(
