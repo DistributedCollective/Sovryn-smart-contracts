@@ -83,7 +83,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 			require(currentTS > withdrawals[staker], "allowed after 14 days");
 		}
 
-		for (uint256 i = withdrawals[staker]; i < currentTS && i < withdrawals[staker].add(maxDuration); i += TWO_WEEKS) {
+		for (uint256 i = withdrawals[staker]; i <= currentTS && i < withdrawals[staker].add(maxDuration); i += TWO_WEEKS) {
 			count++;
 			weightedStake = weightedStake.add(_computeRewardForDate(staker, lastFinalisedBlock, i));
 		}
@@ -164,7 +164,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		uint256 weightedStake;
 		uint256 i = withdrawals[msg.sender];
 		if (i == 0) i = startTime;
-		for (i; i < block.timestamp; i += TWO_WEEKS) {
+		for (i; i <= block.timestamp; i += TWO_WEEKS) {
 			weightedStake = weightedStake.add(_computeRewardForDate(msg.sender, block.number - 1, i));
 		}
 		amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
