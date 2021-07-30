@@ -197,14 +197,15 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
 		address _priceFeeds = priceFeeds;
 
 		/// @dev Calculate the reward amount, querying the price feed.
-		(bool success, bytes memory data) = _priceFeeds.staticcall(
-			abi.encodeWithSelector(
-				IPriceFeeds(_priceFeeds).queryReturn.selector,
-				feeToken,
-				sovTokenAddress, /// dest token = SOV
-				feeAmount.mul(_getAffiliatesTradingFeePercentForSOV()).div(1e20)
-			)
-		);
+		(bool success, bytes memory data) =
+			_priceFeeds.staticcall(
+				abi.encodeWithSelector(
+					IPriceFeeds(_priceFeeds).queryReturn.selector,
+					feeToken,
+					sovTokenAddress, /// dest token = SOV
+					feeAmount.mul(_getAffiliatesTradingFeePercentForSOV()).div(1e20)
+				)
+			);
 		// solhint-disable-next-line no-inline-assembly
 		assembly {
 			if eq(success, 1) {
@@ -272,9 +273,8 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
 			paidReferrerBonusSovAmount = referrerBonusSovAmount.add(rewardsHeldByProtocol);
 			IERC20(sovTokenAddress).approve(lockedSOVAddress, paidReferrerBonusSovAmount);
 
-			(bool success, ) = lockedSOVAddress.call(
-				abi.encodeWithSignature("depositSOV(address,uint256)", referrer, paidReferrerBonusSovAmount)
-			);
+			(bool success, ) =
+				lockedSOVAddress.call(abi.encodeWithSignature("depositSOV(address,uint256)", referrer, paidReferrerBonusSovAmount));
 
 			if (!success) {
 				bonusPaymentIsSuccess = false;
@@ -404,14 +404,15 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
 		for (uint256 i; i < tokensList.length; i++) {
 			// Get the value of each token in rbtc
 
-			(bool success, bytes memory data) = _priceFeeds.staticcall(
-				abi.encodeWithSelector(
-					IPriceFeeds(_priceFeeds).queryReturn.selector,
-					tokensList[i], // source token
-					address(wrbtcToken), // dest token = SOV
-					affiliatesReferrerBalances[referrer][tokensList[i]] // total token rewards
-				)
-			);
+			(bool success, bytes memory data) =
+				_priceFeeds.staticcall(
+					abi.encodeWithSelector(
+						IPriceFeeds(_priceFeeds).queryReturn.selector,
+						tokensList[i], // source token
+						address(wrbtcToken), // dest token = SOV
+						affiliatesReferrerBalances[referrer][tokensList[i]] // total token rewards
+					)
+				);
 
 			assembly {
 				if eq(success, 1) {
