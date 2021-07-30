@@ -140,12 +140,12 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	/**
 	 * @notice Get staker's current accumulated reward
 	 * @dev The collectReward() function internally calls this function to calculate reward amount
-	 * @param isMaxDuration True: Runs for the maximum duration
+	 * @param considerMaxDuration True: Runs for the maximum duration
 	 * False: Runs till the current timestamp
 	 * @return The timestamp of last withdrawal
 	 * @return The accumulated reward
 	 */
-	function getStakerCurrentReward(bool isMaxDuration) public view returns (uint256 withdrawalTime, uint256 amount) {
+	function getStakerCurrentReward(bool considerMaxDuration) public view returns (uint256 withdrawalTime, uint256 amount) {
 		uint256 count;
 		uint256 weightedStake;
 		uint256 lastFinalisedBlock = block.number - 1;
@@ -160,7 +160,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 			withdrawalTime = withdrawals[staker];
 		}
 
-		if (isMaxDuration) {
+		if (considerMaxDuration) {
 			duration = maxDuration;
 		} else {
 			duration = currentTS;
