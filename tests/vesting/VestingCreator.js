@@ -141,7 +141,7 @@ contract("VestingCreator", (accounts) => {
 		});
 
 		it("fails if the 0 address is passed as receiver address", async () => {
-			await expectRevert(vestingCreator.transferSOV(ZERO_ADDRESS, 1000), "receiver address invalid");
+			await expectRevert(vestingCreator.transferSOV(ZERO_ADDRESS, 1000), "transfer to the zero address");
 		});
 
 		it("fails if the 0 is passed as an amount", async () => {

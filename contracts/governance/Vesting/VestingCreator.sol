@@ -13,7 +13,7 @@ contract VestingCreator is AdminRole {
 	bool vestingCreated;
 
 	/// @notice 2 weeks in seconds.
-	uint256 constant TWO_WEEKS = 1209600;
+	uint256 public constant TWO_WEEKS = 1209600;
 
 	///@notice the SOV token contract
 	IERC20 public SOV;
@@ -36,15 +36,15 @@ contract VestingCreator is AdminRole {
 
 	event SOVTransferred(address indexed receiver, uint256 amount);
 	event TokensStaked(address indexed vesting, address indexed tokenOwner, uint256 amount);
-	event VestingDataRemoved(address indexed caller, address tokenOwner);
+	event VestingDataRemoved(address indexed caller, address indexed tokenOwner);
 	event DataCleared(address indexed caller);
 
-	constructor(address _SOV, address _vestingRegistryLogic) public {
+	constructor(address _SOV, address _vestingRegistryProxy) public {
 		require(_SOV != address(0), "SOV address invalid");
-		require(_vestingRegistryLogic != address(0), "Vesting registry address invalid");
+		require(_vestingRegistryProxy != address(0), "Vesting registry address invalid");
 
 		SOV = IERC20(_SOV);
-		vestingRegistryLogic = VestingRegistryLogic(_vestingRegistryLogic);
+		vestingRegistryLogic = VestingRegistryLogic(_vestingRegistryProxy);
 	}
 
 	/**
@@ -52,26 +52,23 @@ contract VestingCreator is AdminRole {
 	 * @param _receiver the address of the SOV receiver
 	 * @param _amount the amount to be transferred
 	 */
-	function transferSOV(address _receiver, uint256 _amount) public onlyOwner {
-		require(_receiver != address(0), "receiver address invalid");
+	function transferSOV(address _receiver, uint256 _amount) external onlyOwner {
 		require(_amount != 0, "amount invalid");
-
 		require(SOV.transfer(_receiver, _amount), "transfer failed");
 		emit SOVTransferred(_receiver, _amount);
 	}
 
 	/**
 	 * @notice adds vestings to be processed to the list
-	 * @dev if account doesn't have another vesting of the same type vesting data will be added to vestingDataList
 	 */
 	function addVestings(
-		address[] memory _tokenOwners,
-		uint256[] memory _amounts,
-		uint256[] memory _cliffs,
-		uint256[] memory _durations,
-		bool[] memory _governanceControls,
-		uint256[] memory _vestingCreationTypes
-	) public onlyAuthorized {
+		address[] calldata _tokenOwners,
+		uint256[] calldata _amounts,
+		uint256[] calldata _cliffs,
+		uint256[] calldata _durations,
+		bool[] calldata _governanceControls,
+		uint256[] calldata _vestingCreationTypes
+	) external onlyAuthorized {
 		require(
 			_tokenOwners.length == _amounts.length &&
 				_tokenOwners.length == _cliffs.length &&
@@ -103,7 +100,7 @@ contract VestingCreator is AdminRole {
 	 * @notice Creates vesting contract and stakes tokens
 	 * @dev Vesting and Staking are merged for calls that fits the gas limit
 	 */
-	function processNextVesting() public onlyAuthorized {
+	function processNextVesting() external onlyAuthorized {
 		processVestingCreation();
 		processStaking();
 	}
@@ -156,7 +153,7 @@ contract VestingCreator is AdminRole {
 	 * @dev we process inverted list
 	 * @dev we should be able to remove incorrect vesting data that can't be processed
 	 */
-	function removeNextVesting() public onlyAuthorized {
+	function removeNextVesting() external onlyAuthorized {
 		address tokenOwnerDetails;
 		if (vestingDataList.length > 0) {
 			VestingData storage vestingData = vestingDataList[vestingDataList.length - 1];
@@ -178,7 +175,7 @@ contract VestingCreator is AdminRole {
 	/**
 	 * @notice returns address after vesting creation
 	 */
-	function getVestingAddress() public view returns (address) {
+	function getVestingAddress() external view returns (address) {
 		return
 			_getVesting(
 				vestingDataList[vestingDataList.length - 1].tokenOwner,
@@ -190,11 +187,11 @@ contract VestingCreator is AdminRole {
 	}
 
 	/**
-	 * @notice returns period i.e. (duration - cliff / 4 WEEKS)
+	 * @notice returns period i.e. ((duration - cliff) / 4 WEEKS)
 	 * @dev will be used for deciding if vesting and staking needs to be processed
 	 * in a single transaction or separate transactions
 	 */
-	function getVestingPeriod() public view returns (uint256) {
+	function getVestingPeriod() external view returns (uint256) {
 		uint256 duration = vestingDataList[vestingDataList.length - 1].duration;
 		uint256 cliff = vestingDataList[vestingDataList.length - 1].cliff;
 		uint256 fourWeeks = TWO_WEEKS.mul(2);
@@ -205,7 +202,7 @@ contract VestingCreator is AdminRole {
 	/**
 	 * @notice returns count of vestings to be processed
 	 */
-	function getUnprocessedCount() public view returns (uint256) {
+	function getUnprocessedCount() external view returns (uint256) {
 		return vestingDataList.length;
 	}
 
@@ -214,7 +211,8 @@ contract VestingCreator is AdminRole {
 	 */
 	function getUnprocessedAmount() public view returns (uint256) {
 		uint256 amount = 0;
-		for (uint256 i = 0; i < vestingDataList.length; i++) {
+		uint256 length = vestingDataList.length;
+		for (uint256 i = 0; i < length; i++) {
 			amount = amount.add(vestingDataList[i].amount);
 		}
 		return amount;
@@ -230,7 +228,7 @@ contract VestingCreator is AdminRole {
 	/**
 	 * @notice returns missed balance to process all vestings
 	 */
-	function getMissingBalance() public view returns (uint256) {
+	function getMissingBalance() external view returns (uint256) {
 		if (isEnoughBalance()) {
 			return 0;
 		}
@@ -241,7 +239,7 @@ contract VestingCreator is AdminRole {
 	 * @notice creates TeamVesting or Vesting contract
 	 * @dev new contract won't be created if account already has contract of the same type
 	 */
-	function _createAndGetVesting(VestingData storage vestingData) internal returns (address vesting) {
+	function _createAndGetVesting(VestingData memory vestingData) internal returns (address vesting) {
 		if (vestingData.governanceControl) {
 			vestingRegistryLogic.createTeamVesting(
 				vestingData.tokenOwner,

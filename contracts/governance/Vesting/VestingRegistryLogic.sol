@@ -39,8 +39,8 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable {
 		address _feeSharingProxy,
 		address _vestingOwner,
 		address _lockedSOV,
-		address[] memory _vestingRegistries
-	) public onlyOwner initializer {
+		address[] calldata _vestingRegistries
+	) external onlyOwner initializer {
 		require(_SOV != address(0), "SOV address invalid");
 		require(_staking != address(0), "staking address invalid");
 		require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
@@ -63,7 +63,7 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable {
 	 * @notice sets vesting factory address
 	 * @param _vestingFactory the address of vesting factory contract
 	 */
-	function setVestingFactory(address _vestingFactory) public onlyOwner {
+	function setVestingFactory(address _vestingFactory) external onlyOwner {
 		_setVestingFactory(_vestingFactory);
 	}
 
@@ -81,11 +81,10 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable {
 	 * @param _receiver the address of the SOV receiver
 	 * @param _amount the amount to be transferred
 	 */
-	function transferSOV(address _receiver, uint256 _amount) public onlyOwner {
+	function transferSOV(address _receiver, uint256 _amount) external onlyOwner {
 		require(_receiver != address(0), "receiver address invalid");
 		require(_amount != 0, "amount invalid");
-
-		IERC20(SOV).transfer(_receiver, _amount);
+		require(IERC20(SOV).transfer(_receiver, _amount), "transfer failed");
 		emit SOVTransferred(_receiver, _amount);
 	}
 
@@ -93,7 +92,7 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable {
 	 * @notice adds vestings that were deployed in previous vesting registries
 	 * @dev migration of data from previous vesting registy contracts
 	 */
-	function addDeployedVestings(address[] memory _tokenOwners, uint256[] memory _vestingCreationTypes) public onlyAuthorized {
+	function addDeployedVestings(address[] calldata _tokenOwners, uint256[] calldata _vestingCreationTypes) external onlyAuthorized {
 		for (uint256 i = 0; i < _tokenOwners.length; i++) {
 			require(_tokenOwners[i] != address(0), "token owner cannot be 0 address");
 			require(_vestingCreationTypes[i] > 0, "vesting creation type must be greater than 0");
@@ -115,7 +114,7 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable {
 		uint256 _amount,
 		uint256 _cliff,
 		uint256 _duration
-	) public onlyAuthorized {
+	) external onlyAuthorized {
 		createVestingAddr(_tokenOwner, _amount, _cliff, _duration, 0);
 	}
 
@@ -152,7 +151,7 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable {
 		uint256 _cliff,
 		uint256 _duration,
 		uint256 _vestingCreationType
-	) public onlyAuthorized {
+	) external onlyAuthorized {
 		address vesting = _getOrCreateVesting(_tokenOwner, _cliff, _duration, uint256(VestingType.TeamVesting), _vestingCreationType);
 		emit TeamVestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount, _vestingCreationType);
 	}
@@ -162,7 +161,7 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable {
 	 * @param _vesting the address of Vesting contract
 	 * @param _amount the amount of tokens to stake
 	 */
-	function stakeTokens(address _vesting, uint256 _amount) public onlyAuthorized {
+	function stakeTokens(address _vesting, uint256 _amount) external onlyAuthorized {
 		require(_vesting != address(0), "vesting address invalid");
 		require(_amount > 0, "amount invalid");
 
@@ -241,13 +240,14 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable {
 	}
 
 	/**
-	 * @notice returns the addresses of Vesting contracts from all three previous versions of Vesting Registry
+	 * @notice stores the addresses of Vesting contracts from all three previous versions of Vesting Registry
 	 */
 	function _getDeployedVestings(address _tokenOwner, uint256 _vestingCreationType) internal {
 		uint256 vestingType = 1;
 		uint256 teamVestingType = 0;
 		uint256 uid;
-		for (uint256 i = 0; i < vestingRegistries.length; i++) {
+		uint256 length = vestingRegistries.length;
+		for (uint256 i = 0; i < length; i++) {
 			address vestingAddress = vestingRegistries[i].getVesting(_tokenOwner);
 			if (vestingAddress != address(0)) {
 				VestingLogic vesting = VestingLogic(vestingAddress);
@@ -273,11 +273,11 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable {
 	 * @notice returns all vesting details for the given token owner
 	 */
 	function getVestingsOf(address _tokenOwner) external view returns (Vesting[] memory) {
-		uint256[] storage vestingIds = vestingsOf[_tokenOwner];
+		uint256[] memory vestingIds = vestingsOf[_tokenOwner];
+		uint256 length = vestingIds.length;
 		Vesting[] memory _vestings = new Vesting[](vestingIds.length);
-		for (uint256 i = 0; i < vestingIds.length; i++) {
-			Vesting storage _vesting = vestings[vestingIds[i]];
-			_vestings[i] = Vesting(_vesting.vestingType, _vesting.vestingCreationType, _vesting.vestingAddress);
+		for (uint256 i = 0; i < length; i++) {
+			_vestings[i] = vestings[vestingIds[i]];
 		}
 		return _vestings;
 	}
