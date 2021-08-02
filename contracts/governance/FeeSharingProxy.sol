@@ -286,7 +286,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 			} else {
 				/// @dev We need to use "checkpoint.blockNumber - 1" here to calculate weighted stake
 				/// For the same block like we did for total voting power in _writeTokenCheckpoint
-				weightedStake = _getTotalWeightedStake(_user, checkpoint.blockNumber - 1, checkpoint.timestamp);
+				weightedStake = staking.getPriorWeightedStake(_user, checkpoint.blockNumber - 1, checkpoint.timestamp);
 				cachedWeightedStake = weightedStake;
 				cachedLockDate = lockDate;
 			}
@@ -294,17 +294,6 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 			amount = amount.add(share);
 		}
 		return (amount, end);
-	}
-
-	function _getTotalWeightedStake(
-		address account,
-		uint256 blockNumber,
-		uint256 timestamp
-	) internal view returns (uint96 weightedStake) {
-		uint96 vestingWeightedStake = staking.getPriorVestingWeightedStake(blockNumber, timestamp);
-		weightedStake = staking.getPriorWeightedStake(account, blockNumber, timestamp);
-
-		weightedStake = weightedStake - vestingWeightedStake;
 	}
 
 	/**
@@ -355,7 +344,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 		uint32 blockTimestamp = safe32(block.timestamp, "FeeSharingProxy::_writeCheckpoint: block timestamp exceeds 32 bits");
 		uint32 nCheckpoints = numTokenCheckpoints[_token];
 
-		uint96 totalWeightedStake = staking.getPriorTotalVotingPower(blockNumber - 1, block.timestamp);
+		uint96 totalWeightedStake = _getVoluntaryWeightedStake(blockNumber - 1, block.timestamp);
 		if (nCheckpoints > 0 && tokenCheckpoints[_token][nCheckpoints - 1].blockNumber == blockNumber) {
 			tokenCheckpoints[_token][nCheckpoints - 1].totalWeightedStake = totalWeightedStake;
 			tokenCheckpoints[_token][nCheckpoints - 1].numTokens = _numTokens;
@@ -364,6 +353,20 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 			numTokenCheckpoints[_token] = nCheckpoints + 1;
 		}
 		emit CheckpointAdded(msg.sender, _token, _numTokens);
+	}
+
+	/**
+	* Queries the total weighted stake and the weighted stake of vesting contracts and returns the difference
+	* @param blockNumber the blocknumber
+	* @param timestamp the timestamp
+	*/
+	function _getVoluntaryWeightedStake(
+		uint32 blockNumber,
+		uint256 timestamp
+	) internal view returns (uint96 totalWeightedStake) {
+		uint96 vestingWeightedStake = staking.getPriorVestingWeightedStake(blockNumber, timestamp);
+		totalWeightedStake = staking.getPriorTotalVotingPower(blockNumber, timestamp);
+		totalWeightedStake = sub96(totalWeightedStake, vestingWeightedStake, "FeeSharingProxy::_getTotalVoluntaryWeightedStake: vested stake exceeds total stake");
 	}
 
 	/**
