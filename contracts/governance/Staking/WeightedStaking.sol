@@ -281,7 +281,7 @@ contract WeightedStaking is Checkpoints {
 		uint96 priorStake = _getPriorUserStakeByDate(account, date, blockNumber);
 		// @dev we need to modify function in order to workaround issue with Vesting.withdrawTokens:
 		//		return 1 instead of 0 if message sender is a contract.
-		if (priorStake == 0 && _isVestingContract()) {
+		if (priorStake == 0 && _isVestingContract(msg.sender)) {
 			priorStake = 1;
 		}
 		return priorStake;
@@ -344,12 +344,10 @@ contract WeightedStaking is Checkpoints {
 	 * TODO: WeightedStaking::getPriorVestingWeightedStake is using the variable name "votes"
 	 * to add up token stake, and that could be misleading.
 	 *
-	 * @param account The address of the account to check.
 	 * @param blockNumber The block number to get the vote balance at.
 	 * @return The weighted stake the account had as of the given block.
 	 * */
 	function getPriorVestingWeightedStake(
-		address account,
 		uint256 blockNumber,
 		uint256 date
 	) public view returns (uint96 votes) {
@@ -359,7 +357,7 @@ contract WeightedStaking is Checkpoints {
 
 		/// @dev Max 78 iterations.
 		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
-			uint96 weightedStake = weightedVestingStakeByDate(account, i, start, blockNumber);
+			uint96 weightedStake = weightedVestingStakeByDate(i, start, blockNumber);
 			if (weightedStake > 0) {
 				votes = add96(votes, weightedStake, "WeightedStaking::getPriorVestingWeightedStake: overflow on total weight computation");
 			}
@@ -376,12 +374,11 @@ contract WeightedStaking is Checkpoints {
 	 * @param blockNumber The block number, needed for checkpointing.
 	 * */
 	function weightedVestingStakeByDate(
-		address account,
 		uint256 date,
 		uint256 startDate,
 		uint256 blockNumber
 	) public view returns (uint96 power) {
-		uint96 staked = _getPriorUserVestingStakeByDate(account, date, blockNumber);
+		uint96 staked = _getPriorVestingStakeByDate(date, blockNumber);
 		if (staked > 0) {
 			uint96 weight = computeWeightByDate(date, startDate);
 			power = mul96(staked, weight, "WeightedStaking::weightedVestingStakeByDate: multiplication overflow") / WEIGHT_FACTOR;
@@ -395,20 +392,18 @@ contract WeightedStaking is Checkpoints {
 	 * certain lock date as of a block number.
 	 * @dev Block number must be a finalized block or else this function
 	 * will revert to prevent misinformation.
-	 * @param account The address of the account to check.
 	 * @param date The lock date.
 	 * @param blockNumber The block number to get the vote balance at.
 	 * @return The number of votes the account had as of the given block.
 	 * */
-	function getPriorUserVestingStakeByDate(
-		address account,
+	function getPriorVestingStakeByDate(
 		uint256 date,
 		uint256 blockNumber
 	) external view returns (uint96) {
-		uint96 priorStake = _getPriorUserVestingStakeByDate(account, date, blockNumber);
+		uint96 priorStake = _getPriorVestingStakeByDate(date, blockNumber);
 		// @dev we need to modify function in order to workaround issue with Vesting.withdrawTokens:
 		//		return 1 instead of 0 if message sender is a contract.
-		if (priorStake == 0 && _isVestingContract()) {
+		if (priorStake == 0 && _isVestingContract(msg.sender)) {
 			priorStake = 1;
 		}
 		return priorStake;
@@ -421,26 +416,25 @@ contract WeightedStaking is Checkpoints {
 	 * 		we need to modify public function in order to workaround issue with Vesting.withdrawTokens:
 	 * return 1 instead of 0 if message sender is a contract.
 	 * */
-	function _getPriorUserVestingStakeByDate(
-		address account,
+	function _getPriorVestingStakeByDate(
 		uint256 date,
 		uint256 blockNumber
 	) internal view returns (uint96) {
-		require(blockNumber < block.number, "WeightedStaking::getPriorUserVestingStakeByDate: not yet determined");
+		require(blockNumber < block.number, "WeightedStaking::getPriorVestingStakeByDate: not yet determined");
 
 		date = _adjustDateForOrigin(date);
-		uint32 nCheckpoints = numUserVestingCheckpoints[account][date];
+		uint32 nCheckpoints = numVestingCheckpoints[date];
 		if (nCheckpoints == 0) {
 			return 0;
 		}
 
 		/// @dev First check most recent balance.
-		if (userVestingCheckpoints[account][date][nCheckpoints - 1].fromBlock <= blockNumber) {
-			return userVestingCheckpoints[account][date][nCheckpoints - 1].stake;
+		if (vestingCheckpoints[date][nCheckpoints - 1].fromBlock <= blockNumber) {
+			return vestingCheckpoints[date][nCheckpoints - 1].stake;
 		}
 
 		/// @dev Next check implicit zero balance.
-		if (userVestingCheckpoints[account][date][0].fromBlock > blockNumber) {
+		if (vestingCheckpoints[date][0].fromBlock > blockNumber) {
 			return 0;
 		}
 
@@ -448,7 +442,7 @@ contract WeightedStaking is Checkpoints {
 		uint32 upper = nCheckpoints - 1;
 		while (upper > lower) {
 			uint32 center = upper - (upper - lower) / 2; /// @dev ceil, avoiding overflow.
-			Checkpoint memory cp = userVestingCheckpoints[account][date][center];
+			Checkpoint memory cp = vestingCheckpoints[date][center];
 			if (cp.fromBlock == blockNumber) {
 				return cp.stake;
 			} else if (cp.fromBlock < blockNumber) {
@@ -457,7 +451,7 @@ contract WeightedStaking is Checkpoints {
 				upper = center - 1;
 			}
 		}
-		return userVestingCheckpoints[account][date][lower].stake;
+		return vestingCheckpoints[date][lower].stake;
 	}
 
 	/**************** SHARED FUNCTIONS *********************/
@@ -554,10 +548,11 @@ contract WeightedStaking is Checkpoints {
 	}
 
 	/**
-	 * @notice Return flag whether message sender is a registered vesting contract.
+	 * @notice Return flag whether the given address is a registered vesting contract.
+	 * @param stakerAddress the address to check
 	 */
-	function _isVestingContract() internal view returns (bool) {
-		bytes32 codeHash = _getCodeHash(msg.sender);
+	function _isVestingContract(address stakerAddress) internal view returns (bool) {
+		bytes32 codeHash = _getCodeHash(stakerAddress);
 		return vestingCodeHashes[codeHash];
 	}
 

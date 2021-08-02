@@ -301,7 +301,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 		uint256 blockNumber,
 		uint256 timestamp
 	) internal view returns (uint96 weightedStake) {
-		uint96 vestingWeightedStake = staking.getPriorVestingWeightedStake(account, blockNumber, timestamp);
+		uint96 vestingWeightedStake = staking.getPriorVestingWeightedStake(blockNumber, timestamp);
 		weightedStake = staking.getPriorWeightedStake(account, blockNumber, timestamp);
 
 		weightedStake = weightedStake - vestingWeightedStake;

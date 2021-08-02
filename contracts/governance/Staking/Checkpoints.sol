@@ -41,58 +41,52 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 
 	/**
 	 * @notice Increases the user's vesting stake for a giving lock date and writes a checkpoint.
-	 * @param account The user address.
 	 * @param lockedTS The lock date.
 	 * @param value The value to add to the staked balance.
 	 * */
-	function _increaseUserVestingStake(
-		address account,
+	function _increaseVestingStake(
 		uint256 lockedTS,
 		uint96 value
 	) internal {
-		uint32 nCheckpoints = numUserVestingCheckpoints[account][lockedTS];
-		uint96 vested = userVestingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;
-		uint96 newVest = add96(vested, value, "Staking::_increaseUserVestingStake: vested amount overflow");
-		_writeUserVestingCheckpoint(account, lockedTS, nCheckpoints, newVest);
+		uint32 nCheckpoints = numVestingCheckpoints[lockedTS];
+		uint96 vested = vestingCheckpoints[lockedTS][nCheckpoints - 1].stake;
+		uint96 newVest = add96(vested, value, "Staking::_increaseVestingStake: vested amount overflow");
+		_writeVestingCheckpoint(lockedTS, nCheckpoints, newVest);
 	}
 
 	/**
 	 * @notice Decreases the user's vesting stake for a giving lock date and writes a checkpoint.
-	 * @param account The user address.
 	 * @param lockedTS The lock date.
 	 * @param value The value to substract to the staked balance.
 	 * */
-	function _decreaseUserVestingStake(
-		address account,
+	function _decreaseVestingStake(
 		uint256 lockedTS,
 		uint96 value
 	) internal {
-		uint32 nCheckpoints = numUserVestingCheckpoints[account][lockedTS];
-		uint96 vested = userVestingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;
-		uint96 newVest = sub96(vested, value, "Staking::_decreaseUserVestingStake: vested amount underflow");
-		_writeUserVestingCheckpoint(account, lockedTS, nCheckpoints, newVest);
+		uint32 nCheckpoints = numVestingCheckpoints[lockedTS];
+		uint96 vested = vestingCheckpoints[lockedTS][nCheckpoints - 1].stake;
+		uint96 newVest = sub96(vested, value, "Staking::_decreaseVestingStake: vested amount underflow");
+		_writeVestingCheckpoint(lockedTS, nCheckpoints, newVest);
 	}
 
 	/**
 	 * @notice Writes on storage the user vested amount.
-	 * @param account The user address.
 	 * @param lockedTS The lock date.
 	 * @param nCheckpoints The number of checkpoints, to find out the last one index.
 	 * @param newVest The new vest balance.
 	 * */
-	function _writeUserVestingCheckpoint(
-		address account,
+	function _writeVestingCheckpoint(
 		uint256 lockedTS,
 		uint32 nCheckpoints,
 		uint96 newVest
 	) internal {
-		uint32 blockNumber = safe32(block.number, "Staking::_writeUserVestingCheckpoint: block number exceeds 32 bits");
+		uint32 blockNumber = safe32(block.number, "Staking::_writeVestingCheckpoint: block number exceeds 32 bits");
 
-		if (nCheckpoints > 0 && userVestingCheckpoints[account][lockedTS][nCheckpoints - 1].fromBlock == blockNumber) {
-			userVestingCheckpoints[account][lockedTS][nCheckpoints - 1].stake = newVest;
+		if (nCheckpoints > 0 && vestingCheckpoints[lockedTS][nCheckpoints - 1].fromBlock == blockNumber) {
+			vestingCheckpoints[lockedTS][nCheckpoints - 1].stake = newVest;
 		} else {
-			userVestingCheckpoints[account][lockedTS][nCheckpoints] = Checkpoint(blockNumber, newVest);
-			numUserVestingCheckpoints[account][lockedTS] = nCheckpoints + 1;
+			vestingCheckpoints[lockedTS][nCheckpoints] = Checkpoint(blockNumber, newVest);
+			numVestingCheckpoints[lockedTS] = nCheckpoints + 1;
 		}
 	}
 
