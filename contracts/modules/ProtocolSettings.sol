@@ -114,6 +114,11 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		emit SetLockedSOVAddress(msg.sender, oldLockedSOVAddress, newLockedSOVAddress);
 	}
 
+	/**
+	 * @notice Update the minimum number of referrals to get affiliates rewards.
+	 *
+	 * @param newMinReferrals The new minimum number of referrals.
+	 * */
 	function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external onlyOwner whenNotPaused {
 		uint256 oldMinReferrals = minReferralsToPayout;
 		minReferralsToPayout = newMinReferrals;

@@ -379,6 +379,8 @@ contract ISovrynBrownie is
 
 	function getAffiliateTradingTokenFeePercent() external view returns (uint256 affiliateTradingTokenFeePercent);
 
+	function getAffiliatesTokenRewardsValueInRbtc(address referrer) external view returns (uint256 rbtcTotalAmount);
+
 	function swapExternal(
 		address sourceToken,
 		address destToken,

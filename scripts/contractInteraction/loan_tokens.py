@@ -11,7 +11,9 @@ def lendToPool(loanTokenAddress, tokenAddress, amount):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     if(token.allowance(conf.acct, loanToken.address) < amount):
         token.approve(loanToken.address, amount)
-    loanToken.mint(conf.acct, amount)
+    tx = loanToken.mint(conf.acct, amount)
+    tx.info()
+    return tx
 
 def lendToPoolWithMS(loanTokenAddress, tokenAddress, amount):
     token = Contract.from_abi("TestToken", address = tokenAddress, abi = TestToken.abi, owner = conf.acct)
@@ -24,7 +26,9 @@ def lendToPoolWithMS(loanTokenAddress, tokenAddress, amount):
 
 def removeFromPool(loanTokenAddress, amount):
     loanToken = Contract.from_abi("loanToken", address = loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
-    loanToken.burn(conf.acct, amount)
+    tx = loanToken.burn(conf.acct, amount)
+    tx.info()
+    return tx
 
 def readLoanTokenState(loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
@@ -83,8 +87,9 @@ def testTradeOpeningAndClosing(protocolAddress, loanTokenAddress, underlyingToke
         0,  # no collateral token sent
         collateralTokenAddress,  # collateralTokenAddress
         conf.acct,  # trader,
+        0, # slippage
         b'',  # loanDataBytes (only required with ether)
-        {'value': sendValue}
+        {'value': sendValue, 'allow_revert': True}
     )
     tx.info()
     loanId = tx.events['Trade']['loanId']
@@ -96,13 +101,17 @@ def testTradeOpeningAndClosing(protocolAddress, loanTokenAddress, underlyingToke
     print(loan)
     if(testClose):
         tx = sovryn.closeWithSwap(loanId, conf.acct, collateral, True, b'')
+        tx.info()
+
+    return tx
+
 
 def testTradeOpeningAndClosingWithCollateral(protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, collateralTokenSent, leverage, testClose, sendValue):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
-    testToken = Contract.from_abi("TestToken", address = underlyingTokenAddress, abi = TestToken.abi, owner = conf.acct)
+    testToken = Contract.from_abi("TestToken", address = collateralTokenAddress, abi = TestToken.abi, owner = conf.acct)
     sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovrynBrownie.abi, owner=conf.acct)
-    #if(sendValue == 0 and testToken.allowance(conf.acct, loanTokenAddress) < loanTokenSent):
-    #    testToken.approve(loanToken, loanTokenSent)
+    if(sendValue == 0 and testToken.allowance(conf.acct, loanTokenAddress) < collateralTokenSent):
+       testToken.approve(loanToken, collateralTokenSent)
     print('going to trade')
     tx = loanToken.marginTrade(
         "0",  # loanId  (0 for new loans)
@@ -111,8 +120,9 @@ def testTradeOpeningAndClosingWithCollateral(protocolAddress, loanTokenAddress, 
         collateralTokenSent,  # no collateral token sent
         collateralTokenAddress,  # collateralTokenAddress
         conf.acct,  # trader,
+        0, # slippage
         b'',  # loanDataBytes (only required with ether)
-        {'value': sendValue}
+        {'value': sendValue, "allow_revert": True}
     )
     tx.info()
     loanId = tx.events['Trade']['loanId']
@@ -124,19 +134,20 @@ def testTradeOpeningAndClosingWithCollateral(protocolAddress, loanTokenAddress, 
     print(loan)
     if(testClose):
         tx = sovryn.closeWithSwap(loanId, conf.acct, collateral, True, b'')
+        tx.info()
 
 
 
-def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress):
+def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, amount):
     #read contract abis
     sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     testToken = Contract.from_abi("TestToken", address = collateralTokenAddress, abi = TestToken.abi, owner = conf.acct)
     
     # determine borrowing parameter
-    withdrawAmount = 0.000010e18 #i want to borrow 10 USD
+    withdrawAmount = amount #i want to borrow 10 USD
     # compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan 
-    collateralTokenSent = 2* sovryn.getRequiredCollateral(underlyingTokenAddress,collateralTokenAddress,withdrawAmount,50e18, True)
+    collateralTokenSent = 2* sovryn.getRequiredCollateral(underlyingTokenAddress,collateralTokenAddress,withdrawAmount, 50e18, True)
     print("collateral needed", collateralTokenSent/1e18)
     durationInSeconds = 60*60*24*10 #10 days
     
@@ -340,3 +351,194 @@ def readLiquidity():
     tokenContract = Contract.from_abi("Token", address=conf.contracts['WRBTC'], abi=TestToken.abi, owner=conf.acct)
     bal = tokenContract.balanceOf(conf.contracts['ConverterUSDT'])
     print("supply of rBTC on swap", bal/1e18)
+
+def testSwapsExternal(underlyingTokenAddress, collateralTokenAddress, amount):
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    underlyingToken = Contract.from_abi("TestToken", address=underlyingTokenAddress, abi=ERC20.abi, owner=conf.acct)
+
+    receiver = conf.acct
+    tx = underlyingToken.approve(conf.contracts['sovrynProtocol'], amount)
+    tx.info()
+
+    tx = sovryn.swapExternal(
+        underlyingTokenAddress,
+        collateralTokenAddress,
+        receiver,
+        receiver,
+        amount,
+        0,
+        0,
+        b'',
+        {"value": 0, "allow_revert": True})
+    tx.info()
+
+# Notes: This function will do:
+# 1. tradeOpenAndClosingWithoutCollateral (using amountUnderlying that is sent in the arguments)
+# 2. lendToPool (using amountUnderlying that is sent in the arguments)
+# 3. removeFromPool (50% of the lending)
+# 4. tradeOpenAndClosingWithCollateral (using amountCollateral that is sent in the arguments)
+# 5. Test borrow (using amountCollateral that is sent in the arguments)
+# 6. SwapsExternal (using amountUnderlying that is sent in the arguments)
+#
+# WARN:
+# 1. make sure you have 3 times balance of underlyingTokenAddress
+# 2. make sure you have 2 times balance of amountCollateral
+def wrappedIntegrationTest(loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, amountUnderlying, amountCollateral):
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+
+    underlyingToken = Contract.from_abi("TestToken", address=underlyingTokenAddress, abi=ERC20.abi, owner=conf.acct)
+    collateralToken = Contract.from_abi("TestToken", address=collateralTokenAddress, abi=ERC20.abi, owner=conf.acct)
+    
+    prevUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    prevCollateralBalance = collateralToken.balanceOf(conf.acct)
+
+    # ------------------------------------------------ Test Trade Open & Close without collateral ------------------------------------------------------
+    print("Test Trade open and closing without collateral")
+    tx = testTradeOpeningAndClosing(sovryn.address, loanToken.address, underlyingTokenAddress, collateralTokenAddress, amountUnderlying, 2e18, True,0)
+
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
+
+    transferEvents = tx.events['Transfer']
+    errorMsg = []
+    msg = ''
+
+    # Verify
+    if prevUnderlyingBalance - updatedUnderlyingBalance != amountUnderlying:
+        msg = 'FAILED / INVALID STATE (TRADE OPENING & CLOSING WITHOUT COLLATERAL) : Updated underyling balance: {0} is not matched with the amount that was traded: {1}'.format(prevUnderlyingBalance - updatedUnderlyingBalance, amountUnderlying)
+        errorMsg.append(msg)
+        print(msg)
+    
+    if prevCollateralBalance + transferEvents[len(transferEvents)-1]['value'] != updatedCollateralBalance:
+        msg = 'FAILED / INVALID STATE (TRADE OPENING & CLOSING WITHOUT COLLATERAL) : Updated collateral balance: {0} is not matched with the amount that was closed with swap: {1}'.format(prevCollateralBalance + transferEvents[len(transferEvents)-1]['value'], updatedCollateralBalance)
+        errorMsg.append(msg)
+        print(msg)
+
+    prevUnderlyingBalance = updatedUnderlyingBalance
+    prevCollateralBalance = updatedCollateralBalance
+    
+
+    # ------------------------------------------------ Test Lend to Pool -------------------------------------------------------------------------------
+    prevLoanTokenBalance = loanToken.balanceOf(conf.acct)
+
+    tx = lendToPool(loanToken.address, underlyingTokenAddress, amountUnderlying)
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+    print("Loantoken Balance: ", prevLoanTokenBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    updatedLoanTokenBalance = loanToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
+    print("Loantoken Balance: ", updatedLoanTokenBalance)
+
+    transferEvents = tx.events['Transfer']
+
+    # Verify
+    if prevUnderlyingBalance - updatedUnderlyingBalance != amountUnderlying:
+        msg = 'FAILED / INVALID STATE (LEND TO POOL): Updated underyling balance: {0} is not matched with the amount that was lent: {1}'.format(prevUnderlyingBalance - updatedUnderlyingBalance, amountUnderlying)
+        errorMsg.append(msg)
+        print(msg)
+
+    if prevLoanTokenBalance + transferEvents[len(transferEvents)-1]['value'] != updatedLoanTokenBalance:
+        msg = 'FAILED / INVALID STATE (LEND TO POOL) : Updated loanToken balance: {0} is not matched with the amount that was transferred from lending pool: {1}'.format(prevLoanTokenBalance + transferEvents[len(transferEvents)-1]['value'], updatedLoanTokenBalance)
+        errorMsg.append(msg)
+        print(msg)
+
+
+    prevUnderlyingBalance = updatedUnderlyingBalance
+    prevCollateralBalance = updatedCollateralBalance
+    prevLoanTokenBalance = updatedLoanTokenBalance
+
+    # ------------------------------------------------ Test Remove from Pool -------------------------------------------------------------------------------
+    removeFromPool(loanToken.address, 0.5*(amountUnderlying))
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+    print("LoanToken Balance: ", prevLoanTokenBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    updatedLoanTokenBalance = loanToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
+    print("LoanToken Balance: ", updatedLoanTokenBalance)
+
+    # Verify
+    if prevLoanTokenBalance - 0.5*(amountUnderlying) != updatedLoanTokenBalance:
+        msg = 'FAILED / INVALID STATE (REMOVE FROM POOL): Updated loanToken balance: {0} is not matched with the amount that was taken from lending pool: {1}'.format(prevLoanTokenBalance - 0.5*(amountUnderlying), updatedLoanTokenBalance)
+        errorMsg.append(msg)
+        print(msg)
+
+    prevUnderlyingBalance = updatedUnderlyingBalance
+    prevCollateralBalance = updatedCollateralBalance
+
+    # ------------------------------------------------ Test Trade Open & Close with collateral -------------------------------------------------------------------------------
+    testTradeOpeningAndClosingWithCollateral(sovryn.address, loanToken.address, underlyingTokenAddress, collateralTokenAddress, amountCollateral, 2e18, True, 0)
+
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
+
+
+    prevUnderlyingBalance = updatedUnderlyingBalance
+    prevCollateralBalance = updatedCollateralBalance
+
+
+    # ------------------------------------------------ Test Borrow -------------------------------------------------------------------------------
+    testBorrow(sovryn.address, loanToken.address, underlyingTokenAddress, collateralTokenAddress, amountCollateral)
+
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
+
+    # Verify
+    if updatedUnderlyingBalance - prevUnderlyingBalance != amountUnderlying:
+        msg = 'FAILED / INVALID STATE (BORROWING): Updated underyling balance {0} is not matched with the amount that was borrowed: {1}'.format(updatedUnderlyingBalance - prevUnderlyingBalance, amountUnderlying)
+        errorMsg.append(msg)
+        print(msg)
+
+    prevUnderlyingBalance = updatedUnderlyingBalance
+    prevCollateralBalance = updatedCollateralBalance
+
+
+    # ------------------------------------------------ Test External Swap -------------------------------------------------------------------------------
+    testSwapsExternal(underlyingTokenAddress, collateralTokenAddress, amountUnderlying)
+
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
+
+
+
+    print(errorMsg)
