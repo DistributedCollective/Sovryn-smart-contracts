@@ -44,9 +44,6 @@ def main():
 
     # == VestingRegistry ===================================================================================================================
 
-    # deploy Initializable
-    initializable = acct.deploy(Initializable)
-
     #deploy VestingFactory
     vestingLogic = acct.deploy(VestingLogic)
     vestingFactory = acct.deploy(VestingFactory, vestingLogic.address)
@@ -67,9 +64,6 @@ def main():
     )
 
     vestingRegistryProxy.addAdmin(multisig)
-    vestingRegistryProxy.setProxyOwner(multisig)
-    vestingRegistry.transferOwnership(multisig)
-
     # deploy VestingCreator
     vestingCreator = acct.deploy(VestingCreator, SOVAddress, vestingRegistry)
 
@@ -78,6 +72,8 @@ def main():
     vestingRegistryProxy.addAdmin(lockedSOVAddress)
 
     vestingFactory.transferOwnership(vestingRegistryProxy.address)
+    vestingRegistry.transferOwnership(multisig)
+    vestingRegistryProxy.setProxyOwner(multisig)
 
     print("deployment cost:")
     print((balanceBefore - acct.balance()) / 10**18)
