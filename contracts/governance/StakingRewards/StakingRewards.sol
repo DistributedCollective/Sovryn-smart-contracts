@@ -159,7 +159,9 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		}
 
 		if (weightedStake == 0) return (0, 0);
-		lastWithdrawalInterval = (considerMaxDuration && (lastWithdrawalInterval.add(duration) < currentTS)) ? lastWithdrawalInterval.add(duration) : currentTS;
+		lastWithdrawalInterval = (considerMaxDuration && (lastWithdrawalInterval.add(duration) < currentTS))
+			? lastWithdrawalInterval.add(duration)
+			: currentTS;
 		amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
 	}
 }
