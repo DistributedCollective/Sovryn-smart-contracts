@@ -57,11 +57,11 @@ contract("StakingRewards", (accounts) => {
 		//Transferred SOVs to a3
 		await SOV.transfer(a3, "1000");
 		await SOV.approve(staking.address, "1000", { from: a3 });
-		
+
 		//Transferred SOVs to a4
 		await SOV.transfer(a4, "10000");
 		await SOV.approve(staking.address, "10000", { from: a4 });
-		
+
 		//Transferred SOVs to a5
 		await SOV.transfer(a5, "10000");
 		await SOV.approve(staking.address, "10000", { from: a5 });
@@ -121,7 +121,7 @@ contract("StakingRewards", (accounts) => {
 
 		it("should compute and send rewards to the stakers a4, a5 and a6 correctly", async () => {
 			let fields = await stakingRewards.getStakerCurrentReward(true, { from: a4 });
-			let expectedAmount = Math.floor((1000 * 0.1785)/26);
+			let expectedAmount = Math.floor((1000 * 0.1785) / 26);
 			expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
 
 			/*fields = await stakingRewards.getStakerCurrentReward(true, { from: a5 });
@@ -129,7 +129,7 @@ contract("StakingRewards", (accounts) => {
 			expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);*/
 
 			fields = await stakingRewards.getStakerCurrentReward(true, { from: a6 });
-			expectedAmount = Math.floor((1000 * 0.2975)/26);
+			expectedAmount = Math.floor((1000 * 0.2975) / 26);
 			expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
 		});
 

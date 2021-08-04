@@ -155,7 +155,8 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		require(lastStakingInterval > lastWithdrawalInterval, "already claimed for the current interval");
 
 		if (considerMaxDuration) addedMaxDuration = lastWithdrawalInterval.add(maxDuration);
-		uint256 duration = considerMaxDuration && (addedMaxDuration < currentTS) ? staking.timestampToLockDate(addedMaxDuration) : lastStakingInterval;
+		uint256 duration =
+			considerMaxDuration && (addedMaxDuration < currentTS) ? staking.timestampToLockDate(addedMaxDuration) : lastStakingInterval;
 
 		for (uint256 i = lastWithdrawalInterval; i < duration; i += TWO_WEEKS) {
 			weightedStake = weightedStake.add(_computeRewardForDate(staker, lastFinalisedBlock, i));
