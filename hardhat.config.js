@@ -1,4 +1,5 @@
 const { task } = require("hardhat/config");
+require('dotenv').config();
 
 require("@nomiclabs/hardhat-ganache");
 require("@nomiclabs/hardhat-truffle5");
@@ -10,6 +11,7 @@ require("solidity-coverage"); // $ npx hardhat coverage
 require("hardhat-log-remover");
 require("hardhat-docgen");
 require("hardhat-abi-exporter");
+require("hardhat-gas-reporter");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -24,10 +26,10 @@ task("accounts", "Prints the list of accounts", async () => {
 	}
 });
 
-/*task("accounts", "Prints accounts", async (_, { web3 }) => {
-	console.log();
-	console.log(await web3.eth.getAccounts());
-});*/
+task("dotenv-report-gas", ".env report gas enabled?", async (_, { web3 }) => {
+	console.log((process.env.REPORT_GAS));
+	//console.log(await web3.eth.getAccounts());
+});
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
@@ -55,6 +57,9 @@ module.exports = {
 		except: [],
 		spacing: 4,
 	},
+	/*gasReporter: {
+        enabled: false, //(process.env.REPORT_GAS) ? true : false,
+    },*/
 	contractSizer: {
 		alphaSort: false,
 		runOnCompile: false,
