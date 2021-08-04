@@ -36,7 +36,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		require(Address.isContract(_SOV), "_SOV not a contract");
 		SOV = IERC20(_SOV);
 		staking = _staking;
-		startTime = block.timestamp;
+		startTime = staking.timestampToLockDate(block.timestamp);
 		setMaxDuration(26 * TWO_WEEKS);
 	}
 
@@ -143,34 +143,23 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * @return The timestamp of last withdrawal
 	 * @return The accumulated reward
 	 */
-	function getStakerCurrentReward(bool considerMaxDuration) public view returns (uint256 withdrawalTime, uint256 amount) {
-		uint256 count;
+	function getStakerCurrentReward(bool considerMaxDuration) public view returns (uint256 lastWithdrawalInterval, uint256 amount) {
 		uint256 weightedStake;
 		uint256 lastFinalisedBlock = block.number - 1;
 		uint256 currentTS = block.timestamp;
 		address staker = msg.sender;
-		uint256 duration;
-		if (withdrawals[staker] == 0) {
-			require((currentTS.sub(startTime)) > TWO_WEEKS, "allowed after 14 days of start");
-			withdrawalTime = startTime;
-		} else {
-			require(currentTS > withdrawals[staker], "allowed after 14 days");
-			withdrawalTime = withdrawals[staker];
-		}
 
-		if (considerMaxDuration) {
-			duration = maxDuration;
-		} else {
-			duration = currentTS;
-		}
+		uint256 duration = considerMaxDuration ? maxDuration : currentTS;
+		uint256 lastStakingInterval = staking.timestampToLockDate(currentTS);
+		lastWithdrawalInterval = withdrawals[staker] > 0 ? withdrawals[staker] : startTime;
+		require(lastStakingInterval > lastWithdrawalInterval, "already claimed for the current interval");
 
-		for (uint256 i = withdrawalTime; i <= currentTS && i <= withdrawalTime.add(duration); i += TWO_WEEKS) {
-			count++;
+		for (uint256 i = lastWithdrawalInterval; i <= currentTS && i <= lastWithdrawalInterval.add(duration); i += TWO_WEEKS) {
 			weightedStake = weightedStake.add(_computeRewardForDate(staker, lastFinalisedBlock, i));
 		}
 
 		if (weightedStake == 0) return (0, 0);
-		withdrawalTime += count.mul(TWO_WEEKS);
+		lastWithdrawalInterval = (considerMaxDuration && (lastWithdrawalInterval.add(duration) < currentTS)) ? lastWithdrawalInterval.add(duration) : currentTS;
 		amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
 	}
 }

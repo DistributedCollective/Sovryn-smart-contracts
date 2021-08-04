@@ -89,7 +89,7 @@ contract("StakingRewards", (accounts) => {
 		});
 
 		it("should revert if rewards are claimed before completion of two weeks from start date", async () => {
-			await expectRevert(stakingRewards.collectReward({ from: a2 }), "allowed after 14 days of start");
+			await expectRevert(stakingRewards.collectReward({ from: a2 }), "already claimed for the current interval");
 		});
 
 		it("should compute and send rewards to the staker as applicable", async () => {
@@ -122,7 +122,7 @@ contract("StakingRewards", (accounts) => {
 
 		it("should revert if the user tries to claim rewards early", async () => {
 			await increaseTime(86400); //One day
-			await expectRevert(stakingRewards.collectReward({ from: a2 }), "allowed after 14 days");
+			await expectRevert(stakingRewards.collectReward({ from: a2 }), "already claimed for the current interval");
 		});
 
 		it("should compute and send rewards to the staker after recalculating withdrawn stake", async () => {
@@ -209,7 +209,7 @@ contract("StakingRewards", (accounts) => {
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
 		});
 
-		it("should be able to process agaim immediately when processing after the max duration", async () => {
+		it("should be able to process again immediately when processing after the max duration", async () => {
 			const fields = await stakingRewards.getStakerCurrentReward(true, { from: a1 });
 			beforeBalance = await SOV.balanceOf(a1);
 			await stakingRewards.collectReward({ from: a1 });
