@@ -148,7 +148,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		_decreaseUserStake(msg.sender, previousLock, amount);
 		_increaseUserStake(msg.sender, until, amount);
 
-		if (_isVestingContract(msg.sender)) {
+		if (isVestingContract(msg.sender)) {
 			_decreaseVestingStake(previousLock, amount);
 			_increaseVestingStake(until, amount);
 		}
@@ -195,7 +195,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		_increaseDailyStake(until, amount);
 		_increaseUserStake(stakeFor, until, amount);
 
-		if (_isVestingContract(stakeFor)) _increaseVestingStake(until, amount);
+		if (isVestingContract(stakeFor)) _increaseVestingStake(until, amount);
 
 		emit TokensStaked(stakeFor, amount, until, balance);
 	}
@@ -313,7 +313,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	) internal {
 		// @dev it's very unlikely some one will have 1/10**18 SOV staked in Vesting contract
 		//		this check is a part of workaround for Vesting.withdrawTokens issue
-		if (amount == 1 && _isVestingContract(msg.sender)) {
+		if (amount == 1 && isVestingContract(msg.sender)) {
 			return;
 		}
 		until = _adjustDateForOrigin(until);
@@ -325,7 +325,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		/// @dev Update the checkpoints.
 		_decreaseDailyStake(until, amount);
 		_decreaseUserStake(msg.sender, until, amount);
-		if (_isVestingContract(msg.sender)) _decreaseVestingStake(until, amount);
+		if (isVestingContract(msg.sender)) _decreaseVestingStake(until, amount);
 		_decreaseDelegateStake(delegates[msg.sender][until], until, amount);
 
 		/// @dev Early unstaking should be punished.
@@ -357,7 +357,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address receiver,
 		bool isGovernance
 	) internal {
-		if (_isVestingContract(msg.sender)) {
+		if (isVestingContract(msg.sender)) {
 			uint256 nextLock = until.add(TWO_WEEKS);
 			if (isGovernance || block.timestamp >= nextLock) {
 				uint96 stakes = _getPriorUserStakeByDate(msg.sender, nextLock, block.number - 1);
@@ -548,7 +548,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address delegatee,
 		uint256 lockedTS
 	) internal {
-		if (_isVestingContract(msg.sender)) {
+		if (isVestingContract(msg.sender)) {
 			uint256 nextLock = lockedTS.add(TWO_WEEKS);
 			address currentDelegate = delegates[delegator][nextLock];
 			if (currentDelegate != delegatee) {

@@ -41,4 +41,6 @@ interface IStaking {
 	) external view returns (uint96);
 
 	function timestampToLockDate(uint256 timestamp) external view returns (uint256 lockDate);
+
+	function isVestingContract(address stakerAddress) external view returns (bool);
 }

@@ -281,7 +281,7 @@ contract WeightedStaking is Checkpoints {
 		uint96 priorStake = _getPriorUserStakeByDate(account, date, blockNumber);
 		// @dev we need to modify function in order to workaround issue with Vesting.withdrawTokens:
 		//		return 1 instead of 0 if message sender is a contract.
-		if (priorStake == 0 && _isVestingContract(msg.sender)) {
+		if (priorStake == 0 && isVestingContract(msg.sender)) {
 			priorStake = 1;
 		}
 		return priorStake;
@@ -403,7 +403,7 @@ contract WeightedStaking is Checkpoints {
 		uint96 priorStake = _getPriorVestingStakeByDate(date, blockNumber);
 		// @dev we need to modify function in order to workaround issue with Vesting.withdrawTokens:
 		//		return 1 instead of 0 if message sender is a contract.
-		if (priorStake == 0 && _isVestingContract(msg.sender)) {
+		if (priorStake == 0 && isVestingContract(msg.sender)) {
 			priorStake = 1;
 		}
 		return priorStake;
@@ -528,7 +528,7 @@ contract WeightedStaking is Checkpoints {
 	/**
 	 * @notice Add vesting contract's code hash to a map of code hashes.
 	 * @param vesting The address of Vesting contract.
-	 * @dev We need it to use _isVestingContract() function instead of isContract()
+	 * @dev We need it to use isVestingContract() function instead of isContract()
 	 */
 	function addContractCodeHash(address vesting) public onlyAuthorized {
 		bytes32 codeHash = _getCodeHash(vesting);
@@ -539,7 +539,7 @@ contract WeightedStaking is Checkpoints {
 	/**
 	 * @notice Add vesting contract's code hash to a map of code hashes.
 	 * @param vesting The address of Vesting contract.
-	 * @dev We need it to use _isVestingContract() function instead of isContract()
+	 * @dev We need it to use isVestingContract() function instead of isContract()
 	 */
 	function removeContractCodeHash(address vesting) public onlyAuthorized {
 		bytes32 codeHash = _getCodeHash(vesting);
@@ -551,7 +551,7 @@ contract WeightedStaking is Checkpoints {
 	 * @notice Return flag whether the given address is a registered vesting contract.
 	 * @param stakerAddress the address to check
 	 */
-	function _isVestingContract(address stakerAddress) internal view returns (bool) {
+	function isVestingContract(address stakerAddress) public view returns (bool) {
 		bytes32 codeHash = _getCodeHash(stakerAddress);
 		return vestingCodeHashes[codeHash];
 	}

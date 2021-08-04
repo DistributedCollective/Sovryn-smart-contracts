@@ -85,8 +85,8 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 		uint96 amount;
 	}
 
-	/// @notice Vesting rewards per user.
-	mapping(address => VestingRewards) public previousVestingRewards;
+	///@notice last checkpoint for which vesting contracts may withdraw their fees
+	mapping(address => uint32) public lastVestingCheckpoints;
 
 	/* Events */
 
@@ -209,12 +209,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 		uint256 amount;
 		uint32 end;
 		(amount, end) = _getAccumulatedFees(user, _loanPoolToken, _maxCheckpoints);
-
-		VestingRewards memory vestingRewards = previousVestingRewards[user];
-		if (vestingRewards.amount > 0) {
-			amount = amount.add(vestingRewards.amount);
-			vestingRewards.amount = 0;
-		}
+		require(amount > 0, "FeeSharingProxy::withdrawFees: no tokens for a withdrawal");
 
 		processedCheckpoints[user][_loanPoolToken] = end;
 
@@ -260,19 +255,8 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 	) internal view returns (uint256, uint32) {
 		uint32 start = processedCheckpoints[_user][_loanPoolToken];
 		uint32 end;
-		/// @dev Additional bool param can't be used because of stack too deep error.
-		if (_maxCheckpoints > 0) {
-			/// @dev withdraw -> _getAccumulatedFees
-			require(start < numTokenCheckpoints[_loanPoolToken], "FeeSharingProxy::withdrawFees: no tokens for a withdrawal");
-			end = _getEndOfRange(start, _loanPoolToken, _maxCheckpoints);
-		} else {
-			/// @dev getAccumulatedFees -> _getAccumulatedFees
-			/// Don't throw error for getter invocation outside of transaction.
-			if (start >= numTokenCheckpoints[_loanPoolToken]) {
-				return (0, numTokenCheckpoints[_loanPoolToken]);
-			}
-			end = numTokenCheckpoints[_loanPoolToken];
-		}
+
+		end = _getEndOfRange(start, _loanPoolToken, _maxCheckpoints, staking.isVestingContract(_user));
 
 		uint256 amount = 0;
 		uint256 cachedLockDate = 0;
@@ -304,11 +288,13 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 	 * @param start Start of the range.
 	 * @param _loanPoolToken Loan pool token address.
 	 * @param _maxCheckpoints Checkpoint index incremental.
+	 * @param isVestingContract true if the end of range is queried for a vesting contract. 
 	 * */
 	function _getEndOfRange(
 		uint32 start,
 		address _loanPoolToken,
-		uint32 _maxCheckpoints
+		uint32 _maxCheckpoints,
+		bool isVestingContract
 	) internal view returns (uint32) {
 		uint32 nCheckpoints = numTokenCheckpoints[_loanPoolToken];
 		uint32 end;
@@ -323,6 +309,11 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 			if (end > nCheckpoints) {
 				end = nCheckpoints;
 			}
+		}
+
+		/// @dev vesting contracts do not receive anymore after the last vesting checkpoint was set
+		if(isVestingContract && end > lastVestingCheckpoints[_loanPoolToken]){
+			end = lastVestingCheckpoints[_loanPoolToken];
 		}
 
 		/// @dev Withdrawal should only be possible for blocks which were already mined.
@@ -370,30 +361,17 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 	}
 
 	/**
-	 * @notice Initialise previous accumulated rewards of a user.
-	 *
-	 * The Sovryn protocol collects fees on every trade/swap and loan.
-	 * These fees will be distributed to only SOV stakers instead of
-	 * both vesters and stakers to increase rewards of stakers. To keep
-	 * it fair, previous rewards are initialised and will be available
-	 * for claim.
-	 *
-	 * @param account Address of the vesting user
-	 * @param amount amount of tokens accumulated as reward
-	 * @param vestingRewardsUptoBlock The block number
-	 * */
-	function initialiseVestingRewards(
-		address account,
-		uint96 amount,
-		uint32 vestingRewardsUptoBlock
-	) external onlyOwner {
-		require(account != address(0), "Staking::initialiseVestingRewards: invalid account");
-		require(amount != 0, "Staking::initialiseVestingRewards: zero amount");
-		require(vestingRewardsUptoBlock < block.number, "Staking::initialiseVestingRewards: invalid block number");
-		VestingRewards memory vestingRewards;
-		vestingRewards.rewardsUptoBlock = vestingRewardsUptoBlock;
-		vestingRewards.amount = amount;
-		previousVestingRewards[account] = vestingRewards;
+	* @notice remembers the current checkpoints as the last ones for which the vesting contracts receive a share of the fees
+	* @dev 	can only be set once. 
+	*		if lastVestingCheckpoints of a token is 0, no fees are being shared to allow for newly added tokens.
+	*		should be removed with the next update.
+	* @param tokens an array containing all tokens for which the checkpoints should be set
+	* */
+	function stopFeeSharingForVestingContracts(address[] memory tokens) public onlyOwner{
+		for(uint i = 0; i < tokens.length; i++){
+			if(lastVestingCheckpoints[tokens[i]] == 0)
+				lastVestingCheckpoints[tokens[i]] = numTokenCheckpoints[tokens[i]];
+		}
 	}
 }
 
