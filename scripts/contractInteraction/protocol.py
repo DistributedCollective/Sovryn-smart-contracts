@@ -235,10 +235,8 @@ def readMaxAffiliateFee():
     print(swapNetwork.maxAffiliateFee())
 
 def withdrawFees():
-    feeSharingProxy = Contract.from_abi("FeeSharingProxy", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingProxy.abi, owner=conf.acct)
-    feeSharingProxy.withdrawFees(conf.contracts['USDT'])
-    feeSharingProxy.withdrawFees(conf.contracts['DoC'])
-    feeSharingProxy.withdrawFees(conf.contracts['WRBTC'])
+    feeSharingProxy = Contract.from_abi("FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
+    feeSharingProxy.withdrawFees([conf.contracts['USDT'], conf.contracts['DoC'], conf.contracts['WRBTC']], {"allow_revert": True})
 
 def setSupportedToken(tokenAddress):
     sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
@@ -252,11 +250,11 @@ def deployConversionFeeSharingToWRBTC():
 
     print("Redeploy fee sharing logic")
     # Redeploy feeSharingLogic
-    feeSharing = conf.acct.deploy(FeeSharingLogic, conf.contracts['sovrynProtocol'], conf.contracts['Staking'])
+    feeSharing = conf.acct.deploy(FeeSharingLogic)
     print("Fee sharing logic redeployed at: ", feeSharing.address)
 
     print("Set implementation for FeeSharingProxy")
-    feeSharingProxy = Contract.from_abi("FeeSharingProxy", address=contracts['FeeSharingProxy2'], abi=FeeSharingProxy.abi, owner=acct)
+    feeSharingProxy = Contract.from_abi("FeeSharingProxy", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingProxy.abi, owner=conf.acct)
     data = feeSharingProxy.setImplementation.encode_input(feeSharing.address)
     sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)
 
@@ -273,9 +271,12 @@ def deployFeeSharingProxy():
     print("Deploy fee sharing proxy")
     feeSharingProxy = conf.acct.deploy(FeeSharingProxy, conf.contracts['sovrynProtocol'], conf.contracts['Staking'])
     print(feeSharingProxy.address)
-    print('FeeSharingProxy owner: ', feeSharingProxy.owner())
-    feeSharingProxy.setProxyOwner(multisig)
-    print('New FeeSharingProxy owner: ', feeSharingProxy.owner())
+    print('Proxy owner: ', feeSharingProxy.getProxyOwner())
+    print('FeeSharingProxy ownership: ', feeSharingProxy.owner())
+    feeSharingProxy.setProxyOwner(conf.contracts['multisig'])
+    feeSharingProxy.transferOwnership(conf.contracts['multisig'])
+    print('New proxy owner: ', feeSharingProxy.getProxyOwner())
+    print('New FeeSharingProxy ownership: ', feeSharingProxy.owner())
 
 
 def deployTradingRebatesUsingLockedSOV():
