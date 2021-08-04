@@ -147,21 +147,22 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		uint256 weightedStake;
 		uint256 lastFinalisedBlock = block.number - 1;
 		uint256 currentTS = block.timestamp;
+		uint256 addedMaxDuration;
 		address staker = msg.sender;
 
-		uint256 duration = considerMaxDuration ? maxDuration : currentTS;
 		uint256 lastStakingInterval = staking.timestampToLockDate(currentTS);
 		lastWithdrawalInterval = withdrawals[staker] > 0 ? withdrawals[staker] : startTime;
 		require(lastStakingInterval > lastWithdrawalInterval, "already claimed for the current interval");
 
-		for (uint256 i = lastWithdrawalInterval; i <= currentTS && i <= lastWithdrawalInterval.add(duration); i += TWO_WEEKS) {
+		if (considerMaxDuration) addedMaxDuration = lastWithdrawalInterval.add(maxDuration);
+		uint256 duration = considerMaxDuration && (addedMaxDuration < currentTS) ? staking.timestampToLockDate(addedMaxDuration) : lastStakingInterval;
+
+		for (uint256 i = lastWithdrawalInterval; i < duration; i += TWO_WEEKS) {
 			weightedStake = weightedStake.add(_computeRewardForDate(staker, lastFinalisedBlock, i));
 		}
 
 		if (weightedStake == 0) return (0, 0);
-		lastWithdrawalInterval = (considerMaxDuration && (lastWithdrawalInterval.add(duration) < currentTS))
-			? lastWithdrawalInterval.add(duration)
-			: currentTS;
+		lastWithdrawalInterval = duration;
 		amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
 	}
 }

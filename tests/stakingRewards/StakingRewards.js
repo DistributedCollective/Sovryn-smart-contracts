@@ -28,7 +28,7 @@ contract("StakingRewards", (accounts) => {
 	let rewards, totalRewards;
 
 	before(async () => {
-		[root, a1, a2, a3, ...accounts] = accounts;
+		[root, a1, a2, a3, a4, a5, a6, ...accounts] = accounts;
 		SOV = await SOV_ABI.new(TOTAL_SUPPLY);
 
 		//Protocol
@@ -57,6 +57,18 @@ contract("StakingRewards", (accounts) => {
 		//Transferred SOVs to a3
 		await SOV.transfer(a3, "1000");
 		await SOV.approve(staking.address, "1000", { from: a3 });
+		
+		//Transferred SOVs to a4
+		await SOV.transfer(a4, "10000");
+		await SOV.approve(staking.address, "10000", { from: a4 });
+		
+		//Transferred SOVs to a5
+		await SOV.transfer(a5, "10000");
+		await SOV.approve(staking.address, "10000", { from: a5 });
+
+		//Transferred SOVs to a6
+		await SOV.transfer(a6, "10000");
+		await SOV.approve(staking.address, "10000", { from: a6 });
 
 		//a2 stakes at intervals
 		await increaseTime(1209600); //2 Weeks
@@ -86,6 +98,9 @@ contract("StakingRewards", (accounts) => {
 			await SOV.transfer(stakingRewards.address, "10000000");
 			//Initialize
 			await stakingRewards.initialize(SOV.address, staking.address);
+			await staking.stake("1000", inOneYear, a4, a4, { from: a4 }); //Test - 15/07/2021
+			await staking.stake("1000", inTwoYears, a5, a5, { from: a5 }); //Test - 15/07/2021
+			await staking.stake("1000", inThreeYears, a6, a6, { from: a6 });
 		});
 
 		it("should revert if rewards are claimed before completion of two weeks from start date", async () => {
@@ -102,6 +117,20 @@ contract("StakingRewards", (accounts) => {
 			expect(rewards).to.be.bignumber.equal(fields.amount);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
+		});
+
+		it("should compute and send rewards to the stakers a4, a5 and a6 correctly", async () => {
+			let fields = await stakingRewards.getStakerCurrentReward(true, { from: a4 });
+			let expectedAmount = Math.floor((1000 * 0.1785)/26);
+			expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
+
+			/*fields = await stakingRewards.getStakerCurrentReward(true, { from: a5 });
+			expectedAmount = Math.floor((1000 * 0.2678)/26);
+			expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);*/
+
+			fields = await stakingRewards.getStakerCurrentReward(true, { from: a6 });
+			expectedAmount = Math.floor((1000 * 0.2975)/26);
+			expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
 		});
 
 		//a2 finds the program lucrative and stakes for long term
