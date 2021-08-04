@@ -221,7 +221,7 @@ contract("StakingRewards", (accounts) => {
 		});
 
 		it("should revert withdraw all tokens if address is invalid", async () => {
-			await expectRevert(stakingRewards.withdrawTokensByOwner(constants.ZERO_ADDRESS), "receiver address invalid");
+			await expectRevert(stakingRewards.withdrawTokensByOwner(constants.ZERO_ADDRESS), "transfer to the zero address");
 		});
 
 		it("should revert withdraw all tokens if sender isn't the owner", async () => {

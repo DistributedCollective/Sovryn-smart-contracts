@@ -120,8 +120,6 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * @param _receiverAddress The address where the tokens has to be transferred.
 	 */
 	function withdrawTokensByOwner(address _receiverAddress) external onlyOwner {
-		require(_receiverAddress != address(0), "receiver address invalid");
-
 		uint256 value = SOV.balanceOf(address(this));
 		_transferSOV(_receiverAddress, value);
 	}
@@ -132,7 +130,6 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * @param _amount the amount to be transferred
 	 */
 	function _transferSOV(address _receiver, uint256 _amount) internal {
-		require(_receiver != address(0), "receiver address invalid");
 		require(_amount != 0, "amount invalid");
 		require(SOV.transfer(_receiver, _amount), "transfer failed");
 		emit RewardWithdrawn(_receiver, _amount);

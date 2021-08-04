@@ -23,13 +23,13 @@ contract StakingRewardsStorage is Ownable {
 	IStaking public staking;
 
 	/// @notice 2 weeks in seconds.
-	uint256 constant TWO_WEEKS = 1209600;
+	uint256 public constant TWO_WEEKS = 1209600;
 
 	/// @notice Annual Base Rate - it is the maximum interest rate(APY)
-	uint256 constant BASE_RATE = 2975;
+	uint256 public constant BASE_RATE = 2975;
 
 	/// @notice DIVISOR is set as 2600000 = 26 (num periods per year) * 10 (max voting weight) * 10000 (2975 -> 0.2975)
-	uint256 constant DIVISOR = 2600000;
+	uint256 public constant DIVISOR = 2600000;
 
 	/// @notice Maximum duration to collect rewards at one go
 	uint256 public maxDuration;
