@@ -130,6 +130,33 @@ contract("WeightedStaking", (accounts) => {
 			await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
 			await expect(checkpoint.stake.toString()).to.be.equal("100");
 		});
+
+		it("returns the correct checkpoint for vested stakes", async() => {
+			let result = await staking.stake("100", inOneWeek, a1, a3, { from: a2 });
+			await expect((await staking.balanceOf(a1)).toString()).to.be.equal("100");
+			let checkpoint = await staking.totalStakingCheckpoints(inOneWeek, 0);
+			
+			vestingLogic = await VestingLogic.new();
+			let vestingInstance = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				root,
+				10,
+				100,
+				root
+			);
+			vestingInstance = await VestingLogic.at(vestingInstance.address);
+			/** 
+			let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
+			let maxDuration = await staking.MAX_DURATION.call();
+			let weightFactor = await staking.WEIGHT_FACTOR.call();
+			console.log(weightingFunction(1000, DELAY * 26 * 2 - 14*24*60*60, maxDuration, maxVotingWeight, weightFactor.toNumber()));
+			*/
+
+			await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
+			await expect(checkpoint.stake.toString()).to.be.equal("100");
+		});
 	});
 
 	describe("total voting power computation", () => {
@@ -246,6 +273,10 @@ contract("WeightedStaking", (accounts) => {
 				"Staking::getPriorUserStakeAndDate: not yet determined"
 			);
 		});
+	});
+
+	describe("vested weighted stake computation", () => {
+		//TODO: copy and adapt from user weighted stake
 	});
 
 	describe("general weight computation", () => {
