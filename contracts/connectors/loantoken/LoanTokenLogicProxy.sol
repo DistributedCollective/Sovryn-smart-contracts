@@ -9,7 +9,6 @@ import "./AdvancedTokenStorage.sol";
  * @notice This contract contains the proxy functionality and it will query the logic target from LoanTokenLogicBeacon
  * This contract will also has the pause/unpause functionality. The purpose of this pausability is so that we can pause/unpause from the loan token level.
  *
- * Since we have a couple of public functions in this proxy contract, we will implement the Transparent Proxy Pattern to prevent the function signature collition.
  */
 contract LoanTokenLogicProxy is AdvancedTokenStorage {
 	/**
@@ -29,12 +28,9 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 
 	bytes32 internal constant LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT = 0xd918085b6ac26c71bca17b569f873038d2b9c0a3a62611d7037f46a40829de6a; // keccak256("LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT")
 
-	modifier ifProxyAdmin() {
-		if (msg.sender == admin) {
-			_;
-		} else {
-			_fallback();
-		}
+	modifier onlyProxyAdmin() {
+    require(msg.sender == admin, "LoanTokenLogicProxy:unauthorized");
+    _;
 	}
 
 	constructor(address _beaconAddress) public {
@@ -42,19 +38,16 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 		_setBeaconAddress(_beaconAddress);
 	}
 
-	function _fallback() internal {
-		require(msg.sender != admin, "LoanTokenLogicProxy:Cannot call fallback function from the proxy admin");
-
-		// query the logic target implementation address from the LoanTokenLogicBeacon
-		_delegate();
-	}
-
-	function _delegate() internal {
+	/**
+	 * @notice Fallback function performs a logic implementation address query to LoanTokenLogicBeacon and then do delegate call to that query result address.
+	 * Returns whatever the implementation call returns.
+	 * */
+	function() external payable {
 		if (gasleft() <= 2300) {
 			return;
 		}
 
-		address target = LoanTokenLogicBeacon(_beaconAddress()).logicTargets(msg.sig);
+		address target = LoanTokenLogicBeacon(_beaconAddress()).getTarget(msg.sig);
 		// query the logic target implementation address from the LoanTokenLogicBeacon
 		require(target != address(0), "LoanTokenProxy:target not active");
 
@@ -72,14 +65,6 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 					return(ptr, size)
 				}
 		}
-	}
-
-	/**
-	 * @notice Fallback function performs a logic implementation address query to LoanTokenLogicBeacon and then do delegate call to that query result address.
-	 * Returns whatever the implementation call returns.
-	 * */
-	function() external payable {
-		_fallback();
 	}
 
 	/**
@@ -118,11 +103,11 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 	 * @dev External function to set the new LoanTokenLogicBeacon Address
 	 * @param _newBeaconAddress Address of the new LoanTokenLogicBeacon
 	 */
-	function setBeaconAddress(address _newBeaconAddress) external ifProxyAdmin {
+	function setBeaconAddress(address _newBeaconAddress) external onlyProxyAdmin {
 		_setBeaconAddress(_newBeaconAddress);
 	}
 }
 
 interface LoanTokenLogicBeacon {
-	function logicTargets(bytes4 functionSignature) external view returns (address logicTargetAddress);
+	function getTarget(bytes4 functionSignature) external view returns (address logicTargetAddress);
 }

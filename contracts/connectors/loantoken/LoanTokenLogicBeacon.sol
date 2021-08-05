@@ -2,7 +2,8 @@ pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../../mixins/EnumerableBytes32Set.sol";
-import "../../openzeppelin/Ownable.sol";
+import "../../openzeppelin/Pausable.sol";
+import "../../openzeppelin/Address.sol";
 
 /**
  * @title Loan Token Logic Beacon contract.
@@ -13,48 +14,47 @@ import "../../openzeppelin/Ownable.sol";
  * Meanwhile the pause/unpause function in the LoanTokenLogicProxy is used to pause/unpause in the LoanToken level (1 by 1)
  */
 
-contract LoanTokenLogicBeacon is Ownable {
+contract LoanTokenLogicBeacon is Pausable {
 	using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set; // enumerable map of bytes32 or addresses
 
-	mapping(bytes4 => address) public logicTargets;
+	mapping(bytes4 => address) private logicTargets;
 
 	/// logicTargets set.
 	EnumerableBytes32Set.Bytes32Set internal logicTargetsSet;
 
-	/**
-	 * @notice External owner setter for loan token logic target address.
-	 * @param sig The function signatures.
-	 * @param target The loan token logic target address.
-	 */
-	function _setTarget(bytes4 sig, address target) internal {
-		logicTargets[sig] = target;
+  /**
+   * @dev Modifier to make a function callable only when the contract is not paused.
+   * This is the overriden function from the pausable contract, so that we can use custom error message.
+   */
+  modifier whenNotPaused() {
+      require(!_paused, "LoanTokenLogicBeacon:paused mode");
+      _;
+  }
 
-		if (target != address(0)) {
-			logicTargetsSet.addBytes32(bytes32(sig));
-		} else {
-			logicTargetsSet.removeBytes32(bytes32(sig));
-		}
-	}
+  /**
+   */
+  function registerLoanTokenModule(address loanTokenModuleAddress) external onlyOwner {
+    require(Address.isContract(loanTokenModuleAddress), "LoanTokenModuleAddress is not a contract");
 
-	/**
-	 * @notice External owner target initializer.
-	 * @param target The target addresses.
+    // Get the list of function signature on this loanTokenModulesAddress
+    bytes4[] memory functionSignatureList = ILoanTokenLogicModules(loanTokenModuleAddress).getListFunctionSignatures();
+
+    for(uint i; i < functionSignatureList.length; i++) {
+      logicTargets[functionSignatureList[i]] = loanTokenModuleAddress;
+      logicTargetsSet.addBytes32(functionSignatureList[i]);
+    }
+  }
+
+  /**
+	 * @notice External getter for target addresses.
+	 * @param sig The signature.
+	 * @return The address for a given signature.
 	 * */
-	function replaceContract(address target) external onlyOwner {
-		(bool success, ) = target.delegatecall(abi.encodeWithSignature("initialize(address)", target));
-		require(success, "setup failed");
+	function getTarget(bytes4 sig) external view whenNotPaused returns (address) {
+		return logicTargets[sig];
 	}
+}
 
-	/**
-	 * @notice External owner setter for target addresses.
-	 * @param sigsArr The array of signatures.
-	 * @param targetsArr The array of addresses.
-	 * */
-	function setTargets(string[] calldata sigsArr, address[] calldata targetsArr) external onlyOwner {
-		require(sigsArr.length == targetsArr.length, "count mismatch");
-
-		for (uint256 i = 0; i < sigsArr.length; i++) {
-			_setTarget(bytes4(keccak256(abi.encodePacked(sigsArr[i]))), targetsArr[i]);
-		}
-	}
+interface ILoanTokenLogicModules {
+  function getListFunctionSignatures() external pure returns(bytes4[] memory);
 }

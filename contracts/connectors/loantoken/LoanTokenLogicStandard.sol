@@ -57,16 +57,34 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
 	bytes32 internal constant iToken_ProfitSoFar = 0x37aa2b7d583612f016e4a4de4292cb015139b3d7762663d06a53964912ea2fb6; // keccak256("iToken_ProfitSoFar")
 
+
 	/**
 	 * @notice Fallback function is to react to receiving value (rBTC).
 	 * */
 	function() external {
-		// Due to contract size issue, need to keep the error message to 32 bytes length / we remove the revert function
-		// Remove revert function is fine as this fallback function is not payable, but the trade off is we cannot have the custom message for the fallback function error
-		// revert("loan token-fallback not allowed");
+		revert("loan token-fallback not allowed");
 	}
 
 	/* Public functions */
+
+	/**
+	 * @notice This function is MANDATORY, which will be called by LoanTokenLogicBeacon and be registered.
+	 * Every new public function, the sginature needs to be included in this function.
+	 *
+	 * @dev This function will return the list of function signature in this contract that are available for public call
+	 * Then this function will be called by LoanTokenLogicBeacon, and the function signatures will be registred in LoanTokenLogicBeacon.
+	 * @dev To save the gas we can just directly return the list of function signature from this pure function.
+	 * The other workaround (fancy way) is we can create a storage for the list of the function signature, and then we can store each function signature to that storage from the constructor.
+   * Then, in this function we just need to return that storage variable.
+	 *
+	 * @return The list of function signatures (bytes4[])
+	 */
+	function getListFunctionSignatures() external pure returns(bytes4[] memory) {
+			bytes4[] memory res = new bytes4[](2);
+			// res[0] = this.xx.selector;
+			// res[1] = this.xx2.selector;
+			return res;
+	}
 
 	/**
 	 * @notice Mint loan token wrapper.
