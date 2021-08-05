@@ -123,21 +123,21 @@ contract("StakingRewards", (accounts) => {
 			let fields = await stakingRewards.getStakerCurrentReward(true, { from: a4 });
 			let numOfIntervals = 1;
 			let fullTermAvg = avgWeight(26, 27, 9, 78);
-			console.log(round(fullTermAvg,4));
-			let expectedAmount = numOfIntervals * Math.floor((1000 * round(fullTermAvg,4)) / (26));
+			console.log(round(fullTermAvg, 4));
+			let expectedAmount = numOfIntervals * Math.floor((1000 * round(fullTermAvg, 4)) / 26);
 			expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
 
 			fields = await stakingRewards.getStakerCurrentReward(true, { from: a5 });
 			fullTermAvg = avgWeight(52, 53, 9, 78);
-			console.log(fullTermAvg)
-			console.log(round(fullTermAvg,4));
-			expectedAmount = numOfIntervals * Math.floor((1000 * fullTermAvg) / (26));
+			console.log(fullTermAvg);
+			console.log(round(fullTermAvg, 4));
+			expectedAmount = numOfIntervals * Math.floor((1000 * fullTermAvg) / 26);
 			//expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
 
 			fields = await stakingRewards.getStakerCurrentReward(true, { from: a6 });
 			fullTermAvg = avgWeight(78, 79, 9, 78);
-			console.log(round(fullTermAvg,4));
-			expectedAmount = numOfIntervals * Math.floor((1000 * round(fullTermAvg,4)) / (26));
+			console.log(round(fullTermAvg, 4));
+			expectedAmount = numOfIntervals * Math.floor((1000 * round(fullTermAvg, 4)) / 26);
 			expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
 		});
 
@@ -161,20 +161,20 @@ contract("StakingRewards", (accounts) => {
 			let fields = await stakingRewards.getStakerCurrentReward(true, { from: a4 });
 			let numOfIntervals = 2;
 			let fullTermAvg = avgWeight(25, 27, 9, 78);
-			console.log(round(fullTermAvg,4));
-			let expectedAmount = numOfIntervals * Math.floor((1000 * round(fullTermAvg,4)) / (26));
+			console.log(round(fullTermAvg, 4));
+			let expectedAmount = numOfIntervals * Math.floor((1000 * round(fullTermAvg, 4)) / 26);
 			expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
 
 			fields = await stakingRewards.getStakerCurrentReward(true, { from: a5 });
 			fullTermAvg = avgWeight(51, 53, 9, 78);
-			console.log(round(fullTermAvg,4));
-			expectedAmount = numOfIntervals * Math.floor((1000 * round(fullTermAvg,4)) / (26));
+			console.log(round(fullTermAvg, 4));
+			expectedAmount = numOfIntervals * Math.floor((1000 * round(fullTermAvg, 4)) / 26);
 			//expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
 
 			fields = await stakingRewards.getStakerCurrentReward(true, { from: a6 });
 			fullTermAvg = avgWeight(77, 79, 9, 78);
-			console.log(round(fullTermAvg,4));
-			expectedAmount = numOfIntervals * Math.floor((1000 * round(fullTermAvg,4)) / (26));
+			console.log(round(fullTermAvg, 4));
+			expectedAmount = numOfIntervals * Math.floor((1000 * round(fullTermAvg, 4)) / 26);
 			expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
 		});
 
@@ -313,15 +313,14 @@ contract("StakingRewards", (accounts) => {
 
 	function avgWeight(from, to, maxWeight, maxDuration) {
 		let weight = 0;
-		for(let i = from; i < to; i++){
-		  weight += maxWeight*((maxDuration**2)-((maxDuration-i)**2))/(maxDuration**2)+1;
+		for (let i = from; i < to; i++) {
+			weight += (maxWeight * (maxDuration ** 2 - (maxDuration - i) ** 2)) / maxDuration ** 2 + 1;
 		}
-		weight /= (to - from);
-		return (weight/10) * (.2975);
+		weight /= to - from;
+		return (weight / 10) * 0.2975;
 	}
 
 	function round(value, decimals) {
-		return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+		return Number(Math.round(value + "e" + decimals) + "e-" + decimals);
 	}
-
 });
