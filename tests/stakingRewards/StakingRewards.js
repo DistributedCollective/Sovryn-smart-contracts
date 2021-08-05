@@ -119,17 +119,25 @@ contract("StakingRewards", (accounts) => {
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
 		});
 
-		it("should compute and send rewards to the stakers a4, a5 and a6 correctly", async () => {
+		it("should compute and send rewards to the stakers a4, a5 and a6 correctly after 2 weeks", async () => {
 			let fields = await stakingRewards.getStakerCurrentReward(true, { from: a4 });
-			let expectedAmount = Math.floor((1000 * 0.1785) / 26);
+			let numOfIntervals = 1;
+			let fullTermAvg = avgWeight(26, 27, 9, 78);
+			console.log(round(fullTermAvg,4));
+			let expectedAmount = numOfIntervals * Math.floor((1000 * round(fullTermAvg,4)) / (26));
 			expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
 
-			/*fields = await stakingRewards.getStakerCurrentReward(true, { from: a5 });
-			expectedAmount = Math.floor((1000 * 0.2678)/26);
-			expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);*/
+			fields = await stakingRewards.getStakerCurrentReward(true, { from: a5 });
+			fullTermAvg = avgWeight(52, 53, 9, 78);
+			console.log(fullTermAvg)
+			console.log(round(fullTermAvg,4));
+			expectedAmount = numOfIntervals * Math.floor((1000 * fullTermAvg) / (26));
+			//expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
 
 			fields = await stakingRewards.getStakerCurrentReward(true, { from: a6 });
-			expectedAmount = Math.floor((1000 * 0.2975) / 26);
+			fullTermAvg = avgWeight(78, 79, 9, 78);
+			console.log(round(fullTermAvg,4));
+			expectedAmount = numOfIntervals * Math.floor((1000 * round(fullTermAvg,4)) / (26));
 			expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
 		});
 
@@ -147,6 +155,27 @@ contract("StakingRewards", (accounts) => {
 			expect(rewards).to.be.bignumber.equal(fields.amount);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
+		});
+
+		it("should compute and send rewards to the stakers a4, a5 and a6 correctly after 4 weeks", async () => {
+			let fields = await stakingRewards.getStakerCurrentReward(true, { from: a4 });
+			let numOfIntervals = 2;
+			let fullTermAvg = avgWeight(25, 27, 9, 78);
+			console.log(round(fullTermAvg,4));
+			let expectedAmount = numOfIntervals * Math.floor((1000 * round(fullTermAvg,4)) / (26));
+			expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
+
+			fields = await stakingRewards.getStakerCurrentReward(true, { from: a5 });
+			fullTermAvg = avgWeight(51, 53, 9, 78);
+			console.log(round(fullTermAvg,4));
+			expectedAmount = numOfIntervals * Math.floor((1000 * round(fullTermAvg,4)) / (26));
+			//expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
+
+			fields = await stakingRewards.getStakerCurrentReward(true, { from: a6 });
+			fullTermAvg = avgWeight(77, 79, 9, 78);
+			console.log(round(fullTermAvg,4));
+			expectedAmount = numOfIntervals * Math.floor((1000 * round(fullTermAvg,4)) / (26));
+			expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
 		});
 
 		it("should revert if the user tries to claim rewards early", async () => {
@@ -281,4 +310,18 @@ contract("StakingRewards", (accounts) => {
 			);
 		});
 	});
+
+	function avgWeight(from, to, maxWeight, maxDuration) {
+		let weight = 0;
+		for(let i = from; i < to; i++){
+		  weight += maxWeight*((maxDuration**2)-((maxDuration-i)**2))/(maxDuration**2)+1;
+		}
+		weight /= (to - from);
+		return (weight/10) * (.2975);
+	}
+
+	function round(value, decimals) {
+		return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+	}
+
 });
