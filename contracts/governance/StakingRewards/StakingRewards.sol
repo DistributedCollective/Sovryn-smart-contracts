@@ -4,6 +4,7 @@ import "./StakingRewardsStorage.sol";
 import "../../openzeppelin/Initializable.sol";
 import "../../openzeppelin/SafeMath.sol";
 import "../../openzeppelin/Address.sol";
+import "hardhat/console.sol";
 
 /**
  * @title Staking Rewards Contract.
@@ -149,19 +150,24 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		uint256 currentTS = block.timestamp;
 		uint256 addedMaxDuration;
 		address staker = msg.sender;
+		uint256 referenceBlock;
 
 		uint256 lastStakingInterval = staking.timestampToLockDate(currentTS);
 		lastWithdrawalInterval = withdrawals[staker] > 0 ? withdrawals[staker] : startTime;
-		require(lastStakingInterval > lastWithdrawalInterval, "already claimed for the current interval");
+		if (lastStakingInterval < lastWithdrawalInterval) return (0, 0);
 
 		if (considerMaxDuration) addedMaxDuration = lastWithdrawalInterval.add(maxDuration);
 		uint256 duration =
 			considerMaxDuration && (addedMaxDuration < currentTS) ? staking.timestampToLockDate(addedMaxDuration) : lastStakingInterval;
-
+		console.log(lastStakingInterval, lastWithdrawalInterval, currentTS);
+		console.log(duration, addedMaxDuration, lastFinalisedBlock);
 		for (uint256 i = lastWithdrawalInterval; i < duration; i += TWO_WEEKS) {
-			weightedStake = weightedStake.add(_computeRewardForDate(staker, lastFinalisedBlock, i));
+			referenceBlock = lastFinalisedBlock.sub(((currentTS.sub(i)).div(30)));
+			console.log(lastFinalisedBlock, referenceBlock);
+			weightedStake = weightedStake.add(_computeRewardForDate(staker, referenceBlock, i));
+			console.log(weightedStake);
 		}
-
+		
 		if (weightedStake == 0) return (0, 0);
 		lastWithdrawalInterval = duration;
 		amount = weightedStake.mul(BASE_RATE).div(DIVISOR);

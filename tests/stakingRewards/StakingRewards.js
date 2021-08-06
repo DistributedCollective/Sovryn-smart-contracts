@@ -104,7 +104,7 @@ contract("StakingRewards", (accounts) => {
 		});
 
 		it("should revert if rewards are claimed before completion of two weeks from start date", async () => {
-			await expectRevert(stakingRewards.collectReward({ from: a2 }), "already claimed for the current interval");
+			await expectRevert(stakingRewards.collectReward({ from: a2 }), "no valid reward");
 		});
 
 		it("should compute and send rewards to the staker as applicable", async () => {
@@ -180,7 +180,7 @@ contract("StakingRewards", (accounts) => {
 
 		it("should revert if the user tries to claim rewards early", async () => {
 			await increaseTime(86400); //One day
-			await expectRevert(stakingRewards.collectReward({ from: a2 }), "already claimed for the current interval");
+			await expectRevert(stakingRewards.collectReward({ from: a2 }), "no valid reward");
 		});
 
 		it("should compute and send rewards to the staker after recalculating withdrawn stake", async () => {
