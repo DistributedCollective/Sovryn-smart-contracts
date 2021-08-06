@@ -167,7 +167,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 			weightedStake = weightedStake.add(_computeRewardForDate(staker, referenceBlock, i));
 			console.log(weightedStake);
 		}
-		
+
 		if (weightedStake == 0) return (0, 0);
 		lastWithdrawalInterval = duration;
 		amount = weightedStake.mul(BASE_RATE).div(DIVISOR);

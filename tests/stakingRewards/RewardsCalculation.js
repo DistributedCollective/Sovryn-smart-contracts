@@ -112,7 +112,7 @@ contract("StakingRewards", (accounts) => {
 			let numOfIntervals = 2;
 			let fullTermAvg = avgWeight(25, 27, 9, 78);
 			console.log(round(fullTermAvg, 4));
-			expectedAmount = numOfIntervals * (1000 * round(fullTermAvg, 4) / 26);
+			expectedAmount = numOfIntervals * ((1000 * round(fullTermAvg, 4)) / 26);
 			console.log(expectedAmount);
 			console.log(fields.amount.toString());
 			//expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
@@ -120,7 +120,7 @@ contract("StakingRewards", (accounts) => {
 			fields = await stakingRewards.getStakerCurrentReward(true, { from: a5 });
 			fullTermAvg = avgWeight(51, 53, 9, 78);
 			console.log(round(fullTermAvg, 4));
-			expectedAmount = numOfIntervals * (1000 * round(fullTermAvg, 4) / 26);
+			expectedAmount = numOfIntervals * ((1000 * round(fullTermAvg, 4)) / 26);
 			console.log(expectedAmount);
 			console.log(fields.amount.toString());
 			//expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
@@ -128,7 +128,7 @@ contract("StakingRewards", (accounts) => {
 			fields = await stakingRewards.getStakerCurrentReward(true, { from: a6 });
 			fullTermAvg = avgWeight(77, 79, 9, 78);
 			console.log(round(fullTermAvg, 4));
-			expectedAmount = numOfIntervals * (1000 * round(fullTermAvg, 4) / 26);
+			expectedAmount = numOfIntervals * ((1000 * round(fullTermAvg, 4)) / 26);
 			console.log(expectedAmount);
 			console.log(fields.amount.toString());
 			//expect(new BN(expectedAmount)).to.be.bignumber.equal(fields.amount);
@@ -149,7 +149,7 @@ contract("StakingRewards", (accounts) => {
 	}
 
 	async function increaseTimeAndBlocks(seconds) {
-		let totalBlocks = (seconds / 30);
+		let totalBlocks = seconds / 30;
 		for (let i = 1; i < totalBlocks; i++) {
 			await mineBlock();
 		}
