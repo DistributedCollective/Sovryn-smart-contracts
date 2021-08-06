@@ -2,7 +2,7 @@ pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../../mixins/EnumerableBytes32Set.sol";
-import "../../openzeppelin/Pausable.sol";
+import "../../openzeppelin/PausableOz.sol";
 import "../../openzeppelin/Address.sol";
 
 /**
@@ -14,7 +14,7 @@ import "../../openzeppelin/Address.sol";
  * Meanwhile the pause/unpause function in the LoanTokenLogicProxy is used to pause/unpause in the LoanToken level (1 by 1)
  */
 
-contract LoanTokenLogicBeacon is Pausable {
+contract LoanTokenLogicBeacon is PausableOz {
 	using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set; // enumerable map of bytes32 or addresses
 
 	mapping(bytes4 => address) private logicTargets;
@@ -22,30 +22,30 @@ contract LoanTokenLogicBeacon is Pausable {
 	/// logicTargets set.
 	EnumerableBytes32Set.Bytes32Set internal logicTargetsSet;
 
-  /**
-   * @dev Modifier to make a function callable only when the contract is not paused.
-   * This is the overriden function from the pausable contract, so that we can use custom error message.
-   */
-  modifier whenNotPaused() {
-      require(!_paused, "LoanTokenLogicBeacon:paused mode");
-      _;
-  }
+	/**
+	 * @dev Modifier to make a function callable only when the contract is not paused.
+	 * This is the overriden function from the pausable contract, so that we can use custom error message.
+	 */
+	modifier whenNotPaused() {
+		require(!_paused, "LoanTokenLogicBeacon:paused mode");
+		_;
+	}
 
-  /**
-   */
-  function registerLoanTokenModule(address loanTokenModuleAddress) external onlyOwner {
-    require(Address.isContract(loanTokenModuleAddress), "LoanTokenModuleAddress is not a contract");
+	/**
+	 */
+	function registerLoanTokenModule(address loanTokenModuleAddress) external onlyOwner {
+		require(Address.isContract(loanTokenModuleAddress), "LoanTokenModuleAddress is not a contract");
 
-    // Get the list of function signature on this loanTokenModulesAddress
-    bytes4[] memory functionSignatureList = ILoanTokenLogicModules(loanTokenModuleAddress).getListFunctionSignatures();
+		// Get the list of function signature on this loanTokenModulesAddress
+		bytes4[] memory functionSignatureList = ILoanTokenLogicModules(loanTokenModuleAddress).getListFunctionSignatures();
 
-    for(uint i; i < functionSignatureList.length; i++) {
-      logicTargets[functionSignatureList[i]] = loanTokenModuleAddress;
-      logicTargetsSet.addBytes32(functionSignatureList[i]);
-    }
-  }
+		for (uint256 i; i < functionSignatureList.length; i++) {
+			logicTargets[functionSignatureList[i]] = loanTokenModuleAddress;
+			logicTargetsSet.addBytes32(functionSignatureList[i]);
+		}
+	}
 
-  /**
+	/**
 	 * @notice External getter for target addresses.
 	 * @param sig The signature.
 	 * @return The address for a given signature.
@@ -56,5 +56,5 @@ contract LoanTokenLogicBeacon is Pausable {
 }
 
 interface ILoanTokenLogicModules {
-  function getListFunctionSignatures() external pure returns(bytes4[] memory);
+	function getListFunctionSignatures() external pure returns (bytes4[] memory);
 }

@@ -29,8 +29,8 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 	bytes32 internal constant LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT = 0xd918085b6ac26c71bca17b569f873038d2b9c0a3a62611d7037f46a40829de6a; // keccak256("LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT")
 
 	modifier onlyProxyAdmin() {
-    require(msg.sender == admin, "LoanTokenLogicProxy:unauthorized");
-    _;
+		require(msg.sender == admin, "LoanTokenLogicProxy:unauthorized");
+		_;
 	}
 
 	constructor(address _beaconAddress) public {
