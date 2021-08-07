@@ -327,17 +327,28 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			uint256 /// Returns new principal and new collateral added to trade.
 		)
 	{
-		return _marginTrade(msg.sender, loanId, leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress, trader, minReturn, loanDataBytes);
+		return
+			_marginTrade(
+				msg.sender,
+				loanId,
+				leverageAmount,
+				loanTokenSent,
+				collateralTokenSent,
+				collateralTokenAddress,
+				trader,
+				minReturn,
+				loanDataBytes
+			);
 	}
 
 	//TODO: check bytecode size
 	function marginTradeBySig(
-		MarginTradeOrder calldata order,
+		MarginTradeOrder memory order,
 		uint8 v,
 		bytes32 r,
 		bytes32 s
 	)
-		external
+		public
 		payable
 		nonReentrant /// Note: needs to be removed to allow flashloan use cases.
 		returns (
@@ -355,19 +366,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(NAME)), _getChainId(), address(this)));
 
 		/// @dev MARGIN_TRADE_ORDER_TYPEHASH
-		bytes32 structHash =
-			keccak256(abi.encode(
-				MARGIN_TRADE_ORDER_TYPEHASH,
-				order.loanId,
-				order.leverageAmount,
-				order.loanTokenSent,
-				order.collateralTokenSent,
-				order.collateralTokenAddress,
-				order.trader,
-				order.minReturn,
-				order.loanDataBytes,
-				order.createdTimestamp
-			));
+		bytes32 structHash = _getStructHash(order);
 
 		bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
 		address signatory = ecrecover(digest, v, r, s);
@@ -375,17 +374,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		/// @dev Verify address is not null and PK is not null either.
 		require(RSKAddrValidator.checkPKNotZero(signatory), "GovernorAlpha::castVoteBySig: invalid signature");
 
-		return _marginTrade(
-					signatory,
-					order.loanId,
-					order.leverageAmount,
-					order.loanTokenSent,
-					order.collateralTokenSent,
-					order.collateralTokenAddress,
-					order.trader,
-					order.minReturn,
-					order.loanDataBytes
-				);
+		//TODO: do we need to check if order was executed?
+		return _marginTradeByOrder(signatory, order);
 	}
 
 	function _getChainId() internal pure returns (uint256) {
@@ -394,6 +384,46 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			chainId := chainid()
 		}
 		return chainId;
+	}
+
+	function _getStructHash(MarginTradeOrder memory order) internal returns (bytes32) {
+		bytes32 structHash =
+			keccak256(
+				abi.encode(
+					MARGIN_TRADE_ORDER_TYPEHASH,
+					order.loanId,
+					order.leverageAmount,
+					order.loanTokenSent,
+					order.collateralTokenSent,
+					order.collateralTokenAddress,
+					order.trader,
+					order.minReturn,
+					order.loanDataBytes,
+					order.createdTimestamp
+				)
+			);
+		return structHash;
+	}
+
+	function _marginTradeByOrder(address _sender, MarginTradeOrder memory order)
+		internal
+		returns (
+			uint256,
+			uint256 /// Returns new principal and new collateral added to trade.
+		)
+	{
+		return
+			_marginTrade(
+				_sender,
+				order.loanId,
+				order.leverageAmount,
+				order.loanTokenSent,
+				order.collateralTokenSent,
+				order.collateralTokenAddress,
+				order.trader,
+				order.minReturn,
+				order.loanDataBytes
+			);
 	}
 
 	function _marginTrade(

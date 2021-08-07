@@ -48,7 +48,9 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 
 	/// @notice The EIP-712 typehash for the MarginTradeOrder struct used by the contract.
 	bytes32 public constant MARGIN_TRADE_ORDER_TYPEHASH =
-		keccak256("MarginTradeOrder(bytes32 loanId,uint256 leverageAmount,uint256 loanTokenSent,uint256 collateralTokenSent,address collateralTokenAddress,address trader,uint256 minReturn,bytes loanDataBytes,uint256 createdTimestamp)");
+		keccak256(
+			"MarginTradeOrder(bytes32 loanId,uint256 leverageAmount,uint256 loanTokenSent,uint256 collateralTokenSent,address collateralTokenAddress,address trader,uint256 minReturn,bytes loanDataBytes,uint256 createdTimestamp)"
+		);
 
 	/// @notice The name of this contract.
 	string public constant NAME = "Loan Token";
