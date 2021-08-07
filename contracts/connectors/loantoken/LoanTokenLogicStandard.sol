@@ -11,6 +11,7 @@ import "./interfaces/ProtocolLike.sol";
 import "./interfaces/FeedsLike.sol";
 import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
 import "../../farm/ILiquidityMining.sol";
+import "../../rsk/RSKAddrValidator.sol";
 
 /**
  * @title Loan Token Logic Standard contract.
@@ -326,6 +327,92 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			uint256 /// Returns new principal and new collateral added to trade.
 		)
 	{
+		return _marginTrade(msg.sender, loanId, leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress, trader, minReturn, loanDataBytes);
+	}
+
+	//TODO: check bytecode size
+	function marginTradeBySig(
+		MarginTradeOrder calldata order,
+		uint8 v,
+		bytes32 r,
+		bytes32 s
+	)
+		external
+		payable
+		nonReentrant /// Note: needs to be removed to allow flashloan use cases.
+		returns (
+			uint256,
+			uint256 /// Returns new principal and new collateral added to trade.
+		)
+	{
+		/**
+		 * @dev The DOMAIN_SEPARATOR is a hash that uniquely identifies a
+		 * smart contract. It is built from a string denoting it as an
+		 * EIP712 Domain, the name of the token contract, the version,
+		 * the chainId in case it changes, and the address that the
+		 * contract is deployed at.
+		 * */
+		bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(NAME)), _getChainId(), address(this)));
+
+		/// @dev MARGIN_TRADE_ORDER_TYPEHASH
+		bytes32 structHash =
+			keccak256(abi.encode(
+				MARGIN_TRADE_ORDER_TYPEHASH,
+				order.loanId,
+				order.leverageAmount,
+				order.loanTokenSent,
+				order.collateralTokenSent,
+				order.collateralTokenAddress,
+				order.trader,
+				order.minReturn,
+				order.loanDataBytes,
+				order.createdTimestamp
+			));
+
+		bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+		address signatory = ecrecover(digest, v, r, s);
+
+		/// @dev Verify address is not null and PK is not null either.
+		require(RSKAddrValidator.checkPKNotZero(signatory), "GovernorAlpha::castVoteBySig: invalid signature");
+
+		return _marginTrade(
+					signatory,
+					order.loanId,
+					order.leverageAmount,
+					order.loanTokenSent,
+					order.collateralTokenSent,
+					order.collateralTokenAddress,
+					order.trader,
+					order.minReturn,
+					order.loanDataBytes
+				);
+	}
+
+	function _getChainId() internal pure returns (uint256) {
+		uint256 chainId;
+		assembly {
+			chainId := chainid()
+		}
+		return chainId;
+	}
+
+	function _marginTrade(
+		address _sender,
+		bytes32 loanId, /// 0 if new loan
+		uint256 leverageAmount, /// Expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5).
+		uint256 loanTokenSent,
+		uint256 collateralTokenSent,
+		address collateralTokenAddress,
+		address trader,
+		uint256 minReturn, // minimum position size in the collateral tokens
+		bytes memory loanDataBytes /// Arbitrary order data.
+	)
+		internal
+		returns (
+			uint256,
+			uint256 /// Returns new principal and new collateral added to trade.
+		)
+	{
 		_checkPause();
 
 		checkPriceDivergence(leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress, minReturn);
@@ -337,7 +424,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		require(collateralTokenAddress != loanTokenAddress, "11");
 
 		/// @dev Ensure authorized use of existing loan.
-		require(loanId == 0 || msg.sender == trader, "401 use of existing loan");
+		//TODO: check if we need to use _sender instead of msg.sender in other functions
+		require(loanId == 0 || _sender == trader, "401 use of existing loan");
 
 		/// Temporary: limit transaction size.
 		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
