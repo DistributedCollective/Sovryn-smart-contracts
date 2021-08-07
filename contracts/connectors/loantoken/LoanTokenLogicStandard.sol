@@ -380,11 +380,6 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		require(!executedOrders[digest], "Order already executed");
 		executedOrders[digest] = true;
 
-		console.log("structHash");
-		console.logBytes32(structHash);
-		console.log("signatory");
-		console.logAddress(signatory);
-
 		require(signatory == order.trader, "invalid signature");
 
 		return _marginTradeByOrder(signatory, order);
@@ -403,15 +398,15 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			keccak256(
 				abi.encode(
 					MARGIN_TRADE_ORDER_TYPEHASH,
-					order.loanId
-//					order.leverageAmount
-//					order.loanTokenSent,
-//					order.collateralTokenSent,
-//					order.collateralTokenAddress,
-//					order.trader,
-//					order.minReturn,
-//					order.loanDataBytes,
-//					order.createdTimestamp
+					order.loanId,
+					order.leverageAmount,
+					order.loanTokenSent,
+					order.collateralTokenSent,
+					order.collateralTokenAddress,
+					order.trader,
+					order.minReturn,
+//					order.loanDataBytes
+					order.createdTimestamp
 				)
 			);
 		return structHash;
