@@ -30,6 +30,9 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	/** The address of the liquidity mining contract */
 	address public liquidityMiningAddress;
 
+	/// @dev flag whether MarginTradeOrder was already executed
+	mapping(bytes32 => bool) executedOrders;
+
 	//MarginTradeOrder =====================================================================================================================
 	struct MarginTradeOrder {
 		bytes32 loanId; /// 0 if new loan

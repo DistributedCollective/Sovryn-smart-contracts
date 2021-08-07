@@ -374,7 +374,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		/// @dev Verify address is not null and PK is not null either.
 		require(RSKAddrValidator.checkPKNotZero(signatory), "GovernorAlpha::castVoteBySig: invalid signature");
 
-		//TODO: do we need to check if order was executed?
+		require(!executedOrders[digest], "Order already executed");
+		executedOrders[digest] = true;
+
 		return _marginTradeByOrder(signatory, order);
 	}
 
