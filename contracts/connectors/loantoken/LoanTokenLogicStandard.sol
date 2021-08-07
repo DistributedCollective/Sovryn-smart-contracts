@@ -265,6 +265,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 		return
 			_borrowOrTrade(
+				msg.sender,
 				loanId,
 				withdrawAmount,
 				2 * 10**18, /// leverageAmount (translates to 150% margin for a Torque loan).
@@ -384,11 +385,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		console.log("signatory");
 		console.logAddress(signatory);
 
-		//		require(signatory == order.trader, "invalid signature");
-		require(signatory == msg.sender, "invalid signature");
+		require(signatory == order.trader, "invalid signature");
 
-		//		return _marginTradeByOrder(signatory, order);
-		return (0, 0);
+		return _marginTradeByOrder(signatory, order);
 	}
 
 	function _getChainId() internal pure returns (uint256) {
@@ -405,39 +404,39 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 				abi.encode(
 					MARGIN_TRADE_ORDER_TYPEHASH,
 					order.loanId
-					//					order.leverageAmount,
-					//					order.loanTokenSent,
-					//					order.collateralTokenSent,
-					//					order.collateralTokenAddress,
-					//					order.trader,
-					//					order.minReturn,
-					//					order.loanDataBytes,
-					//					order.createdTimestamp
+//					order.leverageAmount
+//					order.loanTokenSent,
+//					order.collateralTokenSent,
+//					order.collateralTokenAddress,
+//					order.trader,
+//					order.minReturn,
+//					order.loanDataBytes,
+//					order.createdTimestamp
 				)
 			);
 		return structHash;
 	}
 
-	//	function _marginTradeByOrder(address _sender, MarginTradeOrder memory order)
-	//		internal
-	//		returns (
-	//			uint256,
-	//			uint256 /// Returns new principal and new collateral added to trade.
-	//		)
-	//	{
-	//		return
-	//			_marginTrade(
-	//				_sender,
-	//				order.loanId,
-	//				order.leverageAmount,
-	//				order.loanTokenSent,
-	//				order.collateralTokenSent,
-	//				order.collateralTokenAddress,
-	//				order.trader,
-	//				order.minReturn,
-	//				order.loanDataBytes
-	//			);
-	//	}
+	function _marginTradeByOrder(address _sender, MarginTradeOrder memory order)
+		internal
+		returns (
+			uint256,
+			uint256 /// Returns new principal and new collateral added to trade.
+		)
+	{
+		return
+			_marginTrade(
+				_sender,
+				order.loanId,
+				order.leverageAmount,
+				order.loanTokenSent,
+				order.collateralTokenSent,
+				order.collateralTokenAddress,
+				order.trader,
+				order.minReturn,
+				order.loanDataBytes
+			);
+	}
 
 	function _marginTrade(
 		address _sender,
@@ -503,6 +502,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 		return
 			_borrowOrTrade(
+				_sender,
 				loanId,
 				0, /// withdrawAmount
 				leverageAmount,
@@ -1203,6 +1203,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 *   position size (loan + margin) (in collateral tokens).
 	 * */
 	function _borrowOrTrade(
+		address sender,
 		bytes32 loanId,
 		uint256 withdrawAmount,
 		uint256 leverageAmount,
@@ -1223,7 +1224,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		}
 
 		/// @dev Handle transfers prior to adding newPrincipal to loanTokenSent
-		uint256 msgValue = _verifyTransfers(collateralTokenAddress, sentAddresses, sentAmounts, withdrawAmount);
+		uint256 msgValue = _verifyTransfers(sender, collateralTokenAddress, sentAddresses, sentAmounts, withdrawAmount);
 
 		/**
 		 * @dev Adding the loan token portion from the lender to loanTokenSent
@@ -1286,6 +1287,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @return msgValue The amount of rBTC sent minus the collateral on tokens.
 	 * */
 	function _verifyTransfers(
+		address sender,
 		address collateralTokenAddress,
 		address[4] memory sentAddresses,
 		uint256[5] memory sentAmounts,
@@ -1321,12 +1323,12 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 				_safeTransfer(collateralTokenAddress, sovrynContractAddress, collateralTokenSent, "28-a");
 				msgValue -= collateralTokenSent;
 			} else {
-				_safeTransferFrom(collateralTokenAddress, msg.sender, sovrynContractAddress, collateralTokenSent, "28-b");
+				_safeTransferFrom(collateralTokenAddress, sender, sovrynContractAddress, collateralTokenSent, "28-b");
 			}
 		}
 
 		if (loanTokenSent != 0) {
-			_safeTransferFrom(_loanTokenAddress, msg.sender, sovrynContractAddress, loanTokenSent, "29");
+			_safeTransferFrom(_loanTokenAddress, sender, sovrynContractAddress, loanTokenSent, "29");
 		}
 	}
 

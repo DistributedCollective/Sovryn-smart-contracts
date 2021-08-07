@@ -465,25 +465,25 @@ contract("LoanTokenTrading", (accounts) => {
 		// 		wei("0.02", "ether")
 		// 	);
 		// });
-		//
-		// it("Check marginTrade with minPositionSize > 0 ", async () => {
-		// 	await set_demand_curve(loanToken);
-		// 	await SUSD.transfer(loanToken.address, wei("1000000", "ether"));
-		// 	await RBTC.transfer(accounts[2], oneEth);
-		// 	await RBTC.approve(loanToken.address, oneEth, { from: accounts[2] });
-		//
-		// 	await loanToken.marginTrade(
-		// 		"0x0", // loanId  (0 for new loans)
-		// 		wei("2", "ether"), // leverageAmount
-		// 		0, // loanTokenSent (SUSD)
-		// 		1000, // collateral token sent
-		// 		RBTC.address, // collateralTokenAddress (RBTC)
-		// 		accounts[1], // trader,
-		// 		2000,
-		// 		"0x", // loanDataBytes (only required with ether)
-		// 		{ from: accounts[2] }
-		// 	);
-		// });
+
+		it("Check marginTrade with minPositionSize > 0 ", async () => {
+			await set_demand_curve(loanToken);
+			await SUSD.transfer(loanToken.address, wei("1000000", "ether"));
+			await RBTC.transfer(accounts[2], oneEth);
+			await RBTC.approve(loanToken.address, oneEth, { from: accounts[2] });
+
+			await loanToken.marginTrade(
+				"0x0", // loanId  (0 for new loans)
+				wei("2", "ether"), // leverageAmount
+				0, // loanTokenSent (SUSD)
+				1000, // collateral token sent
+				RBTC.address, // collateralTokenAddress (RBTC)
+				accounts[1], // trader,
+				2000,
+				"0x", // loanDataBytes (only required with ether)
+				{ from: accounts[2] }
+			);
+		});
 
 		it("Check marginTrade with minPositionSize > 0 using a signature", async () => {
 			let currentChainId = (await ethers.provider.getNetwork()).chainId;
@@ -508,14 +508,14 @@ contract("LoanTokenTrading", (accounts) => {
 
 			const order = {
 				loanId: "0x0000000000000000000000000000000000000000000000000000000000000000", // loanId  (0 for new loans)
-				// leverageAmount: wei("2", "ether"), // leverageAmount
-				// loanTokenSent: 0, // loanTokenSent (SUSD)
-				// collateralTokenSent: 1000, // collateral token sent
-				// collateralTokenAddress: RBTC.address, // collateralTokenAddress (RBTC)
-				// trader: accounts[2], // trader,
-				// minReturn: 2000,
-				// loanDataBytes: "0x", // loanDataBytes (only required with ether)
-				// createdTimestamp: Date.now()
+				leverageAmount: wei("2", "ether"), // leverageAmount
+				loanTokenSent: 0, // loanTokenSent (SUSD)
+				collateralTokenSent: 1000, // collateral token sent
+				collateralTokenAddress: RBTC.address, // collateralTokenAddress (RBTC)
+				trader: accounts[2], // trader,
+				minReturn: 2000,
+				loanDataBytes: "0x", // loanDataBytes (only required with ether)
+				createdTimestamp: Date.now()
 			};
 
 			const structHash = EIP712.structHash(
@@ -542,7 +542,7 @@ contract("LoanTokenTrading", (accounts) => {
 			console.log("accounts[2]");
 			console.log(accounts[2]);
 
-			await loanToken.marginTradeBySig(order, v, r, s, { from: accounts[2] });
+			await loanToken.marginTradeBySig(order, v, r, s);
 		});
 
 		it("checkPriceDivergence should revert if min position size is greater than collateral", async () => {
