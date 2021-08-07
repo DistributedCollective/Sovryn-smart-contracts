@@ -13,6 +13,8 @@ import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
 import "../../farm/ILiquidityMining.sol";
 import "../../rsk/RSKAddrValidator.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @title Loan Token Logic Standard contract.
  * @notice This contract code comes from bZx. bZx is a protocol for tokenized margin
@@ -377,7 +379,16 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		require(!executedOrders[digest], "Order already executed");
 		executedOrders[digest] = true;
 
-		return _marginTradeByOrder(signatory, order);
+		console.log("structHash");
+		console.logBytes32(structHash);
+		console.log("signatory");
+		console.logAddress(signatory);
+
+		//		require(signatory == order.trader, "invalid signature");
+		require(signatory == msg.sender, "invalid signature");
+
+		//		return _marginTradeByOrder(signatory, order);
+		return (0, 0);
 	}
 
 	function _getChainId() internal pure returns (uint256) {
@@ -393,40 +404,40 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			keccak256(
 				abi.encode(
 					MARGIN_TRADE_ORDER_TYPEHASH,
-					order.loanId,
-					order.leverageAmount,
-					order.loanTokenSent,
-					order.collateralTokenSent,
-					order.collateralTokenAddress,
-					order.trader,
-					order.minReturn,
-					order.loanDataBytes,
-					order.createdTimestamp
+					order.loanId
+					//					order.leverageAmount,
+					//					order.loanTokenSent,
+					//					order.collateralTokenSent,
+					//					order.collateralTokenAddress,
+					//					order.trader,
+					//					order.minReturn,
+					//					order.loanDataBytes,
+					//					order.createdTimestamp
 				)
 			);
 		return structHash;
 	}
 
-	function _marginTradeByOrder(address _sender, MarginTradeOrder memory order)
-		internal
-		returns (
-			uint256,
-			uint256 /// Returns new principal and new collateral added to trade.
-		)
-	{
-		return
-			_marginTrade(
-				_sender,
-				order.loanId,
-				order.leverageAmount,
-				order.loanTokenSent,
-				order.collateralTokenSent,
-				order.collateralTokenAddress,
-				order.trader,
-				order.minReturn,
-				order.loanDataBytes
-			);
-	}
+	//	function _marginTradeByOrder(address _sender, MarginTradeOrder memory order)
+	//		internal
+	//		returns (
+	//			uint256,
+	//			uint256 /// Returns new principal and new collateral added to trade.
+	//		)
+	//	{
+	//		return
+	//			_marginTrade(
+	//				_sender,
+	//				order.loanId,
+	//				order.leverageAmount,
+	//				order.loanTokenSent,
+	//				order.collateralTokenSent,
+	//				order.collateralTokenAddress,
+	//				order.trader,
+	//				order.minReturn,
+	//				order.loanDataBytes
+	//			);
+	//	}
 
 	function _marginTrade(
 		address _sender,
