@@ -61,7 +61,9 @@ module.exports = {
 		disambiguatePaths: false,
 	},
 	networks: {
-		hardhat: {},
+		hardhat: {
+			allowUnlimitedContractSize: true
+		},
 		rskPublicTestnet: {
 			url: "https://public-node.testnet.rsk.co/",
 			accounts: { mnemonic: "brownie", count: 10 },
