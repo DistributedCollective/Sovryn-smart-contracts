@@ -1,4 +1,8 @@
 const { assert, expect } = require("chai");
+const { Wallet, Contract } = require("ethers");
+
+const { ethers, waffle } = require("hardhat");
+const { loadFixture } = waffle;
 
 const { BN, constants, balance, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 
@@ -48,9 +52,9 @@ const {
 contract("Pause Modules", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
 	let loanParams, loanParamsId;
-
-	before(async () => {
-		[owner, trader, referrer, account1, account2, ...accounts] = accounts;
+	///@note https://stackoverflow.com/questions/68182729/implementing-fixtures-with-nomiclabs-hardhat-waffle
+	async function fixtureInitialize(_wallets, _provider) {
+		const signers = ethers.getSigners();
 		const sovrynproxy = await sovrynProtocol.new();
 		sovryn = await ISovryn.at(sovrynproxy.address);
 		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
@@ -89,6 +93,12 @@ contract("Pause Modules", (accounts) => {
 			maintenanceMargin: wei("15", "ether"),
 			maxLoanTerm: "2419200",
 		};
+
+		//return { SOV, SUSD, underlyingToken, loanParams};
+	}
+	before(async () => {
+		[owner, trader, referrer, account1, account2, ...accounts] = accounts;
+		await loadFixture(fixtureInitialize);
 	});
 
 	const setup_rollover_test = async (RBTC, SUSD, accounts, loanToken, set_demand_curve, sovryn) => {
@@ -253,6 +263,7 @@ contract("Pause Modules", (accounts) => {
 	});
 	describe("Testing isProtocolPaused()", () => {
 		it("isProtocolPaused() returns correct result when toggling pause/upause", async () => {
+			await loadFixture(fixtureInitialize);
 			await sovryn.togglePaused(true);
 			expect(await sovryn.isProtocolPaused()).to.be.true;
 			//check deterministic result when trying to set current value
