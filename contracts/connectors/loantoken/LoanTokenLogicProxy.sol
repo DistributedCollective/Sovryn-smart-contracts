@@ -2,6 +2,7 @@ pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./AdvancedTokenStorage.sol";
+import "../../openzeppelin/Initializable.sol";
 
 /**
  * @title Loan Token Logic Proxy contract.
@@ -23,17 +24,17 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 	/// ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
 
 	/**
-	 * @notice PLEASE DO NOT ADD ANY VARIABLES HERE UNLESS FOR SPESIFIC SLOT
+	 * @notice PLEASE DO NOT ADD ANY VARIABLES HERE UNLESS FOR SPESIFIC SLOT (CONSTANT / IMMUTABLE)
 	 */
 
 	bytes32 internal constant LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT = 0xd918085b6ac26c71bca17b569f873038d2b9c0a3a62611d7037f46a40829de6a; // keccak256("LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT")
 
-	modifier onlyProxyAdmin() {
-		require(msg.sender == admin, "LoanTokenLogicProxy:unauthorized");
+	modifier onlyAdmin() {
+		require(isOwner(), "LoanTokenLogicProxy:unauthorized");
 		_;
 	}
 
-	constructor(address _beaconAddress) public {
+	function initializeLoanTokenProxy(address _beaconAddress) public onlyAdmin {
 		// Initialize the LoanTokenLogicBeacon address
 		_setBeaconAddress(_beaconAddress);
 	}
@@ -42,13 +43,9 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 	 * @notice Fallback function performs a logic implementation address query to LoanTokenLogicBeacon and then do delegate call to that query result address.
 	 * Returns whatever the implementation call returns.
 	 * */
-	function() external payable {
-		if (gasleft() <= 2300) {
-			return;
-		}
-
-		address target = LoanTokenLogicBeacon(_beaconAddress()).getTarget(msg.sig);
+	function() external {
 		// query the logic target implementation address from the LoanTokenLogicBeacon
+		address target = ILoanTokenLogicBeacon(_beaconAddress()).getTarget(msg.sig);
 		require(target != address(0), "LoanTokenProxy:target not active");
 
 		bytes memory data = msg.data;
@@ -103,11 +100,11 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 	 * @dev External function to set the new LoanTokenLogicBeacon Address
 	 * @param _newBeaconAddress Address of the new LoanTokenLogicBeacon
 	 */
-	function setBeaconAddress(address _newBeaconAddress) external onlyProxyAdmin {
+	function setBeaconAddress(address _newBeaconAddress) external onlyAdmin {
 		_setBeaconAddress(_newBeaconAddress);
 	}
 }
 
-interface LoanTokenLogicBeacon {
+interface ILoanTokenLogicBeacon {
 	function getTarget(bytes4 functionSignature) external view returns (address logicTargetAddress);
 }

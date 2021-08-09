@@ -29,7 +29,7 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
 	 * @return The list of function signatures (bytes4[])
 	 */
 	function getListFunctionSignatures() external pure returns (bytes4[] memory) {
-		bytes4[] memory res = new bytes4[](29);
+		bytes4[] memory res = new bytes4[](34);
 
 		// Loan Token Logic Standard
 		res[0] = bytes4(keccak256("mint(address,uint256)"));
@@ -68,6 +68,17 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
 		 */
 		res[27] = bytes4(keccak256("mint(address,uint256,bool)"));
 		res[28] = bytes4(keccak256("burn(address,uint256,bool)"));
+
+		// Advanced Token
+		res[29] = this.approve.selector;
+
+		// Advanced Token Storage
+		res[30] = this.totalSupply.selector;
+		res[31] = this.balanceOf.selector;
+		res[32] = this.allowance.selector;
+
+		// Loan Token Logic Storage Additional Variable
+		res[33] = bytes4(keccak256("liquidityMiningAddress()"));
 
 		return res;
 	}

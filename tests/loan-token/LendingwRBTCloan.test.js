@@ -10,7 +10,8 @@ const ProtocolSettings = artifacts.require("ProtocolSettings");
 const ISovryn = artifacts.require("ISovryn");
 
 const LoanToken = artifacts.require("LoanToken");
-const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
@@ -36,6 +37,8 @@ const {
 	cash_out_from_the_pool_more_of_lender_balance_should_not_fail,
 } = require("./helpers");
 //const { artifacts } = require("hardhat");
+
+const { getLoanTokenLogicWrbtc } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
@@ -91,10 +94,19 @@ contract("LoanTokenLending", (accounts) => {
 		await sovryn.setProtocolTokenAddress(tokenSOV.address);
 		await sovryn.setSOVTokenAddress(tokenSOV.address);
 
-		loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
+		const initLoanTokenLogic = await getLoanTokenLogicWrbtc(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+		loanTokenLogicWrbtc = initLoanTokenLogic[0];
+		loanTokenLogicBeaconWrbtc = initLoanTokenLogic[1];
+
 		loanToken = await LoanToken.new(lender, loanTokenLogicWrbtc.address, sovryn.address, testWrbtc.address);
 		await loanToken.initialize(testWrbtc.address, "iWRBTC", "iWRBTC"); //iToken
-		loanToken = await LoanTokenLogicWrbtc.at(loanToken.address);
+		
+		/** Initialize the loan token logic proxy */
+		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+		await loanToken.initializeLoanTokenProxy(loanTokenLogicBeaconWrbtc.address);
+
+		/** Use interface of LoanTokenModules */
+		loanToken = await ILoanTokenModules.at(loanToken.address);
 
 		params = [
 			"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object

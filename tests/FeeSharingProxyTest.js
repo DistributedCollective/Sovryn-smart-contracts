@@ -19,11 +19,13 @@ const LoanOpenings = artifacts.require("LoanOpenings");
 const LoanClosingsBase = artifacts.require("LoanClosingsBase");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 
-const LoanTokenLogic = artifacts.require("LoanTokenLogicStandard");
-const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const LoanToken = artifacts.require("LoanToken");
 
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
+
+const { getLoanTokenLogic } = require("./Utils/initializer.js");
 
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
@@ -43,7 +45,7 @@ contract("FeeSharingProxy:", (accounts) => {
 	let root, account1, account2, account3, account4;
 	let SOVToken, susd, wrbtc, staking;
 	let protocol;
-	let loanTokenSettings, loanTokenLogic, loanToken;
+	let loanTokenLogic, loanToken;
 	let feeSharingProxy;
 
 	before(async () => {
@@ -78,12 +80,22 @@ contract("FeeSharingProxy:", (accounts) => {
 		await protocol.replaceContract(loanClosingsWith.address);
 
 		protocol = await ProtocolSettings.at(protocol.address);
+
 		//Loan token
-		loanTokenSettings = await LoanTokenSettings.new();
-		loanTokenLogic = await LoanTokenLogic.new();
+		const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+		loanTokenLogic = initLoanTokenLogic[0];
+		loanTokenLogicBeacon = initLoanTokenLogic[1];
+
 		loanToken = await LoanToken.new(root, loanTokenLogic.address, protocol.address, wrbtc.address);
 		await loanToken.initialize(susd.address, "iSUSD", "iSUSD");
-		loanToken = await LoanTokenLogic.at(loanToken.address);
+
+		/** Initialize the loan token logic proxy */
+		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+		await loanToken.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
+
+		/** Use interface of LoanTokenModules */
+		loanToken = await ILoanTokenModules.at(loanToken.address);
+
 		await loanToken.setAdmin(root);
 		await protocol.setLoanPool([loanToken.address], [susd.address]);
 		//FeeSharingProxy

@@ -10,7 +10,8 @@ const ProtocolSettings = artifacts.require("ProtocolSettings");
 const ISovryn = artifacts.require("ISovryn");
 
 const LoanToken = artifacts.require("LoanToken");
-const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
@@ -30,6 +31,8 @@ const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 
 //const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_more_of_lender_balance_should_not_fail } = require("./helpers");
 const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_uint256_max_should_withdraw_total_balance } = require("./helpers");
+
+const { getLoanTokenLogic } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 
@@ -82,10 +85,14 @@ contract("LoanTokenLending", (accounts) => {
 		await sovryn.setSOVTokenAddress(sov.address);
 		await sovryn.setLockedSOVAddress((await LockedSOVMockup.new(sov.address, [accounts[0]])).address);
 
-		loanTokenLogicStandard = await LoanTokenLogicLM.new();
-		loanToken = await LoanToken.new(lender, loanTokenLogicStandard.address, sovryn.address, testWrbtc.address);
+		const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+		loanTokenLogic = initLoanTokenLogic[0];
+		loanTokenLogicBeacon = initLoanTokenLogic[1];
+
+		loanToken = await LoanToken.new(lender, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 		await loanToken.initialize(underlyingToken.address, name, symbol); //iToken
-		loanToken = await LoanTokenLogicLM.at(loanToken.address);
+
+		const loanTokenAddress = await loanToken.loanTokenAddress();
 
 		params = [
 			"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object
@@ -98,9 +105,15 @@ contract("LoanTokenLending", (accounts) => {
 			2419200, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
 		];
 
+		/** Initialize the loan token logic proxy */
+		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+		await loanToken.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
+
+		/** Use interface of LoanTokenModules */
+		loanToken = await ILoanTokenModules.at(loanToken.address);
+
 		await loanToken.setupLoanParams([params], false);
 
-		const loanTokenAddress = await loanToken.loanTokenAddress();
 		if (lender == (await sovryn.owner())) await sovryn.setLoanPool([loanToken.address], [loanTokenAddress]);
 		// const baseRate = wei("1", "ether");
 		// const rateMultiplier = wei("20.25", "ether");

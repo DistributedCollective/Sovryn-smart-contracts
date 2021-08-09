@@ -32,9 +32,7 @@ const {
 	getRBTC,
 	getWRBTC,
 	getBZRX,
-	getLoanTokenLogic,
 	getLoanToken,
-	getLoanTokenLogicWrbtc,
 	getLoanTokenWRBTC,
 	loan_pool_setup,
 	set_demand_curve,
@@ -69,10 +67,8 @@ contract("Pause Modules", (accounts) => {
 		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
-		const loanTokenLogicStandard = await getLoanTokenLogic();
-		const loanTokenLogicWrbtc = await getLoanTokenLogicWrbtc();
-		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
-		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
+		loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD);
+		loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 

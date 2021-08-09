@@ -1,8 +1,10 @@
 const { expect } = require("chai");
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
-const TestToken = artifacts.require("TestToken");
-const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
-const LoanTokenSettingsLowerAdmin = artifacts.require("LoanTokenSettingsLowerAdmin");
+const LoanToken = artifacts.require("LoanToken");
+const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
+const LoanTokenLogicProxy = artifacts.require("LoanTokenLogicProxy");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 
 const {
 	getSUSD,
@@ -48,9 +50,8 @@ contract("LoanTokenAdministration", (accounts) => {
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 		sov = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
-		const loanTokenLogicStandard = await getLoanTokenLogic();
-		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
-		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
+		loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD);
+		loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 	});
 
@@ -62,13 +63,18 @@ contract("LoanTokenAdministration", (accounts) => {
 			const kinkLevel = wei("90", "ether");
 			const maxScaleRate = wei("100", "ether");
 
-			const localLoanToken = await LoanTokenLogicStandard.at(loanToken.address);
-			await localLoanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate);
+			await loanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate);
+
+			/** Change to LoanToken ABI */
+			loanToken = await LoanToken.at(loanToken.address)
 
 			expect((await loanToken.baseRate()).toString() == baseRate);
 			expect((await loanToken.rateMultiplier()).toString() == rateMultiplier);
 			expect((await loanToken.lowUtilBaseRate()).toString() == baseRate);
 			expect((await loanToken.lowUtilRateMultiplier()).toString() == rateMultiplier);
+
+			/** Change back to LoanTokenModules Interface */
+			loanToken = await ILoanTokenModules.at(loanToken.address);
 
 			const borrowInterestRate = await loanToken.borrowInterestRate();
 			expect(borrowInterestRate.gt(oneEth)).to.be.true;
@@ -83,9 +89,8 @@ contract("LoanTokenAdministration", (accounts) => {
 			const kinkLevel = wei("90", "ether");
 			const maxScaleRate = wei("100", "ether");
 
-			const localLoanToken = await LoanTokenLogicStandard.at(loanToken.address);
 			await expectRevert.unspecified(
-				localLoanToken.setDemandCurve(
+				loanToken.setDemandCurve(
 					incorrect_baseRate,
 					incorrect_rateMultiplier,
 					baseRate,
@@ -96,7 +101,7 @@ contract("LoanTokenAdministration", (accounts) => {
 				)
 			);
 			await expectRevert.unspecified(
-				localLoanToken.setDemandCurve(
+				loanToken.setDemandCurve(
 					baseRate,
 					rateMultiplier,
 					incorrect_baseRate,
@@ -124,7 +129,7 @@ contract("LoanTokenAdministration", (accounts) => {
 			const functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,uint256,bytes)";
 
 			// pause the given function and make sure the function can't be called anymore
-			let localLoanToken = await LoanTokenLogicStandard.at(loanToken.address);
+			let localLoanToken = loanToken;
 			await localLoanToken.setPauser(accounts[0]);
 			await localLoanToken.toggleFunctionPause(functionSignature, true);
 
@@ -133,8 +138,6 @@ contract("LoanTokenAdministration", (accounts) => {
 			// check if checkPause returns true
 			assert(localLoanToken.checkPause(functionSignature));
 
-			// reactivate the given function and make sure the function can be called again
-			localLoanToken = await LoanTokenLogicStandard.at(loanToken.address);
 			await localLoanToken.setPauser(accounts[0]);
 			await localLoanToken.toggleFunctionPause(functionSignature, false);
 			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]);
@@ -145,7 +148,7 @@ contract("LoanTokenAdministration", (accounts) => {
 
 		// call toggleFunction with a non-admin address and make sure it fails
 		it("Test toggle function pause with non admin should fail", async () => {
-			let localLoanToken = await LoanTokenLogicStandard.at(loanToken.address);
+			let localLoanToken = loanToken;
 			await expectRevert(localLoanToken.toggleFunctionPause("mint(address,uint256)", true, { from: accounts[1] }), "onlyPauser");
 		});
 
@@ -162,5 +165,69 @@ contract("LoanTokenAdministration", (accounts) => {
 				"price disagreement"
 			);
 		});
+
+		it("Initialize loan token proxy from non-admin should fail", async () => {
+			const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+			loanTokenLogicLM = initLoanTokenLogic[0];
+			loanTokenLogicBeaconLM = initLoanTokenLogic[1];
+
+			loanToken = await LoanToken.new(owner, loanTokenLogicLM.address, sovryn.address, WRBTC.address);
+			await loanToken.initialize(SUSD.address, "SUSD", "SUSD"); //iToken
+
+			/** Initialize the loan token logic proxy */
+			loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+			await expectRevert(loanToken.initializeLoanTokenProxy(loanTokenLogicBeaconLM.address, {from: accounts[1]}), "LoanTokenLogicProxy:unauthorized");
+		})
+
+		it("Should revert if target not active in loan token proxy", async () => {
+			/** Deploy LoanTokenLogicBeacon */
+			const loanTokenLogicBeaconLM = await LoanTokenLogicBeacon.new()
+
+			/** Deploy LoanTokenLogicProxy */
+			loanTokenLogicLM = await LoanTokenLogicProxy.new(loanTokenLogicBeacon.address)
+
+			loanToken = await LoanToken.new(owner, loanTokenLogicLM.address, sovryn.address, WRBTC.address);
+			await loanToken.initialize(SUSD.address, "SUSD", "SUSD"); //iToken
+
+			/** Initialize the loan token logic proxy */
+			loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+			await loanToken.initializeLoanTokenProxy(loanTokenLogicBeaconLM.address);
+
+			/** Use interface of LoanTokenModules */
+			loanToken = await ILoanTokenModules.at(loanToken.address);
+
+			await expectRevert(loanToken.assetBalanceOf(owner), "LoanTokenProxy:target not active")
+		})
+
+		it("Test set beacon address in loan token logic proxy", async () => {
+			const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+			loanTokenLogicLM = initLoanTokenLogic[0];
+			loanTokenLogicBeaconLM = initLoanTokenLogic[1];
+
+			/** Deploy New LoanTokenLogicBeacon */
+			const newLoanTokenLogicBeaconLM = await LoanTokenLogicBeacon.new()
+
+			await loanTokenLogicLM.setBeaconAddress(newLoanTokenLogicBeaconLM.address);
+			expect(await loanTokenLogicLM.beaconAddress()).to.equal(newLoanTokenLogicBeaconLM.address);
+		})
+
+		it("Set beacon address from non-owner should fail", async () => {
+			const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+			loanTokenLogicLM = initLoanTokenLogic[0];
+			loanTokenLogicBeaconLM = initLoanTokenLogic[1];
+
+			/** Deploy New LoanTokenLogicBeacon */
+			const newLoanTokenLogicBeaconLM = await LoanTokenLogicBeacon.new()
+
+			await expectRevert(loanTokenLogicLM.setBeaconAddress(newLoanTokenLogicBeaconLM.address, {from: accounts[1]}), "LoanTokenLogicProxy:unauthorized");
+		})
+
+		it("Set beacon address to non contract address should fail", async () => {
+			const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+			loanTokenLogicLM = initLoanTokenLogic[0];
+			loanTokenLogicBeaconLM = initLoanTokenLogic[1];
+
+			await expectRevert(loanTokenLogicLM.setBeaconAddress(accounts[1]), "Cannot set beacon address to a non-contract address");
+		})
 	});
 });

@@ -20,7 +20,7 @@ contract LoanTokenLogicBeacon is PausableOz {
 	mapping(bytes4 => address) private logicTargets;
 
 	/// logicTargets set.
-	EnumerableBytes32Set.Bytes32Set internal logicTargetsSet;
+	// EnumerableBytes32Set.Bytes32Set internal logicTargetsSet;
 
 	/**
 	 * @dev Modifier to make a function callable only when the contract is not paused.
@@ -41,7 +41,7 @@ contract LoanTokenLogicBeacon is PausableOz {
 
 		for (uint256 i; i < functionSignatureList.length; i++) {
 			logicTargets[functionSignatureList[i]] = loanTokenModuleAddress;
-			logicTargetsSet.addBytes32(functionSignatureList[i]);
+			// logicTargetsSet.addBytes32(functionSignatureList[i]);
 		}
 	}
 
