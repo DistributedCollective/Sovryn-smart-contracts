@@ -121,6 +121,8 @@ contract ISovryn is
 
 	function togglePaused(bool paused) external;
 
+	function isProtocolPaused() external view returns (bool);
+
 	////// Loan Settings //////
 
 	function setupLoanParams(LoanParams[] calldata loanParamsList) external returns (bytes32[] memory loanParamsIdList);
