@@ -37,6 +37,7 @@ const {
 } = require("../Utils/initializer.js");
 const EIP712 = require("../Utils/EIP712");
 const {getAccountsPrivateKeysBuffer} = require("../Utils/hardhat_utils");
+const ethUtil = require("ethereumjs-util");
 
 const wei = web3.utils.toWei;
 
@@ -501,11 +502,12 @@ contract("LoanTokenTrading", (accounts) => {
 					{ name: "collateralTokenAddress", type: "address" },
 					{ name: "trader", type: "address" },
 					{ name: "minReturn", type: "uint256" },
-					// { name: "loanDataBytes", type: "bytes" },
+					{ name: "loanDataBytes", type: "bytes32" },
 					{ name: "createdTimestamp", type: "uint256" },
 				],
 			};
 
+			let loanDataBytes = "0x";
 			const order = {
 				loanId: "0x0000000000000000000000000000000000000000000000000000000000000000", // loanId  (0 for new loans)
 				leverageAmount: wei("2", "ether"), // leverageAmount
@@ -514,10 +516,11 @@ contract("LoanTokenTrading", (accounts) => {
 				collateralTokenAddress: RBTC.address, // collateralTokenAddress (RBTC)
 				trader: accounts[2], // trader,
 				minReturn: 2000,
-				loanDataBytes: "0x", // loanDataBytes (only required with ether)
+				loanDataBytes: loanDataBytes, // loanDataBytes (only required with ether)
 				createdTimestamp: Date.now()
 			};
 
+			order.loanDataBytes = ethUtil.keccak256(loanDataBytes);
 			const { v, r, s } = EIP712.sign(
 				Domain(loanToken),
 				"MarginTradeOrder",
@@ -531,6 +534,7 @@ contract("LoanTokenTrading", (accounts) => {
 			await RBTC.transfer(accounts[2], oneEth);
 			await RBTC.approve(loanToken.address, oneEth, { from: accounts[2] });
 
+			order.loanDataBytes = loanDataBytes;
 			await loanToken.marginTradeBySig(order, v, r, s);
 		});
 

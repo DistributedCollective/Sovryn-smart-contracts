@@ -53,7 +53,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	bytes32 public constant MARGIN_TRADE_ORDER_TYPEHASH =
 		keccak256(
 			//			"MarginTradeOrder(bytes32 loanId,uint256 leverageAmount,uint256 loanTokenSent,uint256 collateralTokenSent,address collateralTokenAddress,address trader,uint256 minReturn,bytes loanDataBytes,uint256 createdTimestamp)"
-			"MarginTradeOrder(bytes32 loanId,uint256 leverageAmount,uint256 loanTokenSent,uint256 collateralTokenSent,address collateralTokenAddress,address trader,uint256 minReturn,uint256 createdTimestamp)"
+			"MarginTradeOrder(bytes32 loanId,uint256 leverageAmount,uint256 loanTokenSent,uint256 collateralTokenSent,address collateralTokenAddress,address trader,uint256 minReturn,bytes32 loanDataBytes,uint256 createdTimestamp)"
 		);
 
 	/// @notice The name of this contract.

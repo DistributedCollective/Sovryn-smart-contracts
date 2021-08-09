@@ -405,7 +405,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 					order.collateralTokenAddress,
 					order.trader,
 					order.minReturn,
-//					order.loanDataBytes
+					keccak256(order.loanDataBytes),
 					order.createdTimestamp
 				)
 			);
