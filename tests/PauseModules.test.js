@@ -251,4 +251,23 @@ contract("Pause Modules", (accounts) => {
 			await expectRevert(sovryn.setupLoanParams([Object.values(loanParams)]), "Paused");
 		});
 	});
+	describe("Testing isProtocolPaused()", () => {
+		it("isProtocolPaused() returns correct result when toggling pause/upause", async () => {
+			await sovryn.togglePaused(true);
+			expect(await sovryn.isProtocolPaused()).to.be.true;
+			//check deterministic result when trying to set current value
+			expectRevert.unspecified(sovryn.togglePaused(true));
+			expect(await sovryn.isProtocolPaused()).to.be.true;
+
+			//pause true -> false
+			await sovryn.togglePaused(false);
+			expect(await sovryn.isProtocolPaused()).to.be.false;
+			expectRevert.unspecified(sovryn.togglePaused(false));
+			expect(await sovryn.isProtocolPaused()).to.be.false;
+
+			//pause false -> true
+			await sovryn.togglePaused(true);
+			expect(await sovryn.isProtocolPaused()).to.be.true;
+		});
+	});
 });

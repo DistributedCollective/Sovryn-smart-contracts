@@ -27,5 +27,7 @@ def main():
     #load the contracts and acct depending on the network
     conf.loadConfig()
 
+    confirmWithMS(588)
+
     #call the function you want here
     
