@@ -275,17 +275,154 @@ def readLendingBalanceForUser(loanTokenAddress, userAddress):
     bal = loanToken.assetBalanceOf(userAddress)
     print('underlying token balance', bal)
 
+def deployNewLoanTokenLogicFirstTime():
+    # This function only be called one time (right after the changes of the refactoring LoanTokenLogic https://github.com/DistributedCollective/Sovryn-tasks-discussions/discussions/7)
+    # Unless we want to redeploy the loan token logic proxy
+
+    # ============================= 1. Deploy LoanTokenLogicProxy for each LoanToken (iUSDT, iDOC, iBPro, iXUSD, iRBTC) =====================================
+    # iUSDTProxy
+    loanTokenLogicProxyUSDT = conf.acct.deploy(LoanTokenLogicProxy)
+    print("Loan Token Logic Proxy USDT deployed at: ", loanTokenLogicProxyUSDT.address)
+
+    # iDOCProxy
+    loanTokenLogicProxyDOC = conf.acct.deploy(LoanTokenLogicProxy)
+    print("Loan Token Logic Proxy DOC deployed at: ", loanTokenLogicProxyDOC.address)
+
+    # iBProProxy
+    loanTokenLogicProxyBPro = conf.acct.deploy(LoanTokenLogicProxy)
+    print("Loan Token Logic Proxy BPro deployed at: ", loanTokenLogicProxyBPro.address)
+
+    # iXUSDProxy
+    loanTokenLogicProxyXUSD = conf.acct.deploy(LoanTokenLogicProxy)
+    print("Loan Token Logic Proxy XUSD deployed at: ", loanTokenLogicProxyXUSD.address)
+
+    # iRBTCProxy
+    loanTokenLogicProxyRBTC = conf.acct.deploy(LoanTokenLogicProxy)
+    print("Loan Token Logic Proxy RBTC deployed at: ", loanTokenLogicProxyRBTC.address)
+
+    # ============================== 2. Deploy the beacons (2 beacons, 1 for LM & 1 for wRBTC) =======================================
+    loanTokenLogicBeaconLM = conf.acct.deploy(LoanTokenLogicBeacon)
+    print("LoanTokenLogicBeaconLM is deployed at: ", loanTokenLogicBeaconLM.address)
+
+    loanTokenLogicBeaconWrbtc = conf.acct.deploy(LoanTokenLogicBeacon)
+    print("LoanTokenLogicBeaconWrbtc is deployed at: ", loanTokenLogicBeaconWrbtc.address)
+
+    # ============================== 3. Deploy the LoanTokenLogicLM, Register all of the module to the BeaconLM ============================
+    print("Deploying LoanTokenlogicLM")
+    logicContractLM = conf.acct.deploy(LoanTokenLogicLM)
+    print("new LoanTokenLogicLM contract deployed at: ", logicContractLM.address)
+
+    print("Registering module to LoanTokenLogicBeaconLM")
+    loanTokenLogicBeaconLM.registerLoanTokenModule(logicContractLM.address)
+
+    print("Deploy Loan Token Settings Lower Admin Module")
+    loanTokenSettingsLowerAdmin = conf.acct.deploy(LoanTokenSettingsLowerAdmin)
+    print("LoanTokenSettingsLowerAdmin for BeaconLM module deployed at: ", loanTokenSettingsLowerAdmin.address)
+
+    print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconLM")
+    loanTokenLogicBeaconLM.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address)
+
+    # ============================== 4. Deploy the LoanTokenLogicWrbtc, Register all of the module to the BeaconWrbtc ==============================
+    print("Deploying LoanTokenlogicWrbtc")
+    logicContractWrbtc = conf.acct.deploy(LoanTokenLogicWrbtc)
+    print("new LoanTokenLogicLM contract deployed at: ", logicContractWrbtc.address)
+
+    print("Registering module to LoanTokenLogicBeaconWrbtc")
+    logicContractWrbtc.registerLoanTokenModule(logicContractWrbtc.address)
+
+    print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconWrbtc")
+    logicContractWrbtc.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address)
+
+    # ============================== 5. Set each LoanTokenLogicProxy with the beacon accordingly (iUSDTProxy, iDOCProxy, iBProProxy, iXUSDProxy) with the BeaconLM and (iRBTC) with the BeaconWrbtc ==============================
+    # iUSDT
+    setBeaconLoanTokenLogicProxy(conf.contracts['iUSDT'], loanTokenLogicBeaconLM.address)
+
+    # iDOCProxy
+    setBeaconLoanTokenLogicProxy(conf.contracts['iDOC'], loanTokenLogicBeaconLM.address)
+
+    # iBPro
+    setBeaconLoanTokenLogicProxy(conf.contracts['iBPro'], loanTokenLogicBeaconLM.address)
+
+    # iXUSD
+    setBeaconLoanTokenLogicProxy(conf.contracts['iXUSD'], loanTokenLogicBeaconLM.address)
+
+    # iRBTC
+    setBeaconLoanTokenLogicProxy(conf.contracts['iRBTC'], loanTokenLogicBeaconWrbtc.address)
+
+    # ============================== 6. Set target of each LoanToken to its proxy accordingly (iUSDT -> iUSDTPRoxy) (iDOC -> iDOC) (iBPro -> iBPro) (iXUSD -> iXUSD) (iRBTC -> iRBTCProxy) ==============================
+    # iUSDT
+    replaceLoanTokenLogic(conf.contracts['iUSDT'], loanTokenLogicProxyUSDT.address)
+
+    # iDOC
+    replaceLoanTokenLogic(conf.contracts['iDOC'], loanTokenLogicProxyDOC.address)
+
+    # iBPro
+    replaceLoanTokenLogic(conf.contracts['iBPro'], loanTokenLogicProxyBPro.address)
+
+    # iXUSD
+    replaceLoanTokenLogic(conf.contracts['iXUSD'], loanTokenLogicProxyXUSD.address)
+
+    # iRBTC
+    replaceLoanTokenLogic(conf.contracts['iRBTC'], loanTokenLogicProxyRBTC.address)
+
+    # ============================== 7. Transfer the ownership of LoanTokenLogicBeaconLM & LoanTokenLogicBeaconWrbtc to the multisig ==============================
+    print("LoanTokenLogicLM previous owner: ", loanTokenLogicBeaconLM.owner())
+    print("Transferring LoanTokenLogicBeaconLM to multisig...")
+    loanTokenLogicBeaconLM.transferOwnership(conf.contracts['multisig'])
+    print("LoanTokenLogicLM new owner: ", loanTokenLogicBeaconLM.owner())
+
+    print("LoanTokenLogicWrbtc previous owner: ", loanTokenLogicBeaconWrbtc.owner())
+    print("Transferring LoanTokenLogicWrbtc to multisig...")
+    loanTokenLogicBeaconWrbtc.transferOwnership(conf.contracts['multisig'])
+    print("LoanTokenLogicWrbtc new owner: ", loanTokenLogicBeaconWrbtc.owner())
+
+def setBeaconLoanTokenLogicProxy(loanTokenAddress, loanTokenLogicBeaconAddress):
+    loanTokenWithProxyABI = Contract.from_abi("loanTokenWithProxyABI", address=loanTokenAddress, abi=LoanTokenLogicProxy.abi, owner=conf.acct)
+    data = loanTokenWithProxyABI.initializeLoanTokenProxy.encode_input(loanTokenLogicBeaconAddress)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenWithProxyABI.address, data, conf.acct)
+
 def replaceLoanTokenLogicOnAllContracts():
-    print("replacing loan token logic")
-    logicContract = conf.acct.deploy(LoanTokenLogicLM)
-    print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
-    replaceLoanTokenLogic(conf.contracts['iDOC'],logicContract.address)
-    replaceLoanTokenLogic(conf.contracts['iUSDT'],logicContract.address)
-    replaceLoanTokenLogic(conf.contracts['iBPro'],logicContract.address)
-    replaceLoanTokenLogic(conf.contracts['iXUSD'],logicContract.address)
-    logicContract = conf.acct.deploy(LoanTokenLogicWrbtc)
-    print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
-    replaceLoanTokenLogic(conf.contracts['iRBTC'], logicContract.address)
+    # This function will do:
+    # 1. Deploy the LoanTokenLogicLM
+    # 2. Re-register the module/function signature inside LoanTokenLogicLM to the LoanTokenLogicBeaconLM
+    # 3. Deploy the LoanTokenLogicWrbtc
+    # 4. Re-register the module/function signature inside LoanTokenLogicWrbtc to the LoanTokenLogicBeaconWrbtc
+
+
+    # ===================================== LM =====================================
+    print("Deploying LoanTokenlogicLM")
+    logicContractLM = conf.acct.deploy(LoanTokenLogicLM)
+    print("new LoanTokenLogicLM contract deployed at: ", logicContractLM.address)
+
+    print("Registering function signature to the LoanTokenLogicBeaconLM")
+    loanTokenLogicBeaconLM = Contract.from_abi("loanTokenLogicBeacon" address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    data = loanTokenLogicBeaconLM.registerLoanTokenModule.encode_input(logicContractLM.address)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconLM.address, data, conf.acct)
+
+    print("Deploy Loan Token Settings Lower Admin Module")
+    loanTokenSettingsLowerAdmin = conf.acct.deploy(LoanTokenSettingsLowerAdmin)
+    print("LoanTokenSettingsLowerAdmin for BeaconLM module deployed at: ", loanTokenSettingsLowerAdmin.address)
+
+    print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconLM")
+    data = loanTokenLogicBeaconLM.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconLM.address, data, conf.acct)
+
+    # ===================================== WRBTC =====================================
+
+    print("Deploying LoanTokenlogicWrbtc")
+    logicContractWrbtc = conf.acct.deploy(LoanTokenLogicWrbtc)
+    print("new LoanTokenLogicLM contract deployed at: ", logicContractWrbtc.address)
+
+    print("Registering function signature to the LoanTokenLogicBeaconLM")
+    loanTokenLogicBeaconWrbtc = Contract.from_abi("loanTokenLogicBeacon" address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    data = loanTokenLogicBeaconWrbtc.registerLoanTokenModule.encode_input(logicContractWrbtc.address)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWrbtc.address, data, conf.acct)
+
+    # Can use the same Loan Protocol Settings with the LoanTokenLogicLM
+    print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconWrbtc")
+    data = logicContractWrbtc.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
+    sendWithMultisig(conf.contracts['multisig'], logicContractWrbtc.address, data, conf.acct)
+    
 
 def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=conf.acct)
