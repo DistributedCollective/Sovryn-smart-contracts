@@ -133,10 +133,10 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
 
 const getLoanTokenLogic = async (isMockLoanToken = false) => {
 	/** Deploy LoanTokenLogicBeacon */
-	const loanTokenLogicBeacon = await LoanTokenLogicBeacon.new()
+	const loanTokenLogicBeacon = await LoanTokenLogicBeacon.new();
 
 	/** Deploy  LoanTokenSettingsLowerAdmin*/
-	const loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new()
+	const loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new();
 
 	/** Register Loan Token Modules to the Beacon */
 	await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
@@ -153,17 +153,16 @@ const getLoanTokenLogic = async (isMockLoanToken = false) => {
 	await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicLM.address);
 
 	/** Deploy LoanTokenLogicProxy */
-	loanTokenLogicProxy = await LoanTokenLogicProxy.new(loanTokenLogicBeacon.address)
+	loanTokenLogicProxy = await LoanTokenLogicProxy.new(loanTokenLogicBeacon.address);
 
 	return [loanTokenLogicProxy, loanTokenLogicBeacon];
-
 };
 const getLoanTokenLogicWrbtc = async () => {
 	/** Deploy LoanTokenLogicBeacon */
-	const loanTokenLogicBeacon = await LoanTokenLogicBeacon.new()
+	const loanTokenLogicBeacon = await LoanTokenLogicBeacon.new();
 
 	/** Deploy  LoanTokenSettingsLowerAdmin*/
-	const loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new()
+	const loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new();
 
 	/** Register Loan Token Modules to the Beacon */
 	await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
@@ -175,7 +174,7 @@ const getLoanTokenLogicWrbtc = async () => {
 	await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicWrbtc.address);
 
 	/** Deploy LoanTokenLogicProxy */
-	loanTokenLogicProxy = await LoanTokenLogicProxy.new(loanTokenLogicBeacon.address)
+	loanTokenLogicProxy = await LoanTokenLogicProxy.new(loanTokenLogicBeacon.address);
 
 	return [loanTokenLogicProxy, loanTokenLogicBeacon];
 };
@@ -192,7 +191,7 @@ const getLoanToken = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) => {
 
 	let loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, WRBTC.address);
 	await loanToken.initialize(SUSD.address, "SUSD", "SUSD"); //iToken
-	
+
 	/** Initialize the loan token logic proxy */
 	loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
 	await loanToken.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
@@ -221,7 +220,7 @@ const getLoanTokenWRBTC = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) 
 
 	/** Use interface of LoanTokenModules */
 	loanTokenWRBTC = await ILoanTokenModules.at(loanTokenWRBTC.address);
-	
+
 	// assert loanToken.tokenPrice() == loanToken.initialPrice()
 	// const initial_total_supply = await loanToken.totalSupply();
 	// loan token total supply should be zero

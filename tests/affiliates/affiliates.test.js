@@ -764,7 +764,6 @@ contract("Affiliates", (accounts) => {
 		const loanToken2 = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 		await loanToken2.initialize(eur.address, "SEUR", "SEUR");
 
-
 		/** Initialize the loan token logic proxy */
 		loanToken2V2 = await ILoanTokenLogicProxy.at(loanToken2.address);
 		await loanToken2V2.initializeLoanTokenProxy(loanTokenLogicBeacon.address);

@@ -2,8 +2,7 @@ pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 interface ILoanTokenModules {
-
- 	/** EVENT */
+	/** EVENT */
 	/// topic: 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef
 	event Transfer(address indexed from, address indexed to, uint256 value);
 
@@ -23,7 +22,7 @@ interface ILoanTokenModules {
 	/** INTERFACE */
 
 	/** START LOAN TOKEN SETTINGS LOWER ADMIN */
-  struct LoanParams {
+	struct LoanParams {
 		/// @dev ID of loan params object.
 		bytes32 id;
 		/// @dev If false, this object has been disabled by the owner and can't
@@ -41,13 +40,17 @@ interface ILoanTokenModules {
 		uint256 maintenanceMargin;
 		/// @dev The maximum term for new loans (0 means there's no max term).
 		uint256 maxLoanTerm;
-  }
+	}
 
-  function setAdmin(address _admin) external;
-  function setPauser(address _pauser) external;
-  function setupLoanParams(LoanParams[] calldata loanParamsList, bool areTorqueLoans) external;
-  function disableLoanParams(address[] calldata collateralTokens, bool[] calldata isTorqueLoans) external;
-  function setDemandCurve(
+	function setAdmin(address _admin) external;
+
+	function setPauser(address _pauser) external;
+
+	function setupLoanParams(LoanParams[] calldata loanParamsList, bool areTorqueLoans) external;
+
+	function disableLoanParams(address[] calldata collateralTokens, bool[] calldata isTorqueLoans) external;
+
+	function setDemandCurve(
 		uint256 _baseRate,
 		uint256 _rateMultiplier,
 		uint256 _lowUtilBaseRate,
@@ -57,13 +60,14 @@ interface ILoanTokenModules {
 		uint256 _maxScaleRate
 	) external;
 
-  function toggleFunctionPause(
+	function toggleFunctionPause(
 		string calldata funcId, /// example: "mint(uint256,uint256)"
 		bool isPaused
 	) external;
 
-  function setTransactionLimits(address[] calldata addresses, uint256[] calldata limits) external;
-  function changeLoanTokenNameAndSymbol(string calldata _name, string calldata _symbol) external;
+	function setTransactionLimits(address[] calldata addresses, uint256[] calldata limits) external;
+
+	function changeLoanTokenNameAndSymbol(string calldata _name, string calldata _symbol) external;
 
 	/** END LOAN TOKEN SETTINGS LOWER ADMIN */
 
@@ -122,7 +126,8 @@ interface ILoanTokenModules {
 		address borrower,
 		address receiver,
 		bytes calldata /// loanDataBytes: arbitrary order data (for future use).
-	) external
+	)
+		external
 		payable
 		returns (
 			uint256,
@@ -130,6 +135,7 @@ interface ILoanTokenModules {
 		);
 
 	function transfer(address _to, uint256 _value) external returns (bool);
+
 	function transferFrom(
 		address _from,
 		address _to,
@@ -161,19 +167,23 @@ interface ILoanTokenModules {
 	) external view;
 
 	function getMaxEscrowAmount(uint256 leverageAmount) external view returns (uint256 maxEscrowAmount);
+
 	function checkpointPrice(address _user) external view returns (uint256 price);
+
 	function assetBalanceOf(address _owner) external view returns (uint256);
+
 	function profitOf(address user) external view returns (int256);
+
 	function tokenPrice() external view returns (uint256 price);
+
 	function totalSupplyInterestRate(uint256 assetSupply) external view returns (uint256);
-	function loanTokenAddress() external view returns(address);
+
+	function loanTokenAddress() external view returns (address);
+
 	function getMarginBorrowAmountAndRate(uint256 leverageAmount, uint256 depositAmount) external view returns (uint256, uint256);
 
-
 	/** START LOAN TOKEN BASE */
-	function initialPrice() external view returns(uint256);
-	
-
+	function initialPrice() external view returns (uint256);
 
 	/** START LOAN TOKEN LOGIC LM */
 	function mint(
@@ -190,6 +200,7 @@ interface ILoanTokenModules {
 
 	/** START LOAN TOKEN LOGIC WRBTC */
 	function mintWithBTC(address receiver, bool useLM) external payable returns (uint256 mintAmount);
+
 	function burnToBTC(
 		address receiver,
 		uint256 burnAmount,
@@ -197,9 +208,11 @@ interface ILoanTokenModules {
 	) external returns (uint256 loanAmountPaid);
 
 	/** START LOAN TOKEN LOGIC STORAGE */
-	function liquidityMiningAddress() external view returns(address);
-	function name() external view returns(string memory);
-	function symbol() external view returns(string memory);
+	function liquidityMiningAddress() external view returns (address);
+
+	function name() external view returns (string memory);
+
+	function symbol() external view returns (string memory);
 
 	/** START ADVANCED TOKEN */
 	function approve(address _spender, uint256 _value) external returns (bool);
@@ -208,6 +221,6 @@ interface ILoanTokenModules {
 	function allowance(address _owner, address _spender) external view returns (uint256);
 
 	function balanceOf(address _owner) external view returns (uint256);
-	function totalSupply() external view returns (uint256);
 
+	function totalSupply() external view returns (uint256);
 }

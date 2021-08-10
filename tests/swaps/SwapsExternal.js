@@ -95,7 +95,6 @@ contract("SwapsExternal", (accounts) => {
 		loanToken = await LoanToken.new(lender, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 		await loanToken.initialize(underlyingToken.address, name, symbol); //iToken
 
-		
 		/** Initialize the loan token logic proxy */
 		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
 		await loanToken.initializeLoanTokenProxy(loanTokenLogicBeacon.address);

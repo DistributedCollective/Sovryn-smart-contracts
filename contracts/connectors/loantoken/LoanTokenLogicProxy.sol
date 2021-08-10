@@ -43,7 +43,7 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 	 * @notice Fallback function performs a logic implementation address query to LoanTokenLogicBeacon and then do delegate call to that query result address.
 	 * Returns whatever the implementation call returns.
 	 * */
-	function() external {
+	function() external payable {
 		// query the logic target implementation address from the LoanTokenLogicBeacon
 		address target = ILoanTokenLogicBeacon(_beaconAddress()).getTarget(msg.sig);
 		require(target != address(0), "LoanTokenProxy:target not active");

@@ -100,7 +100,7 @@ contract("LoanTokenLending", (accounts) => {
 
 		loanToken = await LoanToken.new(lender, loanTokenLogicWrbtc.address, sovryn.address, testWrbtc.address);
 		await loanToken.initialize(testWrbtc.address, "iWRBTC", "iWRBTC"); //iToken
-		
+
 		/** Initialize the loan token logic proxy */
 		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
 		await loanToken.initializeLoanTokenProxy(loanTokenLogicBeaconWrbtc.address);

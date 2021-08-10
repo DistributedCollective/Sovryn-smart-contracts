@@ -90,5 +90,6 @@ contract MockLoanTokenLogic is LoanTokenLogicLM {
 
 contract ILoanTokenModulesMock is ILoanTokenModules {
 	function setAffiliatesReferrer(address user, address referrer) external;
+
 	function setUserNotFirstTradeFlag(address user) external;
 }
