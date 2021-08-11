@@ -1,0 +1,28 @@
+@startuml
+
+[*] --> GracePeriodStarted
+GracePeriodStarted --> GracePeriodFinished
+GracePeriodFinished -> MigratingPools
+MigratingPools --> MigratingUsers 
+MigratingUsers --> MigratingFunds
+MigratingFunds --> MigrationFinished
+MigrationFinished -> [*]
+
+GracePeriodStarted: LiquidityV1 deposits disabled
+GracePeriodStarted: LiquidityV1 withdrawals
+GracePeriodStarted: LiquidityV1 claims enabled
+GracePeriodStarted: LiquidityV2 deposits disabled
+
+GracePeriodFinished: LiquidityV1 withdrawals
+GracePeriodFinished: LiquidityV1 claims disabled
+
+note right of MigratingFunds
+	There is no need to disable claims or withdrawals
+	on LiquidityMiningV2 prior funds are moved as
+	there is no balance in LiquidityMiningV2.
+end note
+
+MigrationFinished: LiquidityV2 deposits enabled
+MigrationFinished: LiquidityV2 claims enabled
+MigrationFinished: LiquidityV2 claims enabled
+@enduml
