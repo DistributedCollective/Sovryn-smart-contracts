@@ -395,7 +395,7 @@ def replaceLoanTokenLogicOnAllContracts():
     print("new LoanTokenLogicLM contract deployed at: ", logicContractLM.address)
 
     print("Registering function signature to the LoanTokenLogicBeaconLM")
-    loanTokenLogicBeaconLM = Contract.from_abi("loanTokenLogicBeacon" address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    loanTokenLogicBeaconLM = Contract.from_abi("loanTokenLogicBeaconLM", address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
     data = loanTokenLogicBeaconLM.registerLoanTokenModule.encode_input(logicContractLM.address)
     sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconLM.address, data, conf.acct)
 
@@ -414,7 +414,7 @@ def replaceLoanTokenLogicOnAllContracts():
     print("new LoanTokenLogicLM contract deployed at: ", logicContractWrbtc.address)
 
     print("Registering function signature to the LoanTokenLogicBeaconLM")
-    loanTokenLogicBeaconWrbtc = Contract.from_abi("loanTokenLogicBeacon" address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    loanTokenLogicBeaconWrbtc = Contract.from_abi("loanTokenLogicBeaconWrbtc", address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
     data = loanTokenLogicBeaconWrbtc.registerLoanTokenModule.encode_input(logicContractWrbtc.address)
     sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWrbtc.address, data, conf.acct)
 
