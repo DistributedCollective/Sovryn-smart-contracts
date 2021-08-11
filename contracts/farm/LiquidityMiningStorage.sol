@@ -10,7 +10,7 @@ contract LiquidityMiningStorage is AdminRole {
 	// Info of each user.
 	struct UserInfo {
 		uint256 amount; // How many pool tokens the user has provided.
-		mapping (address => UserReward) rewards; // Mapping between reward toekens and the user rewards.
+		mapping(address => UserReward) rewards; // Mapping between reward toekens and the user rewards.
 	}
 
 	struct UserReward {
@@ -74,7 +74,6 @@ contract LiquidityMiningStorage is AdminRole {
 
 	// Info of each user that stakes LP tokens.
 	mapping(uint256 => mapping(address => UserInfo)) public userInfoMap;
-
 
 	/// @dev The locked vault contract to deposit LP's rewards into.
 	ILockedSOV public lockedSOV;
