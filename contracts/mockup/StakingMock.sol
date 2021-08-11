@@ -4,7 +4,6 @@ import "../governance/Staking/Staking.sol";
 import "./BlockMockUp.sol";
 
 contract StakingMock is Staking {
-
 	///@notice the block mock up contract
 	BlockMockUp public blockMockUp;
 

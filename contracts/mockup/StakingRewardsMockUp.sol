@@ -1,4 +1,3 @@
-
 pragma solidity ^0.5.17;
 
 import "../governance/StakingRewards/StakingRewards.sol";
@@ -9,13 +8,12 @@ import "./BlockMockUp.sol";
  * @notice This is used for Testing
  * */
 contract StakingRewardsMockUp is StakingRewards {
-
-    ///@notice the block mock up contract
+	///@notice the block mock up contract
 	BlockMockUp public blockMockUp;
 
 	using SafeMath for uint256;
 
-    /**
+	/**
 	 * @notice gets block number from BlockMockUp
 	 * @param _blockMockUp the address of BlockMockUp
 	 */

@@ -64,7 +64,7 @@ contract("StakingRewards", (accounts) => {
 		await staking.stake(wei("1000", "ether"), inThreeYears, a6, a6, { from: a6 });
 
 		let latest = await blockNumber();
-		let blockNum = new BN(latest).add(new BN(864000/30));
+		let blockNum = new BN(latest).add(new BN(864000 / 30));
 		await blockMockUp.setBlockNum(blockNum);
 		await increaseTime(864000);
 
@@ -88,7 +88,7 @@ contract("StakingRewards", (accounts) => {
 
 		it("should compute and send rewards to the stakers a4, a5 and a6 correctly after 2 weeks", async () => {
 			let latest = await blockMockUp.getBlockNum();
-			let blockNum = new BN(latest).add(new BN(1296000/30));
+			let blockNum = new BN(latest).add(new BN(1296000 / 30));
 			await blockMockUp.setBlockNum(blockNum);
 			await increaseTime(1296000);
 			let fields = await stakingRewards.getStakerCurrentReward(true, { from: a4 });
@@ -116,7 +116,7 @@ contract("StakingRewards", (accounts) => {
 
 		it("should compute and send rewards to the stakers a4, a5 and a6 correctly after 4 weeks", async () => {
 			let latest = await blockMockUp.getBlockNum();
-			let blockNum = new BN(latest).add(new BN(1296000/30));
+			let blockNum = new BN(latest).add(new BN(1296000 / 30));
 			await blockMockUp.setBlockNum(blockNum);
 			await increaseTime(1296000);
 
