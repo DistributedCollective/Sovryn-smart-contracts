@@ -91,7 +91,7 @@ contract("StakingRewards", (accounts) => {
 			let blockNum = new BN(latest).add(new BN(1296000 / 30));
 			await blockMockUp.setBlockNum(blockNum);
 			await increaseTime(1296000);
-			
+
 			let fields = await stakingRewards.getStakerCurrentReward(true, { from: a4 });
 			let numOfIntervals = 1;
 			let fullTermAvg = avgWeight(26, 27, 9, 78);
