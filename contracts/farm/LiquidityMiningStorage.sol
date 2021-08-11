@@ -10,6 +10,10 @@ contract LiquidityMiningStorage is AdminRole {
 	// Info of each user.
 	struct UserInfo {
 		uint256 amount; // How many pool tokens the user has provided.
+		mapping (address => UserReward) rewards; // Mapping between reward toekens and the user rewards.
+	}
+
+	struct UserReward {
 		uint256 rewardDebt; // Reward debt. See explanation below.
 		uint256 accumulatedReward; //Reward that's ready to be transferred
 		//
@@ -28,37 +32,49 @@ contract LiquidityMiningStorage is AdminRole {
 	// Info of each pool.
 	struct PoolInfo {
 		IERC20 poolToken; // Address of LP token contract.
+	}
+
+	// Info about each token to be rewarded to different stakers
+	struct RewardToken {
+		// SVR tokens created per block.
+		uint256 rewardTokensPerBlock;
+		// The block number when reward token mining starts.
+		uint256 startBlock;
+		// Block number when bonus reward token period ends.
+		uint256 bonusEndBlock;
+		// Block number when reward token period ends.
+		uint256 endBlock;
+		/// The token to be rewarded to users
+		IERC20 rewardToken;
+		// Total allocation points. Must be the sum of all allocation points in all pools.
+		uint256 totalAllocationPoint;
+		// Total balance this contract should have to handle withdrawal for all users
+		uint256 totalUsersBalance;
+	}
+
+	struct PoolInfoRewardToken {
 		uint96 allocationPoint; // How many allocation points assigned to this pool. Amount of reward tokens to distribute per block.
 		uint256 lastRewardBlock; // Last block number that reward tokens distribution occurs.
 		uint256 accumulatedRewardPerShare; // Accumulated amount of reward tokens per share, times 1e12. See below.
 	}
 
-	// SVR tokens created per block.
-	uint256 public rewardTokensPerBlock;
-	// The block number when reward token mining starts.
-	uint256 public startBlock;
-	// Block number when bonus reward token period ends.
-	uint256 public bonusEndBlock;
-	// Block number when reward token period ends.
-	uint256 public endBlock;
-
+	// FIXME: Review this state variable
 	//Wrapper contract which will be a proxy between user and LM
 	address public wrapper;
 
+	// TODO: check if it's needed
 	// Info of each pool.
 	PoolInfo[] public poolInfoList;
+
 	// Mapping pool token address => pool id
 	mapping(address => uint256) poolIdList;
-	// Total allocation points. Must be the sum of all allocation points in all pools.
-	uint256 public totalAllocationPoint;
+
+	// Mapping reward token address => pool info
+	mapping(address => RewardToken) rewardTokensMap;
 
 	// Info of each user that stakes LP tokens.
 	mapping(uint256 => mapping(address => UserInfo)) public userInfoMap;
-	// Total balance this contract should have to handle withdrawal for all users
-	uint256 public totalUsersBalance;
 
-	/// @dev The SOV token
-	IERC20 public SOV;
 
 	/// @dev The locked vault contract to deposit LP's rewards into.
 	ILockedSOV public lockedSOV;

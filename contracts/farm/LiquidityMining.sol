@@ -252,8 +252,10 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		}
 	}
 
-	function _getUserAccumulatedReward(uint256 _poolId, address _user) internal view returns (uint256) {
-		PoolInfo storage pool = poolInfoList[_poolId];
+	function _getUserAccumulatedReward(uint256 _poolId, address _rewardToken, address _user) internal view returns (uint256) {
+		//PoolInfo storage pool = poolInfoList[_poolId];
+		PoolInfoRewardToken storage poolRewardToken = pool[_poolId][_rewardToken];
+		RewardToken storage rewardToken = rewardTokensMap[_rewardToken];
 		UserInfo storage user = userInfoMap[_poolId][_user];
 
 		uint256 accumulatedRewardPerShare = pool.accumulatedRewardPerShare;
@@ -268,11 +270,12 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	/**
 	 * @notice returns accumulated reward
 	 * @param _poolToken the address of pool token
+	 * @param _rewardToken the reward token address
 	 * @param _user the user address
 	 */
-	function getUserAccumulatedReward(address _poolToken, address _user) external view returns (uint256) {
+	function getUserAccumulatedReward(address _poolToken, address _rewardToken, address _user) external view returns (uint256) {
 		uint256 poolId = _getPoolId(_poolToken);
-		return _getUserAccumulatedReward(poolId, _user);
+		return _getUserAccumulatedReward(poolId, _rewardToken, _user);
 	}
 
 	/**
