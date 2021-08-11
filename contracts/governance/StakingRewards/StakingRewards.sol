@@ -4,7 +4,6 @@ import "./StakingRewardsStorage.sol";
 import "../../openzeppelin/Initializable.sol";
 import "../../openzeppelin/SafeMath.sol";
 import "../../openzeppelin/Address.sol";
-import "hardhat/console.sol";
 
 /**
  * @title Staking Rewards Contract.
@@ -159,13 +158,10 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		if (considerMaxDuration) addedMaxDuration = lastWithdrawalInterval.add(maxDuration);
 		uint256 duration =
 			considerMaxDuration && (addedMaxDuration < currentTS) ? staking.timestampToLockDate(addedMaxDuration) : lastStakingInterval;
-		console.log(lastStakingInterval, lastWithdrawalInterval, currentTS);
-		console.log(duration, addedMaxDuration, lastFinalisedBlock);
+
 		for (uint256 i = lastWithdrawalInterval; i < duration; i += TWO_WEEKS) {
 			referenceBlock = lastFinalisedBlock.sub(((currentTS.sub(i)).div(30)));
-			console.log(lastFinalisedBlock, referenceBlock);
 			weightedStake = weightedStake.add(_computeRewardForDate(staker, referenceBlock, i));
-			console.log(weightedStake);
 		}
 
 		if (weightedStake == 0) return (0, 0);
