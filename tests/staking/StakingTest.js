@@ -64,7 +64,6 @@ contract("Staking", (accounts) => {
 
 		await staking.setVestingRegistry(vesting.address);
 
-
 		MAX_VOTING_WEIGHT = await staking.MAX_VOTING_WEIGHT.call();
 
 		kickoffTS = await staking.kickoffTS.call();
