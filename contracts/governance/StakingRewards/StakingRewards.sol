@@ -145,7 +145,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 */
 	function getStakerCurrentReward(bool considerMaxDuration) public view returns (uint256 lastWithdrawalInterval, uint256 amount) {
 		uint256 weightedStake;
-		uint256 lastFinalisedBlock = block.number.sub(1);
+		uint256 lastFinalisedBlock = block.number - 1;
 		uint256 currentTS = block.timestamp;
 		uint256 addedMaxDuration;
 		address staker = msg.sender;
