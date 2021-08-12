@@ -56,4 +56,8 @@ contract VestingRegistryStorage is AdminRole {
 	///@notice A record of all unique ids for a particular token owner
 	///@dev vestingsOf[tokenOwner] returns array of unique ids
 	mapping(address => uint256[]) public vestingsOf;
+
+	///@notice A record of all vesting addresses
+	///@dev isVesting[address] returns if the address is a vesting address
+	mapping(address => bool) public isVesting;
 }

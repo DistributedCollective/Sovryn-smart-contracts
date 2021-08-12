@@ -373,6 +373,7 @@ contract("VestingRegistryLogic", (accounts) => {
 			let vestingType = new BN(2); //Bug Bounty
 			let tx = await vesting.createVestingAddr(account2, amount, cliff, duration, vestingType);
 			let vestingAddress = await vesting.getVestingAddr(account2, cliff, duration, vestingType);
+			expect(await vesting.isVestingAdress(vestingAddress)).equal(true);
 			await vesting.stakeTokens(vestingAddress, amount);
 
 			expectEvent(tx, "VestingCreated", {
@@ -415,6 +416,7 @@ contract("VestingRegistryLogic", (accounts) => {
 			let vestingType = new BN(3); //Team Salary
 			let tx = await vesting.createVestingAddr(account2, amount, cliff, duration, vestingType);
 			let vestingAddress = await vesting.getVestingAddr(account2, cliff, duration, vestingType);
+			expect(await vesting.isVestingAdress(vestingAddress)).equal(true);
 			await vesting.stakeTokens(vestingAddress, amount);
 
 			expectEvent(tx, "VestingCreated", {
@@ -502,6 +504,7 @@ contract("VestingRegistryLogic", (accounts) => {
 			await SOV.transfer(vesting.address, amount);
 			await lockedSOV.createVesting({ from: accounts4 });
 			let vestingAddr = await vesting.getVesting(accounts4);
+			expect(await vesting.isVestingAdress(vestingAddr)).equal(true);
 			assert.notEqual(vestingAddr, ZERO_ADDRESS, "Vesting Address should not be zero.");
 		});
 	});
@@ -526,6 +529,7 @@ contract("VestingRegistryLogic", (accounts) => {
 			let vestingType = new BN(3); //Team Salary
 			let tx = await vesting.createTeamVesting(account2, amount, cliff, duration, vestingType);
 			let vestingAddress = await vesting.getTeamVesting(account2, cliff, duration, vestingType);
+			expect(await vesting.isVestingAdress(vestingAddress)).equal(true);
 			expectEvent(tx, "TeamVestingCreated", {
 				tokenOwner: account2,
 				vesting: vestingAddress,
@@ -718,6 +722,12 @@ contract("VestingRegistryLogic", (accounts) => {
 			let fields = await vesting.getVestingDetails(vestingAddr);
 			expect(teamCliff).to.be.bignumber.equal(fields.cliff);
 			expect(teamDuration).to.be.bignumber.equal(fields.duration);
+		});
+	});
+
+	describe("isVestingAdress", () => {
+		it("should return false if the address isn't a vesting address", async () => {
+			expect(await vesting.isVestingAdress(account1)).equal(false);
 		});
 	});
 

@@ -235,6 +235,7 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable {
 			}
 			vestings[uid] = Vesting(_type, _vestingCreationType, vesting);
 			vestingsOf[_tokenOwner].push(uid);
+			isVesting[vesting] = true;
 		}
 		return vestings[uid].vestingAddress;
 	}
@@ -256,6 +257,7 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable {
 				);
 				vestings[uid] = Vesting(vestingType, _vestingCreationType, vestingAddress);
 				vestingsOf[_tokenOwner].push(uid);
+				isVesting[vestingAddress] = true;
 			}
 			address teamVestingAddress = vestingRegistries[i].getTeamVesting(_tokenOwner);
 			if (teamVestingAddress != address(0)) {
@@ -265,6 +267,7 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable {
 				);
 				vestings[uid] = Vesting(teamVestingType, _vestingCreationType, teamVestingAddress);
 				vestingsOf[_tokenOwner].push(uid);
+				isVesting[teamVestingAddress] = true;
 			}
 		}
 	}
@@ -288,5 +291,12 @@ contract VestingRegistryLogic is VestingRegistryStorage, Initializable {
 	function getVestingDetails(address _vestingAddress) external view returns (uint256 cliff, uint256 duration) {
 		VestingLogic vesting = VestingLogic(_vestingAddress);
 		return (vesting.cliff(), vesting.duration());
+	}
+
+	/**
+	 * @notice returns if the address is a vesting address
+	 */
+	function isVestingAdress(address _vestingAddress) external view returns (bool isVestingAddr) {
+		return isVesting[_vestingAddress];
 	}
 }

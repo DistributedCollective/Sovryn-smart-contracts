@@ -19,6 +19,9 @@ const SOV = artifacts.require("SOV");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogicMockup");
 const Vesting = artifacts.require("TeamVesting");
+//Upgradable Vesting Registry
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogicMockup");
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 const WEEK = new BN(7 * 24 * 60 * 60);
@@ -50,6 +53,12 @@ contract("Vesting", (accounts) => {
 		staking = await StakingProxy.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
+		//Upgradable Vesting Registry
+		vestingRegistryLogic = await VestingRegistryLogic.new();
+		vestingReg = await VestingRegistryProxy.new();
+		await vestingReg.setImplementation(vestingRegistryLogic.address);
+		vestingReg = await VestingRegistryLogic.at(vestingReg.address);
+		await staking.setVestingRegistry(vestingReg.address);
 
 		await token.transfer(a2, "1000");
 		await token.approve(staking.address, "1000", { from: a2 });
@@ -175,7 +184,6 @@ contract("Vesting", (accounts) => {
 				expect(delegatee).equal(a2);
 			}
 
-			await staking.addContractCodeHash(vesting.address);
 			//delegate
 			let tx = await vesting.delegate(a1, { from: a2 });
 
@@ -215,7 +223,6 @@ contract("Vesting", (accounts) => {
 				expect(delegatee).equal(a2);
 			}
 
-			await staking.addContractCodeHash(vesting.address);
 			//delegate
 			let tx = await vesting.delegate(a1, { from: a2 });
 
@@ -628,7 +635,6 @@ contract("Vesting", (accounts) => {
 			//time travel
 			await increaseTime(104 * WEEK);
 
-			await staking.addContractCodeHash(vesting.address);
 			//withdraw
 			let tx = await vesting.withdrawTokens(root);
 
