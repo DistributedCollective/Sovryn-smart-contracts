@@ -64,14 +64,14 @@ contract LiquidityMiningStorage is AdminRole {
 	PoolInfo[] public poolInfoList;
 
 	// Mapping pool token address => pool id
-	mapping(address => uint256) poolIdList;
+	mapping(address => uint256) public poolIdList;
 
 	// Mapping reward token address => pool info
-	mapping(address => RewardToken) rewardTokensMap;
+	mapping(address => RewardToken) public rewardTokensMap;
 
 	// Mapping to link a reward pool to a reward token
 	// poolId => rewardTokenAddress => PoolInfoRewardToken
-	mapping(uint256 => mapping(address => PoolInfoRewardToken)) poolInfoRewardTokensMap;
+	mapping(uint256 => mapping(address => PoolInfoRewardToken)) public poolInfoRewardTokensMap;
 
 	// Info of each user that stakes LP tokens.
 	mapping(uint256 => mapping(address => UserInfo)) public userInfoMap;
