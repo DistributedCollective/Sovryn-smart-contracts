@@ -196,7 +196,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		// 	updateAllPools();
 		// }
 
-		poolInfoList.push(PoolInfo({ poolToken: IERC20(_poolToken) }));
+		poolInfoList.push(PoolInfo({ poolToken: IERC20(_poolToken), rewardTokens: _rewardTokens }));
 		//indexing starts from 1 in order to check whether token was already added
 		poolIdList[_poolToken] = poolInfoList.length;
 
@@ -388,36 +388,47 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	function _updatePool(uint256 _poolId) internal {
 		PoolInfo storage pool = poolInfoList[_poolId];
 
-		//this pool has been updated recently
-		if (block.number <= pool.lastRewardBlock) {
+		uint256 rewardTokensLength = pool.rewardTokens.length;
+		for (uint256 i = 0; i < rewardTokensLength; i++) {
+			_udpatePoolReward(pool, _poolId, pool.rewardTokens[i]);
+		}
+
+	}
+
+	function _updatePoolReward(PoolInfo storage pool, uint256 _poolId, address _rewardToken) internal {
+		PoolInfoRewardToken storage poolRewardToken = poolInfoRewardTokensMap[_poolId][_rewardToken];
+		// this pool has been updated recently
+		if (block.number <=poolRewardToken.lastRewardBlock) {
 			return;
 		}
 
 		uint256 poolTokenBalance = pool.poolToken.balanceOf(address(this));
 		if (poolTokenBalance == 0) {
-			pool.lastRewardBlock = block.number;
+			poolRewardToken.lastRewardBlock = block.number;
 			return;
 		}
+		RewardToken storage rewardToken = rewardTokensMap[_rewardToken];
 
-		(uint256 accumulatedReward_, uint256 accumulatedRewardPerShare_) = _getPoolAccumulatedReward(pool);
-		pool.accumulatedRewardPerShare = pool.accumulatedRewardPerShare.add(accumulatedRewardPerShare_);
-		pool.lastRewardBlock = block.number;
+		(uint256 accumulatedReward_, uint256 accumulatedRewardPerShare_) = _getPoolAccumulatedReward(pool, poolRewardToken, rewardToken);
+		poolRewardToken.accumulatedRewardPerShare = poolRewardToken.accumulatedRewardPerShare.add(accumulatedRewardPerShare_);
+		poolRewardToken.lastRewardBlock = block.number;
 
-		totalUsersBalance = totalUsersBalance.add(accumulatedReward_);
+		rewardToken.totalUsersBalance = rewardToken.totalUsersBalance.add(accumulatedReward_);
 	}
 
-	function _getPoolAccumulatedReward(PoolInfo storage _pool) internal view returns (uint256, uint256) {
-		return _getPoolAccumulatedReward(_pool, 0, _pool.lastRewardBlock, block.number);
+	function _getPoolAccumulatedReward(PoolInfo storage _pool, PoolInfoRewardToken storage _poolRewardToken, RewardToken storage _rewardToken) internal view returns (uint256, uint256) {
+		return _getPoolAccumulatedReward(_pool, 0, _rewardToken, _poolRewardToken.lastRewardBlock, block.number);
 	}
 
 	function _getPoolAccumulatedReward(
 		PoolInfo storage _pool,
 		uint256 _additionalAmount,
+		RewardToken storage _rewardToken,
 		uint256 _startBlock,
 		uint256 _endBlock
 	) internal view returns (uint256, uint256) {
 		uint256 passedBlocks = _getPassedBlocksWithBonusMultiplier(_startBlock, _endBlock);
-		uint256 accumulatedReward = passedBlocks.mul(rewardTokensPerBlock).mul(_pool.allocationPoint).div(totalAllocationPoint);
+		uint256 accumulatedReward = passedBlocks.mul(_rewardToken.rewardTokensPerBlock).mul(_pool.allocationPoint).div(totalAllocationPoint);
 
 		uint256 poolTokenBalance = _pool.poolToken.balanceOf(address(this));
 		poolTokenBalance = poolTokenBalance.add(_additionalAmount);

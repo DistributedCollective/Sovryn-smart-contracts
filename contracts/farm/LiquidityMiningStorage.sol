@@ -32,6 +32,7 @@ contract LiquidityMiningStorage is AdminRole {
 	// Info of each pool.
 	struct PoolInfo {
 		IERC20 poolToken; // Address of LP token contract.
+		address[] rewardTokens;
 	}
 
 	// Info about each token to be rewarded to different stakers
