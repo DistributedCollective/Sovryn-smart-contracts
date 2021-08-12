@@ -75,7 +75,7 @@ contract LiquidityMiningStorage is AdminRole {
 	// Info of each user that stakes LP tokens.
 	mapping(uint256 => mapping(address => UserInfo)) public userInfoMap;
 
-  /// FIXME: This needs to be moved to a separate contract
+	/// FIXME: This needs to be moved to a separate contract
 	/// @dev The locked vault contract to deposit LP's rewards into.
 	ILockedSOV public lockedSOV;
 

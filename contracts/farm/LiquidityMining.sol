@@ -26,7 +26,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	event RewardTransferred(address indexed rewardToken, address indexed receiver, uint256 amount);
 	event PoolTokenAdded(address indexed user, address indexed poolToken, uint256 allocationPoint);
 	event PoolTokenUpdated(address indexed user, address indexed poolToken, uint256 newAllocationPoint, uint256 oldAllocationPoint);
-	event PoolTokenAssociation(address indexed user, uint indexed poolId, address indexed rewardToken, _allocationPoint);
+	event PoolTokenAssociation(address indexed user, uint256 indexed poolId, address indexed rewardToken, _allocationPoint);
 	event Deposit(address indexed user, address indexed poolToken, uint256 amount);
 	event RewardClaimed(address indexed user, address indexed poolToken, uint256 amount);
 	event Withdraw(address indexed user, address indexed poolToken, uint256 amount);
@@ -58,7 +58,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		// require(address(_SOV) != address(0), "Invalid token address");
 		// require(_startDelayBlocks > 0, "Invalid start block");
 		// require(_unlockedImmediatelyPercent < 10000, "Unlocked immediately percent has to be less than 10000.");
-// 
+		//
 		// SOV = _SOV;
 		// rewardTokensPerBlock = _rewardTokensPerBlock;
 		// startBlock = block.number + _startDelayBlocks;
@@ -82,15 +82,14 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	) external onlyAuthorized {
 		/// @dev Non-idempotent function. Must be called just once.
 		RewardToken storage rewardToken = rewardTokensMap[_rewardToken].startBlock;
-		require(rewardToken != 0, "Already added"); 
+		require(rewardToken != 0, "Already added");
 		require(address(_rewardToken) != address(0), "Invalid token address");
 		require(_startDelayBlocks > 0, "Invalid start block");
-    
+
 		rewardTokensMap[_rewardToken] = RewardToken({
 			rewardTokensPerBlock: _rewardTokensPerBlock,
 			startBlock: block.number + _startDelayBlocks
 		});
-
 	}
 
 	/**
@@ -139,7 +138,11 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 * @param _receiver The address of the tokens receiver.
 	 * @param _amount The amount to be transferred.
 	 * */
-	function transferRewardTokens(address _rewardToken, address _receiver, uint256 _amount) external onlyAuthorized {
+	function transferRewardTokens(
+		address _rewardToken,
+		address _receiver,
+		uint256 _amount
+	) external onlyAuthorized {
 		require(_rewardToken != address(0), "Reward address invalid");
 		require(_receiver != address(0), "Receiver address invalid");
 		require(_amount != 0, "Amount invalid");
@@ -193,21 +196,12 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		// 	updateAllPools();
 		// }
 
-		poolInfoList.push(
-			PoolInfo({
-				poolToken: IERC20(_poolToken)
-			})
-		);
+		poolInfoList.push(PoolInfo({ poolToken: IERC20(_poolToken) }));
 		//indexing starts from 1 in order to check whether token was already added
 		poolIdList[_poolToken] = poolInfoList.length;
 
-		for(uint256 i = 0; i < _rewardTokens.length; i++) { 
-			associatePoolToRewardToken(
-				poolIdList[_poolToken],
-				_rewardTokens[i],
-				_allocationPoints[i],
-				_withUpdate
-			);
+		for (uint256 i = 0; i < _rewardTokens.length; i++) {
+			associatePoolToRewardToken(poolIdList[_poolToken], _rewardTokens[i], _allocationPoints[i], _withUpdate);
 		}
 
 		emit PoolTokenAdded(msg.sender, _poolToken, _allocationPoint);
@@ -219,12 +213,11 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		uint96[] _allocationPoint,
 		bool _withUpdate // FIXME: Think about how to implement this
 	) external onlyAuthorized {
-
 		// Pool checks
 		require(_poolId != 0, "Invalid pool id");
 		require(_poolId <= poolInfoList.length, "Pool id doesn't exist");
 
-		// Reward token checks 
+		// Reward token checks
 		RewardToken storage rewardToken = rewardTokensMap[_rewardToken];
 		uint256 startBlock = rewardToken.startBlock;
 		require(startBlock != 0, "Not initialized");
@@ -238,11 +231,10 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		poolInfoRewardTokensMap[_poolToken][_rewardToken] = PoolInfoRewardToken({
 			allocationPoint: _allocationPoint,
 			lastRewardBlock: lastRewardBlock,
-			accumulatedRewardPerShare: 0	
+			accumulatedRewardPerShare: 0
 		});
 
 		emit PoolTokenAssociation(msg.sender, _poolId, _rewardToken, _allocationPoint);
-
 	}
 
 	/**
