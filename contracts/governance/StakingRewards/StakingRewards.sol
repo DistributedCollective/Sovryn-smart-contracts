@@ -37,7 +37,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		SOV = IERC20(_SOV);
 		staking = _staking;
 		startTime = staking.timestampToLockDate(block.timestamp);
-		setMaxDuration(26 * TWO_WEEKS);
+		setMaxDuration(15 * TWO_WEEKS);
 	}
 
 	/**
