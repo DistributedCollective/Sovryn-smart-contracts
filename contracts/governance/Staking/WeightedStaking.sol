@@ -76,7 +76,7 @@ contract WeightedStaking is Checkpoints {
 	 * @return The number of votes the account had as of the given block.
 	 * */
 	function getPriorTotalStakesForDate(uint256 date, uint256 blockNumber) public view returns (uint96) {
-		require(blockNumber < _getBlockNumber(), "WeightedStaking::getPriorTotalStakesForDate: not yet determined");
+		require(blockNumber < _getCurrentBlockNumber(), "WeightedStaking::getPriorTotalStakesForDate: not yet determined");
 
 		uint32 nCheckpoints = numTotalStakingCheckpoints[date];
 		if (nCheckpoints == 0) {
@@ -173,7 +173,7 @@ contract WeightedStaking is Checkpoints {
 		uint256 date,
 		uint256 blockNumber
 	) public view returns (uint96) {
-		require(blockNumber < _getBlockNumber(), "WeightedStaking::getPriorStakeByDateForDelegatee: not yet determined");
+		require(blockNumber < _getCurrentBlockNumber(), "WeightedStaking::getPriorStakeByDateForDelegatee: not yet determined");
 
 		uint32 nCheckpoints = numDelegateStakingCheckpoints[account][date];
 		if (nCheckpoints == 0) {
@@ -299,7 +299,7 @@ contract WeightedStaking is Checkpoints {
 		uint256 date,
 		uint256 blockNumber
 	) internal view returns (uint96) {
-		require(blockNumber < _getBlockNumber(), "WeightedStaking::getPriorUserStakeAndDate: not yet determined");
+		require(blockNumber < _getCurrentBlockNumber(), "WeightedStaking::getPriorUserStakeAndDate: not yet determined");
 
 		date = _adjustDateForOrigin(date);
 		uint32 nCheckpoints = numUserStakingCheckpoints[account][date];
@@ -338,7 +338,7 @@ contract WeightedStaking is Checkpoints {
 	 * @dev This is segregated from the _getPriorUserStakeByDate function to better test
 	 * advancing blocks functionality using Mock Contracts
 	 * */
-	function _getBlockNumber() internal view returns (uint256) {
+	function _getCurrentBlockNumber() internal view returns (uint256) {
 		return block.number;
 	}
 

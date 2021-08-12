@@ -48,7 +48,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * */
 	function stop() external onlyOwner {
 		require(stopBlock == 0, "Already stopped");
-		stopBlock = _getBlockNumber();
+		stopBlock = _getCurrentBlockNumber();
 	}
 
 	/**
@@ -145,7 +145,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 */
 	function getStakerCurrentReward(bool considerMaxDuration) public view returns (uint256 lastWithdrawalInterval, uint256 amount) {
 		uint256 weightedStake;
-		uint256 lastFinalisedBlock = _getBlockNumber() - 1;
+		uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
 		uint256 currentTS = block.timestamp;
 		uint256 addedMaxDuration;
 		address staker = msg.sender;
@@ -174,7 +174,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * @dev This is segregated from the _getPriorUserStakeByDate function to better test
 	 * advancing blocks functionality using Mock Contracts
 	 * */
-	function _getBlockNumber() internal view returns (uint256) {
+	function _getCurrentBlockNumber() internal view returns (uint256) {
 		return block.number;
 	}
 }

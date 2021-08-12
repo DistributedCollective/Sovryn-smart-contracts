@@ -19,7 +19,7 @@ contract StakingMock is Staking {
 	/**
 	 * @notice Determine the current Block Number from BlockMockUp
 	 * */
-	function _getBlockNumber() internal view returns (uint256) {
+	function _getCurrentBlockNumber() internal view returns (uint256) {
 		return blockMockUp.getBlockNum();
 	}
 }
