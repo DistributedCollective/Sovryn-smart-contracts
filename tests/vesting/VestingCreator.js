@@ -729,10 +729,6 @@ contract("VestingCreator", (accounts) => {
 			}
 		});
 
-		it("fails if sender isn't an owner", async () => {
-			await expectRevert(vestingCreator.processVestingCreation({ from: account1 }), "unauthorized");
-		});
-
 		it("vesting creation fails if staking is not done for previous creation", async () => {
 			await vestingCreator.addVestings(
 				[account1, account2, account3, account1, account1],

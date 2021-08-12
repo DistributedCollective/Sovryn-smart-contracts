@@ -100,7 +100,7 @@ contract VestingCreator is AdminRole {
 	 * @notice Creates vesting contract and stakes tokens
 	 * @dev Vesting and Staking are merged for calls that fits the gas limit
 	 */
-	function processNextVesting() external onlyAuthorized {
+	function processNextVesting() external {
 		processVestingCreation();
 		processStaking();
 	}
@@ -109,7 +109,7 @@ contract VestingCreator is AdminRole {
 	 * @notice Creates vesting contract without staking any tokens
 	 * @dev Separating the Vesting and Staking to tackle Block Gas Limit
 	 */
-	function processVestingCreation() public onlyAuthorized {
+	function processVestingCreation() public {
 		require(vestingCreated == false, "staking not done for the previous vesting");
 		if (vestingDataList.length > 0) {
 			VestingData storage vestingData = vestingDataList[vestingDataList.length - 1];
@@ -122,7 +122,7 @@ contract VestingCreator is AdminRole {
 	 * @notice Staking vested tokens
 	 * @dev it can be the case when vesting creation and tokens staking can't be done in one transaction because of block gas limit
 	 */
-	function processStaking() public onlyAuthorized {
+	function processStaking() public {
 		require(vestingCreated == true, "cannot stake without vesting creation");
 		if (vestingDataList.length > 0) {
 			VestingData storage vestingData = vestingDataList[vestingDataList.length - 1];
