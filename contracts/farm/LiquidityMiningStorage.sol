@@ -40,12 +40,8 @@ contract LiquidityMiningStorage is AdminRole {
 		uint256 rewardTokensPerBlock;
 		// The block number when reward token mining starts.
 		uint256 startBlock;
-		// Block number when bonus reward token period ends.
-		uint256 bonusEndBlock;
 		// Block number when reward token period ends.
 		uint256 endBlock;
-		/// The token to be rewarded to users
-		IERC20 rewardToken;
 		// Total allocation points. Must be the sum of all allocation points in all pools.
 		uint256 totalAllocationPoint;
 		// Total balance this contract should have to handle withdrawal for all users
@@ -62,7 +58,7 @@ contract LiquidityMiningStorage is AdminRole {
 	//Wrapper contract which will be a proxy between user and LM
 	address public wrapper;
 
-	// TODO: check if it's needed
+	// TODO: check if it's needed or it can just work with an array of addresses
 	// Info of each pool.
 	PoolInfo[] public poolInfoList;
 
@@ -72,12 +68,18 @@ contract LiquidityMiningStorage is AdminRole {
 	// Mapping reward token address => pool info
 	mapping(address => RewardToken) rewardTokensMap;
 
+	// Mapping to link a reward pool to a reward token
+	// poolId => rewardTokenAddress => PoolInfoRewardToken
+	mapping(uint256 => mapping(address => PoolInfoRewardToken)) poolInfoRewardTokensMap;
+
 	// Info of each user that stakes LP tokens.
 	mapping(uint256 => mapping(address => UserInfo)) public userInfoMap;
 
+  /// FIXME: This needs to be moved to a separate contract
 	/// @dev The locked vault contract to deposit LP's rewards into.
 	ILockedSOV public lockedSOV;
 
+	/// FIXME: This needs to be moved somewhere else
 	// The % which determines how much will be unlocked immediately.
 	/// @dev 10000 is 100%
 	uint256 public unlockedImmediatelyPercent;

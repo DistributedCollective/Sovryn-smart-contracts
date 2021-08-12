@@ -1,3 +1,4 @@
+/* eslint-disable no-mixed-spaces-and-tabs */
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
@@ -22,9 +23,10 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 
 	/* Events */
 
-	event SOVTransferred(address indexed receiver, uint256 amount);
+	event RewardTransferred(address indexed rewardToken, address indexed receiver, uint256 amount);
 	event PoolTokenAdded(address indexed user, address indexed poolToken, uint256 allocationPoint);
 	event PoolTokenUpdated(address indexed user, address indexed poolToken, uint256 newAllocationPoint, uint256 oldAllocationPoint);
+	event PoolTokenAssociation(address indexed user, uint indexed poolId, address indexed rewardToken, _allocationPoint);
 	event Deposit(address indexed user, address indexed poolToken, uint256 amount);
 	event RewardClaimed(address indexed user, address indexed poolToken, uint256 amount);
 	event Withdraw(address indexed user, address indexed poolToken, uint256 amount);
@@ -47,27 +49,48 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 * @param _unlockedImmediatelyPercent The % which determines how much will be unlocked immediately.
 	 */
 	function initialize(
-		IERC20 _SOV,
-		uint256 _rewardTokensPerBlock,
-		uint256 _startDelayBlocks,
-		uint256 _numberOfBonusBlocks,
 		address _wrapper,
 		ILockedSOV _lockedSOV,
 		uint256 _unlockedImmediatelyPercent
 	) external onlyAuthorized {
 		/// @dev Non-idempotent function. Must be called just once.
-		require(address(SOV) == address(0), "Already initialized");
-		require(address(_SOV) != address(0), "Invalid token address");
-		require(_startDelayBlocks > 0, "Invalid start block");
-		require(_unlockedImmediatelyPercent < 10000, "Unlocked immediately percent has to be less than 10000.");
+		// require(address(SOV) == address(0), "Already initialized");
+		// require(address(_SOV) != address(0), "Invalid token address");
+		// require(_startDelayBlocks > 0, "Invalid start block");
+		// require(_unlockedImmediatelyPercent < 10000, "Unlocked immediately percent has to be less than 10000.");
+// 
+		// SOV = _SOV;
+		// rewardTokensPerBlock = _rewardTokensPerBlock;
+		// startBlock = block.number + _startDelayBlocks;
+		// wrapper = _wrapper;
+		// lockedSOV = _lockedSOV;
+		// unlockedImmediatelyPercent = _unlockedImmediatelyPercent;
+	}
 
-		SOV = _SOV;
-		rewardTokensPerBlock = _rewardTokensPerBlock;
-		startBlock = block.number + _startDelayBlocks;
-		bonusEndBlock = startBlock + _numberOfBonusBlocks;
-		wrapper = _wrapper;
-		lockedSOV = _lockedSOV;
-		unlockedImmediatelyPercent = _unlockedImmediatelyPercent;
+	/**
+	 * @notice Add a new reward token
+	 *
+	 * @param _rewardToken The token to be rewarded to LP stakers.
+	 * @param _rewardTokensPerBlock The number of reward tokens per block.
+	 * @param _startDelayBlocks The number of blocks should be passed to start
+	 *   mining.
+	 */
+	function addRewardToken(
+		address _rewardToken,
+		uint256 _rewardTokensPerBlock,
+		uint256 _startDelayBlocks
+	) external onlyAuthorized {
+		/// @dev Non-idempotent function. Must be called just once.
+		RewardToken storage rewardToken = rewardTokensMap[_rewardToken].startBlock;
+		require(rewardToken != 0, "Already added"); 
+		require(address(_rewardToken) != address(0), "Invalid token address");
+		require(_startDelayBlocks > 0, "Invalid start block");
+    
+		rewardTokensMap[_rewardToken] = RewardToken({
+			rewardTokensPerBlock: _rewardTokensPerBlock,
+			startBlock: block.number + _startDelayBlocks
+		});
+
 	}
 
 	/**
@@ -100,44 +123,52 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	/**
 	 * @notice stops mining by setting end block
 	 */
-	function stopMining() external onlyAuthorized {
-		require(endBlock == 0, "Already stopped");
+	function stopMining(address _rewardToken) external onlyAuthorized {
+		RewardToken storage rewardToken = rewardTokensMap[_rewardToken];
+		require(rewardToken.startBlock != 0, "Not initialized");
+		require(rewardToken.endBlock == 0, "Already stopped");
 
-		endBlock = block.number;
+		rewardToken.endBlock = block.number;
 	}
 
 	/**
-	 * @notice Transfers SOV tokens to given address.
-	 *   Owner use this function to withdraw SOV from LM contract
+	 * @notice Transfers reward tokens to given address.
+	 *   Owner use this function to withdraw reward tokens from LM contract
 	 *   into another account.
-	 * @param _receiver The address of the SOV receiver.
+	 * @param _rewardToken The address of the rewardToken
+	 * @param _receiver The address of the tokens receiver.
 	 * @param _amount The amount to be transferred.
 	 * */
-	function transferSOV(address _receiver, uint256 _amount) external onlyAuthorized {
+	function transferRewardTokens(address _rewardToken, address _receiver, uint256 _amount) external onlyAuthorized {
+		require(_rewardToken != address(0), "Reward address invalid");
 		require(_receiver != address(0), "Receiver address invalid");
 		require(_amount != 0, "Amount invalid");
 
+		IERC20 rewardToken = IERC20(_rewardToken);
+
 		/// @dev Do not transfer more SOV than available.
-		uint256 SOVBal = SOV.balanceOf(address(this));
-		if (_amount > SOVBal) {
-			_amount = SOVBal;
+		uint256 balance = rewardToken.balanceOf(address(this));
+		if (_amount > balance) {
+			_amount = balance;
 		}
 
 		/// @dev The actual transfer.
-		require(SOV.transfer(_receiver, _amount), "Transfer failed");
+		require(rewardToken.transfer(_receiver, _amount), "Transfer failed");
 
 		/// @dev Event log.
-		emit SOVTransferred(_receiver, _amount);
+		emit RewardTransferred(_rewardToken, _receiver, _amount);
 	}
 
 	/**
-	 * @notice Get the missed SOV balance of LM contract.
+	 * @notice Get the missed rewardTokens balance of LM contract.
 	 *
-	 * @return The amount of SOV tokens according to totalUsersBalance
-	 *   in excess of actual SOV balance of the LM contract.
+	 * @return The amount of reward tokens according to totalUsersBalance
+	 *   in excess of actual balance of the LM contract.
 	 * */
-	function getMissedBalance() external view returns (uint256) {
-		uint256 balance = SOV.balanceOf(address(this));
+	function getMissedBalance(address _rewardToken) external view returns (uint256) {
+		IERC20 rewardToken = IERC20(_rewardToken);
+		uint256 totalUsersBalance = rewardTokensMap[_rewardToken].totalUsersBalance;
+		uint256 balance = rewardToken.balanceOf(address(this));
 		return balance >= totalUsersBalance ? 0 : totalUsersBalance.sub(balance);
 	}
 
@@ -149,32 +180,69 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 */
 	function add(
 		address _poolToken,
-		uint96 _allocationPoint,
+		address[] _rewardTokens,
+		uint96[] _allocationPoints,
 		bool _withUpdate
 	) external onlyAuthorized {
-		require(_allocationPoint > 0, "Invalid allocation point");
+		require(_rewardTokens.length == _allocationPoints.length, "Invalid allocation points length");
 		require(_poolToken != address(0), "Invalid token address");
 		require(poolIdList[_poolToken] == 0, "Token already added");
 
-		if (_withUpdate) {
-			updateAllPools();
-		}
-
-		uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
-		totalAllocationPoint = totalAllocationPoint.add(_allocationPoint);
+		// FIXME: Think about this
+		// if (_withUpdate) {
+		// 	updateAllPools();
+		// }
 
 		poolInfoList.push(
 			PoolInfo({
-				poolToken: IERC20(_poolToken),
-				allocationPoint: _allocationPoint,
-				lastRewardBlock: lastRewardBlock,
-				accumulatedRewardPerShare: 0
+				poolToken: IERC20(_poolToken)
 			})
 		);
 		//indexing starts from 1 in order to check whether token was already added
 		poolIdList[_poolToken] = poolInfoList.length;
 
+		for(uint256 i = 0; i < _rewardTokens.length; i++) { 
+			associatePoolToRewardToken(
+				poolIdList[_poolToken],
+				_rewardTokens[i],
+				_allocationPoints[i],
+				_withUpdate
+			);
+		}
+
 		emit PoolTokenAdded(msg.sender, _poolToken, _allocationPoint);
+	}
+
+	function associatePoolToRewardToken(
+		uint256 _poolId,
+		address _rewardToken,
+		uint96[] _allocationPoint,
+		bool _withUpdate // FIXME: Think about how to implement this
+	) external onlyAuthorized {
+
+		// Pool checks
+		require(_poolId != 0, "Invalid pool id");
+		require(_poolId <= poolInfoList.length, "Pool id doesn't exist");
+
+		// Reward token checks 
+		RewardToken storage rewardToken = rewardTokensMap[_rewardToken];
+		uint256 startBlock = rewardToken.startBlock;
+		require(startBlock != 0, "Not initialized");
+
+		// Check association is not done twice
+		require(poolInfoRewardTokensMap[_poolToken][_rewardToken].allocationPoint == 0, "Already associated");
+
+		uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
+		rewardToken.totalAllocationPoint.add(_allocationPoint);
+
+		poolInfoRewardTokensMap[_poolToken][_rewardToken] = PoolInfoRewardToken({
+			allocationPoint: _allocationPoint,
+			lastRewardBlock: lastRewardBlock,
+			accumulatedRewardPerShare: 0	
+		});
+
+		emit PoolTokenAssociation(msg.sender, _poolId, _rewardToken, _allocationPoint);
+
 	}
 
 	/**
