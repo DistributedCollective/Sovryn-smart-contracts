@@ -280,7 +280,6 @@ contract("StakingRewards", (accounts) => {
 				"unknown account 0x0000000000000000000000000000000000000000"
 			);
 		});
-
 	});
 
 	function avgWeight(from, to, maxWeight, maxDuration) {
