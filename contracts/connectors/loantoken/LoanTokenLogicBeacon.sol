@@ -24,7 +24,7 @@ contract LoanTokenLogicBeacon is PausableOz {
 		uint256 updateTimestamp; // time of update
 	}
 
-	mapping(bytes32 =>  LoanTokenLogicModuleUpdate[]) public moduleUpgradeLog; /** the module name as the key */
+	mapping(bytes32 => LoanTokenLogicModuleUpdate[]) public moduleUpgradeLog; /** the module name as the key */
 
 	mapping(bytes32 => uint256) public activeModuleIndex; /** To store the current active index log for module */
 
@@ -57,11 +57,12 @@ contract LoanTokenLogicBeacon is PausableOz {
 	 *
 	 * @dev This registration will require target contract to have the exact function getListFunctionSignatures() which will return functionSignatureList and the moduleName in bytes32
 	 */
-	function _registerLoanTokenModule(address loanTokenModuleAddress) private returns(bytes32) {
+	function _registerLoanTokenModule(address loanTokenModuleAddress) private returns (bytes32) {
 		require(Address.isContract(loanTokenModuleAddress), "LoanTokenModuleAddress is not a contract");
 
 		// Get the list of function signature on this loanTokenModulesAddress
-		(bytes4[] memory functionSignatureList, bytes32 moduleName) = ILoanTokenLogicModules(loanTokenModuleAddress).getListFunctionSignatures();
+		(bytes4[] memory functionSignatureList, bytes32 moduleName) =
+			ILoanTokenLogicModules(loanTokenModuleAddress).getListFunctionSignatures();
 
 		for (uint256 i; i < functionSignatureList.length; i++) {
 			logicTargets[functionSignatureList[i]] = loanTokenModuleAddress;
@@ -70,7 +71,7 @@ contract LoanTokenLogicBeacon is PausableOz {
 		return moduleName;
 	}
 
-	function getModuleUpgradeLogLength(bytes32 moduleName) external view returns(uint256) {
+	function getModuleUpgradeLogLength(bytes32 moduleName) external view returns (uint256) {
 		return moduleUpgradeLog[moduleName].length;
 	}
 
@@ -78,7 +79,7 @@ contract LoanTokenLogicBeacon is PausableOz {
 	 * @notice This function will rollback particular module to the spesific index / version of deployment
 	 *
 	 * @param moduleName Name of module in bytes32 format
-	 * @param index index / version of previous deployment 
+	 * @param index index / version of previous deployment
 	 */
 	function rollback(bytes32 moduleName, uint256 index) external onlyOwner {
 		address loanTokenModuleAddress = moduleUpgradeLog[moduleName][index].implementation;

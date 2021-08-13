@@ -80,7 +80,7 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
 		// Loan Token Logic Storage Additional Variable
 		res[33] = bytes4(keccak256("liquidityMiningAddress()"));
 
-		return(res, stringToBytes32("LoanTokenLogicLM"));
+		return (res, stringToBytes32("LoanTokenLogicLM"));
 	}
 
 	/**

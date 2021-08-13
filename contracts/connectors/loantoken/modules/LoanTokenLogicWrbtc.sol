@@ -68,7 +68,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
 		// Loan Token Logic Storage Additional Variable
 		res[33] = bytes4(keccak256("liquidityMiningAddress()"));
 
-		return(res, stringToBytes32("LoanTokenLogicWrbtc"));
+		return (res, stringToBytes32("LoanTokenLogicWrbtc"));
 	}
 
 	function mintWithBTC(address receiver, bool useLM) external payable nonReentrant returns (uint256 mintAmount) {
