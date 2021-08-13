@@ -10,7 +10,7 @@ contract LiquidityMiningStorage is AdminRole {
 	// Info of each user.
 	struct UserInfo {
 		uint256 amount; // How many pool tokens the user has provided.
-		mapping(address => UserReward) rewards; // Mapping between reward toekens and the user rewards.
+		mapping(address => UserReward) rewards; // Mapping between reward tokens and the user rewards.
 	}
 
 	struct UserReward {
@@ -59,17 +59,16 @@ contract LiquidityMiningStorage is AdminRole {
 	//Wrapper contract which will be a proxy between user and LM
 	address public wrapper;
 
-	// TODO: check if it's needed or it can just work with an array of addresses
 	// Info of each pool.
 	PoolInfo[] public poolInfoList;
 
 	// Mapping pool token address => pool id
 	mapping(address => uint256) public poolIdList;
 
-	// Mapping reward token address => pool info
+	// Mapping reward token address => reward token
 	mapping(address => RewardToken) public rewardTokensMap;
 
-	// Mapping to link a reward pool to a reward token
+	// Mapping to link a LP pool to a reward token
 	// poolId => rewardTokenAddress => PoolInfoRewardToken
 	mapping(uint256 => mapping(address => PoolInfoRewardToken)) public poolInfoRewardTokensMap;
 

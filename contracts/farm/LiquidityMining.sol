@@ -25,24 +25,30 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 
 	event RewardTransferred(address indexed rewardToken, address indexed receiver, uint256 amount);
 	event PoolTokenAdded(address indexed user, address indexed poolToken, address[] rewardTokends, uint96[] allocationPoints);
-	event PoolTokenUpdated(address indexed user, address indexed poolToken, address rewardTokends, uint256 newAllocationPoint, uint256 oldAllocationPoint);
+	event PoolTokenUpdated(
+		address indexed user,
+		address indexed poolToken,
+		address rewardTokends,
+		uint256 newAllocationPoint,
+		uint256 oldAllocationPoint
+	);
 	event PoolTokenAssociation(address indexed user, uint256 indexed poolId, address indexed rewardToken, uint256 allocationPoint);
 	event Deposit(address indexed user, address indexed poolToken, uint256 amount);
 	event RewardClaimed(address indexed user, address indexed poolToken, uint256 amount);
 	event Withdraw(address indexed user, address indexed poolToken, uint256 amount);
-	event EmergencyWithdraw(address indexed user, address indexed poolToken, uint256 amount, uint256 accumulatedReward);
+	event EmergencyWithdraw(
+		address indexed user,
+		address indexed poolToken,
+		address indexed rewardToken,
+		uint256 amount,
+		uint256 accumulatedReward
+	);
 
 	/* Functions */
 
 	/**
 	 * @notice Initialize mining.
 	 *
-	 * @param _SOV The SOV token.
-	 * @param _rewardTokensPerBlock The number of reward tokens per block.
-	 * @param _startDelayBlocks The number of blocks should be passed to start
-	 *   mining.
-	 * @param _numberOfBonusBlocks The number of blocks when each block will
-	 *   be calculated as N blocks (BONUS_BLOCK_MULTIPLIER).
 	 * @param _lockedSOV The contract instance address of the lockedSOV vault.
 	 *   SOV rewards are not paid directly to liquidity providers. Instead they
 	 *   are deposited into a lockedSOV vault contract.
@@ -182,7 +188,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 * @notice adds a new lp to the pool. Can only be called by the owner or an admin
 	 * @param _poolToken the address of pool token
 	 * @param _rewardTokens the addresses of reward tokens for given pool
-	 * @param _allocationPoint the allocation points (weight) for the given pool and each reward token
+	 * @param _allocationPoints the allocation points (weight) for the given pool and each reward token
 	 * @param _withUpdate the flag whether we need to update all pools
 	 */
 	function add(
@@ -228,7 +234,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		require(startBlock != 0, "Not initialized");
 
 		// Check association is not done twice
-		
+
 		require(poolInfoRewardTokensMap[poolId][_rewardToken].allocationPoint == 0, "Already associated");
 
 		uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
@@ -247,7 +253,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 * @notice updates the given pool's reward tokens allocation point
 	 * @param _poolToken the address of pool token
 	 * @param _rewardTokens the addresses of reward tokens for given pool
-	 * @param _allocationPoint the allocation points (weight) for the given pool and each reward token
+	 * @param _allocationPoints the allocation points (weight) for the given pool and each reward token
 	 * @param _updateAllFlag the flag whether we need to update all pools
 	 */
 	function update(
@@ -266,7 +272,11 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		}
 	}
 
-	function _updateToken(address _poolToken, address _rewardToken, uint96 _allocationPoint) internal {
+	function _updateToken(
+		address _poolToken,
+		address _rewardToken,
+		uint96 _allocationPoint
+	) internal {
 		uint256 poolId = _getPoolId(_poolToken);
 		RewardToken storage rewardToken = rewardTokensMap[_rewardToken];
 		PoolInfoRewardToken storage poolInfoRewardToken = poolInfoRewardTokensMap[poolId][_rewardToken];
@@ -309,14 +319,18 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 * @param _from the first block for a calculation
 	 * @param _to the last block for a calculation
 	 */
-	function _getPassedBlocksWithBonusMultiplier(RewardToken storage _rewardToken, uint256 _from, uint256 _to) internal view returns (uint256) {
+	function _getPassedBlocksWithBonusMultiplier(
+		RewardToken storage _rewardToken,
+		uint256 _from,
+		uint256 _to
+	) internal view returns (uint256) {
 		if (_from < _rewardToken.startBlock) {
 			_from = _rewardToken.startBlock;
 		}
 		if (_rewardToken.endBlock > 0 && _to > _rewardToken.endBlock) {
 			_to = _rewardToken.endBlock;
 		}
-		
+
 		return _to.sub(_from);
 	}
 
@@ -370,7 +384,15 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		PoolInfo storage pool = poolInfoList[poolId];
 		uint256 start = block.number;
 		uint256 end = start.add(_duration.div(SECONDS_PER_BLOCK));
-		(, uint256 accumulatedRewardPerShare) = _getPoolAccumulatedReward(pool, _amount, rewardTokensMap[_rewardToken], poolInfoRewardTokensMap[poolId][_rewardToken], start, end);
+		(, uint256 accumulatedRewardPerShare) =
+			_getPoolAccumulatedReward(
+				pool,
+				_amount,
+				rewardTokensMap[_rewardToken],
+				poolInfoRewardTokensMap[poolId][_rewardToken],
+				start,
+				end
+			);
 		return _amount.mul(accumulatedRewardPerShare).div(PRECISION);
 	}
 
@@ -399,15 +421,18 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 
 		uint256 rewardTokensLength = pool.rewardTokens.length;
 		for (uint256 i = 0; i < rewardTokensLength; i++) {
-			_updatePoolReward(pool, _poolId, pool.rewardTokens[i]);
+			_updatePoolRewardToken(pool, _poolId, pool.rewardTokens[i]);
 		}
-
 	}
 
-	function _updatePoolReward(PoolInfo storage pool, uint256 _poolId, address _rewardToken) internal {
+	function _updatePoolRewardToken(
+		PoolInfo storage pool,
+		uint256 _poolId,
+		address _rewardToken
+	) internal {
 		PoolInfoRewardToken storage poolRewardToken = poolInfoRewardTokensMap[_poolId][_rewardToken];
 		// this pool has been updated recently
-		if (block.number <=poolRewardToken.lastRewardBlock) {
+		if (block.number <= poolRewardToken.lastRewardBlock) {
 			return;
 		}
 
@@ -452,7 +477,10 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		uint256 _endBlock
 	) internal view returns (uint256, uint256) {
 		uint256 passedBlocks = _getPassedBlocksWithBonusMultiplier(_rewardToken, _startBlock, _endBlock);
-		uint256 accumulatedReward = passedBlocks.mul(_rewardToken.rewardTokensPerBlock).mul(_poolRewardToken.allocationPoint).div(_rewardToken.totalAllocationPoint);
+		uint256 accumulatedReward =
+			passedBlocks.mul(_rewardToken.rewardTokensPerBlock).mul(_poolRewardToken.allocationPoint).div(
+				_rewardToken.totalAllocationPoint
+			);
 
 		uint256 poolTokenBalance = _pool.poolToken.balanceOf(address(this));
 		poolTokenBalance = poolTokenBalance.add(_additionalAmount);
@@ -505,16 +533,24 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		PoolInfo storage pool = poolInfoList[poolId];
 		UserInfo storage user = userInfoMap[poolId][userAddress];
 
-		_updatePool(poolId);
-		//sends reward directly to the user
-		_updateReward(pool, user);
+		uint256 rewardTokensLength = pool.rewardTokens.length;
+		for (uint256 i = 0; i < rewardTokensLength; i++) {
+			address rewardTokenAddress = pool.rewardTokens[i];
+			_updatePoolRewardToken(pool, poolId, rewardTokenAddress);
+			//sends reward directly to the user
+			_updateReward(poolId, rewardTokenAddress, user);
+		}
 
 		if (_amount > 0) {
 			//receives pool tokens from msg.sender, it can be user or WrapperProxy contract
 			if (!alreadyTransferred) pool.poolToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 			user.amount = user.amount.add(_amount);
 		}
-		_updateRewardDebt(pool, user);
+
+		for (uint256 i = 0; i < rewardTokensLength; i++) {
+			address rewardTokenAddress = pool.rewardTokens[i];
+			_updateRewardDebt(poolId, pool, rewardTokenAddress, user);
+		}
 		emit Deposit(userAddress, _poolToken, _amount);
 	}
 
@@ -527,21 +563,44 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		address userAddress = _getUserAddress(_user);
 
 		uint256 poolId = _getPoolId(_poolToken);
-		_claimReward(poolId, userAddress, true);
+		PoolInfo storage pool = poolInfoList[poolId];
+		uint256 rewardTokensLength = pool.rewardTokens.length;
+		for (uint256 i = 0; i < rewardTokensLength; i++) {
+			address rewardTokenAddress = pool.rewardTokens[i];
+			_claimReward(poolId, rewardTokenAddress, userAddress, true);
+		}
+	}
+
+	/**
+	 * @notice transfers rewards from a specific reward token
+	 * @param _poolToken the address of pool token
+	 * @param _rewardToken the address of reward token
+	 * @param _user the address of user to claim reward from (can be passed only by wrapper contract)
+	 */
+	function claimReward(
+		address _poolToken,
+		address _rewardToken,
+		address _user
+	) external {
+		address userAddress = _getUserAddress(_user);
+
+		uint256 poolId = _getPoolId(_poolToken);
+		_claimReward(poolId, _rewardToken, userAddress, true);
 	}
 
 	function _claimReward(
 		uint256 _poolId,
+		address _rewardToken,
 		address _userAddress,
 		bool _isStakingTokens
 	) internal {
-		PoolInfo storage pool = poolInfoList[_poolId];
 		UserInfo storage user = userInfoMap[_poolId][_userAddress];
+		PoolInfo storage pool = poolInfoList[_poolId];
 
-		_updatePool(_poolId);
-		_updateReward(pool, user);
+		_updatePoolRewardToken(pool, _poolId, _rewardToken);
+		_updateReward(_poolId, _rewardToken, user);
 		_transferReward(address(pool.poolToken), user, _userAddress, _isStakingTokens, true);
-		_updateRewardDebt(pool, user);
+		_updateRewardDebt(_poolId, pool, _rewardToken, user);
 	}
 
 	/**
@@ -554,7 +613,12 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		uint256 length = poolInfoList.length;
 		for (uint256 i = 0; i < length; i++) {
 			uint256 poolId = i;
-			_claimReward(poolId, userAddress, false);
+			PoolInfo storage pool = poolInfoList[poolId];
+			uint256 rewardTokensLength = pool.rewardTokens.length;
+			for (uint256 rewardTokenIdx = 0; rewardTokenIdx < rewardTokensLength; i++) {
+				address rewardTokenAddress = pool.rewardTokens[rewardTokenIdx];
+				_claimReward(poolId, rewardTokenAddress, userAddress, false);
+			}
 		}
 		lockedSOV.withdrawAndStakeTokensFrom(userAddress);
 	}
@@ -578,10 +642,14 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		UserInfo storage user = userInfoMap[poolId][userAddress];
 		require(user.amount >= _amount, "Not enough balance");
 
-		_updatePool(poolId);
-		_updateReward(pool, user);
-		_transferReward(_poolToken, user, userAddress, false, false);
-
+		// Start collecting rewards for each reward token the user holds
+		uint256 rewardTokensLength = pool.rewardTokens.length;
+		for (uint256 i = 0; i < rewardTokensLength; i++) {
+			address rewardTokenAddress = pool.rewardTokens[i];
+			_updatePoolRewardToken(pool, poolId, rewardTokenAddress);
+			_updateReward(poolId, rewardTokenAddress, user);
+			_transferReward(_poolToken, user, userAddress, false, false);
+		}
 		user.amount = user.amount.sub(_amount);
 
 		//msg.sender is wrapper -> send to wrapper
@@ -593,7 +661,10 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 			pool.poolToken.safeTransfer(userAddress, _amount);
 		}
 
-		_updateRewardDebt(pool, user);
+		for (uint256 i = 0; i < rewardTokensLength; i++) {
+			address rewardTokenAddress = pool.rewardTokens[i];
+			_updateRewardDebt(poolId, pool, rewardTokenAddress, user);
+		}
 		emit Withdraw(userAddress, _poolToken, _amount);
 	}
 
@@ -607,18 +678,33 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		return userAddress;
 	}
 
-	function _updateReward(PoolInfo storage pool, UserInfo storage user) internal {
+	function _updateReward(
+		uint256 _poolId,
+		address _rewardTokenAddress,
+		UserInfo storage user
+	) internal {
+		UserReward storage reward = user.rewards[_rewardTokenAddress];
 		//update user accumulated reward
 		if (user.amount > 0) {
 			//add reward for the previous amount of deposited tokens
-			uint256 accumulatedReward = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
-			user.accumulatedReward = user.accumulatedReward.add(accumulatedReward);
+			uint256 accumulatedReward =
+				user.amount.mul(poolInfoRewardTokensMap[_poolId][_rewardTokenAddress].accumulatedRewardPerShare).div(PRECISION).sub(
+					reward.rewardDebt
+				);
+			reward.accumulatedReward = reward.accumulatedReward.add(accumulatedReward);
 		}
 	}
 
-	function _updateRewardDebt(PoolInfo storage pool, UserInfo storage user) internal {
+	function _updateRewardDebt(
+		uint256 poolId,
+		PoolInfo storage pool,
+		address rewardToken,
+		UserInfo storage user
+	) internal {
 		//reward accumulated before amount update (should be subtracted during next reward calculation)
-		user.rewardDebt = user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION);
+		user.rewards[rewardToken].rewardDebt = user.amount.mul(poolInfoRewardTokensMap[poolId][rewardToken].accumulatedRewardPerShare).div(
+			PRECISION
+		);
 	}
 
 	/**
@@ -635,25 +721,22 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		bool _isStakingTokens,
 		bool _isCheckingBalance
 	) internal {
-		uint256 userAccumulatedReward = _user.accumulatedReward;
+		//uint256 userAccumulatedReward = _user.accumulatedReward;
 		// TODO: review how rewards will be send to the user
 		// /// @dev Transfer if enough SOV balance on this LM contract.
 		// uint256 balance = SOV.balanceOf(address(this));
 		// if (balance >= userAccumulatedReward) {
 		// 	totalUsersBalance = totalUsersBalance.sub(userAccumulatedReward);
 		// 	_user.accumulatedReward = 0;
-
 		// 	/// @dev Instead of transferring the reward to the LP (user),
 		// 	///   deposit it into lockedSOV vault contract, but first
 		// 	///   SOV deposit must be approved to move the SOV tokens
 		// 	///   from this LM contract into the lockedSOV vault.
 		// 	require(SOV.approve(address(lockedSOV), userAccumulatedReward), "Approve failed");
 		// 	lockedSOV.deposit(_userAddress, userAccumulatedReward, unlockedImmediatelyPercent);
-
 		// 	if (_isStakingTokens) {
 		// 		lockedSOV.withdrawAndStakeTokensFrom(_userAddress);
 		// 	}
-
 		// 	/// @dev Event log.
 		// 	emit RewardClaimed(_userAddress, _poolToken, userAccumulatedReward);
 		// } else {
@@ -671,26 +754,30 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		PoolInfo storage pool = poolInfoList[poolId];
 		UserInfo storage user = userInfoMap[poolId][msg.sender];
 
-		_updatePool(poolId);
-		_updateReward(pool, user);
-
-		// substract user balance from total balance for each reward token
 		uint256 rewardTokensLength = pool.rewardTokens.length;
 		for (uint256 i = 0; i < rewardTokensLength; i++) {
+			address rewardTokenAddress = pool.rewardTokens[i];
+			_updatePoolRewardToken(pool, poolId, rewardTokenAddress);
+			_updateReward(poolId, rewardTokenAddress, user);
+			// substract user balance from total balance for each reward token
+			UserReward storage userReward = user.rewards[pool.rewardTokens[i]];
+			uint256 accumulatedReward = userReward.accumulatedReward;
 			RewardToken storage rewardToken = rewardTokensMap[pool.rewardTokens[i]];
-			rewardToken.totalUsersBalance = rewardToken.totalUsersBalance.sub(user.rewards[pool.rewardTokens[i]].accumulatedReward);
+			rewardToken.totalUsersBalance = rewardToken.totalUsersBalance.sub(accumulatedReward);
+			emit EmergencyWithdraw(msg.sender, _poolToken, rewardTokenAddress, user.amount, accumulatedReward);
+
+			userReward.rewardDebt = 0;
+			userReward.accumulatedReward = 0;
 		}
 
 		uint256 userAmount = user.amount;
-		uint256 userAccumulatedReward = user.accumulatedReward;
 		user.amount = 0;
-		user.rewardDebt = 0;
-		user.accumulatedReward = 0;
 		pool.poolToken.safeTransfer(address(msg.sender), userAmount);
 
-		_updateRewardDebt(pool, user);
-
-		emit EmergencyWithdraw(msg.sender, _poolToken, userAmount, userAccumulatedReward);
+		for (uint256 i = 0; i < rewardTokensLength; i++) {
+			address rewardTokenAddress = pool.rewardTokens[i];
+			_updateRewardDebt(poolId, pool, rewardTokenAddress, user);
+		}
 	}
 
 	/**
@@ -731,54 +818,58 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	}
 
 	/**
-	 * @notice returns list of [amount, accumulatedReward] for the given user for each pool token
+	 * @notice returns list of [amount, rewardToken, accumulatedReward] for the given user for each pool token
 	 * @param _user the address of the user
 	 */
-	function getUserBalanceList(address _user) external view returns (uint256[2][] memory) {
-		uint256 length = poolInfoList.length;
-		uint256[2][] memory userBalanceList = new uint256[2][](length);
-		for (uint256 i = 0; i < length; i++) {
-			userBalanceList[i][0] = userInfoMap[i][_user].amount;
-			userBalanceList[i][1] = _getUserAccumulatedReward(i, _user);
-		}
-		return userBalanceList;
-	}
+	// FIXME: This function API is not right
+	// function getUserBalanceList(address _user) external view returns (uint256[2][] memory) {
+	// 	uint256 length = poolInfoList.length;
+	// 	uint256[2][] memory userBalanceList = new uint256[2][](length);
+	// 	for (uint256 i = 0; i < length; i++) {
+	// 		userBalanceList[i][0] = userInfoMap[i][_user].amount;
+	// 		userBalanceList[i][1] = _getUserAccumulatedReward(i, _user);
+	// 	}
+	// 	return userBalanceList;
+	// }
 
 	/**
 	 * @notice returns UserInfo for the given pool and user
 	 * @param _poolToken the address of pool token
 	 * @param _user the address of the user
 	 */
-	function getUserInfo(address _poolToken, address _user) public view returns (UserInfo memory) {
-		uint256 poolId = _getPoolId(_poolToken);
-		return userInfoMap[poolId][_user];
-	}
+	// FIXME: We cannot return UserInfo anymore
+	// function getUserInfo(address _poolToken, address _user) public view returns (UserInfo memory) {
+	//	uint256 poolId = _getPoolId(_poolToken);
+	//	return userInfoMap[poolId][_user];
+	// }
 
 	/**
 	 * @notice returns list of UserInfo for the given user for each pool token
 	 * @param _user the address of the user
 	 */
-	function getUserInfoList(address _user) external view returns (UserInfo[] memory) {
-		uint256 length = poolInfoList.length;
-		UserInfo[] memory userInfoList = new UserInfo[](length);
-		for (uint256 i = 0; i < length; i++) {
-			userInfoList[i] = userInfoMap[i][_user];
-		}
-		return userInfoList;
-	}
+	// FIXME: This function API is not right
+	//function getUserInfoList(address _user) external view returns (UserInfo[] memory) {
+	//	uint256 length = poolInfoList.length;
+	//	UserInfo[] memory userInfoList = new UserInfo[](length);
+	//	for (uint256 i = 0; i < length; i++) {
+	//		userInfoList[i] = userInfoMap[i][_user];
+	//	}
+	//	return userInfoList;
+	//}
 
 	/**
 	 * @notice returns accumulated reward for the given user for each pool token
 	 * @param _user the address of the user
 	 */
-	function getUserAccumulatedRewardList(address _user) external view returns (uint256[] memory) {
-		uint256 length = poolInfoList.length;
-		uint256[] memory rewardList = new uint256[](length);
-		for (uint256 i = 0; i < length; i++) {
-			rewardList[i] = _getUserAccumulatedReward(i, _user);
-		}
-		return rewardList;
-	}
+	// FIXME: This function API is not right
+	// function getUserAccumulatedRewardList(address _user) external view returns (uint256[] memory) {
+	// 	uint256 length = poolInfoList.length;
+	// 	uint256[] memory rewardList = new uint256[](length);
+	// 	for (uint256 i = 0; i < length; i++) {
+	// 		rewardList[i] = _getUserAccumulatedReward(i, _user);
+	// 	}
+	// 	return rewardList;
+	// }
 
 	/**
 	 * @notice returns the pool token balance a user has on the contract
@@ -786,7 +877,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 * @param _user the address of the user
 	 */
 	function getUserPoolTokenBalance(address _poolToken, address _user) external view returns (uint256) {
-		UserInfo memory ui = getUserInfo(_poolToken, _user);
-		return ui.amount;
+		uint256 poolId = _getPoolId(_poolToken);
+		return userInfoMap[poolId][_user].amount;
 	}
 }
