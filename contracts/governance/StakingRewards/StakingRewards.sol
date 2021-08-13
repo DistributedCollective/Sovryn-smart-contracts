@@ -148,16 +148,18 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
 		uint256 currentTS = block.timestamp;
 		uint256 addedMaxDuration;
-		address staker = msg.sender;
+		uint256 duration;
 		uint256 referenceBlock;
+		address staker = msg.sender;
 
 		uint256 lastStakingInterval = staking.timestampToLockDate(currentTS);
 		lastWithdrawalInterval = withdrawals[staker] > 0 ? withdrawals[staker] : startTime;
 		if (lastStakingInterval < lastWithdrawalInterval) return (0, 0);
 
-		if (considerMaxDuration) addedMaxDuration = lastWithdrawalInterval.add(maxDuration);
-		uint256 duration =
-			considerMaxDuration && (addedMaxDuration < currentTS) ? staking.timestampToLockDate(addedMaxDuration) : lastStakingInterval;
+		if (considerMaxDuration) {
+		    addedMaxDuration = lastWithdrawalInterval.add(maxDuration);
+		    duration = addedMaxDuration < currentTS ? staking.timestampToLockDate(addedMaxDuration) : lastStakingInterval;
+		}
 
 		for (uint256 i = lastWithdrawalInterval; i < duration; i += TWO_WEEKS) {
 			referenceBlock = lastFinalisedBlock.sub(((currentTS.sub(i)).div(30)));
