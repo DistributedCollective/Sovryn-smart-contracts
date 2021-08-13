@@ -24,15 +24,15 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	/* Events */
 
 	event RewardTransferred(address indexed rewardToken, address indexed receiver, uint256 amount);
-	event PoolTokenAdded(address indexed user, address indexed poolToken, address[] rewardTokends, uint96[] allocationPoints);
+	event PoolTokenAdded(address indexed user, address indexed poolToken, address[] rewardTokens, uint96[] allocationPoints);
 	event PoolTokenUpdated(
 		address indexed user,
 		address indexed poolToken,
 		address rewardTokends,
-		uint256 newAllocationPoint,
-		uint256 oldAllocationPoint
+		uint96 newAllocationPoint,
+		uint96 oldAllocationPoint
 	);
-	event PoolTokenAssociation(address indexed user, uint256 indexed poolId, address indexed rewardToken, uint256 allocationPoint);
+	event PoolTokenAssociation(address indexed user, uint256 indexed poolId, address indexed rewardToken, uint96 allocationPoint);
 	event Deposit(address indexed user, address indexed poolToken, uint256 amount);
 	event RewardClaimed(address indexed user, address indexed poolToken, uint256 amount);
 	event Withdraw(address indexed user, address indexed poolToken, uint256 amount);
@@ -88,7 +88,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	) external onlyAuthorized {
 		/// @dev Non-idempotent function. Must be called just once.
 		RewardToken storage rewardToken = rewardTokensMap[_rewardToken];
-		require(rewardToken.startBlock != 0, "Already added");
+		require(rewardToken.startBlock == 0, "Already added");
 		require(address(_rewardToken) != address(0), "Invalid token address");
 		require(_startDelayBlocks > 0, "Invalid start block");
 
@@ -201,6 +201,12 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		require(_poolToken != address(0), "Invalid token address");
 		require(poolIdList[_poolToken] == 0, "Token already added");
 
+		// TODO: require all rewards are added as valid reward token
+		uint256 pointsLength = _allocationPoints.length;
+		for (uint256 i = 0; i < pointsLength; i ++) {
+			require(_allocationPoints[i] > 0, "Invalid allocation point");
+		}
+
 		// FIXME: Think about this
 		// if (_withUpdate) {
 		// 	updateAllPools();
@@ -225,8 +231,8 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	) internal {
 		uint256 poolId = _getPoolId(_poolToken);
 		// Pool checks
-		require(poolId != 0, "Invalid pool id");
-		require(poolId <= poolInfoList.length, "Pool id doesn't exist");
+		require(poolId >= 0, "Invalid pool id");
+		require(poolId < poolInfoList.length, "Pool id doesn't exist");
 
 		// Reward token checks
 		RewardToken storage rewardToken = rewardTokensMap[_rewardToken];
@@ -238,7 +244,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		require(poolInfoRewardTokensMap[poolId][_rewardToken].allocationPoint == 0, "Already associated");
 
 		uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
-		rewardToken.totalAllocationPoint.add(_allocationPoint);
+		rewardToken.totalAllocationPoint = rewardToken.totalAllocationPoint.add(_allocationPoint);
 
 		poolInfoRewardTokensMap[poolId][_rewardToken] = PoolInfoRewardToken({
 			allocationPoint: _allocationPoint,
@@ -281,7 +287,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		RewardToken storage rewardToken = rewardTokensMap[_rewardToken];
 		PoolInfoRewardToken storage poolInfoRewardToken = poolInfoRewardTokensMap[poolId][_rewardToken];
 
-		uint256 previousAllocationPoint = poolInfoRewardToken.allocationPoint;
+		uint96 previousAllocationPoint = poolInfoRewardToken.allocationPoint;
 		rewardToken.totalAllocationPoint = rewardToken.totalAllocationPoint.sub(previousAllocationPoint).add(_allocationPoint);
 		poolInfoRewardToken.allocationPoint = _allocationPoint;
 
@@ -778,6 +784,35 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 			address rewardTokenAddress = pool.rewardTokens[i];
 			_updateRewardDebt(poolId, pool, rewardTokenAddress, user);
 		}
+	}
+
+	function getRewardToken(address _rewardToken) external view returns (RewardToken memory) {
+		return rewardTokensMap[_rewardToken];
+	}
+
+	/**
+	 * @notice returns a list of PoolInfoRewardToken for the given pool
+	 * @param _poolToken the address of pool token
+	 */
+	function getPoolRewards(address _poolToken) external view returns (PoolInfoRewardToken[] memory) {
+		uint256 poolId = _getPoolId(_poolToken);
+		PoolInfo memory poolInfo = poolInfoList[poolId];
+		uint256 rewardsLength = poolInfo.rewardTokens.length;
+		PoolInfoRewardToken[] memory rewards = new PoolInfoRewardToken[](rewardsLength);
+		for (uint256 i = 0; i < rewardsLength; i++) {
+			rewards[i] = poolInfoRewardTokensMap[poolId][poolInfo.rewardTokens[i]];
+		}
+		return rewards;
+	}
+
+	/**
+	 * @notice returns a PoolInfoRewardToken for the given pool and reward token
+	 * @param _poolToken the address of pool token
+	 * @param _rewardToken the address of reward token
+	 */
+	function getPoolReward(address _poolToken, address _rewardToken) external view returns (PoolInfoRewardToken memory) {
+		uint256 poolId = _getPoolId(_poolToken);
+		return poolInfoRewardTokensMap[poolId][_rewardToken];
 	}
 
 	/**
