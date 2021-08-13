@@ -11,7 +11,7 @@ contract MockLoanTokenLogic is LoanTokenLogicLM {
 		return affiliatesUserReferrer[user]; // REFACTOR: will be useful if affiliatesUserReferrer visibillity is not public
 	}*/
 
-	function getListFunctionSignatures() external pure returns (bytes4[] memory) {
+	function getListFunctionSignatures() external pure returns (bytes4[] memory functionSignatures, bytes32 moduleName) {
 		bytes4[] memory res = new bytes4[](37);
 
 		// Loan Token Logic Standard
@@ -68,7 +68,7 @@ contract MockLoanTokenLogic is LoanTokenLogicLM {
 		// Loan Token Logic Storage Additional Variable
 		res[36] = bytes4(keccak256("liquidityMiningAddress()"));
 
-		return res;
+		return (res, stringToBytes32("MockLoanTokenLogic"));
 	}
 
 	function setAffiliatesReferrer(address user, address referrer) public {
