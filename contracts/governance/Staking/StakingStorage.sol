@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 import "../IFeeSharingProxy.sol";
+import "../Vesting/VestingRegistryLogic.sol";
 
 /**
  * @title Staking Storage contact.
@@ -124,4 +125,7 @@ contract StakingStorage is Ownable {
 
 	/// @dev vesting contract code hash => flag whether it's registered code hash
 	mapping(bytes32 => bool) public vestingCodeHashes;
+
+	///@notice the vesting registry contract
+	VestingRegistryLogic public vestingRegistryLogic;
 }

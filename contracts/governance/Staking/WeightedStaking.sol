@@ -25,6 +25,15 @@ contract WeightedStaking is Checkpoints {
 		_;
 	}
 
+	/**
+	 * @notice sets vesting registry
+	 * @param _vestingRegistryProxy the address of vesting registry proxy contract
+	 */
+	function setVestingRegistry(address _vestingRegistryProxy) external onlyOwner {
+		require(_vestingRegistryProxy != address(0), "vesting registry address invalid");
+		vestingRegistryLogic = VestingRegistryLogic(_vestingRegistryProxy);
+	}
+
 	/************* TOTAL VOTING POWER COMPUTATION ************************/
 
 	/**
@@ -405,43 +414,9 @@ contract WeightedStaking is Checkpoints {
 	}
 
 	/**
-	 * @notice Add vesting contract's code hash to a map of code hashes.
-	 * @param vesting The address of Vesting contract.
-	 * @dev We need it to use _isVestingContract() function instead of isContract()
-	 */
-	function addContractCodeHash(address vesting) public onlyAuthorized {
-		bytes32 codeHash = _getCodeHash(vesting);
-		vestingCodeHashes[codeHash] = true;
-		emit ContractCodeHashAdded(codeHash);
-	}
-
-	/**
-	 * @notice Add vesting contract's code hash to a map of code hashes.
-	 * @param vesting The address of Vesting contract.
-	 * @dev We need it to use _isVestingContract() function instead of isContract()
-	 */
-	function removeContractCodeHash(address vesting) public onlyAuthorized {
-		bytes32 codeHash = _getCodeHash(vesting);
-		vestingCodeHashes[codeHash] = false;
-		emit ContractCodeHashRemoved(codeHash);
-	}
-
-	/**
 	 * @notice Return flag whether message sender is a registered vesting contract.
 	 */
 	function _isVestingContract() internal view returns (bool) {
-		bytes32 codeHash = _getCodeHash(msg.sender);
-		return vestingCodeHashes[codeHash];
-	}
-
-	/**
-	 * @notice Return hash of contract code
-	 */
-	function _getCodeHash(address _contract) internal view returns (bytes32) {
-		bytes32 codeHash;
-		assembly {
-			codeHash := extcodehash(_contract)
-		}
-		return codeHash;
+		return vestingRegistryLogic.isVestingAdress(msg.sender);
 	}
 }

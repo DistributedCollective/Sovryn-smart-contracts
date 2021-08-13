@@ -10,6 +10,9 @@ const StakingRewards = artifacts.require("StakingRewards");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 const Protocol = artifacts.require("sovrynProtocol");
+//Upgradable Vesting Registry
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
@@ -39,6 +42,14 @@ contract("StakingRewards", (accounts) => {
 		staking = await StakingProxy.new(SOV.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address); //Test - 01/07/2021
+
+		//Upgradable Vesting Registry
+		vestingRegistryLogic = await VestingRegistryLogic.new();
+		vesting = await VestingRegistryProxy.new();
+		await vesting.setImplementation(vestingRegistryLogic.address);
+		vesting = await VestingRegistryLogic.at(vesting.address);
+
+		await staking.setVestingRegistry(vesting.address);
 
 		kickoffTS = await staking.kickoffTS.call();
 		inOneWeek = kickoffTS.add(new BN(DELAY));

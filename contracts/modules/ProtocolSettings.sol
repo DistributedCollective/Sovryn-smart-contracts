@@ -81,6 +81,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		_setTarget(this.getLockedSOVAddress.selector, target);
 		_setTarget(this.getFeeRebatePercent.selector, target);
 		_setTarget(this.togglePaused.selector, target);
+		_setTarget(this.isProtocolPaused.selector, target);
 		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "ProtocolSettings");
 	}
 
@@ -645,5 +646,9 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		require(paused != pause, "Can't toggle");
 		pause = paused;
 		emit TogglePaused(msg.sender, !paused, paused);
+	}
+
+	function isProtocolPaused() external view returns (bool) {
+		return pause;
 	}
 }
