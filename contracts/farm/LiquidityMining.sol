@@ -817,59 +817,96 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		return poolInfoList[poolId];
 	}
 
+	struct UserBalance {
+		uint256 amount;
+		address rewardToken;
+		uint256 accumulatedReward;
+	}
+
 	/**
-	 * @notice returns list of [amount, rewardToken, accumulatedReward] for the given user for each pool token
+	 * @notice returns list of [amount, rewardToken, accumulatedReward] for the given user for each pool token and reward token
 	 * @param _user the address of the user
 	 */
-	// FIXME: This function API is not right
-	// function getUserBalanceList(address _user) external view returns (uint256[2][] memory) {
-	// 	uint256 length = poolInfoList.length;
-	// 	uint256[2][] memory userBalanceList = new uint256[2][](length);
-	// 	for (uint256 i = 0; i < length; i++) {
-	// 		userBalanceList[i][0] = userInfoMap[i][_user].amount;
-	// 		userBalanceList[i][1] = _getUserAccumulatedReward(i, _user);
-	// 	}
-	// 	return userBalanceList;
-	// }
+	function getUserBalanceList(address _user) external view returns (UserBalance[][] memory) {
+		uint256 length = poolInfoList.length;
+		UserBalance[][] memory userBalanceList = new UserBalance[][](length);
+		for (uint256 i = 0; i < length; i++) {
+			PoolInfo memory poolInfo = poolInfoList[i];
+			uint256 rewardLength = poolInfo.rewardTokens.length;
+			userBalanceList[i] = new UserBalance[](rewardLength);
+			for (uint256 j = 0; j < rewardLength; j++) {
+				address _rewardToken = poolInfo.rewardTokens[j];
+				userBalanceList[i][j].amount = userInfoMap[i][_user].amount;
+				userBalanceList[i][j].rewardToken = _rewardToken;
+				userBalanceList[i][j].accumulatedReward = _getUserAccumulatedReward(i,_rewardToken, _user);
+			}
+		}
+		return userBalanceList;
+	}
+
+	struct PoolUserInfo {
+		uint256 amount;
+		UserReward[] rewards;
+	}
 
 	/**
 	 * @notice returns UserInfo for the given pool and user
 	 * @param _poolToken the address of pool token
 	 * @param _user the address of the user
 	 */
-	// FIXME: We cannot return UserInfo anymore
-	// function getUserInfo(address _poolToken, address _user) public view returns (UserInfo memory) {
-	//	uint256 poolId = _getPoolId(_poolToken);
-	//	return userInfoMap[poolId][_user];
-	// }
+	function getUserInfo(address _poolToken, address _user) public view returns (PoolUserInfo memory) {
+		uint256 poolId = _getPoolId(_poolToken);
+		return _getPoolUserInfo(poolId,_user);
+	}
 
 	/**
 	 * @notice returns list of UserInfo for the given user for each pool token
 	 * @param _user the address of the user
 	 */
-	// FIXME: This function API is not right
-	//function getUserInfoList(address _user) external view returns (UserInfo[] memory) {
-	//	uint256 length = poolInfoList.length;
-	//	UserInfo[] memory userInfoList = new UserInfo[](length);
-	//	for (uint256 i = 0; i < length; i++) {
-	//		userInfoList[i] = userInfoMap[i][_user];
-	//	}
-	//	return userInfoList;
-	//}
+	function getUserInfoList(address _user) external view returns (PoolUserInfo[] memory) {
+		uint256 length = poolInfoList.length;
+		PoolUserInfo[] memory userInfoList = new PoolUserInfo[](length);
+		for (uint256 i = 0; i < length; i++) {
+			userInfoList[i] = _getPoolUserInfo(i, _user);
+		}
+		return userInfoList;
+	}
 
+	function _getPoolUserInfo(uint256 _poolId, address _user) internal view returns (PoolUserInfo memory) {
+		PoolInfo memory pool = poolInfoList[_poolId];
+		uint256 rewardsLength = pool.rewardTokens.length;
+		UserInfo storage userInfo = userInfoMap[_poolId][_user];
+		PoolUserInfo memory poolUserInfo;
+		poolUserInfo.amount = userInfo.amount;
+		poolUserInfo.rewards = new UserReward[](rewardsLength);
+		for (uint256 i = 0; i < rewardsLength; i++) {
+			poolUserInfo.rewards[i] = userInfo.rewards[pool.rewardTokens[i]];
+		}
+		return poolUserInfo;
+	}
+
+	struct UserAccumulatedReward {
+		address rewardToken;
+		uint256 accumulatedReward;
+	}
 	/**
-	 * @notice returns accumulated reward for the given user for each pool token
+	 * @notice returns accumulated reward for the given user for each pool token and reward token
 	 * @param _user the address of the user
 	 */
-	// FIXME: This function API is not right
-	// function getUserAccumulatedRewardList(address _user) external view returns (uint256[] memory) {
-	// 	uint256 length = poolInfoList.length;
-	// 	uint256[] memory rewardList = new uint256[](length);
-	// 	for (uint256 i = 0; i < length; i++) {
-	// 		rewardList[i] = _getUserAccumulatedReward(i, _user);
-	// 	}
-	// 	return rewardList;
-	// }
+	function getUserAccumulatedRewardList(address _user) external view returns (UserAccumulatedReward[][] memory) {
+		uint256 length = poolInfoList.length;
+		UserAccumulatedReward[][] memory rewardList = new UserAccumulatedReward[][](length);
+		for (uint256 i = 0; i < length; i++) {
+			PoolInfo memory poolInfo = poolInfoList[i];
+			uint256 rewardsLength = poolInfo.rewardTokens.length;
+			rewardList[i] = new UserAccumulatedReward[](rewardsLength);
+			for (uint256 j = 0; j < rewardsLength; j++) {
+				rewardList[i][j].rewardToken = poolInfo.rewardTokens[j];
+				rewardList[i][j].accumulatedReward = _getUserAccumulatedReward(i, poolInfo.rewardTokens[j], _user);
+			}
+		}
+		return rewardList;
+	}
 
 	/**
 	 * @notice returns the pool token balance a user has on the contract
