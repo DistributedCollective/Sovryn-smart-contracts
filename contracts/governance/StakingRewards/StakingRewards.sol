@@ -159,6 +159,8 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		if (considerMaxDuration) {
 			addedMaxDuration = lastWithdrawalInterval.add(maxDuration);
 			duration = addedMaxDuration < currentTS ? staking.timestampToLockDate(addedMaxDuration) : lastStakingInterval;
+		}  else {
+		      duration = lastStakingInterval;
 		}
 
 		for (uint256 i = lastWithdrawalInterval; i < duration; i += TWO_WEEKS) {

@@ -27,7 +27,7 @@ contract("StakingRewards", (accounts) => {
 	let totalRewards;
 
 	before(async () => {
-		[root, a1, a2, a3, ...accounts] = accounts;
+		[root, a1, a2, a3, a4, ...accounts] = accounts;
 		SOV = await SOV_ABI.new(TOTAL_SUPPLY);
 
 		//Protocol
@@ -60,9 +60,14 @@ contract("StakingRewards", (accounts) => {
 		await SOV.transfer(a3, wei("10000", "ether"));
 		await SOV.approve(staking.address, wei("10000", "ether"), { from: a3 });
 
+		//Transferred SOVs to a4
+		await SOV.transfer(a4, wei("10000", "ether"));
+		await SOV.approve(staking.address, wei("10000", "ether"), { from: a4 });
+
 		await staking.stake(wei("1000", "ether"), inOneYear, a1, a1, { from: a1 }); //Test - 15/07/2021
 		await staking.stake(wei("1000", "ether"), inTwoYears, a2, a2, { from: a2 }); //Test - 15/07/2021
 		await staking.stake(wei("1000", "ether"), inThreeYears, a3, a3, { from: a3 });
+		await staking.stake(wei("1000", "ether"), inThreeYears, a4, a4, { from: a4 });
 
 		let latest = await blockNumber();
 		let blockNum = new BN(latest).add(new BN(1296000 / 30));
@@ -99,6 +104,8 @@ contract("StakingRewards", (accounts) => {
 			await increaseTimeAndBlocks(1296000);
 
 			let fields = await stakingRewards.getStakerCurrentReward(true, { from: a1 });
+			let fieldsTotal = await stakingRewards.getStakerCurrentReward(false, { from: a1 }); //For entire duration
+			expect(fieldsTotal.amount).to.be.bignumber.equal(fields.amount);
 			let numOfIntervals = 1;
 			let fullTermAvg = avgWeight(26, 27, 9, 78);
 			let expectedAmount = numOfIntervals * ((1000 * round(fullTermAvg, 4)) / 26);
@@ -169,6 +176,12 @@ contract("StakingRewards", (accounts) => {
 			expect(rewards).to.be.bignumber.equal(fields.amount);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
+		});
+
+		it("should consider max duration", async () => {
+			const fields = await stakingRewards.getStakerCurrentReward(true, { from: a4 });
+			const fieldsTotal = await stakingRewards.getStakerCurrentReward(false, { from: a4 });
+			expect(fieldsTotal.amount).to.be.bignumber.greaterThan(fields.amount);
 		});
 
 		it("should continue getting rewards for the staking period even after the program stops", async () => {
