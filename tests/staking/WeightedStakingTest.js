@@ -132,6 +132,7 @@ contract("WeightedStaking", (accounts) => {
 		});
 
 		it("returns the correct checkpoint for vested stakes", async() => {
+			//TODO: unfinished
 			let result = await staking.stake("100", inOneWeek, a1, a3, { from: a2 });
 			await expect((await staking.balanceOf(a1)).toString()).to.be.equal("100");
 			let checkpoint = await staking.totalStakingCheckpoints(inOneWeek, 0);
