@@ -263,15 +263,23 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 */
 	function update(
 		address _poolToken,
-		address[] calldata _rewardTokens,
-		uint96[] calldata _allocationPoints,
+		address[] memory _rewardTokens,
+		uint96[] memory _allocationPoints,
 		bool _updateAllFlag
-	) external onlyAuthorized {
+	) public onlyAuthorized {
 		if (_updateAllFlag) {
 			updateAllPools();
 		} else {
 			updatePool(_poolToken);
 		}
+		_updateTokens(_poolToken, _rewardTokens, _allocationPoints);
+	}
+
+	function _updateTokens(
+		address _poolToken,
+		address[] memory _rewardTokens,
+		uint96[] memory _allocationPoints
+	) internal {
 		for (uint256 i = 0; i < _rewardTokens.length; i++) {
 			_updateToken(_poolToken, _rewardTokens[i], _allocationPoints[i]);
 		}
@@ -293,7 +301,6 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		emit PoolTokenUpdated(msg.sender, _poolToken, _rewardToken, _allocationPoint, previousAllocationPoint);
 	}
 
-	// FIXME: this one will be hard to follow if we add more parameters like `_rewardTokens: address[][]` or `_allocationPoints: uint96[][]`
 	/**
 	 * @notice updates the given pools' reward tokens allocation points
 	 * @param _poolTokens array of addresses of pool tokens
@@ -302,20 +309,20 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 */
 	function updateTokens(
 		address[] calldata _poolTokens,
-		uint96[] calldata _allocationPoints,
+		address[][] calldata _rewardTokens,
+		uint96[][] calldata _allocationPoints,
 		bool _updateAllFlag
 	) external onlyAuthorized {
 		require(_poolTokens.length == _allocationPoints.length, "Arrays mismatch");
-
+		require(_poolTokens.length == _rewardTokens.length, "Arrays mismatch");
+		
 		if (_updateAllFlag) {
 			updateAllPools();
 		}
 		uint256 length = _poolTokens.length;
 		for (uint256 i = 0; i < length; i++) {
-			if (!_updateAllFlag) {
-				updatePool(_poolTokens[i]);
-			}
-			//TODO:  _updateToken(_poolTokens[i], _allocationPoints[i]);
+			require(_allocationPoints[i].length == _rewardTokens[i].length, "Arrays mismatch");
+			_updateTokens(_poolTokens[i], _rewardTokens[i], _allocationPoints[i]);
 		}
 	}
 
