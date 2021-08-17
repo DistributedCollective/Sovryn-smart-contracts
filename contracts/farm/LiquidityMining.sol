@@ -34,7 +34,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	);
 	event PoolTokenAssociation(address indexed user, uint256 indexed poolId, address indexed rewardToken, uint96 allocationPoint);
 	event Deposit(address indexed user, address indexed poolToken, uint256 amount);
-	event RewardClaimed(address indexed user, address indexed poolToken, uint256 amount);
+	event RewardClaimed(address indexed user, address indexed poolToken, address indexed rewardToken, uint256 amount);
 	event Withdraw(address indexed user, address indexed poolToken, uint256 amount);
 	event EmergencyWithdraw(
 		address indexed user,
@@ -732,27 +732,36 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		bool _isStakingTokens,
 		bool _isCheckingBalance
 	) internal {
-		//uint256 userAccumulatedReward = _user.accumulatedReward;
-		// TODO: review how rewards will be send to the user
-		// /// @dev Transfer if enough SOV balance on this LM contract.
-		// uint256 balance = SOV.balanceOf(address(this));
-		// if (balance >= userAccumulatedReward) {
-		// 	totalUsersBalance = totalUsersBalance.sub(userAccumulatedReward);
-		// 	_user.accumulatedReward = 0;
-		// 	/// @dev Instead of transferring the reward to the LP (user),
-		// 	///   deposit it into lockedSOV vault contract, but first
-		// 	///   SOV deposit must be approved to move the SOV tokens
-		// 	///   from this LM contract into the lockedSOV vault.
-		// 	require(SOV.approve(address(lockedSOV), userAccumulatedReward), "Approve failed");
-		// 	lockedSOV.deposit(_userAddress, userAccumulatedReward, unlockedImmediatelyPercent);
-		// 	if (_isStakingTokens) {
-		// 		lockedSOV.withdrawAndStakeTokensFrom(_userAddress);
-		// 	}
-		// 	/// @dev Event log.
-		// 	emit RewardClaimed(_userAddress, _poolToken, userAccumulatedReward);
-		// } else {
-		// 	require(!_isCheckingBalance, "Claiming reward failed");
-		// }
+		/// @dev Transfer if enough SOV balance on this LM contract.
+		uint256 poolId = _getPoolId(_poolToken);
+		PoolInfo storage pool = poolInfoList[poolId];
+		uint256 rewardTokensLength = pool.rewardTokens.length;
+		for (uint256 i = 0; i < rewardTokensLength; i++) {
+			UserReward storage userReward = userInfoMap[poolId][_userAddress].rewards[pool.rewardTokens[i]];
+			uint256 userAccumulatedReward = userReward.accumulatedReward;
+			
+			IERC20 rewardTokenAddress = IERC20(pool.rewardTokens[i]);
+			uint256 balance = rewardTokenAddress.balanceOf(address(this));
+
+			RewardToken storage rewardToken = rewardTokensMap[pool.rewardTokens[i]];
+			if (balance >= userAccumulatedReward) {
+				rewardToken.totalUsersBalance = rewardToken.totalUsersBalance.sub(userAccumulatedReward);
+				userReward.accumulatedReward = 0;
+				// /// @dev Instead of transferring the reward to the LP (user),
+				// ///   deposit it into lockedSOV vault contract, but first
+				// ///   SOV deposit must be approved to move the SOV tokens
+				// ///   from this LM contract into the lockedSOV vault.
+				// require(SOV.approve(address(lockedSOV), userAccumulatedReward), "Approve failed");
+				// lockedSOV.deposit(_userAddress, userAccumulatedReward, unlockedImmediatelyPercent);
+				// if (_isStakingTokens) {
+				// 	lockedSOV.withdrawAndStakeTokensFrom(_userAddress);
+				// }
+				// /// @dev Event log.
+				emit RewardClaimed(_userAddress, _poolToken, pool.rewardTokens[i], userAccumulatedReward);
+			} else {
+				require(!_isCheckingBalance, "Claiming reward failed");
+			}
+		}
 	}
 
 	/**
