@@ -600,16 +600,14 @@ describe("LiquidityMining", () => {
 			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 			let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
 			await SOVToken.transfer(liquidityMining.address, new BN(1000));
-			await liquidityMining.updatePool(token1.address);
-			console.log(await liquidityMining.getUserInfo(token1.address, account1));
-			console.log(await liquidityMining.getPoolReward(token1.address, SOVToken.address));
+
 			let tx = await liquidityMining.claimReward(token1.address, ZERO_ADDRESS, { from: account1 });
+			let latestBlockNumber = new BN(tx.receipt.blockNumber);
 			
 			const rewardToken = await liquidityMining.getRewardToken(SOVToken.address);
 			expect(rewardToken.totalUsersBalance).bignumber.equal(new BN(0));
 
 			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
-			let latestBlockNumber = new BN(tx.receipt.blockNumber);
 			const poolRewardToken = await liquidityMining.getPoolReward(token1.address, SOVToken.address);
 			checkPoolRewardInfo(poolInfo, token1.address, poolRewardToken, allocationPoint, latestBlockNumber, new BN(-1));
 

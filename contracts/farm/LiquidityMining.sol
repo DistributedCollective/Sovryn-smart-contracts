@@ -460,7 +460,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 
 		rewardToken.totalUsersBalance = rewardToken.totalUsersBalance.add(accumulatedReward_);
 	}
-
+	
 	function _getPoolAccumulatedReward(
 		PoolInfo storage _pool,
 		PoolInfoRewardToken storage _poolRewardToken,
@@ -476,7 +476,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		PoolInfoRewardToken storage _poolRewardToken,
 		uint256 _endBlock
 	) internal view returns (uint256, uint256) {
-		return _getPoolAccumulatedReward(_pool, _additionalAmount, _rewardToken, _poolRewardToken, _rewardToken.startBlock, _endBlock);
+		return _getPoolAccumulatedReward(_pool, _additionalAmount, _rewardToken, _poolRewardToken, _poolRewardToken.lastRewardBlock, _endBlock);
 	}
 
 	function _getPoolAccumulatedReward(
