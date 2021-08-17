@@ -348,13 +348,14 @@ describe("LiquidityMining", () => {
 			expect(poolReward.accumulatedRewardPerShare).bignumber.equal(new BN(0));
 
 			expect(await liquidityMining.getPoolLength()).bignumber.equal(new BN(1));
-
+			
 			expectEvent(tx, "PoolTokenAdded", {
 				user: root,
 				poolToken: token1.address,
 				rewardTokens: [SOVToken.address],
-				allocationPoints: [allocationPoint]
+				// allocationPoints: [allocationPoint]
 			});
+			expect(tx.logs[1].args.allocationPoints[0]).bignumber.equal(allocationPoint);
 		});
 
 		it("should be able to add 2 pool tokens and update pools", async () => {
@@ -368,8 +369,8 @@ describe("LiquidityMining", () => {
 				user: root,
 				poolToken: token1.address,
 				rewardTokens: [SOVToken.address],
-				allocationPoints: [allocationPoint1],
 			});
+			expect(tx1.logs[1].args.allocationPoints[0]).bignumber.equal(allocationPoint1);
 
 			let allocationPoint2 = new BN(2);
 			let tx2 = await liquidityMining.add(token2.address, [SOVToken.address], [allocationPoint2], true);
@@ -381,8 +382,8 @@ describe("LiquidityMining", () => {
 				user: root,
 				poolToken: token2.address,
 				rewardTokens: [SOVToken.address],
-				allocationPoint: [allocationPoint2],
 			});
+			expect(tx2.logs[1].args.allocationPoints[0]).bignumber.equal(allocationPoint2);
 
 			let poolRewardInfo1 = await liquidityMining.getPoolReward(token1.address, SOVToken.address);
 			let poolRewardInfo2 = await liquidityMining.getPoolReward(token2.address, SOVToken.address);
@@ -410,57 +411,61 @@ describe("LiquidityMining", () => {
 		});
 	});
 
-	// describe("update", () => {
-	// 	it("should be able to update pool token", async () => {
-	// 		let oldAllocationPoint = new BN(1);
-	// 		await liquidityMining.add(token1.address, oldAllocationPoint, false);
+	describe("update", () => {
+		it("should be able to update pool token", async () => {
+			let oldAllocationPoint = new BN(1);
+			await liquidityMining.add(token1.address, [SOVToken.address], [oldAllocationPoint], false);
 
-	// 		let newAllocationPoint = new BN(2);
-	// 		let tx = await liquidityMining.update(token1.address, newAllocationPoint, false);
+			let newAllocationPoint = new BN(2);
+			let tx = await liquidityMining.update(token1.address, [SOVToken.address], [newAllocationPoint], false);
 
-	// 		expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(newAllocationPoint);
+			let rewardToken = await liquidityMining.getRewardToken(SOVToken.address);
+			expect(rewardToken.totalAllocationPoint).bignumber.equal(newAllocationPoint);
+			
+			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+			let blockNumber = new BN(tx.receipt.blockNumber);
+			const poolRewardToken = await liquidityMining.getPoolReward(token1.address, SOVToken.address);
+			checkPoolRewardInfo(poolInfo, token1.address, poolRewardToken, newAllocationPoint, blockNumber, new BN(0));
 
-	// 		let poolInfo = await liquidityMining.getPoolInfo(token1.address);
-	// 		let blockNumber = new BN(tx.receipt.blockNumber);
-	// 		checkPoolInfo(poolInfo, token1.address, newAllocationPoint, blockNumber, new BN(0));
+			expect(await liquidityMining.getPoolLength()).bignumber.equal(new BN(1));
 
-	// 		expect(await liquidityMining.getPoolLength()).bignumber.equal(new BN(1));
+			expectEvent(tx, "PoolTokenUpdated", {
+				user: root,
+				poolToken: token1.address,
+				rewardToken: SOVToken.address,
+				newAllocationPoint: newAllocationPoint,
+				oldAllocationPoint: oldAllocationPoint,
+			});
+		});
 
-	// 		expectEvent(tx, "PoolTokenUpdated", {
-	// 			user: root,
-	// 			poolToken: token1.address,
-	// 			newAllocationPoint: newAllocationPoint,
-	// 			oldAllocationPoint: oldAllocationPoint,
-	// 		});
-	// 	});
+		it("should be able to update pool token and update pools", async () => {
+			let oldAllocationPoint = new BN(1);
+			await liquidityMining.add(token1.address, [SOVToken.address], [oldAllocationPoint], false);
 
-	// 	it("should be able to update pool token and update pools", async () => {
-	// 		let oldAllocationPoint = new BN(1);
-	// 		await liquidityMining.add(token1.address, oldAllocationPoint, false);
+			await liquidityMining.add(token2.address, [SOVToken.address], [oldAllocationPoint], false);
 
-	// 		await liquidityMining.add(token2.address, oldAllocationPoint, false);
+			let newAllocationPoint = new BN(2);
+			let tx = await liquidityMining.update(token1.address, [SOVToken.address], [newAllocationPoint], true);
+			
+			const rewardToken = await liquidityMining.getRewardToken(SOVToken.address);
+			expect(rewardToken.totalAllocationPoint).bignumber.equal(oldAllocationPoint.add(newAllocationPoint));
 
-	// 		let newAllocationPoint = new BN(2);
-	// 		let tx = await liquidityMining.update(token1.address, newAllocationPoint, true);
+			const poolRewardToken = await liquidityMining.getPoolReward(token1.address, SOVToken.address);
+			expect(poolRewardToken.lastRewardBlock).bignumber.equal(new BN(tx.receipt.blockNumber));
+		});
 
-	// 		expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(oldAllocationPoint.add(newAllocationPoint));
+		it("fails if token wasn't added", async () => {
+			await expectRevert(liquidityMining.update(token1.address, [SOVToken.address], [new BN(1)], false), "Pool token not found");
+		});
 
-	// 		let poolInfo = await liquidityMining.getPoolInfo(token2.address);
-	// 		expect(poolInfo.lastRewardBlock).bignumber.equal(new BN(tx.receipt.blockNumber));
-	// 	});
+		it("only owner or admin should be able to update pool token", async () => {
+			await liquidityMining.add(token2.address, [SOVToken.address], [new BN(1)], false);
+			await expectRevert(liquidityMining.update(token2.address, [SOVToken.address], [new BN(1)], false, { from: account1 }), "unauthorized");
 
-	// 	it("fails if token wasn't added", async () => {
-	// 		await expectRevert(liquidityMining.update(token1.address, new BN(1), false), "Pool token not found");
-	// 	});
-
-	// 	it("only owner or admin should be able to update pool token", async () => {
-	// 		await liquidityMining.add(token2.address, new BN(1), false);
-	// 		await expectRevert(liquidityMining.update(token2.address, new BN(1), false, { from: account1 }), "unauthorized");
-
-	// 		await liquidityMining.addAdmin(account1);
-	// 		await liquidityMining.update(token2.address, new BN(1), false, { from: account1 });
-	// 	});
-	// });
+			await liquidityMining.addAdmin(account1);
+			await liquidityMining.update(token2.address, [SOVToken.address], [new BN(1)], false, { from: account1 });
+		});
+	});
 
 	// describe("updateTokens", () => {
 	// 	it("should be able to update 2 pool tokens", async () => {
@@ -1768,12 +1773,12 @@ describe("LiquidityMining", () => {
 		}
 	}
 
-	function checkPoolInfo(poolInfo, token, allocationPoint, lastRewardBlock, accumulatedRewardPerShare) {
+	function checkPoolRewardInfo(poolInfo, token, rewardToken, allocationPoint, lastRewardBlock, accumulatedRewardPerShare) {
 		expect(poolInfo.poolToken).equal(token);
-		expect(poolInfo.allocationPoint).bignumber.equal(allocationPoint);
-		expect(poolInfo.lastRewardBlock).bignumber.equal(lastRewardBlock);
+		expect(rewardToken.allocationPoint).bignumber.equal(allocationPoint);
+		expect(rewardToken.lastRewardBlock).bignumber.equal(lastRewardBlock);
 		if (accumulatedRewardPerShare.toNumber() !== -1) {
-			expect(poolInfo.accumulatedRewardPerShare).bignumber.equal(accumulatedRewardPerShare);
+			expect(rewardToken.accumulatedRewardPerShare).bignumber.equal(accumulatedRewardPerShare);
 		}
 	}
 

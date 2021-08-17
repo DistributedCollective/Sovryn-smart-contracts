@@ -28,7 +28,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	event PoolTokenUpdated(
 		address indexed user,
 		address indexed poolToken,
-		address rewardTokends,
+		address indexed rewardToken,
 		uint96 newAllocationPoint,
 		uint96 oldAllocationPoint
 	);
@@ -203,14 +203,13 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 
 		// TODO: require all rewards are added as valid reward token
 		uint256 pointsLength = _allocationPoints.length;
-		for (uint256 i = 0; i < pointsLength; i ++) {
+		for (uint256 i = 0; i < pointsLength; i++) {
 			require(_allocationPoints[i] > 0, "Invalid allocation point");
 		}
 
-		// FIXME: Think about this
-		// if (_withUpdate) {
-		// 	updateAllPools();
-		// }
+		if (_withUpdate) {
+			updateAllPools();
+		}
 
 		poolInfoList.push(PoolInfo({ poolToken: IERC20(_poolToken), rewardTokens: _rewardTokens }));
 		//indexing starts from 1 in order to check whether token was already added
@@ -390,15 +389,14 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		PoolInfo storage pool = poolInfoList[poolId];
 		uint256 start = block.number;
 		uint256 end = start.add(_duration.div(SECONDS_PER_BLOCK));
-		(, uint256 accumulatedRewardPerShare) =
-			_getPoolAccumulatedReward(
-				pool,
-				_amount,
-				rewardTokensMap[_rewardToken],
-				poolInfoRewardTokensMap[poolId][_rewardToken],
-				start,
-				end
-			);
+		(, uint256 accumulatedRewardPerShare) = _getPoolAccumulatedReward(
+			pool,
+			_amount,
+			rewardTokensMap[_rewardToken],
+			poolInfoRewardTokensMap[poolId][_rewardToken],
+			start,
+			end
+		);
 		return _amount.mul(accumulatedRewardPerShare).div(PRECISION);
 	}
 
@@ -483,10 +481,9 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		uint256 _endBlock
 	) internal view returns (uint256, uint256) {
 		uint256 passedBlocks = _getPassedBlocksWithBonusMultiplier(_rewardToken, _startBlock, _endBlock);
-		uint256 accumulatedReward =
-			passedBlocks.mul(_rewardToken.rewardTokensPerBlock).mul(_poolRewardToken.allocationPoint).div(
-				_rewardToken.totalAllocationPoint
-			);
+		uint256 accumulatedReward = passedBlocks.mul(_rewardToken.rewardTokensPerBlock).mul(_poolRewardToken.allocationPoint).div(
+			_rewardToken.totalAllocationPoint
+		);
 
 		uint256 poolTokenBalance = _pool.poolToken.balanceOf(address(this));
 		poolTokenBalance = poolTokenBalance.add(_additionalAmount);
@@ -693,10 +690,11 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		//update user accumulated reward
 		if (user.amount > 0) {
 			//add reward for the previous amount of deposited tokens
-			uint256 accumulatedReward =
-				user.amount.mul(poolInfoRewardTokensMap[_poolId][_rewardTokenAddress].accumulatedRewardPerShare).div(PRECISION).sub(
-					reward.rewardDebt
-				);
+			uint256 accumulatedReward = user
+				.amount
+				.mul(poolInfoRewardTokensMap[_poolId][_rewardTokenAddress].accumulatedRewardPerShare)
+				.div(PRECISION)
+				.sub(reward.rewardDebt);
 			reward.accumulatedReward = reward.accumulatedReward.add(accumulatedReward);
 		}
 	}
@@ -873,7 +871,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 				address _rewardToken = poolInfo.rewardTokens[j];
 				userBalanceList[i][j].amount = userInfoMap[i][_user].amount;
 				userBalanceList[i][j].rewardToken = _rewardToken;
-				userBalanceList[i][j].accumulatedReward = _getUserAccumulatedReward(i,_rewardToken, _user);
+				userBalanceList[i][j].accumulatedReward = _getUserAccumulatedReward(i, _rewardToken, _user);
 			}
 		}
 		return userBalanceList;
@@ -891,7 +889,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 */
 	function getUserInfo(address _poolToken, address _user) public view returns (PoolUserInfo memory) {
 		uint256 poolId = _getPoolId(_poolToken);
-		return _getPoolUserInfo(poolId,_user);
+		return _getPoolUserInfo(poolId, _user);
 	}
 
 	/**
@@ -924,6 +922,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		address rewardToken;
 		uint256 accumulatedReward;
 	}
+
 	/**
 	 * @notice returns accumulated reward for the given user for each pool token and reward token
 	 * @param _user the address of the user
