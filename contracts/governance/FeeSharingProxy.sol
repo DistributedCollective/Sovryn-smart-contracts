@@ -85,9 +85,6 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 		uint96 amount;
 	}
 
-	///@notice last checkpoint for which vesting contracts may withdraw their fees
-	mapping(address => uint32) public lastVestingCheckpoints;
-
 	/* Events */
 
 	/// @notice An event emitted when fee get withdrawn.
@@ -253,10 +250,14 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 		address _loanPoolToken,
 		uint32 _maxCheckpoints
 	) internal view returns (uint256, uint32) {
+		if(staking.isVestingContract(_user)){
+			return (0,0);
+		}
+
 		uint32 start = processedCheckpoints[_user][_loanPoolToken];
 		uint32 end;
 
-		end = _getEndOfRange(start, _loanPoolToken, _maxCheckpoints, staking.isVestingContract(_user));
+		end = _getEndOfRange(start, _loanPoolToken, _maxCheckpoints);
 
 		uint256 amount = 0;
 		uint256 cachedLockDate = 0;
@@ -288,13 +289,11 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 	 * @param start Start of the range.
 	 * @param _loanPoolToken Loan pool token address.
 	 * @param _maxCheckpoints Checkpoint index incremental.
-	 * @param isVestingContract true if the end of range is queried for a vesting contract. 
 	 * */
 	function _getEndOfRange(
 		uint32 start,
 		address _loanPoolToken,
-		uint32 _maxCheckpoints,
-		bool isVestingContract
+		uint32 _maxCheckpoints
 	) internal view returns (uint32) {
 		uint32 nCheckpoints = numTokenCheckpoints[_loanPoolToken];
 		uint32 end;
@@ -309,11 +308,6 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 			if (end > nCheckpoints) {
 				end = nCheckpoints;
 			}
-		}
-
-		/// @dev vesting contracts do not receive anymore after the last vesting checkpoint was set
-		if(isVestingContract && end > lastVestingCheckpoints[_loanPoolToken]){
-			end = lastVestingCheckpoints[_loanPoolToken];
 		}
 
 		/// @dev Withdrawal should only be possible for blocks which were already mined.
@@ -360,19 +354,6 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 		totalWeightedStake = sub96(totalWeightedStake, vestingWeightedStake, "FeeSharingProxy::_getTotalVoluntaryWeightedStake: vested stake exceeds total stake");
 	}
 
-	/**
-	* @notice remembers the current checkpoints as the last ones for which the vesting contracts receive a share of the fees
-	* @dev 	can only be set once. 
-	*		if lastVestingCheckpoints of a token is 0, no fees are being shared to allow for newly added tokens.
-	*		should be removed with the next update.
-	* @param tokens an array containing all tokens for which the checkpoints should be set
-	* */
-	function stopFeeSharingForVestingContracts(address[] memory tokens) public onlyOwner{
-		for(uint i = 0; i < tokens.length; i++){
-			if(lastVestingCheckpoints[tokens[i]] == 0)
-				lastVestingCheckpoints[tokens[i]] = numTokenCheckpoints[tokens[i]];
-		}
-	}
 }
 
 /* Interfaces */
