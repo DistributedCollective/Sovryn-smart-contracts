@@ -19,6 +19,8 @@ interface ILoanTokenModules {
 
 	event SetTransactionLimits(address[] addresses, uint256[] limits);
 
+	event ToggleFunctionPaused(string functionId, bool prevFlag, bool newFlag);
+
 	/** INTERFACE */
 
 	/** START LOAN TOKEN SETTINGS LOWER ADMIN */
