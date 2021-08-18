@@ -55,5 +55,4 @@ contract StakingMockup is Staking {
 	function getCodeHash(address _contract) public view returns (bytes32) {
 		return _getCodeHash(_contract);
 	}
-
 }

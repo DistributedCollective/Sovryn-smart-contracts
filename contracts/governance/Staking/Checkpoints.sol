@@ -44,10 +44,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	 * @param lockedTS The lock date.
 	 * @param value The value to add to the staked balance.
 	 * */
-	function _increaseVestingStake(
-		uint256 lockedTS,
-		uint96 value
-	) internal {
+	function _increaseVestingStake(uint256 lockedTS, uint96 value) internal {
 		uint32 nCheckpoints = numVestingCheckpoints[lockedTS];
 		uint96 vested = vestingCheckpoints[lockedTS][nCheckpoints - 1].stake;
 		uint96 newVest = add96(vested, value, "Staking::_increaseVestingStake: vested amount overflow");
@@ -59,10 +56,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	 * @param lockedTS The lock date.
 	 * @param value The value to substract to the staked balance.
 	 * */
-	function _decreaseVestingStake(
-		uint256 lockedTS,
-		uint96 value
-	) internal {
+	function _decreaseVestingStake(uint256 lockedTS, uint96 value) internal {
 		uint32 nCheckpoints = numVestingCheckpoints[lockedTS];
 		uint96 vested = vestingCheckpoints[lockedTS][nCheckpoints - 1].stake;
 		uint96 newVest = sub96(vested, value, "Staking::_decreaseVestingStake: vested amount underflow");

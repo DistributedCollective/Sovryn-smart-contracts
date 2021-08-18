@@ -35,10 +35,7 @@ interface IStaking {
 		uint256 date
 	) external view returns (uint96);
 
-	function getPriorVestingWeightedStake(
-		uint256 blockNumber,
-		uint256 date
-	) external view returns (uint96);
+	function getPriorVestingWeightedStake(uint256 blockNumber, uint256 date) external view returns (uint96);
 
 	function timestampToLockDate(uint256 timestamp) external view returns (uint256 lockDate);
 

@@ -512,13 +512,13 @@ contract("Staking", (accounts) => {
 			});
 		});
 
-		it("should update the vesting checkpoints if the stake is extended with a vesting contract", async() =>{
+		it("should update the vesting checkpoints if the stake is extended with a vesting contract", async () => {
 			//TODO
 			//increase for new date
 			//Decrease for old date
 			//increase of total
 			//just like the test abov but for staking
-			//have a look at the helper function in WeightedStakingTest for creating vesting contracts  
+			//have a look at the helper function in WeightedStakingTest for creating vesting contracts
 		});
 	});
 
@@ -915,8 +915,8 @@ contract("Staking", (accounts) => {
 		});
 
 		it("if withdrawing with a vesting contract, the vesting chckpoints need to be updated", async () => {
-			//TODO 
-		})
+			//TODO
+		});
 	});
 
 	describe("unlockAllTokens", () => {

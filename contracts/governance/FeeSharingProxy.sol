@@ -250,8 +250,8 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 		address _loanPoolToken,
 		uint32 _maxCheckpoints
 	) internal view returns (uint256, uint32) {
-		if(staking.isVestingContract(_user)){
-			return (0,0);
+		if (staking.isVestingContract(_user)) {
+			return (0, 0);
 		}
 
 		uint32 start = processedCheckpoints[_user][_loanPoolToken];
@@ -341,19 +341,19 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy, Ownable {
 	}
 
 	/**
-	* Queries the total weighted stake and the weighted stake of vesting contracts and returns the difference
-	* @param blockNumber the blocknumber
-	* @param timestamp the timestamp
-	*/
-	function _getVoluntaryWeightedStake(
-		uint32 blockNumber,
-		uint256 timestamp
-	) internal view returns (uint96 totalWeightedStake) {
+	 * Queries the total weighted stake and the weighted stake of vesting contracts and returns the difference
+	 * @param blockNumber the blocknumber
+	 * @param timestamp the timestamp
+	 */
+	function _getVoluntaryWeightedStake(uint32 blockNumber, uint256 timestamp) internal view returns (uint96 totalWeightedStake) {
 		uint96 vestingWeightedStake = staking.getPriorVestingWeightedStake(blockNumber, timestamp);
 		totalWeightedStake = staking.getPriorTotalVotingPower(blockNumber, timestamp);
-		totalWeightedStake = sub96(totalWeightedStake, vestingWeightedStake, "FeeSharingProxy::_getTotalVoluntaryWeightedStake: vested stake exceeds total stake");
+		totalWeightedStake = sub96(
+			totalWeightedStake,
+			vestingWeightedStake,
+			"FeeSharingProxy::_getTotalVoluntaryWeightedStake: vested stake exceeds total stake"
+		);
 	}
-
 }
 
 /* Interfaces */

@@ -659,7 +659,6 @@ contract("FeeSharingProxy:", (accounts) => {
 		it("vested stakes should be deducted from total weighted stake on share distribution", async () => {
 			//TODO
 		});
-
 	});
 
 	async function stake(amount, user, checkpointCount) {

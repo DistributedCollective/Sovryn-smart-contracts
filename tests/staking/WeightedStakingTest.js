@@ -134,17 +134,17 @@ contract("WeightedStaking", (accounts) => {
 			await expect(checkpoint.stake.toString()).to.be.equal("100");
 		});
 
-		it("returns the correct checkpoint for vested stakes", async() => {
+		it("returns the correct checkpoint for vested stakes", async () => {
 			//verify that regular staking does not create a vesting checkpoint
 			await staking.stake("100", inTwoWeeks, a1, a3, { from: a2 });
-			await expect((await staking.numVestingCheckpoints(kickoffTS.add(new BN(DELAY )))).toNumber()).to.be.equal(0);
-			
+			await expect((await staking.numVestingCheckpoints(kickoffTS.add(new BN(DELAY)))).toNumber()).to.be.equal(0);
+
 			//verify that vested staking does
-			let {vestingInstance, blockNumber} = await createVestingContractWithSingleDate(2 * WEEK, 1000, token, staking, root);
+			let { vestingInstance, blockNumber } = await createVestingContractWithSingleDate(2 * WEEK, 1000, token, staking, root);
 
 			await expect((await staking.balanceOf(vestingInstance.address)).toString()).to.be.equal("1000");
-			
-			await expect((await staking.numVestingCheckpoints(kickoffTS.add(new BN(DELAY )))).toNumber()).to.be.equal(1);
+
+			await expect((await staking.numVestingCheckpoints(kickoffTS.add(new BN(DELAY)))).toNumber()).to.be.equal(1);
 
 			checkpoint = await staking.vestingCheckpoints(kickoffTS.add(new BN(DELAY)), 0);
 
@@ -271,9 +271,9 @@ contract("WeightedStaking", (accounts) => {
 
 	describe("vested weighted stake computation", () => {
 		it("should compute the expected vesting weighted stake", async () => {
-			await createVestingContractWithSingleDate(3* 52 * WEEK, 100, token, staking, root);
-			await createVestingContractWithSingleDate(2* 52 * WEEK, 100, token, staking, root);
-			let {blockNumber} = await createVestingContractWithSingleDate(1* 52 * WEEK, 100, token, staking, root);
+			await createVestingContractWithSingleDate(3 * 52 * WEEK, 100, token, staking, root);
+			await createVestingContractWithSingleDate(2 * 52 * WEEK, 100, token, staking, root);
+			let { blockNumber } = await createVestingContractWithSingleDate(1 * 52 * WEEK, 100, token, staking, root);
 			await mineBlock();
 
 			let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
@@ -300,7 +300,6 @@ contract("WeightedStaking", (accounts) => {
 			vestedVotingPower = await staking.getPriorVestingWeightedStake(blockNumber, kickoffTS.add(new BN(DELAY * 26)));
 			await expect(vestedVotingPower.toNumber()).to.be.equal(expectedPower);
 		});
-
 	});
 
 	describe("general weight computation", () => {
@@ -334,22 +333,14 @@ function weightingFunction(stake, time, maxDuration, maxVotingWeight, weightFact
 	return Math.floor((stake * (Math.floor((maxVotingWeight * weightFactor * (mD2 - x * x)) / mD2) + weightFactor)) / weightFactor);
 }
 
-async function createVestingContractWithSingleDate(cliff, amount, token, staking, tokenOwner){
+async function createVestingContractWithSingleDate(cliff, amount, token, staking, tokenOwner) {
 	vestingLogic = await VestingLogic.new();
-	let vestingInstance = await Vesting.new(
-		vestingLogic.address,
-		token.address,
-		staking.address,
-		tokenOwner,
-		cliff,
-		cliff,
-		tokenOwner
-	);
+	let vestingInstance = await Vesting.new(vestingLogic.address, token.address, staking.address, tokenOwner, cliff, cliff, tokenOwner);
 	vestingInstance = await VestingLogic.at(vestingInstance.address);
 	//important, so it's recognized as vesting contract
 	await staking.addContractCodeHash(vestingInstance.address);
 
 	await token.approve(vestingInstance.address, amount);
 	let result = await vestingInstance.stakeTokens(amount);
-	return {'vestingInstance':vestingInstance, 'blockNumber':result.receipt.blockNumber};
+	return { vestingInstance: vestingInstance, blockNumber: result.receipt.blockNumber };
 }

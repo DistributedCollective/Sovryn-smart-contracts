@@ -347,10 +347,7 @@ contract WeightedStaking is Checkpoints {
 	 * @param blockNumber The block number to get the vote balance at.
 	 * @return The weighted stake the account had as of the given block.
 	 * */
-	function getPriorVestingWeightedStake(
-		uint256 blockNumber,
-		uint256 date
-	) public view returns (uint96 votes) {
+	function getPriorVestingWeightedStake(uint256 blockNumber, uint256 date) public view returns (uint96 votes) {
 		/// @dev If date is not an exact break point, start weight computation from the previous break point (alternative would be the next).
 		uint256 start = timestampToLockDate(date);
 		uint256 end = start + MAX_DURATION;
@@ -396,10 +393,7 @@ contract WeightedStaking is Checkpoints {
 	 * @param blockNumber The block number to get the vote balance at.
 	 * @return The number of votes the account had as of the given block.
 	 * */
-	function getPriorVestingStakeByDate(
-		uint256 date,
-		uint256 blockNumber
-	) external view returns (uint96) {
+	function getPriorVestingStakeByDate(uint256 date, uint256 blockNumber) external view returns (uint96) {
 		return _getPriorVestingStakeByDate(date, blockNumber);
 	}
 
@@ -410,10 +404,7 @@ contract WeightedStaking is Checkpoints {
 	 * 		we need to modify public function in order to workaround issue with Vesting.withdrawTokens:
 	 * return 1 instead of 0 if message sender is a contract.
 	 * */
-	function _getPriorVestingStakeByDate(
-		uint256 date,
-		uint256 blockNumber
-	) internal view returns (uint96) {
+	function _getPriorVestingStakeByDate(uint256 date, uint256 blockNumber) internal view returns (uint96) {
 		require(blockNumber < block.number, "WeightedStaking::getPriorVestingStakeByDate: not yet determined");
 
 		uint32 nCheckpoints = numVestingCheckpoints[date];
