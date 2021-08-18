@@ -333,7 +333,7 @@ contract WeightedStaking is Checkpoints {
 		return userStakingCheckpoints[account][date][lower].stake;
 	}
 
-	/*************************** User Weighted Vesting Stake computation for fee sharing *******************************/
+	/*************************** Weighted Vesting Stake computation for fee sharing *******************************/
 
 	/**
 	 * @notice Determine the prior weighted vested amount for an account as of a block number.
@@ -400,13 +400,7 @@ contract WeightedStaking is Checkpoints {
 		uint256 date,
 		uint256 blockNumber
 	) external view returns (uint96) {
-		uint96 priorStake = _getPriorVestingStakeByDate(date, blockNumber);
-		// @dev we need to modify function in order to workaround issue with Vesting.withdrawTokens:
-		//		return 1 instead of 0 if message sender is a contract.
-		if (priorStake == 0 && isVestingContract(msg.sender)) {
-			priorStake = 1;
-		}
-		return priorStake;
+		return _getPriorVestingStakeByDate(date, blockNumber);
 	}
 
 	/**
@@ -422,7 +416,6 @@ contract WeightedStaking is Checkpoints {
 	) internal view returns (uint96) {
 		require(blockNumber < block.number, "WeightedStaking::getPriorVestingStakeByDate: not yet determined");
 
-		date = _adjustDateForOrigin(date);
 		uint32 nCheckpoints = numVestingCheckpoints[date];
 		if (nCheckpoints == 0) {
 			return 0;
