@@ -971,7 +971,6 @@ describe("LiquidityMining", () => {
 			await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, { from: account1 }); // 1 block passed
 
 			// await liquidityMining.update(token1.address, allocationPoint.mul(new BN(2)), true); //weight 2/3
-			console.log((await liquidityMining.getPoolAccumulatedReward(token1.address, SOVToken.address))[1].toNumber());
 			await liquidityMining.updateAllPools(); // 2 blocks passed from first deposit
 
 			const currentBlockNumber = await web3.eth.getBlockNumber();
@@ -997,45 +996,43 @@ describe("LiquidityMining", () => {
 		});
 
 		// // tricky case 1
-		// it("add(pool1), add(pool2), deposit(user1, pool1), update(pool1), withdraw(user1, pool1)", async () => {
-		// 	await liquidityMining.add(token1.address, allocationPoint, false); //weight 1/1
-		// 	await liquidityMining.add(token2.address, allocationPoint, false); //weight 1/2
+		it("add(pool1), add(pool2), deposit(user1, pool1), update(pool1), withdraw(user1, pool1)", async () => {
+			await liquidityMining.add(token1.address, [SOVToken.address], [allocationPoint], false); //weight 1/1
+			await liquidityMining.add(token2.address, [SOVToken.address], [allocationPoint], false); //weight 1/2
 
-		// 	await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
-		// 	await liquidityMining.update(token1.address, new BN("2"), false); // 1 block passed, new weight 2/3
-		// 	const tx = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, { from: account1 }); // 2 blocks passed
+			await liquidityMining.update(token1.address, [SOVToken.address], [new BN("2")], false); // 1 block passed, new weight 2/3
+			const tx = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, { from: account1 }); // 2 blocks passed
 
-		// 	await checkBonusPeriodHasNotEnded(); // sanity check, it's included in calculations
+			const lockedAmount = await lockedSOV.getLockedBalance(account1);
+			const unlockedAmount = await lockedSOV.getUnlockedBalance(account1);
+			const rewardAmount = lockedAmount.add(unlockedAmount);
 
-		// 	const lockedAmount = await lockedSOV.getLockedBalance(account1);
-		// 	const unlockedAmount = await lockedSOV.getUnlockedBalance(account1);
-		// 	const rewardAmount = lockedAmount.add(unlockedAmount);
+			// reward per block 3 (because of bonus period), 1 block with weight 1/2 = 1, 1 block with weight 2/3 = 2
+			const expectedRewardAmount = new BN("3");
+			expect(rewardAmount).bignumber.equal(expectedRewardAmount);
 
-		// 	// reward per block 30 (because of bonus period), 1 block with weight 1/2 = 15, 1 block with weight 2/3 = 20
-		// 	const expectedRewardAmount = new BN("35");
-		// 	expect(rewardAmount).bignumber.equal(expectedRewardAmount);
+			await checkUserPoolTokens(
+				account1,
+				token1,
+				new BN(0), // user LM balance
+				new BN(0), // LM contract token balance
+				amount // user token balance
+			);
 
-		// 	await checkUserPoolTokens(
-		// 		account1,
-		// 		token1,
-		// 		new BN(0), // user LM balance
-		// 		new BN(0), // LM contract token balance
-		// 		amount // user token balance
-		// 	);
+			expectEvent(tx, "Withdraw", {
+				user: account1,
+				poolToken: token1.address,
+				amount: amount,
+			});
 
-		// 	expectEvent(tx, "Withdraw", {
-		// 		user: account1,
-		// 		poolToken: token1.address,
-		// 		amount: amount,
-		// 	});
-
-		// 	expectEvent(tx, "RewardClaimed", {
-		// 		user: account1,
-		// 		poolToken: token1.address,
-		// 		amount: rewardAmount,
-		// 	});
-		// });
+			expectEvent(tx, "RewardClaimed", {
+				user: account1,
+				rewardToken: SOVToken.address,
+				amount: rewardAmount,
+			});
+		});
 
 		// // tricky case 2
 		// it("add(pool1), deposit(user1, pool1), deposit(user2, pool1), withdraw(user1, pool1), withdraw(user2, pool1)", async () => {
@@ -1605,7 +1602,4 @@ describe("LiquidityMining", () => {
 		return userReward;
 	}
 
-	async function checkBonusPeriodHasNotEnded() {
-		expect(await liquidityMining.bonusEndBlock()).bignumber.gt((await web3.eth.getBlockNumber()).toString());
-	}
 });
