@@ -653,11 +653,11 @@ contract("FeeSharingProxy:", (accounts) => {
 
 	describe("withdraw with or considering vesting contracts", () => {
 		it("vesting contract should not be able to withdraw fees", async () => {
-
+			//TODO
 		});
 
 		it("vested stakes should be deducted from total weighted stake on share distribution", async () => {
-
+			//TODO
 		});
 
 	});
