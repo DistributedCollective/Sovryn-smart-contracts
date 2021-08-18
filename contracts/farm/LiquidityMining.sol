@@ -454,14 +454,14 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		uint256 _endBlock
 	) internal view returns (uint256, uint256) {
 		uint256 passedBlocks = _getPassedBlocksWithBonusMultiplier(_rewardToken, _startBlock, _endBlock);
-		uint256 accumulatedReward = passedBlocks.mul(_rewardToken.rewardTokensPerBlock).mul(_poolRewardToken.allocationPoint).div(
+		uint256 accumulatedReward = passedBlocks.mul(_rewardToken.rewardTokensPerBlock).mul(PRECISION).mul(_poolRewardToken.allocationPoint).div(
 			_rewardToken.totalAllocationPoint
 		);
 
 		uint256 poolTokenBalance = _pool.poolToken.balanceOf(address(this));
 		poolTokenBalance = poolTokenBalance.add(_additionalAmount);
-		uint256 accumulatedRewardPerShare = accumulatedReward.mul(PRECISION).div(poolTokenBalance);
-		return (accumulatedReward, accumulatedRewardPerShare);
+		uint256 accumulatedRewardPerShare = accumulatedReward.div(poolTokenBalance);
+		return (accumulatedReward.div(PRECISION), accumulatedRewardPerShare);
 	}
 
 	/**
