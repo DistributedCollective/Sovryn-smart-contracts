@@ -10,6 +10,8 @@ const TestWrbtc = artifacts.require("TestWrbtc");
 
 const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
+const VestingLogic = artifacts.require("VestingLogicMockup");
+const Vesting = artifacts.require("TeamVesting");
 
 const Protocol = artifacts.require("sovrynProtocol");
 const ProtocolSettings = artifacts.require("ProtocolSettingsMockup");
@@ -652,8 +654,17 @@ contract("FeeSharingProxy:", (accounts) => {
 	});
 
 	describe("withdraw with or considering vesting contracts", () => {
+		it("getAccumulatedFees should return 0 for vesting contracts", async()=>{
+			let {vestingInstance} = await createVestingContractWithSingleDate(new BN(MAX_DURATION), 1000, root);
+			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+			let fees = await feeSharingProxy.getAccumulatedFees(vestingInstance.address, loanToken.address);
+			expect(fees).to.be.bignumber.equal("0");
+		});
+
 		it("vesting contract should not be able to withdraw fees", async () => {
-			//TODO
+			let {vestingInstance} = await createVestingContractWithSingleDate(new BN(MAX_DURATION), 1000, root);
+			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+			await expectRevert(vestingInstance.collectDividends(loanToken.address, 5, root), "FeeSharingProxy::withdrawFees: no tokens to withdraw");
 		});
 
 		it("vested stakes should be deducted from total weighted stake on share distribution", async () => {
@@ -708,5 +719,17 @@ contract("FeeSharingProxy:", (accounts) => {
 			await increaseTime(FEE_WITHDRAWAL_INTERVAL);
 			await feeSharingProxy.withdrawFees(susd.address);
 		}
+	}
+
+	async function createVestingContractWithSingleDate(cliff, amount, tokenOwner) {
+		vestingLogic = await VestingLogic.new();
+		let vestingInstance = await Vesting.new(vestingLogic.address, SOVToken.address, staking.address, tokenOwner, cliff, cliff, feeSharingProxy.address);
+		vestingInstance = await VestingLogic.at(vestingInstance.address);
+		//important, so it's recognized as vesting contract
+		await staking.addContractCodeHash(vestingInstance.address);
+	
+		await SOVToken.approve(vestingInstance.address, amount);
+		let result = await vestingInstance.stakeTokens(amount);
+		return { vestingInstance: vestingInstance, blockNumber: result.receipt.blockNumber };
 	}
 });
