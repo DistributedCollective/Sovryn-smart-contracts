@@ -685,46 +685,45 @@ describe("LiquidityMining", () => {
 		});
 	});
 
-	// describe("emergencyWithdraw", () => {
-	// 	let allocationPoint = new BN(1);
-	// 	let amount = new BN(1000);
+	describe("emergencyWithdraw", () => {
+		let allocationPoint = new BN(1);
+		let amount = new BN(1000);
 
-	// 	beforeEach(async () => {
-	// 		await liquidityMining.add(token1.address, allocationPoint, false);
-	// 		await mineBlocks(1);
+		beforeEach(async () => {
+			await liquidityMining.add(token1.address, [SOVToken.address], [allocationPoint], false);
+			await mineBlocks(1);
 
-	// 		await token1.mint(account1, amount);
-	// 		await token1.approve(liquidityMining.address, amount, { from: account1 });
-	// 	});
+			await token1.mint(account1, amount);
+			await token1.approve(liquidityMining.address, amount, { from: account1 });
+		});
 
-	// 	it("should be able to withdraw", async () => {
-	// 		await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+		it("should be able to withdraw", async () => {
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
-	// 		let tx = await liquidityMining.emergencyWithdraw(token1.address, { from: account1 });
+			let tx = await liquidityMining.emergencyWithdraw(token1.address, { from: account1 });
 
-	// 		let totalUsersBalance = await liquidityMining.totalUsersBalance();
-	// 		expect(totalUsersBalance).bignumber.equal(new BN(0));
+			const rewardToken = await liquidityMining.getRewardToken(SOVToken.address);
+			expect(rewardToken.totalUsersBalance).bignumber.equal(new BN(0));
 
-	// 		await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
+			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
 
-	// 		let userInfo = await liquidityMining.getUserInfo(token1.address, account1);
-	// 		expect(userInfo.rewardDebt).bignumber.equal(new BN(0));
-	// 		expect(userInfo.accumulatedReward).bignumber.equal(new BN(0));
+			let userInfo = await liquidityMining.getUserInfo(token1.address, account1);
+			expect(userInfo.rewards[0].rewardDebt).bignumber.equal(new BN(0));
+			expect(userInfo.rewards[0].accumulatedReward).bignumber.equal(new BN(0));
 
-	// 		let bonusBlockMultiplier = await liquidityMining.BONUS_BLOCK_MULTIPLIER();
-	// 		let expectedAccumulatedReward = rewardTokensPerBlock.mul(bonusBlockMultiplier);
-	// 		expectEvent(tx, "EmergencyWithdraw", {
-	// 			user: account1,
-	// 			poolToken: token1.address,
-	// 			amount: amount,
-	// 			accumulatedReward: expectedAccumulatedReward,
-	// 		});
-	// 	});
+			expectEvent(tx, "EmergencyWithdraw", {
+				user: account1,
+				poolToken: token1.address,
+				rewardToken: SOVToken.address,
+				amount: amount,
+				accumulatedReward: rewardTokensPerBlock,
+			});
+		});
 
-	// 	it("fails if token pool token not found", async () => {
-	// 		await expectRevert(liquidityMining.emergencyWithdraw(account1, { from: account1 }), "Pool token not found");
-	// 	});
-	// });
+		it("fails if token pool token not found", async () => {
+			await expectRevert(liquidityMining.emergencyWithdraw(account1, { from: account1 }), "Pool token not found");
+		});
+	});
 
 	// describe("getPassedBlocksWithBonusMultiplier", () => {
 	// 	it("check calculation", async () => {
@@ -758,160 +757,112 @@ describe("LiquidityMining", () => {
 	// 	});
 	// });
 
-	// describe("getUserAccumulatedReward", () => {
-	// 	const amount1 = new BN(1000);
-	// 	const amount2 = new BN(2000);
-	// 	const allocationPoint1 = new BN(1);
-	// 	const allocationPoint2 = new BN(2);
-	// 	const totalAllocationPoint = allocationPoint1.add(allocationPoint2);
-	// 	let bonusBlockMultiplier;
-	// 	let bonusEndBlock;
+	describe("getUserAccumulatedReward", () => {
+		const amount1 = new BN(1000);
+		const amount2 = new BN(2000);
+		const allocationPoint1 = new BN(1);
+		const allocationPoint2 = new BN(2);
+		const totalAllocationPoint = allocationPoint1.add(allocationPoint2);
 
-	// 	beforeEach(async () => {
-	// 		await liquidityMining.add(token1.address, allocationPoint1, false);
-	// 		await liquidityMining.add(token2.address, allocationPoint2, false);
+		beforeEach(async () => {
+			await liquidityMining.add(token1.address, [SOVToken.address], [allocationPoint1], false);
+			await liquidityMining.add(token2.address, [SOVToken.address], [allocationPoint2], false);
 
-	// 		await token1.mint(account1, amount1);
-	// 		await token2.mint(account2, amount2);
+			await token1.mint(account1, amount1);
+			await token2.mint(account2, amount2);
 
-	// 		await token1.approve(liquidityMining.address, amount1, { from: account1 });
-	// 		await token2.approve(liquidityMining.address, amount2, { from: account2 });
+			await token1.approve(liquidityMining.address, amount1, { from: account1 });
+			await token2.approve(liquidityMining.address, amount2, { from: account2 });
+		});
 
-	// 		bonusBlockMultiplier = await liquidityMining.BONUS_BLOCK_MULTIPLIER();
-	// 		bonusEndBlock = await liquidityMining.bonusEndBlock();
-	// 	});
+		it("check calculation for no deposits", async () => {
+			const reward1 = await liquidityMining.getUserAccumulatedReward(token1.address, SOVToken.address, account1);
+			const reward2 = await liquidityMining.getUserAccumulatedReward(token2.address, SOVToken.address, account2);
+			expect(reward1).bignumber.equal("0");
+			expect(reward2).bignumber.equal("0");
+		});
 
-	// 	it("check calculation for no deposits", async () => {
-	// 		const reward1 = await liquidityMining.getUserAccumulatedReward(token1.address, account1);
-	// 		const reward2 = await liquidityMining.getUserAccumulatedReward(token2.address, account2);
-	// 		expect(reward1).bignumber.equal("0");
-	// 		expect(reward2).bignumber.equal("0");
-	// 	});
+		it("check calculation for single user, token 1", async () => {
+			await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, { from: account1 });
+			await mineBlock();
+			let reward = await liquidityMining.getUserAccumulatedReward(token1.address, SOVToken.address, account1);
 
-	// 	it("check calculation for single user, token 1, bonus period off", async () => {
-	// 		await advanceBlocks(bonusEndBlock);
-	// 		await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, { from: account1 });
-	// 		await mineBlock();
-	// 		let reward = await liquidityMining.getUserAccumulatedReward(token1.address, account1);
+			// 1 block has passed
+			// users are given 3 tokens per share per block. user1 owns 100% of the shares
+			// token 1 counts as 1/3 of the pool
+			// reward = 1 * 3 * 1/3 = 1
+			const expectedReward = rewardTokensPerBlock.mul(allocationPoint1).div(totalAllocationPoint);
+			expect(expectedReward).bignumber.equal("1"); // sanity check
+			expect(reward).bignumber.equal(expectedReward);
 
-	// 		// 1 block has passed, bonus period is off
-	// 		// users are given 3 tokens per share per block. user1 owns 100% of the shares
-	// 		// token 1 counts as 1/3 of the pool
-	// 		// reward = 1 * 3 * 1/3 = 1
-	// 		const expectedReward = rewardTokensPerBlock.mul(allocationPoint1).div(totalAllocationPoint);
-	// 		expect(expectedReward).bignumber.equal("1"); // sanity check
-	// 		expect(reward).bignumber.equal(expectedReward);
+			await mineBlock();
+			reward = await liquidityMining.getUserAccumulatedReward(token1.address, SOVToken.address, account1);
+			expect(reward).bignumber.equal("2");
+		});
 
-	// 		await mineBlock();
-	// 		reward = await liquidityMining.getUserAccumulatedReward(token1.address, account1);
-	// 		expect(reward).bignumber.equal("2");
-	// 	});
+		it("check calculation for single user, token 2", async () => {
+			await liquidityMining.deposit(token2.address, amount2, ZERO_ADDRESS, { from: account2 });
+			await mineBlock();
+			let reward = await liquidityMining.getUserAccumulatedReward(token2.address, SOVToken.address, account2);
 
-	// 	it("check calculation for single user, token 2, bonus period off", async () => {
-	// 		await advanceBlocks(bonusEndBlock);
-	// 		await liquidityMining.deposit(token2.address, amount2, ZERO_ADDRESS, { from: account2 });
-	// 		await mineBlock();
-	// 		let reward = await liquidityMining.getUserAccumulatedReward(token2.address, account2);
+			// 1 block has passed
+			// users are given 3 tokens per share per block. user2 owns 100% of the shares
+			// token 2 counts as 2/3 of the pool
+			// reward = 1 * 3 * 2/3 = 2
+			const expectedReward = rewardTokensPerBlock.mul(allocationPoint2).div(totalAllocationPoint);
+			expect(expectedReward).bignumber.equal("2"); // sanity check
+			expect(reward).bignumber.equal(expectedReward);
 
-	// 		// 1 block has passed, bonus period is off
-	// 		// users are given 3 tokens per share per block. user2 owns 100% of the shares
-	// 		// token 2 counts as 2/3 of the pool
-	// 		// reward = 1 * 3 * 2/3 = 2
-	// 		const expectedReward = rewardTokensPerBlock.mul(allocationPoint2).div(totalAllocationPoint);
-	// 		expect(expectedReward).bignumber.equal("2"); // sanity check
-	// 		expect(reward).bignumber.equal(expectedReward);
+			await mineBlock();
+			reward = await liquidityMining.getUserAccumulatedReward(token2.address, SOVToken.address, account2);
+			expect(reward).bignumber.equal("4");
+		});
 
-	// 		await mineBlock();
-	// 		reward = await liquidityMining.getUserAccumulatedReward(token2.address, account2);
-	// 		expect(reward).bignumber.equal("4");
-	// 	});
+		it("check calculation for two users and tokens", async () => {
+			await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, { from: account1 });
+			// because automining is on, the following will advance a block
+			await liquidityMining.deposit(token2.address, amount2, ZERO_ADDRESS, { from: account2 });
+			// sanity checks
+			expect(await liquidityMining.getUserAccumulatedReward(token1.address, SOVToken.address, account1)).bignumber.equal("1");
+			expect(await liquidityMining.getUserAccumulatedReward(token2.address, SOVToken.address, account2)).bignumber.equal("0");
+			await mineBlock();
 
-	// 	it("check calculation for single user, token 1, bonus period on", async () => {
-	// 		await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, { from: account1 });
-	// 		await mineBlock();
-	// 		const reward = await liquidityMining.getUserAccumulatedReward(token1.address, account1);
+			const reward1 = await liquidityMining.getUserAccumulatedReward(token1.address, SOVToken.address, account1);
+			const reward2 = await liquidityMining.getUserAccumulatedReward(token2.address, SOVToken.address, account2);
 
-	// 		// 1 block has passed, bonus period is on so it counts as 10 blocks,
-	// 		// users are given 3 tokens per share per block. user1 owns 100% of the shares
-	// 		// token 1 counts as 1/3 of the pool
-	// 		// reward = 10 * 3 * 1/3 = 10
-	// 		const expectedReward = rewardTokensPerBlock.mul(bonusBlockMultiplier).mul(allocationPoint1).div(totalAllocationPoint);
-	// 		expect(expectedReward).bignumber.equal("10"); // sanity check
-	// 		expect(reward).bignumber.equal(expectedReward);
-	// 	});
+			// for the first block, user 1 will receive the reward of 1
+			// for the second block:
+			// - user 1 still owns 100% of the shares for token1, so same reward (total 1 + 1 = 2)
+			// - user 2 owns 100% of the shares for token2, so same reward as in the other cases
+			expect(reward1).bignumber.equal("2");
+			expect(reward2).bignumber.equal("2");
+		});
 
-	// 	it("check calculation for single user, token 1, bonus period on, smaller amount", async () => {
-	// 		await liquidityMining.deposit(token1.address, new BN(1), ZERO_ADDRESS, { from: account1 });
-	// 		await mineBlock();
-	// 		const reward = await liquidityMining.getUserAccumulatedReward(token1.address, account1);
+		it("check calculation for two users, same token (shares taken into account)", async () => {
+			const token = token1;
+			const amount = amount1;
+			await token.mint(account2, amount);
+			await token.approve(liquidityMining.address, amount, { from: account2 });
 
-	// 		// 1 block has passed, bonus period is on so it counts as 10 blocks,
-	// 		// users are given 3 tokens per share per block. user1 owns 100% of the shares
-	// 		// token 1 counts as 1/3 of the pool
-	// 		// reward = 10 * 3 * 1/3 = 10
-	// 		// Note that the actual amount deposited plays no role here
-	// 		expect(reward).bignumber.equal("10");
-	// 	});
+			await liquidityMining.deposit(token.address, amount, ZERO_ADDRESS, { from: account1 });
+			// because automining is on, the following will advance a block
+			await liquidityMining.deposit(token.address, amount, ZERO_ADDRESS, { from: account2 });
+			// sanity checks
+			expect(await liquidityMining.getUserAccumulatedReward(token.address, SOVToken.address, account1)).bignumber.equal("1");
+			expect(await liquidityMining.getUserAccumulatedReward(token.address, SOVToken.address, account2)).bignumber.equal("0");
+			await mineBlock(2);
 
-	// 	it("check calculation for single user, token 2, bonus period on", async () => {
-	// 		await liquidityMining.deposit(token2.address, amount2, ZERO_ADDRESS, { from: account2 });
-	// 		await mineBlock();
-	// 		const reward = await liquidityMining.getUserAccumulatedReward(token2.address, account2);
-
-	// 		// 1 block has passed, bonus period is on so it counts as 10 blocks,
-	// 		// users are given 3 tokens per share per block. user2 owns 100% of the shares
-	// 		// token 2 counts as 2/3 of the pool
-	// 		// reward = 10 * 3 * 2/3 = 20
-	// 		const expectedReward = rewardTokensPerBlock.mul(bonusBlockMultiplier).mul(allocationPoint2).div(totalAllocationPoint);
-	// 		expect(expectedReward).bignumber.equal("20"); // sanity check
-	// 		expect(reward).bignumber.equal(expectedReward);
-	// 	});
-
-	// 	it("check calculation for two users and tokens", async () => {
-	// 		await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, { from: account1 });
-	// 		// because automining is on, the following will advance a block
-	// 		await liquidityMining.deposit(token2.address, amount2, ZERO_ADDRESS, { from: account2 });
-	// 		// sanity checks
-	// 		expect(await liquidityMining.getUserAccumulatedReward(token1.address, account1)).bignumber.equal("10");
-	// 		expect(await liquidityMining.getUserAccumulatedReward(token2.address, account2)).bignumber.equal("0");
-	// 		await mineBlock();
-
-	// 		const reward1 = await liquidityMining.getUserAccumulatedReward(token1.address, account1);
-	// 		const reward2 = await liquidityMining.getUserAccumulatedReward(token2.address, account2);
-
-	// 		// for the first block, user 1 will receive the reward of 10
-	// 		// for the second block:
-	// 		// - user 1 still owns 100% of the shares for token1, so same reward (total 10 + 10 = 20)
-	// 		// - user 2 owns 100% of the shares for token2, so same reward as in the other cases
-	// 		expect(reward1).bignumber.equal("20");
-	// 		expect(reward2).bignumber.equal("20");
-	// 	});
-
-	// 	it("check calculation for two users, same token (shares taken into account)", async () => {
-	// 		const token = token1;
-	// 		const amount = amount1;
-	// 		await token.mint(account2, amount);
-	// 		await token.approve(liquidityMining.address, amount, { from: account2 });
-
-	// 		await liquidityMining.deposit(token.address, amount, ZERO_ADDRESS, { from: account1 });
-	// 		// because automining is on, the following will advance a block
-	// 		await liquidityMining.deposit(token.address, amount, ZERO_ADDRESS, { from: account2 });
-	// 		// sanity checks
-	// 		expect(await liquidityMining.getUserAccumulatedReward(token.address, account1)).bignumber.equal("10");
-	// 		expect(await liquidityMining.getUserAccumulatedReward(token.address, account2)).bignumber.equal("0");
-	// 		await mineBlock();
-
-	// 		const reward1 = await liquidityMining.getUserAccumulatedReward(token.address, account1);
-	// 		const reward2 = await liquidityMining.getUserAccumulatedReward(token.address, account2);
-
-	// 		// for the first block, user 1 will receive the reward of 10 (reward given per block for 100% of shares)
-	// 		// for the second block:
-	// 		// - user 1 owns 1/2 of the shares => expected reward = 5 (total 10 + 5 = 15)
-	// 		// - user 2 owns 1/2 of the shares => expected reward = 5
-	// 		expect(reward1).bignumber.equal("15");
-	// 		expect(reward2).bignumber.equal("5");
-	// 	});
-	// });
+			const reward1 = await liquidityMining.getUserAccumulatedReward(token.address, SOVToken.address, account1);
+			const reward2 = await liquidityMining.getUserAccumulatedReward(token.address, SOVToken.address, account2);
+			
+			// for the first block, user 1 will receive the reward of 1 (reward given per block for 100% of shares)
+			// after 2 blocks:
+			// - user 1 owns 1/2 of the shares => expected reward = 1 (total 1 + 1 = 2)
+			// - user 2 owns 1/2 of the shares => expected reward = 1
+			expect(reward1).bignumber.equal("2");
+			expect(reward2).bignumber.equal("1");
+		});
+	});
 
 	// describe("getEstimatedReward", () => {
 	// 	const amount1 = new BN(1000);
