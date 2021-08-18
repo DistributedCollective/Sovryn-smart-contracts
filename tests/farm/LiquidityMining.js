@@ -57,126 +57,16 @@ describe("LiquidityMining", () => {
 		await liquidityMining.addRewardToken(SOVToken.address, rewardTokensPerBlock, startDelayBlocks, rewardTransferLogic.address);
 	});
 
-	// describe("initialize", () => {
-	// 	it("sets the expected values", async () => {
-	// 		await deployLiquidityMining();
-	// 		let tx = await liquidityMining.initialize(
-	// 			SOVToken.address,
-	// 			rewardTokensPerBlock,
-	// 			startDelayBlocks,
-	// 			numberOfBonusBlocks,
-	// 			wrapper.address,
-	// 			lockedSOV.address,
-	// 			unlockedImmediatelyPercent
-	// 		);
+	describe("initialize", () => {
+		it("sets the expected values", async () => {
+			await deployLiquidityMining();
+			await liquidityMining.initialize(wrapper.address);
 
-	// 		let _SOV = await liquidityMining.SOV();
-	// 		let _rewardTokensPerBlock = await liquidityMining.rewardTokensPerBlock();
-	// 		let _startBlock = await liquidityMining.startBlock();
-	// 		let _bonusEndBlock = await liquidityMining.bonusEndBlock();
-	// 		let _wrapper = await liquidityMining.wrapper();
+			let _wrapper = await liquidityMining.wrapper();
 
-	// 		let blockNumber = new BN(tx.receipt.blockNumber);
-
-	// 		expect(_SOV).equal(SOVToken.address);
-	// 		expect(_rewardTokensPerBlock).bignumber.equal(rewardTokensPerBlock);
-	// 		expect(_startBlock).bignumber.equal(startDelayBlocks.add(blockNumber));
-	// 		expect(_bonusEndBlock).bignumber.equal(startDelayBlocks.add(blockNumber).add(numberOfBonusBlocks));
-	// 		expect(_wrapper).equal(wrapper.address);
-	// 	});
-
-	// 	it("fails if not an owner or an admin", async () => {
-	// 		await deployLiquidityMining();
-	// 		await expectRevert(
-	// 			liquidityMining.initialize(
-	// 				SOVToken.address,
-	// 				rewardTokensPerBlock,
-	// 				startDelayBlocks,
-	// 				numberOfBonusBlocks,
-	// 				wrapper.address,
-	// 				lockedSOV.address,
-	// 				unlockedImmediatelyPercent,
-	// 				{ from: account1 }
-	// 			),
-	// 			"unauthorized"
-	// 		);
-
-	// 		await liquidityMining.addAdmin(account1);
-	// 		await liquidityMining.initialize(
-	// 			SOVToken.address,
-	// 			rewardTokensPerBlock,
-	// 			startDelayBlocks,
-	// 			numberOfBonusBlocks,
-	// 			wrapper.address,
-	// 			lockedSOV.address,
-	// 			unlockedImmediatelyPercent,
-	// 			{ from: account1 }
-	// 		);
-	// 	});
-
-	// 	it("fails if _startBlock = 0", async () => {
-	// 		await deployLiquidityMining();
-	// 		await expectRevert(
-	// 			liquidityMining.initialize(
-	// 				SOVToken.address,
-	// 				rewardTokensPerBlock,
-	// 				0,
-	// 				numberOfBonusBlocks,
-	// 				wrapper.address,
-	// 				lockedSOV.address,
-	// 				unlockedImmediatelyPercent
-	// 			),
-	// 			"Invalid start block"
-	// 		);
-	// 	});
-
-	// 	it("fails if already initialized", async () => {
-	// 		await expectRevert(
-	// 			liquidityMining.initialize(
-	// 				SOVToken.address,
-	// 				rewardTokensPerBlock,
-	// 				startDelayBlocks,
-	// 				numberOfBonusBlocks,
-	// 				wrapper.address,
-	// 				lockedSOV.address,
-	// 				unlockedImmediatelyPercent
-	// 			),
-	// 			"Already initialized"
-	// 		);
-	// 	});
-
-	// 	it("fails if the 0 address is passed as token address", async () => {
-	// 		await deployLiquidityMining();
-	// 		await expectRevert(
-	// 			liquidityMining.initialize(
-	// 				ZERO_ADDRESS,
-	// 				rewardTokensPerBlock,
-	// 				startDelayBlocks,
-	// 				numberOfBonusBlocks,
-	// 				wrapper.address,
-	// 				lockedSOV.address,
-	// 				unlockedImmediatelyPercent
-	// 			),
-	// 			"Invalid token address"
-	// 		);
-	// 	});
-
-	// 	it("fails if unlockedImmediatelyPercent >= 10000", async () => {
-	// 		await deployLiquidityMining();
-	// 		await expectRevert(
-	// 			liquidityMining.initialize(
-	// 				SOVToken.address,
-	// 				rewardTokensPerBlock,
-	// 				startDelayBlocks,
-	// 				numberOfBonusBlocks,
-	// 				wrapper.address,
-	// 				lockedSOV.address,
-	// 				12345
-	// 			),
-	// 			"Unlocked immediately percent has to be less than 10000."
-	// 		);
-	// 	});
-	// });
+			expect(_wrapper).equal(wrapper.address);
+		});
+	});
 
 	describe("addAdmin", () => {
 		it("adds admin", async () => {
