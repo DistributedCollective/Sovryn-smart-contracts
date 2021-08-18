@@ -5,6 +5,7 @@ import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
 import "../locked/ILockedSOV.sol";
 import "../utils/AdminRole.sol";
+import "./IRewardTransferLogic.sol";
 
 contract LiquidityMiningStorage is AdminRole {
 	// Info of each user.
@@ -47,6 +48,8 @@ contract LiquidityMiningStorage is AdminRole {
 		uint256 totalAllocationPoint;
 		// Total balance this contract should have to handle withdrawal for all users
 		uint256 totalUsersBalance;
+		// Contract to be invoked in order to transfer reward tokens.
+		IRewardTransferLogic rewardTransferLogic;
 	}
 
 	struct PoolInfoRewardToken {
