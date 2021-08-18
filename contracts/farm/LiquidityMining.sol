@@ -622,7 +622,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 			address rewardTokenAddress = pool.rewardTokens[i];
 			_updatePoolRewardToken(pool, poolId, rewardTokenAddress);
 			_updateReward(poolId, rewardTokenAddress, user);
-			_transferReward(_poolToken, user, userAddress, true, false);
+			_transferReward(rewardTokenAddress, user, userAddress, true, false);
 		}
 		user.amount = user.amount.sub(_amount);
 

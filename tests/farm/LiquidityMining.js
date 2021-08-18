@@ -583,104 +583,107 @@ describe("LiquidityMining", () => {
 		});
 	});
 
-	// describe("withdraw", () => {
-	// 	let allocationPoint = new BN(1);
-	// 	let amount = new BN(1000);
+	describe("withdraw", () => {
+		let allocationPoint = new BN(1);
+		let amount = new BN(1000);
 
-	// 	beforeEach(async () => {
-	// 		await liquidityMining.add(token1.address, allocationPoint, false);
-	// 		await mineBlocks(1);
+		beforeEach(async () => {
+			await liquidityMining.add(token1.address, [SOVToken.address], [allocationPoint], false);
+			await mineBlocks(1);
 
-	// 		await token1.mint(account1, amount);
-	// 		await token1.approve(liquidityMining.address, amount, { from: account1 });
-	// 	});
+			await token1.mint(account1, amount);
+			await token1.approve(liquidityMining.address, amount, { from: account1 });
+		});
 
-	// 	it("should be able to withdraw (without claiming reward)", async () => {
-	// 		await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+		it("should be able to withdraw (without claiming reward)", async () => {
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
-	// 		let tx = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+			let tx = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
-	// 		let poolInfo = await liquidityMining.getPoolInfo(token1.address);
-	// 		let blockNumber = new BN(tx.receipt.blockNumber);
-	// 		checkPoolInfo(poolInfo, token1.address, allocationPoint, blockNumber, new BN(-1));
+			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+			let blockNumber = new BN(tx.receipt.blockNumber);
+			const poolRewardToken = await liquidityMining.getPoolReward(token1.address, SOVToken.address);
+			checkPoolRewardInfo(poolInfo, token1.address, poolRewardToken, allocationPoint, blockNumber, new BN(-1));
 
-	// 		await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
+			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
 
-	// 		// User's balance on lockedSOV vault
-	// 		let userRewardBalance = await lockedSOV.getLockedBalance(account1);
-	// 		expect(userRewardBalance).bignumber.equal(new BN(0));
+			// User's balance on lockedSOV vault
+			let userRewardBalance = await lockedSOV.getLockedBalance(account1);
+			expect(userRewardBalance).bignumber.equal(new BN(0));
 
-	// 		expectEvent(tx, "Withdraw", {
-	// 			user: account1,
-	// 			poolToken: token1.address,
-	// 			amount: amount,
-	// 		});
-	// 	});
+			expectEvent(tx, "Withdraw", {
+				user: account1,
+				poolToken: token1.address,
+				amount: amount,
+			});
+		});
 
-	// 	it("should be able to withdraw (with claiming reward)", async () => {
-	// 		let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
-	// 		let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
-	// 		await SOVToken.transfer(liquidityMining.address, new BN(1000));
+		it("should be able to withdraw (with claiming reward)", async () => {
+			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+			let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
+			await SOVToken.transfer(liquidityMining.address, new BN(1000));
 
-	// 		let tx = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+			let tx = await liquidityMining.withdraw(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
-	// 		let totalUsersBalance = await liquidityMining.totalUsersBalance();
-	// 		expect(totalUsersBalance).bignumber.equal(new BN(0));
+			const rewardToken = await liquidityMining.getRewardToken(SOVToken.address);
+			expect(rewardToken.totalUsersBalance).bignumber.equal(new BN(0));
 
-	// 		let poolInfo = await liquidityMining.getPoolInfo(token1.address);
-	// 		let latestBlockNumber = new BN(tx.receipt.blockNumber);
-	// 		checkPoolInfo(poolInfo, token1.address, allocationPoint, latestBlockNumber, new BN(-1));
+			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+			let latestBlockNumber = new BN(tx.receipt.blockNumber);
+			const poolRewardToken = await liquidityMining.getPoolReward(token1.address, SOVToken.address);
+			checkPoolRewardInfo(poolInfo, token1.address, poolRewardToken, allocationPoint, latestBlockNumber, new BN(-1));
 
-	// 		await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
-	// 		let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
+			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
+			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
 
-	// 		//withdrawAndStakeTokensFrom was not invoked
-	// 		let expectedUnlockedBalance = userReward.mul(unlockedImmediatelyPercent).div(new BN(10000));
-	// 		let expectedLockedBalance = userReward.sub(expectedUnlockedBalance);
-	// 		let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
-	// 		let lockedBalance = await lockedSOV.getLockedBalance(account1);
-	// 		expect(unlockedBalance).bignumber.equal(expectedUnlockedBalance);
-	// 		expect(lockedBalance).bignumber.equal(expectedLockedBalance);
+			//withdrawAndStakeTokensFrom was not invoked
+			let expectedUnlockedBalance = userReward.mul(unlockedImmediatelyPercent).div(new BN(10000));
+			let expectedLockedBalance = userReward.sub(expectedUnlockedBalance);
+			let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
+			let lockedBalance = await lockedSOV.getLockedBalance(account1);
+			expect(unlockedBalance).bignumber.equal(expectedUnlockedBalance);
+			expect(lockedBalance).bignumber.equal(expectedLockedBalance);
 
-	// 		expectEvent(tx, "Withdraw", {
-	// 			user: account1,
-	// 			poolToken: token1.address,
-	// 			amount: amount,
-	// 		});
+			expectEvent(tx, "Withdraw", {
+				user: account1,
+				poolToken: token1.address,
+				amount: amount,
+			});
 
-	// 		expectEvent(tx, "RewardClaimed", {
-	// 			user: account1,
-	// 			poolToken: token1.address,
-	// 			amount: userReward,
-	// 		});
-	// 	});
+			expectEvent(tx, "RewardClaimed", {
+				user: account1,
+				rewardToken: SOVToken.address,
+				amount: userReward,
+			});
+		});
 
-	// 	it("should be able to withdraw using wrapper", async () => {
-	// 		let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
-	// 		let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
-	// 		await SOVToken.transfer(liquidityMining.address, new BN(1000));
+		it("should be able to withdraw using wrapper", async () => {
+			let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+			let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
+			await SOVToken.transfer(liquidityMining.address, new BN(1000));
 
-	// 		let tx = await wrapper.withdraw(token1.address, amount, { from: account1 });
+			let tx = await wrapper.withdraw(token1.address, amount, { from: account1 });
 
-	// 		let poolInfo = await liquidityMining.getPoolInfo(token1.address);
-	// 		let latestBlockNumber = new BN(tx.receipt.blockNumber);
-	// 		checkPoolInfo(poolInfo, token1.address, allocationPoint, latestBlockNumber, new BN(-1));
+			let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+			let latestBlockNumber = new BN(tx.receipt.blockNumber);
+			const poolRewardToken = await liquidityMining.getPoolReward(token1.address, SOVToken.address);
+			checkPoolRewardInfo(poolInfo, token1.address, poolRewardToken, allocationPoint, latestBlockNumber, new BN(-1));
 
-	// 		await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount, wrapper.address);
-	// 		let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
-	// 	});
+			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount, wrapper.address);
+			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
+		});
 
-	// 	it("fails if token pool token not found", async () => {
-	// 		await expectRevert(liquidityMining.withdraw(account1, amount, ZERO_ADDRESS, { from: account1 }), "Pool token not found");
-	// 	});
+		it("fails if token pool token not found", async () => {
+			await expectRevert(liquidityMining.withdraw(account1, amount, ZERO_ADDRESS, { from: account1 }), "Pool token not found");
+		});
 
-	// 	it("fails if token pool token not found", async () => {
-	// 		await expectRevert(
-	// 			liquidityMining.withdraw(token1.address, amount.mul(new BN(2)), ZERO_ADDRESS, { from: account1 }),
-	// 			"Not enough balance"
-	// 		);
-	// 	});
-	// });
+		it("fails if token pool token not found", async () => {
+			await expectRevert(
+				liquidityMining.withdraw(token1.address, amount.mul(new BN(2)), ZERO_ADDRESS, { from: account1 }),
+				"Not enough balance"
+			);
+		});
+	});
 
 	// describe("emergencyWithdraw", () => {
 	// 	let allocationPoint = new BN(1);
