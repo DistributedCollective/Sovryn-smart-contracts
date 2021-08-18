@@ -1257,6 +1257,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		bytes memory data,
 		string memory errorMsg
 	) internal {
+		require(Address.isContract(token), "call to non-contract");
 		(bool success, bytes memory returndata) = token.call(data);
 		require(success, errorMsg);
 
