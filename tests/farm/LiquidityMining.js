@@ -144,33 +144,33 @@ describe("LiquidityMining", () => {
 		});
 	});
 
-	// describe("transferSOV", () => {
-	// 	it("should be able to transfer SOV", async () => {
-	// 		let amount = new BN(1000);
-	// 		await SOVToken.transfer(liquidityMining.address, amount);
+	describe("transferRewardTokens", () => {
+		it("should be able to transfer SOV", async () => {
+			let amount = new BN(1000);
+			await SOVToken.transfer(liquidityMining.address, amount);
 
-	// 		let balanceBefore = await SOVToken.balanceOf(account1);
-	// 		await liquidityMining.transferSOV(account1, amount);
-	// 		let balanceAfter = await SOVToken.balanceOf(account1);
+			let balanceBefore = await SOVToken.balanceOf(account1);
+			await liquidityMining.transferRewardTokens(SOVToken.address, account1, amount);
+			let balanceAfter = await SOVToken.balanceOf(account1);
 
-	// 		expect(amount).bignumber.equal(balanceAfter.sub(balanceBefore));
-	// 	});
+			expect(amount).bignumber.equal(balanceAfter.sub(balanceBefore));
+		});
 
-	// 	it("only owner or admin should be able to transfer", async () => {
-	// 		await expectRevert(liquidityMining.transferSOV(account1, 1000, { from: account1 }), "unauthorized");
+		it("only owner or admin should be able to transfer", async () => {
+			await expectRevert(liquidityMining.transferRewardTokens(SOVToken.address, account1, 1000, { from: account1 }), "unauthorized");
 
-	// 		await liquidityMining.addAdmin(account1);
-	// 		await liquidityMining.transferSOV(account1, 1000, { from: account1 });
-	// 	});
+			await liquidityMining.addAdmin(account1);
+			await liquidityMining.transferRewardTokens(SOVToken.address, account1, 1000, { from: account1 });
+		});
 
-	// 	it("fails if the 0 address is passed as receiver address", async () => {
-	// 		await expectRevert(liquidityMining.transferSOV(ZERO_ADDRESS, 1000), "Receiver address invalid");
-	// 	});
+		it("fails if the 0 address is passed as receiver address", async () => {
+			await expectRevert(liquidityMining.transferRewardTokens(SOVToken.address, ZERO_ADDRESS, 1000), "Receiver address invalid");
+		});
 
-	// 	it("fails if the 0 is passed as an amount", async () => {
-	// 		await expectRevert(liquidityMining.transferSOV(account1, 0), "Amount invalid");
-	// 	});
-	// });
+		it("fails if the 0 is passed as an amount", async () => {
+			await expectRevert(liquidityMining.transferRewardTokens(SOVToken.address, account1, 0), "Amount invalid");
+		});
+	});
 
 	describe("add", () => {
 		it("should be able to add pool token", async () => {
