@@ -51,17 +51,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 */
 	function initialize(address _wrapper) external onlyAuthorized {
 		/// @dev Non-idempotent function. Must be called just once.
-		// require(address(SOV) == address(0), "Already initialized");
-		// require(address(_SOV) != address(0), "Invalid token address");
-		// require(_startDelayBlocks > 0, "Invalid start block");
-		// require(_unlockedImmediatelyPercent < 10000, "Unlocked immediately percent has to be less than 10000.");
-		//
-		// SOV = _SOV;
-		// rewardTokensPerBlock = _rewardTokensPerBlock;
-		// startBlock = block.number + _startDelayBlocks;
-		// wrapper = _wrapper;
-		// lockedSOV = _lockedSOV;
-		// unlockedImmediatelyPercent = _unlockedImmediatelyPercent;
+		wrapper = _wrapper;
 	}
 
 	/**
@@ -86,7 +76,6 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 
 		IRewardTransferLogic rewardTransferLogic = IRewardTransferLogic(_rewardTransferLogic);
 		require(_rewardToken == rewardTransferLogic.getRewardTokenAddress(), "Reward token and transfer logic mismatch");
-
 		rewardTokensMap[_rewardToken] = RewardToken({
 			rewardTokensPerBlock: _rewardTokensPerBlock,
 			startBlock: block.number + _startDelayBlocks,
@@ -604,7 +593,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 
 		_updatePoolRewardToken(pool, _poolId, _rewardToken);
 		_updateReward(_poolId, _rewardToken, user);
-		_transferReward(address(pool.poolToken), user, _userAddress, false, true);
+		_transferReward(_rewardToken, user, _userAddress, false, true);
 		_updateRewardDebt(_poolId, pool, _rewardToken, user);
 	}
 
@@ -729,13 +718,15 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		uint256 userAccumulatedReward = _user.rewards[_rewardToken].accumulatedReward;
 		RewardToken storage rewardToken = rewardTokensMap[_rewardToken];
 		IERC20 token = IERC20(_rewardToken);
-		/// @dev Transfer if enough SOV balance on this LM contract.
+		/// @dev Transfer if enough token balance on this LM contract.
 		uint256 balance = token.balanceOf(address(this));
 		if (balance >= userAccumulatedReward) {
 			rewardToken.totalUsersBalance = rewardToken.totalUsersBalance.sub(userAccumulatedReward);
 			_user.rewards[_rewardToken].accumulatedReward = 0;
-			require(token.approve(address(rewardToken.rewardTransferLogic.senderToAuthorize()), userAccumulatedReward), "Approve failed");
-			rewardToken.rewardTransferLogic.transferReward(_userAddress, userAccumulatedReward, _isWithdrawal);
+
+			IRewardTransferLogic transferLogic = rewardToken.rewardTransferLogic;
+			require(token.approve(transferLogic.senderToAuthorize(), userAccumulatedReward), "Approve failed");
+			transferLogic.transferReward(_userAddress, userAccumulatedReward, _isWithdrawal);
 			/// @dev Event log.
 			emit RewardClaimed(_userAddress, _rewardToken, userAccumulatedReward);
 		} else {

@@ -8,7 +8,7 @@ interface IRewardTransferLogic {
 	function getRewardTokenAddress() external returns (address);
 
 	/// @notice Transfers will be executed from this address so it must be approved before invoking
-	function senderToAuthorize() external returns (address);
+	function senderToAuthorize() external view returns (address);
 
 	/// @notice Transfers the reward amount to the specified address
 	/// @param _to The address to transfer the reward to

@@ -23,11 +23,11 @@ contract ERC20TransferLogic is IRewardTransferLogic, ERC20TransferLogicStorage {
 		return address(token);
 	}
 
-	function senderToAuthorize() external returns (address) {
+	function senderToAuthorize() external view returns (address) {
 		return address(this);
 	}
 
-	function transferAccumulatedRewards(
+	function transferReward(
 		address _to,
 		uint256 _value,
 		bool // it doesn't matter if it's a withdrawal or not

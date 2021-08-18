@@ -4,7 +4,12 @@ import "./IRewardTransferLogic.sol";
 import "./LockedSOVRewardTransferLogicStorage.sol";
 import "../locked/ILockedSOV.sol";
 
+import "../openzeppelin/ERC20.sol";
+import "../openzeppelin/SafeERC20.sol";
+
 contract LockedSOVRewardTransferLogic is IRewardTransferLogic, LockedSOVRewardTransferLogicStorage {
+	using SafeERC20 for IERC20;
+
 	event LockedSOVChanged(address _newAddress);
 	event UnlockImmediatelyPercentChanged(uint256 _newAmount);
 
@@ -38,18 +43,21 @@ contract LockedSOVRewardTransferLogic is IRewardTransferLogic, LockedSOVRewardTr
 	}
 
 	function getRewardTokenAddress() external returns (address) {
-		return address(lockedSOV.SOV());
+		return lockedSOV.SOV();
 	}
 
-	function senderToAuthorize() external returns (address) {
-		return address(lockedSOV);
+	function senderToAuthorize() external view returns (address) {
+		return address(this);
 	}
 
-	function transferAccumulatedRewards(
+	function transferReward(
 		address _to,
 		uint256 _value,
 		bool _isWithdrawal
 	) external {
+		IERC20 token = IERC20(lockedSOV.SOV());
+		require(token.transferFrom(msg.sender, address(this), _value), "Transfer failed");
+		require(token.approve(address(lockedSOV), _value), "Approve failed");
 		lockedSOV.deposit(_to, _value, unlockedImmediatelyPercent);
 		if (!_isWithdrawal) {
 			lockedSOV.withdrawAndStakeTokensFrom(_to);
