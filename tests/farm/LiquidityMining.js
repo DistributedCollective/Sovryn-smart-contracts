@@ -850,7 +850,8 @@ describe("LiquidityMining", () => {
 			// sanity checks
 			expect(await liquidityMining.getUserAccumulatedReward(token.address, SOVToken.address, account1)).bignumber.equal("1");
 			expect(await liquidityMining.getUserAccumulatedReward(token.address, SOVToken.address, account2)).bignumber.equal("0");
-			await mineBlock(2);
+			await mineBlock();
+			await mineBlock();
 
 			const reward1 = await liquidityMining.getUserAccumulatedReward(token.address, SOVToken.address, account1);
 			const reward2 = await liquidityMining.getUserAccumulatedReward(token.address, SOVToken.address, account2);
@@ -864,97 +865,87 @@ describe("LiquidityMining", () => {
 		});
 	});
 
-	// describe("getEstimatedReward", () => {
-	// 	const amount1 = new BN(1000);
-	// 	const amount2 = new BN(2000);
-	// 	const amount3 = new BN(4000);
-	// 	const allocationPoint1 = new BN(1);
-	// 	const allocationPoint2 = new BN(2);
+	describe("getEstimatedReward", () => {
+		const amount1 = new BN(1000);
+		const amount2 = new BN(2000);
+		const amount3 = new BN(4000);
+		const allocationPoint1 = new BN(1);
+		const allocationPoint2 = new BN(2);
 
-	// 	const totalAllocationPoint = allocationPoint1.add(allocationPoint2);
-	// 	let bonusBlockMultiplier;
-	// 	let bonusEndBlock;
-	// 	let secondsPerBlock;
+		const totalAllocationPoint = allocationPoint1.add(allocationPoint2);
+		let secondsPerBlock;
 
-	// 	beforeEach(async () => {
-	// 		await liquidityMining.add(token1.address, allocationPoint1, false);
+		beforeEach(async () => {
+			await liquidityMining.add(token1.address, [SOVToken.address], [allocationPoint1], false);
 
-	// 		await token1.mint(account1, amount1);
-	// 		await token1.mint(account2, amount2);
-	// 		await token1.mint(account3, amount3);
+			await token1.mint(account1, amount1);
+			await token1.mint(account2, amount2);
+			await token1.mint(account3, amount3);
 
-	// 		await token1.approve(liquidityMining.address, amount1, { from: account1 });
-	// 		await token1.approve(liquidityMining.address, amount2, { from: account2 });
+			await token1.approve(liquidityMining.address, amount1, { from: account1 });
+			await token1.approve(liquidityMining.address, amount2, { from: account2 });
 
-	// 		bonusBlockMultiplier = await liquidityMining.BONUS_BLOCK_MULTIPLIER();
-	// 		bonusEndBlock = await liquidityMining.bonusEndBlock();
+			secondsPerBlock = await liquidityMining.SECONDS_PER_BLOCK();
+		});
 
-	// 		secondsPerBlock = await liquidityMining.SECONDS_PER_BLOCK();
-	// 	});
+		it("check calculation for 1 user, period less than 1 block", async () => {
+			let duration = secondsPerBlock.sub(new BN(1));
 
-	// 	it("check calculation for 1 user, period less than 1 block", async () => {
-	// 		let duration = secondsPerBlock.sub(new BN(1));
+			let estimatedReward = await liquidityMining.getEstimatedReward(token1.address, SOVToken.address, amount3, duration);
+			let expectedReward = "0";
+			expect(estimatedReward).bignumber.equal(expectedReward);
+		});
 
-	// 		let estimatedReward = await liquidityMining.getEstimatedReward(token1.address, amount3, duration);
-	// 		let expectedReward = "0";
-	// 		expect(estimatedReward).bignumber.equal(expectedReward);
-	// 	});
+		it("check calculation for 1 user, period is 1 block", async () => {
+			let duration = secondsPerBlock;
 
-	// 	it("check calculation for 1 user, period is 1 block", async () => {
-	// 		let duration = secondsPerBlock;
+			let estimatedReward = await liquidityMining.getEstimatedReward(token1.address, SOVToken.address, amount3, duration);
+			let expectedReward = rewardTokensPerBlock;
+			expect(estimatedReward).bignumber.equal(expectedReward);
+		});
 
-	// 		let estimatedReward = await liquidityMining.getEstimatedReward(token1.address, amount3, duration);
-	// 		let expectedReward = rewardTokensPerBlock.mul(bonusBlockMultiplier);
-	// 		expect(estimatedReward).bignumber.equal(expectedReward);
-	// 	});
+		it("check calculation for 1 user, period is 40 blocks", async () => {
+			let blocks = new BN(40);
+			let duration = secondsPerBlock.mul(blocks);
 
-	// 	it("check calculation for 1 user, period is 40 blocks", async () => {
-	// 		let blocks = new BN(40);
-	// 		let duration = secondsPerBlock.mul(blocks);
+			let estimatedReward = await liquidityMining.getEstimatedReward(token1.address, SOVToken.address, amount3, duration);
+			let expectedReward = rewardTokensPerBlock.mul(blocks);
+			expect(estimatedReward).bignumber.equal(expectedReward);
+		});
 
-	// 		let estimatedReward = await liquidityMining.getEstimatedReward(token1.address, amount3, duration);
-	// 		let expectedReward = rewardTokensPerBlock.mul(blocks).mul(bonusBlockMultiplier);
-	// 		expect(estimatedReward).bignumber.equal(expectedReward);
-	// 	});
+		it("check calculation for 2 users, period is 100 blocks", async () => {
+			let blocks = new BN(100);
+			let duration = secondsPerBlock.mul(blocks);
 
-	// 	it("check calculation for 2 users, period is 100 blocks", async () => {
-	// 		//turn off bonus period
-	// 		await advanceBlocks(bonusEndBlock);
+			await token1.approve(liquidityMining.address, amount1, { from: account1 });
+			await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, { from: account1 });
 
-	// 		let blocks = new BN(100);
-	// 		let duration = secondsPerBlock.mul(blocks);
+			let estimatedReward = await liquidityMining.getEstimatedReward(token1.address, SOVToken.address, amount3, duration);
+			let expectedReward = rewardTokensPerBlock.mul(blocks);
+			let totalAmount = amount1.add(amount3);
+			expectedReward = expectedReward.mul(amount3).div(totalAmount);
+			expect(estimatedReward).bignumber.equal(expectedReward);
+		});
 
-	// 		await token1.approve(liquidityMining.address, amount1, { from: account1 });
-	// 		await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, { from: account1 });
+		it("check calculation for 3 users and 2 tokens, period is 1000 blocks", async () => {
+			await liquidityMining.add(token2.address, [SOVToken.address], [allocationPoint2], false);
 
-	// 		let estimatedReward = await liquidityMining.getEstimatedReward(token1.address, amount3, duration);
-	// 		let expectedReward = rewardTokensPerBlock.mul(blocks);
-	// 		let totalAmount = amount1.add(amount3);
-	// 		expectedReward = expectedReward.mul(amount3).div(totalAmount);
-	// 		expect(estimatedReward).bignumber.equal(expectedReward);
-	// 	});
+			let blocks = new BN(1000);
+			let duration = secondsPerBlock.mul(blocks);
 
-	// 	it("check calculation for 3 users and 2 tokens, period is 1000 blocks", async () => {
-	// 		await liquidityMining.add(token2.address, allocationPoint2, false);
-	// 		//turn off bonus period
-	// 		await advanceBlocks(bonusEndBlock);
+			await token1.approve(liquidityMining.address, amount1, { from: account1 });
+			await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, { from: account1 });
+			await token1.approve(liquidityMining.address, amount2, { from: account2 });
+			await liquidityMining.deposit(token1.address, amount2, ZERO_ADDRESS, { from: account2 });
 
-	// 		let blocks = new BN(1000);
-	// 		let duration = secondsPerBlock.mul(blocks);
-
-	// 		await token1.approve(liquidityMining.address, amount1, { from: account1 });
-	// 		await liquidityMining.deposit(token1.address, amount1, ZERO_ADDRESS, { from: account1 });
-	// 		await token1.approve(liquidityMining.address, amount2, { from: account2 });
-	// 		await liquidityMining.deposit(token1.address, amount2, ZERO_ADDRESS, { from: account2 });
-
-	// 		let estimatedReward = await liquidityMining.getEstimatedReward(token1.address, amount3, duration);
-	// 		let expectedReward = rewardTokensPerBlock.mul(blocks);
-	// 		expectedReward = expectedReward.mul(allocationPoint1).div(totalAllocationPoint);
-	// 		let totalAmount = amount1.add(amount2).add(amount3);
-	// 		expectedReward = expectedReward.mul(amount3).div(totalAmount);
-	// 		expect(estimatedReward).bignumber.equal(expectedReward);
-	// 	});
-	// });
+			let estimatedReward = await liquidityMining.getEstimatedReward(token1.address, SOVToken.address, amount3, duration);
+			let expectedReward = rewardTokensPerBlock.mul(blocks);
+			expectedReward = expectedReward.mul(allocationPoint1).div(totalAllocationPoint);
+			let totalAmount = amount1.add(amount2).add(amount3);
+			expectedReward = expectedReward.mul(amount3).div(totalAmount);
+			expect(estimatedReward).bignumber.equal(expectedReward);
+		});
+	});
 
 	// describe("deposit/withdraw", () => {
 	// 	let allocationPoint = new BN(1);
