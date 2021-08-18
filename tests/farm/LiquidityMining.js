@@ -103,51 +103,6 @@ describe("LiquidityMining", () => {
 		});
 	});
 
-	// describe("setLockedSOV", () => {
-	// 	it("sets the expected values", async () => {
-	// 		let newLockedSOV = account2;
-	// 		await liquidityMining.setLockedSOV(newLockedSOV);
-
-	// 		let _lockedSOV = await liquidityMining.lockedSOV();
-	// 		expect(_lockedSOV).equal(newLockedSOV);
-	// 	});
-
-	// 	it("fails if not an owner and an admin", async () => {
-	// 		await expectRevert(liquidityMining.setLockedSOV(account2, { from: account1 }), "unauthorized");
-
-	// 		await liquidityMining.addAdmin(account1);
-	// 		await liquidityMining.setLockedSOV(account2, { from: account1 });
-	// 	});
-
-	// 	it("fails if zero address passed", async () => {
-	// 		await expectRevert(liquidityMining.setLockedSOV(ZERO_ADDRESS), "Invalid lockedSOV Address.");
-	// 	});
-	// });
-
-	// describe("setUnlockedImmediatelyPercent", () => {
-	// 	it("sets the expected values", async () => {
-	// 		let newUnlockedImmediatelyPercent = new BN(2000);
-	// 		await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
-
-	// 		let _unlockedImmediatelyPercent = await liquidityMining.unlockedImmediatelyPercent();
-	// 		expect(_unlockedImmediatelyPercent).bignumber.equal(newUnlockedImmediatelyPercent);
-	// 	});
-
-	// 	it("fails if not an owner or an admin", async () => {
-	// 		await expectRevert(liquidityMining.setUnlockedImmediatelyPercent(1000, { from: account1 }), "unauthorized");
-
-	// 		await liquidityMining.addAdmin(account1);
-	// 		await liquidityMining.setUnlockedImmediatelyPercent(1000, { from: account1 });
-	// 	});
-
-	// 	it("fails if unlockedImmediatelyPercent >= 10000", async () => {
-	// 		await expectRevert(
-	// 			liquidityMining.setUnlockedImmediatelyPercent(100000),
-	// 			"Unlocked immediately percent has to be less than 10000."
-	// 		);
-	// 	});
-	// });
-
 	describe("setWrapper", () => {
 		it("sets the expected values", async () => {
 			let newWrapper = account2;

@@ -87,25 +87,6 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	}
 
 	/**
-	 * @notice Sets lockedSOV contract.
-	 * @param _lockedSOV The contract instance address of the lockedSOV vault.
-	 */
-	function setLockedSOV(ILockedSOV _lockedSOV) external onlyAuthorized {
-		require(address(_lockedSOV) != address(0), "Invalid lockedSOV Address.");
-		lockedSOV = _lockedSOV;
-	}
-
-	/**
-	 * @notice Sets unlocked immediately percent.
-	 * @param _unlockedImmediatelyPercent The % which determines how much will be unlocked immediately.
-	 * @dev @dev 10000 is 100%
-	 */
-	function setUnlockedImmediatelyPercent(uint256 _unlockedImmediatelyPercent) external onlyAuthorized {
-		require(_unlockedImmediatelyPercent < 10000, "Unlocked immediately percent has to be less than 10000.");
-		unlockedImmediatelyPercent = _unlockedImmediatelyPercent;
-	}
-
-	/**
 	 * @notice sets wrapper proxy contract
 	 * @dev can be set to zero address to remove wrapper
 	 */
