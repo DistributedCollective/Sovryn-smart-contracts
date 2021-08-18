@@ -18,6 +18,8 @@ const {
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const StakingMockup = artifacts.require("StakingMockup");
+const VestingLogic = artifacts.require("VestingLogicMockup");
+const Vesting = artifacts.require("TeamVesting");
 
 const SOV = artifacts.require("SOV");
 const TestToken = artifacts.require("TestToken");
@@ -170,14 +172,14 @@ contract("Staking", (accounts) => {
 			let duration = TWO_WEEKS;
 			let lockedTS = await getTimeFromKickoff(duration);
 
-			let stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toNumber()).to.be.equal(0);
+			let stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toNumber()).to.be.equal(0);
 			let beforeBalance = await token.balanceOf.call(root);
 
 			let tx = await staking.stake(amount, lockedTS, root, root);
 
-			stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toString()).to.be.equal(amount);
+			stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toString()).to.be.equal(amount);
 			let afterBalance = await token.balanceOf.call(root);
 			expect(beforeBalance.sub(afterBalance).toString()).to.be.equal(amount);
 
@@ -273,20 +275,20 @@ contract("Staking", (accounts) => {
 			//await setTime(lockedTS);
 			setNextBlockTimestamp(lockedTS.toNumber());
 
-			let stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toString()).to.be.equal(amount);
+			let stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toString()).to.be.equal(amount);
 
 			await staking.withdraw(amount, lockedTS, root);
 
-			stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toNumber()).to.be.equal(0);
+			stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toNumber()).to.be.equal(0);
 
 			//stake second time
 			lockedTS = await getTimeFromKickoff(duration * 2);
 			let tx = await staking.stake(amount * 2, lockedTS, root, root);
 
-			stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toNumber()).to.be.equal(amount * 2);
+			stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toNumber()).to.be.equal(amount * 2);
 
 			//_writeUserCheckpoint
 			let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
@@ -309,14 +311,14 @@ contract("Staking", (accounts) => {
 			setNextBlockTimestamp(lockedTS.toNumber());
 			blockTimestamp = (await ethers.provider.getBlock("latest")).timestamp;
 
-			let stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toString()).to.be.equal(amount);
+			let stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toString()).to.be.equal(amount);
 			let beforeBalance = await token.balanceOf.call(root);
 
 			await staking.withdraw(amount / 2, lockedTS, root);
 
-			stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toNumber()).to.be.equal(amount / 2);
+			stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toNumber()).to.be.equal(amount / 2);
 			let afterBalance = await token.balanceOf.call(root);
 
 			expect(afterBalance.sub(beforeBalance).toNumber()).to.be.equal(amount / 2);
@@ -325,8 +327,8 @@ contract("Staking", (accounts) => {
 			lockedTS = await getTimeFromKickoff(duration * 2);
 			let tx = await staking.stake(amount * 2.5, lockedTS, root, root);
 
-			stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toNumber()).to.be.equal(amount * 3);
+			stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toNumber()).to.be.equal(amount * 3);
 
 			//_writeUserCheckpoint
 			let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
@@ -343,8 +345,8 @@ contract("Staking", (accounts) => {
 			let duration = TWO_WEEKS;
 			let lockedTS = await getTimeFromKickoff(duration);
 
-			let stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toNumber()).to.be.equal(0);
+			let stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toNumber()).to.be.equal(0);
 			let beforeBalance = await token.balanceOf.call(root);
 
 			await token.approve(staking.address, 0);
@@ -358,8 +360,8 @@ contract("Staking", (accounts) => {
 			// let data = contract.methods.stakeWithApproval(account1, amount * 2, lockedTS, root, root).encodeABI();
 			let tx = await token.approveAndCall(staking.address, amount, data, { from: sender });
 
-			stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toString()).to.be.equal(amount);
+			stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toString()).to.be.equal(amount);
 			let afterBalance = await token.balanceOf.call(root);
 			expect(beforeBalance.sub(afterBalance).toString()).to.be.equal(amount);
 
@@ -463,8 +465,8 @@ contract("Staking", (accounts) => {
 			let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
 			let tx1 = await staking.stake(amount, lockedTS, root, root);
 
-			let stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toString()).to.be.equal(amount);
+			let stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toString()).to.be.equal(amount);
 			let beforeBalance = await token.balanceOf.call(root);
 
 			expect(tx1.logs[2].args.lockedUntil.toNumber()).to.be.equal(lockedTS.toNumber());
@@ -472,8 +474,8 @@ contract("Staking", (accounts) => {
 			let newLockedTS = await getTimeFromKickoff(TWO_WEEKS * 2);
 			let tx2 = await staking.extendStakingDuration(lockedTS, newLockedTS);
 
-			stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toString()).to.be.equal(amount);
+			stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toString()).to.be.equal(amount);
 			let afterBalance = await token.balanceOf.call(root);
 			expect(beforeBalance.sub(afterBalance).toNumber()).to.be.equal(0);
 
@@ -513,12 +515,8 @@ contract("Staking", (accounts) => {
 		});
 
 		it("should update the vesting checkpoints if the stake is extended with a vesting contract", async () => {
-			//TODO
-			//increase for new date
-			//Decrease for old date
-			//increase of total
-			//just like the test abov but for staking
-			//have a look at the helper function in WeightedStakingTest for creating vesting contracts
+			//TODO if vesting contracts should ever support this function.
+			//currently, they don't and they are not upgradable.
 		});
 	});
 
@@ -565,8 +563,8 @@ contract("Staking", (accounts) => {
 			let delegatee = await staking.delegates(root, lockedTS);
 			expect(delegatee).equal(root);
 
-			let stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toString()).to.be.equal(amount);
+			let stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toString()).to.be.equal(amount);
 			let beforeBalance = await token.balanceOf.call(root);
 
 			let tx2 = await staking.stake(amount * 2, lockedTS, root, account1);
@@ -575,8 +573,8 @@ contract("Staking", (accounts) => {
 			delegatee = await staking.delegates(root, lockedTS);
 			expect(delegatee).equal(account1);
 
-			stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toNumber()).to.be.equal(amount * 3);
+			stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toNumber()).to.be.equal(amount * 3);
 			let afterBalance = await token.balanceOf.call(root);
 			expect(beforeBalance.sub(afterBalance).toNumber()).to.be.equal(amount * 2);
 
@@ -707,14 +705,14 @@ contract("Staking", (accounts) => {
 			setNextBlockTimestamp(lockedTS.toNumber());
 			mineBlock();
 
-			let stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toString()).to.be.equal(amount);
+			let stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toString()).to.be.equal(amount);
 			let beforeBalance = await token.balanceOf.call(root);
 
 			let tx2 = await staking.withdraw(amount / 2, lockedTS, root);
 
-			stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toNumber()).to.be.equal(amount / 2);
+			stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toNumber()).to.be.equal(amount / 2);
 			let afterBalance = await token.balanceOf.call(root);
 			expect(afterBalance.sub(beforeBalance).toNumber()).to.be.equal(amount / 2);
 
@@ -757,13 +755,13 @@ contract("Staking", (accounts) => {
 			let lockedTS = await getTimeFromKickoff(duration);
 			await staking.stake(amount, lockedTS, root, root);
 
-			let stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toString()).to.be.equal(amount);
+			let stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toString()).to.be.equal(amount);
 
 			await staking.withdraw(amount / 2, lockedTS, account2);
 
-			stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toNumber()).to.be.equal(amount / 2);
+			stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toNumber()).to.be.equal(amount / 2);
 
 			//_decreaseDelegateStake
 			let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
@@ -773,8 +771,8 @@ contract("Staking", (accounts) => {
 
 			await staking.withdraw(amount / 2, lockedTS, account2);
 
-			stackingbBalance = await token.balanceOf.call(staking.address);
-			expect(stackingbBalance.toNumber()).to.be.equal(0);
+			stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toNumber()).to.be.equal(0);
 
 			//_decreaseDelegateStake
 			numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
@@ -881,8 +879,8 @@ contract("Staking", (accounts) => {
 				let lockedTS = await getTimeFromKickoff(duration);
 				await staking.stake(amount, lockedTS, root, root);
 
-				let stackingbBalance = await token.balanceOf.call(staking.address);
-				expect(stackingbBalance.toString()).to.be.equal(amount);
+				let stakingBalance = await token.balanceOf.call(staking.address);
+				expect(stakingBalance.toString()).to.be.equal(amount);
 
 				await mineBlock();
 				let amounts = await staking.getWithdrawAmounts(amount, lockedTS);
@@ -891,8 +889,8 @@ contract("Staking", (accounts) => {
 
 				await staking.withdraw(amount, lockedTS, account2);
 
-				stackingbBalance = await token.balanceOf.call(staking.address);
-				expect(stackingbBalance.toNumber()).to.be.equal(0);
+				stakingBalance = await token.balanceOf.call(staking.address);
+				expect(stakingBalance.toNumber()).to.be.equal(0);
 
 				let feeSharingBalance = await token.balanceOf.call(feeSharingProxy.address);
 				let userBalance = await token.balanceOf.call(account2);
@@ -915,7 +913,47 @@ contract("Staking", (accounts) => {
 		});
 
 		it("if withdrawing with a vesting contract, the vesting chckpoints need to be updated", async () => {
-			//TODO
+
+			let amount = "1000";
+			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			let lockedTS = await getTimeFromKickoff(duration);
+			let {vestingInstance, blockNumber} = await createVestingContractWithSingleDate(duration, amount, token, staking, root);
+
+			//await setTime(lockedTS);
+			setNextBlockTimestamp(lockedTS.toNumber());
+			mineBlock();
+
+			let stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toString()).to.be.equal(amount);
+			let beforeBalance = await token.balanceOf.call(root);
+
+			let tx2 = await vestingInstance.withdrawTokens(root)
+
+			stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toNumber()).to.be.equal(0);
+			let afterBalance = await token.balanceOf.call(root);
+			expect(afterBalance.sub(beforeBalance).toString()).to.be.equal(amount);
+
+			//_decreaseDailyStake
+			let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(lockedTS);
+			expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(2);
+			let checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(blockNumber);
+			expect(checkpoint.stake.toString()).to.be.equal(amount);
+			checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 1);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
+			expect(checkpoint.stake.toNumber()).to.be.equal(0);
+
+			//_decreaseVestingStake
+			let numVestingCheckpoints = await staking.numVestingCheckpoints.call(lockedTS);
+			expect(numVestingCheckpoints.toNumber()).to.be.equal(2);
+			checkpoint = await staking.vestingCheckpoints.call(lockedTS, 0);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(blockNumber);
+			expect(checkpoint.stake.toString()).to.be.equal(amount);
+			checkpoint = await staking.vestingCheckpoints.call(lockedTS, 1);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
+			expect(checkpoint.stake.toNumber()).to.be.equal(0);
+
 		});
 	});
 
@@ -1025,4 +1063,16 @@ function weightingFunction(stake, time, maxDuration, maxVotingWeight, weightFact
 	let x = maxDuration - time;
 	let mD2 = maxDuration * maxDuration;
 	return Math.floor((stake * (Math.floor((maxVotingWeight * weightFactor * (mD2 - x * x)) / mD2) + weightFactor)) / weightFactor);
+}
+
+async function createVestingContractWithSingleDate(cliff, amount, token, staking, tokenOwner) {
+	vestingLogic = await VestingLogic.new();
+	let vestingInstance = await Vesting.new(vestingLogic.address, token.address, staking.address, tokenOwner, cliff, cliff, tokenOwner);
+	vestingInstance = await VestingLogic.at(vestingInstance.address);
+	//important, so it's recognized as vesting contract
+	await staking.addContractCodeHash(vestingInstance.address);
+
+	await token.approve(vestingInstance.address, amount);
+	let result = await vestingInstance.stakeTokens(amount);
+	return { vestingInstance: vestingInstance, blockNumber: result.receipt.blockNumber };
 }
