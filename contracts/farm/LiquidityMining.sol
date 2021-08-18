@@ -590,8 +590,8 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 			uint256 poolId = i;
 			PoolInfo storage pool = poolInfoList[poolId];
 			uint256 rewardTokensLength = pool.rewardTokens.length;
-			for (uint256 rewardTokenIdx = 0; rewardTokenIdx < rewardTokensLength; i++) {
-				address rewardTokenAddress = pool.rewardTokens[rewardTokenIdx];
+			for (uint256 j = 0; j < rewardTokensLength; j++) {
+				address rewardTokenAddress = pool.rewardTokens[j];
 				_claimReward(poolId, rewardTokenAddress, userAddress);
 			}
 		}
