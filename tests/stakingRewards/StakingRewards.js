@@ -298,10 +298,10 @@ contract("StakingRewards", (accounts) => {
 	function avgWeight(from, to, maxWeight, maxDuration) {
 		let weight = 0;
 		for (let i = from; i < to; i++) {
-			weight += (maxWeight * (maxDuration ** 2 - (maxDuration - i) ** 2)) / maxDuration ** 2 + 1;
+			weight += Math.floor(((maxWeight * (maxDuration ** 2 - (maxDuration - i) ** 2)) / maxDuration ** 2 + 1) * 10, 2);
 		}
 		weight /= to - from;
-		return (weight / 10) * 0.2975;
+		return (weight / 100) * 0.2975;
 	}
 
 	function round(value, decimals) {
