@@ -725,38 +725,6 @@ describe("LiquidityMining", () => {
 		});
 	});
 
-	// describe("getPassedBlocksWithBonusMultiplier", () => {
-	// 	it("check calculation", async () => {
-	// 		let bonusBlockMultiplier = await liquidityMining.BONUS_BLOCK_MULTIPLIER();
-	// 		let startBlock = await liquidityMining.startBlock();
-	// 		let bonusEndBlock = await liquidityMining.bonusEndBlock();
-	// 		let blocks;
-
-	// 		//[startBlock, bonusEndBlock]
-	// 		blocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(startBlock, bonusEndBlock);
-	// 		expect(blocks).bignumber.equal(numberOfBonusBlocks.mul(bonusBlockMultiplier));
-
-	// 		//[startBlock - 100, bonusEndBlock]
-	// 		blocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(startBlock.sub(new BN(100)), bonusEndBlock);
-	// 		expect(blocks).bignumber.equal(numberOfBonusBlocks.mul(bonusBlockMultiplier));
-
-	// 		//[startBlock, bonusEndBlock + 100]
-	// 		let blocksAfterBonusPeriod = new BN(100);
-	// 		blocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(
-	// 			startBlock,
-	// 			bonusEndBlock.add(new BN(blocksAfterBonusPeriod))
-	// 		);
-	// 		expect(blocks).bignumber.equal(numberOfBonusBlocks.mul(bonusBlockMultiplier).add(blocksAfterBonusPeriod));
-
-	// 		//[startBlock, stopMining, ... bonusEndBlock]
-	// 		await mineBlocks(5);
-	// 		await liquidityMining.stopMining();
-	// 		let endBlock = await liquidityMining.endBlock();
-	// 		blocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(startBlock, bonusEndBlock);
-	// 		expect(blocks).bignumber.equal(endBlock.sub(startBlock).mul(bonusBlockMultiplier));
-	// 	});
-	// });
-
 	describe("getUserAccumulatedReward", () => {
 		const amount1 = new BN(1000);
 		const amount2 = new BN(2000);
@@ -1416,16 +1384,16 @@ describe("LiquidityMining", () => {
 		// mapping(address => uint256) poolIdList;
 		// mapping(uint256 => mapping(address => UserInfo)) public userInfoMap;
 
-		// it("getMissedBalance", async () => {
-		// 	let missedBalance = await liquidityMining.getMissedBalance();
-		// 	expect(missedBalance).bignumber.equal("0");
+		it("getMissedBalance", async () => {
+			let missedBalance = await liquidityMining.getMissedBalance(SOVToken.address);
+			expect(missedBalance).bignumber.equal("0");
 
-		// 	await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
-		// 	await liquidityMining.updatePool(token1.address);
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+			await liquidityMining.updatePool(token1.address);
 
-		// 	missedBalance = await liquidityMining.getMissedBalance();
-		// 	expect(missedBalance).bignumber.equal("30");
-		// });
+			missedBalance = await liquidityMining.getMissedBalance(SOVToken.address);
+			expect(missedBalance).bignumber.equal("3");
+		});
 
 		it("getUserAccumulatedReward", async () => {
 			// real tests are elsewhere in this file

@@ -281,7 +281,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	) external onlyAuthorized {
 		require(_poolTokens.length == _allocationPoints.length, "Arrays mismatch");
 		require(_poolTokens.length == _rewardTokens.length, "Arrays mismatch");
-		
+
 		if (_updateAllFlag) {
 			updateAllPools();
 		}
@@ -297,7 +297,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 	 * @param _from the first block for a calculation
 	 * @param _to the last block for a calculation
 	 */
-	function _getPassedBlocksWithBonusMultiplier(
+	function _getPassedBlocks(
 		RewardToken storage _rewardToken,
 		uint256 _from,
 		uint256 _to
@@ -426,7 +426,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 
 		rewardToken.totalUsersBalance = rewardToken.totalUsersBalance.add(accumulatedReward_);
 	}
-	
+
 	function _getPoolAccumulatedReward(
 		PoolInfo storage _pool,
 		PoolInfoRewardToken storage _poolRewardToken,
@@ -442,7 +442,15 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		PoolInfoRewardToken storage _poolRewardToken,
 		uint256 _endBlock
 	) internal view returns (uint256, uint256) {
-		return _getPoolAccumulatedReward(_pool, _additionalAmount, _rewardToken, _poolRewardToken, _poolRewardToken.lastRewardBlock, _endBlock);
+		return
+			_getPoolAccumulatedReward(
+				_pool,
+				_additionalAmount,
+				_rewardToken,
+				_poolRewardToken,
+				_poolRewardToken.lastRewardBlock,
+				_endBlock
+			);
 	}
 
 	function _getPoolAccumulatedReward(
@@ -453,10 +461,12 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		uint256 _startBlock,
 		uint256 _endBlock
 	) internal view returns (uint256, uint256) {
-		uint256 passedBlocks = _getPassedBlocksWithBonusMultiplier(_rewardToken, _startBlock, _endBlock);
-		uint256 accumulatedReward = passedBlocks.mul(_rewardToken.rewardTokensPerBlock).mul(PRECISION).mul(_poolRewardToken.allocationPoint).div(
-			_rewardToken.totalAllocationPoint
-		);
+		uint256 passedBlocks = _getPassedBlocks(_rewardToken, _startBlock, _endBlock);
+		uint256 accumulatedReward = passedBlocks
+			.mul(_rewardToken.rewardTokensPerBlock)
+			.mul(PRECISION)
+			.mul(_poolRewardToken.allocationPoint)
+			.div(_rewardToken.totalAllocationPoint);
 
 		uint256 poolTokenBalance = _pool.poolToken.balanceOf(address(this));
 		poolTokenBalance = poolTokenBalance.add(_additionalAmount);
