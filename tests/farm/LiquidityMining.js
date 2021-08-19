@@ -1355,187 +1355,190 @@ describe("LiquidityMining", () => {
 		});
 	});
 
-	// describe("external getters", () => {
-	// 	let allocationPoint = new BN(1);
-	// 	let amount = new BN(1000);
+	describe("external getters", () => {
+		let allocationPoint = new BN(1);
+		let amount = new BN(1000);
 
-	// 	beforeEach(async () => {
-	// 		await token1.mint(account1, amount);
-	// 		await token1.approve(liquidityMining.address, amount, { from: account1 });
-	// 		await liquidityMining.add(token1.address, allocationPoint, false);
-	// 	});
+		beforeEach(async () => {
+			await token1.mint(account1, amount);
+			await token1.approve(liquidityMining.address, amount, { from: account1 });
+			await liquidityMining.add(token1.address, [SOVToken.address], [allocationPoint], false);
+		});
 
-	// 	it("PRECISION", async () => {
-	// 		expect(await liquidityMining.PRECISION()).bignumber.equal(new BN(1e12));
-	// 	});
+		it("PRECISION", async () => {
+			expect(await liquidityMining.PRECISION()).bignumber.equal(new BN(1e12));
+		});
 
-	// 	it("BONUS_BLOCK_MULTIPLIER", async () => {
-	// 		expect(await liquidityMining.BONUS_BLOCK_MULTIPLIER()).bignumber.equal("10");
-	// 	});
+		it("rewardTokensPerBlock", async () => {
+			let rewardToken = await liquidityMining.getRewardToken(SOVToken.address);
+			expect(rewardToken.rewardTokensPerBlock).bignumber.equal(rewardTokensPerBlock);
+		});
 
-	// 	it("SVR", async () => {
-	// 		expect(await liquidityMining.SOV()).equal(SOVToken.address);
-	// 	});
+		it("startBlock", async () => {
+			let rewardToken = await liquidityMining.getRewardToken(SOVToken.address);
+			expect(rewardToken.startBlock).bignumber.gt("0");
+		});
 
-	// 	it("rewardTokensPerBlock", async () => {
-	// 		expect(await liquidityMining.rewardTokensPerBlock()).bignumber.equal(rewardTokensPerBlock);
-	// 	});
+		it("endBlock", async () => {
+			let rewardToken = await liquidityMining.getRewardToken(SOVToken.address);
+			expect(rewardToken.endBlock).bignumber.equal("0");
+		});
 
-	// 	it("startBlock", async () => {
-	// 		expect(await liquidityMining.startBlock()).bignumber.gt("0");
-	// 	});
+		it("wrapper", async () => {
+			expect(await liquidityMining.wrapper()).equal(wrapper.address);
+		});
 
-	// 	it("bonusEndBlock", async () => {
-	// 		const startBlock = await liquidityMining.startBlock();
-	// 		expect(await liquidityMining.bonusEndBlock()).bignumber.equal(startBlock.add(numberOfBonusBlocks));
-	// 	});
+		it("totalAllocationPoint", async () => {
+			let rewardToken = await liquidityMining.getRewardToken(SOVToken.address);
+			expect(rewardToken.totalAllocationPoint).bignumber.equal(allocationPoint);
+			await liquidityMining.add(token2.address, [SOVToken.address], [allocationPoint], false);
+			rewardToken = await liquidityMining.getRewardToken(SOVToken.address);
+			expect(rewardToken.totalAllocationPoint).bignumber.equal(allocationPoint.mul(new BN(2)));
+		});
 
-	// 	it("endBlock", async () => {
-	// 		expect(await liquidityMining.endBlock()).bignumber.equal("0");
-	// 	});
+		it("totalUsersBalance", async () => {
+			let rewardToken = await liquidityMining.getRewardToken(SOVToken.address);
+			expect(rewardToken.totalUsersBalance).bignumber.equal("0");
 
-	// 	it("wrapper", async () => {
-	// 		expect(await liquidityMining.wrapper()).equal(wrapper.address);
-	// 	});
+			await liquidityMining.updateAllPools();
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
-	// 	it("totalAllocationPoint", async () => {
-	// 		expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(allocationPoint);
-	// 		await liquidityMining.add(token2.address, allocationPoint, false);
-	// 		expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(allocationPoint.mul(new BN(2)));
-	// 	});
+			rewardToken = await liquidityMining.getRewardToken(SOVToken.address);
+			expect(rewardToken.totalUsersBalance).bignumber.equal("0");
 
-	// 	it("totalUsersBalance", async () => {
-	// 		expect(await liquidityMining.totalUsersBalance()).bignumber.equal("0");
+			await liquidityMining.updateAllPools();
+			rewardToken = await liquidityMining.getRewardToken(SOVToken.address);
+			expect(rewardToken.totalUsersBalance).bignumber.equal("3");
+		});
 
-	// 		await liquidityMining.updateAllPools();
-	// 		await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
-	// 		expect(await liquidityMining.totalUsersBalance()).bignumber.equal("0");
+		// could still test these, but I don't see much point:
+		// PoolInfo[] public poolInfoList;
+		// mapping(address => uint256) poolIdList;
+		// mapping(uint256 => mapping(address => UserInfo)) public userInfoMap;
 
-	// 		await liquidityMining.updateAllPools();
-	// 		expect(await liquidityMining.totalUsersBalance()).bignumber.equal("30");
-	// 	});
+		// it("getMissedBalance", async () => {
+		// 	let missedBalance = await liquidityMining.getMissedBalance();
+		// 	expect(missedBalance).bignumber.equal("0");
 
-	// 	// could still test these, but I don't see much point:
-	// 	// PoolInfo[] public poolInfoList;
-	// 	// mapping(address => uint256) poolIdList;
-	// 	// mapping(uint256 => mapping(address => UserInfo)) public userInfoMap;
+		// 	await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+		// 	await liquidityMining.updatePool(token1.address);
 
-	// 	it("getMissedBalance", async () => {
-	// 		let missedBalance = await liquidityMining.getMissedBalance();
-	// 		expect(missedBalance).bignumber.equal("0");
+		// 	missedBalance = await liquidityMining.getMissedBalance();
+		// 	expect(missedBalance).bignumber.equal("30");
+		// });
 
-	// 		await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
-	// 		await liquidityMining.updatePool(token1.address);
+		it("getUserAccumulatedReward", async () => {
+			// real tests are elsewhere in this file
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+			await mineBlock();
+			const reward1 = await liquidityMining.getUserAccumulatedReward(token1.address, SOVToken.address, account1);
+			const reward2 = await liquidityMining.getUserAccumulatedReward(token1.address, SOVToken.address, account2);
+			expect(reward1).bignumber.equal("3");
+			expect(reward2).bignumber.equal("0");
+		});
 
-	// 		missedBalance = await liquidityMining.getMissedBalance();
-	// 		expect(missedBalance).bignumber.equal("30");
-	// 	});
+		it("getPoolId", async () => {
+			const poolId = await liquidityMining.getPoolId(token1.address);
+			expect(poolId).bignumber.equal("0");
+			await expectRevert(liquidityMining.getPoolId(token2.address), "Pool token not found");
+			await liquidityMining.add(token2.address, [SOVToken.address], [allocationPoint], false);
+			const poolId2 = await liquidityMining.getPoolId(token2.address);
+			expect(poolId2).bignumber.equal("1");
+		});
 
-	// 	it("getUserAccumulatedReward", async () => {
-	// 		// real tests are elsewhere in this file
-	// 		await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
-	// 		await mineBlock();
-	// 		const reward1 = await liquidityMining.getUserAccumulatedReward(token1.address, account1);
-	// 		const reward2 = await liquidityMining.getUserAccumulatedReward(token1.address, account2);
-	// 		expect(reward1).bignumber.equal("30");
-	// 		expect(reward2).bignumber.equal("0");
-	// 	});
+		it("getPoolLength", async () => {
+			let length = await liquidityMining.getPoolLength();
+			expect(length).bignumber.equal("1");
 
-	// 	it("getPoolId", async () => {
-	// 		const poolId = await liquidityMining.getPoolId(token1.address);
-	// 		expect(poolId).bignumber.equal("0");
-	// 		await expectRevert(liquidityMining.getPoolId(token2.address), "Pool token not found");
-	// 		await liquidityMining.add(token2.address, allocationPoint, false);
-	// 		const poolId2 = await liquidityMining.getPoolId(token2.address);
-	// 		expect(poolId2).bignumber.equal("1");
-	// 	});
+			await liquidityMining.add(token2.address, [SOVToken.address], [allocationPoint], false);
+			length = await liquidityMining.getPoolLength();
+			expect(length).bignumber.equal("2");
+		});
 
-	// 	it("getPoolLength", async () => {
-	// 		let length = await liquidityMining.getPoolLength();
-	// 		expect(length).bignumber.equal("1");
+		it("getPoolInfoList", async () => {
+			const infoList = await liquidityMining.getPoolInfoList();
+			expect(infoList).to.be.an("array");
+			expect(infoList.length).equal(1);
+			const info = infoList[0];
+			expect(info.poolToken).equal(token1.address);
+			expect(info.rewardTokens[0]).equal(SOVToken.address);
 
-	// 		await liquidityMining.add(token2.address, allocationPoint, false);
-	// 		length = await liquidityMining.getPoolLength();
-	// 		expect(length).bignumber.equal("2");
-	// 	});
+			const poolRewardInfo = await liquidityMining.getPoolReward(token1.address, info.rewardTokens[0]);
+			expect(poolRewardInfo.allocationPoint).equal(allocationPoint.toString());
+			expect(poolRewardInfo.accumulatedRewardPerShare).equal("0");
+			expect(poolRewardInfo.lastRewardBlock).equal((await web3.eth.getBlockNumber()).toString());
+		});
 
-	// 	it("getPoolInfoList", async () => {
-	// 		const infoList = await liquidityMining.getPoolInfoList();
-	// 		expect(infoList).to.be.an("array");
-	// 		expect(infoList.length).equal(1);
-	// 		const info = infoList[0];
-	// 		expect(info.poolToken).equal(token1.address);
-	// 		expect(info.allocationPoint).equal(allocationPoint.toString());
-	// 		expect(info.accumulatedRewardPerShare).equal("0");
-	// 		expect(info.lastRewardBlock).equal((await web3.eth.getBlockNumber()).toString());
-	// 	});
+		it("getPoolInfo", async () => {
+			const info = await liquidityMining.getPoolInfo(token1.address);
+			expect(info.poolToken).equal(token1.address);
 
-	// 	it("getPoolInfo", async () => {
-	// 		const info = await liquidityMining.getPoolInfo(token1.address);
-	// 		expect(info.poolToken).equal(token1.address);
-	// 		expect(info.allocationPoint).equal(allocationPoint.toString());
-	// 		expect(info.accumulatedRewardPerShare).equal("0");
-	// 		expect(info.lastRewardBlock).equal((await web3.eth.getBlockNumber()).toString());
+			const poolRewardInfo = await liquidityMining.getPoolReward(token1.address, info.rewardTokens[0]);
+			expect(poolRewardInfo.allocationPoint).equal(allocationPoint.toString());
+			expect(poolRewardInfo.accumulatedRewardPerShare).equal("0");
+			expect(poolRewardInfo.lastRewardBlock).equal((await web3.eth.getBlockNumber()).toString());
 
-	// 		await expectRevert(liquidityMining.getPoolInfo(token2.address), "Pool token not found");
-	// 	});
+			await expectRevert(liquidityMining.getPoolInfo(token2.address), "Pool token not found");
+		});
 
-	// 	it("getUserBalanceList", async () => {
-	// 		await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
-	// 		await mineBlock();
-	// 		const balanceList = await liquidityMining.getUserBalanceList(account1);
+		it("getUserBalanceList", async () => {
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+			await mineBlock();
+			const balanceList = await liquidityMining.getUserBalanceList(account1);
 
-	// 		expect(balanceList).to.be.an("array");
-	// 		expect(balanceList.length).equal(1);
-	// 		const balanceData = balanceList[0];
-	// 		expect(balanceData).to.be.an("array");
-	// 		expect(balanceData[0]).bignumber.equal(amount);
-	// 		expect(balanceData[1]).bignumber.equal("30");
-	// 	});
+			expect(balanceList).to.be.an("array");
+			expect(balanceList.length).equal(1);
+			const balanceData = balanceList[0];
+			expect(balanceData).to.be.an("array");
+			expect(balanceData[0].amount).bignumber.equal(amount);
+			expect(balanceData[0].accumulatedReward).bignumber.equal("3");
+		});
 
-	// 	it("getUserInfo", async () => {
-	// 		await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, { from: account1 });
+		it("getUserInfo", async () => {
+			await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, { from: account1 });
 
-	// 		let userInfo = await liquidityMining.getUserInfo(token1.address, account1);
-	// 		expect(userInfo.amount).bignumber.equal("500");
-	// 		expect(userInfo.accumulatedReward).bignumber.equal("0"); // XXX: not yet updated -- funny?
-	// 		expect(userInfo.rewardDebt).bignumber.equal("0"); // not yet updated either
+			let userInfo = await liquidityMining.getUserInfo(token1.address, account1);
+			expect(userInfo.amount).bignumber.equal("500");
+			expect(userInfo.rewards[0].accumulatedReward).bignumber.equal("0"); // XXX: not yet updated -- funny?
+			expect(userInfo.rewards[0].rewardDebt).bignumber.equal("0"); // not yet updated either
 
-	// 		// deposit updates it.
-	// 		await liquidityMining.deposit(token1.address, new BN(1), ZERO_ADDRESS, { from: account1 });
-	// 		userInfo = await liquidityMining.getUserInfo(token1.address, account1);
-	// 		expect(userInfo.amount).bignumber.equal("501");
-	// 		expect(userInfo.accumulatedReward).bignumber.equal("30");
-	// 		expect(userInfo.rewardDebt).bignumber.equal("30");
-	// 	});
+			// deposit updates it.
+			await liquidityMining.deposit(token1.address, new BN(1), ZERO_ADDRESS, { from: account1 });
+			userInfo = await liquidityMining.getUserInfo(token1.address, account1);
+			expect(userInfo.amount).bignumber.equal("501");
+			expect(userInfo.rewards[0].accumulatedReward).bignumber.equal("3");
+			expect(userInfo.rewards[0].rewardDebt).bignumber.equal("3");
+		});
 
-	// 	it("getUserInfoList", async () => {
-	// 		await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, { from: account1 });
+		it("getUserInfoList", async () => {
+			await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, { from: account1 });
 
-	// 		let userInfoList = await liquidityMining.getUserInfoList(account1);
-	// 		expect(userInfoList).to.be.an("array");
-	// 		expect(userInfoList.length).equal(1);
-	// 		const userInfo = userInfoList[0];
-	// 		expect(userInfo.amount).bignumber.equal("500");
-	// 		expect(userInfo.accumulatedReward).bignumber.equal("0");
-	// 		expect(userInfo.rewardDebt).bignumber.equal("0");
-	// 	});
+			let userInfoList = await liquidityMining.getUserInfoList(account1);
+			expect(userInfoList).to.be.an("array");
+			expect(userInfoList.length).equal(1);
+			const userInfo = userInfoList[0];
+			expect(userInfo.amount).bignumber.equal("500");
+			expect(userInfo.rewards[0].accumulatedReward).bignumber.equal("0");
+			expect(userInfo.rewards[0].rewardDebt).bignumber.equal("0");
+		});
 
-	// 	it("getUserAccumulatedRewardList", async () => {
-	// 		await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, { from: account1 });
+		it("getUserAccumulatedRewardList", async () => {
+			await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, { from: account1 });
 
-	// 		let rewardList = await liquidityMining.getUserAccumulatedRewardList(account1);
-	// 		expect(rewardList).to.be.an("array");
-	// 		expect(rewardList.length).equal(1);
-	// 		expect(rewardList[0]).bignumber.equal("0");
-	// 	});
+			let rewardList = await liquidityMining.getUserAccumulatedRewardList(account1);
+			expect(rewardList).to.be.an("array");
+			expect(rewardList.length).equal(1);
+			expect(rewardList[0]).to.be.an("array");
+			expect(rewardList[0].length).equal(1);
+			expect(rewardList[0][0].accumulatedReward).bignumber.equal("0");
+		});
 
-	// 	it("getUserPoolTokenBalance", async () => {
-	// 		await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, { from: account1 });
-	// 		let poolTokenBalance = await liquidityMining.getUserPoolTokenBalance(token1.address, account1);
-	// 		expect(poolTokenBalance).bignumber.equal(new BN(500));
-	// 	});
-	// });
+		it("getUserPoolTokenBalance", async () => {
+			await liquidityMining.deposit(token1.address, new BN(500), ZERO_ADDRESS, { from: account1 });
+			let poolTokenBalance = await liquidityMining.getUserPoolTokenBalance(token1.address, account1);
+			expect(poolTokenBalance).bignumber.equal(new BN(500));
+		});
+	});
 
 	async function deployLiquidityMining() {
 		let liquidityMiningLogic = await LiquidityMiningLogic.new();
