@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 import "../IFeeSharingProxy.sol";
+import "../Vesting/VestingRegistryLogic.sol";
 
 /**
  * @title Staking Storage contact.
@@ -132,4 +133,7 @@ contract StakingStorage is Ownable {
 	/// @notice The number of total vesting checkpoints for each date.
 	/// @dev numVestingCheckpoints[date] is a number.
 	mapping(uint256 => uint32) public numVestingCheckpoints;
+
+	///@notice the vesting registry contract
+	VestingRegistryLogic public vestingRegistryLogic;
 }

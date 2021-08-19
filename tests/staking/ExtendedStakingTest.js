@@ -39,6 +39,9 @@ const LoanToken = artifacts.require("LoanToken");
 
 const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
+//Upgradable Vesting Registry
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const TOTAL_SUPPLY = "100000000000000000000000000000";
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
@@ -76,6 +79,14 @@ contract("Staking", (accounts) => {
 		staking = await StakingProxy.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingMockup.at(staking.address);
+
+		//Upgradable Vesting Registry
+		vestingRegistryLogic = await VestingRegistryLogic.new();
+		vesting = await VestingRegistryProxy.new();
+		await vesting.setImplementation(vestingRegistryLogic.address);
+		vesting = await VestingRegistryLogic.at(vesting.address);
+
+		await staking.setVestingRegistry(vesting.address);
 
 		//Protocol
 		protocol = await Protocol.new();
