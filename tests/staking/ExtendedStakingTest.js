@@ -15,7 +15,7 @@ const {
 	advanceBlocks,
 } = require("../Utils/Ethereum");
 
-const StakingLogic = artifacts.require("Staking");
+const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const StakingMockup = artifacts.require("StakingMockup");
 const VestingLogic = artifacts.require("VestingLogicMockup");
