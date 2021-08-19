@@ -921,7 +921,7 @@ contract("FeeSharingProxy:", (accounts) => {
 		it("vesting contract should not be able to withdraw fees", async () => {
 			let {vestingInstance} = await createVestingContractWithSingleDate(new BN(MAX_DURATION), 1000, root);
 			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
-			await expectRevert(vestingInstance.collectDividends(loanToken.address, 5, root), "FeeSharingProxy::withdrawFees: no tokens to withdraw");
+			await expectRevert(vestingInstance.collectDividends(loanToken.address, 5, root), "FeeSharingProxy::withdrawFees: no tokens for a withdrawal");
 		});
 
 		it("vested stakes should be deducted from total weighted stake on share distribution", async () => {
