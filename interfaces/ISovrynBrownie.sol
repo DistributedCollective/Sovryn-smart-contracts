@@ -75,7 +75,7 @@ contract ISovrynBrownie is
 
 	function setFeesController(address newController) external;
 
-	function withdrawFees(address token, address receiver) external returns (uint256);
+	function withdrawFees(address[] calldata tokens, address receiver) external returns (uint256);
 
 	function withdrawLendingFees(
 		address token,
@@ -378,6 +378,8 @@ contract ISovrynBrownie is
 	function getAffiliateRewardsHeld(address referrer) external view returns (uint256);
 
 	function getAffiliateTradingTokenFeePercent() external view returns (uint256 affiliateTradingTokenFeePercent);
+
+	function getAffiliatesTokenRewardsValueInRbtc(address referrer) external view returns (uint256 rbtcTotalAmount);
 
 	function swapExternal(
 		address sourceToken,

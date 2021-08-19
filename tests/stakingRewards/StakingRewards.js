@@ -8,6 +8,7 @@ const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const StakingRewards = artifacts.require("StakingRewards");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
+const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 const Protocol = artifacts.require("sovrynProtocol");
 
@@ -25,7 +26,7 @@ contract("StakingRewards", (accounts) => {
 	let feeSharingProxy;
 	let protocol;
 	let beforeBalance, afterBalance;
-	let totalRewards;
+	let rewards, totalRewards;
 
 	before(async () => {
 		[root, a1, a2, a3, ...accounts] = accounts;
@@ -94,10 +95,12 @@ contract("StakingRewards", (accounts) => {
 
 		it("should compute and send rewards to the staker as applicable", async () => {
 			await increaseTime(1209600); //2 Weeks - First Payment
+			const fields = await stakingRewards.getStakerCurrentReward(true, { from: a2 });
 			beforeBalance = await SOV.balanceOf(a2);
 			await stakingRewards.collectReward({ from: a2 }); //Test - 26/08/2021
 			afterBalance = await SOV.balanceOf(a2);
 			rewards = afterBalance.sub(beforeBalance);
+			expect(rewards).to.be.bignumber.equal(fields.amount);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
 		});
@@ -108,10 +111,12 @@ contract("StakingRewards", (accounts) => {
 			await staking.stake("30000", inThreeYears, a2, a2, { from: a2 });
 
 			await increaseTime(1209600 - 86400); //Second Payment - 13 days approx
+			const fields = await stakingRewards.getStakerCurrentReward(true, { from: a2 });
 			beforeBalance = await SOV.balanceOf(a2);
 			await stakingRewards.collectReward({ from: a2 }); //Test - 10/09/2021
 			afterBalance = await SOV.balanceOf(a2);
 			rewards = afterBalance.sub(beforeBalance);
+			expect(rewards).to.be.bignumber.equal(fields.amount);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
 		});
@@ -123,11 +128,16 @@ contract("StakingRewards", (accounts) => {
 
 		it("should compute and send rewards to the staker after recalculating withdrawn stake", async () => {
 			await increaseTime(32659200); //More than a year - first stake expires
+			feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address);
+			await staking.setFeeSharing(feeSharingProxy.address);
 			await staking.withdraw("10000", inOneYear, a2, { from: a2 }); //Withdraw first stake
+			await increaseTime(3600);
+			const fields = await stakingRewards.getStakerCurrentReward(true, { from: a2 }); //For entire duration
 			beforeBalance = await SOV.balanceOf(a2);
-			await stakingRewards.collectReward({ from: a2 });
+			await stakingRewards.collectReward({ from: a2 }); //For maxDuration only
 			afterBalance = await SOV.balanceOf(a2);
 			rewards = afterBalance.sub(beforeBalance);
+			expect(rewards).to.be.bignumber.equal(fields.amount);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
 		});
@@ -135,20 +145,25 @@ contract("StakingRewards", (accounts) => {
 		it("should continue getting rewards for the staking period even after the program stops", async () => {
 			await increaseTime(1209600 - 86400); //Second Payment - 13 days approx
 			await stakingRewards.stop();
+			await increaseTime(3600); //Increase a few blocks
+			const fields = await stakingRewards.getStakerCurrentReward(true, { from: a2 });
 			beforeBalance = await SOV.balanceOf(a2);
 			await stakingRewards.collectReward({ from: a2 });
 			afterBalance = await SOV.balanceOf(a2);
 			rewards = afterBalance.sub(beforeBalance);
+			expect(rewards).to.be.bignumber.equal(fields.amount);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
 		});
 
 		it("should compute and send rewards to the staker a3 as applicable", async () => {
+			const fields = await stakingRewards.getStakerCurrentReward(true, { from: a3 }); //For entire duration
 			beforeBalance = await SOV.balanceOf(a3);
 			let tx = await stakingRewards.collectReward({ from: a3 });
 			console.log("gasUsed: " + tx.receipt.gasUsed);
 			afterBalance = await SOV.balanceOf(a3);
-			rewards = afterBalance.sub(beforeBalance);
+			rewards = afterBalance.sub(beforeBalance); //For maxDuration only
+			expect(rewards).to.be.bignumber.equal(fields.amount);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
 		});
@@ -156,23 +171,32 @@ contract("StakingRewards", (accounts) => {
 		it("should NOT pay rewards for staking after the program stops", async () => {
 			await increaseTime(1209600); //2 Weeks
 			await staking.stake("10000", inTwoYears, a2, a2, { from: a2 });
+			const fields = await stakingRewards.getStakerCurrentReward(true, { from: a2 });
 			beforeBalance = await SOV.balanceOf(a2);
 			await stakingRewards.collectReward({ from: a2 });
 			afterBalance = await SOV.balanceOf(a2);
 			rewards = afterBalance.sub(beforeBalance);
+			expect(rewards).to.be.bignumber.equal(fields.amount);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
 		});
 
 		it("should stop getting rewards when the staking ends after the program stops", async () => {
 			await increaseTime(1209600); //2 Weeks
-			feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address);
+			//FeeSharingProxy
+			feeSharingLogic = await FeeSharingLogic.new();
+			feeSharingProxyObj = await FeeSharingProxy.new(protocol.address, staking.address);
+			await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
+			feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
+
 			await staking.setFeeSharing(feeSharingProxy.address);
 			await staking.withdraw("20000", inTwoYears, a2, { from: a2 }); //Withdraw second stake
 			await staking.withdraw("30000", inThreeYears, a2, { from: a2 }); //Withdraw third stake
 			await staking.withdraw("10000", inTwoYears, a2, { from: a2 }); //Withdraw the last stake as well
+			await increaseTime(3600); //Increase a few blocks
+			const fields = await stakingRewards.getStakerCurrentReward(true, { from: a2 });
 			beforeBalance = await SOV.balanceOf(a2);
-			await expectRevert(stakingRewards.collectReward({ from: a2 }), "weightedStake is zero");
+			await expectRevert(stakingRewards.collectReward({ from: a2 }), "no valid reward");
 			afterBalance = await SOV.balanceOf(a2);
 			rewards = afterBalance.sub(beforeBalance);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
@@ -182,20 +206,24 @@ contract("StakingRewards", (accounts) => {
 
 		it("should process for max duration at a time", async () => {
 			await increaseTime(7890000); //3 Months
-			await stakingRewards.stop();
+			await expectRevert(stakingRewards.stop(), "Already stopped");
+			const fields = await stakingRewards.getStakerCurrentReward(false, { from: a1 }); //For entire duration
 			beforeBalance = await SOV.balanceOf(a1);
-			await stakingRewards.collectReward({ from: a1 });
+			await stakingRewards.collectReward({ from: a1 }); //For maxDuration only
 			afterBalance = await SOV.balanceOf(a1);
 			rewards = afterBalance.sub(beforeBalance);
+			expect(rewards).to.be.bignumber.lessThan(fields.amount);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
 		});
 
-		it("should be able to process again immdeiately when processing after the max duration", async () => {
+		it("should be able to process agaim immediately when processing after the max duration", async () => {
+			const fields = await stakingRewards.getStakerCurrentReward(true, { from: a1 });
 			beforeBalance = await SOV.balanceOf(a1);
 			await stakingRewards.collectReward({ from: a1 });
 			afterBalance = await SOV.balanceOf(a1);
 			rewards = afterBalance.sub(beforeBalance);
+			expect(rewards).to.be.bignumber.equal(fields.amount);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
 		});

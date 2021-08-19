@@ -37,6 +37,7 @@ const LoanTokenLogic = artifacts.require("LoanTokenLogicStandard");
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
 
+const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 
 const TOTAL_SUPPLY = "100000000000000000000000000000";
@@ -103,7 +104,10 @@ contract("Staking", (accounts) => {
 		await protocol.setLoanPool([loanToken.address], [susd.address]);
 
 		//FeeSharingProxy
-		feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address);
+		let feeSharingLogic = await FeeSharingLogic.new();
+		feeSharingProxyObj = await FeeSharingProxy.new(protocol.address, staking.address);
+		await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
+		feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
 		await protocol.setFeesController(feeSharingProxy.address);
 		await staking.setFeeSharing(feeSharingProxy.address);
 
@@ -872,7 +876,12 @@ contract("Staking", (accounts) => {
 					continue;
 				}
 
-				feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address);
+				//FeeSharingProxy
+				let feeSharingLogic = await FeeSharingLogic.new();
+				feeSharingProxyObj = await FeeSharingProxy.new(protocol.address, staking.address);
+				await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
+				feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
+				await protocol.setFeesController(feeSharingProxy.address);
 				await staking.setFeeSharing(feeSharingProxy.address);
 
 				let duration = new BN(i * TWO_WEEKS);

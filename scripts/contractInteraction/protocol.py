@@ -220,9 +220,11 @@ def redeploySwapsExternal():
 
     sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
 
-def setFeesController():
+# feesControllerAddress = new feeSharingProxy address
+def setFeesController(feesControllerAddress):
+    print("Set up new fees controller")
     sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
-    data = sovryn.setFeesController.encode_input(conf.contracts['FeeSharingProxy'])
+    data = sovryn.setFeesController.encode_input(feesControllerAddress)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
 
@@ -233,15 +235,49 @@ def readMaxAffiliateFee():
     print(swapNetwork.maxAffiliateFee())
 
 def withdrawFees():
-    feeSharingProxy = Contract.from_abi("FeeSharingProxy", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingProxy.abi, owner=conf.acct)
-    feeSharingProxy.withdrawFees(conf.contracts['USDT'])
-    feeSharingProxy.withdrawFees(conf.contracts['DoC'])
-    feeSharingProxy.withdrawFees(conf.contracts['WRBTC'])
+    feeSharingProxy = Contract.from_abi("FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
+    feeSharingProxy.withdrawFees([conf.contracts['USDT'], conf.contracts['DoC'], conf.contracts['WRBTC']], {"allow_revert": True})
 
 def setSupportedToken(tokenAddress):
     sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     data = sovryn.setSupportedTokens.encode_input([tokenAddress],[True])
     sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+
+def deployConversionFeeSharingToWRBTC():
+    # For first time deployment of Upgradable FeeSharingProxy (v2), need to call deployFeeSharingProxy first to deploy the proxy
+    # After deployFeeSharingProxyCalled, need to store the address to the testnet_contracts.json with variable name = FeeSharingProxy2
+
+
+    print("Redeploy fee sharing logic")
+    # Redeploy feeSharingLogic
+    feeSharing = conf.acct.deploy(FeeSharingLogic)
+    print("Fee sharing logic redeployed at: ", feeSharing.address)
+
+    print("Set implementation for FeeSharingProxy")
+    feeSharingProxy = Contract.from_abi("FeeSharingProxy", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingProxy.abi, owner=conf.acct)
+    data = feeSharingProxy.setImplementation.encode_input(feeSharing.address)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)
+
+    # Redeploy protocol settings
+    replaceProtocolSettings()
+
+    # Redeploy swaps external
+    redeploySwapsExternal()
+
+    # Set Fees Controller
+    setFeesController(feeSharingProxy.address)
+
+def deployFeeSharingProxy():
+    print("Deploy fee sharing proxy")
+    feeSharingProxy = conf.acct.deploy(FeeSharingProxy, conf.contracts['sovrynProtocol'], conf.contracts['Staking'])
+    print(feeSharingProxy.address)
+    print('Proxy owner: ', feeSharingProxy.getProxyOwner())
+    print('FeeSharingProxy ownership: ', feeSharingProxy.owner())
+    feeSharingProxy.setProxyOwner(conf.contracts['multisig'])
+    feeSharingProxy.transferOwnership(conf.contracts['multisig'])
+    print('New proxy owner: ', feeSharingProxy.getProxyOwner())
+    print('New FeeSharingProxy ownership: ', feeSharingProxy.owner())
+
 
 def deployTradingRebatesUsingLockedSOV():
     # loadConfig()

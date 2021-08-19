@@ -58,6 +58,7 @@ contract SwapsExternal is VaultController, SwapsUser, ModuleCommonFunctionalitie
 	 * @param returnToSender The address of the sender account.
 	 * @param sourceTokenAmount The amount of source tokens.
 	 * @param requiredDestTokenAmount The amount of required destiny tokens.
+	 * @param minReturn Minimum amount (position size) in the collateral tokens.
 	 * @param swapData Additional swap data (not in use yet).
 	 *
 	 * @return destTokenAmountReceived The amount of destiny tokens sent.
@@ -92,10 +93,12 @@ contract SwapsExternal is VaultController, SwapsUser, ModuleCommonFunctionalitie
 
 			uint256 balanceBefore = sourceTokenContract.balanceOf(address(this));
 
-			IERC20(sourceToken).safeTransferFrom(msg.sender, address(this), sourceTokenAmount);
+			if (address(this) != msg.sender) {
+				IERC20(sourceToken).safeTransferFrom(msg.sender, address(this), sourceTokenAmount);
 
-			// explicit balance check so that we can support deflationary tokens
-			sourceTokenAmount = sourceTokenContract.balanceOf(address(this)).sub(balanceBefore);
+				// explicit balance check so that we can support deflationary tokens
+				sourceTokenAmount = sourceTokenContract.balanceOf(address(this)).sub(balanceBefore);
+			}
 		}
 
 		/// @dev Perform the swap w/ tokens.

@@ -10,6 +10,7 @@ import "../core/State.sol";
 import "../events/ProtocolSettingsEvents.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../mixins/ProtocolTokenUser.sol";
+import "../modules/interfaces/ProtocolSwapExternalInterface.sol";
 import "./ModuleCommonFunctionalities.sol";
 
 /**
@@ -113,6 +114,11 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		emit SetLockedSOVAddress(msg.sender, oldLockedSOVAddress, newLockedSOVAddress);
 	}
 
+	/**
+	 * @notice Update the minimum number of referrals to get affiliates rewards.
+	 *
+	 * @param newMinReferrals The new minimum number of referrals.
+	 * */
 	function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external onlyOwner whenNotPaused {
 		uint256 oldMinReferrals = minReferralsToPayout;
 		minReferralsToPayout = newMinReferrals;
@@ -318,43 +324,64 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 	/**
 	 * @notice The feesController calls this function to withdraw fees
 	 * from three sources: lending, trading and borrowing.
+	 * The fees will be converted to wRBTC
 	 *
-	 * @param token The address of the token instance.
+	 * @param tokens The array address of the token instance.
 	 * @param receiver The address of the withdrawal recipient.
 	 *
-	 * @return The withdrawn amount.
+	 * @return The withdrawn total amount in wRBTC
 	 * */
-	function withdrawFees(address token, address receiver) external whenNotPaused returns (uint256) {
+	function withdrawFees(address[] calldata tokens, address receiver) external whenNotPaused returns (uint256) {
 		require(msg.sender == feesController, "unauthorized");
+		uint256 totalWRBTCWithdrawn;
 
-		uint256 lendingBalance = lendingFeeTokensHeld[token];
-		if (lendingBalance > 0) {
-			lendingFeeTokensHeld[token] = 0;
-			lendingFeeTokensPaid[token] = lendingFeeTokensPaid[token].add(lendingBalance);
+		for (uint256 i = 0; i < tokens.length; i++) {
+			uint256 lendingBalance = lendingFeeTokensHeld[tokens[i]];
+			if (lendingBalance > 0) {
+				lendingFeeTokensHeld[tokens[i]] = 0;
+				lendingFeeTokensPaid[tokens[i]] = lendingFeeTokensPaid[tokens[i]].add(lendingBalance);
+			}
+
+			uint256 tradingBalance = tradingFeeTokensHeld[tokens[i]];
+			if (tradingBalance > 0) {
+				tradingFeeTokensHeld[tokens[i]] = 0;
+				tradingFeeTokensPaid[tokens[i]] = tradingFeeTokensPaid[tokens[i]].add(tradingBalance);
+			}
+
+			uint256 borrowingBalance = borrowingFeeTokensHeld[tokens[i]];
+			if (borrowingBalance > 0) {
+				borrowingFeeTokensHeld[tokens[i]] = 0;
+				borrowingFeeTokensPaid[tokens[i]] = borrowingFeeTokensPaid[tokens[i]].add(borrowingBalance);
+			}
+
+			uint256 tempAmount = lendingBalance.add(tradingBalance).add(borrowingBalance);
+
+			if (tempAmount == 0) {
+				continue;
+			}
+
+			IERC20(tokens[i]).approve(protocolAddress, tempAmount);
+
+			(uint256 amountConvertedToWRBTC, ) =
+				ProtocolSwapExternalInterface(protocolAddress).swapExternal(
+					tokens[i], // source token address
+					address(wrbtcToken), // dest token address
+					feesController, // set feeSharingProxy as receiver
+					protocolAddress, // protocol as the sender
+					tempAmount, // source token amount
+					0, // reqDestToken
+					0, // slippage
+					"" // loan data bytes
+				);
+
+			totalWRBTCWithdrawn = totalWRBTCWithdrawn.add(amountConvertedToWRBTC);
+
+			IERC20(address(wrbtcToken)).safeTransfer(receiver, amountConvertedToWRBTC);
+
+			emit WithdrawFees(msg.sender, tokens[i], receiver, lendingBalance, tradingBalance, borrowingBalance, amountConvertedToWRBTC);
 		}
 
-		uint256 tradingBalance = tradingFeeTokensHeld[token];
-		if (tradingBalance > 0) {
-			tradingFeeTokensHeld[token] = 0;
-			tradingFeeTokensPaid[token] = tradingFeeTokensPaid[token].add(tradingBalance);
-		}
-
-		uint256 borrowingBalance = borrowingFeeTokensHeld[token];
-		if (borrowingBalance > 0) {
-			borrowingFeeTokensHeld[token] = 0;
-			borrowingFeeTokensPaid[token] = borrowingFeeTokensPaid[token].add(borrowingBalance);
-		}
-
-		uint256 amount = lendingBalance.add(tradingBalance).add(borrowingBalance);
-		if (amount == 0) {
-			return amount;
-		}
-
-		IERC20(token).safeTransfer(receiver, amount);
-
-		emit WithdrawFees(msg.sender, token, receiver, lendingBalance, tradingBalance, borrowingBalance);
-
-		return amount;
+		return totalWRBTCWithdrawn;
 	}
 
 	/**
