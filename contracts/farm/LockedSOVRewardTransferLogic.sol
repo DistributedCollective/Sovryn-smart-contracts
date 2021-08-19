@@ -42,7 +42,7 @@ contract LockedSOVRewardTransferLogic is IRewardTransferLogic, LockedSOVRewardTr
 		emit UnlockImmediatelyPercentChanged(_newUnlockedImmediatelyPercent);
 	}
 
-	function getRewardTokenAddress() external returns (address) {
+	function getRewardTokenAddress() external view returns (address) {
 		return lockedSOV.SOV();
 	}
 

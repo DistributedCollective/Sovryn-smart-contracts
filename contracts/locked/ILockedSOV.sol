@@ -35,5 +35,5 @@ interface ILockedSOV {
 	/**
 	 * @notice Returns the SOV address this contract is interacting with
 	 */
-	function SOV() external returns (address);
+	function SOV() external view returns (address);
 }

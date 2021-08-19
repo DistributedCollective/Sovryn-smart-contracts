@@ -19,7 +19,7 @@ contract ERC20TransferLogic is IRewardTransferLogic, ERC20TransferLogicStorage {
 		token = IERC20(_token);
 	}
 
-	function getRewardTokenAddress() external returns (address) {
+	function getRewardTokenAddress() external view returns (address) {
 		return address(token);
 	}
 

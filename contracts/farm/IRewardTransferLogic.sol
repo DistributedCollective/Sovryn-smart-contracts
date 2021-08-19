@@ -5,7 +5,7 @@ pragma solidity 0.5.17;
 ///			 SOV tokens
 interface IRewardTransferLogic {
 	/// @dev Returns the reward token address this contract will transfer
-	function getRewardTokenAddress() external returns (address);
+	function getRewardTokenAddress() external view returns (address);
 
 	/// @notice Transfers will be executed from this address so it must be approved before invoking
 	function senderToAuthorize() external view returns (address);
