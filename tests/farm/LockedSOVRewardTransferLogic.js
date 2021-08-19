@@ -13,7 +13,6 @@ const TestLockedSOV = artifacts.require("LockedSOVMockup");
 const Wrapper = artifacts.require("RBTCWrapperProxyMockup");
 const LockedSOVRewardTransferLogic = artifacts.require("LockedSOVRewardTransferLogic");
 
-
 describe("LockedSOVRewardTransferLogic", () => {
 	const name = "Test SOV Token";
 	const symbol = "TST";
@@ -85,14 +84,17 @@ describe("LockedSOVRewardTransferLogic", () => {
 			expect(newLockedSOV.address).equal(newLockedSOVAddress);
 
 			expectEvent(tx, "LockedSOVChanged", {
-				_newAddress: newLockedSOVAddress
+				_newAddress: newLockedSOVAddress,
 			});
 		});
 	});
 
 	describe("changeUnlockedImmediatelyPercent", async () => {
 		it("fails if not an owner or admin", async () => {
-			await expectRevert(rewardTransferLogic.changeUnlockedImmediatelyPercent(unlockedImmediatelyPercent, { from: account1 }), "unauthorized");
+			await expectRevert(
+				rewardTransferLogic.changeUnlockedImmediatelyPercent(unlockedImmediatelyPercent, { from: account1 }),
+				"unauthorized"
+			);
 
 			await rewardTransferLogic.addAdmin(account1);
 			await rewardTransferLogic.changeUnlockedImmediatelyPercent(unlockedImmediatelyPercent, { from: account1 });
@@ -100,7 +102,10 @@ describe("LockedSOVRewardTransferLogic", () => {
 
 		it("fails if invalid unlocked percent", async () => {
 			await rewardTransferLogic.addAdmin(account1);
-			await expectRevert(rewardTransferLogic.changeUnlockedImmediatelyPercent(new BN(10000), { from: account1 }), "Unlocked immediately percent has to be less than 10000.");
+			await expectRevert(
+				rewardTransferLogic.changeUnlockedImmediatelyPercent(new BN(10000), { from: account1 }),
+				"Unlocked immediately percent has to be less than 10000."
+			);
 		});
 
 		it("should set a new unlocked percent", async () => {
@@ -117,14 +122,34 @@ describe("LockedSOVRewardTransferLogic", () => {
 			expect(newUnlockedPercentAmount).bignumber.equal(newUnlockedPercent);
 
 			expectEvent(tx, "UnlockImmediatelyPercentChanged", {
-				_newAmount: newUnlockedPercentAmount
+				_newAmount: newUnlockedPercentAmount,
 			});
+		});
+	});
 
+	describe("getRewardTokenAddress", async () => {
+		it("should return SOVToken address", async () => {
+			let SOVTokenAddress = await rewardTransferLogic.getRewardTokenAddress();
+			expect(SOVTokenAddress).equal(SOVToken.address);
 		});
 
+		it("should change lockedSOV and return new token address", async () => {
+			let newLockedSOV = await TestLockedSOV.new(token1.address, lockedSOVAdmins);
+			await rewardTransferLogic.addAdmin(account1);
+			await rewardTransferLogic.changeLockedSOV(newLockedSOV.address, { from: account1 });
 
+			let token1Address = await rewardTransferLogic.getRewardTokenAddress();
+			expect(token1Address).equal(token1.address);
+
+		})
+	});
+
+	describe("senderToAuthorize", async () => {
+		it("should return contract address", async () => {
+			let rewardTransferLogicAddress = await rewardTransferLogic.senderToAuthorize();
+			expect(rewardTransferLogicAddress).equal(rewardTransferLogic.address);
+		})
 	})
-
 
 	async function deployLiquidityMining() {
 		let liquidityMiningLogic = await LiquidityMiningLogic.new();
