@@ -13,9 +13,9 @@ const TestLockedSOV = artifacts.require("LockedSOVMockup");
 const Wrapper = artifacts.require("RBTCWrapperProxyMockup");
 const LockedSOVRewardTransferLogic = artifacts.require("LockedSOVRewardTransferLogic");
 
+
 describe("LockedSOVRewardTransferLogic", () => {
-   
-    const name = "Test SOV Token";
+	const name = "Test SOV Token";
 	const symbol = "TST";
 
 	const PRECISION = 1e12;
@@ -50,7 +50,7 @@ describe("LockedSOVRewardTransferLogic", () => {
 		lockedSOV = await TestLockedSOV.new(SOVToken.address, lockedSOVAdmins);
 
 		await deployLiquidityMining();
-		
+
 		rewardTransferLogic = await LockedSOVRewardTransferLogic.new();
 		await rewardTransferLogic.initialize(lockedSOV.address, unlockedImmediatelyPercent);
 
@@ -58,48 +58,75 @@ describe("LockedSOVRewardTransferLogic", () => {
 		await liquidityMining.addRewardToken(SOVToken.address, rewardTokensPerBlock, startDelayBlocks, rewardTransferLogic.address);
 	});
 
-    describe("changeLockedSOV", () => {
-        it("fails if not an owner or admin", async () => {
-            await expectRevert(rewardTransferLogic.changeLockedSOV(SOVToken.address, {from:account1}), "unauthorized");
+	describe("changeLockedSOV", () => {
+		it("fails if not an owner or admin", async () => {
+			await expectRevert(rewardTransferLogic.changeLockedSOV(SOVToken.address, { from: account1 }), "unauthorized");
 
-            await rewardTransferLogic.addAdmin(account1);
-            await rewardTransferLogic.changeLockedSOV(SOVToken.address, {from:account1});
+			await rewardTransferLogic.addAdmin(account1);
+			await rewardTransferLogic.changeLockedSOV(SOVToken.address, { from: account1 });
+		});
 
-        });
+		it("fails if invalid address", async () => {
+			await rewardTransferLogic.addAdmin(account1);
+			await expectRevert(rewardTransferLogic.changeLockedSOV(ZERO_ADDRESS, { from: account1 }), "Invalid address");
+		});
 
-        it("fails if invalid address", async () => {
-            await rewardTransferLogic.addAdmin(account1);
-            await expectRevert(rewardTransferLogic.changeLockedSOV(ZERO_ADDRESS, {from:account1}), "Invalid address");
-        });
+		it("should set a new LockedSOV", async () => {
+			//first check original lockedSOV address
+			let lockedSOVAddress = await rewardTransferLogic.lockedSOV();
+			expect(lockedSOV.address).equal(lockedSOVAddress);
 
-        it("should set a new LockedSOV", async () => {
-            //first check original lockedSOV address
-            let lockedSOVAddress = await rewardTransferLogic.lockedSOV();
-            expect(lockedSOV.address).equal(lockedSOVAddress);
-            
-            newLockedSOV = await TestLockedSOV.new(SOVToken.address, lockedSOVAdmins);
-            await rewardTransferLogic.addAdmin(account1);
-            tx = await rewardTransferLogic.changeLockedSOV(newLockedSOV.address, {from:account1});
-            
-            //then check new lockedSOV address
-            let newLockedSOVAddress = await rewardTransferLogic.lockedSOV();
-            expect(newLockedSOV.address).equal(newLockedSOVAddress);
+			newLockedSOV = await TestLockedSOV.new(SOVToken.address, lockedSOVAdmins);
+			await rewardTransferLogic.addAdmin(account1);
+			tx = await rewardTransferLogic.changeLockedSOV(newLockedSOV.address, { from: account1 });
+
+			//then check new lockedSOV address
+			let newLockedSOVAddress = await rewardTransferLogic.lockedSOV();
+			expect(newLockedSOV.address).equal(newLockedSOVAddress);
 
 			expectEvent(tx, "LockedSOVChanged", {
 				_newAddress: newLockedSOVAddress
 			});
+		});
+	});
 
-        });
+	describe("changeUnlockedImmediatelyPercent", async () => {
+		it("fails if not an owner or admin", async () => {
+			await expectRevert(rewardTransferLogic.changeUnlockedImmediatelyPercent(unlockedImmediatelyPercent, { from: account1 }), "unauthorized");
+
+			await rewardTransferLogic.addAdmin(account1);
+			await rewardTransferLogic.changeUnlockedImmediatelyPercent(unlockedImmediatelyPercent, { from: account1 });
+		});
+
+		it("fails if invalid unlocked percent", async () => {
+			await rewardTransferLogic.addAdmin(account1);
+			await expectRevert(rewardTransferLogic.changeUnlockedImmediatelyPercent(new BN(10000), { from: account1 }), "Unlocked immediately percent has to be less than 10000.");
+		});
+
+		it("should set a new unlocked percent", async () => {
+			//first check origin unlocked percent
+			let unlockedPercent = await rewardTransferLogic.unlockedImmediatelyPercent();
+			expect(unlockedPercent).bignumber.equal(unlockedImmediatelyPercent);
+
+			const newUnlockedPercent = new BN(10);
+			await rewardTransferLogic.addAdmin(account1);
+			tx = await rewardTransferLogic.changeUnlockedImmediatelyPercent(newUnlockedPercent, { from: account1 });
+
+			//then check new unlocked percent
+			let newUnlockedPercentAmount = await rewardTransferLogic.unlockedImmediatelyPercent();
+			expect(newUnlockedPercentAmount).bignumber.equal(newUnlockedPercent);
+
+			expectEvent(tx, "UnlockImmediatelyPercentChanged", {
+				_newAmount: newUnlockedPercentAmount
+			});
+
+		});
 
 
-    })
+	})
 
 
-
-
-
-
-    async function deployLiquidityMining() {
+	async function deployLiquidityMining() {
 		let liquidityMiningLogic = await LiquidityMiningLogic.new();
 		let liquidityMiningProxy = await LiquidityMiningProxy.new();
 		await liquidityMiningProxy.setImplementation(liquidityMiningLogic.address);
@@ -113,5 +140,4 @@ describe("LockedSOVRewardTransferLogic", () => {
 			await mineBlock();
 		}
 	}
-
 });
