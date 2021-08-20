@@ -41,6 +41,26 @@ describe("LockedSOVRewardTransferLogic", () => {
 		await rewardTransferLogic.initialize(lockedSOV.address, unlockedImmediatelyPercent);
 	});
 
+	describe("initialize", () => {
+		it("fails if not an owner or admin", async () => {
+			rewardTransferLogic = await LockedSOVRewardTransferLogic.new();
+			await expectRevert(rewardTransferLogic.initialize(SOVToken.address, unlockedImmediatelyPercent, { from: account1 }), "unauthorized");
+
+			await rewardTransferLogic.addAdmin(account1);
+			await rewardTransferLogic.initialize(SOVToken.address, unlockedImmediatelyPercent, { from: account1 });
+		});
+
+
+		it("sets the expected values", async () => {
+			rewardTransferLogic = await LockedSOVRewardTransferLogic.new();
+			await rewardTransferLogic.initialize(lockedSOV.address, unlockedImmediatelyPercent);
+			let _lockedSOVAddress = await rewardTransferLogic.lockedSOV();
+			let _unlockedImmediatelyPercent = await rewardTransferLogic.unlockedImmediatelyPercent();
+			expect(_lockedSOVAddress).equal(lockedSOV.address);
+			expect(_unlockedImmediatelyPercent).bignumber.equal(unlockedImmediatelyPercent);
+		});
+	});
+
 	describe("changeLockedSOV", () => {
 		it("fails if not an owner or admin", async () => {
 			await expectRevert(rewardTransferLogic.changeLockedSOV(SOVToken.address, { from: account1 }), "unauthorized");
@@ -139,56 +159,56 @@ describe("LockedSOVRewardTransferLogic", () => {
 		const amountToTransfer = new BN(50);
 
 		it("fails if account doesn't have reward tokens", async () => {
-			await expectRevert(rewardTransferLogic.transferReward(account2,new BN(5),false, { from: account1}),"invalid transfer");
+			await expectRevert(rewardTransferLogic.transferReward(account2, new BN(5), false, { from: account1 }), "invalid transfer");
 		});
 
 		it("fails if account didn't approve before", async () => {
 			//send some SOVTokens to account1 to be able to transfer
-			await SOVToken.mint(account1,new BN(10));
-			await expectRevert(rewardTransferLogic.transferReward(account2,new BN(5),false, { from: account1}),"invalid transfer");
-		})
+			await SOVToken.mint(account1, new BN(10));
+			await expectRevert(rewardTransferLogic.transferReward(account2, new BN(5), false, { from: account1 }), "invalid transfer");
+		});
 
 		it("fails if invalid address to transfer", async () => {
 			//send some SOVTokens to account1 to be able to transfer
-			await SOVToken.mint(account1,account1InitialBalance);
-			await SOVToken.approve(rewardTransferLogic.address,account1InitialBalance, { from: account1});
-			await expectRevert(rewardTransferLogic.transferReward(ZERO_ADDRESS,new BN(5),false, { from: account1}),"invalid transfer");
-		})
+			await SOVToken.mint(account1, account1InitialBalance);
+			await SOVToken.approve(rewardTransferLogic.address, account1InitialBalance, { from: account1 });
+			await expectRevert(rewardTransferLogic.transferReward(ZERO_ADDRESS, new BN(5), false, { from: account1 }), "invalid transfer");
+		});
 
 		it("should account1 transfer reward to account2 without withdraw", async () => {
 			//send some SOVTokens to account1 to be able to transfer
-			await SOVToken.mint(account1,account1InitialBalance);
-			await SOVToken.approve(rewardTransferLogic.address,account1InitialBalance, { from: account1});
-			
-			await rewardTransferLogic.transferReward(account2,amountToTransfer,false, { from: account1});
+			await SOVToken.mint(account1, account1InitialBalance);
+			await SOVToken.approve(rewardTransferLogic.address, account1InitialBalance, { from: account1 });
+
+			await rewardTransferLogic.transferReward(account2, amountToTransfer, false, { from: account1 });
 			let account1FinalBalance = await SOVToken.balanceOf(account1);
 			expect(account1FinalBalance).bignumber.equal(account1InitialBalance.sub(amountToTransfer));
 		});
 
 		it("should account2 receive unlocked balance after transfer without withdraw", async () => {
 			//send some SOVTokens to account1 to be able to transfer
-			await SOVToken.mint(account1,account1InitialBalance);
-			await SOVToken.approve(rewardTransferLogic.address,account1InitialBalance, { from: account1});
+			await SOVToken.mint(account1, account1InitialBalance);
+			await SOVToken.approve(rewardTransferLogic.address, account1InitialBalance, { from: account1 });
 
-			await rewardTransferLogic.transferReward(account2,amountToTransfer,false, { from: account1});
+			await rewardTransferLogic.transferReward(account2, amountToTransfer, false, { from: account1 });
 			let lockedBalance = await lockedSOV.getLockedBalance(account2);
 			let unlockedBalance = await lockedSOV.getUnlockedBalance(account2);
-			
+
 			let unlockedPercent = await rewardTransferLogic.unlockedImmediatelyPercent();
 			let balancePercent = amountToTransfer.mul(unlockedPercent).div(new BN(10000));
 			let balanceAccount2 = await SOVToken.balanceOf(account2);
-			
+
 			expect(balanceAccount2).bignumber.equal(balancePercent);
 			expect(lockedBalance).bignumber.equal(new BN(0));
 			expect(unlockedBalance).bignumber.equal(new BN(0));
-		})
+		});
 
 		it("should should account2 have locked and unlocked balance after transfer with withdraw", async () => {
 			//send some SOVTokens to account1 to be able to transfer
-			await SOVToken.mint(account1,account1InitialBalance);
-			await SOVToken.approve(rewardTransferLogic.address,account1InitialBalance, { from: account1});
+			await SOVToken.mint(account1, account1InitialBalance);
+			await SOVToken.approve(rewardTransferLogic.address, account1InitialBalance, { from: account1 });
 
-			await rewardTransferLogic.transferReward(account2,amountToTransfer,true, { from: account1});
+			await rewardTransferLogic.transferReward(account2, amountToTransfer, true, { from: account1 });
 			let lockedBalance = await lockedSOV.getLockedBalance(account2);
 			let unlockedBalance = await lockedSOV.getUnlockedBalance(account2);
 
@@ -197,9 +217,6 @@ describe("LockedSOVRewardTransferLogic", () => {
 
 			expect(lockedBalance).bignumber.equal(amountToTransfer.sub(balancePercent));
 			expect(unlockedBalance).bignumber.equal(balancePercent);
-			
-		})
-
+		});
 	});
-
 });
