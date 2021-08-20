@@ -150,7 +150,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 		if (isVestingContract(msg.sender)) {
 			_decreaseVestingStake(previousLock, amount);
-			_increaseVestingStake(until, amount);
+			_setVestingStake(until, amount);
 		}
 
 		_decreaseDailyStake(previousLock, amount);
@@ -195,7 +195,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		_increaseDailyStake(until, amount);
 		_increaseUserStake(stakeFor, until, amount);
 
-		if (isVestingContract(stakeFor)) _increaseVestingStake(until, amount);
+		if (isVestingContract(stakeFor)) _setVestingStake(until, amount);
 
 		emit TokensStaked(stakeFor, amount, until, balance);
 	}

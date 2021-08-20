@@ -34,6 +34,42 @@ contract WeightedStaking is Checkpoints {
 		vestingRegistryLogic = VestingRegistryLogic(_vestingRegistryProxy);
 	}
 
+	/**
+	 * @notice Sets the users' vesting stakes for a giving lock dates and writes checkpoints.
+	 * @param lockedDates The arrays of lock dates.
+	 * @param values The array of values to add to the staked balance.
+	 */
+	function setVestingStakes(uint256[] calldata lockedDates, uint96[] calldata values) external onlyAuthorized {
+		require(lockedDates.length == values.length, "arrays mismatch");
+
+		uint256 length = lockedDates.length;
+		for (uint256 i = 0; i < length; i++) {
+			_setVestingStake(lockedDates[i], values[i]);
+		}
+	}
+
+	/**
+	 * @notice Sets the users' vesting stake for a giving lock date and writes a checkpoint.
+	 * @param lockedTS The lock date.
+	 * @param value The value to be set.
+	 */
+	function _setVestingStake(uint256 lockedTS, uint96 value) internal {
+		//delete all checkpoints (shouldn't be any during the first initialization)
+		uint32 nCheckpoints = numVestingCheckpoints[lockedTS];
+		for (uint32 i = 0; i < nCheckpoints; i++) {
+			delete vestingCheckpoints[lockedTS][i];
+		}
+		delete numVestingCheckpoints[lockedTS];
+
+		//blockNumber should be in the past
+		nCheckpoints = 0;
+		uint32 blockNumber = 0;
+		vestingCheckpoints[lockedTS][nCheckpoints] = Checkpoint(blockNumber, value);
+		numVestingCheckpoints[lockedTS] = nCheckpoints + 1;
+
+		emit VestingStakeSet(lockedTS, value);
+	}
+
 	/************* TOTAL VOTING POWER COMPUTATION ************************/
 
 	/**
