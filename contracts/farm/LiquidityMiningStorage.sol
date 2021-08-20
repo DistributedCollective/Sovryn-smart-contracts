@@ -5,6 +5,7 @@ import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/SafeMath.sol";
 import "../locked/ILockedSOV.sol";
 import "../utils/AdminRole.sol";
+import "./IRewardTransferLogic.sol";
 
 contract LiquidityMiningStorage is AdminRole {
 	// Info of each user.
@@ -47,6 +48,8 @@ contract LiquidityMiningStorage is AdminRole {
 		uint256 totalAllocationPoint;
 		// Total balance this contract should have to handle withdrawal for all users
 		uint256 totalUsersBalance;
+		// Contract to be invoked in order to transfer reward tokens.
+		IRewardTransferLogic rewardTransferLogic;
 	}
 
 	struct PoolInfoRewardToken {
@@ -55,7 +58,6 @@ contract LiquidityMiningStorage is AdminRole {
 		uint256 accumulatedRewardPerShare; // Accumulated amount of reward tokens per share, times 1e12. See below.
 	}
 
-	// FIXME: Review this state variable
 	//Wrapper contract which will be a proxy between user and LM
 	address public wrapper;
 
@@ -75,12 +77,4 @@ contract LiquidityMiningStorage is AdminRole {
 	// Info of each user that stakes LP tokens.
 	mapping(uint256 => mapping(address => UserInfo)) public userInfoMap;
 
-	/// FIXME: This needs to be moved to a separate contract
-	/// @dev The locked vault contract to deposit LP's rewards into.
-	ILockedSOV public lockedSOV;
-
-	/// FIXME: This needs to be moved somewhere else
-	// The % which determines how much will be unlocked immediately.
-	/// @dev 10000 is 100%
-	uint256 public unlockedImmediatelyPercent;
 }
