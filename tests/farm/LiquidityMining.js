@@ -12,6 +12,7 @@ const LiquidityMiningProxy = artifacts.require("LiquidityMiningProxy");
 const TestLockedSOV = artifacts.require("LockedSOVMockup");
 const Wrapper = artifacts.require("RBTCWrapperProxyMockup");
 const LockedSOVRewardTransferLogic = artifacts.require("LockedSOVRewardTransferLogic");
+const ERC20TransferLogic = artifacts.require("ERC20TransferLogic");
 
 describe("LiquidityMining", () => {
 	const name = "Test SOV Token";
@@ -32,6 +33,7 @@ describe("LiquidityMining", () => {
 	let SOVToken, token1, token2, token3, liquidityMiningConfigToken;
 	let liquidityMining, wrapper;
 	let rewardTransferLogic, lockedSOVAdmins, lockedSOV;
+	let erc20RewardTransferLogic;
 
 	before(async () => {
 		accounts = await web3.eth.getAccounts();
@@ -49,6 +51,8 @@ describe("LiquidityMining", () => {
 		lockedSOV = await TestLockedSOV.new(SOVToken.address, lockedSOVAdmins);
 
 		await deployLiquidityMining();
+
+		erc20RewardTransferLogic = await ERC20TransferLogic.new();
 		
 		rewardTransferLogic = await LockedSOVRewardTransferLogic.new();
 		await rewardTransferLogic.initialize(lockedSOV.address, unlockedImmediatelyPercent);
@@ -169,6 +173,50 @@ describe("LiquidityMining", () => {
 
 		it("fails if the 0 is passed as an amount", async () => {
 			await expectRevert(liquidityMining.transferRewardTokens(SOVToken.address, account1, 0), "Amount invalid");
+		});
+	});
+
+	describe("addRewardToken", () => {
+		/*
+		address _rewardToken,
+		uint256 _rewardTokensPerBlock,
+		uint256 _startDelayBlocks,
+		address _rewardTransferLogic
+		*/
+		let otherRewardTokensPerBlock = 2;
+		let otherStartDelayBlocks = 3;
+
+		it("should be able to add a reward token", async () => {
+			const transferLogic = await ERC20TransferLogic.new();
+			await transferLogic.initialize(token1.address);
+			await liquidityMining.addRewardToken(token1.address, otherRewardTokensPerBlock, otherStartDelayBlocks, transferLogic.address);
+			const rewardToken = await liquidityMining.getRewardToken(token1.address);
+			expect(rewardToken.totalAllocationPoint).bignumber.equal(new BN(0));
+			expect(rewardToken.totalUsersBalance).bignumber.equal(new BN(0));
+			expect(rewardToken.rewardTokensPerBlock).bignumber.equal(new BN(2));
+		});
+
+		it("fails if start delay blocks is not greater than 0", async () => {
+			const addInvalidAddress = liquidityMining.addRewardToken(token1.address, otherRewardTokensPerBlock, 0, erc20RewardTransferLogic.address);
+			await expectRevert(addInvalidAddress, "Invalid start block");
+		});
+
+		it("fails if reward token address is not valid", async () => {
+			const addInvalidAddress = liquidityMining.addRewardToken(ZERO_ADDRESS, otherRewardTokensPerBlock, otherStartDelayBlocks, erc20RewardTransferLogic.address);
+			await expectRevert(addInvalidAddress, "Invalid token address");
+		});
+
+		it("fails if token is already added as reward token", async () => {
+			const transferLogic = await ERC20TransferLogic.new();
+			await transferLogic.initialize(token1.address);
+			await liquidityMining.addRewardToken(token1.address, otherRewardTokensPerBlock, otherStartDelayBlocks, transferLogic.address);
+			const addReward = liquidityMining.addRewardToken(token1.address, otherRewardTokensPerBlock, otherStartDelayBlocks, transferLogic.address);
+			await expectRevert(addReward, "Already added");
+		});
+
+		it("fails if reward transfer logic doesn't correspond to given reward token", async () => {
+			const addInvalidAddress = liquidityMining.addRewardToken(token1.address, otherRewardTokensPerBlock, otherStartDelayBlocks, erc20RewardTransferLogic.address);
+			await expectRevert(addInvalidAddress, "Reward token and transfer logic mismatch");
 		});
 	});
 
