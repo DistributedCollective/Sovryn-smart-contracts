@@ -1,7 +1,6 @@
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
-const { etherMantissa, mineBlock, advanceBlocks } = require("../Utils/Ethereum");
-const { inTransaction } = require("@openzeppelin/test-helpers/src/expectEvent");
+const { etherMantissa, mineBlock } = require("../Utils/Ethereum");
 
 const { ZERO_ADDRESS } = constants;
 const TOTAL_SUPPLY = etherMantissa(1000000000);
