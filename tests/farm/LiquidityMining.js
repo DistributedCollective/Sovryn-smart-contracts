@@ -1,6 +1,7 @@
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 const { etherMantissa, mineBlock, advanceBlocks } = require("../Utils/Ethereum");
+const { inTransaction } = require("@openzeppelin/test-helpers/src/expectEvent");
 
 const { ZERO_ADDRESS } = constants;
 const TOTAL_SUPPLY = etherMantissa(1000000000);
@@ -1362,6 +1363,76 @@ describe("LiquidityMining", () => {
 				REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks)).mul(ALLOCATION_POINT_SOV_BTC_2).div(MAX_ALLOCATION_POINT)
 			);
 			expect(userInfo.rewards[0].accumulatedReward).bignumber.equal(expectedUserReward);
+		});
+	});
+
+	describe("multiple rewards tokens per pool", () => {
+		let rewardToken1;
+		let rewardToken2;
+		let transferLogic1;
+		let transferLogic2;
+		const otherRewardTokensPerBlock = new BN(6);
+		const allocationPoint = new BN(1);
+
+		beforeEach(async () => {
+			// add other reward token
+			rewardToken1 = await TestToken.new("Reward token 1", "RWT-1", 18, TOTAL_SUPPLY);
+			rewardToken2 = await TestToken.new("Reward token 2", "RWT-2", 18, TOTAL_SUPPLY);
+			
+			transferLogic1 = await ERC20TransferLogic.new();
+			transferLogic2 = await ERC20TransferLogic.new();
+			await transferLogic1.initialize(rewardToken1.address);
+			await transferLogic2.initialize(rewardToken2.address);
+
+			await liquidityMining.addRewardToken(rewardToken1.address, rewardTokensPerBlock, startDelayBlocks, transferLogic1.address);
+			await liquidityMining.addRewardToken(rewardToken2.address, otherRewardTokensPerBlock, startDelayBlocks, transferLogic2.address);
+		});
+
+		it("add 2 reward tokens to one pool", async () => {
+			await liquidityMining.add(token1.address, [rewardToken1.address, rewardToken2.address], [allocationPoint, allocationPoint], false);
+
+			const poolRewards = await liquidityMining.getPoolRewards(token1.address);
+			expect(poolRewards).to.be.an("array");
+			expect(poolRewards).to.have.length(2);
+			expect(poolRewards[0].allocationPoint).bignumber.equal(allocationPoint);
+			expect(poolRewards[1].allocationPoint).bignumber.equal(allocationPoint);
+		});
+
+		it("update 2 reward tokens with new allocation points", async () => {
+			await liquidityMining.add(token1.address, [rewardToken1.address, rewardToken2.address], [allocationPoint, allocationPoint], false);
+
+			let poolRewards = await liquidityMining.getPoolRewards(token1.address);
+			expect(poolRewards).to.be.an("array");
+			expect(poolRewards).to.have.length(2);
+			expect(poolRewards[0].allocationPoint).bignumber.equal(allocationPoint);
+			expect(poolRewards[1].allocationPoint).bignumber.equal(allocationPoint);
+
+			const newAllocationPoints = [new BN(3), new BN(4)];
+
+			await liquidityMining.update(token1.address, [rewardToken1.address, rewardToken2.address], newAllocationPoints, false);
+
+			poolRewards = await liquidityMining.getPoolRewards(token1.address);
+			expect(poolRewards).to.be.an("array");
+			expect(poolRewards).to.have.length(2);
+			expect(poolRewards[0].allocationPoint).bignumber.equal(newAllocationPoints[0]);
+			expect(poolRewards[1].allocationPoint).bignumber.equal(newAllocationPoints[1]);
+		});
+
+		it("check rewards for two reward tokens and one pool", async () => {
+			const amount = new BN(1000);
+			await token1.mint(account1, amount);
+			await token1.approve(liquidityMining.address, amount, { from: account1 });
+			await liquidityMining.add(token1.address, [rewardToken1.address, rewardToken2.address], [allocationPoint, allocationPoint], false);
+
+			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
+
+			await mineBlock();
+
+			const reward1 = await liquidityMining.getUserAccumulatedReward(token1.address, rewardToken1.address, account1);
+			const reward2 = await liquidityMining.getUserAccumulatedReward(token1.address, rewardToken2.address, account1);
+
+			expect(reward1).bignumber.equal(rewardTokensPerBlock);
+			expect(reward2).bignumber.equal(otherRewardTokensPerBlock);
 		});
 	});
 
