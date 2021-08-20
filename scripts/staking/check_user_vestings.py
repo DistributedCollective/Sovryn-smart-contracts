@@ -31,28 +31,23 @@ def main():
     registries.append(Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry2'], abi=VestingRegistry.abi, owner=acct))
     registries.append(Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry3'], abi=VestingRegistry.abi, owner=acct))
 
-    # lines = []
-    # with open('./scripts/staking/vestings.json') as file:
-    #     lines = file.readlines()
-    # for line in lines:
-    #     vestingData = json.loads(line)
-    #     print(vestingData["dates"])
-
-    # with open('./scripts/staking/vestings.json', 'r') as file:
-    #     reader = csv.reader(file)
-    #     for row in reader:
-    #         # vestingData = json.loads(row)[0]
-    #         # print(vestingData.user)
-    #         print("===============")
-    #         print(row)
+    with open('./scripts/staking/vestings.json') as file:
+        lines = file.readlines()
+    users = []
+    for line in lines:
+        vestingData = json.loads(line)
+        users.append(vestingData["user"])
 
     jsonFile = open("./scripts/staking/vestings.json", "a")
-    with open('./scripts/staking/list.csv', 'r') as file:
+    with open('./scripts/staking/users.csv', 'r') as file:
         reader = csv.reader(file)
         for row in reader:
             user = row[0]
             print(user)
+            if user in users:
+                continue
             vestings = getUserVestings(registries, user)
+            vestingDataList = []
             for vesting in vestings:
                 stakes = staking.getStakes(vesting)
                 if (len(stakes[0]) > 0):
@@ -62,7 +57,9 @@ def main():
                         "dates": stakes[0],
                         "amounts": stakes[1]
                     }
-                    jsonFile.write(json.dumps(vestingData) + "\n")
+                    vestingDataList.append(vestingData)
+            for data in vestingDataList:
+                jsonFile.write(json.dumps(data) + "\n")
 
 
 def getUserVestings(registries, user):
