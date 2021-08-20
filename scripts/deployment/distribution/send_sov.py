@@ -29,12 +29,12 @@ def main():
     balanceBefore = acct.balance()
     totalAmount = 0
 
-    # amounts examples: 10961.54, 49.09
-    data = parseFile('./scripts/deployment/distribution/direct-transfers2.csv', 10**16)
+    # amounts examples: 735, 490, 735
+    data = parseFile('./scripts/deployment/distribution/direct-transfers3.csv', 10**18)
     totalAmount += data["totalAmount"]
     # tokenSender.transferSOVusingList(data["receivers"], data["amounts"])
 
-    # 12292.68
+    # 12494.0
     print("=======================================")
     print("SOV amount:")
     print(totalAmount / 10**18)
@@ -51,8 +51,8 @@ def parseFile(fileName, multiplier):
     with open(fileName, 'r') as file:
         reader = csv.reader(file)
         for row in reader:
-            tokenOwner = row[1].replace(" ", "")
-            amount = row[0].replace(",", "").replace(".", "")
+            tokenOwner = row[0].replace(" ", "")
+            amount = row[1].replace(",", "").replace(".", "")
             amount = int(amount) * multiplier
             totalAmount += amount
 
