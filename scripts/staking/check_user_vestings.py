@@ -46,6 +46,14 @@ def main():
                 continue
             vestings = getUserVestings(registries, user)
             vestingDataList = []
+            if (len(vestings) == 0):
+                vestingData = {
+                    "user": user,
+                    "vesting": ZERO_ADDRESS,
+                    "dates": [],
+                    "amounts": []
+                }
+                vestingDataList.append(vestingData)
             for vesting in vestings:
                 stakes = staking.getStakes(vesting)
                 if (len(stakes[0]) > 0):
