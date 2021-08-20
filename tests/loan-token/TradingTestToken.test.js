@@ -81,16 +81,19 @@ contract("LoanTokenTrading", (accounts) => {
 		  4. retrieve the loan from the smart contract and make sure all values are set as expected
 		*/
 		it("Test margin trading sending loan tokens", async () => {
-			await expectRevert(loanToken.marginTrade(
-				constants.ZERO_BYTES32, // loanId  (0 for new loans)
-				oneEth.toString(), // leverageAmount
-				oneEth.toString(), // loanTokenSent
-				"0", // no collateral token sent
-				WRBTC.address, // collateralTokenAddress
-				owner, // trader,
-				0, // slippage
-				"0x" // loanDataBytes (only required with ether)
-			), "principal too small");
+			await expectRevert(
+				loanToken.marginTrade(
+					constants.ZERO_BYTES32, // loanId  (0 for new loans)
+					oneEth.toString(), // leverageAmount
+					oneEth.toString(), // loanTokenSent
+					"0", // no collateral token sent
+					WRBTC.address, // collateralTokenAddress
+					owner, // trader,
+					0, // slippage
+					"0x" // loanDataBytes (only required with ether)
+				),
+				"principal too small"
+			);
 
 			await priceFeeds.setRates(WRBTC.address, SUSD.address, new BN(10).pow(new BN(20)).toString());
 			await priceFeeds.setRates(RBTC.address, SUSD.address, new BN(10).pow(new BN(20)).toString());
@@ -481,17 +484,20 @@ contract("LoanTokenTrading", (accounts) => {
 			await RBTC.transfer(accounts[2], oneEth);
 			await RBTC.approve(loanToken.address, oneEth, { from: accounts[2] });
 
-			await expectRevert(loanToken.marginTrade(
-				"0x0", // loanId  (0 for new loans)
-				wei("2", "ether"), // leverageAmount
-				0, // loanTokenSent (SUSD)
-				10000, // collateral token sent
-				RBTC.address, // collateralTokenAddress (RBTC)
-				accounts[1], // trader,
-				20000,
-				"0x", // loanDataBytes (only required with ether)
-				{ from: accounts[2] }
-			), "principal too small");
+			await expectRevert(
+				loanToken.marginTrade(
+					"0x0", // loanId  (0 for new loans)
+					wei("2", "ether"), // leverageAmount
+					0, // loanTokenSent (SUSD)
+					10000, // collateral token sent
+					RBTC.address, // collateralTokenAddress (RBTC)
+					accounts[1], // trader,
+					20000,
+					"0x", // loanDataBytes (only required with ether)
+					{ from: accounts[2] }
+				),
+				"principal too small"
+			);
 
 			await priceFeeds.setRates(WRBTC.address, SUSD.address, new BN(10).pow(new BN(20)).toString());
 			await priceFeeds.setRates(RBTC.address, SUSD.address, new BN(10).pow(new BN(20)).toString());
