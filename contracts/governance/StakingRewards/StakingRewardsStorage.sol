@@ -45,4 +45,7 @@ contract StakingRewardsStorage is Ownable {
 
 	/// @notice User Address -> Claimed Balance
 	mapping(address => uint256) public claimedBalances;
+
+	/// @notice Represents the block when the StakingRwards Program is started
+	uint256 public deploymentBlock;
 }

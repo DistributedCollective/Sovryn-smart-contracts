@@ -38,6 +38,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		staking = _staking;
 		startTime = staking.timestampToLockDate(block.timestamp);
 		setMaxDuration(15 * TWO_WEEKS);
+		deploymentBlock = _getCurrentBlockNumber();
 	}
 
 	/**
@@ -151,9 +152,10 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		uint256 duration;
 		uint256 referenceBlock;
 		address staker = msg.sender;
+		uint256 lastWithdrawal = withdrawals[staker];
 
 		uint256 lastStakingInterval = staking.timestampToLockDate(currentTS);
-		lastWithdrawalInterval = withdrawals[staker] > 0 ? withdrawals[staker] : startTime;
+		lastWithdrawalInterval = lastWithdrawal > 0 ? lastWithdrawal : startTime;
 		if (lastStakingInterval < lastWithdrawalInterval) return (0, 0);
 
 		if (considerMaxDuration) {
@@ -165,6 +167,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 
 		for (uint256 i = lastWithdrawalInterval; i < duration; i += TWO_WEEKS) {
 			referenceBlock = lastFinalisedBlock.sub(((currentTS.sub(i)).div(30)));
+			if (referenceBlock < deploymentBlock) referenceBlock = deploymentBlock;
 			weightedStake = weightedStake.add(_computeRewardForDate(staker, referenceBlock, i));
 		}
 
