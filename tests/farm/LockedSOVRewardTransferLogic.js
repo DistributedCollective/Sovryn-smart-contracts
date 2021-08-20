@@ -6,22 +6,12 @@ const { ZERO_ADDRESS } = constants;
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
 const TestToken = artifacts.require("TestToken");
-const LiquidityMiningConfigToken = artifacts.require("LiquidityMiningConfigToken");
-const LiquidityMiningLogic = artifacts.require("LiquidityMiningMockup");
-const LiquidityMiningProxy = artifacts.require("LiquidityMiningProxy");
 const TestLockedSOV = artifacts.require("LockedSOVMockup");
-const Wrapper = artifacts.require("RBTCWrapperProxyMockup");
 const LockedSOVRewardTransferLogic = artifacts.require("LockedSOVRewardTransferLogic");
 
 describe("LockedSOVRewardTransferLogic", () => {
 	const name = "Test SOV Token";
 	const symbol = "TST";
-
-	const PRECISION = 1e12;
-
-	const rewardTokensPerBlock = new BN(3);
-	const startDelayBlocks = new BN(1);
-	const numberOfBonusBlocks = new BN(50);
 
 	// The % which determines how much will be unlocked immediately.
 	/// @dev 10000 is 100%
@@ -29,8 +19,7 @@ describe("LockedSOVRewardTransferLogic", () => {
 
 	let accounts;
 	let root, account1, account2, account3, account4;
-	let SOVToken, token1, token2, token3, liquidityMiningConfigToken;
-	let liquidityMining, wrapper;
+	let SOVToken, token1, token2, token3;
 	let rewardTransferLogic, lockedSOVAdmins, lockedSOV;
 
 	before(async () => {
@@ -43,18 +32,13 @@ describe("LockedSOVRewardTransferLogic", () => {
 		token1 = await TestToken.new("Test token 1", "TST-1", 18, TOTAL_SUPPLY);
 		token2 = await TestToken.new("Test token 2", "TST-2", 18, TOTAL_SUPPLY);
 		token3 = await TestToken.new("Test token 3", "TST-3", 18, TOTAL_SUPPLY);
-		liquidityMiningConfigToken = await LiquidityMiningConfigToken.new();
+
 		lockedSOVAdmins = [account1, account2];
 
 		lockedSOV = await TestLockedSOV.new(SOVToken.address, lockedSOVAdmins);
 
-		await deployLiquidityMining();
-
 		rewardTransferLogic = await LockedSOVRewardTransferLogic.new();
 		await rewardTransferLogic.initialize(lockedSOV.address, unlockedImmediatelyPercent);
-
-		await liquidityMining.setWrapper(wrapper.address);
-		await liquidityMining.addRewardToken(SOVToken.address, rewardTokensPerBlock, startDelayBlocks, rewardTransferLogic.address);
 	});
 
 	describe("changeLockedSOV", () => {
@@ -218,18 +202,4 @@ describe("LockedSOVRewardTransferLogic", () => {
 
 	});
 
-	async function deployLiquidityMining() {
-		let liquidityMiningLogic = await LiquidityMiningLogic.new();
-		let liquidityMiningProxy = await LiquidityMiningProxy.new();
-		await liquidityMiningProxy.setImplementation(liquidityMiningLogic.address);
-		liquidityMining = await LiquidityMiningLogic.at(liquidityMiningProxy.address);
-
-		wrapper = await Wrapper.new(liquidityMining.address);
-	}
-
-	async function mineBlocks(blocks) {
-		for (let i = 0; i < blocks; i++) {
-			await mineBlock();
-		}
-	}
 });
