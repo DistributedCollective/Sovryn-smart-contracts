@@ -10,3 +10,12 @@ node_modules/
 package-lock.json
 coverage
 coverage.json
+docs
+truffle-config.js
+package.json
+hardhat.config.js
+hardhat-ganache-tests.config.js
+cache
+brownie-config.yaml
+.vscode
+abi

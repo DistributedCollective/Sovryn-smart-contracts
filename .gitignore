@@ -13,6 +13,7 @@ ignore/
 !.gitignore
 !.gitattributes
 !.solhint.json
+!.solhintignore
 ignore
 *.txt
 *.log
@@ -37,3 +38,4 @@ tmp/
 tmp
 /temp/
 /out/
+abi

@@ -9,8 +9,8 @@ import "../core/State.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../feeds/IPriceFeeds.sol";
 import "../events/FeesEvents.sol";
-import "../mixins/ProtocolTokenUser.sol";
 import "../modules/interfaces/ProtocolAffiliatesInterface.sol";
+import "../core/objects/LoanParamsStruct.sol";
 
 /**
  * @title The Fees Helper contract.
@@ -19,7 +19,7 @@ import "../modules/interfaces/ProtocolAffiliatesInterface.sol";
  *
  * This contract calculates and pays lending/borrow fees and rewards.
  * */
-contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
+contract FeesHelper is State, FeesEvents {
 	using SafeERC20 for IERC20;
 
 	/**
@@ -60,13 +60,16 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 	}
 
 	/**
-	 * @dev settles the trading fee and pays the token reward to the user.
-	 * @param referrer the affiliate referrer address to send the reward to
-	 * @param feeToken the address of the token in which the trading fee is paid
+	 * @notice Settle the trading fee and pay the token reward to the affiliates referrer.
+	 *
+	 * @param referrer The affiliate referrer address to send the reward to.
+	 * @param trader The account that performs this trade.
+	 * @param feeToken The address of the token in which the trading fee is paid.
+	 * @param tradingFee The amount of tokens accrued as fees on the trading.
+	 *
 	 * @return affiliatesBonusSOVAmount the total SOV amount that is distributed to the referrer
 	 * @return affiliatesBonusTokenAmount the total Token Base on the trading fee pairs that is distributed to the referrer
 	 * */
-
 	function _payTradingFeeToAffiliate(
 		address referrer,
 		address trader,
@@ -82,15 +85,16 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 	 * @param user The address to send the reward to.
 	 * @param loanId The Id of the associated loan - used for logging only.
 	 * @param feeToken The address of the token in which the trading fee is paid.
+	 * @param tradingFee The amount of tokens accrued as fees on the trading.
 	 * */
-
 	function _payTradingFee(
 		address user,
 		bytes32 loanId,
 		address feeToken,
+		address feeTokenPair,
 		uint256 tradingFee
 	) internal {
-		uint256 protocolTradingFee = tradingFee; //trading fee paid to protocol
+		uint256 protocolTradingFee = tradingFee; /// Trading fee paid to protocol.
 		if (tradingFee != 0) {
 			if (affiliatesUserReferrer[user] != address(0)) {
 				_payTradingFeeToAffiliate(affiliatesUserReferrer[user], user, feeToken, protocolTradingFee);
@@ -105,7 +109,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 			emit PayTradingFee(user, feeToken, loanId, protocolTradingFee);
 
 			/// Pay the token reward to the user.
-			_payFeeReward(user, loanId, feeToken, tradingFee);
+			_payFeeReward(user, loanId, feeToken, feeTokenPair, tradingFee);
 		}
 	}
 
@@ -120,6 +124,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 		address user,
 		bytes32 loanId,
 		address feeToken,
+		address feeTokenPair,
 		uint256 borrowingFee
 	) internal {
 		if (borrowingFee != 0) {
@@ -129,7 +134,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 			emit PayBorrowingFee(user, feeToken, loanId, borrowingFee);
 
 			/// Pay the token reward to the user.
-			_payFeeReward(user, loanId, feeToken, borrowingFee);
+			_payFeeReward(user, loanId, feeToken, feeTokenPair, borrowingFee);
 		}
 	}
 
@@ -159,6 +164,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 		LoanInterest storage loanInterestLocal,
 		bytes32 loanId,
 		address feeToken,
+		address feeTokenPair,
 		address user,
 		uint256 interestTime
 	) internal {
@@ -171,7 +177,7 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 		loanInterestLocal.updatedTimestamp = interestTime;
 
 		if (interestExpenseFee != 0) {
-			_payFeeReward(user, loanId, feeToken, interestExpenseFee);
+			_payFeeReward(user, loanId, feeToken, feeTokenPair, interestExpenseFee);
 		}
 	}
 
@@ -186,10 +192,17 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 		address user,
 		bytes32 loanId,
 		address feeToken,
+		address feeTokenPair,
 		uint256 feeAmount
 	) internal {
 		uint256 rewardAmount;
+		uint256 _feeRebatePercent = feeRebatePercent;
 		address _priceFeeds = priceFeeds;
+
+		if (specialRebates[feeToken][feeTokenPair] > 0) {
+			_feeRebatePercent = specialRebates[feeToken][feeTokenPair];
+		}
+
 		/// Note: this should be refactored.
 		/// Calculate the reward amount, querying the price feed.
 		(bool success, bytes memory data) =
@@ -197,10 +210,11 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 				abi.encodeWithSelector(
 					IPriceFeeds(_priceFeeds).queryReturn.selector,
 					feeToken,
-					protocolTokenAddress, /// Price rewards using BZRX price rather than vesting token price.
-					feeAmount.mul(feeRebatePercent).div(10**20)
+					sovTokenAddress, /// Price rewards using BZRX price rather than vesting token price.
+					feeAmount.mul(_feeRebatePercent).div(10**20)
 				)
 			);
+		// solhint-disable-next-line no-inline-assembly
 		assembly {
 			if eq(success, 1) {
 				rewardAmount := mload(add(data, 32))
@@ -208,12 +222,16 @@ contract FeesHelper is State, ProtocolTokenUser, FeesEvents {
 		}
 
 		if (rewardAmount != 0) {
-			address rewardToken;
-			(rewardToken, success) = _withdrawProtocolToken(user, rewardAmount);
+			IERC20(sovTokenAddress).approve(lockedSOVAddress, rewardAmount);
+
+			(bool success, ) = lockedSOVAddress.call(abi.encodeWithSignature("depositSOV(address,uint256)", user, rewardAmount));
+
 			if (success) {
 				protocolTokenPaid = protocolTokenPaid.add(rewardAmount);
 
-				emit EarnReward(user, rewardToken, loanId, rewardAmount);
+				emit EarnReward(user, sovTokenAddress, loanId, _feeRebatePercent, rewardAmount);
+			} else {
+				emit EarnRewardFail(user, sovTokenAddress, loanId, _feeRebatePercent, rewardAmount);
 			}
 		}
 	}

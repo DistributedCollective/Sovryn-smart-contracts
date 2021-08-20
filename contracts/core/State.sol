@@ -150,38 +150,64 @@ contract State is Objects, ReentrancyGuard, Ownable {
 	/// Nonce per borrower. Used for loan id creation.
 	mapping(address => uint256) public borrowerNonce;
 
-	// Rollover transaction costs around 0.0000168 rBTC, it is denominated in wrBTC.
+	/// Rollover transaction costs around 0.0000168 rBTC, it is denominated in wrBTC.
 	uint256 public rolloverBaseReward = 16800000000000;
 	uint256 public rolloverFlexFeePercent = 0.1 ether; /// 0.1%
 
 	IWrbtcERC20 public wrbtcToken;
 	address public protocolTokenAddress;
 
-	/// 50% fee rebate /// potocolToken reward to user, it is worth % of trading/borrowing fee.
+	/// 50% fee rebate
+	/// potocolToken reward to user, it is worth % of trading/borrowing fee.
 	uint256 public feeRebatePercent = 50 * 10**18;
 
 	address public admin;
 
-	address public protocolAddress; // for modules interaction
+	/// For modules interaction.
+	address public protocolAddress;
 
-	mapping(address => bool) public userNotFirstTradeFlag; // The flag is set on the user's first trade or borrowing
+	/**
+	 *** Affiliates ***
+	 **/
 
-	mapping(address => address) public affiliatesUserReferrer; // User => referrer (affiliate)
-	mapping(address => EnumerableAddressSet.AddressSet) internal referralsList; // list of referral addresses that owned by the referrer
+	/// The flag is set on the user's first trade.
+	mapping(address => bool) public userNotFirstTradeFlag;
 
+	/// User => referrer (affiliate).
+	mapping(address => address) public affiliatesUserReferrer;
+
+	/// List of referral addresses affiliated to the referrer.
+	mapping(address => EnumerableAddressSet.AddressSet) internal referralsList;
+
+	/// @dev Referral threshold for paying out to the referrer.
+	///   The referrer reward is being accumulated and locked until the threshold is passed.
 	uint256 public minReferralsToPayout = 3;
-	mapping(address => uint256) public affiliateRewardsHeld; // Total affiliate SOV rewards that held in the protocol (Because the minimum referrals is less than the rule)
-	address public sovTokenAddress; // For affiliates SOV Bonus proccess
+
+	/// @dev Total affiliate SOV rewards that held in the protocol
+	///   (Because the minimum referrals is less than the rule)
+	mapping(address => uint256) public affiliateRewardsHeld;
+
+	/// @dev For affiliates SOV Bonus proccess.
+	address public sovTokenAddress;
 	address public lockedSOVAddress;
 
-	/// 20% fee share of trading token fee /// Fee share of trading token fee for affiliate program.
+	/// @dev 20% fee share of trading token fee.
+	///   Fee share of trading token fee for affiliate program.
 	uint256 public affiliateTradingTokenFeePercent = 20 * 10**18;
 
-	mapping(address => EnumerableAddressSet.AddressSet) internal affiliatesReferrerTokensList; // addresses of tokens in which commissions were paid to referrers
-	mapping(address => mapping(address => uint256)) public affiliatesReferrerBalances; // [referrerAddress][tokenAddress] is a referrer's token balance of accrued fees
+	/// @dev Addresses of tokens in which commissions were paid to referrers.
+	mapping(address => EnumerableAddressSet.AddressSet) internal affiliatesReferrerTokensList;
+
+	/// @dev [referrerAddress][tokenAddress] is a referrer's token balance of accrued fees.
+	mapping(address => mapping(address => uint256)) public affiliatesReferrerBalances;
+
+	mapping(address => mapping(address => uint256)) public specialRebates; // Special rate rebates for spesific pair -- if not set, then use the default one
+	bool public pause; //Flag to pause all protocol modules
 
 	/**
 	 * @notice Add signature and target to storage.
+	 * @dev Protocol is a proxy and requires a way to add every
+	 *   module function dynamically during deployment.
 	 * */
 	function _setTarget(bytes4 sig, address target) internal {
 		logicTargets[sig] = target;
