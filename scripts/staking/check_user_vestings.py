@@ -31,15 +31,13 @@ def main():
     registries.append(Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry2'], abi=VestingRegistry.abi, owner=acct))
     registries.append(Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry3'], abi=VestingRegistry.abi, owner=acct))
 
-    with open('./scripts/staking/vestings.json') as file:
-        lines = file.readlines()
-    users = []
-    for line in lines:
-        vestingData = json.loads(line)
-        users.append(vestingData["user"])
+    INPUT_FILE = "./scripts/staking/users.csv"
+    OUTPUT_FILE = "./scripts/staking/vestings.json"
 
-    jsonFile = open("./scripts/staking/vestings.json", "a")
-    with open('./scripts/staking/users.csv', 'r') as file:
+    users = getUsers(OUTPUT_FILE)
+
+    jsonFile = open(OUTPUT_FILE, "a")
+    with open(INPUT_FILE, 'r') as file:
         reader = csv.reader(file)
         for row in reader:
             user = row[0]
@@ -61,6 +59,14 @@ def main():
             for data in vestingDataList:
                 jsonFile.write(json.dumps(data) + "\n")
 
+def getUsers(fileName):
+    with open(fileName) as file:
+        lines = file.readlines()
+    users = []
+    for line in lines:
+        vestingData = json.loads(line)
+        users.append(vestingData["user"])
+    return users
 
 def getUserVestings(registries, user):
     vestings = []
