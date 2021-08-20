@@ -33,6 +33,6 @@ contract ERC20TransferLogic is IRewardTransferLogic, ERC20TransferLogicStorage {
 		uint256 _value,
 		bool // it doesn't matter if it's a withdrawal or not
 	) external {
-		token.transferFrom(address(this), _to, _value);
+		token.transferFrom(msg.sender, _to, _value);
 	}
 }
