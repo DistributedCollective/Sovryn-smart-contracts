@@ -6,29 +6,12 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./AdvancedToken.sol";
-import "./interfaces/ProtocolSettingsLike.sol";
+import "../AdvancedToken.sol";
+import "../interfaces/ProtocolSettingsLike.sol";
+import "../LoanTokenLogicStorage.sol";
 
-contract LoanTokenSettingsLowerAdmin is AdvancedToken {
+contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
 	using SafeMath for uint256;
-
-	/* Storage */
-
-	/// @dev It is important to maintain the variables order so the delegate
-	/// calls can access sovrynContractAddress
-
-	/// ------------- MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
-	address public sovrynContractAddress;
-	address public wrbtcTokenAddress;
-	address public target_;
-	address public admin;
-	/// ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
-
-	/// @dev Add new variables here on the bottom.
-	address public earlyAccessToken; //not used anymore, but staying for upgradability
-	address public pauser;
-	/** The address of the liquidity mining contract */
-	address public liquidityMiningAddress;
 
 	/// @dev TODO: Check for restrictions in this contract.
 	modifier onlyAdmin() {
@@ -41,6 +24,31 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	event SetTransactionLimits(address[] addresses, uint256[] limits);
 
 	/* Functions */
+
+	/**
+	 * @notice This function is MANDATORY, which will be called by LoanTokenLogicBeacon and be registered.
+	 * Every new public function, the sginature needs to be included in this function.
+	 *
+	 * @dev This function will return the list of function signature in this contract that are available for public call
+	 * Then this function will be called by LoanTokenLogicBeacon, and the function signatures will be registred in LoanTokenLogicBeacon.
+	 * @dev To save the gas we can just directly return the list of function signature from this pure function.
+	 * The other workaround (fancy way) is we can create a storage for the list of the function signature, and then we can store each function signature to that storage from the constructor.
+	 * Then, in this function we just need to return that storage variable.
+	 *
+	 * @return The list of function signatures (bytes4[])
+	 */
+	function getListFunctionSignatures() external pure returns (bytes4[] memory functionSignatures, bytes32 moduleName) {
+		bytes4[] memory res = new bytes4[](8);
+		res[0] = this.setAdmin.selector;
+		res[1] = this.setPauser.selector;
+		res[2] = this.setupLoanParams.selector;
+		res[3] = this.disableLoanParams.selector;
+		res[4] = this.setDemandCurve.selector;
+		res[5] = this.toggleFunctionPause.selector;
+		res[6] = this.setTransactionLimits.selector;
+		res[7] = this.changeLoanTokenNameAndSymbol.selector;
+		return (res, stringToBytes32("LoanTokenSettingsLowerAdmin"));
+	}
 
 	/**
 	 * @notice Set admin account.

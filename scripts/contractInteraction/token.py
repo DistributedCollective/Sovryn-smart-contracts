@@ -34,3 +34,8 @@ def mintNFT(contractAddress, receiver):
 def transferTokensFromWallet(tokenContract, receiver, amount):
     token = Contract.from_abi("Token", address= tokenContract, abi = TestToken.abi, owner=conf.acct)
     token.transfer(receiver, amount)
+
+def approveFromMS(tokenContract, receiver, amount):
+    token = Contract.from_abi("Token", address= tokenContract, abi = TestToken.abi, owner=conf.acct)
+    data = token.approve.encode_input(receiver, amount)
+    sendWithMultisig(conf.contracts['multisig'], tokenContract, data, conf.acct)

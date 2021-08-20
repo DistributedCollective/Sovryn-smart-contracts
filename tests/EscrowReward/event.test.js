@@ -185,7 +185,7 @@ contract("Escrow Rewards (Events)", (accounts) => {
 		let newLockedSOV = await LockedSOV.new(sov.address, vestingRegistry.address, cliff, duration, [multisig]);
 		let txReceipt = await escrowReward.updateLockedSOV(newLockedSOV.address, { from: multisig });
 		expectEvent(txReceipt, "LockedSOVUpdated", {
-			_initiator: newMultisig,
+			_initiator: multisig,
 			_lockedSOV: newLockedSOV.address,
 		});
 	});

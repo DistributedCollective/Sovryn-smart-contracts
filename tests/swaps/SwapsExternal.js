@@ -10,7 +10,8 @@ const ProtocolSettings = artifacts.require("ProtocolSettings");
 const ISovryn = artifacts.require("ISovryn");
 
 const LoanToken = artifacts.require("LoanToken");
-const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const SwapsExternal = artifacts.require("SwapsExternal");
@@ -29,6 +30,8 @@ const ProtocolSettingsMockup = artifacts.require("ProtocolSettingsMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
+
+const { getLoanTokenLogic } = require("../Utils/initializer.js");
 
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 const { ZERO_ADDRESS } = constants;
@@ -85,10 +88,19 @@ contract("SwapsExternal", (accounts) => {
 		);
 		await sovryn.setFeesController(lender);
 
-		loanTokenLogicStandard = await LoanTokenLogicStandard.new();
-		loanToken = await LoanToken.new(lender, loanTokenLogicStandard.address, sovryn.address, testWrbtc.address);
+		const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+		loanTokenLogic = initLoanTokenLogic[0];
+		loanTokenLogicBeacon = initLoanTokenLogic[1];
+
+		loanToken = await LoanToken.new(lender, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 		await loanToken.initialize(underlyingToken.address, name, symbol); //iToken
-		loanToken = await LoanTokenLogicStandard.at(loanToken.address);
+
+		/** Initialize the loan token logic proxy */
+		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+		await loanToken.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
+
+		/** Use interface of LoanTokenModules */
+		loanToken = await ILoanTokenModules.at(loanToken.address);
 
 		//Staking
 		let stakingLogic = await StakingLogic.new(underlyingToken.address);

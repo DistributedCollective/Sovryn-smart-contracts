@@ -1,4 +1,4 @@
-const { BN } = require("@openzeppelin/test-helpers");
+const { BN, expectRevert, constants } = require("@openzeppelin/test-helpers");
 
 const {
 	margin_trading_sending_loan_tokens,
@@ -19,8 +19,6 @@ const {
 	getWRBTC,
 	getBZRX,
 	getSOV,
-	getLoanTokenLogic,
-	getLoanTokenLogicWrbtc,
 	getLoanToken,
 	getLoanTokenWRBTC,
 	loan_pool_setup,
@@ -52,10 +50,8 @@ contract("LoanTokenTrading", (accounts) => {
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
-		const loanTokenLogicStandard = await getLoanTokenLogic();
-		const LoanTokenLogicWrbtc = await getLoanTokenLogicWrbtc();
-		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
-		loanTokenWRBTC = await getLoanTokenWRBTC(LoanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
+		loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD);
+		loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
@@ -71,6 +67,20 @@ contract("LoanTokenTrading", (accounts) => {
 			4. retrieve the loan from the smart contract and make sure all values are set as expected
     */
 		it("Test margin trading sending loan tokens", async () => {
+			await expectRevert(loanToken.marginTrade(
+				constants.ZERO_BYTES32, // loanId  (0 for new loans)
+				oneEth.toString(), // leverageAmount
+				oneEth.toString(), // loanTokenSent
+				"0", // no collateral token sent
+				WRBTC.address, // collateralTokenAddress
+				owner, // trader,
+				0, // slippage
+				"0x" // loanDataBytes (only required with ether)
+			), "principal too small");
+
+			await priceFeeds.setRates(WRBTC.address, SUSD.address, new BN(10).pow(new BN(20)).toString());
+			await priceFeeds.setRates(RBTC.address, SUSD.address, new BN(10).pow(new BN(20)).toString());
+
 			await margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, WRBTC, priceFeeds, false);
 			await margin_trading_sov_reward_payment(accounts, loanToken, SUSD, WRBTC, SOV, FeesEvents, sovryn);
 			await margin_trading_sov_reward_payment_with_special_rebates(accounts, loanToken, SUSD, WRBTC, SOV, FeesEvents, sovryn);

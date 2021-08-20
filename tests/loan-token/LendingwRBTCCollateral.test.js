@@ -8,7 +8,8 @@ const ProtocolSettings = artifacts.require("ProtocolSettings");
 const ISovryn = artifacts.require("ISovryn");
 
 const LoanToken = artifacts.require("LoanToken");
-const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
@@ -28,6 +29,8 @@ const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 
 const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_uint256_max_should_withdraw_total_balance } = require("./helpers");
+
+const { getLoanTokenLogic } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 
@@ -81,10 +84,19 @@ contract("LoanTokenLending", (accounts) => {
 		await sovryn.setProtocolTokenAddress(tokenSOV.address);
 		await sovryn.setSOVTokenAddress(tokenSOV.address);
 
-		loanTokenLogicStandard = await LoanTokenLogicLM.new();
-		loanToken = await LoanToken.new(lender, loanTokenLogicStandard.address, sovryn.address, rBTC.address);
+		const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+		loanTokenLogic = initLoanTokenLogic[0];
+		loanTokenLogicBeacon = initLoanTokenLogic[1];
+
+		loanToken = await LoanToken.new(lender, loanTokenLogic.address, sovryn.address, rBTC.address);
 		await loanToken.initialize(underlyingToken.address, name, symbol); //iToken
-		loanToken = await LoanTokenLogicLM.at(loanToken.address);
+
+		/** Initialize the loan token logic proxy */
+		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+		await loanToken.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
+
+		/** Use interface of LoanTokenModules */
+		loanToken = await ILoanTokenModules.at(loanToken.address);
 
 		params = [
 			"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object

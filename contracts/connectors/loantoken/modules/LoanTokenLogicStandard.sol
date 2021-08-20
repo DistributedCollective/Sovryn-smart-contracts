@@ -7,10 +7,11 @@ pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./LoanTokenSettingsLowerAdmin.sol";
-import "./interfaces/ProtocolLike.sol";
-import "./interfaces/FeedsLike.sol";
-import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
-import "../../farm/ILiquidityMining.sol";
+import "../LoanTokenLogicStorage.sol";
+import "../interfaces/ProtocolLike.sol";
+import "../interfaces/FeedsLike.sol";
+import "../../../modules/interfaces/ProtocolAffiliatesInterface.sol";
+import "../../../farm/ILiquidityMining.sol";
 
 /**
  * @title Loan Token Logic Standard contract.
@@ -45,27 +46,17 @@ import "../../farm/ILiquidityMining.sol";
  * 10% APR since the interest payments don't have to be split between two
  * individuals.
  * */
-contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
+contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	using SafeMath for uint256;
 	using SignedSafeMath for int256;
 
 	/// DON'T ADD VARIABLES HERE, PLEASE
 
-	/// @dev Used by flashBorrow function.
-	uint256 public constant VERSION = 6;
-	/// @dev Used by flashBorrow function.
-	address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
-	bytes32 internal constant iToken_ProfitSoFar = 0x37aa2b7d583612f016e4a4de4292cb015139b3d7762663d06a53964912ea2fb6; // keccak256("iToken_ProfitSoFar")
-
-	uint256 public constant TINY_AMOUNT = 25 * 10**13;
-
 	/**
 	 * @notice Fallback function is to react to receiving value (rBTC).
 	 * */
 	function() external {
-		// Due to contract size issue, need to keep the error message to 32 bytes length / we remove the revert function
-		// Remove revert function is fine as this fallback function is not payable, but the trade off is we cannot have the custom message for the fallback function error
-		// revert("loan token-fallback not allowed");
+		revert("loan token-fallback not allowed");
 	}
 
 	/* Public functions */
@@ -306,6 +297,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @param collateralTokenSent The amount of collateral tokens provided by the user.
 	 * @param collateralTokenAddress The token address of collateral.
 	 * @param trader The account that performs this trade.
+	 * @param loanDataBytes Additional loan data (not in use for token swaps).
 	 *
 	 * @return New principal and new collateral added to trade.
 	 * */
@@ -385,6 +377,22 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			);
 	}
 
+	/**
+	 * @notice Wrapper for marginTrade invoking setAffiliatesReferrer to track
+	 *   referral trade by affiliates program.
+	 *
+	 * @param loanId The ID of the loan, 0 for a new loan.
+	 * @param leverageAmount The multiple of exposure: 2x ... 5x. The leverage with 18 decimals.
+	 * @param loanTokenSent The number of loan tokens provided by the user.
+	 * @param collateralTokenSent The amount of collateral tokens provided by the user.
+	 * @param collateralTokenAddress The token address of collateral.
+	 * @param trader The account that performs this trade.
+	 * @param minReturn Minimum position size in the collateral tokens
+	 * @param affiliateReferrer The address of the referrer from affiliates program.
+	 * @param loanDataBytes Additional loan data (not in use for token swaps).
+	 *
+	 * @return New principal and new collateral added to trade.
+	 */
 	function marginTradeAffiliate(
 		bytes32 loanId, // 0 if new loan
 		uint256 leverageAmount, // expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
@@ -392,15 +400,15 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		uint256 collateralTokenSent,
 		address collateralTokenAddress,
 		address trader,
-		uint256 minReturn, // minimum position size in the collateral tokens
-		address affiliateReferrer, // the user was brought by the affiliate (referrer)
-		bytes calldata loanDataBytes // arbitrary order data
+		uint256 minReturn, /// Minimum position size in the collateral tokens.
+		address affiliateReferrer, /// The user was brought by the affiliate (referrer).
+		bytes calldata loanDataBytes /// Arbitrary order data.
 	)
 		external
 		payable
 		returns (
 			uint256,
-			uint256 // returns new principal and new collateral added to trade
+			uint256 /// Returns new principal and new collateral added to trade.
 		)
 	{
 		if (affiliateReferrer != address(0))
@@ -1125,7 +1133,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		);
 		require(sentAmounts[1] != 0, "25");
 
-		//REFACTOR: move to a general interface: ProtocolSettingsLike?
+		/// @dev Setting not-first-trade flag to prevent binding to an affiliate existing users post factum.
+		/// @dev REFACTOR: move to a general interface: ProtocolSettingsLike?
 		ProtocolAffiliatesInterface(sovrynContractAddress).setUserNotFirstTradeFlag(sentAddresses[1]);
 
 		return (sentAmounts[1], sentAmounts[4]); // newPrincipal, newCollateral
