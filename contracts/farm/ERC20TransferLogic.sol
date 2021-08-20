@@ -17,6 +17,7 @@ contract ERC20TransferLogic is IRewardTransferLogic, ERC20TransferLogicStorage {
 	function setTokenAddress(address _token) public onlyAuthorized {
 		require(_token != address(0), "Invalid token address");
 		token = IERC20(_token);
+		emit TokenAddressUpdated(_token);
 	}
 
 	function getRewardTokenAddress() external view returns (address) {
