@@ -12,6 +12,7 @@ import "../openzeppelin/SafeERC20.sol";
 import "../mixins/ProtocolTokenUser.sol";
 import "../modules/interfaces/ProtocolSwapExternalInterface.sol";
 import "./ModuleCommonFunctionalities.sol";
+import "../swaps/ISwapsImpl.sol";
 
 /**
  * @title Protocol Settings contract.
@@ -326,7 +327,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 	 * from three sources: lending, trading and borrowing.
 	 * The fees will be converted to wRBTC
 	 *
-	 * @param tokens The array address of the token instance.
+	 * @param tokens The array of address of the token instance.
 	 * @param receiver The address of the withdrawal recipient.
 	 *
 	 * @return The withdrawn total amount in wRBTC
@@ -362,6 +363,14 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 
 			IERC20(tokens[i]).approve(protocolAddress, tempAmount);
 
+			// get the slipage
+			uint256 slippage = ISwapsImpl(swapsImpl).internalExpectedReturn(
+				tokens[i],
+				address(wrbtcToken),
+				tempAmount,
+				sovrynSwapContractRegistryAddress
+			);
+
 			(uint256 amountConvertedToWRBTC, ) =
 				ProtocolSwapExternalInterface(protocolAddress).swapExternal(
 					tokens[i], // source token address
@@ -370,7 +379,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 					protocolAddress, // protocol as the sender
 					tempAmount, // source token amount
 					0, // reqDestToken
-					0, // slippage
+					slippage, // slippage
 					"" // loan data bytes
 				);
 
