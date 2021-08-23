@@ -364,12 +364,8 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 			IERC20(tokens[i]).approve(protocolAddress, tempAmount);
 
 			// get the slipage
-			uint256 slippage = ISwapsImpl(swapsImpl).internalExpectedReturn(
-				tokens[i],
-				address(wrbtcToken),
-				tempAmount,
-				sovrynSwapContractRegistryAddress
-			);
+			uint256 slippage =
+				ISwapsImpl(swapsImpl).internalExpectedReturn(tokens[i], address(wrbtcToken), tempAmount, sovrynSwapContractRegistryAddress);
 
 			(uint256 amountConvertedToWRBTC, ) =
 				ProtocolSwapExternalInterface(protocolAddress).swapExternal(
