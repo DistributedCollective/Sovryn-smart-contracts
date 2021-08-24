@@ -52,4 +52,4 @@ def main():
     print(dates)
     print(amounts)
 
-    staking.setVestingStakes(dates, amounts, {'allow_revert':True})
+    # staking.setVestingStakes(dates, amounts, {'allow_revert':True})
