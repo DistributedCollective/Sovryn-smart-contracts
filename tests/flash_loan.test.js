@@ -1,6 +1,7 @@
 //const { assert, expect } = require("chai");
 
-const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const sovrynProtocol = artifacts.require("sovrynProtocol");
 const LoanToken = artifacts.require("LoanToken");
 
@@ -17,6 +18,7 @@ const FlashLoaner = artifacts.require("FlashLoanerTest");
 const ArbitraryCaller = artifacts.require("ArbitraryCaller");
 
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
+const { getLoanTokenLogic } = require("./Utils/initializer.js");
 
 contract("Flash loan with whitelisting", (accounts) => {
 	let loanTokenLogic;
@@ -33,7 +35,10 @@ contract("Flash loan with whitelisting", (accounts) => {
 		flashLoaner = await FlashLoaner.new();
 	});
 	beforeEach(async () => {
-		loanTokenLogic = await LoanTokenLogicStandard.new();
+		const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+		loanTokenLogic = initLoanTokenLogic[0];
+		loanTokenLogicBeacon = initLoanTokenLogic[1];
+
 		testWrbtc = await TestWrbtc.new();
 		doc = await TestToken.new("dollar on chain", "DOC", 18, web3.utils.toWei("20000", "ether"));
 
@@ -48,7 +53,13 @@ contract("Flash loan with whitelisting", (accounts) => {
 		loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 		await loanToken.initialize(doc.address, "SUSD", "SUSD"); //iToken
 
-		loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address);
+		/** Initialize the loan token logic proxy */
+		loanTokenV2 = await ILoanTokenLogicProxy.at(loanToken.address);
+		await loanTokenV2.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
+
+		// loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address);
+		loanTokenV2 = await ILoanTokenModules.at(loanToken.address); //mocked for ad-hoc logic for isolated testing
+
 		await loanTokenV2.setArbitraryCallerAddress(arbitraryCaller.address);
 		const loanTokenAddress = await loanToken.loanTokenAddress(); //loanToken is DoC
 		if (owner == (await sovryn.owner())) {

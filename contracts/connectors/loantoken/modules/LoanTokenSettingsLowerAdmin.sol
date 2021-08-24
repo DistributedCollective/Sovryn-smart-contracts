@@ -51,7 +51,7 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
 	 * @return The list of function signatures (bytes4[])
 	 */
 	function getListFunctionSignatures() external pure returns (bytes4[] memory functionSignatures, bytes32 moduleName) {
-		bytes4[] memory res = new bytes4[](8);
+		bytes4[] memory res = new bytes4[](11);
 		res[0] = this.setAdmin.selector;
 		res[1] = this.setPauser.selector;
 		res[2] = this.setupLoanParams.selector;
@@ -60,6 +60,9 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
 		res[5] = this.toggleFunctionPause.selector;
 		res[6] = this.setTransactionLimits.selector;
 		res[7] = this.changeLoanTokenNameAndSymbol.selector;
+		res[8] = this.setArbitraryCallerAddress.selector;
+		res[9] = this.addToFlashLoanWhiteList.selector;
+		res[10] = this.removeFromFlashLoanWhiteList.selector;
 		return (res, stringToBytes32("LoanTokenSettingsLowerAdmin"));
 	}
 

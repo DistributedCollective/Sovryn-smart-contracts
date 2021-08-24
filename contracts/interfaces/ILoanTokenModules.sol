@@ -65,6 +65,12 @@ interface ILoanTokenModules {
 		bool isPaused
 	) external;
 
+	function setArbitraryCallerAddress(address caller) external;
+
+	function addToFlashLoanWhiteList(address addressToAdd) external;
+
+	function removeFromFlashLoanWhiteList(address addressToAdd) external;
+
 	function setTransactionLimits(address[] calldata addresses, uint256[] calldata limits) external;
 
 	function changeLoanTokenNameAndSymbol(string calldata _name, string calldata _symbol) external;
@@ -106,6 +112,14 @@ interface ILoanTokenModules {
 			uint256,
 			uint256 /// Returns new principal and new collateral added to trade.
 		);
+
+	function flashBorrow(
+		uint256 borrowAmount,
+		address borrower,
+		address target,
+		string calldata signature,
+		bytes calldata data
+	) external payable returns (bytes memory);
 
 	function borrowInterestRate() external view returns (uint256);
 
