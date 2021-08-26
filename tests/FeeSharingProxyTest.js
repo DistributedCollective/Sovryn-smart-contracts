@@ -527,9 +527,13 @@ contract("FeeSharingProxy:", (accounts) => {
 			let totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
 			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
 
-			await feeSharingProxy.withdrawFees([susd.address]);
+			let txx = await feeSharingProxy.withdrawFees([susd.address]);
+			console.log(txx.logs[1].args.amount.toString());
+			expect(txx.logs[1].args.token).to.be.equal(loanTokenWrbtc.address);
 
+			console.log((await loanTokenWrbtc.balanceOf(feeSharingProxy.address)).toString());
 			let fees = await feeSharingProxy.getAccumulatedFees(account1, loanTokenWrbtc.address);
+			console.log(fees.toString());
 			let swapFee = totalFeeTokensHeld.mul(tradingFeePercent).div(new BN(wei("100", "ether")));
 			loanTokenWRBTCBalanceShouldBe = feeAmount.mul(new BN(mockPrice)).sub(swapFee);
 			expect(fees).to.be.bignumber.equal(loanTokenWRBTCBalanceShouldBe.mul(new BN(3)).div(new BN(10)));
@@ -911,17 +915,20 @@ contract("FeeSharingProxy:", (accounts) => {
 	});
 
 	describe("withdraw with or considering vesting contracts", () => {
-		it("getAccumulatedFees should return 0 for vesting contracts", async()=>{
-			let {vestingInstance} = await createVestingContractWithSingleDate(new BN(MAX_DURATION), 1000, root);
+		it("getAccumulatedFees should return 0 for vesting contracts", async () => {
+			let { vestingInstance } = await createVestingContractWithSingleDate(new BN(MAX_DURATION), 1000, root);
 			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 			let fees = await feeSharingProxy.getAccumulatedFees(vestingInstance.address, loanToken.address);
 			expect(fees).to.be.bignumber.equal("0");
 		});
 
 		it("vesting contract should not be able to withdraw fees", async () => {
-			let {vestingInstance} = await createVestingContractWithSingleDate(new BN(MAX_DURATION), 1000, root);
+			let { vestingInstance } = await createVestingContractWithSingleDate(new BN(MAX_DURATION), 1000, root);
 			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
-			await expectRevert(vestingInstance.collectDividends(loanToken.address, 5, root), "FeeSharingProxy::withdrawFees: no tokens for a withdrawal");
+			await expectRevert(
+				vestingInstance.collectDividends(loanToken.address, 5, root),
+				"FeeSharingProxy::withdrawFees: no tokens for a withdrawal"
+			);
 		});
 
 		it("vested stakes should be deducted from total weighted stake on share distribution", async () => {
@@ -991,11 +998,19 @@ contract("FeeSharingProxy:", (accounts) => {
 
 	async function createVestingContractWithSingleDate(cliff, amount, tokenOwner) {
 		vestingLogic = await VestingLogic.new();
-		let vestingInstance = await Vesting.new(vestingLogic.address, SOVToken.address, staking.address, tokenOwner, cliff, cliff, feeSharingProxy.address);
+		let vestingInstance = await Vesting.new(
+			vestingLogic.address,
+			SOVToken.address,
+			staking.address,
+			tokenOwner,
+			cliff,
+			cliff,
+			feeSharingProxy.address
+		);
 		vestingInstance = await VestingLogic.at(vestingInstance.address);
 		//important, so it's recognized as vesting contract
 		await staking.addContractCodeHash(vestingInstance.address);
-	
+
 		await SOVToken.approve(vestingInstance.address, amount);
 		let result = await vestingInstance.stakeTokens(amount);
 		return { vestingInstance: vestingInstance, blockNumber: result.receipt.blockNumber };

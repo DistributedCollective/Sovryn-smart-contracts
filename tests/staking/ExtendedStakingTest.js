@@ -933,11 +933,10 @@ contract("Staking", (accounts) => {
 		});
 
 		it("if withdrawing with a vesting contract, the vesting chckpoints need to be updated", async () => {
-
 			let amount = "1000";
 			let duration = new BN(TWO_WEEKS).mul(new BN(2));
 			let lockedTS = await getTimeFromKickoff(duration);
-			let {vestingInstance, blockNumber} = await createVestingContractWithSingleDate(duration, amount, token, staking, root);
+			let { vestingInstance, blockNumber } = await createVestingContractWithSingleDate(duration, amount, token, staking, root);
 
 			//await setTime(lockedTS);
 			setNextBlockTimestamp(lockedTS.toNumber());
@@ -947,7 +946,7 @@ contract("Staking", (accounts) => {
 			expect(stakingBalance.toString()).to.be.equal(amount);
 			let beforeBalance = await token.balanceOf.call(root);
 
-			let tx2 = await vestingInstance.withdrawTokens(root)
+			let tx2 = await vestingInstance.withdrawTokens(root);
 
 			stakingBalance = await token.balanceOf.call(staking.address);
 			expect(stakingBalance.toNumber()).to.be.equal(0);
@@ -973,7 +972,6 @@ contract("Staking", (accounts) => {
 			checkpoint = await staking.vestingCheckpoints.call(lockedTS, 1);
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
 			expect(checkpoint.stake.toNumber()).to.be.equal(0);
-
 		});
 	});
 

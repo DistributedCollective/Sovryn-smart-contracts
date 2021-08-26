@@ -93,5 +93,4 @@ contract StakingMockup is Staking {
 		bytes32 codeHash = _getCodeHash(stakerAddress);
 		return vestingCodeHashes[codeHash];
 	}
-
 }

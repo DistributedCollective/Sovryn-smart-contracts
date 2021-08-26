@@ -196,34 +196,22 @@ contract("Staking", (accounts) => {
 
 	describe("setVestingStakes", () => {
 		it("should fail if unauthorized", async () => {
-			await expectRevert(
-				staking.setVestingStakes([], [], {from: a1}),
-				"unauthorized"
-			);
+			await expectRevert(staking.setVestingStakes([], [], { from: a1 }), "unauthorized");
 		});
 
 		it("should fail if arrays have different length", async () => {
-			let lockedDates = [
-				kickoffTS.add(new BN(TWO_WEEKS))
-			];
+			let lockedDates = [kickoffTS.add(new BN(TWO_WEEKS))];
 			let values = [];
-			await expectRevert(
-				staking.setVestingStakes(lockedDates, values),
-				"arrays mismatch"
-			);
+			await expectRevert(staking.setVestingStakes(lockedDates, values), "arrays mismatch");
 		});
 
 		it("should set vesting stakes", async () => {
 			let lockedDates = [
 				kickoffTS.add(new BN(TWO_WEEKS)),
 				kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2))),
-				kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4)))
+				kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4))),
 			];
-			let values = [
-				new BN(1000),
-				new BN(30000000000),
-				new BN(500000000000000)
-			];
+			let values = [new BN(1000), new BN(30000000000), new BN(500000000000000)];
 
 			let tx = await staking.setVestingStakes(lockedDates, values);
 
@@ -239,7 +227,6 @@ contract("Staking", (accounts) => {
 					value: values[i],
 				});
 			}
-
 		});
 	});
 

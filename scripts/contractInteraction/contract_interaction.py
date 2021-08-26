@@ -28,4 +28,3 @@ def main():
     conf.loadConfig()
 
     #call the function you want here
-    
