@@ -508,7 +508,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			);
 		});
 
-		it("Shouldn't be able to withdraw to another account", async () => {
+		it("Should be able to withdraw to another account", async () => {
 			//stake - getPriorTotalVotingPower
 			let rootStake = 700;
 			await stake(rootStake, root);
@@ -527,11 +527,8 @@ contract("FeeSharingProxy:", (accounts) => {
 			let totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
 			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
 
-			let txx = await feeSharingProxy.withdrawFees([susd.address]);
-			console.log(txx.logs[1].args.amount.toString());
-			expect(txx.logs[1].args.token).to.be.equal(loanTokenWrbtc.address);
+			await feeSharingProxy.withdrawFees([susd.address]);
 
-			console.log((await loanTokenWrbtc.balanceOf(feeSharingProxy.address)).toString());
 			let fees = await feeSharingProxy.getAccumulatedFees(account1, loanTokenWrbtc.address);
 			console.log(fees.toString());
 			let swapFee = totalFeeTokensHeld.mul(tradingFeePercent).div(new BN(wei("100", "ether")));
@@ -932,7 +929,23 @@ contract("FeeSharingProxy:", (accounts) => {
 		});
 
 		it("vested stakes should be deducted from total weighted stake on share distribution", async () => {
-			//TODO
+			//50% vested 50% voluntary stakes
+			await createVestingContractWithSingleDate(new BN(MAX_DURATION), 1000, root);
+			let userStake = 1000;
+			if (MOCK_PRIOR_WEIGHTED_STAKE) {
+				await staking.MOCK_priorWeightedStake(userStake * 10);
+			}
+			await SOVToken.transfer(account1, userStake);
+			await stake(userStake, account1);
+			
+			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+			let tx = await feeSharingProxy.withdrawFees([susd.address]);
+			let feesWithdrawn = tx.logs[1].args.amount;
+			let userFees = await feeSharingProxy.getAccumulatedFees(account1, loanTokenWrbtc.address);
+
+			//100% of the fees should go to the user -> vesting contract not considered
+			expect(feesWithdrawn).to.be.bignumber.equal(userFees);
+			
 		});
 	});
 
