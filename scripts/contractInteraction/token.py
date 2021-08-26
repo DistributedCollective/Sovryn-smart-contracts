@@ -39,3 +39,8 @@ def sendToWatcher(tokenAddress, amount):
     if(tokenAddress == conf.contracts['WRBTC']):
        buyWRBTC(amount)
     transferTokensFromWallet(conf.contracts['WRBTC'], conf.contracts['WatcherContract'], amount)
+    
+def approveFromMS(tokenContract, receiver, amount):
+    token = Contract.from_abi("Token", address= tokenContract, abi = TestToken.abi, owner=conf.acct)
+    data = token.approve.encode_input(receiver, amount)
+    sendWithMultisig(conf.contracts['multisig'], tokenContract, data, conf.acct)
