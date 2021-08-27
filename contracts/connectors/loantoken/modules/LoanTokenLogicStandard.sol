@@ -436,7 +436,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		}
 	}
 
-
 	/**
 	 * @notice Transfer tokens wrapper.
 	 * Sets token owner the msg.sender.

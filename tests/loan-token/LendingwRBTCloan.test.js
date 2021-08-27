@@ -180,7 +180,7 @@ contract("LoanTokenLending", (accounts) => {
 	});
 
 	describe("Test iRBTC withdrawal from RBTC loan token contract", () => {
-		it("test withdrawal from iRBTC contract", async () => {;
+		it("test withdrawal from iRBTC contract", async () => {
 			await loanToken.mintWithBTC(lender, false, { value: 10000, gas: 22000 });
 			const contractBalance = await web3.eth.getBalance(loanToken.address);
 			const balanceBefore = await web3.eth.getBalance(account1);
@@ -194,7 +194,7 @@ contract("LoanTokenLending", (accounts) => {
 		});
 
 		it("shouldn't withdraw when triggered by anyone other than owner", async () => {
-			await expectRevert(loanToken.withdrawAllRBTC(account4, {from: account4}), "unauthorized");
+			await expectRevert(loanToken.withdrawAllRBTC(account4, { from: account4 }), "unauthorized");
 		});
 	});
 });
