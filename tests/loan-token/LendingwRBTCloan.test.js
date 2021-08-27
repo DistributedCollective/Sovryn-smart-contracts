@@ -127,6 +127,7 @@ contract("LoanTokenLending", (accounts) => {
 
 		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
 	});
+
 	describe("test lending using wRBTC as loanToken", () => {
 		it("test lend to the pool", async () => {
 			const baseRate = wei("1", "ether");
@@ -175,6 +176,25 @@ contract("LoanTokenLending", (accounts) => {
 			await expectRevert(loanToken.burnToBTC(lender, total_deposit_amount.mul(new BN(2)).toString(), false), "32");
 			await loanToken.burnToBTC(lender, constants.MAX_UINT256, false);
 			expect(await loanToken.balanceOf(lender)).to.be.a.bignumber.equal(new BN(0));
+		});
+	});
+
+	describe("Test iRBTC withdrawal from RBTC loan token contract", () => {
+		it("test withdrawal from iRBTC contract", async () => {;
+			await loanToken.mintWithBTC(lender, false, { value: 10000, gas: 22000 });
+			const contractBalance = await web3.eth.getBalance(loanToken.address);
+			const balanceBefore = await web3.eth.getBalance(account1);
+			await loanToken.withdrawAllRBTC(account1);
+			const balanceAfter = await web3.eth.getBalance(account1);
+			expect(new BN(balanceAfter).sub(new BN(balanceBefore))).to.be.a.bignumber.equal(new BN(contractBalance));
+		});
+
+		it("shouldn't withdraw when zero address is passed", async () => {
+			await expectRevert(loanToken.withdrawAllRBTC(constants.ZERO_ADDRESS), "receiver address invalid");
+		});
+
+		it("shouldn't withdraw when triggered by anyone other than owner", async () => {
+			await expectRevert(loanToken.withdrawAllRBTC(account4, {from: account4}), "unauthorized");
 		});
 	});
 });
