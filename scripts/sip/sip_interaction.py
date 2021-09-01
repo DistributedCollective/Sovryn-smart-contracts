@@ -21,7 +21,10 @@ def main():
     #createProposalSIP0020()
     #createProposalSIP0019()
 
-    createProposalSIP0024()
+    # createProposalSIP0024()
+
+    createProposalSIP0025()
+
     balanceAfter = acct.balance()
 
     print("=============================================================")
@@ -240,4 +243,26 @@ def createProposalSIP0024():
     description = "SIP-0024: Liquid SOV Incentive Rewards for Fully Vested Stakers: https://github.com/DistributedCollective/SIPS/blob/5fcbcac9e7/SIP-0024.md, sha256: 05065938663108381afc1d30d97a0144d83fe15e53b8be79f4c0cec088ec1321"
 
     # Create Proposal
-    createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
+    # createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
+
+def createProposalSIP0025():
+    # TODO StakingLogic4 should be deployed
+    # TODO FeeSharingProxy2 should be deployed
+    # TODO remove setFeesController action if multig is still an owner of the protocol
+
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    protocol = Contract.from_abi("ProtocolSettings", address=contracts['sovrynProtocol'], abi=ProtocolSettings.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking'], contracts['sovrynProtocol']]
+    values = [0, 0]
+    signatures = ["setImplementation(address)", "setFeesController(address)"]
+    data1 = staking.setImplementation.encode_input(contracts['StakingLogic4'])
+    data2 = protocol.setFeesController.encode_input(contracts['FeeSharingProxy2'])
+    datas = ["0x" + data1[10:], "0x" + data2[10:]]
+    description = "SIP-: , Details: , sha256: "
+
+    print(datas)
+
+    # Create Proposal
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
