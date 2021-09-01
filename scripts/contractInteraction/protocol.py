@@ -86,6 +86,11 @@ def setBorrowingFee(fee):
     data = sovryn.setBorrowingFeePercent.encode_input(fee)
     sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
 
+def setSwapExternalFee(fee):
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.setSwapExternalFeePercent.encode_input(fee)
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+
 def setAffiliateFeePercent(fee):
     sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     data = sovryn.setAffiliateFeePercent.encode_input(fee)

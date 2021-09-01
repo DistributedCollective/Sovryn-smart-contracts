@@ -31,6 +31,15 @@ contract FeesHelper is State, FeesEvents {
 		return feeTokenAmount.mul(tradingFeePercent).divCeil(10**20);
 	}
 
+	/**
+	 * @notice Calculate swap external fee.
+	 * @param feeTokenAmount The amount of token to swap.
+	 * @return The fee of the swap.
+	 */
+	function _getSwapExternalFee(uint256 feeTokenAmount) internal view returns (uint256) {
+		return feeTokenAmount.mul(swapExtrernalFeePercent).divCeil(10**20);
+	}
+
 	/*
 	// p3.9 from bzx peckshield-audit-report-bZxV2-v1.0rc1.pdf
 	// cannot be applied solely nor with LoanOpenings.sol as it drives to some other tests failure
