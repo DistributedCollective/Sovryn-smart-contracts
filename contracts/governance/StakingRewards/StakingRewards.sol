@@ -1,7 +1,6 @@
 pragma solidity ^0.5.17;
 
 import "./StakingRewardsStorage.sol";
-import "../../openzeppelin/Initializable.sol";
 import "../../openzeppelin/SafeMath.sol";
 import "../../openzeppelin/Address.sol";
 
@@ -17,7 +16,7 @@ import "../../openzeppelin/Address.sol";
  * plus revenues from stakers who have a portion of their SOV slashed for
  * early unstaking.
  * */
-contract StakingRewards is StakingRewardsStorage, Initializable {
+contract StakingRewards is StakingRewardsStorage {
 	using SafeMath for uint256;
 
 	/// @notice Emitted when SOV is withdrawn
@@ -31,7 +30,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * @param _SOV SOV token address
 	 * @param _staking StakingProxy address should be passed
 	 * */
-	function initialize(address _SOV, IStaking _staking) external onlyOwner initializer {
+	function initialize(address _SOV, IStaking _staking) external onlyOwner {
 		require(_SOV != address(0), "Invalid SOV Address.");
 		require(Address.isContract(_SOV), "_SOV not a contract");
 		SOV = IERC20(_SOV);
@@ -78,6 +77,22 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		require(withdrawalTime > 0 && amount > 0, "no valid reward");
 		withdrawals[msg.sender] = withdrawalTime;
 		_payReward(msg.sender, amount);
+	}
+
+	/**
+	 * @notice Update rewards
+	 * @dev This function is called from Staking to update SOV staking rewards as per the SIP-0024 program.
+	 * The idea is to calculate and save rewards whenever the user performs any staking activity
+	 * */
+	function updateRewards(address receiver) external {
+		require(msg.sender == address(staking), "unauthorized");
+		uint256 withdrawalTime;
+		uint256 amount;
+		(withdrawalTime, amount) = getStakerCurrentReward(true);
+		if (withdrawalTime > 0 && amount > 0) {
+			accumulatedRewards[receiver] += amount;
+			withdrawals[receiver] = withdrawalTime;
+		}
 	}
 
 	/**

@@ -5,6 +5,7 @@ import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 import "../IFeeSharingProxy.sol";
 import "../Vesting/VestingRegistryLogic.sol";
+import "../StakingRewards/StakingRewards.sol";
 
 /**
  * @title Staking Storage contact.
@@ -136,4 +137,7 @@ contract StakingStorage is Ownable {
 
 	///@notice the vesting registry contract
 	VestingRegistryLogic public vestingRegistryLogic;
+
+	///@notice the staking rewards contract
+	StakingRewards public stakingRewards;
 }
