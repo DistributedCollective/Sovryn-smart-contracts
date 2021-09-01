@@ -481,9 +481,7 @@ contract WeightedStaking is Checkpoints {
 			}
 		}
 		return vestingCheckpoints[date][lower].stake;
-
 	}
-
 
 	/**************** SHARED FUNCTIONS *********************/
 
@@ -572,5 +570,4 @@ contract WeightedStaking is Checkpoints {
 	function isVestingContract(address stakerAddress) public view returns (bool) {
 		return vestingRegistryLogic.isVestingAdress(msg.sender);
 	}
-
 }

@@ -937,7 +937,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			}
 			await SOVToken.transfer(account1, userStake);
 			await stake(userStake, account1);
-			
+
 			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 			let tx = await feeSharingProxy.withdrawFees([susd.address]);
 			let feesWithdrawn = tx.logs[1].args.amount;
@@ -945,7 +945,6 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			//100% of the fees should go to the user -> vesting contract not considered
 			expect(feesWithdrawn).to.be.bignumber.equal(userFees);
-			
 		});
 	});
 
