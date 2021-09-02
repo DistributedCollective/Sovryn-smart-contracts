@@ -204,7 +204,7 @@ contract StakingRewards is StakingRewardsStorage {
 		}
 
 		for (uint256 i = lastWithdrawalInterval; i < duration; i += TWO_WEEKS) {
-			referenceBlock = lastWithdrawalInterval < upgradeTime? upgradeBlock : lastFinalisedBlock;
+			referenceBlock = lastWithdrawalInterval < upgradeTime ? upgradeBlock : lastFinalisedBlock;
 			weightedStake = weightedStake.add(_computeRewardForDate(staker, referenceBlock, i));
 		}
 
