@@ -62,4 +62,10 @@ contract StakingRewardsStorage is Ownable {
 
 	/// @notice User Address -> Accumulated Rewards
 	mapping(address => uint256) public accumulatedRewards;
+
+	/// @notice Represents the time when the contract is upgraded
+	uint256 public upgradeTime;
+
+	/// @notice Represents the block when the contract is upgraded
+	uint256 public upgradeBlock;
 }

@@ -117,10 +117,6 @@ contract("StakingRewards", (accounts) => {
 			await SOV.transfer(stakingRewards.address, wei("1000000", "ether"));
 		});
 
-		it("should revert if rewards are claimed before completion of two weeks from start date", async () => {
-			await expectRevert(stakingRewards.collectReward({ from: a2 }), "no valid reward");
-		});
-
 		it("should compute and send rewards to the stakers a1, a2 and a3 correctly after 2 weeks", async () => {
 			await increaseTimeAndBlocks(1295994);
 
@@ -186,11 +182,6 @@ contract("StakingRewards", (accounts) => {
 			expect(rewards).to.be.bignumber.equal(fields.amount);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));
 			expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
-		});
-
-		it("should revert if the user tries to claim rewards early", async () => {
-			await increaseTimeAndBlocks(86400); //One day
-			await expectRevert(stakingRewards.collectReward({ from: a2 }), "no valid reward");
 		});
 
 		it("should compute and send rewards to the staker after recalculating withdrawn stake", async () => {
@@ -260,7 +251,6 @@ contract("StakingRewards", (accounts) => {
 			await increaseTimeAndBlocks(3600); //Increase a few blocks
 			const fields = await stakingRewards.getStakerCurrentReward(true, { from: a2 });
 			beforeBalance = await SOV.balanceOf(a2);
-			await expectRevert(stakingRewards.collectReward({ from: a2 }), "no valid reward");
 			afterBalance = await SOV.balanceOf(a2);
 			rewards = afterBalance.sub(beforeBalance);
 			totalRewards = new BN(totalRewards).add(new BN(rewards));

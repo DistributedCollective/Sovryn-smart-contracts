@@ -41,6 +41,17 @@ contract StakingRewards is StakingRewardsStorage {
 	}
 
 	/**
+	 * @notice Set Staking Address
+	 * @param _stakingAddr The staking contract address.
+	 * */
+	function setStakingAddress(address _stakingAddr) external onlyOwner {
+		require(_stakingAddr != address(0), "staking address invalid");
+		staking = IStaking(_stakingAddr);
+		upgradeTime = staking.timestampToLockDate(block.timestamp);
+		upgradeBlock = _getCurrentBlockNumber();
+	}
+
+	/**
 	 * @notice Stops the current rewards program.
 	 * @dev All stakes existing on the contract at the point in time of
 	 * cancellation continue accruing rewards until the end of the staking
@@ -71,21 +82,12 @@ contract StakingRewards is StakingRewardsStorage {
 	 * after intervals of 14 days.
 	 * */
 	function collectReward() external {
-		uint256 withdrawalTime;
-		uint256 amount;
-		(withdrawalTime, amount) = getStakerCurrentReward(true);
-		require(withdrawalTime > 0 && amount > 0, "no valid reward");
-		withdrawals[msg.sender] = withdrawalTime;
-		_payReward(msg.sender, amount);
-	}
-
-	/**
-	 * @notice Set Staking Address
-	 * @param _stakingAddr The staking contract address.
-	 * */
-	function setStakingAddress(address _stakingAddr) external onlyOwner {
-		require(_stakingAddr != address(0), "staking address invalid");
-		staking = IStaking(_stakingAddr);
+		_calculateRewards(msg.sender);
+		uint256 rewards = accumulatedRewards[msg.sender];
+		if (rewards > 0) {
+			accumulatedRewards[msg.sender] = 0;
+			_payReward(msg.sender, rewards);
+		}
 	}
 
 	/**
@@ -95,13 +97,25 @@ contract StakingRewards is StakingRewardsStorage {
 	 * */
 	function updateRewards(address receiver) external {
 		require(msg.sender == address(staking), "unauthorized");
+		_calculateRewards(receiver);
+	}
+
+	/**
+	 * @notice Calculate rewards
+	 * @dev This function is called from both updateRewards and collectReward
+	 * */
+	function _calculateRewards(address _receiver) internal {
 		uint256 withdrawalTime;
 		uint256 amount;
+		uint256 totalRewards = accumulatedRewards[_receiver];
+
 		(withdrawalTime, amount) = getStakerCurrentReward(true);
 		if (withdrawalTime > 0 && amount > 0) {
-			accumulatedRewards[receiver] += amount;
-			withdrawals[receiver] = withdrawalTime;
+			totalRewards += amount;
 		}
+
+		withdrawals[_receiver] = withdrawalTime;
+		accumulatedRewards[_receiver] = totalRewards;
 	}
 
 	/**
@@ -169,14 +183,14 @@ contract StakingRewards is StakingRewardsStorage {
 	 * @return The accumulated reward
 	 */
 	function getStakerCurrentReward(bool considerMaxDuration) public view returns (uint256 lastWithdrawalInterval, uint256 amount) {
+		address staker = msg.sender;
 		uint256 weightedStake;
 		uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
 		uint256 currentTS = block.timestamp;
 		uint256 addedMaxDuration;
 		uint256 duration;
-		uint256 referenceBlock;
-		address staker = msg.sender;
 		uint256 lastWithdrawal = withdrawals[staker];
+		uint256 referenceBlock;
 
 		uint256 lastStakingInterval = staking.timestampToLockDate(currentTS);
 		lastWithdrawalInterval = lastWithdrawal > 0 ? lastWithdrawal : startTime;
@@ -190,8 +204,7 @@ contract StakingRewards is StakingRewardsStorage {
 		}
 
 		for (uint256 i = lastWithdrawalInterval; i < duration; i += TWO_WEEKS) {
-			referenceBlock = lastFinalisedBlock.sub(((currentTS.sub(i)).div(30)));
-			if (referenceBlock < deploymentBlock) referenceBlock = deploymentBlock;
+			referenceBlock = lastWithdrawalInterval < upgradeTime? upgradeBlock : lastFinalisedBlock;
 			weightedStake = weightedStake.add(_computeRewardForDate(staker, referenceBlock, i));
 		}
 
