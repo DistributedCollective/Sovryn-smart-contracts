@@ -7,6 +7,9 @@ const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
 const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
+//Staking Rewards
+const StakingRewards = artifacts.require("StakingRewards");
+const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
 const TestToken = artifacts.require("TestToken");
 //Upgradable Vesting Registry
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
@@ -50,6 +53,16 @@ contract("GovernorAlpha#queue/1", (accounts) => {
 			await staking.setImplementation(stakingLogic.address);
 			staking = await StakingLogic.at(staking.address);
 
+		//Staking Reward Program is deployed
+		let stakingRewardsLogic = await StakingRewards.new();
+		stakingRewards = await StakingRewardsProxy.new();
+		await stakingRewards.setImplementation(stakingRewardsLogic.address);
+		stakingRewards = await StakingRewards.at(stakingRewards.address);
+		await staking.setStakingRewards(stakingRewards.address);
+		//Initialize
+		await stakingRewards.initialize(SOV.address, staking.address); //Test - 24/08/2021
+		await stakingRewards.setStakingAddress(staking.address);
+
 			const gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4, 0);
 
 			const txAdmin = await timelock.harnessSetAdmin(gov.address);
@@ -79,6 +92,16 @@ contract("GovernorAlpha#queue/1", (accounts) => {
 			let staking = await StakingProxy.new(token.address);
 			await staking.setImplementation(stakingLogic.address);
 			staking = await StakingLogic.at(staking.address);
+
+		//Staking Reward Program is deployed
+		let stakingRewardsLogic = await StakingRewards.new();
+		stakingRewards = await StakingRewardsProxy.new();
+		await stakingRewards.setImplementation(stakingRewardsLogic.address);
+		stakingRewards = await StakingRewards.at(stakingRewards.address);
+		await staking.setStakingRewards(stakingRewards.address);
+		//Initialize
+		await stakingRewards.initialize(SOV.address, staking.address); //Test - 24/08/2021
+		await stakingRewards.setStakingAddress(staking.address);
 
 			const gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4, 0);
 
