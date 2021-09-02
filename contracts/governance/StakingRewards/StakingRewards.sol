@@ -80,6 +80,15 @@ contract StakingRewards is StakingRewardsStorage {
 	}
 
 	/**
+	 * @notice Set Staking Address
+	 * @param _stakingAddr The staking contract address.
+	 * */
+	function setStakingAddress(address _stakingAddr) external onlyOwner {
+		require(_stakingAddr != address(0), "staking address invalid");
+		staking = IStaking(_stakingAddr);
+	}
+
+	/**
 	 * @notice Update rewards
 	 * @dev This function is called from Staking to update SOV staking rewards as per the SIP-0024 program.
 	 * The idea is to calculate and save rewards whenever the user performs any staking activity

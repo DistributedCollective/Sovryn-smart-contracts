@@ -11,6 +11,9 @@ const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 const Protocol = artifacts.require("sovrynProtocol");
 const BlockMockUp = artifacts.require("BlockMockUp");
+//Upgradable Vesting Registry
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const wei = web3.utils.toWei;
 
@@ -40,6 +43,13 @@ contract("StakingRewards - First Period", (accounts) => {
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 
+		//Upgradable Vesting Registry
+		vestingRegistryLogic = await VestingRegistryLogic.new();
+		vesting = await VestingRegistryProxy.new();
+		await vesting.setImplementation(vestingRegistryLogic.address);
+		vesting = await VestingRegistryLogic.at(vesting.address);
+		await staking.setVestingRegistry(vesting.address);
+
 		kickoffTS = await staking.kickoffTS.call();
 		inOneWeek = kickoffTS.add(new BN(DELAY));
 		inOneYear = kickoffTS.add(new BN(DELAY * 26));
@@ -62,7 +72,6 @@ contract("StakingRewards - First Period", (accounts) => {
 		let blockNum = new BN(latest).add(new BN(291242 / 30));
 		await blockMockUp.setBlockNum(blockNum);
 		await increaseTime(291242);
-		await staking.stake(wei("10000", "ether"), inThreeYears, a3, a3, { from: a3 });
 
 		//Staking Reward Program is deployed
 		let stakingRewardsLogic = await StakingRewards.new();
@@ -71,6 +80,12 @@ contract("StakingRewards - First Period", (accounts) => {
 		stakingRewards = await StakingRewards.at(stakingRewards.address);
 		await stakingRewards.setBlockMockUpAddr(blockMockUp.address);
 		await staking.setBlockMockUpAddr(blockMockUp.address);
+		await staking.setStakingRewards(stakingRewards.address);
+		//Initialize
+		await stakingRewards.initialize(SOV.address, staking.address); //Test - 24/08/2021
+		await stakingRewards.setStakingAddress(staking.address);
+
+		await staking.stake(wei("10000", "ether"), inThreeYears, a3, a3, { from: a3 });
 	});
 
 	describe("Flow - StakingRewards", () => {
@@ -78,8 +93,6 @@ contract("StakingRewards - First Period", (accounts) => {
 			await expectRevert(stakingRewards.initialize(constants.ZERO_ADDRESS, staking.address), "Invalid SOV Address.");
 			//Staking Rewards Contract is loaded
 			await SOV.transfer(stakingRewards.address, wei("1000000", "ether"));
-			//Initialize
-			await stakingRewards.initialize(SOV.address, staking.address); //Test - 24/08/2021
 			await increaseTimeAndBlocks(100800);
 			await staking.stake(wei("1000", "ether"), inOneYear, a1, a1, { from: a1 }); //Staking after program is initialised
 			await increaseTimeAndBlocks(100800);
