@@ -151,10 +151,7 @@ contract("Staking", (accounts) => {
 		});
 
 		it("Staking period too short", async () => {
-			await expectRevert(
-				staking.stake(100, await getTimeFromKickoff(DAY), root, root),
-				"staking period too short"
-			);
+			await expectRevert(staking.stake(100, await getTimeFromKickoff(DAY), root, root), "staking period too short");
 		});
 
 		it("Shouldn't be able to stake longer than max duration", async () => {
@@ -465,10 +462,7 @@ contract("Staking", (accounts) => {
 			await staking.stake(amount, lockedTS, root, root);
 
 			let newTime = await getTimeFromKickoff(TWO_WEEKS);
-			await expectRevert(
-				staking.extendStakingDuration(lockedTS, newTime),
-				"cannot reduce the staking duration"
-			);
+			await expectRevert(staking.extendStakingDuration(lockedTS, newTime), "cannot reduce the staking duration");
 		});
 
 		it("Do not exceed the max duration", async () => {
@@ -555,10 +549,7 @@ contract("Staking", (accounts) => {
 			let lockTS = await getTimeFromKickoff(duration);
 			await staking.stake(amount, lockTS, root, root);
 
-			await expectRevert(
-				staking.stake("0", lockTS, root, root),
-				"amount needs to be bigger than 0"
-			);
+			await expectRevert(staking.stake("0", lockTS, root, root), "amount needs to be bigger than 0");
 		});
 
 		it("Amount of tokens to stake needs to be bigger than 0", async () => {
@@ -706,10 +697,7 @@ contract("Staking", (accounts) => {
 			let lockedTS = await getTimeFromKickoff(duration);
 			await staking.stake(amount, lockedTS, root, root);
 
-			await expectRevert(
-				staking.withdraw("0", lockedTS, root),
-				"amount must be greater than 0"
-			);
+			await expectRevert(staking.withdraw("0", lockedTS, root), "amount must be greater than 0");
 		});
 
 		it("Shouldn't be able to withdraw amount greater than balance", async () => {
