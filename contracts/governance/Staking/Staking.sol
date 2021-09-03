@@ -267,6 +267,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
 		//		we need to check block.timestamp here
 		_withdrawNext(amount, until, receiver, false);
+		_updateRewards();
 	}
 
 	/**

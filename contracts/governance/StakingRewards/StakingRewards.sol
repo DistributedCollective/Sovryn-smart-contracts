@@ -47,7 +47,7 @@ contract StakingRewards is StakingRewardsStorage {
 	function setStakingAddress(address _stakingAddr) external onlyOwner {
 		require(_stakingAddr != address(0), "staking address invalid");
 		staking = IStaking(_stakingAddr);
-		upgradeTime = staking.timestampToLockDate(block.timestamp);
+		upgradeTime = block.timestamp;
 		upgradeBlock = _getCurrentBlockNumber();
 	}
 
@@ -204,7 +204,12 @@ contract StakingRewards is StakingRewardsStorage {
 		}
 
 		for (uint256 i = lastWithdrawalInterval; i < duration; i += TWO_WEEKS) {
-			referenceBlock = lastWithdrawalInterval < upgradeTime ? upgradeBlock : lastFinalisedBlock;
+			if (i < upgradeTime) {
+				referenceBlock = lastFinalisedBlock.sub(((currentTS.sub(i)).div(32)));
+				if (referenceBlock < deploymentBlock) referenceBlock = deploymentBlock;
+			} else {
+				referenceBlock = lastFinalisedBlock;
+			}
 			weightedStake = weightedStake.add(_computeRewardForDate(staker, referenceBlock, i));
 		}
 
