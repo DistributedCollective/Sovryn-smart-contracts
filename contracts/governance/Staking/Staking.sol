@@ -49,6 +49,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address delegatee
 	) external {
 		_stake(msg.sender, amount, until, stakeFor, delegatee, false);
+		_updateRewards();
 	}
 
 	/**
@@ -135,7 +136,6 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		/// @dev Increase stake.
 		_increaseDelegateStake(delegatee, until, amount);
 		emit DelegateChanged(stakeFor, until, previousDelegatee, delegatee);
-		_updateRewards();
 	}
 
 	/**
@@ -359,7 +359,6 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		require(success, "Token transfer failed");
 
 		emit StakingWithdrawn(msg.sender, amount, until, receiver, isGovernance);
-		_updateRewards();
 	}
 
 	// @dev withdraws tokens for lock date 2 weeks later than given lock date

@@ -97,6 +97,16 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
 		await stakingProxy.setImplementation(stakingLogic.address);
 		stakingLogic = await StakingLogic.at(stakingProxy.address);
 
+		//Staking Reward Program is deployed
+		let stakingRewardsLogic = await StakingRewards.new();
+		stakingRewards = await StakingRewardsProxy.new();
+		await stakingRewards.setImplementation(stakingRewardsLogic.address);
+		stakingRewards = await StakingRewards.at(stakingRewards.address); //Test - 12/08/2021
+		await stakingLogic.setStakingRewards(stakingRewards.address);
+		//Initialize
+		await stakingRewards.initialize(testToken.address, stakingLogic.address);
+		await stakingRewards.setStakingAddress(stakingLogic.address);
+
 		// Creating the Timelock Contract instance.
 		// We would be assigning the `guardianOne` as the admin for now.
 		timelock = await Timelock.new(guardianOne, delay);

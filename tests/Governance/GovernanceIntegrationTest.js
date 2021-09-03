@@ -58,7 +58,7 @@ contract("GovernanceIntegration", (accounts) => {
 		stakingRewards = await StakingRewards.at(stakingRewards.address);
 		await staking.setStakingRewards(stakingRewards.address);
 		//Initialize
-		await stakingRewards.initialize(SOV.address, staking.address); //Test - 24/08/2021
+		await stakingRewards.initialize(token.address, staking.address); //Test - 24/08/2021
 		await stakingRewards.setStakingAddress(staking.address);
 
 		//Governor

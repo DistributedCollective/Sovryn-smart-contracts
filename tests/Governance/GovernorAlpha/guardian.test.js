@@ -85,6 +85,16 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 		await stakingProxy.setImplementation(stakingLogic.address);
 		stakingLogic = await StakingLogic.at(stakingProxy.address);
 
+		//Staking Reward Program is deployed
+		let stakingRewardsLogic = await StakingRewards.new();
+		stakingRewards = await StakingRewardsProxy.new();
+		await stakingRewards.setImplementation(stakingRewardsLogic.address);
+		stakingRewards = await StakingRewards.at(stakingRewards.address); //Test - 12/08/2021
+		await stakingLogic.setStakingRewards(stakingRewards.address);
+		//Initialize
+		await stakingRewards.initialize(testToken.address, stakingLogic.address);
+		await stakingRewards.setStakingAddress(stakingLogic.address);
+
 		// Calculating the tokens to be sent for the Voters to Stake.
 		let amountOne = new BN((quorumPercentageVotes * totalSupply + 1) / 100);
 		let amountTwo = new BN((minPercentageVotes * totalSupply + 1) / 100);
