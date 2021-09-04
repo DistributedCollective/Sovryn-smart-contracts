@@ -10,7 +10,7 @@ import scripts.contractInteraction.config as conf
 def isProtocolPaused():
     sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     print("isProtocolPaused: ", sovryn.isProtocolPaused())
-    
+
 def readLendingFee():
     sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     lfp = sovryn.lendingFeePercent()
@@ -154,9 +154,9 @@ def deployAffiliate():
     print("protocol address loaded") #, sovryn.getProtocolAddress()) - not executed yet
 
     # Set SOVTokenAddress
-    sovToken = Contract.from_abi("SOV", address=conf.contracts["SOV"], abi=SOV.abi, owner=conf.acct)
-    data = sovryn.setSOVTokenAddress.encode_input(sovToken.address)
-    # data = sovryn.setSOVTokenAddress.encode_input(conf.contracts["SOV"])
+    # sovToken = Contract.from_abi("SOV", address=conf.contracts["SOV"], abi=SOV.abi, owner=conf.acct)
+    # data = sovryn.setSOVTokenAddress.encode_input(sovToken.address)
+    data = sovryn.setSOVTokenAddress.encode_input(conf.contracts["SOV"])
     print("Set SOV Token address in protocol settings")
     print(data)
 
@@ -164,8 +164,9 @@ def deployAffiliate():
     print("sovToken address loaded") #, sovryn.getSovTokenAddress()) - not executed yet
 
     # Set LockedSOVAddress
-    lockedSOV = Contract.from_abi("LockedSOV", address=conf.contracts["LockedSOV"], abi=LockedSOV.abi, owner=conf.acct)
-    data = sovryn.setLockedSOVAddress.encode_input(lockedSOV.address)
+    # lockedSOV = Contract.from_abi("LockedSOV", address=conf.contracts["LockedSOV"], abi=LockedSOV.abi, owner=conf.acct)
+    # data = sovryn.setLockedSOVAddress.encode_input(lockedSOV.address)
+    data = sovryn.setLockedSOVAddress.encode_input(conf.contracts["LockedSOV"])
     print("Set Locked SOV address in protocol settings")
     print(data)
 
@@ -180,6 +181,73 @@ def deployAffiliate():
 
     # Set affiliateFeePercent
     setAffiliateFeePercent(5 * 10**18)
+
+    # ---------------------------- 3. Redeploy modules which implement InterestUser and SwapsUser -----------------------
+    # LoanClosingsBase
+    # LoanClosingsWith
+    replaceLoanClosings()
+    # LoanOpenings
+    replaceLoanOpenings()
+    # LoanMaintenance
+    replaceLoanMaintenance()
+    # SwapsExternal
+    redeploySwapsExternal()
+    # LoanSettings()
+    replaceLoanSettings()
+
+    # -------------------------------- 4. Replace Token Logic Standard ----------------------------------------
+    replaceLoanTokenLogicOnAllContracts()
+
+def deployAffiliateWithZeroFeesPercent():
+    #loadConfig() - called from main()
+    # -------------------------------- 1. Replace the protocol settings contract ------------------------------
+    #replaceProtocolSettings() - called from main()
+
+    # -------------------------------- 2. Deploy the affiliates -----------------------------------------------
+    affiliates = conf.acct.deploy(Affiliates)
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.replaceContract.encode_input(affiliates.address)
+    print('affiliates deployed. data:')
+    print(data)
+
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+
+    # Set protocolAddress
+    data = sovryn.setSovrynProtocolAddress.encode_input(sovryn.address)
+    print("Set Protocol Address in protocol settings")
+    print(data)
+
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+    print("protocol address loaded") #, sovryn.getProtocolAddress()) - not executed yet
+
+    # Set SOVTokenAddress
+    # sovToken = Contract.from_abi("SOV", address=conf.contracts["SOV"], abi=SOV.abi, owner=conf.acct)
+    # data = sovryn.setSOVTokenAddress.encode_input(sovToken.address)
+    data = sovryn.setSOVTokenAddress.encode_input(conf.contracts["SOV"])
+    print("Set SOV Token address in protocol settings")
+    print(data)
+
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+    print("sovToken address loaded") #, sovryn.getSovTokenAddress()) - not executed yet
+
+    # Set LockedSOVAddress
+    # lockedSOV = Contract.from_abi("LockedSOV", address=conf.contracts["LockedSOV"], abi=LockedSOV.abi, owner=conf.acct)
+    # data = sovryn.setLockedSOVAddress.encode_input(lockedSOV.address)
+    data = sovryn.setLockedSOVAddress.encode_input(conf.contracts["LockedSOV"])
+    print("Set Locked SOV address in protocol settings")
+    print(data)
+
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+    print("lockedSOV address loaded:", lockedSOV.address)
+
+    # Set minReferralsToPayout
+    setMinReferralsToPayout(3)
+
+    # Set affiliateTradingTokenFeePercent
+    setAffiliateTradingTokenFeePercent(0)
+
+    # Set affiliateFeePercent
+    setAffiliateFeePercent(0)
 
     # ---------------------------- 3. Redeploy modules which implement InterestUser and SwapsUser -----------------------
     # LoanClosingsBase
