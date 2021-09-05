@@ -7,6 +7,10 @@ from scripts.utils import *
 import scripts.contractInteraction.config as conf
 
 
+def isProtocolPaused():
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    print("isProtocolPaused: ", sovryn.isProtocolPaused())
+    
 def readLendingFee():
     sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     lfp = sovryn.lendingFeePercent()
