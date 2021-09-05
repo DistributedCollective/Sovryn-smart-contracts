@@ -1,8 +1,10 @@
 pragma solidity ^0.5.17;
 
-import "./StakingRewardsStorage.sol";
-import "../../openzeppelin/SafeMath.sol";
-import "../../openzeppelin/Address.sol";
+import "../governance/StakingRewards/StakingRewardsStorage.sol";
+import "../openzeppelin/Initializable.sol";
+import "../openzeppelin/SafeMath.sol";
+import "../openzeppelin/Address.sol";
+import "./BlockMockUp.sol";
 
 /**
  * @title Staking Rewards Contract.
@@ -16,7 +18,9 @@ import "../../openzeppelin/Address.sol";
  * plus revenues from stakers who have a portion of their SOV slashed for
  * early unstaking.
  * */
-contract StakingRewards is StakingRewardsStorage {
+contract StakingRewardsMockUpOld is StakingRewardsStorage, Initializable {
+	///@notice the block mock up contract
+	BlockMockUp public blockMockUp;
 	using SafeMath for uint256;
 
 	/// @notice Emitted when SOV is withdrawn
@@ -30,7 +34,7 @@ contract StakingRewards is StakingRewardsStorage {
 	 * @param _SOV SOV token address
 	 * @param _staking StakingProxy address should be passed
 	 * */
-	function initialize(address _SOV, IStaking _staking) external onlyOwner {
+	function initialize(address _SOV, IStaking _staking) external onlyOwner initializer {
 		require(_SOV != address(0), "Invalid SOV Address.");
 		require(Address.isContract(_SOV), "_SOV not a contract");
 		SOV = IERC20(_SOV);
@@ -38,16 +42,6 @@ contract StakingRewards is StakingRewardsStorage {
 		startTime = staking.timestampToLockDate(block.timestamp);
 		setMaxDuration(15 * TWO_WEEKS);
 		deploymentBlock = _getCurrentBlockNumber();
-	}
-
-	/**
-	 * @notice Set Staking Address
-	 * @param _stakingAddr The staking contract address.
-	 * */
-	function setStakingAddress(address _stakingAddr) external onlyOwner {
-		require(_stakingAddr != address(0), "staking address invalid");
-		staking = IStaking(_stakingAddr);
-		upgradeTime = block.timestamp;
 	}
 
 	/**
@@ -81,40 +75,12 @@ contract StakingRewards is StakingRewardsStorage {
 	 * after intervals of 14 days.
 	 * */
 	function collectReward() external {
-		_calculateRewards(msg.sender);
-		uint256 rewards = accumulatedRewards[msg.sender];
-		if (rewards > 0) {
-			accumulatedRewards[msg.sender] = 0;
-			_payReward(msg.sender, rewards);
-		}
-	}
-
-	/**
-	 * @notice Update rewards
-	 * @dev This function is called from Staking to update SOV staking rewards as per the SIP-0024 program.
-	 * The idea is to calculate and save rewards whenever the user performs any staking activity
-	 * */
-	function updateRewards(address receiver) external {
-		require(msg.sender == address(staking), "unauthorized");
-		_calculateRewards(receiver);
-	}
-
-	/**
-	 * @notice Calculate rewards
-	 * @dev This function is called from both updateRewards and collectReward
-	 * */
-	function _calculateRewards(address _receiver) internal {
 		uint256 withdrawalTime;
 		uint256 amount;
-		uint256 totalRewards = accumulatedRewards[_receiver];
-
 		(withdrawalTime, amount) = getStakerCurrentReward(true);
-		if (withdrawalTime > 0 && amount > 0) {
-			totalRewards += amount;
-		}
-
-		withdrawals[_receiver] = withdrawalTime;
-		accumulatedRewards[_receiver] = totalRewards;
+		require(withdrawalTime > 0 && amount > 0, "no valid reward");
+		withdrawals[msg.sender] = withdrawalTime;
+		_payReward(msg.sender, amount);
 	}
 
 	/**
@@ -182,14 +148,14 @@ contract StakingRewards is StakingRewardsStorage {
 	 * @return The accumulated reward
 	 */
 	function getStakerCurrentReward(bool considerMaxDuration) public view returns (uint256 lastWithdrawalInterval, uint256 amount) {
-		address staker = msg.sender;
 		uint256 weightedStake;
 		uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
 		uint256 currentTS = block.timestamp;
 		uint256 addedMaxDuration;
 		uint256 duration;
-		uint256 lastWithdrawal = withdrawals[staker];
 		uint256 referenceBlock;
+		address staker = msg.sender;
+		uint256 lastWithdrawal = withdrawals[staker];
 
 		uint256 lastStakingInterval = staking.timestampToLockDate(currentTS);
 		lastWithdrawalInterval = lastWithdrawal > 0 ? lastWithdrawal : startTime;
@@ -203,12 +169,8 @@ contract StakingRewards is StakingRewardsStorage {
 		}
 
 		for (uint256 i = lastWithdrawalInterval; i < duration; i += TWO_WEEKS) {
-			if (i < upgradeTime) {
-				referenceBlock = lastFinalisedBlock.sub(((currentTS.sub(i)).div(32)));
-				if (referenceBlock < deploymentBlock) referenceBlock = deploymentBlock;
-			} else {
-				referenceBlock = lastFinalisedBlock;
-			}
+			referenceBlock = lastFinalisedBlock.sub(((currentTS.sub(i)).div(30)));
+			if (referenceBlock < deploymentBlock) referenceBlock = deploymentBlock;
 			weightedStake = weightedStake.add(_computeRewardForDate(staker, referenceBlock, i));
 		}
 
@@ -218,11 +180,12 @@ contract StakingRewards is StakingRewardsStorage {
 	}
 
 	/**
-	 * @notice Get staker's current accumulated reward
-	 * @return The accumulated reward
+	 * @notice gets block number from BlockMockUp
+	 * @param _blockMockUp the address of BlockMockUp
 	 */
-	function getAccumulatedReward() public view returns (uint256) {
-		return accumulatedRewards[msg.sender];
+	function setBlockMockUpAddr(address _blockMockUp) public onlyOwner {
+		require(_blockMockUp != address(0), "block mockup address invalid");
+		blockMockUp = BlockMockUp(_blockMockUp);
 	}
 
 	/**
@@ -231,6 +194,6 @@ contract StakingRewards is StakingRewardsStorage {
 	 * advancing blocks functionality using Mock Contracts
 	 * */
 	function _getCurrentBlockNumber() internal view returns (uint256) {
-		return block.number;
+		return blockMockUp.getBlockNum();
 	}
 }

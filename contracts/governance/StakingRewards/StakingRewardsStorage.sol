@@ -65,7 +65,4 @@ contract StakingRewardsStorage is Ownable {
 
 	/// @notice Represents the time when the contract is upgraded
 	uint256 public upgradeTime;
-
-	/// @notice Represents the block when the contract is upgraded
-	uint256 public upgradeBlock;
 }
