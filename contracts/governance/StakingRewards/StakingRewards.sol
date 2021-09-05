@@ -181,7 +181,11 @@ contract StakingRewards is StakingRewardsStorage {
 	 * @return The timestamp of last withdrawal
 	 * @return The accumulated reward
 	 */
-	function getStakerCurrentReward(bool considerMaxDuration, address staker) public view returns (uint256 lastWithdrawalInterval, uint256 amount) {
+	function getStakerCurrentReward(bool considerMaxDuration, address staker)
+		public
+		view
+		returns (uint256 lastWithdrawalInterval, uint256 amount)
+	{
 		uint256 weightedStake;
 		uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
 		uint256 currentTS = block.timestamp;
