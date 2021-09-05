@@ -216,9 +216,7 @@ contract("StakingRewards - First Period", (accounts) => {
 			let numOfIntervals = 4;
 			let fullTermAvg = avgWeight(23, 27, 9, 78);
 			expectedAmount = numOfIntervals * ((2000 * fullTermAvg) / 26);
-			expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(
-				new BN(fields).div(new BN(10).pow(new BN(8)))
-			);
+			expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(new BN(fields).div(new BN(10).pow(new BN(8))));
 
 			fields = await stakingRewards.getStakerCurrentReward(true, { from: a2 });
 			fullTermAvg = avgWeight(49, 53, 9, 78);
