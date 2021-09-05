@@ -108,7 +108,7 @@ contract StakingRewards is StakingRewardsStorage {
 		uint256 amount;
 		uint256 totalRewards = accumulatedRewards[_receiver];
 
-		(withdrawalTime, amount) = getStakerCurrentReward(true);
+		(withdrawalTime, amount) = getStakerCurrentReward(true, _receiver);
 		if (withdrawalTime > 0 && amount > 0) {
 			totalRewards += amount;
 		}
@@ -181,8 +181,7 @@ contract StakingRewards is StakingRewardsStorage {
 	 * @return The timestamp of last withdrawal
 	 * @return The accumulated reward
 	 */
-	function getStakerCurrentReward(bool considerMaxDuration) public view returns (uint256 lastWithdrawalInterval, uint256 amount) {
-		address staker = msg.sender;
+	function getStakerCurrentReward(bool considerMaxDuration, address staker) public view returns (uint256 lastWithdrawalInterval, uint256 amount) {
 		uint256 weightedStake;
 		uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
 		uint256 currentTS = block.timestamp;
