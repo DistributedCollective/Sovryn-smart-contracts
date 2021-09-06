@@ -101,8 +101,8 @@ def createProposal(governorAddr, target, value, signature, data, description):
     print('=============================================================')
 
     # Create Proposal
-    # tx = governor.propose(target, value, signature, data, description)
-    # tx.info()
+    tx = governor.propose(target, value, signature, data, description)
+    tx.info()
 
 def createProposalSIP0005():
     dummyAddress = contracts['GovernorOwner']
