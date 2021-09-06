@@ -101,9 +101,9 @@ contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
 	}
 
 	/**
-	 * @notice Set the rBtc address. V1 pool based price is BTC, so need to convert the value from v1 pool to USD. That's why we need to get the price of the rBtc
+	 * @notice Set the DoC address. V1 pool based price is BTC, so need to convert the value from v1 pool to USD. That's why we need to get the price of the DoC
 	 *
-	 * @param _docAddress The rBTC address
+	 * @param _docAddress The DoC address
 	 */
 	function setDOCAddress(address _docAddress) public onlyOwner {
 		require(_docAddress != address(0), "DOC address cannot be zero address");
