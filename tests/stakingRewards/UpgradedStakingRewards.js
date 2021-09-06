@@ -231,7 +231,7 @@ contract("StakingRewards - Upgrade", (accounts) => {
 			fullTermAvg = avgWeight(75, 79, 9, 78);
 			expectedAmount = numOfIntervals * ((50000 * fullTermAvg) / 26);
 			expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(new BN(fields).div(new BN(10).pow(new BN(8))));
-			
+
 			await staking.withdraw(wei("1000", "ether"), inThreeYears, a3, { from: a3 }); //Withdraw
 			fields = await stakingRewards.getAccumulatedReward({ from: a3 });
 			fullTermAvg = avgWeight(75, 79, 9, 78);
