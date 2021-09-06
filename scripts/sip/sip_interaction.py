@@ -21,7 +21,9 @@ def main():
     #createProposalSIP0020()
     #createProposalSIP0019()
 
-    createProposalSIP0024()
+    #createProposalSIP0024()
+
+    #createProposalSIPX() #TODO: put actual SIP number and modify 
     balanceAfter = acct.balance()
 
     print("=============================================================")
