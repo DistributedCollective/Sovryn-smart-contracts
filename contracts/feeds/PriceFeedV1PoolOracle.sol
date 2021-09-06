@@ -11,7 +11,7 @@ import "./IPriceFeeds.sol";
  * @notice The Price Feed V1 Pool Oracle contract.
  *
  * This contract implements V1 Pool Oracle query functionality,
- * getting the price and the last timestamp from an external oracle contract.
+ * getting the price from v1 pool oracle.
  * */
 contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
 	using SafeMath for uint256;
