@@ -35,7 +35,11 @@ def main():
 
     #call the function you want here
 # 5. Affiliates margin trading
-    deployAffiliate()
+    #TODO: might need to set affiliates fees to 0 if decided to deploy with affiliates disabled
+    # in this case comment out deployAfiliate() and run deployAffiliateWithZeroFeesPercent()
+    # deployAffiliateWithZeroFeesPercent()
+    deployAffiliate() 
+
     '''
     will also execute:
         replaceLoanClosings()
@@ -67,7 +71,7 @@ def main():
     LoanOpenings
     '''
 # 6. Trading Rebates
-    setDefaultRebatesPercentage(10 * 10**18)
+    setDefaultRebatesPercentage(10 * 10**18) # might need to set to 0 to disable rebates till immplemented liquid
     # the rest redeployments below are done earlier
     # replaceLoanClosings()
     # LoanOpenings
@@ -89,7 +93,9 @@ def main():
 
 # 9. Oracle v1pool
     '''
-    Need to redeploy priceFeeds.sol and then re-register all of the assets.
+    Need to redeploy priceFeeds.sol and then re-register all of the assets. //Skippng this, not needed
     Then can use the deployOracleV1Pool() in contract_interaction.py to register asset and pointed out to oracleV1Pool
     '''
+    deployOracleV1Pool() # now it deploys and registers only PriceFeedV1PoolOracle for SOV
+    # TODO: refactor deployOracleV1Pool() to process an array (task #100 in taiga https://taiga.sovryn.app/project/sovryn-order/task/100)
 
