@@ -241,3 +241,14 @@ def createProposalSIP0024():
 
     # Create Proposal
     createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
+
+def createProposalSIPX():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["name()"]
+    data = ["0x"]
+    description = "SIP-X: Add SOV as collateral for borrowing: https://gist.github.com/john-light/cbc71b788024dca0c4aa31a27c656b14#file-sip-sov-collateral-md, sha256: b2e2ef8d54fb32f0ac939b881b7ca4d44c51cc38af4558b885b11a6b0630a7b8"
+
+    # Create Proposal
+    createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
