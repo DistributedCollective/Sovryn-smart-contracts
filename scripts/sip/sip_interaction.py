@@ -250,7 +250,7 @@ def createProposalSIP0028():
     value = [0]
     signature = ["name()"]
     data = ["0x"]
-    description = "SIP-0028: Add SOV as collateral for borrowing: https://github.com/DistributedCollective/SIPS/blob/61c8c8eff0a60c09474a5faaf3cced95fd255dbb/SIP-0028.md, sha256: 34e54a96456a16a3fff4de8ecd13ddb3f1bce4e5fa1593245092e07d9ac953a9"
+    description = "SIP-0028: Add SOV as collateral for borrowing: https://github.com/DistributedCollective/SIPS/blob/61c8c8eff0a60c09474a5faaf3cced95fd255dbb/SIP-0028.md, sha256: 4437f7ffb4f3238f5403389b957252eee31e673647455dd645fe7cae7bb907a8"
 
     # Create Proposal
     createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
