@@ -23,7 +23,7 @@ def main():
 
     #createProposalSIP0024()
 
-    #createProposalSIPX() #TODO: put actual SIP number and modify 
+    createProposalSIP0028()
     balanceAfter = acct.balance()
 
     print("=============================================================")
@@ -244,13 +244,13 @@ def createProposalSIP0024():
     # Create Proposal
     createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
 
-def createProposalSIPX():
+def createProposalSIP0028():
     # Action
     target = [contracts['SOV']]
     value = [0]
     signature = ["name()"]
     data = ["0x"]
-    description = "SIP-X: Add SOV as collateral for borrowing: https://gist.github.com/john-light/cbc71b788024dca0c4aa31a27c656b14#file-sip-sov-collateral-md, sha256: b2e2ef8d54fb32f0ac939b881b7ca4d44c51cc38af4558b885b11a6b0630a7b8"
+    description = "SIP-0028: Add SOV as collateral for borrowing: https://github.com/DistributedCollective/SIPS/blob/61c8c8eff0a60c09474a5faaf3cced95fd255dbb/SIP-0028.md, sha256: 34e54a96456a16a3fff4de8ecd13ddb3f1bce4e5fa1593245092e07d9ac953a9"
 
     # Create Proposal
     createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
