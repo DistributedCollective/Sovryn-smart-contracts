@@ -74,4 +74,9 @@ contract("Affliates", (accounts) => {
 		await sovryn.setAffiliateTradingTokenFeePercent(affiliateTradingTokenFeePercent);
 		expect((await sovryn.affiliateTradingTokenFeePercent()).toString() == affiliateTradingTokenFeePercent).to.be.true;
 	});
+
+	it("Test set trading rebate rewards basis point with invalid value", async () => {
+		// Should revert if set with non owner
+		await expectRevert(sovryn.setTradingRebateRewardsBasisPoint(10001), "value too high");
+	});
 });

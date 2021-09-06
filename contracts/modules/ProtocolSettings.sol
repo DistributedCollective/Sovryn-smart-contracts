@@ -82,6 +82,8 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		_setTarget(this.getFeeRebatePercent.selector, target);
 		_setTarget(this.togglePaused.selector, target);
 		_setTarget(this.isProtocolPaused.selector, target);
+		_setTarget(this.setTradingRebateRewardsBasisPoint.selector, target);
+		_setTarget(this.getTradingRebateRewardsBasisPoint.selector, target);
 		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "ProtocolSettings");
 	}
 
@@ -112,6 +114,15 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		lockedSOVAddress = newLockedSOVAddress;
 
 		emit SetLockedSOVAddress(msg.sender, oldLockedSOVAddress, newLockedSOVAddress);
+	}
+
+	function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external onlyOwner whenNotPaused {
+		require(newBasisPoint <= 10000, "value too high");
+
+		uint256 oldBasisPoint = tradingRebateRewardsBasisPoint;
+		tradingRebateRewardsBasisPoint = newBasisPoint;
+
+		emit SetTradingRebateRewardsBasisPoint(msg.sender, oldBasisPoint, newBasisPoint);
 	}
 
 	/**
@@ -650,5 +661,9 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 
 	function isProtocolPaused() external view returns (bool) {
 		return pause;
+	}
+
+	function getTradingRebateRewardsBasisPoint() external view returns (uint256) {
+		return tradingRebateRewardsBasisPoint;
 	}
 }

@@ -306,5 +306,31 @@ contract("ProtocolSettings", (accounts) => {
 		it("Test set rebate percent by unauthorized user", async () => {
 			await expectRevert(sovryn.setRebatePercent(new BN(2).mul(oneEth), { from: accounts[0] }), "unauthorized");
 		});
+
+		// Should successfully change rebate percent
+		it("Test set trading rebate rewards basis point", async () => {
+			const new_basis_point = new BN(10000);
+			const old_basis_point = await sovryn.getTradingRebateRewardsBasisPoint();
+
+			const dest = sovryn.address;
+			const val = 0;
+			const data = await sovryn.contract.methods.setTradingRebateRewardsBasisPoint(new_basis_point).encodeABI();
+
+			const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+			const decode = decodeLogs(receipt.rawLogs, ProtocolSettings, "SetTradingRebateRewardsBasisPoint");
+			const event = decode[0].args;
+			expect(event["sender"] == multisig.address).to.be.true;
+			expect(event["oldBasisPoint"] == old_basis_point.toString()).to.be.true;
+			expect(event["newBasisPoint"] == new_basis_point.toString()).to.be.true;
+			expect((await sovryn.getTradingRebateRewardsBasisPoint()).eq(new_basis_point)).to.be.true;
+		});
+
+		// Should fail to change rebate percent by unauthorized user
+		it("Test set trading rebate rewards basis point by unauthorized user", async () => {
+			await expectRevert(sovryn.setTradingRebateRewardsBasisPoint(new BN(10000), { from: accounts[0] }), "unauthorized");
+		});
 	});
 });
