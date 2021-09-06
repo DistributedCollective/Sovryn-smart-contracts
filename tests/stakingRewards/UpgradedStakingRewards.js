@@ -10,6 +10,7 @@ const StakingProxy = artifacts.require("StakingProxy");
 const StakingRewards = artifacts.require("StakingRewardsMockUpOld");
 const StakingRewardsNew = artifacts.require("StakingRewardsMockUp");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
+const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 const Protocol = artifacts.require("sovrynProtocol");
 const BlockMockUp = artifacts.require("BlockMockUp");
@@ -23,7 +24,7 @@ const TOTAL_SUPPLY = "10000000000000000000000000";
 const TWO_WEEKS = 1209600;
 const DELAY = TWO_WEEKS;
 
-contract("StakingRewards - First Period", (accounts) => {
+contract("StakingRewards - Upgrade", (accounts) => {
 	let root, a1, a2, a3;
 	let SOV, staking;
 	let kickoffTS, inOneYear, inTwoYears, inThreeYears;
@@ -182,6 +183,13 @@ contract("StakingRewards - First Period", (accounts) => {
 			await staking.setBlockMockUpAddr(blockMockUp.address);
 			await staking.setStakingRewards(stakingRewards.address);
 			await stakingRewards.setStakingAddress(staking.address);
+
+			//FeeSharingProxy
+			let feeSharingLogic = await FeeSharingLogic.new();
+			feeSharingProxyObj = await FeeSharingProxy.new(protocol.address, staking.address);
+			await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
+			feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
+			await staking.setFeeSharing(feeSharingProxy.address);
 		});
 
 		it("should compute and send Rewards to the stakers a1, a2 and a3 correctly after 6 weeks", async () => {
@@ -211,26 +219,24 @@ contract("StakingRewards - First Period", (accounts) => {
 
 		it("should compute and send Rewards to the stakers a1, a2 and a3 correctly after 8 weeks", async () => {
 			await increaseTimeAndBlocks(1209614);
-			await staking.stake(wei("1000", "ether"), inOneYear, a1, a1, { from: a1 });
+			await staking.stake(wei("1000", "ether"), inOneYear, a1, a1, { from: a1 }); //Add Stakes
 			let fields = await stakingRewards.getAccumulatedReward({ from: a1 });
 			let numOfIntervals = 4;
 			let fullTermAvg = avgWeight(23, 27, 9, 78);
 			expectedAmount = numOfIntervals * ((2000 * fullTermAvg) / 26);
 			expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(new BN(fields).div(new BN(10).pow(new BN(8))));
 
-			fields = await stakingRewards.getStakerCurrentReward(true, a2, { from: a2 });
-			fullTermAvg = avgWeight(49, 53, 9, 78);
-			expectedAmount = numOfIntervals * ((50000 * fullTermAvg) / 26);
-			expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(
-				new BN(fields.amount).div(new BN(10).pow(new BN(8)))
-			);
-
-			fields = await stakingRewards.getStakerCurrentReward(true, a3, { from: a3 });
+			await staking.extendStakingDuration(inTwoYears, inThreeYears, { from: a2 }); //Extend Duration
+			fields = await stakingRewards.getAccumulatedReward({ from: a2 });
 			fullTermAvg = avgWeight(75, 79, 9, 78);
-			expectedAmount = numOfIntervals * ((10000 * fullTermAvg) / 26);
-			expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(
-				new BN(fields.amount).div(new BN(10).pow(new BN(8)))
-			);
+			expectedAmount = numOfIntervals * ((50000 * fullTermAvg) / 26);
+			expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(new BN(fields).div(new BN(10).pow(new BN(8))));
+			
+			await staking.withdraw(wei("1000", "ether"), inThreeYears, a3, { from: a3 }); //Withdraw
+			fields = await stakingRewards.getAccumulatedReward({ from: a3 });
+			fullTermAvg = avgWeight(75, 79, 9, 78);
+			expectedAmount = numOfIntervals * ((9000 * fullTermAvg) / 26);
+			expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(new BN(fields).div(new BN(10).pow(new BN(8))));
 		});
 	});
 
