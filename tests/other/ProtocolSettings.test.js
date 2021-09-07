@@ -309,7 +309,7 @@ contract("ProtocolSettings", (accounts) => {
 
 		// Should successfully change rebate percent
 		it("Test set trading rebate rewards basis point", async () => {
-			const new_basis_point = new BN(10000);
+			const new_basis_point = new BN(9999);
 			const old_basis_point = await sovryn.getTradingRebateRewardsBasisPoint();
 
 			const dest = sovryn.address;
