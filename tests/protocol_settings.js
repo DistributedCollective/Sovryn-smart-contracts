@@ -76,7 +76,13 @@ contract("Affliates", (accounts) => {
 	});
 
 	it("Test set trading rebate rewards basis point with invalid value", async () => {
-		// Should revert if set with non owner
-		await expectRevert(sovryn.setTradingRebateRewardsBasisPoint(10001), "value too high");
+		// Should revert if set with invalid value (more than the max basis point value 9999)
+		await expectRevert(sovryn.setTradingRebateRewardsBasisPoint(10000), "value too high");
+	});
+
+	it("Test set trading rebate rewards basis point with max value", async () => {
+		const maxBasisPoint = 9999;
+		await sovryn.setTradingRebateRewardsBasisPoint(maxBasisPoint);
+		expect((await sovryn.getTradingRebateRewardsBasisPoint()).toString()).to.be.equal(new BN(maxBasisPoint).toString());
 	});
 });

@@ -116,8 +116,13 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		emit SetLockedSOVAddress(msg.sender, oldLockedSOVAddress, newLockedSOVAddress);
 	}
 
+	/**
+	 * @notice Set the basis point of trading rebate rewards (SOV), max value is 9999 (99.99% liquid, 0.01% vested).
+	 *
+	 * @param newBasisPoint Basis point value.
+	 */
 	function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external onlyOwner whenNotPaused {
-		require(newBasisPoint <= 10000, "value too high");
+		require(newBasisPoint <= 9999, "value too high");
 
 		uint256 oldBasisPoint = tradingRebateRewardsBasisPoint;
 		tradingRebateRewardsBasisPoint = newBasisPoint;
@@ -663,6 +668,11 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		return pause;
 	}
 
+	/**
+	 * @notice Get the basis point of trading rebate rewards.
+	 *
+	 * @return The basis point value.
+	 */
 	function getTradingRebateRewardsBasisPoint() external view returns (uint256) {
 		return tradingRebateRewardsBasisPoint;
 	}
