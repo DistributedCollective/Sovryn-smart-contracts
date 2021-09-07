@@ -66,7 +66,7 @@ contract("GovernorAlpha (Proposer Functions)", (accounts) => {
 		stakingRewards = await StakingRewardsProxy.new();
 		await stakingRewards.setImplementation(stakingRewardsLogic.address);
 		stakingRewards = await StakingRewards.at(stakingRewards.address); //Test - 12/08/2021
-		await stakingLogic.setStakingRewards(stakingRewards.address);
+		await stakingLogic.setStakingRewards(constants.ZERO_ADDRESS);
 		//Initialize
 		await stakingRewards.initialize(testToken.address, stakingLogic.address);
 		await stakingRewards.setStakingAddress(stakingLogic.address);

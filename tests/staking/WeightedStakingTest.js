@@ -5,6 +5,9 @@ const { address, minerStart, minerStop, unlockedAccount, mineBlock, etherMantiss
 
 const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
+//Upgradable Vesting Registry
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 //Staking Rewards
 const StakingRewards = artifacts.require("StakingRewards");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
@@ -39,6 +42,14 @@ contract("WeightedStaking", (accounts) => {
 		staking = await StakingProxy.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
+
+		//Upgradable Vesting Registry
+		vestingRegistryLogic = await VestingRegistryLogic.new();
+		vesting = await VestingRegistryProxy.new();
+		await vesting.setImplementation(vestingRegistryLogic.address);
+		vesting = await VestingRegistryLogic.at(vesting.address);
+
+		await staking.setVestingRegistry(vesting.address);
 
 		//Staking Reward Program is deployed
 		let stakingRewardsLogic = await StakingRewards.new();
@@ -161,7 +172,7 @@ contract("WeightedStaking", (accounts) => {
 
 			checkpoint = await staking.vestingCheckpoints(kickoffTS.add(new BN(DELAY)), 0);
 
-			//await expect(checkpoint.fromBlock.toNumber()).to.be.equal(blockNumber);
+			await expect(checkpoint.fromBlock.toNumber()).to.be.equal(blockNumber);
 			await expect(checkpoint.stake.toString()).to.be.equal("1000");
 		});
 	});
@@ -350,8 +361,6 @@ async function createVestingContractWithSingleDate(cliff, amount, token, staking
 	vestingLogic = await VestingLogic.new();
 	let vestingInstance = await Vesting.new(vestingLogic.address, token.address, staking.address, tokenOwner, cliff, cliff, tokenOwner);
 	vestingInstance = await VestingLogic.at(vestingInstance.address);
-	//important, so it's recognized as vesting contract
-	await staking.addContractCodeHash(vestingInstance.address);
 
 	await token.approve(vestingInstance.address, amount);
 	let result = await vestingInstance.stakeTokens(amount);

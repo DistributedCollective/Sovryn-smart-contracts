@@ -28,10 +28,11 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 	/**
 	 * @notice sets staking rewards
+	 * @dev _stakingRewardsProxy can be set to 0 as this functionality can be reused by
+	 * various other functionalities without the necessity of linking it with Staking Rewards
 	 * @param _stakingRewardsProxy the address of staking rewards proxy contract
 	 */
 	function setStakingRewards(address _stakingRewardsProxy) external onlyOwner {
-		require(_stakingRewardsProxy != address(0), "address invalid");
 		stakingRewards = StakingRewards(_stakingRewardsProxy);
 	}
 
@@ -49,7 +50,6 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address delegatee
 	) external {
 		_stake(msg.sender, amount, until, stakeFor, delegatee, false);
-		_updateRewards();
 	}
 
 	/**
@@ -136,6 +136,9 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		/// @dev Increase stake.
 		_increaseDelegateStake(delegatee, until, amount);
 		emit DelegateChanged(stakeFor, until, previousDelegatee, delegatee);
+		if (isVestingContract(msg.sender) == false) {
+			_updateRewards();
+		}
 	}
 
 	/**
@@ -267,7 +270,6 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
 		//		we need to check block.timestamp here
 		_withdrawNext(amount, until, receiver, false);
-		_updateRewards();
 	}
 
 	/**
@@ -360,6 +362,9 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		require(success, "Token transfer failed");
 
 		emit StakingWithdrawn(msg.sender, amount, until, receiver, isGovernance);
+		if (isVestingContract(msg.sender) == false) {
+			_updateRewards();
+		}
 	}
 
 	// @dev withdraws tokens for lock date 2 weeks later than given lock date
@@ -385,7 +390,9 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * when additional staking, withdrawal or extending duration etc.
 	 * */
 	function _updateRewards() internal {
-		stakingRewards.updateRewards(msg.sender);
+		if (address(stakingRewards) != address(0)) {
+			stakingRewards.updateRewards(msg.sender);
+		}
 	}
 
 	/**

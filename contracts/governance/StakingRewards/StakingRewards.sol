@@ -221,11 +221,17 @@ contract StakingRewards is StakingRewardsStorage {
 	}
 
 	/**
-	 * @notice Get staker's current accumulated reward
+	 * @notice Get staker's current claimable reward
 	 * @return The accumulated reward
 	 */
-	function getAccumulatedReward() public view returns (uint256) {
-		return accumulatedRewards[msg.sender];
+	function getClaimableReward() public view returns (uint256) {
+		address receiver = msg.sender;
+		uint256 amount;
+		uint256 totalRewards;
+
+		(, amount) = getStakerCurrentReward(true, receiver);
+		totalRewards = accumulatedRewards[receiver].add(amount);
+		return totalRewards;
 	}
 
 	/**

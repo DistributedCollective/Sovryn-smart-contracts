@@ -42,6 +42,10 @@ const SwapsExternal = artifacts.require("SwapsExternal");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
 
+//Upgradable Vesting Registry
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
+
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
@@ -90,6 +94,14 @@ contract("FeeSharingProxy:", (accounts) => {
 		staking = await StakingProxy.new(SOVToken.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
+
+		//Upgradable Vesting Registry
+		vestingRegistryLogic = await VestingRegistryLogic.new();
+		vesting = await VestingRegistryProxy.new();
+		await vesting.setImplementation(vestingRegistryLogic.address);
+		vesting = await VestingRegistryLogic.at(vesting.address);
+
+		await staking.setVestingRegistry(vesting.address);
 
 		//Staking Reward Program is deployed
 		let stakingRewardsLogic = await StakingRewards.new();
@@ -1033,8 +1045,6 @@ contract("FeeSharingProxy:", (accounts) => {
 			feeSharingProxy.address
 		);
 		vestingInstance = await VestingLogic.at(vestingInstance.address);
-		//important, so it's recognized as vesting contract
-		await staking.addContractCodeHash(vestingInstance.address);
 
 		await SOVToken.approve(vestingInstance.address, amount);
 		let result = await vestingInstance.stakeTokens(amount);

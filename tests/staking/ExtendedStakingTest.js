@@ -88,7 +88,7 @@ contract("Staking", (accounts) => {
 		stakingRewards = await StakingRewardsProxy.new();
 		await stakingRewards.setImplementation(stakingRewardsLogic.address);
 		stakingRewards = await StakingRewards.at(stakingRewards.address); //Test - 12/08/2021
-		await staking.setStakingRewards(stakingRewards.address);
+		await staking.setStakingRewards(constants.ZERO_ADDRESS);
 		//Initialize
 		await stakingRewards.initialize(token.address, staking.address);
 		await stakingRewards.setStakingAddress(staking.address);
@@ -968,7 +968,7 @@ contract("Staking", (accounts) => {
 			let numVestingCheckpoints = await staking.numVestingCheckpoints.call(lockedTS);
 			expect(numVestingCheckpoints.toNumber()).to.be.equal(2);
 			checkpoint = await staking.vestingCheckpoints.call(lockedTS, 0);
-			//expect(checkpoint.fromBlock.toNumber()).to.be.equal(blockNumber);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(blockNumber);
 			expect(checkpoint.stake.toString()).to.be.equal(amount);
 			checkpoint = await staking.vestingCheckpoints.call(lockedTS, 1);
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
@@ -1098,8 +1098,6 @@ async function createVestingContractWithSingleDate(cliff, amount, token, staking
 	vestingLogic = await VestingLogic.new();
 	let vestingInstance = await Vesting.new(vestingLogic.address, token.address, staking.address, tokenOwner, cliff, cliff, tokenOwner);
 	vestingInstance = await VestingLogic.at(vestingInstance.address);
-	//important, so it's recognized as vesting contract
-	await staking.addContractCodeHash(vestingInstance.address);
 
 	await token.approve(vestingInstance.address, amount);
 	let result = await vestingInstance.stakeTokens(amount);

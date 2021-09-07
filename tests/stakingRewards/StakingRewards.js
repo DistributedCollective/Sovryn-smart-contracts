@@ -4,9 +4,9 @@ const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
 const { increaseTime, blockNumber } = require("../Utils/Ethereum");
 
 const SOV_ABI = artifacts.require("SOV");
-const StakingLogic = artifacts.require("StakingMock");
+const StakingLogic = artifacts.require("StakingMockOld");
 const StakingProxy = artifacts.require("StakingProxy");
-const StakingRewards = artifacts.require("StakingRewardsMockUp");
+const StakingRewards = artifacts.require("StakingRewardsMockUpOld");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
 const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
@@ -95,10 +95,6 @@ contract("StakingRewards", (accounts) => {
 		stakingRewards = await StakingRewards.at(stakingRewards.address); //Test - 12/08/2021
 		await stakingRewards.setBlockMockUpAddr(blockMockUp.address);
 		await staking.setBlockMockUpAddr(blockMockUp.address);
-		await staking.setStakingRewards(stakingRewards.address);
-		//Initialize
-		await stakingRewards.initialize(SOV.address, staking.address);
-		await stakingRewards.setStakingAddress(staking.address);
 
 		await staking.stake(wei("1000", "ether"), inOneYear, a1, a1, { from: a1 }); //Test - 15/07/2021
 		await staking.stake(wei("1000", "ether"), inTwoYears, a2, a2, { from: a2 }); //Test - 15/07/2021
@@ -113,6 +109,8 @@ contract("StakingRewards", (accounts) => {
 
 		it("should revert if SOV Address is invalid", async () => {
 			await expectRevert(stakingRewards.initialize(constants.ZERO_ADDRESS, staking.address), "Invalid SOV Address.");
+			//Initialize
+			await stakingRewards.initialize(SOV.address, staking.address);
 			//Staking Rewards Contract is loaded
 			await SOV.transfer(stakingRewards.address, wei("1000000", "ether"));
 		});

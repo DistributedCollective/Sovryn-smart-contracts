@@ -309,7 +309,7 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		stakingRewards = await StakingRewardsProxy.new();
 		await stakingRewards.setImplementation(stakingRewardsLogic.address);
 		stakingRewards = await StakingRewards.at(stakingRewards.address);
-		await staking.setStakingRewards(stakingRewards.address);
+		await staking.setStakingRewards(constants.ZERO_ADDRESS);
 		//Initialize
 		await stakingRewards.initialize(token.address, staking.address); //Test - 24/08/2021
 		await stakingRewards.setStakingAddress(staking.address);
