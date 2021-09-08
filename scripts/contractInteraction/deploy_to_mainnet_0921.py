@@ -96,8 +96,6 @@ def main():
     Need to redeploy priceFeeds.sol and then re-register all of the assets. //Skippng this, not needed
     Then can use the deployOracleV1Pool() in contract_interaction.py to register asset and pointed out to oracleV1Pool
     '''
-    deployOracleV1Pool('SOV') # now it deploys and registers only PriceFeedV1PoolOracle for SOV
-    # TODO: refactor deployOracleV1Pool() to process an array (task #100 in taiga https://taiga.sovryn.app/project/sovryn-order/task/100)
     deployOracleV1Pool('SOV', 'WRBTCtoSOVOracle')
     #TODO: add relevant deployment scripts for all needed tokens
 
