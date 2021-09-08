@@ -66,12 +66,3 @@ def main():
             developmentLastReleaseTime += releaseTime
             developmentAmount += releaseValue
     print("developmentFund:", developmentAmount / DECIMALS)
-
-
-# function withdrawTokensByUnlockedTokenOwner(uint256 _amount) public onlyUnlockedTokenOwner checkStatus(Status.Active) {
-# TimelockOwner -> multisig: SOV.transfer(multisig, amount)
-
-# 2082.84375 × 32 = 66651
-# 6250 * 32 = 200000
-# 12.799423076923076923 * 22 = 281.587307692 | 67.287692307692307692 * 22 = 1480.329230769 | 39.890769230769230769 = 1801.807307692
-# total revoked: 268452.807307692
