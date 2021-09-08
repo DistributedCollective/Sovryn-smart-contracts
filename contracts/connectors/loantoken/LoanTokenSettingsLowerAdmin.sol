@@ -190,26 +190,5 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 		}
 	}
 
-	/**
-	 * Set the transaction limit per token address.
-	 * @param addresses The token addresses.
-	 * @param limits The limit denominated in the currency of the token address.
-	 * */
-	function setTransactionLimits(address[] memory addresses, uint256[] memory limits) public onlyAdmin {
-		require(addresses.length == limits.length, "mismatched array lengths");
-		for (uint256 i = 0; i < addresses.length; i++) {
-			transactionLimit[addresses[i]] = limits[i];
-		}
-		emit SetTransactionLimits(addresses, limits);
-	}
-
-	/**
-	 *	@notice Update the loan token parameters.
-	 *	@param _name The new name of the loan token.
-	 *	@param _symbol The new symbol of the loan token.
-	 * */
-	function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol) public onlyAdmin {
-		name = _name;
-		symbol = _symbol;
-	}
+	
 }
