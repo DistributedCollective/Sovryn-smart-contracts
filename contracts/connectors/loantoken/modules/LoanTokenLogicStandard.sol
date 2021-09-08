@@ -430,10 +430,10 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 * @param _amount The amount of rBTC to be transferred.
 	 */
 	function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external onlyOwner {
-        require(_receiverAddress != address(0), "receiver address invalid");
-        require(_amount > 0, "non-zero withdraw amount expected");    
-        require(_amount <= address(this).balance, "withdraw amount cannot exceed balance");
-        _receiverAddress.transfer(_amount);
+		require(_receiverAddress != address(0), "receiver address invalid");
+		require(_amount > 0, "non-zero withdraw amount expected");
+		require(_amount <= address(this).balance, "withdraw amount cannot exceed balance");
+		_receiverAddress.transfer(_amount);
 	}
 
 	/**
