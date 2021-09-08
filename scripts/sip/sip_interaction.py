@@ -16,12 +16,16 @@ def main():
     balanceBefore = acct.balance()
 
     # Call the function you want here
-    currentVotingPower(acct)
+    # currentVotingPower(acct)
 
     #createProposalSIP0020()
     #createProposalSIP0019()
 
-    createProposalSIP0024()
+    # createProposalSIP0024()
+
+    createProposalTransfersFromFundsAndVault()
+    createProposalTransferFromVault()
+
     balanceAfter = acct.balance()
 
     print("=============================================================")
@@ -241,3 +245,65 @@ def createProposalSIP0024():
 
     # Create Proposal
     createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
+
+def createProposalTransfersFromFundsAndVault():
+
+    # TODO: TDB
+    adoptionAmount = 0
+    developmentAmount = 0
+    vaultOwnerAmount = 0
+
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    adoptionFund = Contract.from_abi("DevelopmentFund", address=contracts['AdoptionFund'], abi=DevelopmentFund.abi, owner=acct)
+    developmentFund = Contract.from_abi("DevelopmentFund", address=contracts['DevelopmentFund'], abi=DevelopmentFund.abi, owner=acct)
+    governorVaultOwner = Contract.from_abi("GovernorVault", address=contracts['GovernorVaultOwner'], abi=GovernorVault.abi, owner=acct)
+    multisig = contracts['multisig']
+
+    # Actions
+    # 0 - adoptionFund.withdrawTokensByUnlockedTokenOwner -> msg.sender (TimelockOwner)
+    # 1 - developmentFund.withdrawTokensByUnlockedTokenOwner -> msg.sender (TimelockOwner)
+    # 2 - TimelockOwner -> multisig (adoptionAmount + developmentAmount)
+    # 3 - governorVaultOwner -> multisig
+    targets = [
+        adoptionFund.address,
+        developmentFund.address,
+        SOVtoken.address,
+        governorVaultOwner.address
+    ]
+    values = [0, 0, 0, 0]
+    signatures = [
+        "withdrawTokensByUnlockedTokenOwner(uint256)",
+        "withdrawTokensByUnlockedTokenOwner(uint256)",
+        "transfer(address,uint256)",
+        "transferTokens(address,address,uint256)"
+    ]
+    data1 = adoptionFund.withdrawTokensByUnlockedTokenOwner.encode_input(adoptionAmount)
+    data2 = developmentFund.withdrawTokensByUnlockedTokenOwner.encode_input(developmentAmount)
+    data3 = SOVtoken.transfer.encode_input(multisig, adoptionAmount + developmentAmount)
+    data4 = governorVaultOwner.transferTokens.encode_input(multisig, SOVtoken.address, vaultOwnerAmount)
+    datas = ["0x" + data1[10:], "0x" + data2[10:], "0x" + data3[10:], "0x" + data4[10:]]
+    description = "SIP-00: , Details: , sha256: "
+
+    # Create Proposal
+    createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+def createProposalTransferFromVault():
+
+    # TODO: TDB
+    vaultAdminAmount = 0
+
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    governorVaultAdmin = Contract.from_abi("GovernorVault", address=contracts['GovernorVaultAdmin'], abi=GovernorVault.abi, owner=acct)
+    multisig = contracts['multisig']
+
+    # Action
+    # governorVaultAdmin -> multisig
+    target = [governorVaultAdmin.address]
+    value = [0]
+    signature = ["transferTokens(address,address,uint256)"]
+    data = governorVaultAdmin.transferTokens.encode_input(multisig, SOVtoken.address, vaultAdminAmount)
+    data = ["0x" + data[10:]]
+    description = "SIP-00: Details: , sha256: "
+
+    # Create Proposal
+    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
