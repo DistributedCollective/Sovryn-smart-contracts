@@ -8,7 +8,7 @@ pragma experimental ABIEncoderV2;
 
 import "../core/State.sol";
 import "../events/LoanSettingsEvents.sol";
-import "./ModuleCommonFunctionalities.sol";
+import "../mixins/ModuleCommonFunctionalities.sol";
 
 /**
  * @title Loan Settings contract.

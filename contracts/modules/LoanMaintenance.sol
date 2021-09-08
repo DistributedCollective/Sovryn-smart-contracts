@@ -13,7 +13,7 @@ import "../mixins/VaultController.sol";
 import "../mixins/InterestUser.sol";
 import "../mixins/LiquidationHelper.sol";
 import "../swaps/SwapsUser.sol";
-import "./ModuleCommonFunctionalities.sol";
+import "../mixins/ModuleCommonFunctionalities.sol";
 
 /**
  * @title Loan Maintenance contract.
