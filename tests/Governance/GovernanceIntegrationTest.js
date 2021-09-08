@@ -123,12 +123,12 @@ contract("GovernanceIntegration", (accounts) => {
 			let tradingFeePercentNew = etherMantissa(9, 1e16).toString();
 
 			let proposalData = {
-				targets: [protocol.address, protocol.address, loanToken.address],
-				values: [0, 0, 0],
+				targets: [protocol.address, protocol.address/*, loanToken.address*/],
+				values: [0, 0/*, 0*/],
 				signatures: [
 					"setTradingFeePercent(uint256)",
 					"setLoanPool(address[],address[])",
-					"setTransactionLimits(address[],uint256[])",
+					/*"setTransactionLimits(address[],uint256[])",*/
 				],
 				callDatas: [
 					encodeParameters(["uint256"], [tradingFeePercentNew]),
@@ -139,13 +139,13 @@ contract("GovernanceIntegration", (accounts) => {
 							[account3, account4],
 						]
 					),
-					encodeParameters(
+					/*encodeParameters(
 						["address[]", "uint256[]"],
 						[
 							[account1, account2],
 							[1111, 2222],
 						]
-					),
+					),*/
 				],
 				description: "change settings",
 			};
@@ -159,8 +159,8 @@ contract("GovernanceIntegration", (accounts) => {
 			expect(await protocol.underlyingToLoanPool.call(account3)).to.be.equal(ZERO_ADDRESS);
 			expect(await protocol.underlyingToLoanPool.call(account4)).to.be.equal(ZERO_ADDRESS);
 
-			expect((await loanToken.transactionLimit.call(account1)).toNumber()).to.be.equal(0);
-			expect((await loanToken.transactionLimit.call(account2)).toNumber()).to.be.equal(0);
+			//expect((await loanToken.transactionLimit.call(account1)).toNumber()).to.be.equal(0);
+			//expect((await loanToken.transactionLimit.call(account2)).toNumber()).to.be.equal(0);
 
 			//make changes
 			await executeProposal(proposalData);
@@ -174,8 +174,8 @@ contract("GovernanceIntegration", (accounts) => {
 			expect(await protocol.underlyingToLoanPool.call(account3)).to.be.equal(account1);
 			expect(await protocol.underlyingToLoanPool.call(account4)).to.be.equal(account2);
 
-			expect((await loanToken.transactionLimit.call(account1)).toNumber()).to.be.equal(1111);
-			expect((await loanToken.transactionLimit.call(account2)).toNumber()).to.be.equal(2222);
+			//expect((await loanToken.transactionLimit.call(account1)).toNumber()).to.be.equal(1111);
+			//expect((await loanToken.transactionLimit.call(account2)).toNumber()).to.be.equal(2222);
 		});
 
 		it("Shouldn't be able to execute proposal using Timelock directly", async () => {

@@ -34,7 +34,7 @@ const hunEth = new BN(wei("100", "ether"));
 
 contract("LoanTokenBorrowing", (accounts) => {
 	let owner, account1;
-	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV;
+	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV, priceFeeds;
 
 	before(async () => {
 		[owner, account1] = accounts;
@@ -45,7 +45,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
@@ -64,7 +64,10 @@ contract("LoanTokenBorrowing", (accounts) => {
 			await lend_to_pool(loanToken, SUSD, owner);
 			// determine borrowing parameter
 			const withdrawAmount = tenEth;
+			const durationInSeconds = 60 * 60 * 24 * 10; // 10 days
 			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
+			// NOTE: this is not the best method for computing the required collateral for borrowing, because it is not considering the interest payment
+			// better use getDepositAmountForBorrow -> need to adjust the rest of the test as well, then
 			const collateralTokenSent = await sovryn.getRequiredCollateral(
 				SUSD.address,
 				RBTC.address,
@@ -72,7 +75,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 				new BN(10).pow(new BN(18)).mul(new BN(50)),
 				true
 			);
-			const durationInSeconds = 60 * 60 * 24 * 10; // 10 days
+			
 			// compute expected values for asserts
 			const interestRate = await loanToken.nextBorrowInterestRate(withdrawAmount);
 			// principal = withdrawAmount/(1 - interestRate/1e20 * durationInSeconds /  31536000)
@@ -516,5 +519,95 @@ contract("LoanTokenBorrowing", (accounts) => {
 				"loanParams mismatch"
 			);
 		});
+
+		//50% was hardcoded on the old contracts -> would have failed, but should work now
+		it("Borrowing with more than 50% initial margin", async () => {
+			await set_demand_curve(loanToken);
+			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
+			await lend_to_pool(loanToken, SUSD, owner);
+			// determine borrowing parameter
+			const withdrawAmount = tenEth;
+			const durationInSeconds = 60 * 60 * 24 * 10; // 10 days
+			// compute the required collateral
+			const collateralTokenSent = await loanToken.getDepositAmountForBorrow(withdrawAmount, durationInSeconds, RBTC.address);
+
+			//TODO: refactor formula to remove rounding error subn(1)
+			const borrowingFee = (await sovryn.borrowingFeePercent()).mul(collateralTokenSent).div(hunEth).addn(1);
+
+			// compute expected values for asserts
+			const interestRate = await loanToken.nextBorrowInterestRate(withdrawAmount);
+			// principal = withdrawAmount/(1 - interestRate/1e20 * durationInSeconds /  31536000)
+			const principal = withdrawAmount
+				.mul(oneEth)
+				.div(oneEth.sub(interestRate.mul(new BN(durationInSeconds)).mul(oneEth).div(new BN(31536000)).div(hunEth)));
+
+			// approve the transfer of the collateral
+			await RBTC.approve(loanToken.address, collateralTokenSent);
+
+			// borrow some funds
+			const { tx, receipt } = await loanToken.borrow(
+				"0x0", // bytes32 loanId
+				withdrawAmount, // uint256 withdrawAmount
+				durationInSeconds, // uint256 initialLoanDuration
+				collateralTokenSent, // uint256 collateralTokenSent
+				RBTC.address, // address collateralTokenAddress
+				owner, // address borrower
+				account1, // address receiver
+				web3.utils.fromAscii("") // bytes memory loanDataBytes
+			);
+			// assert the trade was processed as expected
+			await expectEvent.inTransaction(tx, LoanOpenings, "Borrow", {
+				user: owner,
+				lender: loanToken.address,
+				loanToken: SUSD.address,
+				collateralToken: RBTC.address,
+				newPrincipal: principal,
+				newCollateral: collateralTokenSent.sub(borrowingFee),
+				interestRate: interestRate,
+			});
+			const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Borrow");
+			const args = decode[0].args;
+
+			expect(args["interestDuration"] >= durationInSeconds - 1 && args["interestDuration"] <= durationInSeconds).to.be.true;
+			expect(new BN(args["currentMargin"])).to.be.a.bignumber.gt(new BN(99).mul(oneEth));
+
+		});
+
+		it("getDepositAmountForBorrow should consider the initial margin on the loan params", async ()=>{
+			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// determine borrowing parameter
+			const withdrawAmount = tenEth;
+			const durationInSeconds = 60 * 60 * 24 * 10; // 10 days
+
+			const requiredCollateralOnProtocol = await sovryn.getRequiredCollateral(
+				SUSD.address,
+				RBTC.address,
+				withdrawAmount,
+				new BN(10).pow(new BN(18)).mul(new BN(100)),
+				true
+			);
+
+			const requiredCollateralOnLoanToken = await loanToken.getDepositAmountForBorrow(withdrawAmount, durationInSeconds, RBTC.address);
+			expect(requiredCollateralOnProtocol).to.be.bignumber.equal(requiredCollateralOnLoanToken.subn(10));
+		});
+
+		it("getBorrowAmountForDeposit should consider the initial margin on the loan params", async ()=>{
+			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
+			await lend_to_pool(loanToken, SUSD, owner);
+			// determine borrowing parameter
+			const depositAmount = tenEth;
+			const durationInSeconds = 60 * 60 * 24 * 10; // 10 days
+			const borrowAmount = await loanToken.getBorrowAmountForDeposit(depositAmount, durationInSeconds, RBTC.address);
+			const { rate: trade_rate, precision } = await priceFeeds.queryRate(RBTC.address, SUSD.address);
+			const borrowingFeePercent = await sovryn.borrowingFeePercent();
+			const fee = depositAmount.divn(2).mul(borrowingFeePercent).div(hunEth);
+			const expectedBorrowAmount = depositAmount.divn(2).sub(fee).mul(trade_rate).div(precision);
+
+			expect(borrowAmount).to.be.bignumber.equal(expectedBorrowAmount);
+		});
+
+
 	});
 });
