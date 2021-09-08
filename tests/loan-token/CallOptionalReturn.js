@@ -135,7 +135,7 @@ contract("CallOptionalReturn", (accounts) => {
 			const iTokenBalance = await loanToken.balanceOf(lender);
 
 			// burn everything -> profit should be 0
-			await expectRevert(loanToken.burn(lender, iTokenBalance.toString()), "call to non-contract");
+			await expectRevert(loanToken.burn(lender, iTokenBalance.toString()), "call to a non-contract address");
 		});
 	});
 });
