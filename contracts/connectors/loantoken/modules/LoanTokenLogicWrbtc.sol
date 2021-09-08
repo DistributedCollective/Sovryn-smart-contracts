@@ -67,7 +67,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
 
 		// Loan Token Logic Storage Additional Variable
 		res[33] = bytes4(keccak256("liquidityMiningAddress()"));
-		res[34] = this.withdrawAllRBTC.selector;
+		res[34] = this.withdrawRBTCTo.selector;
 
 		return (res, stringToBytes32("LoanTokenLogicWrbtc"));
 	}

@@ -207,17 +207,27 @@ contract("LoanTokenLending", (accounts) => {
 			await web3.eth.sendTransaction({ from: accounts[0].toString(), to: loanToken.address, value: 10000, gas: 22000 });
 			const contractBalance = await web3.eth.getBalance(loanToken.address);
 			const balanceBefore = await web3.eth.getBalance(account4);
-			await loanToken.withdrawAllRBTC(account4);
+			await loanToken.withdrawRBTCTo(account4, contractBalance);
 			const balanceAfter = await web3.eth.getBalance(account4);
 			expect(new BN(balanceAfter).sub(new BN(balanceBefore))).to.be.a.bignumber.equal(new BN(contractBalance));
 		});
 
 		it("shouldn't withdraw when zero address is passed", async () => {
-			await expectRevert(loanToken.withdrawAllRBTC(constants.ZERO_ADDRESS), "receiver address invalid");
+			await expectRevert(loanToken.withdrawRBTCTo(constants.ZERO_ADDRESS, 100), "receiver address invalid");
 		});
 
 		it("shouldn't withdraw when triggered by anyone other than owner", async () => {
-			await expectRevert(loanToken.withdrawAllRBTC(account4, { from: account4 }), "unauthorized");
+			await expectRevert(loanToken.withdrawRBTCTo(account4, 100, { from: account4 }), "unauthorized");
+		});
+
+		it("shouldn't withdraw if amount is 0", async () => {
+			await web3.eth.sendTransaction({ from: accounts[0].toString(), to: loanToken.address, value: 10000, gas: 22000 });
+			await expectRevert(loanToken.withdrawRBTCTo(account4, 0), "non-zero withdraw amount expected");
+		});
+
+		it("shouldn't withdraw if amount is invalid", async () => {
+			await web3.eth.sendTransaction({ from: accounts[0].toString(), to: loanToken.address, value: 10000, gas: 22000 });
+			await expectRevert(loanToken.withdrawRBTCTo(account4, 20000), "withdraw amount cannot exceed balance");
 		});
 	});
 });

@@ -182,7 +182,7 @@ interface ILoanTokenModules {
 
 	function getMarginBorrowAmountAndRate(uint256 leverageAmount, uint256 depositAmount) external view returns (uint256, uint256);
 
-	function withdrawAllRBTC(address _receiverAddress) external;
+	function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external;
 
 	/** START LOAN TOKEN BASE */
 	function initialPrice() external view returns (uint256);
