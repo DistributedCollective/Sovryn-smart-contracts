@@ -302,7 +302,7 @@ def createProposalTransferFromVault():
     signature = ["transferTokens(address,address,uint256)"]
     data = governorVaultAdmin.transferTokens.encode_input(multisig, SOVtoken.address, vaultAdminAmount)
     data = ["0x" + data[10:]]
-    description = "SIP-00: Details: , sha256: "
+    description = "SIP-0029: Transfer of SOV Pursuant to SIP-0015 Details: https://github.com/DistributedCollective/SIPS/blob/ce171ed4/SIP-0029.md, sha256: 6d0c15c9931ba8687f6efcf78ff92bd80143b5d2c837a910af95c422984812be"
 
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
