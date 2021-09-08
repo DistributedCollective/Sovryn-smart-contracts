@@ -23,7 +23,7 @@ def main():
 
     # createProposalSIP0024()
 
-    createProposalTransfersFromFundsAndVault()
+    # createProposalTransfersFromFundsAndVault()
     createProposalTransferFromVault()
 
     balanceAfter = acct.balance()
@@ -289,8 +289,7 @@ def createProposalTransfersFromFundsAndVault():
 
 def createProposalTransferFromVault():
 
-    # TODO: TDB
-    vaultAdminAmount = 0
+    vaultAdminAmount = 1050000 * 10**18
 
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
     governorVaultAdmin = Contract.from_abi("GovernorVault", address=contracts['GovernorVaultAdmin'], abi=GovernorVault.abi, owner=acct)
