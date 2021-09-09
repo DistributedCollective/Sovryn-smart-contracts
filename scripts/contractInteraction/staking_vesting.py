@@ -123,4 +123,4 @@ def upgradeStakingRewards():
 
     # Register logic in Proxy
     data = stakingRewardsProxy.setImplementation.encode_input(stakingRewards.address)
-    sendWithMultisig(conf.contracts['multisig'], conf.contracts['StakingRewards'], data, conf.acct)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['StakingRewardsProxy'], data, conf.acct)

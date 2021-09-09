@@ -41,7 +41,7 @@ def confirmWithMS(txId):
     multisig = Contract.from_abi("MultiSig", address = conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     multisig.confirmTransaction(txId)
 
-def confirmMultipleTxsWithMS(txIdFrom, txIdTo)
+def confirmMultipleTxsWithMS(txIdFrom, txIdTo):
     for i in range(txIdFrom, txIdTo + 1): # the right boundary processed to the value-1, so adding 1
         confirmWithMS(i)
 
