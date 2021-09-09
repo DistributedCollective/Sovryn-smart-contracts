@@ -545,7 +545,7 @@ contract("Vesting", (accounts) => {
 
 			//time travel
 			await increaseTime(3 * WEEK);
-			
+
 			await staking.addContractCodeHash(vesting.address);
 			//withdraw
 			let tx = await vesting.withdrawTokens(root);
