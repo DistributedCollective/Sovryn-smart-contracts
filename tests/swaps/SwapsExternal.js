@@ -86,6 +86,7 @@ contract("SwapsExternal", (accounts) => {
 			swaps.address // swapsImpl
 		);
 		await sovryn.setFeesController(lender);
+		await sovryn.setSwapExternalFeePercent(wei("10", "ether"));
 
 		loanTokenLogicStandard = await LoanTokenLogicStandard.new();
 		loanToken = await LoanToken.new(lender, loanTokenLogicStandard.address, sovryn.address, testWrbtc.address);
@@ -260,8 +261,15 @@ contract("SwapsExternal", (accounts) => {
 				destAmount: fields.destTokenAmountReceived.toString(),
 			});
 
+			expectEvent(tx, "PayTradingFee", {
+				amount: new BN(wei("1", "ether"))
+					.mul(new BN(wei("10", "ether")))
+					.div(new BN(wei("100", "ether")))
+					.toString(),
+			});
+
 			let destTokenAmount = await sovryn.getSwapExpectedReturn(underlyingToken.address, testWrbtc.address, wei("1", "ether"));
-			const trading_fee_percent = await sovryn.tradingFeePercent();
+			const trading_fee_percent = await sovryn.getSwapExternalFeePercent();
 			const trading_fee = destTokenAmount.mul(trading_fee_percent).div(hunEth);
 			let desTokenAmountAfterFee = destTokenAmount - trading_fee;
 			assert.equal(desTokenAmountAfterFee, fields.destTokenAmountReceived.toString());
@@ -294,7 +302,7 @@ contract("SwapsExternal", (accounts) => {
 			);
 
 			let destTokenAmount = await sovryn.getSwapExpectedReturn(underlyingToken.address, testWrbtc.address, wei("1", "ether"));
-			const trading_fee_percent = await sovryn.tradingFeePercent();
+			const trading_fee_percent = await sovryn.getSwapExternalFeePercent();
 			const trading_fee = destTokenAmount.mul(trading_fee_percent).div(hunEth);
 			await underlyingToken.transfer(sovryn.address, wei("1", "ether"));
 
@@ -387,6 +395,11 @@ contract("SwapsExternal", (accounts) => {
 				),
 				"sourceTokenAmount mismatch"
 			);
+		});
+
+		// Should fail to change swap external fee percent by invalid value (more than 100%)
+		it("Test set swapExternalFeePercent with invalid value", async () => {
+			await expectRevert(sovryn.setSwapExternalFeePercent(wei("101", "ether")), "value too high");
 		});
 	});
 });
