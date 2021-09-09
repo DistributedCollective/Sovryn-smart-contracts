@@ -61,6 +61,8 @@ contract ISovrynBrownie is
 
 	function setBorrowingFeePercent(uint256 newValue) external;
 
+	function setSwapExternalFeePercent(uint256 newValue) external;
+
 	function setAffiliateFeePercent(uint256 newValue) external;
 
 	function setAffiliateTradingTokenFeePercent(uint256 newValue) external;
@@ -383,6 +385,8 @@ contract ISovrynBrownie is
 
 	function getAffiliatesTokenRewardsValueInRbtc(address referrer) external view returns (uint256 rbtcTotalAmount);
 
+	function getSwapExternalFeePercent() external view returns (uint256 swapExternalFeePercent);
+
 	function swapExternal(
 		address sourceToken,
 		address destToken,
@@ -406,4 +410,8 @@ contract ISovrynBrownie is
 		uint256 sourceTokenAmount,
 		uint256 minReturn
 	) external view;
+
+	function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external;
+
+	function getTradingRebateRewardsBasisPoint() external view returns (uint256);
 }
