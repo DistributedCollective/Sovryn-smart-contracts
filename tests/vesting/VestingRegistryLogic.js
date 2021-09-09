@@ -51,16 +51,7 @@ contract("VestingRegistryLogic", (accounts) => {
 		staking = await StakingProxy.new(SOV.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
-
-		//Staking Reward Program is deployed
-		let stakingRewardsLogic = await StakingRewards.new();
-		stakingRewards = await StakingRewardsProxy.new();
-		await stakingRewards.setImplementation(stakingRewardsLogic.address);
-		stakingRewards = await StakingRewards.at(stakingRewards.address);
-		await staking.setStakingRewards(stakingRewards.address);
-		//Initialize
-		await stakingRewards.initialize(SOV.address, staking.address); //Test - 24/08/2021
-		await stakingRewards.setStakingAddress(staking.address);
+		await staking.setStakingRewards(constants.ZERO_ADDRESS);
 
 		feeSharingProxy = await FeeSharingProxy.new(ZERO_ADDRESS, staking.address);
 
@@ -71,6 +62,7 @@ contract("VestingRegistryLogic", (accounts) => {
 		vesting = await VestingRegistryProxy.new();
 		await vesting.setImplementation(vestingRegistryLogic.address);
 		vesting = await VestingRegistryLogic.at(vesting.address);
+		await staking.setVestingRegistry(vesting.address);
 		vestingFactory.transferOwnership(vesting.address);
 
 		lockedSOV = await LockedSOV.new(SOV.address, vesting.address, cliff, duration, [root]);

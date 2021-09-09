@@ -12,6 +12,9 @@ const StakingProxy = artifacts.require("StakingProxy");
 //Staking Rewards
 const StakingRewards = artifacts.require("StakingRewards");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
+//Upgradable Vesting Registry
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 const TestToken = artifacts.require("TestToken");
 
 const Protocol = artifacts.require("sovrynProtocol");
@@ -50,6 +53,14 @@ contract("GovernanceIntegration", (accounts) => {
 		staking = await StakingProxy.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
+
+		//Upgradable Vesting Registry
+		vestingRegistryLogic = await VestingRegistryLogic.new();
+		vesting = await VestingRegistryProxy.new();
+		await vesting.setImplementation(vestingRegistryLogic.address);
+		vesting = await VestingRegistryLogic.at(vesting.address);
+
+		await staking.setVestingRegistry(vesting.address);
 
 		//Staking Reward Program is deployed
 		let stakingRewardsLogic = await StakingRewards.new();

@@ -422,6 +422,44 @@ contract("Staking", (accounts) => {
 	// 	});
 	// });
 
+	describe("addContractCodeHash", () => {
+		it("adds hash", async () => {
+			let tx = await staking.addContractCodeHash(vestingLogic1.address);
+			let codeHash = await staking.getCodeHash(vestingLogic1.address);
+
+			expectEvent(tx, "ContractCodeHashAdded", {
+				hash: codeHash,
+			});
+
+			let isVestingContract = await staking.isVestingContract(vestingLogic2.address);
+			expect(isVestingContract).equal(true);
+			expect(vestingLogic1.address).not.equal(vestingLogic2.address);
+		});
+
+		it("fails sender isn't an owner", async () => {
+			await expectRevert(staking.addContractCodeHash(vestingLogic2.address, { from: a1 }), "unauthorized");
+		});
+	});
+
+	describe("removeContractCodeHash", () => {
+		it("remove hash", async () => {
+			await staking.addContractCodeHash(vestingLogic1.address);
+			let tx = await staking.removeContractCodeHash(vestingLogic1.address);
+			let codeHash = await staking.getCodeHash(vestingLogic1.address);
+
+			expectEvent(tx, "ContractCodeHashRemoved", {
+				hash: codeHash,
+			});
+
+			let isVestingContract = await staking.isVestingContract(vestingLogic2.address);
+			expect(isVestingContract).equal(false);
+		});
+
+		it("fails sender isn't an owner", async () => {
+			await expectRevert(staking.removeContractCodeHash(vestingLogic2.address, { from: a1 }), "unauthorized");
+		});
+	});
+
 	function getAmountWithWeight(amount) {
 		return new BN(MAX_VOTING_WEIGHT.toNumber() + 1).mul(new BN(amount));
 	}

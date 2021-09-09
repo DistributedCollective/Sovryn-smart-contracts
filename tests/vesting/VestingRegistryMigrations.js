@@ -5,9 +5,6 @@ const { mineBlock } = require("../Utils/Ethereum");
 
 const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
-//Staking Rewards
-const StakingRewards = artifacts.require("StakingRewards");
-const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
 const SOV_ABI = artifacts.require("SOV");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
@@ -55,16 +52,6 @@ contract("VestingRegistryMigrations", (accounts) => {
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 
-		//Staking Reward Program is deployed
-		let stakingRewardsLogic = await StakingRewards.new();
-		stakingRewards = await StakingRewardsProxy.new();
-		await stakingRewards.setImplementation(stakingRewardsLogic.address);
-		stakingRewards = await StakingRewards.at(stakingRewards.address);
-		await staking.setStakingRewards(stakingRewards.address);
-		//Initialize
-		await stakingRewards.initialize(SOV.address, staking.address); //Test - 24/08/2021
-		await stakingRewards.setStakingAddress(staking.address);
-
 		feeSharingProxy = await FeeSharingProxy.new(ZERO_ADDRESS, staking.address);
 
 		vestingLogic = await VestingLogic.new();
@@ -74,6 +61,7 @@ contract("VestingRegistryMigrations", (accounts) => {
 		vesting = await VestingRegistryProxy.new();
 		await vesting.setImplementation(vestingRegistryLogic.address);
 		vesting = await VestingRegistryLogic.at(vesting.address);
+		await staking.setVestingRegistry(vesting.address);
 
 		lockedSOV = await LockedSOV.new(SOV.address, vesting.address, cliff, duration, [root]);
 		await vesting.addAdmin(lockedSOV.address);

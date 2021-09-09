@@ -15,17 +15,11 @@ const {
 
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
-//Staking Rewards
-const StakingRewards = artifacts.require("StakingRewards");
-const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
 const SOV = artifacts.require("SOV");
 const TestWrbtc = artifacts.require("TestWrbtc");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogicMockup");
 const Vesting = artifacts.require("TeamVesting");
-//Upgradable Vesting Registry
-const VestingRegistryLogic = artifacts.require("VestingRegistryLogicMockup");
-const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 const WEEK = new BN(7 * 24 * 60 * 60);
@@ -58,22 +52,8 @@ contract("Vesting", (accounts) => {
 		staking = await StakingProxy.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
-
-		//Staking Reward Program is deployed
-		let stakingRewardsLogic = await StakingRewards.new();
-		stakingRewards = await StakingRewardsProxy.new();
-		await stakingRewards.setImplementation(stakingRewardsLogic.address);
-		stakingRewards = await StakingRewards.at(stakingRewards.address);
-		await staking.setStakingRewards(stakingRewards.address);
-		//Initialize
-		await stakingRewards.initialize(token.address, staking.address); //Test - 24/08/2021
-		await stakingRewards.setStakingAddress(staking.address);
-		//Upgradable Vesting Registry
-		vestingRegistryLogic = await VestingRegistryLogic.new();
-		vestingReg = await VestingRegistryProxy.new();
-		await vestingReg.setImplementation(vestingRegistryLogic.address);
-		vestingReg = await VestingRegistryLogic.at(vestingReg.address);
-		await staking.setVestingRegistry(vestingReg.address);
+		await staking.setVestingRegistry(constants.ZERO_ADDRESS);
+		await staking.setStakingRewards(constants.ZERO_ADDRESS);
 
 		await token.transfer(a2, "1000");
 		await token.approve(staking.address, "1000", { from: a2 });
@@ -199,6 +179,7 @@ contract("Vesting", (accounts) => {
 				expect(delegatee).equal(a2);
 			}
 
+			await staking.addContractCodeHash(vesting.address);
 			//delegate
 			let tx = await vesting.delegate(a1, { from: a2 });
 
@@ -238,6 +219,7 @@ contract("Vesting", (accounts) => {
 				expect(delegatee).equal(a2);
 			}
 
+			await staking.addContractCodeHash(vesting.address);
 			//delegate
 			let tx = await vesting.delegate(a1, { from: a2 });
 
@@ -563,7 +545,8 @@ contract("Vesting", (accounts) => {
 
 			//time travel
 			await increaseTime(3 * WEEK);
-
+			
+			await staking.addContractCodeHash(vesting.address);
 			//withdraw
 			let tx = await vesting.withdrawTokens(root);
 

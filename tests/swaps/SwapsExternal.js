@@ -23,9 +23,6 @@ const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 
 const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
-//Staking Rewards
-const StakingRewards = artifacts.require("StakingRewards");
-const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
 
 const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
@@ -100,16 +97,8 @@ contract("SwapsExternal", (accounts) => {
 		staking = await StakingProxy.new(underlyingToken.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
-
-		//Staking Reward Program is deployed
-		let stakingRewardsLogic = await StakingRewards.new();
-		stakingRewards = await StakingRewardsProxy.new();
-		await stakingRewards.setImplementation(stakingRewardsLogic.address);
-		stakingRewards = await StakingRewards.at(stakingRewards.address);
-		await staking.setStakingRewards(stakingRewards.address);
-		//Initialize
-		await stakingRewards.initialize(underlyingToken.address, staking.address); //Test - 24/08/2021
-		await stakingRewards.setStakingAddress(staking.address);
+		await staking.setVestingRegistry(constants.ZERO_ADDRESS);
+		await staking.setStakingRewards(constants.ZERO_ADDRESS);
 
 		//FeeSharingProxy
 		feeSharingLogic = await FeeSharingLogic.new();

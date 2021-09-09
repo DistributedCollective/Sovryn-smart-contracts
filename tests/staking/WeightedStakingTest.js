@@ -209,7 +209,7 @@ contract("WeightedStaking", (accounts) => {
 			let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
 			await expectRevert(
 				staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS),
-				"Staking::getPriorTotalStakesForDate: not yet determined"
+				"not yet determined"
 			);
 		});
 	});
@@ -244,7 +244,7 @@ contract("WeightedStaking", (accounts) => {
 			let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
 			await expectRevert(
 				staking.getPriorVotes(a3, result.receipt.blockNumber, kickoffTS),
-				"Staking::getPriorStakeByDateForDelegatee: not yet determined"
+				"not determined yet"
 			);
 		});
 
@@ -288,7 +288,7 @@ contract("WeightedStaking", (accounts) => {
 			let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
 			await expectRevert(
 				staking.getPriorWeightedStake(a3, result.receipt.blockNumber, kickoffTS),
-				"Staking::getPriorUserStakeAndDate: not yet determined"
+				"not determined"
 			);
 		});
 	});
@@ -361,6 +361,8 @@ async function createVestingContractWithSingleDate(cliff, amount, token, staking
 	vestingLogic = await VestingLogic.new();
 	let vestingInstance = await Vesting.new(vestingLogic.address, token.address, staking.address, tokenOwner, cliff, cliff, tokenOwner);
 	vestingInstance = await VestingLogic.at(vestingInstance.address);
+	//important, so it's recognized as vesting contract
+	await staking.addContractCodeHash(vestingInstance.address);
 
 	await token.approve(vestingInstance.address, amount);
 	let result = await vestingInstance.stakeTokens(amount);

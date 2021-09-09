@@ -1045,6 +1045,8 @@ contract("FeeSharingProxy:", (accounts) => {
 			feeSharingProxy.address
 		);
 		vestingInstance = await VestingLogic.at(vestingInstance.address);
+		//important, so it's recognized as vesting contract
+		await staking.addContractCodeHash(vestingInstance.address);
 
 		await SOVToken.approve(vestingInstance.address, amount);
 		let result = await vestingInstance.stakeTokens(amount);
