@@ -204,6 +204,9 @@ contract State is Objects, ReentrancyGuard, Ownable {
 	mapping(address => mapping(address => uint256)) public specialRebates; // Special rate rebates for spesific pair -- if not set, then use the default one
 	bool public pause; //Flag to pause all protocol modules
 
+	/// @dev Defines the portion of the trading rebate rewards (SOV) which is to be paid out in a liquid form in basis points. The rest is vested. The max value is 9999 (means 99.99% liquid, 0.01% vested)
+	uint256 internal tradingRebateRewardsBasisPoint;
+
 	/**
 	 * @notice Add signature and target to storage.
 	 * @dev Protocol is a proxy and requires a way to add every

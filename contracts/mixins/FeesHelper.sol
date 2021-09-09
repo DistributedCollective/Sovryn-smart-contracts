@@ -224,14 +224,17 @@ contract FeesHelper is State, FeesEvents {
 		if (rewardAmount != 0) {
 			IERC20(sovTokenAddress).approve(lockedSOVAddress, rewardAmount);
 
-			(bool success, ) = lockedSOVAddress.call(abi.encodeWithSignature("depositSOV(address,uint256)", user, rewardAmount));
+			(bool success, ) =
+				lockedSOVAddress.call(
+					abi.encodeWithSignature("deposit(address,uint256,uint256)", user, rewardAmount, tradingRebateRewardsBasisPoint)
+				);
 
 			if (success) {
 				protocolTokenPaid = protocolTokenPaid.add(rewardAmount);
 
-				emit EarnReward(user, sovTokenAddress, loanId, _feeRebatePercent, rewardAmount);
+				emit EarnReward(user, sovTokenAddress, loanId, _feeRebatePercent, rewardAmount, tradingRebateRewardsBasisPoint);
 			} else {
-				emit EarnRewardFail(user, sovTokenAddress, loanId, _feeRebatePercent, rewardAmount);
+				emit EarnRewardFail(user, sovTokenAddress, loanId, _feeRebatePercent, rewardAmount, tradingRebateRewardsBasisPoint);
 			}
 		}
 	}
