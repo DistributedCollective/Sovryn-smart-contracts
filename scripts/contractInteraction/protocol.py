@@ -7,6 +7,10 @@ from scripts.utils import *
 import scripts.contractInteraction.config as conf
 
 
+def isProtocolPaused():
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    print("isProtocolPaused: ", sovryn.isProtocolPaused())
+    
 def readLendingFee():
     sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     lfp = sovryn.lendingFeePercent()
@@ -319,14 +323,18 @@ def upgradeStaking():
     print('Deploying account:', conf.acct.address)
     print("Upgrading staking")
 
-    # Deploy the staking logic contracts
-    stakingLogic = conf.acct.deploy(Staking)
-    print("New staking logic address:", stakingLogic.address)
-    
-    # Get the proxy contract instance
-    #stakingProxy = Contract.from_abi("StakingProxy", address=conf.contracts['Staking'], abi=StakingProxy.abi, owner=conf.acct)
-    stakingProxy = Contract.from_abi("StakingProxy", address=conf.contracts['Staking'], abi=StakingProxy.abi, owner=conf.acct)
+def pauseProtocolModules():
+    print("Pause Protocol Modules")
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.togglePaused.encode_input(True)
+    print(data)
 
-    # Register logic in Proxy
-    data = stakingProxy.setImplementation.encode_input(stakingLogic.address)
-    sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+
+def unpauseProtocolModules():
+    print("Unpause Protocol Modules")
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.togglePaused.encode_input(False)
+    print(data)
+
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
