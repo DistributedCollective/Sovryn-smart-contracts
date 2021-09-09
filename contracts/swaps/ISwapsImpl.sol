@@ -14,7 +14,7 @@ interface ISwapsImpl {
 		uint256 minSourceTokenAmount,
 		uint256 maxSourceTokenAmount,
 		uint256 requiredDestTokenAmount
-	) external returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
+	) external payable returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
 
 	function internalExpectedRate(
 		address sourceTokenAddress,

@@ -29,6 +29,8 @@ const ProtocolSettingsMockup = artifacts.require("ProtocolSettingsMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
+const { decodeLogs } = require("../Utils/initializer.js");
+const { etherGasCost } = require("../Utils/Ethereum.js");
 
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 const { ZERO_ADDRESS } = constants;
@@ -324,6 +326,74 @@ contract("SwapsExternal", (accounts) => {
 			await expectRevert(
 				sovryn.checkPriceDivergence(underlyingToken.address, testWrbtc.address, wei("1", "ether"), wei("2", "ether")),
 				"destTokenAmountReceived too low"
+			);
+		});
+
+		it("Swap external using RBTC", async () => {
+			const swapper = accounts[2];
+			const underlyingBalancePrev = await underlyingToken.balanceOf(swapper);
+			const rbtcBalancePrev = new BN(await web3.eth.getBalance(swapper));
+			const assetBalance = await loanToken.assetBalanceOf(swapper);
+			const rbtcValueBeingSent = 1e14;
+			await underlyingToken.approve(sovryn.address, assetBalance.add(new BN(wei("10", "ether"))).toString());
+
+			const tx = await sovryn.swapExternal(
+				testWrbtc.address, /// source token must be wrbtc
+				underlyingToken.address, /// dest token
+				swapper, /// receiver
+				swapper, /// return to sender address
+				rbtcValueBeingSent, /// sourceTokenAmount
+				0, /// requiredDestTokenAmount
+				0, /// minReturn (slippage)
+				"0x",
+				{ value: rbtcValueBeingSent, from: swapper }
+			);
+
+			const underlyingBalanceAfter = await underlyingToken.balanceOf(swapper);
+			const rbtcBalanceAfter = new BN(await web3.eth.getBalance(swapper));
+
+			let event_name = "ExternalSwap";
+			let decode = decodeLogs(tx.receipt.rawLogs, SwapsExternal, event_name);
+			if (!decode.length) {
+				throw "Event ExternalSwap is not fired properly";
+			}
+
+			const user = decode[0].args["user"];
+			const sourceToken = decode[0].args["sourceToken"];
+			const destToken = decode[0].args["destToken"];
+			const sourceAmount = decode[0].args["sourceAmount"];
+			const destAmount = decode[0].args["destAmount"];
+			const txFee = new BN((await etherGasCost(tx.receipt)).toString());
+
+			const finalUnderlyingBalance = underlyingBalanceAfter.sub(underlyingBalancePrev);
+			const finalRbtcBalance = rbtcBalancePrev.sub(rbtcBalanceAfter);
+
+			expect(user).to.be.equal(swapper);
+			expect(sourceToken).to.be.equal(testWrbtc.address);
+			expect(destToken).to.be.equal(underlyingToken.address);
+			expect(destAmount.toString()).to.be.equal(finalUnderlyingBalance.toString());
+			expect(sourceAmount.toString()).to.be.equal(finalRbtcBalance.sub(txFee).toString());
+			expect(sourceAmount.toString()).to.be.equal(rbtcValueBeingSent.toString());
+		});
+
+		it("Swap external using RBTC should failed if source token amount is not matched with rbtc being sent", async () => {
+			const assetBalance = await loanToken.assetBalanceOf(lender);
+			const rbtcValueBeingSent = 1e14;
+			await underlyingToken.approve(sovryn.address, assetBalance.add(new BN(wei("10", "ether"))).toString());
+
+			await expectRevert(
+				sovryn.swapExternal(
+					constants.ZERO_ADDRESS, /// source token must be wrbtc
+					underlyingToken.address, /// dest token
+					lender, /// receiver
+					lender, /// return to sender address
+					rbtcValueBeingSent, /// sourceTokenAmount
+					0, /// requiredDestTokenAmount
+					0, /// minReturn (slippage)
+					"0x",
+					{ value: 2e14 }
+				),
+				"sourceTokenAmount mismatch"
 			);
 		});
 
