@@ -10,6 +10,7 @@ import "../core/State.sol";
 import "../events/ProtocolSettingsEvents.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../mixins/ProtocolTokenUser.sol";
+import "../modules/interfaces/ProtocolSwapExternalInterface.sol";
 import "../mixins/ModuleCommonFunctionalities.sol";
 
 /**

@@ -5,12 +5,6 @@ const { address, minerStart, minerStop, unlockedAccount, mineBlock, etherMantiss
 
 const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
-//Upgradable Vesting Registry
-const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
-const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
-//Staking Rewards
-const StakingRewards = artifacts.require("StakingRewards");
-const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
 const TestToken = artifacts.require("TestToken");
 const VestingLogic = artifacts.require("VestingLogicMockup");
 const Vesting = artifacts.require("TeamVesting");
@@ -42,24 +36,8 @@ contract("WeightedStaking", (accounts) => {
 		staking = await StakingProxy.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
-
-		//Upgradable Vesting Registry
-		vestingRegistryLogic = await VestingRegistryLogic.new();
-		vesting = await VestingRegistryProxy.new();
-		await vesting.setImplementation(vestingRegistryLogic.address);
-		vesting = await VestingRegistryLogic.at(vesting.address);
-
-		await staking.setVestingRegistry(vesting.address);
-
-		//Staking Reward Program is deployed
-		let stakingRewardsLogic = await StakingRewards.new();
-		stakingRewards = await StakingRewardsProxy.new();
-		await stakingRewards.setImplementation(stakingRewardsLogic.address);
-		stakingRewards = await StakingRewards.at(stakingRewards.address);
-		await staking.setStakingRewards(stakingRewards.address);
-		//Initialize
-		await stakingRewards.initialize(token.address, staking.address); //Test - 24/08/2021
-		await stakingRewards.setStakingAddress(staking.address);
+		await staking.setVestingRegistry(constants.ZERO_ADDRESS);
+		await staking.setStakingRewards(constants.ZERO_ADDRESS);
 
 		await token.transfer(a2, "1000");
 		await token.approve(staking.address, "1000", { from: a2 });
