@@ -50,6 +50,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		_setTarget(this.setLendingFeePercent.selector, target);
 		_setTarget(this.setTradingFeePercent.selector, target);
 		_setTarget(this.setBorrowingFeePercent.selector, target);
+		_setTarget(this.setSwapExternalFeePercent.selector, target);
 		_setTarget(this.setAffiliateFeePercent.selector, target);
 		_setTarget(this.setAffiliateTradingTokenFeePercent.selector, target);
 		_setTarget(this.setLiquidationIncentivePercent.selector, target);
@@ -82,6 +83,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		_setTarget(this.getFeeRebatePercent.selector, target);
 		_setTarget(this.togglePaused.selector, target);
 		_setTarget(this.isProtocolPaused.selector, target);
+		_setTarget(this.getSwapExternalFeePercent.selector, target);
 		_setTarget(this.setTradingRebateRewardsBasisPoint.selector, target);
 		_setTarget(this.getTradingRebateRewardsBasisPoint.selector, target);
 		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "ProtocolSettings");
@@ -248,6 +250,19 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		borrowingFeePercent = newValue;
 
 		emit SetBorrowingFeePercent(msg.sender, oldValue, newValue);
+	}
+
+	/**
+	 * @notice Set the value of swapExtrernalFeePercent storage variable
+	 *
+	 * @param newValue the new value for swapExternalFeePercent
+	 */
+	function setSwapExternalFeePercent(uint256 newValue) external onlyOwner whenNotPaused {
+		require(newValue <= 10**20, "value too high");
+		uint256 oldValue = swapExtrernalFeePercent;
+		swapExtrernalFeePercent = newValue;
+
+		emit SetSwapExternalFeePercent(msg.sender, oldValue, newValue);
 	}
 
 	/**
@@ -666,6 +681,10 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 
 	function isProtocolPaused() external view returns (bool) {
 		return pause;
+	}
+
+	function getSwapExternalFeePercent() external view returns (uint256) {
+		return swapExtrernalFeePercent;
 	}
 
 	/**

@@ -29,6 +29,8 @@ contract ProtocolSettingsEvents is ModulesCommonEvents {
 
 	event SetBorrowingFeePercent(address indexed sender, uint256 oldValue, uint256 newValue);
 
+	event SetSwapExternalFeePercent(address indexed sender, uint256 oldValue, uint256 newValue);
+
 	event SetAffiliateFeePercent(address indexed sender, uint256 oldValue, uint256 newValue);
 
 	event SetAffiliateTradingTokenFeePercent(address indexed sender, uint256 oldValue, uint256 newValue);
