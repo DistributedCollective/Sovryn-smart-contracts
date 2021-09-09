@@ -408,4 +408,8 @@ contract ISovryn is
 	function getAffiliatesTokenRewardsValueInRbtc(address referrer) external view returns (uint256 rbtcTotalAmount);
 
 	function getSwapExternalFeePercent() external view returns (uint256 swapExternalFeePercent);
+
+	function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external;
+
+	function getTradingRebateRewardsBasisPoint() external view returns (uint256);
 }

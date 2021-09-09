@@ -410,4 +410,8 @@ contract ISovrynBrownie is
 		uint256 sourceTokenAmount,
 		uint256 minReturn
 	) external view;
+
+	function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external;
+
+	function getTradingRebateRewardsBasisPoint() external view returns (uint256);
 }

@@ -12,7 +12,7 @@ import "../openzeppelin/SafeERC20.sol";
 import "../events/AffiliatesEvents.sol";
 import "../feeds/IPriceFeeds.sol";
 import "../locked/ILockedSOV.sol";
-import "./ModuleCommonFunctionalities.sol";
+import "../mixins/ModuleCommonFunctionalities.sol";
 
 /**
  * @title Affiliates contract.
