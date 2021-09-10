@@ -49,7 +49,7 @@ def readConversionFee(converterAddress):
 def readPriceFromOracle(oracleAddress):
     oracle = Contract.from_abi("Oracle", address=oracleAddress, abi=PriceFeedsMoC.abi, owner=conf.acct)
     price = oracle.latestAnswer()
-    print('rate is ', price)
+    print('rate is ', price/1e18)
 
 def readTargetWeights(converter, reserve):
     abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV2Converter.json')
@@ -105,16 +105,22 @@ def checkRates():
 
 def readPriceFeedFor(tokenAddress):
     feeds = Contract.from_abi("PriceFeeds", address= conf.contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = conf.acct)
-    print(feeds.pricesFeeds(tokenAddress))
+    address = feeds.pricesFeeds(tokenAddress)
+    print("price feed: "+address);
+    return(address)
 
-def deployOracleV1Pool():
-    oraclePoolAsset = conf.contracts["OracleV1Pool-WRBTC/SOV"] #WRBTC/SOV -- for SOV asset
-    oracleV1PoolPriceFeed = conf.acct.deploy(PriceFeedV1PoolOracle, oraclePoolAsset, conf.contracts['WRBTC'], conf.contracts['DoC'])
+def deployOracleV1Pool(tokenAddress, oracleAddress):
+    oracleV1PoolPriceFeed = conf.acct.deploy(PriceFeedV1PoolOracle, oracleAddress, conf.contracts['WRBTC'], conf.contracts['DoC'], tokenAddress)
     print("new oracle v1 pool price feed: ", oracleV1PoolPriceFeed.address)
 
     feeds = Contract.from_abi("PriceFeeds", address= conf.contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = conf.acct)
-    data = feeds.setPriceFeed.encode_input([conf.contracts['SOV']], [oracleV1PoolPriceFeed.address])
+    data = feeds.setPriceFeed.encode_input([tokenAddress], [oracleV1PoolPriceFeed.address])
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     tx = multisig.submitTransaction(feeds.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print("txid: ",txId)
+
+def readv1PoolOracleAddress(tokenAddress):
+    feedAddress = readPriceFeedFor(tokenAddress)
+    oracle = Contract.from_abi("PriceFeedV1PoolOracle", address= feedAddress, abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
+    print("v1 pool oracle: ",oracle.v1PoolOracleAddress())
