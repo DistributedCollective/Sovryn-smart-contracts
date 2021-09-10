@@ -43,11 +43,13 @@ def main():
     #getDepositAmountForBorrow(conf.contracts['iXUSD'], 1e18, 7*24*60*60, conf.contracts['SOV'])
     #readv1PoolOracleAddress(conf.contracts['SOV'])
 
-    readPrice(conf.contracts['SOV'], conf.contracts['XUSD'])
-    readPrice(conf.contracts['XUSD'],conf.contracts['SOV'])
-    readPrice(conf.contracts['WRBTC'],conf.contracts['SOV'])
+    #readPrice(conf.contracts['SOV'], conf.contracts['XUSD'])
+    #readPrice(conf.contracts['XUSD'],conf.contracts['SOV'])
+    #readPrice(conf.contracts['WRBTC'],conf.contracts['SOV'])
     #readPriceFromOracle(conf.contracts['WRBTCtoSOVOracle'])
     #readPriceFromOracle(conf.contracts['WRBTCtoXUSDOracle'])
     #readPriceFromOracle(conf.contracts['SOVPoolOracle'])
     #readPriceFromOracle('0x28A05da0939853F7Bc9D5A17C9550D2769eE93D3')
     #deployOracleV1Pool(conf.contracts['SOV'], conf.contracts["WRBTCtoSOVOracle"])
+
+    confirmWithMS(367)

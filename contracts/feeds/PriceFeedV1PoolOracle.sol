@@ -43,9 +43,9 @@ contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
 		address _docAddress,
 		address _baseCurrency
 	) public {
-		setV1PoolOracleAddress(_v1PoolOracleAddress);
 		setRBTCAddress(_wRBTCAddress);
 		setDOCAddress(_docAddress);
+		setV1PoolOracleAddress(_v1PoolOracleAddress);
 		setBaseCurrency(_baseCurrency);
 	}
 
@@ -55,13 +55,6 @@ contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
 	 * */
 	function latestAnswer() external view returns (uint256) {
 		IV1PoolOracle _v1PoolOracle = IV1PoolOracle(v1PoolOracleAddress);
-		// Need to check, if the requested asset is BTC
-		address liquidityPool = _v1PoolOracle.liquidityPool();
-		require(
-			ILiquidityPoolV1Converter(liquidityPool).reserveTokens(0) == wRBTCAddress ||
-				ILiquidityPoolV1Converter(liquidityPool).reserveTokens(1) == wRBTCAddress,
-			"wrBTC price feed cannot use the oracle v1 pool"
-		);
 
 		uint256 _price = _v1PoolOracle.latestPrice(baseCurrency);
 
@@ -89,6 +82,13 @@ contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
 	 */
 	function setV1PoolOracleAddress(address _v1PoolOracleAddress) public onlyOwner {
 		require(Address.isContract(_v1PoolOracleAddress), "_v1PoolOracleAddress not a contract");
+		IV1PoolOracle _v1PoolOracle = IV1PoolOracle(_v1PoolOracleAddress);
+		address liquidityPool = _v1PoolOracle.liquidityPool();
+		require(
+			ILiquidityPoolV1Converter(liquidityPool).reserveTokens(0) == wRBTCAddress ||
+				ILiquidityPoolV1Converter(liquidityPool).reserveTokens(1) == wRBTCAddress,
+			"one of the two reserves needs to be wrbtc"
+		);
 		v1PoolOracleAddress = _v1PoolOracleAddress;
 		emit SetV1PoolOracleAddress(v1PoolOracleAddress, msg.sender);
 	}

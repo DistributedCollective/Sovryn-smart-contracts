@@ -142,7 +142,7 @@ contract ISovryn is
 
 	function getTotalPrincipal(address lender, address loanToken) external view returns (uint256);
 
-	function minInitialMargin(bytes32 loanParamsId) external view returns (uint256) ;
+	function minInitialMargin(bytes32 loanParamsId) external view returns (uint256);
 
 	////// Loan Openings //////
 
