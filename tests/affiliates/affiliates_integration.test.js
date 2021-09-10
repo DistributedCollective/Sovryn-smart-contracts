@@ -561,8 +561,6 @@ contract("Affiliates", (accounts) => {
 		});
 	});
 
-
-
 	it("Check get estimation token value in rBTC", async () => {
 		feeds = await PriceFeeds.new(testWrbtc.address, tokenSOV.address, doc.address);
 		testToken1Precision = 18;
