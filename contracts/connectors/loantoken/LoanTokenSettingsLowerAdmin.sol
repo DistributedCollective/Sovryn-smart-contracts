@@ -189,6 +189,4 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 			sstore(slot, isPaused)
 		}
 	}
-
-	
 }

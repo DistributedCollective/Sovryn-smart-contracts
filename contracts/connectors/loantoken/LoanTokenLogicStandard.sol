@@ -264,7 +264,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			_borrowOrTrade(
 				loanId,
 				withdrawAmount,
-				ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))]),
+				ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(
+					loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))]
+				),
 				collateralTokenAddress,
 				sentAddresses,
 				sentAmounts,
@@ -809,7 +811,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			(, , uint256 newBorrowAmount) = _getInterestRateAndBorrowAmount(borrowAmount, totalAssetSupply(), initialLoanDuration);
 
 			if (newBorrowAmount <= _underlyingBalance()) {
-				if(collateralTokenAddress == address(0)) collateralTokenAddress = wrbtcTokenAddress;
+				if (collateralTokenAddress == address(0)) collateralTokenAddress = wrbtcTokenAddress;
 				bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))];
 				return
 					ProtocolLike(sovrynContractAddress)
@@ -817,7 +819,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 						loanTokenAddress,
 						collateralTokenAddress,
 						newBorrowAmount,
-						ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(loanParamsId) , /// initialMargin
+						ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(loanParamsId), /// initialMargin
 						true /// isTorqueLoan
 					)
 						.add(10); /// Some dust to compensate for rounding errors.
@@ -847,7 +849,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		address collateralTokenAddress /// address(0) means rBTC
 	) public view returns (uint256 borrowAmount) {
 		if (depositAmount != 0) {
-			if(collateralTokenAddress == address(0)) collateralTokenAddress = wrbtcTokenAddress;
+			if (collateralTokenAddress == address(0)) collateralTokenAddress = wrbtcTokenAddress;
 			bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))];
 			borrowAmount = ProtocolLike(sovrynContractAddress).getBorrowAmount(
 				loanTokenAddress,
@@ -1118,12 +1120,11 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 		bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, withdrawAmountExist)))];
 
-
 		(sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress).borrowOrTradeFromPool.value(msgValue)( /// newPrincipal, newCollateral
 			loanParamsId,
 			loanId,
 			withdrawAmountExist,
-			initialMargin, 
+			initialMargin,
 			sentAddresses,
 			sentAmounts,
 			loanDataBytes

@@ -216,7 +216,7 @@ contract LoanSettings is State, LoanSettingsEvents, ModuleCommonFunctionalities 
 		return loanParamsId;
 	}
 
-	function minInitialMargin(bytes32 loanParamsId) external view returns (uint256){
+	function minInitialMargin(bytes32 loanParamsId) external view returns (uint256) {
 		return loanParams[loanParamsId].minInitialMargin;
 	}
 }

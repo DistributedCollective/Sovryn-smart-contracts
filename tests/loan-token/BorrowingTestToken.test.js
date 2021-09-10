@@ -75,7 +75,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 				new BN(10).pow(new BN(18)).mul(new BN(50)),
 				true
 			);
-			
+
 			// compute expected values for asserts
 			const interestRate = await loanToken.nextBorrowInterestRate(withdrawAmount);
 			// principal = withdrawAmount/(1 - interestRate/1e20 * durationInSeconds /  31536000)
@@ -570,10 +570,9 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 			expect(args["interestDuration"] >= durationInSeconds - 1 && args["interestDuration"] <= durationInSeconds).to.be.true;
 			expect(new BN(args["currentMargin"])).to.be.a.bignumber.gt(new BN(99).mul(oneEth));
-
 		});
 
-		it("getDepositAmountForBorrow should consider the initial margin on the loan params", async ()=>{
+		it("getDepositAmountForBorrow should consider the initial margin on the loan params", async () => {
 			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
 			await lend_to_pool(loanToken, SUSD, owner);
 
@@ -589,11 +588,15 @@ contract("LoanTokenBorrowing", (accounts) => {
 				true
 			);
 
-			const requiredCollateralOnLoanToken = await loanToken.getDepositAmountForBorrow(withdrawAmount, durationInSeconds, RBTC.address);
+			const requiredCollateralOnLoanToken = await loanToken.getDepositAmountForBorrow(
+				withdrawAmount,
+				durationInSeconds,
+				RBTC.address
+			);
 			expect(requiredCollateralOnProtocol).to.be.bignumber.equal(requiredCollateralOnLoanToken.subn(10));
 		});
 
-		it("getBorrowAmountForDeposit should consider the initial margin on the loan params", async ()=>{
+		it("getBorrowAmountForDeposit should consider the initial margin on the loan params", async () => {
 			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
 			await lend_to_pool(loanToken, SUSD, owner);
 			// determine borrowing parameter
@@ -607,7 +610,5 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 			expect(borrowAmount).to.be.bignumber.equal(expectedBorrowAmount);
 		});
-
-
 	});
 });

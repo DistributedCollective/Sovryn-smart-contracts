@@ -123,8 +123,8 @@ contract("GovernanceIntegration", (accounts) => {
 			let tradingFeePercentNew = etherMantissa(9, 1e16).toString();
 
 			let proposalData = {
-				targets: [protocol.address, protocol.address/*, loanToken.address*/],
-				values: [0, 0/*, 0*/],
+				targets: [protocol.address, protocol.address /*, loanToken.address*/],
+				values: [0, 0 /*, 0*/],
 				signatures: [
 					"setTradingFeePercent(uint256)",
 					"setLoanPool(address[],address[])",
