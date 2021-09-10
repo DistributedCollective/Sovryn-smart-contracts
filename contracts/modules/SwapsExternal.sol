@@ -10,7 +10,7 @@ import "../core/State.sol";
 import "../mixins/VaultController.sol";
 import "../swaps/SwapsUser.sol";
 import "../swaps/ISwapsImpl.sol";
-import "./ModuleCommonFunctionalities.sol";
+import "../mixins/ModuleCommonFunctionalities.sol";
 
 /**
  * @title Swaps External contract.
@@ -114,7 +114,8 @@ contract SwapsExternal is VaultController, SwapsUser, ModuleCommonFunctionalitie
 			],
 			0, /// loanId (not tied to a specific loan)
 			false, /// bypassFee
-			swapData
+			swapData,
+			true // the flag for swapExternal (so that it will use the swapExternalFeePercent)
 		);
 
 		emit ExternalSwap(
@@ -145,6 +146,15 @@ contract SwapsExternal is VaultController, SwapsUser, ModuleCommonFunctionalitie
 		return _swapsExpectedReturn(sourceToken, destToken, sourceTokenAmount);
 	}
 
+	/**
+	 * @notice Check the slippage based on the swapExpectedReturn.
+	 *
+	 * @param sourceToken The address of the source token instance.
+	 * @param destToken The address of the destiny token instance.
+	 * @param sourceTokenAmount The amount of source tokens.
+	 * @param minReturn The amount (max slippage) that will be compared to the swapsExpectedReturn.
+	 *
+	 */
 	function checkPriceDivergence(
 		address sourceToken,
 		address destToken,

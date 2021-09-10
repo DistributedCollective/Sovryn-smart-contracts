@@ -54,6 +54,7 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
 	 *
 	 * @param sourceTokenAddress The address of the source tokens.
 	 * @param destTokenAddress The address of the destination tokens.
+	 * @param receiverAddress The address who will received the swap token results
 	 * @param returnToSenderAddress The address to return unspent tokens to (when called by the protocol, it's always the protocol contract).
 	 * @param minSourceTokenAmount The minimum amount of source tokens to swapped (only considered if requiredDestTokens == 0).
 	 * @param maxSourceTokenAmount The maximum amount of source tokens to swapped.
@@ -67,7 +68,7 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
 		uint256 minSourceTokenAmount,
 		uint256 maxSourceTokenAmount,
 		uint256 requiredDestTokenAmount
-	) public returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
+	) public payable returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
 		require(sourceTokenAddress != destTokenAddress, "source == dest");
 		require(supportedTokens[sourceTokenAddress] && supportedTokens[destTokenAddress], "invalid tokens");
 

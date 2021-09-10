@@ -57,7 +57,7 @@ module.exports = {
 	},
 	paths: {
 		sources: "./contracts",
-		tests: "./tests-js",
+		tests: "./tests",
 	},
 	mocha: {
 		timeout: 600000,

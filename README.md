@@ -55,7 +55,7 @@ npm run test
 To run tests written in JS:
 
 ```
-npm run test-js
+npm run test
 ```
 
 To check the test coverage of JS:

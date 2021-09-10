@@ -61,6 +61,8 @@ contract ISovryn is
 
 	function setBorrowingFeePercent(uint256 newValue) external;
 
+	function setSwapExternalFeePercent(uint256 newValue) external;
+
 	function setAffiliateFeePercent(uint256 newValue) external;
 
 	function setAffiliateTradingTokenFeePercent(uint256 newValue) external;
@@ -120,6 +122,8 @@ contract ISovryn is
 	function getSpecialRebates(address sourceToken, address destToken) external view returns (uint256 specialRebatesPercent);
 
 	function togglePaused(bool paused) external;
+
+	function isProtocolPaused() external view returns (bool);
 
 	////// Loan Settings //////
 
@@ -400,4 +404,12 @@ contract ISovryn is
 	function getAffiliateRewardsHeld(address referrer) external view returns (uint256);
 
 	function getAffiliateTradingTokenFeePercent() external view returns (uint256 affiliateTradingTokenFeePercent);
+
+	function getAffiliatesTokenRewardsValueInRbtc(address referrer) external view returns (uint256 rbtcTotalAmount);
+
+	function getSwapExternalFeePercent() external view returns (uint256 swapExternalFeePercent);
+
+	function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external;
+
+	function getTradingRebateRewardsBasisPoint() external view returns (uint256);
 }

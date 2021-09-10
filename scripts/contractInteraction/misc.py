@@ -19,6 +19,22 @@ def redeemFromAggregatorWithMS(aggregatorAddress, tokenAddress, amount):
     data = aggregator.redeem.encode_input(tokenAddress, amount)
     sendWithMultisig(conf.contracts['multisig'], aggregator.address, data, conf.acct)
 
+def mintAggregatedToken(aggregatorAddress, tokenAddress, amount):
+    abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
+    abi = json.load(abiFile)
+    aggregator = Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
+    token = Contract.from_abi("Token", address= tokenAddress, abi = TestToken.abi, owner=conf.acct)
+    data = token.approve(aggregatorAddress, amount)
+    tx = aggregator.mint(tokenAddress, amount)
+    tx.info()
+
+def mintAggregatedTokenWithMS(aggregatorAddress, tokenAddress, amount):
+    abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
+    abi = json.load(abiFile)
+    aggregator = Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
+    data = aggregator.mint.encode_input(tokenAddress, amount)
+    sendWithMultisig(conf.contracts['multisig'], aggregator.address, data, conf.acct)
+
 
 def upgradeAggregator(multisig, newImpl):
     abiFile =  open('./scripts/contractInteraction/ABIs/AggregatorProxy.json')
@@ -73,3 +89,5 @@ def lookupCurrentPoolReserveBalances(userAddress):
     
     print('user has in SOV', userBal/poolSupply * sovBal)
     print('user has in BTC', userBal/poolSupply * wrbtcBal)
+
+ 

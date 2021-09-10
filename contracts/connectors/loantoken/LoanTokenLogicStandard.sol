@@ -264,7 +264,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			_borrowOrTrade(
 				loanId,
 				withdrawAmount,
-				2 * 10**18, /// leverageAmount (translates to 150% margin for a Torque loan).
+				ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(
+					loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))]
+				),
 				collateralTokenAddress,
 				sentAddresses,
 				sentAmounts,
@@ -304,6 +306,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @param collateralTokenSent The amount of collateral tokens provided by the user.
 	 * @param collateralTokenAddress The token address of collateral.
 	 * @param trader The account that performs this trade.
+	 * @param loanDataBytes Additional loan data (not in use for token swaps).
 	 *
 	 * @return New principal and new collateral added to trade.
 	 * */
@@ -369,11 +372,13 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			sentAmounts[1] /// depositAmount
 		);
 
+		/// @dev Converting to initialMargin
+		leverageAmount = SafeMath.div(10**38, leverageAmount);
 		return
 			_borrowOrTrade(
 				loanId,
 				0, /// withdrawAmount
-				leverageAmount,
+				leverageAmount, //initial margin
 				collateralTokenAddress,
 				sentAddresses,
 				sentAmounts,
@@ -381,6 +386,22 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			);
 	}
 
+	/**
+	 * @notice Wrapper for marginTrade invoking setAffiliatesReferrer to track
+	 *   referral trade by affiliates program.
+	 *
+	 * @param loanId The ID of the loan, 0 for a new loan.
+	 * @param leverageAmount The multiple of exposure: 2x ... 5x. The leverage with 18 decimals.
+	 * @param loanTokenSent The number of loan tokens provided by the user.
+	 * @param collateralTokenSent The amount of collateral tokens provided by the user.
+	 * @param collateralTokenAddress The token address of collateral.
+	 * @param trader The account that performs this trade.
+	 * @param minReturn Minimum position size in the collateral tokens
+	 * @param affiliateReferrer The address of the referrer from affiliates program.
+	 * @param loanDataBytes Additional loan data (not in use for token swaps).
+	 *
+	 * @return New principal and new collateral added to trade.
+	 */
 	function marginTradeAffiliate(
 		bytes32 loanId, // 0 if new loan
 		uint256 leverageAmount, // expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
@@ -388,15 +409,15 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		uint256 collateralTokenSent,
 		address collateralTokenAddress,
 		address trader,
-		uint256 minReturn, // minimum position size in the collateral tokens
-		address affiliateReferrer, // the user was brought by the affiliate (referrer)
-		bytes calldata loanDataBytes // arbitrary order data
+		uint256 minReturn, /// Minimum position size in the collateral tokens.
+		address affiliateReferrer, /// The user was brought by the affiliate (referrer).
+		bytes calldata loanDataBytes /// Arbitrary order data.
 	)
 		external
 		payable
 		returns (
 			uint256,
-			uint256 // returns new principal and new collateral added to trade
+			uint256 /// Returns new principal and new collateral added to trade.
 		)
 	{
 		if (affiliateReferrer != address(0))
@@ -790,13 +811,15 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			(, , uint256 newBorrowAmount) = _getInterestRateAndBorrowAmount(borrowAmount, totalAssetSupply(), initialLoanDuration);
 
 			if (newBorrowAmount <= _underlyingBalance()) {
+				if (collateralTokenAddress == address(0)) collateralTokenAddress = wrbtcTokenAddress;
+				bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))];
 				return
 					ProtocolLike(sovrynContractAddress)
 						.getRequiredCollateral(
 						loanTokenAddress,
-						collateralTokenAddress != address(0) ? collateralTokenAddress : wrbtcTokenAddress,
+						collateralTokenAddress,
 						newBorrowAmount,
-						50 * 10**18, /// initialMargin
+						ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(loanParamsId), /// initialMargin
 						true /// isTorqueLoan
 					)
 						.add(10); /// Some dust to compensate for rounding errors.
@@ -826,11 +849,13 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		address collateralTokenAddress /// address(0) means rBTC
 	) public view returns (uint256 borrowAmount) {
 		if (depositAmount != 0) {
+			if (collateralTokenAddress == address(0)) collateralTokenAddress = wrbtcTokenAddress;
+			bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))];
 			borrowAmount = ProtocolLike(sovrynContractAddress).getBorrowAmount(
 				loanTokenAddress,
-				collateralTokenAddress != address(0) ? collateralTokenAddress : wrbtcTokenAddress,
+				collateralTokenAddress,
 				depositAmount,
-				50 * 10**18, /// initialMargin,
+				ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(loanParamsId), /// initialMargin,
 				true /// isTorqueLoan
 			);
 
@@ -1041,8 +1066,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 *
 	 * @param loanId The ID of the loan, 0 for a new loan.
 	 * @param withdrawAmount The amount to be withdrawn (actually borrowed).
-	 * @param leverageAmount The multiple of exposure: 2x ... 5x. The leverage
-	 *   with 18 decimals.
+	 * @param initialMargin The initial margin with 18 decimals
 	 * @param collateralTokenAddress  The address of the token to be used as
 	 *   collateral. Cannot be the loan token address.
 	 * @param sentAddresses The addresses to send tokens: lender, borrower,
@@ -1057,7 +1081,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	function _borrowOrTrade(
 		bytes32 loanId,
 		uint256 withdrawAmount,
-		uint256 leverageAmount,
+		uint256 initialMargin,
 		address collateralTokenAddress,
 		address[4] memory sentAddresses,
 		uint256[5] memory sentAmounts,
@@ -1096,20 +1120,19 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 
 		bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, withdrawAmountExist)))];
 
-		/// @dev Converting to initialMargin
-		leverageAmount = SafeMath.div(10**38, leverageAmount);
 		(sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress).borrowOrTradeFromPool.value(msgValue)( /// newPrincipal, newCollateral
 			loanParamsId,
 			loanId,
 			withdrawAmountExist,
-			leverageAmount, /// initialMargin
+			initialMargin,
 			sentAddresses,
 			sentAmounts,
 			loanDataBytes
 		);
 		require(sentAmounts[1] != 0, "25");
 
-		//REFACTOR: move to a general interface: ProtocolSettingsLike?
+		/// @dev Setting not-first-trade flag to prevent binding to an affiliate existing users post factum.
+		/// @dev REFACTOR: move to a general interface: ProtocolSettingsLike?
 		ProtocolAffiliatesInterface(sovrynContractAddress).setUserNotFirstTradeFlag(sentAddresses[1]);
 
 		return (sentAmounts[1], sentAmounts[4]); // newPrincipal, newCollateral
