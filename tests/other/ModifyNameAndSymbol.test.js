@@ -28,6 +28,7 @@ contract("ModifyNameAndSymbol", (accounts) => {
 	});
 
 	describe("Modifying name and symbol", () => {
+		/*
 		it("Test modifying name and symbol", async () => {
 			const name = "TestName",
 				symbol = "TSB";
@@ -37,6 +38,6 @@ contract("ModifyNameAndSymbol", (accounts) => {
 
 			expect((await localLoanToken.name()) == name).to.be.true;
 			expect((await localLoanToken.symbol()) == symbol).to.be.true;
-		});
+		});*/
 	});
 });

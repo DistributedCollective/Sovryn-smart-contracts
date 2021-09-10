@@ -252,10 +252,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 			} else {
 				(uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(collateralToken, loanToken);
 				if (sourceToDestPrecision != 0) {
-					borrowAmount = collateral.mul(10**20).div(marginAmount).mul(sourceToDestRate).div(sourceToDestPrecision);
-					/*TODO: review
-					borrowAmount = collateralTokenAmount.mul(10**20).mul(sourceToDestRate).div(marginAmount).div(sourceToDestPrecision);
-					*/
+					borrowAmount = collateral.mul(10**20).mul(sourceToDestRate).div(marginAmount).div(sourceToDestPrecision);
 				}
 			}
 			/*
