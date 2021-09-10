@@ -5,7 +5,7 @@
 // Run: node ./scripts/getSelectors.js ./contracts functions > functionSignatures.txt
 // Run: node ./scripts/getSelectors.js ./contracts events > eventTopics.txt
 
-// Pending to fix 3 issues:
+// TODO: Pending to fix 3 issues:
 // 1.- On function signatures, interfaces should be typed as addresses.
 // 2.- On function signatures, structs should be exploded into their components, around brackets ()
 // 3.- According to the list swapExternal(address,address,address,address,uint256,uint256,bytes) has selector: 0x11058a8a
@@ -164,6 +164,7 @@ getDirectories(path, ".sol", function (err, res) {
 	if (err) {
 		console.log("Error", err);
 	} else {
+/*
 		interfaces = getAllInterfaces(res);
 
 console.log("Interfaces found: ", interfaces);
@@ -172,7 +173,7 @@ process.exit(1);
 
 console.log("Structs found: ", structs);
 process.exit(1);
-
+*/
 		contractSignatures = parseContractList(res);
 		// console.log("contractSignatures: ", contractSignatures);
 		// Loop through results and apply tabulated format to copy/past on Google Docs
