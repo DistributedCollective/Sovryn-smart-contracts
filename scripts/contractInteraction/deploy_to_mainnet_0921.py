@@ -37,8 +37,8 @@ def main():
 # 5. Affiliates margin trading
     #TODO: might need to set affiliates fees to 0 if decided to deploy with affiliates disabled
     # in this case comment out deployAfiliate() and run deployAffiliateWithZeroFeesPercent()
-    # deployAffiliateWithZeroFeesPercent()
-    deployAffiliate() 
+    deployAffiliateWithZeroFeesPercent()
+    #deployAffiliate() 
 
     '''
     will also execute:
@@ -49,6 +49,8 @@ def main():
         replaceLoanSettings()
         replaceLoanTokenLogicOnAllContracts()
     '''
+# 10. fix swaps external
+    replaceSwapsImplSovrynSwap()
 # 1. Protocol Modules Pauser
 # 2. Protocol Events
     # replaceAffiliates() - not needed as affiliates are deployed for the first time
@@ -57,7 +59,7 @@ def main():
     # replaceLoanOpenings()
     # replaceLoanSettings()
     replaceProtocolSettings()
-    replaceSwapsExternal()
+    #replaceSwapsExternal()
 
 # 3. SOV Staking Rewards SIP-0024 - aready deployed to the mainnet
 # 4. Events for backend
@@ -71,7 +73,9 @@ def main():
     LoanOpenings
     '''
 # 6. Trading Rebates
-    setDefaultRebatesPercentage(10 * 10**18) # might need to set to 0 to disable rebates till immplemented liquid
+    print('setting up trading rebates')
+    setTradingRebateRewardsBasisPoint(9000)
+    setDefaultRebatesPercentage(50 * 10**18) # might need to set to 0 to disable rebates till immplemented liquid
     # the rest redeployments below are done earlier
     # replaceLoanClosings()
     # LoanOpenings
@@ -91,11 +95,19 @@ def main():
 # 8. Release fixes
     # aren't relaited to any specific deployment scripts, just info for testing
 
-# 9. Oracle v1pool
+# 9. Oracle v1pool 
     '''
     Need to redeploy priceFeeds.sol and then re-register all of the assets. //Skippng this, not needed
     Then can use the deployOracleV1Pool() in contract_interaction.py to register asset and pointed out to oracleV1Pool
     '''
-    deployOracleV1Pool('SOV', 'WRBTCtoSOVOracle')
-    #TODO: add relevant deployment scripts for all needed tokens
+    print('deploying the v1 pool')
+    deployOracleV1Pool(conf.contracts['SOV'], conf.contracts['SOVPoolOracle'])
+
+# 11. SOV borrowing
+    print('setting up SOV borrowing')
+    setSupportedToken(conf.contracts['SOV'])
+    setupTorqueLoanParams(conf.contracts['iXUSD'], conf.contracts['XUSD'], conf.contracts['SOV'], Wei("200 ether"))
+    setupTorqueLoanParams(conf.contracts['iRBTC'], conf.contracts['WRBTC'], conf.contracts['SOV'], Wei("200 ether"))
+    setupTorqueLoanParams(conf.contracts['iBPro'], conf.contracts['BPro'], conf.contracts['SOV'], Wei("200 ether"))
+    setupTorqueLoanParams(conf.contracts['iDOC'], conf.contracts['DoC'], conf.contracts['SOV'], Wei("200 ether"))
 
