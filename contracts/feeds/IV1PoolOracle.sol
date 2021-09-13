@@ -16,6 +16,8 @@ interface IV1PoolOracle {
 	function latestAnswer() external view returns (uint256);
 
 	function liquidityPool() external view returns (address);
+
+	function latestPrice(address _baseToken) external view returns (uint256 answer);
 }
 
 interface ILiquidityPoolV1Converter {

@@ -28,3 +28,30 @@ def main():
     conf.loadConfig()
 
     #call the function you want here
+    #replaceLoanOpenings()
+    #replaceLoanSettings()
+    #replaceLoanTokenLogicOnAllContracts()
+
+    #setSupportedToken(conf.contracts['SOV'])
+    #setupTorqueLoanParams(conf.contracts['iXUSD'], conf.contracts['XUSD'], conf.contracts['SOV'], Wei("200 ether"))
+    #setupTorqueLoanParams(conf.contracts['iRBTC'], conf.contracts['WRBTC'], conf.contracts['SOV'], Wei("200 ether"))
+
+    #for i in range(655, 665):
+    #    checkTx(i)
+
+    #minInitialMargin('0xe6686993f04396fc9a653df98ff3c5bab41023f0f2b4b1ea33f38c2c2200a787')
+    #getDepositAmountForBorrow(conf.contracts['iXUSD'], 1e18, 7*24*60*60, conf.contracts['SOV'])
+    #readv1PoolOracleAddress(conf.contracts['SOV'])
+
+    #readPrice(conf.contracts['SOV'], conf.contracts['XUSD'])
+    #readPrice(conf.contracts['XUSD'],conf.contracts['SOV'])
+    #readPrice(conf.contracts['WRBTC'],conf.contracts['SOV'])
+    #readPriceFromOracle(conf.contracts['WRBTCtoSOVOracle'])
+    #readPriceFromOracle(conf.contracts['WRBTCtoXUSDOracle'])
+    #readPriceFromOracle(conf.contracts['SOVPoolOracle'])
+    #readPriceFromOracle('0x28A05da0939853F7Bc9D5A17C9550D2769eE93D3')
+    #deployOracleV1Pool(conf.contracts['SOV'], conf.contracts["WRBTCtoSOVOracle"])
+
+    #confirmWithMS(668)
+
+    sendTokensFromMultisig(conf.contracts['XUSD'], '0xab6e5c658f1ea88bc4fc8fe87fdaa10d8bf53c69', 350000e18)

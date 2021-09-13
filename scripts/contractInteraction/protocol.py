@@ -68,6 +68,13 @@ def replaceLoanOpenings():
     data = sovryn.replaceContract.encode_input(loanOpenings.address)
     sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
 
+def replaceLoanSettings():
+    print("replacing loan settigns")
+    loanSettings = conf.acct.deploy(LoanSettings)
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.replaceContract.encode_input(loanSettings.address)
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+
 def replaceSwapsImplSovrynSwap():
     print("replacing swaps")
     swaps = conf.acct.deploy(SwapsImplSovrynSwap)
@@ -343,3 +350,8 @@ def unpauseProtocolModules():
     print(data)
 
     sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+
+def minInitialMargin(loanParamsId):
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    print(sovryn.minInitialMargin(loanParamsId))
+
