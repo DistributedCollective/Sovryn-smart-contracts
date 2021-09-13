@@ -1,17 +1,26 @@
 /** Speed optimization on branch hardhatTestRefactor, 2021-09-13
- * Greatest bottleneck found on Pause LoanClosingBase test (267ms)
- * Due to requiring a call to setup_rollover_test as initialization
+ * Greatests bottlenecks found at:
+ * 	- fixtureInitialize (3s)
+ * 		Due to fixture load and a it contains a large deployment
+ * 	- Pause LoanClosingBase test (267ms)
+ * 		Due to requiring a call to setup_rollover_test as initialization
  * Total time elapsed: 4s
  *
  * Other minor optimizations:
- *  - removed unneeded modules and variables:
- *      Wallet, Contract, balance and verify_sov_reward_payment
- *  - reformatted some code comments
+ *  - removed unused modules and variables:
+ *      Wallet, Contract, balance, verify_sov_reward_payment, signers, ethers
+ *  - removed two redundant SOV deployments
+ *  - reformatted code comments
  *  - reordered external modules apart from local variables
+ * 
+ * Notes:
+ * 	Previous optimization by Tyrone adding a waffle fixture (loadFixture)
+ *  improved a 20% the code speed:
+ * 		reduced total elapsed time from 5s to 4s
  */
 
 const { assert, expect } = require("chai");
-const { ethers, waffle } = require("hardhat");
+const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const { increaseTime, blockNumber } = require("./Utils/Ethereum");
@@ -56,13 +65,11 @@ const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
 
-
 contract("Pause Modules", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
 	let loanParams, loanParamsId;
 	/// @note https://stackoverflow.com/questions/68182729/implementing-fixtures-with-nomiclabs-hardhat-waffle
 	async function fixtureInitialize(_wallets, _provider) {
-		const signers = ethers.getSigners();
 		const sovrynproxy = await sovrynProtocol.new();
 		sovryn = await ISovryn.at(sovrynproxy.address);
 		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
@@ -104,6 +111,7 @@ contract("Pause Modules", (accounts) => {
 
 		// return { SOV, SUSD, underlyingToken, loanParams};
 	}
+
 	before(async () => {
 		[owner, trader, referrer, account1, account2, ...accounts] = accounts;
 		await loadFixture(fixtureInitialize);
@@ -196,13 +204,11 @@ contract("Pause Modules", (accounts) => {
 
 	describe("Pause ProtocolSettings", () => {
 		it("Should pause setting SOV token address", async () => {
-			const sov = await TestToken.new("Sovryn", "SOV", 18, new BN(10).pow(new BN(50)));
-			await expectRevert(sovryn.setSOVTokenAddress(sov.address), "Paused");
+			await expectRevert(sovryn.setSOVTokenAddress(SOV.address), "Paused");
 		});
 
 		it("Should pause setting LockedSOV token address", async () => {
-			const sov = await TestToken.new("Sovryn", "SOV", 18, new BN(10).pow(new BN(50)));
-			const lockedSOV = await LockedSOV.new(sov.address, [accounts[0]]);
+			const lockedSOV = await LockedSOV.new(SOV.address, [accounts[0]]);
 			await expectRevert(sovryn.setLockedSOVAddress(lockedSOV.address), "Paused");
 		});
 
@@ -274,7 +280,7 @@ contract("Pause Modules", (accounts) => {
 			await loadFixture(fixtureInitialize);
 			await sovryn.togglePaused(true);
 			expect(await sovryn.isProtocolPaused()).to.be.true;
-			
+
 			// Check deterministic result when trying to set current value
 			expectRevert.unspecified(sovryn.togglePaused(true));
 			expect(await sovryn.isProtocolPaused()).to.be.true;
