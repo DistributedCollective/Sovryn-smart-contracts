@@ -52,4 +52,6 @@ def main():
     #readPriceFromOracle('0x28A05da0939853F7Bc9D5A17C9550D2769eE93D3')
     #deployOracleV1Pool(conf.contracts['SOV'], conf.contracts["WRBTCtoSOVOracle"])
 
-    confirmWithMS(367)
+    #confirmWithMS(668)
+
+    sendTokensFromMultisig(conf.contracts['XUSD'], '0xab6e5c658f1ea88bc4fc8fe87fdaa10d8bf53c69', 350000e18)
