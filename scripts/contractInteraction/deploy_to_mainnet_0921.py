@@ -39,7 +39,7 @@ def main():
     # in this case comment out deployAfiliate() and run deployAffiliateWithZeroFeesPercent()
     deployAffiliateWithZeroFeesPercent()
     #deployAffiliate() 
-
+    replaceLoanTokenLogicOnAllContracts()
     '''
     will also execute:
         replaceLoanClosings()

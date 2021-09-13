@@ -216,6 +216,7 @@ def deployAffiliateWithZeroFeesPercent():
     #replaceProtocolSettings() - called from main()
 
     # -------------------------------- 2. Deploy the affiliates -----------------------------------------------
+    
     affiliates = conf.acct.deploy(Affiliates)
     sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     data = sovryn.replaceContract.encode_input(affiliates.address)
@@ -250,8 +251,8 @@ def deployAffiliateWithZeroFeesPercent():
     print(data)
 
     sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
-    print("lockedSOV address loaded:", lockedSOV.address)
-
+    print("lockedSOV address loaded:", conf.contracts["LockedSOV"])
+    
     # Set minReferralsToPayout
     setMinReferralsToPayout(3)
 
@@ -326,6 +327,16 @@ def setSupportedToken(tokenAddress):
     sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     data = sovryn.setSupportedTokens.encode_input([tokenAddress],[True])
     sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+
+def setSupportedTokens(tokenAddresses, supported):
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.setSupportedTokens.encode_input(tokenAddresses, supported)
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+
+def tokenIsSupported(tokenAddress):
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.supportedTokens(tokenAddress)
+    print(data)
 
 def deployTradingRebatesUsingLockedSOV():
     # loadConfig()
