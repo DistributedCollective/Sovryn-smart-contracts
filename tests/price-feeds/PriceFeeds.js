@@ -208,8 +208,7 @@ contract("PriceFeeds", (accounts) => {
 				new BN(wei("100", "ether")) //collateral token amount
 			);
 			await expect(ret[0]).to.be.bignumber.equal("233333333333333330000");
-			await expect(ret[1]).to.be.bignumber.equal(new BN(wei("200", "ether")));
-			//TODO doesn't make sense. should be 200 ether, but is 20000 ether
+			await expect(ret[1]).to.be.bignumber.equal(new BN(wei("20000", "ether"))); // we are testing using 16 decimals for testToken2, so we need to multiply 10^2 for the expectation
 		});
 
 		it("shouldLiquidate(...) runs correctly", async () => {

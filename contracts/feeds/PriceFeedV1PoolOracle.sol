@@ -121,7 +121,7 @@ contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
 	 * @param _baseCurrency The base currency address
 	 */
 	function setBaseCurrency(address _baseCurrency) public onlyOwner {
-		require(_baseCurrency != address(0), "DOC address cannot be zero address");
+		require(_baseCurrency != address(0), "Base currency address cannot be zero address");
 		baseCurrency = _baseCurrency;
 		emit SetBaseCurrency(_baseCurrency, msg.sender);
 	}
