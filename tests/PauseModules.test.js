@@ -1,10 +1,36 @@
-const { assert, expect } = require("chai");
-const { Wallet, Contract } = require("ethers");
+/** Speed optimization on branch hardhatTestRefactor, 2021-09-13
+ * Greatest bottleneck found on Pause LoanClosingBase test (267ms)
+ * Due to requiring a call to setup_rollover_test as initialization
+ * Total time elapsed: 4s
+ *
+ * Other minor optimizations:
+ *  - removed unneeded modules and variables:
+ *      Wallet, Contract, balance and verify_sov_reward_payment
+ *  - reformatted some code comments
+ *  - reordered external modules apart from local variables
+ */
 
+const { assert, expect } = require("chai");
 const { ethers, waffle } = require("hardhat");
 const { loadFixture } = waffle;
-
-const { BN, constants, balance, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
+const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
+const { increaseTime, blockNumber } = require("./Utils/Ethereum");
+const {
+	getSUSD,
+	getRBTC,
+	getWRBTC,
+	getBZRX,
+	getLoanTokenLogic,
+	getLoanToken,
+	getLoanTokenLogicWrbtc,
+	getLoanTokenWRBTC,
+	loan_pool_setup,
+	set_demand_curve,
+	getPriceFeeds,
+	getSovryn,
+	decodeLogs,
+	getSOV,
+} = require("./Utils/initializer.js");
 
 const sovrynProtocol = artifacts.require("sovrynProtocol");
 const ProtocolSettings = artifacts.require("ProtocolSettings");
@@ -29,30 +55,12 @@ const TOTAL_SUPPLY = "10000000000000000000000000";
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
-const { increaseTime, blockNumber } = require("./Utils/Ethereum");
 
-const {
-	getSUSD,
-	getRBTC,
-	getWRBTC,
-	getBZRX,
-	getLoanTokenLogic,
-	getLoanToken,
-	getLoanTokenLogicWrbtc,
-	getLoanTokenWRBTC,
-	loan_pool_setup,
-	set_demand_curve,
-	getPriceFeeds,
-	getSovryn,
-	decodeLogs,
-	getSOV,
-	verify_sov_reward_payment,
-} = require("./Utils/initializer.js");
 
 contract("Pause Modules", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
 	let loanParams, loanParamsId;
-	///@note https://stackoverflow.com/questions/68182729/implementing-fixtures-with-nomiclabs-hardhat-waffle
+	/// @note https://stackoverflow.com/questions/68182729/implementing-fixtures-with-nomiclabs-hardhat-waffle
 	async function fixtureInitialize(_wallets, _provider) {
 		const signers = ethers.getSigners();
 		const sovrynproxy = await sovrynProtocol.new();
@@ -80,7 +88,7 @@ contract("Pause Modules", (accounts) => {
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
-		//Token
+		// Token
 		underlyingToken = await TestToken.new("Test token", "TST", 18, TOTAL_SUPPLY);
 
 		loanParams = {
@@ -94,7 +102,7 @@ contract("Pause Modules", (accounts) => {
 			maxLoanTerm: "2419200",
 		};
 
-		//return { SOV, SUSD, underlyingToken, loanParams};
+		// return { SOV, SUSD, underlyingToken, loanParams};
 	}
 	before(async () => {
 		[owner, trader, referrer, account1, account2, ...accounts] = accounts;
@@ -106,7 +114,7 @@ contract("Pause Modules", (accounts) => {
 		await SUSD.approve(loanToken.address, new BN(10).pow(new BN(40)));
 		const lender = accounts[0];
 		const borrower = accounts[1];
-		let tx = await sovryn.togglePaused(false); //Unpaused
+		let tx = await sovryn.togglePaused(false); // Unpaused
 		await expectEvent(tx, "TogglePaused", {
 			sender: owner,
 			oldFlag: true,
@@ -152,7 +160,7 @@ contract("Pause Modules", (accounts) => {
 			if (owner == (await sovryn.owner())) {
 				await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
 			}
-			let tx = await sovryn.togglePaused(true); //Paused
+			let tx = await sovryn.togglePaused(true); // Paused
 			await expectRevert(sovryn.togglePaused(true), "Can't toggle");
 			await expectEvent(tx, "TogglePaused", {
 				sender: owner,
@@ -176,7 +184,7 @@ contract("Pause Modules", (accounts) => {
 
 			const receiver = accounts[3];
 			expect((await RBTC.balanceOf(receiver)).toNumber() == 0).to.be.true;
-			let tx = await sovryn.togglePaused(true); //Paused
+			let tx = await sovryn.togglePaused(true); // Paused
 			await expectEvent(tx, "TogglePaused", {
 				sender: owner,
 				oldFlag: false,
@@ -209,7 +217,7 @@ contract("Pause Modules", (accounts) => {
 		});
 
 		it("Should set affiliate fee percent when Unpaused", async () => {
-			let tx = await sovryn.togglePaused(false); //Unpaused
+			let tx = await sovryn.togglePaused(false); // Unpaused
 			await expectRevert(sovryn.togglePaused(false), "Can't toggle");
 			await expectEvent(tx, "TogglePaused", {
 				sender: owner,
@@ -252,7 +260,7 @@ contract("Pause Modules", (accounts) => {
 		});
 
 		it("setupLoanParams & disableLoanParamsEvents freezes when protocol is paused", async () => {
-			let tx = await sovryn.togglePaused(true); //Paused
+			let tx = await sovryn.togglePaused(true); // Paused
 			await expectEvent(tx, "TogglePaused", {
 				sender: owner,
 				oldFlag: false,
@@ -266,17 +274,18 @@ contract("Pause Modules", (accounts) => {
 			await loadFixture(fixtureInitialize);
 			await sovryn.togglePaused(true);
 			expect(await sovryn.isProtocolPaused()).to.be.true;
-			//check deterministic result when trying to set current value
+			
+			// Check deterministic result when trying to set current value
 			expectRevert.unspecified(sovryn.togglePaused(true));
 			expect(await sovryn.isProtocolPaused()).to.be.true;
 
-			//pause true -> false
+			// Pause true -> false
 			await sovryn.togglePaused(false);
 			expect(await sovryn.isProtocolPaused()).to.be.false;
 			expectRevert.unspecified(sovryn.togglePaused(false));
 			expect(await sovryn.isProtocolPaused()).to.be.false;
 
-			//pause false -> true
+			// Pause false -> true
 			await sovryn.togglePaused(true);
 			expect(await sovryn.isProtocolPaused()).to.be.true;
 		});
