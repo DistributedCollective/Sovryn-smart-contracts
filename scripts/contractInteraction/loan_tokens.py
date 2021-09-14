@@ -182,7 +182,7 @@ def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collat
 '''
 sets a collateral token address as collateral for borrowing
 '''
-def setupTorqueLoanParams(loanTokenAddress, underlyingTokenAddress, collateralTokenAddress):
+def setupTorqueLoanParams(loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, minInitialMargin):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     params = []
     setup = [
@@ -191,15 +191,14 @@ def setupTorqueLoanParams(loanTokenAddress, underlyingTokenAddress, collateralTo
         str(conf.acct), ## owner
         underlyingTokenAddress, ## loanToken
         collateralTokenAddress, ## collateralToken. 
-        Wei("50 ether"), ## minInitialMargin
+        minInitialMargin, ## minInitialMargin
         Wei("15 ether"), ## maintenanceMargin
         0 ## fixedLoanTerm 
     ]
     params.append(setup)
-    tx = loanToken.setupLoanParams(params, True)
-    assert('LoanParamsSetup' in tx.events)
-    assert('LoanParamsIdSetup' in tx.events)
-    print(tx.info())
+    dataT = loanToken.setupLoanParams.encode_input(params, True)
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, dataT, conf.acct)
+
  
 '''
 sets a collateral token address as collateral for margin trading
@@ -542,3 +541,8 @@ def wrappedIntegrationTest(loanTokenAddress, underlyingTokenAddress, collateralT
 
 
     print(errorMsg)
+
+def getDepositAmountForBorrow(loanTokenAddress, borrowAmount, initialLoanDuration, collateralTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    result = loanToken.getDepositAmountForBorrow(borrowAmount, initialLoanDuration, collateralTokenAddress)
+    print(result)

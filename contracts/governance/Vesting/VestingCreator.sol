@@ -23,11 +23,11 @@ contract VestingCreator is AdminRole {
 
 	///@notice Holds Vesting Data
 	struct VestingData {
-		address tokenOwner;
 		uint256 amount;
 		uint256 cliff;
 		uint256 duration;
 		bool governanceControl; ///@dev true - tokens can be withdrawn by governance
+		address tokenOwner;
 		uint256 vestingCreationType;
 	}
 
@@ -85,11 +85,11 @@ contract VestingCreator is AdminRole {
 			require(_durations[i].mod(TWO_WEEKS) == 0, "durations should have intervals of two weeks");
 			VestingData memory vestingData =
 				VestingData({
-					tokenOwner: _tokenOwners[i],
 					amount: _amounts[i],
 					cliff: _cliffs[i],
 					duration: _durations[i],
 					governanceControl: _governanceControls[i],
+					tokenOwner: _tokenOwners[i],
 					vestingCreationType: _vestingCreationTypes[i]
 				});
 			vestingDataList.push(vestingData);
@@ -110,7 +110,7 @@ contract VestingCreator is AdminRole {
 	 * @dev Separating the Vesting and Staking to tackle Block Gas Limit
 	 */
 	function processVestingCreation() public {
-		require(vestingCreated == false, "staking not done for the previous vesting");
+		require(!vestingCreated, "staking not done for the previous vesting");
 		if (vestingDataList.length > 0) {
 			VestingData storage vestingData = vestingDataList[vestingDataList.length - 1];
 			_createAndGetVesting(vestingData);
@@ -123,7 +123,7 @@ contract VestingCreator is AdminRole {
 	 * @dev it can be the case when vesting creation and tokens staking can't be done in one transaction because of block gas limit
 	 */
 	function processStaking() public {
-		require(vestingCreated == true, "cannot stake without vesting creation");
+		require(vestingCreated, "cannot stake without vesting creation");
 		if (vestingDataList.length > 0) {
 			VestingData storage vestingData = vestingDataList[vestingDataList.length - 1];
 			address vestingAddress =
@@ -136,16 +136,16 @@ contract VestingCreator is AdminRole {
 				);
 			if (vestingAddress != address(0)) {
 				VestingLogic vesting = VestingLogic(vestingAddress);
-				SOV.approve(address(vesting), vestingData.amount);
+				require(SOV.approve(address(vesting), vestingData.amount), "Approve failed");
 				vesting.stakeTokens(vestingData.amount);
 				emit TokensStaked(vestingAddress, vestingData.tokenOwner, vestingData.amount);
-				vestingCreated = false;
 				address tokenOwnerDetails = vestingData.tokenOwner;
 				delete vestingDataList[vestingDataList.length - 1];
 				vestingDataList.length--;
 				emit VestingDataRemoved(msg.sender, tokenOwnerDetails);
 			}
 		}
+		vestingCreated = false;
 	}
 
 	/**

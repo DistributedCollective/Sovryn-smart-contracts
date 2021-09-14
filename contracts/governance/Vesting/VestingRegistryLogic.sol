@@ -6,9 +6,8 @@ import "../IFeeSharingProxy.sol";
 import "./IVesting.sol";
 import "./ITeamVesting.sol";
 import "./VestingRegistryStorage.sol";
-import "../../openzeppelin/Initializable.sol";
 
-contract VestingRegistryLogic is VestingRegistryStorage, Initializable {
+contract VestingRegistryLogic is VestingRegistryStorage {
 	event SOVTransferred(address indexed receiver, uint256 amount);
 	event VestingCreated(
 		address indexed tokenOwner,
