@@ -27,4 +27,4 @@ def main():
     #load the contracts and acct depending on the network
     conf.loadConfig()
 
-    
+    #call the functions you want here
