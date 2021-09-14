@@ -36,7 +36,7 @@ const {
 	open_margin_trade_position,
 } = require("../Utils/initializer.js");
 const EIP712 = require("../Utils/EIP712");
-const {getAccountsPrivateKeysBuffer} = require("../Utils/hardhat_utils");
+const { getAccountsPrivateKeysBuffer } = require("../Utils/hardhat_utils");
 const ethUtil = require("ethereumjs-util");
 
 const wei = web3.utils.toWei;
@@ -516,17 +516,11 @@ contract("LoanTokenTrading", (accounts) => {
 				trader: accounts[2], // trader,
 				minReturn: 2000,
 				loanDataBytes: loanDataBytes, // loanDataBytes (only required with ether)
-				createdTimestamp: Date.now()
+				createdTimestamp: Date.now(),
 			};
 
 			order.loanDataBytes = ethUtil.keccak256(loanDataBytes);
-			const { v, r, s } = EIP712.sign(
-				Domain(loanToken),
-				"MarginTradeOrder",
-				order,
-				Types,
-				pkbA2
-			);
+			const { v, r, s } = EIP712.sign(Domain(loanToken), "MarginTradeOrder", order, Types, pkbA2);
 
 			await set_demand_curve(loanToken);
 			await SUSD.transfer(loanToken.address, wei("1000000", "ether"));

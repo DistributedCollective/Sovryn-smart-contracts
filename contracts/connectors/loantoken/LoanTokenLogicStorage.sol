@@ -55,6 +55,7 @@ contract LoanTokenLogicStorage is AdvancedToken {
 
 	/// @notice The name of this contract.
 	string public constant NAME = "Loan Token";
+
 	//MarginTradeOrder ====================================================================================================================
 
 	function stringToBytes32(string memory source) public pure returns (bytes32 result) {
