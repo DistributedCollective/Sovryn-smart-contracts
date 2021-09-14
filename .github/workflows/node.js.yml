@@ -24,7 +24,7 @@ jobs:
       - name: Installing Packages
         run: npm ci
       - name: Checking Formatting
-        run: npm run lint && && npm run prettier && npm run prettier-check
+        run: npm run lint &&  npm run prettier && npm run prettier-check
       - name: Running Test
         run: npm run test
       # - name: Increasing the memory
