@@ -10,7 +10,7 @@ import "../core/State.sol";
 import "../mixins/VaultController.sol";
 import "../swaps/SwapsUser.sol";
 import "../swaps/ISwapsImpl.sol";
-import "./ModuleCommonFunctionalities.sol";
+import "../mixins/ModuleCommonFunctionalities.sol";
 
 /**
  * @title Swaps External contract.
@@ -114,7 +114,8 @@ contract SwapsExternal is VaultController, SwapsUser, ModuleCommonFunctionalitie
 			],
 			0, /// loanId (not tied to a specific loan)
 			false, /// bypassFee
-			swapData
+			swapData,
+			true // the flag for swapExternal (so that it will use the swapExternalFeePercent)
 		);
 
 		emit ExternalSwap(

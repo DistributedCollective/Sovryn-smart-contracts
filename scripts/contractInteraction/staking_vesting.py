@@ -101,11 +101,11 @@ def upgradeStakingRewards():
     print("New staking rewards logic address:", stakingRewards.address)
     
     # Get the proxy contract instance
-    stakingRewardsProxy = Contract.from_abi("StakingRewardsProxy", address=conf.contracts['StakingRewards'], abi=StakingRewardsProxy.abi, owner=conf.acct)
+    stakingRewardsProxy = Contract.from_abi("StakingRewardsProxy", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewardsProxy.abi, owner=conf.acct)
 
     # Register logic in Proxy
     data = stakingRewardsProxy.setImplementation.encode_input(stakingRewards.address)
-    sendWithMultisig(conf.contracts['multisig'], conf.contracts['StakingRewards'], data, conf.acct)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['StakingRewardsProxy'], data, conf.acct)
 
 #Upgrade Staking
 

@@ -29,6 +29,8 @@ contract ProtocolSettingsEvents is ModulesCommonEvents {
 
 	event SetBorrowingFeePercent(address indexed sender, uint256 oldValue, uint256 newValue);
 
+	event SetSwapExternalFeePercent(address indexed sender, uint256 oldValue, uint256 newValue);
+
 	event SetAffiliateFeePercent(address indexed sender, uint256 oldValue, uint256 newValue);
 
 	event SetAffiliateTradingTokenFeePercent(address indexed sender, uint256 oldValue, uint256 newValue);
@@ -85,4 +87,6 @@ contract ProtocolSettingsEvents is ModulesCommonEvents {
 	event SetLockedSOVAddress(address indexed sender, address indexed oldAddress, address indexed newAddress);
 
 	event TogglePaused(address indexed sender, bool indexed oldFlag, bool indexed newFlag);
+
+	event SetTradingRebateRewardsBasisPoint(address indexed sender, uint256 oldBasisPoint, uint256 newBasisPoint);
 }

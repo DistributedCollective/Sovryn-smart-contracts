@@ -11,7 +11,7 @@ import "../events/LoanOpeningsEvents.sol";
 import "../mixins/VaultController.sol";
 import "../mixins/InterestUser.sol";
 import "../swaps/SwapsUser.sol";
-import "./ModuleCommonFunctionalities.sol";
+import "../mixins/ModuleCommonFunctionalities.sol";
 
 /**
  * @title Loan Openings contract.
@@ -252,10 +252,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 			} else {
 				(uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(collateralToken, loanToken);
 				if (sourceToDestPrecision != 0) {
-					borrowAmount = collateral.mul(10**20).div(marginAmount).mul(sourceToDestRate).div(sourceToDestPrecision);
-					/*TODO: review
-					borrowAmount = collateralTokenAmount.mul(10**20).mul(sourceToDestRate).div(marginAmount).div(sourceToDestPrecision);
-					*/
+					borrowAmount = collateral.mul(10**20).mul(sourceToDestRate).div(marginAmount).div(sourceToDestPrecision);
 				}
 			}
 			/*
