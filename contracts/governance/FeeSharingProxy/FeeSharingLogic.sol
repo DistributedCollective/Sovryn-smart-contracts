@@ -234,18 +234,18 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		uint32 end;
 
 		/// @dev Additional bool param can't be used because of stack too deep error.
-        if (_maxCheckpoints > 0) {
-            /// @dev withdraw -> _getAccumulatedFees
-            require(start < numTokenCheckpoints[_loanPoolToken], "FeeSharingProxy::withdrawFees: no tokens for a withdrawal");
-            end = _getEndOfRange(start, _loanPoolToken, _maxCheckpoints);
-        } else {
-            /// @dev getAccumulatedFees -> _getAccumulatedFees
-            /// Don't throw error for getter invocation outside of transaction.
-            if (start >= numTokenCheckpoints[_loanPoolToken]) {
-                return (0, numTokenCheckpoints[_loanPoolToken]);
-            }
-            end = numTokenCheckpoints[_loanPoolToken];
-        }
+		if (_maxCheckpoints > 0) {
+			/// @dev withdraw -> _getAccumulatedFees
+			require(start < numTokenCheckpoints[_loanPoolToken], "FeeSharingProxy::withdrawFees: no tokens for a withdrawal");
+			end = _getEndOfRange(start, _loanPoolToken, _maxCheckpoints);
+		} else {
+			/// @dev getAccumulatedFees -> _getAccumulatedFees
+			/// Don't throw error for getter invocation outside of transaction.
+			if (start >= numTokenCheckpoints[_loanPoolToken]) {
+				return (0, numTokenCheckpoints[_loanPoolToken]);
+			}
+			end = numTokenCheckpoints[_loanPoolToken];
+		}
 
 		uint256 amount = 0;
 		uint256 cachedLockDate = 0;
