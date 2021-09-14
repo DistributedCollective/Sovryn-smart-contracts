@@ -45,10 +45,11 @@
 		"hardhat-deploy": "^0.7.0-beta.46",
 		"hardhat-docgen": "^1.1.1",
 		"hardhat-log-remover": "^2.0.0",
-		"husky": "^4.3.6",
+		"husky": "^7.0.0",
 		"mocha": "^8.2.1",
 		"prettier": "2.3.2",
 		"prettier-plugin-solidity": "^1.0.0-beta.3",
+		"pretty-quick": "^3.1.1",
 		"sol2uml": "^1.1.17",
 		"solhint": "^3.0.0",
 		"solhint-plugin-prettier": "^0.0.5",
@@ -68,7 +69,8 @@
 		"prettier": "prettier --write .",
 		"prettier-check": "prettier --check .",
 		"test": "echo Executing pure Hardhat test cases ... && npx hardhat test && echo Executing test cases using Ganache ... && npx hardhat --config hardhat-ganache-tests.config.js --network ganache test",
-		"uml": "npx sol2uml ./contracts -o UML.svg"
+		"uml": "npx sol2uml ./contracts -o UML.svg",
+		"prepare": "husky install"
 	},
 	"husky": {
 		"hooks": {
