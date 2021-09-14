@@ -12,6 +12,7 @@ import "../interfaces/ProtocolLike.sol";
 import "../interfaces/FeedsLike.sol";
 import "../../../modules/interfaces/ProtocolAffiliatesInterface.sol";
 import "../../../farm/ILiquidityMining.sol";
+import "../../../rsk/RSKAddrValidator.sol";
 
 /**
  * @title Loan Token Logic Standard contract.
@@ -255,6 +256,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
 		return
 			_borrowOrTrade(
+				msg.sender,
 				loanId,
 				withdrawAmount,
 				2 * 10**18, /// leverageAmount (translates to 150% margin for a Torque loan).
@@ -319,6 +321,126 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 			uint256 /// Returns new principal and new collateral added to trade.
 		)
 	{
+		return
+			_marginTrade(
+				msg.sender,
+				loanId,
+				leverageAmount,
+				loanTokenSent,
+				collateralTokenSent,
+				collateralTokenAddress,
+				trader,
+				minReturn,
+				loanDataBytes
+			);
+	}
+
+	//TODO: check bytecode size
+	function marginTradeBySig(
+		MarginTradeOrder memory order,
+		uint8 v,
+		bytes32 r,
+		bytes32 s
+	)
+		public
+		payable
+		nonReentrant /// Note: needs to be removed to allow flashloan use cases.
+		returns (
+			uint256,
+			uint256 /// Returns new principal and new collateral added to trade.
+		)
+	{
+		/**
+		 * @dev The DOMAIN_SEPARATOR is a hash that uniquely identifies a
+		 * smart contract. It is built from a string denoting it as an
+		 * EIP712 Domain, the name of the token contract, the version,
+		 * the chainId in case it changes, and the address that the
+		 * contract is deployed at.
+		 * */
+		bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(NAME)), _getChainId(), address(this)));
+
+		/// @dev MARGIN_TRADE_ORDER_TYPEHASH
+		bytes32 structHash = _getStructHash(order);
+
+		bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+		address signatory = ecrecover(digest, v, r, s);
+
+		/// @dev Verify address is not null and PK is not null either.
+		require(RSKAddrValidator.checkPKNotZero(signatory), "GovernorAlpha::castVoteBySig: invalid signature");
+
+		require(!executedOrders[digest], "Order already executed");
+		executedOrders[digest] = true;
+
+		require(signatory == order.trader, "invalid signature");
+
+		return _marginTradeByOrder(signatory, order);
+	}
+
+	function _getChainId() internal pure returns (uint256) {
+		uint256 chainId;
+		assembly {
+			chainId := chainid()
+		}
+		return chainId;
+	}
+
+	function _getStructHash(MarginTradeOrder memory order) internal returns (bytes32) {
+		bytes32 structHash =
+			keccak256(
+				abi.encode(
+					MARGIN_TRADE_ORDER_TYPEHASH,
+					order.loanId,
+					order.leverageAmount,
+					order.loanTokenSent,
+					order.collateralTokenSent,
+					order.collateralTokenAddress,
+					order.trader,
+					order.minReturn,
+					keccak256(order.loanDataBytes),
+					order.createdTimestamp
+				)
+			);
+		return structHash;
+	}
+
+	function _marginTradeByOrder(address _sender, MarginTradeOrder memory order)
+		internal
+		returns (
+			uint256,
+			uint256 /// Returns new principal and new collateral added to trade.
+		)
+	{
+		return
+			_marginTrade(
+				_sender,
+				order.loanId,
+				order.leverageAmount,
+				order.loanTokenSent,
+				order.collateralTokenSent,
+				order.collateralTokenAddress,
+				order.trader,
+				order.minReturn,
+				order.loanDataBytes
+			);
+	}
+
+	function _marginTrade(
+		address _sender,
+		bytes32 loanId, /// 0 if new loan
+		uint256 leverageAmount, /// Expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5).
+		uint256 loanTokenSent,
+		uint256 collateralTokenSent,
+		address collateralTokenAddress,
+		address trader,
+		uint256 minReturn, // minimum position size in the collateral tokens
+		bytes memory loanDataBytes /// Arbitrary order data.
+	)
+		internal
+		returns (
+			uint256,
+			uint256 /// Returns new principal and new collateral added to trade.
+		)
+	{
 		_checkPause();
 
 		checkPriceDivergence(leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress, minReturn);
@@ -330,7 +452,8 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		require(collateralTokenAddress != loanTokenAddress, "11");
 
 		/// @dev Ensure authorized use of existing loan.
-		require(loanId == 0 || msg.sender == trader, "401 use of existing loan");
+		//TODO: check if we need to use _sender instead of msg.sender in other functions
+		require(loanId == 0 || _sender == trader, "401 use of existing loan");
 
 		/// Temporary: limit transaction size.
 		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
@@ -365,6 +488,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
 		return
 			_borrowOrTrade(
+				_sender,
 				loanId,
 				0, /// withdrawAmount
 				leverageAmount,
@@ -1065,6 +1189,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 *   position size (loan + margin) (in collateral tokens).
 	 * */
 	function _borrowOrTrade(
+		address sender,
 		bytes32 loanId,
 		uint256 withdrawAmount,
 		uint256 leverageAmount,
@@ -1085,7 +1210,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		}
 
 		/// @dev Handle transfers prior to adding newPrincipal to loanTokenSent
-		uint256 msgValue = _verifyTransfers(collateralTokenAddress, sentAddresses, sentAmounts, withdrawAmount);
+		uint256 msgValue = _verifyTransfers(sender, collateralTokenAddress, sentAddresses, sentAmounts, withdrawAmount);
 
 		/**
 		 * @dev Adding the loan token portion from the lender to loanTokenSent
@@ -1148,6 +1273,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 * @return msgValue The amount of rBTC sent minus the collateral on tokens.
 	 * */
 	function _verifyTransfers(
+		address sender,
 		address collateralTokenAddress,
 		address[4] memory sentAddresses,
 		uint256[5] memory sentAmounts,
@@ -1183,12 +1309,12 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 				_safeTransfer(collateralTokenAddress, sovrynContractAddress, collateralTokenSent, "28-a");
 				msgValue -= collateralTokenSent;
 			} else {
-				_safeTransferFrom(collateralTokenAddress, msg.sender, sovrynContractAddress, collateralTokenSent, "28-b");
+				_safeTransferFrom(collateralTokenAddress, sender, sovrynContractAddress, collateralTokenSent, "28-b");
 			}
 		}
 
 		if (loanTokenSent != 0) {
-			_safeTransferFrom(_loanTokenAddress, msg.sender, sovrynContractAddress, loanTokenSent, "29");
+			_safeTransferFrom(_loanTokenAddress, sender, sovrynContractAddress, loanTokenSent, "29");
 		}
 	}
 

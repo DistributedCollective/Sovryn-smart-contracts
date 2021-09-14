@@ -35,6 +35,9 @@ const {
 	getSovryn,
 	open_margin_trade_position,
 } = require("../Utils/initializer.js");
+const EIP712 = require("../Utils/EIP712");
+const {getAccountsPrivateKeysBuffer} = require("../Utils/hardhat_utils");
+const ethUtil = require("ethereumjs-util");
 
 const wei = web3.utils.toWei;
 
@@ -43,10 +46,12 @@ const hunEth = new BN(wei("100", "ether"));
 
 contract("LoanTokenTrading", (accounts) => {
 	let owner;
+	let pkbRoot, pkbA1, pkbA2, pkbAccounts;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV, priceFeeds;
 
 	before(async () => {
 		[owner] = accounts;
+		[pkbRoot, pkbA1, pkbA2, ...pkbAccounts] = getAccountsPrivateKeysBuffer();
 	});
 
 	beforeEach(async () => {
@@ -478,6 +483,58 @@ contract("LoanTokenTrading", (accounts) => {
 				"0x", // loanDataBytes (only required with ether)
 				{ from: accounts[2] }
 			);
+		});
+
+		it("Check marginTrade with minPositionSize > 0 using a signature", async () => {
+			let currentChainId = (await ethers.provider.getNetwork()).chainId;
+			const Domain = (loanToken) => ({
+				name: "Loan Token",
+				chainId: currentChainId, //31337 - Hardhat, //1 - Mainnet, // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
+				verifyingContract: loanToken.address,
+			});
+			const Types = {
+				MarginTradeOrder: [
+					{ name: "loanId", type: "bytes32" },
+					{ name: "leverageAmount", type: "uint256" },
+					{ name: "loanTokenSent", type: "uint256" },
+					{ name: "collateralTokenSent", type: "uint256" },
+					{ name: "collateralTokenAddress", type: "address" },
+					{ name: "trader", type: "address" },
+					{ name: "minReturn", type: "uint256" },
+					{ name: "loanDataBytes", type: "bytes32" },
+					{ name: "createdTimestamp", type: "uint256" },
+				],
+			};
+
+			let loanDataBytes = "0x";
+			const order = {
+				loanId: "0x0000000000000000000000000000000000000000000000000000000000000000", // loanId  (0 for new loans)
+				leverageAmount: wei("2", "ether"), // leverageAmount
+				loanTokenSent: 0, // loanTokenSent (SUSD)
+				collateralTokenSent: 1000, // collateral token sent
+				collateralTokenAddress: RBTC.address, // collateralTokenAddress (RBTC)
+				trader: accounts[2], // trader,
+				minReturn: 2000,
+				loanDataBytes: loanDataBytes, // loanDataBytes (only required with ether)
+				createdTimestamp: Date.now()
+			};
+
+			order.loanDataBytes = ethUtil.keccak256(loanDataBytes);
+			const { v, r, s } = EIP712.sign(
+				Domain(loanToken),
+				"MarginTradeOrder",
+				order,
+				Types,
+				pkbA2
+			);
+
+			await set_demand_curve(loanToken);
+			await SUSD.transfer(loanToken.address, wei("1000000", "ether"));
+			await RBTC.transfer(accounts[2], oneEth);
+			await RBTC.approve(loanToken.address, oneEth, { from: accounts[2] });
+
+			order.loanDataBytes = loanDataBytes;
+			await loanToken.marginTradeBySig(order, v, r, s);
 		});
 
 		it("checkPriceDivergence should revert if min position size is greater than collateral", async () => {

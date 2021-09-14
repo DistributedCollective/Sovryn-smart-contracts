@@ -27,6 +27,36 @@ contract LoanTokenLogicStorage is AdvancedToken {
 	address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
 	bytes32 internal constant iToken_ProfitSoFar = 0x37aa2b7d583612f016e4a4de4292cb015139b3d7762663d06a53964912ea2fb6; // keccak256("iToken_ProfitSoFar")
 
+	/// @dev flag whether MarginTradeOrder was already executed
+	mapping(bytes32 => bool) executedOrders;
+
+	//MarginTradeOrder =====================================================================================================================
+	struct MarginTradeOrder {
+		bytes32 loanId; /// 0 if new loan
+		uint256 leverageAmount; /// Expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5).
+		uint256 loanTokenSent;
+		uint256 collateralTokenSent;
+		address collateralTokenAddress;
+		address trader;
+		uint256 minReturn; // minimum position size in the collateral tokens
+		bytes loanDataBytes; /// Arbitrary order data.
+		uint256 createdTimestamp;
+	}
+
+	/// @notice The EIP-712 typehash for the contract's domain.
+	bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
+
+	/// @notice The EIP-712 typehash for the MarginTradeOrder struct used by the contract.
+	bytes32 public constant MARGIN_TRADE_ORDER_TYPEHASH =
+		keccak256(
+			//"MarginTradeOrder(bytes32 loanId,uint256 leverageAmount,uint256 loanTokenSent,uint256 collateralTokenSent,address collateralTokenAddress,address trader,uint256 minReturn,bytes loanDataBytes,uint256 createdTimestamp)"
+			"MarginTradeOrder(bytes32 loanId,uint256 leverageAmount,uint256 loanTokenSent,uint256 collateralTokenSent,address collateralTokenAddress,address trader,uint256 minReturn,bytes32 loanDataBytes,uint256 createdTimestamp)"
+		);
+
+	/// @notice The name of this contract.
+	string public constant NAME = "Loan Token";
+	//MarginTradeOrder ====================================================================================================================
+
 	function stringToBytes32(string memory source) public pure returns (bytes32 result) {
 		bytes memory tempEmptyStringTest = bytes(source);
 		if (tempEmptyStringTest.length == 0) {

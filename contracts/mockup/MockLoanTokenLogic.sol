@@ -12,7 +12,7 @@ contract MockLoanTokenLogic is LoanTokenLogicLM {
 	}*/
 
 	function getListFunctionSignatures() external pure returns (bytes4[] memory functionSignatures, bytes32 moduleName) {
-		bytes4[] memory res = new bytes4[](37);
+		bytes4[] memory res = new bytes4[](38);
 
 		// Loan Token Logic Standard
 		res[0] = bytes4(keccak256("mint(address,uint256)"));
@@ -67,6 +67,7 @@ contract MockLoanTokenLogic is LoanTokenLogicLM {
 
 		// Loan Token Logic Storage Additional Variable
 		res[36] = bytes4(keccak256("liquidityMiningAddress()"));
+		res[37] = this.marginTradeBySig.selector;
 
 		return (res, stringToBytes32("MockLoanTokenLogic"));
 	}
