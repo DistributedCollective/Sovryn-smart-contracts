@@ -61,6 +61,8 @@ contract ISovryn is
 
 	function setBorrowingFeePercent(uint256 newValue) external;
 
+	function setSwapExternalFeePercent(uint256 newValue) external;
+
 	function setAffiliateFeePercent(uint256 newValue) external;
 
 	function setAffiliateTradingTokenFeePercent(uint256 newValue) external;
@@ -111,6 +113,18 @@ contract ISovryn is
 
 	function setRebatePercent(uint256 rebatePercent) external;
 
+	function setSpecialRebates(
+		address sourceToken,
+		address destToken,
+		uint256 specialRebatesPercent
+	) external;
+
+	function getSpecialRebates(address sourceToken, address destToken) external view returns (uint256 specialRebatesPercent);
+
+	function togglePaused(bool paused) external;
+
+	function isProtocolPaused() external view returns (bool);
+
 	////// Loan Settings //////
 
 	function setupLoanParams(LoanParams[] calldata loanParamsList) external returns (bytes32[] memory loanParamsIdList);
@@ -127,6 +141,8 @@ contract ISovryn is
 	) external view returns (bytes32[] memory loanParamsList);
 
 	function getTotalPrincipal(address lender, address loanToken) external view returns (uint256);
+
+	function minInitialMargin(bytes32 loanParamsId) external view returns (uint256);
 
 	////// Loan Openings //////
 
@@ -316,6 +332,31 @@ contract ISovryn is
 
 	function getLegacyOracle(address ref) external view returns (address);
 
+	////// Swaps External //////
+	function swapExternal(
+		address sourceToken,
+		address destToken,
+		address receiver,
+		address returnToSender,
+		uint256 sourceTokenAmount,
+		uint256 requiredDestTokenAmount,
+		uint256 minReturn,
+		bytes calldata swapData
+	) external returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
+
+	function getSwapExpectedReturn(
+		address sourceToken,
+		address destToken,
+		uint256 sourceTokenAmount
+	) external view returns (uint256);
+
+	function checkPriceDivergence(
+		address sourceToken,
+		address destToken,
+		uint256 sourceTokenAmount,
+		uint256 minReturn
+	) public view;
+
 	////// Affiliates Module //////
 
 	function getUserNotFirstTradeFlag(address user) external view returns (bool);
@@ -324,6 +365,7 @@ contract ISovryn is
 
 	function payTradingFeeToAffiliatesReferrer(
 		address referrer,
+		address trader,
 		address token,
 		uint256 tradingFeeTokenBaseAmount
 	) external returns (uint256 affiliatesBonusSOVAmount, uint256 affiliatesBonusTokenAmount);
@@ -355,6 +397,8 @@ contract ISovryn is
 
 	function getLockedSOVAddress() external view returns (address);
 
+	function getFeeRebatePercent() external view returns (uint256);
+
 	function getMinReferralsToPayout() external view returns (uint256);
 
 	function getAffiliatesUserReferrer(address user) external view returns (address referrer);
@@ -362,4 +406,12 @@ contract ISovryn is
 	function getAffiliateRewardsHeld(address referrer) external view returns (uint256);
 
 	function getAffiliateTradingTokenFeePercent() external view returns (uint256 affiliateTradingTokenFeePercent);
+
+	function getAffiliatesTokenRewardsValueInRbtc(address referrer) external view returns (uint256 rbtcTotalAmount);
+
+	function getSwapExternalFeePercent() external view returns (uint256 swapExternalFeePercent);
+
+	function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external;
+
+	function getTradingRebateRewardsBasisPoint() external view returns (uint256);
 }

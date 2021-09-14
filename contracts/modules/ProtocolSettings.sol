@@ -10,6 +10,7 @@ import "../core/State.sol";
 import "../events/ProtocolSettingsEvents.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../mixins/ProtocolTokenUser.sol";
+import "../mixins/ModuleCommonFunctionalities.sol";
 
 /**
  * @title Protocol Settings contract.
@@ -19,7 +20,7 @@ import "../mixins/ProtocolTokenUser.sol";
  *
  * This contract contains functions to customize protocol settings.
  * */
-contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
+contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, ModuleCommonFunctionalities {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 
@@ -41,6 +42,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 * @param target The address of the target contract.
 	 * */
 	function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.setPriceFeedContract.selector];
 		_setTarget(this.setPriceFeedContract.selector, target);
 		_setTarget(this.setSwapsImplContract.selector, target);
 		_setTarget(this.setLoanPool.selector, target);
@@ -48,6 +50,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.setLendingFeePercent.selector, target);
 		_setTarget(this.setTradingFeePercent.selector, target);
 		_setTarget(this.setBorrowingFeePercent.selector, target);
+		_setTarget(this.setSwapExternalFeePercent.selector, target);
 		_setTarget(this.setAffiliateFeePercent.selector, target);
 		_setTarget(this.setAffiliateTradingTokenFeePercent.selector, target);
 		_setTarget(this.setLiquidationIncentivePercent.selector, target);
@@ -68,27 +71,36 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		_setTarget(this.setProtocolTokenAddress.selector, target);
 		_setTarget(this.setRolloverBaseReward.selector, target);
 		_setTarget(this.setRebatePercent.selector, target);
+		_setTarget(this.setSpecialRebates.selector, target);
 		_setTarget(this.setSovrynProtocolAddress.selector, target);
 		_setTarget(this.setSOVTokenAddress.selector, target);
 		_setTarget(this.setLockedSOVAddress.selector, target);
 		_setTarget(this.setMinReferralsToPayoutAffiliates.selector, target);
+		_setTarget(this.getSpecialRebates.selector, target);
 		_setTarget(this.getProtocolAddress.selector, target);
 		_setTarget(this.getSovTokenAddress.selector, target);
 		_setTarget(this.getLockedSOVAddress.selector, target);
+		_setTarget(this.getFeeRebatePercent.selector, target);
+		_setTarget(this.togglePaused.selector, target);
+		_setTarget(this.isProtocolPaused.selector, target);
+		_setTarget(this.getSwapExternalFeePercent.selector, target);
+		_setTarget(this.setTradingRebateRewardsBasisPoint.selector, target);
+		_setTarget(this.getTradingRebateRewardsBasisPoint.selector, target);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "ProtocolSettings");
 	}
 
 	/**
 	 * setting wrong address will break inter module functions calling
 	 * should be set once
 	 */
-	function setSovrynProtocolAddress(address newProtocolAddress) external onlyOwner {
+	function setSovrynProtocolAddress(address newProtocolAddress) external onlyOwner whenNotPaused {
 		address oldProtocolAddress = protocolAddress;
 		protocolAddress = newProtocolAddress;
 
 		emit SetProtocolAddress(msg.sender, oldProtocolAddress, newProtocolAddress);
 	}
 
-	function setSOVTokenAddress(address newSovTokenAddress) external onlyOwner {
+	function setSOVTokenAddress(address newSovTokenAddress) external onlyOwner whenNotPaused {
 		require(Address.isContract(newSovTokenAddress), "newSovTokenAddress not a contract");
 
 		address oldTokenAddress = sovTokenAddress;
@@ -97,7 +109,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		emit SetSOVTokenAddress(msg.sender, oldTokenAddress, newSovTokenAddress);
 	}
 
-	function setLockedSOVAddress(address newLockedSOVAddress) external onlyOwner {
+	function setLockedSOVAddress(address newLockedSOVAddress) external onlyOwner whenNotPaused {
 		require(Address.isContract(newLockedSOVAddress), "newLockSOVAddress not a contract");
 
 		address oldLockedSOVAddress = lockedSOVAddress;
@@ -106,7 +118,26 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		emit SetLockedSOVAddress(msg.sender, oldLockedSOVAddress, newLockedSOVAddress);
 	}
 
-	function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external onlyOwner {
+	/**
+	 * @notice Set the basis point of trading rebate rewards (SOV), max value is 9999 (99.99% liquid, 0.01% vested).
+	 *
+	 * @param newBasisPoint Basis point value.
+	 */
+	function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external onlyOwner whenNotPaused {
+		require(newBasisPoint <= 9999, "value too high");
+
+		uint256 oldBasisPoint = tradingRebateRewardsBasisPoint;
+		tradingRebateRewardsBasisPoint = newBasisPoint;
+
+		emit SetTradingRebateRewardsBasisPoint(msg.sender, oldBasisPoint, newBasisPoint);
+	}
+
+	/**
+	 * @notice Update the minimum number of referrals to get affiliates rewards.
+	 *
+	 * @param newMinReferrals The new minimum number of referrals.
+	 * */
+	function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external onlyOwner whenNotPaused {
 		uint256 oldMinReferrals = minReferralsToPayout;
 		minReferralsToPayout = newMinReferrals;
 
@@ -118,7 +149,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newContract The address of the Price Feed new instance.
 	 * */
-	function setPriceFeedContract(address newContract) external onlyOwner {
+	function setPriceFeedContract(address newContract) external onlyOwner whenNotPaused {
 		address oldContract = priceFeeds;
 		priceFeeds = newContract;
 
@@ -130,7 +161,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newContract The address of the asset swapper new instance.
 	 * */
-	function setSwapsImplContract(address newContract) external onlyOwner {
+	function setSwapsImplContract(address newContract) external onlyOwner whenNotPaused {
 		address oldContract = swapsImpl;
 		swapsImpl = newContract;
 
@@ -143,7 +174,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 * @param pools The array of addresses of new loan pool instances.
 	 * @param assets The array of addresses of the corresponding underlying tokens.
 	 * */
-	function setLoanPool(address[] calldata pools, address[] calldata assets) external onlyOwner {
+	function setLoanPool(address[] calldata pools, address[] calldata assets) external onlyOwner whenNotPaused {
 		require(pools.length == assets.length, "count mismatch");
 
 		for (uint256 i = 0; i < pools.length; i++) {
@@ -172,7 +203,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 * @param toggles The array of flags indicating whether
 	 *   the corresponding token is supported or not.
 	 * */
-	function setSupportedTokens(address[] calldata addrs, bool[] calldata toggles) external onlyOwner {
+	function setSupportedTokens(address[] calldata addrs, bool[] calldata toggles) external onlyOwner whenNotPaused {
 		require(addrs.length == toggles.length, "count mismatch");
 
 		for (uint256 i = 0; i < addrs.length; i++) {
@@ -187,7 +218,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newValue The new value for lendingFeePercent.
 	 * */
-	function setLendingFeePercent(uint256 newValue) external onlyOwner {
+	function setLendingFeePercent(uint256 newValue) external onlyOwner whenNotPaused {
 		require(newValue <= 10**20, "value too high");
 		uint256 oldValue = lendingFeePercent;
 		lendingFeePercent = newValue;
@@ -200,7 +231,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newValue The new value for tradingFeePercent.
 	 * */
-	function setTradingFeePercent(uint256 newValue) external onlyOwner {
+	function setTradingFeePercent(uint256 newValue) external onlyOwner whenNotPaused {
 		require(newValue <= 10**20, "value too high");
 		uint256 oldValue = tradingFeePercent;
 		tradingFeePercent = newValue;
@@ -213,7 +244,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newValue The new value for borrowingFeePercent.
 	 * */
-	function setBorrowingFeePercent(uint256 newValue) external onlyOwner {
+	function setBorrowingFeePercent(uint256 newValue) external onlyOwner whenNotPaused {
 		require(newValue <= 10**20, "value too high");
 		uint256 oldValue = borrowingFeePercent;
 		borrowingFeePercent = newValue;
@@ -222,11 +253,24 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	}
 
 	/**
+	 * @notice Set the value of swapExtrernalFeePercent storage variable
+	 *
+	 * @param newValue the new value for swapExternalFeePercent
+	 */
+	function setSwapExternalFeePercent(uint256 newValue) external onlyOwner whenNotPaused {
+		require(newValue <= 10**20, "value too high");
+		uint256 oldValue = swapExtrernalFeePercent;
+		swapExtrernalFeePercent = newValue;
+
+		emit SetSwapExternalFeePercent(msg.sender, oldValue, newValue);
+	}
+
+	/**
 	 * @notice Set the value of affiliateFeePercent storage variable.
 	 *
 	 * @param newValue The new value for affiliateFeePercent.
 	 * */
-	function setAffiliateFeePercent(uint256 newValue) external onlyOwner {
+	function setAffiliateFeePercent(uint256 newValue) external onlyOwner whenNotPaused {
 		require(newValue <= 10**20, "value too high");
 		uint256 oldValue = affiliateFeePercent;
 		affiliateFeePercent = newValue;
@@ -239,7 +283,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newValue The new value for affiliateTradingTokenFeePercent.
 	 * */
-	function setAffiliateTradingTokenFeePercent(uint256 newValue) external onlyOwner {
+	function setAffiliateTradingTokenFeePercent(uint256 newValue) external onlyOwner whenNotPaused {
 		require(newValue <= 10**20, "value too high");
 		uint256 oldValue = affiliateTradingTokenFeePercent;
 		affiliateTradingTokenFeePercent = newValue;
@@ -252,7 +296,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newValue The new value for liquidationIncentivePercent.
 	 * */
-	function setLiquidationIncentivePercent(uint256 newValue) external onlyOwner {
+	function setLiquidationIncentivePercent(uint256 newValue) external onlyOwner whenNotPaused {
 		require(newValue <= 10**20, "value too high");
 		uint256 oldValue = liquidationIncentivePercent;
 		liquidationIncentivePercent = newValue;
@@ -265,7 +309,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newValue The new value for maxDisagreement.
 	 * */
-	function setMaxDisagreement(uint256 newValue) external onlyOwner {
+	function setMaxDisagreement(uint256 newValue) external onlyOwner whenNotPaused {
 		maxDisagreement = newValue;
 	}
 
@@ -276,7 +320,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newValue The new value for the maximum source buffer.
 	 * */
-	function setSourceBuffer(uint256 newValue) external onlyOwner {
+	function setSourceBuffer(uint256 newValue) external onlyOwner whenNotPaused {
 		sourceBuffer = newValue;
 	}
 
@@ -285,7 +329,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newValue The new value for the maximum swap size.
 	 * */
-	function setMaxSwapSize(uint256 newValue) external onlyOwner {
+	function setMaxSwapSize(uint256 newValue) external onlyOwner whenNotPaused {
 		uint256 oldValue = maxSwapSize;
 		maxSwapSize = newValue;
 
@@ -301,7 +345,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param newController The new address of the feesController.
 	 * */
-	function setFeesController(address newController) external onlyOwner {
+	function setFeesController(address newController) external onlyOwner whenNotPaused {
 		address oldController = feesController;
 		feesController = newController;
 
@@ -317,7 +361,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @return The withdrawn amount.
 	 * */
-	function withdrawFees(address token, address receiver) external returns (uint256) {
+	function withdrawFees(address token, address receiver) external whenNotPaused returns (uint256) {
 		require(msg.sender == feesController, "unauthorized");
 
 		uint256 lendingBalance = lendingFeeTokensHeld[token];
@@ -364,7 +408,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		address token,
 		address receiver,
 		uint256 amount
-	) external returns (bool) {
+	) external whenNotPaused returns (bool) {
 		require(msg.sender == feesController, "unauthorized");
 
 		uint256 withdrawAmount = amount;
@@ -401,7 +445,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		address token,
 		address receiver,
 		uint256 amount
-	) external returns (bool) {
+	) external whenNotPaused returns (bool) {
 		require(msg.sender == feesController, "unauthorized");
 
 		uint256 withdrawAmount = amount;
@@ -438,7 +482,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 		address token,
 		address receiver,
 		uint256 amount
-	) external returns (bool) {
+	) external whenNotPaused returns (bool) {
 		require(msg.sender == feesController, "unauthorized");
 
 		uint256 withdrawAmount = amount;
@@ -472,7 +516,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 * @return The protocol token address.
 	 * @return Withdrawal success (true/false).
 	 * */
-	function withdrawProtocolToken(address receiver, uint256 amount) external onlyOwner returns (address, bool) {
+	function withdrawProtocolToken(address receiver, uint256 amount) external onlyOwner whenNotPaused returns (address, bool) {
 		return _withdrawProtocolToken(receiver, amount);
 	}
 
@@ -481,7 +525,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param amount The tokens of fees to send.
 	 * */
-	function depositProtocolToken(uint256 amount) external onlyOwner {
+	function depositProtocolToken(uint256 amount) external onlyOwner whenNotPaused {
 		/// @dev Update local balance
 		protocolTokenHeld = protocolTokenHeld.add(amount);
 
@@ -517,7 +561,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param registryAddress the address of the registry contract.
 	 * */
-	function setSovrynSwapContractRegistryAddress(address registryAddress) external onlyOwner {
+	function setSovrynSwapContractRegistryAddress(address registryAddress) external onlyOwner whenNotPaused {
 		require(Address.isContract(registryAddress), "registryAddress not a contract");
 
 		address oldSovrynSwapContractRegistryAddress = sovrynSwapContractRegistryAddress;
@@ -531,7 +575,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param wrbtcTokenAddress The address of the wrBTC contract.
 	 * */
-	function setWrbtcToken(address wrbtcTokenAddress) external onlyOwner {
+	function setWrbtcToken(address wrbtcTokenAddress) external onlyOwner whenNotPaused {
 		require(Address.isContract(wrbtcTokenAddress), "wrbtcTokenAddress not a contract");
 
 		address oldwrbtcToken = address(wrbtcToken);
@@ -545,7 +589,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param _protocolTokenAddress The address of the protocol token contract.
 	 * */
-	function setProtocolTokenAddress(address _protocolTokenAddress) external onlyOwner {
+	function setProtocolTokenAddress(address _protocolTokenAddress) external onlyOwner whenNotPaused {
 		require(Address.isContract(_protocolTokenAddress), "_protocolTokenAddress not a contract");
 
 		address oldProtocolTokenAddress = protocolTokenAddress;
@@ -559,7 +603,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param baseRewardValue The base reward.
 	 * */
-	function setRolloverBaseReward(uint256 baseRewardValue) external onlyOwner {
+	function setRolloverBaseReward(uint256 baseRewardValue) external onlyOwner whenNotPaused {
 		require(baseRewardValue > 0, "Base reward is zero");
 
 		uint256 oldValue = rolloverBaseReward;
@@ -573,13 +617,44 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 	 *
 	 * @param rebatePercent The fee rebate percent.
 	 * */
-	function setRebatePercent(uint256 rebatePercent) external onlyOwner {
+	function setRebatePercent(uint256 rebatePercent) external onlyOwner whenNotPaused {
 		require(rebatePercent <= 10**20, "Fee rebate is too high");
 
 		uint256 oldRebatePercent = feeRebatePercent;
 		feeRebatePercent = rebatePercent;
 
 		emit SetRebatePercent(msg.sender, oldRebatePercent, rebatePercent);
+	}
+
+	/**
+	 * @notice Set the special fee rebate percent for specific pair
+	 *
+	 * @param specialRebatesPercent The new special fee rebate percent.
+	 * */
+	function setSpecialRebates(
+		address sourceToken,
+		address destToken,
+		uint256 specialRebatesPercent
+	) external onlyOwner whenNotPaused {
+		// Set max special rebates to 1000%
+		require(specialRebatesPercent <= 1000e18, "Special fee rebate is too high");
+
+		uint256 oldSpecialRebatesPercent = specialRebates[sourceToken][destToken];
+		specialRebates[sourceToken][destToken] = specialRebatesPercent;
+
+		emit SetSpecialRebates(msg.sender, sourceToken, destToken, oldSpecialRebatesPercent, specialRebatesPercent);
+	}
+
+	/**
+	 * @notice Get a rebate percent of specific pairs.
+	 *
+	 * @param sourceTokenAddress The source of pairs.
+	 * @param destTokenAddress The dest of pairs.
+	 *
+	 * @return The percent rebates of the pairs.
+	 * */
+	function getSpecialRebates(address sourceTokenAddress, address destTokenAddress) external view returns (uint256 specialRebatesPercent) {
+		return specialRebates[sourceTokenAddress][destTokenAddress];
 	}
 
 	function getProtocolAddress() external view returns (address) {
@@ -592,5 +667,32 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents {
 
 	function getLockedSOVAddress() external view returns (address) {
 		return lockedSOVAddress;
+	}
+
+	function getFeeRebatePercent() external view returns (uint256) {
+		return feeRebatePercent;
+	}
+
+	function togglePaused(bool paused) external onlyOwner {
+		require(paused != pause, "Can't toggle");
+		pause = paused;
+		emit TogglePaused(msg.sender, !paused, paused);
+	}
+
+	function isProtocolPaused() external view returns (bool) {
+		return pause;
+	}
+
+	function getSwapExternalFeePercent() external view returns (uint256) {
+		return swapExtrernalFeePercent;
+	}
+
+	/**
+	 * @notice Get the basis point of trading rebate rewards.
+	 *
+	 * @return The basis point value.
+	 */
+	function getTradingRebateRewardsBasisPoint() external view returns (uint256) {
+		return tradingRebateRewardsBasisPoint;
 	}
 }

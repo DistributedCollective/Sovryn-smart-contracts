@@ -8,6 +8,7 @@ pragma experimental ABIEncoderV2;
 
 import "../core/State.sol";
 import "../events/LoanSettingsEvents.sol";
+import "../mixins/ModuleCommonFunctionalities.sol";
 
 /**
  * @title Loan Settings contract.
@@ -17,7 +18,7 @@ import "../events/LoanSettingsEvents.sol";
  *
  * This contract contains functions to get and set loan parameters.
  * */
-contract LoanSettings is State, LoanSettingsEvents {
+contract LoanSettings is State, LoanSettingsEvents, ModuleCommonFunctionalities {
 	/**
 	 * @notice Empty public constructor.
 	 * */
@@ -36,11 +37,14 @@ contract LoanSettings is State, LoanSettingsEvents {
 	 * @param target The address of the target contract.
 	 * */
 	function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.setupLoanParams.selector];
 		_setTarget(this.setupLoanParams.selector, target);
 		_setTarget(this.disableLoanParams.selector, target);
 		_setTarget(this.getLoanParams.selector, target);
 		_setTarget(this.getLoanParamsList.selector, target);
 		_setTarget(this.getTotalPrincipal.selector, target);
+		_setTarget(this.minInitialMargin.selector, target);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanSettings");
 	}
 
 	/**
@@ -53,7 +57,7 @@ contract LoanSettings is State, LoanSettingsEvents {
 	 *
 	 * @return loanParamsIdList The array of loan parameters IDs.
 	 * */
-	function setupLoanParams(LoanParams[] calldata loanParamsList) external returns (bytes32[] memory loanParamsIdList) {
+	function setupLoanParams(LoanParams[] calldata loanParamsList) external whenNotPaused returns (bytes32[] memory loanParamsIdList) {
 		loanParamsIdList = new bytes32[](loanParamsList.length);
 		for (uint256 i = 0; i < loanParamsList.length; i++) {
 			loanParamsIdList[i] = _setupLoanParams(loanParamsList[i]);
@@ -66,7 +70,7 @@ contract LoanSettings is State, LoanSettingsEvents {
 	 *
 	 * @param loanParamsIdList The array of loan parameters IDs to deactivate.
 	 * */
-	function disableLoanParams(bytes32[] calldata loanParamsIdList) external {
+	function disableLoanParams(bytes32[] calldata loanParamsIdList) external whenNotPaused {
 		for (uint256 i = 0; i < loanParamsIdList.length; i++) {
 			require(msg.sender == loanParams[loanParamsIdList[i]].owner, "unauthorized owner");
 			loanParams[loanParamsIdList[i]].active = false;
@@ -210,5 +214,9 @@ contract LoanSettings is State, LoanSettingsEvents {
 		emit LoanParamsIdSetup(loanParamsId, loanParamsLocal.owner);
 
 		return loanParamsId;
+	}
+
+	function minInitialMargin(bytes32 loanParamsId) external view returns (uint256) {
+		return loanParams[loanParamsId].minInitialMargin;
 	}
 }

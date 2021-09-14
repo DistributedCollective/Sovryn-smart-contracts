@@ -5,7 +5,9 @@
 
 pragma solidity 0.5.17;
 
-contract AffiliatesEvents {
+import "./ModulesCommonEvents.sol";
+
+contract AffiliatesEvents is ModulesCommonEvents {
 	event SetAffiliatesReferrer(address indexed user, address indexed referrer);
 
 	event SetAffiliatesReferrerFail(address indexed user, address indexed referrer, bool alreadySet, bool userNotFirstTrade);
@@ -14,6 +16,7 @@ contract AffiliatesEvents {
 
 	event PayTradingFeeToAffiliate(
 		address indexed referrer,
+		address trader,
 		address indexed token,
 		bool indexed isHeld,
 		uint256 tradingFeeTokenAmount,
@@ -24,6 +27,7 @@ contract AffiliatesEvents {
 
 	event PayTradingFeeToAffiliateFail(
 		address indexed referrer,
+		address trader,
 		address indexed token,
 		uint256 tradingFeeTokenAmount,
 		uint256 tokenBonusAmount,

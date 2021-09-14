@@ -62,7 +62,8 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
 			[minSourceTokenAmount, maxSourceTokenAmount, requiredDestTokenAmount],
 			loanId,
 			bypassFee,
-			loanDataBytes
+			loanDataBytes,
+			false // swap external flag, set to false so that it will use the tradingFeePercent
 		);
 
 		/// Will revert if swap size too large.
@@ -99,7 +100,8 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
 		uint256[3] memory vals,
 		bytes32 loanId,
 		bool miscBool, /// bypassFee
-		bytes memory loanDataBytes
+		bytes memory loanDataBytes,
+		bool isSwapExternal
 	) internal returns (uint256, uint256) {
 		/// addrs[0]: sourceToken
 		/// addrs[1]: destToken
@@ -126,12 +128,18 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
 			if (vals[2] == 0) {
 				/// condition: vals[0] will always be used as sourceAmount
 
-				tradingFee = _getTradingFee(vals[0]);
+				if (isSwapExternal) {
+					tradingFee = _getSwapExternalFee(vals[0]);
+				} else {
+					tradingFee = _getTradingFee(vals[0]);
+				}
+
 				if (tradingFee != 0) {
 					_payTradingFee(
 						addrs[4], /// user
 						loanId,
-						addrs[0], /// sourceToken
+						addrs[0], /// sourceToken (feeToken)
+						addrs[1], /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
 						tradingFee
 					);
 
@@ -140,7 +148,11 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
 			} else {
 				/// Condition: unknown sourceAmount will be used.
 
-				tradingFee = _getTradingFee(vals[2]);
+				if (isSwapExternal) {
+					tradingFee = _getSwapExternalFee(vals[2]);
+				} else {
+					tradingFee = _getTradingFee(vals[2]);
+				}
 
 				if (tradingFee != 0) {
 					vals[2] = vals[2].add(tradingFee);
@@ -171,7 +183,8 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
 				_payTradingFee(
 					addrs[4], /// user
 					loanId, /// loanId,
-					addrs[1], /// destToken
+					addrs[1], /// destToken (feeToken)
+					addrs[0], /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
 					tradingFee
 				);
 
