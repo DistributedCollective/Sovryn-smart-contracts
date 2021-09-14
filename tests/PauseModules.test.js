@@ -1,5 +1,5 @@
-/** Speed optimization on branch hardhatTestRefactor, 2021-09-13
- * Greatests bottlenecks found at:
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-13
+ * Greatest bottlenecks found at:
  * 	- fixtureInitialize (3s)
  * 		Due to fixture load and a it contains a large deployment
  * 	- Pause LoanClosingBase test (267ms)
