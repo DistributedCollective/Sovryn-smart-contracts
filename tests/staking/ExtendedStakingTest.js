@@ -454,7 +454,7 @@ contract("Staking", (accounts) => {
 			let newTime = await getTimeFromKickoff(TWO_WEEKS);
 			await expectRevert(
 				staking.extendStakingDuration(lockedTS, newTime),
-				"Staking::extendStakingDuration: cannot reduce the staking duration"
+				"cannot reduce the staking duration"
 			);
 		});
 
@@ -544,7 +544,7 @@ contract("Staking", (accounts) => {
 
 			await expectRevert(
 				staking.stake("0", lockTS, root, root),
-				"Staking::stake: amount of tokens to stake needs to be bigger than 0"
+				"amount needs to be bigger than 0"
 			);
 		});
 
@@ -565,7 +565,7 @@ contract("Staking", (accounts) => {
 			await staking.stake(amount, lockTS, root, root);
 
 			let maxValue = new BN(2).pow(new BN(96)).sub(new BN(1));
-			await expectRevert(staking.stake(maxValue.sub(new BN(100)), lockTS, root, root), "Staking::increaseStake: balance overflow");
+			await expectRevert(staking.stake(maxValue.sub(new BN(100)), lockTS, root, root), "overflow");
 		});
 
 		it("Should be able to increase stake", async () => {

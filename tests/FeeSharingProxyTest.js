@@ -223,14 +223,12 @@ contract("FeeSharingProxy:", (accounts) => {
 			// let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 			await protocol.setFeesController(root);
 			let tx = await protocol.withdrawFees([susd.address], account1);
-			let swapFee = totalFeeTokensHeld.mul(tradingFeePercent).div(new BN(wei("100", "ether"))); // 100 ether is for the percentage
 
-			await checkWithdrawFee(swapFee);
+			await checkWithdrawFee();
 
 			//check wrbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
 			let userBalance = await wrbtc.balanceOf.call(account1);
-			let wrbtcBalanceShouldBe = feeAmount.mul(new BN(mockPrice)).sub(swapFee);
-			expect(userBalance.toString()).to.be.equal(wrbtcBalanceShouldBe.toString());
+			expect(userBalance.toString()).to.be.equal(feeAmount.toString());
 
 			expectEvent(tx, "WithdrawFees", {
 				sender: root,
@@ -256,14 +254,12 @@ contract("FeeSharingProxy:", (accounts) => {
 			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
 
 			tx = await feeSharingProxy.withdrawFees([susd.address]);
-			let swapFee = totalFeeTokensHeld.mul(tradingFeePercent).div(new BN(wei("100", "ether")));
 
-			await checkWithdrawFee(swapFee);
+			await checkWithdrawFee();
 
 			//check wrbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
 			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
-			let loanTokenWRBTCBalanceShouldBe = feeAmount.mul(new BN(mockPrice)).sub(swapFee);
-			expect(feeSharingProxyBalance.toString()).to.be.equal(loanTokenWRBTCBalanceShouldBe.toString());
+			expect(feeSharingProxyBalance.toString()).to.be.equal(feeAmount.toString());
 
 			//checkpoints
 			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanTokenWrbtc.address);
@@ -271,7 +267,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			let checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanTokenWrbtc.address, 0);
 			expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
-			expect(checkpoint.numTokens.toString()).to.be.equal(loanTokenWRBTCBalanceShouldBe.toString());
+			expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
 
 			//check lastFeeWithdrawalTime
 			let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanTokenWrbtc.address);
@@ -281,7 +277,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			expectEvent(tx, "FeeWithdrawn", {
 				sender: root,
 				token: loanTokenWrbtc.address,
-				amount: loanTokenWRBTCBalanceShouldBe,
+				amount: feeAmount,
 			});
 		});
 
@@ -301,17 +297,15 @@ contract("FeeSharingProxy:", (accounts) => {
 			let borrowingFeeTokensHeld = new BN(wei(mockAmountBorrowingFeeTokensHeld.toString(), "ether"));
 			let totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
 			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
+			let totalFeeAmount = feeAmount;
 
 			let tx = await feeSharingProxy.withdrawFees([susd.address]);
-			let swapFee = totalFeeTokensHeld.mul(tradingFeePercent).div(new BN(wei("100", "ether")));
 
-			await checkWithdrawFee(swapFee);
+			await checkWithdrawFee();
 
 			//check wrbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
 			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
-			let loanTokenWRBTCBalanceShouldBe = feeAmount.mul(new BN(mockPrice)).sub(swapFee);
-			let totalLoanTokenWRBTCBalanceShouldBe = loanTokenWRBTCBalanceShouldBe;
-			expect(feeSharingProxyBalance.toString()).to.be.equal(totalLoanTokenWRBTCBalanceShouldBe.toString());
+			expect(feeSharingProxyBalance.toString()).to.be.equal(feeAmount.toString());
 
 			//checkpoints
 			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanTokenWrbtc.address);
@@ -319,7 +313,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			let checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanTokenWrbtc.address, 0);
 			expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
-			expect(checkpoint.numTokens.toString()).to.be.equal(loanTokenWRBTCBalanceShouldBe.toString());
+			expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
 
 			//check lastFeeWithdrawalTime
 			let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanTokenWrbtc.address);
@@ -337,20 +331,17 @@ contract("FeeSharingProxy:", (accounts) => {
 			borrowingFeeTokensHeld = new BN(mockAmountBorrowingFeeTokensHeld2);
 			totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
 			feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
+			let unprocessedAmount = feeAmount;
+			totalFeeAmount = totalFeeAmount.add(feeAmount);
 
 			tx = await feeSharingProxy.withdrawFees([susd.address]);
-			// In this state the price of susd/wrbtc already adjusted because of previous swap, so we need to consider this in the next swapFee calculation
-			swapFee = totalFeeTokensHeld.mul(tradingFeePercent).div(new BN(wei("100", "ether")));
 
 			// Need to checkwithdrawfee manually
-			checkWithdrawFeeAfterPriceChanged(swapFee, new BN(totalMockAmount1 + totalMockAmount2));
+			await checkWithdrawFee();
 
 			//check wrbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
 			feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
-			loanTokenWRBTCBalanceShouldBe = feeAmount.mul(new BN(mockPrice)).sub(swapFee);
-			totalLoanTokenWRBTCBalanceShouldBe = totalLoanTokenWRBTCBalanceShouldBe.add(loanTokenWRBTCBalanceShouldBe);
-			let unprocessedAmount = loanTokenWRBTCBalanceShouldBe;
-			expect(feeSharingProxyBalance.toString()).to.be.equal(totalLoanTokenWRBTCBalanceShouldBe.toString());
+			expect(feeSharingProxyBalance.toString()).to.be.equal(totalFeeAmount.toString());
 
 			//[THIRD]
 			//mock data
@@ -363,18 +354,16 @@ contract("FeeSharingProxy:", (accounts) => {
 			borrowingFeeTokensHeld = new BN(wei(mockAmountBorrowingFeeTokensHeld3.toString(), "ether"));
 			totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
 			feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
+			totalFeeAmount = totalFeeAmount.add(feeAmount);
 
 			await increaseTime(FEE_WITHDRAWAL_INTERVAL);
 			tx = await feeSharingProxy.withdrawFees([susd.address]);
 			// In this state the price of susd/wrbtc already adjusted because of previous swap, so we need to consider this in the next swapFee calculation
-			swapFee = totalFeeTokensHeld.mul(tradingFeePercent).div(new BN(wei("100", "ether")));
-			await checkWithdrawFeeAfterPriceChanged(swapFee, new BN(totalMockAmount1 + totalMockAmount2 + totalMockAmount3));
+			await checkWithdrawFee();
 
 			//check wrbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
 			feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
-			loanTokenWRBTCBalanceShouldBe = feeAmount.mul(new BN(mockPrice)).sub(swapFee);
-			totalLoanTokenWRBTCBalanceShouldBe = totalLoanTokenWRBTCBalanceShouldBe.add(loanTokenWRBTCBalanceShouldBe);
-			expect(feeSharingProxyBalance.toString()).to.be.equal(totalLoanTokenWRBTCBalanceShouldBe.toString());
+			expect(feeSharingProxyBalance.toString()).to.be.equal(totalFeeAmount.toString());
 
 			//checkpoints
 			numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanTokenWrbtc.address);
@@ -382,7 +371,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanTokenWrbtc.address, 1);
 			expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
-			expect(checkpoint.numTokens.toString()).to.be.equal(loanTokenWRBTCBalanceShouldBe.add(unprocessedAmount).toString());
+			expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.add(unprocessedAmount).toString());
 
 			// //check lastFeeWithdrawalTime
 			lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanTokenWrbtc.address);
@@ -530,10 +519,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			await feeSharingProxy.withdrawFees([susd.address]);
 
 			let fees = await feeSharingProxy.getAccumulatedFees(account1, loanTokenWrbtc.address);
-			console.log(fees.toString());
-			let swapFee = totalFeeTokensHeld.mul(tradingFeePercent).div(new BN(wei("100", "ether")));
-			loanTokenWRBTCBalanceShouldBe = feeAmount.mul(new BN(mockPrice)).sub(swapFee);
-			expect(fees).to.be.bignumber.equal(loanTokenWRBTCBalanceShouldBe.mul(new BN(3)).div(new BN(10)));
+			expect(fees).to.be.bignumber.equal(new BN(feeAmount).mul(new BN(3)).div(new BN(10)));
 
 			let tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 1000, account2, { from: account1 });
 
@@ -545,7 +531,7 @@ contract("FeeSharingProxy:", (accounts) => {
 				sender: account1,
 				receiver: account2,
 				token: loanTokenWrbtc.address,
-				amount: loanTokenWRBTCBalanceShouldBe.mul(new BN(3)).div(new BN(10)),
+				amount: new BN(feeAmount).mul(new BN(3)).div(new BN(10)),
 			});
 		});
 
@@ -616,9 +602,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			await feeSharingProxy.withdrawFees([susd.address]);
 
 			let fees = await feeSharingProxy.getAccumulatedFees(account1, loanTokenWrbtc.address);
-			let swapFee = totalFeeTokensHeld.mul(tradingFeePercent).div(new BN(wei("100", "ether")));
-			loanTokenWRBTCBalanceShouldBe = feeAmount.mul(new BN(mockPrice)).sub(swapFee);
-			expect(fees).to.be.bignumber.equal(loanTokenWRBTCBalanceShouldBe.mul(new BN(3)).div(new BN(10)));
+			expect(fees).to.be.bignumber.equal(feeAmount.mul(new BN(3)).div(new BN(10)));
 
 			let userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
 			let tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 10, ZERO_ADDRESS, { from: account1 });
@@ -632,20 +616,20 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			//check balances
 			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
-			expect(feeSharingProxyBalance.toNumber()).to.be.equal((loanTokenWRBTCBalanceShouldBe * 7) / 10);
+			expect(feeSharingProxyBalance.toNumber()).to.be.equal((feeAmount * 7) / 10);
 			let userLoanTokenBalance = await loanTokenWrbtc.balanceOf.call(account1);
 			expect(userLoanTokenBalance.toNumber()).to.be.equal(0);
 
 			let userLatestBTCBalance = new BN(await web3.eth.getBalance(account1));
 			expect(userLatestBTCBalance.toString()).to.be.equal(
-				userInitialBtcBalance.add(loanTokenWRBTCBalanceShouldBe.mul(new BN(3)).div(new BN(10))).toString()
+				userInitialBtcBalance.add(feeAmount.mul(new BN(3)).div(new BN(10))).toString()
 			);
 
 			expectEvent(tx, "UserFeeWithdrawn", {
 				sender: account1,
 				receiver: account1,
 				token: loanTokenWrbtc.address,
-				amount: loanTokenWRBTCBalanceShouldBe.mul(new BN(3)).div(new BN(10)),
+				amount: feeAmount.mul(new BN(3)).div(new BN(10)),
 			});
 		});
 
@@ -668,11 +652,8 @@ contract("FeeSharingProxy:", (accounts) => {
 			let borrowingFeeTokensHeld = new BN(wei("3", "gwei"));
 			let totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
 			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
+			let totalFeeAmount = feeAmount;
 			await feeSharingProxy.withdrawFees([susd.address]);
-
-			let swapFee = totalFeeTokensHeld.mul(tradingFeePercent).div(new BN(wei("100", "ether")));
-			let loanTokenWRBTCBalanceShouldBe = feeAmount.mul(new BN(mockPrice)).sub(swapFee);
-			let totalLoanTokenWRBTCBalanceShouldBe = loanTokenWRBTCBalanceShouldBe;
 
 			let userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
 			let tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 1, ZERO_ADDRESS, { from: account1 });
@@ -686,13 +667,13 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			//check balances
 			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
-			expect(feeSharingProxyBalance.toNumber()).to.be.equal((totalLoanTokenWRBTCBalanceShouldBe * 9) / 10);
+			expect(feeSharingProxyBalance.toNumber()).to.be.equal((totalFeeAmount * 9) / 10);
 			let userBalance = await loanTokenWrbtc.balanceOf.call(account1);
 			expect(userBalance.toNumber()).to.be.equal(0);
 
 			let userLatestBTCBalance = new BN(await web3.eth.getBalance(account1));
 			expect(userLatestBTCBalance.toString()).to.be.equal(
-				userInitialBtcBalance.add(loanTokenWRBTCBalanceShouldBe.mul(new BN(1)).div(new BN(10))).toString()
+				userInitialBtcBalance.add(totalFeeAmount.mul(new BN(1)).div(new BN(10))).toString()
 			);
 
 			// [SECOND]
@@ -702,13 +683,10 @@ contract("FeeSharingProxy:", (accounts) => {
 			let borrowingFeeTokensHeld2 = new BN(wei("3", "gwei"));
 			totalFeeTokensHeld = lendingFeeTokensHeld2.add(tradingFeeTokensHeld2).add(borrowingFeeTokensHeld2);
 			feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld2, tradingFeeTokensHeld2, borrowingFeeTokensHeld2);
+			totalFeeAmount = totalFeeAmount.add(feeAmount);
+			let totalLoanTokenWRBTCBalanceShouldBeAccount1 = feeAmount;
 			await increaseTime(FEE_WITHDRAWAL_INTERVAL);
 			await feeSharingProxy.withdrawFees([susd.address]);
-
-			swapFee = totalFeeTokensHeld.mul(tradingFeePercent).div(new BN(wei("100", "ether")));
-			loanTokenWRBTCBalanceShouldBe = feeAmount.mul(new BN(mockPrice)).sub(swapFee);
-			totalLoanTokenWRBTCBalanceShouldBe = totalLoanTokenWRBTCBalanceShouldBe.add(loanTokenWRBTCBalanceShouldBe);
-			let totalLoanTokenWRBTCBalanceShouldBeAccount1 = loanTokenWRBTCBalanceShouldBe;
 
 			// [THIRD]
 			//mock data
@@ -717,13 +695,10 @@ contract("FeeSharingProxy:", (accounts) => {
 			let borrowingFeeTokensHeld3 = new BN(wei("3", "gwei"));
 			totalFeeTokensHeld = lendingFeeTokensHeld3.add(tradingFeeTokensHeld3).add(borrowingFeeTokensHeld3);
 			feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld3, tradingFeeTokensHeld3, borrowingFeeTokensHeld3);
+			totalFeeAmount = totalFeeAmount.add(feeAmount);
+			totalLoanTokenWRBTCBalanceShouldBeAccount1 = totalLoanTokenWRBTCBalanceShouldBeAccount1.add(feeAmount);
 			await increaseTime(FEE_WITHDRAWAL_INTERVAL);
 			await feeSharingProxy.withdrawFees([susd.address]);
-
-			swapFee = totalFeeTokensHeld.mul(tradingFeePercent).div(new BN(wei("100", "ether")));
-			loanTokenWRBTCBalanceShouldBe = feeAmount.mul(new BN(mockPrice)).sub(swapFee);
-			totalLoanTokenWRBTCBalanceShouldBe = totalLoanTokenWRBTCBalanceShouldBe.add(loanTokenWRBTCBalanceShouldBe);
-			totalLoanTokenWRBTCBalanceShouldBeAccount1 = totalLoanTokenWRBTCBalanceShouldBeAccount1.add(loanTokenWRBTCBalanceShouldBe);
 
 			// [SECOND] - [THIRD]
 			userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
@@ -739,7 +714,7 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			//check balances
 			feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
-			expect(feeSharingProxyBalance.toNumber()).to.be.equal(parseInt((totalLoanTokenWRBTCBalanceShouldBe * 9) / 10));
+			expect(feeSharingProxyBalance.toNumber()).to.be.equal(parseInt((totalFeeAmount * 9) / 10));
 			userBalance = await loanTokenWrbtc.balanceOf.call(account1);
 			expect(userBalance.toNumber()).to.be.equal(0);
 
@@ -978,24 +953,13 @@ contract("FeeSharingProxy:", (accounts) => {
 		return totalFeeAmount;
 	}
 
-	async function checkWithdrawFee(swapFee) {
+	async function checkWithdrawFee() {
 		let protocolBalance = await susd.balanceOf(protocol.address);
-		expect(protocolBalance.toNumber()).to.be.equal(swapFee.toNumber());
+		expect(protocolBalance.toNumber()).to.be.equal(0);
 		let lendingFeeTokensHeld = await protocol.lendingFeeTokensHeld.call(susd.address);
 		expect(lendingFeeTokensHeld.toNumber()).to.be.equal(0);
 		let tradingFeeTokensHeld = await protocol.tradingFeeTokensHeld.call(susd.address);
-		expect(tradingFeeTokensHeld.toNumber()).to.be.equal(swapFee.toNumber());
-		let borrowingFeeTokensHeld = await protocol.borrowingFeeTokensHeld.call(susd.address);
-		expect(borrowingFeeTokensHeld.toNumber()).to.be.equal(0);
-	}
-
-	async function checkWithdrawFeeAfterPriceChanged(swapFee, priceMultiplier) {
-		let protocolBalance = await susd.balanceOf(protocol.address);
-		expect(protocolBalance.toNumber()).to.be.equal(swapFee.mul(priceMultiplier).toNumber());
-		let lendingFeeTokensHeld = await protocol.lendingFeeTokensHeld.call(susd.address);
-		expect(lendingFeeTokensHeld.toNumber()).to.be.equal(0);
-		let tradingFeeTokensHeld = await protocol.tradingFeeTokensHeld.call(susd.address);
-		expect(tradingFeeTokensHeld.toNumber()).to.be.equal(swapFee.toNumber());
+		expect(tradingFeeTokensHeld.toNumber()).to.be.equal(0);
 		let borrowingFeeTokensHeld = await protocol.borrowingFeeTokensHeld.call(susd.address);
 		expect(borrowingFeeTokensHeld.toNumber()).to.be.equal(0);
 	}

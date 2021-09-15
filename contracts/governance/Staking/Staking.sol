@@ -79,7 +79,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address delegatee,
 		bool timeAdjusted
 	) internal {
-		require(amount > 0, "Staking::stake: amount of tokens to stake needs to be bigger than 0");
+		require(amount > 0, "amount needs to be bigger than 0");
 
 		if (!timeAdjusted) {
 			until = timestampToLockDate(until);
@@ -120,7 +120,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 			_decreaseDelegateStake(previousDelegatee, until, previousBalance);
 
 			/// @dev Add previousBalance to amount.
-			amount = add96(previousBalance, amount, "Staking::stake: balance overflow");
+			amount = add96(previousBalance, amount, "balance overflow");
 		}
 
 		/// @dev Increase stake.
@@ -135,7 +135,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * */
 	function extendStakingDuration(uint256 previousLock, uint256 until) public {
 		until = timestampToLockDate(until);
-		require(previousLock <= until, "Staking::extendStakingDuration: cannot reduce the staking duration");
+		require(previousLock <= until, "cannot reduce the staking duration");
 
 		/// @dev Do not exceed the max duration, no overflow possible.
 		uint256 latest = timestampToLockDate(block.timestamp + MAX_DURATION);
@@ -144,13 +144,13 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		/// @dev Update checkpoints.
 		/// @dev TODO James: Can reading stake at block.number -1 cause trouble with multiple tx in a block?
 		uint96 amount = _getPriorUserStakeByDate(msg.sender, previousLock, block.number - 1);
-		require(amount > 0, "Staking::extendStakingDuration: nothing staked until the previous lock date");
+		require(amount > 0, "nothing staked until the previous lock date");
 		_decreaseUserStake(msg.sender, previousLock, amount);
 		_increaseUserStake(msg.sender, until, amount);
 
 		if (isVestingContract(msg.sender)) {
 			_decreaseVestingStake(previousLock, amount);
-			_setVestingStake(until, amount);
+			_increaseVestingStake(until, amount);
 		}
 
 		_decreaseDailyStake(previousLock, amount);
@@ -189,13 +189,13 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 		/// @dev Increase staked balance.
 		uint96 balance = currentBalance(stakeFor, until);
-		balance = add96(balance, amount, "Staking::increaseStake: balance overflow");
+		balance = add96(balance, amount, "overflow");
 
 		/// @dev Update checkpoints.
 		_increaseDailyStake(until, amount);
 		_increaseUserStake(stakeFor, until, amount);
 
-		if (isVestingContract(stakeFor)) _setVestingStake(until, amount);
+		if (isVestingContract(stakeFor)) _increaseVestingStake(until, amount);
 
 		emit TokensStaked(stakeFor, amount, until, balance);
 	}
