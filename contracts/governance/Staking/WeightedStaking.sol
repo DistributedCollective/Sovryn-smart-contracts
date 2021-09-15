@@ -28,8 +28,8 @@ contract WeightedStaking is Checkpoints {
 	/**
 	 * @notice sets vesting registry
 	 * @param _vestingRegistryProxy the address of vesting registry proxy contract
-	 * @dev _vestingRegistryProxy can be set to 0 as this functionality can be reused by
-	 * various other functionalities without the necessity of linking it with Staking
+	 * @dev _vestingRegistryProxy can be set to 0 as this function can be reused by
+	 * various other functionalities without the necessity of linking it with Vesting Registry
 	 */
 	function setVestingRegistry(address _vestingRegistryProxy) external onlyOwner {
 		vestingRegistryLogic = VestingRegistryLogic(_vestingRegistryProxy);

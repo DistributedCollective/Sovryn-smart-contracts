@@ -28,7 +28,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 	/**
 	 * @notice sets staking rewards
-	 * @dev _stakingRewardsProxy can be set to 0 as this functionality can be reused by
+	 * @dev _stakingRewardsProxy can be set to 0 as this function can be reused by
 	 * various other functionalities without the necessity of linking it with Staking Rewards
 	 * @param _stakingRewardsProxy the address of staking rewards proxy contract
 	 */
@@ -136,7 +136,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		/// @dev Increase stake.
 		_increaseDelegateStake(delegatee, until, amount);
 		emit DelegateChanged(stakeFor, until, previousDelegatee, delegatee);
-		if (isVestingContract(msg.sender) == false) {
+		if (!isVestingContract(msg.sender)) {
 			_updateRewards();
 		}
 	}
@@ -181,7 +181,9 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		_increaseDelegateStake(delegateTo, until, amount);
 
 		emit ExtendedStakingDuration(msg.sender, previousLock, until, amount);
-		_updateRewards();
+		if (!isVestingContract(msg.sender)) {
+			_updateRewards();
+		}
 	}
 
 	/**
@@ -362,7 +364,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		require(success, "Token transfer failed");
 
 		emit StakingWithdrawn(msg.sender, amount, until, receiver, isGovernance);
-		if (isVestingContract(msg.sender) == false) {
+		if (!isVestingContract(msg.sender)) {
 			_updateRewards();
 		}
 	}
