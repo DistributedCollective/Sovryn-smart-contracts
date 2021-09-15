@@ -452,10 +452,7 @@ contract("Staking", (accounts) => {
 			await staking.stake(amount, lockedTS, root, root);
 
 			let newTime = await getTimeFromKickoff(TWO_WEEKS);
-			await expectRevert(
-				staking.extendStakingDuration(lockedTS, newTime),
-				"cannot reduce the staking duration"
-			);
+			await expectRevert(staking.extendStakingDuration(lockedTS, newTime), "cannot reduce the staking duration");
 		});
 
 		it("Do not exceed the max duration", async () => {
@@ -542,10 +539,7 @@ contract("Staking", (accounts) => {
 			let lockTS = await getTimeFromKickoff(duration);
 			await staking.stake(amount, lockTS, root, root);
 
-			await expectRevert(
-				staking.stake("0", lockTS, root, root),
-				"amount needs to be bigger than 0"
-			);
+			await expectRevert(staking.stake("0", lockTS, root, root), "amount needs to be bigger than 0");
 		});
 
 		it("Amount of tokens to stake needs to be bigger than 0", async () => {
