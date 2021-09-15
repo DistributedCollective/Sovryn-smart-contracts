@@ -136,9 +136,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		/// @dev Increase stake.
 		_increaseDelegateStake(delegatee, until, amount);
 		emit DelegateChanged(stakeFor, until, previousDelegatee, delegatee);
-		if (!isVestingContract(msg.sender)) {
 			_updateRewards();
-		}
 	}
 
 	/**
@@ -181,9 +179,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		_increaseDelegateStake(delegateTo, until, amount);
 
 		emit ExtendedStakingDuration(msg.sender, previousLock, until, amount);
-		if (!isVestingContract(msg.sender)) {
 			_updateRewards();
-		}
 	}
 
 	/**
@@ -364,9 +360,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		require(success, "Token transfer failed");
 
 		emit StakingWithdrawn(msg.sender, amount, until, receiver, isGovernance);
-		if (!isVestingContract(msg.sender)) {
 			_updateRewards();
-		}
 	}
 
 	// @dev withdraws tokens for lock date 2 weeks later than given lock date
@@ -392,7 +386,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * when additional staking, withdrawal or extending duration etc.
 	 * */
 	function _updateRewards() internal {
-		if (address(stakingRewards) != address(0)) {
+		if (address(stakingRewards) != address(0) && !isVestingContract(msg.sender)) {
 			stakingRewards.updateRewards(msg.sender);
 		}
 	}
