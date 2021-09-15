@@ -8,6 +8,9 @@ const StakingLogic = artifacts.require("StakingMockOld");
 const StakingProxy = artifacts.require("StakingProxy");
 const StakingRewards = artifacts.require("StakingRewardsMockUpOld");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
+//Upgradable Vesting Registry
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 const Protocol = artifacts.require("sovrynProtocol");
 const BlockMockUp = artifacts.require("BlockMockUp");
