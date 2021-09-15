@@ -10,7 +10,7 @@
  * Other minor optimizations:
  *  - removed unused lines of code
  *  - reformatted code comments
- * 
+ *
  * Notes:
  *   StakingRewards test suite takes around 30 seconds to run. Contract deployment is
  *   only performed at first step, the before hook, and never again, so fixture strategy
@@ -101,7 +101,6 @@ contract("StakingRewards", (accounts) => {
 		await stakingRewards.setBlockMockUpAddr(blockMockUp.address);
 		await staking.setBlockMockUpAddr(blockMockUp.address);
 	});
-
 
 	describe("Flow - StakingRewards", () => {
 		it("should revert if SOV Address is not a contract address", async () => {

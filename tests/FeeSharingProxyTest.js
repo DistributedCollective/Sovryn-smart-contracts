@@ -7,7 +7,7 @@
  * Other minor optimizations:
  *  - removed unused lines of code
  *  - reformatted code comments
- * 
+ *
  * Notes:
  *   Deployment on beforeEach has been sensibly improved by using a Waffle mixture
  *   that snapshots the repeating scenarios.
@@ -573,17 +573,17 @@ contract("FeeSharingProxy:", (accounts) => {
 		// }
 		// await SOVToken.transfer(account1, userStake);
 		// await stake(userStake, account1);
-		// 
+		//
 		// // mock data
 		// await createCheckpoints(30);
-		// 
+		//
 		// let tx = await feeSharingProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, {from: account1});
 		// console.log("\nwithdraw(checkpoints = 30).gasUsed: " + tx.receipt.gasUsed);
 		// // processedCheckpoints
 		// let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
 		// expect(processedCheckpoints.toNumber()).to.be.equal(30);
 		// });
-		// 
+		//
 		// use for gas usage tests
 		// it("Should be able to process 100 checkpoints", async () => {
 		// // stake - getPriorTotalVotingPower
@@ -594,37 +594,37 @@ contract("FeeSharingProxy:", (accounts) => {
 		// }
 		// await SOVToken.transfer(account1, userStake);
 		// await stake(userStake, account1);
-		// 
+		//
 		// // mock data
 		// await createCheckpoints(100);
-		// 
+		//
 		// let tx = await feeSharingProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, {from: account1});
 		// console.log("\nwithdraw(checkpoints = 500).gasUsed: " + tx.receipt.gasUsed);
 		// // processedCheckpoints
 		// let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
 		// expect(processedCheckpoints.toNumber()).to.be.equal(100);
 		// });
-		// 
+		//
 		// use for gas usage tests
 		// it("Should be able to withdraw when staking contains a lot of checkpoints", async () => {
 		// let checkpointCount = 1000;
 		// await stake(1000, root, checkpointCount);
 		// let afterBlock = await blockNumber();
 		// console.log(afterBlock);
-		// 
+		//
 		// let kickoffTS = await staking.kickoffTS.call();
 		// let stakingDate = kickoffTS.add(new BN(MAX_DURATION));
-		// 
+		//
 		// let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints.call(root, stakingDate);
 		// let firstCheckpoint = await staking.userStakingCheckpoints.call(root, stakingDate, 0);
 		// let lastCheckpoint = await staking.userStakingCheckpoints.call(root, stakingDate, numUserStakingCheckpoints - 1);
 		// let block1 = firstCheckpoint.fromBlock.toNumber() + 1;
 		// let block2 = lastCheckpoint.fromBlock;
-		// 
+		//
 		// console.log("numUserStakingCheckpoints = " + numUserStakingCheckpoints.toString());
 		// console.log("first = " + firstCheckpoint.fromBlock.toString());
 		// console.log("last = " + lastCheckpoint.fromBlock.toString());
-		// 
+		//
 		// let tx = await staking.calculatePriorWeightedStake(root, block1, stakingDate);
 		// console.log("\ncalculatePriorWeightedStake(checkpoints = " + checkpointCount + ").gasUsed: " + tx.receipt.gasUsed);
 		// tx = await staking.calculatePriorWeightedStake(root, block2, stakingDate);

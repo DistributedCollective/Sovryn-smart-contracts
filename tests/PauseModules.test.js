@@ -12,7 +12,7 @@
  *  - removed two redundant SOV deployments
  *  - reformatted code comments
  *  - reordered external modules apart from local variables
- * 
+ *
  * Notes:
  * 	Previous optimization by Tyrone adding a waffle fixture (loadFixture)
  *  improved a 20% the code speed:
