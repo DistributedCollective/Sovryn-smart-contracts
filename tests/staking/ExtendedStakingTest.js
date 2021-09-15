@@ -130,7 +130,7 @@ contract("Staking", (accounts) => {
 
 	describe("stake", () => {
 		it("Amount should be positive", async () => {
-			await expectRevert(staking.stake(0, inOneWeek, root, root), "amount of tokens to stake needs to be bigger than 0");
+			await expectRevert(staking.stake(0, inOneWeek, root, root), "amount needs to be bigger than 0");
 		});
 
 		it("Amount should be approved", async () => {
