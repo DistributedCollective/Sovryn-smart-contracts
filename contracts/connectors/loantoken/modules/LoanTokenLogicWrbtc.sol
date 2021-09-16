@@ -115,6 +115,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
 	 * @return msgValue The amount of value sent.
 	 * */
 	function _verifyTransfers(
+		address sender,
 		address collateralTokenAddress,
 		address[4] memory sentAddresses,
 		uint256[5] memory sentAmounts,
@@ -143,7 +144,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
 		}
 
 		if (collateralTokenSent != 0) {
-			_safeTransferFrom(collateralTokenAddress, msg.sender, sovrynContractAddress, collateralTokenSent, "28");
+			_safeTransferFrom(collateralTokenAddress, sender, sovrynContractAddress, collateralTokenSent, "28");
 		}
 
 		if (loanTokenSent != 0) {
@@ -152,7 +153,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
 				_safeTransfer(_loanTokenAddress, sovrynContractAddress, loanTokenSent, "29");
 				msgValue -= loanTokenSent;
 			} else {
-				_safeTransferFrom(_loanTokenAddress, msg.sender, sovrynContractAddress, loanTokenSent, "29");
+				_safeTransferFrom(_loanTokenAddress, sender, sovrynContractAddress, loanTokenSent, "29");
 			}
 		}
 	}
