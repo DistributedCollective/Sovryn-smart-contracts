@@ -1,6 +1,7 @@
 /** Speed optimized on branch hardhatTestRefactor, 2021-09-17
  * Greatest bottlenecks found at:
- * 	-     ✓ Affiliates Referrer withdraw fees in two tokens works correctly with min referrals to payout is 0 (943ms)
+ * 	- Affiliates Referrer withdraw fees in two tokens... (943ms)
+ *  - Repeated code when calling loanTokenV2.marginTradeAffiliate
  * Total time elapsed: 22s
  * After optimization: 7s
  *
@@ -8,7 +9,12 @@
  * - removed unused modules and lines of code
  * - reformatted code comments
  *
- * Notes: Applied fixture to avoid redeployment and redundant setups
+ * Notes: Applied fixture to avoid redeployment and redundant setups.
+ * loanTokenV2.marginTradeAffiliate could have been added to the fixture
+ *   and saved up to 7 redundant setups, but some of the tests are running
+ *   a different scenario setting sovryn.setMinReferralsToPayoutAffiliates
+ *   to 1 before running the trade. It would have been a complex optimization
+ *   to get an improvement of 1s as much. So, it has been disregarded.
  *
  */
 
