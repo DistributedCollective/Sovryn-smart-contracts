@@ -9,7 +9,7 @@
  * - reformatted code comments
  *
  * Notes: Applied fixture to avoid redeployment and redundant setups
- *  
+ *
  */
 
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
@@ -64,7 +64,7 @@ contract("Affiliates", (accounts) => {
 	let loanTokenV2;
 	let feeds;
 	let wei = web3.utils.toWei;
-	
+
 	let swapsSovryn;
 
 	async function deploymentAndInitFixture(_wallets, _provider) {

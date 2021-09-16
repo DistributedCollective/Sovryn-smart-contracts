@@ -10,7 +10,7 @@
  *  - reformatted code comments
  *
  * Notes: Used waffle fixture to snapshot deployment scenarios.
- *   
+ *
  */
 
 const { BN, constants, expectEvent } = require("@openzeppelin/test-helpers");
@@ -71,8 +71,7 @@ contract("Affiliates", (accounts) => {
 
 	let loanTokenSent;
 	let leverageAmount;
-	let referrerFee
-
+	let referrerFee;
 
 	async function deploymentAndInitFixture(_wallets, _provider) {
 		const provider = waffle.provider;
@@ -133,7 +132,7 @@ contract("Affiliates", (accounts) => {
 			(await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])).address
 		);
 		lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
-	
+
 		// initialize
 		/// @dev Optimization: Init same feeds for all tests
 
@@ -245,10 +244,7 @@ contract("Affiliates", (accounts) => {
 			new BN(2).mul(new BN(testToken1Price).div(new BN(testToken2Price)).mul(new BN(wei("1", "ether")))).toString()
 		);
 
-
-
 		/// @dev Optimization: Init same swap pool for all tests
-
 
 		swapsSovryn = await SwapsImplSovrynSwap.new();
 		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
@@ -312,11 +308,7 @@ contract("Affiliates", (accounts) => {
 		// Giving some SOV Token to sovrynAddress (For affiliates rewards purposes)
 		await tokenSOV.mint(sovryn.address, wei("500", "ether"));
 
-
-		
-
 		/// @dev Optimization: Init default affiliate for all tests
-
 
 		// Change the min referrals to payout to 3 for testing purposes
 		await sovryn.setMinReferralsToPayoutAffiliates(3);
@@ -377,7 +369,7 @@ contract("Affiliates", (accounts) => {
 
 		expect(submittedReferrer).to.eql(referrer);
 		expect(submittedTrader).to.eql(trader);
-	};
+	}
 
 	before(async () => {
 		[owner, trader, referrer, account1, account2, ...accounts] = accounts;
@@ -388,7 +380,7 @@ contract("Affiliates", (accounts) => {
 	});
 
 	it("Test affiliates integration with underlying token", async () => {
-/*
+		/*
 		/// @dev Optimization: Removed default affiliate init for specific test, relayed to beforeEach hook
 
 		// Change the min referrals to payout to 3 for testing purposes
@@ -525,7 +517,7 @@ contract("Affiliates", (accounts) => {
 	});
 
 	it("Test affiliates integration with underlying token with oracle v1Pool", async () => {
-/*
+		/*
 		/// @dev Optimization: Removed feeds init for specific test, relayed to beforeEach hook
 
 		feeds = await PriceFeeds.new(testWrbtc.address, tokenSOV.address, doc.address);
@@ -634,7 +626,7 @@ contract("Affiliates", (accounts) => {
 		);
 */
 
-/*
+		/*
 		/// @dev Optimization: Removed swap pool init for specific test, relayed to beforeEach hook
 
 		swapsSovryn = await SwapsImplSovrynSwap.new();
@@ -652,7 +644,7 @@ contract("Affiliates", (accounts) => {
 		await sovryn.setSOVTokenAddress(tokenSOV.address);
 */
 
-/*
+		/*
 		/// @dev Optimization: Removed default affiliate init for specific test, relayed to beforeEach hook
 
 		// Change the min referrals to payout to 3 for testing purposes
@@ -779,7 +771,7 @@ contract("Affiliates", (accounts) => {
 	});
 
 	it("Check get estimation token value in rBTC", async () => {
-/*
+		/*
 		/// @dev Optimization: Removed feeds init for specific test, relayed to beforeEach hook
 
 		feeds = await PriceFeeds.new(testWrbtc.address, tokenSOV.address, doc.address);
@@ -888,7 +880,7 @@ contract("Affiliates", (accounts) => {
 		);
 */
 
-/*
+		/*
 		/// @dev Optimization: Removed swap pool init for specific test, relayed to beforeEach hook
 
 		swapsSovryn = await SwapsImplSovrynSwap.new();
@@ -906,7 +898,7 @@ contract("Affiliates", (accounts) => {
 		await sovryn.setSOVTokenAddress(tokenSOV.address);
 */
 
-/*
+		/*
 		/// @dev Optimization: Removed default affiliate init for specific test, relayed to beforeEach hook
 
 		// Change the min referrals to payout to 3 for testing purposes
