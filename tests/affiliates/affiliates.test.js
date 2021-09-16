@@ -1,8 +1,26 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-17
+ * Greatest bottlenecks found at:
+ * 	-     ✓ Affiliates Referrer withdraw fees in two tokens works correctly with min referrals to payout is 0 (943ms)
+ * Total time elapsed: 22s
+ * After optimization: 7s
+ *
+ * Other minor optimizations:
+ * - removed unused modules and lines of code
+ * - reformatted code comments
+ *
+ * Notes: Applied fixture to avoid redeployment and redundant setups
+ *  
+ */
+
+const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const { assert } = require("chai");
-// const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard"); //replaced by MockLoanTokenLogic
+const { expect, waffle } = require("hardhat");
+const { loadFixture } = waffle;
+
+// const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard"); // replaced by MockLoanTokenLogic
 const sovrynProtocol = artifacts.require("sovrynProtocol");
 const LoanToken = artifacts.require("LoanToken");
-const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic"); //added functionality for isolated unit testing
+const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic"); // added functionality for isolated unit testing
 const LockedSOVFailedMockup = artifacts.require("LockedSOVFailedMockup");
 const LockedSOV = artifacts.require("LockedSOV");
 const StakingLogic = artifacts.require("Staking");
@@ -29,9 +47,6 @@ const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 const Affiliates = artifacts.require("Affiliates");
 
-const { BN, constants, send, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
-const { expect } = require("hardhat");
-
 const TOTAL_SUPPLY = "10000000000000000000000000";
 
 const { decodeLogs } = require("../Utils/initializer.js");
@@ -49,10 +64,10 @@ contract("Affiliates", (accounts) => {
 	let loanTokenV2;
 	let feeds;
 	let wei = web3.utils.toWei;
-	before(async () => {
-		[owner, trader, referrer, account1, account2, ...accounts] = accounts;
-	});
-	beforeEach(async () => {
+	
+	let swapsSovryn;
+
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		// Deploying sovrynProtocol
 		const sovrynproxy = await sovrynProtocol.new();
 		sovryn = await ISovryn.at(sovrynproxy.address);
@@ -68,7 +83,7 @@ contract("Affiliates", (accounts) => {
 
 		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
 
-		//loanTokenLogic = await LoanTokenLogicStandard.new();
+		// loanTokenLogic = await LoanTokenLogicStandard.new();
 		loanTokenLogic = await MockLoanTokenLogic.new();
 		testWrbtc = await TestWrbtc.new();
 		doc = await TestToken.new("dollar on chain", "DOC", 18, wei("20000", "ether"));
@@ -77,7 +92,7 @@ contract("Affiliates", (accounts) => {
 		await loanToken.initialize(doc.address, "SUSD", "SUSD");
 
 		// loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address);
-		loanTokenV2 = await MockLoanTokenLogic.at(loanToken.address); //mocked for ad-hoc logic for isolated testing
+		loanTokenV2 = await MockLoanTokenLogic.at(loanToken.address); // mocked for ad-hoc logic for isolated testing
 		const loanTokenAddress = await loanToken.loanTokenAddress();
 		if (owner == (await sovryn.owner())) {
 			await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
@@ -109,10 +124,8 @@ contract("Affiliates", (accounts) => {
 			(await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])).address
 		);
 		lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
-	});
-	let swapsSovryn;
-	beforeEach(async () => {
-		//initialize
+
+		// initialize
 		feeds = await PriceFeedsLocal.new(testWrbtc.address, sovryn.address);
 		await feeds.setRates(doc.address, testWrbtc.address, wei("0.01", "ether"));
 		swapsSovryn = await SwapsImplSovrynSwap.new();
@@ -120,7 +133,7 @@ contract("Affiliates", (accounts) => {
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
 		await sovryn.setSupportedTokens([doc.address, testWrbtc.address], [true, true]);
 		await sovryn.setPriceFeedContract(
-			feeds.address //priceFeeds
+			feeds.address // priceFeeds
 		);
 		await sovryn.setSwapsImplContract(
 			swapsSovryn.address // swapsImpl
@@ -154,7 +167,7 @@ contract("Affiliates", (accounts) => {
 			2419200, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
 		];
 
-		//await loanTokenV2.setupLoanParams([params], true);
+		// await loanTokenV2.setupLoanParams([params], true);
 		await loanTokenV2.setupLoanParams([params], false);
 
 		// setting up interest rates
@@ -168,13 +181,21 @@ contract("Affiliates", (accounts) => {
 		// GIVING SOME DOC tokens to loanToken so that we can borrow from loanToken
 		await doc.transfer(loanTokenV2.address, wei("500", "ether"));
 		await doc.transfer(trader, wei("100", "ether"));
-		//trader approves to LoanToken loan amount for trading
+		// trader approves to LoanToken loan amount for trading
 		await doc.approve(loanToken.address, web3.utils.toWei("100", "ether"), { from: trader });
-		//Giving some testRbtc to sovrynAddress (by minting some testRbtc),so that it can open position in wRBTC.
+		// Giving some testRbtc to sovrynAddress (by minting some testRbtc),so that it can open position in wRBTC.
 		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
 
-		//Giving some SOV Token to sovrynAddress (For affiliates rewards purposes)
+		// Giving some SOV Token to sovrynAddress (For affiliates rewards purposes)
 		await tokenSOV.mint(sovryn.address, wei("500", "ether"));
+	}
+
+	before(async () => {
+		[owner, trader, referrer, account1, account2, ...accounts] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	it("Should not be able to set the affiliateFeePercent more than 100%", async () => {
@@ -184,14 +205,14 @@ contract("Affiliates", (accounts) => {
 	});
 
 	it("User Margin Trade with Affiliate runs correctly", async () => {
-		//expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
+		// expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
 		const leverageAmount = web3.utils.toWei("3", "ether");
-		//loan tokens sent to iToken contract to start Margin Trading
+		// loan tokens sent to iToken contract to start Margin Trading
 		const loanTokenSent = web3.utils.toWei("20", "ether");
 		// AUDIT: should the call be allowed from arbitrary address to set an affiliate in
 		// LoanTokenLogicStandard.marginTradeAffiliate?
 		const tx = await loanTokenV2.marginTradeAffiliate(
-			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			constants.ZERO_BYTES32, // loanId (0 for new loans)
 			leverageAmount, // leverageAmount
 			loanTokenSent, // loanTokenSent
 			0, // no collateral token sent
@@ -245,7 +266,7 @@ contract("Affiliates", (accounts) => {
 		previousAffiliateRewardsHeld = affiliateRewardsHeld;
 		await sovryn.setMinReferralsToPayoutAffiliates(1);
 		const tx2 = await loanTokenV2.marginTradeAffiliate(
-			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			constants.ZERO_BYTES32, // loanId (0 for new loans)
 			leverageAmount, // leverageAmount
 			loanTokenSent, // loanTokenSent
 			0, // no collateral token sent
@@ -295,16 +316,16 @@ contract("Affiliates", (accounts) => {
 		expect(lockedSOVBalance.toString(), "Locked sov balance should be 0").to.eql(paidSovBonusAmount.toString());
 	});
 
-	it("User Margin Trade with Affiliate runs correctly when  minimum referrals set to 1", async () => {
+	it("User Margin Trade with Affiliate runs correctly when minimum referrals set to 1", async () => {
 		await sovryn.setMinReferralsToPayoutAffiliates(1);
-		//expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
+		// expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
 		const leverageAmount = web3.utils.toWei("3", "ether");
-		//loan tokens sent to iToken contract to start Margin Trading
+		// loan tokens sent to iToken contract to start Margin Trading
 		const loanTokenSent = web3.utils.toWei("20", "ether");
 		// AUDIT: should the call be allowed from arbitrary address to set an affiliate in
 		// LoanTokenLogicStandard.marginTradeAffiliate?
 		const tx = await loanTokenV2.marginTradeAffiliate(
-			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			constants.ZERO_BYTES32, // loanId (0 for new loans)
 			leverageAmount, // leverageAmount
 			loanTokenSent, // loanTokenSent
 			0, // no collateral token sent
@@ -360,14 +381,14 @@ contract("Affiliates", (accounts) => {
 		await sovryn.setLockedSOVAddress((await LockedSOVFailedMockup.new(tokenSOV.address, [owner])).address);
 
 		await sovryn.setMinReferralsToPayoutAffiliates(1);
-		//expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
+		// expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
 		const leverageAmount = web3.utils.toWei("3", "ether");
-		//loan tokens sent to iToken contract to start Margin Trading
+		// loan tokens sent to iToken contract to start Margin Trading
 		const loanTokenSent = web3.utils.toWei("20", "ether");
 		// AUDIT: should the call be allowed from arbitrary address to set an affiliate in
 		// LoanTokenLogicStandard.marginTradeAffiliate?
 		const tx = await loanTokenV2.marginTradeAffiliate(
-			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			constants.ZERO_BYTES32, // loanId (0 for new loans)
 			leverageAmount, // leverageAmount
 			loanTokenSent, // loanTokenSent
 			0, // no collateral token sent
@@ -445,14 +466,14 @@ contract("Affiliates", (accounts) => {
 		const leverageAmount = web3.utils.toWei("3", "ether");
 		const loanTokenSent = web3.utils.toWei("20", "ether");
 		await loanTokenV2.marginTrade(
-			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			constants.ZERO_BYTES32, // loanId (0 for new loans)
 			leverageAmount, // leverageAmount
 			loanTokenSent, // loanTokenSent
 			0, // no collateral token sent
 			testWrbtc.address, // collateralTokenAddress
 			trader, // trader,
 			0, // max slippage
-			//referrer, // affiliates referrer
+			// referrer, // affiliates referrer
 			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
 		);
@@ -527,12 +548,12 @@ contract("Affiliates", (accounts) => {
 
 	it("Affiliates referrer withdraw fees should revert because of the minimum request is not fullfilled", async () => {
 		const leverageAmount = web3.utils.toWei("3", "ether");
-		//loan tokens sent to iToken contract to start Margin Trading
+		// loan tokens sent to iToken contract to start Margin Trading
 		const loanTokenSent = web3.utils.toWei("20", "ether");
 		// AUDIT: should the call be allowed from arbitrary address to set an affiliate in
 		// LoanTokenLogicStandard.marginTradeAffiliate?
-		const tx = await loanTokenV2.marginTradeAffiliate(
-			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+		await loanTokenV2.marginTradeAffiliate(
+			constants.ZERO_BYTES32, // loanId (0 for new loans)
 			leverageAmount, // leverageAmount
 			loanTokenSent, // loanTokenSent
 			0, // no collateral token sent
@@ -544,8 +565,8 @@ contract("Affiliates", (accounts) => {
 			{ from: trader }
 		);
 
-		//WITHDRAW AFFILIATE FEES
-		//FAIL
+		// WITHDRAW AFFILIATE FEES
+		// FAIL
 		const referrerFee = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
 		await expectRevert(
 			sovryn.withdrawAffiliatesReferrerTokenFees(doc.address, constants.ZERO_ADDRESS, referrerFee, { from: referrer }),
@@ -565,22 +586,22 @@ contract("Affiliates", (accounts) => {
 	it("Affiliates Referrer withdraw fees in two tokens works correctly with min referrals to payout is 0", async () => {
 		await sovryn.setMinReferralsToPayoutAffiliates(1);
 		const leverageAmount = web3.utils.toWei("3", "ether");
-		//loan tokens sent to iToken contract to start Margin Trading
+		// loan tokens sent to iToken contract to start Margin Trading
 		const loanTokenSent = web3.utils.toWei("20", "ether");
 
 		const leverageAmount2 = web3.utils.toWei("3", "ether");
-		//loan tokens sent to iToken contract to start Margin Trading
+		// loan tokens sent to iToken contract to start Margin Trading
 		const loanTokenSent2 = web3.utils.toWei("20", "ether");
 
-		//add another pair
-		//loanTokenLogic = await MockLoanTokenLogic.new();
-		//testWrbtc = await TestWrbtc.new();
+		// add another pair
+		// loanTokenLogic = await MockLoanTokenLogic.new();
+		// testWrbtc = await TestWrbtc.new();
 		eur = await TestToken.new("euro on chain 2", "EUR", 18, wei("20000", "ether"));
 		const loanToken2 = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 		await loanToken2.initialize(eur.address, "SEUR", "SEUR");
 
 		// loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address);
-		loanToken2V2 = await MockLoanTokenLogic.at(loanToken2.address); //mocked for ad-hoc logic for isolated testing
+		loanToken2V2 = await MockLoanTokenLogic.at(loanToken2.address); // mocked for ad-hoc logic for isolated testing
 		const loanTokenAddress2 = await loanToken2.loanTokenAddress();
 		if (owner == (await sovryn.owner())) {
 			await sovryn.setLoanPool([loanToken2V2.address], [loanTokenAddress2]);
@@ -613,7 +634,7 @@ contract("Affiliates", (accounts) => {
 			2419200, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
 		];
 
-		//await loanTokenV2.setupLoanParams([params], true);
+		// await loanTokenV2.setupLoanParams([params], true);
 		await loanToken2V2.setupLoanParams([params], false);
 
 		// setting up interest rates
@@ -627,14 +648,14 @@ contract("Affiliates", (accounts) => {
 		// GIVING SOME DOC tokens to loanToken so that we can borrow from loanToken
 		await eur.transfer(loanToken2V2.address, wei("500", "ether"));
 		await eur.transfer(trader, wei("20", "ether"));
-		//trader approves to LoanToken loan amount for trading
+		// trader approves to LoanToken loan amount for trading
 		await eur.approve(loanToken2.address, web3.utils.toWei("20", "ether"), { from: trader });
-		//Giving some more testRbtc to sovrynAddress (by minting some testRbtc),so that it can open position in wRBTC.
+		// Giving some more testRbtc to sovrynAddress (by minting some testRbtc),so that it can open position in wRBTC.
 		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
 
-		//margin trade afiliate 2 tokens
+		// margin trade afiliate 2 tokens
 		await loanTokenV2.marginTradeAffiliate(
-			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			constants.ZERO_BYTES32, // loanId (0 for new loans)
 			leverageAmount, // leverageAmount
 			loanTokenSent, // loanTokenSent
 			0, // no collateral token sent
@@ -648,7 +669,7 @@ contract("Affiliates", (accounts) => {
 		const referrerFee = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
 
 		await loanToken2V2.marginTradeAffiliate(
-			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			constants.ZERO_BYTES32, // loanId (0 for new loans)
 			leverageAmount2, // leverageAmount
 			loanTokenSent2, // loanTokenSent
 			0, // no collateral token sent
@@ -661,8 +682,8 @@ contract("Affiliates", (accounts) => {
 		);
 		const referrerFee2 = await sovryn.affiliatesReferrerBalances(referrer, eur.address);
 
-		//WITHDRAW AFFILIATE FEES
-		//FAIL
+		// WITHDRAW AFFILIATE FEES
+		// FAIL
 		await expectRevert(
 			sovryn.withdrawAffiliatesReferrerTokenFees(doc.address, constants.ZERO_ADDRESS, referrerFee, { from: referrer }),
 			"Affiliates: cannot withdraw to zero address"
@@ -680,8 +701,8 @@ contract("Affiliates", (accounts) => {
 			"Affiliates: cannot withdraw zero amount"
 		);
 
-		//SUCCESS
-		//partial withdraw
+		// SUCCESS
+		// partial withdraw
 		let tx;
 		tx = await sovryn.withdrawAffiliatesReferrerTokenFees(doc.address, referrer, referrerFee.divn(2), { from: referrer });
 		const newReferrerFee = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
@@ -703,7 +724,7 @@ contract("Affiliates", (accounts) => {
 
 		let refBalances = await sovryn.getAffiliatesReferrerBalances(referrer);
 
-		//complete withdraw
+		// complete withdraw
 		await sovryn.withdrawAffiliatesReferrerTokenFees(doc.address, referrer, newReferrerFee, { from: referrer });
 		expect(await doc.balanceOf(referrer), "Incorrect DoC withdraw amount").to.be.bignumber.equal(referrerFee);
 		expect(
@@ -735,22 +756,22 @@ contract("Affiliates", (accounts) => {
 	it("Affiliates Referrer withdraw all fees for two tokens works correctly with min referrals to payout is 0", async () => {
 		await sovryn.setMinReferralsToPayoutAffiliates(1);
 		const leverageAmount = web3.utils.toWei("3", "ether");
-		//loan tokens sent to iToken contract to start Margin Trading
+		// loan tokens sent to iToken contract to start Margin Trading
 		const loanTokenSent = web3.utils.toWei("20", "ether");
 
 		const leverageAmount2 = web3.utils.toWei("3", "ether");
-		//loan tokens sent to iToken contract to start Margin Trading
+		// loan tokens sent to iToken contract to start Margin Trading
 		const loanTokenSent2 = web3.utils.toWei("10", "ether");
 
-		//add another pair
-		//loanTokenLogic = await MockLoanTokenLogic.new();
-		//testWrbtc = await TestWrbtc.new();
+		// add another pair
+		// loanTokenLogic = await MockLoanTokenLogic.new();
+		// testWrbtc = await TestWrbtc.new();
 		eur = await TestToken.new("euro on chain 2", "EUR", 18, wei("20000", "ether"));
 		const loanToken2 = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 		await loanToken2.initialize(eur.address, "SEUR", "SEUR");
 
 		// loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address);
-		loanToken2V2 = await MockLoanTokenLogic.at(loanToken2.address); //mocked for ad-hoc logic for isolated testing
+		loanToken2V2 = await MockLoanTokenLogic.at(loanToken2.address); // mocked for ad-hoc logic for isolated testing
 		const loanTokenAddress2 = await loanToken2.loanTokenAddress();
 		if (owner == (await sovryn.owner())) {
 			await sovryn.setLoanPool([loanToken2V2.address], [loanTokenAddress2]);
@@ -769,7 +790,7 @@ contract("Affiliates", (accounts) => {
 			2419200, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
 		];
 
-		//await loanTokenV2.setupLoanParams([params], true);
+		// await loanTokenV2.setupLoanParams([params], true);
 		await loanToken2V2.setupLoanParams([params], false);
 
 		// setting up interest rates
@@ -783,14 +804,14 @@ contract("Affiliates", (accounts) => {
 		// GIVING SOME DOC tokens to loanToken so that we can borrow from loanToken
 		await eur.transfer(loanToken2V2.address, wei("500", "ether"));
 		await eur.transfer(trader, wei("20", "ether"));
-		//trader approves to LoanToken loan amount for trading
+		// trader approves to LoanToken loan amount for trading
 		await eur.approve(loanToken2.address, web3.utils.toWei("20", "ether"), { from: trader });
-		//Giving some more testRbtc to sovrynAddress (by minting some testRbtc),so that it can open position in wRBTC.
+		// Giving some more testRbtc to sovrynAddress (by minting some testRbtc),so that it can open position in wRBTC.
 		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
 
-		//margin trade afiliate 2 tokens
+		// margin trade afiliate 2 tokens
 		await loanTokenV2.marginTradeAffiliate(
-			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			constants.ZERO_BYTES32, // loanId (0 for new loans)
 			leverageAmount, // leverageAmount
 			loanTokenSent, // loanTokenSent
 			0, // no collateral token sent
@@ -804,7 +825,7 @@ contract("Affiliates", (accounts) => {
 		const referrerFee = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
 
 		await loanToken2V2.marginTradeAffiliate(
-			constants.ZERO_BYTES32, // loanId  (0 for new loans)
+			constants.ZERO_BYTES32, // loanId (0 for new loans)
 			leverageAmount2, // leverageAmount
 			loanTokenSent2, // loanTokenSent
 			0, // no collateral token sent
@@ -817,8 +838,8 @@ contract("Affiliates", (accounts) => {
 		);
 		const referrerFee2 = await sovryn.affiliatesReferrerBalances(referrer, eur.address);
 
-		//WITHDRAW AFFILIATE FEES
-		//FAIL
+		// WITHDRAW AFFILIATE FEES
+		// FAIL
 		await expectRevert(
 			sovryn.withdrawAffiliatesReferrerTokenFees(doc.address, constants.ZERO_ADDRESS, referrerFee, { from: referrer }),
 			"Affiliates: cannot withdraw to zero address"
@@ -836,8 +857,8 @@ contract("Affiliates", (accounts) => {
 			"Affiliates: cannot withdraw zero amount"
 		);
 
-		//SUCCESS
-		//withdraw all
+		// SUCCESS
+		// withdraw all
 		let tx;
 		tx = await sovryn.withdrawAllAffiliatesReferrerTokenFees(referrer, { from: referrer });
 		const newReferrerFee = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
