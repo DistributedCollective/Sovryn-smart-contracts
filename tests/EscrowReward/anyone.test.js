@@ -1,5 +1,19 @@
 // For this test, multisig wallet will be done by normal wallets.
 
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-17
+ * Greatest bottlenecks found at:
+ * 	- Two last tests, performing several escrow operations.
+ * Total time elapsed: 5s
+ * After optimization: 4.4s
+ *
+ * Other minor optimizations:
+ * - reformatted code comments
+ *
+ * Notes: Minting and test values calculation have been moved to the before hook.
+ *   Some tests have been reordered to avoid redeployments
+ *
+ */
+
 const EscrowReward = artifacts.require("EscrowReward");
 const LockedSOV = artifacts.require("LockedSOVMockup"); // Ideally should be using actual LockedSOV for testing.
 const SOV = artifacts.require("TestToken");
@@ -15,6 +29,8 @@ const { assert } = require("chai");
 // Some constants we would be using in the contract.
 let zero = new BN(0);
 const depositLimit = 75000000;
+const maxRandom = 1000000;
+const infiniteTokens = maxRandom*100; // A lot of tokens, enough to run all tests w/o extra minting
 
 /**
  * Function to create a random value.
@@ -23,7 +39,7 @@ const depositLimit = 75000000;
  * @return {number} Random Value.
  */
 function randomValue() {
-	return Math.floor(Math.random() * 1000000);
+	return Math.floor(Math.random() * maxRandom);
 }
 
 /**
@@ -39,10 +55,11 @@ function currentTimestamp() {
 contract("Escrow Rewards (Any User Functions)", (accounts) => {
 	let escrowReward, sov, lockedSOV;
 	let creator, multisig, newMultisig, safeVault, userOne, userTwo, userThree, userFour, userFive;
+	let value, valueOne, valueTwo, reward, rewardOneTwo;
 
 	before("Initiating Accounts & Creating Test Token Instance.", async () => {
 		// Checking if we have enough accounts to test.
-		assert.isAtLeast(accounts.length, 9, "Alteast 9 accounts are required to test the contracts.");
+		assert.isAtLeast(accounts.length, 9, "At least 9 accounts are required to test the contracts.");
 		[creator, multisig, newMultisig, safeVault, userOne, userTwo, userThree, userFour, userFive] = accounts;
 
 		// Creating the instance of SOV Token.
@@ -59,6 +76,26 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 
 		// Adding the contract as an admin in the lockedSOV.
 		await lockedSOV.addAdmin(escrowReward.address, { from: multisig });
+
+		/// @dev Minting and test values calculation moved here for optimization
+		value = randomValue() + 1;
+		valueOne = randomValue() + 100;
+		valueTwo = randomValue() + 100;
+		await sov.mint(userOne, infiniteTokens);
+		await sov.mint(userTwo, infiniteTokens);
+		reward = Math.ceil(value / 100);
+		rewardOneTwo = Math.ceil((valueOne + valueTwo) / 100);
+		await sov.mint(multisig, infiniteTokens);
+	});
+
+	it("Before anyone can deposit Tokens during Deposit State, they should approve the escrow contract with the amount to send.", async () => {
+		// let value = randomValue() + 1;
+		// await sov.mint(userOne, value);
+		await expectRevert(escrowReward.depositTokens(value, { from: userOne }), "invalid transfer");
+
+		/// @dev Approve more than needed, to be used on the following tests.
+		await sov.approve(escrowReward.address, infiniteTokens, { from: userOne });
+		await sov.approve(escrowReward.address, infiniteTokens, { from: multisig });
 	});
 
 	it("Except Multisig, no one should be able to call the init() function.", async () => {
@@ -78,9 +115,10 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 	});
 
 	it("Anyone could deposit Tokens during Deposit State.", async () => {
-		let value = randomValue() + 1;
-		await sov.mint(userOne, value);
-		await sov.approve(escrowReward.address, value, { from: userOne });
+		// let value = randomValue() + 1;
+		// await sov.mint(userOne, value);
+
+		// await sov.approve(escrowReward.address, value, { from: userOne });
 		await escrowReward.depositTokens(value, { from: userOne });
 	});
 
@@ -88,17 +126,11 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 		await expectRevert(escrowReward.depositTokens(zero, { from: userOne }), "Amount needs to be bigger than zero.");
 	});
 
-	it("Before anyone can deposit Tokens during Deposit State, they should approve the escrow contract with the amount to send.", async () => {
-		let value = randomValue() + 1;
-		await sov.mint(userOne, value);
-		await expectRevert(escrowReward.depositTokens(value, { from: userOne }), "invalid transfer");
-	});
-
 	it("No one could deposit Tokens during any other State other than Deposit.", async () => {
 		await escrowReward.changeStateToHolding({ from: multisig });
-		let value = randomValue() + 1;
-		await sov.mint(userOne, value);
-		await sov.approve(escrowReward.address, value, { from: userOne });
+		// let value = randomValue() + 1;
+		// await sov.mint(userOne, value);
+		// await sov.approve(escrowReward.address, value, { from: userOne });
 
 		await expectRevert(escrowReward.depositTokens(value, { from: userOne }), "The contract is not in the right state.");
 	});
@@ -120,7 +152,9 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
 		let newSOVBal = new BN(await sov.balanceOf(multisig));
 		let value = newSOVBal.sub(oldSOVBal);
-		await sov.approve(escrowReward.address, value, { from: multisig });
+
+		// await sov.approve(escrowReward.address, value, { from: multisig });
+
 		await escrowReward.depositTokensByMultisig(value, { from: multisig });
 
 		await expectRevert(escrowReward.withdrawTokensAndReward({ from: userOne }), "The release time has not started yet.");
@@ -147,15 +181,15 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 	});
 
 	it("Anyone should be able to withdraw all his tokens and bonus in the Withdraw State.", async () => {
-		let value = randomValue() + 100;
-		let reward = Math.ceil(value / 100);
-		await sov.mint(userOne, value);
+		// let value = randomValue() + 100;
+		// let reward = Math.ceil(value / 100);
+		// await sov.mint(userOne, value);
 		await sov.approve(escrowReward.address, value, { from: userOne });
 		await escrowReward.depositTokens(value, { from: userOne });
 		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
 		await escrowReward.changeStateToHolding({ from: multisig });
 		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
-		await sov.mint(multisig, reward);
+		// await sov.mint(multisig, reward);
 		await sov.approve(escrowReward.address, reward, { from: multisig });
 		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
 		await sov.approve(escrowReward.address, value, { from: multisig });
@@ -173,25 +207,28 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 		// Adding the contract as an admin in the lockedSOV.
 		await lockedSOV.addAdmin(escrowReward.address, { from: multisig });
 
-		let valueOne = randomValue() + 100;
-		await sov.mint(userOne, valueOne);
+		// let valueOne = randomValue() + 100;
+		// await sov.mint(userOne, valueOne);
 		await sov.approve(escrowReward.address, valueOne, { from: userOne });
 		await escrowReward.depositTokens(valueOne, { from: userOne });
 
-		let valueTwo = randomValue() + 100;
-		await sov.mint(userTwo, valueTwo);
-		await sov.approve(escrowReward.address, valueTwo, { from: userTwo });
-		await escrowReward.depositTokens(valueTwo, { from: userTwo });
+		// let valueTwo = randomValue() + 100;
+		// await sov.mint(userTwo, valueTwo);
+		
+		/// @dev Approve more than needed, to be used on this test and potential future ones.
+		// await sov.approve(escrowReward.address, valueTwo, { from: userTwo });
+		await sov.approve(escrowReward.address, infiniteTokens, { from: userTwo });
 
+		await escrowReward.depositTokens(valueTwo, { from: userTwo });
 		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
 		await escrowReward.changeStateToHolding({ from: multisig });
 		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
 
 		let totalDeposit = valueOne + valueTwo;
-		let reward = Math.ceil(totalDeposit / 100);
-		await sov.mint(multisig, reward);
-		await sov.approve(escrowReward.address, reward, { from: multisig });
-		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
+		// let reward = Math.ceil(totalDeposit / 100);
+		// await sov.mint(multisig, reward);
+		await sov.approve(escrowReward.address, rewardOneTwo, { from: multisig });
+		await escrowReward.depositRewardByMultisig(rewardOneTwo, { from: multisig });
 
 		await sov.approve(escrowReward.address, totalDeposit, { from: multisig });
 		await escrowReward.depositTokensByMultisig(totalDeposit, { from: multisig });
