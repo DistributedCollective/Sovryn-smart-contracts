@@ -60,7 +60,7 @@
 	"scripts": {
 		"analyze-contracts": "slither .",
 		"contract-size": "yarn run hardhat size-contracts",
-		"coverage": "npx hardhat coverage",
+		"coverage": "env COVERAGE=true npx hardhat coverage",
 		"doc": "yarn run hardhat docgen",
 		"lint": "npm run lint-sol && npm run lint-js",
 		"lint-sol": "solhint contracts/{*,**/*,**/**/*,**/**/**/*,**/**/**/**/*}.sol",
