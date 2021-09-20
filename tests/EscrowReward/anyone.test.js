@@ -11,7 +11,10 @@
  *
  * Notes: Minting and test values calculation have been moved to the before hook.
  *   Some tests have been reordered to avoid redeployments
- *
+ *   Tried to integrate tests into just 1 flow,
+ *   but it is not lineal because status and release time
+ *   are creating bifurcations that can only be traveled
+ *   through different rounds.
  */
 
 const EscrowReward = artifacts.require("EscrowReward");
@@ -30,7 +33,7 @@ const { assert } = require("chai");
 let zero = new BN(0);
 const depositLimit = 75000000;
 const maxRandom = 1000000;
-const infiniteTokens = maxRandom*100; // A lot of tokens, enough to run all tests w/o extra minting
+const infiniteTokens = maxRandom * 100; // A lot of tokens, enough to run all tests w/o extra minting
 
 /**
  * Function to create a random value.
@@ -56,7 +59,9 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 	let escrowReward, sov, lockedSOV;
 	let creator, multisig, newMultisig, safeVault, userOne, userTwo, userThree, userFour, userFive;
 	let value, valueOne, valueTwo, reward, rewardOneTwo;
+	let debug_ST;
 
+	/// @dev Status flow: Deployed => Deposit
 	before("Initiating Accounts & Creating Test Token Instance.", async () => {
 		// Checking if we have enough accounts to test.
 		assert.isAtLeast(accounts.length, 9, "At least 9 accounts are required to test the contracts.");
@@ -88,6 +93,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 		await sov.mint(multisig, infiniteTokens);
 	});
 
+	/// @dev Status flow: Deposit => Deposit
 	it("Before anyone can deposit Tokens during Deposit State, they should approve the escrow contract with the amount to send.", async () => {
 		// let value = randomValue() + 1;
 		// await sov.mint(userOne, value);
@@ -98,22 +104,27 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 		await sov.approve(escrowReward.address, infiniteTokens, { from: multisig });
 	});
 
+	/// @dev Status flow: Deposit => Deposit
 	it("Except Multisig, no one should be able to call the init() function.", async () => {
 		await expectRevert(escrowReward.init({ from: userOne }), "Only Multisig can call this.");
 	});
 
+	/// @dev Status flow: Deposit => Deposit
 	it("Except Multisig, no one should be able to update the Multisig.", async () => {
 		await expectRevert(escrowReward.updateMultisig(newMultisig, { from: userOne }), "Only Multisig can call this.");
 	});
 
+	/// @dev Status flow: Deposit => Deposit
 	it("Except Multisig, no one should be able to update the release time.", async () => {
 		await expectRevert(escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: userOne }), "Only Multisig can call this.");
 	});
 
+	/// @dev Status flow: Deposit => Deposit
 	it("Except Multisig, no one should be able to update the deposit limit.", async () => {
 		await expectRevert(escrowReward.updateDepositLimit(zero, { from: userOne }), "Only Multisig can call this.");
 	});
 
+	/// @dev Status flow: Deposit => Deposit
 	it("Anyone could deposit Tokens during Deposit State.", async () => {
 		// let value = randomValue() + 1;
 		// await sov.mint(userOne, value);
@@ -122,12 +133,21 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 		await escrowReward.depositTokens(value, { from: userOne });
 	});
 
+	/// @dev Status flow: Deposit => Deposit
 	it("No one could deposit zero Tokens during Deposit State.", async () => {
 		await expectRevert(escrowReward.depositTokens(zero, { from: userOne }), "Amount needs to be bigger than zero.");
 	});
 
+	/// @dev Status flow: Deposit => Deposit
+	it("No one should be able to withdraw unless the Release Time has not passed.", async () => {
+		await escrowReward.updateReleaseTimestamp(currentTimestamp() + 3000, { from: multisig });
+		await expectRevert(escrowReward.withdrawTokensAndReward({ from: userOne }), "The release time has not started yet.");
+	});
+
+	/// @dev Status flow: Deposit => Holding
 	it("No one could deposit Tokens during any other State other than Deposit.", async () => {
 		await escrowReward.changeStateToHolding({ from: multisig });
+		
 		// let value = randomValue() + 1;
 		// await sov.mint(userOne, value);
 		// await sov.approve(escrowReward.address, value, { from: userOne });
@@ -135,19 +155,24 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 		await expectRevert(escrowReward.depositTokens(value, { from: userOne }), "The contract is not in the right state.");
 	});
 
+	/// @dev Status flow: Holding => Holding
 	it("Except Multisig, no one should be able to change the contract to Holding State.", async () => {
 		await expectRevert(escrowReward.changeStateToHolding({ from: userOne }), "Only Multisig can call this.");
 	});
 
+	/// @dev Status flow: Holding => Holding
 	it("Except Multisig, no one should be able to withdraw all token to safeVault.", async () => {
 		await expectRevert(escrowReward.withdrawTokensByMultisig(safeVault, { from: userOne }), "Only Multisig can call this.");
 	});
 
+	/// @dev Status flow: Holding => Holding
 	it("Except Multisig, no one should be able to deposit tokens using depositTokensByMultisig.", async () => {
 		await expectRevert(escrowReward.depositTokensByMultisig(zero, { from: userOne }), "Only Multisig can call this.");
 	});
 
+	/// @dev Status flow: Holding => Withdraw
 	it("No one should be able to withdraw unless the Release Time has not set (i.e. Zero).", async () => {
+
 		let oldSOVBal = new BN(await sov.balanceOf(multisig));
 		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
 		let newSOVBal = new BN(await sov.balanceOf(multisig));
@@ -160,6 +185,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 		await expectRevert(escrowReward.withdrawTokensAndReward({ from: userOne }), "The release time has not started yet.");
 	});
 
+	/// @dev Status flow: NEW CONTRACT! Deployed => Deposit
 	it("No one should be able to withdraw unless in the Withdraw State.", async () => {
 		// Creating the contract instance.
 		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
@@ -175,11 +201,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 		await expectRevert(escrowReward.withdrawTokensAndReward({ from: userOne }), "The contract is not in the right state.");
 	});
 
-	it("No one should be able to withdraw unless the Release Time has not passed.", async () => {
-		await escrowReward.updateReleaseTimestamp(currentTimestamp() + 3000, { from: multisig });
-		await expectRevert(escrowReward.withdrawTokensAndReward({ from: userOne }), "The release time has not started yet.");
-	});
-
+	/// @dev Status flow: Deposit => Holding => Withdraw
 	it("Anyone should be able to withdraw all his tokens and bonus in the Withdraw State.", async () => {
 		// let value = randomValue() + 100;
 		// let reward = Math.ceil(value / 100);
@@ -197,6 +219,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 		await escrowReward.withdrawTokensAndReward({ from: userOne });
 	});
 
+	/// @dev Status flow: NEW CONTRACT! Deposit => Holding => Withdraw
 	it("Multiple users should be able to withdraw all their tokens and corresponding rewards in the Withdraw State.", async () => {
 		// Creating the contract instance.
 		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
@@ -214,7 +237,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 
 		// let valueTwo = randomValue() + 100;
 		// await sov.mint(userTwo, valueTwo);
-		
+
 		/// @dev Approve more than needed, to be used on this test and potential future ones.
 		// await sov.approve(escrowReward.address, valueTwo, { from: userTwo });
 		await sov.approve(escrowReward.address, infiniteTokens, { from: userTwo });
