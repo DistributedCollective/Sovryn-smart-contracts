@@ -137,11 +137,11 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 			_amount = balance;
 		}
 
-		/// @dev The actual transfer.
-		require(rewardToken.transfer(_receiver, _amount), "Transfer failed");
-
 		/// @dev Event log.
 		emit RewardTransferred(_rewardToken, _receiver, _amount);
+
+		/// @dev The actual transfer.
+		require(rewardToken.transfer(_receiver, _amount), "Transfer failed");
 	}
 
 	/**
@@ -230,10 +230,10 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 	 */
 	function update(
 		address _poolToken,
-		address[] memory _rewardTokens,
-		uint96[] memory _allocationPoints,
+		address[] calldata _rewardTokens,
+		uint96[] calldata _allocationPoints,
 		bool _updateAllFlag
-	) public onlyAuthorized {
+	) external onlyAuthorized {
 		if (_updateAllFlag) {
 			updateAllPools();
 		} else {
@@ -790,7 +790,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 	 * @param _poolToken the address of pool token
 	 * @param _rewardToken the address of reward token
 	 */
-	function getPoolReward(address _poolToken, address _rewardToken) public view returns (PoolInfoRewardToken memory) {
+	function getPoolReward(address _poolToken, address _rewardToken) external view returns (PoolInfoRewardToken memory) {
 		uint256 poolId = _getPoolId(_poolToken);
 		return poolInfoRewardTokensMap[poolId][_rewardToken];
 	}
@@ -869,7 +869,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 	 * @param _poolToken the address of pool token
 	 * @param _user the address of the user
 	 */
-	function getUserInfo(address _poolToken, address _user) public view returns (PoolUserInfo memory) {
+	function getUserInfo(address _poolToken, address _user) external view returns (PoolUserInfo memory) {
 		uint256 poolId = _getPoolId(_poolToken);
 		return _getPoolUserInfo(poolId, _user);
 	}

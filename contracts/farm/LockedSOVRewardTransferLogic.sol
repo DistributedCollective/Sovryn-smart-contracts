@@ -19,7 +19,7 @@ contract LockedSOVRewardTransferLogic is IRewardTransferLogic, LockedSOVRewardTr
 	 *   are deposited into a lockedSOV vault contract.
 	 * @param _unlockedImmediatelyPercent The % which determines how much will be unlocked immediately.
 	 */
-	function initialize(address _lockedSOV, uint256 _unlockedImmediatelyPercent) public onlyAuthorized {
+	function initialize(address _lockedSOV, uint256 _unlockedImmediatelyPercent) external onlyAuthorized {
 		changeLockedSOV(_lockedSOV);
 		changeUnlockedImmediatelyPercent(_unlockedImmediatelyPercent);
 	}
