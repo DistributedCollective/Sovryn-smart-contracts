@@ -59,7 +59,6 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 	let escrowReward, sov, lockedSOV;
 	let creator, multisig, newMultisig, safeVault, userOne, userTwo, userThree, userFour, userFive;
 	let value, valueOne, valueTwo, reward, rewardOneTwo;
-	let debug_ST;
 
 	/// @dev Status flow: Deployed => Deposit
 	before("Initiating Accounts & Creating Test Token Instance.", async () => {
@@ -147,7 +146,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 	/// @dev Status flow: Deposit => Holding
 	it("No one could deposit Tokens during any other State other than Deposit.", async () => {
 		await escrowReward.changeStateToHolding({ from: multisig });
-		
+
 		// let value = randomValue() + 1;
 		// await sov.mint(userOne, value);
 		// await sov.approve(escrowReward.address, value, { from: userOne });
@@ -172,7 +171,6 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
 
 	/// @dev Status flow: Holding => Withdraw
 	it("No one should be able to withdraw unless the Release Time has not set (i.e. Zero).", async () => {
-
 		let oldSOVBal = new BN(await sov.balanceOf(multisig));
 		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
 		let newSOVBal = new BN(await sov.balanceOf(multisig));
