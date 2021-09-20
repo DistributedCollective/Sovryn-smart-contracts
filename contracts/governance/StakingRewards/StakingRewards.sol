@@ -223,14 +223,16 @@ contract StakingRewards is StakingRewardsStorage {
 
 	/**
 	 * @notice Get staker's current claimable reward
+	 * @param considerMaxDuration True: Runs for the maximum duration - used in tx not to run out of gas
+	 * False - to query total rewards
 	 * @return The accumulated reward
 	 */
-	function getClaimableReward() public view returns (uint256) {
+	function getClaimableReward(bool considerMaxDuration) public view returns (uint256) {
 		address receiver = msg.sender;
 		uint256 amount;
 		uint256 totalRewards;
 
-		(, amount) = getStakerCurrentReward(true, receiver);
+		(, amount) = getStakerCurrentReward(considerMaxDuration, receiver);
 		totalRewards = accumulatedRewards[receiver].add(amount);
 		return totalRewards;
 	}
