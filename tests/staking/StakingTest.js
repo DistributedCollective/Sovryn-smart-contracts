@@ -11,6 +11,9 @@ const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 const VestingLogic = artifacts.require("VestingLogic");
+//Upgradable Vesting Registry
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
@@ -53,6 +56,13 @@ contract("Staking", (accounts) => {
 		staking = await StakingProxy.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
+		//Upgradable Vesting Registry
+		vestingRegistryLogic = await VestingRegistryLogic.new();
+		vesting = await VestingRegistryProxy.new();
+		await vesting.setImplementation(vestingRegistryLogic.address);
+		vesting = await VestingRegistryLogic.at(vesting.address);
+
+		await staking.setVestingRegistry(vesting.address);
 
 		MAX_VOTING_WEIGHT = await staking.MAX_VOTING_WEIGHT.call();
 
@@ -360,44 +370,6 @@ contract("Staking", (accounts) => {
 
 		it("fails sender isn't an owner", async () => {
 			await expectRevert(staking.removeAdmin(a1, { from: a1 }), "unauthorized");
-		});
-	});
-
-	describe("addContractCodeHash", () => {
-		it("adds hash", async () => {
-			let tx = await staking.addContractCodeHash(vestingLogic1.address);
-			let codeHash = await staking.getCodeHash(vestingLogic1.address);
-
-			expectEvent(tx, "ContractCodeHashAdded", {
-				hash: codeHash,
-			});
-
-			let isVestingContract = await staking.isVestingContract(vestingLogic2.address);
-			expect(isVestingContract).equal(true);
-			expect(vestingLogic1.address).not.equal(vestingLogic2.address);
-		});
-
-		it("fails sender isn't an owner", async () => {
-			await expectRevert(staking.addContractCodeHash(vestingLogic2.address, { from: a1 }), "unauthorized");
-		});
-	});
-
-	describe("removeContractCodeHash", () => {
-		it("remove hash", async () => {
-			await staking.addContractCodeHash(vestingLogic1.address);
-			let tx = await staking.removeContractCodeHash(vestingLogic1.address);
-			let codeHash = await staking.getCodeHash(vestingLogic1.address);
-
-			expectEvent(tx, "ContractCodeHashRemoved", {
-				hash: codeHash,
-			});
-
-			let isVestingContract = await staking.isVestingContract(vestingLogic2.address);
-			expect(isVestingContract).equal(false);
-		});
-
-		it("fails sender isn't an owner", async () => {
-			await expectRevert(staking.removeContractCodeHash(vestingLogic2.address, { from: a1 }), "unauthorized");
 		});
 	});
 
