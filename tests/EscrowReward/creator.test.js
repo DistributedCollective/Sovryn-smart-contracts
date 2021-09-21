@@ -11,6 +11,10 @@
  *
  * Notes: Moved mint, approval and init values to
  *   before hook from two tests requiring SOV tokens.
+ * Unsuccessful attempt to use Waffle mock for LockedSOV:
+ *   Time improvement is zero.
+ *   Waffle mock doesn't support explicit signed calls, as required on this test set.
+ *     https://ethereum.stackexchange.com/questions/110270/how-to-mock-out-a-signed-transaction-w-waffle-mocks
  */
 
 const EscrowReward = artifacts.require("EscrowReward");
@@ -78,9 +82,8 @@ contract("Escrow Rewards (Creator Functions)", (accounts) => {
 
 		/// @dev Minting, approval and test values calculation moved here for optimization
 		value = randomValue() + 1;
-		await sov.mint(creator, value*2); // To be spent along 2 tests
-		await sov.approve(escrowReward.address, value*2, { from: creator });
-
+		await sov.mint(creator, value * 2); // To be spent along 2 tests
+		await sov.approve(escrowReward.address, value * 2, { from: creator });
 	});
 
 	it("Creator should be able to create Escrow Contract without specifying the locked sov contract.", async () => {
