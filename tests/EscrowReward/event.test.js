@@ -7,13 +7,13 @@
  * After optimization: 4.1s
  *
  * Other minor optimizations:
- * - removed unneeded variables
+ * - Fixed some comments
  *
  * Notes: Found 3 escrow reward contract deployments. It's been reduced
  *  to just 2 of them by reordering tests and moving some code to
  *  the before hook. Last escrow is required because test needs to go through
  *  the entire status flow of the escrow.
- * 
+ *
  *  Found 2 LockedSOV mock deployments, but both are needed, the former to
  *  be attached to the escrow, and the latter to have a new and different
  *  address to check events for updating are working ok.
