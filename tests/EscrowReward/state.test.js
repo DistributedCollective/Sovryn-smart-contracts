@@ -5,13 +5,13 @@
  * requiring each one an escrowReward deployment.
  *
  * Total time elapsed: 7.4s
- * After optimization: 6.7s
+ * After optimization: 6.5s
  *
  * Other minor optimizations:
  * - fixed some comments
  *
  * Notes: Used Waffle fixture to avoid redeployments on sovAndRewardWithdraw tests
- * 
+ *
  */
 
 const { waffle } = require("hardhat");
@@ -238,11 +238,7 @@ async function sovAndRewardWithdraw(sov, lockedSOV, escrowReward, multisig, user
 
 	await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
 
-	await sov.mint(multisig, reward);
-	await sov.approve(escrowReward.address, reward, { from: multisig });
 	await escrowReward.depositRewardByMultisig(reward, { from: multisig });
-
-	await sov.approve(escrowReward.address, totalValue, { from: multisig });
 	await escrowReward.depositTokensByMultisig(totalValue, { from: multisig });
 
 	await checkUserWithdraw(sov, lockedSOV, escrowReward, userOne, 0, values, totalValue, reward);
@@ -294,17 +290,20 @@ contract("Escrow Rewards (State)", (accounts) => {
 		// Creating the contract instance.
 		escrowReward = await createEscrowReward(lockedSOV, sov, multisig, zero, depositLimit);
 
-		/// @dev Minting, approval and test values calculation moved here for optimization
-		await sov.mint(userOne,   infiniteTokens);
-		await sov.mint(userTwo,   infiniteTokens);
+		/// @dev Minting, approval calculation moved here for optimization
+		await sov.mint(userOne, infiniteTokens);
+		await sov.mint(userTwo, infiniteTokens);
 		await sov.mint(userThree, infiniteTokens);
-		await sov.mint(userFour,  infiniteTokens);
-		await sov.mint(userFive,  infiniteTokens);
-		await sov.approve(escrowReward.address, infiniteTokens, { from: userOne   });
-		await sov.approve(escrowReward.address, infiniteTokens, { from: userTwo   });
+		await sov.mint(userFour, infiniteTokens);
+		await sov.mint(userFive, infiniteTokens);
+		await sov.approve(escrowReward.address, infiniteTokens, { from: userOne });
+		await sov.approve(escrowReward.address, infiniteTokens, { from: userTwo });
 		await sov.approve(escrowReward.address, infiniteTokens, { from: userThree });
-		await sov.approve(escrowReward.address, infiniteTokens, { from: userFour  });
-		await sov.approve(escrowReward.address, infiniteTokens, { from: userFive  });	
+		await sov.approve(escrowReward.address, infiniteTokens, { from: userFour });
+		await sov.approve(escrowReward.address, infiniteTokens, { from: userFive });
+
+		await sov.mint(multisig, infiniteTokens);
+		await sov.approve(escrowReward.address, infiniteTokens, { from: multisig });	
 	}
 
 	before("Initiating Accounts & Creating Test Token Instance.", async () => {

@@ -10,7 +10,7 @@
  * - fixed some comments
  *
  * Notes: Moved to before hook several mints and approvals.
- * 
+ *
  */
 
 const EscrowReward = artifacts.require("EscrowReward");
