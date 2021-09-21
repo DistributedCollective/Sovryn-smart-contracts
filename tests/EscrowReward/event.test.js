@@ -1,5 +1,24 @@
 // For this test, multisig wallet will be done by normal wallets.
 
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-21
+ * No bottlenecks found, all tests run smoothly.
+ *
+ * Total time elapsed: 4.2s
+ * After optimization: 4.1s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Found 3 escrow reward contract deployments. It's been reduced
+ *  to just 2 of them by reordering tests and moving some code to
+ *  the before hook. Last escrow is required because test needs to go through
+ *  the entire status flow of the escrow.
+ * 
+ *  Found 2 LockedSOV mock deployments, but both are needed, the former to
+ *  be attached to the escrow, and the latter to have a new and different
+ *  address to check events for updating are working ok.
+ */
+
 const EscrowReward = artifacts.require("EscrowReward");
 const LockedSOV = artifacts.require("LockedSOVMockup"); // Ideally should be using actual LockedSOV for testing.
 const SOV = artifacts.require("TestToken");
@@ -39,10 +58,11 @@ function currentTimestamp() {
 contract("Escrow Rewards (Events)", (accounts) => {
 	let escrowReward, newEscrowReward, sov, lockedSOV;
 	let creator, multisig, newMultisig, safeVault, userOne, userTwo, userThree, userFour, userFive;
+	let txReceiptEscrowRewardDeployment;
 
 	before("Initiating Accounts & Creating Test Token Instance.", async () => {
 		// Checking if we have enough accounts to test.
-		assert.isAtLeast(accounts.length, 9, "Alteast 9 accounts are required to test the contracts.");
+		assert.isAtLeast(accounts.length, 9, "At least 9 accounts are required to test the contracts.");
 		[creator, multisig, newMultisig, safeVault, userOne, userTwo, userThree, userFour, userFive] = accounts;
 
 		// Creating the instance of SOV Token.
@@ -55,25 +75,15 @@ contract("Escrow Rewards (Events)", (accounts) => {
 		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
 
 		// Marking the contract as active.
-		await escrowReward.init({ from: multisig });
+		txReceiptEscrowRewardDeployment = await escrowReward.init({ from: multisig });
 
 		// Adding the contract as an admin in the lockedSOV.
 		await lockedSOV.addAdmin(escrowReward.address, { from: multisig });
 	});
 
 	it("Calling the init() will emit EscrowActivated Event.", async () => {
-		// Creating the contract instance.
-		newEscrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
-		let txReceipt = await newEscrowReward.init({ from: multisig });
-		expectEvent(txReceipt, "EscrowActivated");
-	});
-
-	it("Updating the Multisig should emit NewMultisig Event.", async () => {
-		let txReceipt = await newEscrowReward.updateMultisig(newMultisig, { from: multisig });
-		expectEvent(txReceipt, "NewMultisig", {
-			_initiator: multisig,
-			_newMultisig: newMultisig,
-		});
+		/// @dev using the init call from the before hook, for optimization
+		expectEvent(txReceiptEscrowRewardDeployment, "EscrowActivated");
 	});
 
 	it("Updating the release time should emit TokenReleaseUpdated Event.", async () => {
@@ -152,9 +162,17 @@ contract("Escrow Rewards (Events)", (accounts) => {
 		});
 	});
 
+	it("Updating the Multisig should emit NewMultisig Event.", async () => {
+		let txReceipt = await escrowReward.updateMultisig(newMultisig, { from: multisig });
+		expectEvent(txReceipt, "NewMultisig", {
+			_initiator: multisig,
+			_newMultisig: newMultisig,
+		});
+	});
+
 	it("Updating the Locked SOV Contract Address should emit LockedSOVUpdated Event.", async () => {
 		let newLockedSOV = await LockedSOV.new(sov.address, [multisig]);
-		let txReceipt = await newEscrowReward.updateLockedSOV(newLockedSOV.address, { from: newMultisig });
+		let txReceipt = await escrowReward.updateLockedSOV(newLockedSOV.address, { from: newMultisig });
 		expectEvent(txReceipt, "LockedSOVUpdated", {
 			_initiator: newMultisig,
 			_lockedSOV: newLockedSOV.address,

@@ -2,7 +2,7 @@
 
 /** Speed optimized on branch hardhatTestRefactor, 2021-09-20
  * No bottlenecks found, all tests run smoothly.
- *  
+ *
  * Total time elapsed: 4.2s
  * After optimization: 4.1s
  *
