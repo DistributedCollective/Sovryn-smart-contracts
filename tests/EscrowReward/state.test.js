@@ -303,7 +303,7 @@ contract("Escrow Rewards (State)", (accounts) => {
 		await sov.approve(escrowReward.address, infiniteTokens, { from: userFive });
 
 		await sov.mint(multisig, infiniteTokens);
-		await sov.approve(escrowReward.address, infiniteTokens, { from: multisig });	
+		await sov.approve(escrowReward.address, infiniteTokens, { from: multisig });
 	}
 
 	before("Initiating Accounts & Creating Test Token Instance.", async () => {
