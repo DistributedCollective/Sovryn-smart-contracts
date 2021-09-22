@@ -6,13 +6,20 @@
  *  the start of every test.
  *
  * Total time elapsed: 7.6s
- * After optimization: 7.1s
+ * After optimization: 5.2s
  *
  * Other minor optimizations:
  * - fixed some comments
  * - removed unneeded variables
  *
- * Notes: Applied waffle fixture to beforeEach hook 
+ * Notes: Applied waffle fixture to beforeEach hook.
+ *  Tests are using a similar time-consuming flow, all of them, but small changes in
+ *  the particular flow of every test are preventing to apply a generic function or
+ *  a fixture to improve their performance. But it's possible to unify some very similar
+ *  tests into one, like for example queueing a successful proposal and checking whether
+ *  ProposalQueued event is emitted.
+ *  Before optimization, these 2 tests are running the entire flow and it's better to
+ *  use the same flow for both of them.
  *
  */
 
@@ -175,7 +182,7 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
 		await loadFixture(deploymentAndInitFixture);
 	});
 
-	it("Can queue a successful proposal.", async () => {
+	it("Cannot execute proposal out of queue, can queue a successful proposal, emit ProposalQueued, execute it, emit ProposalExecuted, cannot remove it, and cannot execute it again", async () => {
 		// Proposal Parameters
 		targets = [testToken.address];
 		values = [new BN("0")];
@@ -202,14 +209,62 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
 		// Checking if the proposal went to Succeeded state.
 		assert.strictEqual(currentState.toNumber(), stateSucceeded, "The correct state was not achieved after endBlock passed.");
 
+		/// @dev Former Cannot execute a proposal which is not queued. test
+		/// integrated into this one, to optimize test performance
+		// Trying to put the Proposal to execute.
+		await expectRevert(
+			governorAlpha.execute(proposalId, { from: userOne }),
+			"GovernorAlpha::execute: proposal can only be executed if it is queued"
+		);
+
 		// Puts the Proposal in Queue.
-		await governorAlpha.queue(proposalId, { from: userOne });
+		let txReceiptQueue = await governorAlpha.queue(proposalId, { from: userOne });
 
 		// Checking current state of proposal
 		currentState = await governorAlpha.state(proposalId);
 
 		// Checking if the proposal went to Queue state.
 		assert.strictEqual(currentState.toNumber(), stateQueued, "The correct state was not achieved after proposal added to queue.");
+
+		/// @dev Former "Adding a proposal to queue should emit ProposalQueued event." test
+		/// integrated into this one, to optimize test performance
+		expectEvent.inTransaction(txReceiptQueue.tx, governorAlpha, "ProposalQueued", {
+			id: proposalId,
+		});
+
+		/// @dev Former "Can execute a queued proposal." test
+		/// integrated into this one, to optimize test performance
+		let eta = txReceiptQueue["logs"]["0"]["args"].eta;
+		await time.increaseTo(eta);
+		await mineBlock();
+
+		// Puts the Proposal to execute.
+		txReceiptExecute = await governorAlpha.execute(proposalId, { from: userOne });
+
+		// Checking current state of proposal
+		currentState = await governorAlpha.state(proposalId);
+
+		// Checking if the proposal went to Executed state.
+		assert.strictEqual(currentState.toNumber(), stateExecuted, "The correct state was not achieved after proposal executed.");
+
+		/// @dev Former "Executing a proposal should emit the ProposalExecuted Event." test
+		/// integrated into this one, to optimize test performance
+		expectEvent.inTransaction(txReceiptExecute.tx, governorAlpha, "ProposalExecuted", {
+			id: proposalId,
+		});
+
+		/// @dev Former "Cannot remove a proposal which is already executed." test
+		/// integrated into this one, to optimize test performance
+		// Trying to put the Proposal to execute again.
+		await expectRevert(governorAlpha.cancel(proposalId, { from: userOne }), "GovernorAlpha::cancel: cannot cancel executed proposal");
+
+		/// @dev Former "Cannot execute a proposal which is already executed." test
+		/// integrated into this one, to optimize test performance
+		// Trying to put the Proposal to execute again.
+		await expectRevert(
+			governorAlpha.execute(proposalId, { from: userOne }),
+			"GovernorAlpha::execute: proposal can only be executed if it is queued"
+		);		
 	});
 
 	it("Cannot queue a defeated proposal.", async () => {
@@ -240,172 +295,6 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
 		await expectRevert(
 			governorAlpha.queue(proposalId, { from: userOne }),
 			"GovernorAlpha::queue: proposal can only be queued if it is succeeded"
-		);
-	});
-
-	it("Adding a proposal to queue should emit ProposalQueued event.", async () => {
-		// Proposal Parameters
-		targets = [testToken.address];
-		values = [new BN("0")];
-		signatures = ["balanceOf(address)"];
-		callDatas = [encodeParameters(["address"], [userOne])];
-
-		let txReceipt = await governorAlpha.propose(targets, values, signatures, callDatas, "Checking Token Balance", { from: voterOne });
-
-		// Getting the proposal id of the newly created proposal.
-		proposalId = await governorAlpha.latestProposalIds(voterOne);
-
-		await mineBlock();
-
-		// Votes in majority.
-		await governorAlpha.castVote(proposalId, true, { from: voterOne });
-
-		// Finding the eta.
-		// let eta = txReceipt["logs"]["0"]["args"].eta;
-
-		// Finishing up the voting.
-		let endBlock = txReceipt["logs"]["0"]["args"].endBlock.toNumber() + 1;
-		await advanceBlocks(endBlock);
-
-		// Checking current state of proposal
-		let currentState = await governorAlpha.state(proposalId);
-
-		// Checking if the proposal went to Succeeded state.
-		assert.strictEqual(currentState.toNumber(), stateSucceeded, "The correct state was not achieved after endBlock passed.");
-
-		// Puts the Proposal in Queue.
-		txReceipt = await governorAlpha.queue(proposalId, { from: userOne });
-
-		expectEvent.inTransaction(txReceipt.tx, governorAlpha, "ProposalQueued", {
-			id: proposalId,
-		});
-	});
-
-	it("Can execute a queued proposal.", async () => {
-		// Proposal Parameters
-		targets = [testToken.address];
-		values = [new BN("0")];
-		signatures = ["balanceOf(address)"];
-		callDatas = [encodeParameters(["address"], [userTwo])];
-
-		let txReceipt = await governorAlpha.propose(targets, values, signatures, callDatas, "Checking Token Balance", { from: voterOne });
-
-		// Getting the proposal id of the newly created proposal.
-		proposalId = await governorAlpha.latestProposalIds(voterOne);
-
-		await mineBlock();
-
-		// Votes in majority.
-		await governorAlpha.castVote(proposalId, true, { from: voterOne });
-
-		// Finishing up the voting.
-		let endBlock = txReceipt["logs"]["0"]["args"].endBlock.toNumber() + 1;
-		await advanceBlocks(endBlock);
-
-		// Checking current state of proposal
-		let currentState = await governorAlpha.state(proposalId);
-
-		// Checking if the proposal went to Succeeded state.
-		assert.strictEqual(currentState.toNumber(), stateSucceeded, "The correct state was not achieved after endBlock passed.");
-
-		// Puts the Proposal in Queue.
-		txReceipt = await governorAlpha.queue(proposalId, { from: userOne });
-
-		// Checking current state of proposal
-		currentState = await governorAlpha.state(proposalId);
-
-		// Checking if the proposal went to Queue state.
-		assert.strictEqual(currentState.toNumber(), stateQueued, "The correct state was not achieved after proposal added to queue.");
-
-		let eta = txReceipt["logs"]["0"]["args"].eta;
-		await time.increaseTo(eta);
-		await mineBlock();
-
-		// Puts the Proposal to execute.
-		await governorAlpha.execute(proposalId, { from: userOne });
-
-		// Checking current state of proposal
-		currentState = await governorAlpha.state(proposalId);
-
-		// Checking if the proposal went to Executed state.
-		assert.strictEqual(currentState.toNumber(), stateExecuted, "The correct state was not achieved after proposal executed.");
-	});
-
-	it("Cannot execute a proposal which is not queued.", async () => {
-		// Proposal Parameters
-		targets = [testToken.address];
-		values = [new BN("0")];
-		signatures = ["balanceOf(address)"];
-		callDatas = [encodeParameters(["address"], [guardianTwo])];
-
-		let txReceipt = await governorAlpha.propose(targets, values, signatures, callDatas, "Checking Token Balance", { from: voterOne });
-
-		// Getting the proposal id of the newly created proposal.
-		proposalId = await governorAlpha.latestProposalIds(voterOne);
-
-		await mineBlock();
-
-		// Votes in majority.
-		await governorAlpha.castVote(proposalId, true, { from: voterOne });
-
-		// Finishing up the voting.
-		let endBlock = txReceipt["logs"]["0"]["args"].endBlock.toNumber() + 1;
-		await advanceBlocks(endBlock);
-
-		// Checking current state of proposal
-		let currentState = await governorAlpha.state(proposalId);
-
-		// Checking if the proposal went to Succeeded state.
-		assert.strictEqual(currentState.toNumber(), stateSucceeded, "The correct state was not achieved after endBlock passed.");
-
-		// Trying to put the Proposal to execute.
-		await expectRevert(
-			governorAlpha.execute(proposalId, { from: userOne }),
-			"GovernorAlpha::execute: proposal can only be executed if it is queued"
-		);
-	});
-
-	it("Cannot execute a proposal which is already executed.", async () => {
-		// Proposal Parameters
-		targets = [testToken.address];
-		values = [new BN("0")];
-		signatures = ["balanceOf(address)"];
-		callDatas = [encodeParameters(["address"], [userTwo])];
-
-		let txReceipt = await governorAlpha.propose(targets, values, signatures, callDatas, "Checking Token Balance", { from: voterTwo });
-
-		// Getting the proposal id of the newly created proposal.
-		proposalId = await governorAlpha.latestProposalIds(voterTwo);
-
-		await mineBlock();
-
-		// Votes in majority.
-		await governorAlpha.castVote(proposalId, true, { from: voterOne });
-
-		// Finishing up the voting.
-		let endBlock = txReceipt["logs"]["0"]["args"].endBlock.toNumber() + 1;
-		await advanceBlocks(endBlock);
-
-		// Puts the Proposal in Queue.
-		txReceipt = await governorAlpha.queue(proposalId, { from: userOne });
-
-		let eta = txReceipt["logs"]["0"]["args"].eta;
-		await time.increaseTo(eta);
-		await mineBlock();
-
-		// Puts the Proposal to execute.
-		await governorAlpha.execute(proposalId, { from: userOne });
-
-		// Checking current state of proposal
-		currentState = await governorAlpha.state(proposalId);
-
-		// Checking if the proposal went to Executed state.
-		assert.strictEqual(currentState.toNumber(), stateExecuted, "The correct state was not achieved after proposal executed.");
-
-		// Trying to put the Proposal to execute again.
-		await expectRevert(
-			governorAlpha.execute(proposalId, { from: userOne }),
-			"GovernorAlpha::execute: proposal can only be executed if it is queued"
 		);
 	});
 
@@ -446,82 +335,5 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
 
 		// Checking if the value in the contract and the expected value is same.
 		assert.strictEqual(cValue.toNumber(), value, "Value was not correctly updated in the contract.");
-	});
-
-	it("Executing a proposal should emit the ProposalExecuted Event.", async () => {
-		// Proposal Parameters
-		targets = [testToken.address];
-		values = [new BN("0")];
-		signatures = ["balanceOf(address)"];
-		callDatas = [encodeParameters(["address"], [userTwo])];
-
-		let txReceipt = await governorAlpha.propose(targets, values, signatures, callDatas, "Checking Token Balance", { from: voterTwo });
-
-		// Getting the proposal id of the newly created proposal.
-		proposalId = await governorAlpha.latestProposalIds(voterTwo);
-
-		await mineBlock();
-
-		// Votes in majority.
-		await governorAlpha.castVote(proposalId, true, { from: voterOne });
-
-		// Finishing up the voting.
-		let endBlock = txReceipt["logs"]["0"]["args"].endBlock.toNumber() + 1;
-		await advanceBlocks(endBlock);
-
-		// Puts the Proposal in Queue.
-		txReceipt = await governorAlpha.queue(proposalId, { from: userOne });
-
-		let eta = txReceipt["logs"]["0"]["args"].eta;
-		await time.increaseTo(eta);
-		await mineBlock();
-
-		// Puts the Proposal to execute.
-		txReceipt = await governorAlpha.execute(proposalId, { from: userOne });
-
-		expectEvent.inTransaction(txReceipt.tx, governorAlpha, "ProposalExecuted", {
-			id: proposalId,
-		});
-	});
-
-	it("Cannot remove a proposal which is already executed.", async () => {
-		// Proposal Parameters
-		targets = [testToken.address];
-		values = [new BN("0")];
-		signatures = ["balanceOf(address)"];
-		callDatas = [encodeParameters(["address"], [userTwo])];
-
-		let txReceipt = await governorAlpha.propose(targets, values, signatures, callDatas, "Checking Token Balance", { from: voterTwo });
-
-		// Getting the proposal id of the newly created proposal.
-		proposalId = await governorAlpha.latestProposalIds(voterTwo);
-
-		await mineBlock();
-
-		// Votes in majority.
-		await governorAlpha.castVote(proposalId, true, { from: voterOne });
-
-		// Finishing up the voting.
-		let endBlock = txReceipt["logs"]["0"]["args"].endBlock.toNumber() + 1;
-		await advanceBlocks(endBlock);
-
-		// Puts the Proposal in Queue.
-		txReceipt = await governorAlpha.queue(proposalId, { from: userOne });
-
-		let eta = txReceipt["logs"]["0"]["args"].eta;
-		await time.increaseTo(eta);
-		await mineBlock();
-
-		// Puts the Proposal to execute.
-		await governorAlpha.execute(proposalId, { from: userOne });
-
-		// Checking current state of proposal
-		currentState = await governorAlpha.state(proposalId);
-
-		// Checking if the proposal went to Executed state.
-		assert.strictEqual(currentState.toNumber(), stateExecuted, "The correct state was not achieved after proposal executed.");
-
-		// Trying to put the Proposal to execute again.
-		await expectRevert(governorAlpha.cancel(proposalId, { from: userOne }), "GovernorAlpha::cancel: cannot cancel executed proposal");
 	});
 });
