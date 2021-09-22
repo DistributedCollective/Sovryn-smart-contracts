@@ -1,4 +1,22 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-21
+ * No bottlenecks found, it runs smoothly all tests.
+ *
+ * Total time elapsed: 33s
+ * After optimization: 20.3s
+ *
+ * Other minor optimizations:
+ * - fixed some comments
+ * - removed unneeded variables
+ *
+ * Notes: Instead of a general deployment for all tests in the beforeEach hook, 
+ *  it has been restricted exclusively to those test that required it. Besides,
+ *  a waffle fixture is used on those tests that can start from the initial snapshot.
+ *
+ */
+
 const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 const { etherMantissa, mineBlock, advanceBlocks } = require("../Utils/Ethereum");
 
@@ -12,7 +30,7 @@ const LiquidityMiningProxy = artifacts.require("LiquidityMiningProxy");
 const TestLockedSOV = artifacts.require("LockedSOVMockup");
 const Wrapper = artifacts.require("RBTCWrapperProxyMockup");
 
-describe("LiquidityMining", () => {
+contract("LiquidityMining", (accounts) => {
 	const name = "Test SOV Token";
 	const symbol = "TST";
 
@@ -24,20 +42,14 @@ describe("LiquidityMining", () => {
 
 	// The % which determines how much will be unlocked immediately.
 	/// @dev 10000 is 100%
-	const unlockedImmediatelyPercent = new BN(1000); //10%
+	const unlockedImmediatelyPercent = new BN(1000); // 10%
 
-	let accounts;
 	let root, account1, account2, account3, account4;
 	let SOVToken, token1, token2, token3, liquidityMiningConfigToken;
 	let liquidityMining, wrapper;
 	let lockedSOVAdmins, lockedSOV;
 
-	before(async () => {
-		accounts = await web3.eth.getAccounts();
-		[root, account1, account2, account3, account4, ...accounts] = accounts;
-	});
-
-	beforeEach(async () => {
+	async function deploymentAndInit() {
 		SOVToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 		token1 = await TestToken.new("Test token 1", "TST-1", 18, TOTAL_SUPPLY);
 		token2 = await TestToken.new("Test token 2", "TST-2", 18, TOTAL_SUPPLY);
@@ -57,10 +69,20 @@ describe("LiquidityMining", () => {
 			lockedSOV.address,
 			unlockedImmediatelyPercent
 		);
+	}
+
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		await deploymentAndInit();
+	}
+
+	before(async () => {
+		accounts = await web3.eth.getAccounts();
+		[root, account1, account2, account3, account4, ...accounts] = accounts;
 	});
 
 	describe("initialize", () => {
 		it("sets the expected values", async () => {
+			await loadFixture(deploymentAndInitFixture);
 			await deployLiquidityMining();
 			let tx = await liquidityMining.initialize(
 				SOVToken.address,
@@ -133,6 +155,7 @@ describe("LiquidityMining", () => {
 		});
 
 		it("fails if already initialized", async () => {
+			await deploymentAndInit();
 			await expectRevert(
 				liquidityMining.initialize(
 					SOVToken.address,
@@ -246,6 +269,7 @@ describe("LiquidityMining", () => {
 		});
 
 		it("fails if not an owner or an admin", async () => {
+			await deploymentAndInit();
 			await expectRevert(liquidityMining.setUnlockedImmediatelyPercent(1000, { from: account1 }), "unauthorized");
 
 			await liquidityMining.addAdmin(account1);
@@ -270,6 +294,7 @@ describe("LiquidityMining", () => {
 		});
 
 		it("fails if not an owner or an admin", async () => {
+			await deploymentAndInit();
 			await expectRevert(liquidityMining.setWrapper(account2, { from: account1 }), "unauthorized");
 
 			await liquidityMining.addAdmin(account1);
@@ -287,6 +312,7 @@ describe("LiquidityMining", () => {
 		});
 
 		it("fails if not an owner or an admin", async () => {
+			await deploymentAndInit();
 			await expectRevert(liquidityMining.stopMining({ from: account1 }), "unauthorized");
 
 			await liquidityMining.addAdmin(account1);
@@ -294,6 +320,7 @@ describe("LiquidityMining", () => {
 		});
 
 		it("fails if already stopped", async () => {
+			await deploymentAndInit();
 			await liquidityMining.stopMining();
 			await expectRevert(liquidityMining.stopMining(), "Already stopped");
 		});
@@ -351,6 +378,7 @@ describe("LiquidityMining", () => {
 		});
 
 		it("should be able to add 2 pool tokens and update pools", async () => {
+			await deploymentAndInit();
 			let allocationPoint1 = new BN(1);
 			let tx1 = await liquidityMining.add(token1.address, allocationPoint1, false);
 
@@ -387,11 +415,13 @@ describe("LiquidityMining", () => {
 		});
 
 		it("fails if token already added", async () => {
+			await deploymentAndInit();
 			await liquidityMining.add(token1.address, new BN(1), false);
 			await expectRevert(liquidityMining.add(token1.address, new BN(1), false), "Token already added");
 		});
 
 		it("only owner or admin should be able to add pool token", async () => {
+			await deploymentAndInit();
 			await expectRevert(liquidityMining.add(token2.address, new BN(1), false, { from: account1 }), "unauthorized");
 
 			await liquidityMining.addAdmin(account1);
@@ -401,6 +431,7 @@ describe("LiquidityMining", () => {
 
 	describe("update", () => {
 		it("should be able to update pool token", async () => {
+			await deploymentAndInit();
 			let oldAllocationPoint = new BN(1);
 			await liquidityMining.add(token1.address, oldAllocationPoint, false);
 
@@ -424,6 +455,7 @@ describe("LiquidityMining", () => {
 		});
 
 		it("should be able to update pool token and update pools", async () => {
+			await deploymentAndInit();
 			let oldAllocationPoint = new BN(1);
 			await liquidityMining.add(token1.address, oldAllocationPoint, false);
 
@@ -439,6 +471,7 @@ describe("LiquidityMining", () => {
 		});
 
 		it("fails if token wasn't added", async () => {
+			await deploymentAndInit();
 			await expectRevert(liquidityMining.update(token1.address, new BN(1), false), "Pool token not found");
 		});
 
@@ -453,6 +486,7 @@ describe("LiquidityMining", () => {
 
 	describe("updateTokens", () => {
 		it("should be able to update 2 pool tokens", async () => {
+			await deploymentAndInit();
 			let poolTokens = [token1.address, token2.address, token3.address];
 			let oldAllocationPoints = [new BN(1), new BN(2), new BN(3)];
 
@@ -489,6 +523,7 @@ describe("LiquidityMining", () => {
 		});
 
 		it("fails if token wasn't added", async () => {
+			await deploymentAndInit();
 			await expectRevert(liquidityMining.updateTokens([token1.address], [new BN(1)], false), "Pool token not found");
 		});
 
@@ -498,6 +533,7 @@ describe("LiquidityMining", () => {
 		});
 
 		it("only owner or admin should be able to update pool token", async () => {
+			await deploymentAndInit();
 			await liquidityMining.add(token2.address, new BN(1), false);
 			await expectRevert(liquidityMining.updateTokens([token2.address], [new BN(1)], false, { from: account1 }), "unauthorized");
 
@@ -511,6 +547,7 @@ describe("LiquidityMining", () => {
 		let amount = new BN(1000);
 
 		beforeEach(async () => {
+			await deploymentAndInit();
 			await liquidityMining.add(token1.address, allocationPoint, false);
 			await mineBlocks(1);
 
@@ -560,6 +597,7 @@ describe("LiquidityMining", () => {
 		let amount = new BN(1000);
 
 		beforeEach(async () => {
+			await deploymentAndInit();
 			await liquidityMining.add(token1.address, allocationPoint, false);
 			await mineBlocks(1);
 
@@ -590,7 +628,7 @@ describe("LiquidityMining", () => {
 			await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
 			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
 
-			//withdrawAndStakeTokensFrom was invoked
+			// withdrawAndStakeTokensFrom was invoked
 			let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
 			let lockedBalance = await lockedSOV.getLockedBalance(account1);
 			expect(unlockedBalance).bignumber.equal(new BN(0));
@@ -615,9 +653,9 @@ describe("LiquidityMining", () => {
 			checkPoolInfo(poolInfo, token1.address, allocationPoint, latestBlockNumber, new BN(-1));
 
 			await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
-			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
+			await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
 
-			//withdrawAndStakeTokensFrom was invoked
+			// withdrawAndStakeTokensFrom was invoked
 			let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
 			let lockedBalance = await lockedSOV.getLockedBalance(account1);
 			expect(unlockedBalance).bignumber.equal(new BN(0));
@@ -634,6 +672,7 @@ describe("LiquidityMining", () => {
 		let amount = new BN(1000);
 
 		beforeEach(async () => {
+			await deploymentAndInit();
 			await liquidityMining.add(token1.address, allocationPoint, false);
 			await liquidityMining.add(token2.address, allocationPoint, false);
 			await mineBlocks(1);
@@ -668,15 +707,15 @@ describe("LiquidityMining", () => {
 
 			await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
 			let userReward1 = await checkUserReward(account1, token1, depositBlockNumber1, latestBlockNumber);
-			//we have 2 pools with the same allocation points
+			// we have 2 pools with the same allocation points
 			userReward1 = userReward1.div(new BN(2));
 
 			await checkUserPoolTokens(account1, token2, amount, amount, new BN(0));
 			let userReward2 = await checkUserReward(account1, token2, depositBlockNumber2, latestBlockNumber);
-			//we have 2 pools with the same allocation points
+			// we have 2 pools with the same allocation points
 			userReward2 = userReward2.div(new BN(2));
 
-			//withdrawAndStakeTokensFrom was invoked
+			// withdrawAndStakeTokensFrom was invoked
 			let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
 			let lockedBalance = await lockedSOV.getLockedBalance(account1);
 			expect(unlockedBalance).bignumber.equal(new BN(0));
@@ -708,7 +747,7 @@ describe("LiquidityMining", () => {
 			await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
 			await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
 
-			//withdrawAndStakeTokensFrom was invoked
+			// withdrawAndStakeTokensFrom was invoked
 			let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
 			let lockedBalance = await lockedSOV.getLockedBalance(account1);
 			expect(unlockedBalance).bignumber.equal(new BN(0));
@@ -721,6 +760,7 @@ describe("LiquidityMining", () => {
 		let amount = new BN(1000);
 
 		beforeEach(async () => {
+			await deploymentAndInit();
 			await liquidityMining.add(token1.address, allocationPoint, false);
 			await mineBlocks(1);
 
@@ -767,7 +807,7 @@ describe("LiquidityMining", () => {
 			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount);
 			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
 
-			//withdrawAndStakeTokensFrom was not invoked
+			// withdrawAndStakeTokensFrom was not invoked
 			let expectedUnlockedBalance = userReward.mul(unlockedImmediatelyPercent).div(new BN(10000));
 			let expectedLockedBalance = userReward.sub(expectedUnlockedBalance);
 			let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
@@ -800,7 +840,7 @@ describe("LiquidityMining", () => {
 			checkPoolInfo(poolInfo, token1.address, allocationPoint, latestBlockNumber, new BN(-1));
 
 			await checkUserPoolTokens(account1, token1, new BN(0), new BN(0), amount, wrapper.address);
-			let userReward = await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
+			await checkUserReward(account1, token1, depositBlockNumber, latestBlockNumber);
 		});
 
 		it("fails if token pool token not found", async () => {
@@ -820,6 +860,7 @@ describe("LiquidityMining", () => {
 		let amount = new BN(1000);
 
 		beforeEach(async () => {
+			await deploymentAndInit();
 			await liquidityMining.add(token1.address, allocationPoint, false);
 			await mineBlocks(1);
 
@@ -863,15 +904,15 @@ describe("LiquidityMining", () => {
 			let bonusEndBlock = await liquidityMining.bonusEndBlock();
 			let blocks;
 
-			//[startBlock, bonusEndBlock]
+			// [startBlock, bonusEndBlock]
 			blocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(startBlock, bonusEndBlock);
 			expect(blocks).bignumber.equal(numberOfBonusBlocks.mul(bonusBlockMultiplier));
 
-			//[startBlock - 100, bonusEndBlock]
+			// [startBlock - 100, bonusEndBlock]
 			blocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(startBlock.sub(new BN(100)), bonusEndBlock);
 			expect(blocks).bignumber.equal(numberOfBonusBlocks.mul(bonusBlockMultiplier));
 
-			//[startBlock, bonusEndBlock + 100]
+			// [startBlock, bonusEndBlock + 100]
 			let blocksAfterBonusPeriod = new BN(100);
 			blocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(
 				startBlock,
@@ -879,7 +920,7 @@ describe("LiquidityMining", () => {
 			);
 			expect(blocks).bignumber.equal(numberOfBonusBlocks.mul(bonusBlockMultiplier).add(blocksAfterBonusPeriod));
 
-			//[startBlock, stopMining, ... bonusEndBlock]
+			// [startBlock, stopMining, ... bonusEndBlock]
 			await mineBlocks(5);
 			await liquidityMining.stopMining();
 			let endBlock = await liquidityMining.endBlock();
@@ -898,6 +939,7 @@ describe("LiquidityMining", () => {
 		let bonusEndBlock;
 
 		beforeEach(async () => {
+			await deploymentAndInit();
 			await liquidityMining.add(token1.address, allocationPoint1, false);
 			await liquidityMining.add(token2.address, allocationPoint2, false);
 
@@ -1056,6 +1098,7 @@ describe("LiquidityMining", () => {
 		let secondsPerBlock;
 
 		beforeEach(async () => {
+			await deploymentAndInit();
 			await liquidityMining.add(token1.address, allocationPoint1, false);
 
 			await token1.mint(account1, amount1);
@@ -1097,7 +1140,7 @@ describe("LiquidityMining", () => {
 		});
 
 		it("check calculation for 2 users, period is 100 blocks", async () => {
-			//turn off bonus period
+			// turn off bonus period
 			await advanceBlocks(bonusEndBlock);
 
 			let blocks = new BN(100);
@@ -1115,7 +1158,7 @@ describe("LiquidityMining", () => {
 
 		it("check calculation for 3 users and 2 tokens, period is 1000 blocks", async () => {
 			await liquidityMining.add(token2.address, allocationPoint2, false);
-			//turn off bonus period
+			// turn off bonus period
 			await advanceBlocks(bonusEndBlock);
 
 			let blocks = new BN(1000);
@@ -1140,6 +1183,7 @@ describe("LiquidityMining", () => {
 		let amount = new BN(1000);
 
 		beforeEach(async () => {
+			await deploymentAndInit();
 			for (let token of [token1, token2]) {
 				for (let account of [account1, account2]) {
 					await token.mint(account, amount);
@@ -1152,13 +1196,13 @@ describe("LiquidityMining", () => {
 		});
 
 		it("add, add, deposit, deposit", async () => {
-			await liquidityMining.add(token1.address, allocationPoint, false); //weight 1/1
-			await liquidityMining.add(token2.address, allocationPoint, false); //weight 1/2
+			await liquidityMining.add(token1.address, allocationPoint, false); // weight 1/1
+			await liquidityMining.add(token2.address, allocationPoint, false); // weight 1/2
 
 			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 			await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, { from: account1 }); // 1 block passed
 
-			// await liquidityMining.update(token1.address, allocationPoint.mul(new BN(2)), true); //weight 2/3
+			// await liquidityMining.update(token1.address, allocationPoint.mul(new BN(2)), true); // weight 2/3
 			await liquidityMining.updateAllPools(); // 2 blocks passed from first deposit
 
 			const currentBlockNumber = await web3.eth.getBlockNumber();
@@ -1183,8 +1227,8 @@ describe("LiquidityMining", () => {
 
 		// tricky case 1
 		it("add(pool1), add(pool2), deposit(user1, pool1), update(pool1), withdraw(user1, pool1)", async () => {
-			await liquidityMining.add(token1.address, allocationPoint, false); //weight 1/1
-			await liquidityMining.add(token2.address, allocationPoint, false); //weight 1/2
+			await liquidityMining.add(token1.address, allocationPoint, false); // weight 1/1
+			await liquidityMining.add(token2.address, allocationPoint, false); // weight 1/2
 
 			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
@@ -1224,7 +1268,7 @@ describe("LiquidityMining", () => {
 
 		// tricky case 2
 		it("add(pool1), deposit(user1, pool1), deposit(user2, pool1), withdraw(user1, pool1), withdraw(user2, pool1)", async () => {
-			await liquidityMining.add(token1.address, allocationPoint, false); //weight 1/1
+			await liquidityMining.add(token1.address, allocationPoint, false); // weight 1/1
 
 			// deposit 1: 0 blocks, deposit 2: 0 blocks
 			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
@@ -1299,7 +1343,7 @@ describe("LiquidityMining", () => {
 
 		// tricky case 3a
 		it("add(pool1), deposit(user1, pool1), add(pool2, no update), withdraw(user1, pool1)", async () => {
-			await liquidityMining.add(token1.address, allocationPoint, false); //weight 1/1
+			await liquidityMining.add(token1.address, allocationPoint, false); // weight 1/1
 
 			// deposit: 0 blocks
 			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
@@ -1333,7 +1377,7 @@ describe("LiquidityMining", () => {
 
 		// tricky case 3b
 		it("add(pool1), deposit(user1, pool1), add(pool2, update), withdraw(user1, pool1)", async () => {
-			await liquidityMining.add(token1.address, allocationPoint, false); //weight 1/1
+			await liquidityMining.add(token1.address, allocationPoint, false); // weight 1/1
 
 			// deposit: 0 blocks
 			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
@@ -1367,13 +1411,13 @@ describe("LiquidityMining", () => {
 
 		// tricky case 4
 		it("add(pool1), deposit(user1, pool1), add(pool2), deposit(user2, pool2), withdraw(user1, pool1), withdraw(user2, pool2)", async () => {
-			await liquidityMining.add(token1.address, allocationPoint, false); //weight 1/1
+			await liquidityMining.add(token1.address, allocationPoint, false); // weight 1/1
 
 			// deposit 1: 0 blocks, deposit 2: 0 blocks
 			await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, { from: account1 });
 
 			// deposit 1: 1 blocks (weight 1/1), deposit 2: 0 blocks. pool is updated
-			await liquidityMining.add(token2.address, allocationPoint, true); //weight 1/2
+			await liquidityMining.add(token2.address, allocationPoint, true); // weight 1/2
 
 			// deposit 1: 2 blocks (weight 1/2), deposit 2: 0 blocks
 			await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, { from: account2 });
@@ -1440,15 +1484,15 @@ describe("LiquidityMining", () => {
 	});
 
 	describe("LM configuration", () => {
-		//Maximum reward per week: 100K SOV (or 100M SOV)
-		//Maximum reward per block: 4.9604 SOV (4.9604 * 2880 * 7 = 100001.664)
+		// Maximum reward per week: 100K SOV (or 100M SOV)
+		// Maximum reward per block: 4.9604 SOV (4.9604 * 2880 * 7 = 100001.664)
 
 		const REWARD_TOKENS_PER_BLOCK = new BN(49604).mul(new BN(10 ** 14)).mul(new BN(1000));
 		// const REWARD_TOKENS_PER_BLOCK = new BN(49604).mul(new BN(10**14));
 
-		//SOV/BTC pool 40K per week
-		//ETH/BTC pool 37.5K per week (from second week)
-		//Dummy pool 100K - SOV/BTC pool (- ETH/BTC pool)
+		// SOV/BTC pool 40K per week
+		// ETH/BTC pool 37.5K per week (from second week)
+		// Dummy pool 100K - SOV/BTC pool (- ETH/BTC pool)
 
 		const MAX_ALLOCATION_POINT = new BN(100000).mul(new BN(1000));
 		// const MAX_ALLOCATION_POINT = 		new BN(100000);
@@ -1478,7 +1522,7 @@ describe("LiquidityMining", () => {
 				}
 			}
 
-			//turn off bonus period
+			// turn off bonus period
 			let bonusEndBlock = await liquidityMining.bonusEndBlock();
 			await advanceBlocks(bonusEndBlock);
 		});
@@ -1488,19 +1532,19 @@ describe("LiquidityMining", () => {
 
 			let SOVBTCpool = token1.address;
 
-			await liquidityMining.add(SOVBTCpool, ALLOCATION_POINT_SOV_BTC, false); //weight 40000 / 100000
-			await liquidityMining.add(dummyPool, MAX_ALLOCATION_POINT.sub(ALLOCATION_POINT_SOV_BTC), false); //weight (100000 - 40000) / 100000
+			await liquidityMining.add(SOVBTCpool, ALLOCATION_POINT_SOV_BTC, false); // weight 40000 / 100000
+			await liquidityMining.add(dummyPool, MAX_ALLOCATION_POINT.sub(ALLOCATION_POINT_SOV_BTC), false); // weight (100000 - 40000) / 100000
 
 			await liquidityMining.deposit(SOVBTCpool, amount, ZERO_ADDRESS, { from: account1 });
 
-			//reward won't be claimed because liquidityMining doesn't have enough SOV balance
-			//user reward will be updated
-			//10 blocks passed since last deposit
+			// reward won't be claimed because liquidityMining doesn't have enough SOV balance
+			// user reward will be updated
+			// 10 blocks passed since last deposit
 			await mineBlocks(9);
 			await liquidityMining.withdraw(SOVBTCpool, amount, ZERO_ADDRESS, { from: account1 });
 
 			const userInfo = await liquidityMining.getUserInfo(SOVBTCpool, account1);
-			//10 blocks passed
+			// 10 blocks passed
 			let passedBlocks = 10;
 			let expectedUserReward = REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks))
 				.mul(ALLOCATION_POINT_SOV_BTC)
@@ -1515,37 +1559,37 @@ describe("LiquidityMining", () => {
 			let SOVBTCpool = token1.address;
 			let ETHBTCpoll = token2.address;
 
-			await liquidityMining.add(SOVBTCpool, ALLOCATION_POINT_SOV_BTC, false); //weight 40000 / 100000
+			await liquidityMining.add(SOVBTCpool, ALLOCATION_POINT_SOV_BTC, false); // weight 40000 / 100000
 			const DUMMY_ALLOCATION_POINT = MAX_ALLOCATION_POINT.sub(ALLOCATION_POINT_SOV_BTC);
-			await liquidityMining.add(dummyPool, DUMMY_ALLOCATION_POINT, false); //weight (100000 - 40000) / 100000
+			await liquidityMining.add(dummyPool, DUMMY_ALLOCATION_POINT, false); // weight (100000 - 40000) / 100000
 
 			await liquidityMining.deposit(SOVBTCpool, amount, ZERO_ADDRESS, { from: account1 });
 
 			await mineBlocks(9);
 			await liquidityMining.updateAllPools(); // 10 blocks passed from first deposit
 
-			//update config
-			//this method will also update pool reward using previous allocation point,
-			//so this block should be add to calculation with old values
-			await liquidityMining.update(SOVBTCpool, ALLOCATION_POINT_SOV_BTC_2, false); //weight 30000 / 100000
+			// update config
+			// this method will also update pool reward using previous allocation point,
+			// so this block should be add to calculation with old values
+			await liquidityMining.update(SOVBTCpool, ALLOCATION_POINT_SOV_BTC_2, false); // weight 30000 / 100000
 
-			await liquidityMining.add(ETHBTCpoll, ALLOCATION_POINT_ETH_BTC, false); //weight 37500 / 100000
+			await liquidityMining.add(ETHBTCpoll, ALLOCATION_POINT_ETH_BTC, false); // weight 37500 / 100000
 			const DUMMY_ALLOCATION_POINT_2 = MAX_ALLOCATION_POINT.sub(ALLOCATION_POINT_SOV_BTC_2).sub(ALLOCATION_POINT_ETH_BTC);
-			await liquidityMining.update(dummyPool, DUMMY_ALLOCATION_POINT_2, false); //weight (100000 - 30000 - 37500) / 100000
+			await liquidityMining.update(dummyPool, DUMMY_ALLOCATION_POINT_2, false); // weight (100000 - 30000 - 37500) / 100000
 			await liquidityMining.updateAllPools();
 
-			//reward won't be claimed because liquidityMining doesn't have enough SOV balance
-			//user reward will be updated
-			//10 blocks + 5 blocks passed
+			// reward won't be claimed because liquidityMining doesn't have enough SOV balance
+			// user reward will be updated
+			// 10 blocks + 5 blocks passed
 			await liquidityMining.withdraw(SOVBTCpool, amount, ZERO_ADDRESS, { from: account1 });
 
 			const userInfo = await liquidityMining.getUserInfo(SOVBTCpool, account1);
-			//10 blocks + 5 blocks passed
-			let passedBlocks = 10 + 1; //block should be add to calculation with old values
+			// 10 blocks + 5 blocks passed
+			let passedBlocks = 10 + 1; // block should be add to calculation with old values
 			let expectedUserReward = REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks))
 				.mul(ALLOCATION_POINT_SOV_BTC)
 				.div(MAX_ALLOCATION_POINT);
-			passedBlocks = 5 - 1; //block should be removed from calculation with new values
+			passedBlocks = 5 - 1; // block should be removed from calculation with new values
 			expectedUserReward = expectedUserReward.add(
 				REWARD_TOKENS_PER_BLOCK.mul(new BN(passedBlocks)).mul(ALLOCATION_POINT_SOV_BTC_2).div(MAX_ALLOCATION_POINT)
 			);
@@ -1565,6 +1609,7 @@ describe("LiquidityMining", () => {
 		let amount = new BN(1000);
 
 		beforeEach(async () => {
+			await deploymentAndInit();
 			await token1.mint(account1, amount);
 			await token1.approve(liquidityMining.address, amount, { from: account1 });
 			await liquidityMining.add(token1.address, allocationPoint, false);
@@ -1767,13 +1812,13 @@ describe("LiquidityMining", () => {
 	}
 
 	async function checkUserPoolTokens(user, poolToken, _userAmount, _liquidityMiningBalance, _userBalance, wrapper) {
-		//user balance in pool
+		// user balance in pool
 		let userInfo = await liquidityMining.getUserInfo(poolToken.address, user);
 		expect(userInfo.amount).bignumber.equal(_userAmount);
-		//LM balance of pool tokens
+		// LM balance of pool tokens
 		let liquidityMiningBalance = await poolToken.balanceOf(liquidityMining.address);
 		expect(liquidityMiningBalance).bignumber.equal(_liquidityMiningBalance);
-		//user's balance of pool tokens
+		// user's balance of pool tokens
 		let userBalance = await poolToken.balanceOf(user);
 		if (wrapper !== undefined) {
 			userBalance = await poolToken.balanceOf(wrapper);
@@ -1781,7 +1826,7 @@ describe("LiquidityMining", () => {
 		expect(userBalance).bignumber.equal(_userBalance);
 	}
 
-	//user's balance of reward token
+	// user's balance of reward token
 	async function checkUserReward(user, poolToken, depositBlockNumber, latestBlockNumber) {
 		let passedBlocks = await liquidityMining.getPassedBlocksWithBonusMultiplier(depositBlockNumber, latestBlockNumber);
 		let userReward = passedBlocks.mul(rewardTokensPerBlock);
