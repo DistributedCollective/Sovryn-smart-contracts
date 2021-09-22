@@ -1,5 +1,7 @@
 /** Speed optimized on branch hardhatTestRefactor, 2021-09-21
- * No bottlenecks found, it runs smoothly all tests.
+ * Bottleneck found is related to initialization on every tests.
+ *  There are many tests and each one is performing an init process.
+ *  Maybe in some cases it can be spared.
  *
  * Total time elapsed: 33s
  * After optimization: 20.3s
@@ -8,9 +10,9 @@
  * - fixed some comments
  * - removed unneeded variables
  *
- * Notes: Instead of a general deployment for all tests in the beforeEach hook, 
- *  it has been restricted exclusively to those test that required it. Besides,
- *  a waffle fixture is used on those tests that can start from the initial snapshot.
+ * Notes: Instead of a general deployment for all tests in the beforeEach hook,
+ *  it has been restricted exclusively to those tests that required it. Besides,
+ *  a waffle fixture is used only on tests that can start from the initial snapshot.
  *
  */
 

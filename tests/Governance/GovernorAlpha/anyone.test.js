@@ -1,11 +1,30 @@
 // For this one, Governor Alpha Mockup is used to reduce the voting period to just 10 blocks.
+
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-22
+ * Bottleneck is found on tests initialization. Common code is already moved into the
+ *  beforeEach hook, but there is still a lot of initialization code running at
+ *  the start of every test.
+ *
+ * Total time elapsed: 7.6s
+ * After optimization: 7.1s
+ *
+ * Other minor optimizations:
+ * - fixed some comments
+ * - removed unneeded variables
+ *
+ * Notes: Applied waffle fixture to beforeEach hook 
+ *
+ */
+
+const { ethers, waffle } = require("hardhat");
+const { loadFixture } = waffle;
+
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("Timelock");
 const TestToken = artifacts.require("TestToken");
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const SetGet = artifacts.require("setGet");
-const { ethers } = require("hardhat");
 
 const {
 	time, // Convert different time units to seconds. Available helpers are: seconds, minutes, hours, days, weeks and years.
@@ -113,9 +132,9 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
 		let signature = "setPendingAdmin(address)";
 		let callData = encodeParameters(["address"], [governorAlpha.address]);
 		let currentBlock = await ethers.provider.getBlock("latest");
-		//console.log(currentBlock.timestamp);
-		//let currentBlock = await web3.eth.getBlock(await blockNumber());
-		//let currentBlock = await ethers.provider.getBlock("latest");
+		// console.log(currentBlock.timestamp);
+		// let currentBlock = await web3.eth.getBlock(await blockNumber());
+		// let currentBlock = await ethers.provider.getBlock("latest");
 		eta = new BN(currentBlock.timestamp).add(new BN(delay + 1));
 
 		// Adding the setPendingAdmin() to the Timelock Queue.
@@ -136,7 +155,7 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
 		setGet = await SetGet.new();
 	});
 
-	beforeEach("", async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		// Calculating the tokens to be sent for the Voters to Stake.
 		let amount = new BN((quorumPercentageVotes * totalSupply + 1) / 100);
 
@@ -150,6 +169,10 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
 		// Making the Voters to stake.
 		await stake(testToken, stakingLogic, voterOne, constants.ZERO_ADDRESS, amount);
 		await stake(testToken, stakingLogic, voterTwo, constants.ZERO_ADDRESS, amount);
+	}
+
+	beforeEach("", async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	it("Can queue a successful proposal.", async () => {
@@ -238,7 +261,7 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
 		await governorAlpha.castVote(proposalId, true, { from: voterOne });
 
 		// Finding the eta.
-		let eta = txReceipt["logs"]["0"]["args"].eta;
+		// let eta = txReceipt["logs"]["0"]["args"].eta;
 
 		// Finishing up the voting.
 		let endBlock = txReceipt["logs"]["0"]["args"].endBlock.toNumber() + 1;
