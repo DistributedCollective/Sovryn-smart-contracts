@@ -57,7 +57,7 @@ contract LMV1toLMV2Migrator is AdminRole {
 		IERC20 _SOV,
 		ILiquidityMiningV1 _liquidityMiningV1,
 		ILiquidityMiningV2 _liquidityMiningV2
-	) public onlyAuthorized {
+	) external onlyAuthorized {
 		require(address(_SOV) != address(0), "invalid token address");
 		require(address(_liquidityMiningV1) != address(0), "invalid contract address");
 		require(address(_liquidityMiningV2) != address(0), "invalid contract address");
@@ -93,6 +93,7 @@ contract LMV1toLMV2Migrator is AdminRole {
 		require(_poolToken.length == _allocationPoints.length, "Arrays mismatch");
 		require(_poolToken.length == _lastRewardBlock.length, "Arrays mismatch");
 
+		_finishPoolsMigration();
 		liquidityMiningV1.finishMigrationGracePeriod();
 		for (uint256 i = 0; i < _poolToken.length; i++) {
 			address poolToken = _poolToken[i];
@@ -110,7 +111,6 @@ contract LMV1toLMV2Migrator is AdminRole {
 		uint256 _startblock = liquidityMiningV1.getStartBlock();
 		uint256 _totalUsersBalance = liquidityMiningV1.getTotalUsersBalance();
 		liquidityMiningV2.setRewardToken(address(SOV), _startblock, _totalUsersBalance);
-		_finishPoolsMigration();
 	}
 
 	/**
@@ -128,7 +128,7 @@ contract LMV1toLMV2Migrator is AdminRole {
 
 			address user = _users[i];
 
-			if (userMigrated[user] == false) {
+			if (!userMigrated[user]) {
 				userMigrated[user] = true;
 				for (uint256 j = 0; j < _amount.length; j++) {
 					uint256 poolId = j;
@@ -146,8 +146,8 @@ contract LMV1toLMV2Migrator is AdminRole {
 	 * @notice transfer all funds from liquidity mining V1
 	 */
 	function migrateFunds() external onlyAuthorized onlyFundsMigrationState {
+		_finishFundsMigration();
 		liquidityMiningV1.migrateFunds();
 		liquidityMiningV2.finishMigration();
-		_finishFundsMigration();
 	}
 }

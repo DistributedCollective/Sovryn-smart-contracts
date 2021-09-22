@@ -13,7 +13,7 @@ contract ERC20TransferLogic is IRewardTransferLogic, ERC20TransferLogicStorage {
 	/**
 	 * @param _token Reward token to be distributed
 	 */
-	function initialize(address _token) public onlyAuthorized {
+	function initialize(address _token) external onlyAuthorized {
 		setTokenAddress(_token);
 	}
 
