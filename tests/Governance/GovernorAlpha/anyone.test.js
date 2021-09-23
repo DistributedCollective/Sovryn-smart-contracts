@@ -264,7 +264,7 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
 		await expectRevert(
 			governorAlpha.execute(proposalId, { from: userOne }),
 			"GovernorAlpha::execute: proposal can only be executed if it is queued"
-		);		
+		);
 	});
 
 	it("Cannot queue a defeated proposal.", async () => {

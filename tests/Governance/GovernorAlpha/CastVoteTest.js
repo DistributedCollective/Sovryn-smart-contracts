@@ -1,21 +1,33 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-23
+ * Bottleneck is found on test "receipt uses one load", particularly on gov.propose call
+ *
+ * Total time elapsed: 6.8s
+ * After optimization: 6.5s
+ *
+ * Other minor optimizations:
+ * - fixed some comments
+ * - removed unneeded variables
+ *
+ * Notes: 
+ *   No real optimization performed, because waffle fixtures or mocks cannot be applied.
+ *   Flow is optimus, no repeated deployments or unneccesary loops found. Even token mint
+ *   and approval shouldn't be replaced by an initial infinite supply.
+ */
+
 const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
+const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 
 const {
 	address,
 	etherMantissa,
-	etherUnsigned,
 	encodeParameters,
 	mineBlock,
-	unlockedAccount,
-	setTime,
 	setNextBlockTimestamp,
 } = require("../../Utils/Ethereum");
 const EIP712 = require("../../Utils/EIP712");
 const BigNumber = require("bignumber.js");
 
-const { getAccountsPrivateKeys, getAccountsPrivateKeysBuffer } = require("../../Utils/hardhat_utils");
-const { bufferToHex, privateToAddress, toChecksumAddress } = require("ethereumjs-util");
+const { getAccountsPrivateKeysBuffer } = require("../../Utils/hardhat_utils");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const StakingLogic = artifacts.require("Staking");
@@ -44,8 +56,8 @@ contract("governorAlpha#castVote/2", (accounts) => {
 		[root, a1, ...accounts] = accounts;
 		[pkbRoot, pkbA1, ...pkbAccounts] = getAccountsPrivateKeysBuffer();
 		currentChainId = (await ethers.provider.getNetwork()).chainId;
-		//let blockTimestamp = etherUnsigned(100);
-		//await setTime(blockTimestamp.toNumber());
+		// let blockTimestamp = etherUnsigned(100);
+		// await setTime(blockTimestamp.toNumber());
 		const block = await ethers.provider.getBlock("latest");
 		await setNextBlockTimestamp(block.timestamp + 100);
 		token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
@@ -97,7 +109,8 @@ contract("governorAlpha#castVote/2", (accounts) => {
 				await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: actor });
 				proposalId = await gov.latestProposalIds.call(actor);
 
-				let beforeFors = (await gov.proposals.call(proposalId)).forVotes;
+				/// @dev Unneeded variable removed for optimization
+				// let beforeFors = (await gov.proposals.call(proposalId)).forVotes;
 				await mineBlock();
 				await gov.castVote(proposalId, true, { from: actor });
 
@@ -113,7 +126,8 @@ contract("governorAlpha#castVote/2", (accounts) => {
 				await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: actor });
 				proposalId = await gov.latestProposalIds.call(actor);
 
-				let beforeAgainsts = (await gov.proposals.call(proposalId)).againstVotes;
+				/// @dev Unneeded variable removed for optimization
+				// let beforeAgainsts = (await gov.proposals.call(proposalId)).againstVotes;
 				await mineBlock();
 				await gov.castVote(proposalId, false, { from: actor });
 
@@ -127,7 +141,7 @@ contract("governorAlpha#castVote/2", (accounts) => {
 		describe("castVoteBySig", () => {
 			const Domain = (gov) => ({
 				name: "Sovryn Governor Alpha",
-				chainId: currentChainId, //31337 - Hardhat, //1 - Mainnet, // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
+				chainId: currentChainId, // 31337 - Hardhat, // 1 - Mainnet, // await web3.eth.net.getId(); See: https:// github.com/trufflesuite/ganache-core/issues/515
 				verifyingContract: gov.address,
 			});
 			const Types = {
@@ -158,10 +172,11 @@ contract("governorAlpha#castVote/2", (accounts) => {
 					},
 					Types,
 					pkbA1
-					//unlockedAccount(a1).secretKey - this doesn't work with Hardhat
+					// unlockedAccount(a1).secretKey - this doesn't work with Hardhat
 				);
 
-				let beforeFors = (await gov.proposals.call(proposalId)).forVotes;
+				/// @dev Unneeded variable removed for optimization
+				// let beforeFors = (await gov.proposals.call(proposalId)).forVotes;
 				await mineBlock();
 				const tx = await gov.castVoteBySig(proposalId, true, v, r, s, { from: a1 });
 				expect(tx.gasUsed < 80000);
@@ -174,13 +189,17 @@ contract("governorAlpha#castVote/2", (accounts) => {
 		});
 
 		it("receipt uses one load", async () => {
+			/// @dev optimization metric: 87ms
 			let actor = accounts[2];
 			let actor2 = accounts[3];
 			await enfranchise(token, staking, actor, QUORUM_VOTES);
 			await enfranchise(token, staking, actor2, QUORUM_VOTES.multipliedBy(2));
+
+			/// @dev optimization metric: 180ms
 			await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: actor });
 			proposalId = await gov.latestProposalIds.call(actor);
 
+			/// @dev optimization metric: 159ms
 			await mineBlock();
 			await mineBlock();
 			await gov.castVote(proposalId, true, { from: actor });
@@ -189,6 +208,7 @@ contract("governorAlpha#castVote/2", (accounts) => {
 			let trxReceipt = await gov.getReceipt.call(proposalId, actor);
 			let trxReceipt2 = await gov.getReceipt.call(proposalId, actor2);
 
+			/// @dev optimization metric: 169ms
 			let proposal = await gov.proposals.call(proposalId);
 			let expectedVotes = await staking.getPriorVotes.call(actor, proposal.startBlock.toString(), proposal.startTime.toString());
 			let expectedVotes2 = await staking.getPriorVotes.call(actor2, proposal.startBlock.toString(), proposal.startTime.toString());
