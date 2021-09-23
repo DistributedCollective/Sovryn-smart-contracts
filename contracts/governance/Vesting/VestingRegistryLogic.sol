@@ -247,27 +247,28 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 		uint256 teamVestingType = 0;
 		uint256 uid;
 		uint256 length = vestingRegistries.length;
-		for (uint256 i = 0; i < length; i++) {
-			address vestingAddress = vestingRegistries[i].getVesting(_tokenOwner);
-			if (vestingAddress != address(0)) {
-				VestingLogic vesting = VestingLogic(vestingAddress);
-				uid = uint256(
-					keccak256(abi.encodePacked(_tokenOwner, vestingType, vesting.cliff(), vesting.duration(), _vestingCreationType))
-				);
-				vestings[uid] = Vesting(vestingType, _vestingCreationType, vestingAddress);
-				vestingsOf[_tokenOwner].push(uid);
-				isVesting[vestingAddress] = true;
-			}
-			address teamVestingAddress = vestingRegistries[i].getTeamVesting(_tokenOwner);
-			if (teamVestingAddress != address(0)) {
-				VestingLogic vesting = VestingLogic(teamVestingAddress);
-				uid = uint256(
-					keccak256(abi.encodePacked(_tokenOwner, teamVestingType, vesting.cliff(), vesting.duration(), _vestingCreationType))
-				);
-				vestings[uid] = Vesting(teamVestingType, _vestingCreationType, teamVestingAddress);
-				vestingsOf[_tokenOwner].push(uid);
-				isVesting[teamVestingAddress] = true;
-			}
+		uint256 i = _vestingCreationType - 1;
+
+		address vestingAddress = vestingRegistries[i].getVesting(_tokenOwner);
+		if (vestingAddress != address(0)) {
+			VestingLogic vesting = VestingLogic(vestingAddress);
+			uid = uint256(
+				keccak256(abi.encodePacked(_tokenOwner, vestingType, vesting.cliff(), vesting.duration(), _vestingCreationType))
+			);
+			vestings[uid] = Vesting(vestingType, _vestingCreationType, vestingAddress);
+			vestingsOf[_tokenOwner].push(uid);
+			isVesting[vestingAddress] = true;
+		}
+		
+		address teamVestingAddress = vestingRegistries[i].getTeamVesting(_tokenOwner);
+		if (teamVestingAddress != address(0)) {
+			VestingLogic vesting = VestingLogic(teamVestingAddress);
+			uid = uint256(
+				keccak256(abi.encodePacked(_tokenOwner, teamVestingType, vesting.cliff(), vesting.duration(), _vestingCreationType))
+			);
+			vestings[uid] = Vesting(teamVestingType, _vestingCreationType, teamVestingAddress);
+			vestingsOf[_tokenOwner].push(uid);
+			isVesting[teamVestingAddress] = true;
 		}
 	}
 
