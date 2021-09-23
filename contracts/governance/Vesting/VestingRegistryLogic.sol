@@ -252,14 +252,12 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 		address vestingAddress = vestingRegistries[i].getVesting(_tokenOwner);
 		if (vestingAddress != address(0)) {
 			VestingLogic vesting = VestingLogic(vestingAddress);
-			uid = uint256(
-				keccak256(abi.encodePacked(_tokenOwner, vestingType, vesting.cliff(), vesting.duration(), _vestingCreationType))
-			);
+			uid = uint256(keccak256(abi.encodePacked(_tokenOwner, vestingType, vesting.cliff(), vesting.duration(), _vestingCreationType)));
 			vestings[uid] = Vesting(vestingType, _vestingCreationType, vestingAddress);
 			vestingsOf[_tokenOwner].push(uid);
 			isVesting[vestingAddress] = true;
 		}
-		
+
 		address teamVestingAddress = vestingRegistries[i].getTeamVesting(_tokenOwner);
 		if (teamVestingAddress != address(0)) {
 			VestingLogic vesting = VestingLogic(teamVestingAddress);
