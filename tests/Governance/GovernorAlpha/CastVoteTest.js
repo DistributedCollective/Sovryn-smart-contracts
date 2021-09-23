@@ -8,7 +8,7 @@
  * - fixed some comments
  * - removed unneeded variables
  *
- * Notes: 
+ * Notes:
  *   No real optimization performed, because waffle fixtures or mocks cannot be applied.
  *   Flow is optimus, no repeated deployments or unneccesary loops found. Even token mint
  *   and approval shouldn't be replaced by an initial infinite supply.
@@ -17,13 +17,7 @@
 const { expect } = require("chai");
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 
-const {
-	address,
-	etherMantissa,
-	encodeParameters,
-	mineBlock,
-	setNextBlockTimestamp,
-} = require("../../Utils/Ethereum");
+const { address, etherMantissa, encodeParameters, mineBlock, setNextBlockTimestamp } = require("../../Utils/Ethereum");
 const EIP712 = require("../../Utils/EIP712");
 const BigNumber = require("bignumber.js");
 
