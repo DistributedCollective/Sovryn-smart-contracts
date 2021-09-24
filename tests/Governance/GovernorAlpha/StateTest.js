@@ -15,14 +15,7 @@ const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 
-const {
-	etherUnsigned,
-	encodeParameters,
-	etherMantissa,
-	mineBlock,
-	increaseTime,
-	setNextBlockTimestamp,
-} = require("../../Utils/Ethereum");
+const { etherUnsigned, encodeParameters, etherMantissa, mineBlock, increaseTime, setNextBlockTimestamp } = require("../../Utils/Ethereum");
 
 const path = require("path");
 const solparse = require("solparse");

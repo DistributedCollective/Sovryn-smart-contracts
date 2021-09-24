@@ -1,7 +1,7 @@
 // For this one, Governor Alpha Mockup is used to reduce the voting period to just 10 blocks.
 
 /** Speed optimized on branch hardhatTestRefactor, 2021-09-24
- * No bottlenecks found. But flow is repeated along test 1 and 2. 
+ * No bottlenecks found. But flow is repeated along test 1 and 2.
  *
  * Total time elapsed: 4.7s
  * After optimization: 4.4s
