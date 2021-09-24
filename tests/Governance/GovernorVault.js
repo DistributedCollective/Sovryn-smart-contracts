@@ -14,14 +14,13 @@
 const { expect } = require("chai");
 const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
-const { expectRevert, expectEvent, constants, BN} = require("@openzeppelin/test-helpers");
+const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 
 const TestToken = artifacts.require("TestToken");
 const GovernorVault = artifacts.require("GovernorVault");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const ZERO_ADDRESS = constants.ZERO_ADDRESS;
-
 
 contract("TeamVesting", (accounts) => {
 	const name = "Test token";
