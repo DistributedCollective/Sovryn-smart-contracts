@@ -1,4 +1,18 @@
 // For this one, Governor Alpha Mockup is used to reduce the voting period to just 10 blocks.
+
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-24
+ * No bottlenecks found. But flow is repeated along test 1 and 2. 
+ *
+ * Total time elapsed: 4.7s
+ * After optimization: 4.4s
+ *
+ * Minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Tests have been reordered so as to run through the flow just once, instead of twice.
+ * This way, first test now checks the voteCast event and second test starts from the previous state.
+ */
+
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("Timelock");
 const TestToken = artifacts.require("TestToken");
@@ -23,14 +37,14 @@ let delay = 86400 * 14 + 1;
 const totalSupply = 100000000;
 let quorumPercentageVotes = 10;
 let minPercentageVotes = 5;
-const statePending = 0;
-const stateActive = 1;
-const stateCanceled = 2;
-const stateDefeated = 3;
+// const statePending = 0;
+// const stateActive = 1;
+// const stateCanceled = 2;
+// const stateDefeated = 3;
 const stateSucceeded = 4;
 const stateQueued = 5;
-const stateExpired = 6;
-const stateExecuted = 7;
+// const stateExpired = 6;
+// const stateExecuted = 7;
 
 /**
  * This function stakes token into the smart contract.
@@ -65,10 +79,11 @@ contract("GovernorAlpha (Voter Functions)", (accounts) => {
 	let governorAlpha, stakingLogic, stakingProxy, timelock, testToken;
 	let guardianOne, guardianTwo, voterOne, voterTwo, voterThree, userOne, userTwo;
 	let targets, values, signatures, callDatas, eta, proposalId;
+	let txReceipt;
 
 	before("Initiating Accounts & Contracts", async () => {
 		// Checking if we have enough accounts to test.
-		assert.isAtLeast(accounts.length, 7, "Alteast 7 accounts are required to test the contracts.");
+		assert.isAtLeast(accounts.length, 7, "At least 7 accounts are required to test the contracts.");
 		[guardianOne, guardianTwo, voterOne, voterTwo, voterThree, userOne, userTwo] = accounts;
 
 		// Creating the instance of Test Token.
@@ -128,22 +143,31 @@ contract("GovernorAlpha (Voter Functions)", (accounts) => {
 		await stake(testToken, stakingLogic, voterTwo, constants.ZERO_ADDRESS, amountTwo);
 	});
 
-	it("Should not be allowed to vote on a proposal with any other state than active.", async () => {
+	it("Voting should emit the VoteCast Event.", async () => {
 		// Proposal Parameters
 		targets = [testToken.address];
 		values = [new BN("0")];
 		signatures = ["balanceOf(address)"];
 		callDatas = [encodeParameters(["address"], [voterOne])];
 
-		let txReceipt = await governorAlpha.propose(targets, values, signatures, callDatas, "Checking Token Balance", { from: voterOne });
+		txReceipt = await governorAlpha.propose(targets, values, signatures, callDatas, "Checking Token Balance", { from: voterOne });
 
 		// Getting the proposal id of the newly created proposal.
 		proposalId = await governorAlpha.latestProposalIds(voterOne);
 
 		await mineBlock();
-		// Votes in majority.
-		await governorAlpha.castVote(proposalId, true, { from: voterOne });
 
+		// Votes in majority.
+		let txReceiptCastVote = await governorAlpha.castVote(proposalId, true, { from: voterOne });
+
+		expectEvent.inTransaction(txReceiptCastVote.tx, governorAlpha, "VoteCast", {
+			voter: voterOne,
+			proposalId: proposalId,
+			support: true,
+		});
+	});
+
+	it("Should not be allowed to vote on a proposal with any other state than active.", async () => {
 		// Finishing up the voting.
 		let endBlock = txReceipt["logs"]["0"]["args"].endBlock.toNumber() + 1;
 		await advanceBlocks(endBlock);
@@ -165,29 +189,5 @@ contract("GovernorAlpha (Voter Functions)", (accounts) => {
 
 		// Vote by anyone else should now revert.
 		await expectRevert(governorAlpha.castVote(proposalId, false, { from: voterTwo }), "GovernorAlpha::_castVote: voting is closed");
-	});
-
-	it("Voting should emit the VoteCast Event.", async () => {
-		// Proposal Parameters
-		targets = [testToken.address];
-		values = [new BN("0")];
-		signatures = ["balanceOf(address)"];
-		callDatas = [encodeParameters(["address"], [voterOne])];
-
-		await governorAlpha.propose(targets, values, signatures, callDatas, "Checking Token Balance", { from: voterOne });
-
-		// Getting the proposal id of the newly created proposal.
-		proposalId = await governorAlpha.latestProposalIds(voterOne);
-
-		await mineBlock();
-
-		// Votes in majority.
-		let txReceipt = await governorAlpha.castVote(proposalId, true, { from: voterOne });
-
-		expectEvent.inTransaction(txReceipt.tx, governorAlpha, "VoteCast", {
-			voter: voterOne,
-			proposalId: proposalId,
-			support: true,
-		});
 	});
 });

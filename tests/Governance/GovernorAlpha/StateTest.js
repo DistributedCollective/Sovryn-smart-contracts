@@ -1,15 +1,27 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-23
+ * Bottlenecks found on beforeEach, w/ redeployments on every test.
+ *
+ * Total time elapsed: 11s
+ * After optimization: 7s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Added waffle fixture at beforeEach hook.
+ */
+
 const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 
 const {
 	etherUnsigned,
 	encodeParameters,
 	etherMantissa,
 	mineBlock,
-	setTime,
 	increaseTime,
 	setNextBlockTimestamp,
-	blockNumber,
 } = require("../../Utils/Ethereum");
 
 const path = require("path");
@@ -45,12 +57,8 @@ contract("GovernorAlpha#state/1", (accounts) => {
 	let token, staking, gov, root, acct, acct2, delay, timelock;
 	let trivialProposal, targets, values, signatures, callDatas;
 
-	before(async () => {
-		[root, acct, acct2, ...accounts] = accounts;
-	});
-
-	beforeEach(async () => {
-		//await setTime(100);
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		// await setTime(100);
 		block = await ethers.provider.getBlock("latest");
 		setNextBlockTimestamp(block.timestamp + 100);
 
@@ -73,7 +81,6 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		stakingDate = kickoffTS.add(new BN(MAX_DURATION));
 		await staking.stake(TWO_PERCENTAGE_VOTES, stakingDate, accounts[3], accounts[3], { from: accounts[3] });
 
-		//
 		targets = [root];
 		values = ["0"];
 		signatures = ["getBalanceOf(address)"];
@@ -84,6 +91,14 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		await gov.propose(targets, values, signatures, callDatas, "do nothing");
 		proposalId = await gov.latestProposalIds.call(root);
 		trivialProposal = await gov.proposals.call(proposalId);
+	}
+
+	before(async () => {
+		[root, acct, acct2, ...accounts] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	it("Invalid for proposal not found", async () => {
@@ -130,7 +145,7 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		await gov.castVote(newProposalId, true, { from: accounts[3] });
 		await advanceBlocks(20);
 
-		//2% of votes
+		// 2% of votes
 		let proposal = await gov.proposals.call(newProposalId);
 		let totalVotes = proposal.forVotes.add(proposal.againstVotes);
 		expect(totalVotes).to.be.bignumber.lessThan(proposal.quorum);
@@ -158,7 +173,7 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		await gov.castVote(newProposalId, false, { from: acct2 });
 		await advanceBlocks(20);
 
-		//48% of votes
+		// 48% of votes
 		let proposal = await gov.proposals.call(newProposalId);
 		let totalVotes = proposal.forVotes.add(proposal.againstVotes);
 		expect(totalVotes).to.be.bignumber.greaterThan(proposal.quorum);
@@ -218,7 +233,7 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		let p = await gov.proposals.call(newProposalId);
 		let eta = etherUnsigned(p.eta);
 
-		//await setTime(eta.plus(gracePeriod).minus(1).toNumber());
+		// await setTime(eta.plus(gracePeriod).minus(1).toNumber());
 		setNextBlockTimestamp(eta.plus(gracePeriod).minus(1).toNumber());
 
 		expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Queued"]);
@@ -247,7 +262,7 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		let p = await gov.proposals.call(newProposalId);
 		let eta = etherUnsigned(p.eta);
 
-		//await setTime(eta.plus(gracePeriod).minus(1).toNumber());
+		// await setTime(eta.plus(gracePeriod).minus(1).toNumber());
 		setNextBlockTimestamp(eta.plus(gracePeriod).minus(1).toNumber());
 
 		expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Queued"]);
@@ -267,31 +282,31 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		await token.approve(staking.address, TOTAL_SUPPLY);
 		let kickoffTS = await staking.kickoffTS.call();
 
-		//stakes tokens for user 1, 99% of voting power
+		// stakes tokens for user 1, 99% of voting power
 		await staking.stake(99000, kickoffTS.add(new BN(DELAY)), root, root);
 		await mineBlock();
 
-		//stakes tokens for user 2 (proposer), we need more than 1% of voting power
+		// stakes tokens for user 2 (proposer), we need more than 1% of voting power
 		await staking.stake(1100, kickoffTS.add(new BN(DELAY)), acct, acct);
 		await mineBlock();
 
-		//proposer creates proposal
+		// proposer creates proposal
 		await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: acct });
 		let proposalId = await gov.latestProposalIds.call(acct);
 		await mineBlock();
 
-		//voting
+		// voting
 		// await gov.castVote(proposalId, true);
 
-		//queue proposal
+		// queue proposal
 		// await advanceBlocks(10);
 		// await gov.queue(proposalId);
 
-		//increase proposal threshold - stakes tokens for user 3
+		// increase proposal threshold - stakes tokens for user 3
 		// await staking.stake(10000, kickoffTS.add(new BN(DELAY)), accounts[3], accounts[3]);
 		// await mineBlock();
 
-		//cancel proposal
+		// cancel proposal
 		await expectRevert(gov.cancel(proposalId, { from: acct }), "GovernorAlpha::cancel: sender isn't a guardian");
 	});
 
@@ -318,10 +333,6 @@ async function advanceBlocks(number) {
 	}
 }
 
-async function getTimeFromKickoff(delay) {
-	let kickoffTS = await staking.kickoffTS.call();
-	return kickoffTS.add(new BN(delay));
-}
 async function updateTime(staking) {
 	let kickoffTS = await staking.kickoffTS.call();
 	let newTime = kickoffTS.add(new BN(DELAY).mul(new BN(2)));

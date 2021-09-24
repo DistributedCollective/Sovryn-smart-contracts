@@ -11,7 +11,7 @@
  * - removed unneeded variables
  *
  * Notes: Applied fixture to save initial snapshot for all tests.
- *   
+ *
  */
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
@@ -32,7 +32,6 @@ const { encodeParameters, increaseTime, blockNumber, mineBlock, advanceBlocks } 
 const { assert } = require("chai");
 const { ethers, waffle } = require("hardhat");
 const { loadFixture } = waffle;
-
 
 // Some constants we would be using in the contract.
 let zero = new BN(0);
@@ -145,7 +144,6 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 
 		// Using the current governor contract, we accept itself as the admin of Timelock.
 		await governorAlpha.__acceptAdmin({ from: guardianOne });
-
 
 		/// @dev Moved code from tests 1 and 2
 		// Proposal Parameters
