@@ -1,5 +1,20 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-23
+ * Bottlenecks found at beforeEach hook, redeploying token,
+ *  staking and governor on each test.
+ *
+ * Total time elapsed: 5.7s
+ * After optimization: 5.4s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
+
 const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 
 const { ZERO_ADDRESS } = constants;
 
@@ -17,13 +32,10 @@ const ProtocolSettings = artifacts.require("ProtocolSettings");
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
 
-const PROPOSAL_THRESHOLD = etherMantissa(1000000);
 const QUORUM_VOTES = etherMantissa(4000000);
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
-const DAY = 86400;
 const TWO_DAYS = 86400 * 2;
-const TWO_WEEKS = 86400 * 14;
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
 contract("GovernanceIntegration", (accounts) => {
@@ -32,28 +44,24 @@ contract("GovernanceIntegration", (accounts) => {
 
 	let root, account1, account2, account3, account4;
 	let token, staking, gov, timelock;
-	let protocolSettings, loanTokenSettings, protocol, loanToken;
+	let protocol;
 
-	before(async () => {
-		[root, account1, account2, account3, account4, ...accounts] = accounts;
-	});
-
-	beforeEach(async () => {
-		//Token
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		// Token
 		token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 
-		//Staking
+		// Staking
 		let stakingLogic = await StakingLogic.new(token.address);
 		staking = await StakingProxy.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 
-		//Governor
+		// Governor
 		timelock = await Timelock.new(root, TWO_DAYS);
 		gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4, 0);
 		await timelock.harnessSetAdmin(gov.address);
 
-		//Settings
+		// Settings
 		loanTokenSettings = await LoanTokenSettings.new();
 		loanToken = await LoanToken.new(root, loanTokenSettings.address, token.address, token.address);
 		loanToken = await LoanTokenSettings.at(loanToken.address);
@@ -64,6 +72,14 @@ contract("GovernanceIntegration", (accounts) => {
 		await protocol.replaceContract(protocolSettings.address);
 		protocol = await ProtocolSettings.at(protocol.address);
 		await protocol.transferOwnership(timelock.address);
+	}
+
+	before(async () => {
+		[root, account1, account2, account3, account4, ...accounts] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("change settings", () => {
@@ -79,14 +95,14 @@ contract("GovernanceIntegration", (accounts) => {
 				description: "change settings",
 			};
 
-			//old value
+			// old value
 			let lendingFeePercent = await protocol.lendingFeePercent.call();
 			expect(lendingFeePercent.toString()).to.be.equal(lendingFeePercentOld);
 
-			//make changes
+			// make changes
 			await executeProposal(proposalData);
 
-			//new value
+			// new value
 			lendingFeePercent = await protocol.lendingFeePercent.call();
 			expect(lendingFeePercent.toString()).to.be.equal(lendingFeePercentNew);
 		});
@@ -106,14 +122,14 @@ contract("GovernanceIntegration", (accounts) => {
 				description: "change settings",
 			};
 
-			//old value
+			// old value
 			let lendingFeePercent = await protocol.lendingFeePercent.call();
 			expect(lendingFeePercent.toString()).to.be.equal(lendingFeePercentOld);
 
-			//make changes
+			// make changes
 			await executeProposal(proposalData);
 
-			//new value
+			// new value
 			lendingFeePercent = await protocol.lendingFeePercent.call();
 			expect(lendingFeePercent.toString()).to.be.equal(lendingFeePercentNew);
 		});
@@ -150,7 +166,7 @@ contract("GovernanceIntegration", (accounts) => {
 				description: "change settings",
 			};
 
-			//old values
+			// old values
 			let tradingFeePercent = await protocol.tradingFeePercent.call();
 			expect(tradingFeePercent.toString()).to.be.equal(tradingFeePercentOld);
 
@@ -159,13 +175,13 @@ contract("GovernanceIntegration", (accounts) => {
 			expect(await protocol.underlyingToLoanPool.call(account3)).to.be.equal(ZERO_ADDRESS);
 			expect(await protocol.underlyingToLoanPool.call(account4)).to.be.equal(ZERO_ADDRESS);
 
-			//expect((await loanToken.transactionLimit.call(account1)).toNumber()).to.be.equal(0);
-			//expect((await loanToken.transactionLimit.call(account2)).toNumber()).to.be.equal(0);
+			// expect((await loanToken.transactionLimit.call(account1)).toNumber()).to.be.equal(0);
+			// expect((await loanToken.transactionLimit.call(account2)).toNumber()).to.be.equal(0);
 
-			//make changes
+			// make changes
 			await executeProposal(proposalData);
 
-			//new values
+			// new values
 			tradingFeePercent = await protocol.tradingFeePercent.call();
 			expect(tradingFeePercent.toString()).to.be.equal(tradingFeePercentNew);
 
@@ -174,8 +190,8 @@ contract("GovernanceIntegration", (accounts) => {
 			expect(await protocol.underlyingToLoanPool.call(account3)).to.be.equal(account1);
 			expect(await protocol.underlyingToLoanPool.call(account4)).to.be.equal(account2);
 
-			//expect((await loanToken.transactionLimit.call(account1)).toNumber()).to.be.equal(1111);
-			//expect((await loanToken.transactionLimit.call(account2)).toNumber()).to.be.equal(2222);
+			// expect((await loanToken.transactionLimit.call(account1)).toNumber()).to.be.equal(1111);
+			// expect((await loanToken.transactionLimit.call(account2)).toNumber()).to.be.equal(2222);
 		});
 
 		it("Shouldn't be able to execute proposal using Timelock directly", async () => {

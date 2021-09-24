@@ -1,6 +1,20 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-23
+ * Bottlenecks found at beforeEach hook, redeploying token,
+ *  and governor on each test.
+ *
+ * Total time elapsed: 4.3s
+ * After optimization: 4.0s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
+
 const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
-const { address, minerStart, minerStop, unlockedAccount, mineBlock, etherMantissa, etherUnsigned, setTime } = require("../Utils/Ethereum");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { expectRevert, expectEvent, constants, BN} = require("@openzeppelin/test-helpers");
 
 const TestToken = artifacts.require("TestToken");
 const GovernorVault = artifacts.require("GovernorVault");
@@ -8,7 +22,6 @@ const GovernorVault = artifacts.require("GovernorVault");
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const ZERO_ADDRESS = constants.ZERO_ADDRESS;
 
-const ERROR_INVALID_ADDRESS = "Invalid address";
 
 contract("TeamVesting", (accounts) => {
 	const name = "Test token";
@@ -18,14 +31,18 @@ contract("TeamVesting", (accounts) => {
 	let token;
 	let vault;
 
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
+
+		vault = await GovernorVault.new(token.address);
+	}
+
 	before(async () => {
 		[root, account1, account2, account3, ...accounts] = accounts;
 	});
 
 	beforeEach(async () => {
-		token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-
-		vault = await GovernorVault.new(token.address);
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("transferTokens", () => {
