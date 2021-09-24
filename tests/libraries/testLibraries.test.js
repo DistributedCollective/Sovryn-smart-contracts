@@ -3,7 +3,7 @@
  *
  * Minor optimizations:
  * - removed unneeded variables
- * 
+ *
  */
 
 const { expect } = require("chai");
