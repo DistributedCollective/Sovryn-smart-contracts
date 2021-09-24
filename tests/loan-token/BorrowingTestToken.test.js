@@ -1,7 +1,21 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-23
+ * Bottlenecks found at beforeEach hook, redeploying tokens,
+ *  protocol, ... on every test.
+ *
+ * Total time elapsed: 16.0s
+ * After optimization: 7.3s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
+
 const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
 const { expectRevert, BN, expectEvent } = require("@openzeppelin/test-helpers");
 const FeesEvents = artifacts.require("FeesEvents");
-const TestToken = artifacts.require("TestToken");
 const LoanOpenings = artifacts.require("LoanOpenings");
 
 const {
@@ -36,11 +50,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 	let owner, account1;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV, priceFeeds;
 
-	before(async () => {
-		[owner, account1] = accounts;
-	});
-
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
@@ -55,6 +65,14 @@ contract("LoanTokenBorrowing", (accounts) => {
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
+	}
+
+	before(async () => {
+		[owner, account1] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("Test borrow", () => {
@@ -82,7 +100,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			const principal = withdrawAmount
 				.mul(oneEth)
 				.div(oneEth.sub(interestRate.mul(new BN(durationInSeconds)).mul(oneEth).div(new BN(31536000)).div(hunEth)));
-			//TODO: refactor formula to remove rounding error subn(1)
+			// TODO: refactor formula to remove rounding error subn(1)
 			const borrowingFee = (await sovryn.borrowingFeePercent()).mul(collateralTokenSent).div(hunEth); /*.addn(1)*/
 			const expectedBalance = (await SUSD.balanceOf(account1)).add(withdrawAmount);
 			// approve the transfer of the collateral
@@ -155,7 +173,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			const principal = withdrawAmount
 				.mul(oneEth)
 				.div(oneEth.sub(interestRate.mul(new BN(durationInSeconds)).mul(oneEth).div(new BN(31536000)).div(hunEth)));
-			//TODO: refactor formula to remove rounding error subn(1)
+			// TODO: refactor formula to remove rounding error subn(1)
 			const borrowingFee = (await sovryn.borrowingFeePercent()).mul(collateralTokenSent).div(hunEth); /*.addn(1)*/
 			const expectedBalance = (await SUSD.balanceOf(account1)).add(withdrawAmount);
 			// approve the transfer of the collateral
@@ -294,7 +312,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 		it("Test borrow no interest should fail", async () => {
 			// no demand curve settings -> no interest set
-			//  prepare the test
+			// prepare the test
 			await lend_to_pool(loanToken, SUSD, owner);
 
 			// determine borrowing parameter
@@ -308,7 +326,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 				true
 			);
 
-			//approve the transfer of the collateral
+			// approve the transfer of the collateral
 			await RBTC.approve(loanToken.address, collateralTokenSent);
 			expectRevert(
 				loanToken.borrow(
@@ -326,7 +344,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 		});
 
 		it("Test borrow insufficient collateral should fail", async () => {
-			//  prepare the test
+			// prepare the test
 
 			await lend_to_pool(loanToken, SUSD, owner);
 			await set_demand_curve(loanToken);
@@ -343,7 +361,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			);
 			collateralTokenSent = collateralTokenSent.div(new BN(2));
 
-			//approve the transfer of the collateral
+			// approve the transfer of the collateral
 			await RBTC.approve(loanToken.address, collateralTokenSent);
 			expectRevert(
 				loanToken.borrow(
@@ -362,7 +380,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 		// borrows some funds from account 0 and then takes out some more from account 2 with 'borrow' without paying should fail.
 		it("Test borrow from foreign loan should fail", async () => {
-			//  prepare the test
+			// prepare the test
 
 			await lend_to_pool(loanToken, SUSD, owner);
 			await set_demand_curve(loanToken);
@@ -420,7 +438,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 		// borrows some funds from account 0 and then takes out some more from account 2 with a marginTrade without paying should fail.
 		it("Test margin trade from foreign loan should fail", async () => {
-			//  prepare the test
+			// prepare the test
 
 			await lend_to_pool(loanToken, SUSD, owner);
 			await set_demand_curve(loanToken);
@@ -478,7 +496,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 		// margin trades from account 0 and then borrows from same loan should fail.
 		it("Test borrow from trade position should fail", async () => {
-			//  prepare the test
+			// prepare the test
 
 			await lend_to_pool(loanToken, SUSD, owner);
 			await set_demand_curve(loanToken);
@@ -520,7 +538,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			);
 		});
 
-		//50% was hardcoded on the old contracts -> would have failed, but should work now
+		// 50% was hardcoded on the old contracts -> would have failed, but should work now
 		it("Borrowing with more than 50% initial margin", async () => {
 			await set_demand_curve(loanToken);
 			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
@@ -531,7 +549,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			// compute the required collateral
 			const collateralTokenSent = await loanToken.getDepositAmountForBorrow(withdrawAmount, durationInSeconds, RBTC.address);
 
-			//TODO: refactor formula to remove rounding error subn(1)
+			// TODO: refactor formula to remove rounding error subn(1)
 			const borrowingFee = (await sovryn.borrowingFeePercent()).mul(collateralTokenSent).div(hunEth).addn(1);
 
 			// compute expected values for asserts
