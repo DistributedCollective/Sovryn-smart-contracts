@@ -1,5 +1,20 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-23
+ * Bottlenecks found at beforeEach hook, redeploying token,
+ *  protocol and loan on every test.
+ *
+ * Total time elapsed: 6.2s
+ * After optimization: 4.6s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
+
 const { assert } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time, ether } = require("@openzeppelin/test-helpers");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { expectRevert, constants, ether } = require("@openzeppelin/test-helpers");
 
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
@@ -10,7 +25,6 @@ const ISovryn = artifacts.require("ISovryn");
 
 const LoanToken = artifacts.require("LoanToken");
 const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
-const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
@@ -28,17 +42,13 @@ contract("LoanSettings", (accounts) => {
 	const name = "Test token";
 	const symbol = "TST";
 
-	let lender, account1, account2, account3, account4;
+	let lender;
 	let underlyingToken, testWrbtc;
 	let sovryn, loanToken;
-	let loanParams, loanParamsId;
+	let loanParams;
 
-	before(async () => {
-		[lender, account1, account2, account3, account4, ...accounts] = accounts;
-	});
-
-	beforeEach(async () => {
-		//Token
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		// Token
 		underlyingToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 		testWrbtc = await TestWrbtc.new();
 
@@ -62,7 +72,7 @@ contract("LoanSettings", (accounts) => {
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
 		await sovryn.setSupportedTokens([underlyingToken.address, testWrbtc.address], [true, true]);
 		await sovryn.setPriceFeedContract(
-			feeds.address //priceFeeds
+			feeds.address // priceFeeds
 		);
 		await sovryn.setSwapsImplContract(
 			swaps.address // swapsImpl
@@ -71,7 +81,7 @@ contract("LoanSettings", (accounts) => {
 
 		loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
 		loanToken = await LoanToken.new(lender, loanTokenLogicWrbtc.address, sovryn.address, testWrbtc.address);
-		await loanToken.initialize(testWrbtc.address, "iWRBTC", "iWRBTC"); //iToken
+		await loanToken.initialize(testWrbtc.address, "iWRBTC", "iWRBTC"); // iToken
 		loanToken = await LoanTokenLogicWrbtc.at(loanToken.address);
 
 		const loanTokenAddress = await loanToken.loanTokenAddress();
@@ -92,6 +102,14 @@ contract("LoanSettings", (accounts) => {
 
 		let tx = await sovryn.setupLoanParams([Object.values(loanParams)]);
 		loanParamsId = tx.logs[1].args.id;
+	}
+
+	before(async () => {
+		[lender, ...accounts] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("test LoanSettings", async () => {
