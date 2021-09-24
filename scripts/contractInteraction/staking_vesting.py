@@ -28,9 +28,14 @@ def readVestingContractForAddress(userAddress):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=conf.acct)
     address = vestingRegistry.getVesting(userAddress)
     if(address == '0x0000000000000000000000000000000000000000'):
-        vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=conf.acct)
+        vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistry2'], abi=VestingRegistry.abi, owner=conf.acct)
         address = vestingRegistry.getVesting(userAddress)
 
+    print(address)
+
+def readTeamVestingContractForAddress(userAddress):
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=conf.acct)
+    address = vestingRegistry.getTeamVesting(userAddress)
     print(address)
 
 def readLMVestingContractForAddress(userAddress):
@@ -156,3 +161,15 @@ def updateVestingRegAddr():
     data = stakingProxy.setVestingRegistry.encode_input(vestingRegistryProxy)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], stakingProxy.address, data, conf.acct)
+
+def getStakes(address):
+    # Get the proxy contract instance
+    stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    print(stakingProxy.getStakes(address))
+    
+def readVestingData(vestingAddress):
+    vesting = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=conf.acct)
+    print(vesting.startDate())
+    print(vesting.endDate())
+    print(vesting.cliff())
+    print(vesting.duration())
