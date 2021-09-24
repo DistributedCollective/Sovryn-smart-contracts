@@ -1,7 +1,20 @@
-const { expect } = require("chai");
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-24
+ * Bottlenecks found at beforeEach hook, redeploying tokens,
+ *  protocol, ... on every test.
+ *
+ * Total time elapsed: 6.1s
+ * After optimization: 5.1s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
 
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+ 
 const TestToken = artifacts.require("TestToken");
-const TestWrbtc = artifacts.require("TestWrbtc");
 
 const sovrynProtocol = artifacts.require("sovrynProtocol");
 const ProtocolSettings = artifacts.require("ProtocolSettings");
@@ -35,16 +48,12 @@ contract("LoanTokenLending", (accounts) => {
 	const name = "Test token";
 	const symbol = "TST";
 
-	let lender, account1, account2, account3, account4;
+	let lender;
 	let underlyingToken, rBTC;
 	let sovryn, loanToken;
 
-	before(async () => {
-		[lender, account1, account2, account3, account4, ...accounts] = accounts;
-	});
-
-	beforeEach(async () => {
-		//Token
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		// Token
 		underlyingToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 
 		const sovrynproxy = await sovrynProtocol.new();
@@ -69,7 +78,7 @@ contract("LoanTokenLending", (accounts) => {
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
 		await sovryn.setSupportedTokens([underlyingToken.address, rBTC.address], [true, true]);
 		await sovryn.setPriceFeedContract(
-			feeds.address //priceFeeds
+			feeds.address // priceFeeds
 		);
 		await sovryn.setSwapsImplContract(
 			swaps.address // swapsImpl
@@ -83,7 +92,7 @@ contract("LoanTokenLending", (accounts) => {
 
 		loanTokenLogicStandard = await LoanTokenLogicLM.new();
 		loanToken = await LoanToken.new(lender, loanTokenLogicStandard.address, sovryn.address, rBTC.address);
-		await loanToken.initialize(underlyingToken.address, name, symbol); //iToken
+		await loanToken.initialize(underlyingToken.address, name, symbol); // iToken
 		loanToken = await LoanTokenLogicLM.at(loanToken.address);
 
 		params = [
@@ -110,6 +119,14 @@ contract("LoanTokenLending", (accounts) => {
 		// await loanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate);
 
 		await rBTC.mint(sovryn.address, wei("500", "ether"));
+	}
+
+	before(async () => {
+		[lender, ...accounts] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("test lending using wRBTC as collateral", () => {
@@ -122,7 +139,7 @@ contract("LoanTokenLending", (accounts) => {
 		});
 
 		it("test cash out from the pool more of lender balance should not fail", async () => {
-			//await cash_out_from_the_pool_more_of_lender_balance_should_not_fail(loanToken, lender, underlyingToken);
+			// await cash_out_from_the_pool_more_of_lender_balance_should_not_fail(loanToken, lender, underlyingToken);
 			await cash_out_from_the_pool_uint256_max_should_withdraw_total_balance(loanToken, lender, underlyingToken);
 		});
 	});

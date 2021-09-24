@@ -1,6 +1,16 @@
-const { expect, assert } = require("chai");
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-24
+ * No bottlenecks found, flow runs smoothly on all tests. Deployments
+ *   are performed just once at the beginning.
+ *
+ * Total time elapsed: 5.2s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ */
+
+const { expect } = require("chai");
 const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
-const { increaseTime, etherMantissa, mineBlock, advanceBlocks } = require("../Utils/Ethereum");
+const { etherMantissa } = require("../Utils/Ethereum");
 
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
@@ -29,7 +39,6 @@ const LockedSOV = artifacts.require("LockedSOV");
 
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 
-//const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_more_of_lender_balance_should_not_fail } = require("./helpers");
 const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_uint256_max_should_withdraw_total_balance } = require("./helpers");
 
 const wei = web3.utils.toWei;
@@ -39,14 +48,14 @@ contract("LoanTokenLogicLM", (accounts) => {
 	const symbol = "TST";
 	const depositAmount = new BN(wei("400", "ether"));
 
-	let lender, account1, account2, account3, account4;
+	let lender, account1, account2;
 	let underlyingToken, testWrbtc;
 	let sovryn, loanToken, loanTokenWRBTC;
 	let liquidityMining;
 	let lockedSOVAdmins, lockedSOV;
 
 	before(async () => {
-		[lender, account1, account2, account3, account4, ...accounts] = accounts;
+		[lender, account1, account2, ...accounts] = accounts;
 		await deployProtocol();
 		await deployLoanTokens();
 		await deployLiquidityMining();
@@ -59,15 +68,15 @@ contract("LoanTokenLogicLM", (accounts) => {
 
 	describe("Test lending with liquidity mining", () => {
 		it("Should lend to the pool and deposit the pool tokens at the liquidity mining contract", async () => {
-			//await lend_to_the_pool(loanToken, lender, underlyingToken, testWrbtc, sovryn);
+			// await lend_to_the_pool(loanToken, lender, underlyingToken, testWrbtc, sovryn);
 			await underlyingToken.approve(loanToken.address, depositAmount);
 			const tx = await loanToken.mint(lender, depositAmount, true);
 			const userInfo = await liquidityMining.getUserInfo(loanToken.address, lender);
-			//expected: user pool token balance is 0, but balance of LM contract increased
+			// expected: user pool token balance is 0, but balance of LM contract increased
 			expect(await loanToken.balanceOf(lender)).bignumber.equal("0");
 			expect(userInfo.amount).bignumber.equal(depositAmount);
 			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount);
-			//expect the Mint event to mention the lender
+			// expect the Mint event to mention the lender
 			expectEvent(tx, "Mint", {
 				minter: lender,
 				tokenAmount: depositAmount,
@@ -79,7 +88,7 @@ contract("LoanTokenLogicLM", (accounts) => {
 			await underlyingToken.approve(loanToken.address, depositAmount);
 			const tx = await loanToken.mint(lender, depositAmount, false);
 			const userInfo = await liquidityMining.getUserInfo(loanToken.address, lender);
-			//expected: user pool token balance increased by the deposited amount, LM balance stays unchanged
+			// expected: user pool token balance increased by the deposited amount, LM balance stays unchanged
 			expect(await loanToken.balanceOf(lender)).bignumber.equal(depositAmount);
 			expect(userInfo.amount).bignumber.equal(depositAmount);
 			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount.mul(new BN("2")));
@@ -89,11 +98,11 @@ contract("LoanTokenLogicLM", (accounts) => {
 			let userInfo = await liquidityMining.getUserInfo(loanToken.address, lender);
 			const tx = await loanToken.burn(lender, userInfo.amount, true);
 			userInfo = await liquidityMining.getUserInfo(loanToken.address, lender);
-			//expected: user pool token balance stayed the same but LM balance is 0
+			// expected: user pool token balance stayed the same but LM balance is 0
 			expect(await loanToken.balanceOf(lender)).bignumber.equal(depositAmount);
 			expect(userInfo.amount).bignumber.equal("0");
 			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount);
-			//expect the Burn event to mention the lender
+			// expect the Burn event to mention the lender
 			expectEvent(tx, "Burn", {
 				burner: lender,
 				tokenAmount: depositAmount,
@@ -110,14 +119,14 @@ contract("LoanTokenLogicLM", (accounts) => {
 
 	describe("Test WRBTC lending with liquidity mining", () => {
 		it("Should lend to the pool and deposit the pool tokens at the liquidity mining contract", async () => {
-			//await lend_to_the_pool(loanToken, lender, underlyingToken, testWrbtc, sovryn);
+			// await lend_to_the_pool(loanToken, lender, underlyingToken, testWrbtc, sovryn);
 			const tx = await loanTokenWRBTC.mintWithBTC(lender, true, { value: depositAmount });
 			const userInfo = await liquidityMining.getUserInfo(loanTokenWRBTC.address, lender);
-			//expected: user pool token balance is 0, but balance of LM contract increased
+			// expected: user pool token balance is 0, but balance of LM contract increased
 			expect(await loanTokenWRBTC.balanceOf(lender)).bignumber.equal("0");
 			expect(userInfo.amount).bignumber.equal(depositAmount);
 			expect(await loanTokenWRBTC.totalSupply()).bignumber.equal(depositAmount);
-			//expect the Mint event to mention the lender
+			// expect the Mint event to mention the lender
 			expectEvent(tx, "Mint", {
 				minter: lender,
 				tokenAmount: depositAmount,
@@ -128,7 +137,7 @@ contract("LoanTokenLogicLM", (accounts) => {
 		it("Should lend to the pool without depositing the pool tokens at the liquidity mining contract", async () => {
 			await loanTokenWRBTC.mintWithBTC(lender, false, { value: depositAmount });
 			const userInfo = await liquidityMining.getUserInfo(loanTokenWRBTC.address, lender);
-			//expected: user pool token balance increased by the deposited amount, LM balance stays unchanged
+			// expected: user pool token balance increased by the deposited amount, LM balance stays unchanged
 			expect(await loanTokenWRBTC.balanceOf(lender)).bignumber.equal(depositAmount);
 			expect(userInfo.amount).bignumber.equal(depositAmount);
 			expect(await loanTokenWRBTC.totalSupply()).bignumber.equal(depositAmount.mul(new BN("2")));
@@ -138,11 +147,11 @@ contract("LoanTokenLogicLM", (accounts) => {
 			let userInfo = await liquidityMining.getUserInfo(loanTokenWRBTC.address, lender);
 			const tx = await loanTokenWRBTC.burnToBTC(lender, userInfo.amount, true);
 			userInfo = await liquidityMining.getUserInfo(loanTokenWRBTC.address, lender);
-			//expected: user pool token balance stayed the same but LM balance is 0
+			// expected: user pool token balance stayed the same but LM balance is 0
 			expect(await loanTokenWRBTC.balanceOf(lender)).bignumber.equal(depositAmount);
 			expect(userInfo.amount).bignumber.equal("0");
 			expect(await loanTokenWRBTC.totalSupply()).bignumber.equal(depositAmount);
-			//expect the Burn event to mention the lender
+			// expect the Burn event to mention the lender
 			expectEvent(tx, "Burn", {
 				burner: lender,
 				tokenAmount: depositAmount,
@@ -171,7 +180,7 @@ contract("LoanTokenLogicLM", (accounts) => {
 	async function deployLiquidityMining() {
 		SOVToken = await TestToken.new("SOV", "SOV", 18, etherMantissa(1000000000));
 		lockedSOVAdmins = [lender, account1, account2];
-		//account 1 is a dummy value for the vesting registry
+		// account 1 is a dummy value for the vesting registry
 		lockedSOV = await LockedSOV.new(SOVToken.address, account1, 1, 10, lockedSOVAdmins);
 
 		let liquidityMiningLogic = await LiquidityMiningLogic.new();
@@ -179,12 +188,12 @@ contract("LoanTokenLogicLM", (accounts) => {
 		await liquidityMiningProxy.setImplementation(liquidityMiningLogic.address);
 		liquidityMining = await LiquidityMiningLogic.at(liquidityMiningProxy.address);
 
-		//dummy settings
+		// dummy settings
 		await liquidityMining.initialize(SOVToken.address, 10, 1, 1, account1, lockedSOV.address, 0);
 	}
 
 	async function deployProtocol() {
-		//Token
+		// Token
 		underlyingToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 		testWrbtc = await TestWrbtc.new();
 
@@ -208,7 +217,7 @@ contract("LoanTokenLogicLM", (accounts) => {
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
 		await sovryn.setSupportedTokens([underlyingToken.address, testWrbtc.address], [true, true]);
 		await sovryn.setPriceFeedContract(
-			feeds.address //priceFeeds
+			feeds.address // priceFeeds
 		);
 		await sovryn.setSwapsImplContract(
 			swaps.address // swapsImpl
@@ -219,7 +228,7 @@ contract("LoanTokenLogicLM", (accounts) => {
 	async function deployLoanTokens() {
 		loanTokenLogicLM = await LoanTokenLogicLM.new();
 		loanToken = await LoanToken.new(lender, loanTokenLogicLM.address, sovryn.address, testWrbtc.address);
-		await loanToken.initialize(underlyingToken.address, name, symbol); //iToken
+		await loanToken.initialize(underlyingToken.address, name, symbol); // iToken
 		loanToken = await LoanTokenLogicLM.at(loanToken.address);
 
 		params = [
@@ -238,7 +247,7 @@ contract("LoanTokenLogicLM", (accounts) => {
 		const loanTokenAddress = await loanToken.loanTokenAddress();
 		if (lender == (await sovryn.owner())) await sovryn.setLoanPool([loanToken.address], [loanTokenAddress]);
 
-		// --------------- WRBTC -----------------------//
+		// --------------- WRBTC -----------------------// 
 
 		loanTokenLogicWRBTC = await LoanTokenLogicWRBTC.new();
 		loanTokenWRBTC = await LoanToken.new(lender, loanTokenLogicWRBTC.address, sovryn.address, testWrbtc.address);
@@ -259,7 +268,7 @@ contract("LoanTokenLogicLM", (accounts) => {
 		await loanTokenWRBTC.setupLoanParams([params], false);
 		await sovryn.setLoanPool([loanTokenWRBTC.address], [testWrbtc.address]);
 
-		// ---------------- SUPPLY FUNDS TO PROTOCOL ---------------------//
+		// ---------------- SUPPLY FUNDS TO PROTOCOL ---------------------// 
 		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
 		await underlyingToken.mint(sovryn.address, wei("50000", "ether"));
 	}
