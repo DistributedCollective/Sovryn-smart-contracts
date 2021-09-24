@@ -247,7 +247,7 @@ contract("LoanTokenLogicLM", (accounts) => {
 		const loanTokenAddress = await loanToken.loanTokenAddress();
 		if (lender == (await sovryn.owner())) await sovryn.setLoanPool([loanToken.address], [loanTokenAddress]);
 
-		// --------------- WRBTC -----------------------// 
+		// --------------- WRBTC -----------------------//
 
 		loanTokenLogicWRBTC = await LoanTokenLogicWRBTC.new();
 		loanTokenWRBTC = await LoanToken.new(lender, loanTokenLogicWRBTC.address, sovryn.address, testWrbtc.address);
@@ -268,7 +268,7 @@ contract("LoanTokenLogicLM", (accounts) => {
 		await loanTokenWRBTC.setupLoanParams([params], false);
 		await sovryn.setLoanPool([loanTokenWRBTC.address], [testWrbtc.address]);
 
-		// ---------------- SUPPLY FUNDS TO PROTOCOL ---------------------// 
+		// ---------------- SUPPLY FUNDS TO PROTOCOL ---------------------//
 		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
 		await underlyingToken.mint(sovryn.address, wei("50000", "ether"));
 	}
