@@ -219,7 +219,7 @@ contract("LoanTokenTrading", (accounts) => {
 			4. sends the closing tx from the trader
 			5. verifies the result
 		*/
-		
+
 		it("Test close partial margin trade", async () => {
 			await close_partial_margin_trade(
 				sovryn,

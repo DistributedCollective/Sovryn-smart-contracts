@@ -12,7 +12,7 @@
  */
 
 const { waffle } = require("hardhat");
-const { loadFixture } = waffle; 
+const { loadFixture } = waffle;
 const { BN } = require("@openzeppelin/test-helpers");
 
 const {
