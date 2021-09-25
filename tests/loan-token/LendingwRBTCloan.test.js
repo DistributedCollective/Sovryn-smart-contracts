@@ -1,6 +1,21 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-24
+ * Bottlenecks found at beforeEach hook, redeploying tokens,
+ *  protocol, ... on every test.
+ *
+ * Total time elapsed: 6.1s
+ * After optimization: 5.1s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
+
 const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
-//const { mineBlock, increaseTime } = require("../Utils/Ethereum");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { expectRevert, constants, BN } = require("@openzeppelin/test-helpers");
+// const { mineBlock, increaseTime } = require("../Utils/Ethereum");
 
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
@@ -31,30 +46,22 @@ const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 const {
 	verify_start_conditions,
 	verify_lending_result_and_itoken_price_change,
-	lend_to_the_pool,
 	cash_out_from_the_pool,
-	cash_out_from_the_pool_more_of_lender_balance_should_not_fail,
 } = require("./helpers");
-//const { artifacts } = require("hardhat");
+// const { artifacts } = require("hardhat");
 
 const wei = web3.utils.toWei;
-const oneEth = new BN(wei("1", "ether"));
-const hunEth = new BN(wei("100", "ether"));
 
 contract("LoanTokenLending", (accounts) => {
 	const name = "Test token";
 	const symbol = "TST";
 
-	let lender, account1, account2, account3, account4;
+	let lender;
 	let underlyingToken, testWrbtc;
 	let sovryn, loanToken;
 
-	before(async () => {
-		[lender, account1, account2, account3, account4, ...accounts] = accounts;
-	});
-
-	beforeEach(async () => {
-		//Token
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		// Token
 		underlyingToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 		testWrbtc = await TestWrbtc.new();
 
@@ -79,7 +86,7 @@ contract("LoanTokenLending", (accounts) => {
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
 		await sovryn.setSupportedTokens([underlyingToken.address, testWrbtc.address], [true, true]);
 		await sovryn.setPriceFeedContract(
-			feeds.address //priceFeeds
+			feeds.address // priceFeeds
 		);
 		await sovryn.setSwapsImplContract(
 			swaps.address // swapsImpl
@@ -93,7 +100,7 @@ contract("LoanTokenLending", (accounts) => {
 
 		loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
 		loanToken = await LoanToken.new(lender, loanTokenLogicWrbtc.address, sovryn.address, testWrbtc.address);
-		await loanToken.initialize(testWrbtc.address, "iWRBTC", "iWRBTC"); //iToken
+		await loanToken.initialize(testWrbtc.address, "iWRBTC", "iWRBTC"); // iToken
 		loanToken = await LoanTokenLogicWrbtc.at(loanToken.address);
 
 		params = [
@@ -114,7 +121,16 @@ contract("LoanTokenLending", (accounts) => {
 		if (lender == (await sovryn.owner())) await sovryn.setLoanPool([loanToken.address], [loanTokenAddress]);
 
 		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
+	}
+
+	before(async () => {
+		[lender, ...accounts] = accounts;
 	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
+	});
+
 	describe("test lending using wRBTC as loanToken", () => {
 		it("test lend to the pool", async () => {
 			const baseRate = wei("1", "ether");
@@ -159,7 +175,6 @@ contract("LoanTokenLending", (accounts) => {
 		it("test cash out from the pool more of lender balance should not fail", async () => {
 			const total_deposit_amount = new BN(wei("200", "ether"));
 			await loanToken.mintWithBTC(lender, false, { value: total_deposit_amount.toString() });
-			const balance_after_lending = await web3.eth.getBalance(lender);
 			await expectRevert(loanToken.burnToBTC(lender, total_deposit_amount.mul(new BN(2)).toString(), false), "32");
 			await loanToken.burnToBTC(lender, constants.MAX_UINT256, false);
 			expect(await loanToken.balanceOf(lender)).to.be.a.bignumber.equal(new BN(0));

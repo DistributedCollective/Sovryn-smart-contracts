@@ -1,5 +1,14 @@
-const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-24
+ * No bottlenecks found. The beforeEach hook deploys contracts but there is only one test.
+ *
+ * Total time elapsed: 4.1s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ */
+
+const { constants, BN } = require("@openzeppelin/test-helpers");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
@@ -11,46 +20,45 @@ const Protocol = artifacts.require("sovrynProtocol");
 const ProtocolSettings = artifacts.require("ProtocolSettings");
 
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
-const LoanToken = artifacts.require("LoanToken");
 
 const PreviousLoanTokenSettings = artifacts.require("PreviousLoanTokenSettingsLowerAdmin");
 const PreviousLoanToken = artifacts.require("PreviousLoanToken");
 
 const TOTAL_SUPPLY = 100;
 
-const DAY = 86400;
 const TWO_DAYS = 86400 * 2;
-const TWO_WEEKS = 86400 * 14;
-const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
 contract("LoanTokenUpgrade", (accounts) => {
 	const name = "Test token";
 	const symbol = "TST";
 
-	let root, account1, account2, account3, account4;
+	let root;
 	let token, staking, gov, timelock;
 	let protocolSettings, loanTokenSettings, protocol, loanToken;
 
 	before(async () => {
-		[root, account1, account2, account3, account4, ...accounts] = accounts;
+		[root, ...accounts] = accounts;
 	});
 
+	/// @dev In case more tests were being added to this file,
+	///   the beforeEach hook should be calling a fixture
+	///   to avoid repeated deployments.
 	beforeEach(async () => {
-		//Token
+		// Token
 		token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 
-		//Staking
+		// Staking
 		let stakingLogic = await StakingLogic.new(token.address);
 		staking = await StakingProxy.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 
-		//Governor
+		// Governor
 		timelock = await Timelock.new(root, TWO_DAYS);
 		gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4, 0);
 		await timelock.harnessSetAdmin(gov.address);
 
-		//Settings
+		// Settings
 		loanTokenSettings = await PreviousLoanTokenSettings.new();
 		loanToken = await PreviousLoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, token.address);
 		loanToken = await PreviousLoanTokenSettings.at(loanToken.address);
@@ -75,19 +83,19 @@ contract("LoanTokenUpgrade", (accounts) => {
 
 			loanToken = await LoanTokenSettings.at(loanToken.address);
 
-			//check that previous admin is address(0)
+			// check that previous admin is address(0)
 			let admin = await loanToken.admin();
 			assert.equal(admin, constants.ZERO_ADDRESS);
 
-			//await expectRevert(loanToken.changeLoanTokenNameAndSymbol("newName", "newSymbol", { from: account1 }), "unauthorized");
+			// await expectRevert(loanToken.changeLoanTokenNameAndSymbol("newName", "newSymbol", { from: account1 }), "unauthorized");
 
-			//change admin
+			// change admin
 			await loanToken.setAdmin(root);
 
 			admin = await loanToken.admin();
 			assert.equal(admin, root);
 
-			//await loanToken.changeLoanTokenNameAndSymbol("newName", "newSymbol");
+			// await loanToken.changeLoanTokenNameAndSymbol("newName", "newSymbol");
 
 			let sovrynContractAddress = await loanToken.sovrynContractAddress();
 			let wrbtcTokenAddress = await loanToken.wrbtcTokenAddress();
