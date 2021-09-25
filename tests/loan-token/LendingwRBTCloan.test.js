@@ -43,11 +43,7 @@ const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 
-const {
-	verify_start_conditions,
-	verify_lending_result_and_itoken_price_change,
-	cash_out_from_the_pool,
-} = require("./helpers");
+const { verify_start_conditions, verify_lending_result_and_itoken_price_change, cash_out_from_the_pool } = require("./helpers");
 // const { artifacts } = require("hardhat");
 
 const wei = web3.utils.toWei;
