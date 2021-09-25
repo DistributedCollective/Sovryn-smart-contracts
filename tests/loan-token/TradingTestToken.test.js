@@ -1,5 +1,20 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-24
+ * Bottlenecks found at beforeEach hook, redeploying tokens,
+ *  protocol, loan ... on every test.
+ *
+ * Total time elapsed: 26.5s
+ * After optimization: 11.4s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
+
 const { expect } = require("chai");
-const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 
 const {
 	margin_trading_sending_loan_tokens,
@@ -17,7 +32,6 @@ const {
 } = require("./tradingFunctions");
 
 const FeesEvents = artifacts.require("FeesEvents");
-const TestToken = artifacts.require("TestToken");
 
 const {
 	getSUSD,
@@ -45,11 +59,7 @@ contract("LoanTokenTrading", (accounts) => {
 	let owner;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV, priceFeeds;
 
-	before(async () => {
-		[owner] = accounts;
-	});
-
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
@@ -64,6 +74,14 @@ contract("LoanTokenTrading", (accounts) => {
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
+	}
+
+	before(async () => {
+		[owner] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("Test the loan token trading logic with 2 TestTokens.", () => {
