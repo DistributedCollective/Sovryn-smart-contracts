@@ -1,3 +1,12 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-24
+ * No bottlenecks found. There's no beforeEach hook deploying contracts but 
+ *   near the end there are 3 tests redeploying VestingRegistry.
+ * 
+ * Total time elapsed: 4.2s
+ *
+ * Notes: Applied fixture for the 3 tests near the end.
+ */
+
 const SOV = artifacts.require("TestToken");
 const LockedSOV = artifacts.require("LockedSOV");
 const StakingLogic = artifacts.require("Staking");
@@ -14,6 +23,8 @@ const {
 } = require("@openzeppelin/test-helpers");
 
 const { assert } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
 
 // Some constants we would be using in the contract.
 let zero = new BN(0);
@@ -24,10 +35,11 @@ let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 contract("Locked SOV (Admin Functions)", (accounts) => {
 	let sov, lockedSOV, newLockedSOV, vestingRegistry, vestingLogic, stakingLogic;
 	let creator, admin, newAdmin, userOne, userTwo, userThree, userFour, userFive;
+	let newVestingRegistry;
 
-	before("Initiating Accounts & Creating Test Token Instance.", async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		// Checking if we have enough accounts to test.
-		assert.isAtLeast(accounts.length, 8, "Alteast 8 accounts are required to test the contracts.");
+		assert.isAtLeast(accounts.length, 8, "At least 8 accounts are required to test the contracts.");
 		[creator, admin, newAdmin, userOne, userTwo, userThree, userFour, userFive] = accounts;
 
 		// Creating the instance of SOV Token.
@@ -62,6 +74,18 @@ contract("Locked SOV (Admin Functions)", (accounts) => {
 
 		// Adding lockedSOV as an admin in the Vesting Registry.
 		await vestingRegistry.addAdmin(lockedSOV.address);
+
+		newVestingRegistry = await VestingRegistry.new(
+			vestingFactory.address,
+			sov.address,
+			staking.address,
+			feeSharingProxy.address,
+			creator // This should be Governance Timelock Contract.
+		);
+	}
+
+	before("Initiating Accounts & Creating Test Token Instance.", async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	it("Admin should be able to add another admin.", async () => {
@@ -92,24 +116,12 @@ contract("Locked SOV (Admin Functions)", (accounts) => {
 	});
 
 	it("Admin should be able to change the vestingRegistry, cliff and/or duration.", async () => {
-		let newVestingRegistry = await VestingRegistry.new(
-			vestingFactory.address,
-			sov.address,
-			staking.address,
-			feeSharingProxy.address,
-			creator // This should be Governance Timelock Contract.
-		);
+		await loadFixture(deploymentAndInitFixture);
 		await lockedSOV.changeRegistryCliffAndDuration(newVestingRegistry.address, cliff + 1, duration + 1, { from: admin });
 	});
 
 	it("Admin should not be able to change the duration as zero.", async () => {
-		let newVestingRegistry = await VestingRegistry.new(
-			vestingFactory.address,
-			sov.address,
-			staking.address,
-			feeSharingProxy.address,
-			creator // This should be Governance Timelock Contract.
-		);
+		await loadFixture(deploymentAndInitFixture);
 		await expectRevert(
 			lockedSOV.changeRegistryCliffAndDuration(newVestingRegistry.address, cliff + 1, 0, { from: admin }),
 			"Duration cannot be zero."
@@ -117,13 +129,7 @@ contract("Locked SOV (Admin Functions)", (accounts) => {
 	});
 
 	it("Admin should not be able to change the duration higher than 36.", async () => {
-		let newVestingRegistry = await VestingRegistry.new(
-			vestingFactory.address,
-			sov.address,
-			staking.address,
-			feeSharingProxy.address,
-			creator // This should be Governance Timelock Contract.
-		);
+		await loadFixture(deploymentAndInitFixture);
 		await expectRevert(
 			lockedSOV.changeRegistryCliffAndDuration(newVestingRegistry.address, cliff + 1, 100, { from: admin }),
 			"Duration is too long."
