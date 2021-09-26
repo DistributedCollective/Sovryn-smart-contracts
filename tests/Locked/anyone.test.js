@@ -1,8 +1,8 @@
 /** Speed optimized on branch hardhatTestRefactor, 2021-09-24
- * No bottlenecks found. There's no beforeEach hook deploying contracts but 
+ * No bottlenecks found. There's no beforeEach hook deploying contracts but
  *   there are several mints and approves that can be moved into
  *   the initialization process.
- * 
+ *
  * Total time elapsed: 5.5s
  * After optimization: 5.1s
  *

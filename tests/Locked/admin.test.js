@@ -1,7 +1,7 @@
 /** Speed optimized on branch hardhatTestRefactor, 2021-09-24
- * No bottlenecks found. There's no beforeEach hook deploying contracts but 
+ * No bottlenecks found. There's no beforeEach hook deploying contracts but
  *   near the end there are 3 tests redeploying VestingRegistry.
- * 
+ *
  * Total time elapsed: 4.2s
  *
  * Notes: Applied fixture for the 3 tests near the end.
