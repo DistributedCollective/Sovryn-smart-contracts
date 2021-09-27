@@ -1,5 +1,16 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-27
+ * Small bottlenecks found on beforeEach hook deploying MultiSigKeyHolders contract.
+ *
+ * Total time elapsed: 4.8s
+ * After optimization: 4.5s
+ *
+ * Notes: Applied fixture for fast init setup on every test.
+ */
+
 const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 
 const { ZERO_ADDRESS } = constants;
 const EMPTY_ADDRESS = "";
@@ -13,12 +24,16 @@ contract("MultiSigKeyHolders:", (accounts) => {
 	let bitcoinAccount2 = "37S6qsjzw14MH9SFt7PmsBchobkRE6SxNP";
 	let bitcoinAccount3 = "37S6qsjzw14MH9SFt7PmsBchobkRE6SxN3";
 
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		multiSig = await MultiSigKeyHolders.new();
+	}
+
 	before(async () => {
 		[root, account1, account2, account3, account4, ...accounts] = accounts;
 	});
 
 	beforeEach(async () => {
-		multiSig = await MultiSigKeyHolders.new();
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("initialization", () => {
