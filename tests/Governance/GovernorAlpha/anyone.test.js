@@ -108,7 +108,7 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
 
 	before("Initiating Accounts & Contracts", async () => {
 		// Checking if we have enough accounts to test.
-		assert.isAtLeast(accounts.length, 7, "Alteast 7 accounts are required to test the contracts.");
+		assert.isAtLeast(accounts.length, 7, "At least 7 accounts are required to test the contracts.");
 		[guardianOne, guardianTwo, voterOne, voterTwo, voterThree, userOne, userTwo] = accounts;
 
 		// Creating the instance of Test Token.
