@@ -37,6 +37,7 @@ contract LoanMaintenance is
 		bytes32 loanId;
 		address loanToken;
 		address collateralToken;
+		address borrower;
 		uint256 principal;
 		uint256 collateral;
 		uint256 interestOwedPerDay;
@@ -49,6 +50,7 @@ contract LoanMaintenance is
 		uint256 endTimestamp;
 		uint256 maxLiquidatable;
 		uint256 maxSeizable;
+		uint256 creationTimestamp;
 	}
 
 	/**
@@ -575,6 +577,7 @@ contract LoanMaintenance is
 				loanId: loanId,
 				loanToken: loanParamsLocal.loanToken,
 				collateralToken: loanParamsLocal.collateralToken,
+				borrower: loanLocal.borrower,
 				principal: loanLocal.principal,
 				collateral: loanLocal.collateral,
 				interestOwedPerDay: loanInterestLocal.owedPerDay,
@@ -588,7 +591,8 @@ contract LoanMaintenance is
 				maxLoanTerm: loanParamsLocal.maxLoanTerm,
 				endTimestamp: loanLocal.endTimestamp,
 				maxLiquidatable: maxLiquidatable,
-				maxSeizable: maxSeizable
+				maxSeizable: maxSeizable,
+				creationTimestamp: loanLocal.startTimestamp
 			});
 	}
 

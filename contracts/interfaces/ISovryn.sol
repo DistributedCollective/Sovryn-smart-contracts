@@ -295,6 +295,7 @@ contract ISovryn is
 		bytes32 loanId;
 		address loanToken;
 		address collateralToken;
+		address borrower;
 		uint256 principal;
 		uint256 collateral;
 		uint256 interestOwedPerDay;
@@ -307,6 +308,7 @@ contract ISovryn is
 		uint256 endTimestamp;
 		uint256 maxLiquidatable;
 		uint256 maxSeizable;
+		uint256 creationTimestamp;
 	}
 
 	function getUserLoans(

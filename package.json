@@ -77,6 +77,8 @@
 		}
 	},
 	"dependencies": {
+		"keccak": "^3.0.1",
+		"keccak256": "^1.0.3",
 		"phantomjs-prebuilt": "^2.1.16",
 		"yarn": "^1.22.10"
 	}
