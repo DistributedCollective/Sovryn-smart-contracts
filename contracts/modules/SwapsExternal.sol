@@ -88,11 +88,6 @@ contract SwapsExternal is VaultController, SwapsUser, ModuleCommonFunctionalitie
 			/// @dev Update wrBTC balance for this contract.
 			wrbtcToken.deposit.value(sourceTokenAmount)();
 		} else {
-			/// @dev Transfer tokens from sender to this contract.
-			IERC20 sourceTokenContract = IERC20(sourceToken);
-
-			uint256 balanceBefore = sourceTokenContract.balanceOf(address(this));
-
 			if (address(this) != msg.sender) {
 				IERC20(sourceToken).safeTransferFrom(msg.sender, address(this), sourceTokenAmount);
 			}

@@ -181,7 +181,7 @@ contract("SwapsExternal", (accounts) => {
 		it("Doesn't allow swaps if token address contract unavailable", async () => {
 			await expectRevert(
 				sovryn.swapExternal(ZERO_ADDRESS, testWrbtc.address, accounts[0], accounts[0], 100, 0, 0, "0x"),
-				"function call to a non-contract account"
+				"call to non-contract"
 			);
 		});
 
