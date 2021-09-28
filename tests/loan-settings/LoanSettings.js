@@ -55,7 +55,7 @@ contract("LoanSettings", (accounts) => {
 		await sovryn.setFeesController(lender);
 
 		loanTokenLogicWrbtc = await getLoanTokenLogicWrbtc();
-		
+
 		loanToken = await getLoanToken(loanTokenLogicWrbtc, lender, sovryn, WRBTC, SUSD);
 
 		const loanTokenAddress = await loanToken.loanTokenAddress();
