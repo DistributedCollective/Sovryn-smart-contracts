@@ -13,7 +13,7 @@ contract VestingCreator is AdminRole {
 	bool vestingCreated;
 
 	/// @notice 2 weeks in seconds.
-	uint256 public constant TWO_WEEKS = 1209600;
+	uint256 public constant TWO_WEEKS = 2 weeks;
 
 	///@notice the SOV token contract
 	IERC20 public SOV;
@@ -141,7 +141,7 @@ contract VestingCreator is AdminRole {
 				emit TokensStaked(vestingAddress, vestingData.tokenOwner, vestingData.amount);
 				address tokenOwnerDetails = vestingData.tokenOwner;
 				delete vestingDataList[vestingDataList.length - 1];
-				vestingDataList.length--;
+				vestingDataList.pop();
 				emit VestingDataRemoved(msg.sender, tokenOwnerDetails);
 			}
 		}
@@ -159,7 +159,7 @@ contract VestingCreator is AdminRole {
 			VestingData storage vestingData = vestingDataList[vestingDataList.length - 1];
 			tokenOwnerDetails = vestingData.tokenOwner;
 			delete vestingDataList[vestingDataList.length - 1];
-			vestingDataList.length--;
+			vestingDataList.pop();
 			emit VestingDataRemoved(msg.sender, tokenOwnerDetails);
 		}
 	}

@@ -74,6 +74,7 @@ contract WeightedStaking is Checkpoints {
 
 	/**
 	 * @notice Compute the total voting power at a given time.
+	 * @param blockNumber The block number, needed for checkpointing.
 	 * @param time The timestamp for which to calculate the total voting power.
 	 * @return The total voting power at the given time.
 	 * */
@@ -98,6 +99,7 @@ contract WeightedStaking is Checkpoints {
 	 * @param date The staking date to compute the power for.
 	 * @param startDate The date for which we need to know the power of the stake.
 	 * @param blockNumber The block number, needed for checkpointing.
+	 * @return The stacking power.
 	 * */
 	function _totalPowerByDate(
 		uint256 date,
@@ -164,6 +166,7 @@ contract WeightedStaking is Checkpoints {
 	 *      Used for Voting, not for fee sharing.
 	 * @param account The address of the account to check.
 	 * @param blockNumber The block number to get the vote balance at.
+	 * @param date The staking date to compute the power for.
 	 * @return The number of votes the delegatee had as of the given block.
 	 * */
 	function getPriorVotes(
@@ -188,9 +191,11 @@ contract WeightedStaking is Checkpoints {
 	/**
 	 * @notice Compute the voting power for a specific date.
 	 * Power = stake * weight
+	 * @param account The address of the account to check.
 	 * @param date The staking date to compute the power for.
 	 * @param startDate The date for which we need to know the power of the stake.
 	 * @param blockNumber The block number, needed for checkpointing.
+	 * @return The stacking power.
 	 * */
 	function _totalPowerByDateForDelegatee(
 		address account,
@@ -210,6 +215,7 @@ contract WeightedStaking is Checkpoints {
 	 * TODO: WeightedStaking::getPriorStakeByDateForDelegatee should probably better
 	 * be internal instead of a public function.
 	 * @param account The address of the account to check.
+	 * @param date The staking date to compute the power for.
 	 * @param blockNumber The block number to get the vote balance at.
 	 * @return The number of votes the account had as of the given block.
 	 * */
@@ -264,6 +270,7 @@ contract WeightedStaking is Checkpoints {
 	 *
 	 * @param account The address of the account to check.
 	 * @param blockNumber The block number to get the vote balance at.
+	 * @param date The date/timestamp of the unstaking time.
 	 * @return The weighted stake the account had as of the given block.
 	 * */
 	function getPriorWeightedStake(
@@ -289,9 +296,11 @@ contract WeightedStaking is Checkpoints {
 	 * Power = stake * weight
 	 * TODO: WeightedStaking::weightedStakeByDate should probably better
 	 * be internal instead of a public function.
+	 * @param account The user address.
 	 * @param date The staking date to compute the power for.
 	 * @param startDate The date for which we need to know the power of the stake.
 	 * @param blockNumber The block number, needed for checkpointing.
+	 * @return The stacking power.
 	 * */
 	function weightedStakeByDate(
 		address account,
@@ -338,6 +347,10 @@ contract WeightedStaking is Checkpoints {
 	 * @dev All functions of Staking contract use this internal version,
 	 * 		we need to modify public function in order to workaround issue with Vesting.withdrawTokens:
 	 * return 1 instead of 0 if message sender is a contract.
+	 * @param account The address of the account to check.
+	 * @param date The lock date.
+	 * @param blockNumber The block number to get the vote balance at.
+	 * @return The number of votes the account had as of the given block.
 	 * */
 	function _getPriorUserStakeByDate(
 		address account,
@@ -390,6 +403,7 @@ contract WeightedStaking is Checkpoints {
 	 * to add up token stake, and that could be misleading.
 	 *
 	 * @param blockNumber The block number to get the vote balance at.
+	 * @param date The staking date to compute the power for.
 	 * @return The weighted stake the account had as of the given block.
 	 * */
 	function getPriorVestingWeightedStake(uint256 blockNumber, uint256 date) public view returns (uint96 votes) {
@@ -414,6 +428,7 @@ contract WeightedStaking is Checkpoints {
 	 * @param date The staking date to compute the power for.
 	 * @param startDate The date for which we need to know the power of the stake.
 	 * @param blockNumber The block number, needed for checkpointing.
+	 * @return The stacking power.
 	 * */
 	function weightedVestingStakeByDate(
 		uint256 date,
@@ -448,6 +463,9 @@ contract WeightedStaking is Checkpoints {
 	 * @dev All functions of Staking contract use this internal version,
 	 * 		we need to modify public function in order to workaround issue with Vesting.withdrawTokens:
 	 * return 1 instead of 0 if message sender is a contract.
+	 * @param date The lock date.
+	 * @param blockNumber The block number to get the vote balance at.
+	 * @return The number of votes the account had as of the given block.
 	 * */
 	function _getPriorVestingStakeByDate(uint256 date, uint256 blockNumber) internal view returns (uint96) {
 		require(blockNumber < _getCurrentBlockNumber(), "WeightedStaking::getPriorVestingStakeByDate: not yet determined");
@@ -498,6 +516,7 @@ contract WeightedStaking is Checkpoints {
 	 * @notice Compute the weight for a specific date.
 	 * @param date The unlocking date.
 	 * @param startDate We compute the weight for the tokens staked until 'date' on 'startDate'.
+	 * @return The weighted stake the account had as of the given block.
 	 * */
 	function computeWeightByDate(uint256 date, uint256 startDate) public pure returns (uint96 weight) {
 		require(date >= startDate, "WeightedStaking::computeWeightByDate: date needs to be bigger than startDate");
@@ -535,6 +554,12 @@ contract WeightedStaking is Checkpoints {
 		lockDate = periodFromKickoff * TWO_WEEKS + kickoffTS;
 	}
 
+	/**
+	 * @dev origin vesting contracts have different dates
+	 * we need to add 2 weeks to get end of period (by default, it's start)
+	 * @param date The staking date to compute the power for.
+	 * @return unlocking date.
+	 */
 	function _adjustDateForOrigin(uint256 date) internal view returns (uint256) {
 		uint256 adjustedDate = timestampToLockDate(date);
 		//origin vesting contracts have different dates
