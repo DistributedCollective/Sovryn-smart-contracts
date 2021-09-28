@@ -104,11 +104,9 @@ contract StakingRewards is StakingRewardsStorage {
 	 * @dev This function is called from both updateRewards and collectReward
 	 * */
 	function _calculateRewards(address _receiver) internal {
-		uint256 withdrawalTime;
-		uint256 amount;
 		uint256 totalRewards = accumulatedRewards[_receiver];
 
-		(withdrawalTime, amount) = getStakerCurrentReward(true, _receiver);
+		(uint256 withdrawalTime, uint256 amount) = getStakerCurrentReward(true, _receiver);
 		if (withdrawalTime > 0 && amount > 0) {
 			totalRewards += amount;
 		}
@@ -190,7 +188,6 @@ contract StakingRewards is StakingRewardsStorage {
 		uint256 weightedStake;
 		uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
 		uint256 currentTS = block.timestamp;
-		uint256 addedMaxDuration;
 		uint256 duration;
 		uint256 lastWithdrawal = withdrawals[staker];
 		uint256 referenceBlock;
@@ -200,6 +197,7 @@ contract StakingRewards is StakingRewardsStorage {
 		if (lastStakingInterval < lastWithdrawalInterval) return (0, 0);
 
 		if (considerMaxDuration) {
+			uint256 addedMaxDuration;
 			addedMaxDuration = lastWithdrawalInterval.add(maxDuration);
 			duration = addedMaxDuration < currentTS ? staking.timestampToLockDate(addedMaxDuration) : lastStakingInterval;
 		} else {

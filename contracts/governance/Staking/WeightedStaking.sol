@@ -596,11 +596,10 @@ contract WeightedStaking is Checkpoints {
 		if (address(vestingRegistryLogic) != address(0)) {
 			isVesting = vestingRegistryLogic.isVestingAdress(stakerAddress);
 		}
-		if (vestingCodeHashes[codeHash] || isVesting) {
-			return true;
-		} else {
-			return false;
-		}
+
+		if (isVesting) return true;
+		if (vestingCodeHashes[codeHash]) return true;
+		return false;
 	}
 
 	/**
