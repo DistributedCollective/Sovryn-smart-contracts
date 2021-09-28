@@ -174,7 +174,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		}
 
 		uint256 amount;
-		uint32 end;
+		uint256 end;
 		(amount, end) = _getAccumulatedFees(user, _loanPoolToken, _maxCheckpoints);
 		require(amount > 0, "FeeSharingProxy::withdrawFees: no tokens for a withdrawal");
 
@@ -225,13 +225,13 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		address _user,
 		address _loanPoolToken,
 		uint32 _maxCheckpoints
-	) internal view returns (uint256, uint32) {
+	) internal view returns (uint256, uint256) {
 		if (staking.isVestingContract(_user)) {
 			return (0, 0);
 		}
 
-		uint32 start = processedCheckpoints[_user][_loanPoolToken];
-		uint32 end;
+		uint256 start = processedCheckpoints[_user][_loanPoolToken];
+		uint256 end;
 
 		/// @dev Additional bool param can't be used because of stack too deep error.
 		if (_maxCheckpoints > 0) {
@@ -250,7 +250,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		uint256 amount = 0;
 		uint256 cachedLockDate = 0;
 		uint96 cachedWeightedStake = 0;
-		for (uint32 i = start; i < end; i++) {
+		for (uint256 i = start; i < end; i++) {
 			Checkpoint storage checkpoint = tokenCheckpoints[_loanPoolToken][i];
 			uint256 lockDate = staking.timestampToLockDate(checkpoint.timestamp);
 			uint96 weightedStake;
@@ -279,12 +279,12 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 	 * @param _maxCheckpoints Checkpoint index incremental.
 	 * */
 	function _getEndOfRange(
-		uint32 start,
+		uint256 start,
 		address _loanPoolToken,
 		uint32 _maxCheckpoints
-	) internal view returns (uint32) {
-		uint32 nCheckpoints = numTokenCheckpoints[_loanPoolToken];
-		uint32 end;
+	) internal view returns (uint256) {
+		uint256 nCheckpoints = numTokenCheckpoints[_loanPoolToken];
+		uint256 end;
 		if (_maxCheckpoints == 0) {
 			/// @dev All checkpoints will be processed (only for getter outside of a transaction).
 			end = nCheckpoints;
@@ -315,7 +315,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 	function _writeTokenCheckpoint(address _token, uint96 _numTokens) internal {
 		uint32 blockNumber = safe32(block.number, "FeeSharingProxy::_writeCheckpoint: block number exceeds 32 bits");
 		uint32 blockTimestamp = safe32(block.timestamp, "FeeSharingProxy::_writeCheckpoint: block timestamp exceeds 32 bits");
-		uint32 nCheckpoints = numTokenCheckpoints[_token];
+		uint256 nCheckpoints = numTokenCheckpoints[_token];
 
 		uint96 totalWeightedStake = _getVoluntaryWeightedStake(blockNumber - 1, block.timestamp);
 		if (nCheckpoints > 0 && tokenCheckpoints[_token][nCheckpoints - 1].blockNumber == blockNumber) {

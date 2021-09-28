@@ -140,7 +140,6 @@ contract VestingCreator is AdminRole {
 				vesting.stakeTokens(vestingData.amount);
 				emit TokensStaked(vestingAddress, vestingData.tokenOwner, vestingData.amount);
 				address tokenOwnerDetails = vestingData.tokenOwner;
-				delete vestingDataList[vestingDataList.length - 1];
 				vestingDataList.pop();
 				emit VestingDataRemoved(msg.sender, tokenOwnerDetails);
 			}
@@ -158,7 +157,6 @@ contract VestingCreator is AdminRole {
 		if (vestingDataList.length > 0) {
 			VestingData storage vestingData = vestingDataList[vestingDataList.length - 1];
 			tokenOwnerDetails = vestingData.tokenOwner;
-			delete vestingDataList[vestingDataList.length - 1];
 			vestingDataList.pop();
 			emit VestingDataRemoved(msg.sender, tokenOwnerDetails);
 		}

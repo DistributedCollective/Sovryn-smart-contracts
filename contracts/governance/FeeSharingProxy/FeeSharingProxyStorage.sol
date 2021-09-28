@@ -26,11 +26,11 @@ contract FeeSharingProxyStorage is Ownable {
 	mapping(address => mapping(uint256 => Checkpoint)) public tokenCheckpoints;
 
 	/// @notice The number of checkpoints for each pool token address.
-	mapping(address => uint32) public numTokenCheckpoints;
+	mapping(address => uint256) public numTokenCheckpoints;
 
 	/// @notice
 	/// user => token => processed checkpoint
-	mapping(address => mapping(address => uint32)) public processedCheckpoints;
+	mapping(address => mapping(address => uint256)) public processedCheckpoints;
 
 	/// @notice Last time fees were withdrawn per pool token address:
 	/// token => time
