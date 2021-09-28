@@ -35,7 +35,7 @@ def main():
     totalAmount = 0
 
     # amounts examples: 66.93, 20.08
-    data = parseFile('./scripts/deployment/distribution/vestings9.csv', 10**16)
+    data = parseFile('./scripts/deployment/distribution/vestings10.csv', 10**16)
     totalAmount += data["totalAmount"]
 
     for teamVesting in data["teamVestingList"]:
@@ -53,6 +53,7 @@ def main():
             if (cliff != vestingLogic.cliff() or duration != vestingLogic.duration()):
                 raise Exception("Address already has team vesting contract with different schedule")
         print("=======================================")
+        
         if isTeam:
             vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
             vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
@@ -61,6 +62,7 @@ def main():
             vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
             vestingAddress = vestingRegistry.getVesting(tokenOwner)
             print("Vesting: ", vestingAddress)
+        
 
         print(tokenOwner)
         print(isTeam)
@@ -75,6 +77,7 @@ def main():
         # stakes = staking.getStakes(vestingAddress)
         # print(stakes)
 
+        
     # 9872.3
     print("=======================================")
     print("SOV amount:")
