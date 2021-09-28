@@ -250,7 +250,15 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 			if (vestingAddress != address(0)) {
 				VestingLogic vesting = VestingLogic(vestingAddress);
 				uid = uint256(
-					keccak256(abi.encodePacked(_tokenOwner, uint256(VestingType.Vesting), vesting.cliff(), vesting.duration(), _vestingCreationType))
+					keccak256(
+						abi.encodePacked(
+							_tokenOwner,
+							uint256(VestingType.Vesting),
+							vesting.cliff(),
+							vesting.duration(),
+							_vestingCreationType
+						)
+					)
 				);
 				vestings[uid] = Vesting(uint256(VestingType.Vesting), _vestingCreationType, vestingAddress);
 				vestingsOf[_tokenOwner].push(uid);
@@ -260,7 +268,15 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 			if (teamVestingAddress != address(0)) {
 				VestingLogic vesting = VestingLogic(teamVestingAddress);
 				uid = uint256(
-					keccak256(abi.encodePacked(_tokenOwner, uint256(VestingType.TeamVesting), vesting.cliff(), vesting.duration(), _vestingCreationType))
+					keccak256(
+						abi.encodePacked(
+							_tokenOwner,
+							uint256(VestingType.TeamVesting),
+							vesting.cliff(),
+							vesting.duration(),
+							_vestingCreationType
+						)
+					)
 				);
 				vestings[uid] = Vesting(uint256(VestingType.TeamVesting), _vestingCreationType, teamVestingAddress);
 				vestingsOf[_tokenOwner].push(uid);
