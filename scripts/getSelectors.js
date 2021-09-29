@@ -51,8 +51,7 @@ var parseContract = function (fileContent) {
 			.replace(/([\(,])\s+/g, "$1") // remove whitespaces and newlines inmediatly after ( or ,
 			.replace(/\s+\)/g, ")") // remove whitespaces and newlines inmediatly before )
 			.replace(/\s.*?([,\)])/g, "$1") // remove var names and extra modifiers
-			.replace(/^(u?int[0-9]*|address|bool|string|bytes(32|4)*)/g, "address") // every unknown type found is considered to be an address
-			;
+			.replace(/^(u?int[0-9]*|address|bool|string|bytes(32|4)*)/g, "address"); // every unknown type found is considered to be an address
 		if (!!signature) {
 			signatureList[signature] = keccak256_0x(signature);
 		}
@@ -75,8 +74,7 @@ var parseInterfacesFromContract = function (fileContent) {
 		// For every interface found
 		interfaceName = f[0]
 			.replace(/[\n\r\t\s]+/g, " ") // remove newlines and tabs
-			.replace(/^interface ([^\s]+).*$/g, "$1") // leave only interface name
-			;
+			.replace(/^interface ([^\s]+).*$/g, "$1"); // leave only interface name
 		if (!!interfaceName) {
 			interfaceList.push(interfaceName);
 		}
@@ -99,12 +97,10 @@ var parseStructsFromContract = function (fileContent) {
 		// For every struct found
 		structName = f[0]
 			.replace(/[\n\r\t\s]+/g, " ") // remove newlines and tabs
-			.replace(/^struct ([^\s]+).*$/g, "$1") // leave only struct name
-			;
+			.replace(/^struct ([^\s]+).*$/g, "$1"); // leave only struct name
 		structDeclaration = f[0]
 			.replace(/[\n\r\t\s]+/g, " ") // remove newlines and tabs
-			.replace(/^struct [^\s]+ \{(.*)\}/g, "$1") // leave only struct declaration
-			;
+			.replace(/^struct [^\s]+ \{(.*)\}/g, "$1"); // leave only struct declaration
 		if (!!structName) {
 			structList[structName] = structDeclaration;
 		}
@@ -164,7 +160,7 @@ getDirectories(path, ".sol", function (err, res) {
 	if (err) {
 		console.log("Error", err);
 	} else {
-/*
+		/*
 		interfaces = getAllInterfaces(res);
 
 console.log("Interfaces found: ", interfaces);
