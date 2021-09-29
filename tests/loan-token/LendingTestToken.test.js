@@ -64,7 +64,7 @@ contract("LoanTokenLending", (accounts) => {
 		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 		await sovryn.setSovrynProtocolAddress(sovryn.address);
-		
+
 		await sovryn.setWrbtcToken(WRBTC.address);
 
 		feeds = await PriceFeedsLocal.new(WRBTC.address, sovryn.address);
@@ -167,16 +167,7 @@ contract("LoanTokenLending", (accounts) => {
 			const balanceOf0 = await loanToken.assetBalanceOf(lender);
 			await SUSD.approve(sovryn.address, balanceOf0.add(new BN(wei("10", "ether"))).toString());
 			await expectRevert(
-				sovryn.swapExternal(
-					SUSD.address,
-					WRBTC.address,
-					accounts[0],
-					accounts[0],
-					wei("1", "ether"),
-					0,
-					wei("10", "ether"),
-					"0x"
-				),
+				sovryn.swapExternal(SUSD.address, WRBTC.address, accounts[0], accounts[0], wei("1", "ether"), 0, wei("10", "ether"), "0x"),
 				"destTokenAmountReceived too low"
 			);
 		});
