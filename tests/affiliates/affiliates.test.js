@@ -15,16 +15,18 @@
  *   a different scenario setting sovryn.setMinReferralsToPayoutAffiliates
  *   to 1 before running the trade. It would have been a complex optimization
  *   to get an improvement of 1s as much. So, it has been disregarded.
+ * 
+ *   Updated to use the initializer.js functions for protocol deployment.
+ *   Updated to use SUSD as underlying token, instead of custom tokenSOV.
+ *   Updated to use WRBTC as collateral token, instead of custom testWrbtc.
  *
  */
 
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
-const { assert } = require("chai");
 const { expect, waffle } = require("hardhat");
 const { loadFixture } = waffle;
 
 // const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard"); // replaced by MockLoanTokenLogic
-const sovrynProtocol = artifacts.require("sovrynProtocol");
 const LoanToken = artifacts.require("LoanToken");
 const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic"); // added functionality for isolated unit testing
 const LockedSOVFailedMockup = artifacts.require("LockedSOVFailedMockup");
@@ -36,35 +38,38 @@ const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
 
-const TestWrbtc = artifacts.require("TestWrbtc");
 const TestToken = artifacts.require("TestToken");
-const SOV = artifacts.require("SOV");
-const ISovryn = artifacts.require("ISovryn");
-const ProtocolSettings = artifacts.require("ProtocolSettings");
-const LoanSettings = artifacts.require("LoanSettings");
-const LoanMaintenance = artifacts.require("LoanMaintenance");
-const LoanOpenings = artifacts.require("LoanOpenings");
-const SwapsExternal = artifacts.require("SwapsExternal");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
-const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 const Affiliates = artifacts.require("Affiliates");
 
-const TOTAL_SUPPLY = "10000000000000000000000000";
-
-const { decodeLogs } = require("../Utils/initializer.js");
+const {
+	getSUSD,
+	getRBTC,
+	getWRBTC,
+	getBZRX,
+	getLoanTokenLogic,
+	getLoanToken,
+	getLoanTokenLogicWrbtc,
+	getLoanTokenWRBTC,
+	loan_pool_setup,
+	set_demand_curve,
+	getPriceFeeds,
+	getSovryn,
+	decodeLogs,
+	getSOV,
+} = require("../Utils/initializer.js");
 
 let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
 let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 
 contract("Affiliates", (accounts) => {
 	let loanTokenLogic;
-	let testWrbtc;
+	let WRBTC;
 	let doc;
-	let tokenSOV;
+	let SUSD;
 	let lockedSOV;
 	let sovryn;
 	let loanTokenV2;
@@ -74,27 +79,20 @@ contract("Affiliates", (accounts) => {
 	let swapsSovryn;
 
 	async function deploymentAndInitFixture(_wallets, _provider) {
-		// Deploying sovrynProtocol
-		const sovrynproxy = await sovrynProtocol.new();
-		sovryn = await ISovryn.at(sovrynproxy.address);
-
-		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
-		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
-		await sovryn.replaceContract((await ProtocolSettings.new()).address);
-		await sovryn.replaceContract((await LoanSettings.new()).address);
-		await sovryn.replaceContract((await LoanMaintenance.new()).address);
-		await sovryn.replaceContract((await SwapsExternal.new()).address);
-		await sovryn.replaceContract((await LoanOpenings.new()).address);
-		await sovryn.replaceContract((await Affiliates.new()).address);
-
-		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
+		// Deploying sovrynProtocol w/ generic function from initializer.js
+		SUSD = await getSUSD();
+		RBTC = await getRBTC();
+		WRBTC = await getWRBTC();
+		BZRX = await getBZRX();
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+		await sovryn.setSovrynProtocolAddress(sovryn.address);
 
 		// loanTokenLogic = await LoanTokenLogicStandard.new();
 		loanTokenLogic = await MockLoanTokenLogic.new();
-		testWrbtc = await TestWrbtc.new();
 		doc = await TestToken.new("dollar on chain", "DOC", 18, wei("20000", "ether"));
-		tokenSOV = await SOV.new(TOTAL_SUPPLY);
-		loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
+		
+		loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, WRBTC.address);
 		await loanToken.initialize(doc.address, "SUSD", "SUSD");
 
 		// loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address);
@@ -105,8 +103,8 @@ contract("Affiliates", (accounts) => {
 		}
 
 		// Creating the Staking Instance.
-		stakingLogic = await StakingLogic.new(tokenSOV.address);
-		staking = await StakingProxy.new(tokenSOV.address);
+		stakingLogic = await StakingLogic.new(SUSD.address);
+		staking = await StakingProxy.new(SUSD.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 
@@ -118,7 +116,7 @@ contract("Affiliates", (accounts) => {
 		vestingFactory = await VestingFactory.new(vestingLogic.address);
 		vestingRegistry = await VestingRegistry.new(
 			vestingFactory.address,
-			tokenSOV.address,
+			SUSD.address,
 			staking.address,
 			feeSharingProxy.address,
 			owner // This should be Governance Timelock Contract.
@@ -127,17 +125,17 @@ contract("Affiliates", (accounts) => {
 
 		// Creating the instance of newLockedSOV Contract.
 		await sovryn.setLockedSOVAddress(
-			(await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])).address
+			(await LockedSOV.new(SUSD.address, vestingRegistry.address, cliff, duration, [owner])).address
 		);
 		lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 
 		// initialize
-		feeds = await PriceFeedsLocal.new(testWrbtc.address, sovryn.address);
-		await feeds.setRates(doc.address, testWrbtc.address, wei("0.01", "ether"));
+		feeds = await PriceFeedsLocal.new(WRBTC.address, sovryn.address);
+		await feeds.setRates(doc.address, WRBTC.address, wei("0.01", "ether"));
 		swapsSovryn = await SwapsImplSovrynSwap.new();
 		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
-		await sovryn.setSupportedTokens([doc.address, testWrbtc.address], [true, true]);
+		await sovryn.setSupportedTokens([doc.address, WRBTC.address], [true, true]);
 		await sovryn.setPriceFeedContract(
 			feeds.address // priceFeeds
 		);
@@ -145,8 +143,8 @@ contract("Affiliates", (accounts) => {
 			swapsSovryn.address // swapsImpl
 		);
 		await sovryn.setFeesController(owner);
-		await sovryn.setWrbtcToken(testWrbtc.address);
-		await sovryn.setSOVTokenAddress(tokenSOV.address);
+		await sovryn.setWrbtcToken(WRBTC.address);
+		await sovryn.setSOVTokenAddress(SUSD.address);
 
 		{
 			/**
@@ -167,7 +165,7 @@ contract("Affiliates", (accounts) => {
 			false, // bool active; // if false, this object has been disabled by the owner and can't be used for future loans
 			owner, // address owner; // owner of this object
 			doc.address, // address loanToken; // the token being loaned
-			testWrbtc.address, // address collateralToken; // the required collateral token
+			WRBTC.address, // address collateralToken; // the required collateral token
 			wei("20", "ether"), // uint256 minInitialMargin; // the minimum allowed initial margin
 			wei("15", "ether"), // uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
 			2419200, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
@@ -190,10 +188,10 @@ contract("Affiliates", (accounts) => {
 		// trader approves to LoanToken loan amount for trading
 		await doc.approve(loanToken.address, web3.utils.toWei("100", "ether"), { from: trader });
 		// Giving some testRbtc to sovrynAddress (by minting some testRbtc),so that it can open position in wRBTC.
-		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
+		await WRBTC.mint(sovryn.address, wei("500", "ether"));
 
 		// Giving some SOV Token to sovrynAddress (For affiliates rewards purposes)
-		await tokenSOV.mint(sovryn.address, wei("500", "ether"));
+		await SUSD.mint(sovryn.address, wei("500", "ether"));
 	}
 
 	before(async () => {
@@ -222,7 +220,7 @@ contract("Affiliates", (accounts) => {
 			leverageAmount, // leverageAmount
 			loanTokenSent, // loanTokenSent
 			0, // no collateral token sent
-			testWrbtc.address, // collateralTokenAddress
+			WRBTC.address, // collateralTokenAddress
 			trader,
 			0, // max slippage
 			referrer, // affiliates referrer
@@ -248,7 +246,7 @@ contract("Affiliates", (accounts) => {
 		affiliatesFeePercentage = await sovryn.affiliateFeePercent();
 		sovBonusAmountShouldBePaid = await feeds.queryReturn(
 			doc.address,
-			tokenSOV.address,
+			SUSD.address,
 			((affiliatesFeePercentage * tradingFeeAmount) / Math.pow(10, 20)).toString()
 		);
 		submittedSovBonusAmount = decode[0].args["sovBonusAmount"];
@@ -276,7 +274,7 @@ contract("Affiliates", (accounts) => {
 			leverageAmount, // leverageAmount
 			loanTokenSent, // loanTokenSent
 			0, // no collateral token sent
-			testWrbtc.address, // collateralTokenAddress
+			WRBTC.address, // collateralTokenAddress
 			trader,
 			0, // max slippage
 			referrer, // affiliates referrer
@@ -297,7 +295,7 @@ contract("Affiliates", (accounts) => {
 		isHeld = decode[0].args["isHeld"];
 		sovBonusAmountShouldBePaid = await feeds.queryReturn(
 			doc.address,
-			tokenSOV.address,
+			SUSD.address,
 			((affiliatesFeePercentage * tradingFeeAmount) / Math.pow(10, 20)).toString()
 		);
 		submittedSovBonusAmount = decode[0].args["sovBonusAmount"];
@@ -335,7 +333,7 @@ contract("Affiliates", (accounts) => {
 			leverageAmount, // leverageAmount
 			loanTokenSent, // loanTokenSent
 			0, // no collateral token sent
-			testWrbtc.address, // collateralTokenAddress
+			WRBTC.address, // collateralTokenAddress
 			trader,
 			0, // max slippage
 			referrer, // affiliates referrer
@@ -361,7 +359,7 @@ contract("Affiliates", (accounts) => {
 		affiliatesFeePercentage = await sovryn.affiliateFeePercent();
 		sovBonusAmountShouldBePaid = await feeds.queryReturn(
 			doc.address,
-			tokenSOV.address,
+			SUSD.address,
 			((affiliatesFeePercentage * tradingFeeAmount) / Math.pow(10, 20)).toString()
 		);
 		submittedSovBonusAmount = decode[0].args["sovBonusAmountPaid"];
@@ -384,7 +382,7 @@ contract("Affiliates", (accounts) => {
 
 	it("PayTradingFeeToAffiliateFail event should be fired in case lock sov reverted", async () => {
 		// deploy lockedSOVFailedMockup and set to protocol
-		await sovryn.setLockedSOVAddress((await LockedSOVFailedMockup.new(tokenSOV.address, [owner])).address);
+		await sovryn.setLockedSOVAddress((await LockedSOVFailedMockup.new(SUSD.address, [owner])).address);
 
 		await sovryn.setMinReferralsToPayoutAffiliates(1);
 		// expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
@@ -398,7 +396,7 @@ contract("Affiliates", (accounts) => {
 			leverageAmount, // leverageAmount
 			loanTokenSent, // loanTokenSent
 			0, // no collateral token sent
-			testWrbtc.address, // collateralTokenAddress
+			WRBTC.address, // collateralTokenAddress
 			trader,
 			0, // max slippage
 			referrer, // affiliates referrer
@@ -421,7 +419,7 @@ contract("Affiliates", (accounts) => {
 		affiliatesFeePercentage = await sovryn.affiliateFeePercent();
 		sovBonusAmountShouldBePaid = await feeds.queryReturn(
 			doc.address,
-			tokenSOV.address,
+			SUSD.address,
 			((affiliatesFeePercentage * tradingFeeAmount) / Math.pow(10, 20)).toString()
 		);
 		expect(await sovryn.getUserNotFirstTradeFlag(trader), "userNotFirstTradeFlag has not been set to true").to.be.true;
@@ -476,7 +474,7 @@ contract("Affiliates", (accounts) => {
 			leverageAmount, // leverageAmount
 			loanTokenSent, // loanTokenSent
 			0, // no collateral token sent
-			testWrbtc.address, // collateralTokenAddress
+			WRBTC.address, // collateralTokenAddress
 			trader, // trader,
 			0, // max slippage
 			// referrer, // affiliates referrer
@@ -497,7 +495,7 @@ contract("Affiliates", (accounts) => {
 
 	it("payTradingFeeToAffiliatesReferrer() Should revert if not called by protocol", async () => {
 		await expectRevert(
-			sovryn.payTradingFeeToAffiliatesReferrer(referrer, trader, tokenSOV.address, wei("1", "gwei")),
+			sovryn.payTradingFeeToAffiliatesReferrer(referrer, trader, SUSD.address, wei("1", "gwei")),
 			"Affiliates: not authorized"
 		);
 	});
@@ -563,7 +561,7 @@ contract("Affiliates", (accounts) => {
 			leverageAmount, // leverageAmount
 			loanTokenSent, // loanTokenSent
 			0, // no collateral token sent
-			testWrbtc.address, // collateralTokenAddress
+			WRBTC.address, // collateralTokenAddress
 			trader,
 			0, // max slippage
 			referrer, // affiliates referrer
@@ -601,9 +599,9 @@ contract("Affiliates", (accounts) => {
 
 		// add another pair
 		// loanTokenLogic = await MockLoanTokenLogic.new();
-		// testWrbtc = await TestWrbtc.new();
+		// WRBTC = await WRBTC.new();
 		eur = await TestToken.new("euro on chain 2", "EUR", 18, wei("20000", "ether"));
-		const loanToken2 = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
+		const loanToken2 = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, WRBTC.address);
 		await loanToken2.initialize(eur.address, "SEUR", "SEUR");
 
 		// loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address);
@@ -612,7 +610,7 @@ contract("Affiliates", (accounts) => {
 		if (owner == (await sovryn.owner())) {
 			await sovryn.setLoanPool([loanToken2V2.address], [loanTokenAddress2]);
 		}
-		await feeds.setRates(eur.address, testWrbtc.address, wei("0.01", "ether"));
+		await feeds.setRates(eur.address, WRBTC.address, wei("0.01", "ether"));
 		await sovryn.setSupportedTokens([eur.address], [true]);
 
 		{
@@ -634,7 +632,7 @@ contract("Affiliates", (accounts) => {
 			false, // bool active; // if false, this object has been disabled by the owner and can't be used for future loans
 			owner, // address owner; // owner of this object
 			eur.address, // address loanToken; // the token being loaned
-			testWrbtc.address, // address collateralToken; // the required collateral token
+			WRBTC.address, // address collateralToken; // the required collateral token
 			wei("20", "ether"), // uint256 minInitialMargin; // the minimum allowed initial margin
 			wei("15", "ether"), // uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
 			2419200, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
@@ -657,7 +655,7 @@ contract("Affiliates", (accounts) => {
 		// trader approves to LoanToken loan amount for trading
 		await eur.approve(loanToken2.address, web3.utils.toWei("20", "ether"), { from: trader });
 		// Giving some more testRbtc to sovrynAddress (by minting some testRbtc),so that it can open position in wRBTC.
-		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
+		await WRBTC.mint(sovryn.address, wei("500", "ether"));
 
 		// margin trade afiliate 2 tokens
 		await loanTokenV2.marginTradeAffiliate(
@@ -665,7 +663,7 @@ contract("Affiliates", (accounts) => {
 			leverageAmount, // leverageAmount
 			loanTokenSent, // loanTokenSent
 			0, // no collateral token sent
-			testWrbtc.address, // collateralTokenAddress
+			WRBTC.address, // collateralTokenAddress
 			trader,
 			0, // max slippage
 			referrer, // affiliates referrer
@@ -679,7 +677,7 @@ contract("Affiliates", (accounts) => {
 			leverageAmount2, // leverageAmount
 			loanTokenSent2, // loanTokenSent
 			0, // no collateral token sent
-			testWrbtc.address, // collateralTokenAddress
+			WRBTC.address, // collateralTokenAddress
 			trader,
 			0, // max slippage
 			referrer, // affiliates referrer
@@ -771,9 +769,9 @@ contract("Affiliates", (accounts) => {
 
 		// add another pair
 		// loanTokenLogic = await MockLoanTokenLogic.new();
-		// testWrbtc = await TestWrbtc.new();
+		// WRBTC = await WRBTC.new();
 		eur = await TestToken.new("euro on chain 2", "EUR", 18, wei("20000", "ether"));
-		const loanToken2 = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
+		const loanToken2 = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, WRBTC.address);
 		await loanToken2.initialize(eur.address, "SEUR", "SEUR");
 
 		// loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address);
@@ -782,7 +780,7 @@ contract("Affiliates", (accounts) => {
 		if (owner == (await sovryn.owner())) {
 			await sovryn.setLoanPool([loanToken2V2.address], [loanTokenAddress2]);
 		}
-		await feeds.setRates(eur.address, testWrbtc.address, wei("0.01", "ether"));
+		await feeds.setRates(eur.address, WRBTC.address, wei("0.01", "ether"));
 		await sovryn.setSupportedTokens([eur.address], [true]);
 
 		params = [
@@ -790,7 +788,7 @@ contract("Affiliates", (accounts) => {
 			false, // bool active; // if false, this object has been disabled by the owner and can't be used for future loans
 			owner, // address owner; // owner of this object
 			eur.address, // address loanToken; // the token being loaned
-			testWrbtc.address, // address collateralToken; // the required collateral token
+			WRBTC.address, // address collateralToken; // the required collateral token
 			wei("20", "ether"), // uint256 minInitialMargin; // the minimum allowed initial margin
 			wei("15", "ether"), // uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
 			2419200, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
@@ -813,7 +811,7 @@ contract("Affiliates", (accounts) => {
 		// trader approves to LoanToken loan amount for trading
 		await eur.approve(loanToken2.address, web3.utils.toWei("20", "ether"), { from: trader });
 		// Giving some more testRbtc to sovrynAddress (by minting some testRbtc),so that it can open position in wRBTC.
-		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
+		await WRBTC.mint(sovryn.address, wei("500", "ether"));
 
 		// margin trade afiliate 2 tokens
 		await loanTokenV2.marginTradeAffiliate(
@@ -821,7 +819,7 @@ contract("Affiliates", (accounts) => {
 			leverageAmount, // leverageAmount
 			loanTokenSent, // loanTokenSent
 			0, // no collateral token sent
-			testWrbtc.address, // collateralTokenAddress
+			WRBTC.address, // collateralTokenAddress
 			trader,
 			0, // max slippage
 			referrer, // affiliates referrer
@@ -835,7 +833,7 @@ contract("Affiliates", (accounts) => {
 			leverageAmount2, // leverageAmount
 			loanTokenSent2, // loanTokenSent
 			0, // no collateral token sent
-			testWrbtc.address, // collateralTokenAddress
+			WRBTC.address, // collateralTokenAddress
 			trader,
 			0, // max slippage
 			referrer, // affiliates referrer
