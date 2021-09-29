@@ -17,6 +17,8 @@
  * 	Previous optimization by Tyrone adding a waffle fixture (loadFixture)
  *  improved a 20% the code speed:
  * 		reduced total elapsed time from 5s to 4s
+ *  Updated to use only the initializer.js functions for protocol deployment.
+ *  Updated to use SUSD as underlying token. 
  */
 
 const { assert, expect } = require("chai");
@@ -41,17 +43,6 @@ const {
 	getSOV,
 } = require("./Utils/initializer.js");
 
-const sovrynProtocol = artifacts.require("sovrynProtocol");
-const ProtocolSettings = artifacts.require("ProtocolSettings");
-const LoanSettings = artifacts.require("LoanSettings");
-const LoanMaintenance = artifacts.require("LoanMaintenance");
-const LoanOpenings = artifacts.require("LoanOpenings");
-const SwapsExternal = artifacts.require("SwapsExternal");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
-const LoanClosingsWith = artifacts.require("LoanClosingsWith");
-const Affiliates = artifacts.require("Affiliates");
-
-const ISovryn = artifacts.require("ISovryn");
 const TestToken = artifacts.require("TestToken");
 const LockedSOV = artifacts.require("LockedSOVMockup");
 const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic");
@@ -70,18 +61,7 @@ contract("Pause Modules", (accounts) => {
 	let loanParams, loanParamsId;
 	/// @note https://stackoverflow.com/questions/68182729/implementing-fixtures-with-nomiclabs-hardhat-waffle
 	async function fixtureInitialize(_wallets, _provider) {
-		const sovrynproxy = await sovrynProtocol.new();
-		sovryn = await ISovryn.at(sovrynproxy.address);
-		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
-		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
-		await sovryn.replaceContract((await ProtocolSettings.new()).address);
-		await sovryn.replaceContract((await LoanSettings.new()).address);
-		await sovryn.replaceContract((await LoanMaintenance.new()).address);
-		await sovryn.replaceContract((await SwapsExternal.new()).address);
-		await sovryn.replaceContract((await LoanOpenings.new()).address);
-		await sovryn.replaceContract((await Affiliates.new()).address);
-		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
-		SUSD = await getSUSD();
+		SUSD = await getSUSD(); // Underlying Token
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
@@ -95,21 +75,16 @@ contract("Pause Modules", (accounts) => {
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
-		// Token
-		underlyingToken = await TestToken.new("Test token", "TST", 18, TOTAL_SUPPLY);
-
 		loanParams = {
 			id: "0x0000000000000000000000000000000000000000000000000000000000000000",
 			active: false,
 			owner: constants.ZERO_ADDRESS,
-			loanToken: underlyingToken.address,
+			loanToken: SUSD.address,
 			collateralToken: loanTokenWRBTC.address,
 			minInitialMargin: wei("50", "ether"),
 			maintenanceMargin: wei("15", "ether"),
 			maxLoanTerm: "2419200",
 		};
-
-		// return { SOV, SUSD, underlyingToken, loanParams};
 	}
 
 	before(async () => {
@@ -256,7 +231,7 @@ contract("Pause Modules", (accounts) => {
 
 			await expectEvent(tx, "LoanParamsDisabled", {
 				owner: owner,
-				loanToken: underlyingToken.address,
+				loanToken: SUSD.address,
 				collateralToken: loanTokenWRBTC.address,
 				minInitialMargin: wei("50", "ether"),
 				maintenanceMargin: wei("15", "ether"),
