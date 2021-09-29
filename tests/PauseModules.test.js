@@ -47,11 +47,9 @@ const TestToken = artifacts.require("TestToken");
 const LockedSOV = artifacts.require("LockedSOVMockup");
 const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic");
 const TestWrbtc = artifacts.require("TestWrbtc");
-const SOVToken = artifacts.require("SOV");
 const LoanToken = artifacts.require("LoanToken");
 const LoanOpeningsEvents = artifacts.require("LoanOpeningsEvents");
 
-const TOTAL_SUPPLY = "10000000000000000000000000";
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
@@ -65,7 +63,7 @@ contract("Pause Modules", (accounts) => {
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
 		const loanTokenLogicStandard = await getLoanTokenLogic();
@@ -135,7 +133,6 @@ contract("Pause Modules", (accounts) => {
 			loanTokenLogic = await MockLoanTokenLogic.new();
 			testWrbtc = await TestWrbtc.new();
 			doc = await TestToken.new("dollar on chain", "DOC", 18, wei("20000", "ether"));
-			tokenSOV = await SOVToken.new(TOTAL_SUPPLY);
 			loanTokenV1 = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 			await loanTokenV1.initialize(doc.address, "SUSD", "SUSD");
 			loanTokenV2 = await MockLoanTokenLogic.at(loanTokenV1.address);

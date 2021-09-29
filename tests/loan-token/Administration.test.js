@@ -50,7 +50,7 @@ contract("LoanTokenAdministration", (accounts) => {
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 		sov = await getSOV(sovryn, priceFeeds, SUSD, accounts);
@@ -165,13 +165,13 @@ contract("LoanTokenAdministration", (accounts) => {
 		});
 
 		it("Should succeed with larger rate than maxSlippage in positive direction", async () => {
-			const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+			const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 			let rate = await priceFeeds.checkPriceDisagreement(WRBTC.address, SUSD.address, wei("1", "ether"), wei("20000", "ether"), 0);
 			assert(rate == wei("20000", "ether"));
 		});
 
 		it("Should fail with larger rate than maxSlippage in negative direction", async () => {
-			const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+			const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 			await expectRevert(
 				priceFeeds.checkPriceDisagreement(WRBTC.address, SUSD.address, wei("1", "ether"), wei("1", "ether"), 0),
 				"price disagreement"

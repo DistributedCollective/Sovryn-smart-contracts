@@ -10,14 +10,15 @@
  *  - reformatted code comments
  *
  * Notes: Used waffle fixture to snapshot deployment scenarios.
- *
+ *   Updated to use the initializer.js functions for protocol deployment.
+ *   Updated to use SUSD as underlying token, instead of custom SUSD.
+ *   Updated to use WRBTC as collateral token, instead of custom testWrbtc.
  */
 
 const { BN, constants, expectEvent } = require("@openzeppelin/test-helpers");
 const { expect, waffle } = require("hardhat");
 const { deployMockContract, loadFixture } = waffle;
 const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
-const sovrynProtocol = artifacts.require("sovrynProtocol");
 const LoanToken = artifacts.require("LoanToken");
 const LockedSOV = artifacts.require("LockedSOV");
 const StakingLogic = artifacts.require("Staking");
@@ -27,19 +28,8 @@ const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
 
-const TestWrbtc = artifacts.require("TestWrbtc");
 const TestToken = artifacts.require("TestToken");
-const SOV = artifacts.require("SOV");
-const ISovryn = artifacts.require("ISovryn");
-const ProtocolSettings = artifacts.require("ProtocolSettings");
-const LoanSettings = artifacts.require("LoanSettings");
-const LoanMaintenance = artifacts.require("LoanMaintenance");
-const LoanOpenings = artifacts.require("LoanOpenings");
-const SwapsExternal = artifacts.require("SwapsExternal");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
-const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 
-const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const PriceFeeds = artifacts.require("PriceFeeds");
 const PriceFeedRSKOracle = artifacts.require("PriceFeedRSKOracle");
 const PriceFeedRSKOracleMockup = artifacts.require("PriceFeedRSKOracleMockup");
@@ -50,17 +40,31 @@ const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 const Affiliates = artifacts.require("Affiliates");
 const IV1PoolOracle = artifacts.require("IV1PoolOracle");
 
-const TOTAL_SUPPLY = "10000000000000000000000000";
+const {
+	getSUSD,
+	getRBTC,
+	getWRBTC,
+	getBZRX,
+	getLoanTokenLogic,
+	getLoanToken,
+	getLoanTokenLogicWrbtc,
+	getLoanTokenWRBTC,
+	loan_pool_setup,
+	set_demand_curve,
+	getPriceFeeds,
+	getSovryn,
+	decodeLogs,
+	getSOV,
+} = require("../Utils/initializer.js");
 
-const { decodeLogs } = require("../Utils/initializer.js");
 let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
 let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 
 contract("Affiliates", (accounts) => {
 	let loanTokenLogic;
-	let testWrbtc;
+	let WRBTC;
 	let doc;
-	let tokenSOV;
+	let SUSD;
 	let lockedSOV;
 	let sovryn;
 	let loanTokenV2;
@@ -77,26 +81,18 @@ contract("Affiliates", (accounts) => {
 		const provider = waffle.provider;
 		[senderMock] = provider.getWallets();
 
-		// Deploying sovrynProtocol
-		const sovrynproxy = await sovrynProtocol.new();
-		sovryn = await ISovryn.at(sovrynproxy.address);
-
-		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
-		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
-		await sovryn.replaceContract((await ProtocolSettings.new()).address);
-		await sovryn.replaceContract((await LoanSettings.new()).address);
-		await sovryn.replaceContract((await LoanMaintenance.new()).address);
-		await sovryn.replaceContract((await SwapsExternal.new()).address);
-		await sovryn.replaceContract((await LoanOpenings.new()).address);
-		await sovryn.replaceContract((await Affiliates.new()).address);
-
-		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
+		// Deploying sovrynProtocol w/ generic function from initializer.js
+		SUSD = await getSUSD();
+		RBTC = await getRBTC();
+		WRBTC = await getWRBTC();
+		BZRX = await getBZRX();
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
+		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+		await sovryn.setSovrynProtocolAddress(sovryn.address);
 
 		loanTokenLogic = await LoanTokenLogicLM.new();
-		testWrbtc = await TestWrbtc.new();
 		doc = await TestToken.new("dollar on chain", "DOC", 18, wei("20000", "ether"));
-		tokenSOV = await SOV.new(TOTAL_SUPPLY);
-		loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
+		loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, WRBTC.address);
 		await loanToken.initialize(doc.address, "SUSD", "SUSD");
 
 		// loanTokenV2 = await LoanTokenLogicLM.at(loanToken.address);
@@ -107,8 +103,8 @@ contract("Affiliates", (accounts) => {
 		}
 
 		// Creating the Staking Instance.
-		stakingLogic = await StakingLogic.new(tokenSOV.address);
-		staking = await StakingProxy.new(tokenSOV.address);
+		stakingLogic = await StakingLogic.new(SUSD.address);
+		staking = await StakingProxy.new(SUSD.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 
@@ -120,7 +116,7 @@ contract("Affiliates", (accounts) => {
 		vestingFactory = await VestingFactory.new(vestingLogic.address);
 		vestingRegistry = await VestingRegistry.new(
 			vestingFactory.address,
-			tokenSOV.address,
+			SUSD.address,
 			staking.address,
 			feeSharingProxy.address,
 			owner // This should be Governance Timelock Contract.
@@ -129,17 +125,17 @@ contract("Affiliates", (accounts) => {
 
 		// Creating the instance of newLockedSOV Contract.
 		await sovryn.setLockedSOVAddress(
-			(await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])).address
+			(await LockedSOV.new(SUSD.address, vestingRegistry.address, cliff, duration, [owner])).address
 		);
 		lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 
 		// initialize
 		/// @dev Optimization: Init same feeds for all tests
 
-		// feeds = await PriceFeedsLocal.new(testWrbtc.address, sovryn.address);
-		// await feeds.setRates(doc.address, testWrbtc.address, wei("0.01", "ether"));
+		// feeds = await PriceFeedsLocal.new(WRBTC.address, sovryn.address);
+		// await feeds.setRates(doc.address, WRBTC.address, wei("0.01", "ether"));
 
-		feeds = await PriceFeeds.new(testWrbtc.address, tokenSOV.address, doc.address);
+		feeds = await PriceFeeds.new(WRBTC.address, SUSD.address, doc.address);
 		testToken1Precision = 18;
 		testToken2Precision = 18;
 		btcPrecision = 18;
@@ -152,7 +148,7 @@ contract("Affiliates", (accounts) => {
 
 		// Set tetToken1 feed - price 1Z BTC
 		// Set v1 convert mockup
-		liquidityV1ConverterMockupTestToken1 = await LiquidityPoolV1ConverterMockup.new(testToken1.address, testWrbtc.address);
+		liquidityV1ConverterMockupTestToken1 = await LiquidityPoolV1ConverterMockup.new(testToken1.address, WRBTC.address);
 
 		priceFeedsV1PoolOracleMockupTestToken1 = await deployMockContract(senderMock, IV1PoolOracle.abi);
 		await priceFeedsV1PoolOracleMockupTestToken1.mock.latestAnswer.returns(testToken1Price);
@@ -161,12 +157,12 @@ contract("Affiliates", (accounts) => {
 
 		priceFeedsV1PoolOracleTestToken1 = await PriceFeedV1PoolOracle.new(
 			priceFeedsV1PoolOracleMockupTestToken1.address,
-			testWrbtc.address,
+			WRBTC.address,
 			doc.address,
 			testToken1.address
 		);
 
-		liquidityV1ConverterMockupTestToken2 = await LiquidityPoolV1ConverterMockup.new(testToken2.address, testWrbtc.address);
+		liquidityV1ConverterMockupTestToken2 = await LiquidityPoolV1ConverterMockup.new(testToken2.address, WRBTC.address);
 		priceFeedsV1PoolOracleMockupTestToken2 = await deployMockContract(senderMock, IV1PoolOracle.abi);
 		await priceFeedsV1PoolOracleMockupTestToken2.mock.latestAnswer.returns(testToken2Price);
 		await priceFeedsV1PoolOracleMockupTestToken2.mock.latestPrice.returns(testToken2Price);
@@ -174,7 +170,7 @@ contract("Affiliates", (accounts) => {
 
 		priceFeedsV1PoolOracleTestToken2 = await PriceFeedV1PoolOracle.new(
 			priceFeedsV1PoolOracleMockupTestToken2.address,
-			testWrbtc.address,
+			WRBTC.address,
 			doc.address,
 			testToken2.address
 		);
@@ -185,7 +181,7 @@ contract("Affiliates", (accounts) => {
 		priceFeedsV1PoolOracleBTC = await PriceFeedRSKOracle.new(priceFeedsV1PoolOracleMockupBTC.address);
 
 		// Set DOC feed -- price 1 BTC
-		liquidityV1ConverterMockupDOC = await LiquidityPoolV1ConverterMockup.new(doc.address, testWrbtc.address);
+		liquidityV1ConverterMockupDOC = await LiquidityPoolV1ConverterMockup.new(doc.address, WRBTC.address);
 
 		priceFeedsV1PoolOracleMockupDOC = await deployMockContract(senderMock, IV1PoolOracle.abi);
 		await priceFeedsV1PoolOracleMockupDOC.mock.latestAnswer.returns(docPrice);
@@ -194,14 +190,14 @@ contract("Affiliates", (accounts) => {
 
 		priceFeedsV1PoolOracleDOC = await PriceFeedV1PoolOracle.new(
 			priceFeedsV1PoolOracleMockupDOC.address,
-			testWrbtc.address,
+			WRBTC.address,
 			doc.address,
 			doc.address
 		);
 
-		// await feeds.setPriceFeed([testWrbtc.address, doc.address], [priceFeedsV1PoolOracle.address, priceFeedsV1PoolOracle.address])
+		// await feeds.setPriceFeed([WRBTC.address, doc.address], [priceFeedsV1PoolOracle.address, priceFeedsV1PoolOracle.address])
 		await feeds.setPriceFeed(
-			[testToken1.address, testToken2.address, doc.address, testWrbtc.address],
+			[testToken1.address, testToken2.address, doc.address, WRBTC.address],
 			[
 				priceFeedsV1PoolOracleTestToken1.address,
 				priceFeedsV1PoolOracleTestToken2.address,
@@ -249,7 +245,7 @@ contract("Affiliates", (accounts) => {
 		swapsSovryn = await SwapsImplSovrynSwap.new();
 		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
-		await sovryn.setSupportedTokens([doc.address, testWrbtc.address], [true, true]);
+		await sovryn.setSupportedTokens([doc.address, WRBTC.address], [true, true]);
 		await sovryn.setPriceFeedContract(
 			feeds.address // priceFeeds
 		);
@@ -257,8 +253,8 @@ contract("Affiliates", (accounts) => {
 			swapsSovryn.address // swapsImpl
 		);
 		await sovryn.setFeesController(owner);
-		await sovryn.setWrbtcToken(testWrbtc.address);
-		await sovryn.setSOVTokenAddress(tokenSOV.address);
+		await sovryn.setWrbtcToken(WRBTC.address);
+		await sovryn.setSOVTokenAddress(SUSD.address);
 		await sovryn.setProtocolTokenAddress(sovryn.address);
 
 		{
@@ -280,7 +276,7 @@ contract("Affiliates", (accounts) => {
 			false, // bool active; // if false, this object has been disabled by the owner and can't be used for future loans
 			owner, // address owner; // owner of this object
 			doc.address, // address loanToken; // the token being loaned
-			testWrbtc.address, // address collateralToken; // the required collateral token
+			WRBTC.address, // address collateralToken; // the required collateral token
 			wei("20", "ether"), // uint256 minInitialMargin; // the minimum allowed initial margin
 			wei("15", "ether"), // uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
 			2419200, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
@@ -303,10 +299,10 @@ contract("Affiliates", (accounts) => {
 		// trader approves to LoanToken loan amount for trading
 		await doc.approve(loanToken.address, web3.utils.toWei("100", "ether"), { from: trader });
 		// Giving some testRbtc to sovrynAddress (by minting some testRbtc),so that it can open position in wRBTC.
-		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
+		await WRBTC.mint(sovryn.address, wei("500", "ether"));
 
 		// Giving some SOV Token to sovrynAddress (For affiliates rewards purposes)
-		await tokenSOV.mint(sovryn.address, wei("500", "ether"));
+		await SUSD.mint(sovryn.address, wei("500", "ether"));
 
 		/// @dev Optimization: Init default affiliate for all tests
 
@@ -324,7 +320,7 @@ contract("Affiliates", (accounts) => {
 			leverageAmount, // Leverage
 			loanTokenSent, // loanTokenSent
 			0, //
-			testWrbtc.address, // collateralTokenAddress
+			WRBTC.address, // collateralTokenAddress
 			trader, // trader
 			0, // max slippage
 			referrer, // referrer address
@@ -397,7 +393,7 @@ contract("Affiliates", (accounts) => {
 			leverageAmount, // Leverage
 			loanTokenSent, // loanTokenSent
 			0, //
-			testWrbtc.address, // collateralTokenAddress
+			WRBTC.address, // collateralTokenAddress
 			trader, // trader
 			0, // max slippage
 			referrer, // referrer address
@@ -454,7 +450,7 @@ contract("Affiliates", (accounts) => {
 			leverageAmount, // Leverage
 			loanTokenSent, // loanTokenSent
 			0, //
-			testWrbtc.address, // collateralTokenAddress
+			WRBTC.address, // collateralTokenAddress
 			trader, // trader
 			0, // max slippage
 			referrer, // referrer address
@@ -520,7 +516,7 @@ contract("Affiliates", (accounts) => {
 		/*
 		/// @dev Optimization: Removed feeds init for specific test, relayed to beforeEach hook
 
-		feeds = await PriceFeeds.new(testWrbtc.address, tokenSOV.address, doc.address);
+		feeds = await PriceFeeds.new(WRBTC.address, SUSD.address, doc.address);
 		testToken1Precision = 18;
 		testToken2Precision = 18;
 		btcPrecision = 18;
@@ -533,7 +529,7 @@ contract("Affiliates", (accounts) => {
 
 		// Set tetToken1 feed - price 1Z BTC
 		// Set v1 convert mockup
-		liquidityV1ConverterMockupTestToken1 = await LiquidityPoolV1ConverterMockup.new(testToken1.address, testWrbtc.address);
+		liquidityV1ConverterMockupTestToken1 = await LiquidityPoolV1ConverterMockup.new(testToken1.address, WRBTC.address);
 
 		priceFeedsV1PoolOracleMockupTestToken1 = await deployMockContract(senderMock, IV1PoolOracle.abi);
 		await priceFeedsV1PoolOracleMockupTestToken1.mock.latestAnswer.returns(testToken1Price);
@@ -542,12 +538,12 @@ contract("Affiliates", (accounts) => {
 
 		priceFeedsV1PoolOracleTestToken1 = await PriceFeedV1PoolOracle.new(
 			priceFeedsV1PoolOracleMockupTestToken1.address,
-			testWrbtc.address,
+			WRBTC.address,
 			doc.address,
 			testToken1.address
 		);
 
-		liquidityV1ConverterMockupTestToken2 = await LiquidityPoolV1ConverterMockup.new(testToken2.address, testWrbtc.address);
+		liquidityV1ConverterMockupTestToken2 = await LiquidityPoolV1ConverterMockup.new(testToken2.address, WRBTC.address);
 		priceFeedsV1PoolOracleMockupTestToken2 = await deployMockContract(senderMock, IV1PoolOracle.abi);
 		await priceFeedsV1PoolOracleMockupTestToken2.mock.latestAnswer.returns(testToken2Price);
 		await priceFeedsV1PoolOracleMockupTestToken2.mock.latestPrice.returns(testToken2Price);
@@ -555,7 +551,7 @@ contract("Affiliates", (accounts) => {
 
 		priceFeedsV1PoolOracleTestToken2 = await PriceFeedV1PoolOracle.new(
 			priceFeedsV1PoolOracleMockupTestToken2.address,
-			testWrbtc.address,
+			WRBTC.address,
 			doc.address,
 			testToken2.address
 		);
@@ -566,7 +562,7 @@ contract("Affiliates", (accounts) => {
 		priceFeedsV1PoolOracleBTC = await PriceFeedRSKOracle.new(priceFeedsV1PoolOracleMockupBTC.address);
 
 		// Set DOC feed -- price 1 BTC
-		liquidityV1ConverterMockupDOC = await LiquidityPoolV1ConverterMockup.new(doc.address, testWrbtc.address);
+		liquidityV1ConverterMockupDOC = await LiquidityPoolV1ConverterMockup.new(doc.address, WRBTC.address);
 
 		priceFeedsV1PoolOracleMockupDOC = await deployMockContract(senderMock, IV1PoolOracle.abi);
 		await priceFeedsV1PoolOracleMockupDOC.mock.latestAnswer.returns(docPrice);
@@ -575,14 +571,14 @@ contract("Affiliates", (accounts) => {
 
 		priceFeedsV1PoolOracleDOC = await PriceFeedV1PoolOracle.new(
 			priceFeedsV1PoolOracleMockupDOC.address,
-			testWrbtc.address,
+			WRBTC.address,
 			doc.address,
 			doc.address
 		);
 
-		// await feeds.setPriceFeed([testWrbtc.address, doc.address], [priceFeedsV1PoolOracle.address, priceFeedsV1PoolOracle.address])
+		// await feeds.setPriceFeed([WRBTC.address, doc.address], [priceFeedsV1PoolOracle.address, priceFeedsV1PoolOracle.address])
 		await feeds.setPriceFeed(
-			[testToken1.address, testToken2.address, doc.address, testWrbtc.address],
+			[testToken1.address, testToken2.address, doc.address, WRBTC.address],
 			[
 				priceFeedsV1PoolOracleTestToken1.address,
 				priceFeedsV1PoolOracleTestToken2.address,
@@ -632,7 +628,7 @@ contract("Affiliates", (accounts) => {
 		swapsSovryn = await SwapsImplSovrynSwap.new();
 		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
-		await sovryn.setSupportedTokens([doc.address, testWrbtc.address], [true, true]);
+		await sovryn.setSupportedTokens([doc.address, WRBTC.address], [true, true]);
 		await sovryn.setPriceFeedContract(
 			feeds.address // priceFeeds
 		);
@@ -640,8 +636,8 @@ contract("Affiliates", (accounts) => {
 			swapsSovryn.address // swapsImpl
 		);
 		await sovryn.setFeesController(owner);
-		await sovryn.setWrbtcToken(testWrbtc.address);
-		await sovryn.setSOVTokenAddress(tokenSOV.address);
+		await sovryn.setWrbtcToken(WRBTC.address);
+		await sovryn.setSOVTokenAddress(SUSD.address);
 */
 
 		/*
@@ -661,7 +657,7 @@ contract("Affiliates", (accounts) => {
 			leverageAmount, // Leverage
 			loanTokenSent, // loanTokenSent
 			0, //
-			testWrbtc.address, // collateralTokenAddress
+			WRBTC.address, // collateralTokenAddress
 			trader, // trader
 			0, // max slippage
 			referrer, // referrer address
@@ -713,7 +709,7 @@ contract("Affiliates", (accounts) => {
 			leverageAmount, // Leverage
 			loanTokenSent, // loanTokenSent
 			0, //
-			testWrbtc.address, // collateralTokenAddress
+			WRBTC.address, // collateralTokenAddress
 			trader, // trader
 			0, // max slippage
 			referrer, // referrer address,
@@ -774,7 +770,7 @@ contract("Affiliates", (accounts) => {
 		/*
 		/// @dev Optimization: Removed feeds init for specific test, relayed to beforeEach hook
 
-		feeds = await PriceFeeds.new(testWrbtc.address, tokenSOV.address, doc.address);
+		feeds = await PriceFeeds.new(WRBTC.address, SUSD.address, doc.address);
 		testToken1Precision = 18;
 		testToken2Precision = 18;
 		btcPrecision = 18;
@@ -787,7 +783,7 @@ contract("Affiliates", (accounts) => {
 
 		// Set tetToken1 feed - price 1Z BTC
 		// Set v1 convert mockup
-		liquidityV1ConverterMockupTestToken1 = await LiquidityPoolV1ConverterMockup.new(testToken1.address, testWrbtc.address);
+		liquidityV1ConverterMockupTestToken1 = await LiquidityPoolV1ConverterMockup.new(testToken1.address, WRBTC.address);
 
 		priceFeedsV1PoolOracleMockupTestToken1 = await deployMockContract(senderMock, IV1PoolOracle.abi);
 		await priceFeedsV1PoolOracleMockupTestToken1.mock.latestAnswer.returns(testToken1Price);
@@ -796,12 +792,12 @@ contract("Affiliates", (accounts) => {
 
 		priceFeedsV1PoolOracleTestToken1 = await PriceFeedV1PoolOracle.new(
 			priceFeedsV1PoolOracleMockupTestToken1.address,
-			testWrbtc.address,
+			WRBTC.address,
 			doc.address,
 			testToken1.address
 		);
 
-		liquidityV1ConverterMockupTestToken2 = await LiquidityPoolV1ConverterMockup.new(testToken2.address, testWrbtc.address);
+		liquidityV1ConverterMockupTestToken2 = await LiquidityPoolV1ConverterMockup.new(testToken2.address, WRBTC.address);
 		priceFeedsV1PoolOracleMockupTestToken2 = await deployMockContract(senderMock, IV1PoolOracle.abi);
 		await priceFeedsV1PoolOracleMockupTestToken2.mock.latestAnswer.returns(testToken2Price);
 		await priceFeedsV1PoolOracleMockupTestToken2.mock.latestPrice.returns(testToken2Price);
@@ -809,7 +805,7 @@ contract("Affiliates", (accounts) => {
 
 		priceFeedsV1PoolOracleTestToken2 = await PriceFeedV1PoolOracle.new(
 			priceFeedsV1PoolOracleMockupTestToken2.address,
-			testWrbtc.address,
+			WRBTC.address,
 			doc.address,
 			testToken2.address
 		);
@@ -820,7 +816,7 @@ contract("Affiliates", (accounts) => {
 		priceFeedsV1PoolOracleBTC = await PriceFeedRSKOracle.new(priceFeedsV1PoolOracleMockupBTC.address);
 
 		// Set DOC feed -- price 1 BTC
-		liquidityV1ConverterMockupDOC = await LiquidityPoolV1ConverterMockup.new(doc.address, testWrbtc.address);
+		liquidityV1ConverterMockupDOC = await LiquidityPoolV1ConverterMockup.new(doc.address, WRBTC.address);
 
 		priceFeedsV1PoolOracleMockupDOC = await deployMockContract(senderMock, IV1PoolOracle.abi);
 		await priceFeedsV1PoolOracleMockupDOC.mock.latestAnswer.returns(docPrice);
@@ -829,14 +825,14 @@ contract("Affiliates", (accounts) => {
 
 		priceFeedsV1PoolOracleDOC = await PriceFeedV1PoolOracle.new(
 			priceFeedsV1PoolOracleMockupDOC.address,
-			testWrbtc.address,
+			WRBTC.address,
 			doc.address,
 			doc.address
 		);
 
-		// await feeds.setPriceFeed([testWrbtc.address, doc.address], [priceFeedsV1PoolOracle.address, priceFeedsV1PoolOracle.address])
+		// await feeds.setPriceFeed([WRBTC.address, doc.address], [priceFeedsV1PoolOracle.address, priceFeedsV1PoolOracle.address])
 		await feeds.setPriceFeed(
-			[testToken1.address, testToken2.address, doc.address, testWrbtc.address],
+			[testToken1.address, testToken2.address, doc.address, WRBTC.address],
 			[
 				priceFeedsV1PoolOracleTestToken1.address,
 				priceFeedsV1PoolOracleTestToken2.address,
@@ -886,7 +882,7 @@ contract("Affiliates", (accounts) => {
 		swapsSovryn = await SwapsImplSovrynSwap.new();
 		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
-		await sovryn.setSupportedTokens([doc.address, testWrbtc.address], [true, true]);
+		await sovryn.setSupportedTokens([doc.address, WRBTC.address], [true, true]);
 		await sovryn.setPriceFeedContract(
 			feeds.address // priceFeeds
 		);
@@ -894,8 +890,8 @@ contract("Affiliates", (accounts) => {
 			swapsSovryn.address // swapsImpl
 		);
 		await sovryn.setFeesController(owner);
-		await sovryn.setWrbtcToken(testWrbtc.address);
-		await sovryn.setSOVTokenAddress(tokenSOV.address);
+		await sovryn.setWrbtcToken(WRBTC.address);
+		await sovryn.setSOVTokenAddress(SUSD.address);
 */
 
 		/*
@@ -915,7 +911,7 @@ contract("Affiliates", (accounts) => {
 			leverageAmount, // Leverage
 			loanTokenSent, // loanTokenSent
 			0, //
-			testWrbtc.address, // collateralTokenAddress
+			WRBTC.address, // collateralTokenAddress
 			trader, // trader
 			0, // max slippage
 			referrer, // referrer address
