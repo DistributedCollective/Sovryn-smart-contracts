@@ -44,6 +44,17 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 		uint256 accumulatedReward
 	);
 
+	/* Modifiers */
+	modifier onlyMigrator() {
+		require(msg.sender == migrator, "only allowed to migrator contract");
+		_;
+	}
+
+	modifier onlyAfterMigrationFinished() {
+		require(migrationFinished, "Migration is not over yet");
+		_;
+	}
+
 	/* Functions */
 
 	/**
@@ -139,7 +150,6 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 
 		/// @dev Event log.
 		emit RewardTransferred(_rewardToken, _receiver, _amount);
-
 		/// @dev The actual transfer.
 		require(rewardToken.transfer(_receiver, _amount), "Transfer failed");
 	}
@@ -490,8 +500,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 		address _poolToken,
 		uint256 _amount,
 		address _user
-	) external {
-		require(migrationFinished, "Migration is not over yet");
+	) external onlyAfterMigrationFinished {
 		_deposit(_poolToken, _amount, _user, false);
 	}
 
@@ -552,7 +561,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 	 * @param _poolToken the address of pool token
 	 * @param _user the address of user to claim reward from (can be passed only by wrapper contract)
 	 */
-	function claimRewards(address _poolToken, address _user) external {
+	function claimRewards(address _poolToken, address _user) external onlyAfterMigrationFinished {
 		address userAddress = _getUserAddress(_user);
 
 		uint256 poolId = _getPoolId(_poolToken);
@@ -574,7 +583,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 		address _poolToken,
 		address _rewardToken,
 		address _user
-	) external {
+	) external onlyAfterMigrationFinished {
 		address userAddress = _getUserAddress(_user);
 
 		uint256 poolId = _getPoolId(_poolToken);
@@ -599,7 +608,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 	 * @notice transfers reward tokens from all pools
 	 * @param _user the address of user to claim reward from (can be passed only by wrapper contract)
 	 */
-	function claimRewardFromAllPools(address _user) external {
+	function claimRewardFromAllPools(address _user) external onlyAfterMigrationFinished {
 		address userAddress = _getUserAddress(_user);
 
 		uint256 length = poolInfoList.length;
@@ -624,7 +633,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 		address _poolToken,
 		uint256 _amount,
 		address _user
-	) external {
+	) external onlyAfterMigrationFinished {
 		require(poolIdList[_poolToken] != 0, "Pool token not found");
 		address userAddress = _getUserAddress(_user);
 
@@ -735,7 +744,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 	 * @param _poolToken the address of pool token
 	 * @dev EMERGENCY ONLY
 	 */
-	function emergencyWithdraw(address _poolToken) external {
+	function emergencyWithdraw(address _poolToken) external onlyAfterMigrationFinished {
 		uint256 poolId = _getPoolId(_poolToken);
 		PoolInfo storage pool = poolInfoList[poolId];
 		UserInfo storage user = userInfoMap[poolId][msg.sender];
@@ -939,8 +948,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 		address _rewardToken,
 		uint256 _lastRewardBlock,
 		uint256 _accumulatedRewardPerShare
-	) external onlyAuthorized {
-		require(msg.sender == migrator, "only allowed to migrator contract");
+	) external onlyAuthorized onlyMigrator {
 		uint256 poolId = _getPoolId(_poolToken);
 		PoolInfoRewardToken storage poolInfoRewardToken = poolInfoRewardTokensMap[poolId][_rewardToken];
 		poolInfoRewardToken.lastRewardBlock = _lastRewardBlock;
@@ -951,8 +959,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 		address _rewardToken,
 		uint256 _startBlock,
 		uint256 _totalUsersBalance
-	) external onlyAuthorized {
-		require(msg.sender == migrator, "only allowed to migrator contract");
+	) external onlyAuthorized onlyMigrator {
 		RewardToken storage rewardToken = rewardTokensMap[_rewardToken];
 		rewardToken.startBlock = _startBlock;
 		rewardToken.totalUsersBalance = _totalUsersBalance;
@@ -965,18 +972,18 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 		uint256 _amount,
 		uint256 _rewardDebt,
 		uint256 _accumulatedReward
-	) external onlyAuthorized {
-		require(msg.sender == migrator, "only allowed to migrator contract");
+	) external onlyAuthorized onlyMigrator {
 		UserInfo storage userInfo = userInfoMap[_poolId][_user];
-		userInfo.amount = _amount;
-		userInfo.rewards[_rewardToken] = UserReward(_rewardDebt, _accumulatedReward);
+		UserReward storage userReward = userInfo.rewards[_rewardToken];
+		userInfo.amount += _amount;
+		userReward.rewardDebt += _rewardDebt;
+		userReward.accumulatedReward += _accumulatedReward;
 	}
 
 	/**
 	 * @notice finish migration
 	 */
-	function finishMigration() external onlyAuthorized {
-		require(msg.sender == migrator, "only allowed to migrator contract");
+	function finishMigration() external onlyAuthorized onlyMigrator {
 		migrationFinished = true;
 	}
 }
