@@ -18,7 +18,7 @@
  *  improved a 20% the code speed:
  * 		reduced total elapsed time from 5s to 4s
  *  Updated to use only the initializer.js functions for protocol deployment.
- *  Updated to use SUSD as underlying token. 
+ *  Updated to use SUSD as underlying token.
  */
 
 const { assert, expect } = require("chai");
