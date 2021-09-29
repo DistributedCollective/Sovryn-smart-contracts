@@ -1,6 +1,6 @@
 {
-	"name": "test-contracts-sovryn",
-	"version": "1.0.7",
+	"name": "sovrynsmartcontracts",
+	"version": "1.0.0",
 	"description": "Smart contracts for the Sovryn protocol and external integrations.",
 	"keywords": [
 		"Sovryn",
