@@ -15,7 +15,7 @@
  *   a different scenario setting sovryn.setMinReferralsToPayoutAffiliates
  *   to 1 before running the trade. It would have been a complex optimization
  *   to get an improvement of 1s as much. So, it has been disregarded.
- * 
+ *
  *   Updated to use the initializer.js functions for protocol deployment.
  *   Updated to use SUSD as underlying token, instead of custom tokenSOV.
  *   Updated to use WRBTC as collateral token, instead of custom testWrbtc.
@@ -91,7 +91,7 @@ contract("Affiliates", (accounts) => {
 		// loanTokenLogic = await LoanTokenLogicStandard.new();
 		loanTokenLogic = await MockLoanTokenLogic.new();
 		doc = await TestToken.new("dollar on chain", "DOC", 18, wei("20000", "ether"));
-		
+
 		loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, WRBTC.address);
 		await loanToken.initialize(doc.address, "SUSD", "SUSD");
 
@@ -124,9 +124,7 @@ contract("Affiliates", (accounts) => {
 		vestingFactory.transferOwnership(vestingRegistry.address);
 
 		// Creating the instance of newLockedSOV Contract.
-		await sovryn.setLockedSOVAddress(
-			(await LockedSOV.new(SUSD.address, vestingRegistry.address, cliff, duration, [owner])).address
-		);
+		await sovryn.setLockedSOVAddress((await LockedSOV.new(SUSD.address, vestingRegistry.address, cliff, duration, [owner])).address);
 		lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 
 		// initialize
