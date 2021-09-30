@@ -7,7 +7,7 @@
  * Other minor optimizations:
  * - removed unneeded variables
  *
- * Notes: 
+ * Notes:
  *   Updated to use the initializer.js functions for protocol deployment.
  *   Updated to use SUSD as underlying token, instead of custom token.
  *   Updated to use WRBTC as collateral token, instead of custom token.

@@ -1,7 +1,7 @@
 /** Speed optimized on branch hardhatTestRefactor, 2021-09-30
  * Greatest potential bottleneck found on beforeEach hook, redeploying protocol
  *   but there is only one test, so optimization is not effective.
- * 
+ *
  * Total time elapsed: 4.9s
  *
  * Other minor optimizations:
@@ -73,12 +73,12 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 		if (owner == (await sovryn.owner())) {
 			await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
 		}
-	
+
 		// initializing
 		await priceFeeds.setRates(doc.address, WRBTC.address, wei("0.01", "ether"));
 		await sovryn.setSupportedTokens([doc.address, WRBTC.address], [true, true]);
 		await sovryn.setFeesController(owner);
-		
+
 		{
 			/**
 			struct LoanParams {
@@ -123,7 +123,7 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 	before(async () => {
 		[owner, trader, referrer, account1, account2, ...accounts] = accounts;
 	});
-	
+
 	beforeEach(async () => {
 		await loadFixture(deploymentAndInitFixture);
 	});

@@ -41,7 +41,6 @@ const {
 	getSOV,
 } = require("../Utils/initializer.js");
 
-
 const wei = web3.utils.toWei;
 
 contract("LoanTokenLending", (accounts) => {
