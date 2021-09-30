@@ -561,7 +561,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 	 * @param _poolToken the address of pool token
 	 * @param _user the address of user to claim reward from (can be passed only by wrapper contract)
 	 */
-	function claimRewards(address _poolToken, address _user) external onlyAfterMigrationFinished {
+	function claimRewards(address _poolToken, address _user) external {
 		address userAddress = _getUserAddress(_user);
 
 		uint256 poolId = _getPoolId(_poolToken);
@@ -583,7 +583,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 		address _poolToken,
 		address _rewardToken,
 		address _user
-	) external onlyAfterMigrationFinished {
+	) external {
 		address userAddress = _getUserAddress(_user);
 
 		uint256 poolId = _getPoolId(_poolToken);
@@ -608,7 +608,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 	 * @notice transfers reward tokens from all pools
 	 * @param _user the address of user to claim reward from (can be passed only by wrapper contract)
 	 */
-	function claimRewardFromAllPools(address _user) external onlyAfterMigrationFinished {
+	function claimRewardFromAllPools(address _user) external {
 		address userAddress = _getUserAddress(_user);
 
 		uint256 length = poolInfoList.length;
@@ -948,7 +948,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 		address _rewardToken,
 		uint256 _lastRewardBlock,
 		uint256 _accumulatedRewardPerShare
-	) external onlyAuthorized onlyMigrator {
+	) external onlyMigrator {
 		uint256 poolId = _getPoolId(_poolToken);
 		PoolInfoRewardToken storage poolInfoRewardToken = poolInfoRewardTokensMap[poolId][_rewardToken];
 		poolInfoRewardToken.lastRewardBlock = _lastRewardBlock;
@@ -959,7 +959,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 		address _rewardToken,
 		uint256 _startBlock,
 		uint256 _totalUsersBalance
-	) external onlyAuthorized onlyMigrator {
+	) external onlyMigrator {
 		RewardToken storage rewardToken = rewardTokensMap[_rewardToken];
 		rewardToken.startBlock = _startBlock;
 		rewardToken.totalUsersBalance = _totalUsersBalance;
@@ -972,7 +972,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 		uint256 _amount,
 		uint256 _rewardDebt,
 		uint256 _accumulatedReward
-	) external onlyAuthorized onlyMigrator {
+	) external onlyMigrator {
 		UserInfo storage userInfo = userInfoMap[_poolId][_user];
 		UserReward storage userReward = userInfo.rewards[_rewardToken];
 		userInfo.amount += _amount;
@@ -983,7 +983,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 	/**
 	 * @notice finish migration
 	 */
-	function finishMigration() external onlyAuthorized onlyMigrator {
+	function finishMigration() external onlyMigrator {
 		migrationFinished = true;
 	}
 }

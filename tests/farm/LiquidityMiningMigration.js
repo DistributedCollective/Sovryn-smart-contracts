@@ -822,25 +822,29 @@ describe("LiquidityMiningMigration", () => {
 			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount.mul(new BN(2)));
 		});
 
-		it("Should lend to the pool without depositing the pool tokens at the liquidity mining contract", async () => {
+		it("Should lend to the pool at the liquidity mining V1, lend to liquidity mining V2 and migrate", async () => {
 			const depositAmount = new BN(wei("400", "ether"));
 			await liquidityMining.add(loanToken.address, new BN(10), false);
 			await loanToken.setLiquidityMiningAddress(liquidityMining.address);
 			await underlyingToken.approve(loanToken.address, depositAmount);
-			await loanToken.mint(lender, depositAmount, false);
+			await loanToken.mint(lender, depositAmount, true);
 
 			await liquidityMining.addAdmin(migrator.address);
 			await liquidityMining.startMigrationGracePeriod();
 			await liquidityMiningV2.addAdmin(migrator.address);
 			await migrator.migratePools();
-			await migrator.migrateUsers([lender]);
 
 			await loanToken.setLiquidityMiningAddress(liquidityMiningV2.address);
+			await underlyingToken.approve(loanToken.address, depositAmount);
+			await loanToken.mint(lender, depositAmount, true);
+
+			await migrator.migrateUsers([lender]);
+
 			const userInfo = await liquidityMiningV2.getUserInfo(loanToken.address, lender);
-			//expected: user pool token balance increased by the deposited amount, LM balance stays unchanged
-			expect(await loanToken.balanceOf(lender)).bignumber.equal(depositAmount);
-			expect(userInfo.amount).bignumber.equal("0");
-			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount);
+
+			expect(await loanToken.balanceOf(lender)).bignumber.equal("0");
+			expect(userInfo.amount).bignumber.equal(depositAmount.mul(new BN(2)));
+			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount.mul(new BN(2)));
 		});
 
 		it("Should only allow to burn tokens if migration finished", async () => {
@@ -897,36 +901,6 @@ describe("LiquidityMiningMigration", () => {
 				assetAmount: depositAmount,
 			});
 		});
-
-		it("Should burn pool tokens without removing them from the LM pool", async () => {
-			const depositAmount = new BN(wei("400", "ether"));
-			await liquidityMining.add(loanToken.address, new BN(10), false);
-			await loanToken.setLiquidityMiningAddress(liquidityMining.address);
-			await underlyingToken.approve(loanToken.address, depositAmount.mul(new BN(2)));
-			await loanToken.mint(lender, depositAmount, true);
-			await loanToken.mint(lender, depositAmount, false);
-
-			await liquidityMining.addAdmin(migrator.address);
-			await liquidityMining.startMigrationGracePeriod();
-			await liquidityMiningV2.addAdmin(migrator.address);
-			await migrator.migratePools();
-			await migrator.migrateUsers([lender]);
-			await migrator.finishUsersMigration();
-			await migrator.migrateFunds();
-
-			await loanToken.setLiquidityMiningAddress(liquidityMiningV2.address);
-
-			let userInfo = await liquidityMiningV2.getUserInfo(loanToken.address, lender);
-			expect(await loanToken.balanceOf(lender)).bignumber.equal(depositAmount);
-			expect(userInfo.amount).bignumber.equal(depositAmount);
-			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount.mul(new BN(2)));
-
-			await loanToken.burn(lender, depositAmount, false);
-
-			expect(userInfo.amount).bignumber.equal(depositAmount);
-			expect(await loanToken.balanceOf(lender)).bignumber.equal("0");
-			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount);
-		});
 	});
 
 	describe("Test WRBTC lending with liquidity mining", () => {
@@ -942,8 +916,6 @@ describe("LiquidityMiningMigration", () => {
 			await liquidityMiningV2.addAdmin(migrator.address);
 			await migrator.migratePools();
 			await migrator.migrateUsers([lender]);
-			await migrator.finishUsersMigration();
-			await migrator.migrateFunds();
 
 			await loanTokenWRBTC.setLiquidityMiningAddress(liquidityMiningV2.address);
 			const userInfo = await liquidityMiningV2.getUserInfo(loanTokenWRBTC.address, lender);
@@ -971,8 +943,6 @@ describe("LiquidityMiningMigration", () => {
 			await liquidityMiningV2.addAdmin(migrator.address);
 			await migrator.migratePools();
 			await migrator.migrateUsers([lender]);
-			await migrator.finishUsersMigration();
-			await migrator.migrateFunds();
 
 			await loanTokenWRBTC.setLiquidityMiningAddress(liquidityMiningV2.address);
 			await loanTokenWRBTC.mintWithBTC(lender, true, { value: depositAmount });
@@ -983,27 +953,28 @@ describe("LiquidityMiningMigration", () => {
 			expect(await loanTokenWRBTC.totalSupply()).bignumber.equal(depositAmount.mul(new BN(2)));
 		});
 
-		it("Should lend to the pool without depositing the pool tokens at the liquidity mining contract", async () => {
+		it("Should lend to the pool at the liquidity mining V1, lend to liquidity mining V2 and migrate", async () => {
 			const depositAmount = new BN(wei("400", "ether"));
 			await liquidityMining.add(loanTokenWRBTC.address, new BN(10), true);
 			await loanTokenWRBTC.setLiquidityMiningAddress(liquidityMining.address);
 
-			await loanTokenWRBTC.mintWithBTC(lender, false, { value: depositAmount });
+			await loanTokenWRBTC.mintWithBTC(lender, true, { value: depositAmount });
 
 			await liquidityMining.addAdmin(migrator.address);
 			await liquidityMining.startMigrationGracePeriod();
 			await liquidityMiningV2.addAdmin(migrator.address);
 			await migrator.migratePools();
-			await migrator.migrateUsers([lender]);
-			await migrator.finishUsersMigration();
-			await migrator.migrateFunds();
 
 			await loanTokenWRBTC.setLiquidityMiningAddress(liquidityMiningV2.address);
+			await loanTokenWRBTC.mintWithBTC(lender, true, { value: depositAmount });
+
+			await migrator.migrateUsers([lender]);
+
 			const userInfo = await liquidityMiningV2.getUserInfo(loanTokenWRBTC.address, lender);
-			//expected: user pool token balance increased by the deposited amount, LM balance stays unchanged
-			expect(await loanTokenWRBTC.balanceOf(lender)).bignumber.equal(depositAmount);
-			expect(userInfo.amount).bignumber.equal("0");
-			expect(await loanTokenWRBTC.totalSupply()).bignumber.equal(depositAmount);
+			//expected: user pool token balance is 0, but balance of LM contract increased
+			expect(await loanTokenWRBTC.balanceOf(lender)).bignumber.equal("0");
+			expect(userInfo.amount).bignumber.equal(depositAmount.mul(new BN(2)));
+			expect(await loanTokenWRBTC.totalSupply()).bignumber.equal(depositAmount.mul(new BN(2)));
 		});
 
 		it("Should only allow to burn tokens if migration finished", async () => {
@@ -1054,36 +1025,6 @@ describe("LiquidityMiningMigration", () => {
 				tokenAmount: depositAmount,
 				assetAmount: depositAmount,
 			});
-		});
-
-		it("Should burn pool tokens without removing them from the LM pool", async () => {
-			const depositAmount = new BN(wei("400", "ether"));
-			await liquidityMining.add(loanTokenWRBTC.address, new BN(10), false);
-			await loanTokenWRBTC.setLiquidityMiningAddress(liquidityMining.address);
-
-			await loanTokenWRBTC.mintWithBTC(lender, true, { value: depositAmount });
-			await loanTokenWRBTC.mintWithBTC(lender, false, { value: depositAmount });
-
-			await liquidityMining.addAdmin(migrator.address);
-			await liquidityMining.startMigrationGracePeriod();
-			await liquidityMiningV2.addAdmin(migrator.address);
-			await migrator.migratePools();
-			await migrator.migrateUsers([lender]);
-			await migrator.finishUsersMigration();
-			await migrator.migrateFunds();
-
-			await loanTokenWRBTC.setLiquidityMiningAddress(liquidityMiningV2.address);
-
-			let userInfo = await liquidityMiningV2.getUserInfo(loanTokenWRBTC.address, lender);
-			expect(await loanTokenWRBTC.balanceOf(lender)).bignumber.equal(depositAmount);
-			expect(userInfo.amount).bignumber.equal(depositAmount);
-			expect(await loanTokenWRBTC.totalSupply()).bignumber.equal(depositAmount.mul(new BN(2)));
-
-			const tx = await loanTokenWRBTC.burnToBTC(lender, userInfo.amount, false);
-
-			expect(userInfo.amount).bignumber.equal(depositAmount);
-			expect(await loanTokenWRBTC.balanceOf(lender)).bignumber.equal("0");
-			expect(await loanTokenWRBTC.totalSupply()).bignumber.equal(depositAmount);
 		});
 	});
 
