@@ -17,7 +17,7 @@
  *   is not applicable. Major bottleneck in this test is executing the reward calculation
  *   transactions taking around 2 seconds each one, and every test is a different staking
  *   scenario so it seems like this calculation cannot be spared.
- * 
+ *
  *   Updated to use the initializer.js functions for protocol deployment.
  *   Updated to use the SOV test token from initializer.js.
  */
