@@ -60,6 +60,9 @@ const getBZRX = async () => {
 	return bzrx;
 };
 
+/// @dev This SOV token is not the SOV token on production
+///   but a test token with a simpler functionality,
+///   lacking for example approveAndCall method.
 const getSOV = async (sovryn, priceFeeds, SUSD, accounts) => {
 	const sov = await TestToken.new("SOV", "SOV", 18, totalSupply);
 	await sovryn.setProtocolTokenAddress(sov.address);

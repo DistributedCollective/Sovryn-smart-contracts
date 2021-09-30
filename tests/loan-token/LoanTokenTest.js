@@ -5,36 +5,46 @@
  *
  * Other minor optimizations:
  * - removed unneeded variables
- *
+ * 
+ * Notes:
+ *   Updated to use the initializer.js functions for protocol deployment.
+ *   Updated to use SUSD as underlying token, instead of custom underlyingToken.
  */
 
-const { constants, BN } = require("@openzeppelin/test-helpers");
+const { constants } = require("@openzeppelin/test-helpers");
+const {
+	getSUSD,
+	getRBTC,
+	getWRBTC,
+	getBZRX,
+	getLoanTokenLogic,
+	getLoanToken,
+	getLoanTokenLogicWrbtc,
+	getLoanTokenWRBTC,
+	loan_pool_setup,
+	set_demand_curve,
+	getPriceFeeds,
+	getSovryn,
+	decodeLogs,
+	getSOV,
+} = require("../Utils/initializer.js");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
-const TestToken = artifacts.require("TestToken");
-
-const Protocol = artifacts.require("sovrynProtocol");
-const ProtocolSettings = artifacts.require("ProtocolSettings");
 
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 
 const PreviousLoanTokenSettings = artifacts.require("PreviousLoanTokenSettingsLowerAdmin");
 const PreviousLoanToken = artifacts.require("PreviousLoanToken");
 
-const TOTAL_SUPPLY = 100;
-
 const TWO_DAYS = 86400 * 2;
 
 contract("LoanTokenUpgrade", (accounts) => {
-	const name = "Test token";
-	const symbol = "TST";
-
 	let root;
-	let token, staking, gov, timelock;
-	let protocolSettings, loanTokenSettings, protocol, loanToken;
+	let SUSD, staking, gov, timelock;
+	let loanTokenSettings, sovryn, loanToken;
 
 	before(async () => {
 		[root, ...accounts] = accounts;
@@ -44,12 +54,18 @@ contract("LoanTokenUpgrade", (accounts) => {
 	///   the beforeEach hook should be calling a fixture
 	///   to avoid repeated deployments.
 	beforeEach(async () => {
-		// Token
-		token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
+		// Deploying sovrynProtocol w/ generic function from initializer.js
+		SUSD = await getSUSD();
+		RBTC = await getRBTC();
+		WRBTC = await getWRBTC();
+		BZRX = await getBZRX();
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
+		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+		await sovryn.setSovrynProtocolAddress(sovryn.address);
 
 		// Staking
-		let stakingLogic = await StakingLogic.new(token.address);
-		staking = await StakingProxy.new(token.address);
+		let stakingLogic = await StakingLogic.new(SUSD.address);
+		staking = await StakingProxy.new(SUSD.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 
@@ -60,15 +76,10 @@ contract("LoanTokenUpgrade", (accounts) => {
 
 		// Settings
 		loanTokenSettings = await PreviousLoanTokenSettings.new();
-		loanToken = await PreviousLoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, token.address);
+		loanToken = await PreviousLoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, SUSD.address);
 		loanToken = await PreviousLoanTokenSettings.at(loanToken.address);
-		// await loanToken.transferOwnership(timelock.address);
 
-		protocolSettings = await ProtocolSettings.new();
-		protocol = await Protocol.new();
-		await protocol.replaceContract(protocolSettings.address);
-		protocol = await ProtocolSettings.at(protocol.address);
-		await protocol.transferOwnership(timelock.address);
+		await sovryn.transferOwnership(timelock.address);
 	});
 
 	describe("change settings", () => {

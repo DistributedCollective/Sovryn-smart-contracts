@@ -1,6 +1,40 @@
-const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-30
+ * Bottlenecks found at beforeEach hook, redeploying tokens,
+ *  protocol, ... on every test.
+ *
+ * Total time elapsed: 34.1s
+ * After optimization: 9.7s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ *   Updated to use the initializer.js functions for protocol deployment.
+ *   Updated to use WRBTC as collateral token, instead of custom testWRBTC token.
+ *   Tried unsuccessfully to use standard SOV test token as protocol token,
+ *   but tests require a full-fledged SOV token.
+ */
 
+const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { expectRevert, expectEvent, BN, time } = require("@openzeppelin/test-helpers");
+const {
+	getSUSD,
+	getRBTC,
+	getWRBTC,
+	getBZRX,
+	getLoanTokenLogic,
+	getLoanToken,
+	getLoanTokenLogicWrbtc,
+	getLoanTokenWRBTC,
+	loan_pool_setup,
+	set_demand_curve,
+	getPriceFeeds,
+	getSovryn,
+	decodeLogs,
+	getSOV,
+} = require("../Utils/initializer.js");
 const {
 	address,
 	minerStart,
@@ -15,21 +49,10 @@ const {
 	advanceBlocks,
 } = require("../Utils/Ethereum");
 
-const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const StakingMockup = artifacts.require("StakingMockup");
 
 const SOV = artifacts.require("SOV");
-const TestToken = artifacts.require("TestToken");
-const TestWrbtc = artifacts.require("TestWrbtc");
-
-const Protocol = artifacts.require("sovrynProtocol");
-const ProtocolSettings = artifacts.require("ProtocolSettingsMockup");
-const LoanMaintenance = artifacts.require("LoanMaintenance");
-const LoanSettings = artifacts.require("LoanSettings");
-const LoanOpenings = artifacts.require("LoanOpenings");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
-const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 
 const LoanTokenLogic = artifacts.require("LoanTokenLogicStandard");
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
@@ -48,67 +71,61 @@ const DELAY = 86400 * 14;
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 contract("Staking", (accounts) => {
-	const name = "Test token";
-	const symbol = "TST";
-
-	let root, account1, account2, account3;
-	let token, susd, wrbtc, staking;
-	let protocol;
-	let loanTokenSettings, loanTokenLogic, loanToken;
+	let root, account1, account2;
+	let token, SUSD, WRBTC, staking;
+	let sovryn;
+	let loanTokenLogic, loanToken;
 	let feeSharingProxy;
 	let kickoffTS, inOneWeek;
 
-	before(async () => {
-		[root, account1, account2, account3, ...accounts] = accounts;
-	});
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		// Deploying sovrynProtocol w/ generic function from initializer.js
+		SUSD = await getSUSD();
+		RBTC = await getRBTC();
+		WRBTC = await getWRBTC();
+		BZRX = await getBZRX();
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
+		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+		await sovryn.setSovrynProtocolAddress(sovryn.address);
 
-	beforeEach(async () => {
-		//Token
+		// Custom tokens
+		/// @dev This SOV token is not a SOV test token
+		///   but a full-fledged SOV token including functionality
+		///   like the approveAndCall method.
 		token = await SOV.new(TOTAL_SUPPLY);
-		susd = await TestToken.new("SUSD", "SUSD", 18, TOTAL_SUPPLY);
-		wrbtc = await TestWrbtc.new();
 
-		//staking
+		// Staking
 		let stakingLogic = await StakingMockup.new(token.address);
 		staking = await StakingProxy.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingMockup.at(staking.address);
 
-		//Protocol
-		protocol = await Protocol.new();
-		let protocolSettings = await ProtocolSettings.new();
-		await protocol.replaceContract(protocolSettings.address);
-		let loanMaintenance = await LoanMaintenance.new();
-		await protocol.replaceContract(loanMaintenance.address);
-		let loanSettings = await LoanSettings.new();
-		await protocol.replaceContract(loanSettings.address);
-		let loanOpenings = await LoanOpenings.new();
-		await protocol.replaceContract(loanOpenings.address);
-		let loanClosingsBase = await LoanClosingsBase.new();
-		await protocol.replaceContract(loanClosingsBase.address);
-		let loanClosingsWith = await LoanClosingsWith.new();
-		await protocol.replaceContract(loanClosingsWith.address);
-
-		protocol = await ProtocolSettings.at(protocol.address);
-
-		//Loan token
+		// Loan token
 		loanTokenSettings = await LoanTokenSettings.new();
 		loanTokenLogic = await LoanTokenLogic.new();
-		loanToken = await LoanToken.new(root, loanTokenLogic.address, protocol.address, wrbtc.address);
-		// await loanToken.initialize(susd.address, "iSUSD", "iSUSD");
+		loanToken = await LoanToken.new(root, loanTokenLogic.address, sovryn.address, WRBTC.address);
+		// await loanToken.initialize(SUSD.address, "iSUSD", "iSUSD");
 		loanToken = await LoanTokenLogic.at(loanToken.address);
 
-		await protocol.setLoanPool([loanToken.address], [susd.address]);
+		await sovryn.setLoanPool([loanToken.address], [SUSD.address]);
 
-		//FeeSharingProxy
-		feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address);
-		await protocol.setFeesController(feeSharingProxy.address);
+		// FeeSharingProxy
+		feeSharingProxy = await FeeSharingProxy.new(sovryn.address, staking.address);
+		await sovryn.setFeesController(feeSharingProxy.address);
 		await staking.setFeeSharing(feeSharingProxy.address);
 
 		await token.transfer(account1, 1000);
 		await token.approve(staking.address, TOTAL_SUPPLY);
 		kickoffTS = await staking.kickoffTS.call();
 		inOneWeek = kickoffTS.add(new BN(DELAY));
+	}
+
+	before(async () => {
+		[root, account1, account2, ...accounts] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("stake", () => {
@@ -181,21 +198,21 @@ contract("Staking", (accounts) => {
 			let afterBalance = await token.balanceOf.call(root);
 			expect(beforeBalance.sub(afterBalance).toString()).to.be.equal(amount);
 
-			//_writeUserCheckpoint
+			// _writeUserCheckpoint
 			let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
 			expect(numUserCheckpoints.toNumber()).to.be.equal(1);
 			let checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.stake.toString()).to.be.equal(amount);
 
-			//_increaseDailyStake
+			// _increaseDailyStake
 			let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(lockedTS);
 			expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(1);
 			checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.stake.toString()).to.be.equal(amount);
 
-			//_delegate
+			// _delegate
 			let delegator = await staking.delegates.call(root, lockedTS);
 			expect(delegator).to.be.equal(root);
 
@@ -226,21 +243,21 @@ contract("Staking", (accounts) => {
 
 			let tx = await staking.stake(amount, lockedTS, account1, account1);
 
-			//_writeUserCheckpoint
+			// _writeUserCheckpoint
 			let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(account1, lockedTS);
 			expect(numUserCheckpoints.toNumber()).to.be.equal(1);
 			let checkpoint = await staking.userStakingCheckpoints.call(account1, lockedTS, 0);
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.stake.toString()).to.be.equal(amount);
 
-			//_increaseDailyStake
+			// _increaseDailyStake
 			let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(lockedTS);
 			expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(1);
 			checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.stake.toString()).to.be.equal(amount);
 
-			//_delegate
+			// _delegate
 			let delegator = await staking.delegates.call(account1, lockedTS);
 			expect(delegator).to.be.equal(account1);
 
@@ -270,7 +287,7 @@ contract("Staking", (accounts) => {
 			let lockedTS = await getTimeFromKickoff(duration);
 			await staking.stake(amount, lockedTS, root, root);
 
-			//await setTime(lockedTS);
+			// await setTime(lockedTS);
 			setNextBlockTimestamp(lockedTS.toNumber());
 
 			let stackingbBalance = await token.balanceOf.call(staking.address);
@@ -281,14 +298,14 @@ contract("Staking", (accounts) => {
 			stackingbBalance = await token.balanceOf.call(staking.address);
 			expect(stackingbBalance.toNumber()).to.be.equal(0);
 
-			//stake second time
+			// stake second time
 			lockedTS = await getTimeFromKickoff(duration * 2);
 			let tx = await staking.stake(amount * 2, lockedTS, root, root);
 
 			stackingbBalance = await token.balanceOf.call(staking.address);
 			expect(stackingbBalance.toNumber()).to.be.equal(amount * 2);
 
-			//_writeUserCheckpoint
+			// _writeUserCheckpoint
 			let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
 			expect(numUserCheckpoints.toNumber()).to.be.equal(1);
 			let checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
@@ -305,7 +322,7 @@ contract("Staking", (accounts) => {
 
 			await staking.stake(amount, lockedTS, root, root);
 
-			//await setTime(lockedTS);
+			// await setTime(lockedTS);
 			setNextBlockTimestamp(lockedTS.toNumber());
 			blockTimestamp = (await ethers.provider.getBlock("latest")).timestamp;
 
@@ -321,14 +338,14 @@ contract("Staking", (accounts) => {
 
 			expect(afterBalance.sub(beforeBalance).toNumber()).to.be.equal(amount / 2);
 
-			//increase stake
+			// increase stake
 			lockedTS = await getTimeFromKickoff(duration * 2);
 			let tx = await staking.stake(amount * 2.5, lockedTS, root, root);
 
 			stackingbBalance = await token.balanceOf.call(staking.address);
 			expect(stackingbBalance.toNumber()).to.be.equal(amount * 3);
 
-			//_writeUserCheckpoint
+			// _writeUserCheckpoint
 			let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
 			expect(numUserCheckpoints.toNumber()).to.be.equal(1);
 			let checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
@@ -349,7 +366,7 @@ contract("Staking", (accounts) => {
 
 			await token.approve(staking.address, 0);
 
-			//TODO
+			// TODO
 			await token.approve(staking.address, amount * 2, { from: account1 });
 
 			let contract = new web3.eth.Contract(staking.abi, staking.address);
@@ -363,21 +380,21 @@ contract("Staking", (accounts) => {
 			let afterBalance = await token.balanceOf.call(root);
 			expect(beforeBalance.sub(afterBalance).toString()).to.be.equal(amount);
 
-			//_writeUserCheckpoint
+			// _writeUserCheckpoint
 			let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
 			expect(numUserCheckpoints.toNumber()).to.be.equal(1);
 			let checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.stake.toString()).to.be.equal(amount);
 
-			//_increaseDailyStake
+			// _increaseDailyStake
 			let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(lockedTS);
 			expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(1);
 			checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.stake.toString()).to.be.equal(amount);
 
-			//_delegate
+			// _delegate
 			let delegator = await staking.delegates.call(root, lockedTS);
 			expect(delegator).to.be.equal(root);
 
@@ -477,7 +494,7 @@ contract("Staking", (accounts) => {
 			let afterBalance = await token.balanceOf.call(root);
 			expect(beforeBalance.sub(afterBalance).toNumber()).to.be.equal(0);
 
-			//_decreaseDailyStake
+			// _decreaseDailyStake
 			let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(lockedTS);
 			expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(2);
 			let checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
@@ -487,14 +504,14 @@ contract("Staking", (accounts) => {
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
 			expect(checkpoint.stake.toString()).to.be.equal("0");
 
-			//_increaseDailyStake
+			// _increaseDailyStake
 			numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(newLockedTS);
 			expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(1);
 			checkpoint = await staking.totalStakingCheckpoints.call(newLockedTS, 0);
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
 			expect(checkpoint.stake.toString()).to.be.equal(amount);
 
-			//_writeUserCheckpoint
+			// _writeUserCheckpoint
 			let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
 			expect(numUserCheckpoints.toNumber()).to.be.equal(2);
 			checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
@@ -552,7 +569,7 @@ contract("Staking", (accounts) => {
 			let lockedTS = await getTimeFromKickoff(duration);
 			let tx1 = await staking.stake(amount, lockedTS, root, root);
 
-			//check delegatee
+			// check delegatee
 			let delegatee = await staking.delegates(root, lockedTS);
 			expect(delegatee).equal(root);
 
@@ -562,7 +579,7 @@ contract("Staking", (accounts) => {
 
 			let tx2 = await staking.stake(amount * 2, lockedTS, root, account1);
 
-			//check delegatee
+			// check delegatee
 			delegatee = await staking.delegates(root, lockedTS);
 			expect(delegatee).equal(account1);
 
@@ -571,7 +588,7 @@ contract("Staking", (accounts) => {
 			let afterBalance = await token.balanceOf.call(root);
 			expect(beforeBalance.sub(afterBalance).toNumber()).to.be.equal(amount * 2);
 
-			//_increaseDailyStake
+			// _increaseDailyStake
 			let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(lockedTS);
 			expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(2);
 			let checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
@@ -581,7 +598,7 @@ contract("Staking", (accounts) => {
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
 			expect(checkpoint.stake.toNumber()).to.be.equal(amount * 3);
 
-			//_writeUserCheckpoint
+			// _writeUserCheckpoint
 			let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
 			expect(numUserCheckpoints.toNumber()).to.be.equal(2);
 			checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
@@ -591,7 +608,7 @@ contract("Staking", (accounts) => {
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
 			expect(checkpoint.stake.toNumber()).to.be.equal(amount * 3);
 
-			//delegateStakingCheckpoints - root
+			// delegateStakingCheckpoints - root
 			let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
 			expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(2);
 			checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, 0);
@@ -601,7 +618,7 @@ contract("Staking", (accounts) => {
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
 			expect(checkpoint.stake.toNumber()).to.be.equal(0);
 
-			//delegateStakingCheckpoints - account1
+			// delegateStakingCheckpoints - account1
 			numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(account1, lockedTS);
 			expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(1);
 			checkpoint = await staking.delegateStakingCheckpoints.call(account1, lockedTS, 0);
@@ -623,7 +640,7 @@ contract("Staking", (accounts) => {
 			let lockedTS1 = await getTimeFromKickoff(new BN(TWO_WEEKS));
 			await staking.stake(amount1, lockedTS1, root, root);
 
-			//time travel
+			// time travel
 			await time.increase(TWO_WEEKS * 10);
 
 			let amount2 = "5000";
@@ -683,7 +700,7 @@ contract("Staking", (accounts) => {
 			let lockedTS = await getTimeFromKickoff(duration);
 			await staking.stake(amount, lockedTS, root, root);
 
-			//await setTime(lockedTS);
+			// await setTime(lockedTS);
 			setNextBlockTimestamp(lockedTS.toNumber());
 			await expectRevert(staking.withdraw(amount * 2, lockedTS, root), "Staking::withdraw: not enough balance");
 		});
@@ -694,7 +711,7 @@ contract("Staking", (accounts) => {
 			let lockedTS = await getTimeFromKickoff(duration);
 			let tx1 = await staking.stake(amount, lockedTS, root, root);
 
-			//await setTime(lockedTS);
+			// await setTime(lockedTS);
 			setNextBlockTimestamp(lockedTS.toNumber());
 			mineBlock();
 
@@ -709,7 +726,7 @@ contract("Staking", (accounts) => {
 			let afterBalance = await token.balanceOf.call(root);
 			expect(afterBalance.sub(beforeBalance).toNumber()).to.be.equal(amount / 2);
 
-			//_increaseDailyStake
+			// _increaseDailyStake
 			let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(lockedTS);
 			expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(2);
 			let checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
@@ -719,7 +736,7 @@ contract("Staking", (accounts) => {
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
 			expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
 
-			//_writeUserCheckpoint
+			// _writeUserCheckpoint
 			let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
 			expect(numUserCheckpoints.toNumber()).to.be.equal(2);
 			checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
@@ -729,7 +746,7 @@ contract("Staking", (accounts) => {
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
 			expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
 
-			//_decreaseDelegateStake
+			// _decreaseDelegateStake
 			let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
 			checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, numDelegateStakingCheckpoints - 1);
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
@@ -756,7 +773,7 @@ contract("Staking", (accounts) => {
 			stackingbBalance = await token.balanceOf.call(staking.address);
 			expect(stackingbBalance.toNumber()).to.be.equal(amount / 2);
 
-			//_decreaseDelegateStake
+			// _decreaseDelegateStake
 			let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
 			let checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, numDelegateStakingCheckpoints - 1);
 			expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
@@ -767,7 +784,7 @@ contract("Staking", (accounts) => {
 			stackingbBalance = await token.balanceOf.call(staking.address);
 			expect(stackingbBalance.toNumber()).to.be.equal(0);
 
-			//_decreaseDelegateStake
+			// _decreaseDelegateStake
 			numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
 			checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, numDelegateStakingCheckpoints - 1);
 			expect(checkpoint.stake.toNumber()).to.be.equal(0);
@@ -865,7 +882,7 @@ contract("Staking", (accounts) => {
 					continue;
 				}
 
-				feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address);
+				feeSharingProxy = await FeeSharingProxy.new(sovryn.address, staking.address);
 				await staking.setFeeSharing(feeSharingProxy.address);
 
 				let duration = new BN(i * TWO_WEEKS);
@@ -928,21 +945,10 @@ contract("Staking", (accounts) => {
 	});
 
 	describe("timestampToLockDate", () => {
-		before(async () => {
-			[root, account1, account2, account3, ...accounts] = accounts;
-
-			token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-
-			let stakingLogic = await StakingLogic.new(token.address);
-			staking = await StakingProxy.new(token.address);
-			await staking.setImplementation(stakingLogic.address);
-			staking = await StakingLogic.at(staking.address);
-		});
-
 		it("Lock date should be start + 1 period", async () => {
 			let kickoffTS = await staking.kickoffTS.call();
 			let newTime = kickoffTS.add(new BN(TWO_WEEKS));
-			//await setTime(newTime);
+			// await setTime(newTime);
 			setNextBlockTimestamp(newTime.toNumber());
 
 			let result = await staking.timestampToLockDate(newTime);
@@ -952,7 +958,7 @@ contract("Staking", (accounts) => {
 		it("Lock date should be start + 2 period", async () => {
 			let kickoffTS = await staking.kickoffTS.call();
 			let newTime = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)).add(new BN(DAY)));
-			//await setTime(newTime);
+			// await setTime(newTime);
 			setNextBlockTimestamp(newTime.toNumber());
 
 			let result = await staking.timestampToLockDate(newTime);
@@ -962,7 +968,7 @@ contract("Staking", (accounts) => {
 		it("Lock date should be start + 3 period", async () => {
 			let kickoffTS = await staking.kickoffTS.call();
 			let newTime = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(3)).add(new BN(DAY)));
-			//await setTime(newTime);
+			// await setTime(newTime);
 			setNextBlockTimestamp(newTime.toNumber());
 
 			let result = await staking.timestampToLockDate(newTime);
@@ -976,27 +982,27 @@ contract("Staking", (accounts) => {
 			let lockedTS = await getTimeFromKickoff(MAX_DURATION);
 			let tx = await staking.stake(amount, lockedTS, root, root);
 
-			//before upgrade
+			// before upgrade
 			let balance = await staking.balanceOf.call(root);
 			expect(balance.toNumber()).to.be.equal(amount);
 			let checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.stake.toNumber()).to.be.equal(amount);
 
-			//upgrade
+			// upgrade
 			staking = await StakingProxy.at(staking.address);
 			let stakingMockup = await StakingMockup.new(token.address);
 			await staking.setImplementation(stakingMockup.address);
 			staking = await StakingMockup.at(staking.address);
 
-			//after upgrade: storage data remained the same
+			// after upgrade: storage data remained the same
 			balance = await staking.balanceOf.call(root);
 			expect(balance.toNumber()).to.be.equal(amount);
 			checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
 			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.stake.toNumber()).to.be.equal(amount);
 
-			//after upgrade: new method added
+			// after upgrade: new method added
 			balance = await staking.balanceOf_MultipliedByTwo.call(root);
 			expect(balance.toNumber()).to.be.equal(amount * 2);
 		});

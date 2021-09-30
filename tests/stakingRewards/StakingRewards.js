@@ -17,25 +17,40 @@
  *   is not applicable. Major bottleneck in this test is executing the reward calculation
  *   transactions taking around 2 seconds each one, and every test is a different staking
  *   scenario so it seems like this calculation cannot be spared.
+ * 
+ *   Updated to use the initializer.js functions for protocol deployment.
+ *   Updated to use the SOV test token from initializer.js.
  */
 
 const { expect } = require("chai");
 const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
-
 const { increaseTime, blockNumber } = require("../Utils/Ethereum");
+const {
+	getSUSD,
+	getRBTC,
+	getWRBTC,
+	getBZRX,
+	getLoanTokenLogic,
+	getLoanToken,
+	getLoanTokenLogicWrbtc,
+	getLoanTokenWRBTC,
+	loan_pool_setup,
+	set_demand_curve,
+	getPriceFeeds,
+	getSovryn,
+	decodeLogs,
+	getSOV,
+} = require("../Utils/initializer.js");
 
-const SOV_ABI = artifacts.require("SOV");
 const StakingLogic = artifacts.require("StakingMock");
 const StakingProxy = artifacts.require("StakingProxy");
 const StakingRewards = artifacts.require("StakingRewardsMockUp");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
-const Protocol = artifacts.require("sovrynProtocol");
 const BlockMockUp = artifacts.require("BlockMockUp");
 
 const wei = web3.utils.toWei;
 
-const TOTAL_SUPPLY = "10000000000000000000000000";
 const TWO_WEEKS = 1209600;
 const DELAY = TWO_WEEKS;
 
@@ -47,10 +62,18 @@ contract("StakingRewards", (accounts) => {
 
 	before(async () => {
 		[root, a1, a2, a3, a4, ...accounts] = accounts;
-		SOV = await SOV_ABI.new(TOTAL_SUPPLY);
 
-		// Protocol
-		protocol = await Protocol.new();
+		// Deploying sovrynProtocol w/ generic function from initializer.js
+		SUSD = await getSUSD();
+		RBTC = await getRBTC();
+		WRBTC = await getWRBTC();
+		BZRX = await getBZRX();
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
+		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+		await sovryn.setSovrynProtocolAddress(sovryn.address);
+
+		// Custom tokens
+		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
 		// BlockMockUp
 		blockMockUp = await BlockMockUp.new();
@@ -193,7 +216,7 @@ contract("StakingRewards", (accounts) => {
 
 		it("should compute and send rewards to the staker after recalculating withdrawn stake", async () => {
 			await increaseTimeAndBlocks(32659200); // More than a year - first stake expires
-			feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address);
+			feeSharingProxy = await FeeSharingProxy.new(sovryn.address, staking.address);
 			await staking.setFeeSharing(feeSharingProxy.address);
 			await staking.withdraw(wei("1000", "ether"), inTwoYears, a2, { from: a2 }); // Withdraw first stake
 			await increaseTimeAndBlocks(3600);
@@ -290,7 +313,7 @@ contract("StakingRewards", (accounts) => {
 		});
 
 		it("should revert withdraw all tokens if address is invalid", async () => {
-			await expectRevert(stakingRewards.withdrawTokensByOwner(constants.ZERO_ADDRESS), "transfer to the zero address");
+			await expectRevert(stakingRewards.withdrawTokensByOwner(constants.ZERO_ADDRESS), "revert invalid transfer");
 		});
 
 		it("should revert withdraw all tokens if sender isn't the owner", async () => {

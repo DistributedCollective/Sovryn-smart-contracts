@@ -9,102 +9,72 @@
  * - removed unneeded variables
  *
  * Notes: Applied fixture to use snapshot beforeEach test.
+ *   Updated to use the initializer.js functions for protocol deployment.
+ *   Updated to use WRBTC as collateral token, instead of custom testWRBTC token.
+ *   Updated to use SUSD as underlying token, instead of custom underlyingToken.
  */
 
 const { expect } = require("chai");
 const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
 const { expectRevert, constants, BN } = require("@openzeppelin/test-helpers");
-// const { mineBlock, increaseTime } = require("../Utils/Ethereum");
-
-const TestToken = artifacts.require("TestToken");
-const TestWrbtc = artifacts.require("TestWrbtc");
-
-const sovrynProtocol = artifacts.require("sovrynProtocol");
-const ProtocolSettings = artifacts.require("ProtocolSettings");
-const ISovryn = artifacts.require("ISovryn");
+const {
+	getSUSD,
+	getRBTC,
+	getWRBTC,
+	getBZRX,
+	getLoanTokenLogic,
+	getLoanToken,
+	getLoanTokenLogicWrbtc,
+	getLoanTokenWRBTC,
+	loan_pool_setup,
+	set_demand_curve,
+	getPriceFeeds,
+	getSovryn,
+	decodeLogs,
+	getSOV,
+} = require("../Utils/initializer.js");
 
 const LoanToken = artifacts.require("LoanToken");
 const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
-const LoanSettings = artifacts.require("LoanSettings");
-const LoanMaintenance = artifacts.require("LoanMaintenance");
-const LoanOpenings = artifacts.require("LoanOpenings");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
-const LoanClosingsWith = artifacts.require("LoanClosingsWith");
-const SwapsExternal = artifacts.require("SwapsExternal");
-
-const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
-const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
-
-const Affiliates = artifacts.require("Affiliates");
-const SOV = artifacts.require("SOV");
-const LockedSOVMockup = artifacts.require("LockedSOVMockup");
-
-const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 
 const { verify_start_conditions, verify_lending_result_and_itoken_price_change, cash_out_from_the_pool } = require("./helpers");
-// const { artifacts } = require("hardhat");
 
 const wei = web3.utils.toWei;
 
 contract("LoanTokenLending", (accounts) => {
-	const name = "Test token";
-	const symbol = "TST";
-
 	let lender;
-	let underlyingToken, testWrbtc;
+	let SUSD, WRBTC;
 	let sovryn, loanToken;
 
 	async function deploymentAndInitFixture(_wallets, _provider) {
-		// Token
-		underlyingToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-		testWrbtc = await TestWrbtc.new();
+		// Deploying sovrynProtocol w/ generic function from initializer.js
+		SUSD = await getSUSD();
+		RBTC = await getRBTC();
+		WRBTC = await getWRBTC();
+		BZRX = await getBZRX();
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
+		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+		await sovryn.setSovrynProtocolAddress(sovryn.address);
 
-		const sovrynproxy = await sovrynProtocol.new();
-		sovryn = await ISovryn.at(sovrynproxy.address);
-
-		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
-		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
-		await sovryn.replaceContract((await ProtocolSettings.new()).address);
-		await sovryn.replaceContract((await LoanSettings.new()).address);
-		await sovryn.replaceContract((await LoanMaintenance.new()).address);
-		await sovryn.replaceContract((await SwapsExternal.new()).address);
-		await sovryn.replaceContract((await LoanOpenings.new()).address);
-		await sovryn.replaceContract((await Affiliates.new()).address);
-
-		await sovryn.setWrbtcToken(testWrbtc.address);
-
-		feeds = await PriceFeedsLocal.new(testWrbtc.address, sovryn.address);
-		await feeds.setRates(underlyingToken.address, testWrbtc.address, wei("0.01", "ether"));
-		const swaps = await SwapsImplSovrynSwap.new();
-		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
-		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
-		await sovryn.setSupportedTokens([underlyingToken.address, testWrbtc.address], [true, true]);
-		await sovryn.setPriceFeedContract(
-			feeds.address // priceFeeds
-		);
-		await sovryn.setSwapsImplContract(
-			swaps.address // swapsImpl
-		);
+		await priceFeeds.setRates(SUSD.address, WRBTC.address, wei("0.01", "ether"));
+		await sovryn.setSupportedTokens([SUSD.address, WRBTC.address], [true, true]);
 		await sovryn.setFeesController(lender);
 
-		tokenSOV = await SOV.new(TOTAL_SUPPLY);
-		await sovryn.setLockedSOVAddress((await LockedSOVMockup.new(tokenSOV.address, [lender])).address);
-		await sovryn.setProtocolTokenAddress(tokenSOV.address);
-		await sovryn.setSOVTokenAddress(tokenSOV.address);
+		// Custom tokens
+		await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
 		loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
-		loanToken = await LoanToken.new(lender, loanTokenLogicWrbtc.address, sovryn.address, testWrbtc.address);
-		await loanToken.initialize(testWrbtc.address, "iWRBTC", "iWRBTC"); // iToken
+		loanToken = await LoanToken.new(lender, loanTokenLogicWrbtc.address, sovryn.address, WRBTC.address);
+		await loanToken.initialize(WRBTC.address, "iWRBTC", "iWRBTC"); // iToken
 		loanToken = await LoanTokenLogicWrbtc.at(loanToken.address);
 
 		params = [
 			"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object
 			false, // bool active; // if false, this object has been disabled by the owner and can't be used for future loans
 			lender, // address owner; // owner of this object
-			testWrbtc.address, // address loanToken; // the token being loaned
-			underlyingToken.address, // address collateralToken; // the required collateral token
+			WRBTC.address, // address loanToken; // the token being loaned
+			SUSD.address, // address collateralToken; // the required collateral token
 			wei("20", "ether"), // uint256 minInitialMargin; // the minimum allowed initial margin
 			wei("15", "ether"), // uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
 			2419200, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
@@ -116,7 +86,7 @@ contract("LoanTokenLending", (accounts) => {
 		const loanTokenAddress = await loanToken.loanTokenAddress();
 		if (lender == (await sovryn.owner())) await sovryn.setLoanPool([loanToken.address], [loanTokenAddress]);
 
-		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
+		await WRBTC.mint(sovryn.address, wei("500", "ether"));
 	}
 
 	before(async () => {
@@ -145,13 +115,13 @@ contract("LoanTokenLending", (accounts) => {
 			let initial_balance = new BN(0);
 			const actual_initial_balance = new BN(await web3.eth.getBalance(lender));
 
-			await verify_start_conditions(testWrbtc, loanToken, lender, initial_balance, deposit_amount);
+			await verify_start_conditions(WRBTC, loanToken, lender, initial_balance, deposit_amount);
 			await loanToken.mintWithBTC(lender, false, { value: deposit_amount });
 
 			initial_balance = new BN(wei("5", "ether"));
 			await verify_lending_result_and_itoken_price_change(
-				testWrbtc,
-				underlyingToken,
+				WRBTC,
+				SUSD,
 				loanToken,
 				lender,
 				loan_token_sent,
@@ -165,7 +135,7 @@ contract("LoanTokenLending", (accounts) => {
 		});
 
 		it("test cash out from the pool", async () => {
-			await cash_out_from_the_pool(loanToken, lender, testWrbtc, true);
+			await cash_out_from_the_pool(loanToken, lender, WRBTC, true);
 		});
 
 		it("test cash out from the pool more of lender balance should not fail", async () => {
