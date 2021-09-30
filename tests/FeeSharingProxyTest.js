@@ -11,6 +11,15 @@
  * Notes:
  *   Deployment on beforeEach has been sensibly improved by using a Waffle mixture
  *   that snapshots the repeating scenarios.
+ *   Tried to: 
+ *     Update to use the initializer.js functions for protocol deployment.
+ *       It didn't work.
+ *     Update to use initializer.js SUSD.
+ *       It works Ok.
+ *     Update to use WRBTC as collateral token, instead of custom testWrbtc.
+ *       It works Ok.
+ *     Update to use initializer.js SOV.
+ *       It didn't work.
  */
 
 const { expect } = require("chai");
@@ -23,10 +32,15 @@ const { ZERO_ADDRESS } = constants;
 const { etherMantissa, mineBlock, increaseTime } = require("./Utils/Ethereum");
 
 const TestToken = artifacts.require("TestToken");
-const TestWrbtc = artifacts.require("TestWrbtc");
 
 const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
+
+const ISovryn = artifacts.require("ISovryn");
+const SwapsExternal = artifacts.require("SwapsExternal");
+const TestSovrynSwap = artifacts.require("TestSovrynSwap");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
+const Affiliates = artifacts.require("Affiliates");
 
 const Protocol = artifacts.require("sovrynProtocol");
 const ProtocolSettings = artifacts.require("ProtocolSettingsMockup");
@@ -53,13 +67,30 @@ const FEE_WITHDRAWAL_INTERVAL = 86400;
 
 const MOCK_PRIOR_WEIGHTED_STAKE = false;
 
+const {
+	getSUSD,
+	getRBTC,
+	getWRBTC,
+	getBZRX,
+	getLoanTokenLogic,
+	getLoanToken,
+	getLoanTokenLogicWrbtc,
+	getLoanTokenWRBTC,
+	loan_pool_setup,
+	set_demand_curve,
+	getPriceFeeds,
+	getSovryn,
+	decodeLogs,
+	getSOV,
+} = require("./Utils/initializer.js");
+
 contract("FeeSharingProxy:", (accounts) => {
 	const name = "Test SOVToken";
 	const symbol = "TST";
 
 	let root, account1, account2, account3, account4;
-	let SOVToken, susd, wrbtc, staking;
-	let protocol;
+	let SOVToken, SUSD, WRBTC, staking;
+	let sovryn;
 	let loanTokenSettings, loanTokenLogic, loanToken;
 	let feeSharingProxy;
 
@@ -70,8 +101,6 @@ contract("FeeSharingProxy:", (accounts) => {
 	async function protocolDeploymentFixture(_wallets, _provider) {
 		// Token
 		SOVToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-		susd = await TestToken.new("SUSD", "SUSD", 18, TOTAL_SUPPLY);
-		wrbtc = await TestWrbtc.new();
 
 		// Staking
 		let stakingLogic = await StakingLogic.new(SOVToken.address);
@@ -79,33 +108,58 @@ contract("FeeSharingProxy:", (accounts) => {
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 
-		// Protocol
-		protocol = await Protocol.new();
-		let protocolSettings = await ProtocolSettings.new();
-		await protocol.replaceContract(protocolSettings.address);
-		let loanMaintenance = await LoanMaintenance.new();
-		await protocol.replaceContract(loanMaintenance.address);
-		let loanSettings = await LoanSettings.new();
-		await protocol.replaceContract(loanSettings.address);
-		let loanOpenings = await LoanOpenings.new();
-		await protocol.replaceContract(loanOpenings.address);
-		let loanClosingsBase = await LoanClosingsBase.new();
-		await protocol.replaceContract(loanClosingsBase.address);
-		let loanClosingsWith = await LoanClosingsWith.new();
-		await protocol.replaceContract(loanClosingsWith.address);
+		SUSD = await getSUSD();
+		RBTC = await getRBTC();
+		WRBTC = await getWRBTC();
+		BZRX = await getBZRX();
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
-		protocol = await ProtocolSettings.at(protocol.address);
+		// Deploying sovrynProtocol w/ generic function from initializer.js
+		/// @dev Tried but no success so far. When using the getSovryn function
+		///   , contracts revert w/ "target not active" error.
+		///   The weird thing is that deployment code below is exactly the same as
+		///   the code from getSovryn function at initializer.js.
+		///   Inline code works ok, but when calling the function it does not.
+		// sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+		// await sovryn.setSovrynProtocolAddress(sovryn.address);
+
+		const sovrynproxy = await Protocol.new();
+		sovryn = await ISovryn.at(sovrynproxy.address);
+
+		await sovryn.replaceContract((await ProtocolSettings.new()).address);
+		await sovryn.replaceContract((await LoanSettings.new()).address);
+		await sovryn.replaceContract((await LoanMaintenance.new()).address);
+		await sovryn.replaceContract((await SwapsExternal.new()).address);
+
+		const sovrynSwapSimulator = await TestSovrynSwap.new(priceFeeds.address);
+		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
+		await sovryn.setSupportedTokens([SUSD.address, RBTC.address, WRBTC.address], [true, true, true]);
+
+		await sovryn.setWrbtcToken(WRBTC.address);
+
+		const swaps = await SwapsImplSovrynSwap.new();
+		await sovryn.replaceContract((await LoanOpenings.new()).address);
+		await sovryn.setPriceFeedContract(priceFeeds.address);
+		await sovryn.setSwapsImplContract(swaps.address);
+	
+		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
+		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
+	
+		await sovryn.replaceContract((await Affiliates.new()).address);
+		
+		sovryn = await ProtocolSettings.at(sovryn.address);
+
 		// Loan token
 		loanTokenSettings = await LoanTokenSettings.new();
 		loanTokenLogic = await LoanTokenLogic.new();
-		loanToken = await LoanToken.new(root, loanTokenLogic.address, protocol.address, wrbtc.address);
-		await loanToken.initialize(susd.address, "iSUSD", "iSUSD");
+		loanToken = await LoanToken.new(root, loanTokenLogic.address, sovryn.address, WRBTC.address);
+		await loanToken.initialize(SUSD.address, "iSUSD", "iSUSD");
 		loanToken = await LoanTokenLogic.at(loanToken.address);
 		await loanToken.setAdmin(root);
-		await protocol.setLoanPool([loanToken.address], [susd.address]);
+		await sovryn.setLoanPool([loanToken.address], [SUSD.address]);
 		// FeeSharingProxy
-		feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address);
-		await protocol.setFeesController(feeSharingProxy.address);
+		feeSharingProxy = await FeeSharingProxy.new(sovryn.address, staking.address);
+		await sovryn.setFeesController(feeSharingProxy.address);
 	}
 
 	beforeEach(async () => {
@@ -125,9 +179,9 @@ contract("FeeSharingProxy:", (accounts) => {
 			// mock data
 			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 
-			await feeSharingProxy.withdrawFees(susd.address);
+			await feeSharingProxy.withdrawFees(SUSD.address);
 
-			await expectRevert(feeSharingProxy.withdrawFees(susd.address), "FeeSharingProxy::withdrawFees: no tokens to withdraw");
+			await expectRevert(feeSharingProxy.withdrawFees(SUSD.address), "FeeSharingProxy::withdrawFees: no tokens to withdraw");
 		});
 
 		it("Shouldn't be able to withdraw for unknown token", async () => {
@@ -135,7 +189,7 @@ contract("FeeSharingProxy:", (accounts) => {
 		});
 
 		it("Shouldn't be able to withdraw zero amount", async () => {
-			await expectRevert(feeSharingProxy.withdrawFees(susd.address), "FeeSharingProxy::withdrawFees: no tokens to withdraw");
+			await expectRevert(feeSharingProxy.withdrawFees(SUSD.address), "FeeSharingProxy::withdrawFees: no tokens to withdraw");
 		});
 
 		it("ProtocolSettings.withdrawFees", async () => {
@@ -146,18 +200,18 @@ contract("FeeSharingProxy:", (accounts) => {
 			// mock data
 			let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 
-			await protocol.setFeesController(root);
-			let tx = await protocol.withdrawFees(susd.address, account1);
+			await sovryn.setFeesController(root);
+			let tx = await sovryn.withdrawFees(SUSD.address, account1);
 
 			await checkWithdrawFee();
 
 			// check pool tokens mint
-			let userBalance = await susd.balanceOf.call(account1);
+			let userBalance = await SUSD.balanceOf.call(account1);
 			expect(userBalance.toString()).to.be.equal(feeAmount.toString());
 
 			expectEvent(tx, "WithdrawFees", {
 				sender: root,
-				token: susd.address,
+				token: SUSD.address,
 				receiver: account1,
 				lendingAmount: "100",
 				tradingAmount: "200",
@@ -173,7 +227,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			// mock data
 			let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 
-			tx = await feeSharingProxy.withdrawFees(susd.address);
+			tx = await feeSharingProxy.withdrawFees(SUSD.address);
 
 			await checkWithdrawFee();
 
@@ -211,7 +265,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			let feeAmount = await setFeeTokensHeld(new BN(0), new BN(500), new BN(700));
 			let totalFeeAmount = feeAmount;
 
-			let tx = await feeSharingProxy.withdrawFees(susd.address);
+			let tx = await feeSharingProxy.withdrawFees(SUSD.address);
 			await checkWithdrawFee();
 
 			// check pool tokens mint
@@ -237,7 +291,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			let unprocessedAmount = feeAmount;
 			totalFeeAmount = totalFeeAmount.add(feeAmount);
 
-			tx = await feeSharingProxy.withdrawFees(susd.address);
+			tx = await feeSharingProxy.withdrawFees(SUSD.address);
 			await checkWithdrawFee();
 
 			// check pool tokens mint
@@ -250,7 +304,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			totalFeeAmount = totalFeeAmount.add(feeAmount);
 
 			await increaseTime(FEE_WITHDRAWAL_INTERVAL);
-			tx = await feeSharingProxy.withdrawFees(susd.address);
+			tx = await feeSharingProxy.withdrawFees(SUSD.address);
 			await checkWithdrawFee();
 
 			// check pool tokens mint
@@ -387,7 +441,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			// mock data
 			let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 
-			await feeSharingProxy.withdrawFees(susd.address);
+			await feeSharingProxy.withdrawFees(SUSD.address);
 
 			let fees = await feeSharingProxy.getAccumulatedFees(account1, loanToken.address);
 			expect(fees).to.be.bignumber.equal(new BN(feeAmount).mul(new BN(3)).div(new BN(10)));
@@ -421,7 +475,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			// mock data
 			let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 
-			await feeSharingProxy.withdrawFees(susd.address);
+			await feeSharingProxy.withdrawFees(SUSD.address);
 
 			let fees = await feeSharingProxy.getAccumulatedFees(account1, loanToken.address);
 			expect(fees).to.be.bignumber.equal(new BN(feeAmount).mul(new BN(3)).div(new BN(10)));
@@ -463,7 +517,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			// mock data
 			let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 			let totalFeeAmount = feeAmount;
-			await feeSharingProxy.withdrawFees(susd.address);
+			await feeSharingProxy.withdrawFees(SUSD.address);
 
 			let tx = await feeSharingProxy.withdraw(loanToken.address, 1, ZERO_ADDRESS, { from: account1 });
 			console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
@@ -483,7 +537,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			feeAmount = await setFeeTokensHeld(new BN(100), new BN(0), new BN(etherMantissa(123000).toString()));
 			totalFeeAmount = totalFeeAmount.add(feeAmount);
 			await increaseTime(FEE_WITHDRAWAL_INTERVAL);
-			await feeSharingProxy.withdrawFees(susd.address);
+			await feeSharingProxy.withdrawFees(SUSD.address);
 
 			// [THIRD]
 			// mock data
@@ -494,7 +548,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			);
 			totalFeeAmount = totalFeeAmount.add(feeAmount);
 			await increaseTime(FEE_WITHDRAWAL_INTERVAL);
-			await feeSharingProxy.withdrawFees(susd.address);
+			await feeSharingProxy.withdrawFees(SUSD.address);
 
 			// [SECOND] - [THIRD]
 			tx = await feeSharingProxy.withdraw(loanToken.address, 2, ZERO_ADDRESS, { from: account1 });
@@ -653,7 +707,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			// mock data
 			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 
-			await feeSharingProxy.withdrawFees(susd.address);
+			await feeSharingProxy.withdrawFees(SUSD.address);
 
 			let tx = await feeSharingProxy.withdraw(loanToken.address, 10, ZERO_ADDRESS, { from: account1 });
 			console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
@@ -695,21 +749,21 @@ contract("FeeSharingProxy:", (accounts) => {
 
 	async function setFeeTokensHeld(lendingFee, tradingFee, borrowingFee) {
 		let totalFeeAmount = lendingFee.add(tradingFee).add(borrowingFee);
-		await susd.transfer(protocol.address, totalFeeAmount);
-		await protocol.setLendingFeeTokensHeld(susd.address, lendingFee);
-		await protocol.setTradingFeeTokensHeld(susd.address, tradingFee);
-		await protocol.setBorrowingFeeTokensHeld(susd.address, borrowingFee);
+		await SUSD.transfer(sovryn.address, totalFeeAmount);
+		await sovryn.setLendingFeeTokensHeld(SUSD.address, lendingFee);
+		await sovryn.setTradingFeeTokensHeld(SUSD.address, tradingFee);
+		await sovryn.setBorrowingFeeTokensHeld(SUSD.address, borrowingFee);
 		return totalFeeAmount;
 	}
 
 	async function checkWithdrawFee() {
-		let protocolBalance = await susd.balanceOf(protocol.address);
+		let protocolBalance = await SUSD.balanceOf(sovryn.address);
 		expect(protocolBalance.toNumber()).to.be.equal(0);
-		let lendingFeeTokensHeld = await protocol.lendingFeeTokensHeld.call(susd.address);
+		let lendingFeeTokensHeld = await sovryn.lendingFeeTokensHeld.call(SUSD.address);
 		expect(lendingFeeTokensHeld.toNumber()).to.be.equal(0);
-		let tradingFeeTokensHeld = await protocol.tradingFeeTokensHeld.call(susd.address);
+		let tradingFeeTokensHeld = await sovryn.tradingFeeTokensHeld.call(SUSD.address);
 		expect(tradingFeeTokensHeld.toNumber()).to.be.equal(0);
-		let borrowingFeeTokensHeld = await protocol.borrowingFeeTokensHeld.call(susd.address);
+		let borrowingFeeTokensHeld = await sovryn.borrowingFeeTokensHeld.call(SUSD.address);
 		expect(borrowingFeeTokensHeld.toNumber()).to.be.equal(0);
 	}
 
@@ -717,7 +771,7 @@ contract("FeeSharingProxy:", (accounts) => {
 		for (let i = 0; i < number; i++) {
 			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 			await increaseTime(FEE_WITHDRAWAL_INTERVAL);
-			await feeSharingProxy.withdrawFees(susd.address);
+			await feeSharingProxy.withdrawFees(SUSD.address);
 		}
 	}
 });
