@@ -11,7 +11,7 @@
  * Notes:
  *   Deployment on beforeEach has been sensibly improved by using a Waffle mixture
  *   that snapshots the repeating scenarios.
- *   Tried to: 
+ *   Tried to:
  *     Update to use the initializer.js functions for protocol deployment.
  *       It didn't work.
  *     Update to use initializer.js SUSD.
@@ -141,12 +141,12 @@ contract("FeeSharingProxy:", (accounts) => {
 		await sovryn.replaceContract((await LoanOpenings.new()).address);
 		await sovryn.setPriceFeedContract(priceFeeds.address);
 		await sovryn.setSwapsImplContract(swaps.address);
-	
+
 		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
 		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
-	
+
 		await sovryn.replaceContract((await Affiliates.new()).address);
-		
+
 		sovryn = await ProtocolSettings.at(sovryn.address);
 
 		// Loan token
