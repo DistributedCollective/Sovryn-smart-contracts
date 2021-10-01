@@ -1,8 +1,22 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-01
+ * Bottleneck found at beforeEach hook, redeploying tokens,
+ *  protocol, ... on every test.
+ *
+ * Total time elapsed: 38.3s
+ * After optimization: 10.0s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ *   Moved some initialization code from tests to fixture.
+ */
+
 const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { increaseTime } = require("../Utils/Ethereum");
+
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const FeesEvents = artifacts.require("FeesEvents");
-const { increaseTime } = require("../Utils/Ethereum");
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 const LockedSOVFailedMockup = artifacts.require("LockedSOVFailedMockup");
 
@@ -33,7 +47,7 @@ const oneEth = new BN(wei("1", "ether"));
 /*
 Test extending and reducing loan durations.
 1. Should fail to extend a fixed-term loan
-2. Extend  a loan
+2. Extend a loan
 3. Should fail to extend a loan with 0 deposit 
 4. Should fail to extend a closed loan
 5. Should fail to extend another user's loan
@@ -53,11 +67,8 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 	let owner;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
 
-	before(async () => {
-		[owner] = accounts;
-	});
-
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		// Deploying sovrynProtocol w/ generic function from initializer.js
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
@@ -66,12 +77,28 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
+		// Loan pool
 		const loanTokenLogicStandard = await getLoanTokenLogic();
 		const loanTokenLogicWrbtc = await getLoanTokenLogicWrbtc();
 		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
 		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
+
+		// Protocol token
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
+
+		/// @dev Moved from some tests that require this initialization
+		/// and is not interfering w/ any others.
+		await set_demand_curve(loanToken);
+		await lend_to_pool(loanToken, SUSD, owner);
+	}
+
+	before(async () => {
+		[owner] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("Test set new special rebates.", () => {
@@ -95,8 +122,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 		*/
 		it("Test extend fix term loan duration should fail", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id, trader, loan_token_sent] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
 			const loanMaintenance = await LoanMaintenance.at(sovryn.address);
 			await expectRevert(
@@ -111,9 +136,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 		*/
 		it("Test extend loan duration", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
-
 			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
 			const initial_loan = await sovryn.getLoan(loan_id);
 			const initial_loan_interest_data = await sovryn.getLoanInterestData(loan_id);
@@ -146,9 +168,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		it("Test extend loan_duration 0 deposit should fail", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
-
 			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
 			const loanMaintenance = await LoanMaintenance.at(sovryn.address);
 			await expectRevert(loanMaintenance.extendLoanDuration(loan_id, 0, false, "0x", { from: borrower }), "depositAmount is 0");
@@ -156,8 +175,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		it("Test extend closed loan_duration should fail", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id, borrower, , , , , args] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
 			const collateral = args["newCollateral"];
 			const initial_loan_interest_data = await sovryn.getLoanInterestData(loan_id);
@@ -177,8 +194,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		it("Test extend loan_duration user unauthorized should fail", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id, , receiver, , , ,] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
 			const initial_loan_interest_data = await sovryn.getLoanInterestData(loan_id);
 
@@ -196,8 +211,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 		*/
 		it("Test extend loan_duration with collateral", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
 
 			const initial_loan = await sovryn.getLoan(loan_id);
@@ -243,8 +256,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 		it("EarnRewardFail events should be fired if lockedSOV reverted when extend loan_duration with collateral sov token reward (special rebates not set or 0)", async () => {
 			// prepare the test
 			await sovryn.setLockedSOVAddress((await LockedSOVFailedMockup.new(SOV.address, [owner])).address);
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id, borrower] = await borrow_indefinite_loan(
 				loanToken,
 				sovryn,
@@ -288,8 +299,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			const basisPoint = 9000;
 			// prepare the test
 			await sovryn.setLockedSOVAddress((await LockedSOVFailedMockup.new(SOV.address, [owner])).address);
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			await sovryn.setTradingRebateRewardsBasisPoint(basisPoint);
 			const [loan_id, borrower] = await borrow_indefinite_loan(
 				loanToken,
@@ -333,8 +342,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 		it("EarnRewardFail events should be fired if lockedSOV reverted when extend loan_duration with collateral sov token reward payment (special rebates is set)", async () => {
 			// prepare the test
 			await sovryn.setLockedSOVAddress((await LockedSOVFailedMockup.new(SOV.address, [owner])).address);
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("200", "ether"));
 			const [loan_id, borrower] = await borrow_indefinite_loan(
 				loanToken,
@@ -377,8 +384,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		it("Test extend loan_duration with collateral sov token reward payment (special rebates not set / 0)", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id, borrower] = await borrow_indefinite_loan(
 				loanToken,
 				sovryn,
@@ -420,8 +425,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 		it("Test extend loan_duration with collateral sov token reward payment (special rebates is set) & basis point applied", async () => {
 			const basisPoint = 9000;
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("200", "ether"));
 			await sovryn.setTradingRebateRewardsBasisPoint(basisPoint);
 			const [loan_id, borrower] = await borrow_indefinite_loan(
@@ -475,8 +478,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		it("Test extend loan_duration with collateral sov token reward payment (special rebates is set)", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("200", "ether"));
 			const [loan_id, borrower] = await borrow_indefinite_loan(
 				loanToken,
@@ -518,8 +519,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		it("Test extend loan_duration with collateral and eth should fail", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
 
 			const initial_loan_interest_data = await sovryn.getLoanInterestData(loan_id);
@@ -537,8 +536,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		it("Test reduce fix term loan duration should fail", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id, trader, loan_token_sent] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
 			const loanMaintenance = await LoanMaintenance.at(sovryn.address);
 			await expectRevert(
@@ -553,9 +550,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 		*/
 		it("Test reduce loan duration", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
-
 			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
 			const initial_loan = await sovryn.getLoan(loan_id);
 			const initial_loan_interest_data = await sovryn.getLoanInterestData(loan_id);
@@ -587,8 +581,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 		it("EarnRewardFail events should be fired if lockedSOV reverted when Test reduce loan_duration with collateral sov token reward payment (special rebates not set or 0", async () => {
 			// prepare the test
 			await sovryn.setLockedSOVAddress((await LockedSOVFailedMockup.new(SOV.address, [owner])).address);
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const duration_in_seconds = 20 * 24 * 60 * 60; // 20 days
 			const [loan_id, borrower] = await borrow_indefinite_loan(
 				loanToken,
@@ -635,8 +627,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 		it("EarnRewardFail events should be fired if lockedSOV reverted when Test reduce loan_duration with collateral sov token reward payment (special rebates is set)", async () => {
 			// prepare the test
 			await sovryn.setLockedSOVAddress((await LockedSOVFailedMockup.new(SOV.address, [owner])).address);
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("200", "ether"));
 			const duration_in_seconds = 20 * 24 * 60 * 60; // 20 days
 			const [loan_id, borrower] = await borrow_indefinite_loan(
@@ -683,9 +673,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		it("Test reduce loan_duration 0 withdraw should fail", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
-
 			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
 			const receiver = accounts[3];
 
@@ -695,8 +682,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		it("Test reduce loan_duration with collateral sov token reward payment (special rebates not set or 0)", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const duration_in_seconds = 20 * 24 * 60 * 60; // 20 days
 			const [loan_id, borrower] = await borrow_indefinite_loan(
 				loanToken,
@@ -741,8 +726,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		it("Test reduce loan_duration with collateral sov token reward payment (special rebates is set)", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("200", "ether"));
 			const duration_in_seconds = 20 * 24 * 60 * 60; // 20 days
 			const [loan_id, borrower] = await borrow_indefinite_loan(
@@ -788,9 +771,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		it("Test reduce loan_duration 0 withdraw should fail", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
-
 			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
 			const receiver = accounts[3];
 
@@ -800,8 +780,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		it("Test reduce closed loan_duration should fail", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id, borrower, , , , , args] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
 			const collateral = args["newCollateral"];
 			const receiver = accounts[3];
@@ -822,8 +800,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		it("Test reduce loan_duration user unauthorized should fail", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
 
 			const receiver = accounts[3];
@@ -839,8 +815,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		it("Test reduce loan_duration loan term ended should fail", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
 
 			const receiver = accounts[3];
@@ -864,8 +838,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		it("Test reduce loan_duration withdraw amount too high should fail", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id, borrower, , withdraw_amount] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
 
 			const receiver = accounts[3];
@@ -879,8 +851,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 		it("Test reduce loan_duration less than one hour should fail", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id, borrower, , , duration_in_seconds] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
 
 			const receiver = accounts[3];

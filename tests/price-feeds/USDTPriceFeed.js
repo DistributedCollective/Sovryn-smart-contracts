@@ -1,3 +1,10 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-01
+ * No bottlenecks found. No beforeEach hook, and flow is very simple.
+ *   There is just one deployment for USDTPriceFeed contract.
+ *
+ * Total time elapsed: 3.7s
+ */
+
 const { expect } = require("chai");
 const { BN } = require("@openzeppelin/test-helpers");
 

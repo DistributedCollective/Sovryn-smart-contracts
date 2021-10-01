@@ -1,5 +1,19 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-01
+ * Bottleneck found at beforeEach hook, redeploying tokens,
+ *  protocol, ... on every test.
+ *
+ * Total time elapsed: 6.5s
+ * After optimization: 5.3s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ *   Moved some initialization code from tests to fixture.
+ */
+
 const { expect } = require("chai");
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+
 const LoanMaintenanceEvents = artifacts.require("LoanMaintenanceEvents");
 
 const {
@@ -28,11 +42,8 @@ contract("ProtocolAddingMargin", (accounts) => {
 	let owner;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds;
 
-	before(async () => {
-		[owner] = accounts;
-	});
-
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		// Deploying sovrynProtocol w/ generic function from initializer.js
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
@@ -47,13 +58,24 @@ contract("ProtocolAddingMargin", (accounts) => {
 		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
 		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
+
+		/// @dev Moved from some tests that require this initialization
+		/// and is not interfering w/ any others.
+		await set_demand_curve(loanToken);
+		await lend_to_pool(loanToken, SUSD, owner);
+	}
+
+	before(async () => {
+		[owner] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("Adding Margin", () => {
 		it("Test deposit collateral", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
 			const loadData = await sovryn.getLoan(loan_id);
 			const startCollateral = new BN(loadData["collateral"]);
@@ -90,8 +112,6 @@ contract("ProtocolAddingMargin", (accounts) => {
 
 		it("Test deposit collateral 0 value", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
 			expectRevert(sovryn.depositCollateral(loan_id, new BN(0)), "depositAmount is 0");
 		});

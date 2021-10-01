@@ -43,6 +43,7 @@ contract("ProtocolSettings", (accounts) => {
 	const ONE_ADDRESS = "0x0000000000000000000000000000000000000001";
 
 	async function deploymentAndInitFixture(_wallets, _provider) {
+		// Deploying sovrynProtocol w/ generic function from initializer.js
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
