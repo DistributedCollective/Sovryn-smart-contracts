@@ -1,6 +1,22 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-01
+ * Bottleneck found at beforeEach hook, redeploying tokens,
+ *  protocol, ... on every test.
+ *
+ * Total time elapsed: 11.9s
+ * After optimization: 5.6s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ *   Moved SOV mint to fixture.
+ *   Unable to use the generic SOV from initializer.js because these tests
+ *   require a particular simplified SOV token.
+ */
+
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+
 const MultiSigWallet = artifacts.require("MultiSigWallet");
 
 const ProtocolSettings = artifacts.require("ProtocolSettings");
@@ -23,9 +39,10 @@ const getMultisig = async (accounts) => {
 };
 
 contract("ProtocolSettings", (accounts) => {
-	let sovryn, SUSD, WRBTC, RBTC, BZRX, priceFeeds, multisig;
+	let sovryn, SUSD, WRBTC, RBTC, BZRX, priceFeeds, multisig, sov;
 	const ONE_ADDRESS = "0x0000000000000000000000000000000000000001";
-	beforeEach(async () => {
+
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
@@ -35,6 +52,14 @@ contract("ProtocolSettings", (accounts) => {
 
 		multisig = await getMultisig(accounts);
 		await sovryn.transferOwnership(multisig.address);
+
+		/// @dev A SOV mint useful for every test
+		sov = await TestToken.new("Sovryn", "SOV", 18, new BN(10).pow(new BN(50)));
+		await sov.transfer(multisig.address, new BN(10).pow(new BN(50)), { from: accounts[0] });
+	}
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("ProtocolSettings Tests", () => {
@@ -131,9 +156,6 @@ contract("ProtocolSettings", (accounts) => {
 			const dest = sovryn.address;
 			const val = 0;
 
-			const sov = await TestToken.new("Sovryn", "SOV", 18, new BN(10).pow(new BN(50)));
-			await sov.transfer(multisig.address, new BN(10).pow(new BN(50)), { from: accounts[0] });
-
 			let data = await sov.contract.methods.approve(sovryn.address, hunEth).encodeABI();
 
 			let tx = await multisig.submitTransaction(sov.address, val, data, { from: accounts[0] });
@@ -159,9 +181,6 @@ contract("ProtocolSettings", (accounts) => {
 			const dest = sovryn.address;
 			const val = 0;
 
-			const sov = await TestToken.new("Sovryn", "SOV", 18, new BN(10).pow(new BN(50)));
-			await sov.transfer(multisig.address, new BN(10).pow(new BN(50)), { from: accounts[0] });
-
 			let data = await sov.contract.methods.approve(sovryn.address, hunEth).encodeABI();
 
 			let tx = await multisig.submitTransaction(sov.address, val, data, { from: accounts[0] });
@@ -181,9 +200,6 @@ contract("ProtocolSettings", (accounts) => {
 		it("Test withdraw protocol token", async () => {
 			const dest = sovryn.address;
 			const val = 0;
-
-			const sov = await TestToken.new("Sovryn", "SOV", 18, new BN(10).pow(new BN(50)));
-			await sov.transfer(multisig.address, new BN(10).pow(new BN(50)), { from: accounts[0] });
 
 			let data = await sov.contract.methods.approve(sovryn.address, hunEth).encodeABI();
 
@@ -220,9 +236,6 @@ contract("ProtocolSettings", (accounts) => {
 		it("Test fail withdraw protocol token", async () => {
 			const dest = sovryn.address;
 			const val = 0;
-
-			const sov = await TestToken.new("Sovryn", "SOV", 18, new BN(10).pow(new BN(50)));
-			await sov.transfer(multisig.address, new BN(10).pow(new BN(50)), { from: accounts[0] });
 
 			let data = await sov.contract.methods.approve(sovryn.address, hunEth).encodeABI();
 

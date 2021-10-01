@@ -1,4 +1,19 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-01
+ * Bottleneck found at the beginning of the 2 tests it contains,
+ *   re-deploying a simulated loan pool.
+ *
+ * Total time elapsed: 5.4s
+ * After optimization: 5.2s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot at the beforeEach hook.
+ */
+
 const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
 const { constants, BN } = require("@openzeppelin/test-helpers");
 const LoanSettingsEvents = artifacts.require("LoanSettingsEvents");
 const LoanOpeningsEvents = artifacts.require("LoanOpeningsEvents");
@@ -13,7 +28,8 @@ const hunEth = new BN(wei("100", "ether"));
 contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, priceFeeds;
 
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		// Deploying sovrynProtocol w/ generic function from initializer.js
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
@@ -21,7 +37,23 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
 		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
-		sov = await getSOV(sovryn, priceFeeds, SUSD, accounts);
+		await getSOV(sovryn, priceFeeds, SUSD, accounts);
+
+		// setup simulated loan pool
+		await sovryn.setLoanPool([accounts[1]], [accounts[2]]);
+
+		const sovrynBeforeSUSDBalance = await SUSD.balanceOf(sovryn.address);
+		console.log("sovrynBeforeSUSDBalance", sovrynBeforeSUSDBalance.toString());
+
+		const sovrynBeforeRBTCBalance = await RBTC.balanceOf(sovryn.address);
+		console.log("sovrynBeforeRBTCBalance", sovrynBeforeRBTCBalance.toString());
+
+		/// @dev Generic mint useful for every test
+		await SUSD.mint(sovryn.address, hunEth, { from: accounts[0] });
+	}
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	const LinkDaiMarginParamsId = async () => {
@@ -62,19 +94,7 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
 			So there are only fix-term loans.
 		*/
 		it("Test marginTradeFromPool sim", async () => {
-			// setup simulated loan pool
-			await sovryn.setLoanPool([accounts[1]], [accounts[2]]);
-
-			const sovrynBeforeSUSDBalance = await SUSD.balanceOf(sovryn.address);
-			console.log("sovrynBeforeSUSDBalance", sovrynBeforeSUSDBalance.toString());
-
-			const sovrynBeforeRBTCBalance = await RBTC.balanceOf(sovryn.address);
-			console.log("sovrynBeforeRBTCBalance", sovrynBeforeRBTCBalance.toString());
-
 			const loanTokenSent = hunEth;
-
-			await SUSD.mint(sovryn.address, loanTokenSent, { from: accounts[0] });
-
 			const sovrynSwap = await sovryn.sovrynSwapContractRegistryAddress();
 			// console.log('sovryn seap contract registry address is ',sovrynSwap)
 			// addressOf = sovrynSwap.addressOf(sovrynSwap.address)
@@ -96,7 +116,7 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
 			console.log("collateralTokenSent", collateralTokenSent.toString());
 
 			const tx = await sovryn.borrowOrTradeFromPool(
-				await LinkDaiMarginParamsId(), //loanParamsId
+				await LinkDaiMarginParamsId(), // loanParamsId
 				"0x0", // loanId
 				false, // isTorqueLoan,
 				hunEth, // initialMargin
@@ -146,19 +166,9 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
 		});
 
 		it("Test borrowFromPool sim", async () => {
-			// setup simulated loan pool
-			await sovryn.setLoanPool([accounts[1]], [accounts[2]]);
-
-			const sovrynBeforeSUSDBalance = await SUSD.balanceOf(sovryn.address);
-			console.log("sovrynBeforeSUSDBalance", sovrynBeforeSUSDBalance.toString());
-
-			const sovrynBeforeRBTCBalance = await RBTC.balanceOf(sovryn.address);
-			console.log("sovrynBeforeRBTCBalance", sovrynBeforeRBTCBalance.toString());
-
 			const loanTokenSent = oneEth;
 			const newPrincipal = new BN(101).mul(oneEth);
 
-			await SUSD.mint(sovryn.address, loanTokenSent, { from: accounts[0] });
 			const collateralTokenSent = await sovryn.getRequiredCollateral(
 				SUSD.address,
 				RBTC.address,
@@ -173,7 +183,7 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
 			console.log("collateralTokenSent", collateralTokenSent.toString());
 
 			const tx = await sovryn.borrowOrTradeFromPool(
-				await LinkDaiBorrowParamsId(), //loanParamsId
+				await LinkDaiBorrowParamsId(), // loanParamsId
 				"0x0", // loanId
 				true, // isTorqueLoan,
 				new BN(50).mul(oneEth), // initialMargin

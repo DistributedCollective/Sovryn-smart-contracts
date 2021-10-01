@@ -1,3 +1,9 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-01
+ * No bottlenecks found. Tests don't need redeployments.
+ *
+ * Total time elapsed: 4.9s
+ */
+
 const { constants, expectEvent } = require("@openzeppelin/test-helpers");
 const { expect } = require("chai");
 const { getSUSD, getRBTC, getWRBTC, getBZRX, getSovryn, getPriceFeeds } = require("../Utils/initializer.js");
@@ -14,7 +20,9 @@ const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 contract("Protocol", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, priceFeeds;
 	const ONE_ADDRESS = "0x0000000000000000000000000000000000000001";
+
 	before(async () => {
+		// Deploying sovrynProtocol w/ generic function from initializer.js
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
