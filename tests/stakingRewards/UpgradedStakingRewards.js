@@ -238,6 +238,25 @@ contract("StakingRewards - Upgrade", (accounts) => {
 			expectedAmount = numOfIntervals * ((9000 * fullTermAvg) / 26);
 			expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(new BN(fields).div(new BN(10).pow(new BN(8))));
 		});
+
+		it("should compute and send Rewards to the stakers a1, a2 and a3 correctly after 10 weeks", async () => {
+			await increaseTimeAndBlocks(1209614);
+			let fields = await stakingRewards.getClaimableReward(true, { from: a1 });
+			let numOfIntervals = 5;
+			let fullTermAvg = avgWeight(22, 27, 9, 78);
+			expectedAmount = numOfIntervals * ((2000 * fullTermAvg) / 26);
+			expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(new BN(fields).div(new BN(10).pow(new BN(8))));
+
+			fields = await stakingRewards.getClaimableReward(true, { from: a2 });
+			fullTermAvg = avgWeight(74, 79, 9, 78);
+			expectedAmount = numOfIntervals * ((50000 * fullTermAvg) / 26);
+			expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(new BN(fields).div(new BN(10).pow(new BN(8))));
+
+			fields = fields = await stakingRewards.getClaimableReward(true, { from: a3 });
+			fullTermAvg = avgWeight(74, 79, 9, 78);
+			expectedAmount = numOfIntervals * ((9000 * fullTermAvg) / 26);
+			expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(new BN(fields).div(new BN(10).pow(new BN(8))));
+		});
 	});
 
 	function avgWeight(from, to, maxWeight, maxDuration) {
