@@ -7,7 +7,7 @@
  *   The test "does not mint tokens if initial amount is zero" makes no sense
  *   because mint is still possible even though initial supply is zero. So, it's
  *   been updated to "zero token balance if initial amount is zero"
- * 
+ *
  *   Token test have been improved by adding some additional checks.
  */
 
@@ -94,7 +94,7 @@ contract("SOV:", (accounts) => {
 		it("should be able to transfer SOV tokens", async () => {
 			let afterBalance1 = await tokenSOV.balanceOf.call(account1);
 			expect(afterBalance1.sub(beforeBalance1).toNumber()).to.be.equal(amount);
-			
+
 			// Transfer whole amount to account2
 			let beforeBalance2 = await tokenSOV.balanceOf.call(account2);
 			await tokenSOV.transfer(account2, amount, { from: account1 });
@@ -104,7 +104,10 @@ contract("SOV:", (accounts) => {
 
 		it("shouldn't be able to transfer more SOV tokens than available on balance", async () => {
 			// Try to transfer double amount to account2
-			await expectRevert(tokenSOV.transfer(account2, amount * 2, { from: account1 }), "revert ERC20: transfer amount exceeds balance");
+			await expectRevert(
+				tokenSOV.transfer(account2, amount * 2, { from: account1 }),
+				"revert ERC20: transfer amount exceeds balance"
+			);
 		});
 
 		it("shouldn't be able to transfer SOV tokens to zero address", async () => {

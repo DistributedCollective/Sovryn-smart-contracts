@@ -49,7 +49,7 @@ contract("WeightedStaking", (accounts) => {
 		inTwoYears = kickoffTS.add(new BN(DELAY * 26 * 2));
 		inThreeYears = kickoffTS.add(new BN(DELAY * 26 * 3));
 	}
-	
+
 	before(async () => {
 		[root, a1, a2, a3, ...accounts] = accounts;
 	});
