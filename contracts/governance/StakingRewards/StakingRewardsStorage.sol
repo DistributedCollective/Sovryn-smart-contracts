@@ -68,7 +68,7 @@ contract StakingRewardsStorage is Ownable {
 
 	/**
 	 * @dev lastStakingActivityTime and lastStakingActivityBlock are used to track the time and block for a staking
-	 * activity. This is used to pass the block when the staking activity was done instead of 
+	 * activity. This is used to pass the block when the staking activity was done instead of
 	 * the latest block (only for the first interval after a staking event)
 	 */
 	/// @notice User Address -> Last Staking Activity Time
