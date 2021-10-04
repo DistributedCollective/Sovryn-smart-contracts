@@ -158,7 +158,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		address _loanPoolToken,
 		uint32 _maxCheckpoints,
 		address _receiver
-	) public {
+	) public nonReentrant {
 		/// @dev Prevents processing all checkpoints because of block gas limit.
 		require(_maxCheckpoints > 0, "FeeSharingProxy::withdraw: _maxCheckpoints should be positive");
 
