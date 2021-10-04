@@ -74,6 +74,8 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
 		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
+
+		/// @dev SOV test token deployment w/ initializer.js
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
 		/// @dev Moved from some tests that require this initialization

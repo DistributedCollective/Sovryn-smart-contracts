@@ -4,6 +4,7 @@
  * 		Due to the tx => stakingRewards.collectReward
  * 			Due to call => getStakerCurrentReward (up to 2s)
  *  - initialization on before hook takes 4s.
+ * 
  * Total time elapsed: 34s
  * After optimization: 32s
  *

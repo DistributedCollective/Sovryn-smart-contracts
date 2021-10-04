@@ -1,4 +1,17 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-01
+ * Bottleneck found at beforeEach hook, redeploying tokens,
+ *  protocol, ... on every test.
+ *
+ * Total time elapsed: 8.2s
+ * After optimization: 5.9s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ *   Moved some initialization code from tests to fixture.
+ */
+
 const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
 const { BN, expectEvent } = require("@openzeppelin/test-helpers");
 const { increaseTime, blockNumber } = require("../Utils/Ethereum.js");
 
@@ -26,11 +39,8 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 	let owner;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds;
 
-	before(async () => {
-		[owner] = accounts;
-	});
-
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		// Deploying sovrynProtocol w/ generic function from initializer.js
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
@@ -38,6 +48,8 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+
+		/// @dev SOV test token deployment w/ initializer.js
 		sov = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
 		const loanTokenLogicStandard = await getLoanTokenLogic();
@@ -45,13 +57,23 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
 		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
+
+		/// @dev Optimization: Moved from common init for specific test
+		await set_demand_curve(loanToken);
+		await lend_to_pool(loanToken, SUSD, owner);
+	}
+
+	before(async () => {
+		[owner] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("Tests withdraw fees and interest ", () => {
 		it("Test withdraw accrued interest", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
 
 			let num = await blockNumber();
@@ -120,8 +142,6 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 		*/
 		it("Test withdraw lending fees", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
 
 			await sovryn.setFeesController(accounts[0]);
@@ -151,8 +171,6 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 		*/
 		it("Test withdraw trading fees", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
 
 			await sovryn.setFeesController(accounts[0]);
@@ -182,8 +200,6 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 		*/
 		it("Test withdraw borrowing fees", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
 
 			await sovryn.setFeesController(accounts[0]);

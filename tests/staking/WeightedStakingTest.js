@@ -1,16 +1,26 @@
-const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-04
+ * Bottleneck found at beforeEach hook, redeploying token and staking ... on every test.
+ *
+ * Total time elapsed: 6.6s
+ * After optimization: 5.9s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
 
-const { address, minerStart, minerStop, unlockedAccount, mineBlock, etherMantissa, etherUnsigned, setTime } = require("../Utils/Ethereum");
+const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+
+const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+
+const { mineBlock, setTime } = require("../Utils/Ethereum");
 
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
-const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
-const DAY = 86400;
 const TWO_WEEKS = 1209600;
 const DELAY = TWO_WEEKS;
 
@@ -22,11 +32,7 @@ contract("WeightedStaking", (accounts) => {
 	let token, staking;
 	let kickoffTS, inOneWeek, inOneYear, inTwoYears, inThreeYears;
 
-	before(async () => {
-		[root, a1, a2, a3, ...accounts] = accounts;
-	});
-
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 
 		let stakingLogic = await StakingLogic.new(token.address);
@@ -42,6 +48,14 @@ contract("WeightedStaking", (accounts) => {
 		inOneYear = kickoffTS.add(new BN(DELAY * 26));
 		inTwoYears = kickoffTS.add(new BN(DELAY * 26 * 2));
 		inThreeYears = kickoffTS.add(new BN(DELAY * 26 * 3));
+	}
+	
+	before(async () => {
+		[root, a1, a2, a3, ...accounts] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("numCheckpoints", () => {
@@ -84,7 +98,7 @@ contract("WeightedStaking", (accounts) => {
 
 	describe("checkpoints", () => {
 		it("returns the correct checkpoint for an user", async () => {
-			//shortest staking duration
+			// shortest staking duration
 			let result = await staking.stake("100", inOneWeek, a1, a3, { from: a2 });
 			await expect((await staking.balanceOf(a1)).toString()).to.be.equal("100");
 			let checkpoint = await staking.userStakingCheckpoints(a1, inOneWeek, 0);
@@ -92,7 +106,7 @@ contract("WeightedStaking", (accounts) => {
 			await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
 			await expect(checkpoint.stake.toString()).to.be.equal("100");
 
-			//max staking duration
+			// max staking duration
 			result = await staking.stake("100", inThreeYears, a2, a3, { from: a2 });
 			checkpoint = await staking.userStakingCheckpoints(a2, inThreeYears, 0);
 			await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
@@ -107,16 +121,16 @@ contract("WeightedStaking", (accounts) => {
 			await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
 			await expect(checkpoint.stake.toString()).to.be.equal("100");
 
-			//add stake and change delegatee
+			// add stake and change delegatee
 			result = await staking.stake("200", inOneWeek, a1, a2, { from: a2 });
 			await expect((await staking.balanceOf(a1)).toString()).to.be.equal("300");
 
-			//old delegate
+			// old delegate
 			checkpoint = await staking.delegateStakingCheckpoints(a3, inOneWeek, 1);
 			await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
 			await expect(checkpoint.stake.toString()).to.be.equal("0");
 
-			//new delegate
+			// new delegate
 			checkpoint = await staking.delegateStakingCheckpoints(a2, inOneWeek, 0);
 			await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
 			await expect(checkpoint.stake.toString()).to.be.equal("300");
@@ -143,7 +157,7 @@ contract("WeightedStaking", (accounts) => {
 			let maxDuration = await staking.MAX_DURATION.call();
 			let weightFactor = await staking.WEIGHT_FACTOR.call();
 
-			//power on kickoff date
+			// power on kickoff date
 			let expectedPower =
 				weightingFunction(100, DELAY * (26 * 3), maxDuration, maxVotingWeight, weightFactor.toNumber()) +
 				weightingFunction(100, DELAY * 26 * 2, maxDuration, maxVotingWeight, weightFactor.toNumber()) +
@@ -151,7 +165,7 @@ contract("WeightedStaking", (accounts) => {
 			let totalVotingPower = await staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS);
 			await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
 
-			//power 52 weeks later
+			// power 52 weeks later
 			expectedPower =
 				weightingFunction(100, DELAY * (26 * 2), maxDuration, maxVotingWeight, weightFactor.toNumber()) +
 				weightingFunction(100, DELAY * 26 * 1, maxDuration, maxVotingWeight, weightFactor.toNumber()) +
@@ -180,14 +194,14 @@ contract("WeightedStaking", (accounts) => {
 			let maxDuration = await staking.MAX_DURATION.call();
 			let weightFactor = await staking.WEIGHT_FACTOR.call();
 
-			//power on kickoff date
+			// power on kickoff date
 			let expectedPower =
 				weightingFunction(100, DELAY * (26 * 3), maxDuration, maxVotingWeight, weightFactor.toNumber()) +
 				weightingFunction(100, DELAY * 26, maxDuration, maxVotingWeight, weightFactor.toNumber());
 			let totalVotingPower = await staking.getPriorVotes(a2, result.receipt.blockNumber, kickoffTS);
 			await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
 
-			//power 52 weeks later
+			// power 52 weeks later
 			expectedPower =
 				weightingFunction(100, DELAY * (26 * 2), maxDuration, maxVotingWeight, weightFactor.toNumber()) +
 				weightingFunction(100, DELAY * 26 * 0, maxDuration, maxVotingWeight, weightFactor.toNumber());
@@ -228,12 +242,12 @@ contract("WeightedStaking", (accounts) => {
 			let maxDuration = await staking.MAX_DURATION.call();
 			let weightFactor = await staking.WEIGHT_FACTOR.call();
 
-			//power on kickoff date
+			// power on kickoff date
 			let expectedPower = weightingFunction(200, DELAY * (26 * 3), maxDuration, maxVotingWeight, weightFactor.toNumber());
 			let totalVotingPower = await staking.getPriorWeightedStake(a2, result.receipt.blockNumber, kickoffTS);
 			await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
 
-			//power 52 weeks later
+			// power 52 weeks later
 			expectedPower = weightingFunction(200, DELAY * (26 * 2), maxDuration, maxVotingWeight, weightFactor.toNumber());
 			totalVotingPower = await staking.getPriorWeightedStake(a2, result.receipt.blockNumber, kickoffTS.add(new BN(DELAY * 26)));
 			await expect(totalVotingPower.toNumber()).to.be.equal(expectedPower);
@@ -260,7 +274,7 @@ contract("WeightedStaking", (accounts) => {
 				let newTime = kickoffTS.add(new BN(i * DELAY));
 				let w = Math.floor((100 * (await staking.computeWeightByDate(newTime, kickoffTS)).toNumber()) / weightFactor.toNumber());
 				await expect(w).to.be.equal(expectedWeight);
-				//console.log(expectedWeight);
+				// console.log(expectedWeight);
 			}
 		});
 	});

@@ -1,10 +1,22 @@
-const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-04
+ * Bottleneck found at beforeEach hook, redeploying token and staking ... on every test.
+ *
+ * Total time elapsed: 6.6s
+ * After optimization: 5.6s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
 
-const { address, minerStart, minerStop, unlockedAccount, mineBlock, etherMantissa, etherUnsigned, setTime } = require("../Utils/Ethereum");
+const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+
+const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
+
+const { address, mineBlock } = require("../Utils/Ethereum");
 
 const EIP712 = require("../Utils/EIP712");
-//const EIP712Ethers = require("../Utils/EIP712Ethers");
+// const EIP712Ethers = require("../Utils/EIP712Ethers");
 const { getAccountsPrivateKeysBuffer } = require("../Utils/hardhat_utils");
 
 const StakingLogic = artifacts.require("StakingMockup");
@@ -14,12 +26,6 @@ const VestingLogic = artifacts.require("VestingLogic");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
-const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1095));
-
-const DAY = 86400;
-const TWO_WEEKS = 1209600;
-
-//const { ethers } = require("hardhat");
 
 contract("Staking", (accounts) => {
 	const name = "Test token";
@@ -35,16 +41,7 @@ contract("Staking", (accounts) => {
 
 	let vestingLogic1, vestingLogic2;
 
-	before(async () => {
-		[root, a1, a2, a3, ...accounts] = accounts;
-		[pkbRoot, pkbA1] = getAccountsPrivateKeysBuffer();
-		currentChainId = (await ethers.provider.getNetwork()).chainId;
-
-		vestingLogic1 = await VestingLogic.new();
-		vestingLogic2 = await VestingLogic.new();
-	});
-
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		chainId = 1; // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
 		await web3.eth.net.getId();
 		token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
@@ -58,6 +55,19 @@ contract("Staking", (accounts) => {
 
 		kickoffTS = await staking.kickoffTS.call();
 		inThreeYears = kickoffTS.add(new BN(DELAY * 26 * 3));
+	}
+
+	before(async () => {
+		[root, a1, a2, a3, ...accounts] = accounts;
+		[pkbRoot, pkbA1] = getAccountsPrivateKeysBuffer();
+		currentChainId = (await ethers.provider.getNetwork()).chainId;
+
+		vestingLogic1 = await VestingLogic.new();
+		vestingLogic2 = await VestingLogic.new();
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("metadata", () => {
@@ -113,8 +123,8 @@ contract("Staking", (accounts) => {
 				},
 				Types,
 				pkbA1
-				//pA1.privateKey
-				//unlockedAccount(a1).secretKey
+				// pA1.privateKey
+				// unlockedAccount(a1).secretKey
 			);
 			/*const { v, r, s } = EIP712Ethers.sign(
 				Domain(staking),
@@ -174,7 +184,7 @@ contract("Staking", (accounts) => {
 				},
 				Types,
 				pkbA1
-				//unlockedAccount(a1).secretKey
+				// unlockedAccount(a1).secretKey
 			);
 
 			expect(await staking.delegates.call(a1, inThreeYears)).to.be.equal(address(0));
@@ -187,9 +197,7 @@ contract("Staking", (accounts) => {
 	describe("numCheckpoints", () => {
 		it("returns the number of checkpoints for a delegate", async () => {
 			let guy = accounts[0];
-
-			await token.transfer(guy, "1000"); //give an account a few tokens for readability
-
+			await token.transfer(guy, "1000"); // give an account a few tokens for readability
 			await expect((await staking.numUserStakingCheckpoints.call(a1, inThreeYears)).toString()).to.be.equal("0");
 
 			await token.approve(staking.address, "1000", { from: guy });
@@ -202,19 +210,19 @@ contract("Staking", (accounts) => {
 
 		it("does not add more than one checkpoint in a block", async () => {
 			let guy = accounts[1];
-			await token.transfer(guy, "1000"); //give an account a few tokens for readability
+			await token.transfer(guy, "1000"); // give an account a few tokens for readability
 			await expect((await staking.numUserStakingCheckpoints.call(a3, inThreeYears)).toString()).to.be.equal("0");
 
 			await token.approve(staking.address, "1000", { from: guy });
 
-			//await minerStop();
+			// await minerStop();
 			let t1 = staking.stake("80", inThreeYears, a3, a3, { from: guy });
 
 			let t2 = staking.delegate(a3, inThreeYears, { from: guy });
 			let t3 = token.transfer(a2, 10, { from: guy });
 			let t4 = token.transfer(a2, 10, { from: guy });
 
-			//await minerStart();
+			// await minerStart();
 			t1 = await t1;
 			t2 = await t2;
 			t3 = await t3;
