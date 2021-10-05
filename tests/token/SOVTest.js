@@ -8,7 +8,8 @@
  *   because mint is still possible even though initial supply is zero. So, it's
  *   been updated to "zero token balance if initial amount is zero"
  *
- *   Token test have been improved by adding some additional checks.
+ *   Token test have been improved by adding some additional checks:
+ *     ERC20 mint, transfer and approval
  */
 
 const { expect } = require("chai");
@@ -115,9 +116,54 @@ contract("SOV:", (accounts) => {
 			await expectRevert(tokenSOV.transfer(zeroAddress, amount, { from: account1 }), "revert ERC20: transfer to the zero address");
 		});
 
+		/// @dev Instead of throwing the expected error from ERC20.sol contract
+		///   it is throwing : "unknown account 0x0000000000000000000000000000000000000000"
 		// it("shouldn't be able to transfer SOV tokens from zero address", async () => {
 		// 	// Try to transfer amount from zero address
 		// 	await expectRevert(tokenSOV.transfer(account2, amount, { from: zeroAddress }), "revert ERC20: transfer from the zero address");
 		// });
+	});
+
+	describe("approve:", () => {
+		it("should be able to approve a SOV token transfer", async () => {
+			// Approve whole amount to be spent by account2 from account1
+			let beforeAllowance2 = await tokenSOV.allowance.call(account1, account2);
+			await tokenSOV.approve(account2, amount, { from: account1 });
+			let afterAllowance2 = await tokenSOV.allowance.call(account1, account2);
+			expect(afterAllowance2.sub(beforeAllowance2).toNumber()).to.be.equal(amount);
+		});
+
+		it("shouldn't be able to approve SOV tokens to be spent by zero address", async () => {
+			// Try to approve amount for zero address to spend
+			await expectRevert(tokenSOV.approve(zeroAddress, amount, { from: account1 }), "revert ERC20: approve to the zero address");
+		});
+
+		it("should be able to increase the allowance for a spender", async () => {
+			// Increase allowance by amount to be spent by account2 from account1
+			let beforeAllowance2 = await tokenSOV.allowance.call(account1, account2);
+			await tokenSOV.increaseAllowance(account2, amount, { from: account1 });
+			let afterAllowance2 = await tokenSOV.allowance.call(account1, account2);
+			expect(afterAllowance2.sub(beforeAllowance2).toNumber()).to.be.equal(amount);
+		});
+
+		it("shouldn't be able to decrease the allowance below zero", async () => {
+			// Try to decrease an allowance below zero
+			await expectRevert(
+				tokenSOV.decreaseAllowance(account2, amount, { from: account1 }),
+				"revert ERC20: decreased allowance below zero"
+			);
+		});
+
+		it("should be able to decrease the allowance for a spender", async () => {
+			// Approve double amount to be spent by account2 from account1
+			await tokenSOV.approve(account2, amount * 2, { from: account1 });
+
+			// Decrease allowance by amount to be spent by account2 from account1
+			await tokenSOV.decreaseAllowance(account2, amount, { from: account1 });
+			let afterAllowance2 = await tokenSOV.allowance.call(account1, account2);
+
+			// Allowance should be equal to amount
+			expect(afterAllowance2.toNumber()).to.be.equal(amount);
+		});
 	});
 });

@@ -1,7 +1,19 @@
-const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-05
+ * Bottleneck found at:
+ *   + beforeEach hook, redeploying token and sender on every test.
+ *   + should be able to transfer SOV to N users and check gas usage (1238ms)
+ *
+ * Total time elapsed: 5.6s
+ * After optimization: 5.5s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ * 	Reduced loop size from 500 to 50, for optimization purposes.
+ */
 
-const { encodeParameters, etherMantissa, mineBlock, increaseTime, blockNumber } = require("../Utils/Ethereum");
+const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 
 const SOV_ABI = artifacts.require("SOV");
 const TokenSender = artifacts.require("TokenSender");
@@ -13,13 +25,17 @@ contract("TokenSender", (accounts) => {
 	let root, account1, account2, account3;
 	let SOV, tokenSender;
 
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		SOV = await SOV_ABI.new(TOTAL_SUPPLY);
+		tokenSender = await TokenSender.new(SOV.address);
+	}
+
 	before(async () => {
 		[root, account1, account2, account3, ...accounts] = accounts;
 	});
 
 	beforeEach(async () => {
-		SOV = await SOV_ABI.new(TOTAL_SUPPLY);
-		tokenSender = await TokenSender.new(SOV.address);
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("constructor", () => {
@@ -131,7 +147,9 @@ contract("TokenSender", (accounts) => {
 		});
 
 		it("should be able to transfer SOV to N users and check gas usage", async () => {
-			let userCount = 500;
+			/// @dev Reduced loop size from 500 to 50, for optimization purposes
+			let userCount = 50;
+
 			let amount = web3.utils.toWei(new BN(10));
 			let totalAmount = amount.mul(new BN(userCount));
 			await SOV.transfer(tokenSender.address, totalAmount);

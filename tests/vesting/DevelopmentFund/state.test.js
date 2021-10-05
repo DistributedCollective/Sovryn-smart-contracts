@@ -1,6 +1,20 @@
 // For this test, governance contract and multisig wallet will be done by normal wallets.
 // They will acts as locked and unlocked owner.
 
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-05
+ * Bottleneck found at beforeEach hook, redeploying DevelopmentFund and token on every test.
+ *
+ * Total time elapsed: 6.3s
+ * After optimization: 5.6s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ *   Remove redeployments from tests.
+ *
+ *  Some tests require a continuos flow (fixture snapshots don't apply) such as
+ *   "While updating release schedule, extra tokens should be sent back." using
+ *   the previousReleaseTokenAmount from previous test.
+ */
+
 const DevelopmentFund = artifacts.require("DevelopmentFund");
 const TestToken = artifacts.require("TestToken");
 
@@ -12,6 +26,8 @@ const {
 } = require("@openzeppelin/test-helpers");
 
 const { assert } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
 
 // Some constants we would be using in the contract.
 let zero = new BN(0);
@@ -144,16 +160,7 @@ contract("DevelopmentFund (State)", (accounts) => {
 	let developmentFund, testToken;
 	let creator, governance, newGovernance, multisig, newMultisig, safeVault, userOne;
 
-	before("Initiating Accounts & Creating Test Token Instance.", async () => {
-		// Checking if we have enough accounts to test.
-		assert.isAtLeast(accounts.length, 7, "At least 7 accounts are required to test the contracts.");
-		[creator, governance, newGovernance, multisig, newMultisig, safeVault, userOne] = accounts;
-
-		// Creating the instance of Test Token.
-		testToken = await TestToken.new("TestToken", "TST", 18, zero);
-	});
-
-	beforeEach("Creating New Development Fund Instance.", async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		// Creating a new release schedule.
 		releaseDuration = [];
 		// This is run 60 times for mimicking 5 years (12 months * 5), though the interval is small.
@@ -187,10 +194,28 @@ contract("DevelopmentFund (State)", (accounts) => {
 
 		// Marking the contract as active.
 		await developmentFund.init({ from: creator });
+	}
+
+	before("Initiating Accounts & Creating Test Token Instance.", async () => {
+		// Checking if we have enough accounts to test.
+		assert.isAtLeast(accounts.length, 7, "At least 7 accounts are required to test the contracts.");
+		[creator, governance, newGovernance, multisig, newMultisig, safeVault, userOne] = accounts;
+
+		// Creating the instance of Test Token.
+		testToken = await TestToken.new("TestToken", "TST", 18, zero);
+	});
+
+	beforeEach("Creating New Development Fund Instance.", async () => {
+		// await loadFixture(deploymentAndInitFixture);
 	});
 
 	it("Successfully created an instance without any error.", async () => {
-		developmentFund = await DevelopmentFund.new(
+		/// @dev Explicit call to use fixture snapshot as initial status
+		await loadFixture(deploymentAndInitFixture);
+
+		/// @dev The re-deployment is only valid on this local scope (variable developmentFund)
+		///   fixture removes it for following tests
+		let developmentFund = await DevelopmentFund.new(
 			testToken.address,
 			governance,
 			safeVault,
@@ -229,23 +254,35 @@ contract("DevelopmentFund (State)", (accounts) => {
 	});
 
 	it("Adding new Locked Token Owner should update the new Locked Token Owner storage.", async () => {
+		/// @dev Explicit call to use fixture snapshot as initial status
+		await loadFixture(deploymentAndInitFixture);
+
 		await developmentFund.updateLockedTokenOwner(newGovernance, { from: governance });
 		await checkStatus(developmentFund, [0, 0, 1, 0, 0, 0, 0], zero, zero, newGovernance, zero, zero, zero, zero);
 	});
 
 	it("Approving new Locked Token Owner should update the Locked Token Owner.", async () => {
+		/// @dev Explicit call to use fixture snapshot as initial status
+		await loadFixture(deploymentAndInitFixture);
+
 		await developmentFund.updateLockedTokenOwner(newGovernance, { from: governance });
 		await developmentFund.approveLockedTokenOwner({ from: multisig });
 		await checkStatus(developmentFund, [1, 0, 0, 0, 0, 0, 0], newGovernance, zero, zero, zero, zero, zero, zero);
 	});
 
 	it("After approval of new Locked Token Owner, newLockedTokenOwner should be zero address.", async () => {
+		/// @dev Explicit call to use fixture snapshot as initial status
+		await loadFixture(deploymentAndInitFixture);
+
 		await developmentFund.updateLockedTokenOwner(newGovernance, { from: governance });
 		await developmentFund.approveLockedTokenOwner({ from: multisig });
 		await checkStatus(developmentFund, [0, 0, 1, 0, 0, 0, 0], zero, zero, constants.ZERO_ADDRESS, zero, zero, zero, zero);
 	});
 
 	it("Adding new Deposit should update the remaining token and contract token balance.", async () => {
+		/// @dev Explicit call to use fixture snapshot as initial status
+		await loadFixture(deploymentAndInitFixture);
+
 		let value = randomValue() + 1;
 		await testToken.mint(userOne, value);
 		await testToken.approve(developmentFund.address, value, { from: userOne });
@@ -259,15 +296,24 @@ contract("DevelopmentFund (State)", (accounts) => {
 	});
 
 	it("The contract should be approved to make token transfer for deposit.", async () => {
+		/// @dev Explicit call to use fixture snapshot as initial status
+		await loadFixture(deploymentAndInitFixture);
+
 		let value = randomValue() + 1;
 		await expectRevert(developmentFund.depositTokens(value, { from: userOne }), "invalid transfer");
 	});
 
 	it("Zero Tokens could not be deposited.", async () => {
+		/// @dev Explicit call to use fixture snapshot as initial status
+		await loadFixture(deploymentAndInitFixture);
+
 		await expectRevert(developmentFund.depositTokens(0, { from: userOne }), "Amount needs to be bigger than zero.");
 	});
 
 	it("Updating the release schedule should update the lastReleaseTime, releaseDuration and releaseTokenAmount.", async () => {
+		/// @dev Explicit call to use fixture snapshot as initial status
+		await loadFixture(deploymentAndInitFixture);
+
 		let newReleaseTime = randomValue() + 1;
 		releaseTokenAmount = createReleaseTokenAmount();
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
@@ -290,6 +336,9 @@ contract("DevelopmentFund (State)", (accounts) => {
 	});
 
 	it("Updating the release schedule twice should update the lastReleaseTime, releaseDuration and releaseTokenAmount accordingly.", async () => {
+		/// @dev Explicit call to use fixture snapshot as initial status
+		await loadFixture(deploymentAndInitFixture);
+
 		// First Time
 		let newReleaseTime = randomValue() + 1;
 		releaseTokenAmount = createReleaseTokenAmount();
@@ -431,6 +480,9 @@ contract("DevelopmentFund (State)", (accounts) => {
 	});
 
 	it("After withdrawing all tokens after a particular schedule, the release array size should decrease.", async () => {
+		/// @dev This test requires a hard reset of init fixture
+		await deploymentAndInitFixture();
+
 		releaseTokenAmount = createReleaseTokenAmount();
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
 		await testToken.mint(governance, totalReleaseTokenAmount);
@@ -448,6 +500,9 @@ contract("DevelopmentFund (State)", (accounts) => {
 	});
 
 	it("After withdrawing all tokens after 2 particular schedule, the release array size should decrease.", async () => {
+		/// @dev This test requires a hard reset of init fixture
+		await deploymentAndInitFixture();
+
 		releaseTokenAmount = createReleaseTokenAmount();
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
 		await testToken.mint(governance, totalReleaseTokenAmount);
@@ -470,6 +525,9 @@ contract("DevelopmentFund (State)", (accounts) => {
 	});
 
 	it("After withdrawing part of tokens after a particular schedule, the release token amount should decrease.", async () => {
+		/// @dev This test requires a hard reset of init fixture
+		await deploymentAndInitFixture();
+
 		releaseTokenAmount = createReleaseTokenAmount();
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
 		await testToken.mint(governance, totalReleaseTokenAmount);
@@ -486,6 +544,9 @@ contract("DevelopmentFund (State)", (accounts) => {
 	});
 
 	it("After withdrawing all tokens after a particular schedule, the release time should be updated based on duration.", async () => {
+		/// @dev This test requires a hard reset of init fixture
+		await deploymentAndInitFixture();
+
 		releaseTokenAmount = createReleaseTokenAmount();
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
 		await testToken.mint(governance, totalReleaseTokenAmount);
@@ -513,6 +574,9 @@ contract("DevelopmentFund (State)", (accounts) => {
 	});
 
 	it("After withdrawing part of tokens after a particular schedule, the release time should not be updated based on duration.", async () => {
+		/// @dev This test requires a hard reset of init fixture
+		await deploymentAndInitFixture();
+
 		releaseTokenAmount = createReleaseTokenAmount();
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
 		await testToken.mint(governance, totalReleaseTokenAmount);

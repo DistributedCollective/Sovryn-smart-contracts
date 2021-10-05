@@ -1,7 +1,24 @@
-const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-05
+ * Bottlenecks found:
+ *  + beforeEach hook, redeploying DevelopmentFund and tokens, staking and vesting.
+ *  + createVesting: should be able to create vesting (552ms)
+ *  + createTeamVesting: should be able to create vesting (656ms)
+ *
+ * Total time elapsed: 10.3s
+ * After optimization: 6.4s
+ *
+ * Notes:
+ *   Reloading the fixture snapshot is not working for all tests. So, only
+ *   some of them are requesting to redeploy when needed.
+ */
 
-const { encodeParameters, etherMantissa, mineBlock, increaseTime, blockNumber } = require("../Utils/Ethereum");
+const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+
+const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
+
+const { mineBlock } = require("../Utils/Ethereum");
 
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
@@ -11,17 +28,14 @@ const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry2");
-const Vesting = artifacts.require("TeamVesting");
 const UpgradableProxy = artifacts.require("UpgradableProxy");
 
-const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 const FOUR_WEEKS = new BN(4 * 7 * 24 * 60 * 60);
 
 const TEAM_VESTING_CLIFF = FOUR_WEEKS.mul(new BN(6));
 const TEAM_VESTING_DURATION = FOUR_WEEKS.mul(new BN(36));
 
 const TOTAL_SUPPLY = "100000000000000000000000000";
-const ONE_MILLON = "1000000000000000000000000";
 const ZERO_ADDRESS = constants.ZERO_ADDRESS;
 
 const pricsSats = "2500";
@@ -32,11 +46,7 @@ contract("VestingRegistry", (accounts) => {
 	let staking, stakingLogic, feeSharingProxy;
 	let vestingFactory, vestingLogic, vestingRegistry;
 
-	before(async () => {
-		[root, account1, account2, account3, ...accounts] = accounts;
-	});
-
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		SOV = await SOV_ABI.new(TOTAL_SUPPLY);
 		cSOV1 = await TestToken.new("cSOV1", "cSOV1", 18, TOTAL_SUPPLY);
 		cSOV2 = await TestToken.new("cSOV2", "cSOV2", 18, TOTAL_SUPPLY);
@@ -60,10 +70,21 @@ contract("VestingRegistry", (accounts) => {
 			account1
 		);
 		vestingFactory.transferOwnership(vestingRegistry.address);
+	}
+
+	before(async () => {
+		[root, account1, account2, account3, ...accounts] = accounts;
+	});
+
+	beforeEach(async () => {
+		/// @dev Only some tests really require an initial redeployment
+		// await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("constructor", () => {
 		it("sets the expected values", async () => {
+			await loadFixture(deploymentAndInitFixture);
+
 			let _sov = await vestingRegistry.SOV();
 			let _CSOV1 = await vestingRegistry.CSOVtokens(0);
 			let _CSOV2 = await vestingRegistry.CSOVtokens(1);
@@ -300,6 +321,9 @@ contract("VestingRegistry", (accounts) => {
 
 	describe("createVesting", () => {
 		it("should be able to create vesting", async () => {
+			/// @dev This test requires a hard reset of init fixture
+			await deploymentAndInitFixture();
+
 			let amount = new BN(1000000);
 			await SOV.transfer(vestingRegistry.address, amount);
 
@@ -354,6 +378,9 @@ contract("VestingRegistry", (accounts) => {
 
 	describe("createTeamVesting", () => {
 		it("should be able to create vesting", async () => {
+			/// @dev This test requires a hard reset of init fixture
+			await deploymentAndInitFixture();
+
 			let amount = new BN(1000000);
 			await SOV.transfer(vestingRegistry.address, amount);
 
@@ -419,6 +446,9 @@ contract("VestingRegistry", (accounts) => {
 		});
 
 		it("only owner or admin should be able to stake tokens", async () => {
+			/// @dev This test requires a hard reset of init fixture
+			await deploymentAndInitFixture();
+
 			let amount = new BN(1000000);
 			await SOV.transfer(vestingRegistry.address, amount);
 
