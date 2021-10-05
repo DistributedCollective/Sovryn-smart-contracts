@@ -48,6 +48,10 @@ const StakingProxy = artifacts.require("StakingProxy");
 const StakingRewards = artifacts.require("StakingRewardsMockUp");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
+
+// Upgradable Vesting Registry
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 const BlockMockUp = artifacts.require("BlockMockUp");
 
 const wei = web3.utils.toWei;
@@ -84,6 +88,14 @@ contract("StakingRewards", (accounts) => {
 		staking = await StakingProxy.new(SOV.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address); // Test - 01/07/2021
+
+		// Upgradable Vesting Registry
+		vestingRegistryLogic = await VestingRegistryLogic.new();
+		vesting = await VestingRegistryProxy.new();
+		await vesting.setImplementation(vestingRegistryLogic.address);
+		vesting = await VestingRegistryLogic.at(vesting.address);
+
+		await staking.setVestingRegistry(vesting.address);
 
 		kickoffTS = await staking.kickoffTS.call();
 		inOneWeek = kickoffTS.add(new BN(DELAY));

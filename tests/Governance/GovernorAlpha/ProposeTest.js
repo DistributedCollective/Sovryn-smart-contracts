@@ -18,6 +18,9 @@ const GovernorAlpha = artifacts.require("GovernorAlpha");
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
+//Upgradable Vesting Registry
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const QUORUM_VOTES = etherMantissa(4000000);
 const TOTAL_SUPPLY = etherMantissa(1000000000);
@@ -39,6 +42,15 @@ contract("GovernorAlpha#propose/5", (accounts) => {
 		staking = await StakingLogic.at(staking.address);
 
 		gov = await GovernorAlpha.new(address(0), staking.address, address(0), 4, 0);
+		
+		// Upgradable Vesting Registry
+		vestingRegistryLogic = await VestingRegistryLogic.new();
+		vesting = await VestingRegistryProxy.new();
+		await vesting.setImplementation(vestingRegistryLogic.address);
+		vesting = await VestingRegistryLogic.at(vesting.address);
+
+		await staking.setVestingRegistry(vesting.address);
+	});
 
 		targets = [root];
 		// values = ["0"];

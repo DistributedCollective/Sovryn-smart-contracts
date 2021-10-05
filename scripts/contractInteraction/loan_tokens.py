@@ -210,7 +210,7 @@ def setupMarginLoanParams(collateralTokenAddress, loanTokenAddress):
     setup = [
         b"0x0", ## id
         False, ## active
-        conf.acct, ## owner
+        conf.contracts['multisig'], ## owner
         "0x0000000000000000000000000000000000000000", ## loanToken -> will be overwritten
         collateralTokenAddress, ## collateralToken.
         Wei("20 ether"), ## minInitialMargin
@@ -218,8 +218,9 @@ def setupMarginLoanParams(collateralTokenAddress, loanTokenAddress):
         0 ## fixedLoanTerm -> will be overwritten
     ]
     params.append(setup)
-    tx = loanToken.setupLoanParams(params, False)
-    print(tx.info())
+    data = loanToken.setupLoanParams.encode_input(params, False)
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
 
 def setupLoanParamsForCollaterals(loanTokenAddress, collateralAddresses):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
