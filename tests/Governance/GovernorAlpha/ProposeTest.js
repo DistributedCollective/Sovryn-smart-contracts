@@ -50,8 +50,7 @@ contract("GovernorAlpha#propose/5", (accounts) => {
 		vesting = await VestingRegistryLogic.at(vesting.address);
 
 		await staking.setVestingRegistry(vesting.address);
-	});
-
+	
 		targets = [root];
 		// values = ["0"];
 		values = [new BN("0")];
