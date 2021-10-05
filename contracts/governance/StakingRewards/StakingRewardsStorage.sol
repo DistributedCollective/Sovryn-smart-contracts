@@ -71,9 +71,11 @@ contract StakingRewardsStorage is Ownable {
 	 * activity. This is used to pass the block when the staking activity was done instead of
 	 * the latest block (only for the first interval after a staking event)
 	 */
-	/// @notice User Address -> Last Staking Activity Time
-	mapping(address => uint256) public lastStakingActivityTime;
+	struct LastStakingActivity {
+		uint128 lastStakingActivityTime;
+		uint128 lastStakingActivityBlock;
+	}
 
-	/// @notice User Address -> Last Staking Activity Block
-	mapping(address => uint256) public lastStakingActivityBlock;
+	/// Staker => Staking Activity time and block
+	mapping(address => LastStakingActivity) public stakingActivity;
 }
