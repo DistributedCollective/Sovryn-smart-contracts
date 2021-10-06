@@ -76,7 +76,7 @@ def main():
      # transferSOVtoTokenSender()
 
     transferSOVtoScriptAccount()
-    transferSOVtoTokenSender()
+    # transferSOVtoTokenSender()
     #readBalanceFromAMM()
     #checkRates()
 
@@ -1108,8 +1108,8 @@ def createProposalSIP0015():
     #     description)
 
 def transferSOVtoTokenSender():
-    # 102692.65 SOV
-    amount = 10269265 * 10**16
+    # 87152.28 SOV
+    amount = 8715228 * 10**16
 
     tokenSenderAddress = contracts['TokenSender']
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
@@ -1122,8 +1122,8 @@ def transferSOVtoTokenSender():
     print(txId)
 
 def transferSOVtoScriptAccount():
-    # 4022.70 SOV
-    amount = 402270 * 10**16
+    # 4859.85 SOV
+    amount = 485985 * 10**16
 
     # TODO set receiver address
     receiver = "0x27D55f5668eF4438635bdCE0aDCA083507E77752"
