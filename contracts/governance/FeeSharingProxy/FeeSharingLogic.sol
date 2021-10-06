@@ -318,6 +318,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		uint256 nCheckpoints = numTokenCheckpoints[_token];
 
 		uint96 totalWeightedStake = _getVoluntaryWeightedStake(blockNumber - 1, block.timestamp);
+		require(totalWeightedStake > 0, "Invalid totalWeightedStake");
 		if (nCheckpoints > 0 && tokenCheckpoints[_token][nCheckpoints - 1].blockNumber == blockNumber) {
 			tokenCheckpoints[_token][nCheckpoints - 1].totalWeightedStake = totalWeightedStake;
 			tokenCheckpoints[_token][nCheckpoints - 1].numTokens = _numTokens;
