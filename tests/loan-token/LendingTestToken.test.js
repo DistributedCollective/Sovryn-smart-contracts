@@ -17,7 +17,7 @@
 const { expect } = require("chai");
 const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
-const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { constants, expectRevert, BN } = require("@openzeppelin/test-helpers");
 const { increaseTime } = require("../Utils/Ethereum");
 
 const LoanToken = artifacts.require("LoanToken");
@@ -135,10 +135,16 @@ contract("LoanTokenLending", (accounts) => {
 			await cash_out_from_the_pool_uint256_max_should_withdraw_total_balance(loanToken, lender, SUSD);
 		});
 
+		it("should fail when minting on address(0) behalf", async () => {
+			let amount = new BN(1);
+			await SUSD.approve(loanToken.address, amount);
+			await expectRevert(loanToken.mint(constants.ZERO_ADDRESS, amount), "15");
+		});
+
 		it("test profit", async () => {
 			await lend_to_the_pool(loanToken, lender, SUSD, WRBTC, sovryn);
 
-			// above functionn also opens a trading position, so I need to add some more funds to be able to withdraw everything
+			// above function also opens a trading position, so I need to add some more funds to be able to withdraw everything
 			const balanceOf0 = await loanToken.assetBalanceOf(lender);
 			await SUSD.approve(loanToken.address, balanceOf0.toString());
 			await loanToken.mint(account2, balanceOf0.toString());
