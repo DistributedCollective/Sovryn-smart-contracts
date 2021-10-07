@@ -42,7 +42,7 @@ contract("GovernorAlpha#propose/5", (accounts) => {
 		staking = await StakingLogic.at(staking.address);
 
 		gov = await GovernorAlpha.new(address(0), staking.address, address(0), 4, 0);
-		
+
 		// Upgradable Vesting Registry
 		vestingRegistryLogic = await VestingRegistryLogic.new();
 		vesting = await VestingRegistryProxy.new();
@@ -50,7 +50,7 @@ contract("GovernorAlpha#propose/5", (accounts) => {
 		vesting = await VestingRegistryLogic.at(vesting.address);
 
 		await staking.setVestingRegistry(vesting.address);
-	
+
 		targets = [root];
 		// values = ["0"];
 		values = [new BN("0")];

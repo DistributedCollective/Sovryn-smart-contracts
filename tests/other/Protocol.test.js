@@ -2,9 +2,12 @@
  * No bottlenecks found. Tests don't need redeployments.
  *
  * Total time elapsed: 4.9s
+ *
+ * 2021-10-07: Added 2 tests to achieve a 100% of coverture.
  */
 
-const { constants, expectEvent } = require("@openzeppelin/test-helpers");
+const { constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
 const { getSUSD, getRBTC, getWRBTC, getBZRX, getSovryn, getPriceFeeds } = require("../Utils/initializer.js");
 
@@ -51,6 +54,15 @@ contract("Protocol", (accounts) => {
 			expect((await sovryn.getTarget(sig2)) == constants.ZERO_ADDRESS).to.be.true;
 		});
 
+		it("should revert for count mismatch while setting targets", async () => {
+			const sig1 = "testFunction1(address,uint256,bytes)";
+			const sig2 = "testFunction2(address[],uint256[],bytes[])";
+			const sigs = [sig1, sig2];
+			let targets = [ONE_ADDRESS, ONE_ADDRESS, ONE_ADDRESS];
+
+			await expectRevert(sovryn.setTargets(sigs, targets), "count mismatch");
+		});
+
 		it("Test replaceContract", async () => {
 			const sig = "setupLoanParams((bytes32,bool,address,address,address,uint256,uint256,uint256)[])";
 			const loanSettings = await LoanSettings.new();
@@ -71,6 +83,10 @@ contract("Protocol", (accounts) => {
 	});
 
 	describe("Events - replaceContract", () => {
+		it("should fail replaceContract w/ bad address", async () => {
+			await expectRevert(sovryn.replaceContract(sovryn.address), "setup failed");
+		});
+
 		it("Test replaceContract - Affiliates", async () => {
 			const selector = "getUserNotFirstTradeFlag(address)";
 			let oldAffiliatesAddr = await sovryn.getTarget(selector);
