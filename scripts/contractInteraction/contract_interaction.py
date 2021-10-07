@@ -1122,8 +1122,8 @@ def transferSOVtoTokenSender():
     print(txId)
 
 def transferSOVtoScriptAccount():
-    # 4859.85 SOV
-    amount = 485985 * 10**16
+    # 15600.71 SOV
+    amount = 1560071 * 10**16
 
     # TODO set receiver address
     receiver = "0x27D55f5668eF4438635bdCE0aDCA083507E77752"

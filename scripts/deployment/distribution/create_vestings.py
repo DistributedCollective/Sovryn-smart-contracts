@@ -34,8 +34,8 @@ def main():
     balanceBefore = acct.balance()
     totalAmount = 0
 
-    # amounts examples: 737.31, 44.24, 707.82
-    data = parseFile('./scripts/deployment/distribution/vestings11.csv', 10**16)
+    # amounts examples: 14625.29, 975.42
+    data = parseFile('./scripts/deployment/distribution/vestings12.csv', 10**16)
     totalAmount += data["totalAmount"]
 
     for teamVesting in data["teamVestingList"]:
@@ -54,12 +54,12 @@ def main():
                 raise Exception("Address already has team vesting contract with different schedule")
         print("=======================================")
         if isTeam:
-            # vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
-            # vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
+            vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
+            vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
             print("TeamVesting: ", vestingAddress)
         else:
-            # vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
-            # vestingAddress = vestingRegistry.getVesting(tokenOwner)
+            vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
+            vestingAddress = vestingRegistry.getVesting(tokenOwner)
             print("Vesting: ", vestingAddress)
 
         print(tokenOwner)
@@ -68,9 +68,9 @@ def main():
         print(cliff)
         print(duration)
         print((duration - cliff) / FOUR_WEEKS + 1)
-        # SOVtoken.approve(vestingAddress, amount)
-        # vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=acct)
-        # vestingLogic.stakeTokens(amount)
+        SOVtoken.approve(vestingAddress, amount)
+        vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=acct)
+        vestingLogic.stakeTokens(amount)
 
         # stakes = staking.getStakes(vestingAddress)
         # print(stakes)
