@@ -233,9 +233,13 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		/// @dev Ensure authorized use of existing loan.
 		// require(loanId == 0 || msg.sender == borrower, "401 use of existing loan");
 
-		if (collateralTokenAddress == address(0)) {
-			collateralTokenAddress = wrbtcTokenAddress;
-		}
+		/// @dev The condition is never met.
+		///   Address zero is not allowed by previous require validation.
+		///   This check is unneeded and was lowering the test coverage index.
+		// if (collateralTokenAddress == address(0)) {
+		// 	collateralTokenAddress = wrbtcTokenAddress;
+		// }
+		
 		require(collateralTokenAddress != loanTokenAddress, "10");
 
 		_settleInterest();
