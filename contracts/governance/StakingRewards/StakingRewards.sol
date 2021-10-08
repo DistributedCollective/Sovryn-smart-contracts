@@ -96,12 +96,16 @@ contract StakingRewards is StakingRewardsStorage {
 	 * */
 	function updateRewards(address receiver) external {
 		require(msg.sender == address(staking), "unauthorized");
-		//Start of the interval and last finalised block right before a staking activity
-		stakingActivity[receiver] = LastStakingActivity({
-			lastStakingActivityTime: uint128(staking.timestampToLockDate(block.timestamp)),
-			lastStakingActivityBlock: uint128(_getCurrentBlockNumber() - 1)
-		});
+		uint128 lastInterval = uint128(staking.timestampToLockDate(block.timestamp));
+		uint128 lastBlock = uint128(_getCurrentBlockNumber() - 1);
 		_calculateRewards(receiver);
+		//Sets the time and block for the first staking activity in an interval
+		if (lastInterval != stakingActivity[receiver].lastStakingActivityTime) {
+			stakingActivity[receiver] = LastStakingActivity({
+				lastStakingActivityTime: lastInterval,
+				lastStakingActivityBlock: lastBlock
+			});	
+		}
 	}
 
 	/**
