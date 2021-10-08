@@ -49,6 +49,7 @@ const {
 	getSovryn,
 	open_margin_trade_position,
 } = require("../Utils/initializer.js");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const wei = web3.utils.toWei;
 
@@ -477,6 +478,26 @@ contract("LoanTokenTrading", (accounts) => {
 				wei("0.01", "ether"),
 				RBTC.address,
 				wei("0.02", "ether")
+			);
+		});
+
+		/// @dev For test coverage, it's required to perform a margin trade using WRBTC as collateral
+		it("Check marginTrade w/ collateralToken as address(0) ", async () => {
+			await set_demand_curve(loanToken);
+			await SUSD.transfer(loanToken.address, wei("1000000", "ether"));
+			await WRBTC.mint(accounts[2], oneEth);
+			await WRBTC.approve(loanToken.address, oneEth, { from: accounts[2] });
+
+			await loanToken.marginTrade(
+				"0x0", // loanId  (0 for new loans)
+				wei("2", "ether"), // leverageAmount
+				0, // loanTokenSent (SUSD)
+				1000, // collateral token sent
+				ZERO_ADDRESS, // collateralTokenAddress (address 0 means collateral is WRBTC)
+				accounts[1], // trader,
+				2000,
+				"0x", // loanDataBytes (only required with ether)
+				{ from: accounts[2] }
 			);
 		});
 
