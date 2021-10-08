@@ -239,7 +239,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		// if (collateralTokenAddress == address(0)) {
 		// 	collateralTokenAddress = wrbtcTokenAddress;
 		// }
-		
+
 		require(collateralTokenAddress != loanTokenAddress, "10");
 
 		_settleInterest();

@@ -316,7 +316,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			await lend_to_pool(loanToken, SUSD, owner);
 
 			// determine borrowing parameter
-			const withdrawAmount = oneEth.mul(new BN(10)); // i want to borrow 10 USD
+			const withdrawAmount = oneEth.mul(new BN(10)); // I want to borrow 10 USD
 			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
 			const collateralTokenSent = await sovryn.getRequiredCollateral(
 				SUSD.address,
@@ -350,7 +350,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			await set_demand_curve(loanToken);
 
 			// determine borrowing parameter
-			const withdrawAmount = oneEth.mul(new BN(10)); // i want to borrow 10 USD
+			const withdrawAmount = oneEth.mul(new BN(10)); // I want to borrow 10 USD
 			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
 			let collateralTokenSent = await sovryn.getRequiredCollateral(
 				SUSD.address,
@@ -386,7 +386,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			await set_demand_curve(loanToken);
 
 			// determine borrowing parameter
-			const withdrawAmount = oneEth.mul(new BN(10)); // i want to borrow 10 USD
+			const withdrawAmount = oneEth.mul(new BN(10)); // I want to borrow 10 USD
 			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
 			let collateralTokenSent = await sovryn.getRequiredCollateral(
 				SUSD.address,
@@ -444,7 +444,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			await set_demand_curve(loanToken);
 
 			// determine borrowing parameter
-			const withdrawAmount = oneEth.mul(new BN(10)); // i want to borrow 10 USD
+			const withdrawAmount = oneEth.mul(new BN(10)); // I want to borrow 10 USD
 			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
 			let collateralTokenSent = await sovryn.getRequiredCollateral(
 				SUSD.address,
@@ -502,7 +502,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			await set_demand_curve(loanToken);
 
 			// determine borrowing parameter
-			const withdrawAmount = oneEth.mul(new BN(10)); // i want to borrow 10 USD
+			const withdrawAmount = oneEth.mul(new BN(10)); // I want to borrow 10 USD
 
 			await SUSD.approve(loanToken.address, withdrawAmount);
 
