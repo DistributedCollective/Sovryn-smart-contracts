@@ -115,10 +115,9 @@ contract StakingRewards is StakingRewardsStorage {
 		(uint256 withdrawalTime, uint256 amount) = getStakerCurrentReward(true, _receiver);
 		if (withdrawalTime > 0 && amount > 0) {
 			totalRewards += amount;
+			withdrawals[_receiver] = withdrawalTime;
+			accumulatedRewards[_receiver] = totalRewards;
 		}
-
-		withdrawals[_receiver] = withdrawalTime;
-		accumulatedRewards[_receiver] = totalRewards;
 	}
 
 	/**
@@ -200,7 +199,7 @@ contract StakingRewards is StakingRewardsStorage {
 
 		uint256 lastStakingInterval = staking.timestampToLockDate(currentTS);
 		lastWithdrawalInterval = lastWithdrawal > 0 ? lastWithdrawal : startTime;
-		if (lastStakingInterval < lastWithdrawalInterval) return (0, 0);
+		if (lastStakingInterval <= lastWithdrawalInterval) return (0, 0);
 
 		if (considerMaxDuration) {
 			uint256 addedMaxDuration;
