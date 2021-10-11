@@ -9,6 +9,8 @@
  * - removed unneeded variables
  *
  * Notes: Applied fixture to use snapshot beforeEach test.
+ *   Added tests to increase the test coverage index:
+ *     + "Check marginTrade w/ collateralToken as address(0)"
  */
 
 const { expect } = require("chai");
