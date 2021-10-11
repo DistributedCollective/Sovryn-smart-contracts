@@ -12,6 +12,10 @@
  *   Updated to use the initializer.js functions for protocol deployment.
  *   Updated to use WRBTC as collateral token, instead of custom testWRBTC token.
  *   Updated to use SUSD as underlying token, instead of custom underlyingToken.
+ *   Moved some initialization code from tests to fixture.
+ *   Added tests to increase the test coverage index:
+ *     + "test avgBorrowInterestRate() function"
+ *     + "test totalSupplyInterestRate() function"
  */
 
 const { expect } = require("chai");
@@ -46,6 +50,7 @@ contract("LoanTokenLending", (accounts) => {
 	let lender;
 	let SUSD, WRBTC;
 	let sovryn, loanToken;
+	let baseRate;
 
 	async function deploymentAndInitFixture(_wallets, _provider) {
 		// Deploying sovrynProtocol w/ generic function from initializer.js
@@ -87,6 +92,14 @@ contract("LoanTokenLending", (accounts) => {
 		if (lender == (await sovryn.owner())) await sovryn.setLoanPool([loanToken.address], [loanTokenAddress]);
 
 		await WRBTC.mint(sovryn.address, wei("500", "ether"));
+
+		baseRate = wei("1", "ether");
+		const rateMultiplier = wei("20.25", "ether");
+		const targetLevel = wei("80", "ether");
+		const kinkLevel = wei("90", "ether");
+		const maxScaleRate = wei("100", "ether");
+
+		await loanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate);
 	}
 
 	before(async () => {
@@ -98,15 +111,16 @@ contract("LoanTokenLending", (accounts) => {
 	});
 
 	describe("test lending using wRBTC as loanToken", () => {
+		it("test avgBorrowInterestRate() function", async () => {
+			expect(await await loanToken.avgBorrowInterestRate()).to.be.a.bignumber.equal(new BN(0));
+		});
+
+		it("test totalSupplyInterestRate() function", async () => {
+			const deposit_amount = new BN(1);
+			expect(await loanToken.totalSupplyInterestRate(deposit_amount)).to.be.a.bignumber.equal(new BN(0));
+		});
+
 		it("test lend to the pool", async () => {
-			const baseRate = wei("1", "ether");
-			const rateMultiplier = wei("20.25", "ether");
-			const targetLevel = wei("80", "ether");
-			const kinkLevel = wei("90", "ether");
-			const maxScaleRate = wei("100", "ether");
-
-			await loanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate);
-
 			borrow_interest_rate = await loanToken.borrowInterestRate();
 			expect(borrow_interest_rate.gt(baseRate)).to.be.true;
 
