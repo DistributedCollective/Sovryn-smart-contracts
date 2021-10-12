@@ -21,6 +21,27 @@ const ERC20TransferLogic = artifacts.require("ERC20TransferLogic");
 const TestPoolToken = artifacts.require("TestPoolToken");
 const Migrator = artifacts.require("LMV1toLMV2Migrator");
 
+const TestWrbtc = artifacts.require("TestWrbtc");
+const sovrynProtocol = artifacts.require("sovrynProtocol");
+const ProtocolSettings = artifacts.require("ProtocolSettings");
+const ISovryn = artifacts.require("ISovryn");
+
+const LoanToken = artifacts.require("LoanToken");
+const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
+const LoanTokenLogicWRBTC = artifacts.require("LoanTokenLogicWrbtc");
+const LoanSettings = artifacts.require("LoanSettings");
+const LoanMaintenance = artifacts.require("LoanMaintenance");
+const LoanOpenings = artifacts.require("LoanOpenings");
+const LoanClosingsBase = artifacts.require("LoanClosingsBase");
+const LoanClosingsWith = artifacts.require("LoanClosingsWith");
+const SwapsExternal = artifacts.require("SwapsExternal");
+
+const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
+const TestSovrynSwap = artifacts.require("TestSovrynSwap");
+const SwapsImplLocal = artifacts.require("SwapsImplLocal");
+
+const wei = web3.utils.toWei;
+
 describe("LiquidityMiningMigration", () => {
 	const name = "Test SOV Token";
 	const symbol = "TST";
@@ -36,7 +57,8 @@ describe("LiquidityMiningMigration", () => {
 	const unlockedImmediatelyPercent = new BN(1000); //10%
 
 	let accounts;
-	let root, account1, account2, account3, account4, account5, account6, account7, account8, account9;
+	let sovryn, loanToken, loanTokenWRBTC;
+	let lender, account1, account2, account3, account4, account5, account6, account7, account8, account9;
 	let SOVToken, token1, token2, token3, token4, token5, token6, token7, token8, liquidityMiningConfigToken;
 	let liquidityMiningProxy, liquidityMining, liquidityMiningV2, migrator, wrapper;
 	let rewardTransferLogic, lockedSOVAdmins, lockedSOV;
@@ -52,7 +74,7 @@ describe("LiquidityMiningMigration", () => {
 
 	before(async () => {
 		accounts = await web3.eth.getAccounts();
-		[root, account1, account2, account3, ...accounts] = accounts;
+		[lender, account1, account2, account3, ...accounts] = accounts;
 	});
 
 	beforeEach(async () => {
@@ -72,6 +94,9 @@ describe("LiquidityMiningMigration", () => {
 		lockedSOVAdmins = [account1, account2];
 
 		lockedSOV = await TestLockedSOV.new(SOVToken.address, lockedSOVAdmins);
+
+		await deployProtocol();
+		await deployLoanTokens();
 
 		await deployLiquidityMining();
 		await liquidityMining.initialize(
@@ -745,6 +770,264 @@ describe("LiquidityMiningMigration", () => {
 		});
 	});
 
+	describe("Test lending with liquidity mining V2", async () => {
+		it("Should lend to the pool at the liquidity mining V1 and migrate it", async () => {
+			const depositAmount = new BN(wei("400", "ether"));
+			await liquidityMining.add(loanToken.address, new BN(10), false);
+			await loanToken.setLiquidityMiningAddress(liquidityMining.address);
+			await underlyingToken.approve(loanToken.address, depositAmount);
+			const tx = await loanToken.mint(lender, depositAmount, true);
+
+			await liquidityMining.addAdmin(migrator.address);
+			await liquidityMining.startMigrationGracePeriod();
+			await liquidityMiningV2.addAdmin(migrator.address);
+			await migrator.migratePools();
+			await migrator.migrateUsers([lender]);
+
+			await loanToken.setLiquidityMiningAddress(liquidityMiningV2.address);
+			let userInfo = await liquidityMiningV2.getUserInfo(loanToken.address, lender);
+
+			expect(await loanToken.balanceOf(lender)).bignumber.equal("0");
+			expect(userInfo.amount).bignumber.equal(depositAmount);
+			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount);
+
+			expectEvent(tx, "Mint", {
+				minter: lender,
+				tokenAmount: depositAmount,
+				assetAmount: depositAmount,
+			});
+		});
+
+		it("Should lend to the pool at the liquidity mining V1, migrate it and lend to liquidity mining V2", async () => {
+			const depositAmount = new BN(wei("400", "ether"));
+			await liquidityMining.add(loanToken.address, new BN(10), false);
+			await loanToken.setLiquidityMiningAddress(liquidityMining.address);
+			await underlyingToken.approve(loanToken.address, depositAmount);
+			await loanToken.mint(lender, depositAmount, true);
+
+			await liquidityMining.addAdmin(migrator.address);
+			await liquidityMining.startMigrationGracePeriod();
+			await liquidityMiningV2.addAdmin(migrator.address);
+			await migrator.migratePools();
+			await migrator.migrateUsers([lender]);
+
+			await loanToken.setLiquidityMiningAddress(liquidityMiningV2.address);
+			await underlyingToken.approve(loanToken.address, depositAmount);
+			await loanToken.mint(lender, depositAmount, true);
+
+			const userInfo = await liquidityMiningV2.getUserInfo(loanToken.address, lender);
+
+			expect(await loanToken.balanceOf(lender)).bignumber.equal("0");
+			expect(userInfo.amount).bignumber.equal(depositAmount.mul(new BN(2)));
+			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount.mul(new BN(2)));
+		});
+
+		it("Should lend to the pool at the liquidity mining V1, lend to liquidity mining V2 and migrate", async () => {
+			const depositAmount = new BN(wei("400", "ether"));
+			await liquidityMining.add(loanToken.address, new BN(10), false);
+			await loanToken.setLiquidityMiningAddress(liquidityMining.address);
+			await underlyingToken.approve(loanToken.address, depositAmount);
+			await loanToken.mint(lender, depositAmount, true);
+
+			await liquidityMining.addAdmin(migrator.address);
+			await liquidityMining.startMigrationGracePeriod();
+			await liquidityMiningV2.addAdmin(migrator.address);
+			await migrator.migratePools();
+
+			await loanToken.setLiquidityMiningAddress(liquidityMiningV2.address);
+			await underlyingToken.approve(loanToken.address, depositAmount);
+			await loanToken.mint(lender, depositAmount, true);
+
+			await migrator.migrateUsers([lender]);
+
+			const userInfo = await liquidityMiningV2.getUserInfo(loanToken.address, lender);
+
+			expect(await loanToken.balanceOf(lender)).bignumber.equal("0");
+			expect(userInfo.amount).bignumber.equal(depositAmount.mul(new BN(2)));
+			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount.mul(new BN(2)));
+		});
+
+		it("Should only allow to burn tokens if migration finished", async () => {
+			const depositAmount = new BN(wei("400", "ether"));
+			await liquidityMining.add(loanToken.address, new BN(10), false);
+			await loanToken.setLiquidityMiningAddress(liquidityMining.address);
+			await underlyingToken.approve(loanToken.address, depositAmount);
+			await loanToken.mint(lender, depositAmount, true);
+
+			await liquidityMining.addAdmin(migrator.address);
+			await liquidityMining.startMigrationGracePeriod();
+			await liquidityMiningV2.addAdmin(migrator.address);
+			await migrator.migratePools();
+			await migrator.migrateUsers([lender]);
+			await migrator.finishUsersMigration();
+
+			await loanToken.setLiquidityMiningAddress(liquidityMiningV2.address);
+			let userInfo = await liquidityMiningV2.getUserInfo(loanToken.address, lender);
+			await expectRevert(loanToken.burn(lender, userInfo.amount, true), "Migration is not over yet");
+		});
+
+		it("Should remove the pool tokens from the liquidity mining V2 pool and burn them after migration", async () => {
+			const depositAmount = new BN(wei("400", "ether"));
+			await liquidityMining.add(loanToken.address, new BN(10), false);
+			await loanToken.setLiquidityMiningAddress(liquidityMining.address);
+			await underlyingToken.approve(loanToken.address, depositAmount);
+			await loanToken.mint(lender, depositAmount, true);
+
+			await liquidityMining.addAdmin(migrator.address);
+			await liquidityMining.startMigrationGracePeriod();
+			await liquidityMiningV2.addAdmin(migrator.address);
+			await migrator.migratePools();
+			await migrator.migrateUsers([lender]);
+			await migrator.finishUsersMigration();
+			await migrator.migrateFunds();
+
+			await loanToken.setLiquidityMiningAddress(liquidityMiningV2.address);
+
+			let userInfo = await liquidityMiningV2.getUserInfo(loanToken.address, lender);
+			expect(await loanToken.balanceOf(lender)).bignumber.equal("0");
+			expect(userInfo.amount).bignumber.equal(depositAmount);
+			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount);
+
+			const tx = await loanToken.burn(lender, userInfo.amount, true);
+			userInfo = await liquidityMiningV2.getUserInfo(loanToken.address, lender);
+			//expected: user pool token balance stayed the same but LM balance is 0
+			expect(await loanToken.balanceOf(lender)).bignumber.equal("0");
+			expect(userInfo.amount).bignumber.equal("0");
+			expect(await loanToken.totalSupply()).bignumber.equal("0");
+			//expect the Burn event to mention the lender
+			expectEvent(tx, "Burn", {
+				burner: lender,
+				tokenAmount: depositAmount,
+				assetAmount: depositAmount,
+			});
+		});
+	});
+
+	describe("Test WRBTC lending with liquidity mining", () => {
+		it("Should lend to the pool at the liquidity mining V1, migrate it and lend to liquidity mining V2", async () => {
+			const depositAmount = new BN(wei("400", "ether"));
+			await liquidityMining.add(loanTokenWRBTC.address, new BN(10), true);
+			await loanTokenWRBTC.setLiquidityMiningAddress(liquidityMining.address);
+
+			const tx = await loanTokenWRBTC.mintWithBTC(lender, true, { value: depositAmount });
+
+			await liquidityMining.addAdmin(migrator.address);
+			await liquidityMining.startMigrationGracePeriod();
+			await liquidityMiningV2.addAdmin(migrator.address);
+			await migrator.migratePools();
+			await migrator.migrateUsers([lender]);
+
+			await loanTokenWRBTC.setLiquidityMiningAddress(liquidityMiningV2.address);
+			const userInfo = await liquidityMiningV2.getUserInfo(loanTokenWRBTC.address, lender);
+			//expected: user pool token balance is 0, but balance of LM contract increased
+			expect(await loanTokenWRBTC.balanceOf(lender)).bignumber.equal("0");
+			expect(userInfo.amount).bignumber.equal(depositAmount);
+			expect(await loanTokenWRBTC.totalSupply()).bignumber.equal(depositAmount);
+			//expect the Mint event to mention the lender
+			expectEvent(tx, "Mint", {
+				minter: lender,
+				tokenAmount: depositAmount,
+				assetAmount: depositAmount,
+			});
+		});
+
+		it("Should lend to the pool at the liquidity mining V1, migrate it and lend to liquidity mining V2", async () => {
+			const depositAmount = new BN(wei("400", "ether"));
+			await liquidityMining.add(loanTokenWRBTC.address, new BN(10), true);
+			await loanTokenWRBTC.setLiquidityMiningAddress(liquidityMining.address);
+
+			await loanTokenWRBTC.mintWithBTC(lender, true, { value: depositAmount });
+
+			await liquidityMining.addAdmin(migrator.address);
+			await liquidityMining.startMigrationGracePeriod();
+			await liquidityMiningV2.addAdmin(migrator.address);
+			await migrator.migratePools();
+			await migrator.migrateUsers([lender]);
+
+			await loanTokenWRBTC.setLiquidityMiningAddress(liquidityMiningV2.address);
+			await loanTokenWRBTC.mintWithBTC(lender, true, { value: depositAmount });
+			const userInfo = await liquidityMiningV2.getUserInfo(loanTokenWRBTC.address, lender);
+			//expected: user pool token balance is 0, but balance of LM contract increased
+			expect(await loanTokenWRBTC.balanceOf(lender)).bignumber.equal("0");
+			expect(userInfo.amount).bignumber.equal(depositAmount.mul(new BN(2)));
+			expect(await loanTokenWRBTC.totalSupply()).bignumber.equal(depositAmount.mul(new BN(2)));
+		});
+
+		it("Should lend to the pool at the liquidity mining V1, lend to liquidity mining V2 and migrate", async () => {
+			const depositAmount = new BN(wei("400", "ether"));
+			await liquidityMining.add(loanTokenWRBTC.address, new BN(10), true);
+			await loanTokenWRBTC.setLiquidityMiningAddress(liquidityMining.address);
+
+			await loanTokenWRBTC.mintWithBTC(lender, true, { value: depositAmount });
+
+			await liquidityMining.addAdmin(migrator.address);
+			await liquidityMining.startMigrationGracePeriod();
+			await liquidityMiningV2.addAdmin(migrator.address);
+			await migrator.migratePools();
+
+			await loanTokenWRBTC.setLiquidityMiningAddress(liquidityMiningV2.address);
+			await loanTokenWRBTC.mintWithBTC(lender, true, { value: depositAmount });
+
+			await migrator.migrateUsers([lender]);
+
+			const userInfo = await liquidityMiningV2.getUserInfo(loanTokenWRBTC.address, lender);
+			//expected: user pool token balance is 0, but balance of LM contract increased
+			expect(await loanTokenWRBTC.balanceOf(lender)).bignumber.equal("0");
+			expect(userInfo.amount).bignumber.equal(depositAmount.mul(new BN(2)));
+			expect(await loanTokenWRBTC.totalSupply()).bignumber.equal(depositAmount.mul(new BN(2)));
+		});
+
+		it("Should only allow to burn tokens if migration finished", async () => {
+			const depositAmount = new BN(wei("400", "ether"));
+			await liquidityMining.add(loanTokenWRBTC.address, new BN(10), false);
+			await loanTokenWRBTC.setLiquidityMiningAddress(liquidityMining.address);
+
+			await loanTokenWRBTC.mintWithBTC(lender, true, { value: depositAmount });
+
+			await liquidityMining.addAdmin(migrator.address);
+			await liquidityMining.startMigrationGracePeriod();
+			await liquidityMiningV2.addAdmin(migrator.address);
+			await migrator.migratePools();
+			await migrator.migrateUsers([lender]);
+			await migrator.finishUsersMigration();
+
+			await loanTokenWRBTC.setLiquidityMiningAddress(liquidityMiningV2.address);
+			let userInfo = await liquidityMiningV2.getUserInfo(loanTokenWRBTC.address, lender);
+			await expectRevert(loanTokenWRBTC.burnToBTC(lender, userInfo.amount, true), "Migration is not over yet");
+		});
+
+		it("Should remove the pool tokens from the liquidity mining pool and burn them", async () => {
+			const depositAmount = new BN(wei("400", "ether"));
+			await liquidityMining.add(loanTokenWRBTC.address, new BN(10), false);
+			await loanTokenWRBTC.setLiquidityMiningAddress(liquidityMining.address);
+
+			await loanTokenWRBTC.mintWithBTC(lender, true, { value: depositAmount });
+
+			await liquidityMining.addAdmin(migrator.address);
+			await liquidityMining.startMigrationGracePeriod();
+			await liquidityMiningV2.addAdmin(migrator.address);
+			await migrator.migratePools();
+			await migrator.migrateUsers([lender]);
+			await migrator.finishUsersMigration();
+			await migrator.migrateFunds();
+
+			await loanTokenWRBTC.setLiquidityMiningAddress(liquidityMiningV2.address);
+			let userInfo = await liquidityMiningV2.getUserInfo(loanTokenWRBTC.address, lender);
+			const tx = await loanTokenWRBTC.burnToBTC(lender, userInfo.amount, true);
+			userInfo = await liquidityMiningV2.getUserInfo(loanTokenWRBTC.address, lender);
+			//expected: user pool token balance stayed the same but LM balance is 0
+			expect(await loanTokenWRBTC.balanceOf(lender)).bignumber.equal("0");
+			expect(userInfo.amount).bignumber.equal("0");
+			expect(await loanTokenWRBTC.totalSupply()).bignumber.equal("0");
+			//expect the Burn event to mention the lender
+			expectEvent(tx, "Burn", {
+				burner: lender,
+				tokenAmount: depositAmount,
+				assetAmount: depositAmount,
+			});
+		});
+	});
+
 	async function deployLiquidityMining() {
 		let liquidityMiningLogic = await LiquidityMiningLogic.new();
 		liquidityMiningProxy = await LiquidityMiningProxy.new();
@@ -984,5 +1267,86 @@ describe("LiquidityMiningMigration", () => {
 		for (let i = 0; i < blocks; i++) {
 			await mineBlock();
 		}
+	}
+
+	async function deployProtocol() {
+		//Token
+		underlyingToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
+		testWrbtc = await TestWrbtc.new();
+
+		const sovrynproxy = await sovrynProtocol.new();
+		sovryn = await ISovryn.at(sovrynproxy.address);
+
+		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
+		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
+		await sovryn.replaceContract((await ProtocolSettings.new()).address);
+		await sovryn.replaceContract((await LoanSettings.new()).address);
+		await sovryn.replaceContract((await LoanMaintenance.new()).address);
+		await sovryn.replaceContract((await SwapsExternal.new()).address);
+		await sovryn.replaceContract((await LoanOpenings.new()).address);
+
+		await sovryn.setWrbtcToken(testWrbtc.address);
+
+		feeds = await PriceFeedsLocal.new(testWrbtc.address, sovryn.address);
+		await feeds.setRates(underlyingToken.address, testWrbtc.address, wei("0.01", "ether"));
+		const swaps = await SwapsImplLocal.new();
+		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
+		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
+		await sovryn.setSupportedTokens([underlyingToken.address, testWrbtc.address], [true, true]);
+		await sovryn.setPriceFeedContract(
+			feeds.address //priceFeeds
+		);
+		await sovryn.setSwapsImplContract(
+			swaps.address // swapsImpl
+		);
+		await sovryn.setFeesController(lender);
+	}
+
+	async function deployLoanTokens() {
+		loanTokenLogicLM = await LoanTokenLogicLM.new();
+		loanToken = await LoanToken.new(lender, loanTokenLogicLM.address, sovryn.address, testWrbtc.address);
+		await loanToken.initialize(underlyingToken.address, name, symbol); //iToken
+		loanToken = await LoanTokenLogicLM.at(loanToken.address);
+
+		params = [
+			"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object
+			false, // bool active; // if false, this object has been disabled by the owner and can't be used for future loans
+			lender, // address owner; // owner of this object
+			underlyingToken.address, // address loanToken; // the token being loaned
+			testWrbtc.address, // address collateralToken; // the required collateral token
+			wei("20", "ether"), // uint256 minInitialMargin; // the minimum allowed initial margin
+			wei("15", "ether"), // uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
+			2419200, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
+		];
+
+		await loanToken.setupLoanParams([params], false);
+
+		const loanTokenAddress = await loanToken.loanTokenAddress();
+		if (lender == (await sovryn.owner())) await sovryn.setLoanPool([loanToken.address], [loanTokenAddress]);
+
+		// --------------- WRBTC -----------------------//
+
+		loanTokenLogicWRBTC = await LoanTokenLogicWRBTC.new();
+		loanTokenWRBTC = await LoanToken.new(lender, loanTokenLogicWRBTC.address, sovryn.address, testWrbtc.address);
+		await loanTokenWRBTC.initialize(testWrbtc.address, "iRBTC", "iRBTC");
+		loanTokenWRBTC = await LoanTokenLogicWRBTC.at(loanTokenWRBTC.address);
+
+		params = [
+			"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object
+			false, // bool active; // if false, this object has been disabled by the owner and can't be used for future loans
+			lender, // address owner; // owner of this object
+			testWrbtc.address, // address loanToken; // the token being loaned
+			underlyingToken.address, // address collateralToken; // the required collateral token
+			wei("20", "ether"), // uint256 minInitialMargin; // the minimum allowed initial margin
+			wei("15", "ether"), // uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
+			2419200, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
+		];
+
+		await loanTokenWRBTC.setupLoanParams([params], false);
+		await sovryn.setLoanPool([loanTokenWRBTC.address], [testWrbtc.address]);
+
+		// ---------------- SUPPLY FUNDS TO PROTOCOL ---------------------//
+		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
+		await underlyingToken.mint(sovryn.address, wei("50000", "ether"));
 	}
 });
