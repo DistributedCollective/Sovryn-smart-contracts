@@ -49,6 +49,7 @@ const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic");
 const TestWrbtc = artifacts.require("TestWrbtc");
 const LoanToken = artifacts.require("LoanToken");
 const LoanOpeningsEvents = artifacts.require("LoanOpeningsEvents");
+const TestCoverage = artifacts.require("TestCoverage");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
@@ -266,6 +267,18 @@ contract("Pause Modules", (accounts) => {
 			// Pause false -> true
 			await sovryn.togglePaused(true);
 			expect(await sovryn.isProtocolPaused()).to.be.true;
+		});
+	});
+
+	describe("Testing Pausable contract", () => {
+		it("Pausable function runs if not paused", async () => {
+			testCoverage = await TestCoverage.new();
+			await testCoverage.dummyPausableFunction();
+		});
+		it("Pausable function reverts if paused", async () => {
+			testCoverage = await TestCoverage.new();
+			await testCoverage.togglePause("dummyPausableFunction()", true);
+			await expectRevert(testCoverage.dummyPausableFunction(), "unauthorized");
 		});
 	});
 });
