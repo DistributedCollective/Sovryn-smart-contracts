@@ -98,9 +98,9 @@ contract StakingRewards is StakingRewardsStorage {
 		require(msg.sender == address(staking), "unauthorized");
 		uint128 lastInterval = uint128(staking.timestampToLockDate(block.timestamp));
 		uint128 lastBlock = uint128(_getCurrentBlockNumber() - 1);
-		_calculateRewards(receiver);
 		//Sets the time and block for the first staking activity in an interval
 		if (lastInterval != stakingActivity[receiver].lastStakingActivityTime) {
+			_calculateRewards(receiver);
 			stakingActivity[receiver] = LastStakingActivity({ lastStakingActivityTime: lastInterval, lastStakingActivityBlock: lastBlock });
 		}
 	}
@@ -113,7 +113,7 @@ contract StakingRewards is StakingRewardsStorage {
 		uint256 totalRewards = accumulatedRewards[_receiver];
 
 		(uint256 withdrawalTime, uint256 amount) = getStakerCurrentReward(true, _receiver);
-		if (withdrawalTime > 0 && amount > 0) {
+		if (withdrawalTime > 0) {
 			totalRewards += amount;
 			withdrawals[_receiver] = withdrawalTime;
 			accumulatedRewards[_receiver] = totalRewards;
@@ -214,8 +214,8 @@ contract StakingRewards is StakingRewardsStorage {
 				referenceBlock = lastFinalisedBlock.sub(((currentTS.sub(i)).div(32)));
 				if (referenceBlock < deploymentBlock) referenceBlock = deploymentBlock;
 			} else {
-				//Sets block number at which the activity occured and use it for calculating rewards for the same interval
-				if (i == stakingActivity[staker].lastStakingActivityTime) {
+				//Sets block number at which the activity occured and use it for calculating rewards for all previous intervals
+				if (i <= stakingActivity[staker].lastStakingActivityTime) {
 					referenceBlock = stakingActivity[staker].lastStakingActivityBlock;
 				} else {
 					referenceBlock = lastFinalisedBlock;
@@ -224,9 +224,8 @@ contract StakingRewards is StakingRewardsStorage {
 			weightedStake = weightedStake.add(_computeRewardForDate(staker, referenceBlock, i));
 		}
 
-		if (weightedStake == 0) return (0, 0);
 		lastWithdrawalInterval = duration;
-		amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
+		amount = weightedStake > 0 ? weightedStake.mul(BASE_RATE).div(DIVISOR) : 0;
 	}
 
 	/**
