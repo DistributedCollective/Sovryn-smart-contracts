@@ -19,7 +19,8 @@
  *   Updated to use the initializer.js functions for protocol deployment.
  *   Updated to use SUSD as underlying token, instead of custom tokenSOV.
  *   Updated to use WRBTC as collateral token, instead of custom testWrbtc.
- *
+ *   Added tests to increase the test coverage index:
+ *     + calling marginTradeAffiliate w/ affiliateReferrer = address(0)
  */
 
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
@@ -204,6 +205,27 @@ contract("Affiliates", (accounts) => {
 		const valueExperiment = wei("101", "ether");
 		await expectRevert(sovryn.setAffiliateFeePercent(0, { from: referrer }), "unauthorized");
 		await expectRevert(sovryn.setAffiliateFeePercent(valueExperiment), "value too high");
+	});
+
+	it("Test coverage: call marginTradeAffiliate w/ affiliateReferrer = address(0)", async () => {
+		// expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
+		const leverageAmount = web3.utils.toWei("3", "ether");
+		// loan tokens sent to iToken contract to start Margin Trading
+		const loanTokenSent = web3.utils.toWei("20", "ether");
+		// AUDIT: should the call be allowed from arbitrary address to set an affiliate in
+		// LoanTokenLogicStandard.marginTradeAffiliate?
+		const tx = await loanTokenV2.marginTradeAffiliate(
+			constants.ZERO_BYTES32, // loanId (0 for new loans)
+			leverageAmount, // leverageAmount
+			loanTokenSent, // loanTokenSent
+			0, // no collateral token sent
+			WRBTC.address, // collateralTokenAddress
+			trader,
+			0, // max slippage
+			constants.ZERO_ADDRESS, // affiliates referrer
+			"0x", // loanDataBytes (only required with ether)
+			{ from: trader }
+		);
 	});
 
 	it("User Margin Trade with Affiliate runs correctly", async () => {

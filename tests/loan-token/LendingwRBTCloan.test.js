@@ -112,8 +112,15 @@ contract("LoanTokenLending", (accounts) => {
 	});
 
 	describe("test lending using wRBTC as loanToken", () => {
+		it("should fail calling loanToken fallback function", async () => {
+			await expectRevert(
+				loanToken.send(wei("0.0000000000000001", "ether")),
+				"fallback function is not payable and was called with value 100"
+			);
+		});
+
 		it("test avgBorrowInterestRate() function", async () => {
-			expect(await await loanToken.avgBorrowInterestRate()).to.be.a.bignumber.equal(new BN(0));
+			expect(await loanToken.avgBorrowInterestRate()).to.be.a.bignumber.equal(new BN(0));
 		});
 
 		it("test supplyInterestRate() function", async () => {
