@@ -14,7 +14,8 @@ jobs:
       matrix:
         node-version: [12.x, 14.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
+    env:
+      NODE_OPTIONS: "--max-old-space-size=8192"
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
@@ -25,8 +26,6 @@ jobs:
         run: npm ci
       - name: Checking Formatting
         run: npm run lint && npm run prettier-check
-      - name: Increasing the memory
-        run: export NODE_OPTIONS="--max-old-space-size=8192"
       - name: Running Test
         run: npm run test
 
