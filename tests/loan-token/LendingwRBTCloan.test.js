@@ -16,6 +16,7 @@
  *   Added tests to increase the test coverage index:
  *     + "test avgBorrowInterestRate() function"
  *     + "test totalSupplyInterestRate() function"
+ *     + ...
  */
 
 const { expect } = require("chai");
@@ -113,6 +114,15 @@ contract("LoanTokenLending", (accounts) => {
 	describe("test lending using wRBTC as loanToken", () => {
 		it("test avgBorrowInterestRate() function", async () => {
 			expect(await await loanToken.avgBorrowInterestRate()).to.be.a.bignumber.equal(new BN(0));
+		});
+
+		it("test supplyInterestRate() function", async () => {
+			expect(await loanToken.supplyInterestRate()).to.be.a.bignumber.equal(new BN(0));
+		});
+
+		it("test nextSupplyInterestRate() function", async () => {
+			const deposit_amount = new BN(1);
+			expect(await loanToken.nextSupplyInterestRate(deposit_amount)).to.be.a.bignumber.equal(new BN(0));
 		});
 
 		it("test totalSupplyInterestRate() function", async () => {
