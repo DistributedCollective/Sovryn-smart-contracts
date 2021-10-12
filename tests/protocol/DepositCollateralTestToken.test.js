@@ -7,14 +7,20 @@
  *
  * Notes: Applied fixture to use snapshot beforeEach test.
  *   Moved some initialization code from tests to fixture.
+ *
+ *   Added tests to increase the test coverage index:
+ *     + "Test deposit collateral sending Ether as collateral"
+ *     + "should fail LoanMaintenance fallback"
  */
 
 const { expect } = require("chai");
-const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
 const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
 
 const LoanMaintenanceEvents = artifacts.require("LoanMaintenanceEvents");
+const LoanMaintenance = artifacts.require("LoanMaintenance");
+const LoanOpenings = artifacts.require("LoanOpenings");
 
 const {
 	getSUSD,
@@ -34,6 +40,12 @@ const {
 	decodeLogs,
 	open_margin_trade_position,
 } = require("../Utils/initializer.js");
+
+const wei = web3.utils.toWei;
+const zeroAddress = constants.ZERO_ADDRESS;
+
+const oneEth = new BN(wei("1", "ether"));
+const hunEth = new BN(wei("100", "ether"));
 
 // This decodes longs for a single event type, and returns a decoded object in
 // the same form truffle-contract uses on its receipts
@@ -114,6 +126,46 @@ contract("ProtocolAddingMargin", (accounts) => {
 			// prepare the test
 			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
 			expectRevert(sovryn.depositCollateral(loan_id, new BN(0)), "depositAmount is 0");
+		});
+
+		it("Test deposit collateral sending Ether instead of RBTC", async () => {
+			// prepare the test
+			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			expectRevert(sovryn.depositCollateral(loan_id, new BN(10).pow(new BN(15)), { value: new BN(1) }), "wrong asset sent");
+		});
+
+		it("Test deposit collateral sending Ether as collateral", async () => {
+			/// @dev open_margin_trade_position cannot be used to perform this check
+			let trader = owner;
+			let loan_token_sent = hunEth.toString();
+			let leverage_amount = new BN(2).mul(oneEth).toString();
+			let collateralToken = zeroAddress;
+			await SUSD.mint(trader, loan_token_sent);
+			await SUSD.approve(loanToken.address, loan_token_sent, { from: trader });
+			const { receipt } = await loanToken.marginTrade(
+				"0x0", // loanId  (0 for new loans)
+				leverage_amount, // leverageAmount
+				loan_token_sent, // loanTokenSent
+				0, // no collateral token sent
+				collateralToken, // collateralTokenAddress
+				trader, // trader,
+				0, // slippage
+				[], // loanDataBytes (only required with ether)
+				{ from: trader }
+			);
+			const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Trade");
+			let loan_id = decode[0].args["loanId"];
+
+			expectRevert(sovryn.depositCollateral(loan_id, new BN(10).pow(new BN(15)), { value: new BN(1) }), "ether deposit mismatch");
+		});
+
+		it("should fail LoanMaintenance fallback", async () => {
+			let newLoanMaintenanceAddr = await LoanMaintenance.new();
+			await expectRevert(
+				newLoanMaintenanceAddr.send(wei("0.0000000000000001", "ether")),
+				"fallback function is not payable and was called with value 100"
+			);
+			await expectRevert(newLoanMaintenanceAddr.sendTransaction({}), "fallback not allowed");
 		});
 	});
 });
