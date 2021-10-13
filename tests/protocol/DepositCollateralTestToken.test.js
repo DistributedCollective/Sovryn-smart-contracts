@@ -11,6 +11,7 @@
  *   Added tests to increase the test coverage index:
  *     + "Test deposit collateral sending Ether as collateral"
  *     + "should fail LoanMaintenance fallback"
+ *     + Tests on the "Reducing Margin" slot.
  */
 
 const { expect } = require("chai");
@@ -78,7 +79,7 @@ contract("ProtocolAddingMargin", (accounts) => {
 	}
 
 	before(async () => {
-		[owner] = accounts;
+		[owner, account1, ...accounts] = accounts;
 	});
 
 	beforeEach(async () => {
@@ -156,7 +157,9 @@ contract("ProtocolAddingMargin", (accounts) => {
 			const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Trade");
 			let loan_id = decode[0].args["loanId"];
 
-			expectRevert(sovryn.depositCollateral(loan_id, new BN(10).pow(new BN(15)), { value: new BN(1) }), "ether deposit mismatch");
+			let depositAmount = new BN(10).pow(new BN(15));
+			expectRevert(sovryn.depositCollateral(loan_id, depositAmount, { value: new BN(1) }), "ether deposit mismatch");
+			await sovryn.depositCollateral(loan_id, depositAmount, { value: depositAmount });
 		});
 
 		it("should fail LoanMaintenance fallback", async () => {
@@ -166,6 +169,45 @@ contract("ProtocolAddingMargin", (accounts) => {
 				"fallback function is not payable and was called with value 100"
 			);
 			await expectRevert(newLoanMaintenanceAddr.sendTransaction({}), "fallback not allowed");
+		});
+	});
+
+	describe("Reducing Margin", () => {
+		it("should revert when withdrawAmount is 0", async () => {
+			// prepare the test
+			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			let withdrawAmount = new BN(0);
+
+			await expectRevert(sovryn.withdrawCollateral(loan_id, owner, withdrawAmount), "withdrawAmount is 0");
+		});
+
+		it("should revert when sender is nor borrower neither delegated", async () => {
+			// prepare the test
+			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			let withdrawAmount = new BN(10).pow(new BN(15));
+
+			await expectRevert(sovryn.withdrawCollateral(loan_id, owner, withdrawAmount, { from: account1 }), "unauthorized");
+		});
+
+		it("should revert when loan is closed", async () => {
+			// prepare the test
+			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			let withdrawAmount = new BN(10).pow(new BN(15));
+
+			// close the loan
+			const loadData = await sovryn.getLoan(loan_id);
+			const collateral = new BN(loadData["collateral"]);
+			await sovryn.closeWithSwap(loan_id, owner, collateral, false, "0x", { from: owner });
+
+			await expectRevert(sovryn.withdrawCollateral(loan_id, owner, withdrawAmount), "loan is closed");
+		});
+
+		it("should reduce the margin when calling withdrawCollateral", async () => {
+			// prepare the test
+			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			let withdrawAmount = new BN(10).pow(new BN(15));
+
+			await sovryn.withdrawCollateral(loan_id, owner, withdrawAmount);
 		});
 	});
 });
