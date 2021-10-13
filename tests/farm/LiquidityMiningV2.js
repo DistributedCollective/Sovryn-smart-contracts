@@ -75,7 +75,7 @@ describe("LiquidityMiningV2", () => {
 		migrator = await Migrator.new();
 		await migrator.initialize(SOVToken.address, liquidityMiningV1.address, liquidityMining.address);
 
-		await liquidityMining.initialize(wrapper.address, migrator.address, SOVToken.address);
+		await liquidityMining.initialize(wrapper.address, migrator.address);
 
 		erc20RewardTransferLogic = await ERC20TransferLogic.new();
 
@@ -101,20 +101,18 @@ describe("LiquidityMiningV2", () => {
 	describe("initialize", () => {
 		it("should fail if migrator address is invalid", async () => {
 			await deployLiquidityMiningV2();
-			await expectRevert(liquidityMining.initialize(wrapper.address, ZERO_ADDRESS, SOVToken.address), "invalid contract address");
+			await expectRevert(liquidityMining.initialize(wrapper.address, ZERO_ADDRESS), "invalid contract address");
 		});
 
-		it("should fail if SOV address is invalid", async () => {
+		it("fails if already initialized", async () => {
 			await deployLiquidityMiningV2();
-			await expectRevert(
-				liquidityMining.initialize(wrapper.address, liquidityMiningV1.address, ZERO_ADDRESS),
-				"invalid token address"
-			);
+			await liquidityMining.initialize(wrapper.address, liquidityMiningV1.address);
+			await expectRevert(liquidityMining.initialize(wrapper.address, liquidityMiningV1.address), "Already initialized");
 		});
 
 		it("sets the expected values", async () => {
 			await deployLiquidityMiningV2();
-			await liquidityMining.initialize(wrapper.address, liquidityMiningV1.address, SOVToken.address);
+			await liquidityMining.initialize(wrapper.address, liquidityMiningV1.address);
 
 			let _wrapper = await liquidityMining.wrapper();
 
@@ -569,7 +567,7 @@ describe("LiquidityMiningV2", () => {
 		});
 		it("should only allow to deposit if migration is finished", async () => {
 			await deployLiquidityMiningV2();
-			await liquidityMining.initialize(wrapper.address, liquidityMiningV1.address, SOVToken.address);
+			await liquidityMining.initialize(wrapper.address, liquidityMiningV1.address);
 			await liquidityMining.addRewardToken(SOVToken.address, rewardTokensPerBlock, startDelayBlocks, rewardTransferLogic.address);
 
 			await expectRevert(
@@ -1540,7 +1538,7 @@ describe("LiquidityMiningV2", () => {
 			migrator = await Migrator.new();
 			await migrator.initialize(SOVToken.address, liquidityMiningV1.address, liquidityMining.address);
 
-			await liquidityMining.initialize(wrapper.address, migrator.address, SOVToken.address);
+			await liquidityMining.initialize(wrapper.address, migrator.address);
 
 			for (let token of [token1, token2]) {
 				for (let account of [account1, account2]) {

@@ -36,6 +36,14 @@ contract LiquidityMiningV1 is ILiquidityMiningV1, LiquidityMiningStorageV1 {
 		_;
 	}
 
+	modifier onlyMigrationGracePeriodStarted() {
+		require(
+			migrationGracePeriodState == MigrationGracePeriodStates.Started,
+			"Forbidden: Migration hasn't started yet or already finished"
+		);
+		_;
+	}
+
 	modifier onlyBeforeMigrationGracePeriodFinished() {
 		require(migrationGracePeriodState < MigrationGracePeriodStates.Finished, "Forbidden: contract deprecated");
 		_;
@@ -56,6 +64,7 @@ contract LiquidityMiningV1 is ILiquidityMiningV1, LiquidityMiningStorageV1 {
 	function initialize(address _liquidityMiningV2) external onlyAuthorized {
 		/// @dev Non-idempotent function. Must be called just once.
 		require(_liquidityMiningV2 != address(0), "Invalid address");
+		require(liquidityMiningV2 == address(0), "Already initialized");
 		liquidityMiningV2 = _liquidityMiningV2;
 	}
 
@@ -107,8 +116,7 @@ contract LiquidityMiningV1 is ILiquidityMiningV1, LiquidityMiningStorageV1 {
 	// TODO: this should only be used by the LiquidityMiningV2 contract??
 	/// @notice This function finishes the migration process disabling further withdrawals and claims
 	/// @dev migration grace period should have started before this function is called.
-	function finishMigrationGracePeriod() external onlyAuthorized onlyBeforeMigrationGracePeriodFinished {
-		require(migrationGracePeriodState == MigrationGracePeriodStates.Started, "Migration hasn't started yet");
+	function finishMigrationGracePeriod() external onlyAuthorized onlyMigrationGracePeriodStarted {
 		migrationGracePeriodState = MigrationGracePeriodStates.Finished;
 	}
 

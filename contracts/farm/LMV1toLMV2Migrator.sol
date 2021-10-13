@@ -61,6 +61,7 @@ contract LMV1toLMV2Migrator is AdminRole {
 		require(address(_SOV) != address(0), "invalid token address");
 		require(address(_liquidityMiningV1) != address(0), "invalid contract address");
 		require(address(_liquidityMiningV2) != address(0), "invalid contract address");
+		require(address(SOV) == address(0), "Already initialized");
 		liquidityMiningV1 = _liquidityMiningV1;
 		liquidityMiningV2 = _liquidityMiningV2;
 		SOV = _SOV;

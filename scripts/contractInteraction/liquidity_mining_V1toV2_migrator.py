@@ -16,7 +16,7 @@ def initializeLiquidityMiningV2():
     wrapper = "0x0000000000000000000000000000000000000000"
     liquidityMiningV2 = Contract.from_abi("LiquidityMiningV2", address = conf.contracts['LiquidityMiningProxyV2'], abi = LiquidityMiningV2.abi, owner = conf.acct)
 
-    data = liquidityMiningV2.initialize.encode_input(wrapper,conf.contracts['LMV1toLMV2Migrator'],conf.contracts['SOV'])
+    data = liquidityMiningV2.initialize.encode_input(wrapper,conf.contracts['LMV1toLMV2Migrator'])
     sendWithMultisig(conf.contracts['multisig'], liquidityMiningV2.address, data, conf.acct)
 
 def setMigratorAsAdmin():
