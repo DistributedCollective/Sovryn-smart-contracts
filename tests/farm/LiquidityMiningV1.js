@@ -168,6 +168,21 @@ describe("LiquidityMining", () => {
 				"Already initialized"
 			);
 		});
+		it("fails if already initialized", async () => {
+			await deployLiquidityMining();
+			await liquidityMining.initialize(
+				SOVToken.address,
+				rewardTokensPerBlock,
+				startDelayBlocks,
+				numberOfBonusBlocks,
+				wrapper.address,
+				lockedSOV.address,
+				unlockedImmediatelyPercent
+			);
+			await upgradeLiquidityMining();
+			await liquidityMining.initialize(liquidityMiningV2.address);
+			await expectRevert(liquidityMining.initialize(liquidityMiningV2.address), "Already initialized");
+		});
 		it("fails if the 0 address is passed as token address", async () => {
 			await deployLiquidityMining();
 			await expectRevert(
@@ -1845,7 +1860,10 @@ describe("LiquidityMining", () => {
 			});
 
 			it("should fail if grace period hasn't started before finishing", async () => {
-				await expectRevert(liquidityMining.finishMigrationGracePeriod(), "Migration hasn't started yet");
+				await expectRevert(
+					liquidityMining.finishMigrationGracePeriod(),
+					"Forbidden: Migration hasn't started yet or already finished"
+				);
 			});
 
 			it("should fail if grace period has already finished", async () => {
@@ -1855,7 +1873,10 @@ describe("LiquidityMining", () => {
 				const migrationGracePeriodState = await liquidityMining.migrationGracePeriodState();
 				expect(migrationGracePeriodState.toNumber()).to.equal(MigrationGracePeriodStates.Finished);
 
-				await expectRevert(liquidityMining.finishMigrationGracePeriod(), "Forbidden: contract deprecated");
+				await expectRevert(
+					liquidityMining.finishMigrationGracePeriod(),
+					"Forbidden: Migration hasn't started yet or already finished"
+				);
 			});
 
 			it("should properly finish grace period", async () => {

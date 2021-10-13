@@ -127,7 +127,7 @@ describe("LiquidityMiningMigration", () => {
 		migrator = await Migrator.new();
 		await migrator.initialize(SOVToken.address, liquidityMining.address, liquidityMiningV2.address);
 
-		await liquidityMiningV2.initialize(wrapper.address, migrator.address, SOVToken.address);
+		await liquidityMiningV2.initialize(wrapper.address, migrator.address);
 
 		erc20RewardTransferLogic = await ERC20TransferLogic.new();
 
@@ -184,6 +184,14 @@ describe("LiquidityMiningMigration", () => {
 			migrator = await Migrator.new();
 			await expectRevert(migrator.initialize(SOVToken.address, liquidityMining.address, ZERO_ADDRESS), "invalid contract address");
 		});
+		it("fails if already initialized", async () => {
+			migrator = await Migrator.new();
+			await migrator.initialize(SOVToken.address, liquidityMining.address, liquidityMiningV2.address);
+			await expectRevert(
+				migrator.initialize(SOVToken.address, liquidityMining.address, liquidityMiningV2.address),
+				"Already initialized"
+			);
+		});
 	});
 
 	describe("migratePools", () => {
@@ -199,7 +207,13 @@ describe("LiquidityMiningMigration", () => {
 			await expectRevert(migrator.migratePools(), "unauthorized");
 		});
 		it("should only allow to migrate pools by migrator contract", async () => {
-			await liquidityMiningV2.initialize(wrapper.address, SOVToken.address, SOVToken.address);
+			await deployLiquidityMiningV2();
+			await liquidityMiningV2.addRewardToken(SOVToken.address, rewardTokensPerBlock, startDelayBlocks, rewardTransferLogic.address);
+
+			migrator = await Migrator.new();
+			await migrator.initialize(SOVToken.address, liquidityMining.address, liquidityMiningV2.address);
+
+			await liquidityMiningV2.initialize(wrapper.address, SOVToken.address);
 			await liquidityMining.addAdmin(migrator.address);
 			await liquidityMining.startMigrationGracePeriod();
 			await liquidityMiningV2.addAdmin(migrator.address);
@@ -207,7 +221,7 @@ describe("LiquidityMiningMigration", () => {
 		});
 		it("should only allow to migrate pools if the migrate grace period started", async () => {
 			await liquidityMining.addAdmin(migrator.address);
-			await expectRevert(migrator.migratePools(), "Migration hasn't started yet");
+			await expectRevert(migrator.migratePools(), "Forbidden: Migration hasn't started yet or already finished");
 		});
 		it("should only allow to migrate pools once", async () => {
 			await liquidityMining.addAdmin(migrator.address);
@@ -262,14 +276,6 @@ describe("LiquidityMiningMigration", () => {
 		});
 		it("should fail finishing users migration if pools were not migrated", async () => {
 			await expectRevert(migrator.finishUsersMigration(), "Wrong state: should be MigratingUsers");
-		});
-		it("should only allow to migrate users by migrator contract", async () => {
-			await liquidityMining.addAdmin(migrator.address);
-			await liquidityMining.startMigrationGracePeriod();
-			await liquidityMiningV2.addAdmin(migrator.address);
-			await migrator.migratePools();
-			await liquidityMiningV2.initialize(wrapper.address, SOVToken.address, SOVToken.address);
-			await expectRevert(migrator.migrateUsers(accounts), "only allowed to migrator contract");
 		});
 		it("should only allow to finish users migration by the admin", async () => {
 			await liquidityMining.addAdmin(migrator.address);
@@ -393,15 +399,6 @@ describe("LiquidityMiningMigration", () => {
 		it("should fail migrating funds if users were not migrated", async () => {
 			await expectRevert(migrator.migrateFunds(), "Wrong state: should be MigratingFunds");
 		});
-		it("should only allow to migrate funds by migrator contract", async () => {
-			await liquidityMining.addAdmin(migrator.address);
-			await liquidityMining.startMigrationGracePeriod();
-			await liquidityMiningV2.addAdmin(migrator.address);
-			await migrator.migratePools();
-			await migrator.finishUsersMigration();
-			await liquidityMiningV2.initialize(wrapper.address, SOVToken.address, SOVToken.address);
-			await expectRevert(migrator.migrateFunds(), "only allowed to migrator contract");
-		});
 		it("should fail trying to migrate funds without SOV tokens in liquidityMiningV1", async () => {
 			const balanceSOV = await SOVToken.balanceOf(liquidityMining.address);
 			await liquidityMining.transferSOV(liquidityMiningV2.address, balanceSOV);
@@ -438,7 +435,7 @@ describe("LiquidityMiningMigration", () => {
 			migrator = await Migrator.new();
 			await migrator.initialize(SOVToken.address, liquidityMining.address, liquidityMiningV2.address);
 
-			await liquidityMiningV2.initialize(wrapper.address, migrator.address, SOVToken.address);
+			await liquidityMiningV2.initialize(wrapper.address, migrator.address);
 
 			await liquidityMining.addAdmin(migrator.address);
 			await liquidityMining.startMigrationGracePeriod();
@@ -550,7 +547,7 @@ describe("LiquidityMiningMigration", () => {
 			migrator = await Migrator.new();
 			await migrator.initialize(SOVToken.address, liquidityMining.address, liquidityMiningV2.address);
 
-			await liquidityMiningV2.initialize(wrapper.address, migrator.address, SOVToken.address);
+			await liquidityMiningV2.initialize(wrapper.address, migrator.address);
 
 			rewardTransferLogic = await LockedSOVRewardTransferLogic.new();
 			await rewardTransferLogic.initialize(lockedSOV.address, new BN(0));
@@ -612,7 +609,7 @@ describe("LiquidityMiningMigration", () => {
 			migrator = await Migrator.new();
 			await migrator.initialize(SOVToken.address, liquidityMining.address, liquidityMiningV2.address);
 
-			await liquidityMiningV2.initialize(wrapper.address, migrator.address, SOVToken.address);
+			await liquidityMiningV2.initialize(wrapper.address, migrator.address);
 
 			rewardTransferLogic = await LockedSOVRewardTransferLogic.new();
 			await rewardTransferLogic.initialize(lockedSOV.address, new BN(0));
@@ -675,7 +672,7 @@ describe("LiquidityMiningMigration", () => {
 			migrator = await Migrator.new();
 			await migrator.initialize(SOVToken.address, liquidityMining.address, liquidityMiningV2.address);
 
-			await liquidityMiningV2.initialize(wrapper.address, migrator.address, SOVToken.address);
+			await liquidityMiningV2.initialize(wrapper.address, migrator.address);
 
 			rewardTransferLogic = await LockedSOVRewardTransferLogic.new();
 			await rewardTransferLogic.initialize(lockedSOV.address, new BN(0));
@@ -727,7 +724,7 @@ describe("LiquidityMiningMigration", () => {
 			migrator = await Migrator.new();
 			await migrator.initialize(SOVToken.address, liquidityMining.address, liquidityMiningV2.address);
 
-			await liquidityMiningV2.initialize(wrapper.address, migrator.address, SOVToken.address);
+			await liquidityMiningV2.initialize(wrapper.address, migrator.address);
 
 			rewardTransferLogic = await LockedSOVRewardTransferLogic.new();
 			await rewardTransferLogic.initialize(lockedSOV.address, new BN(0));

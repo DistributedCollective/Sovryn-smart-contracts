@@ -60,14 +60,10 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
 	/**
 	 * @notice Initialize mining.
 	 */
-	function initialize(
-		address _wrapper,
-		address _migrator,
-		IERC20 _SOV
-	) external onlyAuthorized {
+	function initialize(address _wrapper, address _migrator) external onlyAuthorized {
 		/// @dev Non-idempotent function. Must be called just once.
 		require(_migrator != address(0), "invalid contract address");
-		require(address(_SOV) != address(0), "invalid token address");
+		require(migrator == address(0), "Already initialized");
 		wrapper = _wrapper;
 		migrator = _migrator;
 	}

@@ -97,7 +97,7 @@ contract("LoanTokenLogicLM", (accounts) => {
 		migrator = await Migrator.new();
 		await migrator.initialize(SOVToken.address, liquidityMiningV1.address, liquidityMining.address);
 
-		await liquidityMining.initialize(wrapper.address, migrator.address, SOVToken.address);
+		await liquidityMining.initialize(wrapper.address, migrator.address);
 
 		rewardTransferLogic = await LockedSOVRewardTransferLogic.new();
 		await rewardTransferLogic.initialize(lockedSOV.address, unlockedImmediatelyPercent);
