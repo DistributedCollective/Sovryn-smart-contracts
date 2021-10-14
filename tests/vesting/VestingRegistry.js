@@ -10,6 +10,8 @@
  * Notes:
  *   Reloading the fixture snapshot is not working for all tests. So, only
  *   some of them are requesting to redeploy when needed.
+ *
+ *   + Added new coverage tests
  */
 
 const { expect } = require("chai");
@@ -29,6 +31,7 @@ const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry");
 const UpgradableProxy = artifacts.require("UpgradableProxy");
+const OrigingVestingCreator = artifacts.require("OrigingVestingCreator");
 
 const FOUR_WEEKS = new BN(4 * 7 * 24 * 60 * 60);
 
@@ -572,6 +575,32 @@ contract("VestingRegistry", (accounts) => {
 
 			await vestingRegistry.addAdmin(account1);
 			await vestingRegistry.stakeTokens(vestingAddress, new BN(1000000), { from: account1 });
+		});
+	});
+
+	describe("OrigingVestingCreator", () => {
+		it.only("should be able to create vesting", async () => {
+			await loadFixture(deploymentAndInitFixture);
+
+			let origingVestingCreator = await OrigingVestingCreator.new(vestingRegistry.address);
+
+			let amount = new BN(1000000);
+			await SOV.transfer(vestingRegistry.address, amount);
+
+			let cliff = FOUR_WEEKS;
+			let duration = FOUR_WEEKS.mul(new BN(20));
+
+			// Adding origingVestingCreator as an admin in the Vesting Registry.
+			await vestingRegistry.addAdmin(origingVestingCreator.address);
+
+			// Try to use address(0)
+			await expectRevert(origingVestingCreator.createVesting(ZERO_ADDRESS, amount, cliff, duration), "Invalid address");
+
+			// Create the vesting contract
+			await origingVestingCreator.createVesting(account3, amount, cliff, duration);
+
+			// Try to create it again w/ the same tokenOwner
+			await expectRevert(origingVestingCreator.createVesting(account3, amount, cliff, duration), "Already processed");
 		});
 	});
 

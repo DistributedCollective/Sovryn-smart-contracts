@@ -7,6 +7,7 @@
  *
  * Notes: Applied fixture to use snapshot beforeEach test.
  *   Moved some initialization code from tests to fixture.
+ *   Added several coverage tests
  */
 
 const { expect } = require("chai");
