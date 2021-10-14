@@ -149,6 +149,32 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 			assert.equal(loansDataUnsafeOnly.length, 0);
 		});
+
+		it("should get a loanType 1: a margin trade loan", async () => {
+			// prepare the test
+			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]);
+
+			const loansData = await sovryn.getUserLoans(accounts[1], 0, 10, 1, 0, 0); /// @dev parameters: user, start, count, loanType, isLender, unsafeOnly
+			// console.log("loansData = ", loansData);
+
+			assert.equal(loansData[0]["loanId"], loan_id);
+			assert.equal(loansData[0]["loanToken"], SUSD.address);
+			assert.equal(loansData[0]["collateralToken"], RBTC.address);
+			assert.equal(loansData[0]["borrower"], accounts[1]);
+		});
+
+		it("should get a loanType 2: a non-margin trade loan", async () => {
+			// prepare the test
+			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
+
+			const loansData = await sovryn.getUserLoans(borrower, 0, 10, 2, 0, 0); /// @dev parameters: user, start, count, loanType, isLender, unsafeOnly
+			// console.log("loansData = ", loansData);
+
+			assert.equal(loansData[0]["loanId"], loan_id);
+			assert.equal(loansData[0]["loanToken"], SUSD.address);
+			assert.equal(loansData[0]["collateralToken"], RBTC.address);
+			assert.equal(loansData[0]["borrower"], borrower);
+		});
 	});
 
 	describe("Test set new special rebates.", () => {
