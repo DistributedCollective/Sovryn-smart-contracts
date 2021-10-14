@@ -101,6 +101,33 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 		await loadFixture(deploymentAndInitFixture);
 	});
 
+	describe("Test LoanMaintenance::getUserLoans", () => {
+		it("should exist a loan, check values", async () => {
+			// prepare the test
+			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
+
+			const loansData = await sovryn.getUserLoans(borrower, 0, 10, 0, 0, 0); /// @dev parameters: user, start, count, loanType, isLender, unsafeOnly
+			// console.log("loansData = ", loansData);
+
+			assert.equal(loansData[0]["loanId"], loan_id);
+			assert.equal(loansData[0]["loanToken"], SUSD.address);
+			assert.equal(loansData[0]["collateralToken"], RBTC.address);
+			assert.equal(loansData[0]["borrower"], borrower);
+
+		});
+
+		it("should not exist an unsafe loan", async () => {
+			// prepare the test
+			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
+
+			// Check UnsafeOnly, no results to expect
+			const loansDataUnsafeOnly = await sovryn.getUserLoans(borrower, 0, 10, 0, 0, true); /// @dev parameters: user, start, count, loanType, isLender, unsafeOnly
+			// console.log("loansDataUnsafeOnly = ", loansDataUnsafeOnly);
+
+			assert.equal(loansDataUnsafeOnly.length, 0);
+		});
+	});
+
 	describe("Test set new special rebates.", () => {
 		it("Test set new special rebates for specific pairs", async () => {
 			const invalidValue = wei("1001", "ether");
