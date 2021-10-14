@@ -102,6 +102,20 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 	});
 
 	describe("Test LoanMaintenance::getUserLoans and getActiveLoans", () => {
+		it("should return empty if start >= end", async () => {
+			// no loan created
+			const loansData = await sovryn.getUserLoans(accounts[1], 0, 10, 0, 0, 0); /// @dev parameters: user, start, count, loanType, isLender, unsafeOnly
+			assert.equal(loansData.length, 0);
+		});
+
+		it("should return empty if count == 0", async () => {
+			// prepare the test
+			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
+
+			const loansData = await sovryn.getUserLoans(borrower, 0, 0, 0, 0, 0); /// @dev parameters: user, start, count, loanType, isLender, unsafeOnly
+			assert.equal(loansData.length, 0);
+		});
+
 		it("should exist a loan, check values", async () => {
 			// prepare the test
 			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
