@@ -101,7 +101,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 		await loadFixture(deploymentAndInitFixture);
 	});
 
-	describe("Test LoanMaintenance::getUserLoans", () => {
+	describe("Test LoanMaintenance::getUserLoans and getActiveLoans", () => {
 		it("should exist a loan, check values", async () => {
 			// prepare the test
 			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
@@ -113,7 +113,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			assert.equal(loansData[0]["loanToken"], SUSD.address);
 			assert.equal(loansData[0]["collateralToken"], RBTC.address);
 			assert.equal(loansData[0]["borrower"], borrower);
-
 		});
 
 		it("should not exist an unsafe loan", async () => {
@@ -122,6 +121,30 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 			// Check UnsafeOnly, no results to expect
 			const loansDataUnsafeOnly = await sovryn.getUserLoans(borrower, 0, 10, 0, 0, true); /// @dev parameters: user, start, count, loanType, isLender, unsafeOnly
+			// console.log("loansDataUnsafeOnly = ", loansDataUnsafeOnly);
+
+			assert.equal(loansDataUnsafeOnly.length, 0);
+		});
+
+		it("should exist an active loan, check values", async () => {
+			// prepare the test
+			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
+
+			const loansData = await sovryn.getActiveLoans(0, 10, 0); /// @dev parameters: start, count, unsafeOnly
+			// console.log("loansData = ", loansData);
+
+			assert.equal(loansData[0]["loanId"], loan_id);
+			assert.equal(loansData[0]["loanToken"], SUSD.address);
+			assert.equal(loansData[0]["collateralToken"], RBTC.address);
+			assert.equal(loansData[0]["borrower"], borrower);
+		});
+
+		it("should not exist any active unsafe loan", async () => {
+			// prepare the test
+			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
+
+			// Check UnsafeOnly, no results to expect
+			const loansDataUnsafeOnly = await sovryn.getActiveLoans(0, 10, true); /// @dev parameters: start, count, unsafeOnly
 			// console.log("loansDataUnsafeOnly = ", loansDataUnsafeOnly);
 
 			assert.equal(loansDataUnsafeOnly.length, 0);
