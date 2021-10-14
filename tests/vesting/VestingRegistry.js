@@ -580,7 +580,7 @@ contract("VestingRegistry", (accounts) => {
 
 	describe("OrigingVestingCreator", () => {
 		it("should be able to create vesting", async () => {
-			await loadFixture(deploymentAndInitFixture);
+			await deploymentAndInitFixture();
 
 			let origingVestingCreator = await OrigingVestingCreator.new(vestingRegistry.address);
 
