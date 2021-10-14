@@ -176,38 +176,69 @@ contract("ProtocolAddingMargin", (accounts) => {
 		it("should revert when withdrawAmount is 0", async () => {
 			// prepare the test
 			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
-			let withdrawAmount = new BN(0);
 
+			let withdrawAmount = new BN(0);
 			await expectRevert(sovryn.withdrawCollateral(loan_id, owner, withdrawAmount), "withdrawAmount is 0");
 		});
 
 		it("should revert when sender is nor borrower neither delegated", async () => {
 			// prepare the test
 			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
-			let withdrawAmount = new BN(10).pow(new BN(15));
 
+			let withdrawAmount = new BN(10).pow(new BN(15));
 			await expectRevert(sovryn.withdrawCollateral(loan_id, owner, withdrawAmount, { from: account1 }), "unauthorized");
 		});
 
 		it("should revert when loan is closed", async () => {
 			// prepare the test
 			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
-			let withdrawAmount = new BN(10).pow(new BN(15));
 
 			// close the loan
 			const loadData = await sovryn.getLoan(loan_id);
 			const collateral = new BN(loadData["collateral"]);
 			await sovryn.closeWithSwap(loan_id, owner, collateral, false, "0x", { from: owner });
 
+			let withdrawAmount = new BN(10).pow(new BN(15));
 			await expectRevert(sovryn.withdrawCollateral(loan_id, owner, withdrawAmount), "loan is closed");
 		});
 
 		it("should reduce the margin when calling withdrawCollateral", async () => {
 			// prepare the test
 			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
-			let withdrawAmount = new BN(10).pow(new BN(15));
 
+			// owner initial balance should be 10^50
+			expect(await RBTC.balanceOf(owner)).bignumber.equal(new BN(10).pow(new BN(50)));
+
+			let withdrawAmount = new BN(10).pow(new BN(15));
 			await sovryn.withdrawCollateral(loan_id, owner, withdrawAmount);
+
+			// owner final balance should be 10^50 + withdrawAmount(10^15)
+			expect(await RBTC.balanceOf(owner)).bignumber.equal(new BN(10).pow(new BN(50)).add(withdrawAmount));
+
+			// maxDrawdown = 5647468293983077 (aprox. 5.6*10^15)
+			// trying a withdrawal a bit higher (5.7*10^15) than available
+			let withdrawAmount2 = new BN(57).mul(new BN(10).pow(new BN(14)));
+			await sovryn.withdrawCollateral(loan_id, owner, withdrawAmount2);
+
+			// owner final balance cannot be 10^50 + withdrawAmount(10^15) + withdrawAmount2(5.7*10^15), but a bit lower
+			expect(await RBTC.balanceOf(owner)).bignumber.lessThan(new BN(10).pow(new BN(50)).add(withdrawAmount).add(withdrawAmount2));
+		});
+
+		it("should work when collateral is WRBTC", async () => {
+			// prepare the test
+			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner, "WRBTC");
+
+			// send Ether collateral
+			let depositAmount = new BN(10).pow(new BN(15));
+			await sovryn.depositCollateral(loan_id, depositAmount, { value: depositAmount });
+
+			// get collateral
+			let withdrawAmount = new BN(10).pow(new BN(15));
+			await sovryn.withdrawCollateral(loan_id, owner, withdrawAmount);
+
+			// should revert if collateral requested is higher than available
+			// Try to get collateral again
+			await expectRevert.unspecified(sovryn.withdrawCollateral(loan_id, owner, withdrawAmount));
 		});
 	});
 });

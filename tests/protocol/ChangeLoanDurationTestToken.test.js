@@ -166,6 +166,35 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			expect((await SUSD.balanceOf(sovryn.address)).lte(initial_loan_token_lender_balance.add(deposit_amount))).to.be.true;
 		});
 
+		it("Test extend loan duration and loan endtime passed but the loan remained open", async () => {
+			// prepare the test
+			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
+			const initial_loan_interest_data = await sovryn.getLoanInterestData(loan_id);
+			const loanMaintenance = await LoanMaintenance.at(sovryn.address);
+
+			const days_to_extend = new BN(10);
+			const owed_per_day = initial_loan_interest_data["interestOwedPerDay"];
+			const deposit_amount = owed_per_day.mul(days_to_extend);
+
+			// Approve the transfer of loan token
+			await SUSD.mint(borrower, deposit_amount);
+			await SUSD.approve(sovryn.address, deposit_amount, { from: borrower });
+
+			// 5 days after loan endtime is overpassed
+			await increaseTime(15 * 86400);
+			await expectRevert(
+				loanMaintenance.extendLoanDuration(loan_id, deposit_amount, false, "0x", { from: borrower }),
+				"loan too short"
+			);
+
+			// 20 days after loan endtime is overpassed
+			await increaseTime(15 * 86400);
+			await expectRevert(
+				loanMaintenance.extendLoanDuration(loan_id, deposit_amount, false, "0x", { from: borrower }),
+				"deposit cannot cover back interest"
+			);
+		});
+
 		it("Test extend loan_duration 0 deposit should fail", async () => {
 			// prepare the test
 			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
