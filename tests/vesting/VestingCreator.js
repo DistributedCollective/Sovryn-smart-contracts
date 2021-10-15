@@ -830,4 +830,24 @@ contract("VestingCreator", (accounts) => {
 			});
 		});
 	});
+
+	describe("vestingRegistry3", () => {
+		it.only("check transferSOV", async () => {
+			let amount = new BN(1000);
+
+			// Send funds to vestingRegistry3
+			await SOV.transfer(vestingRegistry3.address, amount);
+
+			// Get recipient's balance before transfer
+			let balance2before = await SOV.balanceOf(account1);
+			console.log("balance2before: ", balance2before.toString());
+
+			// Call transferSOV
+			await vestingRegistry3.transferSOV(account1, amount);
+
+			// Get recipient's balance after transfer
+			let balance2after = await SOV.balanceOf(account1);
+			console.log("balance2after: ", balance2after.toString());
+		});
+	});
 });
