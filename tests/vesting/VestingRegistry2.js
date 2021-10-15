@@ -15,6 +15,7 @@
 const { expect, assert } = require("chai");
 const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
+const provider = waffle.provider;
 
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 
@@ -465,19 +466,37 @@ contract("VestingRegistry", (accounts) => {
 	});
 
 	describe("deposit funds", () => {
-		it.only("should get budget and deposit", async () => {
-			await loadFixture(deploymentAndInitFixture);
+		it("should get budget and deposit", async () => {
+			await deploymentAndInitFixture();
 
+			// Check budget is 0
 			let budget = await vestingRegistry.budget();
 			// console.log("budget: " + budget);
 			expect(budget).to.be.bignumber.equal(new BN(0));
 
+			// Deposit funds
 			const amount = web3.utils.toWei("3");
 			await vestingRegistry.deposit({ from: accounts[1], value: amount });
 
+			// Check budget is not 0
 			budget = await vestingRegistry.budget();
 			// console.log("budget: " + budget);
 			expect(budget).to.be.bignumber.equal(amount);
+
+			// Get recipient's balance before withdrawal
+			let balance2before = await provider.getBalance(accounts[2]);
+			// console.log("balance2before: " + balance2before);
+
+			// Check budget after withdrawal
+			await vestingRegistry.withdrawAll(accounts[2]);
+			budget = await vestingRegistry.budget();
+			// console.log("budget: " + budget);
+			expect(budget).to.be.bignumber.equal(new BN(0));
+
+			// Get recipient's balance after withdrawal
+			let balance2after = await provider.getBalance(accounts[2]);
+			// console.log("balance2after: " + balance2after);
+			expect(balance2after.sub(balance2before)).to.be.equal(amount);
 		});
 	});
 
