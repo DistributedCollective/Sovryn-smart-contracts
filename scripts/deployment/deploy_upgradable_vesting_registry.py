@@ -72,8 +72,8 @@ def main():
     vestingRegistryProxy.addAdmin(lockedSOVAddress)
 
     vestingFactory.transferOwnership(vestingRegistryProxy.address)
-    vestingRegistry.transferOwnership(multisig)
-    vestingRegistryProxy.setProxyOwner(multisig)
+    #vestingRegistry.transferOwnership(multisig)
+    #vestingRegistryProxy.setProxyOwner(multisig)
 
     print("deployment cost:")
     print((balanceBefore - acct.balance()) / 10**18)

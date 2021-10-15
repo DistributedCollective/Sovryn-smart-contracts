@@ -183,10 +183,7 @@ contract("WeightedStaking", (accounts) => {
 
 		it("should be unable to compute the total voting power for the current block", async () => {
 			let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
-			await expectRevert(
-				staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS),
-				"Staking::getPriorTotalStakesForDate: not yet determined"
-			);
+			await expectRevert(staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS), "not yet determined");
 		});
 	});
 
@@ -218,10 +215,7 @@ contract("WeightedStaking", (accounts) => {
 
 		it("should be unable to compute the voting power for the current block", async () => {
 			let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
-			await expectRevert(
-				staking.getPriorVotes(a3, result.receipt.blockNumber, kickoffTS),
-				"Staking::getPriorStakeByDateForDelegatee: not yet determined"
-			);
+			await expectRevert(staking.getPriorVotes(a3, result.receipt.blockNumber, kickoffTS), "not determined yet");
 		});
 
 		it("should return the current votes", async () => {
@@ -262,10 +256,7 @@ contract("WeightedStaking", (accounts) => {
 
 		it("should be unable to compute the weighted stake for the current block", async () => {
 			let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
-			await expectRevert(
-				staking.getPriorWeightedStake(a3, result.receipt.blockNumber, kickoffTS),
-				"Staking::getPriorUserStakeAndDate: not yet determined"
-			);
+			await expectRevert(staking.getPriorWeightedStake(a3, result.receipt.blockNumber, kickoffTS), "not determined");
 		});
 	});
 
