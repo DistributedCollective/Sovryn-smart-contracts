@@ -258,7 +258,7 @@ def createProposalSIP0030():
     values = [0, 0, 0]
     signatures = ["setImplementation(address), setFeeSharing(address)", "setVestingRegistry(address)"]
     data1 = stakingProxy.setImplementation.encode_input(contracts['StakingLogic4'])
-    data2 = stakingImpl.setFeeSharing.encode_input(contracts['FeeSharingProxy2'])
+    data2 = stakingImpl.setFeeSharing.encode_input(contracts['FeeSharingProxy'])
     data3 = stakingImpl.setVestingRegistry.encode_input(contracts['VestingRegistryProxy'])
     datas = ["0x" + data1[10:], "0x" + data2[10:], "0x" + data3[10:]]
     description = "SIP-30: Concentrating staking revenues, Details: https://github.com/DistributedCollective/SIPS/blob/12bdd48/SIP-30.md, sha256: 8f7f95545d968dc4d9a37b9cad4228b562c76b7617c2740b221b1f70eb367620"
