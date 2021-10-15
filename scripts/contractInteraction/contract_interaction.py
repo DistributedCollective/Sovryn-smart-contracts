@@ -27,4 +27,8 @@ def main():
     #load the contracts and acct depending on the network
     conf.loadConfig()
 
-    #call the functions you want here
+    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iXUSD'])
+    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iRBTC'])
+    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iBPro'])
+    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iDOC'])
+    setSupportedToken(conf.contracts['BNBs'])

@@ -8,8 +8,12 @@ const StakingLogic = artifacts.require("StakingMock");
 const StakingProxy = artifacts.require("StakingProxy");
 const StakingRewards = artifacts.require("StakingRewardsMockUp");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
+const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 const Protocol = artifacts.require("sovrynProtocol");
+//Upgradable Vesting Registry
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 const BlockMockUp = artifacts.require("BlockMockUp");
 
 const wei = web3.utils.toWei;
@@ -41,6 +45,21 @@ contract("StakingRewards", (accounts) => {
 		staking = await StakingProxy.new(SOV.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address); //Test - 01/07/2021
+
+		//FeeSharingProxy
+		let feeSharingLogic = await FeeSharingLogic.new();
+		feeSharingProxyObj = await FeeSharingProxy.new(protocol.address, staking.address);
+		await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
+		feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
+		await staking.setFeeSharing(feeSharingProxy.address);
+
+		//Upgradable Vesting Registry
+		vestingRegistryLogic = await VestingRegistryLogic.new();
+		vesting = await VestingRegistryProxy.new();
+		await vesting.setImplementation(vestingRegistryLogic.address);
+		vesting = await VestingRegistryLogic.at(vesting.address);
+
+		await staking.setVestingRegistry(vesting.address);
 
 		kickoffTS = await staking.kickoffTS.call();
 		inOneWeek = kickoffTS.add(new BN(DELAY));
@@ -175,7 +194,6 @@ contract("StakingRewards", (accounts) => {
 		it("should compute and send rewards to the staker after recalculating withdrawn stake", async () => {
 			await increaseTimeAndBlocks(32659200); //More than a year - first stake expires
 			feeSharingProxy = await FeeSharingProxy.new(protocol.address, staking.address);
-			await staking.setFeeSharing(feeSharingProxy.address);
 			await staking.withdraw(wei("1000", "ether"), inTwoYears, a2, { from: a2 }); //Withdraw first stake
 			await increaseTimeAndBlocks(3600);
 			const fields = await stakingRewards.getStakerCurrentReward(true, { from: a2 }); //For entire duration
