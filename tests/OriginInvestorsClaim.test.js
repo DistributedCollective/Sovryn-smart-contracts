@@ -246,18 +246,23 @@ contract("OriginInvestorsClaim", (accounts) => {
 
 			// Create an active vesting contract for investor4
 			let amount = new BN(1000000);
-			await SOV.transfer(vestingRegistry.address, amount);
 			let cliff = FOUR_WEEKS;
 			let duration = FOUR_WEEKS.mul(new BN(20));
 			await vestingRegistry.createVesting(investor4, amount, cliff, duration);
-			let vestingAddress = await vestingRegistry.getVesting(investor4);
-			await vestingRegistry.stakeTokens(vestingAddress, amount);
 
-			// Should fail
+			// Should fail due to conflict w/ current vesting contract
 			await expectRevert(
 				investorsClaim.claim({ from: investor4 }),
 				"OriginInvestorsClaim::withdraw: the claimer has an active vesting contract"
 			);
+		});
+
+		it("should revert when no funds available to transfer", async () => {
+			// Nullify balance
+			await investorsClaim.authorizedBalanceWithdraw(root);
+
+			// Should fail due to lack of funds
+			await expectRevert(investorsClaim.claim({ from: investor3 }), "ERC20: transfer amount exceeds balance");
 		});
 
 		it("should create vesting contract within vesting period", async () => {
