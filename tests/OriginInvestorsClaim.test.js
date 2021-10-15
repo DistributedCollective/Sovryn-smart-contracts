@@ -1,5 +1,18 @@
+/** Speed optimized on branch improveTestCoverage, 2021-10-15
+ * Bottlenecks found on the beforeEach hook at setInvestorsList
+ *   re-deploying OriginInvestorsClaim contract.
+ *
+ * Total time elapsed: 15.8s
+ * After optimization: 5.8s
+ *
+ * Notes:
+ *   + Added new coverage tests
+ */
+
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
 const { mineBlock, setNextBlockTimestamp } = require("./Utils/Ethereum");
@@ -11,12 +24,12 @@ const TestToken = artifacts.require("TestToken");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
-const VestingRegistry = artifacts.require("VestingRegistry2"); //removed some methods from VestingRegistry to prevent double spendings
+const VestingRegistry = artifacts.require("VestingRegistry2"); // removed some methods from VestingRegistry to prevent double spendings
 const OriginInvestorsClaim = artifacts.require("OriginInvestorsClaim");
 
 const ONE_WEEK = new BN(7 * 24 * 60 * 60);
-const TWO_WEEKS = ONE_WEEK.muln(2);
-const SIX_WEEKS = ONE_WEEK.muln(6); //new BN(6 * 7 * 24 * 60 * 60);
+const FOUR_WEEKS = new BN(4 * 7 * 24 * 60 * 60);
+const SIX_WEEKS = ONE_WEEK.muln(6); // new BN(6 * 7 * 24 * 60 * 60);
 
 const TOTAL_SUPPLY = "100000000000000000000000000";
 const ONE_THOUSAND = "1000000000000000000000";
@@ -25,12 +38,12 @@ const ZERO_ADDRESS = constants.ZERO_ADDRESS;
 const priceSats = "2500";
 
 contract("OriginInvestorsClaim", (accounts) => {
-	let root, initializer, account1, investor1, investor2, investor3;
+	let root, initializer, account1, investor1, investor2, investor3, investor4;
 	let SOV, kickoffTS;
 	let staking, stakingLogic, feeSharingProxy;
 	let vestingFactory, vestingLogic, vestingRegistry;
 	let investors;
-	let amounts, amount1, amount2, amount3;
+	let amounts, amount1, amount2, amount3, amount4;
 	let investorsClaim;
 
 	function getTimeFromKickoff(offset) {
@@ -47,7 +60,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 			amount: amount,
 		});
 
-		//event TokensStaked(address indexed vesting, uint256 amount);
+		// event TokensStaked(address indexed vesting, uint256 amount);
 		await expectEvent.inTransaction(txHash, vestingRegistry, "TokensStaked", {
 			vesting: vestingAddress,
 			amount: amount,
@@ -68,7 +81,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 		const totalReducer = (accumulator, currentValue) => accumulator.add(currentValue);
 		const total = _amounts.reduce(totalReducer);
 		await SOV.transfer(initializer, total);
-		await investorsClaim.authorizedBalanceWithdraw(root); //nullify balance
+		await investorsClaim.authorizedBalanceWithdraw(root); // nullify balance
 
 		await SOV.transfer(investorsClaim.address, total, { from: initializer });
 	}
@@ -90,13 +103,18 @@ contract("OriginInvestorsClaim", (accounts) => {
 		}
 	}
 
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		await createOriginInvestorsClaimContract({ _initializeInvestorsList: false, _fundContract: true });
+	}
+
 	before(async () => {
-		[root, initializer, account1, investor1, investor2, investor3, claimedTokensReceiver, ...accounts] = accounts;
-		investors = [investor1, investor2, investor3];
+		[root, initializer, account1, investor1, investor2, investor3, investor4, claimedTokensReceiver, ...accounts] = accounts;
+		investors = [investor1, investor2, investor3, investor4];
 		amount1 = new BN(ONE_THOUSAND);
 		amount2 = amount1.muln(2);
 		amount3 = amount1.muln(5);
-		amounts = [amount1, amount2, amount3];
+		amount4 = amount1.muln(3);
+		amounts = [amount1, amount2, amount3, amount4];
 
 		SOV = await SOV_ABI.new(TOTAL_SUPPLY);
 		cSOV1 = await TestToken.new("cSOV1", "cSOV1", 18, TOTAL_SUPPLY);
@@ -131,11 +149,11 @@ contract("OriginInvestorsClaim", (accounts) => {
 
 	describe("setInvestorsList", () => {
 		beforeEach(async () => {
-			await createOriginInvestorsClaimContract({ _initializeInvestorsList: false, _fundContract: true });
+			await loadFixture(deploymentAndInitFixture);
 		});
 
 		it("set investors list", async () => {
-			//set first chunk of the list
+			// set first chunk of the list
 			let tx = await investorsClaim.appendInvestorsAmountsList(investors.slice(0, 2), amounts.slice(0, 2));
 			expectEvent(tx, "InvestorsAmountsListAppended", {
 				qty: new BN(amounts.slice(0, 2).length),
@@ -145,7 +163,10 @@ contract("OriginInvestorsClaim", (accounts) => {
 			await verifyAmounts(2);
 
 			tx = await investorsClaim.appendInvestorsAmountsList(investors, amounts);
-			expectEvent(tx, "InvestorsAmountsListAppended", { qty: new BN(1), amount: amount3 });
+			expectEvent(tx, "InvestorsAmountsListAppended", {
+				qty: new BN(amounts.length - amounts.slice(0, 2).length),
+				amount: amount3.add(amount4),
+			});
 
 			await verifyAmounts(3);
 
@@ -193,6 +214,19 @@ contract("OriginInvestorsClaim", (accounts) => {
 		});
 
 		it("only authorised can whitelist investors", async () => {
+			await createOriginInvestorsClaimContract({ _initializeInvestorsList: true, _fundContract: true });
+
+			await expectRevert(
+				investorsClaim.appendInvestorsAmountsList(investors, amounts, { from: account1 }),
+				"OriginInvestorsClaim::onlyAuthorized: should be authorized"
+			);
+
+			// Try again by adding account1 as admin
+			await investorsClaim.addAdmin(account1);
+			await investorsClaim.appendInvestorsAmountsList(investors, amounts, { from: account1 });
+
+			// Try again by removing account1 from admin
+			await investorsClaim.removeAdmin(account1);
 			await expectRevert(
 				investorsClaim.appendInvestorsAmountsList(investors, amounts, { from: account1 }),
 				"OriginInvestorsClaim::onlyAuthorized: should be authorized"
@@ -204,9 +238,32 @@ contract("OriginInvestorsClaim", (accounts) => {
 		before(async () => {
 			await createOriginInvestorsClaimContract({ _initializeInvestorsList: true, _fundContract: true });
 			await vestingRegistry.addAdmin(investorsClaim.address);
-			//await fundContract({ approve: true, transfer: false });
+			// await fundContract({ approve: true, transfer: false });
 		});
+
+		it("should revert when claiming from an investor having an active vesting contract", async () => {
+			await investorsClaim.setInvestorsAmountsListInitialized();
+
+			// Create an active vesting contract for investor4
+			let amount = new BN(1000000);
+			await SOV.transfer(vestingRegistry.address, amount);
+			let cliff = FOUR_WEEKS;
+			let duration = FOUR_WEEKS.mul(new BN(20));
+			await vestingRegistry.createVesting(investor4, amount, cliff, duration);
+			let vestingAddress = await vestingRegistry.getVesting(investor4);
+			await vestingRegistry.stakeTokens(vestingAddress, amount);
+
+			// Should fail
+			await expectRevert(
+				investorsClaim.claim({ from: investor4 }),
+				"OriginInvestorsClaim::withdraw: the claimer has an active vesting contract"
+			);
+		});
+
 		it("should create vesting contract within vesting period", async () => {
+			await createOriginInvestorsClaimContract({ _initializeInvestorsList: true, _fundContract: true });
+			await vestingRegistry.addAdmin(investorsClaim.address);
+
 			await expectRevert(
 				investorsClaim.claim({ from: investor1 }),
 				"OriginInvestorsClaim::initialized: the investors list has not been set yet"
@@ -243,7 +300,7 @@ contract("OriginInvestorsClaim", (accounts) => {
 
 			expect(await investorsClaim.investorsAmountsList(investor2)).to.be.bignumber.equal(new BN(0));
 
-			//TODO: check vesting created and the user is in the list
+			// TODO: check vesting created and the user is in the list
 		});
 
 		// address1 claims - failure
