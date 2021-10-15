@@ -28,9 +28,10 @@ contract WeightedStaking is Checkpoints {
 	/**
 	 * @notice sets vesting registry
 	 * @param _vestingRegistryProxy the address of vesting registry proxy contract
+	 * @dev _vestingRegistryProxy can be set to 0 as this function can be reused by
+	 * various other functionalities without the necessity of linking it with Vesting Registry
 	 */
 	function setVestingRegistry(address _vestingRegistryProxy) external onlyOwner {
-		require(_vestingRegistryProxy != address(0), "vesting registry address invalid");
 		vestingRegistryLogic = VestingRegistryLogic(_vestingRegistryProxy);
 	}
 
@@ -88,7 +89,7 @@ contract WeightedStaking is Checkpoints {
 			totalVotingPower = add96(
 				totalVotingPower,
 				_totalPowerByDate(i, start, blockNumber),
-				"WeightedStaking::getPriorTotalVotingPower: overflow on total voting power computation"
+				"overflow on total voting power computation"
 			);
 		}
 	}
@@ -109,7 +110,7 @@ contract WeightedStaking is Checkpoints {
 		uint96 weight = computeWeightByDate(date, startDate);
 		uint96 staked = getPriorTotalStakesForDate(date, blockNumber);
 		/// @dev weight is multiplied by some factor to allow decimals.
-		power = mul96(staked, weight, "WeightedStaking::_totalPowerByDate: multiplication overflow") / WEIGHT_FACTOR;
+		power = mul96(staked, weight, "multiplication overflow") / WEIGHT_FACTOR;
 	}
 
 	/**
@@ -123,7 +124,7 @@ contract WeightedStaking is Checkpoints {
 	 * @return The number of votes the account had as of the given block.
 	 * */
 	function getPriorTotalStakesForDate(uint256 date, uint256 blockNumber) public view returns (uint96) {
-		require(blockNumber < _getCurrentBlockNumber(), "WeightedStaking::getPriorTotalStakesForDate: not yet determined");
+		require(blockNumber < _getCurrentBlockNumber(), "not yet determined");
 
 		uint32 nCheckpoints = numTotalStakingCheckpoints[date];
 		if (nCheckpoints == 0) {
@@ -183,7 +184,7 @@ contract WeightedStaking is Checkpoints {
 			votes = add96(
 				votes,
 				_totalPowerByDateForDelegatee(account, i, start, blockNumber),
-				"WeightedStaking::getPriorVotes: overflow on total voting power computation"
+				"overflow - total voting power computation"
 			);
 		}
 	}
@@ -205,7 +206,7 @@ contract WeightedStaking is Checkpoints {
 	) internal view returns (uint96 power) {
 		uint96 weight = computeWeightByDate(date, startDate);
 		uint96 staked = getPriorStakeByDateForDelegatee(account, date, blockNumber);
-		power = mul96(staked, weight, "WeightedStaking::_totalPowerByDateForDelegatee: multiplication overflow") / WEIGHT_FACTOR;
+		power = mul96(staked, weight, "overflow") / WEIGHT_FACTOR;
 	}
 
 	/**
@@ -224,7 +225,7 @@ contract WeightedStaking is Checkpoints {
 		uint256 date,
 		uint256 blockNumber
 	) public view returns (uint96) {
-		require(blockNumber < _getCurrentBlockNumber(), "WeightedStaking::getPriorStakeByDateForDelegatee: not yet determined");
+		require(blockNumber < _getCurrentBlockNumber(), "not determined yet");
 
 		uint32 nCheckpoints = numDelegateStakingCheckpoints[account][date];
 		if (nCheckpoints == 0) {
@@ -286,7 +287,7 @@ contract WeightedStaking is Checkpoints {
 		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
 			uint96 weightedStake = weightedStakeByDate(account, i, start, blockNumber);
 			if (weightedStake > 0) {
-				votes = add96(votes, weightedStake, "WeightedStaking::getPriorWeightedStake: overflow on total weight computation");
+				votes = add96(votes, weightedStake, "overflow on total weight computation");
 			}
 		}
 	}
@@ -311,7 +312,7 @@ contract WeightedStaking is Checkpoints {
 		uint96 staked = _getPriorUserStakeByDate(account, date, blockNumber);
 		if (staked > 0) {
 			uint96 weight = computeWeightByDate(date, startDate);
-			power = mul96(staked, weight, "WeightedStaking::weightedStakeByDate: multiplication overflow") / WEIGHT_FACTOR;
+			power = mul96(staked, weight, "overflow error") / WEIGHT_FACTOR;
 		} else {
 			power = 0;
 		}
@@ -357,7 +358,7 @@ contract WeightedStaking is Checkpoints {
 		uint256 date,
 		uint256 blockNumber
 	) internal view returns (uint96) {
-		require(blockNumber < _getCurrentBlockNumber(), "WeightedStaking::getPriorUserStakeAndDate: not yet determined");
+		require(blockNumber < _getCurrentBlockNumber(), "not determined");
 
 		date = _adjustDateForOrigin(date);
 		uint32 nCheckpoints = numUserStakingCheckpoints[account][date];
@@ -415,7 +416,7 @@ contract WeightedStaking is Checkpoints {
 		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
 			uint96 weightedStake = weightedVestingStakeByDate(i, start, blockNumber);
 			if (weightedStake > 0) {
-				votes = add96(votes, weightedStake, "WeightedStaking::getPriorVestingWeightedStake: overflow on total weight computation");
+				votes = add96(votes, weightedStake, "overflow - total weight computation");
 			}
 		}
 	}
@@ -519,9 +520,9 @@ contract WeightedStaking is Checkpoints {
 	 * @return The weighted stake the account had as of the given block.
 	 * */
 	function computeWeightByDate(uint256 date, uint256 startDate) public pure returns (uint96 weight) {
-		require(date >= startDate, "WeightedStaking::computeWeightByDate: date needs to be bigger than startDate");
+		require(date >= startDate, "date needs to be bigger than startDate");
 		uint256 remainingTime = (date - startDate);
-		require(MAX_DURATION >= remainingTime, "Staking::computeWeightByDate:remaining time can't be bigger than max duration");
+		require(MAX_DURATION >= remainingTime, "remaining time can't be bigger than max duration");
 		/// @dev x = max days - remaining days
 		uint96 x = uint96(MAX_DURATION - remainingTime) / (1 days);
 		/// @dev w = (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)
@@ -544,7 +545,7 @@ contract WeightedStaking is Checkpoints {
 	 * @return The actual unlocking date (might be up to 2 weeks shorter than intended).
 	 * */
 	function timestampToLockDate(uint256 timestamp) public view returns (uint256 lockDate) {
-		require(timestamp >= kickoffTS, "WeightedStaking::timestampToLockDate: timestamp lies before contract creation");
+		require(timestamp >= kickoffTS, "timestamp lies before contract creation");
 		/**
 		 * @dev If staking timestamp does not match any of the unstaking dates
 		 * , set the lockDate to the closest one before the timestamp.
@@ -589,10 +590,51 @@ contract WeightedStaking is Checkpoints {
 	}
 
 	/**
+	 * @notice Add vesting contract's code hash to a map of code hashes.
+	 * @param vesting The address of Vesting contract.
+	 * @dev We need it to use _isVestingContract() function instead of isContract()
+	 */
+	function addContractCodeHash(address vesting) public onlyAuthorized {
+		bytes32 codeHash = _getCodeHash(vesting);
+		vestingCodeHashes[codeHash] = true;
+		emit ContractCodeHashAdded(codeHash);
+	}
+
+	/**
+	 * @notice Add vesting contract's code hash to a map of code hashes.
+	 * @param vesting The address of Vesting contract.
+	 * @dev We need it to use _isVestingContract() function instead of isContract()
+	 */
+	function removeContractCodeHash(address vesting) public onlyAuthorized {
+		bytes32 codeHash = _getCodeHash(vesting);
+		vestingCodeHashes[codeHash] = false;
+		emit ContractCodeHashRemoved(codeHash);
+	}
+
+	/**
 	 * @notice Return flag whether the given address is a registered vesting contract.
 	 * @param stakerAddress the address to check
 	 */
 	function isVestingContract(address stakerAddress) public view returns (bool) {
-		return vestingRegistryLogic.isVestingAdress(msg.sender);
+		bool isVesting;
+		bytes32 codeHash = _getCodeHash(stakerAddress);
+		if (address(vestingRegistryLogic) != address(0)) {
+			isVesting = vestingRegistryLogic.isVestingAdress(stakerAddress);
+		}
+
+		if (isVesting) return true;
+		if (vestingCodeHashes[codeHash]) return true;
+		return false;
+	}
+
+	/**
+	 * @notice Return hash of contract code
+	 */
+	function _getCodeHash(address _contract) internal view returns (bytes32) {
+		bytes32 codeHash;
+		assembly {
+			codeHash := extcodehash(_contract)
+		}
+		return codeHash;
 	}
 }
