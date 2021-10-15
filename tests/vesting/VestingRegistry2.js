@@ -12,7 +12,7 @@
  *   some of them are requesting to redeploy when needed.
  */
 
-const { expect } = require("chai");
+const { expect, assert } = require("chai");
 const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
 
@@ -461,6 +461,23 @@ contract("VestingRegistry", (accounts) => {
 
 			await vestingRegistry.addAdmin(account1);
 			await vestingRegistry.stakeTokens(vestingAddress, new BN(1000000), { from: account1 });
+		});
+	});
+
+	describe("deposit funds", () => {
+		it.only("should get budget and deposit", async () => {
+			await loadFixture(deploymentAndInitFixture);
+
+			let budget = await vestingRegistry.budget();
+			// console.log("budget: " + budget);
+			expect(budget).to.be.bignumber.equal(new BN(0));
+
+			const amount = web3.utils.toWei("3");
+			await vestingRegistry.deposit({ from: accounts[1], value: amount });
+
+			budget = await vestingRegistry.budget();
+			// console.log("budget: " + budget);
+			expect(budget).to.be.bignumber.equal(amount);
 		});
 	});
 
