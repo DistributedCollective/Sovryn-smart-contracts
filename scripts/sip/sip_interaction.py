@@ -248,14 +248,16 @@ def createProposalSIP0024():
 def createProposalSIP0030():
     # TODO StakingLogic4 should be deployed
 
-    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    stakingProxy = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    stakingImpl = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
 
     # Action
-    targets = [contracts['Staking']]
-    values = [0]
-    signatures = ["setImplementation(address)"]
-    data = staking.setImplementation.encode_input(contracts['StakingLogic4'])
-    datas = ["0x" + data[10:]]
+    targets = [contracts['Staking'], contracts['Staking']]
+    values = [0, 0]
+    signatures = ["setImplementation(address), setFeeSharing(address)"]
+    data1 = stakingProxy.setImplementation.encode_input(contracts['StakingLogic4'])
+    data2 = stakingImpl.setFeeSharing.encode_input(contracts['FeeSharingProxy2'])
+    datas = ["0x" + data1[10:], "0x" + data2[10:]]
     description = "SIP-30: Concentrating staking revenues, Details: https://github.com/DistributedCollective/SIPS/blob/12bdd48/SIP-30.md, sha256: 8f7f95545d968dc4d9a37b9cad4228b562c76b7617c2740b221b1f70eb367620"
 
     print(datas)
