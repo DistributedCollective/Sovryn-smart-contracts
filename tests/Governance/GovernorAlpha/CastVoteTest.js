@@ -18,7 +18,7 @@ const { getAccountsPrivateKeys, getAccountsPrivateKeysBuffer } = require("../../
 const { bufferToHex, privateToAddress, toChecksumAddress } = require("ethereumjs-util");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
-const StakingLogic = artifacts.require("Staking");
+const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 

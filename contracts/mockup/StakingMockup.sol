@@ -51,4 +51,46 @@ contract StakingMockup is Staking {
 		uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
 		_writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, 0);
 	}
+
+	/**
+	 * @notice Add vesting contract's code hash to a map of code hashes.
+	 * @param vesting The address of Vesting contract.
+	 * @dev We need it to use _isVestingContract() function instead of isContract()
+	 */
+	function addContractCodeHash(address vesting) public onlyAuthorized {
+		bytes32 codeHash = _getCodeHash(vesting);
+		vestingCodeHashes[codeHash] = true;
+		emit ContractCodeHashAdded(codeHash);
+	}
+
+	/**
+	 * @notice Add vesting contract's code hash to a map of code hashes.
+	 * @param vesting The address of Vesting contract.
+	 * @dev We need it to use _isVestingContract() function instead of isContract()
+	 */
+	function removeContractCodeHash(address vesting) public onlyAuthorized {
+		bytes32 codeHash = _getCodeHash(vesting);
+		vestingCodeHashes[codeHash] = false;
+		emit ContractCodeHashRemoved(codeHash);
+	}
+
+	/**
+	 * @notice Return hash of contract code
+	 */
+	function _getCodeHash(address _contract) internal view returns (bytes32) {
+		bytes32 codeHash;
+		assembly {
+			codeHash := extcodehash(_contract)
+		}
+		return codeHash;
+	}
+
+	/**
+	 * @notice Return flag whether the given address is a registered vesting contract.
+	 * @param stakerAddress the address to check
+	 */
+	function isVestingContract(address stakerAddress) public view returns (bool) {
+		bytes32 codeHash = _getCodeHash(stakerAddress);
+		return vestingCodeHashes[codeHash];
+	}
 }
