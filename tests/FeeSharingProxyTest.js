@@ -153,7 +153,9 @@ contract("FeeSharingProxy:", (accounts) => {
 		vestingFactory.transferOwnership(vestingRegistry.address);
 
 		await protocol.setLockedSOVAddress(
-			(await LockedSOV.new(SOVToken.address, vestingRegistry.address, cliff, duration, [root])).address
+			(
+				await LockedSOV.new(SOVToken.address, vestingRegistry.address, cliff, duration, [root])
+			).address
 		);
 
 		// // Set PriceFeeds
