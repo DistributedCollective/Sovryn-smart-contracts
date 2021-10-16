@@ -7,6 +7,7 @@ import "../../openzeppelin/Ownable.sol";
 import "../IFeeSharingProxy.sol";
 import "../../openzeppelin/Address.sol";
 import "./FeeSharingProxyStorage.sol";
+import "../../interfaces/IConverterAMM.sol";
 
 /**
  * @title The FeeSharingLogic contract.
@@ -59,6 +60,15 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 	/// @notice An event emitted when user fee get withdrawn.
 	event UserFeeWithdrawn(address indexed sender, address indexed receiver, address indexed token, uint256 amount);
 
+	/**
+	 * @notice An event emitted when fee from AMM get withdrawn.
+	 *
+	 * @param sender sender who initiate the withdrawn amm fees.
+	 * @param converter the converter address.
+	 * @param amount total amount of fee (Already converted to WRBTC).
+	 */
+	event FeeAMMWithdrawn(address indexed sender, address indexed converter, uint256 amount);
+
 	/* Functions */
 
 	/**
@@ -97,6 +107,42 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		_addCheckpoint(loanPoolToken);
 
 		emit FeeWithdrawn(msg.sender, loanPoolToken, poolTokenAmount);
+	}
+
+	/**
+	 * @notice Withdraw amm fees for the given converter addresses:
+	 * protocolFee from the conversion
+	 * the fees will be converted in wRBTC form, and then will be transferred to wRBTC loan pool
+	 *
+	 * @param _converters array addresses of the converters
+	 * */
+	function withdrawFeesAMM(address[] memory _converters) public {
+		address wRBTCAddress = protocol.wrbtcToken();
+		require(wRBTCAddress != address(0), "FeeSharingProxy::withdrawFees: wRBTCAddress is not set");
+
+		address loanPoolToken = protocol.underlyingToLoanPool(wRBTCAddress);
+		require(loanPoolToken != address(0), "FeeSharingProxy::withdrawFees: loan wRBTC not found");
+
+		for (uint256 i = 0; i < _converters.length; i++) {
+			require(Address.isContract(_converters[i]), "FeeSharingProxy::withdrawFees: converter is not a contract");
+
+			uint256 amount = IConverterAMM(_converters[i]).withdrawFees(address(this));
+
+			/// @dev TODO can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
+			IERC20(wRBTCAddress).approve(loanPoolToken, amount);
+			uint256 poolTokenAmount = ILoanToken(loanPoolToken).mint(address(this), amount);
+
+			/// @notice Update unprocessed amount of tokens
+			uint96 amount96 = safe96(poolTokenAmount, "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits");
+			unprocessedAmount[loanPoolToken] = add96(
+				unprocessedAmount[loanPoolToken],
+				amount96,
+				"FeeSharingProxy::withdrawFees: unprocessedAmount exceeds 96 bits"
+			);
+
+			_addCheckpoint(loanPoolToken);
+			emit FeeAMMWithdrawn(msg.sender, _converters[i], poolTokenAmount);
+		}
 	}
 
 	/**

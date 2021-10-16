@@ -39,6 +39,8 @@ const SwapsExternal = artifacts.require("SwapsExternal");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
 
+const LiquidityPoolV1Converter = artifacts.require("LiquidityPoolV1ConverterMockup");
+
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
@@ -71,6 +73,7 @@ contract("FeeSharingProxy:", (accounts) => {
 	let loanTokenWrbtc;
 	let tradingFeePercent;
 	let mockPrice;
+	let liquidityPoolV1Converter;
 
 	before(async () => {
 		[root, account1, account2, account3, account4, ...accounts] = accounts;
@@ -150,9 +153,7 @@ contract("FeeSharingProxy:", (accounts) => {
 		vestingFactory.transferOwnership(vestingRegistry.address);
 
 		await protocol.setLockedSOVAddress(
-			(
-				await LockedSOV.new(SOVToken.address, vestingRegistry.address, cliff, duration, [root])
-			).address
+			(await LockedSOV.new(SOVToken.address, vestingRegistry.address, cliff, duration, [root])).address
 		);
 
 		// // Set PriceFeeds
@@ -922,6 +923,56 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			//100% of the fees should go to the user -> vesting contract not considered
 			expect(feesWithdrawn).to.be.bignumber.equal(userFees);
+		});
+	});
+
+	describe("withdraw AMM Fees", async () => {
+		it("should not be able to withdraw fees if converters address is not an contract address", async () => {
+			await expectRevert(
+				feeSharingProxy.withdrawFeesAMM([accounts[0]]),
+				"FeeSharingProxy::withdrawFees: converter is not a contract"
+			);
+		});
+
+		it("Should be able to withdraw AMM Fees", async () => {
+			//stake - getPriorTotalVotingPower
+			let totalStake = 1000;
+			await stake(totalStake, root);
+
+			//mock data
+			// AMM Converter
+			liquidityPoolV1Converter = await LiquidityPoolV1Converter.new(SOVToken.address, susd.address);
+			const feeAmount = new BN(wei("1", "ether"));
+			await liquidityPoolV1Converter.setTotalFeeMockupValue(feeAmount.toString());
+			await expectRevert(feeSharingProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]), "unauthorized");
+			await liquidityPoolV1Converter.setFeesController(feeSharingProxy.address);
+			await liquidityPoolV1Converter.setWrbtcToken(wrbtc.address);
+			await wrbtc.mint(liquidityPoolV1Converter.address, wei("2", "ether"));
+
+			tx = await feeSharingProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]);
+
+			//check wrbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
+			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
+			expect(feeSharingProxyBalance.toString()).to.be.equal(feeAmount.toString());
+
+			//checkpoints
+			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanTokenWrbtc.address);
+			expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
+			let checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanTokenWrbtc.address, 0);
+			expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
+			expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
+			expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
+
+			//check lastFeeWithdrawalTime
+			let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanTokenWrbtc.address);
+			let block = await web3.eth.getBlock(tx.receipt.blockNumber);
+			expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
+
+			expectEvent(tx, "FeeAMMWithdrawn", {
+				sender: root,
+				converter: liquidityPoolV1Converter.address,
+				amount: feeAmount,
+			});
 		});
 	});
 
