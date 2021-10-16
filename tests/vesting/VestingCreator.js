@@ -1,4 +1,18 @@
+/** Speed optimized on branch improveTestCoverage, 2021-10-15
+ * Bottlenecks found:
+ *  + beforeEach hook, redeploying tokens, staking and vesting.
+ *
+ * Total time elapsed: 12.7s
+ * After optimization: 6.3s
+ *
+ * Notes:
+ *   Added coverage tests.
+ */
+
 const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
@@ -23,7 +37,7 @@ const MAX_PERIOD = 8;
 const pricsSats = "2500";
 
 contract("VestingCreator", (accounts) => {
-	let root, account1, account2, account3, account4, account5;
+	let root, account1, account2, account3, account4;
 	let SOV, lockedSOV;
 	let vesting, vestingRegistryLogic;
 	let vestingCreator;
@@ -32,11 +46,7 @@ contract("VestingCreator", (accounts) => {
 	let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
 	let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 
-	before(async () => {
-		[root, account1, account2, account3, account4, account5, ...accounts] = accounts;
-	});
-
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		SOV = await SOV_ABI.new(TOTAL_SUPPLY);
 		cSOV1 = await TestToken.new("cSOV1", "cSOV1", 18, TOTAL_SUPPLY);
 		cSOV2 = await TestToken.new("cSOV2", "cSOV2", 18, TOTAL_SUPPLY);
@@ -100,6 +110,14 @@ contract("VestingCreator", (accounts) => {
 		);
 
 		await vesting.addAdmin(vestingCreator.address);
+	}
+
+	before(async () => {
+		[root, account1, account2, account3, account4, ...accounts] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("constructor", () => {
@@ -832,7 +850,7 @@ contract("VestingCreator", (accounts) => {
 	});
 
 	describe("vestingRegistry3", () => {
-		it.only("check transferSOV", async () => {
+		it("check transferSOV", async () => {
 			let amount = new BN(1000);
 
 			// Send funds to vestingRegistry3
@@ -840,14 +858,79 @@ contract("VestingCreator", (accounts) => {
 
 			// Get recipient's balance before transfer
 			let balance2before = await SOV.balanceOf(account1);
-			console.log("balance2before: ", balance2before.toString());
+			// console.log("balance2before: ", balance2before.toString());
 
 			// Call transferSOV
 			await vestingRegistry3.transferSOV(account1, amount);
 
 			// Get recipient's balance after transfer
 			let balance2after = await SOV.balanceOf(account1);
-			console.log("balance2after: ", balance2after.toString());
+			// console.log("balance2after: ", balance2after.toString());
+
+			// Check account1 received the transfer
+			expect(balance2after.sub(balance2before)).to.be.bignumber.equal(amount);
+		});
+
+		/// @dev vestingRegistry3 has its own methods for adding and removing admins
+		it("add and remove admin", async () => {
+			// Add account1 as admin
+			let tx = await vestingRegistry3.addAdmin(account1);
+			expectEvent(tx, "AdminAdded", {
+				admin: account1,
+			});
+
+			// Check account1 is admin
+			let isAdmin = await vestingRegistry3.admins(account1);
+			expect(isAdmin).equal(true);
+
+			// Remove account1 as admin
+			tx = await vestingRegistry3.removeAdmin(account1);
+			expectEvent(tx, "AdminRemoved", {
+				admin: account1,
+			});
+
+			// Check account1 is not admin anymore
+			isAdmin = await vestingRegistry3.admins(account1);
+			expect(isAdmin).equal(false);
+		});
+
+		/// @dev vestingRegistry3 has its own method for setting vesting factory
+		it("set vesting factory", async () => {
+			await vestingRegistry3.setVestingFactory(account2);
+
+			let vestingFactory = await vestingRegistry3.vestingFactory();
+			expect(vestingFactory).equal(account2);
+		});
+
+		/// @dev Checks all require statements for test coverage
+		it("constructor", async () => {
+			await expectRevert(
+				VestingRegistry3.new(vestingFactory.address, ZERO_ADDRESS, staking.address, feeSharingProxy.address, account1),
+				"SOV address invalid"
+			);
+
+			await expectRevert(
+				VestingRegistry3.new(vestingFactory.address, SOV.address, ZERO_ADDRESS, feeSharingProxy.address, account1),
+				"staking address invalid"
+			);
+
+			await expectRevert(
+				VestingRegistry3.new(vestingFactory.address, SOV.address, staking.address, ZERO_ADDRESS, account1),
+				"feeSharingProxy address invalid"
+			);
+
+			await expectRevert(
+				VestingRegistry3.new(vestingFactory.address, SOV.address, staking.address, feeSharingProxy.address, ZERO_ADDRESS),
+				"vestingOwner address invalid"
+			);
+		});
+
+		/// @dev Check require statements for stakeTokens method
+		it("should fail stakeTokens when parameters are address(0), 0", async () => {
+			let amount = new BN(1000);
+			await SOV.transfer(vestingRegistry3.address, amount);
+
+			await expectRevert(vestingRegistry3.stakeTokens(ZERO_ADDRESS, amount), "vesting address invalid");
 		});
 	});
 });
