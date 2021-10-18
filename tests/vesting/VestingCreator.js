@@ -869,6 +869,12 @@ contract("VestingCreator", (accounts) => {
 
 			// Check account1 received the transfer
 			expect(balance2after.sub(balance2before)).to.be.bignumber.equal(amount);
+
+			// Fail to transfer to address(0)
+			await expectRevert(vestingRegistry3.transferSOV(ZERO_ADDRESS, amount), "receiver address invalid");
+
+			// Fail to transfer 0 amount
+			await expectRevert(vestingRegistry3.transferSOV(account1, 0), "amount invalid");
 		});
 
 		/// @dev vestingRegistry3 has its own methods for adding and removing admins
