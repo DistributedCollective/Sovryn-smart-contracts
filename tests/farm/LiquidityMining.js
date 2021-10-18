@@ -14,6 +14,7 @@
  *  it has been restricted exclusively to those tests that required it. Besides,
  *  a waffle fixture is used only on tests that can start from the initial snapshot.
  *
+ *   + Added test of dummy liquidityMiningConfigToken methods for coverage.
  */
 
 const { expect } = require("chai");
@@ -80,6 +81,32 @@ contract("LiquidityMining", (accounts) => {
 	before(async () => {
 		accounts = await web3.eth.getAccounts();
 		[root, account1, account2, account3, account4, ...accounts] = accounts;
+	});
+
+	/// @dev Test dummy liquidityMiningConfigToken methods for coverage
+	describe("liquidityMiningConfigToken", () => {
+		it("Test liquidityMiningConfigToken methods", async () => {
+			await loadFixture(deploymentAndInitFixture);
+			let totalSupply = await liquidityMiningConfigToken.totalSupply();
+			// console.log("totalSupply = ", totalSupply.toString());
+			expect(totalSupply).to.be.bignumber.equal(new BN(0));
+
+			let transferReturn = await liquidityMiningConfigToken.transfer.call(account1, 0);
+			// console.log("transferReturn = ", transferReturn);
+			expect(transferReturn).equal(false);
+
+			let allowance = await liquidityMiningConfigToken.allowance(account1, account2);
+			// console.log("allowance = ", allowance.toString());
+			expect(allowance).to.be.bignumber.equal(new BN(0));
+
+			let approveReturn = await liquidityMiningConfigToken.approve.call(account1, 0);
+			// console.log("approveReturn = ", approveReturn);
+			expect(approveReturn).equal(false);
+
+			let transferFromReturn = await liquidityMiningConfigToken.transferFrom.call(account1, account2, 0);
+			// console.log("transferFromReturn = ", transferFromReturn);
+			expect(transferFromReturn).equal(false);
+		});
 	});
 
 	describe("initialize", () => {
