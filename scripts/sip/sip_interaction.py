@@ -256,7 +256,7 @@ def createProposalSIP0030():
     # Action
     targets = [contracts['Staking'], contracts['Staking'], contracts['Staking']]
     values = [0, 0, 0]
-    signatures = ["setImplementation(address), setFeeSharing(address)", "setVestingRegistry(address)"]
+    signatures = ["setImplementation(address)", "setFeeSharing(address)", "setVestingRegistry(address)"]
     data1 = stakingProxy.setImplementation.encode_input(contracts['StakingLogic4'])
     data2 = stakingImpl.setFeeSharing.encode_input(contracts['FeeSharingProxy'])
     data3 = stakingImpl.setVestingRegistry.encode_input(contracts['VestingRegistryProxy'])
