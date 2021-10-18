@@ -36,11 +36,14 @@ def main():
 
     users = getUsers(OUTPUT_FILE)
 
+    usersSet = set()
+
     jsonFile = open(OUTPUT_FILE, "a")
     with open(INPUT_FILE, 'r') as file:
         reader = csv.reader(file)
         for row in reader:
             user = row[0]
+            usersSet.add(user)
             print(user)
             if user in users:
                 continue
@@ -66,6 +69,11 @@ def main():
                     vestingDataList.append(vestingData)
             for data in vestingDataList:
                 jsonFile.write(json.dumps(data) + "\n")
+
+    # usersSetFile = open("./scripts/staking/users2.csv", "a")
+    # for user in usersSet:
+    #     usersSetFile.write(user + "\n")
+    # print("len(usersSet) =", len(usersSet))
 
 def getUsers(fileName):
     with open(fileName) as file:
