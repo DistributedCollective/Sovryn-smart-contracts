@@ -243,6 +243,39 @@ contract("FeeSharingProxy:", (accounts) => {
 			});
 		});
 
+		it("ProtocolSettings.withdrawFees (wrbtc token)", async () => {
+			//stake - getPriorTotalVotingPower
+			let totalStake = 1000;
+			await stake(totalStake, root);
+
+			//mock data
+			let lendingFeeTokensHeld = new BN(wei("1", "ether"));
+			let tradingFeeTokensHeld = new BN(wei("2", "ether"));
+			let borrowingFeeTokensHeld = new BN(wei("3", "ether"));
+			let totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
+
+			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld, true);
+			// let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+			await protocol.setFeesController(root);
+			let tx = await protocol.withdrawFees([wrbtc.address], account1);
+
+			await checkWithdrawFee();
+
+			//check wrbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
+			let userBalance = await wrbtc.balanceOf.call(account1);
+			expect(userBalance.toString()).to.be.equal(feeAmount.toString());
+
+			expectEvent(tx, "WithdrawFees", {
+				sender: root,
+				token: wrbtc.address,
+				receiver: account1,
+				lendingAmount: lendingFeeTokensHeld,
+				tradingAmount: tradingFeeTokensHeld,
+				borrowingAmount: borrowingFeeTokensHeld,
+				// amountConvertedToWRBTC
+			});
+		});
+
 		it("Should be able to withdraw fees", async () => {
 			//stake - getPriorTotalVotingPower
 			let totalStake = 1000;
@@ -256,6 +289,46 @@ contract("FeeSharingProxy:", (accounts) => {
 			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
 
 			tx = await feeSharingProxy.withdrawFees([susd.address]);
+
+			await checkWithdrawFee();
+
+			//check wrbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
+			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
+			expect(feeSharingProxyBalance.toString()).to.be.equal(feeAmount.toString());
+
+			//checkpoints
+			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanTokenWrbtc.address);
+			expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
+			let checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanTokenWrbtc.address, 0);
+			expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
+			expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
+			expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
+
+			//check lastFeeWithdrawalTime
+			let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanTokenWrbtc.address);
+			let block = await web3.eth.getBlock(tx.receipt.blockNumber);
+			expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
+
+			expectEvent(tx, "FeeWithdrawn", {
+				sender: root,
+				token: loanTokenWrbtc.address,
+				amount: feeAmount,
+			});
+		});
+
+		it("Should be able to withdraw fees (wrbtc token)", async () => {
+			//stake - getPriorTotalVotingPower
+			let totalStake = 1000;
+			await stake(totalStake, root);
+
+			//mock data
+			let lendingFeeTokensHeld = new BN(wei("1", "ether"));
+			let tradingFeeTokensHeld = new BN(wei("2", "ether"));
+			let borrowingFeeTokensHeld = new BN(wei("3", "ether"));
+			let totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
+			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld, true);
+
+			tx = await feeSharingProxy.withdrawFees([wrbtc.address]);
 
 			await checkWithdrawFee();
 
@@ -946,12 +1019,18 @@ contract("FeeSharingProxy:", (accounts) => {
 		}
 	}
 
-	async function setFeeTokensHeld(lendingFee, tradingFee, borrowingFee) {
+	async function setFeeTokensHeld(lendingFee, tradingFee, borrowingFee, wrbtcTokenFee = false) {
 		let totalFeeAmount = lendingFee.add(tradingFee).add(borrowingFee);
-		await susd.transfer(protocol.address, totalFeeAmount);
-		await protocol.setLendingFeeTokensHeld(susd.address, lendingFee);
-		await protocol.setTradingFeeTokensHeld(susd.address, tradingFee);
-		await protocol.setBorrowingFeeTokensHeld(susd.address, borrowingFee);
+		let tokenFee;
+		if (wrbtcTokenFee) {
+			tokenFee = wrbtc;
+		} else {
+			tokenFee = susd;
+			await tokenFee.transfer(protocol.address, totalFeeAmount);
+		}
+		await protocol.setLendingFeeTokensHeld(tokenFee.address, lendingFee);
+		await protocol.setTradingFeeTokensHeld(tokenFee.address, tradingFee);
+		await protocol.setBorrowingFeeTokensHeld(tokenFee.address, borrowingFee);
 		return totalFeeAmount;
 	}
 

@@ -393,14 +393,22 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 				continue;
 			}
 
-			IERC20(tokens[i]).approve(protocolAddress, tempAmount);
+			uint256 amountConvertedToWRBTC;
+			if (tokens[i] == address(wrbtcToken)) {
+				amountConvertedToWRBTC = tempAmount;
+			} else {
+				IERC20(tokens[i]).approve(protocolAddress, tempAmount);
 
-			// get the slipage
-			uint256 slippage =
-				ISwapsImpl(swapsImpl).internalExpectedReturn(tokens[i], address(wrbtcToken), tempAmount, sovrynSwapContractRegistryAddress);
+				// get the slipage
+				uint256 slippage =
+					ISwapsImpl(swapsImpl).internalExpectedReturn(
+						tokens[i],
+						address(wrbtcToken),
+						tempAmount,
+						sovrynSwapContractRegistryAddress
+					);
 
-			(uint256 amountConvertedToWRBTC, ) =
-				ProtocolSwapExternalInterface(protocolAddress).swapExternal(
+				(amountConvertedToWRBTC, ) = ProtocolSwapExternalInterface(protocolAddress).swapExternal(
 					tokens[i], // source token address
 					address(wrbtcToken), // dest token address
 					feesController, // set feeSharingProxy as receiver
@@ -410,6 +418,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 					slippage, // slippage
 					"" // loan data bytes
 				);
+			}
 
 			totalWRBTCWithdrawn = totalWRBTCWithdrawn.add(amountConvertedToWRBTC);
 
