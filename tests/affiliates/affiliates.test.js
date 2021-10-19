@@ -201,6 +201,60 @@ contract("Affiliates", (accounts) => {
 		await loadFixture(deploymentAndInitFixture);
 	});
 
+	/// @dev Test coverage of PriceFeedsLocal
+	describe("PriceFeedsLocal", () => {
+		let testToken1, testToken2;
+
+		before(async () => {
+			testToken1 = await TestToken.new("test token 1", "TEST1", 18, wei("20000", "ether"));
+			testToken2 = await TestToken.new("test token 2", "TEST2", 16, wei("20000", "ether"));
+		});
+
+		it("PriceFeedsLocal::setGlobalPricingPaused test", async () => {
+			await feeds.setGlobalPricingPaused(true);
+			await expect(
+				await feeds.queryReturn(testToken1.address, testToken2.address, new BN(wei("100", "ether")))
+			).to.be.bignumber.equal(new BN(wei("0", "ether")));
+		});
+
+		it("PriceFeedsLocal::queryRate should fail when paused", async () => {
+			await feeds.setGlobalPricingPaused(true);
+			await expectRevert(feeds.queryRate(doc.address, doc.address), "pricing is paused");
+		});
+
+		it("PriceFeedsLocal::setRates when sourceToken==destToken", async () => {
+			// Check rate before setting
+			let doc2doc = await feeds.queryRate(doc.address, doc.address);
+			expect(doc2doc[0]).to.be.bignumber.equal(new BN(wei("1", "ether")));
+
+			// Trying to set a new rate for doc/doc change; it doesn't revert, just ignores it.
+			await feeds.setRates(doc.address, doc.address, wei("0.01", "ether"));
+
+			// Check rate after setting, it shouldn't have changed even though we tried to
+			doc2doc = await feeds.queryRate(doc.address, doc.address);
+			expect(doc2doc[0]).to.be.bignumber.equal(new BN(wei("1", "ether")));
+		});
+
+		// it("PriceFeedsLocal::queryRate when sourceToken or destToken == protocolTokenAddress", async () => {
+		// 	// Protocol token
+		// 	// let SOV = await getSOV(sovryn, feeds, SUSD, accounts);
+
+		// 	// Set protocol token price
+		// 	await feeds.setProtocolTokenEthPrice(wei("1234", "ether"));
+		// 	expect(await feeds.protocolTokenEthPrice()).to.be.bignumber.equal(new BN(wei("1234", "ether")));
+
+		// 	// Check rate when sourceToken == protocolTokenAddress
+		// 	/// @dev revert target not active
+		// 	// let rate = await feeds.queryRate(sovryn.address, doc.address);
+		// 	// expect(rate[0]).to.be.bignumber.equal(new BN(wei("1234", "ether")));
+
+		// 	// Check rate when destToken == protocolTokenAddress
+		// 	/// @dev revert target not active
+		// 	// rate = await feeds.queryRate(doc.address, sovryn.address);
+		// 	// expect(rate[0]).to.be.bignumber.equal(new BN(wei("1234", "ether")));
+		// });
+	});
+
 	it("Should not be able to set the affiliateFeePercent more than 100%", async () => {
 		const valueExperiment = wei("101", "ether");
 		await expectRevert(sovryn.setAffiliateFeePercent(0, { from: referrer }), "unauthorized");
