@@ -207,3 +207,20 @@ def readVestingData(vestingAddress):
     print(vesting.endDate())
     print(vesting.cliff())
     print(vesting.duration())
+
+def updateLockedSOV():
+    lockedSOV = Contract.from_abi("LockedSOV", address=conf.contracts['LockedSOV'], abi=LockedSOV.abi, owner=conf.acct)
+
+    DAY = 24 * 60 * 60
+    FOUR_WEEKS = 4 * 7 * DAY
+
+    cliff = int(lockedSOV.cliff() / FOUR_WEEKS)
+    duration = int(lockedSOV.duration() / FOUR_WEEKS)
+
+    print("cliff =", cliff)
+    print("duration =", duration)
+    print("multisig: isAdmin =", lockedSOV.adminStatus(conf.contracts['multisig']))
+
+    data = lockedSOV.changeRegistryCliffAndDuration.encode_input(conf.contracts['VestingRegistryProxy'], cliff, duration)
+    print(data)
+    # sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)

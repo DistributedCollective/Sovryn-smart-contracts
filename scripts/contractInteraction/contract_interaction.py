@@ -31,4 +31,6 @@ def main():
     #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iRBTC'])
     #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iBPro'])
     #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iDOC'])
-    setSupportedToken(conf.contracts['BNBs'])
+    # setSupportedToken(conf.contracts['BNBs'])
+
+    updateLockedSOV()

@@ -114,7 +114,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 		uint256 _cliff,
 		uint256 _duration
 	) external onlyAuthorized {
-		createVestingAddr(_tokenOwner, _amount, _cliff, _duration, 0);
+		createVestingAddr(_tokenOwner, _amount, _cliff, _duration, 3);
 	}
 
 	/**
@@ -177,7 +177,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 	 * @dev vestingCreationType 0 - LockedSOV
 	 */
 	function getVesting(address _tokenOwner) public view returns (address) {
-		return getVestingAddr(_tokenOwner, lockedSOV.cliff(), lockedSOV.duration(), 0);
+		return getVestingAddr(_tokenOwner, lockedSOV.cliff(), lockedSOV.duration(), 3);
 	}
 
 	/**
