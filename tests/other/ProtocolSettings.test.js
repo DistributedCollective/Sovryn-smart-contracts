@@ -135,14 +135,14 @@ contract("ProtocolSettings", (accounts) => {
 
 			const dest = sovryn.address;
 			const val = 0;
-			const data = sovryn.contract.methods.setProtocolTokenAddress(sovryn.address).encodeABI();
+			const data = sovryn.contract.methods.setProtocolTokenAddress(sov.address).encodeABI();
 			const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
 			const txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
 			await multisig.confirmTransaction(txId, { from: accounts[1] });
 
-			expect((await sovryn.protocolTokenAddress()) == sovryn.address).to.be.true;
+			expect((await sovryn.protocolTokenAddress()) == sov.address).to.be.true;
 
-			await expectRevert(sovryn.setProtocolTokenAddress(sovryn.address, { from: accounts[1] }), "unauthorized");
+			await expectRevert(sovryn.setProtocolTokenAddress(sov.address, { from: accounts[1] }), "unauthorized");
 		});
 
 		/*
