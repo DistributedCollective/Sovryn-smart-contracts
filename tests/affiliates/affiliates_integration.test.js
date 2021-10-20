@@ -253,7 +253,6 @@ contract("Affiliates", (accounts) => {
 		await sovryn.setFeesController(owner);
 		await sovryn.setWrbtcToken(WRBTC.address);
 		await sovryn.setSOVTokenAddress(SUSD.address);
-		await sovryn.setProtocolTokenAddress(sovryn.address);
 
 		{
 			/**
