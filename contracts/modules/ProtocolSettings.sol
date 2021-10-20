@@ -363,10 +363,15 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 	 * @param receiver The address of the withdrawal recipient.
 	 *
 	 * @return The withdrawn total amount in wRBTC
+	 * @return The withdrawn SOV amount
 	 * */
-	function withdrawFees(address[] calldata tokens, address receiver) external whenNotPaused returns (uint256) {
+	function withdrawFees(address[] calldata tokens, address receiver)
+		external
+		whenNotPaused
+		returns (uint256 totalWRBTCWithdrawn, uint256 totalSOVWithdrawn)
+	{
 		require(msg.sender == feesController, "unauthorized");
-		uint256 totalWRBTCWithdrawn;
+		totalWRBTCWithdrawn;
 
 		for (uint256 i = 0; i < tokens.length; i++) {
 			uint256 lendingBalance = lendingFeeTokensHeld[tokens[i]];
@@ -394,40 +399,46 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 			}
 
 			uint256 amountConvertedToWRBTC;
-			if (tokens[i] == address(wrbtcToken)) {
-				amountConvertedToWRBTC = tempAmount;
+			if (tokens[i] == address(sovTokenAddress)) {
+				IERC20(tokens[i]).safeTransfer(receiver, tempAmount);
+				amountConvertedToWRBTC = 0;
+				totalSOVWithdrawn = totalSOVWithdrawn.add(tempAmount);
 			} else {
-				IERC20(tokens[i]).approve(protocolAddress, tempAmount);
+				if (tokens[i] == address(wrbtcToken)) {
+					amountConvertedToWRBTC = tempAmount;
+				} else {
+					IERC20(tokens[i]).approve(protocolAddress, tempAmount);
 
-				// get the slipage
-				uint256 slippage =
-					ISwapsImpl(swapsImpl).internalExpectedReturn(
-						tokens[i],
-						address(wrbtcToken),
-						tempAmount,
-						sovrynSwapContractRegistryAddress
+					// get the slipage
+					uint256 slippage =
+						ISwapsImpl(swapsImpl).internalExpectedReturn(
+							tokens[i],
+							address(wrbtcToken),
+							tempAmount,
+							sovrynSwapContractRegistryAddress
+						);
+
+					(amountConvertedToWRBTC, ) = ProtocolSwapExternalInterface(protocolAddress).swapExternal(
+						tokens[i], // source token address
+						address(wrbtcToken), // dest token address
+						feesController, // set feeSharingProxy as receiver
+						protocolAddress, // protocol as the sender
+						tempAmount, // source token amount
+						0, // reqDestToken
+						slippage, // slippage
+						"" // loan data bytes
 					);
+				}
 
-				(amountConvertedToWRBTC, ) = ProtocolSwapExternalInterface(protocolAddress).swapExternal(
-					tokens[i], // source token address
-					address(wrbtcToken), // dest token address
-					feesController, // set feeSharingProxy as receiver
-					protocolAddress, // protocol as the sender
-					tempAmount, // source token amount
-					0, // reqDestToken
-					slippage, // slippage
-					"" // loan data bytes
-				);
+				totalWRBTCWithdrawn = totalWRBTCWithdrawn.add(amountConvertedToWRBTC);
+
+				IERC20(address(wrbtcToken)).safeTransfer(receiver, amountConvertedToWRBTC);
 			}
-
-			totalWRBTCWithdrawn = totalWRBTCWithdrawn.add(amountConvertedToWRBTC);
-
-			IERC20(address(wrbtcToken)).safeTransfer(receiver, amountConvertedToWRBTC);
 
 			emit WithdrawFees(msg.sender, tokens[i], receiver, lendingBalance, tradingBalance, borrowingBalance, amountConvertedToWRBTC);
 		}
 
-		return totalWRBTCWithdrawn;
+		return (totalWRBTCWithdrawn, totalSOVWithdrawn);
 	}
 
 	/**
