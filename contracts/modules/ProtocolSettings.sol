@@ -13,6 +13,7 @@ import "../mixins/ProtocolTokenUser.sol";
 import "../modules/interfaces/ProtocolSwapExternalInterface.sol";
 import "../mixins/ModuleCommonFunctionalities.sol";
 import "../swaps/ISwapsImpl.sol";
+import "../governance/IFeeSharingProxy.sol";
 
 /**
  * @title Protocol Settings contract.
@@ -365,13 +366,8 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 	 * @return The withdrawn total amount in wRBTC
 	 * @return The withdrawn SOV amount
 	 * */
-	function withdrawFees(address[] calldata tokens, address receiver)
-		external
-		whenNotPaused
-		returns (uint256 totalWRBTCWithdrawn, uint256 totalSOVWithdrawn)
-	{
+	function withdrawFees(address[] calldata tokens, address receiver) external whenNotPaused returns (uint256 totalWRBTCWithdrawn) {
 		require(msg.sender == feesController, "unauthorized");
-		totalWRBTCWithdrawn;
 
 		for (uint256 i = 0; i < tokens.length; i++) {
 			uint256 lendingBalance = lendingFeeTokensHeld[tokens[i]];
@@ -400,9 +396,9 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 
 			uint256 amountConvertedToWRBTC;
 			if (tokens[i] == address(sovTokenAddress)) {
-				IERC20(tokens[i]).safeTransfer(receiver, tempAmount);
+				IERC20(tokens[i]).approve(feesController, tempAmount);
+				IFeeSharingProxy(feesController).transferTokens(address(sovTokenAddress), uint96(tempAmount));
 				amountConvertedToWRBTC = 0;
-				totalSOVWithdrawn = totalSOVWithdrawn.add(tempAmount);
 			} else {
 				if (tokens[i] == address(wrbtcToken)) {
 					amountConvertedToWRBTC = tempAmount;
@@ -438,7 +434,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 			emit WithdrawFees(msg.sender, tokens[i], receiver, lendingBalance, tradingBalance, borrowingBalance, amountConvertedToWRBTC);
 		}
 
-		return (totalWRBTCWithdrawn, totalSOVWithdrawn);
+		return totalWRBTCWithdrawn;
 	}
 
 	/**
