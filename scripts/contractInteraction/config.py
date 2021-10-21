@@ -21,12 +21,12 @@ def loadConfig():
             './scripts/contractInteraction/testnet_contracts.json')
     #  Adds a conditional for the cron job , it will check id the
     #  script is executed as part of the feeWithdrawal cron job
-    elif thisNetwork == "rsk-testnet" and environ.get('REWARDS_CRON') == 1:
+    elif thisNetwork == "rsk-testnet" and environ.get('REWARDS_CRON') == "1":
         acct = accounts.add(
             environ.get('FEE_CLAIMER'))
         configFile = open(
             './scripts/contractInteraction/testnet_contracts.json')
-    elif thisNetwork == "rsk-mainnet" and environ.get('REWARDS_CRON') == 1:
+    elif thisNetwork == "rsk-mainnet" and environ.get('REWARDS_CRON') == "1":
         acct = accounts.add(
             environ.get('FEE_CLAIMER'))
         configFile = open(
