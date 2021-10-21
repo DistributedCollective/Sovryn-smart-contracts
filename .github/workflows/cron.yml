@@ -44,10 +44,10 @@ jobs:
             ~/.vvm
           key: ${{ runner.os }}-compiler-cache
 
-      - name: Set pip cache directory path
-        id: pip-cache-dir-path
-        run: |
-          echo "::set-output name=dir::$(pip cache dir)"
+      # - name: Set pip cache directory path
+      # id: pip-cache-dir-path
+      # run: |
+      #   echo "::set-output name=dir::$(pip cache dir)"
 
       # - name: Restore pip cache
       #   uses: actions/cache@v2
