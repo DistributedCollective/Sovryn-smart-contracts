@@ -55,4 +55,18 @@ contract TestCoverage is Pausable, SafeMath96 {
 		return safe96(n, "overflow");
 	}
 
+	function testSafeMath96_sub96(uint96 a, uint96 b) public pure returns (uint96) {
+		// Public wrapper for SafeMath96 internal function
+		return sub96(a, b, "underflow");
+	}
+
+	function testSafeMath96_mul96(uint96 a, uint96 b) public pure returns (uint96) {
+		// Public wrapper for SafeMath96 internal function
+		return mul96(a, b, "overflow");
+	}
+
+	function testSafeMath96_div96(uint96 a, uint96 b) public pure returns (uint96) {
+		// Public wrapper for SafeMath96 internal function
+		return div96(a, b, "division by 0");
+	}
 }
