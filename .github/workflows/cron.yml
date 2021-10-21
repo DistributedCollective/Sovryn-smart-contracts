@@ -66,6 +66,6 @@ jobs:
       - name: Withdraw Fees
         run: brownie networks import network-config.yaml true
           brownie run scripts/contractInteraction/rewards_cron.py --network=rsk-testnet
-      - env:
+        env:
           REWARDS_CRON: 1
           FEE_CLAIMER: ${{secrets.FEE_CLAIMER}}
