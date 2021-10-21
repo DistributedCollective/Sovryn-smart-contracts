@@ -8,6 +8,7 @@ import scripts.contractInteraction.config as conf
 
 conf.loadConfig()
 
+
 def isProtocolPaused():
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
@@ -407,8 +408,14 @@ def readMaxAffiliateFee():
 def withdrawFees():
     feeSharingProxy = Contract.from_abi(
         "FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
-    feeSharingProxy.withdrawFees(
-        [conf.contracts['USDT'], conf.contracts['DoC'], conf.contracts['WRBTC']], {"allow_revert": True})
+    feeSharingProxy.withdrawFees([
+        conf.contracts['USDT'],
+        conf.contracts['DoC'],
+        conf.contracts['ETHs'],
+        conf.contracts['XUSD'],
+        conf.contracts['FISH'],
+        conf.contracts['BPro'],
+    ], {"allow_revert": True})
 
 
 def setSupportedToken(tokenAddress):
