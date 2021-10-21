@@ -64,7 +64,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Withdraw Fees
-        run: echo $(REWARDS_CRON) && brownie networks import network-config.yaml true && brownie run scripts/contractInteraction/rewards_cron.py --network=rsk-testnet
+        run: echo $REWARDS_CRON && brownie networks import network-config.yaml true && brownie run scripts/contractInteraction/rewards_cron.py --network=rsk-testnet
         env:
           REWARDS_CRON: 1
           FEE_CLAIMER: ${{secrets.FEE_CLAIMER}}
