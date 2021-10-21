@@ -40,13 +40,19 @@ contract TestCoverage is Pausable, SafeMath96 {
 	}
 
 	/// @dev Testing internal functions of governance/Staking/SafeMath96.sol
-	function testSafeMath96_safe32_Ok(uint256 n) public pure returns (uint32) {
-		// Shouldn't overflow
+	function testSafeMath96_safe32(uint256 n) public pure returns (uint32) {
+		// Public wrapper for SafeMath96 internal function
 		return safe32(n, "overflow");
 	}
 
-	function testSafeMath96_safe32_Overflow() public pure {
-		// Should overflow, revert error
-		safe32(2**32, "overflow");
+	function testSafeMath96_safe64(uint256 n) public pure returns (uint64) {
+		// Public wrapper for SafeMath96 internal function
+		return safe64(n, "overflow");
 	}
+
+	function testSafeMath96_safe96(uint256 n) public pure returns (uint96) {
+		// Public wrapper for SafeMath96 internal function
+		return safe96(n, "overflow");
+	}
+
 }
