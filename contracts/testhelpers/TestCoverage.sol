@@ -6,8 +6,9 @@
 pragma solidity 0.5.17;
 
 import "../connectors/loantoken/Pausable.sol";
+import "../governance/Staking/SafeMath96.sol";
 
-contract TestCoverage is Pausable {
+contract TestCoverage is Pausable, SafeMath96 {
 	/// @dev Pausable is currently an unused contract that still is operative
 	///   because margin trade flashloan functionality has been commented out.
 	///   In case it were restored, contract would become used again, so for a
@@ -36,5 +37,16 @@ contract TestCoverage is Pausable {
 		assembly {
 			sstore(slot, isPaused)
 		}
+	}
+
+	/// @dev Testing internal functions of governance/Staking/SafeMath96.sol
+	function testSafeMath96_safe32_Ok(uint256 n) public pure returns (uint32) {
+		// Shouldn't overflow
+		return safe32(n, "overflow");
+	}
+
+	function testSafeMath96_safe32_Overflow() public pure {
+		// Should overflow, revert error
+		safe32(2**32, "overflow");
 	}
 }
