@@ -22,6 +22,7 @@ def loadConfig():
     #  Adds a conditional for the cron job , it will check id the
     #  script is executed as part of the feeWithdrawal cron job
     elif thisNetwork == "rsk-testnet" and environ.get('REWARDS_CRON') == "1":
+        print("Running cron job")
         acct = accounts.add(
             environ.get('FEE_CLAIMER'))
         configFile = open(
