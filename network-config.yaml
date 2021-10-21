@@ -1,0 +1,53 @@
+live:
+  - name: RSK Mainnet
+    networks:
+      - name: Mainnet
+        chainid: 30
+        id: rsk-mainnet
+        host: https://mainnet.sovryn.app/rpc
+        # explorer: https://api.arbiscan.io/api
+
+      - name: Testnet
+        chainid: 31
+        id: rsk-testnet
+        host: https://testnet.sovryn.app/rpc
+        # explorer: https://api.arbiscan.io/api
+# test:
+#   - name: RSK Testnet
+#     networks:
+#       - name: Test
+#         chainid: 42161
+#         id: arbitrum-main
+#         host: https://public-node.testnet.rsk.co/"
+#         explorer: https://api.arbiscan.io/api
+#         multicall2: "0x80C7DD17B01855a6D2347444a0FCC36136a314de"
+#       - name: Testnet
+#         chainid: 421611
+#         id: arbitrum-test
+#         host: https://rinkeby.arbitrum.io/rpc
+#         explorer: https://rinkeby-explorer.arbitrum.io
+
+# development:
+#   - name: Ganache-CLI (Arbitrum-Mainnet Fork)
+#     id: mainnet-fork
+#     cmd: ganache-cli
+#     host: http://127.0.0.1
+#     cmd_settings:
+#       port: 8545
+#       gas_limit: 20000000
+#       accounts: 10
+#       evm_version: istanbul
+#       mnemonic: brownie
+#       fork: arbitrum-main
+
+#   # - name: Hardhat (Arbitrum Fork)
+#   #   id: hardhat-arbitrum-fork
+#   #   cmd: npx hardhat node
+#   #   host: http://127.0.0.1
+#   #   timeout: 120
+#   #   cmd_settings:
+#   #     port: 8545
+#   #     fork: arbitrum-main
+
+# # testnet
+

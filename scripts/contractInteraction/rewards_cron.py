@@ -1,4 +1,4 @@
-from protocol import withdrawFees
+from scripts.contractInteraction.protocol import *
 
 
 def main():
