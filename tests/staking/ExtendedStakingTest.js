@@ -63,6 +63,9 @@ const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
+const TestCoverage = artifacts.require("TestCoverage");
+
+
 const TOTAL_SUPPLY = "100000000000000000000000000000";
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
@@ -456,6 +459,88 @@ contract("Staking", (accounts) => {
 	});
 
 	describe("extendStakingDuration", () => {
+		it("shouldn't extendStakingDuration when _getPriorUserStakeByDate == 0", async () => {
+			let duration = new BN(0);
+			let lockedTS = await getTimeFromKickoff(duration);
+			// console.log("lockedTS: ", lockedTS.toString());
+			let newTime = await getTimeFromKickoff(TWO_WEEKS);
+			// console.log("newTime:  ", newTime.toString());
+
+			// Trying to extend the stake when previous stake is 0
+			await expectRevert(
+				staking.extendStakingDuration(lockedTS, newTime),
+				"Staking::extendStakingDuration: nothing staked until the previous lock date"
+			);
+		});
+
+		it.only("should extendStakingDuration delegateTo != address(0)", async () => {
+			let amount = "1000";
+			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			let lockedTS = await getTimeFromKickoff(duration);
+			// console.log("lockedTS: ", lockedTS.toString());
+			let newDuration = duration.mul(new BN(2));
+			let newTime = await getTimeFromKickoff(newDuration);
+			console.log("newTime:  ", newTime.toString());
+
+			let newTimeLockDate = await staking.timestampToLockDate(newTime);
+			console.log("newTimeLockDate:  ", newTimeLockDate.toString());
+
+			// Set delegatee as account1
+			await staking.stake(amount, lockedTS, root, account1);
+
+			// Check the delegatee of the stake
+			let delegatee = await staking.delegates(root, lockedTS);
+			expect(delegatee).equal(account1);
+
+			// Extending the stake should work, sets delegateTo to delegetee (!= address(0))
+			await staking.extendStakingDuration(lockedTS, newTime);
+
+			// Check the delegatee of the extended stake
+			delegatee = await staking.delegates(root, newTimeLockDate);
+			expect(delegatee).equal(account1);
+
+			// Extending it again should work also, having delegateTo != address(0)
+			await staking.extendStakingDuration(newTime, newTime);
+
+			// Check the delegatee of the re-extended stake
+			delegatee = await staking.delegates(root, newTimeLockDate);
+			/// @dev This check is failing. It returns address(0)
+			expect(delegatee).equal(account1);
+		});
+
+		it("Stop miner", async () => {
+			let amount = "1000";
+			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			let lockedTS = await getTimeFromKickoff(duration);
+			await staking.stake(amount, lockedTS, root, root);
+
+			let newTime = await getTimeFromKickoff(MAX_DURATION.mul(new BN(2)));
+console.log("lockedTS, newTime: ", lockedTS.toString(), newTime.toString());
+await network.provider.send("evm_setAutomine", [false]);
+			let tx = staking.extendStakingDuration(lockedTS, newTime);
+			let tx2 = staking.extendStakingDuration(lockedTS, newTime);
+await network.provider.send("evm_setAutomine", [true]);
+const pendingBlock = await network.provider.send("eth_getBlockByNumber", [
+	"pending",
+	false,
+  ]);
+console.log("pendingBlock: ", pendingBlock);
+
+await sleep(10000);
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+			expectEvent(tx, "ExtendedStakingDuration", {
+				staker: root,
+				previousDate: lockedTS,
+				newDate: await getTimeFromKickoff(MAX_DURATION),
+				amountStaked: amount,
+			});
+		});
+		
 		it("Cannot reduce the staking duration", async () => {
 			let amount = "1000";
 			let duration = new BN(TWO_WEEKS).mul(new BN(2));
