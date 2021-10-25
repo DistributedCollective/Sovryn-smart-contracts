@@ -248,10 +248,9 @@ def createProposalSIP0024():
 
 def createProposalTransfersFromFundsAndVault():
 
-    # TODO: TDB
-    adoptionAmount = 0
-    developmentAmount = 0
-    vaultOwnerAmount = 0
+    adoptionAmount = 992593064 * 10**16
+    developmentAmount = 223162608 * 10**16
+    vaultOwnerAmount = 92770661 * 10**16
 
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
     adoptionFund = Contract.from_abi("DevelopmentFund", address=contracts['AdoptionFund'], abi=DevelopmentFund.abi, owner=acct)
