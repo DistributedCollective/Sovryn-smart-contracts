@@ -23,8 +23,8 @@ def main():
 
     # createProposalSIP0024()
 
-    # createProposalTransfersFromFundsAndVault()
-    createProposalTransferFromVault()
+    createProposalTransfersFromFundsAndVault()
+    # createProposalTransferFromVault()
 
     balanceAfter = acct.balance()
 
