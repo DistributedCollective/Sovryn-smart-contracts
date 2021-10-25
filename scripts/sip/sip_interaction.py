@@ -281,7 +281,7 @@ def createProposalTransfersFromFundsAndVault():
     data3 = SOVtoken.transfer.encode_input(multisig, adoptionAmount + developmentAmount)
     data4 = governorVaultOwner.transferTokens.encode_input(multisig, SOVtoken.address, vaultOwnerAmount)
     datas = ["0x" + data1[10:], "0x" + data2[10:], "0x" + data3[10:], "0x" + data4[10:]]
-    description = "SIP-00: , Details: , sha256: "
+    description = "SIP-0034: Completion of SIP-0015 and Additional Release of SOV, Details: https://github.com/DistributedCollective/SIPS/blob/f8d9c5b/SIP-34.md, sha256: a70a9d20d829c04eef9215e32eab3c85df951f98f7e039e784354289192a1ef3"
 
     # Create Proposal
     createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
