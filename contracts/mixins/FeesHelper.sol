@@ -10,6 +10,7 @@ import "../openzeppelin/SafeERC20.sol";
 import "../feeds/IPriceFeeds.sol";
 import "../events/FeesEvents.sol";
 import "../modules/interfaces/ProtocolAffiliatesInterface.sol";
+import "../interfaces/ISovryn.sol";
 import "../core/objects/LoanParamsStruct.sol";
 
 /**
@@ -230,7 +231,9 @@ contract FeesHelper is State, FeesEvents {
 			}
 		}
 
-		if (rewardAmount != 0) {
+		// Check the dedicated SOV that is used to pay trading rebate rewards
+		uint256 dedicatedSOV = ISovryn(protocolAddress).getDedicatedSOVRebate();
+		if (rewardAmount != 0 && dedicatedSOV >= rewardAmount) {
 			IERC20(sovTokenAddress).approve(lockedSOVAddress, rewardAmount);
 
 			(bool success, ) =
@@ -245,6 +248,8 @@ contract FeesHelper is State, FeesEvents {
 			} else {
 				emit EarnRewardFail(user, sovTokenAddress, loanId, _feeRebatePercent, rewardAmount, tradingRebateRewardsBasisPoint);
 			}
+		} else if (rewardAmount != 0 && dedicatedSOV < rewardAmount) {
+			emit EarnRewardFail(user, sovTokenAddress, loanId, _feeRebatePercent, rewardAmount, tradingRebateRewardsBasisPoint);
 		}
 	}
 }

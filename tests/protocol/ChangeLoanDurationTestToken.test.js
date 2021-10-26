@@ -681,6 +681,56 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			expect(args["basisPoint"] == 0).to.be.true;
 		});
 
+		it("EarnRewardFailed should be fired if protocol does not have enough dedicated SOV to pay the rebate rewards", async () => {
+			const basisPoint = 9000;
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, owner);
+			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("200", "ether"));
+			await sovryn.setTradingRebateRewardsBasisPoint(basisPoint);
+			await sovryn.withdrawProtocolToken(accounts[0], new BN(10).pow(new BN(20)));
+			const [loan_id, borrower] = await borrow_indefinite_loan(
+				loanToken,
+				sovryn,
+				SUSD,
+				RBTC,
+				accounts,
+				(withdraw_amount = new BN(10).mul(oneEth).toString()),
+				(margin = new BN(50).mul(oneEth).toString()),
+				(duration_in_seconds = 60 * 60 * 24 * 20)
+			);
+
+			const initial_loan_interest_data = await sovryn.getLoanInterestData(loan_id);
+
+			const days_to_extend = new BN(10);
+			const owed_per_day = initial_loan_interest_data["interestOwedPerDay"];
+			const deposit_amount = owed_per_day.mul(days_to_extend);
+
+			await increaseTime(10 * 24 * 60 * 60);
+			lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+			const borrower_initial_balance_before_extend = (await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower));
+			const borrower_initial_unlock_balance_before_extend = (await SOV.balanceOf(borrower)).add(
+				await lockedSOV.getUnlockedBalance(borrower)
+			);
+
+			const loanMaintenance = await LoanMaintenance.at(sovryn.address);
+			const { receipt } = await loanMaintenance.extendLoanDuration(loan_id, deposit_amount, true, "0x", { from: borrower });
+
+			const feeRebatePercent = await sovryn.specialRebates(SUSD.address, RBTC.address);
+			const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnRewardFail");
+			const args = decode[0].args;
+			expect(args["receiver"] == borrower).to.be.true;
+			expect(args["token"] == SOV.address).to.be.true;
+			expect(args["loanId"] == loan_id).to.be.true;
+			expect(args["feeRebatePercent"] == feeRebatePercent).to.be.true;
+			expect(args["basisPoint"] == basisPoint).to.be.true;
+
+			// vested SOV rewards
+			expect((await lockedSOV.getLockedBalance(borrower)).toString()).to.eq(new BN(0).toString());
+
+			expect((await lockedSOV.getUnlockedBalance(borrower)).toString()).to.eq(new BN(0).toString());
+		});
+
 		it("Test reduce loan_duration 0 withdraw should fail", async () => {
 			// prepare the test
 			await set_demand_curve(loanToken);
