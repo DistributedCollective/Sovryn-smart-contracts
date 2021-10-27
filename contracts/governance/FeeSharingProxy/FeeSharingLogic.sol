@@ -64,7 +64,8 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 	/**
 	 * @notice Withdraw fees for the given token:
 	 * lendingFee + tradingFee + borrowingFee
-	 * the fees will be converted in wRBTC form, and then will be transferred to wRBTC loan pool
+	 * the fees (except SOV) will be converted in wRBTC form, and then will be transferred to wRBTC loan pool.
+	 * For SOV, it will be directly deposited into the feeSharingProxy from the protocol.
 	 *
 	 * @param _tokens array address of the token
 	 * */

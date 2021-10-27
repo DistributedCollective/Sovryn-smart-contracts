@@ -358,13 +358,13 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 	/**
 	 * @notice The feesController calls this function to withdraw fees
 	 * from three sources: lending, trading and borrowing.
-	 * The fees will be converted to wRBTC
+	 * The fees (except SOV) will be converted to wRBTC.
+	 * For SOV, it will be deposited directly to feeSharingProxy from the protocol.
 	 *
 	 * @param tokens The array of address of the token instance.
 	 * @param receiver The address of the withdrawal recipient.
 	 *
 	 * @return The withdrawn total amount in wRBTC
-	 * @return The withdrawn SOV amount
 	 * */
 	function withdrawFees(address[] calldata tokens, address receiver) external whenNotPaused returns (uint256 totalWRBTCWithdrawn) {
 		require(msg.sender == feesController, "unauthorized");
@@ -405,15 +405,6 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 				} else {
 					IERC20(tokens[i]).approve(protocolAddress, tempAmount);
 
-					// get the slipage
-					uint256 slippage =
-						ISwapsImpl(swapsImpl).internalExpectedReturn(
-							tokens[i],
-							address(wrbtcToken),
-							tempAmount,
-							sovrynSwapContractRegistryAddress
-						);
-
 					(amountConvertedToWRBTC, ) = ProtocolSwapExternalInterface(protocolAddress).swapExternal(
 						tokens[i], // source token address
 						address(wrbtcToken), // dest token address
@@ -421,7 +412,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 						protocolAddress, // protocol as the sender
 						tempAmount, // source token amount
 						0, // reqDestToken
-						slippage, // slippage
+						0, // slippage
 						"" // loan data bytes
 					);
 				}
