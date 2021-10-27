@@ -589,6 +589,43 @@ contract("Staking", (accounts) => {
 	});
 
 	describe("increaseStake", () => {
+		it("stakesBySchedule w/ duration < = > MAX_DURATION", async () => {
+			let amount = "1000";
+			let duration = new BN(MAX_DURATION).div(new BN(2));
+			let cliff = new BN(TWO_WEEKS).mul(new BN(2));
+			let intervalLength = new BN(10000000);
+			let lockTS = await getTimeFromKickoff(duration);
+			await staking.stakesBySchedule(amount, cliff, duration, intervalLength, root, root);
+
+			// Check staking status for this staker
+			let rootStaked = await staking.getStakes(root);
+			console.log("rootStaked['stakes']", rootStaked["stakes"].toString());
+			let stakedDurationLowerThanMax = rootStaked["stakes"][0];
+
+			// Reset & duration = MAX
+			await loadFixture(deploymentAndInitFixture);
+			duration = new BN(MAX_DURATION);
+			await staking.stakesBySchedule(amount, cliff, duration, intervalLength, root, root);
+
+			// Check staking status for this staker
+			rootStaked = await staking.getStakes(root);
+			console.log("rootStaked['stakes']", rootStaked["stakes"].toString());
+			let stakedDurationEqualToMax = rootStaked["stakes"][0];
+
+			// Reset & duration > MAX
+			await loadFixture(deploymentAndInitFixture);
+			duration = new BN(MAX_DURATION).mul(new BN(4));
+			await staking.stakesBySchedule(amount, cliff, duration, intervalLength, root, root);
+
+			// Check staking status for this staker
+			rootStaked = await staking.getStakes(root);
+			console.log("rootStaked['stakes']", rootStaked["stakes"].toString());
+			let stakedDurationHigherThanMax = rootStaked["stakes"][0];
+
+			expect(stakedDurationLowerThanMax).to.be.bignumber.greaterThan(stakedDurationEqualToMax);
+			expect(stakedDurationEqualToMax).to.be.bignumber.equal(stakedDurationHigherThanMax);
+		});
+
 		it("Amount of tokens to stake needs to be bigger than 0", async () => {
 			let amount = "1000";
 			let duration = new BN(TWO_WEEKS).mul(new BN(2));
