@@ -599,7 +599,7 @@ contract("Staking", (accounts) => {
 
 			// Check staking status for this staker
 			let rootStaked = await staking.getStakes(root);
-			console.log("rootStaked['stakes']", rootStaked["stakes"].toString());
+			// console.log("rootStaked['stakes']", rootStaked["stakes"].toString());
 			let stakedDurationLowerThanMax = rootStaked["stakes"][0];
 
 			// Reset & duration = MAX
@@ -609,7 +609,7 @@ contract("Staking", (accounts) => {
 
 			// Check staking status for this staker
 			rootStaked = await staking.getStakes(root);
-			console.log("rootStaked['stakes']", rootStaked["stakes"].toString());
+			// console.log("rootStaked['stakes']", rootStaked["stakes"].toString());
 			let stakedDurationEqualToMax = rootStaked["stakes"][0];
 
 			// Reset & duration > MAX
@@ -619,11 +619,31 @@ contract("Staking", (accounts) => {
 
 			// Check staking status for this staker
 			rootStaked = await staking.getStakes(root);
-			console.log("rootStaked['stakes']", rootStaked["stakes"].toString());
+			// console.log("rootStaked['stakes']", rootStaked["stakes"].toString());
 			let stakedDurationHigherThanMax = rootStaked["stakes"][0];
 
+			/// @dev When duration = MAX or duration > MAX, contract deals w/ it as MAX
+			///   so the staked amount is higher when duration < MAX and equal when duration >= MAX
 			expect(stakedDurationLowerThanMax).to.be.bignumber.greaterThan(stakedDurationEqualToMax);
 			expect(stakedDurationEqualToMax).to.be.bignumber.equal(stakedDurationHigherThanMax);
+		});
+
+		it("Check getCurrentStakedUntil", async () => {
+			let amount = "1000";
+			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			let lockTS = await getTimeFromKickoff(duration);
+
+			// Check staking status before staking
+			let totalStaked = await staking.getCurrentStakedUntil(lockTS);
+			// console.log("totalStaked", totalStaked.toString());
+			expect(totalStaked).to.be.bignumber.equal(new BN(0));
+
+			await staking.stake(amount, lockTS, root, root);
+
+			// Check staking status after staking
+			totalStaked = await staking.getCurrentStakedUntil(lockTS);
+			// console.log("totalStaked", totalStaked.toString());
+			expect(totalStaked).to.be.bignumber.equal(amount);
 		});
 
 		it("Amount of tokens to stake needs to be bigger than 0", async () => {
