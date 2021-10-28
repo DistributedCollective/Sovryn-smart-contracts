@@ -9,7 +9,7 @@ contract("EnumerableBytes32Set", (accounts) => {
 	});
 
 	describe("EnumerableBytes32Set edge cases", () => {
-		it.only("Add and remove bytes32 w/ same value", async () => {
+		it("Add and remove bytes32 w/ same value", async () => {
 			let result = await testCoverage.testEnum_AddRemove.call(
 				"0x7465737400000000000000000000000000000000000000000000000000000000",
 				"0x7465737400000000000000000000000000000000000000000000000000000000"
@@ -18,7 +18,7 @@ contract("EnumerableBytes32Set", (accounts) => {
 			assert(result == true);
 		});
 
-		it.only("Add and remove bytes32 w/ different value", async () => {
+		it("Add and remove bytes32 w/ different value", async () => {
 			let result = await testCoverage.testEnum_AddRemove.call(
 				"0x7465737400000000000000000000000000000000000000000000000000000000",
 				"0x0000000000000000000000000000000000000000000000000000000000000000"
@@ -27,19 +27,19 @@ contract("EnumerableBytes32Set", (accounts) => {
 			assert(result == false);
 		});
 
-		it.only("Add and check address", async () => {
+		it("Add and check address", async () => {
 			let result = await testCoverage.testEnum_AddAddress.call(testCoverage.address, testCoverage.address);
 			// console.log("result", result);
 			assert(result == true);
 		});
 
-		it.only("Add and check different address", async () => {
+		it("Add and check different address", async () => {
 			let result = await testCoverage.testEnum_AddAddress.call(testCoverage.address, ZERO_ADDRESS);
 			// console.log("result", result);
 			assert(result == false);
 		});
 
-		it.only("Add several addresses and enumerate them", async () => {
+		it("Add several addresses and enumerate them", async () => {
 			let result = await testCoverage.testEnum_AddAddressesAndEnumerate.call(testCoverage.address, ZERO_ADDRESS);
 			// console.log("result", result);
 			/// @dev the output from contract has to be sliced to be compared as a String. Besides, it comes lowercased.
