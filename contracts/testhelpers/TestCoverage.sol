@@ -84,9 +84,14 @@ contract TestCoverage is Pausable, SafeMath96 {
 		return aSet.containsAddress(b);
 	}
 
-	function testEnum_AddAddressesAndEnumerate(address a, address b) public returns (bytes32[] memory) {
+	function testEnum_AddAddressesAndEnumerate(
+		address a,
+		address b,
+		uint256 start,
+		uint256 count
+	) public returns (bytes32[] memory) {
 		aSet.addAddress(a);
 		aSet.addAddress(b);
-		return aSet.enumerate(0, 10);
+		return aSet.enumerate(start, count);
 	}
 }
