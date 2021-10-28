@@ -59,11 +59,10 @@ const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
 
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
-//Upgradable Vesting Registry
+
+// Upgradable Vesting Registry
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
-
-const TestCoverage = artifacts.require("TestCoverage");
 
 const TOTAL_SUPPLY = "100000000000000000000000000000";
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));

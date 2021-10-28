@@ -7,6 +7,7 @@ pragma solidity 0.5.17;
 
 import "../connectors/loantoken/Pausable.sol";
 import "../governance/Staking/SafeMath96.sol";
+import "../mixins/EnumerableBytes32Set.sol";
 
 contract TestCoverage is Pausable, SafeMath96 {
 	/// @dev Pausable is currently an unused contract that still is operative
@@ -68,5 +69,24 @@ contract TestCoverage is Pausable, SafeMath96 {
 	function testSafeMath96_div96(uint96 a, uint96 b) public pure returns (uint96) {
 		// Public wrapper for SafeMath96 internal function
 		return div96(a, b, "division by 0");
+	}
+
+	using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set;
+	EnumerableBytes32Set.Bytes32Set internal aSet;
+
+	function testEnum_AddRemove(bytes32 a, bytes32 b) public returns (bool) {
+		aSet.addBytes32(a);
+		return aSet.removeBytes32(b);
+	}
+
+	function testEnum_AddAddress(address a, address b) public returns (bool) {
+		aSet.addAddress(a);
+		return aSet.containsAddress(b);
+	}
+
+	function testEnum_AddAddressesAndEnumerate(address a, address b) public returns (bytes32[] memory) {
+		aSet.addAddress(a);
+		aSet.addAddress(b);
+		return aSet.enumerate(0, 10);
 	}
 }
