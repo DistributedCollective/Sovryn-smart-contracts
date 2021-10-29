@@ -75,8 +75,8 @@ def main():
 
      # transferSOVtoTokenSender()
 
-    transferSOVtoScriptAccount()
-    # transferSOVtoTokenSender()
+    # transferSOVtoScriptAccount()
+    #transferSOVtoTokenSender()
     #readBalanceFromAMM()
     #checkRates()
 
@@ -125,6 +125,7 @@ def main():
 
     # createProposalSIP0015()
     # transferSOVtoScriptAccount()
+    checkTxn()
 
 
 def loadConfig():
@@ -1108,8 +1109,8 @@ def createProposalSIP0015():
     #     description)
 
 def transferSOVtoTokenSender():
-    # 87152.28 SOV
-    amount = 8715228 * 10**16
+    # 875.39 SOV
+    amount = 87539 * 10**16
 
     tokenSenderAddress = contracts['TokenSender']
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
@@ -1122,8 +1123,8 @@ def transferSOVtoTokenSender():
     print(txId)
 
 def transferSOVtoScriptAccount():
-    # 15600.71 SOV
-    amount = 1560071 * 10**16
+    # 9872.30 SOV
+    amount = 98723 * 10**17
 
     # TODO set receiver address
     receiver = "0x27D55f5668eF4438635bdCE0aDCA083507E77752"
@@ -1137,6 +1138,20 @@ def transferSOVtoScriptAccount():
     tx = multisig.submitTransaction(SOVtoken.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
+
+def checkTxn():
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+
+    txId = 316
+    print(txId)
+    print(multisig.getConfirmationCount(txId))
+    print(multisig.transactions(txId))
+
+#  0xa9059cbb
+#  00000000000000000000000027d55f5668ef4438635bdce0adca083507e77752
+#  0000000000000000000000000000000000000000000002172daf405018de0000
+#  9872
+#  300000000000000000
 
 def setSupportedToken(tokenAddress):
     sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
