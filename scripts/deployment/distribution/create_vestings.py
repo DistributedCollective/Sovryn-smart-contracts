@@ -34,8 +34,8 @@ def main():
     balanceBefore = acct.balance()
     totalAmount = 0
 
-    # amounts examples: 14625.29, 975.42
-    data = parseFile('./scripts/deployment/distribution/vestings12.csv', 10**16)
+    # amounts examples: 113.31, 7,070.66, 37,770.64
+    data = parseFile('./scripts/deployment/distribution/vestings13.csv', 10**16)
     totalAmount += data["totalAmount"]
 
     for teamVesting in data["teamVestingList"]:
@@ -54,12 +54,12 @@ def main():
                 raise Exception("Address already has team vesting contract with different schedule")
         print("=======================================")
         if isTeam:
-            vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
-            vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
+            # vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
+            # vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
             print("TeamVesting: ", vestingAddress)
         else:
-            vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
-            vestingAddress = vestingRegistry.getVesting(tokenOwner)
+            # vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
+            # vestingAddress = vestingRegistry.getVesting(tokenOwner)
             print("Vesting: ", vestingAddress)
 
         print(tokenOwner)
@@ -68,9 +68,9 @@ def main():
         print(cliff)
         print(duration)
         print((duration - cliff) / FOUR_WEEKS + 1)
-        SOVtoken.approve(vestingAddress, amount)
-        vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=acct)
-        vestingLogic.stakeTokens(amount)
+        # SOVtoken.approve(vestingAddress, amount)
+        # vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=acct)
+        # vestingLogic.stakeTokens(amount)
 
         # stakes = staking.getStakes(vestingAddress)
         # print(stakes)
@@ -91,13 +91,13 @@ def parseFile(fileName, multiplier):
     with open(fileName, 'r') as file:
         reader = csv.reader(file)
         for row in reader:
-            tokenOwner = row[1].replace(" ", "")
+            tokenOwner = row[3].replace(" ", "")
             amount = row[0].replace(",", "").replace(".", "")
             amount = int(amount) * multiplier
-            cliff = int(row[3])
-            duration = int(row[4])
+            cliff = int(row[5])
+            duration = int(row[6])
             isTeam = True
-            if (row[5] == "OwnerVesting"):
+            if (row[7] == "OwnerVesting"):
                 isTeam = False
             totalAmount += amount
 

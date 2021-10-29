@@ -75,7 +75,7 @@ def main():
 
      # transferSOVtoTokenSender()
 
-    # transferSOVtoScriptAccount()
+    transferSOVtoScriptAccount()
     #transferSOVtoTokenSender()
     #readBalanceFromAMM()
     #checkRates()
@@ -125,7 +125,7 @@ def main():
 
     # createProposalSIP0015()
     # transferSOVtoScriptAccount()
-    checkTxn()
+    # checkTxn()
 
 
 def loadConfig():
@@ -1123,8 +1123,8 @@ def transferSOVtoTokenSender():
     print(txId)
 
 def transferSOVtoScriptAccount():
-    # 9872.30 SOV
-    amount = 98723 * 10**17
+    # 45951.75 SOV
+    amount = 4595175 * 10**16
 
     # TODO set receiver address
     receiver = "0x27D55f5668eF4438635bdCE0aDCA083507E77752"

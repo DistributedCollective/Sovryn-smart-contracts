@@ -27,3 +27,4 @@ solc-select
 node_modules
 artifacts/
 cache/
+/abi/
