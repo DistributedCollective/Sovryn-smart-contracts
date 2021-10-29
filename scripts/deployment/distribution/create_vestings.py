@@ -24,7 +24,9 @@ def main():
     # load deployed contracts addresses
     contracts = json.load(configFile)
 
-    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
+    abiFile =  open('./scripts/contractInteraction/VestingRegistryLogic.json')
+    abi = json.load(abiFile)
+    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=contracts['VestingRegistryProxy'], abi=abi, owner=acct)
     staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
 
@@ -38,6 +40,7 @@ def main():
     data = parseFile('./scripts/deployment/distribution/vestings13.csv', 10**16)
     totalAmount += data["totalAmount"]
 
+    vestingCreationType = 1
     for teamVesting in data["teamVestingList"]:
         tokenOwner = teamVesting[0]
         amount = int(teamVesting[1])
@@ -45,21 +48,21 @@ def main():
         duration = int(teamVesting[3]) * FOUR_WEEKS
         isTeam = bool(teamVesting[4])
         if isTeam:
-            vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
+            vestingAddress = vestingRegistry.getTeamVesting(tokenOwner, cliff, duration, vestingCreationType)
         else:
-            vestingAddress = vestingRegistry.getVesting(tokenOwner)
+            vestingAddress = vestingRegistry.getVestingAddr(tokenOwner, cliff, duration, vestingCreationType)
         if (vestingAddress != "0x0000000000000000000000000000000000000000"):
             vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=acct)
             if (cliff != vestingLogic.cliff() or duration != vestingLogic.duration()):
                 raise Exception("Address already has team vesting contract with different schedule")
         print("=======================================")
         if isTeam:
-            # vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration)
-            # vestingAddress = vestingRegistry.getTeamVesting(tokenOwner)
+            # vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration, vestingCreationType)
+            # vestingAddress = vestingRegistry.getTeamVesting(tokenOwner, cliff, duration, vestingCreationType)
             print("TeamVesting: ", vestingAddress)
         else:
-            # vestingRegistry.createVesting(tokenOwner, amount, cliff, duration)
-            # vestingAddress = vestingRegistry.getVesting(tokenOwner)
+            # vestingRegistry.createVestingAddr(tokenOwner, amount, cliff, duration, vestingCreationType)
+            # vestingAddress = vestingRegistry.getVestingAddr(tokenOwner, cliff, duration, vestingCreationType)
             print("Vesting: ", vestingAddress)
 
         print(tokenOwner)
