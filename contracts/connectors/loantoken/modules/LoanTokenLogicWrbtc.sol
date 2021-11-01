@@ -22,7 +22,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
 	 * @return The list of function signatures (bytes4[])
 	 */
 	function getListFunctionSignatures() external pure returns (bytes4[] memory functionSignatures, bytes32 moduleName) {
-		bytes4[] memory res = new bytes4[](35);
+		bytes4[] memory res = new bytes4[](36);
 
 		// Loan Token Logic Standard
 		res[0] = this.mint.selector;
@@ -68,6 +68,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
 
 		// Loan Token Logic Storage Additional Variable
 		res[34] = bytes4(keccak256("liquidityMiningAddress()"));
+		res[35] = this.withdrawRBTCTo.selector;
 
 		return (res, stringToBytes32("LoanTokenLogicWrbtc"));
 	}
