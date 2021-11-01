@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
+const { expectRevert, expectEvent, BN, constants } = require("@openzeppelin/test-helpers");
 const { increaseTime } = require("../Utils/Ethereum");
 
 const TestToken = artifacts.require("TestToken");
@@ -207,7 +207,11 @@ contract("LoanTokenLending", (accounts) => {
 			await web3.eth.sendTransaction({ from: accounts[0].toString(), to: loanToken.address, value: 10000, gas: 22000 });
 			const contractBalance = await web3.eth.getBalance(loanToken.address);
 			const balanceBefore = await web3.eth.getBalance(account4);
-			await loanToken.withdrawRBTCTo(account4, contractBalance);
+			let tx = await loanToken.withdrawRBTCTo(account4, contractBalance);
+			expectEvent(tx, "WithdrawRBTCTo", {
+				to: account4,
+				amount: contractBalance,
+			});
 			const balanceAfter = await web3.eth.getBalance(account4);
 			expect(new BN(balanceAfter).sub(new BN(balanceBefore))).to.be.a.bignumber.equal(new BN(contractBalance));
 		});

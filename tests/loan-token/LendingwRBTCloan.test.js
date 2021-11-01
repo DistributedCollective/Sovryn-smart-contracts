@@ -184,7 +184,11 @@ contract("LoanTokenLending", (accounts) => {
 			await loanToken.mintWithBTC(lender, false, { value: 10000, gas: 22000 });
 			const contractBalance = await web3.eth.getBalance(loanToken.address);
 			const balanceBefore = await web3.eth.getBalance(account1);
-			await loanToken.withdrawRBTCTo(account1, contractBalance);
+			let tx = await loanToken.withdrawRBTCTo(account1, contractBalance);
+			expectEvent(tx, "WithdrawRBTCTo", {
+				to: account1,
+				amount: contractBalance,
+			});
 			const balanceAfter = await web3.eth.getBalance(account1);
 			expect(new BN(balanceAfter).sub(new BN(balanceBefore))).to.be.a.bignumber.equal(new BN(contractBalance));
 		});

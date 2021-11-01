@@ -19,6 +19,8 @@ interface ILoanTokenModules {
 
 	event SetTransactionLimits(address[] addresses, uint256[] limits);
 
+	event WithdrawRBTCTo(address indexed to, uint256 amount);
+
 	/** INTERFACE */
 
 	/** START LOAN TOKEN SETTINGS LOWER ADMIN */
