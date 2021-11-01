@@ -12,7 +12,7 @@ contract MockLoanTokenLogic is LoanTokenLogicLM {
 	}*/
 
 	function getListFunctionSignatures() external pure returns (bytes4[] memory functionSignatures, bytes32 moduleName) {
-		bytes4[] memory res = new bytes4[](37);
+		bytes4[] memory res = new bytes4[](38);
 
 		// Loan Token Logic Standard
 		res[0] = bytes4(keccak256("mint(address,uint256)"));
@@ -42,6 +42,7 @@ contract MockLoanTokenLogic is LoanTokenLogicLM {
 		res[24] = this.checkPriceDivergence.selector;
 		res[25] = this.checkPause.selector;
 		res[26] = this.setLiquidityMiningAddress.selector;
+		res[27] = this._supplyInterestRate.selector;
 
 		// Loan Token LM
 		/**
@@ -49,24 +50,24 @@ contract MockLoanTokenLogic is LoanTokenLogicLM {
 		 * LoanTokenLogicStandard also has mint & burn function (overloading).
 		 * You need to compute the function signature manually --> bytes4(keccak256("mint(address,uint256,bool)"))
 		 */
-		res[27] = bytes4(keccak256("mint(address,uint256,bool)"));
-		res[28] = bytes4(keccak256("burn(address,uint256,bool)"));
+		res[28] = bytes4(keccak256("mint(address,uint256,bool)"));
+		res[29] = bytes4(keccak256("burn(address,uint256,bool)"));
 
 		// Advanced Token
-		res[29] = this.approve.selector;
+		res[30] = this.approve.selector;
 
 		// Advanced Token Storage
-		res[30] = this.totalSupply.selector;
-		res[31] = this.balanceOf.selector;
-		res[32] = this.allowance.selector;
+		res[31] = this.totalSupply.selector;
+		res[32] = this.balanceOf.selector;
+		res[33] = this.allowance.selector;
 
 		// Mock
-		res[33] = this.setAffiliatesReferrer.selector;
-		res[34] = this.setUserNotFirstTradeFlag.selector;
-		res[35] = this.getMarginBorrowAmountAndRate.selector;
+		res[34] = this.setAffiliatesReferrer.selector;
+		res[35] = this.setUserNotFirstTradeFlag.selector;
+		res[36] = this.getMarginBorrowAmountAndRate.selector;
 
 		// Loan Token Logic Storage Additional Variable
-		res[36] = bytes4(keccak256("liquidityMiningAddress()"));
+		res[37] = bytes4(keccak256("liquidityMiningAddress()"));
 
 		return (res, stringToBytes32("MockLoanTokenLogic"));
 	}
