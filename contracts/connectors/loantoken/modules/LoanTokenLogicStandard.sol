@@ -813,12 +813,12 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 				return
 					ProtocolLike(sovrynContractAddress)
 						.getRequiredCollateral(
-							loanTokenAddress,
-							collateralTokenAddress != address(0) ? collateralTokenAddress : wrbtcTokenAddress,
-							newBorrowAmount,
-							50 * 10**18, /// initialMargin
-							true /// isTorqueLoan
-						)
+						loanTokenAddress,
+						collateralTokenAddress != address(0) ? collateralTokenAddress : wrbtcTokenAddress,
+						newBorrowAmount,
+						50 * 10**18, /// initialMargin
+						true /// isTorqueLoan
+					)
 						.add(10); /// Some dust to compensate for rounding errors.
 			}
 		}
@@ -869,12 +869,8 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		address collateralTokenAddress,
 		uint256 minReturn
 	) public view {
-		(, uint256 estimatedCollateral, ) = getEstimatedMarginDetails(
-			leverageAmount,
-			loanTokenSent,
-			collateralTokenSent,
-			collateralTokenAddress
-		);
+		(, uint256 estimatedCollateral, ) =
+			getEstimatedMarginDetails(leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress);
 		require(estimatedCollateral >= minReturn, "coll too low");
 	}
 
@@ -1002,19 +998,16 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
 		if (collateralTokenSent != 0) {
 			/// @dev Get the oracle rate from collateral -> loan
-			(uint256 collateralToLoanRate, uint256 collateralToLoanPrecision) = FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds())
-				.queryRate(collateralTokenAddress, loanTokenAddress);
+			(uint256 collateralToLoanRate, uint256 collateralToLoanPrecision) =
+				FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(collateralTokenAddress, loanTokenAddress);
 			require((collateralToLoanRate != 0) && (collateralToLoanPrecision != 0), "invalid rate collateral token");
 
 			/// @dev Compute the loan token amount with the oracle rate.
 			uint256 loanTokenAmount = collateralTokenSent.mul(collateralToLoanRate).div(collateralToLoanPrecision);
 
 			/// @dev See how many collateralTokens we would get if exchanging this amount of loan tokens to collateral tokens.
-			uint256 collateralTokenAmount = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
-				loanTokenAddress,
-				collateralTokenAddress,
-				loanTokenAmount
-			);
+			uint256 collateralTokenAmount =
+				ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(loanTokenAddress, collateralTokenAddress, loanTokenAmount);
 
 			/// @dev Probably not the same due to the price difference.
 			if (collateralTokenAmount != collateralTokenSent) {
