@@ -221,6 +221,38 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			);
 		});
 
+		it("_getLiquidationAmounts edge cases", async () => {
+			// prepare the test
+			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
+			const initial_loan = await sovryn.getLoan(loan_id);
+			const initial_loan_interest_data = await sovryn.getLoanInterestData(loan_id);
+			const initial_loan_token_lender_balance = await SUSD.balanceOf(sovryn.address);
+
+			const days_to_extend = new BN(100);
+			const owed_per_day = initial_loan_interest_data["interestOwedPerDay"];
+			const deposit_amount = owed_per_day.mul(days_to_extend);
+
+			// Approve the transfer of loan token
+			await SUSD.mint(borrower, deposit_amount);
+			await SUSD.approve(sovryn.address, deposit_amount, { from: borrower });
+			const initial_borrower_balance = await SUSD.balanceOf(borrower);
+
+			const loanMaintenance = await LoanMaintenance.at(sovryn.address);
+			await loanMaintenance.extendLoanDuration(loan_id, deposit_amount, false, "0x", { from: borrower });
+
+			const end_loan_interest_data = await sovryn.getLoanInterestData(loan_id);
+			const end_loan = await sovryn.getLoan(loan_id);
+
+			expect(end_loan["endTimestamp"] == parseInt(initial_loan["endTimestamp"]) + days_to_extend.toNumber() * 24 * 60 * 60).to.be
+				.true;
+			expect(
+				end_loan_interest_data["interestDepositTotal"].eq(initial_loan_interest_data["interestDepositTotal"].add(deposit_amount))
+			).to.be.true;
+			expect((await SUSD.balanceOf(borrower)).eq(initial_borrower_balance.sub(deposit_amount))).to.be.true;
+			// Due to block timestamp could be paying outstanding interest to lender or not
+			expect((await SUSD.balanceOf(sovryn.address)).lte(initial_loan_token_lender_balance.add(deposit_amount))).to.be.true;
+		});
+
 		/*
 			Extend the loan duration and see if the new timestamp is the expected, the interest increase,
 			the borrower SUSD balance decrease and the sovryn SUSD balance increase

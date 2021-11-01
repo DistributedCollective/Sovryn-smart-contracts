@@ -96,6 +96,41 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
 			await liquidate(accounts, loanToken, SUSD, set_demand_curve, RBTC, sovryn, priceFeeds, rate, WRBTC, FeesEvents, SOV, true);
 		});
 
+		it("Test coverage: Trigger maxLiquidatable: ad hoc rate to be unhealthy and currentMargin > incentivePercent", async () => {
+			/// @dev Healthy when rate aprox. > 8*10^21
+			/// @dev We need unhealthy to liquidate
+			/// @dev Not enough margin when rate aprox. < 7*10^21
+
+			/// @dev This rate triggers the maxLiquidatable computation in the contract
+			///   but the uncovered conditions:
+			///     if (maxLiquidatable > principal) {
+			///   and
+			///     if (maxSeizable > collateral) {
+			///   cannot ever be met inside the range (8*10^21 > rate > 7*10^21)
+
+			const rate = new BN(10).pow(new BN(20)).mul(new BN(72));
+
+			/// @dev It should liquidate but not entirely:
+			///   principal            = 20267418874797325811
+			///   maxLiquidatable      = 18355350998378606486
+			///   Do not check RepayAmount => last parameter set to false
+			await liquidate(
+				accounts,
+				loanToken,
+				SUSD,
+				set_demand_curve,
+				RBTC,
+				sovryn,
+				priceFeeds,
+				rate,
+				WRBTC,
+				FeesEvents,
+				SOV,
+				false,
+				false
+			);
+		});
+
 		/*
 			Test if fails when the position is healthy currentMargin > maintenanceRate
 		*/
