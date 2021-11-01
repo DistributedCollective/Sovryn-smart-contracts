@@ -16,18 +16,6 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
 	 *
 	 * @return The list of function signatures (bytes4[])
 	 */
-	/**
-	 * @notice This function is MANDATORY, which will be called by LoanTokenLogicBeacon and be registered.
-	 * Every new public function, the sginature needs to be included in this function.
-	 *
-	 * @dev This function will return the list of function signature in this contract that are available for public call
-	 * Then this function will be called by LoanTokenLogicBeacon, and the function signatures will be registred in LoanTokenLogicBeacon.
-	 * @dev To save the gas we can just directly return the list of function signature from this pure function.
-	 * The other workaround (fancy way) is we can create a storage for the list of the function signature, and then we can store each function signature to that storage from the constructor.
-	 * Then, in this function we just need to return that storage variable.
-	 *
-	 * @return The list of function signatures (bytes4[])
-	 */
 	function getListFunctionSignatures() external pure returns (bytes4[] memory functionSignatures, bytes32 moduleName) {
 		bytes4[] memory res = new bytes4[](35);
 
@@ -59,6 +47,7 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
 		res[24] = this.checkPriceDivergence.selector;
 		res[25] = this.checkPause.selector;
 		res[26] = this.setLiquidityMiningAddress.selector;
+		res[27] = this._supplyInterestRate.selector;
 
 		// Loan Token LM
 		/**
@@ -66,20 +55,19 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
 		 * LoanTokenLogicStandard also has mint & burn function (overloading).
 		 * You need to compute the function signature manually --> bytes4(keccak256("mint(address,uint256,bool)"))
 		 */
-		res[27] = bytes4(keccak256("mint(address,uint256,bool)"));
-		res[28] = bytes4(keccak256("burn(address,uint256,bool)"));
+		res[28] = bytes4(keccak256("mint(address,uint256,bool)"));
+		res[29] = bytes4(keccak256("burn(address,uint256,bool)"));
 
 		// Advanced Token
-		res[29] = this.approve.selector;
+		res[30] = this.approve.selector;
 
 		// Advanced Token Storage
-		res[30] = this.totalSupply.selector;
-		res[31] = this.balanceOf.selector;
-		res[32] = this.allowance.selector;
+		res[31] = this.totalSupply.selector;
+		res[32] = this.balanceOf.selector;
+		res[33] = this.allowance.selector;
 
 		// Loan Token Logic Storage Additional Variable
-		res[33] = bytes4(keccak256("liquidityMiningAddress()"));
-		res[34] = this.withdrawRBTCTo.selector;
+		res[34] = bytes4(keccak256("liquidityMiningAddress()"));
 
 		return (res, stringToBytes32("LoanTokenLogicLM"));
 	}

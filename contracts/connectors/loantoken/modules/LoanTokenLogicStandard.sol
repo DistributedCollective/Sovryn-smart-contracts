@@ -52,13 +52,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
 	/// DON'T ADD VARIABLES HERE, PLEASE
 
-	/**
-	 * @notice Fallback function is to react to receiving value (rBTC).
-	 * */
-	function() external {
-		revert("loan token-fallback not allowed");
-	}
-
 	/* Public functions */
 
 	/**
