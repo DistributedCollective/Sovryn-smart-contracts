@@ -272,7 +272,7 @@ def createProposalSIP0035():
     value = [0]
     signature = ["name()"]
     data = ["0x"]
-    description = "SIP-35: Origins as a Subprotocol: LINK-TO-BE-ADDED, sha256: 8e316371a075ad1a845c3e1c1c3ac4a08fb8de4fc9123e3f0ef686332053a431"
+    description = "SIP-0035: Origins as a Subprotocol: https://github.com/DistributedCollective/SIPS/blob/04baceb/SIP-0035.md, sha256: 1f85180a76c58a2b382049e5f846c512a61b3459d193dc74c7eb3babf89bd1ba"
 
     # Create Proposal
     createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
