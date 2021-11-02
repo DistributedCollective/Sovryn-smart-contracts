@@ -140,7 +140,7 @@ contract("StakingRewards - First Period", (accounts) => {
 			await increaseTimeAndBlocks(1209614);
 			stakingRewards.setBlock();
 			let currentTimeStamp = await time.latest();
-			currentTimeStamp -= 1209000;//To get the historical block
+			currentTimeStamp -= 1209000; //To get the historical block
 			stakingRewards.setHistoricalBlock(currentTimeStamp);
 			let fields = await stakingRewards.getStakerCurrentReward(true, { from: a1 });
 			let numOfIntervals = 2;
