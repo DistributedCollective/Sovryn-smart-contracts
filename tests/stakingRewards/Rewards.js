@@ -117,13 +117,6 @@ contract("StakingRewards - First Period", (accounts) => {
 			expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(
 				new BN(fields.amount).div(new BN(10).pow(new BN(8)))
 			);
-
-			fields = await stakingRewards.getStakerCurrentReward(true, { from: a3 });
-			fullTermAvg = avgWeight(78, 79, 9, 78);
-			expectedAmount = numOfIntervals * ((10000 * fullTermAvg) / 26);
-			expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(
-				new BN(fields.amount).div(new BN(10).pow(new BN(8)))
-			);
 		});
 
 		it("should account for stakes made till start date of the program for a3", async () => {
@@ -138,10 +131,10 @@ contract("StakingRewards - First Period", (accounts) => {
 
 		it("should compute and send Rewards to the stakers a1, a2 and a3 correctly after 4 weeks", async () => {
 			await increaseTimeAndBlocks(1209614);
-			stakingRewards.setBlock();
-			let currentTimeStamp = await time.latest();
-			currentTimeStamp -= 1209000; //To get the historical block
-			stakingRewards.setHistoricalBlock(currentTimeStamp);
+			await stakingRewards.setBlock();
+			let startTime  = await stakingRewards.startTime();
+			await stakingRewards.setHistoricalBlock(parseInt(startTime));
+			await stakingRewards.setHistoricalBlock(parseInt(startTime) + 1209600);
 			let fields = await stakingRewards.getStakerCurrentReward(true, { from: a1 });
 			let numOfIntervals = 2;
 			let fullTermAvg = avgWeight(25, 27, 9, 78);
@@ -160,6 +153,18 @@ contract("StakingRewards - First Period", (accounts) => {
 			fields = await stakingRewards.getStakerCurrentReward(true, { from: a3 });
 			fullTermAvg = avgWeight(77, 79, 9, 78);
 			expectedAmount = numOfIntervals * ((10000 * fullTermAvg) / 26);
+			expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(
+				new BN(fields.amount).div(new BN(10).pow(new BN(8)))
+			);
+		});
+
+		it("should compute and send Rewards to the stakers a1 after 6 weeks", async () => {
+			await increaseTimeAndBlocks(1209614);
+
+			let fields = await stakingRewards.getStakerCurrentReward(true, { from: a1 });
+			let numOfIntervals = 3;
+			let fullTermAvg = avgWeight(24, 27, 9, 78);
+			expectedAmount = numOfIntervals * ((1000 * fullTermAvg) / 26);
 			expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(
 				new BN(fields.amount).div(new BN(10).pow(new BN(8)))
 			);
