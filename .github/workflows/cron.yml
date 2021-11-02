@@ -5,7 +5,7 @@ name: Fees Scheduler
 
 on:
   schedule:
-    - cron: "* * * * *"
+    - cron: "0 0 * * FRI"
 
 jobs:
   build:
