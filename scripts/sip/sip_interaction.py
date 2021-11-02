@@ -15,15 +15,12 @@ def main():
 
     balanceBefore = acct.balance()
 
+    # Shows the current voting power
+    # currentVotingPower(acct)
+
     # Call the function you want here
-    currentVotingPower(acct)
 
-    #createProposalSIP0020()
-    #createProposalSIP0019()
-
-    # createProposalSIP0024()
-
-    createProposalSIP0030()
+    createProposalSIP0035()
 
     balanceAfter = acct.balance()
 
@@ -268,3 +265,14 @@ def createProposalSIP0030():
 
     # Create Proposal
     # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+def createProposalSIP0035():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["name()"]
+    data = ["0x"]
+    description = "SIP-0035: Origins as a Subprotocol: https://github.com/DistributedCollective/SIPS/blob/04baceb/SIP-0035.md, sha256: 1f85180a76c58a2b382049e5f846c512a61b3459d193dc74c7eb3babf89bd1ba"
+
+    # Create Proposal
+    createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
