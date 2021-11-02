@@ -126,22 +126,24 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		for (uint256 i = 0; i < _converters.length; i++) {
 			require(Address.isContract(_converters[i]), "FeeSharingProxy::withdrawFees: converter is not a contract");
 
-			uint256 amount = IConverterAMM(_converters[i]).withdrawFees(address(this));
+			uint256 wrbtcAmountWithdrawn = IConverterAMM(_converters[i]).withdrawFees(address(this));
 
-			/// @dev TODO can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
-			IERC20(wRBTCAddress).approve(loanPoolToken, amount);
-			uint256 poolTokenAmount = ILoanToken(loanPoolToken).mint(address(this), amount);
+			if (wrbtcAmountWithdrawn > 0) {
+				/// @dev TODO can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
+				IERC20(wRBTCAddress).approve(loanPoolToken, wrbtcAmountWithdrawn);
+				uint256 poolTokenAmount = ILoanToken(loanPoolToken).mint(address(this), wrbtcAmountWithdrawn);
 
-			/// @notice Update unprocessed amount of tokens
-			uint96 amount96 = safe96(poolTokenAmount, "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits");
-			unprocessedAmount[loanPoolToken] = add96(
-				unprocessedAmount[loanPoolToken],
-				amount96,
-				"FeeSharingProxy::withdrawFees: unprocessedAmount exceeds 96 bits"
-			);
+				/// @notice Update unprocessed amount of tokens
+				uint96 amount96 = safe96(poolTokenAmount, "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits");
+				unprocessedAmount[loanPoolToken] = add96(
+					unprocessedAmount[loanPoolToken],
+					amount96,
+					"FeeSharingProxy::withdrawFees: unprocessedAmount exceeds 96 bits"
+				);
 
-			_addCheckpoint(loanPoolToken);
-			emit FeeAMMWithdrawn(msg.sender, _converters[i], poolTokenAmount);
+				_addCheckpoint(loanPoolToken);
+				emit FeeAMMWithdrawn(msg.sender, _converters[i], poolTokenAmount);
+			}
 		}
 	}
 

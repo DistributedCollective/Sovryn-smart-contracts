@@ -976,6 +976,40 @@ contract("FeeSharingProxy:", (accounts) => {
 				amount: feeAmount,
 			});
 		});
+
+		it("Should be able to withdraw with 0 AMM Fees", async () => {
+			//stake - getPriorTotalVotingPower
+			let totalStake = 1000;
+			await stake(totalStake, root);
+
+			//mock data
+			// AMM Converter
+			liquidityPoolV1Converter = await LiquidityPoolV1Converter.new(SOVToken.address, susd.address);
+			const feeAmount = new BN(wei("0", "ether"));
+			await liquidityPoolV1Converter.setTotalFeeMockupValue(feeAmount.toString());
+			await expectRevert(feeSharingProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]), "unauthorized");
+			await liquidityPoolV1Converter.setFeesController(feeSharingProxy.address);
+			await liquidityPoolV1Converter.setWrbtcToken(wrbtc.address);
+			await wrbtc.mint(liquidityPoolV1Converter.address, wei("2", "ether"));
+
+			tx = await feeSharingProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]);
+
+			//check wrbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
+			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
+			expect(feeSharingProxyBalance.toString()).to.be.equal(feeAmount.toString());
+
+			//checkpoints
+			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanTokenWrbtc.address);
+			expect(numTokenCheckpoints.toNumber()).to.be.equal(0);
+			let checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanTokenWrbtc.address, 0);
+			expect(checkpoint.blockNumber.toNumber()).to.be.equal(0);
+			expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(0);
+			expect(checkpoint.numTokens.toString()).to.be.equal("0");
+
+			//check lastFeeWithdrawalTime
+			let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanTokenWrbtc.address);
+			expect(lastFeeWithdrawalTime.toString()).to.be.equal("0");
+		});
 	});
 
 	async function stake(amount, user, checkpointCount) {
