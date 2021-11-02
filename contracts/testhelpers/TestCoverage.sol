@@ -97,8 +97,11 @@ contract TestCoverage is Pausable, SafeMath96, VaultController {
 	}
 
 	/// @dev Wrapper to test internal function never called along current codebase
-	function testVaultController_vaultApprove(address token, address to, uint256 value) public {
+	function testVaultController_vaultApprove(
+		address token,
+		address to,
+		uint256 value
+	) public {
 		vaultApprove(token, to, value);
 	}
-
 }
