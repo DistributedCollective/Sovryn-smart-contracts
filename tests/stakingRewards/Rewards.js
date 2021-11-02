@@ -79,6 +79,7 @@ contract("StakingRewards - First Period", (accounts) => {
 		stakingRewards = await StakingRewardsProxy.new();
 		await stakingRewards.setImplementation(stakingRewardsLogic.address);
 		stakingRewards = await StakingRewards.at(stakingRewards.address);
+		stakingRewards.setAverageBlockTime(30);
 		await stakingRewards.setBlockMockUpAddr(blockMockUp.address);
 		await staking.setBlockMockUpAddr(blockMockUp.address);
 	});
@@ -137,6 +138,10 @@ contract("StakingRewards - First Period", (accounts) => {
 
 		it("should compute and send Rewards to the stakers a1, a2 and a3 correctly after 4 weeks", async () => {
 			await increaseTimeAndBlocks(1209614);
+			stakingRewards.setBlock();
+			let currentTimeStamp = await time.latest();
+			currentTimeStamp -= 1209000;//To get the historical block
+			stakingRewards.setHistoricalBlock(currentTimeStamp);
 			let fields = await stakingRewards.getStakerCurrentReward(true, { from: a1 });
 			let numOfIntervals = 2;
 			let fullTermAvg = avgWeight(25, 27, 9, 78);
