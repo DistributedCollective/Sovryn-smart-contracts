@@ -8,8 +8,9 @@ pragma solidity 0.5.17;
 import "../connectors/loantoken/Pausable.sol";
 import "../governance/Staking/SafeMath96.sol";
 import "../mixins/EnumerableBytes32Set.sol";
+import "../mixins/VaultController.sol";
 
-contract TestCoverage is Pausable, SafeMath96 {
+contract TestCoverage is Pausable, SafeMath96, VaultController {
 	/// @dev Pausable is currently an unused contract that still is operative
 	///   because margin trade flashloan functionality has been commented out.
 	///   In case it were restored, contract would become used again, so for a
@@ -94,4 +95,10 @@ contract TestCoverage is Pausable, SafeMath96 {
 		aSet.addAddress(b);
 		return aSet.enumerate(start, count);
 	}
+
+	/// @dev Wrapper to test internal function never called along current codebase
+	function testVaultController_vaultApprove(address token, address to, uint256 value) public {
+		vaultApprove(token, to, value);
+	}
+
 }

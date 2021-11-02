@@ -18,6 +18,7 @@ const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test
 
 const TestToken = artifacts.require("TestToken");
 const GovernorVault = artifacts.require("GovernorVault");
+const TestCoverage = artifacts.require("TestCoverage");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const ZERO_ADDRESS = constants.ZERO_ADDRESS;
@@ -85,6 +86,29 @@ contract("TeamVesting", (accounts) => {
 
 		it("fails if amount passed is not available", async () => {
 			await expectRevert(vault.transferTokens(account1, token.address, 100), "invalid transfer");
+		});
+	});
+
+	describe("VaultController", () => {
+		it("Test internal uncovered function VaultController::vaultApprove", async () => {
+			let testCoverage = await TestCoverage.new();
+			let to = account1;
+			let value = new BN(1000);
+			await testCoverage.testVaultController_vaultApprove(token.address, to, value);
+
+			// Check the new allowance is correct
+			let allowance = await token.allowance(testCoverage.address, to);
+			// console.log("allowance: ", allowance.toString());
+			expect(allowance).to.be.a.bignumber.equal(value);
+
+			// Call again w/ new value
+			value = new BN(2000);
+			await testCoverage.testVaultController_vaultApprove(token.address, to, value);
+
+			// Check the new allowance is again correct
+			allowance = await token.allowance(testCoverage.address, to);
+			// console.log("allowance: ", allowance.toString());
+			expect(allowance).to.be.a.bignumber.equal(value);
 		});
 	});
 

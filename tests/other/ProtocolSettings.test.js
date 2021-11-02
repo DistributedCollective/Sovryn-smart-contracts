@@ -197,6 +197,42 @@ contract("ProtocolSettings", (accounts) => {
 			await expectRevert(sovryn.depositProtocolToken(sov.address, { from: accounts[0] }), "unauthorized");
 		});
 
+		// Should withdraw no tokens
+		it("Coverage Test: withdraw amount 0 from protocol", async () => {
+			const dest = sovryn.address;
+			const val = 0;
+
+			let data = await sov.contract.methods.approve(sovryn.address, hunEth).encodeABI();
+
+			let tx = await multisig.submitTransaction(sov.address, val, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+			data = await sovryn.contract.methods.setProtocolTokenAddress(sov.address).encodeABI();
+
+			tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+			txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+			data = sovryn.contract.methods.depositProtocolToken(hunEth).encodeABI();
+
+			tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+			txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+			const balanceBefore = await sov.balanceOf(accounts[1]);
+
+			data = sovryn.contract.methods.withdrawProtocolToken(accounts[1], 0).encodeABI();
+
+			tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+			txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+			const balanceAfter = await sov.balanceOf(accounts[1]);
+			expect((await sovryn.protocolTokenHeld()).eq(hunEth)).to.be.true;
+			expect(balanceAfter.eq(balanceBefore)).to.be.true;
+		});
+
 		// Should successfully withdraw all deposited protocol tokens
 		it("Test withdraw protocol token", async () => {
 			const dest = sovryn.address;
