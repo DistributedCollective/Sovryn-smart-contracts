@@ -39,3 +39,4 @@ tmp
 /temp/
 /out/
 abi
+!.github/
