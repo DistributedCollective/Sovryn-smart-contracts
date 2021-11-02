@@ -132,7 +132,7 @@ contract("StakingRewards - First Period", (accounts) => {
 		it("should compute and send Rewards to the stakers a1, a2 and a3 correctly after 4 weeks", async () => {
 			await increaseTimeAndBlocks(1209614);
 			await stakingRewards.setBlock();
-			let startTime  = await stakingRewards.startTime();
+			let startTime = await stakingRewards.startTime();
 			await stakingRewards.setHistoricalBlock(parseInt(startTime));
 			await stakingRewards.setHistoricalBlock(parseInt(startTime) + 1209600);
 			let fields = await stakingRewards.getStakerCurrentReward(true, { from: a1 });
