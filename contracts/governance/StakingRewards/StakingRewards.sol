@@ -53,18 +53,6 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	}
 
 	/**
-	 * @notice Sets the max duration
-	 * @dev Rewards can be collected for a maximum duration at a time. This
-	 * is to avoid Block Gas Limit failures. Setting it zero would mean that it will loop
-	 * through the entire duration since the start of rewards program.
-	 * It should ideally be set to a value, for which the rewards can be easily processed.
-	 * @param _duration Max duration for which rewards can be collected at a go (in seconds)
-	 * */
-	function setMaxDuration(uint256 _duration) public onlyOwner {
-		maxDuration = _duration;
-	}
-
-	/**
 	 * @notice Collect rewards
 	 * @dev User calls this function to collect SOV staking rewards as per the SIP-0024 program.
 	 * The weighted stake is calculated using getPriorWeightedStake. Block number sent to the functon
@@ -78,6 +66,27 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		require(withdrawalTime > 0 && amount > 0, "no valid reward");
 		withdrawals[msg.sender] = withdrawalTime;
 		_payReward(msg.sender, amount);
+	}
+
+	/**
+	 * @notice Withdraws all token from the contract by Multisig.
+	 * @param _receiverAddress The address where the tokens has to be transferred.
+	 */
+	function withdrawTokensByOwner(address _receiverAddress) external onlyOwner {
+		uint256 value = SOV.balanceOf(address(this));
+		_transferSOV(_receiverAddress, value);
+	}
+
+	/**
+	 * @notice Sets the max duration
+	 * @dev Rewards can be collected for a maximum duration at a time. This
+	 * is to avoid Block Gas Limit failures. Setting it zero would mean that it will loop
+	 * through the entire duration since the start of rewards program.
+	 * It should ideally be set to a value, for which the rewards can be easily processed.
+	 * @param _duration Max duration for which rewards can be collected at a go (in seconds)
+	 * */
+	function setMaxDuration(uint256 _duration) public onlyOwner {
+		maxDuration = _duration;
 	}
 
 	/**
@@ -117,15 +126,6 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	}
 
 	/**
-	 * @notice Withdraws all token from the contract by Multisig.
-	 * @param _receiverAddress The address where the tokens has to be transferred.
-	 */
-	function withdrawTokensByOwner(address _receiverAddress) external onlyOwner {
-		uint256 value = SOV.balanceOf(address(this));
-		_transferSOV(_receiverAddress, value);
-	}
-
-	/**
 	 * @notice transfers SOV tokens to given address
 	 * @param _receiver the address of the SOV receiver
 	 * @param _amount the amount to be transferred
@@ -134,6 +134,15 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		require(_amount != 0, "amount invalid");
 		require(SOV.transfer(_receiver, _amount), "transfer failed");
 		emit RewardWithdrawn(_receiver, _amount);
+	}
+
+	/**
+	 * @notice Determine the current Block Number
+	 * @dev This is segregated from the _getPriorUserStakeByDate function to better test
+	 * advancing blocks functionality using Mock Contracts
+	 * */
+	function _getCurrentBlockNumber() internal view returns (uint256) {
+		return block.number;
 	}
 
 	/**
@@ -174,14 +183,5 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		if (weightedStake == 0) return (0, 0);
 		lastWithdrawalInterval = duration;
 		amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
-	}
-
-	/**
-	 * @notice Determine the current Block Number
-	 * @dev This is segregated from the _getPriorUserStakeByDate function to better test
-	 * advancing blocks functionality using Mock Contracts
-	 * */
-	function _getCurrentBlockNumber() internal view returns (uint256) {
-		return block.number;
 	}
 }
