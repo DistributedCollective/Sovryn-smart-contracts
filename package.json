@@ -68,7 +68,8 @@
 		"prettier": "prettier --write .",
 		"prettier-check": "prettier --check .",
 		"test": "echo Executing pure Hardhat test cases ... && npx hardhat test && echo Executing test cases using Ganache ... && npx hardhat --config hardhat-ganache-tests.config.js --network ganache test",
-		"uml": "npx sol2uml ./contracts -o UML.svg"
+		"uml": "npx sol2uml ./contracts -o UML.svg",
+		"fees-withdraw": "brownie run rewards_cron"
 	},
 	"husky": {
 		"hooks": {
