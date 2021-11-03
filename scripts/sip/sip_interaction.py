@@ -20,7 +20,7 @@ def main():
 
     # Call the function you want here
 
-    createProposalSIP0035()
+    createProposalSIP0037()
 
     balanceAfter = acct.balance()
 
