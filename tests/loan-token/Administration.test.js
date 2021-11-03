@@ -132,12 +132,12 @@ contract("LoanTokenAdministration", (accounts) => {
 			let localLoanToken = loanToken;
 			await localLoanToken.setPauser(accounts[0]);
 			let tx = await localLoanToken.toggleFunctionPause(functionSignature, true);
-			expectEvent(tx, "ToggleFunctionPaused", {
+			expectEvent(tx, "ToggledFunctionPaused", {
 				functionId: functionSignature,
 				prevFlag: false,
 				newFlag: true,
 			});
-			await expectRevert(localLoanToken.toggleFunctionPause(functionSignature, true), "invalid");
+			await expectRevert(localLoanToken.toggleFunctionPause(functionSignature, true), "isPaused is already set to that value");
 
 			await expectRevert(open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]), "unauthorized");
 
@@ -146,12 +146,12 @@ contract("LoanTokenAdministration", (accounts) => {
 
 			await localLoanToken.setPauser(accounts[0]);
 			tx = await localLoanToken.toggleFunctionPause(functionSignature, false);
-			expectEvent(tx, "ToggleFunctionPaused", {
+			expectEvent(tx, "ToggledFunctionPaused", {
 				functionId: functionSignature,
 				prevFlag: true,
 				newFlag: false,
 			});
-			await expectRevert(localLoanToken.toggleFunctionPause(functionSignature, false), "invalid");
+			await expectRevert(localLoanToken.toggleFunctionPause(functionSignature, false), "isPaused is already set to that value");
 			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]);
 
 			// check if checkPause returns false

@@ -19,7 +19,7 @@ interface ILoanTokenModules {
 
 	event SetTransactionLimits(address[] addresses, uint256[] limits);
 
-	event ToggleFunctionPaused(string functionId, bool prevFlag, bool newFlag);
+	event ToggledFunctionPaused(string functionId, bool prevFlag, bool newFlag);
 
 	/** INTERFACE */
 

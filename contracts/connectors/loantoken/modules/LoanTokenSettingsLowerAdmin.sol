@@ -22,7 +22,7 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
 	/* Events */
 
 	event SetTransactionLimits(address[] addresses, uint256[] limits);
-	event ToggleFunctionPaused(string functionId, bool prevFlag, bool newFlag);
+	event ToggledFunctionPaused(string functionId, bool prevFlag, bool newFlag);
 
 	/* Functions */
 
@@ -188,21 +188,20 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
 		bool paused;
 		require(msg.sender == pauser, "onlyPauser");
 		/// keccak256("iToken_FunctionPause")
-		bytes32 slot =
-			keccak256(
-				abi.encodePacked(
-					bytes4(keccak256(abi.encodePacked(funcId))),
-					uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
-				)
-			);
+		bytes32 slot = keccak256(
+			abi.encodePacked(
+				bytes4(keccak256(abi.encodePacked(funcId))),
+				uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
+			)
+		);
 		assembly {
 			paused := sload(slot)
 		}
-		require(paused != isPaused, "invalid");
+		require(paused != isPaused, "isPaused is already set to that value");
 		assembly {
 			sstore(slot, isPaused)
 		}
-		emit ToggleFunctionPaused(funcId, !isPaused, isPaused);
+		emit ToggledFunctionPaused(funcId, !isPaused, isPaused);
 	}
 
 	/**
