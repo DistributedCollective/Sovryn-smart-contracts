@@ -14,6 +14,7 @@ import "../modules/interfaces/ProtocolSwapExternalInterface.sol";
 import "../mixins/ModuleCommonFunctionalities.sol";
 import "../swaps/ISwapsImpl.sol";
 import "../governance/IFeeSharingProxy.sol";
+import "../feeds/IPriceFeeds.sol";
 
 /**
  * @title Protocol Settings contract.
@@ -412,9 +413,19 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 						protocolAddress, // protocol as the sender
 						tempAmount, // source token amount
 						0, // reqDestToken
-						0, // slippage
+						0, // minReturn
 						"" // loan data bytes
 					);
+
+					/// Will revert if disagreement found.
+					uint256 x =
+						IPriceFeeds(priceFeeds).checkPriceDisagreement(
+							tokens[i],
+							address(wrbtcToken),
+							tempAmount,
+							amountConvertedToWRBTC,
+							maxDisagreement
+						);
 				}
 
 				totalWRBTCWithdrawn = totalWRBTCWithdrawn.add(amountConvertedToWRBTC);

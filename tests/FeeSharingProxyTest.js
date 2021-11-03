@@ -172,6 +172,9 @@ contract("FeeSharingProxy:", (accounts) => {
 
 		tradingFeePercent = await protocol.tradingFeePercent();
 		await lend_btc_before_cashout(loanTokenWrbtc, new BN(wei("10", "ether")), root);
+
+		const maxDisagreement = new BN(wei("5", "ether"));
+		await protocol.setMaxDisagreement(maxDisagreement);
 	});
 
 	describe("FeeSharingProxy", () => {

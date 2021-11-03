@@ -294,6 +294,8 @@ contract("SwapsExternal", (accounts) => {
 		});
 
 		it("Should be able to withdraw fees", async () => {
+			const maxDisagreement = new BN(wei("15", "ether")); // need to adjust to 15% max slippage for this test cases because the LP is not rebalanced
+			await sovryn.setMaxDisagreement(maxDisagreement);
 			const assetBalance = await loanToken.assetBalanceOf(lender);
 			await underlyingToken.approve(sovryn.address, assetBalance.add(new BN(wei("10", "ether"))).toString());
 			// feeds price is set 0.01, so test minReturn with 0.01 as well for the 1 ether swap
