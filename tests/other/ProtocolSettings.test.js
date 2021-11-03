@@ -11,7 +11,7 @@
  *   require a particular simplified SOV token.
  */
 
-const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
 const { waffle } = require("hardhat");
@@ -408,5 +408,32 @@ contract("ProtocolSettings", (accounts) => {
 		it("Test set swapExternalFeePercent with unauthorized sender", async () => {
 			await expectRevert(sovryn.setSwapExternalFeePercent(new BN(2).mul(oneEth), { from: accounts[0] }), "unauthorized");
 		});
+
+		it("should work: setBorrowingFeePercent", async () => {
+			/// @dev setBorrowingFeePercent must be called from multisig
+			const data = await sovryn.contract.methods.setBorrowingFeePercent(new BN(10).pow(new BN(20))).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "Execution");
+		});
+
+		it("shouldn't work: setBorrowingFeePercent w/ value too high", async () => {
+			/// @dev setBorrowingFeePercent must be called from multisig
+			const data = await sovryn.contract.methods.setBorrowingFeePercent(new BN(10).pow(new BN(20)).add(new BN(1))).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "ExecutionFailure");
+		});
 	});
+
+	describe("LoanClosingsBase test coverage", () => {
+		it("Doesn't allow fallback function call", async () => {
+			/// @dev the revert "fallback not allowed" is never reached because
+			///   fallback function (w/ no signature) is not registered in the protocol
+			await expectRevert(sovryn.sendTransaction({}), "target not active");
+		});
+	});
+
 });
