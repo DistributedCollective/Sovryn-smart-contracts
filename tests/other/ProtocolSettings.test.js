@@ -411,11 +411,23 @@ contract("ProtocolSettings", (accounts) => {
 
 		it("should work: setBorrowingFeePercent", async () => {
 			/// @dev setBorrowingFeePercent must be called from multisig
-			const data = await sovryn.contract.methods.setBorrowingFeePercent(new BN(10).pow(new BN(20))).encodeABI();
+			let newValue = new BN(10).pow(new BN(20));
+			const data = await sovryn.contract.methods.setBorrowingFeePercent(newValue).encodeABI();
 			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
 			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
 			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
 			expectEvent(receipt, "Execution");
+
+			// Check emitted event arguments
+			const decode = decodeLogs(receipt.rawLogs, ProtocolSettings, "SetBorrowingFeePercent");
+			const event = decode[0].args;
+			expect(event["sender"] == multisig.address).to.be.true;
+			/// @dev Default value at State.sol:
+			///   0.09% fee /// Origination fee paid for each loan.
+			///   uint256 public borrowingFeePercent = 9 * 10**16;
+			///     90000000000000000
+			expect(event["oldValue"] == new BN(9).mul(new BN(10).pow(new BN(16)))).to.be.true;
+			expect(event["newValue"] == newValue).to.be.true;
 		});
 
 		it("shouldn't work: setBorrowingFeePercent w/ value too high", async () => {
@@ -425,6 +437,77 @@ contract("ProtocolSettings", (accounts) => {
 			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
 			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
 			expectEvent(receipt, "ExecutionFailure");
+		});
+
+		it("should work: setLiquidationIncentivePercent", async () => {
+			/// @dev setLiquidationIncentivePercent must be called from multisig
+			let newValue = new BN(10).pow(new BN(20));
+			const data = await sovryn.contract.methods.setLiquidationIncentivePercent(newValue).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "Execution");
+
+			// Check emitted event arguments
+			const decode = decodeLogs(receipt.rawLogs, ProtocolSettings, "SetLiquidationIncentivePercent");
+			const event = decode[0].args;
+			expect(event["sender"] == multisig.address).to.be.true;
+			/// @dev Default value at State.sol:
+			///   5% collateral discount /// Discount on collateral for liquidators.
+			///   uint256 public liquidationIncentivePercent = 5 * 10**18;
+			///     5000000000000000000
+			expect(event["oldValue"] == new BN(5).mul(new BN(10).pow(new BN(18)))).to.be.true;
+			expect(event["newValue"] == newValue).to.be.true;
+		});
+
+		it("shouldn't work: setLiquidationIncentivePercent w/ value too high", async () => {
+			/// @dev setLiquidationIncentivePercent must be called from multisig
+			const data = await sovryn.contract.methods
+				.setLiquidationIncentivePercent(new BN(10).pow(new BN(20)).add(new BN(1)))
+				.encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "ExecutionFailure");
+		});
+
+		it("should work: setMaxDisagreement", async () => {
+			/// @dev setMaxDisagreement must be called from multisig
+			const data = await sovryn.contract.methods.setMaxDisagreement(new BN(10).pow(new BN(20))).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "Execution");
+		});
+
+		it("should work: setSourceBuffer", async () => {
+			/// @dev setSourceBuffer must be called from multisig
+			const data = await sovryn.contract.methods.setSourceBuffer(new BN(10).pow(new BN(20))).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "Execution");
+		});
+
+		it("should work: setMaxSwapSize", async () => {
+			/// @dev setMaxSwapSize must be called from multisig
+			let newValue = new BN(10).pow(new BN(20));
+			const data = await sovryn.contract.methods.setMaxSwapSize(newValue).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "Execution");
+
+			// Check emitted event arguments
+			const decode = decodeLogs(receipt.rawLogs, ProtocolSettings, "SetMaxSwapSize");
+			const event = decode[0].args;
+			expect(event["sender"] == multisig.address).to.be.true;
+			/// @dev Default value at State.sol:
+			///   Maximum support swap size in rBTC
+			///   uint256 public maxSwapSize = 50 ether;
+			///     50000000000000000000
+			expect(event["oldValue"] == new BN(50).mul(new BN(10).pow(new BN(18)))).to.be.true;
+			expect(event["newValue"] == newValue).to.be.true;
 		});
 	});
 
