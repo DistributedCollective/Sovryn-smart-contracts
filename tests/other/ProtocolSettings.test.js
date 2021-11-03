@@ -435,5 +435,4 @@ contract("ProtocolSettings", (accounts) => {
 			await expectRevert(sovryn.sendTransaction({}), "target not active");
 		});
 	});
-
 });
