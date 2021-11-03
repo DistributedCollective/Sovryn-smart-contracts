@@ -34,7 +34,7 @@ def main():
         owner=acct)
 
     # open the file in universal line ending mode 
-    with open('./scripts/deployment/distribution/vestingmigrationstest.csv', 'rU') as infile:
+    with open('./scripts/deployment/distribution/vestingmigrations.csv', 'rU') as infile:
         #read the file as a dictionary for each row ({header : value})
         reader = csv.DictReader(infile)
         data = {}
@@ -51,12 +51,13 @@ def main():
     print(tokenOwners)
     print(vestingCreationTypes)
 
-    data = vestingRegistryLogic.addDeployedVestings.encode_input(tokenOwners, vestingCreationTypes)
-    print(data)
+    vestingRegistryLogic.addDeployedVestings(tokenOwners, vestingCreationTypes)
+    # data = vestingRegistryLogic.addDeployedVestings.encode_input(tokenOwners, vestingCreationTypes)
+    # print(data)
 
-    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
-    print(multisig)
-    tx = multisig.submitTransaction(vestingRegistryLogic.address, 0, data, {'allow_revert':True})
-    print(tx.revert_msg)
-    txId = tx.events["Submission"]["transactionId"]
-    print(txId)
+    # multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    # print(multisig)
+    # tx = multisig.submitTransaction(vestingRegistryLogic.address, 0, data, {'allow_revert':True})
+    # print(tx.revert_msg)
+    # txId = tx.events["Submission"]["transactionId"]
+    # print(txId)

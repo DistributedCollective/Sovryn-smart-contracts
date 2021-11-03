@@ -41,3 +41,4 @@ tmp
 abi
 types/
 typechain/
+!.github/

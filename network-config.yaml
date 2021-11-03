@@ -1,0 +1,12 @@
+live:
+  - name: RSK Mainnet
+    networks:
+      - name: Mainnet
+        chainid: 30
+        id: rsk-mainnet
+        host: https://mainnet.sovryn.app/rpc
+
+      - name: Testnet
+        chainid: 31
+        id: rsk-testnet
+        host: https://testnet.sovryn.app/rpc

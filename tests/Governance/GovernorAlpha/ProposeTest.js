@@ -4,7 +4,7 @@ const { expectRevert, expectEvent, constants, BN, balance, time } = require("@op
 const { address, etherMantissa, encodeParameters, mineBlock, setTime } = require("../../Utils/Ethereum");
 
 const GovernorAlpha = artifacts.require("GovernorAlpha");
-const StakingLogic = artifacts.require("Staking");
+const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 //Upgradable Vesting Registry

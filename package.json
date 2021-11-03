@@ -80,7 +80,9 @@
 		"generate-types": "npx typechain --target=web3-v1 'abi/**/*.json' && npx typechain --target=ethers-v5 'abi/**/*.json'",
 		"compile": "npx hardhat compile",
 		"npm-publish": "npm run compile && npm publish",
-		"postinstall": "npm run generate-types"
+		"postinstall": "npm run generate-types",
+		"fees-withdraw": "brownie run rewards_cron"
+
 	},
 	"husky": {
 		"hooks": {

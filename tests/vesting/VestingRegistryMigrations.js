@@ -3,7 +3,7 @@ const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test
 
 const { mineBlock } = require("../Utils/Ethereum");
 
-const StakingLogic = artifacts.require("Staking");
+const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
@@ -61,6 +61,7 @@ contract("VestingRegistryMigrations", (accounts) => {
 		vesting = await VestingRegistryProxy.new();
 		await vesting.setImplementation(vestingRegistryLogic.address);
 		vesting = await VestingRegistryLogic.at(vesting.address);
+		await staking.setVestingRegistry(vesting.address);
 
 		lockedSOV = await LockedSOV.new(SOV.address, vesting.address, cliff, duration, [root]);
 		await vesting.addAdmin(lockedSOV.address);
@@ -184,20 +185,20 @@ contract("VestingRegistryMigrations", (accounts) => {
 			let teamDuration = TEAM_VESTING_DURATION;
 
 			vestingFactory.transferOwnership(vesting.address);
-			let tx = await vesting.addDeployedVestings([account1, account2, account3], [2, 3, 4]);
+			let tx = await vesting.addDeployedVestings([account1, account2, account3], [1, 2, 3]);
 			console.log("gasUsed = " + tx.receipt.gasUsed);
 
-			newVestingAddress = await vesting.getVestingAddr(account1, cliff, duration, 2);
+			newVestingAddress = await vesting.getVestingAddr(account1, cliff, duration, 1);
 			expect(await vesting.isVestingAdress(newVestingAddress)).equal(true);
-			newVestingAddress2 = await vesting.getVestingAddr(account2, cliff, duration, 3);
+			newVestingAddress2 = await vesting.getVestingAddr(account2, cliff, duration, 2);
 			expect(await vesting.isVestingAdress(newVestingAddress2)).equal(true);
-			newVestingAddress3 = await vesting.getVestingAddr(account3, cliff, duration, 4);
+			newVestingAddress3 = await vesting.getVestingAddr(account3, cliff, duration, 3);
 			expect(await vesting.isVestingAdress(newVestingAddress3)).equal(true);
-			newTeamVestingAddress = await vesting.getTeamVesting(account1, teamCliff, teamDuration, 2);
+			newTeamVestingAddress = await vesting.getTeamVesting(account1, teamCliff, teamDuration, 1);
 			expect(await vesting.isVestingAdress(newTeamVestingAddress)).equal(true);
-			newTeamVestingAddress2 = await vesting.getTeamVesting(account2, teamCliff, teamDuration, 3);
+			newTeamVestingAddress2 = await vesting.getTeamVesting(account2, teamCliff, teamDuration, 2);
 			expect(await vesting.isVestingAdress(newTeamVestingAddress2)).equal(true);
-			newTeamVestingAddress3 = await vesting.getTeamVesting(account3, teamCliff, teamDuration, 4);
+			newTeamVestingAddress3 = await vesting.getTeamVesting(account3, teamCliff, teamDuration, 3);
 			expect(await vesting.isVestingAdress(newTeamVestingAddress3)).equal(true);
 
 			expect(vestingAddress).equal(newVestingAddress);
@@ -210,10 +211,10 @@ contract("VestingRegistryMigrations", (accounts) => {
 			let vestingAddresses = await vesting.getVestingsOf(account2);
 			assert.equal(vestingAddresses.length.toString(), "2");
 			assert.equal(vestingAddresses[0].vestingType, 1);
-			assert.equal(vestingAddresses[0].vestingCreationType, 3);
+			assert.equal(vestingAddresses[0].vestingCreationType, 2);
 			assert.equal(vestingAddresses[0].vestingAddress, newVestingAddress2);
 			assert.equal(vestingAddresses[1].vestingType, 0);
-			assert.equal(vestingAddresses[1].vestingCreationType, 3);
+			assert.equal(vestingAddresses[1].vestingCreationType, 2);
 			assert.equal(vestingAddresses[1].vestingAddress, newTeamVestingAddress2);
 		});
 

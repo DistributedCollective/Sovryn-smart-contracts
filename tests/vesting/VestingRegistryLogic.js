@@ -3,7 +3,7 @@ const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test
 
 const { mineBlock } = require("../Utils/Ethereum");
 
-const StakingLogic = artifacts.require("Staking");
+const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
