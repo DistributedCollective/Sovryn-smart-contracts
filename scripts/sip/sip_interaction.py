@@ -276,3 +276,14 @@ def createProposalSIP0035():
 
     # Create Proposal
     createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
+
+def createProposalSIP0037():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0037: The Sovryn Mynt: https://github.com/DistributedCollective/SIPS/blob/[TODO]/SIP-0037.md, sha256: TODO"
+
+    # Create Proposal
+    createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
