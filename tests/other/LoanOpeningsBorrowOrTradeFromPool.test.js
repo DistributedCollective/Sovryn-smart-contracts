@@ -214,5 +214,148 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
 			const borrowEvent = decode[0].args;
 			console.log(borrowEvent);
 		});
+
+		it("Test withdrawBorrowingFees", async () => {
+			const loanTokenSent = oneEth;
+			const newPrincipal = new BN(101).mul(oneEth);
+
+			const collateralTokenSent = await sovryn.getRequiredCollateral(
+				SUSD.address,
+				RBTC.address,
+				newPrincipal,
+				new BN(50).mul(oneEth),
+				true
+			);
+
+			await RBTC.mint(sovryn.address, collateralTokenSent, { from: accounts[0] });
+
+			const tx = await sovryn.borrowOrTradeFromPool(
+				await LinkDaiBorrowParamsId(), // loanParamsId
+				"0x0", // loanId
+				true, // isTorqueLoan,
+				new BN(50).mul(oneEth), // initialMargin
+				[
+					accounts[2], // lender
+					accounts[1], // borrower
+					accounts[1], // receiver
+					constants.ZERO_ADDRESS, // manager
+				],
+				[
+					new BN(5).mul(oneEth), // newRate (5%)
+					newPrincipal, // newPrincipal
+					oneEth, // torqueInterest
+					loanTokenSent, // loanTokenSent
+					collateralTokenSent, // collateralTokenSent
+				],
+				"0x", // loanDataBytes
+				{ from: accounts[1] }
+			);
+
+			await sovryn.setFeesController(accounts[0]);
+
+			const fees = await sovryn.borrowingFeeTokensHeld(RBTC.address);
+			// console.log("fees: ", fees.toString());
+			await sovryn.withdrawBorrowingFees(RBTC.address, accounts[1], fees);
+			const paid = await sovryn.borrowingFeeTokensPaid(RBTC.address);
+			// console.log("paid: ", paid.toString());
+
+			expect(paid.eq(fees)).to.be.true;
+			expect(await sovryn.borrowingFeeTokensHeld(RBTC.address)).to.be.a.bignumber.eq(new BN(0));
+			expect(await RBTC.balanceOf(accounts[1])).to.be.a.bignumber.eq(fees);
+		});
+
+		it("should ignore withdrawAmounts bigger than balance when withdrawing borrowing fees", async () => {
+			// Prepare the test
+			const loanTokenSent = oneEth;
+			const newPrincipal = new BN(101).mul(oneEth);
+
+			const collateralTokenSent = await sovryn.getRequiredCollateral(
+				SUSD.address,
+				RBTC.address,
+				newPrincipal,
+				new BN(50).mul(oneEth),
+				true
+			);
+
+			await RBTC.mint(sovryn.address, collateralTokenSent, { from: accounts[0] });
+
+			const tx = await sovryn.borrowOrTradeFromPool(
+				await LinkDaiBorrowParamsId(), // loanParamsId
+				"0x0", // loanId
+				true, // isTorqueLoan,
+				new BN(50).mul(oneEth), // initialMargin
+				[
+					accounts[2], // lender
+					accounts[1], // borrower
+					accounts[1], // receiver
+					constants.ZERO_ADDRESS, // manager
+				],
+				[
+					new BN(5).mul(oneEth), // newRate (5%)
+					newPrincipal, // newPrincipal
+					oneEth, // torqueInterest
+					loanTokenSent, // loanTokenSent
+					collateralTokenSent, // collateralTokenSent
+				],
+				"0x", // loanDataBytes
+				{ from: accounts[1] }
+			);
+
+			await sovryn.setFeesController(accounts[0]);
+
+			// Withdraw fees and verify
+			const fees = await sovryn.borrowingFeeTokensHeld(RBTC.address);
+			await sovryn.withdrawBorrowingFees(RBTC.address, accounts[1], fees.mul(new BN(2)));
+			const paid = await sovryn.borrowingFeeTokensPaid(RBTC.address);
+
+			expect(paid.eq(fees)).to.be.true;
+			expect(await sovryn.borrowingFeeTokensHeld(RBTC.address)).to.be.a.bignumber.eq(new BN(0));
+			expect(await RBTC.balanceOf(accounts[1])).to.be.a.bignumber.eq(fees);
+		});
+
+		it("should return false when withdrawing amount 0 of borrowing fees", async () => {
+			// Prepare the test
+			const loanTokenSent = oneEth;
+			const newPrincipal = new BN(101).mul(oneEth);
+
+			const collateralTokenSent = await sovryn.getRequiredCollateral(
+				SUSD.address,
+				RBTC.address,
+				newPrincipal,
+				new BN(50).mul(oneEth),
+				true
+			);
+
+			await RBTC.mint(sovryn.address, collateralTokenSent, { from: accounts[0] });
+
+			const tx = await sovryn.borrowOrTradeFromPool(
+				await LinkDaiBorrowParamsId(), // loanParamsId
+				"0x0", // loanId
+				true, // isTorqueLoan,
+				new BN(50).mul(oneEth), // initialMargin
+				[
+					accounts[2], // lender
+					accounts[1], // borrower
+					accounts[1], // receiver
+					constants.ZERO_ADDRESS, // manager
+				],
+				[
+					new BN(5).mul(oneEth), // newRate (5%)
+					newPrincipal, // newPrincipal
+					oneEth, // torqueInterest
+					loanTokenSent, // loanTokenSent
+					collateralTokenSent, // collateralTokenSent
+				],
+				"0x", // loanDataBytes
+				{ from: accounts[1] }
+			);
+
+			await sovryn.setFeesController(accounts[0]);
+
+			// Withdraw fees and verify
+			const fees = await sovryn.borrowingFeeTokensHeld(RBTC.address);
+			let result = await sovryn.withdrawBorrowingFees.call(RBTC.address, accounts[1], new BN(0));
+			expect(result).to.be.false;
+		});
 	});
 });

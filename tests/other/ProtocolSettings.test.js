@@ -22,7 +22,17 @@ const MultiSigWallet = artifacts.require("MultiSigWallet");
 const ProtocolSettings = artifacts.require("ProtocolSettings");
 const TestToken = artifacts.require("TestToken");
 
-const { getSUSD, getRBTC, getWRBTC, getBZRX, getPriceFeeds, decodeLogs, getSovryn } = require("../Utils/initializer.js");
+const {
+	getSUSD,
+	getRBTC,
+	getWRBTC,
+	getBZRX,
+	getPriceFeeds,
+	decodeLogs,
+	getSovryn,
+	getLoanToken,
+	getLoanTokenLogicWrbtc,
+} = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 
@@ -41,6 +51,7 @@ const getMultisig = async (accounts) => {
 contract("ProtocolSettings", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, priceFeeds, multisig, sov;
 	const ONE_ADDRESS = "0x0000000000000000000000000000000000000001";
+	let lender, loanToken, loanTokenAddress;
 
 	async function deploymentAndInitFixture(_wallets, _provider) {
 		// Deploying sovrynProtocol w/ generic function from initializer.js
@@ -57,7 +68,16 @@ contract("ProtocolSettings", (accounts) => {
 		/// @dev A SOV mint useful for every test
 		sov = await TestToken.new("Sovryn", "SOV", 18, new BN(10).pow(new BN(50)));
 		await sov.transfer(multisig.address, new BN(10).pow(new BN(50)), { from: accounts[0] });
+
+		/// @dev a loanToken required to test setting loan pools on the protocol
+		loanTokenLogicWrbtc = await getLoanTokenLogicWrbtc();
+		loanToken = await getLoanToken(loanTokenLogicWrbtc, lender, sovryn, WRBTC, SUSD);
+		loanTokenAddress = await loanToken.loanTokenAddress();
 	}
+
+	before(async () => {
+		[lender] = accounts;
+	});
 
 	beforeEach(async () => {
 		await loadFixture(deploymentAndInitFixture);
@@ -508,6 +528,143 @@ contract("ProtocolSettings", (accounts) => {
 			///     50000000000000000000
 			expect(event["oldValue"] == new BN(50).mul(new BN(10).pow(new BN(18)))).to.be.true;
 			expect(event["newValue"] == newValue).to.be.true;
+		});
+
+		it("should work on setLoanPool w/ 1 pool and 1 asset previously deployed", async () => {
+			/// @dev setLoanPool must be called from multisig
+			let pools = [loanToken.address];
+			let assets = [loanTokenAddress];
+			const data = await sovryn.contract.methods.setLoanPool(pools, assets).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "Execution");
+		});
+
+		it("should revert for count mismatch on setLoanPool w/ 1 pool 2 assets", async () => {
+			/// @dev setLoanPool must be called from multisig
+			let pools = [loanToken.address];
+			let assets = [loanTokenAddress, loanTokenAddress];
+			const data = await sovryn.contract.methods.setLoanPool(pools, assets).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "ExecutionFailure");
+		});
+
+		it("should revert on setLoanPool w/ 1 pool and 1 asset that are equal", async () => {
+			/// @dev setLoanPool must be called from multisig
+			let pools = [loanToken.address];
+			let assets = [loanToken.address];
+			const data = await sovryn.contract.methods.setLoanPool(pools, assets).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "ExecutionFailure");
+		});
+
+		it("should revert on setLoanPool w/ 1 pool equal to address(0) and 1 asset", async () => {
+			/// @dev setLoanPool must be called from multisig
+			let pools = [ZERO_ADDRESS];
+			let assets = [loanToken.address];
+			const data = await sovryn.contract.methods.setLoanPool(pools, assets).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "ExecutionFailure");
+		});
+
+		it("should revert on setLoanPool w/ 1 pool and 1 asset equal to address(0)", async () => {
+			/// @dev setLoanPool must be called from multisig
+			let pools = [loanToken.address];
+			let assets = [ZERO_ADDRESS];
+			const data = await sovryn.contract.methods.setLoanPool(pools, assets).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "ExecutionFailure");
+		});
+
+		it("should work on setSupportedTokens w/ 1 address and 1 toogle", async () => {
+			/// @dev setSupportedTokens must be called from multisig
+			let addresses = [ZERO_ADDRESS];
+			let toggles = [true];
+			const data = await sovryn.contract.methods.setSupportedTokens(addresses, toggles).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "Execution");
+		});
+
+		it("should revert for count mismatch on setSupportedTokens w/ 1 address 2 toggles", async () => {
+			/// @dev setSupportedTokens must be called from multisig
+			let addresses = [ZERO_ADDRESS];
+			let toggles = [true, false];
+			const data = await sovryn.contract.methods.setSupportedTokens(addresses, toggles).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "ExecutionFailure");
+		});
+
+		it("should work: setLendingFeePercent", async () => {
+			/// @dev setLendingFeePercent must be called from multisig
+			let newValue = new BN(10).pow(new BN(20));
+			const data = await sovryn.contract.methods.setLendingFeePercent(newValue).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "Execution");
+
+			// Check emitted event arguments
+			const decode = decodeLogs(receipt.rawLogs, ProtocolSettings, "SetLendingFeePercent");
+			const event = decode[0].args;
+			expect(event["sender"] == multisig.address).to.be.true;
+			/// @dev Default value at State.sol:
+			///   	10% fee /// Fee taken from lender interest payments.
+			///     uint256 public lendingFeePercent = 10**19;
+			///     10000000000000000000
+			expect(event["oldValue"] == new BN(1).mul(new BN(10).pow(new BN(19)))).to.be.true;
+			expect(event["newValue"] == newValue).to.be.true;
+		});
+
+		it("shouldn't work: setLendingFeePercent w/ value too high", async () => {
+			/// @dev setLendingFeePercent must be called from multisig
+			const data = await sovryn.contract.methods.setLendingFeePercent(new BN(10).pow(new BN(20)).add(new BN(1))).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "ExecutionFailure");
+		});
+
+		it("should work: setTradingFeePercent", async () => {
+			/// @dev setTradingFeePercent must be called from multisig
+			let newValue = new BN(10).pow(new BN(20));
+			const data = await sovryn.contract.methods.setTradingFeePercent(newValue).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "Execution");
+
+			// Check emitted event arguments
+			const decode = decodeLogs(receipt.rawLogs, ProtocolSettings, "SetTradingFeePercent");
+			const event = decode[0].args;
+			expect(event["sender"] == multisig.address).to.be.true;
+			/// @dev Default value at State.sol:
+			///   	0.15% fee /// Fee paid for each trade.
+			///     uint256 public tradingFeePercent = 15 * 10**16;
+			///     150000000000000000
+			expect(event["oldValue"] == new BN(15).mul(new BN(10).pow(new BN(16)))).to.be.true;
+			expect(event["newValue"] == newValue).to.be.true;
+		});
+
+		it("shouldn't work: setTradingFeePercent w/ value too high", async () => {
+			/// @dev setTradingFeePercent must be called from multisig
+			const data = await sovryn.contract.methods.setTradingFeePercent(new BN(10).pow(new BN(20)).add(new BN(1))).encodeABI();
+			const tx = await multisig.submitTransaction(sovryn.address, 0, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "ExecutionFailure");
 		});
 	});
 

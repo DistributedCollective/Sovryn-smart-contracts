@@ -12,7 +12,7 @@
 const { expect } = require("chai");
 const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
-const { BN, expectEvent } = require("@openzeppelin/test-helpers");
+const { BN, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const { increaseTime, blockNumber } = require("../Utils/Ethereum.js");
 
 const {
@@ -159,6 +159,48 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 			expect(await SUSD.balanceOf(accounts[1])).to.be.a.bignumber.eq(fees);
 		});
 
+		it("should revert when withdrawing lending fees by no feesController", async () => {
+			// Prepare the test
+			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			await sovryn.setFeesController(accounts[0]);
+			await increaseTime(100);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// Try to withdraw fees
+			const fees = await sovryn.lendingFeeTokensHeld(SUSD.address);
+			await expectRevert(sovryn.withdrawLendingFees(SUSD.address, accounts[1], fees, { from: accounts[1] }), "unauthorized");
+		});
+
+		it("should ignore withdrawAmounts bigger than balance when withdrawing lending fees", async () => {
+			// Prepare the test
+			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			await sovryn.setFeesController(accounts[0]);
+			await increaseTime(100);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// Withdraw fees and verify
+			const fees = await sovryn.lendingFeeTokensHeld(SUSD.address);
+			await sovryn.withdrawLendingFees(SUSD.address, accounts[1], fees.mul(new BN(2)));
+			const paid = await sovryn.lendingFeeTokensPaid(SUSD.address);
+
+			expect(paid.eq(fees)).to.be.true;
+			expect(await sovryn.lendingFeeTokensHeld(SUSD.address)).to.be.a.bignumber.eq(new BN(0));
+			expect(await SUSD.balanceOf(accounts[1])).to.be.a.bignumber.eq(fees);
+		});
+
+		it("should return false when withdrawing amount 0 of lending fees", async () => {
+			// Prepare the test
+			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			await sovryn.setFeesController(accounts[0]);
+			await increaseTime(100);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// Withdraw fees and verify
+			const fees = await sovryn.lendingFeeTokensHeld(SUSD.address);
+			let result = await sovryn.withdrawLendingFees.call(SUSD.address, accounts[1], new BN(0));
+			expect(result).to.be.false;
+		});
+
 		/*
 			Should successfully withdraw trading fees
 			1. Set demand curve (fixture) 
@@ -188,6 +230,36 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 			expect(await SUSD.balanceOf(accounts[1])).to.be.a.bignumber.eq(fees);
 		});
 
+		it("should ignore withdrawAmounts bigger than balance when withdrawing trading fees", async () => {
+			// Prepare the test
+			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			await sovryn.setFeesController(accounts[0]);
+			await increaseTime(100);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// Withdraw fees and verify
+			const fees = await sovryn.tradingFeeTokensHeld(SUSD.address);
+			await sovryn.withdrawTradingFees(SUSD.address, accounts[1], fees.mul(new BN(2)));
+			const paid = await sovryn.tradingFeeTokensPaid(SUSD.address);
+
+			expect(paid.eq(fees)).to.be.true;
+			expect(await sovryn.tradingFeeTokensHeld(SUSD.address)).to.be.a.bignumber.eq(new BN(0));
+			expect(await SUSD.balanceOf(accounts[1])).to.be.a.bignumber.eq(fees);
+		});
+
+		it("should return false when withdrawing amount 0 of trading fees", async () => {
+			// Prepare the test
+			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			await sovryn.setFeesController(accounts[0]);
+			await increaseTime(100);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// Withdraw fees and verify
+			const fees = await sovryn.tradingFeeTokensHeld(SUSD.address);
+			let result = await sovryn.withdrawTradingFees.call(SUSD.address, accounts[1], new BN(0));
+			expect(result).to.be.false;
+		});
+
 		/*
 			Should successfully withdraw borrowing fees
 			1. Set demand curve (fixture) 
@@ -198,23 +270,30 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 			6. Call withdraw borrowing fees
 			7. Verify the right amount was paid out and the borrowing fees reduced on the smart contract 
 		*/
-		it("Test withdraw borrowing fees", async () => {
-			// prepare the test
-			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+		/// @dev In this test borrowing fees are always 0
+		///   Borrowing fees are only accrued from torque loans
+		///   Added a new test on tests/other/LoanOpeningsBorrowOrTradeFromPool.test.js
+		///   checking withdrawBorrowingFees by using a torque loan.
+		///   So, this test has been commented out because it seems to be incomplete.
+		// it("Test withdraw borrowing fees", async () => {
+		// 	// prepare the test
+		// 	await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
 
-			await sovryn.setFeesController(accounts[0]);
-			await increaseTime(100);
+		// 	await sovryn.setFeesController(accounts[0]);
+		// 	await increaseTime(100);
 
-			await lend_to_pool(loanToken, SUSD, owner);
+		// 	await lend_to_pool(loanToken, SUSD, owner);
 
-			// withdraw fees and verify
-			const fees = await sovryn.borrowingFeeTokensHeld(SUSD.address);
-			await sovryn.withdrawBorrowingFees(SUSD.address, accounts[1], fees);
-			const paid = await sovryn.borrowingFeeTokensPaid(SUSD.address);
+		// 	// withdraw fees and verify
+		// 	const fees = await sovryn.borrowingFeeTokensHeld(SUSD.address);
+		// 	console.log("fees: ", fees.toString());
+		// 	await sovryn.withdrawBorrowingFees(SUSD.address, accounts[1], fees);
+		// 	const paid = await sovryn.borrowingFeeTokensPaid(SUSD.address);
+		// 	console.log("paid: ", paid.toString());
 
-			expect(paid.eq(fees)).to.be.true;
-			expect(await sovryn.borrowingFeeTokensHeld(SUSD.address)).to.be.a.bignumber.eq(new BN(0));
-			expect(await SUSD.balanceOf(accounts[1])).to.be.a.bignumber.eq(fees);
-		});
+		// 	expect(paid.eq(fees)).to.be.true;
+		// 	expect(await sovryn.borrowingFeeTokensHeld(SUSD.address)).to.be.a.bignumber.eq(new BN(0));
+		// 	expect(await SUSD.balanceOf(accounts[1])).to.be.a.bignumber.eq(fees);
+		// });
 	});
 });

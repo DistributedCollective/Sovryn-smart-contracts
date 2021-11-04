@@ -219,6 +219,19 @@ contract("FeeSharingProxy:", (accounts) => {
 			});
 		});
 
+		it("ProtocolSettings.withdrawFees: Revert withdrawing by no feesController", async () => {
+			// stake - getPriorTotalVotingPower
+			let totalStake = 1000;
+			await stake(totalStake, root);
+
+			// mock data
+			let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+
+			await sovryn.setFeesController(root);
+
+			await expectRevert(sovryn.withdrawFees(SUSD.address, account1, { from: account1 }), "unauthorized");
+		});
+
 		it("Should be able to withdraw fees", async () => {
 			// stake - getPriorTotalVotingPower
 			let totalStake = 1000;
