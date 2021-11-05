@@ -150,12 +150,18 @@ contract("LoanTokenBorrowing", (accounts) => {
 			);
 		});
 
-		it("Test borrow with sepecial rebates percentage", async () => {
+		it("Test borrow with special rebates percentage", async () => {
 			// prepare the test
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
 			// For borrowing, the token fee is the collateral token
 			await sovryn.setSpecialRebates(RBTC.address, SUSD.address, wei("300", "ether"));
+
+			/// @dev fast checking previously added rebates
+			let rebates = await sovryn.getSpecialRebates.call(RBTC.address, SUSD.address);
+
+			expect(rebates).to.be.a.bignumber.equal(wei("300", "ether"));
+
 			// determine borrowing parameter
 			const withdrawAmount = tenEth;
 			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan

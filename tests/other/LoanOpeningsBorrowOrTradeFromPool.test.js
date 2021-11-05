@@ -14,7 +14,7 @@
 const { expect } = require("chai");
 const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
-const { constants, BN } = require("@openzeppelin/test-helpers");
+const { constants, BN, expectRevert } = require("@openzeppelin/test-helpers");
 const LoanSettingsEvents = artifacts.require("LoanSettingsEvents");
 const LoanOpeningsEvents = artifacts.require("LoanOpeningsEvents");
 
@@ -262,6 +262,50 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
 			expect(paid.eq(fees)).to.be.true;
 			expect(await sovryn.borrowingFeeTokensHeld(RBTC.address)).to.be.a.bignumber.eq(new BN(0));
 			expect(await RBTC.balanceOf(accounts[1])).to.be.a.bignumber.eq(fees);
+		});
+
+		it("should revert when withdrawing borrowing fees by no feesController", async () => {
+			// Prepare the test
+			const loanTokenSent = oneEth;
+			const newPrincipal = new BN(101).mul(oneEth);
+
+			const collateralTokenSent = await sovryn.getRequiredCollateral(
+				SUSD.address,
+				RBTC.address,
+				newPrincipal,
+				new BN(50).mul(oneEth),
+				true
+			);
+
+			await RBTC.mint(sovryn.address, collateralTokenSent, { from: accounts[0] });
+
+			const tx = await sovryn.borrowOrTradeFromPool(
+				await LinkDaiBorrowParamsId(), // loanParamsId
+				"0x0", // loanId
+				true, // isTorqueLoan,
+				new BN(50).mul(oneEth), // initialMargin
+				[
+					accounts[2], // lender
+					accounts[1], // borrower
+					accounts[1], // receiver
+					constants.ZERO_ADDRESS, // manager
+				],
+				[
+					new BN(5).mul(oneEth), // newRate (5%)
+					newPrincipal, // newPrincipal
+					oneEth, // torqueInterest
+					loanTokenSent, // loanTokenSent
+					collateralTokenSent, // collateralTokenSent
+				],
+				"0x", // loanDataBytes
+				{ from: accounts[1] }
+			);
+
+			await sovryn.setFeesController(accounts[0]);
+
+			// Try to withdraw fees
+			const fees = await sovryn.borrowingFeeTokensHeld(RBTC.address);
+			await expectRevert(sovryn.withdrawBorrowingFees(RBTC.address, accounts[1], fees, { from: accounts[1] }), "unauthorized");
 		});
 
 		it("should ignore withdrawAmounts bigger than balance when withdrawing borrowing fees", async () => {

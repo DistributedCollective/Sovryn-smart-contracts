@@ -22,6 +22,12 @@ const MultiSigWallet = artifacts.require("MultiSigWallet");
 const ProtocolSettings = artifacts.require("ProtocolSettings");
 const TestToken = artifacts.require("TestToken");
 
+const sovrynProtocol = artifacts.require("sovrynProtocol");
+const ISovryn = artifacts.require("ISovryn");
+const LoanSettings = artifacts.require("LoanSettings");
+const LoanMaintenance = artifacts.require("LoanMaintenance");
+const SwapsExternal = artifacts.require("SwapsExternal");
+
 const {
 	getSUSD,
 	getRBTC,
@@ -150,6 +156,19 @@ contract("ProtocolSettings", (accounts) => {
 			await expectRevert(sovryn.setWrbtcToken(WRBTC.address, { from: accounts[0] }), "unauthorized");
 		});
 
+		it("Should revert when setting wrbtc token w/ not a contract address", async () => {
+			expect((await sovryn.owner()) == multisig.address).to.be.true;
+
+			const dest = sovryn.address;
+			const val = 0;
+			const data = sovryn.contract.methods.setWrbtcToken(ZERO_ADDRESS).encodeABI();
+			const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+			const txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+			expectEvent(receipt, "ExecutionFailure");
+		});
+
 		it("Test set protocol token address", async () => {
 			expect((await sovryn.protocolTokenAddress()) == ZERO_ADDRESS).to.be.true;
 
@@ -163,6 +182,19 @@ contract("ProtocolSettings", (accounts) => {
 			expect((await sovryn.protocolTokenAddress()) == sov.address).to.be.true;
 
 			await expectRevert(sovryn.setProtocolTokenAddress(sov.address, { from: accounts[1] }), "unauthorized");
+		});
+
+		it("Should revert when setting protocol token w/ not a contract address", async () => {
+			expect((await sovryn.protocolTokenAddress()) == ZERO_ADDRESS).to.be.true;
+
+			const dest = sovryn.address;
+			const val = 0;
+			const data = sovryn.contract.methods.setProtocolTokenAddress(ZERO_ADDRESS).encodeABI();
+			const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+			const txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+			expectEvent(receipt, "ExecutionFailure");
 		});
 
 		/*
@@ -351,6 +383,18 @@ contract("ProtocolSettings", (accounts) => {
 			await expectRevert(sovryn.setRolloverBaseReward(new BN(10).pow(new BN(15)), { from: accounts[0] }), "unauthorized");
 		});
 
+		it("Should revert when setting rollover base reward w/ 0 amount", async () => {
+			const dest = sovryn.address;
+			const val = 0;
+			const data = await sovryn.contract.methods.setRolloverBaseReward(new BN(0)).encodeABI();
+
+			const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+			expectEvent(receipt, "ExecutionFailure");
+		});
+
 		// Should successfully change rebate percent
 		it("Test set rebate percent", async () => {
 			const new_percent = new BN(2).mul(oneEth);
@@ -375,6 +419,18 @@ contract("ProtocolSettings", (accounts) => {
 		// Should fail to change rebate percent by unauthorized user
 		it("Test set rebate percent by unauthorized user", async () => {
 			await expectRevert(sovryn.setRebatePercent(new BN(2).mul(oneEth), { from: accounts[0] }), "unauthorized");
+		});
+
+		it("Should revert when setting a too high fee rebate", async () => {
+			const dest = sovryn.address;
+			const val = 0;
+			const data = await sovryn.contract.methods.setRebatePercent(new BN(10).pow(new BN(20)).add(new BN(1))).encodeABI();
+
+			const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+			expectEvent(receipt, "ExecutionFailure");
 		});
 
 		// Should successfully change rebate percent
@@ -539,6 +595,9 @@ contract("ProtocolSettings", (accounts) => {
 			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
 			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
 			expectEvent(receipt, "Execution");
+
+			let list = await sovryn.getLoanPoolsList.call(0, 10);
+			console.log("loanPools = ", list);
 		});
 
 		it("should revert for count mismatch on setLoanPool w/ 1 pool 2 assets", async () => {
@@ -665,6 +724,18 @@ contract("ProtocolSettings", (accounts) => {
 			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
 			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
 			expectEvent(receipt, "ExecutionFailure");
+		});
+
+		it("shouldn't revert: setSovrynSwapContractRegistryAddress w/ registryAddress not a contract", async () => {
+			const sovrynproxy = await sovrynProtocol.new();
+			const sovryn = await ISovryn.at(sovrynproxy.address);
+
+			await sovryn.replaceContract((await ProtocolSettings.new()).address);
+			await sovryn.replaceContract((await LoanSettings.new()).address);
+			await sovryn.replaceContract((await LoanMaintenance.new()).address);
+			await sovryn.replaceContract((await SwapsExternal.new()).address);
+
+			await expectRevert(sovryn.setSovrynSwapContractRegistryAddress(ZERO_ADDRESS), "registryAddress not a contract");
 		});
 	});
 

@@ -230,6 +230,18 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 			expect(await SUSD.balanceOf(accounts[1])).to.be.a.bignumber.eq(fees);
 		});
 
+		it("should revert when withdrawing trading fees by no feesController", async () => {
+			// Prepare the test
+			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			await sovryn.setFeesController(accounts[0]);
+			await increaseTime(100);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// Try to withdraw fees
+			const fees = await sovryn.lendingFeeTokensHeld(SUSD.address);
+			await expectRevert(sovryn.withdrawTradingFees(SUSD.address, accounts[1], fees, { from: accounts[1] }), "unauthorized");
+		});
+
 		it("should ignore withdrawAmounts bigger than balance when withdrawing trading fees", async () => {
 			// Prepare the test
 			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
