@@ -33,4 +33,9 @@ def main():
     #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iDOC'])
     # setSupportedToken(conf.contracts['BNBs'])
 
-    updateLockedSOV()
+    #updateLockedSOV()
+
+    withdrawRBTCFromWatcher(20e18, conf.contracts['FastBTC'])
+
+    #this needs to be tested first. for direct trasnfer to fastbtc use the fastbtc contract address as receiver
+    #borrowRBTCWithMultisigUsingSOV(withdrawAmount, receiver)
