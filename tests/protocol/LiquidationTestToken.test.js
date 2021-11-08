@@ -272,7 +272,7 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
 		});
 
 		it("Should fail rolling over a healthy position", async () => {
-			// Close the loan
+			// Prepare the loan
 			await set_demand_curve(loanToken);
 			const lender = accounts[0];
 			const borrower = accounts[1];
@@ -297,7 +297,7 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
 		});
 
 		it("Should work rolling over an unhealthy position", async () => {
-			// Close the loan
+			// Prepare the loan
 			await set_demand_curve(loanToken);
 			const lender = accounts[0];
 			const borrower = accounts[1];
@@ -319,9 +319,57 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
 			// time travel 100 days turns position into an unhealthy state
 			await increaseTime(8640000);
 
-			// Try to liquidate an inactive loan
+			// Roll over an unhealthy loan
 			let value = 0;
 			await sovryn.rollover(loan_id, "0x", { from: liquidator, value: value });
+		});
+
+		it("should work when setting a delegated manager", async () => {
+			// Prepare the loan
+			await set_demand_curve(loanToken);
+			const lender = accounts[0];
+			const borrower = accounts[1];
+			const receiver = borrower;
+			const liquidator = accounts[2];
+			const loan_token_sent = new BN(10).mul(oneEth);
+			const loan_id = await prepare_liquidation(
+				lender,
+				borrower,
+				liquidator,
+				loan_token_sent,
+				loanToken,
+				SUSD, // underlyingToken
+				RBTC, // collateralToken
+				sovryn,
+				WRBTC
+			);
+
+			// Set a delegated manager
+			await sovryn.setDelegatedManager(loan_id, borrower, true, { from: borrower });
+		});
+
+		it("should revert when setting a delegated manager by other than borrower", async () => {
+			// Prepare the loan
+			await set_demand_curve(loanToken);
+			const lender = accounts[0];
+			const borrower = accounts[1];
+			const receiver = borrower;
+			const liquidator = accounts[2];
+			const loan_token_sent = new BN(10).mul(oneEth);
+			const loan_id = await prepare_liquidation(
+				lender,
+				borrower,
+				liquidator,
+				loan_token_sent,
+				loanToken,
+				SUSD, // underlyingToken
+				RBTC, // collateralToken
+				sovryn,
+				WRBTC
+			);
+
+			// Try to set a delegated manager by other than borrower
+			await expectRevert(sovryn.setDelegatedManager("0x0", accounts[3], true, { from: accounts[3] }), "unauthorized");
 		});
 
 		/// @dev the revert "loanParams not exists" is not achievable

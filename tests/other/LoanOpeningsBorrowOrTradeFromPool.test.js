@@ -401,5 +401,159 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
 			let result = await sovryn.withdrawBorrowingFees.call(RBTC.address, accounts[1], new BN(0));
 			expect(result).to.be.false;
 		});
+
+		it("should revert when sending Ethers w/o loanDataBytes", async () => {
+			// Prepare the test
+			const loanTokenSent = oneEth;
+			const newPrincipal = new BN(101).mul(oneEth);
+			const collateralTokenSent = await sovryn.getRequiredCollateral(
+				SUSD.address,
+				RBTC.address,
+				newPrincipal,
+				new BN(50).mul(oneEth),
+				true
+			);
+
+			await expectRevert(
+				sovryn.borrowOrTradeFromPool(
+					await LinkDaiBorrowParamsId(), // loanParamsId
+					"0x0", // loanId
+					true, // isTorqueLoan,
+					new BN(50).mul(oneEth), // initialMargin
+					[
+						accounts[2], // lender
+						accounts[1], // borrower
+						accounts[1], // receiver
+						constants.ZERO_ADDRESS, // manager
+					],
+					[
+						new BN(5).mul(oneEth), // newRate (5%)
+						newPrincipal, // newPrincipal
+						oneEth, // torqueInterest
+						loanTokenSent, // loanTokenSent
+						collateralTokenSent, // collateralTokenSent
+					],
+					"0x", // loanDataBytes
+					{ from: accounts[1], value: 1 }
+				),
+				"loanDataBytes required with ether"
+			);
+		});
+
+		/// @dev Loan pool accounts are accounts[1] and accounts[2], according to fixture init
+		it("should revert when called by a non-loan pool account", async () => {
+			// Prepare the test
+			const loanTokenSent = oneEth;
+			const newPrincipal = new BN(101).mul(oneEth);
+			const collateralTokenSent = await sovryn.getRequiredCollateral(
+				SUSD.address,
+				RBTC.address,
+				newPrincipal,
+				new BN(50).mul(oneEth),
+				true
+			);
+
+			await expectRevert(
+				sovryn.borrowOrTradeFromPool(
+					await LinkDaiBorrowParamsId(), // loanParamsId
+					"0x0", // loanId
+					true, // isTorqueLoan,
+					new BN(50).mul(oneEth), // initialMargin
+					[
+						accounts[2], // lender
+						accounts[1], // borrower
+						accounts[1], // receiver
+						constants.ZERO_ADDRESS, // manager
+					],
+					[
+						new BN(5).mul(oneEth), // newRate (5%)
+						newPrincipal, // newPrincipal
+						oneEth, // torqueInterest
+						loanTokenSent, // loanTokenSent
+						collateralTokenSent, // collateralTokenSent
+					],
+					"0x", // loanDataBytes
+					{ from: accounts[3] }
+				),
+				"not authorized"
+			);
+		});
+
+		it("should revert when called w/ wrong loanParamsId parameter", async () => {
+			// Prepare the test
+			const loanTokenSent = oneEth;
+			const newPrincipal = new BN(101).mul(oneEth);
+			const collateralTokenSent = await sovryn.getRequiredCollateral(
+				SUSD.address,
+				RBTC.address,
+				newPrincipal,
+				new BN(50).mul(oneEth),
+				true
+			);
+
+			await expectRevert(
+				sovryn.borrowOrTradeFromPool(
+					"0x0", // loanParamsId
+					"0x0", // loanId
+					true, // isTorqueLoan,
+					new BN(50).mul(oneEth), // initialMargin
+					[
+						accounts[2], // lender
+						accounts[1], // borrower
+						accounts[1], // receiver
+						constants.ZERO_ADDRESS, // manager
+					],
+					[
+						new BN(5).mul(oneEth), // newRate (5%)
+						newPrincipal, // newPrincipal
+						oneEth, // torqueInterest
+						loanTokenSent, // loanTokenSent
+						collateralTokenSent, // collateralTokenSent
+					],
+					"0x", // loanDataBytes
+					{ from: accounts[1] }
+				),
+				"loanParams not exists"
+			);
+		});
+
+		/// @dev To force a 0 required collateral, newPrincipal is set to 0
+		it("should revert when required collateral is 0", async () => {
+			// Prepare the test
+			const loanTokenSent = oneEth;
+			const newPrincipal = new BN(101).mul(oneEth);
+			const collateralTokenSent = await sovryn.getRequiredCollateral(
+				SUSD.address,
+				RBTC.address,
+				newPrincipal,
+				new BN(50).mul(oneEth),
+				true
+			);
+
+			await expectRevert(
+				sovryn.borrowOrTradeFromPool(
+					await LinkDaiBorrowParamsId(), // loanParamsId
+					"0x0", // loanId
+					true, // isTorqueLoan,
+					new BN(50).mul(oneEth), // initialMargin
+					[
+						accounts[2], // lender
+						accounts[1], // borrower
+						accounts[1], // receiver
+						constants.ZERO_ADDRESS, // manager
+					],
+					[
+						new BN(5).mul(oneEth), // newRate (5%)
+						new BN(0), // newPrincipal
+						oneEth, // torqueInterest
+						loanTokenSent, // loanTokenSent
+						collateralTokenSent, // collateralTokenSent
+					],
+					"0x", // loanDataBytes
+					{ from: accounts[1] }
+				),
+				"collateral is 0"
+			);
+		});
 	});
 });
