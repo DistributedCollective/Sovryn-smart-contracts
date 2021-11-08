@@ -238,4 +238,5 @@ const verify_liquidation_event = async (
 module.exports = {
 	liquidate,
 	liquidate_healthy_position_should_fail,
+	prepare_liquidation,
 };
