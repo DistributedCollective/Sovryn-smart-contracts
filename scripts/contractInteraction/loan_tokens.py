@@ -180,6 +180,8 @@ def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collat
     print(tx.info())
 
 def borrowRBTCWithMultisigUsingSOV(withdrawAmount, receiver):
+    print("amount: ", withdrawAmount)
+
     loanToken = Contract.from_abi("loanToken", address=conf.contracts['iRBTC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     sovToken = Contract.from_abi("SOV", address = conf.contracts['SOV'], abi = TestToken.abi, owner = conf.acct)
 
@@ -189,7 +191,7 @@ def borrowRBTCWithMultisigUsingSOV(withdrawAmount, receiver):
     
     #approve the transfer of the collateral if needed
     if(sovToken.allowance(conf.contracts['multisig'], loanToken.address) < collateralTokenSent):
-        data = sovToken.approve(loanToken.address, collateralTokenSent)
+        data = sovToken.approve.encode_input(loanToken.address, collateralTokenSent)
         print('approving the transfer')
         sendWithMultisig(conf.contracts['multisig'], sovToken.address, data, conf.acct)
     
@@ -202,8 +204,7 @@ def borrowRBTCWithMultisigUsingSOV(withdrawAmount, receiver):
         sovToken.address,               # address collateralTokenAddress
         conf.contracts['multisig'],     # address borrower
         receiver,                       # address receiver
-        b'' ,                           # bytes memory loanDataBytes
-        {'value': 0}
+        b''
     )
     print('borrowing and sending tokens to ', receiver)
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)

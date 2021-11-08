@@ -35,7 +35,7 @@ def main():
 
     #updateLockedSOV()
 
-    withdrawRBTCFromWatcher(20e18, conf.contracts['FastBTC'])
+    # withdrawRBTCFromWatcher(20e18, conf.contracts['FastBTC'])
 
     #this needs to be tested first. for direct trasnfer to fastbtc use the fastbtc contract address as receiver
-    #borrowRBTCWithMultisigUsingSOV(withdrawAmount, receiver)
+    # borrowRBTCWithMultisigUsingSOV(20e18, conf.contracts['FastBTC'])
