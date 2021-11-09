@@ -11,7 +11,7 @@
  * Notes: Applied fixture to use snapshot beforeEach test.
  */
 
-const { expect } = require("chai");
+const { expect, assert } = require("chai");
 const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
 const { expectRevert, BN, expectEvent } = require("@openzeppelin/test-helpers");
@@ -76,6 +76,85 @@ contract("LoanTokenBorrowing", (accounts) => {
 	});
 
 	describe("Test borrow", () => {
+		it("Test getRequiredCollateral w/ marginAmount = 0", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, owner);
+			// determine borrowing parameter
+			const withdrawAmount = tenEth;
+
+			const collateralTokenSent = await sovryn.getRequiredCollateral(SUSD.address, RBTC.address, withdrawAmount, new BN(0), true);
+			// console.log("collateralTokenSent = ", collateralTokenSent.toString());
+			expect(collateralTokenSent).to.be.a.bignumber.equal(new BN(0));
+		});
+
+		it("Test getBorrowAmount w/ marginAmount = 0", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, owner);
+			// determine borrowing parameter
+			const withdrawAmount = tenEth;
+
+			const borrowAmount = await sovryn.getBorrowAmount(SUSD.address, RBTC.address, withdrawAmount, new BN(0), true);
+			// console.log("borrowAmount = ", borrowAmount.toString());
+			expect(borrowAmount).to.be.a.bignumber.equal(new BN(0));
+		});
+
+		it("Test getBorrowAmount w/ and w/o Torque Loan", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, owner);
+			// determine borrowing parameter
+			const withdrawAmount = tenEth;
+			let marginAmount = new BN(10).pow(new BN(20)).mul(new BN(1));
+
+			// Without TorqueLoan
+			const borrowAmountNoTorque = await sovryn.getBorrowAmount(
+				SUSD.address, // loanToken
+				RBTC.address, // collateralToken
+				withdrawAmount, // collateralTokenAmount
+				marginAmount,
+				false // isTorqueLoan
+			);
+			// console.log("borrowAmountNoTorque = ", borrowAmountNoTorque.toString());
+
+			// Compute expected values
+			const { rate: trade_rate, precision } = await priceFeeds.queryRate(RBTC.address, SUSD.address);
+			// console.log("trade_rate = ", trade_rate.toString());
+			// console.log("precision = ", precision.toString());
+
+			const tradingFee = (await sovryn.tradingFeePercent()).mul(withdrawAmount).div(hunEth);
+			let expectedBorrowAmountNoTorque = withdrawAmount.sub(tradingFee);
+			expectedBorrowAmountNoTorque = expectedBorrowAmountNoTorque.mul(new BN(10).pow(new BN(20))).mul(trade_rate);
+			expectedBorrowAmountNoTorque = expectedBorrowAmountNoTorque.div(marginAmount).div(precision);
+
+			// Check expected = real
+			expect(borrowAmountNoTorque).to.be.a.bignumber.equal(expectedBorrowAmountNoTorque);
+
+			// With TorqueLoan
+			const borrowAmountTorque = await sovryn.getBorrowAmount(
+				SUSD.address, // loanToken
+				RBTC.address, // collateralToken
+				withdrawAmount, // collateralTokenAmount
+				marginAmount,
+				true // isTorqueLoan
+			);
+			// console.log("borrowAmountTorque = ", borrowAmountTorque.toString());
+
+			// Compute expected values
+			marginAmount = marginAmount.add(new BN(10).pow(new BN(20))); // Torque increases the margin
+			const borrowingFee = (await sovryn.borrowingFeePercent()).mul(withdrawAmount).div(hunEth);
+			let expectedBorrowAmountTorque = withdrawAmount.sub(borrowingFee);
+			expectedBorrowAmountTorque = expectedBorrowAmountTorque
+				.mul(new BN(10).pow(new BN(20)))
+				.mul(trade_rate)
+				.div(marginAmount)
+				.div(precision);
+
+			// Check expected = real
+			expect(borrowAmountTorque).to.be.a.bignumber.equal(expectedBorrowAmountTorque);
+		});
+
 		it("Test borrow", async () => {
 			// prepare the test
 			await set_demand_curve(loanToken);
