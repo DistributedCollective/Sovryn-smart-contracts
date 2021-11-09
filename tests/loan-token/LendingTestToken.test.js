@@ -44,6 +44,7 @@ const {
 	decodeLogs,
 	getSOV,
 } = require("../Utils/initializer.js");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const wei = web3.utils.toWei;
 
@@ -122,6 +123,18 @@ contract("LoanTokenLending", (accounts) => {
 	});
 
 	describe("Test lending using TestToken", () => {
+		it("Test disableLoanParams", async () => {
+			await loanToken.disableLoanParams([WRBTC.address], [false]);
+		});
+
+		it("Should revert when calling disableLoanParams by other than Admin", async () => {
+			await expectRevert(loanToken.disableLoanParams([WRBTC.address], [false], { from: account2 }), "unauthorized");
+		});
+
+		it("Should revert when calling disableLoanParams w/ mismatching parameters", async () => {
+			await expectRevert(loanToken.disableLoanParams([WRBTC.address, ZERO_ADDRESS], [false]), "count mismatch");
+		});
+
 		it("test lend to the pool", async () => {
 			await lend_to_the_pool(loanToken, lender, SUSD, WRBTC, sovryn);
 		});
