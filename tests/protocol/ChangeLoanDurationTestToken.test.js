@@ -154,6 +154,29 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			assert.equal(loansData[0]["borrower"], borrower);
 		});
 
+		it("Coverage to avoid final conditional (itemCount < count) on getActiveLoans", async () => {
+			// prepare the test
+			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
+
+			const loansData = await sovryn.getActiveLoans(0, 1, 0); /// @dev parameters: start, count, unsafeOnly
+			// console.log("loansData = ", loansData);
+
+			assert.equal(loansData[0]["loanId"], loan_id);
+			assert.equal(loansData[0]["loanToken"], SUSD.address);
+			assert.equal(loansData[0]["collateralToken"], RBTC.address);
+			assert.equal(loansData[0]["borrower"], borrower);
+		});
+
+		it("Coverage to meet the conditional (start >= end) on getActiveLoans", async () => {
+			// prepare the test
+			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
+
+			const loansData = await sovryn.getActiveLoans(1, 1, 0); /// @dev parameters: start, count, unsafeOnly
+			// console.log("loansData = ", loansData);
+
+			assert.equal(loansData.length, 0);
+		});
+
 		it("should not exist any active unsafe loan", async () => {
 			// prepare the test
 			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
@@ -189,6 +212,29 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			assert.equal(loansData[0]["loanToken"], SUSD.address);
 			assert.equal(loansData[0]["collateralToken"], RBTC.address);
 			assert.equal(loansData[0]["borrower"], borrower);
+		});
+
+		it("Coverage to avoid final conditional (itemCount < count) on getUserLoans", async () => {
+			// prepare the test
+			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
+
+			const loansData = await sovryn.getUserLoans(borrower, 0, 1, 2, 0, 0); /// @dev parameters: user, start, count, loanType, isLender, unsafeOnly
+			// console.log("loansData = ", loansData);
+
+			assert.equal(loansData[0]["loanId"], loan_id);
+			assert.equal(loansData[0]["loanToken"], SUSD.address);
+			assert.equal(loansData[0]["collateralToken"], RBTC.address);
+			assert.equal(loansData[0]["borrower"], borrower);
+		});
+
+		it("Coverage to meet the conditional (start >= end) on getUserLoans", async () => {
+			// prepare the test
+			const [loan_id, borrower] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
+
+			const loansData = await sovryn.getUserLoans(borrower, 1, 1, 2, 0, 0); /// @dev parameters: user, start, count, loanType, isLender, unsafeOnly
+			// console.log("loansData = ", loansData);
+
+			assert.equal(loansData.length, 0);
 		});
 	});
 
