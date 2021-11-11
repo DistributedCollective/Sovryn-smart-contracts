@@ -66,6 +66,23 @@ contract("MultiSigKeyHolders:", (accounts) => {
 				account: account1,
 			});
 		});
+
+		/// @dev For test coverage
+		it("Should be able to add redundant addresses, but ignored", async () => {
+			let tx = await multiSig.addEthereumAddresses([account1, account1, account2]);
+
+			let isOwner = await multiSig.isEthereumAddressOwner.call(account1);
+			expect(isOwner).to.be.true;
+
+			let list = await multiSig.getEthereumAddresses.call();
+			expect(list.length).to.be.equal(2);
+			expect(list[0]).to.be.equal(account1);
+			expect(list[1]).to.be.equal(account2);
+
+			expectEvent(tx, "EthereumAddressAdded", {
+				account: account1,
+			});
+		});
 	});
 
 	describe("addEthereumAddresses", () => {
@@ -158,6 +175,28 @@ contract("MultiSigKeyHolders:", (accounts) => {
 
 		it("Should be able to add addresses", async () => {
 			let tx = await multiSig.addBitcoinAddresses([bitcoinAccount1, bitcoinAccount2]);
+
+			let isOwner = await multiSig.isBitcoinAddressOwner.call(bitcoinAccount1);
+			expect(isOwner).to.be.true;
+			isOwner = await multiSig.isBitcoinAddressOwner.call(bitcoinAccount2);
+			expect(isOwner).to.be.true;
+
+			let list = await multiSig.getBitcoinAddresses.call();
+			expect(list.length).to.be.equal(2);
+			expect(list[0]).to.be.equal(bitcoinAccount1);
+			expect(list[1]).to.be.equal(bitcoinAccount2);
+
+			expectEvent(tx, "BitcoinAddressAdded", {
+				account: bitcoinAccount1,
+			});
+			expectEvent(tx, "BitcoinAddressAdded", {
+				account: bitcoinAccount2,
+			});
+		});
+
+		/// @dev For test coverage
+		it("Should be able to add redundant addresses, but ignored", async () => {
+			let tx = await multiSig.addBitcoinAddresses([bitcoinAccount1, bitcoinAccount1, bitcoinAccount2]);
 
 			let isOwner = await multiSig.isBitcoinAddressOwner.call(bitcoinAccount1);
 			expect(isOwner).to.be.true;
@@ -282,6 +321,27 @@ contract("MultiSigKeyHolders:", (accounts) => {
 				account: account2,
 			});
 		});
+
+		/// @dev For test coverage
+		it("Should be able to remove redundant addresses, just ignoring repeated ones", async () => {
+			await multiSig.addEthereumAddresses([account1, account2]);
+			let tx = await multiSig.removeEthereumAddresses([account1, account1, account2]);
+
+			let isOwner = await multiSig.isEthereumAddressOwner.call(account1);
+			expect(isOwner).to.be.false;
+			isOwner = await multiSig.isEthereumAddressOwner.call(account2);
+			expect(isOwner).to.be.false;
+
+			let list = await multiSig.getEthereumAddresses.call();
+			expect(list.length).to.be.equal(0);
+
+			expectEvent(tx, "EthereumAddressRemoved", {
+				account: account1,
+			});
+			expectEvent(tx, "EthereumAddressRemoved", {
+				account: account2,
+			});
+		});
 	});
 
 	describe("removeBitcoinAddress", () => {
@@ -321,6 +381,27 @@ contract("MultiSigKeyHolders:", (accounts) => {
 		it("Should be able to remove addresses", async () => {
 			await multiSig.addBitcoinAddresses([bitcoinAccount1, bitcoinAccount2]);
 			let tx = await multiSig.removeBitcoinAddresses([bitcoinAccount1, bitcoinAccount2]);
+
+			let isOwner = await multiSig.isBitcoinAddressOwner.call(bitcoinAccount1);
+			expect(isOwner).to.be.false;
+			isOwner = await multiSig.isBitcoinAddressOwner.call(bitcoinAccount2);
+			expect(isOwner).to.be.false;
+
+			let list = await multiSig.getBitcoinAddresses.call();
+			expect(list.length).to.be.equal(0);
+
+			expectEvent(tx, "BitcoinAddressRemoved", {
+				account: bitcoinAccount1,
+			});
+			expectEvent(tx, "BitcoinAddressRemoved", {
+				account: bitcoinAccount2,
+			});
+		});
+
+		/// @dev For test coverage
+		it("Should be able to remove redundant addresses, just ignoring repeated ones", async () => {
+			await multiSig.addBitcoinAddresses([bitcoinAccount1, bitcoinAccount2]);
+			let tx = await multiSig.removeBitcoinAddresses([bitcoinAccount1, bitcoinAccount1, bitcoinAccount2]);
 
 			let isOwner = await multiSig.isBitcoinAddressOwner.call(bitcoinAccount1);
 			expect(isOwner).to.be.false;
