@@ -466,25 +466,32 @@ contract("Staking", (accounts) => {
 		///   would be to request the prior stake for a blockNumber lower than
 		///   the current one, i.e. an historical query.
 		it("Coverage for WeightedStaking::_getPriorUserStakeByDate", async () => {
-			let amount = "1000";
+			let amount = new BN(1000);
 			let duration = new BN(TWO_WEEKS).mul(new BN(2));
 			let lockedTS = await getTimeFromKickoff(duration);
 
-			// Stake
+			// 1st Stake
 			await staking.stake(amount, lockedTS, root, account1);
 
-			// Remember the blocknumber of the staking
+			// 2nd Stake
+			await staking.stake(amount, lockedTS, root, account1);
+
+			// Remember the blocknumber of the second staking
 			let block = await web3.eth.getBlock("latest");
 
 			// Time travel, just enough to jump 1 block
 			await time.increase(1);
 
-			// Check stake is there for the block when staking took place
+			// Check stake is there for the block when 2nd staking took place
 			let priorStake = await staking.getPriorUserStakeByDate.call(root, lockedTS, new BN(block.number));
+			expect(priorStake).to.be.bignumber.equal(amount.mul(new BN(2)));
+
+			// Check there is still stake for the block when 1st staking took place
+			priorStake = await staking.getPriorUserStakeByDate.call(root, lockedTS, new BN(block.number).sub(new BN(1)));
 			expect(priorStake).to.be.bignumber.equal(amount);
 
 			// Check there is no stake for previous block to the block when staking took place
-			priorStake = await staking.getPriorUserStakeByDate.call(root, lockedTS, new BN(block.number).sub(new BN(1)));
+			priorStake = await staking.getPriorUserStakeByDate.call(root, lockedTS, new BN(block.number).sub(new BN(2)));
 			expect(priorStake).to.be.bignumber.equal(new BN(0));
 		});
 	});
