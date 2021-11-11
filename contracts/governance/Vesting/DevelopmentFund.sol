@@ -240,9 +240,9 @@ contract DevelopmentFund {
 	 */
 	function changeTokenReleaseSchedule(
 		uint256 _newLastReleaseTime,
-		uint256[] memory _releaseDuration,
-		uint256[] memory _releaseTokenAmount
-	) public onlyLockedTokenOwner checkStatus(Status.Active) {
+		uint256[] calldata _releaseDuration,
+		uint256[] calldata _releaseTokenAmount
+	) external onlyLockedTokenOwner checkStatus(Status.Active) {
 		/// Checking if the schedule duration and token allocation length matches.
 		require(_releaseDuration.length == _releaseTokenAmount.length, "Release Schedule does not match.");
 
