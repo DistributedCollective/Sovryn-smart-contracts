@@ -303,8 +303,6 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
 				paidReferrerBonusSovAmount
 			);
 		}
-
-		return (referrerBonusSovAmount, referrerBonusTokenAmount);
 	}
 
 	/**
@@ -387,7 +385,6 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
 		for (uint256 i; i < referrerTokensList.length; i++) {
 			referrerTokensBalances[i] = getAffiliatesReferrerTokenBalance(referrer, referrerTokensList[i]);
 		}
-		return (referrerTokensList, referrerTokensBalances);
 	}
 
 	/**
