@@ -189,9 +189,10 @@ contract Escrow {
 	function depositTokens(uint256 _amount) external checkStatus(Status.Deposit) {
 		require(_amount > 0, "Amount needs to be bigger than zero.");
 		uint256 amount = _amount;
+		uint256 tempTotalDeposit = totalDeposit;
 
-		if (totalDeposit.add(_amount) >= depositLimit) {
-			amount = depositLimit.sub(totalDeposit);
+		if (tempTotalDeposit.add(_amount) >= depositLimit) {
+			amount = depositLimit.sub(tempTotalDeposit);
 			emit DepositLimitReached();
 		}
 
@@ -199,7 +200,7 @@ contract Escrow {
 		require(txStatus, "Token transfer was not successful.");
 
 		userBalances[msg.sender] = userBalances[msg.sender].add(amount);
-		totalDeposit = totalDeposit.add(amount);
+		totalDeposit = tempTotalDeposit.add(amount);
 
 		emit TokenDeposit(msg.sender, amount);
 	}
