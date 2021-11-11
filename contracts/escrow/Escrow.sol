@@ -190,9 +190,10 @@ contract Escrow {
 		require(_amount > 0, "Amount needs to be bigger than zero.");
 		uint256 amount = _amount;
 		uint256 tempTotalDeposit = totalDeposit;
+		uint256 tempDepositLimit = depositLimit;
 
-		if (tempTotalDeposit.add(_amount) >= depositLimit) {
-			amount = depositLimit.sub(tempTotalDeposit);
+		if (tempTotalDeposit.add(_amount) >= tempDepositLimit) {
+			amount = tempDepositLimit.sub(tempTotalDeposit);
 			emit DepositLimitReached();
 		}
 
