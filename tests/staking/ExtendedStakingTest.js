@@ -456,6 +456,39 @@ contract("Staking", (accounts) => {
 		});
 	});
 
+	describe("WeightedStaking", () => {
+		/// @dev On governance/Staking/WeightedStaking.sol the conditional:
+		///   if (userStakingCheckpoints[account][date][nCheckpoints - 1].fromBlock <= blockNumber)
+		///   is always met, because when a checkpoint is created it is always set the blocknumber
+		///   of the transaction ocurring. So current blockNumber is to be equal to the
+		///   blockNumber of the checkpoint if it has been created on the same block,
+		///   or bigger if it was created on a previous block. Only exception to this
+		///   would be to request the prior stake for a blockNumber lower than
+		///   the current one, i.e. an historical query.
+		it("Coverage for WeightedStaking::_getPriorUserStakeByDate", async () => {
+			let amount = "1000";
+			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			let lockedTS = await getTimeFromKickoff(duration);
+
+			// Stake
+			await staking.stake(amount, lockedTS, root, account1);
+
+			// Remember the blocknumber of the staking
+			let block = await web3.eth.getBlock("latest");
+
+			// Time travel, just enough to jump 1 block
+			await time.increase(1);
+
+			// Check stake is there for the block when staking took place
+			let priorStake = await staking.getPriorUserStakeByDate.call(root, lockedTS, new BN(block.number));
+			expect(priorStake).to.be.bignumber.equal(amount);
+
+			// Check there is no stake for previous block to the block when staking took place
+			priorStake = await staking.getPriorUserStakeByDate.call(root, lockedTS, new BN(block.number).sub(new BN(1)));
+			expect(priorStake).to.be.bignumber.equal(new BN(0));
+		});
+	});
+
 	describe("extendStakingDuration", () => {
 		it("shouldn't extendStakingDuration when _getPriorUserStakeByDate == 0", async () => {
 			let duration = new BN(0);
