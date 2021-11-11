@@ -17,6 +17,7 @@ contract FeeSharingProxy is FeeSharingProxyStorage, UpgradableProxy {
 	 * @param _staking The address of the staking
 	 */
 	constructor(IProtocol _protocol, IStaking _staking) public {
+		require(address(_protocol) != address(0) && address(_staking) != address(0), "ERR_ZERO_ADDRESS");
 		protocol = _protocol;
 		staking = _staking;
 	}

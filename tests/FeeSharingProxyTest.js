@@ -175,6 +175,12 @@ contract("FeeSharingProxy:", (accounts) => {
 	});
 
 	describe("FeeSharingProxy", () => {
+		it("Should not be able to initiate Proxy with zero address protocol & staking", async () => {
+			await expectRevert(FeeSharingProxy.new(ZERO_ADDRESS, staking.address), "ERR_ZERO_ADDRESS");
+			await expectRevert(FeeSharingProxy.new(protocol.address, ZERO_ADDRESS), "ERR_ZERO_ADDRESS");
+			await expectRevert(FeeSharingProxy.new(ZERO_ADDRESS, ZERO_ADDRESS), "ERR_ZERO_ADDRESS");
+		});
+
 		it("Check owner & implementation", async () => {
 			const proxyOwner = await feeSharingProxyObj.getProxyOwner();
 			const implementation = await feeSharingProxyObj.getImplementation();
