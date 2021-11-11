@@ -26,6 +26,7 @@ contract Escrow {
 
 	/// @notice The multisig contract which handles the fund.
 	address public multisig;
+	Status public status;
 
 	/// @notice The user balances.
 	mapping(address => uint256) userBalances;
@@ -37,7 +38,6 @@ contract Escrow {
 	/// @notice Withdraw - Time to withdraw in the contract by the users.
 	/// @notice Expired - The contract is now closed completely.
 	enum Status { Deployed, Deposit, Holding, Withdraw }
-	Status public status;
 
 	/* Events */
 
