@@ -36,7 +36,7 @@ contract Escrow {
 	/// @notice Holding - Deposit is closed and now the holding period starts.
 	/// @notice Withdraw - Time to withdraw in the contract by the users.
 	/// @notice Expired - The contract is now closed completely.
-	enum Status { Deployed, Deposit, Holding, Withdraw, Expired }
+	enum Status { Deployed, Deposit, Holding, Withdraw }
 	Status public status;
 
 	/* Events */
@@ -49,9 +49,6 @@ contract Escrow {
 
 	/// @notice Emitted when the contract is put in withdraw state. Users can now withdraw tokens.
 	event EscrowInWithdrawState();
-
-	/// @notice Emitted when the contract is expired after withdraws are made/total token transfer.
-	event EscrowFundExpired();
 
 	/// @notice Emitted when a new multisig is added to the contract.
 	/// @param _initiator The address which initiated this event to be emitted.
