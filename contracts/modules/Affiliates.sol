@@ -192,8 +192,7 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
 	 * @param feeAmount The height of the fee.
 	 * @return The reward amount.
 	 * */
-	function _getSovBonusAmount(address feeToken, uint256 feeAmount) internal view returns (uint256) {
-		uint256 rewardAmount;
+	function _getSovBonusAmount(address feeToken, uint256 feeAmount) internal view returns (uint256 rewardAmount) {
 		address _priceFeeds = priceFeeds;
 
 		/// @dev Calculate the reward amount, querying the price feed.
