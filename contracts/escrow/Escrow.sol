@@ -132,7 +132,7 @@ contract Escrow {
 		releaseTime = _releaseTime;
 		depositLimit = _depositLimit;
 
-		status = Status.Deployed;
+		// No need to set the status to Deployed since the default value will be 0 / Deployed.
 	}
 
 	/**
