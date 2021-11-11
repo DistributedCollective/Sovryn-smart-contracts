@@ -28,7 +28,7 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
 		require(msg.sender == _token, "unauthorized");
 
 		// Only allowed methods.
-		bool isAllowed = false;
+		bool isAllowed;
 		bytes4[] memory selectors = _getSelectors();
 		bytes4 sig = _getSig(_data);
 		for (uint256 i = 0; i < selectors.length; i++) {
