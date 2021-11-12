@@ -1,6 +1,30 @@
-const { assert, expect } = require("chai");
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-13
+ * Greatest bottlenecks found at:
+ * 	- fixtureInitialize (3s)
+ * 		Due to fixture load and a it contains a large deployment
+ * 	- Pause LoanClosingBase test (267ms)
+ * 		Due to requiring a call to setup_rollover_test as initialization
+ * Total time elapsed: 4s
+ *
+ * Other minor optimizations:
+ *  - removed unused modules and variables:
+ *      Wallet, Contract, balance, verify_sov_reward_payment, signers, ethers
+ *  - removed two redundant SOV deployments
+ *  - reformatted code comments
+ *  - reordered external modules apart from local variables
+ *
+ * Notes:
+ * 	Previous optimization by Tyrone adding a waffle fixture (loadFixture)
+ *  improved a 20% the code speed:
+ * 		reduced total elapsed time from 5s to 4s
+ *  Updated to use only the initializer.js functions for protocol deployment.
+ *  Updated to use SUSD as underlying token.
+ */
 
-const { BN, constants, balance, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
+const { assert, expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 
 const sovrynProtocol = artifacts.require("sovrynProtocol");
 const ProtocolSettings = artifacts.require("ProtocolSettings");
@@ -20,6 +44,8 @@ const TestWrbtc = artifacts.require("TestWrbtc");
 const SOVToken = artifacts.require("SOV");
 const LoanToken = artifacts.require("LoanToken");
 const LoanOpeningsEvents = artifacts.require("LoanOpeningsEvents");
+
+const TestCoverage = artifacts.require("TestCoverage");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const wei = web3.utils.toWei;
@@ -47,8 +73,7 @@ contract("Pause Modules", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
 	let loanParams, loanParamsId;
 
-	before(async () => {
-		[owner, trader, referrer, account1, account2, ...accounts] = accounts;
+	async function fixtureInitialize(_wallets, _provider) {
 		const sovrynproxy = await sovrynProtocol.new();
 		sovryn = await ISovryn.at(sovrynproxy.address);
 		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
@@ -85,6 +110,11 @@ contract("Pause Modules", (accounts) => {
 			maintenanceMargin: wei("15", "ether"),
 			maxLoanTerm: "2419200",
 		};
+	}
+
+	before(async () => {
+		[owner, trader, referrer, account1, account2, ...accounts] = accounts;
+		await loadFixture(fixtureInitialize);
 	});
 
 	const setup_rollover_test = async (RBTC, SUSD, accounts, loanToken, set_demand_curve, sovryn) => {
