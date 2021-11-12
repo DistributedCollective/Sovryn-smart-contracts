@@ -95,6 +95,42 @@ contract("MultiSigWallet:", (accounts) => {
 		});
 	});
 
+	describe("multiSig coverage", () => {
+		/// @dev Test coverage for transactionExists modifier
+		it("should revert when calling confirmTransaction for an inexistent id", async () => {
+			let multiSigInterface = new web3.eth.Contract(multiSig.abi, ZERO_ADDRESS);
+			let data = multiSigInterface.methods.addOwner(account4).encodeABI();
+			// Submit Transaction
+			await multiSig.submitTransaction(multiSig.address, 0, data, { from: account1 });
+
+			// Try to confirm Transaction w/ wrong id
+			await expectRevert.unspecified(multiSig.confirmTransaction(1, { from: account2 }));
+		});
+
+		/// @dev Test coverage for notConfirmed modifier
+		it("should revert when calling confirmTransaction for a tx already confirmed (same user)", async () => {
+			let multiSigInterface = new web3.eth.Contract(multiSig.abi, ZERO_ADDRESS);
+			let data = multiSigInterface.methods.addOwner(account4).encodeABI();
+			// Submit Transaction
+			await multiSig.submitTransaction(multiSig.address, 0, data, { from: account1 });
+
+			// Confirm Transaction
+			await multiSig.confirmTransaction(0, { from: account2 });
+			const ownerCount = await multiSig.getOwners();
+			expect(ownerCount.length).to.be.equal(4);
+			expect(ownerCount[3]).to.be.equal(account4);
+
+			// Try to confirm again the same transaction by the same user
+			await expectRevert.unspecified(multiSig.confirmTransaction(0, { from: account2 }));
+		});
+
+		/// @dev Test coverage for fallback w/o value transfer
+		it("should ignore a call to fallback function w/ value 0", async () => {
+			// It doesn't revert, just it does nothing
+			await multiSig.sendTransaction({});
+		});
+	});
+
 	describe("removeOwner", () => {
 		it("should revert when submitting a transaction without wallet", async () => {
 			await expectRevert.unspecified(multiSig.removeOwner(account5, { from: account5 }));
