@@ -247,4 +247,38 @@ contract("Pause Modules", (accounts) => {
 			await expectRevert(sovryn.setupLoanParams([Object.values(loanParams)]), "Paused");
 		});
 	});
+
+	describe("Testing isProtocolPaused()", () => {
+		it("isProtocolPaused() returns correct result when toggling pause/unpause", async () => {
+			await loadFixture(fixtureInitialize);
+			await sovryn.togglePaused(true);
+			expect(await sovryn.isProtocolPaused()).to.be.true;
+
+			// Check deterministic result when trying to set current value
+			expectRevert.unspecified(sovryn.togglePaused(true));
+			expect(await sovryn.isProtocolPaused()).to.be.true;
+
+			// Pause true -> false
+			await sovryn.togglePaused(false);
+			expect(await sovryn.isProtocolPaused()).to.be.false;
+			expectRevert.unspecified(sovryn.togglePaused(false));
+			expect(await sovryn.isProtocolPaused()).to.be.false;
+
+			// Pause false -> true
+			await sovryn.togglePaused(true);
+			expect(await sovryn.isProtocolPaused()).to.be.true;
+		});
+	});
+
+	describe("Testing Pausable contract", () => {
+		it("Pausable function runs if not paused", async () => {
+			testCoverage = await TestCoverage.new();
+			await testCoverage.dummyPausableFunction();
+		});
+		it("Pausable function reverts if paused", async () => {
+			testCoverage = await TestCoverage.new();
+			await testCoverage.togglePause("dummyPausableFunction()", true);
+			await expectRevert(testCoverage.dummyPausableFunction(), "unauthorized");
+		});
+	});
 });
