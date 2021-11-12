@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
@@ -22,7 +23,6 @@ const DAY = 86400;
 const TWO_DAYS = 86400 * 2;
 const TWO_WEEKS = 86400 * 14;
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
-const ZERO_ADDRESS = constants.ZERO_ADDRESS;
 
 contract("LoanTokenUpgrade", (accounts) => {
 	const name = "Test token";
@@ -30,7 +30,7 @@ contract("LoanTokenUpgrade", (accounts) => {
 
 	let root, account1, account2, account3, account4;
 	let token, staking, gov, timelock;
-	let protocolSettings, loanTokenSettings, protocol, loanToken;
+	let protocolSettings, loanTokenSettings, protocol, loanToken, SUSD;
 
 	before(async () => {
 		[root, account1, account2, account3, account4, ...accounts] = accounts;
@@ -62,6 +62,8 @@ contract("LoanTokenUpgrade", (accounts) => {
 		await protocol.replaceContract(protocolSettings.address);
 		protocol = await ProtocolSettings.at(protocol.address);
 		await protocol.transferOwnership(timelock.address);
+
+		SUSD = await TestToken.new("SUSD", "SUSD", 18, TOTAL_SUPPLY);
 	});
 
 	describe("change settings", () => {
@@ -110,12 +112,6 @@ contract("LoanTokenUpgrade", (accounts) => {
 				PreviousLoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, ZERO_ADDRESS),
 				"wrbtc not a contract"
 			);
-		});
-	});
-
-	describe("Test coverage for AdvancedToken.sol", () => {
-		it("Call mint w/ receiver as address 0", async () => {
-			await expectRevert(loanToken.mint(ZERO_ADDRESS, new BN(10).pow(new BN(30))), "target not a contract");
 		});
 	});
 });
