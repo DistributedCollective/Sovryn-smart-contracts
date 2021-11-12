@@ -22,6 +22,7 @@ const DAY = 86400;
 const TWO_DAYS = 86400 * 2;
 const TWO_WEEKS = 86400 * 14;
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
+const ZERO_ADDRESS = constants.ZERO_ADDRESS;
 
 contract("LoanTokenUpgrade", (accounts) => {
 	const name = "Test token";
@@ -94,6 +95,27 @@ contract("LoanTokenUpgrade", (accounts) => {
 
 			assert.equal(sovrynContractAddress, previousSovrynContractAddress);
 			assert.equal(wrbtcTokenAddress, previousWrbtcTokenAddress);
+		});
+	});
+
+	describe("Test coverage for LoanToken.sol", () => {
+		it("Call constructor w/ target not a contract", async () => {
+			await expectRevert(PreviousLoanToken.new(root, ZERO_ADDRESS, loanTokenSettings.address, SUSD.address), "target not a contract");
+		});
+		it("Call constructor w/ protocol not a contract", async () => {
+			await expectRevert(PreviousLoanToken.new(root, loanTokenSettings.address, ZERO_ADDRESS, SUSD.address), "sovryn not a contract");
+		});
+		it("Call constructor w/ wrbtc not a contract", async () => {
+			await expectRevert(
+				PreviousLoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, ZERO_ADDRESS),
+				"wrbtc not a contract"
+			);
+		});
+	});
+
+	describe("Test coverage for AdvancedToken.sol", () => {
+		it("Call mint w/ receiver as address 0", async () => {
+			await expectRevert(loanToken.mint(ZERO_ADDRESS, new BN(10).pow(new BN(30))), "target not a contract");
 		});
 	});
 });
