@@ -115,6 +115,11 @@ contract("LoanTokenUpgrade", (accounts) => {
 				"wrbtc not a contract"
 			);
 		});
+		it("Call LoanToken::setTarget", async () => {
+			let newLloanToken = await LoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, SUSD.address);
+			let newLoanTokenSettings = await LoanTokenSettings.new();
+			await newLloanToken.setTarget(newLoanTokenSettings.address);
+		});
 	});
 
 	describe("Testing AdvancedToken _mint", () => {
