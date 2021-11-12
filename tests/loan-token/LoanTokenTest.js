@@ -102,14 +102,14 @@ contract("LoanTokenUpgrade", (accounts) => {
 
 	describe("Test coverage for LoanToken.sol", () => {
 		it("Call constructor w/ target not a contract", async () => {
-			await expectRevert(PreviousLoanToken.new(root, ZERO_ADDRESS, loanTokenSettings.address, SUSD.address), "target not a contract");
+			await expectRevert(LoanToken.new(root, ZERO_ADDRESS, loanTokenSettings.address, SUSD.address), "target not a contract");
 		});
 		it("Call constructor w/ protocol not a contract", async () => {
-			await expectRevert(PreviousLoanToken.new(root, loanTokenSettings.address, ZERO_ADDRESS, SUSD.address), "sovryn not a contract");
+			await expectRevert(LoanToken.new(root, loanTokenSettings.address, ZERO_ADDRESS, SUSD.address), "sovryn not a contract");
 		});
 		it("Call constructor w/ wrbtc not a contract", async () => {
 			await expectRevert(
-				PreviousLoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, ZERO_ADDRESS),
+				LoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, ZERO_ADDRESS),
 				"wrbtc not a contract"
 			);
 		});
