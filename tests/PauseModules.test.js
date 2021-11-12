@@ -248,8 +248,9 @@ contract("Pause Modules", (accounts) => {
 			await expectRevert(sovryn.setupLoanParams([Object.values(loanParams)]), "Paused");
 		});
 	});
+
 	describe("Testing isProtocolPaused()", () => {
-		it("isProtocolPaused() returns correct result when toggling pause/upause", async () => {
+		it("isProtocolPaused() returns correct result when toggling pause/unpause", async () => {
 			await loadFixture(fixtureInitialize);
 			await sovryn.togglePaused(true);
 			expect(await sovryn.isProtocolPaused()).to.be.true;
