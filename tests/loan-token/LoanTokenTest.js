@@ -17,6 +17,8 @@ const LoanToken = artifacts.require("LoanToken");
 const PreviousLoanTokenSettings = artifacts.require("PreviousLoanTokenSettingsLowerAdmin");
 const PreviousLoanToken = artifacts.require("PreviousLoanToken");
 
+const TestCoverage = artifacts.require("TestCoverage");
+
 const TOTAL_SUPPLY = 100;
 
 const DAY = 86400;
@@ -112,6 +114,16 @@ contract("LoanTokenUpgrade", (accounts) => {
 				LoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, ZERO_ADDRESS),
 				"wrbtc not a contract"
 			);
+		});
+	});
+
+	describe("Testing AdvancedToken _mint", () => {
+		it("Call _mint w/ address 0 as receiver", async () => {
+			testCoverage = await TestCoverage.new();
+			let tokenAmount = new BN(1);
+			let assetAmount = new BN(1);
+			let price = new BN(1);
+			await expectRevert(testCoverage.testMint(ZERO_ADDRESS, tokenAmount, assetAmount, price), "15");
 		});
 	});
 });
