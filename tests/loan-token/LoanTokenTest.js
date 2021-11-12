@@ -11,7 +11,8 @@
  *   Updated to use SUSD as underlying token, instead of custom underlyingToken.
  */
 
-const { constants } = require("@openzeppelin/test-helpers");
+const { constants, expectRevert } = require("@openzeppelin/test-helpers");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const {
 	getSUSD,
 	getRBTC,
@@ -113,6 +114,18 @@ contract("LoanTokenUpgrade", (accounts) => {
 
 			assert.equal(sovrynContractAddress, previousSovrynContractAddress);
 			assert.equal(wrbtcTokenAddress, previousWrbtcTokenAddress);
+		});
+	});
+
+	describe("Test coverage for LoanToken.sol", () => {
+		it("Call constructor w/ target not a contract", async () => {
+			await expectRevert(PreviousLoanToken.new(root, ZERO_ADDRESS, loanTokenSettings.address, SUSD.address), "target not a contract");
+		});
+		it("Call constructor w/ protocol not a contract", async () => {
+			await expectRevert(PreviousLoanToken.new(root, loanTokenSettings.address, ZERO_ADDRESS, SUSD.address), "sovryn not a contract");
+		});
+		it("Call constructor w/ wrbtc not a contract", async () => {
+			await expectRevert(PreviousLoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, ZERO_ADDRESS), "wrbtc not a contract");
 		});
 	});
 });
