@@ -36,9 +36,12 @@ const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
+const LoanToken = artifacts.require("LoanToken");
 
 const PreviousLoanTokenSettings = artifacts.require("PreviousLoanTokenSettingsLowerAdmin");
 const PreviousLoanToken = artifacts.require("PreviousLoanToken");
+
+const TestCoverage = artifacts.require("TestCoverage");
 
 const TWO_DAYS = 86400 * 2;
 
