@@ -119,22 +119,40 @@ contract("LoanTokenUpgrade", (accounts) => {
 
 	describe("Test coverage for LoanToken.sol", () => {
 		it("Call constructor w/ target not a contract", async () => {
-			await expectRevert(PreviousLoanToken.new(root, ZERO_ADDRESS, loanTokenSettings.address, SUSD.address), "target not a contract");
+			await expectRevert(LoanToken.new(root, ZERO_ADDRESS, loanTokenSettings.address, SUSD.address), "target not a contract");
 		});
 		it("Call constructor w/ protocol not a contract", async () => {
-			await expectRevert(PreviousLoanToken.new(root, loanTokenSettings.address, ZERO_ADDRESS, SUSD.address), "sovryn not a contract");
+			await expectRevert(LoanToken.new(root, loanTokenSettings.address, ZERO_ADDRESS, SUSD.address), "sovryn not a contract");
 		});
 		it("Call constructor w/ wrbtc not a contract", async () => {
 			await expectRevert(
-				PreviousLoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, ZERO_ADDRESS),
+				LoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, ZERO_ADDRESS),
 				"wrbtc not a contract"
 			);
 		});
+		it("Call LoanToken::setTarget", async () => {
+			let newLloanToken = await LoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, SUSD.address);
+			let newLoanTokenSettings = await LoanTokenSettings.new();
+			await newLloanToken.setTarget(newLoanTokenSettings.address);
+		});
 	});
 
-	describe("Test coverage for AdvancedToken.sol", () => {
-		it("Call mint w/ receiver as address 0", async () => {
-			await expectRevert(loanToken.mint(ZERO_ADDRESS, new BN(10).pow(new BN(30))), "target not a contract");
+	describe("Test coverage for AdvancedToken::_mint", () => {
+		it("Call _mint w/ address 0 as receiver", async () => {
+			testCoverage = await TestCoverage.new();
+			let tokenAmount = new BN(1);
+			let assetAmount = new BN(1);
+			let price = new BN(1);
+			await expectRevert(testCoverage.testMint(ZERO_ADDRESS, tokenAmount, assetAmount, price), "15");
+		});
+	});
+
+	describe("Test coverage for LoanTokenLogicStorage::stringToBytes32", () => {
+		it("stringToBytes32 when tempEmptyStringTest.length == 0", async () => {
+			testCoverage = await TestCoverage.new();
+			let result = await testCoverage.testStringToBytes32("");
+			// console.log("result: ", result);
+			expect(result).to.be.equal("0x0000000000000000000000000000000000000000000000000000000000000000");
 		});
 	});
 });
