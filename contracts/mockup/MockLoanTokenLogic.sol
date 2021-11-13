@@ -42,7 +42,7 @@ contract MockLoanTokenLogic is LoanTokenLogicLM {
 		res[24] = this.checkPriceDivergence.selector;
 		res[25] = this.checkPause.selector;
 		res[26] = this.setLiquidityMiningAddress.selector;
-		res[27] = this._supplyInterestRate.selector;
+		res[27] = this.calculateSupplyInterestRate.selector;
 
 		// Loan Token LM
 		/**

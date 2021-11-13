@@ -661,7 +661,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	function totalSupplyInterestRate(uint256 assetSupply) public view returns (uint256) {
 		uint256 assetBorrow = totalAssetBorrow();
 		if (assetBorrow != 0) {
-			return _supplyInterestRate(assetBorrow, assetSupply);
+			return calculateSupplyInterestRate(assetBorrow, assetSupply);
 		}
 	}
 
@@ -1297,7 +1297,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 * @param assetSupply The amount of loan tokens supplied.
 	 * @return The next supply interest adjustment.
 	 * */
-	function _supplyInterestRate(uint256 assetBorrow, uint256 assetSupply) public view returns (uint256) {
+	function calculateSupplyInterestRate(uint256 assetBorrow, uint256 assetSupply) public view returns (uint256) {
 		if (assetBorrow != 0 && assetSupply >= assetBorrow) {
 			return
 				_avgBorrowInterestRate(assetBorrow)

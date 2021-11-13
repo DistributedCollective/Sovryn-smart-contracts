@@ -11,8 +11,8 @@ import "../../openzeppelin/Address.sol";
  *
  * @notice This contract stored the target logic implementation of LoanTokens which has the same logic implementation (LoanTokenLogicLM / LoanTokenLogicWrbtc)
  * Apart from storing the target logic implementation, this contract also has a pause functionality.
- * By implementing pause/unpause functionality in this beacon contract, we can pause the loan token that has implement the same Logic (LoanTokenLogicLM / LoanTokenLogicWrbtc) at one call.
- * Meanwhile the pause/unpause function in the LoanTokenLogicProxy is used to pause/unpause in the LoanToken level (1 by 1)
+ * By implementing pause/unpause functionality in this beacon contract, we can pause the loan token that has the same Logic (LoanTokenLogicLM / LoanTokenLogicWrbtc) at one call.
+ * Meanwhile the pause/unpause function in the LoanTokenLogicProxy is used to pause/unpause specific LoanToken
  */
 
 contract LoanTokenLogicBeacon is PausableOz {

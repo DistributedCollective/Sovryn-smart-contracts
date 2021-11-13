@@ -34,11 +34,6 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 		_;
 	}
 
-	function initializeLoanTokenProxy(address _beaconAddress) public onlyAdmin {
-		// Initialize the LoanTokenLogicBeacon address
-		_setBeaconAddress(_beaconAddress);
-	}
-
 	/**
 	 * @notice Fallback function performs a logic implementation address query to LoanTokenLogicBeacon and then do delegate call to that query result address.
 	 * Returns whatever the implementation call returns.

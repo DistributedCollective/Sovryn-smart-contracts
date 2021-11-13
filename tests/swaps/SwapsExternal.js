@@ -97,7 +97,7 @@ contract("SwapsExternal", (accounts) => {
 
 		/** Initialize the loan token logic proxy */
 		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
-		await loanToken.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
+		await loanToken.setBeaconAddress(loanTokenLogicBeacon.address);
 
 		/** Use interface of LoanTokenModules */
 		loanToken = await ILoanTokenModules.at(loanToken.address);
@@ -125,7 +125,9 @@ contract("SwapsExternal", (accounts) => {
 		vestingFactory.transferOwnership(vestingRegistry.address);
 
 		await sovryn.setLockedSOVAddress(
-			(await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [lender])).address
+			(
+				await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [lender])
+			).address
 		);
 
 		params = [

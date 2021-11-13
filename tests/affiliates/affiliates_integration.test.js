@@ -91,7 +91,7 @@ contract("Affiliates", (accounts) => {
 
 		/** Initialize the loan token logic proxy */
 		loanTokenV2 = await ILoanTokenLogicProxy.at(loanToken.address);
-		await loanTokenV2.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
+		await loanTokenV2.setBeaconAddress(loanTokenLogicBeacon.address);
 
 		/** Use interface of LoanTokenModules */
 		loanTokenV2 = await ILoanTokenModules.at(loanToken.address);
@@ -124,7 +124,9 @@ contract("Affiliates", (accounts) => {
 
 		// Creating the instance of newLockedSOV Contract.
 		await sovryn.setLockedSOVAddress(
-			(await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])).address
+			(
+				await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])
+			).address
 		);
 		lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 	});

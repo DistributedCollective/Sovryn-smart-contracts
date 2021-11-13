@@ -103,7 +103,7 @@ contract("LoanTokenLending", (accounts) => {
 
 		/** Initialize the loan token logic proxy */
 		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
-		await loanToken.initializeLoanTokenProxy(loanTokenLogicBeaconWrbtc.address);
+		await loanToken.setBeaconAddress(loanTokenLogicBeaconWrbtc.address);
 
 		/** Use interface of LoanTokenModules */
 		loanToken = await ILoanTokenModules.at(loanToken.address);
