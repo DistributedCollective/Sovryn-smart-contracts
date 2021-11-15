@@ -233,6 +233,19 @@ contract ISovryn is
 			uint256 withdrawAmount,
 			address withdrawToken
 		);
+	
+	function closeWithSwapWithSignature(
+		ClosePosition calldata closePosition,
+		uint8 v,
+		bytes32 r,
+		bytes32 s
+	)
+		external
+		returns (
+			uint256 loanCloseAmount,
+			uint256 withdrawAmount,
+			address withdrawToken
+		);	
 
 	////// Loan Maintenance //////
 

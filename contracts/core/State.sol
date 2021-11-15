@@ -204,6 +204,31 @@ contract State is Objects, ReentrancyGuard, Ownable {
 	mapping(address => mapping(address => uint256)) public specialRebates; // Special rate rebates for spesific pair -- if not set, then use the default one
 	bool public pause; //Flag to pause all protocol modules
 
+	/// ClosePosition
+	struct ClosePosition {
+		bytes32 loanId;
+		address receiver;
+		uint256 swapAmount; // denominated in collateralToken
+		bool returnTokenIsCollateral; // true: withdraws collateralToken, false: withdraws loanToken
+		bytes loanDataBytes; // for future use /*loanDataBytes*/
+		uint256 createdTimestamp;
+	}
+
+	/// @notice The EIP-712 typehash for the contract's domain.
+	bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
+
+	/// @notice The EIP-712 typehash for the MarginTradeOrder struct used by the contract.
+	bytes32 public constant CLOSE_WITH_SWAP_TYPEHASH =
+		keccak256(
+			"CloseWithSwap(bytes32 loanId,address receiver,uint256 swapAmount,bool returnTokenIsCollateral,bytes32 loanDataBytes,uint256 createdTimestamp)"
+		);
+
+	/// @notice The name of this contract.
+	string public constant NAME = "Loan Closing";
+
+	/// @notice flag whether MarginTradeOrder was already executed
+	mapping(bytes32 => bool) public executedOrders;
+
 	/**
 	 * @notice Add signature and target to storage.
 	 * @dev Protocol is a proxy and requires a way to add every

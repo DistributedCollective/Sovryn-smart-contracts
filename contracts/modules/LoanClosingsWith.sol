@@ -15,6 +15,7 @@ import "../swaps/SwapsUser.sol";
 import "../interfaces/ILoanPool.sol";
 import "../mixins/RewardHelper.sol";
 import "./ModuleCommonFunctionalities.sol";
+import "../rsk/RSKAddrValidator.sol";
 
 /**
  * @title LoanClosingsWith contract.
@@ -36,7 +37,18 @@ contract LoanClosingsWith is
 	//because it's not shared state anyway and only used by this contract
 	uint256 public constant paySwapExcessToBorrowerThreshold = 10000000000000;
 
-	enum CloseTypes { Deposit, Swap, Liquidation }
+	enum CloseTypes {
+		Deposit,
+		Swap,
+		Liquidation
+	}
+
+	/// @dev Added to resolve "Stack Too Deep" error 
+	struct LoanClosing {
+		uint256 loanCloseAmount;
+		uint256 collateralCloseAmount;
+		uint256 collateralToLoanSwapRate;
+	}
 
 	constructor() public {}
 
@@ -48,6 +60,7 @@ contract LoanClosingsWith is
 		address prevModuleContractAddress = logicTargets[this.closeWithDeposit.selector];
 		_setTarget(this.closeWithDeposit.selector, target);
 		_setTarget(this.closeWithSwap.selector, target);
+		_setTarget(this.closeWithSwapWithSignature.selector, target);
 		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanClosingsWith");
 	}
 
@@ -123,12 +136,138 @@ contract LoanClosingsWith is
 	{
 		return
 			_closeWithSwap(
+				msg.sender,
 				loanId,
 				receiver,
 				swapAmount,
 				returnTokenIsCollateral,
 				"" /// loanDataBytes
 			);
+	}
+
+	/**
+	* @notice Close a position by swapping the collateral back to loan tokens
+	 * paying the lender and withdrawing the remainder using EIP-712 signature
+	 *
+	 * @param closePosition The closing position details
+	 * @param v The recovery byte of the signature.
+	 * @param r Half of the ECDSA signature pair.
+	 * @param s Half of the ECDSA signature pair.
+	 *
+	 * @return loanCloseAmount The amount of the collateral token of the loan.
+	 * @return withdrawAmount The withdraw amount in the collateral token.
+	 * @return withdrawToken The loan token address.
+	 * */
+	function closeWithSwapWithSignature(
+		ClosePosition memory closePosition,
+		uint8 v,
+		bytes32 r,
+		bytes32 s
+	)
+		public
+		payable
+		nonReentrant /// Note: needs to be removed to allow flashloan use cases. 
+		whenNotPaused
+		returns (
+			uint256 loanCloseAmount,
+			uint256 withdrawAmount,
+			address withdrawToken
+		)
+	{
+		/**
+		 * @dev The DOMAIN_SEPARATOR is a hash that uniquely identifies a
+		 * smart contract. It is built from a string denoting it as an
+		 * EIP712 Domain, the name of the token contract, the version,
+		 * the chainId in case it changes, and the address that the
+		 * contract is deployed at.
+		 * */
+		bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(NAME)), _getChainId(), address(this)));
+
+		/// @dev MARGIN_TRADE_ORDER_TYPEHASH
+		bytes32 structHash = _getStructHash(closePosition);
+
+		bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+		address signatory = ecrecover(digest, v, r, s);
+
+		/// @dev Verify address is not null and PK is not null either.
+		require(RSKAddrValidator.checkPKNotZero(signatory), "invalid signature");
+
+		require(!executedOrders[digest], "Order already executed");
+		executedOrders[digest] = true;
+
+		require(signatory == closePosition.receiver, "invalid signature");
+
+		return _closeWithSwapWithSignature(signatory, closePosition);
+	}
+
+	/**
+	 * @notice Segregates the items of the struct and calls the 
+	 * closeWithSwap function with sender details
+	 *
+	 * @param sender Address of the sender
+	 * @param closePosition The closing position details
+	 *
+	 * @return loanCloseAmount The amount of the collateral token of the loan.
+	 * @return withdrawAmount The withdraw amount in the collateral token.
+	 * @return withdrawToken The loan token address.
+	 * */
+	function _closeWithSwapWithSignature(address sender, ClosePosition memory closePosition)
+		internal
+		returns (
+			uint256,
+			uint256,
+			address
+		)
+	{
+		return
+			_closeWithSwap(
+				sender,
+				closePosition.loanId,
+				closePosition.receiver,
+				closePosition.swapAmount,
+				closePosition.returnTokenIsCollateral,
+				closePosition.loanDataBytes
+			);
+	}
+
+	/**
+	 * @notice Returns the unique identifier of the struct's content
+	 *
+	 * @param closePosition The closing position details
+	 * @return Unique hash
+	 * */
+	function _getStructHash(ClosePosition memory closePosition) internal pure returns (bytes32) {
+		bytes32 structHash = keccak256(
+			abi.encode(
+				CLOSE_WITH_SWAP_TYPEHASH,
+				closePosition.loanId,
+				closePosition.receiver,
+				closePosition.swapAmount,
+				closePosition.returnTokenIsCollateral,
+				keccak256(closePosition.loanDataBytes),
+				closePosition.createdTimestamp
+			)
+		);
+		return structHash;
+	}
+
+	/**
+	 * @notice Retrieve CHAIN_ID of the executing chain.
+	 *
+	 * Chain identifier (chainID) introduced in EIP-155 protects transaction
+	 * included into one chain from being included into another chain.
+	 * Basically, chain identifier is an integer number being used in the
+	 * processes of signing transactions and verifying transaction signatures.
+	 *
+	 * @dev As of version 0.5.12, Solidity includes an assembly function
+	 * chainid() that provides access to the new CHAINID opcode.
+	 * */
+	function _getChainId() internal pure returns (uint256) {
+		uint256 chainId;
+		assembly {
+			chainId := chainid()
+		}
+		return chainId;
 	}
 
 	/**
@@ -161,7 +300,7 @@ contract LoanClosingsWith is
 
 		Loan storage loanLocal = loans[loanId];
 		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
-		_checkAuthorized(loanLocal, loanParamsLocal);
+		_checkAuthorized(msg.sender, loanLocal, loanParamsLocal);
 
 		/// Can't close more than the full principal.
 		loanCloseAmount = depositAmount > loanLocal.principal ? loanLocal.principal : depositAmount;
@@ -186,14 +325,13 @@ contract LoanClosingsWith is
 			_withdrawAsset(withdrawToken, receiver, withdrawAmount);
 		}
 
-		_finalizeClose(
-			loanLocal,
-			loanParamsLocal,
-			loanCloseAmount,
-			withdrawAmount, /// collateralCloseAmount
-			0, /// collateralToLoanSwapRate
-			CloseTypes.Deposit
-		);
+		LoanClosing memory loanClosing;
+
+		loanClosing.loanCloseAmount = loanCloseAmount;
+		loanClosing.collateralCloseAmount = withdrawAmount;
+		loanClosing.collateralToLoanSwapRate = 0;
+
+		_finalizeClose(msg.sender, loanLocal, loanParamsLocal, loanClosing, CloseTypes.Deposit);
 	}
 
 	/**
@@ -216,6 +354,7 @@ contract LoanClosingsWith is
 	 * @return withdrawToken The loan token address.
 	 * */
 	function _closeWithSwap(
+		address sender,
 		bytes32 loanId,
 		address receiver,
 		uint256 swapAmount,
@@ -233,7 +372,7 @@ contract LoanClosingsWith is
 
 		Loan storage loanLocal = loans[loanId];
 		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
-		_checkAuthorized(loanLocal, loanParamsLocal);
+		_checkAuthorized(sender, loanLocal, loanParamsLocal);
 
 		/// Can't swap more than collateral.
 		swapAmount = swapAmount > loanLocal.collateral ? loanLocal.collateral : swapAmount;
@@ -306,14 +445,13 @@ contract LoanClosingsWith is
 			_withdrawAsset(withdrawToken, receiver, withdrawAmount);
 		}
 
-		_finalizeClose(
-			loanLocal,
-			loanParamsLocal,
-			loanCloseAmount,
-			usedCollateral,
-			swapAmount, /// collateralToLoanSwapRate
-			CloseTypes.Swap
-		);
+		LoanClosing memory loanClosing;
+
+		loanClosing.loanCloseAmount = loanCloseAmount;
+		loanClosing.collateralCloseAmount = usedCollateral;
+		loanClosing.collateralToLoanSwapRate = swapAmount;
+
+		_finalizeClose(sender, loanLocal, loanParamsLocal, loanClosing, CloseTypes.Swap);
 	}
 
 	/**
@@ -322,9 +460,13 @@ contract LoanClosingsWith is
 	 * @param loanLocal The loan object.
 	 * @param loanParamsLocal The loan params.
 	 * */
-	function _checkAuthorized(Loan memory loanLocal, LoanParams memory loanParamsLocal) internal view {
+	function _checkAuthorized(
+		address sender,
+		Loan memory loanLocal,
+		LoanParams memory loanParamsLocal
+	) internal view {
 		require(loanLocal.active, "loan is closed");
-		require(msg.sender == loanLocal.borrower || delegatedManagers[loanLocal.id][msg.sender], "unauthorized");
+		require(sender == loanLocal.borrower || delegatedManagers[loanLocal.id][sender], "unauthorized");
 		require(loanParamsLocal.id != 0, "loanParams not exists");
 	}
 
@@ -607,36 +749,32 @@ contract LoanClosingsWith is
 	 *
 	 * @param loanLocal The loan object.
 	 * @param loanParamsLocal The loan params.
-	 * @param loanCloseAmount The amount to close: principal or lower.
-	 * @param collateralCloseAmount The amount of collateral to close.
-	 * @param collateralToLoanSwapRate The price rate collateral/loan token.
+	 * @param loanClosing Closing amounts
 	 * @param closeType The type of loan close.
 	 * */
 	function _finalizeClose(
+		address sender,
 		Loan storage loanLocal,
 		LoanParams storage loanParamsLocal,
-		uint256 loanCloseAmount,
-		uint256 collateralCloseAmount,
-		uint256 collateralToLoanSwapRate,
+		LoanClosing memory loanClosing,
 		CloseTypes closeType
 	) internal {
-		_closeLoan(loanLocal, loanCloseAmount);
+		_closeLoan(loanLocal, loanClosing.loanCloseAmount);
 
 		address _priceFeeds = priceFeeds;
 		uint256 currentMargin;
 		uint256 collateralToLoanRate;
 
 		/// This is still called even with full loan close to return collateralToLoanRate
-		(bool success, bytes memory data) =
-			_priceFeeds.staticcall(
-				abi.encodeWithSelector(
-					IPriceFeeds(_priceFeeds).getCurrentMargin.selector,
-					loanParamsLocal.loanToken,
-					loanParamsLocal.collateralToken,
-					loanLocal.principal,
-					loanLocal.collateral
-				)
-			);
+		(bool success, bytes memory data) = _priceFeeds.staticcall(
+			abi.encodeWithSelector(
+				IPriceFeeds(_priceFeeds).getCurrentMargin.selector,
+				loanParamsLocal.loanToken,
+				loanParamsLocal.collateralToken,
+				loanLocal.principal,
+				loanLocal.collateral
+			)
+		);
 		assembly {
 			if eq(success, 1) {
 				currentMargin := mload(add(data, 32))
@@ -653,12 +791,13 @@ contract LoanClosingsWith is
 		);
 
 		_emitClosingEvents(
+			sender,
 			loanParamsLocal,
 			loanLocal,
-			loanCloseAmount,
-			collateralCloseAmount,
+			loanClosing.loanCloseAmount,
+			loanClosing.collateralCloseAmount,
 			collateralToLoanRate,
-			collateralToLoanSwapRate,
+			loanClosing.collateralToLoanSwapRate,
 			currentMargin,
 			closeType
 		);
@@ -754,6 +893,7 @@ contract LoanClosingsWith is
 	}
 
 	function _emitClosingEvents(
+		address sender,
 		LoanParams memory loanParamsLocal,
 		Loan memory loanLocal,
 		uint256 loanCloseAmount,
@@ -768,7 +908,7 @@ contract LoanClosingsWith is
 				loanLocal.borrower, /// user (borrower)
 				loanLocal.lender, /// lender
 				loanLocal.id, /// loanId
-				msg.sender, /// closer
+				sender, /// closer
 				loanParamsLocal.loanToken, /// loanToken
 				loanParamsLocal.collateralToken, /// collateralToken
 				loanCloseAmount, /// loanCloseAmount
@@ -793,7 +933,7 @@ contract LoanClosingsWith is
 				loanLocal.id, /// loanId
 				loanParamsLocal.collateralToken, /// collateralToken
 				loanParamsLocal.loanToken, /// loanToken
-				msg.sender, /// closer
+				sender, /// closer
 				collateralCloseAmount, /// positionCloseSize
 				loanCloseAmount, /// loanCloseAmount
 				collateralToLoanSwapRate, /// exitPrice (1 / collateralToLoanSwapRate)

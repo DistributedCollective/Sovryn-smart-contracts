@@ -5,6 +5,9 @@ const FeesEvents = artifacts.require("FeesEvents");
 const { increaseTime } = require("../Utils/Ethereum");
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 const LockedSOVFailedMockup = artifacts.require("LockedSOVFailedMockup");
+const EIP712 = require("../Utils/EIP712.js");
+const { getAccountsPrivateKeysBuffer } = require("../Utils/hardhat_utils");
+const ethUtil = require("ethereumjs-util");
 
 const {
 	getSUSD,
@@ -50,9 +53,11 @@ Test extending and reducing loan durations.
 contract("ProtocolChangeLoanDuration", (accounts) => {
 	let owner;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
+	let pkbRoot, pkbA1, pkbA2, pkbAccounts;
 
 	before(async () => {
 		[owner] = accounts;
+		[pkbRoot, pkbA1, pkbA2, ...pkbAccounts] = getAccountsPrivateKeysBuffer();
 	});
 
 	beforeEach(async () => {
@@ -781,6 +786,56 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 				loanMaintenance.reduceLoanDuration(loan_id, receiver, withdraw_amount, { from: borrower }),
 				"loan too short"
 			);
+		});
+
+		it("Close position using a signature", async () => {
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, owner);
+			const [loan_id, borrower, , , , , args] = await borrow_indefinite_loan(loanToken, sovryn, SUSD, RBTC, accounts);
+			const collateral = args["newCollateral"];
+			const initial_loan_interest_data = await sovryn.getLoanInterestData(loan_id);
+
+			const days_to_extend = new BN(10);
+			const owed_per_day = initial_loan_interest_data["interestOwedPerDay"];
+			const deposit_amount = owed_per_day.mul(days_to_extend);
+
+			let currentChainId = (await ethers.provider.getNetwork()).chainId;
+			const Domain = (sovryn) => ({
+				name: "Loan Closing",
+				chainId: currentChainId, //31337 - Hardhat, //1 - Mainnet, // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
+				verifyingContract: sovryn.address,
+			});
+
+			const Types = {
+				CloseWithSwap: [
+					{ name: "loanId", type: "bytes32" },
+					{ name: "receiver", type: "address" },
+					{ name: "swapAmount", type: "uint256" },
+					{ name: "returnTokenIsCollateral", type: "bool" },
+					{ name: "loanDataBytes", type: "bytes32" },
+					{ name: "createdTimestamp", type: "uint256" },
+				],
+			};
+
+			let loanDataBytes = "0x";
+			const closePosition = {
+				loanId: loan_id,
+				receiver: borrower,
+				swapAmount: collateral,
+				returnTokenIsCollateral: false,
+				loanDataBytes: loanDataBytes,
+				createdTimestamp: Date.now(),
+			};
+
+			closePosition.loanDataBytes = ethUtil.keccak256(loanDataBytes);
+			const { v, r, s } = EIP712.sign(Domain(sovryn), "CloseWithSwap", closePosition, Types, pkbA2);
+			await expectRevert(sovryn.closeWithSwapWithSignature(closePosition, v, r, s, { from: borrower }), "invalid signature");
+
+			// const loanMaintenance = await LoanMaintenance.at(sovryn.address);
+			// await expectRevert(
+			// 	loanMaintenance.extendLoanDuration(loan_id, deposit_amount, false, "0x", { from: borrower }),
+			// 	"loan is closed"
+			// );
 		});
 	});
 });

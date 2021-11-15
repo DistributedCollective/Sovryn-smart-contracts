@@ -261,30 +261,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	}
 
 	/**
-	 * @notice Borrow and immediately get into a position.
-	 *
-	 * Trading on margin is used to increase an investor's buying power.
-	 * Margin is the amount of money required to open a position, while
-	 * leverage is the multiple of exposure to account equity.
-	 *
-	 * Leverage allows you to trade positions LARGER than the amount
-	 * of money in your trading account. Leverage is expressed as a ratio.
-	 *
-	 * When trading on margin, investors first deposit some token that then
-	 * serves as collateral for the loan, and then pay ongoing interest
-	 * payments on the money they borrow.
-	 *
-	 * Margin trading = taking a loan and swapping it:
-	 * In order to open a margin trade position,
-	 *  1.- The user calls marginTrade on the loan token contract.
-	 *  2.- The loan token contract provides the loan and sends it for processing
-	 *    to the protocol proxy contract.
-	 *  3.- The protocol proxy contract uses the module LoanOpening to create a
-	 *    position and swaps the loan tokens to collateral tokens.
-	 *  4.- The Sovryn Swap network looks up the correct converter and swaps the
-	 *    tokens.
-	 * If successful, the position is being held by the protocol proxy contract,
-	 * which is why positions need to be closed at the protocol proxy contract.
+	 * @notice Wrapper to call margin trade with an additional sender param
 	 *
 	 * @param loanId The ID of the loan, 0 for a new loan.
 	 * @param leverageAmount The multiple of exposure: 2x ... 5x. The leverage with 18 decimals.
@@ -328,7 +305,16 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 			);
 	}
 
-	//TODO: check bytecode size
+	/**
+	 * @notice Open a margin trade position using EIP-712 Signatures.
+	 *
+	 * @param order The margin trade order details
+	 * @param v The recovery byte of the signature.
+	 * @param r Half of the ECDSA signature pair.
+	 * @param s Half of the ECDSA signature pair.
+	 *
+	 * @return New principal and new collateral added to trade.
+	 * */
 	function marginTradeBySig(
 		MarginTradeOrder memory order,
 		uint8 v,
@@ -369,6 +355,17 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		return _marginTradeByOrder(signatory, order);
 	}
 
+	/**
+	 * @notice Retrieve CHAIN_ID of the executing chain.
+	 *
+	 * Chain identifier (chainID) introduced in EIP-155 protects transaction
+	 * included into one chain from being included into another chain.
+	 * Basically, chain identifier is an integer number being used in the
+	 * processes of signing transactions and verifying transaction signatures.
+	 *
+	 * @dev As of version 0.5.12, Solidity includes an assembly function
+	 * chainid() that provides access to the new CHAINID opcode.
+	 * */
 	function _getChainId() internal pure returns (uint256) {
 		uint256 chainId;
 		assembly {
@@ -377,26 +374,39 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		return chainId;
 	}
 
-	function _getStructHash(MarginTradeOrder memory order) internal returns (bytes32) {
-		bytes32 structHash =
-			keccak256(
-				abi.encode(
-					MARGIN_TRADE_ORDER_TYPEHASH,
-					order.loanId,
-					order.leverageAmount,
-					order.loanTokenSent,
-					order.collateralTokenSent,
-					order.collateralTokenAddress,
-					order.trader,
-					order.minReturn,
-					keccak256(order.loanDataBytes),
-					order.createdTimestamp
-				)
-			);
+	/**
+	 * @notice Returns the unique identifier of the struct's content
+	 *
+	 * @param order The margin trade order details
+	 * @return Unique hash
+	 * */
+	function _getStructHash(MarginTradeOrder memory order) internal pure returns (bytes32) {
+		bytes32 structHash = keccak256(
+			abi.encode(
+				MARGIN_TRADE_ORDER_TYPEHASH,
+				order.loanId,
+				order.leverageAmount,
+				order.loanTokenSent,
+				order.collateralTokenSent,
+				order.collateralTokenAddress,
+				order.trader,
+				order.minReturn,
+				keccak256(order.loanDataBytes),
+				order.createdTimestamp
+			)
+		);
 		return structHash;
 	}
 
-	function _marginTradeByOrder(address _sender, MarginTradeOrder memory order)
+	/**
+	 * @notice Segregates the items of the struct and calls the 
+	 * margin trade function with sender details
+	 *
+	 * @param sender Address of the sender
+	 * @param order The margin trade order details
+	 * @return New principal and new collateral added to trade.
+	 * */
+	function _marginTradeByOrder(address sender, MarginTradeOrder memory order)
 		internal
 		returns (
 			uint256,
@@ -405,7 +415,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	{
 		return
 			_marginTrade(
-				_sender,
+				sender,
 				order.loanId,
 				order.leverageAmount,
 				order.loanTokenSent,
@@ -417,8 +427,45 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 			);
 	}
 
+	/**
+	 * @notice Borrow and immediately get into a position.
+	 *
+	 * Trading on margin is used to increase an investor's buying power.
+	 * Margin is the amount of money required to open a position, while
+	 * leverage is the multiple of exposure to account equity.
+	 *
+	 * Leverage allows you to trade positions LARGER than the amount
+	 * of money in your trading account. Leverage is expressed as a ratio.
+	 *
+	 * When trading on margin, investors first deposit some token that then
+	 * serves as collateral for the loan, and then pay ongoing interest
+	 * payments on the money they borrow.
+	 *
+	 * Margin trading = taking a loan and swapping it:
+	 * In order to open a margin trade position,
+	 *  1.- The user calls marginTrade on the loan token contract.
+	 *  2.- The loan token contract provides the loan and sends it for processing
+	 *    to the protocol proxy contract.
+	 *  3.- The protocol proxy contract uses the module LoanOpening to create a
+	 *    position and swaps the loan tokens to collateral tokens.
+	 *  4.- The Sovryn Swap network looks up the correct converter and swaps the
+	 *    tokens.
+	 * If successful, the position is being held by the protocol proxy contract,
+	 * which is why positions need to be closed at the protocol proxy contract.
+	 *
+	 * @param sender Address of the sender
+	 * @param loanId The ID of the loan, 0 for a new loan.
+	 * @param leverageAmount The multiple of exposure: 2x ... 5x. The leverage with 18 decimals.
+	 * @param loanTokenSent The number of loan tokens provided by the user.
+	 * @param collateralTokenSent The amount of collateral tokens provided by the user.
+	 * @param collateralTokenAddress The token address of collateral.
+	 * @param trader The account that performs this trade.
+	 * @param loanDataBytes Additional loan data (not in use for token swaps).
+	 *
+	 * @return New principal and new collateral added to trade.
+	 * */
 	function _marginTrade(
-		address _sender,
+		address sender,
 		bytes32 loanId, /// 0 if new loan
 		uint256 leverageAmount, /// Expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5).
 		uint256 loanTokenSent,
@@ -445,8 +492,8 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		require(collateralTokenAddress != loanTokenAddress, "11");
 
 		/// @dev Ensure authorized use of existing loan.
-		//TODO: check if we need to use _sender instead of msg.sender in other functions
-		require(loanId == 0 || _sender == trader, "401 use of existing loan");
+		//TODO: check if we need to use sender instead of msg.sender in other functions
+		require(loanId == 0 || sender == trader, "401 use of existing loan");
 
 		/// Temporary: limit transaction size.
 		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
@@ -481,7 +528,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
 		return
 			_borrowOrTrade(
-				_sender,
+				sender,
 				loanId,
 				0, /// withdrawAmount
 				leverageAmount,
@@ -920,12 +967,12 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 				return
 					ProtocolLike(sovrynContractAddress)
 						.getRequiredCollateral(
-						loanTokenAddress,
-						collateralTokenAddress != address(0) ? collateralTokenAddress : wrbtcTokenAddress,
-						newBorrowAmount,
-						50 * 10**18, /// initialMargin
-						true /// isTorqueLoan
-					)
+							loanTokenAddress,
+							collateralTokenAddress != address(0) ? collateralTokenAddress : wrbtcTokenAddress,
+							newBorrowAmount,
+							50 * 10**18, /// initialMargin
+							true /// isTorqueLoan
+						)
 						.add(10); /// Some dust to compensate for rounding errors.
 			}
 		}
@@ -976,8 +1023,12 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		address collateralTokenAddress,
 		uint256 minReturn
 	) public view {
-		(, uint256 estimatedCollateral, ) =
-			getEstimatedMarginDetails(leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress);
+		(, uint256 estimatedCollateral, ) = getEstimatedMarginDetails(
+			leverageAmount,
+			loanTokenSent,
+			collateralTokenSent,
+			collateralTokenAddress
+		);
 		require(estimatedCollateral >= minReturn, "coll too low");
 	}
 
@@ -1105,16 +1156,19 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
 		if (collateralTokenSent != 0) {
 			/// @dev Get the oracle rate from collateral -> loan
-			(uint256 collateralToLoanRate, uint256 collateralToLoanPrecision) =
-				FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(collateralTokenAddress, loanTokenAddress);
+			(uint256 collateralToLoanRate, uint256 collateralToLoanPrecision) = FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds())
+				.queryRate(collateralTokenAddress, loanTokenAddress);
 			require((collateralToLoanRate != 0) && (collateralToLoanPrecision != 0), "invalid rate collateral token");
 
 			/// @dev Compute the loan token amount with the oracle rate.
 			uint256 loanTokenAmount = collateralTokenSent.mul(collateralToLoanRate).div(collateralToLoanPrecision);
 
 			/// @dev See how many collateralTokens we would get if exchanging this amount of loan tokens to collateral tokens.
-			uint256 collateralTokenAmount =
-				ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(loanTokenAddress, collateralTokenAddress, loanTokenAmount);
+			uint256 collateralTokenAmount = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
+				loanTokenAddress,
+				collateralTokenAddress,
+				loanTokenAmount
+			);
 
 			/// @dev Probably not the same due to the price difference.
 			if (collateralTokenAmount != collateralTokenSent) {
@@ -1166,6 +1220,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	/**
 	 * @notice Compute principal and collateral.
 	 *
+	 * @param sender Address of sender
 	 * @param loanId The ID of the loan, 0 for a new loan.
 	 * @param withdrawAmount The amount to be withdrawn (actually borrowed).
 	 * @param leverageAmount The multiple of exposure: 2x ... 5x. The leverage
