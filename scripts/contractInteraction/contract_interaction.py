@@ -75,8 +75,8 @@ def main():
 
      # transferSOVtoTokenSender()
 
-    transferSOVtoScriptAccount()
-    transferSOVtoTokenSender()
+    # transferSOVtoScriptAccount()
+    # transferSOVtoTokenSender()
     #readBalanceFromAMM()
     #checkRates()
 
@@ -125,7 +125,7 @@ def main():
 
     # createProposalSIP0015()
     # transferSOVtoScriptAccount()
-    # checkTxn()
+    checkTxn()
 
 
 def loadConfig():
@@ -1123,8 +1123,8 @@ def transferSOVtoTokenSender():
     print(txId)
 
 def transferSOVtoScriptAccount():
-    # 17241.64 SOV
-    amount = 1724164 * 10**16
+    # 12874.40 SOV
+    amount = 1287440 * 10**16
 
     # TODO set receiver address
     receiver = "0x27D55f5668eF4438635bdCE0aDCA083507E77752"
@@ -1142,7 +1142,7 @@ def transferSOVtoScriptAccount():
 def checkTxn():
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
 
-    txId = 316
+    txId = 473
     print(txId)
     print(multisig.getConfirmationCount(txId))
     print(multisig.transactions(txId))
