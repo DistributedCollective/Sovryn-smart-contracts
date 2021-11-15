@@ -177,7 +177,7 @@ contract("LoanTokenAdministration", (accounts) => {
 			/** Initialize the loan token logic proxy */
 			loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
 			await expectRevert(
-				loanToken.initializeLoanTokenProxy(loanTokenLogicBeaconLM.address, { from: accounts[1] }),
+				loanToken.setBeaconAddress(loanTokenLogicBeaconLM.address, { from: accounts[1] }),
 				"LoanTokenLogicProxy:unauthorized"
 			);
 		});
@@ -194,7 +194,7 @@ contract("LoanTokenAdministration", (accounts) => {
 
 			/** Initialize the loan token logic proxy */
 			loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
-			await loanToken.initializeLoanTokenProxy(loanTokenLogicBeaconLM.address);
+			await loanToken.setBeaconAddress(loanTokenLogicBeaconLM.address);
 
 			/** Use interface of LoanTokenModules */
 			loanToken = await ILoanTokenModules.at(loanToken.address);
