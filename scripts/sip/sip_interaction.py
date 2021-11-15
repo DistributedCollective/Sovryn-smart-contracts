@@ -20,7 +20,7 @@ def main():
 
     # Call the function you want here
 
-    createProposalSIP0037()
+    createProposalSIP0038()
 
     balanceAfter = acct.balance()
 
@@ -287,3 +287,14 @@ def createProposalSIP0037():
 
     # Create Proposal
     createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
+
+def createProposalSIP0038():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0038: Add Brazilian Real Stablecoin BRZ as Collateral: https://github.com/DistributedCollective/SIPS/blob/a216843/SIP-0038.md, sha256: d57ba8bea41e73ce00d9e25b2a6d1736db2f6bbba7ffa43c6ab3d23eae8bb15e"
+
+    # Create Proposal
+    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
