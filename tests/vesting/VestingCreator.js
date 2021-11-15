@@ -29,6 +29,8 @@ const VestingRegistry2 = artifacts.require("VestingRegistry2");
 const VestingRegistry3 = artifacts.require("VestingRegistry3");
 const TestToken = artifacts.require("TestToken");
 
+const TeamVesting = artifacts.require("TeamVesting");
+
 const TOTAL_SUPPLY = "100000000000000000000000000";
 const ZERO_ADDRESS = constants.ZERO_ADDRESS;
 const WEEK = new BN(7 * 24 * 60 * 60);
@@ -39,7 +41,7 @@ const pricsSats = "2500";
 contract("VestingCreator", (accounts) => {
 	let root, account1, account2, account3, account4;
 	let SOV, lockedSOV;
-	let vesting, vestingRegistryLogic;
+	let vesting, vestingLogic, vestingRegistryLogic;
 	let vestingCreator;
 	let vestingRegistry, vestingRegistry2, vestingRegistry3;
 
@@ -937,6 +939,34 @@ contract("VestingCreator", (accounts) => {
 			await SOV.transfer(vestingRegistry3.address, amount);
 
 			await expectRevert(vestingRegistry3.stakeTokens(ZERO_ADDRESS, amount), "vesting address invalid");
+		});
+	});
+
+	/// @dev Test coverage
+	///   Vesting.js also checks delegate, but on a mockup contract
+	describe("VestingLogic", () => {
+		it("Set delegate", async () => {
+			teamVesting = await TeamVesting.new(
+				vestingLogic.address,
+				cSOV1.address,
+				staking.address,
+				account2,
+				16 * WEEK,
+				26 * WEEK,
+				feeSharingProxy.address
+			);
+			teamVesting = await VestingLogic.at(teamVesting.address);
+
+			// try to set delegate from an other account than token owner
+			await expectRevert(teamVesting.delegate(account1, { from: account3 }), "unauthorized");
+
+			// delegate
+			let tx = await teamVesting.delegate(account1, { from: account2 });
+
+			expectEvent(tx, "VotesDelegated", {
+				caller: account2,
+				delegatee: account1,
+			});
 		});
 	});
 });
