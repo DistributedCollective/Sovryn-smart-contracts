@@ -36,6 +36,7 @@ const {
 	verify_sov_reward_payment,
 	CONSTANTS,
 } = require("../Utils/initializer.js");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const wei = web3.utils.toWei;
 
@@ -675,6 +676,19 @@ contract("LoanTokenBorrowing", (accounts) => {
 			expect(new BN(args["currentMargin"])).to.be.a.bignumber.gt(new BN(99).mul(oneEth));
 		});
 
+		/// @dev For test coverage
+		it("getDepositAmountForBorrow should return 0 when borrowAmount is 0", async () => {
+			await set_demand_curve(loanToken);
+			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
+			await lend_to_pool(loanToken, SUSD, owner);
+			// determine borrowing parameter
+			const borrowAmount = new BN(0);
+			const durationInSeconds = 60 * 60 * 24 * 10; // 10 days
+			const collateralTokenSent = await loanToken.getDepositAmountForBorrow(borrowAmount, durationInSeconds, RBTC.address);
+
+			expect(collateralTokenSent).to.be.bignumber.equal(new BN(0));
+		});
+
 		it("getDepositAmountForBorrow should consider the initial margin on the loan params", async () => {
 			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
 			await lend_to_pool(loanToken, SUSD, owner);
@@ -727,6 +741,19 @@ contract("LoanTokenBorrowing", (accounts) => {
 		});
 
 		/// @dev For test coverage
+		it("getBorrowAmountForDeposit should set collateralTokenAddress = wrbtcTokenAddress when collateralTokenAddress is 0", async () => {
+			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
+			await lend_to_pool(loanToken, SUSD, owner);
+			// determine borrowing parameter
+			const depositAmount = tenEth;
+			const durationInSeconds = 60 * 60 * 24 * 10; // 10 days
+			const borrowAmount1 = await loanToken.getBorrowAmountForDeposit(depositAmount, durationInSeconds, ZERO_ADDRESS);
+			const borrowAmount2 = await loanToken.getBorrowAmountForDeposit(depositAmount, durationInSeconds, RBTC.address);
+
+			expect(borrowAmount1).to.be.bignumber.equal(borrowAmount2);
+		});
+
+		/// @dev For test coverage
 		/// @dev TODO: _supplyInterestRate is a public function. Maybe it should be internal instead.
 		it("Check _supplyInterestRate w/ assetBorrow > 0", async () => {
 			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
@@ -734,6 +761,18 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 			const assetBorrow = new BN(1);
 			const assetSupply = new BN(1);
+			const supplyInterestRate = await loanToken._supplyInterestRate(assetBorrow, assetSupply);
+
+			expect(supplyInterestRate).to.be.bignumber.equal(new BN(0));
+		});
+
+		/// @dev For test coverage
+		it("Check _supplyInterestRate w/ assetBorrow == 0", async () => {
+			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			const assetBorrow = new BN(0);
+			const assetSupply = new BN(0);
 			const supplyInterestRate = await loanToken._supplyInterestRate(assetBorrow, assetSupply);
 
 			expect(supplyInterestRate).to.be.bignumber.equal(new BN(0));
