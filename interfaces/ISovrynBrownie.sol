@@ -247,7 +247,7 @@ contract ISovrynBrownie is
 			uint256 loanCloseAmount,
 			uint256 withdrawAmount,
 			address withdrawToken
-		);			
+		);
 
 	////// Loan Maintenance //////
 
