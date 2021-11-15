@@ -725,5 +725,18 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 			expect(borrowAmount).to.be.bignumber.equal(new BN(0));
 		});
+
+		/// @dev For test coverage
+		/// @dev TODO: _supplyInterestRate is a public function. Maybe it should be internal instead.
+		it("Check _supplyInterestRate w/ assetBorrow > 0", async () => {
+			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			const assetBorrow = new BN(1);
+			const assetSupply = new BN(1);
+			const supplyInterestRate = await loanToken._supplyInterestRate(assetBorrow, assetSupply);
+
+			expect(supplyInterestRate).to.be.bignumber.equal(new BN(0));
+		});
 	});
 });

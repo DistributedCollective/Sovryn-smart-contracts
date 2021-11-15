@@ -154,6 +154,13 @@ contract("LoanTokenLending", (accounts) => {
 			await expectRevert(loanToken.mint(constants.ZERO_ADDRESS, amount), "15");
 		});
 
+		/// @dev For test coverage
+		it("should revert _prepareMinting when depositAmount is 0", async () => {
+			await lend_to_the_pool(loanToken, lender, SUSD, WRBTC, sovryn);
+
+			await expectRevert(loanToken.mint(account2, 0), "17");
+		});
+
 		it("test profit", async () => {
 			await lend_to_the_pool(loanToken, lender, SUSD, WRBTC, sovryn);
 
@@ -180,6 +187,19 @@ contract("LoanTokenLending", (accounts) => {
 			expect(profitInt).to.be.a.bignumber.equal(new BN(0));
 			expect(profitAfter.gt(new BN(0))).to.be.true;
 			expect(profitAfter.lt(profitBefore)).to.be.true;
+		});
+
+		/// @dev For test coverage
+		it("should revert _burnToken when depositAmount is 0", async () => {
+			await lend_to_the_pool(loanToken, lender, SUSD, WRBTC, sovryn);
+
+			// above function also opens a trading position, so I need to add some more funds to be able to withdraw everything
+			const balanceOf0 = await loanToken.assetBalanceOf(lender);
+			await SUSD.approve(loanToken.address, balanceOf0.toString());
+			await loanToken.mint(account2, balanceOf0.toString());
+
+			// Try to burn 0
+			await expectRevert(loanToken.burn(lender, 0), "19");
 		});
 
 		it("Check swapExternal with minReturn > 0 should revert if minReturn is not valid (higher)", async () => {
