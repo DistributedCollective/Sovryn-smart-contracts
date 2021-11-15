@@ -149,13 +149,4 @@ contract("LoanTokenUpgrade", (accounts) => {
 			await expectRevert(testCoverage.testMint(ZERO_ADDRESS, tokenAmount, assetAmount, price), "15");
 		});
 	});
-
-	describe("Test coverage for LoanTokenLogicStorage::stringToBytes32", () => {
-		it("stringToBytes32 when tempEmptyStringTest.length == 0", async () => {
-			testCoverage = await TestCoverage.new();
-			let result = await testCoverage.testStringToBytes32("");
-			// console.log("result: ", result);
-			expect(result).to.be.equal("0x0000000000000000000000000000000000000000000000000000000000000000");
-		});
-	});
 });

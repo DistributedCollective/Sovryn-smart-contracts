@@ -470,6 +470,36 @@ contract("LoanTokenTrading", (accounts) => {
 			);
 		});
 
+		/// @dev For test coverage
+		it("should revert when collateralTokenAddress != loanTokenAddress", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, accounts[0]);
+			// trader=accounts[1] on this call
+			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]);
+
+			// deposit collateral to add margin to the loan created above
+			await RBTC.approve(sovryn.address, oneEth);
+			await sovryn.depositCollateral(loan_id, oneEth);
+			await RBTC.transfer(accounts[2], oneEth);
+			await RBTC.approve(loanToken.address, oneEth, { from: accounts[2] });
+
+			await expectRevert(
+				loanToken.marginTrade(
+					loan_id, // loanId  (0 for new loans)
+					new BN(2).mul(oneEth), // leverageAmount
+					0, // loanTokenSent
+					1000, // no collateral token sent
+					SUSD.address, // collateralTokenAddress != loanTokenAddress
+					accounts[1], // trader,
+					0,
+					"0x", // loanDataBytes (only required with ether)
+					{ from: accounts[2] }
+				),
+				"11"
+			);
+		});
+
 		it("checkPriceDivergence should success if min position size is less than or equal to collateral", async () => {
 			await set_demand_curve(loanToken);
 			await SUSD.transfer(loanToken.address, wei("500", "ether"));
@@ -484,7 +514,7 @@ contract("LoanTokenTrading", (accounts) => {
 		});
 
 		/// @dev For test coverage, it's required to perform a margin trade using WRBTC as collateral
-		it("Check marginTrade w/ collateralToken as address(0) ", async () => {
+		it("Check marginTrade w/ collateralToken as address(0)", async () => {
 			await set_demand_curve(loanToken);
 			await SUSD.transfer(loanToken.address, wei("1000000", "ether"));
 			await WRBTC.mint(accounts[2], oneEth);

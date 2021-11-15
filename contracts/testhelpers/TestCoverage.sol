@@ -9,8 +9,9 @@ import "../connectors/loantoken/Pausable.sol";
 import "../governance/Staking/SafeMath96.sol";
 import "../mixins/EnumerableBytes32Set.sol";
 import "../mixins/VaultController.sol";
+import "../connectors/loantoken/AdvancedToken.sol";
 
-contract TestCoverage is Pausable, SafeMath96, VaultController {
+contract TestCoverage is Pausable, SafeMath96, VaultController, AdvancedToken {
 	/// @dev Pausable is currently an unused contract that still is operative
 	///   because margin trade flashloan functionality has been commented out.
 	///   In case it were restored, contract would become used again, so for a
@@ -103,5 +104,15 @@ contract TestCoverage is Pausable, SafeMath96, VaultController {
 		uint256 value
 	) public {
 		vaultApprove(token, to, value);
+	}
+
+	/// @dev mint wrapper w/o previous checks
+	function testMint(
+		address _to,
+		uint256 _tokenAmount,
+		uint256 _assetAmount,
+		uint256 _price
+	) public {
+		_mint(_to, _tokenAmount, _assetAmount, _price);
 	}
 }

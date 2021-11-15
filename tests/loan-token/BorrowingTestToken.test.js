@@ -713,5 +713,17 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 			expect(borrowAmount).to.be.bignumber.equal(expectedBorrowAmount);
 		});
+
+		/// @dev For test coverage
+		it("getBorrowAmountForDeposit should return 0 when depositAmount is 0", async () => {
+			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
+			await lend_to_pool(loanToken, SUSD, owner);
+			// determine borrowing parameter
+			const depositAmount = new BN(0);
+			const durationInSeconds = 60 * 60 * 24 * 10; // 10 days
+			const borrowAmount = await loanToken.getBorrowAmountForDeposit(depositAmount, durationInSeconds, RBTC.address);
+
+			expect(borrowAmount).to.be.bignumber.equal(new BN(0));
+		});
 	});
 });
