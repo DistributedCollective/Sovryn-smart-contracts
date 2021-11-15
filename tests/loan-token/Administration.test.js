@@ -199,7 +199,7 @@ contract("LoanTokenAdministration", (accounts) => {
 			/** Use interface of LoanTokenModules */
 			loanToken = await ILoanTokenModules.at(loanToken.address);
 
-			await expectRevert(loanToken.assetBalanceOf(owner), "LoanTokenProxy:target not active");
+			await expectRevert(loanToken.assetBalanceOf(owner), "LoanTokenLogicProxy:target not active");
 		});
 
 		it("Test set beacon address in loan token logic proxy", async () => {
