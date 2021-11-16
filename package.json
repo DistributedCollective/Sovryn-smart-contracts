@@ -16,6 +16,14 @@
 	"bugs": {
 		"url": "https://github.com/DistributedCollective/Sovryn-smart-contracts/issues"
 	},
+	"files": [
+		"artifacts/",
+		"contracts/",
+		"interfaces/",
+		"scripts/contractInteraction/mainnet_contracts.json",
+		"scripts/contractInteraction/testnet_contracts.json",
+		"abi/"
+	],
 	"devDependencies": {
 		"@nomiclabs/hardhat-ethers": "^2.0.1",
 		"@nomiclabs/hardhat-ganache": "^2.0.0",
@@ -68,7 +76,13 @@
 		"prettier": "prettier --write .",
 		"prettier-check": "prettier --check .",
 		"test": "echo Executing pure Hardhat test cases ... && npx hardhat test && echo Executing test cases using Ganache ... && npx hardhat --config hardhat-ganache-tests.config.js --network ganache test",
-		"uml": "npx sol2uml ./contracts -o UML.svg"
+		"uml": "npx sol2uml ./contracts -o UML.svg",
+		"generate-types": "npx typechain --target=web3-v1 'abi/**/*.json' && npx typechain --target=ethers-v5 'abi/**/*.json'",
+		"compile": "npx hardhat compile",
+		"npm-publish": "npm run compile && npm publish",
+		"postinstall": "npm run generate-types",
+		"fees-withdraw": "brownie run rewards_cron"
+
 	},
 	"husky": {
 		"hooks": {
@@ -80,6 +94,9 @@
 		"keccak": "^3.0.1",
 		"keccak256": "^1.0.3",
 		"phantomjs-prebuilt": "^2.1.16",
-		"yarn": "^1.22.10"
+		"yarn": "^1.22.10",
+		"typechain": "^5.1.2",
+		"@typechain/ethers-v5": "^7.1.2",
+		"@typechain/web3-v1": "^3.1.0"
 	}
 }
