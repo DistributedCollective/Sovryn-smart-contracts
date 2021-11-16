@@ -20,7 +20,8 @@ def main():
 
     # Call the function you want here
 
-    createProposalSIP0038()
+    # createProposalSIP0038()
+    createProposalSIP0039()
 
     balanceAfter = acct.balance()
 
@@ -275,7 +276,7 @@ def createProposalSIP0035():
     description = "SIP-0035: Origins as a Subprotocol: https://github.com/DistributedCollective/SIPS/blob/04baceb/SIP-0035.md, sha256: 1f85180a76c58a2b382049e5f846c512a61b3459d193dc74c7eb3babf89bd1ba"
 
     # Create Proposal
-    createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
+    # createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
 
 def createProposalSIP0037():
     # Action
@@ -295,6 +296,17 @@ def createProposalSIP0038():
     signature = ["symbol()"]
     data = ["0x"]
     description = "SIP-0038: Add Brazilian Real Stablecoin BRZ as Collateral: https://github.com/DistributedCollective/SIPS/blob/a216843/SIP-0038.md, sha256: d57ba8bea41e73ce00d9e25b2a6d1736db2f6bbba7ffa43c6ab3d23eae8bb15e"
+
+    # Create Proposal
+    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+def createProposalSIP0039():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0039: ZERO Token Sale via Origins: https://github.com/DistributedCollective/SIPS/blob/2c21291/SIP-0039.md, sha256: 558dc035b9915e5900b0367252ba88114ea8c821b21ec0aadc5dea8b73fcd506"
 
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
