@@ -14,6 +14,20 @@ const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
 
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
+
+const {
+	address,
+	minerStart,
+	minerStop,
+	unlockedAccount,
+	mineBlock,
+	etherMantissa,
+	etherUnsigned,
+	setTime,
+	increaseTime,
+	lastBlock,
+} = require("../Utils/Ethereum");
+
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
@@ -112,6 +126,17 @@ contract("VestingCreator", (accounts) => {
 		);
 
 		await vesting.addAdmin(vestingCreator.address);
+
+		teamVesting = await TeamVesting.new(
+			vestingLogic.address,
+			cSOV1.address,
+			staking.address,
+			account2,
+			16 * WEEK,
+			46 * WEEK,
+			feeSharingProxy.address
+		);
+		teamVesting = await VestingLogic.at(teamVesting.address);
 	}
 
 	before(async () => {
@@ -945,28 +970,28 @@ contract("VestingCreator", (accounts) => {
 	/// @dev Test coverage
 	///   Vesting.js also checks delegate, but on a mockup contract
 	describe("VestingLogic", () => {
-		it("Set delegate", async () => {
-			teamVesting = await TeamVesting.new(
-				vestingLogic.address,
-				cSOV1.address,
-				staking.address,
-				account2,
-				16 * WEEK,
-				26 * WEEK,
-				feeSharingProxy.address
-			);
-			teamVesting = await VestingLogic.at(teamVesting.address);
-
-			// try to set delegate from an other account than token owner
+		it("should revert when setting delegate by no token owner", async () => {
+			// Try to set delegate from other account than token owner
 			await expectRevert(teamVesting.delegate(account1, { from: account3 }), "unauthorized");
+		});
 
-			// delegate
+		it("should revert when setting address 0 as delegate", async () => {
+			// Try to set delegate as address 0
+			await expectRevert(teamVesting.delegate(ZERO_ADDRESS, { from: account2 }), "delegatee address invalid");
+		});
+
+		it("Delegate should work ok", async () => {
+			// Delegate
 			let tx = await teamVesting.delegate(account1, { from: account2 });
 
 			expectEvent(tx, "VotesDelegated", {
 				caller: account2,
 				delegatee: account1,
 			});
+		});
+
+		it("should revert when withdrawing tokens to address 0", async () => {
+			await expectRevert(teamVesting.withdrawTokens(ZERO_ADDRESS, { from: root }), "receiver address invalid");
 		});
 	});
 });
