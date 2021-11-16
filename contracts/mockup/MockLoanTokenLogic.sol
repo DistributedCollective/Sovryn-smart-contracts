@@ -2,7 +2,7 @@ pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../modules/Affiliates.sol";
-import "../connectors/loantoken/modules/LoanTokenLogicLM.sol";
+import "../connectors/loantoken/modules/beaconLogicLM/LoanTokenLogicLM.sol";
 import "../modules/interfaces/ProtocolAffiliatesInterface.sol";
 import "../interfaces/ILoanTokenModules.sol";
 

@@ -1,6 +1,6 @@
 pragma solidity 0.5.17;
 
-import "../connectors/loantoken/modules/LoanTokenLogicLM.sol";
+import "../connectors/loantoken/modules/beaconLogicLM/LoanTokenLogicLM.sol";
 
 contract LoanTokenLogicLMV1Mockup is LoanTokenLogicLM {
 	function getListFunctionSignatures() external pure returns (bytes4[] memory functionSignatures, bytes32 moduleName) {

@@ -6,12 +6,12 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./LoanTokenSettingsLowerAdmin.sol";
-import "../LoanTokenLogicStorage.sol";
-import "../interfaces/ProtocolLike.sol";
-import "../interfaces/FeedsLike.sol";
-import "../../../modules/interfaces/ProtocolAffiliatesInterface.sol";
-import "../../../farm/ILiquidityMining.sol";
+import "./modules/shared/LoanTokenSettingsLowerAdmin.sol";
+import "./LoanTokenLogicStorage.sol";
+import "./interfaces/ProtocolLike.sol";
+import "./interfaces/FeedsLike.sol";
+import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
+import "../../farm/ILiquidityMining.sol";
 
 /**
  * @title Loan Token Logic Standard contract.
