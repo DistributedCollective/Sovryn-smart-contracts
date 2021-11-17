@@ -310,6 +310,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @param collateralTokenSent The amount of collateral tokens provided by the user.
 	 * @param collateralTokenAddress The token address of collateral.
 	 * @param trader The account that performs this trade.
+	 * @param minReturn Minimum amount (position size) in the collateral tokens
 	 * @param loanDataBytes Additional loan data (not in use for token swaps).
 	 *
 	 * @return New principal and new collateral added to trade.

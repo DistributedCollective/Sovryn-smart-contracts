@@ -12,7 +12,7 @@
  *   Deployment on beforeEach has been sensibly improved by using a Waffle mixture
  *   that snapshots the repeating scenarios.
  *   Tried to:
- *     Update to use the initializer.js functions for protocol deployment.
+ *     Update to use the initializer.js functions for sovryn deployment.
  *       It didn't work.
  *     Update to use initializer.js SUSD.
  *       It works Ok.
@@ -35,11 +35,10 @@ const TestToken = artifacts.require("TestToken");
 
 const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
+const VestingLogic = artifacts.require("VestingLogicMockup");
+const Vesting = artifacts.require("TeamVesting");
 
 const ISovryn = artifacts.require("ISovryn");
-const SwapsExternal = artifacts.require("SwapsExternal");
-const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 const Affiliates = artifacts.require("Affiliates");
 
 const Protocol = artifacts.require("sovrynProtocol");
@@ -51,10 +50,22 @@ const LoanClosingsBase = artifacts.require("LoanClosingsBase");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 
 const LoanTokenLogic = artifacts.require("LoanTokenLogicStandard");
+const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
+const LockedSOV = artifacts.require("LockedSOV");
 
+const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
+const FeeSharingProxyMockup = artifacts.require("FeeSharingProxyMockup");
+
+const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
+const TestSovrynSwap = artifacts.require("TestSovrynSwap");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
+const SwapsExternal = artifacts.require("SwapsExternal");
+
+const VestingFactory = artifacts.require("VestingFactory");
+const VestingRegistry = artifacts.require("VestingRegistry3");
 
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
@@ -84,15 +95,26 @@ const {
 	getSOV,
 } = require("./Utils/initializer.js");
 
+const wei = web3.utils.toWei;
+
+const { lend_btc_before_cashout } = require("./loan-token/helpers");
+
+let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
+let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
+
 contract("FeeSharingProxy:", (accounts) => {
 	const name = "Test SOVToken";
 	const symbol = "TST";
 
 	let root, account1, account2, account3, account4;
-	let SOVToken, SUSD, WRBTC, staking;
-	let sovryn;
+	let SOVToken, SUSD, WRBTC, sovryn, staking;
 	let loanTokenSettings, loanTokenLogic, loanToken;
+	let feeSharingProxyObj;
 	let feeSharingProxy;
+	let feeSharingLogic;
+	let loanTokenWrbtc;
+	let tradingFeePercent;
+	let mockPrice;
 
 	before(async () => {
 		[root, account1, account2, account3, account4, ...accounts] = accounts;
@@ -131,7 +153,7 @@ contract("FeeSharingProxy:", (accounts) => {
 		await sovryn.replaceContract((await LoanMaintenance.new()).address);
 		await sovryn.replaceContract((await SwapsExternal.new()).address);
 
-		const sovrynSwapSimulator = await TestSovrynSwap.new(priceFeeds.address);
+		let sovrynSwapSimulator = await TestSovrynSwap.new(priceFeeds.address);
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
 		await sovryn.setSupportedTokens([SUSD.address, RBTC.address, WRBTC.address], [true, true, true]);
 
@@ -157,39 +179,99 @@ contract("FeeSharingProxy:", (accounts) => {
 		loanToken = await LoanTokenLogic.at(loanToken.address);
 		await loanToken.setAdmin(root);
 		await sovryn.setLoanPool([loanToken.address], [SUSD.address]);
+
 		// FeeSharingProxy
-		feeSharingProxy = await FeeSharingProxy.new(sovryn.address, staking.address);
+		feeSharingLogic = await FeeSharingLogic.new();
+		feeSharingProxyObj = await FeeSharingProxy.new(sovryn.address, staking.address);
+		await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
+		feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
 		await sovryn.setFeesController(feeSharingProxy.address);
+
+		// Set loan pool for wRBTC -- because our fee sharing proxy required the loanPool of wRBTC
+		loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
+		loanTokenWrbtc = await LoanToken.new(root, loanTokenLogicWrbtc.address, sovryn.address, WRBTC.address);
+		await loanTokenWrbtc.initialize(WRBTC.address, "iWRBTC", "iWRBTC");
+
+		loanTokenWrbtc = await LoanTokenLogicWrbtc.at(loanTokenWrbtc.address);
+		const loanTokenAddressWrbtc = await loanTokenWrbtc.loanTokenAddress();
+		await sovryn.setLoanPool([loanTokenWrbtc.address], [loanTokenAddressWrbtc]);
+
+		await WRBTC.mint(sovryn.address, wei("500", "ether"));
+
+		await sovryn.setWrbtcToken(WRBTC.address);
+		await sovryn.setSOVTokenAddress(SOVToken.address);
+		await sovryn.setSovrynProtocolAddress(sovryn.address);
+
+		// Creating the Vesting Instance.
+		vestingLogic = await VestingLogic.new();
+		vestingFactory = await VestingFactory.new(vestingLogic.address);
+		vestingRegistry = await VestingRegistry.new(
+			vestingFactory.address,
+			SOVToken.address,
+			staking.address,
+			feeSharingProxy.address,
+			root // This should be Governance Timelock Contract.
+		);
+		vestingFactory.transferOwnership(vestingRegistry.address);
+
+		await sovryn.setLockedSOVAddress((await LockedSOV.new(SOVToken.address, vestingRegistry.address, cliff, duration, [root])).address);
+
+		// Set PriceFeeds
+		feeds = await PriceFeedsLocal.new(WRBTC.address, sovryn.address);
+		mockPrice = "1";
+		await feeds.setRates(SUSD.address, WRBTC.address, wei(mockPrice, "ether"));
+		sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
+		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
+		await sovryn.setSupportedTokens([SUSD.address, WRBTC.address], [true, true]);
+		await sovryn.setPriceFeedContract(
+			feeds.address //priceFeeds
+		);
+		await sovryn.setSwapsImplContract(
+			swaps.address // swapsImpl
+		);
+
+		tradingFeePercent = await sovryn.tradingFeePercent();
+		await lend_btc_before_cashout(loanTokenWrbtc, new BN(wei("10", "ether")), root);
 	}
 
 	beforeEach(async () => {
 		await loadFixture(protocolDeploymentFixture);
 	});
 
+	describe("FeeSharingProxy", () => {
+		it("Check owner & implementation", async () => {
+			const proxyOwner = await feeSharingProxyObj.getProxyOwner();
+			const implementation = await feeSharingProxyObj.getImplementation();
+
+			expect(implementation).to.be.equal(feeSharingLogic.address);
+			expect(proxyOwner).to.be.equal(root);
+		});
+
+		it("Set new implementation", async () => {
+			const newFeeSharingLogic = await FeeSharingLogic.new();
+			await feeSharingProxyObj.setImplementation(newFeeSharingLogic.address);
+			const newImplementation = await feeSharingProxyObj.getImplementation();
+
+			expect(newImplementation).to.be.equal(newFeeSharingLogic.address);
+		});
+	});
+
 	describe("withdrawFees", () => {
 		it("Shouldn't be able to use zero token address", async () => {
-			await expectRevert(feeSharingProxy.withdrawFees(ZERO_ADDRESS), "FeeSharingProxy::withdrawFees: invalid address");
+			await expectRevert(feeSharingProxy.withdrawFees([ZERO_ADDRESS]), "FeeSharingProxy::withdrawFees: token is not a contract");
 		});
 
-		it("Shouldn't be able to withdraw second time in period", async () => {
-			// stake - getPriorTotalVotingPower
-			let totalStake = 1000;
-			await stake(totalStake, root);
-
-			// mock data
-			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
-
-			await feeSharingProxy.withdrawFees(SUSD.address);
-
-			await expectRevert(feeSharingProxy.withdrawFees(SUSD.address), "FeeSharingProxy::withdrawFees: no tokens to withdraw");
-		});
-
-		it("Shouldn't be able to withdraw for unknown token", async () => {
-			await expectRevert(feeSharingProxy.withdrawFees(loanToken.address), "FeeSharingProxy::withdrawFees: loan token not found");
+		it("Shouldn't be able to withdraw if wRBTC loan pool does not exist", async () => {
+			// Unset the loanPool for wRBTC
+			await sovryn.setLoanPool([loanTokenWrbtc.address], [ZERO_ADDRESS]);
+			await expectRevert(
+				feeSharingProxy.withdrawFees([loanTokenWrbtc.address]),
+				"FeeSharingProxy::withdrawFees: loan wRBTC not found"
+			);
 		});
 
 		it("Shouldn't be able to withdraw zero amount", async () => {
-			await expectRevert(feeSharingProxy.withdrawFees(SUSD.address), "FeeSharingProxy::withdrawFees: no tokens to withdraw");
+			await expectRevert(feeSharingProxy.withdrawFees([SUSD.address]), "FeeSharingProxy::withdrawFees: no tokens to withdraw");
 		});
 
 		it("ProtocolSettings.withdrawFees", async () => {
@@ -198,27 +280,34 @@ contract("FeeSharingProxy:", (accounts) => {
 			await stake(totalStake, root);
 
 			// mock data
-			let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+			let lendingFeeTokensHeld = new BN(wei("1", "ether"));
+			let tradingFeeTokensHeld = new BN(wei("2", "ether"));
+			let borrowingFeeTokensHeld = new BN(wei("3", "ether"));
+			let totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
 
+			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
+			// let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 			await sovryn.setFeesController(root);
-			let tx = await sovryn.withdrawFees(SUSD.address, account1);
+			let tx = await sovryn.withdrawFees([SUSD.address], account1);
 
 			await checkWithdrawFee();
 
-			// check pool tokens mint
-			let userBalance = await SUSD.balanceOf.call(account1);
+			// check WRBTC balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
+			let userBalance = await WRBTC.balanceOf.call(account1);
 			expect(userBalance.toString()).to.be.equal(feeAmount.toString());
 
 			expectEvent(tx, "WithdrawFees", {
 				sender: root,
 				token: SUSD.address,
 				receiver: account1,
-				lendingAmount: "100",
-				tradingAmount: "200",
-				borrowingAmount: "300",
+				lendingAmount: lendingFeeTokensHeld,
+				tradingAmount: tradingFeeTokensHeld,
+				borrowingAmount: borrowingFeeTokensHeld,
+				// amountConvertedToWRBTC
 			});
 		});
 
+		/// @dev Test coverage
 		it("ProtocolSettings.withdrawFees: Revert withdrawing by no feesController", async () => {
 			// stake - getPriorTotalVotingPower
 			let totalStake = 1000;
@@ -229,7 +318,7 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			await sovryn.setFeesController(root);
 
-			await expectRevert(sovryn.withdrawFees(SUSD.address, account1, { from: account1 }), "unauthorized");
+			await expectRevert(sovryn.withdrawFees([SUSD.address], account1, { from: account1 }), "unauthorized");
 		});
 
 		it("Should be able to withdraw fees", async () => {
@@ -238,32 +327,36 @@ contract("FeeSharingProxy:", (accounts) => {
 			await stake(totalStake, root);
 
 			// mock data
-			let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+			let lendingFeeTokensHeld = new BN(wei("1", "ether"));
+			let tradingFeeTokensHeld = new BN(wei("2", "ether"));
+			let borrowingFeeTokensHeld = new BN(wei("3", "ether"));
+			let totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
+			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
 
-			tx = await feeSharingProxy.withdrawFees(SUSD.address);
+			tx = await feeSharingProxy.withdrawFees([SUSD.address]);
 
 			await checkWithdrawFee();
 
-			// check pool tokens mint
-			let feeSharingProxyBalance = await loanToken.balanceOf.call(feeSharingProxy.address);
+			// check WRBTC balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
+			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
 			expect(feeSharingProxyBalance.toString()).to.be.equal(feeAmount.toString());
 
 			// checkpoints
-			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanToken.address);
+			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanTokenWrbtc.address);
 			expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
-			let checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanToken.address, 0);
+			let checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanTokenWrbtc.address, 0);
 			expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
 			expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
 
 			// check lastFeeWithdrawalTime
-			let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanToken.address);
+			let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanTokenWrbtc.address);
 			let block = await web3.eth.getBlock(tx.receipt.blockNumber);
 			expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
 
 			expectEvent(tx, "FeeWithdrawn", {
 				sender: root,
-				token: loanToken.address,
+				token: loanTokenWrbtc.address,
 				amount: feeAmount,
 			});
 		});
@@ -275,65 +368,93 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			// [FIRST]
 			// mock data
-			let feeAmount = await setFeeTokensHeld(new BN(0), new BN(500), new BN(700));
+			let mockAmountLendingFeeTokensHeld = 0;
+			let mockAmountTradingFeeTokensHeld = 1;
+			let mockAmountBorrowingFeeTokensHeld = 2;
+			let totalMockAmount1 = mockAmountLendingFeeTokensHeld + mockAmountTradingFeeTokensHeld + mockAmountBorrowingFeeTokensHeld;
+			let lendingFeeTokensHeld = new BN(mockAmountLendingFeeTokensHeld);
+			let tradingFeeTokensHeld = new BN(wei(mockAmountTradingFeeTokensHeld.toString(), "ether"));
+			let borrowingFeeTokensHeld = new BN(wei(mockAmountBorrowingFeeTokensHeld.toString(), "ether"));
+			let totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
+			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
 			let totalFeeAmount = feeAmount;
 
-			let tx = await feeSharingProxy.withdrawFees(SUSD.address);
+			let tx = await feeSharingProxy.withdrawFees([SUSD.address]);
+
 			await checkWithdrawFee();
 
-			// check pool tokens mint
-			let feeSharingProxyBalance = await loanToken.balanceOf.call(feeSharingProxy.address);
-			expect(feeSharingProxyBalance.toString()).to.be.equal(totalFeeAmount.toString());
+			// check WRBTC balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
+			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
+			expect(feeSharingProxyBalance.toString()).to.be.equal(feeAmount.toString());
 
 			// checkpoints
-			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanToken.address);
+			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanTokenWrbtc.address);
 			expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
-			let checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanToken.address, 0);
+			let checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanTokenWrbtc.address, 0);
 			expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
 			expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
 
 			// check lastFeeWithdrawalTime
-			let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanToken.address);
+			let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanTokenWrbtc.address);
 			let block = await web3.eth.getBlock(tx.receipt.blockNumber);
 			expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
 
 			// [SECOND]
 			// mock data
-			feeAmount = await setFeeTokensHeld(new BN(12345), new BN(0), new BN(0));
+			let mockAmountLendingFeeTokensHeld2 = 1;
+			let mockAmountTradingFeeTokensHeld2 = 0;
+			let mockAmountBorrowingFeeTokensHeld2 = 0;
+			let totalMockAmount2 = mockAmountTradingFeeTokensHeld2 + mockAmountBorrowingFeeTokensHeld2 + mockAmountLendingFeeTokensHeld2;
+			lendingFeeTokensHeld = new BN(wei(mockAmountLendingFeeTokensHeld2.toString(), "ether"));
+			tradingFeeTokensHeld = new BN(mockAmountTradingFeeTokensHeld2);
+			borrowingFeeTokensHeld = new BN(mockAmountBorrowingFeeTokensHeld2);
+			totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
+			feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
 			let unprocessedAmount = feeAmount;
 			totalFeeAmount = totalFeeAmount.add(feeAmount);
 
-			tx = await feeSharingProxy.withdrawFees(SUSD.address);
+			tx = await feeSharingProxy.withdrawFees([SUSD.address]);
+
+			// Need to checkwithdrawfee manually
 			await checkWithdrawFee();
 
-			// check pool tokens mint
-			feeSharingProxyBalance = await loanToken.balanceOf.call(feeSharingProxy.address);
+			// check WRBTC balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
+			feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
 			expect(feeSharingProxyBalance.toString()).to.be.equal(totalFeeAmount.toString());
 
 			// [THIRD]
 			// mock data
-			feeAmount = await setFeeTokensHeld(new BN(0), new BN(etherMantissa(1000).toString()), new BN(567));
+			let mockAmountLendingFeeTokensHeld3 = 0;
+			let mockAmountTradingFeeTokensHeld3 = 0.5;
+			let mockAmountBorrowingFeeTokensHeld3 = 0.5;
+			let totalMockAmount3 = mockAmountTradingFeeTokensHeld3 + mockAmountBorrowingFeeTokensHeld3 + mockAmountLendingFeeTokensHeld3;
+			lendingFeeTokensHeld = new BN(mockAmountLendingFeeTokensHeld3);
+			tradingFeeTokensHeld = new BN(wei(mockAmountTradingFeeTokensHeld3.toString(), "ether"));
+			borrowingFeeTokensHeld = new BN(wei(mockAmountBorrowingFeeTokensHeld3.toString(), "ether"));
+			totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
+			feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
 			totalFeeAmount = totalFeeAmount.add(feeAmount);
 
 			await increaseTime(FEE_WITHDRAWAL_INTERVAL);
-			tx = await feeSharingProxy.withdrawFees(SUSD.address);
+			tx = await feeSharingProxy.withdrawFees([SUSD.address]);
+			// In this state the price of SUSD/WRBTC already adjusted because of previous swap, so we need to consider this in the next swapFee calculation
 			await checkWithdrawFee();
 
-			// check pool tokens mint
-			feeSharingProxyBalance = await loanToken.balanceOf.call(feeSharingProxy.address);
+			// check WRBTC balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
+			feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
 			expect(feeSharingProxyBalance.toString()).to.be.equal(totalFeeAmount.toString());
 
 			// checkpoints
-			numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanToken.address);
+			numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanTokenWrbtc.address);
 			expect(numTokenCheckpoints.toNumber()).to.be.equal(2);
-			checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanToken.address, 1);
+			checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanTokenWrbtc.address, 1);
 			expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
 			expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.add(unprocessedAmount).toString());
 
-			// check lastFeeWithdrawalTime
-			lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanToken.address);
+			// // check lastFeeWithdrawalTime
+			lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanTokenWrbtc.address);
 			block = await web3.eth.getBlock(tx.receipt.blockNumber);
 			expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
 		});
@@ -422,14 +543,21 @@ contract("FeeSharingProxy:", (accounts) => {
 	});
 
 	describe("withdraw", () => {
-		it("Shouldn't be able to withdraw without checkpoints", async () => {
+		it("Shouldn't be able to withdraw without checkpoints (for token pool)", async () => {
 			await expectRevert(
 				feeSharingProxy.withdraw(loanToken.address, 0, account2, { from: account1 }),
 				"FeeSharingProxy::withdraw: _maxCheckpoints should be positive"
 			);
 		});
 
-		it("Shouldn't be able to withdraw zero amount", async () => {
+		it("Shouldn't be able to withdraw without checkpoints (for wRBTC pool)", async () => {
+			await expectRevert(
+				feeSharingProxy.withdraw(loanTokenWrbtc.address, 0, account2, { from: account1 }),
+				"FeeSharingProxy::withdraw: _maxCheckpoints should be positive"
+			);
+		});
+
+		it("Shouldn't be able to withdraw zero amount (for token pool)", async () => {
 			let fees = await feeSharingProxy.getAccumulatedFees(account1, loanToken.address);
 			expect(fees).to.be.bignumber.equal("0");
 
@@ -439,7 +567,17 @@ contract("FeeSharingProxy:", (accounts) => {
 			);
 		});
 
-		it("Shouldn't be able to withdraw to another account", async () => {
+		it("Shouldn't be able to withdraw zero amount (for wRBTC pool)", async () => {
+			let fees = await feeSharingProxy.getAccumulatedFees(account1, loanTokenWrbtc.address);
+			expect(fees).to.be.bignumber.equal("0");
+
+			await expectRevert(
+				feeSharingProxy.withdraw(loanTokenWrbtc.address, 10, ZERO_ADDRESS, { from: account1 }),
+				"FeeSharingProxy::withdrawFees: no tokens for a withdrawal"
+			);
+		});
+
+		it("Should be able to withdraw to another account", async () => {
 			// stake - getPriorTotalVotingPower
 			let rootStake = 700;
 			await stake(rootStake, root);
@@ -452,28 +590,80 @@ contract("FeeSharingProxy:", (accounts) => {
 			await stake(userStake, account1);
 
 			// mock data
-			let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+			let lendingFeeTokensHeld = new BN(wei("1", "ether"));
+			let tradingFeeTokensHeld = new BN(wei("2", "ether"));
+			let borrowingFeeTokensHeld = new BN(wei("3", "ether"));
+			let totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
+			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
 
-			await feeSharingProxy.withdrawFees(SUSD.address);
+			await feeSharingProxy.withdrawFees([SUSD.address]);
 
-			let fees = await feeSharingProxy.getAccumulatedFees(account1, loanToken.address);
+			let fees = await feeSharingProxy.getAccumulatedFees(account1, loanTokenWrbtc.address);
 			expect(fees).to.be.bignumber.equal(new BN(feeAmount).mul(new BN(3)).div(new BN(10)));
 
-			let tx = await feeSharingProxy.withdraw(loanToken.address, 1000, account2, { from: account1 });
+			let tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 1000, account2, { from: account1 });
 
 			// processedCheckpoints
-			let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+			let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanTokenWrbtc.address);
 			expect(processedCheckpoints.toNumber()).to.be.equal(1);
 
 			expectEvent(tx, "UserFeeWithdrawn", {
 				sender: account1,
 				receiver: account2,
-				token: loanToken.address,
+				token: loanTokenWrbtc.address,
 				amount: new BN(feeAmount).mul(new BN(3)).div(new BN(10)),
 			});
 		});
 
-		it("Should be able to withdraw", async () => {
+		it("Should be able to withdraw (token pool)", async () => {
+			// FeeSharingProxy
+			feeSharingProxy = await FeeSharingProxyMockup.new(sovryn.address, staking.address);
+			await sovryn.setFeesController(feeSharingProxy.address);
+
+			// stake - getPriorTotalVotingPower
+			let rootStake = 700;
+			await stake(rootStake, root);
+
+			let userStake = 300;
+			if (MOCK_PRIOR_WEIGHTED_STAKE) {
+				await staking.MOCK_priorWeightedStake(userStake * 10);
+			}
+			await SOVToken.transfer(account1, userStake);
+			await stake(userStake, account1);
+
+			// Mock (transfer loanToken to FeeSharingProxy contract)
+			const loanPoolTokenAddress = await sovryn.underlyingToLoanPool(SUSD.address);
+			const amountLend = new BN(wei("500", "ether"));
+			await SUSD.approve(loanPoolTokenAddress, amountLend);
+			await loanToken.mint(feeSharingProxy.address, amountLend);
+
+			// Check ISUSD Balance for feeSharingProxy
+			const feeSharingProxyLoanBalanceToken = await loanToken.balanceOf(feeSharingProxy.address);
+			expect(feeSharingProxyLoanBalanceToken.toString()).to.be.equal(amountLend.toString());
+
+			// Withdraw ISUSD from feeSharingProxy
+			// const initial
+			await feeSharingProxy.addCheckPoint(loanPoolTokenAddress, amountLend.toString());
+			let tx = await feeSharingProxy.trueWithdraw(loanToken.address, 10, ZERO_ADDRESS, { from: account1 });
+			const updatedFeeSharingProxyLoanBalanceToken = await loanToken.balanceOf(feeSharingProxy.address);
+			const updatedAccount1LoanBalanceToken = await loanToken.balanceOf(account1);
+			console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
+
+			expect(updatedFeeSharingProxyLoanBalanceToken.toString()).to.be.equal(((amountLend * 7) / 10).toString());
+			expect(updatedAccount1LoanBalanceToken.toString()).to.be.equal(((amountLend * 3) / 10).toString());
+
+			expectEvent(tx, "UserFeeWithdrawn", {
+				sender: account1,
+				receiver: account1,
+				token: loanToken.address,
+				amount: amountLend.mul(new BN(3)).div(new BN(10)),
+			});
+		});
+
+		it("Should be able to withdraw (WRBTC pool)", async () => {
+			/// @dev This test requires redeploying the protocol
+			await protocolDeploymentFixture();
+
 			// stake - getPriorTotalVotingPower
 			let rootStake = 700;
 			await stake(rootStake, root);
@@ -486,35 +676,50 @@ contract("FeeSharingProxy:", (accounts) => {
 			await stake(userStake, account1);
 
 			// mock data
-			let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+			let lendingFeeTokensHeld = new BN(wei("1", "gwei"));
+			let tradingFeeTokensHeld = new BN(wei("2", "gwei"));
+			let borrowingFeeTokensHeld = new BN(wei("3", "gwei"));
+			let totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
+			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
 
-			await feeSharingProxy.withdrawFees(SUSD.address);
+			await feeSharingProxy.withdrawFees([SUSD.address]);
 
-			let fees = await feeSharingProxy.getAccumulatedFees(account1, loanToken.address);
-			expect(fees).to.be.bignumber.equal(new BN(feeAmount).mul(new BN(3)).div(new BN(10)));
+			let fees = await feeSharingProxy.getAccumulatedFees(account1, loanTokenWrbtc.address);
+			expect(fees).to.be.bignumber.equal(feeAmount.mul(new BN(3)).div(new BN(10)));
 
-			let tx = await feeSharingProxy.withdraw(loanToken.address, 10, ZERO_ADDRESS, { from: account1 });
+			let userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
+			let tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 10, ZERO_ADDRESS, { from: account1 });
 			console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
+			let txFee = 8000000000 * tx.receipt.gasUsed;
 
+			userInitialBtcBalance = userInitialBtcBalance.sub(new BN(txFee));
 			// processedCheckpoints
-			let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+			let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanTokenWrbtc.address);
 			expect(processedCheckpoints.toNumber()).to.be.equal(1);
 
 			// check balances
-			let feeSharingProxyBalance = await loanToken.balanceOf.call(feeSharingProxy.address);
+			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
 			expect(feeSharingProxyBalance.toNumber()).to.be.equal((feeAmount * 7) / 10);
-			let userBalance = await loanToken.balanceOf.call(account1);
-			expect(userBalance.toNumber()).to.be.equal((feeAmount * 3) / 10);
+			let userLoanTokenBalance = await loanTokenWrbtc.balanceOf.call(account1);
+			expect(userLoanTokenBalance.toNumber()).to.be.equal(0);
+
+			let userLatestBTCBalance = new BN(await web3.eth.getBalance(account1));
+			expect(userLatestBTCBalance.toString()).to.be.equal(
+				userInitialBtcBalance.add(feeAmount.mul(new BN(3)).div(new BN(10))).toString()
+			);
 
 			expectEvent(tx, "UserFeeWithdrawn", {
 				sender: account1,
 				receiver: account1,
-				token: loanToken.address,
-				amount: new BN(feeAmount).mul(new BN(3)).div(new BN(10)),
+				token: loanTokenWrbtc.address,
+				amount: feeAmount.mul(new BN(3)).div(new BN(10)),
 			});
 		});
 
 		it("Should be able to withdraw using 3 checkpoints", async () => {
+			/// @dev This test requires redeploying the protocol
+			await protocolDeploymentFixture();
+
 			// stake - getPriorTotalVotingPower
 			let rootStake = 900;
 			await stake(rootStake, root);
@@ -528,57 +733,88 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			// [FIRST]
 			// mock data
-			let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+			let lendingFeeTokensHeld = new BN(wei("1", "gwei"));
+			let tradingFeeTokensHeld = new BN(wei("2", "gwei"));
+			let borrowingFeeTokensHeld = new BN(wei("3", "gwei"));
+			let totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
+			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
 			let totalFeeAmount = feeAmount;
-			await feeSharingProxy.withdrawFees(SUSD.address);
+			await feeSharingProxy.withdrawFees([SUSD.address]);
 
-			let tx = await feeSharingProxy.withdraw(loanToken.address, 1, ZERO_ADDRESS, { from: account1 });
+			let userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
+			let tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 1, ZERO_ADDRESS, { from: account1 });
 			console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
+			let txFee = 8000000000 * tx.receipt.gasUsed;
 
+			userInitialBtcBalance = userInitialBtcBalance.sub(new BN(txFee));
 			// processedCheckpoints
-			let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+			let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanTokenWrbtc.address);
 			expect(processedCheckpoints.toNumber()).to.be.equal(1);
 
 			// check balances
-			let feeSharingProxyBalance = await loanToken.balanceOf.call(feeSharingProxy.address);
+			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
 			expect(feeSharingProxyBalance.toNumber()).to.be.equal((totalFeeAmount * 9) / 10);
-			let userBalance = await loanToken.balanceOf.call(account1);
-			expect(userBalance.toNumber()).to.be.equal(totalFeeAmount / 10);
+			let userBalance = await loanTokenWrbtc.balanceOf.call(account1);
+			expect(userBalance.toNumber()).to.be.equal(0);
+
+			let userLatestBTCBalance = new BN(await web3.eth.getBalance(account1));
+			expect(userLatestBTCBalance.toString()).to.be.equal(
+				userInitialBtcBalance.add(totalFeeAmount.mul(new BN(1)).div(new BN(10))).toString()
+			);
 
 			// [SECOND]
 			// mock data
-			feeAmount = await setFeeTokensHeld(new BN(100), new BN(0), new BN(etherMantissa(123000).toString()));
+			let lendingFeeTokensHeld2 = new BN(wei("1", "gwei"));
+			let tradingFeeTokensHeld2 = new BN(wei("2", "gwei"));
+			let borrowingFeeTokensHeld2 = new BN(wei("3", "gwei"));
+			totalFeeTokensHeld = lendingFeeTokensHeld2.add(tradingFeeTokensHeld2).add(borrowingFeeTokensHeld2);
+			feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld2, tradingFeeTokensHeld2, borrowingFeeTokensHeld2);
 			totalFeeAmount = totalFeeAmount.add(feeAmount);
+			let totalLoanTokenWRBTCBalanceShouldBeAccount1 = feeAmount;
 			await increaseTime(FEE_WITHDRAWAL_INTERVAL);
-			await feeSharingProxy.withdrawFees(SUSD.address);
+			await feeSharingProxy.withdrawFees([SUSD.address]);
 
 			// [THIRD]
 			// mock data
-			feeAmount = await setFeeTokensHeld(
-				new BN(etherMantissa(123000).toString()),
-				new BN(etherMantissa(1000).toString()),
-				new BN(etherMantissa(54321).toString())
-			);
+			let lendingFeeTokensHeld3 = new BN(wei("1", "gwei"));
+			let tradingFeeTokensHeld3 = new BN(wei("2", "gwei"));
+			let borrowingFeeTokensHeld3 = new BN(wei("3", "gwei"));
+			totalFeeTokensHeld = lendingFeeTokensHeld3.add(tradingFeeTokensHeld3).add(borrowingFeeTokensHeld3);
+			feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld3, tradingFeeTokensHeld3, borrowingFeeTokensHeld3);
 			totalFeeAmount = totalFeeAmount.add(feeAmount);
+			totalLoanTokenWRBTCBalanceShouldBeAccount1 = totalLoanTokenWRBTCBalanceShouldBeAccount1.add(feeAmount);
 			await increaseTime(FEE_WITHDRAWAL_INTERVAL);
-			await feeSharingProxy.withdrawFees(SUSD.address);
+			await feeSharingProxy.withdrawFees([SUSD.address]);
 
 			// [SECOND] - [THIRD]
-			tx = await feeSharingProxy.withdraw(loanToken.address, 2, ZERO_ADDRESS, { from: account1 });
+			userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
+			tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 2, ZERO_ADDRESS, { from: account1 });
 			console.log("\nwithdraw(checkpoints = 2).gasUsed: " + tx.receipt.gasUsed);
+			txFee = 8000000000 * tx.receipt.gasUsed;
+
+			userInitialBtcBalance = userInitialBtcBalance.sub(new BN(txFee));
 
 			// processedCheckpoints
-			processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+			processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanTokenWrbtc.address);
 			expect(processedCheckpoints.toNumber()).to.be.equal(3);
 
 			// check balances
-			feeSharingProxyBalance = await loanToken.balanceOf.call(feeSharingProxy.address);
-			expect(feeSharingProxyBalance.toNumber()).to.be.equal(parseInt((totalFeeAmount * 9) / 10) + 1);
-			userBalance = await loanToken.balanceOf.call(account1);
-			expect(userBalance.toNumber()).to.be.equal(parseInt(totalFeeAmount / 10));
+			feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
+			expect(feeSharingProxyBalance.toNumber()).to.be.equal(parseInt((totalFeeAmount * 9) / 10));
+			userBalance = await loanTokenWrbtc.balanceOf.call(account1);
+			expect(userBalance.toNumber()).to.be.equal(0);
+
+			userLatestBTCBalance = new BN(await web3.eth.getBalance(account1));
+
+			expect(userLatestBTCBalance.toString()).to.be.equal(
+				userInitialBtcBalance.add(totalLoanTokenWRBTCBalanceShouldBeAccount1.mul(new BN(1)).div(new BN(10))).toString()
+			);
 		});
 
 		it("Should be able to process 10 checkpoints", async () => {
+			/// @dev This test requires redeploying the protocol
+			await protocolDeploymentFixture();
+
 			// stake - getPriorTotalVotingPower
 			await stake(900, root);
 			let userStake = 100;
@@ -591,14 +827,17 @@ contract("FeeSharingProxy:", (accounts) => {
 			// mock data
 			await createCheckpoints(10);
 
-			let tx = await feeSharingProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, { from: account1 });
+			let tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 1000, ZERO_ADDRESS, { from: account1 });
 			console.log("\nwithdraw(checkpoints = 10).gasUsed: " + tx.receipt.gasUsed);
 			// processedCheckpoints
-			let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+			let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanTokenWrbtc.address);
 			expect(processedCheckpoints.toNumber()).to.be.equal(10);
 		});
 
 		it("Should be able to process 10 checkpoints and 3 withdrawal", async () => {
+			/// @dev This test requires redeploying the protocol
+			await protocolDeploymentFixture();
+
 			// stake - getPriorTotalVotingPower
 			await stake(900, root);
 			let userStake = 100;
@@ -611,94 +850,97 @@ contract("FeeSharingProxy:", (accounts) => {
 			// mock data
 			await createCheckpoints(10);
 
-			let tx = await feeSharingProxy.withdraw(loanToken.address, 5, ZERO_ADDRESS, { from: account1 });
+			let tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 5, ZERO_ADDRESS, { from: account1 });
 			console.log("\nwithdraw(checkpoints = 5).gasUsed: " + tx.receipt.gasUsed);
 			// processedCheckpoints
-			let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+			let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanTokenWrbtc.address);
 			expect(processedCheckpoints.toNumber()).to.be.equal(5);
 
-			tx = await feeSharingProxy.withdraw(loanToken.address, 3, ZERO_ADDRESS, { from: account1 });
+			tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 3, ZERO_ADDRESS, { from: account1 });
 			console.log("\nwithdraw(checkpoints = 3).gasUsed: " + tx.receipt.gasUsed);
 			// processedCheckpoints
-			processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+			processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanTokenWrbtc.address);
 			expect(processedCheckpoints.toNumber()).to.be.equal(8);
 
-			tx = await feeSharingProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, { from: account1 });
+			tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 1000, ZERO_ADDRESS, { from: account1 });
 			console.log("\nwithdraw(checkpoints = 2).gasUsed: " + tx.receipt.gasUsed);
 			// processedCheckpoints
-			processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+			processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanTokenWrbtc.address);
 			expect(processedCheckpoints.toNumber()).to.be.equal(10);
 		});
 
-		// use for gas usage tests
+		// // use for gas usage tests
 		// it("Should be able to process 30 checkpoints", async () => {
-		// // stake - getPriorTotalVotingPower
-		// await stake(900, root);
-		// let userStake = 100;
-		// if (MOCK_PRIOR_WEIGHTED_STAKE) {
-		// await staking.MOCK_priorWeightedStake(userStake * 10);
-		// }
-		// await SOVToken.transfer(account1, userStake);
-		// await stake(userStake, account1);
+		//     // stake - getPriorTotalVotingPower
+		//     await stake(900, root);
+		//     let userStake = 100;
+		//     if (MOCK_PRIOR_WEIGHTED_STAKE) {
+		//         await staking.MOCK_priorWeightedStake(userStake * 10);
+		//     }
+		//     await SOVToken.transfer(account1, userStake);
+		//     await stake(userStake, account1);
 		//
-		// // mock data
-		// await createCheckpoints(30);
+		//     // mock data
+		//     await createCheckpoints(30);
 		//
-		// let tx = await feeSharingProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, {from: account1});
-		// console.log("\nwithdraw(checkpoints = 30).gasUsed: " + tx.receipt.gasUsed);
-		// // processedCheckpoints
-		// let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
-		// expect(processedCheckpoints.toNumber()).to.be.equal(30);
+		//     let tx = await feeSharingProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, {from: account1});
+		//     console.log("\nwithdraw(checkpoints = 30).gasUsed: " + tx.receipt.gasUsed);
+		//     // processedCheckpoints
+		//     let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+		//     expect(processedCheckpoints.toNumber()).to.be.equal(30);
 		// });
 		//
-		// use for gas usage tests
+		// // use for gas usage tests
 		// it("Should be able to process 100 checkpoints", async () => {
-		// // stake - getPriorTotalVotingPower
-		// await stake(900, root);
-		// let userStake = 100;
-		// if (MOCK_PRIOR_WEIGHTED_STAKE) {
-		// await staking.MOCK_priorWeightedStake(userStake * 10);
-		// }
-		// await SOVToken.transfer(account1, userStake);
-		// await stake(userStake, account1);
+		//     // stake - getPriorTotalVotingPower
+		//     await stake(900, root);
+		//     let userStake = 100;
+		//     if (MOCK_PRIOR_WEIGHTED_STAKE) {
+		//         await staking.MOCK_priorWeightedStake(userStake * 10);
+		//     }
+		//     await SOVToken.transfer(account1, userStake);
+		//     await stake(userStake, account1);
 		//
-		// // mock data
-		// await createCheckpoints(100);
+		//     // mock data
+		//     await createCheckpoints(100);
 		//
-		// let tx = await feeSharingProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, {from: account1});
-		// console.log("\nwithdraw(checkpoints = 500).gasUsed: " + tx.receipt.gasUsed);
-		// // processedCheckpoints
-		// let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
-		// expect(processedCheckpoints.toNumber()).to.be.equal(100);
+		//     let tx = await feeSharingProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, {from: account1});
+		//     console.log("\nwithdraw(checkpoints = 500).gasUsed: " + tx.receipt.gasUsed);
+		//     // processedCheckpoints
+		//     let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+		//     expect(processedCheckpoints.toNumber()).to.be.equal(100);
 		// });
 		//
-		// use for gas usage tests
+		// // use for gas usage tests
 		// it("Should be able to withdraw when staking contains a lot of checkpoints", async () => {
-		// let checkpointCount = 1000;
-		// await stake(1000, root, checkpointCount);
-		// let afterBlock = await blockNumber();
-		// console.log(afterBlock);
+		//     let checkpointCount = 1000;
+		//     await stake(1000, root, checkpointCount);
+		//     let afterBlock = await blockNumber();
+		//     console.log(afterBlock);
 		//
-		// let kickoffTS = await staking.kickoffTS.call();
-		// let stakingDate = kickoffTS.add(new BN(MAX_DURATION));
+		//     let kickoffTS = await staking.kickoffTS.call();
+		//     let stakingDate = kickoffTS.add(new BN(MAX_DURATION));
 		//
-		// let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints.call(root, stakingDate);
-		// let firstCheckpoint = await staking.userStakingCheckpoints.call(root, stakingDate, 0);
-		// let lastCheckpoint = await staking.userStakingCheckpoints.call(root, stakingDate, numUserStakingCheckpoints - 1);
-		// let block1 = firstCheckpoint.fromBlock.toNumber() + 1;
-		// let block2 = lastCheckpoint.fromBlock;
+		//     let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints.call(root, stakingDate);
+		//     let firstCheckpoint = await staking.userStakingCheckpoints.call(root, stakingDate, 0);
+		//     let lastCheckpoint = await staking.userStakingCheckpoints.call(root, stakingDate, numUserStakingCheckpoints - 1);
+		//     let block1 = firstCheckpoint.fromBlock.toNumber() + 1;
+		//     let block2 = lastCheckpoint.fromBlock;
 		//
-		// console.log("numUserStakingCheckpoints = " + numUserStakingCheckpoints.toString());
-		// console.log("first = " + firstCheckpoint.fromBlock.toString());
-		// console.log("last = " + lastCheckpoint.fromBlock.toString());
+		//     console.log("numUserStakingCheckpoints = " + numUserStakingCheckpoints.toString());
+		//     console.log("first = " + firstCheckpoint.fromBlock.toString());
+		//     console.log("last = " + lastCheckpoint.fromBlock.toString());
 		//
-		// let tx = await staking.calculatePriorWeightedStake(root, block1, stakingDate);
-		// console.log("\ncalculatePriorWeightedStake(checkpoints = " + checkpointCount + ").gasUsed: " + tx.receipt.gasUsed);
-		// tx = await staking.calculatePriorWeightedStake(root, block2, stakingDate);
-		// console.log("\ncalculatePriorWeightedStake(checkpoints = " + checkpointCount + ").gasUsed: " + tx.receipt.gasUsed);
+		//     let tx = await staking.calculatePriorWeightedStake(root, block1, stakingDate);
+		//     console.log("\ncalculatePriorWeightedStake(checkpoints = " + checkpointCount + ").gasUsed: " + tx.receipt.gasUsed);
+		//     tx = await staking.calculatePriorWeightedStake(root, block2, stakingDate);
+		//     console.log("\ncalculatePriorWeightedStake(checkpoints = " + checkpointCount + ").gasUsed: " + tx.receipt.gasUsed);
 		// });
 
 		it("Should be able to withdraw with staking for 78 dates", async () => {
+			/// @dev This test requires redeploying the protocol
+			await protocolDeploymentFixture();
+
 			// stake - getPriorTotalVotingPower
 			let rootStake = 700;
 			await stake(rootStake, root);
@@ -720,13 +962,16 @@ contract("FeeSharingProxy:", (accounts) => {
 			// mock data
 			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 
-			await feeSharingProxy.withdrawFees(SUSD.address);
+			await feeSharingProxy.withdrawFees([SUSD.address]);
 
-			let tx = await feeSharingProxy.withdraw(loanToken.address, 10, ZERO_ADDRESS, { from: account1 });
+			let tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 10, ZERO_ADDRESS, { from: account1 });
 			console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
 		});
 
 		it("should compute the weighted stake and show gas usage", async () => {
+			/// @dev This test requires redeploying the protocol
+			await protocolDeploymentFixture();
+
 			await stake(100, root);
 			let kickoffTS = await staking.kickoffTS.call();
 			let stakingDate = kickoffTS.add(new BN(MAX_DURATION));
@@ -736,6 +981,52 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			let tx = await staking.calculatePriorWeightedStake(root, result.receipt.blockNumber, stakingDate);
 			console.log("\ngasUsed: " + tx.receipt.gasUsed);
+		});
+	});
+
+	describe("withdraw with or considering vesting contracts", () => {
+		it("getAccumulatedFees should return 0 for vesting contracts", async () => {
+			/// @dev This test requires redeploying the protocol
+			await protocolDeploymentFixture();
+
+			let { vestingInstance } = await createVestingContractWithSingleDate(new BN(MAX_DURATION), 1000, root);
+			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+			let fees = await feeSharingProxy.getAccumulatedFees(vestingInstance.address, loanToken.address);
+			expect(fees).to.be.bignumber.equal("0");
+		});
+
+		it("vesting contract should not be able to withdraw fees", async () => {
+			/// @dev This test requires redeploying the protocol
+			await protocolDeploymentFixture();
+
+			let { vestingInstance } = await createVestingContractWithSingleDate(new BN(MAX_DURATION), 1000, root);
+			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+			await expectRevert(
+				vestingInstance.collectDividends(loanToken.address, 5, root),
+				"FeeSharingProxy::withdrawFees: no tokens for a withdrawal"
+			);
+		});
+
+		it("vested stakes should be deducted from total weighted stake on share distribution", async () => {
+			/// @dev This test requires redeploying the protocol
+			await protocolDeploymentFixture();
+
+			// 50% vested 50% voluntary stakes
+			await createVestingContractWithSingleDate(new BN(MAX_DURATION), 1000, root);
+			let userStake = 1000;
+			if (MOCK_PRIOR_WEIGHTED_STAKE) {
+				await staking.MOCK_priorWeightedStake(userStake * 10);
+			}
+			await SOVToken.transfer(account1, userStake);
+			await stake(userStake, account1);
+
+			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+			let tx = await feeSharingProxy.withdrawFees([SUSD.address]);
+			let feesWithdrawn = tx.logs[1].args.amount;
+			let userFees = await feeSharingProxy.getAccumulatedFees(account1, loanTokenWrbtc.address);
+
+			// 100% of the fees should go to the user -> vesting contract not considered
+			expect(feesWithdrawn).to.be.bignumber.equal(userFees);
 		});
 	});
 
@@ -784,7 +1075,27 @@ contract("FeeSharingProxy:", (accounts) => {
 		for (let i = 0; i < number; i++) {
 			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 			await increaseTime(FEE_WITHDRAWAL_INTERVAL);
-			await feeSharingProxy.withdrawFees(SUSD.address);
+			await feeSharingProxy.withdrawFees([SUSD.address]);
 		}
+	}
+
+	async function createVestingContractWithSingleDate(cliff, amount, tokenOwner) {
+		vestingLogic = await VestingLogic.new();
+		let vestingInstance = await Vesting.new(
+			vestingLogic.address,
+			SOVToken.address,
+			staking.address,
+			tokenOwner,
+			cliff,
+			cliff,
+			feeSharingProxy.address
+		);
+		vestingInstance = await VestingLogic.at(vestingInstance.address);
+		// important, so it's recognized as vesting contract
+		await staking.addContractCodeHash(vestingInstance.address);
+
+		await SOVToken.approve(vestingInstance.address, amount);
+		let result = await vestingInstance.stakeTokens(amount);
+		return { vestingInstance: vestingInstance, blockNumber: result.receipt.blockNumber };
 	}
 });

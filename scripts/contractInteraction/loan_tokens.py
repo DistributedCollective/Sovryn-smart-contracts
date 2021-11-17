@@ -179,6 +179,37 @@ def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collat
     #assert the trade was processed as expected
     print(tx.info())
 
+def borrowRBTCWithMultisigUsingSOV(withdrawAmount, receiver):
+    print("amount: ", withdrawAmount)
+
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iRBTC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    sovToken = Contract.from_abi("SOV", address = conf.contracts['SOV'], abi = TestToken.abi, owner = conf.acct)
+
+    durationInSeconds = 28*24*60*60 # 28 days
+    collateralTokenSent = loanToken.getDepositAmountForBorrow(withdrawAmount, durationInSeconds, conf.contracts['SOV'])
+    print("collateral needed", collateralTokenSent/1e18)
+    
+    #approve the transfer of the collateral if needed
+    if(sovToken.allowance(conf.contracts['multisig'], loanToken.address) < collateralTokenSent):
+        data = sovToken.approve.encode_input(loanToken.address, collateralTokenSent)
+        print('approving the transfer')
+        sendWithMultisig(conf.contracts['multisig'], sovToken.address, data, conf.acct)
+    
+    # borrow some funds
+    data = loanToken.borrow.encode_input(
+        "0",                            # bytes32 loanId
+        withdrawAmount,                 # uint256 withdrawAmount
+        durationInSeconds,              # uint256 initialLoanDuration
+        collateralTokenSent,            # uint256 collateralTokenSent
+        sovToken.address,               # address collateralTokenAddress
+        conf.contracts['multisig'],     # address borrower
+        receiver,                       # address receiver
+        b''
+    )
+    print('borrowing and sending tokens to ', receiver)
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+
 '''
 sets a collateral token address as collateral for borrowing
 '''

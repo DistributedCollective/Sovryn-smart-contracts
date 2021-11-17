@@ -15,13 +15,13 @@ def main():
 
     balanceBefore = acct.balance()
 
+    # Shows the current voting power
+    # currentVotingPower(acct)
+
     # Call the function you want here
-    currentVotingPower(acct)
 
-    #createProposalSIP0020()
-    #createProposalSIP0019()
+    createProposalSIP0038()
 
-    createProposalSIP0024()
     balanceAfter = acct.balance()
 
     print("=============================================================")
@@ -240,4 +240,61 @@ def createProposalSIP0024():
     description = "SIP-0024: Liquid SOV Incentive Rewards for Fully Vested Stakers: https://github.com/DistributedCollective/SIPS/blob/5fcbcac9e7/SIP-0024.md, sha256: 05065938663108381afc1d30d97a0144d83fe15e53b8be79f4c0cec088ec1321"
 
     # Create Proposal
+    # createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
+
+def createProposalSIP0030():
+    # TODO StakingLogic4 should be deployed
+    # TODO FeeSharingProxy2 should be deployed
+    # TODO VestingRegistryProxy should be deployed
+
+    stakingProxy = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    stakingImpl = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking'], contracts['Staking'], contracts['Staking']]
+    values = [0, 0, 0]
+    signatures = ["setImplementation(address)", "setFeeSharing(address)", "setVestingRegistry(address)"]
+    data1 = stakingProxy.setImplementation.encode_input(contracts['StakingLogic4'])
+    data2 = stakingImpl.setFeeSharing.encode_input(contracts['FeeSharingProxy'])
+    data3 = stakingImpl.setVestingRegistry.encode_input(contracts['VestingRegistryProxy'])
+    datas = ["0x" + data1[10:], "0x" + data2[10:], "0x" + data3[10:]]
+    description = "SIP-30: Concentrating staking revenues, Details: https://github.com/DistributedCollective/SIPS/blob/12bdd48/SIP-30.md, sha256: 8f7f95545d968dc4d9a37b9cad4228b562c76b7617c2740b221b1f70eb367620"
+
+    print(datas)
+    print(description)
+
+    # Create Proposal
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+def createProposalSIP0035():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["name()"]
+    data = ["0x"]
+    description = "SIP-0035: Origins as a Subprotocol: https://github.com/DistributedCollective/SIPS/blob/04baceb/SIP-0035.md, sha256: 1f85180a76c58a2b382049e5f846c512a61b3459d193dc74c7eb3babf89bd1ba"
+
+    # Create Proposal
     createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
+
+def createProposalSIP0037():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0037: The Sovryn Mynt: https://github.com/DistributedCollective/SIPS/blob/8bd786c/SIP-0037.md, sha256: 35904333545f2df983173e5e95a31020fbc2e3922a70f23e5bae94ee94194a3e"
+
+    # Create Proposal
+    createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
+
+def createProposalSIP0038():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0038: Add Brazilian Real Stablecoin BRZ as Collateral: https://github.com/DistributedCollective/SIPS/blob/a216843/SIP-0038.md, sha256: d57ba8bea41e73ce00d9e25b2a6d1736db2f6bbba7ffa43c6ab3d23eae8bb15e"
+
+    # Create Proposal
+    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)

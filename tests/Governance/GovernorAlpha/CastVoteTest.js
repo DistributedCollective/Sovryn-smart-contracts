@@ -24,7 +24,7 @@ const BigNumber = require("bignumber.js");
 const { getAccountsPrivateKeysBuffer } = require("../../Utils/hardhat_utils");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
-const StakingLogic = artifacts.require("Staking");
+const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 

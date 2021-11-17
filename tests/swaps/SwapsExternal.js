@@ -23,6 +23,7 @@ const LockedSOV = artifacts.require("LockedSOV");
 
 const LoanToken = artifacts.require("LoanToken");
 const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
+const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 const SwapsExternal = artifacts.require("SwapsExternal");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
@@ -31,6 +32,7 @@ const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 
+const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 
 const VestingLogic = artifacts.require("VestingLogic");
@@ -102,9 +104,23 @@ contract("SwapsExternal", (accounts) => {
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 
-		// FeeSharingProxy
-		feeSharingProxy = await FeeSharingProxy.new(sovryn.address, staking.address);
+		//FeeSharingProxy
+		feeSharingLogic = await FeeSharingLogic.new();
+		feeSharingProxyObj = await FeeSharingProxy.new(sovryn.address, staking.address);
+		await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
+		feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
 		await sovryn.setFeesController(feeSharingProxy.address);
+
+		// Set loan pool for wRBTC -- because our fee sharing proxy required the loanPool of wRBTC
+		loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
+		loanTokenWrbtc = await LoanToken.new(accounts[0], loanTokenLogicWrbtc.address, sovryn.address, WRBTC.address);
+		await loanTokenWrbtc.initialize(WRBTC.address, "iWRBTC", "iWRBTC");
+
+		loanTokenWrbtc = await LoanTokenLogicWrbtc.at(loanTokenWrbtc.address);
+		const loanTokenAddressWrbtc = await loanTokenWrbtc.loanTokenAddress();
+		await sovryn.setLoanPool([loanTokenWrbtc.address], [loanTokenAddressWrbtc]);
+
+		await WRBTC.mint(sovryn.address, wei("500", "ether"));
 
 		// Creating the Vesting Instance.
 		vestingLogic = await VestingLogic.new();
@@ -119,7 +135,9 @@ contract("SwapsExternal", (accounts) => {
 		vestingFactory.transferOwnership(vestingRegistry.address);
 
 		await sovryn.setLockedSOVAddress(
-			(await LockedSOV.new(SOVToken.address, vestingRegistry.address, cliff, duration, [lender])).address
+			(
+				await LockedSOV.new(SOVToken.address, vestingRegistry.address, cliff, duration, [lender])
+			).address
 		);
 
 		params = [
@@ -176,7 +194,7 @@ contract("SwapsExternal", (accounts) => {
 		it("Doesn't allow swaps if token address contract unavailable", async () => {
 			await expectRevert(
 				sovryn.swapExternal(ZERO_ADDRESS, WRBTC.address, accounts[0], accounts[0], 100, 0, 0, "0x"),
-				"function call to a non-contract account"
+				"call to non-contract"
 			);
 		});
 
@@ -312,12 +330,17 @@ contract("SwapsExternal", (accounts) => {
 			let kickoffTS = await staking.kickoffTS.call();
 			await staking.stake(amount, kickoffTS.add(new BN(TWO_WEEKS)), lender, lender, { from: lender });
 
-			const tx = await feeSharingProxy.withdrawFees(SUSD.address);
+			const tx = await feeSharingProxy.withdrawFees([SUSD.address]);
+
+			let swapFee = amount.mul(trading_fee_percent).div(new BN(wei("100", "ether")));
+
+			// need to sub by swap fee because at this point, protocol will received the trading fee again.
+			loanTokenWRBTCBalanceShouldBe = amount.mul(new BN(1)).sub(swapFee);
 
 			expectEvent(tx, "FeeWithdrawn", {
 				sender: lender,
-				token: loanToken.address,
-				amount: trading_fee,
+				token: loanTokenWrbtc.address,
+				amount: loanTokenWRBTCBalanceShouldBe,
 			});
 		});
 

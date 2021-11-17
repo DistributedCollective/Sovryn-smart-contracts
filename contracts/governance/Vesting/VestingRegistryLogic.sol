@@ -95,7 +95,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 		for (uint256 i = 0; i < _tokenOwners.length; i++) {
 			require(_tokenOwners[i] != address(0), "token owner cannot be 0 address");
 			require(_vestingCreationTypes[i] > 0, "vesting creation type must be greater than 0");
-			_getDeployedVestings(_tokenOwners[i], _vestingCreationTypes[i]);
+			_addDeployedVestings(_tokenOwners[i], _vestingCreationTypes[i]);
 		}
 	}
 
@@ -114,7 +114,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 		uint256 _cliff,
 		uint256 _duration
 	) external onlyAuthorized {
-		createVestingAddr(_tokenOwner, _amount, _cliff, _duration, 0);
+		createVestingAddr(_tokenOwner, _amount, _cliff, _duration, 3);
 	}
 
 	/**
@@ -177,7 +177,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 	 * @dev vestingCreationType 0 - LockedSOV
 	 */
 	function getVesting(address _tokenOwner) public view returns (address) {
-		return getVestingAddr(_tokenOwner, lockedSOV.cliff(), lockedSOV.duration(), 0);
+		return getVestingAddr(_tokenOwner, lockedSOV.cliff(), lockedSOV.duration(), 3);
 	}
 
 	/**
@@ -242,32 +242,40 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 	/**
 	 * @notice stores the addresses of Vesting contracts from all three previous versions of Vesting Registry
 	 */
-	function _getDeployedVestings(address _tokenOwner, uint256 _vestingCreationType) internal {
-		uint256 vestingType = 1;
-		uint256 teamVestingType = 0;
+	function _addDeployedVestings(address _tokenOwner, uint256 _vestingCreationType) internal {
 		uint256 uid;
-		uint256 length = vestingRegistries.length;
-		for (uint256 i = 0; i < length; i++) {
-			address vestingAddress = vestingRegistries[i].getVesting(_tokenOwner);
-			if (vestingAddress != address(0)) {
-				VestingLogic vesting = VestingLogic(vestingAddress);
-				uid = uint256(
-					keccak256(abi.encodePacked(_tokenOwner, vestingType, vesting.cliff(), vesting.duration(), _vestingCreationType))
-				);
-				vestings[uid] = Vesting(vestingType, _vestingCreationType, vestingAddress);
-				vestingsOf[_tokenOwner].push(uid);
-				isVesting[vestingAddress] = true;
-			}
-			address teamVestingAddress = vestingRegistries[i].getTeamVesting(_tokenOwner);
-			if (teamVestingAddress != address(0)) {
-				VestingLogic vesting = VestingLogic(teamVestingAddress);
-				uid = uint256(
-					keccak256(abi.encodePacked(_tokenOwner, teamVestingType, vesting.cliff(), vesting.duration(), _vestingCreationType))
-				);
-				vestings[uid] = Vesting(teamVestingType, _vestingCreationType, teamVestingAddress);
-				vestingsOf[_tokenOwner].push(uid);
-				isVesting[teamVestingAddress] = true;
-			}
+		uint256 i = _vestingCreationType - 1;
+
+		address vestingAddress = vestingRegistries[i].getVesting(_tokenOwner);
+		if (vestingAddress != address(0)) {
+			VestingLogic vesting = VestingLogic(vestingAddress);
+			uid = uint256(
+				keccak256(
+					abi.encodePacked(_tokenOwner, uint256(VestingType.Vesting), vesting.cliff(), vesting.duration(), _vestingCreationType)
+				)
+			);
+			vestings[uid] = Vesting(uint256(VestingType.Vesting), _vestingCreationType, vestingAddress);
+			vestingsOf[_tokenOwner].push(uid);
+			isVesting[vestingAddress] = true;
+		}
+
+		address teamVestingAddress = vestingRegistries[i].getTeamVesting(_tokenOwner);
+		if (teamVestingAddress != address(0)) {
+			VestingLogic vesting = VestingLogic(teamVestingAddress);
+			uid = uint256(
+				keccak256(
+					abi.encodePacked(
+						_tokenOwner,
+						uint256(VestingType.TeamVesting),
+						vesting.cliff(),
+						vesting.duration(),
+						_vestingCreationType
+					)
+				)
+			);
+			vestings[uid] = Vesting(uint256(VestingType.TeamVesting), _vestingCreationType, teamVestingAddress);
+			vestingsOf[_tokenOwner].push(uid);
+			isVesting[teamVestingAddress] = true;
 		}
 	}
 

@@ -30,6 +30,7 @@ const {
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV = artifacts.require("SOV");
+const TestWrbtc = artifacts.require("TestWrbtc");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogicMockup");
 const Vesting = artifacts.require("TeamVesting");
@@ -58,6 +59,7 @@ contract("Vesting", (accounts) => {
 	before(async () => {
 		[root, a1, a2, a3, ...accounts] = accounts;
 		token = await SOV.new(TOTAL_SUPPLY);
+		wrbtc = await TestWrbtc.new();
 
 		vestingLogic = await VestingLogic.new();
 

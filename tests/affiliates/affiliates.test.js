@@ -125,7 +125,11 @@ contract("Affiliates", (accounts) => {
 		vestingFactory.transferOwnership(vestingRegistry.address);
 
 		// Creating the instance of newLockedSOV Contract.
-		await sovryn.setLockedSOVAddress((await LockedSOV.new(SUSD.address, vestingRegistry.address, cliff, duration, [owner])).address);
+		await sovryn.setLockedSOVAddress(
+			(
+				await LockedSOV.new(SUSD.address, vestingRegistry.address, cliff, duration, [owner])
+			).address
+		);
 		lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 
 		// initialize
