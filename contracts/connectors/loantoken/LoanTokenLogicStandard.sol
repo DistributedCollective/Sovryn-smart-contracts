@@ -6,7 +6,6 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./modules/shared/LoanTokenSettingsLowerAdmin.sol";
 import "./LoanTokenLogicStorage.sol";
 import "./interfaces/ProtocolLike.sol";
 import "./interfaces/FeedsLike.sol";
@@ -1508,6 +1507,16 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 */
 	function setLiquidityMiningAddress(address LMAddress) external onlyOwner {
 		liquidityMiningAddress = LMAddress;
+	}
+
+	/**
+	 * @notice We need separate getter for newly added storage variable
+	 * @notice Getter for liquidityMiningAddress
+
+	 * @return liquidityMiningAddress
+	 */
+	function getLiquidityMiningAddress() public view returns (address) {
+		return liquidityMiningAddress;
 	}
 
 	function _mintWithLM(address receiver, uint256 depositAmount) internal returns (uint256 minted) {
