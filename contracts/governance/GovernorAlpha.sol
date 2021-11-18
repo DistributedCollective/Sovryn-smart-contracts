@@ -526,12 +526,9 @@ contract GovernorAlpha is SafeMath96 {
 		}
 
 		uint96 totalVotes = add96(proposal.forVotes, proposal.againstVotes, "GovernorAlpha:: state: forVotes + againstVotes > uint96");
-		uint96 totalVotesMajorityPercentage = div96(totalVotes, 100, "GovernorAlpha:: state: division error");
-		totalVotesMajorityPercentage = mul96(
-			totalVotesMajorityPercentage,
-			majorityPercentageVotes,
-			"GovernorAlpha:: state: totalVotes * majorityPercentage > uint96"
-		);
+		uint96 totalVotesMajorityPercentage =
+			mul96(totalVotes, majorityPercentageVotes, "GovernorAlpha:: state: totalVotes * majorityPercentage > uint96");
+		totalVotesMajorityPercentage = div96(totalVotesMajorityPercentage, 100, "GovernorAlpha:: state: division error");
 		if (proposal.forVotes <= totalVotesMajorityPercentage || totalVotes < proposal.quorum) {
 			return ProposalState.Defeated;
 		}
