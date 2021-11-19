@@ -689,8 +689,36 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			let userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
 			let tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 10, ZERO_ADDRESS, { from: account1 });
+
+			/// @dev To anticipate gas consumption it is required to split hardhat
+			///   behaviour into two different scenarios: coverage and regular testing.
+			///   On coverage gasPrice = 1, on regular tests gasPrice = 8000000000
+			//
+			// On coverage:
+			// Fees:                 1800000000
+			// Balance: 10000000000000000000000
+			// Balance: 10000000000001799398877
+			// withdraw().gasUsed:       601123
+			// txFee:                    601123
+			//
+			// On regular test:
+			// Fees:                 1800000000
+			// Balance: 10000000000000000000000
+			// Balance:  9999996433281800000000
+			// withdraw().gasUsed:       445840
+			// txFee:          3566720000000000
+			let userLatestBTCBalance = new BN(await web3.eth.getBalance(account1));
+			let gasPrice;
+			/// @dev A balance decrease (negative difference) corresponds to regular test case
+			if (userLatestBTCBalance.sub(userInitialBtcBalance).toString()[0] == "-") {
+				gasPrice = new BN(8000000000);
+			} // regular test
+			else {
+				gasPrice = new BN(1);
+			} // coverage
+
 			console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
-			let txFee = 8000000000 * tx.receipt.gasUsed;
+			let txFee = new BN(tx.receipt.gasUsed).mul(gasPrice);
 
 			userInitialBtcBalance = userInitialBtcBalance.sub(new BN(txFee));
 			// processedCheckpoints
@@ -702,11 +730,8 @@ contract("FeeSharingProxy:", (accounts) => {
 			expect(feeSharingProxyBalance.toNumber()).to.be.equal((feeAmount * 7) / 10);
 			let userLoanTokenBalance = await loanTokenWrbtc.balanceOf.call(account1);
 			expect(userLoanTokenBalance.toNumber()).to.be.equal(0);
-
-			let userLatestBTCBalance = new BN(await web3.eth.getBalance(account1));
-			expect(userLatestBTCBalance.toString()).to.be.equal(
-				userInitialBtcBalance.add(feeAmount.mul(new BN(3)).div(new BN(10))).toString()
-			);
+			let userExpectedBtcBalance = userInitialBtcBalance.add(feeAmount.mul(new BN(3)).div(new BN(10)));
+			expect(userLatestBTCBalance.toString()).to.be.equal(userExpectedBtcBalance.toString());
 
 			expectEvent(tx, "UserFeeWithdrawn", {
 				sender: account1,
