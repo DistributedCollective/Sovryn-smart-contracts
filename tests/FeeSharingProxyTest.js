@@ -794,7 +794,6 @@ contract("FeeSharingProxy:", (accounts) => {
 			let userBalance = await loanTokenWrbtc.balanceOf.call(account1);
 			expect(userBalance.toNumber()).to.be.equal(0);
 
-			let userLatestBTCBalance = new BN(await web3.eth.getBalance(account1));
 			expect(userLatestBTCBalance.toString()).to.be.equal(
 				userInitialBtcBalance.add(totalFeeAmount.mul(new BN(1)).div(new BN(10))).toString()
 			);
@@ -827,7 +826,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
 			tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 2, ZERO_ADDRESS, { from: account1 });
 			console.log("\nwithdraw(checkpoints = 2).gasUsed: " + tx.receipt.gasUsed);
-			txFee = 8000000000 * tx.receipt.gasUsed;
+			txFee = new BN(tx.receipt.gasUsed).mul(gasPrice);
 
 			userInitialBtcBalance = userInitialBtcBalance.sub(new BN(txFee));
 
