@@ -27,31 +27,25 @@ def main():
     #load the contracts and acct depending on the network
     conf.loadConfig()
 
-    #call the function you want here
-    #replaceLoanOpenings()
-    #replaceLoanSettings()
-    #replaceLoanTokenLogicOnAllContracts()
+    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iXUSD'])
+    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iRBTC'])
+    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iBPro'])
+    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iDOC'])
+    # setSupportedToken(conf.contracts['BNBs'])
 
-    #setSupportedToken(conf.contracts['SOV'])
-    #setupTorqueLoanParams(conf.contracts['iXUSD'], conf.contracts['XUSD'], conf.contracts['SOV'], Wei("200 ether"))
-    #setupTorqueLoanParams(conf.contracts['iRBTC'], conf.contracts['WRBTC'], conf.contracts['SOV'], Wei("200 ether"))
+    #updateLockedSOV()
 
-    #for i in range(655, 665):
-    #    checkTx(i)
+    #withdrawRBTCFromWatcher(20e18, conf.contracts['FastBTC'])
 
-    #minInitialMargin('0xe6686993f04396fc9a653df98ff3c5bab41023f0f2b4b1ea33f38c2c2200a787')
-    #getDepositAmountForBorrow(conf.contracts['iXUSD'], 1e18, 7*24*60*60, conf.contracts['SOV'])
-    #readv1PoolOracleAddress(conf.contracts['SOV'])
+    #this needs to be tested first. for direct trasnfer to fastbtc use the fastbtc contract address as receiver
+    #borrowRBTCWithMultisigUsingSOV(withdrawAmount, receiver)
 
-    #readPrice(conf.contracts['SOV'], conf.contracts['XUSD'])
-    #readPrice(conf.contracts['XUSD'],conf.contracts['SOV'])
-    #readPrice(conf.contracts['WRBTC'],conf.contracts['SOV'])
-    #readPriceFromOracle(conf.contracts['WRBTCtoSOVOracle'])
-    #readPriceFromOracle(conf.contracts['WRBTCtoXUSDOracle'])
-    #readPriceFromOracle(conf.contracts['SOVPoolOracle'])
-    #readPriceFromOracle('0x28A05da0939853F7Bc9D5A17C9550D2769eE93D3')
-    #deployOracleV1Pool(conf.contracts['SOV'], conf.contracts["WRBTCtoSOVOracle"])
+    #withdrawTokensFromWatcher(conf.contracts['XUSD'], 100e18, '0x051B89f575fCd540F0a6a5B49c75f9a83BB2Cf07')
+    #balance = getBalance(conf.contracts['XUSD'], conf.contracts['Watcher'])
+    #print(balance)
+    #withdrawTokensFromWatcher(conf.contracts['XUSD'], 100e18, conf.contracts['multisig'])
 
-    #confirmWithMS(668)
-
-    sendTokensFromMultisig(conf.contracts['XUSD'], '0xab6e5c658f1ea88bc4fc8fe87fdaa10d8bf53c69', 350000e18)
+    balance = getBalance(conf.contracts['XUSD'], conf.contracts['multisig'])
+    print(balance)
+    if(balance > 0):
+        sendTokensFromMultisig(conf.contracts['XUSD'], '0x051B89f575fCd540F0a6a5B49c75f9a83BB2Cf07', balance)

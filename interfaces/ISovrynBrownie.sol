@@ -77,7 +77,7 @@ contract ISovrynBrownie is
 
 	function setFeesController(address newController) external;
 
-	function withdrawFees(address token, address receiver) external returns (uint256);
+	function withdrawFees(address[] calldata tokens, address receiver) external returns (uint256);
 
 	function withdrawLendingFees(
 		address token,
@@ -297,6 +297,7 @@ contract ISovrynBrownie is
 		bytes32 loanId;
 		address loanToken;
 		address collateralToken;
+		address borrower;
 		uint256 principal;
 		uint256 collateral;
 		uint256 interestOwedPerDay;
@@ -309,6 +310,7 @@ contract ISovrynBrownie is
 		uint256 endTimestamp;
 		uint256 maxLiquidatable;
 		uint256 maxSeizable;
+		uint256 creationTimestamp;
 	}
 
 	function getUserLoans(
