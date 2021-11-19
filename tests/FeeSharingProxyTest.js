@@ -768,8 +768,20 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			let userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
 			let tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 1, ZERO_ADDRESS, { from: account1 });
+
+			/// @dev Same as above gas consumption is different on regular tests than on coverge
+			let userLatestBTCBalance = new BN(await web3.eth.getBalance(account1));
+			let gasPrice;
+			/// @dev A balance decrease (negative difference) corresponds to regular test case
+			if (userLatestBTCBalance.sub(userInitialBtcBalance).toString()[0] == "-") {
+				gasPrice = new BN(8000000000);
+			} // regular test
+			else {
+				gasPrice = new BN(1);
+			} // coverage
+
 			console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
-			let txFee = 8000000000 * tx.receipt.gasUsed;
+			let txFee = new BN(tx.receipt.gasUsed).mul(gasPrice);
 
 			userInitialBtcBalance = userInitialBtcBalance.sub(new BN(txFee));
 			// processedCheckpoints
