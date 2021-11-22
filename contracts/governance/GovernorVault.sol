@@ -2,6 +2,7 @@ pragma solidity ^0.5.17;
 
 import "../openzeppelin/Ownable.sol";
 import "../interfaces/IERC20.sol";
+import "../openzeppelin/Address.sol";
 
 /**
  * @title Governance Vault.
@@ -43,7 +44,7 @@ contract GovernorVault is Ownable {
 	function transferRbtc(address payable _receiver, uint256 _amount) public onlyOwner {
 		require(_receiver != address(0), "Invalid receiver address");
 
-		address(_receiver).transfer(_amount);
+		Address.sendValue(_receiver, _amount);
 		emit RbtcTransferred(_receiver, _amount);
 	}
 
