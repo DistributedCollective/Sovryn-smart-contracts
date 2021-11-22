@@ -65,6 +65,13 @@ contract FeeSharingProxyStorage is Ownable {
 	uint256 internal reentrancyLock = REENTRANCY_GUARD_FREE;
 
 	/**
+	 * @dev Additional storage for converter whitelist mechanism.
+	 * @dev Initialization here does not works. We need to create a separate setter & getter.
+	 * @dev Just set the visibility to internal should be fine.
+	 */
+	mapping(address => bool) internal isWhitelistedConverter;
+
+	/**
 	 * @dev Prevents a contract from calling itself, directly or indirectly.
 	 * If you mark a function `nonReentrant`, you should also
 	 * mark it `external`. Calling one `nonReentrant` function from

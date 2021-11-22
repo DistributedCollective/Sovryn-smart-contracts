@@ -69,6 +69,12 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 	 */
 	event FeeAMMWithdrawn(address indexed sender, address indexed converter, uint256 amount);
 
+	/// @notice An event emitted when converter address has been registered to be whitelisted.
+	event WhitelistedConverter(address indexed sender, address converter);
+
+	/// @notice An event emitted when converter address has been removed from whitelist.
+	event UnwhitelistedConverter(address indexed sender, address converter);
+
 	/* Functions */
 
 	/**
@@ -118,10 +124,11 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		address loanPoolToken = protocol.underlyingToLoanPool(wRBTCAddress);
 		require(loanPoolToken != address(0), "FeeSharingProxy::withdrawFees: loan wRBTC not found");
 
+		// Validate
+		_validateWhitelistedConverter(_converters);
+
 		uint96 totalPoolTokenAmount;
 		for (uint256 i = 0; i < _converters.length; i++) {
-			require(Address.isContract(_converters[i]), "FeeSharingProxy::withdrawFees: converter is not a contract");
-
 			uint256 wrbtcAmountWithdrawn = IConverterAMM(_converters[i]).withdrawFees(address(this));
 
 			if (wrbtcAmountWithdrawn > 0) {
@@ -210,7 +217,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		uint32 _maxCheckpoints,
 		address _receiver
 	) public nonReentrant {
-		/// @dev Prevents processing all checkpoints because of block gas limit.
+		/// @dev Prevents processing / checkpoints because of block gas limit.
 		require(_maxCheckpoints > 0, "FeeSharingProxy::withdraw: _maxCheckpoints should be positive");
 
 		address wRBTCAddress = protocol.wrbtcToken();
@@ -393,6 +400,53 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 			vestingWeightedStake,
 			"FeeSharingProxy::_getTotalVoluntaryWeightedStake: vested stake exceeds total stake"
 		);
+	}
+
+	/**
+	 * @dev Whitelisting converter address.
+	 *
+	 * @param converterAddress converter address to be whitelisted.
+	 */
+	function addWhitelistedConverterAddress(address converterAddress) external onlyOwner {
+		require(Address.isContract(converterAddress), "Non contract address given");
+		require(converterAddress != address(0), "ERR_ZERO_ADDRESS");
+		require(!isWhitelistedConverter[converterAddress], "WHITELISTED_CONVERTER");
+		isWhitelistedConverter[converterAddress] = true;
+		emit WhitelistedConverter(msg.sender, converterAddress);
+	}
+
+	/**
+	 * @dev Removing converter address from whitelist.
+	 *
+	 * @param converterAddress converter address to be removed from whitelist.
+	 */
+	function removeWhitelistedConverterAddress(address converterAddress) external onlyOwner {
+		require(isWhitelistedConverter[converterAddress], "UNWHITELISTED_CONVERTER");
+		isWhitelistedConverter[converterAddress] = false;
+		emit UnwhitelistedConverter(msg.sender, converterAddress);
+	}
+
+	/**
+	 * @dev getter for isWhitelistedConverter.
+	 *
+	 * @param converterAddress the address of the converter.
+	 *
+	 * @return bool, whether given converterAddress is whitelisted or not.
+	 */
+	function getIsWhitelistedConverter(address converterAddress) public view returns (bool) {
+		return isWhitelistedConverter[converterAddress];
+	}
+
+	/**
+	 * @dev validate array of given address whether is whitelisted or not.
+	 * @dev if one of them is not whitelisted, then revert.
+	 *
+	 * @param converterAddresses array of converter addresses.
+	 */
+	function _validateWhitelistedConverter(address[] memory converterAddresses) private view {
+		for (uint256 i = 0; i < converterAddresses.length; i++) {
+			require(isWhitelistedConverter[converterAddresses[i]], "Invalid Converter");
+		}
 	}
 }
 

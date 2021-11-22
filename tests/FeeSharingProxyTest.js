@@ -929,11 +929,77 @@ contract("FeeSharingProxy:", (accounts) => {
 	});
 
 	describe("withdraw AMM Fees", async () => {
-		it("should not be able to withdraw fees if converters address is not an contract address", async () => {
+		it("Whitelist converter", async () => {
+			await expectRevert(feeSharingProxy.addWhitelistedConverterAddress(account1), "Non contract address given");
+			await expectRevert(feeSharingProxy.addWhitelistedConverterAddress(ZERO_ADDRESS), "Non contract address given");
+
+			const liquidityPoolV1Converter = await LiquidityPoolV1Converter.new(SOVToken.address, susd.address);
+			await feeSharingProxy.addWhitelistedConverterAddress(liquidityPoolV1Converter.address);
+			expect(await feeSharingProxy.getIsWhitelistedConverter(liquidityPoolV1Converter.address)).to.equal(true);
+			await expectRevert(feeSharingProxy.addWhitelistedConverterAddress(liquidityPoolV1Converter.address), "WHITELISTED_CONVERTER");
+		});
+
+		it("Remove converter from whitelist", async () => {
+			const liquidityPoolV1Converter = await LiquidityPoolV1Converter.new(SOVToken.address, susd.address);
 			await expectRevert(
-				feeSharingProxy.withdrawFeesAMM([accounts[0]]),
-				"FeeSharingProxy::withdrawFees: converter is not a contract"
+				feeSharingProxy.removeWhitelistedConverterAddress(liquidityPoolV1Converter.address),
+				"UNWHITELISTED_CONVERTER"
 			);
+			await feeSharingProxy.addWhitelistedConverterAddress(liquidityPoolV1Converter.address);
+			await feeSharingProxy.removeWhitelistedConverterAddress(liquidityPoolV1Converter.address);
+			expect(await feeSharingProxy.getIsWhitelistedConverter(liquidityPoolV1Converter.address)).to.equal(false);
+		});
+
+		it("should not be able to withdraw fees if converters address is not an contract address", async () => {
+			await expectRevert(feeSharingProxy.withdrawFeesAMM([accounts[0]]), "Invalid Converter");
+		});
+
+		it("Should not be able to withdraw AMM Fees after whitelist removal", async () => {
+			//stake - getPriorTotalVotingPower
+			let totalStake = 1000;
+			await stake(totalStake, root);
+
+			//mock data
+			// AMM Converter
+			liquidityPoolV1Converter = await LiquidityPoolV1Converter.new(SOVToken.address, susd.address);
+			const feeAmount = new BN(wei("1", "ether"));
+			await liquidityPoolV1Converter.setTotalFeeMockupValue(feeAmount.toString());
+
+			await expectRevert(feeSharingProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]), "Invalid Converter");
+			await feeSharingProxy.addWhitelistedConverterAddress(liquidityPoolV1Converter.address);
+			await feeSharingProxy.removeWhitelistedConverterAddress(liquidityPoolV1Converter.address);
+			await expectRevert(feeSharingProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]), "Invalid Converter");
+			await feeSharingProxy.addWhitelistedConverterAddress(liquidityPoolV1Converter.address);
+
+			await expectRevert(feeSharingProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]), "unauthorized");
+			await liquidityPoolV1Converter.setFeesController(feeSharingProxy.address);
+			await liquidityPoolV1Converter.setWrbtcToken(wrbtc.address);
+			await wrbtc.mint(liquidityPoolV1Converter.address, wei("2", "ether"));
+
+			tx = await feeSharingProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]);
+
+			//check wrbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
+			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
+			expect(feeSharingProxyBalance.toString()).to.be.equal(feeAmount.toString());
+
+			//checkpoints
+			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanTokenWrbtc.address);
+			expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
+			let checkpoint = await feeSharingProxy.tokenCheckpoints.call(loanTokenWrbtc.address, 0);
+			expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
+			expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
+			expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
+
+			//check lastFeeWithdrawalTime
+			let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanTokenWrbtc.address);
+			let block = await web3.eth.getBlock(tx.receipt.blockNumber);
+			expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
+
+			expectEvent(tx, "FeeAMMWithdrawn", {
+				sender: root,
+				converter: liquidityPoolV1Converter.address,
+				amount: feeAmount,
+			});
 		});
 
 		it("Should be able to withdraw AMM Fees", async () => {
@@ -946,6 +1012,9 @@ contract("FeeSharingProxy:", (accounts) => {
 			liquidityPoolV1Converter = await LiquidityPoolV1Converter.new(SOVToken.address, susd.address);
 			const feeAmount = new BN(wei("1", "ether"));
 			await liquidityPoolV1Converter.setTotalFeeMockupValue(feeAmount.toString());
+
+			await expectRevert(feeSharingProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]), "Invalid Converter");
+			await feeSharingProxy.addWhitelistedConverterAddress(liquidityPoolV1Converter.address);
 			await expectRevert(feeSharingProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]), "unauthorized");
 			await liquidityPoolV1Converter.setFeesController(feeSharingProxy.address);
 			await liquidityPoolV1Converter.setWrbtcToken(wrbtc.address);
@@ -987,6 +1056,8 @@ contract("FeeSharingProxy:", (accounts) => {
 			liquidityPoolV1Converter = await LiquidityPoolV1Converter.new(SOVToken.address, susd.address);
 			const feeAmount = new BN(wei("0", "ether"));
 			await liquidityPoolV1Converter.setTotalFeeMockupValue(feeAmount.toString());
+			await expectRevert(feeSharingProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]), "Invalid Converter");
+			await feeSharingProxy.addWhitelistedConverterAddress(liquidityPoolV1Converter.address);
 			await expectRevert(feeSharingProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]), "unauthorized");
 			await liquidityPoolV1Converter.setFeesController(feeSharingProxy.address);
 			await liquidityPoolV1Converter.setWrbtcToken(wrbtc.address);
