@@ -463,7 +463,7 @@ contract GovernorAlpha is SafeMath96 {
 		require(state(proposalId) == ProposalState.Active, "GovernorAlpha::_castVote: voting is closed");
 		Proposal storage proposal = proposals[proposalId];
 		Receipt storage receipt = proposal.receipts[voter];
-		require(receipt.hasVoted == false, "GovernorAlpha::_castVote: voter already voted");
+		require(!receipt.hasVoted, "GovernorAlpha::_castVote: voter already voted");
 		uint96 votes = staking.getPriorVotes(voter, proposal.startBlock, proposal.startTime);
 
 		if (support) {
