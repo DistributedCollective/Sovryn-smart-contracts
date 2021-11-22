@@ -279,7 +279,8 @@ contract GovernorAlpha is SafeMath96 {
 		Proposal storage proposal = proposals[proposalId];
 		uint256 eta = add256(block.timestamp, timelock.delay());
 
-		for (uint256 i = 0; i < proposal.targets.length; i++) {
+		uint256 proposalLength = proposal.targets.length;
+		for (uint256 i = 0; i < proposalLength; i++) {
 			_queueOrRevert(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], eta);
 		}
 		proposal.eta = safe64(eta, "GovernorAlpha::queue: ETA overflow");
@@ -318,7 +319,8 @@ contract GovernorAlpha is SafeMath96 {
 		Proposal storage proposal = proposals[proposalId];
 		proposal.executed = true;
 
-		for (uint256 i = 0; i < proposal.targets.length; i++) {
+		uint256 proposalLength = proposal.targets.length;
+		for (uint256 i = 0; i < proposalLength; i++) {
 			timelock.executeTransaction.value(proposal.values[i])(
 				proposal.targets[i],
 				proposal.values[i],
@@ -343,8 +345,8 @@ contract GovernorAlpha is SafeMath96 {
 		require(msg.sender == guardian, "GovernorAlpha::cancel: sender isn't a guardian");
 
 		proposal.canceled = true;
-
-		for (uint256 i = 0; i < proposal.targets.length; i++) {
+		uint256 proposalLength = proposal.targets.length;
+		for (uint256 i = 0; i < proposalLength; i++) {
 			timelock.cancelTransaction(
 				proposal.targets[i],
 				proposal.values[i],
