@@ -66,6 +66,8 @@ contract TestToken {
 		balances[_to] = balances[_to].add(_value);
 		if (allowanceAmount < uint256(-1)) {
 			allowed[_from][msg.sender] = allowanceAmount.sub(_value);
+			/// @dev Allowance mapping update requires an Approval event log
+			emit Approval(_from, msg.sender, _value);
 		}
 
 		emit Transfer(_from, _to, _value);
