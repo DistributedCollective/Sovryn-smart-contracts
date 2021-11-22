@@ -98,13 +98,8 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 
 		/// @notice Update unprocessed amount of tokens
 		uint96 amount96 = safe96(poolTokenAmount, "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits");
-		unprocessedAmount[loanPoolToken] = add96(
-			unprocessedAmount[loanPoolToken],
-			amount96,
-			"FeeSharingProxy::withdrawFees: unprocessedAmount exceeds 96 bits"
-		);
 
-		_addCheckpoint(loanPoolToken);
+		_addCheckpoint(loanPoolToken, amount96);
 
 		emit FeeWithdrawn(msg.sender, loanPoolToken, poolTokenAmount);
 	}
@@ -123,6 +118,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		address loanPoolToken = protocol.underlyingToLoanPool(wRBTCAddress);
 		require(loanPoolToken != address(0), "FeeSharingProxy::withdrawFees: loan wRBTC not found");
 
+		uint96 totalPoolTokenAmount;
 		for (uint256 i = 0; i < _converters.length; i++) {
 			require(Address.isContract(_converters[i]), "FeeSharingProxy::withdrawFees: converter is not a contract");
 
@@ -135,15 +131,19 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 
 				/// @notice Update unprocessed amount of tokens
 				uint96 amount96 = safe96(poolTokenAmount, "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits");
-				unprocessedAmount[loanPoolToken] = add96(
-					unprocessedAmount[loanPoolToken],
+
+				totalPoolTokenAmount = add96(
+					totalPoolTokenAmount,
 					amount96,
-					"FeeSharingProxy::withdrawFees: unprocessedAmount exceeds 96 bits"
+					"FeeSharingProxy::withdrawFees: total pool token amount exceeds 96 bits"
 				);
 
-				_addCheckpoint(loanPoolToken);
 				emit FeeAMMWithdrawn(msg.sender, _converters[i], poolTokenAmount);
 			}
+		}
+
+		if (totalPoolTokenAmount > 0) {
+			_addCheckpoint(loanPoolToken, totalPoolTokenAmount);
 		}
 	}
 
@@ -162,10 +162,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		bool success = IERC20(_token).transferFrom(address(msg.sender), address(this), _amount);
 		require(success, "Staking::transferTokens: token transfer failed");
 
-		/// @notice Update unprocessed amount of tokens.
-		unprocessedAmount[_token] = add96(unprocessedAmount[_token], _amount, "FeeSharingProxy::transferTokens: amount exceeds 96 bits");
-
-		_addCheckpoint(_token);
+		_addCheckpoint(_token, _amount);
 
 		emit TokensTransferred(msg.sender, _token, _amount);
 	}
@@ -174,16 +171,22 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 	 * @notice Add checkpoint with accumulated amount by function invocation.
 	 * @param _token Address of the token.
 	 * */
-	function _addCheckpoint(address _token) internal {
+	function _addCheckpoint(address _token, uint96 _amount) internal {
 		if (block.timestamp - lastFeeWithdrawalTime[_token] >= FEE_WITHDRAWAL_INTERVAL) {
 			lastFeeWithdrawalTime[_token] = block.timestamp;
-			uint96 amount = unprocessedAmount[_token];
+			uint96 amount = add96(unprocessedAmount[_token], _amount, "FeeSharingProxy::_addCheckpoint: amount exceeds 96 bits");
 
 			/// @notice Reset unprocessed amount of tokens to zero.
 			unprocessedAmount[_token] = 0;
 
 			/// @notice Write a regular checkpoint.
 			_writeTokenCheckpoint(_token, amount);
+		} else {
+			unprocessedAmount[_token] = add96(
+				unprocessedAmount[_token],
+				_amount,
+				"FeeSharingProxy::_addCheckpoint: unprocessedAmount exceeds 96 bits"
+			);
 		}
 	}
 
