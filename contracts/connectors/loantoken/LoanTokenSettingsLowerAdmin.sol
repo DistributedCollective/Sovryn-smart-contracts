@@ -153,6 +153,8 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 
 		require(_targetLevel <= WEI_PERCENT_PRECISION && _kinkLevel <= WEI_PERCENT_PRECISION, "levels too high");
 
+		require(_maxScaleRate <= WEI_PERCENT_PRECISION, "maxScaleRate too high");
+
 		baseRate = _baseRate;
 		rateMultiplier = _rateMultiplier;
 		lowUtilBaseRate = _lowUtilBaseRate;
