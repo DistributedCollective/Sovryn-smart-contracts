@@ -74,6 +74,7 @@ contract LoanTokenLogicBeacon is PausableOz {
 
 		/// register / update the module function signature address implementation
 		for (uint256 i; i < functionSignatureList.length; i++) {
+			require(functionSignatureList[i] != bytes4(0x0), "ERR_EMPTY_FUNC_SIGNATURE");
 			logicTargets[functionSignatureList[i]] = loanTokenModuleAddress;
 			if (!activeFuncSignatureList[moduleName].contains(functionSignatureList[i]))
 				activeFuncSignatureList[moduleName].addBytes4(functionSignatureList[i]);
@@ -100,7 +101,7 @@ contract LoanTokenLogicBeacon is PausableOz {
 	 *
 	 * @return the array of function signature.
 	 */
-	function getactiveFuncSignatureList(bytes32 moduleName) public view returns (bytes4[] memory signatureList) {
+	function getActiveFuncSignatureList(bytes32 moduleName) public view returns (bytes4[] memory signatureList) {
 		signatureList = activeFuncSignatureList[moduleName].enumerate(0, activeFuncSignatureList[moduleName].length());
 		return signatureList;
 	}

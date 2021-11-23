@@ -169,6 +169,8 @@ interface ILoanTokenModules {
 
 	function setLiquidityMiningAddress(address LMAddress) external;
 
+	function getLiquidityMiningAddress() external view returns (address);
+
 	function getEstimatedMarginDetails(
 		uint256 leverageAmount,
 		uint256 loanTokenSent,
