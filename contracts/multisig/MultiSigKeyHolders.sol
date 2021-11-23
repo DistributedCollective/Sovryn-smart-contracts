@@ -71,7 +71,7 @@ contract MultiSigKeyHolders is Ownable {
 	 * @notice Add rBTC addresses to the key holders.
 	 * @param _address The addresses to be added.
 	 * */
-	function addEthereumAddresses(address[] memory _address) public onlyOwner {
+	function addEthereumAddresses(address[] calldata _address) external onlyOwner {
 		for (uint256 i = 0; i < _address.length; i++) {
 			_addEthereumAddress(_address[i]);
 		}
@@ -104,7 +104,7 @@ contract MultiSigKeyHolders is Ownable {
 	 * @notice Remove rBTC addresses to the key holders.
 	 * @param _address The addresses to be removed.
 	 * */
-	function removeEthereumAddresses(address[] memory _address) public onlyOwner {
+	function removeEthereumAddresses(address[] calldata _address) external onlyOwner {
 		for (uint256 i = 0; i < _address.length; i++) {
 			_removeEthereumAddress(_address[i]);
 		}
@@ -158,7 +158,7 @@ contract MultiSigKeyHolders is Ownable {
 	 * @notice Add bitcoin address to the key holders.
 	 * @param _address The address to be added.
 	 * */
-	function addBitcoinAddress(string memory _address) public onlyOwner {
+	function addBitcoinAddress(string calldata _address) external onlyOwner {
 		_addBitcoinAddress(_address);
 	}
 
@@ -166,7 +166,7 @@ contract MultiSigKeyHolders is Ownable {
 	 * @notice Add bitcoin addresses to the key holders.
 	 * @param _address The addresses to be added.
 	 * */
-	function addBitcoinAddresses(string[] memory _address) public onlyOwner {
+	function addBitcoinAddresses(string[] calldata _address) external onlyOwner {
 		for (uint256 i = 0; i < _address.length; i++) {
 			_addBitcoinAddress(_address[i]);
 		}
@@ -191,7 +191,7 @@ contract MultiSigKeyHolders is Ownable {
 	 * @notice Remove bitcoin address to the key holders.
 	 * @param _address The address to be removed.
 	 * */
-	function removeBitcoinAddress(string memory _address) public onlyOwner {
+	function removeBitcoinAddress(string calldata _address) external onlyOwner {
 		_removeBitcoinAddress(_address);
 	}
 
@@ -199,7 +199,7 @@ contract MultiSigKeyHolders is Ownable {
 	 * @notice Remove bitcoin addresses to the key holders.
 	 * @param _address The addresses to be removed.
 	 * */
-	function removeBitcoinAddresses(string[] memory _address) public onlyOwner {
+	function removeBitcoinAddresses(string[] calldata _address) external onlyOwner {
 		for (uint256 i = 0; i < _address.length; i++) {
 			_removeBitcoinAddress(_address[i]);
 		}
@@ -254,7 +254,7 @@ contract MultiSigKeyHolders is Ownable {
 	 * @param _ethereumAddress the rBTC addresses to be added.
 	 * @param _bitcoinAddress the bitcoin addresses to be added.
 	 * */
-	function addEthereumAndBitcoinAddresses(address[] memory _ethereumAddress, string[] memory _bitcoinAddress) public onlyOwner {
+	function addEthereumAndBitcoinAddresses(address[] calldata _ethereumAddress, string[] calldata _bitcoinAddress) external onlyOwner {
 		for (uint256 i = 0; i < _ethereumAddress.length; i++) {
 			_addEthereumAddress(_ethereumAddress[i]);
 		}
@@ -268,7 +268,7 @@ contract MultiSigKeyHolders is Ownable {
 	 * @param _ethereumAddress The rBTC addresses to be removed.
 	 * @param _bitcoinAddress The bitcoin addresses to be removed.
 	 * */
-	function removeEthereumAndBitcoinAddresses(address[] memory _ethereumAddress, string[] memory _bitcoinAddress) public onlyOwner {
+	function removeEthereumAndBitcoinAddresses(address[] calldata _ethereumAddress, string[] calldata _bitcoinAddress) external onlyOwner {
 		for (uint256 i = 0; i < _ethereumAddress.length; i++) {
 			_removeEthereumAddress(_ethereumAddress[i]);
 		}
