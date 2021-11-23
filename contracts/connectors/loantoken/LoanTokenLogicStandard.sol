@@ -345,8 +345,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		require(loanId == 0 || msg.sender == trader, "401 use of existing loan");
 
 		/// Temporary: limit transaction size.
-		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
-		if (transactionLimit[loanTokenAddress] > 0) require(loanTokenSent <= transactionLimit[loanTokenAddress]);
+		if (transactionLimit[collateralTokenAddress] > 0)
+			require(collateralTokenSent <= transactionLimit[collateralTokenAddress], "collateral exceeds limit");
+		if (transactionLimit[loanTokenAddress] > 0) require(loanTokenSent <= transactionLimit[loanTokenAddress], "loantoken exceeds limit");
 
 		/// @dev Compute the worth of the total deposit in loan tokens.
 		/// (loanTokenSent + convert(collateralTokenSent))
