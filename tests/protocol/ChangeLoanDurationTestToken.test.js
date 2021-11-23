@@ -829,13 +829,14 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 			closePosition.loanDataBytes = ethUtil.keccak256(loanDataBytes);
 			const { v, r, s } = EIP712.sign(Domain(sovryn), "CloseWithSwap", closePosition, Types, pkbA2);
-			await expectRevert(sovryn.closeWithSwapWithSignature(closePosition, v, r, s, { from: borrower }), "invalid signature");
+			closePosition.loanDataBytes = loanDataBytes;
+			await sovryn.closeWithSwapWithSignature(closePosition, v, r, s, { from: borrower });
 
-			// const loanMaintenance = await LoanMaintenance.at(sovryn.address);
-			// await expectRevert(
-			// 	loanMaintenance.extendLoanDuration(loan_id, deposit_amount, false, "0x", { from: borrower }),
-			// 	"loan is closed"
-			// );
+			const loanMaintenance = await LoanMaintenance.at(sovryn.address);
+			await expectRevert(
+				loanMaintenance.extendLoanDuration(loan_id, deposit_amount, false, "0x", { from: borrower }),
+				"loan is closed"
+			);
 		});
 	});
 });
