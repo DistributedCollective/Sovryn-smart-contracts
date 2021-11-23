@@ -471,6 +471,8 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	) internal returns (bool) {
 		if (_allowanceAmount != uint256(-1)) {
 			allowed[_from][msg.sender] = _allowanceAmount.sub(_value, "14");
+			/// @dev Allowance mapping update requires an Approval event log
+			emit Approval(_from, msg.sender, _value);
 		}
 
 		require(_to != address(0), "15");
