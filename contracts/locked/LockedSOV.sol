@@ -135,6 +135,7 @@ contract LockedSOV is ILockedSOV {
 
 		for (uint256 index = 0; index < _admins.length; index++) {
 			isAdmin[_admins[index]] = true;
+			emit AdminAdded(msg.sender, _admins[index]);
 		}
 	}
 
