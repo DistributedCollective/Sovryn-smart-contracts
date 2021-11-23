@@ -900,8 +900,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		//compute balances needed for checkpoint update, considering that the user might have a pool token balance
 		//on the liquidity mining contract
 		uint256 balanceOnLM = 0;
-		if (liquidityMiningAddress != address(0))
-			balanceOnLM = ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(address(this), receiver);
+		address _liquidityMiningAddress = liquidityMiningAddress;
+		if (_liquidityMiningAddress != address(0))
+			balanceOnLM = ILiquidityMining(_liquidityMiningAddress).getUserPoolTokenBalance(address(this), receiver);
 		uint256 oldBalance = balances[receiver].add(balanceOnLM);
 		uint256 newBalance = oldBalance.add(mintAmount);
 
