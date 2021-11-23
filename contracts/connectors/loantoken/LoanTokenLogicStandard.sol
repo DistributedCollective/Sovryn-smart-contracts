@@ -1447,9 +1447,9 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	/**
 	 * @notice Compute the total amount of loan tokens on supply.
 	 * @param interestUnPaid The interest not yet paid.
-	 * @return assetSupply The total amount of loan tokens on supply.
+	 * @return The total amount of loan tokens on supply.
 	 * */
-	function _totalAssetSupply(uint256 interestUnPaid) internal view returns (uint256 assetSupply) {
+	function _totalAssetSupply(uint256 interestUnPaid) internal view returns (uint256) {
 		if (totalSupply_ != 0) {
 			uint256 assetsBalance = _flTotalAssetSupply; /// Temporary locked totalAssetSupply during a flash loan transaction.
 			if (assetsBalance == 0) {
