@@ -384,7 +384,7 @@ contract LockedSOV is ILockedSOV {
 	 * @param _addr The address of the user to check the locked balance.
 	 * @return _balance The locked balance of the address `_addr`.
 	 */
-	function getLockedBalance(address _addr) external view returns (uint256 _balance) {
+	function getLockedBalance(address _addr) external view returns (uint256) {
 		return lockedBalances[_addr];
 	}
 
@@ -393,7 +393,7 @@ contract LockedSOV is ILockedSOV {
 	 * @param _addr The address of the user to check the unlocked balance.
 	 * @return _balance The unlocked balance of the address `_addr`.
 	 */
-	function getUnlockedBalance(address _addr) external view returns (uint256 _balance) {
+	function getUnlockedBalance(address _addr) external view returns (uint256) {
 		return unlockedBalances[_addr];
 	}
 
