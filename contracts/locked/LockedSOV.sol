@@ -19,13 +19,13 @@ contract LockedSOV is ILockedSOV {
 
 	/* Storage */
 
-	/// @notice True if the migration to a new Locked SOV Contract has started.
-	bool public migration;
-
 	/// @notice The cliff is the time period after which the tokens begin to unlock.
 	uint256 public cliff;
 	/// @notice The duration is the time period after all tokens will have been unlocked.
 	uint256 public duration;
+
+	/// @notice True if the migration to a new Locked SOV Contract has started.
+	bool public migration;
 
 	/// @notice The SOV token contract.
 	IERC20 public SOV;
