@@ -36,7 +36,7 @@ contract LoanClosingsWith is
 	//because it's not shared state anyway and only used by this contract
 	uint256 public constant paySwapExcessToBorrowerThreshold = 10000000000000;
 
-	uint256 public constant TINY_AMOUNT = 25 * 10**13;
+	uint256 public constant TINY_AMOUNT = 25e13;
 
 	enum CloseTypes { Deposit, Swap, Liquidation }
 
