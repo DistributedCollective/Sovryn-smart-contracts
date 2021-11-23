@@ -100,6 +100,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @return The amount of underlying tokens payed to lender.
 	 * */
 	function burn(address receiver, uint256 burnAmount) external nonReentrant returns (uint256 loanAmountPaid) {
+		require(receiver != address(0), "ZERO_ADDR");
 		loanAmountPaid = _burnToken(burnAmount);
 
 		//this needs to be here and not in _burnTokens because of the WRBTC implementation
