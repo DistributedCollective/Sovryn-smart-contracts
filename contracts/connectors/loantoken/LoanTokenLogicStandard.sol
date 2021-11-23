@@ -94,7 +94,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * loan token contract. This will burn your loan tokens and send you the
 	 * underlying token in exchange.
 	 *
-	 * @param receiver The account getting the minted tokens.
+	 * @param receiver The account getting the underlying tokens.
 	 * @param burnAmount The amount of loan tokens to redeem.
 	 *
 	 * @return The amount of underlying tokens payed to lender.
