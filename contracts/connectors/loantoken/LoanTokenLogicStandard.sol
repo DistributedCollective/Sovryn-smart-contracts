@@ -216,7 +216,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		_checkPause();
 
 		/// Temporary: limit transaction size.
-		if (transactionLimit[collateralTokenAddress] > 0) require(collateralTokenSent <= transactionLimit[collateralTokenAddress]);
+		uint256 txLimit = transactionLimit[collateralTokenAddress];
+		if (txLimit > 0) require(collateralTokenSent <= txLimit);
 
 		require(
 			(msg.value == 0 || msg.value == collateralTokenSent) &&
