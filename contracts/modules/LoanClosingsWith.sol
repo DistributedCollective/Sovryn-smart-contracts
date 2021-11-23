@@ -37,7 +37,11 @@ contract LoanClosingsWith is
 	//because it's not shared state anyway and only used by this contract
 	uint256 public constant paySwapExcessToBorrowerThreshold = 10000000000000;
 
-	enum CloseTypes { Deposit, Swap, Liquidation }
+	enum CloseTypes {
+		Deposit,
+		Swap,
+		Liquidation
+	}
 
 	/// @dev Added to resolve "Stack Too Deep" error
 	struct LoanClosing {
@@ -179,7 +183,7 @@ contract LoanClosingsWith is
 		 * */
 		bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(NAME)), _getChainId(), address(this)));
 
-		/// @dev MARGIN_TRADE_ORDER_TYPEHASH
+		/// @dev CLOSE_WITH_SWAP_TYPEHASH
 		bytes32 structHash = _getStructHash(closePosition);
 
 		bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
@@ -233,18 +237,17 @@ contract LoanClosingsWith is
 	 * @return Unique hash
 	 * */
 	function _getStructHash(ClosePosition memory closePosition) internal pure returns (bytes32) {
-		bytes32 structHash =
-			keccak256(
-				abi.encode(
-					CLOSE_WITH_SWAP_TYPEHASH,
-					closePosition.loanId,
-					closePosition.receiver,
-					closePosition.swapAmount,
-					closePosition.returnTokenIsCollateral,
-					keccak256(closePosition.loanDataBytes),
-					closePosition.createdTimestamp
-				)
-			);
+		bytes32 structHash = keccak256(
+			abi.encode(
+				CLOSE_WITH_SWAP_TYPEHASH,
+				closePosition.loanId,
+				closePosition.receiver,
+				closePosition.swapAmount,
+				closePosition.returnTokenIsCollateral,
+				keccak256(closePosition.loanDataBytes),
+				closePosition.createdTimestamp
+			)
+		);
 		return structHash;
 	}
 
@@ -763,16 +766,15 @@ contract LoanClosingsWith is
 		uint256 collateralToLoanRate;
 
 		/// This is still called even with full loan close to return collateralToLoanRate
-		(bool success, bytes memory data) =
-			_priceFeeds.staticcall(
-				abi.encodeWithSelector(
-					IPriceFeeds(_priceFeeds).getCurrentMargin.selector,
-					loanParamsLocal.loanToken,
-					loanParamsLocal.collateralToken,
-					loanLocal.principal,
-					loanLocal.collateral
-				)
-			);
+		(bool success, bytes memory data) = _priceFeeds.staticcall(
+			abi.encodeWithSelector(
+				IPriceFeeds(_priceFeeds).getCurrentMargin.selector,
+				loanParamsLocal.loanToken,
+				loanParamsLocal.collateralToken,
+				loanLocal.principal,
+				loanLocal.collateral
+			)
+		);
 		assembly {
 			if eq(success, 1) {
 				currentMargin := mload(add(data, 32))

@@ -32,14 +32,14 @@ contract LoanTokenLogicStorage is AdvancedToken {
 
 	/// @notice MarginTradeOrder
 	struct MarginTradeOrder {
-		bytes32 loanId; /// 0 if new loan
-		uint256 leverageAmount; /// Expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5).
+		bytes32 loanId; // 0 if new loan
+		uint256 leverageAmount; // Expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5).
 		uint256 loanTokenSent;
 		uint256 collateralTokenSent;
 		address collateralTokenAddress;
 		address trader;
 		uint256 minReturn; // minimum position size in the collateral tokens
-		bytes loanDataBytes; /// Arbitrary order data.
+		bytes loanDataBytes; // Arbitrary order data.
 		uint256 createdTimestamp;
 	}
 
@@ -54,8 +54,6 @@ contract LoanTokenLogicStorage is AdvancedToken {
 
 	/// @notice The name of this contract.
 	string public constant NAME = "Loan Token";
-
-	//MarginTradeOrder ====================================================================================================================
 
 	function stringToBytes32(string memory source) public pure returns (bytes32 result) {
 		bytes memory tempEmptyStringTest = bytes(source);
