@@ -1,7 +1,7 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../connectors/loantoken/modules/LoanTokenLogicLM.sol";
+import "../connectors/loantoken/modules/beaconLogicLM/LoanTokenLogicLM.sol";
 
 contract LoanTokenLogicLMMockup is LoanTokenLogicLM {
 	function burn(address receiver, uint256 burnAmount) external nonReentrant returns (uint256 loanAmountPaid) {
