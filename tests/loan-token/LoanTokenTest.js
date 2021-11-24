@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
@@ -16,6 +17,8 @@ const LoanToken = artifacts.require("LoanToken");
 const PreviousLoanTokenSettings = artifacts.require("PreviousLoanTokenSettingsLowerAdmin");
 const PreviousLoanToken = artifacts.require("PreviousLoanToken");
 
+const TestCoverage = artifacts.require("TestCoverage");
+
 const TOTAL_SUPPLY = 100;
 
 const DAY = 86400;
@@ -29,7 +32,7 @@ contract("LoanTokenUpgrade", (accounts) => {
 
 	let root, account1, account2, account3, account4;
 	let token, staking, gov, timelock;
-	let protocolSettings, loanTokenSettings, protocol, loanToken;
+	let protocolSettings, loanTokenSettings, protocol, loanToken, SUSD;
 
 	before(async () => {
 		[root, account1, account2, account3, account4, ...accounts] = accounts;
@@ -61,6 +64,8 @@ contract("LoanTokenUpgrade", (accounts) => {
 		await protocol.replaceContract(protocolSettings.address);
 		protocol = await ProtocolSettings.at(protocol.address);
 		await protocol.transferOwnership(timelock.address);
+
+		SUSD = await TestToken.new("SUSD", "SUSD", 18, TOTAL_SUPPLY);
 	});
 
 	describe("change settings", () => {
@@ -94,6 +99,45 @@ contract("LoanTokenUpgrade", (accounts) => {
 
 			assert.equal(sovrynContractAddress, previousSovrynContractAddress);
 			assert.equal(wrbtcTokenAddress, previousWrbtcTokenAddress);
+		});
+	});
+
+	describe("Test coverage for LoanToken.sol", () => {
+		it("Call constructor w/ target not a contract", async () => {
+			await expectRevert(LoanToken.new(root, ZERO_ADDRESS, loanTokenSettings.address, SUSD.address), "target not a contract");
+		});
+		it("Call constructor w/ protocol not a contract", async () => {
+			await expectRevert(LoanToken.new(root, loanTokenSettings.address, ZERO_ADDRESS, SUSD.address), "sovryn not a contract");
+		});
+		it("Call constructor w/ wrbtc not a contract", async () => {
+			await expectRevert(
+				LoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, ZERO_ADDRESS),
+				"wrbtc not a contract"
+			);
+		});
+		it("Call LoanToken::setTarget", async () => {
+			let newLloanToken = await LoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, SUSD.address);
+			let newLoanTokenSettings = await LoanTokenSettings.new();
+			await newLloanToken.setTarget(newLoanTokenSettings.address);
+		});
+	});
+
+	describe("Test coverage for AdvancedToken::_mint", () => {
+		it("Call _mint w/ address 0 as receiver", async () => {
+			testCoverage = await TestCoverage.new();
+			let tokenAmount = new BN(1);
+			let assetAmount = new BN(1);
+			let price = new BN(1);
+			await expectRevert(testCoverage.testMint(ZERO_ADDRESS, tokenAmount, assetAmount, price), "15");
+		});
+	});
+
+	describe("Test coverage for LoanTokenLogicStorage::stringToBytes32", () => {
+		it("stringToBytes32 when tempEmptyStringTest.length == 0", async () => {
+			testCoverage = await TestCoverage.new();
+			let result = await testCoverage.testStringToBytes32("");
+			// console.log("result: ", result);
+			expect(result).to.be.equal("0x0000000000000000000000000000000000000000000000000000000000000000");
 		});
 	});
 });

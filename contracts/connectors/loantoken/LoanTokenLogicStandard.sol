@@ -6,12 +6,11 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./LoanTokenSettingsLowerAdmin.sol";
-import "../LoanTokenLogicStorage.sol";
-import "../interfaces/ProtocolLike.sol";
-import "../interfaces/FeedsLike.sol";
-import "../../../modules/interfaces/ProtocolAffiliatesInterface.sol";
-import "../../../farm/ILiquidityMining.sol";
+import "./LoanTokenLogicStorage.sol";
+import "./interfaces/ProtocolLike.sol";
+import "./interfaces/FeedsLike.sol";
+import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
+import "../../farm/ILiquidityMining.sol";
 
 /**
  * @title Loan Token Logic Standard contract.
@@ -661,7 +660,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	function totalSupplyInterestRate(uint256 assetSupply) public view returns (uint256) {
 		uint256 assetBorrow = totalAssetBorrow();
 		if (assetBorrow != 0) {
-			return _supplyInterestRate(assetBorrow, assetSupply);
+			return calculateSupplyInterestRate(assetBorrow, assetSupply);
 		}
 	}
 
@@ -1297,7 +1296,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 * @param assetSupply The amount of loan tokens supplied.
 	 * @return The next supply interest adjustment.
 	 * */
-	function _supplyInterestRate(uint256 assetBorrow, uint256 assetSupply) public view returns (uint256) {
+	function calculateSupplyInterestRate(uint256 assetBorrow, uint256 assetSupply) public view returns (uint256) {
 		if (assetBorrow != 0 && assetSupply >= assetBorrow) {
 			return
 				_avgBorrowInterestRate(assetBorrow)
@@ -1508,6 +1507,16 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 */
 	function setLiquidityMiningAddress(address LMAddress) external onlyOwner {
 		liquidityMiningAddress = LMAddress;
+	}
+
+	/**
+	 * @notice We need separate getter for newly added storage variable
+	 * @notice Getter for liquidityMiningAddress
+
+	 * @return liquidityMiningAddress
+	 */
+	function getLiquidityMiningAddress() public view returns (address) {
+		return liquidityMiningAddress;
 	}
 
 	function _mintWithLM(address receiver, uint256 depositAmount) internal returns (uint256 minted) {

@@ -70,7 +70,7 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 
 		/** Initialize the loan token logic proxy */
 		loanTokenV2 = await ILoanTokenLogicProxy.at(loanToken.address);
-		await loanTokenV2.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
+		await loanTokenV2.setBeaconAddress(loanTokenLogicBeacon.address);
 
 		/** Use interface of LoanTokenModules */
 		loanTokenV2 = await ILoanTokenModules.at(loanTokenV2.address);

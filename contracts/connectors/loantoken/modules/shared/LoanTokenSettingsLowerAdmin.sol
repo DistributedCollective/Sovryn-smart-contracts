@@ -6,9 +6,9 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../AdvancedToken.sol";
-import "../interfaces/ProtocolSettingsLike.sol";
-import "../LoanTokenLogicStorage.sol";
+import "../../AdvancedToken.sol";
+import "../../interfaces/ProtocolSettingsLike.sol";
+import "../../LoanTokenLogicStorage.sol";
 
 contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
 	using SafeMath for uint256;

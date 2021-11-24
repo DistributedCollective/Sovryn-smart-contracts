@@ -6,7 +6,7 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./LoanTokenLogicStandard.sol";
+import "../../LoanTokenLogicStandard.sol";
 
 contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
 	/**
@@ -52,7 +52,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
 		res[24] = this.checkPriceDivergence.selector;
 		res[25] = this.checkPause.selector;
 		res[26] = this.setLiquidityMiningAddress.selector;
-		res[27] = this._supplyInterestRate.selector;
+		res[27] = this.calculateSupplyInterestRate.selector;
 
 		// Loan Token WRBTC
 		res[28] = this.mintWithBTC.selector;
@@ -67,7 +67,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
 		res[33] = this.allowance.selector;
 
 		// Loan Token Logic Storage Additional Variable
-		res[34] = bytes4(keccak256("liquidityMiningAddress()"));
+		res[34] = this.getLiquidityMiningAddress.selector;
 
 		return (res, stringToBytes32("LoanTokenLogicWrbtc"));
 	}
