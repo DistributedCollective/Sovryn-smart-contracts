@@ -34,11 +34,6 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 		_;
 	}
 
-	function initializeLoanTokenProxy(address _beaconAddress) public onlyAdmin {
-		// Initialize the LoanTokenLogicBeacon address
-		_setBeaconAddress(_beaconAddress);
-	}
-
 	/**
 	 * @notice Fallback function performs a logic implementation address query to LoanTokenLogicBeacon and then do delegate call to that query result address.
 	 * Returns whatever the implementation call returns.
@@ -46,7 +41,7 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 	function() external payable {
 		// query the logic target implementation address from the LoanTokenLogicBeacon
 		address target = ILoanTokenLogicBeacon(_beaconAddress()).getTarget(msg.sig);
-		require(target != address(0), "LoanTokenProxy:target not active");
+		require(target != address(0), "LoanTokenLogicProxy:target not active");
 
 		bytes memory data = msg.data;
 		assembly {

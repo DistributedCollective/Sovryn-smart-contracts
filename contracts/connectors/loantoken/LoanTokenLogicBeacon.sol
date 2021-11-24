@@ -11,8 +11,8 @@ import "../../openzeppelin/Address.sol";
  *
  * @notice This contract stored the target logic implementation of LoanTokens which has the same logic implementation (LoanTokenLogicLM / LoanTokenLogicWrbtc)
  * Apart from storing the target logic implementation, this contract also has a pause functionality.
- * By implementing pause/unpause functionality in this beacon contract, we can pause the loan token that has implement the same Logic (LoanTokenLogicLM / LoanTokenLogicWrbtc) at one call.
- * Meanwhile the pause/unpause function in the LoanTokenLogicProxy is used to pause/unpause in the LoanToken level (1 by 1)
+ * By implementing pause/unpause functionality in this beacon contract, we can pause the loan token that has the same Logic (LoanTokenLogicLM / LoanTokenLogicWrbtc) at one call.
+ * Meanwhile the pause/unpause function in the LoanTokenLogicProxy is used to pause/unpause specific LoanToken
  */
 
 contract LoanTokenLogicBeacon is PausableOz {
@@ -74,6 +74,7 @@ contract LoanTokenLogicBeacon is PausableOz {
 
 		/// register / update the module function signature address implementation
 		for (uint256 i; i < functionSignatureList.length; i++) {
+			require(functionSignatureList[i] != bytes4(0x0), "ERR_EMPTY_FUNC_SIGNATURE");
 			logicTargets[functionSignatureList[i]] = loanTokenModuleAddress;
 			if (!activeFuncSignatureList[moduleName].contains(functionSignatureList[i]))
 				activeFuncSignatureList[moduleName].addBytes4(functionSignatureList[i]);
@@ -100,7 +101,7 @@ contract LoanTokenLogicBeacon is PausableOz {
 	 *
 	 * @return the array of function signature.
 	 */
-	function getactiveFuncSignatureList(bytes32 moduleName) public view returns (bytes4[] memory signatureList) {
+	function getActiveFuncSignatureList(bytes32 moduleName) public view returns (bytes4[] memory signatureList) {
 		signatureList = activeFuncSignatureList[moduleName].enumerate(0, activeFuncSignatureList[moduleName].length());
 		return signatureList;
 	}

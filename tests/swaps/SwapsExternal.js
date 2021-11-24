@@ -97,7 +97,7 @@ contract("SwapsExternal", (accounts) => {
 
 		/** Initialize the loan token logic proxy */
 		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
-		await loanToken.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
+		await loanToken.setBeaconAddress(loanTokenLogicBeacon.address);
 
 		/** Use interface of LoanTokenModules */
 		loanToken = await ILoanTokenModules.at(loanToken.address);
