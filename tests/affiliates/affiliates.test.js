@@ -85,7 +85,7 @@ contract("Affiliates", (accounts) => {
 
 		/** Initialize the loan token logic proxy */
 		loanTokenV2 = await ILoanTokenLogicProxy.at(loanToken.address);
-		await loanTokenV2.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
+		await loanTokenV2.setBeaconAddress(loanTokenLogicBeacon.address);
 
 		// loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address);
 		loanTokenV2 = await ILoanTokenModulesMock.at(loanToken.address); //mocked for ad-hoc logic for isolated testing
@@ -592,7 +592,7 @@ contract("Affiliates", (accounts) => {
 
 		/** Initialize the loan token logic proxy */
 		loanToken2V2 = await ILoanTokenLogicProxy.at(loanToken2.address);
-		await loanToken2V2.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
+		await loanToken2V2.setBeaconAddress(loanTokenLogicBeacon.address);
 
 		// loanToken2V2 = await MockLoanTokenLogic.at(loanToken2.address); //mocked for ad-hoc logic for isolated testing
 		loanToken2V2 = await ILoanTokenModulesMock.at(loanToken2.address); //mocked for ad-hoc logic for isolated testing
@@ -766,7 +766,7 @@ contract("Affiliates", (accounts) => {
 
 		/** Initialize the loan token logic proxy */
 		loanToken2V2 = await ILoanTokenLogicProxy.at(loanToken2.address);
-		await loanToken2V2.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
+		await loanToken2V2.setBeaconAddress(loanTokenLogicBeacon.address);
 
 		// loanToken2V2 = await MockLoanTokenLogic.at(loanToken2.address); //mocked for ad-hoc logic for isolated testing
 		loanToken2V2 = await ILoanTokenModulesMock.at(loanToken2.address); //mocked for ad-hoc logic for isolated testing

@@ -194,7 +194,7 @@ const getLoanToken = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) => {
 
 	/** Initialize the loan token logic proxy */
 	loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
-	await loanToken.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
+	await loanToken.setBeaconAddress(loanTokenLogicBeacon.address);
 
 	/** Use interface of LoanTokenModules */
 	loanToken = await ILoanTokenModules.at(loanToken.address);
@@ -216,7 +216,7 @@ const getLoanTokenWRBTC = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) 
 
 	/** Initialize the loan token logic proxy */
 	loanTokenWRBTC = await ILoanTokenLogicProxy.at(loanTokenWRBTC.address);
-	await loanTokenWRBTC.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
+	await loanTokenWRBTC.setBeaconAddress(loanTokenLogicBeacon.address);
 
 	/** Use interface of LoanTokenModules */
 	loanTokenWRBTC = await ILoanTokenModules.at(loanTokenWRBTC.address);
