@@ -7,6 +7,7 @@ import "../../openzeppelin/Ownable.sol";
 import "../IFeeSharingProxy.sol";
 import "../../openzeppelin/Address.sol";
 import "./FeeSharingProxyStorage.sol";
+import "../../interfaces/IConverterAMM.sol";
 
 /**
  * @title The FeeSharingLogic contract.
@@ -59,6 +60,21 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 	/// @notice An event emitted when user fee get withdrawn.
 	event UserFeeWithdrawn(address indexed sender, address indexed receiver, address indexed token, uint256 amount);
 
+	/**
+	 * @notice An event emitted when fee from AMM get withdrawn.
+	 *
+	 * @param sender sender who initiate the withdrawn amm fees.
+	 * @param converter the converter address.
+	 * @param amount total amount of fee (Already converted to WRBTC).
+	 */
+	event FeeAMMWithdrawn(address indexed sender, address indexed converter, uint256 amount);
+
+	/// @notice An event emitted when converter address has been registered to be whitelisted.
+	event WhitelistedConverter(address indexed sender, address converter);
+
+	/// @notice An event emitted when converter address has been removed from whitelist.
+	event UnwhitelistedConverter(address indexed sender, address converter);
+
 	/* Functions */
 
 	/**
@@ -90,16 +106,55 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 
 			/// @notice Update unprocessed amount of tokens
 			uint96 amount96 = safe96(poolTokenAmount, "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits");
-			unprocessedAmount[loanPoolToken] = add96(
-				unprocessedAmount[loanPoolToken],
-				amount96,
-				"FeeSharingProxy::withdrawFees: unprocessedAmount exceeds 96 bits"
-			);
 
-			_addCheckpoint(loanPoolToken);
+			_addCheckpoint(loanPoolToken, amount96);
 		}
 
 		emit FeeWithdrawn(msg.sender, loanPoolToken, poolTokenAmount);
+	}
+
+	/**
+	 * @notice Withdraw amm fees for the given converter addresses:
+	 * protocolFee from the conversion
+	 * the fees will be converted in wRBTC form, and then will be transferred to wRBTC loan pool
+	 *
+	 * @param _converters array addresses of the converters
+	 * */
+	function withdrawFeesAMM(address[] memory _converters) public {
+		address wRBTCAddress = protocol.wrbtcToken();
+		require(wRBTCAddress != address(0), "FeeSharingProxy::withdrawFees: wRBTCAddress is not set");
+
+		address loanPoolToken = protocol.underlyingToLoanPool(wRBTCAddress);
+		require(loanPoolToken != address(0), "FeeSharingProxy::withdrawFees: loan wRBTC not found");
+
+		// Validate
+		_validateWhitelistedConverter(_converters);
+
+		uint96 totalPoolTokenAmount;
+		for (uint256 i = 0; i < _converters.length; i++) {
+			uint256 wrbtcAmountWithdrawn = IConverterAMM(_converters[i]).withdrawFees(address(this));
+
+			if (wrbtcAmountWithdrawn > 0) {
+				/// @dev TODO can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
+				IERC20(wRBTCAddress).approve(loanPoolToken, wrbtcAmountWithdrawn);
+				uint256 poolTokenAmount = ILoanToken(loanPoolToken).mint(address(this), wrbtcAmountWithdrawn);
+
+				/// @notice Update unprocessed amount of tokens
+				uint96 amount96 = safe96(poolTokenAmount, "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits");
+
+				totalPoolTokenAmount = add96(
+					totalPoolTokenAmount,
+					amount96,
+					"FeeSharingProxy::withdrawFees: total pool token amount exceeds 96 bits"
+				);
+
+				emit FeeAMMWithdrawn(msg.sender, _converters[i], poolTokenAmount);
+			}
+		}
+
+		if (totalPoolTokenAmount > 0) {
+			_addCheckpoint(loanPoolToken, totalPoolTokenAmount);
+		}
 	}
 
 	/**
@@ -117,10 +172,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		bool success = IERC20(_token).transferFrom(address(msg.sender), address(this), _amount);
 		require(success, "Staking::transferTokens: token transfer failed");
 
-		/// @notice Update unprocessed amount of tokens.
-		unprocessedAmount[_token] = add96(unprocessedAmount[_token], _amount, "FeeSharingProxy::transferTokens: amount exceeds 96 bits");
-
-		_addCheckpoint(_token);
+		_addCheckpoint(_token, _amount);
 
 		emit TokensTransferred(msg.sender, _token, _amount);
 	}
@@ -129,16 +181,22 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 	 * @notice Add checkpoint with accumulated amount by function invocation.
 	 * @param _token Address of the token.
 	 * */
-	function _addCheckpoint(address _token) internal {
+	function _addCheckpoint(address _token, uint96 _amount) internal {
 		if (block.timestamp - lastFeeWithdrawalTime[_token] >= FEE_WITHDRAWAL_INTERVAL) {
 			lastFeeWithdrawalTime[_token] = block.timestamp;
-			uint96 amount = unprocessedAmount[_token];
+			uint96 amount = add96(unprocessedAmount[_token], _amount, "FeeSharingProxy::_addCheckpoint: amount exceeds 96 bits");
 
 			/// @notice Reset unprocessed amount of tokens to zero.
 			unprocessedAmount[_token] = 0;
 
 			/// @notice Write a regular checkpoint.
 			_writeTokenCheckpoint(_token, amount);
+		} else {
+			unprocessedAmount[_token] = add96(
+				unprocessedAmount[_token],
+				_amount,
+				"FeeSharingProxy::_addCheckpoint: unprocessedAmount exceeds 96 bits"
+			);
 		}
 	}
 
@@ -162,7 +220,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		uint32 _maxCheckpoints,
 		address _receiver
 	) public nonReentrant {
-		/// @dev Prevents processing all checkpoints because of block gas limit.
+		/// @dev Prevents processing / checkpoints because of block gas limit.
 		require(_maxCheckpoints > 0, "FeeSharingProxy::withdraw: _maxCheckpoints should be positive");
 
 		address wRBTCAddress = protocol.wrbtcToken();
@@ -345,6 +403,53 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 			vestingWeightedStake,
 			"FeeSharingProxy::_getTotalVoluntaryWeightedStake: vested stake exceeds total stake"
 		);
+	}
+
+	/**
+	 * @dev Whitelisting converter address.
+	 *
+	 * @param converterAddress converter address to be whitelisted.
+	 */
+	function addWhitelistedConverterAddress(address converterAddress) external onlyOwner {
+		require(Address.isContract(converterAddress), "Non contract address given");
+		require(converterAddress != address(0), "ERR_ZERO_ADDRESS");
+		require(!isWhitelistedConverter[converterAddress], "WHITELISTED_CONVERTER");
+		isWhitelistedConverter[converterAddress] = true;
+		emit WhitelistedConverter(msg.sender, converterAddress);
+	}
+
+	/**
+	 * @dev Removing converter address from whitelist.
+	 *
+	 * @param converterAddress converter address to be removed from whitelist.
+	 */
+	function removeWhitelistedConverterAddress(address converterAddress) external onlyOwner {
+		require(isWhitelistedConverter[converterAddress], "UNWHITELISTED_CONVERTER");
+		isWhitelistedConverter[converterAddress] = false;
+		emit UnwhitelistedConverter(msg.sender, converterAddress);
+	}
+
+	/**
+	 * @dev getter for isWhitelistedConverter.
+	 *
+	 * @param converterAddress the address of the converter.
+	 *
+	 * @return bool, whether given converterAddress is whitelisted or not.
+	 */
+	function getIsWhitelistedConverter(address converterAddress) public view returns (bool) {
+		return isWhitelistedConverter[converterAddress];
+	}
+
+	/**
+	 * @dev validate array of given address whether is whitelisted or not.
+	 * @dev if one of them is not whitelisted, then revert.
+	 *
+	 * @param converterAddresses array of converter addresses.
+	 */
+	function _validateWhitelistedConverter(address[] memory converterAddresses) private view {
+		for (uint256 i = 0; i < converterAddresses.length; i++) {
+			require(isWhitelistedConverter[converterAddresses[i]], "Invalid Converter");
+		}
 	}
 }
 
