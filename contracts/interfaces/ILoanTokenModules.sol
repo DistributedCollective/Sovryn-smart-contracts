@@ -19,6 +19,8 @@ interface ILoanTokenModules {
 
 	event SetTransactionLimits(address[] addresses, uint256[] limits);
 
+	event WithdrawRBTCTo(address indexed to, uint256 amount);
+
 	event ToggledFunctionPaused(string functionId, bool prevFlag, bool newFlag);
 
 	/** INTERFACE */
@@ -185,6 +187,8 @@ interface ILoanTokenModules {
 	function loanTokenAddress() external view returns (address);
 
 	function getMarginBorrowAmountAndRate(uint256 leverageAmount, uint256 depositAmount) external view returns (uint256, uint256);
+
+	function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external;
 
 	/** START LOAN TOKEN BASE */
 	function initialPrice() external view returns (uint256);

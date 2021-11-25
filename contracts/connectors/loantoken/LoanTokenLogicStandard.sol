@@ -49,6 +49,10 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	using SafeMath for uint256;
 	using SignedSafeMath for int256;
 
+	/* Events */
+
+	event WithdrawRBTCTo(address indexed to, uint256 amount);
+
 	/// DON'T ADD VARIABLES HERE, PLEASE
 
 	/* Public functions */
@@ -414,6 +418,19 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 				minReturn,
 				loanDataBytes
 			);
+	}
+
+	/**
+	 * @notice Withdraws RBTC from the contract by Multisig.
+	 * @param _receiverAddress The address where the rBTC has to be transferred.
+	 * @param _amount The amount of rBTC to be transferred.
+	 */
+	function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external onlyOwner {
+		require(_receiverAddress != address(0), "receiver address invalid");
+		require(_amount > 0, "non-zero withdraw amount expected");
+		require(_amount <= address(this).balance, "withdraw amount cannot exceed balance");
+		_receiverAddress.transfer(_amount);
+		emit WithdrawRBTCTo(_receiverAddress, _amount);
 	}
 
 	/**
