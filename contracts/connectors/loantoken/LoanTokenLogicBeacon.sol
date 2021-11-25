@@ -19,7 +19,12 @@ contract LoanTokenLogicBeacon is PausableOz {
 	using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set; // enumerable map of bytes32 or addresses
 	using EnumerableBytes4Set for EnumerableBytes4Set.Bytes4Set; // enumerable map of bytes4 or addresses
 
-	mapping(bytes4 => address) private logicTargets;
+	struct LogicTarget {
+		bytes32 moduleName; // module (logic) name
+		address moduleAddress; // module (logic) address
+	}
+
+	mapping(bytes4 => LogicTarget) private logicTargets;
 
 	struct LoanTokenLogicModuleUpdate {
 		address implementation; // address implementaion of the module
@@ -49,7 +54,24 @@ contract LoanTokenLogicBeacon is PausableOz {
 	 * @param loanTokenModuleAddress The module target address
 	 */
 	function registerLoanTokenModule(address loanTokenModuleAddress) external onlyOwner {
-		bytes32 moduleName = _registerLoanTokenModule(loanTokenModuleAddress);
+		bytes32 moduleName = _registerLoanTokenModule(loanTokenModuleAddress, false);
+
+		// Store the upgrade to the log
+		moduleUpgradeLog[moduleName].push(LoanTokenLogicModuleUpdate(loanTokenModuleAddress, block.timestamp));
+		activeModuleIndex[moduleName] = moduleUpgradeLog[moduleName].length - 1;
+	}
+
+	/**
+	 * @notice Register the loanTokenModule (LoanTokenSettingsLowerAdmin, LoanTokenLogicLM / LoanTokenLogicWrbtc, etc)
+	 *
+	 * CAUTION! Use this function only(!) if you do need to overwrite functions outside the scope of the module
+	 *
+	 * @dev This function will store the updated protocol module to the storage (For rollback purposes)
+	 *
+	 * @param loanTokenModuleAddress The module target address
+	 */
+	function registerLoanTokenModuleAdvanced(address loanTokenModuleAddress) external onlyOwner {
+		bytes32 moduleName = _registerLoanTokenModule(loanTokenModuleAddress, true);
 
 		// Store the upgrade to the log
 		moduleUpgradeLog[moduleName].push(LoanTokenLogicModuleUpdate(loanTokenModuleAddress, block.timestamp));
@@ -62,10 +84,11 @@ contract LoanTokenLogicBeacon is PausableOz {
 	 * @dev This registration will require target contract to have the exact function getListFunctionSignatures() which will return functionSignatureList and the moduleName in bytes32
 	 *
 	 * @param loanTokenModuleAddress the target logic of the loan token module
+	 * @param replaceOtherModulesFuncs allows overwriting other modules functions
 	 *
 	 * @return the module name
 	 */
-	function _registerLoanTokenModule(address loanTokenModuleAddress) private returns (bytes32) {
+	function _registerLoanTokenModule(address loanTokenModuleAddress, bool replaceOtherModulesFuncs) private returns (bytes32) {
 		require(Address.isContract(loanTokenModuleAddress), "LoanTokenModuleAddress is not a contract");
 
 		// Get the list of function signature on this loanTokenModulesAddress
@@ -74,10 +97,17 @@ contract LoanTokenLogicBeacon is PausableOz {
 
 		/// register / update the module function signature address implementation
 		for (uint256 i; i < functionSignatureList.length; i++) {
-			require(functionSignatureList[i] != bytes4(0x0), "ERR_EMPTY_FUNC_SIGNATURE");
-			logicTargets[functionSignatureList[i]] = loanTokenModuleAddress;
-			if (!activeFuncSignatureList[moduleName].contains(functionSignatureList[i]))
-				activeFuncSignatureList[moduleName].addBytes4(functionSignatureList[i]);
+			bytes4 funcSig = functionSignatureList[i];
+			require(funcSig != bytes4(0x0), "ERR_EMPTY_FUNC_SIGNATURE");
+
+			if (!replaceOtherModulesFuncs) require(logicTargets[funcSig].moduleName == moduleName, "ERR_NO_OTHER_MODULE_FUNC_REPLACEMENTS");
+			else if (logicTargets[funcSig].moduleName != bytes32(0x0) && logicTargets[funcSig].moduleName != moduleName) {
+				activeFuncSignatureList[logicTargets[funcSig].moduleName].removeBytes4(funcSig);
+			}
+
+			logicTargets[funcSig] = LogicTarget(moduleName, loanTokenModuleAddress);
+
+			if (!activeFuncSignatureList[moduleName].contains(funcSig)) activeFuncSignatureList[moduleName].addBytes4(funcSig);
 		}
 
 		/// delete the "removed" module function signature in the current implementation
@@ -85,8 +115,8 @@ contract LoanTokenLogicBeacon is PausableOz {
 			activeFuncSignatureList[moduleName].enumerate(0, activeFuncSignatureList[moduleName].length());
 		for (uint256 i; i < activeSignatureListEnum.length; i++) {
 			bytes4 activeSigBytes = activeSignatureListEnum[i];
-			if (logicTargets[activeSigBytes] != loanTokenModuleAddress) {
-				logicTargets[activeSigBytes] = address(0);
+			if (logicTargets[activeSigBytes].moduleAddress != loanTokenModuleAddress) {
+				logicTargets[activeSigBytes].moduleAddress = address(0);
 				activeFuncSignatureList[moduleName].removeBytes4(activeSigBytes);
 			}
 		}
@@ -125,17 +155,26 @@ contract LoanTokenLogicBeacon is PausableOz {
 	 */
 	function rollback(bytes32 moduleName, uint256 index) external onlyOwner {
 		address loanTokenModuleAddress = moduleUpgradeLog[moduleName][index].implementation;
-		moduleName = _registerLoanTokenModule(loanTokenModuleAddress);
+		moduleName = _registerLoanTokenModule(loanTokenModuleAddress, false);
 		activeModuleIndex[moduleName] = index;
 	}
 
 	/**
-	 * @notice External getter for target addresses.
+	 * @notice External getter for target.
 	 * @param sig The signature.
 	 * @return The address for a given signature.
 	 * */
-	function getTarget(bytes4 sig) external view whenNotPaused returns (address) {
+	function getTarget(bytes4 sig) external view whenNotPaused returns (LogicTarget memory) {
 		return logicTargets[sig];
+	}
+
+	/**
+	 * @notice External getter for target address.
+	 * @param sig The signature.
+	 * @return The address for a given signature.
+	 * */
+	function getTargetAddress(bytes4 sig) external view whenNotPaused returns (address) {
+		return logicTargets[sig].moduleAddress;
 	}
 }
 

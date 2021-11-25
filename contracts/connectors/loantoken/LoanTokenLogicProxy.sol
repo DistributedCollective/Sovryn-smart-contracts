@@ -40,7 +40,7 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 	 * */
 	function() external payable {
 		// query the logic target implementation address from the LoanTokenLogicBeacon
-		address target = ILoanTokenLogicBeacon(_beaconAddress()).getTarget(msg.sig);
+		address target = ILoanTokenLogicBeacon(_beaconAddress()).getTargetAddress(msg.sig);
 		require(target != address(0), "LoanTokenLogicProxy:target not active");
 
 		bytes memory data = msg.data;
@@ -101,5 +101,5 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 }
 
 interface ILoanTokenLogicBeacon {
-	function getTarget(bytes4 functionSignature) external view returns (address logicTargetAddress);
+	function getTargetAddress(bytes4 functionSignature) external view returns (address logicTargetAddress);
 }

@@ -49,6 +49,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 			const sig1 = web3.eth.abi.encodeFunctionSignature("testFunction1");
 
 			await expectRevert(loanTokenLogicBeacon.getTarget(sig1), "LoanTokenLogicBeacon:paused mode");
+			await expectRevert(loanTokenLogicBeacon.getTargetAddress(sig1), "LoanTokenLogicBeacon:paused mode");
 		});
 
 		it("Update the module address", async () => {
@@ -65,10 +66,10 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 			const moduleNameLowerSettings = listSigsLowerAdmin[1];
 			const moduleNameLM = listSigsLM[1];
 
-			const prevLoanTokenLogicLowerAdminAddress = await loanTokenLogicBeacon.getTarget(
+			const prevLoanTokenLogicLowerAdminAddress = await loanTokenLogicBeacon.getTargetAddress(
 				web3.eth.abi.encodeFunctionSignature("setAdmin(address)")
 			);
-			const prevLoanTokenLogicLMAddress = await loanTokenLogicBeacon.getTarget(
+			const prevLoanTokenLogicLMAddress = await loanTokenLogicBeacon.getTargetAddress(
 				web3.eth.abi.encodeFunctionSignature("borrowInterestRate()")
 			);
 
@@ -103,14 +104,14 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 
 			const sig1 = web3.eth.abi.encodeFunctionSignature("testFunction1");
 
-			expect(await loanTokenLogicBeacon.getTarget(sig1)).to.equal(CONSTANTS.ZERO_ADDRESS);
+			expect(await loanTokenLogicBeacon.getTargeAddresst(sig1)).to.equal(CONSTANTS.ZERO_ADDRESS);
 
 			/** Register New Loan Token Logic LM to the Beacon */
 			loanTokenLogicLM = await LoanTokenLogicLMV1Mockup.new();
 			await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicLM.address);
 
 			// The totalSupply function signature should not be exist in this v1 mockup
-			expect(await loanTokenLogicBeacon.getTarget(web3.eth.abi.encodeFunctionSignature("totalSupply()"))).to.equal(
+			expect(await loanTokenLogicBeacon.getTargetAddress(web3.eth.abi.encodeFunctionSignature("totalSupply()"))).to.equal(
 				CONSTANTS.ZERO_ADDRESS
 			);
 
@@ -121,7 +122,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 			const log2LM = await loanTokenLogicBeacon.moduleUpgradeLog(moduleNameLM, 1);
 			expect(log2LM[0]).to.equal(loanTokenLogicLM.address);
 
-			expect(await loanTokenLogicBeacon.getTarget(web3.eth.abi.encodeFunctionSignature("borrowInterestRate()"))).to.equal(
+			expect(await loanTokenLogicBeacon.getTargetAddress(web3.eth.abi.encodeFunctionSignature("borrowInterestRate()"))).to.equal(
 				loanTokenLogicLM.address
 			);
 		});
@@ -140,10 +141,10 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 			const moduleNameLowerSettings = listSigsLowerAdmin[1];
 			const moduleNameLM = listSigsLM[1];
 
-			const prevLoanTokenLogicLowerAdminAddress = await loanTokenLogicBeacon.getTarget(
+			const prevLoanTokenLogicLowerAdminAddress = await loanTokenLogicBeacon.getTargetAddress(
 				web3.eth.abi.encodeFunctionSignature("setAdmin(address)")
 			);
-			const prevLoanTokenLogicLMAddress = await loanTokenLogicBeacon.getTarget(
+			const prevLoanTokenLogicLMAddress = await loanTokenLogicBeacon.getTargetAddress(
 				web3.eth.abi.encodeFunctionSignature("borrowInterestRate()")
 			);
 
@@ -165,7 +166,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 			await expectRevert(loanTokenLogicBeacon.moduleUpgradeLog(moduleNameLM, 1), "invalid opcode");
 
 			// There should not be testNewFunction signature registered in the real LM
-			expect(await loanTokenLogicBeacon.getTarget(web3.eth.abi.encodeFunctionSignature("testNewFunction()"))).to.equal(
+			expect(await loanTokenLogicBeacon.getTargetAddress(web3.eth.abi.encodeFunctionSignature("testNewFunction()"))).to.equal(
 				CONSTANTS.ZERO_ADDRESS
 			);
 
@@ -174,7 +175,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 			await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicLM.address);
 
 			// There should be testNewFunction signature registered in v2Mockup
-			expect(await loanTokenLogicBeacon.getTarget(web3.eth.abi.encodeFunctionSignature("testNewFunction()"))).to.equal(
+			expect(await loanTokenLogicBeacon.getTargetAddress(web3.eth.abi.encodeFunctionSignature("testNewFunction()"))).to.equal(
 				loanTokenLogicLM.address
 			);
 
@@ -185,17 +186,19 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 			const log2LM = await loanTokenLogicBeacon.moduleUpgradeLog(moduleNameLM, 1);
 			expect(log2LM[0]).to.equal(loanTokenLogicLM.address);
 
-			expect(await loanTokenLogicBeacon.getTarget(web3.eth.abi.encodeFunctionSignature("borrowInterestRate()"))).to.equal(
+			expect(await loanTokenLogicBeacon.getTargetAddress(web3.eth.abi.encodeFunctionSignature("borrowInterestRate()"))).to.equal(
 				loanTokenLogicLM.address
 			);
 
 			/** Rollback */
 			await loanTokenLogicBeacon.rollback(moduleNameLM, 0);
 			expect((await loanTokenLogicBeacon.activeModuleIndex(moduleNameLM)).toString()).to.equal(new BN(0).toString());
-			expect(await loanTokenLogicBeacon.getTarget(web3.eth.abi.encodeFunctionSignature("borrowInterestRate()"))).to.equal(log1LM[0]);
+			expect(await loanTokenLogicBeacon.getTargetAddress(web3.eth.abi.encodeFunctionSignature("borrowInterestRate()"))).to.equal(
+				log1LM[0]
+			);
 
 			/// After rolledback, the testNewFunction signature should not be exist anymore
-			expect(await loanTokenLogicBeacon.getTarget(web3.eth.abi.encodeFunctionSignature("testNewFunction()"))).to.equal(
+			expect(await loanTokenLogicBeacon.getTargetAddress(web3.eth.abi.encodeFunctionSignature("testNewFunction()"))).to.equal(
 				CONSTANTS.ZERO_ADDRESS
 			);
 		});
