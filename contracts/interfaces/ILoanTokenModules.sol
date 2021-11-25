@@ -21,6 +21,8 @@ interface ILoanTokenModules {
 
 	event WithdrawRBTCTo(address indexed to, uint256 amount);
 
+	event ToggledFunctionPaused(string functionId, bool prevFlag, bool newFlag);
+
 	/** INTERFACE */
 
 	/** START LOAN TOKEN SETTINGS LOWER ADMIN */
