@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { expectRevert, BN, expectEvent } = require("@openzeppelin/test-helpers");
 const LoanToken = artifacts.require("LoanToken");
 const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
 const LoanTokenLogicProxy = artifacts.require("LoanTokenLogicProxy");
@@ -131,7 +131,13 @@ contract("LoanTokenAdministration", (accounts) => {
 			// pause the given function and make sure the function can't be called anymore
 			let localLoanToken = loanToken;
 			await localLoanToken.setPauser(accounts[0]);
-			await localLoanToken.toggleFunctionPause(functionSignature, true);
+			let tx = await localLoanToken.toggleFunctionPause(functionSignature, true);
+			expectEvent(tx, "ToggledFunctionPaused", {
+				functionId: functionSignature,
+				prevFlag: false,
+				newFlag: true,
+			});
+			await expectRevert(localLoanToken.toggleFunctionPause(functionSignature, true), "isPaused is already set to that value");
 
 			await expectRevert(open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]), "unauthorized");
 
@@ -139,7 +145,13 @@ contract("LoanTokenAdministration", (accounts) => {
 			assert(localLoanToken.checkPause(functionSignature));
 
 			await localLoanToken.setPauser(accounts[0]);
-			await localLoanToken.toggleFunctionPause(functionSignature, false);
+			tx = await localLoanToken.toggleFunctionPause(functionSignature, false);
+			expectEvent(tx, "ToggledFunctionPaused", {
+				functionId: functionSignature,
+				prevFlag: true,
+				newFlag: false,
+			});
+			await expectRevert(localLoanToken.toggleFunctionPause(functionSignature, false), "isPaused is already set to that value");
 			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]);
 
 			// check if checkPause returns false
