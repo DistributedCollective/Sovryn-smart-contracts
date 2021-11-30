@@ -20,9 +20,10 @@
  *  Updated to use only the initializer.js functions for protocol deployment.
  *  Updated to use SUSD as underlying token.
  */
+const { waffle } = require("hardhat");
 const { assert, expect } = require("chai");
 const { loadFixture } = waffle;
-const { waffle } = require("hardhat");
+
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 
 const sovrynProtocol = artifacts.require("sovrynProtocol");

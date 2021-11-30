@@ -80,7 +80,7 @@ const getSOV = async (sovryn, priceFeeds, SUSD, accounts) => {
 	return sov;
 };
 
-const getPriceFeeds = async (WRBTC, SUSD, RBTC, sovryn, BZRX) => {
+const getPriceFeeds = async (WRBTC, SUSD, RBTC, BZRX) => {
 	const feeds = await PriceFeedsLocal.new(WRBTC.address, BZRX.address);
 
 	await feeds.setRates(WRBTC.address, RBTC.address, oneEth.toString());
