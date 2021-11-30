@@ -8,7 +8,7 @@ pragma experimental ABIEncoderV2;
 
 import "../core/State.sol";
 import "../events/LoanSettingsEvents.sol";
-import "./ModuleCommonFunctionalities.sol";
+import "../mixins/ModuleCommonFunctionalities.sol";
 
 /**
  * @title Loan Settings contract.
@@ -43,6 +43,7 @@ contract LoanSettings is State, LoanSettingsEvents, ModuleCommonFunctionalities 
 		_setTarget(this.getLoanParams.selector, target);
 		_setTarget(this.getLoanParamsList.selector, target);
 		_setTarget(this.getTotalPrincipal.selector, target);
+		_setTarget(this.minInitialMargin.selector, target);
 		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanSettings");
 	}
 
@@ -213,5 +214,9 @@ contract LoanSettings is State, LoanSettingsEvents, ModuleCommonFunctionalities 
 		emit LoanParamsIdSetup(loanParamsId, loanParamsLocal.owner);
 
 		return loanParamsId;
+	}
+
+	function minInitialMargin(bytes32 loanParamsId) external view returns (uint256) {
+		return loanParams[loanParamsId].minInitialMargin;
 	}
 }

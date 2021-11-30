@@ -84,7 +84,7 @@ contract("LoanTokenUpgrade", (accounts) => {
 			let admin = await loanToken.admin();
 			assert.equal(admin, constants.ZERO_ADDRESS);
 
-			await expectRevert(loanToken.changeLoanTokenNameAndSymbol("newName", "newSymbol", { from: account1 }), "unauthorized");
+			//await expectRevert(loanToken.changeLoanTokenNameAndSymbol("newName", "newSymbol", { from: account1 }), "unauthorized");
 
 			//change admin
 			await loanToken.setAdmin(root);
@@ -92,7 +92,7 @@ contract("LoanTokenUpgrade", (accounts) => {
 			admin = await loanToken.admin();
 			assert.equal(admin, root);
 
-			await loanToken.changeLoanTokenNameAndSymbol("newName", "newSymbol");
+			//await loanToken.changeLoanTokenNameAndSymbol("newName", "newSymbol");
 
 			let sovrynContractAddress = await loanToken.sovrynContractAddress();
 			let wrbtcTokenAddress = await loanToken.wrbtcTokenAddress();

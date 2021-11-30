@@ -61,6 +61,8 @@ contract ISovryn is
 
 	function setBorrowingFeePercent(uint256 newValue) external;
 
+	function setSwapExternalFeePercent(uint256 newValue) external;
+
 	function setAffiliateFeePercent(uint256 newValue) external;
 
 	function setAffiliateTradingTokenFeePercent(uint256 newValue) external;
@@ -121,6 +123,8 @@ contract ISovryn is
 
 	function togglePaused(bool paused) external;
 
+	function isProtocolPaused() external view returns (bool);
+
 	////// Loan Settings //////
 
 	function setupLoanParams(LoanParams[] calldata loanParamsList) external returns (bytes32[] memory loanParamsIdList);
@@ -137,6 +141,8 @@ contract ISovryn is
 	) external view returns (bytes32[] memory loanParamsList);
 
 	function getTotalPrincipal(address lender, address loanToken) external view returns (uint256);
+
+	function minInitialMargin(bytes32 loanParamsId) external view returns (uint256);
 
 	////// Loan Openings //////
 
@@ -289,6 +295,7 @@ contract ISovryn is
 		bytes32 loanId;
 		address loanToken;
 		address collateralToken;
+		address borrower;
 		uint256 principal;
 		uint256 collateral;
 		uint256 interestOwedPerDay;
@@ -301,6 +308,7 @@ contract ISovryn is
 		uint256 endTimestamp;
 		uint256 maxLiquidatable;
 		uint256 maxSeizable;
+		uint256 creationTimestamp;
 	}
 
 	function getUserLoans(
@@ -402,4 +410,10 @@ contract ISovryn is
 	function getAffiliateTradingTokenFeePercent() external view returns (uint256 affiliateTradingTokenFeePercent);
 
 	function getAffiliatesTokenRewardsValueInRbtc(address referrer) external view returns (uint256 rbtcTotalAmount);
+
+	function getSwapExternalFeePercent() external view returns (uint256 swapExternalFeePercent);
+
+	function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external;
+
+	function getTradingRebateRewardsBasisPoint() external view returns (uint256);
 }

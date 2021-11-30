@@ -228,7 +228,7 @@ const getLoanTokenWRBTC = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) 
 	return loanTokenWRBTC;
 };
 
-const loan_pool_setup = async (sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC) => {
+const loan_pool_setup = async (sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, minInitialMargin = wei("20", "ether")) => {
 	let params = [];
 	let config = [
 		"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object
@@ -236,7 +236,7 @@ const loan_pool_setup = async (sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loan
 		owner, // address owner; // owner of this object
 		CONSTANTS.ZERO_ADDRESS, // address loanToken; // the token being loaned
 		RBTC.address, // address collateralToken; // the required collateral token
-		wei("20", "ether"), // uint256 minInitialMargin; // the minimum allowed initial margin
+		minInitialMargin, // uint256 minInitialMargin; // the minimum allowed initial margin
 		wei("15", "ether"), // uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
 		0, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
 	];

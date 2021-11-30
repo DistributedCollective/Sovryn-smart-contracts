@@ -36,8 +36,9 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		require(Address.isContract(_SOV), "_SOV not a contract");
 		SOV = IERC20(_SOV);
 		staking = _staking;
-		startTime = block.timestamp;
-		setMaxDuration(26 * TWO_WEEKS);
+		startTime = staking.timestampToLockDate(block.timestamp);
+		setMaxDuration(15 * TWO_WEEKS);
+		deploymentBlock = _getCurrentBlockNumber();
 	}
 
 	/**
@@ -48,7 +49,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * */
 	function stop() external onlyOwner {
 		require(stopBlock == 0, "Already stopped");
-		stopBlock = block.number;
+		stopBlock = _getCurrentBlockNumber();
 	}
 
 	/**
@@ -120,8 +121,6 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * @param _receiverAddress The address where the tokens has to be transferred.
 	 */
 	function withdrawTokensByOwner(address _receiverAddress) external onlyOwner {
-		require(_receiverAddress != address(0), "receiver address invalid");
-
 		uint256 value = SOV.balanceOf(address(this));
 		_transferSOV(_receiverAddress, value);
 	}
@@ -132,7 +131,6 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * @param _amount the amount to be transferred
 	 */
 	function _transferSOV(address _receiver, uint256 _amount) internal {
-		require(_receiver != address(0), "receiver address invalid");
 		require(_amount != 0, "amount invalid");
 		require(SOV.transfer(_receiver, _amount), "transfer failed");
 		emit RewardWithdrawn(_receiver, _amount);
@@ -146,34 +144,44 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * @return The timestamp of last withdrawal
 	 * @return The accumulated reward
 	 */
-	function getStakerCurrentReward(bool considerMaxDuration) public view returns (uint256 withdrawalTime, uint256 amount) {
-		uint256 count;
+	function getStakerCurrentReward(bool considerMaxDuration) public view returns (uint256 lastWithdrawalInterval, uint256 amount) {
 		uint256 weightedStake;
-		uint256 lastFinalisedBlock = block.number - 1;
+		uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
 		uint256 currentTS = block.timestamp;
-		address staker = msg.sender;
+		uint256 addedMaxDuration;
 		uint256 duration;
-		if (withdrawals[staker] == 0) {
-			require((currentTS.sub(startTime)) > TWO_WEEKS, "allowed after 14 days of start");
-			withdrawalTime = startTime;
-		} else {
-			require(currentTS > withdrawals[staker], "allowed after 14 days");
-			withdrawalTime = withdrawals[staker];
-		}
+		uint256 referenceBlock;
+		address staker = msg.sender;
+		uint256 lastWithdrawal = withdrawals[staker];
+
+		uint256 lastStakingInterval = staking.timestampToLockDate(currentTS);
+		lastWithdrawalInterval = lastWithdrawal > 0 ? lastWithdrawal : startTime;
+		if (lastStakingInterval < lastWithdrawalInterval) return (0, 0);
 
 		if (considerMaxDuration) {
-			duration = maxDuration;
+			addedMaxDuration = lastWithdrawalInterval.add(maxDuration);
+			duration = addedMaxDuration < currentTS ? staking.timestampToLockDate(addedMaxDuration) : lastStakingInterval;
 		} else {
-			duration = currentTS;
+			duration = lastStakingInterval;
 		}
 
-		for (uint256 i = withdrawalTime; i <= currentTS && i <= withdrawalTime.add(duration); i += TWO_WEEKS) {
-			count++;
-			weightedStake = weightedStake.add(_computeRewardForDate(staker, lastFinalisedBlock, i));
+		for (uint256 i = lastWithdrawalInterval; i < duration; i += TWO_WEEKS) {
+			referenceBlock = lastFinalisedBlock.sub(((currentTS.sub(i)).div(32)));
+			if (referenceBlock < deploymentBlock) referenceBlock = deploymentBlock;
+			weightedStake = weightedStake.add(_computeRewardForDate(staker, referenceBlock, i));
 		}
 
 		if (weightedStake == 0) return (0, 0);
-		withdrawalTime += count.mul(TWO_WEEKS);
+		lastWithdrawalInterval = duration;
 		amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
+	}
+
+	/**
+	 * @notice Determine the current Block Number
+	 * @dev This is segregated from the _getPriorUserStakeByDate function to better test
+	 * advancing blocks functionality using Mock Contracts
+	 * */
+	function _getCurrentBlockNumber() internal view returns (uint256) {
+		return block.number;
 	}
 }

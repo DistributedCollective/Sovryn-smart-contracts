@@ -68,7 +68,7 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
 		uint256 minSourceTokenAmount,
 		uint256 maxSourceTokenAmount,
 		uint256 requiredDestTokenAmount
-	) public returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
+	) public payable returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
 		require(sourceTokenAddress != destTokenAddress, "source == dest");
 		require(supportedTokens[sourceTokenAddress] && supportedTokens[destTokenAddress], "invalid tokens");
 

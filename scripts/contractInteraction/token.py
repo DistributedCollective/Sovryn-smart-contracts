@@ -12,9 +12,9 @@ def getBalance(contractAddress, acct):
     print(balance)
     return balance
     
-def buyWRBTC():
+def buyWRBTC(amount):
     contract = Contract.from_abi("WRBTC", address=conf.contracts["WRBTC"], abi=WRBTC.abi, owner=conf.acct)
-    tx = contract.deposit({'value':1e18})
+    tx = contract.deposit({'value':amount})
     tx.info()
     print("New balance: ", contract.balanceOf(conf.acct))
 
@@ -35,6 +35,11 @@ def transferTokensFromWallet(tokenContract, receiver, amount):
     token = Contract.from_abi("Token", address= tokenContract, abi = TestToken.abi, owner=conf.acct)
     token.transfer(receiver, amount)
 
+def sendToWatcher(tokenAddress, amount):
+    if(tokenAddress == conf.contracts['WRBTC']):
+       buyWRBTC(amount)
+    transferTokensFromWallet(conf.contracts['WRBTC'], conf.contracts['WatcherContract'], amount)
+    
 def approveFromMS(tokenContract, receiver, amount):
     token = Contract.from_abi("Token", address= tokenContract, abi = TestToken.abi, owner=conf.acct)
     data = token.approve.encode_input(receiver, amount)

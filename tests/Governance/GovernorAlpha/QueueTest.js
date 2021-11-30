@@ -5,9 +5,12 @@ const { etherMantissa, encodeParameters, mineBlock, increaseTime } = require("..
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
-const StakingLogic = artifacts.require("Staking");
+const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
+//Upgradable Vesting Registry
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const DELAY = 86400 * 14;
 
@@ -19,6 +22,13 @@ async function enfranchise(token, staking, actor, amount) {
 	await token.approve(staking.address, amount, { from: actor });
 	let kickoffTS = await staking.kickoffTS.call();
 	let stakingDate = kickoffTS.add(new BN(DELAY));
+	//Upgradable Vesting Registry
+	vestingRegistryLogic = await VestingRegistryLogic.new();
+	vesting = await VestingRegistryProxy.new();
+	await vesting.setImplementation(vestingRegistryLogic.address);
+	vesting = await VestingRegistryLogic.at(vesting.address);
+
+	await staking.setVestingRegistry(vesting.address);
 	await staking.stake(amount, stakingDate, actor, actor, { from: actor });
 
 	await staking.delegate(actor, stakingDate, { from: actor });

@@ -27,5 +27,25 @@ def main():
     #load the contracts and acct depending on the network
     conf.loadConfig()
 
-    #call the function you want here
-    
+    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iXUSD'])
+    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iRBTC'])
+    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iBPro'])
+    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iDOC'])
+    # setSupportedToken(conf.contracts['BNBs'])
+
+    #updateLockedSOV()
+
+    #withdrawRBTCFromWatcher(20e18, conf.contracts['FastBTC'])
+
+    #this needs to be tested first. for direct trasnfer to fastbtc use the fastbtc contract address as receiver
+    #borrowRBTCWithMultisigUsingSOV(withdrawAmount, receiver)
+
+    #withdrawTokensFromWatcher(conf.contracts['XUSD'], 100e18, '0x051B89f575fCd540F0a6a5B49c75f9a83BB2Cf07')
+    #balance = getBalance(conf.contracts['XUSD'], conf.contracts['Watcher'])
+    #print(balance)
+    #withdrawTokensFromWatcher(conf.contracts['XUSD'], 100e18, conf.contracts['multisig'])
+
+    balance = getBalance(conf.contracts['XUSD'], conf.contracts['multisig'])
+    print(balance)
+    if(balance > 0):
+        sendTokensFromMultisig(conf.contracts['XUSD'], '0x051B89f575fCd540F0a6a5B49c75f9a83BB2Cf07', balance)
