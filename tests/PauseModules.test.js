@@ -23,7 +23,6 @@
 const { assert, expect } = require("chai");
 const { loadFixture } = waffle;
 const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 
 const sovrynProtocol = artifacts.require("sovrynProtocol");
