@@ -131,7 +131,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			);
 		});
 
-		it("Test borrow with sepecial rebates percentage", async () => {
+		it("Test borrow with special rebates percentage", async () => {
 			// prepare the test
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);

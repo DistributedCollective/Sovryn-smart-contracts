@@ -164,6 +164,18 @@ interface ILoanTokenModules {
 			uint256 interestRate
 		);
 
+	function getDepositAmountForBorrow(
+		uint256 borrowAmount,
+		uint256 initialLoanDuration, /// Duration in seconds.
+		address collateralTokenAddress /// address(0) means rBTC
+	) external view returns (uint256 depositAmount);
+
+	function getBorrowAmountForDeposit(
+		uint256 depositAmount,
+		uint256 initialLoanDuration, /// Duration in seconds.
+		address collateralTokenAddress /// address(0) means rBTC
+	) external view returns (uint256 borrowAmount);
+
 	function checkPriceDivergence(
 		uint256 leverageAmount,
 		uint256 loanTokenSent,
