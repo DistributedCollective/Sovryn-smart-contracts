@@ -675,6 +675,9 @@ contract("FeeSharingProxy:", (accounts) => {
 		});
 
 		it("Should be able to withdraw (wrbtc pool)", async () => {
+			// Requires an explicit re-deployment
+			await protocolDeploymentFixture();
+			
 			// stake - getPriorTotalVotingPower
 			let rootStake = 700;
 			await stake(rootStake, root);
@@ -728,6 +731,9 @@ contract("FeeSharingProxy:", (accounts) => {
 		});
 
 		it("Should be able to withdraw using 3 checkpoints", async () => {
+			// Requires an explicit re-deployment
+			await protocolDeploymentFixture();
+
 			// stake - getPriorTotalVotingPower
 			let rootStake = 900;
 			await stake(rootStake, root);
@@ -802,11 +808,11 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			userInitialBtcBalance = userInitialBtcBalance.sub(new BN(txFee));
 
-			//processedCheckpoints
+			// processedCheckpoints
 			processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanTokenWrbtc.address);
 			expect(processedCheckpoints.toNumber()).to.be.equal(3);
 
-			//check balances
+			// check balances
 			feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
 			expect(feeSharingProxyBalance.toNumber()).to.be.equal(parseInt((totalFeeAmount * 9) / 10));
 			userBalance = await loanTokenWrbtc.balanceOf.call(account1);
@@ -820,6 +826,9 @@ contract("FeeSharingProxy:", (accounts) => {
 		});
 
 		it("Should be able to process 10 checkpoints", async () => {
+			// Requires an explicit re-deployment
+			await protocolDeploymentFixture();
+
 			// stake - getPriorTotalVotingPower
 			await stake(900, root);
 			let userStake = 100;
@@ -835,11 +844,14 @@ contract("FeeSharingProxy:", (accounts) => {
 			let tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 1000, ZERO_ADDRESS, { from: account1 });
 			console.log("\nwithdraw(checkpoints = 10).gasUsed: " + tx.receipt.gasUsed);
 			// processedCheckpoints
-			let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+			let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanTokenWrbtc.address);
 			expect(processedCheckpoints.toNumber()).to.be.equal(10);
 		});
 
-		it("Should be able to process 10 checkpoints and 3 withdrawal", async () => {
+		it("Should be able to process 10 checkpoints and 3 withdrawals", async () => {
+			// Requires an explicit re-deployment
+			await protocolDeploymentFixture();
+
 			// stake - getPriorTotalVotingPower
 			await stake(900, root);
 			let userStake = 100;
@@ -855,19 +867,19 @@ contract("FeeSharingProxy:", (accounts) => {
 			let tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 5, ZERO_ADDRESS, { from: account1 });
 			console.log("\nwithdraw(checkpoints = 5).gasUsed: " + tx.receipt.gasUsed);
 			// processedCheckpoints
-			let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+			let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanTokenWrbtc.address);
 			expect(processedCheckpoints.toNumber()).to.be.equal(5);
 
 			tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 3, ZERO_ADDRESS, { from: account1 });
 			console.log("\nwithdraw(checkpoints = 3).gasUsed: " + tx.receipt.gasUsed);
 			// processedCheckpoints
-			processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+			processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanTokenWrbtc.address);
 			expect(processedCheckpoints.toNumber()).to.be.equal(8);
 
 			tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 1000, ZERO_ADDRESS, { from: account1 });
 			console.log("\nwithdraw(checkpoints = 2).gasUsed: " + tx.receipt.gasUsed);
 			// processedCheckpoints
-			processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanToken.address);
+			processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(account1, loanTokenWrbtc.address);
 			expect(processedCheckpoints.toNumber()).to.be.equal(10);
 		});
 
@@ -940,6 +952,9 @@ contract("FeeSharingProxy:", (accounts) => {
 		// });
 
 		it("Should be able to withdraw with staking for 78 dates", async () => {
+			// Requires an explicit re-deployment
+			await protocolDeploymentFixture();
+
 			// stake - getPriorTotalVotingPower
 			let rootStake = 700;
 			await stake(rootStake, root);
@@ -968,6 +983,9 @@ contract("FeeSharingProxy:", (accounts) => {
 		});
 
 		it("should compute the weighted stake and show gas usage", async () => {
+			// Requires an explicit re-deployment
+			await protocolDeploymentFixture();
+
 			await stake(100, root);
 			let kickoffTS = await staking.kickoffTS.call();
 			let stakingDate = kickoffTS.add(new BN(MAX_DURATION));
