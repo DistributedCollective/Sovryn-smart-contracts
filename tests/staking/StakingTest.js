@@ -395,10 +395,7 @@ contract("Staking", (accounts) => {
 
 		it("reverts if block number >= current block", async () => {
 			let time = kickoffTS.add(new BN(DELAY));
-			await expectRevert(
-				staking.getPriorVotes.call(a1, 5e10, time),
-				"not determined yet"
-			);
+			await expectRevert(staking.getPriorVotes.call(a1, 5e10, time), "not determined yet");
 		});
 
 		it("returns 0 if there are no checkpoints", async () => {

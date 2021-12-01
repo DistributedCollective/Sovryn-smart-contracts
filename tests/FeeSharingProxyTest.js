@@ -226,9 +226,7 @@ contract("FeeSharingProxy:", (accounts) => {
 		);
 		vestingFactory.transferOwnership(vestingRegistry.address);
 
-		await sovryn.setLockedSOVAddress(
-			(await LockedSOV.new(SOVToken.address, vestingRegistry.address, cliff, duration, [root])).address
-		);
+		await sovryn.setLockedSOVAddress((await LockedSOV.new(SOVToken.address, vestingRegistry.address, cliff, duration, [root])).address);
 
 		// Set PriceFeeds
 		feeds = await PriceFeedsLocal.new(WRBTC.address, sovryn.address);
