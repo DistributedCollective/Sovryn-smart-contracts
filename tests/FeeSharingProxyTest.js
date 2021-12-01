@@ -677,7 +677,7 @@ contract("FeeSharingProxy:", (accounts) => {
 		it("Should be able to withdraw (wrbtc pool)", async () => {
 			// Requires an explicit re-deployment
 			await protocolDeploymentFixture();
-			
+
 			// stake - getPriorTotalVotingPower
 			let rootStake = 700;
 			await stake(rootStake, root);
