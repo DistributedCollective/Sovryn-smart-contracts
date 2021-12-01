@@ -56,7 +56,7 @@ contract("LoanSettings", (accounts) => {
 
 		loanTokenLogicWrbtc = await getLoanTokenLogicWrbtc();
 
-		loanToken = await getLoanToken(loanTokenLogicWrbtc, lender, sovryn, WRBTC, SUSD);
+		loanToken = await getLoanToken(lender, sovryn, WRBTC, SUSD);
 
 		const loanTokenAddress = await loanToken.loanTokenAddress();
 		if (lender == (await sovryn.owner())) await sovryn.setLoanPool([loanToken.address], [loanTokenAddress]);
