@@ -28,9 +28,14 @@ def readVestingContractForAddress(userAddress):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=conf.acct)
     address = vestingRegistry.getVesting(userAddress)
     if(address == '0x0000000000000000000000000000000000000000'):
-        vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=conf.acct)
+        vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistry2'], abi=VestingRegistry.abi, owner=conf.acct)
         address = vestingRegistry.getVesting(userAddress)
 
+    print(address)
+
+def readTeamVestingContractForAddress(userAddress):
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=conf.acct)
+    address = vestingRegistry.getTeamVesting(userAddress)
     print(address)
 
 def readLMVestingContractForAddress(userAddress):
@@ -156,3 +161,66 @@ def updateVestingRegAddr():
     data = stakingProxy.setVestingRegistry.encode_input(vestingRegistryProxy)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], stakingProxy.address, data, conf.acct)
+
+#Link Staking to StakingRewards, Vesting Registry and FeeSharing
+def updateAddresses():
+
+    # Get the proxy contract instance
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    print(staking)
+
+    # Get the proxy contract instance
+    vestingRegistryProxy = Contract.from_abi("VestingRegistryProxy", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryProxy.abi, owner=conf.acct)
+    print(vestingRegistryProxy)
+
+    # Get the staking rewards proxy contract instance
+    stakingRewardsProxy = Contract.from_abi("StakingRewardsProxy", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewardsProxy.abi, owner=conf.acct)
+    print(stakingRewardsProxy)
+
+    # Get the fee sharing proxy contract instance
+    feeSharingProxy = Contract.from_abi("FeeSharingProxy", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingProxy.abi, owner=conf.acct)
+    print(feeSharingProxy)
+
+    #Link Staking with Vesting
+    data = staking.setVestingRegistry.encode_input(vestingRegistryProxy)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
+
+    #Link Staking with Staking Rewards
+    # data = staking.setStakingRewards.encode_input(stakingRewardsProxy)
+    # print(data)
+    # sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
+
+    #Link Staking with Fee Sharing
+    data = staking.setFeeSharing.encode_input(feeSharingProxy)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
+
+def getStakes(address):
+    # Get the proxy contract instance
+    stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    print(stakingProxy.getStakes(address))
+    
+def readVestingData(vestingAddress):
+    vesting = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=conf.acct)
+    print(vesting.startDate())
+    print(vesting.endDate())
+    print(vesting.cliff())
+    print(vesting.duration())
+
+def updateLockedSOV():
+    lockedSOV = Contract.from_abi("LockedSOV", address=conf.contracts['LockedSOV'], abi=LockedSOV.abi, owner=conf.acct)
+
+    DAY = 24 * 60 * 60
+    FOUR_WEEKS = 4 * 7 * DAY
+
+    cliff = int(lockedSOV.cliff() / FOUR_WEEKS)
+    duration = int(lockedSOV.duration() / FOUR_WEEKS)
+
+    print("cliff =", cliff)
+    print("duration =", duration)
+    print("multisig: isAdmin =", lockedSOV.adminStatus(conf.contracts['multisig']))
+
+    data = lockedSOV.changeRegistryCliffAndDuration.encode_input(conf.contracts['VestingRegistryProxy'], cliff, duration)
+    print(data)
+    # sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)

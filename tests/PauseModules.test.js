@@ -20,20 +20,24 @@
  *  Updated to use only the initializer.js functions for protocol deployment.
  *  Updated to use SUSD as underlying token.
  */
-
-const { assert, expect } = require("chai");
 const { waffle } = require("hardhat");
+const { assert, expect } = require("chai");
 const { loadFixture } = waffle;
+
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
+
+const TestCoverage = artifacts.require("TestCoverage");
+
+const wei = web3.utils.toWei;
+const oneEth = new BN(wei("1", "ether"));
+const hunEth = new BN(wei("100", "ether"));
 const { increaseTime, blockNumber } = require("./Utils/Ethereum");
 const {
 	getSUSD,
 	getRBTC,
 	getWRBTC,
 	getBZRX,
-	getLoanTokenLogic,
 	getLoanToken,
-	getLoanTokenLogicWrbtc,
 	getLoanTokenWRBTC,
 	loan_pool_setup,
 	set_demand_curve,
@@ -42,6 +46,7 @@ const {
 	decodeLogs,
 	getSOV,
 } = require("./Utils/initializer.js");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const TestToken = artifacts.require("TestToken");
 const LockedSOV = artifacts.require("LockedSOVMockup");
@@ -49,10 +54,6 @@ const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic");
 const TestWrbtc = artifacts.require("TestWrbtc");
 const LoanToken = artifacts.require("LoanToken");
 const LoanOpeningsEvents = artifacts.require("LoanOpeningsEvents");
-
-const wei = web3.utils.toWei;
-const oneEth = new BN(wei("1", "ether"));
-const hunEth = new BN(wei("100", "ether"));
 
 contract("Pause Modules", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
@@ -66,17 +67,15 @@ contract("Pause Modules", (accounts) => {
 		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
-		const loanTokenLogicStandard = await getLoanTokenLogic();
-		const loanTokenLogicWrbtc = await getLoanTokenLogicWrbtc();
-		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
-		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
+		loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD);
+		loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
 		loanParams = {
 			id: "0x0000000000000000000000000000000000000000000000000000000000000000",
 			active: false,
-			owner: constants.ZERO_ADDRESS,
+			owner: ZERO_ADDRESS,
 			loanToken: SUSD.address,
 			collateralToken: loanTokenWRBTC.address,
 			minInitialMargin: wei("50", "ether"),
@@ -247,8 +246,9 @@ contract("Pause Modules", (accounts) => {
 			await expectRevert(sovryn.setupLoanParams([Object.values(loanParams)]), "Paused");
 		});
 	});
+
 	describe("Testing isProtocolPaused()", () => {
-		it("isProtocolPaused() returns correct result when toggling pause/upause", async () => {
+		it("isProtocolPaused() returns correct result when toggling pause/unpause", async () => {
 			await loadFixture(fixtureInitialize);
 			await sovryn.togglePaused(true);
 			expect(await sovryn.isProtocolPaused()).to.be.true;
@@ -266,6 +266,18 @@ contract("Pause Modules", (accounts) => {
 			// Pause false -> true
 			await sovryn.togglePaused(true);
 			expect(await sovryn.isProtocolPaused()).to.be.true;
+		});
+	});
+
+	describe("Testing Pausable contract", () => {
+		it("Pausable function runs if not paused", async () => {
+			testCoverage = await TestCoverage.new();
+			await testCoverage.dummyPausableFunction();
+		});
+		it("Pausable function reverts if paused", async () => {
+			testCoverage = await TestCoverage.new();
+			await testCoverage.togglePause("dummyPausableFunction()", true);
+			await expectRevert(testCoverage.dummyPausableFunction(), "unauthorized");
 		});
 	});
 });

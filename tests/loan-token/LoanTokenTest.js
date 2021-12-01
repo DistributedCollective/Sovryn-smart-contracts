@@ -11,7 +11,7 @@
  *   Updated to use SUSD as underlying token, instead of custom underlyingToken.
  */
 
-const { constants } = require("@openzeppelin/test-helpers");
+const { constants, expectRevert, BN } = require("@openzeppelin/test-helpers");
 const {
 	getSUSD,
 	getRBTC,
@@ -28,23 +28,34 @@ const {
 	decodeLogs,
 	getSOV,
 } = require("../Utils/initializer.js");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 
+const LoanToken = artifacts.require("LoanToken");
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 
 const PreviousLoanTokenSettings = artifacts.require("PreviousLoanTokenSettingsLowerAdmin");
 const PreviousLoanToken = artifacts.require("PreviousLoanToken");
 
+const ProtocolSettings = artifacts.require("ProtocolSettings");
+
+const TestCoverage = artifacts.require("TestCoverage");
+
+// const TOTAL_SUPPLY = 100;
+
+// const DAY = 86400;
 const TWO_DAYS = 86400 * 2;
 
 contract("LoanTokenUpgrade", (accounts) => {
 	let root;
 	let SUSD, staking, gov, timelock;
 	let loanTokenSettings, sovryn, loanToken;
+	const name = "Test token";
+	const symbol = "TST";
 
 	before(async () => {
 		[root, ...accounts] = accounts;
@@ -79,7 +90,13 @@ contract("LoanTokenUpgrade", (accounts) => {
 		loanToken = await PreviousLoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, SUSD.address);
 		loanToken = await PreviousLoanTokenSettings.at(loanToken.address);
 
-		await sovryn.transferOwnership(timelock.address);
+		// protocolSettings = await ProtocolSettings.new();
+		// protocol = await Protocol.new();
+		// await protocol.replaceContract(protocolSettings.address);
+		// protocol = await ProtocolSettings.at(protocol.address);
+		// await protocol.transferOwnership(timelock.address);
+
+		// SUSD = await TestToken.new("SUSD", "SUSD", 18, TOTAL_SUPPLY);
 	});
 
 	describe("change settings", () => {
@@ -113,6 +130,45 @@ contract("LoanTokenUpgrade", (accounts) => {
 
 			assert.equal(sovrynContractAddress, previousSovrynContractAddress);
 			assert.equal(wrbtcTokenAddress, previousWrbtcTokenAddress);
+		});
+	});
+
+	describe("Test coverage for LoanToken.sol", () => {
+		it("Call constructor w/ target not a contract", async () => {
+			await expectRevert(LoanToken.new(root, ZERO_ADDRESS, loanTokenSettings.address, SUSD.address), "target not a contract");
+		});
+		it("Call constructor w/ protocol not a contract", async () => {
+			await expectRevert(LoanToken.new(root, loanTokenSettings.address, ZERO_ADDRESS, SUSD.address), "sovryn not a contract");
+		});
+		it("Call constructor w/ wrbtc not a contract", async () => {
+			await expectRevert(
+				LoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, ZERO_ADDRESS),
+				"wrbtc not a contract"
+			);
+		});
+		it("Call LoanToken::setTarget", async () => {
+			let newLloanToken = await LoanToken.new(root, loanTokenSettings.address, loanTokenSettings.address, SUSD.address);
+			let newLoanTokenSettings = await LoanTokenSettings.new();
+			await newLloanToken.setTarget(newLoanTokenSettings.address);
+		});
+	});
+
+	describe("Test coverage for AdvancedToken::_mint", () => {
+		it("Call _mint w/ address 0 as receiver", async () => {
+			testCoverage = await TestCoverage.new();
+			let tokenAmount = new BN(1);
+			let assetAmount = new BN(1);
+			let price = new BN(1);
+			await expectRevert(testCoverage.testMint(ZERO_ADDRESS, tokenAmount, assetAmount, price), "15");
+		});
+	});
+
+	describe("Test coverage for LoanTokenLogicStorage::stringToBytes32", () => {
+		it("stringToBytes32 when tempEmptyStringTest.length == 0", async () => {
+			testCoverage = await TestCoverage.new();
+			let result = await testCoverage.testStringToBytes32("");
+			// console.log("result: ", result);
+			expect(result).to.be.equal("0x0000000000000000000000000000000000000000000000000000000000000000");
 		});
 	});
 });

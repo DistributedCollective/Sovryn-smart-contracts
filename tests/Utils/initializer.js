@@ -19,8 +19,14 @@ const LoanClosingsBase = artifacts.require("LoanClosingsBase");
 const SwapsExternal = artifacts.require("SwapsExternal");
 
 const LoanToken = artifacts.require("LoanToken");
-const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicTest");
+const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
+const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic");
 const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
+const LoanTokenLogicProxy = artifacts.require("LoanTokenLogicProxy");
+const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
+const LoanTokenSettingsLowerAdmin = artifacts.require("LoanTokenSettingsLowerAdmin");
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
@@ -128,13 +134,52 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
 
 // Loan Token
 
-const getLoanTokenLogic = async () => {
-	const loanTokenLogicStandard = await LoanTokenLogicStandard.new();
-	return loanTokenLogicStandard;
+const getLoanTokenLogic = async (isMockLoanToken = false) => {
+	/** Deploy LoanTokenLogicBeacon */
+	const loanTokenLogicBeacon = await LoanTokenLogicBeacon.new();
+
+	/** Deploy  LoanTokenSettingsLowerAdmin*/
+	const loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new();
+
+	/** Register Loan Token Modules to the Beacon */
+	await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
+
+	/** Deploy LoanTokenLogicLM */
+	let loanTokenLogicLM;
+	if (isMockLoanToken) {
+		loanTokenLogicLM = await MockLoanTokenLogic.new();
+	} else {
+		loanTokenLogicLM = await LoanTokenLogicLM.new();
+	}
+
+	/** Register Loan Token Logic LM to the Beacon */
+	await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicLM.address);
+
+	/** Deploy LoanTokenLogicProxy */
+	loanTokenLogicProxy = await LoanTokenLogicProxy.new(loanTokenLogicBeacon.address);
+
+	return [loanTokenLogicProxy, loanTokenLogicBeacon];
 };
 const getLoanTokenLogicWrbtc = async () => {
+	/** Deploy LoanTokenLogicBeacon */
+	const loanTokenLogicBeacon = await LoanTokenLogicBeacon.new();
+
+	/** Deploy  LoanTokenSettingsLowerAdmin*/
+	const loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new();
+
+	/** Register Loan Token Modules to the Beacon */
+	await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
+
+	/** Deploy LoanTokenLogicLM */
 	const loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
-	return loanTokenLogicWrbtc;
+
+	/** Register Loan Token Logic LM to the Beacon */
+	await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicWrbtc.address);
+
+	/** Deploy LoanTokenLogicProxy */
+	loanTokenLogicProxy = await LoanTokenLogicProxy.new(loanTokenLogicBeacon.address);
+
+	return [loanTokenLogicProxy, loanTokenLogicBeacon];
 };
 
 const getLoanTokenSettings = async () => {
@@ -142,10 +187,21 @@ const getLoanTokenSettings = async () => {
 	return loanSettings;
 };
 
-const getLoanToken = async (loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD) => {
-	let loanToken = await LoanToken.new(owner, loanTokenLogicStandard.address, sovryn.address, WRBTC.address);
+const getLoanToken = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) => {
+	const initLoanTokenLogic = await getLoanTokenLogic(mockLogic); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+	loanTokenLogic = initLoanTokenLogic[0];
+	loanTokenLogicBeacon = initLoanTokenLogic[1];
+
+	let loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, WRBTC.address);
 	await loanToken.initialize(SUSD.address, "SUSD", "SUSD"); //iToken
-	loanToken = await LoanTokenLogicStandard.at(loanToken.address);
+
+	/** Initialize the loan token logic proxy */
+	loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+	await loanToken.setBeaconAddress(loanTokenLogicBeacon.address);
+
+	/** Use interface of LoanTokenModules */
+	loanToken = await ILoanTokenModules.at(loanToken.address);
+
 	// assert loanToken.tokenPrice() == loanToken.initialPrice()
 	// const initial_total_supply = await loanToken.totalSupply();
 	// loan token total supply should be zero
@@ -153,10 +209,21 @@ const getLoanToken = async (loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD) 
 	return loanToken;
 };
 
-const getLoanTokenWRBTC = async (loanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD) => {
+const getLoanTokenWRBTC = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) => {
+	const initLoanTokenLogic = await getLoanTokenLogicWrbtc(mockLogic); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+	loanTokenLogicWrbtc = initLoanTokenLogic[0];
+	loanTokenLogicBeacon = initLoanTokenLogic[1];
+
 	let loanTokenWRBTC = await LoanToken.new(owner, loanTokenLogicWrbtc.address, sovryn.address, WRBTC.address);
 	await loanTokenWRBTC.initialize(WRBTC.address, "iWRBTC", "iWRBTC"); //iToken
-	loanTokenWRBTC = await LoanTokenLogicWrbtc.at(loanTokenWRBTC.address);
+
+	/** Initialize the loan token logic proxy */
+	loanTokenWRBTC = await ILoanTokenLogicProxy.at(loanTokenWRBTC.address);
+	await loanTokenWRBTC.setBeaconAddress(loanTokenLogicBeacon.address);
+
+	/** Use interface of LoanTokenModules */
+	loanTokenWRBTC = await ILoanTokenModules.at(loanTokenWRBTC.address);
+
 	// assert loanToken.tokenPrice() == loanToken.initialPrice()
 	// const initial_total_supply = await loanToken.totalSupply();
 	// loan token total supply should be zero
@@ -202,7 +269,7 @@ const set_demand_curve = async (loanToken) => {
 	const kinkLevel = wei("90", "ether");
 	const maxScaleRate = wei("100", "ether");
 
-	const localLoanToken = await LoanTokenLogicStandard.at(loanToken.address);
+	const localLoanToken = await ILoanTokenModules.at(loanToken.address);
 	await localLoanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate);
 	// borrow_interest_rate = loanToken.borrowInterestRate();
 	// print("borrowInterestRate: ", borrow_interest_rate);

@@ -79,7 +79,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address delegatee,
 		bool timeAdjusted
 	) internal {
-		require(amount > 0, "Staking::stake: amount of tokens to stake needs to be bigger than 0");
+		require(amount > 0, "amount needs to be bigger than 0");
 
 		if (!timeAdjusted) {
 			until = timestampToLockDate(until);
@@ -120,7 +120,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 			_decreaseDelegateStake(previousDelegatee, until, previousBalance);
 
 			/// @dev Add previousBalance to amount.
-			amount = add96(previousBalance, amount, "Staking::stake: balance overflow");
+			amount = add96(previousBalance, amount, "balance overflow");
 		}
 
 		/// @dev Increase stake.
@@ -135,7 +135,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * */
 	function extendStakingDuration(uint256 previousLock, uint256 until) public {
 		until = timestampToLockDate(until);
-		require(previousLock <= until, "Staking::extendStakingDuration: cannot reduce the staking duration");
+		require(previousLock <= until, "cannot reduce the staking duration");
 
 		/// @dev Do not exceed the max duration, no overflow possible.
 		uint256 latest = timestampToLockDate(block.timestamp + MAX_DURATION);
@@ -144,9 +144,15 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		/// @dev Update checkpoints.
 		/// @dev TODO James: Can reading stake at block.number -1 cause trouble with multiple tx in a block?
 		uint96 amount = _getPriorUserStakeByDate(msg.sender, previousLock, block.number - 1);
-		require(amount > 0, "Staking::extendStakingDuration: nothing staked until the previous lock date");
+		require(amount > 0, "nothing staked until the previous lock date");
 		_decreaseUserStake(msg.sender, previousLock, amount);
 		_increaseUserStake(msg.sender, until, amount);
+
+		if (isVestingContract(msg.sender)) {
+			_decreaseVestingStake(previousLock, amount);
+			_increaseVestingStake(until, amount);
+		}
+
 		_decreaseDailyStake(previousLock, amount);
 		_increaseDailyStake(until, amount);
 
@@ -183,11 +189,13 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 		/// @dev Increase staked balance.
 		uint96 balance = currentBalance(stakeFor, until);
-		balance = add96(balance, amount, "Staking::increaseStake: balance overflow");
+		balance = add96(balance, amount, "overflow");
 
 		/// @dev Update checkpoints.
 		_increaseDailyStake(until, amount);
 		_increaseUserStake(stakeFor, until, amount);
+
+		if (isVestingContract(stakeFor)) _increaseVestingStake(until, amount);
 
 		emit TokensStaked(stakeFor, amount, until, balance);
 	}
@@ -305,7 +313,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	) internal {
 		// @dev it's very unlikely some one will have 1/10**18 SOV staked in Vesting contract
 		//		this check is a part of workaround for Vesting.withdrawTokens issue
-		if (amount == 1 && _isVestingContract()) {
+		if (amount == 1 && isVestingContract(msg.sender)) {
 			return;
 		}
 		until = _adjustDateForOrigin(until);
@@ -317,6 +325,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		/// @dev Update the checkpoints.
 		_decreaseDailyStake(until, amount);
 		_decreaseUserStake(msg.sender, until, amount);
+		if (isVestingContract(msg.sender)) _decreaseVestingStake(until, amount);
 		_decreaseDelegateStake(delegates[msg.sender][until], until, amount);
 
 		/// @dev Early unstaking should be punished.
@@ -348,12 +357,12 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address receiver,
 		bool isGovernance
 	) internal {
-		if (_isVestingContract()) {
+		if (isVestingContract(msg.sender)) {
 			uint256 nextLock = until.add(TWO_WEEKS);
 			if (isGovernance || block.timestamp >= nextLock) {
-				uint96 stake = _getPriorUserStakeByDate(msg.sender, nextLock, block.number - 1);
-				if (stake > 0) {
-					_withdraw(stake, nextLock, receiver, isGovernance);
+				uint96 stakes = _getPriorUserStakeByDate(msg.sender, nextLock, block.number - 1);
+				if (stakes > 0) {
+					_withdraw(stakes, nextLock, receiver, isGovernance);
 				}
 			}
 		}
@@ -539,7 +548,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address delegatee,
 		uint256 lockedTS
 	) internal {
-		if (_isVestingContract()) {
+		if (isVestingContract(msg.sender)) {
 			uint256 nextLock = lockedTS.add(TWO_WEEKS);
 			address currentDelegate = delegates[delegator][nextLock];
 			if (currentDelegate != delegatee) {

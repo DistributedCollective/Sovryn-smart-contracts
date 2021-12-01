@@ -19,6 +19,8 @@ const { BN, constants, expectEvent } = require("@openzeppelin/test-helpers");
 const { expect, waffle } = require("hardhat");
 const { deployMockContract, loadFixture } = waffle;
 const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const LoanToken = artifacts.require("LoanToken");
 const LockedSOV = artifacts.require("LockedSOV");
 const StakingLogic = artifacts.require("Staking");
@@ -27,6 +29,7 @@ const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
+const TestWrbtc = artifacts.require("TestWrbtc");
 
 const TestToken = artifacts.require("TestToken");
 
@@ -90,13 +93,22 @@ contract("Affiliates", (accounts) => {
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 		await sovryn.setSovrynProtocolAddress(sovryn.address);
 
-		loanTokenLogic = await LoanTokenLogicLM.new();
+		// loanTokenLogic = await LoanTokenLogicLM.new();
+		const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+		loanTokenLogic = initLoanTokenLogic[0];
+		loanTokenLogicBeacon = initLoanTokenLogic[1];
+		testWrbtc = await TestWrbtc.new();
 		doc = await TestToken.new("dollar on chain", "DOC", 18, wei("20000", "ether"));
 		loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, WRBTC.address);
 		await loanToken.initialize(doc.address, "SUSD", "SUSD");
 
-		// loanTokenV2 = await LoanTokenLogicLM.at(loanToken.address);
-		loanTokenV2 = await LoanTokenLogicLM.at(loanToken.address); // mocked for ad-hoc logic for isolated testing
+		/** Initialize the loan token logic proxy */
+		loanTokenV2 = await ILoanTokenLogicProxy.at(loanToken.address);
+		await loanTokenV2.setBeaconAddress(loanTokenLogicBeacon.address);
+
+		/** Use interface of LoanTokenModules */
+		loanTokenV2 = await ILoanTokenModules.at(loanToken.address);
+
 		const loanTokenAddress = await loanToken.loanTokenAddress();
 		if (owner == (await sovryn.owner())) {
 			await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);

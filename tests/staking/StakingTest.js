@@ -29,6 +29,7 @@ const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
+const TWO_WEEKS = 1209600;
 
 contract("Staking", (accounts) => {
 	const name = "Test token";
@@ -80,13 +81,139 @@ contract("Staking", (accounts) => {
 		await loadFixture(deploymentAndInitFixture);
 	});
 
-	describe("metadata", () => {
-		it("has given name", async () => {
-			expect(await token.name.call()).to.be.equal(name);
+	// describe("metadata", () => {
+	// 	it("has given name", async () => {
+	// 		expect(await token.name.call()).to.be.equal(name);
+	// 	});
+	//
+	// 	it("has given symbol", async () => {
+	// 		expect(await token.symbol.call()).to.be.equal(symbol);
+	// 	});
+	// });
+	//
+	// describe("balanceOf", () => {
+	// 	it("grants to initial account", async () => {
+	// 		expect((await token.balanceOf.call(root)).toString()).to.be.equal(TOTAL_SUPPLY);
+	// 	});
+	// });
+	//
+	// describe("delegateBySig", () => {
+	// 	const Domain = (staking) => ({ name: "SOVStaking", chainId: currentChainId, verifyingContract: staking.address });
+	// 	const Types = {
+	// 		Delegation: [
+	// 			{ name: "delegatee", type: "address" },
+	// 			{ name: "lockDate", type: "uint256" },
+	// 			{ name: "nonce", type: "uint256" },
+	// 			{ name: "expiry", type: "uint256" },
+	// 		],
+	// 	};
+	//
+	// 	it("reverts if the signatory is invalid", async () => {
+	// 		const delegatee = root,
+	// 			nonce = 0,
+	// 			expiry = 0;
+	// 		await expectRevert(
+	// 			staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, 0, "0xbad", "0xbad"),
+	// 			"Staking::delegateBySig: invalid signature"
+	// 		);
+	// 	});
+	//
+	// 	it("reverts if the nonce is bad ", async () => {
+	// 		const delegatee = root,
+	// 			nonce = 1,
+	// 			expiry = 0,
+	// 			lockDate = inThreeYears;
+	// 		const { v, r, s } = EIP712.sign(
+	// 			Domain(staking),
+	// 			"Delegation",
+	// 			{
+	// 				delegatee,
+	// 				lockDate,
+	// 				nonce,
+	// 				expiry,
+	// 			},
+	// 			Types,
+	// 			pkbA1
+	// 			//pA1.privateKey
+	// 			//unlockedAccount(a1).secretKey
+	// 		);
+	// 		/*const { v, r, s } = EIP712Ethers.sign(
+	// 			Domain(staking),
+	// 			"Delegation",
+	// 			{
+	// 				delegatee,
+	// 				lockDate,
+	// 				nonce,
+	// 				expiry,
+	// 			},
+	// 			Types,
+	// 			pA1
+	// 		);*/
+	//
+	// 		await expectRevert(
+	// 			staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s),
+	// 			"Staking::delegateBySig: invalid nonce"
+	// 		);
+	// 	});
+	//
+	// 	it("reverts if the signature has expired", async () => {
+	// 		const delegatee = root,
+	// 			nonce = 0,
+	// 			expiry = 0,
+	// 			lockDate = inThreeYears;
+	// 		const { v, r, s } = EIP712.sign(
+	// 			Domain(staking),
+	// 			"Delegation",
+	// 			{
+	// 				delegatee,
+	// 				lockDate,
+	// 				nonce,
+	// 				expiry,
+	// 			},
+	// 			Types,
+	// 			pkbA1
+	// 		);
+	// 		await expectRevert(
+	// 			staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s),
+	// 			"Staking::delegateBySig: signature expired"
+	// 		);
+	// 	});
+	//
+	// 	it("delegates on behalf of the signatory", async () => {
+	// 		const delegatee = root,
+	// 			nonce = 0,
+	// 			expiry = 10e9,
+	// 			lockDate = inThreeYears;
+	// 		const { v, r, s } = EIP712.sign(
+	// 			Domain(staking),
+	// 			"Delegation",
+	// 			{
+	// 				delegatee,
+	// 				lockDate,
+	// 				nonce,
+	// 				expiry,
+	// 			},
+	// 			Types,
+	// 			pkbA1
+	// 			//unlockedAccount(a1).secretKey
+	// 		);
+	//
+	// 		expect(await staking.delegates.call(a1, inThreeYears)).to.be.equal(address(0));
+	// 		const tx = await staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s);
+	// 		expect(tx.gasUsed < 80000);
+	// 		expect(await staking.delegates.call(a1, inThreeYears)).to.be.equal(root);
+	// 	});
+	// });
+
+	describe("setVestingStakes", () => {
+		it("should fail if unauthorized", async () => {
+			await expectRevert(staking.setVestingStakes([], [], { from: a1 }), "unauthorized");
 		});
 
-		it("has given symbol", async () => {
-			expect(await token.symbol.call()).to.be.equal(symbol);
+		it("should fail if arrays have different length", async () => {
+			let lockedDates = [kickoffTS.add(new BN(TWO_WEEKS))];
+			let values = [];
+			await expectRevert(staking.setVestingStakes(lockedDates, values), "arrays mismatch");
 		});
 	});
 
@@ -270,7 +397,7 @@ contract("Staking", (accounts) => {
 			let time = kickoffTS.add(new BN(DELAY));
 			await expectRevert(
 				staking.getPriorVotes.call(a1, 5e10, time),
-				"WeightedStaking::getPriorStakeByDateForDelegatee: not yet determined"
+				"not determined yet"
 			);
 		});
 
@@ -378,6 +505,32 @@ contract("Staking", (accounts) => {
 
 		it("fails sender isn't an owner", async () => {
 			await expectRevert(staking.removeAdmin(a1, { from: a1 }), "unauthorized");
+		});
+	});
+
+	describe("vesting stakes", () => {
+		it("should set vesting stakes", async () => {
+			let lockedDates = [
+				kickoffTS.add(new BN(TWO_WEEKS)),
+				kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2))),
+				kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4))),
+			];
+			let values = [new BN(1000), new BN(30000000000), new BN(500000000000000)];
+
+			let tx = await staking.setVestingStakes(lockedDates, values);
+
+			for (let i = 0; i < lockedDates.length; i++) {
+				let numCheckpoints = await staking.numVestingCheckpoints.call(lockedDates[i]);
+				expect(numCheckpoints).to.be.bignumber.equal(new BN(1));
+				let value = await staking.vestingCheckpoints.call(lockedDates[i], 0);
+				expect(value.stake).to.be.bignumber.equal(values[i]);
+				expect(value.fromBlock).to.be.bignumber.equal(new BN(0));
+
+				expectEvent(tx, "VestingStakeSet", {
+					lockedTS: lockedDates[i],
+					value: values[i],
+				});
+			}
 		});
 	});
 

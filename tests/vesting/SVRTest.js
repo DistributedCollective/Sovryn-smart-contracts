@@ -12,7 +12,7 @@ const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 
-const StakingLogic = artifacts.require("Staking");
+const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV = artifacts.require("SOV");
 const SVR = artifacts.require("SVR");

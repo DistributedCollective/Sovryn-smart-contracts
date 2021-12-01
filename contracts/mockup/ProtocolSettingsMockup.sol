@@ -41,6 +41,7 @@ contract ProtocolSettingsMockup is ProtocolSettings {
 		_setTarget(this.isLoanPool.selector, target);
 		_setTarget(this.setSovrynSwapContractRegistryAddress.selector, target);
 		_setTarget(this.setWrbtcToken.selector, target);
+		_setTarget(this.setSovrynProtocolAddress.selector, target);
 		_setTarget(this.setProtocolTokenAddress.selector, target);
 		_setTarget(this.setSOVTokenAddress.selector, target);
 		_setTarget(this.setLockedSOVAddress.selector, target);
@@ -55,6 +56,7 @@ contract ProtocolSettingsMockup is ProtocolSettings {
 		_setTarget(this.getProtocolAddress.selector, target);
 		_setTarget(this.getSovTokenAddress.selector, target);
 		_setTarget(this.getLockedSOVAddress.selector, target);
+
 		_setTarget(this.getFeeRebatePercent.selector, target);
 		_setTarget(this.getSwapExternalFeePercent.selector, target);
 

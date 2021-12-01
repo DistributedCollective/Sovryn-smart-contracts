@@ -15,7 +15,7 @@ const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 const { address, etherMantissa, encodeParameters, mineBlock } = require("../../Utils/Ethereum");
 
 const GovernorAlpha = artifacts.require("GovernorAlpha");
-const StakingLogic = artifacts.require("Staking");
+const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 //Upgradable Vesting Registry

@@ -17,11 +17,12 @@
 const { expect } = require("chai");
 const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
-const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { expectRevert, expectEvent, BN, constants } = require("@openzeppelin/test-helpers");
 const { increaseTime } = require("../Utils/Ethereum");
 
 const LoanToken = artifacts.require("LoanToken");
-const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
@@ -51,7 +52,7 @@ contract("LoanTokenLending", (accounts) => {
 	const name = "Test token";
 	const symbol = "TST";
 
-	let lender, account2;
+	let lender, account2, account3, account4;
 	let SUSD, WRBTC;
 	let sovryn, loanToken;
 
@@ -83,10 +84,14 @@ contract("LoanTokenLending", (accounts) => {
 
 		sov = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
-		loanTokenLogicStandard = await LoanTokenLogicLM.new();
-		loanToken = await LoanToken.new(lender, loanTokenLogicStandard.address, sovryn.address, WRBTC.address);
-		await loanToken.initialize(SUSD.address, name, symbol); // iToken
-		loanToken = await LoanTokenLogicLM.at(loanToken.address);
+		const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+		loanTokenLogic = initLoanTokenLogic[0];
+		loanTokenLogicBeacon = initLoanTokenLogic[1];
+
+		loanToken = await LoanToken.new(lender, loanTokenLogic.address, sovryn.address, WRBTC.address);
+		await loanToken.initialize(SUSD.address, name, symbol); //iToken
+
+		const loanTokenAddress = await loanToken.loanTokenAddress();
 
 		params = [
 			"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object
@@ -99,9 +104,15 @@ contract("LoanTokenLending", (accounts) => {
 			2419200, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
 		];
 
+		/** Initialize the loan token logic proxy */
+		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+		await loanToken.setBeaconAddress(loanTokenLogicBeacon.address);
+
+		/** Use interface of LoanTokenModules */
+		loanToken = await ILoanTokenModules.at(loanToken.address);
+
 		await loanToken.setupLoanParams([params], false);
 
-		const loanTokenAddress = await loanToken.loanTokenAddress();
 		if (lender == (await sovryn.owner())) await sovryn.setLoanPool([loanToken.address], [loanTokenAddress]);
 		// const baseRate = wei("1", "ether");
 		// const rateMultiplier = wei("20.25", "ether");
@@ -114,7 +125,7 @@ contract("LoanTokenLending", (accounts) => {
 	}
 
 	before(async () => {
-		[lender, account2, ...accounts] = accounts;
+		[lender, account2, account3, account4, ...accounts] = accounts;
 	});
 
 	beforeEach(async () => {
@@ -186,6 +197,39 @@ contract("LoanTokenLending", (accounts) => {
 				wei("0.01", "ether"),
 				"0x"
 			);
+		});
+	});
+
+	describe("Test iRBTC withdrawal from LoanToken Contracts", () => {
+		it("test withdrawal from LoanToken contract", async () => {
+			await web3.eth.sendTransaction({ from: accounts[0].toString(), to: loanToken.address, value: 10000, gas: 22000 });
+			const contractBalance = await web3.eth.getBalance(loanToken.address);
+			const balanceBefore = await web3.eth.getBalance(account4);
+			let tx = await loanToken.withdrawRBTCTo(account4, contractBalance);
+			expectEvent(tx, "WithdrawRBTCTo", {
+				to: account4,
+				amount: contractBalance,
+			});
+			const balanceAfter = await web3.eth.getBalance(account4);
+			expect(new BN(balanceAfter).sub(new BN(balanceBefore))).to.be.a.bignumber.equal(new BN(contractBalance));
+		});
+
+		it("shouldn't withdraw when zero address is passed", async () => {
+			await expectRevert(loanToken.withdrawRBTCTo(constants.ZERO_ADDRESS, 100), "receiver address invalid");
+		});
+
+		it("shouldn't withdraw when triggered by anyone other than owner", async () => {
+			await expectRevert(loanToken.withdrawRBTCTo(account4, 100, { from: account4 }), "unauthorized");
+		});
+
+		it("shouldn't withdraw if amount is 0", async () => {
+			await web3.eth.sendTransaction({ from: accounts[0].toString(), to: loanToken.address, value: 10000, gas: 22000 });
+			await expectRevert(loanToken.withdrawRBTCTo(account4, 0), "non-zero withdraw amount expected");
+		});
+
+		it("shouldn't withdraw if amount is invalid", async () => {
+			await web3.eth.sendTransaction({ from: accounts[0].toString(), to: loanToken.address, value: 10000, gas: 22000 });
+			await expectRevert(loanToken.withdrawRBTCTo(account4, 20000), "withdraw amount cannot exceed balance");
 		});
 	});
 });
