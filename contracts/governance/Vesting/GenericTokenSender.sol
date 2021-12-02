@@ -25,7 +25,11 @@ contract GenericTokenSender is AdminRole {
 	 * @param _receivers The addresses of the receivers.
 	 * @param _amounts The amounts to be transferred.
 	 * */
-	function transferTokensUsingList(address _token, address[] memory _receivers, uint256[] memory _amounts) public onlyAuthorized {
+	function transferTokensUsingList(
+		address _token,
+		address[] calldata _receivers,
+		uint256[] calldata _amounts
+	) external onlyAuthorized {
 		require(_receivers.length == _amounts.length, "arrays mismatch");
 
 		for (uint256 i = 0; i < _receivers.length; i++) {
@@ -39,11 +43,19 @@ contract GenericTokenSender is AdminRole {
 	 * @param _receiver The address of the token receiver.
 	 * @param _amount The amount to be transferred.
 	 * */
-	function transferTokens(address _token, address _receiver, uint256 _amount) public onlyAuthorized {
+	function transferTokens(
+		address _token,
+		address _receiver,
+		uint256 _amount
+	) external onlyAuthorized {
 		_transferTokens(_token, _receiver, _amount);
 	}
 
-	function _transferTokens(address _token, address _receiver, uint256 _amount) internal {
+	function _transferTokens(
+		address _token,
+		address _receiver,
+		uint256 _amount
+	) internal {
 		require(_token != address(0), "token address invalid");
 		require(_receiver != address(0), "receiver address invalid");
 		require(_amount != 0, "amount invalid");
