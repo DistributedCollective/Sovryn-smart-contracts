@@ -21,27 +21,11 @@
  *  Updated to use SUSD as underlying token.
  */
 
-const { assert, expect } = require("chai");
 const { waffle } = require("hardhat");
+const { assert, expect } = require("chai");
 const { loadFixture } = waffle;
+
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
-const { increaseTime, blockNumber } = require("./Utils/Ethereum");
-const {
-	getSUSD,
-	getRBTC,
-	getWRBTC,
-	getBZRX,
-	getLoanTokenLogic,
-	getLoanToken,
-	getLoanTokenLogicWrbtc,
-	getLoanTokenWRBTC,
-	loan_pool_setup,
-	set_demand_curve,
-	getPriceFeeds,
-	getSovryn,
-	decodeLogs,
-	getSOV,
-} = require("./Utils/initializer.js");
 
 const TestToken = artifacts.require("TestToken");
 const LockedSOV = artifacts.require("LockedSOVMockup");
@@ -54,6 +38,22 @@ const TestCoverage = artifacts.require("TestCoverage");
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
+const { increaseTime, blockNumber } = require("./Utils/Ethereum");
+const {
+	getSUSD,
+	getRBTC,
+	getWRBTC,
+	getBZRX,
+	getLoanToken,
+	getLoanTokenWRBTC,
+	loan_pool_setup,
+	set_demand_curve,
+	getPriceFeeds,
+	getSovryn,
+	decodeLogs,
+	getSOV,
+} = require("./Utils/initializer.js");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 contract("Pause Modules", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
@@ -67,10 +67,8 @@ contract("Pause Modules", (accounts) => {
 		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
-		const loanTokenLogicStandard = await getLoanTokenLogic();
-		const loanTokenLogicWrbtc = await getLoanTokenLogicWrbtc();
-		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
-		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
+		loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD);
+		loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
@@ -217,6 +215,7 @@ contract("Pause Modules", (accounts) => {
 			expect((await sovryn.affiliateTradingTokenFeePercent()).toString() == affiliateTradingTokenFeePercent).to.be.true;
 		});
 	});
+
 	describe("Pause LoanSettings", () => {
 		it("Able to setupLoanParams & disableLoanParamsEvents when unpaused", async () => {
 			let tx = await sovryn.setupLoanParams([Object.values(loanParams)]);

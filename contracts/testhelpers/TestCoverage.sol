@@ -10,8 +10,9 @@ import "../governance/Staking/SafeMath96.sol";
 import "../mixins/EnumerableBytes32Set.sol";
 import "../mixins/VaultController.sol";
 import "../connectors/loantoken/AdvancedToken.sol";
+import "../connectors/loantoken/LoanTokenLogicStorage.sol";
 
-contract TestCoverage is Pausable, SafeMath96, VaultController, AdvancedToken {
+contract TestCoverage is Pausable, SafeMath96, VaultController, AdvancedToken, LoanTokenLogicStorage {
 	/// @dev Pausable is currently an unused contract that still is operative
 	///   because margin trade flashloan functionality has been commented out.
 	///   In case it were restored, contract would become used again, so for a
@@ -114,5 +115,10 @@ contract TestCoverage is Pausable, SafeMath96, VaultController, AdvancedToken {
 		uint256 _price
 	) public {
 		_mint(_to, _tokenAmount, _assetAmount, _price);
+	}
+
+	/// @dev wrapper for a function unreachable to tests
+	function testStringToBytes32(string memory source) public pure returns (bytes32 result) {
+		return stringToBytes32(source);
 	}
 }

@@ -19,11 +19,10 @@ const { loadFixture } = waffle;
 // const hre = require("hardhat"); access to the hardhat engine if needed
 // const { encodeParameters, etherMantissa, mineBlock, increaseTime, blockNumber, sendFallback } = require("./utilities/ethereum"); useful utilities
 
-const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const LoanToken = artifacts.require("LoanToken");
 const TestToken = artifacts.require("TestToken");
-
-const { constants } = require("@openzeppelin/test-helpers");
 
 const {
 	getSUSD,
@@ -41,6 +40,8 @@ const {
 	decodeLogs,
 	getSOV,
 } = require("./Utils/initializer.js");
+
+const { BN, constants, balance, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 
 contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 	let loanTokenLogic;
@@ -65,10 +66,20 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 		doc = await TestToken.new("dollar on chain", "DOC", 18, web3.utils.toWei("20000", "ether"));
 
 		// Loan Pool
-		loanTokenLogic = await LoanTokenLogicLM.new();
+		const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+		loanTokenLogic = initLoanTokenLogic[0];
+		loanTokenLogicBeacon = initLoanTokenLogic[1];
+
 		loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, WRBTC.address);
 		await loanToken.initialize(doc.address, "SUSD", "SUSD");
-		loanTokenV2 = await LoanTokenLogicLM.at(loanToken.address);
+
+		/** Initialize the loan token logic proxy */
+		loanTokenV2 = await ILoanTokenLogicProxy.at(loanToken.address);
+		await loanTokenV2.setBeaconAddress(loanTokenLogicBeacon.address);
+
+		/** Use interface of LoanTokenModules */
+		loanTokenV2 = await ILoanTokenModules.at(loanTokenV2.address);
+
 		const loanTokenAddress = await loanToken.loanTokenAddress();
 		if (owner == (await sovryn.owner())) {
 			await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);

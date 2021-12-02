@@ -46,9 +46,12 @@ const TestCoverage = artifacts.require("TestCoverage");
 const TWO_DAYS = 86400 * 2;
 
 contract("LoanTokenUpgrade", (accounts) => {
-	let root;
-	let SUSD, staking, gov, timelock;
-	let loanTokenSettings, sovryn, loanToken;
+	const name = "Test token";
+	const symbol = "TST";
+
+	let root, account1, account2, account3, account4;
+	let staking, gov, timelock;
+	let loanTokenSettings, loanToken, SUSD;
 
 	before(async () => {
 		[root, ...accounts] = accounts;
@@ -147,6 +150,15 @@ contract("LoanTokenUpgrade", (accounts) => {
 			let assetAmount = new BN(1);
 			let price = new BN(1);
 			await expectRevert(testCoverage.testMint(ZERO_ADDRESS, tokenAmount, assetAmount, price), "15");
+		});
+	});
+
+	describe("Test coverage for LoanTokenLogicStorage::stringToBytes32", () => {
+		it("stringToBytes32 when tempEmptyStringTest.length == 0", async () => {
+			testCoverage = await TestCoverage.new();
+			let result = await testCoverage.testStringToBytes32("");
+			// console.log("result: ", result);
+			expect(result).to.be.equal("0x0000000000000000000000000000000000000000000000000000000000000000");
 		});
 	});
 });

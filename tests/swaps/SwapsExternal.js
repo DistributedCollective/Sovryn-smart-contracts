@@ -22,6 +22,8 @@ const { loadFixture } = waffle;
 const LockedSOV = artifacts.require("LockedSOV");
 
 const LoanToken = artifacts.require("LoanToken");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
 const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 const SwapsExternal = artifacts.require("SwapsExternal");
@@ -93,10 +95,19 @@ contract("SwapsExternal", (accounts) => {
 		await sovryn.setFeesController(lender);
 		await sovryn.setSwapExternalFeePercent(wei("10", "ether"));
 
-		loanTokenLogicStandard = await LoanTokenLogicStandard.new();
-		loanToken = await LoanToken.new(lender, loanTokenLogicStandard.address, sovryn.address, WRBTC.address);
+		const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+		loanTokenLogic = initLoanTokenLogic[0];
+		loanTokenLogicBeacon = initLoanTokenLogic[1];
+
+		loanToken = await LoanToken.new(lender, loanTokenLogic.address, sovryn.address, WRBTC.address);
 		await loanToken.initialize(SUSD.address, name, symbol); // iToken
-		loanToken = await LoanTokenLogicStandard.at(loanToken.address);
+
+		/** Initialize the loan token logic proxy */
+		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+		await loanToken.setBeaconAddress(loanTokenLogicBeacon.address);
+
+		/** Use interface of LoanTokenModules */
+		loanToken = await ILoanTokenModules.at(loanToken.address);
 
 		// Staking
 		let stakingLogic = await StakingLogic.new(SUSD.address);
@@ -104,7 +115,7 @@ contract("SwapsExternal", (accounts) => {
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 
-		//FeeSharingProxy
+		// FeeSharingProxy
 		feeSharingLogic = await FeeSharingLogic.new();
 		feeSharingProxyObj = await FeeSharingProxy.new(sovryn.address, staking.address);
 		await feeSharingProxyObj.setImplementation(feeSharingLogic.address);

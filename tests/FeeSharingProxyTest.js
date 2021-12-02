@@ -49,6 +49,8 @@ const LoanOpenings = artifacts.require("LoanOpenings");
 const LoanClosingsBase = artifacts.require("LoanClosingsBase");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const LoanTokenLogic = artifacts.require("LoanTokenLogicStandard");
 const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
@@ -172,11 +174,20 @@ contract("FeeSharingProxy:", (accounts) => {
 		sovryn = await ProtocolSettings.at(sovryn.address);
 
 		// Loan token
-		loanTokenSettings = await LoanTokenSettings.new();
-		loanTokenLogic = await LoanTokenLogic.new();
+		const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+		loanTokenLogic = initLoanTokenLogic[0];
+		loanTokenLogicBeacon = initLoanTokenLogic[1];
+
 		loanToken = await LoanToken.new(root, loanTokenLogic.address, sovryn.address, WRBTC.address);
 		await loanToken.initialize(SUSD.address, "iSUSD", "iSUSD");
-		loanToken = await LoanTokenLogic.at(loanToken.address);
+
+		/** Initialize the loan token logic proxy */
+		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+		await loanToken.setBeaconAddress(loanTokenLogicBeacon.address);
+
+		/** Use interface of LoanTokenModules */
+		loanToken = await ILoanTokenModules.at(loanToken.address);
+
 		await loanToken.setAdmin(root);
 		await sovryn.setLoanPool([loanToken.address], [SUSD.address]);
 

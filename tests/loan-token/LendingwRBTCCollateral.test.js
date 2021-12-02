@@ -18,8 +18,8 @@ const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
 
 const LoanToken = artifacts.require("LoanToken");
-const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
-
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 
 const { lend_to_the_pool, cash_out_from_the_pool, cash_out_from_the_pool_uint256_max_should_withdraw_total_balance } = require("./helpers");
@@ -69,10 +69,19 @@ contract("LoanTokenLending", (accounts) => {
 		// Custom tokens
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
-		loanTokenLogicStandard = await LoanTokenLogicLM.new();
-		loanToken = await LoanToken.new(lender, loanTokenLogicStandard.address, sovryn.address, RBTC.address);
-		await loanToken.initialize(SUSD.address, name, symbol); // iToken
-		loanToken = await LoanTokenLogicLM.at(loanToken.address);
+		const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+		loanTokenLogic = initLoanTokenLogic[0];
+		loanTokenLogicBeacon = initLoanTokenLogic[1];
+
+		loanToken = await LoanToken.new(lender, loanTokenLogic.address, sovryn.address, RBTC.address);
+		await loanToken.initialize(SUSD.address, name, symbol); //iToken
+
+		/** Initialize the loan token logic proxy */
+		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+		await loanToken.setBeaconAddress(loanTokenLogicBeacon.address);
+
+		/** Use interface of LoanTokenModules */
+		loanToken = await ILoanTokenModules.at(loanToken.address);
 
 		params = [
 			"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object

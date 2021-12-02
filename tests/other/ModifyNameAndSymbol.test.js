@@ -25,11 +25,10 @@ contract("ModifyNameAndSymbol", (accounts) => {
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
-		const loanTokenLogicStandard = await getLoanTokenLogic();
-		loanToken = await getLoanToken(loanTokenLogicStandard, accounts[0], sovryn, WRBTC, SUSD);
+		loanToken = await getLoanToken(accounts[0], sovryn, WRBTC, SUSD);
 	});
 
 	describe("Modifying name and symbol", () => {
@@ -37,7 +36,7 @@ contract("ModifyNameAndSymbol", (accounts) => {
 		it("Test modifying name and symbol", async () => {
 			const name = "TestName",
 				symbol = "TSB";
-			const localLoanToken = await LoanTokenLogicStandard.at(loanToken.address);
+			const localLoanToken = loanToken;
 
 			await localLoanToken.changeLoanTokenNameAndSymbol(name, symbol);
 
