@@ -76,8 +76,7 @@ contract("ProtocolSettings", (accounts) => {
 		await sov.transfer(multisig.address, new BN(10).pow(new BN(50)), { from: accounts[0] });
 
 		/// @dev a loanToken required to test setting loan pools on the protocol
-		loanTokenLogicWrbtc = await getLoanTokenLogicWrbtc();
-		loanToken = await getLoanToken(loanTokenLogicWrbtc, lender, sovryn, WRBTC, SUSD);
+		loanToken = await getLoanToken(lender, sovryn, WRBTC, SUSD);
 		loanTokenAddress = await loanToken.loanTokenAddress();
 	}
 
