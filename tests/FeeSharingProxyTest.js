@@ -1113,7 +1113,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			const liquidityPoolV1Converter = await LiquidityPoolV1Converter.new(SOVToken.address, susd.address);
 			await expectRevert(
 				feeSharingProxy.removeWhitelistedConverterAddress(liquidityPoolV1Converter.address),
-				"UNWHITELISTED_CONVERTER"
+				"NOT_WHITELISTED_CONVERTER"
 			);
 			await feeSharingProxy.addWhitelistedConverterAddress(liquidityPoolV1Converter.address);
 			await feeSharingProxy.removeWhitelistedConverterAddress(liquidityPoolV1Converter.address);

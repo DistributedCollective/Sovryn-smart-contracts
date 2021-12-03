@@ -411,9 +411,8 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 	 * @param converterAddress converter address to be whitelisted.
 	 */
 	function addWhitelistedConverterAddress(address converterAddress) external onlyOwner {
-		require(Address.isContract(converterAddress), "Non contract address given");
-		require(converterAddress != address(0), "ERR_ZERO_ADDRESS");
 		require(!isWhitelistedConverter[converterAddress], "WHITELISTED_CONVERTER");
+		require(Address.isContract(converterAddress), "Non contract address given");
 		isWhitelistedConverter[converterAddress] = true;
 		emit WhitelistedConverter(msg.sender, converterAddress);
 	}
@@ -424,7 +423,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 	 * @param converterAddress converter address to be removed from whitelist.
 	 */
 	function removeWhitelistedConverterAddress(address converterAddress) external onlyOwner {
-		require(isWhitelistedConverter[converterAddress], "UNWHITELISTED_CONVERTER");
+		require(isWhitelistedConverter[converterAddress], "NOT_WHITELISTED_CONVERTER");
 		isWhitelistedConverter[converterAddress] = false;
 		emit UnwhitelistedConverter(msg.sender, converterAddress);
 	}
