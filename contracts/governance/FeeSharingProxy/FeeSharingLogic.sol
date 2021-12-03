@@ -411,9 +411,8 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 	 * @param converterAddress converter address to be whitelisted.
 	 */
 	function addWhitelistedConverterAddress(address converterAddress) external onlyOwner {
-		require(!isWhitelistedConverter[converterAddress], "WHITELISTED_CONVERTER");
 		require(Address.isContract(converterAddress), "Non contract address given");
-		isWhitelistedConverter[converterAddress] = true;
+		whitelistedConverterList.add(converterAddress);
 		emit WhitelistedConverter(msg.sender, converterAddress);
 	}
 
@@ -423,20 +422,16 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 	 * @param converterAddress converter address to be removed from whitelist.
 	 */
 	function removeWhitelistedConverterAddress(address converterAddress) external onlyOwner {
-		require(isWhitelistedConverter[converterAddress], "NOT_WHITELISTED_CONVERTER");
-		isWhitelistedConverter[converterAddress] = false;
+		whitelistedConverterList.remove(converterAddress);
 		emit UnwhitelistedConverter(msg.sender, converterAddress);
 	}
 
 	/**
-	 * @dev getter for isWhitelistedConverter.
-	 *
-	 * @param converterAddress the address of the converter.
-	 *
-	 * @return bool, whether given converterAddress is whitelisted or not.
+	 * @notice Getter to query all of the whitelisted converter.
+	 * @return All of the whitelisted converter list.
 	 */
-	function getIsWhitelistedConverter(address converterAddress) public view returns (bool) {
-		return isWhitelistedConverter[converterAddress];
+	function getWhitelistedConverterList() external view returns (address[] memory converterList) {
+		converterList = whitelistedConverterList.enumerate();
 	}
 
 	/**
@@ -447,7 +442,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 	 */
 	function _validateWhitelistedConverter(address[] memory converterAddresses) private view {
 		for (uint256 i = 0; i < converterAddresses.length; i++) {
-			require(isWhitelistedConverter[converterAddresses[i]], "Invalid Converter");
+			require(whitelistedConverterList.contains(converterAddresses[i]), "Invalid Converter");
 		}
 	}
 }

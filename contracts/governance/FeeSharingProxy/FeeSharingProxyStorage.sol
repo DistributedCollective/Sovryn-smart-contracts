@@ -5,6 +5,7 @@ import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 import "../IFeeSharingProxy.sol";
 import "../Staking/IStaking.sol";
+import "../../mixins/EnumerableAddressSet.sol";
 
 /**
  * @title FeeSharingProxy Storage contact.
@@ -14,6 +15,7 @@ import "../Staking/IStaking.sol";
  *
  * */
 contract FeeSharingProxyStorage is Ownable {
+	using EnumerableAddressSet for EnumerableAddressSet.AddressSet;
 	/// @dev TODO FEE_WITHDRAWAL_INTERVAL, MAX_CHECKPOINTS
 	uint256 constant FEE_WITHDRAWAL_INTERVAL = 86400;
 
@@ -69,7 +71,7 @@ contract FeeSharingProxyStorage is Ownable {
 	 * @dev Initialization here does not works. We need to create a separate setter & getter.
 	 * @dev Just set the visibility to internal should be fine.
 	 */
-	mapping(address => bool) internal isWhitelistedConverter;
+	EnumerableAddressSet.AddressSet internal whitelistedConverterList;
 
 	/**
 	 * @dev Prevents a contract from calling itself, directly or indirectly.

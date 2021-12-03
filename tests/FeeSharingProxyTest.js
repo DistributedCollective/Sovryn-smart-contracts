@@ -1105,19 +1105,32 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			const liquidityPoolV1Converter = await LiquidityPoolV1Converter.new(SOVToken.address, susd.address);
 			await feeSharingProxy.addWhitelistedConverterAddress(liquidityPoolV1Converter.address);
-			expect(await feeSharingProxy.getIsWhitelistedConverter(liquidityPoolV1Converter.address)).to.equal(true);
-			await expectRevert(feeSharingProxy.addWhitelistedConverterAddress(liquidityPoolV1Converter.address), "WHITELISTED_CONVERTER");
+			let whitelistedConverterList = await feeSharingProxy.getWhitelistedConverterList();
+			expect(whitelistedConverterList.length).to.equal(1);
+			expect(whitelistedConverterList[0]).to.equal(liquidityPoolV1Converter.address);
+			await feeSharingProxy.addWhitelistedConverterAddress(liquidityPoolV1Converter.address);
+			whitelistedConverterList = await feeSharingProxy.getWhitelistedConverterList();
+			expect(whitelistedConverterList.length).to.equal(1);
+			expect(whitelistedConverterList[0]).to.equal(liquidityPoolV1Converter.address);
 		});
 
 		it("Remove converter from whitelist", async () => {
 			const liquidityPoolV1Converter = await LiquidityPoolV1Converter.new(SOVToken.address, susd.address);
-			await expectRevert(
-				feeSharingProxy.removeWhitelistedConverterAddress(liquidityPoolV1Converter.address),
-				"NOT_WHITELISTED_CONVERTER"
-			);
-			await feeSharingProxy.addWhitelistedConverterAddress(liquidityPoolV1Converter.address);
+			let whitelistedConverterList = await feeSharingProxy.getWhitelistedConverterList();
+			expect(whitelistedConverterList.length).to.equal(0);
+
 			await feeSharingProxy.removeWhitelistedConverterAddress(liquidityPoolV1Converter.address);
-			expect(await feeSharingProxy.getIsWhitelistedConverter(liquidityPoolV1Converter.address)).to.equal(false);
+			whitelistedConverterList = await feeSharingProxy.getWhitelistedConverterList();
+			expect(whitelistedConverterList.length).to.equal(0);
+
+			await feeSharingProxy.addWhitelistedConverterAddress(liquidityPoolV1Converter.address);
+			whitelistedConverterList = await feeSharingProxy.getWhitelistedConverterList();
+			expect(whitelistedConverterList.length).to.equal(1);
+			expect(whitelistedConverterList[0]).to.equal(liquidityPoolV1Converter.address);
+
+			await feeSharingProxy.removeWhitelistedConverterAddress(liquidityPoolV1Converter.address);
+			whitelistedConverterList = await feeSharingProxy.getWhitelistedConverterList();
+			expect(whitelistedConverterList.length).to.equal(0);
 		});
 
 		it("should not be able to withdraw fees if converters address is not an contract address", async () => {
