@@ -35,8 +35,8 @@ const Timelock = artifacts.require("TimelockHarness");
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 
-const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
+const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 
 const PreviousLoanTokenSettings = artifacts.require("PreviousLoanTokenSettingsLowerAdmin");
 const PreviousLoanToken = artifacts.require("PreviousLoanToken");

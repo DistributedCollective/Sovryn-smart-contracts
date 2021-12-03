@@ -22,7 +22,6 @@ const VestingLogic = artifacts.require("VestingLogicMockup");
 const Vesting = artifacts.require("TeamVesting");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
-const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 const WEEK = new BN(24 * 60 * 60 * 7);
 
 const TWO_WEEKS = 1209600;

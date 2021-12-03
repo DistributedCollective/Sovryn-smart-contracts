@@ -29,6 +29,7 @@ const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
+const TestWrbtc = artifacts.require("TestWrbtc");
 
 const TestToken = artifacts.require("TestToken");
 
@@ -96,7 +97,6 @@ contract("Affiliates", (accounts) => {
 		const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
 		loanTokenLogic = initLoanTokenLogic[0];
 		loanTokenLogicBeacon = initLoanTokenLogic[1];
-
 		doc = await TestToken.new("dollar on chain", "DOC", 18, wei("20000", "ether"));
 		loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, WRBTC.address);
 		await loanToken.initialize(doc.address, "SUSD", "SUSD");

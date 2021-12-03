@@ -20,6 +20,7 @@ const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 const LoanToken = artifacts.require("LoanToken");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
+
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const LiquidityMiningLogic = artifacts.require("LiquidityMiningMockup");
 const LiquidityMiningProxy = artifacts.require("LiquidityMiningProxy");

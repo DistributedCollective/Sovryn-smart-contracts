@@ -1038,7 +1038,7 @@ contract("Staking", (accounts) => {
 					continue;
 				}
 
-				//FeeSharingProxy
+				// FeeSharingProxy
 				let feeSharingLogic = await FeeSharingLogic.new();
 				feeSharingProxyObj = await FeeSharingProxy.new(sovryn.address, staking.address);
 				await feeSharingProxyObj.setImplementation(feeSharingLogic.address);

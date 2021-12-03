@@ -24,7 +24,6 @@ const LockedSOV = artifacts.require("LockedSOV");
 const LoanToken = artifacts.require("LoanToken");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
-const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
 const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 const SwapsExternal = artifacts.require("SwapsExternal");
 

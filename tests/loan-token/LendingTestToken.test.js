@@ -23,6 +23,7 @@ const { increaseTime } = require("../Utils/Ethereum");
 const LoanToken = artifacts.require("LoanToken");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
+
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
@@ -44,6 +45,7 @@ const {
 	decodeLogs,
 	getSOV,
 } = require("../Utils/initializer.js");
+
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const wei = web3.utils.toWei;

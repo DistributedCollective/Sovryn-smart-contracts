@@ -75,7 +75,7 @@ contract("Pause Modules", (accounts) => {
 		loanParams = {
 			id: "0x0000000000000000000000000000000000000000000000000000000000000000",
 			active: false,
-			owner: constants.ZERO_ADDRESS,
+			owner: ZERO_ADDRESS,
 			loanToken: SUSD.address,
 			collateralToken: loanTokenWRBTC.address,
 			minInitialMargin: wei("50", "ether"),

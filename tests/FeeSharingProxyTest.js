@@ -45,15 +45,12 @@ const Protocol = artifacts.require("sovrynProtocol");
 const ProtocolSettings = artifacts.require("ProtocolSettingsMockup");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanSettings = artifacts.require("LoanSettings");
-const LoanOpenings = artifacts.require("LoanOpenings");
 const LoanClosingsBase = artifacts.require("LoanClosingsBase");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
-const LoanTokenLogic = artifacts.require("LoanTokenLogicStandard");
 const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
-const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
 const LockedSOV = artifacts.require("LockedSOV");
 
@@ -62,12 +59,13 @@ const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 const FeeSharingProxyMockup = artifacts.require("FeeSharingProxyMockup");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
-const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
-const SwapsExternal = artifacts.require("SwapsExternal");
 
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
+
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
+const TestSovrynSwap = artifacts.require("TestSovrynSwap");
+const SwapsExternal = artifacts.require("SwapsExternal");
 
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
@@ -79,6 +77,13 @@ const MAX_VOTING_WEIGHT = 10;
 const FEE_WITHDRAWAL_INTERVAL = 86400;
 
 const MOCK_PRIOR_WEIGHTED_STAKE = false;
+
+const wei = web3.utils.toWei;
+
+const { lend_btc_before_cashout } = require("./loan-token/helpers");
+
+let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
+let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 
 const {
 	getSUSD,
@@ -96,13 +101,6 @@ const {
 	decodeLogs,
 	getSOV,
 } = require("./Utils/initializer.js");
-
-const wei = web3.utils.toWei;
-
-const { lend_btc_before_cashout } = require("./loan-token/helpers");
-
-let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
-let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 
 contract("FeeSharingProxy:", (accounts) => {
 	const name = "Test SOVToken";
@@ -155,16 +153,7 @@ contract("FeeSharingProxy:", (accounts) => {
 		await sovryn.replaceContract((await LoanMaintenance.new()).address);
 		await sovryn.replaceContract((await SwapsExternal.new()).address);
 
-		let sovrynSwapSimulator = await TestSovrynSwap.new(priceFeeds.address);
-		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
-		await sovryn.setSupportedTokens([SUSD.address, RBTC.address, WRBTC.address], [true, true, true]);
-
 		await sovryn.setWrbtcToken(WRBTC.address);
-
-		const swaps = await SwapsImplSovrynSwap.new();
-		await sovryn.replaceContract((await LoanOpenings.new()).address);
-		await sovryn.setPriceFeedContract(priceFeeds.address);
-		await sovryn.setSwapsImplContract(swaps.address);
 
 		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
 		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
@@ -231,11 +220,12 @@ contract("FeeSharingProxy:", (accounts) => {
 		feeds = await PriceFeedsLocal.new(WRBTC.address, sovryn.address);
 		mockPrice = "1";
 		await feeds.setRates(SUSD.address, WRBTC.address, wei(mockPrice, "ether"));
-		sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
+		const swaps = await SwapsImplSovrynSwap.new();
+		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
 		await sovryn.setSupportedTokens([SUSD.address, WRBTC.address], [true, true]);
 		await sovryn.setPriceFeedContract(
-			feeds.address //priceFeeds
+			feeds.address // priceFeeds
 		);
 		await sovryn.setSwapsImplContract(
 			swaps.address // swapsImpl
@@ -256,6 +246,21 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			expect(implementation).to.be.equal(feeSharingLogic.address);
 			expect(proxyOwner).to.be.equal(root);
+		});
+
+		it("Shouldn't be able to withdraw second time in period", async () => {
+			// stake - getPriorTotalVotingPower
+			let totalStake = 1000;
+			await stake(totalStake, root);
+
+			// mock data
+			await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+
+			// First withdrawal
+			await feeSharingProxy.withdrawFees([SUSD.address]);
+
+			// Try second withdrawal
+			await expectRevert(feeSharingProxy.withdrawFees([SUSD.address]), "FeeSharingProxy::withdrawFees: no tokens to withdraw");
 		});
 
 		it("Set new implementation", async () => {
@@ -303,7 +308,7 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			await checkWithdrawFee();
 
-			// check WRBTC balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
+			// check WRBTC balance (WRBTC balance = (totalFeeTokensHeld * mockPrice) - swapFee)
 			let userBalance = await WRBTC.balanceOf.call(account1);
 			expect(userBalance.toString()).to.be.equal(feeAmount.toString());
 
@@ -464,7 +469,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(totalStake * MAX_VOTING_WEIGHT);
 			expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.add(unprocessedAmount).toString());
 
-			// // check lastFeeWithdrawalTime
+			// check lastFeeWithdrawalTime
 			lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanTokenWrbtc.address);
 			block = await web3.eth.getBlock(tx.receipt.blockNumber);
 			expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
@@ -881,7 +886,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			expect(processedCheckpoints.toNumber()).to.be.equal(10);
 		});
 
-		it("Should be able to process 10 checkpoints and 3 withdrawal", async () => {
+		it("Should be able to process 10 checkpoints and 3 withdrawals", async () => {
 			/// @dev This test requires redeploying the protocol
 			await protocolDeploymentFixture();
 
