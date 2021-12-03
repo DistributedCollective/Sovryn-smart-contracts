@@ -12,6 +12,7 @@ contract TestToken {
 
 	event Transfer(address indexed from, address indexed to, uint256 value);
 	event Approval(address indexed owner, address indexed spender, uint256 value);
+	event AllowanceUpdate(address indexed owner, address indexed spender, uint256 valueBefore, uint256 valueAfter);
 	event Mint(address indexed minter, uint256 value);
 	event Burn(address indexed burner, uint256 value);
 
@@ -66,8 +67,8 @@ contract TestToken {
 		balances[_to] = balances[_to].add(_value);
 		if (allowanceAmount < uint256(-1)) {
 			allowed[_from][msg.sender] = allowanceAmount.sub(_value);
-			/// @dev Allowance mapping update requires an Approval event log
-			emit Approval(_from, msg.sender, _value);
+			/// @dev Allowance mapping update requires an event log
+			emit AllowanceUpdate(_from, msg.sender, allowanceAmount, allowed[_from][msg.sender]);
 		}
 
 		emit Transfer(_from, _to, _value);

@@ -77,8 +77,8 @@ contract("LoanTokenLogicLM", (accounts) => {
 				assetAmount: depositAmount,
 			});
 
-			// Expect the Approval event triggered at LoanTokenLogicStandard::_internalTransferFrom
-			expectEvent(tx, "Approval", { owner: lender, spender: lender, value: depositAmount });
+			// Expect the AllowanceUpdate event triggered at LoanTokenLogicStandard::_internalTransferFrom
+			expectEvent(tx, "AllowanceUpdate", { owner: lender, spender: lender, valueBefore: depositAmount, valueAfter: new BN(0) });
 		});
 
 		it("Should lend to the pool without depositing the pool tokens at the liquidity mining contract", async () => {
