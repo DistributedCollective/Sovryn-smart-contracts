@@ -50,5 +50,14 @@ def main():
     # if(balance > 0):
     #     sendTokensFromMultisig(conf.contracts['XUSD'], '0x051B89f575fCd540F0a6a5B49c75f9a83BB2Cf07', balance)
 
-    # amount = 0
-    # sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['GenericTokenSender'], amount)
+    # balance = getBalance(conf.contracts['XUSD'], conf.contracts['multisig'])
+    # print(balance)
+    # sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], balance)
+
+    # readPrice(conf.contracts['WRBTC'], conf.contracts['XUSD'])
+    # readPrice(conf.contracts['XUSD'], conf.contracts['WRBTC'])
+
+    # removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 2957 * 10**18, [contracts['WRBTC'], contracts['SOV']])
+    # def removeLiquidityV1toMultisigUsingWrapper(wrapper, converter, amount, tokens, minReturn):
+
+    # removeLiquidityV1toMultisigUsingWrapper(conf.contracts["RBTCWrapperProxyWithoutLM"], conf.contracts["ConverterXUSD"], 2000 * 10**18, [conf.contracts['WRBTC'], conf.contracts['XUSD']], [1,1])
