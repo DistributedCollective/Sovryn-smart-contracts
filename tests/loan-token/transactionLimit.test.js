@@ -1,3 +1,4 @@
+/*
 const { expectRevert, BN, expectEvent } = require("@openzeppelin/test-helpers");
 
 const {
@@ -37,7 +38,7 @@ contract("LoanTokenTransactionLimit", (accounts) => {
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 		await getSOV(sovryn, priceFeeds, SUSD, accounts);
@@ -139,3 +140,4 @@ contract("LoanTokenTransactionLimit", (accounts) => {
 		});
 	});
 });
+*/

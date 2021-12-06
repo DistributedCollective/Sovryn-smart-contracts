@@ -24,6 +24,10 @@ interface ILoanTokenModules {
 	/// topic: 0x9bbd2de400810774339120e2f8a2b517ed748595e944529bba8ebabf314d0591
 	event SetTransactionLimits(address[] addresses, uint256[] limits);
 
+	event WithdrawRBTCTo(address indexed to, uint256 amount);
+
+	event ToggledFunctionPaused(string functionId, bool prevFlag, bool newFlag);
+
 	/** INTERFACE */
 
 	/** START LOAN TOKEN SETTINGS LOWER ADMIN */
@@ -149,6 +153,8 @@ interface ILoanTokenModules {
 
 	function setLiquidityMiningAddress(address LMAddress) external;
 
+	function getLiquidityMiningAddress() external view returns (address);
+
 	function getEstimatedMarginDetails(
 		uint256 leverageAmount,
 		uint256 loanTokenSent,
@@ -162,6 +168,18 @@ interface ILoanTokenModules {
 			uint256 collateral,
 			uint256 interestRate
 		);
+
+	function getDepositAmountForBorrow(
+		uint256 borrowAmount,
+		uint256 initialLoanDuration, /// Duration in seconds.
+		address collateralTokenAddress /// address(0) means rBTC
+	) external view returns (uint256 depositAmount);
+
+	function getBorrowAmountForDeposit(
+		uint256 depositAmount,
+		uint256 initialLoanDuration, /// Duration in seconds.
+		address collateralTokenAddress /// address(0) means rBTC
+	) external view returns (uint256 borrowAmount);
 
 	function checkPriceDivergence(
 		uint256 leverageAmount,
@@ -186,6 +204,8 @@ interface ILoanTokenModules {
 	function loanTokenAddress() external view returns (address);
 
 	function getMarginBorrowAmountAndRate(uint256 leverageAmount, uint256 depositAmount) external view returns (uint256, uint256);
+
+	function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external;
 
 	/** START LOAN TOKEN BASE */
 	function initialPrice() external view returns (uint256);

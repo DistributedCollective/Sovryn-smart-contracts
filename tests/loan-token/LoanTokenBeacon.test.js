@@ -24,7 +24,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
@@ -77,14 +77,14 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 
 			// Double check all module for lower settings
 			for (let i = 0; i < listSigsLowerAdmin[0].length; i++) {
-				expect((await loanTokenLogicBeacon.getactiveFuncSignatureList(moduleNameLowerSettings))[i]).to.be.equal(
+				expect((await loanTokenLogicBeacon.getActiveFuncSignatureList(moduleNameLowerSettings))[i]).to.be.equal(
 					listSigsLowerAdmin[0][i]
 				);
 			}
 
 			// Double check all module for LM
 			for (let i = 0; i < listSigsLM[0].length; i++) {
-				expect((await loanTokenLogicBeacon.getactiveFuncSignatureList(moduleNameLM))[i]).to.be.equal(listSigsLM[0][i]);
+				expect((await loanTokenLogicBeacon.getActiveFuncSignatureList(moduleNameLM))[i]).to.be.equal(listSigsLM[0][i]);
 			}
 
 			expect((await loanTokenLogicBeacon.getModuleUpgradeLogLength(moduleNameLowerSettings)).toString()).to.equal(

@@ -10,7 +10,7 @@ import "../core/State.sol";
 import "../mixins/VaultController.sol";
 import "../swaps/SwapsUser.sol";
 import "../swaps/ISwapsImpl.sol";
-import "./ModuleCommonFunctionalities.sol";
+import "../mixins/ModuleCommonFunctionalities.sol";
 
 /**
  * @title Swaps External contract.
@@ -58,6 +58,7 @@ contract SwapsExternal is VaultController, SwapsUser, ModuleCommonFunctionalitie
 	 * @param returnToSender The address of the sender account.
 	 * @param sourceTokenAmount The amount of source tokens.
 	 * @param requiredDestTokenAmount The amount of required destiny tokens.
+	 * @param minReturn Minimum amount (position size) in the collateral tokens.
 	 * @param swapData Additional swap data (not in use yet).
 	 *
 	 * @return destTokenAmountReceived The amount of destiny tokens sent.
@@ -87,15 +88,9 @@ contract SwapsExternal is VaultController, SwapsUser, ModuleCommonFunctionalitie
 			/// @dev Update wrBTC balance for this contract.
 			wrbtcToken.deposit.value(sourceTokenAmount)();
 		} else {
-			/// @dev Transfer tokens from sender to this contract.
-			IERC20 sourceTokenContract = IERC20(sourceToken);
-
-			uint256 balanceBefore = sourceTokenContract.balanceOf(address(this));
-
-			IERC20(sourceToken).safeTransferFrom(msg.sender, address(this), sourceTokenAmount);
-
-			// explicit balance check so that we can support deflationary tokens
-			sourceTokenAmount = sourceTokenContract.balanceOf(address(this)).sub(balanceBefore);
+			if (address(this) != msg.sender) {
+				IERC20(sourceToken).safeTransferFrom(msg.sender, address(this), sourceTokenAmount);
+			}
 		}
 
 		/// @dev Perform the swap w/ tokens.
@@ -114,7 +109,8 @@ contract SwapsExternal is VaultController, SwapsUser, ModuleCommonFunctionalitie
 			],
 			0, /// loanId (not tied to a specific loan)
 			false, /// bypassFee
-			swapData
+			swapData,
+			true // the flag for swapExternal (so that it will use the swapExternalFeePercent)
 		);
 
 		emit ExternalSwap(

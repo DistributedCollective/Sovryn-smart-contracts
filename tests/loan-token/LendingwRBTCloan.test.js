@@ -127,6 +127,7 @@ contract("LoanTokenLending", (accounts) => {
 
 		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
 	});
+
 	describe("test lending using wRBTC as loanToken", () => {
 		it("test lend to the pool", async () => {
 			const baseRate = wei("1", "ether");
@@ -175,6 +176,39 @@ contract("LoanTokenLending", (accounts) => {
 			await expectRevert(loanToken.burnToBTC(lender, total_deposit_amount.mul(new BN(2)).toString(), false), "32");
 			await loanToken.burnToBTC(lender, constants.MAX_UINT256, false);
 			expect(await loanToken.balanceOf(lender)).to.be.a.bignumber.equal(new BN(0));
+		});
+	});
+
+	describe("Test iRBTC withdrawal from RBTC loan token contract", () => {
+		it("test withdrawal from iRBTC contract", async () => {
+			await loanToken.mintWithBTC(lender, false, { value: 10000, gas: 22000 });
+			const contractBalance = await web3.eth.getBalance(loanToken.address);
+			const balanceBefore = await web3.eth.getBalance(account1);
+			let tx = await loanToken.withdrawRBTCTo(account1, contractBalance);
+			expectEvent(tx, "WithdrawRBTCTo", {
+				to: account1,
+				amount: contractBalance,
+			});
+			const balanceAfter = await web3.eth.getBalance(account1);
+			expect(new BN(balanceAfter).sub(new BN(balanceBefore))).to.be.a.bignumber.equal(new BN(contractBalance));
+		});
+
+		it("shouldn't withdraw when zero address is passed", async () => {
+			await expectRevert(loanToken.withdrawRBTCTo(constants.ZERO_ADDRESS, 100), "receiver address invalid");
+		});
+
+		it("shouldn't withdraw when triggered by anyone other than owner", async () => {
+			await expectRevert(loanToken.withdrawRBTCTo(account4, 100, { from: account4 }), "unauthorized");
+		});
+
+		it("shouldn't withdraw if amount is 0", async () => {
+			await web3.eth.sendTransaction({ from: accounts[0].toString(), to: loanToken.address, value: 10000, gas: 22000 });
+			await expectRevert(loanToken.withdrawRBTCTo(account4, 0), "non-zero withdraw amount expected");
+		});
+
+		it("shouldn't withdraw if amount is invalid", async () => {
+			await web3.eth.sendTransaction({ from: accounts[0].toString(), to: loanToken.address, value: 10000, gas: 22000 });
+			await expectRevert(loanToken.withdrawRBTCTo(account4, 20000), "withdraw amount cannot exceed balance");
 		});
 	});
 });

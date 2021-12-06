@@ -30,7 +30,7 @@ contract("ProtocolSettings", (accounts) => {
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
 		multisig = await getMultisig(accounts);
@@ -305,6 +305,58 @@ contract("ProtocolSettings", (accounts) => {
 		// Should fail to change rebate percent by unauthorized user
 		it("Test set rebate percent by unauthorized user", async () => {
 			await expectRevert(sovryn.setRebatePercent(new BN(2).mul(oneEth), { from: accounts[0] }), "unauthorized");
+		});
+
+		// Should successfully change rebate percent
+		it("Test set trading rebate rewards basis point", async () => {
+			const new_basis_point = new BN(9999);
+			const old_basis_point = await sovryn.getTradingRebateRewardsBasisPoint();
+
+			const dest = sovryn.address;
+			const val = 0;
+			const data = await sovryn.contract.methods.setTradingRebateRewardsBasisPoint(new_basis_point).encodeABI();
+
+			const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+			const decode = decodeLogs(receipt.rawLogs, ProtocolSettings, "SetTradingRebateRewardsBasisPoint");
+			const event = decode[0].args;
+			expect(event["sender"] == multisig.address).to.be.true;
+			expect(event["oldBasisPoint"] == old_basis_point.toString()).to.be.true;
+			expect(event["newBasisPoint"] == new_basis_point.toString()).to.be.true;
+			expect((await sovryn.getTradingRebateRewardsBasisPoint()).eq(new_basis_point)).to.be.true;
+		});
+
+		// Should fail to change rebate percent by unauthorized user
+		it("Test set trading rebate rewards basis point by unauthorized user", async () => {
+			await expectRevert(sovryn.setTradingRebateRewardsBasisPoint(new BN(10000), { from: accounts[0] }), "unauthorized");
+		});
+
+		// Should successfully change the swapExternalFeePercent
+		it("Test set swapExternalFeePercent", async () => {
+			const new_percent = new BN(2).mul(oneEth);
+			const old_percent = await sovryn.getSwapExternalFeePercent();
+
+			const dest = sovryn.address;
+			const val = 0;
+			const data = await sovryn.contract.methods.setSwapExternalFeePercent(new_percent).encodeABI();
+
+			const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+			const decode = decodeLogs(receipt.rawLogs, ProtocolSettings, "SetSwapExternalFeePercent");
+			const event = decode[0].args;
+			expect(event["sender"] == multisig.address).to.be.true;
+			expect(event["oldValue"] == old_percent.toString()).to.be.true;
+			expect(event["newValue"] == new_percent.toString()).to.be.true;
+			expect((await sovryn.getSwapExternalFeePercent()).eq(new_percent)).to.be.true;
+		});
+
+		// Should fail to change swap external fee percent by unauthorized user
+		it("Test set swapExternalFeePercent with unauthorized sender", async () => {
+			await expectRevert(sovryn.setSwapExternalFeePercent(new BN(2).mul(oneEth), { from: accounts[0] }), "unauthorized");
 		});
 	});
 });

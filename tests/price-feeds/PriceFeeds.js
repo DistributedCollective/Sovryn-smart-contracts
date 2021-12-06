@@ -39,31 +39,37 @@ contract("PriceFeeds", (accounts) => {
 		liquidityV1ConverterMockupTestToken1 = await LiquidityPoolV1ConverterMockup.new(testToken1.address, testWrbtc.address);
 		priceFeedsV1PoolOracleMockupTestToken1 = await waffle.deployMockContract(sender, IV1PoolOracle.abi);
 		await priceFeedsV1PoolOracleMockupTestToken1.mock.latestAnswer.returns(testToken1Price);
+		await priceFeedsV1PoolOracleMockupTestToken1.mock.latestPrice.returns(testToken1Price);
 		await priceFeedsV1PoolOracleMockupTestToken1.mock.liquidityPool.returns(liquidityV1ConverterMockupTestToken1.address);
 		priceFeedsV1PoolOracleTestToken1 = await PriceFeedV1PoolOracle.new(
 			priceFeedsV1PoolOracleMockupTestToken1.address,
 			testWrbtc.address,
-			doc.address
+			doc.address,
+			testToken1.address
 		);
 
 		liquidityV1ConverterMockupTestToken2 = await LiquidityPoolV1ConverterMockup.new(testToken2.address, testWrbtc.address);
 		priceFeedsV1PoolOracleMockupTestToken2 = await waffle.deployMockContract(sender, IV1PoolOracle.abi);
 		await priceFeedsV1PoolOracleMockupTestToken2.mock.latestAnswer.returns(testToken2Price);
+		await priceFeedsV1PoolOracleMockupTestToken2.mock.latestPrice.returns(testToken2Price);
 		await priceFeedsV1PoolOracleMockupTestToken2.mock.liquidityPool.returns(liquidityV1ConverterMockupTestToken2.address);
 		priceFeedsV1PoolOracleTestToken2 = await PriceFeedV1PoolOracle.new(
 			priceFeedsV1PoolOracleMockupTestToken2.address,
 			testWrbtc.address,
-			doc.address
+			doc.address,
+			testToken2.address
 		);
 
 		// Set DOC feed -- price 1 BTC
 		liquidityV1ConverterMockupDOC = await LiquidityPoolV1ConverterMockup.new(doc.address, testWrbtc.address);
 		priceFeedsV1PoolOracleMockupDOC = await waffle.deployMockContract(sender, IV1PoolOracle.abi);
 		await priceFeedsV1PoolOracleMockupDOC.mock.latestAnswer.returns(docPrice);
+		await priceFeedsV1PoolOracleMockupDOC.mock.latestPrice.returns(docPrice);
 		await priceFeedsV1PoolOracleMockupDOC.mock.liquidityPool.returns(liquidityV1ConverterMockupDOC.address);
 		priceFeedsV1PoolOracleDOC = await PriceFeedV1PoolOracle.new(
 			priceFeedsV1PoolOracleMockupDOC.address,
 			testWrbtc.address,
+			doc.address,
 			doc.address
 		);
 
@@ -202,7 +208,7 @@ contract("PriceFeeds", (accounts) => {
 				new BN(wei("100", "ether")) //collateral token amount
 			);
 			await expect(ret[0]).to.be.bignumber.equal("233333333333333330000");
-			await expect(ret[1]).to.be.bignumber.equal(new BN(wei("200000000000000", "ether")));
+			await expect(ret[1]).to.be.bignumber.equal(new BN(wei("20000", "ether"))); // we are testing using 16 decimals for testToken2, so we need to multiply 10^2 for the expectation
 		});
 
 		it("shouldLiquidate(...) runs correctly", async () => {

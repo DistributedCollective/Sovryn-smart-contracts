@@ -1,13 +1,15 @@
 pragma solidity ^0.5.17;
 
-import "./Staking/SafeMath96.sol";
-import "../openzeppelin/SafeMath.sol";
-import "../openzeppelin/SafeERC20.sol";
-import "./IFeeSharingProxy.sol";
-import "./Staking/IStaking.sol";
+import "../Staking/SafeMath96.sol";
+import "../../openzeppelin/SafeMath.sol";
+import "../../openzeppelin/SafeERC20.sol";
+import "../../openzeppelin/Ownable.sol";
+import "../IFeeSharingProxy.sol";
+import "../../openzeppelin/Address.sol";
+import "./FeeSharingProxyStorage.sol";
 
 /**
- * @title The FeeSharingProxy contract.
+ * @title The FeeSharingLogic contract.
  * @notice Staking is not only granting voting rights, but also access to fee
  * sharing according to the own voting power in relation to the total. Whenever
  * somebody decides to collect the fees from the protocol, they get transferred
@@ -39,44 +41,9 @@ import "./Staking/IStaking.sol";
  * get pool tokens. It is planned to add the option to convert anything to rBTC
  * before withdrawing, but not yet implemented.
  * */
-contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
+contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingProxyStorage {
 	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
-
-	/* Storage */
-
-	/// @dev TODO FEE_WITHDRAWAL_INTERVAL, MAX_CHECKPOINTS
-	uint256 constant FEE_WITHDRAWAL_INTERVAL = 86400;
-
-	uint32 constant MAX_CHECKPOINTS = 100;
-
-	IProtocol public protocol;
-	IStaking public staking;
-
-	/// @notice Checkpoints by index per pool token address
-	mapping(address => mapping(uint256 => Checkpoint)) public tokenCheckpoints;
-
-	/// @notice The number of checkpoints for each pool token address.
-	mapping(address => uint32) public numTokenCheckpoints;
-
-	/// @notice
-	/// user => token => processed checkpoint
-	mapping(address => mapping(address => uint32)) public processedCheckpoints;
-
-	/// @notice Last time fees were withdrawn per pool token address:
-	/// token => time
-	mapping(address => uint256) public lastFeeWithdrawalTime;
-
-	/// @notice Amount of tokens that were transferred, but not saved in checkpoints.
-	/// token => amount
-	mapping(address => uint96) public unprocessedAmount;
-
-	struct Checkpoint {
-		uint32 blockNumber;
-		uint32 timestamp;
-		uint96 totalWeightedStake;
-		uint96 numTokens;
-	}
 
 	/* Events */
 
@@ -94,27 +61,29 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 
 	/* Functions */
 
-	constructor(IProtocol _protocol, IStaking _staking) public {
-		protocol = _protocol;
-		staking = _staking;
-	}
-
 	/**
 	 * @notice Withdraw fees for the given token:
 	 * lendingFee + tradingFee + borrowingFee
-	 * @param _token Address of the token
+	 * the fees will be converted in wRBTC form, and then will be transferred to wRBTC loan pool
+	 *
+	 * @param _tokens array address of the token
 	 * */
-	function withdrawFees(address _token) public {
-		require(_token != address(0), "FeeSharingProxy::withdrawFees: invalid address");
+	function withdrawFees(address[] memory _tokens) public {
+		for (uint256 i = 0; i < _tokens.length; i++) {
+			require(Address.isContract(_tokens[i]), "FeeSharingProxy::withdrawFees: token is not a contract");
+		}
 
-		address loanPoolToken = protocol.underlyingToLoanPool(_token);
-		require(loanPoolToken != address(0), "FeeSharingProxy::withdrawFees: loan token not found");
+		address wRBTCAddress = protocol.wrbtcToken();
+		require(wRBTCAddress != address(0), "FeeSharingProxy::withdrawFees: wRBTCAddress is not set");
 
-		uint256 amount = protocol.withdrawFees(_token, address(this));
+		address loanPoolToken = protocol.underlyingToLoanPool(wRBTCAddress);
+		require(loanPoolToken != address(0), "FeeSharingProxy::withdrawFees: loan wRBTC not found");
+
+		uint256 amount = protocol.withdrawFees(_tokens, address(this));
 		require(amount > 0, "FeeSharingProxy::withdrawFees: no tokens to withdraw");
 
 		/// @dev TODO can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
-		IERC20(_token).approve(loanPoolToken, amount);
+		IERC20(wRBTCAddress).approve(loanPoolToken, amount);
 		uint256 poolTokenAmount = ILoanToken(loanPoolToken).mint(address(this), amount);
 
 		/// @notice Update unprocessed amount of tokens
@@ -179,6 +148,8 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 	 * SOV and/or staking for longer will increase your share of the fees
 	 * generated, meaning you will earn more from staking.
 	 *
+	 * This function will directly burnToBTC and use the msg.sender (user) as the receiver
+	 *
 	 * @param _loanPoolToken Address of the pool token.
 	 * @param _maxCheckpoints Maximum number of checkpoints to be processed.
 	 * @param _receiver The receiver of tokens or msg.sender
@@ -187,9 +158,15 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 		address _loanPoolToken,
 		uint32 _maxCheckpoints,
 		address _receiver
-	) public {
+	) public nonReentrant {
 		/// @dev Prevents processing all checkpoints because of block gas limit.
 		require(_maxCheckpoints > 0, "FeeSharingProxy::withdraw: _maxCheckpoints should be positive");
+
+		address wRBTCAddress = protocol.wrbtcToken();
+		require(wRBTCAddress != address(0), "FeeSharingProxy::withdraw: wRBTCAddress is not set");
+
+		address loanPoolTokenWRBTC = protocol.underlyingToLoanPool(wRBTCAddress);
+		require(loanPoolTokenWRBTC != address(0), "FeeSharingProxy::withdraw: loan wRBTC not found");
 
 		address user = msg.sender;
 		if (_receiver == address(0)) {
@@ -197,12 +174,19 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 		}
 
 		uint256 amount;
-		uint32 end;
+		uint256 end;
 		(amount, end) = _getAccumulatedFees(user, _loanPoolToken, _maxCheckpoints);
+		require(amount > 0, "FeeSharingProxy::withdrawFees: no tokens for a withdrawal");
 
 		processedCheckpoints[user][_loanPoolToken] = end;
 
-		require(IERC20(_loanPoolToken).transfer(user, amount), "FeeSharingProxy::withdraw: withdrawal failed");
+		if (loanPoolTokenWRBTC == _loanPoolToken) {
+			// We will change, so that feeSharingProxy will directly burn then loanToken (IWRBTC) to rbtc and send to the user --- by call burnToBTC function
+			uint256 loanAmountPaid = ILoanTokenWRBTC(_loanPoolToken).burnToBTC(_receiver, amount, false);
+		} else {
+			// Previously it directly send the loanToken to the user
+			require(IERC20(_loanPoolToken).transfer(user, amount), "FeeSharingProxy::withdraw: withdrawal failed");
+		}
 
 		emit UserFeeWithdrawn(msg.sender, _receiver, _loanPoolToken, amount);
 	}
@@ -241,9 +225,14 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 		address _user,
 		address _loanPoolToken,
 		uint32 _maxCheckpoints
-	) internal view returns (uint256, uint32) {
-		uint32 start = processedCheckpoints[_user][_loanPoolToken];
-		uint32 end;
+	) internal view returns (uint256, uint256) {
+		if (staking.isVestingContract(_user)) {
+			return (0, 0);
+		}
+
+		uint256 start = processedCheckpoints[_user][_loanPoolToken];
+		uint256 end;
+
 		/// @dev Additional bool param can't be used because of stack too deep error.
 		if (_maxCheckpoints > 0) {
 			/// @dev withdraw -> _getAccumulatedFees
@@ -261,7 +250,7 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 		uint256 amount = 0;
 		uint256 cachedLockDate = 0;
 		uint96 cachedWeightedStake = 0;
-		for (uint32 i = start; i < end; i++) {
+		for (uint256 i = start; i < end; i++) {
 			Checkpoint storage checkpoint = tokenCheckpoints[_loanPoolToken][i];
 			uint256 lockDate = staking.timestampToLockDate(checkpoint.timestamp);
 			uint96 weightedStake;
@@ -290,12 +279,12 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 	 * @param _maxCheckpoints Checkpoint index incremental.
 	 * */
 	function _getEndOfRange(
-		uint32 start,
+		uint256 start,
 		address _loanPoolToken,
 		uint32 _maxCheckpoints
-	) internal view returns (uint32) {
-		uint32 nCheckpoints = numTokenCheckpoints[_loanPoolToken];
-		uint32 end;
+	) internal view returns (uint256) {
+		uint256 nCheckpoints = numTokenCheckpoints[_loanPoolToken];
+		uint256 end;
 		if (_maxCheckpoints == 0) {
 			/// @dev All checkpoints will be processed (only for getter outside of a transaction).
 			end = nCheckpoints;
@@ -326,9 +315,10 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 	function _writeTokenCheckpoint(address _token, uint96 _numTokens) internal {
 		uint32 blockNumber = safe32(block.number, "FeeSharingProxy::_writeCheckpoint: block number exceeds 32 bits");
 		uint32 blockTimestamp = safe32(block.timestamp, "FeeSharingProxy::_writeCheckpoint: block timestamp exceeds 32 bits");
-		uint32 nCheckpoints = numTokenCheckpoints[_token];
+		uint256 nCheckpoints = numTokenCheckpoints[_token];
 
-		uint96 totalWeightedStake = staking.getPriorTotalVotingPower(blockNumber - 1, block.timestamp);
+		uint96 totalWeightedStake = _getVoluntaryWeightedStake(blockNumber - 1, block.timestamp);
+		require(totalWeightedStake > 0, "Invalid totalWeightedStake");
 		if (nCheckpoints > 0 && tokenCheckpoints[_token][nCheckpoints - 1].blockNumber == blockNumber) {
 			tokenCheckpoints[_token][nCheckpoints - 1].totalWeightedStake = totalWeightedStake;
 			tokenCheckpoints[_token][nCheckpoints - 1].numTokens = _numTokens;
@@ -338,16 +328,32 @@ contract FeeSharingProxy is SafeMath96, IFeeSharingProxy {
 		}
 		emit CheckpointAdded(msg.sender, _token, _numTokens);
 	}
+
+	/**
+	 * Queries the total weighted stake and the weighted stake of vesting contracts and returns the difference
+	 * @param blockNumber the blocknumber
+	 * @param timestamp the timestamp
+	 */
+	function _getVoluntaryWeightedStake(uint32 blockNumber, uint256 timestamp) internal view returns (uint96 totalWeightedStake) {
+		uint96 vestingWeightedStake = staking.getPriorVestingWeightedStake(blockNumber, timestamp);
+		totalWeightedStake = staking.getPriorTotalVotingPower(blockNumber, timestamp);
+		totalWeightedStake = sub96(
+			totalWeightedStake,
+			vestingWeightedStake,
+			"FeeSharingProxy::_getTotalVoluntaryWeightedStake: vested stake exceeds total stake"
+		);
+	}
 }
 
 /* Interfaces */
-
-interface IProtocol {
-	function withdrawFees(address token, address receiver) external returns (uint256);
-
-	function underlyingToLoanPool(address token) external returns (address);
-}
-
 interface ILoanToken {
 	function mint(address receiver, uint256 depositAmount) external returns (uint256 mintAmount);
+}
+
+interface ILoanTokenWRBTC {
+	function burnToBTC(
+		address receiver,
+		uint256 burnAmount,
+		bool useLM
+	) external returns (uint256 loanAmountPaid);
 }

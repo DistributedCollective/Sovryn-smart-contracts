@@ -6,9 +6,9 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../AdvancedToken.sol";
-import "../interfaces/ProtocolSettingsLike.sol";
-import "../LoanTokenLogicStorage.sol";
+import "../../AdvancedToken.sol";
+import "../../interfaces/ProtocolSettingsLike.sol";
+import "../../LoanTokenLogicStorage.sol";
 
 contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
 	using SafeMath for uint256;
@@ -22,6 +22,7 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
 	/* Events */
 
 	event SetTransactionLimits(address[] addresses, uint256[] limits);
+	event ToggledFunctionPaused(string functionId, bool prevFlag, bool newFlag);
 
 	/* Functions */
 
@@ -184,6 +185,7 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
 		string memory funcId, /// example: "mint(uint256,uint256)"
 		bool isPaused
 	) public {
+		bool paused;
 		require(msg.sender == pauser, "onlyPauser");
 		/// keccak256("iToken_FunctionPause")
 		bytes32 slot =
@@ -194,8 +196,13 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
 				)
 			);
 		assembly {
+			paused := sload(slot)
+		}
+		require(paused != isPaused, "isPaused is already set to that value");
+		assembly {
 			sstore(slot, isPaused)
 		}
+		emit ToggledFunctionPaused(funcId, !isPaused, isPaused);
 	}
 
 	/**

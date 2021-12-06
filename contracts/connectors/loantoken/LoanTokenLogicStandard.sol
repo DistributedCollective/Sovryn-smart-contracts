@@ -6,12 +6,12 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./LoanTokenSettingsLowerAdmin.sol";
-import "../LoanTokenLogicStorage.sol";
-import "../interfaces/ProtocolLike.sol";
-import "../interfaces/FeedsLike.sol";
-import "../../../modules/interfaces/ProtocolAffiliatesInterface.sol";
-import "../../../farm/ILiquidityMining.sol";
+import "./LoanTokenLogicStorage.sol";
+import "./interfaces/ProtocolLike.sol";
+import "./interfaces/FeedsLike.sol";
+import "./interfaces/ProtocolSettingsLike.sol";
+import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
+import "../../farm/ILiquidityMining.sol";
 
 /**
  * @title Loan Token Logic Standard contract.
@@ -49,6 +49,10 @@ import "../../../farm/ILiquidityMining.sol";
 contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	using SafeMath for uint256;
 	using SignedSafeMath for int256;
+
+	/* Events */
+
+	event WithdrawRBTCTo(address indexed to, uint256 amount);
 
 	/// DON'T ADD VARIABLES HERE, PLEASE
 
@@ -250,7 +254,9 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 			_borrowOrTrade(
 				loanId,
 				withdrawAmount,
-				2 * 10**18, /// leverageAmount (translates to 150% margin for a Torque loan).
+				ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(
+					loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))]
+				),
 				collateralTokenAddress,
 				sentAddresses,
 				sentAmounts,
@@ -290,6 +296,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 * @param collateralTokenSent The amount of collateral tokens provided by the user.
 	 * @param collateralTokenAddress The token address of collateral.
 	 * @param trader The account that performs this trade.
+	 * @param minReturn Minimum amount (position size) in the collateral tokens
 	 * @param loanDataBytes Additional loan data (not in use for token swaps).
 	 *
 	 * @return New principal and new collateral added to trade.
@@ -356,11 +363,13 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 			sentAmounts[1] /// depositAmount
 		);
 
+		/// @dev Converting to initialMargin
+		leverageAmount = SafeMath.div(10**38, leverageAmount);
 		return
 			_borrowOrTrade(
 				loanId,
 				0, /// withdrawAmount
-				leverageAmount,
+				leverageAmount, //initial margin
 				collateralTokenAddress,
 				sentAddresses,
 				sentAmounts,
@@ -415,6 +424,19 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 				minReturn,
 				loanDataBytes
 			);
+	}
+
+	/**
+	 * @notice Withdraws RBTC from the contract by Multisig.
+	 * @param _receiverAddress The address where the rBTC has to be transferred.
+	 * @param _amount The amount of rBTC to be transferred.
+	 */
+	function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external onlyOwner {
+		require(_receiverAddress != address(0), "receiver address invalid");
+		require(_amount > 0, "non-zero withdraw amount expected");
+		require(_amount <= address(this).balance, "withdraw amount cannot exceed balance");
+		_receiverAddress.transfer(_amount);
+		emit WithdrawRBTCTo(_receiverAddress, _amount);
 	}
 
 	/**
@@ -795,13 +817,15 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 			(, , uint256 newBorrowAmount) = _getInterestRateAndBorrowAmount(borrowAmount, totalAssetSupply(), initialLoanDuration);
 
 			if (newBorrowAmount <= _underlyingBalance()) {
+				if (collateralTokenAddress == address(0)) collateralTokenAddress = wrbtcTokenAddress;
+				bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))];
 				return
 					ProtocolLike(sovrynContractAddress)
 						.getRequiredCollateral(
 						loanTokenAddress,
-						collateralTokenAddress != address(0) ? collateralTokenAddress : wrbtcTokenAddress,
+						collateralTokenAddress,
 						newBorrowAmount,
-						50 * 10**18, /// initialMargin
+						ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(loanParamsId), /// initialMargin
 						true /// isTorqueLoan
 					)
 						.add(10); /// Some dust to compensate for rounding errors.
@@ -831,11 +855,13 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		address collateralTokenAddress /// address(0) means rBTC
 	) public view returns (uint256 borrowAmount) {
 		if (depositAmount != 0) {
+			if (collateralTokenAddress == address(0)) collateralTokenAddress = wrbtcTokenAddress;
+			bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))];
 			borrowAmount = ProtocolLike(sovrynContractAddress).getBorrowAmount(
 				loanTokenAddress,
-				collateralTokenAddress != address(0) ? collateralTokenAddress : wrbtcTokenAddress,
+				collateralTokenAddress,
 				depositAmount,
-				50 * 10**18, /// initialMargin,
+				ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(loanParamsId), /// initialMargin,
 				true /// isTorqueLoan
 			);
 
@@ -1046,8 +1072,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 *
 	 * @param loanId The ID of the loan, 0 for a new loan.
 	 * @param withdrawAmount The amount to be withdrawn (actually borrowed).
-	 * @param leverageAmount The multiple of exposure: 2x ... 5x. The leverage
-	 *   with 18 decimals.
+	 * @param initialMargin The initial margin with 18 decimals
 	 * @param collateralTokenAddress  The address of the token to be used as
 	 *   collateral. Cannot be the loan token address.
 	 * @param sentAddresses The addresses to send tokens: lender, borrower,
@@ -1062,7 +1087,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	function _borrowOrTrade(
 		bytes32 loanId,
 		uint256 withdrawAmount,
-		uint256 leverageAmount,
+		uint256 initialMargin,
 		address collateralTokenAddress,
 		address[4] memory sentAddresses,
 		uint256[5] memory sentAmounts,
@@ -1101,13 +1126,11 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
 		bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, withdrawAmountExist)))];
 
-		/// @dev Converting to initialMargin
-		leverageAmount = SafeMath.div(10**38, leverageAmount);
 		(sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress).borrowOrTradeFromPool.value(msgValue)( /// newPrincipal, newCollateral
 			loanParamsId,
 			loanId,
 			withdrawAmountExist,
-			leverageAmount, /// initialMargin
+			initialMargin,
 			sentAddresses,
 			sentAmounts,
 			loanDataBytes
@@ -1252,6 +1275,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		bytes memory data,
 		string memory errorMsg
 	) internal {
+		require(Address.isContract(token), "call to a non-contract address");
 		(bool success, bytes memory returndata) = token.call(data);
 		require(success, errorMsg);
 
@@ -1510,6 +1534,16 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 */
 	function setLiquidityMiningAddress(address LMAddress) external onlyOwner {
 		liquidityMiningAddress = LMAddress;
+	}
+
+	/**
+	 * @notice We need separate getter for newly added storage variable
+	 * @notice Getter for liquidityMiningAddress
+
+	 * @return liquidityMiningAddress
+	 */
+	function getLiquidityMiningAddress() public view returns (address) {
+		return liquidityMiningAddress;
 	}
 
 	function _mintWithLM(address receiver, uint256 depositAmount) internal returns (uint256 minted) {

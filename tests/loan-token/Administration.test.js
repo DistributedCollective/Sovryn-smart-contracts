@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { expectRevert, BN, expectEvent } = require("@openzeppelin/test-helpers");
 const LoanToken = artifacts.require("LoanToken");
 const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
 const LoanTokenLogicProxy = artifacts.require("LoanTokenLogicProxy");
@@ -45,7 +45,7 @@ contract("LoanTokenAdministration", (accounts) => {
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 		sov = await getSOV(sovryn, priceFeeds, SUSD, accounts);
@@ -131,7 +131,13 @@ contract("LoanTokenAdministration", (accounts) => {
 			// pause the given function and make sure the function can't be called anymore
 			let localLoanToken = loanToken;
 			await localLoanToken.setPauser(accounts[0]);
-			await localLoanToken.toggleFunctionPause(functionSignature, true);
+			let tx = await localLoanToken.toggleFunctionPause(functionSignature, true);
+			expectEvent(tx, "ToggledFunctionPaused", {
+				functionId: functionSignature,
+				prevFlag: false,
+				newFlag: true,
+			});
+			await expectRevert(localLoanToken.toggleFunctionPause(functionSignature, true), "isPaused is already set to that value");
 
 			await expectRevert(open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]), "unauthorized");
 
@@ -139,7 +145,13 @@ contract("LoanTokenAdministration", (accounts) => {
 			assert(localLoanToken.checkPause(functionSignature));
 
 			await localLoanToken.setPauser(accounts[0]);
-			await localLoanToken.toggleFunctionPause(functionSignature, false);
+			tx = await localLoanToken.toggleFunctionPause(functionSignature, false);
+			expectEvent(tx, "ToggledFunctionPaused", {
+				functionId: functionSignature,
+				prevFlag: true,
+				newFlag: false,
+			});
+			await expectRevert(localLoanToken.toggleFunctionPause(functionSignature, false), "isPaused is already set to that value");
 			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]);
 
 			// check if checkPause returns false
@@ -153,13 +165,13 @@ contract("LoanTokenAdministration", (accounts) => {
 		});
 
 		it("Should succeed with larger rate than maxSlippage in positive direction", async () => {
-			const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+			const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 			let rate = await priceFeeds.checkPriceDisagreement(WRBTC.address, SUSD.address, wei("1", "ether"), wei("20000", "ether"), 0);
 			assert(rate == wei("20000", "ether"));
 		});
 
 		it("Should fail with larger rate than maxSlippage in negative direction", async () => {
-			const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+			const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 			await expectRevert(
 				priceFeeds.checkPriceDisagreement(WRBTC.address, SUSD.address, wei("1", "ether"), wei("1", "ether"), 0),
 				"price disagreement"
@@ -199,7 +211,7 @@ contract("LoanTokenAdministration", (accounts) => {
 			/** Use interface of LoanTokenModules */
 			loanToken = await ILoanTokenModules.at(loanToken.address);
 
-			await expectRevert(loanToken.assetBalanceOf(owner), "LoanTokenProxy:target not active");
+			await expectRevert(loanToken.assetBalanceOf(owner), "LoanTokenLogicProxy:target not active");
 		});
 
 		it("Test set beacon address in loan token logic proxy", async () => {

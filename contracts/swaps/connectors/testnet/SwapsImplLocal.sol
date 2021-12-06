@@ -39,7 +39,7 @@ contract SwapsImplLocal is State, ISwapsImpl {
 		uint256 minSourceTokenAmount,
 		uint256 maxSourceTokenAmount,
 		uint256 requiredDestTokenAmount
-	) public returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
+	) public payable returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
 		require(sourceTokenAddress != destTokenAddress, "source == dest");
 
 		(uint256 tradeRate, uint256 precision) = IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);

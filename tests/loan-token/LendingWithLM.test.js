@@ -166,7 +166,7 @@ contract("LoanTokenLogicLM", (accounts) => {
 	describe("Test setting the liquidity mining address", () => {
 		it("Should be able to set the liquidity mining address", async () => {
 			await loanToken.setLiquidityMiningAddress(account2);
-			expect(await loanToken.liquidityMiningAddress()).to.be.equal(account2);
+			expect(await loanToken.getLiquidityMiningAddress()).to.be.equal(account2);
 		});
 
 		it("Should fail to set the liquidity mining address with an unauthorized wallet", async () => {

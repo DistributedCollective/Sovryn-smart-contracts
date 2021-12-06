@@ -20,10 +20,10 @@
  *  Updated to use only the initializer.js functions for protocol deployment.
  *  Updated to use SUSD as underlying token.
  */
-
-const { assert, expect } = require("chai");
 const { waffle } = require("hardhat");
+const { assert, expect } = require("chai");
 const { loadFixture } = waffle;
+
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 
 const sovrynProtocol = artifacts.require("sovrynProtocol");
@@ -73,24 +73,13 @@ const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 contract("Pause Modules", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
 	let loanParams, loanParamsId;
-
+	/// @note https://stackoverflow.com/questions/68182729/implementing-fixtures-with-nomiclabs-hardhat-waffle
 	async function fixtureInitialize(_wallets, _provider) {
-		const sovrynproxy = await sovrynProtocol.new();
-		sovryn = await ISovryn.at(sovrynproxy.address);
-		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
-		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
-		await sovryn.replaceContract((await ProtocolSettings.new()).address);
-		await sovryn.replaceContract((await LoanSettings.new()).address);
-		await sovryn.replaceContract((await LoanMaintenance.new()).address);
-		await sovryn.replaceContract((await SwapsExternal.new()).address);
-		await sovryn.replaceContract((await LoanOpenings.new()).address);
-		await sovryn.replaceContract((await Affiliates.new()).address);
-		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
-		SUSD = await getSUSD();
+		SUSD = await getSUSD(); // Underlying Token
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
 		loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD);
@@ -276,6 +265,28 @@ contract("Pause Modules", (accounts) => {
 				newFlag: true,
 			});
 			await expectRevert(sovryn.setupLoanParams([Object.values(loanParams)]), "Paused");
+		});
+	});
+
+	describe("Testing isProtocolPaused()", () => {
+		it("isProtocolPaused() returns correct result when toggling pause/unpause", async () => {
+			await loadFixture(fixtureInitialize);
+			await sovryn.togglePaused(true);
+			expect(await sovryn.isProtocolPaused()).to.be.true;
+
+			// Check deterministic result when trying to set current value
+			expectRevert.unspecified(sovryn.togglePaused(true));
+			expect(await sovryn.isProtocolPaused()).to.be.true;
+
+			// Pause true -> false
+			await sovryn.togglePaused(false);
+			expect(await sovryn.isProtocolPaused()).to.be.false;
+			expectRevert.unspecified(sovryn.togglePaused(false));
+			expect(await sovryn.isProtocolPaused()).to.be.false;
+
+			// Pause false -> true
+			await sovryn.togglePaused(true);
+			expect(await sovryn.isProtocolPaused()).to.be.true;
 		});
 	});
 

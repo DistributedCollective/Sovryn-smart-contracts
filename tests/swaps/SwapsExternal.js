@@ -12,6 +12,8 @@ const ISovryn = artifacts.require("ISovryn");
 const LoanToken = artifacts.require("LoanToken");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
+const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
+const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const SwapsExternal = artifacts.require("SwapsExternal");
@@ -24,12 +26,15 @@ const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 
+const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 const ProtocolSettingsMockup = artifacts.require("ProtocolSettingsMockup");
 
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
+const { decodeLogs } = require("../Utils/initializer.js");
+const { etherGasCost } = require("../Utils/Ethereum.js");
 
 const { getLoanTokenLogic } = require("../Utils/initializer.js");
 
@@ -87,6 +92,7 @@ contract("SwapsExternal", (accounts) => {
 			swaps.address // swapsImpl
 		);
 		await sovryn.setFeesController(lender);
+		await sovryn.setSwapExternalFeePercent(wei("10", "ether"));
 
 		const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
 		loanTokenLogic = initLoanTokenLogic[0];
@@ -109,8 +115,22 @@ contract("SwapsExternal", (accounts) => {
 		staking = await StakingLogic.at(staking.address);
 
 		//FeeSharingProxy
-		feeSharingProxy = await FeeSharingProxy.new(sovryn.address, staking.address);
+		feeSharingLogic = await FeeSharingLogic.new();
+		feeSharingProxyObj = await FeeSharingProxy.new(sovryn.address, staking.address);
+		await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
+		feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
 		await sovryn.setFeesController(feeSharingProxy.address);
+
+		// Set loan pool for wRBTC -- because our fee sharing proxy required the loanPool of wRBTC
+		loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
+		loanTokenWrbtc = await LoanToken.new(accounts[0], loanTokenLogicWrbtc.address, sovryn.address, testWrbtc.address);
+		await loanTokenWrbtc.initialize(testWrbtc.address, "iWRBTC", "iWRBTC");
+
+		loanTokenWrbtc = await LoanTokenLogicWrbtc.at(loanTokenWrbtc.address);
+		const loanTokenAddressWrbtc = await loanTokenWrbtc.loanTokenAddress();
+		await sovryn.setLoanPool([loanTokenWrbtc.address], [loanTokenAddressWrbtc]);
+
+		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
 
 		// Creating the Vesting Instance.
 		vestingLogic = await VestingLogic.new();
@@ -174,7 +194,7 @@ contract("SwapsExternal", (accounts) => {
 		it("Doesn't allow swaps if token address contract unavailable", async () => {
 			await expectRevert(
 				sovryn.swapExternal(ZERO_ADDRESS, testWrbtc.address, accounts[0], accounts[0], 100, 0, 0, "0x"),
-				"function call to a non-contract account"
+				"call to non-contract"
 			);
 		});
 
@@ -270,8 +290,15 @@ contract("SwapsExternal", (accounts) => {
 				destAmount: fields.destTokenAmountReceived.toString(),
 			});
 
+			expectEvent(tx, "PayTradingFee", {
+				amount: new BN(wei("1", "ether"))
+					.mul(new BN(wei("10", "ether")))
+					.div(new BN(wei("100", "ether")))
+					.toString(),
+			});
+
 			let destTokenAmount = await sovryn.getSwapExpectedReturn(underlyingToken.address, testWrbtc.address, wei("1", "ether"));
-			const trading_fee_percent = await sovryn.tradingFeePercent();
+			const trading_fee_percent = await sovryn.getSwapExternalFeePercent();
 			const trading_fee = destTokenAmount.mul(trading_fee_percent).div(hunEth);
 			let desTokenAmountAfterFee = destTokenAmount - trading_fee;
 			assert.equal(desTokenAmountAfterFee, fields.destTokenAmountReceived.toString());
@@ -304,7 +331,7 @@ contract("SwapsExternal", (accounts) => {
 			);
 
 			let destTokenAmount = await sovryn.getSwapExpectedReturn(underlyingToken.address, testWrbtc.address, wei("1", "ether"));
-			const trading_fee_percent = await sovryn.tradingFeePercent();
+			const trading_fee_percent = await sovryn.getSwapExternalFeePercent();
 			const trading_fee = destTokenAmount.mul(trading_fee_percent).div(hunEth);
 			await underlyingToken.transfer(sovryn.address, wei("1", "ether"));
 
@@ -315,12 +342,17 @@ contract("SwapsExternal", (accounts) => {
 			let kickoffTS = await staking.kickoffTS.call();
 			await staking.stake(amount, kickoffTS.add(new BN(TWO_WEEKS)), lender, lender, { from: lender });
 
-			const tx = await feeSharingProxy.withdrawFees(underlyingToken.address);
+			const tx = await feeSharingProxy.withdrawFees([underlyingToken.address]);
+
+			let swapFee = amount.mul(trading_fee_percent).div(new BN(wei("100", "ether")));
+
+			// need to sub by swap fee because at this point, protocol will received the trading fee again.
+			loanTokenWRBTCBalanceShouldBe = amount.mul(new BN(1)).sub(swapFee);
 
 			expectEvent(tx, "FeeWithdrawn", {
 				sender: lender,
-				token: loanToken.address,
-				amount: trading_fee,
+				token: loanTokenWrbtc.address,
+				amount: loanTokenWRBTCBalanceShouldBe,
 			});
 		});
 
@@ -329,6 +361,79 @@ contract("SwapsExternal", (accounts) => {
 				sovryn.checkPriceDivergence(underlyingToken.address, testWrbtc.address, wei("1", "ether"), wei("2", "ether")),
 				"destTokenAmountReceived too low"
 			);
+		});
+
+		it("Swap external using RBTC", async () => {
+			const swapper = accounts[2];
+			const underlyingBalancePrev = await underlyingToken.balanceOf(swapper);
+			const rbtcBalancePrev = new BN(await web3.eth.getBalance(swapper));
+			const assetBalance = await loanToken.assetBalanceOf(swapper);
+			const rbtcValueBeingSent = 1e14;
+			await underlyingToken.approve(sovryn.address, assetBalance.add(new BN(wei("10", "ether"))).toString());
+
+			const tx = await sovryn.swapExternal(
+				testWrbtc.address, /// source token must be wrbtc
+				underlyingToken.address, /// dest token
+				swapper, /// receiver
+				swapper, /// return to sender address
+				rbtcValueBeingSent, /// sourceTokenAmount
+				0, /// requiredDestTokenAmount
+				0, /// minReturn (slippage)
+				"0x",
+				{ value: rbtcValueBeingSent, from: swapper }
+			);
+
+			const underlyingBalanceAfter = await underlyingToken.balanceOf(swapper);
+			const rbtcBalanceAfter = new BN(await web3.eth.getBalance(swapper));
+
+			let event_name = "ExternalSwap";
+			let decode = decodeLogs(tx.receipt.rawLogs, SwapsExternal, event_name);
+			if (!decode.length) {
+				throw "Event ExternalSwap is not fired properly";
+			}
+
+			const user = decode[0].args["user"];
+			const sourceToken = decode[0].args["sourceToken"];
+			const destToken = decode[0].args["destToken"];
+			const sourceAmount = decode[0].args["sourceAmount"];
+			const destAmount = decode[0].args["destAmount"];
+			const txFee = new BN((await etherGasCost(tx.receipt)).toString());
+
+			const finalUnderlyingBalance = underlyingBalanceAfter.sub(underlyingBalancePrev);
+			const finalRbtcBalance = rbtcBalancePrev.sub(rbtcBalanceAfter);
+
+			expect(user).to.be.equal(swapper);
+			expect(sourceToken).to.be.equal(testWrbtc.address);
+			expect(destToken).to.be.equal(underlyingToken.address);
+			expect(destAmount.toString()).to.be.equal(finalUnderlyingBalance.toString());
+			expect(sourceAmount.toString()).to.be.equal(finalRbtcBalance.sub(txFee).toString());
+			expect(sourceAmount.toString()).to.be.equal(rbtcValueBeingSent.toString());
+		});
+
+		it("Swap external using RBTC should failed if source token amount is not matched with rbtc being sent", async () => {
+			const assetBalance = await loanToken.assetBalanceOf(lender);
+			const rbtcValueBeingSent = 1e14;
+			await underlyingToken.approve(sovryn.address, assetBalance.add(new BN(wei("10", "ether"))).toString());
+
+			await expectRevert(
+				sovryn.swapExternal(
+					constants.ZERO_ADDRESS, /// source token must be wrbtc
+					underlyingToken.address, /// dest token
+					lender, /// receiver
+					lender, /// return to sender address
+					rbtcValueBeingSent, /// sourceTokenAmount
+					0, /// requiredDestTokenAmount
+					0, /// minReturn (slippage)
+					"0x",
+					{ value: 2e14 }
+				),
+				"sourceTokenAmount mismatch"
+			);
+		});
+
+		// Should fail to change swap external fee percent by invalid value (more than 100%)
+		it("Test set swapExternalFeePercent with invalid value", async () => {
+			await expectRevert(sovryn.setSwapExternalFeePercent(wei("101", "ether")), "value too high");
 		});
 	});
 });
