@@ -68,6 +68,7 @@ const getBZRX = async () => {
 
 const getSOV = async (sovryn, priceFeeds, SUSD, accounts) => {
 	const sov = await TestToken.new("SOV", "SOV", 18, totalSupply);
+	await sovryn.setSovrynProtocolAddress(sovryn.address);
 	await sovryn.setProtocolTokenAddress(sov.address);
 	await sovryn.setSOVTokenAddress(sov.address);
 	await sovryn.setLockedSOVAddress((await LockedSOVMockup.new(sov.address, [accounts[0]])).address);

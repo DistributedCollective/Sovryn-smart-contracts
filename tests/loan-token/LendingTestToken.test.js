@@ -81,6 +81,7 @@ contract("LoanTokenLending", (accounts) => {
 		);
 		await sovryn.setFeesController(lender);
 		const sov = await TestToken.new("SOV", "SOV", 18, TOTAL_SUPPLY);
+		await sovryn.setSovrynProtocolAddress(sovryn.address);
 		await sovryn.setProtocolTokenAddress(sov.address);
 		await sovryn.setSOVTokenAddress(sov.address);
 		await sovryn.setLockedSOVAddress((await LockedSOVMockup.new(sov.address, [accounts[0]])).address);
