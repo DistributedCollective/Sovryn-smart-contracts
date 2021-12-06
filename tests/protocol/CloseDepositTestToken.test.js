@@ -184,7 +184,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 			Test returning principal to lender with deposit	
 		*/
 		it("Test full close with deposit", async () => {
-			// prepare the test
+			// Prepare the test
 			const borrower = accounts[3];
 			const receiver = accounts[4];
 			await set_demand_curve(loanToken);
@@ -219,7 +219,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		});
 
 		it("Test full close with deposit with special rebates", async () => {
-			// prepare the test
+			// Prepare the test
 			const borrower = accounts[3];
 			const receiver = accounts[4];
 			await set_demand_curve(loanToken);
@@ -256,7 +256,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		});
 
 		it("Test partial close with deposit", async () => {
-			// prepare the test
+			// Prepare the test
 			const borrower = accounts[3];
 			const receiver = accounts[4];
 			await set_demand_curve(loanToken);
@@ -291,7 +291,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		});
 
 		it("Test partial close w/ deposit tiny position", async () => {
-			// prepare the test
+			// Prepare the test
 			const borrower = accounts[3];
 			const receiver = accounts[4];
 			await set_demand_curve(loanToken);
@@ -325,7 +325,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		});
 
 		it("Test partial close w/ deposit small not so tiny position is failing!", async () => {
-			// prepare the test
+			// Prepare the test
 			const borrower = accounts[3];
 			const receiver = accounts[4];
 			await set_demand_curve(loanToken);
@@ -358,8 +358,33 @@ contract("ProtocolCloseDeposit", (accounts) => {
 			// );
 		});
 
+		it("Test partial close w/ swap tiny position", async () => {
+			// Prepare the test
+			const borrower = accounts[3];
+			const receiver = accounts[4];
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, accounts[2]);
+			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, borrower);
+
+			await increaseTime(10 * 24 * 60 * 60);
+			const initial_loan = await sovryn.getLoan(loan_id);
+			const principal = new BN(initial_loan["principal"]);
+			const collateral = new BN(initial_loan["collateral"]);
+			const initial_loan_interest = await sovryn.getLoanInterestData(loan_id);
+			const swap_amount = principal.sub(TINY_AMOUNT);
+			const return_token_is_collateral = true; // true: withdraws collateralToken, false: withdraws loanToken
+			const { receipt } = await sovryn.closeWithSwap(loan_id, borrower, swap_amount, return_token_is_collateral, "0x", {
+				from: borrower,
+			});
+
+			// Test loan update
+			end_loan = await sovryn.getLoan.call(loan_id);
+			expect(end_loan["principal"]).to.be.bignumber.equal(new BN(0), "principal should be 0");
+			expect(end_loan["collateral"]).to.be.bignumber.equal(new BN(0), "collateral should be 0");
+		});
+
 		it("Test close with zero deposit should fail", async () => {
-			// prepare the test
+			// Prepare the test
 			const borrower = accounts[3];
 			const receiver = accounts[4];
 			await set_demand_curve(loanToken);
