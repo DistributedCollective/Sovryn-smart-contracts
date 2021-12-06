@@ -3,6 +3,8 @@ const { assert } = require("chai");
 const sovrynProtocol = artifacts.require("sovrynProtocol");
 const LoanToken = artifacts.require("LoanToken");
 const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic"); //added functionality for isolated unit testing
+const ILoanTokenModulesMock = artifacts.require("ILoanTokenModulesMock");
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const LockedSOVFailedMockup = artifacts.require("LockedSOVFailedMockup");
 const LockedSOV = artifacts.require("LockedSOV");
 const StakingLogic = artifacts.require("Staking");
@@ -34,13 +36,14 @@ const { expect } = require("hardhat");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 
-const { decodeLogs } = require("../Utils/initializer.js");
+const { decodeLogs, getLoanTokenLogic } = require("../Utils/initializer.js");
 
 let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
 let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 
 contract("Affiliates", (accounts) => {
 	let loanTokenLogic;
+	let loanTokenLogicBeacon;
 	let testWrbtc;
 	let doc;
 	let tokenSOV;
@@ -69,15 +72,23 @@ contract("Affiliates", (accounts) => {
 		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
 
 		//loanTokenLogic = await LoanTokenLogicStandard.new();
-		loanTokenLogic = await MockLoanTokenLogic.new();
+		// loanTokenLogic = await MockLoanTokenLogic.new();
+		// Mock Loan Token Logic
+		const initLoanTokenLogic = await getLoanTokenLogic(true); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+		loanTokenLogic = initLoanTokenLogic[0];
+		loanTokenLogicBeacon = initLoanTokenLogic[1];
 		testWrbtc = await TestWrbtc.new();
 		doc = await TestToken.new("dollar on chain", "DOC", 18, wei("20000", "ether"));
 		tokenSOV = await SOV.new(TOTAL_SUPPLY);
 		loanToken = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 		await loanToken.initialize(doc.address, "SUSD", "SUSD");
 
+		/** Initialize the loan token logic proxy */
+		loanTokenV2 = await ILoanTokenLogicProxy.at(loanToken.address);
+		await loanTokenV2.setBeaconAddress(loanTokenLogicBeacon.address);
+
 		// loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address);
-		loanTokenV2 = await MockLoanTokenLogic.at(loanToken.address); //mocked for ad-hoc logic for isolated testing
+		loanTokenV2 = await ILoanTokenModulesMock.at(loanToken.address); //mocked for ad-hoc logic for isolated testing
 		const loanTokenAddress = await loanToken.loanTokenAddress();
 		if (owner == (await sovryn.owner())) {
 			await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
@@ -106,9 +117,7 @@ contract("Affiliates", (accounts) => {
 
 		// Creating the instance of newLockedSOV Contract.
 		await sovryn.setLockedSOVAddress(
-			(
-				await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])
-			).address
+			(await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])).address
 		);
 		lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 	});
@@ -581,8 +590,12 @@ contract("Affiliates", (accounts) => {
 		const loanToken2 = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 		await loanToken2.initialize(eur.address, "SEUR", "SEUR");
 
-		// loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address);
-		loanToken2V2 = await MockLoanTokenLogic.at(loanToken2.address); //mocked for ad-hoc logic for isolated testing
+		/** Initialize the loan token logic proxy */
+		loanToken2V2 = await ILoanTokenLogicProxy.at(loanToken2.address);
+		await loanToken2V2.setBeaconAddress(loanTokenLogicBeacon.address);
+
+		// loanToken2V2 = await MockLoanTokenLogic.at(loanToken2.address); //mocked for ad-hoc logic for isolated testing
+		loanToken2V2 = await ILoanTokenModulesMock.at(loanToken2.address); //mocked for ad-hoc logic for isolated testing
 		const loanTokenAddress2 = await loanToken2.loanTokenAddress();
 		if (owner == (await sovryn.owner())) {
 			await sovryn.setLoanPool([loanToken2V2.address], [loanTokenAddress2]);
@@ -751,8 +764,12 @@ contract("Affiliates", (accounts) => {
 		const loanToken2 = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 		await loanToken2.initialize(eur.address, "SEUR", "SEUR");
 
-		// loanTokenV2 = await LoanTokenLogicStandard.at(loanToken.address);
-		loanToken2V2 = await MockLoanTokenLogic.at(loanToken2.address); //mocked for ad-hoc logic for isolated testing
+		/** Initialize the loan token logic proxy */
+		loanToken2V2 = await ILoanTokenLogicProxy.at(loanToken2.address);
+		await loanToken2V2.setBeaconAddress(loanTokenLogicBeacon.address);
+
+		// loanToken2V2 = await MockLoanTokenLogic.at(loanToken2.address); //mocked for ad-hoc logic for isolated testing
+		loanToken2V2 = await ILoanTokenModulesMock.at(loanToken2.address); //mocked for ad-hoc logic for isolated testing
 		const loanTokenAddress2 = await loanToken2.loanTokenAddress();
 		if (owner == (await sovryn.owner())) {
 			await sovryn.setLoanPool([loanToken2V2.address], [loanTokenAddress2]);

@@ -10,6 +10,8 @@ const ProtocolSettings = artifacts.require("ProtocolSettings");
 const ISovryn = artifacts.require("ISovryn");
 
 const LoanToken = artifacts.require("LoanToken");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
 const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 const LoanSettings = artifacts.require("LoanSettings");
@@ -33,6 +35,8 @@ const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
 const { decodeLogs } = require("../Utils/initializer.js");
 const { etherGasCost } = require("../Utils/Ethereum.js");
+
+const { getLoanTokenLogic } = require("../Utils/initializer.js");
 
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 const { ZERO_ADDRESS } = constants;
@@ -90,10 +94,19 @@ contract("SwapsExternal", (accounts) => {
 		await sovryn.setFeesController(lender);
 		await sovryn.setSwapExternalFeePercent(wei("10", "ether"));
 
-		loanTokenLogicStandard = await LoanTokenLogicStandard.new();
-		loanToken = await LoanToken.new(lender, loanTokenLogicStandard.address, sovryn.address, testWrbtc.address);
+		const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+		loanTokenLogic = initLoanTokenLogic[0];
+		loanTokenLogicBeacon = initLoanTokenLogic[1];
+
+		loanToken = await LoanToken.new(lender, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 		await loanToken.initialize(underlyingToken.address, name, symbol); //iToken
-		loanToken = await LoanTokenLogicStandard.at(loanToken.address);
+
+		/** Initialize the loan token logic proxy */
+		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+		await loanToken.setBeaconAddress(loanTokenLogicBeacon.address);
+
+		/** Use interface of LoanTokenModules */
+		loanToken = await ILoanTokenModules.at(loanToken.address);
 
 		//Staking
 		let stakingLogic = await StakingLogic.new(underlyingToken.address);
@@ -132,9 +145,7 @@ contract("SwapsExternal", (accounts) => {
 		vestingFactory.transferOwnership(vestingRegistry.address);
 
 		await sovryn.setLockedSOVAddress(
-			(
-				await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [lender])
-			).address
+			(await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [lender])).address
 		);
 
 		params = [

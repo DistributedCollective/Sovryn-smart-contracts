@@ -10,7 +10,8 @@ const ProtocolSettings = artifacts.require("ProtocolSettings");
 const ISovryn = artifacts.require("ISovryn");
 
 const LoanToken = artifacts.require("LoanToken");
-const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
@@ -36,6 +37,8 @@ const {
 	cash_out_from_the_pool_more_of_lender_balance_should_not_fail,
 } = require("./helpers");
 //const { artifacts } = require("hardhat");
+
+const { getLoanTokenLogicWrbtc } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
@@ -88,13 +91,23 @@ contract("LoanTokenLending", (accounts) => {
 
 		tokenSOV = await SOV.new(TOTAL_SUPPLY);
 		await sovryn.setLockedSOVAddress((await LockedSOVMockup.new(tokenSOV.address, [lender])).address);
+		await sovryn.setSovrynProtocolAddress(sovryn.address);
 		await sovryn.setProtocolTokenAddress(tokenSOV.address);
 		await sovryn.setSOVTokenAddress(tokenSOV.address);
 
-		loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
+		const initLoanTokenLogic = await getLoanTokenLogicWrbtc(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+		loanTokenLogicWrbtc = initLoanTokenLogic[0];
+		loanTokenLogicBeaconWrbtc = initLoanTokenLogic[1];
+
 		loanToken = await LoanToken.new(lender, loanTokenLogicWrbtc.address, sovryn.address, testWrbtc.address);
 		await loanToken.initialize(testWrbtc.address, "iWRBTC", "iWRBTC"); //iToken
-		loanToken = await LoanTokenLogicWrbtc.at(loanToken.address);
+
+		/** Initialize the loan token logic proxy */
+		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+		await loanToken.setBeaconAddress(loanTokenLogicBeaconWrbtc.address);
+
+		/** Use interface of LoanTokenModules */
+		loanToken = await ILoanTokenModules.at(loanToken.address);
 
 		params = [
 			"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object
@@ -115,6 +128,7 @@ contract("LoanTokenLending", (accounts) => {
 
 		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
 	});
+
 	describe("test lending using wRBTC as loanToken", () => {
 		it("test lend to the pool", async () => {
 			const baseRate = wei("1", "ether");
@@ -163,6 +177,39 @@ contract("LoanTokenLending", (accounts) => {
 			await expectRevert(loanToken.burnToBTC(lender, total_deposit_amount.mul(new BN(2)).toString(), false), "32");
 			await loanToken.burnToBTC(lender, constants.MAX_UINT256, false);
 			expect(await loanToken.balanceOf(lender)).to.be.a.bignumber.equal(new BN(0));
+		});
+	});
+
+	describe("Test iRBTC withdrawal from RBTC loan token contract", () => {
+		it("test withdrawal from iRBTC contract", async () => {
+			await loanToken.mintWithBTC(lender, false, { value: 10000, gas: 22000 });
+			const contractBalance = await web3.eth.getBalance(loanToken.address);
+			const balanceBefore = await web3.eth.getBalance(account1);
+			let tx = await loanToken.withdrawRBTCTo(account1, contractBalance);
+			expectEvent(tx, "WithdrawRBTCTo", {
+				to: account1,
+				amount: contractBalance,
+			});
+			const balanceAfter = await web3.eth.getBalance(account1);
+			expect(new BN(balanceAfter).sub(new BN(balanceBefore))).to.be.a.bignumber.equal(new BN(contractBalance));
+		});
+
+		it("shouldn't withdraw when zero address is passed", async () => {
+			await expectRevert(loanToken.withdrawRBTCTo(constants.ZERO_ADDRESS, 100), "receiver address invalid");
+		});
+
+		it("shouldn't withdraw when triggered by anyone other than owner", async () => {
+			await expectRevert(loanToken.withdrawRBTCTo(account4, 100, { from: account4 }), "unauthorized");
+		});
+
+		it("shouldn't withdraw if amount is 0", async () => {
+			await web3.eth.sendTransaction({ from: accounts[0].toString(), to: loanToken.address, value: 10000, gas: 22000 });
+			await expectRevert(loanToken.withdrawRBTCTo(account4, 0), "non-zero withdraw amount expected");
+		});
+
+		it("shouldn't withdraw if amount is invalid", async () => {
+			await web3.eth.sendTransaction({ from: accounts[0].toString(), to: loanToken.address, value: 10000, gas: 22000 });
+			await expectRevert(loanToken.withdrawRBTCTo(account4, 20000), "withdraw amount cannot exceed balance");
 		});
 	});
 });

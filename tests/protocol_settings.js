@@ -3,10 +3,14 @@ const { assert, expect } = require("chai");
 const { BN, constants, balance, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 
 const sovrynProtocol = artifacts.require("sovrynProtocol");
-const ProtocolSettings = artifacts.require("ProtocolSettings");
+const ProtocolSettings = artifacts.require("ProtocolSettingsMockup");
 const ISovryn = artifacts.require("ISovryn");
 const TestToken = artifacts.require("TestToken");
+const { etherMantissa } = require("./Utils/Ethereum");
 const LockedSOV = artifacts.require("LockedSOVMockup");
+const { set_fee_tokens_held } = require("./loan-token/helpers");
+const TOTAL_SUPPLY = etherMantissa(1000000000);
+const wei = web3.utils.toWei;
 
 contract("Affliates", (accounts) => {
 	beforeEach(async () => {
@@ -84,5 +88,28 @@ contract("Affliates", (accounts) => {
 		const maxBasisPoint = 9999;
 		await sovryn.setTradingRebateRewardsBasisPoint(maxBasisPoint);
 		expect((await sovryn.getTradingRebateRewardsBasisPoint()).toString()).to.be.equal(new BN(maxBasisPoint).toString());
+	});
+
+	it("Check dedicated SOV calculation", async () => {
+		let protocol = await sovrynProtocol.new();
+		const protocolSettings = await ProtocolSettings.new();
+		const dedicatedSOVAmount = new BN(wei("1", "wei"));
+		const SOVToken = await TestToken.new("SOV", "SOV", 18, TOTAL_SUPPLY);
+
+		await protocol.replaceContract(protocolSettings.address);
+		protocol = await ProtocolSettings.at(protocol.address);
+		await protocol.setSOVTokenAddress(SOVToken.address);
+
+		await set_fee_tokens_held(protocol, SOVToken, new BN(100), new BN(200), new BN(300));
+
+		expect((await protocol.getDedicatedSOVRebate()).toString()).to.equal(new BN(0).toString());
+
+		await SOVToken.transfer(protocol.address, new BN(0));
+
+		expect((await protocol.getDedicatedSOVRebate()).toString()).to.equal(new BN(0).toString());
+
+		await SOVToken.transfer(protocol.address, dedicatedSOVAmount);
+
+		expect((await protocol.getDedicatedSOVRebate()).toString()).to.equal(new BN(1).toString());
 	});
 });

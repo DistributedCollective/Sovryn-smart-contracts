@@ -44,13 +44,12 @@ contract("LoanTokenFunctionality", (accounts) => {
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
-		const loanTokenLogicStandard = await getLoanTokenLogic();
-		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
-		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
+		loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD);
+		loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 	});
 

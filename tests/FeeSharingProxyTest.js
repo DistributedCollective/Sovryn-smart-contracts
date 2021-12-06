@@ -21,6 +21,8 @@ const LoanOpenings = artifacts.require("LoanOpenings");
 const LoanClosingsBase = artifacts.require("LoanClosingsBase");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const LoanTokenLogic = artifacts.require("LoanTokenLogicStandard");
 const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
@@ -40,6 +42,8 @@ const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
 
 const LiquidityPoolV1Converter = artifacts.require("LiquidityPoolV1ConverterMockup");
+
+const { getLoanTokenLogic } = require("./Utils/initializer.js");
 
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
@@ -109,12 +113,22 @@ contract("FeeSharingProxy:", (accounts) => {
 		await protocol.replaceContract(swapsExternal.address);
 
 		protocol = await ProtocolSettings.at(protocol.address);
+
 		//Loan token
-		loanTokenSettings = await LoanTokenSettings.new();
-		loanTokenLogic = await LoanTokenLogic.new();
+		const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+		loanTokenLogic = initLoanTokenLogic[0];
+		loanTokenLogicBeacon = initLoanTokenLogic[1];
+
 		loanToken = await LoanToken.new(root, loanTokenLogic.address, protocol.address, wrbtc.address);
 		await loanToken.initialize(susd.address, "iSUSD", "iSUSD");
-		loanToken = await LoanTokenLogic.at(loanToken.address);
+
+		/** Initialize the loan token logic proxy */
+		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+		await loanToken.setBeaconAddress(loanTokenLogicBeacon.address);
+
+		/** Use interface of LoanTokenModules */
+		loanToken = await ILoanTokenModules.at(loanToken.address);
+
 		await loanToken.setAdmin(root);
 		await protocol.setLoanPool([loanToken.address], [susd.address]);
 
@@ -153,9 +167,7 @@ contract("FeeSharingProxy:", (accounts) => {
 		vestingFactory.transferOwnership(vestingRegistry.address);
 
 		await protocol.setLockedSOVAddress(
-			(
-				await LockedSOV.new(SOVToken.address, vestingRegistry.address, cliff, duration, [root])
-			).address
+			(await LockedSOV.new(SOVToken.address, vestingRegistry.address, cliff, duration, [root])).address
 		);
 
 		// // Set PriceFeeds

@@ -1,10 +1,30 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-13
+ * Greatest bottlenecks found at:
+ * 	- fixtureInitialize (3s)
+ * 		Due to fixture load and a it contains a large deployment
+ * 	- Pause LoanClosingBase test (267ms)
+ * 		Due to requiring a call to setup_rollover_test as initialization
+ * Total time elapsed: 4s
+ *
+ * Other minor optimizations:
+ *  - removed unused modules and variables:
+ *      Wallet, Contract, balance, verify_sov_reward_payment, signers, ethers
+ *  - removed two redundant SOV deployments
+ *  - reformatted code comments
+ *  - reordered external modules apart from local variables
+ *
+ * Notes:
+ * 	Previous optimization by Tyrone adding a waffle fixture (loadFixture)
+ *  improved a 20% the code speed:
+ * 		reduced total elapsed time from 5s to 4s
+ *  Updated to use only the initializer.js functions for protocol deployment.
+ *  Updated to use SUSD as underlying token.
+ */
+const { waffle } = require("hardhat");
 const { assert, expect } = require("chai");
-const { Wallet, Contract } = require("ethers");
-
-const { ethers, waffle } = require("hardhat");
 const { loadFixture } = waffle;
 
-const { BN, constants, balance, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
+const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 
 const sovrynProtocol = artifacts.require("sovrynProtocol");
 const ProtocolSettings = artifacts.require("ProtocolSettings");
@@ -25,6 +45,8 @@ const SOVToken = artifacts.require("SOV");
 const LoanToken = artifacts.require("LoanToken");
 const LoanOpeningsEvents = artifacts.require("LoanOpeningsEvents");
 
+const TestCoverage = artifacts.require("TestCoverage");
+
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
@@ -36,9 +58,7 @@ const {
 	getRBTC,
 	getWRBTC,
 	getBZRX,
-	getLoanTokenLogic,
 	getLoanToken,
-	getLoanTokenLogicWrbtc,
 	getLoanTokenWRBTC,
 	loan_pool_setup,
 	set_demand_curve,
@@ -48,35 +68,22 @@ const {
 	getSOV,
 	verify_sov_reward_payment,
 } = require("./Utils/initializer.js");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 contract("Pause Modules", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
 	let loanParams, loanParamsId;
-	///@note https://stackoverflow.com/questions/68182729/implementing-fixtures-with-nomiclabs-hardhat-waffle
+	/// @note https://stackoverflow.com/questions/68182729/implementing-fixtures-with-nomiclabs-hardhat-waffle
 	async function fixtureInitialize(_wallets, _provider) {
-		const signers = ethers.getSigners();
-		const sovrynproxy = await sovrynProtocol.new();
-		sovryn = await ISovryn.at(sovrynproxy.address);
-		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
-		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
-		await sovryn.replaceContract((await ProtocolSettings.new()).address);
-		await sovryn.replaceContract((await LoanSettings.new()).address);
-		await sovryn.replaceContract((await LoanMaintenance.new()).address);
-		await sovryn.replaceContract((await SwapsExternal.new()).address);
-		await sovryn.replaceContract((await LoanOpenings.new()).address);
-		await sovryn.replaceContract((await Affiliates.new()).address);
-		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
-		SUSD = await getSUSD();
+		SUSD = await getSUSD(); // Underlying Token
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
-		const loanTokenLogicStandard = await getLoanTokenLogic();
-		const loanTokenLogicWrbtc = await getLoanTokenLogicWrbtc();
-		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
-		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
+		loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD);
+		loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
@@ -93,9 +100,8 @@ contract("Pause Modules", (accounts) => {
 			maintenanceMargin: wei("15", "ether"),
 			maxLoanTerm: "2419200",
 		};
-
-		//return { SOV, SUSD, underlyingToken, loanParams};
 	}
+
 	before(async () => {
 		[owner, trader, referrer, account1, account2, ...accounts] = accounts;
 		await loadFixture(fixtureInitialize);
@@ -261,24 +267,38 @@ contract("Pause Modules", (accounts) => {
 			await expectRevert(sovryn.setupLoanParams([Object.values(loanParams)]), "Paused");
 		});
 	});
+
 	describe("Testing isProtocolPaused()", () => {
-		it("isProtocolPaused() returns correct result when toggling pause/upause", async () => {
+		it("isProtocolPaused() returns correct result when toggling pause/unpause", async () => {
 			await loadFixture(fixtureInitialize);
 			await sovryn.togglePaused(true);
 			expect(await sovryn.isProtocolPaused()).to.be.true;
-			//check deterministic result when trying to set current value
+
+			// Check deterministic result when trying to set current value
 			expectRevert.unspecified(sovryn.togglePaused(true));
 			expect(await sovryn.isProtocolPaused()).to.be.true;
 
-			//pause true -> false
+			// Pause true -> false
 			await sovryn.togglePaused(false);
 			expect(await sovryn.isProtocolPaused()).to.be.false;
 			expectRevert.unspecified(sovryn.togglePaused(false));
 			expect(await sovryn.isProtocolPaused()).to.be.false;
 
-			//pause false -> true
+			// Pause false -> true
 			await sovryn.togglePaused(true);
 			expect(await sovryn.isProtocolPaused()).to.be.true;
+		});
+	});
+
+	describe("Testing Pausable contract", () => {
+		it("Pausable function runs if not paused", async () => {
+			testCoverage = await TestCoverage.new();
+			await testCoverage.dummyPausableFunction();
+		});
+		it("Pausable function reverts if paused", async () => {
+			testCoverage = await TestCoverage.new();
+			await testCoverage.togglePause("dummyPausableFunction()", true);
+			await expectRevert(testCoverage.dummyPausableFunction(), "unauthorized");
 		});
 	});
 });
