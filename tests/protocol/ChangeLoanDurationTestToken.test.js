@@ -458,9 +458,16 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 			// vested SOV rewards
 			vestedSOVRewards = new BN(args["amount"]).mul(new BN(10000).sub(new BN(basisPoint))).divRound(new BN(10000));
-			expect(vestedSOVRewards.add(borrower_initial_balance_before_extend).toString()).to.eq(
-				(await lockedSOV.getLockedBalance(borrower)).toString()
-			);
+			/// @dev The following check may suffer rounding error
+			/// @dev So, we ignore differences in least significant digits
+			expect(
+				Math.abs(
+					vestedSOVRewards
+						.add(borrower_initial_balance_before_extend)
+						.sub(await lockedSOV.getLockedBalance(borrower))
+						.toNumber()
+				) < 100
+			).to.be.true;
 
 			// liquid SOV rewards
 			liquidSOVRewards = new BN(args["amount"]).mul(new BN(basisPoint)).divRound(new BN(10000));
