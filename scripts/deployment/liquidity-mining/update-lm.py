@@ -18,7 +18,8 @@ def main():
     # addTestETHPoolToken()
     # addETHPoolToken()
     # updateLMConfig()
-    addFISHtoken()
+    # addFISHtoken()
+    addBRZtoken()
 
     # check()
     # updateAllPools()
@@ -82,6 +83,15 @@ def addFISHtoken():
     lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
 
     data = lm.add.encode_input(contracts['(WR)BTC/FISH'],1,False)
+    tx = multisig.submitTransaction(lm.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId)
+
+def addBRZtoken():
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
+
+    data = lm.add.encode_input(contracts['XUSD/BRZ'],1,False)
     tx = multisig.submitTransaction(lm.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print("txid",txId)
