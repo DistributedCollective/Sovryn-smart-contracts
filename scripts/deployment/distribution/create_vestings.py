@@ -36,8 +36,8 @@ def main():
     balanceBefore = acct.balance()
     totalAmount = 0
 
-    # amounts examples: 8890.39
-    data = parseFile('./scripts/deployment/distribution/vestings16.csv', 10**16)
+    # amounts examples: 401.41, 1053.06
+    data = parseFile('./scripts/deployment/distribution/vestings17.csv', 10**16)
     totalAmount += data["totalAmount"]
 
     vestingCreationType = 1
@@ -78,7 +78,7 @@ def main():
         # stakes = staking.getStakes(vestingAddress)
         # print(stakes)
 
-    # 4859.85
+    # 7107.90
     print("=======================================")
     print("SOV amount:")
     print(totalAmount / 10**18)
