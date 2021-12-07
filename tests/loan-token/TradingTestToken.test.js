@@ -40,6 +40,7 @@ const wei = web3.utils.toWei;
 
 const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
+const TINY_AMOUNT = new BN(25).mul(new BN(10).pow(new BN(13))); // 25 * 10**13
 
 contract("LoanTokenTrading", (accounts) => {
 	let owner;
@@ -101,6 +102,24 @@ contract("LoanTokenTrading", (accounts) => {
 			await margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, false);
 			await margin_trading_sov_reward_payment(accounts, loanToken, SUSD, RBTC, SOV, FeesEvents, sovryn);
 			await margin_trading_sov_reward_payment_with_special_rebates(accounts, loanToken, SUSD, RBTC, SOV, FeesEvents, sovryn);
+		});
+
+		it("Test margin trading sending loan tokens tiny amount", async () => {
+			// Send the transaction
+			await expectRevert(
+				loanToken.marginTrade(
+					"0x0", // loanId  (0 for new loans)
+					new BN(2).mul(oneEth), // leverageAmount
+					TINY_AMOUNT, // loanTokenSent
+					new BN(0), // no collateral token sent
+					RBTC.address, // collateralTokenAddress
+					accounts[0], // trader,
+					0, // slippage
+					"0x", // loanDataBytes (only required with ether)
+					{ from: accounts[2] }
+				),
+				"principal too small"
+			);
 		});
 
 		/*
@@ -457,7 +476,7 @@ contract("LoanTokenTrading", (accounts) => {
 					1000, // no collateral token sent
 					RBTC.address, // collateralTokenAddress
 					accounts[1], // trader,
-					0,
+					0, // slippage
 					"0x", // loanDataBytes (only required with ether)
 					{ from: accounts[2] }
 				),
@@ -492,7 +511,7 @@ contract("LoanTokenTrading", (accounts) => {
 					10000, // collateral token sent
 					RBTC.address, // collateralTokenAddress (RBTC)
 					accounts[1], // trader,
-					20000,
+					20000, // slippage
 					"0x", // loanDataBytes (only required with ether)
 					{ from: accounts[2] }
 				),
@@ -509,7 +528,7 @@ contract("LoanTokenTrading", (accounts) => {
 				oneEth.toString(), // collateral token sent
 				RBTC.address, // collateralTokenAddress (RBTC)
 				accounts[1], // trader,
-				oneEth.mul(new BN(2)).toString(),
+				oneEth.mul(new BN(2)).toString(), // slippage
 				"0x", // loanDataBytes (only required with ether)
 				{ from: accounts[2] }
 			);
