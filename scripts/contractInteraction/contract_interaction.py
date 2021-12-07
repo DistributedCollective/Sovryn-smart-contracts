@@ -23,12 +23,15 @@ from scripts.contractInteraction.misc import *
 from scripts.contractInteraction.prices import *
 
 def main():
+    # brownie run scripts/contractInteraction/contract_interaction.py --network testnet
+    # brownie run scripts/contractInteraction/contract_interaction.py --network rsk-mainnet
     
     #load the contracts and acct depending on the network
     conf.loadConfig()
     
     # confirmMultipleTxsWithMS(774, 775)
-    checkTx(774)
+    # checkTx(808)
+    # confirmWithMS(808)
 
     #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iXUSD'])
     #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iRBTC'])
