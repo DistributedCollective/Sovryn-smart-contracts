@@ -94,8 +94,15 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		let loan_close_amount = deposit_amount.gt(principal) ? principal : deposit_amount;
 
 		// Check that tiny position won't be created
-		if (principal.sub(loan_close_amount).cmp(TINY_AMOUNT) <= 0) {
-			loan_close_amount = principal;
+		// Comparison must be in wrbtc format because TINY_AMOUNT is assumed as WRBTC
+		const remainingAmount = principal.sub(loan_close_amount);
+		if (remainingAmount.gt(new BN(0))) {
+			const { rate, precision } = await priceFeeds.queryRate(initial_loan["loanToken"], WRBTC.address);
+			remainingAmountInWRBTC = remainingAmount.mul(rate).div(precision);
+
+			if (remainingAmountInWRBTC.cmp(TINY_AMOUNT) <= 0) {
+				loan_close_amount = principal;
+			}
 		}
 
 		const withdraw_amount = loan_close_amount.eq(principal) ? collateral : collateral.mul(loan_close_amount).div(principal);
@@ -124,6 +131,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		// When all the tests are run, the event is not recognized so we have to decode it manually
 		const decode = decodeLogs(receipt.rawLogs, LoanClosingsEvents, "CloseWithDeposit");
 		const close_event = decode[0].args;
+
 		expect(close_event["user"] == borrower).to.be.true;
 		expect(close_event["lender"] == loanToken.address).to.be.true;
 		expect(close_event["loanId"] == loan_id).to.be.true;
@@ -338,24 +346,24 @@ contract("ProtocolCloseDeposit", (accounts) => {
 			const collateral = new BN(initial_loan["collateral"]);
 			const initial_loan_interest = await sovryn.getLoanInterestData(loan_id);
 			const deposit_amount = principal.div(new BN(300)).mul(new BN(299));
-			// await internal_test_close_with_deposit(
-			// 	deposit_amount,
-			// 	RBTC,
-			// 	SUSD,
-			// 	borrower,
-			// 	collateral,
-			// 	initial_loan,
-			// 	initial_loan_interest,
-			// 	loanToken,
-			// 	loan_id,
-			// 	priceFeeds,
-			// 	principal,
-			// 	receiver,
-			// 	sovryn,
-			// 	LoanClosingsEvents,
-			// 	FeesEvents,
-			// 	SOV
-			// );
+			await internal_test_close_with_deposit(
+				deposit_amount,
+				RBTC,
+				SUSD,
+				borrower,
+				collateral,
+				initial_loan,
+				initial_loan_interest,
+				loanToken,
+				loan_id,
+				priceFeeds,
+				principal,
+				receiver,
+				sovryn,
+				LoanClosingsEvents,
+				FeesEvents,
+				SOV
+			);
 		});
 
 		it("Test partial close w/ swap tiny position", async () => {
