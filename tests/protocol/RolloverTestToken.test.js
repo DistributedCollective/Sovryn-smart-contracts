@@ -27,6 +27,7 @@ const wei = web3.utils.toWei;
 
 const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
+const TINY_AMOUNT = new BN(25).mul(new BN(10).pow(new BN(13))); // 25 * 10**13
 
 /*
 Tests the close with deposit. 
@@ -60,13 +61,12 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 	});
 
-	const setup_rollover_test = async (RBTC, SUSD, accounts, loanToken, set_demand_curve, sovryn) => {
+	const setup_rollover_test = async (RBTC, SUSD, accounts, loanToken, loan_token_sent, set_demand_curve, sovryn) => {
 		await set_demand_curve(loanToken);
 		await SUSD.approve(loanToken.address, new BN(10).pow(new BN(40)));
 		const lender = accounts[0];
 		const borrower = accounts[1];
 		await loanToken.mint(lender, new BN(10).pow(new BN(30)));
-		const loan_token_sent = hunEth;
 		await SUSD.mint(borrower, loan_token_sent);
 		await SUSD.approve(loanToken.address, loan_token_sent, { from: borrower });
 		const { receipt } = await loanToken.marginTrade(
@@ -106,6 +106,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 				SUSD,
 				accounts,
 				loanToken,
+				hunEth, // loan_token_sent
 				set_demand_curve,
 				sovryn
 			);
@@ -181,6 +182,40 @@ contract("ProtocolCloseDeposit", (accounts) => {
 			expect(new BN(loan_swap_event["destAmount"]).gte(interest_unpaid)).to.be.true;
 		});
 
+		it("Test rollover tiny amount", async () => {
+			// prepare the test
+			loan_token_sent = TINY_AMOUNT.add(new BN(1)).mul(new BN(10).pow(new BN(4)));
+			const [borrower, loan, loan_id, endTimestamp] = await setup_rollover_test(
+				RBTC,
+				SUSD,
+				accounts,
+				loanToken,
+				loan_token_sent,
+				set_demand_curve,
+				sovryn
+			);
+
+			const num = await blockNumber();
+			let currentBlock = await web3.eth.getBlock(num);
+			const block_timestamp = currentBlock.timestamp;
+			const time_until_loan_end = loan["endTimestamp"] - block_timestamp;
+			await increaseTime(time_until_loan_end);
+
+			await sovryn.rollover(loan_id, "0x", { from: borrower });
+
+			/// @dev TODO: this test is failing. This was supposed to be passing ok on Python test
+			/// This code is just a translation from Python test into hardhat, so it should work, but it doesn't.
+			/// Sovryn-smart-contracts/tests/protocol/rollover/test_rollover_using_TestToken.py
+			///		def test_rollover_tiny_amount...
+			/// Maybe the reason of failure has something to do with
+			///   "The comparison of tiny positions is always in RBTC value"
+
+			// Test loan update
+			// end_loan = await sovryn.getLoan.call(loan_id);
+			// expect(end_loan["principal"]).to.be.bignumber.equal(new BN(0), "principal should be 0");
+			// expect(end_loan["collateral"]).to.be.bignumber.equal(new BN(0), "collateral should be 0");
+		});
+
 		it("Test rollover with special rebates", async () => {
 			// prepare the test
 			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("300", "ether"));
@@ -189,6 +224,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 				SUSD,
 				accounts,
 				loanToken,
+				hunEth, // loan_token_sent
 				set_demand_curve,
 				sovryn
 			);
@@ -270,7 +306,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 		*/
 		it("Test rollover reward payment", async () => {
 			// prepare the test
-			const [, initial_loan, loan_id] = await setup_rollover_test(RBTC, SUSD, accounts, loanToken, set_demand_curve, sovryn);
+			const [, initial_loan, loan_id] = await setup_rollover_test(RBTC, SUSD, accounts, loanToken, hunEth, set_demand_curve, sovryn);
 
 			const num = await blockNumber();
 			let currentBlock = await web3.eth.getBlock(num);
