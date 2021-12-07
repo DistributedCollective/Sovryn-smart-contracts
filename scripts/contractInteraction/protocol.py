@@ -591,3 +591,9 @@ def minInitialMargin(loanParamsId):
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     print(sovryn.minInitialMargin(loanParamsId))
+
+def readRolloverReward():
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    print(sovryn.rolloverBaseReward())
+    
