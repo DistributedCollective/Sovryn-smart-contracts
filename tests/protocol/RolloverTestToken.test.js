@@ -194,6 +194,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 				set_demand_curve,
 				sovryn
 			);
+			console.log( (await SUSD.balanceOf(borrower)).toString() );
 
 			const num = await blockNumber();
 			let currentBlock = await web3.eth.getBlock(num);
@@ -201,19 +202,21 @@ contract("ProtocolCloseDeposit", (accounts) => {
 			const time_until_loan_end = loan["endTimestamp"] - block_timestamp;
 			await increaseTime(time_until_loan_end);
 
-			await sovryn.rollover(loan_id, "0x", { from: borrower });
+			// Set the wrbtc price become more expensive, so that it can create the dust
+			await priceFeeds.setRates(WRBTC.address, SUSD.address, new BN(10).pow(new BN(23)).toString());
 
+			await sovryn.rollover(loan_id, "0x", { from: borrower });
 			/// @dev TODO: this test is failing. This was supposed to be passing ok on Python test
 			/// This code is just a translation from Python test into hardhat, so it should work, but it doesn't.
 			/// Sovryn-smart-contracts/tests/protocol/rollover/test_rollover_using_TestToken.py
 			///		def test_rollover_tiny_amount...
 			/// Maybe the reason of failure has something to do with
 			///   "The comparison of tiny positions is always in RBTC value"
-
 			// Test loan update
-			// end_loan = await sovryn.getLoan.call(loan_id);
-			// expect(end_loan["principal"]).to.be.bignumber.equal(new BN(0), "principal should be 0");
-			// expect(end_loan["collateral"]).to.be.bignumber.equal(new BN(0), "collateral should be 0");
+			end_loan = await sovryn.getLoan.call(loan_id);
+			console.log(end_loan);
+			expect(end_loan["principal"]).to.be.bignumber.equal(new BN(0), "principal should be 0");
+			expect(end_loan["collateral"]).to.be.bignumber.equal(new BN(0), "collateral should be 0");
 		});
 
 		it("Test rollover with special rebates", async () => {
