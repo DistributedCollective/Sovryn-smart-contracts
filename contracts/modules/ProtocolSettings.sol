@@ -749,9 +749,8 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 	 */
 	function getDedicatedSOVRebate() public view returns (uint256) {
 		uint256 sovProtocolBalance = IERC20(sovTokenAddress).balanceOf(address(this));
-		uint256 sovFees = lendingFeeTokensHeld[sovTokenAddress].add(tradingFeeTokensHeld[sovTokenAddress]).add(
-			borrowingFeeTokensHeld[sovTokenAddress]
-		);
+		uint256 sovFees =
+			lendingFeeTokensHeld[sovTokenAddress].add(tradingFeeTokensHeld[sovTokenAddress]).add(borrowingFeeTokensHeld[sovTokenAddress]);
 
 		return sovProtocolBalance >= sovFees ? sovProtocolBalance.sub(sovFees) : 0;
 	}

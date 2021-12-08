@@ -117,7 +117,9 @@ contract("Affiliates", (accounts) => {
 
 		// Creating the instance of newLockedSOV Contract.
 		await sovryn.setLockedSOVAddress(
-			(await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])).address
+			(
+				await LockedSOV.new(tokenSOV.address, vestingRegistry.address, cliff, duration, [owner])
+			).address
 		);
 		lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 	});
