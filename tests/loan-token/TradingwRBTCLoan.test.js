@@ -8,6 +8,7 @@ const {
 	margin_trading_sending_collateral_tokens_sov_reward_payment,
 	margin_trading_sending_collateral_tokens_sov_reward_payment_with_special_rebates,
 	close_complete_margin_trade_wrbtc,
+	close_partial_margin_trade_wrbtc,
 } = require("./tradingFunctions");
 
 const FeesEvents = artifacts.require("FeesEvents");
@@ -181,6 +182,37 @@ contract("LoanTokenTrading", (accounts) => {
 				accounts
 			);
 			await close_complete_margin_trade_wrbtc(
+				sovryn,
+				loanToken,
+				loanTokenWRBTC,
+				set_demand_curve,
+				lend_to_pool_iBTC,
+				open_margin_trade_position_iBTC,
+				priceFeeds,
+				false,
+				RBTC,
+				WRBTC,
+				SUSD,
+				accounts
+			);
+		});
+
+		it("Test close partial margin trade", async () => {
+			await close_partial_margin_trade_wrbtc(
+				sovryn,
+				loanToken,
+				loanTokenWRBTC,
+				set_demand_curve,
+				lend_to_pool_iBTC,
+				open_margin_trade_position_iBTC,
+				priceFeeds,
+				true,
+				RBTC,
+				WRBTC,
+				SUSD,
+				accounts
+			);
+			await close_partial_margin_trade_wrbtc(
 				sovryn,
 				loanToken,
 				loanTokenWRBTC,
