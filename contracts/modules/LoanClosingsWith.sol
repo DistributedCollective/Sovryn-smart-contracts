@@ -17,9 +17,7 @@ import "./LoanClosingsShared.sol";
  *
  * Loans are liquidated if the position goes below margin maintenance.
  * */
-contract LoanClosingsWith is LoanClosingsShared
-{
-
+contract LoanClosingsWith is LoanClosingsShared {
 	constructor() public {}
 
 	function() external {
@@ -239,7 +237,6 @@ contract LoanClosingsWith is LoanClosingsShared
 			CloseTypes.Swap
 		);
 	}
-
 
 	/**
 	 * swaps a share of a loan's collateral or the complete collateral in order to cover the principle.

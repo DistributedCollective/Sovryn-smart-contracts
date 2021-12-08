@@ -17,10 +17,7 @@ import "./LoanClosingsShared.sol";
  *
  * Loans are liquidated if the position goes below margin maintenance.
  * */
-contract LoanClosingsBase is
-	LoanClosingsShared,
-	LiquidationHelper
-{
+contract LoanClosingsBase is LoanClosingsShared, LiquidationHelper {
 	uint256 internal constant MONTH = 365 days / 12;
 
 	constructor() public {}
@@ -374,12 +371,12 @@ contract LoanClosingsBase is
 			);
 		} else {
 			(uint256 currentMargin, ) =
-			IPriceFeeds(priceFeeds).getCurrentMargin(
-				loanParamsLocal.loanToken,
-				loanParamsLocal.collateralToken,
-				loanLocal.principal,
-				loanLocal.collateral
-			);
+				IPriceFeeds(priceFeeds).getCurrentMargin(
+					loanParamsLocal.loanToken,
+					loanParamsLocal.collateralToken,
+					loanLocal.principal,
+					loanLocal.collateral
+				);
 
 			require(
 				currentMargin > 3 ether, // ensure there's more than 3% margin remaining

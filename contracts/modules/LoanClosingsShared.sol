@@ -21,20 +21,13 @@ import "./ModuleCommonFunctionalities.sol";
  *   LoanClosingsBase & LoanClosingsWith contract
  *
  * */
-contract LoanClosingsShared is
-	LoanClosingsEvents,
-	VaultController,
-	InterestUser,
-	SwapsUser,
-	RewardHelper,
-	ModuleCommonFunctionalities
-{
+contract LoanClosingsShared is LoanClosingsEvents, VaultController, InterestUser, SwapsUser, RewardHelper, ModuleCommonFunctionalities {
 	uint256 internal constant MONTH = 365 days / 12;
 	//0.00001 BTC, would be nicer in State.sol, but would require a redeploy of the complete protocol, so adding it here instead
 	//because it's not shared state anyway and only used by this contract
 	uint256 public constant paySwapExcessToBorrowerThreshold = 10000000000000;
 
-  uint256 public constant TINY_AMOUNT = 25e13;
+	uint256 public constant TINY_AMOUNT = 25e13;
 
 	enum CloseTypes { Deposit, Swap, Liquidation }
 
@@ -277,7 +270,7 @@ contract LoanClosingsShared is
 		return interestRefundToBorrower;
 	}
 
-  /**
+	/**
 	 * @notice Check sender is borrower or delegatee and loan id exists.
 	 *
 	 * @param loanLocal The loan object.
@@ -289,7 +282,7 @@ contract LoanClosingsShared is
 		require(loanParamsLocal.id != 0, "loanParams not exists");
 	}
 
-  /**
+	/**
 	 * @notice Internal function for closing a loan by doing a deposit.
 	 *
 	 * @param loanId The id of the loan.
@@ -363,7 +356,7 @@ contract LoanClosingsShared is
 		);
 	}
 
-  /**
+	/**
 	 * @notice Close a loan.
 	 *
 	 * @dev Wrapper for _closeLoan internal function.
@@ -427,7 +420,7 @@ contract LoanClosingsShared is
 		);
 	}
 
-  function _emitClosingEvents(
+	function _emitClosingEvents(
 		LoanParams memory loanParamsLocal,
 		Loan memory loanLocal,
 		uint256 loanCloseAmount,

@@ -194,7 +194,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 				set_demand_curve,
 				sovryn
 			);
-			console.log( (await SUSD.balanceOf(borrower)).toString() );
+			console.log((await SUSD.balanceOf(borrower)).toString());
 
 			const num = await blockNumber();
 			let currentBlock = await web3.eth.getBlock(num);
