@@ -109,9 +109,12 @@ contract("LoanTokenFunctionality", (accounts) => {
 
 			expect((await loanToken.allowance(sender, receiver)).eq(amount_sent)).to.be.true;
 
-			await loanToken.transferFrom(sender, receiver, amount_sent, { from: receiver });
+			let tx = await loanToken.transferFrom(sender, receiver, amount_sent, { from: receiver });
 			expect((await loanToken.balanceOf(sender)).eq(amount_sent)).to.be.true;
 			expect((await loanToken.balanceOf(receiver)).eq(amount_sent)).to.be.true;
+
+			// Expect the AllowanceUpdate event triggered at  TestToken::transferFrom
+			expectEvent(tx, "AllowanceUpdate", { owner: sender, spender: receiver, valueBefore: amount_sent, valueAfter: new BN(0) });
 		});
 	});
 });

@@ -418,4 +418,6 @@ contract ISovrynBrownie is
 	function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external;
 
 	function getTradingRebateRewardsBasisPoint() external view returns (uint256);
+
+	function getDedicatedSOVRebate() external view returns (uint256);
 }

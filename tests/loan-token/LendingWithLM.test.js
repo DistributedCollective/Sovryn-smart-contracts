@@ -77,16 +77,21 @@ contract("LoanTokenLogicLM", (accounts) => {
 			await SUSD.approve(loanToken.address, depositAmount);
 			const tx = await loanToken.mint(lender, depositAmount, true);
 			const userInfo = await liquidityMining.getUserInfo(loanToken.address, lender);
-			// expected: user pool token balance is 0, but balance of LM contract increased
+
+			// Expected: user pool token balance is 0, but balance of LM contract increased
 			expect(await loanToken.balanceOf(lender)).bignumber.equal("0");
 			expect(userInfo.amount).bignumber.equal(depositAmount);
 			expect(await loanToken.totalSupply()).bignumber.equal(depositAmount);
-			// expect the Mint event to mention the lender
+
+			// Expect the Mint event to mention the lender
 			expectEvent(tx, "Mint", {
 				minter: lender,
 				tokenAmount: depositAmount,
 				assetAmount: depositAmount,
 			});
+
+			// Expect the AllowanceUpdate event triggered at LoanTokenLogicStandard::_internalTransferFrom
+			expectEvent(tx, "AllowanceUpdate", { owner: lender, spender: lender, valueBefore: depositAmount, valueAfter: new BN(0) });
 		});
 
 		it("Should lend to the pool without depositing the pool tokens at the liquidity mining contract", async () => {
