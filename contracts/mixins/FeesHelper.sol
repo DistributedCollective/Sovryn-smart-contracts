@@ -86,7 +86,7 @@ contract FeesHelper is State, FeesEvents {
 		address feeToken,
 		uint256 tradingFee
 	) internal returns (uint256 affiliatesBonusSOVAmount, uint256 affiliatesBonusTokenAmount) {
-		(affiliatesBonusSOVAmount, affiliatesBonusTokenAmount) = ProtocolAffiliatesInterface(protocolAddress)
+		(affiliatesBonusSOVAmount, affiliatesBonusTokenAmount) = ProtocolAffiliatesInterface(address(this))
 			.payTradingFeeToAffiliatesReferrer(referrer, trader, feeToken, tradingFee);
 	}
 
@@ -232,7 +232,7 @@ contract FeesHelper is State, FeesEvents {
 		}
 
 		// Check the dedicated SOV that is used to pay trading rebate rewards
-		uint256 dedicatedSOV = ISovryn(protocolAddress).getDedicatedSOVRebate();
+		uint256 dedicatedSOV = ISovryn(address(this)).getDedicatedSOVRebate();
 		if (rewardAmount != 0 && dedicatedSOV >= rewardAmount) {
 			IERC20(sovTokenAddress).approve(lockedSOVAddress, rewardAmount);
 
