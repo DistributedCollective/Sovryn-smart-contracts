@@ -872,7 +872,7 @@ contract("FeeSharingProxy:", (accounts) => {
 
 		it("Should be able to withdraw (sov pool)", async () => {
 			/// @dev This test requires redeploying the protocol
-            await protocolDeploymentFixture();
+			await protocolDeploymentFixture();
 
 			//stake - getPriorTotalVotingPower
 			let rootStake = 700;
@@ -1246,8 +1246,8 @@ contract("FeeSharingProxy:", (accounts) => {
 	describe("withdraw AMM Fees", async () => {
 		it("Whitelist converter", async () => {
 			/// @dev This test requires redeploying the protocol
-            await protocolDeploymentFixture();
-			
+			await protocolDeploymentFixture();
+
 			await expectRevert(feeSharingProxy.addWhitelistedConverterAddress(account1), "Non contract address given");
 			await expectRevert(feeSharingProxy.addWhitelistedConverterAddress(ZERO_ADDRESS), "Non contract address given");
 
@@ -1264,7 +1264,7 @@ contract("FeeSharingProxy:", (accounts) => {
 
 		it("Remove converter from whitelist", async () => {
 			/// @dev This test requires redeploying the protocol
-            await protocolDeploymentFixture();
+			await protocolDeploymentFixture();
 
 			const liquidityPoolV1Converter = await LiquidityPoolV1Converter.new(SOVToken.address, SUSD.address);
 			let whitelistedConverterList = await feeSharingProxy.getWhitelistedConverterList();
@@ -1286,14 +1286,14 @@ contract("FeeSharingProxy:", (accounts) => {
 
 		it("should not be able to withdraw fees if converters address is not a contract address", async () => {
 			/// @dev This test requires redeploying the protocol
-            await protocolDeploymentFixture();
+			await protocolDeploymentFixture();
 
 			await expectRevert(feeSharingProxy.withdrawFeesAMM([accounts[0]]), "Invalid Converter");
 		});
 
 		it("Should not be able to withdraw AMM Fees after whitelist removal", async () => {
 			/// @dev This test requires redeploying the protocol
-            await protocolDeploymentFixture();
+			await protocolDeploymentFixture();
 
 			//stake - getPriorTotalVotingPower
 			let totalStake = 1000;
@@ -1344,7 +1344,7 @@ contract("FeeSharingProxy:", (accounts) => {
 
 		it("Should be able to withdraw AMM Fees", async () => {
 			/// @dev This test requires redeploying the protocol
-            await protocolDeploymentFixture();
+			await protocolDeploymentFixture();
 
 			//stake - getPriorTotalVotingPower
 			let totalStake = 1000;
@@ -1391,7 +1391,7 @@ contract("FeeSharingProxy:", (accounts) => {
 
 		it("Should be able to withdraw with 0 AMM Fees", async () => {
 			/// @dev This test requires redeploying the protocol
-            await protocolDeploymentFixture();
+			await protocolDeploymentFixture();
 
 			//stake - getPriorTotalVotingPower
 			let totalStake = 1000;
