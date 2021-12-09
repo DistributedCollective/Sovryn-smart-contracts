@@ -92,7 +92,7 @@ contract("SwapsExternal", (accounts) => {
 		await sovryn.setSupportedTokens([SUSD.address, WRBTC.address], [true, true]);
 
 		await sovryn.setFeesController(lender);
-		await sovryn.setSwapExternalFeePercent(wei("10", "ether"));
+		await sovryn.setSwapExternalFeePercent(wei("3", "ether"));
 
 		const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
 		loanTokenLogic = initLoanTokenLogic[0];
@@ -145,7 +145,9 @@ contract("SwapsExternal", (accounts) => {
 		vestingFactory.transferOwnership(vestingRegistry.address);
 
 		await sovryn.setLockedSOVAddress(
-			(await LockedSOV.new(SOVToken.address, vestingRegistry.address, cliff, duration, [lender])).address
+			(
+				await LockedSOV.new(SOVToken.address, vestingRegistry.address, cliff, duration, [lender])
+			).address
 		);
 
 		params = [
@@ -254,7 +256,7 @@ contract("SwapsExternal", (accounts) => {
 			);
 		});
 
-		it("Check swapExternal with minReturn > 0 should revert if minReturn is valid", async () => {
+		it("Check swapExternal with minReturn > 0", async () => {
 			const assetBalance = await loanToken.assetBalanceOf(lender);
 			await SUSD.approve(sovryn.address, assetBalance.add(new BN(wei("10", "ether"))).toString());
 			// feeds price is set 0.01, so test minReturn with 0.01 as well for the 1 ether swap
@@ -287,7 +289,7 @@ contract("SwapsExternal", (accounts) => {
 			});
 
 			expectEvent(tx, "PayTradingFee", {
-				amount: new BN(wei("1", "ether"))
+				amount: new BN(wei("0.3", "ether"))
 					.mul(new BN(wei("10", "ether")))
 					.div(new BN(wei("100", "ether")))
 					.toString(),
@@ -301,6 +303,8 @@ contract("SwapsExternal", (accounts) => {
 		});
 
 		it("Should be able to withdraw fees", async () => {
+			const maxDisagreement = new BN(wei("5", "ether"));
+			await sovryn.setMaxDisagreement(maxDisagreement);
 			const assetBalance = await loanToken.assetBalanceOf(lender);
 			await SUSD.approve(sovryn.address, assetBalance.add(new BN(wei("10", "ether"))).toString());
 			// feeds price is set 0.01, so test minReturn with 0.01 as well for the 1 ether swap
@@ -352,7 +356,7 @@ contract("SwapsExternal", (accounts) => {
 			});
 		});
 
-		it("Check swapExternal with minReturn > 0 should revert if minReturn is valid", async () => {
+		it("Check swapExternal with minReturn > 0 should revert if minReturn is invalid", async () => {
 			await expectRevert(
 				sovryn.checkPriceDivergence(SUSD.address, WRBTC.address, wei("1", "ether"), wei("2", "ether")),
 				"destTokenAmountReceived too low"
