@@ -199,6 +199,12 @@ interface ILoanTokenModules {
 
 	function tokenPrice() external view returns (uint256 price);
 
+	function avgBorrowInterestRate() external view returns (uint256);
+
+	function supplyInterestRate() external view returns (uint256);
+
+	function nextSupplyInterestRate(uint256 supplyAmount) external view returns (uint256);
+
 	function totalSupplyInterestRate(uint256 assetSupply) external view returns (uint256);
 
 	function loanTokenAddress() external view returns (address);

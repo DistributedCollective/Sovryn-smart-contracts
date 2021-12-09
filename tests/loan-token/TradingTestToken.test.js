@@ -1,6 +1,22 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-24
+ * Bottlenecks found at beforeEach hook, redeploying tokens,
+ *  protocol, loan ... on every test.
+ *
+ * Total time elapsed: 26.5s
+ * After optimization: 11.4s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ *   Added tests to increase the test coverage index:
+ *     + "Check marginTrade w/ collateralToken as address(0)"
+ */
+
 const { expect } = require("chai");
-const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
-const LoanOpenings = artifacts.require("LoanOpenings");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 
 const {
 	margin_trading_sending_loan_tokens,
@@ -18,7 +34,7 @@ const {
 } = require("./tradingFunctions");
 
 const FeesEvents = artifacts.require("FeesEvents");
-const TestToken = artifacts.require("TestToken");
+const LoanOpenings = artifacts.require("LoanOpenings");
 
 const {
 	getSUSD,
@@ -37,6 +53,7 @@ const {
 	open_margin_trade_position,
 	decodeLogs,
 } = require("../Utils/initializer.js");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const wei = web3.utils.toWei;
 
@@ -47,11 +64,7 @@ contract("LoanTokenTrading", (accounts) => {
 	let owner;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV, priceFeeds;
 
-	before(async () => {
-		[owner] = accounts;
-	});
-
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
@@ -65,6 +78,14 @@ contract("LoanTokenTrading", (accounts) => {
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
+	}
+
+	before(async () => {
+		[owner] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("Test the loan token trading logic with 2 TestTokens.", () => {
@@ -450,6 +471,36 @@ contract("LoanTokenTrading", (accounts) => {
 			);
 		});
 
+		/// @dev For test coverage
+		it("Should revert when collateralTokenAddress != loanTokenAddress", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, accounts[0]);
+			// trader=accounts[1] on this call
+			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]);
+
+			// deposit collateral to add margin to the loan created above
+			await RBTC.approve(sovryn.address, oneEth);
+			await sovryn.depositCollateral(loan_id, oneEth);
+			await RBTC.transfer(accounts[2], oneEth);
+			await RBTC.approve(loanToken.address, oneEth, { from: accounts[2] });
+
+			await expectRevert(
+				loanToken.marginTrade(
+					loan_id, // loanId  (0 for new loans)
+					new BN(2).mul(oneEth), // leverageAmount
+					0, // loanTokenSent
+					1000, // no collateral token sent
+					SUSD.address, // collateralTokenAddress != loanTokenAddress
+					accounts[1], // trader,
+					0,
+					"0x", // loanDataBytes (only required with ether)
+					{ from: accounts[2] }
+				),
+				"11"
+			);
+		});
+
 		it("Test increasing position of margin trade using collateral", async () => {
 			// prepare the test
 			await set_demand_curve(loanToken);
@@ -568,6 +619,26 @@ contract("LoanTokenTrading", (accounts) => {
 				wei("0.01", "ether"),
 				RBTC.address,
 				wei("0.02", "ether")
+			);
+		});
+
+		/// @dev For test coverage, it's required to perform a margin trade using WRBTC as collateral
+		it("Check marginTrade w/ collateralToken as address(0)", async () => {
+			await set_demand_curve(loanToken);
+			await SUSD.transfer(loanToken.address, wei("1000000", "ether"));
+			await WRBTC.mint(accounts[2], oneEth);
+			await WRBTC.approve(loanToken.address, oneEth, { from: accounts[2] });
+
+			await loanToken.marginTrade(
+				"0x0", // loanId  (0 for new loans)
+				wei("2", "ether"), // leverageAmount
+				0, // loanTokenSent (SUSD)
+				1000, // collateral token sent
+				ZERO_ADDRESS, // collateralTokenAddress (address 0 means collateral is WRBTC)
+				accounts[1], // trader,
+				2000,
+				"0x", // loanDataBytes (only required with ether)
+				{ from: accounts[2] }
 			);
 		});
 

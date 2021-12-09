@@ -1,13 +1,18 @@
-const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
-const { address, minerStart, minerStop, unlockedAccount, mineBlock, etherMantissa, etherUnsigned, setTime } = require("../Utils/Ethereum");
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-05
+ * No tests found.
+ *
+ * TODO: Maybe this file should be removed.
+ *   Similar code found at:
+ *     Sovryn-smart-contracts/tests/staking/StakingTest.js
+ *
+ * Total time elapsed: 3.6s
+ *
+ */
 
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
-const Vesting = artifacts.require("TeamVesting");
 
-const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 const TOTAL_SUPPLY = "10000000000000000000000000";
 
 contract("TeamVesting", (accounts) => {

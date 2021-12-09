@@ -1,3 +1,9 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-01
+ * No bottlenecks found. No beforeEach hook, and waffle mockup was already applied.
+ *
+ * Total time elapsed: 4.9s
+ */
+
 const { ethers, waffle } = require("hardhat");
 const { expect } = require("chai");
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");

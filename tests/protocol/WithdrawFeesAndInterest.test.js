@@ -1,5 +1,18 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-01
+ * Bottleneck found at beforeEach hook, redeploying tokens,
+ *  protocol, ... on every test.
+ *
+ * Total time elapsed: 8.2s
+ * After optimization: 5.9s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ *   Moved some initialization code from tests to fixture.
+ */
+
 const { expect } = require("chai");
-const { BN, expectEvent } = require("@openzeppelin/test-helpers");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { BN, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const { increaseTime, blockNumber } = require("../Utils/Ethereum.js");
 
 const {
@@ -24,11 +37,8 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 	let owner;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds;
 
-	before(async () => {
-		[owner] = accounts;
-	});
-
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		// Deploying sovrynProtocol w/ generic function from initializer.js
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
@@ -36,18 +46,30 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+
+		/// @dev SOV test token deployment w/ initializer.js
 		sov = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
 		loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD);
 		loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
+
+		/// @dev Optimization: Moved from common init for specific test
+		await set_demand_curve(loanToken);
+		await lend_to_pool(loanToken, SUSD, owner);
+	}
+
+	before(async () => {
+		[owner] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("Tests withdraw fees and interest ", () => {
 		it("Test withdraw accrued interest", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
 
 			let num = await blockNumber();
@@ -116,8 +138,6 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 		*/
 		it("Test withdraw lending fees", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
 
 			await sovryn.setFeesController(accounts[0]);
@@ -135,6 +155,48 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 			expect(await SUSD.balanceOf(accounts[1])).to.be.a.bignumber.eq(fees);
 		});
 
+		it("should revert when withdrawing lending fees by no feesController", async () => {
+			// Prepare the test
+			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			await sovryn.setFeesController(accounts[0]);
+			await increaseTime(100);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// Try to withdraw fees
+			const fees = await sovryn.lendingFeeTokensHeld(SUSD.address);
+			await expectRevert(sovryn.withdrawLendingFees(SUSD.address, accounts[1], fees, { from: accounts[1] }), "unauthorized");
+		});
+
+		it("should ignore withdrawAmounts bigger than balance when withdrawing lending fees", async () => {
+			// Prepare the test
+			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			await sovryn.setFeesController(accounts[0]);
+			await increaseTime(100);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// Withdraw fees and verify
+			const fees = await sovryn.lendingFeeTokensHeld(SUSD.address);
+			await sovryn.withdrawLendingFees(SUSD.address, accounts[1], fees.mul(new BN(2)));
+			const paid = await sovryn.lendingFeeTokensPaid(SUSD.address);
+
+			expect(paid.eq(fees)).to.be.true;
+			expect(await sovryn.lendingFeeTokensHeld(SUSD.address)).to.be.a.bignumber.eq(new BN(0));
+			expect(await SUSD.balanceOf(accounts[1])).to.be.a.bignumber.eq(fees);
+		});
+
+		it("should return false when withdrawing amount 0 of lending fees", async () => {
+			// Prepare the test
+			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			await sovryn.setFeesController(accounts[0]);
+			await increaseTime(100);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// Withdraw fees and verify
+			const fees = await sovryn.lendingFeeTokensHeld(SUSD.address);
+			let result = await sovryn.withdrawLendingFees.call(SUSD.address, accounts[1], new BN(0));
+			expect(result).to.be.false;
+		});
+
 		/*
 			Should successfully withdraw trading fees
 			1. Set demand curve (fixture) 
@@ -147,8 +209,6 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 		*/
 		it("Test withdraw trading fees", async () => {
 			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
 			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
 
 			await sovryn.setFeesController(accounts[0]);
@@ -166,6 +226,48 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 			expect(await SUSD.balanceOf(accounts[1])).to.be.a.bignumber.eq(fees);
 		});
 
+		it("should revert when withdrawing trading fees by no feesController", async () => {
+			// Prepare the test
+			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			await sovryn.setFeesController(accounts[0]);
+			await increaseTime(100);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// Try to withdraw fees
+			const fees = await sovryn.lendingFeeTokensHeld(SUSD.address);
+			await expectRevert(sovryn.withdrawTradingFees(SUSD.address, accounts[1], fees, { from: accounts[1] }), "unauthorized");
+		});
+
+		it("should ignore withdrawAmounts bigger than balance when withdrawing trading fees", async () => {
+			// Prepare the test
+			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			await sovryn.setFeesController(accounts[0]);
+			await increaseTime(100);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// Withdraw fees and verify
+			const fees = await sovryn.tradingFeeTokensHeld(SUSD.address);
+			await sovryn.withdrawTradingFees(SUSD.address, accounts[1], fees.mul(new BN(2)));
+			const paid = await sovryn.tradingFeeTokensPaid(SUSD.address);
+
+			expect(paid.eq(fees)).to.be.true;
+			expect(await sovryn.tradingFeeTokensHeld(SUSD.address)).to.be.a.bignumber.eq(new BN(0));
+			expect(await SUSD.balanceOf(accounts[1])).to.be.a.bignumber.eq(fees);
+		});
+
+		it("should return false when withdrawing amount 0 of trading fees", async () => {
+			// Prepare the test
+			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+			await sovryn.setFeesController(accounts[0]);
+			await increaseTime(100);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// Withdraw fees and verify
+			const fees = await sovryn.tradingFeeTokensHeld(SUSD.address);
+			let result = await sovryn.withdrawTradingFees.call(SUSD.address, accounts[1], new BN(0));
+			expect(result).to.be.false;
+		});
+
 		/*
 			Should successfully withdraw borrowing fees
 			1. Set demand curve (fixture) 
@@ -176,25 +278,30 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
 			6. Call withdraw borrowing fees
 			7. Verify the right amount was paid out and the borrowing fees reduced on the smart contract 
 		*/
-		it("Test withdraw borrowing fees", async () => {
-			// prepare the test
-			await set_demand_curve(loanToken);
-			await lend_to_pool(loanToken, SUSD, owner);
-			await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
+		/// @dev In this test borrowing fees are always 0
+		///   Borrowing fees are only accrued from torque loans
+		///   Added a new test on tests/other/LoanOpeningsBorrowOrTradeFromPool.test.js
+		///   checking withdrawBorrowingFees by using a torque loan.
+		///   So, this test has been commented out because it seems to be incomplete.
+		// it("Test withdraw borrowing fees", async () => {
+		// 	// prepare the test
+		// 	await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
 
-			await sovryn.setFeesController(accounts[0]);
-			await increaseTime(100);
+		// 	await sovryn.setFeesController(accounts[0]);
+		// 	await increaseTime(100);
 
-			await lend_to_pool(loanToken, SUSD, owner);
+		// 	await lend_to_pool(loanToken, SUSD, owner);
 
-			// withdraw fees and verify
-			const fees = await sovryn.borrowingFeeTokensHeld(SUSD.address);
-			await sovryn.withdrawBorrowingFees(SUSD.address, accounts[1], fees);
-			const paid = await sovryn.borrowingFeeTokensPaid(SUSD.address);
+		// 	// withdraw fees and verify
+		// 	const fees = await sovryn.borrowingFeeTokensHeld(SUSD.address);
+		// 	console.log("fees: ", fees.toString());
+		// 	await sovryn.withdrawBorrowingFees(SUSD.address, accounts[1], fees);
+		// 	const paid = await sovryn.borrowingFeeTokensPaid(SUSD.address);
+		// 	console.log("paid: ", paid.toString());
 
-			expect(paid.eq(fees)).to.be.true;
-			expect(await sovryn.borrowingFeeTokensHeld(SUSD.address)).to.be.a.bignumber.eq(new BN(0));
-			expect(await SUSD.balanceOf(accounts[1])).to.be.a.bignumber.eq(fees);
-		});
+		// 	expect(paid.eq(fees)).to.be.true;
+		// 	expect(await sovryn.borrowingFeeTokensHeld(SUSD.address)).to.be.a.bignumber.eq(new BN(0));
+		// 	expect(await SUSD.balanceOf(accounts[1])).to.be.a.bignumber.eq(fees);
+		// });
 	});
 });

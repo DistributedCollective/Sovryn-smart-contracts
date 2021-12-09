@@ -1,10 +1,42 @@
-const { assert, expect } = require("chai");
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-29
+ * Bottlenecks found at beforeEach hook, redeploying protocol on every test.
+ *
+ * Total time elapsed: 4.8s
+ * After optimization: 4.2s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ *  Updated to use only the initializer.js functions for protocol deployment.
+ */
 
-const { BN, constants, balance, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
+const { assert, expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { BN, constants, expectRevert } = require("@openzeppelin/test-helpers");
+
+const {
+	getSUSD,
+	getRBTC,
+	getWRBTC,
+	getBZRX,
+	getSOV,
+	getLoanTokenLogic,
+	getLoanTokenLogicWrbtc,
+	getLoanToken,
+	getLoanTokenWRBTC,
+	loan_pool_setup,
+	getPriceFeeds,
+	getSovryn,
+	lend_to_pool,
+	set_demand_curve,
+	open_margin_trade_position,
+} = require("./Utils/initializer.js");
 
 const sovrynProtocol = artifacts.require("sovrynProtocol");
 const ProtocolSettings = artifacts.require("ProtocolSettingsMockup");
-const ISovryn = artifacts.require("ISovryn");
+
 const TestToken = artifacts.require("TestToken");
 const { etherMantissa } = require("./Utils/Ethereum");
 const LockedSOV = artifacts.require("LockedSOVMockup");
@@ -13,19 +45,30 @@ const TOTAL_SUPPLY = etherMantissa(1000000000);
 const wei = web3.utils.toWei;
 
 contract("Affliates", (accounts) => {
+	let sovryn;
+
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		SUSD = await getSUSD();
+		RBTC = await getRBTC();
+		WRBTC = await getWRBTC();
+		BZRX = await getBZRX();
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
+		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+
+		await sovryn.setSovrynProtocolAddress(sovryn.address);
+	}
+
 	beforeEach(async () => {
-		const sovrynproxy = await sovrynProtocol.new();
-		sovryn = await ISovryn.at(sovrynproxy.address);
-		await sovryn.replaceContract((await ProtocolSettings.new()).address);
-		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
+		await loadFixture(deploymentAndInitFixture);
 	});
+
 	it("Saves Sovryn Proxy Address correctly", async () => {
 		assert.equal(await sovryn.getProtocolAddress(), sovryn.address);
-		//assert.equal(loanTokenAddress, doc.address, "Doc address not set yet");
+		// assert.equal(loanTokenAddress, doc.address, "Doc address not set yet");
 	});
 
 	// Should successfully set the sov token address
-	it("Test set sov token addres", async () => {
+	it("Test set sov token address", async () => {
 		const sov = await TestToken.new("Sovryn", "SOV", 18, new BN(10).pow(new BN(50)));
 
 		// Should revert if set with non owner

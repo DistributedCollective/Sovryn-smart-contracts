@@ -1,3 +1,12 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-27
+ * Some small bottlenecks found on test redeploying LockedSOV and VestingRegistry contracts.
+ *   Besides there are several mints and approves that cannot be moved into
+ *   the initialization process because are concerning different users on each test.
+ *
+ * Total time elapsed: 5.8s
+ *
+ */
+
 const SOV = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
 const LockedSOV = artifacts.require("LockedSOV");
@@ -238,6 +247,7 @@ contract("Locked SOV (State)", (accounts) => {
 	});
 
 	it("Updating the vestingRegistry, cliff and/or duration should correctly reflect in contract.", async () => {
+		/// @dev Deploying a new contract is needed to check the update is working Ok.
 		let newVestingRegistry = await VestingRegistry.new(
 			vestingFactory.address,
 			sov.address,

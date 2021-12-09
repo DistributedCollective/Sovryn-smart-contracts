@@ -1,3 +1,8 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-01
+ * This test isn't doing anything. Test is commented out.
+ * TODO: Maybe it is a good idea to remove it from the repo.
+ */
+
 const { expect } = require("chai");
 const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
 

@@ -1,5 +1,22 @@
 // For this test, multisig wallet will be done by normal wallets.
 
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-21
+ * Greatest bottlenecks found at sovAndRewardWithdraw tests,
+ * requiring each one an escrowReward deployment.
+ *
+ * Total time elapsed: 7.4s
+ * After optimization: 6.5s
+ *
+ * Other minor optimizations:
+ * - fixed some comments
+ *
+ * Notes: Used Waffle fixture to avoid redeployments on sovAndRewardWithdraw tests
+ *
+ */
+
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+
 const EscrowReward = artifacts.require("EscrowReward");
 const LockedSOV = artifacts.require("LockedSOVMockup"); // Ideally should be using actual LockedSOV for testing.
 const SOV = artifacts.require("TestToken");
@@ -16,6 +33,8 @@ let zero = 0;
 let zeroAddress = constants.ZERO_ADDRESS;
 const depositLimit = 75000000;
 let [deployedStatus, depositStatus, holdingStatus, withdrawStatus, expiredStatus] = [0, 1, 2, 3, 4];
+const maxRandom = 1000000;
+const infiniteTokens = maxRandom * 100; // A lot of tokens, enough to run all tests w/o extra minting
 
 /**
  * Function to create a random value.
@@ -24,7 +43,7 @@ let [deployedStatus, depositStatus, holdingStatus, withdrawStatus, expiredStatus
  * @return {number} Random Value.
  */
 function randomValue() {
-	return Math.floor(Math.random() * 1000000);
+	return Math.floor(Math.random() * maxRandom);
 }
 
 /**
@@ -148,20 +167,10 @@ async function getTokenBalances(addr, sovContract, lockedSOVContract) {
  */
 async function userDeposits(sovContract, escrowRewardContract, userOne, userTwo, userThree, userFour, userFive) {
 	let values = [randomValue() + 1, randomValue() + 1, randomValue() + 1, randomValue() + 1, randomValue() + 1];
-	await sovContract.mint(userOne, values[0]);
-	await sovContract.approve(escrowRewardContract.address, values[0], { from: userOne });
 	await escrowRewardContract.depositTokens(values[0], { from: userOne });
-	await sovContract.mint(userTwo, values[1]);
-	await sovContract.approve(escrowRewardContract.address, values[1], { from: userTwo });
 	await escrowRewardContract.depositTokens(values[1], { from: userTwo });
-	await sovContract.mint(userThree, values[2]);
-	await sovContract.approve(escrowRewardContract.address, values[2], { from: userThree });
 	await escrowRewardContract.depositTokens(values[2], { from: userThree });
-	await sovContract.mint(userFour, values[3]);
-	await sovContract.approve(escrowRewardContract.address, values[3], { from: userFour });
 	await escrowRewardContract.depositTokens(values[3], { from: userFour });
-	await sovContract.mint(userFive, values[4]);
-	await sovContract.approve(escrowRewardContract.address, values[4], { from: userFive });
 	await escrowRewardContract.depositTokens(values[4], { from: userFive });
 	return values;
 }
@@ -229,11 +238,7 @@ async function sovAndRewardWithdraw(sov, lockedSOV, escrowReward, multisig, user
 
 	await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
 
-	await sov.mint(multisig, reward);
-	await sov.approve(escrowReward.address, reward, { from: multisig });
 	await escrowReward.depositRewardByMultisig(reward, { from: multisig });
-
-	await sov.approve(escrowReward.address, totalValue, { from: multisig });
 	await escrowReward.depositTokensByMultisig(totalValue, { from: multisig });
 
 	await checkUserWithdraw(sov, lockedSOV, escrowReward, userOne, 0, values, totalValue, reward);
@@ -271,9 +276,9 @@ contract("Escrow Rewards (State)", (accounts) => {
 	let escrowReward, newEscrowReward, sov, lockedSOV;
 	let creator, multisig, newMultisig, safeVault, userOne, userTwo, userThree, userFour, userFive;
 
-	before("Initiating Accounts & Creating Test Token Instance.", async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		// Checking if we have enough accounts to test.
-		assert.isAtLeast(accounts.length, 9, "Alteast 9 accounts are required to test the contracts.");
+		assert.isAtLeast(accounts.length, 9, "At least 9 accounts are required to test the contracts.");
 		[creator, multisig, newMultisig, safeVault, userOne, userTwo, userThree, userFour, userFive] = accounts;
 
 		// Creating the instance of SOV Token.
@@ -284,6 +289,25 @@ contract("Escrow Rewards (State)", (accounts) => {
 
 		// Creating the contract instance.
 		escrowReward = await createEscrowReward(lockedSOV, sov, multisig, zero, depositLimit);
+
+		/// @dev Minting, approval calculation moved here for optimization
+		await sov.mint(userOne, infiniteTokens);
+		await sov.mint(userTwo, infiniteTokens);
+		await sov.mint(userThree, infiniteTokens);
+		await sov.mint(userFour, infiniteTokens);
+		await sov.mint(userFive, infiniteTokens);
+		await sov.approve(escrowReward.address, infiniteTokens, { from: userOne });
+		await sov.approve(escrowReward.address, infiniteTokens, { from: userTwo });
+		await sov.approve(escrowReward.address, infiniteTokens, { from: userThree });
+		await sov.approve(escrowReward.address, infiniteTokens, { from: userFour });
+		await sov.approve(escrowReward.address, infiniteTokens, { from: userFive });
+
+		await sov.mint(multisig, infiniteTokens);
+		await sov.approve(escrowReward.address, infiniteTokens, { from: multisig });
+	}
+
+	before("Initiating Accounts & Creating Test Token Instance.", async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	it("Creating an instance should set all the values correctly.", async () => {
@@ -572,49 +596,49 @@ contract("Escrow Rewards (State)", (accounts) => {
 
 	it("SOV and Reward (0.001%) withdraw should update the contract state.", async () => {
 		let percentage = 0.001;
-		escrowReward = await createEscrowReward(lockedSOV, sov, multisig, zero, depositLimit);
+		await loadFixture(deploymentAndInitFixture);
 		await sovAndRewardWithdraw(sov, lockedSOV, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage);
 	});
 
 	it("SOV and Reward (0.01%) withdraw should update the contract state.", async () => {
 		let percentage = 0.01;
-		escrowReward = await createEscrowReward(lockedSOV, sov, multisig, zero, depositLimit);
+		await loadFixture(deploymentAndInitFixture);
 		await sovAndRewardWithdraw(sov, lockedSOV, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage);
 	});
 
 	it("SOV and Reward (0.1%) withdraw should update the contract state.", async () => {
 		let percentage = 0.1;
-		escrowReward = await createEscrowReward(lockedSOV, sov, multisig, zero, depositLimit);
+		await loadFixture(deploymentAndInitFixture);
 		await sovAndRewardWithdraw(sov, lockedSOV, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage);
 	});
 
 	it("SOV and Reward (1%) withdraw should update the contract state.", async () => {
 		let percentage = 1;
-		escrowReward = await createEscrowReward(lockedSOV, sov, multisig, zero, depositLimit);
+		await loadFixture(deploymentAndInitFixture);
 		await sovAndRewardWithdraw(sov, lockedSOV, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage);
 	});
 
 	it("SOV and Reward (10%) withdraw should update the contract state.", async () => {
 		let percentage = 10;
-		escrowReward = await createEscrowReward(lockedSOV, sov, multisig, zero, depositLimit);
+		await loadFixture(deploymentAndInitFixture);
 		await sovAndRewardWithdraw(sov, lockedSOV, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage);
 	});
 
 	it("SOV and Reward (50%) withdraw should update the contract state.", async () => {
 		let percentage = 50;
-		escrowReward = await createEscrowReward(lockedSOV, sov, multisig, zero, depositLimit);
+		await loadFixture(deploymentAndInitFixture);
 		await sovAndRewardWithdraw(sov, lockedSOV, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage);
 	});
 
 	it("SOV and Reward (100%) withdraw should update the contract state.", async () => {
 		let percentage = 100;
-		escrowReward = await createEscrowReward(lockedSOV, sov, multisig, zero, depositLimit);
+		await loadFixture(deploymentAndInitFixture);
 		await sovAndRewardWithdraw(sov, lockedSOV, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage);
 	});
 
 	it("SOV and Reward (200%) withdraw should update the contract state.", async () => {
 		let percentage = 200;
-		escrowReward = await createEscrowReward(lockedSOV, sov, multisig, zero, depositLimit);
+		await loadFixture(deploymentAndInitFixture);
 		await sovAndRewardWithdraw(sov, lockedSOV, escrowReward, multisig, userOne, userTwo, userThree, userFour, userFive, percentage);
 	});
 });

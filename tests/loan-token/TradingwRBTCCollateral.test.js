@@ -1,3 +1,18 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-24
+ * Bottlenecks found at beforeEach hook, redeploying tokens,
+ *  protocol, loan ... on every test.
+ *
+ * Total time elapsed: 10.6s
+ * After optimization: 7.7s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
+
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
 const { BN } = require("@openzeppelin/test-helpers");
 
 const {
@@ -37,11 +52,7 @@ contract("LoanTokenTrading", (accounts) => {
 	let owner;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV, priceFeeds;
 
-	before(async () => {
-		[owner] = accounts;
-	});
-
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
@@ -55,22 +66,31 @@ contract("LoanTokenTrading", (accounts) => {
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
+	}
+
+	before(async () => {
+		[owner] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("test the loan token trading logic with wBTC as collateral token and the sUSD test token as underlying loan token. ", () => {
-		/*
-      tests margin trading sending loan tokens.
-			process is handled by the shared function margin_trading_sending_loan_tokens
+		/* tests margin trading sending loan tokens.
+		   process is handled by the shared function margin_trading_sending_loan_tokens
 			1. approve the transfer
 			2. send the margin trade tx
 			3. verify the trade event and balances are correct
 			4. retrieve the loan from the smart contract and make sure all values are set as expected
-    */
+		*/
+
 		it("Test margin trading sending loan tokens", async () => {
 			await margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, WRBTC, priceFeeds, false);
 			await margin_trading_sov_reward_payment(accounts, loanToken, SUSD, WRBTC, SOV, FeesEvents, sovryn);
 			await margin_trading_sov_reward_payment_with_special_rebates(accounts, loanToken, SUSD, WRBTC, SOV, FeesEvents, sovryn);
 		});
+
 		it("Test margin trading sending collateral tokens", async () => {
 			const loanSize = oneEth.mul(new BN(10000));
 			await SUSD.mint(loanToken.address, loanSize.mul(new BN(12)));
@@ -147,16 +167,16 @@ contract("LoanTokenTrading", (accounts) => {
 			);
 		});
 
-		/*
-			should completely close a position.
-			first with returning loan tokens, then with returning collateral tokens to the sender.
-			process is handled by the shared function close_complete_margin_trade
+		/* should completely close a position.
+		   first with returning loan tokens, then with returning collateral tokens to the sender.
+		   process is handled by the shared function close_complete_margin_trade
 			1. prepares the test by setting up the interest rates, lending to the pool and opening a position
 			2. travels in time, so interest needs to be paid
 			3. makes sure closing with an unauthorized caller fails (only the trader may close his position)
 			4. sends the closing tx from the trader
 			5. verifies the result
 		*/
+
 		it("Test close complete margin trade", async () => {
 			await close_complete_margin_trade(
 				sovryn,
@@ -186,16 +206,16 @@ contract("LoanTokenTrading", (accounts) => {
 			);
 		});
 
-		/*
-			should partially close a position.
-			first with returning loan tokens, then with returning collateral tokens to the sender.
-			process is handled by the shared function close_partial_margin_trade
+		/* should partially close a position.
+		   first with returning loan tokens, then with returning collateral tokens to the sender.
+		   process is handled by the shared function close_partial_margin_trade
 			1. prepares the test by setting up the interest rates, lending to the pool and opening a position
 			2. travels in time, so interest needs to be paid
 			3. makes sure closing with an unauthorized caller fails (only the trader may close his position)
 			4. sends the closing tx from the trader
 			5. verifies the result
 		*/
+
 		it("Test close partial margin trade", async () => {
 			await close_partial_margin_trade(
 				sovryn,
