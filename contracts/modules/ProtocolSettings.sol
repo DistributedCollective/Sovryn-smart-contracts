@@ -418,14 +418,13 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 					);
 
 					/// Will revert if disagreement found.
-					uint256 x =
-						IPriceFeeds(priceFeeds).checkPriceDisagreement(
-							tokens[i],
-							address(wrbtcToken),
-							tempAmount,
-							amountConvertedToWRBTC,
-							maxDisagreement
-						);
+					IPriceFeeds(priceFeeds).checkPriceDisagreement(
+						tokens[i],
+						address(wrbtcToken),
+						tempAmount,
+						amountConvertedToWRBTC,
+						maxDisagreement
+					);
 				}
 
 				totalWRBTCWithdrawn = totalWRBTCWithdrawn.add(amountConvertedToWRBTC);

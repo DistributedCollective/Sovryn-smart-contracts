@@ -1133,7 +1133,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			expect(whitelistedConverterList.length).to.equal(0);
 		});
 
-		it("should not be able to withdraw fees if converters address is not an contract address", async () => {
+		it("should not be able to withdraw fees if converters address is not a contract address", async () => {
 			await expectRevert(feeSharingProxy.withdrawFeesAMM([accounts[0]]), "Invalid Converter");
 		});
 
