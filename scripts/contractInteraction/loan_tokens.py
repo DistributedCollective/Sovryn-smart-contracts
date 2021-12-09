@@ -30,10 +30,166 @@ def getTokenPrice(loanTokenAddress):
     print("token price",price)
     return price
 
+def testTokenBurning(loanTokenAddress, testTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    testToken = Contract.from_abi("TestToken", address = testTokenAddress, abi = TestToken.abi, owner = conf.acct)
+
+    testToken.approve(loanToken,1e17) 
+    loanToken.mint(conf.acct, 1e17)
+    balance = loanToken.balanceOf(conf.acct)
+    print("balance", balance)
+    tokenPrice = loanToken.tokenPrice()
+    print("token price",tokenPrice/1e18)
+    burnAmount = int(balance / 2)
+    print("burn amount", burnAmount)
+    
+    tx = loanToken.burn(conf.acct, burnAmount)
+    print(tx.info())
+    balance = loanToken.balanceOf(conf.acct)
+    print("remaining balance", balance/1e18)
+    assert(tx.events["Burn"]["tokenAmount"] == burnAmount)
+
+def testTradeOpeningAndClosing(protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, loanTokenSent, leverage, testClose, sendValue):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    testToken = Contract.from_abi("TestToken", address = underlyingTokenAddress, abi = TestToken.abi, owner = conf.acct)
+    sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    if(sendValue == 0 and testToken.allowance(conf.acct, loanTokenAddress) < loanTokenSent):
+        testToken.approve(loanToken, loanTokenSent)
+    print('going to trade')
+    tx = loanToken.marginTrade(
+        "0",  # loanId  (0 for new loans)
+        leverage,  # leverageAmount, 18 decimals
+        loanTokenSent,  # loanTokenSent
+        0,  # no collateral token sent
+        collateralTokenAddress,  # collateralTokenAddress
+        conf.acct,  # trader,
+        0, # slippage
+        b'',  # loanDataBytes (only required with ether)
+        {'value': sendValue, 'allow_revert': True}
+    )
+    tx.info()
+    loanId = tx.events['Trade']['loanId']
+    collateral = tx.events['Trade']['positionSize']
+    print("closing loan with id", loanId)
+    print("position size is ", collateral)
+    loan = sovryn.getLoan(loanId)
+    print("found the loan in storage with position size", loan['collateral'])
+    print(loan)
+    if(testClose):
+        tx = sovryn.closeWithSwap(loanId, conf.acct, collateral, True, b'')
+        tx.info()
+
+    return tx
+
+
+def testTradeOpeningAndClosingWithCollateral(protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, collateralTokenSent, leverage, testClose, sendValue):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    testToken = Contract.from_abi("TestToken", address = collateralTokenAddress, abi = TestToken.abi, owner = conf.acct)
+    sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    if(sendValue == 0 and testToken.allowance(conf.acct, loanTokenAddress) < collateralTokenSent):
+       testToken.approve(loanToken, collateralTokenSent)
+    print('going to trade')
+    tx = loanToken.marginTrade(
+        "0",  # loanId  (0 for new loans)
+        leverage,  # leverageAmount, 18 decimals
+        0,  # loanTokenSent
+        collateralTokenSent,  # no collateral token sent
+        collateralTokenAddress,  # collateralTokenAddress
+        conf.acct,  # trader,
+        0, # slippage
+        b'',  # loanDataBytes (only required with ether)
+        {'value': sendValue, "allow_revert": True}
+    )
+    tx.info()
+    loanId = tx.events['Trade']['loanId']
+    collateral = tx.events['Trade']['positionSize']
+    print("closing loan with id", loanId)
+    print("position size is ", collateral)
+    loan = sovryn.getLoan(loanId)
+    print("found the loan in storage with position size", loan['collateral'])
+    print(loan)
+    if(testClose):
+        tx = sovryn.closeWithSwap(loanId, conf.acct, collateral, True, b'')
+        tx.info()
+
+
+
+def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, amount):
+    #read contract abis
+    sovryn = Contract.from_abi("sovryn", address=protocolAddress, abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    testToken = Contract.from_abi("TestToken", address = collateralTokenAddress, abi = TestToken.abi, owner = conf.acct)
+    
+    # determine borrowing parameter
+    withdrawAmount = amount #i want to borrow 10 USD
+    # compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan 
+    collateralTokenSent = 2* sovryn.getRequiredCollateral(underlyingTokenAddress,collateralTokenAddress,withdrawAmount, 50e18, True)
+    print("collateral needed", collateralTokenSent/1e18)
+    durationInSeconds = 60*60*24*10 #10 days
+    
+    #check requirements
+    availableSupply = loanToken.marketLiquidity()
+    print('available supply:', availableSupply/1e18)
+    assert(availableSupply >= withdrawAmount)
+    interestRate = loanToken.nextBorrowInterestRate(withdrawAmount)
+    print('interest rate (needs to be > 0):', interestRate)
+    assert(interestRate > 0)
+    
+    #approve the transfer of the collateral if needed
+    if(testToken.address.lower() != conf.contracts['WRBTC'].lower() and testToken.allowance(conf.acct, loanToken.address) < collateralTokenSent):
+        testToken.approve(loanToken.address, collateralTokenSent)
+    
+    # borrow some funds
+    tx = loanToken.borrow(
+        "0",                            # bytes32 loanId
+        withdrawAmount,                 # uint256 withdrawAmount
+        durationInSeconds,              # uint256 initialLoanDuration
+        collateralTokenSent,            # uint256 collateralTokenSent
+        testToken.address,                   # address collateralTokenAddress
+        conf.acct,                    # address borrower
+        conf.acct,                    # address receiver
+        b'' ,                            # bytes memory loanDataBytes
+        {'value': 0, 'allow_revert': True}#collateralTokenSent
+    )
+    
+    #assert the trade was processed as expected
+    print(tx.info())
+
+def borrowRBTCWithMultisigUsingSOV(withdrawAmount, receiver):
+    print("amount: ", withdrawAmount)
+
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iRBTC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    sovToken = Contract.from_abi("SOV", address = conf.contracts['SOV'], abi = TestToken.abi, owner = conf.acct)
+
+    durationInSeconds = 28*24*60*60 # 28 days
+    collateralTokenSent = loanToken.getDepositAmountForBorrow(withdrawAmount, durationInSeconds, conf.contracts['SOV'])
+    print("collateral needed", collateralTokenSent/1e18)
+    
+    #approve the transfer of the collateral if needed
+    if(sovToken.allowance(conf.contracts['multisig'], loanToken.address) < collateralTokenSent):
+        data = sovToken.approve.encode_input(loanToken.address, collateralTokenSent)
+        print('approving the transfer')
+        sendWithMultisig(conf.contracts['multisig'], sovToken.address, data, conf.acct)
+    
+    # borrow some funds
+    data = loanToken.borrow.encode_input(
+        "0",                            # bytes32 loanId
+        withdrawAmount,                 # uint256 withdrawAmount
+        durationInSeconds,              # uint256 initialLoanDuration
+        collateralTokenSent,            # uint256 collateralTokenSent
+        sovToken.address,               # address collateralTokenAddress
+        conf.contracts['multisig'],     # address borrower
+        receiver,                       # address receiver
+        b''
+    )
+    print('borrowing and sending tokens to ', receiver)
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+
 '''
 sets a collateral token address as collateral for borrowing
 '''
-def setupTorqueLoanParams(loanTokenAddress, underlyingTokenAddress, collateralTokenAddress):
+def setupTorqueLoanParams(loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, minInitialMargin):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     params = []
     setup = [
@@ -42,15 +198,14 @@ def setupTorqueLoanParams(loanTokenAddress, underlyingTokenAddress, collateralTo
         str(conf.acct), ## owner
         underlyingTokenAddress, ## loanToken
         collateralTokenAddress, ## collateralToken. 
-        Wei("50 ether"), ## minInitialMargin
+        minInitialMargin, ## minInitialMargin
         Wei("15 ether"), ## maintenanceMargin
         0 ## fixedLoanTerm 
     ]
     params.append(setup)
-    tx = loanToken.setupLoanParams(params, True)
-    assert('LoanParamsSetup' in tx.events)
-    assert('LoanParamsIdSetup' in tx.events)
-    print(tx.info())
+    dataT = loanToken.setupLoanParams.encode_input(params, True)
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, dataT, conf.acct)
+
  
 '''
 sets a collateral token address as collateral for margin trading
@@ -62,7 +217,7 @@ def setupMarginLoanParams(collateralTokenAddress, loanTokenAddress):
     setup = [
         b"0x0", ## id
         False, ## active
-        conf.acct, ## owner
+        conf.contracts['multisig'], ## owner
         "0x0000000000000000000000000000000000000000", ## loanToken -> will be overwritten
         collateralTokenAddress, ## collateralToken.
         Wei("20 ether"), ## minInitialMargin
@@ -70,8 +225,9 @@ def setupMarginLoanParams(collateralTokenAddress, loanTokenAddress):
         0 ## fixedLoanTerm -> will be overwritten
     ]
     params.append(setup)
-    tx = loanToken.setupLoanParams(params, False)
-    print(tx.info())
+    data = loanToken.setupLoanParams.encode_input(params, False)
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
 
 def setupLoanParamsForCollaterals(loanTokenAddress, collateralAddresses):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
@@ -126,17 +282,154 @@ def readLendingBalanceForUser(loanTokenAddress, userAddress):
     bal = loanToken.assetBalanceOf(userAddress)
     print('underlying token balance', bal)
 
+def deployNewLoanTokenLogicFirstTime():
+    # This function only be called one time (right after the changes of the refactoring LoanTokenLogic https://github.com/DistributedCollective/Sovryn-tasks-discussions/discussions/7)
+    # Unless we want to redeploy the loan token logic proxy
+
+    # ============================= 1. Deploy LoanTokenLogicProxy for each LoanToken (iUSDT, iDOC, iBPro, iXUSD, iRBTC) =====================================
+    # iUSDTProxy
+    loanTokenLogicProxyUSDT = conf.acct.deploy(LoanTokenLogicProxy)
+    print("Loan Token Logic Proxy USDT deployed at: ", loanTokenLogicProxyUSDT.address)
+
+    # iDOCProxy
+    loanTokenLogicProxyDOC = conf.acct.deploy(LoanTokenLogicProxy)
+    print("Loan Token Logic Proxy DOC deployed at: ", loanTokenLogicProxyDOC.address)
+
+    # iBProProxy
+    loanTokenLogicProxyBPro = conf.acct.deploy(LoanTokenLogicProxy)
+    print("Loan Token Logic Proxy BPro deployed at: ", loanTokenLogicProxyBPro.address)
+
+    # iXUSDProxy
+    loanTokenLogicProxyXUSD = conf.acct.deploy(LoanTokenLogicProxy)
+    print("Loan Token Logic Proxy XUSD deployed at: ", loanTokenLogicProxyXUSD.address)
+
+    # iRBTCProxy
+    loanTokenLogicProxyRBTC = conf.acct.deploy(LoanTokenLogicProxy)
+    print("Loan Token Logic Proxy RBTC deployed at: ", loanTokenLogicProxyRBTC.address)
+
+    # ============================== 2. Deploy the beacons (2 beacons, 1 for LM & 1 for wRBTC) =======================================
+    loanTokenLogicBeaconLM = conf.acct.deploy(LoanTokenLogicBeacon)
+    print("LoanTokenLogicBeaconLM is deployed at: ", loanTokenLogicBeaconLM.address)
+
+    loanTokenLogicBeaconWrbtc = conf.acct.deploy(LoanTokenLogicBeacon)
+    print("LoanTokenLogicBeaconWrbtc is deployed at: ", loanTokenLogicBeaconWrbtc.address)
+
+    # ============================== 3. Deploy the LoanTokenLogicLM, Register all of the module to the BeaconLM ============================
+    print("Deploying LoanTokenlogicLM")
+    logicContractLM = conf.acct.deploy(LoanTokenLogicLM)
+    print("new LoanTokenLogicLM contract deployed at: ", logicContractLM.address)
+
+    print("Registering module to LoanTokenLogicBeaconLM")
+    loanTokenLogicBeaconLM.registerLoanTokenModule(logicContractLM.address)
+
+    print("Deploy Loan Token Settings Lower Admin Module")
+    loanTokenSettingsLowerAdmin = conf.acct.deploy(LoanTokenSettingsLowerAdmin)
+    print("LoanTokenSettingsLowerAdmin for BeaconLM module deployed at: ", loanTokenSettingsLowerAdmin.address)
+
+    print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconLM")
+    loanTokenLogicBeaconLM.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address)
+
+    # ============================== 4. Deploy the LoanTokenLogicWrbtc, Register all of the module to the BeaconWrbtc ==============================
+    print("Deploying LoanTokenlogicWrbtc")
+    logicContractWrbtc = conf.acct.deploy(LoanTokenLogicWrbtc)
+    print("new LoanTokenLogicLM contract deployed at: ", logicContractWrbtc.address)
+
+    print("Registering module to LoanTokenLogicBeaconWrbtc")
+    logicContractWrbtc.registerLoanTokenModule(logicContractWrbtc.address)
+
+    print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconWrbtc")
+    logicContractWrbtc.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address)
+
+    # ============================== 5. Set each LoanTokenLogicProxy with the beacon accordingly (iUSDTProxy, iDOCProxy, iBProProxy, iXUSDProxy) with the BeaconLM and (iRBTC) with the BeaconWrbtc ==============================
+    # iUSDT
+    setBeaconLoanTokenLogicProxy(conf.contracts['iUSDT'], loanTokenLogicBeaconLM.address)
+
+    # iDOCProxy
+    setBeaconLoanTokenLogicProxy(conf.contracts['iDOC'], loanTokenLogicBeaconLM.address)
+
+    # iBPro
+    setBeaconLoanTokenLogicProxy(conf.contracts['iBPro'], loanTokenLogicBeaconLM.address)
+
+    # iXUSD
+    setBeaconLoanTokenLogicProxy(conf.contracts['iXUSD'], loanTokenLogicBeaconLM.address)
+
+    # iRBTC
+    setBeaconLoanTokenLogicProxy(conf.contracts['iRBTC'], loanTokenLogicBeaconWrbtc.address)
+
+    # ============================== 6. Set target of each LoanToken to its proxy accordingly (iUSDT -> iUSDTPRoxy) (iDOC -> iDOC) (iBPro -> iBPro) (iXUSD -> iXUSD) (iRBTC -> iRBTCProxy) ==============================
+    # iUSDT
+    replaceLoanTokenLogic(conf.contracts['iUSDT'], loanTokenLogicProxyUSDT.address)
+
+    # iDOC
+    replaceLoanTokenLogic(conf.contracts['iDOC'], loanTokenLogicProxyDOC.address)
+
+    # iBPro
+    replaceLoanTokenLogic(conf.contracts['iBPro'], loanTokenLogicProxyBPro.address)
+
+    # iXUSD
+    replaceLoanTokenLogic(conf.contracts['iXUSD'], loanTokenLogicProxyXUSD.address)
+
+    # iRBTC
+    replaceLoanTokenLogic(conf.contracts['iRBTC'], loanTokenLogicProxyRBTC.address)
+
+    # ============================== 7. Transfer the ownership of LoanTokenLogicBeaconLM & LoanTokenLogicBeaconWrbtc to the multisig ==============================
+    print("LoanTokenLogicLM previous owner: ", loanTokenLogicBeaconLM.owner())
+    print("Transferring LoanTokenLogicBeaconLM to multisig...")
+    loanTokenLogicBeaconLM.transferOwnership(conf.contracts['multisig'])
+    print("LoanTokenLogicLM new owner: ", loanTokenLogicBeaconLM.owner())
+
+    print("LoanTokenLogicWrbtc previous owner: ", loanTokenLogicBeaconWrbtc.owner())
+    print("Transferring LoanTokenLogicWrbtc to multisig...")
+    loanTokenLogicBeaconWrbtc.transferOwnership(conf.contracts['multisig'])
+    print("LoanTokenLogicWrbtc new owner: ", loanTokenLogicBeaconWrbtc.owner())
+
+def setBeaconLoanTokenLogicProxy(loanTokenAddress, loanTokenLogicBeaconAddress):
+    loanTokenWithProxyABI = Contract.from_abi("loanTokenWithProxyABI", address=loanTokenAddress, abi=LoanTokenLogicProxy.abi, owner=conf.acct)
+    data = loanTokenWithProxyABI.initializeLoanTokenProxy.encode_input(loanTokenLogicBeaconAddress)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenWithProxyABI.address, data, conf.acct)
+
 def replaceLoanTokenLogicOnAllContracts():
-    print("replacing loan token logic")
-    logicContract = conf.acct.deploy(LoanTokenLogicLM)
-    print('new LoanTokenLogicStandard contract for iDoC:' + logicContract.address)
-    replaceLoanTokenLogic(conf.contracts['iDOC'],logicContract.address)
-    replaceLoanTokenLogic(conf.contracts['iUSDT'],logicContract.address)
-    replaceLoanTokenLogic(conf.contracts['iBPro'],logicContract.address)
-    replaceLoanTokenLogic(conf.contracts['iXUSD'],logicContract.address)
-    logicContract = conf.acct.deploy(LoanTokenLogicWrbtc)
-    print('new LoanTokenLogicStandard contract for iWRBTC:' + logicContract.address)
-    replaceLoanTokenLogic(conf.contracts['iRBTC'], logicContract.address)
+    # This function will do:
+    # 1. Deploy the LoanTokenLogicLM
+    # 2. Re-register the module/function signature inside LoanTokenLogicLM to the LoanTokenLogicBeaconLM
+    # 3. Deploy the LoanTokenLogicWrbtc
+    # 4. Re-register the module/function signature inside LoanTokenLogicWrbtc to the LoanTokenLogicBeaconWrbtc
+
+
+    # ===================================== LM =====================================
+    print("Deploying LoanTokenlogicLM")
+    logicContractLM = conf.acct.deploy(LoanTokenLogicLM)
+    print("new LoanTokenLogicLM contract deployed at: ", logicContractLM.address)
+
+    print("Registering function signature to the LoanTokenLogicBeaconLM")
+    loanTokenLogicBeaconLM = Contract.from_abi("loanTokenLogicBeaconLM", address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    data = loanTokenLogicBeaconLM.registerLoanTokenModule.encode_input(logicContractLM.address)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconLM.address, data, conf.acct)
+
+    print("Deploy Loan Token Settings Lower Admin Module")
+    loanTokenSettingsLowerAdmin = conf.acct.deploy(LoanTokenSettingsLowerAdmin)
+    print("LoanTokenSettingsLowerAdmin for BeaconLM module deployed at: ", loanTokenSettingsLowerAdmin.address)
+
+    print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconLM")
+    data = loanTokenLogicBeaconLM.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconLM.address, data, conf.acct)
+
+    # ===================================== WRBTC =====================================
+
+    print("Deploying LoanTokenlogicWrbtc")
+    logicContractWrbtc = conf.acct.deploy(LoanTokenLogicWrbtc)
+    print("new LoanTokenLogicLM contract deployed at: ", logicContractWrbtc.address)
+
+    print("Registering function signature to the LoanTokenLogicBeaconLM")
+    loanTokenLogicBeaconWrbtc = Contract.from_abi("loanTokenLogicBeaconWrbtc", address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    data = loanTokenLogicBeaconWrbtc.registerLoanTokenModule.encode_input(logicContractWrbtc.address)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWrbtc.address, data, conf.acct)
+
+    # Can use the same Loan Protocol Settings with the LoanTokenLogicLM
+    print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconWrbtc")
+    data = logicContractWrbtc.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
+    sendWithMultisig(conf.contracts['multisig'], logicContractWrbtc.address, data, conf.acct)
+    
 
 def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=conf.acct)
@@ -202,3 +495,199 @@ def readLiquidity():
     tokenContract = Contract.from_abi("Token", address=conf.contracts['WRBTC'], abi=TestToken.abi, owner=conf.acct)
     bal = tokenContract.balanceOf(conf.contracts['ConverterUSDT'])
     print("supply of rBTC on swap", bal/1e18)
+
+def testSwapsExternal(underlyingTokenAddress, collateralTokenAddress, amount):
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    underlyingToken = Contract.from_abi("TestToken", address=underlyingTokenAddress, abi=ERC20.abi, owner=conf.acct)
+
+    receiver = conf.acct
+    tx = underlyingToken.approve(conf.contracts['sovrynProtocol'], amount)
+    tx.info()
+
+    tx = sovryn.swapExternal(
+        underlyingTokenAddress,
+        collateralTokenAddress,
+        receiver,
+        receiver,
+        amount,
+        0,
+        0,
+        b'',
+        {"value": 0, "allow_revert": True})
+    tx.info()
+
+# Notes: This function will do:
+# 1. tradeOpenAndClosingWithoutCollateral (using amountUnderlying that is sent in the arguments)
+# 2. lendToPool (using amountUnderlying that is sent in the arguments)
+# 3. removeFromPool (50% of the lending)
+# 4. tradeOpenAndClosingWithCollateral (using amountCollateral that is sent in the arguments)
+# 5. Test borrow (using amountCollateral that is sent in the arguments)
+# 6. SwapsExternal (using amountUnderlying that is sent in the arguments)
+#
+# WARN:
+# 1. make sure you have 3 times balance of underlyingTokenAddress
+# 2. make sure you have 2 times balance of amountCollateral
+def wrappedIntegrationTest(loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, amountUnderlying, amountCollateral):
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+
+    underlyingToken = Contract.from_abi("TestToken", address=underlyingTokenAddress, abi=ERC20.abi, owner=conf.acct)
+    collateralToken = Contract.from_abi("TestToken", address=collateralTokenAddress, abi=ERC20.abi, owner=conf.acct)
+    
+    prevUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    prevCollateralBalance = collateralToken.balanceOf(conf.acct)
+
+    # ------------------------------------------------ Test Trade Open & Close without collateral ------------------------------------------------------
+    print("Test Trade open and closing without collateral")
+    tx = testTradeOpeningAndClosing(sovryn.address, loanToken.address, underlyingTokenAddress, collateralTokenAddress, amountUnderlying, 2e18, True,0)
+
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
+
+    transferEvents = tx.events['Transfer']
+    errorMsg = []
+    msg = ''
+
+    # Verify
+    if prevUnderlyingBalance - updatedUnderlyingBalance != amountUnderlying:
+        msg = 'FAILED / INVALID STATE (TRADE OPENING & CLOSING WITHOUT COLLATERAL) : Updated underyling balance: {0} is not matched with the amount that was traded: {1}'.format(prevUnderlyingBalance - updatedUnderlyingBalance, amountUnderlying)
+        errorMsg.append(msg)
+        print(msg)
+    
+    if prevCollateralBalance + transferEvents[len(transferEvents)-1]['value'] != updatedCollateralBalance:
+        msg = 'FAILED / INVALID STATE (TRADE OPENING & CLOSING WITHOUT COLLATERAL) : Updated collateral balance: {0} is not matched with the amount that was closed with swap: {1}'.format(prevCollateralBalance + transferEvents[len(transferEvents)-1]['value'], updatedCollateralBalance)
+        errorMsg.append(msg)
+        print(msg)
+
+    prevUnderlyingBalance = updatedUnderlyingBalance
+    prevCollateralBalance = updatedCollateralBalance
+    
+
+    # ------------------------------------------------ Test Lend to Pool -------------------------------------------------------------------------------
+    prevLoanTokenBalance = loanToken.balanceOf(conf.acct)
+
+    tx = lendToPool(loanToken.address, underlyingTokenAddress, amountUnderlying)
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+    print("Loantoken Balance: ", prevLoanTokenBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    updatedLoanTokenBalance = loanToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
+    print("Loantoken Balance: ", updatedLoanTokenBalance)
+
+    transferEvents = tx.events['Transfer']
+
+    # Verify
+    if prevUnderlyingBalance - updatedUnderlyingBalance != amountUnderlying:
+        msg = 'FAILED / INVALID STATE (LEND TO POOL): Updated underyling balance: {0} is not matched with the amount that was lent: {1}'.format(prevUnderlyingBalance - updatedUnderlyingBalance, amountUnderlying)
+        errorMsg.append(msg)
+        print(msg)
+
+    if prevLoanTokenBalance + transferEvents[len(transferEvents)-1]['value'] != updatedLoanTokenBalance:
+        msg = 'FAILED / INVALID STATE (LEND TO POOL) : Updated loanToken balance: {0} is not matched with the amount that was transferred from lending pool: {1}'.format(prevLoanTokenBalance + transferEvents[len(transferEvents)-1]['value'], updatedLoanTokenBalance)
+        errorMsg.append(msg)
+        print(msg)
+
+
+    prevUnderlyingBalance = updatedUnderlyingBalance
+    prevCollateralBalance = updatedCollateralBalance
+    prevLoanTokenBalance = updatedLoanTokenBalance
+
+    # ------------------------------------------------ Test Remove from Pool -------------------------------------------------------------------------------
+    removeFromPool(loanToken.address, 0.5*(amountUnderlying))
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+    print("LoanToken Balance: ", prevLoanTokenBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    updatedLoanTokenBalance = loanToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
+    print("LoanToken Balance: ", updatedLoanTokenBalance)
+
+    # Verify
+    if prevLoanTokenBalance - 0.5*(amountUnderlying) != updatedLoanTokenBalance:
+        msg = 'FAILED / INVALID STATE (REMOVE FROM POOL): Updated loanToken balance: {0} is not matched with the amount that was taken from lending pool: {1}'.format(prevLoanTokenBalance - 0.5*(amountUnderlying), updatedLoanTokenBalance)
+        errorMsg.append(msg)
+        print(msg)
+
+    prevUnderlyingBalance = updatedUnderlyingBalance
+    prevCollateralBalance = updatedCollateralBalance
+
+    # ------------------------------------------------ Test Trade Open & Close with collateral -------------------------------------------------------------------------------
+    testTradeOpeningAndClosingWithCollateral(sovryn.address, loanToken.address, underlyingTokenAddress, collateralTokenAddress, amountCollateral, 2e18, True, 0)
+
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
+
+
+    prevUnderlyingBalance = updatedUnderlyingBalance
+    prevCollateralBalance = updatedCollateralBalance
+
+
+    # ------------------------------------------------ Test Borrow -------------------------------------------------------------------------------
+    testBorrow(sovryn.address, loanToken.address, underlyingTokenAddress, collateralTokenAddress, amountCollateral)
+
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
+
+    # Verify
+    if updatedUnderlyingBalance - prevUnderlyingBalance != amountUnderlying:
+        msg = 'FAILED / INVALID STATE (BORROWING): Updated underyling balance {0} is not matched with the amount that was borrowed: {1}'.format(updatedUnderlyingBalance - prevUnderlyingBalance, amountUnderlying)
+        errorMsg.append(msg)
+        print(msg)
+
+    prevUnderlyingBalance = updatedUnderlyingBalance
+    prevCollateralBalance = updatedCollateralBalance
+
+
+    # ------------------------------------------------ Test External Swap -------------------------------------------------------------------------------
+    testSwapsExternal(underlyingTokenAddress, collateralTokenAddress, amountUnderlying)
+
+    print("=============================== PREVIOUS BALANCE ====================================")
+    print("Underlying balance: ", prevUnderlyingBalance)
+    print("Collateral balance: ", prevCollateralBalance)
+
+    print("=============================== UPDATED BALANCE =====================================")
+    updatedUnderlyingBalance = underlyingToken.balanceOf(conf.acct)
+    updatedCollateralBalance = collateralToken.balanceOf(conf.acct)
+    print("Underlying balance: ", updatedUnderlyingBalance)
+    print("Collateral balance: ", updatedCollateralBalance)
+
+
+
+    print(errorMsg)
+
+def getDepositAmountForBorrow(loanTokenAddress, borrowAmount, initialLoanDuration, collateralTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    result = loanToken.getDepositAmountForBorrow(borrowAmount, initialLoanDuration, collateralTokenAddress)
+    print(result)

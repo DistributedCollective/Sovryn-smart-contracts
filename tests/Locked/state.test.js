@@ -1,6 +1,16 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-27
+ * Some small bottlenecks found on test redeploying LockedSOV and VestingRegistry contracts.
+ *   Besides there are several mints and approves that cannot be moved into
+ *   the initialization process because are concerning different users on each test.
+ *
+ * Total time elapsed: 5.8s
+ *
+ */
+
 const SOV = artifacts.require("TestToken");
+const TestWrbtc = artifacts.require("TestWrbtc");
 const LockedSOV = artifacts.require("LockedSOV");
-const StakingLogic = artifacts.require("Staking");
+const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
@@ -140,6 +150,7 @@ contract("Locked SOV (State)", (accounts) => {
 
 		// Creating the instance of SOV Token.
 		sov = await SOV.new("Sovryn", "SOV", 18, zero);
+		wrbtc = await TestWrbtc.new();
 
 		// Creating the Staking Instance.
 		stakingLogic = await StakingLogic.new(sov.address);
@@ -236,6 +247,7 @@ contract("Locked SOV (State)", (accounts) => {
 	});
 
 	it("Updating the vestingRegistry, cliff and/or duration should correctly reflect in contract.", async () => {
+		/// @dev Deploying a new contract is needed to check the update is working Ok.
 		let newVestingRegistry = await VestingRegistry.new(
 			vestingFactory.address,
 			sov.address,

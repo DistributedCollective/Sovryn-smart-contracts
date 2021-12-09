@@ -142,6 +142,8 @@ contract ISovryn is
 
 	function getTotalPrincipal(address lender, address loanToken) external view returns (uint256);
 
+	function minInitialMargin(bytes32 loanParamsId) external view returns (uint256);
+
 	////// Loan Openings //////
 
 	function borrowOrTradeFromPool(
@@ -293,6 +295,7 @@ contract ISovryn is
 		bytes32 loanId;
 		address loanToken;
 		address collateralToken;
+		address borrower;
 		uint256 principal;
 		uint256 collateral;
 		uint256 interestOwedPerDay;
@@ -305,6 +308,7 @@ contract ISovryn is
 		uint256 endTimestamp;
 		uint256 maxLiquidatable;
 		uint256 maxSeizable;
+		uint256 creationTimestamp;
 	}
 
 	function getUserLoans(
@@ -412,4 +416,6 @@ contract ISovryn is
 	function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external;
 
 	function getTradingRebateRewardsBasisPoint() external view returns (uint256);
+
+	function getDedicatedSOVRebate() external view returns (uint256);
 }

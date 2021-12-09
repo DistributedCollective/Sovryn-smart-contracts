@@ -1,9 +1,18 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-27
+ * Small bottlenecks found on beforeEach hook deploying MultiSigWallet contract.
+ *
+ * Total time elapsed: 5.0s
+ * After optimization: 4.7s
+ *
+ * Notes: Applied fixture for fast init setup on every test.
+ */
+
 const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
-const { encodeParameters, increaseTime, blockNumber, mineBlock } = require("../Utils/Ethereum");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 
 const { ZERO_ADDRESS } = constants;
-const EMPTY_ADDRESS = "";
 const wei = web3.utils.toWei;
 
 const MultiSigWallet = artifacts.require("MultiSigWallet");
@@ -13,12 +22,16 @@ contract("MultiSigWallet:", (accounts) => {
 	let multiSig;
 	let defaultData;
 
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		multiSig = await MultiSigWallet.new([account1, account2, account3], 2);
+	}
+
 	before(async () => {
 		[root, account1, account2, account3, account4, account5, ...accounts] = accounts;
 	});
 
 	beforeEach(async () => {
-		multiSig = await MultiSigWallet.new([account1, account2, account3], 2);
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("fallback", () => {
@@ -37,13 +50,13 @@ contract("MultiSigWallet:", (accounts) => {
 		});
 
 		it("Should allow creation of new multisig", async () => {
-			multiSig = await MultiSigWallet.new([account1, account2, account3], 2);
-			const ownerCount = await multiSig.getOwners();
+			let newMultiSig = await MultiSigWallet.new([account1, account2, account3], 2);
+			const ownerCount = await newMultiSig.getOwners();
 			expect(ownerCount.length).to.be.equal(3);
 			expect(ownerCount[0]).to.be.equal(account1);
 			expect(ownerCount[1]).to.be.equal(account2);
 			expect(ownerCount[2]).to.be.equal(account3);
-			expect(await multiSig.required()).to.be.bignumber.equal(new BN(2));
+			expect(await newMultiSig.required()).to.be.bignumber.equal(new BN(2));
 		});
 	});
 
@@ -72,13 +85,49 @@ contract("MultiSigWallet:", (accounts) => {
 		it("Should allow to create a new owner for Multsig", async () => {
 			let multiSigInterface = new web3.eth.Contract(multiSig.abi, ZERO_ADDRESS);
 			let data = multiSigInterface.methods.addOwner(account4).encodeABI();
-			//Submit Transaction
+			// Submit Transaction
 			await multiSig.submitTransaction(multiSig.address, 0, data, { from: account1 });
-			//Confirm Transaction
+			// Confirm Transaction
 			await multiSig.confirmTransaction(0, { from: account2 });
 			const ownerCount = await multiSig.getOwners();
 			expect(ownerCount.length).to.be.equal(4);
 			expect(ownerCount[3]).to.be.equal(account4);
+		});
+	});
+
+	describe("multiSig coverage", () => {
+		/// @dev Test coverage for transactionExists modifier
+		it("should revert when calling confirmTransaction for an inexistent id", async () => {
+			let multiSigInterface = new web3.eth.Contract(multiSig.abi, ZERO_ADDRESS);
+			let data = multiSigInterface.methods.addOwner(account4).encodeABI();
+			// Submit Transaction
+			await multiSig.submitTransaction(multiSig.address, 0, data, { from: account1 });
+
+			// Try to confirm Transaction w/ wrong id
+			await expectRevert.unspecified(multiSig.confirmTransaction(1, { from: account2 }));
+		});
+
+		/// @dev Test coverage for notConfirmed modifier
+		it("should revert when calling confirmTransaction for a tx already confirmed (same user)", async () => {
+			let multiSigInterface = new web3.eth.Contract(multiSig.abi, ZERO_ADDRESS);
+			let data = multiSigInterface.methods.addOwner(account4).encodeABI();
+			// Submit Transaction
+			await multiSig.submitTransaction(multiSig.address, 0, data, { from: account1 });
+
+			// Confirm Transaction
+			await multiSig.confirmTransaction(0, { from: account2 });
+			const ownerCount = await multiSig.getOwners();
+			expect(ownerCount.length).to.be.equal(4);
+			expect(ownerCount[3]).to.be.equal(account4);
+
+			// Try to confirm again the same transaction by the same user
+			await expectRevert.unspecified(multiSig.confirmTransaction(0, { from: account2 }));
+		});
+
+		/// @dev Test coverage for fallback w/o value transfer
+		it("should ignore a call to fallback function w/ value 0", async () => {
+			// It doesn't revert, just it does nothing
+			await multiSig.sendTransaction({});
 		});
 	});
 
@@ -97,14 +146,14 @@ contract("MultiSigWallet:", (accounts) => {
 		});
 
 		it("Should remove a owner and change requirement for Multsig", async () => {
-			multiSig = await MultiSigWallet.new([account1, account2], 2);
-			let multiSigInterface = new web3.eth.Contract(multiSig.abi, ZERO_ADDRESS);
+			let newMultiSig = await MultiSigWallet.new([account1, account2], 2);
+			let multiSigInterface = new web3.eth.Contract(newMultiSig.abi, ZERO_ADDRESS);
 			let data = multiSigInterface.methods.removeOwner(account2).encodeABI();
-			//Submit Transaction
-			await multiSig.submitTransaction(multiSig.address, 0, data, { from: account1 });
-			//Confirm Transaction
-			let tx = await multiSig.confirmTransaction(0, { from: account2 });
-			const ownerCount = await multiSig.getOwners();
+			// Submit Transaction
+			await newMultiSig.submitTransaction(newMultiSig.address, 0, data, { from: account1 });
+			// Confirm Transaction
+			let tx = await newMultiSig.confirmTransaction(0, { from: account2 });
+			const ownerCount = await newMultiSig.getOwners();
 			expect(ownerCount.length).to.be.equal(1);
 			expectEvent(tx, "OwnerRemoval");
 			expectEvent(tx, "RequirementChange");
@@ -113,9 +162,9 @@ contract("MultiSigWallet:", (accounts) => {
 		it("Should allow to remove a owner for Multsig", async () => {
 			let multiSigInterface = new web3.eth.Contract(multiSig.abi, ZERO_ADDRESS);
 			let data = multiSigInterface.methods.removeOwner(account2).encodeABI();
-			//Submit Transaction
+			// Submit Transaction
 			await multiSig.submitTransaction(multiSig.address, 0, data, { from: account1 });
-			//Confirm Transaction
+			// Confirm Transaction
 			let tx = await multiSig.confirmTransaction(0, { from: account2 });
 			const ownerCount = await multiSig.getOwners();
 			expect(ownerCount.length).to.be.equal(2);
@@ -140,9 +189,9 @@ contract("MultiSigWallet:", (accounts) => {
 		it("Should allow to replacement of a owner for Multsig", async () => {
 			let multiSigInterface = new web3.eth.Contract(multiSig.abi, ZERO_ADDRESS);
 			let data = multiSigInterface.methods.replaceOwner(account3, account5).encodeABI();
-			//Submit Transaction
+			// Submit Transaction
 			await multiSig.submitTransaction(multiSig.address, 0, data, { from: account1 });
-			//Confirm Transaction
+			// Confirm Transaction
 			let tx = await multiSig.confirmTransaction(0, { from: account2 });
 			const ownerCount = await multiSig.getOwners();
 			expect(ownerCount.length).to.be.equal(3);

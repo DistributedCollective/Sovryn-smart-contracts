@@ -30,14 +30,3 @@ def main():
 
     #call the function you want here
     
-    
-    # Can use  & uncomment this function after deployment related to the core function (swap, trading, lending, borrowing, etc)
-    # This function will print will revert if any transaction failed OR
-    # Will print any invalid balance / state after each test transaction
-    # wrappedIntegrationTest(
-    #   conf.contracts['iUSDT'], # loan token address
-    #   conf.contracts["USDT"], # underlying token address
-    #   conf.contracts['DoC'], # collateral token address
-    #   1e18, # total underlying token that will be used for each test
-    #   1e18 # total collateral token that will be used for each test
-    # )

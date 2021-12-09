@@ -10,7 +10,11 @@ import "../core/State.sol";
 import "../events/ProtocolSettingsEvents.sol";
 import "../openzeppelin/SafeERC20.sol";
 import "../mixins/ProtocolTokenUser.sol";
+import "../modules/interfaces/ProtocolSwapExternalInterface.sol";
 import "../mixins/ModuleCommonFunctionalities.sol";
+import "../swaps/ISwapsImpl.sol";
+import "../governance/IFeeSharingProxy.sol";
+import "../feeds/IPriceFeeds.sol";
 
 /**
  * @title Protocol Settings contract.
@@ -86,6 +90,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		_setTarget(this.getSwapExternalFeePercent.selector, target);
 		_setTarget(this.setTradingRebateRewardsBasisPoint.selector, target);
 		_setTarget(this.getTradingRebateRewardsBasisPoint.selector, target);
+		_setTarget(this.getDedicatedSOVRebate.selector, target);
 		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "ProtocolSettings");
 	}
 
@@ -355,43 +360,83 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 	/**
 	 * @notice The feesController calls this function to withdraw fees
 	 * from three sources: lending, trading and borrowing.
+	 * The fees (except SOV) will be converted to wRBTC.
+	 * For SOV, it will be deposited directly to feeSharingProxy from the protocol.
 	 *
-	 * @param token The address of the token instance.
+	 * @param tokens The array of address of the token instance.
 	 * @param receiver The address of the withdrawal recipient.
 	 *
-	 * @return The withdrawn amount.
+	 * @return The withdrawn total amount in wRBTC
 	 * */
-	function withdrawFees(address token, address receiver) external whenNotPaused returns (uint256) {
+	function withdrawFees(address[] calldata tokens, address receiver) external whenNotPaused returns (uint256 totalWRBTCWithdrawn) {
 		require(msg.sender == feesController, "unauthorized");
 
-		uint256 lendingBalance = lendingFeeTokensHeld[token];
-		if (lendingBalance > 0) {
-			lendingFeeTokensHeld[token] = 0;
-			lendingFeeTokensPaid[token] = lendingFeeTokensPaid[token].add(lendingBalance);
+		for (uint256 i = 0; i < tokens.length; i++) {
+			uint256 lendingBalance = lendingFeeTokensHeld[tokens[i]];
+			if (lendingBalance > 0) {
+				lendingFeeTokensHeld[tokens[i]] = 0;
+				lendingFeeTokensPaid[tokens[i]] = lendingFeeTokensPaid[tokens[i]].add(lendingBalance);
+			}
+
+			uint256 tradingBalance = tradingFeeTokensHeld[tokens[i]];
+			if (tradingBalance > 0) {
+				tradingFeeTokensHeld[tokens[i]] = 0;
+				tradingFeeTokensPaid[tokens[i]] = tradingFeeTokensPaid[tokens[i]].add(tradingBalance);
+			}
+
+			uint256 borrowingBalance = borrowingFeeTokensHeld[tokens[i]];
+			if (borrowingBalance > 0) {
+				borrowingFeeTokensHeld[tokens[i]] = 0;
+				borrowingFeeTokensPaid[tokens[i]] = borrowingFeeTokensPaid[tokens[i]].add(borrowingBalance);
+			}
+
+			uint256 tempAmount = lendingBalance.add(tradingBalance).add(borrowingBalance);
+
+			if (tempAmount == 0) {
+				continue;
+			}
+
+			uint256 amountConvertedToWRBTC;
+			if (tokens[i] == address(sovTokenAddress)) {
+				IERC20(tokens[i]).approve(feesController, tempAmount);
+				IFeeSharingProxy(feesController).transferTokens(address(sovTokenAddress), uint96(tempAmount));
+				amountConvertedToWRBTC = 0;
+			} else {
+				if (tokens[i] == address(wrbtcToken)) {
+					amountConvertedToWRBTC = tempAmount;
+				} else {
+					IERC20(tokens[i]).approve(protocolAddress, tempAmount);
+
+					(amountConvertedToWRBTC, ) = ProtocolSwapExternalInterface(protocolAddress).swapExternal(
+						tokens[i], // source token address
+						address(wrbtcToken), // dest token address
+						feesController, // set feeSharingProxy as receiver
+						protocolAddress, // protocol as the sender
+						tempAmount, // source token amount
+						0, // reqDestToken
+						0, // minReturn
+						"" // loan data bytes
+					);
+
+					/// Will revert if disagreement found.
+					IPriceFeeds(priceFeeds).checkPriceDisagreement(
+						tokens[i],
+						address(wrbtcToken),
+						tempAmount,
+						amountConvertedToWRBTC,
+						maxDisagreement
+					);
+				}
+
+				totalWRBTCWithdrawn = totalWRBTCWithdrawn.add(amountConvertedToWRBTC);
+
+				IERC20(address(wrbtcToken)).safeTransfer(receiver, amountConvertedToWRBTC);
+			}
+
+			emit WithdrawFees(msg.sender, tokens[i], receiver, lendingBalance, tradingBalance, borrowingBalance, amountConvertedToWRBTC);
 		}
 
-		uint256 tradingBalance = tradingFeeTokensHeld[token];
-		if (tradingBalance > 0) {
-			tradingFeeTokensHeld[token] = 0;
-			tradingFeeTokensPaid[token] = tradingFeeTokensPaid[token].add(tradingBalance);
-		}
-
-		uint256 borrowingBalance = borrowingFeeTokensHeld[token];
-		if (borrowingBalance > 0) {
-			borrowingFeeTokensHeld[token] = 0;
-			borrowingFeeTokensPaid[token] = borrowingFeeTokensPaid[token].add(borrowingBalance);
-		}
-
-		uint256 amount = lendingBalance.add(tradingBalance).add(borrowingBalance);
-		if (amount == 0) {
-			return amount;
-		}
-
-		IERC20(token).safeTransfer(receiver, amount);
-
-		emit WithdrawFees(msg.sender, token, receiver, lendingBalance, tradingBalance, borrowingBalance);
-
-		return amount;
+		return totalWRBTCWithdrawn;
 	}
 
 	/**
@@ -694,5 +739,19 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 	 */
 	function getTradingRebateRewardsBasisPoint() external view returns (uint256) {
 		return tradingRebateRewardsBasisPoint;
+	}
+
+	/**
+	 * @dev Get how much SOV that is dedicated to pay the trading rebate rewards.
+	 * @notice If SOV balance is less than the fees held, it will return 0.
+	 *
+	 * @return total dedicated SOV.
+	 */
+	function getDedicatedSOVRebate() public view returns (uint256) {
+		uint256 sovProtocolBalance = IERC20(sovTokenAddress).balanceOf(address(this));
+		uint256 sovFees =
+			lendingFeeTokensHeld[sovTokenAddress].add(tradingFeeTokensHeld[sovTokenAddress]).add(borrowingFeeTokensHeld[sovTokenAddress]);
+
+		return sovProtocolBalance >= sovFees ? sovProtocolBalance.sub(sovFees) : 0;
 	}
 }

@@ -22,11 +22,13 @@ const liquidate = async (
 	WRBTC,
 	FeesEvents,
 	SOV,
-	isSpecialRebates = false
+	isSpecialRebates = false,
+	checkRepayAmount = true
 ) => {
 	if (isSpecialRebates) {
 		await sovryn.setSpecialRebates(underlyingToken.address, collateralToken.address, wei("70", "ether"));
 	}
+
 	// set the demand curve to set interest rates
 	await set_demand_curve(loanToken);
 	const lender = accounts[0];
@@ -45,6 +47,7 @@ const liquidate = async (
 		sovryn,
 		WRBTC
 	);
+
 	const loan = await sovryn.getLoan(loan_id);
 	// set the rates so we're able to liquidate
 	let value;
@@ -59,6 +62,7 @@ const liquidate = async (
 	lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
 	const sov_borrower_initial_balance = (await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower));
 	await increaseTime(10 * 24 * 60 * 60); // time travel 10 days
+
 	// liquidate
 	const { receipt } = await sovryn.liquidate(loan_id, liquidator, loan_token_sent, { from: liquidator, value: value });
 	await verify_liquidation_event(
@@ -72,7 +76,8 @@ const liquidate = async (
 		underlyingToken,
 		collateralToken,
 		sovryn,
-		priceFeeds
+		priceFeeds,
+		checkRepayAmount
 	);
 	if (underlyingToken.address != WRBTC.address)
 		await verify_sov_reward_payment(
@@ -120,9 +125,17 @@ const liquidate_healthy_position_should_fail = async (
 		sovryn,
 		WRBTC
 	);
-	// try to liquidate the still healthy position
 
-	await expectRevert(sovryn.liquidate(loan_id, lender, loan_token_sent), "healthy position");
+	// const loan = await sovryn.getLoan(loan_id);
+	// const principal = new BN(loan["principal"]);
+	// const collateral = new BN(loan["collateral"]);
+	// const loan_interest = await sovryn.getLoanInterestData(loan_id);
+	// console.log("principal: ", principal.toString());
+	// console.log("collateral: ", collateral.toString());
+	// console.log("loan_interest: ", loan_interest);
+
+	// try to liquidate the still healthy position
+	await expectRevert(sovryn.liquidate(loan_id, lender, loan_token_sent, { from: liquidator }), "healthy position");
 };
 
 // lend to the pool, mint tokens if required, open a margin trade position
@@ -165,7 +178,10 @@ const prepare_liquidation = async (
 	return decode[0].args["loanId"];
 };
 
-//compute the expected values and make sure the event contains them
+/// @dev Compute the expected values and make sure the event contains them
+///   Added checkRepayAmount parameter to avoid checking
+///   the repayAmount to be equal to loan_token_sent when partially liquidating
+///   a position not completely unhealthy.
 const verify_liquidation_event = async (
 	loan,
 	logs,
@@ -177,7 +193,8 @@ const verify_liquidation_event = async (
 	underlyingToken,
 	collateralToken,
 	sovryn,
-	priceFeeds
+	priceFeeds,
+	checkRepayAmount = true
 ) => {
 	const loan_id = loan["loanId"];
 	const collateral_ = new BN(loan["collateral"]);
@@ -209,7 +226,10 @@ const verify_liquidation_event = async (
 	expect(liquidate_event["lender"] == loanToken.address).to.be.true;
 	expect(liquidate_event["loanToken"] == underlyingToken.address).to.be.true;
 	expect(liquidate_event["collateralToken"] == collateralToken.address).to.be.true;
-	expect(liquidate_event["repayAmount"] == loan_token_sent.toString()).to.be.true;
+	if (checkRepayAmount) {
+		/// @dev This check holds true just when the position is completely liquidated
+		expect(liquidate_event["repayAmount"] == loan_token_sent.toString()).to.be.true;
+	}
 	expect(liquidate_event["collateralWithdrawAmount"] == collateral_withdraw_amount.toString()).to.be.true;
 	expect(liquidate_event["collateralToLoanRate"] == collateral_to_loan_rate.toString()).to.be.true;
 	expect(liquidate_event["currentMargin"] == current_margin.toString()).to.be.true;
@@ -218,4 +238,5 @@ const verify_liquidation_event = async (
 module.exports = {
 	liquidate,
 	liquidate_healthy_position_should_fail,
+	prepare_liquidation,
 };

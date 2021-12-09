@@ -77,7 +77,7 @@ contract ISovrynBrownie is
 
 	function setFeesController(address newController) external;
 
-	function withdrawFees(address token, address receiver) external returns (uint256);
+	function withdrawFees(address[] calldata tokens, address receiver) external returns (uint256 totalWRBTCWithdrawn);
 
 	function withdrawLendingFees(
 		address token,
@@ -143,6 +143,8 @@ contract ISovrynBrownie is
 	) external view returns (bytes32[] memory loanParamsList);
 
 	function getTotalPrincipal(address lender, address loanToken) external view returns (uint256);
+
+	function minInitialMargin(bytes32 loanParamsId) external view returns (uint256);
 
 	////// Loan Openings //////
 
@@ -295,6 +297,7 @@ contract ISovrynBrownie is
 		bytes32 loanId;
 		address loanToken;
 		address collateralToken;
+		address borrower;
 		uint256 principal;
 		uint256 collateral;
 		uint256 interestOwedPerDay;
@@ -307,6 +310,7 @@ contract ISovrynBrownie is
 		uint256 endTimestamp;
 		uint256 maxLiquidatable;
 		uint256 maxSeizable;
+		uint256 creationTimestamp;
 	}
 
 	function getUserLoans(
@@ -414,4 +418,6 @@ contract ISovrynBrownie is
 	function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external;
 
 	function getTradingRebateRewardsBasisPoint() external view returns (uint256);
+
+	function getDedicatedSOVRebate() external view returns (uint256);
 }

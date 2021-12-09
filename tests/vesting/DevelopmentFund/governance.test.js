@@ -1,6 +1,16 @@
 // For this test, governance contract and multisig wallet will be done by normal wallets.
 // They will acts as locked and unlocked owner.
 
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-04
+ * Bottleneck found at beforeEach hook, redeploying DevelopmentFund and token on every test.
+ *
+ * Total time elapsed: 4.9s
+ * After optimization: 4.2s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ *   Moved second deployment to fixture for last tests.
+ */
+
 const DevelopmentFund = artifacts.require("DevelopmentFund");
 const TestToken = artifacts.require("TestToken");
 
@@ -10,6 +20,8 @@ const {
 } = require("@openzeppelin/test-helpers");
 
 const { assert } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
 
 // Some constants we would be using in the contract.
 let zero = new BN(0);
@@ -59,16 +71,7 @@ contract("DevelopmentFund (Governance Functions)", (accounts) => {
 	let developmentFund, testToken;
 	let creator, governance, newGovernance, multisig, newMultisig, safeVault, userOne;
 
-	before("Initiating Accounts & Creating Test Token Instance.", async () => {
-		// Checking if we have enough accounts to test.
-		assert.isAtLeast(accounts.length, 7, "Alteast 7 accounts are required to test the contracts.");
-		[creator, governance, newGovernance, multisig, newMultisig, safeVault, userOne] = accounts;
-
-		// Creating the instance of Test Token.
-		testToken = await TestToken.new("TestToken", "TST", 18, zero);
-	});
-
-	beforeEach("Creating New Development Fund Instance.", async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		// Creating a new release schedule.
 		releaseDuration = [];
 		// This is run 60 times for mimicking 5 years (12 months * 5), though the interval is small.
@@ -102,6 +105,25 @@ contract("DevelopmentFund (Governance Functions)", (accounts) => {
 
 		// Marking the contract as active.
 		await developmentFund.init({ from: creator });
+
+		/// @dev Last tests require another deployment
+		developmentFundGov = await DevelopmentFund.new(testToken.address, governance, safeVault, multisig, zero, [0], [0], {
+			from: governance,
+		});
+		await developmentFundGov.init({ from: governance });
+	}
+
+	before("Initiating Accounts & Creating Test Token Instance.", async () => {
+		// Checking if we have enough accounts to test.
+		assert.isAtLeast(accounts.length, 7, "Alteast 7 accounts are required to test the contracts.");
+		[creator, governance, newGovernance, multisig, newMultisig, safeVault, userOne] = accounts;
+
+		// Creating the instance of Test Token.
+		testToken = await TestToken.new("TestToken", "TST", 18, zero);
+	});
+
+	beforeEach("Creating New Development Fund Instance.", async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	it("Locked Token Owner should not be able to call the init() more than once.", async () => {
@@ -133,32 +155,36 @@ contract("DevelopmentFund (Governance Functions)", (accounts) => {
 		await developmentFund.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount, { from: governance });
 	});
 
+	/// @dev TODO: Misleading test found while optimizing has been splitted into 2.
+	///   Please review this test makes sense.
 	it("Locked Token Owner should approve the contract to send tokens for the Release Schedule.", async () => {
-		developmentFund = await DevelopmentFund.new(testToken.address, governance, safeVault, multisig, zero, [0], [0], {
-			from: governance,
-		});
-		await developmentFund.init({ from: governance });
+		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: governance });
+	});
+
+	/// @dev TODO: Misleading test found while optimizing has been splitted into 2.
+	///   Please review this test makes sense.
+	it("Shouldn't be able to change the release schedule of a vesting contract.", async () => {
 		await expectRevert(
-			developmentFund.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount, { from: governance }),
+			developmentFundGov.changeTokenReleaseSchedule(zero, releaseDuration, releaseTokenAmount, { from: governance }),
 			"invalid transfer"
 		);
 	});
 
 	it("Locked Token Owner should not be able to transfer all tokens to safeVault.", async () => {
 		await expectRevert(
-			developmentFund.transferTokensByUnlockedTokenOwner({ from: governance }),
+			developmentFundGov.transferTokensByUnlockedTokenOwner({ from: governance }),
 			"Only Unlocked Token Owner can call this."
 		);
 	});
 
 	it("Locked Token Owner should not be able to withdraw tokens after schedule duration passed.", async () => {
 		await expectRevert(
-			developmentFund.withdrawTokensByUnlockedTokenOwner(zero, { from: governance }),
+			developmentFundGov.withdrawTokensByUnlockedTokenOwner(zero, { from: governance }),
 			"Only Unlocked Token Owner can call this."
 		);
 	});
 
 	it("Locked Token Owner should be able to transfer all tokens to a receiver.", async () => {
-		await developmentFund.transferTokensByLockedTokenOwner(creator, { from: governance });
+		await developmentFundGov.transferTokensByLockedTokenOwner(creator, { from: governance });
 	});
 });

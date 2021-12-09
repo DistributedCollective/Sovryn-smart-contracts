@@ -1,8 +1,23 @@
 // For this one, Governor Alpha Mockup is used to reduce the voting period to just 10 blocks.
+
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-23
+ * Bottlenecks found on first and second test, but unfortunately the flow diverges at some point
+ * so it is required to walk through it again.
+ *
+ * Total time elapsed: 4.9s
+ * After optimization: 4.7s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to save initial snapshot for all tests.
+ *
+ */
+
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("Timelock");
 const TestToken = artifacts.require("TestToken");
-const StakingLogic = artifacts.require("Staking");
+const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 
 const {
@@ -15,9 +30,8 @@ const {
 const { encodeParameters, increaseTime, blockNumber, mineBlock, advanceBlocks } = require("../../Utils/Ethereum");
 
 const { assert } = require("chai");
-
-const BigNumber = require("bignumber.js");
-const { ethers } = require("hardhat");
+const { ethers, waffle } = require("hardhat");
+const { loadFixture } = waffle;
 
 // Some constants we would be using in the contract.
 let zero = new BN(0);
@@ -25,13 +39,13 @@ let delay = 86400 * 14 + 1;
 const totalSupply = 100000000;
 let quorumPercentageVotes = 10;
 let minPercentageVotes = 5;
-const statePending = 0;
-const stateActive = 1;
+// const statePending = 0;
+// const stateActive = 1;
 const stateCancelled = 2;
-const stateDefeated = 3;
+// const stateDefeated = 3;
 const stateSucceeded = 4;
 const stateQueued = 5;
-const stateExpired = 6;
+// const stateExpired = 6;
 const stateExecuted = 7;
 
 /**
@@ -66,11 +80,12 @@ async function stake(tokenInstance, stakingInstance, stakeFor, delegatee, amount
 contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 	let governorAlpha, stakingLogic, stakingProxy, timelock, testToken;
 	let guardianOne, guardianTwo, voterOne, voterTwo, voterThree, userOne, userTwo;
-	let targets, values, signatures, callDatas, eta, proposalId;
+	let targets, values, signatures, callDatas, proposalId;
+	let newGovernorAlpha;
 
-	before("Initiating Accounts & Contracts", async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		// Checking if we have enough accounts to test.
-		assert.isAtLeast(accounts.length, 7, "Alteast 7 accounts are required to test the contracts.");
+		assert.isAtLeast(accounts.length, 7, "At least 7 accounts are required to test the contracts.");
 		[guardianOne, guardianTwo, voterOne, voterTwo, voterThree, userOne, userTwo] = accounts;
 
 		// Creating the instance of Test Token.
@@ -129,9 +144,8 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 
 		// Using the current governor contract, we accept itself as the admin of Timelock.
 		await governorAlpha.__acceptAdmin({ from: guardianOne });
-	});
 
-	it("Remove a successful proposal which was queued even if successful.", async () => {
+		/// @dev Moved code from tests 1 and 2
 		// Proposal Parameters
 		targets = [testToken.address];
 		values = [new BN("0")];
@@ -157,6 +171,22 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 		// Checking if the proposal went to Succeeded state.
 		assert.strictEqual(currentState.toNumber(), stateSucceeded, "The correct state was not achieved after endBlock passed.");
 
+		/// @dev From last tests
+		// Creating the new Governor Contract Instance.
+		newGovernorAlpha = await GovernorAlpha.new(
+			timelock.address,
+			stakingLogic.address,
+			guardianTwo,
+			quorumPercentageVotes,
+			minPercentageVotes
+		);
+	}
+
+	beforeEach("Initiating Accounts & Contracts", async () => {
+		await loadFixture(deploymentAndInitFixture);
+	});
+
+	it("Remove a successful proposal which was queued even if successful.", async () => {
 		// Cancels the proposal by guardian.
 		await governorAlpha.cancel(proposalId, { from: guardianOne });
 
@@ -168,31 +198,6 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 	});
 
 	it("Cannot remove a proposal which is already executed.", async () => {
-		// Proposal Parameters
-		targets = [testToken.address];
-		values = [new BN("0")];
-		signatures = ["balanceOf(address)"];
-		callDatas = [encodeParameters(["address"], [voterOne])];
-
-		let txReceipt = await governorAlpha.propose(targets, values, signatures, callDatas, "Checking Token Balance", { from: voterOne });
-
-		// Getting the proposal id of the newly created proposal.
-		proposalId = await governorAlpha.latestProposalIds(voterOne);
-
-		await mineBlock();
-		// Votes in majority.
-		await governorAlpha.castVote(proposalId, true, { from: voterOne });
-
-		// Finishing up the voting.
-		let endBlock = txReceipt["logs"]["0"]["args"].endBlock.toNumber() + 1;
-		await advanceBlocks(endBlock);
-
-		// Checking current state of proposal
-		let currentState = await governorAlpha.state(proposalId);
-
-		// Checking if the proposal went to Succeeded state.
-		assert.strictEqual(currentState.toNumber(), stateSucceeded, "The correct state was not achieved after endBlock passed.");
-
 		// Puts the Proposal in Queue.
 		await governorAlpha.queue(proposalId, { from: voterOne });
 
@@ -221,15 +226,6 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 	});
 
 	it("Make a new Governor the admin of current Timelock with being pendingAdmin.", async () => {
-		// Creating the new Governor Contract Instance.
-		let newGovernorAlpha = await GovernorAlpha.new(
-			timelock.address,
-			stakingLogic.address,
-			guardianTwo,
-			quorumPercentageVotes,
-			minPercentageVotes
-		);
-
 		// Transaction details to make the above governor as the pending admin of the Timelock Instance.
 		let currentBlock = await web3.eth.getBlock(await blockNumber());
 		let eta = new BN(currentBlock.timestamp).add(new BN(delay + 1));
@@ -254,15 +250,6 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 	});
 
 	it("Should not be able to make a new Governor the admin of current Timelock without being pendingAdmin first.", async () => {
-		// Creating the new Governor Contract Instance.
-		let newGovernorAlpha = await GovernorAlpha.new(
-			timelock.address,
-			stakingLogic.address,
-			guardianTwo,
-			quorumPercentageVotes,
-			minPercentageVotes
-		);
-
 		await expectRevert(
 			newGovernorAlpha.__acceptAdmin({ from: guardianTwo }),
 			"Timelock::acceptAdmin: Call must come from pendingAdmin."
@@ -279,8 +266,8 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 	});
 
 	it("Should not be able to perform any task related to guardian after abdication.", async () => {
-		// Creating the Governor Contract Instance.
-		let newGovernorAlpha = await GovernorAlpha.new(
+		// Creating the new Governor Contract Instance.
+		newGovernorAlpha = await GovernorAlpha.new(
 			timelock.address,
 			stakingLogic.address,
 			guardianOne,
