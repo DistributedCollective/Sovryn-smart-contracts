@@ -90,4 +90,19 @@ def lookupCurrentPoolReserveBalances(userAddress):
     print('user has in SOV', userBal/poolSupply * sovBal)
     print('user has in BTC', userBal/poolSupply * wrbtcBal)
 
- 
+def withdrawRBTCFromWatcher(amount, recipient):
+    abiFile =  open('./scripts/contractInteraction/ABIs/Watcher.json')
+    abi = json.load(abiFile)
+    watcher = Contract.from_abi("Watcher", address = conf.contracts['Watcher'], abi = abi, owner = conf.acct)
+    data = watcher.withdrawTokens.encode_input('0x0000000000000000000000000000000000000000', amount, recipient)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], watcher.address, data, conf.acct)
+
+def withdrawTokensFromWatcher(token, amount, recipient):
+    abiFile =  open('./scripts/contractInteraction/ABIs/Watcher.json')
+    abi = json.load(abiFile)
+    watcher = Contract.from_abi("Watcher", address = conf.contracts['Watcher'], abi = abi, owner = conf.acct)
+    #watcher = Contract.from_abi("Watcher", address = '0x051B89f575fCd540F0a6a5B49c75f9a83BB2Cf07', abi = abi, owner = conf.acct)
+    data = watcher.withdrawTokens.encode_input(token, amount, recipient)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], watcher.address, data, conf.acct)
