@@ -5,30 +5,6 @@ import time;
 import copy
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
-    
-def lendToPool(loanTokenAddress, tokenAddress, amount):
-    token = Contract.from_abi("TestToken", address = tokenAddress, abi = TestToken.abi, owner = conf.acct)
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
-    if(token.allowance(conf.acct, loanToken.address) < amount):
-        token.approve(loanToken.address, amount)
-    tx = loanToken.mint(conf.acct, amount)
-    tx.info()
-    return tx
-
-def lendToPoolWithMS(loanTokenAddress, tokenAddress, amount):
-    token = Contract.from_abi("TestToken", address = tokenAddress, abi = TestToken.abi, owner = conf.acct)
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
-    if(token.allowance(conf.contracts['multisig'], loanToken.address) < amount):
-        data = token.approve.encode_input(loanToken.address, amount)
-        sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
-    data = loanToken.mint.encode_input(conf.contracts['multisig'], amount)
-    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
-
-def removeFromPool(loanTokenAddress, amount):
-    loanToken = Contract.from_abi("loanToken", address = loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
-    tx = loanToken.burn(conf.acct, amount)
-    tx.info()
-    return tx
 
 def readLoanTokenState(loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
