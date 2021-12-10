@@ -21,7 +21,7 @@ def main():
     # Call the function you want here
 
     # createProposalSIP0038()
-    createProposalSIP0039()
+    createProposalSIP0031()
 
     balanceAfter = acct.balance()
 
@@ -40,10 +40,19 @@ def loadConfig():
     elif thisNetwork == "testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet-pub":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "rsk-mainnet-ws":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "rsk-mainnet-websocket":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
     else:
@@ -307,6 +316,17 @@ def createProposalSIP0039():
     signature = ["symbol()"]
     data = ["0x"]
     description = "SIP-0039: ZERO Token Sale via Origins: https://github.com/DistributedCollective/SIPS/blob/2c21291/SIP-0039.md, sha256: 558dc035b9915e5900b0367252ba88114ea8c821b21ec0aadc5dea8b73fcd506"
+
+    # Create Proposal
+    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+def createProposalSIP0031():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0031: Splitting AMM fees with stakers: https://github.com/DistributedCollective/SIPS/blob/344e4f1/SIP-31.md, sha256: 9a9058f6420842fffb25112c54634f950a16e119247e17550b25197e3fccc7fb"
 
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
