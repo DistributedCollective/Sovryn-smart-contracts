@@ -30,6 +30,12 @@ def removeFromPool(loanTokenAddress, amount):
     tx.info()
     return tx
 
+def removeFromPoolWithMS(loanTokenAddress, amount, receiver):
+    loanToken = Contract.from_abi("loanToken", address = loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    data = loanToken.burn.encode_input(receiver, amount)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenAddress, data, conf.acct)
+
 def readLoanTokenState(loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     tas = loanToken.totalAssetSupply()

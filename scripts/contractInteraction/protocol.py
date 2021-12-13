@@ -605,3 +605,8 @@ def removeWhitelistConverterFeeSharingProxy(converterAddress):
 
     print(data)
     sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)
+
+def readRolloverReward():
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    print(sovryn.rolloverBaseReward())

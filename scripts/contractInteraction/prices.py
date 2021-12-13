@@ -63,11 +63,29 @@ def readFromMedianizer():
     medianizer = Contract.from_abi("Medianizer", address=conf.contracts['medianizer'], abi=PriceFeedsMoCMockup.abi, owner=conf.acct)
     print(medianizer.peek())
 
+def readFromMedianizerAt(medianizerAddress):
+    medianizer = Contract.from_abi("Medianizer", address=medianizerAddress, abi=PriceFeedsMoCMockup.abi, owner=conf.acct)
+    print(medianizer.peek())
+
 def updateOracleAddress(newAddress):
     print("set oracle address to", newAddress)
-    priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = '0x066ba9453e230a260c2a753d9935d91187178C29', abi = PriceFeedsMoC.abi, owner = conf.acct)
-    priceFeedsMoC.setMoCOracleAddress(newAddress)
+    priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = conf.contracts['PriceFeedsMOC'], abi = PriceFeedsMoC.abi, owner = conf.acct)
+    data = priceFeedsMoC.setMoCOracleAddress.encode_input(newAddress)
+    sendWithMultisig(conf.contracts['multisig'], priceFeedsMoC.address, data, conf.acct)
 
+def readMocOracleAddress():
+    priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = conf.contracts['PriceFeedsMOC'], abi = PriceFeedsMoC.abi, owner = conf.acct)
+    print(priceFeedsMoC.mocOracleAddress())
+
+def updateOracleAddressAt(priceFeedAddress, newAddress):
+    print("set oracle address to", newAddress)
+    priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = priceFeedAddress, abi = PriceFeedsMoC.abi, owner = conf.acct)
+    data = priceFeedsMoC.setMoCOracleAddress.encode_input(newAddress)
+    sendWithMultisig(conf.contracts['multisig'], priceFeedsMoC.address, data, conf.acct)
+
+def readMocOracleAddressAt(priceFeedAddress):
+    priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = priceFeedAddress, abi = PriceFeedsMoC.abi, owner = conf.acct)
+    print(priceFeedsMoC.mocOracleAddress())
 
 def checkRates():
     print('reading price from WRBTC to DOC')
@@ -108,6 +126,18 @@ def readPriceFeedFor(tokenAddress):
     address = feeds.pricesFeeds(tokenAddress)
     print("price feed: "+address);
     return(address)
+
+def readOracleFromConverter(converterAddress):
+    abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV2Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV2Converter", address=converterAddress, abi=abi, owner=conf.acct)
+    priceOracleAddress = converter.priceOracle()
+    abiFile =  open('./scripts/contractInteraction/ABIs/AMMPriceOracle.json')
+    abi = json.load(abiFile)
+    priceOracle = Contract.from_abi("LiquidityPoolV2Converter", address=priceOracleAddress, abi=abi, owner=conf.acct)
+
+    print(priceOracle.tokenAOracle())
+    print(priceOracle.tokenBOracle())
 
 def deployOracleV1Pool(tokenAddress, oracleAddress):
     oracleV1PoolPriceFeed = conf.acct.deploy(PriceFeedV1PoolOracle, oracleAddress, conf.contracts['WRBTC'], conf.contracts['DoC'], tokenAddress)
