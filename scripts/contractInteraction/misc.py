@@ -106,3 +106,13 @@ def withdrawTokensFromWatcher(token, amount, recipient):
     data = watcher.withdrawTokens.encode_input(token, amount, recipient)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], watcher.address, data, conf.acct)
+
+def depositToLockedSOV(amount, recipient):
+    token = Contract.from_abi("Token", address= conf.contracts['SOV'], abi = TestToken.abi, owner=conf.acct)
+    data = token.approve.encode_input(conf.contracts["LockedSOV"], amount)
+    sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
+
+    lockedSOV = Contract.from_abi("LockedSOV", address=conf.contracts["LockedSOV"], abi=LockedSOV.abi, owner=conf.acct)
+    data = lockedSOV.depositSOV.encode_input(recipient, amount)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
