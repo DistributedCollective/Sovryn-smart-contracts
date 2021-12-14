@@ -356,32 +356,55 @@ contract LoanClosingsBase is LoanClosingsShared, LiquidationHelper {
 		uint256 rolloverReward = _getRolloverReward(loanParamsLocal.collateralToken, loanParamsLocal.loanToken, loanLocal.principal);
 
 		if (rolloverReward != 0) {
-			// pay out reward to caller
-			loanLocal.collateral = loanLocal.collateral.sub(rolloverReward);
+			// if the reward > collateral:
+			if (rolloverReward > loanLocal.collateral) {
+				// 1. pay back the excess reward to the lender
+				// 2. pay the complete collateral to msg.sender
+				// 3. close the position & emit close event
+				uint256 excessRewards = rolloverReward.sub(loanLocal.collateral);
+				_closeWithSwap(
+					loanLocal.id,
+					msg.sender,
+					excessRewards,
+					true, /// TODO::should we return it as the collateral or loan token?
+					"" // loanDataBytes
+				);
+			} else {
+				// pay out reward to caller
+				loanLocal.collateral = loanLocal.collateral.sub(rolloverReward);
 
-			_withdrawAsset(loanParamsLocal.collateralToken, msg.sender, rolloverReward);
+				_withdrawAsset(loanParamsLocal.collateralToken, msg.sender, rolloverReward);
+			}
 		}
 
-		//close whole loan if tiny position will remain
-		if (_getAmountInRbtc(loanParamsLocal.loanToken, loanLocal.principal) <= TINY_AMOUNT) {
-			_closeWithDeposit(
-				loanLocal.id,
-				loanLocal.borrower, //TODO loanLocal.borrower ?
-				loanLocal.principal
-			);
-		} else {
-			(uint256 currentMargin, ) =
-				IPriceFeeds(priceFeeds).getCurrentMargin(
-					loanParamsLocal.loanToken,
-					loanParamsLocal.collateralToken,
-					loanLocal.principal,
-					loanLocal.collateral
+		if (loanLocal.collateral > 0) {
+			//close whole loan if tiny position will remain
+			if (_getAmountInRbtc(loanParamsLocal.loanToken, loanLocal.principal) <= TINY_AMOUNT) {
+				// NOTE: closeWithSwap
+				/// QUESTIONS: when we _closeWithSwap, what if the collateral value is still much bigger than the principal to be paid out, the excess should be refunded to the borrower?
+				/// Yes, it refunded.
+				/// Rollover wallet ? EOA
+				_closeWithSwap(
+					loanLocal.id,
+					loanLocal.lender,
+					loanLocal.collateral, // swap all collaterals
+					false,
+					"" /// loanDataBytes
 				);
+			} else {
+				(uint256 currentMargin, ) =
+					IPriceFeeds(priceFeeds).getCurrentMargin(
+						loanParamsLocal.loanToken,
+						loanParamsLocal.collateralToken,
+						loanLocal.principal,
+						loanLocal.collateral
+					);
 
-			require(
-				currentMargin > 3 ether, // ensure there's more than 3% margin remaining
-				"unhealthy position"
-			);
+				require(
+					currentMargin > 3 ether, // ensure there's more than 3% margin remaining
+					"unhealthy position"
+				);
+			}
 		}
 	}
 
