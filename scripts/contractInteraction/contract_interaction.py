@@ -51,7 +51,7 @@ def main():
     #print(balance)
     #withdrawTokensFromWatcher(conf.contracts['XUSD'], 100e18, conf.contracts['multisig'])
 
-    # balance = getBalance(conf.contracts['XUSD'], conf.contracts['multisig'])
-    # print(balance)
+    balance = getBalance(conf.contracts['XUSD'], conf.contracts['multisig'])
+    print(balance)
     # if(balance > 0):
     #     sendTokensFromMultisig(conf.contracts['XUSD'], '0x051B89f575fCd540F0a6a5B49c75f9a83BB2Cf07', balance)

@@ -1,7 +1,7 @@
 ---
 SIP: "0031"
 Title: Splitting AMM fees with stakers
-Author: cowsant (@cwsnt), John Light (@john-light), Ororo (@ororopickpocket)  
+Author: cowsant (@cwsnt), John Light (@john-light), Ororo (@ororopickpocket)
 Status: Ready for vote
 Track: Contract
 Created: 2021-09-07
@@ -11,9 +11,9 @@ Created: 2021-09-07
 
 ## Description
 
-- Currently only AMM Liquidity Providers earn a fee from swaps conducted using the Sovryn AMM.  
-- This change will split the fee between AMM Liquidity Providers and the Fee Proxy contract (the smart contract responsible for holding fees until stakers withdraw them).  
-- The split will be 0.25% to LPs / 0.05% to Fee Proxy.  
+- Currently only AMM Liquidity Providers earn a fee from swaps conducted using the Sovryn AMM.
+- This change will split the fee between AMM Liquidity Providers and the Fee Proxy contract (the smart contract responsible for holding fees until stakers withdraw them).
+- The split will be 0.25% to LPs / 0.05% to Fee Proxy.
 
 ## Motivation
 
@@ -22,4 +22,5 @@ Although the Sovryn AMM is a core piece of the Sovryn protocol, which SOV staker
 The fee split proposed here is implemented on the Converter Contracts. The owners of the converters (also called pools) can set the conversion fee which is paid to the LPs, but the height of the protocol fee is under the control of Bitocracy. It is configured centrally for all pools on the new Swap Settings Contract and is charged on the traded amount after the conversion fee is paid.
 
 ## License
+
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
