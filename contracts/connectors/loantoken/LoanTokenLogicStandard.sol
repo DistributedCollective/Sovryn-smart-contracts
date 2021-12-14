@@ -300,7 +300,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 * @param collateralTokenSent The amount of collateral tokens provided by the user.
 	 * @param collateralTokenAddress The token address of collateral.
 	 * @param trader The account that performs this trade.
-	 * @param minReturn Minimum amount (position size) in the collateral tokens
+	 * @param maxEntryPrice Value of loan token in collateral.
 	 * @param loanDataBytes Additional loan data (not in use for token swaps).
 	 *
 	 * @return New principal and new collateral added to trade.
@@ -312,7 +312,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		uint256 collateralTokenSent,
 		address collateralTokenAddress,
 		address trader,
-		uint256 minReturn, // minimum position size in the collateral tokens
+		uint256 maxEntryPrice, // value of loan token in collateral
 		bytes memory loanDataBytes /// Arbitrary order data.
 	)
 		public
@@ -324,8 +324,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		)
 	{
 		_checkPause();
-
-		checkPriceDivergence(leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress, minReturn);
 
 		if (collateralTokenAddress == address(0)) {
 			collateralTokenAddress = wrbtcTokenAddress;
@@ -367,6 +365,8 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 			sentAmounts[1] /// depositAmount
 		);
 
+		checkPriceDivergence(loanTokenSent.add(sentAmounts[1]), collateralTokenAddress, maxEntryPrice);
+
 		/// @dev Converting to initialMargin
 		leverageAmount = SafeMath.div(10**38, leverageAmount);
 		return
@@ -391,7 +391,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 * @param collateralTokenSent The amount of collateral tokens provided by the user.
 	 * @param collateralTokenAddress The token address of collateral.
 	 * @param trader The account that performs this trade.
-	 * @param minReturn Minimum position size in the collateral tokens
+	 * @param maxEntryPrice Value of loan token in collateral.
 	 * @param affiliateReferrer The address of the referrer from affiliates program.
 	 * @param loanDataBytes Additional loan data (not in use for token swaps).
 	 *
@@ -404,7 +404,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		uint256 collateralTokenSent,
 		address collateralTokenAddress,
 		address trader,
-		uint256 minReturn, /// Minimum position size in the collateral tokens.
+		uint256 maxEntryPrice, /// Value of loan token in collateral
 		address affiliateReferrer, /// The user was brought by the affiliate (referrer).
 		bytes calldata loanDataBytes /// Arbitrary order data.
 	)
@@ -425,7 +425,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 				collateralTokenSent,
 				collateralTokenAddress,
 				trader,
-				minReturn,
+				maxEntryPrice,
 				loanDataBytes
 			);
 	}
@@ -826,12 +826,12 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 				return
 					ProtocolLike(sovrynContractAddress)
 						.getRequiredCollateral(
-						loanTokenAddress,
-						collateralTokenAddress,
-						newBorrowAmount,
-						ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(loanParamsId), /// initialMargin
-						true /// isTorqueLoan
-					)
+							loanTokenAddress,
+							collateralTokenAddress,
+							newBorrowAmount,
+							ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(loanParamsId), /// initialMargin
+							true /// isTorqueLoan
+						)
 						.add(10); /// Some dust to compensate for rounding errors.
 			}
 		}
@@ -878,15 +878,17 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	}
 
 	function checkPriceDivergence(
-		uint256 leverageAmount,
 		uint256 loanTokenSent,
-		uint256 collateralTokenSent,
 		address collateralTokenAddress,
-		uint256 minReturn
+		uint256 maxEntryPrice
 	) public view {
-		(, uint256 estimatedCollateral, ) =
-			getEstimatedMarginDetails(leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress);
-		require(estimatedCollateral >= minReturn, "coll too low");
+		/// @dev See how many collateralTokens we would get if exchanging this amount of loan tokens to collateral tokens.
+		uint256 collateralTokenAmount = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
+			loanTokenAddress,
+			collateralTokenAddress,
+			loanTokenSent
+		);
+		require(collateralTokenAmount >= maxEntryPrice, "invalid position size");
 	}
 
 	/* Internal functions */
@@ -1013,16 +1015,19 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
 		if (collateralTokenSent != 0) {
 			/// @dev Get the oracle rate from collateral -> loan
-			(uint256 collateralToLoanRate, uint256 collateralToLoanPrecision) =
-				FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(collateralTokenAddress, loanTokenAddress);
+			(uint256 collateralToLoanRate, uint256 collateralToLoanPrecision) = FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds())
+				.queryRate(collateralTokenAddress, loanTokenAddress);
 			require((collateralToLoanRate != 0) && (collateralToLoanPrecision != 0), "invalid rate collateral token");
 
 			/// @dev Compute the loan token amount with the oracle rate.
 			uint256 loanTokenAmount = collateralTokenSent.mul(collateralToLoanRate).div(collateralToLoanPrecision);
 
 			/// @dev See how many collateralTokens we would get if exchanging this amount of loan tokens to collateral tokens.
-			uint256 collateralTokenAmount =
-				ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(loanTokenAddress, collateralTokenAddress, loanTokenAmount);
+			uint256 collateralTokenAmount = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
+				loanTokenAddress,
+				collateralTokenAddress,
+				loanTokenAmount
+			);
 
 			/// @dev Probably not the same due to the price difference.
 			if (collateralTokenAmount != collateralTokenSent) {

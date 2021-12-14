@@ -614,11 +614,9 @@ contract("LoanTokenTrading", (accounts) => {
 			await SUSD.transfer(loanToken.address, wei("500", "ether"));
 
 			await loanToken.checkPriceDivergence(
-				new BN(2).mul(oneEth),
-				wei("0.01", "ether"),
-				wei("0.01", "ether"),
+				wei("1", "ether"),
 				RBTC.address,
-				wei("0.02", "ether")
+				wei("0.0001", "ether")
 			);
 		});
 
@@ -665,8 +663,8 @@ contract("LoanTokenTrading", (accounts) => {
 			await set_demand_curve(loanToken);
 
 			await expectRevert(
-				loanToken.checkPriceDivergence(new BN(2).mul(oneEth), wei("2", "ether"), 0, RBTC.address, wei("1", "ether")),
-				"coll too low"
+				loanToken.checkPriceDivergence(wei("2", "ether"), RBTC.address, wei("1", "ether")),
+				"invalid position size"
 			);
 		});
 	});
