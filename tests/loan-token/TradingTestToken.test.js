@@ -613,11 +613,7 @@ contract("LoanTokenTrading", (accounts) => {
 			await set_demand_curve(loanToken);
 			await SUSD.transfer(loanToken.address, wei("500", "ether"));
 
-			await loanToken.checkPriceDivergence(
-				wei("1", "ether"),
-				RBTC.address,
-				wei("0.0001", "ether")
-			);
+			await loanToken.checkPriceDivergence(wei("1", "ether"), RBTC.address, wei("0.0001", "ether"));
 		});
 
 		/// @dev For test coverage, it's required to perform a margin trade using WRBTC as collateral
@@ -662,10 +658,7 @@ contract("LoanTokenTrading", (accounts) => {
 		it("checkPriceDivergence should revert if min position size is greater than collateral", async () => {
 			await set_demand_curve(loanToken);
 
-			await expectRevert(
-				loanToken.checkPriceDivergence(wei("2", "ether"), RBTC.address, wei("1", "ether")),
-				"invalid position size"
-			);
+			await expectRevert(loanToken.checkPriceDivergence(wei("2", "ether"), RBTC.address, wei("1", "ether")), "invalid position size");
 		});
 	});
 });
