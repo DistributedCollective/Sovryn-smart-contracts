@@ -826,12 +826,12 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 				return
 					ProtocolLike(sovrynContractAddress)
 						.getRequiredCollateral(
-						loanTokenAddress,
-						collateralTokenAddress,
-						newBorrowAmount,
-						ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(loanParamsId), /// initialMargin
-						true /// isTorqueLoan
-					)
+							loanTokenAddress,
+							collateralTokenAddress,
+							newBorrowAmount,
+							ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(loanParamsId), /// initialMargin
+							true /// isTorqueLoan
+						)
 						.add(10); /// Some dust to compensate for rounding errors.
 			}
 		}
@@ -884,8 +884,12 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		address collateralTokenAddress,
 		uint256 minReturn
 	) public view {
-		(, uint256 estimatedCollateral, ) =
-			getEstimatedMarginDetails(leverageAmount, loanTokenSent, collateralTokenSent, collateralTokenAddress);
+		(, uint256 estimatedCollateral, ) = getEstimatedMarginDetails(
+			leverageAmount,
+			loanTokenSent,
+			collateralTokenSent,
+			collateralTokenAddress
+		);
 		require(estimatedCollateral >= minReturn, "coll too low");
 	}
 
@@ -1013,16 +1017,19 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
 		if (collateralTokenSent != 0) {
 			/// @dev Get the oracle rate from collateral -> loan
-			(uint256 collateralToLoanRate, uint256 collateralToLoanPrecision) =
-				FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(collateralTokenAddress, loanTokenAddress);
+			(uint256 collateralToLoanRate, uint256 collateralToLoanPrecision) = FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds())
+				.queryRate(collateralTokenAddress, loanTokenAddress);
 			require((collateralToLoanRate != 0) && (collateralToLoanPrecision != 0), "invalid rate collateral token");
 
 			/// @dev Compute the loan token amount with the oracle rate.
 			uint256 loanTokenAmount = collateralTokenSent.mul(collateralToLoanRate).div(collateralToLoanPrecision);
 
 			/// @dev See how many collateralTokens we would get if exchanging this amount of loan tokens to collateral tokens.
-			uint256 collateralTokenAmount =
-				ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(loanTokenAddress, collateralTokenAddress, loanTokenAmount);
+			uint256 collateralTokenAmount = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
+				loanTokenAddress,
+				collateralTokenAddress,
+				loanTokenAmount
+			);
 
 			/// @dev Probably not the same due to the price difference.
 			if (collateralTokenAmount != collateralTokenSent) {
@@ -1380,7 +1387,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		uint256 utilRate = _utilizationRate(totalAssetBorrow().add(newBorrowAmount), assetSupply);
 
 		uint256 thisMinRate;
-		uint256 thisMaxRate;
+		uint256 thisRateAtKink;
 		uint256 thisBaseRate = baseRate;
 		uint256 thisRateMultiplier = rateMultiplier;
 		uint256 thisTargetLevel = targetLevel;
@@ -1399,17 +1406,19 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 			utilRate -= thisKinkLevel;
 			if (utilRate > thisMaxRange) utilRate = thisMaxRange;
 
-			thisMaxRate = thisRateMultiplier.add(thisBaseRate).mul(thisKinkLevel).div(WEI_PERCENT_PRECISION);
+			// Modified the rate calculation as it is slightly exaggerated around kink level
+			// thisRateAtKink = thisRateMultiplier.add(thisBaseRate).mul(thisKinkLevel).div(WEI_PERCENT_PRECISION);
+			thisRateAtKink = thisKinkLevel.mul(thisRateMultiplier).div(WEI_PERCENT_PRECISION).add(thisBaseRate);
 
-			nextRate = utilRate.mul(SafeMath.sub(thisMaxScaleRate, thisMaxRate)).div(thisMaxRange).add(thisMaxRate);
+			nextRate = utilRate.mul(SafeMath.sub(thisMaxScaleRate, thisRateAtKink)).div(thisMaxRange).add(thisRateAtKink);
 		} else {
 			nextRate = utilRate.mul(thisRateMultiplier).div(WEI_PERCENT_PRECISION).add(thisBaseRate);
 
 			thisMinRate = thisBaseRate;
-			thisMaxRate = thisRateMultiplier.add(thisBaseRate);
+			thisRateAtKink = thisRateMultiplier.add(thisBaseRate);
 
 			if (nextRate < thisMinRate) nextRate = thisMinRate;
-			else if (nextRate > thisMaxRate) nextRate = thisMaxRate;
+			else if (nextRate > thisRateAtKink) nextRate = thisRateAtKink;
 		}
 	}
 
