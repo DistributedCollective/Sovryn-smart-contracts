@@ -12,6 +12,7 @@ def redeemFromAggregator(aggregatorAddress, tokenAddress, amount):
     aggregator = Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
     aggregator.redeem(tokenAddress, amount)
 
+#used to exchange XUSD -> USDT on the aggregator
 def redeemFromAggregatorWithMS(aggregatorAddress, tokenAddress, amount):
     abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
     abi = json.load(abiFile)
@@ -28,6 +29,7 @@ def mintAggregatedToken(aggregatorAddress, tokenAddress, amount):
     tx = aggregator.mint(tokenAddress, amount)
     tx.info()
 
+#used to exchange USDT -> XUSD on the aggregator
 def mintAggregatedTokenWithMS(aggregatorAddress, tokenAddress, amount):
     abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
     abi = json.load(abiFile)
