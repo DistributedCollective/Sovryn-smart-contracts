@@ -28,6 +28,12 @@ def main():
     
     #load the contracts and acct depending on the network
     conf.loadConfig()
+
+    # addAmmPoolTokenToLM("(WR)BTC/MYNT")
+
+    getPoolIdByName("(WR)BTC/MYNT")
+
+    # addWhitelistConverterFeeSharingProxy("0x84953dAF0E7a9fFb8B4fDf7F948185e1cF85852e")
     
     # confirmMultipleTxsWithMS(774, 775)
     # checkTx(808)
