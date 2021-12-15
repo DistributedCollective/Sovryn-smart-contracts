@@ -34,11 +34,6 @@ contract FeeSharingProxyMockup is FeeSharingLogic {
 
 	function addCheckPoint(address loanPoolToken, uint256 poolTokenAmount) public {
 		uint96 amount96 = safe96(poolTokenAmount, "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits");
-		unprocessedAmount[loanPoolToken] = add96(
-			unprocessedAmount[loanPoolToken],
-			amount96,
-			"FeeSharingProxy::withdrawFees: unprocessedAmount exceeds 96 bits"
-		);
-		_addCheckpoint(loanPoolToken);
+		_addCheckpoint(loanPoolToken, amount96);
 	}
 }
