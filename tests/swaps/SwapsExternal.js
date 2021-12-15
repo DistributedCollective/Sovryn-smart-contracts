@@ -145,7 +145,9 @@ contract("SwapsExternal", (accounts) => {
 		vestingFactory.transferOwnership(vestingRegistry.address);
 
 		await sovryn.setLockedSOVAddress(
-			(await LockedSOV.new(SOVToken.address, vestingRegistry.address, cliff, duration, [lender])).address
+			(
+				await LockedSOV.new(SOVToken.address, vestingRegistry.address, cliff, duration, [lender])
+			).address
 		);
 
 		params = [
