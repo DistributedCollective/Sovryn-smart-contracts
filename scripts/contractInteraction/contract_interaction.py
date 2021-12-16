@@ -40,11 +40,11 @@ def main():
     approveSOVForMyntMM(amount)
     
     # 2 tx = MarketMaker.openBuyOrder(SOV.address, amount) and get batch id from 
-    #for i in range(1, 11): # it processes the right boundary - 1
+    #for i in range(1, 7): # it processes the right boundary - 1
     #    myntOpenBuyOrder(cBatchAmount)
     
     # 3 wait 10 blocks and claim order
-    #cBatch = array('i', [1,2,3,4,5,6,7,8,9,10]) #TODO: replace with batchIds from p.2
+    #cBatch = array('i', [b1,b2,b3,b4,b5,b6]) #TODO: replace with batchIds from p.2 - can be 6 or less
 
     #for i in range(1, 11): # it processes the right boundary - 1
     #    myntClaimBuyOrder(cBatch[i])
