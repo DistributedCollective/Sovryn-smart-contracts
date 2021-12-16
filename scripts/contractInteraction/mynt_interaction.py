@@ -17,7 +17,10 @@ def myntOpenBuyOrder(amount):
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['MyntMarketMaker'], data, conf.acct)
 
 def myntClaimBuyOrder(batchId):
-    mm = Contract.from_abi("MyntMarketMaker", address=conf.contracts['MyntMarketMaker'], abi=IMyntMarketMaker.abi, owner=conf.acct)
+    # mm = Contract.from_abi("myntMarketMaker", address=conf.contracts['MyntMarketMaker'], abi=IMyntMarketMaker.abi, owner=conf.acct)
+    abiFile =  open('./scripts/contractInteraction/ABIs/MyntMarketMaker.json')
+    abi = json.load(abiFile)
+    mm = Contract.from_abi("myntMarketMaker", address=conf.contracts['MyntMarketMaker'], abi=abi, owner=conf.acct)
     data = mm.claimBuyOrder.encode_input(conf.contracts['multisig'], batchId, conf.contracts['SOV'])
     print(data)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['MyntMarketMaker'], data, conf.acct)
