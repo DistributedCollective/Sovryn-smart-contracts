@@ -88,7 +88,7 @@ interface ILoanTokenModules {
 		uint256 collateralTokenSent,
 		address collateralTokenAddress,
 		address trader,
-		uint256 minReturn, // minimum position size in the collateral tokens
+		uint256 minEntryPrice, // Value of loan token in collateral.
 		bytes calldata loanDataBytes /// Arbitrary order data.
 	)
 		external
@@ -105,9 +105,9 @@ interface ILoanTokenModules {
 		uint256 collateralTokenSent,
 		address collateralTokenAddress,
 		address trader,
-		uint256 minReturn, /// Minimum position size in the collateral tokens.
-		address affiliateReferrer, /// The user was brought by the affiliate (referrer).
-		bytes calldata loanDataBytes /// Arbitrary order data.
+		uint256 minEntryPrice, // Value of loan token in collateral.
+		address affiliateReferrer, // The user was brought by the affiliate (referrer).
+		bytes calldata loanDataBytes // Arbitrary order data.
 	)
 		external
 		payable
