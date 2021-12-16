@@ -37,11 +37,11 @@ def main():
     amount = 25171327*10**15 #25171.327 SOV
     cBatchAmount = 4195221167*10**12 # 4195.221167 - 6 batch txs - not to mix up with Mynt MM batches
     # 1 approve SOV 
-    approveSOVForMyntMM(amount)
+    # approveSOVForMyntMM(amount)
     
     # 2 tx = MarketMaker.openBuyOrder(SOV.address, amount) and get batch id from 
-    #for i in range(1, 7): # it processes the right boundary - 1
-    #    myntOpenBuyOrder(cBatchAmount)
+    for i in range(1, 7): # it processes the right boundary - 1
+        myntOpenBuyOrder(cBatchAmount)
     
     # 3 wait 10 blocks and claim order
     #cBatch = [b1,b2,b3,b4,b5,b6] #TODO: replace with batchIds from p.2 - can be 6 or less

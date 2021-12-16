@@ -8,7 +8,10 @@ import scripts.contractInteraction.config as conf
 from scripts.contractInteraction.multisig import *
 
 def myntOpenBuyOrder(amount):
-    mm = Contract.from_abi("MyntMarketMaker", address=conf.contracts['MyntMarketMaker'], abi=IMyntMarketMaker.abi, owner=conf.acct)
+    # mm = Contract.from_abi("myntMarketMaker", address=conf.contracts['MyntMarketMaker'], abi=IMyntMarketMaker.abi, owner=conf.acct)
+    abiFile =  open('./scripts/contractInteraction/ABIs/MyntMarketMaker.json')
+    abi = json.load(abiFile)
+    mm = Contract.from_abi("myntMarketMaker", address=conf.contracts['MyntMarketMaker'], abi=abi, owner=conf.acct)
     data = mm.openBuyOrder.encode_input(conf.contracts['multisig'], conf.contracts['SOV'], amount)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['MyntMarketMaker'], data, conf.acct)
