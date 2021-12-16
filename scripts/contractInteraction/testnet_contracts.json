@@ -122,5 +122,7 @@
 	"VestingRegistryProxy": "0x8eE1254c1b95FFaD975Ac6f348Bc1cd25CB0c22F",
 	"VestingRegistryLogic": "0x8Ea3bF5C621FFb93f874047a0c1eE6DffB00053E",
 
-	"SovrynSwapFormula": "0x7FF1C363b5600834bce7c514B01109eF1c103507"
+	"SovrynSwapFormula": "0x7FF1C363b5600834bce7c514B01109eF1c103507",
+
+	"MyntMarketMaker": "0xf75170ce8d4060b8d5fc24e996fa00a94bb8a232"
 }

@@ -21,6 +21,8 @@ from scripts.contractInteraction.token import *
 from scripts.contractInteraction.ownership import *
 from scripts.contractInteraction.misc import *
 from scripts.contractInteraction.prices import *
+from scripts.contractInteraction.mynt_interaction import *
+from array import *
 
 def main():
     # brownie run scripts/contractInteraction/contract_interaction.py --network testnet
@@ -29,9 +31,30 @@ def main():
     #load the contracts and acct depending on the network
     conf.loadConfig()
 
+    # acceptOwnershipWithMultisig("0x25B8D024B39174824424f032423E03dd7dcCF044")
+    
+    # -----------START OF MYNT PROCESSING---------------------
+    amount = 25171327*10**15 #25171.327 SOV
+    cBatchAmount = 4195221167*10**12 # 4195.221167 - 6 batch txs - not to mix up with Mynt MM batches
+    # 1 approve SOV 
+    approveSOVForMyntMM(amount)
+    
+    # 2 tx = MarketMaker.openBuyOrder(SOV.address, amount) and get batch id from 
+    #for i in range(1, 11): # it processes the right boundary - 1
+    #    myntOpenBuyOrder(cBatchAmount)
+    
+    # 3 wait 10 blocks and claim order
+    #cBatch = array('i', [1,2,3,4,5,6,7,8,9,10]) #TODO: replace with batchIds from p.2
+
+    #for i in range(1, 11): # it processes the right boundary - 1
+    #    myntClaimBuyOrder(cBatch[i])
+
+    # -----------END OF MYNT PROCESSING---------------------    
+    
+    
     # addAmmPoolTokenToLM("(WR)BTC/MYNT")
 
-    getPoolIdByName("(WR)BTC/MYNT")
+    # getPoolIdByName("(WR)BTC/MYNT")
 
     # addWhitelistConverterFeeSharingProxy("0x84953dAF0E7a9fFb8B4fDf7F948185e1cF85852e")
     
