@@ -44,10 +44,9 @@ def main():
     #    myntOpenBuyOrder(cBatchAmount)
     
     # 3 wait 10 blocks and claim order
-    #cBatch = array('i', [b1,b2,b3,b4,b5,b6]) #TODO: replace with batchIds from p.2 - can be 6 or less
-
-    #for i in range(1, 11): # it processes the right boundary - 1
-    #    myntClaimBuyOrder(cBatch[i])
+    #cBatch = [b1,b2,b3,b4,b5,b6] #TODO: replace with batchIds from p.2 - can be 6 or less
+    #for b in cBatch: # it processes the right boundary - 1
+    #   myntClaimBuyOrder(b)
 
     # -----------END OF MYNT PROCESSING---------------------    
     
