@@ -65,3 +65,8 @@ def addOwnerToMultisig(newOwner):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     data = multisig.addOwner.encode_input(newOwner)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['multisig'], data, conf.acct)
+    
+def buyWRBTCWithMultisig(amount):
+    contract = Contract.from_abi("WRBTC", address=conf.contracts["WRBTC"], abi=WRBTC.abi, owner=conf.acct)
+    data = contract.deposit.encode_input()
+    sendWithMultisig(conf.contracts['multisig'], contract.address, data, conf.acct, amount)

@@ -127,6 +127,24 @@ def addLiquidityV1(converter, tokens, amounts):
 
     tx = converter.addLiquidity(tokens, amounts, 1)
     print(tx)
+    
+def addLiquidityV1FromMS(converter, tokens, amounts, minReturn):
+    abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV1Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV1Converter", address=converter, abi=abi, owner=conf.acct)
+
+    print("is converter active? - ", converter.isActive())
+
+    token = Contract.from_abi("ERC20", address=tokens[0], abi=ERC20.abi, owner=conf.acct)
+    data = token.approve.encode_input(converter.address, amounts[0])
+    sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
+
+    token = Contract.from_abi("ERC20", address=tokens[1], abi=ERC20.abi, owner=conf.acct)
+    data = token.approve.encode_input(converter.address, amounts[1])
+    sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
+
+    data = converter.addLiquidity.encode_input(tokens, amounts, minReturn)
+    sendWithMultisig(conf.contracts['multisig'], converter.address, data, conf.acct)
 
 def addLiquidityV1UsingWrapper(wrapper, converter, tokens, amounts):
     abiFile =  open('./scripts/contractInteraction/ABIs/RBTCWrapperProxy.json')
@@ -212,9 +230,10 @@ def readWRBTCAddressFromWrapper(wrapper):
     
 #[5e18,2500000e18]
 
-def getConverterGeometricMean(converter, values): #expectedPoolTokens when seeding
+def getConverterGeometricMean(converter, values): #expectedPoolTokens when seeding funds
     converterAbiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV1Converter.json')
     converterAbi = json.load(converterAbiFile)
     converterContract = Contract.from_abi("LiquidityPoolV1Converter", address=converter, abi=converterAbi, owner=conf.acct)
-    # poolToken = converterContract.anchor()
+    poolToken = converterContract.anchor()
+    
     print(converterContract.geometricMean(values))
