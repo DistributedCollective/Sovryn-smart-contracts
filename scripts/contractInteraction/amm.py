@@ -209,3 +209,12 @@ def readWRBTCAddressFromWrapper(wrapper):
     abi = json.load(abiFile)
     wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=wrapper, abi=abi, owner=conf.acct)
     print(wrapperProxy.wrbtcTokenAddress())
+    
+#[5e18,2500000e18]
+
+def getConverterGeometricMean(converter, values): #expectedPoolTokens when seeding
+    converterAbiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV1Converter.json')
+    converterAbi = json.load(converterAbiFile)
+    converterContract = Contract.from_abi("LiquidityPoolV1Converter", address=converter, abi=converterAbi, owner=conf.acct)
+    # poolToken = converterContract.anchor()
+    print(converterContract.geometricMean(values))

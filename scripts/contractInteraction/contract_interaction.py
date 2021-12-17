@@ -34,21 +34,31 @@ def main():
     # acceptOwnershipWithMultisig("0x25B8D024B39174824424f032423E03dd7dcCF044")
     
     # -----------START OF MYNT PROCESSING---------------------
-    totalDepositAmount = 48600*10**18 #48600 SOV
-    cBatchAmount = 48600*10**17 #4860 SOV per 1 order
+    totalDepositAmount = 48600e18 #48600 SOV
+    cBatchAmount = 48600e17 #4860 SOV per 1 order
     # 1 approve SOV 
     # approveSOVForMyntMM(totalDepositAmount)
     
     # 2 tx = MarketMaker.openBuyOrder(SOV.address, amount) and get batch id from 
-    for i in range(1, 2): # it processes the right boundary - 1
-        myntOpenBuyOrder(cBatchAmount)
+    # for i in range(1, 10): # it processes the right boundary - 1, the 1st claimed separately, now 9 left
+    #    myntOpenBuyOrder(cBatchAmount)
     
     # 3 wait 10 blocks and claim order
-    # cBatch = [b1,b2,b3,b4,b5,b6] #TODO: replace with batchIds from p.2 - can be 6 or less
-    #for b in cBatch: # it processes the right boundary - 1
+    # cBatch = [3931470] #TODO: replace with batchIds from p.2 - can be 10 or less
+    # cBatch = [3931650,3931660,3931680,3931690] #TODO: replace with batchIds from p.2 - can be 10 or less
+    # for b in cBatch: # it processes the right boundary - 1
     #   myntClaimBuyOrder(b)
 
-    # -----------END OF MYNT PROCESSING---------------------    
+    # -----------END OF MYNT PROCESSING---------------------  
+    
+    # -----------SEEDING (WR)BTC/MYNT AMM POOL--------------
+    # 1000000000000000000000 - ecpected return according to myntConverter.geometricMean([5e18, 2500000e18])
+    # addLiquidityV1FromMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterMYNT'], [conf.contracts['WRBTC'], conf.contracts['MYNT']], [5e18,2500000e18], 0.8e21)
+    addLiquidityV1FromMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterMYNT'], [conf.contracts['WRBTC'], conf.contracts['MYNT']], [0.000002e18,1e18], 1)
+    
+    # ------------ WHITELIST CONVERTER WITH FEE SHARING PROXY --
+    # addWhitelistConverterFeeSharingProxy("0x25B8D024B39174824424f032423E03dd7dcCF044")
+      
     
     
     # addAmmPoolTokenToLM("(WR)BTC/MYNT")
