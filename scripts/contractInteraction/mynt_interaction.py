@@ -8,22 +8,20 @@ import scripts.contractInteraction.config as conf
 from scripts.contractInteraction.multisig import *
 
 def myntOpenBuyOrder(amount):
-    # mm = Contract.from_abi("myntMarketMaker", address=conf.contracts['MyntMarketMaker'], abi=IMyntMarketMaker.abi, owner=conf.acct)
-    abiFile =  open('./scripts/contractInteraction/ABIs/MyntMarketMaker.json')
+    abiFile =  open('./scripts/contractInteraction/ABIs/MyntController.json')
     abi = json.load(abiFile)
-    mm = Contract.from_abi("myntMarketMaker", address=conf.contracts['MyntMarketMaker'], abi=abi, owner=conf.acct)
-    data = mm.openBuyOrder.encode_input(conf.contracts['multisig'], conf.contracts['SOV'], amount)
+    mmc = Contract.from_abi("myntController", address=conf.contracts['MyntController'], abi=abi, owner=conf.acct)
+    data = mmc.openBuyOrder.encode_input(conf.contracts['SOV'], amount)
     print(data)
-    sendWithMultisig(conf.contracts['multisig'], conf.contracts['MyntMarketMaker'], data, conf.acct)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['MyntController'], data, conf.acct)
 
 def myntClaimBuyOrder(batchId):
-    # mm = Contract.from_abi("myntMarketMaker", address=conf.contracts['MyntMarketMaker'], abi=IMyntMarketMaker.abi, owner=conf.acct)
-    abiFile =  open('./scripts/contractInteraction/ABIs/MyntMarketMaker.json')
+    abiFile =  open('./scripts/contractInteraction/ABIs/MyntController.json')
     abi = json.load(abiFile)
-    mm = Contract.from_abi("myntMarketMaker", address=conf.contracts['MyntMarketMaker'], abi=abi, owner=conf.acct)
-    data = mm.claimBuyOrder.encode_input(conf.contracts['multisig'], batchId, conf.contracts['SOV'])
+    mmc = Contract.from_abi("myntController", address=conf.contracts['MyntController'], abi=abi, owner=conf.acct)
+    data = mmc.claimBuyOrder.encode_input(conf.contracts['multisig'], batchId, conf.contracts['SOV'])
     print(data)
-    sendWithMultisig(conf.contracts['multisig'], conf.contracts['MyntMarketMaker'], data, conf.acct)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['MyntController'], data, conf.acct)
 
 def approveSOVForMyntMM(amount):
     print('Approving ',Wei(amount).to("ether"), 'of SOV for MYNT MarketMaker')

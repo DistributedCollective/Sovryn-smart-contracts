@@ -124,5 +124,6 @@
 
 	"SovrynSwapFormula": "0x7FF1C363b5600834bce7c514B01109eF1c103507",
 
-	"MyntMarketMaker": "0xf75170ce8d4060b8d5fc24e996fa00a94bb8a232"
+	"MyntMarketMaker": "0xf75170ce8d4060b8d5fc24e996fa00a94bb8a232",
+	"MyntController": "0x6F62D2F571BcE7187CdFDD4b1E5E53cfD7d14dd2"
 }
