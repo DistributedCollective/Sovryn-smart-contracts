@@ -35,7 +35,7 @@ def main():
     contracts = json.load(configFile)
     multisig = contracts['multisig']
     SOVAddress = contracts['SOV']
-    stakingAddress = contracts['StakingProxyTN']
+    stakingAddress = contracts['StakingTN']
 
     balanceBefore = acct.balance()
 
