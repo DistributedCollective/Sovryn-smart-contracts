@@ -51,6 +51,10 @@ def loadConfig():
         acct = accounts.load("rskdeployer")
         configFile = open(
             './scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "rsk-mainnet-wss2":
+        acct = accounts.load("rskdeployer")
+        configFile = open(
+            './scripts/contractInteraction/mainnet_contracts.json')
     elif thisNetwork == "rsk-mainnet-websocket":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
