@@ -39,12 +39,12 @@ def main():
         feeSharingProxy = contracts["FeeSharingProxy"]
     else:
         staking = Contract.from_abi(
-            "Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+            "StakingTN", address=contracts['StakingTN'], abi=StakingTN.abi, owner=acct)
         feeSharingProxy = staking.feeSharing()
 
     PRICE_SATS = 2500
     vestingRegistry = acct.deploy(VestingRegistry2, vestingFactory.address, contracts["SOV"], [
-                                  contracts["CSOV1"], contracts["CSOV2"]], PRICE_SATS, contracts["Staking"], feeSharingProxy, teamVestingOwner)
+                                  contracts["CSOV1"], contracts["CSOV2"]], PRICE_SATS, contracts["StakingTN"], feeSharingProxy, teamVestingOwner)
     vestingFactory.transferOwnership(vestingRegistry.address)
 
     claimContract = acct.deploy(OriginInvestorsClaim, vestingRegistry.address)

@@ -30,10 +30,10 @@ def main():
     if thisNetwork == "development":
         SOVtoken = acct.deploy(SOV, 10**26)
         protocolAddress = contracts['sovrynProtocol']
-        stakingLogic = acct.deploy(Staking)
-        staking = acct.deploy(StakingProxy, SOVtoken.address)
+        stakingLogic = acct.deploy(StakingTN)
+        staking = acct.deploy(StakingProxyTN, SOVtoken.address)
         staking.setImplementation(stakingLogic.address)
-        staking = Contract.from_abi("Staking", address=staking.address, abi=Staking.abi, owner=acct)
+        staking = Contract.from_abi("StakingTN", address=staking.address, abi=StakingTN.abi, owner=acct)
 
         feeSharing = acct.deploy(FeeSharingProxy, protocolAddress, staking.address)
         staking.setFeeSharing(feeSharing.address)

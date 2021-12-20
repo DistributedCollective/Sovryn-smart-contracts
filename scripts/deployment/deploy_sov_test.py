@@ -59,12 +59,12 @@ def main():
 
     MULTIPLIER = 10**16
 
-    # == Staking ===========================================================================================================================
+    # == StakingTN ===========================================================================================================================
     #deploy the staking contracts
-    stakingLogic = acct.deploy(Staking)
-    staking = acct.deploy(StakingProxy, SOVtoken.address)
+    stakingLogic = acct.deploy(StakingTN)
+    staking = acct.deploy(StakingProxyTN, SOVtoken.address)
     staking.setImplementation(stakingLogic.address)
-    staking = Contract.from_abi("Staking", address=staking.address, abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("StakingTN", address=staking.address, abi=StakingTN.abi, owner=acct)
 
     #deploy fee sharing contract
     feeSharing = acct.deploy(FeeSharingProxy, protocolAddress, staking.address)

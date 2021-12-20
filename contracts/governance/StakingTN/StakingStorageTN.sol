@@ -7,7 +7,7 @@ import "../IFeeSharingProxy.sol";
 import "../Vesting/VestingRegistryLogic.sol";
 
 /**
- * @title Staking Storage contact.
+ * @title StakingTN Storage contact.
  * @notice Just the storage part of stacking contract, no functions,
  * only constant, variables and required structures (mappings).
  * Used by StackingProxy and Checkpoints contracts.
@@ -21,9 +21,9 @@ import "../Vesting/VestingRegistryLogic.sol";
  * voting rights in the Bitocracy. Stakers are further incentivised through
  * fee and slashing rewards.
  * */
-contract StakingStorage is Ownable {
+contract StakingStorageTN is Ownable {
 	/// @notice 2 weeks in seconds.
-	uint256 constant TWO_WEEKS = 1209600;
+	uint256 constant TWO_WEEKS = 86400;
 
 	/// @notice The maximum possible voting weight before adding +1 (actually 10, but need 9 for computation).
 	uint96 public constant MAX_VOTING_WEIGHT = 9;
@@ -33,10 +33,10 @@ contract StakingStorage is Ownable {
 	uint96 public constant WEIGHT_FACTOR = 10;
 
 	/// @notice The maximum duration to stake tokens for.
-	uint256 public constant MAX_DURATION = 1092 days;
+	uint256 public constant MAX_DURATION = 78 days;
 
 	/// @notice The maximum duration ^2
-	uint96 constant MAX_DURATION_POW_2 = 1092 * 1092;
+	uint96 constant MAX_DURATION_POW_2 = 78 * 78;
 
 	/// @notice Default weight scaling.
 	uint96 constant DEFAULT_WEIGHT_SCALING = 3;

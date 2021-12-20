@@ -1,13 +1,13 @@
 pragma solidity ^0.5.17;
 
-import "../governance/StakingRewards/StakingRewards.sol";
+import "../governance/StakingRewardsTN/StakingRewardsTN.sol";
 import "./BlockMockUp.sol";
 
 /**
- * @title Staking Rewards Contract MockUp
+ * @title StakingTN Rewards Contract MockUp
  * @notice This is used for Testing
  * */
-contract StakingRewardsMockUp is StakingRewards {
+contract StakingRewardsMockUp is StakingRewardsTN {
 	///@notice the block mock up contract
 	BlockMockUp public blockMockUp;
 

@@ -5,8 +5,8 @@ const LoanToken = artifacts.require("LoanToken");
 const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic"); //added functionality for isolated unit testing
 const LockedSOVFailedMockup = artifacts.require("LockedSOVFailedMockup");
 const LockedSOV = artifacts.require("LockedSOV");
-const StakingLogic = artifacts.require("Staking");
-const StakingProxy = artifacts.require("StakingProxy");
+const StakingLogic = artifacts.require("StakingTN");
+const StakingProxyTN = artifacts.require("StakingProxyTN");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
@@ -83,9 +83,9 @@ contract("Affiliates", (accounts) => {
 			await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
 		}
 
-		// Creating the Staking Instance.
+		// Creating the StakingTN Instance.
 		stakingLogic = await StakingLogic.new(tokenSOV.address);
-		staking = await StakingProxy.new(tokenSOV.address);
+		staking = await StakingProxyTN.new(tokenSOV.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 

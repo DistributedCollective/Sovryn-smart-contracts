@@ -4,7 +4,7 @@ const { expectRevert, expectEvent, constants, BN, balance, time } = require("@op
 const { encodeParameters, etherMantissa, mineBlock, increaseTime, blockNumber } = require("../Utils/Ethereum");
 
 const StakingLogic = artifacts.require("StakingMockup");
-const StakingProxy = artifacts.require("StakingProxy");
+const StakingProxyTN = artifacts.require("StakingProxyTN");
 const SOV_ABI = artifacts.require("SOV");
 const TestWrbtc = artifacts.require("TestWrbtc");
 const TestToken = artifacts.require("TestToken");
@@ -44,7 +44,7 @@ contract("VestingRegistry", (accounts) => {
 		cSOV2 = await TestToken.new("cSOV2", "cSOV2", 18, TOTAL_SUPPLY);
 
 		stakingLogic = await StakingLogic.new(SOV.address);
-		staking = await StakingProxy.new(SOV.address);
+		staking = await StakingProxyTN.new(SOV.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 

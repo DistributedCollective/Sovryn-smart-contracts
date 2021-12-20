@@ -1,6 +1,6 @@
 pragma solidity ^0.5.17;
 
-import "../Staking/SafeMath96.sol";
+import "../StakingTN/SafeMath96.sol";
 import "../../openzeppelin/SafeMath.sol";
 import "../../openzeppelin/SafeERC20.sol";
 import "../../openzeppelin/Ownable.sol";
@@ -11,7 +11,7 @@ import "../../interfaces/IConverterAMM.sol";
 
 /**
  * @title The FeeSharingLogic contract.
- * @notice Staking is not only granting voting rights, but also access to fee
+ * @notice StakingTN is not only granting voting rights, but also access to fee
  * sharing according to the own voting power in relation to the total. Whenever
  * somebody decides to collect the fees from the protocol, they get transferred
  * to a proxy contract which invests the funds in the lending pool and keeps
@@ -170,7 +170,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 
 		/// @notice Transfer tokens from msg.sender
 		bool success = IERC20(_token).transferFrom(address(msg.sender), address(this), _amount);
-		require(success, "Staking::transferTokens: token transfer failed");
+		require(success, "StakingTN::transferTokens: token transfer failed");
 
 		_addCheckpoint(_token, _amount);
 

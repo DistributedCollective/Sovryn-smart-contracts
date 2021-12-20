@@ -835,7 +835,7 @@ def createProposalSIP005():
 
 def checkVotingPower(address):
 
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("StakingTN", address=contracts['StakingTN'], abi=StakingTN.abi, owner=acct)
 
     votingPower = staking.getCurrentVotes(address)
 
@@ -1367,14 +1367,14 @@ def readClaimBalanceOrigin(address):
     
 def createProposalSIP0016():
 
-    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    staking = Contract.from_abi("StakingProxyTN", address=contracts['StakingTN'], abi=StakingProxyTN.abi, owner=acct)
 
     # action
-    target = contracts['Staking']
+    target = contracts['StakingTN']
     signature = "setImplementation(address)"
     data = staking.setImplementation.encode_input(contracts['StakingLogic2'])
     data = "0x" + data[10:]
-    description = "SIP-0016: Proposal to upgrade Staking contract - apply fix to unlock Origin Vesting contracts, Details: https://github.com/DistributedCollective/SIPS/blob/128a524ec5a8aa533a3dbadcda115acc71c86182/SIP-0016.md, sha256: 666f8a71dae650ba9a3673bad82ae1524fe486c9e6702a75d9a566b743497d73"
+    description = "SIP-0016: Proposal to upgrade StakingTN contract - apply fix to unlock Origin Vesting contracts, Details: https://github.com/DistributedCollective/SIPS/blob/128a524ec5a8aa533a3dbadcda115acc71c86182/SIP-0016.md, sha256: 666f8a71dae650ba9a3673bad82ae1524fe486c9e6702a75d9a566b743497d73"
 
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acct)
 

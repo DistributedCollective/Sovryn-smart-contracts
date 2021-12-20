@@ -10,9 +10,9 @@ import "../ApprovalReceiver.sol";
 import "../../openzeppelin/SafeMath.sol";
 
 /**
- * @title Staking contract.
+ * @title StakingTN contract.
  * @notice Pay-in and pay-out function for staking and withdrawing tokens.
- * Staking is delegated and vested: To gain voting power, SOV holders must
+ * StakingTN is delegated and vested: To gain voting power, SOV holders must
  * stake their SOV for a given period of time. Aside from Bitocracy
  * participation, there's a financially-rewarding reason for staking SOV.
  * Tokenholders who stake their SOV receive staking rewards, a pro-rata share
@@ -20,7 +20,7 @@ import "../../openzeppelin/SafeMath.sol";
  * plus revenues from stakers who have a portion of their SOV slashed for
  * early unstaking.
  * */
-contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
+contract StakingTN is IStaking, WeightedStaking, ApprovalReceiver {
 	using SafeMath for uint256;
 
 	/// @notice Constant used for computing the vesting dates.
@@ -84,7 +84,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		if (!timeAdjusted) {
 			until = timestampToLockDate(until);
 		}
-		require(until > block.timestamp, "Staking::timestampToLockDate: staking period too short");
+		require(until > block.timestamp, "StakingTN::timestampToLockDate: staking period too short");
 
 		/// @dev Stake for the sender if not specified otherwise.
 		if (stakeFor == address(0)) {
@@ -335,7 +335,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 			/// @dev punishedAmount can be 0 if block.timestamp are very close to 'until'
 			if (punishedAmount > 0) {
-				require(address(feeSharing) != address(0), "Staking::withdraw: FeeSharing address wasn't set");
+				require(address(feeSharing) != address(0), "StakingTN::withdraw: FeeSharing address wasn't set");
 				/// @dev Move punished amount to fee sharing.
 				/// @dev Approve transfer here and let feeSharing do transfer and write checkpoint.
 				SOVToken.approve(address(feeSharing), punishedAmount);
@@ -345,7 +345,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 		/// @dev transferFrom
 		bool success = SOVToken.transfer(receiver, amount);
-		require(success, "Staking::withdraw: Token transfer failed");
+		require(success, "StakingTN::withdraw: Token transfer failed");
 
 		emit StakingWithdrawn(msg.sender, amount, until, receiver, isGovernance);
 	}
@@ -397,9 +397,9 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param until The date until which the tokens were staked.
 	 * */
 	function _validateWithdrawParams(uint96 amount, uint256 until) internal view {
-		require(amount > 0, "Staking::withdraw: amount of tokens to be withdrawn needs to be bigger than 0");
+		require(amount > 0, "StakingTN::withdraw: amount of tokens to be withdrawn needs to be bigger than 0");
 		uint96 balance = _getPriorUserStakeByDate(msg.sender, until, block.number - 1);
-		require(amount <= balance, "Staking::withdraw: not enough balance");
+		require(amount <= balance, "StakingTN::withdraw: not enough balance");
 	}
 
 	/**
@@ -420,7 +420,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * */
 	function balanceOf(address account) public view returns (uint96 balance) {
 		for (uint256 i = kickoffTS; i <= block.timestamp + MAX_DURATION; i += TWO_WEEKS) {
-			balance = add96(balance, currentBalance(account, i), "Staking::balanceOf: overflow");
+			balance = add96(balance, currentBalance(account, i), "StakingTN::balanceOf: overflow");
 		}
 	}
 
@@ -484,16 +484,16 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		 * */
 		bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), getChainId(), address(this)));
 
-		/// @dev GovernorAlpha uses BALLOT_TYPEHASH, while Staking uses DELEGATION_TYPEHASH
+		/// @dev GovernorAlpha uses BALLOT_TYPEHASH, while StakingTN uses DELEGATION_TYPEHASH
 		bytes32 structHash = keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, lockDate, nonce, expiry));
 
 		bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
 		address signatory = ecrecover(digest, v, r, s);
 
 		/// @dev Verify address is not null and PK is not null either.
-		require(RSKAddrValidator.checkPKNotZero(signatory), "Staking::delegateBySig: invalid signature");
-		require(nonce == nonces[signatory]++, "Staking::delegateBySig: invalid nonce");
-		require(now <= expiry, "Staking::delegateBySig: signature expired");
+		require(RSKAddrValidator.checkPKNotZero(signatory), "StakingTN::delegateBySig: invalid signature");
+		require(nonce == nonces[signatory]++, "StakingTN::delegateBySig: invalid nonce");
+		require(now <= expiry, "StakingTN::delegateBySig: signature expired");
 		_delegate(signatory, delegatee, lockDate);
 		// @dev delegates tokens for lock date 2 weeks later than given lock date
 		//		if message sender is a contract
@@ -648,7 +648,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 	/**
 	 * @notice Allow a staker to migrate his positions to the new staking contract.
-	 * @dev Staking contract needs to be set before by the owner.
+	 * @dev StakingTN contract needs to be set before by the owner.
 	 * Currently not implemented, just needed for the interface.
 	 *      In case it's needed at some point in the future,
 	 *      the implementation needs to be changed first.

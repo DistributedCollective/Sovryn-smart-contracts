@@ -1,8 +1,8 @@
 pragma solidity ^0.5.17;
 
-import "../governance/Staking/Staking.sol";
+import "../governance/StakingTN/StakingTN.sol";
 
-contract StakingMockup is Staking {
+contract StakingMockup is StakingTN {
 	function balanceOf_MultipliedByTwo(address account) external view returns (uint256) {
 		return balanceOf(account) * 2;
 	}

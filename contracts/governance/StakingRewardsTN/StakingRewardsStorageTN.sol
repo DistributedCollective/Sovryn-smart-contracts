@@ -1,11 +1,11 @@
 pragma solidity ^0.5.17;
 
 import "../../interfaces/IERC20.sol";
-import "../Staking/IStaking.sol";
+import "../StakingTN/IStaking.sol";
 import "../../openzeppelin/Ownable.sol";
 
 /**
- * @title Staking Rewards Storage Contract.
+ * @title StakingTN Rewards Storage Contract.
  * @notice Just the storage part of staking rewards contract, no functions,
  * only constant, variables and required structures (mappings).
  * Used by StackingRewardsProxy.
@@ -15,7 +15,7 @@ import "../../openzeppelin/Ownable.sol";
  * "marginal stakers" (ie, stakers by choice, not currently vesting) with liquid SOV
  * at the beginning of each new staking interval.
  * */
-contract StakingRewardsStorage is Ownable {
+contract StakingRewardsStorageTN is Ownable {
 	/// @notice The SOV token contract.
 	IERC20 public SOV;
 
@@ -23,7 +23,7 @@ contract StakingRewardsStorage is Ownable {
 	IStaking public staking;
 
 	/// @notice 2 weeks in seconds.
-	uint256 public constant TWO_WEEKS = 1209600;
+	uint256 public constant TWO_WEEKS = 86400;
 
 	/// @notice Annual Base Rate - it is the maximum interest rate(APY)
 	uint256 public constant BASE_RATE = 2975;
@@ -37,7 +37,7 @@ contract StakingRewardsStorage is Ownable {
 	/// @notice Represents the time when the contract is deployed
 	uint256 public startTime;
 
-	/// @notice Represents the block when the Staking Rewards pogram is stopped
+	/// @notice Represents the block when the StakingTN Rewards pogram is stopped
 	uint256 public stopBlock;
 
 	/// @notice User Address -> Last Withdrawn Timestamp

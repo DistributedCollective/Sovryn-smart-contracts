@@ -22,7 +22,7 @@ const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 
 const StakingLogic = artifacts.require("StakingMockup");
-const StakingProxy = artifacts.require("StakingProxy");
+const StakingProxyTN = artifacts.require("StakingProxyTN");
 
 const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
@@ -95,9 +95,9 @@ contract("SwapsExternal", (accounts) => {
 		await loanToken.initialize(underlyingToken.address, name, symbol); //iToken
 		loanToken = await LoanTokenLogicStandard.at(loanToken.address);
 
-		//Staking
+		//StakingTN
 		let stakingLogic = await StakingLogic.new(underlyingToken.address);
-		staking = await StakingProxy.new(underlyingToken.address);
+		staking = await StakingProxyTN.new(underlyingToken.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 

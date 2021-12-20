@@ -98,7 +98,7 @@ contract VestingCreator is AdminRole {
 
 	/**
 	 * @notice Creates vesting contract and stakes tokens
-	 * @dev Vesting and Staking are merged for calls that fits the gas limit
+	 * @dev Vesting and StakingTN are merged for calls that fits the gas limit
 	 */
 	function processNextVesting() external {
 		processVestingCreation();
@@ -107,7 +107,7 @@ contract VestingCreator is AdminRole {
 
 	/**
 	 * @notice Creates vesting contract without staking any tokens
-	 * @dev Separating the Vesting and Staking to tackle Block Gas Limit
+	 * @dev Separating the Vesting and StakingTN to tackle Block Gas Limit
 	 */
 	function processVestingCreation() public {
 		require(!vestingCreated, "staking not done for the previous vesting");
@@ -119,7 +119,7 @@ contract VestingCreator is AdminRole {
 	}
 
 	/**
-	 * @notice Staking vested tokens
+	 * @notice StakingTN vested tokens
 	 * @dev it can be the case when vesting creation and tokens staking can't be done in one transaction because of block gas limit
 	 */
 	function processStaking() public {

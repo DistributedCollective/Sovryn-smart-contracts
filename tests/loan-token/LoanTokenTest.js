@@ -3,8 +3,8 @@ const { expectRevert, expectEvent, constants, BN, balance, time } = require("@op
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
-const StakingLogic = artifacts.require("Staking");
-const StakingProxy = artifacts.require("StakingProxy");
+const StakingLogic = artifacts.require("StakingTN");
+const StakingProxyTN = artifacts.require("StakingProxyTN");
 const TestToken = artifacts.require("TestToken");
 
 const Protocol = artifacts.require("sovrynProtocol");
@@ -39,9 +39,9 @@ contract("LoanTokenUpgrade", (accounts) => {
 		//Token
 		token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 
-		//Staking
+		//StakingTN
 		let stakingLogic = await StakingLogic.new(token.address);
-		staking = await StakingProxy.new(token.address);
+		staking = await StakingProxyTN.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 

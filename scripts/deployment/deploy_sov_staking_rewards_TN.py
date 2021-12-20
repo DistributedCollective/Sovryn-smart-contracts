@@ -21,6 +21,9 @@ def main():
     elif thisNetwork == "rsk-testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet-ws":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
         configFile = open(
@@ -32,7 +35,7 @@ def main():
     contracts = json.load(configFile)
     multisig = contracts['multisig']
     SOVAddress = contracts['SOV']
-    stakingAddress = contracts['StakingTN']
+    stakingAddress = contracts['StakingProxyTN']
 
     balanceBefore = acct.balance()
 
@@ -49,8 +52,6 @@ def main():
         owner=acct)
 
     stakingRewards.initialize(SOVAddress, stakingAddress)
-    stakingRewardsProxy.setProxyOwner(multisig)
-    stakingRewards.transferOwnership(multisig)
 
     print("deployment cost:")
     print((balanceBefore - acct.balance()) / 10**18)

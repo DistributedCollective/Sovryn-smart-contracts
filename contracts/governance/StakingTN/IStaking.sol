@@ -1,7 +1,7 @@
 pragma solidity ^0.5.17;
 
 /**
- * @title Interface for contract governance/Staking/Staking.sol
+ * @title Interface for contract governance/StakingTN/StakingTN.sol
  * @dev Interfaces are used to cast a contract address into a callable instance.
  */
 interface IStaking {

@@ -2367,7 +2367,7 @@
 <g id="node79" class="node">
 <title>140</title>
 <polygon fill="#f2f2f2" stroke="#000000" points="7987.1963,-6248.7 7987.1963,-6793.5 8587.9035,-6793.5 8587.9035,-6248.7 7987.1963,-6248.7"/>
-<text text-anchor="middle" x="8287.5499" y="-6776.9" font-family="Times,serif" font-size="14.00" fill="#000000">StakingStorage</text>
+<text text-anchor="middle" x="8287.5499" y="-6776.9" font-family="Times,serif" font-size="14.00" fill="#000000">StakingStorageTN</text>
 <polyline fill="none" stroke="#000000" points="7987.1963,-6768.7 8587.9035,-6768.7 "/>
 <text text-anchor="start" x="7995.1963" y="-6752.1" font-family="Times,serif" font-size="14.00" fill="#000000">Public:</text>
 <text text-anchor="start" x="7995.1963" y="-6735.3" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;TWO_WEEKS: uint256</text>
@@ -2411,7 +2411,7 @@
 <g id="node77" class="node">
 <title>138</title>
 <polygon fill="#f2f2f2" stroke="#000000" points="12696.0196,-2932.5 12696.0196,-3594.9 13467.0802,-3594.9 13467.0802,-2932.5 12696.0196,-2932.5"/>
-<text text-anchor="middle" x="13081.5499" y="-3578.3" font-family="Times,serif" font-size="14.00" fill="#000000">Staking</text>
+<text text-anchor="middle" x="13081.5499" y="-3578.3" font-family="Times,serif" font-size="14.00" fill="#000000">StakingTN</text>
 <polyline fill="none" stroke="#000000" points="12696.0196,-3570.1 13467.0802,-3570.1 "/>
 <text text-anchor="start" x="12704.0196" y="-3553.5" font-family="Times,serif" font-size="14.00" fill="#000000">Public:</text>
 <text text-anchor="start" x="12704.0196" y="-3536.7" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;FOUR_WEEKS: uint256</text>
@@ -2556,7 +2556,7 @@
 <g id="node78" class="node">
 <title>139</title>
 <polygon fill="#f2f2f2" stroke="#000000" points="6480.7185,-4345.9 6480.7185,-4437.1 6660.3813,-4437.1 6660.3813,-4345.9 6480.7185,-4345.9"/>
-<text text-anchor="middle" x="6570.5499" y="-4420.5" font-family="Times,serif" font-size="14.00" fill="#000000">StakingProxy</text>
+<text text-anchor="middle" x="6570.5499" y="-4420.5" font-family="Times,serif" font-size="14.00" fill="#000000">StakingProxyTN</text>
 <polyline fill="none" stroke="#000000" points="6480.7185,-4412.3 6660.3813,-4412.3 "/>
 <text text-anchor="middle" x="6570.5499" y="-4395.7" font-family="Times,serif" font-size="14.00" fill="#000000"> </text>
 <polyline fill="none" stroke="#000000" points="6480.7185,-4387.5 6660.3813,-4387.5 "/>
@@ -2625,7 +2625,7 @@
 <g id="node82" class="node">
 <title>142</title>
 <polygon fill="#f2f2f2" stroke="#000000" points="7576.6497,-4261.9 7576.6497,-4521.1 8182.4501,-4521.1 8182.4501,-4261.9 7576.6497,-4261.9"/>
-<text text-anchor="middle" x="7879.5499" y="-4504.5" font-family="Times,serif" font-size="14.00" fill="#000000">StakingRewards</text>
+<text text-anchor="middle" x="7879.5499" y="-4504.5" font-family="Times,serif" font-size="14.00" fill="#000000">StakingRewardsTN</text>
 <polyline fill="none" stroke="#000000" points="7576.6497,-4496.3 8182.4501,-4496.3 "/>
 <text text-anchor="middle" x="7879.5499" y="-4479.7" font-family="Times,serif" font-size="14.00" fill="#000000"> </text>
 <polyline fill="none" stroke="#000000" points="7576.6497,-4471.5 8182.4501,-4471.5 "/>
@@ -2646,7 +2646,7 @@
 <g id="node84" class="node">
 <title>144</title>
 <polygon fill="#f2f2f2" stroke="#000000" points="6554.7485,-5448.5 6554.7485,-5690.9 6842.3513,-5690.9 6842.3513,-5448.5 6554.7485,-5448.5"/>
-<text text-anchor="middle" x="6698.5499" y="-5674.3" font-family="Times,serif" font-size="14.00" fill="#000000">StakingRewardsStorage</text>
+<text text-anchor="middle" x="6698.5499" y="-5674.3" font-family="Times,serif" font-size="14.00" fill="#000000">StakingRewardsStorageTN</text>
 <polyline fill="none" stroke="#000000" points="6554.7485,-5666.1 6842.3513,-5666.1 "/>
 <text text-anchor="start" x="6562.7485" y="-5649.5" font-family="Times,serif" font-size="14.00" fill="#000000">Public:</text>
 <text text-anchor="start" x="6562.7485" y="-5632.7" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;SOV: IERC20</text>
@@ -2703,7 +2703,7 @@
 <g id="node83" class="node">
 <title>143</title>
 <polygon fill="#f2f2f2" stroke="#000000" points="6321.9503,-4354.3 6321.9503,-4428.7 6463.1495,-4428.7 6463.1495,-4354.3 6321.9503,-4354.3"/>
-<text text-anchor="middle" x="6392.5499" y="-4412.1" font-family="Times,serif" font-size="14.00" fill="#000000">StakingRewardsProxy</text>
+<text text-anchor="middle" x="6392.5499" y="-4412.1" font-family="Times,serif" font-size="14.00" fill="#000000">StakingRewardsProxyTN</text>
 <polyline fill="none" stroke="#000000" points="6321.9503,-4403.9 6463.1495,-4403.9 "/>
 <text text-anchor="middle" x="6392.5499" y="-4387.3" font-family="Times,serif" font-size="14.00" fill="#000000"> </text>
 <polyline fill="none" stroke="#000000" points="6321.9503,-4379.1 6463.1495,-4379.1 "/>
@@ -2890,7 +2890,7 @@
 <text text-anchor="start" x="16694.5941" y="-2518.1" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;investorsQty: uint256</text>
 <text text-anchor="start" x="16694.5941" y="-2501.3" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;investorsListInitialized: bool</text>
 <text text-anchor="start" x="16694.5941" y="-2484.5" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;vestingRegistry: VestingRegistry</text>
-<text text-anchor="start" x="16694.5941" y="-2467.7" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;staking: Staking</text>
+<text text-anchor="start" x="16694.5941" y="-2467.7" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;staking: StakingTN</text>
 <text text-anchor="start" x="16694.5941" y="-2450.9" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;SOVToken: IERC20</text>
 <text text-anchor="start" x="16694.5941" y="-2434.1" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;admins: mapping(address=&gt;bool)</text>
 <text text-anchor="start" x="16694.5941" y="-2417.3" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;investorsAmountsList: mapping(address=&gt;uint256)</text>
@@ -3163,7 +3163,7 @@
 <polyline fill="none" stroke="#000000" points="8427.6319,-2425.5 8657.4679,-2425.5 "/>
 <text text-anchor="start" x="8435.6319" y="-2408.9" font-family="Times,serif" font-size="14.00" fill="#000000">Public:</text>
 <text text-anchor="start" x="8435.6319" y="-2392.1" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;SOV: IERC20</text>
-<text text-anchor="start" x="8435.6319" y="-2375.3" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;staking: Staking</text>
+<text text-anchor="start" x="8435.6319" y="-2375.3" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;staking: StakingTN</text>
 <text text-anchor="start" x="8435.6319" y="-2358.5" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;tokenOwner: address</text>
 <text text-anchor="start" x="8435.6319" y="-2341.7" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;feeSharingProxy: IFeeSharingProxy</text>
 <text text-anchor="start" x="8435.6319" y="-2324.9" font-family="Times,serif" font-size="14.00" fill="#000000"> &#160;&#160;cliff: uint256</text>

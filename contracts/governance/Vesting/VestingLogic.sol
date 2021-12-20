@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
-import "../Staking/Staking.sol";
+import "../StakingTN/StakingTN.sol";
 import "../IFeeSharingProxy.sol";
 import "./IVesting.sol";
 import "../ApprovalReceiver.sol";
@@ -11,7 +11,7 @@ import "./VestingStorage.sol";
 
 /**
  * @title Vesting Logic contract.
- * @notice Staking, delegating and withdrawal functionality.
+ * @notice StakingTN, delegating and withdrawal functionality.
  * @dev Deployed by a VestingFactory contract.
  * */
 contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
@@ -194,7 +194,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 	 * */
 	function migrateToNewStakingContract() public onlyOwners {
 		staking.migrateToNewStakingContract();
-		staking = Staking(staking.newStakingContract());
+		staking = StakingTN(staking.newStakingContract());
 		emit MigratedToNewStakingContract(msg.sender, address(staking));
 	}
 

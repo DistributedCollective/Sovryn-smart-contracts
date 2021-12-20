@@ -21,7 +21,7 @@ def main():
     # load deployed contracts addresses
     contracts = json.load(configFile)
 
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("StakingTN", address=contracts['StakingTN'], abi=StakingTN.abi, owner=acct)
 
     INPUT_FILE = "./scripts/staking/vestings.json"
 

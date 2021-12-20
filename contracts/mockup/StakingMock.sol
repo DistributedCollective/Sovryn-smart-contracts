@@ -1,9 +1,9 @@
 pragma solidity ^0.5.17;
 
-import "../governance/Staking/Staking.sol";
+import "../governance/StakingTN/StakingTN.sol";
 import "./BlockMockUp.sol";
 
-contract StakingMock is Staking {
+contract StakingMock is StakingTN {
 	///@notice the block mock up contract
 	BlockMockUp public blockMockUp;
 

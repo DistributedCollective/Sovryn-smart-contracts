@@ -54,11 +54,11 @@ def main():
 
     #vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
 
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
-    stakingProxy = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    staking = Contract.from_abi("StakingTN", address=contracts['StakingTN'], abi=StakingTN.abi, owner=acct)
+    stakingProxy = Contract.from_abi("StakingProxyTN", address=contracts['StakingTN'], abi=StakingProxyTN.abi, owner=acct)
     feeSharingAddress = staking.feeSharing()
 
-    print('StakingProxy owner: ', stakingProxy.owner())
+    print('StakingProxyTN owner: ', stakingProxy.owner())
 
     stakingProxy.setImplementation(staking.address)
 
@@ -71,7 +71,7 @@ def main():
     vestingLogic = acct.deploy(VestingLogic)
     vestingFactory = acct.deploy(VestingFactory, vestingLogic.address)
     PRICE_SATS = 2500
-    vestingRegistry = acct.deploy(VestingRegistry, vestingFactory.address, contracts['SOV'], [contracts["CSOV1"], contracts["CSOV2"]], PRICE_SATS, contracts["Staking"], feeSharingAddress, teamVestingOwner)
+    vestingRegistry = acct.deploy(VestingRegistry, vestingFactory.address, contracts['SOV'], [contracts["CSOV1"], contracts["CSOV2"]], PRICE_SATS, contracts["StakingTN"], feeSharingAddress, teamVestingOwner)
     vestingFactory.transferOwnership(vestingRegistry.address)
 
     # this address got 400 too much

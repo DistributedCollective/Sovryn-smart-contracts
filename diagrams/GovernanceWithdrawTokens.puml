@@ -7,7 +7,7 @@ skinparam monochrome true
 
 participant "Governance" as G
 
-participant "Staking" as S
+participant "StakingTN" as S
 
 participant "Vesting" as V
 

@@ -13,8 +13,8 @@ const {
 	lastBlock,
 } = require("../Utils/Ethereum");
 
-const StakingLogic = artifacts.require("Staking");
-const StakingProxy = artifacts.require("StakingProxy");
+const StakingLogic = artifacts.require("StakingTN");
+const StakingProxyTN = artifacts.require("StakingProxyTN");
 const SOV = artifacts.require("SOV");
 const TestWrbtc = artifacts.require("TestWrbtc");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
@@ -52,7 +52,7 @@ contract("Vesting", (accounts) => {
 		feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, constants.ZERO_ADDRESS);
 
 		stakingLogic = await StakingLogic.new(token.address);
-		staking = await StakingProxy.new(token.address);
+		staking = await StakingProxyTN.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 		//Upgradable Vesting Registry
@@ -950,7 +950,7 @@ contract("Vesting", (accounts) => {
 			vesting = await VestingLogic.at(vesting.address);
 			//1. set new staking contract address on staking contract
 
-			let newStaking = await StakingProxy.new(token.address);
+			let newStaking = await StakingProxyTN.new(token.address);
 			await newStaking.setImplementation(stakingLogic.address);
 			newStaking = await StakingLogic.at(newStaking.address);
 
@@ -967,7 +967,7 @@ contract("Vesting", (accounts) => {
 		});
 
 		it("should fail if there is no new staking contract set", async () => {
-			let newStaking = await StakingProxy.new(token.address);
+			let newStaking = await StakingProxyTN.new(token.address);
 			await newStaking.setImplementation(stakingLogic.address);
 			newStaking = await StakingLogic.at(newStaking.address);
 
@@ -985,7 +985,7 @@ contract("Vesting", (accounts) => {
 		});
 
 		it("should fail if the caller is neither owner nor token owner", async () => {
-			let newStaking = await StakingProxy.new(token.address);
+			let newStaking = await StakingProxyTN.new(token.address);
 			await newStaking.setImplementation(stakingLogic.address);
 			newStaking = await StakingLogic.at(newStaking.address);
 

@@ -19,7 +19,7 @@ const { bufferToHex, privateToAddress, toChecksumAddress } = require("ethereumjs
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const StakingLogic = artifacts.require("StakingMockup");
-const StakingProxy = artifacts.require("StakingProxy");
+const StakingProxyTN = artifacts.require("StakingProxyTN");
 const TestToken = artifacts.require("TestToken");
 
 const DELAY = 86400 * 14;
@@ -51,7 +51,7 @@ contract("governorAlpha#castVote/2", (accounts) => {
 		token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
 
 		let stakingLogic = await StakingLogic.new(token.address);
-		staking = await StakingProxy.new(token.address);
+		staking = await StakingProxyTN.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 

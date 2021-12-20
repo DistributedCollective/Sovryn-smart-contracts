@@ -62,7 +62,7 @@ def checkIfUserHasToken(tokenAddr, user):
 
 def currentVotingPower(acctAddress):
 
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acctAddress)
+    staking = Contract.from_abi("StakingTN", address=contracts['StakingTN'], abi=StakingTN.abi, owner=acctAddress)
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acctAddress)
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acctAddress)
     balance = SOVtoken.balanceOf(acctAddress)
@@ -169,15 +169,15 @@ def createProposalSIP0015():
 
 def createProposalSIP0016():
 
-    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    staking = Contract.from_abi("StakingProxyTN", address=contracts['StakingTN'], abi=StakingProxyTN.abi, owner=acct)
 
     # Action
-    target = [contracts['Staking']]
+    target = [contracts['StakingTN']]
     value = [0]
     signature = ["setImplementation(address)"]
     data = staking.setImplementation.encode_input(contracts['StakingLogic2'])
     data = ["0x" + data[10:]]
-    description = "SIP-0016: Proposal to upgrade Staking contract - apply fix to unlock Origin Vesting contracts, Details: https://github.com/DistributedCollective/SIPS/blob/128a524ec5a8aa533a3dbadcda115acc71c86182/SIP-0016.md, sha256: 666f8a71dae650ba9a3673bad82ae1524fe486c9e6702a75d9a566b743497d73"
+    description = "SIP-0016: Proposal to upgrade StakingTN contract - apply fix to unlock Origin Vesting contracts, Details: https://github.com/DistributedCollective/SIPS/blob/128a524ec5a8aa533a3dbadcda115acc71c86182/SIP-0016.md, sha256: 666f8a71dae650ba9a3673bad82ae1524fe486c9e6702a75d9a566b743497d73"
 
     # Create Proposal
     createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
@@ -217,17 +217,17 @@ def createProposalSIP0019():
 
 def createProposalSIP0020():
 
-    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
-    stakingLogic = Contract.from_abi("StakingLogic3", address=contracts['StakingLogic3'], abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("StakingProxyTN", address=contracts['StakingTN'], abi=StakingProxyTN.abi, owner=acct)
+    stakingLogic = Contract.from_abi("StakingLogic3", address=contracts['StakingLogic3'], abi=StakingTN.abi, owner=acct)
 
     # Action
-    targets = [contracts['Staking'], contracts['Staking']]
+    targets = [contracts['StakingTN'], contracts['StakingTN']]
     values = [0, 0]
     signatures = ["setImplementation(address)", "addAdmin(address)"]
     data1 = staking.setImplementation.encode_input(contracts['StakingLogic3'])
     data2 = stakingLogic.addAdmin.encode_input(contracts['multisig'])
     datas = ["0x" + data1[10:], "0x" + data2[10:]]
-    description = "SIP-0020: Staking contract updates, Details: https://github.com/DistributedCollective/SIPS/blob/91ea9de/SIP-0020.md, sha256: c1d39606ef53067d55b3e8a05a266918fa7bad09ecc2c1afcef7c68b2eac3cd0"
+    description = "SIP-0020: StakingTN contract updates, Details: https://github.com/DistributedCollective/SIPS/blob/91ea9de/SIP-0020.md, sha256: c1d39606ef53067d55b3e8a05a266918fa7bad09ecc2c1afcef7c68b2eac3cd0"
 
     # Create Proposal
     # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
@@ -248,11 +248,11 @@ def createProposalSIP0030():
     # TODO FeeSharingProxy2 should be deployed
     # TODO VestingRegistryProxy should be deployed
 
-    stakingProxy = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
-    stakingImpl = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    stakingProxy = Contract.from_abi("StakingProxyTN", address=contracts['StakingTN'], abi=StakingProxyTN.abi, owner=acct)
+    stakingImpl = Contract.from_abi("StakingTN", address=contracts['StakingTN'], abi=StakingTN.abi, owner=acct)
 
     # Action
-    targets = [contracts['Staking'], contracts['Staking'], contracts['Staking']]
+    targets = [contracts['StakingTN'], contracts['StakingTN'], contracts['StakingTN']]
     values = [0, 0, 0]
     signatures = ["setImplementation(address)", "setFeeSharing(address)", "setVestingRegistry(address)"]
     data1 = stakingProxy.setImplementation.encode_input(contracts['StakingLogic4'])

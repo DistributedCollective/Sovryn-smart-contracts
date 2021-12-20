@@ -92,4 +92,4 @@ brownie run scripts/governance/last_proposal_created.py --network rsk-testnet
 - Only one proposal can be created at a time by a single staked address.
 - The voting power has to be higher than proposal threshold to create a proposal.
 - Only unique proposals are allowed at a particular time. Uniqueness is dependent on the target, signature and data. (All of which you can edit in [values.json](./values.json))
-- Staking has to be done before creating the proposal, else the voting power won't be useful for that particular proposal.
+- StakingTN has to be done before creating the proposal, else the voting power won't be useful for that particular proposal.

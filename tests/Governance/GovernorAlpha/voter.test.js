@@ -3,7 +3,7 @@ const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("Timelock");
 const TestToken = artifacts.require("TestToken");
 const StakingLogic = artifacts.require("StakingMockup");
-const StakingProxy = artifacts.require("StakingProxy");
+const StakingProxyTN = artifacts.require("StakingProxyTN");
 
 const {
 	time, // Convert different time units to seconds. Available helpers are: seconds, minutes, hours, days, weeks and years.
@@ -35,8 +35,8 @@ const stateExecuted = 7;
 /**
  * This function stakes token into the smart contract.
  *
- * @param {object} tokenInstance The Token used for Staking.
- * @param {object} stakingInstance The Staking Contract Instance.
+ * @param {object} tokenInstance The Token used for StakingTN.
+ * @param {object} stakingInstance The StakingTN Contract Instance.
  * @param stakeFor The person who is staking.
  * @param delegatee The person who has the right to vote on behalf of staker.
  * @param {number} amount The amount to stake.
@@ -74,9 +74,9 @@ contract("GovernorAlpha (Voter Functions)", (accounts) => {
 		// Creating the instance of Test Token.
 		testToken = await TestToken.new("TestToken", "TST", 18, totalSupply);
 
-		// Creating the Staking Contract instance.
+		// Creating the StakingTN Contract instance.
 		stakingLogic = await StakingLogic.new(testToken.address);
-		stakingProxy = await StakingProxy.new(testToken.address);
+		stakingProxy = await StakingProxyTN.new(testToken.address);
 		await stakingProxy.setImplementation(stakingLogic.address);
 		stakingLogic = await StakingLogic.at(stakingProxy.address);
 

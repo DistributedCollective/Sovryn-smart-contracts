@@ -21,6 +21,9 @@ def main():
     elif thisNetwork == "rsk-testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet-ws":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
         configFile = open(
@@ -30,27 +33,27 @@ def main():
 
     # load deployed contracts addresses
     contracts = json.load(configFile)
-    multisig = contracts['multisig']
-    SOVAddress = contracts['SOV']
-    stakingAddress = contracts['StakingTN']
+    protocolAddress = contracts['sovrynProtocol']
 
     balanceBefore = acct.balance()
 
     # ================================ SOV StakingTN Rewards - SIP-0024 ===================================
 
     # deploy VestingRegistryLogic
-    stakingRewardsLogic = acct.deploy(StakingRewardsTN)
-    stakingRewardsProxy = acct.deploy(StakingRewardsProxyTN)
-    stakingRewardsProxy.setImplementation(stakingRewardsLogic.address)
-    stakingRewards = Contract.from_abi(
-        "StakingRewardsTN",
-        address=stakingRewardsProxy.address,
-        abi=StakingRewardsTN.abi,
+    stakingLogic = acct.deploy(StakingTN)
+    stakingProxy = acct.deploy(StakingProxyTN, contracts['SOV'])
+    stakingProxy.setImplementation(stakingLogic.address)
+    staking = Contract.from_abi(
+        "StakingTN",
+        address=stakingProxy.address,
+        abi=StakingTN.abi,
         owner=acct)
 
-    stakingRewards.initialize(SOVAddress, stakingAddress)
-    stakingRewardsProxy.setProxyOwner(multisig)
-    stakingRewards.transferOwnership(multisig)
+    #deploy fee sharing contract
+    feeSharing = acct.deploy(FeeSharingProxy, protocolAddress, staking.address)
+
+    # set fee sharing
+    staking.setFeeSharing(feeSharing.address)
 
     print("deployment cost:")
     print((balanceBefore - acct.balance()) / 10**18)

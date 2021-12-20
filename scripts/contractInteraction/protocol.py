@@ -455,7 +455,7 @@ def deployConversionFeeSharingToWRBTC():
 def deployFeeSharingProxy():
     print("Deploy fee sharing proxy")
     feeSharingProxy = conf.acct.deploy(
-        FeeSharingProxy, conf.contracts['sovrynProtocol'], conf.contracts['Staking'])
+        FeeSharingProxy, conf.contracts['sovrynProtocol'], conf.contracts['StakingTN'])
     print(feeSharingProxy.address)
     print('Proxy owner: ', feeSharingProxy.getProxyOwner())
     print('FeeSharingProxy ownership: ', feeSharingProxy.owner())

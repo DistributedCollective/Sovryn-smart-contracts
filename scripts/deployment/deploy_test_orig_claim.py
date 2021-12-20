@@ -58,11 +58,11 @@ def main():
     sov = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
 
     #deploy the staking contracts
-    stakingLogic = acct.deploy(Staking)
-    #staking = acct.deploy(StakingProxy, contracts['SOV'])
-    stakingProxy = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    stakingLogic = acct.deploy(StakingTN)
+    #staking = acct.deploy(StakingProxyTN, contracts['SOV'])
+    stakingProxy = Contract.from_abi("StakingProxyTN", address=contracts['StakingTN'], abi=StakingProxyTN.abi, owner=acct)
     stakingProxy.setImplementation(stakingLogic.address)
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("StakingTN", address=contracts['StakingTN'], abi=StakingTN.abi, owner=acct)
 
     #deploy fee sharing contract
     #feeSharing = acct.deploy(FeeSharingProxy, contracts["sovrynProtocol"], staking.address)
@@ -70,7 +70,7 @@ def main():
     # set fee sharing
     # staking.setFeeSharing(feeSharing.address)
 
-    #staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    #staking = Contract.from_abi("StakingTN", address=contracts['StakingTN'], abi=StakingTN.abi, owner=acct)
     feeSharingAddress = staking.feeSharing()
 
     print('feeSharingAddress: ', feeSharingAddress)

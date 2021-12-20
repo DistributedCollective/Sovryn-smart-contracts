@@ -24,13 +24,13 @@ def loadConfig():
 
 def calculateVotingPower(sovAmount, stakeTime):
 
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("StakingTN", address=contracts['StakingTN'], abi=StakingTN.abi, owner=acct)
     
     weight = staking.computeWeightByDate(stakeTime, 0)
     votingPower = int(sovAmount) * weight
 
     print('======================================')
     print('SOV Token Amount:            '+str(sovAmount))
-    print('Staking Time (in seconds):   '+str(stakeTime))
+    print('StakingTN Time (in seconds):   '+str(stakeTime))
     print('Calculated Voting Power:     '+str(votingPower))
     print('======================================')

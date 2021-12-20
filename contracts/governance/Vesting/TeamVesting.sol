@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
-import "../Staking/Staking.sol";
+import "../StakingTN/StakingTN.sol";
 import "../IFeeSharingProxy.sol";
 import "./IVesting.sol";
 import "../ApprovalReceiver.sol";
@@ -45,7 +45,7 @@ contract TeamVesting is VestingStorage, Proxy {
 
 		_setImplementation(_logic);
 		SOV = IERC20(_SOV);
-		staking = Staking(_stakingAddress);
+		staking = StakingTN(_stakingAddress);
 		require(_duration <= staking.MAX_DURATION(), "duration may not exceed the max duration");
 		tokenOwner = _tokenOwner;
 		cliff = _cliff;

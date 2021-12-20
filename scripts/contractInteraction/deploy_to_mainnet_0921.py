@@ -27,7 +27,7 @@ def main():
     # https://docs.google.com/document/d/1hG_DgsJq3XG4XFlSusgCoFFvHpkbmBxmjhwluNRp2aI/edit#
     '''
     NOTES:
-     - no Staking contracts update is included (events added) as it requires SIP
+     - no StakingTN contracts update is included (events added) as it requires SIP
     '''
     #load the contracts and acct depending on the network
 
@@ -61,11 +61,11 @@ def main():
     replaceProtocolSettings()
     #replaceSwapsExternal()
 
-# 3. SOV Staking Rewards SIP-0024 - aready deployed to the mainnet
+# 3. SOV StakingTN Rewards SIP-0024 - aready deployed to the mainnet
 # 4. Events for backend
     '''
     contracts need to be upgraded:
-    Staking - skipped for now - separately via SIP
+    StakingTN - skipped for now - separately via SIP
     All below will be redeployed 
     LoanClosingsBase
     LoanClosingsWith

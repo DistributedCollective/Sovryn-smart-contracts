@@ -1,9 +1,9 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./Staking/SafeMath96.sol";
+import "./StakingTN/SafeMath96.sol";
 import "./Timelock.sol";
-import "./Staking/Staking.sol";
+import "./StakingTN/StakingTN.sol";
 import "../rsk/RSKAddrValidator.sol";
 
 /**
@@ -438,7 +438,7 @@ contract GovernorAlpha is SafeMath96 {
 		 * */
 		bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(NAME)), getChainId(), address(this)));
 
-		/// @dev GovernorAlpha uses BALLOT_TYPEHASH, while Staking uses DELEGATION_TYPEHASH
+		/// @dev GovernorAlpha uses BALLOT_TYPEHASH, while StakingTN uses DELEGATION_TYPEHASH
 		bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));
 
 		bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));

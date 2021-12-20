@@ -5,14 +5,14 @@ import "./Checkpoints.sol";
 import "../../openzeppelin/Address.sol";
 
 /**
- * @title Weighted Staking contract.
+ * @title Weighted StakingTN contract.
  * @notice Computation of power and votes used by FeeSharingProxy and
- * GovernorAlpha and Staking contracts w/ mainly 3 public functions:
+ * GovernorAlpha and StakingTN contracts w/ mainly 3 public functions:
  *   + getPriorTotalVotingPower => Total voting power.
  *   + getPriorVotes  => Delegatee voting power.
  *   + getPriorWeightedStake  => User Weighted Stake.
- * Staking contract inherits WeightedStaking.
- * FeeSharingProxy and GovernorAlpha invoke Staking instance functions.
+ * StakingTN contract inherits WeightedStaking.
+ * FeeSharingProxy and GovernorAlpha invoke StakingTN instance functions.
  * */
 contract WeightedStaking is Checkpoints {
 	using Address for address payable;
@@ -345,7 +345,7 @@ contract WeightedStaking is Checkpoints {
 	/**
 	 * @notice Determine the prior number of stake for an account until a
 	 * 		certain lock date as of a block number.
-	 * @dev All functions of Staking contract use this internal version,
+	 * @dev All functions of StakingTN contract use this internal version,
 	 * 		we need to modify public function in order to workaround issue with Vesting.withdrawTokens:
 	 * return 1 instead of 0 if message sender is a contract.
 	 * @param account The address of the account to check.
@@ -461,7 +461,7 @@ contract WeightedStaking is Checkpoints {
 	/**
 	 * @notice Determine the prior number of vested stake for an account until a
 	 * 		certain lock date as of a block number.
-	 * @dev All functions of Staking contract use this internal version,
+	 * @dev All functions of StakingTN contract use this internal version,
 	 * 		we need to modify public function in order to workaround issue with Vesting.withdrawTokens:
 	 * return 1 instead of 0 if message sender is a contract.
 	 * @param date The lock date.

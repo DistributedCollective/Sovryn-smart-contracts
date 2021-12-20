@@ -5,7 +5,7 @@ const { address, etherMantissa, encodeParameters, mineBlock, setTime } = require
 
 const GovernorAlpha = artifacts.require("GovernorAlpha");
 const StakingLogic = artifacts.require("StakingMockup");
-const StakingProxy = artifacts.require("StakingProxy");
+const StakingProxyTN = artifacts.require("StakingProxyTN");
 const TestToken = artifacts.require("TestToken");
 //Upgradable Vesting Registry
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
@@ -24,7 +24,7 @@ contract("GovernorAlpha#propose/5", (accounts) => {
 		token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
 
 		let stakingLogic = await StakingLogic.new(token.address);
-		staking = await StakingProxy.new(token.address);
+		staking = await StakingProxyTN.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 

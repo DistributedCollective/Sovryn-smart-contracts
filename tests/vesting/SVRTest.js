@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
 const StakingLogic = artifacts.require("StakingMockup");
-const StakingProxy = artifacts.require("StakingProxy");
+const StakingProxyTN = artifacts.require("StakingProxyTN");
 const SOV = artifacts.require("SOV");
 const SVR = artifacts.require("SVR");
 
@@ -30,7 +30,7 @@ contract("SVR:", (accounts) => {
 		tokenSOV = await SOV.new(TOTAL_SUPPLY);
 
 		let stakingLogic = await StakingLogic.new(tokenSOV.address);
-		staking = await StakingProxy.new(tokenSOV.address);
+		staking = await StakingProxyTN.new(tokenSOV.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 

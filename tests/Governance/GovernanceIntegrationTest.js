@@ -8,7 +8,7 @@ const { encodeParameters, etherMantissa, mineBlock, increaseTime } = require("..
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
 const StakingLogic = artifacts.require("StakingMockup");
-const StakingProxy = artifacts.require("StakingProxy");
+const StakingProxyTN = artifacts.require("StakingProxyTN");
 const TestToken = artifacts.require("TestToken");
 
 const Protocol = artifacts.require("sovrynProtocol");
@@ -42,9 +42,9 @@ contract("GovernanceIntegration", (accounts) => {
 		//Token
 		token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 
-		//Staking
+		//StakingTN
 		let stakingLogic = await StakingLogic.new(token.address);
-		staking = await StakingProxy.new(token.address);
+		staking = await StakingProxyTN.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 

@@ -26,7 +26,7 @@ def main():
     print('deploying account:', acct)
 
     #deploy the staking logic contracts
-    stakingLogic = acct.deploy(Staking)
+    stakingLogic = acct.deploy(StakingTN)
 
     print("new staking logic address:", stakingLogic.address)
     print('''

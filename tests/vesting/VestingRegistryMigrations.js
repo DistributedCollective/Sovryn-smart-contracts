@@ -4,7 +4,7 @@ const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test
 const { mineBlock } = require("../Utils/Ethereum");
 
 const StakingLogic = artifacts.require("StakingMockup");
-const StakingProxy = artifacts.require("StakingProxy");
+const StakingProxyTN = artifacts.require("StakingProxyTN");
 const SOV_ABI = artifacts.require("SOV");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
@@ -48,7 +48,7 @@ contract("VestingRegistryMigrations", (accounts) => {
 		cSOV2 = await TestToken.new("cSOV2", "cSOV2", 18, TOTAL_SUPPLY);
 
 		stakingLogic = await StakingLogic.new();
-		staking = await StakingProxy.new(SOV.address);
+		staking = await StakingProxyTN.new(SOV.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingLogic.at(staking.address);
 

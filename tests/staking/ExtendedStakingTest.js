@@ -16,7 +16,7 @@ const {
 } = require("../Utils/Ethereum");
 
 const StakingLogic = artifacts.require("StakingMockup");
-const StakingProxy = artifacts.require("StakingProxy");
+const StakingProxyTN = artifacts.require("StakingProxyTN");
 const StakingMockup = artifacts.require("StakingMockup");
 const VestingLogic = artifacts.require("VestingLogicMockup");
 const Vesting = artifacts.require("TeamVesting");
@@ -53,7 +53,7 @@ const DELAY = 86400 * 14;
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-contract("Staking", (accounts) => {
+contract("StakingTN", (accounts) => {
 	const name = "Test token";
 	const symbol = "TST";
 
@@ -76,7 +76,7 @@ contract("Staking", (accounts) => {
 
 		//staking
 		let stakingLogic = await StakingMockup.new(token.address);
-		staking = await StakingProxy.new(token.address);
+		staking = await StakingProxyTN.new(token.address);
 		await staking.setImplementation(stakingLogic.address);
 		staking = await StakingMockup.at(staking.address);
 
@@ -137,10 +137,10 @@ contract("Staking", (accounts) => {
 			await expectRevert(staking.stake(100, inOneWeek, root, root, { from: account1 }), "ERC20: transfer amount exceeds allowance");
 		});
 
-		it("Staking period too short", async () => {
+		it("StakingTN period too short", async () => {
 			await expectRevert(
 				staking.stake(100, await getTimeFromKickoff(DAY), root, root),
-				"Staking::timestampToLockDate: staking period too short"
+				"StakingTN::timestampToLockDate: staking period too short"
 			);
 		});
 
@@ -689,7 +689,7 @@ contract("Staking", (accounts) => {
 
 			await expectRevert(
 				staking.withdraw("0", lockedTS, root),
-				"Staking::withdraw: amount of tokens to be withdrawn needs to be bigger than 0"
+				"StakingTN::withdraw: amount of tokens to be withdrawn needs to be bigger than 0"
 			);
 		});
 
@@ -701,7 +701,7 @@ contract("Staking", (accounts) => {
 
 			//await setTime(lockedTS);
 			setNextBlockTimestamp(lockedTS.toNumber());
-			await expectRevert(staking.withdraw(amount * 2, lockedTS, root), "Staking::withdraw: not enough balance");
+			await expectRevert(staking.withdraw(amount * 2, lockedTS, root), "StakingTN::withdraw: not enough balance");
 		});
 
 		it("Should be able to withdraw", async () => {
@@ -997,7 +997,7 @@ contract("Staking", (accounts) => {
 			token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 
 			let stakingLogic = await StakingLogic.new(token.address);
-			staking = await StakingProxy.new(token.address);
+			staking = await StakingProxyTN.new(token.address);
 			await staking.setImplementation(stakingLogic.address);
 			staking = await StakingLogic.at(staking.address);
 		});
@@ -1047,7 +1047,7 @@ contract("Staking", (accounts) => {
 			expect(checkpoint.stake.toNumber()).to.be.equal(amount);
 
 			//upgrade
-			staking = await StakingProxy.at(staking.address);
+			staking = await StakingProxyTN.at(staking.address);
 			let stakingMockup = await StakingMockup.new(token.address);
 			await staking.setImplementation(stakingMockup.address);
 			staking = await StakingMockup.at(staking.address);
