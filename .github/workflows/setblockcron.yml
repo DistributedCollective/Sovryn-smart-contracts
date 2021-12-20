@@ -5,7 +5,7 @@ name: Set Block
 
 on:
   schedule:
-  # TODO: The cron job should run every aletrnate Friday at 11 UTC(New staking interval starts at 10:28:15 UTC)
+    # TODO: The cron job should run every aletrnate Friday at 11 UTC(New staking interval starts at 10:28:15 UTC)
     - cron: "0 11 * * FRI"
 
 jobs:
