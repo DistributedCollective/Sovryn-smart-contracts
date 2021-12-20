@@ -224,3 +224,9 @@ def updateLockedSOV():
     data = lockedSOV.changeRegistryCliffAndDuration.encode_input(conf.contracts['VestingRegistryProxy'], cliff, duration)
     print(data)
     # sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
+
+def setBlockForStakingRewards():
+    # Get the staking rewards proxy contract instance
+    stakingRewardsProxy = Contract.from_abi("StakingRewardsProxy", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewardsProxy.abi, owner=conf.acct)
+    stakingRewardsProxy.setBlock()
+    
