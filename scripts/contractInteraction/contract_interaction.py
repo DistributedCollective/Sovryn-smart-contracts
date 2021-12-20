@@ -54,7 +54,22 @@ def main():
     # -----------SEEDING (WR)BTC/MYNT AMM POOL--------------
     # 1000000000000000000000 - ecpected return according to myntConverter.geometricMean([5e18, 2500000e18])
     # addLiquidityV1FromMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterMYNT'], [conf.contracts['WRBTC'], conf.contracts['MYNT']], [5e18,2500000e18], 0.8e21)
-    addLiquidityV1FromMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterMYNT'], [conf.contracts['WRBTC'], conf.contracts['MYNT']], [0.000002e18,1e18], 1)
+    # addLiquidityV1FromMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterMYNT'], [conf.contracts['WRBTC'], conf.contracts['MYNT']], [0.000002e18,1e18], 1)
+    
+    # sendTokensFromMultisig(conf.contracts['MYNT'], '0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E', 1e18)
+    
+    # addLiquidityV1UsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterMYNT'], [conf.contracts['WRBTC'], conf.contracts['MYNT']], [0.000002e18,1e18])
+    
+    # ------------ TWO STEPS LIQUIDITY PROVIDING ---------------
+    # STEP 1 - buy WRBTC
+    # buyWRBTCWithMultisig(5e18)
+    
+    #STEP 2 - 
+    # addLiquidityV1FromMS(conf.contracts["ConverterMYNT"], [conf.contracts['WRBTC'], conf.contracts['MYNT']], [5e18, 2500000e18], 1e21)
+    
+    # ------------ END OF TWO STEPS LIQUIDITY PROVIDING ---------------
+    
+    # addLiquidityV1UsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterMYNT'], [conf.contracts['WRBTC'], conf.contracts['MYNT']], [0.000002e18,1e18])
     
     # ------------ WHITELIST CONVERTER WITH FEE SHARING PROXY --
     # addWhitelistConverterFeeSharingProxy("0x25B8D024B39174824424f032423E03dd7dcCF044")
@@ -67,15 +82,15 @@ def main():
 
     # addWhitelistConverterFeeSharingProxy("0x84953dAF0E7a9fFb8B4fDf7F948185e1cF85852e")
     
-    # confirmMultipleTxsWithMS(774, 775)
+    # confirmMultipleTxsWithMS(618, 619)
     # checkTx(808)
-    # confirmWithMS(808)
+    # confirmWithMS(620)
 
     #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iXUSD'])
     #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iRBTC'])
     #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iBPro'])
     #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iDOC'])
-    # setSupportedToken(conf.contracts['BNBs'])
+    # setSupportedToken(conf.contracts['MYNT'])
 
     #updateLockedSOV()
 
@@ -92,7 +107,7 @@ def main():
     # balance = getBalance(conf.contracts['XUSD'], conf.contracts['multisig'])
     # print(balance)
     # if(balance > 0):
-    #     sendTokensFromMultisig(conf.contracts['XUSD'], '0x051B89f575fCd540F0a6a5B49c75f9a83BB2Cf07', balance)
+   #    sendTokensFromMultisig(conf.contracts['XUSD'], '0x051B89f575fCd540F0a6a5B49c75f9a83BB2Cf07', balance)
 
     # balance = getBalance(conf.contracts['XUSD'], conf.contracts['multisig'])
     # print(balance)
