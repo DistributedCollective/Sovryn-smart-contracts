@@ -102,4 +102,5 @@ def main():
     #replaceOwnerOnMultisig(conf.contracts['multisig'], '0x13Be55487D37FE3C66EE7305e1e9C1ac85de75Ae', '0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E')
 
 
-    
+    # sendFromMultisig(conf.contracts['FastBTC'], 10**16)
+    checkTx(655)
