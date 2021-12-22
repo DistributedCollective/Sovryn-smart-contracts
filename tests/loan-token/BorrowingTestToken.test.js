@@ -763,7 +763,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 			// compute expected values for asserts
 			const interestRate = await loanToken.nextBorrowInterestRate(withdrawAmount);
-			
+
 			// Replicate the values of demand curve
 			const baseRate = wei("1", "ether");
 			const rateMultiplier = wei("20.25", "ether");
@@ -778,7 +778,9 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 			// Interest rate calculation
 			// in the interval [0,k] : f(x) = b + m*x, where b is the base rate, m is the rate multiplier and x is the utilization rate
-			const calculatedRate = new BN(baseRate).add(new BN(rateMultiplier).mul(new BN(utilizationRate)).div(new BN(10).pow(new BN(20))));
+			const calculatedRate = new BN(baseRate).add(
+				new BN(rateMultiplier).mul(new BN(utilizationRate)).div(new BN(10).pow(new BN(20)))
+			);
 			expect(interestRate).to.be.a.bignumber.equal(calculatedRate);
 		});
 
@@ -793,7 +795,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 			// compute expected values for asserts
 			const interestRate = await loanToken.nextBorrowInterestRate(withdrawAmount);
-			
+
 			// Replicate the values of demand curve
 			const baseRate = wei("1", "ether");
 			const rateMultiplier = wei("20.25", "ether");
@@ -813,7 +815,12 @@ contract("LoanTokenBorrowing", (accounts) => {
 			const calculatedRate = new BN(baseRate).add(new BN(rateMultiplier).mul(new BN(kinkLevel)).div(new BN(10).pow(new BN(20))));
 
 			// Then f(x) = z + (s - z)*(x - k)/(100-k), where s is the maximum scale rate (could be 100% or 150%)
-			const interest = new BN(calculatedRate).add(new BN(new BN(maxScaleRate)).sub(new BN(calculatedRate)).mul(new BN(utilizationRate).sub(new BN(kinkLevel))).div(new BN(new BN(10).pow(new BN(20))).sub(new BN(kinkLevel))));
+			const interest = new BN(calculatedRate).add(
+				new BN(new BN(maxScaleRate))
+					.sub(new BN(calculatedRate))
+					.mul(new BN(utilizationRate).sub(new BN(kinkLevel)))
+					.div(new BN(new BN(10).pow(new BN(20))).sub(new BN(kinkLevel)))
+			);
 			expect(interestRate).to.be.a.bignumber.equal(interest);
 		});
 	});
