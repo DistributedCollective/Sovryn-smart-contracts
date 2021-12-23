@@ -106,3 +106,12 @@ def withdrawTokensFromWatcher(token, amount, recipient):
     data = watcher.withdrawTokens.encode_input(token, amount, recipient)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], watcher.address, data, conf.acct)
+
+def deployFeeSharingLogic():
+    # Redeploy feeSharingLogic
+    feeSharing = conf.acct.deploy(FeeSharingLogic)
+    print("Fee sharing logic redeployed at: ", feeSharing.address)
+    print("Setting implementation for FeeSharingProxy")
+    feeSharingProxy = Contract.from_abi("FeeSharingProxy", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingProxy.abi, owner=conf.acct)
+    data = feeSharingProxy.setImplementation.encode_input(feeSharing.address)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)
