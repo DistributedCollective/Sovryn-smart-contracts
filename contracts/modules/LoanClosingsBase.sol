@@ -361,11 +361,10 @@ contract LoanClosingsBase is LoanClosingsShared, LiquidationHelper {
 				// 1. pay back the excess reward to the lender
 				// 2. pay the complete collateral to msg.sender
 				// 3. close the position & emit close event
-				uint256 excessRewards = rolloverReward.sub(loanLocal.collateral);
 				_closeWithSwap(
 					loanLocal.id,
 					msg.sender,
-					excessRewards,
+					rolloverReward,
 					true, /// TODO::should we return it as the collateral or loan token?
 					"" // loanDataBytes
 				);
