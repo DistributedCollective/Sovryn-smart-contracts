@@ -1380,7 +1380,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		uint256 utilRate = _utilizationRate(totalAssetBorrow().add(newBorrowAmount), assetSupply);
 
 		uint256 thisMinRate;
-		uint256 thisMaxRate;
+		uint256 thisRateAtKink;
 		uint256 thisBaseRate = baseRate;
 		uint256 thisRateMultiplier = rateMultiplier;
 		uint256 thisTargetLevel = targetLevel;
@@ -1399,17 +1399,19 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 			utilRate -= thisKinkLevel;
 			if (utilRate > thisMaxRange) utilRate = thisMaxRange;
 
-			thisMaxRate = thisRateMultiplier.add(thisBaseRate).mul(thisKinkLevel).div(WEI_PERCENT_PRECISION);
+			// Modified the rate calculation as it is slightly exaggerated around kink level
+			// thisRateAtKink = thisRateMultiplier.add(thisBaseRate).mul(thisKinkLevel).div(WEI_PERCENT_PRECISION);
+			thisRateAtKink = thisKinkLevel.mul(thisRateMultiplier).div(WEI_PERCENT_PRECISION).add(thisBaseRate);
 
-			nextRate = utilRate.mul(SafeMath.sub(thisMaxScaleRate, thisMaxRate)).div(thisMaxRange).add(thisMaxRate);
+			nextRate = utilRate.mul(SafeMath.sub(thisMaxScaleRate, thisRateAtKink)).div(thisMaxRange).add(thisRateAtKink);
 		} else {
 			nextRate = utilRate.mul(thisRateMultiplier).div(WEI_PERCENT_PRECISION).add(thisBaseRate);
 
 			thisMinRate = thisBaseRate;
-			thisMaxRate = thisRateMultiplier.add(thisBaseRate);
+			thisRateAtKink = thisRateMultiplier.add(thisBaseRate);
 
 			if (nextRate < thisMinRate) nextRate = thisMinRate;
-			else if (nextRate > thisMaxRate) nextRate = thisMaxRate;
+			else if (nextRate > thisRateAtKink) nextRate = thisRateAtKink;
 		}
 	}
 
