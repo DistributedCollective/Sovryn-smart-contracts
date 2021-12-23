@@ -63,6 +63,7 @@ def main():
         print(stakingRewards.checkpointBlockDetails(1639996306))
         print(stakingRewards.checkpointBlockDetails(1640082706))
         print(stakingRewards.checkpointBlockDetails(1640169106))
+        print(stakingRewards.checkpointBlockDetails(1640255506))
         # a = stakingRewards.getClaimableReward(True, {'from': acctAddress})
         # b = stakingRewards.accumulatedRewards(acctAddress)
         # print(a-b)

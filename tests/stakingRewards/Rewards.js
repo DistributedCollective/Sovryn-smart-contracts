@@ -87,14 +87,14 @@ contract("StakingRewardsTN - First Period", (accounts) => {
 		it("should account for stakes made till start date of the program for a1", async () => {
 			await increaseTimeAndBlocks(1209614);
 
-			let numOfIntervals = 1;
+			let numOfIntervals = 2;
 			let totalAmount = 0;
-			let fullTermAvg = avgWeight(25, 26, 9, 78);
+			let fullTermAvg = avgWeight(24, 26, 9, 78);
 			let expectedAmount = numOfIntervals * ((1000 * fullTermAvg) / 26);
 			totalAmount = totalAmount + expectedAmount;
 			console.log(new BN(Math.floor(expectedAmount * 10 ** 10)).toString());
 
-			fullTermAvg = avgWeight(77, 78, 9, 78);
+			fullTermAvg = avgWeight(76, 78, 9, 78);
 			expectedAmount = numOfIntervals * ((2000 * fullTermAvg) / 26);
 			totalAmount = totalAmount + expectedAmount;
 			console.log(new BN(Math.floor(expectedAmount * 10 ** 10)).toString());
