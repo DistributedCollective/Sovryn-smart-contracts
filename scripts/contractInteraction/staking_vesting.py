@@ -112,6 +112,30 @@ def upgradeStakingRewards():
     data = stakingRewardsProxy.setImplementation.encode_input(stakingRewards.address)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['StakingRewardsProxy'], data, conf.acct)
 
+# Set Average Block Time
+
+def setAverageBlockTime(blockTime):
+    # Get the contract instance
+    stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
+
+    # Set average block time
+    data = stakingRewards.setAverageBlockTime.encode_input(blockTime)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['StakingRewardsProxy'], data, conf.acct)
+
+# Set Block
+
+def setBlockForStakingRewards():
+    # Get the staking rewards proxy contract instance
+    stakingRewardsProxy = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
+    stakingRewardsProxy.setBlock()
+
+# Set Historical Block
+
+def setHistoricalBlockForStakingRewards(blockTime):
+    # Get the staking rewards proxy contract instance
+    stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
+    stakingRewards.setHistoricalBlock(blockTime)
+
 #Upgrade Staking
 
 def upgradeStaking():
@@ -224,9 +248,3 @@ def updateLockedSOV():
     data = lockedSOV.changeRegistryCliffAndDuration.encode_input(conf.contracts['VestingRegistryProxy'], cliff, duration)
     print(data)
     # sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
-
-def setBlockForStakingRewards():
-    # Get the staking rewards proxy contract instance
-    stakingRewardsProxy = Contract.from_abi("StakingRewardsProxy", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewardsProxy.abi, owner=conf.acct)
-    stakingRewardsProxy.setBlock()
-    
