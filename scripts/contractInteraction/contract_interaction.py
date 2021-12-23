@@ -41,6 +41,7 @@ def main():
         staking = Contract.from_abi("StakingTN", address=conf.contracts['StakingTN'], abi=StakingTN.abi, owner=acctAddress)
         print(staking.kickoffTS())
         print(staking.getStakes(acctAddress))
+        print(staking.timestampToLockDate(time.time()))
         #print(int(len(chain) - 2 - (((time.time()- 1632148108)/32))));
         #print(int(len(chain) - 2 - (((time.time()- 1632148108)/32))))
         #print(staking.getPriorWeightedStake(acctAddress, int(len(chain) - 2 - (((time.time()- 1632148108)/33))), 1632148108))
@@ -52,10 +53,16 @@ def main():
     def getRewards(acctAddress):
         stakingRewards = Contract.from_abi("StakingRewardsTN", address=conf.contracts['StakingRewardsProxyTN'], abi=StakingRewardsTN.abi, owner=acctAddress)
         print(stakingRewards.getStakerCurrentReward(True, {'from': acctAddress}))
-        #print(stakingRewards.deploymentBlock())
-        #print(stakingRewards.startTime())
-        #print(stakingRewards.upgradeTime())
-        # print(stakingRewards.accumulatedRewards(acctAddress))
+        print(stakingRewards.staking())
+        print(stakingRewards.deploymentBlock())
+        print(stakingRewards.maxDuration())
+        print(stakingRewards.stopBlock())
+        print(stakingRewards.startTime())
+        print(stakingRewards.averageBlockTime())
+        print(stakingRewards.withdrawals(acctAddress))
+        print(stakingRewards.checkpointBlockDetails(1639996306))
+        print(stakingRewards.checkpointBlockDetails(1640082706))
+        print(stakingRewards.checkpointBlockDetails(1640169106))
         # a = stakingRewards.getClaimableReward(True, {'from': acctAddress})
         # b = stakingRewards.accumulatedRewards(acctAddress)
         # print(a-b)
@@ -68,6 +75,13 @@ def main():
 
         # Register logic in Proxy
         data = stakingProxy.getImplementation()
+        print(data)
+
+        # Get the proxy contract instance
+        stakingRewardsProxy = Contract.from_abi("StakingRewardsProxyTN", address=conf.contracts['StakingRewardsProxyTN'], abi=StakingRewardsProxyTN.abi, owner=conf.acct)
+
+        # Register logic in Proxy
+        data = stakingRewardsProxy.getImplementation()
         print(data)
 
         #data = stakingProxy.getOwner()
@@ -83,7 +97,6 @@ def main():
     # stakeTokens(1000, 4492800, "0x511893483DCc1A9A98f153ec8298b63BE010A99f", "0x511893483DCc1A9A98f153ec8298b63BE010A99f")
     # stakeTokens(1000, 6739200, "0x511893483DCc1A9A98f153ec8298b63BE010A99f", "0x511893483DCc1A9A98f153ec8298b63BE010A99f")
     #readStakingKickOff()
-    getRewards("0x511893483DCc1A9A98f153ec8298b63BE010A99f")
     # getRewards("0x8517ECce55f6D11e4A60eddbB7f4090dd2aC19E7")
     # getRewards("0xC6138eC6c65e3280e720d4E6da0FD91A061351c4")
     # getRewards("0x49d99a6821B7569f8D409728eD1D3EF5bF1befa9")
@@ -92,15 +105,23 @@ def main():
     # getImplementation()
     # getDetails("0x511893483DCc1A9A98f153ec8298b63BE010A99f")
 
+    getRewards("0x511893483DCc1A9A98f153ec8298b63BE010A99f")
+
     #Bundle Deployment
     #upgradeStaking()
     #deployFeeSharingProxy()
     #deployConversionFeeSharingToWRBTC()
-    #upgradeStakingRewards()
     #updateAddresses()
-    #setMaxDuration()
+    # setMaxDuration()
 
-    #kickOff: Monday, 20 September 2021 19:58:28 - 1639996306
+    #kickOff: Monday, 20 December 2021 16:01:46  - 1639996306
     #Upgrade: Wednesday, 22 September 2021 19:50:08 - 1632320408
-    #deploymentBlock: 2189871
-    #startTime: 1632148108
+    #deploymentBlock: 2433452
+    #startTime: Monday, 20 December 2021 16:01:46  - 1639996306
+
+    # Latest Deployment
+    # upgradeStakingRewards()
+    # setAverageBlockTime(32)
+    # setBlockForStakingRewards()
+    # setHistoricalBlockForStakingRewards(1639996306)
+    # setHistoricalBlockForStakingRewards(1640082706)

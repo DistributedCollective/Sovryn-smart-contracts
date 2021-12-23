@@ -5,7 +5,7 @@ import "../StakingTN/IStaking.sol";
 import "../../openzeppelin/Ownable.sol";
 
 /**
- * @title StakingTN Rewards Storage Contract.
+ * @title Staking Rewards Storage Contract.
  * @notice Just the storage part of staking rewards contract, no functions,
  * only constant, variables and required structures (mappings).
  * Used by StackingRewardsProxy.
@@ -37,7 +37,7 @@ contract StakingRewardsStorageTN is Ownable {
 	/// @notice Represents the time when the contract is deployed
 	uint256 public startTime;
 
-	/// @notice Represents the block when the StakingTN Rewards pogram is stopped
+	/// @notice Represents the block when the Staking Rewards pogram is stopped
 	uint256 public stopBlock;
 
 	/// @notice User Address -> Last Withdrawn Timestamp
@@ -48,4 +48,21 @@ contract StakingRewardsStorageTN is Ownable {
 
 	/// @notice Represents the block when the StakingRwards Program is started
 	uint256 public deploymentBlock;
+
+	/// Moved the variables from Initializable contract to resolve issue caused by incorrect Inheritance Order
+	/**
+	 * @dev Indicates that the contract has been initialized.
+	 */
+	bool private _initialized;
+
+	/**
+	 * @dev Indicates that the contract is in the process of being initialized.
+	 */
+	bool private _initializing;
+
+	/// @notice BlockTime -> BlockNumber for a Staking Checkpoint
+	mapping(uint256 => uint256) public checkpointBlockDetails;
+
+	/// @notice Average Block Time - making it flexible
+	uint256 public averageBlockTime;
 }

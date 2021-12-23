@@ -109,8 +109,31 @@ def upgradeStakingRewards():
     stakingRewardsProxy = Contract.from_abi("StakingRewardsProxyTN", address=conf.contracts['StakingRewardsProxyTN'], abi=StakingRewardsProxyTN.abi, owner=conf.acct)
 
     # Register logic in Proxy
-    data = stakingRewardsProxy.setImplementation.encode_input(stakingRewards.address)
-    sendWithMultisig(conf.contracts['multisig'], conf.contracts['StakingRewardsProxyTN'], data, conf.acct)
+    stakingRewardsProxy.setImplementation(stakingRewards.address)
+    # sendWithMultisig(conf.contracts['multisig'], conf.contracts['StakingRewardsProxyTN'], data, conf.acct)
+
+# Set Average Block Time
+
+def setAverageBlockTime(blockTime):
+    # Get the contract instance
+    stakingRewards = Contract.from_abi("StakingRewardsTN", address=conf.contracts['StakingRewardsProxyTN'], abi=StakingRewardsTN.abi, owner=conf.acct)
+
+    # Set average block time
+    data = stakingRewards.setAverageBlockTime(blockTime)
+
+# Set Block
+
+def setBlockForStakingRewards():
+    # Get the staking rewards proxy contract instance
+    stakingRewards = Contract.from_abi("StakingRewardsTN", address=conf.contracts['StakingRewardsProxyTN'], abi=StakingRewardsTN.abi, owner=conf.acct)
+    stakingRewards.setBlock({'allow_revert':True})
+
+# Set Historical Block
+
+def setHistoricalBlockForStakingRewards(blockTime):
+    # Get the staking rewards proxy contract instance
+    stakingRewards = Contract.from_abi("StakingRewardsTN", address=conf.contracts['StakingRewardsProxyTN'], abi=StakingRewardsTN.abi, owner=conf.acct)
+    stakingRewards.setHistoricalBlock(blockTime, {'allow_revert':True})
 
 #Upgrade StakingTN
 
