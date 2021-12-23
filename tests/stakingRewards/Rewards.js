@@ -86,7 +86,7 @@ contract("StakingRewardsTN - First Period", (accounts) => {
 	describe("Flow - StakingRewardsTN", () => {
 		it("should account for stakes made till start date of the program for a1", async () => {
 			await increaseTimeAndBlocks(1209614);
-			
+
 			let numOfIntervals = 1;
 			let totalAmount = 0;
 			let fullTermAvg = avgWeight(25, 26, 9, 78);
