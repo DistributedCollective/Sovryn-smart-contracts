@@ -42,3 +42,4 @@ abi
 types/
 typechain/
 !.github/
+temp/
