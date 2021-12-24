@@ -63,11 +63,29 @@ def readFromMedianizer():
     medianizer = Contract.from_abi("Medianizer", address=conf.contracts['medianizer'], abi=PriceFeedsMoCMockup.abi, owner=conf.acct)
     print(medianizer.peek())
 
+def readFromMedianizerAt(medianizerAddress):
+    medianizer = Contract.from_abi("Medianizer", address=medianizerAddress, abi=PriceFeedsMoCMockup.abi, owner=conf.acct)
+    print(medianizer.peek())
+
 def updateOracleAddress(newAddress):
     print("set oracle address to", newAddress)
-    priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = '0x066ba9453e230a260c2a753d9935d91187178C29', abi = PriceFeedsMoC.abi, owner = conf.acct)
-    priceFeedsMoC.setMoCOracleAddress(newAddress)
+    priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = conf.contracts['PriceFeedsMOC'], abi = PriceFeedsMoC.abi, owner = conf.acct)
+    data = priceFeedsMoC.setMoCOracleAddress.encode_input(newAddress)
+    sendWithMultisig(conf.contracts['multisig'], priceFeedsMoC.address, data, conf.acct)
 
+def readMocOracleAddress():
+    priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = conf.contracts['PriceFeedsMOC'], abi = PriceFeedsMoC.abi, owner = conf.acct)
+    print(priceFeedsMoC.mocOracleAddress())
+
+def updateOracleAddressAt(priceFeedAddress, newAddress):
+    print("set oracle address to", newAddress)
+    priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = priceFeedAddress, abi = PriceFeedsMoC.abi, owner = conf.acct)
+    data = priceFeedsMoC.setMoCOracleAddress.encode_input(newAddress)
+    sendWithMultisig(conf.contracts['multisig'], priceFeedsMoC.address, data, conf.acct)
+
+def readMocOracleAddressAt(priceFeedAddress):
+    priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = priceFeedAddress, abi = PriceFeedsMoC.abi, owner = conf.acct)
+    print(priceFeedsMoC.mocOracleAddress())
 
 def checkRates():
     print('reading price from WRBTC to DOC')
@@ -109,6 +127,24 @@ def readPriceFeedFor(tokenAddress):
     print("price feed: "+address);
     return(address)
 
+def readOracleFromV2Converter(converterAddress):
+    abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV2Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV2Converter", address=converterAddress, abi=abi, owner=conf.acct)
+    priceOracleAddress = converter.priceOracle()
+    abiFile =  open('./scripts/contractInteraction/ABIs/AMMPriceOracle.json')
+    abi = json.load(abiFile)
+    priceOracle = Contract.from_abi("LiquidityPoolV2Converter", address=priceOracleAddress, abi=abi, owner=conf.acct)
+
+    print(priceOracle.tokenAOracle())
+    print(priceOracle.tokenBOracle())
+
+def readOracleFromV1Converter(converterAddress):
+    abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV1Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV1Converter", address=converterAddress, abi=abi, owner=conf.acct)
+    print(converter.oracle())
+
 def deployOracleV1Pool(tokenAddress, oracleAddress):
     oracleV1PoolPriceFeed = conf.acct.deploy(PriceFeedV1PoolOracle, oracleAddress, conf.contracts['WRBTC'], conf.contracts['DoC'], tokenAddress)
     print("new oracle v1 pool price feed: ", oracleV1PoolPriceFeed.address)
@@ -124,3 +160,10 @@ def readv1PoolOracleAddress(tokenAddress):
     feedAddress = readPriceFeedFor(tokenAddress)
     oracle = Contract.from_abi("PriceFeedV1PoolOracle", address= feedAddress, abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
     print("v1 pool oracle: ",oracle.v1PoolOracleAddress())
+
+#if the AMM pool oracle changes, use this method for updating the protocol price feed
+#example: setV1SOVPoolOracleAddress('0xF3c356E720958100ff3F2335D288da069Aa83ce8')
+def setV1SOVPoolOracleAddress(v1PoolOracleAddress):
+    oracle = Contract.from_abi("PriceFeedV1PoolOracle", address= conf.contracts['SOVPriceFeedOnProtocol'], abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
+    data = oracle.setV1PoolOracleAddress.encode_input(v1PoolOracleAddress)
+    sendWithMultisig(conf.contracts['multisig'], oracle.address, data, conf.acct)

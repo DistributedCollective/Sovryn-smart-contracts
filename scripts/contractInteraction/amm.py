@@ -35,7 +35,47 @@ def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTo
         tx.info()
     else:
         print('retrun too low')
+
+#can be used to swap any token, rbtc will be swapped as rbtc using the wrapper proxy
+#but if wrbtc is the destination token, the multisig will end up with wrbtc  - no automatic unwrapping
+def swapTokensWithMultisig(amount, minReturn, sourceTokenAddress, destTokenAddress):
+    abiFile =  open('./scripts/contractInteraction/ABIs/SovrynSwapNetwork.json')
+    abi = json.load(abiFile)
+    swapNetwork = Contract.from_abi("SovrynSwapNetwork", address=conf.contracts['swapNetwork'], abi=abi, owner=conf.acct)
+    sourceToken = Contract.from_abi("Token", address=sourceTokenAddress, abi=TestToken.abi, owner=conf.acct)
+
+    if(sourceTokenAddress != conf.contracts["WRBTC"] and sourceToken.allowance(conf.contracts['multisig'], swapNetwork.address) < amount):
+        data = sourceToken.approve.encode_input(swapNetwork.address,amount)
+        sendWithMultisig(conf.contracts['multisig'], sourceToken.address, data, conf.acct)
+
+    path = swapNetwork.conversionPath(sourceTokenAddress,destTokenAddress)
+    print("path", path)
+    expectedReturn = swapNetwork.getReturnByPath(path, amount)
+    print("expected return ", expectedReturn)
     
+    if(expectedReturn[0] > minReturn):
+        if(sourceTokenAddress != conf.contracts["WRBTC"]):
+            data = swapNetwork.convertByPath.encode_input(
+                path,
+                amount,
+                minReturn,
+                "0x0000000000000000000000000000000000000000",
+                "0x0000000000000000000000000000000000000000",
+                0
+            )
+            sendWithMultisig(conf.contracts['multisig'], swapNetwork.address, data, conf.acct)
+        else:
+            abiFile =  open('./scripts/contractInteraction/ABIs/RBTCWrapperProxy.json')
+            abi = json.load(abiFile)
+            wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=conf.contracts['RBTCWrapperProxy'], abi=abi, owner=conf.acct)
+            data = wrapperProxy.convertByPath.encode_input(
+                path,
+                amount,
+                minReturn
+            )
+            sendWithMultisig(conf.contracts['multisig'], wrapperProxy.address, data, conf.acct, amount)
+    else:
+        print('retrun too low')
     
 def addLiquidity(converter, reserve, amount):
     abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV2Converter.json')
@@ -162,6 +202,7 @@ def getTargetAmountFromAMM(_sourceReserveBalance, _sourceReserveWeight, _targetR
     print(targetAmount)
 
 #expects the first token to be wrbtc
+#example: addLiquidityV1FromMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterMYNT'], [conf.contracts['WRBTC'], conf.contracts['MYNT']], [5e18,2500000e18] , 1)
 def addLiquidityV1FromMultisigUsingWrapper(wrapper, converter, tokens, amounts, minReturn):
     abiFile =  open('./scripts/contractInteraction/ABIs/RBTCWrapperProxy.json')
     abi = json.load(abiFile)
@@ -180,6 +221,8 @@ def addLiquidityV1FromMultisigUsingWrapper(wrapper, converter, tokens, amounts, 
 
     sendWithMultisig(conf.contracts['multisig'], wrapperProxy.address, data, conf.acct)
 
+#expects the first token to be wrbtc
+#example: removeLiquidityV1toMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterMYNT'], 100e18, [conf.contracts['WRBTC'], conf.contracts['MYNT']], [5e18,2500000e18])
 def removeLiquidityV1toMultisigUsingWrapper(wrapper, converter, amount, tokens, minReturn):
     abiFile =  open('./scripts/contractInteraction/ABIs/RBTCWrapperProxy.json')
     abi = json.load(abiFile)
@@ -209,3 +252,13 @@ def readWRBTCAddressFromWrapper(wrapper):
     abi = json.load(abiFile)
     wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=wrapper, abi=abi, owner=conf.acct)
     print(wrapperProxy.wrbtcTokenAddress())
+
+def setOracleOnV1Converter(converterAddress, oracleAddress):
+    converterAbiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV1Converter.json')
+    converterAbi = json.load(converterAbiFile)
+    converterContract = Contract.from_abi("LiquidityPoolV1Converter", address=converterAddress, abi=converterAbi, owner=conf.acct)
+
+    data = converterContract.setOracle.encode_input(oracleAddress)
+    print(data)
+
+    sendWithMultisig(conf.contracts['multisig'], converterContract.address, data, conf.acct)

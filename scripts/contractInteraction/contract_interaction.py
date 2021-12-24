@@ -21,16 +21,12 @@ from scripts.contractInteraction.token import *
 from scripts.contractInteraction.ownership import *
 from scripts.contractInteraction.misc import *
 from scripts.contractInteraction.prices import *
+from scripts.contractInteraction.run_test_after_deployments import *
 
 def main():
     
     #load the contracts and acct depending on the network
     conf.loadConfig()
 
-    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iXUSD'])
-    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iRBTC'])
-    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iBPro'])
-    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iDOC'])
-    # setSupportedToken(conf.contracts['BNBs'])
-
-    updateLockedSOV()
+    #call the function you want here
+    

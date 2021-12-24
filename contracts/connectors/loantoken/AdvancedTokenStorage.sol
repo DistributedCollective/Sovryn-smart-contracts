@@ -28,12 +28,16 @@ contract AdvancedTokenStorage is LoanTokenBase {
 	/// topic: 0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925
 	event Approval(address indexed owner, address indexed spender, uint256 value);
 
+	/// topic: 0x628e75c63c1873bcd3885f7aee9f58ee36f60dc789b2a6b3a978c4189bc548ba
+	event AllowanceUpdate(address indexed owner, address indexed spender, uint256 valueBefore, uint256 valueAfter);
+
 	/// topic: 0xb4c03061fb5b7fed76389d5af8f2e0ddb09f8c70d1333abbb62582835e10accb
 	event Mint(address indexed minter, uint256 tokenAmount, uint256 assetAmount, uint256 price);
 
 	/// topic: 0x743033787f4738ff4d6a7225ce2bd0977ee5f86b91a902a58f5e4d0b297b4644
 	event Burn(address indexed burner, uint256 tokenAmount, uint256 assetAmount, uint256 price);
 
+	/// topic: 0xc688ff9bd4a1c369dd44c5cf64efa9db6652fb6b280aa765cd43f17d256b816e
 	event FlashBorrow(address borrower, address target, address loanToken, uint256 loanAmount);
 
 	/* Storage */

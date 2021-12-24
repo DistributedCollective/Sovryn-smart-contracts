@@ -95,7 +95,7 @@ def transferSOVtoVestingRegistry(vestingRegistryAddress, amount):
 
     sendWithMultisig(conf.contracts['multisig'], SOVtoken.address, data, conf.acct)
 
-#Upgrade StakingRewards
+# Upgrade StakingRewards
 
 def upgradeStakingRewards():
     print('Deploying account:', conf.acct.address)
@@ -137,6 +137,7 @@ def setHistoricalBlockForStakingRewards(blockTime):
     stakingRewards.setHistoricalBlock(blockTime)
 
 #Upgrade Staking
+# Upgrade Staking
 
 def upgradeStaking():
     print('Deploying account:', conf.acct.address)
@@ -154,7 +155,7 @@ def upgradeStaking():
     data = stakingProxy.setImplementation.encode_input(stakingLogic.address)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
 
-#Upgrade Vesting Registry
+# Upgrade Vesting Registry
 
 def upgradeVesting():
     print('Deploying account:', conf.acct.address)
@@ -171,7 +172,7 @@ def upgradeVesting():
     data = vestingRegistryProxy.setImplementation.encode_input(vestingRegistryLogic.address)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['VestingRegistryLogic'], data, conf.acct)
 
-#Set Vesting Registry Address for Staking
+# Set Vesting Registry Address for Staking
 
 def updateVestingRegAddr():
 
@@ -186,7 +187,7 @@ def updateVestingRegAddr():
     print(data)
     sendWithMultisig(conf.contracts['multisig'], stakingProxy.address, data, conf.acct)
 
-#Link Staking to StakingRewards, Vesting Registry and FeeSharing
+# Link Staking to StakingRewards, Vesting Registry and FeeSharing
 def updateAddresses():
 
     # Get the proxy contract instance
