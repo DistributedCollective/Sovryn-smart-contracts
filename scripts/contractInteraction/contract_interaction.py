@@ -102,5 +102,26 @@ def main():
     #replaceOwnerOnMultisig(conf.contracts['multisig'], '0x13Be55487D37FE3C66EE7305e1e9C1ac85de75Ae', '0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E')
 
 
-    # sendFromMultisig(conf.contracts['FastBTC'], 10**16)
-    checkTx(655)
+    # sendFromMultisig(conf.contracts['FastBTC'], 44 * 10**18)
+    # checkTx(680)
+    # 34.156517110239100892 RBTC
+
+    # for i in range(622, 692):
+    #     checkTx(i)
+
+    # confirmWithMS(691)
+    # confirmWithMS(692)
+    # confirmMultipleTxsWithMS(668, 675)
+
+
+    # sendTokensFromMultisig(conf.contracts['SOV'], conf.contracts['LiquidityMiningProxy'], 105000 * 10**18)
+    # sendTokensFromMultisig(conf.contracts['SOV'], conf.contracts['StakingRewardsProxy'], 12000 * 10**18)
+    # checkTx(693)
+    # checkTx(694)
+
+    # sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], 300000 * 10**18)
+    # redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 50000 * 10**18)
+    # sendTokensFromMultisig(conf.contracts['USDT'], conf.contracts['Watcher'], 50000 * 10**18)
+    # checkTx(702)
+    # checkTx(703)
+    # checkTx(704)
