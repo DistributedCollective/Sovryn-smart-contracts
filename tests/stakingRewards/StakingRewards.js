@@ -141,7 +141,8 @@ contract("StakingRewards", (accounts) => {
 		let stakingRewardsLogic = await StakingRewards.new();
 		stakingRewards = await StakingRewardsProxy.new();
 		await stakingRewards.setImplementation(stakingRewardsLogic.address);
-		stakingRewards = await StakingRewards.at(stakingRewards.address); // Test - 12/08/2021
+		stakingRewards = await StakingRewards.at(stakingRewards.address); //Test - 12/08/2021
+		stakingRewards.setAverageBlockTime(30);
 		await stakingRewards.setBlockMockUpAddr(blockMockUp.address);
 		await staking.setBlockMockUpAddr(blockMockUp.address);
 	});

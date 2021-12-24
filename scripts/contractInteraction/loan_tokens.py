@@ -30,6 +30,12 @@ def removeFromPool(loanTokenAddress, amount):
     tx.info()
     return tx
 
+def removeFromPoolWithMS(loanTokenAddress, amount, receiver):
+    loanToken = Contract.from_abi("loanToken", address = loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    data = loanToken.burn.encode_input(receiver, amount)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenAddress, data, conf.acct)
+
 def readLoanTokenState(loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     tas = loanToken.totalAssetSupply()
@@ -500,6 +506,7 @@ def readLiquidity():
     loanToken = Contract.from_abi("loanToken", address=conf.contracts['iRBTC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     tasRBTC = loanToken.totalAssetSupply()
     tabRBTC = loanToken.totalAssetBorrow()
+    print(tabRBTC/tasRBTC)
     print("liquidity on iRBTC", (tasRBTC-tabRBTC)/1e18)
     
     loanToken = Contract.from_abi("loanToken", address=conf.contracts['iDOC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
@@ -507,9 +514,10 @@ def readLiquidity():
     tabIUSD = loanToken.totalAssetBorrow()
     print("liquidity on iDOC", (tasIUSD-tabIUSD)/1e18)
     
-    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iUSDT'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iXUSD'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     tasIUSD = loanToken.totalAssetSupply()
     tabIUSD = loanToken.totalAssetBorrow()
+    print(tabIUSD/tasIUSD)
     print("liquidity on iUSDT", (tasIUSD-tabIUSD)/1e18)
 
     tokenContract = Contract.from_abi("Token", address=conf.contracts['USDT'], abi=TestToken.abi, owner=conf.acct)

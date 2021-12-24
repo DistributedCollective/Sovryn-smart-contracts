@@ -404,7 +404,7 @@ def readMaxAffiliateFee():
         "SovrynSwapNetwork", address=conf.contracts['swapNetwork'], abi=abi, owner=conf.acct)
     print(swapNetwork.maxAffiliateFee())
 
-
+#todo: extend with SOV and RBTC
 def withdrawFees():
     feeSharingProxy = Contract.from_abi(
         "FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
@@ -606,3 +606,7 @@ def removeWhitelistConverterFeeSharingProxy(converterAddress):
     print(data)
     sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)
 
+def readRolloverReward():
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    print(sovryn.rolloverBaseReward())
