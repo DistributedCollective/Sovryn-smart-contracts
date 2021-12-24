@@ -5,6 +5,7 @@ import time
 import json
 import csv
 import math
+import datetime
 
 def main():
     ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
@@ -38,6 +39,8 @@ def main():
 
     usersSet = set()
 
+    currentTS = 1636182187
+
     jsonFile = open(OUTPUT_FILE, "a")
     with open(INPUT_FILE, 'r') as file:
         reader = csv.reader(file)
@@ -59,10 +62,19 @@ def main():
                 vestingDataList.append(vestingData)
             for vesting in vestings:
                 stakes = staking.getStakes(vesting)
-                if (len(stakes[0]) > 0):
+                amount = 0
+                dates = stakes[0]
+                amounts = stakes[1]
+                if (len(dates) > 0):
+                    for idx, lockDate in enumerate(dates):
+                        if (currentTS > lockDate):
+                            amount += amounts[idx]
+                            print(lockDate)
+                    amount /= 10**18
                     vestingData = {
                         "user": user,
                         "vesting": vesting,
+                        "amount": amount,
                         "dates": stakes[0],
                         "amounts": stakes[1]
                     }

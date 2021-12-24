@@ -5,6 +5,7 @@ import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 import "../IFeeSharingProxy.sol";
 import "../Staking/IStaking.sol";
+import "../../mixins/EnumerableAddressSet.sol";
 
 /**
  * @title FeeSharingProxy Storage contact.
@@ -14,6 +15,7 @@ import "../Staking/IStaking.sol";
  *
  * */
 contract FeeSharingProxyStorage is Ownable {
+	using EnumerableAddressSet for EnumerableAddressSet.AddressSet;
 	/// @dev TODO FEE_WITHDRAWAL_INTERVAL, MAX_CHECKPOINTS
 	uint256 constant FEE_WITHDRAWAL_INTERVAL = 86400;
 
@@ -65,6 +67,13 @@ contract FeeSharingProxyStorage is Ownable {
 	uint256 internal reentrancyLock = REENTRANCY_GUARD_FREE;
 
 	/**
+	 * @dev Additional storage for converter whitelist mechanism.
+	 * @dev Initialization here does not works. We need to create a separate setter & getter.
+	 * @dev Just set the visibility to internal should be fine.
+	 */
+	EnumerableAddressSet.AddressSet internal whitelistedConverterList;
+
+	/**
 	 * @dev Prevents a contract from calling itself, directly or indirectly.
 	 * If you mark a function `nonReentrant`, you should also
 	 * mark it `external`. Calling one `nonReentrant` function from
@@ -90,9 +99,11 @@ interface IProtocol {
 	 *
 	 * @return The withdrawn total amount in wRBTC
 	 * */
-	function withdrawFees(address[] calldata tokens, address receiver) external returns (uint256);
+	function withdrawFees(address[] calldata tokens, address receiver) external returns (uint256 totalWRBTCWithdrawn);
 
 	function underlyingToLoanPool(address token) external returns (address);
 
 	function wrbtcToken() external returns (address);
+
+	function getSovTokenAddress() external view returns (address);
 }

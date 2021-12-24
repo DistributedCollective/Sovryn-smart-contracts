@@ -31,7 +31,7 @@ def loadConfig():
         acct = accounts.add(
             environ.get('FEE_CLAIMER'))
         configFile = open(
-            './scripts/contractInteraction/testnet_contracts.json')
+            './scripts/contractInteraction/mainnet_contracts.json')
     elif thisNetwork == "rsk-testnet":
         acct = accounts.load("rskdeployer")
         configFile = open(

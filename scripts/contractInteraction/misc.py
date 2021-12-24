@@ -12,6 +12,7 @@ def redeemFromAggregator(aggregatorAddress, tokenAddress, amount):
     aggregator = Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
     aggregator.redeem(tokenAddress, amount)
 
+#used to exchange XUSD -> USDT on the aggregator
 def redeemFromAggregatorWithMS(aggregatorAddress, tokenAddress, amount):
     abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
     abi = json.load(abiFile)
@@ -28,6 +29,7 @@ def mintAggregatedToken(aggregatorAddress, tokenAddress, amount):
     tx = aggregator.mint(tokenAddress, amount)
     tx.info()
 
+#used to exchange USDT -> XUSD on the aggregator
 def mintAggregatedTokenWithMS(aggregatorAddress, tokenAddress, amount):
     abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
     abi = json.load(abiFile)
@@ -90,4 +92,29 @@ def lookupCurrentPoolReserveBalances(userAddress):
     print('user has in SOV', userBal/poolSupply * sovBal)
     print('user has in BTC', userBal/poolSupply * wrbtcBal)
 
- 
+def withdrawRBTCFromWatcher(amount, recipient):
+    abiFile =  open('./scripts/contractInteraction/ABIs/Watcher.json')
+    abi = json.load(abiFile)
+    watcher = Contract.from_abi("Watcher", address = conf.contracts['Watcher'], abi = abi, owner = conf.acct)
+    data = watcher.withdrawTokens.encode_input('0x0000000000000000000000000000000000000000', amount, recipient)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], watcher.address, data, conf.acct)
+
+def withdrawTokensFromWatcher(token, amount, recipient):
+    abiFile =  open('./scripts/contractInteraction/ABIs/Watcher.json')
+    abi = json.load(abiFile)
+    watcher = Contract.from_abi("Watcher", address = conf.contracts['Watcher'], abi = abi, owner = conf.acct)
+    #watcher = Contract.from_abi("Watcher", address = '0x051B89f575fCd540F0a6a5B49c75f9a83BB2Cf07', abi = abi, owner = conf.acct)
+    data = watcher.withdrawTokens.encode_input(token, amount, recipient)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], watcher.address, data, conf.acct)
+
+def depositToLockedSOV(amount, recipient):
+    token = Contract.from_abi("Token", address= conf.contracts['SOV'], abi = TestToken.abi, owner=conf.acct)
+    data = token.approve.encode_input(conf.contracts["LockedSOV"], amount)
+    sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
+
+    lockedSOV = Contract.from_abi("LockedSOV", address=conf.contracts["LockedSOV"], abi=LockedSOV.abi, owner=conf.acct)
+    data = lockedSOV.depositSOV.encode_input(recipient, amount)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
