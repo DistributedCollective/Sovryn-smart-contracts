@@ -1,5 +1,22 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-24
+ * Bottlenecks found at beforeEach hook, redeploying tokens,
+ *  protocol, loan ... on every test.
+ *
+ * Total time elapsed: 26.5s
+ * After optimization: 11.4s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ *   Added tests to increase the test coverage index:
+ *     + "Check marginTrade w/ collateralToken as address(0)"
+ */
+
 const { expect } = require("chai");
-const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 
 const {
 	margin_trading_sending_loan_tokens,
@@ -17,7 +34,7 @@ const {
 } = require("./tradingFunctions");
 
 const FeesEvents = artifacts.require("FeesEvents");
-const TestToken = artifacts.require("TestToken");
+const LoanOpenings = artifacts.require("LoanOpenings");
 
 const {
 	getSUSD,
@@ -34,7 +51,9 @@ const {
 	getPriceFeeds,
 	getSovryn,
 	open_margin_trade_position,
+	decodeLogs,
 } = require("../Utils/initializer.js");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const wei = web3.utils.toWei;
 
@@ -45,25 +64,28 @@ contract("LoanTokenTrading", (accounts) => {
 	let owner;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV, priceFeeds;
 
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		SUSD = await getSUSD();
+		RBTC = await getRBTC();
+		WRBTC = await getWRBTC();
+		BZRX = await getBZRX();
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
+
+		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+
+		loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD, true);
+		loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD, true);
+		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
+
+		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
+	}
+
 	before(async () => {
 		[owner] = accounts;
 	});
 
 	beforeEach(async () => {
-		SUSD = await getSUSD();
-		RBTC = await getRBTC();
-		WRBTC = await getWRBTC();
-		BZRX = await getBZRX();
-		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
-
-		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
-
-		const loanTokenLogicStandard = await getLoanTokenLogic();
-		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
-		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
-		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
-
-		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("Test the loan token trading logic with 2 TestTokens.", () => {
@@ -449,6 +471,144 @@ contract("LoanTokenTrading", (accounts) => {
 			);
 		});
 
+		/// @dev For test coverage
+		it("Should revert when collateralTokenAddress != loanTokenAddress", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, accounts[0]);
+			// trader=accounts[1] on this call
+			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]);
+
+			// deposit collateral to add margin to the loan created above
+			await RBTC.approve(sovryn.address, oneEth);
+			await sovryn.depositCollateral(loan_id, oneEth);
+			await RBTC.transfer(accounts[2], oneEth);
+			await RBTC.approve(loanToken.address, oneEth, { from: accounts[2] });
+
+			await expectRevert(
+				loanToken.marginTrade(
+					loan_id, // loanId  (0 for new loans)
+					new BN(2).mul(oneEth), // leverageAmount
+					0, // loanTokenSent
+					1000, // no collateral token sent
+					SUSD.address, // collateralTokenAddress != loanTokenAddress
+					accounts[1], // trader,
+					0,
+					"0x", // loanDataBytes (only required with ether)
+					{ from: accounts[2] }
+				),
+				"11"
+			);
+		});
+
+		it("Test increasing position of margin trade using collateral", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, accounts[0]);
+
+			const collateralTokenSent = new BN(1000);
+			const leverage = 2;
+
+			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[0]);
+
+			// deposit collateral to add margin to the loan created above
+			await RBTC.approve(sovryn.address, oneEth);
+			await sovryn.depositCollateral(loan_id, oneEth);
+			await RBTC.approve(loanToken.address, oneEth);
+
+			let sovryn_before_collateral_token_balance = await RBTC.balanceOf(sovryn.address);
+			let previous_trader_collateral_token_balance = await RBTC.balanceOf(accounts[0]);
+
+			let { receipt } = await loanToken.marginTrade(
+				loan_id, // loanId  (0 for new loans)
+				new BN(leverage).mul(oneEth), // leverageAmount
+				0, // loanTokenSent
+				collateralTokenSent, // collateral token sent
+				RBTC.address, // collateralTokenAddress
+				accounts[0], // trader,
+				0,
+				"0x", // loanDataBytes (only required with ether)
+				{ from: accounts[0] }
+			);
+
+			const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Trade");
+
+			// Verify event
+			let sovryn_after_collateral_token_balance = await RBTC.balanceOf(sovryn.address);
+			let latest_trader_collateral_token_balance = await RBTC.balanceOf(accounts[0]);
+
+			const sovryn_collateral_token_balance_diff = sovryn_after_collateral_token_balance
+				.sub(sovryn_before_collateral_token_balance)
+				.toString();
+			const trader_collateral_token_balance_diff = previous_trader_collateral_token_balance
+				.sub(latest_trader_collateral_token_balance)
+				.toString();
+			const args = decode[0].args;
+
+			expect(collateralTokenSent.toString()).to.equal(trader_collateral_token_balance_diff);
+			expect(args["user"]).to.equal(accounts[0]);
+			expect(args["lender"]).to.equal(loanToken.address);
+			expect(args["loanId"]).to.equal(loan_id);
+			expect(args["collateralToken"]).to.equal(RBTC.address);
+			expect(args["loanToken"]).to.equal(SUSD.address);
+
+			// For margin trade using collateral, the positionSize can be checked by getting the additional collateral token that is transferred into the protocol (difference between latest & previous balance)
+			expect(args["positionSize"]).to.equal(sovryn_collateral_token_balance_diff);
+		});
+
+		it("Test increasing position of margin trade using underlying token", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, accounts[0]);
+
+			const loanTokenSent = new BN(10000000);
+			const leverage = 2;
+
+			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[0]);
+
+			// deposit collateral to add margin to the loan created above
+			await SUSD.approve(sovryn.address, oneEth);
+			// await sovryn.depositCollateral(loan_id, oneEth);
+			await SUSD.approve(loanToken.address, oneEth);
+
+			const sovryn_before_collateral_token_balance = await RBTC.balanceOf(sovryn.address);
+			const trader_before_underlying_token_balance = await SUSD.balanceOf(accounts[0]);
+
+			let { receipt } = await loanToken.marginTrade(
+				loan_id, // loanId  (0 for new loans)
+				new BN(leverage).mul(oneEth), // leverageAmount
+				loanTokenSent, // loanTokenSent (Note 1 RBTC was set to 10000 SUSD)
+				0, // no collateral token sent
+				RBTC.address, // collateralTokenAddress
+				accounts[0], // trader,
+				0,
+				"0x", // loanDataBytes (only required with ether)
+				{ from: accounts[0] }
+			);
+
+			const sovryn_after_collateral_token_balance = await RBTC.balanceOf(sovryn.address);
+			const trader_after_underlying_token_balance = await SUSD.balanceOf(accounts[0]);
+
+			const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Trade");
+			const args = decode[0].args;
+			const sovryn_collateral_token_balance_diff = sovryn_after_collateral_token_balance
+				.sub(sovryn_before_collateral_token_balance)
+				.toString();
+			const trader_underlying_token_balance_diff = trader_before_underlying_token_balance
+				.sub(trader_after_underlying_token_balance)
+				.toString();
+
+			expect(loanTokenSent.toString()).to.equal(trader_underlying_token_balance_diff);
+			expect(args["user"]).to.equal(accounts[0]);
+			expect(args["lender"]).to.equal(loanToken.address);
+			expect(args["loanId"]).to.equal(loan_id);
+			expect(args["collateralToken"]).to.equal(RBTC.address);
+			expect(args["loanToken"]).to.equal(SUSD.address);
+
+			// For margin trade using underlying token, the positionSize can be checked by getting the additional underlying token that is transferred into the protocol (difference between latest & previous balance)
+			expect(args["positionSize"]).to.equal(sovryn_collateral_token_balance_diff);
+		});
+
 		it("checkPriceDivergence should success if min position size is less than or equal to collateral", async () => {
 			await set_demand_curve(loanToken);
 			await SUSD.transfer(loanToken.address, wei("500", "ether"));
@@ -459,6 +619,26 @@ contract("LoanTokenTrading", (accounts) => {
 				wei("0.01", "ether"),
 				RBTC.address,
 				wei("0.02", "ether")
+			);
+		});
+
+		/// @dev For test coverage, it's required to perform a margin trade using WRBTC as collateral
+		it("Check marginTrade w/ collateralToken as address(0)", async () => {
+			await set_demand_curve(loanToken);
+			await SUSD.transfer(loanToken.address, wei("1000000", "ether"));
+			await WRBTC.mint(accounts[2], oneEth);
+			await WRBTC.approve(loanToken.address, oneEth, { from: accounts[2] });
+
+			await loanToken.marginTrade(
+				"0x0", // loanId  (0 for new loans)
+				wei("2", "ether"), // leverageAmount
+				0, // loanTokenSent (SUSD)
+				1000, // collateral token sent
+				ZERO_ADDRESS, // collateralTokenAddress (address 0 means collateral is WRBTC)
+				accounts[1], // trader,
+				2000,
+				"0x", // loanDataBytes (only required with ether)
+				{ from: accounts[2] }
 			);
 		});
 

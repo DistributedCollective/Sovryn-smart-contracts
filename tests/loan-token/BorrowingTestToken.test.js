@@ -1,7 +1,21 @@
-const { expect } = require("chai");
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-23
+ * Bottlenecks found at beforeEach hook, redeploying tokens,
+ *  protocol, ... on every test.
+ *
+ * Total time elapsed: 16.0s
+ * After optimization: 7.3s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
+
+const { expect, assert } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
 const { expectRevert, BN, expectEvent } = require("@openzeppelin/test-helpers");
 const FeesEvents = artifacts.require("FeesEvents");
-const TestToken = artifacts.require("TestToken");
 const LoanOpenings = artifacts.require("LoanOpenings");
 
 const {
@@ -22,6 +36,7 @@ const {
 	verify_sov_reward_payment,
 	CONSTANTS,
 } = require("../Utils/initializer.js");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const wei = web3.utils.toWei;
 
@@ -36,28 +51,110 @@ contract("LoanTokenBorrowing", (accounts) => {
 	let owner, account1;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV, priceFeeds;
 
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		SUSD = await getSUSD();
+		RBTC = await getRBTC();
+		WRBTC = await getWRBTC();
+		BZRX = await getBZRX();
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
+
+		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+
+		loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD);
+		loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD);
+		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
+
+		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
+	}
+
 	before(async () => {
 		[owner, account1] = accounts;
 	});
 
 	beforeEach(async () => {
-		SUSD = await getSUSD();
-		RBTC = await getRBTC();
-		WRBTC = await getWRBTC();
-		BZRX = await getBZRX();
-		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
-
-		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
-
-		const loanTokenLogicStandard = await getLoanTokenLogic();
-		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
-		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
-		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
-
-		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("Test borrow", () => {
+		it("Test getRequiredCollateral w/ marginAmount = 0", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, owner);
+			// determine borrowing parameter
+			const withdrawAmount = tenEth;
+
+			const collateralTokenSent = await sovryn.getRequiredCollateral(SUSD.address, RBTC.address, withdrawAmount, new BN(0), true);
+			// console.log("collateralTokenSent = ", collateralTokenSent.toString());
+			expect(collateralTokenSent).to.be.a.bignumber.equal(new BN(0));
+		});
+
+		it("Test getBorrowAmount w/ marginAmount = 0", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, owner);
+			// determine borrowing parameter
+			const withdrawAmount = tenEth;
+
+			const borrowAmount = await sovryn.getBorrowAmount(SUSD.address, RBTC.address, withdrawAmount, new BN(0), true);
+			// console.log("borrowAmount = ", borrowAmount.toString());
+			expect(borrowAmount).to.be.a.bignumber.equal(new BN(0));
+		});
+
+		it("Test getBorrowAmount w/ and w/o Torque Loan", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, owner);
+			// determine borrowing parameter
+			const withdrawAmount = tenEth;
+			let marginAmount = new BN(10).pow(new BN(20)).mul(new BN(1));
+
+			// Without TorqueLoan
+			const borrowAmountNoTorque = await sovryn.getBorrowAmount(
+				SUSD.address, // loanToken
+				RBTC.address, // collateralToken
+				withdrawAmount, // collateralTokenAmount
+				marginAmount,
+				false // isTorqueLoan
+			);
+			// console.log("borrowAmountNoTorque = ", borrowAmountNoTorque.toString());
+
+			// Compute expected values
+			const { rate: trade_rate, precision } = await priceFeeds.queryRate(RBTC.address, SUSD.address);
+			// console.log("trade_rate = ", trade_rate.toString());
+			// console.log("precision = ", precision.toString());
+
+			const tradingFee = (await sovryn.tradingFeePercent()).mul(withdrawAmount).div(hunEth);
+			let expectedBorrowAmountNoTorque = withdrawAmount.sub(tradingFee);
+			expectedBorrowAmountNoTorque = expectedBorrowAmountNoTorque.mul(new BN(10).pow(new BN(20))).mul(trade_rate);
+			expectedBorrowAmountNoTorque = expectedBorrowAmountNoTorque.div(marginAmount).div(precision);
+
+			// Check expected = real
+			expect(borrowAmountNoTorque).to.be.a.bignumber.equal(expectedBorrowAmountNoTorque);
+
+			// With TorqueLoan
+			const borrowAmountTorque = await sovryn.getBorrowAmount(
+				SUSD.address, // loanToken
+				RBTC.address, // collateralToken
+				withdrawAmount, // collateralTokenAmount
+				marginAmount,
+				true // isTorqueLoan
+			);
+			// console.log("borrowAmountTorque = ", borrowAmountTorque.toString());
+
+			// Compute expected values
+			marginAmount = marginAmount.add(new BN(10).pow(new BN(20))); // Torque increases the margin
+			const borrowingFee = (await sovryn.borrowingFeePercent()).mul(withdrawAmount).div(hunEth);
+			let expectedBorrowAmountTorque = withdrawAmount.sub(borrowingFee);
+			expectedBorrowAmountTorque = expectedBorrowAmountTorque
+				.mul(new BN(10).pow(new BN(20)))
+				.mul(trade_rate)
+				.div(marginAmount)
+				.div(precision);
+
+			// Check expected = real
+			expect(borrowAmountTorque).to.be.a.bignumber.equal(expectedBorrowAmountTorque);
+		});
+
 		it("Test borrow", async () => {
 			// prepare the test
 			await set_demand_curve(loanToken);
@@ -82,7 +179,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			const principal = withdrawAmount
 				.mul(oneEth)
 				.div(oneEth.sub(interestRate.mul(new BN(durationInSeconds)).mul(oneEth).div(new BN(31536000)).div(hunEth)));
-			//TODO: refactor formula to remove rounding error subn(1)
+			// TODO: refactor formula to remove rounding error subn(1)
 			const borrowingFee = (await sovryn.borrowingFeePercent()).mul(collateralTokenSent).div(hunEth); /*.addn(1)*/
 			const expectedBalance = (await SUSD.balanceOf(account1)).add(withdrawAmount);
 			// approve the transfer of the collateral
@@ -132,12 +229,18 @@ contract("LoanTokenBorrowing", (accounts) => {
 			);
 		});
 
-		it("Test borrow with sepecial rebates percentage", async () => {
+		it("Test borrow with special rebates percentage", async () => {
 			// prepare the test
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, owner);
 			// For borrowing, the token fee is the collateral token
 			await sovryn.setSpecialRebates(RBTC.address, SUSD.address, wei("300", "ether"));
+
+			/// @dev fast checking previously added rebates
+			let rebates = await sovryn.getSpecialRebates.call(RBTC.address, SUSD.address);
+
+			expect(rebates).to.be.a.bignumber.equal(wei("300", "ether"));
+
 			// determine borrowing parameter
 			const withdrawAmount = tenEth;
 			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
@@ -155,7 +258,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			const principal = withdrawAmount
 				.mul(oneEth)
 				.div(oneEth.sub(interestRate.mul(new BN(durationInSeconds)).mul(oneEth).div(new BN(31536000)).div(hunEth)));
-			//TODO: refactor formula to remove rounding error subn(1)
+			// TODO: refactor formula to remove rounding error subn(1)
 			const borrowingFee = (await sovryn.borrowingFeePercent()).mul(collateralTokenSent).div(hunEth); /*.addn(1)*/
 			const expectedBalance = (await SUSD.balanceOf(account1)).add(withdrawAmount);
 			// approve the transfer of the collateral
@@ -294,11 +397,11 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 		it("Test borrow no interest should fail", async () => {
 			// no demand curve settings -> no interest set
-			//  prepare the test
+			// prepare the test
 			await lend_to_pool(loanToken, SUSD, owner);
 
 			// determine borrowing parameter
-			const withdrawAmount = oneEth.mul(new BN(10)); // i want to borrow 10 USD
+			const withdrawAmount = oneEth.mul(new BN(10)); // I want to borrow 10 USD
 			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
 			const collateralTokenSent = await sovryn.getRequiredCollateral(
 				SUSD.address,
@@ -308,7 +411,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 				true
 			);
 
-			//approve the transfer of the collateral
+			// approve the transfer of the collateral
 			await RBTC.approve(loanToken.address, collateralTokenSent);
 			expectRevert(
 				loanToken.borrow(
@@ -326,13 +429,13 @@ contract("LoanTokenBorrowing", (accounts) => {
 		});
 
 		it("Test borrow insufficient collateral should fail", async () => {
-			//  prepare the test
+			// prepare the test
 
 			await lend_to_pool(loanToken, SUSD, owner);
 			await set_demand_curve(loanToken);
 
 			// determine borrowing parameter
-			const withdrawAmount = oneEth.mul(new BN(10)); // i want to borrow 10 USD
+			const withdrawAmount = oneEth.mul(new BN(10)); // I want to borrow 10 USD
 			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
 			let collateralTokenSent = await sovryn.getRequiredCollateral(
 				SUSD.address,
@@ -343,7 +446,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			);
 			collateralTokenSent = collateralTokenSent.div(new BN(2));
 
-			//approve the transfer of the collateral
+			// approve the transfer of the collateral
 			await RBTC.approve(loanToken.address, collateralTokenSent);
 			expectRevert(
 				loanToken.borrow(
@@ -362,13 +465,13 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 		// borrows some funds from account 0 and then takes out some more from account 2 with 'borrow' without paying should fail.
 		it("Test borrow from foreign loan should fail", async () => {
-			//  prepare the test
+			// prepare the test
 
 			await lend_to_pool(loanToken, SUSD, owner);
 			await set_demand_curve(loanToken);
 
 			// determine borrowing parameter
-			const withdrawAmount = oneEth.mul(new BN(10)); // i want to borrow 10 USD
+			const withdrawAmount = oneEth.mul(new BN(10)); // I want to borrow 10 USD
 			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
 			let collateralTokenSent = await sovryn.getRequiredCollateral(
 				SUSD.address,
@@ -420,13 +523,13 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 		// borrows some funds from account 0 and then takes out some more from account 2 with a marginTrade without paying should fail.
 		it("Test margin trade from foreign loan should fail", async () => {
-			//  prepare the test
+			// prepare the test
 
 			await lend_to_pool(loanToken, SUSD, owner);
 			await set_demand_curve(loanToken);
 
 			// determine borrowing parameter
-			const withdrawAmount = oneEth.mul(new BN(10)); // i want to borrow 10 USD
+			const withdrawAmount = oneEth.mul(new BN(10)); // I want to borrow 10 USD
 			// compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
 			let collateralTokenSent = await sovryn.getRequiredCollateral(
 				SUSD.address,
@@ -478,13 +581,13 @@ contract("LoanTokenBorrowing", (accounts) => {
 
 		// margin trades from account 0 and then borrows from same loan should fail.
 		it("Test borrow from trade position should fail", async () => {
-			//  prepare the test
+			// prepare the test
 
 			await lend_to_pool(loanToken, SUSD, owner);
 			await set_demand_curve(loanToken);
 
 			// determine borrowing parameter
-			const withdrawAmount = oneEth.mul(new BN(10)); // i want to borrow 10 USD
+			const withdrawAmount = oneEth.mul(new BN(10)); // I want to borrow 10 USD
 
 			await SUSD.approve(loanToken.address, withdrawAmount);
 
@@ -520,7 +623,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			);
 		});
 
-		//50% was hardcoded on the old contracts -> would have failed, but should work now
+		// 50% was hardcoded on the old contracts -> would have failed, but should work now
 		it("Borrowing with more than 50% initial margin", async () => {
 			await set_demand_curve(loanToken);
 			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
@@ -531,7 +634,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 			// compute the required collateral
 			const collateralTokenSent = await loanToken.getDepositAmountForBorrow(withdrawAmount, durationInSeconds, RBTC.address);
 
-			//TODO: refactor formula to remove rounding error subn(1)
+			// TODO: refactor formula to remove rounding error subn(1)
 			const borrowingFee = (await sovryn.borrowingFeePercent()).mul(collateralTokenSent).div(hunEth).addn(1);
 
 			// compute expected values for asserts
@@ -572,6 +675,19 @@ contract("LoanTokenBorrowing", (accounts) => {
 			expect(new BN(args["currentMargin"])).to.be.a.bignumber.gt(new BN(99).mul(oneEth));
 		});
 
+		/// @dev For test coverage
+		it("getDepositAmountForBorrow should return 0 when borrowAmount is 0", async () => {
+			await set_demand_curve(loanToken);
+			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
+			await lend_to_pool(loanToken, SUSD, owner);
+			// determine borrowing parameter
+			const borrowAmount = new BN(0);
+			const durationInSeconds = 60 * 60 * 24 * 10; // 10 days
+			const collateralTokenSent = await loanToken.getDepositAmountForBorrow(borrowAmount, durationInSeconds, RBTC.address);
+
+			expect(collateralTokenSent).to.be.bignumber.equal(new BN(0));
+		});
+
 		it("getDepositAmountForBorrow should consider the initial margin on the loan params", async () => {
 			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
 			await lend_to_pool(loanToken, SUSD, owner);
@@ -609,6 +725,103 @@ contract("LoanTokenBorrowing", (accounts) => {
 			const expectedBorrowAmount = depositAmount.divn(2).sub(fee).mul(trade_rate).div(precision);
 
 			expect(borrowAmount).to.be.bignumber.equal(expectedBorrowAmount);
+		});
+
+		/// @dev For test coverage
+		it("getBorrowAmountForDeposit should return 0 when depositAmount is 0", async () => {
+			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
+			await lend_to_pool(loanToken, SUSD, owner);
+			// determine borrowing parameter
+			const depositAmount = new BN(0);
+			const durationInSeconds = 60 * 60 * 24 * 10; // 10 days
+			const borrowAmount = await loanToken.getBorrowAmountForDeposit(depositAmount, durationInSeconds, RBTC.address);
+
+			expect(borrowAmount).to.be.bignumber.equal(new BN(0));
+		});
+
+		/// @dev For test coverage
+		it("getBorrowAmountForDeposit should set collateralTokenAddress = wrbtcTokenAddress when collateralTokenAddress is 0", async () => {
+			await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, wei("100", "ether"));
+			await lend_to_pool(loanToken, SUSD, owner);
+			// determine borrowing parameter
+			const depositAmount = tenEth;
+			const durationInSeconds = 60 * 60 * 24 * 10; // 10 days
+			const borrowAmount1 = await loanToken.getBorrowAmountForDeposit(depositAmount, durationInSeconds, ZERO_ADDRESS);
+			const borrowAmount2 = await loanToken.getBorrowAmountForDeposit(depositAmount, durationInSeconds, RBTC.address);
+
+			expect(borrowAmount1).to.be.bignumber.equal(borrowAmount2);
+		});
+
+		/// @dev Testing the interest rate calculations for the range [0,k]
+		it("Checking that the interest rate is calculated correctly when utilization rate is [0,k]", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// determine borrowing parameter
+			const withdrawAmount = tenEth;
+
+			// compute expected values for asserts
+			const interestRate = await loanToken.nextBorrowInterestRate(withdrawAmount);
+
+			// Replicate the values of demand curve
+			const baseRate = wei("1", "ether");
+			const rateMultiplier = wei("20.25", "ether");
+			const targetLevel = wei("80", "ether");
+
+			// Utilization Rate
+			const totalAssetBorrow = await loanToken.totalAssetBorrow();
+			const totalAssetSupply = await loanToken.totalAssetSupply();
+			const assetBorrow = totalAssetBorrow.add(withdrawAmount);
+			let utilizationRate = assetBorrow.mul(new BN(10).pow(new BN(20))).div(totalAssetSupply);
+			if (utilizationRate < targetLevel) utilizationRate = targetLevel;
+
+			// Interest rate calculation
+			// in the interval [0,k] : f(x) = b + m*x, where b is the base rate, m is the rate multiplier and x is the utilization rate
+			const calculatedRate = new BN(baseRate).add(
+				new BN(rateMultiplier).mul(new BN(utilizationRate)).div(new BN(10).pow(new BN(20)))
+			);
+			expect(interestRate).to.be.a.bignumber.equal(calculatedRate);
+		});
+
+		/// @dev Testing the math changes for interest rate calculations for the range (k,100]
+		it("Checking that the interest rate is calculated correctly when utilization rate is (k,100]", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// determine borrowing parameter
+			const withdrawAmount = new BN(wei("990000000000", "ether")); //Borrow amount above Kink Level
+
+			// compute expected values for asserts
+			const interestRate = await loanToken.nextBorrowInterestRate(withdrawAmount);
+
+			// Replicate the values of demand curve
+			const baseRate = wei("1", "ether");
+			const rateMultiplier = wei("20.25", "ether");
+			const targetLevel = wei("80", "ether");
+			const kinkLevel = wei("90", "ether");
+			const maxScaleRate = wei("100", "ether");
+
+			// Utilization Rate
+			const totalAssetBorrow = await loanToken.totalAssetBorrow();
+			const totalAssetSupply = await loanToken.totalAssetSupply();
+			const assetBorrow = totalAssetBorrow.add(withdrawAmount);
+			let utilizationRate = assetBorrow.mul(new BN(10).pow(new BN(20))).div(totalAssetSupply);
+			if (utilizationRate < targetLevel) utilizationRate = targetLevel;
+
+			// Interest rate calculation
+			// In the interval (k, 100] : let z = (b + m * k)
+			const calculatedRate = new BN(baseRate).add(new BN(rateMultiplier).mul(new BN(kinkLevel)).div(new BN(10).pow(new BN(20))));
+
+			// Then f(x) = z + (s - z)*(x - k)/(100-k), where s is the maximum scale rate (could be 100% or 150%)
+			const interest = new BN(calculatedRate).add(
+				new BN(new BN(maxScaleRate))
+					.sub(new BN(calculatedRate))
+					.mul(new BN(utilizationRate).sub(new BN(kinkLevel)))
+					.div(new BN(new BN(10).pow(new BN(20))).sub(new BN(kinkLevel)))
+			);
+			expect(interestRate).to.be.a.bignumber.equal(interest);
 		});
 	});
 });
