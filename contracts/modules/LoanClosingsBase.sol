@@ -102,7 +102,7 @@ contract LoanClosingsBase is LoanClosingsShared, LiquidationHelper {
 		bytes calldata // for future use /*loanDataBytes*/
 	) external nonReentrant whenNotPaused {
 		// restrict to EOAs to prevent griefing attacks, during interest rate recalculation
-		require(msg.sender == tx.origin, "only EOAs can call");
+		require(msg.sender == tx.origin, "EOAs call");
 
 		return
 			_rollover(
@@ -142,11 +142,7 @@ contract LoanClosingsBase is LoanClosingsShared, LiquidationHelper {
 			address seizedToken
 		)
 	{
-		Loan storage loanLocal = loans[loanId];
-		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
-
-		require(loanLocal.active, "loan is closed");
-		require(loanParamsLocal.id != 0, "loanParams not exists");
+		(Loan storage loanLocal, LoanParams storage loanParamsLocal) = _checkLoan(loanId);
 
 		(uint256 currentMargin, uint256 collateralToLoanRate) =
 			IPriceFeeds(priceFeeds).getCurrentMargin(
@@ -244,11 +240,7 @@ contract LoanClosingsBase is LoanClosingsShared, LiquidationHelper {
 	 *   additional loan data (not in use for token swaps).
 	 * */
 	function _rollover(bytes32 loanId, bytes memory loanDataBytes) internal {
-		Loan storage loanLocal = loans[loanId];
-		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
-
-		require(loanLocal.active, "loan is closed");
-		require(loanParamsLocal.id != 0, "loanParams not exists");
+		(Loan storage loanLocal, LoanParams storage loanParamsLocal) = _checkLoan(loanId);
 		require(block.timestamp > loanLocal.endTimestamp.sub(3600), "healthy position");
 		require(loanPoolToUnderlying[loanLocal.lender] != address(0), "invalid lender");
 
@@ -365,7 +357,7 @@ contract LoanClosingsBase is LoanClosingsShared, LiquidationHelper {
 					loanLocal.id,
 					msg.sender,
 					rolloverReward,
-					true, /// TODO::should we return it as the collateral or loan token?
+					true,
 					"" // loanDataBytes
 				);
 			} else {
@@ -379,10 +371,6 @@ contract LoanClosingsBase is LoanClosingsShared, LiquidationHelper {
 		if (loanLocal.collateral > 0) {
 			//close whole loan if tiny position will remain
 			if (_getAmountInRbtc(loanParamsLocal.loanToken, loanLocal.principal) <= TINY_AMOUNT) {
-				// NOTE: closeWithSwap
-				/// QUESTIONS: when we _closeWithSwap, what if the collateral value is still much bigger than the principal to be paid out, the excess should be refunded to the borrower?
-				/// Yes, it refunded.
-				/// Rollover wallet ? EOA
 				_closeWithSwap(
 					loanLocal.id,
 					loanLocal.lender,
@@ -444,5 +432,15 @@ contract LoanClosingsBase is LoanClosingsShared, LiquidationHelper {
 			loanDataBytes
 		);
 		require(sourceTokenAmountUsed <= swapAmount, "excessive source amount");
+	}
+
+	function _checkLoan(bytes32 loanId) internal returns (Loan storage, LoanParams storage) {
+		Loan storage loanLocal = loans[loanId];
+		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
+
+		require(loanLocal.active, "loan is closed");
+		require(loanParamsLocal.id != 0, "loanParams not exists");
+
+		return (loanLocal, loanParamsLocal);
 	}
 }
