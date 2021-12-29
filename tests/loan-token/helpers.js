@@ -203,6 +203,15 @@ const cash_out_from_the_pool_uint256_max_should_withdraw_total_balance = async (
 	expect(await underlyingToken.balanceOf(lender)).to.be.a.bignumber.equal(initial_balance);
 };
 
+const set_fee_tokens_held = async (sovryn, underlyingToken, lendingFee, tradingFee, borrowingFee) => {
+	let totalFeeAmount = lendingFee.add(tradingFee).add(borrowingFee);
+	await underlyingToken.transfer(sovryn.address, totalFeeAmount);
+	await sovryn.setLendingFeeTokensHeld(underlyingToken.address, lendingFee);
+	await sovryn.setTradingFeeTokensHeld(underlyingToken.address, tradingFee);
+	await sovryn.setBorrowingFeeTokensHeld(underlyingToken.address, borrowingFee);
+	return totalFeeAmount;
+};
+
 module.exports = {
 	verify_start_conditions,
 	get_itoken_price,
@@ -213,4 +222,5 @@ module.exports = {
 	cash_out_from_the_pool,
 	//cash_out_from_the_pool_more_of_lender_balance_should_not_fail,
 	cash_out_from_the_pool_uint256_max_should_withdraw_total_balance,
+	set_fee_tokens_held,
 };

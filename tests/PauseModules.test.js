@@ -1,32 +1,44 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-13
+ * Greatest bottlenecks found at:
+ * 	- fixtureInitialize (3s)
+ * 		Due to fixture load and a it contains a large deployment
+ * 	- Pause LoanClosingBase test (267ms)
+ * 		Due to requiring a call to setup_rollover_test as initialization
+ * Total time elapsed: 4s
+ *
+ * Other minor optimizations:
+ *  - removed unused modules and variables:
+ *      Wallet, Contract, balance, verify_sov_reward_payment, signers, ethers
+ *  - removed two redundant SOV deployments
+ *  - reformatted code comments
+ *  - reordered external modules apart from local variables
+ *
+ * Notes:
+ * 	Previous optimization by Tyrone adding a waffle fixture (loadFixture)
+ *  improved a 20% the code speed:
+ * 		reduced total elapsed time from 5s to 4s
+ *  Updated to use only the initializer.js functions for protocol deployment.
+ *  Updated to use SUSD as underlying token.
+ */
+
+const { waffle } = require("hardhat");
 const { assert, expect } = require("chai");
+const { loadFixture } = waffle;
 
-const { BN, constants, balance, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
+const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 
-const sovrynProtocol = artifacts.require("sovrynProtocol");
-const ProtocolSettings = artifacts.require("ProtocolSettings");
-const LoanSettings = artifacts.require("LoanSettings");
-const LoanMaintenance = artifacts.require("LoanMaintenance");
-const LoanOpenings = artifacts.require("LoanOpenings");
-const SwapsExternal = artifacts.require("SwapsExternal");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
-const LoanClosingsWith = artifacts.require("LoanClosingsWith");
-const Affiliates = artifacts.require("Affiliates");
-
-const ISovryn = artifacts.require("ISovryn");
 const TestToken = artifacts.require("TestToken");
 const LockedSOV = artifacts.require("LockedSOVMockup");
 const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic");
 const TestWrbtc = artifacts.require("TestWrbtc");
-const SOVToken = artifacts.require("SOV");
 const LoanToken = artifacts.require("LoanToken");
 const LoanOpeningsEvents = artifacts.require("LoanOpeningsEvents");
+const TestCoverage = artifacts.require("TestCoverage");
 
-const TOTAL_SUPPLY = "10000000000000000000000000";
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
 const { increaseTime, blockNumber } = require("./Utils/Ethereum");
-
 const {
 	getSUSD,
 	getRBTC,
@@ -40,31 +52,19 @@ const {
 	getSovryn,
 	decodeLogs,
 	getSOV,
-	verify_sov_reward_payment,
 } = require("./Utils/initializer.js");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 contract("Pause Modules", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
 	let loanParams, loanParamsId;
-
-	before(async () => {
-		[owner, trader, referrer, account1, account2, ...accounts] = accounts;
-		const sovrynproxy = await sovrynProtocol.new();
-		sovryn = await ISovryn.at(sovrynproxy.address);
-		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
-		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
-		await sovryn.replaceContract((await ProtocolSettings.new()).address);
-		await sovryn.replaceContract((await LoanSettings.new()).address);
-		await sovryn.replaceContract((await LoanMaintenance.new()).address);
-		await sovryn.replaceContract((await SwapsExternal.new()).address);
-		await sovryn.replaceContract((await LoanOpenings.new()).address);
-		await sovryn.replaceContract((await Affiliates.new()).address);
-		await sovryn.setSovrynProtocolAddress(sovrynproxy.address);
-		SUSD = await getSUSD();
+	/// @note https://stackoverflow.com/questions/68182729/implementing-fixtures-with-nomiclabs-hardhat-waffle
+	async function fixtureInitialize(_wallets, _provider) {
+		SUSD = await getSUSD(); // Underlying Token
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
 		loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD);
@@ -72,19 +72,21 @@ contract("Pause Modules", (accounts) => {
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
-		//Token
-		underlyingToken = await TestToken.new("Test token", "TST", 18, TOTAL_SUPPLY);
-
 		loanParams = {
 			id: "0x0000000000000000000000000000000000000000000000000000000000000000",
 			active: false,
-			owner: constants.ZERO_ADDRESS,
-			loanToken: underlyingToken.address,
+			owner: ZERO_ADDRESS,
+			loanToken: SUSD.address,
 			collateralToken: loanTokenWRBTC.address,
 			minInitialMargin: wei("50", "ether"),
 			maintenanceMargin: wei("15", "ether"),
 			maxLoanTerm: "2419200",
 		};
+	}
+
+	before(async () => {
+		[owner, trader, referrer, account1, account2, ...accounts] = accounts;
+		await loadFixture(fixtureInitialize);
 	});
 
 	const setup_rollover_test = async (RBTC, SUSD, accounts, loanToken, set_demand_curve, sovryn) => {
@@ -92,7 +94,7 @@ contract("Pause Modules", (accounts) => {
 		await SUSD.approve(loanToken.address, new BN(10).pow(new BN(40)));
 		const lender = accounts[0];
 		const borrower = accounts[1];
-		let tx = await sovryn.togglePaused(false); //Unpaused
+		let tx = await sovryn.togglePaused(false); // Unpaused
 		await expectEvent(tx, "TogglePaused", {
 			sender: owner,
 			oldFlag: true,
@@ -130,7 +132,6 @@ contract("Pause Modules", (accounts) => {
 			loanTokenLogic = await MockLoanTokenLogic.new();
 			testWrbtc = await TestWrbtc.new();
 			doc = await TestToken.new("dollar on chain", "DOC", 18, wei("20000", "ether"));
-			tokenSOV = await SOVToken.new(TOTAL_SUPPLY);
 			loanTokenV1 = await LoanToken.new(owner, loanTokenLogic.address, sovryn.address, testWrbtc.address);
 			await loanTokenV1.initialize(doc.address, "SUSD", "SUSD");
 			loanTokenV2 = await MockLoanTokenLogic.at(loanTokenV1.address);
@@ -138,7 +139,7 @@ contract("Pause Modules", (accounts) => {
 			if (owner == (await sovryn.owner())) {
 				await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
 			}
-			let tx = await sovryn.togglePaused(true); //Paused
+			let tx = await sovryn.togglePaused(true); // Paused
 			await expectRevert(sovryn.togglePaused(true), "Can't toggle");
 			await expectEvent(tx, "TogglePaused", {
 				sender: owner,
@@ -162,7 +163,7 @@ contract("Pause Modules", (accounts) => {
 
 			const receiver = accounts[3];
 			expect((await RBTC.balanceOf(receiver)).toNumber() == 0).to.be.true;
-			let tx = await sovryn.togglePaused(true); //Paused
+			let tx = await sovryn.togglePaused(true); // Paused
 			await expectEvent(tx, "TogglePaused", {
 				sender: owner,
 				oldFlag: false,
@@ -174,13 +175,11 @@ contract("Pause Modules", (accounts) => {
 
 	describe("Pause ProtocolSettings", () => {
 		it("Should pause setting SOV token address", async () => {
-			const sov = await TestToken.new("Sovryn", "SOV", 18, new BN(10).pow(new BN(50)));
-			await expectRevert(sovryn.setSOVTokenAddress(sov.address), "Paused");
+			await expectRevert(sovryn.setSOVTokenAddress(SOV.address), "Paused");
 		});
 
 		it("Should pause setting LockedSOV token address", async () => {
-			const sov = await TestToken.new("Sovryn", "SOV", 18, new BN(10).pow(new BN(50)));
-			const lockedSOV = await LockedSOV.new(sov.address, [accounts[0]]);
+			const lockedSOV = await LockedSOV.new(SOV.address, [accounts[0]]);
 			await expectRevert(sovryn.setLockedSOVAddress(lockedSOV.address), "Paused");
 		});
 
@@ -195,7 +194,7 @@ contract("Pause Modules", (accounts) => {
 		});
 
 		it("Should set affiliate fee percent when Unpaused", async () => {
-			let tx = await sovryn.togglePaused(false); //Unpaused
+			let tx = await sovryn.togglePaused(false); // Unpaused
 			await expectRevert(sovryn.togglePaused(false), "Can't toggle");
 			await expectEvent(tx, "TogglePaused", {
 				sender: owner,
@@ -216,6 +215,7 @@ contract("Pause Modules", (accounts) => {
 			expect((await sovryn.affiliateTradingTokenFeePercent()).toString() == affiliateTradingTokenFeePercent).to.be.true;
 		});
 	});
+
 	describe("Pause LoanSettings", () => {
 		it("Able to setupLoanParams & disableLoanParamsEvents when unpaused", async () => {
 			let tx = await sovryn.setupLoanParams([Object.values(loanParams)]);
@@ -228,7 +228,7 @@ contract("Pause Modules", (accounts) => {
 
 			await expectEvent(tx, "LoanParamsDisabled", {
 				owner: owner,
-				loanToken: underlyingToken.address,
+				loanToken: SUSD.address,
 				collateralToken: loanTokenWRBTC.address,
 				minInitialMargin: wei("50", "ether"),
 				maintenanceMargin: wei("15", "ether"),
@@ -238,13 +238,47 @@ contract("Pause Modules", (accounts) => {
 		});
 
 		it("setupLoanParams & disableLoanParamsEvents freezes when protocol is paused", async () => {
-			let tx = await sovryn.togglePaused(true); //Paused
+			let tx = await sovryn.togglePaused(true); // Paused
 			await expectEvent(tx, "TogglePaused", {
 				sender: owner,
 				oldFlag: false,
 				newFlag: true,
 			});
 			await expectRevert(sovryn.setupLoanParams([Object.values(loanParams)]), "Paused");
+		});
+	});
+
+	describe("Testing isProtocolPaused()", () => {
+		it("isProtocolPaused() returns correct result when toggling pause/unpause", async () => {
+			await loadFixture(fixtureInitialize);
+			await sovryn.togglePaused(true);
+			expect(await sovryn.isProtocolPaused()).to.be.true;
+
+			// Check deterministic result when trying to set current value
+			expectRevert.unspecified(sovryn.togglePaused(true));
+			expect(await sovryn.isProtocolPaused()).to.be.true;
+
+			// Pause true -> false
+			await sovryn.togglePaused(false);
+			expect(await sovryn.isProtocolPaused()).to.be.false;
+			expectRevert.unspecified(sovryn.togglePaused(false));
+			expect(await sovryn.isProtocolPaused()).to.be.false;
+
+			// Pause false -> true
+			await sovryn.togglePaused(true);
+			expect(await sovryn.isProtocolPaused()).to.be.true;
+		});
+	});
+
+	describe("Testing Pausable contract", () => {
+		it("Pausable function runs if not paused", async () => {
+			testCoverage = await TestCoverage.new();
+			await testCoverage.dummyPausableFunction();
+		});
+		it("Pausable function reverts if paused", async () => {
+			testCoverage = await TestCoverage.new();
+			await testCoverage.togglePause("dummyPausableFunction()", true);
+			await expectRevert(testCoverage.dummyPausableFunction(), "unauthorized");
 		});
 	});
 });

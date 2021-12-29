@@ -10,6 +10,7 @@ import "../openzeppelin/SafeERC20.sol";
 import "../feeds/IPriceFeeds.sol";
 import "../events/FeesEvents.sol";
 import "../modules/interfaces/ProtocolAffiliatesInterface.sol";
+import "../interfaces/ISovryn.sol";
 import "../core/objects/LoanParamsStruct.sol";
 
 /**
@@ -29,6 +30,15 @@ contract FeesHelper is State, FeesEvents {
 	 * */
 	function _getTradingFee(uint256 feeTokenAmount) internal view returns (uint256) {
 		return feeTokenAmount.mul(tradingFeePercent).divCeil(10**20);
+	}
+
+	/**
+	 * @notice Calculate swap external fee.
+	 * @param feeTokenAmount The amount of token to swap.
+	 * @return The fee of the swap.
+	 */
+	function _getSwapExternalFee(uint256 feeTokenAmount) internal view returns (uint256) {
+		return feeTokenAmount.mul(swapExtrernalFeePercent).divCeil(10**20);
 	}
 
 	/*
@@ -76,7 +86,7 @@ contract FeesHelper is State, FeesEvents {
 		address feeToken,
 		uint256 tradingFee
 	) internal returns (uint256 affiliatesBonusSOVAmount, uint256 affiliatesBonusTokenAmount) {
-		(affiliatesBonusSOVAmount, affiliatesBonusTokenAmount) = ProtocolAffiliatesInterface(protocolAddress)
+		(affiliatesBonusSOVAmount, affiliatesBonusTokenAmount) = ProtocolAffiliatesInterface(address(this))
 			.payTradingFeeToAffiliatesReferrer(referrer, trader, feeToken, tradingFee);
 	}
 
@@ -221,18 +231,25 @@ contract FeesHelper is State, FeesEvents {
 			}
 		}
 
-		if (rewardAmount != 0) {
+		// Check the dedicated SOV that is used to pay trading rebate rewards
+		uint256 dedicatedSOV = ISovryn(address(this)).getDedicatedSOVRebate();
+		if (rewardAmount != 0 && dedicatedSOV >= rewardAmount) {
 			IERC20(sovTokenAddress).approve(lockedSOVAddress, rewardAmount);
 
-			(bool success, ) = lockedSOVAddress.call(abi.encodeWithSignature("depositSOV(address,uint256)", user, rewardAmount));
+			(bool success, ) =
+				lockedSOVAddress.call(
+					abi.encodeWithSignature("deposit(address,uint256,uint256)", user, rewardAmount, tradingRebateRewardsBasisPoint)
+				);
 
 			if (success) {
 				protocolTokenPaid = protocolTokenPaid.add(rewardAmount);
 
-				emit EarnReward(user, sovTokenAddress, loanId, _feeRebatePercent, rewardAmount);
+				emit EarnReward(user, sovTokenAddress, loanId, _feeRebatePercent, rewardAmount, tradingRebateRewardsBasisPoint);
 			} else {
-				emit EarnRewardFail(user, sovTokenAddress, loanId, _feeRebatePercent, rewardAmount);
+				emit EarnRewardFail(user, sovTokenAddress, loanId, _feeRebatePercent, rewardAmount, tradingRebateRewardsBasisPoint);
 			}
+		} else if (rewardAmount != 0 && dedicatedSOV < rewardAmount) {
+			emit EarnRewardFail(user, sovTokenAddress, loanId, _feeRebatePercent, rewardAmount, tradingRebateRewardsBasisPoint);
 		}
 	}
 }

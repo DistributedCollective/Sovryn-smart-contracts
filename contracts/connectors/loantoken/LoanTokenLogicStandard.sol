@@ -6,12 +6,12 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./LoanTokenSettingsLowerAdmin.sol";
-import "../LoanTokenLogicStorage.sol";
-import "../interfaces/ProtocolLike.sol";
-import "../interfaces/FeedsLike.sol";
-import "../../../modules/interfaces/ProtocolAffiliatesInterface.sol";
-import "../../../farm/ILiquidityMining.sol";
+import "./LoanTokenLogicStorage.sol";
+import "./interfaces/ProtocolLike.sol";
+import "./interfaces/FeedsLike.sol";
+import "./interfaces/ProtocolSettingsLike.sol";
+import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
+import "../../farm/ILiquidityMining.sol";
 
 /**
  * @title Loan Token Logic Standard contract.
@@ -50,14 +50,11 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	using SafeMath for uint256;
 	using SignedSafeMath for int256;
 
-	/// DON'T ADD VARIABLES HERE, PLEASE
+	/* Events */
 
-	/**
-	 * @notice Fallback function is to react to receiving value (rBTC).
-	 * */
-	function() external {
-		revert("loan token-fallback not allowed");
-	}
+	event WithdrawRBTCTo(address indexed to, uint256 amount);
+
+	/// DON'T ADD VARIABLES HERE, PLEASE
 
 	/* Public functions */
 
@@ -226,9 +223,13 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		/// @dev Ensure authorized use of existing loan.
 		// require(loanId == 0 || msg.sender == borrower, "401 use of existing loan");
 
-		if (collateralTokenAddress == address(0)) {
-			collateralTokenAddress = wrbtcTokenAddress;
-		}
+		/// @dev The condition is never met.
+		///   Address zero is not allowed by previous require validation.
+		///   This check is unneeded and was lowering the test coverage index.
+		// if (collateralTokenAddress == address(0)) {
+		// 	collateralTokenAddress = wrbtcTokenAddress;
+		// }
+
 		require(collateralTokenAddress != loanTokenAddress, "10");
 
 		_settleInterest();
@@ -257,7 +258,9 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 			_borrowOrTrade(
 				loanId,
 				withdrawAmount,
-				2 * 10**18, /// leverageAmount (translates to 150% margin for a Torque loan).
+				ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(
+					loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))]
+				),
 				collateralTokenAddress,
 				sentAddresses,
 				sentAmounts,
@@ -297,6 +300,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 * @param collateralTokenSent The amount of collateral tokens provided by the user.
 	 * @param collateralTokenAddress The token address of collateral.
 	 * @param trader The account that performs this trade.
+	 * @param minReturn Minimum amount (position size) in the collateral tokens
 	 * @param loanDataBytes Additional loan data (not in use for token swaps).
 	 *
 	 * @return New principal and new collateral added to trade.
@@ -365,11 +369,13 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
 		require(_getAmountInRbtc(loanTokenAddress, sentAmounts[1]) > TINY_AMOUNT, "principal too small");
 
+		/// @dev Converting to initialMargin
+		leverageAmount = SafeMath.div(10**38, leverageAmount);
 		return
 			_borrowOrTrade(
 				loanId,
 				0, /// withdrawAmount
-				leverageAmount,
+				leverageAmount, //initial margin
 				collateralTokenAddress,
 				sentAddresses,
 				sentAmounts,
@@ -427,6 +433,19 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	}
 
 	/**
+	 * @notice Withdraws RBTC from the contract by Multisig.
+	 * @param _receiverAddress The address where the rBTC has to be transferred.
+	 * @param _amount The amount of rBTC to be transferred.
+	 */
+	function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external onlyOwner {
+		require(_receiverAddress != address(0), "receiver address invalid");
+		require(_amount > 0, "non-zero withdraw amount expected");
+		require(_amount <= address(this).balance, "withdraw amount cannot exceed balance");
+		_receiverAddress.transfer(_amount);
+		emit WithdrawRBTCTo(_receiverAddress, _amount);
+	}
+
+	/**
 	 * @notice Transfer tokens wrapper.
 	 * Sets token owner the msg.sender.
 	 * Sets maximun allowance uint256(-1) to ensure tokens are always transferred.
@@ -480,6 +499,8 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	) internal returns (bool) {
 		if (_allowanceAmount != uint256(-1)) {
 			allowed[_from][msg.sender] = _allowanceAmount.sub(_value, "14");
+			/// @dev Allowance mapping update requires an event log
+			emit AllowanceUpdate(_from, msg.sender, _allowanceAmount, allowed[_from][msg.sender]);
 		}
 
 		require(_to != address(0), "15");
@@ -670,7 +691,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	function totalSupplyInterestRate(uint256 assetSupply) public view returns (uint256) {
 		uint256 assetBorrow = totalAssetBorrow();
 		if (assetBorrow != 0) {
-			return _supplyInterestRate(assetBorrow, assetSupply);
+			return calculateSupplyInterestRate(assetBorrow, assetSupply);
 		}
 	}
 
@@ -802,13 +823,15 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 			(, , uint256 newBorrowAmount) = _getInterestRateAndBorrowAmount(borrowAmount, totalAssetSupply(), initialLoanDuration);
 
 			if (newBorrowAmount <= _underlyingBalance()) {
+				if (collateralTokenAddress == address(0)) collateralTokenAddress = wrbtcTokenAddress;
+				bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))];
 				return
 					ProtocolLike(sovrynContractAddress)
 						.getRequiredCollateral(
 						loanTokenAddress,
-						collateralTokenAddress != address(0) ? collateralTokenAddress : wrbtcTokenAddress,
+						collateralTokenAddress,
 						newBorrowAmount,
-						50 * 10**18, /// initialMargin
+						ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(loanParamsId), /// initialMargin
 						true /// isTorqueLoan
 					)
 						.add(10); /// Some dust to compensate for rounding errors.
@@ -838,11 +861,13 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		address collateralTokenAddress /// address(0) means rBTC
 	) public view returns (uint256 borrowAmount) {
 		if (depositAmount != 0) {
+			if (collateralTokenAddress == address(0)) collateralTokenAddress = wrbtcTokenAddress;
+			bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))];
 			borrowAmount = ProtocolLike(sovrynContractAddress).getBorrowAmount(
 				loanTokenAddress,
-				collateralTokenAddress != address(0) ? collateralTokenAddress : wrbtcTokenAddress,
+				collateralTokenAddress,
 				depositAmount,
-				50 * 10**18, /// initialMargin,
+				ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(loanParamsId), /// initialMargin,
 				true /// isTorqueLoan
 			);
 
@@ -1065,8 +1090,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 *
 	 * @param loanId The ID of the loan, 0 for a new loan.
 	 * @param withdrawAmount The amount to be withdrawn (actually borrowed).
-	 * @param leverageAmount The multiple of exposure: 2x ... 5x. The leverage
-	 *   with 18 decimals.
+	 * @param initialMargin The initial margin with 18 decimals
 	 * @param collateralTokenAddress  The address of the token to be used as
 	 *   collateral. Cannot be the loan token address.
 	 * @param sentAddresses The addresses to send tokens: lender, borrower,
@@ -1081,7 +1105,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	function _borrowOrTrade(
 		bytes32 loanId,
 		uint256 withdrawAmount,
-		uint256 leverageAmount,
+		uint256 initialMargin,
 		address collateralTokenAddress,
 		address[4] memory sentAddresses,
 		uint256[5] memory sentAmounts,
@@ -1120,13 +1144,11 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
 		bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, withdrawAmountExist)))];
 
-		/// @dev Converting to initialMargin
-		leverageAmount = SafeMath.div(10**38, leverageAmount);
 		(sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress).borrowOrTradeFromPool.value(msgValue)( /// newPrincipal, newCollateral
 			loanParamsId,
 			loanId,
 			withdrawAmountExist,
-			leverageAmount, /// initialMargin
+			initialMargin,
 			sentAddresses,
 			sentAmounts,
 			loanDataBytes
@@ -1271,6 +1293,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		bytes memory data,
 		string memory errorMsg
 	) internal {
+		require(Address.isContract(token), "call to a non-contract address");
 		(bool success, bytes memory returndata) = token.call(data);
 		require(success, errorMsg);
 
@@ -1318,7 +1341,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 * @param assetSupply The amount of loan tokens supplied.
 	 * @return The next supply interest adjustment.
 	 * */
-	function _supplyInterestRate(uint256 assetBorrow, uint256 assetSupply) public view returns (uint256) {
+	function calculateSupplyInterestRate(uint256 assetBorrow, uint256 assetSupply) public view returns (uint256) {
 		if (assetBorrow != 0 && assetSupply >= assetBorrow) {
 			return
 				_avgBorrowInterestRate(assetBorrow)
@@ -1371,7 +1394,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		uint256 utilRate = _utilizationRate(totalAssetBorrow().add(newBorrowAmount), assetSupply);
 
 		uint256 thisMinRate;
-		uint256 thisMaxRate;
+		uint256 thisRateAtKink;
 		uint256 thisBaseRate = baseRate;
 		uint256 thisRateMultiplier = rateMultiplier;
 		uint256 thisTargetLevel = targetLevel;
@@ -1390,17 +1413,19 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 			utilRate -= thisKinkLevel;
 			if (utilRate > thisMaxRange) utilRate = thisMaxRange;
 
-			thisMaxRate = thisRateMultiplier.add(thisBaseRate).mul(thisKinkLevel).div(WEI_PERCENT_PRECISION);
+			// Modified the rate calculation as it is slightly exaggerated around kink level
+			// thisRateAtKink = thisRateMultiplier.add(thisBaseRate).mul(thisKinkLevel).div(WEI_PERCENT_PRECISION);
+			thisRateAtKink = thisKinkLevel.mul(thisRateMultiplier).div(WEI_PERCENT_PRECISION).add(thisBaseRate);
 
-			nextRate = utilRate.mul(SafeMath.sub(thisMaxScaleRate, thisMaxRate)).div(thisMaxRange).add(thisMaxRate);
+			nextRate = utilRate.mul(SafeMath.sub(thisMaxScaleRate, thisRateAtKink)).div(thisMaxRange).add(thisRateAtKink);
 		} else {
 			nextRate = utilRate.mul(thisRateMultiplier).div(WEI_PERCENT_PRECISION).add(thisBaseRate);
 
 			thisMinRate = thisBaseRate;
-			thisMaxRate = thisRateMultiplier.add(thisBaseRate);
+			thisRateAtKink = thisRateMultiplier.add(thisBaseRate);
 
 			if (nextRate < thisMinRate) nextRate = thisMinRate;
-			else if (nextRate > thisMaxRate) nextRate = thisMaxRate;
+			else if (nextRate > thisRateAtKink) nextRate = thisRateAtKink;
 		}
 	}
 
@@ -1529,6 +1554,16 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 */
 	function setLiquidityMiningAddress(address LMAddress) external onlyOwner {
 		liquidityMiningAddress = LMAddress;
+	}
+
+	/**
+	 * @notice We need separate getter for newly added storage variable
+	 * @notice Getter for liquidityMiningAddress
+
+	 * @return liquidityMiningAddress
+	 */
+	function getLiquidityMiningAddress() public view returns (address) {
+		return liquidityMiningAddress;
 	}
 
 	function _mintWithLM(address receiver, uint256 depositAmount) internal returns (uint256 minted) {

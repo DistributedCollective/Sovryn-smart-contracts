@@ -3,7 +3,7 @@ pragma solidity 0.5.17;
 import "./AdvancedToken.sol";
 
 contract LoanTokenLogicStorage is AdvancedToken {
-	/// DO NOT ADD VARIABLES HERE
+	/// DO NOT ADD VARIABLES HERE - SEE BELOW
 
 	/// @dev It is important to maintain the variables order so the delegate
 	/// calls can access sovrynContractAddress

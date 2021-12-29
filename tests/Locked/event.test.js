@@ -1,6 +1,19 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-27
+ * No bottlenecks found. There's no beforeEach hook deploying contracts but
+ *   there are several mints and approves that can be moved into
+ *   the initialization process. Two last tests require redeployments and cannot be
+ *   isolated from the previous flow state, so fixture is not appliable.
+ *
+ * Total time elapsed: 5.1s
+ * After optimization: 4.9s
+ *
+ * Notes: mint and approval moved into before hook w/ effective infinite values.
+ */
+
 const SOV = artifacts.require("TestToken");
+const TestWrbtc = artifacts.require("TestWrbtc");
 const LockedSOV = artifacts.require("LockedSOV");
-const StakingLogic = artifacts.require("Staking");
+const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
@@ -21,6 +34,9 @@ let zeroAddress = constants.ZERO_ADDRESS;
 let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
 let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 
+let value;
+const maxRandom = 10000;
+
 /**
  * Function to create a random value.
  * It expects no parameter.
@@ -28,7 +44,7 @@ let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
  * @return {number} Random Value.
  */
 function randomValue() {
-	return Math.floor(Math.random() * 10000);
+	return Math.floor(Math.random() * maxRandom);
 }
 
 contract("Locked SOV (Events)", (accounts) => {
@@ -37,11 +53,12 @@ contract("Locked SOV (Events)", (accounts) => {
 
 	before("Initiating Accounts & Creating Test Token Instance.", async () => {
 		// Checking if we have enough accounts to test.
-		assert.isAtLeast(accounts.length, 8, "Alteast 8 accounts are required to test the contracts.");
+		assert.isAtLeast(accounts.length, 8, "At least 8 accounts are required to test the contracts.");
 		[creator, admin, newAdmin, userOne, userTwo, userThree, userFour, userFive] = accounts;
 
 		// Creating the instance of SOV Token.
 		sov = await SOV.new("Sovryn", "SOV", 18, zero);
+		wrbtc = await TestWrbtc.new();
 
 		// Creating the Staking Instance.
 		stakingLogic = await StakingLogic.new(sov.address);
@@ -73,6 +90,13 @@ contract("Locked SOV (Events)", (accounts) => {
 
 		// Adding lockedSOV as an admin in the Vesting Registry.
 		await vestingRegistry.addAdmin(lockedSOV.address);
+
+		/// @dev Moved from tests into init code, for speed optimization.
+		const infiniteTokens = maxRandom * 100; // A lot of tokens, enough to run all tests w/o extra minting
+		value = randomValue() + 10;
+		await sov.mint(userOne, infiniteTokens);
+		await sov.approve(lockedSOV.address, infiniteTokens, { from: userOne });
+		await sov.approve(newLockedSOV.address, infiniteTokens, { from: userOne });
 	});
 
 	it("Adding another admin should emit AdminAdded.", async () => {
@@ -111,9 +135,6 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Depositing Tokens using deposit() to own account should emit Deposited.", async () => {
-		let value = randomValue() + 10;
-		await sov.mint(userOne, value);
-		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let basisPoint = randomValue();
 		let txReceipt = await lockedSOV.deposit(userOne, value, basisPoint, { from: userOne });
 		expectEvent(txReceipt, "Deposited", {
@@ -125,9 +146,6 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Depositing Tokens using deposit() to another account should emit Deposited.", async () => {
-		let value = randomValue() + 10;
-		await sov.mint(userOne, value);
-		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let basisPoint = randomValue();
 		let txReceipt = await lockedSOV.deposit(userTwo, value, basisPoint, { from: userOne });
 		expectEvent(txReceipt, "Deposited", {
@@ -139,9 +157,6 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Depositing Tokens using depositSOV() to own account should emit Deposited.", async () => {
-		let value = randomValue() + 10;
-		await sov.mint(userOne, value);
-		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let txReceipt = await lockedSOV.depositSOV(userOne, value, { from: userOne });
 		expectEvent(txReceipt, "Deposited", {
 			_initiator: userOne,
@@ -152,9 +167,6 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Depositing Tokens using depositSOV() to another account should emit Deposited.", async () => {
-		let value = randomValue() + 1;
-		await sov.mint(userOne, value);
-		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let txReceipt = await lockedSOV.depositSOV(userTwo, value, { from: userOne });
 		expectEvent(txReceipt, "Deposited", {
 			_initiator: userOne,
@@ -165,9 +177,6 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Withdrawing unlocked Tokens to own account using withdraw() should emit Withdrawn.", async () => {
-		let value = randomValue() + 10;
-		await sov.mint(userOne, value);
-		await sov.approve(newLockedSOV.address, value, { from: userOne });
 		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
 		await newLockedSOV.deposit(userOne, value, basisPoint, { from: userOne });
 		let txReceipt = await newLockedSOV.withdraw(zeroAddress, { from: userOne });
@@ -179,9 +188,6 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Withdrawing unlocked Tokens to another account using withdraw() should emit Withdrawn.", async () => {
-		let value = randomValue() + 10;
-		await sov.mint(userOne, value);
-		await sov.approve(newLockedSOV.address, value, { from: userOne });
 		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
 		await newLockedSOV.deposit(userOne, value, basisPoint, { from: userOne });
 		let txReceipt = await newLockedSOV.withdraw(userTwo, { from: userOne });
@@ -193,9 +199,6 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Using createVestingAndStake() should emit both VestingCreated and TokenStaked.", async () => {
-		let value = randomValue() + 10;
-		await sov.mint(userOne, value);
-		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
 		await lockedSOV.deposit(userOne, value, basisPoint, { from: userOne });
 		let lockedBal = await lockedSOV.getLockedBalance(userOne);
@@ -224,9 +227,6 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Using stakeTokens() should emit TokenStaked.", async () => {
-		let value = randomValue() + 10;
-		await sov.mint(userOne, value);
-		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
 		await lockedSOV.deposit(userOne, value, basisPoint, { from: userOne });
 		await lockedSOV.createVesting({ from: userOne });
@@ -248,9 +248,6 @@ contract("Locked SOV (Events)", (accounts) => {
 	});
 
 	it("Transfering locked balance using transfer() should emit UserTransfered.", async () => {
-		let value = randomValue() + 10;
-		await sov.mint(userOne, value);
-		await sov.approve(lockedSOV.address, value, { from: userOne });
 		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
 		await lockedSOV.deposit(userOne, value, basisPoint, { from: userOne });
 
@@ -274,6 +271,7 @@ contract("Locked SOV (Events)", (accounts) => {
 		let value = randomValue() + 10;
 		await sov.mint(userOne, value);
 		await sov.approve(lockedSOV.address, value, { from: userOne });
+
 		let basisPoint = 5000; // 50% will be unlocked, rest will go to locked balance.
 		await lockedSOV.deposit(userOne, value, basisPoint, { from: userOne });
 		let vestingAddr = await vestingRegistry.getVesting(userOne);

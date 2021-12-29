@@ -12,12 +12,12 @@ import "../mixins/VaultController.sol";
 import "../mixins/InterestUser.sol";
 import "../swaps/SwapsUser.sol";
 import "../mixins/RewardHelper.sol";
-import "./ModuleCommonFunctionalities.sol";
+import "../mixins/ModuleCommonFunctionalities.sol";
 
 /**
  * @title LoanClosingsShared contract.
  * @notice This contract should only contains the internal function that is being used / utilized by
- *   LoanClosingsBase & LoanClosingsWith contract
+ *   LoanClosingsLiquidation, LoanClosingsRollover & LoanClosingsWith contract
  *
  * */
 contract LoanClosingsShared is LoanClosingsEvents, VaultController, InterestUser, SwapsUser, RewardHelper, ModuleCommonFunctionalities {
@@ -644,5 +644,23 @@ contract LoanClosingsShared is LoanClosingsEvents, VaultController, InterestUser
 	function _getAmountInRbtc(address asset, uint256 amount) internal returns (uint256) {
 		(uint256 rbtcRate, uint256 rbtcPrecision) = IPriceFeeds(priceFeeds).queryRate(asset, address(wrbtcToken));
 		return amount.mul(rbtcRate).div(rbtcPrecision);
+	}
+
+	/**
+	 * @dev private function which check the loanLocal & loanParamsLocal does exist
+	 *
+	 * @param loanId bytes32 of loanId
+	 *
+	 * @return Loan storage
+	 * @return LoanParams storage
+	 */
+	function _checkLoan(bytes32 loanId) internal returns (Loan storage, LoanParams storage) {
+		Loan storage loanLocal = loans[loanId];
+		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
+
+		require(loanLocal.active, "loan is closed");
+		require(loanParamsLocal.id != 0, "loanParams not exists");
+
+		return (loanLocal, loanParamsLocal);
 	}
 }

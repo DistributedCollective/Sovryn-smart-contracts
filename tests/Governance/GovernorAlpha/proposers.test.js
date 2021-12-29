@@ -1,7 +1,14 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-23
+ * No bottlenecks found, all tests run smoothly, flow is optimus.
+ *
+ * Total time elapsed: 4.6s
+ *
+ */
+
 const GovernorAlpha = artifacts.require("GovernorAlpha");
 const Timelock = artifacts.require("Timelock");
 const TestToken = artifacts.require("TestToken");
-const StakingLogic = artifacts.require("Staking");
+const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 
 const {
@@ -42,11 +49,11 @@ async function stake(tokenInstance, stakingInstance, stakeFor, delegatee, amount
 contract("GovernorAlpha (Proposer Functions)", (accounts) => {
 	let governorAlpha, stakingLogic, stakingProxy, timelock, testToken;
 	let guardianOne, guardianTwo, voterOne, voterTwo, voterThree, userOne, userTwo;
-	let targets, values, signatures, callDatas, eta, proposalId;
+	let targets, values, signatures, callDatas, eta;
 
 	before("Initiating Accounts & Contracts", async () => {
 		// Checking if we have enough accounts to test.
-		assert.isAtLeast(accounts.length, 7, "Alteast 7 accounts are required to test the contracts.");
+		assert.isAtLeast(accounts.length, 7, "At least 7 accounts are required to test the contracts.");
 		[guardianOne, guardianTwo, voterOne, voterTwo, voterThree, userOne, userTwo] = accounts;
 
 		// Creating the instance of Test Token.

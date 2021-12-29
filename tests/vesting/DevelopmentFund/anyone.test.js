@@ -1,6 +1,16 @@
 // For this test, governance contract and multisig wallet will be done by normal wallets.
 // They will acts as locked and unlocked owner.
 
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-04
+ * Bottleneck found at beforeEach hook, redeploying DevelopmentFund and token on every test.
+ *
+ * Total time elapsed: 4.7s
+ * After optimization: 4.1s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ *   Updated deployment on fixture, removed from tests.
+ */
+
 const DevelopmentFund = artifacts.require("DevelopmentFund");
 const TestToken = artifacts.require("TestToken");
 
@@ -10,6 +20,8 @@ const {
 } = require("@openzeppelin/test-helpers");
 
 const { assert } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
 
 // Some constants we would be using in the contract.
 let zero = new BN(0);
@@ -59,18 +71,10 @@ contract("DevelopmentFund (Any User Functions)", (accounts) => {
 	let developmentFund, testToken;
 	let creator, governance, newGovernance, multisig, newMultisig, safeVault, userOne;
 
-	before("Initiating Accounts & Creating Test Token Instance.", async () => {
-		// Checking if we have enough accounts to test.
-		assert.isAtLeast(accounts.length, 7, "Alteast 7 accounts are required to test the contracts.");
-		[creator, governance, newGovernance, multisig, newMultisig, safeVault, userOne] = accounts;
-
-		// Creating the instance of Test Token.
-		testToken = await TestToken.new("TestToken", "TST", 18, zero);
-	});
-
-	beforeEach("Creating New Development Fund Instance.", async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		// Creating a new release schedule.
 		releaseDuration = [];
+
 		// This is run 60 times for mimicking 5 years (12 months * 5), though the interval is small.
 		for (let times = 0; times < 60; times++) {
 			releaseDuration.push(releaseInterval);
@@ -79,32 +83,14 @@ contract("DevelopmentFund (Any User Functions)", (accounts) => {
 		// Creating a new release token schedule.
 		releaseTokenAmount = createReleaseTokenAmount();
 
-		// Creating the contract instance.
-		developmentFund = await DevelopmentFund.new(
-			testToken.address,
-			governance,
-			safeVault,
-			multisig,
-			zero,
-			releaseDuration,
-			releaseTokenAmount,
-			{ from: creator }
-		);
-
 		// Calculating the total tokens in the release schedule.
 		totalReleaseTokenAmount = calculateTotalTokenAmount(releaseTokenAmount);
 
 		// Minting new Tokens.
 		await testToken.mint(creator, totalSupply, { from: creator });
+		await testToken.mint(userOne, totalReleaseTokenAmount);
 
-		// Approving the development fund to do a transfer on behalf of governance.
-		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: creator });
-
-		// Marking the contract as active.
-		await developmentFund.init({ from: creator });
-	});
-
-	it("Anyone should be able to fund the initial token release schedule amount to make contract active.", async () => {
+		// Anyone should be able to fund the initial token release schedule amount to make contract active.
 		developmentFund = await DevelopmentFund.new(
 			testToken.address,
 			governance,
@@ -115,9 +101,22 @@ contract("DevelopmentFund (Any User Functions)", (accounts) => {
 			releaseTokenAmount,
 			{ from: creator }
 		);
-		await testToken.mint(userOne, totalReleaseTokenAmount);
+
 		await testToken.approve(developmentFund.address, totalReleaseTokenAmount, { from: userOne });
 		await developmentFund.init({ from: userOne });
+	}
+
+	before("Initiating Accounts & Creating Test Token Instance.", async () => {
+		// Checking if we have enough accounts to test.
+		assert.isAtLeast(accounts.length, 7, "At least 7 accounts are required to test the contracts.");
+		[creator, governance, newGovernance, multisig, newMultisig, safeVault, userOne] = accounts;
+
+		// Creating the instance of Test Token.
+		testToken = await TestToken.new("TestToken", "TST", 18, zero);
+	});
+
+	beforeEach("Creating New Development Fund Instance.", async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	it("No one should be able to call the init() more than once.", async () => {

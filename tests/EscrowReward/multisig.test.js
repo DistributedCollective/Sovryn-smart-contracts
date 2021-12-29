@@ -1,5 +1,18 @@
 // For this test, multisig wallet will be done by normal wallets.
 
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-21
+ * No bottlenecks found, all tests run smoothly.
+ *
+ * Total time elapsed: 4.4s
+ * After optimization: 4.3s
+ *
+ * Other minor optimizations:
+ * - fixed some comments
+ *
+ * Notes: Moved to before hook several mints and approvals.
+ *
+ */
+
 const EscrowReward = artifacts.require("EscrowReward");
 const LockedSOV = artifacts.require("LockedSOV"); // Ideally should be using actual LockedSOV for testing.
 const VestingLogic = artifacts.require("VestingLogic");
@@ -48,10 +61,11 @@ function currentTimestamp() {
 contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 	let escrowReward, newEscrowReward, sov, lockedSOV;
 	let creator, multisig, newMultisig, safeVault, userOne, userTwo, userThree, userFour, userFive;
+	let reward, value, approvalCheckValue;
 
 	before("Initiating Accounts & Creating Test Token Instance.", async () => {
 		// Checking if we have enough accounts to test.
-		assert.isAtLeast(accounts.length, 9, "Alteast 9 accounts are required to test the contracts.");
+		assert.isAtLeast(accounts.length, 9, "At least 9 accounts are required to test the contracts.");
 		[creator, multisig, newMultisig, safeVault, userOne, userTwo, userThree, userFour, userFive] = accounts;
 
 		// Creating the instance of SOV Token.
@@ -89,6 +103,14 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 
 		// Adding the contract as an admin in the lockedSOV.
 		await lockedSOV.addAdmin(escrowReward.address, { from: multisig });
+
+		/// @dev Minting, approval and test values calculation moved here for optimization
+		value = randomValue() + 1;
+		await sov.mint(multisig, value);
+		reward = randomValue() + 1;
+		await sov.mint(multisig, reward);
+		await sov.approve(escrowReward.address, value + reward, { from: multisig });
+		approvalCheckValue = value + reward + randomValue(); /// @dev Setting a higher value than default approval
 	});
 
 	it("Multisig should be able to call the init() function.", async () => {
@@ -114,7 +136,6 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 	});
 
 	it("Multisig should not be able to update the deposit limit lower than total deposits.", async () => {
-		let value = randomValue() + 1;
 		await sov.mint(userOne, value);
 		await sov.approve(escrowReward.address, value, { from: userOne });
 		await escrowReward.updateDepositLimit(value, { from: multisig });
@@ -145,7 +166,7 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 	});
 
 	it("Multisig should be approved before depositing reward tokens using depositRewardByMultisig.", async () => {
-		await expectRevert(escrowReward.depositRewardByMultisig(randomValue() + 1, { from: multisig }), "invalid transfer");
+		await expectRevert(escrowReward.depositRewardByMultisig(approvalCheckValue, { from: multisig }), "invalid transfer");
 	});
 
 	it("Multisig should not be able to deposit zero reward tokens using depositRewardByMultisig.", async () => {
@@ -153,16 +174,10 @@ contract("Escrow Rewards (Multisig Functions)", (accounts) => {
 	});
 
 	it("Multisig should be able to deposit reward tokens using depositRewardByMultisig.", async () => {
-		let reward = randomValue() + 1;
-		await sov.mint(multisig, reward);
-		await sov.approve(escrowReward.address, reward, { from: multisig });
 		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
 	});
 
 	it("Multisig should be able to deposit tokens using depositTokensByMultisig.", async () => {
-		let value = randomValue() + 1;
-		await sov.mint(multisig, value);
-		await sov.approve(escrowReward.address, value, { from: multisig });
 		await escrowReward.depositTokensByMultisig(value, { from: multisig });
 	});
 

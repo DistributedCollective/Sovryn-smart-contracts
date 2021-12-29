@@ -1,25 +1,35 @@
-const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-04
+ * Bottleneck found at beforeEach hook, redeploying token and staking ... on every test.
+ *
+ * Total time elapsed: 6.6s
+ * After optimization: 5.6s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
 
-const { address, minerStart, minerStop, unlockedAccount, mineBlock, etherMantissa, etherUnsigned, setTime } = require("../Utils/Ethereum");
+const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+
+const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
+
+const { address, mineBlock } = require("../Utils/Ethereum");
 
 const EIP712 = require("../Utils/EIP712");
-//const EIP712Ethers = require("../Utils/EIP712Ethers");
+// const EIP712Ethers = require("../Utils/EIP712Ethers");
 const { getAccountsPrivateKeysBuffer } = require("../Utils/hardhat_utils");
 
 const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 const VestingLogic = artifacts.require("VestingLogic");
+//Upgradable Vesting Registry
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
-const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1095));
-
-const DAY = 86400;
-const TWO_WEEKS = 1209600;
-
-//const { ethers } = require("hardhat");
+const TWO_WEEKS = 86400 * 14;
 
 contract("Staking", (accounts) => {
 	const name = "Test token";
@@ -35,6 +45,29 @@ contract("Staking", (accounts) => {
 
 	let vestingLogic1, vestingLogic2;
 
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		chainId = 1; // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
+		await web3.eth.net.getId();
+		token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
+
+		let stakingLogic = await StakingLogic.new(token.address);
+		staking = await StakingProxy.new(token.address);
+		await staking.setImplementation(stakingLogic.address);
+		staking = await StakingLogic.at(staking.address);
+		//Upgradable Vesting Registry
+		vestingRegistryLogic = await VestingRegistryLogic.new();
+		vesting = await VestingRegistryProxy.new();
+		await vesting.setImplementation(vestingRegistryLogic.address);
+		vesting = await VestingRegistryLogic.at(vesting.address);
+
+		await staking.setVestingRegistry(vesting.address);
+
+		MAX_VOTING_WEIGHT = await staking.MAX_VOTING_WEIGHT.call();
+
+		kickoffTS = await staking.kickoffTS.call();
+		inThreeYears = kickoffTS.add(new BN(DELAY * 26 * 3));
+	}
+
 	before(async () => {
 		[root, a1, a2, a3, ...accounts] = accounts;
 		[pkbRoot, pkbA1] = getAccountsPrivateKeysBuffer();
@@ -45,28 +78,142 @@ contract("Staking", (accounts) => {
 	});
 
 	beforeEach(async () => {
-		chainId = 1; // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
-		await web3.eth.net.getId();
-		token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-
-		let stakingLogic = await StakingLogic.new(token.address);
-		staking = await StakingProxy.new(token.address);
-		await staking.setImplementation(stakingLogic.address);
-		staking = await StakingLogic.at(staking.address);
-
-		MAX_VOTING_WEIGHT = await staking.MAX_VOTING_WEIGHT.call();
-
-		kickoffTS = await staking.kickoffTS.call();
-		inThreeYears = kickoffTS.add(new BN(DELAY * 26 * 3));
+		await loadFixture(deploymentAndInitFixture);
 	});
 
-	describe("metadata", () => {
-		it("has given name", async () => {
-			expect(await token.name.call()).to.be.equal(name);
+	// describe("metadata", () => {
+	// 	it("has given name", async () => {
+	// 		expect(await token.name.call()).to.be.equal(name);
+	// 	});
+	//
+	// 	it("has given symbol", async () => {
+	// 		expect(await token.symbol.call()).to.be.equal(symbol);
+	// 	});
+	// });
+	//
+	// describe("balanceOf", () => {
+	// 	it("grants to initial account", async () => {
+	// 		expect((await token.balanceOf.call(root)).toString()).to.be.equal(TOTAL_SUPPLY);
+	// 	});
+	// });
+	//
+	// describe("delegateBySig", () => {
+	// 	const Domain = (staking) => ({ name: "SOVStaking", chainId: currentChainId, verifyingContract: staking.address });
+	// 	const Types = {
+	// 		Delegation: [
+	// 			{ name: "delegatee", type: "address" },
+	// 			{ name: "lockDate", type: "uint256" },
+	// 			{ name: "nonce", type: "uint256" },
+	// 			{ name: "expiry", type: "uint256" },
+	// 		],
+	// 	};
+	//
+	// 	it("reverts if the signatory is invalid", async () => {
+	// 		const delegatee = root,
+	// 			nonce = 0,
+	// 			expiry = 0;
+	// 		await expectRevert(
+	// 			staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, 0, "0xbad", "0xbad"),
+	// 			"Staking::delegateBySig: invalid signature"
+	// 		);
+	// 	});
+	//
+	// 	it("reverts if the nonce is bad ", async () => {
+	// 		const delegatee = root,
+	// 			nonce = 1,
+	// 			expiry = 0,
+	// 			lockDate = inThreeYears;
+	// 		const { v, r, s } = EIP712.sign(
+	// 			Domain(staking),
+	// 			"Delegation",
+	// 			{
+	// 				delegatee,
+	// 				lockDate,
+	// 				nonce,
+	// 				expiry,
+	// 			},
+	// 			Types,
+	// 			pkbA1
+	// 			//pA1.privateKey
+	// 			//unlockedAccount(a1).secretKey
+	// 		);
+	// 		/*const { v, r, s } = EIP712Ethers.sign(
+	// 			Domain(staking),
+	// 			"Delegation",
+	// 			{
+	// 				delegatee,
+	// 				lockDate,
+	// 				nonce,
+	// 				expiry,
+	// 			},
+	// 			Types,
+	// 			pA1
+	// 		);*/
+	//
+	// 		await expectRevert(
+	// 			staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s),
+	// 			"Staking::delegateBySig: invalid nonce"
+	// 		);
+	// 	});
+	//
+	// 	it("reverts if the signature has expired", async () => {
+	// 		const delegatee = root,
+	// 			nonce = 0,
+	// 			expiry = 0,
+	// 			lockDate = inThreeYears;
+	// 		const { v, r, s } = EIP712.sign(
+	// 			Domain(staking),
+	// 			"Delegation",
+	// 			{
+	// 				delegatee,
+	// 				lockDate,
+	// 				nonce,
+	// 				expiry,
+	// 			},
+	// 			Types,
+	// 			pkbA1
+	// 		);
+	// 		await expectRevert(
+	// 			staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s),
+	// 			"Staking::delegateBySig: signature expired"
+	// 		);
+	// 	});
+	//
+	// 	it("delegates on behalf of the signatory", async () => {
+	// 		const delegatee = root,
+	// 			nonce = 0,
+	// 			expiry = 10e9,
+	// 			lockDate = inThreeYears;
+	// 		const { v, r, s } = EIP712.sign(
+	// 			Domain(staking),
+	// 			"Delegation",
+	// 			{
+	// 				delegatee,
+	// 				lockDate,
+	// 				nonce,
+	// 				expiry,
+	// 			},
+	// 			Types,
+	// 			pkbA1
+	// 			//unlockedAccount(a1).secretKey
+	// 		);
+	//
+	// 		expect(await staking.delegates.call(a1, inThreeYears)).to.be.equal(address(0));
+	// 		const tx = await staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s);
+	// 		expect(tx.gasUsed < 80000);
+	// 		expect(await staking.delegates.call(a1, inThreeYears)).to.be.equal(root);
+	// 	});
+	// });
+
+	describe("setVestingStakes", () => {
+		it("should fail if unauthorized", async () => {
+			await expectRevert(staking.setVestingStakes([], [], { from: a1 }), "unauthorized");
 		});
 
-		it("has given symbol", async () => {
-			expect(await token.symbol.call()).to.be.equal(symbol);
+		it("should fail if arrays have different length", async () => {
+			let lockedDates = [kickoffTS.add(new BN(TWO_WEEKS))];
+			let values = [];
+			await expectRevert(staking.setVestingStakes(lockedDates, values), "arrays mismatch");
 		});
 	});
 
@@ -113,8 +260,8 @@ contract("Staking", (accounts) => {
 				},
 				Types,
 				pkbA1
-				//pA1.privateKey
-				//unlockedAccount(a1).secretKey
+				// pA1.privateKey
+				// unlockedAccount(a1).secretKey
 			);
 			/*const { v, r, s } = EIP712Ethers.sign(
 				Domain(staking),
@@ -174,7 +321,7 @@ contract("Staking", (accounts) => {
 				},
 				Types,
 				pkbA1
-				//unlockedAccount(a1).secretKey
+				// unlockedAccount(a1).secretKey
 			);
 
 			expect(await staking.delegates.call(a1, inThreeYears)).to.be.equal(address(0));
@@ -187,9 +334,7 @@ contract("Staking", (accounts) => {
 	describe("numCheckpoints", () => {
 		it("returns the number of checkpoints for a delegate", async () => {
 			let guy = accounts[0];
-
-			await token.transfer(guy, "1000"); //give an account a few tokens for readability
-
+			await token.transfer(guy, "1000"); // give an account a few tokens for readability
 			await expect((await staking.numUserStakingCheckpoints.call(a1, inThreeYears)).toString()).to.be.equal("0");
 
 			await token.approve(staking.address, "1000", { from: guy });
@@ -202,19 +347,19 @@ contract("Staking", (accounts) => {
 
 		it("does not add more than one checkpoint in a block", async () => {
 			let guy = accounts[1];
-			await token.transfer(guy, "1000"); //give an account a few tokens for readability
+			await token.transfer(guy, "1000"); // give an account a few tokens for readability
 			await expect((await staking.numUserStakingCheckpoints.call(a3, inThreeYears)).toString()).to.be.equal("0");
 
 			await token.approve(staking.address, "1000", { from: guy });
 
-			//await minerStop();
+			// await minerStop();
 			let t1 = staking.stake("80", inThreeYears, a3, a3, { from: guy });
 
 			let t2 = staking.delegate(a3, inThreeYears, { from: guy });
 			let t3 = token.transfer(a2, 10, { from: guy });
 			let t4 = token.transfer(a2, 10, { from: guy });
 
-			//await minerStart();
+			// await minerStart();
 			t1 = await t1;
 			t2 = await t2;
 			t3 = await t3;
@@ -250,10 +395,7 @@ contract("Staking", (accounts) => {
 
 		it("reverts if block number >= current block", async () => {
 			let time = kickoffTS.add(new BN(DELAY));
-			await expectRevert(
-				staking.getPriorVotes.call(a1, 5e10, time),
-				"WeightedStaking::getPriorStakeByDateForDelegatee: not yet determined"
-			);
+			await expectRevert(staking.getPriorVotes.call(a1, 5e10, time), "not determined yet");
 		});
 
 		it("returns 0 if there are no checkpoints", async () => {
@@ -363,41 +505,29 @@ contract("Staking", (accounts) => {
 		});
 	});
 
-	describe("addContractCodeHash", () => {
-		it("adds hash", async () => {
-			let tx = await staking.addContractCodeHash(vestingLogic1.address);
-			let codeHash = await staking.getCodeHash(vestingLogic1.address);
+	describe("vesting stakes", () => {
+		it("should set vesting stakes", async () => {
+			let lockedDates = [
+				kickoffTS.add(new BN(TWO_WEEKS)),
+				kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2))),
+				kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4))),
+			];
+			let values = [new BN(1000), new BN(30000000000), new BN(500000000000000)];
 
-			expectEvent(tx, "ContractCodeHashAdded", {
-				hash: codeHash,
-			});
+			let tx = await staking.setVestingStakes(lockedDates, values);
 
-			let isVestingContract = await staking.isVestingContract(vestingLogic2.address);
-			expect(isVestingContract).equal(true);
-			expect(vestingLogic1.address).not.equal(vestingLogic2.address);
-		});
+			for (let i = 0; i < lockedDates.length; i++) {
+				let numCheckpoints = await staking.numVestingCheckpoints.call(lockedDates[i]);
+				expect(numCheckpoints).to.be.bignumber.equal(new BN(1));
+				let value = await staking.vestingCheckpoints.call(lockedDates[i], 0);
+				expect(value.stake).to.be.bignumber.equal(values[i]);
+				expect(value.fromBlock).to.be.bignumber.equal(new BN(0));
 
-		it("fails sender isn't an owner", async () => {
-			await expectRevert(staking.addContractCodeHash(vestingLogic2.address, { from: a1 }), "unauthorized");
-		});
-	});
-
-	describe("removeContractCodeHash", () => {
-		it("remove hash", async () => {
-			await staking.addContractCodeHash(vestingLogic1.address);
-			let tx = await staking.removeContractCodeHash(vestingLogic1.address);
-			let codeHash = await staking.getCodeHash(vestingLogic1.address);
-
-			expectEvent(tx, "ContractCodeHashRemoved", {
-				hash: codeHash,
-			});
-
-			let isVestingContract = await staking.isVestingContract(vestingLogic2.address);
-			expect(isVestingContract).equal(false);
-		});
-
-		it("fails sender isn't an owner", async () => {
-			await expectRevert(staking.removeContractCodeHash(vestingLogic2.address, { from: a1 }), "unauthorized");
+				expectEvent(tx, "VestingStakeSet", {
+					lockedTS: lockedDates[i],
+					value: values[i],
+				});
+			}
 		});
 	});
 

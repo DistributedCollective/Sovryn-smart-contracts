@@ -1,109 +1,86 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-24
+ * Bottlenecks found at beforeEach hook, redeploying tokens,
+ *  protocol, ... on every test.
+ *
+ * Total time elapsed: 6.1s
+ * After optimization: 5.1s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ *   Updated to use the initializer.js functions for protocol deployment.
+ *   Updated to use WRBTC as collateral token, instead of custom testWRBTC token.
+ *   Updated to use SUSD as underlying token, instead of custom underlyingToken.
+ *   Moved some initialization code from tests to fixture.
+ *   Added tests to increase the test coverage index:
+ *     + "test avgBorrowInterestRate() function"
+ *     + "test totalSupplyInterestRate() function"
+ *     + ...
+ */
+
 const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
-//const { mineBlock, increaseTime } = require("../Utils/Ethereum");
-
-const TestToken = artifacts.require("TestToken");
-const TestWrbtc = artifacts.require("TestWrbtc");
-
-const sovrynProtocol = artifacts.require("sovrynProtocol");
-const ProtocolSettings = artifacts.require("ProtocolSettings");
-const ISovryn = artifacts.require("ISovryn");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
+const {
+	getSUSD,
+	getRBTC,
+	getWRBTC,
+	getBZRX,
+	getLoanTokenLogic,
+	getLoanToken,
+	getLoanTokenLogicWrbtc,
+	getLoanTokenWRBTC,
+	loan_pool_setup,
+	set_demand_curve,
+	getPriceFeeds,
+	getSovryn,
+	decodeLogs,
+	getSOV,
+} = require("../Utils/initializer.js");
 
 const LoanToken = artifacts.require("LoanToken");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
-const LoanSettings = artifacts.require("LoanSettings");
-const LoanMaintenance = artifacts.require("LoanMaintenance");
-const LoanOpenings = artifacts.require("LoanOpenings");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
-const LoanClosingsWith = artifacts.require("LoanClosingsWith");
-const SwapsExternal = artifacts.require("SwapsExternal");
 
-const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
-const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
-
-const Affiliates = artifacts.require("Affiliates");
-const SOV = artifacts.require("SOV");
-const LockedSOVMockup = artifacts.require("LockedSOVMockup");
-
-const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
-
-const {
-	verify_start_conditions,
-	verify_lending_result_and_itoken_price_change,
-	lend_to_the_pool,
-	cash_out_from_the_pool,
-	cash_out_from_the_pool_more_of_lender_balance_should_not_fail,
-} = require("./helpers");
-//const { artifacts } = require("hardhat");
-
-const { getLoanTokenLogicWrbtc } = require("../Utils/initializer.js");
+const { verify_start_conditions, verify_lending_result_and_itoken_price_change, cash_out_from_the_pool } = require("./helpers");
 
 const wei = web3.utils.toWei;
-const oneEth = new BN(wei("1", "ether"));
-const hunEth = new BN(wei("100", "ether"));
 
 contract("LoanTokenLending", (accounts) => {
-	const name = "Test token";
-	const symbol = "TST";
-
 	let lender, account1, account2, account3, account4;
-	let underlyingToken, testWrbtc;
+	let SUSD, WRBTC;
 	let sovryn, loanToken;
+	let baseRate;
 
-	before(async () => {
-		[lender, account1, account2, account3, account4, ...accounts] = accounts;
-	});
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		// Deploying sovrynProtocol w/ generic function from initializer.js
+		SUSD = await getSUSD();
+		RBTC = await getRBTC();
+		WRBTC = await getWRBTC();
+		BZRX = await getBZRX();
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
+		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+		await sovryn.setSovrynProtocolAddress(sovryn.address);
 
-	beforeEach(async () => {
-		//Token
-		underlyingToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-		testWrbtc = await TestWrbtc.new();
-
-		const sovrynproxy = await sovrynProtocol.new();
-		sovryn = await ISovryn.at(sovrynproxy.address);
-
-		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
-		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
-		await sovryn.replaceContract((await ProtocolSettings.new()).address);
-		await sovryn.replaceContract((await LoanSettings.new()).address);
-		await sovryn.replaceContract((await LoanMaintenance.new()).address);
-		await sovryn.replaceContract((await SwapsExternal.new()).address);
-		await sovryn.replaceContract((await LoanOpenings.new()).address);
-		await sovryn.replaceContract((await Affiliates.new()).address);
-
-		await sovryn.setWrbtcToken(testWrbtc.address);
-
-		feeds = await PriceFeedsLocal.new(testWrbtc.address, sovryn.address);
-		await feeds.setRates(underlyingToken.address, testWrbtc.address, wei("0.01", "ether"));
-		const swaps = await SwapsImplSovrynSwap.new();
-		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
-		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
-		await sovryn.setSupportedTokens([underlyingToken.address, testWrbtc.address], [true, true]);
-		await sovryn.setPriceFeedContract(
-			feeds.address //priceFeeds
-		);
-		await sovryn.setSwapsImplContract(
-			swaps.address // swapsImpl
-		);
+		await priceFeeds.setRates(SUSD.address, WRBTC.address, wei("0.01", "ether"));
+		await sovryn.setSupportedTokens([SUSD.address, WRBTC.address], [true, true]);
 		await sovryn.setFeesController(lender);
 
-		tokenSOV = await SOV.new(TOTAL_SUPPLY);
-		await sovryn.setLockedSOVAddress((await LockedSOVMockup.new(tokenSOV.address, [lender])).address);
-		await sovryn.setProtocolTokenAddress(tokenSOV.address);
-		await sovryn.setSOVTokenAddress(tokenSOV.address);
+		// Custom tokens
+		await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
 		const initLoanTokenLogic = await getLoanTokenLogicWrbtc(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
 		loanTokenLogicWrbtc = initLoanTokenLogic[0];
 		loanTokenLogicBeaconWrbtc = initLoanTokenLogic[1];
 
-		loanToken = await LoanToken.new(lender, loanTokenLogicWrbtc.address, sovryn.address, testWrbtc.address);
-		await loanToken.initialize(testWrbtc.address, "iWRBTC", "iWRBTC"); //iToken
+		loanToken = await LoanToken.new(lender, loanTokenLogicWrbtc.address, sovryn.address, WRBTC.address);
+		await loanToken.initialize(WRBTC.address, "iWRBTC", "iWRBTC"); // iToken
 
 		/** Initialize the loan token logic proxy */
 		loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
-		await loanToken.initializeLoanTokenProxy(loanTokenLogicBeaconWrbtc.address);
+		await loanToken.setBeaconAddress(loanTokenLogicBeaconWrbtc.address);
 
 		/** Use interface of LoanTokenModules */
 		loanToken = await ILoanTokenModules.at(loanToken.address);
@@ -112,8 +89,8 @@ contract("LoanTokenLending", (accounts) => {
 			"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object
 			false, // bool active; // if false, this object has been disabled by the owner and can't be used for future loans
 			lender, // address owner; // owner of this object
-			testWrbtc.address, // address loanToken; // the token being loaned
-			underlyingToken.address, // address collateralToken; // the required collateral token
+			WRBTC.address, // address loanToken; // the token being loaned
+			SUSD.address, // address collateralToken; // the required collateral token
 			wei("20", "ether"), // uint256 minInitialMargin; // the minimum allowed initial margin
 			wei("15", "ether"), // uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
 			2419200, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
@@ -125,18 +102,49 @@ contract("LoanTokenLending", (accounts) => {
 		const loanTokenAddress = await loanToken.loanTokenAddress();
 		if (lender == (await sovryn.owner())) await sovryn.setLoanPool([loanToken.address], [loanTokenAddress]);
 
-		await testWrbtc.mint(sovryn.address, wei("500", "ether"));
+		await WRBTC.mint(sovryn.address, wei("500", "ether"));
+
+		baseRate = wei("1", "ether");
+		const rateMultiplier = wei("20.25", "ether");
+		const targetLevel = wei("80", "ether");
+		const kinkLevel = wei("90", "ether");
+		const maxScaleRate = wei("100", "ether");
+
+		await loanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate);
+	}
+
+	before(async () => {
+		[lender, account1, account2, account3, account4, ...accounts] = accounts;
 	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
+	});
+
 	describe("test lending using wRBTC as loanToken", () => {
+		it("Doesn't allow fallback function call", async () => {
+			await expectRevert(loanToken.sendTransaction({}), "target not active");
+		});
+
+		it("test avgBorrowInterestRate() function", async () => {
+			expect(await loanToken.avgBorrowInterestRate()).to.be.a.bignumber.equal(new BN(0));
+		});
+
+		it("test supplyInterestRate() function", async () => {
+			expect(await loanToken.supplyInterestRate()).to.be.a.bignumber.equal(new BN(0));
+		});
+
+		it("test nextSupplyInterestRate() function", async () => {
+			const deposit_amount = new BN(1);
+			expect(await loanToken.nextSupplyInterestRate(deposit_amount)).to.be.a.bignumber.equal(new BN(0));
+		});
+
+		it("test totalSupplyInterestRate() function", async () => {
+			const deposit_amount = new BN(1);
+			expect(await loanToken.totalSupplyInterestRate(deposit_amount)).to.be.a.bignumber.equal(new BN(0));
+		});
+
 		it("test lend to the pool", async () => {
-			const baseRate = wei("1", "ether");
-			const rateMultiplier = wei("20.25", "ether");
-			const targetLevel = wei("80", "ether");
-			const kinkLevel = wei("90", "ether");
-			const maxScaleRate = wei("100", "ether");
-
-			await loanToken.setDemandCurve(baseRate, rateMultiplier, baseRate, rateMultiplier, targetLevel, kinkLevel, maxScaleRate);
-
 			borrow_interest_rate = await loanToken.borrowInterestRate();
 			expect(borrow_interest_rate.gt(baseRate)).to.be.true;
 
@@ -145,13 +153,13 @@ contract("LoanTokenLending", (accounts) => {
 			let initial_balance = new BN(0);
 			const actual_initial_balance = new BN(await web3.eth.getBalance(lender));
 
-			await verify_start_conditions(testWrbtc, loanToken, lender, initial_balance, deposit_amount);
+			await verify_start_conditions(WRBTC, loanToken, lender, initial_balance, deposit_amount);
 			await loanToken.mintWithBTC(lender, false, { value: deposit_amount });
 
 			initial_balance = new BN(wei("5", "ether"));
 			await verify_lending_result_and_itoken_price_change(
-				testWrbtc,
-				underlyingToken,
+				WRBTC,
+				SUSD,
 				loanToken,
 				lender,
 				loan_token_sent,
@@ -165,16 +173,48 @@ contract("LoanTokenLending", (accounts) => {
 		});
 
 		it("test cash out from the pool", async () => {
-			await cash_out_from_the_pool(loanToken, lender, testWrbtc, true);
+			await cash_out_from_the_pool(loanToken, lender, WRBTC, true);
 		});
 
 		it("test cash out from the pool more of lender balance should not fail", async () => {
 			const total_deposit_amount = new BN(wei("200", "ether"));
 			await loanToken.mintWithBTC(lender, false, { value: total_deposit_amount.toString() });
-			const balance_after_lending = await web3.eth.getBalance(lender);
 			await expectRevert(loanToken.burnToBTC(lender, total_deposit_amount.mul(new BN(2)).toString(), false), "32");
 			await loanToken.burnToBTC(lender, constants.MAX_UINT256, false);
 			expect(await loanToken.balanceOf(lender)).to.be.a.bignumber.equal(new BN(0));
+		});
+	});
+
+	describe("Test iRBTC withdrawal from RBTC loan token contract", () => {
+		it("test withdrawal from iRBTC contract", async () => {
+			await loanToken.mintWithBTC(lender, false, { value: 10000, gas: 22000 });
+			const contractBalance = await web3.eth.getBalance(loanToken.address);
+			const balanceBefore = await web3.eth.getBalance(account1);
+			let tx = await loanToken.withdrawRBTCTo(account1, contractBalance);
+			expectEvent(tx, "WithdrawRBTCTo", {
+				to: account1,
+				amount: contractBalance,
+			});
+			const balanceAfter = await web3.eth.getBalance(account1);
+			expect(new BN(balanceAfter).sub(new BN(balanceBefore))).to.be.a.bignumber.equal(new BN(contractBalance));
+		});
+
+		it("shouldn't withdraw when zero address is passed", async () => {
+			await expectRevert(loanToken.withdrawRBTCTo(constants.ZERO_ADDRESS, 100), "receiver address invalid");
+		});
+
+		it("shouldn't withdraw when triggered by anyone other than owner", async () => {
+			await expectRevert(loanToken.withdrawRBTCTo(account4, 100, { from: account4 }), "unauthorized");
+		});
+
+		it("shouldn't withdraw if amount is 0", async () => {
+			await web3.eth.sendTransaction({ from: accounts[0].toString(), to: loanToken.address, value: 10000, gas: 22000 });
+			await expectRevert(loanToken.withdrawRBTCTo(account4, 0), "non-zero withdraw amount expected");
+		});
+
+		it("shouldn't withdraw if amount is invalid", async () => {
+			await web3.eth.sendTransaction({ from: accounts[0].toString(), to: loanToken.address, value: 10000, gas: 22000 });
+			await expectRevert(loanToken.withdrawRBTCTo(account4, 20000), "withdraw amount cannot exceed balance");
 		});
 	});
 });

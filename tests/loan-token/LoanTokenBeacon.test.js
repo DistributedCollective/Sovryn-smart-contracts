@@ -4,6 +4,8 @@ const { BN, expectRevert } = require("@openzeppelin/test-helpers");
 const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
 const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
 const LoanTokenSettingsLowerAdmin = artifacts.require("LoanTokenSettingsLowerAdmin");
+const LoanTokenLogicLMV1Mockup = artifacts.require("LoanTokenLogicLMV1Mockup");
+const LoanTokenLogicLMV2Mockup = artifacts.require("LoanTokenLogicLMV2Mockup");
 
 const { getSUSD, getRBTC, getWRBTC, getBZRX, getLoanTokenLogic, getPriceFeeds, getSovryn, CONSTANTS } = require("../Utils/initializer.js");
 
@@ -22,7 +24,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
@@ -73,6 +75,18 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 			expect((await loanTokenLogicBeacon.activeModuleIndex(moduleNameLowerSettings)).toString()).to.equal(new BN(0).toString());
 			expect((await loanTokenLogicBeacon.activeModuleIndex(moduleNameLM)).toString()).to.equal(new BN(0).toString());
 
+			// Double check all module for lower settings
+			for (let i = 0; i < listSigsLowerAdmin[0].length; i++) {
+				expect((await loanTokenLogicBeacon.getActiveFuncSignatureList(moduleNameLowerSettings))[i]).to.be.equal(
+					listSigsLowerAdmin[0][i]
+				);
+			}
+
+			// Double check all module for LM
+			for (let i = 0; i < listSigsLM[0].length; i++) {
+				expect((await loanTokenLogicBeacon.getActiveFuncSignatureList(moduleNameLM))[i]).to.be.equal(listSigsLM[0][i]);
+			}
+
 			expect((await loanTokenLogicBeacon.getModuleUpgradeLogLength(moduleNameLowerSettings)).toString()).to.equal(
 				new BN(1).toString()
 			);
@@ -92,7 +106,13 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 			expect(await loanTokenLogicBeacon.getTarget(sig1)).to.equal(CONSTANTS.ZERO_ADDRESS);
 
 			/** Register New Loan Token Logic LM to the Beacon */
+			loanTokenLogicLM = await LoanTokenLogicLMV1Mockup.new();
 			await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicLM.address);
+
+			// The totalSupply function signature should not be exist in this v1 mockup
+			expect(await loanTokenLogicBeacon.getTarget(web3.eth.abi.encodeFunctionSignature("totalSupply()"))).to.equal(
+				CONSTANTS.ZERO_ADDRESS
+			);
 
 			expect((await loanTokenLogicBeacon.activeModuleIndex(moduleNameLM)).toString()).to.equal(new BN(1).toString());
 
@@ -144,8 +164,19 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 			await expectRevert(loanTokenLogicBeacon.moduleUpgradeLog(moduleNameLowerSettings, 1), "invalid opcode");
 			await expectRevert(loanTokenLogicBeacon.moduleUpgradeLog(moduleNameLM, 1), "invalid opcode");
 
+			// There should not be testNewFunction signature registered in the real LM
+			expect(await loanTokenLogicBeacon.getTarget(web3.eth.abi.encodeFunctionSignature("testNewFunction()"))).to.equal(
+				CONSTANTS.ZERO_ADDRESS
+			);
+
 			/** Register New Loan Token Logic LM to the Beacon */
+			loanTokenLogicLM = await LoanTokenLogicLMV2Mockup.new();
 			await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicLM.address);
+
+			// There should be testNewFunction signature registered in v2Mockup
+			expect(await loanTokenLogicBeacon.getTarget(web3.eth.abi.encodeFunctionSignature("testNewFunction()"))).to.equal(
+				loanTokenLogicLM.address
+			);
 
 			expect((await loanTokenLogicBeacon.activeModuleIndex(moduleNameLM)).toString()).to.equal(new BN(1).toString());
 
@@ -162,6 +193,11 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 			await loanTokenLogicBeacon.rollback(moduleNameLM, 0);
 			expect((await loanTokenLogicBeacon.activeModuleIndex(moduleNameLM)).toString()).to.equal(new BN(0).toString());
 			expect(await loanTokenLogicBeacon.getTarget(web3.eth.abi.encodeFunctionSignature("borrowInterestRate()"))).to.equal(log1LM[0]);
+
+			/// After rolledback, the testNewFunction signature should not be exist anymore
+			expect(await loanTokenLogicBeacon.getTarget(web3.eth.abi.encodeFunctionSignature("testNewFunction()"))).to.equal(
+				CONSTANTS.ZERO_ADDRESS
+			);
 		});
 
 		it("Registering module without getListFunctionSignatures() in the target should fail", async () => {

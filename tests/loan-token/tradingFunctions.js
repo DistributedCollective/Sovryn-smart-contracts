@@ -115,9 +115,12 @@ const margin_trading_sending_loan_tokens = async (accounts, sovryn, loanToken, u
 	expect(loan["maintenanceMargin"]).to.eq(new BN(15).mul(oneEth).toString());
 	expect(loan["currentMargin"]).to.eq(current_margin.toString());
 	expect(loan["maxLoanTerm"]).to.eq(max_loan_duration.toString()); // In the SC is hardcoded to 28 days
+
 	expect(new BN(block_timestamp).add(max_loan_duration).sub(new BN(end_timestamp)).lt(new BN(1))).to.be.true;
 	expect(loan["maxLiquidatable"]).to.eq("0");
 	expect(loan["maxSeizable"]).to.eq("0");
+	expect(loan["borrower"]).to.eq(accounts[0]);
+	expect(loan["creationTimestamp"]).to.eq(block_timestamp.toString());
 };
 
 const margin_trading_sov_reward_payment = async (accounts, loanToken, underlyingToken, collateralToken, SOV, FeesEvents, sovryn) => {

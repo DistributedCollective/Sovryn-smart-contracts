@@ -1,9 +1,24 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-01
+ * Bottleneck found at beforeEach hook, redeploying tokens,
+ *  protocol, ... on every test.
+ *
+ * Total time elapsed: 8.1s
+ * After optimization: 6.2s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ *   Moved some initialization code from tests to fixture.
+ */
+
 const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { increaseTime, blockNumber } = require("../Utils/Ethereum");
+
 const FeesEvents = artifacts.require("FeesEvents");
 const LoanClosingsEvents = artifacts.require("LoanClosingsEvents");
 const IERC20 = artifacts.require("IERC20");
-const { increaseTime, blockNumber } = require("../Utils/Ethereum");
+const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 
 const {
 	getSUSD,
@@ -23,8 +38,6 @@ const {
 	verify_sov_reward_payment,
 } = require("../Utils/initializer.js");
 
-const LockedSOVMockup = artifacts.require("LockedSOVMockup");
-
 const wei = web3.utils.toWei;
 
 const oneEth = new BN(wei("1", "ether"));
@@ -43,24 +56,39 @@ Note: close with swap is tested in loanToken/trading
 contract("ProtocolCloseDeposit", (accounts) => {
 	let owner;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
+	let borrower, receiver;
 
-	before(async () => {
-		[owner] = accounts;
-	});
-
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		// Deploying sovrynProtocol w/ generic function from initializer.js
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
 		loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD);
 		loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
+
+		/// @dev SOV test token deployment w/ initializer.js
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
+
+		/// @dev Moved from some tests that require this initialization
+		/// and is not interfering w/ any others.
+		borrower = accounts[3];
+		receiver = accounts[4];
+		await set_demand_curve(loanToken);
+		await lend_to_pool(loanToken, SUSD, accounts[2]);
+	}
+
+	before(async () => {
+		[owner] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	const internal_test_close_with_deposit = async (
@@ -197,6 +225,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 			const receiver = accounts[4];
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, accounts[2]);
+			// prepare the test
 			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, borrower);
 
 			await increaseTime(10 * 24 * 60 * 60);
@@ -233,6 +262,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, accounts[2]);
 
+			// prepare the test
 			await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("300", "ether"));
 			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, borrower);
 
@@ -269,6 +299,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 			const receiver = accounts[4];
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, accounts[2]);
+			// prepare the test
 			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, borrower);
 
 			await increaseTime(10 * 24 * 60 * 60);
@@ -397,6 +428,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 			const receiver = accounts[4];
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, accounts[2]);
+			// prepare the test
 			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, borrower);
 
 			await increaseTime(10 * 24 * 60 * 60);

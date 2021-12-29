@@ -1,6 +1,14 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-27
+ * No bottlenecks found. Tests run fast because they just check single transaction reverts.
+ *
+ * Total time elapsed: 4.0s
+ *
+ */
+
 const SOV = artifacts.require("TestToken");
+const TestWrbtc = artifacts.require("TestWrbtc");
 const LockedSOV = artifacts.require("LockedSOV");
-const StakingLogic = artifacts.require("Staking");
+const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
@@ -27,11 +35,12 @@ contract("Locked SOV (Creator Functions)", (accounts) => {
 
 	before("Initiating Accounts & Creating Test Token Instance.", async () => {
 		// Checking if we have enough accounts to test.
-		assert.isAtLeast(accounts.length, 8, "Alteast 8 accounts are required to test the contracts.");
+		assert.isAtLeast(accounts.length, 8, "At least 8 accounts are required to test the contracts.");
 		[creator, admin, newAdmin, userOne, userTwo, userThree, userFour, userFive] = accounts;
 
 		// Creating the instance of SOV Token.
 		sov = await SOV.new("Sovryn", "SOV", 18, zero);
+		wrbtc = await TestWrbtc.new();
 
 		// Creating the Staking Instance.
 		stakingLogic = await StakingLogic.new(sov.address);

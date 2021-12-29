@@ -39,3 +39,6 @@ tmp
 /temp/
 /out/
 abi
+types/
+typechain/
+!.github/

@@ -27,16 +27,11 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 	 * @notice PLEASE DO NOT ADD ANY VARIABLES HERE UNLESS FOR SPESIFIC SLOT (CONSTANT / IMMUTABLE)
 	 */
 
-	bytes32 internal constant LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT = 0xd918085b6ac26c71bca17b569f873038d2b9c0a3a62611d7037f46a40829de6a; // keccak256("LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT")
+	bytes32 internal constant LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT = keccak256("LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT");
 
 	modifier onlyAdmin() {
 		require(isOwner(), "LoanTokenLogicProxy:unauthorized");
 		_;
-	}
-
-	function initializeLoanTokenProxy(address _beaconAddress) public onlyAdmin {
-		// Initialize the LoanTokenLogicBeacon address
-		_setBeaconAddress(_beaconAddress);
 	}
 
 	/**
@@ -46,7 +41,7 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 	function() external payable {
 		// query the logic target implementation address from the LoanTokenLogicBeacon
 		address target = ILoanTokenLogicBeacon(_beaconAddress()).getTarget(msg.sig);
-		require(target != address(0), "LoanTokenProxy:target not active");
+		require(target != address(0), "LoanTokenLogicProxy:target not active");
 
 		bytes memory data = msg.data;
 		assembly {

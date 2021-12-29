@@ -1,12 +1,26 @@
-const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-22
+ * No bottlenecks found.
+ *
+ * Total time elapsed: 6.0s
+ * After optimization: 5.8s
+ *
+ * Minor optimizations:
+ * - removed unneeded variables
+ *
+ */
 
-const { address, etherMantissa, encodeParameters, mineBlock, setTime } = require("../../Utils/Ethereum");
+const { expect } = require("chai");
+const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
+
+const { address, etherMantissa, encodeParameters, mineBlock } = require("../../Utils/Ethereum");
 
 const GovernorAlpha = artifacts.require("GovernorAlpha");
-const StakingLogic = artifacts.require("Staking");
+const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
+//Upgradable Vesting Registry
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const QUORUM_VOTES = etherMantissa(4000000);
 const TOTAL_SUPPLY = etherMantissa(1000000000);
@@ -15,6 +29,8 @@ const DELAY = 86400 * 14;
 
 contract("GovernorAlpha#propose/5", (accounts) => {
 	let token, staking, gov, root, acct;
+	let trivialProposal, targets, values, signatures, callDatas;
+	let proposalBlock;
 
 	before(async () => {
 		[root, acct, ...accounts] = accounts;
@@ -26,11 +42,15 @@ contract("GovernorAlpha#propose/5", (accounts) => {
 		staking = await StakingLogic.at(staking.address);
 
 		gov = await GovernorAlpha.new(address(0), staking.address, address(0), 4, 0);
-	});
 
-	let trivialProposal, targets, values, signatures, callDatas;
-	let proposalBlock;
-	before(async () => {
+		// Upgradable Vesting Registry
+		vestingRegistryLogic = await VestingRegistryLogic.new();
+		vesting = await VestingRegistryProxy.new();
+		await vesting.setImplementation(vestingRegistryLogic.address);
+		vesting = await VestingRegistryLogic.at(vesting.address);
+
+		await staking.setVestingRegistry(vesting.address);
+
 		targets = [root];
 		// values = ["0"];
 		values = [new BN("0")];

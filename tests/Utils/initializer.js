@@ -14,7 +14,8 @@ const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
+const LoanClosingsLiquidation = artifacts.require("LoanClosingsLiquidation");
+const LoanClosingsRollover = artifacts.require("LoanClosingsRollover");
 
 const SwapsExternal = artifacts.require("SwapsExternal");
 
@@ -66,8 +67,12 @@ const getBZRX = async () => {
 	return bzrx;
 };
 
+/// @dev This SOV token is not the SOV token on production
+///   but a test token with a simpler functionality,
+///   lacking for example approveAndCall method.
 const getSOV = async (sovryn, priceFeeds, SUSD, accounts) => {
 	const sov = await TestToken.new("SOV", "SOV", 18, totalSupply);
+	await sovryn.setSovrynProtocolAddress(sovryn.address);
 	await sovryn.setProtocolTokenAddress(sov.address);
 	await sovryn.setSOVTokenAddress(sov.address);
 	await sovryn.setLockedSOVAddress((await LockedSOVMockup.new(sov.address, [accounts[0]])).address);
@@ -80,7 +85,7 @@ const getSOV = async (sovryn, priceFeeds, SUSD, accounts) => {
 	return sov;
 };
 
-const getPriceFeeds = async (WRBTC, SUSD, RBTC, sovryn, BZRX) => {
+const getPriceFeeds = async (WRBTC, SUSD, RBTC, BZRX) => {
 	const feeds = await PriceFeedsLocal.new(WRBTC.address, BZRX.address);
 
 	await feeds.setRates(WRBTC.address, RBTC.address, oneEth.toString());
@@ -121,7 +126,8 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
 
 	// loanClosing
 	await sovryn.replaceContract((await LoanClosingsWith.new()).address);
-	await sovryn.replaceContract((await LoanClosingsBase.new()).address);
+	await sovryn.replaceContract((await LoanClosingsLiquidation.new()).address);
+	await sovryn.replaceContract((await LoanClosingsRollover.new()).address);
 
 	// affiliates
 	await sovryn.replaceContract((await Affiliates.new()).address);
@@ -194,7 +200,7 @@ const getLoanToken = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) => {
 
 	/** Initialize the loan token logic proxy */
 	loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
-	await loanToken.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
+	await loanToken.setBeaconAddress(loanTokenLogicBeacon.address);
 
 	/** Use interface of LoanTokenModules */
 	loanToken = await ILoanTokenModules.at(loanToken.address);
@@ -216,7 +222,7 @@ const getLoanTokenWRBTC = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) 
 
 	/** Initialize the loan token logic proxy */
 	loanTokenWRBTC = await ILoanTokenLogicProxy.at(loanTokenWRBTC.address);
-	await loanTokenWRBTC.initializeLoanTokenProxy(loanTokenLogicBeacon.address);
+	await loanTokenWRBTC.setBeaconAddress(loanTokenLogicBeacon.address);
 
 	/** Use interface of LoanTokenModules */
 	loanTokenWRBTC = await ILoanTokenModules.at(loanTokenWRBTC.address);
@@ -228,7 +234,7 @@ const getLoanTokenWRBTC = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) 
 	return loanTokenWRBTC;
 };
 
-const loan_pool_setup = async (sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC) => {
+const loan_pool_setup = async (sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC, minInitialMargin = wei("20", "ether")) => {
 	let params = [];
 	let config = [
 		"0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object
@@ -236,7 +242,7 @@ const loan_pool_setup = async (sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loan
 		owner, // address owner; // owner of this object
 		CONSTANTS.ZERO_ADDRESS, // address loanToken; // the token being loaned
 		RBTC.address, // address collateralToken; // the required collateral token
-		wei("20", "ether"), // uint256 minInitialMargin; // the minimum allowed initial margin
+		minInitialMargin, // uint256 minInitialMargin; // the minimum allowed initial margin
 		wei("15", "ether"), // uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
 		0, // uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
 	];
