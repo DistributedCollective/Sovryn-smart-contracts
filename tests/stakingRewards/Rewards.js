@@ -89,18 +89,23 @@ contract("StakingRewardsTN - First Period", (accounts) => {
 
 			let numOfIntervals = 1;
 			let totalAmount = 0;
-			let fullTermAvg = avgWeight(25, 26, 9, 78);
+			let fullTermAvg = avgWeight(23, 24, 9, 78);
 			let expectedAmount = numOfIntervals * ((1000 * fullTermAvg) / 26);
 			totalAmount = totalAmount + expectedAmount;
 			console.log(new BN(Math.floor(expectedAmount * 10 ** 10)).toString());
 
-			numOfIntervals = 5;
-			fullTermAvg = avgWeight(19, 24, 9, 78);
+			numOfIntervals = 2;
+			fullTermAvg = avgWeight(23, 25, 9, 78);
 			expectedAmount = numOfIntervals * ((1000 * fullTermAvg) / 26);
 			totalAmount = totalAmount + expectedAmount;
 			console.log(new BN(Math.floor(expectedAmount * 10 ** 10)).toString());
 
-			fullTermAvg = avgWeight(71, 76, 9, 78);
+			fullTermAvg = avgWeight(17, 19, 9, 78);
+			expectedAmount = numOfIntervals * ((1000 * fullTermAvg) / 26);
+			totalAmount = totalAmount + expectedAmount;
+			console.log(new BN(Math.floor(expectedAmount * 10 ** 10)).toString());
+
+			fullTermAvg = avgWeight(69, 71, 9, 78);
 			expectedAmount = numOfIntervals * ((2000 * fullTermAvg) / 26);
 			totalAmount = totalAmount + expectedAmount;
 			console.log(new BN(Math.floor(expectedAmount * 10 ** 10)).toString());
