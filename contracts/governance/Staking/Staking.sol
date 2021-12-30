@@ -185,7 +185,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	) internal {
 		/// @dev Retrieve the SOV tokens.
 		bool success = SOVToken.transferFrom(sender, address(this), amount);
-		require(success);
+		require(success, "transfer failed");
 
 		/// @dev Increase staked balance.
 		uint96 balance = currentBalance(stakeFor, until);
