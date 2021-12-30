@@ -90,3 +90,12 @@ def transferSOVtoLM(amount):
     print(data)
 
     sendWithMultisig(conf.contracts['multisig'], SOVtoken.address, data, conf.acct)
+ 
+def addAmmPoolTokenToLM(ptName):
+    # ptName - pool token name from testnet_contracts.json e.g.:
+    # "XUSD/BRZ"
+    # "(WR)BTC/MYNT"
+    lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
+
+    data = lm.add.encode_input(conf.contracts[ptName],1,False)
+    sendWithMultisig(conf.contracts['multisig'], lm.address, data, conf.acct)

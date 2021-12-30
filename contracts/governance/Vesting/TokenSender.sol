@@ -10,10 +10,7 @@ import "../../interfaces/IERC20.sol";
  * to a recipient or to several recipients in a list. There is
  * an ACL control check by modifier.
  *
- * @dev TODO: Maybe this token transfer functionality should be included
- * in the SOV token contract, because other contracts are requiring it too:
- * VestingRegistry.sol and VestingRegistry2.sol
- * */
+ */
 contract TokenSender is Ownable {
 	/* Storage */
 
