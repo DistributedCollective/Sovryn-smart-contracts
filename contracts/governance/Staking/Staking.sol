@@ -684,8 +684,9 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 		/// @dev Calculate stakes.
 		uint256 count;
+		uint256 kickOffTime = kickoffTS;
 		/// @dev We need to iterate from first possible stake date after deployment to the latest from current time.
-		for (uint256 i = kickoffTS + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
+		for (uint256 i = kickOffTime + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
 			if (currentBalance(account, i) > 0) {
 				count++;
 			}
@@ -695,7 +696,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 		/// @dev We need to iterate from first possible stake date after deployment to the latest from current time.
 		uint256 j;
-		for (uint256 i = kickoffTS + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
+		for (uint256 i = kickOffTime + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
 			uint96 balance = currentBalance(account, i);
 			if (balance > 0) {
 				dates[j] = i;
