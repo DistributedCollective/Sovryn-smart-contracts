@@ -57,7 +57,7 @@ contract StakingStorage is Ownable {
 	mapping(address => mapping(uint256 => address)) public delegates;
 
 	/// @notice If this flag is set to true, all tokens are unlocked immediately.
-	bool public allUnlocked = false;
+	bool public allUnlocked;
 
 	/// @notice The EIP-712 typehash for the contract's domain.
 	bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
