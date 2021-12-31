@@ -545,14 +545,15 @@ contract WeightedStaking is Checkpoints {
 	 * @return The actual unlocking date (might be up to 2 weeks shorter than intended).
 	 * */
 	function timestampToLockDate(uint256 timestamp) public view returns (uint256 lockDate) {
-		require(timestamp >= kickoffTS, "timestamp lies before contract creation");
+		uint256 kickOffTime = kickoffTS;
+		require(timestamp >= kickOffTime, "timestamp lies before contract creation");
 		/**
 		 * @dev If staking timestamp does not match any of the unstaking dates
 		 * , set the lockDate to the closest one before the timestamp.
 		 * E.g. Passed timestamps lies 7 weeks after kickoff -> only stake for 6 weeks.
 		 * */
-		uint256 periodFromKickoff = (timestamp - kickoffTS) / TWO_WEEKS;
-		lockDate = periodFromKickoff * TWO_WEEKS + kickoffTS;
+		uint256 periodFromKickoff = (timestamp - kickOffTime) / TWO_WEEKS;
+		lockDate = periodFromKickoff * TWO_WEEKS + kickOffTime;
 	}
 
 	/**
