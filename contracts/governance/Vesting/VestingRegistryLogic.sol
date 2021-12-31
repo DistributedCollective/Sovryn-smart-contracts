@@ -113,7 +113,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 		uint256 _amount,
 		uint256 _cliff,
 		uint256 _duration
-	) external onlyAuthorized {
+	) external {
 		createVestingAddr(_tokenOwner, _amount, _cliff, _duration, 3);
 	}
 
