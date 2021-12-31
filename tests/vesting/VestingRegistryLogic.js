@@ -695,8 +695,8 @@ contract("VestingRegistryLogic", (accounts) => {
 			await vesting.createVestingAddr(account2, amount, cliff, duration, vestingType);
 			let vestingAddr = await vesting.getVestingAddr(account2, cliff, duration, vestingType);
 			let fields = await vesting.getVestingDetails(vestingAddr);
-			expect(cliff).to.be.bignumber.equal(fields.cliff);
-			expect(duration).to.be.bignumber.equal(fields.duration);
+			expect(cliff).to.be.bignumber.equal(fields[0]);
+			expect(duration).to.be.bignumber.equal(fields[1]);
 		});
 
 		it("gets cliff, duration and amount for team vesting address", async () => {
@@ -720,8 +720,8 @@ contract("VestingRegistryLogic", (accounts) => {
 			await vesting.createTeamVesting(account2, amount, teamCliff, teamDuration, vestingType);
 			let vestingAddr = await vesting.getTeamVesting(account2, teamCliff, teamDuration, vestingType);
 			let fields = await vesting.getVestingDetails(vestingAddr);
-			expect(teamCliff).to.be.bignumber.equal(fields.cliff);
-			expect(teamDuration).to.be.bignumber.equal(fields.duration);
+			expect(teamCliff).to.be.bignumber.equal(fields[0]);
+			expect(teamDuration).to.be.bignumber.equal(fields[1]);
 		});
 	});
 
