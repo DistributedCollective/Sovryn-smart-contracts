@@ -439,7 +439,7 @@ contract WeightedStaking is Checkpoints {
 		uint96 staked = _getPriorVestingStakeByDate(date, blockNumber);
 		if (staked > 0) {
 			uint96 weight = computeWeightByDate(date, startDate);
-			power = mul96(staked, weight, "WeightedStaking::weightedVestingStakeByDate: multiplication overflow") / WEIGHT_FACTOR;
+			power = mul96(staked, weight, "weightedVestingStakeByDate: multiplication overflow") / WEIGHT_FACTOR;
 		} else {
 			power = 0;
 		}
@@ -469,7 +469,7 @@ contract WeightedStaking is Checkpoints {
 	 * @return The number of votes the account had as of the given block.
 	 * */
 	function _getPriorVestingStakeByDate(uint256 date, uint256 blockNumber) internal view returns (uint96) {
-		require(blockNumber < _getCurrentBlockNumber(), "WeightedStaking::getPriorVestingStakeByDate: not yet determined");
+		require(blockNumber < _getCurrentBlockNumber(), "getPriorVestingStakeByDate: not yet determined");
 
 		uint32 nCheckpoints = numVestingCheckpoints[date];
 		if (nCheckpoints == 0) {
