@@ -193,14 +193,14 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
 		if (rolloverReward != 0) {
 			// if the reward > collateral:
 			if (rolloverReward > loanLocal.collateral) {
-				// 1. pay back the excess reward to the lender
-				// 2. pay the complete collateral to msg.sender
+				// 1. pay back the remaining loan to the lender
+				// 2. pay the remaining collateral to msg.sender
 				// 3. close the position & emit close event
 				_closeWithSwap(
 					loanLocal.id,
 					msg.sender,
-					rolloverReward,
-					true,
+					loanLocal.collateral,
+					false,
 					"" // loanDataBytes
 				);
 			} else {
@@ -216,7 +216,7 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
 			if (_getAmountInRbtc(loanParamsLocal.loanToken, loanLocal.principal) <= TINY_AMOUNT) {
 				_closeWithSwap(
 					loanLocal.id,
-					loanLocal.lender,
+					loanLocal.borrower,
 					loanLocal.collateral, // swap all collaterals
 					false,
 					"" /// loanDataBytes
