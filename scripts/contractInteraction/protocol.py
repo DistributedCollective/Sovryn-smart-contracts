@@ -406,6 +406,7 @@ def readMaxAffiliateFee():
 
 #todo: extend with SOV and RBTC
 def withdrawFees():
+    # Withdraw fees from protocol
     feeSharingProxy = Contract.from_abi(
         "FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
     feeSharingProxy.withdrawFees([
@@ -415,8 +416,21 @@ def withdrawFees():
         conf.contracts['XUSD'],
         conf.contracts['FISH'],
         conf.contracts['BPro'],
-    ], {"allow_revert": True})
+        conf.contracts['SOV'],
+        conf.contracts['WRBTC'],
+    ])
 
+    # Withdraw fees from AMM
+    feeSharingProxy.withdrawFeesAMM([
+        conf.contracts["ConverterSOV"],
+        conf.contracts["ConverterXUSD"],
+        conf.contracts["ConverterETHs"],
+        conf.contracts["ConverterMOC"],
+        conf.contracts["ConverterBNBs"],
+        conf.contracts["ConverterFISH"],
+        conf.contracts["ConverterRIF"],
+        conf.contracts["ConverterMYNT"],
+    ])
 
 def setSupportedToken(tokenAddress):
     sovryn = Contract.from_abi(
