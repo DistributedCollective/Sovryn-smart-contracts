@@ -277,7 +277,6 @@ contract LoanClosingsShared is LoanClosingsEvents, VaultController, InterestUser
 	 * */
 	function _checkAuthorized(Loan memory loanLocal, LoanParams memory loanParamsLocal) internal view {
 		require(loanLocal.active, "loan is closed");
-		require(msg.sender == loanLocal.borrower || delegatedManagers[loanLocal.id][msg.sender], "unauthorized");
 		require(loanParamsLocal.id != 0, "loanParams not exists");
 	}
 

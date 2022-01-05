@@ -62,6 +62,8 @@ contract LoanClosingsWith is LoanClosingsShared {
 			address withdrawToken
 		)
 	{
+		Loan storage loanLocal = loans[loanId];
+		require(msg.sender == loanLocal.borrower || delegatedManagers[loanLocal.id][msg.sender], "unauthorized");
 		return _closeWithDeposit(loanId, receiver, depositAmount);
 	}
 
@@ -101,6 +103,8 @@ contract LoanClosingsWith is LoanClosingsShared {
 			address withdrawToken
 		)
 	{
+		Loan storage loanLocal = loans[loanId];
+		require(msg.sender == loanLocal.borrower || delegatedManagers[loanLocal.id][msg.sender], "unauthorized");
 		return
 			_closeWithSwap(
 				loanId,
