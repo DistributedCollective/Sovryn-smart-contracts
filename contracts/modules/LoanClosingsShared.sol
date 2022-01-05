@@ -272,12 +272,11 @@ contract LoanClosingsShared is LoanClosingsEvents, VaultController, InterestUser
 	/**
 	 * @notice Check sender is borrower or delegatee and loan id exists.
 	 *
-	 * @param loanLocal The loan object.
-	 * @param loanParamsLocal The loan params.
+	 * @param loanId byte32 of the loan id.
 	 * */
-	function _checkAuthorized(Loan memory loanLocal, LoanParams memory loanParamsLocal) internal view {
-		require(loanLocal.active, "loan is closed");
-		require(loanParamsLocal.id != 0, "loanParams not exists");
+	function _checkAuthorized(bytes32 loanId) internal view {
+		Loan storage loanLocal = loans[loanId];
+		require(msg.sender == loanLocal.borrower || delegatedManagers[loanLocal.id][msg.sender], "unauthorized");
 	}
 
 	/**
@@ -315,9 +314,7 @@ contract LoanClosingsShared is LoanClosingsEvents, VaultController, InterestUser
 	{
 		require(swapAmount != 0, "swapAmount == 0");
 
-		Loan storage loanLocal = loans[loanId];
-		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
-		_checkAuthorized(loanLocal, loanParamsLocal);
+		(Loan storage loanLocal, LoanParams storage loanParamsLocal) = _checkLoan(loanId);
 
 		/// Can't swap more than collateral.
 		swapAmount = swapAmount > loanLocal.collateral ? loanLocal.collateral : swapAmount;
@@ -653,7 +650,7 @@ contract LoanClosingsShared is LoanClosingsEvents, VaultController, InterestUser
 	 * @return Loan storage
 	 * @return LoanParams storage
 	 */
-	function _checkLoan(bytes32 loanId) internal returns (Loan storage, LoanParams storage) {
+	function _checkLoan(bytes32 loanId) internal view returns (Loan storage, LoanParams storage) {
 		Loan storage loanLocal = loans[loanId];
 		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
 

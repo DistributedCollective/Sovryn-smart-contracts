@@ -62,8 +62,7 @@ contract LoanClosingsWith is LoanClosingsShared {
 			address withdrawToken
 		)
 	{
-		Loan storage loanLocal = loans[loanId];
-		require(msg.sender == loanLocal.borrower || delegatedManagers[loanLocal.id][msg.sender], "unauthorized");
+		_checkAuthorized(loanId);
 		return _closeWithDeposit(loanId, receiver, depositAmount);
 	}
 
@@ -103,8 +102,7 @@ contract LoanClosingsWith is LoanClosingsShared {
 			address withdrawToken
 		)
 	{
-		Loan storage loanLocal = loans[loanId];
-		require(msg.sender == loanLocal.borrower || delegatedManagers[loanLocal.id][msg.sender], "unauthorized");
+		_checkAuthorized(loanId);
 		return
 			_closeWithSwap(
 				loanId,
@@ -143,10 +141,8 @@ contract LoanClosingsWith is LoanClosingsShared {
 	{
 		require(depositAmount != 0, "depositAmount == 0");
 
-		Loan storage loanLocal = loans[loanId];
-		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
 		//TODO should we skip this check if invoked from rollover ?
-		_checkAuthorized(loanLocal, loanParamsLocal);
+		(Loan storage loanLocal, LoanParams storage loanParamsLocal) = _checkLoan(loanId);
 
 		/// Can't close more than the full principal.
 		loanCloseAmount = depositAmount > loanLocal.principal ? loanLocal.principal : depositAmount;
