@@ -240,18 +240,18 @@ contract("FeeSharingProxy:", (accounts) => {
 			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
 			// let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 			await protocol.setFeesController(root);
-			let tx = await protocol.withdrawFees([susd.address], account1);
+			let tx = await protocol.withdrawFees([susd.address], root);
 
 			await checkWithdrawFee();
 
 			//check wrbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
-			let userBalance = await wrbtc.balanceOf.call(account1);
+			let userBalance = await wrbtc.balanceOf.call(root);
 			expect(userBalance.toString()).to.be.equal(feeAmount.toString());
 
 			expectEvent(tx, "WithdrawFees", {
 				sender: root,
 				token: susd.address,
-				receiver: account1,
+				receiver: root,
 				lendingAmount: lendingFeeTokensHeld,
 				tradingAmount: tradingFeeTokensHeld,
 				borrowingAmount: borrowingFeeTokensHeld,
@@ -308,9 +308,13 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			await checkWithdrawFee();
 
-			//check wrbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
+			//check irbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
 			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
 			expect(feeSharingProxyBalance.toString()).to.be.equal(feeAmount.toString());
+
+			// make sure wrbtc balance is 0 after withdrawal
+			let feeSharingProxyWRBTCBalance = await wrbtc.balanceOf.call(feeSharingProxy.address);
+			expect(feeSharingProxyWRBTCBalance.toString()).to.be.equal(new BN(0).toString());
 
 			//checkpoints
 			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanTokenWrbtc.address);
@@ -348,9 +352,13 @@ contract("FeeSharingProxy:", (accounts) => {
 
 			await checkWithdrawFee();
 
-			//check wrbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
+			//check irbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
 			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
 			expect(feeSharingProxyBalance.toString()).to.be.equal(feeAmount.toString());
+
+			// make sure wrbtc balance is 0 after withdrawal
+			let feeSharingProxyWRBTCBalance = await wrbtc.balanceOf.call(feeSharingProxy.address);
+			expect(feeSharingProxyWRBTCBalance.toString()).to.be.equal(new BN(0).toString());
 
 			//checkpoints
 			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanTokenWrbtc.address);
@@ -390,6 +398,10 @@ contract("FeeSharingProxy:", (accounts) => {
 			//check wrbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
 			let feeSharingProxyBalance = await SOVToken.balanceOf.call(feeSharingProxy.address);
 			expect(feeSharingProxyBalance.toString()).to.be.equal(feeAmount.toString());
+
+			// make sure wrbtc balance is 0 after withdrawal
+			let feeSharingProxyWRBTCBalance = await wrbtc.balanceOf.call(feeSharingProxy.address);
+			expect(feeSharingProxyWRBTCBalance.toString()).to.be.equal(new BN(0).toString());
 
 			//checkpoints
 			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(SOVToken.address);
@@ -507,6 +519,10 @@ contract("FeeSharingProxy:", (accounts) => {
 			lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanTokenWrbtc.address);
 			block = await web3.eth.getBlock(tx.receipt.blockNumber);
 			expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
+
+			// make sure wrbtc balance is 0 after withdrawal
+			let feeSharingProxyWRBTCBalance = await wrbtc.balanceOf.call(feeSharingProxy.address);
+			expect(feeSharingProxyWRBTCBalance.toString()).to.be.equal(new BN(0).toString());
 		});
 	});
 
@@ -1165,6 +1181,10 @@ contract("FeeSharingProxy:", (accounts) => {
 			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
 			expect(feeSharingProxyBalance.toString()).to.be.equal(feeAmount.toString());
 
+			// make sure wrbtc balance is 0 after withdrawal
+			let feeSharingProxyWRBTCBalance = await wrbtc.balanceOf.call(feeSharingProxy.address);
+			expect(feeSharingProxyWRBTCBalance.toString()).to.be.equal(new BN(0).toString());
+
 			//checkpoints
 			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanTokenWrbtc.address);
 			expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
@@ -1209,6 +1229,10 @@ contract("FeeSharingProxy:", (accounts) => {
 			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
 			expect(feeSharingProxyBalance.toString()).to.be.equal(feeAmount.toString());
 
+			// make sure wrbtc balance is 0 after withdrawal
+			let feeSharingProxyWRBTCBalance = await wrbtc.balanceOf.call(feeSharingProxy.address);
+			expect(feeSharingProxyWRBTCBalance.toString()).to.be.equal(new BN(0).toString());
+
 			//checkpoints
 			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanTokenWrbtc.address);
 			expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
@@ -1252,6 +1276,10 @@ contract("FeeSharingProxy:", (accounts) => {
 			let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(feeSharingProxy.address);
 			expect(feeSharingProxyBalance.toString()).to.be.equal(feeAmount.toString());
 
+			// make sure wrbtc balance is 0 after withdrawal
+			let feeSharingProxyWRBTCBalance = await wrbtc.balanceOf.call(feeSharingProxy.address);
+			expect(feeSharingProxyWRBTCBalance.toString()).to.be.equal(new BN(0).toString());
+
 			//checkpoints
 			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanTokenWrbtc.address);
 			expect(numTokenCheckpoints.toNumber()).to.be.equal(0);
@@ -1263,6 +1291,107 @@ contract("FeeSharingProxy:", (accounts) => {
 			//check lastFeeWithdrawalTime
 			let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(loanTokenWrbtc.address);
 			expect(lastFeeWithdrawalTime.toString()).to.be.equal("0");
+		});
+	});
+
+	describe("withdraw wrbtc", async () => {
+		it("Withdraw wrbtc from non owner should revert", async () => {
+			const receiver = accounts[1];
+			const previousBalanceReceiver = await wrbtc.balanceOf(receiver);
+			await expectRevert(feeSharingProxy.withdrawWRBTC(receiver, 0, { from: accounts[1] }), "unauthorized");
+		});
+
+		it("Withdraw 0 wrbtc", async () => {
+			const receiver = accounts[1];
+			const previousBalanceReceiver = await wrbtc.balanceOf(receiver);
+			await feeSharingProxy.withdrawWRBTC(receiver, 0);
+			const latestBalanceReceiver = await wrbtc.balanceOf(receiver);
+			const latestBalanceFeeSharingProxy = await wrbtc.balanceOf(feeSharingProxy.address);
+
+			expect(new BN(latestBalanceReceiver).sub(new BN(previousBalanceReceiver)).toString()).to.equal("0");
+			expect(latestBalanceFeeSharingProxy.toString()).to.equal("0");
+		});
+
+		it("Withdraw wrbtc more than the balance of feeSharingProxy should revert", async () => {
+			await wrbtc.mint(root, wei("500", "ether"));
+			await wrbtc.transfer(feeSharingProxy.address, wei("1", "ether"));
+
+			const receiver = accounts[1];
+			const previousBalanceReceiver = await wrbtc.balanceOf(receiver);
+			const feeSharingProxyBalance = await wrbtc.balanceOf(feeSharingProxy.address);
+			const amount = feeSharingProxyBalance.add(new BN(100));
+			const previousBalanceFeeSharingProxy = await wrbtc.balanceOf(feeSharingProxy.address);
+
+			await expectRevert(feeSharingProxy.withdrawWRBTC(receiver, amount.toString()), "Insufficient balance");
+
+			const latestBalanceReceiver = await wrbtc.balanceOf(receiver);
+			const latestBalanceFeeSharingProxy = await wrbtc.balanceOf(feeSharingProxy.address);
+
+			expect(new BN(latestBalanceReceiver).sub(new BN(previousBalanceReceiver)).toString()).to.equal("0");
+			expect(latestBalanceFeeSharingProxy.toString()).to.equal(previousBalanceFeeSharingProxy.toString());
+		});
+
+		it("Fully Withdraw wrbtc", async () => {
+			await wrbtc.mint(root, wei("500", "ether"));
+			await wrbtc.transfer(feeSharingProxy.address, wei("1", "ether"));
+
+			const receiver = accounts[1];
+			const previousBalanceReceiver = await wrbtc.balanceOf(receiver);
+			const feeSharingProxyBalance = await wrbtc.balanceOf(feeSharingProxy.address);
+
+			const tx = await feeSharingProxy.withdrawWRBTC(receiver, feeSharingProxyBalance.toString());
+			await expectEvent.inTransaction(tx.receipt.rawLogs[0].transactionHash, TestWrbtc, "Transfer", {
+				src: feeSharingProxy.address,
+				dst: receiver,
+				wad: feeSharingProxyBalance.toString(),
+			});
+
+			const latestBalanceReceiver = await wrbtc.balanceOf(receiver);
+			const latestBalanceFeeSharingProxy = await wrbtc.balanceOf(feeSharingProxy.address);
+
+			expect(new BN(latestBalanceReceiver).sub(new BN(previousBalanceReceiver)).toString()).to.equal(
+				feeSharingProxyBalance.toString()
+			);
+			expect(latestBalanceFeeSharingProxy.toString()).to.equal("0");
+		});
+
+		it("Partially Withdraw wrbtc", async () => {
+			await wrbtc.mint(root, wei("500", "ether"));
+			await wrbtc.transfer(feeSharingProxy.address, wei("1", "ether"));
+
+			const receiver = accounts[1];
+			const restAmount = new BN("100"); // 100 wei
+			const previousBalanceReceiver = await wrbtc.balanceOf(receiver);
+			const feeSharingProxyBalance = await wrbtc.balanceOf(feeSharingProxy.address);
+			const amount = feeSharingProxyBalance.sub(restAmount);
+			const previousBalanceFeeSharingProxy = await wrbtc.balanceOf(feeSharingProxy.address);
+			expect(previousBalanceFeeSharingProxy.toString()).to.equal(wei("1", "ether"));
+
+			const tx = await feeSharingProxy.withdrawWRBTC(receiver, amount.toString());
+			await expectEvent.inTransaction(tx.receipt.rawLogs[0].transactionHash, TestWrbtc, "Transfer", {
+				src: feeSharingProxy.address,
+				dst: receiver,
+				wad: amount,
+			});
+
+			const latestBalanceReceiver = await wrbtc.balanceOf(receiver);
+			const latestBalanceFeeSharingProxy = await wrbtc.balanceOf(feeSharingProxy.address);
+
+			expect(new BN(latestBalanceReceiver).sub(new BN(previousBalanceReceiver)).toString()).to.equal(amount.toString());
+			expect(latestBalanceFeeSharingProxy.toString()).to.equal(restAmount.toString());
+
+			// try to withdraw the rest
+			const tx2 = await feeSharingProxy.withdrawWRBTC(receiver, latestBalanceFeeSharingProxy.toString());
+			const finalBalanceFeeSharingProxy = await wrbtc.balanceOf(feeSharingProxy.address);
+			const finalBalanceReceiver = await wrbtc.balanceOf(receiver);
+			expect(new BN(finalBalanceReceiver).toString()).to.equal(previousBalanceFeeSharingProxy.toString());
+			expect(finalBalanceFeeSharingProxy.toString()).to.equal("0");
+
+			await expectEvent.inTransaction(tx2.receipt.rawLogs[0].transactionHash, TestWrbtc, "Transfer", {
+				src: feeSharingProxy.address,
+				dst: receiver,
+				wad: latestBalanceFeeSharingProxy.toString(),
+			});
 		});
 	});
 

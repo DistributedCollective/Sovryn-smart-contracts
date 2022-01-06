@@ -409,7 +409,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 					(amountConvertedToWRBTC, ) = ProtocolSwapExternalInterface(protocolAddress).swapExternal(
 						tokens[i], // source token address
 						address(wrbtcToken), // dest token address
-						feesController, // set feeSharingProxy as receiver
+						protocolAddress, // set protocol as receiver
 						protocolAddress, // protocol as the sender
 						tempAmount, // source token amount
 						0, // reqDestToken
