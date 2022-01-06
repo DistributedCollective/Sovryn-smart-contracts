@@ -403,13 +403,15 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 			} else {
 				if (tokens[i] == address(wrbtcToken)) {
 					amountConvertedToWRBTC = tempAmount;
+
+					IERC20(address(wrbtcToken)).safeTransfer(receiver, amountConvertedToWRBTC);
 				} else {
 					IERC20(tokens[i]).approve(protocolAddress, tempAmount);
 
 					(amountConvertedToWRBTC, ) = ProtocolSwapExternalInterface(protocolAddress).swapExternal(
 						tokens[i], // source token address
 						address(wrbtcToken), // dest token address
-						protocolAddress, // set protocol as receiver
+						feesController, // set protocol as receiver
 						protocolAddress, // protocol as the sender
 						tempAmount, // source token amount
 						0, // reqDestToken
@@ -428,8 +430,6 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 				}
 
 				totalWRBTCWithdrawn = totalWRBTCWithdrawn.add(amountConvertedToWRBTC);
-
-				IERC20(address(wrbtcToken)).safeTransfer(receiver, amountConvertedToWRBTC);
 			}
 
 			emit WithdrawFees(msg.sender, tokens[i], receiver, lendingBalance, tradingBalance, borrowingBalance, amountConvertedToWRBTC);

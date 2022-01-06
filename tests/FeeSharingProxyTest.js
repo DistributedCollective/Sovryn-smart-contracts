@@ -238,15 +238,20 @@ contract("FeeSharingProxy:", (accounts) => {
 			let totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
 
 			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
+			let previousProtocolWrbtcBalance = await wrbtc.balanceOf(protocol.address);
 			// let feeAmount = await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 			await protocol.setFeesController(root);
 			let tx = await protocol.withdrawFees([susd.address], root);
+			let latestProtocolWrbtcBalance = await wrbtc.balanceOf(protocol.address);
 
 			await checkWithdrawFee();
 
 			//check wrbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
 			let userBalance = await wrbtc.balanceOf.call(root);
 			expect(userBalance.toString()).to.be.equal(feeAmount.toString());
+
+			// wrbtc balance should remain the same
+			expect(previousProtocolWrbtcBalance.toString()).to.equal(latestProtocolWrbtcBalance.toString());
 
 			expectEvent(tx, "WithdrawFees", {
 				sender: root,
@@ -303,6 +308,7 @@ contract("FeeSharingProxy:", (accounts) => {
 			let borrowingFeeTokensHeld = new BN(wei("3", "ether"));
 			let totalFeeTokensHeld = lendingFeeTokensHeld.add(tradingFeeTokensHeld).add(borrowingFeeTokensHeld);
 			let feeAmount = await setFeeTokensHeld(lendingFeeTokensHeld, tradingFeeTokensHeld, borrowingFeeTokensHeld);
+			let previousProtocolWrbtcBalance = await wrbtc.balanceOf(protocol.address);
 
 			tx = await feeSharingProxy.withdrawFees([susd.address]);
 
@@ -315,6 +321,10 @@ contract("FeeSharingProxy:", (accounts) => {
 			// make sure wrbtc balance is 0 after withdrawal
 			let feeSharingProxyWRBTCBalance = await wrbtc.balanceOf.call(feeSharingProxy.address);
 			expect(feeSharingProxyWRBTCBalance.toString()).to.be.equal(new BN(0).toString());
+
+			// wrbtc balance should remain the same
+			let latestProtocolWrbtcBalance = await wrbtc.balanceOf(protocol.address);
+			expect(previousProtocolWrbtcBalance.toString()).to.equal(latestProtocolWrbtcBalance.toString());
 
 			//checkpoints
 			let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(loanTokenWrbtc.address);
