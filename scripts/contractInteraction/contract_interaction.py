@@ -31,11 +31,11 @@ def main():
 
     # addAmmPoolTokenToLM("(WR)BTC/MYNT")
 
-    getPoolIdByName("(WR)BTC/MYNT")
+    # getPoolIdByName("(WR)BTC/MYNT")
 
     # addWhitelistConverterFeeSharingProxy("0x84953dAF0E7a9fFb8B4fDf7F948185e1cF85852e")
     
-    # confirmMultipleTxsWithMS(774, 775)
+    confirmMultipleTxsWithMS(706, 707)
     # checkTx(808)
     # confirmWithMS(808)
 
