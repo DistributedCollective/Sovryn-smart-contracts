@@ -738,7 +738,7 @@ contract("ProtocolSettings", (accounts) => {
 		});
 	});
 
-	describe("LoanClosingsBase test coverage", () => {
+	describe("LoanClosings test coverage", () => {
 		it("Doesn't allow fallback function call", async () => {
 			/// @dev the revert "fallback not allowed" is never reached because
 			///   fallback function (w/ no signature) is not registered in the protocol

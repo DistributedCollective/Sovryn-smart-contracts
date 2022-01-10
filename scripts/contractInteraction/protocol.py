@@ -59,9 +59,15 @@ def replaceLoanClosings():
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
 
-    print('replacing loan closings base')
-    loanClosingsBase = conf.acct.deploy(LoanClosingsBase)
-    data = sovryn.replaceContract.encode_input(loanClosingsBase.address)
+    print('replacing loan closings liquidation')
+    loanClosingsLiquidation = conf.acct.deploy(LoanClosingsLiquidation)
+    data = sovryn.replaceContract.encode_input(loanClosingsLiquidation.address)
+    sendWithMultisig(conf.contracts['multisig'],
+                     sovryn.address, data, conf.acct)
+
+    print('replacing loan closings rollover')
+    loanClosingsRollover = conf.acct.deploy(LoanClosingsRollover)
+    data = sovryn.replaceContract.encode_input(loanClosingsRollover.address)
     sendWithMultisig(conf.contracts['multisig'],
                      sovryn.address, data, conf.acct)
 
@@ -257,7 +263,8 @@ def deployAffiliate():
     setAffiliateFeePercent(5 * 10**18)
 
     # ---------------------------- 3. Redeploy modules which implement InterestUser and SwapsUser -----------------------
-    # LoanClosingsBase
+    # LoanClosingsLiquidation
+    # LoanClosingsRollover
     # LoanClosingsWith
     replaceLoanClosings()
     # LoanOpenings
@@ -333,7 +340,8 @@ def deployAffiliateWithZeroFeesPercent():
     setAffiliateFeePercent(0)
 
     # ---------------------------- 3. Redeploy modules which implement InterestUser and SwapsUser -----------------------
-    # LoanClosingsBase
+    # LoanClosingsLiquidation
+    # LoanClosingsRollover
     # LoanClosingsWith
     replaceLoanClosings()
     # LoanOpenings
@@ -534,7 +542,8 @@ def deployTradingRebatesUsingLockedSOV():
     # setSpecialRebates("sourceTokenAddress", "destTokenAddress", 10 * 10**18)
 
     # ---------------------------- 5. Redeploy modules which implement InterestUser and SwapsUser -----------------------
-    # LoanClosingsBase
+    # LoanClosingsLiquidation
+    # LoanClosingsRollover
     # LoanClosingsWith
     replaceLoanClosings()
     # LoanOpenings

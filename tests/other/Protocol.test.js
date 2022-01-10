@@ -17,7 +17,8 @@ const ProtocolSettings = artifacts.require("ProtocolSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
 const SwapsExternal = artifacts.require("SwapsExternal");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
+const LoanClosingsLiquidation = artifacts.require("LoanClosingsLiquidation");
+const LoanClosingsRollover = artifacts.require("LoanClosingsRollover");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 
 contract("Protocol", (accounts) => {
@@ -99,15 +100,27 @@ contract("Protocol", (accounts) => {
 			});
 		});
 
-		it("Test replaceContract - LoanClosingsBase", async () => {
+		it("Test replaceContract - LoanClosingsLiquidation", async () => {
 			const selector = "liquidate(bytes32,address,uint256)";
-			let oldLoanClosingsBaseAddr = await sovryn.getTarget(selector);
-			let newLoanClosingsBaseAddr = await LoanClosingsBase.new();
-			let tx = await sovryn.replaceContract(newLoanClosingsBaseAddr.address);
+			let oldLoanClosingsLiquidationAddr = await sovryn.getTarget(selector);
+			let newLoanClosingsLiquidationAddr = await LoanClosingsLiquidation.new();
+			let tx = await sovryn.replaceContract(newLoanClosingsLiquidationAddr.address);
 			expectEvent(tx, "ProtocolModuleContractReplaced", {
-				prevModuleContractAddress: oldLoanClosingsBaseAddr,
-				newModuleContractAddress: newLoanClosingsBaseAddr.address,
-				module: ethers.utils.formatBytes32String("LoanClosingsBase"),
+				prevModuleContractAddress: oldLoanClosingsLiquidationAddr,
+				newModuleContractAddress: newLoanClosingsLiquidationAddr.address,
+				module: ethers.utils.formatBytes32String("LoanClosingsLiquidation"),
+			});
+		});
+
+		it("Test replaceContract - LoanClosingsRollover", async () => {
+			const selector = "rollover(bytes32,bytes)";
+			let oldLoanClosingsRolloverAddr = await sovryn.getTarget(selector);
+			let newLoanClosingsRolloverAddr = await LoanClosingsRollover.new();
+			let tx = await sovryn.replaceContract(newLoanClosingsRolloverAddr.address);
+			expectEvent(tx, "ProtocolModuleContractReplaced", {
+				prevModuleContractAddress: oldLoanClosingsRolloverAddr,
+				newModuleContractAddress: newLoanClosingsRolloverAddr.address,
+				module: ethers.utils.formatBytes32String("LoanClosingsRollover"),
 			});
 		});
 

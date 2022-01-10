@@ -45,7 +45,8 @@ const Protocol = artifacts.require("sovrynProtocol");
 const ProtocolSettings = artifacts.require("ProtocolSettingsMockup");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanSettings = artifacts.require("LoanSettings");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
+const LoanClosingsLiquidation = artifacts.require("LoanClosingsLiquidation");
+const LoanClosingsRollover = artifacts.require("LoanClosingsRollover");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
@@ -159,7 +160,8 @@ contract("FeeSharingProxy:", (accounts) => {
 		await sovryn.setWrbtcToken(WRBTC.address);
 
 		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
-		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
+		await sovryn.replaceContract((await LoanClosingsLiquidation.new()).address);
+		await sovryn.replaceContract((await LoanClosingsRollover.new()).address);
 
 		await sovryn.replaceContract((await Affiliates.new()).address);
 
