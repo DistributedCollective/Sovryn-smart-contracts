@@ -5,7 +5,7 @@ name: Set Block
 
 on:
   schedule:
-    # TODO: The cron job should run every aletrnate Friday at 11 UTC(New staking interval starts at 10:28:15 UTC)
+    # TODO: The cron job should run every alternate Friday at 11 UTC(New staking interval starts at 10:28:15 UTC)
     - cron: "0 11 * * FRI"
 
 jobs:
@@ -63,7 +63,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Set Block
-        run: echo $SETBLOCK_CRON && brownie networks import network-config.yaml true && brownie run scripts/contractInteraction/setBlock_cron.py --network=rsk-mainnet
+        run: echo $REWARDS_CRON && brownie networks import network-config.yaml true && brownie run scripts/contractInteraction/setBlock_cron.py --network=rsk-testnet
         env:
-          SETBLOCK_CRON: 1
-          SET_BLOCK: ${{secrets.SET_BLOCK}}
+          REWARDS_CRON: 1
+          FEE_CLAIMER: ${{secrets.FEE_CLAIMER}}
