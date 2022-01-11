@@ -62,5 +62,11 @@ def transferSOVtoTokenSender():
     sendWithMultisig(conf.contracts['multisig'],SOVtoken.address, data, conf.acct)
 
 def addOwnerToMultisig(newOwner):
+    multisig = Contract.from_abi("MultiSig", address = conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     data = multisig.addOwner.encode_input(newOwner)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['multisig'], data, conf.acct)
+
+def removeOwnerFromMultisig(ownerToRemove):
+    multisig = Contract.from_abi("MultiSig", address = conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    data = multisig.removeOwner.encode_input(ownerToRemove)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['multisig'], data, conf.acct)
