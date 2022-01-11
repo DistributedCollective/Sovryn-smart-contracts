@@ -99,3 +99,12 @@ def addAmmPoolTokenToLM(ptName):
 
     data = lm.add.encode_input(conf.contracts[ptName],1,False)
     sendWithMultisig(conf.contracts['multisig'], lm.address, data, conf.acct)
+
+def getUserInfo(poolToken, user):
+    lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
+
+    res = lm.getUserInfo(poolToken, user)
+
+    print('pool tokens: ', res[0]/1e18)
+    print('debt: ', res[1]/1e18)
+    print('accumulated reward: ', res[2]/1e18)
