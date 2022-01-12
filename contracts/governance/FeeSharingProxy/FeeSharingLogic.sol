@@ -445,6 +445,16 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 			require(whitelistedConverterList.contains(converterAddresses[i]), "Invalid Converter");
 		}
 	}
+
+	function withdrawWRBTC(address receiver, uint256 wrbtcAmount) external onlyOwner {
+		address wRBTCAddress = protocol.wrbtcToken();
+		require(wRBTCAddress != address(0), "FeeSharingProxy::withdrawFees: wRBTCAddress is not set");
+
+		uint256 balance = IERC20(wRBTCAddress).balanceOf(address(this));
+		require(wrbtcAmount <= balance, "Insufficient balance");
+
+		IERC20(wRBTCAddress).safeTransfer(receiver, wrbtcAmount);
+	}
 }
 
 /* Interfaces */

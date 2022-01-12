@@ -1,4 +1,16 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-01
+ * Bottleneck found at beforeEach hook, redeploying proxy and
+ * implementation on every test.
+ *
+ * Total time elapsed: 4.3s
+ * After optimization: 4.1s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
+
 const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
 const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
@@ -11,7 +23,12 @@ contract("Proxy", (accounts) => {
 	let accountOwner;
 
 	let proxy;
-	let implementation, implementationNew;
+	let implementation;
+
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		proxy = await Proxy.new({ from: accountOwner });
+		implementation = await Implementation.new({ from: accountOwner });
+	}
 
 	before(async () => {
 		account1 = accounts[0];
@@ -19,8 +36,7 @@ contract("Proxy", (accounts) => {
 	});
 
 	beforeEach(async () => {
-		proxy = await Proxy.new({ from: accountOwner });
-		implementation = await Implementation.new({ from: accountOwner });
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("setProxyOwner", async () => {
@@ -82,6 +98,10 @@ contract("Proxy", (accounts) => {
 		});
 
 		it("Storage data should be the same after an upgrade", async () => {
+			/// @dev For some reason (probably proxy conflict w/ waffle fixtures)
+			/// resuming the fixture snapshot is not enough to run this test successfully
+			/// It is additionaly required a proxy redeployment
+			proxy = await Proxy.new({ from: accountOwner });
 			await proxy.setImplementation(implementation.address, { from: accountOwner });
 			proxy = await Implementation.at(proxy.address);
 
@@ -97,6 +117,10 @@ contract("Proxy", (accounts) => {
 		});
 
 		it("Should not be able to invoke not set implementation", async () => {
+			/// @dev For some reason (probably proxy conflict w/ waffle fixtures)
+			/// resuming the fixture snapshot is not enough to run this test successfully
+			/// It is additionaly required a proxy redeployment
+			proxy = await Proxy.new({ from: accountOwner });
 			await Implementation.new({ from: accountOwner });
 			proxy = await Implementation.at(proxy.address);
 

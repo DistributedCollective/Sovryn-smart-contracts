@@ -386,9 +386,17 @@ def rollover(loanId):
 def replaceLoanClosings():
     sovryn = Contract.from_abi("sovryn", address=contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=acct)
     
-    print('replacing loan closings base')
-    loanClosingsBase = acct.deploy(LoanClosingsBase)
-    data = sovryn.replaceContract.encode_input(loanClosingsBase.address)
+    print('replacing loan closings liquidation')
+    loanClosingsLiquidation = acct.deploy(LoanClosingsLiquidation)
+    data = sovryn.replaceContract.encode_input(loanClosingsLiquidation.address)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(sovryn.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId);
+
+    print('replacing loan closings rollover')
+    loanClosingsRollover = acct.deploy(LoanClosingsRollover)
+    data = sovryn.replaceContract.encode_input(loanClosingsRollover.address)
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(sovryn.address,0,data)
     txId = tx.events["Submission"]["transactionId"]

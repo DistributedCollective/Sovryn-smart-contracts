@@ -95,7 +95,7 @@ def transferSOVtoVestingRegistry(vestingRegistryAddress, amount):
 
     sendWithMultisig(conf.contracts['multisig'], SOVtoken.address, data, conf.acct)
 
-#Upgrade StakingRewards
+# Upgrade StakingRewards
 
 def upgradeStakingRewards():
     print('Deploying account:', conf.acct.address)
@@ -112,7 +112,17 @@ def upgradeStakingRewards():
     data = stakingRewardsProxy.setImplementation.encode_input(stakingRewards.address)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['StakingRewardsProxy'], data, conf.acct)
 
-#Upgrade Staking
+# Set Average Block Time
+
+def setAverageBlockTime(blockTime):
+    # Get the contract instance
+    stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
+
+    # Set average block time
+    data = stakingRewards.setAverageBlockTime.encode_input(blockTime)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['StakingRewardsProxy'], data, conf.acct)
+
+# Upgrade Staking
 
 def upgradeStaking():
     print('Deploying account:', conf.acct.address)
@@ -130,7 +140,7 @@ def upgradeStaking():
     data = stakingProxy.setImplementation.encode_input(stakingLogic.address)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
 
-#Upgrade Vesting Registry
+# Upgrade Vesting Registry
 
 def upgradeVesting():
     print('Deploying account:', conf.acct.address)
@@ -147,7 +157,7 @@ def upgradeVesting():
     data = vestingRegistryProxy.setImplementation.encode_input(vestingRegistryLogic.address)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['VestingRegistryLogic'], data, conf.acct)
 
-#Set Vesting Registry Address for Staking
+# Set Vesting Registry Address for Staking
 
 def updateVestingRegAddr():
 
@@ -162,7 +172,7 @@ def updateVestingRegAddr():
     print(data)
     sendWithMultisig(conf.contracts['multisig'], stakingProxy.address, data, conf.acct)
 
-#Link Staking to StakingRewards, Vesting Registry and FeeSharing
+# Link Staking to StakingRewards, Vesting Registry and FeeSharing
 def updateAddresses():
 
     # Get the proxy contract instance
