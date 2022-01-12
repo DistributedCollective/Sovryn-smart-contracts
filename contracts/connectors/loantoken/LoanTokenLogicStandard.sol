@@ -367,6 +367,8 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 			sentAmounts[1] /// depositAmount
 		);
 
+		require(_getAmountInRbtc(loanTokenAddress, sentAmounts[1]) > TINY_AMOUNT, "principal too small");
+
 		/// @dev Converting to initialMargin
 		leverageAmount = SafeMath.div(10**38, leverageAmount);
 		return
@@ -1035,6 +1037,18 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	}
 
 	/**
+	 * @dev returns amount of the asset converted to RBTC
+	 * @param asset the asset to be transferred
+	 * @param amount the amount to be transferred
+	 * @return amount in RBTC
+	 * */
+	function _getAmountInRbtc(address asset, uint256 amount) internal returns (uint256) {
+		(uint256 rbtcRate, uint256 rbtcPrecision) =
+			FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(asset, wrbtcTokenAddress);
+		return amount.mul(rbtcRate).div(rbtcPrecision);
+	}
+
+	/*
 	 * @notice Compute interest rate and other loan parameters.
 	 *
 	 * @param borrowAmount The amount of tokens to borrow.

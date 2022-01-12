@@ -404,6 +404,8 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 			} else {
 				if (tokens[i] == address(wrbtcToken)) {
 					amountConvertedToWRBTC = tempAmount;
+
+					IERC20(address(wrbtcToken)).safeTransfer(receiver, amountConvertedToWRBTC);
 				} else {
 					IERC20(tokens[i]).approve(protocolAddress, tempAmount);
 
@@ -429,8 +431,6 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 				}
 
 				totalWRBTCWithdrawn = totalWRBTCWithdrawn.add(amountConvertedToWRBTC);
-
-				IERC20(address(wrbtcToken)).safeTransfer(receiver, amountConvertedToWRBTC);
 			}
 
 			emit WithdrawFees(msg.sender, tokens[i], receiver, lendingBalance, tradingBalance, borrowingBalance, amountConvertedToWRBTC);

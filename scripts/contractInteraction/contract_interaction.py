@@ -21,7 +21,6 @@ from scripts.contractInteraction.token import *
 from scripts.contractInteraction.ownership import *
 from scripts.contractInteraction.misc import *
 from scripts.contractInteraction.prices import *
-from scripts.contractInteraction.run_test_after_deployments import *
 
 def main():
     
@@ -29,4 +28,3 @@ def main():
     conf.loadConfig()
 
     #call the function you want here
-    

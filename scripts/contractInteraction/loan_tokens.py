@@ -351,6 +351,9 @@ def deployNewLoanTokenLogicFirstTime():
 
     print("Registering module to LoanTokenLogicBeaconLM")
     loanTokenLogicBeaconLM.registerLoanTokenModule(logicContractLM.address)
+    # check marginTrade function signature
+    if loanTokenLogicBeaconLM.getTarget("0x28a02f19") != logicContractLM.address:
+        raise Exception("Module loan token logic standard is not registered properly")
 
     print("Deploy Loan Token Settings Lower Admin Module")
     loanTokenSettingsLowerAdmin = conf.acct.deploy(LoanTokenSettingsLowerAdmin)
@@ -358,17 +361,30 @@ def deployNewLoanTokenLogicFirstTime():
 
     print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconLM")
     loanTokenLogicBeaconLM.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address)
+    #check setAdmin function signature
+    if loanTokenLogicBeaconLM.getTarget("0x704b6c02") != loanTokenSettingsLowerAdmin.address:
+        raise Exception("Module loan token settings lower admin is not registered properly")
+
+    print("registering loan token module LM success...")
 
     # ============================== 4. Deploy the LoanTokenLogicWrbtc, Register all of the module to the BeaconWrbtc ==============================
     print("Deploying LoanTokenlogicWrbtc")
     logicContractWrbtc = conf.acct.deploy(LoanTokenLogicWrbtc)
-    print("new LoanTokenLogicLM contract deployed at: ", logicContractWrbtc.address)
+    print("new LoanTokenLogicWRBTC contract deployed at: ", logicContractWrbtc.address)
 
     print("Registering module to LoanTokenLogicBeaconWrbtc")
-    logicContractWrbtc.registerLoanTokenModule(logicContractWrbtc.address)
+    loanTokenLogicBeaconWrbtc.registerLoanTokenModule(logicContractWrbtc.address)
+    # check marginTrade function signature
+    if loanTokenLogicBeaconWrbtc.getTarget("0x28a02f19") != logicContractWrbtc.address:
+        raise Exception("Module loan token logic standard is not registered properly")
 
     print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconWrbtc")
-    logicContractWrbtc.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address)
+    loanTokenLogicBeaconWrbtc.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address)
+    #check setAdmin function signature
+    if loanTokenLogicBeaconWrbtc.getTarget("0x704b6c02") != loanTokenSettingsLowerAdmin.address:
+        raise Exception("Module loan token settings lower admin is not registered properly")
+
+    print("registering loan token module wrbtc success...")
 
     # ============================== 5. Set each LoanTokenLogicProxy with the beacon accordingly (iUSDTProxy, iDOCProxy, iBProProxy, iXUSDProxy) with the BeaconLM and (iRBTC) with the BeaconWrbtc ==============================
     # iUSDT
@@ -415,7 +431,7 @@ def deployNewLoanTokenLogicFirstTime():
 
 def setBeaconLoanTokenLogicProxy(loanTokenAddress, loanTokenLogicBeaconAddress):
     loanTokenWithProxyABI = Contract.from_abi("loanTokenWithProxyABI", address=loanTokenAddress, abi=LoanTokenLogicProxy.abi, owner=conf.acct)
-    data = loanTokenWithProxyABI.initializeLoanTokenProxy.encode_input(loanTokenLogicBeaconAddress)
+    data = loanTokenWithProxyABI.setBeaconAddress.encode_input(loanTokenLogicBeaconAddress)
     sendWithMultisig(conf.contracts['multisig'], loanTokenWithProxyABI.address, data, conf.acct)
 
 def replaceLoanTokenLogicOnAllContracts():
@@ -448,9 +464,9 @@ def replaceLoanTokenLogicOnAllContracts():
 
     print("Deploying LoanTokenlogicWrbtc")
     logicContractWrbtc = conf.acct.deploy(LoanTokenLogicWrbtc)
-    print("new LoanTokenLogicLM contract deployed at: ", logicContractWrbtc.address)
+    print("new LoanTokenLogicWRBTC contract deployed at: ", logicContractWrbtc.address)
 
-    print("Registering function signature to the LoanTokenLogicBeaconLM")
+    print("Registering function signature to the LoanTokenLogicBeaconWRBTC")
     loanTokenLogicBeaconWrbtc = Contract.from_abi("loanTokenLogicBeaconWrbtc", address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
     data = loanTokenLogicBeaconWrbtc.registerLoanTokenModule.encode_input(logicContractWrbtc.address)
     sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWrbtc.address, data, conf.acct)
@@ -723,3 +739,33 @@ def getDepositAmountForBorrow(loanTokenAddress, borrowAmount, initialLoanDuratio
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     result = loanToken.getDepositAmountForBorrow(borrowAmount, initialLoanDuration, collateralTokenAddress)
     print(result)
+
+
+def pauseLoanTokenLogicBeaconLM():
+    loanTokenLogicBeaconLM = Contract.from_abi("loanTokenLogicBeaconLM", address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    data = loanTokenLogicBeaconLM.pause.encode_input()
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconLM.address, data, conf.acct)
+
+def unpauseLoanTokenLogicBeaconLM():
+    loanTokenLogicBeaconLM = Contract.from_abi("loanTokenLogicBeaconLM", address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    data = loanTokenLogicBeaconLM.unpause.encode_input()
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconLM.address, data, conf.acct)
+
+def pauseLoanTokenLogicBeaconWRBTC():
+    loanTokenLogicBeaconWRBTC = Contract.from_abi("loanTokenLogicBeaconWRBTC", address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    data = loanTokenLogicBeaconWRBTC.pause.encode_input()
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWRBTC.address, data, conf.acct)
+
+def unpauseLoanTokenLogicBeaconWRBTC():
+    loanTokenLogicBeaconWRBTC = Contract.from_abi("loanTokenLogicBeaconWRBTC", address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    data = loanTokenLogicBeaconWRBTC.unpause.encode_input()
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWRBTC.address, data, conf.acct)
+
+def pauseAllLoanTokens():
+    pauseLoanTokenLogicBeaconLM()
+    pauseLoanTokenLogicBeaconWRBTC()
+
+def unpauseAllLoanTokens():
+    unpauseLoanTokenLogicBeaconLM()
+    unpauseLoanTokenLogicBeaconWRBTC()
+

@@ -26,6 +26,7 @@ contract LoanTokenLogicStorage is AdvancedToken {
 	/// @dev Used by flashBorrow function.
 	address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
 	bytes32 internal constant iToken_ProfitSoFar = 0x37aa2b7d583612f016e4a4de4292cb015139b3d7762663d06a53964912ea2fb6; // keccak256("iToken_ProfitSoFar")
+	uint256 public constant TINY_AMOUNT = 25e13;
 
 	function stringToBytes32(string memory source) public pure returns (bytes32 result) {
 		bytes memory tempEmptyStringTest = bytes(source);
