@@ -739,3 +739,24 @@ def getDepositAmountForBorrow(loanTokenAddress, borrowAmount, initialLoanDuratio
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     result = loanToken.getDepositAmountForBorrow(borrowAmount, initialLoanDuration, collateralTokenAddress)
     print(result)
+
+
+def pauseLoanTokenLogicBeaconLM():
+    loanTokenLogicBeaconLM = Contract.from_abi("loanTokenLogicBeaconLM", address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    data = loanTokenLogicBeaconLM.pause.encode_input()
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconLM.address, data, conf.acct)
+
+def unpauseLoanTokenLogicBeaconLM():
+    loanTokenLogicBeaconLM = Contract.from_abi("loanTokenLogicBeaconLM", address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    data = loanTokenLogicBeaconLM.unpause.encode_input()
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconLM.address, data, conf.acct)
+
+def pauseLoanTokenLogicBeaconWRBTC():
+    loanTokenLogicBeaconWRBTC = Contract.from_abi("loanTokenLogicBeaconWRBTC", address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    data = loanTokenLogicBeaconWRBTC.pause.encode_input()
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWRBTC.address, data, conf.acct)
+
+def unpauseLoanTokenLogicBeaconWRBTC():
+    loanTokenLogicBeaconWRBTC = Contract.from_abi("loanTokenLogicBeaconWRBTC", address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    data = loanTokenLogicBeaconWRBTC.unpause.encode_input()
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWRBTC.address, data, conf.acct)
