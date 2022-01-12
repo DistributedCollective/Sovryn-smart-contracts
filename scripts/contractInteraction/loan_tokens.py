@@ -760,3 +760,12 @@ def unpauseLoanTokenLogicBeaconWRBTC():
     loanTokenLogicBeaconWRBTC = Contract.from_abi("loanTokenLogicBeaconWRBTC", address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
     data = loanTokenLogicBeaconWRBTC.unpause.encode_input()
     sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWRBTC.address, data, conf.acct)
+
+def pauseAllLoanTokens():
+    pauseLoanTokenLogicBeaconLM()
+    pauseLoanTokenLogicBeaconWRBTC()
+
+def unpauseAllLoanTokens():
+    unpauseLoanTokenLogicBeaconLM()
+    unpauseLoanTokenLogicBeaconWRBTC()
+
