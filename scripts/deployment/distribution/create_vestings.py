@@ -37,7 +37,7 @@ def main():
     totalAmount = 0
 
     # amounts examples: "8,761.28", 285.71
-    data = parseFile('./scripts/deployment/distribution/vestings18.csv', 10**16)
+    data = parseFile('./scripts/deployment/distribution/vestings19.csv', 10**16)
     totalAmount += data["totalAmount"]
 
     vestingCreationType = 1

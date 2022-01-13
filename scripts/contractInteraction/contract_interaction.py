@@ -1124,8 +1124,8 @@ def transferSOVtoTokenSender():
     print(txId)
 
 def transferSOVtoScriptAccount():
-    # 30262.33 SOV
-    amount = 3026233 * 10**16
+    # 2095.24 SOV
+    amount = 209524 * 10**16
 
     # TODO set receiver address
     receiver = "0x27D55f5668eF4438635bdCE0aDCA083507E77752"
@@ -1143,12 +1143,7 @@ def transferSOVtoScriptAccount():
 def checkTxn():
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
 
-    txId = 723
-    print(txId)
-    print(multisig.getConfirmationCount(txId))
-    print(multisig.transactions(txId))
-
-    txId = 724
+    txId = 725
     print(txId)
     print(multisig.getConfirmationCount(txId))
     print(multisig.transactions(txId))
