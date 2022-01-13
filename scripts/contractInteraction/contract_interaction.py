@@ -37,9 +37,10 @@ def main():
 
     # addWhitelistConverterFeeSharingProxy("0x84953dAF0E7a9fFb8B4fDf7F948185e1cF85852e")
     
-    confirmMultipleTxsWithMS(723, 724)
+    # confirmMultipleTxsWithMS(723, 724)
     # checkTx(808)
-    # confirmWithMS(808)
+    confirmWithMS(725)
+    # transactionInfo(725)
 
     #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iXUSD'])
     #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iRBTC'])

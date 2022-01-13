@@ -49,6 +49,12 @@ def checkTx(txId):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     print("TX ID: ",txId,"confirmations: ", multisig.getConfirmationCount(txId), " Executed:", multisig.transactions(txId)[3], " Confirmed by: ", multisig.getConfirmations(txId))
 
+def transactionInfo(txId):
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    print("TX: ",  multisig.transactions(txId))
+    print("TX ID: ",txId,"confirmations: ", multisig.getConfirmationCount(txId), " Executed:", multisig.transactions(txId)[3], " Confirmed by: ", multisig.getConfirmations(txId))
+
+
 
 def transferSOVtoTokenSender():
     # 875.39 SOV
