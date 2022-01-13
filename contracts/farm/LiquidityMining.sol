@@ -576,8 +576,6 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 		user.accumulatedReward = 0;
 		pool.poolToken.safeTransfer(address(msg.sender), userAmount);
 
-		_updateRewardDebt(pool, user);
-
 		emit EmergencyWithdraw(msg.sender, _poolToken, userAmount, userAccumulatedReward);
 	}
 
