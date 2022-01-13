@@ -127,7 +127,7 @@ def readPriceFeedFor(tokenAddress):
     print("price feed: "+address);
     return(address)
 
-def readOracleFromConverter(converterAddress):
+def readOracleFromV2Converter(converterAddress):
     abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV2Converter.json')
     abi = json.load(abiFile)
     converter = Contract.from_abi("LiquidityPoolV2Converter", address=converterAddress, abi=abi, owner=conf.acct)
@@ -138,6 +138,12 @@ def readOracleFromConverter(converterAddress):
 
     print(priceOracle.tokenAOracle())
     print(priceOracle.tokenBOracle())
+
+def readOracleFromV1Converter(converterAddress):
+    abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV1Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV1Converter", address=converterAddress, abi=abi, owner=conf.acct)
+    print(converter.oracle())
 
 def deployOracleV1Pool(tokenAddress, oracleAddress):
     oracleV1PoolPriceFeed = conf.acct.deploy(PriceFeedV1PoolOracle, oracleAddress, conf.contracts['WRBTC'], conf.contracts['DoC'], tokenAddress)
@@ -154,3 +160,10 @@ def readv1PoolOracleAddress(tokenAddress):
     feedAddress = readPriceFeedFor(tokenAddress)
     oracle = Contract.from_abi("PriceFeedV1PoolOracle", address= feedAddress, abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
     print("v1 pool oracle: ",oracle.v1PoolOracleAddress())
+
+#if the AMM pool oracle changes, use this method for updating the protocol price feed
+#example: setV1SOVPoolOracleAddress('0xF3c356E720958100ff3F2335D288da069Aa83ce8')
+def setV1SOVPoolOracleAddress(v1PoolOracleAddress):
+    oracle = Contract.from_abi("PriceFeedV1PoolOracle", address= conf.contracts['SOVPriceFeedOnProtocol'], abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
+    data = oracle.setV1PoolOracleAddress.encode_input(v1PoolOracleAddress)
+    sendWithMultisig(conf.contracts['multisig'], oracle.address, data, conf.acct)

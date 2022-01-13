@@ -59,9 +59,15 @@ def replaceLoanClosings():
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
 
-    print('replacing loan closings base')
-    loanClosingsBase = conf.acct.deploy(LoanClosingsBase)
-    data = sovryn.replaceContract.encode_input(loanClosingsBase.address)
+    print('replacing loan closings liquidation')
+    loanClosingsLiquidation = conf.acct.deploy(LoanClosingsLiquidation)
+    data = sovryn.replaceContract.encode_input(loanClosingsLiquidation.address)
+    sendWithMultisig(conf.contracts['multisig'],
+                     sovryn.address, data, conf.acct)
+
+    print('replacing loan closings rollover')
+    loanClosingsRollover = conf.acct.deploy(LoanClosingsRollover)
+    data = sovryn.replaceContract.encode_input(loanClosingsRollover.address)
     sendWithMultisig(conf.contracts['multisig'],
                      sovryn.address, data, conf.acct)
 
@@ -257,7 +263,8 @@ def deployAffiliate():
     setAffiliateFeePercent(5 * 10**18)
 
     # ---------------------------- 3. Redeploy modules which implement InterestUser and SwapsUser -----------------------
-    # LoanClosingsBase
+    # LoanClosingsLiquidation
+    # LoanClosingsRollover
     # LoanClosingsWith
     replaceLoanClosings()
     # LoanOpenings
@@ -333,7 +340,8 @@ def deployAffiliateWithZeroFeesPercent():
     setAffiliateFeePercent(0)
 
     # ---------------------------- 3. Redeploy modules which implement InterestUser and SwapsUser -----------------------
-    # LoanClosingsBase
+    # LoanClosingsLiquidation
+    # LoanClosingsRollover
     # LoanClosingsWith
     replaceLoanClosings()
     # LoanOpenings
@@ -404,8 +412,9 @@ def readMaxAffiliateFee():
         "SovrynSwapNetwork", address=conf.contracts['swapNetwork'], abi=abi, owner=conf.acct)
     print(swapNetwork.maxAffiliateFee())
 
-
+#todo: extend with SOV and RBTC
 def withdrawFees():
+    # Withdraw fees from protocol
     feeSharingProxy = Contract.from_abi(
         "FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
     feeSharingProxy.withdrawFees([
@@ -415,8 +424,21 @@ def withdrawFees():
         conf.contracts['XUSD'],
         conf.contracts['FISH'],
         conf.contracts['BPro'],
-    ], {"allow_revert": True})
+        conf.contracts['SOV'],
+        conf.contracts['WRBTC'],
+    ])
 
+    # Withdraw fees from AMM
+    feeSharingProxy.withdrawFeesAMM([
+        conf.contracts["ConverterSOV"],
+        conf.contracts["ConverterXUSD"],
+        conf.contracts["ConverterETHs"],
+        conf.contracts["ConverterMOC"],
+        conf.contracts["ConverterBNBs"],
+        conf.contracts["ConverterFISH"],
+        conf.contracts["ConverterRIF"],
+        conf.contracts["ConverterMYNT"],
+    ])
 
 def setSupportedToken(tokenAddress):
     sovryn = Contract.from_abi(
@@ -520,7 +542,8 @@ def deployTradingRebatesUsingLockedSOV():
     # setSpecialRebates("sourceTokenAddress", "destTokenAddress", 10 * 10**18)
 
     # ---------------------------- 5. Redeploy modules which implement InterestUser and SwapsUser -----------------------
-    # LoanClosingsBase
+    # LoanClosingsLiquidation
+    # LoanClosingsRollover
     # LoanClosingsWith
     replaceLoanClosings()
     # LoanOpenings
@@ -610,3 +633,10 @@ def readRolloverReward():
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     print(sovryn.rolloverBaseReward())
+
+def withdrawWRBTCFromFeeSharingProxy(receiver, amount):
+    feeSharingProxy = Contract.from_abi("FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
+    data = feeSharingProxy.withdrawWRBTC.encode_input(receiver, amount)
+
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)

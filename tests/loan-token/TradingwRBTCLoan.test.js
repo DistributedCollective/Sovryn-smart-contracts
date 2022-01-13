@@ -1,3 +1,18 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-24
+ * Bottlenecks found at beforeEach hook, redeploying tokens,
+ *  protocol, loan ... on every test.
+ *
+ * Total time elapsed: 8.6s
+ * After optimization: 6.9s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
+
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
 const { BN } = require("@openzeppelin/test-helpers");
 
 const {
@@ -8,6 +23,7 @@ const {
 	margin_trading_sending_collateral_tokens_sov_reward_payment,
 	margin_trading_sending_collateral_tokens_sov_reward_payment_with_special_rebates,
 	close_complete_margin_trade_wrbtc,
+	close_partial_margin_trade_wrbtc,
 } = require("./tradingFunctions");
 
 const FeesEvents = artifacts.require("FeesEvents");
@@ -18,8 +34,6 @@ const {
 	getWRBTC,
 	getBZRX,
 	getSOV,
-	getLoanTokenLogic,
-	getLoanTokenLogicWrbtc,
 	getLoanToken,
 	getLoanTokenWRBTC,
 	loan_pool_setup,
@@ -38,11 +52,7 @@ contract("LoanTokenTrading", (accounts) => {
 	let owner;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV, priceFeeds;
 
-	before(async () => {
-		[owner] = accounts;
-	});
-
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
@@ -51,13 +61,19 @@ contract("LoanTokenTrading", (accounts) => {
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
-		const loanTokenLogicStandard = await getLoanTokenLogic();
-		const LoanTokenLogicWrbtc = await getLoanTokenLogicWrbtc();
-		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
-		loanTokenWRBTC = await getLoanTokenWRBTC(LoanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
+		loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD);
+		loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 
 		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
+	}
+
+	before(async () => {
+		[owner] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("test the loan token trading logic with SUSD test token as collateral token and the wBTC as underlying loan token. ", () => {
@@ -185,6 +201,37 @@ contract("LoanTokenTrading", (accounts) => {
 				accounts
 			);
 			await close_complete_margin_trade_wrbtc(
+				sovryn,
+				loanToken,
+				loanTokenWRBTC,
+				set_demand_curve,
+				lend_to_pool_iBTC,
+				open_margin_trade_position_iBTC,
+				priceFeeds,
+				false,
+				RBTC,
+				WRBTC,
+				SUSD,
+				accounts
+			);
+		});
+
+		it("Test close partial margin trade", async () => {
+			await close_partial_margin_trade_wrbtc(
+				sovryn,
+				loanToken,
+				loanTokenWRBTC,
+				set_demand_curve,
+				lend_to_pool_iBTC,
+				open_margin_trade_position_iBTC,
+				priceFeeds,
+				true,
+				RBTC,
+				WRBTC,
+				SUSD,
+				accounts
+			);
+			await close_partial_margin_trade_wrbtc(
 				sovryn,
 				loanToken,
 				loanTokenWRBTC,

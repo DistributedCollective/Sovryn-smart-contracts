@@ -22,7 +22,7 @@ process:
 */
 const margin_trading_sending_loan_tokens = async (accounts, sovryn, loanToken, underlyingToken, collateralToken, priceFeeds, sendValue) => {
 	// preparation
-	const loan_token_sent = oneEth;
+	const loan_token_sent = oneEth.mul(new BN(10));
 	await underlyingToken.mint(loanToken.address, loan_token_sent.mul(new BN(3)));
 	await underlyingToken.mint(accounts[0], loan_token_sent);
 	await underlyingToken.approve(loanToken.address, loan_token_sent);
@@ -125,7 +125,7 @@ const margin_trading_sending_loan_tokens = async (accounts, sovryn, loanToken, u
 
 const margin_trading_sov_reward_payment = async (accounts, loanToken, underlyingToken, collateralToken, SOV, FeesEvents, sovryn) => {
 	// preparation
-	const loan_token_sent = oneEth;
+	const loan_token_sent = oneEth.mul(new BN(10));
 	await underlyingToken.mint(loanToken.address, loan_token_sent.mul(new BN(3)));
 	const trader = accounts[0];
 	await underlyingToken.mint(trader, loan_token_sent);
@@ -449,6 +449,7 @@ const close_complete_margin_trade_wrbtc = async (
 		return_token_is_collateral
 	);
 };
+
 const close_complete_margin_trade_sov_reward_payment = async (
 	sovryn,
 	set_demand_curve,
@@ -573,12 +574,53 @@ const close_partial_margin_trade = async (
 	// needs to be called by the trader
 	expectRevert(sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral, "0x"), "unauthorized");
 
+	// partial closure means 80% of the collateral is swapped
 	const swap_amount = new BN(initial_loan["collateral"]).mul(new BN(80).mul(oneEth)).div(hunEth);
 
 	await internal_test_close_margin_trade(
 		new BN(swap_amount),
 		initial_loan,
 		loanToken,
+		loan_id,
+		priceFeeds,
+		sovryn,
+		trader,
+		return_token_is_collateral
+	);
+};
+
+const close_partial_margin_trade_wrbtc = async (
+	sovryn,
+	loanToken,
+	loanTokenWRBTC,
+	set_demand_curve,
+	lend_to_pool_iBTC,
+	open_margin_trade_position_iBTC,
+	priceFeeds,
+	return_token_is_collateral,
+	RBTC,
+	WRBTC,
+	SUSD,
+	accounts
+) => {
+	// prepare the test
+	await set_demand_curve(loanToken);
+	await lend_to_pool_iBTC(loanTokenWRBTC, accounts[0]);
+	const [loan_id, trader, loan_token_sent] = await open_margin_trade_position_iBTC(loanTokenWRBTC, SUSD, accounts[1]);
+
+	await increaseTime(10 * 24 * 60 * 60);
+	const initial_loan = await sovryn.getLoan(loan_id);
+
+	// needs to be called by the trader
+	expectRevert(sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral, "0x"), "unauthorized");
+
+	// partial closure means 80% of the collateral is swapped
+	const swap_amount = new BN(initial_loan["collateral"]).mul(new BN(80).mul(oneEth)).div(hunEth);
+
+	await internal_test_close_margin_trade(
+		new BN(swap_amount),
+		initial_loan,
+		loanTokenWRBTC,
 		loan_id,
 		priceFeeds,
 		sovryn,
@@ -609,6 +651,7 @@ const close_partial_margin_trade_sov_reward_payment = async (
 	await increaseTime(10 * 24 * 60 * 60);
 	const initial_loan = await sovryn.getLoan(loan_id);
 
+	// partial closure means 80% of the collateral is swapped
 	const swap_amount = new BN(initial_loan["collateral"]).mul(new BN(80).mul(oneEth)).div(hunEth);
 
 	lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
@@ -652,6 +695,7 @@ const close_partial_margin_trade_sov_reward_payment_with_special_rebates = async
 	await increaseTime(10 * 24 * 60 * 60);
 	const initial_loan = await sovryn.getLoan(loan_id);
 
+	// partial closure means 80% of the collateral is swapped
 	const swap_amount = new BN(initial_loan["collateral"]).mul(new BN(80).mul(oneEth)).div(hunEth);
 
 	lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
@@ -805,6 +849,7 @@ module.exports = {
 	close_complete_margin_trade_sov_reward_payment,
 	close_complete_margin_trade_sov_reward_payment_with_special_rebates,
 	close_partial_margin_trade,
+	close_partial_margin_trade_wrbtc,
 	close_partial_margin_trade_sov_reward_payment,
 	close_partial_margin_trade_sov_reward_payment_with_special_rebates,
 	close_complete_margin_trade_wrbtc,

@@ -6,9 +6,7 @@ const {
 	getRBTC,
 	getWRBTC,
 	getBZRX,
-	getLoanTokenLogic,
 	getLoanToken,
-	getLoanTokenLogicWrbtc,
 	getLoanTokenWRBTC,
 	loan_pool_setup,
 	set_demand_curve,
@@ -40,15 +38,13 @@ contract("LoanTokenTransactionLimit", (accounts) => {
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 		await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
-		const loanTokenLogicStandard = await getLoanTokenLogic();
-		const loanTokenLogicWrbtc = await getLoanTokenLogicWrbtc();
-		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
-		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
+		loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD);
+		loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD);
 		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 	});
 	const set_transaction_limit = async (sender, addresses, limits) => {

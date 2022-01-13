@@ -1,5 +1,15 @@
-//const { expectRevert, increaseTime } = require('@openzeppelin/test-helpers');
-const { expectEvent, expectRevert, time, BN } = require("@openzeppelin/test-helpers");
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-05
+ * Bottleneck found at beforeEach hook, redeploying tokens on every test.
+ *
+ * Total time elapsed: 4.5s
+ * After optimization: 4.2s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
+
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const PostCSOV = artifacts.require("VestingRegistry.sol");
 const TestToken = artifacts.require("TestToken.sol");
 
@@ -9,20 +19,18 @@ contract("PostCSOV", (accounts) => {
 	let postcsov;
 	let token1;
 	let token2;
-	let tokenAddr;
 	let postcsovAddr;
 
 	const dummyAddress = accounts[9];
 	const owner = accounts[5];
 	const csovAdmin = accounts[0];
 	const amountUser = web3.utils.toWei("3");
-	//console.log("Owner: " + owner);
+	// console.log("Owner: " + owner);
 
-	const totalSupply = web3.utils.toWei("2000000");
 	const pricsSats = "2500";
 
-	beforeEach(async () => {
-		//deploy CSOVToken1
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		// deploy CSOVToken1
 		token1 = await TestToken.new("cSOV1", "cSOV1", 18, TOTAL_SUPPLY);
 		tokenAddr1 = await token1.address;
 
@@ -31,7 +39,7 @@ contract("PostCSOV", (accounts) => {
 		let CSOVAmountWei = await token1.balanceOf(accounts[2]);
 		console.log("CSOVAmountWei: " + CSOVAmountWei);
 
-		//deploy CSOVToken2
+		// deploy CSOVToken2
 		token2 = await TestToken.new("cSOV2", "cSOV2", 18, TOTAL_SUPPLY);
 		tokenAddr2 = await token2.address;
 
@@ -40,7 +48,7 @@ contract("PostCSOV", (accounts) => {
 		CSOVAmountWei = await token2.balanceOf(accounts[2]);
 		console.log("CSOVAmountWei: " + CSOVAmountWei);
 
-		//deploy PostCSOV
+		// deploy PostCSOV
 		postcsov = await PostCSOV.new(
 			dummyAddress,
 			dummyAddress,
@@ -53,6 +61,10 @@ contract("PostCSOV", (accounts) => {
 		);
 		console.log(tokenAddr1 + "  " + tokenAddr2 + "  " + pricsSats);
 		postcsovAddr = await postcsov.address;
+	}
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("deposit funds", () => {

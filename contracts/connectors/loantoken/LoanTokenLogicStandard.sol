@@ -6,9 +6,10 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./LoanTokenSettingsLowerAdmin.sol";
+import "./LoanTokenLogicStorage.sol";
 import "./interfaces/ProtocolLike.sol";
 import "./interfaces/FeedsLike.sol";
+import "./interfaces/ProtocolSettingsLike.sol";
 import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
 import "../../farm/ILiquidityMining.sol";
 
@@ -45,26 +46,15 @@ import "../../farm/ILiquidityMining.sol";
  * 10% APR since the interest payments don't have to be split between two
  * individuals.
  * */
-contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
+contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	using SafeMath for uint256;
 	using SignedSafeMath for int256;
 
+	/* Events */
+
+	event WithdrawRBTCTo(address indexed to, uint256 amount);
+
 	/// DON'T ADD VARIABLES HERE, PLEASE
-
-	/// @dev Used by flashBorrow function.
-	uint256 public constant VERSION = 6;
-	/// @dev Used by flashBorrow function.
-	address internal constant arbitraryCaller = 0x000F400e6818158D541C3EBE45FE3AA0d47372FF;
-	bytes32 internal constant iToken_ProfitSoFar = 0x37aa2b7d583612f016e4a4de4292cb015139b3d7762663d06a53964912ea2fb6; // keccak256("iToken_ProfitSoFar")
-
-	/**
-	 * @notice Fallback function is to react to receiving value (rBTC).
-	 * */
-	function() external {
-		// Due to contract size issue, need to keep the error message to 32 bytes length / we remove the revert function
-		// Remove revert function is fine as this fallback function is not payable, but the trade off is we cannot have the custom message for the fallback function error
-		// revert("loan token-fallback not allowed");
-	}
 
 	/* Public functions */
 
@@ -233,9 +223,13 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		/// @dev Ensure authorized use of existing loan.
 		// require(loanId == 0 || msg.sender == borrower, "401 use of existing loan");
 
-		if (collateralTokenAddress == address(0)) {
-			collateralTokenAddress = wrbtcTokenAddress;
-		}
+		/// @dev The condition is never met.
+		///   Address zero is not allowed by previous require validation.
+		///   This check is unneeded and was lowering the test coverage index.
+		// if (collateralTokenAddress == address(0)) {
+		// 	collateralTokenAddress = wrbtcTokenAddress;
+		// }
+
 		require(collateralTokenAddress != loanTokenAddress, "10");
 
 		_settleInterest();
@@ -373,6 +367,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			sentAmounts[1] /// depositAmount
 		);
 
+		require(_getAmountInRbtc(loanTokenAddress, sentAmounts[1]) > TINY_AMOUNT, "principal too small");
+
 		/// @dev Converting to initialMargin
 		leverageAmount = SafeMath.div(10**38, leverageAmount);
 		return
@@ -437,6 +433,19 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	}
 
 	/**
+	 * @notice Withdraws RBTC from the contract by Multisig.
+	 * @param _receiverAddress The address where the rBTC has to be transferred.
+	 * @param _amount The amount of rBTC to be transferred.
+	 */
+	function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external onlyOwner {
+		require(_receiverAddress != address(0), "receiver address invalid");
+		require(_amount > 0, "non-zero withdraw amount expected");
+		require(_amount <= address(this).balance, "withdraw amount cannot exceed balance");
+		_receiverAddress.transfer(_amount);
+		emit WithdrawRBTCTo(_receiverAddress, _amount);
+	}
+
+	/**
 	 * @notice Transfer tokens wrapper.
 	 * Sets token owner the msg.sender.
 	 * Sets maximun allowance uint256(-1) to ensure tokens are always transferred.
@@ -490,6 +499,8 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	) internal returns (bool) {
 		if (_allowanceAmount != uint256(-1)) {
 			allowed[_from][msg.sender] = _allowanceAmount.sub(_value, "14");
+			/// @dev Allowance mapping update requires an event log
+			emit AllowanceUpdate(_from, msg.sender, _allowanceAmount, allowed[_from][msg.sender]);
 		}
 
 		require(_to != address(0), "15");
@@ -680,7 +691,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	function totalSupplyInterestRate(uint256 assetSupply) public view returns (uint256) {
 		uint256 assetBorrow = totalAssetBorrow();
 		if (assetBorrow != 0) {
-			return _supplyInterestRate(assetBorrow, assetSupply);
+			return calculateSupplyInterestRate(assetBorrow, assetSupply);
 		}
 	}
 
@@ -1026,6 +1037,18 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	}
 
 	/**
+	 * @dev returns amount of the asset converted to RBTC
+	 * @param asset the asset to be transferred
+	 * @param amount the amount to be transferred
+	 * @return amount in RBTC
+	 * */
+	function _getAmountInRbtc(address asset, uint256 amount) internal returns (uint256) {
+		(uint256 rbtcRate, uint256 rbtcPrecision) =
+			FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(asset, wrbtcTokenAddress);
+		return amount.mul(rbtcRate).div(rbtcPrecision);
+	}
+
+	/*
 	 * @notice Compute interest rate and other loan parameters.
 	 *
 	 * @param borrowAmount The amount of tokens to borrow.
@@ -1270,6 +1293,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		bytes memory data,
 		string memory errorMsg
 	) internal {
+		require(Address.isContract(token), "call to a non-contract address");
 		(bool success, bytes memory returndata) = token.call(data);
 		require(success, errorMsg);
 
@@ -1317,7 +1341,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 * @param assetSupply The amount of loan tokens supplied.
 	 * @return The next supply interest adjustment.
 	 * */
-	function _supplyInterestRate(uint256 assetBorrow, uint256 assetSupply) public view returns (uint256) {
+	function calculateSupplyInterestRate(uint256 assetBorrow, uint256 assetSupply) public view returns (uint256) {
 		if (assetBorrow != 0 && assetSupply >= assetBorrow) {
 			return
 				_avgBorrowInterestRate(assetBorrow)
@@ -1370,7 +1394,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		uint256 utilRate = _utilizationRate(totalAssetBorrow().add(newBorrowAmount), assetSupply);
 
 		uint256 thisMinRate;
-		uint256 thisMaxRate;
+		uint256 thisRateAtKink;
 		uint256 thisBaseRate = baseRate;
 		uint256 thisRateMultiplier = rateMultiplier;
 		uint256 thisTargetLevel = targetLevel;
@@ -1389,17 +1413,19 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 			utilRate -= thisKinkLevel;
 			if (utilRate > thisMaxRange) utilRate = thisMaxRange;
 
-			thisMaxRate = thisRateMultiplier.add(thisBaseRate).mul(thisKinkLevel).div(WEI_PERCENT_PRECISION);
+			// Modified the rate calculation as it is slightly exaggerated around kink level
+			// thisRateAtKink = thisRateMultiplier.add(thisBaseRate).mul(thisKinkLevel).div(WEI_PERCENT_PRECISION);
+			thisRateAtKink = thisKinkLevel.mul(thisRateMultiplier).div(WEI_PERCENT_PRECISION).add(thisBaseRate);
 
-			nextRate = utilRate.mul(SafeMath.sub(thisMaxScaleRate, thisMaxRate)).div(thisMaxRange).add(thisMaxRate);
+			nextRate = utilRate.mul(SafeMath.sub(thisMaxScaleRate, thisRateAtKink)).div(thisMaxRange).add(thisRateAtKink);
 		} else {
 			nextRate = utilRate.mul(thisRateMultiplier).div(WEI_PERCENT_PRECISION).add(thisBaseRate);
 
 			thisMinRate = thisBaseRate;
-			thisMaxRate = thisRateMultiplier.add(thisBaseRate);
+			thisRateAtKink = thisRateMultiplier.add(thisBaseRate);
 
 			if (nextRate < thisMinRate) nextRate = thisMinRate;
-			else if (nextRate > thisMaxRate) nextRate = thisMaxRate;
+			else if (nextRate > thisRateAtKink) nextRate = thisRateAtKink;
 		}
 	}
 
@@ -1528,6 +1554,16 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 	 */
 	function setLiquidityMiningAddress(address LMAddress) external onlyOwner {
 		liquidityMiningAddress = LMAddress;
+	}
+
+	/**
+	 * @notice We need separate getter for newly added storage variable
+	 * @notice Getter for liquidityMiningAddress
+
+	 * @return liquidityMiningAddress
+	 */
+	function getLiquidityMiningAddress() public view returns (address) {
+		return liquidityMiningAddress;
 	}
 
 	function _mintWithLM(address receiver, uint256 depositAmount) internal returns (uint256 minted) {

@@ -81,8 +81,8 @@
 		"compile": "npx hardhat compile",
 		"npm-publish": "npm run compile && npm publish",
 		"postinstall": "npm run generate-types",
-		"fees-withdraw": "brownie run rewards_cron"
-
+		"fees-withdraw": "brownie run rewards_cron",
+		"set-block": "brownie run setBlock_cron"
 	},
 	"husky": {
 		"hooks": {

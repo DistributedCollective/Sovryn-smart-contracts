@@ -90,7 +90,6 @@ def transferSOVtoLM(amount):
     print(data)
 
     sendWithMultisig(conf.contracts['multisig'], SOVtoken.address, data, conf.acct)
-
 def addAmmPoolTokenToLM(ptName):
     # ptName - pool token name from testnet_contracts.json e.g.:
     # "XUSD/BRZ"
@@ -105,3 +104,11 @@ def getPoolIdByName(ptName):
     print(lm.getPoolId(conf.contracts[ptName]))
     #0xB12FA09a50c56e9a0C826b98e76DA7645017AB4D
 
+def getPoolTokenUserInfo(poolToken, user):
+    lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
+
+    res = lm.getUserInfo(poolToken, user)
+
+    print('pool tokens: ', res[0]/1e18)
+    print('debt: ', res[1]/1e18)
+    print('accumulated reward: ', res[2]/1e18)

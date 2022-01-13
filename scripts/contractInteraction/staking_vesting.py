@@ -1,10 +1,12 @@
 from brownie import *
 from brownie.network.contract import InterfaceContainer
 import json
-import time;
+import time
 import copy
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
+
+conf.loadConfig()
 
 def sendSOVFromVestingRegistry():
     amount = 307470805 * 10**14
@@ -95,7 +97,20 @@ def transferSOVtoVestingRegistry(vestingRegistryAddress, amount):
 
     sendWithMultisig(conf.contracts['multisig'], SOVtoken.address, data, conf.acct)
 
-#Upgrade StakingRewards
+# Check Block Number
+
+def getBlockOfStakingInterval(timestamp):
+    # Get the contract instance
+    stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
+    return stakingRewards.checkpointBlockDetails(timestamp)
+
+# Read last staking timestamp
+
+def readLockDate(timestamp):
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    return staking.timestampToLockDate(timestamp)
+
+# Upgrade StakingRewards
 
 def upgradeStakingRewards():
     print('Deploying account:', conf.acct.address)
@@ -112,7 +127,32 @@ def upgradeStakingRewards():
     data = stakingRewardsProxy.setImplementation.encode_input(stakingRewards.address)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['StakingRewardsProxy'], data, conf.acct)
 
+# Set Average Block Time
+
+def setAverageBlockTime(blockTime):
+    # Get the contract instance
+    stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
+
+    # Set average block time
+    data = stakingRewards.setAverageBlockTime.encode_input(blockTime)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['StakingRewardsProxy'], data, conf.acct)
+
+# Set Block
+
+def setBlockForStakingRewards():
+    # Get the staking rewards proxy contract instance
+    stakingRewardsProxy = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
+    stakingRewardsProxy.setBlock()
+
+# Set Historical Block
+
+def setHistoricalBlockForStakingRewards(blockTime):
+    # Get the staking rewards proxy contract instance
+    stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
+    stakingRewards.setHistoricalBlock(blockTime)
+
 #Upgrade Staking
+# Upgrade Staking
 
 def upgradeStaking():
     print('Deploying account:', conf.acct.address)
@@ -130,7 +170,7 @@ def upgradeStaking():
     data = stakingProxy.setImplementation.encode_input(stakingLogic.address)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
 
-#Upgrade Vesting Registry
+# Upgrade Vesting Registry
 
 def upgradeVesting():
     print('Deploying account:', conf.acct.address)
@@ -147,7 +187,7 @@ def upgradeVesting():
     data = vestingRegistryProxy.setImplementation.encode_input(vestingRegistryLogic.address)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['VestingRegistryLogic'], data, conf.acct)
 
-#Set Vesting Registry Address for Staking
+# Set Vesting Registry Address for Staking
 
 def updateVestingRegAddr():
 
@@ -162,7 +202,7 @@ def updateVestingRegAddr():
     print(data)
     sendWithMultisig(conf.contracts['multisig'], stakingProxy.address, data, conf.acct)
 
-#Link Staking to StakingRewards, Vesting Registry and FeeSharing
+# Link Staking to StakingRewards, Vesting Registry and FeeSharing
 def updateAddresses():
 
     # Get the proxy contract instance
