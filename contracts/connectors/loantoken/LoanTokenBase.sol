@@ -49,6 +49,9 @@ contract LoanTokenBase is ReentrancyGuard, Ownable, Pausable {
 	/// @notice The address of the loan token (asset to lend) instance.
 	address public loanTokenAddress;
 
+	/// uint88 for tight packing -> 8 + 88 + 160 = 256
+	uint88 internal lastSettleTime_;
+
 	uint256 public baseRate;
 	uint256 public rateMultiplier;
 	uint256 public lowUtilBaseRate;
@@ -61,9 +64,6 @@ contract LoanTokenBase is ReentrancyGuard, Ownable, Pausable {
 	uint256 internal _flTotalAssetSupply;
 	uint256 public checkpointSupply;
 	uint256 public initialPrice;
-
-	/// uint88 for tight packing -> 8 + 88 + 160 = 256
-	uint88 internal lastSettleTime_;
 
 	/// Mapping of keccak256(collateralToken, isTorqueLoan) to loanParamsId.
 	mapping(uint256 => bytes32) public loanParamsIds;
