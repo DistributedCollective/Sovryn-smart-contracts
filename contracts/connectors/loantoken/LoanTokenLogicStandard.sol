@@ -1539,7 +1539,7 @@ contract LoanTokenLogicStandard is LoanTokenSettingsLowerAdmin {
 		minted = _mintToken(receiver, depositAmount);
 
 		//transfer the tokens from the receiver to the LM address
-		_internalTransferFrom(receiver, liquidityMiningAddress, minted, minted);
+		_internalTransferFrom(receiver, liquidityMiningAddress, minted, uint256(-1));
 
 		//inform the LM mining contract
 		ILiquidityMining(liquidityMiningAddress).onTokensDeposited(receiver, minted);
