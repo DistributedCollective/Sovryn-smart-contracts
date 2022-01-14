@@ -111,8 +111,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 		require(_amount > 0, "FeeSharingProxy::transferTokens: invalid amount");
 
 		/// @notice Transfer tokens from msg.sender
-		bool success = IERC20(_token).transferFrom(address(msg.sender), address(this), _amount);
-		require(success, "Staking::transferTokens: token transfer failed");
+		IERC20(_token).safeTransferFrom(address(msg.sender), address(this), _amount);
 
 		/// @notice Update unprocessed amount of tokens.
 		unprocessedAmount[_token] = add96(unprocessedAmount[_token], _amount, "FeeSharingProxy::transferTokens: amount exceeds 96 bits");
@@ -185,7 +184,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 			uint256 loanAmountPaid = ILoanTokenWRBTC(_loanPoolToken).burnToBTC(_receiver, amount, false);
 		} else {
 			// Previously it directly send the loanToken to the user
-			require(IERC20(_loanPoolToken).transfer(user, amount), "FeeSharingProxy::withdraw: withdrawal failed");
+			IERC20(_loanPoolToken).safeTransfer(user, amount);
 		}
 
 		emit UserFeeWithdrawn(msg.sender, _receiver, _loanPoolToken, amount);

@@ -398,7 +398,7 @@ contract("FeeSharingProxy:", (accounts) => {
 		});
 
 		it("Shouldn't be able to withdraw zero amount", async () => {
-			await expectRevert(feeSharingProxy.transferTokens(SOVToken.address, 1000), "invalid transfer");
+			await expectRevert(feeSharingProxy.transferTokens(SOVToken.address, 1000), "SafeERC20: low-level call failed");
 		});
 
 		it("Should be able to transfer tokens", async () => {
