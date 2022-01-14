@@ -95,6 +95,11 @@ contract("LoanSettings", (accounts) => {
 	});
 
 	describe("test LoanSettings", async () => {
+		it("initialize loan token twice should revert", async() => {
+			loanToken = await LoanToken.at(loanToken.address);
+			await expectRevert(loanToken.initialize(testWrbtc.address, "iWRBTC", "iWRBTC"), "Cannot be initialized twice"); //iToken
+		})
+
 		it("test setup removeLoanParams", async () => {
 			let loanParamsAfter = (await sovryn.getLoanParams([loanParamsId]))[0];
 

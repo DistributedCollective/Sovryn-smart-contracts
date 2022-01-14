@@ -134,6 +134,7 @@ contract LoanToken is AdvancedTokenStorage {
 		string memory _name,
 		string memory _symbol
 	) public onlyOwner {
+		require(loanTokenAddress == address(0), "Cannot be initialized twice");
 		loanTokenAddress = _loanTokenAddress;
 
 		name = _name;
