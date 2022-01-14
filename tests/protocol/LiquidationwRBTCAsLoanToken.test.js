@@ -1,4 +1,17 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-01
+ * Bottleneck found at beforeEach hook, redeploying tokens,
+ *  protocol, ... on every test.
+ *
+ * Total time elapsed: 7.0s
+ * After optimization: 5.8s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
+
 const { BN } = require("@openzeppelin/test-helpers");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+
 const FeesEvents = artifacts.require("FeesEvents");
 
 const {
@@ -6,9 +19,7 @@ const {
 	getRBTC,
 	getWRBTC,
 	getBZRX,
-	getLoanTokenLogic,
 	getLoanToken,
-	getLoanTokenLogicWrbtc,
 	getLoanTokenWRBTC,
 	loan_pool_setup,
 	set_demand_curve,
@@ -29,25 +40,30 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
 	let owner;
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
 
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		// Deploying sovrynProtocol w/ generic function from initializer.js
+		SUSD = await getSUSD();
+		RBTC = await getRBTC();
+		WRBTC = await getWRBTC();
+		BZRX = await getBZRX();
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
+
+		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+
+		loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD);
+		loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD);
+		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
+
+		/// @dev SOV test token deployment w/ initializer.js
+		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
+	}
+
 	before(async () => {
 		[owner] = accounts;
 	});
 
 	beforeEach(async () => {
-		SUSD = await getSUSD();
-		RBTC = await getRBTC();
-		WRBTC = await getWRBTC();
-		BZRX = await getBZRX();
-		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
-
-		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
-
-		const loanTokenLogicStandard = await getLoanTokenLogic();
-		const loanTokenLogicWrbtc = await getLoanTokenLogicWrbtc();
-		loanToken = await getLoanToken(loanTokenLogicStandard, owner, sovryn, WRBTC, SUSD);
-		loanTokenWRBTC = await getLoanTokenWRBTC(loanTokenLogicWrbtc, owner, sovryn, WRBTC, SUSD);
-		await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
-		SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("Tests liquidation handling ", () => {
@@ -56,12 +72,12 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
 			or > liquidationIncentivePercent
 			liquidationIncentivePercent = 5e18 by default
 		*/
-		it("Test liquidate", async () => {
+		it("Test liquidate with rate 1e23", async () => {
 			const rate = new BN(10).pow(new BN(23));
 			await liquidate(accounts, loanTokenWRBTC, WRBTC, set_demand_curve, SUSD, sovryn, priceFeeds, rate, WRBTC, FeesEvents, SOV);
 		});
 
-		it("Test liquidate", async () => {
+		it("Test liquidate with rate 1.34e22", async () => {
 			const rate = new BN(134).mul(new BN(10).pow(new BN(20)));
 			await liquidate(accounts, loanTokenWRBTC, WRBTC, set_demand_curve, SUSD, sovryn, priceFeeds, rate, WRBTC, FeesEvents, SOV);
 		});

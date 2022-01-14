@@ -1,5 +1,16 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-05
+ * Bottleneck found at beforeEach hook, redeploying tokens and staking on every test.
+ *
+ * Total time elapsed: 5.1s
+ * After optimization: 4.6s
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
+
 const { expect } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time } = require("@openzeppelin/test-helpers");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 
 const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
@@ -7,8 +18,6 @@ const SOV = artifacts.require("SOV");
 const SVR = artifacts.require("SVR");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
-const TWO_WEEKS = 1209600;
-const HALF_YEAR = 182 * 86400;
 const ZERO_ADDRESS = constants.ZERO_ADDRESS;
 const ZERO = new BN(0);
 
@@ -22,11 +31,7 @@ contract("SVR:", (accounts) => {
 	let root, account1, account2, account3;
 	let tokenSOV, tokenSVR, staking;
 
-	before(async () => {
-		[root, account1, account2, account3, ...accounts] = accounts;
-	});
-
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
 		tokenSOV = await SOV.new(TOTAL_SUPPLY);
 
 		let stakingLogic = await StakingLogic.new(tokenSOV.address);
@@ -35,6 +40,14 @@ contract("SVR:", (accounts) => {
 		staking = await StakingLogic.at(staking.address);
 
 		tokenSVR = await SVR.new(tokenSOV.address, staking.address);
+	}
+
+	before(async () => {
+		[root, account1, account2, account3, ...accounts] = accounts;
+	});
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	describe("constructor:", () => {
