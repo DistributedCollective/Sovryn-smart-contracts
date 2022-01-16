@@ -25,7 +25,7 @@ interface IPriceFeedsExt {
  * And besides it includes some calculations about loans such as
  * drawdown, margin and collateral.
  * */
-contract PriceFeeds is Constants, Ownable {
+contract PriceFeeds is PriceFeedsConstants, Ownable {
 	using SafeMath for uint256;
 
 	/* Events */

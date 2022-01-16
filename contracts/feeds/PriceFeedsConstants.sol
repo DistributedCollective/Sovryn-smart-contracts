@@ -17,7 +17,7 @@ import "../openzeppelin/Address.sol";
  * This contract keep the addresses of token instances for wrBTC, base token
  * and protocol token.
  * */
-contract Constants {
+contract PriceFeedsConstants {
 	IWrbtcERC20 public wrbtcToken;
 	IWrbtcERC20 public baseToken;
 	address internal protocolTokenAddress;
