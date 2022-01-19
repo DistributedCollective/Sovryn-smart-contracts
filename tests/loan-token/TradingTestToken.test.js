@@ -686,7 +686,7 @@ contract("LoanTokenTrading", (accounts) => {
 					10000, // collateral token sent
 					RBTC.address, // collateralTokenAddress (RBTC)
 					accounts[1], // trader,
-					20000, // slippage
+					20000, // minEntryPrice
 					"0x", // loanDataBytes (only required with ether)
 					{ from: accounts[2] }
 				),
@@ -703,7 +703,7 @@ contract("LoanTokenTrading", (accounts) => {
 				oneEth.toString(), // collateral token sent
 				RBTC.address, // collateralTokenAddress (RBTC)
 				accounts[1], // trader,
-				oneEth.mul(new BN(2)).toString(), // slippage
+				200000, // minEntryPrice
 				"0x", // loanDataBytes (only required with ether)
 				{ from: accounts[2] }
 			);
