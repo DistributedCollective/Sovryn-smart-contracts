@@ -14,7 +14,8 @@ const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
+const LoanClosingsLiquidation = artifacts.require("LoanClosingsLiquidation");
+const LoanClosingsRollover = artifacts.require("LoanClosingsRollover");
 
 const SwapsExternal = artifacts.require("SwapsExternal");
 
@@ -125,7 +126,8 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
 
 	// loanClosing
 	await sovryn.replaceContract((await LoanClosingsWith.new()).address);
-	await sovryn.replaceContract((await LoanClosingsBase.new()).address);
+	await sovryn.replaceContract((await LoanClosingsLiquidation.new()).address);
+	await sovryn.replaceContract((await LoanClosingsRollover.new()).address);
 
 	// affiliates
 	await sovryn.replaceContract((await Affiliates.new()).address);

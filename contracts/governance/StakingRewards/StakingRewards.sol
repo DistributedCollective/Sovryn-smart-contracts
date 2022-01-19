@@ -1,7 +1,6 @@
 pragma solidity ^0.5.17;
 
 import "./StakingRewardsStorage.sol";
-import "../../openzeppelin/Initializable.sol";
 import "../../openzeppelin/SafeMath.sol";
 import "../../openzeppelin/Address.sol";
 
@@ -17,7 +16,7 @@ import "../../openzeppelin/Address.sol";
  * plus revenues from stakers who have a portion of their SOV slashed for
  * early unstaking.
  * */
-contract StakingRewards is StakingRewardsStorage, Initializable {
+contract StakingRewards is StakingRewardsStorage {
 	using SafeMath for uint256;
 
 	/// @notice Emitted when SOV is withdrawn
@@ -31,7 +30,7 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * @param _SOV SOV token address
 	 * @param _staking StakingProxy address should be passed
 	 * */
-	function initialize(address _SOV, IStaking _staking) external onlyOwner initializer {
+	function initialize(address _SOV, IStaking _staking) external onlyOwner {
 		require(_SOV != address(0), "Invalid SOV Address.");
 		require(Address.isContract(_SOV), "_SOV not a contract");
 		SOV = IERC20(_SOV);
@@ -53,6 +52,55 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	}
 
 	/**
+	 * @notice Collect rewards
+	 * @dev User calls this function to collect SOV staking rewards as per the SIP-0024 program.
+	 * The weighted stake is calculated using getPriorWeightedStake. Block number sent to the functon
+	 * must be a finalised block, hence we deduct 1 from the current block. User is only allowed to withdraw
+	 * after intervals of 14 days.
+	 * */
+	function collectReward() external {
+		(uint256 withdrawalTime, uint256 amount) = getStakerCurrentReward(true);
+		require(withdrawalTime > 0 && amount > 0, "no valid reward");
+		withdrawals[msg.sender] = withdrawalTime;
+		_payReward(msg.sender, amount);
+	}
+
+	/**
+	 * @notice Withdraws all token from the contract by Multisig.
+	 * @param _receiverAddress The address where the tokens has to be transferred.
+	 */
+	function withdrawTokensByOwner(address _receiverAddress) external onlyOwner {
+		uint256 value = SOV.balanceOf(address(this));
+		_transferSOV(_receiverAddress, value);
+	}
+
+	/**
+	 * @notice Changes average block time - based on blockchain
+	 * @dev If average block time significantly changes, we can update it here and use for block number calculation
+	 */
+	function setAverageBlockTime(uint256 _averageBlockTime) external onlyOwner {
+		averageBlockTime = _averageBlockTime;
+	}
+
+	/**
+	 * @notice This function computes the last staking checkpoint and calculates the corresponding
+	 * block number using the average block time which is then added to the mapping `checkpointBlockDetails`.
+	 */
+	function setBlock() external {
+		uint256 lastCheckpointTime = staking.timestampToLockDate(block.timestamp);
+		_setBlock(lastCheckpointTime);
+	}
+
+	/**
+	 * @notice This function computes the block number using the average block time for a given historical
+	 * checkpoint which is added to the mapping `checkpointBlockDetails`.
+	 * @param _time Exact staking checkpoint time
+	 */
+	function setHistoricalBlock(uint256 _time) external onlyOwner {
+		_setBlock(_time);
+	}
+
+	/**
 	 * @notice Sets the max duration
 	 * @dev Rewards can be collected for a maximum duration at a time. This
 	 * is to avoid Block Gas Limit failures. Setting it zero would mean that it will loop
@@ -62,22 +110,6 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	 * */
 	function setMaxDuration(uint256 _duration) public onlyOwner {
 		maxDuration = _duration;
-	}
-
-	/**
-	 * @notice Collect rewards
-	 * @dev User calls this function to collect SOV staking rewards as per the SIP-0024 program.
-	 * The weighted stake is calculated using getPriorWeightedStake. Block number sent to the functon
-	 * must be a finalised block, hence we deduct 1 from the current block. User is only allowed to withdraw
-	 * after intervals of 14 days.
-	 * */
-	function collectReward() external {
-		uint256 withdrawalTime;
-		uint256 amount;
-		(withdrawalTime, amount) = getStakerCurrentReward(true);
-		require(withdrawalTime > 0 && amount > 0, "no valid reward");
-		withdrawals[msg.sender] = withdrawalTime;
-		_payReward(msg.sender, amount);
 	}
 
 	/**
@@ -117,15 +149,6 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 	}
 
 	/**
-	 * @notice Withdraws all token from the contract by Multisig.
-	 * @param _receiverAddress The address where the tokens has to be transferred.
-	 */
-	function withdrawTokensByOwner(address _receiverAddress) external onlyOwner {
-		uint256 value = SOV.balanceOf(address(this));
-		_transferSOV(_receiverAddress, value);
-	}
-
-	/**
 	 * @notice transfers SOV tokens to given address
 	 * @param _receiver the address of the SOV receiver
 	 * @param _amount the amount to be transferred
@@ -134,6 +157,26 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		require(_amount != 0, "amount invalid");
 		require(SOV.transfer(_receiver, _amount), "transfer failed");
 		emit RewardWithdrawn(_receiver, _amount);
+	}
+
+	/**
+	 * @notice Determine the current Block Number
+	 * @dev This is segregated from the _getPriorUserStakeByDate function to better test
+	 * advancing blocks functionality using Mock Contracts
+	 * */
+	function _getCurrentBlockNumber() internal view returns (uint256) {
+		return block.number;
+	}
+
+	/**
+	 * @notice Internal function to calculate and set block
+	 * */
+	function _setBlock(uint256 _checkpointTime) internal {
+		uint256 currentTS = block.timestamp;
+		uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
+		require(checkpointBlockDetails[_checkpointTime] == 0, "block number already set");
+		uint256 checkpointBlock = lastFinalisedBlock.sub(((currentTS.sub(_checkpointTime)).div(averageBlockTime)));
+		checkpointBlockDetails[_checkpointTime] = checkpointBlock;
 	}
 
 	/**
@@ -148,25 +191,26 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		uint256 weightedStake;
 		uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
 		uint256 currentTS = block.timestamp;
-		uint256 addedMaxDuration;
 		uint256 duration;
-		uint256 referenceBlock;
 		address staker = msg.sender;
 		uint256 lastWithdrawal = withdrawals[staker];
 
 		uint256 lastStakingInterval = staking.timestampToLockDate(currentTS);
 		lastWithdrawalInterval = lastWithdrawal > 0 ? lastWithdrawal : startTime;
-		if (lastStakingInterval < lastWithdrawalInterval) return (0, 0);
+		if (lastStakingInterval <= lastWithdrawalInterval) return (0, 0);
 
 		if (considerMaxDuration) {
-			addedMaxDuration = lastWithdrawalInterval.add(maxDuration);
+			uint256 addedMaxDuration = lastWithdrawalInterval.add(maxDuration);
 			duration = addedMaxDuration < currentTS ? staking.timestampToLockDate(addedMaxDuration) : lastStakingInterval;
 		} else {
 			duration = lastStakingInterval;
 		}
 
 		for (uint256 i = lastWithdrawalInterval; i < duration; i += TWO_WEEKS) {
-			referenceBlock = lastFinalisedBlock.sub(((currentTS.sub(i)).div(32)));
+			uint256 referenceBlock = checkpointBlockDetails[i];
+			if (referenceBlock == 0) {
+				referenceBlock = lastFinalisedBlock.sub(((currentTS.sub(i)).div(averageBlockTime)));
+			}
 			if (referenceBlock < deploymentBlock) referenceBlock = deploymentBlock;
 			weightedStake = weightedStake.add(_computeRewardForDate(staker, referenceBlock, i));
 		}
@@ -174,14 +218,5 @@ contract StakingRewards is StakingRewardsStorage, Initializable {
 		if (weightedStake == 0) return (0, 0);
 		lastWithdrawalInterval = duration;
 		amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
-	}
-
-	/**
-	 * @notice Determine the current Block Number
-	 * @dev This is segregated from the _getPriorUserStakeByDate function to better test
-	 * advancing blocks functionality using Mock Contracts
-	 * */
-	function _getCurrentBlockNumber() internal view returns (uint256) {
-		return block.number;
 	}
 }

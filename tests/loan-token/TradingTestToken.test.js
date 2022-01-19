@@ -53,12 +53,13 @@ const {
 	open_margin_trade_position,
 	decodeLogs,
 } = require("../Utils/initializer.js");
-const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+const { ZERO_ADDRESS, ZERO_BYTES32 } = require("@openzeppelin/test-helpers/src/constants");
 
 const wei = web3.utils.toWei;
 
 const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
+const TINY_AMOUNT = new BN(25).mul(new BN(10).pow(new BN(13))); // 25 * 10**13
 
 contract("LoanTokenTrading", (accounts) => {
 	let owner;
@@ -104,9 +105,44 @@ contract("LoanTokenTrading", (accounts) => {
 		  4. retrieve the loan from the smart contract and make sure all values are set as expected
 		*/
 		it("Test margin trading sending loan tokens", async () => {
+			await expectRevert(
+				loanToken.marginTrade(
+					ZERO_BYTES32, // loanId  (0 for new loans)
+					oneEth.toString(), // leverageAmount
+					oneEth.toString(), // loanTokenSent
+					"0", // no collateral token sent
+					WRBTC.address, // collateralTokenAddress
+					owner, // trader,
+					0, // slippage
+					"0x" // loanDataBytes (only required with ether)
+				),
+				"principal too small"
+			);
+
+			await priceFeeds.setRates(WRBTC.address, SUSD.address, new BN(10).pow(new BN(20)).toString());
+			await priceFeeds.setRates(RBTC.address, SUSD.address, new BN(10).pow(new BN(20)).toString());
+
 			await margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, SUSD, RBTC, priceFeeds, false);
 			await margin_trading_sov_reward_payment(accounts, loanToken, SUSD, RBTC, SOV, FeesEvents, sovryn);
 			await margin_trading_sov_reward_payment_with_special_rebates(accounts, loanToken, SUSD, RBTC, SOV, FeesEvents, sovryn);
+		});
+
+		it("Test margin trading sending loan tokens tiny amount", async () => {
+			// Send the transaction
+			await expectRevert(
+				loanToken.marginTrade(
+					"0x0", // loanId  (0 for new loans)
+					new BN(2).mul(oneEth), // leverageAmount
+					TINY_AMOUNT, // loanTokenSent
+					new BN(0), // no collateral token sent
+					RBTC.address, // collateralTokenAddress
+					accounts[0], // trader,
+					0, // slippage
+					"0x", // loanDataBytes (only required with ether)
+					{ from: accounts[2] }
+				),
+				"principal too small"
+			);
 		});
 
 		/*
@@ -463,7 +499,7 @@ contract("LoanTokenTrading", (accounts) => {
 					1000, // no collateral token sent
 					RBTC.address, // collateralTokenAddress
 					accounts[1], // trader,
-					0,
+					0, // slippage
 					"0x", // loanDataBytes (only required with ether)
 					{ from: accounts[2] }
 				),
@@ -506,7 +542,7 @@ contract("LoanTokenTrading", (accounts) => {
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, accounts[0]);
 
-			const collateralTokenSent = new BN(1000);
+			const collateralTokenSent = new BN(wei("1", "ether"));
 			const leverage = 2;
 
 			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[0]);
@@ -561,15 +597,15 @@ contract("LoanTokenTrading", (accounts) => {
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, accounts[0]);
 
-			const loanTokenSent = new BN(10000000);
+			const loanTokenSent = new BN(wei("2", "ether"));
 			const leverage = 2;
 
 			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[0]);
 
 			// deposit collateral to add margin to the loan created above
-			await SUSD.approve(sovryn.address, oneEth);
+			await SUSD.approve(sovryn.address, loanTokenSent);
 			// await sovryn.depositCollateral(loan_id, oneEth);
-			await SUSD.approve(loanToken.address, oneEth);
+			await SUSD.approve(loanToken.address, loanTokenSent);
 
 			const sovryn_before_collateral_token_balance = await RBTC.balanceOf(sovryn.address);
 			const trader_before_underlying_token_balance = await SUSD.balanceOf(accounts[0]);
@@ -627,7 +663,7 @@ contract("LoanTokenTrading", (accounts) => {
 				"0x0", // loanId  (0 for new loans)
 				wei("2", "ether"), // leverageAmount
 				0, // loanTokenSent (SUSD)
-				1000, // collateral token sent
+				wei("1", "ether"), // collateral token sent
 				ZERO_ADDRESS, // collateralTokenAddress (address 0 means collateral is WRBTC)
 				accounts[1], // trader,
 				2000,
@@ -637,19 +673,37 @@ contract("LoanTokenTrading", (accounts) => {
 		});
 
 		it("Check marginTrade with minPositionSize > 0 ", async () => {
-			await set_demand_curve(loanToken);
+			// await set_demand_curve(loanToken);
 			await SUSD.transfer(loanToken.address, wei("1000000", "ether"));
 			await RBTC.transfer(accounts[2], oneEth);
 			await RBTC.approve(loanToken.address, oneEth, { from: accounts[2] });
+
+			await expectRevert(
+				loanToken.marginTrade(
+					"0x0", // loanId  (0 for new loans)
+					wei("2", "ether"), // leverageAmount
+					0, // loanTokenSent (SUSD)
+					10000, // collateral token sent
+					RBTC.address, // collateralTokenAddress (RBTC)
+					accounts[1], // trader,
+					20000, // slippage
+					"0x", // loanDataBytes (only required with ether)
+					{ from: accounts[2] }
+				),
+				"principal too small"
+			);
+
+			await priceFeeds.setRates(WRBTC.address, SUSD.address, new BN(10).pow(new BN(20)).toString());
+			await priceFeeds.setRates(RBTC.address, SUSD.address, new BN(10).pow(new BN(20)).toString());
 
 			await loanToken.marginTrade(
 				"0x0", // loanId  (0 for new loans)
 				wei("2", "ether"), // leverageAmount
 				0, // loanTokenSent (SUSD)
-				1000, // collateral token sent
+				oneEth.toString(), // collateral token sent
 				RBTC.address, // collateralTokenAddress (RBTC)
 				accounts[1], // trader,
-				2000,
+				oneEth.mul(new BN(2)).toString(), // slippage
 				"0x", // loanDataBytes (only required with ether)
 				{ from: accounts[2] }
 			);

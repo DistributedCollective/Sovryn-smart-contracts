@@ -559,15 +559,15 @@ contract("LoanTokenBorrowing", (accounts) => {
 			const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Borrow");
 			const loanId = decode[0].args["loanId"];
 
-			await SUSD.transfer(accounts[2], collateralTokenSent);
+			await SUSD.transfer(accounts[2], withdrawAmount);
 			// approve the transfer of the collateral
-			await SUSD.approve(loanToken.address, collateralTokenSent, { from: accounts[2] });
+			await SUSD.approve(loanToken.address, withdrawAmount, { from: accounts[2] });
 
 			await expectRevert(
 				loanToken.marginTrade(
 					loanId, // bytes32 loanId
 					oneEth, // uint256 withdrawAmount
-					10000000, // uint256 collateralTokenSent
+					withdrawAmount, // uint256 collateralTokenSent
 					0,
 					RBTC.address, // address collateralTokenAddress
 					accounts[2], // address receiver
@@ -750,6 +750,78 @@ contract("LoanTokenBorrowing", (accounts) => {
 			const borrowAmount2 = await loanToken.getBorrowAmountForDeposit(depositAmount, durationInSeconds, RBTC.address);
 
 			expect(borrowAmount1).to.be.bignumber.equal(borrowAmount2);
+		});
+
+		/// @dev Testing the interest rate calculations for the range [0,k]
+		it("Checking that the interest rate is calculated correctly when utilization rate is [0,k]", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// determine borrowing parameter
+			const withdrawAmount = tenEth;
+
+			// compute expected values for asserts
+			const interestRate = await loanToken.nextBorrowInterestRate(withdrawAmount);
+
+			// Replicate the values of demand curve
+			const baseRate = wei("1", "ether");
+			const rateMultiplier = wei("20.25", "ether");
+			const targetLevel = wei("80", "ether");
+
+			// Utilization Rate
+			const totalAssetBorrow = await loanToken.totalAssetBorrow();
+			const totalAssetSupply = await loanToken.totalAssetSupply();
+			const assetBorrow = totalAssetBorrow.add(withdrawAmount);
+			let utilizationRate = assetBorrow.mul(new BN(10).pow(new BN(20))).div(totalAssetSupply);
+			if (utilizationRate < targetLevel) utilizationRate = targetLevel;
+
+			// Interest rate calculation
+			// in the interval [0,k] : f(x) = b + m*x, where b is the base rate, m is the rate multiplier and x is the utilization rate
+			const calculatedRate = new BN(baseRate).add(
+				new BN(rateMultiplier).mul(new BN(utilizationRate)).div(new BN(10).pow(new BN(20)))
+			);
+			expect(interestRate).to.be.a.bignumber.equal(calculatedRate);
+		});
+
+		/// @dev Testing the math changes for interest rate calculations for the range (k,100]
+		it("Checking that the interest rate is calculated correctly when utilization rate is (k,100]", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, owner);
+
+			// determine borrowing parameter
+			const withdrawAmount = new BN(wei("990000000000", "ether")); //Borrow amount above Kink Level
+
+			// compute expected values for asserts
+			const interestRate = await loanToken.nextBorrowInterestRate(withdrawAmount);
+
+			// Replicate the values of demand curve
+			const baseRate = wei("1", "ether");
+			const rateMultiplier = wei("20.25", "ether");
+			const targetLevel = wei("80", "ether");
+			const kinkLevel = wei("90", "ether");
+			const maxScaleRate = wei("100", "ether");
+
+			// Utilization Rate
+			const totalAssetBorrow = await loanToken.totalAssetBorrow();
+			const totalAssetSupply = await loanToken.totalAssetSupply();
+			const assetBorrow = totalAssetBorrow.add(withdrawAmount);
+			let utilizationRate = assetBorrow.mul(new BN(10).pow(new BN(20))).div(totalAssetSupply);
+			if (utilizationRate < targetLevel) utilizationRate = targetLevel;
+
+			// Interest rate calculation
+			// In the interval (k, 100] : let z = (b + m * k)
+			const calculatedRate = new BN(baseRate).add(new BN(rateMultiplier).mul(new BN(kinkLevel)).div(new BN(10).pow(new BN(20))));
+
+			// Then f(x) = z + (s - z)*(x - k)/(100-k), where s is the maximum scale rate (could be 100% or 150%)
+			const interest = new BN(calculatedRate).add(
+				new BN(new BN(maxScaleRate))
+					.sub(new BN(calculatedRate))
+					.mul(new BN(utilizationRate).sub(new BN(kinkLevel)))
+					.div(new BN(new BN(10).pow(new BN(20))).sub(new BN(kinkLevel)))
+			);
+			expect(interestRate).to.be.a.bignumber.equal(interest);
 		});
 	});
 });

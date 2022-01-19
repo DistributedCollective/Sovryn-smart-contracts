@@ -17,7 +17,8 @@ const Affiliates = artifacts.require("Affiliates");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
+const LoanClosingsLiquidation = artifacts.require("LoanClosingsLiquidation");
+const LoanClosingsRollover = artifacts.require("LoanClosingsRollover");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 const SwapsExternal = artifacts.require("SwapsExternal");
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
@@ -48,7 +49,8 @@ contract("CallOptionalReturn", (accounts) => {
 		const sovrynproxy = await sovrynProtocol.new();
 		sovryn = await ISovryn.at(sovrynproxy.address);
 
-		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
+		await sovryn.replaceContract((await LoanClosingsLiquidation.new()).address);
+		await sovryn.replaceContract((await LoanClosingsRollover.new()).address);
 		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
 		await sovryn.replaceContract((await ProtocolSettings.new()).address);
 		await sovryn.replaceContract((await LoanSettings.new()).address);

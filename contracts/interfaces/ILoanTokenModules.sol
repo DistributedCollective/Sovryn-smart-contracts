@@ -126,6 +126,10 @@ interface ILoanTokenModules {
 
 	function nextBorrowInterestRate(uint256 borrowAmount) external view returns (uint256);
 
+	function totalAssetBorrow() external view returns (uint256);
+
+	function totalAssetSupply() external view returns (uint256);
+
 	function borrow(
 		bytes32 loanId, /// 0 if new loan.
 		uint256 withdrawAmount,

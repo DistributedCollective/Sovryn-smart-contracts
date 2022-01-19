@@ -12,6 +12,7 @@ def redeemFromAggregator(aggregatorAddress, tokenAddress, amount):
     aggregator = Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
     aggregator.redeem(tokenAddress, amount)
 
+#used to exchange XUSD -> USDT on the aggregator
 def redeemFromAggregatorWithMS(aggregatorAddress, tokenAddress, amount):
     abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
     abi = json.load(abiFile)
@@ -28,6 +29,7 @@ def mintAggregatedToken(aggregatorAddress, tokenAddress, amount):
     tx = aggregator.mint(tokenAddress, amount)
     tx.info()
 
+#used to exchange USDT -> XUSD on the aggregator
 def mintAggregatedTokenWithMS(aggregatorAddress, tokenAddress, amount):
     abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
     abi = json.load(abiFile)
@@ -106,3 +108,22 @@ def withdrawTokensFromWatcher(token, amount, recipient):
     data = watcher.withdrawTokens.encode_input(token, amount, recipient)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], watcher.address, data, conf.acct)
+
+def depositToLockedSOV(amount, recipient):
+    token = Contract.from_abi("Token", address= conf.contracts['SOV'], abi = TestToken.abi, owner=conf.acct)
+    data = token.approve.encode_input(conf.contracts["LockedSOV"], amount)
+    sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
+
+    lockedSOV = Contract.from_abi("LockedSOV", address=conf.contracts["LockedSOV"], abi=LockedSOV.abi, owner=conf.acct)
+    data = lockedSOV.depositSOV.encode_input(recipient, amount)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
+    
+def deployFeeSharingLogic():
+    # Redeploy feeSharingLogic
+    feeSharing = conf.acct.deploy(FeeSharingLogic)
+    print("Fee sharing logic redeployed at: ", feeSharing.address)
+    print("Setting implementation for FeeSharingProxy")
+    feeSharingProxy = Contract.from_abi("FeeSharingProxy", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingProxy.abi, owner=conf.acct)
+    data = feeSharingProxy.setImplementation.encode_input(feeSharing.address)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)
