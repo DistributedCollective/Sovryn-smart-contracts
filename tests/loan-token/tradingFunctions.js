@@ -94,7 +94,7 @@ const margin_trading_sending_loan_tokens = async (accounts, sovryn, loanToken, u
 	//TODO: problem: rounding error somewhere
 
 	const loan_id = args["loanId"];
-	const loan = await sovryn.getLoan(loan_id);
+	const loan = await sovryn.getLoanV2(loan_id);
 	const end_timestamp = loan["endTimestamp"];
 	const num = await blockNumber();
 	let currentBlock = await web3.eth.getBlock(num);
