@@ -19,3 +19,4 @@ cache
 brownie-config.yaml
 .vscode
 abi
+*.md
