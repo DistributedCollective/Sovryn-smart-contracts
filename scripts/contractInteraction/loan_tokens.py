@@ -473,8 +473,8 @@ def replaceLoanTokenLogicOnAllContracts():
 
     # Can use the same Loan Protocol Settings with the LoanTokenLogicLM
     print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconWrbtc")
-    data = logicContractWrbtc.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
-    sendWithMultisig(conf.contracts['multisig'], logicContractWrbtc.address, data, conf.acct)
+    data = loanTokenLogicBeaconWrbtc.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWrbtc.address, data, conf.acct)
     
 
 def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
