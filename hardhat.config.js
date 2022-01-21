@@ -50,7 +50,7 @@ module.exports = {
 	abiExporter: {
 		path: "./abi",
 		clear: true,
-		flat: false,
+		flat: true,
 		only: [],
 		except: [],
 		spacing: 4,

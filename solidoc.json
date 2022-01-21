@@ -1,7 +1,8 @@
 {
-    "pathToRoot": "./",
-    "outputPath": "./docs",
-    "noCompilation": true,
-    "compiler": "truffle compile",
-    "language": "en"
+	"pathToRoot": "./",
+	"outputPath": "./doc",
+	"buldFolder": "abi",
+	"noCompilation": true,
+	"compiler": "truffle compile",
+	"language": "en"
 }
