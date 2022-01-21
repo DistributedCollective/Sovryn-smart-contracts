@@ -363,7 +363,7 @@ contract ISovrynBrownie is
 		uint256 start,
 		uint256 count,
 		bool unsafeOnly
-	) external view returns (LoanReturnData2[] memory loansDataV2);
+	) external view returns (LoanReturnDataV2[] memory loansDataV2);
 
 	////// Protocol Migration //////
 
