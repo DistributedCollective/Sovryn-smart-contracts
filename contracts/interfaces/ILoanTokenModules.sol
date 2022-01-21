@@ -188,7 +188,7 @@ interface ILoanTokenModules {
 	function checkPriceDivergence(
 		uint256 loanTokenSent,
 		address collateralTokenAddress,
-		uint256 maxEntryPrice
+		uint256 minEntryPrice
 	) external view;
 
 	function getMaxEscrowAmount(uint256 leverageAmount) external view returns (uint256 maxEscrowAmount);
