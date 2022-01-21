@@ -90,6 +90,7 @@ def transferSOVtoLM(amount):
     print(data)
 
     sendWithMultisig(conf.contracts['multisig'], SOVtoken.address, data, conf.acct)
+ 
 def addAmmPoolTokenToLM(ptName):
     # ptName - pool token name from testnet_contracts.json e.g.:
     # "XUSD/BRZ"

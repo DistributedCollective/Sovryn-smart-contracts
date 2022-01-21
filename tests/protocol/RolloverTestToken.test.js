@@ -202,6 +202,172 @@ contract("ProtocolCloseDeposit", (accounts) => {
 					.lte(new BN(10000))
 			).to.be.true;
 			expect(new BN(loan_swap_event["destAmount"]).gte(interest_unpaid)).to.be.true;
+
+			const decoded_rollover = decodeLogs(receipt.rawLogs, LoanClosingsEvents, "Rollover");
+			const rollover_event = decoded_rollover[0].args;
+			expect(rollover_event["user"]).to.equal(borrower);
+			expect(rollover_event["lender"]).to.equal(loanToken.address);
+			expect(rollover_event["loanId"]).to.equal(loan_id);
+			expect(rollover_event["principal"]).to.equal(loan_after["principal"]);
+			expect(rollover_event["collateral"]).to.equal(loan_after["collateral"]);
+			expect(rollover_event["endTimestamp"]).to.equal(loan_after["endTimestamp"]);
+			expect(rollover_event["rewardReceiver"]).to.equal(accounts[0]);
+			expect(new BN(rollover_event["reward"]) > new BN(0)).to.be.true;
+		});
+
+		it("Test rollover tiny amount", async () => {
+			// prepare the test
+			let rollover_wallet = accounts[5];
+			loan_token_sent = TINY_AMOUNT.add(new BN(1)).mul(new BN(10).pow(new BN(4)));
+			const [borrower, loan, loan_id, endTimestamp] = await setup_rollover_test(
+				RBTC,
+				SUSD,
+				accounts,
+				loanToken,
+				loan_token_sent,
+				set_demand_curve,
+				sovryn
+			);
+
+			const num = await blockNumber();
+			let currentBlock = await web3.eth.getBlock(num);
+			const block_timestamp = currentBlock.timestamp;
+			const time_until_loan_end = loan["endTimestamp"] - block_timestamp;
+			await increaseTime(time_until_loan_end);
+
+			loan_before_rolled_over = await sovryn.getLoan.call(loan_id);
+
+			// // Set the wrbtc price become more expensive, so that it can create the dust
+			await priceFeeds.setRates(WRBTC.address, SUSD.address, new BN(10).pow(new BN(23)).toString());
+
+			const previousBorrowerBalanceSUSD = await SUSD.balanceOf(borrower);
+			const previousBorrowerBalanceRBTC = await RBTC.balanceOf(borrower);
+			const previousRolloverWalletBalanceSUSD = await SUSD.balanceOf(rollover_wallet);
+			const previousRolloverWalletBalanceRBTC = await RBTC.balanceOf(rollover_wallet);
+			const { receipt } = await sovryn.rollover(loan_id, "0x", { from: rollover_wallet });
+			const latestBorrowerBalanceSUSD = await SUSD.balanceOf(borrower);
+			const latestBorrowerBalanceRBTC = await RBTC.balanceOf(borrower);
+			const latestRolloverWalletBalanceSUSD = await SUSD.balanceOf(rollover_wallet);
+			const latestRolloverWalletBalanceRBTC = await RBTC.balanceOf(rollover_wallet);
+
+			const vaultWithdrawEvents = decodeLogs(receipt.rawLogs, VaultController, "VaultWithdraw");
+
+			// Make sure the borrower got the remaining collateral
+			const remainingCollateralAmount = vaultWithdrawEvents[vaultWithdrawEvents.length - 1].args["amount"];
+			expect(latestBorrowerBalanceSUSD.toString()).to.equal(
+				previousBorrowerBalanceSUSD.add(new BN(remainingCollateralAmount)).toString()
+			);
+
+			expect(previousBorrowerBalanceRBTC.toString()).to.equal(new BN(0).toString());
+			expect(latestBorrowerBalanceRBTC.toString()).to.equal(new BN(0).toString());
+
+			// Rollover wallet should get the reward
+			const rollover_reward = vaultWithdrawEvents[2].args["amount"];
+			expect(previousRolloverWalletBalanceSUSD.toString()).to.equal(new BN(0).toString());
+			expect(previousRolloverWalletBalanceRBTC.toString()).to.equal(new BN(0).toString());
+			expect(latestRolloverWalletBalanceSUSD.toString()).to.equal(new BN(0).toString());
+			expect(latestRolloverWalletBalanceRBTC.toString()).to.equal(
+				previousRolloverWalletBalanceRBTC.add(new BN(rollover_reward)).toString()
+			);
+
+			// Test loan update
+			end_loan = await sovryn.getLoan.call(loan_id);
+			// CHECK THE POSITION / LOAN IS COMPLETELY CLOSED
+			expect(end_loan["principal"]).to.be.bignumber.equal(new BN(0).toString(), "principal should be 0");
+			expect(end_loan["collateral"]).to.be.bignumber.equal(new BN(0).toString(), "collateral should be 0");
+			expect(end_loan["currentMargin"]).to.be.bignumber.equal(new BN(0).toString(), "current margin should be 0");
+			expect(end_loan["maxLiquidatable"]).to.be.bignumber.equal(new BN(0).toString(), "current margin should be 0");
+			expect(end_loan["maxSeizable"]).to.be.bignumber.equal(new BN(0).toString(), "current margin should be 0");
+			expect(end_loan["interestOwedPerDay"]).to.be.bignumber.equal(new BN(0).toString(), "current margin should be 0");
+			expect(end_loan["interestDepositRemaining"]).to.be.bignumber.equal(new BN(0).toString(), "current margin should be 0");
+
+			// CHECK THE CLOSE SWAP IS WORKING PROPERLY
+			const decode = decodeLogs(receipt.rawLogs, LoanClosingsEvents, "CloseWithSwap");
+			const swapEvent = decode[0].args;
+			expect(swapEvent["user"]).to.equal(borrower);
+			expect(swapEvent["lender"]).to.equal(loanToken.address); // lender is the pool in this case
+			expect(swapEvent["loanId"]).to.equal(loan_id);
+			expect(swapEvent["closer"]).to.equal(rollover_wallet); // the one who called the rollover function
+			expect(swapEvent["loanToken"]).to.equal(SUSD.address); /// Don't get confused, the loanToken is not the pool token, it's the underlying token
+			expect(swapEvent["collateralToken"]).to.equal(RBTC.address);
+			expect(swapEvent["loanCloseAmount"]).to.equal(loan_before_rolled_over["principal"]); // the principal before rolled over
+
+			const decoded_rollover = decodeLogs(receipt.rawLogs, LoanClosingsEvents, "Rollover");
+			const rollover_event = decoded_rollover;
+			expect(rollover_event.length == 0).to.be.true;
+		});
+
+		it("Test rollover where the rollover reward greater than collateral itself", async () => {
+			// prepare the test
+			let rollover_wallet = accounts[5];
+			loan_token_sent = TINY_AMOUNT.add(new BN(1)).mul(new BN(10).pow(new BN(4)));
+			const [borrower, loan, loan_id, endTimestamp] = await setup_rollover_test(
+				RBTC,
+				SUSD,
+				accounts,
+				loanToken,
+				loan_token_sent,
+				set_demand_curve,
+				sovryn
+			);
+
+			const num = await blockNumber();
+			let currentBlock = await web3.eth.getBlock(num);
+			const block_timestamp = currentBlock.timestamp;
+			const time_until_loan_end = loan["endTimestamp"] - block_timestamp;
+			await increaseTime(time_until_loan_end);
+
+			loan_before_rolled_over = await sovryn.getLoan.call(loan_id);
+
+			// // Set the rbtc (collateral) price become more expensive, so that the reward will be greater than the collateral itself
+			await priceFeeds.setRates(WRBTC.address, RBTC.address, new BN(10).pow(new BN(19)).mul(new BN(3)).toString());
+
+			const previousRolloverWalletBalanceSUSD = await SUSD.balanceOf(rollover_wallet);
+			const previousRolloverWalletBalanceWRBTC = await WRBTC.balanceOf(rollover_wallet);
+			const { receipt } = await sovryn.rollover(loan_id, "0x", { from: rollover_wallet });
+			const latestRolloverWalletBalanceSUSD = await SUSD.balanceOf(rollover_wallet);
+			const latestRolloverWalletBalanceWRBTC = await WRBTC.balanceOf(rollover_wallet);
+
+			const vaultWithdrawEvents = decodeLogs(receipt.rawLogs, VaultController, "VaultWithdraw");
+
+			// Make sure the rollover wallet get the remaining collateral in form of underlying loan token
+			const remainingCollateralAmount = vaultWithdrawEvents[vaultWithdrawEvents.length - 1].args["amount"];
+			expect(latestRolloverWalletBalanceSUSD.toString()).to.equal(
+				previousRolloverWalletBalanceSUSD.add(new BN(remainingCollateralAmount)).toString()
+			);
+
+			expect(previousRolloverWalletBalanceWRBTC.toString()).to.equal(new BN(0).toString());
+			expect(latestRolloverWalletBalanceWRBTC.toString()).to.equal(new BN(0).toString());
+
+			// Test loan update
+			end_loan = await sovryn.getLoan.call(loan_id);
+
+			// CHECK THE POSITION / LOAN IS COMPLETELY CLOSED
+			expect(end_loan["principal"]).to.be.bignumber.equal(new BN(0).toString(), "principal should be 0");
+			expect(end_loan["collateral"]).to.be.bignumber.equal(new BN(0).toString(), "collateral should be 0");
+			expect(end_loan["currentMargin"]).to.be.bignumber.equal(new BN(0).toString(), "current margin should be 0");
+			expect(end_loan["maxLiquidatable"]).to.be.bignumber.equal(new BN(0).toString(), "current margin should be 0");
+			expect(end_loan["maxSeizable"]).to.be.bignumber.equal(new BN(0).toString(), "current margin should be 0");
+			expect(end_loan["interestOwedPerDay"]).to.be.bignumber.equal(new BN(0).toString(), "current margin should be 0");
+			expect(end_loan["interestDepositRemaining"]).to.be.bignumber.equal(new BN(0).toString(), "current margin should be 0");
+
+			// CHECK THE CLOSE SWAP IS WORKING PROPERLY
+			const decode = decodeLogs(receipt.rawLogs, LoanClosingsEvents, "CloseWithSwap");
+			const swapEvent = decode[0].args;
+
+			const loanSwapEvent = decodeLogs(receipt.rawLogs, SwapEvents, "LoanSwap");
+			const sourceTokenAmountUsed = new BN(loanSwapEvent[0].args["sourceAmount"]);
+
+			expect(swapEvent["user"]).to.equal(borrower);
+			expect(swapEvent["lender"]).to.equal(loanToken.address); // lender is the pool in this case
+			expect(swapEvent["loanId"]).to.equal(loan_id);
+			expect(swapEvent["closer"]).to.equal(rollover_wallet); // the one who called the rollover function
+			expect(swapEvent["loanToken"]).to.equal(SUSD.address); /// Don't get confused, the loanToken is not the pool token, it's the underlying token
+			expect(swapEvent["collateralToken"]).to.equal(RBTC.address);
+			expect(swapEvent["loanCloseAmount"]).to.equal(loan_before_rolled_over["principal"]); // the principal before rolled over
+			expect(swapEvent["positionCloseSize"]).to.equal(
+				new BN(loan_before_rolled_over["collateral"]).sub(sourceTokenAmountUsed).toString()
+			); // the principal before rolled over
 		});
 
 		it("Test rollover tiny amount", async () => {

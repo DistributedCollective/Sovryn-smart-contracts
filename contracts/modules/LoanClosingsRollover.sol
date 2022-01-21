@@ -151,15 +151,14 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
 		interestAmountRequired = interestAmountRequired.add(backInterestOwed);
 
 		// collect interest (needs to be converted from the collateral)
-		(uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed, ) =
-			_doCollateralSwap(
-				loanLocal,
-				loanParamsLocal,
-				0, //min swap 0 -> swap connector estimates the amount of source tokens to use
-				interestAmountRequired, //required destination tokens
-				true, // returnTokenIsCollateral
-				loanDataBytes
-			);
+		(uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed, ) = _doCollateralSwap(
+			loanLocal,
+			loanParamsLocal,
+			0, //min swap 0 -> swap connector estimates the amount of source tokens to use
+			interestAmountRequired, //required destination tokens
+			true, // returnTokenIsCollateral
+			loanDataBytes
+		);
 
 		//received more tokens than needed to pay the interest
 		if (destTokenAmountReceived > interestAmountRequired) {
@@ -222,19 +221,31 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
 					"" /// loanDataBytes
 				);
 			} else {
-				(uint256 currentMargin, ) =
-					IPriceFeeds(priceFeeds).getCurrentMargin(
-						loanParamsLocal.loanToken,
-						loanParamsLocal.collateralToken,
-						loanLocal.principal,
-						loanLocal.collateral
-					);
+				(uint256 currentMargin, ) = IPriceFeeds(priceFeeds).getCurrentMargin(
+					loanParamsLocal.loanToken,
+					loanParamsLocal.collateralToken,
+					loanLocal.principal,
+					loanLocal.collateral
+				);
 
 				require(
 					currentMargin > 3 ether, // ensure there's more than 3% margin remaining
 					"unhealthy position"
 				);
 			}
+		}
+
+		if (loanLocal.active) {
+			emit Rollover(
+				loanLocal.borrower, // user (borrower)
+				loanLocal.lender, // lender
+				loanLocal.id, // loanId
+				loanLocal.principal, // principal
+				loanLocal.collateral, // collateral
+				loanLocal.endTimestamp, // endTimestamp
+				msg.sender, // rewardReceiver
+				rolloverReward // reward
+			);
 		}
 	}
 
