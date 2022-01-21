@@ -7,6 +7,7 @@ View Source: [contracts/interfaces/ISovryn.sol](../contracts/interfaces/ISovryn.
 **ISovryn**
 
 ## Structs
+
 ### LoanReturnData
 
 ```js
@@ -70,7 +71,7 @@ event PayInterestTransfer(address indexed interestToken, address indexed lender,
 - [isLoanPool(address loanPool)](#isloanpool)
 - [setWrbtcToken(address wrbtcTokenAddress)](#setwrbtctoken)
 - [setSovrynSwapContractRegistryAddress(address registryAddress)](#setsovrynswapcontractregistryaddress)
-- [setProtocolTokenAddress(address _protocolTokenAddress)](#setprotocoltokenaddress)
+- [setProtocolTokenAddress(address \_protocolTokenAddress)](#setprotocoltokenaddress)
 - [setRolloverBaseReward(uint256 transactionCost)](#setrolloverbasereward)
 - [setRebatePercent(uint256 rebatePercent)](#setrebatepercent)
 - [setSpecialRebates(address sourceToken, address destToken, uint256 specialRebatesPercent)](#setspecialrebates)
@@ -139,9 +140,9 @@ function replaceContract(address target) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| target | address |  | 
+| Name   | Type    | Description |
+| ------ | ------- | ----------- |
+| target | address |             |
 
 ### setTargets
 
@@ -151,10 +152,10 @@ function setTargets(string[] sigsArr, address[] targetsArr) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| sigsArr | string[] |  | 
-| targetsArr | address[] |  | 
+| Name       | Type      | Description |
+| ---------- | --------- | ----------- |
+| sigsArr    | string[]  |             |
+| targetsArr | address[] |             |
 
 ### getTarget
 
@@ -165,9 +166,9 @@ returns(address)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| sig | string |  | 
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| sig  | string |             |
 
 ### setSovrynProtocolAddress
 
@@ -177,9 +178,9 @@ function setSovrynProtocolAddress(address newProtocolAddress) external nonpayabl
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newProtocolAddress | address |  | 
+| Name               | Type    | Description |
+| ------------------ | ------- | ----------- |
+| newProtocolAddress | address |             |
 
 ### setSOVTokenAddress
 
@@ -189,9 +190,9 @@ function setSOVTokenAddress(address newSovTokenAddress) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newSovTokenAddress | address |  | 
+| Name               | Type    | Description |
+| ------------------ | ------- | ----------- |
+| newSovTokenAddress | address |             |
 
 ### setLockedSOVAddress
 
@@ -201,9 +202,9 @@ function setLockedSOVAddress(address newSOVLockedAddress) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newSOVLockedAddress | address |  | 
+| Name                | Type    | Description |
+| ------------------- | ------- | ----------- |
+| newSOVLockedAddress | address |             |
 
 ### setMinReferralsToPayoutAffiliates
 
@@ -213,9 +214,9 @@ function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external non
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newMinReferrals | uint256 |  | 
+| Name            | Type    | Description |
+| --------------- | ------- | ----------- |
+| newMinReferrals | uint256 |             |
 
 ### setPriceFeedContract
 
@@ -225,9 +226,9 @@ function setPriceFeedContract(address newContract) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newContract | address |  | 
+| Name        | Type    | Description |
+| ----------- | ------- | ----------- |
+| newContract | address |             |
 
 ### setSwapsImplContract
 
@@ -237,9 +238,9 @@ function setSwapsImplContract(address newContract) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newContract | address |  | 
+| Name        | Type    | Description |
+| ----------- | ------- | ----------- |
+| newContract | address |             |
 
 ### setLoanPool
 
@@ -249,10 +250,10 @@ function setLoanPool(address[] pools, address[] assets) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| pools | address[] |  | 
-| assets | address[] |  | 
+| Name   | Type      | Description |
+| ------ | --------- | ----------- |
+| pools  | address[] |             |
+| assets | address[] |             |
 
 ### setSupportedTokens
 
@@ -262,10 +263,10 @@ function setSupportedTokens(address[] addrs, bool[] toggles) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| addrs | address[] |  | 
-| toggles | bool[] |  | 
+| Name    | Type      | Description |
+| ------- | --------- | ----------- |
+| addrs   | address[] |             |
+| toggles | bool[]    |             |
 
 ### setLendingFeePercent
 
@@ -275,9 +276,9 @@ function setLendingFeePercent(uint256 newValue) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newValue | uint256 |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| newValue | uint256 |             |
 
 ### setTradingFeePercent
 
@@ -287,9 +288,9 @@ function setTradingFeePercent(uint256 newValue) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newValue | uint256 |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| newValue | uint256 |             |
 
 ### setBorrowingFeePercent
 
@@ -299,9 +300,9 @@ function setBorrowingFeePercent(uint256 newValue) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newValue | uint256 |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| newValue | uint256 |             |
 
 ### setSwapExternalFeePercent
 
@@ -311,9 +312,9 @@ function setSwapExternalFeePercent(uint256 newValue) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newValue | uint256 |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| newValue | uint256 |             |
 
 ### setAffiliateFeePercent
 
@@ -323,9 +324,9 @@ function setAffiliateFeePercent(uint256 newValue) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newValue | uint256 |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| newValue | uint256 |             |
 
 ### setAffiliateTradingTokenFeePercent
 
@@ -335,9 +336,9 @@ function setAffiliateTradingTokenFeePercent(uint256 newValue) external nonpayabl
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newValue | uint256 |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| newValue | uint256 |             |
 
 ### setLiquidationIncentivePercent
 
@@ -347,9 +348,9 @@ function setLiquidationIncentivePercent(uint256 newAmount) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newAmount | uint256 |  | 
+| Name      | Type    | Description |
+| --------- | ------- | ----------- |
+| newAmount | uint256 |             |
 
 ### setMaxDisagreement
 
@@ -359,9 +360,9 @@ function setMaxDisagreement(uint256 newAmount) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newAmount | uint256 |  | 
+| Name      | Type    | Description |
+| --------- | ------- | ----------- |
+| newAmount | uint256 |             |
 
 ### setSourceBuffer
 
@@ -371,9 +372,9 @@ function setSourceBuffer(uint256 newAmount) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newAmount | uint256 |  | 
+| Name      | Type    | Description |
+| --------- | ------- | ----------- |
+| newAmount | uint256 |             |
 
 ### setMaxSwapSize
 
@@ -383,9 +384,9 @@ function setMaxSwapSize(uint256 newAmount) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newAmount | uint256 |  | 
+| Name      | Type    | Description |
+| --------- | ------- | ----------- |
+| newAmount | uint256 |             |
 
 ### setFeesController
 
@@ -395,9 +396,9 @@ function setFeesController(address newController) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newController | address |  | 
+| Name          | Type    | Description |
+| ------------- | ------- | ----------- |
+| newController | address |             |
 
 ### withdrawLendingFees
 
@@ -408,11 +409,11 @@ returns(bool)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| token | address |  | 
-| receiver | address |  | 
-| amount | uint256 |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| token    | address |             |
+| receiver | address |             |
+| amount   | uint256 |             |
 
 ### withdrawTradingFees
 
@@ -423,11 +424,11 @@ returns(bool)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| token | address |  | 
-| receiver | address |  | 
-| amount | uint256 |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| token    | address |             |
+| receiver | address |             |
+| amount   | uint256 |             |
 
 ### withdrawBorrowingFees
 
@@ -438,11 +439,11 @@ returns(bool)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| token | address |  | 
-| receiver | address |  | 
-| amount | uint256 |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| token    | address |             |
+| receiver | address |             |
+| amount   | uint256 |             |
 
 ### withdrawProtocolToken
 
@@ -453,10 +454,10 @@ returns(address, bool)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| receiver | address |  | 
-| amount | uint256 |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| receiver | address |             |
+| amount   | uint256 |             |
 
 ### depositProtocolToken
 
@@ -466,9 +467,9 @@ function depositProtocolToken(uint256 amount) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| amount | uint256 |  | 
+| Name   | Type    | Description |
+| ------ | ------- | ----------- |
+| amount | uint256 |             |
 
 ### getLoanPoolsList
 
@@ -478,10 +479,10 @@ function getLoanPoolsList(uint256 start, uint256 count) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| start | uint256 |  | 
-| count | uint256 |  | 
+| Name  | Type    | Description |
+| ----- | ------- | ----------- |
+| start | uint256 |             |
+| count | uint256 |             |
 
 ### isLoanPool
 
@@ -492,9 +493,9 @@ returns(bool)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanPool | address |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| loanPool | address |             |
 
 ### setWrbtcToken
 
@@ -504,9 +505,9 @@ function setWrbtcToken(address wrbtcTokenAddress) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| wrbtcTokenAddress | address |  | 
+| Name              | Type    | Description |
+| ----------------- | ------- | ----------- |
+| wrbtcTokenAddress | address |             |
 
 ### setSovrynSwapContractRegistryAddress
 
@@ -516,9 +517,9 @@ function setSovrynSwapContractRegistryAddress(address registryAddress) external 
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| registryAddress | address |  | 
+| Name            | Type    | Description |
+| --------------- | ------- | ----------- |
+| registryAddress | address |             |
 
 ### setProtocolTokenAddress
 
@@ -528,9 +529,9 @@ function setProtocolTokenAddress(address _protocolTokenAddress) external nonpaya
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _protocolTokenAddress | address |  | 
+| Name                   | Type    | Description |
+| ---------------------- | ------- | ----------- |
+| \_protocolTokenAddress | address |             |
 
 ### setRolloverBaseReward
 
@@ -540,9 +541,9 @@ function setRolloverBaseReward(uint256 transactionCost) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| transactionCost | uint256 |  | 
+| Name            | Type    | Description |
+| --------------- | ------- | ----------- |
+| transactionCost | uint256 |             |
 
 ### setRebatePercent
 
@@ -552,9 +553,9 @@ function setRebatePercent(uint256 rebatePercent) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| rebatePercent | uint256 |  | 
+| Name          | Type    | Description |
+| ------------- | ------- | ----------- |
+| rebatePercent | uint256 |             |
 
 ### setSpecialRebates
 
@@ -564,11 +565,11 @@ function setSpecialRebates(address sourceToken, address destToken, uint256 speci
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| sourceToken | address |  | 
-| destToken | address |  | 
-| specialRebatesPercent | uint256 |  | 
+| Name                  | Type    | Description |
+| --------------------- | ------- | ----------- |
+| sourceToken           | address |             |
+| destToken             | address |             |
+| specialRebatesPercent | uint256 |             |
 
 ### getSpecialRebates
 
@@ -579,10 +580,10 @@ returns(specialRebatesPercent uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| sourceToken | address |  | 
-| destToken | address |  | 
+| Name        | Type    | Description |
+| ----------- | ------- | ----------- |
+| sourceToken | address |             |
+| destToken   | address |             |
 
 ### togglePaused
 
@@ -592,9 +593,9 @@ function togglePaused(bool paused) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| paused | bool |  | 
+| Name   | Type | Description |
+| ------ | ---- | ----------- |
+| paused | bool |             |
 
 ### isProtocolPaused
 
@@ -605,8 +606,8 @@ returns(bool)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### setupLoanParams
 
@@ -617,9 +618,9 @@ returns(loanParamsIdList bytes32[])
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanParamsList | struct LoanParamsStruct.LoanParams[] |  | 
+| Name           | Type                                 | Description |
+| -------------- | ------------------------------------ | ----------- |
+| loanParamsList | struct LoanParamsStruct.LoanParams[] |             |
 
 ### disableLoanParams
 
@@ -629,9 +630,9 @@ function disableLoanParams(bytes32[] loanParamsIdList) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanParamsIdList | bytes32[] |  | 
+| Name             | Type      | Description |
+| ---------------- | --------- | ----------- |
+| loanParamsIdList | bytes32[] |             |
 
 ### getLoanParams
 
@@ -642,9 +643,9 @@ returns(loanParamsList struct LoanParamsStruct.LoanParams[])
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanParamsIdList | bytes32[] |  | 
+| Name             | Type      | Description |
+| ---------------- | --------- | ----------- |
+| loanParamsIdList | bytes32[] |             |
 
 ### getLoanParamsList
 
@@ -655,11 +656,11 @@ returns(loanParamsList bytes32[])
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| owner | address |  | 
-| start | uint256 |  | 
-| count | uint256 |  | 
+| Name  | Type    | Description |
+| ----- | ------- | ----------- |
+| owner | address |             |
+| start | uint256 |             |
+| count | uint256 |             |
 
 ### getTotalPrincipal
 
@@ -670,10 +671,10 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| lender | address |  | 
-| loanToken | address |  | 
+| Name      | Type    | Description |
+| --------- | ------- | ----------- |
+| lender    | address |             |
+| loanToken | address |             |
 
 ### minInitialMargin
 
@@ -684,9 +685,9 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanParamsId | bytes32 |  | 
+| Name         | Type    | Description |
+| ------------ | ------- | ----------- |
+| loanParamsId | bytes32 |             |
 
 ### borrowOrTradeFromPool
 
@@ -697,15 +698,15 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanParamsId | bytes32 |  | 
-| loanId | bytes32 |  | 
-| isTorqueLoan | bool |  | 
-| initialMargin | uint256 |  | 
-| sentAddresses | address[4] |  | 
-| sentValues | uint256[5] |  | 
-| loanDataBytes | bytes |  | 
+| Name          | Type       | Description |
+| ------------- | ---------- | ----------- |
+| loanParamsId  | bytes32    |             |
+| loanId        | bytes32    |             |
+| isTorqueLoan  | bool       |             |
+| initialMargin | uint256    |             |
+| sentAddresses | address[4] |             |
+| sentValues    | uint256[5] |             |
+| loanDataBytes | bytes      |             |
 
 ### setDelegatedManager
 
@@ -715,11 +716,11 @@ function setDelegatedManager(bytes32 loanId, address delegated, bool toggle) ext
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanId | bytes32 |  | 
-| delegated | address |  | 
-| toggle | bool |  | 
+| Name      | Type    | Description |
+| --------- | ------- | ----------- |
+| loanId    | bytes32 |             |
+| delegated | address |             |
+| toggle    | bool    |             |
 
 ### getEstimatedMarginExposure
 
@@ -730,14 +731,14 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanToken | address |  | 
-| collateralToken | address |  | 
-| loanTokenSent | uint256 |  | 
-| collateralTokenSent | uint256 |  | 
-| interestRate | uint256 |  | 
-| newPrincipal | uint256 |  | 
+| Name                | Type    | Description |
+| ------------------- | ------- | ----------- |
+| loanToken           | address |             |
+| collateralToken     | address |             |
+| loanTokenSent       | uint256 |             |
+| collateralTokenSent | uint256 |             |
+| interestRate        | uint256 |             |
+| newPrincipal        | uint256 |             |
 
 ### getRequiredCollateral
 
@@ -748,13 +749,13 @@ returns(collateralAmountRequired uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanToken | address |  | 
-| collateralToken | address |  | 
-| newPrincipal | uint256 |  | 
-| marginAmount | uint256 |  | 
-| isTorqueLoan | bool |  | 
+| Name            | Type    | Description |
+| --------------- | ------- | ----------- |
+| loanToken       | address |             |
+| collateralToken | address |             |
+| newPrincipal    | uint256 |             |
+| marginAmount    | uint256 |             |
+| isTorqueLoan    | bool    |             |
 
 ### getBorrowAmount
 
@@ -765,13 +766,13 @@ returns(borrowAmount uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanToken | address |  | 
-| collateralToken | address |  | 
-| collateralTokenAmount | uint256 |  | 
-| marginAmount | uint256 |  | 
-| isTorqueLoan | bool |  | 
+| Name                  | Type    | Description |
+| --------------------- | ------- | ----------- |
+| loanToken             | address |             |
+| collateralToken       | address |             |
+| collateralTokenAmount | uint256 |             |
+| marginAmount          | uint256 |             |
+| isTorqueLoan          | bool    |             |
 
 ### liquidate
 
@@ -782,11 +783,11 @@ returns(loanCloseAmount uint256, seizedAmount uint256, seizedToken address)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanId | bytes32 |  | 
-| receiver | address |  | 
-| closeAmount | uint256 |  | 
+| Name        | Type    | Description |
+| ----------- | ------- | ----------- |
+| loanId      | bytes32 |             |
+| receiver    | address |             |
+| closeAmount | uint256 |             |
 
 ### rollover
 
@@ -796,10 +797,10 @@ function rollover(bytes32 loanId, bytes loanDataBytes) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanId | bytes32 |  | 
-| loanDataBytes | bytes |  | 
+| Name          | Type    | Description |
+| ------------- | ------- | ----------- |
+| loanId        | bytes32 |             |
+| loanDataBytes | bytes   |             |
 
 ### closeWithDeposit
 
@@ -810,11 +811,11 @@ returns(loanCloseAmount uint256, withdrawAmount uint256, withdrawToken address)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanId | bytes32 |  | 
-| receiver | address |  | 
-| depositAmount | uint256 |  | 
+| Name          | Type    | Description |
+| ------------- | ------- | ----------- |
+| loanId        | bytes32 |             |
+| receiver      | address |             |
+| depositAmount | uint256 |             |
 
 ### closeWithSwap
 
@@ -825,13 +826,13 @@ returns(loanCloseAmount uint256, withdrawAmount uint256, withdrawToken address)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanId | bytes32 |  | 
-| receiver | address |  | 
-| swapAmount | uint256 |  | 
-| returnTokenIsCollateral | bool |  | 
-| loanDataBytes | bytes |  | 
+| Name                    | Type    | Description |
+| ----------------------- | ------- | ----------- |
+| loanId                  | bytes32 |             |
+| receiver                | address |             |
+| swapAmount              | uint256 |             |
+| returnTokenIsCollateral | bool    |             |
+| loanDataBytes           | bytes   |             |
 
 ### depositCollateral
 
@@ -841,10 +842,10 @@ function depositCollateral(bytes32 loanId, uint256 depositAmount) external payab
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanId | bytes32 |  | 
-| depositAmount | uint256 |  | 
+| Name          | Type    | Description |
+| ------------- | ------- | ----------- |
+| loanId        | bytes32 |             |
+| depositAmount | uint256 |             |
 
 ### withdrawCollateral
 
@@ -855,11 +856,11 @@ returns(actualWithdrawAmount uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanId | bytes32 |  | 
-| receiver | address |  | 
-| withdrawAmount | uint256 |  | 
+| Name           | Type    | Description |
+| -------------- | ------- | ----------- |
+| loanId         | bytes32 |             |
+| receiver       | address |             |
+| withdrawAmount | uint256 |             |
 
 ### extendLoanByInterest
 
@@ -870,13 +871,13 @@ returns(secondsExtended uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanId | bytes32 |  | 
-| payer | address |  | 
-| depositAmount | uint256 |  | 
-| useCollateral | bool |  | 
-| loanDataBytes | bytes |  | 
+| Name          | Type    | Description |
+| ------------- | ------- | ----------- |
+| loanId        | bytes32 |             |
+| payer         | address |             |
+| depositAmount | uint256 |             |
+| useCollateral | bool    |             |
+| loanDataBytes | bytes   |             |
 
 ### reduceLoanByInterest
 
@@ -887,11 +888,11 @@ returns(secondsReduced uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanId | bytes32 |  | 
-| receiver | address |  | 
-| withdrawAmount | uint256 |  | 
+| Name           | Type    | Description |
+| -------------- | ------- | ----------- |
+| loanId         | bytes32 |             |
+| receiver       | address |             |
+| withdrawAmount | uint256 |             |
 
 ### withdrawAccruedInterest
 
@@ -901,9 +902,9 @@ function withdrawAccruedInterest(address loanToken) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanToken | address |  | 
+| Name      | Type    | Description |
+| --------- | ------- | ----------- |
+| loanToken | address |             |
 
 ### getLenderInterestData
 
@@ -914,10 +915,10 @@ returns(interestPaid uint256, interestPaidDate uint256, interestOwedPerDay uint2
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| lender | address |  | 
-| loanToken | address |  | 
+| Name      | Type    | Description |
+| --------- | ------- | ----------- |
+| lender    | address |             |
+| loanToken | address |             |
 
 ### getLoanInterestData
 
@@ -928,9 +929,9 @@ returns(loanToken address, interestOwedPerDay uint256, interestDepositTotal uint
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanId | bytes32 |  | 
+| Name   | Type    | Description |
+| ------ | ------- | ----------- |
+| loanId | bytes32 |             |
 
 ### getUserLoans
 
@@ -941,14 +942,14 @@ returns(loansData struct ISovryn.LoanReturnData[])
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| user | address |  | 
-| start | uint256 |  | 
-| count | uint256 |  | 
-| loanType | uint256 |  | 
-| isLender | bool |  | 
-| unsafeOnly | bool |  | 
+| Name       | Type    | Description |
+| ---------- | ------- | ----------- |
+| user       | address |             |
+| start      | uint256 |             |
+| count      | uint256 |             |
+| loanType   | uint256 |             |
+| isLender   | bool    |             |
+| unsafeOnly | bool    |             |
 
 ### getLoan
 
@@ -959,9 +960,9 @@ returns(loanData struct ISovryn.LoanReturnData)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanId | bytes32 |  | 
+| Name   | Type    | Description |
+| ------ | ------- | ----------- |
+| loanId | bytes32 |             |
 
 ### getActiveLoans
 
@@ -972,11 +973,11 @@ returns(loansData struct ISovryn.LoanReturnData[])
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| start | uint256 |  | 
-| count | uint256 |  | 
-| unsafeOnly | bool |  | 
+| Name       | Type    | Description |
+| ---------- | ------- | ----------- |
+| start      | uint256 |             |
+| count      | uint256 |             |
+| unsafeOnly | bool    |             |
 
 ### setLegacyOracles
 
@@ -986,10 +987,10 @@ function setLegacyOracles(address[] refs, address[] oracles) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| refs | address[] |  | 
-| oracles | address[] |  | 
+| Name    | Type      | Description |
+| ------- | --------- | ----------- |
+| refs    | address[] |             |
+| oracles | address[] |             |
 
 ### getLegacyOracle
 
@@ -1000,9 +1001,9 @@ returns(address)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| ref | address |  | 
+| Name | Type    | Description |
+| ---- | ------- | ----------- |
+| ref  | address |             |
 
 ### swapExternal
 
@@ -1013,16 +1014,16 @@ returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| sourceToken | address |  | 
-| destToken | address |  | 
-| receiver | address |  | 
-| returnToSender | address |  | 
-| sourceTokenAmount | uint256 |  | 
-| requiredDestTokenAmount | uint256 |  | 
-| minReturn | uint256 |  | 
-| swapData | bytes |  | 
+| Name                    | Type    | Description |
+| ----------------------- | ------- | ----------- |
+| sourceToken             | address |             |
+| destToken               | address |             |
+| receiver                | address |             |
+| returnToSender          | address |             |
+| sourceTokenAmount       | uint256 |             |
+| requiredDestTokenAmount | uint256 |             |
+| minReturn               | uint256 |             |
+| swapData                | bytes   |             |
 
 ### getSwapExpectedReturn
 
@@ -1033,11 +1034,11 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| sourceToken | address |  | 
-| destToken | address |  | 
-| sourceTokenAmount | uint256 |  | 
+| Name              | Type    | Description |
+| ----------------- | ------- | ----------- |
+| sourceToken       | address |             |
+| destToken         | address |             |
+| sourceTokenAmount | uint256 |             |
 
 ### checkPriceDivergence
 
@@ -1047,12 +1048,12 @@ function checkPriceDivergence(address sourceToken, address destToken, uint256 so
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| sourceToken | address |  | 
-| destToken | address |  | 
-| sourceTokenAmount | uint256 |  | 
-| minReturn | uint256 |  | 
+| Name              | Type    | Description |
+| ----------------- | ------- | ----------- |
+| sourceToken       | address |             |
+| destToken         | address |             |
+| sourceTokenAmount | uint256 |             |
+| minReturn         | uint256 |             |
 
 ### getUserNotFirstTradeFlag
 
@@ -1063,9 +1064,9 @@ returns(bool)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| user | address |  | 
+| Name | Type    | Description |
+| ---- | ------- | ----------- |
+| user | address |             |
 
 ### setUserNotFirstTradeFlag
 
@@ -1076,9 +1077,9 @@ returns(bool)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| user | address |  | 
+| Name | Type    | Description |
+| ---- | ------- | ----------- |
+| user | address |             |
 
 ### payTradingFeeToAffiliatesReferrer
 
@@ -1089,12 +1090,12 @@ returns(affiliatesBonusSOVAmount uint256, affiliatesBonusTokenAmount uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| referrer | address |  | 
-| trader | address |  | 
-| token | address |  | 
-| tradingFeeTokenBaseAmount | uint256 |  | 
+| Name                      | Type    | Description |
+| ------------------------- | ------- | ----------- |
+| referrer                  | address |             |
+| trader                    | address |             |
+| token                     | address |             |
+| tradingFeeTokenBaseAmount | uint256 |             |
 
 ### setAffiliatesReferrer
 
@@ -1104,10 +1105,10 @@ function setAffiliatesReferrer(address user, address referrer) external nonpayab
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| user | address |  | 
-| referrer | address |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| user     | address |             |
+| referrer | address |             |
 
 ### getReferralsList
 
@@ -1118,9 +1119,9 @@ returns(refList address[])
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| referrer | address |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| referrer | address |             |
 
 ### getAffiliatesReferrerBalances
 
@@ -1131,9 +1132,9 @@ returns(referrerTokensList address[], referrerTokensBalances uint256[])
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| referrer | address |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| referrer | address |             |
 
 ### getAffiliatesReferrerTokensList
 
@@ -1144,9 +1145,9 @@ returns(tokensList address[])
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| referrer | address |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| referrer | address |             |
 
 ### getAffiliatesReferrerTokenBalance
 
@@ -1157,10 +1158,10 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| referrer | address |  | 
-| token | address |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| referrer | address |             |
+| token    | address |             |
 
 ### withdrawAffiliatesReferrerTokenFees
 
@@ -1171,11 +1172,11 @@ returns(withdrawAmount uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| token | address |  | 
-| receiver | address |  | 
-| amount | uint256 |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| token    | address |             |
+| receiver | address |             |
+| amount   | uint256 |             |
 
 ### withdrawAllAffiliatesReferrerTokenFees
 
@@ -1185,9 +1186,9 @@ function withdrawAllAffiliatesReferrerTokenFees(address receiver) external nonpa
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| receiver | address |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| receiver | address |             |
 
 ### getProtocolAddress
 
@@ -1198,8 +1199,8 @@ returns(address)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### getSovTokenAddress
 
@@ -1210,8 +1211,8 @@ returns(address)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### getLockedSOVAddress
 
@@ -1222,8 +1223,8 @@ returns(address)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### getFeeRebatePercent
 
@@ -1234,8 +1235,8 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### getMinReferralsToPayout
 
@@ -1246,8 +1247,8 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### getAffiliatesUserReferrer
 
@@ -1258,9 +1259,9 @@ returns(referrer address)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| user | address |  | 
+| Name | Type    | Description |
+| ---- | ------- | ----------- |
+| user | address |             |
 
 ### getAffiliateRewardsHeld
 
@@ -1271,9 +1272,9 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| referrer | address |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| referrer | address |             |
 
 ### getAffiliateTradingTokenFeePercent
 
@@ -1284,8 +1285,8 @@ returns(affiliateTradingTokenFeePercent uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### getAffiliatesTokenRewardsValueInRbtc
 
@@ -1296,9 +1297,9 @@ returns(rbtcTotalAmount uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| referrer | address |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| referrer | address |             |
 
 ### getSwapExternalFeePercent
 
@@ -1309,8 +1310,8 @@ returns(swapExternalFeePercent uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### setTradingRebateRewardsBasisPoint
 
@@ -1320,9 +1321,9 @@ function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external nonpa
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| newBasisPoint | uint256 |  | 
+| Name          | Type    | Description |
+| ------------- | ------- | ----------- |
+| newBasisPoint | uint256 |             |
 
 ### getTradingRebateRewardsBasisPoint
 
@@ -1333,8 +1334,8 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### getDedicatedSOVRebate
 
@@ -1345,213 +1346,213 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ## Contracts
 
-* [Address](Address.md)
-* [Administered](Administered.md)
-* [AdminRole](AdminRole.md)
-* [AdvancedToken](AdvancedToken.md)
-* [AdvancedTokenStorage](AdvancedTokenStorage.md)
-* [Affiliates](Affiliates.md)
-* [AffiliatesEvents](AffiliatesEvents.md)
-* [ApprovalReceiver](ApprovalReceiver.md)
-* [BlockMockUp](BlockMockUp.md)
-* [BProPriceFeed](BProPriceFeed.md)
-* [BProPriceFeedMockup](BProPriceFeedMockup.md)
-* [Checkpoints](Checkpoints.md)
-* [Context](Context.md)
-* [DevelopmentFund](DevelopmentFund.md)
-* [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
-* [EnumerableAddressSet](EnumerableAddressSet.md)
-* [EnumerableBytes32Set](EnumerableBytes32Set.md)
-* [EnumerableBytes4Set](EnumerableBytes4Set.md)
-* [ERC20](ERC20.md)
-* [ERC20Detailed](ERC20Detailed.md)
-* [ErrorDecoder](ErrorDecoder.md)
-* [Escrow](Escrow.md)
-* [EscrowReward](EscrowReward.md)
-* [FeedsLike](FeedsLike.md)
-* [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyMockup](FeeSharingProxyMockup.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
-* [FeesHelper](FeesHelper.md)
-* [FlashLoanerTest](FlashLoanerTest.md)
-* [GenericTokenSender](GenericTokenSender.md)
-* [GovernorAlpha](GovernorAlpha.md)
-* [GovernorAlphaMockup](GovernorAlphaMockup.md)
-* [GovernorVault](GovernorVault.md)
-* [IApproveAndCall](IApproveAndCall.md)
-* [IChai](IChai.md)
-* [IContractRegistry](IContractRegistry.md)
-* [IConverterAMM](IConverterAMM.md)
-* [IERC20_](IERC20_.md)
-* [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
-* [ILiquidityMining](ILiquidityMining.md)
-* [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
-* [ILoanPool](ILoanPool.md)
-* [ILoanToken](ILoanToken.md)
-* [ILoanTokenLogicBeacon](ILoanTokenLogicBeacon.md)
-* [ILoanTokenLogicModules](ILoanTokenLogicModules.md)
-* [ILoanTokenLogicProxy](ILoanTokenLogicProxy.md)
-* [ILoanTokenModules](ILoanTokenModules.md)
-* [ILoanTokenModulesMock](ILoanTokenModulesMock.md)
-* [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
-* [ILockedSOV](ILockedSOV.md)
-* [IMoCState](IMoCState.md)
-* [ImplementationMockup](ImplementationMockup.md)
-* [Initializable](Initializable.md)
-* [InterestUser](InterestUser.md)
-* [IPot](IPot.md)
-* [IPriceFeeds](IPriceFeeds.md)
-* [IPriceFeedsExt](IPriceFeedsExt.md)
-* [IProtocol](IProtocol.md)
-* [IRSKOracle](IRSKOracle.md)
-* [ISovryn](ISovryn.md)
-* [ISovrynSwapNetwork](ISovrynSwapNetwork.md)
-* [IStaking](IStaking.md)
-* [ISwapsImpl](ISwapsImpl.md)
-* [ITeamVesting](ITeamVesting.md)
-* [ITimelock](ITimelock.md)
-* [ITokenFlashLoanTest](ITokenFlashLoanTest.md)
-* [IV1PoolOracle](IV1PoolOracle.md)
-* [IVesting](IVesting.md)
-* [IVestingFactory](IVestingFactory.md)
-* [IVestingRegistry](IVestingRegistry.md)
-* [IWrbtc](IWrbtc.md)
-* [IWrbtcERC20](IWrbtcERC20.md)
-* [LenderInterestStruct](LenderInterestStruct.md)
-* [LiquidationHelper](LiquidationHelper.md)
-* [LiquidityMining](LiquidityMining.md)
-* [LiquidityMiningConfigToken](LiquidityMiningConfigToken.md)
-* [LiquidityMiningMockup](LiquidityMiningMockup.md)
-* [LiquidityMiningProxy](LiquidityMiningProxy.md)
-* [LiquidityMiningStorage](LiquidityMiningStorage.md)
-* [LiquidityPoolV1ConverterMockup](LiquidityPoolV1ConverterMockup.md)
-* [LoanClosingsEvents](LoanClosingsEvents.md)
-* [LoanClosingsLiquidation](LoanClosingsLiquidation.md)
-* [LoanClosingsRollover](LoanClosingsRollover.md)
-* [LoanClosingsShared](LoanClosingsShared.md)
-* [LoanClosingsWith](LoanClosingsWith.md)
-* [LoanInterestStruct](LoanInterestStruct.md)
-* [LoanMaintenance](LoanMaintenance.md)
-* [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
-* [LoanOpenings](LoanOpenings.md)
-* [LoanOpeningsEvents](LoanOpeningsEvents.md)
-* [LoanParamsStruct](LoanParamsStruct.md)
-* [LoanSettings](LoanSettings.md)
-* [LoanSettingsEvents](LoanSettingsEvents.md)
-* [LoanStruct](LoanStruct.md)
-* [LoanToken](LoanToken.md)
-* [LoanTokenBase](LoanTokenBase.md)
-* [LoanTokenLogicBeacon](LoanTokenLogicBeacon.md)
-* [LoanTokenLogicLM](LoanTokenLogicLM.md)
-* [LoanTokenLogicLMMockup](LoanTokenLogicLMMockup.md)
-* [LoanTokenLogicLMV1Mockup](LoanTokenLogicLMV1Mockup.md)
-* [LoanTokenLogicLMV2Mockup](LoanTokenLogicLMV2Mockup.md)
-* [LoanTokenLogicProxy](LoanTokenLogicProxy.md)
-* [LoanTokenLogicStandard](LoanTokenLogicStandard.md)
-* [LoanTokenLogicStorage](LoanTokenLogicStorage.md)
-* [LoanTokenLogicTest](LoanTokenLogicTest.md)
-* [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
-* [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
-* [LockedSOV](LockedSOV.md)
-* [LockedSOVFailedMockup](LockedSOVFailedMockup.md)
-* [LockedSOVMockup](LockedSOVMockup.md)
-* [Medianizer](Medianizer.md)
-* [MockAffiliates](MockAffiliates.md)
-* [MockLoanTokenLogic](MockLoanTokenLogic.md)
-* [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
-* [ModulesCommonEvents](ModulesCommonEvents.md)
-* [MultiSigKeyHolders](MultiSigKeyHolders.md)
-* [MultiSigWallet](MultiSigWallet.md)
-* [Objects](Objects.md)
-* [OrderStruct](OrderStruct.md)
-* [OrigingVestingCreator](OrigingVestingCreator.md)
-* [OriginInvestorsClaim](OriginInvestorsClaim.md)
-* [Ownable](Ownable.md)
-* [Pausable](Pausable.md)
-* [PausableOz](PausableOz.md)
-* [PreviousLoanToken](PreviousLoanToken.md)
-* [PreviousLoanTokenSettingsLowerAdmin](PreviousLoanTokenSettingsLowerAdmin.md)
-* [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
-* [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
-* [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
-* [PriceFeedsMoC](PriceFeedsMoC.md)
-* [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
-* [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)
-* [ProtocolAffiliatesInterface](ProtocolAffiliatesInterface.md)
-* [ProtocolLike](ProtocolLike.md)
-* [ProtocolSettings](ProtocolSettings.md)
-* [ProtocolSettingsEvents](ProtocolSettingsEvents.md)
-* [ProtocolSettingsLike](ProtocolSettingsLike.md)
-* [ProtocolSettingsMockup](ProtocolSettingsMockup.md)
-* [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
-* [ProtocolTokenUser](ProtocolTokenUser.md)
-* [Proxy](Proxy.md)
-* [ProxyMockup](ProxyMockup.md)
-* [RBTCWrapperProxyMockup](RBTCWrapperProxyMockup.md)
-* [ReentrancyGuard](ReentrancyGuard.md)
-* [RewardHelper](RewardHelper.md)
-* [RSKAddrValidator](RSKAddrValidator.md)
-* [SafeERC20](SafeERC20.md)
-* [SafeMath](SafeMath.md)
-* [SafeMath96](SafeMath96.md)
-* [setGet](setGet.md)
-* [SignedSafeMath](SignedSafeMath.md)
-* [SOV](SOV.md)
-* [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
-* [StakingInterface](StakingInterface.md)
-* [StakingMock](StakingMock.md)
-* [StakingMockup](StakingMockup.md)
-* [StakingProxy](StakingProxy.md)
-* [StakingRewards](StakingRewards.md)
-* [StakingRewardsMockUp](StakingRewardsMockUp.md)
-* [StakingRewardsProxy](StakingRewardsProxy.md)
-* [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
-* [State](State.md)
-* [StorageMockup](StorageMockup.md)
-* [SVR](SVR.md)
-* [SwapsEvents](SwapsEvents.md)
-* [SwapsExternal](SwapsExternal.md)
-* [SwapsImplLocal](SwapsImplLocal.md)
-* [SwapsImplSovrynSwap](SwapsImplSovrynSwap.md)
-* [SwapsUser](SwapsUser.md)
-* [TeamVesting](TeamVesting.md)
-* [TestCoverage](TestCoverage.md)
-* [TestLibraries](TestLibraries.md)
-* [TestSovrynSwap](TestSovrynSwap.md)
-* [TestToken](TestToken.md)
-* [TestWrbtc](TestWrbtc.md)
-* [Timelock](Timelock.md)
-* [TimelockHarness](TimelockHarness.md)
-* [TimelockInterface](TimelockInterface.md)
-* [TimelockTest](TimelockTest.md)
-* [TokenSender](TokenSender.md)
-* [UpgradableProxy](UpgradableProxy.md)
-* [USDTPriceFeed](USDTPriceFeed.md)
-* [VaultController](VaultController.md)
-* [Vesting](Vesting.md)
-* [VestingCreator](VestingCreator.md)
-* [VestingFactory](VestingFactory.md)
-* [VestingLogic](VestingLogic.md)
-* [VestingLogicMockup](VestingLogicMockup.md)
-* [VestingRegistry](VestingRegistry.md)
-* [VestingRegistry2](VestingRegistry2.md)
-* [VestingRegistry3](VestingRegistry3.md)
-* [VestingRegistryLogic](VestingRegistryLogic.md)
-* [VestingRegistryLogicMockup](VestingRegistryLogicMockup.md)
-* [VestingRegistryProxy](VestingRegistryProxy.md)
-* [VestingRegistryStorage](VestingRegistryStorage.md)
-* [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
-* [WRBTC](WRBTC.md)
+- [Address](Address.md)
+- [Administered](Administered.md)
+- [AdminRole](AdminRole.md)
+- [AdvancedToken](AdvancedToken.md)
+- [AdvancedTokenStorage](AdvancedTokenStorage.md)
+- [Affiliates](Affiliates.md)
+- [AffiliatesEvents](AffiliatesEvents.md)
+- [ApprovalReceiver](ApprovalReceiver.md)
+- [BlockMockUp](BlockMockUp.md)
+- [BProPriceFeed](BProPriceFeed.md)
+- [BProPriceFeedMockup](BProPriceFeedMockup.md)
+- [Checkpoints](Checkpoints.md)
+- [Context](Context.md)
+- [DevelopmentFund](DevelopmentFund.md)
+- [DummyContract](DummyContract.md)
+- [ECDSA](ECDSA.md)
+- [EnumerableAddressSet](EnumerableAddressSet.md)
+- [EnumerableBytes32Set](EnumerableBytes32Set.md)
+- [EnumerableBytes4Set](EnumerableBytes4Set.md)
+- [ERC20](ERC20.md)
+- [ERC20Detailed](ERC20Detailed.md)
+- [ErrorDecoder](ErrorDecoder.md)
+- [Escrow](Escrow.md)
+- [EscrowReward](EscrowReward.md)
+- [FeedsLike](FeedsLike.md)
+- [FeesEvents](FeesEvents.md)
+- [FeeSharingLogic](FeeSharingLogic.md)
+- [FeeSharingProxy](FeeSharingProxy.md)
+- [FeeSharingProxyMockup](FeeSharingProxyMockup.md)
+- [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+- [FeesHelper](FeesHelper.md)
+- [FlashLoanerTest](FlashLoanerTest.md)
+- [GenericTokenSender](GenericTokenSender.md)
+- [GovernorAlpha](GovernorAlpha.md)
+- [GovernorAlphaMockup](GovernorAlphaMockup.md)
+- [GovernorVault](GovernorVault.md)
+- [IApproveAndCall](IApproveAndCall.md)
+- [IChai](IChai.md)
+- [IContractRegistry](IContractRegistry.md)
+- [IConverterAMM](IConverterAMM.md)
+- [IERC20\_](IERC20_.md)
+- [IERC20](IERC20.md)
+- [IFeeSharingProxy](IFeeSharingProxy.md)
+- [ILiquidityMining](ILiquidityMining.md)
+- [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
+- [ILoanPool](ILoanPool.md)
+- [ILoanToken](ILoanToken.md)
+- [ILoanTokenLogicBeacon](ILoanTokenLogicBeacon.md)
+- [ILoanTokenLogicModules](ILoanTokenLogicModules.md)
+- [ILoanTokenLogicProxy](ILoanTokenLogicProxy.md)
+- [ILoanTokenModules](ILoanTokenModules.md)
+- [ILoanTokenModulesMock](ILoanTokenModulesMock.md)
+- [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
+- [ILockedSOV](ILockedSOV.md)
+- [IMoCState](IMoCState.md)
+- [ImplementationMockup](ImplementationMockup.md)
+- [Initializable](Initializable.md)
+- [InterestUser](InterestUser.md)
+- [IPot](IPot.md)
+- [IPriceFeeds](IPriceFeeds.md)
+- [IPriceFeedsExt](IPriceFeedsExt.md)
+- [IProtocol](IProtocol.md)
+- [IRSKOracle](IRSKOracle.md)
+- [ISovryn](ISovryn.md)
+- [ISovrynSwapNetwork](ISovrynSwapNetwork.md)
+- [IStaking](IStaking.md)
+- [ISwapsImpl](ISwapsImpl.md)
+- [ITeamVesting](ITeamVesting.md)
+- [ITimelock](ITimelock.md)
+- [ITokenFlashLoanTest](ITokenFlashLoanTest.md)
+- [IV1PoolOracle](IV1PoolOracle.md)
+- [IVesting](IVesting.md)
+- [IVestingFactory](IVestingFactory.md)
+- [IVestingRegistry](IVestingRegistry.md)
+- [IWrbtc](IWrbtc.md)
+- [IWrbtcERC20](IWrbtcERC20.md)
+- [LenderInterestStruct](LenderInterestStruct.md)
+- [LiquidationHelper](LiquidationHelper.md)
+- [LiquidityMining](LiquidityMining.md)
+- [LiquidityMiningConfigToken](LiquidityMiningConfigToken.md)
+- [LiquidityMiningMockup](LiquidityMiningMockup.md)
+- [LiquidityMiningProxy](LiquidityMiningProxy.md)
+- [LiquidityMiningStorage](LiquidityMiningStorage.md)
+- [LiquidityPoolV1ConverterMockup](LiquidityPoolV1ConverterMockup.md)
+- [LoanClosingsEvents](LoanClosingsEvents.md)
+- [LoanClosingsLiquidation](LoanClosingsLiquidation.md)
+- [LoanClosingsRollover](LoanClosingsRollover.md)
+- [LoanClosingsShared](LoanClosingsShared.md)
+- [LoanClosingsWith](LoanClosingsWith.md)
+- [LoanInterestStruct](LoanInterestStruct.md)
+- [LoanMaintenance](LoanMaintenance.md)
+- [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
+- [LoanOpenings](LoanOpenings.md)
+- [LoanOpeningsEvents](LoanOpeningsEvents.md)
+- [LoanParamsStruct](LoanParamsStruct.md)
+- [LoanSettings](LoanSettings.md)
+- [LoanSettingsEvents](LoanSettingsEvents.md)
+- [LoanStruct](LoanStruct.md)
+- [LoanToken](LoanToken.md)
+- [LoanTokenBase](LoanTokenBase.md)
+- [LoanTokenLogicBeacon](LoanTokenLogicBeacon.md)
+- [LoanTokenLogicLM](LoanTokenLogicLM.md)
+- [LoanTokenLogicLMMockup](LoanTokenLogicLMMockup.md)
+- [LoanTokenLogicLMV1Mockup](LoanTokenLogicLMV1Mockup.md)
+- [LoanTokenLogicLMV2Mockup](LoanTokenLogicLMV2Mockup.md)
+- [LoanTokenLogicProxy](LoanTokenLogicProxy.md)
+- [LoanTokenLogicStandard](LoanTokenLogicStandard.md)
+- [LoanTokenLogicStorage](LoanTokenLogicStorage.md)
+- [LoanTokenLogicTest](LoanTokenLogicTest.md)
+- [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
+- [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
+- [LockedSOV](LockedSOV.md)
+- [LockedSOVFailedMockup](LockedSOVFailedMockup.md)
+- [LockedSOVMockup](LockedSOVMockup.md)
+- [Medianizer](Medianizer.md)
+- [MockAffiliates](MockAffiliates.md)
+- [MockLoanTokenLogic](MockLoanTokenLogic.md)
+- [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
+- [ModulesCommonEvents](ModulesCommonEvents.md)
+- [MultiSigKeyHolders](MultiSigKeyHolders.md)
+- [MultiSigWallet](MultiSigWallet.md)
+- [Objects](Objects.md)
+- [OrderStruct](OrderStruct.md)
+- [OrigingVestingCreator](OrigingVestingCreator.md)
+- [OriginInvestorsClaim](OriginInvestorsClaim.md)
+- [Ownable](Ownable.md)
+- [Pausable](Pausable.md)
+- [PausableOz](PausableOz.md)
+- [PreviousLoanToken](PreviousLoanToken.md)
+- [PreviousLoanTokenSettingsLowerAdmin](PreviousLoanTokenSettingsLowerAdmin.md)
+- [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
+- [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
+- [PriceFeeds](PriceFeeds.md)
+- [PriceFeedsConstants](PriceFeedsConstants.md)
+- [PriceFeedsMoC](PriceFeedsMoC.md)
+- [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
+- [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)
+- [ProtocolAffiliatesInterface](ProtocolAffiliatesInterface.md)
+- [ProtocolLike](ProtocolLike.md)
+- [ProtocolSettings](ProtocolSettings.md)
+- [ProtocolSettingsEvents](ProtocolSettingsEvents.md)
+- [ProtocolSettingsLike](ProtocolSettingsLike.md)
+- [ProtocolSettingsMockup](ProtocolSettingsMockup.md)
+- [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
+- [ProtocolTokenUser](ProtocolTokenUser.md)
+- [Proxy](Proxy.md)
+- [ProxyMockup](ProxyMockup.md)
+- [RBTCWrapperProxyMockup](RBTCWrapperProxyMockup.md)
+- [ReentrancyGuard](ReentrancyGuard.md)
+- [RewardHelper](RewardHelper.md)
+- [RSKAddrValidator](RSKAddrValidator.md)
+- [SafeERC20](SafeERC20.md)
+- [SafeMath](SafeMath.md)
+- [SafeMath96](SafeMath96.md)
+- [setGet](setGet.md)
+- [SignedSafeMath](SignedSafeMath.md)
+- [SOV](SOV.md)
+- [sovrynProtocol](sovrynProtocol.md)
+- [Staking](Staking.md)
+- [StakingInterface](StakingInterface.md)
+- [StakingMock](StakingMock.md)
+- [StakingMockup](StakingMockup.md)
+- [StakingProxy](StakingProxy.md)
+- [StakingRewards](StakingRewards.md)
+- [StakingRewardsMockUp](StakingRewardsMockUp.md)
+- [StakingRewardsProxy](StakingRewardsProxy.md)
+- [StakingRewardsStorage](StakingRewardsStorage.md)
+- [StakingStorage](StakingStorage.md)
+- [State](State.md)
+- [StorageMockup](StorageMockup.md)
+- [SVR](SVR.md)
+- [SwapsEvents](SwapsEvents.md)
+- [SwapsExternal](SwapsExternal.md)
+- [SwapsImplLocal](SwapsImplLocal.md)
+- [SwapsImplSovrynSwap](SwapsImplSovrynSwap.md)
+- [SwapsUser](SwapsUser.md)
+- [TeamVesting](TeamVesting.md)
+- [TestCoverage](TestCoverage.md)
+- [TestLibraries](TestLibraries.md)
+- [TestSovrynSwap](TestSovrynSwap.md)
+- [TestToken](TestToken.md)
+- [TestWrbtc](TestWrbtc.md)
+- [Timelock](Timelock.md)
+- [TimelockHarness](TimelockHarness.md)
+- [TimelockInterface](TimelockInterface.md)
+- [TimelockTest](TimelockTest.md)
+- [TokenSender](TokenSender.md)
+- [UpgradableProxy](UpgradableProxy.md)
+- [USDTPriceFeed](USDTPriceFeed.md)
+- [VaultController](VaultController.md)
+- [Vesting](Vesting.md)
+- [VestingCreator](VestingCreator.md)
+- [VestingFactory](VestingFactory.md)
+- [VestingLogic](VestingLogic.md)
+- [VestingLogicMockup](VestingLogicMockup.md)
+- [VestingRegistry](VestingRegistry.md)
+- [VestingRegistry2](VestingRegistry2.md)
+- [VestingRegistry3](VestingRegistry3.md)
+- [VestingRegistryLogic](VestingRegistryLogic.md)
+- [VestingRegistryLogicMockup](VestingRegistryLogicMockup.md)
+- [VestingRegistryProxy](VestingRegistryProxy.md)
+- [VestingRegistryStorage](VestingRegistryStorage.md)
+- [VestingStorage](VestingStorage.md)
+- [WeightedStaking](WeightedStaking.md)
+- [WRBTC](WRBTC.md)

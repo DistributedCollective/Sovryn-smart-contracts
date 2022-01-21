@@ -1,12 +1,15 @@
 # Multisignature wallet - Allows multiple parties to agree on
-  transactions before execution.
- * (MultiSigWallet.sol)
+
+transactions before execution.
+
+- (MultiSigWallet.sol)
 
 View Source: [contracts/multisig/MultiSigWallet.sol](../contracts/multisig/MultiSigWallet.sol)
 
 **MultiSigWallet**
 
 ## Structs
+
 ### Transaction
 
 ```js
@@ -19,6 +22,7 @@ struct Transaction {
 ```
 
 ## Contract Members
+
 **Constants & Variables**
 
 ```js
@@ -66,8 +70,8 @@ modifier onlyWallet() internal
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### ownerDoesNotExist
 
@@ -77,9 +81,9 @@ modifier ownerDoesNotExist(address owner) internal
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| owner | address |  | 
+| Name  | Type    | Description |
+| ----- | ------- | ----------- |
+| owner | address |             |
 
 ### ownerExists
 
@@ -89,9 +93,9 @@ modifier ownerExists(address owner) internal
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| owner | address |  | 
+| Name  | Type    | Description |
+| ----- | ------- | ----------- |
+| owner | address |             |
 
 ### transactionExists
 
@@ -101,9 +105,9 @@ modifier transactionExists(uint256 transactionId) internal
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| transactionId | uint256 |  | 
+| Name          | Type    | Description |
+| ------------- | ------- | ----------- |
+| transactionId | uint256 |             |
 
 ### confirmed
 
@@ -113,10 +117,10 @@ modifier confirmed(uint256 transactionId, address owner) internal
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| transactionId | uint256 |  | 
-| owner | address |  | 
+| Name          | Type    | Description |
+| ------------- | ------- | ----------- |
+| transactionId | uint256 |             |
+| owner         | address |             |
 
 ### notConfirmed
 
@@ -126,10 +130,10 @@ modifier notConfirmed(uint256 transactionId, address owner) internal
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| transactionId | uint256 |  | 
-| owner | address |  | 
+| Name          | Type    | Description |
+| ------------- | ------- | ----------- |
+| transactionId | uint256 |             |
+| owner         | address |             |
 
 ### notExecuted
 
@@ -139,9 +143,9 @@ modifier notExecuted(uint256 transactionId) internal
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| transactionId | uint256 |  | 
+| Name          | Type    | Description |
+| ------------- | ------- | ----------- |
+| transactionId | uint256 |             |
 
 ### notNull
 
@@ -151,9 +155,9 @@ modifier notNull(address _address) internal
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _address | address |  | 
+| Name      | Type    | Description |
+| --------- | ------- | ----------- |
+| \_address | address |             |
 
 ### validRequirement
 
@@ -163,19 +167,19 @@ modifier validRequirement(uint256 ownerCount, uint256 _required) internal
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| ownerCount | uint256 |  | 
-| _required | uint256 |  | 
+| Name       | Type    | Description |
+| ---------- | ------- | ----------- |
+| ownerCount | uint256 |             |
+| \_required | uint256 |             |
 
 ## Functions
 
 - [()](#)
-- [(address[] _owners, uint256 _required)](#)
+- [(address[] \_owners, uint256 \_required)](#)
 - [addOwner(address owner)](#addowner)
 - [removeOwner(address owner)](#removeowner)
 - [replaceOwner(address owner, address newOwner)](#replaceowner)
-- [changeRequirement(uint256 _required)](#changerequirement)
+- [changeRequirement(uint256 \_required)](#changerequirement)
 - [submitTransaction(address destination, uint256 value, bytes data)](#submittransaction)
 - [confirmTransaction(uint256 transactionId)](#confirmtransaction)
 - [revokeConfirmation(uint256 transactionId)](#revokeconfirmation)
@@ -189,7 +193,7 @@ modifier validRequirement(uint256 ownerCount, uint256 _required) internal
 - [getConfirmations(uint256 transactionId)](#getconfirmations)
 - [getTransactionIds(uint256 from, uint256 to, bool pending, bool executed)](#gettransactionids)
 
-### 
+###
 
 Fallback function allows to deposit ether.
 
@@ -199,91 +203,87 @@ function () external payable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
-### 
+###
 
 Contract constructor sets initial owners and required number
-  of confirmations.
-	 *
+of confirmations. \*
 
 ```js
-function (address[] _owners, uint256 _required) public nonpayable validRequirement 
+function (address[] _owners, uint256 _required) public nonpayable validRequirement
 ```
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _owners | address[] | List of initial owners. | 
-| _required | uint256 | Number of required confirmations. | 
+| Name       | Type      | Description                       |
+| ---------- | --------- | --------------------------------- |
+| \_owners   | address[] | List of initial owners.           |
+| \_required | uint256   | Number of required confirmations. |
 
 ### addOwner
 
 Allows to add a new owner. Transaction has to be sent by wallet.
 
 ```js
-function addOwner(address owner) public nonpayable onlyWallet ownerDoesNotExist notNull validRequirement 
+function addOwner(address owner) public nonpayable onlyWallet ownerDoesNotExist notNull validRequirement
 ```
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| owner | address | Address of new owner. | 
+| Name  | Type    | Description           |
+| ----- | ------- | --------------------- |
+| owner | address | Address of new owner. |
 
 ### removeOwner
 
 Allows to remove an owner. Transaction has to be sent by wallet.
 
 ```js
-function removeOwner(address owner) public nonpayable onlyWallet ownerExists 
+function removeOwner(address owner) public nonpayable onlyWallet ownerExists
 ```
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| owner | address | Address of owner. | 
+| Name  | Type    | Description       |
+| ----- | ------- | ----------------- |
+| owner | address | Address of owner. |
 
 ### replaceOwner
 
 Allows to replace an owner with a new owner. Transaction has
-  to be sent by wallet.
-	 *
+to be sent by wallet. \*
 
 ```js
-function replaceOwner(address owner, address newOwner) public nonpayable onlyWallet ownerExists ownerDoesNotExist 
+function replaceOwner(address owner, address newOwner) public nonpayable onlyWallet ownerExists ownerDoesNotExist
 ```
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| owner | address | Address of owner to be replaced. | 
-| newOwner | address | Address of new owner. | 
+| Name     | Type    | Description                      |
+| -------- | ------- | -------------------------------- |
+| owner    | address | Address of owner to be replaced. |
+| newOwner | address | Address of new owner.            |
 
 ### changeRequirement
 
 Allows to change the number of required confirmations.
-Transaction has to be sent by wallet.
-	 *
+Transaction has to be sent by wallet. \*
 
 ```js
-function changeRequirement(uint256 _required) public nonpayable onlyWallet validRequirement 
+function changeRequirement(uint256 _required) public nonpayable onlyWallet validRequirement
 ```
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _required | uint256 | Number of required confirmations. | 
+| Name       | Type    | Description                       |
+| ---------- | ------- | --------------------------------- |
+| \_required | uint256 | Number of required confirmations. |
 
 ### submitTransaction
 
-Allows an owner to submit and confirm a transaction.
-	 *
+Allows an owner to submit and confirm a transaction. \*
 
 ```js
 function submitTransaction(address destination, uint256 value, bytes data) public nonpayable
@@ -296,59 +296,58 @@ Returns transaction ID.
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| destination | address | Transaction target address. | 
-| value | uint256 | Transaction ether value. | 
-| data | bytes | Transaction data payload.
-	 * | 
+| Name        | Type    | Description                 |
+| ----------- | ------- | --------------------------- |
+| destination | address | Transaction target address. |
+| value       | uint256 | Transaction ether value.    |
+| data        | bytes   | Transaction data payload.   |
+| \*          |
 
 ### confirmTransaction
 
 Allows an owner to confirm a transaction.
 
 ```js
-function confirmTransaction(uint256 transactionId) public nonpayable ownerExists transactionExists notConfirmed 
+function confirmTransaction(uint256 transactionId) public nonpayable ownerExists transactionExists notConfirmed
 ```
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| transactionId | uint256 | Transaction ID. | 
+| Name          | Type    | Description     |
+| ------------- | ------- | --------------- |
+| transactionId | uint256 | Transaction ID. |
 
 ### revokeConfirmation
 
 Allows an owner to revoke a confirmation for a transaction.
 
 ```js
-function revokeConfirmation(uint256 transactionId) public nonpayable ownerExists confirmed notExecuted 
+function revokeConfirmation(uint256 transactionId) public nonpayable ownerExists confirmed notExecuted
 ```
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| transactionId | uint256 | Transaction ID. | 
+| Name          | Type    | Description     |
+| ------------- | ------- | --------------- |
+| transactionId | uint256 | Transaction ID. |
 
 ### executeTransaction
 
 Allows anyone to execute a confirmed transaction.
 
 ```js
-function executeTransaction(uint256 transactionId) public nonpayable ownerExists confirmed notExecuted 
+function executeTransaction(uint256 transactionId) public nonpayable ownerExists confirmed notExecuted
 ```
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| transactionId | uint256 | Transaction ID. | 
+| Name          | Type    | Description     |
+| ------------- | ------- | --------------- |
+| transactionId | uint256 | Transaction ID. |
 
 ### external_call
 
-Low level transaction execution.
-	 *
+Low level transaction execution. \*
 
 ```js
 function external_call(address destination, uint256 value, uint256 dataLength, bytes data) internal nonpayable
@@ -361,12 +360,12 @@ Success or failure.
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| destination | address | The address of the Smart Contract to call. | 
-| value | uint256 | The amout of rBTC to send w/ the transaction. | 
-| dataLength | uint256 | The size of the payload. | 
-| data | bytes | Length The size of the payload. | 
+| Name        | Type    | Description                                   |
+| ----------- | ------- | --------------------------------------------- |
+| destination | address | The address of the Smart Contract to call.    |
+| value       | uint256 | The amout of rBTC to send w/ the transaction. |
+| dataLength  | uint256 | The size of the payload.                      |
+| data        | bytes   | Length The size of the payload.               |
 
 ### isConfirmed
 
@@ -383,18 +382,17 @@ Confirmation status.
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| transactionId | uint256 | Transaction ID. | 
+| Name          | Type    | Description     |
+| ------------- | ------- | --------------- |
+| transactionId | uint256 | Transaction ID. |
 
 ### addTransaction
 
 Adds a new transaction to the transaction mapping,
-  if transaction does not exist yet.
-	 *
+if transaction does not exist yet. \*
 
 ```js
-function addTransaction(address destination, uint256 value, bytes data) internal nonpayable notNull 
+function addTransaction(address destination, uint256 value, bytes data) internal nonpayable notNull
 returns(transactionId uint256)
 ```
 
@@ -404,12 +402,12 @@ Returns transaction ID.
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| destination | address | Transaction target address. | 
-| value | uint256 | Transaction ether value. | 
-| data | bytes | Transaction data payload.
-	 * | 
+| Name        | Type    | Description                 |
+| ----------- | ------- | --------------------------- |
+| destination | address | Transaction target address. |
+| value       | uint256 | Transaction ether value.    |
+| data        | bytes   | Transaction data payload.   |
+| \*          |
 
 ### getConfirmationCount
 
@@ -426,9 +424,9 @@ Number of confirmations.
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| transactionId | uint256 | Transaction ID. | 
+| Name          | Type    | Description     |
+| ------------- | ------- | --------------- |
+| transactionId | uint256 | Transaction ID. |
 
 ### getTransactionCount
 
@@ -445,10 +443,10 @@ Total number of transactions after filters are applied.
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| pending | bool | Include pending transactions. | 
-| executed | bool | Include executed transactions. | 
+| Name     | Type | Description                    |
+| -------- | ---- | ------------------------------ |
+| pending  | bool | Include pending transactions.  |
+| executed | bool | Include executed transactions. |
 
 ### getOwners
 
@@ -465,8 +463,8 @@ List of owner addresses.
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### getConfirmations
 
@@ -483,14 +481,13 @@ Returns array of owner addresses.
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| transactionId | uint256 | Transaction ID. | 
+| Name          | Type    | Description     |
+| ------------- | ------- | --------------- |
+| transactionId | uint256 | Transaction ID. |
 
 ### getTransactionIds
 
-Get the list of transaction IDs in defined range.
-	 *
+Get the list of transaction IDs in defined range. \*
 
 ```js
 function getTransactionIds(uint256 from, uint256 to, bool pending, bool executed) public view
@@ -503,218 +500,218 @@ Returns array of transaction IDs.
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| from | uint256 | Index start position of transaction array. | 
-| to | uint256 | Index end position of transaction array. | 
-| pending | bool | Include pending transactions. | 
-| executed | bool | Include executed transactions.
-	 * | 
+| Name     | Type    | Description                                |
+| -------- | ------- | ------------------------------------------ |
+| from     | uint256 | Index start position of transaction array. |
+| to       | uint256 | Index end position of transaction array.   |
+| pending  | bool    | Include pending transactions.              |
+| executed | bool    | Include executed transactions.             |
+| \*       |
 
 ## Contracts
 
-* [Address](Address.md)
-* [Administered](Administered.md)
-* [AdminRole](AdminRole.md)
-* [AdvancedToken](AdvancedToken.md)
-* [AdvancedTokenStorage](AdvancedTokenStorage.md)
-* [Affiliates](Affiliates.md)
-* [AffiliatesEvents](AffiliatesEvents.md)
-* [ApprovalReceiver](ApprovalReceiver.md)
-* [BlockMockUp](BlockMockUp.md)
-* [BProPriceFeed](BProPriceFeed.md)
-* [BProPriceFeedMockup](BProPriceFeedMockup.md)
-* [Checkpoints](Checkpoints.md)
-* [Context](Context.md)
-* [DevelopmentFund](DevelopmentFund.md)
-* [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
-* [EnumerableAddressSet](EnumerableAddressSet.md)
-* [EnumerableBytes32Set](EnumerableBytes32Set.md)
-* [EnumerableBytes4Set](EnumerableBytes4Set.md)
-* [ERC20](ERC20.md)
-* [ERC20Detailed](ERC20Detailed.md)
-* [ErrorDecoder](ErrorDecoder.md)
-* [Escrow](Escrow.md)
-* [EscrowReward](EscrowReward.md)
-* [FeedsLike](FeedsLike.md)
-* [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyMockup](FeeSharingProxyMockup.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
-* [FeesHelper](FeesHelper.md)
-* [FlashLoanerTest](FlashLoanerTest.md)
-* [GenericTokenSender](GenericTokenSender.md)
-* [GovernorAlpha](GovernorAlpha.md)
-* [GovernorAlphaMockup](GovernorAlphaMockup.md)
-* [GovernorVault](GovernorVault.md)
-* [IApproveAndCall](IApproveAndCall.md)
-* [IChai](IChai.md)
-* [IContractRegistry](IContractRegistry.md)
-* [IConverterAMM](IConverterAMM.md)
-* [IERC20_](IERC20_.md)
-* [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
-* [ILiquidityMining](ILiquidityMining.md)
-* [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
-* [ILoanPool](ILoanPool.md)
-* [ILoanToken](ILoanToken.md)
-* [ILoanTokenLogicBeacon](ILoanTokenLogicBeacon.md)
-* [ILoanTokenLogicModules](ILoanTokenLogicModules.md)
-* [ILoanTokenLogicProxy](ILoanTokenLogicProxy.md)
-* [ILoanTokenModules](ILoanTokenModules.md)
-* [ILoanTokenModulesMock](ILoanTokenModulesMock.md)
-* [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
-* [ILockedSOV](ILockedSOV.md)
-* [IMoCState](IMoCState.md)
-* [ImplementationMockup](ImplementationMockup.md)
-* [Initializable](Initializable.md)
-* [InterestUser](InterestUser.md)
-* [IPot](IPot.md)
-* [IPriceFeeds](IPriceFeeds.md)
-* [IPriceFeedsExt](IPriceFeedsExt.md)
-* [IProtocol](IProtocol.md)
-* [IRSKOracle](IRSKOracle.md)
-* [ISovryn](ISovryn.md)
-* [ISovrynSwapNetwork](ISovrynSwapNetwork.md)
-* [IStaking](IStaking.md)
-* [ISwapsImpl](ISwapsImpl.md)
-* [ITeamVesting](ITeamVesting.md)
-* [ITimelock](ITimelock.md)
-* [ITokenFlashLoanTest](ITokenFlashLoanTest.md)
-* [IV1PoolOracle](IV1PoolOracle.md)
-* [IVesting](IVesting.md)
-* [IVestingFactory](IVestingFactory.md)
-* [IVestingRegistry](IVestingRegistry.md)
-* [IWrbtc](IWrbtc.md)
-* [IWrbtcERC20](IWrbtcERC20.md)
-* [LenderInterestStruct](LenderInterestStruct.md)
-* [LiquidationHelper](LiquidationHelper.md)
-* [LiquidityMining](LiquidityMining.md)
-* [LiquidityMiningConfigToken](LiquidityMiningConfigToken.md)
-* [LiquidityMiningMockup](LiquidityMiningMockup.md)
-* [LiquidityMiningProxy](LiquidityMiningProxy.md)
-* [LiquidityMiningStorage](LiquidityMiningStorage.md)
-* [LiquidityPoolV1ConverterMockup](LiquidityPoolV1ConverterMockup.md)
-* [LoanClosingsEvents](LoanClosingsEvents.md)
-* [LoanClosingsLiquidation](LoanClosingsLiquidation.md)
-* [LoanClosingsRollover](LoanClosingsRollover.md)
-* [LoanClosingsShared](LoanClosingsShared.md)
-* [LoanClosingsWith](LoanClosingsWith.md)
-* [LoanInterestStruct](LoanInterestStruct.md)
-* [LoanMaintenance](LoanMaintenance.md)
-* [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
-* [LoanOpenings](LoanOpenings.md)
-* [LoanOpeningsEvents](LoanOpeningsEvents.md)
-* [LoanParamsStruct](LoanParamsStruct.md)
-* [LoanSettings](LoanSettings.md)
-* [LoanSettingsEvents](LoanSettingsEvents.md)
-* [LoanStruct](LoanStruct.md)
-* [LoanToken](LoanToken.md)
-* [LoanTokenBase](LoanTokenBase.md)
-* [LoanTokenLogicBeacon](LoanTokenLogicBeacon.md)
-* [LoanTokenLogicLM](LoanTokenLogicLM.md)
-* [LoanTokenLogicLMMockup](LoanTokenLogicLMMockup.md)
-* [LoanTokenLogicLMV1Mockup](LoanTokenLogicLMV1Mockup.md)
-* [LoanTokenLogicLMV2Mockup](LoanTokenLogicLMV2Mockup.md)
-* [LoanTokenLogicProxy](LoanTokenLogicProxy.md)
-* [LoanTokenLogicStandard](LoanTokenLogicStandard.md)
-* [LoanTokenLogicStorage](LoanTokenLogicStorage.md)
-* [LoanTokenLogicTest](LoanTokenLogicTest.md)
-* [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
-* [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
-* [LockedSOV](LockedSOV.md)
-* [LockedSOVFailedMockup](LockedSOVFailedMockup.md)
-* [LockedSOVMockup](LockedSOVMockup.md)
-* [Medianizer](Medianizer.md)
-* [MockAffiliates](MockAffiliates.md)
-* [MockLoanTokenLogic](MockLoanTokenLogic.md)
-* [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
-* [ModulesCommonEvents](ModulesCommonEvents.md)
-* [MultiSigKeyHolders](MultiSigKeyHolders.md)
-* [MultiSigWallet](MultiSigWallet.md)
-* [Objects](Objects.md)
-* [OrderStruct](OrderStruct.md)
-* [OrigingVestingCreator](OrigingVestingCreator.md)
-* [OriginInvestorsClaim](OriginInvestorsClaim.md)
-* [Ownable](Ownable.md)
-* [Pausable](Pausable.md)
-* [PausableOz](PausableOz.md)
-* [PreviousLoanToken](PreviousLoanToken.md)
-* [PreviousLoanTokenSettingsLowerAdmin](PreviousLoanTokenSettingsLowerAdmin.md)
-* [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
-* [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
-* [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
-* [PriceFeedsMoC](PriceFeedsMoC.md)
-* [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
-* [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)
-* [ProtocolAffiliatesInterface](ProtocolAffiliatesInterface.md)
-* [ProtocolLike](ProtocolLike.md)
-* [ProtocolSettings](ProtocolSettings.md)
-* [ProtocolSettingsEvents](ProtocolSettingsEvents.md)
-* [ProtocolSettingsLike](ProtocolSettingsLike.md)
-* [ProtocolSettingsMockup](ProtocolSettingsMockup.md)
-* [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
-* [ProtocolTokenUser](ProtocolTokenUser.md)
-* [Proxy](Proxy.md)
-* [ProxyMockup](ProxyMockup.md)
-* [RBTCWrapperProxyMockup](RBTCWrapperProxyMockup.md)
-* [ReentrancyGuard](ReentrancyGuard.md)
-* [RewardHelper](RewardHelper.md)
-* [RSKAddrValidator](RSKAddrValidator.md)
-* [SafeERC20](SafeERC20.md)
-* [SafeMath](SafeMath.md)
-* [SafeMath96](SafeMath96.md)
-* [setGet](setGet.md)
-* [SignedSafeMath](SignedSafeMath.md)
-* [SOV](SOV.md)
-* [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
-* [StakingInterface](StakingInterface.md)
-* [StakingMock](StakingMock.md)
-* [StakingMockup](StakingMockup.md)
-* [StakingProxy](StakingProxy.md)
-* [StakingRewards](StakingRewards.md)
-* [StakingRewardsMockUp](StakingRewardsMockUp.md)
-* [StakingRewardsProxy](StakingRewardsProxy.md)
-* [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
-* [State](State.md)
-* [StorageMockup](StorageMockup.md)
-* [SVR](SVR.md)
-* [SwapsEvents](SwapsEvents.md)
-* [SwapsExternal](SwapsExternal.md)
-* [SwapsImplLocal](SwapsImplLocal.md)
-* [SwapsImplSovrynSwap](SwapsImplSovrynSwap.md)
-* [SwapsUser](SwapsUser.md)
-* [TeamVesting](TeamVesting.md)
-* [TestCoverage](TestCoverage.md)
-* [TestLibraries](TestLibraries.md)
-* [TestSovrynSwap](TestSovrynSwap.md)
-* [TestToken](TestToken.md)
-* [TestWrbtc](TestWrbtc.md)
-* [Timelock](Timelock.md)
-* [TimelockHarness](TimelockHarness.md)
-* [TimelockInterface](TimelockInterface.md)
-* [TimelockTest](TimelockTest.md)
-* [TokenSender](TokenSender.md)
-* [UpgradableProxy](UpgradableProxy.md)
-* [USDTPriceFeed](USDTPriceFeed.md)
-* [VaultController](VaultController.md)
-* [Vesting](Vesting.md)
-* [VestingCreator](VestingCreator.md)
-* [VestingFactory](VestingFactory.md)
-* [VestingLogic](VestingLogic.md)
-* [VestingLogicMockup](VestingLogicMockup.md)
-* [VestingRegistry](VestingRegistry.md)
-* [VestingRegistry2](VestingRegistry2.md)
-* [VestingRegistry3](VestingRegistry3.md)
-* [VestingRegistryLogic](VestingRegistryLogic.md)
-* [VestingRegistryLogicMockup](VestingRegistryLogicMockup.md)
-* [VestingRegistryProxy](VestingRegistryProxy.md)
-* [VestingRegistryStorage](VestingRegistryStorage.md)
-* [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
-* [WRBTC](WRBTC.md)
+- [Address](Address.md)
+- [Administered](Administered.md)
+- [AdminRole](AdminRole.md)
+- [AdvancedToken](AdvancedToken.md)
+- [AdvancedTokenStorage](AdvancedTokenStorage.md)
+- [Affiliates](Affiliates.md)
+- [AffiliatesEvents](AffiliatesEvents.md)
+- [ApprovalReceiver](ApprovalReceiver.md)
+- [BlockMockUp](BlockMockUp.md)
+- [BProPriceFeed](BProPriceFeed.md)
+- [BProPriceFeedMockup](BProPriceFeedMockup.md)
+- [Checkpoints](Checkpoints.md)
+- [Context](Context.md)
+- [DevelopmentFund](DevelopmentFund.md)
+- [DummyContract](DummyContract.md)
+- [ECDSA](ECDSA.md)
+- [EnumerableAddressSet](EnumerableAddressSet.md)
+- [EnumerableBytes32Set](EnumerableBytes32Set.md)
+- [EnumerableBytes4Set](EnumerableBytes4Set.md)
+- [ERC20](ERC20.md)
+- [ERC20Detailed](ERC20Detailed.md)
+- [ErrorDecoder](ErrorDecoder.md)
+- [Escrow](Escrow.md)
+- [EscrowReward](EscrowReward.md)
+- [FeedsLike](FeedsLike.md)
+- [FeesEvents](FeesEvents.md)
+- [FeeSharingLogic](FeeSharingLogic.md)
+- [FeeSharingProxy](FeeSharingProxy.md)
+- [FeeSharingProxyMockup](FeeSharingProxyMockup.md)
+- [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+- [FeesHelper](FeesHelper.md)
+- [FlashLoanerTest](FlashLoanerTest.md)
+- [GenericTokenSender](GenericTokenSender.md)
+- [GovernorAlpha](GovernorAlpha.md)
+- [GovernorAlphaMockup](GovernorAlphaMockup.md)
+- [GovernorVault](GovernorVault.md)
+- [IApproveAndCall](IApproveAndCall.md)
+- [IChai](IChai.md)
+- [IContractRegistry](IContractRegistry.md)
+- [IConverterAMM](IConverterAMM.md)
+- [IERC20\_](IERC20_.md)
+- [IERC20](IERC20.md)
+- [IFeeSharingProxy](IFeeSharingProxy.md)
+- [ILiquidityMining](ILiquidityMining.md)
+- [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
+- [ILoanPool](ILoanPool.md)
+- [ILoanToken](ILoanToken.md)
+- [ILoanTokenLogicBeacon](ILoanTokenLogicBeacon.md)
+- [ILoanTokenLogicModules](ILoanTokenLogicModules.md)
+- [ILoanTokenLogicProxy](ILoanTokenLogicProxy.md)
+- [ILoanTokenModules](ILoanTokenModules.md)
+- [ILoanTokenModulesMock](ILoanTokenModulesMock.md)
+- [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
+- [ILockedSOV](ILockedSOV.md)
+- [IMoCState](IMoCState.md)
+- [ImplementationMockup](ImplementationMockup.md)
+- [Initializable](Initializable.md)
+- [InterestUser](InterestUser.md)
+- [IPot](IPot.md)
+- [IPriceFeeds](IPriceFeeds.md)
+- [IPriceFeedsExt](IPriceFeedsExt.md)
+- [IProtocol](IProtocol.md)
+- [IRSKOracle](IRSKOracle.md)
+- [ISovryn](ISovryn.md)
+- [ISovrynSwapNetwork](ISovrynSwapNetwork.md)
+- [IStaking](IStaking.md)
+- [ISwapsImpl](ISwapsImpl.md)
+- [ITeamVesting](ITeamVesting.md)
+- [ITimelock](ITimelock.md)
+- [ITokenFlashLoanTest](ITokenFlashLoanTest.md)
+- [IV1PoolOracle](IV1PoolOracle.md)
+- [IVesting](IVesting.md)
+- [IVestingFactory](IVestingFactory.md)
+- [IVestingRegistry](IVestingRegistry.md)
+- [IWrbtc](IWrbtc.md)
+- [IWrbtcERC20](IWrbtcERC20.md)
+- [LenderInterestStruct](LenderInterestStruct.md)
+- [LiquidationHelper](LiquidationHelper.md)
+- [LiquidityMining](LiquidityMining.md)
+- [LiquidityMiningConfigToken](LiquidityMiningConfigToken.md)
+- [LiquidityMiningMockup](LiquidityMiningMockup.md)
+- [LiquidityMiningProxy](LiquidityMiningProxy.md)
+- [LiquidityMiningStorage](LiquidityMiningStorage.md)
+- [LiquidityPoolV1ConverterMockup](LiquidityPoolV1ConverterMockup.md)
+- [LoanClosingsEvents](LoanClosingsEvents.md)
+- [LoanClosingsLiquidation](LoanClosingsLiquidation.md)
+- [LoanClosingsRollover](LoanClosingsRollover.md)
+- [LoanClosingsShared](LoanClosingsShared.md)
+- [LoanClosingsWith](LoanClosingsWith.md)
+- [LoanInterestStruct](LoanInterestStruct.md)
+- [LoanMaintenance](LoanMaintenance.md)
+- [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
+- [LoanOpenings](LoanOpenings.md)
+- [LoanOpeningsEvents](LoanOpeningsEvents.md)
+- [LoanParamsStruct](LoanParamsStruct.md)
+- [LoanSettings](LoanSettings.md)
+- [LoanSettingsEvents](LoanSettingsEvents.md)
+- [LoanStruct](LoanStruct.md)
+- [LoanToken](LoanToken.md)
+- [LoanTokenBase](LoanTokenBase.md)
+- [LoanTokenLogicBeacon](LoanTokenLogicBeacon.md)
+- [LoanTokenLogicLM](LoanTokenLogicLM.md)
+- [LoanTokenLogicLMMockup](LoanTokenLogicLMMockup.md)
+- [LoanTokenLogicLMV1Mockup](LoanTokenLogicLMV1Mockup.md)
+- [LoanTokenLogicLMV2Mockup](LoanTokenLogicLMV2Mockup.md)
+- [LoanTokenLogicProxy](LoanTokenLogicProxy.md)
+- [LoanTokenLogicStandard](LoanTokenLogicStandard.md)
+- [LoanTokenLogicStorage](LoanTokenLogicStorage.md)
+- [LoanTokenLogicTest](LoanTokenLogicTest.md)
+- [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
+- [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
+- [LockedSOV](LockedSOV.md)
+- [LockedSOVFailedMockup](LockedSOVFailedMockup.md)
+- [LockedSOVMockup](LockedSOVMockup.md)
+- [Medianizer](Medianizer.md)
+- [MockAffiliates](MockAffiliates.md)
+- [MockLoanTokenLogic](MockLoanTokenLogic.md)
+- [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
+- [ModulesCommonEvents](ModulesCommonEvents.md)
+- [MultiSigKeyHolders](MultiSigKeyHolders.md)
+- [MultiSigWallet](MultiSigWallet.md)
+- [Objects](Objects.md)
+- [OrderStruct](OrderStruct.md)
+- [OrigingVestingCreator](OrigingVestingCreator.md)
+- [OriginInvestorsClaim](OriginInvestorsClaim.md)
+- [Ownable](Ownable.md)
+- [Pausable](Pausable.md)
+- [PausableOz](PausableOz.md)
+- [PreviousLoanToken](PreviousLoanToken.md)
+- [PreviousLoanTokenSettingsLowerAdmin](PreviousLoanTokenSettingsLowerAdmin.md)
+- [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
+- [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
+- [PriceFeeds](PriceFeeds.md)
+- [PriceFeedsConstants](PriceFeedsConstants.md)
+- [PriceFeedsMoC](PriceFeedsMoC.md)
+- [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
+- [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)
+- [ProtocolAffiliatesInterface](ProtocolAffiliatesInterface.md)
+- [ProtocolLike](ProtocolLike.md)
+- [ProtocolSettings](ProtocolSettings.md)
+- [ProtocolSettingsEvents](ProtocolSettingsEvents.md)
+- [ProtocolSettingsLike](ProtocolSettingsLike.md)
+- [ProtocolSettingsMockup](ProtocolSettingsMockup.md)
+- [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
+- [ProtocolTokenUser](ProtocolTokenUser.md)
+- [Proxy](Proxy.md)
+- [ProxyMockup](ProxyMockup.md)
+- [RBTCWrapperProxyMockup](RBTCWrapperProxyMockup.md)
+- [ReentrancyGuard](ReentrancyGuard.md)
+- [RewardHelper](RewardHelper.md)
+- [RSKAddrValidator](RSKAddrValidator.md)
+- [SafeERC20](SafeERC20.md)
+- [SafeMath](SafeMath.md)
+- [SafeMath96](SafeMath96.md)
+- [setGet](setGet.md)
+- [SignedSafeMath](SignedSafeMath.md)
+- [SOV](SOV.md)
+- [sovrynProtocol](sovrynProtocol.md)
+- [Staking](Staking.md)
+- [StakingInterface](StakingInterface.md)
+- [StakingMock](StakingMock.md)
+- [StakingMockup](StakingMockup.md)
+- [StakingProxy](StakingProxy.md)
+- [StakingRewards](StakingRewards.md)
+- [StakingRewardsMockUp](StakingRewardsMockUp.md)
+- [StakingRewardsProxy](StakingRewardsProxy.md)
+- [StakingRewardsStorage](StakingRewardsStorage.md)
+- [StakingStorage](StakingStorage.md)
+- [State](State.md)
+- [StorageMockup](StorageMockup.md)
+- [SVR](SVR.md)
+- [SwapsEvents](SwapsEvents.md)
+- [SwapsExternal](SwapsExternal.md)
+- [SwapsImplLocal](SwapsImplLocal.md)
+- [SwapsImplSovrynSwap](SwapsImplSovrynSwap.md)
+- [SwapsUser](SwapsUser.md)
+- [TeamVesting](TeamVesting.md)
+- [TestCoverage](TestCoverage.md)
+- [TestLibraries](TestLibraries.md)
+- [TestSovrynSwap](TestSovrynSwap.md)
+- [TestToken](TestToken.md)
+- [TestWrbtc](TestWrbtc.md)
+- [Timelock](Timelock.md)
+- [TimelockHarness](TimelockHarness.md)
+- [TimelockInterface](TimelockInterface.md)
+- [TimelockTest](TimelockTest.md)
+- [TokenSender](TokenSender.md)
+- [UpgradableProxy](UpgradableProxy.md)
+- [USDTPriceFeed](USDTPriceFeed.md)
+- [VaultController](VaultController.md)
+- [Vesting](Vesting.md)
+- [VestingCreator](VestingCreator.md)
+- [VestingFactory](VestingFactory.md)
+- [VestingLogic](VestingLogic.md)
+- [VestingLogicMockup](VestingLogicMockup.md)
+- [VestingRegistry](VestingRegistry.md)
+- [VestingRegistry2](VestingRegistry2.md)
+- [VestingRegistry3](VestingRegistry3.md)
+- [VestingRegistryLogic](VestingRegistryLogic.md)
+- [VestingRegistryLogicMockup](VestingRegistryLogicMockup.md)
+- [VestingRegistryProxy](VestingRegistryProxy.md)
+- [VestingRegistryStorage](VestingRegistryStorage.md)
+- [VestingStorage](VestingStorage.md)
+- [WeightedStaking](WeightedStaking.md)
+- [WRBTC](WRBTC.md)

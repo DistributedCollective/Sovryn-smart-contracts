@@ -5,6 +5,7 @@ View Source: [contracts/interfaces/ILoanTokenModules.sol](../contracts/interface
 **ILoanTokenModules**
 
 ## Structs
+
 ### LoanParams
 
 ```js
@@ -36,14 +37,14 @@ event ToggledFunctionPaused(string  functionId, bool  prevFlag, bool  newFlag);
 
 ## Functions
 
-- [setAdmin(address _admin)](#setadmin)
-- [setPauser(address _pauser)](#setpauser)
+- [setAdmin(address \_admin)](#setadmin)
+- [setPauser(address \_pauser)](#setpauser)
 - [setupLoanParams(struct ILoanTokenModules.LoanParams[] loanParamsList, bool areTorqueLoans)](#setuploanparams)
 - [disableLoanParams(address[] collateralTokens, bool[] isTorqueLoans)](#disableloanparams)
-- [setDemandCurve(uint256 _baseRate, uint256 _rateMultiplier, uint256 _lowUtilBaseRate, uint256 _lowUtilRateMultiplier, uint256 _targetLevel, uint256 _kinkLevel, uint256 _maxScaleRate)](#setdemandcurve)
+- [setDemandCurve(uint256 \_baseRate, uint256 \_rateMultiplier, uint256 \_lowUtilBaseRate, uint256 \_lowUtilRateMultiplier, uint256 \_targetLevel, uint256 \_kinkLevel, uint256 \_maxScaleRate)](#setdemandcurve)
 - [toggleFunctionPause(string funcId, bool isPaused)](#togglefunctionpause)
 - [setTransactionLimits(address[] addresses, uint256[] limits)](#settransactionlimits)
-- [changeLoanTokenNameAndSymbol(string _name, string _symbol)](#changeloantokennameandsymbol)
+- [changeLoanTokenNameAndSymbol(string \_name, string \_symbol)](#changeloantokennameandsymbol)
 - [marginTrade(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minReturn, bytes loanDataBytes)](#margintrade)
 - [marginTradeAffiliate(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minReturn, address affiliateReferrer, bytes loanDataBytes)](#margintradeaffiliate)
 - [borrowInterestRate()](#borrowinterestrate)
@@ -54,8 +55,8 @@ event ToggledFunctionPaused(string  functionId, bool  prevFlag, bool  newFlag);
 - [totalAssetBorrow()](#totalassetborrow)
 - [totalAssetSupply()](#totalassetsupply)
 - [borrow(bytes32 loanId, uint256 withdrawAmount, uint256 initialLoanDuration, uint256 collateralTokenSent, address collateralTokenAddress, address borrower, address receiver, bytes )](#borrow)
-- [transfer(address _to, uint256 _value)](#transfer)
-- [transferFrom(address _from, address _to, uint256 _value)](#transferfrom)
+- [transfer(address \_to, uint256 \_value)](#transfer)
+- [transferFrom(address \_from, address \_to, uint256 \_value)](#transferfrom)
 - [setLiquidityMiningAddress(address LMAddress)](#setliquidityminingaddress)
 - [getLiquidityMiningAddress()](#getliquidityminingaddress)
 - [getEstimatedMarginDetails(uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress)](#getestimatedmargindetails)
@@ -63,8 +64,8 @@ event ToggledFunctionPaused(string  functionId, bool  prevFlag, bool  newFlag);
 - [getBorrowAmountForDeposit(uint256 depositAmount, uint256 initialLoanDuration, address collateralTokenAddress)](#getborrowamountfordeposit)
 - [checkPriceDivergence(uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, uint256 minReturn)](#checkpricedivergence)
 - [getMaxEscrowAmount(uint256 leverageAmount)](#getmaxescrowamount)
-- [checkpointPrice(address _user)](#checkpointprice)
-- [assetBalanceOf(address _owner)](#assetbalanceof)
+- [checkpointPrice(address \_user)](#checkpointprice)
+- [assetBalanceOf(address \_owner)](#assetbalanceof)
 - [profitOf(address user)](#profitof)
 - [tokenPrice()](#tokenprice)
 - [avgBorrowInterestRate()](#avgborrowinterestrate)
@@ -73,7 +74,7 @@ event ToggledFunctionPaused(string  functionId, bool  prevFlag, bool  newFlag);
 - [totalSupplyInterestRate(uint256 assetSupply)](#totalsupplyinterestrate)
 - [loanTokenAddress()](#loantokenaddress)
 - [getMarginBorrowAmountAndRate(uint256 leverageAmount, uint256 depositAmount)](#getmarginborrowamountandrate)
-- [withdrawRBTCTo(address payable _receiverAddress, uint256 _amount)](#withdrawrbtcto)
+- [withdrawRBTCTo(address payable \_receiverAddress, uint256 \_amount)](#withdrawrbtcto)
 - [initialPrice()](#initialprice)
 - [mint(address receiver, uint256 depositAmount, bool useLM)](#mint)
 - [burn(address receiver, uint256 burnAmount, bool useLM)](#burn)
@@ -82,9 +83,9 @@ event ToggledFunctionPaused(string  functionId, bool  prevFlag, bool  newFlag);
 - [liquidityMiningAddress()](#liquidityminingaddress)
 - [name()](#name)
 - [symbol()](#symbol)
-- [approve(address _spender, uint256 _value)](#approve)
-- [allowance(address _owner, address _spender)](#allowance)
-- [balanceOf(address _owner)](#balanceof)
+- [approve(address \_spender, uint256 \_value)](#approve)
+- [allowance(address \_owner, address \_spender)](#allowance)
+- [balanceOf(address \_owner)](#balanceof)
 - [totalSupply()](#totalsupply)
 
 ### setAdmin
@@ -95,9 +96,9 @@ function setAdmin(address _admin) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _admin | address |  | 
+| Name    | Type    | Description |
+| ------- | ------- | ----------- |
+| \_admin | address |             |
 
 ### setPauser
 
@@ -107,9 +108,9 @@ function setPauser(address _pauser) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _pauser | address |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| \_pauser | address |             |
 
 ### setupLoanParams
 
@@ -119,10 +120,10 @@ function setupLoanParams(struct ILoanTokenModules.LoanParams[] loanParamsList, b
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanParamsList | struct ILoanTokenModules.LoanParams[] |  | 
-| areTorqueLoans | bool |  | 
+| Name           | Type                                  | Description |
+| -------------- | ------------------------------------- | ----------- |
+| loanParamsList | struct ILoanTokenModules.LoanParams[] |             |
+| areTorqueLoans | bool                                  |             |
 
 ### disableLoanParams
 
@@ -132,10 +133,10 @@ function disableLoanParams(address[] collateralTokens, bool[] isTorqueLoans) ext
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| collateralTokens | address[] |  | 
-| isTorqueLoans | bool[] |  | 
+| Name             | Type      | Description |
+| ---------------- | --------- | ----------- |
+| collateralTokens | address[] |             |
+| isTorqueLoans    | bool[]    |             |
 
 ### setDemandCurve
 
@@ -145,15 +146,15 @@ function setDemandCurve(uint256 _baseRate, uint256 _rateMultiplier, uint256 _low
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _baseRate | uint256 |  | 
-| _rateMultiplier | uint256 |  | 
-| _lowUtilBaseRate | uint256 |  | 
-| _lowUtilRateMultiplier | uint256 |  | 
-| _targetLevel | uint256 |  | 
-| _kinkLevel | uint256 |  | 
-| _maxScaleRate | uint256 |  | 
+| Name                    | Type    | Description |
+| ----------------------- | ------- | ----------- |
+| \_baseRate              | uint256 |             |
+| \_rateMultiplier        | uint256 |             |
+| \_lowUtilBaseRate       | uint256 |             |
+| \_lowUtilRateMultiplier | uint256 |             |
+| \_targetLevel           | uint256 |             |
+| \_kinkLevel             | uint256 |             |
+| \_maxScaleRate          | uint256 |             |
 
 ### toggleFunctionPause
 
@@ -163,10 +164,10 @@ function toggleFunctionPause(string funcId, bool isPaused) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| funcId | string |  | 
-| isPaused | bool |  | 
+| Name     | Type   | Description |
+| -------- | ------ | ----------- |
+| funcId   | string |             |
+| isPaused | bool   |             |
 
 ### setTransactionLimits
 
@@ -176,10 +177,10 @@ function setTransactionLimits(address[] addresses, uint256[] limits) external no
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| addresses | address[] |  | 
-| limits | uint256[] |  | 
+| Name      | Type      | Description |
+| --------- | --------- | ----------- |
+| addresses | address[] |             |
+| limits    | uint256[] |             |
 
 ### changeLoanTokenNameAndSymbol
 
@@ -189,10 +190,10 @@ function changeLoanTokenNameAndSymbol(string _name, string _symbol) external non
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _name | string |  | 
-| _symbol | string |  | 
+| Name     | Type   | Description |
+| -------- | ------ | ----------- |
+| \_name   | string |             |
+| \_symbol | string |             |
 
 ### marginTrade
 
@@ -203,16 +204,16 @@ returns(uint256, uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanId | bytes32 |  | 
-| leverageAmount | uint256 |  | 
-| loanTokenSent | uint256 |  | 
-| collateralTokenSent | uint256 |  | 
-| collateralTokenAddress | address |  | 
-| trader | address |  | 
-| minReturn | uint256 |  | 
-| loanDataBytes | bytes |  | 
+| Name                   | Type    | Description |
+| ---------------------- | ------- | ----------- |
+| loanId                 | bytes32 |             |
+| leverageAmount         | uint256 |             |
+| loanTokenSent          | uint256 |             |
+| collateralTokenSent    | uint256 |             |
+| collateralTokenAddress | address |             |
+| trader                 | address |             |
+| minReturn              | uint256 |             |
+| loanDataBytes          | bytes   |             |
 
 ### marginTradeAffiliate
 
@@ -223,17 +224,17 @@ returns(uint256, uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanId | bytes32 |  | 
-| leverageAmount | uint256 |  | 
-| loanTokenSent | uint256 |  | 
-| collateralTokenSent | uint256 |  | 
-| collateralTokenAddress | address |  | 
-| trader | address |  | 
-| minReturn | uint256 |  | 
-| affiliateReferrer | address |  | 
-| loanDataBytes | bytes |  | 
+| Name                   | Type    | Description |
+| ---------------------- | ------- | ----------- |
+| loanId                 | bytes32 |             |
+| leverageAmount         | uint256 |             |
+| loanTokenSent          | uint256 |             |
+| collateralTokenSent    | uint256 |             |
+| collateralTokenAddress | address |             |
+| trader                 | address |             |
+| minReturn              | uint256 |             |
+| affiliateReferrer      | address |             |
+| loanDataBytes          | bytes   |             |
 
 ### borrowInterestRate
 
@@ -244,8 +245,8 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### mint
 
@@ -256,10 +257,10 @@ returns(mintAmount uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| receiver | address |  | 
-| depositAmount | uint256 |  | 
+| Name          | Type    | Description |
+| ------------- | ------- | ----------- |
+| receiver      | address |             |
+| depositAmount | uint256 |             |
 
 ### burn
 
@@ -270,10 +271,10 @@ returns(loanAmountPaid uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| receiver | address |  | 
-| burnAmount | uint256 |  | 
+| Name       | Type    | Description |
+| ---------- | ------- | ----------- |
+| receiver   | address |             |
+| burnAmount | uint256 |             |
 
 ### checkPause
 
@@ -284,9 +285,9 @@ returns(isPaused bool)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| funcId | string |  | 
+| Name   | Type   | Description |
+| ------ | ------ | ----------- |
+| funcId | string |             |
 
 ### nextBorrowInterestRate
 
@@ -297,9 +298,9 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| borrowAmount | uint256 |  | 
+| Name         | Type    | Description |
+| ------------ | ------- | ----------- |
+| borrowAmount | uint256 |             |
 
 ### totalAssetBorrow
 
@@ -310,8 +311,8 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### totalAssetSupply
 
@@ -322,8 +323,8 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### borrow
 
@@ -334,16 +335,16 @@ returns(uint256, uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanId | bytes32 |  | 
-| withdrawAmount | uint256 |  | 
-| initialLoanDuration | uint256 |  | 
-| collateralTokenSent | uint256 |  | 
-| collateralTokenAddress | address |  | 
-| borrower | address |  | 
-| receiver | address |  | 
-|  | bytes |  | 
+| Name                   | Type    | Description |
+| ---------------------- | ------- | ----------- |
+| loanId                 | bytes32 |             |
+| withdrawAmount         | uint256 |             |
+| initialLoanDuration    | uint256 |             |
+| collateralTokenSent    | uint256 |             |
+| collateralTokenAddress | address |             |
+| borrower               | address |             |
+| receiver               | address |             |
+|                        | bytes   |             |
 
 ### transfer
 
@@ -354,10 +355,10 @@ returns(bool)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _to | address |  | 
-| _value | uint256 |  | 
+| Name    | Type    | Description |
+| ------- | ------- | ----------- |
+| \_to    | address |             |
+| \_value | uint256 |             |
 
 ### transferFrom
 
@@ -368,11 +369,11 @@ returns(bool)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _from | address |  | 
-| _to | address |  | 
-| _value | uint256 |  | 
+| Name    | Type    | Description |
+| ------- | ------- | ----------- |
+| \_from  | address |             |
+| \_to    | address |             |
+| \_value | uint256 |             |
 
 ### setLiquidityMiningAddress
 
@@ -382,9 +383,9 @@ function setLiquidityMiningAddress(address LMAddress) external nonpayable
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| LMAddress | address |  | 
+| Name      | Type    | Description |
+| --------- | ------- | ----------- |
+| LMAddress | address |             |
 
 ### getLiquidityMiningAddress
 
@@ -395,8 +396,8 @@ returns(address)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### getEstimatedMarginDetails
 
@@ -407,12 +408,12 @@ returns(principal uint256, collateral uint256, interestRate uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| leverageAmount | uint256 |  | 
-| loanTokenSent | uint256 |  | 
-| collateralTokenSent | uint256 |  | 
-| collateralTokenAddress | address |  | 
+| Name                   | Type    | Description |
+| ---------------------- | ------- | ----------- |
+| leverageAmount         | uint256 |             |
+| loanTokenSent          | uint256 |             |
+| collateralTokenSent    | uint256 |             |
+| collateralTokenAddress | address |             |
 
 ### getDepositAmountForBorrow
 
@@ -423,11 +424,11 @@ returns(depositAmount uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| borrowAmount | uint256 |  | 
-| initialLoanDuration | uint256 |  | 
-| collateralTokenAddress | address |  | 
+| Name                   | Type    | Description |
+| ---------------------- | ------- | ----------- |
+| borrowAmount           | uint256 |             |
+| initialLoanDuration    | uint256 |             |
+| collateralTokenAddress | address |             |
 
 ### getBorrowAmountForDeposit
 
@@ -438,11 +439,11 @@ returns(borrowAmount uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| depositAmount | uint256 |  | 
-| initialLoanDuration | uint256 |  | 
-| collateralTokenAddress | address |  | 
+| Name                   | Type    | Description |
+| ---------------------- | ------- | ----------- |
+| depositAmount          | uint256 |             |
+| initialLoanDuration    | uint256 |             |
+| collateralTokenAddress | address |             |
 
 ### checkPriceDivergence
 
@@ -452,13 +453,13 @@ function checkPriceDivergence(uint256 leverageAmount, uint256 loanTokenSent, uin
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| leverageAmount | uint256 |  | 
-| loanTokenSent | uint256 |  | 
-| collateralTokenSent | uint256 |  | 
-| collateralTokenAddress | address |  | 
-| minReturn | uint256 |  | 
+| Name                   | Type    | Description |
+| ---------------------- | ------- | ----------- |
+| leverageAmount         | uint256 |             |
+| loanTokenSent          | uint256 |             |
+| collateralTokenSent    | uint256 |             |
+| collateralTokenAddress | address |             |
+| minReturn              | uint256 |             |
 
 ### getMaxEscrowAmount
 
@@ -469,9 +470,9 @@ returns(maxEscrowAmount uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| leverageAmount | uint256 |  | 
+| Name           | Type    | Description |
+| -------------- | ------- | ----------- |
+| leverageAmount | uint256 |             |
 
 ### checkpointPrice
 
@@ -482,9 +483,9 @@ returns(price uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _user | address |  | 
+| Name   | Type    | Description |
+| ------ | ------- | ----------- |
+| \_user | address |             |
 
 ### assetBalanceOf
 
@@ -495,9 +496,9 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _owner | address |  | 
+| Name    | Type    | Description |
+| ------- | ------- | ----------- |
+| \_owner | address |             |
 
 ### profitOf
 
@@ -508,9 +509,9 @@ returns(int256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| user | address |  | 
+| Name | Type    | Description |
+| ---- | ------- | ----------- |
+| user | address |             |
 
 ### tokenPrice
 
@@ -521,8 +522,8 @@ returns(price uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### avgBorrowInterestRate
 
@@ -533,8 +534,8 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### supplyInterestRate
 
@@ -545,8 +546,8 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### nextSupplyInterestRate
 
@@ -557,9 +558,9 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| supplyAmount | uint256 |  | 
+| Name         | Type    | Description |
+| ------------ | ------- | ----------- |
+| supplyAmount | uint256 |             |
 
 ### totalSupplyInterestRate
 
@@ -570,9 +571,9 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| assetSupply | uint256 |  | 
+| Name        | Type    | Description |
+| ----------- | ------- | ----------- |
+| assetSupply | uint256 |             |
 
 ### loanTokenAddress
 
@@ -583,8 +584,8 @@ returns(address)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### getMarginBorrowAmountAndRate
 
@@ -595,10 +596,10 @@ returns(uint256, uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| leverageAmount | uint256 |  | 
-| depositAmount | uint256 |  | 
+| Name           | Type    | Description |
+| -------------- | ------- | ----------- |
+| leverageAmount | uint256 |             |
+| depositAmount  | uint256 |             |
 
 ### withdrawRBTCTo
 
@@ -608,10 +609,10 @@ function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) exter
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _receiverAddress | address payable |  | 
-| _amount | uint256 |  | 
+| Name              | Type            | Description |
+| ----------------- | --------------- | ----------- |
+| \_receiverAddress | address payable |             |
+| \_amount          | uint256         |             |
 
 ### initialPrice
 
@@ -622,8 +623,8 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### mint
 
@@ -634,11 +635,11 @@ returns(minted uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| receiver | address |  | 
-| depositAmount | uint256 |  | 
-| useLM | bool |  | 
+| Name          | Type    | Description |
+| ------------- | ------- | ----------- |
+| receiver      | address |             |
+| depositAmount | uint256 |             |
+| useLM         | bool    |             |
 
 ### burn
 
@@ -649,11 +650,11 @@ returns(redeemed uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| receiver | address |  | 
-| burnAmount | uint256 |  | 
-| useLM | bool |  | 
+| Name       | Type    | Description |
+| ---------- | ------- | ----------- |
+| receiver   | address |             |
+| burnAmount | uint256 |             |
+| useLM      | bool    |             |
 
 ### mintWithBTC
 
@@ -664,10 +665,10 @@ returns(mintAmount uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| receiver | address |  | 
-| useLM | bool |  | 
+| Name     | Type    | Description |
+| -------- | ------- | ----------- |
+| receiver | address |             |
+| useLM    | bool    |             |
 
 ### burnToBTC
 
@@ -678,11 +679,11 @@ returns(loanAmountPaid uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| receiver | address |  | 
-| burnAmount | uint256 |  | 
-| useLM | bool |  | 
+| Name       | Type    | Description |
+| ---------- | ------- | ----------- |
+| receiver   | address |             |
+| burnAmount | uint256 |             |
+| useLM      | bool    |             |
 
 ### liquidityMiningAddress
 
@@ -693,8 +694,8 @@ returns(address)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### name
 
@@ -705,8 +706,8 @@ returns(string)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### symbol
 
@@ -717,8 +718,8 @@ returns(string)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ### approve
 
@@ -729,10 +730,10 @@ returns(bool)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _spender | address |  | 
-| _value | uint256 |  | 
+| Name      | Type    | Description |
+| --------- | ------- | ----------- |
+| \_spender | address |             |
+| \_value   | uint256 |             |
 
 ### allowance
 
@@ -743,10 +744,10 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _owner | address |  | 
-| _spender | address |  | 
+| Name      | Type    | Description |
+| --------- | ------- | ----------- |
+| \_owner   | address |             |
+| \_spender | address |             |
 
 ### balanceOf
 
@@ -757,9 +758,9 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _owner | address |  | 
+| Name    | Type    | Description |
+| ------- | ------- | ----------- |
+| \_owner | address |             |
 
 ### totalSupply
 
@@ -770,213 +771,213 @@ returns(uint256)
 
 **Arguments**
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 
 ## Contracts
 
-* [Address](Address.md)
-* [Administered](Administered.md)
-* [AdminRole](AdminRole.md)
-* [AdvancedToken](AdvancedToken.md)
-* [AdvancedTokenStorage](AdvancedTokenStorage.md)
-* [Affiliates](Affiliates.md)
-* [AffiliatesEvents](AffiliatesEvents.md)
-* [ApprovalReceiver](ApprovalReceiver.md)
-* [BlockMockUp](BlockMockUp.md)
-* [BProPriceFeed](BProPriceFeed.md)
-* [BProPriceFeedMockup](BProPriceFeedMockup.md)
-* [Checkpoints](Checkpoints.md)
-* [Context](Context.md)
-* [DevelopmentFund](DevelopmentFund.md)
-* [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
-* [EnumerableAddressSet](EnumerableAddressSet.md)
-* [EnumerableBytes32Set](EnumerableBytes32Set.md)
-* [EnumerableBytes4Set](EnumerableBytes4Set.md)
-* [ERC20](ERC20.md)
-* [ERC20Detailed](ERC20Detailed.md)
-* [ErrorDecoder](ErrorDecoder.md)
-* [Escrow](Escrow.md)
-* [EscrowReward](EscrowReward.md)
-* [FeedsLike](FeedsLike.md)
-* [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyMockup](FeeSharingProxyMockup.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
-* [FeesHelper](FeesHelper.md)
-* [FlashLoanerTest](FlashLoanerTest.md)
-* [GenericTokenSender](GenericTokenSender.md)
-* [GovernorAlpha](GovernorAlpha.md)
-* [GovernorAlphaMockup](GovernorAlphaMockup.md)
-* [GovernorVault](GovernorVault.md)
-* [IApproveAndCall](IApproveAndCall.md)
-* [IChai](IChai.md)
-* [IContractRegistry](IContractRegistry.md)
-* [IConverterAMM](IConverterAMM.md)
-* [IERC20_](IERC20_.md)
-* [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
-* [ILiquidityMining](ILiquidityMining.md)
-* [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
-* [ILoanPool](ILoanPool.md)
-* [ILoanToken](ILoanToken.md)
-* [ILoanTokenLogicBeacon](ILoanTokenLogicBeacon.md)
-* [ILoanTokenLogicModules](ILoanTokenLogicModules.md)
-* [ILoanTokenLogicProxy](ILoanTokenLogicProxy.md)
-* [ILoanTokenModules](ILoanTokenModules.md)
-* [ILoanTokenModulesMock](ILoanTokenModulesMock.md)
-* [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
-* [ILockedSOV](ILockedSOV.md)
-* [IMoCState](IMoCState.md)
-* [ImplementationMockup](ImplementationMockup.md)
-* [Initializable](Initializable.md)
-* [InterestUser](InterestUser.md)
-* [IPot](IPot.md)
-* [IPriceFeeds](IPriceFeeds.md)
-* [IPriceFeedsExt](IPriceFeedsExt.md)
-* [IProtocol](IProtocol.md)
-* [IRSKOracle](IRSKOracle.md)
-* [ISovryn](ISovryn.md)
-* [ISovrynSwapNetwork](ISovrynSwapNetwork.md)
-* [IStaking](IStaking.md)
-* [ISwapsImpl](ISwapsImpl.md)
-* [ITeamVesting](ITeamVesting.md)
-* [ITimelock](ITimelock.md)
-* [ITokenFlashLoanTest](ITokenFlashLoanTest.md)
-* [IV1PoolOracle](IV1PoolOracle.md)
-* [IVesting](IVesting.md)
-* [IVestingFactory](IVestingFactory.md)
-* [IVestingRegistry](IVestingRegistry.md)
-* [IWrbtc](IWrbtc.md)
-* [IWrbtcERC20](IWrbtcERC20.md)
-* [LenderInterestStruct](LenderInterestStruct.md)
-* [LiquidationHelper](LiquidationHelper.md)
-* [LiquidityMining](LiquidityMining.md)
-* [LiquidityMiningConfigToken](LiquidityMiningConfigToken.md)
-* [LiquidityMiningMockup](LiquidityMiningMockup.md)
-* [LiquidityMiningProxy](LiquidityMiningProxy.md)
-* [LiquidityMiningStorage](LiquidityMiningStorage.md)
-* [LiquidityPoolV1ConverterMockup](LiquidityPoolV1ConverterMockup.md)
-* [LoanClosingsEvents](LoanClosingsEvents.md)
-* [LoanClosingsLiquidation](LoanClosingsLiquidation.md)
-* [LoanClosingsRollover](LoanClosingsRollover.md)
-* [LoanClosingsShared](LoanClosingsShared.md)
-* [LoanClosingsWith](LoanClosingsWith.md)
-* [LoanInterestStruct](LoanInterestStruct.md)
-* [LoanMaintenance](LoanMaintenance.md)
-* [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
-* [LoanOpenings](LoanOpenings.md)
-* [LoanOpeningsEvents](LoanOpeningsEvents.md)
-* [LoanParamsStruct](LoanParamsStruct.md)
-* [LoanSettings](LoanSettings.md)
-* [LoanSettingsEvents](LoanSettingsEvents.md)
-* [LoanStruct](LoanStruct.md)
-* [LoanToken](LoanToken.md)
-* [LoanTokenBase](LoanTokenBase.md)
-* [LoanTokenLogicBeacon](LoanTokenLogicBeacon.md)
-* [LoanTokenLogicLM](LoanTokenLogicLM.md)
-* [LoanTokenLogicLMMockup](LoanTokenLogicLMMockup.md)
-* [LoanTokenLogicLMV1Mockup](LoanTokenLogicLMV1Mockup.md)
-* [LoanTokenLogicLMV2Mockup](LoanTokenLogicLMV2Mockup.md)
-* [LoanTokenLogicProxy](LoanTokenLogicProxy.md)
-* [LoanTokenLogicStandard](LoanTokenLogicStandard.md)
-* [LoanTokenLogicStorage](LoanTokenLogicStorage.md)
-* [LoanTokenLogicTest](LoanTokenLogicTest.md)
-* [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
-* [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
-* [LockedSOV](LockedSOV.md)
-* [LockedSOVFailedMockup](LockedSOVFailedMockup.md)
-* [LockedSOVMockup](LockedSOVMockup.md)
-* [Medianizer](Medianizer.md)
-* [MockAffiliates](MockAffiliates.md)
-* [MockLoanTokenLogic](MockLoanTokenLogic.md)
-* [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
-* [ModulesCommonEvents](ModulesCommonEvents.md)
-* [MultiSigKeyHolders](MultiSigKeyHolders.md)
-* [MultiSigWallet](MultiSigWallet.md)
-* [Objects](Objects.md)
-* [OrderStruct](OrderStruct.md)
-* [OrigingVestingCreator](OrigingVestingCreator.md)
-* [OriginInvestorsClaim](OriginInvestorsClaim.md)
-* [Ownable](Ownable.md)
-* [Pausable](Pausable.md)
-* [PausableOz](PausableOz.md)
-* [PreviousLoanToken](PreviousLoanToken.md)
-* [PreviousLoanTokenSettingsLowerAdmin](PreviousLoanTokenSettingsLowerAdmin.md)
-* [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
-* [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
-* [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
-* [PriceFeedsMoC](PriceFeedsMoC.md)
-* [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
-* [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)
-* [ProtocolAffiliatesInterface](ProtocolAffiliatesInterface.md)
-* [ProtocolLike](ProtocolLike.md)
-* [ProtocolSettings](ProtocolSettings.md)
-* [ProtocolSettingsEvents](ProtocolSettingsEvents.md)
-* [ProtocolSettingsLike](ProtocolSettingsLike.md)
-* [ProtocolSettingsMockup](ProtocolSettingsMockup.md)
-* [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
-* [ProtocolTokenUser](ProtocolTokenUser.md)
-* [Proxy](Proxy.md)
-* [ProxyMockup](ProxyMockup.md)
-* [RBTCWrapperProxyMockup](RBTCWrapperProxyMockup.md)
-* [ReentrancyGuard](ReentrancyGuard.md)
-* [RewardHelper](RewardHelper.md)
-* [RSKAddrValidator](RSKAddrValidator.md)
-* [SafeERC20](SafeERC20.md)
-* [SafeMath](SafeMath.md)
-* [SafeMath96](SafeMath96.md)
-* [setGet](setGet.md)
-* [SignedSafeMath](SignedSafeMath.md)
-* [SOV](SOV.md)
-* [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
-* [StakingInterface](StakingInterface.md)
-* [StakingMock](StakingMock.md)
-* [StakingMockup](StakingMockup.md)
-* [StakingProxy](StakingProxy.md)
-* [StakingRewards](StakingRewards.md)
-* [StakingRewardsMockUp](StakingRewardsMockUp.md)
-* [StakingRewardsProxy](StakingRewardsProxy.md)
-* [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
-* [State](State.md)
-* [StorageMockup](StorageMockup.md)
-* [SVR](SVR.md)
-* [SwapsEvents](SwapsEvents.md)
-* [SwapsExternal](SwapsExternal.md)
-* [SwapsImplLocal](SwapsImplLocal.md)
-* [SwapsImplSovrynSwap](SwapsImplSovrynSwap.md)
-* [SwapsUser](SwapsUser.md)
-* [TeamVesting](TeamVesting.md)
-* [TestCoverage](TestCoverage.md)
-* [TestLibraries](TestLibraries.md)
-* [TestSovrynSwap](TestSovrynSwap.md)
-* [TestToken](TestToken.md)
-* [TestWrbtc](TestWrbtc.md)
-* [Timelock](Timelock.md)
-* [TimelockHarness](TimelockHarness.md)
-* [TimelockInterface](TimelockInterface.md)
-* [TimelockTest](TimelockTest.md)
-* [TokenSender](TokenSender.md)
-* [UpgradableProxy](UpgradableProxy.md)
-* [USDTPriceFeed](USDTPriceFeed.md)
-* [VaultController](VaultController.md)
-* [Vesting](Vesting.md)
-* [VestingCreator](VestingCreator.md)
-* [VestingFactory](VestingFactory.md)
-* [VestingLogic](VestingLogic.md)
-* [VestingLogicMockup](VestingLogicMockup.md)
-* [VestingRegistry](VestingRegistry.md)
-* [VestingRegistry2](VestingRegistry2.md)
-* [VestingRegistry3](VestingRegistry3.md)
-* [VestingRegistryLogic](VestingRegistryLogic.md)
-* [VestingRegistryLogicMockup](VestingRegistryLogicMockup.md)
-* [VestingRegistryProxy](VestingRegistryProxy.md)
-* [VestingRegistryStorage](VestingRegistryStorage.md)
-* [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
-* [WRBTC](WRBTC.md)
+- [Address](Address.md)
+- [Administered](Administered.md)
+- [AdminRole](AdminRole.md)
+- [AdvancedToken](AdvancedToken.md)
+- [AdvancedTokenStorage](AdvancedTokenStorage.md)
+- [Affiliates](Affiliates.md)
+- [AffiliatesEvents](AffiliatesEvents.md)
+- [ApprovalReceiver](ApprovalReceiver.md)
+- [BlockMockUp](BlockMockUp.md)
+- [BProPriceFeed](BProPriceFeed.md)
+- [BProPriceFeedMockup](BProPriceFeedMockup.md)
+- [Checkpoints](Checkpoints.md)
+- [Context](Context.md)
+- [DevelopmentFund](DevelopmentFund.md)
+- [DummyContract](DummyContract.md)
+- [ECDSA](ECDSA.md)
+- [EnumerableAddressSet](EnumerableAddressSet.md)
+- [EnumerableBytes32Set](EnumerableBytes32Set.md)
+- [EnumerableBytes4Set](EnumerableBytes4Set.md)
+- [ERC20](ERC20.md)
+- [ERC20Detailed](ERC20Detailed.md)
+- [ErrorDecoder](ErrorDecoder.md)
+- [Escrow](Escrow.md)
+- [EscrowReward](EscrowReward.md)
+- [FeedsLike](FeedsLike.md)
+- [FeesEvents](FeesEvents.md)
+- [FeeSharingLogic](FeeSharingLogic.md)
+- [FeeSharingProxy](FeeSharingProxy.md)
+- [FeeSharingProxyMockup](FeeSharingProxyMockup.md)
+- [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+- [FeesHelper](FeesHelper.md)
+- [FlashLoanerTest](FlashLoanerTest.md)
+- [GenericTokenSender](GenericTokenSender.md)
+- [GovernorAlpha](GovernorAlpha.md)
+- [GovernorAlphaMockup](GovernorAlphaMockup.md)
+- [GovernorVault](GovernorVault.md)
+- [IApproveAndCall](IApproveAndCall.md)
+- [IChai](IChai.md)
+- [IContractRegistry](IContractRegistry.md)
+- [IConverterAMM](IConverterAMM.md)
+- [IERC20\_](IERC20_.md)
+- [IERC20](IERC20.md)
+- [IFeeSharingProxy](IFeeSharingProxy.md)
+- [ILiquidityMining](ILiquidityMining.md)
+- [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
+- [ILoanPool](ILoanPool.md)
+- [ILoanToken](ILoanToken.md)
+- [ILoanTokenLogicBeacon](ILoanTokenLogicBeacon.md)
+- [ILoanTokenLogicModules](ILoanTokenLogicModules.md)
+- [ILoanTokenLogicProxy](ILoanTokenLogicProxy.md)
+- [ILoanTokenModules](ILoanTokenModules.md)
+- [ILoanTokenModulesMock](ILoanTokenModulesMock.md)
+- [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
+- [ILockedSOV](ILockedSOV.md)
+- [IMoCState](IMoCState.md)
+- [ImplementationMockup](ImplementationMockup.md)
+- [Initializable](Initializable.md)
+- [InterestUser](InterestUser.md)
+- [IPot](IPot.md)
+- [IPriceFeeds](IPriceFeeds.md)
+- [IPriceFeedsExt](IPriceFeedsExt.md)
+- [IProtocol](IProtocol.md)
+- [IRSKOracle](IRSKOracle.md)
+- [ISovryn](ISovryn.md)
+- [ISovrynSwapNetwork](ISovrynSwapNetwork.md)
+- [IStaking](IStaking.md)
+- [ISwapsImpl](ISwapsImpl.md)
+- [ITeamVesting](ITeamVesting.md)
+- [ITimelock](ITimelock.md)
+- [ITokenFlashLoanTest](ITokenFlashLoanTest.md)
+- [IV1PoolOracle](IV1PoolOracle.md)
+- [IVesting](IVesting.md)
+- [IVestingFactory](IVestingFactory.md)
+- [IVestingRegistry](IVestingRegistry.md)
+- [IWrbtc](IWrbtc.md)
+- [IWrbtcERC20](IWrbtcERC20.md)
+- [LenderInterestStruct](LenderInterestStruct.md)
+- [LiquidationHelper](LiquidationHelper.md)
+- [LiquidityMining](LiquidityMining.md)
+- [LiquidityMiningConfigToken](LiquidityMiningConfigToken.md)
+- [LiquidityMiningMockup](LiquidityMiningMockup.md)
+- [LiquidityMiningProxy](LiquidityMiningProxy.md)
+- [LiquidityMiningStorage](LiquidityMiningStorage.md)
+- [LiquidityPoolV1ConverterMockup](LiquidityPoolV1ConverterMockup.md)
+- [LoanClosingsEvents](LoanClosingsEvents.md)
+- [LoanClosingsLiquidation](LoanClosingsLiquidation.md)
+- [LoanClosingsRollover](LoanClosingsRollover.md)
+- [LoanClosingsShared](LoanClosingsShared.md)
+- [LoanClosingsWith](LoanClosingsWith.md)
+- [LoanInterestStruct](LoanInterestStruct.md)
+- [LoanMaintenance](LoanMaintenance.md)
+- [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
+- [LoanOpenings](LoanOpenings.md)
+- [LoanOpeningsEvents](LoanOpeningsEvents.md)
+- [LoanParamsStruct](LoanParamsStruct.md)
+- [LoanSettings](LoanSettings.md)
+- [LoanSettingsEvents](LoanSettingsEvents.md)
+- [LoanStruct](LoanStruct.md)
+- [LoanToken](LoanToken.md)
+- [LoanTokenBase](LoanTokenBase.md)
+- [LoanTokenLogicBeacon](LoanTokenLogicBeacon.md)
+- [LoanTokenLogicLM](LoanTokenLogicLM.md)
+- [LoanTokenLogicLMMockup](LoanTokenLogicLMMockup.md)
+- [LoanTokenLogicLMV1Mockup](LoanTokenLogicLMV1Mockup.md)
+- [LoanTokenLogicLMV2Mockup](LoanTokenLogicLMV2Mockup.md)
+- [LoanTokenLogicProxy](LoanTokenLogicProxy.md)
+- [LoanTokenLogicStandard](LoanTokenLogicStandard.md)
+- [LoanTokenLogicStorage](LoanTokenLogicStorage.md)
+- [LoanTokenLogicTest](LoanTokenLogicTest.md)
+- [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
+- [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
+- [LockedSOV](LockedSOV.md)
+- [LockedSOVFailedMockup](LockedSOVFailedMockup.md)
+- [LockedSOVMockup](LockedSOVMockup.md)
+- [Medianizer](Medianizer.md)
+- [MockAffiliates](MockAffiliates.md)
+- [MockLoanTokenLogic](MockLoanTokenLogic.md)
+- [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
+- [ModulesCommonEvents](ModulesCommonEvents.md)
+- [MultiSigKeyHolders](MultiSigKeyHolders.md)
+- [MultiSigWallet](MultiSigWallet.md)
+- [Objects](Objects.md)
+- [OrderStruct](OrderStruct.md)
+- [OrigingVestingCreator](OrigingVestingCreator.md)
+- [OriginInvestorsClaim](OriginInvestorsClaim.md)
+- [Ownable](Ownable.md)
+- [Pausable](Pausable.md)
+- [PausableOz](PausableOz.md)
+- [PreviousLoanToken](PreviousLoanToken.md)
+- [PreviousLoanTokenSettingsLowerAdmin](PreviousLoanTokenSettingsLowerAdmin.md)
+- [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
+- [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
+- [PriceFeeds](PriceFeeds.md)
+- [PriceFeedsConstants](PriceFeedsConstants.md)
+- [PriceFeedsMoC](PriceFeedsMoC.md)
+- [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
+- [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)
+- [ProtocolAffiliatesInterface](ProtocolAffiliatesInterface.md)
+- [ProtocolLike](ProtocolLike.md)
+- [ProtocolSettings](ProtocolSettings.md)
+- [ProtocolSettingsEvents](ProtocolSettingsEvents.md)
+- [ProtocolSettingsLike](ProtocolSettingsLike.md)
+- [ProtocolSettingsMockup](ProtocolSettingsMockup.md)
+- [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
+- [ProtocolTokenUser](ProtocolTokenUser.md)
+- [Proxy](Proxy.md)
+- [ProxyMockup](ProxyMockup.md)
+- [RBTCWrapperProxyMockup](RBTCWrapperProxyMockup.md)
+- [ReentrancyGuard](ReentrancyGuard.md)
+- [RewardHelper](RewardHelper.md)
+- [RSKAddrValidator](RSKAddrValidator.md)
+- [SafeERC20](SafeERC20.md)
+- [SafeMath](SafeMath.md)
+- [SafeMath96](SafeMath96.md)
+- [setGet](setGet.md)
+- [SignedSafeMath](SignedSafeMath.md)
+- [SOV](SOV.md)
+- [sovrynProtocol](sovrynProtocol.md)
+- [Staking](Staking.md)
+- [StakingInterface](StakingInterface.md)
+- [StakingMock](StakingMock.md)
+- [StakingMockup](StakingMockup.md)
+- [StakingProxy](StakingProxy.md)
+- [StakingRewards](StakingRewards.md)
+- [StakingRewardsMockUp](StakingRewardsMockUp.md)
+- [StakingRewardsProxy](StakingRewardsProxy.md)
+- [StakingRewardsStorage](StakingRewardsStorage.md)
+- [StakingStorage](StakingStorage.md)
+- [State](State.md)
+- [StorageMockup](StorageMockup.md)
+- [SVR](SVR.md)
+- [SwapsEvents](SwapsEvents.md)
+- [SwapsExternal](SwapsExternal.md)
+- [SwapsImplLocal](SwapsImplLocal.md)
+- [SwapsImplSovrynSwap](SwapsImplSovrynSwap.md)
+- [SwapsUser](SwapsUser.md)
+- [TeamVesting](TeamVesting.md)
+- [TestCoverage](TestCoverage.md)
+- [TestLibraries](TestLibraries.md)
+- [TestSovrynSwap](TestSovrynSwap.md)
+- [TestToken](TestToken.md)
+- [TestWrbtc](TestWrbtc.md)
+- [Timelock](Timelock.md)
+- [TimelockHarness](TimelockHarness.md)
+- [TimelockInterface](TimelockInterface.md)
+- [TimelockTest](TimelockTest.md)
+- [TokenSender](TokenSender.md)
+- [UpgradableProxy](UpgradableProxy.md)
+- [USDTPriceFeed](USDTPriceFeed.md)
+- [VaultController](VaultController.md)
+- [Vesting](Vesting.md)
+- [VestingCreator](VestingCreator.md)
+- [VestingFactory](VestingFactory.md)
+- [VestingLogic](VestingLogic.md)
+- [VestingLogicMockup](VestingLogicMockup.md)
+- [VestingRegistry](VestingRegistry.md)
+- [VestingRegistry2](VestingRegistry2.md)
+- [VestingRegistry3](VestingRegistry3.md)
+- [VestingRegistryLogic](VestingRegistryLogic.md)
+- [VestingRegistryLogicMockup](VestingRegistryLogicMockup.md)
+- [VestingRegistryProxy](VestingRegistryProxy.md)
+- [VestingRegistryStorage](VestingRegistryStorage.md)
+- [VestingStorage](VestingStorage.md)
+- [WeightedStaking](WeightedStaking.md)
+- [WRBTC](WRBTC.md)
