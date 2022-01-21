@@ -599,7 +599,7 @@ Each lender has 2 balances on the iToken contract. The balance of iTokens (e.g. 
 
 The loan token (iToken) contract as well as the protocol contract act as proxies, delegating all calls to underlying contracts. Therefore, if you want to interact with them using web3, you need to use the ABIs from the contracts containing the actual logic or the interface contract.
 
-ABI for `LoanToken` contracts: `LoanTokenLogicStandard`
+ABI for `LoanToken` contracts: `LoanTokenLogicLM` (if the underlying asset is any but RBTC) and `LoanTokenLogicWrbtc` (if the underlying asset is RBTC)
 
 ABI for `Protocol` contract: `ISovryn`
 
