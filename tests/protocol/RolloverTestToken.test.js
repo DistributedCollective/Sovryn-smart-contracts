@@ -202,6 +202,17 @@ contract("ProtocolCloseDeposit", (accounts) => {
 					.lte(new BN(10000))
 			).to.be.true;
 			expect(new BN(loan_swap_event["destAmount"]).gte(interest_unpaid)).to.be.true;
+
+			const decoded_rollover = decodeLogs(receipt.rawLogs, LoanClosingsEvents, "Rollover");
+			const rollover_event = decoded_rollover[0].args;
+			expect(rollover_event["user"]).to.equal(borrower);
+			expect(rollover_event["lender"]).to.equal(loanToken.address);
+			expect(rollover_event["loanId"]).to.equal(loan_id);
+			expect(rollover_event["principal"]).to.equal(loan_after["principal"]);
+			expect(rollover_event["collateral"]).to.equal(loan_after["collateral"]);
+			expect(rollover_event["endTimestamp"]).to.equal(loan_after["endTimestamp"]);
+			expect(rollover_event["rewardReceiver"]).to.equal(accounts[0]);
+			expect(new BN(rollover_event["reward"]) > new BN(0)).to.be.true;
 		});
 
 		it("Test rollover tiny amount", async () => {
@@ -280,6 +291,10 @@ contract("ProtocolCloseDeposit", (accounts) => {
 			expect(swapEvent["loanToken"]).to.equal(SUSD.address); /// Don't get confused, the loanToken is not the pool token, it's the underlying token
 			expect(swapEvent["collateralToken"]).to.equal(RBTC.address);
 			expect(swapEvent["loanCloseAmount"]).to.equal(loan_before_rolled_over["principal"]); // the principal before rolled over
+
+			const decoded_rollover = decodeLogs(receipt.rawLogs, LoanClosingsEvents, "Rollover");
+			const rollover_event = decoded_rollover;
+			expect(rollover_event.length == 0).to.be.true;
 		});
 
 		it("Test rollover where the rollover reward greater than collateral itself", async () => {
