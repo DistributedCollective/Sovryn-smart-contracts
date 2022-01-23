@@ -1,7 +1,7 @@
 {
 	"pathToRoot": "./",
 	"buildFolder": "build/contracts",
-	"outputPath": "./doc",
+	"outputPath": "./docs",
 	"buldFolder": "abi",
 	"noCompilation": true,
 	"compiler": "truffle compile",
