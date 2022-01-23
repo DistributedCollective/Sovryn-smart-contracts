@@ -1,8 +1,11 @@
 {
 	"pathToRoot": "./",
+	"buildFolder": "build/contracts",
 	"outputPath": "./doc",
 	"buldFolder": "abi",
 	"noCompilation": true,
 	"compiler": "truffle compile",
+	"ignoreFiles": [],
+	"readme": "./doc",
 	"language": "en"
 }
