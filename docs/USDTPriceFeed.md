@@ -24,44 +24,50 @@ uint256 private constant USDT_RATE;
 - [latestAnswer()](#latestanswer)
 - [latestTimestamp()](#latesttimestamp)
 
-### latestAnswer
+---    
 
-⤾ overrides [IPriceFeedsExt.latestAnswer](IPriceFeedsExt.md#latestanswer)
+> ### latestAnswer
+
+undefined
 
 Get the USDT price.
 	 *
 
-```js
+```solidity
 function latestAnswer() external view
 returns(uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-Always returns the trivial rate of 1.
+```javascript
+function latestAnswer() external view returns (uint256) {
+		return USDT_RATE;
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### latestTimestamp
+> ### latestTimestamp
 
 Get the las time the price was updated.
 
-```js
+```solidity
 function latestTimestamp() external view
 returns(uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-Always trivial current block's timestamp.
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function latestTimestamp() external view returns (uint256) {
+		return now;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -77,6 +83,7 @@ Always trivial current block's timestamp.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -198,7 +205,7 @@ Always trivial current block's timestamp.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

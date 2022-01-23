@@ -23,11 +23,13 @@ event TokensTransferred(address indexed token, address indexed receiver, uint256
 - [transferTokens(address _token, address _receiver, uint256 _amount)](#transfertokens)
 - [_transferTokens(address _token, address _receiver, uint256 _amount)](#_transfertokens)
 
-### transferTokensUsingList
+---    
+
+> ### transferTokensUsingList
 
 Transfer given amounts of tokens to the given addresses.
 
-```js
+```solidity
 function transferTokensUsingList(address _token, address[] _receivers, uint256[] _amounts) external nonpayable onlyAuthorized 
 ```
 
@@ -39,11 +41,31 @@ function transferTokensUsingList(address _token, address[] _receivers, uint256[]
 | _receivers | address[] | The addresses of the receivers. | 
 | _amounts | uint256[] | The amounts to be transferred. | 
 
-### transferTokens
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function transferTokensUsingList(
+		address _token,
+		address[] calldata _receivers,
+		uint256[] calldata _amounts
+	) external onlyAuthorized {
+		require(_receivers.length == _amounts.length, "arrays mismatch");
+
+		for (uint256 i = 0; i < _receivers.length; i++) {
+			_transferTokens(_token, _receivers[i], _amounts[i]);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### transferTokens
 
 Transfer tokens to given address.
 
-```js
+```solidity
 function transferTokens(address _token, address _receiver, uint256 _amount) external nonpayable onlyAuthorized 
 ```
 
@@ -55,9 +77,25 @@ function transferTokens(address _token, address _receiver, uint256 _amount) exte
 | _receiver | address | The address of the token receiver. | 
 | _amount | uint256 | The amount to be transferred. | 
 
-### _transferTokens
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function transferTokens(
+		address _token,
+		address _receiver,
+		uint256 _amount
+	) external onlyAuthorized {
+		_transferTokens(_token, _receiver, _amount);
+	}
+```
+</details>
+
+---    
+
+> ### _transferTokens
+
+```solidity
 function _transferTokens(address _token, address _receiver, uint256 _amount) internal nonpayable
 ```
 
@@ -68,6 +106,25 @@ function _transferTokens(address _token, address _receiver, uint256 _amount) int
 | _token | address |  | 
 | _receiver | address |  | 
 | _amount | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _transferTokens(
+		address _token,
+		address _receiver,
+		uint256 _amount
+	) internal {
+		require(_token != address(0), "token address invalid");
+		require(_receiver != address(0), "receiver address invalid");
+		require(_amount != 0, "amount invalid");
+
+		require(IERC20(_token).transfer(_receiver, _amount), "transfer failed");
+		emit TokensTransferred(_token, _receiver, _amount);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -83,6 +140,7 @@ function _transferTokens(address _token, address _receiver, uint256 _amount) int
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -204,7 +262,7 @@ function _transferTokens(address _token, address _receiver, uint256 _amount) int
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

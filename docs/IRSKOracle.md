@@ -11,9 +11,11 @@ View Source: [contracts/feeds/IRSKOracle.sol](../contracts/feeds/IRSKOracle.sol)
 - [setOracleAddress(address addr)](#setoracleaddress)
 - [clearOracleAddress()](#clearoracleaddress)
 
-### updatePrice
+---    
 
-```js
+> ### updatePrice
+
+```solidity
 function updatePrice(uint256 price, uint256 timestamp) external nonpayable
 ```
 
@@ -24,21 +26,36 @@ function updatePrice(uint256 price, uint256 timestamp) external nonpayable
 | price | uint256 |  | 
 | timestamp | uint256 |  | 
 
-### getPricing
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function updatePrice(uint256 price, uint256 timestamp) external;
+```
+</details>
+
+---    
+
+> ### getPricing
+
+```solidity
 function getPricing() external view
 returns(uint256, uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getPricing() external view returns (uint256, uint256);
+```
+</details>
 
-### setOracleAddress
+---    
 
-```js
+> ### setOracleAddress
+
+```solidity
 function setOracleAddress(address addr) external nonpayable
 ```
 
@@ -48,16 +65,29 @@ function setOracleAddress(address addr) external nonpayable
 | ------------- |------------- | -----|
 | addr | address |  | 
 
-### clearOracleAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setOracleAddress(address addr) external;
+```
+</details>
+
+---    
+
+> ### clearOracleAddress
+
+```solidity
 function clearOracleAddress() external nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function clearOracleAddress() external;
+```
+</details>
 
 ## Contracts
 
@@ -73,6 +103,7 @@ function clearOracleAddress() external nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -194,7 +225,7 @@ function clearOracleAddress() external nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

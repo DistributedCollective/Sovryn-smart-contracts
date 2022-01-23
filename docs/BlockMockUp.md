@@ -17,29 +17,34 @@ uint256 public blockNum;
 - [getBlockNum()](#getblocknum)
 - [setBlockNum(uint256 _blockNum)](#setblocknum)
 
-### getBlockNum
+---    
+
+> ### getBlockNum
 
 To get the `blockNum`.
 
-```js
+```solidity
 function getBlockNum() public view
 returns(_blockNum uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-_blockNum The block number.
+```javascript
+function getBlockNum() public view returns (uint256 _blockNum) {
+		return blockNum;
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### setBlockNum
+> ### setBlockNum
 
 To set the `blockNum`.
 
-```js
+```solidity
 function setBlockNum(uint256 _blockNum) public nonpayable
 ```
 
@@ -48,6 +53,16 @@ function setBlockNum(uint256 _blockNum) public nonpayable
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _blockNum | uint256 | The block number. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setBlockNum(uint256 _blockNum) public {
+		blockNum = _blockNum;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -63,6 +78,7 @@ function setBlockNum(uint256 _blockNum) public nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -184,7 +200,7 @@ function setBlockNum(uint256 _blockNum) public nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

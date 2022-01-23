@@ -52,38 +52,42 @@ Throw error if called not by an owner.
 modifier onlyProxyOwner() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ## Functions
 
-- [()](#)
+- [constructor()](#constructor)
 - [_setImplementation(address _implementation)](#_setimplementation)
 - [getImplementation()](#getimplementation)
 - [_setProxyOwner(address _owner)](#_setproxyowner)
 - [getProxyOwner()](#getproxyowner)
-- [()](#)
+- [constructor()](#constructor)
 
-### 
+---    
+
+> ### constructor
 
 Set sender as an owner.
 
-```js
+```solidity
 function () public nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+constructor() public {
+		_setProxyOwner(msg.sender);
+	}
+```
+</details>
 
-### _setImplementation
+---    
+
+> ### _setImplementation
 
 Set address of the implementation.
 
-```js
+```solidity
 function _setImplementation(address _implementation) internal nonpayable
 ```
 
@@ -93,29 +97,53 @@ function _setImplementation(address _implementation) internal nonpayable
 | ------------- |------------- | -----|
 | _implementation | address | Address of the implementation. | 
 
-### getImplementation
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _setImplementation(address _implementation) internal {
+		require(_implementation != address(0), "Proxy::setImplementation: invalid address");
+		emit ImplementationChanged(getImplementation(), _implementation);
+
+		bytes32 key = KEY_IMPLEMENTATION;
+		assembly {
+			sstore(key, _implementation)
+		}
+	}
+```
+</details>
+
+---    
+
+> ### getImplementation
 
 Return address of the implementation.
 
-```js
+```solidity
 function getImplementation() public view
 returns(_implementation address)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-Address of the implementation.
+```javascript
+function getImplementation() public view returns (address _implementation) {
+		bytes32 key = KEY_IMPLEMENTATION;
+		assembly {
+			_implementation := sload(key)
+		}
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### _setProxyOwner
+> ### _setProxyOwner
 
 Set address of the owner.
 
-```js
+```solidity
 function _setProxyOwner(address _owner) internal nonpayable
 ```
 
@@ -125,38 +153,84 @@ function _setProxyOwner(address _owner) internal nonpayable
 | ------------- |------------- | -----|
 | _owner | address | Address of the owner. | 
 
-### getProxyOwner
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _setProxyOwner(address _owner) internal {
+		require(_owner != address(0), "Proxy::setProxyOwner: invalid address");
+		emit OwnershipTransferred(getProxyOwner(), _owner);
+
+		bytes32 key = KEY_OWNER;
+		assembly {
+			sstore(key, _owner)
+		}
+	}
+```
+</details>
+
+---    
+
+> ### getProxyOwner
 
 Return address of the owner.
 
-```js
+```solidity
 function getProxyOwner() public view
 returns(_owner address)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-Address of the owner.
+```javascript
+function getProxyOwner() public view returns (address _owner) {
+		bytes32 key = KEY_OWNER;
+		assembly {
+			_owner := sload(key)
+		}
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### 
+> ### constructor
 
 Fallback function performs a delegate call
 to the actual implementation address is pointing this proxy.
 Returns whatever the implementation call returns.
 
-```js
+```solidity
 function () external payable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function() external payable {
+		address implementation = getImplementation();
+		require(implementation != address(0), "Proxy::(): implementation not found");
+
+		assembly {
+			let pointer := mload(0x40)
+			calldatacopy(pointer, 0, calldatasize)
+			let result := delegatecall(gas, implementation, pointer, calldatasize, 0, 0)
+			let size := returndatasize
+			returndatacopy(pointer, 0, size)
+
+			switch result
+				case 0 {
+					revert(pointer, size)
+				}
+				default {
+					return(pointer, size)
+				}
+		}
+	}
+```
+</details>
 
 ## Contracts
 
@@ -172,6 +246,7 @@ function () external payable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -293,7 +368,7 @@ function () external payable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

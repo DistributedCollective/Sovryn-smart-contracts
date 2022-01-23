@@ -8,9 +8,11 @@ View Source: [contracts/mockup/DummyContract.sol](../contracts/mockup/DummyContr
 
 - [approveTokens(address cSOV1, address cSOV2, address SOV)](#approvetokens)
 
-### approveTokens
+---    
 
-```js
+> ### approveTokens
+
+```solidity
 function approveTokens(address cSOV1, address cSOV2, address SOV) public nonpayable
 ```
 
@@ -21,6 +23,18 @@ function approveTokens(address cSOV1, address cSOV2, address SOV) public nonpaya
 | cSOV1 | address |  | 
 | cSOV2 | address |  | 
 | SOV | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function approveTokens(
+		address cSOV1,
+		address cSOV2,
+		address SOV
+	) public {}
+```
+</details>
 
 ## Contracts
 
@@ -36,6 +50,7 @@ function approveTokens(address cSOV1, address cSOV2, address SOV) public nonpaya
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -157,7 +172,7 @@ function approveTokens(address cSOV1, address cSOV2, address SOV) public nonpaya
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

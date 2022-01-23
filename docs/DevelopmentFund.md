@@ -60,21 +60,11 @@ event LockedTokenTransferByLockedOwner(address indexed _initiator, address index
 modifier onlyLockedTokenOwner() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ### onlyUnlockedTokenOwner
 
 ```js
 modifier onlyUnlockedTokenOwner() internal
 ```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
 
 ### checkStatus
 
@@ -90,7 +80,7 @@ modifier checkStatus(enum DevelopmentFund.Status s) internal
 
 ## Functions
 
-- [(address _SOV, address _lockedTokenOwner, address _safeVault, address _unlockedTokenOwner, uint256 _lastReleaseTime, uint256[] _releaseDuration, uint256[] _releaseTokenAmount)](#)
+- [constructor(address _SOV, address _lockedTokenOwner, address _safeVault, address _unlockedTokenOwner, uint256 _lastReleaseTime, uint256[] _releaseDuration, uint256[] _releaseTokenAmount)](#constructor)
 - [init()](#init)
 - [updateLockedTokenOwner(address _newLockedTokenOwner)](#updatelockedtokenowner)
 - [approveLockedTokenOwner()](#approvelockedtokenowner)
@@ -103,11 +93,13 @@ modifier checkStatus(enum DevelopmentFund.Status s) internal
 - [getReleaseDuration()](#getreleaseduration)
 - [getReleaseTokenAmount()](#getreleasetokenamount)
 
-### 
+---    
+
+> ### constructor
 
 Setup the required parameters.
 
-```js
+```solidity
 function (address _SOV, address _lockedTokenOwner, address _safeVault, address _unlockedTokenOwner, uint256 _lastReleaseTime, uint256[] _releaseDuration, uint256[] _releaseTokenAmount) public nonpayable
 ```
 
@@ -123,24 +115,86 @@ function (address _SOV, address _lockedTokenOwner, address _safeVault, address _
 | _releaseDuration | uint256[] | The time duration between each release calculated from `lastReleaseTime` in seconds. | 
 | _releaseTokenAmount | uint256[] | The amount of token to be released in each duration/interval. | 
 
-### init
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(
+		address _SOV,
+		address _lockedTokenOwner,
+		address _safeVault,
+		address _unlockedTokenOwner,
+		uint256 _lastReleaseTime,
+		uint256[] memory _releaseDuration,
+		uint256[] memory _releaseTokenAmount
+	) public {
+		require(_SOV != address(0), "Invalid SOV Address.");
+		require(_lockedTokenOwner != address(0), "Locked token & contract owner address invalid.");
+		require(_safeVault != address(0), "Safe Vault address invalid.");
+		require(_unlockedTokenOwner != address(0), "Unlocked token address invalid.");
+
+		SOV = IERC20(_SOV);
+		lockedTokenOwner = _lockedTokenOwner;
+		safeVault = _safeVault;
+		unlockedTokenOwner = _unlockedTokenOwner;
+
+		lastReleaseTime = _lastReleaseTime;
+		/// If last release time passed is zero, then current time stamp will be used as the last release time.
+		if (_lastReleaseTime == 0) {
+			lastReleaseTime = block.timestamp;
+		}
+
+		/// Checking if the schedule duration and token allocation length matches.
+		require(_releaseDuration.length == _releaseTokenAmount.length, "Release Schedule does not match.");
+
+		/// Finally we update the token release schedule.
+		releaseDuration = _releaseDuration;
+		releaseTokenAmount = _releaseTokenAmount;
+	}
+```
+</details>
+
+---    
+
+> ### init
 
 This function is called once after deployment for token transfer based on schedule.
 
-```js
+```solidity
 function init() public nonpayable checkStatus 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function init() public checkStatus(Status.Deployed) {
+		uint256[] memory _releaseTokenAmount = releaseTokenAmount;
+		require(_releaseTokenAmount.length != 0, "Release Schedule not set.");
 
-### updateLockedTokenOwner
+		/// Getting the current release schedule total token amount.
+		uint256 _releaseTotalTokenAmount;
+		for (uint256 amountIndex = 0; amountIndex < _releaseTokenAmount.length; amountIndex++) {
+			_releaseTotalTokenAmount = _releaseTotalTokenAmount.add(_releaseTokenAmount[amountIndex]);
+		}
+
+		bool txStatus = SOV.transferFrom(msg.sender, address(this), _releaseTotalTokenAmount);
+		require(txStatus, "Not enough token sent to change release schedule.");
+
+		status = Status.Active;
+
+		emit DevelopmentFundActivated();
+	}
+```
+</details>
+
+---    
+
+> ### updateLockedTokenOwner
 
 Update Locked Token Owner.
 
-```js
+```solidity
 function updateLockedTokenOwner(address _newLockedTokenOwner) public nonpayable onlyLockedTokenOwner checkStatus 
 ```
 
@@ -150,24 +204,53 @@ function updateLockedTokenOwner(address _newLockedTokenOwner) public nonpayable 
 | ------------- |------------- | -----|
 | _newLockedTokenOwner | address | The owner of the locked tokens & contract. | 
 
-### approveLockedTokenOwner
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function updateLockedTokenOwner(address _newLockedTokenOwner) public onlyLockedTokenOwner checkStatus(Status.Active) {
+		require(_newLockedTokenOwner != address(0), "New locked token owner address invalid.");
+
+		newLockedTokenOwner = _newLockedTokenOwner;
+
+		emit NewLockedOwnerAdded(msg.sender, _newLockedTokenOwner);
+	}
+```
+</details>
+
+---    
+
+> ### approveLockedTokenOwner
 
 Approve Locked Token Owner.
 
-```js
+```solidity
 function approveLockedTokenOwner() public nonpayable onlyUnlockedTokenOwner checkStatus 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function approveLockedTokenOwner() public onlyUnlockedTokenOwner checkStatus(Status.Active) {
+		require(newLockedTokenOwner != address(0), "No new locked owner added.");
 
-### updateUnlockedTokenOwner
+		emit NewLockedOwnerApproved(msg.sender, lockedTokenOwner, newLockedTokenOwner);
+
+		lockedTokenOwner = newLockedTokenOwner;
+
+		newLockedTokenOwner = address(0);
+	}
+```
+</details>
+
+---    
+
+> ### updateUnlockedTokenOwner
 
 Update Unlocked Token Owner.
 
-```js
+```solidity
 function updateUnlockedTokenOwner(address _newUnlockedTokenOwner) public nonpayable onlyLockedTokenOwner checkStatus 
 ```
 
@@ -177,11 +260,27 @@ function updateUnlockedTokenOwner(address _newUnlockedTokenOwner) public nonpaya
 | ------------- |------------- | -----|
 | _newUnlockedTokenOwner | address | The new unlocked token owner. | 
 
-### depositTokens
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function updateUnlockedTokenOwner(address _newUnlockedTokenOwner) public onlyLockedTokenOwner checkStatus(Status.Active) {
+		require(_newUnlockedTokenOwner != address(0), "New unlocked token owner address invalid.");
+
+		unlockedTokenOwner = _newUnlockedTokenOwner;
+
+		emit UnlockedOwnerUpdated(msg.sender, _newUnlockedTokenOwner);
+	}
+```
+</details>
+
+---    
+
+> ### depositTokens
 
 Deposit tokens to this contract.
 
-```js
+```solidity
 function depositTokens(uint256 _amount) public nonpayable checkStatus 
 ```
 
@@ -191,11 +290,28 @@ function depositTokens(uint256 _amount) public nonpayable checkStatus
 | ------------- |------------- | -----|
 | _amount | uint256 | the amount of tokens deposited. | 
 
-### changeTokenReleaseSchedule
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function depositTokens(uint256 _amount) public checkStatus(Status.Active) {
+		require(_amount > 0, "Amount needs to be bigger than zero.");
+
+		bool txStatus = SOV.transferFrom(msg.sender, address(this), _amount);
+		require(txStatus, "Token transfer was not successful.");
+
+		emit TokenDeposit(msg.sender, _amount);
+	}
+```
+</details>
+
+---    
+
+> ### changeTokenReleaseSchedule
 
 Change the Token release schedule. It creates a completely new schedule, and does not append on the previous one.
 
-```js
+```solidity
 function changeTokenReleaseSchedule(uint256 _newLastReleaseTime, uint256[] _releaseDuration, uint256[] _releaseTokenAmount) public nonpayable onlyLockedTokenOwner checkStatus 
 ```
 
@@ -207,24 +323,86 @@ function changeTokenReleaseSchedule(uint256 _newLastReleaseTime, uint256[] _rele
 | _releaseDuration | uint256[] | The time duration between each release calculated from `lastReleaseTime` in seconds. | 
 | _releaseTokenAmount | uint256[] | The amount of token to be released in each duration/interval. | 
 
-### transferTokensByUnlockedTokenOwner
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function changeTokenReleaseSchedule(
+		uint256 _newLastReleaseTime,
+		uint256[] memory _releaseDuration,
+		uint256[] memory _releaseTokenAmount
+	) public onlyLockedTokenOwner checkStatus(Status.Active) {
+		/// Checking if the schedule duration and token allocation length matches.
+		require(_releaseDuration.length == _releaseTokenAmount.length, "Release Schedule does not match.");
+
+		/// If the last release time has to be changed, then you can pass a new one here.
+		/// Or else, the duration of release will be calculated based on this timestamp.
+		/// Even a future timestamp can be mentioned here.
+		if (_newLastReleaseTime != 0) {
+			lastReleaseTime = _newLastReleaseTime;
+		}
+
+		/// Checking if the contract have enough token balance for the release.
+		uint256 _releaseTotalTokenAmount;
+		for (uint256 amountIndex = 0; amountIndex < _releaseTokenAmount.length; amountIndex++) {
+			_releaseTotalTokenAmount = _releaseTotalTokenAmount.add(_releaseTokenAmount[amountIndex]);
+		}
+
+		/// Getting the current token balance of the contract.
+		uint256 remainingTokens = SOV.balanceOf(address(this));
+
+		/// If the token balance is not sufficient, then we transfer the change to contract.
+		if (remainingTokens < _releaseTotalTokenAmount) {
+			bool txStatus = SOV.transferFrom(msg.sender, address(this), _releaseTotalTokenAmount.sub(remainingTokens));
+			require(txStatus, "Not enough token sent to change release schedule.");
+		} else if (remainingTokens > _releaseTotalTokenAmount) {
+			/// If there are more tokens than required, send the extra tokens back.
+			bool txStatus = SOV.transfer(msg.sender, remainingTokens.sub(_releaseTotalTokenAmount));
+			require(txStatus, "Token not received by the Locked Owner.");
+		}
+
+		/// Finally we update the token release schedule.
+		releaseDuration = _releaseDuration;
+		releaseTokenAmount = _releaseTokenAmount;
+
+		emit TokenReleaseChanged(msg.sender, _releaseDuration.length);
+	}
+```
+</details>
+
+---    
+
+> ### transferTokensByUnlockedTokenOwner
 
 Transfers all of the remaining tokens in an emergency situation.
 
-```js
+```solidity
 function transferTokensByUnlockedTokenOwner() public nonpayable onlyUnlockedTokenOwner checkStatus 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function transferTokensByUnlockedTokenOwner() public onlyUnlockedTokenOwner checkStatus(Status.Active) {
+		uint256 remainingTokens = SOV.balanceOf(address(this));
+		bool txStatus = SOV.transfer(safeVault, remainingTokens);
+		require(txStatus, "Token transfer was not successful. Check receiver address.");
+		status = Status.Expired;
 
-### withdrawTokensByUnlockedTokenOwner
+		emit LockedTokenTransferByUnlockedOwner(msg.sender, safeVault, remainingTokens);
+		emit DevelopmentFundExpired();
+	}
+```
+</details>
+
+---    
+
+> ### withdrawTokensByUnlockedTokenOwner
 
 Withdraws all unlocked/released token.
 
-```js
+```solidity
 function withdrawTokensByUnlockedTokenOwner(uint256 _amount) public nonpayable onlyUnlockedTokenOwner checkStatus 
 ```
 
@@ -234,11 +412,61 @@ function withdrawTokensByUnlockedTokenOwner(uint256 _amount) public nonpayable o
 | ------------- |------------- | -----|
 | _amount | uint256 | The amount to be withdrawn. | 
 
-### transferTokensByLockedTokenOwner
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawTokensByUnlockedTokenOwner(uint256 _amount) public onlyUnlockedTokenOwner checkStatus(Status.Active) {
+		require(_amount > 0, "Zero can't be withdrawn.");
+
+		uint256 count; /// To know how many elements to be removed from the release schedule.
+		uint256 amount = _amount; /// To know the total amount to be transferred.
+		uint256 newLastReleaseTimeMemory = lastReleaseTime; /// Better to use memory than storage.
+		uint256 releaseLength = releaseDuration.length.sub(1); /// Also checks if there are any elements in the release schedule.
+
+		/// Getting the amount of tokens, the number of releases and calculating the total duration.
+		while (amount > 0 && newLastReleaseTimeMemory.add(releaseDuration[releaseLength]) < block.timestamp) {
+			if (amount >= releaseTokenAmount[releaseLength]) {
+				amount = amount.sub(releaseTokenAmount[releaseLength]);
+				newLastReleaseTimeMemory = newLastReleaseTimeMemory.add(releaseDuration[releaseLength]);
+				count++;
+			} else {
+				/// This will be the last case, if correct amount is passed.
+				releaseTokenAmount[releaseLength] = releaseTokenAmount[releaseLength].sub(amount);
+				amount = 0;
+			}
+			releaseLength--;
+		}
+
+		/// Checking to see if atleast a single schedule was reached or not.
+		require(count > 0 || amount == 0, "No release schedule reached.");
+
+		/// If locked token owner tries to send a higher amount that schedule
+		uint256 value = _amount.sub(amount);
+
+		/// Now clearing up the release schedule.
+		releaseDuration.length -= count;
+		releaseTokenAmount.length -= count;
+
+		/// Updating the last release time.
+		lastReleaseTime = newLastReleaseTimeMemory;
+
+		/// Sending the amount to unlocked token owner.
+		bool txStatus = SOV.transfer(msg.sender, value);
+		require(txStatus, "Token transfer was not successful. Check receiver address.");
+
+		emit UnlockedTokenWithdrawalByUnlockedOwner(msg.sender, value, count);
+	}
+```
+</details>
+
+---    
+
+> ### transferTokensByLockedTokenOwner
 
 Transfers all of the remaining tokens by the owner maybe for an upgrade.
 
-```js
+```solidity
 function transferTokensByLockedTokenOwner(address _receiver) public nonpayable onlyLockedTokenOwner checkStatus 
 ```
 
@@ -248,41 +476,63 @@ function transferTokensByLockedTokenOwner(address _receiver) public nonpayable o
 | ------------- |------------- | -----|
 | _receiver | address | The address which receives this token transfer. | 
 
-### getReleaseDuration
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function transferTokensByLockedTokenOwner(address _receiver) public onlyLockedTokenOwner checkStatus(Status.Active) {
+		uint256 remainingTokens = SOV.balanceOf(address(this));
+		bool txStatus = SOV.transfer(_receiver, remainingTokens);
+		require(txStatus, "Token transfer was not successful. Check receiver address.");
+		status = Status.Expired;
+
+		emit LockedTokenTransferByLockedOwner(msg.sender, _receiver, remainingTokens);
+		emit DevelopmentFundExpired();
+	}
+```
+</details>
+
+---    
+
+> ### getReleaseDuration
 
 Function to read the current token release duration.
 
-```js
+```solidity
 function getReleaseDuration() public view
 returns(_releaseTokenDuration uint256[])
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-_currentReleaseDuration The current release duration.
+```javascript
+function getReleaseDuration() public view returns (uint256[] memory _releaseTokenDuration) {
+		return releaseDuration;
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### getReleaseTokenAmount
+> ### getReleaseTokenAmount
 
 Function to read the current token release amount.
 
-```js
+```solidity
 function getReleaseTokenAmount() public view
 returns(_currentReleaseTokenAmount uint256[])
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-_currentReleaseTokenAmount The current release token amount.
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getReleaseTokenAmount() public view returns (uint256[] memory _currentReleaseTokenAmount) {
+		return releaseTokenAmount;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -298,6 +548,7 @@ _currentReleaseTokenAmount The current release token amount.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -419,7 +670,7 @@ _currentReleaseTokenAmount The current release token amount.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

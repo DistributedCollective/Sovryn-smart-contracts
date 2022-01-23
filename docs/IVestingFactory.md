@@ -16,11 +16,13 @@ and on VestingRegistry contract to use an instance of VestingFactory.
 - [deployVesting(address _SOV, address _staking, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharing, address _owner)](#deployvesting)
 - [deployTeamVesting(address _SOV, address _staking, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharing, address _owner)](#deployteamvesting)
 
-### deployVesting
+---    
+
+> ### deployVesting
 
 ⤿ Overridden Implementation(s): [VestingFactory.deployVesting](VestingFactory.md#deployvesting)
 
-```js
+```solidity
 function deployVesting(address _SOV, address _staking, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharing, address _owner) external nonpayable
 returns(address)
 ```
@@ -37,11 +39,29 @@ returns(address)
 | _feeSharing | address |  | 
 | _owner | address |  | 
 
-### deployTeamVesting
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function deployVesting(
+		address _SOV,
+		address _staking,
+		address _tokenOwner,
+		uint256 _cliff,
+		uint256 _duration,
+		address _feeSharing,
+		address _owner
+	) external returns (address);
+```
+</details>
+
+---    
+
+> ### deployTeamVesting
 
 ⤿ Overridden Implementation(s): [VestingFactory.deployTeamVesting](VestingFactory.md#deployteamvesting)
 
-```js
+```solidity
 function deployTeamVesting(address _SOV, address _staking, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharing, address _owner) external nonpayable
 returns(address)
 ```
@@ -58,6 +78,22 @@ returns(address)
 | _feeSharing | address |  | 
 | _owner | address |  | 
 
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function deployTeamVesting(
+		address _SOV,
+		address _staking,
+		address _tokenOwner,
+		uint256 _cliff,
+		uint256 _duration,
+		address _feeSharing,
+		address _owner
+	) external returns (address);
+```
+</details>
+
 ## Contracts
 
 * [Address](Address.md)
@@ -72,6 +108,7 @@ returns(address)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -193,7 +230,7 @@ returns(address)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -9,9 +9,11 @@ View Source: [contracts/testhelpers/TestLibraries.sol](../contracts/testhelpers/
 - [RSKAddrValidator_checkPKNotZero(address addr)](#rskaddrvalidator_checkpknotzero)
 - [RSKAddrValidator_safeEquals(address addr1, address addr2)](#rskaddrvalidator_safeequals)
 
-### RSKAddrValidator_checkPKNotZero
+---    
 
-```js
+> ### RSKAddrValidator_checkPKNotZero
+
+```solidity
 function RSKAddrValidator_checkPKNotZero(address addr) public pure
 returns(bool)
 ```
@@ -22,9 +24,21 @@ returns(bool)
 | ------------- |------------- | -----|
 | addr | address |  | 
 
-### RSKAddrValidator_safeEquals
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function RSKAddrValidator_checkPKNotZero(address addr) public pure returns (bool) {
+		return (RSKAddrValidator.checkPKNotZero(addr));
+	}
+```
+</details>
+
+---    
+
+> ### RSKAddrValidator_safeEquals
+
+```solidity
 function RSKAddrValidator_safeEquals(address addr1, address addr2) public pure
 returns(bool)
 ```
@@ -35,6 +49,16 @@ returns(bool)
 | ------------- |------------- | -----|
 | addr1 | address |  | 
 | addr2 | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function RSKAddrValidator_safeEquals(address addr1, address addr2) public pure returns (bool) {
+		return (RSKAddrValidator.safeEquals(addr1, addr2));
+	}
+```
+</details>
 
 ## Contracts
 
@@ -50,6 +74,7 @@ returns(bool)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -171,7 +196,7 @@ returns(bool)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

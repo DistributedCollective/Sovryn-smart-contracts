@@ -31,28 +31,37 @@ struct EnumerableBytes32Set.Bytes32Set internal aSet;
 - [testMint(address _to, uint256 _tokenAmount, uint256 _assetAmount, uint256 _price)](#testmint)
 - [testStringToBytes32(string source)](#teststringtobytes32)
 
-### dummyPausableFunction
+---    
+
+> ### dummyPausableFunction
 
 Pausable is currently an unused contract that still is operative
    because margin trade flashloan functionality has been commented out.
    In case it were restored, contract would become used again, so for a
    complete test coverage it is required to test it.
 
-```js
+```solidity
 function dummyPausableFunction() external nonpayable pausable 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function dummyPausableFunction() external pausable(msg.sig) {
+		/// @dev do nothing, just to check if modifier is working
+	}
+```
+</details>
 
-### togglePause
+---    
+
+> ### togglePause
 
 This function should be located on Pausable contract in the case
    it has to be used again by flashloan restoration.
 
-```js
+```solidity
 function togglePause(string funcId, bool isPaused) public nonpayable
 ```
 
@@ -63,11 +72,38 @@ function togglePause(string funcId, bool isPaused) public nonpayable
 | funcId | string |  | 
 | isPaused | bool |  | 
 
-### testSafeMath96_safe32
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function togglePause(
+		string memory funcId, // example: "mint(uint256,uint256)"
+		bool isPaused
+	) public {
+		/// keccak256("Pausable_FunctionPause")
+		bytes32 slot =
+			keccak256(
+				abi.encodePacked(
+					bytes4(keccak256(abi.encodePacked(funcId))),
+					uint256(0xa7143c84d793a15503da6f19bf9119a2dac94448ca45d77c8bf08f57b2e91047)
+				)
+			);
+
+		// solhint-disable-next-line no-inline-assembly
+		assembly {
+			sstore(slot, isPaused)
+		}
+	}
+```
+</details>
+
+---    
+
+> ### testSafeMath96_safe32
 
 Testing internal functions of governance/Staking/SafeMath96.sol
 
-```js
+```solidity
 function testSafeMath96_safe32(uint256 n) public pure
 returns(uint32)
 ```
@@ -78,9 +114,22 @@ returns(uint32)
 | ------------- |------------- | -----|
 | n | uint256 |  | 
 
-### testSafeMath96_safe64
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function testSafeMath96_safe32(uint256 n) public pure returns (uint32) {
+		// Public wrapper for SafeMath96 internal function
+		return safe32(n, "overflow");
+	}
+```
+</details>
+
+---    
+
+> ### testSafeMath96_safe64
+
+```solidity
 function testSafeMath96_safe64(uint256 n) public pure
 returns(uint64)
 ```
@@ -91,9 +140,22 @@ returns(uint64)
 | ------------- |------------- | -----|
 | n | uint256 |  | 
 
-### testSafeMath96_safe96
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function testSafeMath96_safe64(uint256 n) public pure returns (uint64) {
+		// Public wrapper for SafeMath96 internal function
+		return safe64(n, "overflow");
+	}
+```
+</details>
+
+---    
+
+> ### testSafeMath96_safe96
+
+```solidity
 function testSafeMath96_safe96(uint256 n) public pure
 returns(uint96)
 ```
@@ -104,9 +166,22 @@ returns(uint96)
 | ------------- |------------- | -----|
 | n | uint256 |  | 
 
-### testSafeMath96_sub96
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function testSafeMath96_safe96(uint256 n) public pure returns (uint96) {
+		// Public wrapper for SafeMath96 internal function
+		return safe96(n, "overflow");
+	}
+```
+</details>
+
+---    
+
+> ### testSafeMath96_sub96
+
+```solidity
 function testSafeMath96_sub96(uint96 a, uint96 b) public pure
 returns(uint96)
 ```
@@ -118,9 +193,22 @@ returns(uint96)
 | a | uint96 |  | 
 | b | uint96 |  | 
 
-### testSafeMath96_mul96
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function testSafeMath96_sub96(uint96 a, uint96 b) public pure returns (uint96) {
+		// Public wrapper for SafeMath96 internal function
+		return sub96(a, b, "underflow");
+	}
+```
+</details>
+
+---    
+
+> ### testSafeMath96_mul96
+
+```solidity
 function testSafeMath96_mul96(uint96 a, uint96 b) public pure
 returns(uint96)
 ```
@@ -132,9 +220,22 @@ returns(uint96)
 | a | uint96 |  | 
 | b | uint96 |  | 
 
-### testSafeMath96_div96
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function testSafeMath96_mul96(uint96 a, uint96 b) public pure returns (uint96) {
+		// Public wrapper for SafeMath96 internal function
+		return mul96(a, b, "overflow");
+	}
+```
+</details>
+
+---    
+
+> ### testSafeMath96_div96
+
+```solidity
 function testSafeMath96_div96(uint96 a, uint96 b) public pure
 returns(uint96)
 ```
@@ -146,9 +247,22 @@ returns(uint96)
 | a | uint96 |  | 
 | b | uint96 |  | 
 
-### testEnum_AddRemove
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function testSafeMath96_div96(uint96 a, uint96 b) public pure returns (uint96) {
+		// Public wrapper for SafeMath96 internal function
+		return div96(a, b, "division by 0");
+	}
+```
+</details>
+
+---    
+
+> ### testEnum_AddRemove
+
+```solidity
 function testEnum_AddRemove(bytes32 a, bytes32 b) public nonpayable
 returns(bool)
 ```
@@ -160,9 +274,22 @@ returns(bool)
 | a | bytes32 |  | 
 | b | bytes32 |  | 
 
-### testEnum_AddAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function testEnum_AddRemove(bytes32 a, bytes32 b) public returns (bool) {
+		aSet.addBytes32(a);
+		return aSet.removeBytes32(b);
+	}
+```
+</details>
+
+---    
+
+> ### testEnum_AddAddress
+
+```solidity
 function testEnum_AddAddress(address a, address b) public nonpayable
 returns(bool)
 ```
@@ -174,9 +301,22 @@ returns(bool)
 | a | address |  | 
 | b | address |  | 
 
-### testEnum_AddAddressesAndEnumerate
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function testEnum_AddAddress(address a, address b) public returns (bool) {
+		aSet.addAddress(a);
+		return aSet.containsAddress(b);
+	}
+```
+</details>
+
+---    
+
+> ### testEnum_AddAddressesAndEnumerate
+
+```solidity
 function testEnum_AddAddressesAndEnumerate(address a, address b, uint256 start, uint256 count) public nonpayable
 returns(bytes32[])
 ```
@@ -190,11 +330,30 @@ returns(bytes32[])
 | start | uint256 |  | 
 | count | uint256 |  | 
 
-### testVaultController_vaultApprove
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function testEnum_AddAddressesAndEnumerate(
+		address a,
+		address b,
+		uint256 start,
+		uint256 count
+	) public returns (bytes32[] memory) {
+		aSet.addAddress(a);
+		aSet.addAddress(b);
+		return aSet.enumerate(start, count);
+	}
+```
+</details>
+
+---    
+
+> ### testVaultController_vaultApprove
 
 Wrapper to test internal function never called along current codebase
 
-```js
+```solidity
 function testVaultController_vaultApprove(address token, address to, uint256 value) public nonpayable
 ```
 
@@ -206,11 +365,27 @@ function testVaultController_vaultApprove(address token, address to, uint256 val
 | to | address |  | 
 | value | uint256 |  | 
 
-### testMint
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function testVaultController_vaultApprove(
+		address token,
+		address to,
+		uint256 value
+	) public {
+		vaultApprove(token, to, value);
+	}
+```
+</details>
+
+---    
+
+> ### testMint
 
 mint wrapper w/o previous checks
 
-```js
+```solidity
 function testMint(address _to, uint256 _tokenAmount, uint256 _assetAmount, uint256 _price) public nonpayable
 ```
 
@@ -223,11 +398,28 @@ function testMint(address _to, uint256 _tokenAmount, uint256 _assetAmount, uint2
 | _assetAmount | uint256 |  | 
 | _price | uint256 |  | 
 
-### testStringToBytes32
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function testMint(
+		address _to,
+		uint256 _tokenAmount,
+		uint256 _assetAmount,
+		uint256 _price
+	) public {
+		_mint(_to, _tokenAmount, _assetAmount, _price);
+	}
+```
+</details>
+
+---    
+
+> ### testStringToBytes32
 
 wrapper for a function unreachable to tests
 
-```js
+```solidity
 function testStringToBytes32(string source) public pure
 returns(result bytes32)
 ```
@@ -237,6 +429,16 @@ returns(result bytes32)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | source | string |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function testStringToBytes32(string memory source) public pure returns (bytes32 result) {
+		return stringToBytes32(source);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -252,6 +454,7 @@ returns(result bytes32)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -373,7 +576,7 @@ returns(result bytes32)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

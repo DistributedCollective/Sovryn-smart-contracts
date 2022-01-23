@@ -14,8 +14,8 @@ margin trading and lending https://bzx.network similar to the dYdX protocol.
 
 ## Functions
 
-- [()](#)
-- [()](#)
+- [constructor()](#constructor)
+- [constructor()](#constructor)
 - [initialize(address target)](#initialize)
 - [setSovrynProtocolAddress(address newProtocolAddress)](#setsovrynprotocoladdress)
 - [setSOVTokenAddress(address newSovTokenAddress)](#setsovtokenaddress)
@@ -62,40 +62,54 @@ margin trading and lending https://bzx.network similar to the dYdX protocol.
 - [getTradingRebateRewardsBasisPoint()](#gettradingrebaterewardsbasispoint)
 - [getDedicatedSOVRebate()](#getdedicatedsovrebate)
 
-### 
+---    
+
+> ### constructor
 
 Empty public constructor.
 
-```js
+```solidity
 function () public nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+constructor() public {}
+```
+</details>
 
-### 
+---    
+
+> ### constructor
 
 Fallback function is to react to receiving value (rBTC).
 
-```js
+```solidity
 function () external nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function() external {
+		revert("fallback not allowed");
+	}
+```
+</details>
 
-### initialize
+---    
+
+> ### initialize
 
 ⤿ Overridden Implementation(s): [ProtocolSettingsMockup.initialize](ProtocolSettingsMockup.md#initialize)
 
 Set function selectors on target contract.
 	 *
 
-```js
+```solidity
 function initialize(address target) external nonpayable onlyOwner 
 ```
 
@@ -105,9 +119,66 @@ function initialize(address target) external nonpayable onlyOwner
 | ------------- |------------- | -----|
 | target | address | The address of the target contract. | 
 
-### setSovrynProtocolAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.setPriceFeedContract.selector];
+		_setTarget(this.setPriceFeedContract.selector, target);
+		_setTarget(this.setSwapsImplContract.selector, target);
+		_setTarget(this.setLoanPool.selector, target);
+		_setTarget(this.setSupportedTokens.selector, target);
+		_setTarget(this.setLendingFeePercent.selector, target);
+		_setTarget(this.setTradingFeePercent.selector, target);
+		_setTarget(this.setBorrowingFeePercent.selector, target);
+		_setTarget(this.setSwapExternalFeePercent.selector, target);
+		_setTarget(this.setAffiliateFeePercent.selector, target);
+		_setTarget(this.setAffiliateTradingTokenFeePercent.selector, target);
+		_setTarget(this.setLiquidationIncentivePercent.selector, target);
+		_setTarget(this.setMaxDisagreement.selector, target);
+		_setTarget(this.setSourceBuffer.selector, target);
+		_setTarget(this.setMaxSwapSize.selector, target);
+		_setTarget(this.setFeesController.selector, target);
+		_setTarget(this.withdrawFees.selector, target);
+		_setTarget(this.withdrawLendingFees.selector, target);
+		_setTarget(this.withdrawTradingFees.selector, target);
+		_setTarget(this.withdrawBorrowingFees.selector, target);
+		_setTarget(this.withdrawProtocolToken.selector, target);
+		_setTarget(this.depositProtocolToken.selector, target);
+		_setTarget(this.getLoanPoolsList.selector, target);
+		_setTarget(this.isLoanPool.selector, target);
+		_setTarget(this.setSovrynSwapContractRegistryAddress.selector, target);
+		_setTarget(this.setWrbtcToken.selector, target);
+		_setTarget(this.setProtocolTokenAddress.selector, target);
+		_setTarget(this.setRolloverBaseReward.selector, target);
+		_setTarget(this.setRebatePercent.selector, target);
+		_setTarget(this.setSpecialRebates.selector, target);
+		_setTarget(this.setSovrynProtocolAddress.selector, target);
+		_setTarget(this.setSOVTokenAddress.selector, target);
+		_setTarget(this.setLockedSOVAddress.selector, target);
+		_setTarget(this.setMinReferralsToPayoutAffiliates.selector, target);
+		_setTarget(this.getSpecialRebates.selector, target);
+		_setTarget(this.getProtocolAddress.selector, target);
+		_setTarget(this.getSovTokenAddress.selector, target);
+		_setTarget(this.getLockedSOVAddress.selector, target);
+		_setTarget(this.getFeeRebatePercent.selector, target);
+		_setTarget(this.togglePaused.selector, target);
+		_setTarget(this.isProtocolPaused.selector, target);
+		_setTarget(this.getSwapExternalFeePercent.selector, target);
+		_setTarget(this.setTradingRebateRewardsBasisPoint.selector, target);
+		_setTarget(this.getTradingRebateRewardsBasisPoint.selector, target);
+		_setTarget(this.getDedicatedSOVRebate.selector, target);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "ProtocolSettings");
+	}
+```
+</details>
+
+---    
+
+> ### setSovrynProtocolAddress
+
+```solidity
 function setSovrynProtocolAddress(address newProtocolAddress) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -117,9 +188,24 @@ function setSovrynProtocolAddress(address newProtocolAddress) external nonpayabl
 | ------------- |------------- | -----|
 | newProtocolAddress | address |  | 
 
-### setSOVTokenAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setSovrynProtocolAddress(address newProtocolAddress) external onlyOwner whenNotPaused {
+		address oldProtocolAddress = protocolAddress;
+		protocolAddress = newProtocolAddress;
+
+		emit SetProtocolAddress(msg.sender, oldProtocolAddress, newProtocolAddress);
+	}
+```
+</details>
+
+---    
+
+> ### setSOVTokenAddress
+
+```solidity
 function setSOVTokenAddress(address newSovTokenAddress) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -129,9 +215,26 @@ function setSOVTokenAddress(address newSovTokenAddress) external nonpayable only
 | ------------- |------------- | -----|
 | newSovTokenAddress | address |  | 
 
-### setLockedSOVAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setSOVTokenAddress(address newSovTokenAddress) external onlyOwner whenNotPaused {
+		require(Address.isContract(newSovTokenAddress), "newSovTokenAddress not a contract");
+
+		address oldTokenAddress = sovTokenAddress;
+		sovTokenAddress = newSovTokenAddress;
+
+		emit SetSOVTokenAddress(msg.sender, oldTokenAddress, newSovTokenAddress);
+	}
+```
+</details>
+
+---    
+
+> ### setLockedSOVAddress
+
+```solidity
 function setLockedSOVAddress(address newLockedSOVAddress) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -141,12 +244,29 @@ function setLockedSOVAddress(address newLockedSOVAddress) external nonpayable on
 | ------------- |------------- | -----|
 | newLockedSOVAddress | address |  | 
 
-### setTradingRebateRewardsBasisPoint
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setLockedSOVAddress(address newLockedSOVAddress) external onlyOwner whenNotPaused {
+		require(Address.isContract(newLockedSOVAddress), "newLockSOVAddress not a contract");
+
+		address oldLockedSOVAddress = lockedSOVAddress;
+		lockedSOVAddress = newLockedSOVAddress;
+
+		emit SetLockedSOVAddress(msg.sender, oldLockedSOVAddress, newLockedSOVAddress);
+	}
+```
+</details>
+
+---    
+
+> ### setTradingRebateRewardsBasisPoint
 
 Set the basis point of trading rebate rewards (SOV), max value is 9999 (99.99% liquid, 0.01% vested).
 	 *
 
-```js
+```solidity
 function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -156,12 +276,29 @@ function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external nonpa
 | ------------- |------------- | -----|
 | newBasisPoint | uint256 | Basis point value. | 
 
-### setMinReferralsToPayoutAffiliates
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external onlyOwner whenNotPaused {
+		require(newBasisPoint <= 9999, "value too high");
+
+		uint256 oldBasisPoint = tradingRebateRewardsBasisPoint;
+		tradingRebateRewardsBasisPoint = newBasisPoint;
+
+		emit SetTradingRebateRewardsBasisPoint(msg.sender, oldBasisPoint, newBasisPoint);
+	}
+```
+</details>
+
+---    
+
+> ### setMinReferralsToPayoutAffiliates
 
 Update the minimum number of referrals to get affiliates rewards.
 	 *
 
-```js
+```solidity
 function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -171,12 +308,27 @@ function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external non
 | ------------- |------------- | -----|
 | newMinReferrals | uint256 | The new minimum number of referrals. | 
 
-### setPriceFeedContract
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external onlyOwner whenNotPaused {
+		uint256 oldMinReferrals = minReferralsToPayout;
+		minReferralsToPayout = newMinReferrals;
+
+		emit SetMinReferralsToPayoutAffiliates(msg.sender, oldMinReferrals, newMinReferrals);
+	}
+```
+</details>
+
+---    
+
+> ### setPriceFeedContract
 
 Set the address of the Price Feed instance.
 	 *
 
-```js
+```solidity
 function setPriceFeedContract(address newContract) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -186,12 +338,27 @@ function setPriceFeedContract(address newContract) external nonpayable onlyOwner
 | ------------- |------------- | -----|
 | newContract | address | The address of the Price Feed new instance. | 
 
-### setSwapsImplContract
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setPriceFeedContract(address newContract) external onlyOwner whenNotPaused {
+		address oldContract = priceFeeds;
+		priceFeeds = newContract;
+
+		emit SetPriceFeedContract(msg.sender, oldContract, newContract);
+	}
+```
+</details>
+
+---    
+
+> ### setSwapsImplContract
 
 Set the address of the asset swapper instance.
 	 *
 
-```js
+```solidity
 function setSwapsImplContract(address newContract) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -201,12 +368,27 @@ function setSwapsImplContract(address newContract) external nonpayable onlyOwner
 | ------------- |------------- | -----|
 | newContract | address | The address of the asset swapper new instance. | 
 
-### setLoanPool
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setSwapsImplContract(address newContract) external onlyOwner whenNotPaused {
+		address oldContract = swapsImpl;
+		swapsImpl = newContract;
+
+		emit SetSwapsImplContract(msg.sender, oldContract, newContract);
+	}
+```
+</details>
+
+---    
+
+> ### setLoanPool
 
 Set a list of loan pools and its tokens.
 	 *
 
-```js
+```solidity
 function setLoanPool(address[] pools, address[] assets) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -217,13 +399,42 @@ function setLoanPool(address[] pools, address[] assets) external nonpayable only
 | pools | address[] | The array of addresses of new loan pool instances. | 
 | assets | address[] | The array of addresses of the corresponding underlying tokens. | 
 
-### setSupportedTokens
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setLoanPool(address[] calldata pools, address[] calldata assets) external onlyOwner whenNotPaused {
+		require(pools.length == assets.length, "count mismatch");
+
+		for (uint256 i = 0; i < pools.length; i++) {
+			require(pools[i] != assets[i], "pool == asset");
+			require(pools[i] != address(0), "pool == 0");
+			require(assets[i] != address(0) || loanPoolToUnderlying[pools[i]] != address(0), "pool not exists");
+			if (assets[i] == address(0)) {
+				underlyingToLoanPool[loanPoolToUnderlying[pools[i]]] = address(0);
+				loanPoolToUnderlying[pools[i]] = address(0);
+				loanPoolsSet.removeAddress(pools[i]);
+			} else {
+				loanPoolToUnderlying[pools[i]] = assets[i];
+				underlyingToLoanPool[assets[i]] = pools[i];
+				loanPoolsSet.addAddress(pools[i]);
+			}
+
+			emit SetLoanPool(msg.sender, pools[i], assets[i]);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### setSupportedTokens
 
 Set a list of supported tokens by populating the
   storage supportedTokens mapping.
 	 *
 
-```js
+```solidity
 function setSupportedTokens(address[] addrs, bool[] toggles) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -232,15 +443,32 @@ function setSupportedTokens(address[] addrs, bool[] toggles) external nonpayable
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | addrs | address[] | The array of addresses of the tokens. | 
-| toggles | bool[] | The array of flags indicating whether
-  the corresponding token is supported or not. | 
+| toggles | bool[] | The array of flags indicating whether   the corresponding token is supported or not. | 
 
-### setLendingFeePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setSupportedTokens(address[] calldata addrs, bool[] calldata toggles) external onlyOwner whenNotPaused {
+		require(addrs.length == toggles.length, "count mismatch");
+
+		for (uint256 i = 0; i < addrs.length; i++) {
+			supportedTokens[addrs[i]] = toggles[i];
+
+			emit SetSupportedTokens(msg.sender, addrs[i], toggles[i]);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### setLendingFeePercent
 
 Set the value of lendingFeePercent storage variable.
 	 *
 
-```js
+```solidity
 function setLendingFeePercent(uint256 newValue) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -250,12 +478,28 @@ function setLendingFeePercent(uint256 newValue) external nonpayable onlyOwner wh
 | ------------- |------------- | -----|
 | newValue | uint256 | The new value for lendingFeePercent. | 
 
-### setTradingFeePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setLendingFeePercent(uint256 newValue) external onlyOwner whenNotPaused {
+		require(newValue <= 10**20, "value too high");
+		uint256 oldValue = lendingFeePercent;
+		lendingFeePercent = newValue;
+
+		emit SetLendingFeePercent(msg.sender, oldValue, newValue);
+	}
+```
+</details>
+
+---    
+
+> ### setTradingFeePercent
 
 Set the value of tradingFeePercent storage variable.
 	 *
 
-```js
+```solidity
 function setTradingFeePercent(uint256 newValue) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -265,12 +509,28 @@ function setTradingFeePercent(uint256 newValue) external nonpayable onlyOwner wh
 | ------------- |------------- | -----|
 | newValue | uint256 | The new value for tradingFeePercent. | 
 
-### setBorrowingFeePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setTradingFeePercent(uint256 newValue) external onlyOwner whenNotPaused {
+		require(newValue <= 10**20, "value too high");
+		uint256 oldValue = tradingFeePercent;
+		tradingFeePercent = newValue;
+
+		emit SetTradingFeePercent(msg.sender, oldValue, newValue);
+	}
+```
+</details>
+
+---    
+
+> ### setBorrowingFeePercent
 
 Set the value of borrowingFeePercent storage variable.
 	 *
 
-```js
+```solidity
 function setBorrowingFeePercent(uint256 newValue) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -280,12 +540,28 @@ function setBorrowingFeePercent(uint256 newValue) external nonpayable onlyOwner 
 | ------------- |------------- | -----|
 | newValue | uint256 | The new value for borrowingFeePercent. | 
 
-### setSwapExternalFeePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setBorrowingFeePercent(uint256 newValue) external onlyOwner whenNotPaused {
+		require(newValue <= 10**20, "value too high");
+		uint256 oldValue = borrowingFeePercent;
+		borrowingFeePercent = newValue;
+
+		emit SetBorrowingFeePercent(msg.sender, oldValue, newValue);
+	}
+```
+</details>
+
+---    
+
+> ### setSwapExternalFeePercent
 
 Set the value of swapExtrernalFeePercent storage variable
 	 *
 
-```js
+```solidity
 function setSwapExternalFeePercent(uint256 newValue) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -295,12 +571,28 @@ function setSwapExternalFeePercent(uint256 newValue) external nonpayable onlyOwn
 | ------------- |------------- | -----|
 | newValue | uint256 | the new value for swapExternalFeePercent | 
 
-### setAffiliateFeePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setSwapExternalFeePercent(uint256 newValue) external onlyOwner whenNotPaused {
+		require(newValue <= 10**20, "value too high");
+		uint256 oldValue = swapExtrernalFeePercent;
+		swapExtrernalFeePercent = newValue;
+
+		emit SetSwapExternalFeePercent(msg.sender, oldValue, newValue);
+	}
+```
+</details>
+
+---    
+
+> ### setAffiliateFeePercent
 
 Set the value of affiliateFeePercent storage variable.
 	 *
 
-```js
+```solidity
 function setAffiliateFeePercent(uint256 newValue) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -310,12 +602,28 @@ function setAffiliateFeePercent(uint256 newValue) external nonpayable onlyOwner 
 | ------------- |------------- | -----|
 | newValue | uint256 | The new value for affiliateFeePercent. | 
 
-### setAffiliateTradingTokenFeePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setAffiliateFeePercent(uint256 newValue) external onlyOwner whenNotPaused {
+		require(newValue <= 10**20, "value too high");
+		uint256 oldValue = affiliateFeePercent;
+		affiliateFeePercent = newValue;
+
+		emit SetAffiliateFeePercent(msg.sender, oldValue, newValue);
+	}
+```
+</details>
+
+---    
+
+> ### setAffiliateTradingTokenFeePercent
 
 Set the value of affiliateTradingTokenFeePercent storage variable.
 	 *
 
-```js
+```solidity
 function setAffiliateTradingTokenFeePercent(uint256 newValue) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -325,12 +633,28 @@ function setAffiliateTradingTokenFeePercent(uint256 newValue) external nonpayabl
 | ------------- |------------- | -----|
 | newValue | uint256 | The new value for affiliateTradingTokenFeePercent. | 
 
-### setLiquidationIncentivePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setAffiliateTradingTokenFeePercent(uint256 newValue) external onlyOwner whenNotPaused {
+		require(newValue <= 10**20, "value too high");
+		uint256 oldValue = affiliateTradingTokenFeePercent;
+		affiliateTradingTokenFeePercent = newValue;
+
+		emit SetAffiliateTradingTokenFeePercent(msg.sender, oldValue, newValue);
+	}
+```
+</details>
+
+---    
+
+> ### setLiquidationIncentivePercent
 
 Set the value of liquidationIncentivePercent storage variable.
 	 *
 
-```js
+```solidity
 function setLiquidationIncentivePercent(uint256 newValue) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -340,12 +664,28 @@ function setLiquidationIncentivePercent(uint256 newValue) external nonpayable on
 | ------------- |------------- | -----|
 | newValue | uint256 | The new value for liquidationIncentivePercent. | 
 
-### setMaxDisagreement
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setLiquidationIncentivePercent(uint256 newValue) external onlyOwner whenNotPaused {
+		require(newValue <= 10**20, "value too high");
+		uint256 oldValue = liquidationIncentivePercent;
+		liquidationIncentivePercent = newValue;
+
+		emit SetLiquidationIncentivePercent(msg.sender, oldValue, newValue);
+	}
+```
+</details>
+
+---    
+
+> ### setMaxDisagreement
 
 Set the value of the maximum swap spread.
 	 *
 
-```js
+```solidity
 function setMaxDisagreement(uint256 newValue) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -355,12 +695,24 @@ function setMaxDisagreement(uint256 newValue) external nonpayable onlyOwner when
 | ------------- |------------- | -----|
 | newValue | uint256 | The new value for maxDisagreement. | 
 
-### setSourceBuffer
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setMaxDisagreement(uint256 newValue) external onlyOwner whenNotPaused {
+		maxDisagreement = newValue;
+	}
+```
+</details>
+
+---    
+
+> ### setSourceBuffer
 
 Set the value of the maximum source buffer.
 	 *
 
-```js
+```solidity
 function setSourceBuffer(uint256 newValue) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -370,12 +722,24 @@ function setSourceBuffer(uint256 newValue) external nonpayable onlyOwner whenNot
 | ------------- |------------- | -----|
 | newValue | uint256 | The new value for the maximum source buffer. | 
 
-### setMaxSwapSize
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setSourceBuffer(uint256 newValue) external onlyOwner whenNotPaused {
+		sourceBuffer = newValue;
+	}
+```
+</details>
+
+---    
+
+> ### setMaxSwapSize
 
 Set the value of the swap size limit.
 	 *
 
-```js
+```solidity
 function setMaxSwapSize(uint256 newValue) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -385,12 +749,27 @@ function setMaxSwapSize(uint256 newValue) external nonpayable onlyOwner whenNotP
 | ------------- |------------- | -----|
 | newValue | uint256 | The new value for the maximum swap size. | 
 
-### setFeesController
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setMaxSwapSize(uint256 newValue) external onlyOwner whenNotPaused {
+		uint256 oldValue = maxSwapSize;
+		maxSwapSize = newValue;
+
+		emit SetMaxSwapSize(msg.sender, oldValue, newValue);
+	}
+```
+</details>
+
+---    
+
+> ### setFeesController
 
 Set the address of the feesController instance.
 	 *
 
-```js
+```solidity
 function setFeesController(address newController) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -400,7 +779,22 @@ function setFeesController(address newController) external nonpayable onlyOwner 
 | ------------- |------------- | -----|
 | newController | address | The new address of the feesController. | 
 
-### withdrawFees
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setFeesController(address newController) external onlyOwner whenNotPaused {
+		address oldController = feesController;
+		feesController = newController;
+
+		emit SetFeesController(msg.sender, oldController, newController);
+	}
+```
+</details>
+
+---    
+
+> ### withdrawFees
 
 The feesController calls this function to withdraw fees
 from three sources: lending, trading and borrowing.
@@ -408,37 +802,111 @@ The fees (except SOV) will be converted to wRBTC.
 For SOV, it will be deposited directly to feeSharingProxy from the protocol.
 	 *
 
-```js
+```solidity
 function withdrawFees(address[] tokens, address receiver) external nonpayable whenNotPaused 
 returns(totalWRBTCWithdrawn uint256)
 ```
-
-**Returns**
-
-The withdrawn total amount in wRBTC
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | tokens | address[] | The array of address of the token instance. | 
-| receiver | address | The address of the withdrawal recipient.
-	 * | 
+| receiver | address | The address of the withdrawal recipient. 	 * | 
 
-### withdrawLendingFees
+**Returns**
+
+The withdrawn total amount in wRBTC
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawFees(address[] calldata tokens, address receiver) external whenNotPaused returns (uint256 totalWRBTCWithdrawn) {
+		require(msg.sender == feesController, "unauthorized");
+
+		for (uint256 i = 0; i < tokens.length; i++) {
+			uint256 lendingBalance = lendingFeeTokensHeld[tokens[i]];
+			if (lendingBalance > 0) {
+				lendingFeeTokensHeld[tokens[i]] = 0;
+				lendingFeeTokensPaid[tokens[i]] = lendingFeeTokensPaid[tokens[i]].add(lendingBalance);
+			}
+
+			uint256 tradingBalance = tradingFeeTokensHeld[tokens[i]];
+			if (tradingBalance > 0) {
+				tradingFeeTokensHeld[tokens[i]] = 0;
+				tradingFeeTokensPaid[tokens[i]] = tradingFeeTokensPaid[tokens[i]].add(tradingBalance);
+			}
+
+			uint256 borrowingBalance = borrowingFeeTokensHeld[tokens[i]];
+			if (borrowingBalance > 0) {
+				borrowingFeeTokensHeld[tokens[i]] = 0;
+				borrowingFeeTokensPaid[tokens[i]] = borrowingFeeTokensPaid[tokens[i]].add(borrowingBalance);
+			}
+
+			uint256 tempAmount = lendingBalance.add(tradingBalance).add(borrowingBalance);
+
+			if (tempAmount == 0) {
+				continue;
+			}
+
+			uint256 amountConvertedToWRBTC;
+			if (tokens[i] == address(sovTokenAddress)) {
+				IERC20(tokens[i]).approve(feesController, tempAmount);
+				IFeeSharingProxy(feesController).transferTokens(address(sovTokenAddress), uint96(tempAmount));
+				amountConvertedToWRBTC = 0;
+			} else {
+				if (tokens[i] == address(wrbtcToken)) {
+					amountConvertedToWRBTC = tempAmount;
+
+					IERC20(address(wrbtcToken)).safeTransfer(receiver, amountConvertedToWRBTC);
+				} else {
+					IERC20(tokens[i]).approve(protocolAddress, tempAmount);
+
+					(amountConvertedToWRBTC, ) = ProtocolSwapExternalInterface(protocolAddress).swapExternal(
+						tokens[i], // source token address
+						address(wrbtcToken), // dest token address
+						feesController, // set feeSharingProxy as receiver
+						protocolAddress, // protocol as the sender
+						tempAmount, // source token amount
+						0, // reqDestToken
+						0, // minReturn
+						"" // loan data bytes
+					);
+
+					/// Will revert if disagreement found.
+					IPriceFeeds(priceFeeds).checkPriceDisagreement(
+						tokens[i],
+						address(wrbtcToken),
+						tempAmount,
+						amountConvertedToWRBTC,
+						maxDisagreement
+					);
+				}
+
+				totalWRBTCWithdrawn = totalWRBTCWithdrawn.add(amountConvertedToWRBTC);
+			}
+
+			emit WithdrawFees(msg.sender, tokens[i], receiver, lendingBalance, tradingBalance, borrowingBalance, amountConvertedToWRBTC);
+		}
+
+		return totalWRBTCWithdrawn;
+	}
+```
+</details>
+
+---    
+
+> ### withdrawLendingFees
 
 The feesController calls this function to withdraw fees
 accrued from lending operations.
 	 *
 
-```js
+```solidity
 function withdrawLendingFees(address token, address receiver, uint256 amount) external nonpayable whenNotPaused 
 returns(bool)
 ```
-
-**Returns**
-
-Whether withdrawal was successful.
 
 **Arguments**
 
@@ -446,23 +914,57 @@ Whether withdrawal was successful.
 | ------------- |------------- | -----|
 | token | address | The address of the token instance. | 
 | receiver | address | The address of the withdrawal recipient. | 
-| amount | uint256 | The amount of fees to get, ignored if greater than balance.
-	 * | 
+| amount | uint256 | The amount of fees to get, ignored if greater than balance. 	 * | 
 
-### withdrawTradingFees
+**Returns**
+
+Whether withdrawal was successful.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawLendingFees(
+		address token,
+		address receiver,
+		uint256 amount
+	) external whenNotPaused returns (bool) {
+		require(msg.sender == feesController, "unauthorized");
+
+		uint256 withdrawAmount = amount;
+
+		uint256 balance = lendingFeeTokensHeld[token];
+		if (withdrawAmount > balance) {
+			withdrawAmount = balance;
+		}
+		if (withdrawAmount == 0) {
+			return false;
+		}
+
+		lendingFeeTokensHeld[token] = balance.sub(withdrawAmount);
+		lendingFeeTokensPaid[token] = lendingFeeTokensPaid[token].add(withdrawAmount);
+
+		IERC20(token).safeTransfer(receiver, withdrawAmount);
+
+		emit WithdrawLendingFees(msg.sender, token, receiver, withdrawAmount);
+
+		return true;
+	}
+```
+</details>
+
+---    
+
+> ### withdrawTradingFees
 
 The feesController calls this function to withdraw fees
 accrued from trading operations.
 	 *
 
-```js
+```solidity
 function withdrawTradingFees(address token, address receiver, uint256 amount) external nonpayable whenNotPaused 
 returns(bool)
 ```
-
-**Returns**
-
-Whether withdrawal was successful.
 
 **Arguments**
 
@@ -470,23 +972,57 @@ Whether withdrawal was successful.
 | ------------- |------------- | -----|
 | token | address | The address of the token instance. | 
 | receiver | address | The address of the withdrawal recipient. | 
-| amount | uint256 | The amount of fees to get, ignored if greater than balance.
-	 * | 
+| amount | uint256 | The amount of fees to get, ignored if greater than balance. 	 * | 
 
-### withdrawBorrowingFees
+**Returns**
+
+Whether withdrawal was successful.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawTradingFees(
+		address token,
+		address receiver,
+		uint256 amount
+	) external whenNotPaused returns (bool) {
+		require(msg.sender == feesController, "unauthorized");
+
+		uint256 withdrawAmount = amount;
+
+		uint256 balance = tradingFeeTokensHeld[token];
+		if (withdrawAmount > balance) {
+			withdrawAmount = balance;
+		}
+		if (withdrawAmount == 0) {
+			return false;
+		}
+
+		tradingFeeTokensHeld[token] = balance.sub(withdrawAmount);
+		tradingFeeTokensPaid[token] = tradingFeeTokensPaid[token].add(withdrawAmount);
+
+		IERC20(token).safeTransfer(receiver, withdrawAmount);
+
+		emit WithdrawTradingFees(msg.sender, token, receiver, withdrawAmount);
+
+		return true;
+	}
+```
+</details>
+
+---    
+
+> ### withdrawBorrowingFees
 
 The feesController calls this function to withdraw fees
 accrued from borrowing operations.
 	 *
 
-```js
+```solidity
 function withdrawBorrowingFees(address token, address receiver, uint256 amount) external nonpayable whenNotPaused 
 returns(bool)
 ```
-
-**Returns**
-
-Whether withdrawal was successful.
 
 **Arguments**
 
@@ -494,37 +1030,86 @@ Whether withdrawal was successful.
 | ------------- |------------- | -----|
 | token | address | The address of the token instance. | 
 | receiver | address | The address of the withdrawal recipient. | 
-| amount | uint256 | The amount of fees to get, ignored if greater than balance.
-	 * | 
+| amount | uint256 | The amount of fees to get, ignored if greater than balance. 	 * | 
 
-### withdrawProtocolToken
+**Returns**
+
+Whether withdrawal was successful.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawBorrowingFees(
+		address token,
+		address receiver,
+		uint256 amount
+	) external whenNotPaused returns (bool) {
+		require(msg.sender == feesController, "unauthorized");
+
+		uint256 withdrawAmount = amount;
+
+		uint256 balance = borrowingFeeTokensHeld[token];
+		if (withdrawAmount > balance) {
+			withdrawAmount = balance;
+		}
+		if (withdrawAmount == 0) {
+			return false;
+		}
+
+		borrowingFeeTokensHeld[token] = balance.sub(withdrawAmount);
+		borrowingFeeTokensPaid[token] = borrowingFeeTokensPaid[token].add(withdrawAmount);
+
+		IERC20(token).safeTransfer(receiver, withdrawAmount);
+
+		emit WithdrawBorrowingFees(msg.sender, token, receiver, withdrawAmount);
+
+		return true;
+	}
+```
+</details>
+
+---    
+
+> ### withdrawProtocolToken
 
 The owner calls this function to withdraw protocol tokens.
 	 *
 
-```js
+```solidity
 function withdrawProtocolToken(address receiver, uint256 amount) external nonpayable onlyOwner whenNotPaused 
 returns(address, bool)
 ```
-
-**Returns**
-
-The protocol token address.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | receiver | address | The address of the withdrawal recipient. | 
-| amount | uint256 | The amount of tokens to get.
-	 * | 
+| amount | uint256 | The amount of tokens to get. 	 * | 
 
-### depositProtocolToken
+**Returns**
+
+The protocol token address.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawProtocolToken(address receiver, uint256 amount) external onlyOwner whenNotPaused returns (address, bool) {
+		return _withdrawProtocolToken(receiver, amount);
+	}
+```
+</details>
+
+---    
+
+> ### depositProtocolToken
 
 The owner calls this function to deposit protocol tokens.
 	 *
 
-```js
+```solidity
 function depositProtocolToken(uint256 amount) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -534,34 +1119,61 @@ function depositProtocolToken(uint256 amount) external nonpayable onlyOwner when
 | ------------- |------------- | -----|
 | amount | uint256 | The tokens of fees to send. | 
 
-### getLoanPoolsList
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function depositProtocolToken(uint256 amount) external onlyOwner whenNotPaused {
+		/// @dev Update local balance
+		protocolTokenHeld = protocolTokenHeld.add(amount);
+
+		/// @dev Send the tokens
+		IERC20(protocolTokenAddress).safeTransferFrom(msg.sender, address(this), amount);
+	}
+```
+</details>
+
+---    
+
+> ### getLoanPoolsList
 
 Get a list of loan pools.
 	 *
 
-```js
+```solidity
 function getLoanPoolsList(uint256 start, uint256 count) external view
 returns(bytes32[])
 ```
-
-**Returns**
-
-The array of loan pools.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | start | uint256 | The offset. | 
-| count | uint256 | The limit.
-	 * | 
+| count | uint256 | The limit. 	 * | 
 
-### isLoanPool
+**Returns**
+
+The array of loan pools.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getLoanPoolsList(uint256 start, uint256 count) external view returns (bytes32[] memory) {
+		return loanPoolsSet.enumerate(start, count);
+	}
+```
+</details>
+
+---    
+
+> ### isLoanPool
 
 Check whether a token is a pool token.
 	 *
 
-```js
+```solidity
 function isLoanPool(address loanPool) external view
 returns(bool)
 ```
@@ -572,12 +1184,24 @@ returns(bool)
 | ------------- |------------- | -----|
 | loanPool | address | The token address to check. | 
 
-### setSovrynSwapContractRegistryAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function isLoanPool(address loanPool) external view returns (bool) {
+		return loanPoolToUnderlying[loanPool] != address(0);
+	}
+```
+</details>
+
+---    
+
+> ### setSovrynSwapContractRegistryAddress
 
 Set the contract registry address of the SovrynSwap network.
 	 *
 
-```js
+```solidity
 function setSovrynSwapContractRegistryAddress(address registryAddress) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -587,12 +1211,29 @@ function setSovrynSwapContractRegistryAddress(address registryAddress) external 
 | ------------- |------------- | -----|
 | registryAddress | address | the address of the registry contract. | 
 
-### setWrbtcToken
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setSovrynSwapContractRegistryAddress(address registryAddress) external onlyOwner whenNotPaused {
+		require(Address.isContract(registryAddress), "registryAddress not a contract");
+
+		address oldSovrynSwapContractRegistryAddress = sovrynSwapContractRegistryAddress;
+		sovrynSwapContractRegistryAddress = registryAddress;
+
+		emit SetSovrynSwapContractRegistryAddress(msg.sender, oldSovrynSwapContractRegistryAddress, sovrynSwapContractRegistryAddress);
+	}
+```
+</details>
+
+---    
+
+> ### setWrbtcToken
 
 Set the wrBTC contract address.
 	 *
 
-```js
+```solidity
 function setWrbtcToken(address wrbtcTokenAddress) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -602,12 +1243,29 @@ function setWrbtcToken(address wrbtcTokenAddress) external nonpayable onlyOwner 
 | ------------- |------------- | -----|
 | wrbtcTokenAddress | address | The address of the wrBTC contract. | 
 
-### setProtocolTokenAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setWrbtcToken(address wrbtcTokenAddress) external onlyOwner whenNotPaused {
+		require(Address.isContract(wrbtcTokenAddress), "wrbtcTokenAddress not a contract");
+
+		address oldwrbtcToken = address(wrbtcToken);
+		wrbtcToken = IWrbtcERC20(wrbtcTokenAddress);
+
+		emit SetWrbtcToken(msg.sender, oldwrbtcToken, wrbtcTokenAddress);
+	}
+```
+</details>
+
+---    
+
+> ### setProtocolTokenAddress
 
 Set the protocol token contract address.
 	 *
 
-```js
+```solidity
 function setProtocolTokenAddress(address _protocolTokenAddress) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -617,12 +1275,29 @@ function setProtocolTokenAddress(address _protocolTokenAddress) external nonpaya
 | ------------- |------------- | -----|
 | _protocolTokenAddress | address | The address of the protocol token contract. | 
 
-### setRolloverBaseReward
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setProtocolTokenAddress(address _protocolTokenAddress) external onlyOwner whenNotPaused {
+		require(Address.isContract(_protocolTokenAddress), "_protocolTokenAddress not a contract");
+
+		address oldProtocolTokenAddress = protocolTokenAddress;
+		protocolTokenAddress = _protocolTokenAddress;
+
+		emit SetProtocolTokenAddress(msg.sender, oldProtocolTokenAddress, _protocolTokenAddress);
+	}
+```
+</details>
+
+---    
+
+> ### setRolloverBaseReward
 
 Set rollover base reward. It should be denominated in wrBTC.
 	 *
 
-```js
+```solidity
 function setRolloverBaseReward(uint256 baseRewardValue) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -632,12 +1307,29 @@ function setRolloverBaseReward(uint256 baseRewardValue) external nonpayable only
 | ------------- |------------- | -----|
 | baseRewardValue | uint256 | The base reward. | 
 
-### setRebatePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setRolloverBaseReward(uint256 baseRewardValue) external onlyOwner whenNotPaused {
+		require(baseRewardValue > 0, "Base reward is zero");
+
+		uint256 oldValue = rolloverBaseReward;
+		rolloverBaseReward = baseRewardValue;
+
+		emit SetRolloverBaseReward(msg.sender, oldValue, rolloverBaseReward);
+	}
+```
+</details>
+
+---    
+
+> ### setRebatePercent
 
 Set the fee rebate percent.
 	 *
 
-```js
+```solidity
 function setRebatePercent(uint256 rebatePercent) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -647,12 +1339,29 @@ function setRebatePercent(uint256 rebatePercent) external nonpayable onlyOwner w
 | ------------- |------------- | -----|
 | rebatePercent | uint256 | The fee rebate percent. | 
 
-### setSpecialRebates
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setRebatePercent(uint256 rebatePercent) external onlyOwner whenNotPaused {
+		require(rebatePercent <= 10**20, "Fee rebate is too high");
+
+		uint256 oldRebatePercent = feeRebatePercent;
+		feeRebatePercent = rebatePercent;
+
+		emit SetRebatePercent(msg.sender, oldRebatePercent, rebatePercent);
+	}
+```
+</details>
+
+---    
+
+> ### setSpecialRebates
 
 Set the special fee rebate percent for specific pair
 	 *
 
-```js
+```solidity
 function setSpecialRebates(address sourceToken, address destToken, uint256 specialRebatesPercent) external nonpayable onlyOwner whenNotPaused 
 ```
 
@@ -664,79 +1373,140 @@ function setSpecialRebates(address sourceToken, address destToken, uint256 speci
 | destToken | address |  | 
 | specialRebatesPercent | uint256 | The new special fee rebate percent. | 
 
-### getSpecialRebates
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setSpecialRebates(
+		address sourceToken,
+		address destToken,
+		uint256 specialRebatesPercent
+	) external onlyOwner whenNotPaused {
+		// Set max special rebates to 1000%
+		require(specialRebatesPercent <= 1000e18, "Special fee rebate is too high");
+
+		uint256 oldSpecialRebatesPercent = specialRebates[sourceToken][destToken];
+		specialRebates[sourceToken][destToken] = specialRebatesPercent;
+
+		emit SetSpecialRebates(msg.sender, sourceToken, destToken, oldSpecialRebatesPercent, specialRebatesPercent);
+	}
+```
+</details>
+
+---    
+
+> ### getSpecialRebates
 
 Get a rebate percent of specific pairs.
 	 *
 
-```js
+```solidity
 function getSpecialRebates(address sourceTokenAddress, address destTokenAddress) external view
 returns(specialRebatesPercent uint256)
 ```
-
-**Returns**
-
-The percent rebates of the pairs.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | sourceTokenAddress | address | The source of pairs. | 
-| destTokenAddress | address | The dest of pairs.
-	 * | 
+| destTokenAddress | address | The dest of pairs. 	 * | 
 
-### getProtocolAddress
+**Returns**
 
-```js
+The percent rebates of the pairs.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getSpecialRebates(address sourceTokenAddress, address destTokenAddress) external view returns (uint256 specialRebatesPercent) {
+		return specialRebates[sourceTokenAddress][destTokenAddress];
+	}
+```
+</details>
+
+---    
+
+> ### getProtocolAddress
+
+```solidity
 function getProtocolAddress() external view
 returns(address)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getProtocolAddress() external view returns (address) {
+		return protocolAddress;
+	}
+```
+</details>
 
-### getSovTokenAddress
+---    
 
-```js
+> ### getSovTokenAddress
+
+```solidity
 function getSovTokenAddress() external view
 returns(address)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getSovTokenAddress() external view returns (address) {
+		return sovTokenAddress;
+	}
+```
+</details>
 
-### getLockedSOVAddress
+---    
 
-```js
+> ### getLockedSOVAddress
+
+```solidity
 function getLockedSOVAddress() external view
 returns(address)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getLockedSOVAddress() external view returns (address) {
+		return lockedSOVAddress;
+	}
+```
+</details>
 
-### getFeeRebatePercent
+---    
 
-```js
+> ### getFeeRebatePercent
+
+```solidity
 function getFeeRebatePercent() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getFeeRebatePercent() external view returns (uint256) {
+		return feeRebatePercent;
+	}
+```
+</details>
 
-### togglePaused
+---    
 
-```js
+> ### togglePaused
+
+```solidity
 function togglePaused(bool paused) external nonpayable onlyOwner 
 ```
 
@@ -746,67 +1516,103 @@ function togglePaused(bool paused) external nonpayable onlyOwner
 | ------------- |------------- | -----|
 | paused | bool |  | 
 
-### isProtocolPaused
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function togglePaused(bool paused) external onlyOwner {
+		require(paused != pause, "Can't toggle");
+		pause = paused;
+		emit TogglePaused(msg.sender, !paused, paused);
+	}
+```
+</details>
+
+---    
+
+> ### isProtocolPaused
+
+```solidity
 function isProtocolPaused() external view
 returns(bool)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function isProtocolPaused() external view returns (bool) {
+		return pause;
+	}
+```
+</details>
 
-### getSwapExternalFeePercent
+---    
 
-```js
+> ### getSwapExternalFeePercent
+
+```solidity
 function getSwapExternalFeePercent() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getSwapExternalFeePercent() external view returns (uint256) {
+		return swapExtrernalFeePercent;
+	}
+```
+</details>
 
-### getTradingRebateRewardsBasisPoint
+---    
+
+> ### getTradingRebateRewardsBasisPoint
 
 Get the basis point of trading rebate rewards.
 	 *
 
-```js
+```solidity
 function getTradingRebateRewardsBasisPoint() external view
 returns(uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-The basis point value.
+```javascript
+function getTradingRebateRewardsBasisPoint() external view returns (uint256) {
+		return tradingRebateRewardsBasisPoint;
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### getDedicatedSOVRebate
+> ### getDedicatedSOVRebate
 
 If SOV balance is less than the fees held, it will return 0.
 	 *
 
-```js
+```solidity
 function getDedicatedSOVRebate() public view
 returns(uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-total dedicated SOV.
+```javascript
+function getDedicatedSOVRebate() public view returns (uint256) {
+		uint256 sovProtocolBalance = IERC20(sovTokenAddress).balanceOf(address(this));
+		uint256 sovFees =
+			lendingFeeTokensHeld[sovTokenAddress].add(tradingFeeTokensHeld[sovTokenAddress]).add(borrowingFeeTokensHeld[sovTokenAddress]);
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+		return sovProtocolBalance >= sovFees ? sovProtocolBalance.sub(sovFees) : 0;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -822,6 +1628,7 @@ total dedicated SOV.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -943,7 +1750,7 @@ total dedicated SOV.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

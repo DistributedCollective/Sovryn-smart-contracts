@@ -40,14 +40,9 @@ event TokensStaked(address indexed _initiator, address indexed _vesting, uint256
 modifier onlyAdmin() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ## Functions
 
-- [(address _SOV, address[] _admins)](#)
+- [constructor(address _SOV, address[] _admins)](#constructor)
 - [addAdmin(address _newAdmin)](#addadmin)
 - [removeAdmin(address _adminToRemove)](#removeadmin)
 - [deposit(address _userAddress, uint256 _sovAmount, uint256 _basisPoint)](#deposit)
@@ -59,11 +54,13 @@ modifier onlyAdmin() internal
 - [getLockedBalance(address _addr)](#getlockedbalance)
 - [getUnlockedBalance(address _addr)](#getunlockedbalance)
 
-### 
+---    
+
+> ### constructor
 
 Setup the required parameters.
 
-```js
+```solidity
 function (address _SOV, address[] _admins) public nonpayable
 ```
 
@@ -74,11 +71,27 @@ function (address _SOV, address[] _admins) public nonpayable
 | _SOV | address | The SOV token address. | 
 | _admins | address[] | The list of admins to be added. | 
 
-### addAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(address _SOV, address[] memory _admins) public {
+		require(_SOV != address(0), "Invalid SOV Address.");
+		SOV = IERC20(_SOV);
+		for (uint256 index = 0; index < _admins.length; index++) {
+			isAdmin[_admins[index]] = true;
+		}
+	}
+```
+</details>
+
+---    
+
+> ### addAdmin
 
 The function to add a new admin.
 
-```js
+```solidity
 function addAdmin(address _newAdmin) public nonpayable onlyAdmin 
 ```
 
@@ -88,11 +101,27 @@ function addAdmin(address _newAdmin) public nonpayable onlyAdmin
 | ------------- |------------- | -----|
 | _newAdmin | address | The address of the new admin. | 
 
-### removeAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addAdmin(address _newAdmin) public onlyAdmin {
+		require(_newAdmin != address(0), "Invalid Address");
+		require(!isAdmin[_newAdmin], "Address is already admin");
+		isAdmin[_newAdmin] = true;
+
+		emit AdminAdded(msg.sender, _newAdmin);
+	}
+```
+</details>
+
+---    
+
+> ### removeAdmin
 
 The function to remove an admin.
 
-```js
+```solidity
 function removeAdmin(address _adminToRemove) public nonpayable onlyAdmin 
 ```
 
@@ -102,11 +131,26 @@ function removeAdmin(address _adminToRemove) public nonpayable onlyAdmin
 | ------------- |------------- | -----|
 | _adminToRemove | address | The address of the admin which should be removed. | 
 
-### deposit
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function removeAdmin(address _adminToRemove) public onlyAdmin {
+		require(isAdmin[_adminToRemove], "Address is not an admin");
+		isAdmin[_adminToRemove] = false;
+
+		emit AdminRemoved(msg.sender, _adminToRemove);
+	}
+```
+</details>
+
+---    
+
+> ### deposit
 
 Adds SOV to the user balance (Locked and Unlocked Balance based on `_basisPoint`).
 
-```js
+```solidity
 function deposit(address _userAddress, uint256 _sovAmount, uint256 _basisPoint) external nonpayable
 ```
 
@@ -118,11 +162,27 @@ function deposit(address _userAddress, uint256 _sovAmount, uint256 _basisPoint) 
 | _sovAmount | uint256 | The amount of SOV to be added to the locked and/or unlocked balance. | 
 | _basisPoint | uint256 | The % (in Basis Point)which determines how much will be unlocked immediately. | 
 
-### depositSOV
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function deposit(
+		address _userAddress,
+		uint256 _sovAmount,
+		uint256 _basisPoint
+	) external {
+		_deposit(_userAddress, _sovAmount, _basisPoint);
+	}
+```
+</details>
+
+---    
+
+> ### depositSOV
 
 Adds SOV to the locked balance of a user.
 
-```js
+```solidity
 function depositSOV(address _userAddress, uint256 _sovAmount) external nonpayable
 ```
 
@@ -133,9 +193,21 @@ function depositSOV(address _userAddress, uint256 _sovAmount) external nonpayabl
 | _userAddress | address | The user whose locked balance has to be updated with _sovAmount. | 
 | _sovAmount | uint256 | The amount of SOV to be added to the locked balance. | 
 
-### _deposit
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function depositSOV(address _userAddress, uint256 _sovAmount) external {
+		_deposit(_userAddress, _sovAmount, 0);
+	}
+```
+</details>
+
+---    
+
+> ### _deposit
+
+```solidity
 function _deposit(address _userAddress, uint256 _sovAmount, uint256 _basisPoint) private nonpayable
 ```
 
@@ -147,11 +219,37 @@ function _deposit(address _userAddress, uint256 _sovAmount, uint256 _basisPoint)
 | _sovAmount | uint256 |  | 
 | _basisPoint | uint256 |  | 
 
-### withdrawAndStakeTokensFrom
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _deposit(
+		address _userAddress,
+		uint256 _sovAmount,
+		uint256 _basisPoint
+	) private {
+		// 10000 is not included because if 100% is unlocked, then LockedSOV is not required to be used.
+		require(_basisPoint < 10000, "Basis Point has to be less than 10000.");
+		bool txStatus = SOV.transferFrom(msg.sender, address(this), _sovAmount);
+		require(txStatus, "Token transfer was not successful. Check receiver address.");
+
+		uint256 unlockedBal = _sovAmount.mul(_basisPoint).div(10000);
+
+		unlockedBalances[_userAddress] = unlockedBalances[_userAddress].add(unlockedBal);
+		lockedBalances[_userAddress] = lockedBalances[_userAddress].add(_sovAmount).sub(unlockedBal);
+
+		emit Deposited(msg.sender, _userAddress, _sovAmount, _basisPoint);
+	}
+```
+</details>
+
+---    
+
+> ### withdrawAndStakeTokensFrom
 
 Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created.
 
-```js
+```solidity
 function withdrawAndStakeTokensFrom(address _userAddress) external nonpayable
 ```
 
@@ -161,9 +259,22 @@ function withdrawAndStakeTokensFrom(address _userAddress) external nonpayable
 | ------------- |------------- | -----|
 | _userAddress | address | The address of user tokens will be withdrawn. | 
 
-### _withdraw
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function withdrawAndStakeTokensFrom(address _userAddress) external {
+		_withdraw(_userAddress, _userAddress);
+		_createVestingAndStake(_userAddress);
+	}
+```
+</details>
+
+---    
+
+> ### _withdraw
+
+```solidity
 function _withdraw(address _sender, address _receiverAddress) private nonpayable
 ```
 
@@ -174,9 +285,32 @@ function _withdraw(address _sender, address _receiverAddress) private nonpayable
 | _sender | address |  | 
 | _receiverAddress | address |  | 
 
-### _createVestingAndStake
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function _withdraw(address _sender, address _receiverAddress) private {
+		address userAddr = _receiverAddress;
+		if (_receiverAddress == address(0)) {
+			userAddr = _sender;
+		}
+
+		uint256 amount = unlockedBalances[_sender];
+		unlockedBalances[_sender] = 0;
+
+		bool txStatus = SOV.transfer(userAddr, amount);
+		require(txStatus, "Token transfer was not successful. Check receiver address.");
+
+		emit Withdrawn(_sender, userAddr, amount);
+	}
+```
+</details>
+
+---    
+
+> ### _createVestingAndStake
+
+```solidity
 function _createVestingAndStake(address _sender) private nonpayable
 ```
 
@@ -186,18 +320,29 @@ function _createVestingAndStake(address _sender) private nonpayable
 | ------------- |------------- | -----|
 | _sender | address |  | 
 
-### getLockedBalance
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _createVestingAndStake(address _sender) private {
+		uint256 amount = lockedBalances[_sender];
+		lockedBalances[_sender] = 0;
+
+		emit TokensStaked(_sender, address(0), amount);
+	}
+```
+</details>
+
+---    
+
+> ### getLockedBalance
 
 The function to get the locked balance of a user.
 
-```js
+```solidity
 function getLockedBalance(address _addr) public view
 returns(_balance uint256)
 ```
-
-**Returns**
-
-_balance The locked balance of the address `_addr`.
 
 **Arguments**
 
@@ -205,24 +350,50 @@ _balance The locked balance of the address `_addr`.
 | ------------- |------------- | -----|
 | _addr | address | The address of the user to check the locked balance. | 
 
-### getUnlockedBalance
+**Returns**
+
+_balance The locked balance of the address `_addr`.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getLockedBalance(address _addr) public view returns (uint256 _balance) {
+		return lockedBalances[_addr];
+	}
+```
+</details>
+
+---    
+
+> ### getUnlockedBalance
 
 The function to get the unlocked balance of a user.
 
-```js
+```solidity
 function getUnlockedBalance(address _addr) external view
 returns(_balance uint256)
 ```
-
-**Returns**
-
-_balance The unlocked balance of the address `_addr`.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _addr | address | The address of the user to check the unlocked balance. | 
+
+**Returns**
+
+_balance The unlocked balance of the address `_addr`.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getUnlockedBalance(address _addr) external view returns (uint256 _balance) {
+		return unlockedBalances[_addr];
+	}
+```
+</details>
 
 ## Contracts
 
@@ -238,6 +409,7 @@ _balance The unlocked balance of the address `_addr`.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -359,7 +531,7 @@ _balance The unlocked balance of the address `_addr`.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

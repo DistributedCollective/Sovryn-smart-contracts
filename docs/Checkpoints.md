@@ -42,11 +42,13 @@ event VestingStakeSet(uint256  lockedTS, uint96  value);
 - [_decreaseDailyStake(uint256 lockedTS, uint96 value)](#_decreasedailystake)
 - [_writeStakingCheckpoint(uint256 lockedTS, uint32 nCheckpoints, uint96 newStake)](#_writestakingcheckpoint)
 
-### _increaseVestingStake
+---    
+
+> ### _increaseVestingStake
 
 Increases the user's vesting stake for a giving lock date and writes a checkpoint.
 
-```js
+```solidity
 function _increaseVestingStake(uint256 lockedTS, uint96 value) internal nonpayable
 ```
 
@@ -57,11 +59,26 @@ function _increaseVestingStake(uint256 lockedTS, uint96 value) internal nonpayab
 | lockedTS | uint256 | The lock date. | 
 | value | uint96 | The value to add to the staked balance. | 
 
-### _decreaseVestingStake
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _increaseVestingStake(uint256 lockedTS, uint96 value) internal {
+		uint32 nCheckpoints = numVestingCheckpoints[lockedTS];
+		uint96 vested = vestingCheckpoints[lockedTS][nCheckpoints - 1].stake;
+		uint96 newVest = add96(vested, value, "Staking::_increaseVestingStake: vested amount overflow");
+		_writeVestingCheckpoint(lockedTS, nCheckpoints, newVest);
+	}
+```
+</details>
+
+---    
+
+> ### _decreaseVestingStake
 
 Decreases the user's vesting stake for a giving lock date and writes a checkpoint.
 
-```js
+```solidity
 function _decreaseVestingStake(uint256 lockedTS, uint96 value) internal nonpayable
 ```
 
@@ -72,11 +89,26 @@ function _decreaseVestingStake(uint256 lockedTS, uint96 value) internal nonpayab
 | lockedTS | uint256 | The lock date. | 
 | value | uint96 | The value to substract to the staked balance. | 
 
-### _writeVestingCheckpoint
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _decreaseVestingStake(uint256 lockedTS, uint96 value) internal {
+		uint32 nCheckpoints = numVestingCheckpoints[lockedTS];
+		uint96 vested = vestingCheckpoints[lockedTS][nCheckpoints - 1].stake;
+		uint96 newVest = sub96(vested, value, "Staking::_decreaseVestingStake: vested amount underflow");
+		_writeVestingCheckpoint(lockedTS, nCheckpoints, newVest);
+	}
+```
+</details>
+
+---    
+
+> ### _writeVestingCheckpoint
 
 Writes on storage the user vested amount.
 
-```js
+```solidity
 function _writeVestingCheckpoint(uint256 lockedTS, uint32 nCheckpoints, uint96 newVest) internal nonpayable
 ```
 
@@ -88,11 +120,34 @@ function _writeVestingCheckpoint(uint256 lockedTS, uint32 nCheckpoints, uint96 n
 | nCheckpoints | uint32 | The number of checkpoints, to find out the last one index. | 
 | newVest | uint96 | The new vest balance. | 
 
-### _increaseUserStake
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _writeVestingCheckpoint(
+		uint256 lockedTS,
+		uint32 nCheckpoints,
+		uint96 newVest
+	) internal {
+		uint32 blockNumber = safe32(block.number, "Staking::_writeVestingCheckpoint: block number exceeds 32 bits");
+
+		if (nCheckpoints > 0 && vestingCheckpoints[lockedTS][nCheckpoints - 1].fromBlock == blockNumber) {
+			vestingCheckpoints[lockedTS][nCheckpoints - 1].stake = newVest;
+		} else {
+			vestingCheckpoints[lockedTS][nCheckpoints] = Checkpoint(blockNumber, newVest);
+			numVestingCheckpoints[lockedTS] = nCheckpoints + 1;
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _increaseUserStake
 
 Increases the user's stake for a giving lock date and writes a checkpoint.
 
-```js
+```solidity
 function _increaseUserStake(address account, uint256 lockedTS, uint96 value) internal nonpayable
 ```
 
@@ -104,11 +159,30 @@ function _increaseUserStake(address account, uint256 lockedTS, uint96 value) int
 | lockedTS | uint256 | The lock date. | 
 | value | uint96 | The value to add to the staked balance. | 
 
-### _decreaseUserStake
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _increaseUserStake(
+		address account,
+		uint256 lockedTS,
+		uint96 value
+	) internal {
+		uint32 nCheckpoints = numUserStakingCheckpoints[account][lockedTS];
+		uint96 staked = userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;
+		uint96 newStake = add96(staked, value, "Staking::_increaseUserStake: staked amount overflow");
+		_writeUserCheckpoint(account, lockedTS, nCheckpoints, newStake);
+	}
+```
+</details>
+
+---    
+
+> ### _decreaseUserStake
 
 Decreases the user's stake for a giving lock date and writes a checkpoint.
 
-```js
+```solidity
 function _decreaseUserStake(address account, uint256 lockedTS, uint96 value) internal nonpayable
 ```
 
@@ -120,11 +194,30 @@ function _decreaseUserStake(address account, uint256 lockedTS, uint96 value) int
 | lockedTS | uint256 | The lock date. | 
 | value | uint96 | The value to substract to the staked balance. | 
 
-### _writeUserCheckpoint
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _decreaseUserStake(
+		address account,
+		uint256 lockedTS,
+		uint96 value
+	) internal {
+		uint32 nCheckpoints = numUserStakingCheckpoints[account][lockedTS];
+		uint96 staked = userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;
+		uint96 newStake = sub96(staked, value, "Staking::_decreaseUserStake: staked amount underflow");
+		_writeUserCheckpoint(account, lockedTS, nCheckpoints, newStake);
+	}
+```
+</details>
+
+---    
+
+> ### _writeUserCheckpoint
 
 Writes on storage the user stake.
 
-```js
+```solidity
 function _writeUserCheckpoint(address account, uint256 lockedTS, uint32 nCheckpoints, uint96 newStake) internal nonpayable
 ```
 
@@ -137,11 +230,35 @@ function _writeUserCheckpoint(address account, uint256 lockedTS, uint32 nCheckpo
 | nCheckpoints | uint32 | The number of checkpoints, to find out the last one index. | 
 | newStake | uint96 | The new staked balance. | 
 
-### _increaseDelegateStake
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _writeUserCheckpoint(
+		address account,
+		uint256 lockedTS,
+		uint32 nCheckpoints,
+		uint96 newStake
+	) internal {
+		uint32 blockNumber = safe32(block.number, "Staking::_writeStakingCheckpoint: block number exceeds 32 bits");
+
+		if (nCheckpoints > 0 && userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].fromBlock == blockNumber) {
+			userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake = newStake;
+		} else {
+			userStakingCheckpoints[account][lockedTS][nCheckpoints] = Checkpoint(blockNumber, newStake);
+			numUserStakingCheckpoints[account][lockedTS] = nCheckpoints + 1;
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _increaseDelegateStake
 
 Increases the delegatee's stake for a giving lock date and writes a checkpoint.
 
-```js
+```solidity
 function _increaseDelegateStake(address delegatee, uint256 lockedTS, uint96 value) internal nonpayable
 ```
 
@@ -153,11 +270,30 @@ function _increaseDelegateStake(address delegatee, uint256 lockedTS, uint96 valu
 | lockedTS | uint256 | The lock date. | 
 | value | uint96 | The value to add to the staked balance. | 
 
-### _decreaseDelegateStake
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _increaseDelegateStake(
+		address delegatee,
+		uint256 lockedTS,
+		uint96 value
+	) internal {
+		uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
+		uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
+		uint96 newStake = add96(staked, value, "Staking::_increaseDelegateStake: staked amount overflow");
+		_writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, newStake);
+	}
+```
+</details>
+
+---    
+
+> ### _decreaseDelegateStake
 
 Decreases the delegatee's stake for a giving lock date and writes a checkpoint.
 
-```js
+```solidity
 function _decreaseDelegateStake(address delegatee, uint256 lockedTS, uint96 value) internal nonpayable
 ```
 
@@ -169,11 +305,39 @@ function _decreaseDelegateStake(address delegatee, uint256 lockedTS, uint96 valu
 | lockedTS | uint256 | The lock date. | 
 | value | uint96 | The value to substract to the staked balance. | 
 
-### _writeDelegateCheckpoint
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _decreaseDelegateStake(
+		address delegatee,
+		uint256 lockedTS,
+		uint96 value
+	) internal {
+		uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
+		uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
+		uint96 newStake = 0;
+		// @dev We need to check delegate checkpoint value here,
+		//		because we had an issue in `stake` function:
+		//		delegate checkpoint wasn't updating for the second and next stakes for the same date
+		//		if first stake was withdrawn completely and stake was delegated to the staker
+		//		(no delegation to another address).
+		// @dev It can be greater than 0, but inconsistent after 3 transactions
+		if (staked > value) {
+			newStake = sub96(staked, value, "Staking::_decreaseDelegateStake: staked amount underflow");
+		}
+		_writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, newStake);
+	}
+```
+</details>
+
+---    
+
+> ### _writeDelegateCheckpoint
 
 Writes on storage the delegate stake.
 
-```js
+```solidity
 function _writeDelegateCheckpoint(address delegatee, uint256 lockedTS, uint32 nCheckpoints, uint96 newStake) internal nonpayable
 ```
 
@@ -186,11 +350,37 @@ function _writeDelegateCheckpoint(address delegatee, uint256 lockedTS, uint32 nC
 | nCheckpoints | uint32 | The number of checkpoints, to find out the last one index. | 
 | newStake | uint96 | The new staked balance. | 
 
-### _increaseDailyStake
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _writeDelegateCheckpoint(
+		address delegatee,
+		uint256 lockedTS,
+		uint32 nCheckpoints,
+		uint96 newStake
+	) internal {
+		uint32 blockNumber = safe32(block.number, "Staking::_writeStakingCheckpoint: block number exceeds 32 bits");
+		uint96 oldStake = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
+
+		if (nCheckpoints > 0 && delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].fromBlock == blockNumber) {
+			delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake = newStake;
+		} else {
+			delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints] = Checkpoint(blockNumber, newStake);
+			numDelegateStakingCheckpoints[delegatee][lockedTS] = nCheckpoints + 1;
+		}
+		emit DelegateStakeChanged(delegatee, lockedTS, oldStake, newStake);
+	}
+```
+</details>
+
+---    
+
+> ### _increaseDailyStake
 
 Increases the total stake for a giving lock date and writes a checkpoint.
 
-```js
+```solidity
 function _increaseDailyStake(uint256 lockedTS, uint96 value) internal nonpayable
 ```
 
@@ -201,11 +391,26 @@ function _increaseDailyStake(uint256 lockedTS, uint96 value) internal nonpayable
 | lockedTS | uint256 | The lock date. | 
 | value | uint96 | The value to add to the staked balance. | 
 
-### _decreaseDailyStake
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _increaseDailyStake(uint256 lockedTS, uint96 value) internal {
+		uint32 nCheckpoints = numTotalStakingCheckpoints[lockedTS];
+		uint96 staked = totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake;
+		uint96 newStake = add96(staked, value, "Staking::_increaseDailyStake: staked amount overflow");
+		_writeStakingCheckpoint(lockedTS, nCheckpoints, newStake);
+	}
+```
+</details>
+
+---    
+
+> ### _decreaseDailyStake
 
 Decreases the total stake for a giving lock date and writes a checkpoint.
 
-```js
+```solidity
 function _decreaseDailyStake(uint256 lockedTS, uint96 value) internal nonpayable
 ```
 
@@ -216,11 +421,26 @@ function _decreaseDailyStake(uint256 lockedTS, uint96 value) internal nonpayable
 | lockedTS | uint256 | The lock date. | 
 | value | uint96 | The value to substract to the staked balance. | 
 
-### _writeStakingCheckpoint
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _decreaseDailyStake(uint256 lockedTS, uint96 value) internal {
+		uint32 nCheckpoints = numTotalStakingCheckpoints[lockedTS];
+		uint96 staked = totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake;
+		uint96 newStake = sub96(staked, value, "Staking::_decreaseDailyStake: staked amount underflow");
+		_writeStakingCheckpoint(lockedTS, nCheckpoints, newStake);
+	}
+```
+</details>
+
+---    
+
+> ### _writeStakingCheckpoint
 
 Writes on storage the total stake.
 
-```js
+```solidity
 function _writeStakingCheckpoint(uint256 lockedTS, uint32 nCheckpoints, uint96 newStake) internal nonpayable
 ```
 
@@ -231,6 +451,27 @@ function _writeStakingCheckpoint(uint256 lockedTS, uint32 nCheckpoints, uint96 n
 | lockedTS | uint256 | The lock date. | 
 | nCheckpoints | uint32 | The number of checkpoints, to find out the last one index. | 
 | newStake | uint96 | The new staked balance. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _writeStakingCheckpoint(
+		uint256 lockedTS,
+		uint32 nCheckpoints,
+		uint96 newStake
+	) internal {
+		uint32 blockNumber = safe32(block.number, "Staking::_writeStakingCheckpoint: block number exceeds 32 bits");
+
+		if (nCheckpoints > 0 && totalStakingCheckpoints[lockedTS][nCheckpoints - 1].fromBlock == blockNumber) {
+			totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake = newStake;
+		} else {
+			totalStakingCheckpoints[lockedTS][nCheckpoints] = Checkpoint(blockNumber, newStake);
+			numTotalStakingCheckpoints[lockedTS] = nCheckpoints + 1;
+		}
+	}
+```
+</details>
 
 ## Contracts
 
@@ -246,6 +487,7 @@ function _writeStakingCheckpoint(uint256 lockedTS, uint32 nCheckpoints, uint96 n
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -367,7 +609,7 @@ function _writeStakingCheckpoint(uint256 lockedTS, uint32 nCheckpoints, uint96 n
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

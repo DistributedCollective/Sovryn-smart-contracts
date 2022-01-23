@@ -40,23 +40,20 @@ Throws if called by any account other than the owner or admin.
 modifier onlyAuthorized() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ## Functions
 
-- [(address _SOV)](#)
+- [constructor(address _SOV)](#constructor)
 - [addAdmin(address _admin)](#addadmin)
 - [removeAdmin(address _admin)](#removeadmin)
 - [transferSOVusingList(address[] _receivers, uint256[] _amounts)](#transfersovusinglist)
 - [transferSOV(address _receiver, uint256 _amount)](#transfersov)
 - [_transferSOV(address _receiver, uint256 _amount)](#_transfersov)
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function (address _SOV) public nonpayable
 ```
 
@@ -66,11 +63,25 @@ function (address _SOV) public nonpayable
 | ------------- |------------- | -----|
 | _SOV | address |  | 
 
-### addAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(address _SOV) public {
+		require(_SOV != address(0), "SOV address invalid");
+
+		SOV = _SOV;
+	}
+```
+</details>
+
+---    
+
+> ### addAdmin
 
 Add account to ACL.
 
-```js
+```solidity
 function addAdmin(address _admin) public nonpayable onlyOwner 
 ```
 
@@ -80,11 +91,24 @@ function addAdmin(address _admin) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _admin | address | The addresses of the account to grant permissions. | 
 
-### removeAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addAdmin(address _admin) public onlyOwner {
+		admins[_admin] = true;
+		emit AdminAdded(_admin);
+	}
+```
+</details>
+
+---    
+
+> ### removeAdmin
 
 Remove account from ACL.
 
-```js
+```solidity
 function removeAdmin(address _admin) public nonpayable onlyOwner 
 ```
 
@@ -94,11 +118,24 @@ function removeAdmin(address _admin) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _admin | address | The addresses of the account to revoke permissions. | 
 
-### transferSOVusingList
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function removeAdmin(address _admin) public onlyOwner {
+		admins[_admin] = false;
+		emit AdminRemoved(_admin);
+	}
+```
+</details>
+
+---    
+
+> ### transferSOVusingList
 
 Transfer given amounts of SOV to the given addresses.
 
-```js
+```solidity
 function transferSOVusingList(address[] _receivers, uint256[] _amounts) public nonpayable onlyAuthorized 
 ```
 
@@ -109,11 +146,27 @@ function transferSOVusingList(address[] _receivers, uint256[] _amounts) public n
 | _receivers | address[] | The addresses of the SOV receivers. | 
 | _amounts | uint256[] | The amounts to be transferred. | 
 
-### transferSOV
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function transferSOVusingList(address[] memory _receivers, uint256[] memory _amounts) public onlyAuthorized {
+		require(_receivers.length == _amounts.length, "arrays mismatch");
+
+		for (uint256 i = 0; i < _receivers.length; i++) {
+			_transferSOV(_receivers[i], _amounts[i]);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### transferSOV
 
 Transfer SOV tokens to given address.
 
-```js
+```solidity
 function transferSOV(address _receiver, uint256 _amount) public nonpayable onlyAuthorized 
 ```
 
@@ -124,9 +177,21 @@ function transferSOV(address _receiver, uint256 _amount) public nonpayable onlyA
 | _receiver | address | The address of the SOV receiver. | 
 | _amount | uint256 | The amount to be transferred. | 
 
-### _transferSOV
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function transferSOV(address _receiver, uint256 _amount) public onlyAuthorized {
+		_transferSOV(_receiver, _amount);
+	}
+```
+</details>
+
+---    
+
+> ### _transferSOV
+
+```solidity
 function _transferSOV(address _receiver, uint256 _amount) internal nonpayable
 ```
 
@@ -136,6 +201,20 @@ function _transferSOV(address _receiver, uint256 _amount) internal nonpayable
 | ------------- |------------- | -----|
 | _receiver | address |  | 
 | _amount | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _transferSOV(address _receiver, uint256 _amount) internal {
+		require(_receiver != address(0), "receiver address invalid");
+		require(_amount != 0, "amount invalid");
+
+		require(IERC20(SOV).transfer(_receiver, _amount), "transfer failed");
+		emit SOVTransferred(_receiver, _amount);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -151,6 +230,7 @@ function _transferSOV(address _receiver, uint256 _amount) internal nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -272,7 +352,7 @@ function _transferSOV(address _receiver, uint256 _amount) internal nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

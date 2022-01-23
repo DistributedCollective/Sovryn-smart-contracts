@@ -8,9 +8,11 @@ View Source: [contracts/modules/interfaces/ProtocolSwapExternalInterface.sol](..
 
 - [swapExternal(address sourceToken, address destToken, address receiver, address returnToSender, uint256 sourceTokenAmount, uint256 requiredDestTokenAmount, uint256 minReturn, bytes swapData)](#swapexternal)
 
-### swapExternal
+---    
 
-```js
+> ### swapExternal
+
+```solidity
 function swapExternal(address sourceToken, address destToken, address receiver, address returnToSender, uint256 sourceTokenAmount, uint256 requiredDestTokenAmount, uint256 minReturn, bytes swapData) external nonpayable
 returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256)
 ```
@@ -28,6 +30,23 @@ returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256)
 | minReturn | uint256 |  | 
 | swapData | bytes |  | 
 
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function swapExternal(
+		address sourceToken,
+		address destToken,
+		address receiver,
+		address returnToSender,
+		uint256 sourceTokenAmount,
+		uint256 requiredDestTokenAmount,
+		uint256 minReturn,
+		bytes calldata swapData
+	) external returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
+```
+</details>
+
 ## Contracts
 
 * [Address](Address.md)
@@ -42,6 +61,7 @@ returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -163,7 +183,7 @@ returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

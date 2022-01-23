@@ -27,14 +27,16 @@ struct FeeSharingProxyMockup.TestData public testData;
 
 ## Functions
 
-- [(IProtocol _protocol, IStaking _staking)](#)
+- [constructor(IProtocol _protocol, IStaking _staking)](#constructor)
 - [withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver)](#withdraw)
 - [trueWithdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver)](#truewithdraw)
 - [addCheckPoint(address loanPoolToken, uint256 poolTokenAmount)](#addcheckpoint)
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function (IProtocol _protocol, IStaking _staking) public nonpayable
 ```
 
@@ -45,11 +47,24 @@ function (IProtocol _protocol, IStaking _staking) public nonpayable
 | _protocol | IProtocol |  | 
 | _staking | IStaking |  | 
 
-### withdraw
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [FeeSharingLogic.withdraw](FeeSharingLogic.md#withdraw)
+```javascript
+constructor(IProtocol _protocol, IStaking _staking) public {
+		protocol = _protocol;
+		staking = _staking;
+	}
+```
+</details>
 
-```js
+---    
+
+> ### withdraw
+
+undefined
+
+```solidity
 function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) public nonpayable
 ```
 
@@ -61,9 +76,25 @@ function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _recei
 | _maxCheckpoints | uint32 |  | 
 | _receiver | address |  | 
 
-### trueWithdraw
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function withdraw(
+		address _loanPoolToken,
+		uint32 _maxCheckpoints,
+		address _receiver
+	) public {
+		testData = TestData(_loanPoolToken, _maxCheckpoints, _receiver);
+	}
+```
+</details>
+
+---    
+
+> ### trueWithdraw
+
+```solidity
 function trueWithdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) public nonpayable
 ```
 
@@ -75,9 +106,25 @@ function trueWithdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _r
 | _maxCheckpoints | uint32 |  | 
 | _receiver | address |  | 
 
-### addCheckPoint
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function trueWithdraw(
+		address _loanPoolToken,
+		uint32 _maxCheckpoints,
+		address _receiver
+	) public {
+		super.withdraw(_loanPoolToken, _maxCheckpoints, _receiver);
+	}
+```
+</details>
+
+---    
+
+> ### addCheckPoint
+
+```solidity
 function addCheckPoint(address loanPoolToken, uint256 poolTokenAmount) public nonpayable
 ```
 
@@ -87,6 +134,17 @@ function addCheckPoint(address loanPoolToken, uint256 poolTokenAmount) public no
 | ------------- |------------- | -----|
 | loanPoolToken | address |  | 
 | poolTokenAmount | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addCheckPoint(address loanPoolToken, uint256 poolTokenAmount) public {
+		uint96 amount96 = safe96(poolTokenAmount, "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits");
+		_addCheckpoint(loanPoolToken, amount96);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -102,6 +160,7 @@ function addCheckPoint(address loanPoolToken, uint256 poolTokenAmount) public no
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -223,7 +282,7 @@ function addCheckPoint(address loanPoolToken, uint256 poolTokenAmount) public no
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

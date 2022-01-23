@@ -13,29 +13,82 @@ View Source: [contracts/connectors/loantoken/modules/beaconLogicWRBTC/LoanTokenL
 - [burnToBTC(address receiver, uint256 burnAmount, bool useLM)](#burntobtc)
 - [_verifyTransfers(address collateralTokenAddress, address[4] sentAddresses, uint256[5] sentAmounts, uint256 withdrawalAmount)](#_verifytransfers)
 
-### getListFunctionSignatures
+---    
+
+> ### getListFunctionSignatures
 
 This function is MANDATORY, which will be called by LoanTokenLogicBeacon and be registered.
 Every new public function, the sginature needs to be included in this function.
 	 *
 
-```js
+```solidity
 function getListFunctionSignatures() external pure
 returns(functionSignatures bytes4[], moduleName bytes32)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-The list of function signatures (bytes4[])
+```javascript
+function getListFunctionSignatures() external pure returns (bytes4[] memory functionSignatures, bytes32 moduleName) {
+		bytes4[] memory res = new bytes4[](36);
 
-**Arguments**
+		// Loan Token Logic Standard
+		res[0] = this.mint.selector;
+		res[1] = this.burn.selector;
+		res[2] = this.borrow.selector;
+		res[3] = this.marginTrade.selector;
+		res[4] = this.marginTradeAffiliate.selector;
+		res[5] = this.transfer.selector;
+		res[6] = this.transferFrom.selector;
+		res[7] = this.profitOf.selector;
+		res[8] = this.tokenPrice.selector;
+		res[9] = this.checkpointPrice.selector;
+		res[10] = this.marketLiquidity.selector;
+		res[11] = this.avgBorrowInterestRate.selector;
+		res[12] = this.borrowInterestRate.selector;
+		res[13] = this.nextBorrowInterestRate.selector;
+		res[14] = this.supplyInterestRate.selector;
+		res[15] = this.nextSupplyInterestRate.selector;
+		res[16] = this.totalSupplyInterestRate.selector;
+		res[17] = this.totalAssetBorrow.selector;
+		res[18] = this.totalAssetSupply.selector;
+		res[19] = this.getMaxEscrowAmount.selector;
+		res[20] = this.assetBalanceOf.selector;
+		res[21] = this.getEstimatedMarginDetails.selector;
+		res[22] = this.getDepositAmountForBorrow.selector;
+		res[23] = this.getBorrowAmountForDeposit.selector;
+		res[24] = this.checkPriceDivergence.selector;
+		res[25] = this.checkPause.selector;
+		res[26] = this.setLiquidityMiningAddress.selector;
+		res[27] = this.calculateSupplyInterestRate.selector;
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+		// Loan Token WRBTC
+		res[28] = this.mintWithBTC.selector;
+		res[29] = this.burnToBTC.selector;
 
-### mintWithBTC
+		// Advanced Token
+		res[30] = this.approve.selector;
 
-```js
+		// Advanced Token Storage
+		res[31] = this.totalSupply.selector;
+		res[32] = this.balanceOf.selector;
+		res[33] = this.allowance.selector;
+
+		// Loan Token Logic Storage Additional Variable
+		res[34] = this.getLiquidityMiningAddress.selector;
+		res[35] = this.withdrawRBTCTo.selector;
+
+		return (res, stringToBytes32("LoanTokenLogicWrbtc"));
+	}
+```
+</details>
+
+---    
+
+> ### mintWithBTC
+
+```solidity
 function mintWithBTC(address receiver, bool useLM) external payable nonReentrant 
 returns(mintAmount uint256)
 ```
@@ -47,9 +100,22 @@ returns(mintAmount uint256)
 | receiver | address |  | 
 | useLM | bool |  | 
 
-### burnToBTC
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function mintWithBTC(address receiver, bool useLM) external payable nonReentrant returns (uint256 mintAmount) {
+		if (useLM) return _mintWithLM(receiver, msg.value);
+		else return _mintToken(receiver, msg.value);
+	}
+```
+</details>
+
+---    
+
+> ### burnToBTC
+
+```solidity
 function burnToBTC(address receiver, uint256 burnAmount, bool useLM) external nonpayable nonReentrant 
 returns(loanAmountPaid uint256)
 ```
@@ -62,42 +128,101 @@ returns(loanAmountPaid uint256)
 | burnAmount | uint256 |  | 
 | useLM | bool |  | 
 
-### _verifyTransfers
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [LoanTokenLogicStandard._verifyTransfers](LoanTokenLogicStandard.md#_verifytransfers)
+```javascript
+function burnToBTC(
+		address receiver,
+		uint256 burnAmount,
+		bool useLM
+	) external nonReentrant returns (uint256 loanAmountPaid) {
+		if (useLM) loanAmountPaid = _burnFromLM(burnAmount);
+		else loanAmountPaid = _burnToken(burnAmount);
+
+		if (loanAmountPaid != 0) {
+			IWrbtcERC20(wrbtcTokenAddress).withdraw(loanAmountPaid);
+			Address.sendValue(receiver, loanAmountPaid);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _verifyTransfers
+
+undefined
 
 Handle transfers prior to adding newPrincipal to loanTokenSent.
 	 *
 
-```js
+```solidity
 function _verifyTransfers(address collateralTokenAddress, address[4] sentAddresses, uint256[5] sentAmounts, uint256 withdrawalAmount) internal nonpayable
 returns(msgValue uint256)
 ```
-
-**Returns**
-
-msgValue The amount of value sent.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | collateralTokenAddress | address | The address of the collateral token. | 
-| sentAddresses | address[4] | The array of addresses:
-  sentAddresses[0]: lender
-  sentAddresses[1]: borrower
-  sentAddresses[2]: receiver
-  sentAddresses[3]: manager
-	 * | 
-| sentAmounts | uint256[5] | The array of amounts:
-  sentAmounts[0]: interestRate
-  sentAmounts[1]: newPrincipal
-  sentAmounts[2]: interestInitialAmount
-  sentAmounts[3]: loanTokenSent
-  sentAmounts[4]: collateralTokenSent
-	 * | 
-| withdrawalAmount | uint256 | The amount to withdraw.
-	 * | 
+| sentAddresses | address[4] | The array of addresses:   sentAddresses[0]: lender   sentAddresses[1]: borrower   sentAddresses[2]: receiver   sentAddresses[3]: manager 	 * | 
+| sentAmounts | uint256[5] | The array of amounts:   sentAmounts[0]: interestRate   sentAmounts[1]: newPrincipal   sentAmounts[2]: interestInitialAmount   sentAmounts[3]: loanTokenSent   sentAmounts[4]: collateralTokenSent 	 * | 
+| withdrawalAmount | uint256 | The amount to withdraw. 	 * | 
+
+**Returns**
+
+msgValue The amount of value sent.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _verifyTransfers(
+		address collateralTokenAddress,
+		address[4] memory sentAddresses,
+		uint256[5] memory sentAmounts,
+		uint256 withdrawalAmount
+	) internal returns (uint256 msgValue) {
+		address _wrbtcToken = wrbtcTokenAddress;
+		address _loanTokenAddress = _wrbtcToken;
+		address receiver = sentAddresses[2];
+		uint256 newPrincipal = sentAmounts[1];
+		uint256 loanTokenSent = sentAmounts[3];
+		uint256 collateralTokenSent = sentAmounts[4];
+
+		require(_loanTokenAddress != collateralTokenAddress, "26");
+
+		msgValue = msg.value;
+
+		if (withdrawalAmount != 0) {
+			/// withdrawOnOpen == true
+			IWrbtcERC20(_wrbtcToken).withdraw(withdrawalAmount);
+			Address.sendValue(receiver, withdrawalAmount);
+			if (newPrincipal > withdrawalAmount) {
+				_safeTransfer(_loanTokenAddress, sovrynContractAddress, newPrincipal - withdrawalAmount, "");
+			}
+		} else {
+			_safeTransfer(_loanTokenAddress, sovrynContractAddress, newPrincipal, "27");
+		}
+
+		if (collateralTokenSent != 0) {
+			_safeTransferFrom(collateralTokenAddress, msg.sender, sovrynContractAddress, collateralTokenSent, "28");
+		}
+
+		if (loanTokenSent != 0) {
+			if (msgValue != 0 && msgValue >= loanTokenSent) {
+				IWrbtc(_wrbtcToken).deposit.value(loanTokenSent)();
+				_safeTransfer(_loanTokenAddress, sovrynContractAddress, loanTokenSent, "29");
+				msgValue -= loanTokenSent;
+			} else {
+				_safeTransferFrom(_loanTokenAddress, msg.sender, sovrynContractAddress, loanTokenSent, "29");
+			}
+		}
+	}
+```
+</details>
 
 ## Contracts
 
@@ -113,6 +238,7 @@ msgValue The amount of value sent.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -234,7 +360,7 @@ msgValue The amount of value sent.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

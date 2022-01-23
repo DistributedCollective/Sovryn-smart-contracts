@@ -14,31 +14,60 @@ and logic apart, turning it upgradable.
 
 ## Functions
 
-- [()](#)
+- [constructor()](#constructor)
 - [replaceContract(address target)](#replacecontract)
 - [setTargets(string[] sigsArr, address[] targetsArr)](#settargets)
 - [getTarget(string sig)](#gettarget)
 
-### 
+---    
+
+> ### constructor
 
 Fallback function performs a delegate call
 to the actual implementation address is pointing this proxy.
 Returns whatever the implementation call returns.
 
-```js
+```solidity
 function () external payable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function() external payable {
+		if (gasleft() <= 2300) {
+			return;
+		}
 
-### replaceContract
+		address target = logicTargets[msg.sig];
+		require(target != address(0), "target not active");
+
+		bytes memory data = msg.data;
+		assembly {
+			let result := delegatecall(gas, target, add(data, 0x20), mload(data), 0, 0)
+			let size := returndatasize
+			let ptr := mload(0x40)
+			returndatacopy(ptr, 0, size)
+			switch result
+				case 0 {
+					revert(ptr, size)
+				}
+				default {
+					return(ptr, size)
+				}
+		}
+	}
+```
+</details>
+
+---    
+
+> ### replaceContract
 
 External owner target initializer.
 
-```js
+```solidity
 function replaceContract(address target) external nonpayable onlyOwner 
 ```
 
@@ -48,11 +77,24 @@ function replaceContract(address target) external nonpayable onlyOwner
 | ------------- |------------- | -----|
 | target | address | The target addresses. | 
 
-### setTargets
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function replaceContract(address target) external onlyOwner {
+		(bool success, ) = target.delegatecall(abi.encodeWithSignature("initialize(address)", target));
+		require(success, "setup failed");
+	}
+```
+</details>
+
+---    
+
+> ### setTargets
 
 External owner setter for target addresses.
 
-```js
+```solidity
 function setTargets(string[] sigsArr, address[] targetsArr) external nonpayable onlyOwner 
 ```
 
@@ -63,24 +105,50 @@ function setTargets(string[] sigsArr, address[] targetsArr) external nonpayable 
 | sigsArr | string[] | The array of signatures. | 
 | targetsArr | address[] | The array of addresses. | 
 
-### getTarget
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setTargets(string[] calldata sigsArr, address[] calldata targetsArr) external onlyOwner {
+		require(sigsArr.length == targetsArr.length, "count mismatch");
+
+		for (uint256 i = 0; i < sigsArr.length; i++) {
+			_setTarget(bytes4(keccak256(abi.encodePacked(sigsArr[i]))), targetsArr[i]);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### getTarget
 
 External getter for target addresses.
 
-```js
+```solidity
 function getTarget(string sig) external view
 returns(address)
 ```
-
-**Returns**
-
-The address for a given signature.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | sig | string | The signature. | 
+
+**Returns**
+
+The address for a given signature.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getTarget(string calldata sig) external view returns (address) {
+		return logicTargets[bytes4(keccak256(abi.encodePacked(sig)))];
+	}
+```
+</details>
 
 ## Contracts
 
@@ -96,6 +164,7 @@ The address for a given signature.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -217,7 +286,7 @@ The address for a given signature.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

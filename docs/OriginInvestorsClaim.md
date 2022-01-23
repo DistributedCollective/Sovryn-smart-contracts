@@ -52,11 +52,6 @@ Throws if called by any account other than the owner or admin.
 modifier onlyAuthorized() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ### onlyWhitelisted
 
 Throws if called by any account not whitelisted.
@@ -64,11 +59,6 @@ Throws if called by any account not whitelisted.
 ```js
 modifier onlyWhitelisted() internal
 ```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
 
 ### notInitialized
 
@@ -78,11 +68,6 @@ Throws if called w/ an initialized investors list.
 modifier notInitialized() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ### initialized
 
 Throws if called w/ an uninitialized investors list.
@@ -91,14 +76,9 @@ Throws if called w/ an uninitialized investors list.
 modifier initialized() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ## Functions
 
-- [(address vestingRegistryAddress)](#)
+- [constructor(address vestingRegistryAddress)](#constructor)
 - [addAdmin(address _admin)](#addadmin)
 - [removeAdmin(address _admin)](#removeadmin)
 - [authorizedBalanceWithdraw(address toAddress)](#authorizedbalancewithdraw)
@@ -108,11 +88,13 @@ modifier initialized() internal
 - [createVesting()](#createvesting)
 - [transfer()](#transfer)
 
-### 
+---    
+
+> ### constructor
 
 Contract deployment requires one parameter:
 
-```js
+```solidity
 function (address vestingRegistryAddress) public nonpayable
 ```
 
@@ -122,11 +104,27 @@ function (address vestingRegistryAddress) public nonpayable
 | ------------- |------------- | -----|
 | vestingRegistryAddress | address | The vestingRegistry contract instance address. | 
 
-### addAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(address vestingRegistryAddress) public {
+		vestingRegistry = VestingRegistry(vestingRegistryAddress);
+		staking = Staking(vestingRegistry.staking());
+		kickoffTS = staking.kickoffTS();
+		SOVToken = staking.SOVToken();
+		vestingTerm = kickoffTS + SOV_VESTING_CLIFF;
+	}
+```
+</details>
+
+---    
+
+> ### addAdmin
 
 Add account to ACL.
 
-```js
+```solidity
 function addAdmin(address _admin) public nonpayable onlyOwner 
 ```
 
@@ -136,11 +134,24 @@ function addAdmin(address _admin) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _admin | address | The addresses of the account to grant permissions. | 
 
-### removeAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addAdmin(address _admin) public onlyOwner {
+		admins[_admin] = true;
+		emit AdminAdded(_admin);
+	}
+```
+</details>
+
+---    
+
+> ### removeAdmin
 
 Remove account from ACL.
 
-```js
+```solidity
 function removeAdmin(address _admin) public nonpayable onlyOwner 
 ```
 
@@ -150,12 +161,25 @@ function removeAdmin(address _admin) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _admin | address | The addresses of the account to revoke permissions. | 
 
-### authorizedBalanceWithdraw
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function removeAdmin(address _admin) public onlyOwner {
+		admins[_admin] = false;
+		emit AdminRemoved(_admin);
+	}
+```
+</details>
+
+---    
+
+> ### authorizedBalanceWithdraw
 
 In case we have unclaimed tokens or in emergency case
 this function transfers all SOV tokens to a given address.
 
-```js
+```solidity
 function authorizedBalanceWithdraw(address toAddress) public nonpayable onlyAuthorized 
 ```
 
@@ -165,27 +189,56 @@ function authorizedBalanceWithdraw(address toAddress) public nonpayable onlyAuth
 | ------------- |------------- | -----|
 | toAddress | address | The recipient address of all this contract tokens. | 
 
-### setInvestorsAmountsListInitialized
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function authorizedBalanceWithdraw(address toAddress) public onlyAuthorized {
+		require(
+			SOVToken.transfer(toAddress, SOVToken.balanceOf(address(this))),
+			"OriginInvestorsClaim::authorizedTransferBalance: transfer failed"
+		);
+	}
+```
+</details>
+
+---    
+
+> ### setInvestorsAmountsListInitialized
 
 Should be called after the investors list setup completed.
 This function checks whether the SOV token balance of the contract is
 enough and sets status list to initialized.
 
-```js
+```solidity
 function setInvestorsAmountsListInitialized() public nonpayable onlyAuthorized notInitialized 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function setInvestorsAmountsListInitialized() public onlyAuthorized notInitialized {
+		require(
+			SOVToken.balanceOf(address(this)) >= totalAmount,
+			"OriginInvestorsClaim::setInvestorsAmountsList: the contract is not enough financed"
+		);
 
-### appendInvestorsAmountsList
+		investorsListInitialized = true;
+
+		emit InvestorsAmountsListInitialized(investorsQty, totalAmount);
+	}
+```
+</details>
+
+---    
+
+> ### appendInvestorsAmountsList
 
 The contract should be approved or transferred necessary
 amount of SOV prior to calling the function.
 
-```js
+```solidity
 function appendInvestorsAmountsList(address[] investors, uint256[] claimAmounts) external nonpayable onlyAuthorized notInitialized 
 ```
 
@@ -193,55 +246,136 @@ function appendInvestorsAmountsList(address[] investors, uint256[] claimAmounts)
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| investors | address[] | The list of investors addresses to add to the list.
-Duplicates will be skipped. | 
-| claimAmounts | uint256[] | The list of amounts for investors investors[i]
-will receive claimAmounts[i] of SOV. | 
+| investors | address[] | The list of investors addresses to add to the list. Duplicates will be skipped. | 
+| claimAmounts | uint256[] | The list of amounts for investors investors[i] will receive claimAmounts[i] of SOV. | 
 
-### claim
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function appendInvestorsAmountsList(address[] calldata investors, uint256[] calldata claimAmounts)
+		external
+		onlyAuthorized
+		notInitialized
+	{
+		uint256 subQty;
+		uint256 sumAmount;
+		require(
+			investors.length == claimAmounts.length,
+			"OriginInvestorsClaim::appendInvestorsAmountsList: investors.length != claimAmounts.length"
+		);
+
+		for (uint256 i = 0; i < investors.length; i++) {
+			if (investorsAmountsList[investors[i]] == 0) {
+				investorsAmountsList[investors[i]] = claimAmounts[i];
+				sumAmount = sumAmount.add(claimAmounts[i]);
+			} else {
+				subQty = subQty.add(1);
+			}
+		}
+
+		investorsQty = investorsQty.add(investors.length.sub(subQty));
+		totalAmount = totalAmount.add(sumAmount);
+		emit InvestorsAmountsListAppended(investors.length.sub(subQty), sumAmount);
+	}
+```
+</details>
+
+---    
+
+> ### claim
 
 Claim tokens from this contract.
 If vestingTerm is not yet achieved a vesting is created.
 Otherwise tokens are tranferred.
 
-```js
+```solidity
 function claim() external nonpayable onlyWhitelisted initialized 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function claim() external onlyWhitelisted initialized {
+		if (now < vestingTerm) {
+			createVesting();
+		} else {
+			transfer();
+		}
+	}
+```
+</details>
 
-### createVesting
+---    
+
+> ### createVesting
 
 Transfer tokens from this contract to a vestingRegistry contract.
 Sender is removed from investor list and all its unvested tokens
 are sent to vesting contract.
 
-```js
+```solidity
 function createVesting() internal nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function createVesting() internal {
+		uint256 cliff = vestingTerm.sub(now);
+		uint256 duration = cliff;
+		uint256 amount = investorsAmountsList[msg.sender];
+		address vestingContractAddress;
 
-### transfer
+		vestingContractAddress = vestingRegistry.getVesting(msg.sender);
+		require(vestingContractAddress == address(0), "OriginInvestorsClaim::withdraw: the claimer has an active vesting contract");
+
+		delete investorsAmountsList[msg.sender];
+
+		vestingRegistry.createVesting(msg.sender, amount, cliff, duration);
+		vestingContractAddress = vestingRegistry.getVesting(msg.sender);
+		require(SOVToken.transfer(address(vestingRegistry), amount), "OriginInvestorsClaim::withdraw: SOV transfer failed");
+		vestingRegistry.stakeTokens(vestingContractAddress, amount);
+
+		emit ClaimVested(msg.sender, amount);
+	}
+```
+</details>
+
+---    
+
+> ### transfer
 
 Transfer tokens from this contract to the sender.
 Sender is removed from investor list and all its unvested tokens
 are sent to its account.
 
-```js
+```solidity
 function transfer() internal nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function transfer() internal {
+		uint256 amount = investorsAmountsList[msg.sender];
+
+		delete investorsAmountsList[msg.sender];
+
+		/**
+		 * @dev Withdraw only for those claiming after the cliff, i.e. without vesting contracts.
+		 * Those with vestingContracts should withdraw using Vesting.withdrawTokens
+		 * from Vesting (VestingLogic) contract.
+		 * */
+		require(SOVToken.transfer(msg.sender, amount), "OriginInvestorsClaim::withdraw: SOV transfer failed");
+
+		emit ClaimTransferred(msg.sender, amount);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -257,6 +391,7 @@ function transfer() internal nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -378,7 +513,7 @@ function transfer() internal nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

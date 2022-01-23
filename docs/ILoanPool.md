@@ -10,41 +10,56 @@ View Source: [contracts/interfaces/ILoanPool.sol](../contracts/interfaces/ILoanP
 - [borrowInterestRate()](#borrowinterestrate)
 - [totalAssetSupply()](#totalassetsupply)
 
-### tokenPrice
+---    
 
-```js
+> ### tokenPrice
+
+```solidity
 function tokenPrice() external view
 returns(price uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function tokenPrice() external view returns (uint256 price);
+```
+</details>
 
-### borrowInterestRate
+---    
 
-```js
+> ### borrowInterestRate
+
+```solidity
 function borrowInterestRate() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function borrowInterestRate() external view returns (uint256);
+```
+</details>
 
-### totalAssetSupply
+---    
 
-```js
+> ### totalAssetSupply
+
+```solidity
 function totalAssetSupply() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function totalAssetSupply() external view returns (uint256);
+```
+</details>
 
 ## Contracts
 
@@ -60,6 +75,7 @@ returns(uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -181,7 +197,7 @@ returns(uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

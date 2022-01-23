@@ -21,9 +21,11 @@ event BalanceOf(uint256  balance);
 - [doStuffWithFlashLoan(address token, address iToken, uint256 amount)](#dostuffwithflashloan)
 - [hashCompareWithLengthCheck(bytes a, bytes b)](#hashcomparewithlengthcheck)
 
-### initiateFlashLoanTest
+---    
 
-```js
+> ### initiateFlashLoanTest
+
+```solidity
 function initiateFlashLoanTest(address loanToken, address iToken, uint256 flashLoanAmount) internal nonpayable
 returns(success bytes)
 ```
@@ -36,9 +38,33 @@ returns(success bytes)
 | iToken | address |  | 
 | flashLoanAmount | uint256 |  | 
 
-### repayFlashLoan
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function initiateFlashLoanTest(
+		address loanToken,
+		address iToken,
+		uint256 flashLoanAmount
+	) internal returns (bytes memory success) {
+		ITokenFlashLoanTest iTokenContract = ITokenFlashLoanTest(iToken);
+		return
+			iTokenContract.flashBorrow(
+				flashLoanAmount,
+				address(this),
+				address(this),
+				"",
+				abi.encodeWithSignature("executeOperation(address,address,uint256)", loanToken, iToken, flashLoanAmount)
+			);
+	}
+```
+</details>
+
+---    
+
+> ### repayFlashLoan
+
+```solidity
 function repayFlashLoan(address loanToken, address iToken, uint256 loanAmount) internal nonpayable
 ```
 
@@ -50,9 +76,25 @@ function repayFlashLoan(address loanToken, address iToken, uint256 loanAmount) i
 | iToken | address |  | 
 | loanAmount | uint256 |  | 
 
-### executeOperation
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function repayFlashLoan(
+		address loanToken,
+		address iToken,
+		uint256 loanAmount
+	) internal {
+		IERC20(loanToken).transfer(iToken, loanAmount);
+	}
+```
+</details>
+
+---    
+
+> ### executeOperation
+
+```solidity
 function executeOperation(address loanToken, address iToken, uint256 loanAmount) external nonpayable
 returns(success bytes)
 ```
@@ -65,9 +107,28 @@ returns(success bytes)
 | iToken | address |  | 
 | loanAmount | uint256 |  | 
 
-### doStuffWithFlashLoan
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function executeOperation(
+		address loanToken,
+		address iToken,
+		uint256 loanAmount
+	) external returns (bytes memory success) {
+		emit BalanceOf(IERC20(loanToken).balanceOf(address(this)));
+		emit ExecuteOperation(loanToken, iToken, loanAmount);
+		repayFlashLoan(loanToken, iToken, loanAmount);
+		return bytes("1");
+	}
+```
+</details>
+
+---    
+
+> ### doStuffWithFlashLoan
+
+```solidity
 function doStuffWithFlashLoan(address token, address iToken, uint256 amount) external nonpayable onlyOwner 
 ```
 
@@ -79,9 +140,35 @@ function doStuffWithFlashLoan(address token, address iToken, uint256 amount) ext
 | iToken | address |  | 
 | amount | uint256 |  | 
 
-### hashCompareWithLengthCheck
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function doStuffWithFlashLoan(
+		address token,
+		address iToken,
+		uint256 amount
+	) external onlyOwner {
+		bytes memory result;
+		emit BalanceOf(IERC20(token).balanceOf(address(this)));
+
+		result = initiateFlashLoanTest(token, iToken, amount);
+
+		emit BalanceOf(IERC20(token).balanceOf(address(this)));
+
+		// after loan checks and what not.
+		if (hashCompareWithLengthCheck(bytes("1"), result)) {
+			revert("failed executeOperation");
+		}
+	}
+```
+</details>
+
+---    
+
+> ### hashCompareWithLengthCheck
+
+```solidity
 function hashCompareWithLengthCheck(bytes a, bytes b) internal pure
 returns(bool)
 ```
@@ -92,6 +179,20 @@ returns(bool)
 | ------------- |------------- | -----|
 | a | bytes |  | 
 | b | bytes |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function hashCompareWithLengthCheck(bytes memory a, bytes memory b) internal pure returns (bool) {
+		if (a.length != b.length) {
+			return false;
+		} else {
+			return keccak256(a) == keccak256(b);
+		}
+	}
+```
+</details>
 
 ## Contracts
 
@@ -107,6 +208,7 @@ returns(bool)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -228,7 +330,7 @@ returns(bool)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

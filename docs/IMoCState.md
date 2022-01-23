@@ -18,9 +18,11 @@ View Source: [contracts/feeds/IMoCState.sol](../contracts/feeds/IMoCState.sol)
 - [bproSpotDiscountRate()](#bprospotdiscountrate)
 - [getBucketNBPro(bytes32 bucket)](#getbucketnbpro)
 
-### getRbtcInBitPro
+---    
 
-```js
+> ### getRbtcInBitPro
+
+```solidity
 function getRbtcInBitPro(bytes32 bucket) external view
 returns(uint256)
 ```
@@ -31,21 +33,36 @@ returns(uint256)
 | ------------- |------------- | -----|
 | bucket | bytes32 |  | 
 
-### globalMaxBPro
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getRbtcInBitPro(bytes32 bucket) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### globalMaxBPro
+
+```solidity
 function globalMaxBPro() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function globalMaxBPro() external view returns (uint256);
+```
+</details>
 
-### maxBPro
+---    
 
-```js
+> ### maxBPro
+
+```solidity
 function maxBPro(bytes32 bucket) external view
 returns(uint256)
 ```
@@ -56,45 +73,70 @@ returns(uint256)
 | ------------- |------------- | -----|
 | bucket | bytes32 |  | 
 
-### absoluteMaxBPro
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function maxBPro(bytes32 bucket) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### absoluteMaxBPro
+
+```solidity
 function absoluteMaxBPro() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function absoluteMaxBPro() external view returns (uint256);
+```
+</details>
 
-### maxBProWithDiscount
+---    
 
-```js
+> ### maxBProWithDiscount
+
+```solidity
 function maxBProWithDiscount() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function maxBProWithDiscount() external view returns (uint256);
+```
+</details>
 
-### bproTecPrice
+---    
 
-```js
+> ### bproTecPrice
+
+```solidity
 function bproTecPrice() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function bproTecPrice() external view returns (uint256);
+```
+</details>
 
-### bucketBProTecPrice
+---    
 
-```js
+> ### bucketBProTecPrice
+
+```solidity
 function bucketBProTecPrice(bytes32 bucket) external view
 returns(uint256)
 ```
@@ -105,45 +147,70 @@ returns(uint256)
 | ------------- |------------- | -----|
 | bucket | bytes32 |  | 
 
-### bproDiscountPrice
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function bucketBProTecPrice(bytes32 bucket) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### bproDiscountPrice
+
+```solidity
 function bproDiscountPrice() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function bproDiscountPrice() external view returns (uint256);
+```
+</details>
 
-### bproUsdPrice
+---    
 
-```js
+> ### bproUsdPrice
+
+```solidity
 function bproUsdPrice() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function bproUsdPrice() external view returns (uint256);
+```
+</details>
 
-### bproSpotDiscountRate
+---    
 
-```js
+> ### bproSpotDiscountRate
+
+```solidity
 function bproSpotDiscountRate() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function bproSpotDiscountRate() external view returns (uint256);
+```
+</details>
 
-### getBucketNBPro
+---    
 
-```js
+> ### getBucketNBPro
+
+```solidity
 function getBucketNBPro(bytes32 bucket) external view
 returns(uint256)
 ```
@@ -153,6 +220,14 @@ returns(uint256)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | bucket | bytes32 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getBucketNBPro(bytes32 bucket) external view returns (uint256);
+```
+</details>
 
 ## Contracts
 
@@ -168,6 +243,7 @@ returns(uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -289,7 +365,7 @@ returns(uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

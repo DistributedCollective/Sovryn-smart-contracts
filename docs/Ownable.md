@@ -40,66 +40,86 @@ Throws if called by any account other than the owner.
 modifier onlyOwner() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ## Functions
 
-- [()](#)
+- [constructor()](#constructor)
 - [owner()](#owner)
 - [isOwner()](#isowner)
 - [transferOwnership(address newOwner)](#transferownership)
 - [_transferOwnership(address newOwner)](#_transferownership)
 
-### 
+---    
+
+> ### constructor
 
 Initializes the contract setting the deployer as the initial owner.
 
-```js
+```solidity
 function () internal nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+constructor() internal {
+		address msgSender = _msgSender();
+		_owner = msgSender;
+		emit OwnershipTransferred(address(0), msgSender);
+	}
+```
+</details>
 
-### owner
+---    
+
+> ### owner
 
 Returns the address of the current owner.
 
-```js
+```solidity
 function owner() public view
 returns(address)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function owner() public view returns (address) {
+		return _owner;
+	}
+```
+</details>
 
-### isOwner
+---    
+
+> ### isOwner
 
 Returns true if the caller is the current owner.
 
-```js
+```solidity
 function isOwner() public view
 returns(bool)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function isOwner() public view returns (bool) {
+		return _msgSender() == _owner;
+	}
+```
+</details>
 
-### transferOwnership
+---    
+
+> ### transferOwnership
 
 Transfers ownership of the contract to a new account (`newOwner`).
 Can only be called by the current owner.
 
-```js
+```solidity
 function transferOwnership(address newOwner) public nonpayable onlyOwner 
 ```
 
@@ -109,11 +129,23 @@ function transferOwnership(address newOwner) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | newOwner | address |  | 
 
-### _transferOwnership
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function transferOwnership(address newOwner) public onlyOwner {
+		_transferOwnership(newOwner);
+	}
+```
+</details>
+
+---    
+
+> ### _transferOwnership
 
 Transfers ownership of the contract to a new account (`newOwner`).
 
-```js
+```solidity
 function _transferOwnership(address newOwner) internal nonpayable
 ```
 
@@ -122,6 +154,18 @@ function _transferOwnership(address newOwner) internal nonpayable
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | newOwner | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _transferOwnership(address newOwner) internal {
+		require(newOwner != address(0), "Ownable: new owner is the zero address");
+		emit OwnershipTransferred(_owner, newOwner);
+		_owner = newOwner;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -137,6 +181,7 @@ function _transferOwnership(address newOwner) internal nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -258,7 +303,7 @@ function _transferOwnership(address newOwner) internal nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

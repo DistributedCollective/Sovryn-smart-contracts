@@ -13,45 +13,59 @@ margin trading and lending https://bzx.network similar to the dYdX protocol.
 
 ## Functions
 
-- [()](#)
-- [()](#)
+- [constructor()](#constructor)
+- [constructor()](#constructor)
 - [initialize(address target)](#initialize)
 - [swapExternal(address sourceToken, address destToken, address receiver, address returnToSender, uint256 sourceTokenAmount, uint256 requiredDestTokenAmount, uint256 minReturn, bytes swapData)](#swapexternal)
 - [getSwapExpectedReturn(address sourceToken, address destToken, uint256 sourceTokenAmount)](#getswapexpectedreturn)
 - [checkPriceDivergence(address sourceToken, address destToken, uint256 sourceTokenAmount, uint256 minReturn)](#checkpricedivergence)
 
-### 
+---    
+
+> ### constructor
 
 Empty public constructor.
 
-```js
+```solidity
 function () public nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+constructor() public {}
+```
+</details>
 
-### 
+---    
+
+> ### constructor
 
 Fallback function is to react to receiving value (rBTC).
 
-```js
+```solidity
 function () external nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function() external {
+		revert("fallback not allowed");
+	}
+```
+</details>
 
-### initialize
+---    
+
+> ### initialize
 
 Set function selectors on target contract.
 	 *
 
-```js
+```solidity
 function initialize(address target) external nonpayable onlyOwner 
 ```
 
@@ -61,19 +75,31 @@ function initialize(address target) external nonpayable onlyOwner
 | ------------- |------------- | -----|
 | target | address | The address of the target contract. | 
 
-### swapExternal
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.swapExternal.selector];
+		_setTarget(this.swapExternal.selector, target);
+		_setTarget(this.getSwapExpectedReturn.selector, target);
+		_setTarget(this.checkPriceDivergence.selector, target);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "SwapsExternal");
+	}
+```
+</details>
+
+---    
+
+> ### swapExternal
 
 Perform a swap w/ tokens or rBTC as source currency.
 	 *
 
-```js
+```solidity
 function swapExternal(address sourceToken, address destToken, address receiver, address returnToSender, uint256 sourceTokenAmount, uint256 requiredDestTokenAmount, uint256 minReturn, bytes swapData) public payable nonReentrant whenNotPaused 
 returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256)
 ```
-
-**Returns**
-
-destTokenAmountReceived The amount of destiny tokens sent.
 
 **Arguments**
 
@@ -86,22 +112,87 @@ destTokenAmountReceived The amount of destiny tokens sent.
 | sourceTokenAmount | uint256 | The amount of source tokens. | 
 | requiredDestTokenAmount | uint256 | The amount of required destiny tokens. | 
 | minReturn | uint256 | Minimum amount (position size) in the collateral tokens. | 
-| swapData | bytes | Additional swap data (not in use yet).
-	 * | 
+| swapData | bytes | Additional swap data (not in use yet). 	 * | 
 
-### getSwapExpectedReturn
+**Returns**
+
+destTokenAmountReceived The amount of destiny tokens sent.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function swapExternal(
+		address sourceToken,
+		address destToken,
+		address receiver,
+		address returnToSender,
+		uint256 sourceTokenAmount,
+		uint256 requiredDestTokenAmount,
+		uint256 minReturn,
+		bytes memory swapData
+	) public payable nonReentrant whenNotPaused returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
+		require(sourceTokenAmount != 0, "sourceTokenAmount == 0");
+		checkPriceDivergence(sourceToken, destToken, sourceTokenAmount, minReturn);
+
+		/// @dev Get payed value, be it rBTC or tokenized.
+		if (msg.value != 0) {
+			if (sourceToken == address(0)) {
+				sourceToken = address(wrbtcToken);
+			}
+			require(sourceToken == address(wrbtcToken), "sourceToken mismatch");
+			require(msg.value == sourceTokenAmount, "sourceTokenAmount mismatch");
+
+			/// @dev Update wrBTC balance for this contract.
+			wrbtcToken.deposit.value(sourceTokenAmount)();
+		} else {
+			if (address(this) != msg.sender) {
+				IERC20(sourceToken).safeTransferFrom(msg.sender, address(this), sourceTokenAmount);
+			}
+		}
+
+		/// @dev Perform the swap w/ tokens.
+		(destTokenAmountReceived, sourceTokenAmountUsed) = _swapsCall(
+			[
+				sourceToken,
+				destToken,
+				receiver,
+				returnToSender,
+				msg.sender /// user
+			],
+			[
+				sourceTokenAmount, /// minSourceTokenAmount
+				sourceTokenAmount, /// maxSourceTokenAmount
+				requiredDestTokenAmount
+			],
+			0, /// loanId (not tied to a specific loan)
+			false, /// bypassFee
+			swapData,
+			true // the flag for swapExternal (so that it will use the swapExternalFeePercent)
+		);
+
+		emit ExternalSwap(
+			msg.sender, /// user
+			sourceToken,
+			destToken,
+			sourceTokenAmountUsed,
+			destTokenAmountReceived
+		);
+	}
+```
+</details>
+
+---    
+
+> ### getSwapExpectedReturn
 
 Get the swap expected return value.
 	 *
 
-```js
+```solidity
 function getSwapExpectedReturn(address sourceToken, address destToken, uint256 sourceTokenAmount) external view
 returns(uint256)
 ```
-
-**Returns**
-
-The expected return value.
 
 **Arguments**
 
@@ -109,15 +200,34 @@ The expected return value.
 | ------------- |------------- | -----|
 | sourceToken | address | The address of the source token instance. | 
 | destToken | address | The address of the destiny token instance. | 
-| sourceTokenAmount | uint256 | The amount of source tokens.
-	 * | 
+| sourceTokenAmount | uint256 | The amount of source tokens. 	 * | 
 
-### checkPriceDivergence
+**Returns**
+
+The expected return value.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getSwapExpectedReturn(
+		address sourceToken,
+		address destToken,
+		uint256 sourceTokenAmount
+	) external view returns (uint256) {
+		return _swapsExpectedReturn(sourceToken, destToken, sourceTokenAmount);
+	}
+```
+</details>
+
+---    
+
+> ### checkPriceDivergence
 
 Check the slippage based on the swapExpectedReturn.
 	 *
 
-```js
+```solidity
 function checkPriceDivergence(address sourceToken, address destToken, uint256 sourceTokenAmount, uint256 minReturn) public view
 ```
 
@@ -129,6 +239,22 @@ function checkPriceDivergence(address sourceToken, address destToken, uint256 so
 | destToken | address | The address of the destiny token instance. | 
 | sourceTokenAmount | uint256 | The amount of source tokens. | 
 | minReturn | uint256 | The amount (max slippage) that will be compared to the swapsExpectedReturn. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function checkPriceDivergence(
+		address sourceToken,
+		address destToken,
+		uint256 sourceTokenAmount,
+		uint256 minReturn
+	) public view {
+		uint256 destTokenAmount = _swapsExpectedReturn(sourceToken, destToken, sourceTokenAmount);
+		require(destTokenAmount >= minReturn, "destTokenAmountReceived too low");
+	}
+```
+</details>
 
 ## Contracts
 
@@ -144,6 +270,7 @@ function checkPriceDivergence(address sourceToken, address destToken, uint256 so
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -265,7 +392,7 @@ function checkPriceDivergence(address sourceToken, address destToken, uint256 so
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

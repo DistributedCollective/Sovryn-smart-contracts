@@ -41,8 +41,8 @@ event QueueTransaction(bytes32 indexed txHash, address indexed target, uint256  
 - [queueTransaction(address target, uint256 value, string signature, bytes data, uint256 eta)](#queuetransaction)
 - [cancelTransaction(address target, uint256 value, string signature, bytes data, uint256 eta)](#canceltransaction)
 - [executeTransaction(address target, uint256 value, string signature, bytes data, uint256 eta)](#executetransaction)
-- [(address admin_, uint256 delay_)](#)
-- [()](#)
+- [constructor(address admin_, uint256 delay_)](#constructor)
+- [constructor()](#constructor)
 - [setDelay(uint256 delay_)](#setdelay)
 - [acceptAdmin()](#acceptadmin)
 - [setPendingAdmin(address pendingAdmin_)](#setpendingadmin)
@@ -51,46 +51,63 @@ event QueueTransaction(bytes32 indexed txHash, address indexed target, uint256  
 - [executeTransaction(address target, uint256 value, string signature, bytes data, uint256 eta)](#executetransaction)
 - [getBlockTimestamp()](#getblocktimestamp)
 
-### delay
+---    
 
-```js
+> ### delay
+
+```solidity
 function delay() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function delay() external view returns (uint256);
+```
+</details>
 
-### GRACE_PERIOD
+---    
 
-```js
+> ### GRACE_PERIOD
+
+```solidity
 function GRACE_PERIOD() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function GRACE_PERIOD() external view returns (uint256);
+```
+</details>
 
-### acceptAdmin
+---    
+
+> ### acceptAdmin
 
 ⤿ Overridden Implementation(s): [ITimelock.acceptAdmin](ITimelock.md#acceptadmin),[Timelock.acceptAdmin](Timelock.md#acceptadmin)
 
-```js
+```solidity
 function acceptAdmin() external nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function acceptAdmin() external;
+```
+</details>
 
-### queuedTransactions
+---    
 
-```js
+> ### queuedTransactions
+
+```solidity
 function queuedTransactions(bytes32 hash) external view
 returns(bool)
 ```
@@ -101,11 +118,21 @@ returns(bool)
 | ------------- |------------- | -----|
 | hash | bytes32 |  | 
 
-### queueTransaction
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function queuedTransactions(bytes32 hash) external view returns (bool);
+```
+</details>
+
+---    
+
+> ### queueTransaction
 
 ⤿ Overridden Implementation(s): [ITimelock.queueTransaction](ITimelock.md#queuetransaction),[Timelock.queueTransaction](Timelock.md#queuetransaction)
 
-```js
+```solidity
 function queueTransaction(address target, uint256 value, string signature, bytes data, uint256 eta) external nonpayable
 returns(bytes32)
 ```
@@ -120,11 +147,27 @@ returns(bytes32)
 | data | bytes |  | 
 | eta | uint256 |  | 
 
-### cancelTransaction
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function queueTransaction(
+		address target,
+		uint256 value,
+		string calldata signature,
+		bytes calldata data,
+		uint256 eta
+	) external returns (bytes32);
+```
+</details>
+
+---    
+
+> ### cancelTransaction
 
 ⤿ Overridden Implementation(s): [ITimelock.cancelTransaction](ITimelock.md#canceltransaction),[Timelock.cancelTransaction](Timelock.md#canceltransaction)
 
-```js
+```solidity
 function cancelTransaction(address target, uint256 value, string signature, bytes data, uint256 eta) external nonpayable
 ```
 
@@ -138,11 +181,27 @@ function cancelTransaction(address target, uint256 value, string signature, byte
 | data | bytes |  | 
 | eta | uint256 |  | 
 
-### executeTransaction
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function cancelTransaction(
+		address target,
+		uint256 value,
+		string calldata signature,
+		bytes calldata data,
+		uint256 eta
+	) external;
+```
+</details>
+
+---    
+
+> ### executeTransaction
 
 ⤿ Overridden Implementation(s): [ITimelock.executeTransaction](ITimelock.md#executetransaction),[Timelock.executeTransaction](Timelock.md#executetransaction)
 
-```js
+```solidity
 function executeTransaction(address target, uint256 value, string signature, bytes data, uint256 eta) external payable
 returns(bytes)
 ```
@@ -157,11 +216,27 @@ returns(bytes)
 | data | bytes |  | 
 | eta | uint256 |  | 
 
-### 
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function executeTransaction(
+		address target,
+		uint256 value,
+		string calldata signature,
+		bytes calldata data,
+		uint256 eta
+	) external payable returns (bytes memory);
+```
+</details>
+
+---    
+
+> ### constructor
 
 Function called on instance deployment of the contract.
 
-```js
+```solidity
 function (address admin_, uint256 delay_) public nonpayable
 ```
 
@@ -172,24 +247,51 @@ function (address admin_, uint256 delay_) public nonpayable
 | admin_ | address | Governance contract address. | 
 | delay_ | uint256 | Time to wait for queued transactions to be executed. | 
 
-### 
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+tor(address admin_, uint256 delay_) public {
+		require(delay_ >= MINIMUM_DELAY, "Timelock::constructor: Delay must exceed minimum delay.");
+		require(delay_ <= MAXIMUM_DELAY, "Timelock::setDelay: Delay must not exceed maximum delay.");
+
+		admin = admin_;
+		delay = delay_;
+	}
+
+	/**
+
+```
+</details>
+
+---    
+
+> ### constructor
 
 Fallback function is to react to receiving value (rBTC).
 
-```js
+```solidity
 function () external payable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+() external payable {}
 
-### setDelay
+	/**
+
+```
+</details>
+
+---    
+
+> ### setDelay
 
 Set a new delay when executing the contract calls.
 
-```js
+```solidity
 function setDelay(uint256 delay_) public nonpayable
 ```
 
@@ -199,26 +301,60 @@ function setDelay(uint256 delay_) public nonpayable
 | ------------- |------------- | -----|
 | delay_ | uint256 | The amount of time to wait until execution. | 
 
-### acceptAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [ITimelock.acceptAdmin](ITimelock.md#acceptadmin)
+```javascript
+ setDelay(uint256 delay_) public {
+		require(msg.sender == address(this), "Timelock::setDelay: Call must come from Timelock.");
+		require(delay_ >= MINIMUM_DELAY, "Timelock::setDelay: Delay must exceed minimum delay.");
+		require(delay_ <= MAXIMUM_DELAY, "Timelock::setDelay: Delay must not exceed maximum delay.");
+		delay = delay_;
+
+		emit NewDelay(delay);
+	}
+
+	/**
+
+```
+</details>
+
+---    
+
+> ### acceptAdmin
+
+undefined
 
 Accept a new admin for the timelock.
 
-```js
+```solidity
 function acceptAdmin() public nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+ acceptAdmin() public {
+		require(msg.sender == pendingAdmin, "Timelock::acceptAdmin: Call must come from pendingAdmin.");
+		admin = msg.sender;
+		pendingAdmin = address(0);
 
-### setPendingAdmin
+		emit NewAdmin(admin);
+	}
+
+	/**
+
+```
+</details>
+
+---    
+
+> ### setPendingAdmin
 
 Set a new pending admin for the timelock.
 
-```js
+```solidity
 function setPendingAdmin(address pendingAdmin_) public nonpayable
 ```
 
@@ -228,13 +364,31 @@ function setPendingAdmin(address pendingAdmin_) public nonpayable
 | ------------- |------------- | -----|
 | pendingAdmin_ | address | The new pending admin address. | 
 
-### queueTransaction
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [ITimelock.queueTransaction](ITimelock.md#queuetransaction)
+```javascript
+ setPendingAdmin(address pendingAdmin_) public {
+		require(msg.sender == address(this), "Timelock::setPendingAdmin: Call must come from Timelock.");
+		pendingAdmin = pendingAdmin_;
+
+		emit NewPendingAdmin(pendingAdmin);
+	}
+
+	/**
+
+```
+</details>
+
+---    
+
+> ### queueTransaction
+
+undefined
 
 Queue a new transaction from the governance contract.
 
-```js
+```solidity
 function queueTransaction(address target, uint256 value, string signature, bytes data, uint256 eta) public nonpayable
 returns(bytes32)
 ```
@@ -247,16 +401,43 @@ returns(bytes32)
 | value | uint256 | The amount to send in the transaction. | 
 | signature | string | The stanndard representation of the function called. | 
 | data | bytes | The ethereum transaction input data payload. | 
-| eta | uint256 | Estimated Time of Accomplishment. The timestamp that the
-proposal will be available for execution, set once the vote succeeds. | 
+| eta | uint256 | Estimated Time of Accomplishment. The timestamp that the proposal will be available for execution, set once the vote succeeds. | 
 
-### cancelTransaction
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [ITimelock.cancelTransaction](ITimelock.md#canceltransaction)
+```javascript
+ queueTransaction(
+		address target,
+		uint256 value,
+		string memory signature,
+		bytes memory data,
+		uint256 eta
+	) public returns (bytes32) {
+		require(msg.sender == admin, "Timelock::queueTransaction: Call must come from admin.");
+		require(eta >= getBlockTimestamp().add(delay), "Timelock::queueTransaction: Estimated execution block must satisfy delay.");
+
+		bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
+		queuedTransactions[txHash] = true;
+
+		emit QueueTransaction(txHash, target, value, signature, data, eta);
+		return txHash;
+	}
+
+	/**
+
+```
+</details>
+
+---    
+
+> ### cancelTransaction
+
+undefined
 
 Cancel a transaction.
 
-```js
+```solidity
 function cancelTransaction(address target, uint256 value, string signature, bytes data, uint256 eta) public nonpayable
 ```
 
@@ -268,16 +449,41 @@ function cancelTransaction(address target, uint256 value, string signature, byte
 | value | uint256 | The amount to send in the transaction. | 
 | signature | string | The stanndard representation of the function called. | 
 | data | bytes | The ethereum transaction input data payload. | 
-| eta | uint256 | Estimated Time of Accomplishment. The timestamp that the
-proposal will be available for execution, set once the vote succeeds. | 
+| eta | uint256 | Estimated Time of Accomplishment. The timestamp that the proposal will be available for execution, set once the vote succeeds. | 
 
-### executeTransaction
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [ITimelock.executeTransaction](ITimelock.md#executetransaction)
+```javascript
+ cancelTransaction(
+		address target,
+		uint256 value,
+		string memory signature,
+		bytes memory data,
+		uint256 eta
+	) public {
+		require(msg.sender == admin, "Timelock::cancelTransaction: Call must come from admin.");
+
+		bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
+		queuedTransactions[txHash] = false;
+
+		emit CancelTransaction(txHash, target, value, signature, data, eta);
+	}
+
+	/**
+
+```
+</details>
+
+---    
+
+> ### executeTransaction
+
+undefined
 
 Executes a previously queued transaction from the governance.
 
-```js
+```solidity
 function executeTransaction(address target, uint256 value, string signature, bytes data, uint256 eta) public payable
 returns(bytes)
 ```
@@ -290,22 +496,79 @@ returns(bytes)
 | value | uint256 | The amount to send in the transaction. | 
 | signature | string | The stanndard representation of the function called. | 
 | data | bytes | The ethereum transaction input data payload. | 
-| eta | uint256 | Estimated Time of Accomplishment. The timestamp that the
-proposal will be available for execution, set once the vote succeeds. | 
+| eta | uint256 | Estimated Time of Accomplishment. The timestamp that the proposal will be available for execution, set once the vote succeeds. | 
 
-### getBlockTimestamp
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+ executeTransaction(
+		address target,
+		uint256 value,
+		string memory signature,
+		bytes memory data,
+		uint256 eta
+	) public payable returns (bytes memory) {
+		require(msg.sender == admin, "Timelock::executeTransaction: Call must come from admin.");
+
+		bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
+		require(queuedTransactions[txHash], "Timelock::executeTransaction: Transaction hasn't been queued.");
+		require(getBlockTimestamp() >= eta, "Timelock::executeTransaction: Transaction hasn't surpassed time lock.");
+		require(getBlockTimestamp() <= eta.add(GRACE_PERIOD), "Timelock::executeTransaction: Transaction is stale.");
+
+		queuedTransactions[txHash] = false;
+
+		bytes memory callData;
+
+		if (bytes(signature).length == 0) {
+			callData = data;
+		} else {
+			callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
+		}
+
+		// solium-disable-next-line security/no-call-value
+		(bool success, bytes memory returnData) = target.call.value(value)(callData);
+		if (!success) {
+			if (returnData.length <= ERROR_MESSAGE_SHIFT) {
+				revert("Timelock::executeTransaction: Transaction execution reverted.");
+			} else {
+				revert(_addErrorMessage("Timelock::executeTransaction: ", string(returnData)));
+			}
+		}
+
+		emit ExecuteTransaction(txHash, target, value, signature, data, eta);
+
+		return returnData;
+	}
+
+	/**
+
+```
+</details>
+
+---    
+
+> ### getBlockTimestamp
 
 A function used to get the current Block Timestamp.
 
-```js
+```solidity
 function getBlockTimestamp() internal view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+ getBlockTimestamp() internal view returns (uint256) {
+		// solium-disable-next-line security/no-block-members
+		return block.timestamp;
+	}
+}
+
+```
+</details>
 
 ## Contracts
 
@@ -321,6 +584,7 @@ returns(uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -442,7 +706,7 @@ returns(uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

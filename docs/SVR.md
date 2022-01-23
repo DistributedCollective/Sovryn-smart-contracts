@@ -40,7 +40,7 @@ event Burn(address indexed sender, uint256  amount);
 
 ## Functions
 
-- [(address _SOV, address _staking)](#)
+- [constructor(address _SOV, address _staking)](#constructor)
 - [mint(uint96 _amount)](#mint)
 - [mintWithApproval(address _sender, uint96 _amount)](#mintwithapproval)
 - [_mintTo(address _sender, uint96 _amount)](#_mintto)
@@ -48,11 +48,13 @@ event Burn(address indexed sender, uint256  amount);
 - [_getToken()](#_gettoken)
 - [_getSelectors()](#_getselectors)
 
-### 
+---    
+
+> ### constructor
 
 Create reward token RSOV.
 
-```js
+```solidity
 function (address _SOV, address _staking) public nonpayable ERC20Detailed 
 ```
 
@@ -63,11 +65,28 @@ function (address _SOV, address _staking) public nonpayable ERC20Detailed
 | _SOV | address | The SOV token address. | 
 | _staking | address | The staking contract address. | 
 
-### mint
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nstructor(address _SOV, address _staking) public ERC20Detailed(NAME, SYMBOL, DECIMALS) {
+		require(_SOV != address(0), "SVR::SOV address invalid");
+		require(_staking != address(0), "SVR::staking address invalid");
+
+		SOV = IERC20_(_SOV);
+		staking = IStaking(_staking);
+	}
+
+```
+</details>
+
+---    
+
+> ### mint
 
 Hold SOV tokens and mint the respective amount of SVR tokens.
 
-```js
+```solidity
 function mint(uint96 _amount) public nonpayable
 ```
 
@@ -77,11 +96,24 @@ function mint(uint96 _amount) public nonpayable
 | ------------- |------------- | -----|
 | _amount | uint96 | The amount of tokens to be mint. | 
 
-### mintWithApproval
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction mint(uint96 _amount) public {
+		_mintTo(msg.sender, _amount);
+	}
+
+```
+</details>
+
+---    
+
+> ### mintWithApproval
 
 Hold SOV tokens and mint the respective amount of SVR tokens.
 
-```js
+```solidity
 function mintWithApproval(address _sender, uint96 _amount) public nonpayable onlyThisContract 
 ```
 
@@ -92,11 +124,24 @@ function mintWithApproval(address _sender, uint96 _amount) public nonpayable onl
 | _sender | address | The sender of SOV.approveAndCall | 
 | _amount | uint96 | The amount of tokens to be mint. | 
 
-### _mintTo
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction mintWithApproval(address _sender, uint96 _amount) public onlyThisContract {
+		_mintTo(_sender, _amount);
+	}
+
+```
+</details>
+
+---    
+
+> ### _mintTo
 
 The actual minting process, holding SOV and minting RSOV tokens.
 
-```js
+```solidity
 function _mintTo(address _sender, uint96 _amount) internal nonpayable
 ```
 
@@ -107,11 +152,34 @@ function _mintTo(address _sender, uint96 _amount) internal nonpayable
 | _sender | address | The recipient of the minted tokens. | 
 | _amount | uint96 | The amount of tokens to be minted. | 
 
-### burn
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction _mintTo(address _sender, uint96 _amount) internal {
+		require(_amount > 0, "SVR::mint: amount invalid");
+
+		/// @notice Holds SOV tokens.
+		bool success = SOV.transferFrom(_sender, address(this), _amount);
+		require(success);
+
+		/// @notice Mints SVR tokens.
+		/// @dev uses openzeppelin/ERC20.sol internal _mint function
+		_mint(_sender, _amount);
+
+		emit Mint(_sender, _amount);
+	}
+
+```
+</details>
+
+---    
+
+> ### burn
 
 burns SVR tokens and stakes the respective amount SOV tokens in the user's behalf
 
-```js
+```solidity
 function burn(uint96 _amount) public nonpayable
 ```
 
@@ -121,47 +189,86 @@ function burn(uint96 _amount) public nonpayable
 | ------------- |------------- | -----|
 | _amount | uint96 | the amount of tokens to be burnt | 
 
-### _getToken
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [ApprovalReceiver._getToken](ApprovalReceiver.md#_gettoken)
+```javascript
+nction burn(uint96 _amount) public {
+		require(_amount > 0, "SVR:: burn: amount invalid");
+
+		/// @notice Burns RSOV tokens.
+		_burn(msg.sender, _amount);
+
+		/// @notice Transfer 1/14 of amount directly to the user.
+		/// If amount is too small it won't be transferred.
+		uint96 transferAmount = _amount / DIRECT_TRANSFER_PART;
+		if (transferAmount > 0) {
+			SOV.transfer(msg.sender, transferAmount);
+			_amount -= transferAmount;
+		}
+
+		/// @notice Stakes SOV tokens in the user's behalf.
+		SOV.approve(address(staking), _amount);
+
+		staking.stakesBySchedule(_amount, FOUR_WEEKS, YEAR, FOUR_WEEKS, msg.sender, msg.sender);
+
+		emit Burn(msg.sender, _amount);
+	}
+
+```
+</details>
+
+---    
+
+> ### _getToken
+
+undefined
 
 Override default ApprovalReceiver._getToken function to
 register SOV token on this contract.
 
-```js
+```solidity
 function _getToken() internal view
 returns(address)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-The address of SOV token.
+```javascript
+nction _getToken() internal view returns (address) {
+		return address(SOV);
+	}
 
-**Arguments**
+```
+</details>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+---    
 
-### _getSelectors
+> ### _getSelectors
 
-⤾ overrides [ApprovalReceiver._getSelectors](ApprovalReceiver.md#_getselectors)
+undefined
 
 Override default ApprovalReceiver._getSelectors function to
 register mintWithApproval selector on this contract.
 
-```js
+```solidity
 function _getSelectors() internal view
 returns(bytes4[])
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-The array of registered selectors on this contract.
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+nction _getSelectors() internal view returns (bytes4[] memory) {
+		bytes4[] memory selectors = new bytes4[](1);
+		selectors[0] = this.mintWithApproval.selector;
+		return selectors;
+	}
+}
+```
+</details>
 
 ## Contracts
 
@@ -177,6 +284,7 @@ The array of registered selectors on this contract.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -298,7 +406,7 @@ The array of registered selectors on this contract.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

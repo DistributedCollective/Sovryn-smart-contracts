@@ -39,26 +39,40 @@ modifier pausable(bytes4 sig) internal
 
 - [_isPaused(bytes4 sig)](#_ispaused)
 
-### _isPaused
+---    
+
+> ### _isPaused
 
 Check whether a function is paused.
 	 *
 
-```js
+```solidity
 function _isPaused(bytes4 sig) internal view
 returns(isPaused bool)
 ```
-
-**Returns**
-
-isPaused Whether the function is paused: true or false.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| sig | bytes4 | The function ID, the selector on bytes4.
-	 * | 
+| sig | bytes4 | The function ID, the selector on bytes4. 	 * | 
+
+**Returns**
+
+isPaused Whether the function is paused: true or false.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _isPaused(bytes4 sig) internal view returns (bool isPaused) {
+		bytes32 slot = keccak256(abi.encodePacked(sig, Pausable_FunctionPause));
+		assembly {
+			isPaused := sload(slot)
+		}
+	}
+```
+</details>
 
 ## Contracts
 
@@ -74,6 +88,7 @@ isPaused Whether the function is paused: true or false.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -195,7 +210,7 @@ isPaused Whether the function is paused: true or false.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

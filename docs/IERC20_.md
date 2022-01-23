@@ -25,29 +25,36 @@ event Approval(address indexed owner, address indexed spender, uint256  value);
 - [approve(address spender, uint256 amount)](#approve)
 - [transferFrom(address sender, address recipient, uint256 amount)](#transferfrom)
 
-### totalSupply
+---    
+
+> ### totalSupply
 
 ⤿ Overridden Implementation(s): [ERC20.totalSupply](ERC20.md#totalsupply),[LiquidityMiningConfigToken.totalSupply](LiquidityMiningConfigToken.md#totalsupply)
 
 Returns the amount of tokens in existence.
 
-```js
+```solidity
 function totalSupply() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function totalSupply() external view returns (uint256);
+```
+</details>
 
-### balanceOf
+---    
+
+> ### balanceOf
 
 ⤿ Overridden Implementation(s): [ERC20.balanceOf](ERC20.md#balanceof),[LiquidityMiningConfigToken.balanceOf](LiquidityMiningConfigToken.md#balanceof)
 
 Returns the amount of tokens owned by `account`.
 
-```js
+```solidity
 function balanceOf(address account) external view
 returns(uint256)
 ```
@@ -58,7 +65,17 @@ returns(uint256)
 | ------------- |------------- | -----|
 | account | address |  | 
 
-### transfer
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function balanceOf(address account) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### transfer
 
 ⤿ Overridden Implementation(s): [ERC20.transfer](ERC20.md#transfer),[LiquidityMiningConfigToken.transfer](LiquidityMiningConfigToken.md#transfer)
 
@@ -66,7 +83,7 @@ Moves `amount` tokens from the caller's account to `recipient`.
 	 * Returns a boolean value indicating whether the operation succeeded.
 	 * Emits a {Transfer} event.
 
-```js
+```solidity
 function transfer(address recipient, uint256 amount) external nonpayable
 returns(bool)
 ```
@@ -78,7 +95,17 @@ returns(bool)
 | recipient | address |  | 
 | amount | uint256 |  | 
 
-### allowance
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function transfer(address recipient, uint256 amount) external returns (bool);
+```
+</details>
+
+---    
+
+> ### allowance
 
 ⤿ Overridden Implementation(s): [ERC20.allowance](ERC20.md#allowance),[LiquidityMiningConfigToken.allowance](LiquidityMiningConfigToken.md#allowance)
 
@@ -87,7 +114,7 @@ allowed to spend on behalf of `owner` through {transferFrom}. This is
 zero by default.
 	 * This value changes when {approve} or {transferFrom} are called.
 
-```js
+```solidity
 function allowance(address owner, address spender) external view
 returns(uint256)
 ```
@@ -99,7 +126,17 @@ returns(uint256)
 | owner | address |  | 
 | spender | address |  | 
 
-### approve
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function allowance(address owner, address spender) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### approve
 
 ⤿ Overridden Implementation(s): [ERC20.approve](ERC20.md#approve),[LiquidityMiningConfigToken.approve](LiquidityMiningConfigToken.md#approve)
 
@@ -113,7 +150,7 @@ desired value afterwards:
 https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
 	 * Emits an {Approval} event.
 
-```js
+```solidity
 function approve(address spender, uint256 amount) external nonpayable
 returns(bool)
 ```
@@ -125,7 +162,17 @@ returns(bool)
 | spender | address |  | 
 | amount | uint256 |  | 
 
-### transferFrom
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function approve(address spender, uint256 amount) external returns (bool);
+```
+</details>
+
+---    
+
+> ### transferFrom
 
 ⤿ Overridden Implementation(s): [ERC20.transferFrom](ERC20.md#transferfrom),[LiquidityMiningConfigToken.transferFrom](LiquidityMiningConfigToken.md#transferfrom)
 
@@ -135,7 +182,7 @@ allowance.
 	 * Returns a boolean value indicating whether the operation succeeded.
 	 * Emits a {Transfer} event.
 
-```js
+```solidity
 function transferFrom(address sender, address recipient, uint256 amount) external nonpayable
 returns(bool)
 ```
@@ -147,6 +194,18 @@ returns(bool)
 | sender | address |  | 
 | recipient | address |  | 
 | amount | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function transferFrom(
+		address sender,
+		address recipient,
+		uint256 amount
+	) external returns (bool);
+```
+</details>
 
 ## Contracts
 
@@ -162,6 +221,7 @@ returns(bool)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -283,7 +343,7 @@ returns(bool)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

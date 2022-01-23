@@ -19,11 +19,13 @@ Interfaces are used to cast a contract address into a callable instance.
 - [timestampToLockDate(uint256 timestamp)](#timestamptolockdate)
 - [isVestingContract(address stakerAddress)](#isvestingcontract)
 
-### stakesBySchedule
+---    
+
+> ### stakesBySchedule
 
 ⤿ Overridden Implementation(s): [Staking.stakesBySchedule](Staking.md#stakesbyschedule)
 
-```js
+```solidity
 function stakesBySchedule(uint256 amount, uint256 cliff, uint256 duration, uint256 intervalLength, address stakeFor, address delegatee) external nonpayable
 ```
 
@@ -38,11 +40,28 @@ function stakesBySchedule(uint256 amount, uint256 cliff, uint256 duration, uint2
 | stakeFor | address |  | 
 | delegatee | address |  | 
 
-### stake
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function stakesBySchedule(
+		uint256 amount,
+		uint256 cliff,
+		uint256 duration,
+		uint256 intervalLength,
+		address stakeFor,
+		address delegatee
+	) external;
+```
+</details>
+
+---    
+
+> ### stake
 
 ⤿ Overridden Implementation(s): [Staking.stake](Staking.md#stake)
 
-```js
+```solidity
 function stake(uint96 amount, uint256 until, address stakeFor, address delegatee) external nonpayable
 ```
 
@@ -55,11 +74,26 @@ function stake(uint96 amount, uint256 until, address stakeFor, address delegatee
 | stakeFor | address |  | 
 | delegatee | address |  | 
 
-### getPriorVotes
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function stake(
+		uint96 amount,
+		uint256 until,
+		address stakeFor,
+		address delegatee
+	) external;
+```
+</details>
+
+---    
+
+> ### getPriorVotes
 
 ⤿ Overridden Implementation(s): [WeightedStaking.getPriorVotes](WeightedStaking.md#getpriorvotes)
 
-```js
+```solidity
 function getPriorVotes(address account, uint256 blockNumber, uint256 date) external view
 returns(uint96)
 ```
@@ -72,11 +106,25 @@ returns(uint96)
 | blockNumber | uint256 |  | 
 | date | uint256 |  | 
 
-### getPriorTotalVotingPower
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getPriorVotes(
+		address account,
+		uint256 blockNumber,
+		uint256 date
+	) external view returns (uint96);
+```
+</details>
+
+---    
+
+> ### getPriorTotalVotingPower
 
 ⤿ Overridden Implementation(s): [StakingMockup.getPriorTotalVotingPower](StakingMockup.md#getpriortotalvotingpower),[WeightedStaking.getPriorTotalVotingPower](WeightedStaking.md#getpriortotalvotingpower)
 
-```js
+```solidity
 function getPriorTotalVotingPower(uint32 blockNumber, uint256 time) external view
 returns(uint96)
 ```
@@ -88,11 +136,21 @@ returns(uint96)
 | blockNumber | uint32 |  | 
 | time | uint256 |  | 
 
-### getPriorWeightedStake
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getPriorTotalVotingPower(uint32 blockNumber, uint256 time) external view returns (uint96);
+```
+</details>
+
+---    
+
+> ### getPriorWeightedStake
 
 ⤿ Overridden Implementation(s): [StakingMockup.getPriorWeightedStake](StakingMockup.md#getpriorweightedstake),[WeightedStaking.getPriorWeightedStake](WeightedStaking.md#getpriorweightedstake)
 
-```js
+```solidity
 function getPriorWeightedStake(address account, uint256 blockNumber, uint256 date) external view
 returns(uint96)
 ```
@@ -105,11 +163,25 @@ returns(uint96)
 | blockNumber | uint256 |  | 
 | date | uint256 |  | 
 
-### getPriorVestingWeightedStake
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getPriorWeightedStake(
+		address account,
+		uint256 blockNumber,
+		uint256 date
+	) external view returns (uint96);
+```
+</details>
+
+---    
+
+> ### getPriorVestingWeightedStake
 
 ⤿ Overridden Implementation(s): [WeightedStaking.getPriorVestingWeightedStake](WeightedStaking.md#getpriorvestingweightedstake)
 
-```js
+```solidity
 function getPriorVestingWeightedStake(uint256 blockNumber, uint256 date) external view
 returns(uint96)
 ```
@@ -121,11 +193,21 @@ returns(uint96)
 | blockNumber | uint256 |  | 
 | date | uint256 |  | 
 
-### timestampToLockDate
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getPriorVestingWeightedStake(uint256 blockNumber, uint256 date) external view returns (uint96);
+```
+</details>
+
+---    
+
+> ### timestampToLockDate
 
 ⤿ Overridden Implementation(s): [WeightedStaking.timestampToLockDate](WeightedStaking.md#timestamptolockdate)
 
-```js
+```solidity
 function timestampToLockDate(uint256 timestamp) external view
 returns(lockDate uint256)
 ```
@@ -136,11 +218,21 @@ returns(lockDate uint256)
 | ------------- |------------- | -----|
 | timestamp | uint256 |  | 
 
-### isVestingContract
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function timestampToLockDate(uint256 timestamp) external view returns (uint256 lockDate);
+```
+</details>
+
+---    
+
+> ### isVestingContract
 
 ⤿ Overridden Implementation(s): [StakingMockup.isVestingContract](StakingMockup.md#isvestingcontract),[WeightedStaking.isVestingContract](WeightedStaking.md#isvestingcontract)
 
-```js
+```solidity
 function isVestingContract(address stakerAddress) external view
 returns(bool)
 ```
@@ -150,6 +242,14 @@ returns(bool)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | stakerAddress | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function isVestingContract(address stakerAddress) external view returns (bool);
+```
+</details>
 
 ## Contracts
 
@@ -165,6 +265,7 @@ returns(bool)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -286,7 +387,7 @@ returns(bool)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -20,9 +20,11 @@ which allows you to call the safe operations as `token.safeTransfer(...)`, etc.
 - [safeDecreaseAllowance(IERC20 token, address spender, uint256 value)](#safedecreaseallowance)
 - [callOptionalReturn(IERC20 token, bytes data)](#calloptionalreturn)
 
-### safeTransfer
+---    
 
-```js
+> ### safeTransfer
+
+```solidity
 function safeTransfer(IERC20 token, address to, uint256 value) internal nonpayable
 ```
 
@@ -34,9 +36,25 @@ function safeTransfer(IERC20 token, address to, uint256 value) internal nonpayab
 | to | address |  | 
 | value | uint256 |  | 
 
-### safeTransferFrom
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function safeTransfer(
+		IERC20 token,
+		address to,
+		uint256 value
+	) internal {
+		callOptionalReturn(token, abi.encodeWithSelector(token.transfer.selector, to, value));
+	}
+```
+</details>
+
+---    
+
+> ### safeTransferFrom
+
+```solidity
 function safeTransferFrom(IERC20 token, address from, address to, uint256 value) internal nonpayable
 ```
 
@@ -49,9 +67,26 @@ function safeTransferFrom(IERC20 token, address from, address to, uint256 value)
 | to | address |  | 
 | value | uint256 |  | 
 
-### safeApprove
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function safeTransferFrom(
+		IERC20 token,
+		address from,
+		address to,
+		uint256 value
+	) internal {
+		callOptionalReturn(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));
+	}
+```
+</details>
+
+---    
+
+> ### safeApprove
+
+```solidity
 function safeApprove(IERC20 token, address spender, uint256 value) internal nonpayable
 ```
 
@@ -63,9 +98,30 @@ function safeApprove(IERC20 token, address spender, uint256 value) internal nonp
 | spender | address |  | 
 | value | uint256 |  | 
 
-### safeIncreaseAllowance
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function safeApprove(
+		IERC20 token,
+		address spender,
+		uint256 value
+	) internal {
+		// safeApprove should only be called when setting an initial allowance,
+		// or when resetting it to zero. To increase and decrease it, use
+		// 'safeIncreaseAllowance' and 'safeDecreaseAllowance'
+		// solhint-disable-next-line max-line-length
+		require((value == 0) || (token.allowance(address(this), spender) == 0), "SafeERC20: approve from non-zero to non-zero allowance");
+		callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, value));
+	}
+```
+</details>
+
+---    
+
+> ### safeIncreaseAllowance
+
+```solidity
 function safeIncreaseAllowance(IERC20 token, address spender, uint256 value) internal nonpayable
 ```
 
@@ -77,9 +133,26 @@ function safeIncreaseAllowance(IERC20 token, address spender, uint256 value) int
 | spender | address |  | 
 | value | uint256 |  | 
 
-### safeDecreaseAllowance
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function safeIncreaseAllowance(
+		IERC20 token,
+		address spender,
+		uint256 value
+	) internal {
+		uint256 newAllowance = token.allowance(address(this), spender).add(value);
+		callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));
+	}
+```
+</details>
+
+---    
+
+> ### safeDecreaseAllowance
+
+```solidity
 function safeDecreaseAllowance(IERC20 token, address spender, uint256 value) internal nonpayable
 ```
 
@@ -91,12 +164,29 @@ function safeDecreaseAllowance(IERC20 token, address spender, uint256 value) int
 | spender | address |  | 
 | value | uint256 |  | 
 
-### callOptionalReturn
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function safeDecreaseAllowance(
+		IERC20 token,
+		address spender,
+		uint256 value
+	) internal {
+		uint256 newAllowance = token.allowance(address(this), spender).sub(value, "SafeERC20: decreased allowance below zero");
+		callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));
+	}
+```
+</details>
+
+---    
+
+> ### callOptionalReturn
 
 Imitates a Solidity high-level call (i.e. a regular function call to a contract), relaxing the requirement
 on the return value: the return value is optional (but if data is returned, it must not be false).
 
-```js
+```solidity
 function callOptionalReturn(IERC20 token, bytes data) private nonpayable
 ```
 
@@ -106,6 +196,34 @@ function callOptionalReturn(IERC20 token, bytes data) private nonpayable
 | ------------- |------------- | -----|
 | token | IERC20 | The token targeted by the call. | 
 | data | bytes | The call data (encoded using abi.encode or one of its variants). | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function callOptionalReturn(IERC20 token, bytes memory data) private {
+		// We need to perform a low level call here, to bypass Solidity's return data size checking mechanism, since
+		// we're implementing it ourselves.
+
+		// A Solidity high level call has three parts:
+		//  1. The target address is checked to verify it contains contract code
+		//  2. The call itself is made, and success asserted
+		//  3. The return value is decoded, which in turn checks the size of the returned data.
+		// solhint-disable-next-line max-line-length
+		require(address(token).isContract(), "SafeERC20: call to non-contract");
+
+		// solhint-disable-next-line avoid-low-level-calls
+		(bool success, bytes memory returndata) = address(token).call(data);
+		require(success, "SafeERC20: low-level call failed");
+
+		if (returndata.length > 0) {
+			// Return data is optional
+			// solhint-disable-next-line max-line-length
+			require(abi.decode(returndata, (bool)), "SafeERC20: ERC20 operation did not succeed");
+		}
+	}
+```
+</details>
 
 ## Contracts
 
@@ -121,6 +239,7 @@ function callOptionalReturn(IERC20 token, bytes data) private nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -242,7 +361,7 @@ function callOptionalReturn(IERC20 token, bytes data) private nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

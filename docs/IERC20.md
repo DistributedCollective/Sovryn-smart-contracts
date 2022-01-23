@@ -32,21 +32,28 @@ event Approval(address indexed owner, address indexed spender, uint256  value);
 - [transfer(address _to, uint256 _value)](#transfer)
 - [transferFrom(address _from, address _to, uint256 _value)](#transferfrom)
 
-### totalSupply
+---    
 
-```js
+> ### totalSupply
+
+```solidity
 function totalSupply() public view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function totalSupply() public view returns (uint256);
+```
+</details>
 
-### balanceOf
+---    
 
-```js
+> ### balanceOf
+
+```solidity
 function balanceOf(address _who) public view
 returns(uint256)
 ```
@@ -57,9 +64,19 @@ returns(uint256)
 | ------------- |------------- | -----|
 | _who | address |  | 
 
-### allowance
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function balanceOf(address _who) public view returns (uint256);
+```
+</details>
+
+---    
+
+> ### allowance
+
+```solidity
 function allowance(address _owner, address _spender) public view
 returns(uint256)
 ```
@@ -71,9 +88,19 @@ returns(uint256)
 | _owner | address |  | 
 | _spender | address |  | 
 
-### approve
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function allowance(address _owner, address _spender) public view returns (uint256);
+```
+</details>
+
+---    
+
+> ### approve
+
+```solidity
 function approve(address _spender, uint256 _value) public nonpayable
 returns(bool)
 ```
@@ -85,9 +112,19 @@ returns(bool)
 | _spender | address |  | 
 | _value | uint256 |  | 
 
-### transfer
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function approve(address _spender, uint256 _value) public returns (bool);
+```
+</details>
+
+---    
+
+> ### transfer
+
+```solidity
 function transfer(address _to, uint256 _value) public nonpayable
 returns(bool)
 ```
@@ -99,9 +136,19 @@ returns(bool)
 | _to | address |  | 
 | _value | uint256 |  | 
 
-### transferFrom
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function transfer(address _to, uint256 _value) public returns (bool);
+```
+</details>
+
+---    
+
+> ### transferFrom
+
+```solidity
 function transferFrom(address _from, address _to, uint256 _value) public nonpayable
 returns(bool)
 ```
@@ -113,6 +160,18 @@ returns(bool)
 | _from | address |  | 
 | _to | address |  | 
 | _value | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function transferFrom(
+		address _from,
+		address _to,
+		uint256 _value
+	) public returns (bool);
+```
+</details>
 
 ## Contracts
 
@@ -128,6 +187,7 @@ returns(bool)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -249,7 +309,7 @@ returns(bool)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

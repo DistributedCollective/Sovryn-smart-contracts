@@ -20,38 +20,52 @@ uint256 internal constant MONTH;
 
 ## Functions
 
-- [()](#)
-- [()](#)
+- [constructor()](#constructor)
+- [constructor()](#constructor)
 - [initialize(address target)](#initialize)
 - [liquidate(bytes32 loanId, address receiver, uint256 closeAmount)](#liquidate)
 - [_liquidate(bytes32 loanId, address receiver, uint256 closeAmount)](#_liquidate)
 - [_swapBackExcess(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount, bytes loanDataBytes)](#_swapbackexcess)
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function () public nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+constructor() public {}
+```
+</details>
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function () external nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function() external {
+		revert("fallback not allowed");
+	}
+```
+</details>
 
-### initialize
+---    
 
-```js
+> ### initialize
+
+```solidity
 function initialize(address target) external nonpayable onlyOwner 
 ```
 
@@ -61,33 +75,69 @@ function initialize(address target) external nonpayable onlyOwner
 | ------------- |------------- | -----|
 | target | address |  | 
 
-### liquidate
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.liquidate.selector];
+		_setTarget(this.liquidate.selector, target);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanClosingsLiquidation");
+	}
+```
+</details>
+
+---    
+
+> ### liquidate
 
 Liquidate an unhealty loan.
 	 *
 
-```js
+```solidity
 function liquidate(bytes32 loanId, address receiver, uint256 closeAmount) external payable nonReentrant whenNotPaused 
 returns(loanCloseAmount uint256, seizedAmount uint256, seizedToken address)
 ```
-
-**Returns**
-
-loanCloseAmount The amount of the collateral token of the loan.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| loanId | bytes32 | The ID of the loan to liquidate.
-  loanId is the ID of the loan, which is created on loan opening.
-  It can be obtained either by parsing the Trade event or by reading
-  the open loans from the contract by calling getActiveLoans or getUserLoans. | 
+| loanId | bytes32 | The ID of the loan to liquidate.   loanId is the ID of the loan, which is created on loan opening.   It can be obtained either by parsing the Trade event or by reading   the open loans from the contract by calling getActiveLoans or getUserLoans. | 
 | receiver | address | The receiver of the seized amount. | 
-| closeAmount | uint256 | The amount to close in loanTokens.
-	 * | 
+| closeAmount | uint256 | The amount to close in loanTokens. 	 * | 
 
-### _liquidate
+**Returns**
+
+loanCloseAmount The amount of the collateral token of the loan.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function liquidate(
+		bytes32 loanId,
+		address receiver,
+		uint256 closeAmount // denominated in loanToken
+	)
+		external
+		payable
+		nonReentrant
+		whenNotPaused
+		returns (
+			uint256 loanCloseAmount,
+			uint256 seizedAmount,
+			address seizedToken
+		)
+	{
+		return _liquidate(loanId, receiver, closeAmount);
+	}
+```
+</details>
+
+---    
+
+> ### _liquidate
 
 Internal function for liquidating an unhealthy loan.
 	 * The caller needs to approve the closeAmount prior to calling. Will
@@ -98,14 +148,10 @@ it needs to be liquidated. Anybody can initiate a liquidation and buy
 the collateral tokens at a discounted rate (5%).
 	 *
 
-```js
+```solidity
 function _liquidate(bytes32 loanId, address receiver, uint256 closeAmount) internal nonpayable
 returns(loanCloseAmount uint256, seizedAmount uint256, seizedToken address)
 ```
-
-**Returns**
-
-loanCloseAmount The amount of the collateral token of the loan.
 
 **Arguments**
 
@@ -113,22 +159,123 @@ loanCloseAmount The amount of the collateral token of the loan.
 | ------------- |------------- | -----|
 | loanId | bytes32 | The ID of the loan to liquidate. | 
 | receiver | address | The receiver of the seized amount. | 
-| closeAmount | uint256 | The amount to close in loanTokens.
-	 * | 
+| closeAmount | uint256 | The amount to close in loanTokens. 	 * | 
 
-### _swapBackExcess
+**Returns**
+
+loanCloseAmount The amount of the collateral token of the loan.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _liquidate(
+		bytes32 loanId,
+		address receiver,
+		uint256 closeAmount
+	)
+		internal
+		returns (
+			uint256 loanCloseAmount,
+			uint256 seizedAmount,
+			address seizedToken
+		)
+	{
+		(Loan storage loanLocal, LoanParams storage loanParamsLocal) = _checkLoan(loanId);
+
+		(uint256 currentMargin, uint256 collateralToLoanRate) =
+			IPriceFeeds(priceFeeds).getCurrentMargin(
+				loanParamsLocal.loanToken,
+				loanParamsLocal.collateralToken,
+				loanLocal.principal,
+				loanLocal.collateral
+			);
+		require(currentMargin <= loanParamsLocal.maintenanceMargin, "healthy position");
+
+		loanCloseAmount = closeAmount;
+
+		//amounts to restore the desired margin (maintencance + 5%)
+		(uint256 maxLiquidatable, uint256 maxSeizable, ) =
+			_getLiquidationAmounts(
+				loanLocal.principal,
+				loanLocal.collateral,
+				currentMargin,
+				loanParamsLocal.maintenanceMargin,
+				collateralToLoanRate
+			);
+
+		if (loanCloseAmount < maxLiquidatable) {
+			//close maxLiquidatable if tiny position will remain
+			uint256 remainingAmount = maxLiquidatable - loanCloseAmount;
+			remainingAmount = _getAmountInRbtc(loanParamsLocal.loanToken, remainingAmount);
+			if (remainingAmount <= TINY_AMOUNT) {
+				loanCloseAmount = maxLiquidatable;
+				seizedAmount = maxSeizable;
+			} else {
+				seizedAmount = maxSeizable.mul(loanCloseAmount).div(maxLiquidatable);
+			}
+		} else if (loanCloseAmount > maxLiquidatable) {
+			// adjust down the close amount to the max
+			loanCloseAmount = maxLiquidatable;
+			seizedAmount = maxSeizable;
+		} else {
+			seizedAmount = maxSeizable;
+		}
+
+		require(loanCloseAmount != 0, "nothing to liquidate");
+
+		// liquidator deposits the principal being closed
+		_returnPrincipalWithDeposit(loanParamsLocal.loanToken, address(this), loanCloseAmount);
+
+		// a portion of the principal is repaid to the lender out of interest refunded
+		uint256 loanCloseAmountLessInterest = _settleInterestToPrincipal(loanLocal, loanParamsLocal, loanCloseAmount, loanLocal.borrower);
+
+		if (loanCloseAmount > loanCloseAmountLessInterest) {
+			// full interest refund goes to the borrower
+			_withdrawAsset(loanParamsLocal.loanToken, loanLocal.borrower, loanCloseAmount - loanCloseAmountLessInterest);
+		}
+
+		if (loanCloseAmountLessInterest != 0) {
+			// The lender always gets back an ERC20 (even wrbtc), so we call withdraw directly rather than
+			// use the _withdrawAsset helper function
+			vaultWithdraw(loanParamsLocal.loanToken, loanLocal.lender, loanCloseAmountLessInterest);
+		}
+
+		seizedToken = loanParamsLocal.collateralToken;
+
+		if (seizedAmount != 0) {
+			loanLocal.collateral = loanLocal.collateral.sub(seizedAmount);
+
+			_withdrawAsset(seizedToken, receiver, seizedAmount);
+		}
+
+		_closeLoan(loanLocal, loanCloseAmount);
+
+		_emitClosingEvents(
+			loanParamsLocal,
+			loanLocal,
+			loanCloseAmount,
+			seizedAmount,
+			collateralToLoanRate,
+			0,
+			currentMargin,
+			CloseTypes.Liquidation
+		);
+	}
+```
+</details>
+
+---    
+
+> ### _swapBackExcess
 
 Swap back excessive loan tokens to collateral tokens.
 	 *
 
-```js
+```solidity
 function _swapBackExcess(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount, bytes loanDataBytes) internal nonpayable
 returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256, collateralToLoanSwapRate uint256)
 ```
-
-**Returns**
-
-destTokenAmountReceived The amount of destiny tokens received.
 
 **Arguments**
 
@@ -137,8 +284,44 @@ destTokenAmountReceived The amount of destiny tokens received.
 | loanLocal | struct LoanStruct.Loan | The loan object. | 
 | loanParamsLocal | struct LoanParamsStruct.LoanParams | The loan parameters. | 
 | swapAmount | uint256 | The amount to be swapped. | 
-| loanDataBytes | bytes | Additional loan data (not in use for token swaps).
-	 * | 
+| loanDataBytes | bytes | Additional loan data (not in use for token swaps). 	 * | 
+
+**Returns**
+
+destTokenAmountReceived The amount of destiny tokens received.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _swapBackExcess(
+		Loan memory loanLocal,
+		LoanParams memory loanParamsLocal,
+		uint256 swapAmount,
+		bytes memory loanDataBytes
+	)
+		internal
+		returns (
+			uint256 destTokenAmountReceived,
+			uint256 sourceTokenAmountUsed,
+			uint256 collateralToLoanSwapRate
+		)
+	{
+		(destTokenAmountReceived, sourceTokenAmountUsed, collateralToLoanSwapRate) = _loanSwap(
+			loanLocal.id,
+			loanParamsLocal.loanToken,
+			loanParamsLocal.collateralToken,
+			loanLocal.borrower,
+			swapAmount, // minSourceTokenAmount
+			swapAmount, // maxSourceTokenAmount
+			0, // requiredDestTokenAmount
+			false, // bypassFee
+			loanDataBytes
+		);
+		require(sourceTokenAmountUsed <= swapAmount, "excessive source amount");
+	}
+```
+</details>
 
 ## Contracts
 
@@ -154,6 +337,7 @@ destTokenAmountReceived The amount of destiny tokens received.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -275,7 +459,7 @@ destTokenAmountReceived The amount of destiny tokens received.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

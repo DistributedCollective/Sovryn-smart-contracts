@@ -84,11 +84,13 @@ uint256 internal tradingRebateRewardsBasisPoint;
 
 - [_setTarget(bytes4 sig, address target)](#_settarget)
 
-### _setTarget
+---    
+
+> ### _setTarget
 
 Add signature and target to storage.
 
-```js
+```solidity
 function _setTarget(bytes4 sig, address target) internal nonpayable
 ```
 
@@ -98,6 +100,22 @@ function _setTarget(bytes4 sig, address target) internal nonpayable
 | ------------- |------------- | -----|
 | sig | bytes4 |  | 
 | target | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _setTarget(bytes4 sig, address target) internal {
+		logicTargets[sig] = target;
+
+		if (target != address(0)) {
+			logicTargetsSet.addBytes32(bytes32(sig));
+		} else {
+			logicTargetsSet.removeBytes32(bytes32(sig));
+		}
+	}
+```
+</details>
 
 ## Contracts
 
@@ -113,6 +131,7 @@ function _setTarget(bytes4 sig, address target) internal nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -234,7 +253,7 @@ function _setTarget(bytes4 sig, address target) internal nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

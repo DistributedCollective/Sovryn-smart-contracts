@@ -27,7 +27,7 @@ event Withdrawal(address indexed src, uint256  wad);
 
 ## Functions
 
-- [()](#)
+- [constructor()](#constructor)
 - [deposit()](#deposit)
 - [withdraw(uint256 wad)](#withdraw)
 - [totalSupply()](#totalsupply)
@@ -35,31 +35,48 @@ event Withdrawal(address indexed src, uint256  wad);
 - [transfer(address dst, uint256 wad)](#transfer)
 - [transferFrom(address src, address dst, uint256 wad)](#transferfrom)
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function () external payable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function() external payable {
+		deposit();
+	}
+```
+</details>
 
-### deposit
+---    
 
-```js
+> ### deposit
+
+```solidity
 function deposit() public payable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function deposit() public payable {
+		balanceOf[msg.sender] += msg.value;
+		emit Deposit(msg.sender, msg.value);
+	}
+```
+</details>
 
-### withdraw
+---    
 
-```js
+> ### withdraw
+
+```solidity
 function withdraw(uint256 wad) public nonpayable
 ```
 
@@ -69,21 +86,43 @@ function withdraw(uint256 wad) public nonpayable
 | ------------- |------------- | -----|
 | wad | uint256 |  | 
 
-### totalSupply
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function withdraw(uint256 wad) public {
+		require(balanceOf[msg.sender] >= wad);
+		balanceOf[msg.sender] -= wad;
+		msg.sender.transfer(wad);
+		emit Withdrawal(msg.sender, wad);
+	}
+```
+</details>
+
+---    
+
+> ### totalSupply
+
+```solidity
 function totalSupply() public view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function totalSupply() public view returns (uint256) {
+		return address(this).balance;
+	}
+```
+</details>
 
-### approve
+---    
 
-```js
+> ### approve
+
+```solidity
 function approve(address guy, uint256 wad) public nonpayable
 returns(bool)
 ```
@@ -95,9 +134,23 @@ returns(bool)
 | guy | address |  | 
 | wad | uint256 |  | 
 
-### transfer
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function approve(address guy, uint256 wad) public returns (bool) {
+		allowance[msg.sender][guy] = wad;
+		emit Approval(msg.sender, guy, wad);
+		return true;
+	}
+```
+</details>
+
+---    
+
+> ### transfer
+
+```solidity
 function transfer(address dst, uint256 wad) public nonpayable
 returns(bool)
 ```
@@ -109,9 +162,21 @@ returns(bool)
 | dst | address |  | 
 | wad | uint256 |  | 
 
-### transferFrom
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function transfer(address dst, uint256 wad) public returns (bool) {
+		return transferFrom(msg.sender, dst, wad);
+	}
+```
+</details>
+
+---    
+
+> ### transferFrom
+
+```solidity
 function transferFrom(address src, address dst, uint256 wad) public nonpayable
 returns(bool)
 ```
@@ -123,6 +188,32 @@ returns(bool)
 | src | address |  | 
 | dst | address |  | 
 | wad | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function transferFrom(
+		address src,
+		address dst,
+		uint256 wad
+	) public returns (bool) {
+		require(balanceOf[src] >= wad);
+
+		if (src != msg.sender && allowance[src][msg.sender] != uint256(-1)) {
+			require(allowance[src][msg.sender] >= wad);
+			allowance[src][msg.sender] -= wad;
+		}
+
+		balanceOf[src] -= wad;
+		balanceOf[dst] += wad;
+
+		emit Transfer(src, dst, wad);
+
+		return true;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -138,6 +229,7 @@ returns(bool)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -259,7 +351,7 @@ returns(bool)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

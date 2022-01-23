@@ -8,13 +8,15 @@ View Source: [contracts/mockup/GovernorAlphaMockup.sol](../contracts/mockup/Gove
 
 ## Functions
 
-- [(address timelock_, address staking_, address guardian_, uint96 quorumVotes_, uint96 _minPercentageVotes)](#)
+- [constructor(address timelock_, address staking_, address guardian_, uint96 quorumVotes_, uint96 _minPercentageVotes)](#constructor)
 - [votingPeriod()](#votingperiod)
 - [queueProposals(uint256[] proposalIds)](#queueproposals)
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function (address timelock_, address staking_, address guardian_, uint96 quorumVotes_, uint96 _minPercentageVotes) public nonpayable GovernorAlpha 
 ```
 
@@ -28,23 +30,46 @@ function (address timelock_, address staking_, address guardian_, uint96 quorumV
 | quorumVotes_ | uint96 |  | 
 | _minPercentageVotes | uint96 |  | 
 
-### votingPeriod
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [GovernorAlpha.votingPeriod](GovernorAlpha.md#votingperiod)
+```javascript
+constructor(
+		address timelock_,
+		address staking_,
+		address guardian_,
+		uint96 quorumVotes_,
+		uint96 _minPercentageVotes
+	) public GovernorAlpha(timelock_, staking_, guardian_, quorumVotes_, _minPercentageVotes) {}
+```
+</details>
 
-```js
+---    
+
+> ### votingPeriod
+
+undefined
+
+```solidity
 function votingPeriod() public pure
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function votingPeriod() public pure returns (uint256) {
+		return 10;
+	}
+```
+</details>
 
-### queueProposals
+---    
 
-```js
+> ### queueProposals
+
+```solidity
 function queueProposals(uint256[] proposalIds) external nonpayable
 ```
 
@@ -53,6 +78,18 @@ function queueProposals(uint256[] proposalIds) external nonpayable
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | proposalIds | uint256[] |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function queueProposals(uint256[] calldata proposalIds) external {
+		for (uint256 i = 0; i < proposalIds.length; i++) {
+			queue(proposalIds[i]);
+		}
+	}
+```
+</details>
 
 ## Contracts
 
@@ -68,6 +105,7 @@ function queueProposals(uint256[] proposalIds) external nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -189,7 +227,7 @@ function queueProposals(uint256[] proposalIds) external nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -15,27 +15,52 @@ trading and lending https://bzx.network similar to the dYdX protocol.
 
 - [_withdrawProtocolToken(address receiver, uint256 amount)](#_withdrawprotocoltoken)
 
-### _withdrawProtocolToken
+---    
+
+> ### _withdrawProtocolToken
 
 Internal function to withdraw an amount of protocol tokens from this contract.
 	 *
 
-```js
+```solidity
 function _withdrawProtocolToken(address receiver, uint256 amount) internal nonpayable
 returns(address, bool)
 ```
-
-**Returns**
-
-The protocol token address.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | receiver | address | The address of the recipient. | 
-| amount | uint256 | The amount of tokens to withdraw.
-	 * | 
+| amount | uint256 | The amount of tokens to withdraw. 	 * | 
+
+**Returns**
+
+The protocol token address.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _withdrawProtocolToken(address receiver, uint256 amount) internal returns (address, bool) {
+		uint256 withdrawAmount = amount;
+
+		uint256 tokenBalance = protocolTokenHeld;
+		if (withdrawAmount > tokenBalance) {
+			withdrawAmount = tokenBalance;
+		}
+		if (withdrawAmount == 0) {
+			return (protocolTokenAddress, false);
+		}
+
+		protocolTokenHeld = tokenBalance.sub(withdrawAmount);
+
+		IERC20(protocolTokenAddress).safeTransfer(receiver, withdrawAmount);
+
+		return (protocolTokenAddress, true);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -51,6 +76,7 @@ The protocol token address.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -172,7 +198,7 @@ The protocol token address.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

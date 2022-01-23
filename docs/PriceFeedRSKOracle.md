@@ -26,17 +26,19 @@ event SetRSKOracleAddress(address indexed rskOracleAddress, address  changerAddr
 
 ## Functions
 
-- [(address _rskOracleAddress)](#)
+- [constructor(address _rskOracleAddress)](#constructor)
 - [latestAnswer()](#latestanswer)
 - [latestTimestamp()](#latesttimestamp)
 - [setRSKOracleAddress(address _rskOracleAddress)](#setrskoracleaddress)
 
-### 
+---    
+
+> ### constructor
 
 Initialize a new RSK Oracle.
 	 *
 
-```js
+```solidity
 function (address _rskOracleAddress) public nonpayable
 ```
 
@@ -46,50 +48,70 @@ function (address _rskOracleAddress) public nonpayable
 | ------------- |------------- | -----|
 | _rskOracleAddress | address | The RSK Oracle address. | 
 
-### latestAnswer
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [IPriceFeedsExt.latestAnswer](IPriceFeedsExt.md#latestanswer)
+```javascript
+constructor(address _rskOracleAddress) public {
+		setRSKOracleAddress(_rskOracleAddress);
+	}
+```
+</details>
+
+---    
+
+> ### latestAnswer
+
+undefined
 
 Get the oracle price.
 
-```js
+```solidity
 function latestAnswer() external view
 returns(_price uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-The price from Oracle.
+```javascript
+function latestAnswer() external view returns (uint256 _price) {
+		IRSKOracle _rskOracle = IRSKOracle(rskOracleAddress);
+		(_price, ) = _rskOracle.getPricing();
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### latestTimestamp
+> ### latestTimestamp
 
 Get the las time oracle updated the price.
 
-```js
+```solidity
 function latestTimestamp() external view
 returns(_timestamp uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-The latest time.
+```javascript
+function latestTimestamp() external view returns (uint256 _timestamp) {
+		IRSKOracle _rskOracle = IRSKOracle(rskOracleAddress);
+		(, _timestamp) = _rskOracle.getPricing();
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### setRSKOracleAddress
+> ### setRSKOracleAddress
 
 Set the RSK Oracle address.
 	 *
 
-```js
+```solidity
 function setRSKOracleAddress(address _rskOracleAddress) public nonpayable onlyOwner 
 ```
 
@@ -98,6 +120,18 @@ function setRSKOracleAddress(address _rskOracleAddress) public nonpayable onlyOw
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _rskOracleAddress | address | The RSK Oracle address. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setRSKOracleAddress(address _rskOracleAddress) public onlyOwner {
+		require(Address.isContract(_rskOracleAddress), "_rskOracleAddress not a contract");
+		rskOracleAddress = _rskOracleAddress;
+		emit SetRSKOracleAddress(rskOracleAddress, msg.sender);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -113,6 +147,7 @@ function setRSKOracleAddress(address _rskOracleAddress) public nonpayable onlyOw
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -234,7 +269,7 @@ function setRSKOracleAddress(address _rskOracleAddress) public nonpayable onlyOw
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

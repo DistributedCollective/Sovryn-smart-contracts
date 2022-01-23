@@ -9,21 +9,28 @@ View Source: [contracts/interfaces/ILoanTokenLogicProxy.sol](../contracts/interf
 - [beaconAddress()](#beaconaddress)
 - [setBeaconAddress(address _newBeaconAddress)](#setbeaconaddress)
 
-### beaconAddress
+---    
 
-```js
+> ### beaconAddress
+
+```solidity
 function beaconAddress() external view
 returns(address)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function beaconAddress() external view returns (address);
+```
+</details>
 
-### setBeaconAddress
+---    
 
-```js
+> ### setBeaconAddress
+
+```solidity
 function setBeaconAddress(address _newBeaconAddress) external nonpayable
 ```
 
@@ -32,6 +39,14 @@ function setBeaconAddress(address _newBeaconAddress) external nonpayable
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _newBeaconAddress | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setBeaconAddress(address _newBeaconAddress) external;
+```
+</details>
 
 ## Contracts
 
@@ -47,6 +62,7 @@ function setBeaconAddress(address _newBeaconAddress) external nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -168,7 +184,7 @@ function setBeaconAddress(address _newBeaconAddress) external nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

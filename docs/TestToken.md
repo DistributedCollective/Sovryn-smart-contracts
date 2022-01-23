@@ -32,7 +32,7 @@ event Burn(address indexed burner, uint256  value);
 
 ## Functions
 
-- [(string _name, string _symbol, uint8 _decimals, uint256 _initialAmount)](#)
+- [constructor(string _name, string _symbol, uint8 _decimals, uint256 _initialAmount)](#constructor)
 - [approve(address _spender, uint256 _value)](#approve)
 - [transfer(address _to, uint256 _value)](#transfer)
 - [transferFrom(address _from, address _to, uint256 _value)](#transferfrom)
@@ -42,9 +42,11 @@ event Burn(address indexed burner, uint256  value);
 - [balanceOf(address _owner)](#balanceof)
 - [allowance(address _owner, address _spender)](#allowance)
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function (string _name, string _symbol, uint8 _decimals, uint256 _initialAmount) public nonpayable
 ```
 
@@ -57,9 +59,32 @@ function (string _name, string _symbol, uint8 _decimals, uint256 _initialAmount)
 | _decimals | uint8 |  | 
 | _initialAmount | uint256 |  | 
 
-### approve
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+constructor(
+		string memory _name,
+		string memory _symbol,
+		uint8 _decimals,
+		uint256 _initialAmount
+	) public {
+		name = _name;
+		symbol = _symbol;
+		decimals = _decimals;
+
+		if (_initialAmount != 0) {
+			mint(msg.sender, _initialAmount);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### approve
+
+```solidity
 function approve(address _spender, uint256 _value) public nonpayable
 returns(bool)
 ```
@@ -71,9 +96,23 @@ returns(bool)
 | _spender | address |  | 
 | _value | uint256 |  | 
 
-### transfer
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function approve(address _spender, uint256 _value) public returns (bool) {
+		allowed[msg.sender][_spender] = _value;
+		emit Approval(msg.sender, _spender, _value);
+		return true;
+	}
+```
+</details>
+
+---    
+
+> ### transfer
+
+```solidity
 function transfer(address _to, uint256 _value) public nonpayable
 returns(bool)
 ```
@@ -85,9 +124,27 @@ returns(bool)
 | _to | address |  | 
 | _value | uint256 |  | 
 
-### transferFrom
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function transfer(address _to, uint256 _value) public returns (bool) {
+		require(_value <= balances[msg.sender] && _to != address(0), "invalid transfer");
+
+		balances[msg.sender] = balances[msg.sender].sub(_value);
+		balances[_to] = balances[_to].add(_value);
+
+		emit Transfer(msg.sender, _to, _value);
+		return true;
+	}
+```
+</details>
+
+---    
+
+> ### transferFrom
+
+```solidity
 function transferFrom(address _from, address _to, uint256 _value) public nonpayable
 returns(bool)
 ```
@@ -100,9 +157,37 @@ returns(bool)
 | _to | address |  | 
 | _value | uint256 |  | 
 
-### mint
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function transferFrom(
+		address _from,
+		address _to,
+		uint256 _value
+	) public returns (bool) {
+		uint256 allowanceAmount = allowed[_from][msg.sender];
+		require(_value <= balances[_from] && _value <= allowanceAmount && _to != address(0), "invalid transfer");
+
+		balances[_from] = balances[_from].sub(_value);
+		balances[_to] = balances[_to].add(_value);
+		if (allowanceAmount < uint256(-1)) {
+			allowed[_from][msg.sender] = allowanceAmount.sub(_value);
+			/// @dev Allowance mapping update requires an event log
+			emit AllowanceUpdate(_from, msg.sender, allowanceAmount, allowed[_from][msg.sender]);
+		}
+
+		emit Transfer(_from, _to, _value);
+		return true;
+	}
+```
+</details>
+
+---    
+
+> ### mint
+
+```solidity
 function mint(address _to, uint256 _value) public nonpayable
 ```
 
@@ -113,9 +198,26 @@ function mint(address _to, uint256 _value) public nonpayable
 | _to | address |  | 
 | _value | uint256 |  | 
 
-### burn
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function mint(address _to, uint256 _value) public {
+		require(_to != address(0), "no burn allowed");
+		totalSupply_ = totalSupply_.add(_value);
+		balances[_to] = balances[_to].add(_value);
+
+		emit Mint(_to, _value);
+		emit Transfer(address(0), _to, _value);
+	}
+```
+</details>
+
+---    
+
+> ### burn
+
+```solidity
 function burn(address _who, uint256 _value) public nonpayable
 ```
 
@@ -126,21 +228,48 @@ function burn(address _who, uint256 _value) public nonpayable
 | _who | address |  | 
 | _value | uint256 |  | 
 
-### totalSupply
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function burn(address _who, uint256 _value) public {
+		require(_value <= balances[_who], "balance too low");
+		// no need to require _value <= totalSupply, since that would imply the
+		// sender's balance is greater than the totalSupply, which *should* be an assertion failure
+
+		balances[_who] = balances[_who].sub(_value);
+		totalSupply_ = totalSupply_.sub(_value);
+
+		emit Burn(_who, _value);
+		emit Transfer(_who, address(0), _value);
+	}
+```
+</details>
+
+---    
+
+> ### totalSupply
+
+```solidity
 function totalSupply() public view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function totalSupply() public view returns (uint256) {
+		return totalSupply_;
+	}
+```
+</details>
 
-### balanceOf
+---    
 
-```js
+> ### balanceOf
+
+```solidity
 function balanceOf(address _owner) public view
 returns(uint256)
 ```
@@ -151,9 +280,21 @@ returns(uint256)
 | ------------- |------------- | -----|
 | _owner | address |  | 
 
-### allowance
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function balanceOf(address _owner) public view returns (uint256) {
+		return balances[_owner];
+	}
+```
+</details>
+
+---    
+
+> ### allowance
+
+```solidity
 function allowance(address _owner, address _spender) public view
 returns(uint256)
 ```
@@ -164,6 +305,16 @@ returns(uint256)
 | ------------- |------------- | -----|
 | _owner | address |  | 
 | _spender | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function allowance(address _owner, address _spender) public view returns (uint256) {
+		return allowed[_owner][_spender];
+	}
+```
+</details>
 
 ## Contracts
 
@@ -179,6 +330,7 @@ returns(uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -300,7 +452,7 @@ returns(uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

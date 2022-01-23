@@ -21,23 +21,32 @@ bool public has;
 - [setValue(uint256 _value)](#setvalue)
 - [setHas(bool _has)](#sethas)
 
-### peek
+---    
 
-⤾ overrides [Medianizer.peek](Medianizer.md#peek)
+> ### peek
 
-```js
+undefined
+
+```solidity
 function peek() external view
 returns(bytes32, bool)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function peek() external view returns (bytes32, bool) {
+		return (bytes32(value), has);
+	}
+```
+</details>
 
-### setValue
+---    
 
-```js
+> ### setValue
+
+```solidity
 function setValue(uint256 _value) public nonpayable
 ```
 
@@ -47,9 +56,21 @@ function setValue(uint256 _value) public nonpayable
 | ------------- |------------- | -----|
 | _value | uint256 |  | 
 
-### setHas
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setValue(uint256 _value) public {
+		value = _value;
+	}
+```
+</details>
+
+---    
+
+> ### setHas
+
+```solidity
 function setHas(bool _has) public nonpayable
 ```
 
@@ -58,6 +79,16 @@ function setHas(bool _has) public nonpayable
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _has | bool |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setHas(bool _has) public {
+		has = _has;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -73,6 +104,7 @@ function setHas(bool _has) public nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -194,7 +226,7 @@ function setHas(bool _has) public nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

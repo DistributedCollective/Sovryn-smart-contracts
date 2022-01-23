@@ -35,73 +35,103 @@ bytes32 internal constant LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT;
 modifier onlyAdmin() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ## Functions
 
-- [()](#)
+- [constructor()](#constructor)
 - [_beaconAddress()](#_beaconaddress)
 - [beaconAddress()](#beaconaddress)
 - [_setBeaconAddress(address _newBeaconAddress)](#_setbeaconaddress)
 - [setBeaconAddress(address _newBeaconAddress)](#setbeaconaddress)
 - [getTarget(bytes4 functionSignature)](#gettarget)
 
-### 
+---    
+
+> ### constructor
 
 Fallback function performs a logic implementation address query to LoanTokenLogicBeacon and then do delegate call to that query result address.
 Returns whatever the implementation call returns.
 
-```js
+```solidity
 function () external payable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function() external payable {
+		// query the logic target implementation address from the LoanTokenLogicBeacon
+		address target = ILoanTokenLogicBeacon(_beaconAddress()).getTarget(msg.sig);
+		require(target != address(0), "LoanTokenLogicProxy:target not active");
 
-### _beaconAddress
+		bytes memory data = msg.data;
+		assembly {
+			let result := delegatecall(gas, target, add(data, 0x20), mload(data), 0, 0)
+			let size := returndatasize
+			let ptr := mload(0x40)
+			returndatacopy(ptr, 0, size)
+			switch result
+				case 0 {
+					revert(ptr, size)
+				}
+				default {
+					return(ptr, size)
+				}
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _beaconAddress
 
 Returns the current Loan Token logic Beacon.
 
-```js
+```solidity
 function _beaconAddress() internal view
 returns(beaconAddress address)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-Address of the current LoanTokenLogicBeacon.
+```javascript
+function _beaconAddress() internal view returns (address beaconAddress) {
+		bytes32 slot = LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT;
+		assembly {
+			beaconAddress := sload(slot)
+		}
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+> ### beaconAddress
 
-### beaconAddress
-
-```js
+```solidity
 function beaconAddress() external view
 returns(address)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-The address of the current LoanTokenLogicBeacon.
+```javascript
+function beaconAddress() external view returns (address) {
+		return _beaconAddress();
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### _setBeaconAddress
+> ### _setBeaconAddress
 
 Set/update the new beacon address.
 
-```js
+```solidity
 function _setBeaconAddress(address _newBeaconAddress) private nonpayable
 ```
 
@@ -111,11 +141,29 @@ function _setBeaconAddress(address _newBeaconAddress) private nonpayable
 | ------------- |------------- | -----|
 | _newBeaconAddress | address | Address of the new LoanTokenLogicBeacon. | 
 
-### setBeaconAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _setBeaconAddress(address _newBeaconAddress) private {
+		require(Address.isContract(_newBeaconAddress), "Cannot set beacon address to a non-contract address");
+
+		bytes32 slot = LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT;
+
+		assembly {
+			sstore(slot, _newBeaconAddress)
+		}
+	}
+```
+</details>
+
+---    
+
+> ### setBeaconAddress
 
 External function to set the new LoanTokenLogicBeacon Address
 
-```js
+```solidity
 function setBeaconAddress(address _newBeaconAddress) external nonpayable onlyAdmin 
 ```
 
@@ -125,9 +173,21 @@ function setBeaconAddress(address _newBeaconAddress) external nonpayable onlyAdm
 | ------------- |------------- | -----|
 | _newBeaconAddress | address | Address of the new LoanTokenLogicBeacon | 
 
-### getTarget
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setBeaconAddress(address _newBeaconAddress) external onlyAdmin {
+		_setBeaconAddress(_newBeaconAddress);
+	}
+```
+</details>
+
+---    
+
+> ### getTarget
+
+```solidity
 function getTarget(bytes4 functionSignature) external view
 returns(logicTargetAddress address)
 ```
@@ -137,6 +197,14 @@ returns(logicTargetAddress address)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | functionSignature | bytes4 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getTarget(bytes4 functionSignature) external view returns (address logicTargetAddress);
+```
+</details>
 
 ## Contracts
 
@@ -152,6 +220,7 @@ returns(logicTargetAddress address)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -273,7 +342,7 @@ returns(logicTargetAddress address)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

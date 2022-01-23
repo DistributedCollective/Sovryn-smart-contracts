@@ -35,11 +35,6 @@ Modifier to make a function callable only when the contract is not paused.
 modifier whenNotPaused() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ### whenPaused
 
 Modifier to make a function callable only when the contract is paused.
@@ -48,68 +43,91 @@ Modifier to make a function callable only when the contract is paused.
 modifier whenPaused() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ## Functions
 
-- [()](#)
+- [constructor()](#constructor)
 - [paused()](#paused)
 - [pause()](#pause)
 - [unpause()](#unpause)
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function () internal nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+constructor() internal {}
+```
+</details>
 
-### paused
+---    
+
+> ### paused
 
 Returns true if the contract is paused, and false otherwise.
 
-```js
+```solidity
 function paused() public view
 returns(bool)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function paused() public view returns (bool) {
+		return _paused;
+	}
+```
+</details>
 
-### pause
+---    
+
+> ### pause
 
 Called by the owner to pause, triggers stopped state.
 
-```js
+```solidity
 function pause() public nonpayable onlyOwner whenNotPaused 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function pause() public onlyOwner whenNotPaused {
+		_paused = true;
+		emit Paused(_msgSender());
+	}
+```
+</details>
 
-### unpause
+---    
+
+> ### unpause
 
 Called by the owner to unpause, returns to normal state.
 
-```js
+```solidity
 function unpause() public nonpayable onlyOwner whenPaused 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function unpause() public onlyOwner whenPaused {
+		_paused = false;
+		emit Unpaused(_msgSender());
+	}
+```
+</details>
 
 ## Contracts
 
@@ -125,6 +143,7 @@ function unpause() public nonpayable onlyOwner whenPaused
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -246,7 +265,7 @@ function unpause() public nonpayable onlyOwner whenPaused
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

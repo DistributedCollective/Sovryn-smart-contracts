@@ -33,121 +33,216 @@ struct Bytes32Set {
 - [length(struct EnumerableBytes32Set.Bytes32Set set)](#length)
 - [get(struct EnumerableBytes32Set.Bytes32Set set, uint256 index)](#get)
 
-### addAddress
+---    
+
+> ### addAddress
 
 Add an address value to a set. O(1).
 	 *
 
-```js
+```solidity
 function addAddress(struct EnumerableBytes32Set.Bytes32Set set, address addrvalue) internal nonpayable
 returns(bool)
 ```
 
-**Returns**
-
-False if the value was already in the set.
-
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | set | struct EnumerableBytes32Set.Bytes32Set | The set of values. | 
-| addrvalue | address | The address to add.
-	 * | 
+| addrvalue | address | The address to add. 	 * | 
 
-### addBytes32
+**Returns**
+
+False if the value was already in the set.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addAddress(Bytes32Set storage set, address addrvalue) internal returns (bool) {
+		bytes32 value;
+		assembly {
+			value := addrvalue
+		}
+		return addBytes32(set, value);
+	}
+```
+</details>
+
+---    
+
+> ### addBytes32
 
 Add a value to a set. O(1).
 	 *
 
-```js
+```solidity
 function addBytes32(struct EnumerableBytes32Set.Bytes32Set set, bytes32 value) internal nonpayable
 returns(bool)
 ```
-
-**Returns**
-
-False if the value was already in the set.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | set | struct EnumerableBytes32Set.Bytes32Set | The set of values. | 
-| value | bytes32 | The new value to add.
-	 * | 
+| value | bytes32 | The new value to add. 	 * | 
 
-### removeAddress
+**Returns**
+
+False if the value was already in the set.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addBytes32(Bytes32Set storage set, bytes32 value) internal returns (bool) {
+		if (!contains(set, value)) {
+			set.index[value] = set.values.push(value);
+			return true;
+		} else {
+			return false;
+		}
+	}
+```
+</details>
+
+---    
+
+> ### removeAddress
 
 Remove an address value from a set. O(1).
 	 *
 
-```js
+```solidity
 function removeAddress(struct EnumerableBytes32Set.Bytes32Set set, address addrvalue) internal nonpayable
 returns(bool)
 ```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| set | struct EnumerableBytes32Set.Bytes32Set | The set of values. | 
+| addrvalue | address | The address to remove. 	 * | 
 
 **Returns**
 
 False if the address was not present in the set.
 
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function removeAddress(Bytes32Set storage set, address addrvalue) internal returns (bool) {
+		bytes32 value;
+		assembly {
+			value := addrvalue
+		}
+		return removeBytes32(set, value);
+	}
+```
+</details>
+
+---    
+
+> ### removeBytes32
+
+Remove a value from a set. O(1).
+	 *
+
+```solidity
+function removeBytes32(struct EnumerableBytes32Set.Bytes32Set set, bytes32 value) internal nonpayable
+returns(bool)
+```
+
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | set | struct EnumerableBytes32Set.Bytes32Set | The set of values. | 
-| addrvalue | address | The address to remove.
-	 * | 
-
-### removeBytes32
-
-Remove a value from a set. O(1).
-	 *
-
-```js
-function removeBytes32(struct EnumerableBytes32Set.Bytes32Set set, bytes32 value) internal nonpayable
-returns(bool)
-```
+| value | bytes32 | The value to remove. 	 * | 
 
 **Returns**
 
 False if the value was not present in the set.
 
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function removeBytes32(Bytes32Set storage set, bytes32 value) internal returns (bool) {
+		if (contains(set, value)) {
+			uint256 toDeleteIndex = set.index[value] - 1;
+			uint256 lastIndex = set.values.length - 1;
+
+			/// If the element we're deleting is the last one,
+			/// we can just remove it without doing a swap.
+			if (lastIndex != toDeleteIndex) {
+				bytes32 lastValue = set.values[lastIndex];
+
+				/// Move the last value to the index where the deleted value is.
+				set.values[toDeleteIndex] = lastValue;
+
+				/// Update the index for the moved value.
+				set.index[lastValue] = toDeleteIndex + 1; // All indexes are 1-based
+			}
+
+			/// Delete the index entry for the deleted value.
+			delete set.index[value];
+
+			/// Delete the old entry for the moved value.
+			set.values.pop();
+
+			return true;
+		} else {
+			return false;
+		}
+	}
+```
+</details>
+
+---    
+
+> ### contains
+
+Find out whether a value exists in the set.
+	 *
+
+```solidity
+function contains(struct EnumerableBytes32Set.Bytes32Set set, bytes32 value) internal view
+returns(bool)
+```
+
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | set | struct EnumerableBytes32Set.Bytes32Set | The set of values. | 
-| value | bytes32 | The value to remove.
-	 * | 
-
-### contains
-
-Find out whether a value exists in the set.
-	 *
-
-```js
-function contains(struct EnumerableBytes32Set.Bytes32Set set, bytes32 value) internal view
-returns(bool)
-```
+| value | bytes32 | The value to find. 	 * | 
 
 **Returns**
 
 True if the value is in the set. O(1).
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| set | struct EnumerableBytes32Set.Bytes32Set | The set of values. | 
-| value | bytes32 | The value to find.
-	 * | 
+```javascript
+function contains(Bytes32Set storage set, bytes32 value) internal view returns (bool) {
+		return set.index[value] != 0;
+	}
+```
+</details>
 
-### containsAddress
+---    
+
+> ### containsAddress
 
 Returns true if the value is in the set. O(1).
 
-```js
+```solidity
 function containsAddress(struct EnumerableBytes32Set.Bytes32Set set, address addrvalue) internal view
 returns(bool)
 ```
@@ -159,20 +254,31 @@ returns(bool)
 | set | struct EnumerableBytes32Set.Bytes32Set |  | 
 | addrvalue | address |  | 
 
-### enumerate
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function containsAddress(Bytes32Set storage set, address addrvalue) internal view returns (bool) {
+		bytes32 value;
+		assembly {
+			value := addrvalue
+		}
+		return set.index[value] != 0;
+	}
+```
+</details>
+
+---    
+
+> ### enumerate
 
 Get all set values.
 	 *
 
-```js
+```solidity
 function enumerate(struct EnumerableBytes32Set.Bytes32Set set, uint256 start, uint256 count) internal view
 returns(output bytes32[])
 ```
-
-**Returns**
-
-An array with all values in the set. O(N).
-	 *
 
 **Arguments**
 
@@ -180,51 +286,102 @@ An array with all values in the set. O(N).
 | ------------- |------------- | -----|
 | set | struct EnumerableBytes32Set.Bytes32Set | The set of values. | 
 | start | uint256 | The offset of the returning set. | 
-| count | uint256 | The limit of number of values to return.
-	 * | 
+| count | uint256 | The limit of number of values to return. 	 * | 
 
-### length
+**Returns**
+
+An array with all values in the set. O(N).
+	 *
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function enumerate(
+		Bytes32Set storage set,
+		uint256 start,
+		uint256 count
+	) internal view returns (bytes32[] memory output) {
+		uint256 end = start + count;
+		require(end >= start, "addition overflow");
+		end = set.values.length < end ? set.values.length : end;
+		if (end == 0 || start >= end) {
+			return output;
+		}
+
+		output = new bytes32[](end - start);
+		for (uint256 i; i < end - start; i++) {
+			output[i] = set.values[i + start];
+		}
+		return output;
+	}
+```
+</details>
+
+---    
+
+> ### length
 
 Get the legth of the set.
 	 *
 
-```js
+```solidity
 function length(struct EnumerableBytes32Set.Bytes32Set set) internal view
 returns(uint256)
 ```
-
-**Returns**
-
-the number of elements on the set. O(1).
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| set | struct EnumerableBytes32Set.Bytes32Set | The set of values.
-	 * | 
+| set | struct EnumerableBytes32Set.Bytes32Set | The set of values. 	 * | 
 
-### get
+**Returns**
+
+the number of elements on the set. O(1).
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function length(Bytes32Set storage set) internal view returns (uint256) {
+		return set.values.length;
+	}
+```
+</details>
+
+---    
+
+> ### get
 
 Get an item from the set by its index.
 	 *
 
-```js
+```solidity
 function get(struct EnumerableBytes32Set.Bytes32Set set, uint256 index) internal view
 returns(bytes32)
 ```
-
-**Returns**
-
-the element stored at position `index` in the set. O(1).
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | set | struct EnumerableBytes32Set.Bytes32Set | The set of values. | 
-| index | uint256 | The index of the value to return.
-	 * | 
+| index | uint256 | The index of the value to return. 	 * | 
+
+**Returns**
+
+the element stored at position `index` in the set. O(1).
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function get(Bytes32Set storage set, uint256 index) internal view returns (bytes32) {
+		return set.values[index];
+	}
+```
+</details>
 
 ## Contracts
 
@@ -240,6 +397,7 @@ the element stored at position `index` in the set. O(1).
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -361,7 +519,7 @@ the element stored at position `index` in the set. O(1).
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

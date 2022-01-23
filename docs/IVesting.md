@@ -17,35 +17,47 @@ at a vesting instance.
 - [endDate()](#enddate)
 - [stakeTokens(uint256 amount)](#staketokens)
 
-### duration
+---    
 
-```js
+> ### duration
+
+```solidity
 function duration() external nonpayable
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function duration() external returns (uint256);
+```
+</details>
 
-### endDate
+---    
 
-```js
+> ### endDate
+
+```solidity
 function endDate() external nonpayable
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function endDate() external returns (uint256);
+```
+</details>
 
-### stakeTokens
+---    
+
+> ### stakeTokens
 
 ⤿ Overridden Implementation(s): [VestingLogic.stakeTokens](VestingLogic.md#staketokens)
 
-```js
+```solidity
 function stakeTokens(uint256 amount) external nonpayable
 ```
 
@@ -54,6 +66,14 @@ function stakeTokens(uint256 amount) external nonpayable
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | amount | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function stakeTokens(uint256 amount) external;
+```
+</details>
 
 ## Contracts
 
@@ -69,6 +89,7 @@ function stakeTokens(uint256 amount) external nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -190,7 +211,7 @@ function stakeTokens(uint256 amount) external nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -36,12 +36,14 @@ event TokensStaked(address indexed vesting, uint256  amount);
 - [getVestingDetails(address _vestingAddress)](#getvestingdetails)
 - [isVestingAdress(address _vestingAddress)](#isvestingadress)
 
-### initialize
+---    
+
+> ### initialize
 
 Replace constructor with initialize function for Upgradable Contracts
 This function will be called only once by the owner
 
-```js
+```solidity
 function initialize(address _vestingFactory, address _SOV, address _staking, address _feeSharingProxy, address _vestingOwner, address _lockedSOV, address[] _vestingRegistries) external nonpayable onlyOwner initializer 
 ```
 
@@ -57,11 +59,46 @@ function initialize(address _vestingFactory, address _SOV, address _staking, add
 | _lockedSOV | address |  | 
 | _vestingRegistries | address[] |  | 
 
-### setVestingFactory
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function initialize(
+		address _vestingFactory,
+		address _SOV,
+		address _staking,
+		address _feeSharingProxy,
+		address _vestingOwner,
+		address _lockedSOV,
+		address[] calldata _vestingRegistries
+	) external onlyOwner initializer {
+		require(_SOV != address(0), "SOV address invalid");
+		require(_staking != address(0), "staking address invalid");
+		require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
+		require(_vestingOwner != address(0), "vestingOwner address invalid");
+		require(_lockedSOV != address(0), "LockedSOV address invalid");
+
+		_setVestingFactory(_vestingFactory);
+		SOV = _SOV;
+		staking = _staking;
+		feeSharingProxy = _feeSharingProxy;
+		vestingOwner = _vestingOwner;
+		lockedSOV = LockedSOV(_lockedSOV);
+		for (uint256 i = 0; i < _vestingRegistries.length; i++) {
+			require(_vestingRegistries[i] != address(0), "Vesting registry address invalid");
+			vestingRegistries.push(IVestingRegistry(_vestingRegistries[i]));
+		}
+	}
+```
+</details>
+
+---    
+
+> ### setVestingFactory
 
 sets vesting factory address
 
-```js
+```solidity
 function setVestingFactory(address _vestingFactory) external nonpayable onlyOwner 
 ```
 
@@ -71,11 +108,23 @@ function setVestingFactory(address _vestingFactory) external nonpayable onlyOwne
 | ------------- |------------- | -----|
 | _vestingFactory | address | the address of vesting factory contract | 
 
-### _setVestingFactory
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setVestingFactory(address _vestingFactory) external onlyOwner {
+		_setVestingFactory(_vestingFactory);
+	}
+```
+</details>
+
+---    
+
+> ### _setVestingFactory
 
 Internal function that sets vesting factory address
 
-```js
+```solidity
 function _setVestingFactory(address _vestingFactory) internal nonpayable
 ```
 
@@ -85,11 +134,24 @@ function _setVestingFactory(address _vestingFactory) internal nonpayable
 | ------------- |------------- | -----|
 | _vestingFactory | address | the address of vesting factory contract | 
 
-### transferSOV
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _setVestingFactory(address _vestingFactory) internal {
+		require(_vestingFactory != address(0), "vestingFactory address invalid");
+		vestingFactory = IVestingFactory(_vestingFactory);
+	}
+```
+</details>
+
+---    
+
+> ### transferSOV
 
 transfers SOV tokens to given address
 
-```js
+```solidity
 function transferSOV(address _receiver, uint256 _amount) external nonpayable onlyOwner 
 ```
 
@@ -100,11 +162,26 @@ function transferSOV(address _receiver, uint256 _amount) external nonpayable onl
 | _receiver | address | the address of the SOV receiver | 
 | _amount | uint256 | the amount to be transferred | 
 
-### addDeployedVestings
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function transferSOV(address _receiver, uint256 _amount) external onlyOwner {
+		require(_receiver != address(0), "receiver address invalid");
+		require(_amount != 0, "amount invalid");
+		require(IERC20(SOV).transfer(_receiver, _amount), "transfer failed");
+		emit SOVTransferred(_receiver, _amount);
+	}
+```
+</details>
+
+---    
+
+> ### addDeployedVestings
 
 adds vestings that were deployed in previous vesting registries
 
-```js
+```solidity
 function addDeployedVestings(address[] _tokenOwners, uint256[] _vestingCreationTypes) external nonpayable onlyAuthorized 
 ```
 
@@ -115,11 +192,27 @@ function addDeployedVestings(address[] _tokenOwners, uint256[] _vestingCreationT
 | _tokenOwners | address[] |  | 
 | _vestingCreationTypes | uint256[] |  | 
 
-### createVesting
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addDeployedVestings(address[] calldata _tokenOwners, uint256[] calldata _vestingCreationTypes) external onlyAuthorized {
+		for (uint256 i = 0; i < _tokenOwners.length; i++) {
+			require(_tokenOwners[i] != address(0), "token owner cannot be 0 address");
+			require(_vestingCreationTypes[i] > 0, "vesting creation type must be greater than 0");
+			_addDeployedVestings(_tokenOwners[i], _vestingCreationTypes[i]);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### createVesting
 
 creates Vesting contract
 
-```js
+```solidity
 function createVesting(address _tokenOwner, uint256 _amount, uint256 _cliff, uint256 _duration) external nonpayable onlyAuthorized 
 ```
 
@@ -132,11 +225,28 @@ function createVesting(address _tokenOwner, uint256 _amount, uint256 _cliff, uin
 | _cliff | uint256 | the cliff in seconds | 
 | _duration | uint256 | the total duration in seconds | 
 
-### createVestingAddr
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function createVesting(
+		address _tokenOwner,
+		uint256 _amount,
+		uint256 _cliff,
+		uint256 _duration
+	) external onlyAuthorized {
+		createVestingAddr(_tokenOwner, _amount, _cliff, _duration, 3);
+	}
+```
+</details>
+
+---    
+
+> ### createVestingAddr
 
 creates Vesting contract
 
-```js
+```solidity
 function createVestingAddr(address _tokenOwner, uint256 _amount, uint256 _cliff, uint256 _duration, uint256 _vestingCreationType) public nonpayable onlyAuthorized 
 ```
 
@@ -150,11 +260,30 @@ function createVestingAddr(address _tokenOwner, uint256 _amount, uint256 _cliff,
 | _duration | uint256 | the total duration in seconds | 
 | _vestingCreationType | uint256 | the type of vesting created(e.g. Origin, Bug Bounty etc.) | 
 
-### createTeamVesting
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function createVestingAddr(
+		address _tokenOwner,
+		uint256 _amount,
+		uint256 _cliff,
+		uint256 _duration,
+		uint256 _vestingCreationType
+	) public onlyAuthorized {
+		address vesting = _getOrCreateVesting(_tokenOwner, _cliff, _duration, uint256(VestingType.Vesting), _vestingCreationType);
+		emit VestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount, _vestingCreationType);
+	}
+```
+</details>
+
+---    
+
+> ### createTeamVesting
 
 creates Team Vesting contract
 
-```js
+```solidity
 function createTeamVesting(address _tokenOwner, uint256 _amount, uint256 _cliff, uint256 _duration, uint256 _vestingCreationType) external nonpayable onlyAuthorized 
 ```
 
@@ -168,11 +297,30 @@ function createTeamVesting(address _tokenOwner, uint256 _amount, uint256 _cliff,
 | _duration | uint256 | the total duration in seconds | 
 | _vestingCreationType | uint256 | the type of vesting created(e.g. Origin, Bug Bounty etc.) | 
 
-### stakeTokens
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function createTeamVesting(
+		address _tokenOwner,
+		uint256 _amount,
+		uint256 _cliff,
+		uint256 _duration,
+		uint256 _vestingCreationType
+	) external onlyAuthorized {
+		address vesting = _getOrCreateVesting(_tokenOwner, _cliff, _duration, uint256(VestingType.TeamVesting), _vestingCreationType);
+		emit TeamVestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount, _vestingCreationType);
+	}
+```
+</details>
+
+---    
+
+> ### stakeTokens
 
 stakes tokens according to the vesting schedule
 
-```js
+```solidity
 function stakeTokens(address _vesting, uint256 _amount) external nonpayable onlyAuthorized 
 ```
 
@@ -183,11 +331,28 @@ function stakeTokens(address _vesting, uint256 _amount) external nonpayable only
 | _vesting | address | the address of Vesting contract | 
 | _amount | uint256 | the amount of tokens to stake | 
 
-### getVesting
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function stakeTokens(address _vesting, uint256 _amount) external onlyAuthorized {
+		require(_vesting != address(0), "vesting address invalid");
+		require(_amount > 0, "amount invalid");
+
+		IERC20(SOV).approve(_vesting, _amount);
+		IVesting(_vesting).stakeTokens(_amount);
+		emit TokensStaked(_vesting, _amount);
+	}
+```
+</details>
+
+---    
+
+> ### getVesting
 
 returns vesting contract address for the given token owner
 
-```js
+```solidity
 function getVesting(address _tokenOwner) public view
 returns(address)
 ```
@@ -198,11 +363,23 @@ returns(address)
 | ------------- |------------- | -----|
 | _tokenOwner | address | the owner of the tokens | 
 
-### getVestingAddr
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getVesting(address _tokenOwner) public view returns (address) {
+		return getVestingAddr(_tokenOwner, lockedSOV.cliff(), lockedSOV.duration(), 3);
+	}
+```
+</details>
+
+---    
+
+> ### getVestingAddr
 
 public function that returns vesting contract address for the given token owner, cliff, duration
 
-```js
+```solidity
 function getVestingAddr(address _tokenOwner, uint256 _cliff, uint256 _duration, uint256 _vestingCreationType) public view
 returns(address)
 ```
@@ -216,11 +393,30 @@ returns(address)
 | _duration | uint256 |  | 
 | _vestingCreationType | uint256 |  | 
 
-### getTeamVesting
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getVestingAddr(
+		address _tokenOwner,
+		uint256 _cliff,
+		uint256 _duration,
+		uint256 _vestingCreationType
+	) public view returns (address) {
+		uint256 type_ = uint256(VestingType.Vesting);
+		uint256 uid = uint256(keccak256(abi.encodePacked(_tokenOwner, type_, _cliff, _duration, _vestingCreationType)));
+		return vestings[uid].vestingAddress;
+	}
+```
+</details>
+
+---    
+
+> ### getTeamVesting
 
 returns team vesting contract address for the given token owner, cliff, duration
 
-```js
+```solidity
 function getTeamVesting(address _tokenOwner, uint256 _cliff, uint256 _duration, uint256 _vestingCreationType) public view
 returns(address)
 ```
@@ -234,11 +430,30 @@ returns(address)
 | _duration | uint256 |  | 
 | _vestingCreationType | uint256 |  | 
 
-### _getOrCreateVesting
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getTeamVesting(
+		address _tokenOwner,
+		uint256 _cliff,
+		uint256 _duration,
+		uint256 _vestingCreationType
+	) public view returns (address) {
+		uint256 type_ = uint256(VestingType.TeamVesting);
+		uint256 uid = uint256(keccak256(abi.encodePacked(_tokenOwner, type_, _cliff, _duration, _vestingCreationType)));
+		return vestings[uid].vestingAddress;
+	}
+```
+</details>
+
+---    
+
+> ### _getOrCreateVesting
 
 Internal function to deploy Vesting/Team Vesting contract
 
-```js
+```solidity
 function _getOrCreateVesting(address _tokenOwner, uint256 _cliff, uint256 _duration, uint256 _type, uint256 _vestingCreationType) internal nonpayable
 returns(address)
 ```
@@ -253,11 +468,41 @@ returns(address)
 | _type | uint256 | the type of vesting | 
 | _vestingCreationType | uint256 | the type of vesting created(e.g. Origin, Bug Bounty etc.) | 
 
-### _addDeployedVestings
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _getOrCreateVesting(
+		address _tokenOwner,
+		uint256 _cliff,
+		uint256 _duration,
+		uint256 _type,
+		uint256 _vestingCreationType
+	) internal returns (address) {
+		address vesting;
+		uint256 uid = uint256(keccak256(abi.encodePacked(_tokenOwner, _type, _cliff, _duration, _vestingCreationType)));
+		if (vestings[uid].vestingAddress == address(0)) {
+			if (_type == 1) {
+				vesting = vestingFactory.deployVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy, _tokenOwner);
+			} else {
+				vesting = vestingFactory.deployTeamVesting(SOV, staking, _tokenOwner, _cliff, _duration, feeSharingProxy, vestingOwner);
+			}
+			vestings[uid] = Vesting(_type, _vestingCreationType, vesting);
+			vestingsOf[_tokenOwner].push(uid);
+			isVesting[vesting] = true;
+		}
+		return vestings[uid].vestingAddress;
+	}
+```
+</details>
+
+---    
+
+> ### _addDeployedVestings
 
 stores the addresses of Vesting contracts from all three previous versions of Vesting Registry
 
-```js
+```solidity
 function _addDeployedVestings(address _tokenOwner, uint256 _vestingCreationType) internal nonpayable
 ```
 
@@ -268,11 +513,56 @@ function _addDeployedVestings(address _tokenOwner, uint256 _vestingCreationType)
 | _tokenOwner | address |  | 
 | _vestingCreationType | uint256 |  | 
 
-### getVestingsOf
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _addDeployedVestings(address _tokenOwner, uint256 _vestingCreationType) internal {
+		uint256 uid;
+		uint256 i = _vestingCreationType - 1;
+
+		address vestingAddress = vestingRegistries[i].getVesting(_tokenOwner);
+		if (vestingAddress != address(0)) {
+			VestingLogic vesting = VestingLogic(vestingAddress);
+			uid = uint256(
+				keccak256(
+					abi.encodePacked(_tokenOwner, uint256(VestingType.Vesting), vesting.cliff(), vesting.duration(), _vestingCreationType)
+				)
+			);
+			vestings[uid] = Vesting(uint256(VestingType.Vesting), _vestingCreationType, vestingAddress);
+			vestingsOf[_tokenOwner].push(uid);
+			isVesting[vestingAddress] = true;
+		}
+
+		address teamVestingAddress = vestingRegistries[i].getTeamVesting(_tokenOwner);
+		if (teamVestingAddress != address(0)) {
+			VestingLogic vesting = VestingLogic(teamVestingAddress);
+			uid = uint256(
+				keccak256(
+					abi.encodePacked(
+						_tokenOwner,
+						uint256(VestingType.TeamVesting),
+						vesting.cliff(),
+						vesting.duration(),
+						_vestingCreationType
+					)
+				)
+			);
+			vestings[uid] = Vesting(uint256(VestingType.TeamVesting), _vestingCreationType, teamVestingAddress);
+			vestingsOf[_tokenOwner].push(uid);
+			isVesting[teamVestingAddress] = true;
+		}
+	}
+```
+</details>
+
+---    
+
+> ### getVestingsOf
 
 returns all vesting details for the given token owner
 
-```js
+```solidity
 function getVestingsOf(address _tokenOwner) external view
 returns(struct VestingRegistryStorage.Vesting[])
 ```
@@ -283,11 +573,29 @@ returns(struct VestingRegistryStorage.Vesting[])
 | ------------- |------------- | -----|
 | _tokenOwner | address |  | 
 
-### getVestingDetails
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getVestingsOf(address _tokenOwner) external view returns (Vesting[] memory) {
+		uint256[] memory vestingIds = vestingsOf[_tokenOwner];
+		uint256 length = vestingIds.length;
+		Vesting[] memory _vestings = new Vesting[](vestingIds.length);
+		for (uint256 i = 0; i < length; i++) {
+			_vestings[i] = vestings[vestingIds[i]];
+		}
+		return _vestings;
+	}
+```
+</details>
+
+---    
+
+> ### getVestingDetails
 
 returns cliff and duration for Vesting & TeamVesting contracts
 
-```js
+```solidity
 function getVestingDetails(address _vestingAddress) external view
 returns(cliff uint256, duration uint256)
 ```
@@ -298,13 +606,26 @@ returns(cliff uint256, duration uint256)
 | ------------- |------------- | -----|
 | _vestingAddress | address |  | 
 
-### isVestingAdress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getVestingDetails(address _vestingAddress) external view returns (uint256 cliff, uint256 duration) {
+		VestingLogic vesting = VestingLogic(_vestingAddress);
+		return (vesting.cliff(), vesting.duration());
+	}
+```
+</details>
+
+---    
+
+> ### isVestingAdress
 
 ⤿ Overridden Implementation(s): [VestingRegistryLogicMockup.isVestingAdress](VestingRegistryLogicMockup.md#isvestingadress)
 
 returns if the address is a vesting address
 
-```js
+```solidity
 function isVestingAdress(address _vestingAddress) external view
 returns(isVestingAddr bool)
 ```
@@ -314,6 +635,16 @@ returns(isVestingAddr bool)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _vestingAddress | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function isVestingAdress(address _vestingAddress) external view returns (bool isVestingAddr) {
+		return isVesting[_vestingAddress];
+	}
+```
+</details>
 
 ## Contracts
 
@@ -329,6 +660,7 @@ returns(isVestingAddr bool)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -450,7 +782,7 @@ returns(isVestingAddr bool)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

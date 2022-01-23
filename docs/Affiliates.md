@@ -34,11 +34,6 @@ Function modifier to avoid any other calls not coming from loan pools.
 modifier onlyCallableByLoanPools() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ### onlyCallableInternal
 
 Function modifier to avoid any other calls not coming from within protocol functions.
@@ -47,15 +42,10 @@ Function modifier to avoid any other calls not coming from within protocol funct
 modifier onlyCallableInternal() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ## Functions
 
-- [()](#)
-- [()](#)
+- [constructor()](#constructor)
+- [constructor()](#constructor)
 - [initialize(address target)](#initialize)
 - [setAffiliatesReferrer(address user, address referrer)](#setaffiliatesreferrer)
 - [getReferralsList(address referrer)](#getreferralslist)
@@ -77,39 +67,53 @@ modifier onlyCallableInternal() internal
 - [getAffiliatesUserReferrer(address user)](#getaffiliatesuserreferrer)
 - [getAffiliateRewardsHeld(address referrer)](#getaffiliaterewardsheld)
 
-### 
+---    
+
+> ### constructor
 
 Void constructor.
 
-```js
+```solidity
 function () public nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+constructor() public {}
+```
+</details>
 
-### 
+---    
+
+> ### constructor
 
 Avoid calls to this contract except for those explicitly declared.
 
-```js
+```solidity
 function () external nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function() external {
+		revert("Affiliates - fallback not allowed");
+	}
+```
+</details>
 
-### initialize
+---    
+
+> ### initialize
 
 ⤿ Overridden Implementation(s): [MockAffiliates.initialize](MockAffiliates.md#initialize)
 
 Set delegate callable functions by proxy contract.
 
-```js
+```solidity
 function initialize(address target) external nonpayable onlyOwner 
 ```
 
@@ -119,7 +123,35 @@ function initialize(address target) external nonpayable onlyOwner
 | ------------- |------------- | -----|
 | target | address | The address of a new logic implementation. | 
 
-### setAffiliatesReferrer
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.setAffiliatesReferrer.selector];
+		_setTarget(this.setAffiliatesReferrer.selector, target);
+		_setTarget(this.getUserNotFirstTradeFlag.selector, target);
+		_setTarget(this.getReferralsList.selector, target);
+		_setTarget(this.setUserNotFirstTradeFlag.selector, target);
+		_setTarget(this.payTradingFeeToAffiliatesReferrer.selector, target);
+		_setTarget(this.getAffiliatesReferrerBalances.selector, target);
+		_setTarget(this.getAffiliatesReferrerTokenBalance.selector, target);
+		_setTarget(this.getAffiliatesReferrerTokensList.selector, target);
+		_setTarget(this.withdrawAffiliatesReferrerTokenFees.selector, target);
+		_setTarget(this.withdrawAllAffiliatesReferrerTokenFees.selector, target);
+		_setTarget(this.getMinReferralsToPayout.selector, target);
+		_setTarget(this.getAffiliatesUserReferrer.selector, target);
+		_setTarget(this.getAffiliateRewardsHeld.selector, target);
+		_setTarget(this.getAffiliateTradingTokenFeePercent.selector, target);
+		_setTarget(this.getAffiliatesTokenRewardsValueInRbtc.selector, target);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "Affiliates");
+	}
+```
+</details>
+
+---    
+
+> ### setAffiliatesReferrer
 
 Loan pool calls this function to tell affiliates
   a user coming from a referrer is trading and should be registered if not yet.
@@ -127,7 +159,7 @@ Loan pool calls this function to tell affiliates
   become added or not to the affiliates record.
 	 *
 
-```js
+```solidity
 function setAffiliatesReferrer(address user, address referrer) external nonpayable onlyCallableByLoanPools whenNotPaused 
 ```
 
@@ -138,18 +170,37 @@ function setAffiliatesReferrer(address user, address referrer) external nonpayab
 | user | address | The address of the user that is trading on loan pools. | 
 | referrer | address | The address of the referrer the user is coming from. | 
 
-### getReferralsList
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setAffiliatesReferrer(address user, address referrer) external onlyCallableByLoanPools whenNotPaused {
+		SetAffiliatesReferrerResult memory result;
+
+		result.userNotFirstTradeFlag = getUserNotFirstTradeFlag(user);
+		result.alreadySet = affiliatesUserReferrer[user] != address(0);
+		result.success = !(result.userNotFirstTradeFlag || result.alreadySet || user == referrer);
+		if (result.success) {
+			affiliatesUserReferrer[user] = referrer;
+			referralsList[referrer].add(user);
+			emit SetAffiliatesReferrer(user, referrer);
+		} else {
+			emit SetAffiliatesReferrerFail(user, referrer, result.alreadySet, result.userNotFirstTradeFlag);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### getReferralsList
 
 Getter to query the referrals coming from a referrer.
 
-```js
+```solidity
 function getReferralsList(address referrer) external view
 returns(refList address[])
 ```
-
-**Returns**
-
-The referralsList mapping value by referrer.
 
 **Arguments**
 
@@ -157,18 +208,31 @@ The referralsList mapping value by referrer.
 | ------------- |------------- | -----|
 | referrer | address | The address of a given referrer. | 
 
-### getUserNotFirstTradeFlag
+**Returns**
+
+The referralsList mapping value by referrer.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getReferralsList(address referrer) external view returns (address[] memory refList) {
+		refList = referralsList[referrer].enumerate();
+		return refList;
+	}
+```
+</details>
+
+---    
+
+> ### getUserNotFirstTradeFlag
 
 Getter to query the not-first-trade flag of a user.
 
-```js
+```solidity
 function getUserNotFirstTradeFlag(address user) public view
 returns(bool)
 ```
-
-**Returns**
-
-The userNotFirstTradeFlag mapping value by user.
 
 **Arguments**
 
@@ -176,11 +240,27 @@ The userNotFirstTradeFlag mapping value by user.
 | ------------- |------------- | -----|
 | user | address | The address of a given user. | 
 
-### setUserNotFirstTradeFlag
+**Returns**
+
+The userNotFirstTradeFlag mapping value by user.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getUserNotFirstTradeFlag(address user) public view returns (bool) {
+		return userNotFirstTradeFlag[user];
+	}
+```
+</details>
+
+---    
+
+> ### setUserNotFirstTradeFlag
 
 Setter to toggle on the not-first-trade flag of a user.
 
-```js
+```solidity
 function setUserNotFirstTradeFlag(address user) external nonpayable onlyCallableByLoanPools whenNotPaused 
 ```
 
@@ -190,25 +270,43 @@ function setUserNotFirstTradeFlag(address user) external nonpayable onlyCallable
 | ------------- |------------- | -----|
 | user | address | The address of a given user. | 
 
-### _getAffiliatesTradingFeePercentForSOV
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setUserNotFirstTradeFlag(address user) external onlyCallableByLoanPools whenNotPaused {
+		if (!userNotFirstTradeFlag[user]) {
+			userNotFirstTradeFlag[user] = true;
+			emit SetUserNotFirstTradeFlag(user);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _getAffiliatesTradingFeePercentForSOV
 
 Internal getter to query the fee share for affiliate program.
 
-```js
+```solidity
 function _getAffiliatesTradingFeePercentForSOV() internal view
 returns(uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-The percentage of fee share w/ 18 decimals.
+```javascript
+function _getAffiliatesTradingFeePercentForSOV() internal view returns (uint256) {
+		return affiliateFeePercent;
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### _getReferrerTradingFeeForToken
+> ### _getReferrerTradingFeeForToken
 
 Internal to calculate the affiliates trading token fee amount.
   Affiliates program has 2 kind of rewards:
@@ -217,14 +315,10 @@ Internal to calculate the affiliates trading token fee amount.
   This _getReferrerTradingFeeForToken calculates the first one
   by applying a custom percentage multiplier.
 
-```js
+```solidity
 function _getReferrerTradingFeeForToken(uint256 feeTokenAmount) internal view
 returns(uint256)
 ```
-
-**Returns**
-
-The affiliates share of the trading token fee amount.
 
 **Arguments**
 
@@ -232,54 +326,72 @@ The affiliates share of the trading token fee amount.
 | ------------- |------------- | -----|
 | feeTokenAmount | uint256 | The trading token fee amount. | 
 
-### getAffiliateTradingTokenFeePercent
+**Returns**
+
+The affiliates share of the trading token fee amount.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _getReferrerTradingFeeForToken(uint256 feeTokenAmount) internal view returns (uint256) {
+		return feeTokenAmount.mul(getAffiliateTradingTokenFeePercent()).div(10**20);
+	}
+```
+</details>
+
+---    
+
+> ### getAffiliateTradingTokenFeePercent
 
 Getter to query the fee share of trading token fee for affiliate program.
 
-```js
+```solidity
 function getAffiliateTradingTokenFeePercent() public view
 returns(uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-The percentage of fee share w/ 18 decimals.
+```javascript
+function getAffiliateTradingTokenFeePercent() public view returns (uint256) {
+		return affiliateTradingTokenFeePercent;
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### getMinReferralsToPayout
+> ### getMinReferralsToPayout
 
 Getter to query referral threshold for paying out to the referrer.
 
-```js
+```solidity
 function getMinReferralsToPayout() public view
 returns(uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-The minimum number of referrals set by Protocol.
+```javascript
+function getMinReferralsToPayout() public view returns (uint256) {
+		return minReferralsToPayout;
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### _getSovBonusAmount
+> ### _getSovBonusAmount
 
 Get the sovToken reward of a trade.
 
-```js
+```solidity
 function _getSovBonusAmount(address feeToken, uint256 feeAmount) internal view
 returns(uint256)
 ```
-
-**Returns**
-
-The reward amount.
 
 **Arguments**
 
@@ -288,19 +400,51 @@ The reward amount.
 | feeToken | address | The address of the token in which the trading/borrowing fee was paid. | 
 | feeAmount | uint256 | The height of the fee. | 
 
-### payTradingFeeToAffiliatesReferrer
+**Returns**
+
+The reward amount.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _getSovBonusAmount(address feeToken, uint256 feeAmount) internal view returns (uint256) {
+		uint256 rewardAmount;
+		address _priceFeeds = priceFeeds;
+
+		/// @dev Calculate the reward amount, querying the price feed.
+		(bool success, bytes memory data) =
+			_priceFeeds.staticcall(
+				abi.encodeWithSelector(
+					IPriceFeeds(_priceFeeds).queryReturn.selector,
+					feeToken,
+					sovTokenAddress, /// dest token = SOV
+					feeAmount.mul(_getAffiliatesTradingFeePercentForSOV()).div(1e20)
+				)
+			);
+		// solhint-disable-next-line no-inline-assembly
+		assembly {
+			if eq(success, 1) {
+				rewardAmount := mload(add(data, 32))
+			}
+		}
+
+		return rewardAmount;
+	}
+```
+</details>
+
+---    
+
+> ### payTradingFeeToAffiliatesReferrer
 
 Protocol calls this function to pay the affiliates rewards to a user (referrer).
 	 *
 
-```js
+```solidity
 function payTradingFeeToAffiliatesReferrer(address referrer, address trader, address token, uint256 tradingFeeTokenBaseAmount) external nonpayable onlyCallableInternal whenNotPaused 
 returns(referrerBonusSovAmount uint256, referrerBonusTokenAmount uint256)
 ```
-
-**Returns**
-
-referrerBonusSovAmount The amount of SOV tokens paid to the referrer (through a vesting contract, lockedSOV).
 
 **Arguments**
 
@@ -309,16 +453,94 @@ referrerBonusSovAmount The amount of SOV tokens paid to the referrer (through a 
 | referrer | address | The address of the referrer. | 
 | trader | address | The address of the trader. | 
 | token | address | The address of the token in which the trading/borrowing fee was paid. | 
-| tradingFeeTokenBaseAmount | uint256 | Total trading fee amount, the base for calculating referrer's fees.
-	 * | 
+| tradingFeeTokenBaseAmount | uint256 | Total trading fee amount, the base for calculating referrer's fees. 	 * | 
 
-### withdrawAffiliatesReferrerTokenFees
+**Returns**
+
+referrerBonusSovAmount The amount of SOV tokens paid to the referrer (through a vesting contract, lockedSOV).
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function payTradingFeeToAffiliatesReferrer(
+		address referrer,
+		address trader,
+		address token,
+		uint256 tradingFeeTokenBaseAmount
+	) external onlyCallableInternal whenNotPaused returns (uint256 referrerBonusSovAmount, uint256 referrerBonusTokenAmount) {
+		bool isHeld = referralsList[referrer].length() < getMinReferralsToPayout();
+		bool bonusPaymentIsSuccess = true;
+		uint256 paidReferrerBonusSovAmount;
+
+		/// Process token fee rewards first.
+		referrerBonusTokenAmount = _getReferrerTradingFeeForToken(tradingFeeTokenBaseAmount);
+		if (!affiliatesReferrerTokensList[referrer].contains(token)) affiliatesReferrerTokensList[referrer].add(token);
+		affiliatesReferrerBalances[referrer][token] = affiliatesReferrerBalances[referrer][token].add(referrerBonusTokenAmount);
+
+		/// Then process SOV rewards.
+		referrerBonusSovAmount = _getSovBonusAmount(token, tradingFeeTokenBaseAmount);
+		uint256 rewardsHeldByProtocol = affiliateRewardsHeld[referrer];
+
+		if (isHeld) {
+			/// If referrals less than minimum, temp the rewards SOV to the storage
+			affiliateRewardsHeld[referrer] = rewardsHeldByProtocol.add(referrerBonusSovAmount);
+		} else {
+			/// If referrals >= minimum, directly send all of the remain rewards to locked sov
+			/// Call depositSOV() in LockedSov contract
+			/// Set the affiliaterewardsheld = 0
+			if (affiliateRewardsHeld[referrer] > 0) {
+				affiliateRewardsHeld[referrer] = 0;
+			}
+
+			paidReferrerBonusSovAmount = referrerBonusSovAmount.add(rewardsHeldByProtocol);
+			IERC20(sovTokenAddress).approve(lockedSOVAddress, paidReferrerBonusSovAmount);
+
+			(bool success, ) =
+				lockedSOVAddress.call(abi.encodeWithSignature("depositSOV(address,uint256)", referrer, paidReferrerBonusSovAmount));
+
+			if (!success) {
+				bonusPaymentIsSuccess = false;
+			}
+		}
+
+		if (bonusPaymentIsSuccess) {
+			emit PayTradingFeeToAffiliate(
+				referrer,
+				trader, // trader
+				token,
+				isHeld,
+				tradingFeeTokenBaseAmount,
+				referrerBonusTokenAmount,
+				referrerBonusSovAmount,
+				paidReferrerBonusSovAmount
+			);
+		} else {
+			emit PayTradingFeeToAffiliateFail(
+				referrer,
+				trader, // trader
+				token,
+				tradingFeeTokenBaseAmount,
+				referrerBonusTokenAmount,
+				referrerBonusSovAmount,
+				paidReferrerBonusSovAmount
+			);
+		}
+
+		return (referrerBonusSovAmount, referrerBonusTokenAmount);
+	}
+```
+</details>
+
+---    
+
+> ### withdrawAffiliatesReferrerTokenFees
 
 Referrer calls this function to receive its reward in a given token.
   It will send the other (non-SOV) reward tokens from trading protocol fees,
   to the referrer’s wallet.
 
-```js
+```solidity
 function withdrawAffiliatesReferrerTokenFees(address token, address receiver, uint256 amount) public nonpayable whenNotPaused 
 ```
 
@@ -330,11 +552,47 @@ function withdrawAffiliatesReferrerTokenFees(address token, address receiver, ui
 | receiver | address | The address of the withdrawal beneficiary. | 
 | amount | uint256 | The amount of tokens to claim. If greater than balance, just sends balance. | 
 
-### withdrawAllAffiliatesReferrerTokenFees
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction withdrawAffiliatesReferrerTokenFees(
+		address token,
+		address receiver,
+		uint256 amount
+	) public whenNotPaused {
+		require(receiver != address(0), "Affiliates: cannot withdraw to zero address");
+		address referrer = msg.sender;
+		uint256 referrerTokenBalance = affiliatesReferrerBalances[referrer][token];
+		uint256 withdrawAmount = referrerTokenBalance > amount ? amount : referrerTokenBalance;
+
+		require(withdrawAmount > 0, "Affiliates: cannot withdraw zero amount");
+
+		require(referralsList[referrer].length() >= getMinReferralsToPayout(), "Your referrals has not reached the minimum request");
+
+		uint256 newReferrerTokenBalance = referrerTokenBalance.sub(withdrawAmount);
+
+		if (newReferrerTokenBalance == 0) {
+			_removeAffiliatesReferrerToken(referrer, token);
+		} else {
+			affiliatesReferrerBalances[referrer][token] = newReferrerTokenBalance;
+		}
+
+		IERC20(token).safeTransfer(receiver, withdrawAmount);
+
+		emit WithdrawAffiliatesReferrerTokenFees(referrer, receiver, token, withdrawAmount);
+	}
+
+```
+</details>
+
+---    
+
+> ### withdrawAllAffiliatesReferrerTokenFees
 
 Withdraw to msg.sender all token fees for a referrer.
 
-```js
+```solidity
 function withdrawAllAffiliatesReferrerTokenFees(address receiver) external nonpayable whenNotPaused 
 ```
 
@@ -344,11 +602,32 @@ function withdrawAllAffiliatesReferrerTokenFees(address receiver) external nonpa
 | ------------- |------------- | -----|
 | receiver | address | The address of the withdrawal beneficiary. | 
 
-### _removeAffiliatesReferrerToken
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction withdrawAllAffiliatesReferrerTokenFees(address receiver) external whenNotPaused {
+		require(receiver != address(0), "Affiliates: cannot withdraw to zero address");
+		address referrer = msg.sender;
+
+		require(referralsList[referrer].length() >= getMinReferralsToPayout(), "Your referrals has not reached the minimum request");
+
+		(address[] memory tokenAddresses, uint256[] memory tokenBalances) = getAffiliatesReferrerBalances(referrer);
+		for (uint256 i; i < tokenAddresses.length; i++) {
+			withdrawAffiliatesReferrerTokenFees(tokenAddresses[i], receiver, tokenBalances[i]);
+		}
+	}
+
+```
+</details>
+
+---    
+
+> ### _removeAffiliatesReferrerToken
 
 Internal function to delete a referrer's token balance.
 
-```js
+```solidity
 function _removeAffiliatesReferrerToken(address referrer, address token) internal nonpayable
 ```
 
@@ -359,18 +638,28 @@ function _removeAffiliatesReferrerToken(address referrer, address token) interna
 | referrer | address | The address of the referrer. | 
 | token | address | The address of the token specifying the balance to remove. | 
 
-### getAffiliatesReferrerBalances
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction _removeAffiliatesReferrerToken(address referrer, address token) internal {
+		delete affiliatesReferrerBalances[referrer][token];
+		affiliatesReferrerTokensList[referrer].remove(token);
+	}
+
+```
+</details>
+
+---    
+
+> ### getAffiliatesReferrerBalances
 
 Get all token balances of a referrer.
 
-```js
+```solidity
 function getAffiliatesReferrerBalances(address referrer) public view
 returns(referrerTokensList address[], referrerTokensBalances uint256[])
 ```
-
-**Returns**
-
-referrerTokensList The array of available tokens (keys).
 
 **Arguments**
 
@@ -378,39 +667,94 @@ referrerTokensList The array of available tokens (keys).
 | ------------- |------------- | -----|
 | referrer | address | The address of the referrer. | 
 
-### getAffiliatesTokenRewardsValueInRbtc
+**Returns**
+
+referrerTokensList The array of available tokens (keys).
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction getAffiliatesReferrerBalances(address referrer)
+		public
+		view
+		returns (address[] memory referrerTokensList, uint256[] memory referrerTokensBalances)
+	{
+		referrerTokensList = getAffiliatesReferrerTokensList(referrer);
+		referrerTokensBalances = new uint256[](referrerTokensList.length);
+		for (uint256 i; i < referrerTokensList.length; i++) {
+			referrerTokensBalances[i] = getAffiliatesReferrerTokenBalance(referrer, referrerTokensList[i]);
+		}
+		return (referrerTokensList, referrerTokensBalances);
+	}
+
+```
+</details>
+
+---    
+
+> ### getAffiliatesTokenRewardsValueInRbtc
 
 Get all token rewards estimation value in rbtc.
 	 *
 
-```js
+```solidity
 function getAffiliatesTokenRewardsValueInRbtc(address referrer) external view
 returns(rbtcTotalAmount uint256)
 ```
-
-**Returns**
-
-The value estimation in rbtc.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| referrer | address | Address of referrer.
-	 * | 
-
-### getAffiliatesReferrerTokensList
-
-Get all available tokens at the affiliates program for a given referrer.
-
-```js
-function getAffiliatesReferrerTokensList(address referrer) public view
-returns(tokensList address[])
-```
+| referrer | address | Address of referrer. 	 * | 
 
 **Returns**
 
-tokensList The list of available tokens.
+The value estimation in rbtc.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction getAffiliatesTokenRewardsValueInRbtc(address referrer) external view returns (uint256 rbtcTotalAmount) {
+		address[] memory tokensList = getAffiliatesReferrerTokensList(referrer);
+		address _priceFeeds = priceFeeds;
+
+		for (uint256 i; i < tokensList.length; i++) {
+			// Get the value of each token in rbtc
+
+			(bool success, bytes memory data) =
+				_priceFeeds.staticcall(
+					abi.encodeWithSelector(
+						IPriceFeeds(_priceFeeds).queryReturn.selector,
+						tokensList[i], // source token
+						address(wrbtcToken), // dest token = SOV
+						affiliatesReferrerBalances[referrer][tokensList[i]] // total token rewards
+					)
+				);
+
+			assembly {
+				if eq(success, 1) {
+					rbtcTotalAmount := add(rbtcTotalAmount, mload(add(data, 32)))
+				}
+			}
+		}
+	}
+
+```
+</details>
+
+---    
+
+> ### getAffiliatesReferrerTokensList
+
+Get all available tokens at the affiliates program for a given referrer.
+
+```solidity
+function getAffiliatesReferrerTokensList(address referrer) public view
+returns(tokensList address[])
+```
 
 **Arguments**
 
@@ -418,18 +762,32 @@ tokensList The list of available tokens.
 | ------------- |------------- | -----|
 | referrer | address | The address of a given referrer. | 
 
-### getAffiliatesReferrerTokenBalance
+**Returns**
+
+tokensList The list of available tokens.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction getAffiliatesReferrerTokensList(address referrer) public view returns (address[] memory tokensList) {
+		tokensList = affiliatesReferrerTokensList[referrer].enumerate();
+		return tokensList;
+	}
+
+```
+</details>
+
+---    
+
+> ### getAffiliatesReferrerTokenBalance
 
 Getter to query the affiliate balance for a given referrer and token.
 
-```js
+```solidity
 function getAffiliatesReferrerTokenBalance(address referrer, address token) public view
 returns(uint256)
 ```
-
-**Returns**
-
-The affiliatesReferrerBalances mapping value by referrer and token keys.
 
 **Arguments**
 
@@ -438,20 +796,33 @@ The affiliatesReferrerBalances mapping value by referrer and token keys.
 | referrer | address | The address of the referrer. | 
 | token | address | The address of the token to get balance for. | 
 
-### getAffiliatesUserReferrer
+**Returns**
+
+The affiliatesReferrerBalances mapping value by referrer and token keys.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction getAffiliatesReferrerTokenBalance(address referrer, address token) public view returns (uint256) {
+		return affiliatesReferrerBalances[referrer][token];
+	}
+
+```
+</details>
+
+---    
+
+> ### getAffiliatesUserReferrer
 
 ⤿ Overridden Implementation(s): [MockAffiliates.getAffiliatesUserReferrer](MockAffiliates.md#getaffiliatesuserreferrer)
 
 Getter to query the address of referrer for a given user.
 
-```js
+```solidity
 function getAffiliatesUserReferrer(address user) public view
 returns(address)
 ```
-
-**Returns**
-
-The address on affiliatesUserReferrer mapping value by user key.
 
 **Arguments**
 
@@ -459,24 +830,52 @@ The address on affiliatesUserReferrer mapping value by user key.
 | ------------- |------------- | -----|
 | user | address | The address of the user. | 
 
-### getAffiliateRewardsHeld
+**Returns**
+
+The address on affiliatesUserReferrer mapping value by user key.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction getAffiliatesUserReferrer(address user) public view returns (address) {
+		return affiliatesUserReferrer[user];
+	}
+
+```
+</details>
+
+---    
+
+> ### getAffiliateRewardsHeld
 
 Getter to query the reward amount held for a given referrer.
 
-```js
+```solidity
 function getAffiliateRewardsHeld(address referrer) public view
 returns(uint256)
 ```
-
-**Returns**
-
-The affiliateRewardsHeld mapping value by referrer key.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | referrer | address | The address of the referrer. | 
+
+**Returns**
+
+The affiliateRewardsHeld mapping value by referrer key.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction getAffiliateRewardsHeld(address referrer) public view returns (uint256) {
+		return affiliateRewardsHeld[referrer];
+	}
+}
+```
+</details>
 
 ## Contracts
 
@@ -492,6 +891,7 @@ The affiliateRewardsHeld mapping value by referrer key.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -613,7 +1013,7 @@ The affiliateRewardsHeld mapping value by referrer key.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

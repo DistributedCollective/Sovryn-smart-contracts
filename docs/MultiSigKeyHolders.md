@@ -88,11 +88,13 @@ modifier validRequirement(uint256 ownerCount, uint256 _required) internal
 - [addEthereumAndBitcoinAddresses(address[] _ethereumAddress, string[] _bitcoinAddress)](#addethereumandbitcoinaddresses)
 - [removeEthereumAndBitcoinAddresses(address[] _ethereumAddress, string[] _bitcoinAddress)](#removeethereumandbitcoinaddresses)
 
-### addEthereumAddress
+---    
+
+> ### addEthereumAddress
 
 Add rBTC address to the key holders.
 
-```js
+```solidity
 function addEthereumAddress(address _address) public nonpayable onlyOwner 
 ```
 
@@ -102,11 +104,23 @@ function addEthereumAddress(address _address) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _address | address | The address to be added. | 
 
-### addEthereumAddresses
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addEthereumAddress(address _address) public onlyOwner {
+		_addEthereumAddress(_address);
+	}
+```
+</details>
+
+---    
+
+> ### addEthereumAddresses
 
 Add rBTC addresses to the key holders.
 
-```js
+```solidity
 function addEthereumAddresses(address[] _address) public nonpayable onlyOwner 
 ```
 
@@ -116,11 +130,25 @@ function addEthereumAddresses(address[] _address) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _address | address[] | The addresses to be added. | 
 
-### _addEthereumAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addEthereumAddresses(address[] memory _address) public onlyOwner {
+		for (uint256 i = 0; i < _address.length; i++) {
+			_addEthereumAddress(_address[i]);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _addEthereumAddress
 
 Internal function to add rBTC address to the key holders.
 
-```js
+```solidity
 function _addEthereumAddress(address _address) internal nonpayable
 ```
 
@@ -130,11 +158,30 @@ function _addEthereumAddress(address _address) internal nonpayable
 | ------------- |------------- | -----|
 | _address | address | The address to be added. | 
 
-### removeEthereumAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _addEthereumAddress(address _address) internal {
+		require(_address != address(0), ERROR_INVALID_ADDRESS);
+
+		if (!isEthereumAddressAdded[_address].added) {
+			isEthereumAddressAdded[_address] = Data({ added: true, index: uint248(ethereumAddresses.length) });
+			ethereumAddresses.push(_address);
+		}
+
+		emit EthereumAddressAdded(_address);
+	}
+```
+</details>
+
+---    
+
+> ### removeEthereumAddress
 
 Remove rBTC address to the key holders.
 
-```js
+```solidity
 function removeEthereumAddress(address _address) public nonpayable onlyOwner 
 ```
 
@@ -144,11 +191,23 @@ function removeEthereumAddress(address _address) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _address | address | The address to be removed. | 
 
-### removeEthereumAddresses
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function removeEthereumAddress(address _address) public onlyOwner {
+		_removeEthereumAddress(_address);
+	}
+```
+</details>
+
+---    
+
+> ### removeEthereumAddresses
 
 Remove rBTC addresses to the key holders.
 
-```js
+```solidity
 function removeEthereumAddresses(address[] _address) public nonpayable onlyOwner 
 ```
 
@@ -158,11 +217,25 @@ function removeEthereumAddresses(address[] _address) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _address | address[] | The addresses to be removed. | 
 
-### _removeEthereumAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function removeEthereumAddresses(address[] memory _address) public onlyOwner {
+		for (uint256 i = 0; i < _address.length; i++) {
+			_removeEthereumAddress(_address[i]);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _removeEthereumAddress
 
 Internal function to remove rBTC address to the key holders.
 
-```js
+```solidity
 function _removeEthereumAddress(address _address) internal nonpayable
 ```
 
@@ -172,11 +245,35 @@ function _removeEthereumAddress(address _address) internal nonpayable
 | ------------- |------------- | -----|
 | _address | address | The address to be removed. | 
 
-### isEthereumAddressOwner
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _removeEthereumAddress(address _address) internal {
+		require(_address != address(0), ERROR_INVALID_ADDRESS);
+
+		if (isEthereumAddressAdded[_address].added) {
+			uint248 index = isEthereumAddressAdded[_address].index;
+			if (index != ethereumAddresses.length - 1) {
+				ethereumAddresses[index] = ethereumAddresses[ethereumAddresses.length - 1];
+				isEthereumAddressAdded[ethereumAddresses[index]].index = index;
+			}
+			ethereumAddresses.length--;
+			delete isEthereumAddressAdded[_address];
+		}
+
+		emit EthereumAddressRemoved(_address);
+	}
+```
+</details>
+
+---    
+
+> ### isEthereumAddressOwner
 
 Get whether rBTC address is a key holder.
 
-```js
+```solidity
 function isEthereumAddressOwner(address _address) public view
 returns(bool)
 ```
@@ -187,25 +284,44 @@ returns(bool)
 | ------------- |------------- | -----|
 | _address | address | The rBTC address to be checked. | 
 
-### getEthereumAddresses
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function isEthereumAddressOwner(address _address) public view returns (bool) {
+		return isEthereumAddressAdded[_address].added;
+	}
+```
+</details>
+
+---    
+
+> ### getEthereumAddresses
 
 Get array of rBTC key holders.
 
-```js
+```solidity
 function getEthereumAddresses() public view
 returns(address[])
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getEthereumAddresses() public view returns (address[] memory) {
+		return ethereumAddresses;
+	}
+```
+</details>
 
-### changeEthereumRequirement
+---    
+
+> ### changeEthereumRequirement
 
 Set flag ethereumRequired to true/false.
 
-```js
+```solidity
 function changeEthereumRequirement(uint256 _required) public nonpayable onlyOwner validRequirement 
 ```
 
@@ -215,11 +331,24 @@ function changeEthereumRequirement(uint256 _required) public nonpayable onlyOwne
 | ------------- |------------- | -----|
 | _required | uint256 | The new value of the ethereumRequired flag. | 
 
-### addBitcoinAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function changeEthereumRequirement(uint256 _required) public onlyOwner validRequirement(ethereumAddresses.length, _required) {
+		ethereumRequired = _required;
+		emit EthereumRequirementChanged(_required);
+	}
+```
+</details>
+
+---    
+
+> ### addBitcoinAddress
 
 Add bitcoin address to the key holders.
 
-```js
+```solidity
 function addBitcoinAddress(string _address) public nonpayable onlyOwner 
 ```
 
@@ -229,11 +358,23 @@ function addBitcoinAddress(string _address) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _address | string | The address to be added. | 
 
-### addBitcoinAddresses
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addBitcoinAddress(string memory _address) public onlyOwner {
+		_addBitcoinAddress(_address);
+	}
+```
+</details>
+
+---    
+
+> ### addBitcoinAddresses
 
 Add bitcoin addresses to the key holders.
 
-```js
+```solidity
 function addBitcoinAddresses(string[] _address) public nonpayable onlyOwner 
 ```
 
@@ -243,11 +384,25 @@ function addBitcoinAddresses(string[] _address) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _address | string[] | The addresses to be added. | 
 
-### _addBitcoinAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addBitcoinAddresses(string[] memory _address) public onlyOwner {
+		for (uint256 i = 0; i < _address.length; i++) {
+			_addBitcoinAddress(_address[i]);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _addBitcoinAddress
 
 Internal function to add bitcoin address to the key holders.
 
-```js
+```solidity
 function _addBitcoinAddress(string _address) internal nonpayable
 ```
 
@@ -257,11 +412,30 @@ function _addBitcoinAddress(string _address) internal nonpayable
 | ------------- |------------- | -----|
 | _address | string | The address to be added. | 
 
-### removeBitcoinAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _addBitcoinAddress(string memory _address) internal {
+		require(bytes(_address).length != 0, ERROR_INVALID_ADDRESS);
+
+		if (!isBitcoinAddressAdded[_address].added) {
+			isBitcoinAddressAdded[_address] = Data({ added: true, index: uint248(bitcoinAddresses.length) });
+			bitcoinAddresses.push(_address);
+		}
+
+		emit BitcoinAddressAdded(_address);
+	}
+```
+</details>
+
+---    
+
+> ### removeBitcoinAddress
 
 Remove bitcoin address to the key holders.
 
-```js
+```solidity
 function removeBitcoinAddress(string _address) public nonpayable onlyOwner 
 ```
 
@@ -271,11 +445,23 @@ function removeBitcoinAddress(string _address) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _address | string | The address to be removed. | 
 
-### removeBitcoinAddresses
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function removeBitcoinAddress(string memory _address) public onlyOwner {
+		_removeBitcoinAddress(_address);
+	}
+```
+</details>
+
+---    
+
+> ### removeBitcoinAddresses
 
 Remove bitcoin addresses to the key holders.
 
-```js
+```solidity
 function removeBitcoinAddresses(string[] _address) public nonpayable onlyOwner 
 ```
 
@@ -285,11 +471,25 @@ function removeBitcoinAddresses(string[] _address) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _address | string[] | The addresses to be removed. | 
 
-### _removeBitcoinAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function removeBitcoinAddresses(string[] memory _address) public onlyOwner {
+		for (uint256 i = 0; i < _address.length; i++) {
+			_removeBitcoinAddress(_address[i]);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _removeBitcoinAddress
 
 Internal function to remove bitcoin address to the key holders.
 
-```js
+```solidity
 function _removeBitcoinAddress(string _address) internal nonpayable
 ```
 
@@ -299,11 +499,35 @@ function _removeBitcoinAddress(string _address) internal nonpayable
 | ------------- |------------- | -----|
 | _address | string | The address to be removed. | 
 
-### isBitcoinAddressOwner
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _removeBitcoinAddress(string memory _address) internal {
+		require(bytes(_address).length != 0, ERROR_INVALID_ADDRESS);
+
+		if (isBitcoinAddressAdded[_address].added) {
+			uint248 index = isBitcoinAddressAdded[_address].index;
+			if (index != bitcoinAddresses.length - 1) {
+				bitcoinAddresses[index] = bitcoinAddresses[bitcoinAddresses.length - 1];
+				isBitcoinAddressAdded[bitcoinAddresses[index]].index = index;
+			}
+			bitcoinAddresses.length--;
+			delete isBitcoinAddressAdded[_address];
+		}
+
+		emit BitcoinAddressRemoved(_address);
+	}
+```
+</details>
+
+---    
+
+> ### isBitcoinAddressOwner
 
 Get whether bitcoin address is a key holder.
 
-```js
+```solidity
 function isBitcoinAddressOwner(string _address) public view
 returns(bool)
 ```
@@ -314,25 +538,44 @@ returns(bool)
 | ------------- |------------- | -----|
 | _address | string | The bitcoin address to be checked. | 
 
-### getBitcoinAddresses
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function isBitcoinAddressOwner(string memory _address) public view returns (bool) {
+		return isBitcoinAddressAdded[_address].added;
+	}
+```
+</details>
+
+---    
+
+> ### getBitcoinAddresses
 
 Get array of bitcoin key holders.
 
-```js
+```solidity
 function getBitcoinAddresses() public view
 returns(string[])
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getBitcoinAddresses() public view returns (string[] memory) {
+		return bitcoinAddresses;
+	}
+```
+</details>
 
-### changeBitcoinRequirement
+---    
+
+> ### changeBitcoinRequirement
 
 Set flag bitcoinRequired to true/false.
 
-```js
+```solidity
 function changeBitcoinRequirement(uint256 _required) public nonpayable onlyOwner validRequirement 
 ```
 
@@ -342,11 +585,24 @@ function changeBitcoinRequirement(uint256 _required) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _required | uint256 | The new value of the bitcoinRequired flag. | 
 
-### addEthereumAndBitcoinAddresses
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function changeBitcoinRequirement(uint256 _required) public onlyOwner validRequirement(bitcoinAddresses.length, _required) {
+		bitcoinRequired = _required;
+		emit BitcoinRequirementChanged(_required);
+	}
+```
+</details>
+
+---    
+
+> ### addEthereumAndBitcoinAddresses
 
 Add rBTC and bitcoin addresses to the key holders.
 
-```js
+```solidity
 function addEthereumAndBitcoinAddresses(address[] _ethereumAddress, string[] _bitcoinAddress) public nonpayable onlyOwner 
 ```
 
@@ -357,11 +613,28 @@ function addEthereumAndBitcoinAddresses(address[] _ethereumAddress, string[] _bi
 | _ethereumAddress | address[] | the rBTC addresses to be added. | 
 | _bitcoinAddress | string[] | the bitcoin addresses to be added. | 
 
-### removeEthereumAndBitcoinAddresses
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addEthereumAndBitcoinAddresses(address[] memory _ethereumAddress, string[] memory _bitcoinAddress) public onlyOwner {
+		for (uint256 i = 0; i < _ethereumAddress.length; i++) {
+			_addEthereumAddress(_ethereumAddress[i]);
+		}
+		for (uint256 i = 0; i < _bitcoinAddress.length; i++) {
+			_addBitcoinAddress(_bitcoinAddress[i]);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### removeEthereumAndBitcoinAddresses
 
 Remove rBTC and bitcoin addresses to the key holders.
 
-```js
+```solidity
 function removeEthereumAndBitcoinAddresses(address[] _ethereumAddress, string[] _bitcoinAddress) public nonpayable onlyOwner 
 ```
 
@@ -371,6 +644,21 @@ function removeEthereumAndBitcoinAddresses(address[] _ethereumAddress, string[] 
 | ------------- |------------- | -----|
 | _ethereumAddress | address[] | The rBTC addresses to be removed. | 
 | _bitcoinAddress | string[] | The bitcoin addresses to be removed. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function removeEthereumAndBitcoinAddresses(address[] memory _ethereumAddress, string[] memory _bitcoinAddress) public onlyOwner {
+		for (uint256 i = 0; i < _ethereumAddress.length; i++) {
+			_removeEthereumAddress(_ethereumAddress[i]);
+		}
+		for (uint256 i = 0; i < _bitcoinAddress.length; i++) {
+			_removeBitcoinAddress(_bitcoinAddress[i]);
+		}
+	}
+```
+</details>
 
 ## Contracts
 
@@ -386,6 +674,7 @@ function removeEthereumAndBitcoinAddresses(address[] _ethereumAddress, string[] 
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -507,7 +796,7 @@ function removeEthereumAndBitcoinAddresses(address[] _ethereumAddress, string[] 
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

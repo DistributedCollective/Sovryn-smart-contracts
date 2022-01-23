@@ -23,11 +23,13 @@ updated to reference the new contract address.
 - [setImplementation(address _implementation)](#setimplementation)
 - [setProxyOwner(address _owner)](#setproxyowner)
 
-### setImplementation
+---    
+
+> ### setImplementation
 
 Set address of the implementation.
 
-```js
+```solidity
 function setImplementation(address _implementation) public nonpayable onlyProxyOwner 
 ```
 
@@ -37,11 +39,24 @@ function setImplementation(address _implementation) public nonpayable onlyProxyO
 | ------------- |------------- | -----|
 | _implementation | address | Address of the implementation. | 
 
-### setProxyOwner
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction setImplementation(address _implementation) public onlyProxyOwner {
+		_setImplementation(_implementation);
+	}
+
+```
+</details>
+
+---    
+
+> ### setProxyOwner
 
 Set address of the owner.
 
-```js
+```solidity
 function setProxyOwner(address _owner) public nonpayable onlyProxyOwner 
 ```
 
@@ -50,6 +65,17 @@ function setProxyOwner(address _owner) public nonpayable onlyProxyOwner
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _owner | address | Address of the owner. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction setProxyOwner(address _owner) public onlyProxyOwner {
+		_setProxyOwner(_owner);
+	}
+}
+```
+</details>
 
 ## Contracts
 
@@ -65,6 +91,7 @@ function setProxyOwner(address _owner) public nonpayable onlyProxyOwner
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -186,7 +213,7 @@ function setProxyOwner(address _owner) public nonpayable onlyProxyOwner
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

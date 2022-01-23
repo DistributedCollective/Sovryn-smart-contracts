@@ -23,12 +23,14 @@ mapping(address => bool) internal processedList;
 
 ## Functions
 
-- [(address _vestingRegistry)](#)
+- [constructor(address _vestingRegistry)](#constructor)
 - [createVesting(address _tokenOwner, uint256 _amount, uint256 _cliff, uint256 _duration)](#createvesting)
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function (address _vestingRegistry) public nonpayable
 ```
 
@@ -38,11 +40,23 @@ function (address _vestingRegistry) public nonpayable
 | ------------- |------------- | -----|
 | _vestingRegistry | address |  | 
 
-### createVesting
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(address _vestingRegistry) public {
+		vestingRegistry = VestingRegistry(_vestingRegistry);
+	}
+```
+</details>
+
+---    
+
+> ### createVesting
 
 Create a vesting, get it and stake some tokens w/ this vesting.
 
-```js
+```solidity
 function createVesting(address _tokenOwner, uint256 _amount, uint256 _cliff, uint256 _duration) public nonpayable onlyOwner 
 ```
 
@@ -54,6 +68,28 @@ function createVesting(address _tokenOwner, uint256 _amount, uint256 _cliff, uin
 | _amount | uint256 | The amount of tokens to be vested. | 
 | _cliff | uint256 | The time interval to the first withdraw in seconds. | 
 | _duration | uint256 | The total duration in seconds. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function createVesting(
+		address _tokenOwner,
+		uint256 _amount,
+		uint256 _cliff,
+		uint256 _duration
+	) public onlyOwner {
+		require(_tokenOwner != address(0), "Invalid address");
+		require(!processedList[_tokenOwner], "Already processed");
+
+		processedList[_tokenOwner] = true;
+
+		vestingRegistry.createVesting(_tokenOwner, _amount, _cliff, _duration);
+		address vesting = vestingRegistry.getVesting(_tokenOwner);
+		vestingRegistry.stakeTokens(vesting, _amount);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -69,6 +105,7 @@ function createVesting(address _tokenOwner, uint256 _amount, uint256 _cliff, uin
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -190,7 +227,7 @@ function createVesting(address _tokenOwner, uint256 _amount, uint256 _cliff, uin
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

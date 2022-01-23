@@ -8,9 +8,11 @@ View Source: [contracts/interfaces/IConverterAMM.sol](../contracts/interfaces/IC
 
 - [withdrawFees(address receiver)](#withdrawfees)
 
-### withdrawFees
+---    
 
-```js
+> ### withdrawFees
+
+```solidity
 function withdrawFees(address receiver) external nonpayable
 returns(uint256)
 ```
@@ -20,6 +22,14 @@ returns(uint256)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | receiver | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawFees(address receiver) external returns (uint256);
+```
+</details>
 
 ## Contracts
 
@@ -35,6 +45,7 @@ returns(uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -156,7 +167,7 @@ returns(uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -16,45 +16,62 @@ View Source: [contracts/interfaces/IChai.sol](../contracts/interfaces/IChai.sol)
 - [draw(address src, uint256 wad)](#draw)
 - [exit(address src, uint256 wad)](#exit)
 
-### dsr
+---    
 
-```js
+> ### dsr
+
+```solidity
 function dsr() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function dsr() external view returns (uint256);
+```
+</details>
 
-### chi
+---    
 
-```js
+> ### chi
+
+```solidity
 function chi() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function chi() external view returns (uint256);
+```
+</details>
 
-### rho
+---    
 
-```js
+> ### rho
+
+```solidity
 function rho() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function rho() external view returns (uint256);
+```
+</details>
 
-### move
+---    
 
-```js
+> ### move
+
+```solidity
 function move(address src, address dst, uint256 wad) external nonpayable
 returns(bool)
 ```
@@ -67,9 +84,23 @@ returns(bool)
 | dst | address |  | 
 | wad | uint256 |  | 
 
-### join
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function move(
+		address src,
+		address dst,
+		uint256 wad
+	) external returns (bool);
+```
+</details>
+
+---    
+
+> ### join
+
+```solidity
 function join(address dst, uint256 wad) external nonpayable
 ```
 
@@ -80,9 +111,19 @@ function join(address dst, uint256 wad) external nonpayable
 | dst | address |  | 
 | wad | uint256 |  | 
 
-### draw
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function join(address dst, uint256 wad) external;
+```
+</details>
+
+---    
+
+> ### draw
+
+```solidity
 function draw(address src, uint256 wad) external nonpayable
 ```
 
@@ -93,9 +134,19 @@ function draw(address src, uint256 wad) external nonpayable
 | src | address |  | 
 | wad | uint256 |  | 
 
-### exit
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function draw(address src, uint256 wad) external;
+```
+</details>
+
+---    
+
+> ### exit
+
+```solidity
 function exit(address src, uint256 wad) external nonpayable
 ```
 
@@ -105,6 +156,14 @@ function exit(address src, uint256 wad) external nonpayable
 | ------------- |------------- | -----|
 | src | address |  | 
 | wad | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function exit(address src, uint256 wad) external;
+```
+</details>
 
 ## Contracts
 
@@ -120,6 +179,7 @@ function exit(address src, uint256 wad) external nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -241,7 +301,7 @@ function exit(address src, uint256 wad) external nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

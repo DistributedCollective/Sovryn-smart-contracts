@@ -32,11 +32,6 @@ Throws if called by any account other than the token owner or the contract owner
 modifier onlyOwners() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ### onlyTokenOwner
 
 Throws if called by any account other than the token owner.
@@ -44,11 +39,6 @@ Throws if called by any account other than the token owner.
 ```js
 modifier onlyTokenOwner() internal
 ```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
 
 ## Functions
 
@@ -64,13 +54,15 @@ modifier onlyTokenOwner() internal
 - [_getToken()](#_gettoken)
 - [_getSelectors()](#_getselectors)
 
-### stakeTokens
+---    
 
-⤾ overrides [IVesting.stakeTokens](IVesting.md#staketokens)
+> ### stakeTokens
+
+undefined
 
 Stakes tokens according to the vesting schedule.
 
-```js
+```solidity
 function stakeTokens(uint256 _amount) public nonpayable
 ```
 
@@ -80,11 +72,23 @@ function stakeTokens(uint256 _amount) public nonpayable
 | ------------- |------------- | -----|
 | _amount | uint256 | The amount of tokens to stake. | 
 
-### stakeTokensWithApproval
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function stakeTokens(uint256 _amount) public {
+		_stakeTokens(msg.sender, _amount);
+	}
+```
+</details>
+
+---    
+
+> ### stakeTokensWithApproval
 
 Stakes tokens according to the vesting schedule.
 
-```js
+```solidity
 function stakeTokensWithApproval(address _sender, uint256 _amount) public nonpayable onlyThisContract 
 ```
 
@@ -95,11 +99,23 @@ function stakeTokensWithApproval(address _sender, uint256 _amount) public nonpay
 | _sender | address | The sender of SOV.approveAndCall | 
 | _amount | uint256 | The amount of tokens to stake. | 
 
-### _stakeTokens
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function stakeTokensWithApproval(address _sender, uint256 _amount) public onlyThisContract {
+		_stakeTokens(_sender, _amount);
+	}
+```
+</details>
+
+---    
+
+> ### _stakeTokens
 
 Stakes tokens according to the vesting schedule. Low level function.
 
-```js
+```solidity
 function _stakeTokens(address _sender, uint256 _amount) internal nonpayable
 ```
 
@@ -110,14 +126,41 @@ function _stakeTokens(address _sender, uint256 _amount) internal nonpayable
 | _sender | address | The sender of tokens to stake. | 
 | _amount | uint256 | The amount of tokens to stake. | 
 
-### delegate
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _stakeTokens(address _sender, uint256 _amount) internal {
+		/// @dev Maybe better to allow staking unil the cliff was reached.
+		if (startDate == 0) {
+			startDate = staking.timestampToLockDate(block.timestamp);
+		}
+		endDate = staking.timestampToLockDate(block.timestamp + duration);
+
+		/// @dev Transfer the tokens to this contract.
+		bool success = SOV.transferFrom(_sender, address(this), _amount);
+		require(success);
+
+		/// @dev Allow the staking contract to access them.
+		SOV.approve(address(staking), _amount);
+
+		staking.stakesBySchedule(_amount, cliff, duration, FOUR_WEEKS, address(this), tokenOwner);
+
+		emit TokensStaked(_sender, _amount);
+	}
+```
+</details>
+
+---    
+
+> ### delegate
 
 ⤿ Overridden Implementation(s): [VestingLogicMockup.delegate](VestingLogicMockup.md#delegate)
 
 Delegate votes from `msg.sender` which are locked until lockDate
 to `delegatee`.
 
-```js
+```solidity
 function delegate(address _delegatee) public nonpayable onlyTokenOwner 
 ```
 
@@ -127,12 +170,32 @@ function delegate(address _delegatee) public nonpayable onlyTokenOwner
 | ------------- |------------- | -----|
 | _delegatee | address | The address to delegate votes to. | 
 
-### governanceWithdrawTokens
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function delegate(address _delegatee) public onlyTokenOwner {
+		require(_delegatee != address(0), "delegatee address invalid");
+
+		/// @dev Withdraw for each unlocked position.
+		/// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
+		///		workaround found, but it doesn't work with TWO_WEEKS
+		for (uint256 i = startDate + cliff; i <= endDate; i += FOUR_WEEKS) {
+			staking.delegate(_delegatee, i);
+		}
+		emit VotesDelegated(msg.sender, _delegatee);
+	}
+```
+</details>
+
+---    
+
+> ### governanceWithdrawTokens
 
 Withdraws all tokens from the staking contract and
 forwards them to an address specified by the token owner.
 
-```js
+```solidity
 function governanceWithdrawTokens(address receiver) public nonpayable
 ```
 
@@ -142,12 +205,26 @@ function governanceWithdrawTokens(address receiver) public nonpayable
 | ------------- |------------- | -----|
 | receiver | address | The receiving address. | 
 
-### withdrawTokens
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function governanceWithdrawTokens(address receiver) public {
+		require(msg.sender == address(staking), "unauthorized");
+
+		_withdrawTokens(receiver, true);
+	}
+```
+</details>
+
+---    
+
+> ### withdrawTokens
 
 Withdraws unlocked tokens from the staking contract and
 forwards them to an address specified by the token owner.
 
-```js
+```solidity
 function withdrawTokens(address receiver) public nonpayable onlyOwners 
 ```
 
@@ -157,12 +234,24 @@ function withdrawTokens(address receiver) public nonpayable onlyOwners
 | ------------- |------------- | -----|
 | receiver | address | The receiving address. | 
 
-### _withdrawTokens
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawTokens(address receiver) public onlyOwners {
+		_withdrawTokens(receiver, false);
+	}
+```
+</details>
+
+---    
+
+> ### _withdrawTokens
 
 Withdraws tokens from the staking contract and forwards them
 to an address specified by the token owner. Low level function.
 
-```js
+```solidity
 function _withdrawTokens(address receiver, bool isGovernance) internal nonpayable
 ```
 
@@ -171,14 +260,57 @@ function _withdrawTokens(address receiver, bool isGovernance) internal nonpayabl
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | receiver | address | The receiving address. | 
-| isGovernance | bool | Whether all tokens (true)
-or just unlocked tokens (false). | 
+| isGovernance | bool | Whether all tokens (true) or just unlocked tokens (false). | 
 
-### collectDividends
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _withdrawTokens(address receiver, bool isGovernance) internal {
+		require(receiver != address(0), "receiver address invalid");
+
+		uint96 stake;
+
+		/// @dev Usually we just need to iterate over the possible dates until now.
+		uint256 end;
+
+		/// @dev In the unlikely case that all tokens have been unlocked early,
+		///   allow to withdraw all of them.
+		if (staking.allUnlocked() || isGovernance) {
+			end = endDate;
+		} else {
+			end = block.timestamp;
+		}
+
+		/// @dev Withdraw for each unlocked position.
+		/// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
+		///		workaround found, but it doesn't work with TWO_WEEKS
+		for (uint256 i = startDate + cliff; i <= end; i += FOUR_WEEKS) {
+			/// @dev Read amount to withdraw.
+			stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1);
+
+			/// @dev Withdraw if > 0
+			if (stake > 0) {
+				if (isGovernance) {
+					staking.governanceWithdraw(stake, i, receiver);
+				} else {
+					staking.withdraw(stake, i, receiver);
+				}
+			}
+		}
+
+		emit TokensWithdrawn(msg.sender, receiver);
+	}
+```
+</details>
+
+---    
+
+> ### collectDividends
 
 Collect dividends from fee sharing proxy.
 
-```js
+```solidity
 function collectDividends(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) public nonpayable onlyOwners 
 ```
 
@@ -190,61 +322,97 @@ function collectDividends(address _loanPoolToken, uint32 _maxCheckpoints, addres
 | _maxCheckpoints | uint32 | Maximum number of checkpoints to be processed. | 
 | _receiver | address | The receiver of tokens or msg.sender | 
 
-### migrateToNewStakingContract
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function collectDividends(
+		address _loanPoolToken,
+		uint32 _maxCheckpoints,
+		address _receiver
+	) public onlyOwners {
+		require(_receiver != address(0), "receiver address invalid");
+
+		/// @dev Invokes the fee sharing proxy.
+		feeSharingProxy.withdraw(_loanPoolToken, _maxCheckpoints, _receiver);
+
+		emit DividendsCollected(msg.sender, _loanPoolToken, _receiver, _maxCheckpoints);
+	}
+```
+</details>
+
+---    
+
+> ### migrateToNewStakingContract
 
 Allows the owners to migrate the positions
 to a new staking contract.
 
-```js
+```solidity
 function migrateToNewStakingContract() public nonpayable onlyOwners 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function migrateToNewStakingContract() public onlyOwners {
+		staking.migrateToNewStakingContract();
+		staking = Staking(staking.newStakingContract());
+		emit MigratedToNewStakingContract(msg.sender, address(staking));
+	}
+```
+</details>
 
-### _getToken
+---    
 
-⤾ overrides [ApprovalReceiver._getToken](ApprovalReceiver.md#_gettoken)
+> ### _getToken
+
+undefined
 
 Overrides default ApprovalReceiver._getToken function to
 register SOV token on this contract.
 
-```js
+```solidity
 function _getToken() internal view
 returns(address)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-The address of SOV token.
+```javascript
+function _getToken() internal view returns (address) {
+		return address(SOV);
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+> ### _getSelectors
 
-### _getSelectors
-
-⤾ overrides [ApprovalReceiver._getSelectors](ApprovalReceiver.md#_getselectors)
+undefined
 
 Overrides default ApprovalReceiver._getSelectors function to
 register stakeTokensWithApproval selector on this contract.
 
-```js
+```solidity
 function _getSelectors() internal view
 returns(bytes4[])
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-The array of registered selectors on this contract.
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function _getSelectors() internal view returns (bytes4[] memory) {
+		bytes4[] memory selectors = new bytes4[](1);
+		selectors[0] = this.stakeTokensWithApproval.selector;
+		return selectors;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -260,6 +428,7 @@ The array of registered selectors on this contract.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -381,7 +550,7 @@ The array of registered selectors on this contract.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

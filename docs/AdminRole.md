@@ -35,21 +35,18 @@ or on our own overriding sovrynOwnable.
 modifier onlyAuthorized() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ## Functions
 
 - [addAdmin(address _admin)](#addadmin)
 - [removeAdmin(address _admin)](#removeadmin)
 
-### addAdmin
+---    
+
+> ### addAdmin
 
 Add account to ACL.
 
-```js
+```solidity
 function addAdmin(address _admin) public nonpayable onlyOwner 
 ```
 
@@ -59,11 +56,24 @@ function addAdmin(address _admin) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _admin | address | The addresses of the account to grant permissions. | 
 
-### removeAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addAdmin(address _admin) public onlyOwner {
+		admins[_admin] = true;
+		emit AdminAdded(_admin);
+	}
+```
+</details>
+
+---    
+
+> ### removeAdmin
 
 Remove account from ACL.
 
-```js
+```solidity
 function removeAdmin(address _admin) public nonpayable onlyOwner 
 ```
 
@@ -72,6 +82,17 @@ function removeAdmin(address _admin) public nonpayable onlyOwner
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _admin | address | The addresses of the account to revoke permissions. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function removeAdmin(address _admin) public onlyOwner {
+		admins[_admin] = false;
+		emit AdminRemoved(_admin);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -87,6 +108,7 @@ function removeAdmin(address _admin) public nonpayable onlyOwner
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -208,7 +230,7 @@ function removeAdmin(address _admin) public nonpayable onlyOwner
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

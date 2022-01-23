@@ -8,44 +8,64 @@ View Source: [contracts/openzeppelin/Context.sol](../contracts/openzeppelin/Cont
 
 ## Functions
 
-- [()](#)
+- [constructor()](#constructor)
 - [_msgSender()](#_msgsender)
 - [_msgData()](#_msgdata)
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function () internal nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+constructor() internal {}
+```
+</details>
 
-### _msgSender
+---    
 
-```js
+> ### _msgSender
+
+```solidity
 function _msgSender() internal view
 returns(address payable)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function _msgSender() internal view returns (address payable) {
+		return msg.sender;
+	}
+```
+</details>
 
-### _msgData
+---    
 
-```js
+> ### _msgData
+
+```solidity
 function _msgData() internal view
 returns(bytes)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function _msgData() internal view returns (bytes memory) {
+		this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
+		return msg.data;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -61,6 +81,7 @@ returns(bytes)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -182,7 +203,7 @@ returns(bytes)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

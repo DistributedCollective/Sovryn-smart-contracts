@@ -20,13 +20,15 @@ address public vestingLogic;
 
 ## Functions
 
-- [(address _vestingLogic)](#)
+- [constructor(address _vestingLogic)](#constructor)
 - [deployVesting(address _SOV, address _staking, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharing, address _vestingOwner)](#deployvesting)
 - [deployTeamVesting(address _SOV, address _staking, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharing, address _vestingOwner)](#deployteamvesting)
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function (address _vestingLogic) public nonpayable
 ```
 
@@ -36,20 +38,29 @@ function (address _vestingLogic) public nonpayable
 | ------------- |------------- | -----|
 | _vestingLogic | address |  | 
 
-### deployVesting
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [IVestingFactory.deployVesting](IVestingFactory.md#deployvesting)
+```javascript
+constructor(address _vestingLogic) public {
+		require(_vestingLogic != address(0), "invalid vesting logic address");
+		vestingLogic = _vestingLogic;
+	}
+```
+</details>
+
+---    
+
+> ### deployVesting
+
+undefined
 
 Deploys Vesting contract.
 
-```js
+```solidity
 function deployVesting(address _SOV, address _staking, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharing, address _vestingOwner) external nonpayable onlyOwner 
 returns(address)
 ```
-
-**Returns**
-
-The vesting contract address.
 
 **Arguments**
 
@@ -63,20 +74,46 @@ The vesting contract address.
 | _feeSharing | address | The address of fee sharing contract. | 
 | _vestingOwner | address | The address of an owner of vesting contract. | 
 
-### deployTeamVesting
-
-⤾ overrides [IVestingFactory.deployTeamVesting](IVestingFactory.md#deployteamvesting)
-
-Deploys Team Vesting contract.
-
-```js
-function deployTeamVesting(address _SOV, address _staking, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharing, address _vestingOwner) external nonpayable onlyOwner 
-returns(address)
-```
-
 **Returns**
 
 The vesting contract address.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function deployVesting(
+		address _SOV,
+		address _staking,
+		address _tokenOwner,
+		uint256 _cliff,
+		uint256 _duration,
+		address _feeSharing,
+		address _vestingOwner
+	)
+		external
+		onlyOwner /// @dev owner - VestingRegistry
+		returns (address)
+	{
+		address vesting = address(new Vesting(vestingLogic, _SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing));
+		Ownable(vesting).transferOwnership(_vestingOwner);
+		return vesting;
+	}
+```
+</details>
+
+---    
+
+> ### deployTeamVesting
+
+undefined
+
+Deploys Team Vesting contract.
+
+```solidity
+function deployTeamVesting(address _SOV, address _staking, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharing, address _vestingOwner) external nonpayable onlyOwner 
+returns(address)
+```
 
 **Arguments**
 
@@ -89,6 +126,34 @@ The vesting contract address.
 | _duration | uint256 | The total duration in seconds. | 
 | _feeSharing | address | The address of fee sharing contract. | 
 | _vestingOwner | address | The address of an owner of vesting contract. | 
+
+**Returns**
+
+The vesting contract address.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function deployTeamVesting(
+		address _SOV,
+		address _staking,
+		address _tokenOwner,
+		uint256 _cliff,
+		uint256 _duration,
+		address _feeSharing,
+		address _vestingOwner
+	)
+		external
+		onlyOwner //owner - VestingRegistry
+		returns (address)
+	{
+		address vesting = address(new TeamVesting(vestingLogic, _SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing));
+		Ownable(vesting).transferOwnership(_vestingOwner);
+		return vesting;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -104,6 +169,7 @@ The vesting contract address.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -225,7 +291,7 @@ The vesting contract address.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

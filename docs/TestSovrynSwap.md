@@ -14,15 +14,17 @@ address public priceFeeds;
 
 ## Functions
 
-- [(address feed)](#)
+- [constructor(address feed)](#constructor)
 - [addressOf(bytes32 contractName)](#addressof)
 - [convertByPath(IERC20[] _path, uint256 _amount, uint256 _minReturn, address _beneficiary, address _affiliateAccount, uint256 _affiliateFee)](#convertbypath)
 - [rateByPath(IERC20[] _path, uint256 _amount)](#ratebypath)
 - [conversionPath(IERC20 _sourceToken, IERC20 _targetToken)](#conversionpath)
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function (address feed) public nonpayable
 ```
 
@@ -32,9 +34,21 @@ function (address feed) public nonpayable
 | ------------- |------------- | -----|
 | feed | address |  | 
 
-### addressOf
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+constructor(address feed) public {
+		priceFeeds = feed;
+	}
+```
+</details>
+
+---    
+
+> ### addressOf
+
+```solidity
 function addressOf(bytes32 contractName) public view
 returns(address)
 ```
@@ -45,9 +59,21 @@ returns(address)
 | ------------- |------------- | -----|
 | contractName | bytes32 |  | 
 
-### convertByPath
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function addressOf(bytes32 contractName) public view returns (address) {
+		return address(this);
+	}
+```
+</details>
+
+---    
+
+> ### convertByPath
+
+```solidity
 function convertByPath(IERC20[] _path, uint256 _amount, uint256 _minReturn, address _beneficiary, address _affiliateAccount, uint256 _affiliateFee) external payable
 returns(uint256)
 ```
@@ -63,9 +89,36 @@ returns(uint256)
 | _affiliateAccount | address |  | 
 | _affiliateFee | uint256 |  | 
 
-### rateByPath
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function convertByPath(
+		IERC20[] calldata _path,
+		uint256 _amount,
+		uint256 _minReturn,
+		address _beneficiary,
+		address _affiliateAccount,
+		uint256 _affiliateFee
+	) external payable returns (uint256) {
+		//compute the return for the amount of tokens provided
+		(uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(address(_path[0]), address(_path[1]));
+		uint256 actualReturn = _amount.mul(sourceToDestRate).div(sourceToDestPrecision);
+
+		require(actualReturn >= _minReturn, "insufficient source tokens provided");
+
+		TestToken(address(_path[0])).burn(address(msg.sender), _amount);
+		TestToken(address(_path[1])).mint(address(_beneficiary), actualReturn);
+		return actualReturn;
+	}
+```
+</details>
+
+---    
+
+> ### rateByPath
+
+```solidity
 function rateByPath(IERC20[] _path, uint256 _amount) external view
 returns(uint256)
 ```
@@ -77,16 +130,26 @@ returns(uint256)
 | _path | IERC20[] |  | 
 | _amount | uint256 |  | 
 
-### conversionPath
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function rateByPath(IERC20[] calldata _path, uint256 _amount) external view returns (uint256) {
+		(uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(address(_path[0]), address(_path[1]));
+
+		return _amount.mul(sourceToDestRate).div(sourceToDestPrecision);
+	}
+```
+</details>
+
+---    
+
+> ### conversionPath
+
+```solidity
 function conversionPath(IERC20 _sourceToken, IERC20 _targetToken) external view
 returns(contract IERC20[])
 ```
-
-**Returns**
-
-s the conversion path -> always a direct path
 
 **Arguments**
 
@@ -94,6 +157,23 @@ s the conversion path -> always a direct path
 | ------------- |------------- | -----|
 | _sourceToken | IERC20 |  | 
 | _targetToken | IERC20 |  | 
+
+**Returns**
+
+s the conversion path -> always a direct path
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function conversionPath(IERC20 _sourceToken, IERC20 _targetToken) external view returns (IERC20[] memory) {
+		IERC20[] memory path = new IERC20[](2);
+		path[0] = _sourceToken;
+		path[1] = _targetToken;
+		return path;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -109,6 +189,7 @@ s the conversion path -> always a direct path
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -230,7 +311,7 @@ s the conversion path -> always a direct path
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

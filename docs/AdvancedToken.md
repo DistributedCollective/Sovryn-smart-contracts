@@ -20,7 +20,9 @@ its Loan Dai iTokens.
 - [_mint(address _to, uint256 _tokenAmount, uint256 _assetAmount, uint256 _price)](#_mint)
 - [_burn(address _who, uint256 _tokenAmount, uint256 _assetAmount, uint256 _price)](#_burn)
 
-### approve
+---    
+
+> ### approve
 
 Set an amount as the allowance of `spender` over the caller's tokens.
 	 * Returns a boolean value indicating whether the operation succeeded.
@@ -33,7 +35,7 @@ https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
 	 * Emits an {Approval} event.
 	 *
 
-```js
+```solidity
 function approve(address _spender, uint256 _value) public nonpayable
 returns(bool)
 ```
@@ -45,20 +47,30 @@ returns(bool)
 | _spender | address | The account address that will be able to spend the tokens. | 
 | _value | uint256 | The amount of tokens allowed to spend. | 
 
-### _mint
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function approve(address _spender, uint256 _value) public returns (bool) {
+		allowed[msg.sender][_spender] = _value;
+		emit Approval(msg.sender, _spender, _value);
+		return true;
+	}
+```
+</details>
+
+---    
+
+> ### _mint
 
 The iToken minting process. Meant to issue Loan iTokens.
 Lenders are able to open an iToken position, by minting them.
 This function is called by LoanTokenLogicStandard::_mintToken
 
-```js
+```solidity
 function _mint(address _to, uint256 _tokenAmount, uint256 _assetAmount, uint256 _price) internal nonpayable
 returns(uint256)
 ```
-
-**Returns**
-
-The updated balance of the recipient.
 
 **Arguments**
 
@@ -69,20 +81,47 @@ The updated balance of the recipient.
 | _assetAmount | uint256 | The amount of lended tokens (asset to lend). | 
 | _price | uint256 | The price of the lended tokens. | 
 
-### _burn
+**Returns**
+
+The updated balance of the recipient.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _mint(
+		address _to,
+		uint256 _tokenAmount,
+		uint256 _assetAmount,
+		uint256 _price
+	) internal returns (uint256) {
+		require(_to != address(0), "15");
+
+		uint256 _balance = balances[_to].add(_tokenAmount);
+		balances[_to] = _balance;
+
+		totalSupply_ = totalSupply_.add(_tokenAmount);
+
+		emit Mint(_to, _tokenAmount, _assetAmount, _price);
+		emit Transfer(address(0), _to, _tokenAmount);
+
+		return _balance;
+	}
+```
+</details>
+
+---    
+
+> ### _burn
 
 The iToken burning process. Meant to destroy Loan iTokens.
 Lenders are able to close an iToken position, by burning them.
 This function is called by LoanTokenLogicStandard::_burnToken
 
-```js
+```solidity
 function _burn(address _who, uint256 _tokenAmount, uint256 _assetAmount, uint256 _price) internal nonpayable
 returns(uint256)
 ```
-
-**Returns**
-
-The updated balance of the iTokens owner.
 
 **Arguments**
 
@@ -92,6 +131,41 @@ The updated balance of the iTokens owner.
 | _tokenAmount | uint256 | The amount of iTokens to burn. | 
 | _assetAmount | uint256 | The amount of lended tokens. | 
 | _price | uint256 | The price of the lended tokens. | 
+
+**Returns**
+
+The updated balance of the iTokens owner.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _burn(
+		address _who,
+		uint256 _tokenAmount,
+		uint256 _assetAmount,
+		uint256 _price
+	) internal returns (uint256) {
+		//bzx compare
+		//TODO: Unit test
+		uint256 _balance = balances[_who].sub(_tokenAmount, "16");
+
+		// a rounding error may leave dust behind, so we clear this out
+		if (_balance <= 10) {
+			// We can't leave such small balance quantities.
+			_tokenAmount = _tokenAmount.add(_balance);
+			_balance = 0;
+		}
+		balances[_who] = _balance;
+
+		totalSupply_ = totalSupply_.sub(_tokenAmount);
+
+		emit Burn(_who, _tokenAmount, _assetAmount, _price);
+		emit Transfer(_who, address(0), _tokenAmount);
+		return _balance;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -107,6 +181,7 @@ The updated balance of the iTokens owner.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -228,7 +303,7 @@ The updated balance of the iTokens owner.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

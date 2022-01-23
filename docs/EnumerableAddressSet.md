@@ -35,12 +35,14 @@ struct AddressSet {
 - [length(struct EnumerableAddressSet.AddressSet set)](#length)
 - [get(struct EnumerableAddressSet.AddressSet set, uint256 index)](#get)
 
-### add
+---    
+
+> ### add
 
 Add a value to a set. O(1).
 Returns false if the value was already in the set.
 
-```js
+```solidity
 function add(struct EnumerableAddressSet.AddressSet set, address value) internal nonpayable
 returns(bool)
 ```
@@ -52,12 +54,29 @@ returns(bool)
 | set | struct EnumerableAddressSet.AddressSet |  | 
 | value | address |  | 
 
-### remove
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function add(AddressSet storage set, address value) internal returns (bool) {
+		if (!contains(set, value)) {
+			set.index[value] = set.values.push(value);
+			return true;
+		} else {
+			return false;
+		}
+	}
+```
+</details>
+
+---    
+
+> ### remove
 
 Removes a value from a set. O(1).
 Returns false if the value was not present in the set.
 
-```js
+```solidity
 function remove(struct EnumerableAddressSet.AddressSet set, address value) internal nonpayable
 returns(bool)
 ```
@@ -69,11 +88,46 @@ returns(bool)
 | set | struct EnumerableAddressSet.AddressSet |  | 
 | value | address |  | 
 
-### contains
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function remove(AddressSet storage set, address value) internal returns (bool) {
+		if (contains(set, value)) {
+			uint256 toDeleteIndex = set.index[value] - 1;
+			uint256 lastIndex = set.values.length - 1;
+
+			// If the element we're deleting is the last one, we can just remove it without doing a swap
+			if (lastIndex != toDeleteIndex) {
+				address lastValue = set.values[lastIndex];
+
+				// Move the last value to the index where the deleted value is
+				set.values[toDeleteIndex] = lastValue;
+				// Update the index for the moved value
+				set.index[lastValue] = toDeleteIndex + 1; // All indexes are 1-based
+			}
+
+			// Delete the index entry for the deleted value
+			delete set.index[value];
+
+			// Delete the old entry for the moved value
+			set.values.pop();
+
+			return true;
+		} else {
+			return false;
+		}
+	}
+```
+</details>
+
+---    
+
+> ### contains
 
 Returns true if the value is in the set. O(1).
 
-```js
+```solidity
 function contains(struct EnumerableAddressSet.AddressSet set, address value) internal view
 returns(bool)
 ```
@@ -85,7 +139,19 @@ returns(bool)
 | set | struct EnumerableAddressSet.AddressSet |  | 
 | value | address |  | 
 
-### enumerate
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function contains(AddressSet storage set, address value) internal view returns (bool) {
+		return set.index[value] != 0;
+	}
+```
+</details>
+
+---    
+
+> ### enumerate
 
 Returns an array with all values in the set. O(N).
 Note that there are no guarantees on the ordering of values inside the
@@ -93,7 +159,7 @@ array, and it may change when more values are added or removed.
 WARNING: This function may run out of gas on large sets: use {length} and
 {get} instead in these cases.
 
-```js
+```solidity
 function enumerate(struct EnumerableAddressSet.AddressSet set) internal view
 returns(address[])
 ```
@@ -104,7 +170,23 @@ returns(address[])
 | ------------- |------------- | -----|
 | set | struct EnumerableAddressSet.AddressSet |  | 
 
-### enumerateChunk
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function enumerate(AddressSet storage set) internal view returns (address[] memory) {
+		address[] memory output = new address[](set.values.length);
+		for (uint256 i; i < set.values.length; i++) {
+			output[i] = set.values[i];
+		}
+		return output;
+	}
+```
+</details>
+
+---    
+
+> ### enumerateChunk
 
 Returns a chunk of array as recommended in enumerate() to avoid running of gas.
 Note that there are no guarantees on the ordering of values inside the
@@ -112,7 +194,7 @@ array, and it may change when more values are added or removed.
 WARNING: This function may run out of gas on large sets: use {length} and
 {get} instead in these cases.
 
-```js
+```solidity
 function enumerateChunk(struct EnumerableAddressSet.AddressSet set, uint256 start, uint256 count) internal view
 returns(output address[])
 ```
@@ -125,11 +207,38 @@ returns(output address[])
 | start | uint256 | start index of chunk | 
 | count | uint256 | num of element to return; if count == 0 then returns all the elements from the | 
 
-### length
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function enumerateChunk(
+		AddressSet storage set,
+		uint256 start,
+		uint256 count
+	) internal view returns (address[] memory output) {
+		uint256 end = start + count;
+		require(end >= start, "addition overflow");
+		end = (set.values.length < end || count == 0) ? set.values.length : end;
+		if (end == 0 || start >= end) {
+			return output;
+		}
+
+		output = new address[](end - start);
+		for (uint256 i; i < end - start; i++) {
+			output[i] = set.values[i + start];
+		}
+		return output;
+	}
+```
+</details>
+
+---    
+
+> ### length
 
 Returns the number of elements on the set. O(1).
 
-```js
+```solidity
 function length(struct EnumerableAddressSet.AddressSet set) internal view
 returns(uint256)
 ```
@@ -140,7 +249,19 @@ returns(uint256)
 | ------------- |------------- | -----|
 | set | struct EnumerableAddressSet.AddressSet |  | 
 
-### get
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function length(AddressSet storage set) internal view returns (uint256) {
+		return set.values.length;
+	}
+```
+</details>
+
+---    
+
+> ### get
 
 Returns the element stored at position `index` in the set. O(1).
 Note that there are no guarantees on the ordering of values inside the
@@ -148,7 +269,7 @@ array, and it may change when more values are added or removed.
 	 * Requirements:
 	 * - `index` must be strictly less than {length}.
 
-```js
+```solidity
 function get(struct EnumerableAddressSet.AddressSet set, uint256 index) internal view
 returns(address)
 ```
@@ -159,6 +280,16 @@ returns(address)
 | ------------- |------------- | -----|
 | set | struct EnumerableAddressSet.AddressSet |  | 
 | index | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function get(AddressSet storage set, uint256 index) internal view returns (address) {
+		return set.values[index];
+	}
+```
+</details>
 
 ## Contracts
 
@@ -174,6 +305,7 @@ returns(address)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -295,7 +427,7 @@ returns(address)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -9,29 +9,36 @@ View Source: [contracts/mockup/TimelockHarness.sol](../contracts/mockup/Timelock
 ## Functions
 
 - [_acceptAdmin()](#_acceptadmin)
-- [(address admin_, uint256 delay_)](#)
+- [constructor(address admin_, uint256 delay_)](#constructor)
 - [setDelayWithoutChecking(uint256 delay_)](#setdelaywithoutchecking)
 - [harnessSetPendingAdmin(address pendingAdmin_)](#harnesssetpendingadmin)
 - [harnessSetAdmin(address admin_)](#harnesssetadmin)
-- [(address admin_, uint256 delay_)](#)
+- [constructor(address admin_, uint256 delay_)](#constructor)
 - [harnessSetAdmin(address admin_)](#harnesssetadmin)
 - [harnessAcceptAdmin(Administered administered)](#harnessacceptadmin)
 
-### _acceptAdmin
+---    
 
-```js
+> ### _acceptAdmin
+
+```solidity
 function _acceptAdmin() external nonpayable
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function _acceptAdmin() external returns (uint256);
+```
+</details>
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function (address admin_, uint256 delay_) public nonpayable Timelock 
 ```
 
@@ -42,9 +49,19 @@ function (address admin_, uint256 delay_) public nonpayable Timelock
 | admin_ | address |  | 
 | delay_ | uint256 |  | 
 
-### setDelayWithoutChecking
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+constructor(address admin_, uint256 delay_) public Timelock(admin_, delay_) {}
+```
+</details>
+
+---    
+
+> ### setDelayWithoutChecking
+
+```solidity
 function setDelayWithoutChecking(uint256 delay_) public nonpayable
 ```
 
@@ -54,9 +71,23 @@ function setDelayWithoutChecking(uint256 delay_) public nonpayable
 | ------------- |------------- | -----|
 | delay_ | uint256 |  | 
 
-### harnessSetPendingAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setDelayWithoutChecking(uint256 delay_) public {
+		delay = delay_;
+
+		emit NewDelay(delay);
+	}
+```
+</details>
+
+---    
+
+> ### harnessSetPendingAdmin
+
+```solidity
 function harnessSetPendingAdmin(address pendingAdmin_) public nonpayable
 ```
 
@@ -66,9 +97,21 @@ function harnessSetPendingAdmin(address pendingAdmin_) public nonpayable
 | ------------- |------------- | -----|
 | pendingAdmin_ | address |  | 
 
-### harnessSetAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function harnessSetPendingAdmin(address pendingAdmin_) public {
+		pendingAdmin = pendingAdmin_;
+	}
+```
+</details>
+
+---    
+
+> ### harnessSetAdmin
+
+```solidity
 function harnessSetAdmin(address admin_) public nonpayable
 ```
 
@@ -78,9 +121,21 @@ function harnessSetAdmin(address admin_) public nonpayable
 | ------------- |------------- | -----|
 | admin_ | address |  | 
 
-### 
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function harnessSetAdmin(address admin_) public {
+		admin = admin_;
+	}
+```
+</details>
+
+---    
+
+> ### constructor
+
+```solidity
 function (address admin_, uint256 delay_) public nonpayable Timelock 
 ```
 
@@ -91,9 +146,21 @@ function (address admin_, uint256 delay_) public nonpayable Timelock
 | admin_ | address |  | 
 | delay_ | uint256 |  | 
 
-### harnessSetAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+constructor(address admin_, uint256 delay_) public Timelock(admin_, 2 days) {
+		delay = delay_;
+	}
+```
+</details>
+
+---    
+
+> ### harnessSetAdmin
+
+```solidity
 function harnessSetAdmin(address admin_) public nonpayable
 ```
 
@@ -103,9 +170,22 @@ function harnessSetAdmin(address admin_) public nonpayable
 | ------------- |------------- | -----|
 | admin_ | address |  | 
 
-### harnessAcceptAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function harnessSetAdmin(address admin_) public {
+		require(msg.sender == admin);
+		admin = admin_;
+	}
+```
+</details>
+
+---    
+
+> ### harnessAcceptAdmin
+
+```solidity
 function harnessAcceptAdmin(Administered administered) public nonpayable
 ```
 
@@ -114,6 +194,16 @@ function harnessAcceptAdmin(Administered administered) public nonpayable
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | administered | Administered |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function harnessAcceptAdmin(Administered administered) public {
+		administered._acceptAdmin();
+	}
+```
+</details>
 
 ## Contracts
 
@@ -129,6 +219,7 @@ function harnessAcceptAdmin(Administered administered) public nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -250,7 +341,7 @@ function harnessAcceptAdmin(Administered administered) public nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

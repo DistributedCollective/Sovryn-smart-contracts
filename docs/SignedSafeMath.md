@@ -21,7 +21,9 @@ int256 private constant _INT256_MIN;
 - [sub(int256 a, int256 b)](#sub)
 - [add(int256 a, int256 b)](#add)
 
-### mul
+---    
+
+> ### mul
 
 Returns the multiplication of two signed integers, reverting on
 overflow.
@@ -29,7 +31,7 @@ overflow.
 	 * Requirements:
 	 * - Multiplication cannot overflow.
 
-```js
+```solidity
 function mul(int256 a, int256 b) internal pure
 returns(int256)
 ```
@@ -41,7 +43,31 @@ returns(int256)
 | a | int256 |  | 
 | b | int256 |  | 
 
-### div
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function mul(int256 a, int256 b) internal pure returns (int256) {
+		// Gas optimization: this is cheaper than requiring 'a' not being zero, but the
+		// benefit is lost if 'b' is also tested.
+		// See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
+		if (a == 0) {
+			return 0;
+		}
+
+		require(!(a == -1 && b == _INT256_MIN), "SignedSafeMath: multiplication overflow");
+
+		int256 c = a * b;
+		require(c / a == b, "SignedSafeMath: multiplication overflow");
+
+		return c;
+	}
+```
+</details>
+
+---    
+
+> ### div
 
 Returns the integer division of two signed integers. Reverts on
 division by zero. The result is rounded towards zero.
@@ -51,7 +77,7 @@ uses an invalid opcode to revert (consuming all remaining gas).
 	 * Requirements:
 	 * - The divisor cannot be zero.
 
-```js
+```solidity
 function div(int256 a, int256 b) internal pure
 returns(int256)
 ```
@@ -63,7 +89,24 @@ returns(int256)
 | a | int256 |  | 
 | b | int256 |  | 
 
-### sub
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function div(int256 a, int256 b) internal pure returns (int256) {
+		require(b != 0, "SignedSafeMath: division by zero");
+		require(!(b == -1 && a == _INT256_MIN), "SignedSafeMath: division overflow");
+
+		int256 c = a / b;
+
+		return c;
+	}
+```
+</details>
+
+---    
+
+> ### sub
 
 Returns the subtraction of two signed integers, reverting on
 overflow.
@@ -71,7 +114,7 @@ overflow.
 	 * Requirements:
 	 * - Subtraction cannot overflow.
 
-```js
+```solidity
 function sub(int256 a, int256 b) internal pure
 returns(int256)
 ```
@@ -83,7 +126,22 @@ returns(int256)
 | a | int256 |  | 
 | b | int256 |  | 
 
-### add
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function sub(int256 a, int256 b) internal pure returns (int256) {
+		int256 c = a - b;
+		require((b >= 0 && c <= a) || (b < 0 && c > a), "SignedSafeMath: subtraction overflow");
+
+		return c;
+	}
+```
+</details>
+
+---    
+
+> ### add
 
 Returns the addition of two signed integers, reverting on
 overflow.
@@ -91,7 +149,7 @@ overflow.
 	 * Requirements:
 	 * - Addition cannot overflow.
 
-```js
+```solidity
 function add(int256 a, int256 b) internal pure
 returns(int256)
 ```
@@ -102,6 +160,19 @@ returns(int256)
 | ------------- |------------- | -----|
 | a | int256 |  | 
 | b | int256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function add(int256 a, int256 b) internal pure returns (int256) {
+		int256 c = a + b;
+		require((b >= 0 && c >= a) || (b < 0 && c < a), "SignedSafeMath: addition overflow");
+
+		return c;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -117,6 +188,7 @@ returns(int256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -238,7 +310,7 @@ returns(int256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

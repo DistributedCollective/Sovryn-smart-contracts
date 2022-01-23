@@ -10,9 +10,11 @@ View Source: [contracts/testhelpers/LoanTokenLogicTest.sol](../contracts/testhel
 
 - [getMarginBorrowAmountAndRate(uint256 leverageAmount, uint256 depositAmount)](#getmarginborrowamountandrate)
 
-### getMarginBorrowAmountAndRate
+---    
 
-```js
+> ### getMarginBorrowAmountAndRate
+
+```solidity
 function getMarginBorrowAmountAndRate(uint256 leverageAmount, uint256 depositAmount) public view
 returns(uint256, uint256)
 ```
@@ -23,6 +25,16 @@ returns(uint256, uint256)
 | ------------- |------------- | -----|
 | leverageAmount | uint256 |  | 
 | depositAmount | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getMarginBorrowAmountAndRate(uint256 leverageAmount, uint256 depositAmount) public view returns (uint256, uint256) {
+		return _getMarginBorrowAmountAndRate(leverageAmount, depositAmount);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -38,6 +50,7 @@ returns(uint256, uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -159,7 +172,7 @@ returns(uint256, uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -131,9 +131,11 @@ event PayInterestTransfer(address indexed interestToken, address indexed lender,
 - [getTradingRebateRewardsBasisPoint()](#gettradingrebaterewardsbasispoint)
 - [getDedicatedSOVRebate()](#getdedicatedsovrebate)
 
-### replaceContract
+---    
 
-```js
+> ### replaceContract
+
+```solidity
 function replaceContract(address target) external nonpayable
 ```
 
@@ -143,9 +145,19 @@ function replaceContract(address target) external nonpayable
 | ------------- |------------- | -----|
 | target | address |  | 
 
-### setTargets
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function replaceContract(address target) external;
+```
+</details>
+
+---    
+
+> ### setTargets
+
+```solidity
 function setTargets(string[] sigsArr, address[] targetsArr) external nonpayable
 ```
 
@@ -156,9 +168,19 @@ function setTargets(string[] sigsArr, address[] targetsArr) external nonpayable
 | sigsArr | string[] |  | 
 | targetsArr | address[] |  | 
 
-### getTarget
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setTargets(string[] calldata sigsArr, address[] calldata targetsArr) external;
+```
+</details>
+
+---    
+
+> ### getTarget
+
+```solidity
 function getTarget(string sig) external view
 returns(address)
 ```
@@ -169,9 +191,19 @@ returns(address)
 | ------------- |------------- | -----|
 | sig | string |  | 
 
-### setSovrynProtocolAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getTarget(string calldata sig) external view returns (address);
+```
+</details>
+
+---    
+
+> ### setSovrynProtocolAddress
+
+```solidity
 function setSovrynProtocolAddress(address newProtocolAddress) external nonpayable
 ```
 
@@ -181,9 +213,19 @@ function setSovrynProtocolAddress(address newProtocolAddress) external nonpayabl
 | ------------- |------------- | -----|
 | newProtocolAddress | address |  | 
 
-### setSOVTokenAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setSovrynProtocolAddress(address newProtocolAddress) external;
+```
+</details>
+
+---    
+
+> ### setSOVTokenAddress
+
+```solidity
 function setSOVTokenAddress(address newSovTokenAddress) external nonpayable
 ```
 
@@ -193,9 +235,19 @@ function setSOVTokenAddress(address newSovTokenAddress) external nonpayable
 | ------------- |------------- | -----|
 | newSovTokenAddress | address |  | 
 
-### setLockedSOVAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setSOVTokenAddress(address newSovTokenAddress) external;
+```
+</details>
+
+---    
+
+> ### setLockedSOVAddress
+
+```solidity
 function setLockedSOVAddress(address newSOVLockedAddress) external nonpayable
 ```
 
@@ -205,9 +257,19 @@ function setLockedSOVAddress(address newSOVLockedAddress) external nonpayable
 | ------------- |------------- | -----|
 | newSOVLockedAddress | address |  | 
 
-### setMinReferralsToPayoutAffiliates
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setLockedSOVAddress(address newSOVLockedAddress) external;
+```
+</details>
+
+---    
+
+> ### setMinReferralsToPayoutAffiliates
+
+```solidity
 function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external nonpayable
 ```
 
@@ -217,9 +279,19 @@ function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external non
 | ------------- |------------- | -----|
 | newMinReferrals | uint256 |  | 
 
-### setPriceFeedContract
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals) external;
+```
+</details>
+
+---    
+
+> ### setPriceFeedContract
+
+```solidity
 function setPriceFeedContract(address newContract) external nonpayable
 ```
 
@@ -229,9 +301,19 @@ function setPriceFeedContract(address newContract) external nonpayable
 | ------------- |------------- | -----|
 | newContract | address |  | 
 
-### setSwapsImplContract
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setPriceFeedContract(address newContract) external;
+```
+</details>
+
+---    
+
+> ### setSwapsImplContract
+
+```solidity
 function setSwapsImplContract(address newContract) external nonpayable
 ```
 
@@ -241,9 +323,19 @@ function setSwapsImplContract(address newContract) external nonpayable
 | ------------- |------------- | -----|
 | newContract | address |  | 
 
-### setLoanPool
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setSwapsImplContract(address newContract) external;
+```
+</details>
+
+---    
+
+> ### setLoanPool
+
+```solidity
 function setLoanPool(address[] pools, address[] assets) external nonpayable
 ```
 
@@ -254,9 +346,19 @@ function setLoanPool(address[] pools, address[] assets) external nonpayable
 | pools | address[] |  | 
 | assets | address[] |  | 
 
-### setSupportedTokens
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setLoanPool(address[] calldata pools, address[] calldata assets) external;
+```
+</details>
+
+---    
+
+> ### setSupportedTokens
+
+```solidity
 function setSupportedTokens(address[] addrs, bool[] toggles) external nonpayable
 ```
 
@@ -267,9 +369,19 @@ function setSupportedTokens(address[] addrs, bool[] toggles) external nonpayable
 | addrs | address[] |  | 
 | toggles | bool[] |  | 
 
-### setLendingFeePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setSupportedTokens(address[] calldata addrs, bool[] calldata toggles) external;
+```
+</details>
+
+---    
+
+> ### setLendingFeePercent
+
+```solidity
 function setLendingFeePercent(uint256 newValue) external nonpayable
 ```
 
@@ -279,9 +391,19 @@ function setLendingFeePercent(uint256 newValue) external nonpayable
 | ------------- |------------- | -----|
 | newValue | uint256 |  | 
 
-### setTradingFeePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setLendingFeePercent(uint256 newValue) external;
+```
+</details>
+
+---    
+
+> ### setTradingFeePercent
+
+```solidity
 function setTradingFeePercent(uint256 newValue) external nonpayable
 ```
 
@@ -291,9 +413,19 @@ function setTradingFeePercent(uint256 newValue) external nonpayable
 | ------------- |------------- | -----|
 | newValue | uint256 |  | 
 
-### setBorrowingFeePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setTradingFeePercent(uint256 newValue) external;
+```
+</details>
+
+---    
+
+> ### setBorrowingFeePercent
+
+```solidity
 function setBorrowingFeePercent(uint256 newValue) external nonpayable
 ```
 
@@ -303,9 +435,19 @@ function setBorrowingFeePercent(uint256 newValue) external nonpayable
 | ------------- |------------- | -----|
 | newValue | uint256 |  | 
 
-### setSwapExternalFeePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setBorrowingFeePercent(uint256 newValue) external;
+```
+</details>
+
+---    
+
+> ### setSwapExternalFeePercent
+
+```solidity
 function setSwapExternalFeePercent(uint256 newValue) external nonpayable
 ```
 
@@ -315,9 +457,19 @@ function setSwapExternalFeePercent(uint256 newValue) external nonpayable
 | ------------- |------------- | -----|
 | newValue | uint256 |  | 
 
-### setAffiliateFeePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setSwapExternalFeePercent(uint256 newValue) external;
+```
+</details>
+
+---    
+
+> ### setAffiliateFeePercent
+
+```solidity
 function setAffiliateFeePercent(uint256 newValue) external nonpayable
 ```
 
@@ -327,9 +479,19 @@ function setAffiliateFeePercent(uint256 newValue) external nonpayable
 | ------------- |------------- | -----|
 | newValue | uint256 |  | 
 
-### setAffiliateTradingTokenFeePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setAffiliateFeePercent(uint256 newValue) external;
+```
+</details>
+
+---    
+
+> ### setAffiliateTradingTokenFeePercent
+
+```solidity
 function setAffiliateTradingTokenFeePercent(uint256 newValue) external nonpayable
 ```
 
@@ -339,9 +501,19 @@ function setAffiliateTradingTokenFeePercent(uint256 newValue) external nonpayabl
 | ------------- |------------- | -----|
 | newValue | uint256 |  | 
 
-### setLiquidationIncentivePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setAffiliateTradingTokenFeePercent(uint256 newValue) external;
+```
+</details>
+
+---    
+
+> ### setLiquidationIncentivePercent
+
+```solidity
 function setLiquidationIncentivePercent(uint256 newAmount) external nonpayable
 ```
 
@@ -351,9 +523,19 @@ function setLiquidationIncentivePercent(uint256 newAmount) external nonpayable
 | ------------- |------------- | -----|
 | newAmount | uint256 |  | 
 
-### setMaxDisagreement
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setLiquidationIncentivePercent(uint256 newAmount) external;
+```
+</details>
+
+---    
+
+> ### setMaxDisagreement
+
+```solidity
 function setMaxDisagreement(uint256 newAmount) external nonpayable
 ```
 
@@ -363,9 +545,19 @@ function setMaxDisagreement(uint256 newAmount) external nonpayable
 | ------------- |------------- | -----|
 | newAmount | uint256 |  | 
 
-### setSourceBuffer
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setMaxDisagreement(uint256 newAmount) external;
+```
+</details>
+
+---    
+
+> ### setSourceBuffer
+
+```solidity
 function setSourceBuffer(uint256 newAmount) external nonpayable
 ```
 
@@ -375,9 +567,19 @@ function setSourceBuffer(uint256 newAmount) external nonpayable
 | ------------- |------------- | -----|
 | newAmount | uint256 |  | 
 
-### setMaxSwapSize
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setSourceBuffer(uint256 newAmount) external;
+```
+</details>
+
+---    
+
+> ### setMaxSwapSize
+
+```solidity
 function setMaxSwapSize(uint256 newAmount) external nonpayable
 ```
 
@@ -387,9 +589,19 @@ function setMaxSwapSize(uint256 newAmount) external nonpayable
 | ------------- |------------- | -----|
 | newAmount | uint256 |  | 
 
-### setFeesController
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setMaxSwapSize(uint256 newAmount) external;
+```
+</details>
+
+---    
+
+> ### setFeesController
+
+```solidity
 function setFeesController(address newController) external nonpayable
 ```
 
@@ -399,9 +611,19 @@ function setFeesController(address newController) external nonpayable
 | ------------- |------------- | -----|
 | newController | address |  | 
 
-### withdrawLendingFees
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setFeesController(address newController) external;
+```
+</details>
+
+---    
+
+> ### withdrawLendingFees
+
+```solidity
 function withdrawLendingFees(address token, address receiver, uint256 amount) external nonpayable
 returns(bool)
 ```
@@ -414,9 +636,23 @@ returns(bool)
 | receiver | address |  | 
 | amount | uint256 |  | 
 
-### withdrawTradingFees
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function withdrawLendingFees(
+		address token,
+		address receiver,
+		uint256 amount
+	) external returns (bool);
+```
+</details>
+
+---    
+
+> ### withdrawTradingFees
+
+```solidity
 function withdrawTradingFees(address token, address receiver, uint256 amount) external nonpayable
 returns(bool)
 ```
@@ -429,9 +665,23 @@ returns(bool)
 | receiver | address |  | 
 | amount | uint256 |  | 
 
-### withdrawBorrowingFees
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function withdrawTradingFees(
+		address token,
+		address receiver,
+		uint256 amount
+	) external returns (bool);
+```
+</details>
+
+---    
+
+> ### withdrawBorrowingFees
+
+```solidity
 function withdrawBorrowingFees(address token, address receiver, uint256 amount) external nonpayable
 returns(bool)
 ```
@@ -444,9 +694,23 @@ returns(bool)
 | receiver | address |  | 
 | amount | uint256 |  | 
 
-### withdrawProtocolToken
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function withdrawBorrowingFees(
+		address token,
+		address receiver,
+		uint256 amount
+	) external returns (bool);
+```
+</details>
+
+---    
+
+> ### withdrawProtocolToken
+
+```solidity
 function withdrawProtocolToken(address receiver, uint256 amount) external nonpayable
 returns(address, bool)
 ```
@@ -458,9 +722,19 @@ returns(address, bool)
 | receiver | address |  | 
 | amount | uint256 |  | 
 
-### depositProtocolToken
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function withdrawProtocolToken(address receiver, uint256 amount) external returns (address, bool);
+```
+</details>
+
+---    
+
+> ### depositProtocolToken
+
+```solidity
 function depositProtocolToken(uint256 amount) external nonpayable
 ```
 
@@ -470,9 +744,19 @@ function depositProtocolToken(uint256 amount) external nonpayable
 | ------------- |------------- | -----|
 | amount | uint256 |  | 
 
-### getLoanPoolsList
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function depositProtocolToken(uint256 amount) external;
+```
+</details>
+
+---    
+
+> ### getLoanPoolsList
+
+```solidity
 function getLoanPoolsList(uint256 start, uint256 count) external nonpayable
 ```
 
@@ -483,9 +767,19 @@ function getLoanPoolsList(uint256 start, uint256 count) external nonpayable
 | start | uint256 |  | 
 | count | uint256 |  | 
 
-### isLoanPool
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getLoanPoolsList(uint256 start, uint256 count) external;
+```
+</details>
+
+---    
+
+> ### isLoanPool
+
+```solidity
 function isLoanPool(address loanPool) external view
 returns(bool)
 ```
@@ -496,9 +790,19 @@ returns(bool)
 | ------------- |------------- | -----|
 | loanPool | address |  | 
 
-### setWrbtcToken
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function isLoanPool(address loanPool) external view returns (bool);
+```
+</details>
+
+---    
+
+> ### setWrbtcToken
+
+```solidity
 function setWrbtcToken(address wrbtcTokenAddress) external nonpayable
 ```
 
@@ -508,9 +812,19 @@ function setWrbtcToken(address wrbtcTokenAddress) external nonpayable
 | ------------- |------------- | -----|
 | wrbtcTokenAddress | address |  | 
 
-### setSovrynSwapContractRegistryAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setWrbtcToken(address wrbtcTokenAddress) external;
+```
+</details>
+
+---    
+
+> ### setSovrynSwapContractRegistryAddress
+
+```solidity
 function setSovrynSwapContractRegistryAddress(address registryAddress) external nonpayable
 ```
 
@@ -520,9 +834,19 @@ function setSovrynSwapContractRegistryAddress(address registryAddress) external 
 | ------------- |------------- | -----|
 | registryAddress | address |  | 
 
-### setProtocolTokenAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setSovrynSwapContractRegistryAddress(address registryAddress) external;
+```
+</details>
+
+---    
+
+> ### setProtocolTokenAddress
+
+```solidity
 function setProtocolTokenAddress(address _protocolTokenAddress) external nonpayable
 ```
 
@@ -532,9 +856,19 @@ function setProtocolTokenAddress(address _protocolTokenAddress) external nonpaya
 | ------------- |------------- | -----|
 | _protocolTokenAddress | address |  | 
 
-### setRolloverBaseReward
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setProtocolTokenAddress(address _protocolTokenAddress) external;
+```
+</details>
+
+---    
+
+> ### setRolloverBaseReward
+
+```solidity
 function setRolloverBaseReward(uint256 transactionCost) external nonpayable
 ```
 
@@ -544,9 +878,19 @@ function setRolloverBaseReward(uint256 transactionCost) external nonpayable
 | ------------- |------------- | -----|
 | transactionCost | uint256 |  | 
 
-### setRebatePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setRolloverBaseReward(uint256 transactionCost) external;
+```
+</details>
+
+---    
+
+> ### setRebatePercent
+
+```solidity
 function setRebatePercent(uint256 rebatePercent) external nonpayable
 ```
 
@@ -556,9 +900,19 @@ function setRebatePercent(uint256 rebatePercent) external nonpayable
 | ------------- |------------- | -----|
 | rebatePercent | uint256 |  | 
 
-### setSpecialRebates
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setRebatePercent(uint256 rebatePercent) external;
+```
+</details>
+
+---    
+
+> ### setSpecialRebates
+
+```solidity
 function setSpecialRebates(address sourceToken, address destToken, uint256 specialRebatesPercent) external nonpayable
 ```
 
@@ -570,9 +924,23 @@ function setSpecialRebates(address sourceToken, address destToken, uint256 speci
 | destToken | address |  | 
 | specialRebatesPercent | uint256 |  | 
 
-### getSpecialRebates
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setSpecialRebates(
+		address sourceToken,
+		address destToken,
+		uint256 specialRebatesPercent
+	) external;
+```
+</details>
+
+---    
+
+> ### getSpecialRebates
+
+```solidity
 function getSpecialRebates(address sourceToken, address destToken) external view
 returns(specialRebatesPercent uint256)
 ```
@@ -584,9 +952,19 @@ returns(specialRebatesPercent uint256)
 | sourceToken | address |  | 
 | destToken | address |  | 
 
-### togglePaused
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getSpecialRebates(address sourceToken, address destToken) external view returns (uint256 specialRebatesPercent);
+```
+</details>
+
+---    
+
+> ### togglePaused
+
+```solidity
 function togglePaused(bool paused) external nonpayable
 ```
 
@@ -596,21 +974,36 @@ function togglePaused(bool paused) external nonpayable
 | ------------- |------------- | -----|
 | paused | bool |  | 
 
-### isProtocolPaused
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function togglePaused(bool paused) external;
+```
+</details>
+
+---    
+
+> ### isProtocolPaused
+
+```solidity
 function isProtocolPaused() external view
 returns(bool)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function isProtocolPaused() external view returns (bool);
+```
+</details>
 
-### setupLoanParams
+---    
 
-```js
+> ### setupLoanParams
+
+```solidity
 function setupLoanParams(struct LoanParamsStruct.LoanParams[] loanParamsList) external nonpayable
 returns(loanParamsIdList bytes32[])
 ```
@@ -621,9 +1014,19 @@ returns(loanParamsIdList bytes32[])
 | ------------- |------------- | -----|
 | loanParamsList | struct LoanParamsStruct.LoanParams[] |  | 
 
-### disableLoanParams
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setupLoanParams(LoanParams[] calldata loanParamsList) external returns (bytes32[] memory loanParamsIdList);
+```
+</details>
+
+---    
+
+> ### disableLoanParams
+
+```solidity
 function disableLoanParams(bytes32[] loanParamsIdList) external nonpayable
 ```
 
@@ -633,9 +1036,19 @@ function disableLoanParams(bytes32[] loanParamsIdList) external nonpayable
 | ------------- |------------- | -----|
 | loanParamsIdList | bytes32[] |  | 
 
-### getLoanParams
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function disableLoanParams(bytes32[] calldata loanParamsIdList) external;
+```
+</details>
+
+---    
+
+> ### getLoanParams
+
+```solidity
 function getLoanParams(bytes32[] loanParamsIdList) external view
 returns(loanParamsList struct LoanParamsStruct.LoanParams[])
 ```
@@ -646,9 +1059,19 @@ returns(loanParamsList struct LoanParamsStruct.LoanParams[])
 | ------------- |------------- | -----|
 | loanParamsIdList | bytes32[] |  | 
 
-### getLoanParamsList
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getLoanParams(bytes32[] calldata loanParamsIdList) external view returns (LoanParams[] memory loanParamsList);
+```
+</details>
+
+---    
+
+> ### getLoanParamsList
+
+```solidity
 function getLoanParamsList(address owner, uint256 start, uint256 count) external view
 returns(loanParamsList bytes32[])
 ```
@@ -661,9 +1084,23 @@ returns(loanParamsList bytes32[])
 | start | uint256 |  | 
 | count | uint256 |  | 
 
-### getTotalPrincipal
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getLoanParamsList(
+		address owner,
+		uint256 start,
+		uint256 count
+	) external view returns (bytes32[] memory loanParamsList);
+```
+</details>
+
+---    
+
+> ### getTotalPrincipal
+
+```solidity
 function getTotalPrincipal(address lender, address loanToken) external view
 returns(uint256)
 ```
@@ -675,9 +1112,19 @@ returns(uint256)
 | lender | address |  | 
 | loanToken | address |  | 
 
-### minInitialMargin
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getTotalPrincipal(address lender, address loanToken) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### minInitialMargin
+
+```solidity
 function minInitialMargin(bytes32 loanParamsId) external view
 returns(uint256)
 ```
@@ -688,9 +1135,19 @@ returns(uint256)
 | ------------- |------------- | -----|
 | loanParamsId | bytes32 |  | 
 
-### borrowOrTradeFromPool
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function minInitialMargin(bytes32 loanParamsId) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### borrowOrTradeFromPool
+
+```solidity
 function borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues, bytes loanDataBytes) external payable
 returns(uint256)
 ```
@@ -707,9 +1164,36 @@ returns(uint256)
 | sentValues | uint256[5] |  | 
 | loanDataBytes | bytes |  | 
 
-### setDelegatedManager
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function borrowOrTradeFromPool(
+		bytes32 loanParamsId,
+		bytes32 loanId, // if 0, start a new loan
+		bool isTorqueLoan,
+		uint256 initialMargin,
+		address[4] calldata sentAddresses,
+		// lender: must match loan if loanId provided
+		// borrower: must match loan if loanId provided
+		// receiver: receiver of funds (address(0) assumes borrower address)
+		// manager: delegated manager of loan unless address(0)
+		uint256[5] calldata sentValues,
+		// newRate: new loan interest rate
+		// newPrincipal: new loan size (borrowAmount + any borrowed interest)
+		// torqueInterest: new amount of interest to escrow for Torque loan (determines initial loan length)
+		// loanTokenReceived: total loanToken deposit (amount not sent to borrower in the case of Torque loans)
+		// collateralTokenReceived: total collateralToken deposit
+		bytes calldata loanDataBytes
+	) external payable returns (uint256);
+```
+</details>
+
+---    
+
+> ### setDelegatedManager
+
+```solidity
 function setDelegatedManager(bytes32 loanId, address delegated, bool toggle) external nonpayable
 ```
 
@@ -721,9 +1205,23 @@ function setDelegatedManager(bytes32 loanId, address delegated, bool toggle) ext
 | delegated | address |  | 
 | toggle | bool |  | 
 
-### getEstimatedMarginExposure
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setDelegatedManager(
+		bytes32 loanId,
+		address delegated,
+		bool toggle
+	) external;
+```
+</details>
+
+---    
+
+> ### getEstimatedMarginExposure
+
+```solidity
 function getEstimatedMarginExposure(address loanToken, address collateralToken, uint256 loanTokenSent, uint256 collateralTokenSent, uint256 interestRate, uint256 newPrincipal) external view
 returns(uint256)
 ```
@@ -739,9 +1237,26 @@ returns(uint256)
 | interestRate | uint256 |  | 
 | newPrincipal | uint256 |  | 
 
-### getRequiredCollateral
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getEstimatedMarginExposure(
+		address loanToken,
+		address collateralToken,
+		uint256 loanTokenSent,
+		uint256 collateralTokenSent,
+		uint256 interestRate,
+		uint256 newPrincipal
+	) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### getRequiredCollateral
+
+```solidity
 function getRequiredCollateral(address loanToken, address collateralToken, uint256 newPrincipal, uint256 marginAmount, bool isTorqueLoan) external view
 returns(collateralAmountRequired uint256)
 ```
@@ -756,9 +1271,25 @@ returns(collateralAmountRequired uint256)
 | marginAmount | uint256 |  | 
 | isTorqueLoan | bool |  | 
 
-### getBorrowAmount
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getRequiredCollateral(
+		address loanToken,
+		address collateralToken,
+		uint256 newPrincipal,
+		uint256 marginAmount,
+		bool isTorqueLoan
+	) external view returns (uint256 collateralAmountRequired);
+```
+</details>
+
+---    
+
+> ### getBorrowAmount
+
+```solidity
 function getBorrowAmount(address loanToken, address collateralToken, uint256 collateralTokenAmount, uint256 marginAmount, bool isTorqueLoan) external view
 returns(borrowAmount uint256)
 ```
@@ -773,9 +1304,25 @@ returns(borrowAmount uint256)
 | marginAmount | uint256 |  | 
 | isTorqueLoan | bool |  | 
 
-### liquidate
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getBorrowAmount(
+		address loanToken,
+		address collateralToken,
+		uint256 collateralTokenAmount,
+		uint256 marginAmount,
+		bool isTorqueLoan
+	) external view returns (uint256 borrowAmount);
+```
+</details>
+
+---    
+
+> ### liquidate
+
+```solidity
 function liquidate(bytes32 loanId, address receiver, uint256 closeAmount) external payable
 returns(loanCloseAmount uint256, seizedAmount uint256, seizedToken address)
 ```
@@ -788,9 +1335,30 @@ returns(loanCloseAmount uint256, seizedAmount uint256, seizedToken address)
 | receiver | address |  | 
 | closeAmount | uint256 |  | 
 
-### rollover
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function liquidate(
+		bytes32 loanId,
+		address receiver,
+		uint256 closeAmount // denominated in loanToken
+	)
+		external
+		payable
+		returns (
+			uint256 loanCloseAmount,
+			uint256 seizedAmount,
+			address seizedToken
+		);
+```
+</details>
+
+---    
+
+> ### rollover
+
+```solidity
 function rollover(bytes32 loanId, bytes loanDataBytes) external nonpayable
 ```
 
@@ -801,9 +1369,19 @@ function rollover(bytes32 loanId, bytes loanDataBytes) external nonpayable
 | loanId | bytes32 |  | 
 | loanDataBytes | bytes |  | 
 
-### closeWithDeposit
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function rollover(bytes32 loanId, bytes calldata loanDataBytes) external;
+```
+</details>
+
+---    
+
+> ### closeWithDeposit
+
+```solidity
 function closeWithDeposit(bytes32 loanId, address receiver, uint256 depositAmount) external payable
 returns(loanCloseAmount uint256, withdrawAmount uint256, withdrawToken address)
 ```
@@ -816,9 +1394,30 @@ returns(loanCloseAmount uint256, withdrawAmount uint256, withdrawToken address)
 | receiver | address |  | 
 | depositAmount | uint256 |  | 
 
-### closeWithSwap
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function closeWithDeposit(
+		bytes32 loanId,
+		address receiver,
+		uint256 depositAmount // denominated in loanToken
+	)
+		external
+		payable
+		returns (
+			uint256 loanCloseAmount,
+			uint256 withdrawAmount,
+			address withdrawToken
+		);
+```
+</details>
+
+---    
+
+> ### closeWithSwap
+
+```solidity
 function closeWithSwap(bytes32 loanId, address receiver, uint256 swapAmount, bool returnTokenIsCollateral, bytes loanDataBytes) external nonpayable
 returns(loanCloseAmount uint256, withdrawAmount uint256, withdrawToken address)
 ```
@@ -833,9 +1432,31 @@ returns(loanCloseAmount uint256, withdrawAmount uint256, withdrawToken address)
 | returnTokenIsCollateral | bool |  | 
 | loanDataBytes | bytes |  | 
 
-### depositCollateral
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function closeWithSwap(
+		bytes32 loanId,
+		address receiver,
+		uint256 swapAmount, // denominated in collateralToken
+		bool returnTokenIsCollateral, // true: withdraws collateralToken, false: withdraws loanToken
+		bytes calldata loanDataBytes
+	)
+		external
+		returns (
+			uint256 loanCloseAmount,
+			uint256 withdrawAmount,
+			address withdrawToken
+		);
+```
+</details>
+
+---    
+
+> ### depositCollateral
+
+```solidity
 function depositCollateral(bytes32 loanId, uint256 depositAmount) external payable
 ```
 
@@ -846,9 +1467,22 @@ function depositCollateral(bytes32 loanId, uint256 depositAmount) external payab
 | loanId | bytes32 |  | 
 | depositAmount | uint256 |  | 
 
-### withdrawCollateral
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function depositCollateral(
+		bytes32 loanId,
+		uint256 depositAmount // must match msg.value if ether is sent
+	) external payable;
+```
+</details>
+
+---    
+
+> ### withdrawCollateral
+
+```solidity
 function withdrawCollateral(bytes32 loanId, address receiver, uint256 withdrawAmount) external nonpayable
 returns(actualWithdrawAmount uint256)
 ```
@@ -861,9 +1495,23 @@ returns(actualWithdrawAmount uint256)
 | receiver | address |  | 
 | withdrawAmount | uint256 |  | 
 
-### extendLoanByInterest
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function withdrawCollateral(
+		bytes32 loanId,
+		address receiver,
+		uint256 withdrawAmount
+	) external returns (uint256 actualWithdrawAmount);
+```
+</details>
+
+---    
+
+> ### extendLoanByInterest
+
+```solidity
 function extendLoanByInterest(bytes32 loanId, address payer, uint256 depositAmount, bool useCollateral, bytes loanDataBytes) external payable
 returns(secondsExtended uint256)
 ```
@@ -878,9 +1526,25 @@ returns(secondsExtended uint256)
 | useCollateral | bool |  | 
 | loanDataBytes | bytes |  | 
 
-### reduceLoanByInterest
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function extendLoanByInterest(
+		bytes32 loanId,
+		address payer,
+		uint256 depositAmount,
+		bool useCollateral,
+		bytes calldata loanDataBytes
+	) external payable returns (uint256 secondsExtended);
+```
+</details>
+
+---    
+
+> ### reduceLoanByInterest
+
+```solidity
 function reduceLoanByInterest(bytes32 loanId, address receiver, uint256 withdrawAmount) external nonpayable
 returns(secondsReduced uint256)
 ```
@@ -893,9 +1557,23 @@ returns(secondsReduced uint256)
 | receiver | address |  | 
 | withdrawAmount | uint256 |  | 
 
-### withdrawAccruedInterest
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function reduceLoanByInterest(
+		bytes32 loanId,
+		address receiver,
+		uint256 withdrawAmount
+	) external returns (uint256 secondsReduced);
+```
+</details>
+
+---    
+
+> ### withdrawAccruedInterest
+
+```solidity
 function withdrawAccruedInterest(address loanToken) external nonpayable
 ```
 
@@ -905,9 +1583,19 @@ function withdrawAccruedInterest(address loanToken) external nonpayable
 | ------------- |------------- | -----|
 | loanToken | address |  | 
 
-### getLenderInterestData
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function withdrawAccruedInterest(address loanToken) external;
+```
+</details>
+
+---    
+
+> ### getLenderInterestData
+
+```solidity
 function getLenderInterestData(address lender, address loanToken) external view
 returns(interestPaid uint256, interestPaidDate uint256, interestOwedPerDay uint256, interestUnPaid uint256, interestFeePercent uint256, principalTotal uint256)
 ```
@@ -919,9 +1607,29 @@ returns(interestPaid uint256, interestPaidDate uint256, interestOwedPerDay uint2
 | lender | address |  | 
 | loanToken | address |  | 
 
-### getLoanInterestData
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getLenderInterestData(address lender, address loanToken)
+		external
+		view
+		returns (
+			uint256 interestPaid,
+			uint256 interestPaidDate,
+			uint256 interestOwedPerDay,
+			uint256 interestUnPaid,
+			uint256 interestFeePercent,
+			uint256 principalTotal
+		);
+```
+</details>
+
+---    
+
+> ### getLoanInterestData
+
+```solidity
 function getLoanInterestData(bytes32 loanId) external view
 returns(loanToken address, interestOwedPerDay uint256, interestDepositTotal uint256, interestDepositRemaining uint256)
 ```
@@ -932,9 +1640,27 @@ returns(loanToken address, interestOwedPerDay uint256, interestDepositTotal uint
 | ------------- |------------- | -----|
 | loanId | bytes32 |  | 
 
-### getUserLoans
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getLoanInterestData(bytes32 loanId)
+		external
+		view
+		returns (
+			address loanToken,
+			uint256 interestOwedPerDay,
+			uint256 interestDepositTotal,
+			uint256 interestDepositRemaining
+		);
+```
+</details>
+
+---    
+
+> ### getUserLoans
+
+```solidity
 function getUserLoans(address user, uint256 start, uint256 count, uint256 loanType, bool isLender, bool unsafeOnly) external view
 returns(loansData struct ISovryn.LoanReturnData[])
 ```
@@ -950,9 +1676,26 @@ returns(loansData struct ISovryn.LoanReturnData[])
 | isLender | bool |  | 
 | unsafeOnly | bool |  | 
 
-### getLoan
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getUserLoans(
+		address user,
+		uint256 start,
+		uint256 count,
+		uint256 loanType,
+		bool isLender,
+		bool unsafeOnly
+	) external view returns (LoanReturnData[] memory loansData);
+```
+</details>
+
+---    
+
+> ### getLoan
+
+```solidity
 function getLoan(bytes32 loanId) external view
 returns(loanData struct ISovryn.LoanReturnData)
 ```
@@ -963,9 +1706,19 @@ returns(loanData struct ISovryn.LoanReturnData)
 | ------------- |------------- | -----|
 | loanId | bytes32 |  | 
 
-### getActiveLoans
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getLoan(bytes32 loanId) external view returns (LoanReturnData memory loanData);
+```
+</details>
+
+---    
+
+> ### getActiveLoans
+
+```solidity
 function getActiveLoans(uint256 start, uint256 count, bool unsafeOnly) external view
 returns(loansData struct ISovryn.LoanReturnData[])
 ```
@@ -978,9 +1731,23 @@ returns(loansData struct ISovryn.LoanReturnData[])
 | count | uint256 |  | 
 | unsafeOnly | bool |  | 
 
-### setLegacyOracles
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getActiveLoans(
+		uint256 start,
+		uint256 count,
+		bool unsafeOnly
+	) external view returns (LoanReturnData[] memory loansData);
+```
+</details>
+
+---    
+
+> ### setLegacyOracles
+
+```solidity
 function setLegacyOracles(address[] refs, address[] oracles) external nonpayable
 ```
 
@@ -991,9 +1758,19 @@ function setLegacyOracles(address[] refs, address[] oracles) external nonpayable
 | refs | address[] |  | 
 | oracles | address[] |  | 
 
-### getLegacyOracle
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setLegacyOracles(address[] calldata refs, address[] calldata oracles) external;
+```
+</details>
+
+---    
+
+> ### getLegacyOracle
+
+```solidity
 function getLegacyOracle(address ref) external view
 returns(address)
 ```
@@ -1004,9 +1781,19 @@ returns(address)
 | ------------- |------------- | -----|
 | ref | address |  | 
 
-### swapExternal
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getLegacyOracle(address ref) external view returns (address);
+```
+</details>
+
+---    
+
+> ### swapExternal
+
+```solidity
 function swapExternal(address sourceToken, address destToken, address receiver, address returnToSender, uint256 sourceTokenAmount, uint256 requiredDestTokenAmount, uint256 minReturn, bytes swapData) external nonpayable
 returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256)
 ```
@@ -1024,9 +1811,28 @@ returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256)
 | minReturn | uint256 |  | 
 | swapData | bytes |  | 
 
-### getSwapExpectedReturn
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function swapExternal(
+		address sourceToken,
+		address destToken,
+		address receiver,
+		address returnToSender,
+		uint256 sourceTokenAmount,
+		uint256 requiredDestTokenAmount,
+		uint256 minReturn,
+		bytes calldata swapData
+	) external returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
+```
+</details>
+
+---    
+
+> ### getSwapExpectedReturn
+
+```solidity
 function getSwapExpectedReturn(address sourceToken, address destToken, uint256 sourceTokenAmount) external view
 returns(uint256)
 ```
@@ -1039,9 +1845,23 @@ returns(uint256)
 | destToken | address |  | 
 | sourceTokenAmount | uint256 |  | 
 
-### checkPriceDivergence
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getSwapExpectedReturn(
+		address sourceToken,
+		address destToken,
+		uint256 sourceTokenAmount
+	) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### checkPriceDivergence
+
+```solidity
 function checkPriceDivergence(address sourceToken, address destToken, uint256 sourceTokenAmount, uint256 minReturn) public view
 ```
 
@@ -1054,9 +1874,24 @@ function checkPriceDivergence(address sourceToken, address destToken, uint256 so
 | sourceTokenAmount | uint256 |  | 
 | minReturn | uint256 |  | 
 
-### getUserNotFirstTradeFlag
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function checkPriceDivergence(
+		address sourceToken,
+		address destToken,
+		uint256 sourceTokenAmount,
+		uint256 minReturn
+	) public view;
+```
+</details>
+
+---    
+
+> ### getUserNotFirstTradeFlag
+
+```solidity
 function getUserNotFirstTradeFlag(address user) external view
 returns(bool)
 ```
@@ -1067,9 +1902,19 @@ returns(bool)
 | ------------- |------------- | -----|
 | user | address |  | 
 
-### setUserNotFirstTradeFlag
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getUserNotFirstTradeFlag(address user) external view returns (bool);
+```
+</details>
+
+---    
+
+> ### setUserNotFirstTradeFlag
+
+```solidity
 function setUserNotFirstTradeFlag(address user) external view
 returns(bool)
 ```
@@ -1080,9 +1925,19 @@ returns(bool)
 | ------------- |------------- | -----|
 | user | address |  | 
 
-### payTradingFeeToAffiliatesReferrer
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setUserNotFirstTradeFlag(address user) external view returns (bool);
+```
+</details>
+
+---    
+
+> ### payTradingFeeToAffiliatesReferrer
+
+```solidity
 function payTradingFeeToAffiliatesReferrer(address referrer, address trader, address token, uint256 tradingFeeTokenBaseAmount) external nonpayable
 returns(affiliatesBonusSOVAmount uint256, affiliatesBonusTokenAmount uint256)
 ```
@@ -1096,9 +1951,24 @@ returns(affiliatesBonusSOVAmount uint256, affiliatesBonusTokenAmount uint256)
 | token | address |  | 
 | tradingFeeTokenBaseAmount | uint256 |  | 
 
-### setAffiliatesReferrer
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function payTradingFeeToAffiliatesReferrer(
+		address referrer,
+		address trader,
+		address token,
+		uint256 tradingFeeTokenBaseAmount
+	) external returns (uint256 affiliatesBonusSOVAmount, uint256 affiliatesBonusTokenAmount);
+```
+</details>
+
+---    
+
+> ### setAffiliatesReferrer
+
+```solidity
 function setAffiliatesReferrer(address user, address referrer) external nonpayable
 ```
 
@@ -1109,9 +1979,19 @@ function setAffiliatesReferrer(address user, address referrer) external nonpayab
 | user | address |  | 
 | referrer | address |  | 
 
-### getReferralsList
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setAffiliatesReferrer(address user, address referrer) external;
+```
+</details>
+
+---    
+
+> ### getReferralsList
+
+```solidity
 function getReferralsList(address referrer) external view
 returns(refList address[])
 ```
@@ -1122,9 +2002,19 @@ returns(refList address[])
 | ------------- |------------- | -----|
 | referrer | address |  | 
 
-### getAffiliatesReferrerBalances
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getReferralsList(address referrer) external view returns (address[] memory refList);
+```
+</details>
+
+---    
+
+> ### getAffiliatesReferrerBalances
+
+```solidity
 function getAffiliatesReferrerBalances(address referrer) external view
 returns(referrerTokensList address[], referrerTokensBalances uint256[])
 ```
@@ -1135,9 +2025,22 @@ returns(referrerTokensList address[], referrerTokensBalances uint256[])
 | ------------- |------------- | -----|
 | referrer | address |  | 
 
-### getAffiliatesReferrerTokensList
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getAffiliatesReferrerBalances(address referrer)
+		external
+		view
+		returns (address[] memory referrerTokensList, uint256[] memory referrerTokensBalances);
+```
+</details>
+
+---    
+
+> ### getAffiliatesReferrerTokensList
+
+```solidity
 function getAffiliatesReferrerTokensList(address referrer) external view
 returns(tokensList address[])
 ```
@@ -1148,9 +2051,19 @@ returns(tokensList address[])
 | ------------- |------------- | -----|
 | referrer | address |  | 
 
-### getAffiliatesReferrerTokenBalance
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getAffiliatesReferrerTokensList(address referrer) external view returns (address[] memory tokensList);
+```
+</details>
+
+---    
+
+> ### getAffiliatesReferrerTokenBalance
+
+```solidity
 function getAffiliatesReferrerTokenBalance(address referrer, address token) external view
 returns(uint256)
 ```
@@ -1162,9 +2075,19 @@ returns(uint256)
 | referrer | address |  | 
 | token | address |  | 
 
-### withdrawAffiliatesReferrerTokenFees
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getAffiliatesReferrerTokenBalance(address referrer, address token) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### withdrawAffiliatesReferrerTokenFees
+
+```solidity
 function withdrawAffiliatesReferrerTokenFees(address token, address receiver, uint256 amount) external nonpayable
 returns(withdrawAmount uint256)
 ```
@@ -1177,9 +2100,23 @@ returns(withdrawAmount uint256)
 | receiver | address |  | 
 | amount | uint256 |  | 
 
-### withdrawAllAffiliatesReferrerTokenFees
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function withdrawAffiliatesReferrerTokenFees(
+		address token,
+		address receiver,
+		uint256 amount
+	) external returns (uint256 withdrawAmount);
+```
+</details>
+
+---    
+
+> ### withdrawAllAffiliatesReferrerTokenFees
+
+```solidity
 function withdrawAllAffiliatesReferrerTokenFees(address receiver) external nonpayable
 ```
 
@@ -1189,69 +2126,104 @@ function withdrawAllAffiliatesReferrerTokenFees(address receiver) external nonpa
 | ------------- |------------- | -----|
 | receiver | address |  | 
 
-### getProtocolAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function withdrawAllAffiliatesReferrerTokenFees(address receiver) external;
+```
+</details>
+
+---    
+
+> ### getProtocolAddress
+
+```solidity
 function getProtocolAddress() external view
 returns(address)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getProtocolAddress() external view returns (address);
+```
+</details>
 
-### getSovTokenAddress
+---    
 
-```js
+> ### getSovTokenAddress
+
+```solidity
 function getSovTokenAddress() external view
 returns(address)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getSovTokenAddress() external view returns (address);
+```
+</details>
 
-### getLockedSOVAddress
+---    
 
-```js
+> ### getLockedSOVAddress
+
+```solidity
 function getLockedSOVAddress() external view
 returns(address)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getLockedSOVAddress() external view returns (address);
+```
+</details>
 
-### getFeeRebatePercent
+---    
 
-```js
+> ### getFeeRebatePercent
+
+```solidity
 function getFeeRebatePercent() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getFeeRebatePercent() external view returns (uint256);
+```
+</details>
 
-### getMinReferralsToPayout
+---    
 
-```js
+> ### getMinReferralsToPayout
+
+```solidity
 function getMinReferralsToPayout() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getMinReferralsToPayout() external view returns (uint256);
+```
+</details>
 
-### getAffiliatesUserReferrer
+---    
 
-```js
+> ### getAffiliatesUserReferrer
+
+```solidity
 function getAffiliatesUserReferrer(address user) external view
 returns(referrer address)
 ```
@@ -1262,9 +2234,19 @@ returns(referrer address)
 | ------------- |------------- | -----|
 | user | address |  | 
 
-### getAffiliateRewardsHeld
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getAffiliatesUserReferrer(address user) external view returns (address referrer);
+```
+</details>
+
+---    
+
+> ### getAffiliateRewardsHeld
+
+```solidity
 function getAffiliateRewardsHeld(address referrer) external view
 returns(uint256)
 ```
@@ -1275,21 +2257,36 @@ returns(uint256)
 | ------------- |------------- | -----|
 | referrer | address |  | 
 
-### getAffiliateTradingTokenFeePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getAffiliateRewardsHeld(address referrer) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### getAffiliateTradingTokenFeePercent
+
+```solidity
 function getAffiliateTradingTokenFeePercent() external view
 returns(affiliateTradingTokenFeePercent uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getAffiliateTradingTokenFeePercent() external view returns (uint256 affiliateTradingTokenFeePercent);
+```
+</details>
 
-### getAffiliatesTokenRewardsValueInRbtc
+---    
 
-```js
+> ### getAffiliatesTokenRewardsValueInRbtc
+
+```solidity
 function getAffiliatesTokenRewardsValueInRbtc(address referrer) external view
 returns(rbtcTotalAmount uint256)
 ```
@@ -1300,21 +2297,36 @@ returns(rbtcTotalAmount uint256)
 | ------------- |------------- | -----|
 | referrer | address |  | 
 
-### getSwapExternalFeePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getAffiliatesTokenRewardsValueInRbtc(address referrer) external view returns (uint256 rbtcTotalAmount);
+```
+</details>
+
+---    
+
+> ### getSwapExternalFeePercent
+
+```solidity
 function getSwapExternalFeePercent() external view
 returns(swapExternalFeePercent uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getSwapExternalFeePercent() external view returns (uint256 swapExternalFeePercent);
+```
+</details>
 
-### setTradingRebateRewardsBasisPoint
+---    
 
-```js
+> ### setTradingRebateRewardsBasisPoint
+
+```solidity
 function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external nonpayable
 ```
 
@@ -1324,29 +2336,47 @@ function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external nonpa
 | ------------- |------------- | -----|
 | newBasisPoint | uint256 |  | 
 
-### getTradingRebateRewardsBasisPoint
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external;
+```
+</details>
+
+---    
+
+> ### getTradingRebateRewardsBasisPoint
+
+```solidity
 function getTradingRebateRewardsBasisPoint() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getTradingRebateRewardsBasisPoint() external view returns (uint256);
+```
+</details>
 
-### getDedicatedSOVRebate
+---    
 
-```js
+> ### getDedicatedSOVRebate
+
+```solidity
 function getDedicatedSOVRebate() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getDedicatedSOVRebate() external view returns (uint256);
+```
+</details>
 
 ## Contracts
 
@@ -1362,6 +2392,7 @@ returns(uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -1483,7 +2514,7 @@ returns(uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

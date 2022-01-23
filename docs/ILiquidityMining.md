@@ -12,11 +12,13 @@ View Source: [contracts/farm/ILiquidityMining.sol](../contracts/farm/ILiquidityM
 - [onTokensDeposited(address _user, uint256 _amount)](#ontokensdeposited)
 - [getUserPoolTokenBalance(address _poolToken, address _user)](#getuserpooltokenbalance)
 
-### withdraw
+---    
+
+> ### withdraw
 
 ⤿ Overridden Implementation(s): [LiquidityMining.withdraw](LiquidityMining.md#withdraw)
 
-```js
+```solidity
 function withdraw(address _poolToken, uint256 _amount, address _user) external nonpayable
 ```
 
@@ -28,11 +30,25 @@ function withdraw(address _poolToken, uint256 _amount, address _user) external n
 | _amount | uint256 |  | 
 | _user | address |  | 
 
-### onTokensDeposited
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdraw(
+		address _poolToken,
+		uint256 _amount,
+		address _user
+	) external;
+```
+</details>
+
+---    
+
+> ### onTokensDeposited
 
 ⤿ Overridden Implementation(s): [LiquidityMining.onTokensDeposited](LiquidityMining.md#ontokensdeposited)
 
-```js
+```solidity
 function onTokensDeposited(address _user, uint256 _amount) external nonpayable
 ```
 
@@ -43,11 +59,21 @@ function onTokensDeposited(address _user, uint256 _amount) external nonpayable
 | _user | address |  | 
 | _amount | uint256 |  | 
 
-### getUserPoolTokenBalance
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function onTokensDeposited(address _user, uint256 _amount) external;
+```
+</details>
+
+---    
+
+> ### getUserPoolTokenBalance
 
 ⤿ Overridden Implementation(s): [LiquidityMining.getUserPoolTokenBalance](LiquidityMining.md#getuserpooltokenbalance)
 
-```js
+```solidity
 function getUserPoolTokenBalance(address _poolToken, address _user) external view
 returns(uint256)
 ```
@@ -58,6 +84,14 @@ returns(uint256)
 | ------------- |------------- | -----|
 | _poolToken | address |  | 
 | _user | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getUserPoolTokenBalance(address _poolToken, address _user) external view returns (uint256);
+```
+</details>
 
 ## Contracts
 
@@ -73,6 +107,7 @@ returns(uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -194,7 +229,7 @@ returns(uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

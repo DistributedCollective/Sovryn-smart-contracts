@@ -11,9 +11,11 @@ Interfaces are used to cast a contract address into a callable instance.
 - [getVesting(address _tokenOwner)](#getvesting)
 - [getTeamVesting(address _tokenOwner)](#getteamvesting)
 
-### getVesting
+---    
 
-```js
+> ### getVesting
+
+```solidity
 function getVesting(address _tokenOwner) external view
 returns(address)
 ```
@@ -24,9 +26,19 @@ returns(address)
 | ------------- |------------- | -----|
 | _tokenOwner | address |  | 
 
-### getTeamVesting
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getVesting(address _tokenOwner) external view returns (address);
+```
+</details>
+
+---    
+
+> ### getTeamVesting
+
+```solidity
 function getTeamVesting(address _tokenOwner) external view
 returns(address)
 ```
@@ -36,6 +48,14 @@ returns(address)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _tokenOwner | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getTeamVesting(address _tokenOwner) external view returns (address);
+```
+</details>
 
 ## Contracts
 
@@ -51,6 +71,7 @@ returns(address)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -172,7 +193,7 @@ returns(address)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

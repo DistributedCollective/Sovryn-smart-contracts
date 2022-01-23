@@ -13,13 +13,15 @@ the possibility of being enhanced and re-deployed.
 
 ## Functions
 
-- [(address SOV)](#)
+- [constructor(address SOV)](#constructor)
 
-### 
+---    
+
+> ### constructor
 
 Construct a new staking contract.
 
-```js
+```solidity
 function (address SOV) public nonpayable
 ```
 
@@ -28,6 +30,17 @@ function (address SOV) public nonpayable
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | SOV | address | The address of the SOV token address. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(address SOV) public {
+		SOVToken = IERC20(SOV);
+		kickoffTS = block.timestamp;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -43,6 +56,7 @@ function (address SOV) public nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -164,7 +178,7 @@ function (address SOV) public nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

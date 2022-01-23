@@ -13,38 +13,52 @@ Close a loan w/deposit, close w/swap. There are 2 functions for ending a loan on
 
 ## Functions
 
-- [()](#)
-- [()](#)
+- [constructor()](#constructor)
+- [constructor()](#constructor)
 - [initialize(address target)](#initialize)
 - [closeWithDeposit(bytes32 loanId, address receiver, uint256 depositAmount)](#closewithdeposit)
 - [closeWithSwap(bytes32 loanId, address receiver, uint256 swapAmount, bool returnTokenIsCollateral, bytes )](#closewithswap)
 - [_closeWithDeposit(bytes32 loanId, address receiver, uint256 depositAmount)](#_closewithdeposit)
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function () public nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+constructor() public {}
+```
+</details>
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function () external nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function() external {
+		revert("fallback not allowed");
+	}
+```
+</details>
 
-### initialize
+---    
 
-```js
+> ### initialize
+
+```solidity
 function initialize(address target) external nonpayable onlyOwner 
 ```
 
@@ -54,19 +68,30 @@ function initialize(address target) external nonpayable onlyOwner
 | ------------- |------------- | -----|
 | target | address |  | 
 
-### closeWithDeposit
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.closeWithDeposit.selector];
+		_setTarget(this.closeWithDeposit.selector, target);
+		_setTarget(this.closeWithSwap.selector, target);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanClosingsWith");
+	}
+```
+</details>
+
+---    
+
+> ### closeWithDeposit
 
 Closes a loan by doing a deposit.
 	 *
 
-```js
+```solidity
 function closeWithDeposit(bytes32 loanId, address receiver, uint256 depositAmount) public payable nonReentrant whenNotPaused 
 returns(loanCloseAmount uint256, withdrawAmount uint256, withdrawToken address)
 ```
-
-**Returns**
-
-loanCloseAmount The amount of the collateral token of the loan.
 
 **Arguments**
 
@@ -74,26 +99,49 @@ loanCloseAmount The amount of the collateral token of the loan.
 | ------------- |------------- | -----|
 | loanId | bytes32 | The id of the loan. | 
 | receiver | address | The receiver of the remainder. | 
-| depositAmount | uint256 | Defines how much of the position should be closed.
-  It is denominated in loan tokens. (e.g. rBTC on a iSUSD contract).
-    If depositAmount > principal, the complete loan will be closed
-    else deposit amount (partial closure).
-	 * | 
+| depositAmount | uint256 | Defines how much of the position should be closed.   It is denominated in loan tokens. (e.g. rBTC on a iSUSD contract).     If depositAmount > principal, the complete loan will be closed     else deposit amount (partial closure). 	 * | 
 
-### closeWithSwap
+**Returns**
+
+loanCloseAmount The amount of the collateral token of the loan.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function closeWithDeposit(
+		bytes32 loanId,
+		address receiver,
+		uint256 depositAmount /// Denominated in loanToken.
+	)
+		public
+		payable
+		nonReentrant
+		whenNotPaused
+		returns (
+			uint256 loanCloseAmount,
+			uint256 withdrawAmount,
+			address withdrawToken
+		)
+	{
+		_checkAuthorized(loanId);
+		return _closeWithDeposit(loanId, receiver, depositAmount);
+	}
+```
+</details>
+
+---    
+
+> ### closeWithSwap
 
 Close a position by swapping the collateral back to loan tokens
 paying the lender and withdrawing the remainder.
 	 *
 
-```js
+```solidity
 function closeWithSwap(bytes32 loanId, address receiver, uint256 swapAmount, bool returnTokenIsCollateral, bytes ) public nonpayable nonReentrant whenNotPaused 
 returns(loanCloseAmount uint256, withdrawAmount uint256, withdrawToken address)
 ```
-
-**Returns**
-
-loanCloseAmount The amount of the collateral token of the loan.
 
 **Arguments**
 
@@ -101,29 +149,58 @@ loanCloseAmount The amount of the collateral token of the loan.
 | ------------- |------------- | -----|
 | loanId | bytes32 | The id of the loan. | 
 | receiver | address | The receiver of the remainder (unused collateral + profit). | 
-| swapAmount | uint256 | Defines how much of the position should be closed and
-  is denominated in collateral tokens.
-     If swapAmount >= collateral, the complete position will be closed.
-     Else if returnTokenIsCollateral, (swapAmount/collateral) * principal will be swapped (partial closure).
-     Else coveredPrincipal | 
-| returnTokenIsCollateral | bool | Defines if the remainder should be paid out
-  in collateral tokens or underlying loan tokens.
-	 * | 
+| swapAmount | uint256 | Defines how much of the position should be closed and   is denominated in collateral tokens.      If swapAmount >= collateral, the complete position will be closed.      Else if returnTokenIsCollateral, (swapAmount/collateral) * principal will be swapped (partial closure).      Else coveredPrincipal | 
+| returnTokenIsCollateral | bool | Defines if the remainder should be paid out   in collateral tokens or underlying loan tokens. 	 * | 
 |  | bytes | loanId The id of the loan. | 
-
-### _closeWithDeposit
-
-Internal function for closing a loan by doing a deposit.
-	 *
-
-```js
-function _closeWithDeposit(bytes32 loanId, address receiver, uint256 depositAmount) internal nonpayable
-returns(loanCloseAmount uint256, withdrawAmount uint256, withdrawToken address)
-```
 
 **Returns**
 
 loanCloseAmount The amount of the collateral token of the loan.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function closeWithSwap(
+		bytes32 loanId,
+		address receiver,
+		uint256 swapAmount, // denominated in collateralToken
+		bool returnTokenIsCollateral, // true: withdraws collateralToken, false: withdraws loanToken
+		bytes memory // for future use /*loanDataBytes*/
+	)
+		public
+		nonReentrant
+		whenNotPaused
+		returns (
+			uint256 loanCloseAmount,
+			uint256 withdrawAmount,
+			address withdrawToken
+		)
+	{
+		_checkAuthorized(loanId);
+		return
+			_closeWithSwap(
+				loanId,
+				receiver,
+				swapAmount,
+				returnTokenIsCollateral,
+				"" /// loanDataBytes
+			);
+	}
+```
+</details>
+
+---    
+
+> ### _closeWithDeposit
+
+Internal function for closing a loan by doing a deposit.
+	 *
+
+```solidity
+function _closeWithDeposit(bytes32 loanId, address receiver, uint256 depositAmount) internal nonpayable
+returns(loanCloseAmount uint256, withdrawAmount uint256, withdrawToken address)
+```
 
 **Arguments**
 
@@ -131,11 +208,75 @@ loanCloseAmount The amount of the collateral token of the loan.
 | ------------- |------------- | -----|
 | loanId | bytes32 | The id of the loan. | 
 | receiver | address | The receiver of the remainder. | 
-| depositAmount | uint256 | Defines how much of the position should be closed.
-  It is denominated in loan tokens.
-    If depositAmount > principal, the complete loan will be closed
-    else deposit amount (partial closure).
-	 * | 
+| depositAmount | uint256 | Defines how much of the position should be closed.   It is denominated in loan tokens.     If depositAmount > principal, the complete loan will be closed     else deposit amount (partial closure). 	 * | 
+
+**Returns**
+
+loanCloseAmount The amount of the collateral token of the loan.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _closeWithDeposit(
+		bytes32 loanId,
+		address receiver,
+		uint256 depositAmount /// Denominated in loanToken.
+	)
+		internal
+		returns (
+			uint256 loanCloseAmount,
+			uint256 withdrawAmount,
+			address withdrawToken
+		)
+	{
+		require(depositAmount != 0, "depositAmount == 0");
+
+		//TODO should we skip this check if invoked from rollover ?
+		(Loan storage loanLocal, LoanParams storage loanParamsLocal) = _checkLoan(loanId);
+
+		/// Can't close more than the full principal.
+		loanCloseAmount = depositAmount > loanLocal.principal ? loanLocal.principal : depositAmount;
+
+		//close whole loan if tiny position will remain
+		uint256 remainingAmount = loanLocal.principal - loanCloseAmount;
+		if (remainingAmount > 0) {
+			remainingAmount = _getAmountInRbtc(loanParamsLocal.loanToken, remainingAmount);
+			if (remainingAmount <= TINY_AMOUNT) {
+				loanCloseAmount = loanLocal.principal;
+			}
+		}
+
+		uint256 loanCloseAmountLessInterest = _settleInterestToPrincipal(loanLocal, loanParamsLocal, loanCloseAmount, receiver);
+
+		if (loanCloseAmountLessInterest != 0) {
+			_returnPrincipalWithDeposit(loanParamsLocal.loanToken, loanLocal.lender, loanCloseAmountLessInterest);
+		}
+
+		if (loanCloseAmount == loanLocal.principal) {
+			withdrawAmount = loanLocal.collateral;
+		} else {
+			withdrawAmount = loanLocal.collateral.mul(loanCloseAmount).div(loanLocal.principal);
+		}
+
+		withdrawToken = loanParamsLocal.collateralToken;
+
+		if (withdrawAmount != 0) {
+			loanLocal.collateral = loanLocal.collateral.sub(withdrawAmount);
+			_withdrawAsset(withdrawToken, receiver, withdrawAmount);
+		}
+
+		_finalizeClose(
+			loanLocal,
+			loanParamsLocal,
+			loanCloseAmount,
+			withdrawAmount, /// collateralCloseAmount
+			0, /// collateralToLoanSwapRate
+			CloseTypes.Deposit
+		);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -151,6 +292,7 @@ loanCloseAmount The amount of the collateral token of the loan.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -272,7 +414,7 @@ loanCloseAmount The amount of the collateral token of the loan.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

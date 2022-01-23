@@ -17,11 +17,6 @@ View Source: [contracts/governance/ApprovalReceiver.sol](../contracts/governance
 modifier onlyThisContract() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ## Functions
 
 - [receiveApproval(address _sender, uint256 _amount, address _token, bytes _data)](#receiveapproval)
@@ -30,13 +25,15 @@ modifier onlyThisContract() internal
 - [_call(bytes _data)](#_call)
 - [_getSig(bytes _data)](#_getsig)
 
-### receiveApproval
+---    
 
-⤾ overrides [IApproveAndCall.receiveApproval](IApproveAndCall.md#receiveapproval)
+> ### receiveApproval
+
+undefined
 
 Receives approval from SOV token.
 
-```js
+```solidity
 function receiveApproval(address _sender, uint256 _amount, address _token, bytes _data) external nonpayable
 ```
 
@@ -49,51 +46,97 @@ function receiveApproval(address _sender, uint256 _amount, address _token, bytes
 | _token | address |  | 
 | _data | bytes | The data will be used for low level call. | 
 
-### _getToken
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function receiveApproval(
+		address _sender,
+		uint256 _amount,
+		address _token,
+		bytes calldata _data
+	) external {
+		// Accepts calls only from SOV token.
+		require(msg.sender == _getToken(), "unauthorized");
+		require(msg.sender == _token, "unauthorized");
+
+		// Only allowed methods.
+		bool isAllowed = false;
+		bytes4[] memory selectors = _getSelectors();
+		bytes4 sig = _getSig(_data);
+		for (uint256 i = 0; i < selectors.length; i++) {
+			if (sig == selectors[i]) {
+				isAllowed = true;
+				break;
+			}
+		}
+		require(isAllowed, "method is not allowed");
+
+		// Check sender and amount.
+		address sender;
+		uint256 amount;
+		(, sender, amount) = abi.decode(abi.encodePacked(bytes28(0), _data), (bytes32, address, uint256));
+		require(sender == _sender, "sender mismatch");
+		require(amount == _amount, "amount mismatch");
+
+		_call(_data);
+	}
+```
+</details>
+
+---    
+
+> ### _getToken
 
 ⤿ Overridden Implementation(s): [Staking._getToken](Staking.md#_gettoken),[SVR._getToken](SVR.md#_gettoken),[VestingLogic._getToken](VestingLogic.md#_gettoken)
 
 Returns token address, only this address can be a sender for receiveApproval.
 
-```js
+```solidity
 function _getToken() internal view
 returns(address)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-By default, 0x. When overriden, the token address making the call.
+```javascript
+function _getToken() internal view returns (address) {
+		return address(0);
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### _getSelectors
+> ### _getSelectors
 
 ⤿ Overridden Implementation(s): [Staking._getSelectors](Staking.md#_getselectors),[SVR._getSelectors](SVR.md#_getselectors),[VestingLogic._getSelectors](VestingLogic.md#_getselectors)
 
 Returns list of function selectors allowed to be invoked.
 
-```js
+```solidity
 function _getSelectors() internal view
 returns(bytes4[])
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-By default, empty array. When overriden, allowed selectors.
+```javascript
+function _getSelectors() internal view returns (bytes4[] memory) {
+		return new bytes4[](0);
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### _call
+> ### _call
 
 Makes call and reverts w/ enhanced error message.
 
-```js
+```solidity
 function _call(bytes _data) internal nonpayable
 ```
 
@@ -103,24 +146,55 @@ function _call(bytes _data) internal nonpayable
 | ------------- |------------- | -----|
 | _data | bytes | Error message as bytes. | 
 
-### _getSig
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _call(bytes memory _data) internal {
+		(bool success, bytes memory returnData) = address(this).call(_data);
+		if (!success) {
+			if (returnData.length <= ERROR_MESSAGE_SHIFT) {
+				revert("receiveApproval: Transaction execution reverted.");
+			} else {
+				revert(_addErrorMessage("receiveApproval: ", string(returnData)));
+			}
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _getSig
 
 Extracts the called function selector, a hash of the signature.
 
-```js
+```solidity
 function _getSig(bytes _data) internal pure
 returns(sig bytes4)
 ```
-
-**Returns**
-
-sig First 4 bytes of msg.data i.e. the selector, hash of the signature.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _data | bytes | The msg.data from the low level call. | 
+
+**Returns**
+
+sig First 4 bytes of msg.data i.e. the selector, hash of the signature.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _getSig(bytes memory _data) internal pure returns (bytes4 sig) {
+		assembly {
+			sig := mload(add(_data, 32))
+		}
+	}
+```
+</details>
 
 ## Contracts
 
@@ -136,6 +210,7 @@ sig First 4 bytes of msg.data i.e. the selector, hash of the signature.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -257,7 +332,7 @@ sig First 4 bytes of msg.data i.e. the selector, hash of the signature.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

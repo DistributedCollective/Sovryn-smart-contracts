@@ -51,29 +51,38 @@ uint256 private _totalSupply;
 - [_approve(address owner, address spender, uint256 amount)](#_approve)
 - [_burnFrom(address account, uint256 amount)](#_burnfrom)
 
-### totalSupply
+---    
 
-⤾ overrides [IERC20_.totalSupply](IERC20_.md#totalsupply)
+> ### totalSupply
+
+undefined
 
 See {IERC20-totalSupply}.
 
-```js
+```solidity
 function totalSupply() public view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function totalSupply() public view returns (uint256) {
+		return _totalSupply;
+	}
+```
+</details>
 
-### balanceOf
+---    
 
-⤾ overrides [IERC20_.balanceOf](IERC20_.md#balanceof)
+> ### balanceOf
+
+undefined
 
 See {IERC20-balanceOf}.
 
-```js
+```solidity
 function balanceOf(address account) public view
 returns(uint256)
 ```
@@ -84,16 +93,28 @@ returns(uint256)
 | ------------- |------------- | -----|
 | account | address |  | 
 
-### transfer
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [IERC20_.transfer](IERC20_.md#transfer)
+```javascript
+function balanceOf(address account) public view returns (uint256) {
+		return _balances[account];
+	}
+```
+</details>
+
+---    
+
+> ### transfer
+
+undefined
 
 See {IERC20-transfer}.
 	 * Requirements:
 	 * - `recipient` cannot be the zero address.
 - the caller must have a balance of at least `amount`.
 
-```js
+```solidity
 function transfer(address recipient, uint256 amount) public nonpayable
 returns(bool)
 ```
@@ -105,13 +126,26 @@ returns(bool)
 | recipient | address |  | 
 | amount | uint256 |  | 
 
-### allowance
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [IERC20_.allowance](IERC20_.md#allowance)
+```javascript
+function transfer(address recipient, uint256 amount) public returns (bool) {
+		_transfer(_msgSender(), recipient, amount);
+		return true;
+	}
+```
+</details>
+
+---    
+
+> ### allowance
+
+undefined
 
 See {IERC20-allowance}.
 
-```js
+```solidity
 function allowance(address owner, address spender) public view
 returns(uint256)
 ```
@@ -123,15 +157,27 @@ returns(uint256)
 | owner | address |  | 
 | spender | address |  | 
 
-### approve
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [IERC20_.approve](IERC20_.md#approve)
+```javascript
+function allowance(address owner, address spender) public view returns (uint256) {
+		return _allowances[owner][spender];
+	}
+```
+</details>
+
+---    
+
+> ### approve
+
+undefined
 
 See {IERC20-approve}.
 	 * Requirements:
 	 * - `spender` cannot be the zero address.
 
-```js
+```solidity
 function approve(address spender, uint256 amount) public nonpayable
 returns(bool)
 ```
@@ -143,9 +189,22 @@ returns(bool)
 | spender | address |  | 
 | amount | uint256 |  | 
 
-### transferFrom
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [IERC20_.transferFrom](IERC20_.md#transferfrom)
+```javascript
+function approve(address spender, uint256 amount) public returns (bool) {
+		_approve(_msgSender(), spender, amount);
+		return true;
+	}
+```
+</details>
+
+---    
+
+> ### transferFrom
+
+undefined
 
 See {IERC20-transferFrom}.
 	 * Emits an {Approval} event indicating the updated allowance. This is not
@@ -156,7 +215,7 @@ required by the EIP. See the note at the beginning of {ERC20};
 - the caller must have allowance for `sender`'s tokens of at least
 `amount`.
 
-```js
+```solidity
 function transferFrom(address sender, address recipient, uint256 amount) public nonpayable
 returns(bool)
 ```
@@ -169,7 +228,25 @@ returns(bool)
 | recipient | address |  | 
 | amount | uint256 |  | 
 
-### increaseAllowance
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function transferFrom(
+		address sender,
+		address recipient,
+		uint256 amount
+	) public returns (bool) {
+		_transfer(sender, recipient, amount);
+		_approve(sender, _msgSender(), _allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance"));
+		return true;
+	}
+```
+</details>
+
+---    
+
+> ### increaseAllowance
 
 Atomically increases the allowance granted to `spender` by the caller.
 	 * This is an alternative to {approve} that can be used as a mitigation for
@@ -178,7 +255,7 @@ problems described in {IERC20-approve}.
 	 * Requirements:
 	 * - `spender` cannot be the zero address.
 
-```js
+```solidity
 function increaseAllowance(address spender, uint256 addedValue) public nonpayable
 returns(bool)
 ```
@@ -190,7 +267,20 @@ returns(bool)
 | spender | address |  | 
 | addedValue | uint256 |  | 
 
-### decreaseAllowance
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
+		_approve(_msgSender(), spender, _allowances[_msgSender()][spender].add(addedValue));
+		return true;
+	}
+```
+</details>
+
+---    
+
+> ### decreaseAllowance
 
 Atomically decreases the allowance granted to `spender` by the caller.
 	 * This is an alternative to {approve} that can be used as a mitigation for
@@ -201,7 +291,7 @@ problems described in {IERC20-approve}.
 - `spender` must have allowance for the caller of at least
 `subtractedValue`.
 
-```js
+```solidity
 function decreaseAllowance(address spender, uint256 subtractedValue) public nonpayable
 returns(bool)
 ```
@@ -213,7 +303,20 @@ returns(bool)
 | spender | address |  | 
 | subtractedValue | uint256 |  | 
 
-### _transfer
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
+		_approve(_msgSender(), spender, _allowances[_msgSender()][spender].sub(subtractedValue, "ERC20: decreased allowance below zero"));
+		return true;
+	}
+```
+</details>
+
+---    
+
+> ### _transfer
 
 Moves tokens `amount` from `sender` to `recipient`.
 	 * This is internal function is equivalent to {transfer}, and can be used to
@@ -224,7 +327,7 @@ e.g. implement automatic token fees, slashing mechanisms, etc.
 - `recipient` cannot be the zero address.
 - `sender` must have a balance of at least `amount`.
 
-```js
+```solidity
 function _transfer(address sender, address recipient, uint256 amount) internal nonpayable
 ```
 
@@ -236,7 +339,28 @@ function _transfer(address sender, address recipient, uint256 amount) internal n
 | recipient | address |  | 
 | amount | uint256 |  | 
 
-### _mint
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _transfer(
+		address sender,
+		address recipient,
+		uint256 amount
+	) internal {
+		require(sender != address(0), "ERC20: transfer from the zero address");
+		require(recipient != address(0), "ERC20: transfer to the zero address");
+
+		_balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
+		_balances[recipient] = _balances[recipient].add(amount);
+		emit Transfer(sender, recipient, amount);
+	}
+```
+</details>
+
+---    
+
+> ### _mint
 
 Creates `amount` tokens and assigns them to `account`, increasing
 the total supply.
@@ -244,7 +368,7 @@ the total supply.
 	 * Requirements
 	 * - `to` cannot be the zero address.
 
-```js
+```solidity
 function _mint(address account, uint256 amount) internal nonpayable
 ```
 
@@ -255,7 +379,23 @@ function _mint(address account, uint256 amount) internal nonpayable
 | account | address |  | 
 | amount | uint256 |  | 
 
-### _burn
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _mint(address account, uint256 amount) internal {
+		require(account != address(0), "ERC20: mint to the zero address");
+
+		_totalSupply = _totalSupply.add(amount);
+		_balances[account] = _balances[account].add(amount);
+		emit Transfer(address(0), account, amount);
+	}
+```
+</details>
+
+---    
+
+> ### _burn
 
 Destroys `amount` tokens from `account`, reducing the
 total supply.
@@ -264,7 +404,7 @@ total supply.
 	 * - `account` cannot be the zero address.
 - `account` must have at least `amount` tokens.
 
-```js
+```solidity
 function _burn(address account, uint256 amount) internal nonpayable
 ```
 
@@ -275,7 +415,23 @@ function _burn(address account, uint256 amount) internal nonpayable
 | account | address |  | 
 | amount | uint256 |  | 
 
-### _approve
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _burn(address account, uint256 amount) internal {
+		require(account != address(0), "ERC20: burn from the zero address");
+
+		_balances[account] = _balances[account].sub(amount, "ERC20: burn amount exceeds balance");
+		_totalSupply = _totalSupply.sub(amount);
+		emit Transfer(account, address(0), amount);
+	}
+```
+</details>
+
+---    
+
+> ### _approve
 
 Sets `amount` as the allowance of `spender` over the `owner`s tokens.
 	 * This is internal function is equivalent to `approve`, and can be used to
@@ -285,7 +441,7 @@ e.g. set automatic allowances for certain subsystems, etc.
 	 * - `owner` cannot be the zero address.
 - `spender` cannot be the zero address.
 
-```js
+```solidity
 function _approve(address owner, address spender, uint256 amount) internal nonpayable
 ```
 
@@ -297,13 +453,33 @@ function _approve(address owner, address spender, uint256 amount) internal nonpa
 | spender | address |  | 
 | amount | uint256 |  | 
 
-### _burnFrom
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _approve(
+		address owner,
+		address spender,
+		uint256 amount
+	) internal {
+		require(owner != address(0), "ERC20: approve from the zero address");
+		require(spender != address(0), "ERC20: approve to the zero address");
+
+		_allowances[owner][spender] = amount;
+		emit Approval(owner, spender, amount);
+	}
+```
+</details>
+
+---    
+
+> ### _burnFrom
 
 Destroys `amount` tokens from `account`.`amount` is then deducted
 from the caller's allowance.
 	 * See {_burn} and {_approve}.
 
-```js
+```solidity
 function _burnFrom(address account, uint256 amount) internal nonpayable
 ```
 
@@ -313,6 +489,17 @@ function _burnFrom(address account, uint256 amount) internal nonpayable
 | ------------- |------------- | -----|
 | account | address |  | 
 | amount | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _burnFrom(address account, uint256 amount) internal {
+		_burn(account, amount);
+		_approve(account, _msgSender(), _allowances[account][_msgSender()].sub(amount, "ERC20: burn amount exceeds allowance"));
+	}
+```
+</details>
 
 ## Contracts
 
@@ -328,6 +515,7 @@ function _burnFrom(address account, uint256 amount) internal nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -449,7 +637,7 @@ function _burnFrom(address account, uint256 amount) internal nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

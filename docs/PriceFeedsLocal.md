@@ -1,263 +1,149 @@
-# SafeMath96 contract. (SafeMath96.sol)
+# Price Feeds Local contract.
+ * (PriceFeedsLocal.sol)
 
-View Source: [contracts/governance/Staking/SafeMath96.sol](../contracts/governance/Staking/SafeMath96.sol)
+View Source: [contracts/feeds/testnet/PriceFeedsLocal.sol](../contracts/feeds/testnet/PriceFeedsLocal.sol)
 
-**↘ Derived Contracts: [Checkpoints](Checkpoints.md), [FeeSharingLogic](FeeSharingLogic.md), [GovernorAlpha](GovernorAlpha.md), [ILoanToken](ILoanToken.md), [ILoanTokenWRBTC](ILoanTokenWRBTC.md), [StakingInterface](StakingInterface.md), [SVR](SVR.md), [TestCoverage](TestCoverage.md), [TimelockInterface](TimelockInterface.md)**
+**↗ Extends: [PriceFeeds](PriceFeeds.md)**
 
-**SafeMath96**
+**PriceFeedsLocal**
 
-Improved Solidity's arithmetic operations with added overflow checks.
+This contract code comes from bZx. bZx is a protocol for tokenized
+margin trading and lending https://bzx.network similar to the dYdX protocol.
+ * This contract contains the logic of setting and getting rates between two tokens.
+
+## Contract Members
+**Constants & Variables**
+
+```js
+mapping(address => mapping(address => uint256)) public rates;
+
+```
 
 ## Functions
 
-- [safe32(uint256 n, string errorMessage)](#safe32)
-- [safe64(uint256 n, string errorMessage)](#safe64)
-- [safe96(uint256 n, string errorMessage)](#safe96)
-- [add96(uint96 a, uint96 b, string errorMessage)](#add96)
-- [sub96(uint96 a, uint96 b, string errorMessage)](#sub96)
-- [mul96(uint96 a, uint96 b, string errorMessage)](#mul96)
-- [div96(uint96 a, uint96 b, string errorMessage)](#div96)
+- [constructor(address _wrbtcTokenAddress, address _protocolTokenAddress)](#constructor)
+- [_queryRate(address sourceToken, address destToken)](#_queryrate)
+- [setRates(address sourceToken, address destToken, uint256 rate)](#setrates)
 
 ---    
 
-> ### safe32
+> ### constructor
+
+Deploy local price feed contract.
+	 *
 
 ```solidity
-function safe32(uint256 n, string errorMessage) internal pure
-returns(uint32)
+function (address _wrbtcTokenAddress, address _protocolTokenAddress) public nonpayable PriceFeeds 
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| n | uint256 |  | 
-| errorMessage | string |  | 
+| _wrbtcTokenAddress | address | The address of the wrBTC instance. | 
+| _protocolTokenAddress | address | The address of the protocol token instance. | 
 
 <details>
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function safe32(uint256 n, string memory errorMessage) internal pure returns (uint32) {
-		require(n < 2**32, errorMessage);
-		return uint32(n);
-	}
+constructor(address _wrbtcTokenAddress, address _protocolTokenAddress)
+		public
+		PriceFeeds(_wrbtcTokenAddress, _protocolTokenAddress, _wrbtcTokenAddress)
+	{}
 ```
 </details>
 
 ---    
 
-> ### safe64
+> ### _queryRate
+
+undefined
+
+Calculate the price ratio between two tokens.
+	 *
 
 ```solidity
-function safe64(uint256 n, string errorMessage) internal pure
-returns(uint64)
+function _queryRate(address sourceToken, address destToken) internal view
+returns(rate uint256, precision uint256)
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| n | uint256 |  | 
-| errorMessage | string |  | 
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function safe64(uint256 n, string memory errorMessage) internal pure returns (uint64) {
-		require(n < 2**64, errorMessage);
-		return uint64(n);
-	}
-```
-</details>
-
----    
-
-> ### safe96
-
-```solidity
-function safe96(uint256 n, string errorMessage) internal pure
-returns(uint96)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| n | uint256 |  | 
-| errorMessage | string |  | 
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function safe96(uint256 n, string memory errorMessage) internal pure returns (uint96) {
-		require(n < 2**96, errorMessage);
-		return uint96(n);
-	}
-```
-</details>
-
----    
-
-> ### add96
-
-Adds two unsigned integers, reverting on overflow.
-
-```solidity
-function add96(uint96 a, uint96 b, string errorMessage) internal pure
-returns(uint96)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| a | uint96 | First integer. | 
-| b | uint96 | Second integer. | 
-| errorMessage | string | The revert message on overflow. | 
+| sourceToken | address | The address of the source tokens. | 
+| destToken | address | The address of the destiny tokens. 	 * | 
 
 **Returns**
 
-The safe addition a+b.
+rate The price ratio source/dest.
 
 <details>
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function add96(
-		uint96 a,
-		uint96 b,
-		string memory errorMessage
-	) internal pure returns (uint96) {
-		uint96 c = a + b;
-		require(c >= a, errorMessage);
-		return c;
-	}
-```
-</details>
+function _queryRate(address sourceToken, address destToken) internal view returns (uint256 rate, uint256 precision) {
+		require(!globalPricingPaused, "pricing is paused");
 
----    
+		if (sourceToken == destToken) {
+			rate = 10**18;
+			precision = 10**18;
+		} else {
+			if (sourceToken == protocolTokenAddress) {
+				/// Hack for testnet; only returns price in rBTC.
+				rate = protocolTokenEthPrice;
+			} else if (destToken == protocolTokenAddress) {
+				/// Hack for testnet; only returns price in rBTC.
+				rate = SafeMath.div(10**36, protocolTokenEthPrice);
+			} else {
+				if (rates[sourceToken][destToken] != 0) {
+					rate = rates[sourceToken][destToken];
+				} else {
+					uint256 sourceToEther = rates[sourceToken][address(wrbtcToken)] != 0 ? rates[sourceToken][address(wrbtcToken)] : 10**18;
+					uint256 etherToDest = rates[address(wrbtcToken)][destToken] != 0 ? rates[address(wrbtcToken)][destToken] : 10**18;
 
-> ### sub96
-
-Substracts two unsigned integers, reverting on underflow.
-
-```solidity
-function sub96(uint96 a, uint96 b, string errorMessage) internal pure
-returns(uint96)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| a | uint96 | First integer. | 
-| b | uint96 | Second integer. | 
-| errorMessage | string | The revert message on underflow. | 
-
-**Returns**
-
-The safe substraction a-b.
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function sub96(
-		uint96 a,
-		uint96 b,
-		string memory errorMessage
-	) internal pure returns (uint96) {
-		require(b <= a, errorMessage);
-		return a - b;
-	}
-```
-</details>
-
----    
-
-> ### mul96
-
-Multiplies two unsigned integers, reverting on overflow.
-
-```solidity
-function mul96(uint96 a, uint96 b, string errorMessage) internal pure
-returns(uint96)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| a | uint96 | First integer. | 
-| b | uint96 | Second integer. | 
-| errorMessage | string | The revert message on overflow. | 
-
-**Returns**
-
-The safe product a*b.
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function mul96(
-		uint96 a,
-		uint96 b,
-		string memory errorMessage
-	) internal pure returns (uint96) {
-		if (a == 0) {
-			return 0;
+					rate = sourceToEther.mul(etherToDest).div(10**18);
+				}
+			}
+			precision = _getDecimalPrecision(sourceToken, destToken);
 		}
-
-		uint96 c = a * b;
-		require(c / a == b, errorMessage);
-
-		return c;
 	}
 ```
 </details>
 
 ---    
 
-> ### div96
+> ### setRates
 
-Divides two unsigned integers, reverting on overflow.
+Owner set price ratio between two tokens.
+	 *
 
 ```solidity
-function div96(uint96 a, uint96 b, string errorMessage) internal pure
-returns(uint96)
+function setRates(address sourceToken, address destToken, uint256 rate) public nonpayable onlyOwner 
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| a | uint96 | First integer. | 
-| b | uint96 | Second integer. | 
-| errorMessage | string | The revert message on overflow. | 
-
-**Returns**
-
-The safe division a/b.
+| sourceToken | address | The address of the source tokens. | 
+| destToken | address | The address of the destiny tokens. | 
+| rate | uint256 | The price ratio source/dest. | 
 
 <details>
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function div96(
-		uint96 a,
-		uint96 b,
-		string memory errorMessage
-	) internal pure returns (uint96) {
-		// Solidity only automatically asserts when dividing by 0
-		require(b > 0, errorMessage);
-		uint96 c = a / b;
-		// assert(a == b * c + a % b); // There is no case in which this doesn't hold
-
-		return c;
+function setRates(
+		address sourceToken,
+		address destToken,
+		uint256 rate
+	) public onlyOwner {
+		if (sourceToken != destToken) {
+			rates[sourceToken][destToken] = rate;
+			rates[destToken][sourceToken] = SafeMath.div(10**36, rate);
+		}
 	}
 ```
 </details>

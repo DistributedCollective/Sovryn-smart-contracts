@@ -1,263 +1,116 @@
-# SafeMath96 contract. (SafeMath96.sol)
+# The Price Feeds Constants contract.
+ * (Constants.sol)
 
-View Source: [contracts/governance/Staking/SafeMath96.sol](../contracts/governance/Staking/SafeMath96.sol)
+View Source: [contracts/feeds/PriceFeedsConstants.sol](../contracts/feeds/PriceFeedsConstants.sol)
 
-**↘ Derived Contracts: [Checkpoints](Checkpoints.md), [FeeSharingLogic](FeeSharingLogic.md), [GovernorAlpha](GovernorAlpha.md), [ILoanToken](ILoanToken.md), [ILoanTokenWRBTC](ILoanTokenWRBTC.md), [StakingInterface](StakingInterface.md), [SVR](SVR.md), [TestCoverage](TestCoverage.md), [TimelockInterface](TimelockInterface.md)**
+**↘ Derived Contracts: [IPriceFeedsExt](IPriceFeedsExt.md), [PriceFeeds](PriceFeeds.md)**
 
-**SafeMath96**
+**Constants**
 
-Improved Solidity's arithmetic operations with added overflow checks.
+This contract code comes from bZx. bZx is a protocol for tokenized
+margin trading and lending https://bzx.network similar to the dYdX protocol.
+ * This contract keep the addresses of token instances for wrBTC, base token
+and protocol token.
+
+## Contract Members
+**Constants & Variables**
+
+```js
+//public members
+contract IWrbtcERC20 public wrbtcToken;
+contract IWrbtcERC20 public baseToken;
+
+//internal members
+address internal protocolTokenAddress;
+
+```
 
 ## Functions
 
-- [safe32(uint256 n, string errorMessage)](#safe32)
-- [safe64(uint256 n, string errorMessage)](#safe64)
-- [safe96(uint256 n, string errorMessage)](#safe96)
-- [add96(uint96 a, uint96 b, string errorMessage)](#add96)
-- [sub96(uint96 a, uint96 b, string errorMessage)](#sub96)
-- [mul96(uint96 a, uint96 b, string errorMessage)](#mul96)
-- [div96(uint96 a, uint96 b, string errorMessage)](#div96)
+- [_setWrbtcToken(address _wrbtcTokenAddress)](#_setwrbtctoken)
+- [_setProtocolTokenAddress(address _protocolTokenAddress)](#_setprotocoltokenaddress)
+- [_setBaseToken(address _baseTokenAddress)](#_setbasetoken)
 
 ---    
 
-> ### safe32
+> ### _setWrbtcToken
+
+Set wrBTC token address.
+	 *
 
 ```solidity
-function safe32(uint256 n, string errorMessage) internal pure
-returns(uint32)
+function _setWrbtcToken(address _wrbtcTokenAddress) internal nonpayable
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| n | uint256 |  | 
-| errorMessage | string |  | 
+| _wrbtcTokenAddress | address | The address of the wrapped wrBTC token. | 
 
 <details>
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function safe32(uint256 n, string memory errorMessage) internal pure returns (uint32) {
-		require(n < 2**32, errorMessage);
-		return uint32(n);
+function _setWrbtcToken(address _wrbtcTokenAddress) internal {
+		require(Address.isContract(_wrbtcTokenAddress), "_wrbtcTokenAddress not a contract");
+		wrbtcToken = IWrbtcERC20(_wrbtcTokenAddress);
 	}
 ```
 </details>
 
 ---    
 
-> ### safe64
+> ### _setProtocolTokenAddress
+
+Set protocol token address.
+	 *
 
 ```solidity
-function safe64(uint256 n, string errorMessage) internal pure
-returns(uint64)
+function _setProtocolTokenAddress(address _protocolTokenAddress) internal nonpayable
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| n | uint256 |  | 
-| errorMessage | string |  | 
+| _protocolTokenAddress | address | The address of the protocol token. | 
 
 <details>
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function safe64(uint256 n, string memory errorMessage) internal pure returns (uint64) {
-		require(n < 2**64, errorMessage);
-		return uint64(n);
+function _setProtocolTokenAddress(address _protocolTokenAddress) internal {
+		require(Address.isContract(_protocolTokenAddress), "_protocolTokenAddress not a contract");
+		protocolTokenAddress = _protocolTokenAddress;
 	}
 ```
 </details>
 
 ---    
 
-> ### safe96
+> ### _setBaseToken
+
+Set base token address.
+	 *
 
 ```solidity
-function safe96(uint256 n, string errorMessage) internal pure
-returns(uint96)
+function _setBaseToken(address _baseTokenAddress) internal nonpayable
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| n | uint256 |  | 
-| errorMessage | string |  | 
+| _baseTokenAddress | address | The address of the base token. | 
 
 <details>
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function safe96(uint256 n, string memory errorMessage) internal pure returns (uint96) {
-		require(n < 2**96, errorMessage);
-		return uint96(n);
-	}
-```
-</details>
-
----    
-
-> ### add96
-
-Adds two unsigned integers, reverting on overflow.
-
-```solidity
-function add96(uint96 a, uint96 b, string errorMessage) internal pure
-returns(uint96)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| a | uint96 | First integer. | 
-| b | uint96 | Second integer. | 
-| errorMessage | string | The revert message on overflow. | 
-
-**Returns**
-
-The safe addition a+b.
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function add96(
-		uint96 a,
-		uint96 b,
-		string memory errorMessage
-	) internal pure returns (uint96) {
-		uint96 c = a + b;
-		require(c >= a, errorMessage);
-		return c;
-	}
-```
-</details>
-
----    
-
-> ### sub96
-
-Substracts two unsigned integers, reverting on underflow.
-
-```solidity
-function sub96(uint96 a, uint96 b, string errorMessage) internal pure
-returns(uint96)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| a | uint96 | First integer. | 
-| b | uint96 | Second integer. | 
-| errorMessage | string | The revert message on underflow. | 
-
-**Returns**
-
-The safe substraction a-b.
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function sub96(
-		uint96 a,
-		uint96 b,
-		string memory errorMessage
-	) internal pure returns (uint96) {
-		require(b <= a, errorMessage);
-		return a - b;
-	}
-```
-</details>
-
----    
-
-> ### mul96
-
-Multiplies two unsigned integers, reverting on overflow.
-
-```solidity
-function mul96(uint96 a, uint96 b, string errorMessage) internal pure
-returns(uint96)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| a | uint96 | First integer. | 
-| b | uint96 | Second integer. | 
-| errorMessage | string | The revert message on overflow. | 
-
-**Returns**
-
-The safe product a*b.
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function mul96(
-		uint96 a,
-		uint96 b,
-		string memory errorMessage
-	) internal pure returns (uint96) {
-		if (a == 0) {
-			return 0;
-		}
-
-		uint96 c = a * b;
-		require(c / a == b, errorMessage);
-
-		return c;
-	}
-```
-</details>
-
----    
-
-> ### div96
-
-Divides two unsigned integers, reverting on overflow.
-
-```solidity
-function div96(uint96 a, uint96 b, string errorMessage) internal pure
-returns(uint96)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| a | uint96 | First integer. | 
-| b | uint96 | Second integer. | 
-| errorMessage | string | The revert message on overflow. | 
-
-**Returns**
-
-The safe division a/b.
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function div96(
-		uint96 a,
-		uint96 b,
-		string memory errorMessage
-	) internal pure returns (uint96) {
-		// Solidity only automatically asserts when dividing by 0
-		require(b > 0, errorMessage);
-		uint96 c = a / b;
-		// assert(a == b * c + a % b); // There is no case in which this doesn't hold
-
-		return c;
+function _setBaseToken(address _baseTokenAddress) internal {
+		require(Address.isContract(_baseTokenAddress), "_baseTokenAddress not a contract");
+		baseToken = IWrbtcERC20(_baseTokenAddress);
 	}
 ```
 </details>

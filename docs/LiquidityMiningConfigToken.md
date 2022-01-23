@@ -18,25 +18,34 @@ We need this token for having a flexibility with LiquidityMining configuration
 - [approve(address spender, uint256 amount)](#approve)
 - [transferFrom(address sender, address recipient, uint256 amount)](#transferfrom)
 
-### totalSupply
+---    
 
-⤾ overrides [IERC20_.totalSupply](IERC20_.md#totalsupply)
+> ### totalSupply
 
-```js
+undefined
+
+```solidity
 function totalSupply() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function totalSupply() external view returns (uint256) {
+		return 0;
+	}
+```
+</details>
 
-### balanceOf
+---    
 
-⤾ overrides [IERC20_.balanceOf](IERC20_.md#balanceof)
+> ### balanceOf
 
-```js
+undefined
+
+```solidity
 function balanceOf(address account) external view
 returns(uint256)
 ```
@@ -47,11 +56,23 @@ returns(uint256)
 | ------------- |------------- | -----|
 | account | address |  | 
 
-### transfer
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [IERC20_.transfer](IERC20_.md#transfer)
+```javascript
+function balanceOf(address account) external view returns (uint256) {
+		return 0;
+	}
+```
+</details>
 
-```js
+---    
+
+> ### transfer
+
+undefined
+
+```solidity
 function transfer(address recipient, uint256 amount) external nonpayable
 returns(bool)
 ```
@@ -63,11 +84,23 @@ returns(bool)
 | recipient | address |  | 
 | amount | uint256 |  | 
 
-### allowance
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [IERC20_.allowance](IERC20_.md#allowance)
+```javascript
+function transfer(address recipient, uint256 amount) external returns (bool) {
+		return false;
+	}
+```
+</details>
 
-```js
+---    
+
+> ### allowance
+
+undefined
+
+```solidity
 function allowance(address owner, address spender) external view
 returns(uint256)
 ```
@@ -79,11 +112,23 @@ returns(uint256)
 | owner | address |  | 
 | spender | address |  | 
 
-### approve
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [IERC20_.approve](IERC20_.md#approve)
+```javascript
+function allowance(address owner, address spender) external view returns (uint256) {
+		return 0;
+	}
+```
+</details>
 
-```js
+---    
+
+> ### approve
+
+undefined
+
+```solidity
 function approve(address spender, uint256 amount) external nonpayable
 returns(bool)
 ```
@@ -95,11 +140,23 @@ returns(bool)
 | spender | address |  | 
 | amount | uint256 |  | 
 
-### transferFrom
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [IERC20_.transferFrom](IERC20_.md#transferfrom)
+```javascript
+function approve(address spender, uint256 amount) external returns (bool) {
+		return false;
+	}
+```
+</details>
 
-```js
+---    
+
+> ### transferFrom
+
+undefined
+
+```solidity
 function transferFrom(address sender, address recipient, uint256 amount) external nonpayable
 returns(bool)
 ```
@@ -111,6 +168,20 @@ returns(bool)
 | sender | address |  | 
 | recipient | address |  | 
 | amount | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function transferFrom(
+		address sender,
+		address recipient,
+		uint256 amount
+	) external returns (bool) {
+		return false;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -126,6 +197,7 @@ returns(bool)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -247,7 +319,7 @@ returns(bool)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

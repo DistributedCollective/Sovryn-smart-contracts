@@ -21,11 +21,13 @@ contract BlockMockUp public blockMockUp;
 - [setBlockMockUpAddr(address _blockMockUp)](#setblockmockupaddr)
 - [_getCurrentBlockNumber()](#_getcurrentblocknumber)
 
-### setBlockMockUpAddr
+---    
+
+> ### setBlockMockUpAddr
 
 gets block number from BlockMockUp
 
-```js
+```solidity
 function setBlockMockUpAddr(address _blockMockUp) public nonpayable onlyOwner 
 ```
 
@@ -35,21 +37,39 @@ function setBlockMockUpAddr(address _blockMockUp) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _blockMockUp | address | the address of BlockMockUp | 
 
-### _getCurrentBlockNumber
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [StakingRewards._getCurrentBlockNumber](StakingRewards.md#_getcurrentblocknumber)
+```javascript
+function setBlockMockUpAddr(address _blockMockUp) public onlyOwner {
+		require(_blockMockUp != address(0), "block mockup address invalid");
+		blockMockUp = BlockMockUp(_blockMockUp);
+	}
+```
+</details>
+
+---    
+
+> ### _getCurrentBlockNumber
+
+undefined
 
 Determine the current Block Number from BlockMockUp
 
-```js
+```solidity
 function _getCurrentBlockNumber() internal view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function _getCurrentBlockNumber() internal view returns (uint256) {
+		return blockMockUp.getBlockNum();
+	}
+```
+</details>
 
 ## Contracts
 
@@ -65,6 +85,7 @@ returns(uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -186,7 +207,7 @@ returns(uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

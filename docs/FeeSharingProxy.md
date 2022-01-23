@@ -13,13 +13,15 @@ the possibility of being enhanced and re-deployed.
 
 ## Functions
 
-- [(IProtocol _protocol, IStaking _staking)](#)
+- [constructor(IProtocol _protocol, IStaking _staking)](#constructor)
 
-### 
+---    
+
+> ### constructor
 
 Construct a new feeSharingProxy contract.
 
-```js
+```solidity
 function (IProtocol _protocol, IStaking _staking) public nonpayable
 ```
 
@@ -29,6 +31,17 @@ function (IProtocol _protocol, IStaking _staking) public nonpayable
 | ------------- |------------- | -----|
 | _protocol | IProtocol | The address of the sovryn protocol. | 
 | _staking | IStaking | The address of the staking | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(IProtocol _protocol, IStaking _staking) public {
+		protocol = _protocol;
+		staking = _staking;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -44,6 +57,7 @@ function (IProtocol _protocol, IStaking _staking) public nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -165,7 +179,7 @@ function (IProtocol _protocol, IStaking _staking) public nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

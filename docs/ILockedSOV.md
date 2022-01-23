@@ -14,13 +14,15 @@ This interface is an incomplete yet useful for future migration of LockedSOV Con
 - [depositSOV(address _userAddress, uint256 _sovAmount)](#depositsov)
 - [withdrawAndStakeTokensFrom(address _userAddress)](#withdrawandstaketokensfrom)
 
-### deposit
+---    
+
+> ### deposit
 
 ⤿ Overridden Implementation(s): [LockedSOV.deposit](LockedSOV.md#deposit)
 
 Adds SOV to the user balance (Locked and Unlocked Balance based on `_basisPoint`).
 
-```js
+```solidity
 function deposit(address _userAddress, uint256 _sovAmount, uint256 _basisPoint) external nonpayable
 ```
 
@@ -32,13 +34,27 @@ function deposit(address _userAddress, uint256 _sovAmount, uint256 _basisPoint) 
 | _sovAmount | uint256 | The amount of SOV to be added to the locked and/or unlocked balance. | 
 | _basisPoint | uint256 | The % (in Basis Point)which determines how much will be unlocked immediately. | 
 
-### depositSOV
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function deposit(
+		address _userAddress,
+		uint256 _sovAmount,
+		uint256 _basisPoint
+	) external;
+```
+</details>
+
+---    
+
+> ### depositSOV
 
 ⤿ Overridden Implementation(s): [LockedSOV.depositSOV](LockedSOV.md#depositsov)
 
 Adds SOV to the locked balance of a user.
 
-```js
+```solidity
 function depositSOV(address _userAddress, uint256 _sovAmount) external nonpayable
 ```
 
@@ -49,13 +65,23 @@ function depositSOV(address _userAddress, uint256 _sovAmount) external nonpayabl
 | _userAddress | address | The user whose locked balance has to be updated with _sovAmount. | 
 | _sovAmount | uint256 | The amount of SOV to be added to the locked balance. | 
 
-### withdrawAndStakeTokensFrom
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function depositSOV(address _userAddress, uint256 _sovAmount) external;
+```
+</details>
+
+---    
+
+> ### withdrawAndStakeTokensFrom
 
 ⤿ Overridden Implementation(s): [LockedSOV.withdrawAndStakeTokensFrom](LockedSOV.md#withdrawandstaketokensfrom)
 
 Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created.
 
-```js
+```solidity
 function withdrawAndStakeTokensFrom(address _userAddress) external nonpayable
 ```
 
@@ -64,6 +90,14 @@ function withdrawAndStakeTokensFrom(address _userAddress) external nonpayable
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _userAddress | address | The address of user tokens will be withdrawn. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawAndStakeTokensFrom(address _userAddress) external;
+```
+</details>
 
 ## Contracts
 
@@ -79,6 +113,7 @@ function withdrawAndStakeTokensFrom(address _userAddress) external nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -200,7 +235,7 @@ function withdrawAndStakeTokensFrom(address _userAddress) external nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

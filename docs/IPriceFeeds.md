@@ -17,9 +17,11 @@ View Source: [contracts/feeds/IPriceFeeds.sol](../contracts/feeds/IPriceFeeds.so
 - [shouldLiquidate(address loanToken, address collateralToken, uint256 loanAmount, uint256 collateralAmount, uint256 maintenanceMargin)](#shouldliquidate)
 - [getFastGasPrice(address payToken)](#getfastgasprice)
 
-### queryRate
+---    
 
-```js
+> ### queryRate
+
+```solidity
 function queryRate(address sourceToken, address destToken) external view
 returns(rate uint256, precision uint256)
 ```
@@ -31,9 +33,19 @@ returns(rate uint256, precision uint256)
 | sourceToken | address |  | 
 | destToken | address |  | 
 
-### queryPrecision
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function queryRate(address sourceToken, address destToken) external view returns (uint256 rate, uint256 precision);
+```
+</details>
+
+---    
+
+> ### queryPrecision
+
+```solidity
 function queryPrecision(address sourceToken, address destToken) external view
 returns(precision uint256)
 ```
@@ -45,9 +57,19 @@ returns(precision uint256)
 | sourceToken | address |  | 
 | destToken | address |  | 
 
-### queryReturn
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function queryPrecision(address sourceToken, address destToken) external view returns (uint256 precision);
+```
+</details>
+
+---    
+
+> ### queryReturn
+
+```solidity
 function queryReturn(address sourceToken, address destToken, uint256 sourceAmount) external view
 returns(destAmount uint256)
 ```
@@ -60,9 +82,23 @@ returns(destAmount uint256)
 | destToken | address |  | 
 | sourceAmount | uint256 |  | 
 
-### checkPriceDisagreement
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function queryReturn(
+		address sourceToken,
+		address destToken,
+		uint256 sourceAmount
+	) external view returns (uint256 destAmount);
+```
+</details>
+
+---    
+
+> ### checkPriceDisagreement
+
+```solidity
 function checkPriceDisagreement(address sourceToken, address destToken, uint256 sourceAmount, uint256 destAmount, uint256 maxSlippage) external view
 returns(sourceToDestSwapRate uint256)
 ```
@@ -77,9 +113,25 @@ returns(sourceToDestSwapRate uint256)
 | destAmount | uint256 |  | 
 | maxSlippage | uint256 |  | 
 
-### amountInEth
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function checkPriceDisagreement(
+		address sourceToken,
+		address destToken,
+		uint256 sourceAmount,
+		uint256 destAmount,
+		uint256 maxSlippage
+	) external view returns (uint256 sourceToDestSwapRate);
+```
+</details>
+
+---    
+
+> ### amountInEth
+
+```solidity
 function amountInEth(address Token, uint256 amount) external view
 returns(ethAmount uint256)
 ```
@@ -91,9 +143,19 @@ returns(ethAmount uint256)
 | Token | address |  | 
 | amount | uint256 |  | 
 
-### getMaxDrawdown
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function amountInEth(address Token, uint256 amount) external view returns (uint256 ethAmount);
+```
+</details>
+
+---    
+
+> ### getMaxDrawdown
+
+```solidity
 function getMaxDrawdown(address loanToken, address collateralToken, uint256 loanAmount, uint256 collateralAmount, uint256 maintenanceMargin) external view
 returns(uint256)
 ```
@@ -108,9 +170,25 @@ returns(uint256)
 | collateralAmount | uint256 |  | 
 | maintenanceMargin | uint256 |  | 
 
-### getCurrentMarginAndCollateralSize
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getMaxDrawdown(
+		address loanToken,
+		address collateralToken,
+		uint256 loanAmount,
+		uint256 collateralAmount,
+		uint256 maintenanceMargin
+	) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### getCurrentMarginAndCollateralSize
+
+```solidity
 function getCurrentMarginAndCollateralSize(address loanToken, address collateralToken, uint256 loanAmount, uint256 collateralAmount) external view
 returns(currentMargin uint256, collateralInEthAmount uint256)
 ```
@@ -124,9 +202,24 @@ returns(currentMargin uint256, collateralInEthAmount uint256)
 | loanAmount | uint256 |  | 
 | collateralAmount | uint256 |  | 
 
-### getCurrentMargin
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getCurrentMarginAndCollateralSize(
+		address loanToken,
+		address collateralToken,
+		uint256 loanAmount,
+		uint256 collateralAmount
+	) external view returns (uint256 currentMargin, uint256 collateralInEthAmount);
+```
+</details>
+
+---    
+
+> ### getCurrentMargin
+
+```solidity
 function getCurrentMargin(address loanToken, address collateralToken, uint256 loanAmount, uint256 collateralAmount) external view
 returns(currentMargin uint256, collateralToLoanRate uint256)
 ```
@@ -140,9 +233,24 @@ returns(currentMargin uint256, collateralToLoanRate uint256)
 | loanAmount | uint256 |  | 
 | collateralAmount | uint256 |  | 
 
-### shouldLiquidate
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getCurrentMargin(
+		address loanToken,
+		address collateralToken,
+		uint256 loanAmount,
+		uint256 collateralAmount
+	) external view returns (uint256 currentMargin, uint256 collateralToLoanRate);
+```
+</details>
+
+---    
+
+> ### shouldLiquidate
+
+```solidity
 function shouldLiquidate(address loanToken, address collateralToken, uint256 loanAmount, uint256 collateralAmount, uint256 maintenanceMargin) external view
 returns(bool)
 ```
@@ -157,9 +265,25 @@ returns(bool)
 | collateralAmount | uint256 |  | 
 | maintenanceMargin | uint256 |  | 
 
-### getFastGasPrice
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function shouldLiquidate(
+		address loanToken,
+		address collateralToken,
+		uint256 loanAmount,
+		uint256 collateralAmount,
+		uint256 maintenanceMargin
+	) external view returns (bool);
+```
+</details>
+
+---    
+
+> ### getFastGasPrice
+
+```solidity
 function getFastGasPrice(address payToken) external view
 returns(uint256)
 ```
@@ -169,6 +293,14 @@ returns(uint256)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | payToken | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getFastGasPrice(address payToken) external view returns (uint256);
+```
+</details>
 
 ## Contracts
 
@@ -184,6 +316,7 @@ returns(uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -305,7 +438,7 @@ returns(uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

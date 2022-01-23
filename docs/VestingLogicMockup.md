@@ -10,13 +10,15 @@ View Source: [contracts/mockup/VestingLogicMockup.sol](../contracts/mockup/Vesti
 
 - [delegate(address _delegatee)](#delegate)
 
-### delegate
+---    
 
-⤾ overrides [VestingLogic.delegate](VestingLogic.md#delegate)
+> ### delegate
+
+undefined
 
 we had a bug in a loop: "i < endDate" instead of "i <= endDate"
 
-```js
+```solidity
 function delegate(address _delegatee) public nonpayable onlyTokenOwner 
 ```
 
@@ -25,6 +27,24 @@ function delegate(address _delegatee) public nonpayable onlyTokenOwner
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _delegatee | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function delegate(address _delegatee) public onlyTokenOwner {
+		require(_delegatee != address(0), "delegatee address invalid");
+
+		/// @dev Withdraw for each unlocked position.
+		/// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
+		///		workaround found, but it doesn't work with TWO_WEEKS
+		for (uint256 i = startDate + cliff; i < endDate; i += FOUR_WEEKS) {
+			staking.delegate(_delegatee, i);
+		}
+		emit VotesDelegated(msg.sender, _delegatee);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -40,6 +60,7 @@ function delegate(address _delegatee) public nonpayable onlyTokenOwner
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -161,7 +182,7 @@ function delegate(address _delegatee) public nonpayable onlyTokenOwner
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

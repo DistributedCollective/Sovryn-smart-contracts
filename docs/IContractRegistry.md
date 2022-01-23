@@ -8,9 +8,11 @@ View Source: [contracts/swaps/connectors/interfaces/IContractRegistry.sol](../co
 
 - [addressOf(bytes32 contractName)](#addressof)
 
-### addressOf
+---    
 
-```js
+> ### addressOf
+
+```solidity
 function addressOf(bytes32 contractName) public view
 returns(address)
 ```
@@ -20,6 +22,14 @@ returns(address)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | contractName | bytes32 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addressOf(bytes32 contractName) public view returns (address);
+```
+</details>
 
 ## Contracts
 
@@ -35,6 +45,7 @@ returns(address)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -156,7 +167,7 @@ returns(address)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

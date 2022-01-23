@@ -28,12 +28,14 @@ event VaultWithdraw(address indexed asset, address indexed to, uint256  amount);
 - [vaultTransfer(address token, address from, address to, uint256 value)](#vaulttransfer)
 - [vaultApprove(address token, address to, uint256 value)](#vaultapprove)
 
-### vaultEtherDeposit
+---    
+
+> ### vaultEtherDeposit
 
 Deposit wrBTC into the vault.
 	 *
 
-```js
+```solidity
 function vaultEtherDeposit(address from, uint256 value) internal nonpayable
 ```
 
@@ -44,12 +46,27 @@ function vaultEtherDeposit(address from, uint256 value) internal nonpayable
 | from | address | The address of the account paying the deposit. | 
 | value | uint256 | The amount of wrBTC tokens to transfer. | 
 
-### vaultEtherWithdraw
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function vaultEtherDeposit(address from, uint256 value) internal {
+		IWrbtcERC20 _wrbtcToken = wrbtcToken;
+		_wrbtcToken.deposit.value(value)();
+
+		emit VaultDeposit(address(_wrbtcToken), from, value);
+	}
+```
+</details>
+
+---    
+
+> ### vaultEtherWithdraw
 
 Withdraw wrBTC from the vault.
 	 *
 
-```js
+```solidity
 function vaultEtherWithdraw(address to, uint256 value) internal nonpayable
 ```
 
@@ -60,12 +77,33 @@ function vaultEtherWithdraw(address to, uint256 value) internal nonpayable
 | to | address | The address of the recipient. | 
 | value | uint256 | The amount of wrBTC tokens to transfer. | 
 
-### vaultDeposit
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function vaultEtherWithdraw(address to, uint256 value) internal {
+		if (value != 0) {
+			IWrbtcERC20 _wrbtcToken = wrbtcToken;
+			uint256 balance = address(this).balance;
+			if (value > balance) {
+				_wrbtcToken.withdraw(value - balance);
+			}
+			Address.sendValue(to, value);
+
+			emit VaultWithdraw(address(_wrbtcToken), to, value);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### vaultDeposit
 
 Deposit tokens into the vault.
 	 *
 
-```js
+```solidity
 function vaultDeposit(address token, address from, uint256 value) internal nonpayable
 ```
 
@@ -77,12 +115,32 @@ function vaultDeposit(address token, address from, uint256 value) internal nonpa
 | from | address | The address of the account paying the deposit. | 
 | value | uint256 | The amount of tokens to transfer. | 
 
-### vaultWithdraw
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function vaultDeposit(
+		address token,
+		address from,
+		uint256 value
+	) internal {
+		if (value != 0) {
+			IERC20(token).safeTransferFrom(from, address(this), value);
+
+			emit VaultDeposit(token, from, value);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### vaultWithdraw
 
 Withdraw tokens from the vault.
 	 *
 
-```js
+```solidity
 function vaultWithdraw(address token, address to, uint256 value) internal nonpayable
 ```
 
@@ -94,12 +152,32 @@ function vaultWithdraw(address token, address to, uint256 value) internal nonpay
 | to | address | ken The address of the token instance. | 
 | value | uint256 | The amount of tokens to transfer. | 
 
-### vaultTransfer
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function vaultWithdraw(
+		address token,
+		address to,
+		uint256 value
+	) internal {
+		if (value != 0) {
+			IERC20(token).safeTransfer(to, value);
+
+			emit VaultWithdraw(token, to, value);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### vaultTransfer
 
 Transfer tokens from an account into another one.
 	 *
 
-```js
+```solidity
 function vaultTransfer(address token, address from, address to, uint256 value) internal nonpayable
 ```
 
@@ -112,12 +190,35 @@ function vaultTransfer(address token, address from, address to, uint256 value) i
 | to | address | ken The address of the token instance. | 
 | value | uint256 | The amount of tokens to transfer. | 
 
-### vaultApprove
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function vaultTransfer(
+		address token,
+		address from,
+		address to,
+		uint256 value
+	) internal {
+		if (value != 0) {
+			if (from == address(this)) {
+				IERC20(token).safeTransfer(to, value);
+			} else {
+				IERC20(token).safeTransferFrom(from, to, value);
+			}
+		}
+	}
+```
+</details>
+
+---    
+
+> ### vaultApprove
 
 Approve an allowance of tokens to be spent by an account.
 	 *
 
-```js
+```solidity
 function vaultApprove(address token, address to, uint256 value) internal nonpayable
 ```
 
@@ -128,6 +229,23 @@ function vaultApprove(address token, address to, uint256 value) internal nonpaya
 | token | address | The address of the token instance. | 
 | to | address | ken The address of the token instance. | 
 | value | uint256 | The amount of tokens to allow. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function vaultApprove(
+		address token,
+		address to,
+		uint256 value
+	) internal {
+		if (value != 0 && IERC20(token).allowance(address(this), to) != 0) {
+			IERC20(token).safeApprove(to, 0);
+		}
+		IERC20(token).safeApprove(to, value);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -143,6 +261,7 @@ function vaultApprove(address token, address to, uint256 value) internal nonpaya
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -264,7 +383,7 @@ function vaultApprove(address token, address to, uint256 value) internal nonpaya
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

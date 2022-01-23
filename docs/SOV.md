@@ -22,15 +22,17 @@ uint8 internal constant DECIMALS;
 
 ## Functions
 
-- [(uint256 _initialAmount)](#)
+- [constructor(uint256 _initialAmount)](#constructor)
 - [mint(address _account, uint256 _amount)](#mint)
 - [approveAndCall(address _spender, uint256 _amount, bytes _data)](#approveandcall)
 
-### 
+---    
+
+> ### constructor
 
 Constructor called on deployment, initiates the contract.
 
-```js
+```solidity
 function (uint256 _initialAmount) public nonpayable ERC20Detailed 
 ```
 
@@ -40,11 +42,25 @@ function (uint256 _initialAmount) public nonpayable ERC20Detailed
 | ------------- |------------- | -----|
 | _initialAmount | uint256 | The amount of tokens to be minted on contract creation. | 
 
-### mint
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(uint256 _initialAmount) public ERC20Detailed(NAME, SYMBOL, DECIMALS) {
+		if (_initialAmount != 0) {
+			_mint(msg.sender, _initialAmount);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### mint
 
 Creates new tokens and sends them to the recipient.
 
-```js
+```solidity
 function mint(address _account, uint256 _amount) public nonpayable onlyOwner 
 ```
 
@@ -55,14 +71,26 @@ function mint(address _account, uint256 _amount) public nonpayable onlyOwner
 | _account | address | The recipient address to get the minted tokens. | 
 | _amount | uint256 | The amount of tokens to be minted. | 
 
-### approveAndCall
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function mint(address _account, uint256 _amount) public onlyOwner {
+		_mint(_account, _amount);
+	}
+```
+</details>
+
+---    
+
+> ### approveAndCall
 
 Approves and then calls the receiving contract.
 Useful to encapsulate sending tokens to a contract in one call.
 Solidity has no native way to send tokens to contracts.
 ERC-20 tokens require approval to be spent by third parties, such as a contract in this case.
 
-```js
+```solidity
 function approveAndCall(address _spender, uint256 _amount, bytes _data) public nonpayable
 ```
 
@@ -73,6 +101,21 @@ function approveAndCall(address _spender, uint256 _amount, bytes _data) public n
 | _spender | address | The contract address to spend the tokens. | 
 | _amount | uint256 | The amount of tokens to be sent. | 
 | _data | bytes | Parameters for the contract call, such as endpoint signature. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function approveAndCall(
+		address _spender,
+		uint256 _amount,
+		bytes memory _data
+	) public {
+		approve(_spender, _amount);
+		IApproveAndCall(_spender).receiveApproval(msg.sender, _amount, address(this), _data);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -88,6 +131,7 @@ function approveAndCall(address _spender, uint256 _amount, bytes _data) public n
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -209,7 +253,7 @@ function approveAndCall(address _spender, uint256 _amount, bytes _data) public n
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

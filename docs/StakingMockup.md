@@ -29,9 +29,11 @@ uint96 internal priorWeightedStake;
 - [_getCodeHash(address _contract)](#_getcodehash)
 - [isVestingContract(address stakerAddress)](#isvestingcontract)
 
-### balanceOf_MultipliedByTwo
+---    
 
-```js
+> ### balanceOf_MultipliedByTwo
+
+```solidity
 function balanceOf_MultipliedByTwo(address account) external view
 returns(uint256)
 ```
@@ -42,9 +44,21 @@ returns(uint256)
 | ------------- |------------- | -----|
 | account | address |  | 
 
-### MOCK_priorTotalVotingPower
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function balanceOf_MultipliedByTwo(address account) external view returns (uint256) {
+		return balanceOf(account) * 2;
+	}
+```
+</details>
+
+---    
+
+> ### MOCK_priorTotalVotingPower
+
+```solidity
 function MOCK_priorTotalVotingPower(uint96 _priorTotalVotingPower) public nonpayable
 ```
 
@@ -54,11 +68,23 @@ function MOCK_priorTotalVotingPower(uint96 _priorTotalVotingPower) public nonpay
 | ------------- |------------- | -----|
 | _priorTotalVotingPower | uint96 |  | 
 
-### getPriorTotalVotingPower
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [WeightedStaking.getPriorTotalVotingPower](WeightedStaking.md#getpriortotalvotingpower)
+```javascript
+function MOCK_priorTotalVotingPower(uint96 _priorTotalVotingPower) public {
+		priorTotalVotingPower = _priorTotalVotingPower;
+	}
+```
+</details>
 
-```js
+---    
+
+> ### getPriorTotalVotingPower
+
+undefined
+
+```solidity
 function getPriorTotalVotingPower(uint32 blockNumber, uint256 time) public view
 returns(totalVotingPower uint96)
 ```
@@ -70,9 +96,21 @@ returns(totalVotingPower uint96)
 | blockNumber | uint32 |  | 
 | time | uint256 |  | 
 
-### MOCK_priorWeightedStake
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getPriorTotalVotingPower(uint32 blockNumber, uint256 time) public view returns (uint96 totalVotingPower) {
+		return priorTotalVotingPower != 0 ? priorTotalVotingPower : super.getPriorTotalVotingPower(blockNumber, time);
+	}
+```
+</details>
+
+---    
+
+> ### MOCK_priorWeightedStake
+
+```solidity
 function MOCK_priorWeightedStake(uint96 _priorWeightedStake) public nonpayable
 ```
 
@@ -82,11 +120,23 @@ function MOCK_priorWeightedStake(uint96 _priorWeightedStake) public nonpayable
 | ------------- |------------- | -----|
 | _priorWeightedStake | uint96 |  | 
 
-### getPriorWeightedStake
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [WeightedStaking.getPriorWeightedStake](WeightedStaking.md#getpriorweightedstake)
+```javascript
+function MOCK_priorWeightedStake(uint96 _priorWeightedStake) public {
+		priorWeightedStake = _priorWeightedStake;
+	}
+```
+</details>
 
-```js
+---    
+
+> ### getPriorWeightedStake
+
+undefined
+
+```solidity
 function getPriorWeightedStake(address account, uint256 blockNumber, uint256 date) public view
 returns(uint96)
 ```
@@ -99,9 +149,25 @@ returns(uint96)
 | blockNumber | uint256 |  | 
 | date | uint256 |  | 
 
-### calculatePriorWeightedStake
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getPriorWeightedStake(
+		address account,
+		uint256 blockNumber,
+		uint256 date
+	) public view returns (uint96) {
+		return priorWeightedStake != 0 ? priorWeightedStake : super.getPriorWeightedStake(account, blockNumber, date);
+	}
+```
+</details>
+
+---    
+
+> ### calculatePriorWeightedStake
+
+```solidity
 function calculatePriorWeightedStake(address account, uint256 blockNumber, uint256 date) public nonpayable
 ```
 
@@ -113,11 +179,27 @@ function calculatePriorWeightedStake(address account, uint256 blockNumber, uint2
 | blockNumber | uint256 |  | 
 | date | uint256 |  | 
 
-### setDelegateStake
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function calculatePriorWeightedStake(
+		address account,
+		uint256 blockNumber,
+		uint256 date
+	) public {
+		super.getPriorWeightedStake(account, blockNumber, date);
+	}
+```
+</details>
+
+---    
+
+> ### setDelegateStake
 
 We need this function to simulate zero delegate checkpoint value.
 
-```js
+```solidity
 function setDelegateStake(address delegatee, uint256 lockedTS, uint96 value) public nonpayable
 ```
 
@@ -129,13 +211,31 @@ function setDelegateStake(address delegatee, uint256 lockedTS, uint96 value) pub
 | lockedTS | uint256 |  | 
 | value | uint96 |  | 
 
-### addContractCodeHash
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [WeightedStaking.addContractCodeHash](WeightedStaking.md#addcontractcodehash)
+```javascript
+function setDelegateStake(
+		address delegatee,
+		uint256 lockedTS,
+		uint96 value
+	) public {
+		uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
+		uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
+		_writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, 0);
+	}
+```
+</details>
+
+---    
+
+> ### addContractCodeHash
+
+undefined
 
 Add vesting contract's code hash to a map of code hashes.
 
-```js
+```solidity
 function addContractCodeHash(address vesting) public nonpayable onlyAuthorized 
 ```
 
@@ -145,13 +245,27 @@ function addContractCodeHash(address vesting) public nonpayable onlyAuthorized
 | ------------- |------------- | -----|
 | vesting | address | The address of Vesting contract. | 
 
-### removeContractCodeHash
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [WeightedStaking.removeContractCodeHash](WeightedStaking.md#removecontractcodehash)
+```javascript
+function addContractCodeHash(address vesting) public onlyAuthorized {
+		bytes32 codeHash = _getCodeHash(vesting);
+		vestingCodeHashes[codeHash] = true;
+		emit ContractCodeHashAdded(codeHash);
+	}
+```
+</details>
+
+---    
+
+> ### removeContractCodeHash
+
+undefined
 
 Add vesting contract's code hash to a map of code hashes.
 
-```js
+```solidity
 function removeContractCodeHash(address vesting) public nonpayable onlyAuthorized 
 ```
 
@@ -161,13 +275,27 @@ function removeContractCodeHash(address vesting) public nonpayable onlyAuthorize
 | ------------- |------------- | -----|
 | vesting | address | The address of Vesting contract. | 
 
-### _getCodeHash
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [WeightedStaking._getCodeHash](WeightedStaking.md#_getcodehash)
+```javascript
+function removeContractCodeHash(address vesting) public onlyAuthorized {
+		bytes32 codeHash = _getCodeHash(vesting);
+		vestingCodeHashes[codeHash] = false;
+		emit ContractCodeHashRemoved(codeHash);
+	}
+```
+</details>
+
+---    
+
+> ### _getCodeHash
+
+undefined
 
 Return hash of contract code
 
-```js
+```solidity
 function _getCodeHash(address _contract) internal view
 returns(bytes32)
 ```
@@ -178,13 +306,29 @@ returns(bytes32)
 | ------------- |------------- | -----|
 | _contract | address |  | 
 
-### isVestingContract
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [WeightedStaking.isVestingContract](WeightedStaking.md#isvestingcontract)
+```javascript
+function _getCodeHash(address _contract) internal view returns (bytes32) {
+		bytes32 codeHash;
+		assembly {
+			codeHash := extcodehash(_contract)
+		}
+		return codeHash;
+	}
+```
+</details>
+
+---    
+
+> ### isVestingContract
+
+undefined
 
 Return flag whether the given address is a registered vesting contract.
 
-```js
+```solidity
 function isVestingContract(address stakerAddress) public view
 returns(bool)
 ```
@@ -194,6 +338,17 @@ returns(bool)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | stakerAddress | address | the address to check | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function isVestingContract(address stakerAddress) public view returns (bool) {
+		bytes32 codeHash = _getCodeHash(stakerAddress);
+		return vestingCodeHashes[codeHash];
+	}
+```
+</details>
 
 ## Contracts
 
@@ -209,6 +364,7 @@ returns(bool)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -330,7 +486,7 @@ returns(bool)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -11,9 +11,11 @@ View Source: [contracts/modules/interfaces/ProtocolAffiliatesInterface.sol](../c
 - [getUserNotFirstTradeFlag(address user_)](#getusernotfirsttradeflag)
 - [payTradingFeeToAffiliatesReferrer(address affiliate, address trader, address token, uint256 amount)](#paytradingfeetoaffiliatesreferrer)
 
-### setAffiliatesReferrer
+---    
 
-```js
+> ### setAffiliatesReferrer
+
+```solidity
 function setAffiliatesReferrer(address user, address referrer) external nonpayable
 ```
 
@@ -24,9 +26,19 @@ function setAffiliatesReferrer(address user, address referrer) external nonpayab
 | user | address |  | 
 | referrer | address |  | 
 
-### setUserNotFirstTradeFlag
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setAffiliatesReferrer(address user, address referrer) external;
+```
+</details>
+
+---    
+
+> ### setUserNotFirstTradeFlag
+
+```solidity
 function setUserNotFirstTradeFlag(address user_) external nonpayable
 ```
 
@@ -36,9 +48,19 @@ function setUserNotFirstTradeFlag(address user_) external nonpayable
 | ------------- |------------- | -----|
 | user_ | address |  | 
 
-### getUserNotFirstTradeFlag
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setUserNotFirstTradeFlag(address user_) external;
+```
+</details>
+
+---    
+
+> ### getUserNotFirstTradeFlag
+
+```solidity
 function getUserNotFirstTradeFlag(address user_) external nonpayable
 returns(bool)
 ```
@@ -49,9 +71,19 @@ returns(bool)
 | ------------- |------------- | -----|
 | user_ | address |  | 
 
-### payTradingFeeToAffiliatesReferrer
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getUserNotFirstTradeFlag(address user_) external returns (bool);
+```
+</details>
+
+---    
+
+> ### payTradingFeeToAffiliatesReferrer
+
+```solidity
 function payTradingFeeToAffiliatesReferrer(address affiliate, address trader, address token, uint256 amount) external nonpayable
 returns(affiliatesBonusSOVAmount uint256, affiliatesBonusTokenAmount uint256)
 ```
@@ -64,6 +96,19 @@ returns(affiliatesBonusSOVAmount uint256, affiliatesBonusTokenAmount uint256)
 | trader | address |  | 
 | token | address |  | 
 | amount | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function payTradingFeeToAffiliatesReferrer(
+		address affiliate,
+		address trader,
+		address token,
+		uint256 amount
+	) external returns (uint256 affiliatesBonusSOVAmount, uint256 affiliatesBonusTokenAmount);
+```
+</details>
 
 ## Contracts
 
@@ -79,6 +124,7 @@ returns(affiliatesBonusSOVAmount uint256, affiliatesBonusTokenAmount uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -200,7 +246,7 @@ returns(affiliatesBonusSOVAmount uint256, affiliatesBonusTokenAmount uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

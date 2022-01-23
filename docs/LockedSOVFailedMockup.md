@@ -36,24 +36,21 @@ event AdminRemoved(address indexed _initiator, address indexed _removedAdmin);
 modifier onlyAdmin() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ## Functions
 
-- [(address _SOV, address[] _admins)](#)
+- [constructor(address _SOV, address[] _admins)](#constructor)
 - [addAdmin(address _newAdmin)](#addadmin)
 - [removeAdmin(address _adminToRemove)](#removeadmin)
 - [depositSOV(address _userAddress, uint256 _sovAmount)](#depositsov)
 - [getLockedBalance(address _addr)](#getlockedbalance)
 
-### 
+---    
+
+> ### constructor
 
 Setup the required parameters.
 
-```js
+```solidity
 function (address _SOV, address[] _admins) public nonpayable
 ```
 
@@ -64,11 +61,27 @@ function (address _SOV, address[] _admins) public nonpayable
 | _SOV | address | The SOV token address. | 
 | _admins | address[] | The list of admins to be added. | 
 
-### addAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(address _SOV, address[] memory _admins) public {
+		require(_SOV != address(0), "Invalid SOV Address.");
+		SOV = IERC20(_SOV);
+		for (uint256 index = 0; index < _admins.length; index++) {
+			isAdmin[_admins[index]] = true;
+		}
+	}
+```
+</details>
+
+---    
+
+> ### addAdmin
 
 The function to add a new admin.
 
-```js
+```solidity
 function addAdmin(address _newAdmin) public nonpayable onlyAdmin 
 ```
 
@@ -78,11 +91,27 @@ function addAdmin(address _newAdmin) public nonpayable onlyAdmin
 | ------------- |------------- | -----|
 | _newAdmin | address | The address of the new admin. | 
 
-### removeAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addAdmin(address _newAdmin) public onlyAdmin {
+		require(_newAdmin != address(0), "Invalid Address");
+		require(!isAdmin[_newAdmin], "Address is already admin");
+		isAdmin[_newAdmin] = true;
+
+		emit AdminAdded(msg.sender, _newAdmin);
+	}
+```
+</details>
+
+---    
+
+> ### removeAdmin
 
 The function to remove an admin.
 
-```js
+```solidity
 function removeAdmin(address _adminToRemove) public nonpayable onlyAdmin 
 ```
 
@@ -92,11 +121,26 @@ function removeAdmin(address _adminToRemove) public nonpayable onlyAdmin
 | ------------- |------------- | -----|
 | _adminToRemove | address | The address of the admin which should be removed. | 
 
-### depositSOV
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function removeAdmin(address _adminToRemove) public onlyAdmin {
+		require(isAdmin[_adminToRemove], "Address is not an admin");
+		isAdmin[_adminToRemove] = false;
+
+		emit AdminRemoved(msg.sender, _adminToRemove);
+	}
+```
+</details>
+
+---    
+
+> ### depositSOV
 
 Adds SOV to the locked balance of a user.
 
-```js
+```solidity
 function depositSOV(address _userAddress, uint256 _sovAmount) external nonpayable
 ```
 
@@ -107,24 +151,50 @@ function depositSOV(address _userAddress, uint256 _sovAmount) external nonpayabl
 | _userAddress | address | The user whose locked balance has to be updated with _sovAmount. | 
 | _sovAmount | uint256 | The amount of SOV to be added to the locked balance. | 
 
-### getLockedBalance
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function depositSOV(address _userAddress, uint256 _sovAmount) external {
+		revert("For testing purposes");
+		bool txStatus = SOV.transferFrom(msg.sender, address(this), _sovAmount);
+		require(txStatus, "Token transfer was not successful. Check receiver address.");
+
+		lockedBalances[_userAddress] = lockedBalances[_userAddress].add(_sovAmount);
+	}
+```
+</details>
+
+---    
+
+> ### getLockedBalance
 
 The function to get the locked balance of a user.
 
-```js
+```solidity
 function getLockedBalance(address _addr) public view
 returns(_balance uint256)
 ```
-
-**Returns**
-
-_balance The locked balance of the address `_addr`.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _addr | address | The address of the user to check the locked balance. | 
+
+**Returns**
+
+_balance The locked balance of the address `_addr`.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getLockedBalance(address _addr) public view returns (uint256 _balance) {
+		return lockedBalances[_addr];
+	}
+```
+</details>
 
 ## Contracts
 
@@ -140,6 +210,7 @@ _balance The locked balance of the address `_addr`.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -261,7 +332,7 @@ _balance The locked balance of the address `_addr`.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

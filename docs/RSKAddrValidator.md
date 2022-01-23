@@ -9,9 +9,11 @@ View Source: [contracts/rsk/RSKAddrValidator.sol](../contracts/rsk/RSKAddrValida
 - [checkPKNotZero(address addr)](#checkpknotzero)
 - [safeEquals(address addr1, address addr2)](#safeequals)
 
-### checkPKNotZero
+---    
 
-```js
+> ### checkPKNotZero
+
+```solidity
 function checkPKNotZero(address addr) internal pure
 returns(bool)
 ```
@@ -22,9 +24,21 @@ returns(bool)
 | ------------- |------------- | -----|
 | addr | address |  | 
 
-### safeEquals
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function checkPKNotZero(address addr) internal pure returns (bool) {
+		return (addr != 0xdcc703c0E500B653Ca82273B7BFAd8045D85a470 && addr != address(0));
+	}
+```
+</details>
+
+---    
+
+> ### safeEquals
+
+```solidity
 function safeEquals(address addr1, address addr2) internal pure
 returns(bool)
 ```
@@ -35,6 +49,16 @@ returns(bool)
 | ------------- |------------- | -----|
 | addr1 | address |  | 
 | addr2 | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function safeEquals(address addr1, address addr2) internal pure returns (bool) {
+		return (addr1 == addr2 && addr1 != 0xdcc703c0E500B653Ca82273B7BFAd8045D85a470 && addr1 != address(0));
+	}
+```
+</details>
 
 ## Contracts
 
@@ -50,6 +74,7 @@ returns(bool)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -171,7 +196,7 @@ returns(bool)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -15,19 +15,17 @@ View Source: [contracts/swaps/SwapsUser.sol](../contracts/swaps/SwapsUser.sol)
 - [_swapsExpectedReturn(address sourceToken, address destToken, uint256 sourceTokenAmount)](#_swapsexpectedreturn)
 - [_checkSwapSize(address tokenAddress, uint256 amount)](#_checkswapsize)
 
-### _loanSwap
+---    
+
+> ### _loanSwap
 
 Internal loan swap.
 	 *
 
-```js
+```solidity
 function _loanSwap(bytes32 loanId, address sourceToken, address destToken, address user, uint256 minSourceTokenAmount, uint256 maxSourceTokenAmount, uint256 requiredDestTokenAmount, bool bypassFee, bytes loanDataBytes) internal nonpayable
 returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256, sourceToDestSwapRate uint256)
 ```
-
-**Returns**
-
-destTokenAmountReceived
 
 **Arguments**
 
@@ -41,23 +39,77 @@ destTokenAmountReceived
 | maxSourceTokenAmount | uint256 | The maximum amount of source tokens to swap. | 
 | requiredDestTokenAmount | uint256 | The required amount of destination tokens. | 
 | bypassFee | bool | To bypass or not the fee. | 
-| loanDataBytes | bytes | The payload for the call. These loan DataBytes are
-  additional loan data (not in use for token swaps).
-	 * | 
+| loanDataBytes | bytes | The payload for the call. These loan DataBytes are   additional loan data (not in use for token swaps). 	 * | 
 
-### _swapsCall
+**Returns**
+
+destTokenAmountReceived
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _loanSwap(
+		bytes32 loanId,
+		address sourceToken,
+		address destToken,
+		address user,
+		uint256 minSourceTokenAmount,
+		uint256 maxSourceTokenAmount,
+		uint256 requiredDestTokenAmount,
+		bool bypassFee,
+		bytes memory loanDataBytes
+	)
+		internal
+		returns (
+			uint256 destTokenAmountReceived,
+			uint256 sourceTokenAmountUsed,
+			uint256 sourceToDestSwapRate
+		)
+	{
+		(destTokenAmountReceived, sourceTokenAmountUsed) = _swapsCall(
+			[
+				sourceToken,
+				destToken,
+				address(this), // receiver
+				address(this), // returnToSender
+				user
+			],
+			[minSourceTokenAmount, maxSourceTokenAmount, requiredDestTokenAmount],
+			loanId,
+			bypassFee,
+			loanDataBytes,
+			false // swap external flag, set to false so that it will use the tradingFeePercent
+		);
+
+		/// Will revert if swap size too large.
+		_checkSwapSize(sourceToken, sourceTokenAmountUsed);
+
+		/// Will revert if disagreement found.
+		sourceToDestSwapRate = IPriceFeeds(priceFeeds).checkPriceDisagreement(
+			sourceToken,
+			destToken,
+			sourceTokenAmountUsed,
+			destTokenAmountReceived,
+			maxDisagreement
+		);
+
+		emit LoanSwap(loanId, sourceToken, destToken, user, sourceTokenAmountUsed, destTokenAmountReceived);
+	}
+```
+</details>
+
+---    
+
+> ### _swapsCall
 
 Calculate amount of source and destiny tokens.
 	 *
 
-```js
+```solidity
 function _swapsCall(address[5] addrs, uint256[3] vals, bytes32 loanId, bool miscBool, bytes loanDataBytes, bool isSwapExternal) internal nonpayable
 returns(uint256, uint256)
 ```
-
-**Returns**
-
-destTokenAmountReceived The amount of destiny tokens received.
 
 **Arguments**
 
@@ -67,38 +119,182 @@ destTokenAmountReceived The amount of destiny tokens received.
 | vals | uint256[3] | The array of values. | 
 | loanId | bytes32 | The Id of the associated loan. | 
 | miscBool | bool | True/false to bypassFee. | 
-| loanDataBytes | bytes | Additional loan data (not in use yet).
-	 * | 
+| loanDataBytes | bytes | Additional loan data (not in use yet). 	 * | 
 | isSwapExternal | bool |  | 
-
-### _swapsCall_internal
-
-Calculate amount of source and destiny tokens.
-	 *
-
-```js
-function _swapsCall_internal(address[5] addrs, uint256[3] vals) internal nonpayable
-returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256)
-```
 
 **Returns**
 
 destTokenAmountReceived The amount of destiny tokens received.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _swapsCall(
+		address[5] memory addrs,
+		uint256[3] memory vals,
+		bytes32 loanId,
+		bool miscBool, /// bypassFee
+		bytes memory loanDataBytes,
+		bool isSwapExternal
+	) internal returns (uint256, uint256) {
+		/// addrs[0]: sourceToken
+		/// addrs[1]: destToken
+		/// addrs[2]: receiver
+		/// addrs[3]: returnToSender
+		/// addrs[4]: user
+		/// vals[0]:  minSourceTokenAmount
+		/// vals[1]:  maxSourceTokenAmount
+		/// vals[2]:  requiredDestTokenAmount
+
+		require(vals[0] != 0 || vals[1] != 0, "min or max source token amount needs to be set");
+
+		if (vals[1] == 0) {
+			vals[1] = vals[0];
+		}
+		require(vals[0] <= vals[1], "sourceAmount larger than max");
+
+		uint256 destTokenAmountReceived;
+		uint256 sourceTokenAmountUsed;
+
+		uint256 tradingFee;
+		if (!miscBool) {
+			/// bypassFee
+			if (vals[2] == 0) {
+				/// condition: vals[0] will always be used as sourceAmount
+
+				if (isSwapExternal) {
+					tradingFee = _getSwapExternalFee(vals[0]);
+				} else {
+					tradingFee = _getTradingFee(vals[0]);
+				}
+
+				if (tradingFee != 0) {
+					_payTradingFee(
+						addrs[4], /// user
+						loanId,
+						addrs[0], /// sourceToken (feeToken)
+						addrs[1], /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
+						tradingFee
+					);
+
+					vals[0] = vals[0].sub(tradingFee);
+				}
+			} else {
+				/// Condition: unknown sourceAmount will be used.
+
+				if (isSwapExternal) {
+					tradingFee = _getSwapExternalFee(vals[2]);
+				} else {
+					tradingFee = _getTradingFee(vals[2]);
+				}
+
+				if (tradingFee != 0) {
+					vals[2] = vals[2].add(tradingFee);
+				}
+			}
+		}
+
+		require(loanDataBytes.length == 0, "invalid state");
+
+		(destTokenAmountReceived, sourceTokenAmountUsed) = _swapsCall_internal(addrs, vals);
+
+		if (vals[2] == 0) {
+			/// There's no minimum destTokenAmount, but all of vals[0]
+			/// (minSourceTokenAmount) must be spent.
+			require(sourceTokenAmountUsed == vals[0], "swap too large to fill");
+
+			if (tradingFee != 0) {
+				sourceTokenAmountUsed = sourceTokenAmountUsed.add(tradingFee);
+			}
+		} else {
+			/// There's a minimum destTokenAmount required, but
+			/// sourceTokenAmountUsed won't be greater
+			/// than vals[1] (maxSourceTokenAmount)
+			require(sourceTokenAmountUsed <= vals[1], "swap fill too large");
+			require(destTokenAmountReceived >= vals[2], "insufficient swap liquidity");
+
+			if (tradingFee != 0) {
+				_payTradingFee(
+					addrs[4], /// user
+					loanId, /// loanId,
+					addrs[1], /// destToken (feeToken)
+					addrs[0], /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
+					tradingFee
+				);
+
+				destTokenAmountReceived = destTokenAmountReceived.sub(tradingFee);
+			}
+		}
+
+		return (destTokenAmountReceived, sourceTokenAmountUsed);
+	}
+```
+</details>
+
+---    
+
+> ### _swapsCall_internal
+
+Calculate amount of source and destiny tokens.
+	 *
+
+```solidity
+function _swapsCall_internal(address[5] addrs, uint256[3] vals) internal nonpayable
+returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256)
+```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | addrs | address[5] | The array of addresses. | 
-| vals | uint256[3] | The array of values.
-	 * | 
+| vals | uint256[3] | The array of values. 	 * | 
 
-### _swapsExpectedReturn
+**Returns**
+
+destTokenAmountReceived The amount of destiny tokens received.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _swapsCall_internal(address[5] memory addrs, uint256[3] memory vals)
+		internal
+		returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
+	{
+		bytes memory data =
+			abi.encodeWithSelector(
+				ISwapsImpl(swapsImpl).internalSwap.selector,
+				addrs[0], /// sourceToken
+				addrs[1], /// destToken
+				addrs[2], /// receiverAddress
+				addrs[3], /// returnToSenderAddress
+				vals[0], /// minSourceTokenAmount
+				vals[1], /// maxSourceTokenAmount
+				vals[2] /// requiredDestTokenAmount
+			);
+
+		bool success;
+		(success, data) = swapsImpl.delegatecall(data);
+		require(success, "swap failed");
+
+		assembly {
+			destTokenAmountReceived := mload(add(data, 32))
+			sourceTokenAmountUsed := mload(add(data, 64))
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _swapsExpectedReturn
 
 Calculate expected amount of destiny tokens.
 	 *
 
-```js
+```solidity
 function _swapsExpectedReturn(address sourceToken, address destToken, uint256 sourceTokenAmount) internal view
 returns(destTokenAmount uint256)
 ```
@@ -109,15 +305,35 @@ returns(destTokenAmount uint256)
 | ------------- |------------- | -----|
 | sourceToken | address | The address of the source tokens. | 
 | destToken | address | The address of the destiny tokens. | 
-| sourceTokenAmount | uint256 | The amount of the source tokens.
-	 * | 
+| sourceTokenAmount | uint256 | The amount of the source tokens. 	 * | 
 
-### _checkSwapSize
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _swapsExpectedReturn(
+		address sourceToken,
+		address destToken,
+		uint256 sourceTokenAmount
+	) internal view returns (uint256 destTokenAmount) {
+		destTokenAmount = ISwapsImpl(swapsImpl).internalExpectedReturn(
+			sourceToken,
+			destToken,
+			sourceTokenAmount,
+			sovrynSwapContractRegistryAddress
+		);
+	}
+```
+</details>
+
+---    
+
+> ### _checkSwapSize
 
 Verify that the amount of tokens are under the swap limit.
 	 *
 
-```js
+```solidity
 function _checkSwapSize(address tokenAddress, uint256 amount) internal view
 ```
 
@@ -127,6 +343,25 @@ function _checkSwapSize(address tokenAddress, uint256 amount) internal view
 | ------------- |------------- | -----|
 | tokenAddress | address | The address of the token to calculate price. | 
 | amount | uint256 | The amount of tokens to calculate price. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _checkSwapSize(address tokenAddress, uint256 amount) internal view {
+		uint256 _maxSwapSize = maxSwapSize;
+		if (_maxSwapSize != 0) {
+			uint256 amountInEth;
+			if (tokenAddress == address(wrbtcToken)) {
+				amountInEth = amount;
+			} else {
+				amountInEth = IPriceFeeds(priceFeeds).amountInEth(tokenAddress, amount);
+			}
+			require(amountInEth <= _maxSwapSize, "swap too large");
+		}
+	}
+```
+</details>
 
 ## Contracts
 
@@ -142,6 +377,7 @@ function _checkSwapSize(address tokenAddress, uint256 amount) internal view
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -263,7 +499,7 @@ function _checkSwapSize(address tokenAddress, uint256 amount) internal view
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

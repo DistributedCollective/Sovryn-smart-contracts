@@ -63,11 +63,6 @@ wrapper marked as `nonReentrant`.
 modifier nonReentrant() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ## Functions
 
 - [withdrawFees(address[] tokens, address receiver)](#withdrawfees)
@@ -75,28 +70,39 @@ modifier nonReentrant() internal
 - [wrbtcToken()](#wrbtctoken)
 - [getSovTokenAddress()](#getsovtokenaddress)
 
-### withdrawFees
+---    
 
-```js
+> ### withdrawFees
+
+```solidity
 function withdrawFees(address[] tokens, address receiver) external nonpayable
 returns(totalWRBTCWithdrawn uint256)
 ```
-
-**Returns**
-
-The withdrawn total amount in wRBTC
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | tokens | address[] | The array address of the token instance. | 
-| receiver | address | The address of the withdrawal recipient.
-	 * | 
+| receiver | address | The address of the withdrawal recipient. 	 * | 
 
-### underlyingToLoanPool
+**Returns**
 
-```js
+The withdrawn total amount in wRBTC
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawFees(address[] calldata tokens, address receiver) external returns (uint256 totalWRBTCWithdrawn);
+```
+</details>
+
+---    
+
+> ### underlyingToLoanPool
+
+```solidity
 function underlyingToLoanPool(address token) external nonpayable
 returns(address)
 ```
@@ -107,29 +113,47 @@ returns(address)
 | ------------- |------------- | -----|
 | token | address |  | 
 
-### wrbtcToken
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function underlyingToLoanPool(address token) external returns (address);
+```
+</details>
+
+---    
+
+> ### wrbtcToken
+
+```solidity
 function wrbtcToken() external nonpayable
 returns(address)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function wrbtcToken() external returns (address);
+```
+</details>
 
-### getSovTokenAddress
+---    
 
-```js
+> ### getSovTokenAddress
+
+```solidity
 function getSovTokenAddress() external view
 returns(address)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getSovTokenAddress() external view returns (address);
+```
+</details>
 
 ## Contracts
 
@@ -145,6 +169,7 @@ returns(address)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -266,7 +291,7 @@ returns(address)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

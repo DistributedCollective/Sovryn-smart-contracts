@@ -20,15 +20,17 @@ address internal feesController;
 
 ## Functions
 
-- [(IERC20 _token0, IERC20 _token1)](#)
+- [constructor(IERC20 _token0, IERC20 _token1)](#constructor)
 - [setFeesController(address _feesController)](#setfeescontroller)
 - [setWrbtcToken(IERC20 _wrbtcToken)](#setwrbtctoken)
 - [setTotalFeeMockupValue(uint256 _totalFeeMockupValue)](#settotalfeemockupvalue)
 - [withdrawFees(address _receiver)](#withdrawfees)
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function (IERC20 _token0, IERC20 _token1) public nonpayable
 ```
 
@@ -39,9 +41,22 @@ function (IERC20 _token0, IERC20 _token1) public nonpayable
 | _token0 | IERC20 |  | 
 | _token1 | IERC20 |  | 
 
-### setFeesController
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+constructor(IERC20 _token0, IERC20 _token1) public {
+		reserveTokens.push(_token0);
+		reserveTokens.push(_token1);
+	}
+```
+</details>
+
+---    
+
+> ### setFeesController
+
+```solidity
 function setFeesController(address _feesController) public nonpayable
 ```
 
@@ -51,9 +66,21 @@ function setFeesController(address _feesController) public nonpayable
 | ------------- |------------- | -----|
 | _feesController | address |  | 
 
-### setWrbtcToken
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setFeesController(address _feesController) public {
+		feesController = _feesController;
+	}
+```
+</details>
+
+---    
+
+> ### setWrbtcToken
+
+```solidity
 function setWrbtcToken(IERC20 _wrbtcToken) public nonpayable
 ```
 
@@ -63,9 +90,21 @@ function setWrbtcToken(IERC20 _wrbtcToken) public nonpayable
 | ------------- |------------- | -----|
 | _wrbtcToken | IERC20 |  | 
 
-### setTotalFeeMockupValue
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setWrbtcToken(IERC20 _wrbtcToken) public {
+		wrbtcToken = _wrbtcToken;
+	}
+```
+</details>
+
+---    
+
+> ### setTotalFeeMockupValue
+
+```solidity
 function setTotalFeeMockupValue(uint256 _totalFeeMockupValue) public nonpayable
 ```
 
@@ -75,9 +114,21 @@ function setTotalFeeMockupValue(uint256 _totalFeeMockupValue) public nonpayable
 | ------------- |------------- | -----|
 | _totalFeeMockupValue | uint256 |  | 
 
-### withdrawFees
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setTotalFeeMockupValue(uint256 _totalFeeMockupValue) public {
+		totalFeeMockupValue = _totalFeeMockupValue;
+	}
+```
+</details>
+
+---    
+
+> ### withdrawFees
+
+```solidity
 function withdrawFees(address _receiver) external nonpayable
 returns(uint256)
 ```
@@ -87,6 +138,20 @@ returns(uint256)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _receiver | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawFees(address _receiver) external returns (uint256) {
+		require(msg.sender == feesController, "unauthorized");
+
+		// transfer wrbtc
+		wrbtcToken.transfer(_receiver, totalFeeMockupValue);
+		return totalFeeMockupValue;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -102,6 +167,7 @@ returns(uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -223,7 +289,7 @@ returns(uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -27,17 +27,19 @@ event RewardTokenWithdraw(address indexed _initiator, uint256  _amount);
 
 ## Functions
 
-- [(address _lockedSOV, address _SOV, address _multisig, uint256 _releaseTime, uint256 _depositLimit)](#)
+- [constructor(address _lockedSOV, address _SOV, address _multisig, uint256 _releaseTime, uint256 _depositLimit)](#constructor)
 - [updateLockedSOV(address _lockedSOV)](#updatelockedsov)
 - [depositRewardByMultisig(uint256 _amount)](#depositrewardbymultisig)
 - [withdrawTokensAndReward()](#withdrawtokensandreward)
 - [getReward(address _addr)](#getreward)
 
-### 
+---    
+
+> ### constructor
 
 Setup the required parameters.
 
-```js
+```solidity
 function (address _lockedSOV, address _SOV, address _multisig, uint256 _releaseTime, uint256 _depositLimit) public nonpayable Escrow 
 ```
 
@@ -51,11 +53,31 @@ function (address _lockedSOV, address _SOV, address _multisig, uint256 _releaseT
 | _releaseTime | uint256 | The token release time, zero if undecided. | 
 | _depositLimit | uint256 | The amount of tokens we will be accepting. | 
 
-### updateLockedSOV
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(
+		address _lockedSOV,
+		address _SOV,
+		address _multisig,
+		uint256 _releaseTime,
+		uint256 _depositLimit
+	) public Escrow(_SOV, _multisig, _releaseTime, _depositLimit) {
+		if (_lockedSOV != address(0)) {
+			lockedSOV = ILockedSOV(_lockedSOV);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### updateLockedSOV
 
 Set the Locked SOV Contract Address if not already done.
 
-```js
+```solidity
 function updateLockedSOV(address _lockedSOV) external nonpayable onlyMultisig 
 ```
 
@@ -65,11 +87,27 @@ function updateLockedSOV(address _lockedSOV) external nonpayable onlyMultisig
 | ------------- |------------- | -----|
 | _lockedSOV | address | The Locked SOV Contract address. | 
 
-### depositRewardByMultisig
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function updateLockedSOV(address _lockedSOV) external onlyMultisig {
+		require(_lockedSOV != address(0), "Invalid Reward Token Address.");
+
+		lockedSOV = ILockedSOV(_lockedSOV);
+
+		emit LockedSOVUpdated(msg.sender, _lockedSOV);
+	}
+```
+</details>
+
+---    
+
+> ### depositRewardByMultisig
 
 Deposit tokens to this contract by the Multisig.
 
-```js
+```solidity
 function depositRewardByMultisig(uint256 _amount) external nonpayable onlyMultisig 
 ```
 
@@ -79,37 +117,85 @@ function depositRewardByMultisig(uint256 _amount) external nonpayable onlyMultis
 | ------------- |------------- | -----|
 | _amount | uint256 | the amount of tokens deposited. | 
 
-### withdrawTokensAndReward
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function depositRewardByMultisig(uint256 _amount) external onlyMultisig {
+		require(status != Status.Withdraw, "Reward Token deposit is only allowed before User Withdraw starts.");
+		require(_amount > 0, "Amount needs to be bigger than zero.");
+
+		bool txStatus = SOV.transferFrom(msg.sender, address(this), _amount);
+		require(txStatus, "Token transfer was not successful.");
+
+		totalRewardDeposit = totalRewardDeposit.add(_amount);
+		txStatus = SOV.approve(address(lockedSOV), totalRewardDeposit);
+		require(txStatus, "Token Approval was not successful.");
+
+		emit RewardDepositByMultisig(msg.sender, _amount);
+	}
+```
+</details>
+
+---    
+
+> ### withdrawTokensAndReward
 
 Withdraws token and reward from the contract by User. Reward is gone to lockedSOV contract for future vesting.
 
-```js
+```solidity
 function withdrawTokensAndReward() external nonpayable checkRelease checkStatus 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function withdrawTokensAndReward() external checkRelease checkStatus(Status.Withdraw) {
+		// Reward calculation have to be done initially as the User Balance is zeroed out .
+		uint256 reward = userBalances[msg.sender].mul(totalRewardDeposit).div(totalDeposit);
+		withdrawTokens();
 
-### getReward
+		lockedSOV.depositSOV(msg.sender, reward);
+
+		emit RewardTokenWithdraw(msg.sender, reward);
+	}
+```
+</details>
+
+---    
+
+> ### getReward
 
 Function to read the reward a particular user can get.
 
-```js
+```solidity
 function getReward(address _addr) external view
 returns(reward uint256)
 ```
-
-**Returns**
-
-reward The reward received by the user.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _addr | address | The address of the user whose reward is to be read. | 
+
+**Returns**
+
+reward The reward received by the user.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getReward(address _addr) external view returns (uint256 reward) {
+		if (userBalances[_addr].mul(totalRewardDeposit) == 0) {
+			return 0;
+		}
+		return userBalances[_addr].mul(totalRewardDeposit).div(totalDeposit);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -125,6 +211,7 @@ reward The reward received by the user.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -246,7 +333,7 @@ reward The reward received by the user.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

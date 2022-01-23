@@ -87,9 +87,11 @@ event ToggledFunctionPaused(string  functionId, bool  prevFlag, bool  newFlag);
 - [balanceOf(address _owner)](#balanceof)
 - [totalSupply()](#totalsupply)
 
-### setAdmin
+---    
 
-```js
+> ### setAdmin
+
+```solidity
 function setAdmin(address _admin) external nonpayable
 ```
 
@@ -99,9 +101,19 @@ function setAdmin(address _admin) external nonpayable
 | ------------- |------------- | -----|
 | _admin | address |  | 
 
-### setPauser
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setAdmin(address _admin) external;
+```
+</details>
+
+---    
+
+> ### setPauser
+
+```solidity
 function setPauser(address _pauser) external nonpayable
 ```
 
@@ -111,9 +123,19 @@ function setPauser(address _pauser) external nonpayable
 | ------------- |------------- | -----|
 | _pauser | address |  | 
 
-### setupLoanParams
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setPauser(address _pauser) external;
+```
+</details>
+
+---    
+
+> ### setupLoanParams
+
+```solidity
 function setupLoanParams(struct ILoanTokenModules.LoanParams[] loanParamsList, bool areTorqueLoans) external nonpayable
 ```
 
@@ -124,9 +146,19 @@ function setupLoanParams(struct ILoanTokenModules.LoanParams[] loanParamsList, b
 | loanParamsList | struct ILoanTokenModules.LoanParams[] |  | 
 | areTorqueLoans | bool |  | 
 
-### disableLoanParams
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setupLoanParams(LoanParams[] calldata loanParamsList, bool areTorqueLoans) external;
+```
+</details>
+
+---    
+
+> ### disableLoanParams
+
+```solidity
 function disableLoanParams(address[] collateralTokens, bool[] isTorqueLoans) external nonpayable
 ```
 
@@ -137,9 +169,19 @@ function disableLoanParams(address[] collateralTokens, bool[] isTorqueLoans) ext
 | collateralTokens | address[] |  | 
 | isTorqueLoans | bool[] |  | 
 
-### setDemandCurve
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function disableLoanParams(address[] calldata collateralTokens, bool[] calldata isTorqueLoans) external;
+```
+</details>
+
+---    
+
+> ### setDemandCurve
+
+```solidity
 function setDemandCurve(uint256 _baseRate, uint256 _rateMultiplier, uint256 _lowUtilBaseRate, uint256 _lowUtilRateMultiplier, uint256 _targetLevel, uint256 _kinkLevel, uint256 _maxScaleRate) external nonpayable
 ```
 
@@ -155,9 +197,27 @@ function setDemandCurve(uint256 _baseRate, uint256 _rateMultiplier, uint256 _low
 | _kinkLevel | uint256 |  | 
 | _maxScaleRate | uint256 |  | 
 
-### toggleFunctionPause
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setDemandCurve(
+		uint256 _baseRate,
+		uint256 _rateMultiplier,
+		uint256 _lowUtilBaseRate,
+		uint256 _lowUtilRateMultiplier,
+		uint256 _targetLevel,
+		uint256 _kinkLevel,
+		uint256 _maxScaleRate
+	) external;
+```
+</details>
+
+---    
+
+> ### toggleFunctionPause
+
+```solidity
 function toggleFunctionPause(string funcId, bool isPaused) external nonpayable
 ```
 
@@ -168,9 +228,22 @@ function toggleFunctionPause(string funcId, bool isPaused) external nonpayable
 | funcId | string |  | 
 | isPaused | bool |  | 
 
-### setTransactionLimits
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function toggleFunctionPause(
+		string calldata funcId, /// example: "mint(uint256,uint256)"
+		bool isPaused
+	) external;
+```
+</details>
+
+---    
+
+> ### setTransactionLimits
+
+```solidity
 function setTransactionLimits(address[] addresses, uint256[] limits) external nonpayable
 ```
 
@@ -181,9 +254,19 @@ function setTransactionLimits(address[] addresses, uint256[] limits) external no
 | addresses | address[] |  | 
 | limits | uint256[] |  | 
 
-### changeLoanTokenNameAndSymbol
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setTransactionLimits(address[] calldata addresses, uint256[] calldata limits) external;
+```
+</details>
+
+---    
+
+> ### changeLoanTokenNameAndSymbol
+
+```solidity
 function changeLoanTokenNameAndSymbol(string _name, string _symbol) external nonpayable
 ```
 
@@ -194,9 +277,19 @@ function changeLoanTokenNameAndSymbol(string _name, string _symbol) external non
 | _name | string |  | 
 | _symbol | string |  | 
 
-### marginTrade
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function changeLoanTokenNameAndSymbol(string calldata _name, string calldata _symbol) external;
+```
+</details>
+
+---    
+
+> ### marginTrade
+
+```solidity
 function marginTrade(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minReturn, bytes loanDataBytes) external payable
 returns(uint256, uint256)
 ```
@@ -214,9 +307,34 @@ returns(uint256, uint256)
 | minReturn | uint256 |  | 
 | loanDataBytes | bytes |  | 
 
-### marginTradeAffiliate
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function marginTrade(
+		bytes32 loanId, /// 0 if new loan
+		uint256 leverageAmount, /// Expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5).
+		uint256 loanTokenSent,
+		uint256 collateralTokenSent,
+		address collateralTokenAddress,
+		address trader,
+		uint256 minReturn, // minimum position size in the collateral tokens
+		bytes calldata loanDataBytes /// Arbitrary order data.
+	)
+		external
+		payable
+		returns (
+			uint256,
+			uint256 /// Returns new principal and new collateral added to trade.
+		);
+```
+</details>
+
+---    
+
+> ### marginTradeAffiliate
+
+```solidity
 function marginTradeAffiliate(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minReturn, address affiliateReferrer, bytes loanDataBytes) external payable
 returns(uint256, uint256)
 ```
@@ -235,21 +353,52 @@ returns(uint256, uint256)
 | affiliateReferrer | address |  | 
 | loanDataBytes | bytes |  | 
 
-### borrowInterestRate
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function marginTradeAffiliate(
+		bytes32 loanId, // 0 if new loan
+		uint256 leverageAmount, // expected in x * 10**18 where x is the actual leverage (2, 3, 4, or 5)
+		uint256 loanTokenSent,
+		uint256 collateralTokenSent,
+		address collateralTokenAddress,
+		address trader,
+		uint256 minReturn, /// Minimum position size in the collateral tokens.
+		address affiliateReferrer, /// The user was brought by the affiliate (referrer).
+		bytes calldata loanDataBytes /// Arbitrary order data.
+	)
+		external
+		payable
+		returns (
+			uint256,
+			uint256 /// Returns new principal and new collateral added to trade.
+		);
+```
+</details>
+
+---    
+
+> ### borrowInterestRate
+
+```solidity
 function borrowInterestRate() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function borrowInterestRate() external view returns (uint256);
+```
+</details>
 
-### mint
+---    
 
-```js
+> ### mint
+
+```solidity
 function mint(address receiver, uint256 depositAmount) external nonpayable
 returns(mintAmount uint256)
 ```
@@ -261,9 +410,19 @@ returns(mintAmount uint256)
 | receiver | address |  | 
 | depositAmount | uint256 |  | 
 
-### burn
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function mint(address receiver, uint256 depositAmount) external returns (uint256 mintAmount);
+```
+</details>
+
+---    
+
+> ### burn
+
+```solidity
 function burn(address receiver, uint256 burnAmount) external nonpayable
 returns(loanAmountPaid uint256)
 ```
@@ -275,9 +434,19 @@ returns(loanAmountPaid uint256)
 | receiver | address |  | 
 | burnAmount | uint256 |  | 
 
-### checkPause
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function burn(address receiver, uint256 burnAmount) external returns (uint256 loanAmountPaid);
+```
+</details>
+
+---    
+
+> ### checkPause
+
+```solidity
 function checkPause(string funcId) external view
 returns(isPaused bool)
 ```
@@ -288,9 +457,19 @@ returns(isPaused bool)
 | ------------- |------------- | -----|
 | funcId | string |  | 
 
-### nextBorrowInterestRate
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function checkPause(string calldata funcId) external view returns (bool isPaused);
+```
+</details>
+
+---    
+
+> ### nextBorrowInterestRate
+
+```solidity
 function nextBorrowInterestRate(uint256 borrowAmount) external view
 returns(uint256)
 ```
@@ -301,33 +480,53 @@ returns(uint256)
 | ------------- |------------- | -----|
 | borrowAmount | uint256 |  | 
 
-### totalAssetBorrow
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function nextBorrowInterestRate(uint256 borrowAmount) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### totalAssetBorrow
+
+```solidity
 function totalAssetBorrow() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function totalAssetBorrow() external view returns (uint256);
+```
+</details>
 
-### totalAssetSupply
+---    
 
-```js
+> ### totalAssetSupply
+
+```solidity
 function totalAssetSupply() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function totalAssetSupply() external view returns (uint256);
+```
+</details>
 
-### borrow
+---    
 
-```js
+> ### borrow
+
+```solidity
 function borrow(bytes32 loanId, uint256 withdrawAmount, uint256 initialLoanDuration, uint256 collateralTokenSent, address collateralTokenAddress, address borrower, address receiver, bytes ) external payable
 returns(uint256, uint256)
 ```
@@ -345,9 +544,34 @@ returns(uint256, uint256)
 | receiver | address |  | 
 |  | bytes |  | 
 
-### transfer
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function borrow(
+		bytes32 loanId, /// 0 if new loan.
+		uint256 withdrawAmount,
+		uint256 initialLoanDuration, /// Duration in seconds.
+		uint256 collateralTokenSent, /// If 0, loanId must be provided; any rBTC sent must equal this value.
+		address collateralTokenAddress, /// If address(0), this means rBTC and rBTC must be sent with the call or loanId must be provided.
+		address borrower,
+		address receiver,
+		bytes calldata /// loanDataBytes: arbitrary order data (for future use).
+	)
+		external
+		payable
+		returns (
+			uint256,
+			uint256 /// Returns new principal and new collateral added to loan.
+		);
+```
+</details>
+
+---    
+
+> ### transfer
+
+```solidity
 function transfer(address _to, uint256 _value) external nonpayable
 returns(bool)
 ```
@@ -359,9 +583,19 @@ returns(bool)
 | _to | address |  | 
 | _value | uint256 |  | 
 
-### transferFrom
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function transfer(address _to, uint256 _value) external returns (bool);
+```
+</details>
+
+---    
+
+> ### transferFrom
+
+```solidity
 function transferFrom(address _from, address _to, uint256 _value) external nonpayable
 returns(bool)
 ```
@@ -374,9 +608,23 @@ returns(bool)
 | _to | address |  | 
 | _value | uint256 |  | 
 
-### setLiquidityMiningAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function transferFrom(
+		address _from,
+		address _to,
+		uint256 _value
+	) external returns (bool);
+```
+</details>
+
+---    
+
+> ### setLiquidityMiningAddress
+
+```solidity
 function setLiquidityMiningAddress(address LMAddress) external nonpayable
 ```
 
@@ -386,21 +634,36 @@ function setLiquidityMiningAddress(address LMAddress) external nonpayable
 | ------------- |------------- | -----|
 | LMAddress | address |  | 
 
-### getLiquidityMiningAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setLiquidityMiningAddress(address LMAddress) external;
+```
+</details>
+
+---    
+
+> ### getLiquidityMiningAddress
+
+```solidity
 function getLiquidityMiningAddress() external view
 returns(address)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getLiquidityMiningAddress() external view returns (address);
+```
+</details>
 
-### getEstimatedMarginDetails
+---    
 
-```js
+> ### getEstimatedMarginDetails
+
+```solidity
 function getEstimatedMarginDetails(uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress) external view
 returns(principal uint256, collateral uint256, interestRate uint256)
 ```
@@ -414,9 +677,31 @@ returns(principal uint256, collateral uint256, interestRate uint256)
 | collateralTokenSent | uint256 |  | 
 | collateralTokenAddress | address |  | 
 
-### getDepositAmountForBorrow
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getEstimatedMarginDetails(
+		uint256 leverageAmount,
+		uint256 loanTokenSent,
+		uint256 collateralTokenSent,
+		address collateralTokenAddress // address(0) means ETH
+	)
+		external
+		view
+		returns (
+			uint256 principal,
+			uint256 collateral,
+			uint256 interestRate
+		);
+```
+</details>
+
+---    
+
+> ### getDepositAmountForBorrow
+
+```solidity
 function getDepositAmountForBorrow(uint256 borrowAmount, uint256 initialLoanDuration, address collateralTokenAddress) external view
 returns(depositAmount uint256)
 ```
@@ -429,9 +714,23 @@ returns(depositAmount uint256)
 | initialLoanDuration | uint256 |  | 
 | collateralTokenAddress | address |  | 
 
-### getBorrowAmountForDeposit
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getDepositAmountForBorrow(
+		uint256 borrowAmount,
+		uint256 initialLoanDuration, /// Duration in seconds.
+		address collateralTokenAddress /// address(0) means rBTC
+	) external view returns (uint256 depositAmount);
+```
+</details>
+
+---    
+
+> ### getBorrowAmountForDeposit
+
+```solidity
 function getBorrowAmountForDeposit(uint256 depositAmount, uint256 initialLoanDuration, address collateralTokenAddress) external view
 returns(borrowAmount uint256)
 ```
@@ -444,9 +743,23 @@ returns(borrowAmount uint256)
 | initialLoanDuration | uint256 |  | 
 | collateralTokenAddress | address |  | 
 
-### checkPriceDivergence
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getBorrowAmountForDeposit(
+		uint256 depositAmount,
+		uint256 initialLoanDuration, /// Duration in seconds.
+		address collateralTokenAddress /// address(0) means rBTC
+	) external view returns (uint256 borrowAmount);
+```
+</details>
+
+---    
+
+> ### checkPriceDivergence
+
+```solidity
 function checkPriceDivergence(uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, uint256 minReturn) external view
 ```
 
@@ -460,9 +773,25 @@ function checkPriceDivergence(uint256 leverageAmount, uint256 loanTokenSent, uin
 | collateralTokenAddress | address |  | 
 | minReturn | uint256 |  | 
 
-### getMaxEscrowAmount
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function checkPriceDivergence(
+		uint256 leverageAmount,
+		uint256 loanTokenSent,
+		uint256 collateralTokenSent,
+		address collateralTokenAddress,
+		uint256 minReturn
+	) external view;
+```
+</details>
+
+---    
+
+> ### getMaxEscrowAmount
+
+```solidity
 function getMaxEscrowAmount(uint256 leverageAmount) external view
 returns(maxEscrowAmount uint256)
 ```
@@ -473,9 +802,19 @@ returns(maxEscrowAmount uint256)
 | ------------- |------------- | -----|
 | leverageAmount | uint256 |  | 
 
-### checkpointPrice
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getMaxEscrowAmount(uint256 leverageAmount) external view returns (uint256 maxEscrowAmount);
+```
+</details>
+
+---    
+
+> ### checkpointPrice
+
+```solidity
 function checkpointPrice(address _user) external view
 returns(price uint256)
 ```
@@ -486,9 +825,19 @@ returns(price uint256)
 | ------------- |------------- | -----|
 | _user | address |  | 
 
-### assetBalanceOf
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function checkpointPrice(address _user) external view returns (uint256 price);
+```
+</details>
+
+---    
+
+> ### assetBalanceOf
+
+```solidity
 function assetBalanceOf(address _owner) external view
 returns(uint256)
 ```
@@ -499,9 +848,19 @@ returns(uint256)
 | ------------- |------------- | -----|
 | _owner | address |  | 
 
-### profitOf
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function assetBalanceOf(address _owner) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### profitOf
+
+```solidity
 function profitOf(address user) external view
 returns(int256)
 ```
@@ -512,45 +871,70 @@ returns(int256)
 | ------------- |------------- | -----|
 | user | address |  | 
 
-### tokenPrice
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function profitOf(address user) external view returns (int256);
+```
+</details>
+
+---    
+
+> ### tokenPrice
+
+```solidity
 function tokenPrice() external view
 returns(price uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function tokenPrice() external view returns (uint256 price);
+```
+</details>
 
-### avgBorrowInterestRate
+---    
 
-```js
+> ### avgBorrowInterestRate
+
+```solidity
 function avgBorrowInterestRate() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function avgBorrowInterestRate() external view returns (uint256);
+```
+</details>
 
-### supplyInterestRate
+---    
 
-```js
+> ### supplyInterestRate
+
+```solidity
 function supplyInterestRate() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function supplyInterestRate() external view returns (uint256);
+```
+</details>
 
-### nextSupplyInterestRate
+---    
 
-```js
+> ### nextSupplyInterestRate
+
+```solidity
 function nextSupplyInterestRate(uint256 supplyAmount) external view
 returns(uint256)
 ```
@@ -561,9 +945,19 @@ returns(uint256)
 | ------------- |------------- | -----|
 | supplyAmount | uint256 |  | 
 
-### totalSupplyInterestRate
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function nextSupplyInterestRate(uint256 supplyAmount) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### totalSupplyInterestRate
+
+```solidity
 function totalSupplyInterestRate(uint256 assetSupply) external view
 returns(uint256)
 ```
@@ -574,21 +968,36 @@ returns(uint256)
 | ------------- |------------- | -----|
 | assetSupply | uint256 |  | 
 
-### loanTokenAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function totalSupplyInterestRate(uint256 assetSupply) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### loanTokenAddress
+
+```solidity
 function loanTokenAddress() external view
 returns(address)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function loanTokenAddress() external view returns (address);
+```
+</details>
 
-### getMarginBorrowAmountAndRate
+---    
 
-```js
+> ### getMarginBorrowAmountAndRate
+
+```solidity
 function getMarginBorrowAmountAndRate(uint256 leverageAmount, uint256 depositAmount) external view
 returns(uint256, uint256)
 ```
@@ -600,9 +1009,19 @@ returns(uint256, uint256)
 | leverageAmount | uint256 |  | 
 | depositAmount | uint256 |  | 
 
-### withdrawRBTCTo
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getMarginBorrowAmountAndRate(uint256 leverageAmount, uint256 depositAmount) external view returns (uint256, uint256);
+```
+</details>
+
+---    
+
+> ### withdrawRBTCTo
+
+```solidity
 function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external nonpayable
 ```
 
@@ -613,21 +1032,36 @@ function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) exter
 | _receiverAddress | address payable |  | 
 | _amount | uint256 |  | 
 
-### initialPrice
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external;
+```
+</details>
+
+---    
+
+> ### initialPrice
+
+```solidity
 function initialPrice() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function initialPrice() external view returns (uint256);
+```
+</details>
 
-### mint
+---    
 
-```js
+> ### mint
+
+```solidity
 function mint(address receiver, uint256 depositAmount, bool useLM) external nonpayable
 returns(minted uint256)
 ```
@@ -640,9 +1074,23 @@ returns(minted uint256)
 | depositAmount | uint256 |  | 
 | useLM | bool |  | 
 
-### burn
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function mint(
+		address receiver,
+		uint256 depositAmount,
+		bool useLM
+	) external returns (uint256 minted);
+```
+</details>
+
+---    
+
+> ### burn
+
+```solidity
 function burn(address receiver, uint256 burnAmount, bool useLM) external nonpayable
 returns(redeemed uint256)
 ```
@@ -655,9 +1103,23 @@ returns(redeemed uint256)
 | burnAmount | uint256 |  | 
 | useLM | bool |  | 
 
-### mintWithBTC
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function burn(
+		address receiver,
+		uint256 burnAmount,
+		bool useLM
+	) external returns (uint256 redeemed);
+```
+</details>
+
+---    
+
+> ### mintWithBTC
+
+```solidity
 function mintWithBTC(address receiver, bool useLM) external payable
 returns(mintAmount uint256)
 ```
@@ -669,9 +1131,19 @@ returns(mintAmount uint256)
 | receiver | address |  | 
 | useLM | bool |  | 
 
-### burnToBTC
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function mintWithBTC(address receiver, bool useLM) external payable returns (uint256 mintAmount);
+```
+</details>
+
+---    
+
+> ### burnToBTC
+
+```solidity
 function burnToBTC(address receiver, uint256 burnAmount, bool useLM) external nonpayable
 returns(loanAmountPaid uint256)
 ```
@@ -684,45 +1156,74 @@ returns(loanAmountPaid uint256)
 | burnAmount | uint256 |  | 
 | useLM | bool |  | 
 
-### liquidityMiningAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function burnToBTC(
+		address receiver,
+		uint256 burnAmount,
+		bool useLM
+	) external returns (uint256 loanAmountPaid);
+```
+</details>
+
+---    
+
+> ### liquidityMiningAddress
+
+```solidity
 function liquidityMiningAddress() external view
 returns(address)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function liquidityMiningAddress() external view returns (address);
+```
+</details>
 
-### name
+---    
 
-```js
+> ### name
+
+```solidity
 function name() external view
 returns(string)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function name() external view returns (string memory);
+```
+</details>
 
-### symbol
+---    
 
-```js
+> ### symbol
+
+```solidity
 function symbol() external view
 returns(string)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function symbol() external view returns (string memory);
+```
+</details>
 
-### approve
+---    
 
-```js
+> ### approve
+
+```solidity
 function approve(address _spender, uint256 _value) external nonpayable
 returns(bool)
 ```
@@ -734,9 +1235,19 @@ returns(bool)
 | _spender | address |  | 
 | _value | uint256 |  | 
 
-### allowance
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function approve(address _spender, uint256 _value) external returns (bool);
+```
+</details>
+
+---    
+
+> ### allowance
+
+```solidity
 function allowance(address _owner, address _spender) external view
 returns(uint256)
 ```
@@ -748,9 +1259,19 @@ returns(uint256)
 | _owner | address |  | 
 | _spender | address |  | 
 
-### balanceOf
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function allowance(address _owner, address _spender) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### balanceOf
+
+```solidity
 function balanceOf(address _owner) external view
 returns(uint256)
 ```
@@ -761,17 +1282,30 @@ returns(uint256)
 | ------------- |------------- | -----|
 | _owner | address |  | 
 
-### totalSupply
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function balanceOf(address _owner) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### totalSupply
+
+```solidity
 function totalSupply() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function totalSupply() external view returns (uint256);
+```
+</details>
 
 ## Contracts
 
@@ -787,6 +1321,7 @@ returns(uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -908,7 +1443,7 @@ returns(uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

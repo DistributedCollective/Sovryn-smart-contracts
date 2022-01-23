@@ -17,27 +17,32 @@ uint256 public value;
 - [bproUsdPrice()](#bprousdprice)
 - [setValue(uint256 _value)](#setvalue)
 
-### bproUsdPrice
+---    
+
+> ### bproUsdPrice
 
 BPro USD PRICE
 
-```js
+```solidity
 function bproUsdPrice() public view
 returns(uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-the BPro USD Price [using mocPrecision]
+```javascript
+function bproUsdPrice() public view returns (uint256) {
+		return value;
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+> ### setValue
 
-### setValue
-
-```js
+```solidity
 function setValue(uint256 _value) public nonpayable
 ```
 
@@ -46,6 +51,16 @@ function setValue(uint256 _value) public nonpayable
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _value | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setValue(uint256 _value) public {
+		value = _value;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -61,6 +76,7 @@ function setValue(uint256 _value) public nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -182,7 +198,7 @@ function setValue(uint256 _value) public nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -40,18 +40,16 @@ uint256 internal constant ERROR_MESSAGE_SHIFT;
 
 - [_addErrorMessage(string str1, string str2)](#_adderrormessage)
 
-### _addErrorMessage
+---    
+
+> ### _addErrorMessage
 
 Concats two error strings taking into account ERROR_MESSAGE_SHIFT.
 
-```js
+```solidity
 function _addErrorMessage(string str1, string str2) internal pure
 returns(string)
 ```
-
-**Returns**
-
-The concatenated error string
 
 **Arguments**
 
@@ -59,6 +57,31 @@ The concatenated error string
 | ------------- |------------- | -----|
 | str1 | string | First string, usually a hardcoded context written by dev. | 
 | str2 | string | Second string, usually the error message from the reverted call. | 
+
+**Returns**
+
+The concatenated error string
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _addErrorMessage(string memory str1, string memory str2) internal pure returns (string memory) {
+		bytes memory bytesStr1 = bytes(str1);
+		bytes memory bytesStr2 = bytes(str2);
+		string memory str12 = new string(bytesStr1.length + bytesStr2.length - ERROR_MESSAGE_SHIFT);
+		bytes memory bytesStr12 = bytes(str12);
+		uint256 j = 0;
+		for (uint256 i = 0; i < bytesStr1.length; i++) {
+			bytesStr12[j++] = bytesStr1[i];
+		}
+		for (uint256 i = ERROR_MESSAGE_SHIFT; i < bytesStr2.length; i++) {
+			bytesStr12[j++] = bytesStr2[i];
+		}
+		return string(bytesStr12);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -74,6 +97,7 @@ The concatenated error string
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -195,7 +219,7 @@ The concatenated error string
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

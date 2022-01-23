@@ -10,11 +10,13 @@ View Source: [contracts/mockup/VestingRegistryLogicMockUp.sol](../contracts/mock
 
 - [isVestingAdress(address _vestingAddress)](#isvestingadress)
 
-### isVestingAdress
+---    
 
-⤾ overrides [VestingRegistryLogic.isVestingAdress](VestingRegistryLogic.md#isvestingadress)
+> ### isVestingAdress
 
-```js
+undefined
+
+```solidity
 function isVestingAdress(address _vestingAddress) external view
 returns(isVestingAddr bool)
 ```
@@ -24,6 +26,16 @@ returns(isVestingAddr bool)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _vestingAddress | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function isVestingAdress(address _vestingAddress) external view returns (bool isVestingAddr) {
+		return true;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -39,6 +51,7 @@ returns(isVestingAddr bool)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -160,7 +173,7 @@ returns(isVestingAddr bool)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -8,9 +8,11 @@ View Source: [contracts/testhelpers/ITokenFlashLoanTest.sol](../contracts/testhe
 
 - [flashBorrow(uint256 borrowAmount, address borrower, address target, string signature, bytes data)](#flashborrow)
 
-### flashBorrow
+---    
 
-```js
+> ### flashBorrow
+
+```solidity
 function flashBorrow(uint256 borrowAmount, address borrower, address target, string signature, bytes data) external payable
 returns(bytes)
 ```
@@ -24,6 +26,20 @@ returns(bytes)
 | target | address |  | 
 | signature | string |  | 
 | data | bytes |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function flashBorrow(
+		uint256 borrowAmount,
+		address borrower,
+		address target,
+		string calldata signature,
+		bytes calldata data
+	) external payable returns (bytes memory);
+```
+</details>
 
 ## Contracts
 
@@ -39,6 +55,7 @@ returns(bytes)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -160,7 +177,7 @@ returns(bytes)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -14,11 +14,13 @@ Interfaces are used to cast a contract address into a callable instance.
 - [transferTokens(address _token, uint96 _amount)](#transfertokens)
 - [withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver)](#withdraw)
 
-### withdrawFees
+---    
+
+> ### withdrawFees
 
 ⤿ Overridden Implementation(s): [FeeSharingLogic.withdrawFees](FeeSharingLogic.md#withdrawfees),[ILoanToken.withdrawFees](ILoanToken.md#withdrawfees),[ILoanTokenWRBTC.withdrawFees](ILoanTokenWRBTC.md#withdrawfees)
 
-```js
+```solidity
 function withdrawFees(address[] _token) external nonpayable
 ```
 
@@ -28,11 +30,21 @@ function withdrawFees(address[] _token) external nonpayable
 | ------------- |------------- | -----|
 | _token | address[] |  | 
 
-### transferTokens
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawFees(address[] calldata _token) external;
+```
+</details>
+
+---    
+
+> ### transferTokens
 
 ⤿ Overridden Implementation(s): [FeeSharingLogic.transferTokens](FeeSharingLogic.md#transfertokens),[ILoanToken.transferTokens](ILoanToken.md#transfertokens),[ILoanTokenWRBTC.transferTokens](ILoanTokenWRBTC.md#transfertokens)
 
-```js
+```solidity
 function transferTokens(address _token, uint96 _amount) external nonpayable
 ```
 
@@ -43,11 +55,21 @@ function transferTokens(address _token, uint96 _amount) external nonpayable
 | _token | address |  | 
 | _amount | uint96 |  | 
 
-### withdraw
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function transferTokens(address _token, uint96 _amount) external;
+```
+</details>
+
+---    
+
+> ### withdraw
 
 ⤿ Overridden Implementation(s): [FeeSharingLogic.withdraw](FeeSharingLogic.md#withdraw),[FeeSharingProxyMockup.withdraw](FeeSharingProxyMockup.md#withdraw),[ILoanToken.withdraw](ILoanToken.md#withdraw),[ILoanTokenWRBTC.withdraw](ILoanTokenWRBTC.md#withdraw)
 
-```js
+```solidity
 function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) external nonpayable
 ```
 
@@ -58,6 +80,18 @@ function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _recei
 | _loanPoolToken | address |  | 
 | _maxCheckpoints | uint32 |  | 
 | _receiver | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdraw(
+		address _loanPoolToken,
+		uint32 _maxCheckpoints,
+		address _receiver
+	) external;
+```
+</details>
 
 ## Contracts
 
@@ -73,6 +107,7 @@ function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _recei
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -194,7 +229,7 @@ function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _recei
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

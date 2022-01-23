@@ -10,9 +10,11 @@ View Source: [contracts/swaps/connectors/interfaces/ISovrynSwapNetwork.sol](../c
 - [rateByPath(IERC20[] _path, uint256 _amount)](#ratebypath)
 - [conversionPath(IERC20 _sourceToken, IERC20 _targetToken)](#conversionpath)
 
-### convertByPath
+---    
 
-```js
+> ### convertByPath
+
+```solidity
 function convertByPath(IERC20[] _path, uint256 _amount, uint256 _minReturn, address _beneficiary, address _affiliateAccount, uint256 _affiliateFee) external payable
 returns(uint256)
 ```
@@ -28,9 +30,26 @@ returns(uint256)
 | _affiliateAccount | address |  | 
 | _affiliateFee | uint256 |  | 
 
-### rateByPath
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function convertByPath(
+		IERC20[] calldata _path,
+		uint256 _amount,
+		uint256 _minReturn,
+		address _beneficiary,
+		address _affiliateAccount,
+		uint256 _affiliateFee
+	) external payable returns (uint256);
+```
+</details>
+
+---    
+
+> ### rateByPath
+
+```solidity
 function rateByPath(IERC20[] _path, uint256 _amount) external view
 returns(uint256)
 ```
@@ -42,9 +61,19 @@ returns(uint256)
 | _path | IERC20[] |  | 
 | _amount | uint256 |  | 
 
-### conversionPath
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function rateByPath(IERC20[] calldata _path, uint256 _amount) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### conversionPath
+
+```solidity
 function conversionPath(IERC20 _sourceToken, IERC20 _targetToken) external view
 returns(contract IERC20[])
 ```
@@ -55,6 +84,14 @@ returns(contract IERC20[])
 | ------------- |------------- | -----|
 | _sourceToken | IERC20 |  | 
 | _targetToken | IERC20 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function conversionPath(IERC20 _sourceToken, IERC20 _targetToken) external view returns (IERC20[] memory);
+```
+</details>
 
 ## Contracts
 
@@ -70,6 +107,7 @@ returns(contract IERC20[])
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -191,7 +229,7 @@ returns(contract IERC20[])
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

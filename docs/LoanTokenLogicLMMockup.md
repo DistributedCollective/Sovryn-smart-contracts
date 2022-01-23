@@ -10,11 +10,13 @@ View Source: [contracts/mockup/LoanTokenLogicLMMockup.sol](../contracts/mockup/L
 
 - [burn(address receiver, uint256 burnAmount)](#burn)
 
-### burn
+---    
 
-⤾ overrides [LoanTokenLogicStandard.burn](LoanTokenLogicStandard.md#burn)
+> ### burn
 
-```js
+undefined
+
+```solidity
 function burn(address receiver, uint256 burnAmount) external nonpayable nonReentrant 
 returns(loanAmountPaid uint256)
 ```
@@ -25,6 +27,20 @@ returns(loanAmountPaid uint256)
 | ------------- |------------- | -----|
 | receiver | address |  | 
 | burnAmount | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function burn(address receiver, uint256 burnAmount) external nonReentrant returns (uint256 loanAmountPaid) {
+		_callOptionalReturn(
+			0x2c34D66a5ca8686330e100372Eb3FDFB5aEECD0B, //Random EOA for testing
+			abi.encodeWithSelector(IERC20(receiver).transfer.selector, receiver, burnAmount),
+			"error"
+		);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -40,6 +56,7 @@ returns(loanAmountPaid uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -161,7 +178,7 @@ returns(loanAmountPaid uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

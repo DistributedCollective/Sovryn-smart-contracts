@@ -12,11 +12,13 @@ View Source: [contracts/swaps/ISwapsImpl.sol](../contracts/swaps/ISwapsImpl.sol)
 - [internalExpectedRate(address sourceTokenAddress, address destTokenAddress, uint256 sourceTokenAmount, address optionalContractAddress)](#internalexpectedrate)
 - [internalExpectedReturn(address sourceTokenAddress, address destTokenAddress, uint256 sourceTokenAmount, address sovrynSwapContractRegistryAddress)](#internalexpectedreturn)
 
-### internalSwap
+---    
+
+> ### internalSwap
 
 ⤿ Overridden Implementation(s): [SwapsImplLocal.internalSwap](SwapsImplLocal.md#internalswap),[SwapsImplSovrynSwap.internalSwap](SwapsImplSovrynSwap.md#internalswap)
 
-```js
+```solidity
 function internalSwap(address sourceTokenAddress, address destTokenAddress, address receiverAddress, address returnToSenderAddress, uint256 minSourceTokenAmount, uint256 maxSourceTokenAmount, uint256 requiredDestTokenAmount) external payable
 returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256)
 ```
@@ -33,11 +35,29 @@ returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256)
 | maxSourceTokenAmount | uint256 |  | 
 | requiredDestTokenAmount | uint256 |  | 
 
-### internalExpectedRate
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function internalSwap(
+		address sourceTokenAddress,
+		address destTokenAddress,
+		address receiverAddress,
+		address returnToSenderAddress,
+		uint256 minSourceTokenAmount,
+		uint256 maxSourceTokenAmount,
+		uint256 requiredDestTokenAmount
+	) external payable returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
+```
+</details>
+
+---    
+
+> ### internalExpectedRate
 
 ⤿ Overridden Implementation(s): [SwapsImplLocal.internalExpectedRate](SwapsImplLocal.md#internalexpectedrate),[SwapsImplSovrynSwap.internalExpectedRate](SwapsImplSovrynSwap.md#internalexpectedrate)
 
-```js
+```solidity
 function internalExpectedRate(address sourceTokenAddress, address destTokenAddress, uint256 sourceTokenAmount, address optionalContractAddress) external view
 returns(uint256)
 ```
@@ -51,11 +71,26 @@ returns(uint256)
 | sourceTokenAmount | uint256 |  | 
 | optionalContractAddress | address |  | 
 
-### internalExpectedReturn
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function internalExpectedRate(
+		address sourceTokenAddress,
+		address destTokenAddress,
+		uint256 sourceTokenAmount,
+		address optionalContractAddress
+	) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### internalExpectedReturn
 
 ⤿ Overridden Implementation(s): [SwapsImplLocal.internalExpectedReturn](SwapsImplLocal.md#internalexpectedreturn),[SwapsImplSovrynSwap.internalExpectedReturn](SwapsImplSovrynSwap.md#internalexpectedreturn)
 
-```js
+```solidity
 function internalExpectedReturn(address sourceTokenAddress, address destTokenAddress, uint256 sourceTokenAmount, address sovrynSwapContractRegistryAddress) external view
 returns(expectedReturn uint256)
 ```
@@ -68,6 +103,19 @@ returns(expectedReturn uint256)
 | destTokenAddress | address |  | 
 | sourceTokenAmount | uint256 |  | 
 | sovrynSwapContractRegistryAddress | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function internalExpectedReturn(
+		address sourceTokenAddress,
+		address destTokenAddress,
+		uint256 sourceTokenAmount,
+		address sovrynSwapContractRegistryAddress
+	) external view returns (uint256 expectedReturn);
+```
+</details>
 
 ## Contracts
 
@@ -83,6 +131,7 @@ returns(expectedReturn uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -204,7 +253,7 @@ returns(expectedReturn uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

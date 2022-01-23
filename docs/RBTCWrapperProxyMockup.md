@@ -14,14 +14,16 @@ contract LiquidityMining public liquidityMining;
 
 ## Functions
 
-- [(LiquidityMining _liquidityMining)](#)
+- [constructor(LiquidityMining _liquidityMining)](#constructor)
 - [claimReward(address _poolToken)](#claimreward)
 - [claimRewardFromAllPools()](#claimrewardfromallpools)
 - [withdraw(address _poolToken, uint256 _amount)](#withdraw)
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function (LiquidityMining _liquidityMining) public nonpayable
 ```
 
@@ -31,9 +33,21 @@ function (LiquidityMining _liquidityMining) public nonpayable
 | ------------- |------------- | -----|
 | _liquidityMining | LiquidityMining |  | 
 
-### claimReward
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+constructor(LiquidityMining _liquidityMining) public {
+		liquidityMining = _liquidityMining;
+	}
+```
+</details>
+
+---    
+
+> ### claimReward
+
+```solidity
 function claimReward(address _poolToken) public nonpayable
 ```
 
@@ -43,20 +57,39 @@ function claimReward(address _poolToken) public nonpayable
 | ------------- |------------- | -----|
 | _poolToken | address |  | 
 
-### claimRewardFromAllPools
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function claimReward(address _poolToken) public {
+		liquidityMining.claimReward(_poolToken, msg.sender);
+	}
+```
+</details>
+
+---    
+
+> ### claimRewardFromAllPools
+
+```solidity
 function claimRewardFromAllPools() public nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function claimRewardFromAllPools() public {
+		liquidityMining.claimRewardFromAllPools(msg.sender);
+	}
+```
+</details>
 
-### withdraw
+---    
 
-```js
+> ### withdraw
+
+```solidity
 function withdraw(address _poolToken, uint256 _amount) public nonpayable
 ```
 
@@ -66,6 +99,16 @@ function withdraw(address _poolToken, uint256 _amount) public nonpayable
 | ------------- |------------- | -----|
 | _poolToken | address |  | 
 | _amount | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdraw(address _poolToken, uint256 _amount) public {
+		liquidityMining.withdraw(_poolToken, _amount, msg.sender);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -81,6 +124,7 @@ function withdraw(address _poolToken, uint256 _amount) public nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -202,7 +246,7 @@ function withdraw(address _poolToken, uint256 _amount) public nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -40,12 +40,14 @@ event RewardWithdrawn(address indexed receiver, uint256  amount);
 - [_setBlock(uint256 _checkpointTime)](#_setblock)
 - [getStakerCurrentReward(bool considerMaxDuration)](#getstakercurrentreward)
 
-### initialize
+---    
+
+> ### initialize
 
 Replacement of constructor by initialize function for Upgradable Contracts
 This function will be called only once by the owner.
 
-```js
+```solidity
 function initialize(address _SOV, IStaking _staking) external nonpayable onlyOwner 
 ```
 
@@ -56,37 +58,73 @@ function initialize(address _SOV, IStaking _staking) external nonpayable onlyOwn
 | _SOV | address | SOV token address | 
 | _staking | IStaking | StakingProxy address should be passed | 
 
-### stop
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function initialize(address _SOV, IStaking _staking) external onlyOwner {
+		require(_SOV != address(0), "Invalid SOV Address.");
+		require(Address.isContract(_SOV), "_SOV not a contract");
+		SOV = IERC20(_SOV);
+		staking = _staking;
+		startTime = staking.timestampToLockDate(block.timestamp);
+		setMaxDuration(15 * TWO_WEEKS);
+		deploymentBlock = _getCurrentBlockNumber();
+	}
+```
+</details>
+
+---    
+
+> ### stop
 
 Stops the current rewards program.
 
-```js
+```solidity
 function stop() external nonpayable onlyOwner 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function stop() external onlyOwner {
+		require(stopBlock == 0, "Already stopped");
+		stopBlock = _getCurrentBlockNumber();
+	}
+```
+</details>
 
-### collectReward
+---    
+
+> ### collectReward
 
 Collect rewards
 
-```js
+```solidity
 function collectReward() external nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function collectReward() external {
+		(uint256 withdrawalTime, uint256 amount) = getStakerCurrentReward(true);
+		require(withdrawalTime > 0 && amount > 0, "no valid reward");
+		withdrawals[msg.sender] = withdrawalTime;
+		_payReward(msg.sender, amount);
+	}
+```
+</details>
 
-### withdrawTokensByOwner
+---    
+
+> ### withdrawTokensByOwner
 
 Withdraws all token from the contract by Multisig.
 
-```js
+```solidity
 function withdrawTokensByOwner(address _receiverAddress) external nonpayable onlyOwner 
 ```
 
@@ -96,11 +134,24 @@ function withdrawTokensByOwner(address _receiverAddress) external nonpayable onl
 | ------------- |------------- | -----|
 | _receiverAddress | address | The address where the tokens has to be transferred. | 
 
-### setAverageBlockTime
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawTokensByOwner(address _receiverAddress) external onlyOwner {
+		uint256 value = SOV.balanceOf(address(this));
+		_transferSOV(_receiverAddress, value);
+	}
+```
+</details>
+
+---    
+
+> ### setAverageBlockTime
 
 Changes average block time - based on blockchain
 
-```js
+```solidity
 function setAverageBlockTime(uint256 _averageBlockTime) external nonpayable onlyOwner 
 ```
 
@@ -110,26 +161,46 @@ function setAverageBlockTime(uint256 _averageBlockTime) external nonpayable only
 | ------------- |------------- | -----|
 | _averageBlockTime | uint256 |  | 
 
-### setBlock
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setAverageBlockTime(uint256 _averageBlockTime) external onlyOwner {
+		averageBlockTime = _averageBlockTime;
+	}
+```
+</details>
+
+---    
+
+> ### setBlock
 
 This function computes the last staking checkpoint and calculates the corresponding
 block number using the average block time which is then added to the mapping `checkpointBlockDetails`.
 
-```js
+```solidity
 function setBlock() external nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function setBlock() external {
+		uint256 lastCheckpointTime = staking.timestampToLockDate(block.timestamp);
+		_setBlock(lastCheckpointTime);
+	}
+```
+</details>
 
-### setHistoricalBlock
+---    
+
+> ### setHistoricalBlock
 
 This function computes the block number using the average block time for a given historical
 checkpoint which is added to the mapping `checkpointBlockDetails`.
 
-```js
+```solidity
 function setHistoricalBlock(uint256 _time) external nonpayable onlyOwner 
 ```
 
@@ -139,11 +210,23 @@ function setHistoricalBlock(uint256 _time) external nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _time | uint256 | Exact staking checkpoint time | 
 
-### setMaxDuration
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setHistoricalBlock(uint256 _time) external onlyOwner {
+		_setBlock(_time);
+	}
+```
+</details>
+
+---    
+
+> ### setMaxDuration
 
 Sets the max duration
 
-```js
+```solidity
 function setMaxDuration(uint256 _duration) public nonpayable onlyOwner 
 ```
 
@@ -153,18 +236,26 @@ function setMaxDuration(uint256 _duration) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _duration | uint256 | Max duration for which rewards can be collected at a go (in seconds) | 
 
-### _computeRewardForDate
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setMaxDuration(uint256 _duration) public onlyOwner {
+		maxDuration = _duration;
+	}
+```
+</details>
+
+---    
+
+> ### _computeRewardForDate
 
 Internal function to calculate weighted stake
 
-```js
+```solidity
 function _computeRewardForDate(address _staker, uint256 _block, uint256 _date) internal view
 returns(weightedStake uint256)
 ```
-
-**Returns**
-
-The weighted stake
 
 **Arguments**
 
@@ -174,11 +265,37 @@ The weighted stake
 | _block | uint256 | Last finalised block | 
 | _date | uint256 | The date to compute prior weighted stakes | 
 
-### _payReward
+**Returns**
+
+The weighted stake
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _computeRewardForDate(
+		address _staker,
+		uint256 _block,
+		uint256 _date
+	) internal view returns (uint256 weightedStake) {
+		weightedStake = staking.getPriorWeightedStake(_staker, _block, _date);
+		if (stopBlock > 0) {
+			uint256 previousWeightedStake = staking.getPriorWeightedStake(_staker, stopBlock, _date);
+			if (previousWeightedStake < weightedStake) {
+				weightedStake = previousWeightedStake;
+			}
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _payReward
 
 Internal function to pay rewards
 
-```js
+```solidity
 function _payReward(address _staker, uint256 amount) internal nonpayable
 ```
 
@@ -189,11 +306,25 @@ function _payReward(address _staker, uint256 amount) internal nonpayable
 | _staker | address | User address | 
 | amount | uint256 | the reward amount | 
 
-### _transferSOV
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _payReward(address _staker, uint256 amount) internal {
+		require(SOV.balanceOf(address(this)) >= amount, "not enough funds to reward user");
+		claimedBalances[_staker] = claimedBalances[_staker].add(amount);
+		_transferSOV(_staker, amount);
+	}
+```
+</details>
+
+---    
+
+> ### _transferSOV
 
 transfers SOV tokens to given address
 
-```js
+```solidity
 function _transferSOV(address _receiver, uint256 _amount) internal nonpayable
 ```
 
@@ -204,27 +335,48 @@ function _transferSOV(address _receiver, uint256 _amount) internal nonpayable
 | _receiver | address | the address of the SOV receiver | 
 | _amount | uint256 | the amount to be transferred | 
 
-### _getCurrentBlockNumber
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _transferSOV(address _receiver, uint256 _amount) internal {
+		require(_amount != 0, "amount invalid");
+		require(SOV.transfer(_receiver, _amount), "transfer failed");
+		emit RewardWithdrawn(_receiver, _amount);
+	}
+```
+</details>
+
+---    
+
+> ### _getCurrentBlockNumber
 
 ⤿ Overridden Implementation(s): [StakingRewardsMockUp._getCurrentBlockNumber](StakingRewardsMockUp.md#_getcurrentblocknumber)
 
 Determine the current Block Number
 
-```js
+```solidity
 function _getCurrentBlockNumber() internal view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function _getCurrentBlockNumber() internal view returns (uint256) {
+		return block.number;
+	}
+```
+</details>
 
-### _setBlock
+---    
+
+> ### _setBlock
 
 Internal function to calculate and set block
 
-```js
+```solidity
 function _setBlock(uint256 _checkpointTime) internal nonpayable
 ```
 
@@ -234,25 +386,79 @@ function _setBlock(uint256 _checkpointTime) internal nonpayable
 | ------------- |------------- | -----|
 | _checkpointTime | uint256 |  | 
 
-### getStakerCurrentReward
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _setBlock(uint256 _checkpointTime) internal {
+		uint256 currentTS = block.timestamp;
+		uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
+		require(checkpointBlockDetails[_checkpointTime] == 0, "block number already set");
+		uint256 checkpointBlock = lastFinalisedBlock.sub(((currentTS.sub(_checkpointTime)).div(averageBlockTime)));
+		checkpointBlockDetails[_checkpointTime] = checkpointBlock;
+	}
+```
+</details>
+
+---    
+
+> ### getStakerCurrentReward
 
 Get staker's current accumulated reward
 
-```js
+```solidity
 function getStakerCurrentReward(bool considerMaxDuration) public view
 returns(lastWithdrawalInterval uint256, amount uint256)
 ```
-
-**Returns**
-
-The timestamp of last withdrawal
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| considerMaxDuration | bool | True: Runs for the maximum duration - used in tx not to run out of gas
-False - to query total rewards | 
+| considerMaxDuration | bool | True: Runs for the maximum duration - used in tx not to run out of gas False - to query total rewards | 
+
+**Returns**
+
+The timestamp of last withdrawal
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getStakerCurrentReward(bool considerMaxDuration) public view returns (uint256 lastWithdrawalInterval, uint256 amount) {
+		uint256 weightedStake;
+		uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
+		uint256 currentTS = block.timestamp;
+		uint256 duration;
+		address staker = msg.sender;
+		uint256 lastWithdrawal = withdrawals[staker];
+
+		uint256 lastStakingInterval = staking.timestampToLockDate(currentTS);
+		lastWithdrawalInterval = lastWithdrawal > 0 ? lastWithdrawal : startTime;
+		if (lastStakingInterval <= lastWithdrawalInterval) return (0, 0);
+
+		if (considerMaxDuration) {
+			uint256 addedMaxDuration = lastWithdrawalInterval.add(maxDuration);
+			duration = addedMaxDuration < currentTS ? staking.timestampToLockDate(addedMaxDuration) : lastStakingInterval;
+		} else {
+			duration = lastStakingInterval;
+		}
+
+		for (uint256 i = lastWithdrawalInterval; i < duration; i += TWO_WEEKS) {
+			uint256 referenceBlock = checkpointBlockDetails[i];
+			if (referenceBlock == 0) {
+				referenceBlock = lastFinalisedBlock.sub(((currentTS.sub(i)).div(averageBlockTime)));
+			}
+			if (referenceBlock < deploymentBlock) referenceBlock = deploymentBlock;
+			weightedStake = weightedStake.add(_computeRewardForDate(staker, referenceBlock, i));
+		}
+
+		if (weightedStake == 0) return (0, 0);
+		lastWithdrawalInterval = duration;
+		amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -268,6 +474,7 @@ False - to query total rewards |
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -389,7 +596,7 @@ False - to query total rewards |
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

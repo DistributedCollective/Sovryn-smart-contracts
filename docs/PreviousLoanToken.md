@@ -21,17 +21,19 @@ address internal target_;
 
 ## Functions
 
-- [(address _newOwner, address _newTarget, address _sovrynContractAddress, address _wrbtcTokenAddress)](#)
-- [()](#)
+- [constructor(address _newOwner, address _newTarget, address _sovrynContractAddress, address _wrbtcTokenAddress)](#constructor)
+- [constructor()](#constructor)
 - [setTarget(address _newTarget)](#settarget)
 - [_setTarget(address _newTarget)](#_settarget)
 - [_setSovrynContractAddress(address _sovrynContractAddress)](#_setsovryncontractaddress)
 - [_setWrbtcTokenAddress(address _wrbtcTokenAddress)](#_setwrbtctokenaddress)
 - [initialize(address _loanTokenAddress, string _name, string _symbol)](#initialize)
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function (address _newOwner, address _newTarget, address _sovrynContractAddress, address _wrbtcTokenAddress) public nonpayable
 ```
 
@@ -44,20 +46,65 @@ function (address _newOwner, address _newTarget, address _sovrynContractAddress,
 | _sovrynContractAddress | address |  | 
 | _wrbtcTokenAddress | address |  | 
 
-### 
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+constructor(
+		address _newOwner,
+		address _newTarget,
+		address _sovrynContractAddress,
+		address _wrbtcTokenAddress
+	) public {
+		transferOwnership(_newOwner);
+		_setTarget(_newTarget);
+		_setSovrynContractAddress(_sovrynContractAddress);
+		_setWrbtcTokenAddress(_wrbtcTokenAddress);
+	}
+```
+</details>
+
+---    
+
+> ### constructor
+
+```solidity
 function () external payable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function() external payable {
+		if (gasleft() <= 2300) {
+			return;
+		}
 
-### setTarget
+		address target = target_;
+		bytes memory data = msg.data;
+		assembly {
+			let result := delegatecall(gas, target, add(data, 0x20), mload(data), 0, 0)
+			let size := returndatasize
+			let ptr := mload(0x40)
+			returndatacopy(ptr, 0, size)
+			switch result
+				case 0 {
+					revert(ptr, size)
+				}
+				default {
+					return(ptr, size)
+				}
+		}
+	}
+```
+</details>
 
-```js
+---    
+
+> ### setTarget
+
+```solidity
 function setTarget(address _newTarget) public nonpayable onlyOwner 
 ```
 
@@ -67,9 +114,21 @@ function setTarget(address _newTarget) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _newTarget | address |  | 
 
-### _setTarget
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setTarget(address _newTarget) public onlyOwner {
+		_setTarget(_newTarget);
+	}
+```
+</details>
+
+---    
+
+> ### _setTarget
+
+```solidity
 function _setTarget(address _newTarget) internal nonpayable
 ```
 
@@ -79,9 +138,22 @@ function _setTarget(address _newTarget) internal nonpayable
 | ------------- |------------- | -----|
 | _newTarget | address |  | 
 
-### _setSovrynContractAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function _setTarget(address _newTarget) internal {
+		require(Address.isContract(_newTarget), "target not a contract");
+		target_ = _newTarget;
+	}
+```
+</details>
+
+---    
+
+> ### _setSovrynContractAddress
+
+```solidity
 function _setSovrynContractAddress(address _sovrynContractAddress) internal nonpayable
 ```
 
@@ -91,9 +163,22 @@ function _setSovrynContractAddress(address _sovrynContractAddress) internal nonp
 | ------------- |------------- | -----|
 | _sovrynContractAddress | address |  | 
 
-### _setWrbtcTokenAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function _setSovrynContractAddress(address _sovrynContractAddress) internal {
+		require(Address.isContract(_sovrynContractAddress), "sovryn not a contract");
+		sovrynContractAddress = _sovrynContractAddress;
+	}
+```
+</details>
+
+---    
+
+> ### _setWrbtcTokenAddress
+
+```solidity
 function _setWrbtcTokenAddress(address _wrbtcTokenAddress) internal nonpayable
 ```
 
@@ -103,9 +188,22 @@ function _setWrbtcTokenAddress(address _wrbtcTokenAddress) internal nonpayable
 | ------------- |------------- | -----|
 | _wrbtcTokenAddress | address |  | 
 
-### initialize
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function _setWrbtcTokenAddress(address _wrbtcTokenAddress) internal {
+		require(Address.isContract(_wrbtcTokenAddress), "wrbtc not a contract");
+		wrbtcTokenAddress = _wrbtcTokenAddress;
+	}
+```
+</details>
+
+---    
+
+> ### initialize
+
+```solidity
 function initialize(address _loanTokenAddress, string _name, string _symbol) public nonpayable onlyOwner 
 ```
 
@@ -116,6 +214,26 @@ function initialize(address _loanTokenAddress, string _name, string _symbol) pub
 | _loanTokenAddress | address |  | 
 | _name | string |  | 
 | _symbol | string |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function initialize(
+		address _loanTokenAddress,
+		string memory _name,
+		string memory _symbol
+	) public onlyOwner {
+		loanTokenAddress = _loanTokenAddress;
+
+		name = _name;
+		symbol = _symbol;
+		decimals = IERC20(loanTokenAddress).decimals();
+
+		initialPrice = 10**18; // starting price of 1
+	}
+```
+</details>
 
 ## Contracts
 
@@ -131,6 +249,7 @@ function initialize(address _loanTokenAddress, string _name, string _symbol) pub
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -252,7 +371,7 @@ function initialize(address _loanTokenAddress, string _name, string _symbol) pub
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -39,8 +39,8 @@ struct LoanReturnData {
 
 ## Functions
 
-- [()](#)
-- [()](#)
+- [constructor()](#constructor)
+- [constructor()](#constructor)
 - [initialize(address target)](#initialize)
 - [depositCollateral(bytes32 loanId, uint256 depositAmount)](#depositcollateral)
 - [withdrawCollateral(bytes32 loanId, address receiver, uint256 withdrawAmount)](#withdrawcollateral)
@@ -55,38 +55,52 @@ struct LoanReturnData {
 - [_getLoan(bytes32 loanId, uint256 loanType, bool unsafeOnly)](#_getloan)
 - [_doCollateralSwap(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 depositAmount)](#_docollateralswap)
 
-### 
+---    
+
+> ### constructor
 
 Empty public constructor.
 
-```js
+```solidity
 function () public nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+constructor() public {}
+```
+</details>
 
-### 
+---    
+
+> ### constructor
 
 Fallback function is to react to receiving value (rBTC).
 
-```js
+```solidity
 function () external nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function() external {
+		revert("fallback not allowed");
+	}
+```
+</details>
 
-### initialize
+---    
+
+> ### initialize
 
 Set initial values of proxy targets.
 	 *
 
-```js
+```solidity
 function initialize(address target) external nonpayable onlyOwner 
 ```
 
@@ -96,40 +110,91 @@ function initialize(address target) external nonpayable onlyOwner
 | ------------- |------------- | -----|
 | target | address | The address of the logic contract instance. | 
 
-### depositCollateral
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function initialize(address target) external onlyOwner {
+		address prevModuleContractAddress = logicTargets[this.depositCollateral.selector];
+		_setTarget(this.depositCollateral.selector, target);
+		_setTarget(this.withdrawCollateral.selector, target);
+		_setTarget(this.withdrawAccruedInterest.selector, target);
+		_setTarget(this.extendLoanDuration.selector, target);
+		_setTarget(this.reduceLoanDuration.selector, target);
+		_setTarget(this.getLenderInterestData.selector, target);
+		_setTarget(this.getLoanInterestData.selector, target);
+		_setTarget(this.getUserLoans.selector, target);
+		_setTarget(this.getLoan.selector, target);
+		_setTarget(this.getActiveLoans.selector, target);
+		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanMaintenance");
+	}
+```
+</details>
+
+---    
+
+> ### depositCollateral
 
 Increase the margin of a position by depositing additional collateral.
 	 *
 
-```js
+```solidity
 function depositCollateral(bytes32 loanId, uint256 depositAmount) external payable nonReentrant whenNotPaused 
 ```
-
-**Returns**
-
-actualWithdrawAmount The amount withdrawn taking into account drawdowns.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | loanId | bytes32 | A unique ID representing the loan. | 
-| depositAmount | uint256 | The amount to be deposited in collateral tokens.
-	 * | 
-
-### withdrawCollateral
-
-Withdraw from the collateral. This reduces the margin of a position.
-	 *
-
-```js
-function withdrawCollateral(bytes32 loanId, address receiver, uint256 withdrawAmount) external nonpayable nonReentrant whenNotPaused 
-returns(actualWithdrawAmount uint256)
-```
+| depositAmount | uint256 | The amount to be deposited in collateral tokens. 	 * | 
 
 **Returns**
 
 actualWithdrawAmount The amount withdrawn taking into account drawdowns.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function depositCollateral(
+		bytes32 loanId,
+		uint256 depositAmount /// must match msg.value if ether is sent
+	) external payable nonReentrant whenNotPaused {
+		require(depositAmount != 0, "depositAmount is 0");
+		Loan storage loanLocal = loans[loanId];
+		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
+
+		require(loanLocal.active, "loan is closed");
+		require(msg.value == 0 || loanParamsLocal.collateralToken == address(wrbtcToken), "wrong asset sent");
+
+		loanLocal.collateral = loanLocal.collateral.add(depositAmount);
+
+		if (msg.value == 0) {
+			vaultDeposit(loanParamsLocal.collateralToken, msg.sender, depositAmount);
+		} else {
+			require(msg.value == depositAmount, "ether deposit mismatch");
+			vaultEtherDeposit(msg.sender, msg.value);
+		}
+
+		(uint256 collateralToLoanRate, ) = IPriceFeeds(priceFeeds).queryRate(loanParamsLocal.collateralToken, loanParamsLocal.loanToken);
+
+		emit DepositCollateral(loanId, depositAmount, collateralToLoanRate);
+	}
+```
+</details>
+
+---    
+
+> ### withdrawCollateral
+
+Withdraw from the collateral. This reduces the margin of a position.
+	 *
+
+```solidity
+function withdrawCollateral(bytes32 loanId, address receiver, uint256 withdrawAmount) external nonpayable nonReentrant whenNotPaused 
+returns(actualWithdrawAmount uint256)
+```
 
 **Arguments**
 
@@ -137,15 +202,62 @@ actualWithdrawAmount The amount withdrawn taking into account drawdowns.
 | ------------- |------------- | -----|
 | loanId | bytes32 | A unique ID representing the loan. | 
 | receiver | address | The account getting the withdrawal. | 
-| withdrawAmount | uint256 | The amount to be withdrawn in collateral tokens.
-	 * | 
+| withdrawAmount | uint256 | The amount to be withdrawn in collateral tokens. 	 * | 
 
-### withdrawAccruedInterest
+**Returns**
+
+actualWithdrawAmount The amount withdrawn taking into account drawdowns.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawCollateral(
+		bytes32 loanId,
+		address receiver,
+		uint256 withdrawAmount
+	) external nonReentrant whenNotPaused returns (uint256 actualWithdrawAmount) {
+		require(withdrawAmount != 0, "withdrawAmount is 0");
+		Loan storage loanLocal = loans[loanId];
+		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
+
+		require(loanLocal.active, "loan is closed");
+		require(msg.sender == loanLocal.borrower || delegatedManagers[loanLocal.id][msg.sender], "unauthorized");
+
+		uint256 maxDrawdown =
+			IPriceFeeds(priceFeeds).getMaxDrawdown(
+				loanParamsLocal.loanToken,
+				loanParamsLocal.collateralToken,
+				loanLocal.principal,
+				loanLocal.collateral,
+				loanParamsLocal.maintenanceMargin
+			);
+
+		if (withdrawAmount > maxDrawdown) {
+			actualWithdrawAmount = maxDrawdown;
+		} else {
+			actualWithdrawAmount = withdrawAmount;
+		}
+
+		loanLocal.collateral = loanLocal.collateral.sub(actualWithdrawAmount);
+
+		if (loanParamsLocal.collateralToken == address(wrbtcToken)) {
+			vaultEtherWithdraw(receiver, actualWithdrawAmount);
+		} else {
+			vaultWithdraw(loanParamsLocal.collateralToken, receiver, actualWithdrawAmount);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### withdrawAccruedInterest
 
 Withdraw accrued loan interest.
 	 *
 
-```js
+```solidity
 function withdrawAccruedInterest(address loanToken) external nonpayable whenNotPaused 
 ```
 
@@ -155,19 +267,31 @@ function withdrawAccruedInterest(address loanToken) external nonpayable whenNotP
 | ------------- |------------- | -----|
 | loanToken | address | The loan token address. | 
 
-### extendLoanDuration
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawAccruedInterest(address loanToken) external whenNotPaused {
+		/// Pay outstanding interest to lender.
+		_payInterest(
+			msg.sender, /// Lender.
+			loanToken
+		);
+	}
+```
+</details>
+
+---    
+
+> ### extendLoanDuration
 
 Extend the loan duration by as much time as depositAmount can buy.
 	 *
 
-```js
+```solidity
 function extendLoanDuration(bytes32 loanId, uint256 depositAmount, bool useCollateral, bytes ) external payable nonReentrant whenNotPaused 
 returns(secondsExtended uint256)
 ```
-
-**Returns**
-
-secondsExtended The amount of time in seconds the loan is extended.
 
 **Arguments**
 
@@ -175,25 +299,107 @@ secondsExtended The amount of time in seconds the loan is extended.
 | ------------- |------------- | -----|
 | loanId | bytes32 | A unique ID representing the loan. | 
 | depositAmount | uint256 | The amount to be deposited in loan tokens. Used to pay the interest for the new duration. | 
-| useCollateral | bool | Whether pay interests w/ the collateral. If true, depositAmount of loan tokens
-					will be purchased with the collateral.
-// param calldata The payload for the call. These loan DataBytes are additional loan data (not in use for token swaps).
-	 * | 
+| useCollateral | bool | Whether pay interests w/ the collateral. If true, depositAmount of loan tokens 					will be purchased with the collateral. // param calldata The payload for the call. These loan DataBytes are additional loan data (not in use for token swaps). 	 * | 
 |  | bytes | loanId A unique ID representing the loan. | 
 
-### reduceLoanDuration
+**Returns**
+
+secondsExtended The amount of time in seconds the loan is extended.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function extendLoanDuration(
+		bytes32 loanId,
+		uint256 depositAmount,
+		bool useCollateral,
+		bytes calldata /// loanDataBytes, for future use.
+	) external payable nonReentrant whenNotPaused returns (uint256 secondsExtended) {
+		require(depositAmount != 0, "depositAmount is 0");
+		Loan storage loanLocal = loans[loanId];
+		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
+
+		require(loanLocal.active, "loan is closed");
+		require(!useCollateral || msg.sender == loanLocal.borrower || delegatedManagers[loanLocal.id][msg.sender], "unauthorized");
+		require(loanParamsLocal.maxLoanTerm == 0, "indefinite-term only");
+		require(msg.value == 0 || (!useCollateral && loanParamsLocal.loanToken == address(wrbtcToken)), "wrong asset sent");
+
+		/// Pay outstanding interest to lender.
+		_payInterest(loanLocal.lender, loanParamsLocal.loanToken);
+
+		LoanInterest storage loanInterestLocal = loanInterest[loanLocal.id];
+
+		_settleFeeRewardForInterestExpense(
+			loanInterestLocal,
+			loanLocal.id,
+			loanParamsLocal.loanToken, /// fee token
+			loanParamsLocal.collateralToken, /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
+			loanLocal.borrower,
+			block.timestamp
+		);
+
+		/// Handle back interest: calculates interest owned since the loan
+		/// endtime passed but the loan remained open.
+		uint256 backInterestOwed;
+		if (block.timestamp > loanLocal.endTimestamp) {
+			backInterestOwed = block.timestamp.sub(loanLocal.endTimestamp);
+			backInterestOwed = backInterestOwed.mul(loanInterestLocal.owedPerDay);
+			backInterestOwed = backInterestOwed.div(86400);
+
+			require(depositAmount > backInterestOwed, "deposit cannot cover back interest");
+		}
+
+		/// Deposit interest.
+		if (useCollateral) {
+			_doCollateralSwap(loanLocal, loanParamsLocal, depositAmount);
+		} else {
+			if (msg.value == 0) {
+				vaultDeposit(loanParamsLocal.loanToken, msg.sender, depositAmount);
+			} else {
+				require(msg.value == depositAmount, "ether deposit mismatch");
+				vaultEtherDeposit(msg.sender, msg.value);
+			}
+		}
+
+		if (backInterestOwed != 0) {
+			depositAmount = depositAmount.sub(backInterestOwed);
+
+			/// Pay out backInterestOwed
+			_payInterestTransfer(loanLocal.lender, loanParamsLocal.loanToken, backInterestOwed);
+		}
+
+		secondsExtended = depositAmount.mul(86400).div(loanInterestLocal.owedPerDay);
+
+		loanLocal.endTimestamp = loanLocal.endTimestamp.add(secondsExtended);
+
+		require(loanLocal.endTimestamp > block.timestamp, "loan too short");
+
+		uint256 maxDuration = loanLocal.endTimestamp.sub(block.timestamp);
+
+		/// Loan term has to at least be greater than one hour.
+		require(maxDuration > 3600, "loan too short");
+
+		loanInterestLocal.depositTotal = loanInterestLocal.depositTotal.add(depositAmount);
+
+		lenderInterest[loanLocal.lender][loanParamsLocal.loanToken].owedTotal = lenderInterest[loanLocal.lender][loanParamsLocal.loanToken]
+			.owedTotal
+			.add(depositAmount);
+	}
+```
+</details>
+
+---    
+
+> ### reduceLoanDuration
 
 Reduce the loan duration by withdrawing from the deposited interest.
 	 *
 
-```js
+```solidity
 function reduceLoanDuration(bytes32 loanId, address receiver, uint256 withdrawAmount) external nonpayable nonReentrant whenNotPaused 
 returns(secondsReduced uint256)
 ```
-
-**Returns**
-
-secondsReduced The amount of time in seconds the loan is reduced.
 
 **Arguments**
 
@@ -201,67 +407,192 @@ secondsReduced The amount of time in seconds the loan is reduced.
 | ------------- |------------- | -----|
 | loanId | bytes32 | A unique ID representing the loan. | 
 | receiver | address | The account getting the withdrawal. | 
-| withdrawAmount | uint256 | The amount to be withdrawn in loan tokens.
-	 * | 
+| withdrawAmount | uint256 | The amount to be withdrawn in loan tokens. 	 * | 
 
-### getLenderInterestData
+**Returns**
+
+secondsReduced The amount of time in seconds the loan is reduced.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function reduceLoanDuration(
+		bytes32 loanId,
+		address receiver,
+		uint256 withdrawAmount
+	) external nonReentrant whenNotPaused returns (uint256 secondsReduced) {
+		require(withdrawAmount != 0, "withdrawAmount is 0");
+		Loan storage loanLocal = loans[loanId];
+		LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
+
+		require(loanLocal.active, "loan is closed");
+		require(msg.sender == loanLocal.borrower || delegatedManagers[loanLocal.id][msg.sender], "unauthorized");
+		require(loanParamsLocal.maxLoanTerm == 0, "indefinite-term only");
+		require(loanLocal.endTimestamp > block.timestamp, "loan term has ended");
+
+		/// Pay outstanding interest to lender.
+		_payInterest(loanLocal.lender, loanParamsLocal.loanToken);
+
+		LoanInterest storage loanInterestLocal = loanInterest[loanLocal.id];
+
+		_settleFeeRewardForInterestExpense(
+			loanInterestLocal,
+			loanLocal.id,
+			loanParamsLocal.loanToken, /// fee token
+			loanParamsLocal.collateralToken, /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
+			loanLocal.borrower,
+			block.timestamp
+		);
+
+		uint256 interestDepositRemaining = loanLocal.endTimestamp.sub(block.timestamp).mul(loanInterestLocal.owedPerDay).div(86400);
+		require(withdrawAmount < interestDepositRemaining, "withdraw amount too high");
+
+		/// Withdraw interest.
+		if (loanParamsLocal.loanToken == address(wrbtcToken)) {
+			vaultEtherWithdraw(receiver, withdrawAmount);
+		} else {
+			vaultWithdraw(loanParamsLocal.loanToken, receiver, withdrawAmount);
+		}
+
+		secondsReduced = withdrawAmount.mul(86400).div(loanInterestLocal.owedPerDay);
+
+		require(loanLocal.endTimestamp > secondsReduced, "loan too short");
+
+		loanLocal.endTimestamp = loanLocal.endTimestamp.sub(secondsReduced);
+
+		require(loanLocal.endTimestamp > block.timestamp, "loan too short");
+
+		uint256 maxDuration = loanLocal.endTimestamp.sub(block.timestamp);
+
+		/// Loan term has to at least be greater than one hour.
+		require(maxDuration > 3600, "loan too short");
+
+		loanInterestLocal.depositTotal = loanInterestLocal.depositTotal.sub(withdrawAmount);
+
+		lenderInterest[loanLocal.lender][loanParamsLocal.loanToken].owedTotal = lenderInterest[loanLocal.lender][loanParamsLocal.loanToken]
+			.owedTotal
+			.sub(withdrawAmount);
+	}
+```
+</details>
+
+---    
+
+> ### getLenderInterestData
 
 Get current lender interest data totals for all loans
   with a specific oracle and interest token.
 	 *
 
-```js
+```solidity
 function getLenderInterestData(address lender, address loanToken) external view
 returns(interestPaid uint256, interestPaidDate uint256, interestOwedPerDay uint256, interestUnPaid uint256, interestFeePercent uint256, principalTotal uint256)
 ```
-
-**Returns**
-
-interestPaid The total amount of interest that has been paid to a lender so far.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | lender | address | The lender address. | 
-| loanToken | address | The loan token address.
-	 * | 
+| loanToken | address | The loan token address. 	 * | 
 
-### getLoanInterestData
+**Returns**
+
+interestPaid The total amount of interest that has been paid to a lender so far.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getLenderInterestData(address lender, address loanToken)
+		external
+		view
+		returns (
+			uint256 interestPaid,
+			uint256 interestPaidDate,
+			uint256 interestOwedPerDay,
+			uint256 interestUnPaid,
+			uint256 interestFeePercent,
+			uint256 principalTotal
+		)
+	{
+		LenderInterest memory lenderInterestLocal = lenderInterest[lender][loanToken];
+
+		interestUnPaid = block.timestamp.sub(lenderInterestLocal.updatedTimestamp).mul(lenderInterestLocal.owedPerDay).div(86400);
+		if (interestUnPaid > lenderInterestLocal.owedTotal) interestUnPaid = lenderInterestLocal.owedTotal;
+
+		return (
+			lenderInterestLocal.paidTotal,
+			lenderInterestLocal.paidTotal != 0 ? lenderInterestLocal.updatedTimestamp : 0,
+			lenderInterestLocal.owedPerDay,
+			lenderInterestLocal.updatedTimestamp != 0 ? interestUnPaid : 0,
+			lendingFeePercent,
+			lenderInterestLocal.principalTotal
+		);
+	}
+```
+</details>
+
+---    
+
+> ### getLoanInterestData
 
 Get current interest data for a loan.
 	 *
 
-```js
+```solidity
 function getLoanInterestData(bytes32 loanId) external view
 returns(loanToken address, interestOwedPerDay uint256, interestDepositTotal uint256, interestDepositRemaining uint256)
 ```
-
-**Returns**
-
-loanToken The loan token that interest is paid in.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| loanId | bytes32 | A unique ID representing the loan.
-	 * | 
+| loanId | bytes32 | A unique ID representing the loan. 	 * | 
 
-### getUserLoans
+**Returns**
+
+loanToken The loan token that interest is paid in.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getLoanInterestData(bytes32 loanId)
+		external
+		view
+		returns (
+			address loanToken,
+			uint256 interestOwedPerDay,
+			uint256 interestDepositTotal,
+			uint256 interestDepositRemaining
+		)
+	{
+		loanToken = loanParams[loans[loanId].loanParamsId].loanToken;
+		interestOwedPerDay = loanInterest[loanId].owedPerDay;
+		interestDepositTotal = loanInterest[loanId].depositTotal;
+
+		uint256 endTimestamp = loans[loanId].endTimestamp;
+		uint256 interestTime = block.timestamp > endTimestamp ? endTimestamp : block.timestamp;
+		interestDepositRemaining = endTimestamp > interestTime ? endTimestamp.sub(interestTime).mul(interestOwedPerDay).div(86400) : 0;
+	}
+```
+</details>
+
+---    
+
+> ### getUserLoans
 
 Get all user loans.
 	 * Only returns data for loans that are active.
 	 *
 
-```js
+```solidity
 function getUserLoans(address user, uint256 start, uint256 count, uint256 loanType, bool isLender, bool unsafeOnly) external view
 returns(loansData struct LoanMaintenance.LoanReturnData[])
 ```
-
-**Returns**
-
-loansData The array of loans as query result.
 
 **Arguments**
 
@@ -270,49 +601,109 @@ loansData The array of loans as query result.
 | user | address | The user address. | 
 | start | uint256 | The lower loan ID to start with. | 
 | count | uint256 | The maximum number of results. | 
-| loanType | uint256 | The type of loan.
-  loanType 0: all loans.
-  loanType 1: margin trade loans.
-  loanType 2: non-margin trade loans. | 
+| loanType | uint256 | The type of loan.   loanType 0: all loans.   loanType 1: margin trade loans.   loanType 2: non-margin trade loans. | 
 | isLender | bool | Whether the user is lender or borrower. | 
-| unsafeOnly | bool | The safe filter (True/False).
-	 * | 
+| unsafeOnly | bool | The safe filter (True/False). 	 * | 
 
-### getLoan
+**Returns**
+
+loansData The array of loans as query result.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getUserLoans(
+		address user,
+		uint256 start,
+		uint256 count,
+		uint256 loanType,
+		bool isLender,
+		bool unsafeOnly
+	) external view returns (LoanReturnData[] memory loansData) {
+		EnumerableBytes32Set.Bytes32Set storage set = isLender ? lenderLoanSets[user] : borrowerLoanSets[user];
+
+		uint256 end = start.add(count).min256(set.length());
+		if (start >= end) {
+			return loansData;
+		}
+
+		loansData = new LoanReturnData[](count);
+		uint256 itemCount;
+		for (uint256 i = end - start; i > 0; i--) {
+			if (itemCount == count) {
+				break;
+			}
+			LoanReturnData memory loanData =
+				_getLoan(
+					set.get(i + start - 1), /// loanId
+					loanType,
+					unsafeOnly
+				);
+			if (loanData.loanId == 0) continue;
+
+			loansData[itemCount] = loanData;
+			itemCount++;
+		}
+
+		if (itemCount < count) {
+			assembly {
+				mstore(loansData, itemCount)
+			}
+		}
+	}
+```
+</details>
+
+---    
+
+> ### getLoan
 
 Get one loan data structure by matching ID.
 	 * Wrapper to internal _getLoan call.
 	 *
 
-```js
+```solidity
 function getLoan(bytes32 loanId) external view
 returns(loanData struct LoanMaintenance.LoanReturnData)
 ```
-
-**Returns**
-
-loansData The data structure w/ loan information.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| loanId | bytes32 | A unique ID representing the loan.
-	 * | 
-
-### getActiveLoans
-
-Get all active loans.
-	 *
-
-```js
-function getActiveLoans(uint256 start, uint256 count, bool unsafeOnly) external view
-returns(loansData struct LoanMaintenance.LoanReturnData[])
-```
+| loanId | bytes32 | A unique ID representing the loan. 	 * | 
 
 **Returns**
 
 loansData The data structure w/ loan information.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getLoan(bytes32 loanId) external view returns (LoanReturnData memory loanData) {
+		return
+			_getLoan(
+				loanId,
+				0, /// loanType
+				false /// unsafeOnly
+			);
+	}
+```
+</details>
+
+---    
+
+> ### getActiveLoans
+
+Get all active loans.
+	 *
+
+```solidity
+function getActiveLoans(uint256 start, uint256 count, bool unsafeOnly) external view
+returns(loansData struct LoanMaintenance.LoanReturnData[])
+```
 
 **Arguments**
 
@@ -320,41 +711,153 @@ loansData The data structure w/ loan information.
 | ------------- |------------- | -----|
 | start | uint256 | The lower loan ID to start with. | 
 | count | uint256 | The maximum number of results. | 
-| unsafeOnly | bool | The safe filter (True/False).
-	 * | 
+| unsafeOnly | bool | The safe filter (True/False). 	 * | 
 
-### _getLoan
+**Returns**
+
+loansData The data structure w/ loan information.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getActiveLoans(
+		uint256 start,
+		uint256 count,
+		bool unsafeOnly
+	) external view returns (LoanReturnData[] memory loansData) {
+		uint256 end = start.add(count).min256(activeLoansSet.length());
+		if (start >= end) {
+			return loansData;
+		}
+
+		loansData = new LoanReturnData[](count);
+		uint256 itemCount;
+		for (uint256 i = end - start; i > 0; i--) {
+			if (itemCount == count) {
+				break;
+			}
+			LoanReturnData memory loanData =
+				_getLoan(
+					activeLoansSet.get(i + start - 1), /// loanId
+					0, /// loanType
+					unsafeOnly
+				);
+			if (loanData.loanId == 0) continue;
+
+			loansData[itemCount] = loanData;
+			itemCount++;
+		}
+
+		if (itemCount < count) {
+			assembly {
+				mstore(loansData, itemCount)
+			}
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _getLoan
 
 Internal function to get one loan data structure.
 	 *
 
-```js
+```solidity
 function _getLoan(bytes32 loanId, uint256 loanType, bool unsafeOnly) internal view
 returns(loanData struct LoanMaintenance.LoanReturnData)
 ```
-
-**Returns**
-
-loansData The data structure w/ the loan information.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | loanId | bytes32 | A unique ID representing the loan. | 
-| loanType | uint256 | The type of loan.
-  loanType 0: all loans.
-  loanType 1: margin trade loans.
-  loanType 2: non-margin trade loans. | 
-| unsafeOnly | bool | The safe filter (True/False).
-	 * | 
+| loanType | uint256 | The type of loan.   loanType 0: all loans.   loanType 1: margin trade loans.   loanType 2: non-margin trade loans. | 
+| unsafeOnly | bool | The safe filter (True/False). 	 * | 
 
-### _doCollateralSwap
+**Returns**
+
+loansData The data structure w/ the loan information.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _getLoan(
+		bytes32 loanId,
+		uint256 loanType,
+		bool unsafeOnly
+	) internal view returns (LoanReturnData memory loanData) {
+		Loan memory loanLocal = loans[loanId];
+		LoanParams memory loanParamsLocal = loanParams[loanLocal.loanParamsId];
+
+		if (loanType != 0) {
+			if (!((loanType == 1 && loanParamsLocal.maxLoanTerm != 0) || (loanType == 2 && loanParamsLocal.maxLoanTerm == 0))) {
+				return loanData;
+			}
+		}
+
+		LoanInterest memory loanInterestLocal = loanInterest[loanId];
+
+		(uint256 currentMargin, uint256 collateralToLoanRate) =
+			IPriceFeeds(priceFeeds).getCurrentMargin(
+				loanParamsLocal.loanToken,
+				loanParamsLocal.collateralToken,
+				loanLocal.principal,
+				loanLocal.collateral
+			);
+
+		uint256 maxLiquidatable;
+		uint256 maxSeizable;
+		if (currentMargin <= loanParamsLocal.maintenanceMargin) {
+			(maxLiquidatable, maxSeizable, ) = _getLiquidationAmounts(
+				loanLocal.principal,
+				loanLocal.collateral,
+				currentMargin,
+				loanParamsLocal.maintenanceMargin,
+				collateralToLoanRate
+			);
+		} else if (unsafeOnly) {
+			return loanData;
+		}
+
+		return
+			LoanReturnData({
+				loanId: loanId,
+				loanToken: loanParamsLocal.loanToken,
+				collateralToken: loanParamsLocal.collateralToken,
+				borrower: loanLocal.borrower,
+				principal: loanLocal.principal,
+				collateral: loanLocal.collateral,
+				interestOwedPerDay: loanInterestLocal.owedPerDay,
+				interestDepositRemaining: loanLocal.endTimestamp >= block.timestamp
+					? loanLocal.endTimestamp.sub(block.timestamp).mul(loanInterestLocal.owedPerDay).div(86400)
+					: 0,
+				startRate: loanLocal.startRate,
+				startMargin: loanLocal.startMargin,
+				maintenanceMargin: loanParamsLocal.maintenanceMargin,
+				currentMargin: currentMargin,
+				maxLoanTerm: loanParamsLocal.maxLoanTerm,
+				endTimestamp: loanLocal.endTimestamp,
+				maxLiquidatable: maxLiquidatable,
+				maxSeizable: maxSeizable,
+				creationTimestamp: loanLocal.startTimestamp
+			});
+	}
+```
+</details>
+
+---    
+
+> ### _doCollateralSwap
 
 Internal function to collect interest from the collateral.
 	 *
 
-```js
+```solidity
 function _doCollateralSwap(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 depositAmount) internal nonpayable
 ```
 
@@ -365,6 +868,43 @@ function _doCollateralSwap(struct LoanStruct.Loan loanLocal, struct LoanParamsSt
 | loanLocal | struct LoanStruct.Loan | The loan object. | 
 | loanParamsLocal | struct LoanParamsStruct.LoanParams | The loan parameters. | 
 | depositAmount | uint256 | The amount of underlying tokens provided on the loan. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _doCollateralSwap(
+		Loan storage loanLocal,
+		LoanParams memory loanParamsLocal,
+		uint256 depositAmount
+	) internal {
+		/// Reverts in _loanSwap if amountNeeded can't be bought.
+		(, uint256 sourceTokenAmountUsed, ) =
+			_loanSwap(
+				loanLocal.id,
+				loanParamsLocal.collateralToken,
+				loanParamsLocal.loanToken,
+				loanLocal.borrower,
+				loanLocal.collateral, /// minSourceTokenAmount
+				0, /// maxSourceTokenAmount (0 means minSourceTokenAmount)
+				depositAmount, /// requiredDestTokenAmount (partial spend of loanLocal.collateral to fill this amount)
+				true, /// bypassFee
+				"" /// loanDataBytes
+			);
+		loanLocal.collateral = loanLocal.collateral.sub(sourceTokenAmountUsed);
+
+		/// Ensure the loan is still healthy.
+		(uint256 currentMargin, ) =
+			IPriceFeeds(priceFeeds).getCurrentMargin(
+				loanParamsLocal.loanToken,
+				loanParamsLocal.collateralToken,
+				loanLocal.principal,
+				loanLocal.collateral
+			);
+		require(currentMargin > loanParamsLocal.maintenanceMargin, "unhealthy position");
+	}
+```
+</details>
 
 ## Contracts
 
@@ -380,6 +920,7 @@ function _doCollateralSwap(struct LoanStruct.Loan loanLocal, struct LoanParamsSt
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -501,7 +1042,7 @@ function _doCollateralSwap(struct LoanStruct.Loan loanLocal, struct LoanParamsSt
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

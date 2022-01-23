@@ -12,9 +12,11 @@ View Source: [contracts/feeds/IV1PoolOracle.sol](../contracts/feeds/IV1PoolOracl
 - [latestPrice(address _baseToken)](#latestprice)
 - [reserveTokens(uint256 index)](#reservetokens)
 
-### read
+---    
 
-```js
+> ### read
+
+```solidity
 function read(uint256 price, uint256 timestamp) external view
 returns(uint256, uint256, uint256, uint256, uint256, uint256)
 ```
@@ -26,33 +28,63 @@ returns(uint256, uint256, uint256, uint256, uint256, uint256)
 | price | uint256 |  | 
 | timestamp | uint256 |  | 
 
-### latestAnswer
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function read(uint256 price, uint256 timestamp)
+		external
+		view
+		returns (
+			uint256,
+			uint256,
+			uint256,
+			uint256,
+			uint256,
+			uint256
+		);
+```
+</details>
+
+---    
+
+> ### latestAnswer
+
+```solidity
 function latestAnswer() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function latestAnswer() external view returns (uint256);
+```
+</details>
 
-### liquidityPool
+---    
 
-```js
+> ### liquidityPool
+
+```solidity
 function liquidityPool() external view
 returns(address)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function liquidityPool() external view returns (address);
+```
+</details>
 
-### latestPrice
+---    
 
-```js
+> ### latestPrice
+
+```solidity
 function latestPrice(address _baseToken) external view
 returns(answer uint256)
 ```
@@ -63,9 +95,19 @@ returns(answer uint256)
 | ------------- |------------- | -----|
 | _baseToken | address |  | 
 
-### reserveTokens
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function latestPrice(address _baseToken) external view returns (uint256 answer);
+```
+</details>
+
+---    
+
+> ### reserveTokens
+
+```solidity
 function reserveTokens(uint256 index) external view
 returns(address)
 ```
@@ -75,6 +117,14 @@ returns(address)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | index | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function reserveTokens(uint256 index) external view returns (address);
+```
+</details>
 
 ## Contracts
 
@@ -90,6 +140,7 @@ returns(address)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -211,7 +262,7 @@ returns(address)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

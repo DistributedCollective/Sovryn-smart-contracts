@@ -33,21 +33,23 @@ address internal target_;
 
 ## Functions
 
-- [(address _newOwner, address _newTarget, address _sovrynContractAddress, address _wrbtcTokenAddress)](#)
-- [()](#)
+- [constructor(address _newOwner, address _newTarget, address _sovrynContractAddress, address _wrbtcTokenAddress)](#constructor)
+- [constructor()](#constructor)
 - [setTarget(address _newTarget)](#settarget)
 - [_setTarget(address _newTarget)](#_settarget)
 - [_setSovrynContractAddress(address _sovrynContractAddress)](#_setsovryncontractaddress)
 - [_setWrbtcTokenAddress(address _wrbtcTokenAddress)](#_setwrbtctokenaddress)
 - [initialize(address _loanTokenAddress, string _name, string _symbol)](#initialize)
 
-### 
+---    
+
+> ### constructor
 
 Deploy loan token proxy.
   Sets ERC20 parameters of the token.
 	 *
 
-```js
+```solidity
 function (address _newOwner, address _newTarget, address _sovrynContractAddress, address _wrbtcTokenAddress) public nonpayable
 ```
 
@@ -60,26 +62,71 @@ function (address _newOwner, address _newTarget, address _sovrynContractAddress,
 | _sovrynContractAddress | address | The address of the new sovrynContract instance. | 
 | _wrbtcTokenAddress | address | The address of the new wrBTC instance. | 
 
-### 
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(
+		address _newOwner,
+		address _newTarget,
+		address _sovrynContractAddress,
+		address _wrbtcTokenAddress
+	) public {
+		transferOwnership(_newOwner);
+		_setTarget(_newTarget);
+		_setSovrynContractAddress(_sovrynContractAddress);
+		_setWrbtcTokenAddress(_wrbtcTokenAddress);
+	}
+```
+</details>
+
+---    
+
+> ### constructor
 
 Fallback function performs a delegate call
 to the actual implementation address is pointing this proxy.
 Returns whatever the implementation call returns.
 
-```js
+```solidity
 function () external payable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function() external payable {
+		if (gasleft() <= 2300) {
+			return;
+		}
 
-### setTarget
+		address target = target_;
+		bytes memory data = msg.data;
+		assembly {
+			let result := delegatecall(gas, target, add(data, 0x20), mload(data), 0, 0)
+			let size := returndatasize
+			let ptr := mload(0x40)
+			returndatacopy(ptr, 0, size)
+			switch result
+				case 0 {
+					revert(ptr, size)
+				}
+				default {
+					return(ptr, size)
+				}
+		}
+	}
+```
+</details>
+
+---    
+
+> ### setTarget
 
 Public owner setter for target address.
 
-```js
+```solidity
 function setTarget(address _newTarget) public nonpayable onlyOwner 
 ```
 
@@ -89,11 +136,23 @@ function setTarget(address _newTarget) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _newTarget | address | The address of the new target contract instance. | 
 
-### _setTarget
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setTarget(address _newTarget) public onlyOwner {
+		_setTarget(_newTarget);
+	}
+```
+</details>
+
+---    
+
+> ### _setTarget
 
 Internal setter for target address.
 
-```js
+```solidity
 function _setTarget(address _newTarget) internal nonpayable
 ```
 
@@ -103,11 +162,24 @@ function _setTarget(address _newTarget) internal nonpayable
 | ------------- |------------- | -----|
 | _newTarget | address | The address of the new target contract instance. | 
 
-### _setSovrynContractAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _setTarget(address _newTarget) internal {
+		require(Address.isContract(_newTarget), "target not a contract");
+		target_ = _newTarget;
+	}
+```
+</details>
+
+---    
+
+> ### _setSovrynContractAddress
 
 Internal setter for sovrynContract address.
 
-```js
+```solidity
 function _setSovrynContractAddress(address _sovrynContractAddress) internal nonpayable
 ```
 
@@ -117,11 +189,24 @@ function _setSovrynContractAddress(address _sovrynContractAddress) internal nonp
 | ------------- |------------- | -----|
 | _sovrynContractAddress | address | The address of the new sovrynContract instance. | 
 
-### _setWrbtcTokenAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _setSovrynContractAddress(address _sovrynContractAddress) internal {
+		require(Address.isContract(_sovrynContractAddress), "sovryn not a contract");
+		sovrynContractAddress = _sovrynContractAddress;
+	}
+```
+</details>
+
+---    
+
+> ### _setWrbtcTokenAddress
 
 Internal setter for wrBTC address.
 
-```js
+```solidity
 function _setWrbtcTokenAddress(address _wrbtcTokenAddress) internal nonpayable
 ```
 
@@ -131,13 +216,26 @@ function _setWrbtcTokenAddress(address _wrbtcTokenAddress) internal nonpayable
 | ------------- |------------- | -----|
 | _wrbtcTokenAddress | address | The address of the new wrBTC instance. | 
 
-### initialize
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _setWrbtcTokenAddress(address _wrbtcTokenAddress) internal {
+		require(Address.isContract(_wrbtcTokenAddress), "wrbtc not a contract");
+		wrbtcTokenAddress = _wrbtcTokenAddress;
+	}
+```
+</details>
+
+---    
+
+> ### initialize
 
 Public owner cloner for pointed loan token.
   Sets ERC20 parameters of the token.
 	 *
 
-```js
+```solidity
 function initialize(address _loanTokenAddress, string _name, string _symbol) public nonpayable onlyOwner 
 ```
 
@@ -148,6 +246,26 @@ function initialize(address _loanTokenAddress, string _name, string _symbol) pub
 | _loanTokenAddress | address | The address of the pointed loan token instance. | 
 | _name | string | The ERC20 token name. | 
 | _symbol | string | The ERC20 token symbol. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function initialize(
+		address _loanTokenAddress,
+		string memory _name,
+		string memory _symbol
+	) public onlyOwner {
+		loanTokenAddress = _loanTokenAddress;
+
+		name = _name;
+		symbol = _symbol;
+		decimals = IERC20(loanTokenAddress).decimals();
+
+		initialPrice = 10**18; /// starting price of 1
+	}
+```
+</details>
 
 ## Contracts
 
@@ -163,6 +281,7 @@ function initialize(address _loanTokenAddress, string _name, string _symbol) pub
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -284,7 +403,7 @@ function initialize(address _loanTokenAddress, string _name, string _symbol) pub
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

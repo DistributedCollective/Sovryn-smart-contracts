@@ -22,11 +22,13 @@ event PayInterestTransfer(address indexed interestToken, address indexed lender,
 - [_payInterest(address lender, address interestToken)](#_payinterest)
 - [_payInterestTransfer(address lender, address interestToken, uint256 interestOwedNow)](#_payinteresttransfer)
 
-### _payInterest
+---    
+
+> ### _payInterest
 
 Internal function to pay interest of a loan.
 
-```js
+```solidity
 function _payInterest(address lender, address interestToken) internal nonpayable
 ```
 
@@ -37,11 +39,41 @@ function _payInterest(address lender, address interestToken) internal nonpayable
 | lender | address | The account address of the lender. | 
 | interestToken | address | The token address to pay interest with. | 
 
-### _payInterestTransfer
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _payInterest(address lender, address interestToken) internal {
+		LenderInterest storage lenderInterestLocal = lenderInterest[lender][interestToken];
+
+		uint256 interestOwedNow = 0;
+		if (lenderInterestLocal.owedPerDay != 0 && lenderInterestLocal.updatedTimestamp != 0) {
+			interestOwedNow = block.timestamp.sub(lenderInterestLocal.updatedTimestamp).mul(lenderInterestLocal.owedPerDay).div(1 days);
+
+			lenderInterestLocal.updatedTimestamp = block.timestamp;
+
+			if (interestOwedNow > lenderInterestLocal.owedTotal) interestOwedNow = lenderInterestLocal.owedTotal;
+
+			if (interestOwedNow != 0) {
+				lenderInterestLocal.paidTotal = lenderInterestLocal.paidTotal.add(interestOwedNow);
+				lenderInterestLocal.owedTotal = lenderInterestLocal.owedTotal.sub(interestOwedNow);
+
+				_payInterestTransfer(lender, interestToken, interestOwedNow);
+			}
+		} else {
+			lenderInterestLocal.updatedTimestamp = block.timestamp;
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _payInterestTransfer
 
 Internal function to transfer tokens for the interest of a loan.
 
-```js
+```solidity
 function _payInterestTransfer(address lender, address interestToken, uint256 interestOwedNow) internal nonpayable
 ```
 
@@ -52,6 +84,30 @@ function _payInterestTransfer(address lender, address interestToken, uint256 int
 | lender | address | The account address of the lender. | 
 | interestToken | address | The token address to pay interest with. | 
 | interestOwedNow | uint256 | The amount of interest to pay. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _payInterestTransfer(
+		address lender,
+		address interestToken,
+		uint256 interestOwedNow
+	) internal {
+		uint256 lendingFee = interestOwedNow.mul(lendingFeePercent).div(10**20);
+		/// TODO: refactor: data incapsulation violation and DRY design principles
+		/// uint256 lendingFee = interestOwedNow.mul(lendingFeePercent).divCeil(10**20); is better but produces errors in tests because of this
+
+		_payLendingFee(lender, interestToken, lendingFee);
+
+		/// Transfers the interest to the lender, less the interest fee.
+		vaultWithdraw(interestToken, lender, interestOwedNow.sub(lendingFee));
+
+		/// Event Log
+		emit PayInterestTransfer(interestToken, lender, interestOwedNow.sub(lendingFee));
+	}
+```
+</details>
 
 ## Contracts
 
@@ -67,6 +123,7 @@ function _payInterestTransfer(address lender, address interestToken, uint256 int
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -188,7 +245,7 @@ function _payInterestTransfer(address lender, address interestToken, uint256 int
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

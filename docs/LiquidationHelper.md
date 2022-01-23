@@ -15,20 +15,18 @@ trading and lending https://bzx.network similar to the dYdX protocol.
 
 - [_getLiquidationAmounts(uint256 principal, uint256 collateral, uint256 currentMargin, uint256 maintenanceMargin, uint256 collateralToLoanRate)](#_getliquidationamounts)
 
-### _getLiquidationAmounts
+---    
+
+> ### _getLiquidationAmounts
 
 Compute how much needs to be liquidated in order to restore the
 desired margin (maintenance + 5%).
 	 *
 
-```js
+```solidity
 function _getLiquidationAmounts(uint256 principal, uint256 collateral, uint256 currentMargin, uint256 maintenanceMargin, uint256 collateralToLoanRate) internal view
 returns(maxLiquidatable uint256, maxSeizable uint256, incentivePercent uint256)
 ```
-
-**Returns**
-
-maxLiquidatable The collateral you can get liquidating.
 
 **Arguments**
 
@@ -38,9 +36,60 @@ maxLiquidatable The collateral you can get liquidating.
 | collateral | uint256 | The collateral (in collateral tokens). | 
 | currentMargin | uint256 | The current margin. | 
 | maintenanceMargin | uint256 | The maintenance (minimum) margin. | 
-| collateralToLoanRate | uint256 | The exchange rate from collateral to loan
-  tokens.
-	 * | 
+| collateralToLoanRate | uint256 | The exchange rate from collateral to loan   tokens. 	 * | 
+
+**Returns**
+
+maxLiquidatable The collateral you can get liquidating.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _getLiquidationAmounts(
+		uint256 principal,
+		uint256 collateral,
+		uint256 currentMargin,
+		uint256 maintenanceMargin,
+		uint256 collateralToLoanRate
+	)
+		internal
+		view
+		returns (
+			uint256 maxLiquidatable,
+			uint256 maxSeizable,
+			uint256 incentivePercent
+		)
+	{
+		incentivePercent = liquidationIncentivePercent;
+		if (currentMargin > maintenanceMargin || collateralToLoanRate == 0) {
+			return (maxLiquidatable, maxSeizable, incentivePercent);
+		} else if (currentMargin <= incentivePercent) {
+			return (principal, collateral, currentMargin);
+		}
+
+		/// 5 percentage points above maintenance.
+		uint256 desiredMargin = maintenanceMargin.add(5 ether);
+
+		/// maxLiquidatable = ((1 + desiredMargin)*principal - collateralToLoanRate*collateral) / (desiredMargin - 0.05)
+		maxLiquidatable = desiredMargin.add(10**20).mul(principal).div(10**20);
+		maxLiquidatable = maxLiquidatable.sub(collateral.mul(collateralToLoanRate).div(10**18));
+		maxLiquidatable = maxLiquidatable.mul(10**20).div(desiredMargin.sub(incentivePercent));
+		if (maxLiquidatable > principal) {
+			maxLiquidatable = principal;
+		}
+
+		/// maxSeizable = maxLiquidatable * (1 + incentivePercent) / collateralToLoanRate
+		maxSeizable = maxLiquidatable.mul(incentivePercent.add(10**20));
+		maxSeizable = maxSeizable.div(collateralToLoanRate).div(100);
+		if (maxSeizable > collateral) {
+			maxSeizable = collateral;
+		}
+
+		return (maxLiquidatable, maxSeizable, incentivePercent);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -56,6 +105,7 @@ maxLiquidatable The collateral you can get liquidating.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -177,7 +227,7 @@ maxLiquidatable The collateral you can get liquidating.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

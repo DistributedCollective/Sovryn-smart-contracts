@@ -104,7 +104,7 @@ event ProposalExecuted(uint256  id);
 - [proposalMaxOperations()](#proposalmaxoperations)
 - [votingDelay()](#votingdelay)
 - [votingPeriod()](#votingperiod)
-- [(address timelock_, address staking_, address guardian_, uint96 _quorumPercentageVotes, uint96 _majorityPercentageVotes)](#)
+- [constructor(address timelock_, address staking_, address guardian_, uint96 _quorumPercentageVotes, uint96 _majorityPercentageVotes)](#constructor)
 - [proposalThreshold()](#proposalthreshold)
 - [quorumVotes()](#quorumvotes)
 - [propose(address[] targets, uint256[] values, string[] signatures, bytes[] calldatas, string description)](#propose)
@@ -135,53 +135,76 @@ event ProposalExecuted(uint256  id);
 - [getPriorVotes(address account, uint256 blockNumber, uint256 date)](#getpriorvotes)
 - [getPriorTotalVotingPower(uint32 blockNumber, uint256 time)](#getpriortotalvotingpower)
 
-### proposalMaxOperations
+---    
+
+> ### proposalMaxOperations
 
 The maximum number of actions that can be included in a proposal.
 
-```js
+```solidity
 function proposalMaxOperations() public pure
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+nction proposalMaxOperations() public pure returns (uint256) {
+		return 10;
+	} /
+```
+</details>
 
-### votingDelay
+---    
+
+> ### votingDelay
 
 The delay before voting on a proposal may take place, once proposed.
 
-```js
+```solidity
 function votingDelay() public pure
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+nction votingDelay() public pure returns (uint256) {
+		return 1;
+	} /
+```
+</details>
 
-### votingPeriod
+---    
+
+> ### votingPeriod
 
 ⤿ Overridden Implementation(s): [GovernorAlphaMockup.votingPeriod](GovernorAlphaMockup.md#votingperiod)
 
 The duration of voting on a proposal, in blocks.
 
-```js
+```solidity
 function votingPeriod() public pure
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+nction votingPeriod() public pure returns (uint256) {
+		return 2880;
+	} /
+```
+</details>
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function (address timelock_, address staking_, address guardian_, uint96 _quorumPercentageVotes, uint96 _majorityPercentageVotes) public nonpayable
 ```
 
@@ -195,39 +218,90 @@ function (address timelock_, address staking_, address guardian_, uint96 _quorum
 | _quorumPercentageVotes | uint96 |  | 
 | _majorityPercentageVotes | uint96 |  | 
 
-### proposalThreshold
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nstructor(
+		address timelock_,
+		address staking_,
+		address guardian_,
+		uint96 _quorumPercentageVotes,
+		uint96 _majorityPercentageVotes
+	) public {
+		timelock = ITimelock(timelock_);
+		staking = IStaking(staking_);
+		guardian = guardian_;
+		quorumPercentageVotes = _quorumPercentageVotes;
+		majorityPercentageVotes = _majorityPercentageVotes;
+	}
+
+```
+</details>
+
+---    
+
+> ### proposalThreshold
 
 The number of votes required in order for a voter to become a proposer.
 
-```js
+```solidity
 function proposalThreshold() public view
 returns(uint96)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+nction proposalThreshold() public view returns (uint96) {
+		uint96 totalVotingPower =
+			staking.getPriorTotalVotingPower(
+				safe32(block.number - 1, "GovernorAlpha::proposalThreshold: block number overflow"),
+				block.timestamp
+			);
+		// 1% of current total voting power.
+		return totalVotingPower / 100;
+	}
 
-### quorumVotes
+```
+</details>
+
+---    
+
+> ### quorumVotes
 
 The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed.
 
-```js
+```solidity
 function quorumVotes() public view
 returns(uint96)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+nction quorumVotes() public view returns (uint96) {
+		uint96 totalVotingPower =
+			staking.getPriorTotalVotingPower(
+				safe32(block.number - 1, "GovernorAlpha::quorumVotes: block number overflow"),
+				block.timestamp
+			);
+		// 4% of current total voting power.
+		return mul96(quorumPercentageVotes, totalVotingPower, "GovernorAlpha::quorumVotes:multiplication overflow") / 100;
+	}
 
-### propose
+```
+</details>
+
+---    
+
+> ### propose
 
 Create a new proposal.
 
-```js
+```solidity
 function propose(address[] targets, uint256[] values, string[] signatures, bytes[] calldatas, string description) public nonpayable
 returns(uint256)
 ```
@@ -242,11 +316,93 @@ returns(uint256)
 | calldatas | bytes[] | Array of payloads for the calls on proposal execution. | 
 | description | string | Text describing the purpose of the proposal. | 
 
-### queue
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction propose(
+		address[] memory targets,
+		uint256[] memory values,
+		string[] memory signatures,
+		bytes[] memory calldatas,
+		string memory description
+	) public returns (uint256) {
+		// note: passing this block's timestamp, but the number of the previous block.
+		// todo: think if it would be better to pass block.timestamp - 30 (average block time)
+		// (probably not because proposal starts in 1 block from now).
+		uint96 threshold = proposalThreshold();
+		require(
+			staking.getPriorVotes(msg.sender, sub256(block.number, 1), block.timestamp) > threshold,
+			"GovernorAlpha::propose: proposer votes below proposal threshold"
+		);
+		require(
+			targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length,
+			"GovernorAlpha::propose: proposal function information arity mismatch"
+		);
+		require(targets.length != 0, "GovernorAlpha::propose: must provide actions");
+		require(targets.length <= proposalMaxOperations(), "GovernorAlpha::propose: too many actions");
+
+		uint256 latestProposalId = latestProposalIds[msg.sender];
+		if (latestProposalId != 0) {
+			ProposalState proposersLatestProposalState = state(latestProposalId);
+			require(
+				proposersLatestProposalState != ProposalState.Active,
+				"GovernorAlpha::propose: one live proposal per proposer, found an already active proposal"
+			);
+			require(
+				proposersLatestProposalState != ProposalState.Pending,
+				"GovernorAlpha::propose: one live proposal per proposer, found an already pending proposal"
+			);
+		}
+
+		uint256 startBlock = add256(block.number, votingDelay());
+		uint256 endBlock = add256(startBlock, votingPeriod());
+
+		proposalCount++;
+
+		/// @dev quorum: proposalThreshold is 1% of total votes, we can save gas using this pre calculated value.
+		/// @dev startTime: Required by the staking contract. not used by the governance contract itself.
+		Proposal memory newProposal =
+			Proposal({
+				id: proposalCount,
+				startBlock: safe32(startBlock, "GovernorAlpha::propose: start block number overflow"),
+				endBlock: safe32(endBlock, "GovernorAlpha::propose: end block number overflow"),
+				forVotes: 0,
+				againstVotes: 0,
+				quorum: mul96(quorumPercentageVotes, threshold, "GovernorAlpha::propose: overflow on quorum computation"),
+				majorityPercentage: mul96(
+					majorityPercentageVotes,
+					threshold,
+					"GovernorAlpha::propose: overflow on majorityPercentage computation"
+				),
+				eta: 0,
+				startTime: safe64(block.timestamp, "GovernorAlpha::propose: startTime overflow"),
+				canceled: false,
+				executed: false,
+				proposer: msg.sender,
+				targets: targets,
+				values: values,
+				signatures: signatures,
+				calldatas: calldatas
+			});
+
+		proposals[newProposal.id] = newProposal;
+		latestProposalIds[newProposal.proposer] = newProposal.id;
+
+		emit ProposalCreated(newProposal.id, msg.sender, targets, values, signatures, calldatas, startBlock, endBlock, description);
+		return newProposal.id;
+	}
+
+```
+</details>
+
+---    
+
+> ### queue
 
 Enqueue a proposal and everyone of its calls.
 
-```js
+```solidity
 function queue(uint256 proposalId) public nonpayable
 ```
 
@@ -256,11 +412,32 @@ function queue(uint256 proposalId) public nonpayable
 | ------------- |------------- | -----|
 | proposalId | uint256 | Proposal index to access the list proposals[] from storage. | 
 
-### _queueOrRevert
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction queue(uint256 proposalId) public {
+		require(state(proposalId) == ProposalState.Succeeded, "GovernorAlpha::queue: proposal can only be queued if it is succeeded");
+		Proposal storage proposal = proposals[proposalId];
+		uint256 eta = add256(block.timestamp, timelock.delay());
+
+		for (uint256 i = 0; i < proposal.targets.length; i++) {
+			_queueOrRevert(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], eta);
+		}
+		proposal.eta = safe64(eta, "GovernorAlpha::queue: ETA overflow");
+		emit ProposalQueued(proposalId, eta);
+	}
+
+```
+</details>
+
+---    
+
+> ### _queueOrRevert
 
 Tries to enqueue a proposal, verifying it has not been previously queued.
 
-```js
+```solidity
 function _queueOrRevert(address target, uint256 value, string signature, bytes data, uint256 eta) internal nonpayable
 ```
 
@@ -272,14 +449,36 @@ function _queueOrRevert(address target, uint256 value, string signature, bytes d
 | value | uint256 | rBTC amount to send on proposal execution. | 
 | signature | string | Function signature to call on proposal execution. | 
 | data | bytes | Payload for the call on proposal execution. | 
-| eta | uint256 | Estimated Time of Accomplishment. The timestamp that the
-proposal will be available for execution, set once the vote succeeds. | 
+| eta | uint256 | Estimated Time of Accomplishment. The timestamp that the proposal will be available for execution, set once the vote succeeds. | 
 
-### execute
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction _queueOrRevert(
+		address target,
+		uint256 value,
+		string memory signature,
+		bytes memory data,
+		uint256 eta
+	) internal {
+		require(
+			!timelock.queuedTransactions(keccak256(abi.encode(target, value, signature, data, eta))),
+			"GovernorAlpha::_queueOrRevert: proposal action already queued at eta"
+		);
+		timelock.queueTransaction(target, value, signature, data, eta);
+	}
+
+```
+</details>
+
+---    
+
+> ### execute
 
 Execute a proposal by looping and performing everyone of its calls.
 
-```js
+```solidity
 function execute(uint256 proposalId) public payable
 ```
 
@@ -289,11 +488,37 @@ function execute(uint256 proposalId) public payable
 | ------------- |------------- | -----|
 | proposalId | uint256 | Proposal index to access the list proposals[] from storage. | 
 
-### cancel
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction execute(uint256 proposalId) public payable {
+		require(state(proposalId) == ProposalState.Queued, "GovernorAlpha::execute: proposal can only be executed if it is queued");
+		Proposal storage proposal = proposals[proposalId];
+		proposal.executed = true;
+
+		for (uint256 i = 0; i < proposal.targets.length; i++) {
+			timelock.executeTransaction.value(proposal.values[i])(
+				proposal.targets[i],
+				proposal.values[i],
+				proposal.signatures[i],
+				proposal.calldatas[i],
+				proposal.eta
+			);
+		}
+		emit ProposalExecuted(proposalId);
+	}
+
+```
+</details>
+
+---    
+
+> ### cancel
 
 Cancel a proposal by looping and cancelling everyone of its calls.
 
-```js
+```solidity
 function cancel(uint256 proposalId) public nonpayable
 ```
 
@@ -303,18 +528,46 @@ function cancel(uint256 proposalId) public nonpayable
 | ------------- |------------- | -----|
 | proposalId | uint256 | Proposal index to access the list proposals[] from storage. | 
 
-### getActions
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction cancel(uint256 proposalId) public {
+		ProposalState state = state(proposalId);
+		require(state != ProposalState.Executed, "GovernorAlpha::cancel: cannot cancel executed proposal");
+
+		Proposal storage proposal = proposals[proposalId];
+		/// @notice Cancel only if sent by the guardian.
+		require(msg.sender == guardian, "GovernorAlpha::cancel: sender isn't a guardian");
+
+		proposal.canceled = true;
+
+		for (uint256 i = 0; i < proposal.targets.length; i++) {
+			timelock.cancelTransaction(
+				proposal.targets[i],
+				proposal.values[i],
+				proposal.signatures[i],
+				proposal.calldatas[i],
+				proposal.eta
+			);
+		}
+
+		emit ProposalCanceled(proposalId);
+	}
+
+```
+</details>
+
+---    
+
+> ### getActions
 
 Get a proposal list of its calls.
 
-```js
+```solidity
 function getActions(uint256 proposalId) public view
 returns(targets address[], values uint256[], signatures string[], calldatas bytes[])
 ```
-
-**Returns**
-
-Arrays of the 4 call parameters: targets, values, signatures, calldatas.
 
 **Arguments**
 
@@ -322,18 +575,41 @@ Arrays of the 4 call parameters: targets, values, signatures, calldatas.
 | ------------- |------------- | -----|
 | proposalId | uint256 | Proposal index to access the list proposals[] from storage. | 
 
-### getReceipt
+**Returns**
+
+Arrays of the 4 call parameters: targets, values, signatures, calldatas.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction getActions(uint256 proposalId)
+		public
+		view
+		returns (
+			address[] memory targets,
+			uint256[] memory values,
+			string[] memory signatures,
+			bytes[] memory calldatas
+		)
+	{
+		Proposal storage p = proposals[proposalId];
+		return (p.targets, p.values, p.signatures, p.calldatas);
+	}
+
+```
+</details>
+
+---    
+
+> ### getReceipt
 
 Get a proposal receipt.
 
-```js
+```solidity
 function getReceipt(uint256 proposalId, address voter) public view
 returns(struct GovernorAlpha.Receipt)
 ```
-
-**Returns**
-
-The voter receipt of the proposal.
 
 **Arguments**
 
@@ -342,11 +618,28 @@ The voter receipt of the proposal.
 | proposalId | uint256 | Proposal index to access the list proposals[] from storage. | 
 | voter | address | A governance stakeholder with voting power. | 
 
-### castVote
+**Returns**
+
+The voter receipt of the proposal.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction getReceipt(uint256 proposalId, address voter) public view returns (Receipt memory) {
+		return proposals[proposalId].receipts[voter];
+	}
+
+```
+</details>
+
+---    
+
+> ### castVote
 
 Casts a vote by sender.
 
-```js
+```solidity
 function castVote(uint256 proposalId, bool support) public nonpayable
 ```
 
@@ -357,7 +650,20 @@ function castVote(uint256 proposalId, bool support) public nonpayable
 | proposalId | uint256 | Proposal index to access the list proposals[] from storage. | 
 | support | bool | Vote value, yes or no. | 
 
-### castVoteBySig
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+nction castVote(uint256 proposalId, bool support) public {
+		return _castVote(msg.sender, proposalId, support);
+	}
+
+```
+</details>
+
+---    
+
+> ### castVoteBySig
 
 Voting with EIP-712 Signatures.
 	 * Voting power can be delegated to any address, and then can be used to
@@ -372,7 +678,7 @@ the proposal if the third party has not yet published the signed
 transaction that was given to them.
 	 *
 
-```js
+```solidity
 function castVoteBySig(uint256 proposalId, bool support, uint8 v, bytes32 r, bytes32 s) public nonpayable
 ```
 
@@ -386,11 +692,48 @@ function castVoteBySig(uint256 proposalId, bool support, uint8 v, bytes32 r, byt
 | r | bytes32 | Half of the ECDSA signature pair. | 
 | s | bytes32 | upport Vote value, yes or no. | 
 
-### _castVote
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+tion castVoteBySig(
+		uint256 proposalId,
+		bool support,
+		uint8 v,
+		bytes32 r,
+		bytes32 s
+	) public {
+		/**
+		 * @dev The DOMAIN_SEPARATOR is a hash that uniquely identifies a
+		 * smart contract. It is built from a string denoting it as an
+		 * EIP712 Domain, the name of the token contract, the version,
+		 * the chainId in case it changes, and the address that the
+		 * contract is deployed at.
+		 * */
+		bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(NAME)), getChainId(), address(this)));
+
+		/// @dev GovernorAlpha uses BALLOT_TYPEHASH, while Staking uses DELEGATION_TYPEHASH
+		bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));
+
+		bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+		address signatory = ecrecover(digest, v, r, s);
+
+		/// @dev Verify address is not null and PK is not null either.
+		require(RSKAddrValidator.checkPKNotZero(signatory), "GovernorAlpha::castVoteBySig: invalid signature");
+		return _castVote(signatory, proposalId, support);
+	}
+
+	/
+```
+</details>
+
+---    
+
+> ### _castVote
 
 Cast a vote, adding it to the total counting.
 
-```js
+```solidity
 function _castVote(address voter, uint256 proposalId, bool support) internal nonpayable
 ```
 
@@ -402,37 +745,91 @@ function _castVote(address voter, uint256 proposalId, bool support) internal non
 | proposalId | uint256 | Proposal index to access the list proposals[] from storage. | 
 | support | bool | Vote value, yes or no. | 
 
-### __acceptAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+tion _castVote(
+		address voter,
+		uint256 proposalId,
+		bool support
+	) internal {
+		require(state(proposalId) == ProposalState.Active, "GovernorAlpha::_castVote: voting is closed");
+		Proposal storage proposal = proposals[proposalId];
+		Receipt storage receipt = proposal.receipts[voter];
+		require(receipt.hasVoted == false, "GovernorAlpha::_castVote: voter already voted");
+		uint96 votes = staking.getPriorVotes(voter, proposal.startBlock, proposal.startTime);
+
+		if (support) {
+			proposal.forVotes = add96(proposal.forVotes, votes, "GovernorAlpha::_castVote: vote overflow");
+		} else {
+			proposal.againstVotes = add96(proposal.againstVotes, votes, "GovernorAlpha::_castVote: vote overflow");
+		}
+
+		receipt.hasVoted = true;
+		receipt.support = support;
+		receipt.votes = votes;
+
+		emit VoteCast(voter, proposalId, support, votes);
+	}
+
+	/
+```
+</details>
+
+---    
+
+> ### __acceptAdmin
 
 Timelock wrapper w/ sender check.
 
-```js
+```solidity
 function __acceptAdmin() public nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+tion __acceptAdmin() public {
+		require(msg.sender == guardian, "GovernorAlpha::__acceptAdmin: sender must be gov guardian");
+		timelock.acceptAdmin();
+	}
 
-### __abdicate
+	/
+```
+</details>
+
+---    
+
+> ### __abdicate
 
 Sets guardian address to zero.
 
-```js
+```solidity
 function __abdicate() public nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+tion __abdicate() public {
+		require(msg.sender == guardian, "GovernorAlpha::__abdicate: sender must be gov guardian");
+		guardian = address(0);
+	}
 
-### __queueSetTimelockPendingAdmin
+	/
+```
+</details>
+
+---    
+
+> ### __queueSetTimelockPendingAdmin
 
 Timelock wrapper w/ sender check.
 
-```js
+```solidity
 function __queueSetTimelockPendingAdmin(address newPendingAdmin, uint256 eta) public nonpayable
 ```
 
@@ -443,11 +840,26 @@ function __queueSetTimelockPendingAdmin(address newPendingAdmin, uint256 eta) pu
 | newPendingAdmin | address |  | 
 | eta | uint256 |  | 
 
-### __executeSetTimelockPendingAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+tion __queueSetTimelockPendingAdmin(address newPendingAdmin, uint256 eta) public {
+		require(msg.sender == guardian, "GovernorAlpha::__queueSetTimelockPendingAdmin: sender must be gov guardian");
+		timelock.queueTransaction(address(timelock), 0, "setPendingAdmin(address)", abi.encode(newPendingAdmin), eta);
+	}
+
+	/
+```
+</details>
+
+---    
+
+> ### __executeSetTimelockPendingAdmin
 
 Timelock wrapper w/ sender check.
 
-```js
+```solidity
 function __executeSetTimelockPendingAdmin(address newPendingAdmin, uint256 eta) public nonpayable
 ```
 
@@ -458,19 +870,29 @@ function __executeSetTimelockPendingAdmin(address newPendingAdmin, uint256 eta) 
 | newPendingAdmin | address |  | 
 | eta | uint256 |  | 
 
-### state
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+tion __executeSetTimelockPendingAdmin(address newPendingAdmin, uint256 eta) public {
+		require(msg.sender == guardian, "GovernorAlpha::__executeSetTimelockPendingAdmin: sender must be gov guardian");
+		timelock.executeTransaction(address(timelock), 0, "setPendingAdmin(address)", abi.encode(newPendingAdmin), eta);
+	}
+
+	/
+```
+</details>
+
+---    
+
+> ### state
 
 Get a proposal state.
 
-```js
+```solidity
 function state(uint256 proposalId) public view
 returns(enum GovernorAlpha.ProposalState)
 ```
-
-**Returns**
-
-The state of the proposal: Canceled, Pending, Active, Defeated,
-Succeeded, Executed, Expired.
 
 **Arguments**
 
@@ -478,11 +900,68 @@ Succeeded, Executed, Expired.
 | ------------- |------------- | -----|
 | proposalId | uint256 | Proposal index to access the list proposals[] from storage. | 
 
-### add256
+**Returns**
+
+The state of the proposal: Canceled, Pending, Active, Defeated,
+Succeeded, Executed, Expired.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+tion state(uint256 proposalId) public view returns (ProposalState) {
+		require(proposalCount >= proposalId && proposalId > 0, "GovernorAlpha::state: invalid proposal id");
+		Proposal storage proposal = proposals[proposalId];
+
+		if (proposal.canceled) {
+			return ProposalState.Canceled;
+		}
+
+		if (block.number <= proposal.startBlock) {
+			return ProposalState.Pending;
+		}
+
+		if (block.number <= proposal.endBlock) {
+			return ProposalState.Active;
+		}
+
+		uint96 totalVotes = add96(proposal.forVotes, proposal.againstVotes, "GovernorAlpha:: state: forVotes + againstVotes > uint96");
+		uint96 totalVotesMajorityPercentage = div96(totalVotes, 100, "GovernorAlpha:: state: division error");
+		totalVotesMajorityPercentage = mul96(
+			totalVotesMajorityPercentage,
+			majorityPercentageVotes,
+			"GovernorAlpha:: state: totalVotes * majorityPercentage > uint96"
+		);
+		if (proposal.forVotes <= totalVotesMajorityPercentage || totalVotes < proposal.quorum) {
+			return ProposalState.Defeated;
+		}
+
+		if (proposal.eta == 0) {
+			return ProposalState.Succeeded;
+		}
+
+		if (proposal.executed) {
+			return ProposalState.Executed;
+		}
+
+		if (block.timestamp >= add256(proposal.eta, timelock.GRACE_PERIOD())) {
+			return ProposalState.Expired;
+		}
+
+		return ProposalState.Queued;
+	}
+
+	/
+```
+</details>
+
+---    
+
+> ### add256
 
 TODO: use OpenZeppelin's SafeMath function instead.
 
-```js
+```solidity
 function add256(uint256 a, uint256 b) internal pure
 returns(uint256)
 ```
@@ -494,11 +973,27 @@ returns(uint256)
 | a | uint256 |  | 
 | b | uint256 |  | 
 
-### sub256
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+tion add256(uint256 a, uint256 b) internal pure returns (uint256) {
+		uint256 c = a + b;
+		require(c >= a, "addition overflow");
+		return c;
+	}
+
+	/
+```
+</details>
+
+---    
+
+> ### sub256
 
 TODO: use OpenZeppelin's SafeMath function instead.
 
-```js
+```solidity
 function sub256(uint256 a, uint256 b) internal pure
 returns(uint256)
 ```
@@ -510,7 +1005,22 @@ returns(uint256)
 | a | uint256 |  | 
 | b | uint256 |  | 
 
-### getChainId
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+tion sub256(uint256 a, uint256 b) internal pure returns (uint256) {
+		require(b <= a, "subtraction underflow");
+		return a - b;
+	}
+
+	/
+```
+</details>
+
+---    
+
+> ### getChainId
 
 Retrieve CHAIN_ID of the executing chain.
 	 * Chain identifier (chainID) introduced in EIP-155 protects transaction
@@ -519,54 +1029,88 @@ Basically, chain identifier is an integer number being used in the
 processes of signing transactions and verifying transaction signatures.
 	 *
 
-```js
+```solidity
 function getChainId() internal pure
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+tion getChainId() internal pure returns (uint256) {
+		uint256 chainId;
+		assembly {
+			chainId := chainid()
+		}
+		return chainId;
+	}
+}
 
-### delay
+```
+</details>
 
-```js
+---    
+
+> ### delay
+
+```solidity
 function delay() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+tion delay() external view returns (uint256);
 
-### GRACE_PERIOD
+	f
+```
+</details>
 
-```js
+---    
+
+> ### GRACE_PERIOD
+
+```solidity
 function GRACE_PERIOD() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+tion GRACE_PERIOD() external view returns (uint256);
 
-### acceptAdmin
+	f
+```
+</details>
 
-```js
+---    
+
+> ### acceptAdmin
+
+```solidity
 function acceptAdmin() external nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+tion acceptAdmin() external;
 
-### queuedTransactions
+	f
+```
+</details>
 
-```js
+---    
+
+> ### queuedTransactions
+
+```solidity
 function queuedTransactions(bytes32 hash) external view
 returns(bool)
 ```
@@ -577,9 +1121,21 @@ returns(bool)
 | ------------- |------------- | -----|
 | hash | bytes32 |  | 
 
-### queueTransaction
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+tion queuedTransactions(bytes32 hash) external view returns (bool);
+
+	f
+```
+</details>
+
+---    
+
+> ### queueTransaction
+
+```solidity
 function queueTransaction(address target, uint256 value, string signature, bytes data, uint256 eta) external nonpayable
 returns(bytes32)
 ```
@@ -594,9 +1150,27 @@ returns(bytes32)
 | data | bytes |  | 
 | eta | uint256 |  | 
 
-### cancelTransaction
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+tion queueTransaction(
+		address target,
+		uint256 value,
+		string calldata signature,
+		bytes calldata data,
+		uint256 eta
+	) external returns (bytes32);
+
+	f
+```
+</details>
+
+---    
+
+> ### cancelTransaction
+
+```solidity
 function cancelTransaction(address target, uint256 value, string signature, bytes data, uint256 eta) external nonpayable
 ```
 
@@ -610,9 +1184,27 @@ function cancelTransaction(address target, uint256 value, string signature, byte
 | data | bytes |  | 
 | eta | uint256 |  | 
 
-### executeTransaction
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+tion cancelTransaction(
+		address target,
+		uint256 value,
+		string calldata signature,
+		bytes calldata data,
+		uint256 eta
+	) external;
+
+	f
+```
+</details>
+
+---    
+
+> ### executeTransaction
+
+```solidity
 function executeTransaction(address target, uint256 value, string signature, bytes data, uint256 eta) external payable
 returns(bytes)
 ```
@@ -627,9 +1219,27 @@ returns(bytes)
 | data | bytes |  | 
 | eta | uint256 |  | 
 
-### getPriorVotes
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+tion executeTransaction(
+		address target,
+		uint256 value,
+		string calldata signature,
+		bytes calldata data,
+		uint256 eta
+	) external payable returns (bytes memory);
+}
+
+```
+</details>
+
+---    
+
+> ### getPriorVotes
+
+```solidity
 function getPriorVotes(address account, uint256 blockNumber, uint256 date) external view
 returns(uint96)
 ```
@@ -642,9 +1252,25 @@ returns(uint96)
 | blockNumber | uint256 |  | 
 | date | uint256 |  | 
 
-### getPriorTotalVotingPower
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+tion getPriorVotes(
+		address account,
+		uint256 blockNumber,
+		uint256 date
+	) external view returns (uint96);
+
+	f
+```
+</details>
+
+---    
+
+> ### getPriorTotalVotingPower
+
+```solidity
 function getPriorTotalVotingPower(uint32 blockNumber, uint256 time) external view
 returns(uint96)
 ```
@@ -655,6 +1281,16 @@ returns(uint96)
 | ------------- |------------- | -----|
 | blockNumber | uint32 |  | 
 | time | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+tion getPriorTotalVotingPower(uint32 blockNumber, uint256 time) external view returns (uint96);
+}
+
+```
+</details>
 
 ## Contracts
 
@@ -670,6 +1306,7 @@ returns(uint96)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -791,7 +1428,7 @@ returns(uint96)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

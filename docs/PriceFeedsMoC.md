@@ -25,31 +25,38 @@ event SetRSKOracleAddress(address indexed rskOracleAddress, address  changerAddr
 ## Functions
 
 - [peek()](#peek)
-- [(address _mocOracleAddress, address _rskOracleAddress)](#)
+- [constructor(address _mocOracleAddress, address _rskOracleAddress)](#constructor)
 - [latestAnswer()](#latestanswer)
 - [setMoCOracleAddress(address _mocOracleAddress)](#setmocoracleaddress)
 - [setRSKOracleAddress(address _rskOracleAddress)](#setrskoracleaddress)
 
-### peek
+---    
+
+> ### peek
 
 ⤿ Overridden Implementation(s): [PriceFeedsMoCMockup.peek](PriceFeedsMoCMockup.md#peek)
 
-```js
+```solidity
 function peek() external view
 returns(bytes32, bool)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function peek() external view returns (bytes32, bool);
+```
+</details>
 
-### 
+---    
+
+> ### constructor
 
 Initialize a new MoC Oracle.
 	 *
 
-```js
+```solidity
 function (address _mocOracleAddress, address _rskOracleAddress) public nonpayable
 ```
 
@@ -60,32 +67,54 @@ function (address _mocOracleAddress, address _rskOracleAddress) public nonpayabl
 | _mocOracleAddress | address | The MoC Oracle address. | 
 | _rskOracleAddress | address | The RSK Oracle address. | 
 
-### latestAnswer
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [IPriceFeedsExt.latestAnswer](IPriceFeedsExt.md#latestanswer)
+```javascript
+constructor(address _mocOracleAddress, address _rskOracleAddress) public {
+		setMoCOracleAddress(_mocOracleAddress);
+		setRSKOracleAddress(_rskOracleAddress);
+	}
+```
+</details>
+
+---    
+
+> ### latestAnswer
+
+undefined
 
 Get the las time oracle updated the price.
 
-```js
+```solidity
 function latestAnswer() external view
 returns(uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-The latest time.
+```javascript
+function latestAnswer() external view returns (uint256) {
+		(bytes32 value, bool hasValue) = Medianizer(mocOracleAddress).peek();
+		if (hasValue) {
+			return uint256(value);
+		} else {
+			(uint256 price, ) = IRSKOracle(rskOracleAddress).getPricing();
+			return price;
+		}
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### setMoCOracleAddress
+> ### setMoCOracleAddress
 
 Set the MoC Oracle address.
 	 *
 
-```js
+```solidity
 function setMoCOracleAddress(address _mocOracleAddress) public nonpayable onlyOwner 
 ```
 
@@ -95,12 +124,26 @@ function setMoCOracleAddress(address _mocOracleAddress) public nonpayable onlyOw
 | ------------- |------------- | -----|
 | _mocOracleAddress | address | The MoC Oracle address. | 
 
-### setRSKOracleAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setMoCOracleAddress(address _mocOracleAddress) public onlyOwner {
+		require(Address.isContract(_mocOracleAddress), "_mocOracleAddress not a contract");
+		mocOracleAddress = _mocOracleAddress;
+		emit SetMoCOracleAddress(mocOracleAddress, msg.sender);
+	}
+```
+</details>
+
+---    
+
+> ### setRSKOracleAddress
 
 Set the RSK Oracle address.
 	 *
 
-```js
+```solidity
 function setRSKOracleAddress(address _rskOracleAddress) public nonpayable onlyOwner 
 ```
 
@@ -109,6 +152,18 @@ function setRSKOracleAddress(address _rskOracleAddress) public nonpayable onlyOw
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _rskOracleAddress | address | The RSK Oracle address. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setRSKOracleAddress(address _rskOracleAddress) public onlyOwner {
+		require(Address.isContract(_rskOracleAddress), "_rskOracleAddress not a contract");
+		rskOracleAddress = _rskOracleAddress;
+		emit SetRSKOracleAddress(rskOracleAddress, msg.sender);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -124,6 +179,7 @@ function setRSKOracleAddress(address _rskOracleAddress) public nonpayable onlyOw
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -245,7 +301,7 @@ function setRSKOracleAddress(address _rskOracleAddress) public nonpayable onlyOw
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

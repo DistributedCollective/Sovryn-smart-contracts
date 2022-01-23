@@ -18,9 +18,11 @@ View Source: [contracts/connectors/loantoken/interfaces/ProtocolLike.sol](../con
 - [lendingFeePercent()](#lendingfeepercent)
 - [getSwapExpectedReturn(address sourceToken, address destToken, uint256 sourceTokenAmount)](#getswapexpectedreturn)
 
-### borrowOrTradeFromPool
+---    
 
-```js
+> ### borrowOrTradeFromPool
+
+```solidity
 function borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues, bytes loanDataBytes) external payable
 returns(newPrincipal uint256, newCollateral uint256)
 ```
@@ -37,9 +39,36 @@ returns(newPrincipal uint256, newCollateral uint256)
 | sentValues | uint256[5] |  | 
 | loanDataBytes | bytes |  | 
 
-### getTotalPrincipal
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function borrowOrTradeFromPool(
+		bytes32 loanParamsId,
+		bytes32 loanId, // if 0, start a new loan
+		bool isTorqueLoan,
+		uint256 initialMargin,
+		address[4] calldata sentAddresses,
+		// lender: must match loan if loanId provided
+		// borrower: must match loan if loanId provided
+		// receiver: receiver of funds (address(0) assumes borrower address)
+		// manager: delegated manager of loan unless address(0)
+		uint256[5] calldata sentValues,
+		// newRate: new loan interest rate
+		// newPrincipal: new loan size (borrowAmount + any borrowed interest)
+		// torqueInterest: new amount of interest to escrow for Torque loan (determines initial loan length)
+		// loanTokenReceived: total loanToken deposit (amount not sent to borrower in the case of Torque loans)
+		// collateralTokenReceived: total collateralToken deposit
+		bytes calldata loanDataBytes
+	) external payable returns (uint256 newPrincipal, uint256 newCollateral);
+```
+</details>
+
+---    
+
+> ### getTotalPrincipal
+
+```solidity
 function getTotalPrincipal(address lender, address loanToken) external view
 returns(uint256)
 ```
@@ -51,9 +80,19 @@ returns(uint256)
 | lender | address |  | 
 | loanToken | address |  | 
 
-### withdrawAccruedInterest
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getTotalPrincipal(address lender, address loanToken) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### withdrawAccruedInterest
+
+```solidity
 function withdrawAccruedInterest(address loanToken) external nonpayable
 ```
 
@@ -63,9 +102,19 @@ function withdrawAccruedInterest(address loanToken) external nonpayable
 | ------------- |------------- | -----|
 | loanToken | address |  | 
 
-### getLenderInterestData
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function withdrawAccruedInterest(address loanToken) external;
+```
+</details>
+
+---    
+
+> ### getLenderInterestData
+
+```solidity
 function getLenderInterestData(address lender, address loanToken) external view
 returns(interestPaid uint256, interestPaidDate uint256, interestOwedPerDay uint256, interestUnPaid uint256, interestFeePercent uint256, principalTotal uint256)
 ```
@@ -77,21 +126,46 @@ returns(interestPaid uint256, interestPaidDate uint256, interestOwedPerDay uint2
 | lender | address |  | 
 | loanToken | address |  | 
 
-### priceFeeds
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getLenderInterestData(address lender, address loanToken)
+		external
+		view
+		returns (
+			uint256 interestPaid,
+			uint256 interestPaidDate,
+			uint256 interestOwedPerDay,
+			uint256 interestUnPaid,
+			uint256 interestFeePercent,
+			uint256 principalTotal
+		);
+```
+</details>
+
+---    
+
+> ### priceFeeds
+
+```solidity
 function priceFeeds() external view
 returns(address)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function priceFeeds() external view returns (address);
+```
+</details>
 
-### getEstimatedMarginExposure
+---    
 
-```js
+> ### getEstimatedMarginExposure
+
+```solidity
 function getEstimatedMarginExposure(address loanToken, address collateralToken, uint256 loanTokenSent, uint256 collateralTokenSent, uint256 interestRate, uint256 newPrincipal) external view
 returns(uint256)
 ```
@@ -107,9 +181,26 @@ returns(uint256)
 | interestRate | uint256 |  | 
 | newPrincipal | uint256 |  | 
 
-### getRequiredCollateral
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getEstimatedMarginExposure(
+		address loanToken,
+		address collateralToken,
+		uint256 loanTokenSent,
+		uint256 collateralTokenSent,
+		uint256 interestRate,
+		uint256 newPrincipal
+	) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### getRequiredCollateral
+
+```solidity
 function getRequiredCollateral(address loanToken, address collateralToken, uint256 newPrincipal, uint256 marginAmount, bool isTorqueLoan) external view
 returns(collateralAmountRequired uint256)
 ```
@@ -124,9 +215,25 @@ returns(collateralAmountRequired uint256)
 | marginAmount | uint256 |  | 
 | isTorqueLoan | bool |  | 
 
-### getBorrowAmount
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getRequiredCollateral(
+		address loanToken,
+		address collateralToken,
+		uint256 newPrincipal,
+		uint256 marginAmount,
+		bool isTorqueLoan
+	) external view returns (uint256 collateralAmountRequired);
+```
+</details>
+
+---    
+
+> ### getBorrowAmount
+
+```solidity
 function getBorrowAmount(address loanToken, address collateralToken, uint256 collateralTokenAmount, uint256 marginAmount, bool isTorqueLoan) external view
 returns(borrowAmount uint256)
 ```
@@ -141,9 +248,25 @@ returns(borrowAmount uint256)
 | marginAmount | uint256 |  | 
 | isTorqueLoan | bool |  | 
 
-### isLoanPool
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getBorrowAmount(
+		address loanToken,
+		address collateralToken,
+		uint256 collateralTokenAmount,
+		uint256 marginAmount,
+		bool isTorqueLoan
+	) external view returns (uint256 borrowAmount);
+```
+</details>
+
+---    
+
+> ### isLoanPool
+
+```solidity
 function isLoanPool(address loanPool) external view
 returns(bool)
 ```
@@ -154,21 +277,36 @@ returns(bool)
 | ------------- |------------- | -----|
 | loanPool | address |  | 
 
-### lendingFeePercent
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function isLoanPool(address loanPool) external view returns (bool);
+```
+</details>
+
+---    
+
+> ### lendingFeePercent
+
+```solidity
 function lendingFeePercent() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function lendingFeePercent() external view returns (uint256);
+```
+</details>
 
-### getSwapExpectedReturn
+---    
 
-```js
+> ### getSwapExpectedReturn
+
+```solidity
 function getSwapExpectedReturn(address sourceToken, address destToken, uint256 sourceTokenAmount) external view
 returns(uint256)
 ```
@@ -180,6 +318,18 @@ returns(uint256)
 | sourceToken | address |  | 
 | destToken | address |  | 
 | sourceTokenAmount | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getSwapExpectedReturn(
+		address sourceToken,
+		address destToken,
+		uint256 sourceTokenAmount
+	) external view returns (uint256);
+```
+</details>
 
 ## Contracts
 
@@ -195,6 +345,7 @@ returns(uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -316,7 +467,7 @@ returns(uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

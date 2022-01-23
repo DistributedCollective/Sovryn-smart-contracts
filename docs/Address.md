@@ -12,7 +12,9 @@ Collection of functions related to the address type
 - [toPayable(address account)](#topayable)
 - [sendValue(address recipient, uint256 amount)](#sendvalue)
 
-### isContract
+---    
+
+> ### isContract
 
 Returns true if `account` is a contract.
 	 * [IMPORTANT]
@@ -27,7 +29,7 @@ types of addresses:
  - an address where a contract lived, but was destroyed
 ====
 
-```js
+```solidity
 function isContract(address account) internal view
 returns(bool)
 ```
@@ -38,13 +40,34 @@ returns(bool)
 | ------------- |------------- | -----|
 | account | address |  | 
 
-### toPayable
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function isContract(address account) internal view returns (bool) {
+		// According to EIP-1052, 0x0 is the value returned for not-yet created accounts
+		// and 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470 is returned
+		// for accounts without code, i.e. `keccak256('')`
+		bytes32 codehash;
+		bytes32 accountHash = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
+		// solhint-disable-next-line no-inline-assembly
+		assembly {
+			codehash := extcodehash(account)
+		}
+		return (codehash != accountHash && codehash != 0x0);
+	}
+```
+</details>
+
+---    
+
+> ### toPayable
 
 Converts an `address` into `address payable`. Note that this is
 simply a type cast: the actual underlying value is not changed.
 	 * _Available since v2.4.0._
 
-```js
+```solidity
 function toPayable(address account) internal pure
 returns(address payable)
 ```
@@ -55,7 +78,19 @@ returns(address payable)
 | ------------- |------------- | -----|
 | account | address |  | 
 
-### sendValue
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function toPayable(address account) internal pure returns (address payable) {
+		return address(uint160(account));
+	}
+```
+</details>
+
+---    
+
+> ### sendValue
 
 Replacement for Solidity's `transfer`: sends `amount` wei to
 `recipient`, forwarding all available gas and reverting on errors.
@@ -71,7 +106,7 @@ https://solidity.readthedocs.io/en/v0.5.11/security-considerations.html
   #use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].
 	 * _Available since v2.4.0._
 
-```js
+```solidity
 function sendValue(address recipient, uint256 amount) internal nonpayable
 ```
 
@@ -81,6 +116,20 @@ function sendValue(address recipient, uint256 amount) internal nonpayable
 | ------------- |------------- | -----|
 | recipient | address |  | 
 | amount | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function sendValue(address recipient, uint256 amount) internal {
+		require(address(this).balance >= amount, "Address: insufficient balance");
+
+		// solhint-disable-next-line avoid-call-value
+		(bool success, ) = recipient.call.value(amount)("");
+		require(success, "Address: unable to send value, recipient may have reverted");
+	}
+```
+</details>
 
 ## Contracts
 
@@ -96,6 +145,7 @@ function sendValue(address recipient, uint256 amount) internal nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -217,7 +267,7 @@ function sendValue(address recipient, uint256 amount) internal nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

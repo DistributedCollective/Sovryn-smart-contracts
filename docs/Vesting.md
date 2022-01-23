@@ -12,14 +12,16 @@ contract needs to be developed to enforce the vesting schedule.
 
 ## Functions
 
-- [(address _logic, address _SOV, address _stakingAddress, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharingProxy)](#)
+- [constructor(address _logic, address _SOV, address _stakingAddress, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharingProxy)](#constructor)
 - [governanceWithdrawTokens(address receiver)](#governancewithdrawtokens)
 
-### 
+---    
+
+> ### constructor
 
 Setup the vesting schedule.
 
-```js
+```solidity
 function (address _logic, address _SOV, address _stakingAddress, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharingProxy) public nonpayable TeamVesting 
 ```
 
@@ -35,11 +37,29 @@ function (address _logic, address _SOV, address _stakingAddress, address _tokenO
 | _duration | uint256 | The total duration in seconds. | 
 | _feeSharingProxy | address |  | 
 
-### governanceWithdrawTokens
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(
+		address _logic,
+		address _SOV,
+		address _stakingAddress,
+		address _tokenOwner,
+		uint256 _cliff,
+		uint256 _duration,
+		address _feeSharingProxy
+	) public TeamVesting(_logic, _SOV, _stakingAddress, _tokenOwner, _cliff, _duration, _feeSharingProxy) {}
+```
+</details>
+
+---    
+
+> ### governanceWithdrawTokens
 
 We need to add this implementation to prevent proxy call VestingLogic.governanceWithdrawTokens
 
-```js
+```solidity
 function governanceWithdrawTokens(address receiver) public nonpayable
 ```
 
@@ -48,6 +68,16 @@ function governanceWithdrawTokens(address receiver) public nonpayable
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | receiver | address | The receiver of the token withdrawal. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function governanceWithdrawTokens(address receiver) public {
+		revert("operation not supported");
+	}
+```
+</details>
 
 ## Contracts
 
@@ -63,6 +93,7 @@ function governanceWithdrawTokens(address receiver) public nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -184,7 +215,7 @@ function governanceWithdrawTokens(address receiver) public nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

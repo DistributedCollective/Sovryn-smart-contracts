@@ -21,18 +21,20 @@ uint8 private _decimals;
 
 ## Functions
 
-- [(string name, string symbol, uint8 decimals)](#)
+- [constructor(string name, string symbol, uint8 decimals)](#constructor)
 - [name()](#name)
 - [symbol()](#symbol)
 - [decimals()](#decimals)
 
-### 
+---    
+
+> ### constructor
 
 Sets the values for `name`, `symbol`, and `decimals`. All three of
 these values are immutable: they can only be set once during
 construction.
 
-```js
+```solidity
 function (string name, string symbol, uint8 decimals) public nonpayable
 ```
 
@@ -44,36 +46,68 @@ function (string name, string symbol, uint8 decimals) public nonpayable
 | symbol | string |  | 
 | decimals | uint8 |  | 
 
-### name
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(
+		string memory name,
+		string memory symbol,
+		uint8 decimals
+	) public {
+		_name = name;
+		_symbol = symbol;
+		_decimals = decimals;
+	}
+```
+</details>
+
+---    
+
+> ### name
 
 Returns the name of the token.
 
-```js
+```solidity
 function name() public view
 returns(string)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function name() public view returns (string memory) {
+		return _name;
+	}
+```
+</details>
 
-### symbol
+---    
+
+> ### symbol
 
 Returns the symbol of the token, usually a shorter version of the
 name.
 
-```js
+```solidity
 function symbol() public view
 returns(string)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function symbol() public view returns (string memory) {
+		return _symbol;
+	}
+```
+</details>
 
-### decimals
+---    
+
+> ### decimals
 
 Returns the number of decimals used to get its user representation.
 For example, if `decimals` equals `2`, a balance of `505` tokens should
@@ -84,15 +118,20 @@ Ether and Wei.
 no way affects any of the arithmetic of the contract, including
 {IERC20-balanceOf} and {IERC20-transfer}.
 
-```js
+```solidity
 function decimals() public view
 returns(uint8)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function decimals() public view returns (uint8) {
+		return _decimals;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -108,6 +147,7 @@ returns(uint8)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -229,7 +269,7 @@ returns(uint8)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

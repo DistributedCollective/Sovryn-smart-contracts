@@ -67,11 +67,6 @@ event TokenWithdraw(address indexed _initiator, uint256  _amount);
 modifier onlyMultisig() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ### checkStatus
 
 ```js
@@ -90,14 +85,9 @@ modifier checkStatus(enum Escrow.Status s) internal
 modifier checkRelease() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ## Functions
 
-- [(address _SOV, address _multisig, uint256 _releaseTime, uint256 _depositLimit)](#)
+- [constructor(address _SOV, address _multisig, uint256 _releaseTime, uint256 _depositLimit)](#constructor)
 - [init()](#init)
 - [updateMultisig(address _newMultisig)](#updatemultisig)
 - [updateReleaseTimestamp(uint256 _newReleaseTime)](#updatereleasetimestamp)
@@ -109,11 +99,13 @@ modifier checkRelease() internal
 - [withdrawTokens()](#withdrawtokens)
 - [getUserBalance(address _addr)](#getuserbalance)
 
-### 
+---    
+
+> ### constructor
 
 Setup the required parameters.
 
-```js
+```solidity
 function (address _SOV, address _multisig, uint256 _releaseTime, uint256 _depositLimit) public nonpayable
 ```
 
@@ -126,24 +118,61 @@ function (address _SOV, address _multisig, uint256 _releaseTime, uint256 _deposi
 | _releaseTime | uint256 | The token release time, zero if undecided. | 
 | _depositLimit | uint256 | The amount of tokens we will be accepting. | 
 
-### init
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(
+		address _SOV,
+		address _multisig,
+		uint256 _releaseTime,
+		uint256 _depositLimit
+	) public {
+		require(_SOV != address(0), "Invalid SOV Address.");
+		require(_multisig != address(0), "Invalid Multisig Address.");
+
+		SOV = IERC20(_SOV);
+		multisig = _multisig;
+
+		emit NewMultisig(msg.sender, _multisig);
+
+		releaseTime = _releaseTime;
+		depositLimit = _depositLimit;
+
+		status = Status.Deployed;
+	}
+```
+</details>
+
+---    
+
+> ### init
 
 This function is called once after deployment for starting the deposit action.
 
-```js
+```solidity
 function init() external nonpayable onlyMultisig checkStatus 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function init() external onlyMultisig checkStatus(Status.Deployed) {
+		status = Status.Deposit;
 
-### updateMultisig
+		emit EscrowActivated();
+	}
+```
+</details>
+
+---    
+
+> ### updateMultisig
 
 Update Multisig.
 
-```js
+```solidity
 function updateMultisig(address _newMultisig) external nonpayable onlyMultisig 
 ```
 
@@ -153,11 +182,27 @@ function updateMultisig(address _newMultisig) external nonpayable onlyMultisig
 | ------------- |------------- | -----|
 | _newMultisig | address | The new owner of the tokens & contract. | 
 
-### updateReleaseTimestamp
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function updateMultisig(address _newMultisig) external onlyMultisig {
+		require(_newMultisig != address(0), "New Multisig address invalid.");
+
+		multisig = _newMultisig;
+
+		emit NewMultisig(msg.sender, _newMultisig);
+	}
+```
+</details>
+
+---    
+
+> ### updateReleaseTimestamp
 
 Update Release Timestamp.
 
-```js
+```solidity
 function updateReleaseTimestamp(uint256 _newReleaseTime) external nonpayable onlyMultisig 
 ```
 
@@ -167,11 +212,25 @@ function updateReleaseTimestamp(uint256 _newReleaseTime) external nonpayable onl
 | ------------- |------------- | -----|
 | _newReleaseTime | uint256 | The new release timestamp for token release. | 
 
-### updateDepositLimit
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function updateReleaseTimestamp(uint256 _newReleaseTime) external onlyMultisig {
+		releaseTime = _newReleaseTime;
+
+		emit TokenReleaseUpdated(msg.sender, _newReleaseTime);
+	}
+```
+</details>
+
+---    
+
+> ### updateDepositLimit
 
 Update Deposit Limit.
 
-```js
+```solidity
 function updateDepositLimit(uint256 _newDepositLimit) external nonpayable onlyMultisig 
 ```
 
@@ -181,11 +240,26 @@ function updateDepositLimit(uint256 _newDepositLimit) external nonpayable onlyMu
 | ------------- |------------- | -----|
 | _newDepositLimit | uint256 | The new deposit limit. | 
 
-### depositTokens
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function updateDepositLimit(uint256 _newDepositLimit) external onlyMultisig {
+		require(_newDepositLimit >= totalDeposit, "Deposit already higher than the limit trying to be set.");
+		depositLimit = _newDepositLimit;
+
+		emit TokenDepositLimitUpdated(msg.sender, _newDepositLimit);
+	}
+```
+</details>
+
+---    
+
+> ### depositTokens
 
 Deposit tokens to this contract by User.
 
-```js
+```solidity
 function depositTokens(uint256 _amount) external nonpayable checkStatus 
 ```
 
@@ -195,24 +269,59 @@ function depositTokens(uint256 _amount) external nonpayable checkStatus
 | ------------- |------------- | -----|
 | _amount | uint256 | the amount of tokens deposited. | 
 
-### changeStateToHolding
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function depositTokens(uint256 _amount) external checkStatus(Status.Deposit) {
+		require(_amount > 0, "Amount needs to be bigger than zero.");
+		uint256 amount = _amount;
+
+		if (totalDeposit.add(_amount) >= depositLimit) {
+			amount = depositLimit.sub(totalDeposit);
+			emit DepositLimitReached();
+		}
+
+		bool txStatus = SOV.transferFrom(msg.sender, address(this), amount);
+		require(txStatus, "Token transfer was not successful.");
+
+		userBalances[msg.sender] = userBalances[msg.sender].add(amount);
+		totalDeposit = totalDeposit.add(amount);
+
+		emit TokenDeposit(msg.sender, amount);
+	}
+```
+</details>
+
+---    
+
+> ### changeStateToHolding
 
 Update contract state to Holding.
 
-```js
+```solidity
 function changeStateToHolding() external nonpayable onlyMultisig checkStatus 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function changeStateToHolding() external onlyMultisig checkStatus(Status.Deposit) {
+		status = Status.Holding;
 
-### withdrawTokensByMultisig
+		emit EscrowInHoldingState();
+	}
+```
+</details>
+
+---    
+
+> ### withdrawTokensByMultisig
 
 Withdraws all token from the contract by Multisig.
 
-```js
+```solidity
 function withdrawTokensByMultisig(address _receiverAddress) external nonpayable onlyMultisig checkStatus 
 ```
 
@@ -222,11 +331,33 @@ function withdrawTokensByMultisig(address _receiverAddress) external nonpayable 
 | ------------- |------------- | -----|
 | _receiverAddress | address | The address where the tokens has to be transferred. Zero address if the withdraw is to be done in Multisig. | 
 
-### depositTokensByMultisig
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawTokensByMultisig(address _receiverAddress) external onlyMultisig checkStatus(Status.Holding) {
+		address receiverAddress = msg.sender;
+		if (_receiverAddress != address(0)) {
+			receiverAddress = _receiverAddress;
+		}
+
+		uint256 value = SOV.balanceOf(address(this));
+		/// Sending the amount to multisig.
+		bool txStatus = SOV.transfer(receiverAddress, value);
+		require(txStatus, "Token transfer was not successful. Check receiver address.");
+
+		emit TokenWithdrawByMultisig(msg.sender, value);
+	}
+```
+</details>
+
+---    
+
+> ### depositTokensByMultisig
 
 Deposit tokens to this contract by the Multisig.
 
-```js
+```solidity
 function depositTokensByMultisig(uint256 _amount) external nonpayable onlyMultisig checkStatus 
 ```
 
@@ -236,37 +367,81 @@ function depositTokensByMultisig(uint256 _amount) external nonpayable onlyMultis
 | ------------- |------------- | -----|
 | _amount | uint256 | the amount of tokens deposited. | 
 
-### withdrawTokens
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function depositTokensByMultisig(uint256 _amount) external onlyMultisig checkStatus(Status.Holding) {
+		require(_amount > 0, "Amount needs to be bigger than zero.");
+
+		bool txStatus = SOV.transferFrom(msg.sender, address(this), _amount);
+		require(txStatus, "Token transfer was not successful.");
+
+		emit TokenDepositByMultisig(msg.sender, _amount);
+
+		if (SOV.balanceOf(address(this)) >= totalDeposit) {
+			status = Status.Withdraw;
+			emit EscrowInWithdrawState();
+		}
+	}
+```
+</details>
+
+---    
+
+> ### withdrawTokens
 
 Withdraws token from the contract by User.
 
-```js
+```solidity
 function withdrawTokens() public nonpayable checkRelease checkStatus 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function withdrawTokens() public checkRelease checkStatus(Status.Withdraw) {
+		uint256 amount = userBalances[msg.sender];
+		userBalances[msg.sender] = 0;
+		bool txStatus = SOV.transfer(msg.sender, amount);
+		require(txStatus, "Token transfer was not successful. Check receiver address.");
 
-### getUserBalance
+		emit TokenWithdraw(msg.sender, amount);
+	}
+```
+</details>
+
+---    
+
+> ### getUserBalance
 
 Function to read the current token balance of a particular user.
 
-```js
+```solidity
 function getUserBalance(address _addr) external view
 returns(balance uint256)
 ```
-
-**Returns**
-
-_addr The user address whose balance has to be checked.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _addr | address |  | 
+
+**Returns**
+
+_addr The user address whose balance has to be checked.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getUserBalance(address _addr) external view returns (uint256 balance) {
+		return userBalances[_addr];
+	}
+```
+</details>
 
 ## Contracts
 
@@ -282,6 +457,7 @@ _addr The user address whose balance has to be checked.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -403,7 +579,7 @@ _addr The user address whose balance has to be checked.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

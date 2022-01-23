@@ -17,19 +17,17 @@ outstanding on it.
 
 - [_getRolloverReward(address collateralToken, address loanToken, uint256 positionSize)](#_getrolloverreward)
 
-### _getRolloverReward
+---    
+
+> ### _getRolloverReward
 
 Calculate the reward of a rollover transaction.
 	 *
 
-```js
+```solidity
 function _getRolloverReward(address collateralToken, address loanToken, uint256 positionSize) internal view
 returns(reward uint256)
 ```
-
-**Returns**
-
-The base fee + the flex fee.
 
 **Arguments**
 
@@ -37,8 +35,32 @@ The base fee + the flex fee.
 | ------------- |------------- | -----|
 | collateralToken | address | The address of the collateral token. | 
 | loanToken | address | The address of the loan token. | 
-| positionSize | uint256 | The amount of value of the position.
-	 * | 
+| positionSize | uint256 | The amount of value of the position. 	 * | 
+
+**Returns**
+
+The base fee + the flex fee.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _getRolloverReward(
+		address collateralToken,
+		address loanToken,
+		uint256 positionSize
+	) internal view returns (uint256 reward) {
+		uint256 positionSizeInCollateralToken = IPriceFeeds(priceFeeds).queryReturn(loanToken, collateralToken, positionSize);
+		uint256 rolloverBaseRewardInCollateralToken =
+			IPriceFeeds(priceFeeds).queryReturn(address(wrbtcToken), collateralToken, rolloverBaseReward);
+
+		return
+			rolloverBaseRewardInCollateralToken
+				.mul(2) /// baseFee
+				.add(positionSizeInCollateralToken.mul(rolloverFlexFeePercent).div(10**20)); /// flexFee = 0.1% of position size
+	}
+```
+</details>
 
 ## Contracts
 
@@ -54,6 +76,7 @@ The base fee + the flex fee.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -175,7 +198,7 @@ The base fee + the flex fee.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

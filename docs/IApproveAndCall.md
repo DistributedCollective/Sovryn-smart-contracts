@@ -12,13 +12,15 @@ Interfaces are used to cast a contract address into a callable instance.
 
 - [receiveApproval(address _sender, uint256 _amount, address _token, bytes _data)](#receiveapproval)
 
-### receiveApproval
+---    
+
+> ### receiveApproval
 
 ⤿ Overridden Implementation(s): [ApprovalReceiver.receiveApproval](ApprovalReceiver.md#receiveapproval)
 
 Receives approval from SOV token.
 
-```js
+```solidity
 function receiveApproval(address _sender, uint256 _amount, address _token, bytes _data) external nonpayable
 ```
 
@@ -30,6 +32,19 @@ function receiveApproval(address _sender, uint256 _amount, address _token, bytes
 | _amount | uint256 | The amount was approved. | 
 | _token | address | The address of token. | 
 | _data | bytes | The data will be used for low level call. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function receiveApproval(
+		address _sender,
+		uint256 _amount,
+		address _token,
+		bytes calldata _data
+	) external;
+```
+</details>
 
 ## Contracts
 
@@ -45,6 +60,7 @@ function receiveApproval(address _sender, uint256 _amount, address _token, bytes
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -166,7 +182,7 @@ function receiveApproval(address _sender, uint256 _amount, address _token, bytes
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

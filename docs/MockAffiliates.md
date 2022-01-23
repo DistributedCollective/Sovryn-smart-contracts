@@ -11,11 +11,13 @@ View Source: [contracts/mockup/MockAffiliates.sol](../contracts/mockup/MockAffil
 - [getAffiliatesUserReferrer(address user)](#getaffiliatesuserreferrer)
 - [initialize(address target)](#initialize)
 
-### getAffiliatesUserReferrer
+---    
 
-⤾ overrides [Affiliates.getAffiliatesUserReferrer](Affiliates.md#getaffiliatesuserreferrer)
+> ### getAffiliatesUserReferrer
 
-```js
+undefined
+
+```solidity
 function getAffiliatesUserReferrer(address user) public view
 returns(address)
 ```
@@ -26,11 +28,23 @@ returns(address)
 | ------------- |------------- | -----|
 | user | address |  | 
 
-### initialize
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [Affiliates.initialize](Affiliates.md#initialize)
+```javascript
+function getAffiliatesUserReferrer(address user) public view returns (address) {
+		return affiliatesUserReferrer[user]; // REFACTOR: will be useful if affiliatesUserReferrer visibillity is not public
+	}
+```
+</details>
 
-```js
+---    
+
+> ### initialize
+
+undefined
+
+```solidity
 function initialize(address target) external nonpayable onlyOwner 
 ```
 
@@ -39,6 +53,16 @@ function initialize(address target) external nonpayable onlyOwner
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | target | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function initialize(address target) external onlyOwner {
+		_setTarget(this.getAffiliatesUserReferrer.selector, target);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -54,6 +78,7 @@ function initialize(address target) external nonpayable onlyOwner
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -175,7 +200,7 @@ function initialize(address target) external nonpayable onlyOwner
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

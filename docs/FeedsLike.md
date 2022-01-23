@@ -8,9 +8,11 @@ View Source: [contracts/connectors/loantoken/interfaces/FeedsLike.sol](../contra
 
 - [queryRate(address sourceTokenAddress, address destTokenAddress)](#queryrate)
 
-### queryRate
+---    
 
-```js
+> ### queryRate
+
+```solidity
 function queryRate(address sourceTokenAddress, address destTokenAddress) external view
 returns(rate uint256, precision uint256)
 ```
@@ -21,6 +23,14 @@ returns(rate uint256, precision uint256)
 | ------------- |------------- | -----|
 | sourceTokenAddress | address |  | 
 | destTokenAddress | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function queryRate(address sourceTokenAddress, address destTokenAddress) external view returns (uint256 rate, uint256 precision);
+```
+</details>
 
 ## Contracts
 
@@ -36,6 +46,7 @@ returns(rate uint256, precision uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -157,7 +168,7 @@ returns(rate uint256, precision uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -54,25 +54,15 @@ event UserTransfered(address indexed _initiator, uint256  _amount);
 modifier onlyAdmin() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ### migrationAllowed
 
 ```js
 modifier migrationAllowed() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ## Functions
 
-- [(address _SOV, address _vestingRegistry, uint256 _cliff, uint256 _duration, address[] _admins)](#)
+- [constructor(address _SOV, address _vestingRegistry, uint256 _cliff, uint256 _duration, address[] _admins)](#constructor)
 - [addAdmin(address _newAdmin)](#addadmin)
 - [removeAdmin(address _adminToRemove)](#removeadmin)
 - [changeRegistryCliffAndDuration(address _vestingRegistry, uint256 _cliff, uint256 _duration)](#changeregistrycliffandduration)
@@ -96,11 +86,13 @@ modifier migrationAllowed() internal
 - [getUnlockedBalance(address _addr)](#getunlockedbalance)
 - [adminStatus(address _addr)](#adminstatus)
 
-### 
+---    
+
+> ### constructor
 
 Setup the required parameters.
 
-```js
+```solidity
 function (address _SOV, address _vestingRegistry, uint256 _cliff, uint256 _duration, address[] _admins) public nonpayable
 ```
 
@@ -114,11 +106,40 @@ function (address _SOV, address _vestingRegistry, uint256 _cliff, uint256 _durat
 | _duration | uint256 | The time period after all tokens will have been unlocked. | 
 | _admins | address[] | The list of Admins to be added. | 
 
-### addAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(
+		address _SOV,
+		address _vestingRegistry,
+		uint256 _cliff,
+		uint256 _duration,
+		address[] memory _admins
+	) public {
+		require(_SOV != address(0), "Invalid SOV Address.");
+		require(_vestingRegistry != address(0), "Vesting registry address is invalid.");
+		require(_duration < MAX_DURATION, "Duration is too long.");
+
+		SOV = IERC20(_SOV);
+		vestingRegistry = VestingRegistry(_vestingRegistry);
+		cliff = _cliff * 4 weeks;
+		duration = _duration * 4 weeks;
+
+		for (uint256 index = 0; index < _admins.length; index++) {
+			isAdmin[_admins[index]] = true;
+		}
+	}
+```
+</details>
+
+---    
+
+> ### addAdmin
 
 The function to add a new admin.
 
-```js
+```solidity
 function addAdmin(address _newAdmin) public nonpayable onlyAdmin 
 ```
 
@@ -128,11 +149,27 @@ function addAdmin(address _newAdmin) public nonpayable onlyAdmin
 | ------------- |------------- | -----|
 | _newAdmin | address | The address of the new admin. | 
 
-### removeAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addAdmin(address _newAdmin) public onlyAdmin {
+		require(_newAdmin != address(0), "Invalid Address.");
+		require(!isAdmin[_newAdmin], "Address is already admin.");
+		isAdmin[_newAdmin] = true;
+
+		emit AdminAdded(msg.sender, _newAdmin);
+	}
+```
+</details>
+
+---    
+
+> ### removeAdmin
 
 The function to remove an admin.
 
-```js
+```solidity
 function removeAdmin(address _adminToRemove) public nonpayable onlyAdmin 
 ```
 
@@ -142,11 +179,26 @@ function removeAdmin(address _adminToRemove) public nonpayable onlyAdmin
 | ------------- |------------- | -----|
 | _adminToRemove | address | The address of the admin which should be removed. | 
 
-### changeRegistryCliffAndDuration
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function removeAdmin(address _adminToRemove) public onlyAdmin {
+		require(isAdmin[_adminToRemove], "Address is not an admin.");
+		isAdmin[_adminToRemove] = false;
+
+		emit AdminRemoved(msg.sender, _adminToRemove);
+	}
+```
+</details>
+
+---    
+
+> ### changeRegistryCliffAndDuration
 
 The function to update the Vesting Registry, Duration and Cliff.
 
-```js
+```solidity
 function changeRegistryCliffAndDuration(address _vestingRegistry, uint256 _cliff, uint256 _duration) external nonpayable onlyAdmin 
 ```
 
@@ -158,13 +210,39 @@ function changeRegistryCliffAndDuration(address _vestingRegistry, uint256 _cliff
 | _cliff | uint256 | The time period after which the tokens begin to unlock. | 
 | _duration | uint256 | The time period after all tokens will have been unlocked. | 
 
-### deposit
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [ILockedSOV.deposit](ILockedSOV.md#deposit)
+```javascript
+function changeRegistryCliffAndDuration(
+		address _vestingRegistry,
+		uint256 _cliff,
+		uint256 _duration
+	) external onlyAdmin {
+		require(address(vestingRegistry) != _vestingRegistry, "Vesting Registry has to be different for changing duration and cliff.");
+		/// If duration is also zero, then it is similar to Unlocked SOV.
+		require(_duration != 0, "Duration cannot be zero.");
+		require(_duration < MAX_DURATION, "Duration is too long.");
+
+		vestingRegistry = VestingRegistry(_vestingRegistry);
+
+		cliff = _cliff * 4 weeks;
+		duration = _duration * 4 weeks;
+
+		emit RegistryCliffAndDurationUpdated(msg.sender, _vestingRegistry, _cliff, _duration);
+	}
+```
+</details>
+
+---    
+
+> ### deposit
+
+undefined
 
 Adds SOV to the user balance (Locked and Unlocked Balance based on `_basisPoint`).
 
-```js
+```solidity
 function deposit(address _userAddress, uint256 _sovAmount, uint256 _basisPoint) external nonpayable
 ```
 
@@ -176,13 +254,29 @@ function deposit(address _userAddress, uint256 _sovAmount, uint256 _basisPoint) 
 | _sovAmount | uint256 | The amount of SOV to be added to the locked and/or unlocked balance. | 
 | _basisPoint | uint256 | The % (in Basis Point)which determines how much will be unlocked immediately. | 
 
-### depositSOV
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [ILockedSOV.depositSOV](ILockedSOV.md#depositsov)
+```javascript
+function deposit(
+		address _userAddress,
+		uint256 _sovAmount,
+		uint256 _basisPoint
+	) external {
+		_deposit(_userAddress, _sovAmount, _basisPoint);
+	}
+```
+</details>
+
+---    
+
+> ### depositSOV
+
+undefined
 
 Adds SOV to the locked balance of a user.
 
-```js
+```solidity
 function depositSOV(address _userAddress, uint256 _sovAmount) external nonpayable
 ```
 
@@ -193,9 +287,21 @@ function depositSOV(address _userAddress, uint256 _sovAmount) external nonpayabl
 | _userAddress | address | The user whose locked balance has to be updated with _sovAmount. | 
 | _sovAmount | uint256 | The amount of SOV to be added to the locked balance. | 
 
-### _deposit
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function depositSOV(address _userAddress, uint256 _sovAmount) external {
+		_deposit(_userAddress, _sovAmount, 0);
+	}
+```
+</details>
+
+---    
+
+> ### _deposit
+
+```solidity
 function _deposit(address _userAddress, uint256 _sovAmount, uint256 _basisPoint) private nonpayable
 ```
 
@@ -207,11 +313,37 @@ function _deposit(address _userAddress, uint256 _sovAmount, uint256 _basisPoint)
 | _sovAmount | uint256 |  | 
 | _basisPoint | uint256 |  | 
 
-### withdraw
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _deposit(
+		address _userAddress,
+		uint256 _sovAmount,
+		uint256 _basisPoint
+	) private {
+		// MAX_BASIS_POINT is not included because if 100% is unlocked, then LockedSOV is not required to be used.
+		require(_basisPoint < MAX_BASIS_POINT, "Basis Point has to be less than 10000.");
+		bool txStatus = SOV.transferFrom(msg.sender, address(this), _sovAmount);
+		require(txStatus, "Token transfer was not successful. Check receiver address.");
+
+		uint256 unlockedBal = _sovAmount.mul(_basisPoint).div(MAX_BASIS_POINT);
+
+		unlockedBalances[_userAddress] = unlockedBalances[_userAddress].add(unlockedBal);
+		lockedBalances[_userAddress] = lockedBalances[_userAddress].add(_sovAmount).sub(unlockedBal);
+
+		emit Deposited(msg.sender, _userAddress, _sovAmount, _basisPoint);
+	}
+```
+</details>
+
+---    
+
+> ### withdraw
 
 A function to withdraw the unlocked balance.
 
-```js
+```solidity
 function withdraw(address _receiverAddress) public nonpayable
 ```
 
@@ -221,9 +353,21 @@ function withdraw(address _receiverAddress) public nonpayable
 | ------------- |------------- | -----|
 | _receiverAddress | address | If specified, the unlocked balance will go to this address, else to msg.sender. | 
 
-### _withdraw
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function withdraw(address _receiverAddress) public {
+		_withdraw(msg.sender, _receiverAddress);
+	}
+```
+</details>
+
+---    
+
+> ### _withdraw
+
+```solidity
 function _withdraw(address _sender, address _receiverAddress) private nonpayable
 ```
 
@@ -234,22 +378,52 @@ function _withdraw(address _sender, address _receiverAddress) private nonpayable
 | _sender | address |  | 
 | _receiverAddress | address |  | 
 
-### createVestingAndStake
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _withdraw(address _sender, address _receiverAddress) private {
+		address userAddr = _receiverAddress;
+		if (_receiverAddress == address(0)) {
+			userAddr = _sender;
+		}
+
+		uint256 amount = unlockedBalances[_sender];
+		unlockedBalances[_sender] = 0;
+
+		bool txStatus = SOV.transfer(userAddr, amount);
+		require(txStatus, "Token transfer was not successful. Check receiver address.");
+
+		emit Withdrawn(_sender, userAddr, amount);
+	}
+```
+</details>
+
+---    
+
+> ### createVestingAndStake
 
 Creates vesting if not already created and Stakes tokens for a user.
 
-```js
+```solidity
 function createVestingAndStake() public nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function createVestingAndStake() public {
+		_createVestingAndStake(msg.sender);
+	}
+```
+</details>
 
-### _createVestingAndStake
+---    
 
-```js
+> ### _createVestingAndStake
+
+```solidity
 function _createVestingAndStake(address _sender) private nonpayable
 ```
 
@@ -259,42 +433,74 @@ function _createVestingAndStake(address _sender) private nonpayable
 | ------------- |------------- | -----|
 | _sender | address |  | 
 
-### createVesting
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _createVestingAndStake(address _sender) private {
+		address vestingAddr = _getVesting(_sender);
+
+		if (vestingAddr == address(0)) {
+			vestingAddr = _createVesting(_sender);
+		}
+
+		_stakeTokens(_sender, vestingAddr);
+	}
+```
+</details>
+
+---    
+
+> ### createVesting
 
 Creates vesting contract (if it hasn't been created yet) for the calling user.
 
-```js
+```solidity
 function createVesting() public nonpayable
 returns(_vestingAddress address)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-_vestingAddress The New Vesting Contract Created.
+```javascript
+function createVesting() public returns (address _vestingAddress) {
+		_vestingAddress = _createVesting(msg.sender);
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### stakeTokens
+> ### stakeTokens
 
 Stakes tokens for a user who already have a vesting created.
 
-```js
+```solidity
 function stakeTokens() public nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function stakeTokens() public {
+		VestingLogic vesting = VestingLogic(_getVesting(msg.sender));
 
-### withdrawAndStakeTokens
+		require(cliff == vesting.cliff() && duration == vesting.duration(), "Wrong Vesting Schedule.");
+
+		_stakeTokens(msg.sender, address(vesting));
+	}
+```
+</details>
+
+---    
+
+> ### withdrawAndStakeTokens
 
 Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created.
 
-```js
+```solidity
 function withdrawAndStakeTokens(address _receiverAddress) external nonpayable
 ```
 
@@ -304,13 +510,26 @@ function withdrawAndStakeTokens(address _receiverAddress) external nonpayable
 | ------------- |------------- | -----|
 | _receiverAddress | address | If specified, the unlocked balance will go to this address, else to msg.sender. | 
 
-### withdrawAndStakeTokensFrom
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [ILockedSOV.withdrawAndStakeTokensFrom](ILockedSOV.md#withdrawandstaketokensfrom)
+```javascript
+function withdrawAndStakeTokens(address _receiverAddress) external {
+		_withdraw(msg.sender, _receiverAddress);
+		_createVestingAndStake(msg.sender);
+	}
+```
+</details>
+
+---    
+
+> ### withdrawAndStakeTokensFrom
+
+undefined
 
 Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created.
 
-```js
+```solidity
 function withdrawAndStakeTokensFrom(address _userAddress) external nonpayable
 ```
 
@@ -320,11 +539,24 @@ function withdrawAndStakeTokensFrom(address _userAddress) external nonpayable
 | ------------- |------------- | -----|
 | _userAddress | address | The address of user tokens will be withdrawn. | 
 
-### startMigration
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawAndStakeTokensFrom(address _userAddress) external {
+		_withdraw(_userAddress, _userAddress);
+		_createVestingAndStake(_userAddress);
+	}
+```
+</details>
+
+---    
+
+> ### startMigration
 
 Function to start the process of migration to new contract.
 
-```js
+```solidity
 function startMigration(address _newLockedSOV) external nonpayable onlyAdmin 
 ```
 
@@ -334,62 +566,118 @@ function startMigration(address _newLockedSOV) external nonpayable onlyAdmin
 | ------------- |------------- | -----|
 | _newLockedSOV | address | The new locked sov contract address. | 
 
-### transfer
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function startMigration(address _newLockedSOV) external onlyAdmin {
+		require(_newLockedSOV != address(0), "New Locked SOV Address is Invalid.");
+		newLockedSOV = ILockedSOV(_newLockedSOV);
+		SOV.approve(_newLockedSOV, SOV.balanceOf(address(this)));
+		migration = true;
+
+		emit MigrationStarted(msg.sender, _newLockedSOV);
+	}
+```
+</details>
+
+---    
+
+> ### transfer
 
 Function to transfer the locked balance from this contract to new LockedSOV Contract.
 
-```js
+```solidity
 function transfer() external nonpayable migrationAllowed 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function transfer() external migrationAllowed {
+		uint256 amount = lockedBalances[msg.sender];
+		lockedBalances[msg.sender] = 0;
 
-### _createVesting
+		newLockedSOV.depositSOV(msg.sender, amount);
+
+		emit UserTransfered(msg.sender, amount);
+	}
+```
+</details>
+
+---    
+
+> ### _createVesting
 
 Creates a Vesting Contract for a user.
 
-```js
+```solidity
 function _createVesting(address _tokenOwner) internal nonpayable
 returns(_vestingAddress address)
 ```
 
-**Returns**
-
-_vestingAddress The Vesting Contract Address.
-
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _tokenOwner | address | The owner of the vesting contract. | 
 
-### _getVesting
+**Returns**
+
+_vestingAddress The Vesting Contract Address.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _createVesting(address _tokenOwner) internal returns (address _vestingAddress) {
+		/// Here zero is given in place of amount, as amount is not really used in `vestingRegistry.createVesting()`.
+		vestingRegistry.createVesting(_tokenOwner, 0, cliff, duration);
+		_vestingAddress = _getVesting(_tokenOwner);
+		emit VestingCreated(msg.sender, _tokenOwner, _vestingAddress);
+	}
+```
+</details>
+
+---    
+
+> ### _getVesting
 
 Returns the Vesting Contract Address.
 
-```js
+```solidity
 function _getVesting(address _tokenOwner) internal view
 returns(_vestingAddress address)
 ```
 
-**Returns**
-
-_vestingAddress The Vesting Contract Address.
-
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _tokenOwner | address | The owner of the vesting contract. | 
 
-### _stakeTokens
+**Returns**
+
+_vestingAddress The Vesting Contract Address.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _getVesting(address _tokenOwner) internal view returns (address _vestingAddress) {
+		return vestingRegistry.getVesting(_tokenOwner);
+	}
+```
+</details>
+
+---    
+
+> ### _stakeTokens
 
 Stakes the tokens in a particular vesting contract.
 
-```js
+```solidity
 function _stakeTokens(address _sender, address _vesting) internal nonpayable
 ```
 
@@ -400,18 +688,32 @@ function _stakeTokens(address _sender, address _vesting) internal nonpayable
 | _sender | address |  | 
 | _vesting | address | The Vesting Contract Address. | 
 
-### getLockedBalance
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _stakeTokens(address _sender, address _vesting) internal {
+		uint256 amount = lockedBalances[_sender];
+		lockedBalances[_sender] = 0;
+
+		require(SOV.approve(_vesting, amount), "Approve failed.");
+		VestingLogic(_vesting).stakeTokens(amount);
+
+		emit TokenStaked(_sender, _vesting, amount);
+	}
+```
+</details>
+
+---    
+
+> ### getLockedBalance
 
 The function to get the locked balance of a user.
 
-```js
+```solidity
 function getLockedBalance(address _addr) external view
 returns(_balance uint256)
 ```
-
-**Returns**
-
-_balance The locked balance of the address `_addr`.
 
 **Arguments**
 
@@ -419,18 +721,30 @@ _balance The locked balance of the address `_addr`.
 | ------------- |------------- | -----|
 | _addr | address | The address of the user to check the locked balance. | 
 
-### getUnlockedBalance
+**Returns**
+
+_balance The locked balance of the address `_addr`.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getLockedBalance(address _addr) external view returns (uint256 _balance) {
+		return lockedBalances[_addr];
+	}
+```
+</details>
+
+---    
+
+> ### getUnlockedBalance
 
 The function to get the unlocked balance of a user.
 
-```js
+```solidity
 function getUnlockedBalance(address _addr) external view
 returns(_balance uint256)
 ```
-
-**Returns**
-
-_balance The unlocked balance of the address `_addr`.
 
 **Arguments**
 
@@ -438,24 +752,50 @@ _balance The unlocked balance of the address `_addr`.
 | ------------- |------------- | -----|
 | _addr | address | The address of the user to check the unlocked balance. | 
 
-### adminStatus
+**Returns**
+
+_balance The unlocked balance of the address `_addr`.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getUnlockedBalance(address _addr) external view returns (uint256 _balance) {
+		return unlockedBalances[_addr];
+	}
+```
+</details>
+
+---    
+
+> ### adminStatus
 
 The function to check is an address is admin or not.
 
-```js
+```solidity
 function adminStatus(address _addr) external view
 returns(_status bool)
 ```
-
-**Returns**
-
-_status True if admin, False otherwise.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _addr | address | The address of the user to check the admin status. | 
+
+**Returns**
+
+_status True if admin, False otherwise.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function adminStatus(address _addr) external view returns (bool _status) {
+		return isAdmin[_addr];
+	}
+```
+</details>
 
 ## Contracts
 
@@ -471,6 +811,7 @@ _status True if admin, False otherwise.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -592,7 +933,7 @@ _status True if admin, False otherwise.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -32,7 +32,7 @@ event SetBaseCurrency(address indexed baseCurrency, address  changerAddress);
 
 ## Functions
 
-- [(address _v1PoolOracleAddress, address _wRBTCAddress, address _docAddress, address _baseCurrency)](#)
+- [constructor(address _v1PoolOracleAddress, address _wRBTCAddress, address _docAddress, address _baseCurrency)](#constructor)
 - [latestAnswer()](#latestanswer)
 - [_convertAnswerToUsd(uint256 _valueInBTC)](#_convertanswertousd)
 - [setV1PoolOracleAddress(address _v1PoolOracleAddress)](#setv1pooloracleaddress)
@@ -40,12 +40,14 @@ event SetBaseCurrency(address indexed baseCurrency, address  changerAddress);
 - [setDOCAddress(address _docAddress)](#setdocaddress)
 - [setBaseCurrency(address _baseCurrency)](#setbasecurrency)
 
-### 
+---    
+
+> ### constructor
 
 Initialize a new V1 Pool Oracle.
 	 *
 
-```js
+```solidity
 function (address _v1PoolOracleAddress, address _wRBTCAddress, address _docAddress, address _baseCurrency) public nonpayable
 ```
 
@@ -58,29 +60,60 @@ function (address _v1PoolOracleAddress, address _wRBTCAddress, address _docAddre
 | _docAddress | address | The doc token address. | 
 | _baseCurrency | address |  | 
 
-### latestAnswer
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [IPriceFeedsExt.latestAnswer](IPriceFeedsExt.md#latestanswer)
+```javascript
+constructor(
+		address _v1PoolOracleAddress,
+		address _wRBTCAddress,
+		address _docAddress,
+		address _baseCurrency
+	) public {
+		setRBTCAddress(_wRBTCAddress);
+		setDOCAddress(_docAddress);
+		setV1PoolOracleAddress(_v1PoolOracleAddress);
+		setBaseCurrency(_baseCurrency);
+	}
+```
+</details>
+
+---    
+
+> ### latestAnswer
+
+undefined
 
 Get the oracle price.
 
-```js
+```solidity
 function latestAnswer() external view
 returns(uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-The price from Oracle.
+```javascript
+function latestAnswer() external view returns (uint256) {
+		IV1PoolOracle _v1PoolOracle = IV1PoolOracle(v1PoolOracleAddress);
 
-**Arguments**
+		uint256 _price = _v1PoolOracle.latestPrice(baseCurrency);
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+		// Need to convert to USD, since the V1 pool return value is based on BTC
+		uint256 priceInUSD = _convertAnswerToUsd(_price);
+		require(priceInUSD != 0, "price error");
 
-### _convertAnswerToUsd
+		return priceInUSD;
+	}
+```
+</details>
 
-```js
+---    
+
+> ### _convertAnswerToUsd
+
+```solidity
 function _convertAnswerToUsd(uint256 _valueInBTC) private view
 returns(uint256)
 ```
@@ -91,12 +124,30 @@ returns(uint256)
 | ------------- |------------- | -----|
 | _valueInBTC | uint256 |  | 
 
-### setV1PoolOracleAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _convertAnswerToUsd(uint256 _valueInBTC) private view returns (uint256) {
+		address _priceFeeds = msg.sender;
+
+		uint256 precision = IPriceFeeds(_priceFeeds).queryPrecision(wRBTCAddress, docAddress);
+		uint256 valueInUSD = IPriceFeeds(_priceFeeds).queryReturn(wRBTCAddress, docAddress, _valueInBTC);
+
+		/// Need to multiply by query precision (doc's precision) and divide by 1*10^18 (Because the based price in v1 pool is using 18 decimals)
+		return valueInUSD.mul(precision).div(1e18);
+	}
+```
+</details>
+
+---    
+
+> ### setV1PoolOracleAddress
 
 Set the V1 Pool Oracle address.
 	 *
 
-```js
+```solidity
 function setV1PoolOracleAddress(address _v1PoolOracleAddress) public nonpayable onlyOwner 
 ```
 
@@ -106,12 +157,33 @@ function setV1PoolOracleAddress(address _v1PoolOracleAddress) public nonpayable 
 | ------------- |------------- | -----|
 | _v1PoolOracleAddress | address | The V1 Pool Oracle address. | 
 
-### setRBTCAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setV1PoolOracleAddress(address _v1PoolOracleAddress) public onlyOwner {
+		require(Address.isContract(_v1PoolOracleAddress), "_v1PoolOracleAddress not a contract");
+		IV1PoolOracle _v1PoolOracle = IV1PoolOracle(_v1PoolOracleAddress);
+		address liquidityPool = _v1PoolOracle.liquidityPool();
+		require(
+			ILiquidityPoolV1Converter(liquidityPool).reserveTokens(0) == wRBTCAddress ||
+				ILiquidityPoolV1Converter(liquidityPool).reserveTokens(1) == wRBTCAddress,
+			"one of the two reserves needs to be wrbtc"
+		);
+		v1PoolOracleAddress = _v1PoolOracleAddress;
+		emit SetV1PoolOracleAddress(v1PoolOracleAddress, msg.sender);
+	}
+```
+</details>
+
+---    
+
+> ### setRBTCAddress
 
 Set the rBtc address. V1 pool based price is BTC, so need to convert the value from v1 pool to USD. That's why we need to get the price of the rBtc
 	 *
 
-```js
+```solidity
 function setRBTCAddress(address _wRBTCAddress) public nonpayable onlyOwner 
 ```
 
@@ -121,12 +193,26 @@ function setRBTCAddress(address _wRBTCAddress) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _wRBTCAddress | address | The rBTC address | 
 
-### setDOCAddress
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setRBTCAddress(address _wRBTCAddress) public onlyOwner {
+		require(_wRBTCAddress != address(0), "wRBTC address cannot be zero address");
+		wRBTCAddress = _wRBTCAddress;
+		emit SetWRBTCAddress(wRBTCAddress, msg.sender);
+	}
+```
+</details>
+
+---    
+
+> ### setDOCAddress
 
 Set the DoC address. V1 pool based price is BTC, so need to convert the value from v1 pool to USD. That's why we need to get the price of the DoC
 	 *
 
-```js
+```solidity
 function setDOCAddress(address _docAddress) public nonpayable onlyOwner 
 ```
 
@@ -136,12 +222,26 @@ function setDOCAddress(address _docAddress) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _docAddress | address | The DoC address | 
 
-### setBaseCurrency
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setDOCAddress(address _docAddress) public onlyOwner {
+		require(_docAddress != address(0), "DOC address cannot be zero address");
+		docAddress = _docAddress;
+		emit SetDOCAddress(_docAddress, msg.sender);
+	}
+```
+</details>
+
+---    
+
+> ### setBaseCurrency
 
 Set the base currency address. That's the reserve address which is not WRBTC
 	 *
 
-```js
+```solidity
 function setBaseCurrency(address _baseCurrency) public nonpayable onlyOwner 
 ```
 
@@ -150,6 +250,18 @@ function setBaseCurrency(address _baseCurrency) public nonpayable onlyOwner
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _baseCurrency | address | The base currency address | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setBaseCurrency(address _baseCurrency) public onlyOwner {
+		require(_baseCurrency != address(0), "Base currency address cannot be zero address");
+		baseCurrency = _baseCurrency;
+		emit SetBaseCurrency(_baseCurrency, msg.sender);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -165,6 +277,7 @@ function setBaseCurrency(address _baseCurrency) public nonpayable onlyOwner
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -286,7 +399,7 @@ function setBaseCurrency(address _baseCurrency) public nonpayable onlyOwner
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

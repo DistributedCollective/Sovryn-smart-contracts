@@ -46,7 +46,7 @@ event DataCleared(address indexed caller);
 
 ## Functions
 
-- [(address _SOV, address _vestingRegistryProxy)](#)
+- [constructor(address _SOV, address _vestingRegistryProxy)](#constructor)
 - [transferSOV(address _receiver, uint256 _amount)](#transfersov)
 - [addVestings(address[] _tokenOwners, uint256[] _amounts, uint256[] _cliffs, uint256[] _durations, bool[] _governanceControls, uint256[] _vestingCreationTypes)](#addvestings)
 - [processNextVesting()](#processnextvesting)
@@ -63,9 +63,11 @@ event DataCleared(address indexed caller);
 - [_createAndGetVesting(struct VestingCreator.VestingData vestingData)](#_createandgetvesting)
 - [_getVesting(address _tokenOwner, uint256 _cliff, uint256 _duration, bool _governanceControl, uint256 _vestingCreationType)](#_getvesting)
 
-### 
+---    
 
-```js
+> ### constructor
+
+```solidity
 function (address _SOV, address _vestingRegistryProxy) public nonpayable
 ```
 
@@ -76,11 +78,27 @@ function (address _SOV, address _vestingRegistryProxy) public nonpayable
 | _SOV | address |  | 
 | _vestingRegistryProxy | address |  | 
 
-### transferSOV
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(address _SOV, address _vestingRegistryProxy) public {
+		require(_SOV != address(0), "SOV address invalid");
+		require(_vestingRegistryProxy != address(0), "Vesting registry address invalid");
+
+		SOV = IERC20(_SOV);
+		vestingRegistryLogic = VestingRegistryLogic(_vestingRegistryProxy);
+	}
+```
+</details>
+
+---    
+
+> ### transferSOV
 
 transfers SOV tokens to given address
 
-```js
+```solidity
 function transferSOV(address _receiver, uint256 _amount) external nonpayable onlyOwner 
 ```
 
@@ -91,11 +109,25 @@ function transferSOV(address _receiver, uint256 _amount) external nonpayable onl
 | _receiver | address | the address of the SOV receiver | 
 | _amount | uint256 | the amount to be transferred | 
 
-### addVestings
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function transferSOV(address _receiver, uint256 _amount) external onlyOwner {
+		require(_amount != 0, "amount invalid");
+		require(SOV.transfer(_receiver, _amount), "transfer failed");
+		emit SOVTransferred(_receiver, _amount);
+	}
+```
+</details>
+
+---    
+
+> ### addVestings
 
 adds vestings to be processed to the list
 
-```js
+```solidity
 function addVestings(address[] _tokenOwners, uint256[] _amounts, uint256[] _cliffs, uint256[] _durations, bool[] _governanceControls, uint256[] _vestingCreationTypes) external nonpayable onlyAuthorized 
 ```
 
@@ -110,160 +142,333 @@ function addVestings(address[] _tokenOwners, uint256[] _amounts, uint256[] _clif
 | _governanceControls | bool[] |  | 
 | _vestingCreationTypes | uint256[] |  | 
 
-### processNextVesting
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addVestings(
+		address[] calldata _tokenOwners,
+		uint256[] calldata _amounts,
+		uint256[] calldata _cliffs,
+		uint256[] calldata _durations,
+		bool[] calldata _governanceControls,
+		uint256[] calldata _vestingCreationTypes
+	) external onlyAuthorized {
+		require(
+			_tokenOwners.length == _amounts.length &&
+				_tokenOwners.length == _cliffs.length &&
+				_tokenOwners.length == _durations.length &&
+				_tokenOwners.length == _governanceControls.length,
+			"arrays mismatch"
+		);
+
+		for (uint256 i = 0; i < _tokenOwners.length; i++) {
+			require(_durations[i] >= _cliffs[i], "duration must be bigger than or equal to the cliff");
+			require(_amounts[i] > 0, "vesting amount cannot be 0");
+			require(_tokenOwners[i] != address(0), "token owner cannot be 0 address");
+			require(_cliffs[i].mod(TWO_WEEKS) == 0, "cliffs should have intervals of two weeks");
+			require(_durations[i].mod(TWO_WEEKS) == 0, "durations should have intervals of two weeks");
+			VestingData memory vestingData =
+				VestingData({
+					amount: _amounts[i],
+					cliff: _cliffs[i],
+					duration: _durations[i],
+					governanceControl: _governanceControls[i],
+					tokenOwner: _tokenOwners[i],
+					vestingCreationType: _vestingCreationTypes[i]
+				});
+			vestingDataList.push(vestingData);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### processNextVesting
 
 Creates vesting contract and stakes tokens
 
-```js
+```solidity
 function processNextVesting() external nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function processNextVesting() external {
+		processVestingCreation();
+		processStaking();
+	}
+```
+</details>
 
-### processVestingCreation
+---    
+
+> ### processVestingCreation
 
 Creates vesting contract without staking any tokens
 
-```js
+```solidity
 function processVestingCreation() public nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function processVestingCreation() public {
+		require(!vestingCreated, "staking not done for the previous vesting");
+		if (vestingDataList.length > 0) {
+			VestingData storage vestingData = vestingDataList[vestingDataList.length - 1];
+			_createAndGetVesting(vestingData);
+			vestingCreated = true;
+		}
+	}
+```
+</details>
 
-### processStaking
+---    
+
+> ### processStaking
 
 Staking vested tokens
 
-```js
+```solidity
 function processStaking() public nonpayable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function processStaking() public {
+		require(vestingCreated, "cannot stake without vesting creation");
+		if (vestingDataList.length > 0) {
+			VestingData storage vestingData = vestingDataList[vestingDataList.length - 1];
+			address vestingAddress =
+				_getVesting(
+					vestingData.tokenOwner,
+					vestingData.cliff,
+					vestingData.duration,
+					vestingData.governanceControl,
+					vestingData.vestingCreationType
+				);
+			if (vestingAddress != address(0)) {
+				VestingLogic vesting = VestingLogic(vestingAddress);
+				require(SOV.approve(address(vesting), vestingData.amount), "Approve failed");
+				vesting.stakeTokens(vestingData.amount);
+				emit TokensStaked(vestingAddress, vestingData.tokenOwner, vestingData.amount);
+				address tokenOwnerDetails = vestingData.tokenOwner;
+				vestingDataList.pop();
+				emit VestingDataRemoved(msg.sender, tokenOwnerDetails);
+			}
+		}
+		vestingCreated = false;
+	}
+```
+</details>
 
-### removeNextVesting
+---    
+
+> ### removeNextVesting
 
 removes next vesting data from the list
 
-```js
+```solidity
 function removeNextVesting() external nonpayable onlyAuthorized 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function removeNextVesting() external onlyAuthorized {
+		address tokenOwnerDetails;
+		if (vestingDataList.length > 0) {
+			VestingData storage vestingData = vestingDataList[vestingDataList.length - 1];
+			tokenOwnerDetails = vestingData.tokenOwner;
+			vestingDataList.pop();
+			emit VestingDataRemoved(msg.sender, tokenOwnerDetails);
+		}
+	}
+```
+</details>
 
-### clearVestingDataList
+---    
+
+> ### clearVestingDataList
 
 removes all data about unprocessed vestings to be processed
 
-```js
+```solidity
 function clearVestingDataList() public nonpayable onlyAuthorized 
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function clearVestingDataList() public onlyAuthorized {
+		delete vestingDataList;
+		emit DataCleared(msg.sender);
+	}
+```
+</details>
 
-### getVestingAddress
+---    
+
+> ### getVestingAddress
 
 returns address after vesting creation
 
-```js
+```solidity
 function getVestingAddress() external view
 returns(address)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getVestingAddress() external view returns (address) {
+		return
+			_getVesting(
+				vestingDataList[vestingDataList.length - 1].tokenOwner,
+				vestingDataList[vestingDataList.length - 1].cliff,
+				vestingDataList[vestingDataList.length - 1].duration,
+				vestingDataList[vestingDataList.length - 1].governanceControl,
+				vestingDataList[vestingDataList.length - 1].vestingCreationType
+			);
+	}
+```
+</details>
 
-### getVestingPeriod
+---    
+
+> ### getVestingPeriod
 
 returns period i.e. ((duration - cliff) / 4 WEEKS)
 
-```js
+```solidity
 function getVestingPeriod() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getVestingPeriod() external view returns (uint256) {
+		uint256 duration = vestingDataList[vestingDataList.length - 1].duration;
+		uint256 cliff = vestingDataList[vestingDataList.length - 1].cliff;
+		uint256 fourWeeks = TWO_WEEKS.mul(2);
+		uint256 period = duration.sub(cliff).div(fourWeeks);
+		return period;
+	}
+```
+</details>
 
-### getUnprocessedCount
+---    
+
+> ### getUnprocessedCount
 
 returns count of vestings to be processed
 
-```js
+```solidity
 function getUnprocessedCount() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getUnprocessedCount() external view returns (uint256) {
+		return vestingDataList.length;
+	}
+```
+</details>
 
-### getUnprocessedAmount
+---    
+
+> ### getUnprocessedAmount
 
 returns total amount of vestings to be processed
 
-```js
+```solidity
 function getUnprocessedAmount() public view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getUnprocessedAmount() public view returns (uint256) {
+		uint256 amount = 0;
+		uint256 length = vestingDataList.length;
+		for (uint256 i = 0; i < length; i++) {
+			amount = amount.add(vestingDataList[i].amount);
+		}
+		return amount;
+	}
+```
+</details>
 
-### isEnoughBalance
+---    
+
+> ### isEnoughBalance
 
 checks if contract balance is enough to process all vestings
 
-```js
+```solidity
 function isEnoughBalance() public view
 returns(bool)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function isEnoughBalance() public view returns (bool) {
+		return SOV.balanceOf(address(this)) >= getUnprocessedAmount();
+	}
+```
+</details>
 
-### getMissingBalance
+---    
+
+> ### getMissingBalance
 
 returns missed balance to process all vestings
 
-```js
+```solidity
 function getMissingBalance() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getMissingBalance() external view returns (uint256) {
+		if (isEnoughBalance()) {
+			return 0;
+		}
+		return getUnprocessedAmount() - SOV.balanceOf(address(this));
+	}
+```
+</details>
 
-### _createAndGetVesting
+---    
+
+> ### _createAndGetVesting
 
 creates TeamVesting or Vesting contract
 
-```js
+```solidity
 function _createAndGetVesting(struct VestingCreator.VestingData vestingData) internal nonpayable
 returns(vesting address)
 ```
@@ -274,11 +479,47 @@ returns(vesting address)
 | ------------- |------------- | -----|
 | vestingData | struct VestingCreator.VestingData |  | 
 
-### _getVesting
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _createAndGetVesting(VestingData memory vestingData) internal returns (address vesting) {
+		if (vestingData.governanceControl) {
+			vestingRegistryLogic.createTeamVesting(
+				vestingData.tokenOwner,
+				vestingData.amount,
+				vestingData.cliff,
+				vestingData.duration,
+				vestingData.vestingCreationType
+			);
+		} else {
+			vestingRegistryLogic.createVestingAddr(
+				vestingData.tokenOwner,
+				vestingData.amount,
+				vestingData.cliff,
+				vestingData.duration,
+				vestingData.vestingCreationType
+			);
+		}
+		return
+			_getVesting(
+				vestingData.tokenOwner,
+				vestingData.cliff,
+				vestingData.duration,
+				vestingData.governanceControl,
+				vestingData.vestingCreationType
+			);
+	}
+```
+</details>
+
+---    
+
+> ### _getVesting
 
 returns an address of TeamVesting or Vesting contract (depends on a governance control)
 
-```js
+```solidity
 function _getVesting(address _tokenOwner, uint256 _cliff, uint256 _duration, bool _governanceControl, uint256 _vestingCreationType) internal view
 returns(vestingAddress address)
 ```
@@ -292,6 +533,26 @@ returns(vestingAddress address)
 | _duration | uint256 |  | 
 | _governanceControl | bool |  | 
 | _vestingCreationType | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _getVesting(
+		address _tokenOwner,
+		uint256 _cliff,
+		uint256 _duration,
+		bool _governanceControl,
+		uint256 _vestingCreationType
+	) internal view returns (address vestingAddress) {
+		if (_governanceControl) {
+			vestingAddress = vestingRegistryLogic.getTeamVesting(_tokenOwner, _cliff, _duration, _vestingCreationType);
+		} else {
+			vestingAddress = vestingRegistryLogic.getVestingAddr(_tokenOwner, _cliff, _duration, _vestingCreationType);
+		}
+	}
+```
+</details>
 
 ## Contracts
 
@@ -307,6 +568,7 @@ returns(vestingAddress address)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -428,7 +690,7 @@ returns(vestingAddress address)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -25,29 +25,34 @@ event valueSet(uint256 indexed _value);
 - [get()](#get)
 - [set(uint256 _value)](#set)
 
-### get
+---    
+
+> ### get
 
 To get the `value`.
 
-```js
+```solidity
 function get() public nonpayable
 returns(_value uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-_value The value.
+```javascript
+function get() public returns (uint256 _value) {
+		return value;
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### set
+> ### set
 
 To set the `value`.
 
-```js
+```solidity
 function set(uint256 _value) public nonpayable
 ```
 
@@ -56,6 +61,16 @@ function set(uint256 _value) public nonpayable
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _value | uint256 | The value. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function set(uint256 _value) public {
+		value = _value;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -71,6 +86,7 @@ function set(uint256 _value) public nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -192,7 +208,7 @@ function set(uint256 _value) public nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

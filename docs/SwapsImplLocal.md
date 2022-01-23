@@ -17,78 +17,134 @@ margin trading and lending https://bzx.network similar to the dYdX protocol.
 - [internalExpectedRate(address sourceTokenAddress, address destTokenAddress, uint256 sourceTokenAmount, address unused)](#internalexpectedrate)
 - [internalExpectedReturn(address sourceTokenAddress, address destTokenAddress, uint256 sourceTokenAmount, address unused)](#internalexpectedreturn)
 
-### internalSwap
+---    
 
-⤾ overrides [ISwapsImpl.internalSwap](ISwapsImpl.md#internalswap)
+> ### internalSwap
+
+undefined
 
 Swap two tokens.
 	 *
 
-```js
+```solidity
 function internalSwap(address sourceTokenAddress, address destTokenAddress, address , address returnToSenderAddress, uint256 minSourceTokenAmount, uint256 maxSourceTokenAmount, uint256 requiredDestTokenAmount) public payable
 returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256)
 ```
-
-**Returns**
-
-destTokenAmountReceived The amount of destiny tokens sent.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | sourceTokenAddress | address | The address of the source tokens. | 
-| destTokenAddress | address | The address of the destiny tokens.
-	 * | 
+| destTokenAddress | address | The address of the destiny tokens. 	 * | 
 |  | address | sourceTokenAddress The address of the source tokens. | 
 | returnToSenderAddress | address |  | 
 | minSourceTokenAmount | uint256 |  | 
 | maxSourceTokenAmount | uint256 |  | 
 | requiredDestTokenAmount | uint256 |  | 
 
-### internalExpectedRate
+**Returns**
 
-⤾ overrides [ISwapsImpl.internalExpectedRate](ISwapsImpl.md#internalexpectedrate)
+destTokenAmountReceived The amount of destiny tokens sent.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function internalSwap(
+		address sourceTokenAddress,
+		address destTokenAddress,
+		address, /*receiverAddress*/
+		address returnToSenderAddress,
+		uint256 minSourceTokenAmount,
+		uint256 maxSourceTokenAmount,
+		uint256 requiredDestTokenAmount
+	) public payable returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
+		require(sourceTokenAddress != destTokenAddress, "source == dest");
+
+		(uint256 tradeRate, uint256 precision) = IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);
+
+		if (requiredDestTokenAmount == 0) {
+			sourceTokenAmountUsed = minSourceTokenAmount;
+			destTokenAmountReceived = minSourceTokenAmount.mul(tradeRate).div(precision);
+		} else {
+			destTokenAmountReceived = requiredDestTokenAmount;
+			sourceTokenAmountUsed = requiredDestTokenAmount.mul(precision).div(tradeRate);
+			require(sourceTokenAmountUsed <= minSourceTokenAmount, "destAmount too great");
+		}
+
+		TestToken(sourceTokenAddress).burn(address(this), sourceTokenAmountUsed);
+		TestToken(destTokenAddress).mint(address(this), destTokenAmountReceived);
+
+		if (returnToSenderAddress != address(this)) {
+			if (sourceTokenAmountUsed < maxSourceTokenAmount) {
+				/// Send unused source token back.
+				IERC20(sourceTokenAddress).safeTransfer(returnToSenderAddress, maxSourceTokenAmount - sourceTokenAmountUsed);
+			}
+		}
+	}
+```
+</details>
+
+---    
+
+> ### internalExpectedRate
+
+undefined
 
 Calculate the expected price rate of swapping a given amount
   of tokens.
 	 *
 
-```js
+```solidity
 function internalExpectedRate(address sourceTokenAddress, address destTokenAddress, uint256 sourceTokenAmount, address unused) public view
 returns(uint256)
 ```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| sourceTokenAddress | address | The address of the source tokens. | 
+| destTokenAddress | address | The address of the destiny tokens. | 
+| sourceTokenAmount | uint256 | The amount of source tokens. | 
+| unused | address | Fourth parameter ignored. 	 * | 
 
 **Returns**
 
 precision The expected price rate.
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| sourceTokenAddress | address | The address of the source tokens. | 
-| destTokenAddress | address | The address of the destiny tokens. | 
-| sourceTokenAmount | uint256 | The amount of source tokens. | 
-| unused | address | Fourth parameter ignored.
-	 * | 
+```javascript
+function internalExpectedRate(
+		address sourceTokenAddress,
+		address destTokenAddress,
+		uint256 sourceTokenAmount,
+		address unused
+	) public view returns (uint256) {
+		(uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);
 
-### internalExpectedReturn
+		return sourceTokenAmount.mul(sourceToDestRate).div(sourceToDestPrecision);
+	}
+```
+</details>
 
-⤾ overrides [ISwapsImpl.internalExpectedReturn](ISwapsImpl.md#internalexpectedreturn)
+---    
+
+> ### internalExpectedReturn
+
+undefined
 
 Calculate the expected return of swapping a given amount
   of tokens.
 	 *
 
-```js
+```solidity
 function internalExpectedReturn(address sourceTokenAddress, address destTokenAddress, uint256 sourceTokenAmount, address unused) public view
 returns(uint256)
 ```
-
-**Returns**
-
-precision The expected return.
 
 **Arguments**
 
@@ -97,8 +153,28 @@ precision The expected return.
 | sourceTokenAddress | address | The address of the source tokens. | 
 | destTokenAddress | address | The address of the destiny tokens. | 
 | sourceTokenAmount | uint256 | The amount of source tokens. | 
-| unused | address | Fourth parameter ignored.
-	 * | 
+| unused | address | Fourth parameter ignored. 	 * | 
+
+**Returns**
+
+precision The expected return.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function internalExpectedReturn(
+		address sourceTokenAddress,
+		address destTokenAddress,
+		uint256 sourceTokenAmount,
+		address unused
+	) public view returns (uint256) {
+		(uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);
+
+		return sourceTokenAmount.mul(sourceToDestRate).div(sourceToDestPrecision);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -114,6 +190,7 @@ precision The expected return.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -235,7 +312,7 @@ precision The expected return.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

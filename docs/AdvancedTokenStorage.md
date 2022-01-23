@@ -41,36 +41,37 @@ event FlashBorrow(address  borrower, address  target, address  loanToken, uint25
 - [balanceOf(address _owner)](#balanceof)
 - [allowance(address _owner, address _spender)](#allowance)
 
-### totalSupply
+---    
+
+> ### totalSupply
 
 Get the total supply of iTokens.
 
-```js
+```solidity
 function totalSupply() public view
 returns(uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-The total number of iTokens in existence as of now.
+```javascript
+function totalSupply() public view returns (uint256) {
+		return totalSupply_;
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### balanceOf
+> ### balanceOf
 
 Get the amount of iTokens owned by an account.
 
-```js
+```solidity
 function balanceOf(address _owner) public view
 returns(uint256)
 ```
-
-**Returns**
-
-The number of iTokens an account owns.
 
 **Arguments**
 
@@ -78,20 +79,31 @@ The number of iTokens an account owns.
 | ------------- |------------- | -----|
 | _owner | address | The account owner of the iTokens. | 
 
-### allowance
+**Returns**
+
+The number of iTokens an account owns.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function balanceOf(address _owner) public view returns (uint256) {
+		return balances[_owner];
+	}
+```
+</details>
+
+---    
+
+> ### allowance
 
 Get the amount of iTokens allowed to be spent by a
   given account on behalf of the owner.
 
-```js
+```solidity
 function allowance(address _owner, address _spender) public view
 returns(uint256)
 ```
-
-**Returns**
-
-The number of iTokens an account is allowing the spender
-  to send on its behalf.
 
 **Arguments**
 
@@ -99,6 +111,21 @@ The number of iTokens an account is allowing the spender
 | ------------- |------------- | -----|
 | _owner | address | The account owner of the iTokens. | 
 | _spender | address | The account allowed to send the iTokens. | 
+
+**Returns**
+
+The number of iTokens an account is allowing the spender
+  to send on its behalf.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function allowance(address _owner, address _spender) public view returns (uint256) {
+		return allowed[_owner][_spender];
+	}
+```
+</details>
 
 ## Contracts
 
@@ -114,6 +141,7 @@ The number of iTokens an account is allowing the spender
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -235,7 +263,7 @@ The number of iTokens an account is allowing the spender
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

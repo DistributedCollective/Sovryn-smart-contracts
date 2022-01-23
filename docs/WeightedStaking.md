@@ -27,11 +27,6 @@ Throws if called by any account other than the owner or admin.
 modifier onlyAuthorized() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ## Functions
 
 - [setVestingRegistry(address _vestingRegistryProxy)](#setvestingregistry)
@@ -62,11 +57,13 @@ modifier onlyAuthorized() internal
 - [isVestingContract(address stakerAddress)](#isvestingcontract)
 - [_getCodeHash(address _contract)](#_getcodehash)
 
-### setVestingRegistry
+---    
+
+> ### setVestingRegistry
 
 sets vesting registry
 
-```js
+```solidity
 function setVestingRegistry(address _vestingRegistryProxy) external nonpayable onlyOwner 
 ```
 
@@ -76,11 +73,23 @@ function setVestingRegistry(address _vestingRegistryProxy) external nonpayable o
 | ------------- |------------- | -----|
 | _vestingRegistryProxy | address | the address of vesting registry proxy contract | 
 
-### setVestingStakes
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setVestingRegistry(address _vestingRegistryProxy) external onlyOwner {
+		vestingRegistryLogic = VestingRegistryLogic(_vestingRegistryProxy);
+	}
+```
+</details>
+
+---    
+
+> ### setVestingStakes
 
 Sets the users' vesting stakes for a giving lock dates and writes checkpoints.
 
-```js
+```solidity
 function setVestingStakes(uint256[] lockedDates, uint96[] values) external nonpayable onlyAuthorized 
 ```
 
@@ -91,11 +100,28 @@ function setVestingStakes(uint256[] lockedDates, uint96[] values) external nonpa
 | lockedDates | uint256[] | The arrays of lock dates. | 
 | values | uint96[] | The array of values to add to the staked balance. | 
 
-### _setVestingStake
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setVestingStakes(uint256[] calldata lockedDates, uint96[] calldata values) external onlyAuthorized {
+		require(lockedDates.length == values.length, "arrays mismatch");
+
+		uint256 length = lockedDates.length;
+		for (uint256 i = 0; i < length; i++) {
+			_setVestingStake(lockedDates[i], values[i]);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _setVestingStake
 
 Sets the users' vesting stake for a giving lock date and writes a checkpoint.
 
-```js
+```solidity
 function _setVestingStake(uint256 lockedTS, uint96 value) internal nonpayable
 ```
 
@@ -106,22 +132,43 @@ function _setVestingStake(uint256 lockedTS, uint96 value) internal nonpayable
 | lockedTS | uint256 | The lock date. | 
 | value | uint96 | The value to be set. | 
 
-### getPriorTotalVotingPower
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [IStaking.getPriorTotalVotingPower](IStaking.md#getpriortotalvotingpower)
+```javascript
+function _setVestingStake(uint256 lockedTS, uint96 value) internal {
+		//delete all checkpoints (shouldn't be any during the first initialization)
+		uint32 nCheckpoints = numVestingCheckpoints[lockedTS];
+		for (uint32 i = 0; i < nCheckpoints; i++) {
+			delete vestingCheckpoints[lockedTS][i];
+		}
+		delete numVestingCheckpoints[lockedTS];
+
+		//blockNumber should be in the past
+		nCheckpoints = 0;
+		uint32 blockNumber = 0;
+		vestingCheckpoints[lockedTS][nCheckpoints] = Checkpoint(blockNumber, value);
+		numVestingCheckpoints[lockedTS] = nCheckpoints + 1;
+
+		emit VestingStakeSet(lockedTS, value);
+	}
+```
+</details>
+
+---    
+
+> ### getPriorTotalVotingPower
+
+undefined
 
 ⤿ Overridden Implementation(s): [StakingMockup.getPriorTotalVotingPower](StakingMockup.md#getpriortotalvotingpower)
 
 Compute the total voting power at a given time.
 
-```js
+```solidity
 function getPriorTotalVotingPower(uint32 blockNumber, uint256 time) public view
 returns(totalVotingPower uint96)
 ```
-
-**Returns**
-
-The total voting power at the given time.
 
 **Arguments**
 
@@ -130,19 +177,42 @@ The total voting power at the given time.
 | blockNumber | uint32 | The block number, needed for checkpointing. | 
 | time | uint256 | The timestamp for which to calculate the total voting power. | 
 
-### _totalPowerByDate
+**Returns**
+
+The total voting power at the given time.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getPriorTotalVotingPower(uint32 blockNumber, uint256 time) public view returns (uint96 totalVotingPower) {
+		/// @dev Start the computation with the exact or previous unlocking date (voting weight remians the same until the next break point).
+		uint256 start = timestampToLockDate(time);
+		uint256 end = start + MAX_DURATION;
+
+		/// @dev Max 78 iterations.
+		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
+			totalVotingPower = add96(
+				totalVotingPower,
+				_totalPowerByDate(i, start, blockNumber),
+				"overflow on total voting power computation"
+			);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _totalPowerByDate
 
 Compute the voting power for a specific date.
 Power = stake * weight
 
-```js
+```solidity
 function _totalPowerByDate(uint256 date, uint256 startDate, uint256 blockNumber) internal view
 returns(power uint96)
 ```
-
-**Returns**
-
-The stacking power.
 
 **Arguments**
 
@@ -152,18 +222,37 @@ The stacking power.
 | startDate | uint256 | The date for which we need to know the power of the stake. | 
 | blockNumber | uint256 | The block number, needed for checkpointing. | 
 
-### getPriorTotalStakesForDate
+**Returns**
+
+The stacking power.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _totalPowerByDate(
+		uint256 date,
+		uint256 startDate,
+		uint256 blockNumber
+	) internal view returns (uint96 power) {
+		uint96 weight = computeWeightByDate(date, startDate);
+		uint96 staked = getPriorTotalStakesForDate(date, blockNumber);
+		/// @dev weight is multiplied by some factor to allow decimals.
+		power = mul96(staked, weight, "multiplication overflow") / WEIGHT_FACTOR;
+	}
+```
+</details>
+
+---    
+
+> ### getPriorTotalStakesForDate
 
 Determine the prior number of stake for an unlocking date as of a block number.
 
-```js
+```solidity
 function getPriorTotalStakesForDate(uint256 date, uint256 blockNumber) public view
 returns(uint96)
 ```
-
-**Returns**
-
-The number of votes the account had as of the given block.
 
 **Arguments**
 
@@ -172,21 +261,63 @@ The number of votes the account had as of the given block.
 | date | uint256 | The date to check the stakes for. | 
 | blockNumber | uint256 | The block number to get the vote balance at. | 
 
-### getPriorVotes
+**Returns**
 
-⤾ overrides [IStaking.getPriorVotes](IStaking.md#getpriorvotes)
+The number of votes the account had as of the given block.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getPriorTotalStakesForDate(uint256 date, uint256 blockNumber) public view returns (uint96) {
+		require(blockNumber < _getCurrentBlockNumber(), "not yet determined");
+
+		uint32 nCheckpoints = numTotalStakingCheckpoints[date];
+		if (nCheckpoints == 0) {
+			return 0;
+		}
+
+		// First check most recent balance
+		if (totalStakingCheckpoints[date][nCheckpoints - 1].fromBlock <= blockNumber) {
+			return totalStakingCheckpoints[date][nCheckpoints - 1].stake;
+		}
+
+		// Next check implicit zero balance
+		if (totalStakingCheckpoints[date][0].fromBlock > blockNumber) {
+			return 0;
+		}
+
+		uint32 lower = 0;
+		uint32 upper = nCheckpoints - 1;
+		while (upper > lower) {
+			uint32 center = upper - (upper - lower) / 2; // ceil, avoiding overflow
+			Checkpoint memory cp = totalStakingCheckpoints[date][center];
+			if (cp.fromBlock == blockNumber) {
+				return cp.stake;
+			} else if (cp.fromBlock < blockNumber) {
+				lower = center;
+			} else {
+				upper = center - 1;
+			}
+		}
+		return totalStakingCheckpoints[date][lower].stake;
+	}
+```
+</details>
+
+---    
+
+> ### getPriorVotes
+
+undefined
 
 Determine the prior number of votes for a delegatee as of a block number.
 Iterate through checkpoints adding up voting power.
 
-```js
+```solidity
 function getPriorVotes(address account, uint256 blockNumber, uint256 date) public view
 returns(votes uint96)
 ```
-
-**Returns**
-
-The number of votes the delegatee had as of the given block.
 
 **Arguments**
 
@@ -196,19 +327,46 @@ The number of votes the delegatee had as of the given block.
 | blockNumber | uint256 | The block number to get the vote balance at. | 
 | date | uint256 | The staking date to compute the power for. | 
 
-### _totalPowerByDateForDelegatee
+**Returns**
+
+The number of votes the delegatee had as of the given block.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getPriorVotes(
+		address account,
+		uint256 blockNumber,
+		uint256 date
+	) public view returns (uint96 votes) {
+		/// @dev If date is not an exact break point, start weight computation from the previous break point (alternative would be the next).
+		uint256 start = timestampToLockDate(date);
+		uint256 end = start + MAX_DURATION;
+
+		/// @dev Max 78 iterations.
+		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
+			votes = add96(
+				votes,
+				_totalPowerByDateForDelegatee(account, i, start, blockNumber),
+				"overflow - total voting power computation"
+			);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _totalPowerByDateForDelegatee
 
 Compute the voting power for a specific date.
 Power = stake * weight
 
-```js
+```solidity
 function _totalPowerByDateForDelegatee(address account, uint256 date, uint256 startDate, uint256 blockNumber) internal view
 returns(power uint96)
 ```
-
-**Returns**
-
-The stacking power.
 
 **Arguments**
 
@@ -219,18 +377,37 @@ The stacking power.
 | startDate | uint256 | The date for which we need to know the power of the stake. | 
 | blockNumber | uint256 | The block number, needed for checkpointing. | 
 
-### getPriorStakeByDateForDelegatee
+**Returns**
+
+The stacking power.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _totalPowerByDateForDelegatee(
+		address account,
+		uint256 date,
+		uint256 startDate,
+		uint256 blockNumber
+	) internal view returns (uint96 power) {
+		uint96 weight = computeWeightByDate(date, startDate);
+		uint96 staked = getPriorStakeByDateForDelegatee(account, date, blockNumber);
+		power = mul96(staked, weight, "overflow") / WEIGHT_FACTOR;
+	}
+```
+</details>
+
+---    
+
+> ### getPriorStakeByDateForDelegatee
 
 Determine the prior number of stake for an account as of a block number.
 
-```js
+```solidity
 function getPriorStakeByDateForDelegatee(address account, uint256 date, uint256 blockNumber) public view
 returns(uint96)
 ```
-
-**Returns**
-
-The number of votes the account had as of the given block.
 
 **Arguments**
 
@@ -240,23 +417,69 @@ The number of votes the account had as of the given block.
 | date | uint256 | The staking date to compute the power for. | 
 | blockNumber | uint256 | The block number to get the vote balance at. | 
 
-### getPriorWeightedStake
+**Returns**
 
-⤾ overrides [IStaking.getPriorWeightedStake](IStaking.md#getpriorweightedstake)
+The number of votes the account had as of the given block.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getPriorStakeByDateForDelegatee(
+		address account,
+		uint256 date,
+		uint256 blockNumber
+	) public view returns (uint96) {
+		require(blockNumber < _getCurrentBlockNumber(), "not determined yet");
+
+		uint32 nCheckpoints = numDelegateStakingCheckpoints[account][date];
+		if (nCheckpoints == 0) {
+			return 0;
+		}
+
+		/// @dev First check most recent balance.
+		if (delegateStakingCheckpoints[account][date][nCheckpoints - 1].fromBlock <= blockNumber) {
+			return delegateStakingCheckpoints[account][date][nCheckpoints - 1].stake;
+		}
+
+		/// @dev Next check implicit zero balance.
+		if (delegateStakingCheckpoints[account][date][0].fromBlock > blockNumber) {
+			return 0;
+		}
+
+		uint32 lower = 0;
+		uint32 upper = nCheckpoints - 1;
+		while (upper > lower) {
+			uint32 center = upper - (upper - lower) / 2; /// @dev ceil, avoiding overflow.
+			Checkpoint memory cp = delegateStakingCheckpoints[account][date][center];
+			if (cp.fromBlock == blockNumber) {
+				return cp.stake;
+			} else if (cp.fromBlock < blockNumber) {
+				lower = center;
+			} else {
+				upper = center - 1;
+			}
+		}
+		return delegateStakingCheckpoints[account][date][lower].stake;
+	}
+```
+</details>
+
+---    
+
+> ### getPriorWeightedStake
+
+undefined
 
 ⤿ Overridden Implementation(s): [StakingMockup.getPriorWeightedStake](StakingMockup.md#getpriorweightedstake)
 
 Determine the prior weighted stake for an account as of a block number.
 Iterate through checkpoints adding up voting power.
 
-```js
+```solidity
 function getPriorWeightedStake(address account, uint256 blockNumber, uint256 date) public view
 returns(votes uint96)
 ```
-
-**Returns**
-
-The weighted stake the account had as of the given block.
 
 **Arguments**
 
@@ -266,21 +489,47 @@ The weighted stake the account had as of the given block.
 | blockNumber | uint256 | The block number to get the vote balance at. | 
 | date | uint256 | The date/timestamp of the unstaking time. | 
 
-### weightedStakeByDate
+**Returns**
+
+The weighted stake the account had as of the given block.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getPriorWeightedStake(
+		address account,
+		uint256 blockNumber,
+		uint256 date
+	) public view returns (uint96 votes) {
+		/// @dev If date is not an exact break point, start weight computation from the previous break point (alternative would be the next).
+		uint256 start = timestampToLockDate(date);
+		uint256 end = start + MAX_DURATION;
+
+		/// @dev Max 78 iterations.
+		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
+			uint96 weightedStake = weightedStakeByDate(account, i, start, blockNumber);
+			if (weightedStake > 0) {
+				votes = add96(votes, weightedStake, "overflow on total weight computation");
+			}
+		}
+	}
+```
+</details>
+
+---    
+
+> ### weightedStakeByDate
 
 Compute the voting power for a specific date.
 Power = stake * weight
 TODO: WeightedStaking::weightedStakeByDate should probably better
 be internal instead of a public function.
 
-```js
+```solidity
 function weightedStakeByDate(address account, uint256 date, uint256 startDate, uint256 blockNumber) public view
 returns(power uint96)
 ```
-
-**Returns**
-
-The stacking power.
 
 **Arguments**
 
@@ -291,20 +540,43 @@ The stacking power.
 | startDate | uint256 | The date for which we need to know the power of the stake. | 
 | blockNumber | uint256 | The block number, needed for checkpointing. | 
 
-### getPriorUserStakeByDate
+**Returns**
+
+The stacking power.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function weightedStakeByDate(
+		address account,
+		uint256 date,
+		uint256 startDate,
+		uint256 blockNumber
+	) public view returns (uint96 power) {
+		uint96 staked = _getPriorUserStakeByDate(account, date, blockNumber);
+		if (staked > 0) {
+			uint96 weight = computeWeightByDate(date, startDate);
+			power = mul96(staked, weight, "overflow error") / WEIGHT_FACTOR;
+		} else {
+			power = 0;
+		}
+	}
+```
+</details>
+
+---    
+
+> ### getPriorUserStakeByDate
 
 Determine the prior number of stake for an account until a
 certain lock date as of a block number.
 
-```js
+```solidity
 function getPriorUserStakeByDate(address account, uint256 date, uint256 blockNumber) external view
 returns(uint96)
 ```
 
-**Returns**
-
-The number of votes the account had as of the given block.
-
 **Arguments**
 
 | Name        | Type           | Description  |
@@ -313,19 +585,41 @@ The number of votes the account had as of the given block.
 | date | uint256 | The lock date. | 
 | blockNumber | uint256 | The block number to get the vote balance at. | 
 
-### _getPriorUserStakeByDate
+**Returns**
+
+The number of votes the account had as of the given block.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getPriorUserStakeByDate(
+		address account,
+		uint256 date,
+		uint256 blockNumber
+	) external view returns (uint96) {
+		uint96 priorStake = _getPriorUserStakeByDate(account, date, blockNumber);
+		// @dev we need to modify function in order to workaround issue with Vesting.withdrawTokens:
+		//		return 1 instead of 0 if message sender is a contract.
+		if (priorStake == 0 && isVestingContract(msg.sender)) {
+			priorStake = 1;
+		}
+		return priorStake;
+	}
+```
+</details>
+
+---    
+
+> ### _getPriorUserStakeByDate
 
 Determine the prior number of stake for an account until a
 		certain lock date as of a block number.
 
-```js
+```solidity
 function _getPriorUserStakeByDate(address account, uint256 date, uint256 blockNumber) internal view
 returns(uint96)
 ```
-
-**Returns**
-
-The number of votes the account had as of the given block.
 
 **Arguments**
 
@@ -335,21 +629,68 @@ The number of votes the account had as of the given block.
 | date | uint256 | The lock date. | 
 | blockNumber | uint256 | The block number to get the vote balance at. | 
 
-### getPriorVestingWeightedStake
+**Returns**
 
-⤾ overrides [IStaking.getPriorVestingWeightedStake](IStaking.md#getpriorvestingweightedstake)
+The number of votes the account had as of the given block.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _getPriorUserStakeByDate(
+		address account,
+		uint256 date,
+		uint256 blockNumber
+	) internal view returns (uint96) {
+		require(blockNumber < _getCurrentBlockNumber(), "not determined");
+
+		date = _adjustDateForOrigin(date);
+		uint32 nCheckpoints = numUserStakingCheckpoints[account][date];
+		if (nCheckpoints == 0) {
+			return 0;
+		}
+
+		/// @dev First check most recent balance.
+		if (userStakingCheckpoints[account][date][nCheckpoints - 1].fromBlock <= blockNumber) {
+			return userStakingCheckpoints[account][date][nCheckpoints - 1].stake;
+		}
+
+		/// @dev Next check implicit zero balance.
+		if (userStakingCheckpoints[account][date][0].fromBlock > blockNumber) {
+			return 0;
+		}
+
+		uint32 lower = 0;
+		uint32 upper = nCheckpoints - 1;
+		while (upper > lower) {
+			uint32 center = upper - (upper - lower) / 2; /// @dev ceil, avoiding overflow.
+			Checkpoint memory cp = userStakingCheckpoints[account][date][center];
+			if (cp.fromBlock == blockNumber) {
+				return cp.stake;
+			} else if (cp.fromBlock < blockNumber) {
+				lower = center;
+			} else {
+				upper = center - 1;
+			}
+		}
+		return userStakingCheckpoints[account][date][lower].stake;
+	}
+```
+</details>
+
+---    
+
+> ### getPriorVestingWeightedStake
+
+undefined
 
 Determine the prior weighted vested amount for an account as of a block number.
 Iterate through checkpoints adding up voting power.
 
-```js
+```solidity
 function getPriorVestingWeightedStake(uint256 blockNumber, uint256 date) public view
 returns(votes uint96)
 ```
-
-**Returns**
-
-The weighted stake the account had as of the given block.
 
 **Arguments**
 
@@ -358,21 +699,43 @@ The weighted stake the account had as of the given block.
 | blockNumber | uint256 | The block number to get the vote balance at. | 
 | date | uint256 | The staking date to compute the power for. | 
 
-### weightedVestingStakeByDate
+**Returns**
+
+The weighted stake the account had as of the given block.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getPriorVestingWeightedStake(uint256 blockNumber, uint256 date) public view returns (uint96 votes) {
+		/// @dev If date is not an exact break point, start weight computation from the previous break point (alternative would be the next).
+		uint256 start = timestampToLockDate(date);
+		uint256 end = start + MAX_DURATION;
+
+		/// @dev Max 78 iterations.
+		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
+			uint96 weightedStake = weightedVestingStakeByDate(i, start, blockNumber);
+			if (weightedStake > 0) {
+				votes = add96(votes, weightedStake, "overflow - total weight computation");
+			}
+		}
+	}
+```
+</details>
+
+---    
+
+> ### weightedVestingStakeByDate
 
 Compute the voting power for a specific date.
 Power = stake * weight
 TODO: WeightedStaking::weightedVestingStakeByDate should probably better
 be internal instead of a public function.
 
-```js
+```solidity
 function weightedVestingStakeByDate(uint256 date, uint256 startDate, uint256 blockNumber) public view
 returns(power uint96)
 ```
-
-**Returns**
-
-The stacking power.
 
 **Arguments**
 
@@ -382,20 +745,42 @@ The stacking power.
 | startDate | uint256 | The date for which we need to know the power of the stake. | 
 | blockNumber | uint256 | The block number, needed for checkpointing. | 
 
-### getPriorVestingStakeByDate
+**Returns**
+
+The stacking power.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function weightedVestingStakeByDate(
+		uint256 date,
+		uint256 startDate,
+		uint256 blockNumber
+	) public view returns (uint96 power) {
+		uint96 staked = _getPriorVestingStakeByDate(date, blockNumber);
+		if (staked > 0) {
+			uint96 weight = computeWeightByDate(date, startDate);
+			power = mul96(staked, weight, "WeightedStaking::weightedVestingStakeByDate: multiplication overflow") / WEIGHT_FACTOR;
+		} else {
+			power = 0;
+		}
+	}
+```
+</details>
+
+---    
+
+> ### getPriorVestingStakeByDate
 
 Determine the prior number of vested stake for an account until a
 certain lock date as of a block number.
 
-```js
+```solidity
 function getPriorVestingStakeByDate(uint256 date, uint256 blockNumber) external view
 returns(uint96)
 ```
 
-**Returns**
-
-The number of votes the account had as of the given block.
-
 **Arguments**
 
 | Name        | Type           | Description  |
@@ -403,19 +788,31 @@ The number of votes the account had as of the given block.
 | date | uint256 | The lock date. | 
 | blockNumber | uint256 | The block number to get the vote balance at. | 
 
-### _getPriorVestingStakeByDate
+**Returns**
+
+The number of votes the account had as of the given block.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getPriorVestingStakeByDate(uint256 date, uint256 blockNumber) external view returns (uint96) {
+		return _getPriorVestingStakeByDate(date, blockNumber);
+	}
+```
+</details>
+
+---    
+
+> ### _getPriorVestingStakeByDate
 
 Determine the prior number of vested stake for an account until a
 		certain lock date as of a block number.
 
-```js
+```solidity
 function _getPriorVestingStakeByDate(uint256 date, uint256 blockNumber) internal view
 returns(uint96)
 ```
-
-**Returns**
-
-The number of votes the account had as of the given block.
 
 **Arguments**
 
@@ -424,34 +821,83 @@ The number of votes the account had as of the given block.
 | date | uint256 | The lock date. | 
 | blockNumber | uint256 | The block number to get the vote balance at. | 
 
-### _getCurrentBlockNumber
+**Returns**
+
+The number of votes the account had as of the given block.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _getPriorVestingStakeByDate(uint256 date, uint256 blockNumber) internal view returns (uint96) {
+		require(blockNumber < _getCurrentBlockNumber(), "WeightedStaking::getPriorVestingStakeByDate: not yet determined");
+
+		uint32 nCheckpoints = numVestingCheckpoints[date];
+		if (nCheckpoints == 0) {
+			return 0;
+		}
+
+		/// @dev First check most recent balance.
+		if (vestingCheckpoints[date][nCheckpoints - 1].fromBlock <= blockNumber) {
+			return vestingCheckpoints[date][nCheckpoints - 1].stake;
+		}
+
+		/// @dev Next check implicit zero balance.
+		if (vestingCheckpoints[date][0].fromBlock > blockNumber) {
+			return 0;
+		}
+
+		uint32 lower = 0;
+		uint32 upper = nCheckpoints - 1;
+		while (upper > lower) {
+			uint32 center = upper - (upper - lower) / 2; /// @dev ceil, avoiding overflow.
+			Checkpoint memory cp = vestingCheckpoints[date][center];
+			if (cp.fromBlock == blockNumber) {
+				return cp.stake;
+			} else if (cp.fromBlock < blockNumber) {
+				lower = center;
+			} else {
+				upper = center - 1;
+			}
+		}
+		return vestingCheckpoints[date][lower].stake;
+	}
+```
+</details>
+
+---    
+
+> ### _getCurrentBlockNumber
 
 ⤿ Overridden Implementation(s): [StakingMock._getCurrentBlockNumber](StakingMock.md#_getcurrentblocknumber)
 
 Determine the current Block Number
 
-```js
+```solidity
 function _getCurrentBlockNumber() internal view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function _getCurrentBlockNumber() internal view returns (uint256) {
+		return block.number;
+	}
+```
+</details>
 
-### computeWeightByDate
+---    
+
+> ### computeWeightByDate
 
 Compute the weight for a specific date.
 
-```js
+```solidity
 function computeWeightByDate(uint256 date, uint256 startDate) public pure
 returns(weight uint96)
 ```
-
-**Returns**
-
-The weighted stake the account had as of the given block.
 
 **Arguments**
 
@@ -460,22 +906,48 @@ The weighted stake the account had as of the given block.
 | date | uint256 | The unlocking date. | 
 | startDate | uint256 | We compute the weight for the tokens staked until 'date' on 'startDate'. | 
 
-### timestampToLockDate
+**Returns**
 
-⤾ overrides [IStaking.timestampToLockDate](IStaking.md#timestamptolockdate)
+The weighted stake the account had as of the given block.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function computeWeightByDate(uint256 date, uint256 startDate) public pure returns (uint96 weight) {
+		require(date >= startDate, "date needs to be bigger than startDate");
+		uint256 remainingTime = (date - startDate);
+		require(MAX_DURATION >= remainingTime, "remaining time can't be bigger than max duration");
+		/// @dev x = max days - remaining days
+		uint96 x = uint96(MAX_DURATION - remainingTime) / (1 days);
+		/// @dev w = (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)
+		weight = add96(
+			WEIGHT_FACTOR,
+			mul96(
+				MAX_VOTING_WEIGHT * WEIGHT_FACTOR,
+				sub96(MAX_DURATION_POW_2, x * x, "underflow on weight calculation"),
+				"multiplication overflow on weight computation"
+			) / MAX_DURATION_POW_2,
+			"overflow on weight computation"
+		);
+	}
+```
+</details>
+
+---    
+
+> ### timestampToLockDate
+
+undefined
 
 Unstaking is possible every 2 weeks only. This means, to
 calculate the key value for the staking checkpoints, we need to
 map the intended timestamp to the closest available date.
 
-```js
+```solidity
 function timestampToLockDate(uint256 timestamp) public view
 returns(lockDate uint256)
 ```
-
-**Returns**
-
-The actual unlocking date (might be up to 2 weeks shorter than intended).
 
 **Arguments**
 
@@ -483,19 +955,38 @@ The actual unlocking date (might be up to 2 weeks shorter than intended).
 | ------------- |------------- | -----|
 | timestamp | uint256 | The unlocking timestamp. | 
 
-### _adjustDateForOrigin
+**Returns**
+
+The actual unlocking date (might be up to 2 weeks shorter than intended).
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function timestampToLockDate(uint256 timestamp) public view returns (uint256 lockDate) {
+		require(timestamp >= kickoffTS, "timestamp lies before contract creation");
+		/**
+		 * @dev If staking timestamp does not match any of the unstaking dates
+		 * , set the lockDate to the closest one before the timestamp.
+		 * E.g. Passed timestamps lies 7 weeks after kickoff -> only stake for 6 weeks.
+		 * */
+		uint256 periodFromKickoff = (timestamp - kickoffTS) / TWO_WEEKS;
+		lockDate = periodFromKickoff * TWO_WEEKS + kickoffTS;
+	}
+```
+</details>
+
+---    
+
+> ### _adjustDateForOrigin
 
 origin vesting contracts have different dates
 we need to add 2 weeks to get end of period (by default, it's start)
 
-```js
+```solidity
 function _adjustDateForOrigin(uint256 date) internal view
 returns(uint256)
 ```
-
-**Returns**
-
-unlocking date.
 
 **Arguments**
 
@@ -503,11 +994,33 @@ unlocking date.
 | ------------- |------------- | -----|
 | date | uint256 | The staking date to compute the power for. | 
 
-### addAdmin
+**Returns**
+
+unlocking date.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _adjustDateForOrigin(uint256 date) internal view returns (uint256) {
+		uint256 adjustedDate = timestampToLockDate(date);
+		//origin vesting contracts have different dates
+		//we need to add 2 weeks to get end of period (by default, it's start)
+		if (adjustedDate != date) {
+			date = adjustedDate + TWO_WEEKS;
+		}
+		return date;
+	}
+```
+</details>
+
+---    
+
+> ### addAdmin
 
 Add account to ACL.
 
-```js
+```solidity
 function addAdmin(address _admin) public nonpayable onlyOwner 
 ```
 
@@ -517,11 +1030,24 @@ function addAdmin(address _admin) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _admin | address | The addresses of the account to grant permissions. | 
 
-### removeAdmin
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addAdmin(address _admin) public onlyOwner {
+		admins[_admin] = true;
+		emit AdminAdded(_admin);
+	}
+```
+</details>
+
+---    
+
+> ### removeAdmin
 
 Remove account from ACL.
 
-```js
+```solidity
 function removeAdmin(address _admin) public nonpayable onlyOwner 
 ```
 
@@ -531,13 +1057,26 @@ function removeAdmin(address _admin) public nonpayable onlyOwner
 | ------------- |------------- | -----|
 | _admin | address | The addresses of the account to revoke permissions. | 
 
-### addContractCodeHash
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function removeAdmin(address _admin) public onlyOwner {
+		admins[_admin] = false;
+		emit AdminRemoved(_admin);
+	}
+```
+</details>
+
+---    
+
+> ### addContractCodeHash
 
 ⤿ Overridden Implementation(s): [StakingMockup.addContractCodeHash](StakingMockup.md#addcontractcodehash)
 
 Add vesting contract's code hash to a map of code hashes.
 
-```js
+```solidity
 function addContractCodeHash(address vesting) public nonpayable onlyAuthorized 
 ```
 
@@ -547,13 +1086,27 @@ function addContractCodeHash(address vesting) public nonpayable onlyAuthorized
 | ------------- |------------- | -----|
 | vesting | address | The address of Vesting contract. | 
 
-### removeContractCodeHash
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function addContractCodeHash(address vesting) public onlyAuthorized {
+		bytes32 codeHash = _getCodeHash(vesting);
+		vestingCodeHashes[codeHash] = true;
+		emit ContractCodeHashAdded(codeHash);
+	}
+```
+</details>
+
+---    
+
+> ### removeContractCodeHash
 
 ⤿ Overridden Implementation(s): [StakingMockup.removeContractCodeHash](StakingMockup.md#removecontractcodehash)
 
 Add vesting contract's code hash to a map of code hashes.
 
-```js
+```solidity
 function removeContractCodeHash(address vesting) public nonpayable onlyAuthorized 
 ```
 
@@ -563,15 +1116,29 @@ function removeContractCodeHash(address vesting) public nonpayable onlyAuthorize
 | ------------- |------------- | -----|
 | vesting | address | The address of Vesting contract. | 
 
-### isVestingContract
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [IStaking.isVestingContract](IStaking.md#isvestingcontract)
+```javascript
+function removeContractCodeHash(address vesting) public onlyAuthorized {
+		bytes32 codeHash = _getCodeHash(vesting);
+		vestingCodeHashes[codeHash] = false;
+		emit ContractCodeHashRemoved(codeHash);
+	}
+```
+</details>
+
+---    
+
+> ### isVestingContract
+
+undefined
 
 ⤿ Overridden Implementation(s): [StakingMockup.isVestingContract](StakingMockup.md#isvestingcontract)
 
 Return flag whether the given address is a registered vesting contract.
 
-```js
+```solidity
 function isVestingContract(address stakerAddress) public view
 returns(bool)
 ```
@@ -582,13 +1149,33 @@ returns(bool)
 | ------------- |------------- | -----|
 | stakerAddress | address | the address to check | 
 
-### _getCodeHash
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function isVestingContract(address stakerAddress) public view returns (bool) {
+		bool isVesting;
+		bytes32 codeHash = _getCodeHash(stakerAddress);
+		if (address(vestingRegistryLogic) != address(0)) {
+			isVesting = vestingRegistryLogic.isVestingAdress(stakerAddress);
+		}
+
+		if (isVesting) return true;
+		if (vestingCodeHashes[codeHash]) return true;
+		return false;
+	}
+```
+</details>
+
+---    
+
+> ### _getCodeHash
 
 ⤿ Overridden Implementation(s): [StakingMockup._getCodeHash](StakingMockup.md#_getcodehash)
 
 Return hash of contract code
 
-```js
+```solidity
 function _getCodeHash(address _contract) internal view
 returns(bytes32)
 ```
@@ -598,6 +1185,20 @@ returns(bytes32)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _contract | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _getCodeHash(address _contract) internal view returns (bytes32) {
+		bytes32 codeHash;
+		assembly {
+			codeHash := extcodehash(_contract)
+		}
+		return codeHash;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -613,6 +1214,7 @@ returns(bytes32)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -734,7 +1336,7 @@ returns(bytes32)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

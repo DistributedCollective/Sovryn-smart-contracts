@@ -32,9 +32,11 @@ bytes32 internal constant iToken_ProfitSoFar;
 
 - [stringToBytes32(string source)](#stringtobytes32)
 
-### stringToBytes32
+---    
 
-```js
+> ### stringToBytes32
+
+```solidity
 function stringToBytes32(string source) public pure
 returns(result bytes32)
 ```
@@ -44,6 +46,23 @@ returns(result bytes32)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | source | string |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function stringToBytes32(string memory source) public pure returns (bytes32 result) {
+		bytes memory tempEmptyStringTest = bytes(source);
+		if (tempEmptyStringTest.length == 0) {
+			return 0x0;
+		}
+
+		assembly {
+			result := mload(add(source, 32))
+		}
+	}
+```
+</details>
 
 ## Contracts
 
@@ -59,6 +78,7 @@ returns(result bytes32)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -180,7 +200,7 @@ returns(result bytes32)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -24,17 +24,19 @@ event SetMoCStateAddress(address indexed mocStateAddress, address  changerAddres
 
 ## Functions
 
-- [(address _mocStateAddress)](#)
+- [constructor(address _mocStateAddress)](#constructor)
 - [latestAnswer()](#latestanswer)
 - [latestTimestamp()](#latesttimestamp)
 - [setMoCStateAddress(address _mocStateAddress)](#setmocstateaddress)
 
-### 
+---    
+
+> ### constructor
 
 Initializes a new MoC state.
 	 *
 
-```js
+```solidity
 function (address _mocStateAddress) public nonpayable
 ```
 
@@ -44,53 +46,72 @@ function (address _mocStateAddress) public nonpayable
 | ------------- |------------- | -----|
 | _mocStateAddress | address | MoC state address | 
 
-### latestAnswer
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-⤾ overrides [IPriceFeedsExt.latestAnswer](IPriceFeedsExt.md#latestanswer)
+```javascript
+constructor(address _mocStateAddress) public {
+		setMoCStateAddress(_mocStateAddress);
+	}
+```
+</details>
+
+---    
+
+> ### latestAnswer
+
+undefined
 
 Get BPro USD price.
 	 *
 
-```js
+```solidity
 function latestAnswer() external view
 returns(uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-the BPro USD Price [using mocPrecision]
+```javascript
+function latestAnswer() external view returns (uint256) {
+		IMoCState _mocState = IMoCState(mocStateAddress);
+		return _mocState.bproUsdPrice();
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### latestTimestamp
+> ### latestTimestamp
 
 Supposed to get the MoC update time, but instead
 get the current timestamp.
 	 *
 
-```js
+```solidity
 function latestTimestamp() external view
 returns(uint256)
 ```
 
-**Returns**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-Always returns current block's timestamp.
+```javascript
+function latestTimestamp() external view returns (uint256) {
+		return now; /// MoC state doesn't return update timestamp.
+	}
+```
+</details>
 
-**Arguments**
+---    
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
-### setMoCStateAddress
+> ### setMoCStateAddress
 
 Set MoC state address.
 	 *
 
-```js
+```solidity
 function setMoCStateAddress(address _mocStateAddress) public nonpayable onlyOwner 
 ```
 
@@ -99,6 +120,18 @@ function setMoCStateAddress(address _mocStateAddress) public nonpayable onlyOwne
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _mocStateAddress | address | The MoC state address. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setMoCStateAddress(address _mocStateAddress) public onlyOwner {
+		require(Address.isContract(_mocStateAddress), "_mocStateAddress not a contract");
+		mocStateAddress = _mocStateAddress;
+		emit SetMoCStateAddress(mocStateAddress, msg.sender);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -114,6 +147,7 @@ function setMoCStateAddress(address _mocStateAddress) public nonpayable onlyOwne
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -235,7 +269,7 @@ function setMoCStateAddress(address _mocStateAddress) public nonpayable onlyOwne
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

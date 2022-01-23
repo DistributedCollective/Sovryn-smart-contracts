@@ -11,9 +11,11 @@ View Source: [contracts/mockup/proxy/ImplementationMockup.sol](../contracts/mock
 - [setValue(uint256 _value)](#setvalue)
 - [getValue()](#getvalue)
 
-### setValue
+---    
 
-```js
+> ### setValue
+
+```solidity
 function setValue(uint256 _value) public nonpayable
 ```
 
@@ -23,17 +25,35 @@ function setValue(uint256 _value) public nonpayable
 | ------------- |------------- | -----|
 | _value | uint256 |  | 
 
-### getValue
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setValue(uint256 _value) public {
+		value = _value;
+		emit ValueChanged(_value);
+	}
+```
+</details>
+
+---    
+
+> ### getValue
+
+```solidity
 function getValue() public view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getValue() public view returns (uint256) {
+		return value;
+	}
+```
+</details>
 
 ## Contracts
 
@@ -49,6 +69,7 @@ returns(uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -170,7 +191,7 @@ returns(uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

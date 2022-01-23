@@ -14,13 +14,15 @@ withdraw earlier without a slashing.
 
 ## Functions
 
-- [(address _logic, address _SOV, address _stakingAddress, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharingProxy)](#)
+- [constructor(address _logic, address _SOV, address _stakingAddress, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharingProxy)](#constructor)
 
-### 
+---    
+
+> ### constructor
 
 Setup the vesting schedule.
 
-```js
+```solidity
 function (address _logic, address _SOV, address _stakingAddress, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharingProxy) public nonpayable
 ```
 
@@ -36,6 +38,37 @@ function (address _logic, address _SOV, address _stakingAddress, address _tokenO
 | _duration | uint256 | The total duration in seconds. | 
 | _feeSharingProxy | address |  | 
 
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(
+		address _logic,
+		address _SOV,
+		address _stakingAddress,
+		address _tokenOwner,
+		uint256 _cliff,
+		uint256 _duration,
+		address _feeSharingProxy
+	) public {
+		require(_SOV != address(0), "SOV address invalid");
+		require(_stakingAddress != address(0), "staking address invalid");
+		require(_tokenOwner != address(0), "token owner address invalid");
+		require(_duration >= _cliff, "duration must be bigger than or equal to the cliff");
+		require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
+
+		_setImplementation(_logic);
+		SOV = IERC20(_SOV);
+		staking = Staking(_stakingAddress);
+		require(_duration <= staking.MAX_DURATION(), "duration may not exceed the max duration");
+		tokenOwner = _tokenOwner;
+		cliff = _cliff;
+		duration = _duration;
+		feeSharingProxy = IFeeSharingProxy(_feeSharingProxy);
+	}
+```
+</details>
+
 ## Contracts
 
 * [Address](Address.md)
@@ -50,6 +83,7 @@ function (address _logic, address _SOV, address _stakingAddress, address _tokenO
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -171,7 +205,7 @@ function (address _logic, address _SOV, address _stakingAddress, address _tokenO
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

@@ -11,20 +11,27 @@ View Source: [contracts/interfaces/IWrbtc.sol](../contracts/interfaces/IWrbtc.so
 - [deposit()](#deposit)
 - [withdraw(uint256 wad)](#withdraw)
 
-### deposit
+---    
 
-```js
+> ### deposit
+
+```solidity
 function deposit() external payable
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function deposit() external payable;
+```
+</details>
 
-### withdraw
+---    
 
-```js
+> ### withdraw
+
+```solidity
 function withdraw(uint256 wad) external nonpayable
 ```
 
@@ -33,6 +40,14 @@ function withdraw(uint256 wad) external nonpayable
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | wad | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdraw(uint256 wad) external;
+```
+</details>
 
 ## Contracts
 
@@ -48,6 +63,7 @@ function withdraw(uint256 wad) external nonpayable
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -169,7 +185,7 @@ function withdraw(uint256 wad) external nonpayable
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

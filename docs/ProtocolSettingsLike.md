@@ -10,9 +10,11 @@ View Source: [contracts/connectors/loantoken/interfaces/ProtocolSettingsLike.sol
 - [disableLoanParams(bytes32[] loanParamsIdList)](#disableloanparams)
 - [minInitialMargin(bytes32 loanParamsId)](#mininitialmargin)
 
-### setupLoanParams
+---    
 
-```js
+> ### setupLoanParams
+
+```solidity
 function setupLoanParams(struct LoanParamsStruct.LoanParams[] loanParamsList) external nonpayable
 returns(loanParamsIdList bytes32[])
 ```
@@ -23,9 +25,19 @@ returns(loanParamsIdList bytes32[])
 | ------------- |------------- | -----|
 | loanParamsList | struct LoanParamsStruct.LoanParams[] |  | 
 
-### disableLoanParams
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function setupLoanParams(LoanParamsStruct.LoanParams[] calldata loanParamsList) external returns (bytes32[] memory loanParamsIdList);
+```
+</details>
+
+---    
+
+> ### disableLoanParams
+
+```solidity
 function disableLoanParams(bytes32[] loanParamsIdList) external nonpayable
 ```
 
@@ -35,9 +47,19 @@ function disableLoanParams(bytes32[] loanParamsIdList) external nonpayable
 | ------------- |------------- | -----|
 | loanParamsIdList | bytes32[] |  | 
 
-### minInitialMargin
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function disableLoanParams(bytes32[] calldata loanParamsIdList) external;
+```
+</details>
+
+---    
+
+> ### minInitialMargin
+
+```solidity
 function minInitialMargin(bytes32 loanParamsId) external view
 returns(uint256)
 ```
@@ -47,6 +69,14 @@ returns(uint256)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | loanParamsId | bytes32 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function minInitialMargin(bytes32 loanParamsId) external view returns (uint256);
+```
+</details>
 
 ## Contracts
 
@@ -62,6 +92,7 @@ returns(uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -183,7 +214,7 @@ returns(uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

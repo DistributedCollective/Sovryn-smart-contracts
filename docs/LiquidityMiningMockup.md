@@ -11,9 +11,11 @@ View Source: [contracts/mockup/LiquidityMiningMockup.sol](../contracts/mockup/Li
 - [getPassedBlocksWithBonusMultiplier(uint256 _from, uint256 _to)](#getpassedblockswithbonusmultiplier)
 - [getPoolAccumulatedReward(address _poolToken)](#getpoolaccumulatedreward)
 
-### getPassedBlocksWithBonusMultiplier
+---    
 
-```js
+> ### getPassedBlocksWithBonusMultiplier
+
+```solidity
 function getPassedBlocksWithBonusMultiplier(uint256 _from, uint256 _to) public view
 returns(uint256)
 ```
@@ -25,9 +27,21 @@ returns(uint256)
 | _from | uint256 |  | 
 | _to | uint256 |  | 
 
-### getPoolAccumulatedReward
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-```js
+```javascript
+function getPassedBlocksWithBonusMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
+		return _getPassedBlocksWithBonusMultiplier(_from, _to);
+	}
+```
+</details>
+
+---    
+
+> ### getPoolAccumulatedReward
+
+```solidity
 function getPoolAccumulatedReward(address _poolToken) public view
 returns(uint256, uint256)
 ```
@@ -37,6 +51,18 @@ returns(uint256, uint256)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _poolToken | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getPoolAccumulatedReward(address _poolToken) public view returns (uint256, uint256) {
+		uint256 poolId = _getPoolId(_poolToken);
+		PoolInfo storage pool = poolInfoList[poolId];
+		return _getPoolAccumulatedReward(pool);
+	}
+```
+</details>
 
 ## Contracts
 
@@ -52,6 +78,7 @@ returns(uint256, uint256)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -173,7 +200,7 @@ returns(uint256, uint256)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

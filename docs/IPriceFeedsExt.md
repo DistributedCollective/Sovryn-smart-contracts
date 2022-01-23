@@ -2,7 +2,7 @@
 
 View Source: [contracts/feeds/PriceFeeds.sol](../contracts/feeds/PriceFeeds.sol)
 
-**↗ Extends: [PriceFeedsConstants](PriceFeedsConstants.md), [Ownable](Ownable.md)**
+**↗ Extends: [Constants](Constants.md), [Ownable](Ownable.md)**
 **↘ Derived Contracts: [BProPriceFeed](BProPriceFeed.md), [Medianizer](Medianizer.md), [PriceFeedRSKOracle](PriceFeedRSKOracle.md), [PriceFeedsMoC](PriceFeedsMoC.md), [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md), [USDTPriceFeed](USDTPriceFeed.md)**
 
 **IPriceFeedsExt**
@@ -27,7 +27,7 @@ event GlobalPricingPaused(address indexed sender, bool indexed isPaused);
 ## Functions
 
 - [latestAnswer()](#latestanswer)
-- [(address _wrbtcTokenAddress, address _protocolTokenAddress, address _baseTokenAddress)](#)
+- [constructor(address _wrbtcTokenAddress, address _protocolTokenAddress, address _baseTokenAddress)](#constructor)
 - [queryRate(address sourceToken, address destToken)](#queryrate)
 - [queryPrecision(address sourceToken, address destToken)](#queryprecision)
 - [queryReturn(address sourceToken, address destToken, uint256 sourceAmount)](#queryreturn)
@@ -44,26 +44,33 @@ event GlobalPricingPaused(address indexed sender, bool indexed isPaused);
 - [_queryRate(address sourceToken, address destToken)](#_queryrate)
 - [_getDecimalPrecision(address sourceToken, address destToken)](#_getdecimalprecision)
 
-### latestAnswer
+---    
+
+> ### latestAnswer
 
 ⤿ Overridden Implementation(s): [BProPriceFeed.latestAnswer](BProPriceFeed.md#latestanswer),[Medianizer.latestAnswer](Medianizer.md#latestanswer),[PriceFeedRSKOracle.latestAnswer](PriceFeedRSKOracle.md#latestanswer),[PriceFeedsMoC.latestAnswer](PriceFeedsMoC.md#latestanswer),[PriceFeedV1PoolOracle.latestAnswer](PriceFeedV1PoolOracle.md#latestanswer),[USDTPriceFeed.latestAnswer](USDTPriceFeed.md#latestanswer)
 
-```js
+```solidity
 function latestAnswer() external view
 returns(uint256)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function latestAnswer() external view returns (uint256);
+```
+</details>
 
-### 
+---    
+
+> ### constructor
 
 Contract deployment requires 3 parameters.
 	 *
 
-```js
+```solidity
 function (address _wrbtcTokenAddress, address _protocolTokenAddress, address _baseTokenAddress) public nonpayable
 ```
 
@@ -75,65 +82,103 @@ function (address _wrbtcTokenAddress, address _protocolTokenAddress, address _ba
 | _protocolTokenAddress | address | The address of the protocol token. | 
 | _baseTokenAddress | address | The address of the base token. | 
 
-### queryRate
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+constructor(
+		address _wrbtcTokenAddress,
+		address _protocolTokenAddress,
+		address _baseTokenAddress
+	) public {
+		/// Set decimals for this token.
+		decimals[address(0)] = 18;
+		decimals[_wrbtcTokenAddress] = 18;
+		_setWrbtcToken(_wrbtcTokenAddress);
+		_setProtocolTokenAddress(_protocolTokenAddress);
+		_setBaseToken(_baseTokenAddress);
+	}
+```
+</details>
+
+---    
+
+> ### queryRate
 
 Calculate the price ratio between two tokens.
 	 *
 
-```js
+```solidity
 function queryRate(address sourceToken, address destToken) public view
 returns(rate uint256, precision uint256)
 ```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| sourceToken | address | The address of the source tokens. | 
+| destToken | address | The address of the destiny tokens. 	 * | 
 
 **Returns**
 
 rate The price ratio source/dest.
 
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function queryRate(address sourceToken, address destToken) public view returns (uint256 rate, uint256 precision) {
+		return _queryRate(sourceToken, destToken);
+	}
+```
+</details>
+
+---    
+
+> ### queryPrecision
+
+Calculate the relative precision between two tokens.
+	 *
+
+```solidity
+function queryPrecision(address sourceToken, address destToken) public view
+returns(uint256)
+```
+
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | sourceToken | address | The address of the source tokens. | 
-| destToken | address | The address of the destiny tokens.
-	 * | 
-
-### queryPrecision
-
-Calculate the relative precision between two tokens.
-	 *
-
-```js
-function queryPrecision(address sourceToken, address destToken) public view
-returns(uint256)
-```
+| destToken | address | The address of the destiny tokens. 	 * | 
 
 **Returns**
 
 The precision ratio source/dest.
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| sourceToken | address | The address of the source tokens. | 
-| destToken | address | The address of the destiny tokens.
-	 * | 
+```javascript
+function queryPrecision(address sourceToken, address destToken) public view returns (uint256) {
+		return sourceToken != destToken ? _getDecimalPrecision(sourceToken, destToken) : 10**18;
+	}
+```
+</details>
 
-### queryReturn
+---    
+
+> ### queryReturn
 
 Price conversor: Calculate the price of an amount of source
 tokens in destiny token units.
 	 *
 
-```js
+```solidity
 function queryReturn(address sourceToken, address destToken, uint256 sourceAmount) public view
 returns(destAmount uint256)
 ```
-
-**Returns**
-
-destAmount The amount of destiny tokens equivalent in price
-  to the amount of source tokens.
 
 **Arguments**
 
@@ -141,10 +186,36 @@ destAmount The amount of destiny tokens equivalent in price
 | ------------- |------------- | -----|
 | sourceToken | address | The address of the source tokens. | 
 | destToken | address | The address of the destiny tokens. | 
-| sourceAmount | uint256 | The amount of the source tokens.
-	 * | 
+| sourceAmount | uint256 | The amount of the source tokens. 	 * | 
 
-### checkPriceDisagreement
+**Returns**
+
+destAmount The amount of destiny tokens equivalent in price
+  to the amount of source tokens.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function queryReturn(
+		address sourceToken,
+		address destToken,
+		uint256 sourceAmount
+	) public view returns (uint256 destAmount) {
+		if (globalPricingPaused) {
+			return 0;
+		}
+
+		(uint256 rate, uint256 precision) = _queryRate(sourceToken, destToken);
+
+		destAmount = sourceAmount.mul(rate).div(precision);
+	}
+```
+</details>
+
+---    
+
+> ### checkPriceDisagreement
 
 Calculate the swap rate between two tokens.
 	 * Regarding slippage, there is a hardcoded slippage limit of 5%, enforced
@@ -154,14 +225,10 @@ originated swaps performed in the Sovryn exchange.
 up to 5% from the internal swap performed.
 	 *
 
-```js
+```solidity
 function checkPriceDisagreement(address sourceToken, address destToken, uint256 sourceAmount, uint256 destAmount, uint256 maxSlippage) public view
 returns(sourceToDestSwapRate uint256)
 ```
-
-**Returns**
-
-sourceToDestSwapRate The swap rate between tokens.
 
 **Arguments**
 
@@ -171,34 +238,81 @@ sourceToDestSwapRate The swap rate between tokens.
 | destToken | address | The address of the destiny tokens. | 
 | sourceAmount | uint256 | The amount of source tokens. | 
 | destAmount | uint256 | The amount of destiny tokens. | 
-| maxSlippage | uint256 | The maximum slippage limit.
-	 * | 
+| maxSlippage | uint256 | The maximum slippage limit. 	 * | 
 
-### amountInEth
+**Returns**
+
+sourceToDestSwapRate The swap rate between tokens.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function checkPriceDisagreement(
+		address sourceToken,
+		address destToken,
+		uint256 sourceAmount,
+		uint256 destAmount,
+		uint256 maxSlippage
+	) public view returns (uint256 sourceToDestSwapRate) {
+		require(!globalPricingPaused, "pricing is paused");
+		(uint256 rate, uint256 precision) = _queryRate(sourceToken, destToken);
+
+		sourceToDestSwapRate = destAmount.mul(precision).div(sourceAmount);
+
+		if (rate > sourceToDestSwapRate) {
+			uint256 spreadValue = rate - sourceToDestSwapRate;
+			spreadValue = spreadValue.mul(10**20).div(sourceToDestSwapRate);
+			require(spreadValue <= maxSlippage, "price disagreement");
+		}
+	}
+```
+</details>
+
+---    
+
+> ### amountInEth
 
 Calculate the rBTC amount equivalent to a given token amount.
 Native coin on RSK is rBTC. This code comes from Ethereum applications,
 so Eth refers to 10**18 weis of native coin, i.e.: 1 rBTC.
 	 *
 
-```js
+```solidity
 function amountInEth(address tokenAddress, uint256 amount) public view
 returns(ethAmount uint256)
 ```
-
-**Returns**
-
-ethAmount The amount of rBTC equivalent.
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | tokenAddress | address | The address of the token to calculate price. | 
-| amount | uint256 | The amount of tokens to calculate price.
-	 * | 
+| amount | uint256 | The amount of tokens to calculate price. 	 * | 
 
-### getMaxDrawdown
+**Returns**
+
+ethAmount The amount of rBTC equivalent.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function amountInEth(address tokenAddress, uint256 amount) public view returns (uint256 ethAmount) {
+		/// Token is wrBTC, amount in rBTC is the same.
+		if (tokenAddress == address(wrbtcToken)) {
+			ethAmount = amount;
+		} else {
+			(uint256 toEthRate, uint256 toEthPrecision) = queryRate(tokenAddress, address(wrbtcToken));
+			ethAmount = amount.mul(toEthRate).div(toEthPrecision);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### getMaxDrawdown
 
 Calculate the maximum drawdown of a loan.
 	 * A drawdown is commonly defined as the decline from a high peak to a
@@ -207,15 +321,162 @@ pullback low of a specific investment or equity in an account.
 during the drawdown period.
 	 *
 
-```js
+```solidity
 function getMaxDrawdown(address loanToken, address collateralToken, uint256 loanAmount, uint256 collateralAmount, uint256 margin) public view
 returns(maxDrawdown uint256)
 ```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| loanToken | address | The address of the loan token. | 
+| collateralToken | address | The address of the collateral token. | 
+| loanAmount | uint256 | The amount of the loan. | 
+| collateralAmount | uint256 | The amount of the collateral. | 
+| margin | uint256 | The relation between the position size and the loan.   margin = (total position size - loan) / loan 	 * | 
 
 **Returns**
 
 maxDrawdown The maximum drawdown.
 
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getMaxDrawdown(
+		address loanToken,
+		address collateralToken,
+		uint256 loanAmount,
+		uint256 collateralAmount,
+		uint256 margin
+	) public view returns (uint256 maxDrawdown) {
+		uint256 loanToCollateralAmount;
+		if (collateralToken == loanToken) {
+			loanToCollateralAmount = loanAmount;
+		} else {
+			(uint256 rate, uint256 precision) = queryRate(loanToken, collateralToken);
+			loanToCollateralAmount = loanAmount.mul(rate).div(precision);
+		}
+
+		uint256 combined = loanToCollateralAmount.add(loanToCollateralAmount.mul(margin).div(10**20));
+
+		maxDrawdown = collateralAmount > combined ? collateralAmount - combined : 0;
+	}
+```
+</details>
+
+---    
+
+> ### getCurrentMarginAndCollateralSize
+
+Calculate the margin and the collateral on rBTC.
+	 *
+
+```solidity
+function getCurrentMarginAndCollateralSize(address loanToken, address collateralToken, uint256 loanAmount, uint256 collateralAmount) public view
+returns(currentMargin uint256, collateralInEthAmount uint256)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| loanToken | address | The address of the loan token. | 
+| collateralToken | address | The address of the collateral token. | 
+| loanAmount | uint256 | The amount of the loan. | 
+| collateralAmount | uint256 | The amount of the collateral. 	 * | 
+
+**Returns**
+
+currentMargin The margin of the loan.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getCurrentMarginAndCollateralSize(
+		address loanToken,
+		address collateralToken,
+		uint256 loanAmount,
+		uint256 collateralAmount
+	) public view returns (uint256 currentMargin, uint256 collateralInEthAmount) {
+		(currentMargin, ) = getCurrentMargin(loanToken, collateralToken, loanAmount, collateralAmount);
+
+		collateralInEthAmount = amountInEth(collateralToken, collateralAmount);
+	}
+```
+</details>
+
+---    
+
+> ### getCurrentMargin
+
+Calculate the margin of a loan.
+	 *
+
+```solidity
+function getCurrentMargin(address loanToken, address collateralToken, uint256 loanAmount, uint256 collateralAmount) public view
+returns(currentMargin uint256, collateralToLoanRate uint256)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| loanToken | address | The address of the loan token. | 
+| collateralToken | address | The address of the collateral token. | 
+| loanAmount | uint256 | The amount of the loan. | 
+| collateralAmount | uint256 | The amount of the collateral. 	 * | 
+
+**Returns**
+
+currentMargin The margin of the loan.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getCurrentMargin(
+		address loanToken,
+		address collateralToken,
+		uint256 loanAmount,
+		uint256 collateralAmount
+	) public view returns (uint256 currentMargin, uint256 collateralToLoanRate) {
+		uint256 collateralToLoanAmount;
+		if (collateralToken == loanToken) {
+			collateralToLoanAmount = collateralAmount;
+			collateralToLoanRate = 10**18;
+		} else {
+			uint256 collateralToLoanPrecision;
+			(collateralToLoanRate, collateralToLoanPrecision) = queryRate(collateralToken, loanToken);
+
+			collateralToLoanRate = collateralToLoanRate.mul(10**18).div(collateralToLoanPrecision);
+
+			collateralToLoanAmount = collateralAmount.mul(collateralToLoanRate).div(10**18);
+		}
+
+		if (loanAmount != 0 && collateralToLoanAmount >= loanAmount) {
+			return (collateralToLoanAmount.sub(loanAmount).mul(10**20).div(loanAmount), collateralToLoanRate);
+		} else {
+			return (0, collateralToLoanRate);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### shouldLiquidate
+
+Get assessment about liquidating a loan.
+	 *
+
+```solidity
+function shouldLiquidate(address loanToken, address collateralToken, uint256 loanAmount, uint256 collateralAmount, uint256 maintenanceMargin) public view
+returns(bool)
+```
+
 **Arguments**
 
 | Name        | Type           | Description  |
@@ -224,89 +485,38 @@ maxDrawdown The maximum drawdown.
 | collateralToken | address | The address of the collateral token. | 
 | loanAmount | uint256 | The amount of the loan. | 
 | collateralAmount | uint256 | The amount of the collateral. | 
-| margin | uint256 | The relation between the position size and the loan.
-  margin = (total position size - loan) / loan
-	 * | 
-
-### getCurrentMarginAndCollateralSize
-
-Calculate the margin and the collateral on rBTC.
-	 *
-
-```js
-function getCurrentMarginAndCollateralSize(address loanToken, address collateralToken, uint256 loanAmount, uint256 collateralAmount) public view
-returns(currentMargin uint256, collateralInEthAmount uint256)
-```
-
-**Returns**
-
-currentMargin The margin of the loan.
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanToken | address | The address of the loan token. | 
-| collateralToken | address | The address of the collateral token. | 
-| loanAmount | uint256 | The amount of the loan. | 
-| collateralAmount | uint256 | The amount of the collateral.
-	 * | 
-
-### getCurrentMargin
-
-Calculate the margin of a loan.
-	 *
-
-```js
-function getCurrentMargin(address loanToken, address collateralToken, uint256 loanAmount, uint256 collateralAmount) public view
-returns(currentMargin uint256, collateralToLoanRate uint256)
-```
-
-**Returns**
-
-currentMargin The margin of the loan.
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanToken | address | The address of the loan token. | 
-| collateralToken | address | The address of the collateral token. | 
-| loanAmount | uint256 | The amount of the loan. | 
-| collateralAmount | uint256 | The amount of the collateral.
-	 * | 
-
-### shouldLiquidate
-
-Get assessment about liquidating a loan.
-	 *
-
-```js
-function shouldLiquidate(address loanToken, address collateralToken, uint256 loanAmount, uint256 collateralAmount, uint256 maintenanceMargin) public view
-returns(bool)
-```
+| maintenanceMargin | uint256 | The minimum margin before liquidation. 	 * | 
 
 **Returns**
 
 True/false to liquidate the loan.
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanToken | address | The address of the loan token. | 
-| collateralToken | address | The address of the collateral token. | 
-| loanAmount | uint256 | The amount of the loan. | 
-| collateralAmount | uint256 | The amount of the collateral. | 
-| maintenanceMargin | uint256 | The minimum margin before liquidation.
-	 * | 
+```javascript
+function shouldLiquidate(
+		address loanToken,
+		address collateralToken,
+		uint256 loanAmount,
+		uint256 collateralAmount,
+		uint256 maintenanceMargin
+	) public view returns (bool) {
+		(uint256 currentMargin, ) = getCurrentMargin(loanToken, collateralToken, loanAmount, collateralAmount);
 
-### setProtocolTokenEthPrice
+		return currentMargin <= maintenanceMargin;
+	}
+```
+</details>
+
+---    
+
+> ### setProtocolTokenEthPrice
 
 Set new value for protocolTokenEthPrice
 	 *
 
-```js
+```solidity
 function setProtocolTokenEthPrice(uint256 newPrice) external nonpayable onlyOwner 
 ```
 
@@ -316,12 +526,25 @@ function setProtocolTokenEthPrice(uint256 newPrice) external nonpayable onlyOwne
 | ------------- |------------- | -----|
 | newPrice | uint256 | The new value for protocolTokenEthPrice | 
 
-### setPriceFeed
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setProtocolTokenEthPrice(uint256 newPrice) external onlyOwner {
+		require(newPrice != 0, "invalid price");
+		protocolTokenEthPrice = newPrice;
+	}
+```
+</details>
+
+---    
+
+> ### setPriceFeed
 
 Populate pricesFeeds mapping w/ values from feeds[]
 	 *
 
-```js
+```solidity
 function setPriceFeed(address[] tokens, IPriceFeedsExt[] feeds) external nonpayable onlyOwner 
 ```
 
@@ -332,12 +555,28 @@ function setPriceFeed(address[] tokens, IPriceFeedsExt[] feeds) external nonpaya
 | tokens | address[] | The array of tokens to loop and get addresses. | 
 | feeds | IPriceFeedsExt[] | The array of contract instances for every token. | 
 
-### setDecimals
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setPriceFeed(address[] calldata tokens, IPriceFeedsExt[] calldata feeds) external onlyOwner {
+		require(tokens.length == feeds.length, "count mismatch");
+
+		for (uint256 i = 0; i < tokens.length; i++) {
+			pricesFeeds[tokens[i]] = feeds[i];
+		}
+	}
+```
+</details>
+
+---    
+
+> ### setDecimals
 
 Populate decimals mapping w/ values from tokens[].decimals
 	 *
 
-```js
+```solidity
 function setDecimals(IERC20[] tokens) external nonpayable onlyOwner 
 ```
 
@@ -347,12 +586,26 @@ function setDecimals(IERC20[] tokens) external nonpayable onlyOwner
 | ------------- |------------- | -----|
 | tokens | IERC20[] | The array of tokens to loop and get values from. | 
 
-### setGlobalPricingPaused
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setDecimals(IERC20[] calldata tokens) external onlyOwner {
+		for (uint256 i = 0; i < tokens.length; i++) {
+			decimals[address(tokens[i])] = tokens[i].decimals();
+		}
+	}
+```
+</details>
+
+---    
+
+> ### setGlobalPricingPaused
 
 Set flag globalPricingPaused
 	 *
 
-```js
+```solidity
 function setGlobalPricingPaused(bool isPaused) external nonpayable onlyOwner 
 ```
 
@@ -362,49 +615,137 @@ function setGlobalPricingPaused(bool isPaused) external nonpayable onlyOwner
 | ------------- |------------- | -----|
 | isPaused | bool | The new status of pause (true/false). | 
 
-### _queryRate
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setGlobalPricingPaused(bool isPaused) external onlyOwner {
+		if (globalPricingPaused != isPaused) {
+			globalPricingPaused = isPaused;
+
+			emit GlobalPricingPaused(msg.sender, isPaused);
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _queryRate
+
+⤿ Overridden Implementation(s): [PriceFeedsLocal._queryRate](PriceFeedsLocal.md#_queryrate)
 
 Calculate the price ratio between two tokens.
 	 *
 
-```js
+```solidity
 function _queryRate(address sourceToken, address destToken) internal view
 returns(rate uint256, precision uint256)
 ```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| sourceToken | address | The address of the source tokens. | 
+| destToken | address | The address of the destiny tokens. 	 * | 
 
 **Returns**
 
 rate The price ratio source/dest.
 
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function _queryRate(address sourceToken, address destToken) internal view returns (uint256 rate, uint256 precision) {
+		require(!globalPricingPaused, "pricing is paused");
+
+		/// Different tokens, query prices and perform division.
+		if (sourceToken != destToken) {
+			uint256 sourceRate;
+			if (sourceToken != address(baseToken) && sourceToken != protocolTokenAddress) {
+				IPriceFeedsExt _sourceFeed = pricesFeeds[sourceToken];
+				require(address(_sourceFeed) != address(0), "unsupported src feed");
+
+				/// Query token price on priceFeedsExt instance.
+				sourceRate = _sourceFeed.latestAnswer();
+				require(sourceRate != 0 && (sourceRate >> 128) == 0, "price error");
+			} else {
+				sourceRate = sourceToken == protocolTokenAddress ? protocolTokenEthPrice : 10**18;
+			}
+
+			uint256 destRate;
+			if (destToken != address(baseToken) && destToken != protocolTokenAddress) {
+				IPriceFeedsExt _destFeed = pricesFeeds[destToken];
+				require(address(_destFeed) != address(0), "unsupported dst feed");
+
+				/// Query token price on priceFeedsExt instance.
+				destRate = _destFeed.latestAnswer();
+				require(destRate != 0 && (destRate >> 128) == 0, "price error");
+			} else {
+				destRate = destToken == protocolTokenAddress ? protocolTokenEthPrice : 10**18;
+			}
+
+			rate = sourceRate.mul(10**18).div(destRate);
+
+			precision = _getDecimalPrecision(sourceToken, destToken);
+
+			/// Same tokens, return 1 with decimals.
+		} else {
+			rate = 10**18;
+			precision = 10**18;
+		}
+	}
+```
+</details>
+
+---    
+
+> ### _getDecimalPrecision
+
+Calculate the relative precision between two tokens.
+	 *
+
+```solidity
+function _getDecimalPrecision(address sourceToken, address destToken) internal view
+returns(uint256)
+```
+
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | sourceToken | address | The address of the source tokens. | 
-| destToken | address | The address of the destiny tokens.
-	 * | 
-
-### _getDecimalPrecision
-
-Calculate the relative precision between two tokens.
-	 *
-
-```js
-function _getDecimalPrecision(address sourceToken, address destToken) internal view
-returns(uint256)
-```
+| destToken | address | The address of the destiny tokens. 	 * | 
 
 **Returns**
 
 The precision ratio source/dest.
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| sourceToken | address | The address of the source tokens. | 
-| destToken | address | The address of the destiny tokens.
-	 * | 
+```javascript
+function _getDecimalPrecision(address sourceToken, address destToken) internal view returns (uint256) {
+		/// Same tokens, return 1 with decimals.
+		if (sourceToken == destToken) {
+			return 10**18;
+
+			/// Different tokens, query ERC20 precisions and return 18 +- diff.
+		} else {
+			uint256 sourceTokenDecimals = decimals[sourceToken];
+			if (sourceTokenDecimals == 0) sourceTokenDecimals = IERC20(sourceToken).decimals();
+
+			uint256 destTokenDecimals = decimals[destToken];
+			if (destTokenDecimals == 0) destTokenDecimals = IERC20(destToken).decimals();
+
+			if (destTokenDecimals >= sourceTokenDecimals) return 10**(SafeMath.sub(18, destTokenDecimals - sourceTokenDecimals));
+			else return 10**(SafeMath.add(18, sourceTokenDecimals - destTokenDecimals));
+		}
+	}
+```
+</details>
 
 ## Contracts
 
@@ -420,6 +761,7 @@ The precision ratio source/dest.
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -541,7 +883,7 @@ The precision ratio source/dest.
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)

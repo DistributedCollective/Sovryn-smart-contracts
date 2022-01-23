@@ -49,11 +49,6 @@ This is the overriden function from the pausable contract, so that we can use cu
 modifier whenNotPaused() internal
 ```
 
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-
 ## Functions
 
 - [registerLoanTokenModule(address loanTokenModuleAddress)](#registerloantokenmodule)
@@ -64,12 +59,14 @@ modifier whenNotPaused() internal
 - [getTarget(bytes4 sig)](#gettarget)
 - [getListFunctionSignatures()](#getlistfunctionsignatures)
 
-### registerLoanTokenModule
+---    
+
+> ### registerLoanTokenModule
 
 Register the loanTokenModule (LoanTokenSettingsLowerAdmin, LoanTokenLogicLM / LoanTokenLogicWrbtc, etc)
 	 *
 
-```js
+```solidity
 function registerLoanTokenModule(address loanTokenModuleAddress) external nonpayable onlyOwner 
 ```
 
@@ -79,75 +76,150 @@ function registerLoanTokenModule(address loanTokenModuleAddress) external nonpay
 | ------------- |------------- | -----|
 | loanTokenModuleAddress | address | The module target address | 
 
-### _registerLoanTokenModule
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function registerLoanTokenModule(address loanTokenModuleAddress) external onlyOwner {
+		bytes32 moduleName = _registerLoanTokenModule(loanTokenModuleAddress);
+
+		// Store the upgrade to the log
+		moduleUpgradeLog[moduleName].push(LoanTokenLogicModuleUpdate(loanTokenModuleAddress, block.timestamp));
+		activeModuleIndex[moduleName] = moduleUpgradeLog[moduleName].length - 1;
+	}
+```
+</details>
+
+---    
+
+> ### _registerLoanTokenModule
 
 Register the loanTokenModule (LoanTokenSettingsLowerAdmin, LoanTokenLogicLM / LoanTokenLogicWrbtc, etc)
 	 *
 
-```js
+```solidity
 function _registerLoanTokenModule(address loanTokenModuleAddress) private nonpayable
 returns(bytes32)
 ```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| loanTokenModuleAddress | address | the target logic of the loan token module 	 * | 
 
 **Returns**
 
 the module name
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| loanTokenModuleAddress | address | the target logic of the loan token module
-	 * | 
+```javascript
+function _registerLoanTokenModule(address loanTokenModuleAddress) private returns (bytes32) {
+		require(Address.isContract(loanTokenModuleAddress), "LoanTokenModuleAddress is not a contract");
 
-### getActiveFuncSignatureList
+		// Get the list of function signature on this loanTokenModulesAddress
+		(bytes4[] memory functionSignatureList, bytes32 moduleName) =
+			ILoanTokenLogicModules(loanTokenModuleAddress).getListFunctionSignatures();
+
+		/// register / update the module function signature address implementation
+		for (uint256 i; i < functionSignatureList.length; i++) {
+			require(functionSignatureList[i] != bytes4(0x0), "ERR_EMPTY_FUNC_SIGNATURE");
+			logicTargets[functionSignatureList[i]] = loanTokenModuleAddress;
+			if (!activeFuncSignatureList[moduleName].contains(functionSignatureList[i]))
+				activeFuncSignatureList[moduleName].addBytes4(functionSignatureList[i]);
+		}
+
+		/// delete the "removed" module function signature in the current implementation
+		bytes4[] memory activeSignatureListEnum =
+			activeFuncSignatureList[moduleName].enumerate(0, activeFuncSignatureList[moduleName].length());
+		for (uint256 i; i < activeSignatureListEnum.length; i++) {
+			bytes4 activeSigBytes = activeSignatureListEnum[i];
+			if (logicTargets[activeSigBytes] != loanTokenModuleAddress) {
+				logicTargets[activeSigBytes] = address(0);
+				activeFuncSignatureList[moduleName].removeBytes4(activeSigBytes);
+			}
+		}
+
+		return moduleName;
+	}
+```
+</details>
+
+---    
+
+> ### getActiveFuncSignatureList
 
 get all active function signature list based on the module name.
 	 *
 
-```js
+```solidity
 function getActiveFuncSignatureList(bytes32 moduleName) public view
 returns(signatureList bytes4[])
 ```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| moduleName | bytes32 | in bytes32. 	 * | 
 
 **Returns**
 
 the array of function signature.
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| moduleName | bytes32 | in bytes32.
-	 * | 
+```javascript
+function getActiveFuncSignatureList(bytes32 moduleName) public view returns (bytes4[] memory signatureList) {
+		signatureList = activeFuncSignatureList[moduleName].enumerate(0, activeFuncSignatureList[moduleName].length());
+		return signatureList;
+	}
+```
+</details>
 
-### getModuleUpgradeLogLength
+---    
+
+> ### getModuleUpgradeLogLength
 
 Get total length of the module upgrade log.
 	 *
 
-```js
+```solidity
 function getModuleUpgradeLogLength(bytes32 moduleName) external view
 returns(uint256)
 ```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| moduleName | bytes32 | in bytes32. 	 * | 
 
 **Returns**
 
 length of module upgrade log.
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| moduleName | bytes32 | in bytes32.
-	 * | 
+```javascript
+function getModuleUpgradeLogLength(bytes32 moduleName) external view returns (uint256) {
+		return moduleUpgradeLog[moduleName].length;
+	}
+```
+</details>
 
-### rollback
+---    
+
+> ### rollback
 
 This function will rollback particular module to the spesific index / version of deployment
 	 *
 
-```js
+```solidity
 function rollback(bytes32 moduleName, uint256 index) external nonpayable onlyOwner 
 ```
 
@@ -158,18 +230,28 @@ function rollback(bytes32 moduleName, uint256 index) external nonpayable onlyOwn
 | moduleName | bytes32 | Name of module in bytes32 format | 
 | index | uint256 | index / version of previous deployment | 
 
-### getTarget
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function rollback(bytes32 moduleName, uint256 index) external onlyOwner {
+		address loanTokenModuleAddress = moduleUpgradeLog[moduleName][index].implementation;
+		moduleName = _registerLoanTokenModule(loanTokenModuleAddress);
+		activeModuleIndex[moduleName] = index;
+	}
+```
+</details>
+
+---    
+
+> ### getTarget
 
 External getter for target addresses.
 
-```js
+```solidity
 function getTarget(bytes4 sig) external view whenNotPaused 
 returns(address)
 ```
-
-**Returns**
-
-The address for a given signature.
 
 **Arguments**
 
@@ -177,17 +259,36 @@ The address for a given signature.
 | ------------- |------------- | -----|
 | sig | bytes4 | The signature. | 
 
-### getListFunctionSignatures
+**Returns**
 
-```js
+The address for a given signature.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getTarget(bytes4 sig) external view whenNotPaused returns (address) {
+		return logicTargets[sig];
+	}
+```
+</details>
+
+---    
+
+> ### getListFunctionSignatures
+
+```solidity
 function getListFunctionSignatures() external pure
 returns(bytes4[], moduleName bytes32)
 ```
 
-**Arguments**
+<details>
+	<summary><strong>Source Code</strong></summary>
 
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
+```javascript
+function getListFunctionSignatures() external pure returns (bytes4[] memory, bytes32 moduleName);
+```
+</details>
 
 ## Contracts
 
@@ -203,6 +304,7 @@ returns(bytes4[], moduleName bytes32)
 * [BProPriceFeed](BProPriceFeed.md)
 * [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
+* [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
@@ -324,7 +426,7 @@ returns(bytes4[], moduleName bytes32)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
 * [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
-* [PriceFeedsConstants](PriceFeedsConstants.md)
+* [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
 * [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)
