@@ -31,7 +31,7 @@ contract ISovryn is
 {
 	/// Triggered whenever interest is paid to lender.
 	event PayInterestTransfer(address indexed interestToken, address indexed lender, uint256 effectiveInterest);
-	
+
 	////// Protocol //////
 
 	function replaceContract(address target) external;
@@ -419,4 +419,6 @@ contract ISovryn is
 	function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external;
 
 	function getTradingRebateRewardsBasisPoint() external view returns (uint256);
+
+	function getDedicatedSOVRebate() external view returns (uint256);
 }

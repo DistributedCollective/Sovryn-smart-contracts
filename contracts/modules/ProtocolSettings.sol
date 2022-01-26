@@ -90,6 +90,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		_setTarget(this.getSwapExternalFeePercent.selector, target);
 		_setTarget(this.setTradingRebateRewardsBasisPoint.selector, target);
 		_setTarget(this.getTradingRebateRewardsBasisPoint.selector, target);
+		_setTarget(this.getDedicatedSOVRebate.selector, target);
 		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "ProtocolSettings");
 	}
 
@@ -403,6 +404,8 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 			} else {
 				if (tokens[i] == address(wrbtcToken)) {
 					amountConvertedToWRBTC = tempAmount;
+
+					IERC20(address(wrbtcToken)).safeTransfer(receiver, amountConvertedToWRBTC);
 				} else {
 					IERC20(tokens[i]).approve(protocolAddress, tempAmount);
 
@@ -428,8 +431,6 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 				}
 
 				totalWRBTCWithdrawn = totalWRBTCWithdrawn.add(amountConvertedToWRBTC);
-
-				IERC20(address(wrbtcToken)).safeTransfer(receiver, amountConvertedToWRBTC);
 			}
 
 			emit WithdrawFees(msg.sender, tokens[i], receiver, lendingBalance, tradingBalance, borrowingBalance, amountConvertedToWRBTC);
@@ -738,5 +739,19 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 	 */
 	function getTradingRebateRewardsBasisPoint() external view returns (uint256) {
 		return tradingRebateRewardsBasisPoint;
+	}
+
+	/**
+	 * @dev Get how much SOV that is dedicated to pay the trading rebate rewards.
+	 * @notice If SOV balance is less than the fees held, it will return 0.
+	 *
+	 * @return total dedicated SOV.
+	 */
+	function getDedicatedSOVRebate() public view returns (uint256) {
+		uint256 sovProtocolBalance = IERC20(sovTokenAddress).balanceOf(address(this));
+		uint256 sovFees =
+			lendingFeeTokensHeld[sovTokenAddress].add(tradingFeeTokensHeld[sovTokenAddress]).add(borrowingFeeTokensHeld[sovTokenAddress]);
+
+		return sovProtocolBalance >= sovFees ? sovProtocolBalance.sub(sovFees) : 0;
 	}
 }

@@ -1,4 +1,13 @@
-const { constants, expectEvent } = require("@openzeppelin/test-helpers");
+/** Speed optimized on branch hardhatTestRefactor, 2021-10-01
+ * No bottlenecks found. Tests don't need redeployments.
+ *
+ * Total time elapsed: 4.9s
+ *
+ * 2021-10-07: Added 2 tests to achieve a 100% of coverture.
+ */
+
+const { constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
 const { getSUSD, getRBTC, getWRBTC, getBZRX, getSovryn, getPriceFeeds } = require("../Utils/initializer.js");
 
@@ -8,18 +17,21 @@ const ProtocolSettings = artifacts.require("ProtocolSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
 const SwapsExternal = artifacts.require("SwapsExternal");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
+const LoanClosingsLiquidation = artifacts.require("LoanClosingsLiquidation");
+const LoanClosingsRollover = artifacts.require("LoanClosingsRollover");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 
 contract("Protocol", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, priceFeeds;
 	const ONE_ADDRESS = "0x0000000000000000000000000000000000000001";
+
 	before(async () => {
+		// Deploying sovrynProtocol w/ generic function from initializer.js
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 	});
@@ -43,6 +55,15 @@ contract("Protocol", (accounts) => {
 			expect((await sovryn.getTarget(sig2)) == constants.ZERO_ADDRESS).to.be.true;
 		});
 
+		it("should revert for count mismatch while setting targets", async () => {
+			const sig1 = "testFunction1(address,uint256,bytes)";
+			const sig2 = "testFunction2(address[],uint256[],bytes[])";
+			const sigs = [sig1, sig2];
+			let targets = [ONE_ADDRESS, ONE_ADDRESS, ONE_ADDRESS];
+
+			await expectRevert(sovryn.setTargets(sigs, targets), "count mismatch");
+		});
+
 		it("Test replaceContract", async () => {
 			const sig = "setupLoanParams((bytes32,bool,address,address,address,uint256,uint256,uint256)[])";
 			const loanSettings = await LoanSettings.new();
@@ -63,6 +84,10 @@ contract("Protocol", (accounts) => {
 	});
 
 	describe("Events - replaceContract", () => {
+		it("should fail replaceContract w/ bad address", async () => {
+			await expectRevert(sovryn.replaceContract(sovryn.address), "setup failed");
+		});
+
 		it("Test replaceContract - Affiliates", async () => {
 			const selector = "getUserNotFirstTradeFlag(address)";
 			let oldAffiliatesAddr = await sovryn.getTarget(selector);
@@ -75,15 +100,27 @@ contract("Protocol", (accounts) => {
 			});
 		});
 
-		it("Test replaceContract - LoanClosingsBase", async () => {
+		it("Test replaceContract - LoanClosingsLiquidation", async () => {
 			const selector = "liquidate(bytes32,address,uint256)";
-			let oldLoanClosingsBaseAddr = await sovryn.getTarget(selector);
-			let newLoanClosingsBaseAddr = await LoanClosingsBase.new();
-			let tx = await sovryn.replaceContract(newLoanClosingsBaseAddr.address);
+			let oldLoanClosingsLiquidationAddr = await sovryn.getTarget(selector);
+			let newLoanClosingsLiquidationAddr = await LoanClosingsLiquidation.new();
+			let tx = await sovryn.replaceContract(newLoanClosingsLiquidationAddr.address);
 			expectEvent(tx, "ProtocolModuleContractReplaced", {
-				prevModuleContractAddress: oldLoanClosingsBaseAddr,
-				newModuleContractAddress: newLoanClosingsBaseAddr.address,
-				module: ethers.utils.formatBytes32String("LoanClosingsBase"),
+				prevModuleContractAddress: oldLoanClosingsLiquidationAddr,
+				newModuleContractAddress: newLoanClosingsLiquidationAddr.address,
+				module: ethers.utils.formatBytes32String("LoanClosingsLiquidation"),
+			});
+		});
+
+		it("Test replaceContract - LoanClosingsRollover", async () => {
+			const selector = "rollover(bytes32,bytes)";
+			let oldLoanClosingsRolloverAddr = await sovryn.getTarget(selector);
+			let newLoanClosingsRolloverAddr = await LoanClosingsRollover.new();
+			let tx = await sovryn.replaceContract(newLoanClosingsRolloverAddr.address);
+			expectEvent(tx, "ProtocolModuleContractReplaced", {
+				prevModuleContractAddress: oldLoanClosingsRolloverAddr,
+				newModuleContractAddress: newLoanClosingsRolloverAddr.address,
+				module: ethers.utils.formatBytes32String("LoanClosingsRollover"),
 			});
 		});
 

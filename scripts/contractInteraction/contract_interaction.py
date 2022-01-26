@@ -25,15 +25,6 @@ from scripts.contractInteraction.prices import *
 def main():
     
     #load the contracts and acct depending on the network
-    #conf.loadConfig()
+    conf.loadConfig()
 
-    #withdrawRBTCFromWatcher(40e18, conf.contracts['FastBTC'])
-    #withdrawTokensFromWatcher(conf.contracts['XUSD'], 100e18, conf.contracts['multisig'])
-    
-    #sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], 400000e18)
-    #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 25e18)
-
-    #checkTx(560)
-    #confirmWithMS(564)
-
-    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 100000e18)
+    #call the function you want here

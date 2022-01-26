@@ -1,6 +1,22 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-30
+ * Bottleneck found at beforeEach hook, redeploying tokens,
+ *  protocol, ... on every test.
+ *
+ * Total time elapsed: 6.2s
+ * After optimization: 5.0s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ */
+
 const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
 const BN = require("bn.js");
 const { expect } = require("chai");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+
 const PriceFeedsMoC = artifacts.require("PriceFeedsMoC");
 const PriceFeeds = artifacts.require("PriceFeeds");
 const PriceFeedsMoCMockup = artifacts.require("PriceFeedsMoCMockup");
@@ -12,15 +28,21 @@ const { getSUSD, getRBTC, getWRBTC, getBZRX, getSovryn, getPriceFeeds } = requir
 contract("OracleIntegration", (accounts) => {
 	let sovryn, SUSD, WRBTC, RBTC, BZRX, priceFeeds, swapsImpl;
 
-	beforeEach(async () => {
+	async function deploymentAndInitFixture(_wallets, _provider) {
+		// Deploying sovrynProtocol w/ generic function from initializer.js
 		SUSD = await getSUSD();
 		RBTC = await getRBTC();
 		WRBTC = await getWRBTC();
 		BZRX = await getBZRX();
-		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, sovryn, BZRX);
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
 		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 		swapsImpl = await SwapsImplSovrynSwap.new();
+		await sovryn.setSwapsImplContract(swapsImpl.address);
+	}
+
+	beforeEach(async () => {
+		await loadFixture(deploymentAndInitFixture);
 	});
 
 	const set_oracle = async (price_feed_rsk_mockup, oracle_address = sovryn.address) => {
@@ -31,10 +53,6 @@ contract("OracleIntegration", (accounts) => {
 
 		await sovryn.setPriceFeedContract(
 			price_feeds.address // priceFeeds
-		);
-
-		await sovryn.setSwapsImplContract(
-			swapsImpl.address // swapsImpl
 		);
 
 		return [price_feeds, price_feeds_moc];

@@ -6,29 +6,12 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./AdvancedToken.sol";
-import "./interfaces/ProtocolSettingsLike.sol";
+import "../../AdvancedToken.sol";
+import "../../interfaces/ProtocolSettingsLike.sol";
+import "../../LoanTokenLogicStorage.sol";
 
-contract LoanTokenSettingsLowerAdmin is AdvancedToken {
+contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
 	using SafeMath for uint256;
-
-	/* Storage */
-
-	/// @dev It is important to maintain the variables order so the delegate
-	/// calls can access sovrynContractAddress
-
-	/// ------------- MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
-	address public sovrynContractAddress;
-	address public wrbtcTokenAddress;
-	address public target_;
-	address public admin;
-	/// ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------
-
-	/// @dev Add new variables here on the bottom.
-	address public earlyAccessToken; //not used anymore, but staying for upgradability
-	address public pauser;
-	/** The address of the liquidity mining contract */
-	address public liquidityMiningAddress;
 
 	/// @dev TODO: Check for restrictions in this contract.
 	modifier onlyAdmin() {
@@ -39,8 +22,34 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 	/* Events */
 
 	event SetTransactionLimits(address[] addresses, uint256[] limits);
+	event ToggledFunctionPaused(string functionId, bool prevFlag, bool newFlag);
 
 	/* Functions */
+
+	/**
+	 * @notice This function is MANDATORY, which will be called by LoanTokenLogicBeacon and be registered.
+	 * Every new public function, the sginature needs to be included in this function.
+	 *
+	 * @dev This function will return the list of function signature in this contract that are available for public call
+	 * Then this function will be called by LoanTokenLogicBeacon, and the function signatures will be registred in LoanTokenLogicBeacon.
+	 * @dev To save the gas we can just directly return the list of function signature from this pure function.
+	 * The other workaround (fancy way) is we can create a storage for the list of the function signature, and then we can store each function signature to that storage from the constructor.
+	 * Then, in this function we just need to return that storage variable.
+	 *
+	 * @return The list of function signatures (bytes4[])
+	 */
+	function getListFunctionSignatures() external pure returns (bytes4[] memory functionSignatures, bytes32 moduleName) {
+		bytes4[] memory res = new bytes4[](8);
+		res[0] = this.setAdmin.selector;
+		res[1] = this.setPauser.selector;
+		res[2] = this.setupLoanParams.selector;
+		res[3] = this.disableLoanParams.selector;
+		res[4] = this.setDemandCurve.selector;
+		res[5] = this.toggleFunctionPause.selector;
+		res[6] = this.setTransactionLimits.selector;
+		res[7] = this.changeLoanTokenNameAndSymbol.selector;
+		return (res, stringToBytes32("LoanTokenSettingsLowerAdmin"));
+	}
 
 	/**
 	 * @notice Set admin account.
@@ -176,6 +185,7 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 		string memory funcId, /// example: "mint(uint256,uint256)"
 		bool isPaused
 	) public {
+		bool paused;
 		require(msg.sender == pauser, "onlyPauser");
 		/// keccak256("iToken_FunctionPause")
 		bytes32 slot =
@@ -186,7 +196,35 @@ contract LoanTokenSettingsLowerAdmin is AdvancedToken {
 				)
 			);
 		assembly {
+			paused := sload(slot)
+		}
+		require(paused != isPaused, "isPaused is already set to that value");
+		assembly {
 			sstore(slot, isPaused)
 		}
+		emit ToggledFunctionPaused(funcId, !isPaused, isPaused);
+	}
+
+	/**
+	 * Set the transaction limit per token address.
+	 * @param addresses The token addresses.
+	 * @param limits The limit denominated in the currency of the token address.
+	 * */
+	function setTransactionLimits(address[] memory addresses, uint256[] memory limits) public onlyAdmin {
+		require(addresses.length == limits.length, "mismatched array lengths");
+		for (uint256 i = 0; i < addresses.length; i++) {
+			transactionLimit[addresses[i]] = limits[i];
+		}
+		emit SetTransactionLimits(addresses, limits);
+	}
+
+	/**
+	 *	@notice Update the loan token parameters.
+	 *	@param _name The new name of the loan token.
+	 *	@param _symbol The new symbol of the loan token.
+	 * */
+	function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol) public onlyAdmin {
+		name = _name;
+		symbol = _symbol;
 	}
 }
