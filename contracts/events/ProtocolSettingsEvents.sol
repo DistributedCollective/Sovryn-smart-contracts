@@ -90,4 +90,6 @@ contract ProtocolSettingsEvents is ModulesCommonEvents {
 	event TogglePaused(address indexed sender, bool indexed oldFlag, bool indexed newFlag);
 
 	event SetTradingRebateRewardsBasisPoint(address indexed sender, uint256 oldBasisPoint, uint256 newBasisPoint);
+
+	event SetRolloverFlexFeePercent(address indexed sender, uint256 oldRolloverFlexFeePercent, uint256 newRolloverFlexFeePercent);
 }
