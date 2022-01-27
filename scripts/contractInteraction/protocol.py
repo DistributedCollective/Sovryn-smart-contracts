@@ -6,8 +6,6 @@ import copy
 from scripts.utils import *
 import scripts.contractInteraction.config as conf
 
-conf.loadConfig()
-
 
 def isProtocolPaused():
     sovryn = Contract.from_abi(
