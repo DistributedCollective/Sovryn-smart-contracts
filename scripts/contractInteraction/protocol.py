@@ -638,3 +638,10 @@ def withdrawWRBTCFromFeeSharingProxy(receiver, amount):
 
     print(data)
     sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)
+
+def setRolloverFlexFeePercent(rolloverFlexFeePercentage):
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.setRolloverFlexFeePercent.encode_input(rolloverFlexFeePercentage)
+    sendWithMultisig(conf.contracts['multisig'],
+                     sovryn.address, data, conf.acct)
