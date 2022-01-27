@@ -456,4 +456,6 @@ contract ISovryn is
 	function getTradingRebateRewardsBasisPoint() external view returns (uint256);
 
 	function getDedicatedSOVRebate() external view returns (uint256);
+
+	function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent) external;
 }
