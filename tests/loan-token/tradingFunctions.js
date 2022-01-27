@@ -95,6 +95,7 @@ const margin_trading_sending_loan_tokens = async (accounts, sovryn, loanToken, u
 
 	const loan_id = args["loanId"];
 	const loan = await sovryn.getLoan(loan_id);
+	const loanV2 = await sovryn.getLoanV2(loan_id);
 	const end_timestamp = loan["endTimestamp"];
 	const num = await blockNumber();
 	let currentBlock = await web3.eth.getBlock(num);
@@ -119,8 +120,25 @@ const margin_trading_sending_loan_tokens = async (accounts, sovryn, loanToken, u
 	expect(new BN(block_timestamp).add(max_loan_duration).sub(new BN(end_timestamp)).lt(new BN(1))).to.be.true;
 	expect(loan["maxLiquidatable"]).to.eq("0");
 	expect(loan["maxSeizable"]).to.eq("0");
-	expect(loan["borrower"]).to.eq(accounts[0]);
-	expect(loan["creationTimestamp"]).to.eq(block_timestamp.toString());
+
+	// validate loanV2 data struct
+	expect(loanV2["loanToken"]).to.equal(underlyingToken.address);
+	expect(loanV2["collateralToken"]).to.equal(collateralToken.address);
+	expect(loanV2["principal"]).to.equal(principal.toString());
+	expect(loanV2["collateral"]).to.equal(collateral.toString());
+
+	expect(loanV2["interestOwedPerDay"]).to.equal(owed_per_day.toString());
+	expect(loanV2["interestDepositRemaining"]).to.eq(interest_deposit_remaining.toString());
+	expect(loanV2["startRate"]).to.eq(collateral_to_loan_swap_rate.toString());
+	expect(loanV2["startMargin"]).to.eq(start_margin.toString());
+	expect(loanV2["maintenanceMargin"]).to.eq(new BN(15).mul(oneEth).toString());
+	expect(loanV2["currentMargin"]).to.eq(current_margin.toString());
+	expect(loanV2["maxLoanTerm"]).to.eq(max_loan_duration.toString()); // In the SC is hardcoded to 28 days
+
+	expect(loanV2["maxLiquidatable"]).to.eq("0");
+	expect(loanV2["maxSeizable"]).to.eq("0");
+	expect(loanV2["borrower"]).to.eq(accounts[0]);
+	expect(loanV2["creationTimestamp"]).to.eq(block_timestamp.toString());
 };
 
 const margin_trading_sov_reward_payment = async (accounts, loanToken, underlyingToken, collateralToken, SOV, FeesEvents, sovryn) => {
