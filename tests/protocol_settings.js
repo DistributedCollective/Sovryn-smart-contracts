@@ -155,4 +155,17 @@ contract("Affliates", (accounts) => {
 
 		expect((await protocol.getDedicatedSOVRebate()).toString()).to.equal(new BN(1).toString());
 	});
+
+	// Should successfully set the RolloverFlex Fee Percent
+	it("Test set RolloverFlexFeePercent", async () => {
+		const newRolloverFlexFeePercent = web3.utils.toWei("1", "ether");
+		const invalidRolloverFlexFeePercent = web3.utils.toWei("2", "ether");
+		// Should revert if set with non owner
+		await expectRevert(sovryn.setRolloverFlexFeePercent(newRolloverFlexFeePercent, { from: accounts[1] }), "unauthorized");
+		// Should revert if value too high
+		await expectRevert(sovryn.setRolloverFlexFeePercent(invalidRolloverFlexFeePercent), "value too high");
+
+		await sovryn.setRolloverFlexFeePercent(newRolloverFlexFeePercent);
+		expect((await sovryn.rolloverFlexFeePercent()).toString()).to.equal(newRolloverFlexFeePercent);
+	});
 });

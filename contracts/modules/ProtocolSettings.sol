@@ -91,6 +91,7 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		_setTarget(this.setTradingRebateRewardsBasisPoint.selector, target);
 		_setTarget(this.getTradingRebateRewardsBasisPoint.selector, target);
 		_setTarget(this.getDedicatedSOVRebate.selector, target);
+		_setTarget(this.setRolloverFlexFeePercent.selector, target);
 		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "ProtocolSettings");
 	}
 
@@ -753,5 +754,18 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 			lendingFeeTokensHeld[sovTokenAddress].add(tradingFeeTokensHeld[sovTokenAddress]).add(borrowingFeeTokensHeld[sovTokenAddress]);
 
 		return sovProtocolBalance >= sovFees ? sovProtocolBalance.sub(sovFees) : 0;
+	}
+
+	/**
+	 * @notice Set rolloverFlexFeePercent (max value is 1%)
+	 *
+	 * @param newRolloverFlexFeePercent uint256 value of new rollover flex fee percentage (0.1 ether = 0.1%)
+	 */
+	function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent) external onlyOwner whenNotPaused {
+		require(newRolloverFlexFeePercent <= 1e18, "value too high");
+		uint256 oldRolloverFlexFeePercent = rolloverFlexFeePercent;
+		rolloverFlexFeePercent = newRolloverFlexFeePercent;
+
+		emit SetRolloverFlexFeePercent(msg.sender, oldRolloverFlexFeePercent, newRolloverFlexFeePercent);
 	}
 }

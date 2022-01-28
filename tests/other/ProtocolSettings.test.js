@@ -736,6 +736,41 @@ contract("ProtocolSettings", (accounts) => {
 
 			await expectRevert(sovryn.setSovrynSwapContractRegistryAddress(ZERO_ADDRESS), "registryAddress not a contract");
 		});
+
+		it("shouldn't work: set RolloverFlexFeePercent w/ value too high", async () => {
+			const new_percent = new BN(2).mul(oneEth);
+			const old_percent = await sovryn.rolloverFlexFeePercent();
+
+			const dest = sovryn.address;
+			const val = 0;
+			const data = await sovryn.contract.methods.setRolloverFlexFeePercent(new_percent).encodeABI();
+
+			const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+			expectEvent(receipt, "ExecutionFailure");
+		});
+
+		// Should successfully change rolloverFlexFeePercent
+		it("should work: set RolloverFlexFeePercent percent", async () => {
+			const new_percent = new BN(1).mul(oneEth);
+			const old_percent = await sovryn.rolloverFlexFeePercent();
+
+			const dest = sovryn.address;
+			const val = 0;
+			const data = await sovryn.contract.methods.setRolloverFlexFeePercent(new_percent).encodeABI();
+
+			const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+			let txId = tx.logs.filter((item) => item.event == "Submission")[0].args["transactionId"];
+			const { receipt } = await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+			const decode = decodeLogs(receipt.rawLogs, ProtocolSettings, "SetRolloverFlexFeePercent");
+			const event = decode[0].args;
+			expect(event["sender"] == multisig.address).to.be.true;
+			expect(event["oldRolloverFlexFeePercent"] == old_percent.toString()).to.be.true;
+			expect(event["newRolloverFlexFeePercent"] == new_percent.toString()).to.be.true;
+			expect((await sovryn.rolloverFlexFeePercent()).eq(new_percent)).to.be.true;
+		});
 	});
 
 	describe("LoanClosings test coverage", () => {

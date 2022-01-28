@@ -3,7 +3,6 @@ from brownie.network.contract import InterfaceContainer
 import json
 from os import environ
 
-
 def loadConfig():
     global contracts, acct
     thisNetwork = network.show_active()
@@ -65,3 +64,6 @@ def loadConfig():
     else:
         raise Exception("Network not supported.")
     contracts = json.load(configFile)
+
+
+loadConfig()
