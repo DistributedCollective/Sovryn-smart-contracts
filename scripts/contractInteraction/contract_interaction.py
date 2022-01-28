@@ -27,7 +27,7 @@ def main():
     # brownie run scripts/contractInteraction/contract_interaction.py --network rsk-mainnet
     
     #load the contracts and acct depending on the network
-    conf.loadConfig()
+    # conf.loadConfig()
 
     # removeOwnerFromMultisig("0x13Be55487D37FE3C66EE7305e1e9C1ac85de75Ae")
 
@@ -37,9 +37,10 @@ def main():
 
     # addWhitelistConverterFeeSharingProxy("0x84953dAF0E7a9fFb8B4fDf7F948185e1cF85852e")
     
-    # confirmMultipleTxsWithMS(723, 724)
-    # checkTx(808)
-    confirmWithMS(725)
+    confirmMultipleTxsWithMS(775, 776)
+    # checkTx(775)
+    # checkTx(776)
+    # confirmWithMS(771)
     # transactionInfo(725)
 
     #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iXUSD'])
