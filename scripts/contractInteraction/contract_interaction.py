@@ -37,11 +37,19 @@ def main():
 
     # addWhitelistConverterFeeSharingProxy("0x84953dAF0E7a9fFb8B4fDf7F948185e1cF85852e")
     
-    confirmMultipleTxsWithMS(775, 776)
-    # checkTx(775)
+    # confirmMultipleTxsWithMS(780, 783)
+    # checkTx(780)
     # checkTx(776)
-    # confirmWithMS(771)
-    # transactionInfo(725)
+    #confirmWithMS(780)
+
+    '''
+    minInitialMargin = Wei("90 ether")
+    setupMarginLoanParamsMinInitialMargin(conf.contracts['SOV'], conf.contracts['iXUSD'], minInitialMargin)
+    setupMarginLoanParamsMinInitialMargin(conf.contracts['SOV'], conf.contracts['iRBTC'], minInitialMargin)
+    setupMarginLoanParamsMinInitialMargin(conf.contracts['SOV'], conf.contracts['iBPro'], minInitialMargin)
+    setupMarginLoanParamsMinInitialMargin(conf.contracts['SOV'], conf.contracts['iDOC'], minInitialMargin)
+    '''
+    withdrawRBTCFromIWRBTC('0x9BD6759F6D9eA15D33076e55d4CBba7cf85877A7', 1.6e18)
 
     #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iXUSD'])
     #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iRBTC'])

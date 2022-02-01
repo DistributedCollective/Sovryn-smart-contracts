@@ -142,7 +142,23 @@ def testTradeOpeningAndClosingWithCollateral(protocolAddress, loanTokenAddress, 
         tx = sovryn.closeWithSwap(loanId, conf.acct, collateral, True, b'')
         tx.info()
 
+def withdrawRBTCFromIWRBTC(toAddress, amount):
+    loanTokenAddress = conf.contracts['iRBTC']
+    withdrawRBTCFromLoanTokenTo(loanTokenAddress, toAddress, amount)
 
+def withdrawRBTCFromLoanTokenTo(loanTokenAddress, toAddress, amount):
+    #read contract abis
+    tokenContract = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    data = tokenContract.withdrawRBTCTo.encode_input(toAddress, amount)
+    print("=============================================================")
+    print("Sending RBTC")
+    print("from LoanToken:          ", tokenContract.address)
+    print("RBTC LoanToken balance:  ", tokenContract.balance())
+    print("address to:              ", toAddress)
+    print("amount to withdraw:      ", amount)
+    print("=============================================================")
+   # sendWithMultisig(conf.contracts['multisig'], tokenContract, data, conf.acct)
+    
 
 def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, amount):
     #read contract abis
@@ -251,6 +267,28 @@ def setupMarginLoanParams(collateralTokenAddress, loanTokenAddress):
         "0x0000000000000000000000000000000000000000", ## loanToken -> will be overwritten
         collateralTokenAddress, ## collateralToken.
         Wei("20 ether"), ## minInitialMargin
+        Wei("15 ether"), ## maintenanceMargin
+        0 ## fixedLoanTerm -> will be overwritten
+    ]
+    params.append(setup)
+    data = loanToken.setupLoanParams.encode_input(params, False)
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+'''
+sets a collateral token address as collateral for margin trading
+'''
+def setupMarginLoanParamsMinInitialMargin(collateralTokenAddress, loanTokenAddress, minInitialMargin):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
+    #loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, #abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    
+    params = []
+    setup = [
+        b"0x0", ## id
+        False, ## active
+        conf.contracts['multisig'], ## owner
+        "0x0000000000000000000000000000000000000000", ## loanToken -> will be overwritten
+        collateralTokenAddress, ## collateralToken.
+        minInitialMargin,
         Wei("15 ether"), ## maintenanceMargin
         0 ## fixedLoanTerm -> will be overwritten
     ]
@@ -768,4 +806,19 @@ def pauseAllLoanTokens():
 def unpauseAllLoanTokens():
     unpauseLoanTokenLogicBeaconLM()
     unpauseLoanTokenLogicBeaconWRBTC()
+
+def get_estimated_margin_details(collateralToken, loanSize, collateralTokenSent, leverageAmount):
+            
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    result = loanToken.getEstimatedMarginDetails.call(leverageAmount, 0, collateralTokenSent, collateralToken.address)
+    
+    assert(result[0] == loanSize * collateralTokenSent * leverageAmount / 1e36)
+    assert(result[2] == 0)
+
+    print("principal", result[0])
+    print("collateral", result[1])
+    print("interestRate", result[2])
+    print("loanSize",loanSize)
+    print("collateralTokenSent",collateralTokenSent)
+    print("leverageAmount", leverageAmount)
 
