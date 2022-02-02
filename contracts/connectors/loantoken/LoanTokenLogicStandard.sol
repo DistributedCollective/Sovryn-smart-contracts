@@ -827,12 +827,12 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 				return
 					ProtocolLike(sovrynContractAddress)
 						.getRequiredCollateral(
-						loanTokenAddress,
-						collateralTokenAddress,
-						newBorrowAmount,
-						ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(loanParamsId), /// initialMargin
-						true /// isTorqueLoan
-					)
+							loanTokenAddress,
+							collateralTokenAddress,
+							newBorrowAmount,
+							ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(loanParamsId), /// initialMargin
+							true /// isTorqueLoan
+						)
 						.add(10); /// Some dust to compensate for rounding errors.
 			}
 		}
@@ -879,7 +879,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	}
 
 	/**
-	 * @notice Check if the position is valid
+	 * @notice Check if entry price lies above a minimum
 	 *
 	 * @param loanTokenSent The amount of deposit.
 	 * @param collateralTokenAddress The token address of collateral.
@@ -891,10 +891,13 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		uint256 minEntryPrice
 	) public view {
 		/// @dev See how many collateralTokens we would get if exchanging this amount of loan tokens to collateral tokens.
-		uint256 collateralTokensReceived =
-			ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(loanTokenAddress, collateralTokenAddress, loanTokenSent);
+		uint256 collateralTokensReceived = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
+			loanTokenAddress,
+			collateralTokenAddress,
+			loanTokenSent
+		);
 		uint256 collateralTokenAmount = (collateralTokensReceived.mul(WEI_PRECISION)).div(loanTokenSent);
-		require(collateralTokenAmount >= minEntryPrice, "invalid position size");
+		require(collateralTokenAmount >= minEntryPrice, "entry price above the minimum");
 	}
 
 	/* Internal functions */
@@ -1021,16 +1024,19 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
 		if (collateralTokenSent != 0) {
 			/// @dev Get the oracle rate from collateral -> loan
-			(uint256 collateralToLoanRate, uint256 collateralToLoanPrecision) =
-				FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(collateralTokenAddress, loanTokenAddress);
+			(uint256 collateralToLoanRate, uint256 collateralToLoanPrecision) = FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds())
+				.queryRate(collateralTokenAddress, loanTokenAddress);
 			require((collateralToLoanRate != 0) && (collateralToLoanPrecision != 0), "invalid rate collateral token");
 
 			/// @dev Compute the loan token amount with the oracle rate.
 			uint256 loanTokenAmount = collateralTokenSent.mul(collateralToLoanRate).div(collateralToLoanPrecision);
 
 			/// @dev See how many collateralTokens we would get if exchanging this amount of loan tokens to collateral tokens.
-			uint256 collateralTokenAmount =
-				ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(loanTokenAddress, collateralTokenAddress, loanTokenAmount);
+			uint256 collateralTokenAmount = ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
+				loanTokenAddress,
+				collateralTokenAddress,
+				loanTokenAmount
+			);
 
 			/// @dev Probably not the same due to the price difference.
 			if (collateralTokenAmount != collateralTokenSent) {
@@ -1049,8 +1055,10 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 * @return amount in RBTC
 	 * */
 	function _getAmountInRbtc(address asset, uint256 amount) internal returns (uint256) {
-		(uint256 rbtcRate, uint256 rbtcPrecision) =
-			FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(asset, wrbtcTokenAddress);
+		(uint256 rbtcRate, uint256 rbtcPrecision) = FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(
+			asset,
+			wrbtcTokenAddress
+		);
 		return amount.mul(rbtcRate).div(rbtcPrecision);
 	}
 

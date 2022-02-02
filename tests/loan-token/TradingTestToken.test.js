@@ -645,7 +645,7 @@ contract("LoanTokenTrading", (accounts) => {
 			expect(args["positionSize"]).to.equal(sovryn_collateral_token_balance_diff);
 		});
 
-		it("checkPriceDivergence should success if min position size is less than or equal to collateral", async () => {
+		it("checkPriceDivergence should succeed if entry price is less than or equal to a minimum", async () => {
 			await set_demand_curve(loanToken);
 			await SUSD.transfer(loanToken.address, wei("500", "ether"));
 
@@ -709,10 +709,10 @@ contract("LoanTokenTrading", (accounts) => {
 			);
 		});
 
-		it("checkPriceDivergence should revert if min position size is greater than collateral", async () => {
+		it("checkPriceDivergence should revert if entry price lies above a minimum", async () => {
 			await set_demand_curve(loanToken);
 
-			await expectRevert(loanToken.checkPriceDivergence(wei("2", "ether"), RBTC.address, wei("1", "ether")), "invalid position size");
+			await expectRevert(loanToken.checkPriceDivergence(wei("2", "ether"), RBTC.address, wei("1", "ether")), "entry price above the minimum");
 		});
 	});
 });
