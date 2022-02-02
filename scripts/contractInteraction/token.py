@@ -30,9 +30,8 @@ def mintNFT(contractAddress, receiver):
     nft = Contract.from_abi("NFT", address=contractAddress, abi=abi, owner=conf.acct)
     nft.mint(receiver)
 
-
 def transferTokensFromWallet(tokenContract, receiver, amount):
-    token = Contract.from_abi("Token", address= tokenContract, abi = TestToken.abi, owner=conf.acct)
+    token = Contract.from_abi("Token", address=tokenContract, abi = TestToken.abi, owner=conf.acct)
     token.transfer(receiver, amount)
 
 def sendToWatcher(tokenAddress, amount):

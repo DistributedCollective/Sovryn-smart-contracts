@@ -19,6 +19,13 @@ def sendTokensFromMultisig(token, receiver, amount):
     print(data)
     sendWithMultisig(conf.contracts['multisig'], token, data, conf.acct)
 
+def sendMYNTFromMultisigToFeeSharingProxy(amount):
+    tokenContract = Contract.from_abi("Token", address=conf.contracts['MYNT'], abi=ERC20.abi, owner=conf.acct)
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    data = tokenContract.transfer.encode_input(conf.contracts['FeeSharingProxy'], amount)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['MYNT'], data, conf.acct)
+
 def executeOnMultisig(transactionId):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
 
@@ -40,7 +47,10 @@ def replaceOwnerOnMultisig(multisig, oldOwner, newOwner):
 
 def confirmWithMS(txId):
     multisig = Contract.from_abi("MultiSig", address = conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
-    multisig.confirmTransaction(txId)
+    gas_strategy = GasNowStrategy("fast")
+    gas_strategy.get_gas_price()
+    #print(gas_strategy)
+    multisig.confirmTransaction(txId, {'gas_price': 79000010, 'gas_limit': 1000000 })
 
 def confirmMultipleTxsWithMS(txIdFrom, txIdTo):
     for i in range(txIdFrom, txIdTo + 1): # the right boundary processed to the value-1, so adding 1
