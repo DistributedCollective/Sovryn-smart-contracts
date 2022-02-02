@@ -5,6 +5,7 @@ import time;
 import copy
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
+from scripts.contractInteraction.token import increaseAllowanceFromMS
 
 def sendFromMultisig(receiver, amount):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
@@ -18,13 +19,6 @@ def sendTokensFromMultisig(token, receiver, amount):
     data = tokenContract.transfer.encode_input(receiver, amount)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], token, data, conf.acct)
-
-def sendMYNTFromMultisigToFeeSharingProxy(amount):
-    tokenContract = Contract.from_abi("Token", address=conf.contracts['MYNT'], abi=ERC20.abi, owner=conf.acct)
-    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
-    data = tokenContract.transfer.encode_input(conf.contracts['FeeSharingProxy'], amount)
-    print(data)
-    sendWithMultisig(conf.contracts['multisig'], conf.contracts['MYNT'], data, conf.acct)
 
 def executeOnMultisig(transactionId):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
