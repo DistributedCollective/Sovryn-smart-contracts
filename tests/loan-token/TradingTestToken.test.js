@@ -712,7 +712,10 @@ contract("LoanTokenTrading", (accounts) => {
 		it("checkPriceDivergence should revert if entry price lies above a minimum", async () => {
 			await set_demand_curve(loanToken);
 
-			await expectRevert(loanToken.checkPriceDivergence(wei("2", "ether"), RBTC.address, wei("1", "ether")), "entry price above the minimum");
+			await expectRevert(
+				loanToken.checkPriceDivergence(wei("2", "ether"), RBTC.address, wei("1", "ether")),
+				"entry price above the minimum"
+			);
 		});
 	});
 });
