@@ -23,15 +23,8 @@ from scripts.contractInteraction.misc import *
 from scripts.contractInteraction.prices import *
 
 def main():
-
-    #call the function you want here
-
-
-    '''
-    from CLI run 
-    > testnet 
-    brownie run scripts/contractInteraction/contract_interaction.py --network testnet
+    # run from CLI:
+    # brownie run scripts/contractInteraction/contract_interaction.py --network testnet
+    # brownie run scripts/contractInteraction/contract_interaction.py --network rsk-mainnet
     
-    > mainnet
-    brownie run scripts/contractInteraction/contract_interaction.py --network rsk-mainnet
-    '''
+    # call the function you want here
