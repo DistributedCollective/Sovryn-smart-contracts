@@ -41,10 +41,8 @@ def replaceOwnerOnMultisig(multisig, oldOwner, newOwner):
 
 def confirmWithMS(txId):
     multisig = Contract.from_abi("MultiSig", address = conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
-    gas_strategy = GasNowStrategy("fast")
-    gas_strategy.get_gas_price()
-    #print(gas_strategy)
-    multisig.confirmTransaction(txId, {'gas_price': 79000010, 'gas_limit': 1000000 })
+    multisig.confirmTransaction(txId)
+
 
 def confirmMultipleTxsWithMS(txIdFrom, txIdTo):
     for i in range(txIdFrom, txIdTo + 1): # the right boundary processed to the value-1, so adding 1
