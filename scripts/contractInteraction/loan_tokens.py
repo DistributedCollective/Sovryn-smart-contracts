@@ -142,6 +142,22 @@ def testTradeOpeningAndClosingWithCollateral(protocolAddress, loanTokenAddress, 
         tx = sovryn.closeWithSwap(loanId, conf.acct, collateral, True, b'')
         tx.info()
 
+def withdrawRBTCFromIWRBTC(toAddress, amount):
+    loanTokenAddress = conf.contracts['iRBTC']
+    withdrawRBTCFromLoanTokenTo(loanTokenAddress, toAddress, amount)
+
+def withdrawRBTCFromLoanTokenTo(loanTokenAddress, toAddress, amount):
+    #read contract abis
+    tokenContract = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    data = tokenContract.withdrawRBTCTo.encode_input(toAddress, amount)
+    print("=============================================================")
+    print("Sending RBTC")
+    print("from LoanToken:          ", tokenContract.address)
+    print("RBTC LoanToken balance:  ", tokenContract.balance())
+    print("address to:              ", toAddress)
+    print("amount to withdraw:      ", amount)
+    print("=============================================================")
+   # sendWithMultisig(conf.contracts['multisig'], tokenContract, data, conf.acct)
 
 def withdrawRBTCFromLoanTokenTo(loanTokenAddress, toAddress, amount):
     #read contract abis
