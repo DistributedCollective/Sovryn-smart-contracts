@@ -645,3 +645,10 @@ def setRolloverFlexFeePercent(rolloverFlexFeePercentage):
     data = sovryn.setRolloverFlexFeePercent.encode_input(rolloverFlexFeePercentage)
     sendWithMultisig(conf.contracts['multisig'],
                      sovryn.address, data, conf.acct)
+
+def setRolloverBaseReward(baseReward):
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.setRolloverBaseReward.encode_input(baseReward)
+    sendWithMultisig(conf.contracts['multisig'],
+                     sovryn.address, data, conf.acct)
