@@ -13,121 +13,11 @@ def main():
     
     #load the contracts and acct depending on the network
     loadConfig()
-    #call the function you want here
-    #setupMarginLoanParams(contracts['WRBTC'], contracts['iDOC'])
-    #readPrice(contracts['WRBTC'], contracts['USDT'])
-    # testTradeOpeningAndClosingWithCollateral(contracts['sovrynProtocol'], contracts['iUSDT'], contracts['USDT'], contracts['WRBTC'], 1e14, 2e18, True, 1e14)
-    #setupMarginLoanParams(contracts['DoC'],  contracts['iRBTC'])
-    #testTradeOpeningAndClosing(contracts['sovrynProtocol'], contracts['iRBTC'], contracts['WRBTC'], contracts['DoC'], 1e14, 5e18, True, 1e15)
-    #buyWRBTC()
-    #swapTokens(0.027e18,400e18, contracts['swapNetwork'], contracts['WRBTC'], contracts['USDT'])
-    #swapTokens(300e18, 0.02e18, contracts['swapNetwork'], contracts['DoC'], contracts['WRBTC'])
-    #liquidate(contracts['sovrynProtocol'], '0xc9b8227bcf953e45f16d5d9a8a74cad92f403b90d0daf00900bb02e4a35c542c')
-    #readLiquidity()
-    #getBalance(contracts['WRBTC'], '0xE5646fEAf7f728C12EcB34D14b4396Ab94174827')
-    #getBalance(contracts['WRBTC'], '0x7BE508451Cd748Ba55dcBE75c8067f9420909b49')
-    #readLoan('0xb2bbd9135a7cfbc5adda48e90430923108ad6358418b7ac27c9edcf2d44911e5')
-    #replaceLoanClosings()
-
-    #updateAllLogicContracts()
-    #readOwner(contracts['iDOC'])
-    #readTransactionLimits(contracts['iDOC'],  contracts['DoC'],  contracts['WRBTC'])
-    #setTransactionLimits(contracts['iDOC'], [contracts['DoC'],  contracts['WRBTC']], [0, 0])
-    #setTransactionLimits(contracts['iRBTC'], [contracts['DoC'],  contracts['WRBTC']], [0, 0])
-    #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [0])
-    #lendToPool(contracts['iDOC'],contracts['DoC'], 1000e18)
-    #setTransactionLimits(contracts['iDOC'], [contracts['DoC']], [21e18])
-    #setTransactionLimitsOld(contracts['iDOC'], contracts['iDOCSettings'], contracts['iDOCLogic'], [contracts['DoC']], [21e18])
-    #readTransactionLimits(contracts['iDOC'],  contracts['DoC'], contracts['WRBTC'])
-
-    '''
-    setupLoanParamsForCollaterals(contracts['iBPro'], [contracts['SOV']])
-    setupLoanParamsForCollaterals(contracts['iDOC'], [contracts['SOV']])
-    setupLoanParamsForCollaterals(contracts['iUSDT'], [contracts['SOV']])
-    setupLoanParamsForCollaterals(contracts['iRBTC'], [contracts['SOV']])
-    '''
-
-    #setSupportedToken(contracts['SOV'])
-
-    #createProposalSIP008()
-
-    # setLendingFee(10**19)
-    # setTradingFee(15 * 10**16)
-    # setBorrowingFee(9 * 10**16)
-
-    # transferSOVtoOriginInvestorsClaim()
-
-    # createVesting()
-    # transferSOVtoVestingRegistry()
-    # stakeTokens2()
-
-    # triggerEmergencyStop(contracts['iUSDT'], False)
-    # triggerEmergencyStop(contracts['iBPro'], False)
-    # triggerEmergencyStop(contracts['iDOC'], False)
-    # triggerEmergencyStop(contracts['iRBTC'], False)
-
-    # createProposalSIP0014()
-
-    # addInvestorToBlacklist()
-    # stake80KTokens()
-
-    # createProposalSIP0015()
-
-     # transferSOVtoTokenSender()
 
     # transferSOVtoScriptAccount()
     # transferSOVtoTokenSender()
+    transferXUSDtoTokenSender()
 
-    checkTxn()
-
-    #readBalanceFromAMM()
-    #checkRates()
-
-    # testV1Converter(contracts["ConverterSOV"], contracts["WRBTC"], contracts["SOV"])
-    # transferSOVtoTokenSender()
-    # addLiquidityV1(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
-    # addLiquidityV1UsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**16, 67 * 10**18])
-
-    # sendSOVFromVestingRegistry()
-
-    # addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [1 * 10**15, 67 * 10**17])
-    # addLiquidityV1FromMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], [contracts['WRBTC'], contracts['SOV']], [30 * 10**18, 200000 * 10**18])
-
-    # removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 5 * 10**17, [contracts['WRBTC'], contracts['SOV']])
-    # 2986.175 × 99% ~ 2957
-    # removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 2957 * 10**18, [contracts['WRBTC'], contracts['SOV']])
-
-    '''''
-    startRate = 1e8/15000 *1e10
-    print(startRate)
-    sovBalance = 100000 * 1e18
-    rbtcBalance = sovBalance / startRate 
-    print(rbtcBalance)
-    product = sovBalance * rbtcBalance
-    amount = 1000 *1e18
-    getTargetAmountFromAMM(sovBalance, 50000, rbtcBalance, 50000, amount)
-
-
-    newTargetBalance = product / (sovBalance + amount )
-    targetAmount = rbtcBalance-newTargetBalance
-    #targetAmount = rbtcBalance * (1-sovBalance/(sovBalance + amount))
-    rate = amount / targetAmount
-    impact =  100*(rate - startRate)/startRate
-    print(targetAmount)
-    print(rate)
-    print(impact)
-    '''
-
-    # readSwapRate(contracts['SOV'], contracts['WRBTC'])
-    # readOwner(contracts['WRBTCtoSOVConverter'])
-    #acceptOwnershipWithMultisig(contracts['WRBTCtoSOVConverter'])
-    # readConversionFee(contracts['WRBTCtoSOVConverter'])
-    # readConversionFee(contracts['ConverterUSDT'])
-
-    #((impact/100 * 15000e10) + 15000e10) * rbtcBalance - ((impact/100 * 15000e10) + 15000e10) * (sovBalance * rbtcBalance / (sovBalance + amount ))  = amount
-
-    # createProposalSIP0015()
-    # transferSOVtoScriptAccount()
 
 def loadConfig():
     global contracts, acct
@@ -1108,6 +998,21 @@ def createProposalSIP0015():
     #     [signature],
     #     [data],
     #     description)
+
+def transferXUSDtoTokenSender():
+    # 53767 SOV
+    amount = 53767 * 10**18
+
+    tokenSenderAddress = contracts['GenericTokenSender']
+    token = Contract.from_abi("TestToken", address=contracts['XUSD'], abi=TestToken.abi, owner=acct)
+    data = token.transfer.encode_input(tokenSenderAddress, amount)
+    print(data)
+
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    tx = multisig.submitTransaction(token.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
 
 def transferSOVtoTokenSender():
     # 88744.94 SOV
