@@ -23,17 +23,10 @@ from scripts.contractInteraction.misc import *
 from scripts.contractInteraction.prices import *
 
 def main():
-
-    #call the function you want here
-
-    #withdrawRBTCFromWatcher(40e18, conf.contracts['FastBTC'])
-    #withdrawTokensFromWatcher(conf.contracts['XUSD'], 100e18, conf.contracts['multisig'])
+    '''
+    run from CLI:
+    brownie run scripts/contractInteraction/contract_interaction.py --network testnet
+    brownie run scripts/contractInteraction/contract_interaction.py --network rsk-mainnet
+    '''
     
-    #sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], 400000e18)
-    #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 25e18)
-
-    #checkTx(560)
-    #confirmWithMS(564)
-
-    redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 1000000e18)
-    sendTokensFromMultisig(conf.contracts['USDT'], '0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 1000000e18)
+    # call the function you want here

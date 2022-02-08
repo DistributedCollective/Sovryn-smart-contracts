@@ -142,7 +142,36 @@ def testTradeOpeningAndClosingWithCollateral(protocolAddress, loanTokenAddress, 
         tx = sovryn.closeWithSwap(loanId, conf.acct, collateral, True, b'')
         tx.info()
 
+def withdrawRBTCFromIWRBTC(toAddress, amount):
+    loanTokenAddress = conf.contracts['iRBTC']
+    withdrawRBTCFromLoanTokenTo(loanTokenAddress, toAddress, amount)
 
+def withdrawRBTCFromLoanTokenTo(loanTokenAddress, toAddress, amount):
+    #read contract abis
+    tokenContract = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    data = tokenContract.withdrawRBTCTo.encode_input(toAddress, amount)
+    print("=============================================================")
+    print("Sending RBTC")
+    print("from LoanToken:          ", tokenContract.address)
+    print("RBTC LoanToken balance:  ", tokenContract.balance())
+    print("address to:              ", toAddress)
+    print("amount to withdraw:      ", amount)
+    print("=============================================================")
+   # sendWithMultisig(conf.contracts['multisig'], tokenContract, data, conf.acct)
+
+def withdrawRBTCFromLoanTokenTo(loanTokenAddress, toAddress, amount):
+    #read contract abis
+    tokenContract = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    data = tokenContract.withdrawRBTCTo.encode_input(toAddress, amount)
+    print("=============================================================")
+    print("Sending RBTC")
+    print("from LoanToken:          ", tokenContract.address)
+    print("RBTC LoanToken balance:  ", tokenContract.balance())
+    print("address to:              ", toAddress)
+    print("amount to withdraw:      ", amount)
+    print("=============================================================")
+    sendWithMultisig(conf.contracts['multisig'], tokenContract, data, conf.acct)
+    
 
 def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, amount):
     #read contract abis
@@ -251,6 +280,25 @@ def setupMarginLoanParams(collateralTokenAddress, loanTokenAddress):
         "0x0000000000000000000000000000000000000000", ## loanToken -> will be overwritten
         collateralTokenAddress, ## collateralToken.
         Wei("20 ether"), ## minInitialMargin
+        Wei("15 ether"), ## maintenanceMargin
+        0 ## fixedLoanTerm -> will be overwritten
+    ]
+    params.append(setup)
+    data = loanToken.setupLoanParams.encode_input(params, False)
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+def setupMarginLoanParamsMinInitialMargin(collateralTokenAddress, loanTokenAddress, minInitialMargin):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
+    #loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, #abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    
+    params = []
+    setup = [
+        b"0x0", ## id
+        False, ## active
+        conf.contracts['multisig'], ## owner
+        "0x0000000000000000000000000000000000000000", ## loanToken -> will be overwritten
+        collateralTokenAddress, ## collateralToken.
+        minInitialMargin,
         Wei("15 ether"), ## maintenanceMargin
         0 ## fixedLoanTerm -> will be overwritten
     ]

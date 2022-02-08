@@ -632,10 +632,21 @@ def readRolloverReward():
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     print(sovryn.rolloverBaseReward())
 
+def withdrawWRBTCFromFeeSharingProxyToProtocol(amount):
+    receiver = conf.contracts['sovrynProtocol']
+    feeSharingProxy = Contract.from_abi("FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
+    wrbtc = Contract.from_abi("WRBTC", address=conf.contracts['WRBTC'], abi=ERC20.abi, owner=conf.acct)
+    print("=============================================================")
+    print('withdrawWRBTCFromFeeSharingProxyToProtocol')
+    print("FeeSharingProxy WRBTC balance:  ", wrbtc.balanceOf(conf.contracts['FeeSharingProxy']))
+    print("receiver:                       ", receiver)
+    print("amount to withdraw:             ", amount)
+    print("=============================================================")
+    withdrawWRBTCFromFeeSharingProxy(receiver, amount)
+
 def withdrawWRBTCFromFeeSharingProxy(receiver, amount):
     feeSharingProxy = Contract.from_abi("FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
     data = feeSharingProxy.withdrawWRBTC.encode_input(receiver, amount)
-
     print(data)
     sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)
 
@@ -643,5 +654,12 @@ def setRolloverFlexFeePercent(rolloverFlexFeePercentage):
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     data = sovryn.setRolloverFlexFeePercent.encode_input(rolloverFlexFeePercentage)
+    sendWithMultisig(conf.contracts['multisig'],
+                     sovryn.address, data, conf.acct)
+
+def setRolloverBaseReward(baseReward):
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.setRolloverBaseReward.encode_input(baseReward)
     sendWithMultisig(conf.contracts['multisig'],
                      sovryn.address, data, conf.acct)
