@@ -25,7 +25,7 @@ from scripts.contractInteraction.prices import *
 def main():
     
     #load the contracts and acct depending on the network
-    conf.loadConfig()
+    # conf.loadConfig()
 
     def stakeTokens(sovAmount, stakeTime, acctAddress, delegateeAddress):
         SOVtoken = Contract.from_abi("SOV", address=conf.contracts['SOV'], abi=SOV.abi, owner=acctAddress)
@@ -50,9 +50,9 @@ def main():
         #tx = staking.extendStakingDuration(1634351308, 1634437708, {"allow_revert": True})
         # tx = staking.withdraw(1000000000000000000000, 1634437708, acctAddress)
 
-    def getRewards(acctAddress):
+    def getRewards(acctAddress, considerMaxDuration, restartTime):
         stakingRewards = Contract.from_abi("StakingRewardsTN", address=conf.contracts['StakingRewardsProxyTN'], abi=StakingRewardsTN.abi, owner=acctAddress)
-        print(stakingRewards.getStakerCurrentReward(True, {'from': acctAddress}))
+        print(stakingRewards.getStakerCurrentReward(considerMaxDuration, restartTime, {'from': acctAddress}))
         print(stakingRewards.staking())
         print(stakingRewards.deploymentBlock())
         print(stakingRewards.maxDuration())
@@ -111,10 +111,14 @@ def main():
     # getImplementation()
     # getDetails("0x511893483DCc1A9A98f153ec8298b63BE010A99f")
 
-    getRewards("0x511893483DCc1A9A98f153ec8298b63BE010A99f")
+    # getRewards("0x9D8A4160AB443FBA261A55F91a2188b4213E2FEc", True, 0)
+    getRewards("0x9D8A4160AB443FBA261A55F91a2188b4213E2FEc", True, 1641292306)
+    getRewards("0x9D8A4160AB443FBA261A55F91a2188b4213E2FEc", False, 0)
+
+    # getRewards("0x511893483DCc1A9A98f153ec8298b63BE010A99f")
 
     #Bundle Deployment
-    #upgradeStaking()
+    # upgradeStaking()
     #deployFeeSharingProxy()
     #deployConversionFeeSharingToWRBTC()
     #updateAddresses()
