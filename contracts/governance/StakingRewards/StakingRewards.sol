@@ -100,7 +100,7 @@ contract StakingRewards is StakingRewardsStorage {
 	 * checkpoint which is added to the mapping `checkpointBlockDetails`.
 	 * @param _time Exact staking checkpoint time
 	 */
-	function setHistoricalBlock(uint256 _time) external onlyOwner {
+	function setHistoricalBlock(uint256 _time) external {
 		_setBlock(_time);
 	}
 
