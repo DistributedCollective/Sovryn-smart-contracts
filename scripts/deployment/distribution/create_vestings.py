@@ -36,8 +36,8 @@ def main():
     balanceBefore = acct.balance()
     totalAmount = 0
 
-    # amounts examples: "8,761.28", 285.71
-    data = parseFile('./scripts/deployment/distribution/vestings19.csv', 10**16)
+    # amounts examples: "6,516.85", 912.92
+    data = parseFile('./scripts/deployment/distribution/vestings20.csv', 10**16)
     totalAmount += data["totalAmount"]
 
     vestingCreationType = 1
@@ -57,12 +57,12 @@ def main():
                 raise Exception("Address already has team vesting contract with different schedule")
         print("=======================================")
         if isTeam:
-            vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration, vestingCreationType)
-            vestingAddress = vestingRegistry.getTeamVesting(tokenOwner, cliff, duration, vestingCreationType)
+            # vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration, vestingCreationType)
+            # vestingAddress = vestingRegistry.getTeamVesting(tokenOwner, cliff, duration, vestingCreationType)
             print("TeamVesting: ", vestingAddress)
         else:
-            vestingRegistry.createVestingAddr(tokenOwner, amount, cliff, duration, vestingCreationType)
-            vestingAddress = vestingRegistry.getVestingAddr(tokenOwner, cliff, duration, vestingCreationType)
+            # vestingRegistry.createVestingAddr(tokenOwner, amount, cliff, duration, vestingCreationType)
+            # vestingAddress = vestingRegistry.getVestingAddr(tokenOwner, cliff, duration, vestingCreationType)
             print("Vesting: ", vestingAddress)
 
         print(tokenOwner)
@@ -71,9 +71,9 @@ def main():
         print(cliff)
         print(duration)
         print((duration - cliff) / FOUR_WEEKS + 1)
-        SOVtoken.approve(vestingAddress, amount)
-        vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=acct)
-        vestingLogic.stakeTokens(amount)
+        # SOVtoken.approve(vestingAddress, amount)
+        # vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=acct)
+        # vestingLogic.stakeTokens(amount)
 
         # stakes = staking.getStakes(vestingAddress)
         # print(stakes)

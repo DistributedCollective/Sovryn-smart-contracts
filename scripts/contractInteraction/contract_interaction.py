@@ -16,7 +16,7 @@ def main():
 
     # transferSOVtoScriptAccount()
     # transferSOVtoTokenSender()
-    transferXUSDtoTokenSender()
+    # transferXUSDtoTokenSender()
 
 
 def loadConfig():
@@ -1015,8 +1015,8 @@ def transferXUSDtoTokenSender():
 
 
 def transferSOVtoTokenSender():
-    # 88744.94 SOV
-    amount = 8874494 * 10**16
+    # 89652.42 SOV
+    amount = 8965242 * 10**16
 
     tokenSenderAddress = contracts['TokenSender']
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
@@ -1029,8 +1029,8 @@ def transferSOVtoTokenSender():
     print(txId)
 
 def transferSOVtoScriptAccount():
-    # 2095.24 SOV
-    amount = 209524 * 10**16
+    # 153199.30 SOV
+    amount = 15319930 * 10**16
 
     # TODO set receiver address
     receiver = "0x27D55f5668eF4438635bdCE0aDCA083507E77752"
