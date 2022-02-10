@@ -46,6 +46,7 @@ def main():
     # print(now)
 
     adoptionLastReleaseTime = adoptionFund.lastReleaseTime()
+    print("adoptionLastReleaseTime:", adoptionLastReleaseTime)
     adoptionReleaseDuration = adoptionFund.getReleaseDuration()[::-1]
     adoptionReleaseTokenAmount = adoptionFund.getReleaseTokenAmount()[::-1]
     adoptionAmount = 0
@@ -55,6 +56,7 @@ def main():
         if (now >= adoptionLastReleaseTime + releaseTime):
             adoptionLastReleaseTime += releaseTime
             adoptionAmount += releaseValue
+            print(str(adoptionLastReleaseTime) + " - " + str(releaseValue / DECIMALS))
     print("adoptionFund:", adoptionAmount / DECIMALS)
 
     developmentLastReleaseTime = developmentFund.lastReleaseTime()
@@ -67,4 +69,5 @@ def main():
         if (now >= developmentLastReleaseTime + releaseTime):
             developmentLastReleaseTime += releaseTime
             developmentAmount += releaseValue
+            print(str(developmentLastReleaseTime) + " - " + str(releaseValue / DECIMALS))
     print("developmentFund:", developmentAmount / DECIMALS)
