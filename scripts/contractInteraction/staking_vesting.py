@@ -147,8 +147,7 @@ def setBlockForStakingRewards():
 def setHistoricalBlockForStakingRewards(blockTime):
     # Get the staking rewards proxy contract instance
     stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
-    data = stakingRewards.setHistoricalBlock.encode_input(blockTime)
-    sendWithMultisig(conf.contracts['multisig'], conf.contracts['StakingRewardsProxy'], data, conf.acct)
+    stakingRewards.setHistoricalBlock(blockTime)
 
 #Upgrade Staking
 # Upgrade Staking

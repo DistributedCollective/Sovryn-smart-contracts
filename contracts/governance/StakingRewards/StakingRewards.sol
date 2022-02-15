@@ -209,11 +209,9 @@ contract StakingRewards is StakingRewardsStorage {
 		if (lastStakingInterval <= lastWithdrawalInterval) return (0, 0);
 		/* Normally the restart time is 0. If this function returns a valid lastWithdrawalInterval
 		and zero amount - that means there were no valid rewards for that period. So the new period must start
-		from the end of the last interval i.e. restartTime */
-		if (restartTime > 0) {
-			// Atleast maxDuration(30 weeks) should have elapsed
+		from the end of the last interval or till the time no rewards are accumulated i.e. restartTime */
+		if (restartTime >= lastWithdrawalInterval) {
 			uint256 latestRestartTime = staking.timestampToLockDate(restartTime);
-			require(latestRestartTime >= lastWithdrawalInterval.add(maxDuration), "invalid restart time");
 			lastWithdrawalInterval = latestRestartTime;
 		}
 
