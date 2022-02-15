@@ -90,6 +90,10 @@ def main():
         #stakingRewards.setMaxDuration(2592000)
         print(stakingRewards.maxDuration())
 
+    def stopProgram():
+        stakingRewards = Contract.from_abi("StakingRewardsTN", address=conf.contracts['StakingRewardsProxyTN'], abi=StakingRewardsTN.abi, owner=conf.acct)
+        stakingRewards.stop()
+
     #call the functions you want here
     # stakeTokens(1000, 2246400, "0x511893483DCc1A9A98f153ec8298b63BE010A99f", "0x511893483DCc1A9A98f153ec8298b63BE010A99f")
     # stakeTokens(1000, 4492800, "0x511893483DCc1A9A98f153ec8298b63BE010A99f", "0x511893483DCc1A9A98f153ec8298b63BE010A99f")
@@ -107,7 +111,22 @@ def main():
     # getRewards("0x9D8A4160AB443FBA261A55F91a2188b4213E2FEc", True, 1641292306)
     # getRewards("0x9D8A4160AB443FBA261A55F91a2188b4213E2FEc", False, 0)
 
-    # getRewards("0x511893483DCc1A9A98f153ec8298b63BE010A99f")
+    # getRewards("0x2bd2201bfe156a71eb0d02837172ffc237218505", True, 1641292306)
+    # getRewards("0x2bd2201bfe156a71eb0d02837172ffc237218505", True, 1642588306)
+    # getRewards("0x2bd2201bfe156a71eb0d02837172ffc237218505", True, 1643884306)
+    # getRewards("0x2bd2201bfe156a71eb0d02837172ffc237218505", False, 0)
+
+    # getRewards("0x511893483DCc1A9A98f153ec8298b63BE010A99f", True, 0)
+    # getRewards("0x511893483DCc1A9A98f153ec8298b63BE010A99f", True, 1641983506)
+    # getRewards("0x511893483DCc1A9A98f153ec8298b63BE010A99f", True, 1643279506)
+    # getRewards("0x511893483DCc1A9A98f153ec8298b63BE010A99f", True, 1644575506)
+    # getRewards("0x511893483DCc1A9A98f153ec8298b63BE010A99f", False, 0)
+
+    # getRewards("0x2bd2201bfe156a71eb0d02837172ffc237218505", True, 0) # 0 - 14 Feb 13:19
+    # getRewards("0x8517ECce55f6D11e4A60eddbB7f4090dd2aC19E7", True, 0) # 10195096153846153846 - 14 Feb 13:19
+    # getRewards("0xC6138EC6c65e3280e720d4E6DA0fD91a061351c4", True, 0) # 0 - 14 Feb 13:19
+
+    # stopProgram()
 
     #Bundle Deployment
     # upgradeStaking()
@@ -122,7 +141,7 @@ def main():
     #startTime: Monday, 20 December 2021 16:01:46  - 1639996306
 
     # Latest Deployment
-    # upgradeStakingRewards()
+    upgradeStakingRewards()
     # setAverageBlockTime(32)
     # setBlockForStakingRewards()
 
@@ -168,5 +187,5 @@ def main():
     # setHistoricalBlockForStakingRewards(1644057106)
     # setHistoricalBlockForStakingRewards(1644143506)
 
-    setBlockForStakingRewards()
+    # setBlockForStakingRewards()
 
