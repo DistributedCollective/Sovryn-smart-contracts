@@ -893,8 +893,8 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		/// @dev See how many collateralTokens we would get if exchanging this amount of loan tokens to collateral tokens.
 		uint256 collateralTokensReceived =
 			ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(loanTokenAddress, collateralTokenAddress, loanTokenSent);
-		uint256 collateralTokenAmount = (collateralTokensReceived.mul(WEI_PRECISION)).div(loanTokenSent);
-		require(collateralTokenAmount >= minEntryPrice, "entry price above the minimum");
+		uint256 collateralTokenPrice = (collateralTokensReceived.mul(WEI_PRECISION)).div(loanTokenSent);
+		require(collateralTokenPrice >= minEntryPrice, "entry price above the minimum");
 	}
 
 	/* Internal functions */
