@@ -55,7 +55,7 @@ def sendMYNTFromMultisigToFeeSharingProxy(amount):
     token = Contract.from_abi("MYNT", address=conf.contracts['MYNT'], abi=ERC20.abi, owner=conf.acct)
     if(token.allowance(multisig.address, feeSharingProxy.address) < amount):
         print('Approving MYNT for FeeSharingProxy: ', amount)
-        tokenApproveFromMS(config.contracts["MYNT"], feeSharingProxy)
+        tokenApproveFromMS(conf.contracts["MYNT"], feeSharingProxy, amount)
     data = feeSharingProxy.transferTokens.encode_input(conf.contracts['MYNT'], amount)
     print('Calling feeSharingProxy.transferTokens(multisig, mynt, amount): ', conf.contracts['multisig'], conf.contracts['MYNT'], amount)
     print(data)
