@@ -86,6 +86,92 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	}
 
 	/**
+	 * @notice Delegate votes from `msg.sender` which are locked until lockDate
+	 * to `delegatee`.
+	 * @param _delegatee The address to delegate votes to.
+	 * */
+	function delegate(address _delegatee) public onlyTokenOwner {
+		require(_delegatee != address(0), "delegatee address invalid");
+		uint256 stakingEndDate = endDate;
+		/// @dev Withdraw for each unlocked position.
+		/// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
+		///		workaround found, but it doesn't work with TWO_WEEKS
+		for (uint256 i = startDate.add(cliff); i <= stakingEndDate; i += FOUR_WEEKS) {
+			staking.delegate(_delegatee, i);
+		}
+		emit VotesDelegated(msg.sender, _delegatee);
+	}
+
+	/**
+	 * @notice Withdraws all tokens from the staking contract and
+	 * forwards them to an address specified by the token owner.
+	 * @param receiver The receiving address.
+	 * @dev Can be called only by owner.
+	 * */
+	function governanceWithdrawTokens(address receiver) public {
+		require(msg.sender == address(staking), "unauthorized");
+		_withdrawTokens(receiver, true);
+	}
+
+	/**
+	 * @notice Withdraws unlocked tokens from the staking contract and
+	 * forwards them to an address specified by the token owner.
+	 * @param receiver The receiving address.
+	 * */
+	function withdrawTokens(address receiver) public onlyOwners {
+		_withdrawTokens(receiver, false);
+	}
+
+	/**
+	 * @notice Collect dividends from fee sharing proxy.
+	 * @param _loanPoolToken The loan pool token address.
+	 * @param _maxCheckpoints Maximum number of checkpoints to be processed.
+	 * @param _receiver The receiver of tokens or msg.sender
+	 * */
+	function collectDividends(
+		address _loanPoolToken,
+		uint32 _maxCheckpoints,
+		address _receiver
+	) public onlyOwners {
+		require(_receiver != address(0), "receiver address invalid");
+
+		/// @dev Invokes the fee sharing proxy.
+		feeSharingProxy.withdraw(_loanPoolToken, _maxCheckpoints, _receiver);
+
+		emit DividendsCollected(msg.sender, _loanPoolToken, _receiver, _maxCheckpoints);
+	}
+
+	/**
+	 * @notice Allows the owners to migrate the positions
+	 * to a new staking contract.
+	 * */
+	function migrateToNewStakingContract() public onlyOwners {
+		staking.migrateToNewStakingContract();
+		staking = Staking(staking.newStakingContract());
+		emit MigratedToNewStakingContract(msg.sender, address(staking));
+	}
+
+	/**
+	 * @notice Extends first year stakes for four year vesting contracts.
+	 * @dev Tokens are vested for 4 years. Since the max staking
+	 * period is 3 years and the tokens are unlocked only after the first year is
+	 * passed, hence, we extend the duration of staking for all unlocked tokens for the first
+	 * year by 3 years.
+	 * */
+	function extendStaking() public {
+		uint256 oneYear = startDate.add(52 weeks);
+		uint256[] memory dates;
+		uint96[] memory stakes;
+		(dates, stakes) = staking.getStakes(address(this));
+
+		for (uint256 i = 0; i < dates.length; i++) {
+			if ((dates[i] < block.timestamp) && (dates[i] <= oneYear) && (stakes[i] > 0)) {
+				staking.extendStakingDuration(dates[i], dates[i].add(156 weeks));
+			}
+		}
+	}
+
+	/**
 	 * @notice Stakes tokens according to the vesting schedule. Low level function.
 	 * @dev Once here the allowance of tokens is taken for granted.
 	 * @param _sender The sender of tokens to stake.
@@ -135,7 +221,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 
 		/// @dev Transfer the tokens to this contract.
 		bool success = SOV.transferFrom(_sender, address(this), relativeAmount);
-		require(success);
+		require(success, "transfer failed");
 
 		/// @dev Allow the staking contract to access them.
 		SOV.approve(address(staking), relativeAmount);
@@ -149,43 +235,6 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 
 		emit TokensStaked(_sender, relativeAmount);
 		return (lastStakingSchedule, remainingStakeAmount);
-	}
-
-	/**
-	 * @notice Delegate votes from `msg.sender` which are locked until lockDate
-	 * to `delegatee`.
-	 * @param _delegatee The address to delegate votes to.
-	 * */
-	function delegate(address _delegatee) public onlyTokenOwner {
-		require(_delegatee != address(0), "delegatee address invalid");
-
-		/// @dev Withdraw for each unlocked position.
-		/// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
-		///		workaround found, but it doesn't work with TWO_WEEKS
-		for (uint256 i = startDate.add(cliff); i <= endDate; i += FOUR_WEEKS) {
-			staking.delegate(_delegatee, i);
-		}
-		emit VotesDelegated(msg.sender, _delegatee);
-	}
-
-	/**
-	 * @notice Withdraws all tokens from the staking contract and
-	 * forwards them to an address specified by the token owner.
-	 * @param receiver The receiving address.
-	 * @dev Can be called only by owner.
-	 * */
-	function governanceWithdrawTokens(address receiver) public {
-		require(msg.sender == address(staking), "unauthorized");
-		_withdrawTokens(receiver, true);
-	}
-
-	/**
-	 * @notice Withdraws unlocked tokens from the staking contract and
-	 * forwards them to an address specified by the token owner.
-	 * @param receiver The receiving address.
-	 * */
-	function withdrawTokens(address receiver) public onlyOwners {
-		_withdrawTokens(receiver, false);
 	}
 
 	/**
@@ -233,54 +282,6 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		}
 
 		emit TokensWithdrawn(msg.sender, receiver);
-	}
-
-	/**
-	 * @notice Extends first year stakes for four year vesting contracts.
-	 * @dev Tokens are vested for 4 years. Since the max staking
-	 * period is 3 years and the tokens are unlocked only after the first year is
-	 * passed, hence, we extend the duration of staking for all unlocked tokens for the first
-	 * year by 3 years.
-	 * */
-	function extendStaking() public {
-		uint256[] memory dates;
-		uint96[] memory stakes;
-		(dates, stakes) = staking.getStakes(address(this));
-
-		for (uint256 i = 0; i < dates.length; i++) {
-			if ((dates[i] < block.timestamp) && (dates[i] <= startDate.add(52 weeks)) && (stakes[i] > 0)) {
-				staking.extendStakingDuration(dates[i], dates[i].add(156 weeks));
-			}
-		}
-	}
-
-	/**
-	 * @notice Collect dividends from fee sharing proxy.
-	 * @param _loanPoolToken The loan pool token address.
-	 * @param _maxCheckpoints Maximum number of checkpoints to be processed.
-	 * @param _receiver The receiver of tokens or msg.sender
-	 * */
-	function collectDividends(
-		address _loanPoolToken,
-		uint32 _maxCheckpoints,
-		address _receiver
-	) public onlyOwners {
-		require(_receiver != address(0), "receiver address invalid");
-
-		/// @dev Invokes the fee sharing proxy.
-		feeSharingProxy.withdraw(_loanPoolToken, _maxCheckpoints, _receiver);
-
-		emit DividendsCollected(msg.sender, _loanPoolToken, _receiver, _maxCheckpoints);
-	}
-
-	/**
-	 * @notice Allows the owners to migrate the positions
-	 * to a new staking contract.
-	 * */
-	function migrateToNewStakingContract() public onlyOwners {
-		staking.migrateToNewStakingContract();
-		staking = Staking(staking.newStakingContract());
-		emit MigratedToNewStakingContract(msg.sender, address(staking));
 	}
 
 	/**
