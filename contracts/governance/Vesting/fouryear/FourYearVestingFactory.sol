@@ -37,9 +37,8 @@ contract FourYearVestingFactory is IFourYearVestingFactory, Ownable {
 		address _feeSharing,
 		address _vestingOwner
 	) external onlyOwner returns (address) {
-		address fourYearVesting = address(
-			new FourYearVesting(fourYearVestingLogic, _SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing)
-		);
+		address fourYearVesting =
+			address(new FourYearVesting(fourYearVestingLogic, _SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing));
 		Ownable(fourYearVesting).transferOwnership(_vestingOwner);
 		return fourYearVesting;
 	}

@@ -921,7 +921,7 @@ contract("FourYearVesting", (accounts) => {
 			await vesting.migrateToNewStakingContract({ from: a1 });
 		});
 	});
-	
+
 	describe("fouryearvesting", async () => {
 		let vesting, dates0, dates3, dates5;
 		it("staking schedule must run for max duration", async () => {
