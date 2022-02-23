@@ -1001,7 +1001,7 @@ contract("FourYearVesting", (accounts) => {
 			);
 			vesting = await VestingLogic.at(vesting.address);
 			let maxDurationOld = await vesting.maxDuration();
-			await vesting.setMaxDuration(60*WEEK);
+			await vesting.setMaxDuration(60 * WEEK);
 			let maxDurationNew = await vesting.maxDuration();
 			expect(maxDurationOld).to.be.bignumber.not.equal(maxDurationNew);
 		});
