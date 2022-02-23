@@ -986,4 +986,24 @@ contract("FourYearVesting", (accounts) => {
 			expect(dates3).to.be.bignumber.equal(data.dates[0]);
 		});
 	});
+
+	describe("setMaxDuration", async () => {
+		it("should set/alter maxDuration", async () => {
+			let toStake = ONE_MILLON;
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				a2,
+				16 * WEEK,
+				26 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+			let maxDurationOld = await vesting.maxDuration();
+			await vesting.setMaxDuration(60*WEEK);
+			let maxDurationNew = await vesting.maxDuration();
+			expect(maxDurationOld).to.be.bignumber.not.equal(maxDurationNew);
+		});
+	});
 });

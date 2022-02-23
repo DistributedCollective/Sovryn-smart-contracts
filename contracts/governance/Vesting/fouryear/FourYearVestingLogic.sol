@@ -45,6 +45,14 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	/* Functions */
 
 	/**
+	 * @notice Sets the max duration.
+	 * @param _duration Max duration for which tokens scheduled shall be staked.
+	 * */
+	function setMaxDuration(uint256 _duration) public onlyOwner {
+		maxDuration = _duration;
+	}
+
+	/**
 	 * @notice Stakes tokens according to the vesting schedule.
 	 * @param _amount The amount of tokens to stake.
 	 * @param _restartStakeSchedule The time from which staking schedule restarts.
