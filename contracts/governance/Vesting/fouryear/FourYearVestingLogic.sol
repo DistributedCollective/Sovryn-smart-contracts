@@ -187,6 +187,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		uint256 _amount,
 		uint256 _restartStakeSchedule
 	) internal returns (uint256 lastSchedule, uint256 remainingAmount) {
+		require((startDate == 0) || (startDate > 0 && remainingStakeAmount > 0), "create new vesting address");
 		uint256 restartDate;
 		uint256 relativeAmount;
 		uint256 periods;
@@ -208,6 +209,8 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 			// Runs for max duration
 			lastStakingSchedule = addedMaxDuration;
 			periods = (lastStakingSchedule.sub(restartDate)).div(cliff);
+			uint256 actualSchedule = restartDate.add(periods.mul(cliff));
+			lastStakingSchedule = actualSchedule <= lastStakingSchedule ? actualSchedule : lastStakingSchedule;
 			relativeAmount = (_amount.mul(periods).mul(cliff)).div(durationLeft);
 			durationLeft = durationLeft.sub(periods.mul(cliff));
 			remainingStakeAmount = _amount.sub(relativeAmount);
@@ -226,7 +229,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		/// @dev Allow the staking contract to access them.
 		SOV.approve(address(staking), relativeAmount);
 
-		staking.stakesBySchedule(relativeAmount, cliffAdded, duration.sub(durationLeft), FOUR_WEEKS, address(this), tokenOwner);
+		staking.stakesBySchedule(relativeAmount, cliffAdded, duration.sub(durationLeft), cliff, address(this), tokenOwner);
 		if (durationLeft == 0) {
 			cliffAdded = 0;
 		} else {
