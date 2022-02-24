@@ -1,9 +1,6 @@
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
-const {
-	increaseTime,
-	lastBlock,
-} = require("../Utils/Ethereum");
+const { increaseTime, lastBlock } = require("../Utils/Ethereum");
 
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
