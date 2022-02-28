@@ -118,7 +118,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	 * forwards them to an address specified by the token owner.
 	 * @param receiver The receiving address.
 	 * */
-	function withdrawTokens(address receiver) public onlyOwners {
+	function withdrawTokens(address receiver) public onlyTokenOwner {
 		_withdrawTokens(receiver, false);
 	}
 
@@ -132,7 +132,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		address _loanPoolToken,
 		uint32 _maxCheckpoints,
 		address _receiver
-	) public onlyOwners {
+	) public onlyTokenOwner {
 		require(_receiver != address(0), "receiver address invalid");
 
 		/// @dev Invokes the fee sharing proxy.

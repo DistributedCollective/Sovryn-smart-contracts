@@ -715,11 +715,11 @@ contract("FourYearVesting", (accounts) => {
 			await expectRevert(vesting.withdrawTokens(root, { from: a1 }), "cannot withdraw in the first year");
 		});
 
-		it("should fail if the caller is neither owner nor token owner", async () => {
+		it("should fail if the caller is not token owner", async () => {
 			await expectRevert(vesting.withdrawTokens(root, { from: a2 }), "unauthorized");
 			await expectRevert(vesting.withdrawTokens(root, { from: a3 }), "unauthorized");
 
-			await expectRevert(vesting.withdrawTokens(root, { from: root }), "cannot withdraw in the first year");
+			await expectRevert(vesting.withdrawTokens(root, { from: root }), "unauthorized");
 			await increaseTime(30 * WEEK);
 			await expectRevert(vesting.withdrawTokens(root, { from: a2 }), "unauthorized");
 		});
@@ -841,7 +841,8 @@ contract("FourYearVesting", (accounts) => {
 			vesting = await VestingLogic.at(vesting.address);
 
 			let maxCheckpoints = new BN(10);
-			let tx = await vesting.collectDividends(a1, maxCheckpoints, a2);
+			await expectRevert(vesting.collectDividends(a1, maxCheckpoints, a2), "unauthorized");
+			let tx = await vesting.collectDividends(a1, maxCheckpoints, a2, { from: a1 });
 
 			let testData = await feeSharingProxy.testData.call();
 			expect(testData.loanPoolToken).to.be.equal(a1);
@@ -849,7 +850,7 @@ contract("FourYearVesting", (accounts) => {
 			expect(testData.receiver).to.be.equal(a2);
 
 			expectEvent(tx, "DividendsCollected", {
-				caller: root,
+				caller: a1,
 				loanPoolToken: a1,
 				receiver: a2,
 				maxCheckpoints: maxCheckpoints,
