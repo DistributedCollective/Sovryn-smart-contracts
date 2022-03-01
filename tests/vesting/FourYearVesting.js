@@ -1013,8 +1013,21 @@ contract("FourYearVesting", (accounts) => {
 	});
 
 	describe("setMaxDuration", async () => {
+		it("should not set/alter maxDuration", async () => {
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				a2,
+				16 * WEEK,
+				26 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+			await expectRevert(vesting.setMaxDuration(60 * WEEK, { from: a2 }), "unauthorized");
+		});
+
 		it("should set/alter maxDuration", async () => {
-			let toStake = ONE_MILLON;
 			vesting = await Vesting.new(
 				vestingLogic.address,
 				token.address,
@@ -1029,6 +1042,124 @@ contract("FourYearVesting", (accounts) => {
 			await vesting.setMaxDuration(60 * WEEK);
 			let maxDurationNew = await vesting.maxDuration();
 			expect(maxDurationOld).to.be.bignumber.not.equal(maxDurationNew);
+		});
+	});
+
+	describe("changeTokenOwner", async () => {
+		it("should not change token owner if token owner didn't sign", async () => {
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				a1,
+				4 * WEEK,
+				39 * 4 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+			await expectRevert(vesting.signTransaction({ from: a3 }), "unauthorized");
+			await expectRevert(vesting.signTransaction(), "unauthorized");
+			await expectRevert(vesting.changeTokenOwner(a2), "must be signed by token owner");
+		});
+
+		it("should not change token owner if txn triggered by vesting owner", async () => {
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				a1,
+				4 * WEEK,
+				39 * 4 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+			await expectRevert(vesting.signTransaction({ from: a3 }), "unauthorized");
+			await vesting.signTransaction({ from: a1 });
+			await expectRevert(vesting.changeTokenOwner(a2, { from: a1 }), "unauthorized");
+		});
+
+		it("should be able to change token owner", async () => {
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				a1,
+				4 * WEEK,
+				39 * 4 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+			await expectRevert(vesting.signTransaction({ from: a3 }), "unauthorized");
+			await vesting.signTransaction({ from: a1 });
+			await vesting.changeTokenOwner(a2);
+			let newTokenOwner = await vesting.tokenOwner();
+			assert.equal(newTokenOwner, a2);
+		});
+	});
+
+	describe("setImplementation", async () => {
+		it("should not change implementation if token owner didn't sign", async () => {
+			let toStake = ONE_MILLON;
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				a1,
+				4 * WEEK,
+				39 * 4 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+			await expectRevert(vesting.signTransaction({ from: a3 }), "unauthorized");
+			await expectRevert(vesting.signTransaction(), "unauthorized");
+			await expectRevert(vesting.setImpl(a2), "must be signed by token owner");
+		});
+
+		it("should not be able to change implementation if not triggered by vesting owner", async () => {
+			let toStake = ONE_MILLON;
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				a1,
+				4 * WEEK,
+				39 * 4 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+			await expectRevert(vesting.signTransaction({ from: a3 }), "unauthorized");
+			await vesting.signTransaction({ from: a1 });
+			await expectRevert(vesting.signTransaction(), "unauthorized");
+			const NewVestingLogic = artifacts.require("MockFourYearVestingLogic");
+			let newVestingLogic = await NewVestingLogic.new();
+			await expectRevert(vesting.setImpl(newVestingLogic.address, { from: a1 }), "Proxy:: access denied");
+		});
+
+		it("should be able to change implementation", async () => {
+			let toStake = ONE_MILLON;
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				a1,
+				4 * WEEK,
+				39 * 4 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+			await expectRevert(vesting.signTransaction({ from: a3 }), "unauthorized");
+			await vesting.signTransaction({ from: a1 });
+			await expectRevert(vesting.signTransaction(), "unauthorized");
+			const NewVestingLogic = artifacts.require("MockFourYearVestingLogic");
+			let newVestingLogic = await NewVestingLogic.new();
+			await vesting.setImpl(newVestingLogic.address);
+			vesting = await NewVestingLogic.at(vesting.address);
+
+			let durationLeft = await vesting.getDurationLeft();			
+			await token.approve(vesting.address, ONE_MILLON);
+			await vesting.stakeTokens(ONE_MILLON, 0);
+			let durationLeftNew = await vesting.getDurationLeft();
+			expect(durationLeft).to.be.bignumber.not.equal(durationLeftNew);
 		});
 	});
 });

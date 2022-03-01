@@ -55,4 +55,7 @@ contract FourYearVestingStorage is Ownable {
 
 	/// @notice Cliffs added
 	uint256 public cliffAdded;
+
+	/// @notice Address(Tokenowner) -> Signed(Tue/False)
+	mapping(address => bool) public signed;
 }

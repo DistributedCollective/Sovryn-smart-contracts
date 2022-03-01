@@ -26,6 +26,7 @@ contract FourYearVestingFactory is IFourYearVestingFactory, Ownable {
 	 * @param _duration The total duration in seconds.
 	 * @param _feeSharing The address of fee sharing contract.
 	 * @param _vestingOwner The address of an owner of vesting contract.
+	 * @dev _vestingOwner should ALWAYS be multisig.
 	 * @return The four year vesting contract address.
 	 * */
 	function deployFourYearVesting(
@@ -37,8 +38,9 @@ contract FourYearVestingFactory is IFourYearVestingFactory, Ownable {
 		address _feeSharing,
 		address _vestingOwner
 	) external onlyOwner returns (address) {
-		address fourYearVesting =
-			address(new FourYearVesting(fourYearVestingLogic, _SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing));
+		address fourYearVesting = address(
+			new FourYearVesting(fourYearVestingLogic, _SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing)
+		);
 		Ownable(fourYearVesting).transferOwnership(_vestingOwner);
 		return fourYearVesting;
 	}

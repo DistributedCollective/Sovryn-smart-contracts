@@ -7,17 +7,18 @@ import "../../Staking/Staking.sol";
 import "../../IFeeSharingProxy.sol";
 import "../../ApprovalReceiver.sol";
 import "./FourYearVestingStorage.sol";
-import "../../../proxy/Proxy.sol";
+import "../../../proxy/UpgradableProxy.sol";
 
 /**
  * @title Four Year Vesting Contract.
  *
  * @notice A four year vesting contract.
  *
- * @dev Vesting contracts shouldn't be upgradable,
- * use Proxy instead of UpgradableProxy.
+ * @dev Vesting contract is upgradable,
+ * Make sure the vesting owner is multisig otherwise it will be
+ * catastrophic.
  * */
-contract FourYearVesting is FourYearVestingStorage, Proxy {
+contract FourYearVesting is FourYearVestingStorage, UpgradableProxy {
 	/**
 	 * @notice Setup the vesting schedule.
 	 * @param _logic The address of logic contract.
@@ -42,7 +43,7 @@ contract FourYearVesting is FourYearVestingStorage, Proxy {
 		require(_duration >= _cliff, "duration must be bigger than or equal to the cliff");
 		require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
 
-		_setImplementation(_logic);
+		setImplementation(_logic);
 		SOV = IERC20(_SOV);
 		staking = Staking(_stakingAddress);
 		require(_duration <= staking.MAX_DURATION(), "duration may not exceed the max duration");
@@ -54,10 +55,25 @@ contract FourYearVesting is FourYearVestingStorage, Proxy {
 	}
 
 	/**
-	 * @dev We need to add this implementation to prevent proxy call FourYearVestingLogic.governanceWithdrawTokens
+	 * @dev We need to add this implementation to prevent proxy call
+	 * FourYearVestingLogic.governanceWithdrawTokens.
 	 * @param receiver The receiver of the token withdrawal.
 	 * */
-	function governanceWithdrawTokens(address receiver) public {
+	function governanceWithdrawTokens(address receiver) public pure {
 		revert("operation not supported");
+	}
+
+	/**
+	 * @notice Set address of the implementation.
+	 * @dev Overriding setImpl function of implementation. The logic can only be
+	 * modified when both token owner and veting owner approve. Since
+	 * setImplementation can only be called by vesting owner, we only need to check
+	 * if the new logic is signed by the token owner.
+	 * @param _implementation Address of the implementation.
+	 * */
+	function setImpl(address _implementation) public {
+		require(signed[tokenOwner], "must be signed by token owner");
+		setImplementation(_implementation);
+		signed[tokenOwner] = false;
 	}
 }

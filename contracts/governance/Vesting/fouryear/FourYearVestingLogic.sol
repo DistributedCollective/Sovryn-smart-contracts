@@ -142,6 +142,41 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	}
 
 	/**
+	 * @notice Sign transactions - only Token Owner.
+	 * @dev The setImpl and changeTokenOwner functions can only be
+	 * executed when both vesting owner and token owner have approved. This
+	 * function ascertains the approval of token owner.
+	 * */
+	function signTransaction() public onlyTokenOwner {
+		require(!signed[msg.sender], "already signed");
+		signed[msg.sender] = true;
+	}
+
+	/**
+	 * @notice Change token owner.
+	 * @dev Changes token owner. Must be
+	 * approved by both token owner and multisig(vesting owner).
+	 * @param _newTokenOwner Address of new token owner.
+	 * */
+	function changeTokenOwner(address _newTokenOwner) public onlyOwner {
+		require(_newTokenOwner != address(0), "invalid token owner address");
+		require(signed[tokenOwner], "must be signed by token owner");
+		tokenOwner = _newTokenOwner;
+		signed[tokenOwner] = false;
+	}
+
+	/**
+	 * @notice Set address of the implementation.
+	 * @dev This function does nothing as it cannot access the setImplementation
+	 * function of the UpgradableProxy. The actual function logic resides in the
+	 * proxy contract.
+	 * @param _implementation Address of the implementation.
+	 * */
+	function setImpl(address _implementation) public {
+		// Look at FourYearVesting.sol
+	}
+
+	/**
 	 * @notice Allows the owners to migrate the positions
 	 * to a new staking contract.
 	 * */
