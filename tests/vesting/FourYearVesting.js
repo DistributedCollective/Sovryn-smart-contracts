@@ -1155,7 +1155,7 @@ contract("FourYearVesting", (accounts) => {
 			await vesting.setImpl(newVestingLogic.address);
 			vesting = await NewVestingLogic.at(vesting.address);
 
-			let durationLeft = await vesting.getDurationLeft();			
+			let durationLeft = await vesting.getDurationLeft();
 			await token.approve(vesting.address, ONE_MILLON);
 			await vesting.stakeTokens(ONE_MILLON, 0);
 			let durationLeftNew = await vesting.getDurationLeft();
