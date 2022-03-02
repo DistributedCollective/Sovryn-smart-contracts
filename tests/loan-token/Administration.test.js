@@ -148,6 +148,7 @@ contract("LoanTokenAdministration", (accounts) => {
 			// pause the given function and make sure the function can't be called anymore
 			let localLoanToken = loanToken;
 			await localLoanToken.setPauser(accounts[0]);
+			expect(await localLoanToken.pauser()).to.equal(accounts[0]);
 			let tx = await localLoanToken.toggleFunctionPause(functionSignature, true);
 			expectEvent(tx, "ToggledFunctionPaused", {
 				functionId: functionSignature,
@@ -162,6 +163,7 @@ contract("LoanTokenAdministration", (accounts) => {
 			assert(localLoanToken.checkPause(functionSignature));
 
 			await localLoanToken.setPauser(accounts[0]);
+			expect(await localLoanToken.pauser()).to.equal(accounts[0]);
 			tx = await localLoanToken.toggleFunctionPause(functionSignature, false);
 			expectEvent(tx, "ToggledFunctionPaused", {
 				functionId: functionSignature,
