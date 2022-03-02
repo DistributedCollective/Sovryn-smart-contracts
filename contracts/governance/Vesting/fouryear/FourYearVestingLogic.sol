@@ -1,10 +1,6 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../../../openzeppelin/Ownable.sol";
-import "../../../interfaces/IERC20.sol";
-import "../../Staking/Staking.sol";
-import "../../IFeeSharingProxy.sol";
 import "./IFourYearVesting.sol";
 import "../../ApprovalReceiver.sol";
 import "./FourYearVestingStorage.sol";
