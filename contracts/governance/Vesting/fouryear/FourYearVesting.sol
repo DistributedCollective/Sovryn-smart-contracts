@@ -39,7 +39,8 @@ contract FourYearVesting is FourYearVestingStorage, Proxy {
 		require(_SOV != address(0), "SOV address invalid");
 		require(_stakingAddress != address(0), "staking address invalid");
 		require(_tokenOwner != address(0), "token owner address invalid");
-		require(_duration >= _cliff, "duration must be bigger than or equal to the cliff");
+		require(_cliff == 4 weeks, "invalid cliff");
+		require(_duration == 156 weeks, "invalid duration");
 		require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
 
 		_setImplementation(_logic);

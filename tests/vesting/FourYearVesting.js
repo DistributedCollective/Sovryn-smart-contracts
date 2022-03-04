@@ -26,8 +26,8 @@ contract("FourYearVesting", (accounts) => {
 	let vestingLogic;
 	let kickoffTS;
 
-	let cliff = "1";
-	let duration = "39";
+	let cliff = 4 * WEEK;
+	let duration = 156 * WEEK;
 
 	before(async () => {
 		[root, a1, a2, a3, ...accounts] = accounts;
@@ -121,18 +121,26 @@ contract("FourYearVesting", (accounts) => {
 					token.address,
 					staking.address,
 					root,
-					cliff,
-					MAX_DURATION.add(new BN(1)),
+					2 * WEEK,
+					duration,
 					feeSharingProxy.address
 				),
-				"duration may not exceed the max duration"
+				"invalid cliff"
 			);
 		});
 
-		it("fails if the vesting duration is shorter than the cliff", async () => {
+		it("fails if the vesting duration is bigger than the max staking duration", async () => {
 			await expectRevert(
-				Vesting.new(vestingLogic.address, token.address, staking.address, root, 100, 99, feeSharingProxy.address),
-				"duration must be bigger than or equal to the cliff"
+				Vesting.new(
+					vestingLogic.address,
+					token.address,
+					staking.address,
+					root,
+					cliff,
+					150 * WEEK,
+					feeSharingProxy.address
+				),
+				"invalid duration"
 			);
 		});
 
@@ -250,19 +258,18 @@ contract("FourYearVesting", (accounts) => {
 	describe("stakeTokens; using Ganache", () => {
 		// Check random scenarios
 		let vesting;
-		it("should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff", async () => {
+		it("should stake 1,000,000 SOV with a duration of 156 weeks and a 4 week cliff", async () => {
 			vesting = await Vesting.new(
 				vestingLogic.address,
 				token.address,
 				staking.address,
 				root,
-				26 * WEEK,
-				104 * WEEK,
+				4 * WEEK,
+				156 * WEEK,
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
 			await token.approve(vesting.address, ONE_MILLON);
-
 			let remainingStakeAmount = ONE_MILLON;
 			let lastStakingSchedule = 0;
 			while (remainingStakeAmount > 0) {
@@ -272,23 +279,26 @@ contract("FourYearVesting", (accounts) => {
 			}
 		});
 
-		it("should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff", async () => {
+		it("should stake 1,000,000 SOV with a duration of 156 weeks and a 4 week cliff", async () => {
 			// let block = await web3.eth.getBlock("latest");
 			let block = await lastBlock(); // ethers.provider.getBlock("latest");
+			let blockNum = parseInt(block.number);
 			let timestamp = parseInt(block.timestamp);
-			let kickoffTS = await staking.kickoffTS();
-			let start = timestamp + 26 * WEEK;
-			let end = timestamp + 104 * WEEK;
 
-			let numIntervals = Math.floor((end - start) / (26 * WEEK)) + 1;
+			let kickoffTS = await staking.kickoffTS();
+
+			let start = timestamp + 4 * WEEK;
+			let end = timestamp + 156 * WEEK;
+
+			let numIntervals = Math.floor((end - start) / (4 * WEEK)) + 1;
 			let stakedPerInterval = ONE_MILLON / numIntervals;
 
 			// positive case
-			for (let i = start; i <= end; i += 26 * WEEK) {
+			for (let i = start; i <= end; i += 4 * WEEK) {
 				let periodFromKickoff = Math.floor((i - kickoffTS.toNumber()) / (2 * WEEK));
 				let startBuf = periodFromKickoff * 2 * WEEK + kickoffTS.toNumber();
-
 				let userStakingCheckpoints = await staking.userStakingCheckpoints(vesting.address, startBuf, 0);
+
 				assert.equal(userStakingCheckpoints.stake.toString(), stakedPerInterval);
 
 				let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(vesting.address, startBuf);
@@ -307,22 +317,21 @@ contract("FourYearVesting", (accounts) => {
 
 			let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(vesting.address, startBuf);
 			assert.equal(numUserStakingCheckpoints.toString(), "0");
-
-			periodFromKickoff = Math.floor((end + 1 - kickoffTS.toNumber()) / (2 * WEEK));
+			periodFromKickoff = Math.floor((end + (3 * WEEK) - kickoffTS.toNumber()) / (2 * WEEK));
 			startBuf = periodFromKickoff * 2 * WEEK + kickoffTS.toNumber();
 			userStakingCheckpoints = await staking.userStakingCheckpoints(vesting.address, startBuf, 0);
 
-			// assert.equal(userStakingCheckpoints.fromBlock.toNumber(), 0);
-			// assert.equal(userStakingCheckpoints.stake.toString(), 0);
+			assert.equal(userStakingCheckpoints.fromBlock.toNumber(), 0);
+			assert.equal(userStakingCheckpoints.stake.toString(), 0);
 
 			numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(vesting.address, startBuf);
-			// assert.equal(numUserStakingCheckpoints.toString(), "0");
+			assert.equal(numUserStakingCheckpoints.toString(), "0");
 		});
 
-		it("should not allow to stake 2 times 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff", async () => {
+		it("should not allow to stake 2 times 1,000,000 SOV with a duration of 156 weeks and a 4 week cliff", async () => {
 			let amount = ONE_MILLON;
-			let cliff = 26 * WEEK;
-			let duration = 104 * WEEK;
+			let cliff = 4 * WEEK;
+			let duration = 156 * WEEK;
 			vesting = await Vesting.new(
 				vestingLogic.address,
 				token.address,
@@ -357,10 +366,10 @@ contract("FourYearVesting", (accounts) => {
 			await expectRevert(vesting.stakeTokens(amount, 0), "create new vesting address");
 		});
 
-		it("should stake 1000 tokens with a duration of 34 weeks and a 26 week cliff (dust on rounding)", async () => {
-			let amount = 1000;
-			let cliff = 26 * WEEK;
-			let duration = 34 * WEEK;
+		it("should stake ONE_MILLON tokens with a duration of 156 weeks and a 4 week cliff (dust on rounding)", async () => {
+			let amount = ONE_MILLON;
+			let cliff = 4 * WEEK;
+			let duration = 156 * WEEK;
 			vesting = await Vesting.new(
 				vestingLogic.address,
 				token.address,
@@ -387,23 +396,16 @@ contract("FourYearVesting", (accounts) => {
 			let start = timestamp + cliff;
 			let end = timestamp + duration;
 
-			let numIntervals = Math.floor((end - start) / (26 * WEEK)) + 1;
+			let numIntervals = Math.floor((end - start) / (4 * WEEK)) + 1;
 			let stakedPerInterval = Math.floor(amount / numIntervals);
 
-			let stakeForFirstInterval = amount - stakedPerInterval * (numIntervals - 1);
-
 			// positive case
-			for (let i = start; i <= end; i += 26 * WEEK) {
+			for (let i = start; i <= end; i += 4 * WEEK) {
 				let periodFromKickoff = Math.floor((i - kickoffTS.toNumber()) / (2 * WEEK));
 				let startBuf = periodFromKickoff * 2 * WEEK + kickoffTS.toNumber();
 				let userStakingCheckpoints = await staking.userStakingCheckpoints(vesting.address, startBuf, 0);
 
-				assert.equal(userStakingCheckpoints.fromBlock.toNumber(), block.number);
-				if (i === start) {
-					assert.equal(userStakingCheckpoints.stake.toString(), stakeForFirstInterval);
-				} else {
-					assert.equal(userStakingCheckpoints.stake.toString(), stakedPerInterval);
-				}
+				assert.equal(userStakingCheckpoints.stake.toString(), stakedPerInterval);
 
 				let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(vesting.address, startBuf);
 				assert.equal(numUserStakingCheckpoints.toString(), "1");
@@ -487,10 +489,10 @@ contract("FourYearVesting", (accounts) => {
 			assert.equal(remainingStakeAmount, 0);
 		});
 
-		it("should stake 1000 tokens with a duration of 34 weeks and a 26 week cliff (dust on rounding)", async () => {
-			let amount = 1000;
-			let cliff = 26 * WEEK;
-			let duration = 34 * WEEK;
+		it("should stake 39000 tokens with a duration of 156 weeks and a 4 week cliff (dust on rounding)", async () => {
+			let amount = 39000;
+			let cliff = 4 * WEEK;
+			let duration = 156 * WEEK;
 			vesting = await Vesting.new(
 				vestingLogic.address,
 				token.address,
@@ -506,6 +508,19 @@ contract("FourYearVesting", (accounts) => {
 			let sender = root;
 			let data = contract.methods.stakeTokensWithApproval(sender, amount, 0).encodeABI();
 			await token.approveAndCall(vesting.address, amount, data, { from: sender });
+			let lastStakingSchedule = await vesting.lastStakingSchedule();
+			let remainingStakeAmount = await vesting.remainingStakeAmount();
+
+			data = contract.methods.stakeTokensWithApproval(sender, remainingStakeAmount, lastStakingSchedule).encodeABI();
+			await token.approveAndCall(vesting.address, remainingStakeAmount, data, { from: sender });
+			lastStakingSchedule = await vesting.lastStakingSchedule();
+			remainingStakeAmount = await vesting.remainingStakeAmount();
+
+			data = contract.methods.stakeTokensWithApproval(sender, remainingStakeAmount, lastStakingSchedule).encodeABI();
+			await token.approveAndCall(vesting.address, remainingStakeAmount, data, { from: sender });
+			lastStakingSchedule = await vesting.lastStakingSchedule();
+			remainingStakeAmount = await vesting.remainingStakeAmount();
+			assert.equal(remainingStakeAmount, 0);
 
 			let block = await web3.eth.getBlock("latest");
 			let timestamp = block.timestamp;
@@ -513,23 +528,16 @@ contract("FourYearVesting", (accounts) => {
 			let start = timestamp + cliff;
 			let end = timestamp + duration;
 
-			let numIntervals = Math.floor((end - start) / (26 * WEEK)) + 1;
+			let numIntervals = Math.floor((end - start) / (4 * WEEK)) + 1;
 			let stakedPerInterval = Math.floor(amount / numIntervals);
 
-			let stakeForFirstInterval = amount - stakedPerInterval * (numIntervals - 1);
-
 			// positive case
-			for (let i = start; i <= end; i += 26 * WEEK) {
+			for (let i = start; i <= end; i += 4 * WEEK) {
 				let periodFromKickoff = Math.floor((i - kickoffTS.toNumber()) / (2 * WEEK));
 				let startBuf = periodFromKickoff * 2 * WEEK + kickoffTS.toNumber();
 				let userStakingCheckpoints = await staking.userStakingCheckpoints(vesting.address, startBuf, 0);
 
-				assert.equal(userStakingCheckpoints.fromBlock.toNumber(), block.number);
-				if (i === start) {
-					assert.equal(userStakingCheckpoints.stake.toString(), stakeForFirstInterval);
-				} else {
-					assert.equal(userStakingCheckpoints.stake.toString(), stakedPerInterval);
-				}
+				assert.equal(userStakingCheckpoints.stake.toString(), stakedPerInterval);
 
 				let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(vesting.address, startBuf);
 				assert.equal(numUserStakingCheckpoints.toString(), "1");
@@ -540,7 +548,7 @@ contract("FourYearVesting", (accounts) => {
 	describe("withdrawTokens", () => {
 		let vesting;
 
-		it("should not withdraw unlocked tokens (cliff = 3 weeks)", async () => {
+		it("should not withdraw unlocked tokens", async () => {
 			// Save current amount
 			let previousAmount = await token.balanceOf(root);
 			let toStake = ONE_ETHER;
@@ -553,8 +561,8 @@ contract("FourYearVesting", (accounts) => {
 				token.address,
 				staking.address,
 				root,
-				3 * WEEK,
-				3 * WEEK,
+				4 * WEEK,
+				156 * WEEK,
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
@@ -573,7 +581,7 @@ contract("FourYearVesting", (accounts) => {
 			// verify amount
 			let amount = await token.balanceOf(root);
 
-			assert.equal(previousAmount.sub(new BN(toStake)).toString(), amountAfterStake.toString());
+			// assert.equal(previousAmount.sub(new BN(toStake)).toString(), amountAfterStake.toString());
 			assert.equal(amountAfterStake.toString(), amount.toString());
 		});
 
@@ -636,8 +644,8 @@ contract("FourYearVesting", (accounts) => {
 				token.address,
 				staking.address,
 				root,
-				16 * WEEK,
-				34 * WEEK,
+				4 * WEEK,
+				156 * WEEK,
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
@@ -679,7 +687,7 @@ contract("FourYearVesting", (accounts) => {
 				staking.address,
 				root,
 				4 * WEEK,
-				20 * WEEK,
+				156 * WEEK,
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
@@ -690,6 +698,7 @@ contract("FourYearVesting", (accounts) => {
 
 			// time travel
 			await increaseTime(20 * WEEK);
+			await token.approve(vesting.address, toStake);
 			await expectRevert(vesting.stakeTokens(toStake, 0), "create new vesting address");
 
 			// withdraw
@@ -698,7 +707,6 @@ contract("FourYearVesting", (accounts) => {
 			// verify amount
 			let amount = await token.balanceOf(root);
 
-			assert.equal(previousAmount.sub(new BN(toStake)).toString(), amountAfterStake.toString());
 			expect(previousAmount).to.be.bignumber.greaterThan(amount);
 			assert.equal(amountAfterStake.toString(), amount.toString());
 		});
@@ -715,7 +723,7 @@ contract("FourYearVesting", (accounts) => {
 				staking.address,
 				root,
 				4 * WEEK,
-				20 * WEEK,
+				156 * WEEK,
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
@@ -733,7 +741,6 @@ contract("FourYearVesting", (accounts) => {
 			// verify amount
 			let amount = await token.balanceOf(root);
 
-			assert.equal(previousAmount.sub(new BN(toStake)).toString(), amountAfterStake.toString());
 			expect(previousAmount).to.be.bignumber.greaterThan(amount);
 			assert.equal(amountAfterStake.toString(), amount.toString());
 		});
@@ -756,8 +763,8 @@ contract("FourYearVesting", (accounts) => {
 				token.address,
 				staking.address,
 				a1,
-				26 * WEEK,
-				104 * WEEK,
+				4 * WEEK,
+				156 * WEEK,
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
@@ -958,8 +965,8 @@ contract("FourYearVesting", (accounts) => {
 				token.address,
 				staking.address,
 				a1,
-				26 * WEEK,
-				104 * WEEK,
+				4 * WEEK,
+				156 * WEEK,
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
@@ -991,8 +998,8 @@ contract("FourYearVesting", (accounts) => {
 				token.address,
 				newStaking.address,
 				a1,
-				26 * WEEK,
-				104 * WEEK,
+				4 * WEEK,
+				156 * WEEK,
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
@@ -1009,8 +1016,8 @@ contract("FourYearVesting", (accounts) => {
 				token.address,
 				newStaking.address,
 				a1,
-				26 * WEEK,
-				104 * WEEK,
+				4 * WEEK,
+				156 * WEEK,
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
@@ -1110,8 +1117,8 @@ contract("FourYearVesting", (accounts) => {
 				token.address,
 				staking.address,
 				a2,
-				16 * WEEK,
-				26 * WEEK,
+				4 * WEEK,
+				156 * WEEK,
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
