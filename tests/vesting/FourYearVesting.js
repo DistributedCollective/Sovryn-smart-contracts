@@ -161,7 +161,7 @@ contract("FourYearVesting", (accounts) => {
 
 			await token.approve(vesting.address, toStake);
 			let remainingStakeAmount = ONE_MILLON;
-            let lastStakingSchedule = 0;
+			let lastStakingSchedule = 0;
 			while (remainingStakeAmount > 0) {
 				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
 				lastStakingSchedule = await vesting.lastStakingSchedule();
@@ -208,7 +208,7 @@ contract("FourYearVesting", (accounts) => {
 
 			await token.approve(vesting.address, toStake);
 			let remainingStakeAmount = ONE_MILLON;
-            let lastStakingSchedule = 0;
+			let lastStakingSchedule = 0;
 			while (remainingStakeAmount > 0) {
 				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
 				lastStakingSchedule = await vesting.lastStakingSchedule();
@@ -264,7 +264,7 @@ contract("FourYearVesting", (accounts) => {
 			await token.approve(vesting.address, ONE_MILLON);
 
 			let remainingStakeAmount = ONE_MILLON;
-            let lastStakingSchedule = 0;
+			let lastStakingSchedule = 0;
 			while (remainingStakeAmount > 0) {
 				let tx = await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
 				lastStakingSchedule = await vesting.lastStakingSchedule();
@@ -336,7 +336,7 @@ contract("FourYearVesting", (accounts) => {
 
 			await token.approve(vesting.address, amount);
 			let remainingStakeAmount = amount;
-            let lastStakingSchedule = 0;
+			let lastStakingSchedule = 0;
 			while (remainingStakeAmount > 0) {
 				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
 				lastStakingSchedule = await vesting.lastStakingSchedule();
@@ -374,7 +374,7 @@ contract("FourYearVesting", (accounts) => {
 
 			await token.approve(vesting.address, amount);
 			let remainingStakeAmount = amount;
-            let lastStakingSchedule = 0;
+			let lastStakingSchedule = 0;
 			while (remainingStakeAmount > 0) {
 				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
 				lastStakingSchedule = await vesting.lastStakingSchedule();
@@ -596,7 +596,7 @@ contract("FourYearVesting", (accounts) => {
 
 			await token.approve(vesting.address, toStake);
 			let remainingStakeAmount = ONE_MILLON;
-            let lastStakingSchedule = 0;
+			let lastStakingSchedule = 0;
 			while (remainingStakeAmount > 0) {
 				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
 				lastStakingSchedule = await vesting.lastStakingSchedule();
@@ -644,7 +644,7 @@ contract("FourYearVesting", (accounts) => {
 
 			await token.approve(vesting.address, toStake);
 			let remainingStakeAmount = ONE_MILLON;
-            let lastStakingSchedule = 0;
+			let lastStakingSchedule = 0;
 			while (remainingStakeAmount > 0) {
 				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
 				lastStakingSchedule = await vesting.lastStakingSchedule();
@@ -776,7 +776,7 @@ contract("FourYearVesting", (accounts) => {
 			await increaseTime(25 * WEEK);
 
 			// withdraw
-			tx = await vesting.withdrawTokens(a2, {from: a1});
+			tx = await vesting.withdrawTokens(a2, { from: a1 });
 
 			// verify amount
 			let amount = await token.balanceOf(root);
@@ -1041,7 +1041,7 @@ contract("FourYearVesting", (accounts) => {
 			await token.approve(vesting.address, ONE_MILLON);
 
 			let remainingStakeAmount = ONE_MILLON;
-            let lastStakingSchedule = 0;
+			let lastStakingSchedule = 0;
 			while (remainingStakeAmount > 0) {
 				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
 				lastStakingSchedule = await vesting.lastStakingSchedule();
