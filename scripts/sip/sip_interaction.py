@@ -38,10 +38,13 @@ def loadConfig():
         acct = accounts[0]
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet":
-        acct = accounts.load("rskdeployer")
+        acct = accounts.load("rskdeployerdev")
+        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet-pub":
+        acct = accounts.load("rskdeployerdev")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-testnet":
-        acct = accounts.load("rskdeployer")
+        acct = accounts.load("rskdeployerdev")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
@@ -100,8 +103,8 @@ def createProposal(governorAddr, target, value, signature, data, description):
     print('=============================================================')
 
     # Create Proposal
-    # tx = governor.propose(target, value, signature, data, description)
-    # tx.info()
+    tx = governor.propose(target, value, signature, data, description)
+    tx.info()
 
 def createProposalSIP0005():
     dummyAddress = contracts['GovernorOwner']
