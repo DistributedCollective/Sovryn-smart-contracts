@@ -21,7 +21,7 @@ def main():
     # Call the function you want here
 
     # createProposalSIP0038()
-    createProposalSIP0039()
+    createProposalSIP0041()
 
     balanceAfter = acct.balance()
 
@@ -307,6 +307,17 @@ def createProposalSIP0039():
     signature = ["symbol()"]
     data = ["0x"]
     description = "SIP-0039: ZERO Token Sale via Origins: https://github.com/DistributedCollective/SIPS/blob/2c21291/SIP-0039.md, sha256: 558dc035b9915e5900b0367252ba88114ea8c821b21ec0aadc5dea8b73fcd506"
+
+    # Create Proposal
+    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+def createProposalSIP0041():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0041: Designation of Exchequer Committee Multisig, Details: https://github.com/DistributedCollective/SIPS/blob/34a23a4fcecb54d19325adc2c56e6471a60caea3/SIP-0041.md, sha256: 934fc32850ac7096e88fbe2b981250527d6ddba78b01f5e191202c8043b840cb"
 
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
