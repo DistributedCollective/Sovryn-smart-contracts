@@ -160,7 +160,13 @@ contract("FourYearVesting", (accounts) => {
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, toStake);
-			await vesting.stakeTokens(toStake, 0);
+			let remainingStakeAmount = ONE_MILLON;
+            let lastStakingSchedule = 0;
+			while (remainingStakeAmount > 0) {
+				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				lastStakingSchedule = await vesting.lastStakingSchedule();
+				remainingStakeAmount = await vesting.remainingStakeAmount();
+			}
 
 			// check delegatee
 			let data = await staking.getStakes.call(vesting.address);
@@ -201,7 +207,13 @@ contract("FourYearVesting", (accounts) => {
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, toStake);
-			await vesting.stakeTokens(toStake, 0);
+			let remainingStakeAmount = ONE_MILLON;
+            let lastStakingSchedule = 0;
+			while (remainingStakeAmount > 0) {
+				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				lastStakingSchedule = await vesting.lastStakingSchedule();
+				remainingStakeAmount = await vesting.remainingStakeAmount();
+			}
 
 			// check delegatee
 			let data = await staking.getStakes.call(vesting.address);
@@ -250,18 +262,14 @@ contract("FourYearVesting", (accounts) => {
 			);
 			vesting = await VestingLogic.at(vesting.address);
 			await token.approve(vesting.address, ONE_MILLON);
-			let tx = await vesting.stakeTokens(ONE_MILLON, 0);
-			startDate = await vesting.startDate();
-			let amount = new BN(ONE_MILLON).div(new BN(2));
-			expectEvent(tx, "TokensStaked", {
-				caller: root,
-				amount: amount,
-			});
-			let lastStakingSchedule = await vesting.lastStakingSchedule();
-			let remainingStakeAmount = await vesting.remainingStakeAmount();
-			tx = await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
-			lastStakingSchedule = await vesting.lastStakingSchedule();
-			remainingStakeAmount = await vesting.remainingStakeAmount();
+
+			let remainingStakeAmount = ONE_MILLON;
+            let lastStakingSchedule = 0;
+			while (remainingStakeAmount > 0) {
+				let tx = await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				lastStakingSchedule = await vesting.lastStakingSchedule();
+				remainingStakeAmount = await vesting.remainingStakeAmount();
+			}
 		});
 
 		it("should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff", async () => {
@@ -327,18 +335,13 @@ contract("FourYearVesting", (accounts) => {
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, amount);
-			let tx = await vesting.stakeTokens(amount, 0);
-			startDate = await vesting.startDate();
-			let amt = new BN(ONE_MILLON).div(new BN(2));
-			expectEvent(tx, "TokensStaked", {
-				caller: root,
-				amount: amt,
-			});
-			let lastStakingSchedule = await vesting.lastStakingSchedule();
-			let remainingStakeAmount = await vesting.remainingStakeAmount();
-			tx = await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
-			lastStakingSchedule = await vesting.lastStakingSchedule();
-			remainingStakeAmount = await vesting.remainingStakeAmount();
+			let remainingStakeAmount = amount;
+            let lastStakingSchedule = 0;
+			while (remainingStakeAmount > 0) {
+				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				lastStakingSchedule = await vesting.lastStakingSchedule();
+				remainingStakeAmount = await vesting.remainingStakeAmount();
+			}
 
 			let block1 = await web3.eth.getBlock("latest");
 			let timestamp1 = block1.timestamp;
@@ -370,7 +373,13 @@ contract("FourYearVesting", (accounts) => {
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, amount);
-			await vesting.stakeTokens(amount, 0);
+			let remainingStakeAmount = amount;
+            let lastStakingSchedule = 0;
+			while (remainingStakeAmount > 0) {
+				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				lastStakingSchedule = await vesting.lastStakingSchedule();
+				remainingStakeAmount = await vesting.remainingStakeAmount();
+			}
 
 			let block = await web3.eth.getBlock("latest");
 			let timestamp = block.timestamp;
@@ -553,11 +562,19 @@ contract("FourYearVesting", (accounts) => {
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake, 0);
 
+			let amountAfterStake = await token.balanceOf(root);
+
 			// time travel
 			await increaseTime(3 * WEEK);
 
 			// withdraw
-			await expectRevert(vesting.withdrawTokens(root), "cannot withdraw in the first year");
+			let tx = await vesting.withdrawTokens(root);
+
+			// verify amount
+			let amount = await token.balanceOf(root);
+
+			assert.equal(previousAmount.sub(new BN(toStake)).toString(), amountAfterStake.toString());
+			assert.equal(amountAfterStake.toString(), amount.toString());
 		});
 
 		it("should withdraw unlocked tokens", async () => {
@@ -571,20 +588,20 @@ contract("FourYearVesting", (accounts) => {
 				token.address,
 				staking.address,
 				root,
-				26 * WEEK,
-				104 * WEEK,
+				4 * WEEK,
+				39 * 4 * WEEK,
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, toStake);
-			let tx = await vesting.stakeTokens(toStake, 0);
-			let lastStakingSchedule = await vesting.lastStakingSchedule();
-			let remainingStakeAmount = await vesting.remainingStakeAmount();
-
-			tx = await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
-			lastStakingSchedule = await vesting.lastStakingSchedule();
-			remainingStakeAmount = await vesting.remainingStakeAmount();
+			let remainingStakeAmount = ONE_MILLON;
+            let lastStakingSchedule = 0;
+			while (remainingStakeAmount > 0) {
+				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				lastStakingSchedule = await vesting.lastStakingSchedule();
+				remainingStakeAmount = await vesting.remainingStakeAmount();
+			}
 
 			let amountAfterStake = await token.balanceOf(root);
 
@@ -604,7 +621,8 @@ contract("FourYearVesting", (accounts) => {
 			let amount = await token.balanceOf(root);
 
 			assert.equal(previousAmount.sub(new BN(toStake)).toString(), amountAfterStake.toString());
-			assert.equal(previousAmount.toString(), amount.toString());
+			expect(previousAmount).to.be.bignumber.greaterThan(amount);
+			expect(amount).to.be.bignumber.greaterThan(amountAfterStake);
 		});
 
 		it("should not withdraw unlocked tokens in the first year", async () => {
@@ -625,13 +643,28 @@ contract("FourYearVesting", (accounts) => {
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, toStake);
-			await vesting.stakeTokens(toStake, 0);
+			let remainingStakeAmount = ONE_MILLON;
+            let lastStakingSchedule = 0;
+			while (remainingStakeAmount > 0) {
+				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				lastStakingSchedule = await vesting.lastStakingSchedule();
+				remainingStakeAmount = await vesting.remainingStakeAmount();
+			}
+
+			let amountAfterStake = await token.balanceOf(root);
 
 			// time travel
 			await increaseTime(34 * WEEK);
 
 			// withdraw
-			await expectRevert(vesting.withdrawTokens(root), "cannot withdraw in the first year");
+			tx = await vesting.withdrawTokens(root);
+
+			// verify amount
+			let amount = await token.balanceOf(root);
+
+			assert.equal(previousAmount.sub(new BN(toStake)).toString(), amountAfterStake.toString());
+			expect(previousAmount).to.be.bignumber.greaterThan(amount);
+			assert.equal(amountAfterStake.toString(), amount.toString());
 		});
 
 		it("should not allow for 2 stakes and withdrawal for the first year", async () => {
@@ -653,17 +686,26 @@ contract("FourYearVesting", (accounts) => {
 
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake, 0);
+			let amountAfterStake = await token.balanceOf(root);
 
 			// time travel
 			await increaseTime(20 * WEEK);
 			await expectRevert(vesting.stakeTokens(toStake, 0), "create new vesting address");
 
 			// withdraw
-			await expectRevert(vesting.withdrawTokens(root), "cannot withdraw in the first year");
+			tx = await vesting.withdrawTokens(root);
+
+			// verify amount
+			let amount = await token.balanceOf(root);
+
+			assert.equal(previousAmount.sub(new BN(toStake)).toString(), amountAfterStake.toString());
+			expect(previousAmount).to.be.bignumber.greaterThan(amount);
+			assert.equal(amountAfterStake.toString(), amount.toString());
 		});
 
-		it("should not withdraw unlocked tokens for the first years <= 52 weeks", async () => {
+		it("should not withdraw unlocked tokens for the first year <= 52 weeks", async () => {
 			// Save current amount
+			let previousAmount = await token.balanceOf(root);
 			let toStake = ONE_MILLON;
 
 			// Stake
@@ -680,16 +722,30 @@ contract("FourYearVesting", (accounts) => {
 
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake, 0);
+			let amountAfterStake = await token.balanceOf(root);
 
 			// time travel
 			await increaseTime(18 * WEEK);
 
 			// withdraw
-			await expectRevert(vesting.withdrawTokens(root), "cannot withdraw in the first year");
+			tx = await vesting.withdrawTokens(root);
+
+			// verify amount
+			let amount = await token.balanceOf(root);
+
+			assert.equal(previousAmount.sub(new BN(toStake)).toString(), amountAfterStake.toString());
+			expect(previousAmount).to.be.bignumber.greaterThan(amount);
+			assert.equal(amountAfterStake.toString(), amount.toString());
 		});
 
 		it("should do nothing if withdrawing a second time", async () => {
-			await expectRevert(vesting.withdrawTokens(root), "cannot withdraw in the first year");
+			let amountOld = await token.balanceOf(root);
+			// withdraw
+			tx = await vesting.withdrawTokens(root);
+
+			// verify amount
+			let amount = await token.balanceOf(root);
+			assert.equal(amountOld.toString(), amount.toString());
 		});
 
 		it("should do nothing if withdrawing before reaching the cliff", async () => {
@@ -707,12 +763,24 @@ contract("FourYearVesting", (accounts) => {
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, toStake);
-			await vesting.stakeTokens(toStake, 0);
+			let remainingStakeAmount = ONE_MILLON;
+			let lastStakingSchedule = 0;
+			while (remainingStakeAmount > 0) {
+				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				lastStakingSchedule = await vesting.lastStakingSchedule();
+				remainingStakeAmount = await vesting.remainingStakeAmount();
+			}
+			let amountOld = await token.balanceOf(root);
 
 			// time travel
 			await increaseTime(25 * WEEK);
 
-			await expectRevert(vesting.withdrawTokens(root, { from: a1 }), "cannot withdraw in the first year");
+			// withdraw
+			tx = await vesting.withdrawTokens(a2, {from: a1});
+
+			// verify amount
+			let amount = await token.balanceOf(root);
+			assert.equal(amountOld.toString(), amount.toString());
 		});
 
 		it("should fail if the caller is not token owner", async () => {
@@ -740,7 +808,13 @@ contract("FourYearVesting", (accounts) => {
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, toStake);
-			await vesting.stakeTokens(toStake, 0);
+			let remainingStakeAmount = ONE_MILLON;
+			let lastStakingSchedule = 0;
+			while (remainingStakeAmount > 0) {
+				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				lastStakingSchedule = await vesting.lastStakingSchedule();
+				remainingStakeAmount = await vesting.remainingStakeAmount();
+			}
 
 			await expectRevert(staking.governanceWithdrawVesting(vesting.address, root, { from: a1 }), "unauthorized");
 		});
@@ -761,7 +835,13 @@ contract("FourYearVesting", (accounts) => {
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, toStake);
-			await vesting.stakeTokens(toStake, 0);
+			let remainingStakeAmount = ONE_MILLON;
+			let lastStakingSchedule = 0;
+			while (remainingStakeAmount > 0) {
+				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				lastStakingSchedule = await vesting.lastStakingSchedule();
+				remainingStakeAmount = await vesting.remainingStakeAmount();
+			}
 
 			await expectRevert(staking.governanceWithdraw(100, kickoffTS.toNumber() + 52 * WEEK, root), "unauthorized");
 		});
@@ -782,7 +862,13 @@ contract("FourYearVesting", (accounts) => {
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, toStake);
-			await vesting.stakeTokens(toStake, 0);
+			let remainingStakeAmount = toStake;
+			let lastStakingSchedule = 0;
+			while (remainingStakeAmount > 0) {
+				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				lastStakingSchedule = await vesting.lastStakingSchedule();
+				remainingStakeAmount = await vesting.remainingStakeAmount();
+			}
 
 			await expectRevert(vesting.governanceWithdrawTokens(root), "operation not supported");
 		});
@@ -804,7 +890,13 @@ contract("FourYearVesting", (accounts) => {
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, toStake);
-			await vesting.stakeTokens(toStake, 0);
+			let remainingStakeAmount = toStake;
+			let lastStakingSchedule = 0;
+			while (remainingStakeAmount > 0) {
+				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				lastStakingSchedule = await vesting.lastStakingSchedule();
+				remainingStakeAmount = await vesting.remainingStakeAmount();
+			}
 
 			await staking.addAdmin(a1);
 			// governance withdraw must fail for four year vesting
@@ -947,17 +1039,15 @@ contract("FourYearVesting", (accounts) => {
 			);
 			vesting = await VestingLogic.at(vesting.address);
 			await token.approve(vesting.address, ONE_MILLON);
-			let tx = await vesting.stakeTokens(ONE_MILLON, 0);
-			let lastStakingSchedule = await vesting.lastStakingSchedule();
-			let remainingStakeAmount = await vesting.remainingStakeAmount();
 
-			tx = await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
-			lastStakingSchedule = await vesting.lastStakingSchedule();
-			remainingStakeAmount = await vesting.remainingStakeAmount();
+			let remainingStakeAmount = ONE_MILLON;
+            let lastStakingSchedule = 0;
+			while (remainingStakeAmount > 0) {
+				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				lastStakingSchedule = await vesting.lastStakingSchedule();
+				remainingStakeAmount = await vesting.remainingStakeAmount();
+			}
 
-			tx = await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
-			lastStakingSchedule = await vesting.lastStakingSchedule();
-			remainingStakeAmount = await vesting.remainingStakeAmount();
 			let data = await staking.getStakes.call(vesting.address);
 			assert.equal(data.dates.length, 39);
 			assert.equal(data.stakes.length, 39);
@@ -1012,8 +1102,8 @@ contract("FourYearVesting", (accounts) => {
 		});
 	});
 
-	describe("setMaxDuration", async () => {
-		it("should set/alter maxDuration", async () => {
+	describe("setMaxInterval", async () => {
+		it("should set/alter maxInterval", async () => {
 			let toStake = ONE_MILLON;
 			vesting = await Vesting.new(
 				vestingLogic.address,
@@ -1025,10 +1115,10 @@ contract("FourYearVesting", (accounts) => {
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
-			let maxDurationOld = await vesting.maxDuration();
-			await vesting.setMaxDuration(60 * WEEK);
-			let maxDurationNew = await vesting.maxDuration();
-			expect(maxDurationOld).to.be.bignumber.not.equal(maxDurationNew);
+			let maxIntervalOld = await vesting.maxInterval();
+			await vesting.setMaxInterval(60 * WEEK);
+			let maxIntervalNew = await vesting.maxInterval();
+			expect(maxIntervalOld).to.be.bignumber.not.equal(maxIntervalNew);
 		});
 	});
 });

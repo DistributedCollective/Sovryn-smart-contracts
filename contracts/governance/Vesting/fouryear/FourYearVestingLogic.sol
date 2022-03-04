@@ -41,11 +41,11 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	/* Functions */
 
 	/**
-	 * @notice Sets the max duration.
-	 * @param _duration Max duration for which tokens scheduled shall be staked.
+	 * @notice Sets the max interval.
+	 * @param _interval Max interval for which tokens scheduled shall be staked.
 	 * */
-	function setMaxDuration(uint256 _duration) public onlyOwner {
-		maxDuration = _duration;
+	function setMaxInterval(uint256 _interval) public onlyOwner {
+		maxInterval = _interval;
 	}
 
 	/**
@@ -200,10 +200,10 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		if (endDate == 0) {
 			endDate = staking.timestampToLockDate(block.timestamp.add(duration));
 		}
-		uint256 addedMaxDuration = restartDate.add(maxDuration);
-		if (addedMaxDuration < endDate) {
-			// Runs for max duration
-			lastStakingSchedule = addedMaxDuration;
+		uint256 addedMaxInterval = restartDate.add(maxInterval);
+		if (addedMaxInterval < endDate) {
+			// Runs for max interval
+			lastStakingSchedule = addedMaxInterval;
 			periods = (lastStakingSchedule.sub(restartDate)).div(cliff);
 			uint256 actualSchedule = restartDate.add(periods.mul(cliff));
 			lastStakingSchedule = actualSchedule <= lastStakingSchedule ? actualSchedule : lastStakingSchedule;
@@ -258,15 +258,14 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 			end = endDate;
 		} else {
 			end = block.timestamp;
-			// For four year vesting withdrawal of stakes for the first year is not allowed. These
-			// stakes are extended for three years.
-			require(end > startDate.add(52 weeks), "cannot withdraw in the first year");
 		}
 
 		/// @dev Withdraw for each unlocked position.
 		/// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
 		///		workaround found, but it doesn't work with TWO_WEEKS
-		for (uint256 i = startDate.add(cliff); i <= end; i += FOUR_WEEKS) {
+		/// @dev For four year vesting, withdrawal of stakes for the first year is not allowed. These
+		/// stakes are extended for three years.
+		for (uint256 i = startDate.add(52 weeks); i <= end; i += FOUR_WEEKS) {
 			/// @dev Read amount to withdraw.
 			stake = staking.getPriorUserStakeByDate(address(this), i, block.number.sub(1));
 

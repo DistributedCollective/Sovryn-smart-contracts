@@ -50,7 +50,7 @@ contract FourYearVesting is FourYearVestingStorage, Proxy {
 		cliff = _cliff;
 		duration = _duration;
 		feeSharingProxy = IFeeSharingProxy(_feeSharingProxy);
-		maxDuration = 18 * FOUR_WEEKS;
+		maxInterval = 18 * FOUR_WEEKS;
 	}
 
 	/**
