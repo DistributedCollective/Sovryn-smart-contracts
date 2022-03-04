@@ -116,30 +116,14 @@ contract("FourYearVesting", (accounts) => {
 
 		it("fails if the vesting duration is bigger than the max staking duration", async () => {
 			await expectRevert(
-				Vesting.new(
-					vestingLogic.address,
-					token.address,
-					staking.address,
-					root,
-					2 * WEEK,
-					duration,
-					feeSharingProxy.address
-				),
+				Vesting.new(vestingLogic.address, token.address, staking.address, root, 2 * WEEK, duration, feeSharingProxy.address),
 				"invalid cliff"
 			);
 		});
 
 		it("fails if the vesting duration is bigger than the max staking duration", async () => {
 			await expectRevert(
-				Vesting.new(
-					vestingLogic.address,
-					token.address,
-					staking.address,
-					root,
-					cliff,
-					150 * WEEK,
-					feeSharingProxy.address
-				),
+				Vesting.new(vestingLogic.address, token.address, staking.address, root, cliff, 150 * WEEK, feeSharingProxy.address),
 				"invalid duration"
 			);
 		});
@@ -317,7 +301,7 @@ contract("FourYearVesting", (accounts) => {
 
 			let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(vesting.address, startBuf);
 			assert.equal(numUserStakingCheckpoints.toString(), "0");
-			periodFromKickoff = Math.floor((end + (3 * WEEK) - kickoffTS.toNumber()) / (2 * WEEK));
+			periodFromKickoff = Math.floor((end + 3 * WEEK - kickoffTS.toNumber()) / (2 * WEEK));
 			startBuf = periodFromKickoff * 2 * WEEK + kickoffTS.toNumber();
 			userStakingCheckpoints = await staking.userStakingCheckpoints(vesting.address, startBuf, 0);
 
