@@ -187,7 +187,6 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		require((startDate == 0) || (startDate > 0 && remainingStakeAmount > 0 && _restartStakeSchedule > 0), "create new vesting address");
 		uint256 restartDate;
 		uint256 relativeAmount;
-		uint256 periods;
 		// Calling the _stakeTokens function first time for the vesting contract
 		// Runs for maxInterval only (consider maxInterval = 18 * 4 = 72 weeks)
 		if (startDate == 0 && _restartStakeSchedule == 0) {
@@ -210,9 +209,8 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		if (addedMaxInterval < endDate) {
 			// Runs for max interval
 			lastStakingSchedule = addedMaxInterval;
-			periods = maxInterval.div(FOUR_WEEKS); // 18 - as it runs for maxInterval
-			relativeAmount = (_amount.mul(periods).mul(FOUR_WEEKS)).div(durationLeft); // (_amount * 18) / 39
-			durationLeft = durationLeft.sub(periods.mul(FOUR_WEEKS)); // durationLeft - 18 periods(72 weeks)
+			relativeAmount = (_amount.mul(maxInterval)).div(durationLeft); // (_amount * 18) / 39
+			durationLeft = durationLeft.sub(maxInterval); // durationLeft - 18 periods(72 weeks)
 			remainingStakeAmount = _amount.sub(relativeAmount); // Amount left to be staked in subsequent intervals
 		} else {
 			// Normal run
@@ -234,7 +232,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 			// All tokens staked
 			cliffAdded = 0;
 		} else {
-			cliffAdded = cliffAdded.add(periods.mul(FOUR_WEEKS)); // Add cliff to the end of previous maxInterval
+			cliffAdded = cliffAdded.add(maxInterval); // Add cliff to the end of previous maxInterval
 		}
 
 		emit TokensStaked(_sender, relativeAmount);
