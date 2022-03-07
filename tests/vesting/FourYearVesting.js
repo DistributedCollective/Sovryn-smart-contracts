@@ -874,7 +874,7 @@ contract("FourYearVesting", (accounts) => {
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
-			await expectRevert(vesting.changeTokenOwner(a2, {from: a1}), "unauthorized");
+			await expectRevert(vesting.changeTokenOwner(a2, { from: a1 }), "unauthorized");
 		});
 
 		it("should not change token owner if token owner hasn't approved", async () => {
@@ -888,7 +888,7 @@ contract("FourYearVesting", (accounts) => {
 		});
 
 		it("should be able to change token owner", async () => {
-			await vesting.approveOwnershipTransfer({from: a1});
+			await vesting.approveOwnershipTransfer({ from: a1 });
 			let newTokenOwner = await vesting.tokenOwner();
 			assert.equal(newTokenOwner, a2);
 		});
@@ -910,7 +910,7 @@ contract("FourYearVesting", (accounts) => {
 			vesting = await VestingLogic.at(vesting.address);
 			newVestingLogic = await NewVestingLogic.new();
 			await expectRevert(vesting.setImpl(newVestingLogic.address, { from: a3 }), "unauthorized");
-			await expectRevert(vesting.setImpl(newVestingLogic.address, ), "unauthorized");
+			await expectRevert(vesting.setImpl(newVestingLogic.address), "unauthorized");
 		});
 
 		it("should not change implementation if still unauthorized by vesting owner", async () => {
