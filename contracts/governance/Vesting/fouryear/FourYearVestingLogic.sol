@@ -175,14 +175,6 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	}
 
 	/**
-	 * @dev setImplementation is a placeholder
-	 * to access the function of the UpgradableProxy contract.
-	 * Check the FourYearVesting.sol contract.
-	 * @param _implementation Address of the implementation.
-	 * */
-	function setImplementation(address _implementation) public {}
-
-	/**
 	 * @notice Allows the owners to migrate the positions
 	 * to a new staking contract.
 	 * */
@@ -349,11 +341,4 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		selectors[0] = this.stakeTokensWithApproval.selector;
 		return selectors;
 	}
-
-	/**
-	 * @dev getImplementation is a placeholder
-	 * to access the function of the UpgradableProxy contract.
-	 * Check the Upgradable.sol contract.
-	 * */
-	function getImplementation() public view returns (address _implementation) {}
 }

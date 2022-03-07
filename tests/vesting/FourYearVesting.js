@@ -900,10 +900,10 @@ contract("FourYearVesting", (accounts) => {
 	});
 
 	describe("setImplementation", async () => {
-		let vesting, newVestingLogic;
+		let vesting, newVestingLogic, vestingObject;
 		const NewVestingLogic = artifacts.require("MockFourYearVestingLogic");
 		it("should not change implementation if token owner didn't sign", async () => {
-			vesting = await Vesting.new(
+			vestingObject = await Vesting.new(
 				vestingLogic.address,
 				token.address,
 				staking.address,
@@ -912,7 +912,7 @@ contract("FourYearVesting", (accounts) => {
 				39 * 4 * WEEK,
 				feeSharingProxy.address
 			);
-			vesting = await VestingLogic.at(vesting.address);
+			vesting = await VestingLogic.at(vestingObject.address);
 			newVestingLogic = await NewVestingLogic.new();
 			await expectRevert(vesting.setImpl(newVestingLogic.address, { from: a3 }), "unauthorized");
 			await expectRevert(vesting.setImpl(newVestingLogic.address), "unauthorized");
@@ -920,18 +920,18 @@ contract("FourYearVesting", (accounts) => {
 
 		it("should not change implementation if still unauthorized by vesting owner", async () => {
 			await vesting.setImpl(newVestingLogic.address, { from: a1 });
-			let newImplementation = await vesting.getImplementation();
+			let newImplementation = await vestingObject.getImplementation();
 			expect(newImplementation).to.not.equal(newVestingLogic.address);
 		});
 
 		it("setImplementation should revert if not signed by vesting owner", async () => {
-			await expectRevert(vesting.setImplementation(newVestingLogic.address, { from: a1 }), "Proxy:: access denied");
-			await expectRevert(vesting.setImplementation(0, { from: root }), "invalid address");
-			await expectRevert(vesting.setImplementation(a3, { from: root }), "address mismatch");
+			await expectRevert(vestingObject.setImplementation(newVestingLogic.address, { from: a1 }), "Proxy:: access denied");
+			await expectRevert(vestingObject.setImplementation(0, { from: root }), "invalid address");
+			await expectRevert(vestingObject.setImplementation(a3, { from: root }), "address mismatch");
 		});
 
 		it("should be able to change implementation", async () => {
-			await vesting.setImplementation(newVestingLogic.address);
+			await vestingObject.setImplementation(newVestingLogic.address);
 			vesting = await NewVestingLogic.at(vesting.address);
 
 			let durationLeft = await vesting.getDurationLeft();
