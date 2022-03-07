@@ -888,7 +888,12 @@ contract("FourYearVesting", (accounts) => {
 		});
 
 		it("should be able to change token owner", async () => {
-			await vesting.approveOwnershipTransfer({ from: a1 });
+			let tx = await vesting.approveOwnershipTransfer({ from: a1 });
+			// check event
+			expectEvent(tx, "TokenOwnerChanged", {
+				newOwner: a2,
+				oldOwner: a1,
+			});
 			let newTokenOwner = await vesting.tokenOwner();
 			assert.equal(newTokenOwner, a2);
 		});

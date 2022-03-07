@@ -20,6 +20,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	event TokensWithdrawn(address indexed caller, address receiver);
 	event DividendsCollected(address indexed caller, address loanPoolToken, address receiver, uint32 maxCheckpoints);
 	event MigratedToNewStakingContract(address indexed caller, address newStakingContract);
+	event TokenOwnerChanged(address indexed newOwner, address indexed oldOwner);
 
 	/* Modifiers */
 	/**
@@ -159,6 +160,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		require(newTokenOwner != address(0), "invalid address");
 		tokenOwner = newTokenOwner;
 		newTokenOwner = address(0);
+		emit TokenOwnerChanged(tokenOwner, msg.sender);
 	}
 
 	/**
