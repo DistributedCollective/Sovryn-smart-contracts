@@ -41,8 +41,8 @@ contract FourYearVestingStorage is Ownable {
 	/// @notice Constant used for computing the vesting dates.
 	uint256 constant FOUR_WEEKS = 4 weeks;
 
-	/// @notice Maximum duration to stake tokens at one go
-	uint256 public maxDuration;
+	/// @notice Maximum interval to stake tokens at one go
+	uint256 public maxInterval;
 
 	/// @notice End of previous staking schedule
 	uint256 public lastStakingSchedule;
