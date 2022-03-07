@@ -210,7 +210,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		if (addedMaxInterval < endDate) {
 			// Runs for max interval
 			lastStakingSchedule = addedMaxInterval;
-			periods = (lastStakingSchedule.sub(restartDate)).div(FOUR_WEEKS); // 18 - as it runs for maxInterval
+			periods = maxInterval.div(FOUR_WEEKS); // 18 - as it runs for maxInterval
 			relativeAmount = (_amount.mul(periods).mul(FOUR_WEEKS)).div(durationLeft); // (_amount * 18) / 39
 			durationLeft = durationLeft.sub(periods.mul(FOUR_WEEKS)); // durationLeft - 18 periods(72 weeks)
 			remainingStakeAmount = _amount.sub(relativeAmount); // Amount left to be staked in subsequent intervals
@@ -234,7 +234,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 			// All tokens staked
 			cliffAdded = 0;
 		} else {
-			cliffAdded = cliffAdded.add(periods.mul(FOUR_WEEKS)); // Add cliff to the end of maxInterval
+			cliffAdded = cliffAdded.add(periods.mul(FOUR_WEEKS)); // Add cliff to the end of previous maxInterval
 		}
 
 		emit TokensStaked(_sender, relativeAmount);

@@ -185,51 +185,6 @@ contract("FourYearVesting", (accounts) => {
 			}
 		});
 
-		it("should stake tokens 1 time and delegate voting power (using vesting logic with bug in delegation)", async () => {
-			let toStake = ONE_MILLON;
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				a2,
-				4 * WEEK,
-				39 * 4 * WEEK,
-				feeSharingProxy.address
-			);
-			vesting = await VestingLogic.at(vesting.address);
-
-			await token.approve(vesting.address, toStake);
-			let remainingStakeAmount = ONE_MILLON;
-			let lastStakingSchedule = 0;
-			while (remainingStakeAmount > 0) {
-				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
-				lastStakingSchedule = await vesting.lastStakingSchedule();
-				remainingStakeAmount = await vesting.remainingStakeAmount();
-			}
-
-			// check delegatee
-			let data = await staking.getStakes.call(vesting.address);
-			for (let i = 0; i < data.dates.length; i++) {
-				let delegatee = await staking.delegates(vesting.address, data.dates[i]);
-				expect(delegatee).equal(a2);
-			}
-
-			// delegate
-			let tx = await vesting.delegate(a1, { from: a2 });
-
-			expectEvent(tx, "VotesDelegated", {
-				caller: a2,
-				delegatee: a1,
-			});
-
-			// check new delegatee
-			data = await staking.getStakes.call(vesting.address);
-			for (let i = 0; i < data.dates.length; i++) {
-				let delegatee = await staking.delegates(vesting.address, data.dates[i]);
-				expect(delegatee).equal(a1);
-			}
-		});
-
 		it("fails if delegatee is zero address", async () => {
 			await expectRevert(vesting.delegate(constants.ZERO_ADDRESS, { from: a2 }), "delegatee address invalid");
 		});
@@ -258,15 +213,21 @@ contract("FourYearVesting", (accounts) => {
 			let lastStakingSchedule = 0;
 			while (remainingStakeAmount > 0) {
 				let tx = await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				expectEvent(tx, "TokensStaked");
 				lastStakingSchedule = await vesting.lastStakingSchedule();
 				remainingStakeAmount = await vesting.remainingStakeAmount();
+			}
+
+			// check delegatee
+			let data = await staking.getStakes.call(vesting.address);
+			for (let i = 0; i < data.dates.length; i++) {
+				let delegatee = await staking.delegates(vesting.address, data.dates[i]);
+				expect(delegatee).equal(root);
 			}
 		});
 
 		it("should stake 1,000,000 SOV with a duration of 156 weeks and a 4 week cliff", async () => {
-			// let block = await web3.eth.getBlock("latest");
-			let block = await lastBlock(); // ethers.provider.getBlock("latest");
-			let blockNum = parseInt(block.number);
+			let block = await lastBlock();
 			let timestamp = parseInt(block.timestamp);
 
 			let kickoffTS = await staking.kickoffTS();
@@ -336,64 +297,9 @@ contract("FourYearVesting", (accounts) => {
 				remainingStakeAmount = await vesting.remainingStakeAmount();
 			}
 
-			let block1 = await web3.eth.getBlock("latest");
-			let timestamp1 = block1.timestamp;
-
-			let start = timestamp1 + cliff;
-			let end = timestamp1 + duration;
-
-			let numIntervals = Math.floor((end - start) / (4 * WEEK)) + 1;
-			let stakedPerInterval = amount / numIntervals;
-
 			await increaseTime(52 * WEEK);
 			await token.approve(vesting.address, amount);
 			await expectRevert(vesting.stakeTokens(amount, 0), "create new vesting address");
-		});
-
-		it("should stake ONE_MILLON tokens with a duration of 156 weeks and a 4 week cliff (dust on rounding)", async () => {
-			let amount = ONE_MILLON;
-			let cliff = 4 * WEEK;
-			let duration = 156 * WEEK;
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,
-				cliff,
-				duration,
-				feeSharingProxy.address
-			);
-			vesting = await VestingLogic.at(vesting.address);
-
-			await token.approve(vesting.address, amount);
-			let remainingStakeAmount = amount;
-			let lastStakingSchedule = 0;
-			while (remainingStakeAmount > 0) {
-				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
-				lastStakingSchedule = await vesting.lastStakingSchedule();
-				remainingStakeAmount = await vesting.remainingStakeAmount();
-			}
-
-			let block = await web3.eth.getBlock("latest");
-			let timestamp = block.timestamp;
-
-			let start = timestamp + cliff;
-			let end = timestamp + duration;
-
-			let numIntervals = Math.floor((end - start) / (4 * WEEK)) + 1;
-			let stakedPerInterval = Math.floor(amount / numIntervals);
-
-			// positive case
-			for (let i = start; i <= end; i += 4 * WEEK) {
-				let periodFromKickoff = Math.floor((i - kickoffTS.toNumber()) / (2 * WEEK));
-				let startBuf = periodFromKickoff * 2 * WEEK + kickoffTS.toNumber();
-				let userStakingCheckpoints = await staking.userStakingCheckpoints(vesting.address, startBuf, 0);
-
-				assert.equal(userStakingCheckpoints.stake.toString(), stakedPerInterval);
-
-				let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(vesting.address, startBuf);
-				assert.equal(numUserStakingCheckpoints.toString(), "1");
-			}
 		});
 	});
 
@@ -439,7 +345,7 @@ contract("FourYearVesting", (accounts) => {
 			await expectRevert(token.approveAndCall(vesting.address, amount, data, { from: sender }), "method is not allowed");
 		});
 
-		it("should stake ONE_MILLION tokens with a duration of 156 weeks and a 4 week cliff", async () => {
+		it("should stake ONE MILLION tokens with a duration of 156 weeks and a 4 week cliff", async () => {
 			let amount = ONE_MILLON;
 			let cliff = 4 * WEEK;
 			let duration = 39 * 4 * WEEK;
@@ -457,7 +363,7 @@ contract("FourYearVesting", (accounts) => {
 			let contract = new web3.eth.Contract(vesting.abi, vesting.address);
 			let sender = root;
 			let data = contract.methods.stakeTokensWithApproval(sender, amount, 0).encodeABI();
-			await token.approveAndCall(vesting.address, amount, data, { from: sender });
+			let tx = await token.approveAndCall(vesting.address, amount, data, { from: sender });
 			let lastStakingSchedule = await vesting.lastStakingSchedule();
 			let remainingStakeAmount = await vesting.remainingStakeAmount();
 
@@ -473,7 +379,7 @@ contract("FourYearVesting", (accounts) => {
 			assert.equal(remainingStakeAmount, 0);
 		});
 
-		it("should stake 39000 tokens with a duration of 156 weeks and a 4 week cliff (dust on rounding)", async () => {
+		it("should stake 39000 tokens with a duration of 156 weeks and a 4 week cliff", async () => {
 			let amount = 39000;
 			let cliff = 4 * WEEK;
 			let duration = 156 * WEEK;
@@ -531,44 +437,6 @@ contract("FourYearVesting", (accounts) => {
 
 	describe("withdrawTokens", () => {
 		let vesting;
-
-		it("should not withdraw unlocked tokens", async () => {
-			// Save current amount
-			let previousAmount = await token.balanceOf(root);
-			let toStake = ONE_ETHER;
-
-			await increaseTime(3 * WEEK);
-
-			// Stake
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,
-				4 * WEEK,
-				156 * WEEK,
-				feeSharingProxy.address
-			);
-			vesting = await VestingLogic.at(vesting.address);
-
-			await token.approve(vesting.address, toStake);
-			await vesting.stakeTokens(toStake, 0);
-
-			let amountAfterStake = await token.balanceOf(root);
-
-			// time travel
-			await increaseTime(3 * WEEK);
-
-			// withdraw
-			let tx = await vesting.withdrawTokens(root);
-
-			// verify amount
-			let amount = await token.balanceOf(root);
-
-			// assert.equal(previousAmount.sub(new BN(toStake)).toString(), amountAfterStake.toString());
-			assert.equal(amountAfterStake.toString(), amount.toString());
-		});
-
 		it("should withdraw unlocked tokens", async () => {
 			// Save current amount
 			let previousAmount = await token.balanceOf(root);
@@ -695,40 +563,6 @@ contract("FourYearVesting", (accounts) => {
 			assert.equal(amountAfterStake.toString(), amount.toString());
 		});
 
-		it("should not withdraw unlocked tokens for the first year <= 52 weeks", async () => {
-			// Save current amount
-			let previousAmount = await token.balanceOf(root);
-			let toStake = ONE_MILLON;
-
-			// Stake
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,
-				4 * WEEK,
-				156 * WEEK,
-				feeSharingProxy.address
-			);
-			vesting = await VestingLogic.at(vesting.address);
-
-			await token.approve(vesting.address, toStake);
-			await vesting.stakeTokens(toStake, 0);
-			let amountAfterStake = await token.balanceOf(root);
-
-			// time travel
-			await increaseTime(18 * WEEK);
-
-			// withdraw
-			tx = await vesting.withdrawTokens(root);
-
-			// verify amount
-			let amount = await token.balanceOf(root);
-
-			expect(previousAmount).to.be.bignumber.greaterThan(amount);
-			assert.equal(amountAfterStake.toString(), amount.toString());
-		});
-
 		it("should do nothing if withdrawing a second time", async () => {
 			let amountOld = await token.balanceOf(root);
 			// withdraw
@@ -764,7 +598,7 @@ contract("FourYearVesting", (accounts) => {
 			let amountOld = await token.balanceOf(root);
 
 			// time travel
-			await increaseTime(25 * WEEK);
+			await increaseTime(2 * WEEK);
 
 			// withdraw
 			tx = await vesting.withdrawTokens(a2, { from: a1 });
@@ -811,93 +645,18 @@ contract("FourYearVesting", (accounts) => {
 		});
 
 		it("Shouldn't be possible to use governanceWithdraw by user", async () => {
-			let toStake = ONE_MILLON;
-
-			// Stake
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,
-				4 * WEEK,
-				156 * WEEK,
-				feeSharingProxy.address
-			);
-			vesting = await VestingLogic.at(vesting.address);
-
-			await token.approve(vesting.address, toStake);
-			let remainingStakeAmount = ONE_MILLON;
-			let lastStakingSchedule = 0;
-			while (remainingStakeAmount > 0) {
-				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
-				lastStakingSchedule = await vesting.lastStakingSchedule();
-				remainingStakeAmount = await vesting.remainingStakeAmount();
-			}
-
 			await expectRevert(staking.governanceWithdraw(100, kickoffTS.toNumber() + 52 * WEEK, root), "unauthorized");
 		});
 
 		it("Shouldn't be possible to use governanceWithdrawTokens by user", async () => {
-			let toStake = ONE_ETHER;
-
-			// Stake
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,
-				4 * WEEK,
-				156 * WEEK,
-				feeSharingProxy.address
-			);
-			vesting = await VestingLogic.at(vesting.address);
-
-			await token.approve(vesting.address, toStake);
-			let remainingStakeAmount = toStake;
-			let lastStakingSchedule = 0;
-			while (remainingStakeAmount > 0) {
-				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
-				lastStakingSchedule = await vesting.lastStakingSchedule();
-				remainingStakeAmount = await vesting.remainingStakeAmount();
-			}
-
 			await expectRevert(vesting.governanceWithdrawTokens(root), "operation not supported");
-		});
-
-		it("governanceWithdrawTokens", async () => {
-			let previousAmount = await token.balanceOf(root);
-			let toStake = ONE_ETHER;
-
-			// Stake
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,
-				4 * WEEK,
-				156 * WEEK,
-				feeSharingProxy.address
-			);
-			vesting = await VestingLogic.at(vesting.address);
-
-			await token.approve(vesting.address, toStake);
-			let remainingStakeAmount = toStake;
-			let lastStakingSchedule = 0;
-			while (remainingStakeAmount > 0) {
-				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
-				lastStakingSchedule = await vesting.lastStakingSchedule();
-				remainingStakeAmount = await vesting.remainingStakeAmount();
-			}
-
-			await staking.addAdmin(a1);
-			// governance withdraw must fail for four year vesting
-			await expectRevert(staking.governanceWithdrawVesting(vesting.address, root, { from: a1 }), "operation not supported");
 		});
 	});
 
 	describe("collectDividends", async () => {
+		let vesting;
 		it("should fail if the caller is neither owner nor token owner", async () => {
-			let vesting = await Vesting.new(
+			vesting = await Vesting.new(
 				vestingLogic.address,
 				token.address,
 				staking.address,
@@ -912,17 +671,6 @@ contract("FourYearVesting", (accounts) => {
 		});
 
 		it("should collect dividends", async () => {
-			let vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				a1,
-				4 * WEEK,
-				156 * WEEK,
-				feeSharingProxy.address
-			);
-			vesting = await VestingLogic.at(vesting.address);
-
 			let maxCheckpoints = new BN(10);
 			await expectRevert(vesting.collectDividends(a1, maxCheckpoints, a2), "unauthorized");
 			let tx = await vesting.collectDividends(a1, maxCheckpoints, a2, { from: a1 });
