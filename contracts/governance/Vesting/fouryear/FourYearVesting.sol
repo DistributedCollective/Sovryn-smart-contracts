@@ -44,7 +44,7 @@ contract FourYearVesting is FourYearVestingStorage, UpgradableProxy {
 		require(_duration == 156 weeks, "invalid duration");
 		require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
 
-		setImplementation(_logic);
+		_setImplementation(_logic);
 		SOV = IERC20(_SOV);
 		staking = Staking(_stakingAddress);
 		require(_duration <= staking.MAX_DURATION(), "duration may not exceed the max duration");
@@ -65,16 +65,17 @@ contract FourYearVesting is FourYearVestingStorage, UpgradableProxy {
 	}
 
 	/**
-	 * @notice Set address of the implementation.
-	 * @dev Overriding setImpl function of implementation. The logic can only be
+	 * @notice Set address of the implementation - vesting owner.
+	 * @dev Overriding setImplementation function of UpgradableProxy. The logic can only be
 	 * modified when both token owner and veting owner approve. Since
-	 * setImplementation can only be called by vesting owner, we only need to check
-	 * if the new logic is signed by the token owner.
-	 * @param _implementation Address of the implementation.
+	 * setImplementation can only be called by vesting owner, we also need to check
+	 * if the new logic is already approved by the token owner.
+	 * @param _implementation Address of the implementation. Must match with what is set by token owner.
 	 * */
-	function setImpl(address _implementation) public {
-		require(signed[tokenOwner], "must be signed by token owner");
-		setImplementation(_implementation);
-		signed[tokenOwner] = false;
+	function setImplementation(address _implementation) public onlyProxyOwner {
+		require(newImplementation != address(0), "invalid address");
+		require(newImplementation == _implementation, "address mismatch");
+		_setImplementation(_implementation);
+		newImplementation = address(0);
 	}
 }

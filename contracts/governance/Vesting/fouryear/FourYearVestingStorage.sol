@@ -44,18 +44,21 @@ contract FourYearVestingStorage is Ownable {
 	/// @notice Maximum interval to stake tokens at one go
 	uint256 public maxInterval;
 
-	/// @notice End of previous staking schedule
+	/// @notice End of previous staking schedule.
 	uint256 public lastStakingSchedule;
 
-	/// @notice Amount of shares left to be staked
+	/// @notice Amount of shares left to be staked.
 	uint256 public remainingStakeAmount;
 
-	/// @notice Durations left
+	/// @notice Durations left.
 	uint256 public durationLeft;
 
-	/// @notice Cliffs added
+	/// @notice Cliffs added.
 	uint256 public cliffAdded;
 
-	/// @notice Address(Tokenowner) -> Signed(Tue/False)
-	mapping(address => bool) public signed;
+	/// @notice Address of new token owner.
+	address public newTokenOwner;
+
+	/// @notice Address of new implementation.
+	address public newImplementation;
 }

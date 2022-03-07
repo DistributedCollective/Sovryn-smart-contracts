@@ -138,39 +138,47 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	}
 
 	/**
-	 * @notice Sign transactions - only Token Owner.
-	 * @dev The setImpl and changeTokenOwner functions can only be
-	 * executed when both vesting owner and token owner have approved. This
-	 * function ascertains the approval of token owner.
-	 * */
-	function signTransaction() public onlyTokenOwner {
-		require(!signed[msg.sender], "already signed");
-		signed[msg.sender] = true;
-	}
-
-	/**
-	 * @notice Change token owner.
-	 * @dev Changes token owner. Must be
-	 * approved by both token owner and multisig(vesting owner).
+	 * @notice Change token owner - only vesting owner.
+	 * @dev Modifies token owner. This must be followed by approval
+	 * from token owner.
 	 * @param _newTokenOwner Address of new token owner.
 	 * */
 	function changeTokenOwner(address _newTokenOwner) public onlyOwner {
-		require(_newTokenOwner != address(0), "invalid token owner address");
-		require(signed[tokenOwner], "must be signed by token owner");
-		tokenOwner = _newTokenOwner;
-		signed[tokenOwner] = false;
+		require(_newTokenOwner != address(0), "invalid new token owner address");
+		require(_newTokenOwner != tokenOwner, "same owner not allowed");
+		newTokenOwner = _newTokenOwner;
 	}
 
 	/**
-	 * @notice Set address of the implementation.
-	 * @dev This function does nothing as it cannot access the setImplementation
-	 * function of the UpgradableProxy. The actual function logic resides in the
-	 * proxy contract.
+	 * @notice Approve token owner change - only token Owner.
+	 * @dev Token owner can only be modified
+	 * when both vesting owner and token owner have approved. This
+	 * function ascertains the approval of token owner.
+	 * */
+	function approveOwnershipTransfer() public onlyTokenOwner {
+		require(newTokenOwner != address(0), "invalid address");
+		tokenOwner = newTokenOwner;
+		newTokenOwner = address(0);
+	}
+
+	/**
+	 * @notice Set address of the implementation - only Token Owner.
+	 * @dev This function sets the new implementation address.
+	 * It must also be approved by the Vesting owner.
+	 * @param _newImplementation Address of the new implementation.
+	 * */
+	function setImpl(address _newImplementation) public onlyTokenOwner {
+		require(_newImplementation != address(0), "invalid new implementation address");
+		newImplementation = _newImplementation;
+	}
+
+	/**
+	 * @dev setImplementation is a placeholder
+	 * to access the function of the UpgradableProxy contract.
+	 * Check the FourYearVesting.sol contract.
 	 * @param _implementation Address of the implementation.
 	 * */
-	function setImpl(address _implementation) public {
-		// Look at FourYearVesting.sol
-	}
+	function setImplementation(address _implementation) public {}
 
 	/**
 	 * @notice Allows the owners to migrate the positions
@@ -339,4 +347,11 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		selectors[0] = this.stakeTokensWithApproval.selector;
 		return selectors;
 	}
+
+	/**
+	 * @dev getImplementation is a placeholder
+	 * to access the function of the UpgradableProxy contract.
+	 * Check the Upgradable.sol contract.
+	 * */
+	function getImplementation() public view returns (address _implementation) {}
 }
