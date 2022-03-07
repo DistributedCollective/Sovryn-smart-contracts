@@ -9,6 +9,7 @@ const TestWrbtc = artifacts.require("TestWrbtc");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("FourYearVestingLogic");
 const Vesting = artifacts.require("FourYearVesting");
+const VestingFactory = artifacts.require("FourYearVestingFactory");
 //Upgradable Vesting Registry
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogicMockup");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
@@ -24,6 +25,7 @@ contract("FourYearVesting", (accounts) => {
 	let root, a1, a2, a3;
 	let token, staking, stakingLogic, feeSharingProxy;
 	let vestingLogic;
+	let vestingFactory;
 	let kickoffTS;
 
 	let cliff = 4 * WEEK;
@@ -35,6 +37,7 @@ contract("FourYearVesting", (accounts) => {
 		wrbtc = await TestWrbtc.new();
 
 		vestingLogic = await VestingLogic.new();
+		vestingFactory = await VestingFactory.new(vestingLogic.address);
 
 		feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, constants.ZERO_ADDRESS);
 
@@ -53,6 +56,36 @@ contract("FourYearVesting", (accounts) => {
 		await token.approve(staking.address, "1000", { from: a2 });
 
 		kickoffTS = await staking.kickoffTS.call();
+	});
+
+	describe("vestingfactory", () => {
+		it("sets the expected values", async () => {
+			let vestingInstance = await vestingFactory.deployFourYearVesting(
+				token.address,
+				staking.address,
+				a1,
+				cliff,
+				duration,
+				feeSharingProxy.address,
+				root
+			);
+			vestingInstance = await VestingLogic.at(vestingInstance.logs[0].address);
+
+			// Check data
+			let _sov = await vestingInstance.SOV();
+			let _stackingAddress = await vestingInstance.staking();
+			let _tokenOwner = await vestingInstance.tokenOwner();
+			let _cliff = await vestingInstance.cliff();
+			let _duration = await vestingInstance.duration();
+			let _feeSharingProxy = await vestingInstance.feeSharingProxy();
+
+			assert.equal(_sov, token.address);
+			assert.equal(_stackingAddress, staking.address);
+			assert.equal(_tokenOwner, a1);
+			assert.equal(_cliff.toString(), cliff);
+			assert.equal(_duration.toString(), duration);
+			assert.equal(_feeSharingProxy, feeSharingProxy.address);
+		});
 	});
 
 	describe("constructor", () => {
