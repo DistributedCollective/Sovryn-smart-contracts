@@ -663,3 +663,11 @@ def setRolloverBaseReward(baseReward):
     data = sovryn.setRolloverBaseReward.encode_input(baseReward)
     sendWithMultisig(conf.contracts['multisig'],
                      sovryn.address, data, conf.acct)
+
+def depositCollateral(loanId,depositAmount, tokenAddress):
+    token = Contract.from_abi("TestToken", address = tokenAddress, abi = TestToken.abi, owner = conf.acct)
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    if(token.allowance(conf.acct, sovryn.address) < depositAmount):
+        token.approve(sovryn.address, depositAmount)
+    sovryn.depositCollateral(loanId,depositAmount)
