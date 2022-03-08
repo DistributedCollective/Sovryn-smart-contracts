@@ -28,3 +28,5 @@ node_modules
 artifacts/
 cache/
 /abi/
+types/
+*.code-workspace
