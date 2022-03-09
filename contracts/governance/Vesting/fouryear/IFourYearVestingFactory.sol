@@ -12,8 +12,6 @@ interface IFourYearVestingFactory {
 		address _SOV,
 		address _staking,
 		address _tokenOwner,
-		uint256 _cliff,
-		uint256 _duration,
 		address _feeSharing,
 		address _owner
 	) external returns (address);
