@@ -92,13 +92,7 @@ contract("FourYearVesting", (accounts) => {
 
 	describe("constructor", () => {
 		it("sets the expected values", async () => {
-			let vestingInstance = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,				
-				feeSharingProxy.address
-			);
+			let vestingInstance = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
 			vestingInstance = await VestingLogic.at(vestingInstance.address);
 
 			// Check data
@@ -126,13 +120,7 @@ contract("FourYearVesting", (accounts) => {
 
 		it("fails if the 0 address is passed as token owner address", async () => {
 			await expectRevert(
-				Vesting.new(
-					vestingLogic.address,
-					token.address,
-					staking.address,
-					constants.ZERO_ADDRESS,
-					feeSharingProxy.address
-				),
+				Vesting.new(vestingLogic.address, token.address, staking.address, constants.ZERO_ADDRESS, feeSharingProxy.address),
 				"token owner address invalid"
 			);
 		});
@@ -152,17 +140,11 @@ contract("FourYearVesting", (accounts) => {
 		});
 
 		it("fails if logic is not a contract address", async () => {
-			await expectRevert(
-				Vesting.new(a1, token.address, staking.address, a1, feeSharingProxy.address),
-				"_logic not a contract"
-			);
+			await expectRevert(Vesting.new(a1, token.address, staking.address, a1, feeSharingProxy.address), "_logic not a contract");
 		});
 
 		it("fails if SOV is not a contract address", async () => {
-			await expectRevert(
-				Vesting.new(vestingLogic.address, a1, staking.address, a1, feeSharingProxy.address),
-				"_SOV not a contract"
-			);
+			await expectRevert(Vesting.new(vestingLogic.address, a1, staking.address, a1, feeSharingProxy.address), "_SOV not a contract");
 		});
 
 		it("fails if staking address is not a contract address", async () => {
@@ -184,13 +166,7 @@ contract("FourYearVesting", (accounts) => {
 		let vesting;
 		it("should stake tokens and delegate voting power", async () => {
 			let toStake = ONE_MILLON;
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				a2,
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, a2, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, toStake);
@@ -240,13 +216,7 @@ contract("FourYearVesting", (accounts) => {
 		// Check random scenarios
 		let vesting;
 		it("should stake 1,000,000 SOV with a duration of 156 weeks and a 4 week cliff", async () => {
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 			await token.approve(vesting.address, ONE_MILLON);
 			let remainingStakeAmount = ONE_MILLON;
@@ -317,13 +287,7 @@ contract("FourYearVesting", (accounts) => {
 			let amount = ONE_MILLON;
 			let cliff = 4 * WEEK;
 			let duration = 156 * WEEK;
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,			
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, amount);
@@ -348,13 +312,7 @@ contract("FourYearVesting", (accounts) => {
 			let amount = 1000;
 			let cliff = 4 * WEEK;
 			let duration = 39 * 4 * WEEK;
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,				
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 			await expectRevert(vesting.stakeTokensWithApproval(root, amount, 0), "unauthorized");
 		});
@@ -363,13 +321,7 @@ contract("FourYearVesting", (accounts) => {
 			let amount = 1000;
 			let cliff = 4 * WEEK;
 			let duration = 39 * 4 * WEEK;
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,				
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 
 			let contract = new web3.eth.Contract(vesting.abi, vesting.address);
@@ -383,13 +335,7 @@ contract("FourYearVesting", (accounts) => {
 			let amount = ONE_MILLON;
 			let cliff = 4 * WEEK;
 			let duration = 39 * 4 * WEEK;
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,			
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 
 			let contract = new web3.eth.Contract(vesting.abi, vesting.address);
@@ -415,13 +361,7 @@ contract("FourYearVesting", (accounts) => {
 			let amount = 39000;
 			let cliff = 4 * WEEK;
 			let duration = 156 * WEEK;
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,	
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 
 			let contract = new web3.eth.Contract(vesting.abi, vesting.address);
@@ -473,13 +413,7 @@ contract("FourYearVesting", (accounts) => {
 			let toStake = ONE_MILLON;
 
 			// Stake
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, toStake);
@@ -519,13 +453,7 @@ contract("FourYearVesting", (accounts) => {
 			let toStake = ONE_MILLON;
 
 			// Stake
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, toStake);
@@ -559,13 +487,7 @@ contract("FourYearVesting", (accounts) => {
 			let toStake = ONE_ETHER;
 
 			// Stake
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, toStake);
@@ -600,13 +522,7 @@ contract("FourYearVesting", (accounts) => {
 		it("should do nothing if withdrawing before reaching the cliff", async () => {
 			let toStake = ONE_MILLON;
 
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				a1,
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, a1, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, toStake);
@@ -643,13 +559,7 @@ contract("FourYearVesting", (accounts) => {
 			let toStake = ONE_MILLON;
 
 			// Stake
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 
 			await token.approve(vesting.address, toStake);
@@ -672,13 +582,7 @@ contract("FourYearVesting", (accounts) => {
 	describe("collectDividends", async () => {
 		let vesting;
 		it("should fail if the caller is neither owner nor token owner", async () => {
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				a1,
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, a1, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 			await expectRevert(vesting.collectDividends(root, 10, a1, { from: a2 }), "unauthorized");
 			await expectRevert(vesting.collectDividends(root, 10, a1, { from: a3 }), "unauthorized");
@@ -714,13 +618,7 @@ contract("FourYearVesting", (accounts) => {
 	describe("migrateToNewStakingContract", async () => {
 		let vesting;
 		it("should set the new staking contract", async () => {
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				a1,
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, a1, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 			// 1. set new staking contract address on staking contract
 
@@ -745,13 +643,7 @@ contract("FourYearVesting", (accounts) => {
 			await newStaking.setImplementation(stakingLogic.address);
 			newStaking = await StakingLogic.at(newStaking.address);
 
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				newStaking.address,
-				a1,
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, newStaking.address, a1, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 			await expectRevert(vesting.migrateToNewStakingContract(), "there is no new staking contract set");
 		});
@@ -761,13 +653,7 @@ contract("FourYearVesting", (accounts) => {
 			await newStaking.setImplementation(stakingLogic.address);
 			newStaking = await StakingLogic.at(newStaking.address);
 
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				newStaking.address,
-				a1,
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, newStaking.address, a1, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 
 			await newStaking.setNewStakingContract(newStaking.address);
@@ -783,26 +669,14 @@ contract("FourYearVesting", (accounts) => {
 	describe("fouryearvesting", async () => {
 		let vesting, dates0, dates3, dates5;
 		it("staking schedule must fail if sufficient tokens aren't approved", async () => {
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 			await token.approve(vesting.address, 1000);
 			await expectRevert(vesting.stakeTokens(ONE_MILLON, 0), "transfer amount exceeds allowance");
 		});
 
 		it("staking schedule must run for max duration", async () => {
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				root,
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 			await token.approve(vesting.address, ONE_MILLON);
 
@@ -876,13 +750,7 @@ contract("FourYearVesting", (accounts) => {
 	describe("setMaxInterval", async () => {
 		it("should set/alter maxInterval", async () => {
 			let toStake = ONE_MILLON;
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				a2,
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, a2, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 			let maxIntervalOld = await vesting.maxInterval();
 			await vesting.setMaxInterval(60 * WEEK);
