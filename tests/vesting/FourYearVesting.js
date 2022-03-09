@@ -173,60 +173,28 @@ contract("FourYearVesting", (accounts) => {
 
 		it("fails if logic is not a contract address", async () => {
 			await expectRevert(
-				Vesting.new(
-					a1,
-					token.address,
-					staking.address,
-					a1,
-					cliff,
-					duration,
-					feeSharingProxy.address
-				),
+				Vesting.new(a1, token.address, staking.address, a1, cliff, duration, feeSharingProxy.address),
 				"_logic not a contract"
 			);
 		});
 
 		it("fails if SOV is not a contract address", async () => {
 			await expectRevert(
-				Vesting.new(
-					vestingLogic.address,
-					a1,
-					staking.address,
-					a1,
-					cliff,
-					duration,
-					feeSharingProxy.address
-				),
+				Vesting.new(vestingLogic.address, a1, staking.address, a1, cliff, duration, feeSharingProxy.address),
 				"_SOV not a contract"
 			);
 		});
 
 		it("fails if staking address is not a contract address", async () => {
 			await expectRevert(
-				Vesting.new(
-					vestingLogic.address,
-					token.address,
-					a1,
-					a1,
-					cliff,
-					duration,
-					feeSharingProxy.address
-				),
+				Vesting.new(vestingLogic.address, token.address, a1, a1, cliff, duration, feeSharingProxy.address),
 				"_stakingAddress not a contract"
 			);
 		});
 
 		it("fails if fee sharing is not a contract address", async () => {
 			await expectRevert(
-				Vesting.new(
-					vestingLogic.address,
-					token.address,
-					staking.address,
-					a1,
-					cliff,
-					duration,
-					a1
-				),
+				Vesting.new(vestingLogic.address, token.address, staking.address, a1, cliff, duration, a1),
 				"_feeSharingProxy not a contract"
 			);
 		});
@@ -764,7 +732,10 @@ contract("FourYearVesting", (accounts) => {
 
 		it("should fail if receiver address is invalid", async () => {
 			let maxCheckpoints = new BN(10);
-			await expectRevert(vesting.collectDividends(a1, maxCheckpoints, constants.ZERO_ADDRESS, { from: a1 }), "receiver address invalid");
+			await expectRevert(
+				vesting.collectDividends(a1, maxCheckpoints, constants.ZERO_ADDRESS, { from: a1 }),
+				"receiver address invalid"
+			);
 		});
 
 		it("should collect dividends", async () => {
