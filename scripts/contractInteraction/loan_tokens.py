@@ -521,8 +521,8 @@ def replaceLoanTokenLogicOnAllContracts():
 
     # Can use the same Loan Protocol Settings with the LoanTokenLogicLM
     print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconWrbtc")
-    data = logicContractWrbtc.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
-    sendWithMultisig(conf.contracts['multisig'], logicContractWrbtc.address, data, conf.acct)
+    data = loanTokenLogicBeaconWrbtc.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWrbtc.address, data, conf.acct)
     
 
 def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
@@ -539,11 +539,11 @@ def triggerEmergencyStop(loanTokenAddress, turnOn):
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
 def readPauser(loanTokenAddress):
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=interface.ILoanTokenModules.abi, owner=conf.acct)
     print(loanToken.pauser())
 
 def setPauser(loanTokenAddress, pauser):
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=interface.ILoanTokenModules.abi, owner=conf.acct)
     data = loanToken.setPauser.encode_input(pauser)
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
@@ -817,3 +817,17 @@ def unpauseAllLoanTokens():
     unpauseLoanTokenLogicBeaconLM()
     unpauseLoanTokenLogicBeaconWRBTC()
 
+def replaceLoanTokenSettingsLowerAdmin():
+    print("Deploy Loan Token Settings Lower Admin Module")
+    loanTokenSettingsLowerAdmin = conf.acct.deploy(LoanTokenSettingsLowerAdmin)
+    print("LoanTokenSettingsLowerAdmin for BeaconLM module deployed at: ", loanTokenSettingsLowerAdmin.address)
+
+    loanTokenLogicBeaconLM = Contract.from_abi("LoanTokenLogicBeacon", address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconLM")
+    data = loanTokenLogicBeaconLM.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconLM.address, data, conf.acct)
+
+    loanTokenLogicBeaconWrbtc = Contract.from_abi("LoanTokenLogicBeacon", address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconWrbtc")
+    data = loanTokenLogicBeaconWrbtc.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWrbtc.address, data, conf.acct)
