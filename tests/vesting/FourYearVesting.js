@@ -681,7 +681,7 @@ contract("FourYearVesting", (accounts) => {
 			await expectRevert(vesting.withdrawTokens(root, { from: a2 }), "unauthorized");
 		});
 
-		it("Shouldn't be possible to use governanceWithdrawVesting by anyone but owner", async () => {
+		it("shouldn't be possible to use governanceWithdrawVesting by anyone but owner", async () => {
 			let toStake = ONE_MILLON;
 
 			// Stake
@@ -708,7 +708,7 @@ contract("FourYearVesting", (accounts) => {
 			await expectRevert(staking.governanceWithdrawVesting(vesting.address, root, { from: a1 }), "unauthorized");
 		});
 
-		it("Shouldn't be possible to use governanceWithdraw by user", async () => {
+		it("shouldn't be possible to use governanceWithdraw by user", async () => {
 			await expectRevert(staking.governanceWithdraw(100, kickoffTS.toNumber() + 52 * WEEK, root), "unauthorized");
 		});
 	});
@@ -834,6 +834,21 @@ contract("FourYearVesting", (accounts) => {
 
 	describe("fouryearvesting", async () => {
 		let vesting, dates0, dates3, dates5;
+		it("staking schedule must fail if sufficient tokens aren't approved", async () => {
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				root,
+				4 * WEEK,
+				39 * 4 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+			await token.approve(vesting.address, 1000);
+			await expectRevert(vesting.stakeTokens(ONE_MILLON, 0), "transfer amount exceeds allowance");
+		});
+
 		it("staking schedule must run for max duration", async () => {
 			vesting = await Vesting.new(
 				vestingLogic.address,
