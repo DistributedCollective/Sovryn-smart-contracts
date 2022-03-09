@@ -759,13 +759,7 @@ contract("FourYearVesting", (accounts) => {
 	describe("changeTokenOwner", async () => {
 		let vesting;
 		it("should not change token owner if vesting owner didn't approve", async () => {
-			vesting = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				a1,
-				feeSharingProxy.address
-			);
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, a1, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 			await expectRevert(vesting.changeTokenOwner(a2, { from: a1 }), "unauthorized");
 		});
@@ -808,13 +802,7 @@ contract("FourYearVesting", (accounts) => {
 		let vesting, newVestingLogic, vestingObject;
 		const NewVestingLogic = artifacts.require("MockFourYearVestingLogic");
 		it("should not change implementation if token owner didn't sign", async () => {
-			vestingObject = await Vesting.new(
-				vestingLogic.address,
-				token.address,
-				staking.address,
-				a1,
-				feeSharingProxy.address
-			);
+			vestingObject = await Vesting.new(vestingLogic.address, token.address, staking.address, a1, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vestingObject.address);
 			newVestingLogic = await NewVestingLogic.new();
 			await expectRevert(vesting.setImpl(newVestingLogic.address, { from: a3 }), "unauthorized");
