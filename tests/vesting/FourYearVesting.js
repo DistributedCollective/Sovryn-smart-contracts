@@ -764,8 +764,6 @@ contract("FourYearVesting", (accounts) => {
 				token.address,
 				staking.address,
 				a1,
-				4 * WEEK,
-				39 * 4 * WEEK,
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
@@ -815,8 +813,6 @@ contract("FourYearVesting", (accounts) => {
 				token.address,
 				staking.address,
 				a1,
-				4 * WEEK,
-				39 * 4 * WEEK,
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vestingObject.address);
