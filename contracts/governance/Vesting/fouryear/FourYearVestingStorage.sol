@@ -4,6 +4,7 @@ import "../../../openzeppelin/Ownable.sol";
 import "../../../interfaces/IERC20.sol";
 import "../../Staking/Staking.sol";
 import "../../IFeeSharingProxy.sol";
+import "../../../openzeppelin/Address.sol";
 
 /**
  * @title Four Year Vesting Storage Contract.

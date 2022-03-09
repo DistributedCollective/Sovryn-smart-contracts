@@ -37,31 +37,25 @@ contract FourYearVesting is FourYearVestingStorage, UpgradableProxy {
 		uint256 _duration,
 		address _feeSharingProxy
 	) public {
+		require(Address.isContract(_logic), "_logic not a contract");
 		require(_SOV != address(0), "SOV address invalid");
+		require(Address.isContract(_SOV), "_SOV not a contract");
 		require(_stakingAddress != address(0), "staking address invalid");
+		require(Address.isContract(_stakingAddress), "_stakingAddress not a contract");
 		require(_tokenOwner != address(0), "token owner address invalid");
 		require(_cliff == 4 weeks, "invalid cliff");
 		require(_duration == 156 weeks, "invalid duration");
 		require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
+		require(Address.isContract(_feeSharingProxy), "_feeSharingProxy not a contract");
 
 		_setImplementation(_logic);
 		SOV = IERC20(_SOV);
 		staking = Staking(_stakingAddress);
-		require(_duration <= staking.MAX_DURATION(), "duration may not exceed the max duration");
 		tokenOwner = _tokenOwner;
 		cliff = _cliff;
 		duration = _duration;
 		feeSharingProxy = IFeeSharingProxy(_feeSharingProxy);
 		maxInterval = 18 * FOUR_WEEKS;
-	}
-
-	/**
-	 * @dev We need to add this implementation to prevent proxy call
-	 * FourYearVestingLogic.governanceWithdrawTokens.
-	 * @param receiver The receiver of the token withdrawal.
-	 * */
-	function governanceWithdrawTokens(address receiver) public pure {
-		revert("operation not supported");
 	}
 
 	/**

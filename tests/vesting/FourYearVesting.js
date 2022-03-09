@@ -59,6 +59,10 @@ contract("FourYearVesting", (accounts) => {
 	});
 
 	describe("vestingfactory", () => {
+		it("fails if the 0 address is passed as logic address", async () => {
+			await expectRevert(VestingFactory.new(constants.ZERO_ADDRESS), "invalid four year vesting logic address");
+		});
+
 		it("sets the expected values", async () => {
 			let vestingInstance = await vestingFactory.deployFourYearVesting(
 				token.address,
@@ -120,7 +124,6 @@ contract("FourYearVesting", (accounts) => {
 		it("fails if the 0 address is passed as SOV address", async () => {
 			await expectRevert(
 				Vesting.new(vestingLogic.address, constants.ZERO_ADDRESS, staking.address, root, cliff, duration, feeSharingProxy.address),
-
 				"SOV address invalid"
 			);
 		});
@@ -147,14 +150,14 @@ contract("FourYearVesting", (accounts) => {
 			);
 		});
 
-		it("fails if the vesting duration is bigger than the max staking duration", async () => {
+		it("fails if the cliff is not 4 weeks", async () => {
 			await expectRevert(
 				Vesting.new(vestingLogic.address, token.address, staking.address, root, 2 * WEEK, duration, feeSharingProxy.address),
 				"invalid cliff"
 			);
 		});
 
-		it("fails if the vesting duration is bigger than the max staking duration", async () => {
+		it("fails if the duration is not 156 weeks", async () => {
 			await expectRevert(
 				Vesting.new(vestingLogic.address, token.address, staking.address, root, cliff, 150 * WEEK, feeSharingProxy.address),
 				"invalid duration"
@@ -165,6 +168,34 @@ contract("FourYearVesting", (accounts) => {
 			await expectRevert(
 				Vesting.new(vestingLogic.address, token.address, staking.address, root, cliff, duration, constants.ZERO_ADDRESS),
 				"feeSharingProxy address invalid"
+			);
+		});
+
+		it("fails if logic is not a contract address", async () => {
+			await expectRevert(
+				Vesting.new(a1, token.address, staking.address, a1, cliff, duration, feeSharingProxy.address),
+				"_logic not a contract"
+			);
+		});
+
+		it("fails if SOV is not a contract address", async () => {
+			await expectRevert(
+				Vesting.new(vestingLogic.address, a1, staking.address, a1, cliff, duration, feeSharingProxy.address),
+				"_SOV not a contract"
+			);
+		});
+
+		it("fails if staking address is not a contract address", async () => {
+			await expectRevert(
+				Vesting.new(vestingLogic.address, token.address, a1, a1, cliff, duration, feeSharingProxy.address),
+				"_stakingAddress not a contract"
+			);
+		});
+
+		it("fails if fee sharing is not a contract address", async () => {
+			await expectRevert(
+				Vesting.new(vestingLogic.address, token.address, staking.address, a1, cliff, duration, a1),
+				"_feeSharingProxy not a contract"
 			);
 		});
 	});
@@ -650,7 +681,7 @@ contract("FourYearVesting", (accounts) => {
 			await expectRevert(vesting.withdrawTokens(root, { from: a2 }), "unauthorized");
 		});
 
-		it("Shouldn't be possible to use governanceWithdrawVesting by anyone but owner", async () => {
+		it("shouldn't be possible to use governanceWithdrawVesting by anyone but owner", async () => {
 			let toStake = ONE_MILLON;
 
 			// Stake
@@ -677,12 +708,8 @@ contract("FourYearVesting", (accounts) => {
 			await expectRevert(staking.governanceWithdrawVesting(vesting.address, root, { from: a1 }), "unauthorized");
 		});
 
-		it("Shouldn't be possible to use governanceWithdraw by user", async () => {
+		it("shouldn't be possible to use governanceWithdraw by user", async () => {
 			await expectRevert(staking.governanceWithdraw(100, kickoffTS.toNumber() + 52 * WEEK, root), "unauthorized");
-		});
-
-		it("Shouldn't be possible to use governanceWithdrawTokens by user", async () => {
-			await expectRevert(vesting.governanceWithdrawTokens(root), "operation not supported");
 		});
 	});
 
@@ -701,6 +728,14 @@ contract("FourYearVesting", (accounts) => {
 			vesting = await VestingLogic.at(vesting.address);
 			await expectRevert(vesting.collectDividends(root, 10, a1, { from: a2 }), "unauthorized");
 			await expectRevert(vesting.collectDividends(root, 10, a1, { from: a3 }), "unauthorized");
+		});
+
+		it("should fail if receiver address is invalid", async () => {
+			let maxCheckpoints = new BN(10);
+			await expectRevert(
+				vesting.collectDividends(a1, maxCheckpoints, constants.ZERO_ADDRESS, { from: a1 }),
+				"receiver address invalid"
+			);
 		});
 
 		it("should collect dividends", async () => {
@@ -799,6 +834,21 @@ contract("FourYearVesting", (accounts) => {
 
 	describe("fouryearvesting", async () => {
 		let vesting, dates0, dates3, dates5;
+		it("staking schedule must fail if sufficient tokens aren't approved", async () => {
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				root,
+				4 * WEEK,
+				39 * 4 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+			await token.approve(vesting.address, 1000);
+			await expectRevert(vesting.stakeTokens(ONE_MILLON, 0), "transfer amount exceeds allowance");
+		});
+
 		it("staking schedule must run for max duration", async () => {
 			vesting = await Vesting.new(
 				vestingLogic.address,
@@ -857,6 +907,11 @@ contract("FourYearVesting", (accounts) => {
 			expect(data.stakes[0]).to.be.bignumber.equal(data.stakes[15]);
 			expect(dates0).to.be.bignumber.not.equal(data.dates[0]);
 			expect(dates3).to.be.bignumber.equal(data.dates[0]);
+		});
+
+		it("should not withdraw unlocked tokens if receiver address is 0", async () => {
+			// withdraw
+			await expectRevert(vesting.withdrawTokens(constants.ZERO_ADDRESS), "receiver address invalid");
 		});
 
 		it("should withdraw unlocked tokens for four year vesting after first year", async () => {
