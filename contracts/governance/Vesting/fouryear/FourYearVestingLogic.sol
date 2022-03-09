@@ -44,7 +44,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	 * @notice Sets the max interval.
 	 * @param _interval Max interval for which tokens scheduled shall be staked.
 	 * */
-	function setMaxInterval(uint256 _interval) public onlyOwner {
+	function setMaxInterval(uint256 _interval) external onlyOwner {
 		maxInterval = _interval;
 	}
 
@@ -57,7 +57,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	 * @return lastSchedule The max duration for which tokens were staked.
 	 * @return remainingAmount The amount outstanding - to be staked.
 	 * */
-	function stakeTokens(uint256 _amount, uint256 _restartStakeSchedule) public returns (uint256 lastSchedule, uint256 remainingAmount) {
+	function stakeTokens(uint256 _amount, uint256 _restartStakeSchedule) external returns (uint256 lastSchedule, uint256 remainingAmount) {
 		(lastSchedule, remainingAmount) = _stakeTokens(msg.sender, _amount, _restartStakeSchedule);
 	}
 
@@ -77,7 +77,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		address _sender,
 		uint256 _amount,
 		uint256 _restartStakeSchedule
-	) public onlyThisContract returns (uint256 lastSchedule, uint256 remainingAmount) {
+	) external onlyThisContract returns (uint256 lastSchedule, uint256 remainingAmount) {
 		(lastSchedule, remainingAmount) = _stakeTokens(_sender, _amount, _restartStakeSchedule);
 	}
 
@@ -86,7 +86,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	 * to `delegatee`.
 	 * @param _delegatee The address to delegate votes to.
 	 * */
-	function delegate(address _delegatee) public onlyTokenOwner {
+	function delegate(address _delegatee) external onlyTokenOwner {
 		require(_delegatee != address(0), "delegatee address invalid");
 		uint256 stakingEndDate = endDate;
 		/// @dev Withdraw for each unlocked position.
@@ -104,7 +104,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	 * @param receiver The receiving address.
 	 * @dev Can be called only by owner.
 	 * */
-	function governanceWithdrawTokens(address receiver) public {
+	function governanceWithdrawTokens(address receiver) external {
 		require(msg.sender == address(staking), "unauthorized");
 		_withdrawTokens(receiver, true);
 	}
@@ -114,7 +114,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	 * forwards them to an address specified by the token owner.
 	 * @param receiver The receiving address.
 	 * */
-	function withdrawTokens(address receiver) public onlyTokenOwner {
+	function withdrawTokens(address receiver) external onlyTokenOwner {
 		_withdrawTokens(receiver, false);
 	}
 
@@ -128,7 +128,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		address _loanPoolToken,
 		uint32 _maxCheckpoints,
 		address _receiver
-	) public onlyTokenOwner {
+	) external onlyTokenOwner {
 		require(_receiver != address(0), "receiver address invalid");
 
 		/// @dev Invokes the fee sharing proxy.
@@ -141,7 +141,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	 * @notice Allows the owners to migrate the positions
 	 * to a new staking contract.
 	 * */
-	function migrateToNewStakingContract() public onlyOwners {
+	function migrateToNewStakingContract() external onlyOwners {
 		staking.migrateToNewStakingContract();
 		staking = Staking(staking.newStakingContract());
 		emit MigratedToNewStakingContract(msg.sender, address(staking));
@@ -154,7 +154,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	 * passed, hence, we extend the duration of staking for all unlocked tokens for the first
 	 * year by 3 years.
 	 * */
-	function extendStaking() public {
+	function extendStaking() external {
 		uint256 oneYear = startDate.add(52 weeks);
 		uint256[] memory dates;
 		uint96[] memory stakes;
