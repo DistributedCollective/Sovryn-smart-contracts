@@ -30,9 +30,9 @@ def main():
     totalAmount = 0
 
     # amounts examples: 112.80, "2,387.64", 215.03
-    data = parseFile('./scripts/deployment/distribution/direct-transfers9.csv', 10**16)
+    data = parseFile('./scripts/deployment/distribution/direct-sov-transfers10.csv', 10**16)
     totalAmount += data["totalAmount"]
-    # tokenSender.transferSOVusingList(data["receivers"], data["amounts"])
+    tokenSender.transferSOVusingList(data["receivers"], data["amounts"])
 
     #
     print("=======================================")

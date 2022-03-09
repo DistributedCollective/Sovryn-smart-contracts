@@ -14,9 +14,9 @@ def main():
     #load the contracts and acct depending on the network
     loadConfig()
 
-    # transferSOVtoScriptAccount()
-    # transferSOVtoTokenSender()
-    # transferXUSDtoTokenSender()
+    transferSOVtoScriptAccount()
+    transferSOVtoTokenSender()
+    transferXUSDtoTokenSender()
 
 
 def loadConfig():
@@ -1000,12 +1000,16 @@ def createProposalSIP0015():
     #     description)
 
 def transferXUSDtoTokenSender():
-    # 53767 SOV
-    amount = 53767 * 10**18
+    '''
+    direct liquid xUSD distribution
+    '''
+    # 47397 xUSD
+    amount = 47397 * 10**18
 
     tokenSenderAddress = contracts['GenericTokenSender']
     token = Contract.from_abi("TestToken", address=contracts['XUSD'], abi=TestToken.abi, owner=acct)
     data = token.transfer.encode_input(tokenSenderAddress, amount)
+    print("Transfer",amount, "xUSD form Multisig:", contracts['multisig']," to GenericTokenSender:",tokenSenderAddress)
     print(data)
 
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
@@ -1015,8 +1019,11 @@ def transferXUSDtoTokenSender():
 
 
 def transferSOVtoTokenSender():
-    # 89652.42 SOV
-    amount = 8965242 * 10**16
+    '''
+    direct liquid SOV distribution
+    '''
+    # 79401.98 SOV
+    amount = 7940198 * 10**16
 
     tokenSenderAddress = contracts['TokenSender']
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
@@ -1029,11 +1036,14 @@ def transferSOVtoTokenSender():
     print(txId)
 
 def transferSOVtoScriptAccount():
-    # 153199.30 SOV
-    amount = 15319930 * 10**16
+    '''
+    sent to the script for vestings
+    '''
+    # 58062.92 SOV
+    amount = 5806292 * 10**16
 
     # TODO set receiver address
-    receiver = "0x27D55f5668eF4438635bdCE0aDCA083507E77752"
+    receiver = "0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E"
     if (receiver == ""):
         raise Exception("Invalid address")
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)

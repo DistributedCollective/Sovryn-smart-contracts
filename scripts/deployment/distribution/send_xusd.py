@@ -30,7 +30,7 @@ def main():
     totalAmount = 0
 
     # amounts examples: "8,834", 7400
-    data = parseFile('./scripts/deployment/distribution/xusd-transfers.csv', 10**18)
+    data = parseFile('./scripts/deployment/distribution/xusd-transfers2.csv', 10**18)
     totalAmount += data["totalAmount"]
     # tokenSender.transferTokensUsingList(contracts['XUSD'], data["receivers"], data["amounts"])
 
