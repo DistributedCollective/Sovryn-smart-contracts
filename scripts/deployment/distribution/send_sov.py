@@ -29,10 +29,11 @@ def main():
     balanceBefore = acct.balance()
     totalAmount = 0
 
-    # amounts examples: 112.80, "2,387.64", 215.03
+    # amounts examples: 112.80, "2,387.64", 215.03 - mind 2 decimal places in the file for each number!
     data = parseFile('./scripts/deployment/distribution/direct-sov-transfers10.csv', 10**16)
     totalAmount += data["totalAmount"]
-    tokenSender.transferSOVusingList(data["receivers"], data["amounts"])
+    # first do a dry run to check the amount then uncomment the next line to do actual distribution
+    # tokenSender.transferSOVusingList(data["receivers"], data["amounts"])
 
     #
     print("=======================================")
