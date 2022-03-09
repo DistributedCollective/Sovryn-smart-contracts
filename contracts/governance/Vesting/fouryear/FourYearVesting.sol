@@ -25,8 +25,6 @@ contract FourYearVesting is FourYearVestingStorage, UpgradableProxy {
 	 * @param _logic The address of logic contract.
 	 * @param _SOV The SOV token address.
 	 * @param _tokenOwner The owner of the tokens.
-	 * @param _cliff The time interval to the first withdraw in seconds.
-	 * @param _duration The total duration in seconds.
 	 * @param _feeSharingProxy Fee sharing proxy address.
 	 * */
 	constructor(
@@ -34,8 +32,6 @@ contract FourYearVesting is FourYearVestingStorage, UpgradableProxy {
 		address _SOV,
 		address _stakingAddress,
 		address _tokenOwner,
-		uint256 _cliff,
-		uint256 _duration,
 		address _feeSharingProxy
 	) public {
 		require(Address.isContract(_logic), "_logic not a contract");
@@ -44,8 +40,6 @@ contract FourYearVesting is FourYearVestingStorage, UpgradableProxy {
 		require(_stakingAddress != address(0), "staking address invalid");
 		require(Address.isContract(_stakingAddress), "_stakingAddress not a contract");
 		require(_tokenOwner != address(0), "token owner address invalid");
-		require(_cliff == 4 weeks, "invalid cliff");
-		require(_duration == 156 weeks, "invalid duration");
 		require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
 		require(Address.isContract(_feeSharingProxy), "_feeSharingProxy not a contract");
 
@@ -53,8 +47,6 @@ contract FourYearVesting is FourYearVestingStorage, UpgradableProxy {
 		SOV = IERC20(_SOV);
 		staking = Staking(_stakingAddress);
 		tokenOwner = _tokenOwner;
-		cliff = _cliff;
-		duration = _duration;
 		feeSharingProxy = IFeeSharingProxy(_feeSharingProxy);
 		maxInterval = 18 * FOUR_WEEKS;
 	}
