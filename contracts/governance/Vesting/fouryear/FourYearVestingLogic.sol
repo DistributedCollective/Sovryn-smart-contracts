@@ -99,17 +99,6 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	}
 
 	/**
-	 * @notice Withdraws all tokens from the staking contract and
-	 * forwards them to an address specified by the token owner.
-	 * @param receiver The receiving address.
-	 * @dev Can be called only by owner.
-	 * */
-	function governanceWithdrawTokens(address receiver) external {
-		require(msg.sender == address(staking), "unauthorized");
-		_withdrawTokens(receiver, true);
-	}
-
-	/**
 	 * @notice Withdraws unlocked tokens from the staking contract and
 	 * forwards them to an address specified by the token owner.
 	 * @param receiver The receiving address.
