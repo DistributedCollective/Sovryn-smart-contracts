@@ -8,6 +8,7 @@ import "../../IFeeSharingProxy.sol";
 import "../../ApprovalReceiver.sol";
 import "./FourYearVestingStorage.sol";
 import "../../../proxy/UpgradableProxy.sol";
+import "../../../openzeppelin/Address.sol";
 
 /**
  * @title Four Year Vesting Contract.
@@ -67,7 +68,7 @@ contract FourYearVesting is FourYearVestingStorage, UpgradableProxy {
 	 * @param _implementation Address of the implementation. Must match with what is set by token owner.
 	 * */
 	function setImplementation(address _implementation) public onlyProxyOwner {
-		require(newImplementation != address(0), "invalid address");
+		require(Address.isContract(_implementation), "_implementation not a contract");
 		require(newImplementation == _implementation, "address mismatch");
 		_setImplementation(_implementation);
 		newImplementation = address(0);

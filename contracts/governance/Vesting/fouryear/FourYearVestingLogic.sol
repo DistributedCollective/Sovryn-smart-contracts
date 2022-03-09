@@ -128,7 +128,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	}
 
 	/**
-	 * @notice Change token owner - only vesting owner.
+	 * @notice Change token owner - only vesting owner is allowed to change.
 	 * @dev Modifies token owner. This must be followed by approval
 	 * from token owner.
 	 * @param _newTokenOwner Address of new token owner.

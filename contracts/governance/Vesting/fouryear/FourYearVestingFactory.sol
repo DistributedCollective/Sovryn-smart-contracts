@@ -10,13 +10,6 @@ import "./IFourYearVestingFactory.sol";
  * of the same contract and keep track of them easier.
  * */
 contract FourYearVestingFactory is IFourYearVestingFactory, Ownable {
-	address public fourYearVestingLogic;
-
-	constructor(address _fourYearVestingLogic) public {
-		require(_fourYearVestingLogic != address(0), "invalid four year vesting logic address");
-		fourYearVestingLogic = _fourYearVestingLogic;
-	}
-
 	/**
 	 * @notice Deploys four year vesting contract.
 	 * @param _SOV the address of SOV token.
@@ -25,8 +18,9 @@ contract FourYearVestingFactory is IFourYearVestingFactory, Ownable {
 	 * @param _cliff The time interval to the first withdraw in seconds.
 	 * @param _duration The total duration in seconds.
 	 * @param _feeSharing The address of fee sharing contract.
-	 * @param _vestingOwner The address of an owner of vesting contract.
-	 * @dev _vestingOwner should ALWAYS be multisig.
+	 * @param _vestingOwnerMultisig The address of an owner of vesting contract.
+	 * @dev _vestingOwnerMultisig should ALWAYS be multisig.
+	 * @param _fourYearVestingLogic The implementation contract.
 	 * @return The four year vesting contract address.
 	 * */
 	function deployFourYearVesting(
@@ -36,11 +30,13 @@ contract FourYearVestingFactory is IFourYearVestingFactory, Ownable {
 		uint256 _cliff,
 		uint256 _duration,
 		address _feeSharing,
-		address _vestingOwner
+		address _vestingOwnerMultisig,
+		address _fourYearVestingLogic
 	) external onlyOwner returns (address) {
-		address fourYearVesting =
-			address(new FourYearVesting(fourYearVestingLogic, _SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing));
-		Ownable(fourYearVesting).transferOwnership(_vestingOwner);
+		address fourYearVesting = address(
+			new FourYearVesting(_fourYearVestingLogic, _SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing)
+		);
+		Ownable(fourYearVesting).transferOwnership(_vestingOwnerMultisig);
 		return fourYearVesting;
 	}
 }

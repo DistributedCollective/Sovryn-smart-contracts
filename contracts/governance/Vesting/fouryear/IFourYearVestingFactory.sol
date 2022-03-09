@@ -15,6 +15,7 @@ interface IFourYearVestingFactory {
 		uint256 _cliff,
 		uint256 _duration,
 		address _feeSharing,
-		address _owner
+		address _vestingOwnerMultisig,
+		address _fourYearVestingLogic
 	) external returns (address);
 }
