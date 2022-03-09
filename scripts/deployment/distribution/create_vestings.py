@@ -36,8 +36,8 @@ def main():
     balanceBefore = acct.balance()
     totalAmount = 0
 
-    # amounts examples: "6,516.85", 912.92
-    data = parseFile('./scripts/deployment/distribution/vestings20.csv', 10**16)
+    # amounts examples: "6,516.85", 912.92 - mind 2 decimals strictly!
+    data = parseFile('./scripts/deployment/distribution/vestings21.csv', 10**16)
     totalAmount += data["totalAmount"]
 
     vestingCreationType = 1
