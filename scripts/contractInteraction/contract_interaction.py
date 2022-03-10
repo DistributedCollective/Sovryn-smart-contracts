@@ -19,8 +19,8 @@ def main():
     #transferXUSDtoTokenSender()
     # checkTxn(837)
 
-    vestingRegistryAddAdmin('0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E')
-    vestingRegistryRemoveAdmin('0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E')
+    #vestingRegistryAddAdmin('0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E')
+    #vestingRegistryRemoveAdmin('0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E')
 
 
 def loadConfig():
@@ -898,7 +898,7 @@ def vestingRegistryRemoveAdmin(admin):
     abiFile =  open('./scripts/contractInteraction/VestingRegistryLogic.json')
     abi = json.load(abiFile)
     vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=contracts['VestingRegistryProxy'], abi=abi, owner=acct)
-    data = vestingRegistry.addAdmin.encode_input(admin)
+    data = vestingRegistry.removeAdmin.encode_input(admin)
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(vestingRegistry.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
