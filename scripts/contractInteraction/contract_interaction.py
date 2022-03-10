@@ -15,9 +15,9 @@ def main():
     loadConfig()
 
     transferSOVtoScriptAccount()
-    transferSOVtoTokenSender()
-    transferXUSDtoTokenSender()
-
+    #transferSOVtoTokenSender()
+    #transferXUSDtoTokenSender()
+    # checkTxn(837)
 
 def loadConfig():
     global contracts, acct
@@ -1055,10 +1055,9 @@ def transferSOVtoScriptAccount():
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
-def checkTxn():
+def checkTxn(txId):
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
 
-    txId = 725
     print(txId)
     print(multisig.getConfirmationCount(txId))
     print(multisig.transactions(txId))
