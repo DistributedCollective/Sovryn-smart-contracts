@@ -1039,8 +1039,8 @@ def transferSOVtoScriptAccount():
     '''
     sent to the script for vestings
     '''
-    # 58062.92 SOV
-    amount = 5806292 * 10**16
+    # 71699.28
+    amount = 7169928 * 10**16
 
     # TODO set receiver address
     receiver = "0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E"
