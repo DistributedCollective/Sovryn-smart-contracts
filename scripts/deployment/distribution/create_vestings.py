@@ -78,7 +78,7 @@ def main():
         # stakes = staking.getStakes(vestingAddress)
         # print(stakes)
 
-    # 7107.90
+    # 71699.28 SOV
     print("=======================================")
     print("SOV amount:")
     print(totalAmount / 10**18)
@@ -106,9 +106,9 @@ def parseFile(fileName, multiplier):
 
             teamVestingList.append([tokenOwner, amount, cliff, duration, isTeam])
 
-            # print("=======================================")
-            # print("'" + tokenOwner + "', ")
-            # print(amount)
+            print("=======================================")
+            print("'" + tokenOwner + "', ")
+            print(amount)
     return {
                "totalAmount": totalAmount,
                "teamVestingList": teamVestingList,

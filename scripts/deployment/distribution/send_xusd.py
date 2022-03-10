@@ -32,11 +32,12 @@ def main():
     # amounts examples: "8,834", 7400
     data = parseFile('./scripts/deployment/distribution/xusd-transfers2.csv', 10**18)
     totalAmount += data["totalAmount"]
+    # first do a dry run to check the amount then uncomment the next line to do actual distribution
     # tokenSender.transferTokensUsingList(contracts['XUSD'], data["receivers"], data["amounts"])
 
     # 282.05, 564.10, 641.03
     print("=======================================")
-    print("SOV amount:")
+    print("XUSD amount:")
     print(totalAmount / 10**18)
 
     print("deployment cost:")
