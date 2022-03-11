@@ -672,6 +672,20 @@ contract("FourYearVesting", (accounts) => {
 			await expectRevert(vesting.stakeTokens(ONE_MILLON, 0), "transfer amount exceeds allowance");
 		});
 
+		it("staking schedule must fail for incorrect parameters", async () => {
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
+			vesting = await VestingLogic.at(vesting.address);
+			await token.approve(vesting.address, ONE_MILLON);
+
+			let remainingStakeAmount = ONE_MILLON;
+			let lastStakingSchedule = 0;
+			await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+			lastStakingSchedule = await vesting.lastStakingSchedule();
+			remainingStakeAmount = await vesting.remainingStakeAmount();
+			await expectRevert(vesting.stakeTokens(remainingStakeAmount + 100, lastStakingSchedule), "invalid params");
+			await expectRevert(vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule + 100), "invalid params");
+		});
+
 		it("staking schedule must run for max duration", async () => {
 			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
