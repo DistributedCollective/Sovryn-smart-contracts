@@ -142,6 +142,31 @@ def testTradeOpeningAndClosingWithCollateral(protocolAddress, loanTokenAddress, 
         tx = sovryn.closeWithSwap(loanId, conf.acct, collateral, True, b'')
         tx.info()
 
+def goSOVLongWithMS(sovSent):
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iRBTC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    sovToken = Contract.from_abi("TestToken", address = conf.contracts['SOV'], abi = TestToken.abi, owner = conf.acct)
+
+    if(sovToken.allowance(conf.contracts['multisig'], loanToken.address) < sovSent):
+        print("getting approval")
+        data = sovToken.approve.encode_input(loanToken.address, sovSent)
+        print(data)
+        sendWithMultisig(conf.contracts['multisig'], sovToken, data, conf.acct)
+
+    print('going to trade')
+    data = loanToken.marginTrade.encode_input(
+        "0",  # loanId  (0 for new loans)
+        0.33e18,  # leverageAmount, 18 decimals
+        0,  # loanTokenSent
+        sovSent,  # no collateral token sent
+        sovToken.address,  # collateralTokenAddress
+        conf.contracts['multisig'],  # trader,
+        0, # slippage
+        b''
+    )
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], loanToken, data, conf.acct)
+    
+
 def withdrawRBTCFromIWRBTC(toAddress, amount):
     loanTokenAddress = conf.contracts['iRBTC']
     withdrawRBTCFromLoanTokenTo(loanTokenAddress, toAddress, amount)

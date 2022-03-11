@@ -43,6 +43,11 @@ def readLMVestingContractForAddress(userAddress):
     address = vestingRegistry.getVesting(userAddress)
     print(address)
 
+def readAllVestingContractsForAddress(userAddress):
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    addresses = vestingRegistry.getVestingsOf(userAddress)
+    print(addresses)
+
 def readStakingKickOff():
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
     print(staking.kickoffTS())
@@ -147,8 +152,7 @@ def setBlockForStakingRewards():
 def setHistoricalBlockForStakingRewards(blockTime):
     # Get the staking rewards proxy contract instance
     stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
-    data = stakingRewards.setHistoricalBlock.encode_input(blockTime)
-    sendWithMultisig(conf.contracts['multisig'], conf.contracts['StakingRewardsProxy'], data, conf.acct)
+    stakingRewards.setHistoricalBlock(blockTime)
 
 #Upgrade Staking
 # Upgrade Staking
@@ -263,3 +267,9 @@ def updateLockedSOV():
     data = lockedSOV.changeRegistryCliffAndDuration.encode_input(conf.contracts['VestingRegistryProxy'], cliff, duration)
     print(data)
     # sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
+
+def governanceWithdrawVesting( vesting,  receiver):
+    stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    data = stakingProxy.governanceWithdrawVesting.encode_input( vesting,  receiver)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)

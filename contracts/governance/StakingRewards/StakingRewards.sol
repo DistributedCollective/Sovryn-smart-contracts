@@ -57,9 +57,13 @@ contract StakingRewards is StakingRewardsStorage {
 	 * The weighted stake is calculated using getPriorWeightedStake. Block number sent to the functon
 	 * must be a finalised block, hence we deduct 1 from the current block. User is only allowed to withdraw
 	 * after intervals of 14 days.
+	 * @param restartTime The time from which the staking rewards calculation shall restart.
+	 * The issue is that we can only run for a max duration and if someone stakes for the
+	 * first time after the max duration is over, the reward will always return 0. Thus, we need to restart
+	 * from the duration that elapsed without generating rewards.
 	 * */
-	function collectReward() external {
-		(uint256 withdrawalTime, uint256 amount) = getStakerCurrentReward(true);
+	function collectReward(uint256 restartTime) external {
+		(uint256 withdrawalTime, uint256 amount) = getStakerCurrentReward(true, restartTime);
 		require(withdrawalTime > 0 && amount > 0, "no valid reward");
 		withdrawals[msg.sender] = withdrawalTime;
 		_payReward(msg.sender, amount);
@@ -96,7 +100,7 @@ contract StakingRewards is StakingRewardsStorage {
 	 * checkpoint which is added to the mapping `checkpointBlockDetails`.
 	 * @param _time Exact staking checkpoint time
 	 */
-	function setHistoricalBlock(uint256 _time) external onlyOwner {
+	function setHistoricalBlock(uint256 _time) external {
 		_setBlock(_time);
 	}
 
@@ -184,10 +188,15 @@ contract StakingRewards is StakingRewardsStorage {
 	 * @dev The collectReward() function internally calls this function to calculate reward amount
 	 * @param considerMaxDuration True: Runs for the maximum duration - used in tx not to run out of gas
 	 * False - to query total rewards
+	 * @param restartTime The time from which the staking rewards calculation shall restart.
 	 * @return The timestamp of last withdrawal
 	 * @return The accumulated reward
 	 */
-	function getStakerCurrentReward(bool considerMaxDuration) public view returns (uint256 lastWithdrawalInterval, uint256 amount) {
+	function getStakerCurrentReward(bool considerMaxDuration, uint256 restartTime)
+		public
+		view
+		returns (uint256 lastWithdrawalInterval, uint256 amount)
+	{
 		uint256 weightedStake;
 		uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
 		uint256 currentTS = block.timestamp;
@@ -198,6 +207,13 @@ contract StakingRewards is StakingRewardsStorage {
 		uint256 lastStakingInterval = staking.timestampToLockDate(currentTS);
 		lastWithdrawalInterval = lastWithdrawal > 0 ? lastWithdrawal : startTime;
 		if (lastStakingInterval <= lastWithdrawalInterval) return (0, 0);
+		/* Normally the restart time is 0. If this function returns a valid lastWithdrawalInterval
+		and zero amount - that means there were no valid rewards for that period. So the new period must start
+		from the end of the last interval or till the time no rewards are accumulated i.e. restartTime */
+		if (restartTime >= lastWithdrawalInterval) {
+			uint256 latestRestartTime = staking.timestampToLockDate(restartTime);
+			lastWithdrawalInterval = latestRestartTime;
+		}
 
 		if (considerMaxDuration) {
 			uint256 addedMaxDuration = lastWithdrawalInterval.add(maxDuration);
@@ -215,7 +231,6 @@ contract StakingRewards is StakingRewardsStorage {
 			weightedStake = weightedStake.add(_computeRewardForDate(staker, referenceBlock, i));
 		}
 
-		if (weightedStake == 0) return (0, 0);
 		lastWithdrawalInterval = duration;
 		amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
 	}
