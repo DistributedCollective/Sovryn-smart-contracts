@@ -185,7 +185,8 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		}
 		// Calling the _stakeTokens second/third time - we start from the end of previous interval
 		// and the remaining amount(amount left after tokens are staked in the previous interval)
-		if (_restartStakeSchedule > 0 && _restartStakeSchedule == lastStakingSchedule && _amount == remainingStakeAmount) {
+		if (_restartStakeSchedule > 0) {
+			require(_restartStakeSchedule == lastStakingSchedule && _amount == remainingStakeAmount, "invalid params");
 			restartDate = _restartStakeSchedule;
 		} else {
 			restartDate = startDate;
