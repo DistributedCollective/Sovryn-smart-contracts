@@ -284,4 +284,74 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 			"GovernorAlpha::__queueSetTimelockPendingAdmin: sender must be gov guardian"
 		);
 	});
+
+	it("Cannot cancel the proposal which already has certain total forVotes & total votes threshold", async () => {
+		const amount = new BN((20 * totalSupply) / 100); /// stake 20%
+		const voterThree = accounts[3];
+		await testToken.transfer(voterThree, amount, { from: guardianOne });
+		await stake(testToken, stakingLogic, voterThree, constants.ZERO_ADDRESS, amount);
+
+		await governorAlpha.propose(targets, values, signatures, callDatas, "Checking Token Balance", { from: voterOne });
+
+		// Getting the proposal id of the newly created proposal.
+		proposalId = await governorAlpha.latestProposalIds(voterOne);
+		await mineBlock();
+
+		// Votes in majority.
+		await governorAlpha.castVote(proposalId, true, { from: voterOne });
+		await governorAlpha.castVote(proposalId, false, { from: voterThree });
+
+		// Cancels the proposal by guardian.
+		await expectRevert(governorAlpha.cancel(proposalId, { from: guardianOne }),  "Proposal can't be cancelled anymore");
+	});
+
+	it("Remove a successful proposal which was queued even if successful (totalVotes still below the threshold)", async () => {
+		const amount = new BN((2 * totalSupply) / 100); /// stake 2%
+		const voterThree = accounts[3];
+		await testToken.transfer(voterThree, amount, { from: guardianOne });
+		await stake(testToken, stakingLogic, voterThree, constants.ZERO_ADDRESS, amount);
+
+		await governorAlpha.propose(targets, values, signatures, callDatas, "Checking Token Balance", { from: voterOne });
+
+		// Getting the proposal id of the newly created proposal.
+		proposalId = await governorAlpha.latestProposalIds(voterOne);
+		await mineBlock();
+
+		// Votes in majority.
+		await governorAlpha.castVote(proposalId, true, { from: voterThree });
+
+		// Cancels the proposal by guardian.
+		await governorAlpha.cancel(proposalId, { from: guardianOne });
+
+		// Checking current state of proposal
+		currentState = await governorAlpha.state(proposalId);
+
+		// Checking if the proposal went to Cancelled state.
+		assert.strictEqual(currentState.toNumber(), stateCancelled, "The correct state was not achieved after proposal added to queue.");
+	});
+
+	it("Remove a successful proposal which was queued even if successful (total quorum / participant still below the threshold)", async () => {
+		const amount = new BN((2 * totalSupply) / 100); /// stake 2%
+		const voterThree = accounts[3];
+		await testToken.transfer(voterThree, amount, { from: guardianOne });
+		await stake(testToken, stakingLogic, voterThree, constants.ZERO_ADDRESS, amount);
+
+		await governorAlpha.propose(targets, values, signatures, callDatas, "Checking Token Balance", { from: voterOne });
+
+		// Getting the proposal id of the newly created proposal.
+		proposalId = await governorAlpha.latestProposalIds(voterOne);
+		await mineBlock();
+
+		// Votes in majority.
+		await governorAlpha.castVote(proposalId, true, { from: voterOne });
+
+		// Cancels the proposal by guardian.
+		await governorAlpha.cancel(proposalId, { from: guardianOne });
+
+		// Checking current state of proposal
+		currentState = await governorAlpha.state(proposalId);
+
+		// Checking if the proposal went to Cancelled state.
+		assert.strictEqual(currentState.toNumber(), stateCancelled, "The correct state was not achieved after proposal added to queue.");
+	});
 });

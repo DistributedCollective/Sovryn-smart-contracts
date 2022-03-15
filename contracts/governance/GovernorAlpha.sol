@@ -44,6 +44,18 @@ contract GovernorAlpha is SafeMath96 {
 		return 2880;
 	} // ~1 day in blocks (assuming 30s blocks)
 
+	/// @notice Threshold for total votes proposal to be able to cancelled by guardian.
+	/// TODO finalized this value
+	function totalVotesForCancellationThreshold() public pure returns (uint256) {
+		return 50000000;
+	}
+
+	/// @notice Threshold for total participant of the proposal to be able to cancelled by guardian.
+	/// TODO finalized this value
+	function participantForCancellationThreshold() public pure returns(uint256) {
+		return 50000000;
+	}
+
 	/// @notice The address of the Sovryn Protocol Timelock.
 	ITimelock public timelock;
 
@@ -59,7 +71,7 @@ contract GovernorAlpha is SafeMath96 {
 	/// @notice Percentage of current total voting power require to vote.
 	uint96 public quorumPercentageVotes;
 
-	// @notice Majority percentage.
+	/// @notice Majority percentage.
 	uint96 public majorityPercentageVotes;
 
 	struct Proposal {
@@ -341,6 +353,14 @@ contract GovernorAlpha is SafeMath96 {
 		Proposal storage proposal = proposals[proposalId];
 		/// @notice Cancel only if sent by the guardian.
 		require(msg.sender == guardian, "GovernorAlpha::cancel: sender isn't a guardian");
+
+		/// Will only be able to cancel if: below the quorum (participation) threshold OR total votes threshold
+		uint96 totalFavorVotes = proposal.forVotes;
+		uint96 totalVotes = add96(totalFavorVotes, proposal.againstVotes, "GovernorAlpha:: state: forVotes + againstVotes > uint96");
+		require(
+			totalFavorVotes <= totalVotesForCancellationThreshold() || // check total Votes (assuming not percentage)
+			totalVotes <=  participantForCancellationThreshold(), "Proposal can't be cancelled anymore" /// check total participant.
+		);
 
 		proposal.canceled = true;
 
