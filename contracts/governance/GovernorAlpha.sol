@@ -52,7 +52,7 @@ contract GovernorAlpha is SafeMath96 {
 
 	/// @notice Threshold for total participant of the proposal to be able to cancelled by guardian.
 	/// TODO finalized this value
-	function participantForCancellationThreshold() public pure returns(uint256) {
+	function participantForCancellationThreshold() public pure returns (uint256) {
 		return 50000000;
 	}
 
@@ -359,7 +359,8 @@ contract GovernorAlpha is SafeMath96 {
 		uint96 totalVotes = add96(totalFavorVotes, proposal.againstVotes, "GovernorAlpha:: state: forVotes + againstVotes > uint96");
 		require(
 			totalFavorVotes <= totalVotesForCancellationThreshold() || // check total Votes (assuming not percentage)
-			totalVotes <=  participantForCancellationThreshold(), "Proposal can't be cancelled anymore" /// check total participant.
+				totalVotes <= participantForCancellationThreshold(),
+			"Proposal can't be cancelled anymore" /// check total participant.
 		);
 
 		proposal.canceled = true;

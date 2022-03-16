@@ -302,7 +302,7 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 		await governorAlpha.castVote(proposalId, false, { from: voterThree });
 
 		// Cancels the proposal by guardian.
-		await expectRevert(governorAlpha.cancel(proposalId, { from: guardianOne }),  "Proposal can't be cancelled anymore");
+		await expectRevert(governorAlpha.cancel(proposalId, { from: guardianOne }), "Proposal can't be cancelled anymore");
 	});
 
 	it("Remove a successful proposal which was queued even if successful (totalVotes still below the threshold)", async () => {

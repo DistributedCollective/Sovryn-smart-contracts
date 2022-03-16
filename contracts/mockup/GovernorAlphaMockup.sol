@@ -28,7 +28,7 @@ contract GovernorAlphaMockup is GovernorAlpha {
 	}
 
 	/// @notice Threshold for total participant of the proposal to be able to cancelled by guardian.
-	function participantForCancellationThreshold() public pure returns(uint256) {
+	function participantForCancellationThreshold() public pure returns (uint256) {
 		return 20000000;
 	}
 }
