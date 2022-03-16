@@ -30,9 +30,11 @@ def main():
     # load deployed contracts addresses
     contracts = json.load(configFile)
     multisig = contracts['multisig']
-    SOVAddress = contracts['SOV']
     stakingAddress = contracts['Staking']
     feeSharingAddress = contracts['FeeSharingProxy']
+    fourYearVestingLogic = contracts['FourYearVestingLogic']
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=stakingAddress, abi=Staking.abi, owner=acct)
     fourYearVestingFactory = Contract.from_abi("FourYearVestingFactory", address=contracts['FourYearVestingFactory'], abi=FourYearVestingFactory.abi, owner=acct)
 
     MULTIPLIER = 10**16 # Expecting two decimals
@@ -41,33 +43,47 @@ def main():
     CLIFF =  FOUR_WEEKS
     DURATION = 39 * FOUR_WEEKS
 
+    balanceBefore = acct.balance()
+
+    print("SOV Balance Before:")
+    print(SOVtoken.balanceOf(acct) / 10**18)
+
     # == Vesting contracts creation and staking tokens ==============================================================================
     # TODO check fouryearvestinglist.csv
-    with open('./fouryearvestinglist.csv', 'r') as file:
+    dataFile = 'scripts/fouryearvesting/fouryearvestinglist.csv'
+    with open(dataFile, 'r') as file:
         reader = csv.reader(file)
         for row in reader:
             tokenOwner = row[0].replace(" ", "")
             amount = row[1].replace(",", "").replace(".", "")
             amount = int(amount) * MULTIPLIER
+            tx = fourYearVestingFactory.deployFourYearVesting(SOVtoken.address, stakingAddress, tokenOwner, feeSharingAddress, multisig, fourYearVestingLogic)
+            event = tx.events["FourYearVestingCreated"]
+            vestingAddress = event["vestingAddress"]
+            print("=======================================")
+            print("Token Owner: ", tokenOwner)
+            print("Vesting Contract Address: ", vestingAddress)
+            print("Staked Amount: ", amount)
+            fourYearVesting = Contract.from_abi("FourYearVestingLogic", address=vestingAddress, abi=FourYearVestingLogic.abi, owner=acct)
 
-            vestingAddress = fourYearVestingFactory.deployFourYearVesting(SOVAddress, stakingAddress, tokenOwner, CLIFF, DURATION, feeSharingAddress, multisig)
+            SOVtoken.approve(vestingAddress, amount)
 
             remainingAmount = amount
             lastSchedule = 0
             while remainingAmount > 0:
-                (lastSchedule, remainingAmount) = vestingAddress.stakeTokens(remainingAmount, lastSchedule)
-            
+                fourYearVesting.stakeTokens(remainingAmount, lastSchedule)
+                lastSchedule = fourYearVesting.lastStakingSchedule()
+                remainingAmount = fourYearVesting.remainingStakeAmount()
+
+            stakes = staking.getStakes(vestingAddress)
+            print("Staking Details")
             print("=======================================")
-            print(vestingAddress)
-            print("'" + tokenOwner + "', ")
-            print(amount)
-            print(cliff)
-            print(duration)
+            print(stakes)
 
     #  == Transfer ownership to multisig =============================================================================================
-    fourYearVestingFactory.transferOwnership(multisig)
+    # fourYearVestingFactory.transferOwnership(multisig)
 
-    print("balance:")
+    print("SOV Balance After:")
     print(SOVtoken.balanceOf(acct) / 10**18)
 
     print("deployment cost:")

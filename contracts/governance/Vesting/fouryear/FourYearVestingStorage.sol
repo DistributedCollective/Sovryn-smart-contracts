@@ -39,7 +39,7 @@ contract FourYearVestingStorage is Ownable {
 	uint256 public endDate;
 
 	/// @notice Constant used for computing the vesting dates.
-	uint256 constant FOUR_WEEKS = 4 weeks;
+	uint256 public constant FOUR_WEEKS = 4 weeks;
 
 	/// @notice Maximum interval to stake tokens at one go
 	uint256 public maxInterval;
@@ -61,4 +61,7 @@ contract FourYearVestingStorage is Ownable {
 
 	/// @notice Address of new implementation.
 	address public newImplementation;
+
+	/// @dev Please add new state variables below this line. Mark them internal and
+	/// add a getter function while upgrading the contracts.
 }
