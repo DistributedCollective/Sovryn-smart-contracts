@@ -146,6 +146,35 @@ def withdrawRBTCFromIWRBTC(toAddress, amount):
     loanTokenAddress = conf.contracts['iRBTC']
     withdrawRBTCFromLoanTokenTo(loanTokenAddress, toAddress, amount)
 
+def goSOVLongWithMS(sovSent):
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iRBTC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    sovToken = Contract.from_abi("TestToken", address = conf.contracts['SOV'], abi = TestToken.abi, owner = conf.acct)
+
+    if(sovToken.allowance(conf.contracts['multisig'], loanToken.address) < sovSent):
+        print("getting approval")
+        data = sovToken.approve.encode_input(loanToken.address, sovSent)
+        print(data)
+        sendWithMultisig(conf.contracts['multisig'], sovToken, data, conf.acct)
+
+    print('going to trade')
+    data = loanToken.marginTrade.encode_input(
+        "0",  # loanId  (0 for new loans)
+        0.33e18,  # leverageAmount, 18 decimals
+        0,  # loanTokenSent
+        sovSent,  # no collateral token sent
+        sovToken.address,  # collateralTokenAddress
+        conf.contracts['multisig'],  # trader,
+        0, # slippage
+        b''
+    )
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], loanToken, data, conf.acct)
+    
+
+def withdrawRBTCFromIWRBTC(toAddress, amount):
+    loanTokenAddress = conf.contracts['iRBTC']
+    withdrawRBTCFromLoanTokenTo(loanTokenAddress, toAddress, amount)
+
 def withdrawRBTCFromLoanTokenTo(loanTokenAddress, toAddress, amount):
     #read contract abis
     tokenContract = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
@@ -158,6 +187,19 @@ def withdrawRBTCFromLoanTokenTo(loanTokenAddress, toAddress, amount):
     print("amount to withdraw:      ", amount)
     print("=============================================================")
    # sendWithMultisig(conf.contracts['multisig'], tokenContract, data, conf.acct)
+
+def withdrawRBTCFromLoanTokenTo(loanTokenAddress, toAddress, amount):
+    #read contract abis
+    tokenContract = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    data = tokenContract.withdrawRBTCTo.encode_input(toAddress, amount)
+    print("=============================================================")
+    print("Sending RBTC")
+    print("from LoanToken:          ", tokenContract.address)
+    print("RBTC LoanToken balance:  ", tokenContract.balance())
+    print("address to:              ", toAddress)
+    print("amount to withdraw:      ", amount)
+    print("=============================================================")
+    sendWithMultisig(conf.contracts['multisig'], tokenContract, data, conf.acct)
     
 
 def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, amount):
@@ -511,8 +553,8 @@ def replaceLoanTokenLogicOnAllContracts():
 
     # Can use the same Loan Protocol Settings with the LoanTokenLogicLM
     print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconWrbtc")
-    data = logicContractWrbtc.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
-    sendWithMultisig(conf.contracts['multisig'], logicContractWrbtc.address, data, conf.acct)
+    data = loanTokenLogicBeaconWrbtc.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWrbtc.address, data, conf.acct)
     
 
 def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
@@ -529,11 +571,11 @@ def triggerEmergencyStop(loanTokenAddress, turnOn):
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
 def readPauser(loanTokenAddress):
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=interface.ILoanTokenModules.abi, owner=conf.acct)
     print(loanToken.pauser())
 
 def setPauser(loanTokenAddress, pauser):
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=interface.ILoanTokenModules.abi, owner=conf.acct)
     data = loanToken.setPauser.encode_input(pauser)
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
@@ -822,3 +864,17 @@ def get_estimated_margin_details(collateralToken, loanSize, collateralTokenSent,
     print("collateralTokenSent",collateralTokenSent)
     print("leverageAmount", leverageAmount)
 
+def replaceLoanTokenSettingsLowerAdmin():
+    print("Deploy Loan Token Settings Lower Admin Module")
+    loanTokenSettingsLowerAdmin = conf.acct.deploy(LoanTokenSettingsLowerAdmin)
+    print("LoanTokenSettingsLowerAdmin for BeaconLM module deployed at: ", loanTokenSettingsLowerAdmin.address)
+
+    loanTokenLogicBeaconLM = Contract.from_abi("LoanTokenLogicBeacon", address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconLM")
+    data = loanTokenLogicBeaconLM.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconLM.address, data, conf.acct)
+
+    loanTokenLogicBeaconWrbtc = Contract.from_abi("LoanTokenLogicBeacon", address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconWrbtc")
+    data = loanTokenLogicBeaconWrbtc.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWrbtc.address, data, conf.acct)

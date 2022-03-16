@@ -23,65 +23,31 @@ from scripts.contractInteraction.misc import *
 from scripts.contractInteraction.prices import *
 
 def main():
-    # brownie run scripts/contractInteraction/contract_interaction.py --network testnet
-    # brownie run scripts/contractInteraction/contract_interaction.py --network rsk-mainnet
-    
-    #load the contracts and acct depending on the network
-    # conf.loadConfig()
-
-    # removeOwnerFromMultisig("0x13Be55487D37FE3C66EE7305e1e9C1ac85de75Ae")
-
-    # addAmmPoolTokenToLM("(WR)BTC/MYNT")
-
-    # getPoolIdByName("(WR)BTC/MYNT")
-
-    # addWhitelistConverterFeeSharingProxy("0x84953dAF0E7a9fFb8B4fDf7F948185e1cF85852e")
-    
-    # confirmMultipleTxsWithMS(834, 836)
-    # checkTx(780)
-    # checkTx(776)
-    # confirmWithMS(836)
-
     '''
-    minInitialMargin = Wei("90 ether")
-    setupMarginLoanParamsMinInitialMargin(conf.contracts['SOV'], conf.contracts['iXUSD'], minInitialMargin)
-    setupMarginLoanParamsMinInitialMargin(conf.contracts['SOV'], conf.contracts['iRBTC'], minInitialMargin)
-    setupMarginLoanParamsMinInitialMargin(conf.contracts['SOV'], conf.contracts['iBPro'], minInitialMargin)
-    setupMarginLoanParamsMinInitialMargin(conf.contracts['SOV'], conf.contracts['iDOC'], minInitialMargin)
+    run from CLI:
+    brownie run scripts/contractInteraction/contract_interaction.py --network testnet
+    brownie run scripts/contractInteraction/contract_interaction.py --network rsk-mainnet
     '''
-    # withdrawRBTCFromIWRBTC('0x9BD6759F6D9eA15D33076e55d4CBba7cf85877A7', 1.6e18)
+    
+    # call the function you want here
 
-    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iXUSD'])
-    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iRBTC'])
-    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iBPro'])
-    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iDOC'])
-    # setSupportedToken(conf.contracts['BNBs'])
+    #used often:
 
-    #updateLockedSOV()
-
-    #withdrawRBTCFromWatcher(20e18, conf.contracts['FastBTC'])
-
-    #this needs to be tested first. for direct trasnfer to fastbtc use the fastbtc contract address as receiver
-    #borrowRBTCWithMultisigUsingSOV(withdrawAmount, receiver)
-
-    #withdrawTokensFromWatcher(conf.contracts['XUSD'], 100e18, '0x051B89f575fCd540F0a6a5B49c75f9a83BB2Cf07')
-    #balance = getBalance(conf.contracts['XUSD'], conf.contracts['Watcher'])
-    #print(balance)
+    #withdrawRBTCFromWatcher(40e18, conf.contracts['FastBTC'])
     #withdrawTokensFromWatcher(conf.contracts['XUSD'], 100e18, conf.contracts['multisig'])
 
-    # balance = getBalance(conf.contracts['XUSD'], conf.contracts['multisig'])
-    # print(balance)
-    # if(balance > 0):
-    #     sendTokensFromMultisig(conf.contracts['XUSD'], '0x051B89f575fCd540F0a6a5B49c75f9a83BB2Cf07', balance)
+    #sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], 400000e18)
+    #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 25e18)
 
-    # balance = getBalance(conf.contracts['XUSD'], conf.contracts['multisig'])
-    # print(balance)
-    # sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], balance)
+    #withdrawRBTCFromIWRBTC('0x9BD6759F6D9eA15D33076e55d4CBba7cf85877A7', 1.6e18)
 
-    # readPrice(conf.contracts['WRBTC'], conf.contracts['XUSD'])
-    # readPrice(conf.contracts['XUSD'], conf.contracts['WRBTC'])
+    #sendMYNTFromMultisigToFeeSharingProxy(36632.144056847e18)
 
-    # removeLiquidityV1toMultisigUsingWrapper(contracts["WRBTCtoSOVConverter"], 2957 * 10**18, [contracts['WRBTC'], contracts['SOV']])
-    # def removeLiquidityV1toMultisigUsingWrapper(wrapper, converter, amount, tokens, minReturn):
+    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 1000000e18)
+    #sendTokensFromMultisig(conf.contracts['USDT'], '0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 1000000e18)
 
-    # removeLiquidityV1toMultisigUsingWrapper(conf.contracts["RBTCWrapperProxyWithoutLM"], conf.contracts["ConverterXUSD"], 2000 * 10**18, [conf.contracts['WRBTC'], conf.contracts['XUSD']], [1,1])
+    #for i in range (818, 821):
+    #    confirmWithMS(i)
+    #    checkTx(i)
+
+    

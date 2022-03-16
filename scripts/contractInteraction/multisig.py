@@ -24,6 +24,12 @@ def executeOnMultisig(transactionId):
 
     multisig.executeTransaction(transactionId)
 
+def revokeConfirmation(transactionId):
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+
+    multisig.revokeConfirmation(transactionId)
+
+
 def deployMultisig(owners, requiredConf):
      multisig = conf.acct.deploy(MultiSigWallet, owners, requiredConf)
      print("multisig:", multisig)

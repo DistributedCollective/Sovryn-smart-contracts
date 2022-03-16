@@ -113,3 +113,9 @@ def getPoolTokenUserInfo(poolToken, user):
     print('pool tokens: ', res[0]/1e18)
     print('debt: ', res[1]/1e18)
     print('accumulated reward: ', res[2]/1e18)
+
+def getMissedBalance():
+    lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
+    res = lm.getMissedBalance()
+    print(res/1e18)
+    return res
