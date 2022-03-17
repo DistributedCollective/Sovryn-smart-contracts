@@ -44,14 +44,14 @@ contract GovernorAlpha is SafeMath96 {
 		return 2880;
 	} // ~1 day in blocks (assuming 30s blocks)
 
-	/// @notice Threshold for total votes proposal to be able to cancelled by guardian.
-	/// TODO finalized this value
+	/// @notice Limitation of guardian power to veto proposal.
+	/// TODO refine this value
 	function totalVotesForCancellationThreshold() public pure returns (uint256) {
 		return 50000000;
 	}
 
 	/// @notice Threshold for total participant of the proposal to be able to cancelled by guardian.
-	/// TODO finalized this value
+	/// TODO refine this value
 	function participantForCancellationThreshold() public pure returns (uint256) {
 		return 50000000;
 	}
@@ -360,7 +360,7 @@ contract GovernorAlpha is SafeMath96 {
 		require(
 			totalFavorVotes <= totalVotesForCancellationThreshold() || // check total Votes (assuming not percentage)
 				totalVotes <= participantForCancellationThreshold(),
-			"Proposal can't be cancelled anymore" /// check total participant.
+			"GovernorAlpha::cancel: guardian veto limitation" /// check total participant.
 		);
 
 		proposal.canceled = true;
