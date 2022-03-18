@@ -114,9 +114,10 @@ contract("GovernorAlpha#state/1", (accounts) => {
 		await gov.propose(targets, values, signatures, callDatas, "do nothing", { from: acct });
 		let newProposalId = await gov.proposalCount.call();
 
-		await gov.cancel(newProposalId);
+		// Not able to cancel with 0 total votes.
+		await expectRevert(gov.cancel(newProposalId), "GovernorAlpha:: state: division error totalVotes%");
 
-		expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Canceled"]);
+		expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Pending"]);
 	});
 
 	it("Defeated by time", async () => {

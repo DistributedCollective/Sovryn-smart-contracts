@@ -44,16 +44,6 @@ contract GovernorAlpha is SafeMath96 {
 		return 2880;
 	} // ~1 day in blocks (assuming 30s blocks)
 
-	/// @notice Limitation of guardian power to veto proposal (in percentage).
-	function totalVotesForCancellationThreshold() public pure returns (uint256) {
-		return 80; // 80%
-	}
-
-	/// @notice Threshold for total participant of the proposal to be able to cancelled by guardian (in percentage).
-	function participantForCancellationThreshold() public pure returns (uint256) {
-		return 80; // 80%
-	}
-
 	/// @notice The address of the Sovryn Protocol Timelock.
 	ITimelock public timelock;
 
@@ -71,6 +61,12 @@ contract GovernorAlpha is SafeMath96 {
 
 	/// @notice Majority percentage.
 	uint96 public majorityPercentageVotes;
+
+	/// @notice Threshold for total favorVotes of the proposal to be able to cancelled by guardian (in percentage).
+	uint256 public constant totalVotesForCancellationThreshold = 80; // 80%
+
+	/// @notice Threshold for total participant of the proposal to be able to cancelled by guardian (in percentage).
+	uint256 public constant participantForCancellationThreshold = 80; // 80%
 
 	struct Proposal {
 		/// @notice Unique id for looking up a proposal.
@@ -361,22 +357,20 @@ contract GovernorAlpha is SafeMath96 {
 		uint96 totalFavorVotes = proposal.forVotes;
 		uint96 totalVotes = add96(totalFavorVotes, proposal.againstVotes, "GovernorAlpha:: state: forVotes + againstVotes > uint96");
 		uint96 favorVotesPercentage =
-			totalFavorVotes > 0
-				? div96(
-					mul96(totalFavorVotes, 100, "GovernorAlpha:: state: mul error votes%"),
-					totalVotes,
-					"GovernorAlpha:: state: division error votes%"
-				)
-				: 0;
+			div96(
+				mul96(totalFavorVotes, 100, "GovernorAlpha:: state: mul error totalFavorVotes%"),
+				totalVotes,
+				"GovernorAlpha:: state: division error totalVotes%"
+			);
 		uint96 totalQuorumPercentage =
 			div96(
-				mul96(totalVotes, 100, "GovernorAlpha:: state: division error quorum%"),
+				mul96(totalVotes, 100, "GovernorAlpha:: state: mul error totalVotes%"),
 				totalVotingPower,
-				"GovernorAlpha:: state: division error quorum%"
+				"GovernorAlpha:: state: division error totalVotingPower%"
 			);
 
 		require(
-			favorVotesPercentage < totalVotesForCancellationThreshold() || totalQuorumPercentage < participantForCancellationThreshold(),
+			favorVotesPercentage < totalVotesForCancellationThreshold || totalQuorumPercentage < participantForCancellationThreshold,
 			"GovernorAlpha::cancel: guardian veto limitation"
 		);
 
