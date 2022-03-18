@@ -44,16 +44,14 @@ contract GovernorAlpha is SafeMath96 {
 		return 2880;
 	} // ~1 day in blocks (assuming 30s blocks)
 
-	/// @notice Limitation of guardian power to veto proposal.
-	/// TODO refine this value
+	/// @notice Limitation of guardian power to veto proposal (in percentage).
 	function totalVotesForCancellationThreshold() public pure returns (uint256) {
-		return 50000000;
+		return 80; // 80%
 	}
 
-	/// @notice Threshold for total participant of the proposal to be able to cancelled by guardian.
-	/// TODO refine this value
+	/// @notice Threshold for total participant of the proposal to be able to cancelled by guardian (in percentage).
 	function participantForCancellationThreshold() public pure returns (uint256) {
-		return 50000000;
+		return 80; // 80%
 	}
 
 	/// @notice The address of the Sovryn Protocol Timelock.
@@ -354,13 +352,30 @@ contract GovernorAlpha is SafeMath96 {
 		/// @notice Cancel only if sent by the guardian.
 		require(msg.sender == guardian, "GovernorAlpha::cancel: sender isn't a guardian");
 
-		/// Will only be able to cancel if: below the quorum (participation) threshold OR total votes threshold
+		/// Will only be able to cancel if: below the quorum (participation) threshold OR total votes threshold, both in percentage
+		uint96 totalVotingPower =
+			staking.getPriorTotalVotingPower(
+				safe32(block.number - 1, "GovernorAlpha::quorumVotes: block number overflow"),
+				block.timestamp
+			);
 		uint96 totalFavorVotes = proposal.forVotes;
 		uint96 totalVotes = add96(totalFavorVotes, proposal.againstVotes, "GovernorAlpha:: state: forVotes + againstVotes > uint96");
+		uint96 favorVotesPercentage =
+			div96(
+				mul96(totalFavorVotes, 100, "GovernorAlpha:: state: mul error votes%"),
+				totalVotes,
+				"GovernorAlpha:: state: division error votes%"
+			);
+		uint96 totalQuorumPercentage =
+			div96(
+				mul96(totalVotes, 100, "GovernorAlpha:: state: division error quorum%"),
+				totalVotingPower,
+				"GovernorAlpha:: state: division error quorum%"
+			);
+
 		require(
-			totalFavorVotes <= totalVotesForCancellationThreshold() || // check total Votes (assuming not percentage)
-				totalVotes <= participantForCancellationThreshold(),
-			"GovernorAlpha::cancel: guardian veto limitation" /// check total participant.
+			favorVotesPercentage < totalVotesForCancellationThreshold() || totalQuorumPercentage < participantForCancellationThreshold(),
+			"GovernorAlpha::cancel: guardian veto limitation"
 		);
 
 		proposal.canceled = true;

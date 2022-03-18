@@ -21,14 +21,4 @@ contract GovernorAlphaMockup is GovernorAlpha {
 			queue(proposalIds[i]);
 		}
 	}
-
-	/// @notice Threshold for total votes proposal to be able to cancelled by guardian.
-	function totalVotesForCancellationThreshold() public pure returns (uint256) {
-		return 9000000;
-	}
-
-	/// @notice Threshold for total participant of the proposal to be able to cancelled by guardian.
-	function participantForCancellationThreshold() public pure returns (uint256) {
-		return 20000000;
-	}
 }

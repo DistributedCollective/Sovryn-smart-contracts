@@ -299,7 +299,7 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 
 		// Votes in majority.
 		await governorAlpha.castVote(proposalId, true, { from: voterOne });
-		await governorAlpha.castVote(proposalId, false, { from: voterThree });
+		await governorAlpha.castVote(proposalId, true, { from: voterThree });
 
 		// Cancels the proposal by guardian.
 		await expectRevert(governorAlpha.cancel(proposalId, { from: guardianOne }), "GovernorAlpha::cancel: guardian veto limitation");
