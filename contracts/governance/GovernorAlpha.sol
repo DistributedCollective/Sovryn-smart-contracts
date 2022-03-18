@@ -361,11 +361,13 @@ contract GovernorAlpha is SafeMath96 {
 		uint96 totalFavorVotes = proposal.forVotes;
 		uint96 totalVotes = add96(totalFavorVotes, proposal.againstVotes, "GovernorAlpha:: state: forVotes + againstVotes > uint96");
 		uint96 favorVotesPercentage =
-			div96(
-				mul96(totalFavorVotes, 100, "GovernorAlpha:: state: mul error votes%"),
-				totalVotes,
-				"GovernorAlpha:: state: division error votes%"
-			);
+			totalFavorVotes > 0
+				? div96(
+					mul96(totalFavorVotes, 100, "GovernorAlpha:: state: mul error votes%"),
+					totalVotes,
+					"GovernorAlpha:: state: division error votes%"
+				)
+				: 0;
 		uint96 totalQuorumPercentage =
 			div96(
 				mul96(totalVotes, 100, "GovernorAlpha:: state: division error quorum%"),
