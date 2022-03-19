@@ -306,7 +306,7 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 	});
 
 	it("Remove a successful proposal which was queued even if successful (totalVotes still below the threshold)", async () => {
-		const amount = new BN((2 * totalSupply) / 100); /// stake 2%
+		const amount = new BN((20 * totalSupply) / 100); /// stake 20%
 		const voterThree = accounts[3];
 		await testToken.transfer(voterThree, amount, { from: guardianOne });
 		await stake(testToken, stakingLogic, voterThree, constants.ZERO_ADDRESS, amount);
@@ -318,7 +318,8 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 		await mineBlock();
 
 		// Votes in majority.
-		await governorAlpha.castVote(proposalId, true, { from: voterThree });
+		await governorAlpha.castVote(proposalId, true, { from: voterOne });
+		await governorAlpha.castVote(proposalId, false, { from: voterThree });
 
 		// Cancels the proposal by guardian.
 		await governorAlpha.cancel(proposalId, { from: guardianOne });
@@ -331,7 +332,7 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 	});
 
 	it("Remove a successful proposal which was queued even if successful (total quorum / participant still below the threshold)", async () => {
-		const amount = new BN((2 * totalSupply) / 100); /// stake 2%
+		const amount = new BN((20 * totalSupply) / 100); /// stake 20%
 		const voterThree = accounts[3];
 		await testToken.transfer(voterThree, amount, { from: guardianOne });
 		await stake(testToken, stakingLogic, voterThree, constants.ZERO_ADDRESS, amount);
