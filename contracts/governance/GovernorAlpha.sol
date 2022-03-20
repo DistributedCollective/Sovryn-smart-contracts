@@ -63,10 +63,10 @@ contract GovernorAlpha is SafeMath96 {
 	uint96 public majorityPercentageVotes;
 
 	/// @notice Threshold for total favorVotes of the proposal to be able to cancelled by guardian (in percentage).
-	uint256 public constant totalVotesForCancellationThreshold = 80; // 80%
+	uint256 public constant TOTAL_VOTES_CANCELLATION_THRESHOLD = 80; // 80%
 
 	/// @notice Threshold for total participant of the proposal to be able to cancelled by guardian (in percentage).
-	uint256 public constant participantForCancellationThreshold = 80; // 80%
+	uint256 public constant TOTAL_PARTICIPANT_CANCELLATION_THRESHOLD = 80; // 80%
 
 	struct Proposal {
 		/// @notice Unique id for looking up a proposal.
@@ -370,7 +370,7 @@ contract GovernorAlpha is SafeMath96 {
 			);
 
 		require(
-			favorVotesPercentage < totalVotesForCancellationThreshold || totalQuorumPercentage < participantForCancellationThreshold,
+			favorVotesPercentage < TOTAL_VOTES_CANCELLATION_THRESHOLD || totalQuorumPercentage < TOTAL_PARTICIPANT_CANCELLATION_THRESHOLD,
 			"GovernorAlpha::cancel: guardian veto limitation"
 		);
 
