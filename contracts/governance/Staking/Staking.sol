@@ -38,7 +38,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 until,
 		address stakeFor,
 		address delegatee
-	) external {
+	) external whenNotPaused {
 		_stake(msg.sender, amount, until, stakeFor, delegatee, false);
 	}
 
@@ -58,7 +58,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 until,
 		address stakeFor,
 		address delegatee
-	) public onlyThisContract {
+	) public onlyThisContract whenNotPaused {
 		_stake(sender, amount, until, stakeFor, delegatee, false);
 	}
 
@@ -133,7 +133,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param previousLock The old unlocking timestamp.
 	 * @param until The new unlocking timestamp in seconds.
 	 * */
-	function extendStakingDuration(uint256 previousLock, uint256 until) public {
+	function extendStakingDuration(uint256 previousLock, uint256 until) public whenNotPaused {
 		until = timestampToLockDate(until);
 		require(previousLock <= until, "cannot reduce the staking duration");
 
@@ -216,7 +216,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 intervalLength,
 		address stakeFor,
 		address delegatee
-	) public {
+	) public whenNotPaused {
 		/**
 		 * @dev Stake them until lock dates according to the vesting schedule.
 		 * Note: because staking is only possible in periods of 2 weeks,
@@ -251,7 +251,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint96 amount,
 		uint256 until,
 		address receiver
-	) public {
+	) public whenNotFrozen {
 		_withdraw(amount, until, receiver, false);
 		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
 		//		we need to check block.timestamp here
@@ -269,7 +269,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint96 amount,
 		uint256 until,
 		address receiver
-	) public {
+	) public whenNotFrozen {
 		require(vestingWhitelist[msg.sender], "unauthorized");
 
 		_withdraw(amount, until, receiver, true);
@@ -429,7 +429,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param delegatee The address to delegate votes to.
 	 * @param lockDate the date if the position to delegate.
 	 * */
-	function delegate(address delegatee, uint256 lockDate) public {
+	function delegate(address delegatee, uint256 lockDate) public whenNotPaused {
 		_delegate(msg.sender, delegatee, lockDate);
 		// @dev delegates tokens for lock date 2 weeks later than given lock date
 		//		if message sender is a contract
@@ -474,7 +474,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint8 v,
 		bytes32 r,
 		bytes32 s
-	) public {
+	) public whenNotPaused {
 		/**
 		 * @dev The DOMAIN_SEPARATOR is a hash that uniquely identifies a
 		 * smart contract. It is built from a string denoting it as an
@@ -641,7 +641,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	function setWeightScaling(uint96 _weightScaling) public onlyOwner {
 		require(
 			MIN_WEIGHT_SCALING <= _weightScaling && _weightScaling <= MAX_WEIGHT_SCALING,
-			"weight scaling doesn't belong to range [1, 9]"
+			"wrong weight scaling" /* scaling doesn't belong to range [1, 9] */
 		);
 		weightScaling = _weightScaling;
 	}

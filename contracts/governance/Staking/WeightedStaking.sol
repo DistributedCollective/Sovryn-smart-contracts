@@ -26,6 +26,38 @@ contract WeightedStaking is Checkpoints {
 	}
 
 	/**
+	 * @dev Throws if called by any account other than the owner or admin or pauser.
+	 */
+	modifier onlyAuthorizedOrPauser() {
+		require(isOwner() || admins[msg.sender] || pausers[msg.sender], "unauthorized");
+		_;
+	}
+
+	/**
+	 * @dev Throws if called by any account other than pauser.
+	 */
+	modifier onlyPauser() {
+		require(pausers[msg.sender], "Not pauser");
+		_;
+	}
+
+	/**
+	 * @dev Throws if paused.
+	 */
+	modifier whenNotPaused() {
+		require(!paused, "paused");
+		_;
+	}
+
+	/**
+	 * @dev Throws if paused.
+	 */
+	modifier whenNotFrozen() {
+		require(!frozen, "frozen");
+		_;
+	}
+
+	/**
 	 * @notice sets vesting registry
 	 * @param _vestingRegistryProxy the address of vesting registry proxy contract
 	 * @dev _vestingRegistryProxy can be set to 0 as this function can be reused by
@@ -86,11 +118,7 @@ contract WeightedStaking is Checkpoints {
 
 		/// @dev Max 78 iterations.
 		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
-			totalVotingPower = add96(
-				totalVotingPower,
-				_totalPowerByDate(i, start, blockNumber),
-				"overflow on total voting power computation"
-			);
+			totalVotingPower = add96(totalVotingPower, _totalPowerByDate(i, start, blockNumber), "overflow on total VP");
 		}
 	}
 
@@ -110,7 +138,7 @@ contract WeightedStaking is Checkpoints {
 		uint96 weight = computeWeightByDate(date, startDate);
 		uint96 staked = getPriorTotalStakesForDate(date, blockNumber);
 		/// @dev weight is multiplied by some factor to allow decimals.
-		power = mul96(staked, weight, "multiplication overflow") / WEIGHT_FACTOR;
+		power = mul96(staked, weight, "mul overflow") / WEIGHT_FACTOR;
 	}
 
 	/**
@@ -181,11 +209,7 @@ contract WeightedStaking is Checkpoints {
 
 		/// @dev Max 78 iterations.
 		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
-			votes = add96(
-				votes,
-				_totalPowerByDateForDelegatee(account, i, start, blockNumber),
-				"overflow - total voting power computation"
-			);
+			votes = add96(votes, _totalPowerByDateForDelegatee(account, i, start, blockNumber), "overflow - total VP");
 		}
 	}
 
@@ -287,7 +311,7 @@ contract WeightedStaking is Checkpoints {
 		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
 			uint96 weightedStake = weightedStakeByDate(account, i, start, blockNumber);
 			if (weightedStake > 0) {
-				votes = add96(votes, weightedStake, "overflow on total weight computation");
+				votes = add96(votes, weightedStake, "overflow on total weight");
 			}
 		}
 	}
@@ -312,7 +336,7 @@ contract WeightedStaking is Checkpoints {
 		uint96 staked = _getPriorUserStakeByDate(account, date, blockNumber);
 		if (staked > 0) {
 			uint96 weight = computeWeightByDate(date, startDate);
-			power = mul96(staked, weight, "overflow error") / WEIGHT_FACTOR;
+			power = mul96(staked, weight, "overflow") / WEIGHT_FACTOR;
 		} else {
 			power = 0;
 		}
@@ -416,7 +440,7 @@ contract WeightedStaking is Checkpoints {
 		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
 			uint96 weightedStake = weightedVestingStakeByDate(i, start, blockNumber);
 			if (weightedStake > 0) {
-				votes = add96(votes, weightedStake, "overflow - total weight computation");
+				votes = add96(votes, weightedStake, "overflow on total weight");
 			}
 		}
 	}
@@ -439,7 +463,7 @@ contract WeightedStaking is Checkpoints {
 		uint96 staked = _getPriorVestingStakeByDate(date, blockNumber);
 		if (staked > 0) {
 			uint96 weight = computeWeightByDate(date, startDate);
-			power = mul96(staked, weight, "WeightedStaking::weightedVestingStakeByDate: multiplication overflow") / WEIGHT_FACTOR;
+			power = mul96(staked, weight, "multiplication overflow") / WEIGHT_FACTOR;
 		} else {
 			power = 0;
 		}
@@ -469,7 +493,7 @@ contract WeightedStaking is Checkpoints {
 	 * @return The number of votes the account had as of the given block.
 	 * */
 	function _getPriorVestingStakeByDate(uint256 date, uint256 blockNumber) internal view returns (uint96) {
-		require(blockNumber < _getCurrentBlockNumber(), "WeightedStaking::getPriorVestingStakeByDate: not yet determined");
+		require(blockNumber < _getCurrentBlockNumber(), "not yet determined");
 
 		uint32 nCheckpoints = numVestingCheckpoints[date];
 		if (nCheckpoints == 0) {
@@ -520,19 +544,16 @@ contract WeightedStaking is Checkpoints {
 	 * @return The weighted stake the account had as of the given block.
 	 * */
 	function computeWeightByDate(uint256 date, uint256 startDate) public pure returns (uint96 weight) {
-		require(date >= startDate, "date needs to be bigger than startDate");
+		require(date >= startDate, "date < startDate");
 		uint256 remainingTime = (date - startDate);
-		require(MAX_DURATION >= remainingTime, "remaining time can't be bigger than max duration");
+		require(MAX_DURATION >= remainingTime, "remaining time < max duration");
 		/// @dev x = max days - remaining days
 		uint96 x = uint96(MAX_DURATION - remainingTime) / (1 days);
 		/// @dev w = (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)
 		weight = add96(
 			WEIGHT_FACTOR,
-			mul96(
-				MAX_VOTING_WEIGHT * WEIGHT_FACTOR,
-				sub96(MAX_DURATION_POW_2, x * x, "underflow on weight calculation"),
-				"multiplication overflow on weight computation"
-			) / MAX_DURATION_POW_2,
+			mul96(MAX_VOTING_WEIGHT * WEIGHT_FACTOR, sub96(MAX_DURATION_POW_2, x * x, "underflow on weight"), "mul overflow on weight") /
+				MAX_DURATION_POW_2,
 			"overflow on weight computation"
 		);
 	}
@@ -587,6 +608,24 @@ contract WeightedStaking is Checkpoints {
 	function removeAdmin(address _admin) public onlyOwner {
 		admins[_admin] = false;
 		emit AdminRemoved(_admin);
+	}
+
+	/**
+	 * @notice Add account to pausers ACL.
+	 * @param _pauser The address to grant pauser permissions.
+	 * */
+	function addOrRemovePauser(address _pauser, bool _add) public onlyOwner {
+		pausers[_pauser] = _add;
+		emit PauserAddedOrRemoved(_pauser, _add);
+	}
+
+	/**
+	 * @notice Pause contract
+	 * @param _pause true when pausing, false when unpausing
+	 * */
+	function pauseUnpause(bool _pause) public onlyAuthorizedOrPauser {
+		paused = _pause;
+		emit StakingPaused(_pause);
 	}
 
 	/**
