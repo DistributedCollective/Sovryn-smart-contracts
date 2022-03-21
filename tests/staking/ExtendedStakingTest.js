@@ -511,7 +511,7 @@ contract("Staking", (accounts) => {
 			// console.log("newTime:  ", newTime.toString());
 
 			// Trying to extend the stake when previous stake is 0
-			await expectRevert(staking.extendStakingDuration(lockedTS, newTime), "no stakes until the previous lock date");
+			await expectRevert(staking.extendStakingDuration(lockedTS, newTime), "no stakes till the prev lock date");
 		});
 
 		it("extend to a date inside the next 2 weeks granularity bucket", async () => {

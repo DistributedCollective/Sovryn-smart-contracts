@@ -3,7 +3,7 @@ const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
 const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 const { getSUSD, getRBTC, getWRBTC, getBZRX, getPriceFeeds, getSovryn } = require("../Utils/initializer.js");
-const { address } = require("../Utils/Ethereum");
+const { address, setNextBlockTimestamp, mineBlock, increaseTime } = require("../Utils/Ethereum");
 const EIP712 = require("../Utils/EIP712");
 const { getAccountsPrivateKeysBuffer } = require("../Utils/hardhat_utils");
 
@@ -22,6 +22,9 @@ const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 // Upgradable Vesting Registry
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
+
+const Vesting = artifacts.require("TeamVesting");
+const VestingLogic = artifacts.require("VestingLogicMockup");
 
 const TOTAL_SUPPLY = "100000000000000000000000000000";
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
@@ -108,6 +111,10 @@ contract("Staking", (accounts) => {
 			expectEvent(tx, "StakingPaused", {
 				setPaused: true,
 			});
+		});
+
+		it("fails pausing if sender isn't an owner/pauser", async () => {
+			await expectRevert(staking.pauseUnpause(true, { from: account1 }), "unauthorized");
 		});
 
 		it("should not allow staking when paused", async () => {
@@ -217,6 +224,129 @@ contract("Staking", (accounts) => {
 			tx = await staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s);
 			expect(tx.gasUsed < 80000);
 			expect(await staking.delegates.call(account1, inThreeYears)).to.be.equal(root);
+		});
+	});
+
+	describe("freeze withdrawal", () => {
+		it("should freeze withdrawal", async () => {
+			let tx = await staking.freezeUnfreeze(true); // Freeze
+			expectEvent(tx, "StakingFrozen", {
+				setFrozen: true,
+			});
+		});
+
+		it("fails freezing if sender isn't an owner/pauser", async () => {
+			await expectRevert(staking.freezeUnfreeze(true, { from: account1 }), "unauthorized");
+		});
+
+		it("should not allow withdrawal when frozen", async () => {
+			let amount = "1000";
+			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			let lockedTS = await getTimeFromKickoff(duration);
+			let tx1 = await staking.stake(amount, lockedTS, root, root);
+
+			// await setTime(lockedTS);
+			setNextBlockTimestamp(lockedTS.toNumber());
+			mineBlock();
+
+			let stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toString()).to.be.equal(amount);
+			let beforeBalance = await token.balanceOf.call(root);
+
+			await staking.freezeUnfreeze(true); // Freeze
+			await expectRevert(staking.withdraw(amount / 2, lockedTS, root), "frozen");
+
+			await staking.freezeUnfreeze(false); // Unfreeze
+			let tx2 = await staking.withdraw(amount / 2, lockedTS, root);
+
+			stakingBalance = await token.balanceOf.call(staking.address);
+			expect(stakingBalance.toNumber()).to.be.equal(amount / 2);
+			let afterBalance = await token.balanceOf.call(root);
+			expect(afterBalance.sub(beforeBalance).toNumber()).to.be.equal(amount / 2);
+
+			// _increaseDailyStake
+			let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(lockedTS);
+			expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(2);
+			let checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx1.receipt.blockNumber);
+			expect(checkpoint.stake.toString()).to.be.equal(amount);
+			checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 1);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
+			expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
+
+			// _writeUserCheckpoint
+			let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
+			expect(numUserCheckpoints.toNumber()).to.be.equal(2);
+			checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx1.receipt.blockNumber);
+			expect(checkpoint.stake.toString()).to.be.equal(amount);
+			checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 1);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
+			expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
+
+			// _decreaseDelegateStake
+			let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
+			checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, numDelegateStakingCheckpoints - 1);
+			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
+			expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
+			expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(2);
+
+			expectEvent(tx2, "StakingWithdrawn", {
+				staker: root,
+				amount: new BN(amount / 2),
+			});
+		});
+
+		it("should not allow governanceWithdrawTokens when frozen", async () => {
+			const WEEK = new BN(7 * 24 * 60 * 60);
+			let vestingLogic = await VestingLogic.new();
+			const ONE_MILLON = "1000000000000000000000000";
+			let previousAmount = await token.balanceOf(root);
+			let toStake = ONE_MILLON;
+
+			// Stake
+			vesting = await Vesting.new(
+				vestingLogic.address,
+				token.address,
+				staking.address,
+				root,
+				16 * WEEK,
+				36 * WEEK,
+				feeSharingProxy.address
+			);
+			vesting = await VestingLogic.at(vesting.address);
+
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
+
+			await increaseTime(20 * WEEK);
+			await token.approve(vesting.address, toStake);
+			await vesting.stakeTokens(toStake);
+
+			let amountAfterStake = await token.balanceOf(root);
+
+			await staking.addAdmin(account1);
+
+			await staking.freezeUnfreeze(true); // Freeze
+			await expectRevert(staking.governanceWithdrawVesting(vesting.address, root, { from: account1 }), "frozen");
+
+			await staking.freezeUnfreeze(false); // Unfreeze
+			// governance withdraw until duration must withdraw all staked tokens without fees
+			let tx = await staking.governanceWithdrawVesting(vesting.address, root, { from: account1 });
+
+			expectEvent(tx, "VestingTokensWithdrawn", {
+				vesting: vesting.address,
+				receiver: root,
+			});
+
+			// verify amount
+			let amount = await token.balanceOf(root);
+
+			assert.equal(previousAmount.sub(new BN(toStake).mul(new BN(2))).toString(), amountAfterStake.toString());
+			assert.equal(previousAmount.toString(), amount.toString());
+
+			let vestingBalance = await staking.balanceOf(vesting.address);
+			expect(vestingBalance).to.be.bignumber.equal(new BN(0));
 		});
 	});
 
