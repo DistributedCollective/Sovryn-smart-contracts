@@ -61,7 +61,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	function _increaseVestingStake(uint256 lockedTS, uint96 value) internal {
 		uint32 nCheckpoints = numVestingCheckpoints[lockedTS];
 		uint96 vested = vestingCheckpoints[lockedTS][nCheckpoints - 1].stake;
-		uint96 newVest = add96(vested, value, "vested amount overflow");
+		uint96 newVest = add96(vested, value, "vested overflow");
 		_writeVestingCheckpoint(lockedTS, nCheckpoints, newVest);
 	}
 
@@ -73,7 +73,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	function _decreaseVestingStake(uint256 lockedTS, uint96 value) internal {
 		uint32 nCheckpoints = numVestingCheckpoints[lockedTS];
 		uint96 vested = vestingCheckpoints[lockedTS][nCheckpoints - 1].stake;
-		uint96 newVest = sub96(vested, value, "vested amount underflow");
+		uint96 newVest = sub96(vested, value, "vested underflow");
 		_writeVestingCheckpoint(lockedTS, nCheckpoints, newVest);
 	}
 
@@ -111,7 +111,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	) internal {
 		uint32 nCheckpoints = numUserStakingCheckpoints[account][lockedTS];
 		uint96 staked = userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;
-		uint96 newStake = add96(staked, value, "staked amount overflow");
+		uint96 newStake = add96(staked, value, "staked overflow");
 		_writeUserCheckpoint(account, lockedTS, nCheckpoints, newStake);
 	}
 
@@ -128,7 +128,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	) internal {
 		uint32 nCheckpoints = numUserStakingCheckpoints[account][lockedTS];
 		uint96 staked = userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;
-		uint96 newStake = sub96(staked, value, "staked amount underflow");
+		uint96 newStake = sub96(staked, value, "staked underflow");
 		_writeUserCheckpoint(account, lockedTS, nCheckpoints, newStake);
 	}
 
@@ -168,7 +168,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	) internal {
 		uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
 		uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
-		uint96 newStake = add96(staked, value, "staked amount overflow");
+		uint96 newStake = add96(staked, value, "staked overflow");
 		_writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, newStake);
 	}
 
@@ -193,7 +193,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 		//		(no delegation to another address).
 		// @dev It can be greater than 0, but inconsistent after 3 transactions
 		if (staked > value) {
-			newStake = sub96(staked, value, "staked amount underflow");
+			newStake = sub96(staked, value, "staked underflow");
 		}
 		_writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, newStake);
 	}
@@ -231,7 +231,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	function _increaseDailyStake(uint256 lockedTS, uint96 value) internal {
 		uint32 nCheckpoints = numTotalStakingCheckpoints[lockedTS];
 		uint96 staked = totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake;
-		uint96 newStake = add96(staked, value, "staked amount overflow");
+		uint96 newStake = add96(staked, value, "staked overflow");
 		_writeStakingCheckpoint(lockedTS, nCheckpoints, newStake);
 	}
 
@@ -243,7 +243,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	function _decreaseDailyStake(uint256 lockedTS, uint96 value) internal {
 		uint32 nCheckpoints = numTotalStakingCheckpoints[lockedTS];
 		uint96 staked = totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake;
-		uint96 newStake = sub96(staked, value, "staked amount underflow");
+		uint96 newStake = sub96(staked, value, "staked underflow");
 		_writeStakingCheckpoint(lockedTS, nCheckpoints, newStake);
 	}
 

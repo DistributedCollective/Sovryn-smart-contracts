@@ -511,7 +511,7 @@ contract("Staking", (accounts) => {
 			// console.log("newTime:  ", newTime.toString());
 
 			// Trying to extend the stake when previous stake is 0
-			await expectRevert(staking.extendStakingDuration(lockedTS, newTime), "nothing staked until the previous lock date");
+			await expectRevert(staking.extendStakingDuration(lockedTS, newTime), "no stakes until the previous lock date");
 		});
 
 		it("extend to a date inside the next 2 weeks granularity bucket", async () => {
@@ -545,14 +545,14 @@ contract("Staking", (accounts) => {
 			// expect(delegate).equal(account1);
 		});
 
-		it("Cannot reduce the staking duration", async () => {
+		it("Cannot reduce staking duration", async () => {
 			let amount = "1000";
 			let duration = new BN(TWO_WEEKS).mul(new BN(2));
 			let lockedTS = await getTimeFromKickoff(duration);
 			await staking.stake(amount, lockedTS, root, root);
 
 			let newTime = await getTimeFromKickoff(TWO_WEEKS);
-			await expectRevert(staking.extendStakingDuration(lockedTS, newTime), "cannot reduce the staking duration");
+			await expectRevert(staking.extendStakingDuration(lockedTS, newTime), "cannot reduce staking duration");
 		});
 
 		it("Do not exceed the max duration", async () => {
@@ -844,10 +844,7 @@ contract("Staking", (accounts) => {
 			let lockedTS = await getTimeFromKickoff(duration);
 			await staking.stake(amount, lockedTS, root, root);
 
-			await expectRevert(
-				staking.withdraw("0", lockedTS, root),
-				"Staking::withdraw: amount of tokens to be withdrawn needs to be bigger than 0"
-			);
+			await expectRevert(staking.withdraw("0", lockedTS, root), "Amount of tokens to withdraw must be > 0");
 		});
 
 		it("Shouldn't be able to withdraw amount greater than balance", async () => {
