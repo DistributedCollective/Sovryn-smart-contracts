@@ -614,9 +614,18 @@ contract WeightedStaking is Checkpoints {
 	 * @notice Add account to pausers ACL.
 	 * @param _pauser The address to grant pauser permissions.
 	 * */
-	function addOrRemovePauser(address _pauser, bool _add) public onlyOwner {
-		pausers[_pauser] = _add;
-		emit PauserAddedOrRemoved(_pauser, _add);
+	function addPauser(address _pauser) public onlyOwner {
+		pausers[_pauser] = true;
+		emit PauserAddedOrRemoved(_pauser, true);
+	}
+
+	/**
+	 * @notice Add account to pausers ACL.
+	 * @param _pauser The address to grant pauser permissions.
+	 * */
+	function removePauser(address _pauser) public onlyOwner {
+		delete pausers[_pauser];
+		emit PauserAddedOrRemoved(_pauser, false);
 	}
 
 	/**
