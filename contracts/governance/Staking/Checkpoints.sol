@@ -35,9 +35,12 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 
 	event AdminRemoved(address admin);
 
+	/// @param pauser address to grant power to pause the contract
+	/// @param added true - added, false - removed
 	event PauserAddedOrRemoved(address indexed pauser, bool indexed added);
 
-	/// @notice An event emitted when a staking period gets extended.
+	/// @notice An event emitted when a staking is paused
+	/// @param setPaused true - pause, false - unpause
 	event StakingPaused(bool indexed setPaused);
 
 	event ContractCodeHashAdded(bytes32 hash);
