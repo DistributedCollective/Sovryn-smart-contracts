@@ -121,7 +121,7 @@ contract WeightedStaking is Checkpoints {
 
 		/// @dev Max 78 iterations.
 		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
-			totalVotingPower = add96(totalVotingPower, _totalPowerByDate(i, start, blockNumber), "overflow on total VP");
+			totalVotingPower = add96(totalVotingPower, _totalPowerByDate(i, start, blockNumber), "VP overflow");
 		}
 	}
 
@@ -155,7 +155,7 @@ contract WeightedStaking is Checkpoints {
 	 * @return The number of votes the account had as of the given block.
 	 * */
 	function getPriorTotalStakesForDate(uint256 date, uint256 blockNumber) public view returns (uint96) {
-		require(blockNumber < _getCurrentBlockNumber(), "not yet determined");
+		require(blockNumber < _getCurrentBlockNumber(), "not determined");
 
 		uint32 nCheckpoints = numTotalStakingCheckpoints[date];
 		if (nCheckpoints == 0) {
@@ -496,7 +496,7 @@ contract WeightedStaking is Checkpoints {
 	 * @return The number of votes the account had as of the given block.
 	 * */
 	function _getPriorVestingStakeByDate(uint256 date, uint256 blockNumber) internal view returns (uint96) {
-		require(blockNumber < _getCurrentBlockNumber(), "not yet determined");
+		require(blockNumber < _getCurrentBlockNumber(), "not determined");
 
 		uint32 nCheckpoints = numVestingCheckpoints[date];
 		if (nCheckpoints == 0) {
@@ -555,7 +555,7 @@ contract WeightedStaking is Checkpoints {
 		/// @dev w = (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)
 		weight = add96(
 			WEIGHT_FACTOR,
-			mul96(MAX_VOTING_WEIGHT * WEIGHT_FACTOR, sub96(MAX_DURATION_POW_2, x * x, "underflow on weight"), "mul overflow on weight") /
+			mul96(MAX_VOTING_WEIGHT * WEIGHT_FACTOR, sub96(MAX_DURATION_POW_2, x * x, "weight underflow"), "weight mul overflow") /
 				MAX_DURATION_POW_2,
 			"overflow on weight"
 		);

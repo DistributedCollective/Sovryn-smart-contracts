@@ -135,7 +135,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * */
 	function extendStakingDuration(uint256 previousLock, uint256 until) public whenNotPaused {
 		until = timestampToLockDate(until);
-		require(previousLock <= until, "cannot reduce the staking duration");
+		require(previousLock <= until, "cannot reduce staking duration");
 
 		/// @dev Do not exceed the max duration, no overflow possible.
 		uint256 latest = timestampToLockDate(block.timestamp + MAX_DURATION);
@@ -144,7 +144,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		/// @dev Update checkpoints.
 		/// @dev TODO James: Can reading stake at block.number -1 cause trouble with multiple tx in a block?
 		uint96 amount = _getPriorUserStakeByDate(msg.sender, previousLock, block.number - 1);
-		require(amount > 0, "nothing staked until the previous lock date");
+		require(amount > 0, "no stakes till the prev lock date");
 		_decreaseUserStake(msg.sender, previousLock, amount);
 		_increaseUserStake(msg.sender, until, amount);
 
@@ -335,7 +335,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 			/// @dev punishedAmount can be 0 if block.timestamp are very close to 'until'
 			if (punishedAmount > 0) {
-				require(address(feeSharing) != address(0), "Staking::withdraw: FeeSharing address wasn't set");
+				require(address(feeSharing) != address(0), "FeeSharing address wasn't set");
 				/// @dev Move punished amount to fee sharing.
 				/// @dev Approve transfer here and let feeSharing do transfer and write checkpoint.
 				SOVToken.approve(address(feeSharing), punishedAmount);
@@ -345,7 +345,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 		/// @dev transferFrom
 		bool success = SOVToken.transfer(receiver, amount);
-		require(success, "Staking::withdraw: Token transfer failed");
+		require(success, "Token transfer failed");
 
 		emit StakingWithdrawn(msg.sender, amount, until, receiver, isGovernance);
 	}
@@ -397,7 +397,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param until The date until which the tokens were staked.
 	 * */
 	function _validateWithdrawParams(uint96 amount, uint256 until) internal view {
-		require(amount > 0, "Staking::withdraw: amount of tokens to be withdrawn needs to be bigger than 0");
+		require(amount > 0, "Amount of tokens to withdraw must be > 0");
 		uint96 balance = _getPriorUserStakeByDate(msg.sender, until, block.number - 1);
 		require(amount <= balance, "Staking::withdraw: not enough balance");
 	}

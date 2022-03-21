@@ -197,7 +197,7 @@ contract("WeightedStaking", (accounts) => {
 
 		it("should be unable to compute the total voting power for the current block", async () => {
 			let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
-			await expectRevert(staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS), "not yet determined");
+			await expectRevert(staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS), "not determined");
 		});
 	});
 
