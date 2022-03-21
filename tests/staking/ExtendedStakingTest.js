@@ -819,11 +819,11 @@ contract("Staking", (accounts) => {
 
 	describe("setWeightScaling", () => {
 		it("Shouldn't be able to weight scaling less than min value", async () => {
-			await expectRevert(staking.setWeightScaling(0), "weight scaling doesn't belong to range [1, 9]");
+			await expectRevert(staking.setWeightScaling(0), "revert wrong weight scaling");
 		});
 
 		it("Shouldn't be able to weight scaling more than max value", async () => {
-			await expectRevert(staking.setWeightScaling(10), "weight scaling doesn't belong to range [1, 9]");
+			await expectRevert(staking.setWeightScaling(10), "revert wrong weight scaling");
 		});
 
 		it("Only owner should be able to weight scaling", async () => {
