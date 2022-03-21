@@ -151,7 +151,6 @@ def setHistoricalBlockForStakingRewards(blockTime):
     stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
     stakingRewards.setHistoricalBlock(blockTime)
 
-#Upgrade Staking
 # Upgrade Staking
 
 def upgradeStaking():
@@ -240,6 +239,34 @@ def getStakes(address):
     # Get the proxy contract instance
     stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
     print(stakingProxy.getStakes(address))
+
+def stakeTokens(sovAmount, stakeTime, acctAddress, delegateeAddress):
+    SOVtoken = Contract.from_abi("SOV", address=conf.contracts['SOV'], abi=SOV.abi, owner=acctAddress)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=acctAddress)
+
+    until = int(time.time()) + int(stakeTime)
+    amount = int(sovAmount) * (10 ** 18)
+
+    SOVtoken.approve(staking.address, amount)
+    tx = staking.stake(amount, until, acctAddress, delegateeAddress)
+
+def withdrawStakes(amount, until, receiver):
+    # Get the proxy contract instance
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    staking.withdraw(amount, until, receiver)
+
+def pauseOrUnpauseStaking(flag):
+    # Get the proxy contract instance
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    data = staking.pauseUnpause.encode_input(flag)
+    sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
+
+def freezeOrUnfreezeStakingWithdawal(flag):
+    # Get the proxy contract instance
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    data = staking.freezeUnfreeze.encode_input(flag)
+    sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
+    
     
 def readVestingData(vestingAddress):
     vesting = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=conf.acct)
