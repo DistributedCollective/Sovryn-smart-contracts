@@ -310,3 +310,31 @@ def createProposalSIP0039():
 
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+def createProposalSIP0041():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0041: Designation of Exchequer Committee Multisig, Details: https://github.com/DistributedCollective/SIPS/blob/34a23a4fcecb54d19325adc2c56e6471a60caea3/SIP-0041.md, sha256: 934fc32850ac7096e88fbe2b981250527d6ddba78b01f5e191202c8043b840cb"
+
+    # Create Proposal
+    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+def createProposalSIP0042():
+
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    stakingLogic = Contract.from_abi("StakingLogic5", address=contracts['StakingLogic5'], abi=Staking.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking'], contracts['Staking']]
+    values = [0, 0]
+    signatures = ["setImplementation(address)", "addPauser(address)"]
+    data1 = staking.setImplementation.encode_input(contracts['StakingLogic5'])
+    data2 = stakingLogic.addPauser.encode_input(contracts['multisig'])
+    datas = ["0x" + data1[10:], "0x" + data2[10:]]
+    description = "SIP-0042: Staking contract updates, Details: , sha256: "
+
+    # Create Proposal
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
