@@ -35,11 +35,14 @@ contract WeightedStaking is Checkpoints {
 
 	/**
 	 * @dev Throws if called by any account other than pauser.
+	 * @notice Uncomment when needed
 	 */
+	/*
 	modifier onlyPauser() {
 		require(pausers[msg.sender], "Not pauser");
 		_;
 	}
+	*/
 
 	/**
 	 * @dev Throws if paused.
@@ -554,7 +557,7 @@ contract WeightedStaking is Checkpoints {
 			WEIGHT_FACTOR,
 			mul96(MAX_VOTING_WEIGHT * WEIGHT_FACTOR, sub96(MAX_DURATION_POW_2, x * x, "underflow on weight"), "mul overflow on weight") /
 				MAX_DURATION_POW_2,
-			"overflow on weight computation"
+			"overflow on weight"
 		);
 	}
 
@@ -566,7 +569,7 @@ contract WeightedStaking is Checkpoints {
 	 * @return The actual unlocking date (might be up to 2 weeks shorter than intended).
 	 * */
 	function timestampToLockDate(uint256 timestamp) public view returns (uint256 lockDate) {
-		require(timestamp >= kickoffTS, "timestamp lies before contract creation");
+		require(timestamp >= kickoffTS, "timestamp < contract creation");
 		/**
 		 * @dev If staking timestamp does not match any of the unstaking dates
 		 * , set the lockDate to the closest one before the timestamp.
@@ -635,6 +638,15 @@ contract WeightedStaking is Checkpoints {
 	function pauseUnpause(bool _pause) public onlyAuthorizedOrPauser {
 		paused = _pause;
 		emit StakingPaused(_pause);
+	}
+
+	/**
+	 * @notice Freeze contract - disable functions available even when paused
+	 * @param _freeze true when pausing, false when unpausing
+	 * */
+	function freezeUnfreeze(bool _freeze) public onlyAuthorizedOrPauser {
+		frozen = _freeze;
+		emit StakingFrozen(_freeze);
 	}
 
 	/**
