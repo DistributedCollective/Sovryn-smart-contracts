@@ -141,8 +141,8 @@ contract StakingStorage is Ownable {
 	mapping(address => bool) public pausers;
 
 	/// @dev Staking contract is paused
-	bool paused;
+	bool public paused;
 
 	/// @dev Staking contract is frozen
-	bool frozen;
+	bool public frozen;
 }
