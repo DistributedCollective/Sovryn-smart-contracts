@@ -53,7 +53,7 @@ contract WeightedStaking is Checkpoints {
 	}
 
 	/**
-	 * @dev Throws if paused.
+	 * @dev Throws if frozen.
 	 */
 	modifier whenNotFrozen() {
 		require(!frozen, "frozen");
