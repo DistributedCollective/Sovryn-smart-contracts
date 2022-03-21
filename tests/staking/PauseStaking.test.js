@@ -2,14 +2,7 @@ const { expect } = require("chai");
 const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
 const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
-const {
-	getSUSD,
-	getRBTC,
-	getWRBTC,
-	getBZRX,
-	getPriceFeeds,
-	getSovryn,
-} = require("../Utils/initializer.js");
+const { getSUSD, getRBTC, getWRBTC, getBZRX, getPriceFeeds, getSovryn } = require("../Utils/initializer.js");
 const { address } = require("../Utils/Ethereum");
 const EIP712 = require("../Utils/EIP712");
 const { getAccountsPrivateKeysBuffer } = require("../Utils/hardhat_utils");
@@ -113,7 +106,7 @@ contract("Staking", (accounts) => {
 		it("should pause staking activities", async () => {
 			let tx = await staking.pauseUnpause(true); // Paused
 			expectEvent(tx, "StakingPaused", {
-				setPaused: true
+				setPaused: true,
 			});
 		});
 
@@ -218,7 +211,7 @@ contract("Staking", (accounts) => {
 
 			let tx = await staking.pauseUnpause(false); // Unpaused
 			expectEvent(tx, "StakingPaused", {
-				setPaused: false
+				setPaused: false,
 			});
 
 			tx = await staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s);
@@ -233,7 +226,7 @@ contract("Staking", (accounts) => {
 
 			expectEvent(tx, "PauserAddedOrRemoved", {
 				pauser: account1,
-				added: true
+				added: true,
 			});
 
 			let isPauser = await staking.pausers(account1);
@@ -252,7 +245,7 @@ contract("Staking", (accounts) => {
 
 			expectEvent(tx, "PauserAddedOrRemoved", {
 				pauser: account1,
-				added: false
+				added: false,
 			});
 
 			let isPauser = await staking.pausers(account1);
