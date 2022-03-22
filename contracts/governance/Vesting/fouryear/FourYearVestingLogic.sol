@@ -45,6 +45,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	 * @param _interval Max interval for which tokens scheduled shall be staked.
 	 * */
 	function setMaxInterval(uint256 _interval) external onlyOwner {
+		require(_interval.mod(FOUR_WEEKS) == 0, "invalid interval");
 		maxInterval = _interval;
 	}
 

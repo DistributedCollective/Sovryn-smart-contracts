@@ -763,13 +763,18 @@ contract("FourYearVesting", (accounts) => {
 
 	describe("setMaxInterval", async () => {
 		it("should set/alter maxInterval", async () => {
-			let toStake = ONE_MILLON;
 			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, a2, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 			let maxIntervalOld = await vesting.maxInterval();
 			await vesting.setMaxInterval(60 * WEEK);
 			let maxIntervalNew = await vesting.maxInterval();
 			expect(maxIntervalOld).to.be.bignumber.not.equal(maxIntervalNew);
+		});
+
+		it("should not set/alter maxInterval", async () => {
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, a2, feeSharingProxy.address);
+			vesting = await VestingLogic.at(vesting.address);
+			await expectRevert(vesting.setMaxInterval(7 * WEEK), "invalid interval");
 		});
 	});
 });
