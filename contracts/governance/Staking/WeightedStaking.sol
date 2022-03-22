@@ -21,7 +21,7 @@ contract WeightedStaking is Checkpoints {
 	 * @dev Throws if called by any account other than the owner or admin.
 	 */
 	modifier onlyAuthorized() {
-		require(isOwner() || admins[msg.sender], "unauthorized");
+		require(isOwner() || admins[msg.sender], "WS01"); // unauthorized
 		_;
 	}
 
@@ -29,7 +29,7 @@ contract WeightedStaking is Checkpoints {
 	 * @dev Throws if called by any account other than the owner or admin or pauser.
 	 */
 	modifier onlyAuthorizedOrPauser() {
-		require(isOwner() || admins[msg.sender] || pausers[msg.sender], "unauthorized");
+		require(isOwner() || admins[msg.sender] || pausers[msg.sender], "WS02"); // unauthorized
 		_;
 	}
 
@@ -48,7 +48,7 @@ contract WeightedStaking is Checkpoints {
 	 * @dev Throws if paused.
 	 */
 	modifier whenNotPaused() {
-		require(!paused, "paused");
+		require(!paused, "WS03"); // paused
 		_;
 	}
 
@@ -56,7 +56,7 @@ contract WeightedStaking is Checkpoints {
 	 * @dev Throws if frozen.
 	 */
 	modifier whenNotFrozen() {
-		require(!frozen, "frozen");
+		require(!frozen, "WS04"); // paused
 		_;
 	}
 
@@ -76,7 +76,7 @@ contract WeightedStaking is Checkpoints {
 	 * @param values The array of values to add to the staked balance.
 	 */
 	function setVestingStakes(uint256[] calldata lockedDates, uint96[] calldata values) external onlyAuthorized whenNotFrozen {
-		require(lockedDates.length == values.length, "arrays mismatch");
+		require(lockedDates.length == values.length, "WS05"); // arrays mismatch
 
 		uint256 length = lockedDates.length;
 		for (uint256 i = 0; i < length; i++) {
@@ -121,7 +121,7 @@ contract WeightedStaking is Checkpoints {
 
 		/// @dev Max 78 iterations.
 		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
-			totalVotingPower = add96(totalVotingPower, _totalPowerByDate(i, start, blockNumber), "VP overflow");
+			totalVotingPower = add96(totalVotingPower, _totalPowerByDate(i, start, blockNumber), "WS06"); // arrays mismatch
 		}
 	}
 
@@ -141,7 +141,7 @@ contract WeightedStaking is Checkpoints {
 		uint96 weight = computeWeightByDate(date, startDate);
 		uint96 staked = getPriorTotalStakesForDate(date, blockNumber);
 		/// @dev weight is multiplied by some factor to allow decimals.
-		power = mul96(staked, weight, "mul overflow") / WEIGHT_FACTOR;
+		power = mul96(staked, weight, "WS07") / WEIGHT_FACTOR; // mul overflow
 	}
 
 	/**
@@ -155,7 +155,7 @@ contract WeightedStaking is Checkpoints {
 	 * @return The number of votes the account had as of the given block.
 	 * */
 	function getPriorTotalStakesForDate(uint256 date, uint256 blockNumber) public view returns (uint96) {
-		require(blockNumber < _getCurrentBlockNumber(), "not determined");
+		require(blockNumber < _getCurrentBlockNumber(), "WS08"); // not determined
 
 		uint32 nCheckpoints = numTotalStakingCheckpoints[date];
 		if (nCheckpoints == 0) {
@@ -212,7 +212,7 @@ contract WeightedStaking is Checkpoints {
 
 		/// @dev Max 78 iterations.
 		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
-			votes = add96(votes, _totalPowerByDateForDelegatee(account, i, start, blockNumber), "overflow - total VP");
+			votes = add96(votes, _totalPowerByDateForDelegatee(account, i, start, blockNumber), "WS09"); // overflow - total VP
 		}
 	}
 
@@ -233,7 +233,7 @@ contract WeightedStaking is Checkpoints {
 	) internal view returns (uint96 power) {
 		uint96 weight = computeWeightByDate(date, startDate);
 		uint96 staked = getPriorStakeByDateForDelegatee(account, date, blockNumber);
-		power = mul96(staked, weight, "overflow") / WEIGHT_FACTOR;
+		power = mul96(staked, weight, "WS10") / WEIGHT_FACTOR; // overflow
 	}
 
 	/**
@@ -252,7 +252,7 @@ contract WeightedStaking is Checkpoints {
 		uint256 date,
 		uint256 blockNumber
 	) public view returns (uint96) {
-		require(blockNumber < _getCurrentBlockNumber(), "not determined yet");
+		require(blockNumber < _getCurrentBlockNumber(), "WS11"); // not determined yet
 
 		uint32 nCheckpoints = numDelegateStakingCheckpoints[account][date];
 		if (nCheckpoints == 0) {
@@ -314,7 +314,7 @@ contract WeightedStaking is Checkpoints {
 		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
 			uint96 weightedStake = weightedStakeByDate(account, i, start, blockNumber);
 			if (weightedStake > 0) {
-				votes = add96(votes, weightedStake, "overflow on total weight");
+				votes = add96(votes, weightedStake, "WS12"); // overflow on total weight
 			}
 		}
 	}
@@ -339,7 +339,7 @@ contract WeightedStaking is Checkpoints {
 		uint96 staked = _getPriorUserStakeByDate(account, date, blockNumber);
 		if (staked > 0) {
 			uint96 weight = computeWeightByDate(date, startDate);
-			power = mul96(staked, weight, "overflow") / WEIGHT_FACTOR;
+			power = mul96(staked, weight, "WS13") / WEIGHT_FACTOR; // overflow
 		} else {
 			power = 0;
 		}
@@ -385,7 +385,7 @@ contract WeightedStaking is Checkpoints {
 		uint256 date,
 		uint256 blockNumber
 	) internal view returns (uint96) {
-		require(blockNumber < _getCurrentBlockNumber(), "not determined");
+		require(blockNumber < _getCurrentBlockNumber(), "WS14"); // not determined
 
 		date = _adjustDateForOrigin(date);
 		uint32 nCheckpoints = numUserStakingCheckpoints[account][date];
@@ -443,7 +443,7 @@ contract WeightedStaking is Checkpoints {
 		for (uint256 i = start; i <= end; i += TWO_WEEKS) {
 			uint96 weightedStake = weightedVestingStakeByDate(i, start, blockNumber);
 			if (weightedStake > 0) {
-				votes = add96(votes, weightedStake, "overflow on total weight");
+				votes = add96(votes, weightedStake, "WS15"); // overflow on total weight
 			}
 		}
 	}
@@ -466,7 +466,7 @@ contract WeightedStaking is Checkpoints {
 		uint96 staked = _getPriorVestingStakeByDate(date, blockNumber);
 		if (staked > 0) {
 			uint96 weight = computeWeightByDate(date, startDate);
-			power = mul96(staked, weight, "multiplication overflow") / WEIGHT_FACTOR;
+			power = mul96(staked, weight, "WS16") / WEIGHT_FACTOR; // multiplication overflow
 		} else {
 			power = 0;
 		}
@@ -496,7 +496,7 @@ contract WeightedStaking is Checkpoints {
 	 * @return The number of votes the account had as of the given block.
 	 * */
 	function _getPriorVestingStakeByDate(uint256 date, uint256 blockNumber) internal view returns (uint96) {
-		require(blockNumber < _getCurrentBlockNumber(), "not determined");
+		require(blockNumber < _getCurrentBlockNumber(), "WS17"); // not determined
 
 		uint32 nCheckpoints = numVestingCheckpoints[date];
 		if (nCheckpoints == 0) {
@@ -547,17 +547,19 @@ contract WeightedStaking is Checkpoints {
 	 * @return The weighted stake the account had as of the given block.
 	 * */
 	function computeWeightByDate(uint256 date, uint256 startDate) public pure returns (uint96 weight) {
-		require(date >= startDate, "date < startDate");
+		require(date >= startDate, "WS18"); // date < startDate
 		uint256 remainingTime = (date - startDate);
-		require(MAX_DURATION >= remainingTime, "remaining time < max duration");
+		require(MAX_DURATION >= remainingTime, "WS19"); // remaining time < max duration
 		/// @dev x = max days - remaining days
 		uint96 x = uint96(MAX_DURATION - remainingTime) / (1 days);
 		/// @dev w = (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)
 		weight = add96(
 			WEIGHT_FACTOR,
-			mul96(MAX_VOTING_WEIGHT * WEIGHT_FACTOR, sub96(MAX_DURATION_POW_2, x * x, "weight underflow"), "weight mul overflow") /
-				MAX_DURATION_POW_2,
-			"overflow on weight"
+			mul96(MAX_VOTING_WEIGHT * WEIGHT_FACTOR, 
+				sub96(MAX_DURATION_POW_2, x * x, "WS20" /* weight underflow */), 
+				"WS21" /* weight mul overflow */)
+				 / MAX_DURATION_POW_2,
+			"WS22" /* overflow on weight */
 		);
 	}
 
@@ -569,7 +571,7 @@ contract WeightedStaking is Checkpoints {
 	 * @return The actual unlocking date (might be up to 2 weeks shorter than intended).
 	 * */
 	function timestampToLockDate(uint256 timestamp) public view returns (uint256 lockDate) {
-		require(timestamp >= kickoffTS, "timestamp < contract creation");
+		require(timestamp >= kickoffTS, "WS23"); // timestamp < contract creation
 		/**
 		 * @dev If staking timestamp does not match any of the unstaking dates
 		 * , set the lockDate to the closest one before the timestamp.
