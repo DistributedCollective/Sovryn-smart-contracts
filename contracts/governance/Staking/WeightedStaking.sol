@@ -649,14 +649,13 @@ contract WeightedStaking is Checkpoints {
 
 	/**
 	 * @notice Freeze contract - disable all functions
-	 * @param _freeze true when pausing, false when unpausing
+	 * @param _freeze true when freezing, false when unfreezing
 	 * @dev When freezing, pause is always applied too. When unfreezing, the contract is left in paused stated.
 	 * */
 	function freezeUnfreeze(bool _freeze) public onlyAuthorizedOrPauser {
-		if (!paused) {
-			pauseUnpause(true);
-		}
+		require(_freeze != frozen, "WS25");
 		frozen = _freeze;
+		if (_freeze) pauseUnpause(true);
 		emit StakingFrozen(_freeze);
 	}
 
