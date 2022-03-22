@@ -655,7 +655,7 @@ contract WeightedStaking is Checkpoints {
 	function freezeUnfreeze(bool _freeze) public onlyAuthorizedOrPauser {
 		require(_freeze != frozen, "WS25");
 		frozen = _freeze;
-		if (_freeze) pauseUnpause(true);
+		if (_freeze && !paused) pauseUnpause(true);
 		emit StakingFrozen(_freeze);
 	}
 
