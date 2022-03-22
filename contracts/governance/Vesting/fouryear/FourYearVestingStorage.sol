@@ -28,10 +28,10 @@ contract FourYearVestingStorage is Ownable {
 	IFeeSharingProxy public feeSharingProxy;
 
 	/// @notice The cliff. After this time period the tokens begin to unlock.
-	uint256 public constant cliff = 4 weeks;
+	uint256 public constant CLIFF = 4 weeks;
 
 	/// @notice The duration. After this period all tokens will have been unlocked.
-	uint256 public constant duration = 156 weeks;
+	uint256 public constant DURATION = 156 weeks;
 
 	/// @notice The start date of the vesting.
 	uint256 public startDate;
@@ -40,7 +40,7 @@ contract FourYearVestingStorage is Ownable {
 	uint256 public endDate;
 
 	/// @notice Constant used for computing the vesting dates.
-	uint256 constant FOUR_WEEKS = 4 weeks;
+	uint256 public constant FOUR_WEEKS = 4 weeks;
 
 	/// @notice Maximum interval to stake tokens at one go
 	uint256 public maxInterval;

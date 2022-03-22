@@ -8,8 +8,6 @@ pragma solidity ^0.5.17;
  * at a vesting instance.
  */
 interface IFourYearVesting {
-	function duration() external returns (uint256);
-
 	function endDate() external returns (uint256);
 
 	function stakeTokens(uint256 _amount, uint256 _restartStakeSchedule) external returns (uint256 lastSchedule, uint256 remainingAmount);
