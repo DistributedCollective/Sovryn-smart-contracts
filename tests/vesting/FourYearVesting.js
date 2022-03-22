@@ -777,4 +777,41 @@ contract("FourYearVesting", (accounts) => {
 			await expectRevert(vesting.setMaxInterval(7 * WEEK), "invalid interval");
 		});
 	});
+
+	describe("extend duration and delegate", async () => {
+		it("must delegate for all intervals", async () => {
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
+			vesting = await VestingLogic.at(vesting.address);
+			await token.approve(vesting.address, ONE_MILLON);
+
+			let remainingStakeAmount = ONE_MILLON;
+			let lastStakingSchedule = 0;
+			while (remainingStakeAmount > 0) {
+				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				lastStakingSchedule = await vesting.lastStakingSchedule();
+				remainingStakeAmount = await vesting.remainingStakeAmount();
+			}
+
+			let data = await staking.getStakes.call(vesting.address);
+			for (let i = 0; i < data.dates.length; i++) {
+				let delegatee = await staking.delegates(vesting.address, data.dates[i]);
+				expect(delegatee).equal(root);
+			}
+
+			await increaseTime(80 * WEEK);
+			let tx = await vesting.extendStaking();
+			// delegate
+			tx = await vesting.delegate(a1);
+			console.log("gasUsed: " + tx.receipt.gasUsed);
+			expectEvent(tx, "VotesDelegated", {
+				caller: root,
+				delegatee: a1,
+			});
+			data = await staking.getStakes.call(vesting.address);
+			for (let i = 0; i < data.dates.length; i++) {
+				let delegatee = await staking.delegates(vesting.address, data.dates[i]);
+				expect(delegatee).equal(a1);
+			}
+		});
+	});
 });

@@ -153,6 +153,9 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		for (uint256 i = 0; i < dates.length; i++) {
 			if ((dates[i] < block.timestamp) && (dates[i] <= oneYear) && (stakes[i] > 0)) {
 				staking.extendStakingDuration(dates[i], dates[i].add(156 weeks));
+				endDate = dates[i].add(156 weeks);
+			} else {
+				break;
 			}
 		}
 	}
