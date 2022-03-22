@@ -44,7 +44,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	event StakingPaused(bool indexed setPaused);
 
 	/// @notice An event emitted when a staking is frozen or unfrozen
-	/// @param setFrozen true - pause, false - unpause
+	/// @param setFrozen true - freeze, false - unfreeze
 	event StakingFrozen(bool indexed setFrozen);
 
 	event ContractCodeHashAdded(bytes32 hash);
