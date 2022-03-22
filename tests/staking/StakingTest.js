@@ -240,7 +240,7 @@ contract("Staking", (accounts) => {
 				expiry = 0;
 			await expectRevert(
 				staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, 0, "0xbad", "0xbad"),
-				"S12" /**Staking::delegateBySig: invalid nonce */
+				"S13" /**Staking::delegateBySig: invalid nonce */
 			);
 		});
 

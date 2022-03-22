@@ -111,6 +111,12 @@ contract("Staking", (accounts) => {
 			expectEvent(tx, "StakingPaused", {
 				setPaused: true,
 			});
+			expect(await staking.frozen()).to.be.equal(false); // Must not be freezed when paused
+		});
+
+		it("should not pause/unpause when frozen", async () => {
+			await staking.freezeUnfreeze(true); // Freezed
+			await expectRevert(staking.pauseUnpause(true), "WS04");
 		});
 
 		it("fails pausing if sender isn't an owner/pauser", async () => {
@@ -233,6 +239,9 @@ contract("Staking", (accounts) => {
 			expectEvent(tx, "StakingFrozen", {
 				setFrozen: true,
 			});
+			expect(await staking.paused()).to.be.equal(true); // Must also pause when freezed
+			await staking.freezeUnfreeze(false); // Unfreeze
+			expect(await staking.paused()).to.be.equal(true); // Must still be paused when unfreezed
 		});
 
 		it("fails freezing if sender isn't an owner/pauser", async () => {
