@@ -284,7 +284,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
 	 * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting.
 	 * */
-	function governanceWithdrawVesting(address vesting, address receiver) public onlyAuthorized {
+	function governanceWithdrawVesting(address vesting, address receiver) public onlyAuthorized whenNotFrozen {
 		vestingWhitelist[vesting] = true;
 		ITeamVesting(vesting).governanceWithdrawTokens(receiver);
 		vestingWhitelist[vesting] = false;
@@ -618,7 +618,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * is not implemented.
 	 * @param _newStakingContract The address of the new staking contract.
 	 * */
-	function setNewStakingContract(address _newStakingContract) public onlyOwner {
+	function setNewStakingContract(address _newStakingContract) public onlyOwner whenNotFrozen {
 		require(_newStakingContract != address(0), "can't reset the new staking contract to 0");
 		newStakingContract = _newStakingContract;
 	}
@@ -628,7 +628,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * We need it for unstaking with slashing.
 	 * @param _feeSharing The address of FeeSharingProxy contract.
 	 * */
-	function setFeeSharing(address _feeSharing) public onlyOwner {
+	function setFeeSharing(address _feeSharing) public onlyOwner whenNotFrozen {
 		require(_feeSharing != address(0), "FeeSharing address shouldn't be 0");
 		feeSharing = IFeeSharingProxy(_feeSharing);
 	}
@@ -638,7 +638,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * We need it for unstaking with slashing.
 	 * @param _weightScaling The weight scaling.
 	 * */
-	function setWeightScaling(uint96 _weightScaling) public onlyOwner {
+	function setWeightScaling(uint96 _weightScaling) public onlyOwner whenNotFrozen {
 		require(
 			MIN_WEIGHT_SCALING <= _weightScaling && _weightScaling <= MAX_WEIGHT_SCALING,
 			"wrong weight scaling" /* scaling doesn't belong to range [1, 9] */
@@ -653,7 +653,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 *      In case it's needed at some point in the future,
 	 *      the implementation needs to be changed first.
 	 * */
-	function migrateToNewStakingContract() public {
+	function migrateToNewStakingContract() public whenNotFrozen {
 		require(newStakingContract != address(0), "there is no new staking contract set");
 		/// @dev implementation:
 		/// @dev Iterate over all possible lock dates from now until now + MAX_DURATION.
@@ -669,7 +669,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * tokens and lock again.
 	 * @dev Last resort.
 	 * */
-	function unlockAllTokens() public onlyOwner {
+	function unlockAllTokens() public onlyOwner whenNotFrozen {
 		allUnlocked = true;
 		emit TokensUnlocked(SOVToken.balanceOf(address(this)));
 	}

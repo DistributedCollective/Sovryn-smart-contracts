@@ -66,7 +66,7 @@ contract WeightedStaking is Checkpoints {
 	 * @dev _vestingRegistryProxy can be set to 0 as this function can be reused by
 	 * various other functionalities without the necessity of linking it with Vesting Registry
 	 */
-	function setVestingRegistry(address _vestingRegistryProxy) external onlyOwner {
+	function setVestingRegistry(address _vestingRegistryProxy) external onlyOwner whenNotFrozen {
 		vestingRegistryLogic = VestingRegistryLogic(_vestingRegistryProxy);
 	}
 
@@ -75,7 +75,7 @@ contract WeightedStaking is Checkpoints {
 	 * @param lockedDates The arrays of lock dates.
 	 * @param values The array of values to add to the staked balance.
 	 */
-	function setVestingStakes(uint256[] calldata lockedDates, uint96[] calldata values) external onlyAuthorized {
+	function setVestingStakes(uint256[] calldata lockedDates, uint96[] calldata values) external onlyAuthorized whenNotFrozen {
 		require(lockedDates.length == values.length, "arrays mismatch");
 
 		uint256 length = lockedDates.length;
@@ -599,7 +599,7 @@ contract WeightedStaking is Checkpoints {
 	 * @notice Add account to ACL.
 	 * @param _admin The addresses of the account to grant permissions.
 	 * */
-	function addAdmin(address _admin) public onlyOwner {
+	function addAdmin(address _admin) public onlyOwner whenNotFrozen {
 		admins[_admin] = true;
 		emit AdminAdded(_admin);
 	}
@@ -608,7 +608,7 @@ contract WeightedStaking is Checkpoints {
 	 * @notice Remove account from ACL.
 	 * @param _admin The addresses of the account to revoke permissions.
 	 * */
-	function removeAdmin(address _admin) public onlyOwner {
+	function removeAdmin(address _admin) public onlyOwner whenNotFrozen {
 		admins[_admin] = false;
 		emit AdminRemoved(_admin);
 	}
@@ -617,7 +617,7 @@ contract WeightedStaking is Checkpoints {
 	 * @notice Add account to pausers ACL.
 	 * @param _pauser The address to grant pauser permissions.
 	 * */
-	function addPauser(address _pauser) public onlyOwner {
+	function addPauser(address _pauser) public onlyOwner whenNotFrozen {
 		pausers[_pauser] = true;
 		emit PauserAddedOrRemoved(_pauser, true);
 	}
@@ -626,7 +626,7 @@ contract WeightedStaking is Checkpoints {
 	 * @notice Add account to pausers ACL.
 	 * @param _pauser The address to grant pauser permissions.
 	 * */
-	function removePauser(address _pauser) public onlyOwner {
+	function removePauser(address _pauser) public onlyOwner whenNotFrozen {
 		delete pausers[_pauser];
 		emit PauserAddedOrRemoved(_pauser, false);
 	}
@@ -635,7 +635,7 @@ contract WeightedStaking is Checkpoints {
 	 * @notice Pause contract
 	 * @param _pause true when pausing, false when unpausing
 	 * */
-	function pauseUnpause(bool _pause) public onlyAuthorizedOrPauser {
+	function pauseUnpause(bool _pause) public onlyAuthorizedOrPauser whenNotFrozen {
 		paused = _pause;
 		emit StakingPaused(_pause);
 	}
@@ -644,8 +644,9 @@ contract WeightedStaking is Checkpoints {
 	 * @notice Freeze contract - disable functions available even when paused
 	 * @param _freeze true when pausing, false when unpausing
 	 * */
-	function freezeUnfreeze(bool _freeze) public onlyAuthorizedOrPauser {
+	function freezeUnfreeze(bool _freeze) public onlyAuthorizedOrPauser whenNotFrozen {
 		frozen = _freeze;
+		paused = _freeze;
 		emit StakingFrozen(_freeze);
 	}
 
@@ -654,7 +655,7 @@ contract WeightedStaking is Checkpoints {
 	 * @param vesting The address of Vesting contract.
 	 * @dev We need it to use _isVestingContract() function instead of isContract()
 	 */
-	function addContractCodeHash(address vesting) public onlyAuthorized {
+	function addContractCodeHash(address vesting) public onlyAuthorized whenNotFrozen {
 		bytes32 codeHash = _getCodeHash(vesting);
 		vestingCodeHashes[codeHash] = true;
 		emit ContractCodeHashAdded(codeHash);
@@ -665,7 +666,7 @@ contract WeightedStaking is Checkpoints {
 	 * @param vesting The address of Vesting contract.
 	 * @dev We need it to use _isVestingContract() function instead of isContract()
 	 */
-	function removeContractCodeHash(address vesting) public onlyAuthorized {
+	function removeContractCodeHash(address vesting) public onlyAuthorized whenNotFrozen {
 		bytes32 codeHash = _getCodeHash(vesting);
 		vestingCodeHashes[codeHash] = false;
 		emit ContractCodeHashRemoved(codeHash);
