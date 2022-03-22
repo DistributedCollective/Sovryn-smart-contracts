@@ -114,14 +114,14 @@ contract("Staking", (accounts) => {
 		});
 
 		it("fails pausing if sender isn't an owner/pauser", async () => {
-			await expectRevert(staking.pauseUnpause(true, { from: account1 }), "unauthorized");
+			await expectRevert(staking.pauseUnpause(true, { from: account1 }), "WS02"); // WS02 : unauthorized
 		});
 
 		it("should not allow staking when paused", async () => {
 			await staking.pauseUnpause(true); // Paused
 			let amount = "100";
 			let lockedTS = await getTimeFromKickoff(MAX_DURATION);
-			await expectRevert(staking.stake(amount, lockedTS, ZERO_ADDRESS, ZERO_ADDRESS), "paused");
+			await expectRevert(staking.stake(amount, lockedTS, ZERO_ADDRESS, ZERO_ADDRESS), "WS03"); // WS03 : paused
 		});
 
 		it("should not allow to stakeWithApproval when paused", async () => {
@@ -139,7 +139,7 @@ contract("Staking", (accounts) => {
 			let contract = new web3.eth.Contract(staking.abi, staking.address);
 			let sender = root;
 			let data = contract.methods.stakeWithApproval(sender, amount, lockedTS, root, root).encodeABI();
-			await expectRevert(token.approveAndCall(staking.address, amount, data, { from: sender }), "paused");
+			await expectRevert(token.approveAndCall(staking.address, amount, data, { from: sender }), "WS03"); // WS03 : paused
 		});
 
 		it("should not allow to extend staking duration when paused", async () => {
@@ -154,7 +154,7 @@ contract("Staking", (accounts) => {
 
 			let newLockedTS = await getTimeFromKickoff(TWO_WEEKS * 2);
 			await staking.pauseUnpause(true); // Paused
-			await expectRevert(staking.extendStakingDuration(lockedTS, newLockedTS), "paused");
+			await expectRevert(staking.extendStakingDuration(lockedTS, newLockedTS), "WS03"); // WS03 : paused
 		});
 
 		it("should not allow stakesBySchedule when paused", async () => {
@@ -163,7 +163,7 @@ contract("Staking", (accounts) => {
 			let duration = new BN(MAX_DURATION).div(new BN(2));
 			let cliff = new BN(TWO_WEEKS).mul(new BN(2));
 			let intervalLength = new BN(10000000);
-			await expectRevert(staking.stakesBySchedule(amount, cliff, duration, intervalLength, root, root), "paused");
+			await expectRevert(staking.stakesBySchedule(amount, cliff, duration, intervalLength, root, root), "WS03"); // WS03 : paused
 		});
 
 		it("should not allow delegating stakes when paused", async () => {
@@ -178,7 +178,7 @@ contract("Staking", (accounts) => {
 			await staking.setDelegateStake(root, lockedTS, 0);
 
 			await staking.pauseUnpause(true); // Paused
-			await expectRevert(staking.delegate(account1, lockedTS), "paused");
+			await expectRevert(staking.delegate(account1, lockedTS), "WS03"); // WS03 : paused
 		});
 
 		it("should not delegate on behalf of the signatory when paused", async () => {
@@ -214,7 +214,7 @@ contract("Staking", (accounts) => {
 			expect(await staking.delegates.call(account1, inThreeYears)).to.be.equal(address(0));
 
 			await staking.pauseUnpause(true); // Paused
-			await expectRevert(staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s), "paused");
+			await expectRevert(staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s), "WS03"); // WS03 : paused
 
 			let tx = await staking.pauseUnpause(false); // Unpaused
 			expectEvent(tx, "StakingPaused", {
@@ -236,7 +236,7 @@ contract("Staking", (accounts) => {
 		});
 
 		it("fails freezing if sender isn't an owner/pauser", async () => {
-			await expectRevert(staking.freezeUnfreeze(true, { from: account1 }), "unauthorized");
+			await expectRevert(staking.freezeUnfreeze(true, { from: account1 }), "WS02"); // WS02 : unauthorized
 		});
 
 		it("should not allow withdrawal when frozen", async () => {
@@ -254,7 +254,7 @@ contract("Staking", (accounts) => {
 			let beforeBalance = await token.balanceOf.call(root);
 
 			await staking.freezeUnfreeze(true); // Freeze
-			await expectRevert(staking.withdraw(amount / 2, lockedTS, root), "frozen");
+			await expectRevert(staking.withdraw(amount / 2, lockedTS, root), "WS04"); // WS04 : frozen
 
 			await staking.freezeUnfreeze(false); // Unfreeze
 			let tx2 = await staking.withdraw(amount / 2, lockedTS, root);
@@ -328,7 +328,7 @@ contract("Staking", (accounts) => {
 			await staking.addAdmin(account1);
 
 			await staking.freezeUnfreeze(true); // Freeze
-			await expectRevert(staking.governanceWithdrawVesting(vesting.address, root, { from: account1 }), "frozen");
+			await expectRevert(staking.governanceWithdrawVesting(vesting.address, root, { from: account1 }), "WS04"); // WS04 : frozen
 
 			await staking.freezeUnfreeze(false); // Unfreeze
 			// governance withdraw until duration must withdraw all staked tokens without fees

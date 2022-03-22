@@ -555,10 +555,15 @@ contract WeightedStaking is Checkpoints {
 		/// @dev w = (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)
 		weight = add96(
 			WEIGHT_FACTOR,
-			mul96(MAX_VOTING_WEIGHT * WEIGHT_FACTOR, 
-				sub96(MAX_DURATION_POW_2, x * x, "WS20" /* weight underflow */), 
-				"WS21" /* weight mul overflow */)
-				 / MAX_DURATION_POW_2,
+			mul96(
+				MAX_VOTING_WEIGHT * WEIGHT_FACTOR,
+				sub96(
+					MAX_DURATION_POW_2,
+					x * x,
+					"WS20" /* weight underflow */
+				),
+				"WS21" /* weight mul overflow */
+			) / MAX_DURATION_POW_2,
 			"WS22" /* overflow on weight */
 		);
 	}
@@ -643,12 +648,15 @@ contract WeightedStaking is Checkpoints {
 	}
 
 	/**
-	 * @notice Freeze contract - disable functions available even when paused
+	 * @notice Freeze contract - disable all functions
 	 * @param _freeze true when pausing, false when unpausing
+	 * @dev When freezing, pause is always applied too. When unfreezing, the contract is left in paused stated.
 	 * */
-	function freezeUnfreeze(bool _freeze) public onlyAuthorizedOrPauser whenNotFrozen {
+	function freezeUnfreeze(bool _freeze) public onlyAuthorizedOrPauser {
+		if (!paused) {
+			pauseUnpause(true);
+		}
 		frozen = _freeze;
-		paused = _freeze;
 		emit StakingFrozen(_freeze);
 	}
 
