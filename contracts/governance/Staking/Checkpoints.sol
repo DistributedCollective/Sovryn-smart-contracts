@@ -73,7 +73,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	function _decreaseVestingStake(uint256 lockedTS, uint96 value) internal {
 		uint32 nCheckpoints = numVestingCheckpoints[lockedTS];
 		uint96 vested = vestingCheckpoints[lockedTS][nCheckpoints - 1].stake;
-		uint96 newVest = sub96(vested, value, "CP02"); // vested overflow
+		uint96 newVest = sub96(vested, value, "CP02"); // vested underflow
 		_writeVestingCheckpoint(lockedTS, nCheckpoints, newVest);
 	}
 
