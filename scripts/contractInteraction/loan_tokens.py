@@ -363,7 +363,7 @@ def setupLoanParamsForCollaterals(loanTokenAddress, collateralAddresses):
 
 
 def setTransactionLimits(loanTokenAddress, addresses, limits):
-    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
     data = localLoanToken.setTransactionLimits.encode_input(addresses,limits)
     sendWithMultisig(conf.contracts['multisig'], localLoanToken.address, data, conf.acct)
 
