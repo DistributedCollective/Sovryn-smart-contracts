@@ -46,6 +46,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	 * @param _interval Max interval for which tokens scheduled shall be staked.
 	 * */
 	function setMaxInterval(uint256 _interval) external onlyOwner {
+		require(_interval.mod(FOUR_WEEKS) == 0, "invalid interval");
 		maxInterval = _interval;
 	}
 
@@ -93,7 +94,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		/// @dev Withdraw for each unlocked position.
 		/// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
 		///		workaround found, but it doesn't work with TWO_WEEKS
-		for (uint256 i = startDate.add(cliff); i <= stakingEndDate; i += FOUR_WEEKS) {
+		for (uint256 i = startDate.add(CLIFF); i <= stakingEndDate; i += FOUR_WEEKS) {
 			staking.delegate(_delegatee, i);
 		}
 		emit VotesDelegated(msg.sender, _delegatee);
@@ -189,6 +190,9 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		for (uint256 i = 0; i < dates.length; i++) {
 			if ((dates[i] < block.timestamp) && (dates[i] <= oneYear) && (stakes[i] > 0)) {
 				staking.extendStakingDuration(dates[i], dates[i].add(156 weeks));
+				endDate = dates[i].add(156 weeks);
+			} else {
+				break;
 			}
 		}
 	}
@@ -217,8 +221,8 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		// Runs for maxInterval only (consider maxInterval = 18 * 4 = 72 weeks)
 		if (startDate == 0 && _restartStakeSchedule == 0) {
 			startDate = staking.timestampToLockDate(block.timestamp); // Set only once
-			durationLeft = duration; // We do not touch duration and cliff as they are used throughout
-			cliffAdded = cliff; // Hence, durationLeft and cliffAdded is created
+			durationLeft = DURATION; // We do not touch duration and cliff as they are used throughout
+			cliffAdded = CLIFF; // Hence, durationLeft and cliffAdded is created
 		}
 		// Calling the _stakeTokens second/third time - we start from the end of previous interval
 		// and the remaining amount(amount left after tokens are staked in the previous interval)
@@ -230,7 +234,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		}
 		// Runs only once when the _stakeTokens is called for the first time
 		if (endDate == 0) {
-			endDate = staking.timestampToLockDate(block.timestamp.add(duration));
+			endDate = staking.timestampToLockDate(block.timestamp.add(DURATION));
 		}
 		uint256 addedMaxInterval = restartDate.add(maxInterval); // run for maxInterval
 		if (addedMaxInterval < endDate) {
@@ -254,7 +258,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		/// @dev Allow the staking contract to access them.
 		SOV.approve(address(staking), relativeAmount);
 
-		staking.stakesBySchedule(relativeAmount, cliffAdded, duration.sub(durationLeft), FOUR_WEEKS, address(this), tokenOwner);
+		staking.stakesBySchedule(relativeAmount, cliffAdded, DURATION.sub(durationLeft), FOUR_WEEKS, address(this), tokenOwner);
 		if (durationLeft == 0) {
 			// All tokens staked
 			cliffAdded = 0;

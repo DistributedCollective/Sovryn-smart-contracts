@@ -74,8 +74,8 @@ contract("FourYearVesting", (accounts) => {
 			let _sov = await vestingInstance.SOV();
 			let _stackingAddress = await vestingInstance.staking();
 			let _tokenOwner = await vestingInstance.tokenOwner();
-			let _cliff = await vestingInstance.cliff();
-			let _duration = await vestingInstance.duration();
+			let _cliff = await vestingInstance.CLIFF();
+			let _duration = await vestingInstance.DURATION();
 			let _feeSharingProxy = await vestingInstance.feeSharingProxy();
 
 			assert.equal(_sov, token.address);
@@ -96,8 +96,8 @@ contract("FourYearVesting", (accounts) => {
 			let _sov = await vestingInstance.SOV();
 			let _stackingAddress = await vestingInstance.staking();
 			let _tokenOwner = await vestingInstance.tokenOwner();
-			let _cliff = await vestingInstance.cliff();
-			let _duration = await vestingInstance.duration();
+			let _cliff = await vestingInstance.CLIFF();
+			let _duration = await vestingInstance.DURATION();
 			let _feeSharingProxy = await vestingInstance.feeSharingProxy();
 
 			assert.equal(_sov, token.address);
@@ -760,13 +760,55 @@ contract("FourYearVesting", (accounts) => {
 
 	describe("setMaxInterval", async () => {
 		it("should set/alter maxInterval", async () => {
-			let toStake = ONE_MILLON;
 			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, a2, feeSharingProxy.address);
 			vesting = await VestingLogic.at(vesting.address);
 			let maxIntervalOld = await vesting.maxInterval();
 			await vesting.setMaxInterval(60 * WEEK);
 			let maxIntervalNew = await vesting.maxInterval();
 			expect(maxIntervalOld).to.be.bignumber.not.equal(maxIntervalNew);
+		});
+
+		it("should not set/alter maxInterval", async () => {
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, a2, feeSharingProxy.address);
+			vesting = await VestingLogic.at(vesting.address);
+			await expectRevert(vesting.setMaxInterval(7 * WEEK), "invalid interval");
+		});
+	});
+
+	describe("extend duration and delegate", async () => {
+		it("must delegate for all intervals", async () => {
+			vesting = await Vesting.new(vestingLogic.address, token.address, staking.address, root, feeSharingProxy.address);
+			vesting = await VestingLogic.at(vesting.address);
+			await token.approve(vesting.address, ONE_MILLON);
+
+			let remainingStakeAmount = ONE_MILLON;
+			let lastStakingSchedule = 0;
+			while (remainingStakeAmount > 0) {
+				await vesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				lastStakingSchedule = await vesting.lastStakingSchedule();
+				remainingStakeAmount = await vesting.remainingStakeAmount();
+			}
+
+			let data = await staking.getStakes.call(vesting.address);
+			for (let i = 0; i < data.dates.length; i++) {
+				let delegatee = await staking.delegates(vesting.address, data.dates[i]);
+				expect(delegatee).equal(root);
+			}
+
+			await increaseTime(80 * WEEK);
+			let tx = await vesting.extendStaking();
+			// delegate
+			tx = await vesting.delegate(a1);
+			console.log("gasUsed: " + tx.receipt.gasUsed);
+			expectEvent(tx, "VotesDelegated", {
+				caller: root,
+				delegatee: a1,
+			});
+			data = await staking.getStakes.call(vesting.address);
+			for (let i = 0; i < data.dates.length; i++) {
+				let delegatee = await staking.delegates(vesting.address, data.dates[i]);
+				expect(delegatee).equal(a1);
+			}
 		});
 	});
 
