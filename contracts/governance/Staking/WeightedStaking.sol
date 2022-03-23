@@ -27,9 +27,18 @@ contract WeightedStaking is Checkpoints {
 
 	/**
 	 * @dev Throws if called by any account other than the owner or admin or pauser.
-	 */
+	 
 	modifier onlyAuthorizedOrPauser() {
 		require(isOwner() || admins[msg.sender] || pausers[msg.sender], "WS02"); // unauthorized
+		_;
+	}
+	*/
+
+	/**
+	 * @dev Throws if called by any account other than the owner or pauser.
+	 */
+	modifier onlyPauserOrOwner() {
+		require(isOwner() || pausers[msg.sender], "WS02"); // unauthorized
 		_;
 	}
 
@@ -642,7 +651,7 @@ contract WeightedStaking is Checkpoints {
 	 * @notice Pause contract
 	 * @param _pause true when pausing, false when unpausing
 	 * */
-	function pauseUnpause(bool _pause) public onlyAuthorizedOrPauser whenNotFrozen {
+	function pauseUnpause(bool _pause) public onlyPauserOrOwner whenNotFrozen {
 		paused = _pause;
 		emit StakingPaused(_pause);
 	}
@@ -652,7 +661,7 @@ contract WeightedStaking is Checkpoints {
 	 * @param _freeze true when freezing, false when unfreezing
 	 * @dev When freezing, pause is always applied too. When unfreezing, the contract is left in paused stated.
 	 * */
-	function freezeUnfreeze(bool _freeze) public onlyAuthorizedOrPauser {
+	function freezeUnfreeze(bool _freeze) public onlyPauserOrOwner {
 		require(_freeze != frozen, "WS25");
 		if (_freeze) pauseUnpause(true);
 		frozen = _freeze;
