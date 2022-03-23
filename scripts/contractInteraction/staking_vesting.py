@@ -169,6 +169,16 @@ def upgradeStaking():
     data = stakingProxy.setImplementation.encode_input(stakingLogic.address)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
 
+# deployStakingLogic
+
+def deployStakingLogic():
+    print('Deploying account:', conf.acct.address)
+    print('Deploying Staking Logic')
+
+    # Deploy the staking logic contracts
+    stakingLogic = conf.acct.deploy(Staking)
+    print("New staking logic address:", stakingLogic.address)
+
 # Upgrade Vesting Registry
 
 def upgradeVesting():
