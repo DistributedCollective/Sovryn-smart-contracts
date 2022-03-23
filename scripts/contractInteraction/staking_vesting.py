@@ -266,6 +266,18 @@ def freezeOrUnfreezeStakingWithdawal(flag):
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
     data = staking.freezeUnfreeze.encode_input(flag)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
+
+def addPauser(address):
+    # Get the proxy contract instance
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    data = staking.addPauser.encode_input(address)
+    sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
+
+def removePauser(address):
+    # Get the proxy contract instance
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    data = staking.removePauser.encode_input(address)
+    sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
     
     
 def readVestingData(vestingAddress):
