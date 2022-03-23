@@ -334,7 +334,7 @@ def createProposalSIP0042():
     data1 = staking.setImplementation.encode_input(contracts['StakingLogic5'])
     data2 = stakingLogic.addPauser.encode_input(contracts['multisig'])
     datas = ["0x" + data1[10:], "0x" + data2[10:]]
-    description = "SIP-0042: Staking Security Update, Details: , sha256: 1ee642a02cb471bf48d5642175ed77596c5146f0177ff9a78414632fa9395afa"
+    description = "SIP-0042: Staking Security Update, Details: https://github.com/DistributedCollective/SIPS/blob/7c1a44b/SIP-0042.md, sha256: 522e1e65c49ec028d81c3a1f94a47354c2f6287c2d90c6eec8f06dcc17a1ebcc"
 
     # Create Proposal
-    createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
