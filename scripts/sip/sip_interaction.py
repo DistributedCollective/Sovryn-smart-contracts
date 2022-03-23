@@ -21,7 +21,7 @@ def main():
     # Call the function you want here
 
     # createProposalSIP0038()
-    createProposalSIP0039()
+    createProposalSIP0042()
 
     balanceAfter = acct.balance()
 
@@ -38,10 +38,10 @@ def loadConfig():
         acct = accounts[0]
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet":
-        acct = accounts.load("rskdeployer")
+        acct = accounts.load("rskdeployerdev")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-testnet":
-        acct = accounts.load("rskdeployer")
+        acct = accounts.load("rskdeployerdev")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
@@ -100,8 +100,8 @@ def createProposal(governorAddr, target, value, signature, data, description):
     print('=============================================================')
 
     # Create Proposal
-    # tx = governor.propose(target, value, signature, data, description)
-    # tx.info()
+    tx = governor.propose(target, value, signature, data, description)
+    tx.info()
 
 def createProposalSIP0005():
     dummyAddress = contracts['GovernorOwner']
@@ -334,7 +334,7 @@ def createProposalSIP0042():
     data1 = staking.setImplementation.encode_input(contracts['StakingLogic5'])
     data2 = stakingLogic.addPauser.encode_input(contracts['multisig'])
     datas = ["0x" + data1[10:], "0x" + data2[10:]]
-    description = "SIP-0042: Staking contract updates, Details: , sha256: "
+    description = "SIP-0042: Staking Security Update, Details: , sha256: 1ee642a02cb471bf48d5642175ed77596c5146f0177ff9a78414632fa9395afa"
 
     # Create Proposal
-    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+    createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
