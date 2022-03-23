@@ -123,6 +123,11 @@ contract("Staking", (accounts) => {
 			await expectRevert(staking.pauseUnpause(true, { from: account1 }), "WS02"); // WS02 : unauthorized
 		});
 
+		it("fails pausing if sender is an admin", async () => {
+			await staking.addAdmin(account1);
+			await expectRevert(staking.pauseUnpause(true, { from: account1 }), "WS02"); // WS02 : unauthorized
+		});
+
 		it("should not allow staking when paused", async () => {
 			await staking.pauseUnpause(true); // Paused
 			let amount = "100";
@@ -245,6 +250,11 @@ contract("Staking", (accounts) => {
 		});
 
 		it("fails freezing if sender isn't an owner/pauser", async () => {
+			await expectRevert(staking.freezeUnfreeze(true, { from: account1 }), "WS02"); // WS02 : unauthorized
+		});
+
+		it("fails freezing if sender is an admin", async () => {
+			await staking.addAdmin(account1);
 			await expectRevert(staking.freezeUnfreeze(true, { from: account1 }), "WS02"); // WS02 : unauthorized
 		});
 
