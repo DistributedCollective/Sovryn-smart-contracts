@@ -16,6 +16,7 @@ const { loadFixture } = waffle;
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 const { increaseTime } = require("../Utils/Ethereum");
 
+const SwapsEvents = artifacts.require("SwapsEvents");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const FeesEvents = artifacts.require("FeesEvents");
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
@@ -511,7 +512,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
 			const days_to_extend = new BN(10);
 			const owed_per_day = initial_loan_interest_data["interestOwedPerDay"];
-			const deposit_amount = owed_per_day.mul(days_to_extend);
+			let deposit_amount = owed_per_day.mul(days_to_extend);
 
 			const { rate, precision } = await priceFeeds.queryRate(RBTC.address, SUSD.address);
 			let deposit_amount_in_collateral = deposit_amount.mul(precision).div(rate);
@@ -525,7 +526,10 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 			deposit_amount_in_collateral = deposit_amount_in_collateral.add(buffer);
 
 			const loanMaintenance = await LoanMaintenance.at(sovryn.address);
-			await loanMaintenance.extendLoanDuration(loan_id, deposit_amount, true, "0x", { from: borrower });
+			const { receipt } = await loanMaintenance.extendLoanDuration(loan_id, deposit_amount, true, "0x", { from: borrower });
+			const decode = decodeLogs(receipt.rawLogs, SwapsEvents, "LoanSwap");
+			const loanSwapEvent = decode[0].args;
+			deposit_amount = new BN(loanSwapEvent["destAmount"]);
 
 			const end_loan_interest_data = await sovryn.getLoanInterestData(loan_id);
 			const end_loan = await sovryn.getLoan(loan_id);
