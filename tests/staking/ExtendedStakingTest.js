@@ -506,26 +506,41 @@ contract("Staking", (accounts) => {
 		it("shouldn't extendStakingDuration when _getPriorUserStakeByDate == 0", async () => {
 			let duration = new BN(0);
 			let lockedTS = await getTimeFromKickoff(duration);
-			// console.log("lockedTS: ", lockedTS.toString());
+			//console.log("lockedTS: ", lockedTS.toString());
 			let newTime = await getTimeFromKickoff(TWO_WEEKS);
-			// console.log("newTime:  ", newTime.toString());
+			//console.log("newTime:  ", newTime.toString());
 
 			// Trying to extend the stake when previous stake is 0
 			await expectRevert(staking.extendStakingDuration(lockedTS, newTime), "S05"); // S05 : no stakes till the prev lock date
 		});
 
+		it("should fail when trying to extendStakingDuration when the new date equals to the previous", async () => {
+			let amount = "1000";
+			const BN_TWO_WEEKS = new BN(TWO_WEEKS);
+			let duration = BN_TWO_WEEKS.mul(new BN(2));
+			let lockedTS = await getTimeFromKickoff(duration);
+			//console.log("lockedTS: ", lockedTS.toString());
+			let newTime = lockedTS; //await getTimeFromKickoff(TWO_WEEKS);
+
+			// Trying to extend the stake when previous stake is 0
+			await expectRevert(staking.extendStakingDuration(lockedTS, newTime), "S04"); // S04 : no stakes till the prev lock date
+		});
+
 		it("extend to a date inside the next 2 weeks granularity bucket", async () => {
 			let amount = "1000";
-			let duration = new BN(TWO_WEEKS).mul(new BN(2));
+			const BN_TWO_WEEKS = new BN(TWO_WEEKS);
+			let duration = BN_TWO_WEEKS.mul(new BN(2));
+			//console.log("duration: ", duration.toString());
 			let lockedTS = await getTimeFromKickoff(duration);
-			// console.log("lockedTS: ", lockedTS.toString());
+			//console.log("lockedTS: ", lockedTS.toString());
 
-			// Extending for 13 days
-			let newDuration = duration.add(new BN(DAY).mul(new BN(13)));
+			// Extending for 14 days
+			let newDuration = duration.add(BN_TWO_WEEKS);
+			//console.log("newDuration: ", newDuration.toString());
 			let newTime = await getTimeFromKickoff(newDuration);
-			console.log("newTime:  ", newTime.toString());
+			//console.log("newTime:  ", newTime.toString());
 			let newTimeLockDate = await staking.timestampToLockDate(newTime);
-			console.log("newTimeLockDate:  ", newTimeLockDate.toString());
+			//console.log("newTimeLockDate:  ", newTimeLockDate.toString());
 
 			// Set delegate as account1
 			await staking.stake(amount, lockedTS, root, account1);
