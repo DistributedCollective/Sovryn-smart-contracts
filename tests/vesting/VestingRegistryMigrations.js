@@ -23,6 +23,7 @@ const TEAM_VESTING_DURATION = FOUR_WEEKS.mul(new BN(36));
 const TOTAL_SUPPLY = "100000000000000000000000000";
 const ZERO_ADDRESS = constants.ZERO_ADDRESS;
 const pricsSats = "2500";
+const ONE_MILLON = "1000000000000000000000000";
 
 contract("VestingRegistryMigrations", (accounts) => {
 	let root, account1, account2, account3, account4;
@@ -39,7 +40,7 @@ contract("VestingRegistryMigrations", (accounts) => {
 	let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 
 	before(async () => {
-		[root, account1, account2, account3, accounts4, ...accounts] = accounts;
+		[root, account1, account2, account3, account4, ...accounts] = accounts;
 	});
 
 	beforeEach(async () => {
@@ -229,5 +230,48 @@ contract("VestingRegistryMigrations", (accounts) => {
 		it("fails if sender isn't an owner", async () => {
 			await expectRevert(vesting.addDeployedVestings([account1], [1], { from: account2 }), "unauthorized");
 		});
+
+		it("adds deployed four year vestings ", async () => {
+			const FourYearVesting = artifacts.require("FourYearVesting");
+			const FourYearVestingLogic = artifacts.require("FourYearVestingLogic");
+
+			// Deploy four year vesting contracts and stake tokens
+			let fourYearVestingLogic = await FourYearVestingLogic.new();
+			let fourYearVesting = await FourYearVesting.new(fourYearVestingLogic.address, SOV.address, staking.address, account4, feeSharingProxy.address);
+			fourYearVesting = await FourYearVestingLogic.at(fourYearVesting.address);
+			await SOV.approve(fourYearVesting.address, ONE_MILLON);
+
+			let remainingStakeAmount = ONE_MILLON;
+			let lastStakingSchedule = 0;
+			while (remainingStakeAmount > 0) {
+				await fourYearVesting.stakeTokens(remainingStakeAmount, lastStakingSchedule);
+				lastStakingSchedule = await fourYearVesting.lastStakingSchedule();
+				remainingStakeAmount = await fourYearVesting.remainingStakeAmount();
+			}
+
+			// Verify the vesting is created correctly
+			let data = await staking.getStakes.call(fourYearVesting.address);
+			assert.equal(data.dates.length, 39);
+			assert.equal(data.stakes.length, 39);
+			expect(data.stakes[0]).to.be.bignumber.equal(data.stakes[38]);
+
+			// Add deployed four year vesting to registry
+			let tx = await vesting.addFourYearVestings([account4], [fourYearVesting.address]);
+			console.log("gasUsed = " + tx.receipt.gasUsed);
+
+			// Verify that it is added to the registry
+			let cliff = FOUR_WEEKS;
+			let duration = FOUR_WEEKS.mul(new BN(39));
+			let newVestingAddress = await vesting.getVestingAddr(account4, cliff, duration, 4);
+			expect(fourYearVesting.address).equal(newVestingAddress);
+			expect(await vesting.isVestingAdress(newVestingAddress)).equal(true);
+
+			let vestingAddresses = await vesting.getVestingsOf(account4);
+			assert.equal(vestingAddresses.length.toString(), "1");
+			assert.equal(vestingAddresses[0].vestingType, 1);
+			assert.equal(vestingAddresses[0].vestingCreationType, 4);
+			assert.equal(vestingAddresses[0].vestingAddress, newVestingAddress);
+		});
+
 	});
 });
