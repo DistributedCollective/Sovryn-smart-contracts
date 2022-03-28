@@ -237,7 +237,13 @@ contract("VestingRegistryMigrations", (accounts) => {
 
 			// Deploy four year vesting contracts and stake tokens
 			let fourYearVestingLogic = await FourYearVestingLogic.new();
-			let fourYearVesting = await FourYearVesting.new(fourYearVestingLogic.address, SOV.address, staking.address, account4, feeSharingProxy.address);
+			let fourYearVesting = await FourYearVesting.new(
+				fourYearVestingLogic.address,
+				SOV.address,
+				staking.address,
+				account4,
+				feeSharingProxy.address
+			);
 			fourYearVesting = await FourYearVestingLogic.at(fourYearVesting.address);
 			await SOV.approve(fourYearVesting.address, ONE_MILLON);
 
@@ -272,6 +278,5 @@ contract("VestingRegistryMigrations", (accounts) => {
 			assert.equal(vestingAddresses[0].vestingCreationType, 4);
 			assert.equal(vestingAddresses[0].vestingAddress, newVestingAddress);
 		});
-
 	});
 });
