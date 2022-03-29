@@ -112,9 +112,8 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 		for (uint256 i = 0; i < _tokenOwners.length; i++) {
 			require(_tokenOwners[i] != address(0), "token owner cannot be 0 address");
 			require(_vestingAddresses[i] != address(0), "vesting cannot be 0 address");
-			uint256 uid = uint256(
-				keccak256(abi.encodePacked(_tokenOwners[i], uint256(VestingType.Vesting), cliff, duration, vestingCreationType))
-			);
+			uint256 uid =
+				uint256(keccak256(abi.encodePacked(_tokenOwners[i], uint256(VestingType.Vesting), cliff, duration, vestingCreationType)));
 			vestings[uid] = Vesting(uint256(VestingType.Vesting), vestingCreationType, _vestingAddresses[i]);
 			vestingsOf[_tokenOwners[i]].push(uid);
 			isVesting[_vestingAddresses[i]] = true;
