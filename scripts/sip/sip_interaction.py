@@ -20,8 +20,7 @@ def main():
 
     # Call the function you want here
 
-    # createProposalSIP0038()
-    createProposalSIP0042()
+    createProposalSIP0043()
 
     balanceAfter = acct.balance()
 
@@ -38,11 +37,14 @@ def loadConfig():
         acct = accounts[0]
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet":
-        acct = accounts.load("rskdeployerdev")
+        acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-testnet":
-        acct = accounts.load("rskdeployerdev")
+        acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet-dev":
+        acct = accounts.load("rskdeployerdev")
+        configFile = open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
@@ -337,4 +339,25 @@ def createProposalSIP0042():
     description = "SIP-0042: Staking Security Update, Details: https://github.com/DistributedCollective/SIPS/blob/7c1a44b/SIP-0042.md, sha256: 522e1e65c49ec028d81c3a1f94a47354c2f6287c2d90c6eec8f06dcc17a1ebcc"
 
     # Create Proposal
-    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+    print(signatures)
+    print(datas)
+    print(description)
+    createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+def createProposalSIP0043():
+
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking']]
+    values = [0]
+    signatures = ["setImplementation(address)"]
+    data = staking.setImplementation.encode_input(contracts['StakingLogic6'])
+    datas = ["0x" + data[10:]]
+    description = "SIP-0043 : Critical governance bug fix, Details: https://github.com/DistributedCollective/SIPS/blob/bdd346e/SIP-0043.md, sha256: 7a99f0862208d77e54f30f3c3759ca1d7efe9d1d1ec7df1ef1f83c649aa651a4"
+
+    # Create Proposal
+    print(signatures)
+    print(datas)
+    print(description)
+    createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
