@@ -20,7 +20,7 @@ def main():
 
     # Call the function you want here
 
-    createProposalSIP0043()
+    # createProposalSIP0043()
 
     balanceAfter = acct.balance()
 
@@ -360,4 +360,4 @@ def createProposalSIP0043():
     print(signatures)
     print(datas)
     print(description)
-    createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
