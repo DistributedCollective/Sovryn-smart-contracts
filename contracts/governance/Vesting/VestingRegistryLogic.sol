@@ -100,20 +100,21 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 	}
 
 	/**
-	 * @notice Adds four year vestings to vesting registry logic
+	 * @notice adds four year vestings to vesting registry logic
 	 * @param _tokenOwners array of token owners
 	 * @param _vestingAddresses array of vesting addresses
 	 */
 	function addFourYearVestings(address[] calldata _tokenOwners, address[] calldata _vestingAddresses) external onlyAuthorized {
+		require(_tokenOwners.length == _vestingAddresses.length, "arrays mismatch");
 		uint256 vestingCreationType = 4;
 		uint256 cliff = 4 weeks;
 		uint256 duration = 156 weeks;
-		require(_tokenOwners.length == _vestingAddresses.length, "arrays mismatch");
 		for (uint256 i = 0; i < _tokenOwners.length; i++) {
 			require(_tokenOwners[i] != address(0), "token owner cannot be 0 address");
 			require(_vestingAddresses[i] != address(0), "vesting cannot be 0 address");
-			uint256 uid =
-				uint256(keccak256(abi.encodePacked(_tokenOwners[i], uint256(VestingType.Vesting), cliff, duration, vestingCreationType)));
+			uint256 uid = uint256(
+				keccak256(abi.encodePacked(_tokenOwners[i], uint256(VestingType.Vesting), cliff, duration, vestingCreationType))
+			);
 			vestings[uid] = Vesting(uint256(VestingType.Vesting), vestingCreationType, _vestingAddresses[i]);
 			vestingsOf[_tokenOwners[i]].push(uid);
 			isVesting[_vestingAddresses[i]] = true;

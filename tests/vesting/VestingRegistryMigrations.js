@@ -16,6 +16,8 @@ const VestingRegistry = artifacts.require("VestingRegistry");
 const VestingRegistry2 = artifacts.require("VestingRegistry2");
 const VestingRegistry3 = artifacts.require("VestingRegistry3");
 const TestToken = artifacts.require("TestToken");
+const FourYearVesting = artifacts.require("FourYearVesting");
+const FourYearVestingLogic = artifacts.require("FourYearVestingLogic");
 
 const FOUR_WEEKS = new BN(4 * 7 * 24 * 60 * 60);
 const TEAM_VESTING_CLIFF = FOUR_WEEKS.mul(new BN(6));
@@ -35,6 +37,7 @@ contract("VestingRegistryMigrations", (accounts) => {
 	let vestingTeamAddress, vestingTeamAddress2, vestingTeamAddress3;
 	let newVestingAddress, newVestingAddress2, newVestingAddress3;
 	let newTeamVestingAddress, newTeamVestingAddress2, newTeamVestingAddress3;
+	let fourYearVestingLogic, fourYearVesting;
 
 	let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
 	let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
@@ -66,6 +69,17 @@ contract("VestingRegistryMigrations", (accounts) => {
 
 		lockedSOV = await LockedSOV.new(SOV.address, vesting.address, cliff, duration, [root]);
 		await vesting.addAdmin(lockedSOV.address);
+
+		// Deploy four year vesting contracts
+		fourYearVestingLogic = await FourYearVestingLogic.new();
+		fourYearVesting = await FourYearVesting.new(
+			fourYearVestingLogic.address,
+			SOV.address,
+			staking.address,
+			account4,
+			feeSharingProxy.address
+		);
+		fourYearVesting = await FourYearVestingLogic.at(fourYearVesting.address);
 	});
 
 	describe("addDeployedVestings", () => {
@@ -232,19 +246,7 @@ contract("VestingRegistryMigrations", (accounts) => {
 		});
 
 		it("adds deployed four year vestings ", async () => {
-			const FourYearVesting = artifacts.require("FourYearVesting");
-			const FourYearVestingLogic = artifacts.require("FourYearVestingLogic");
-
-			// Deploy four year vesting contracts and stake tokens
-			let fourYearVestingLogic = await FourYearVestingLogic.new();
-			let fourYearVesting = await FourYearVesting.new(
-				fourYearVestingLogic.address,
-				SOV.address,
-				staking.address,
-				account4,
-				feeSharingProxy.address
-			);
-			fourYearVesting = await FourYearVestingLogic.at(fourYearVesting.address);
+			// Stake tokens
 			await SOV.approve(fourYearVesting.address, ONE_MILLON);
 
 			let remainingStakeAmount = ONE_MILLON;
@@ -277,6 +279,22 @@ contract("VestingRegistryMigrations", (accounts) => {
 			assert.equal(vestingAddresses[0].vestingType, 1);
 			assert.equal(vestingAddresses[0].vestingCreationType, 4);
 			assert.equal(vestingAddresses[0].vestingAddress, newVestingAddress);
+		});
+
+		it("fails adding four year vesting if array mismatch", async () => {
+			await expectRevert(vesting.addFourYearVestings([account4], []), "arrays mismatch");
+		});
+
+		it("fails adding four year vesting if token owner is zero address", async () => {
+			await expectRevert(vesting.addFourYearVestings([ZERO_ADDRESS], [fourYearVesting.address]), "token owner cannot be 0 address");
+		});
+
+		it("fails adding four year vesting if vesting is zero address", async () => {
+			await expectRevert(vesting.addFourYearVestings([account4], [ZERO_ADDRESS]), "vesting cannot be 0 address");
+		});
+
+		it("fails adding four year vesting if sender isn't an owner", async () => {
+			await expectRevert(vesting.addFourYearVestings([account1], [fourYearVesting.address], { from: account2 }), "unauthorized");
 		});
 	});
 });
