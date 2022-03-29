@@ -6,7 +6,7 @@ import copy
 from scripts.utils import *
 import scripts.contractInteraction.config as conf
 
-conf.loadConfig()
+#conf.loadConfig()
 
 
 def isProtocolPaused():
