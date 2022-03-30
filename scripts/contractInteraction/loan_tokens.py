@@ -374,7 +374,7 @@ def setTransactionLimits(loanTokenAddress, addresses, limits):
     data = localLoanToken.setTransactionLimits.encode_input(addresses,limits)
     sendWithMultisig(conf.contracts['multisig'], localLoanToken.address, data, conf.acct)
 
-def readTransactionLimits(loanTokenAddress, SUSD, RBTC, USDT, BPro):
+def readTransactionLimits(loanTokenAddress, SUSD, RBTC, USDT, BPro, XUSD):
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=conf.acct)
     limit = localLoanToken.transactionLimit(RBTC)
     print("RBTC limit, ",limit)
@@ -384,6 +384,8 @@ def readTransactionLimits(loanTokenAddress, SUSD, RBTC, USDT, BPro):
     print("USDT limit, ",limit)
     limit = localLoanToken.transactionLimit(BPro)
     print("BPro limit, ",limit)
+    limit = localLoanToken.transactionLimit(XUSD)
+    print("XUSD limit, ",limit)
 
 def readLendingBalanceForUser(loanTokenAddress, userAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=userAddress)
