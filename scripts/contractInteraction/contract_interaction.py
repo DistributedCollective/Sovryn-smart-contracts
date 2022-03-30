@@ -13,14 +13,19 @@ def main():
     
     #load the contracts and acct depending on the network
     loadConfig()
+    
+    receiver = "0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E" # receiver address - address running vesting distribution script
+    # vestings22.csv total 1500 SOV
+    # amount = 1500 * 10**18
+    # transferSOVtoScriptAccount(receiver, amount) # vesting SOV distribution
+    #transferSOVtoTokenSender() # direct liquid SOV distribution
+    #transferXUSDtoTokenSender() # direct liquid SOV distribution
 
-    # transferSOVtoScriptAccount()
-    #transferSOVtoTokenSender()
-    #transferXUSDtoTokenSender()
-    # checkTxn(837)
-
-    #vestingRegistryAddAdmin('0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E')
+    # vestingRegistryAddAdmin('0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E')
     #vestingRegistryRemoveAdmin('0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E')
+
+    checkTxn(866) # transfer SOV to the executor address
+    checkTxn(867) # vestingRegistryAddAdmin('0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E')
 
 
 def loadConfig():
@@ -892,6 +897,7 @@ def vestingRegistryAddAdmin(admin):
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     tx = multisig.submitTransaction(vestingRegistry.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
+    print(data)
     print(txId)
 
 def vestingRegistryRemoveAdmin(admin):
@@ -1059,15 +1065,10 @@ def transferSOVtoTokenSender():
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
-def transferSOVtoScriptAccount():
+def transferSOVtoScriptAccount(receiver, amount):
     '''
     sent to the script for vestings
     '''
-    # 71699.28
-    amount = 7169928 * 10**16
-
-    # TODO set receiver address
-    receiver = "0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E"
     if (receiver == ""):
         raise Exception("Invalid address")
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)

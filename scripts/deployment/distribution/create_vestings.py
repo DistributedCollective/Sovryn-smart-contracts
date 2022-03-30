@@ -42,8 +42,8 @@ def main():
     balanceBefore = acct.balance()
     totalAmount = 0
 
-    # amounts examples: "6,516.85", 912.92 - mind 2 decimals strictly!
-    data = parseFile('./scripts/deployment/distribution/vestings21.csv', 10**16)
+    # amounts examples: "6,516.85", 912.92 - 2 decimals strictly!
+    data = parseFile('./scripts/deployment/distribution/vestings22.csv', 10**16)
     totalAmount += data["totalAmount"]
 
     for teamVesting in data["teamVestingList"]:
@@ -75,7 +75,7 @@ def main():
             vestingAddress = vestingRegistry.getTeamVesting(tokenOwner, cliff, duration, vestingCreationType)
             print("TeamVesting: ", vestingAddress)
         else:
-            #vestingRegistry.createVestingAddr(tokenOwner, amount, cliff, duration, vestingCreationType)
+            vestingRegistry.createVestingAddr(tokenOwner, amount, cliff, duration, vestingCreationType)
             vestingAddress = vestingRegistry.getVestingAddr(tokenOwner, cliff, duration, vestingCreationType)
             print("Vesting: ", vestingAddress)
 
@@ -85,15 +85,13 @@ def main():
         print(cliff)
         print(duration)
         print((duration - cliff) / FOUR_WEEKS + 1)
-        #SOVtoken.approve(vestingAddress, amount)
-        #vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=acct)
-        #vestingLogic.stakeTokens(amount)
+        SOVtoken.approve(vestingAddress, amount)
+        vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=acct)
+        vestingLogic.stakeTokens(amount)
 
-        #stakes = staking.getStakes(vestingAddress)
-        #print(stakes)
+        stakes = staking.getStakes(vestingAddress)
+        print(stakes)
 
-    # 71699.28 SOV
-    # 71699.28 SOV: 1) 253 2) 79148,98
     print("=======================================")
     print("SOV amount:")
     print(totalAmount / 10**18)
