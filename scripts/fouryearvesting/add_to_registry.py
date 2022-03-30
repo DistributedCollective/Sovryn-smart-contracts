@@ -26,6 +26,8 @@ def main():
 
     # load deployed contracts addresses
     contracts = json.load(configFile)
+
+    balanceBefore = acct.balance()
     
     vestingRegistryLogic = Contract.from_abi(
         "VestingRegistryLogic",
@@ -52,6 +54,10 @@ def main():
     print(vestingAddresses)
 
     vestingRegistryLogic.addFourYearVestings(tokenOwners, vestingAddresses)
+
+    print("deployment cost:")
+    print((balanceBefore - acct.balance()) / 10**18)
+    
     # data = vestingRegistryLogic.addFourYearVestings.encode_input(tokenOwners, vestingAddresses)
     # print(data)
 

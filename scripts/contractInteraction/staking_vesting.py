@@ -60,6 +60,10 @@ def removeVestingAdmin(admin):
     data = vestingRegistry.removeAdmin.encode_input(admin)
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
 
+def isVestingAdmin(admin):
+    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    print(vestingRegistry.admins(admin))
+
 def readStakingKickOff():
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
     print(staking.kickoffTS())
