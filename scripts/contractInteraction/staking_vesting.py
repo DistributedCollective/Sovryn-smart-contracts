@@ -250,6 +250,11 @@ def getStakes(address):
     stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
     print(stakingProxy.getStakes(address))
 
+def getStakingLogicAddess():
+    # Get the proxy contract instance
+    stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=StakingProxy.abi, owner=conf.acct)
+    print("Staking contract logic address:", stakingProxy.getImplementation())
+
 def stakeTokens(sovAmount, stakeTime, acctAddress, delegateeAddress):
     SOVtoken = Contract.from_abi("SOV", address=conf.contracts['SOV'], abi=SOV.abi, owner=acctAddress)
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=acctAddress)
@@ -270,6 +275,11 @@ def pauseOrUnpauseStaking(flag):
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
     data = staking.pauseUnpause.encode_input(flag)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
+
+def isStakingPausedOrUnpaused():
+    # Get the proxy contract instance
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    print("isStakingPausedOrUnpaused", staking.paused())
 
 def freezeOrUnfreezeStakingWithdawal(flag):
     # Get the proxy contract instance

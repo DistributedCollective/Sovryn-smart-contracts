@@ -135,7 +135,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * */
 	function extendStakingDuration(uint256 previousLock, uint256 until) public whenNotPaused {
 		until = timestampToLockDate(until);
-		require(previousLock <= until, "S04"); // cannot reduce staking duration
+		require(previousLock < until, "S04"); // must increase staking duration
 
 		/// @dev Do not exceed the max duration, no overflow possible.
 		uint256 latest = timestampToLockDate(block.timestamp + MAX_DURATION);
