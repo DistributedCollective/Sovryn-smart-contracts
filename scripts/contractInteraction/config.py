@@ -36,11 +36,7 @@ def loadConfig():
         acct = accounts.load("rskdeployer")
         configFile = open(
             './scripts/contractInteraction/testnet_contracts.json')
-    elif thisNetwork == "testnet-dev":
-        acct = accounts.load("rskdeployerdev")
-        configFile = open(
-            './scripts/contractInteraction/testnet_contracts.json')
-    elif thisNetwork == "rsk-mainnet" or thisNetwork == "rsk-local-fork":
+    elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
         configFile = open(
             './scripts/contractInteraction/mainnet_contracts.json')
