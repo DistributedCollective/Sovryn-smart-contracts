@@ -35,6 +35,18 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 
 	event AdminRemoved(address admin);
 
+	/// @param pauser address to grant power to pause the contract
+	/// @param added true - added, false - removed
+	event PauserAddedOrRemoved(address indexed pauser, bool indexed added);
+
+	/// @notice An event emitted when a staking is paused or unpaused
+	/// @param setPaused true - pause, false - unpause
+	event StakingPaused(bool indexed setPaused);
+
+	/// @notice An event emitted when a staking is frozen or unfrozen
+	/// @param setFrozen true - freeze, false - unfreeze
+	event StakingFrozen(bool indexed setFrozen);
+
 	event ContractCodeHashAdded(bytes32 hash);
 
 	event ContractCodeHashRemoved(bytes32 hash);
@@ -49,7 +61,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	function _increaseVestingStake(uint256 lockedTS, uint96 value) internal {
 		uint32 nCheckpoints = numVestingCheckpoints[lockedTS];
 		uint96 vested = vestingCheckpoints[lockedTS][nCheckpoints - 1].stake;
-		uint96 newVest = add96(vested, value, "Staking::_increaseVestingStake: vested amount overflow");
+		uint96 newVest = add96(vested, value, "CP01"); // vested overflow
 		_writeVestingCheckpoint(lockedTS, nCheckpoints, newVest);
 	}
 
@@ -61,7 +73,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	function _decreaseVestingStake(uint256 lockedTS, uint96 value) internal {
 		uint32 nCheckpoints = numVestingCheckpoints[lockedTS];
 		uint96 vested = vestingCheckpoints[lockedTS][nCheckpoints - 1].stake;
-		uint96 newVest = sub96(vested, value, "Staking::_decreaseVestingStake: vested amount underflow");
+		uint96 newVest = sub96(vested, value, "CP02"); // vested underflow
 		_writeVestingCheckpoint(lockedTS, nCheckpoints, newVest);
 	}
 
@@ -76,7 +88,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 		uint32 nCheckpoints,
 		uint96 newVest
 	) internal {
-		uint32 blockNumber = safe32(block.number, "Staking::_writeVestingCheckpoint: block number exceeds 32 bits");
+		uint32 blockNumber = safe32(block.number, "CP03"); // block num > 32 bits
 
 		if (nCheckpoints > 0 && vestingCheckpoints[lockedTS][nCheckpoints - 1].fromBlock == blockNumber) {
 			vestingCheckpoints[lockedTS][nCheckpoints - 1].stake = newVest;
@@ -99,7 +111,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	) internal {
 		uint32 nCheckpoints = numUserStakingCheckpoints[account][lockedTS];
 		uint96 staked = userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;
-		uint96 newStake = add96(staked, value, "Staking::_increaseUserStake: staked amount overflow");
+		uint96 newStake = add96(staked, value, "CP04"); // staked overflow
 		_writeUserCheckpoint(account, lockedTS, nCheckpoints, newStake);
 	}
 
@@ -116,7 +128,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	) internal {
 		uint32 nCheckpoints = numUserStakingCheckpoints[account][lockedTS];
 		uint96 staked = userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;
-		uint96 newStake = sub96(staked, value, "Staking::_decreaseUserStake: staked amount underflow");
+		uint96 newStake = sub96(staked, value, "CP05"); // staked underflow
 		_writeUserCheckpoint(account, lockedTS, nCheckpoints, newStake);
 	}
 
@@ -133,7 +145,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 		uint32 nCheckpoints,
 		uint96 newStake
 	) internal {
-		uint32 blockNumber = safe32(block.number, "Staking::_writeStakingCheckpoint: block number exceeds 32 bits");
+		uint32 blockNumber = safe32(block.number, "CP06"); // block number > 32 bits
 
 		if (nCheckpoints > 0 && userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].fromBlock == blockNumber) {
 			userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake = newStake;
@@ -156,7 +168,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	) internal {
 		uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
 		uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
-		uint96 newStake = add96(staked, value, "Staking::_increaseDelegateStake: staked amount overflow");
+		uint96 newStake = add96(staked, value, "CP07"); // block number > 32 bits
 		_writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, newStake);
 	}
 
@@ -181,7 +193,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 		//		(no delegation to another address).
 		// @dev It can be greater than 0, but inconsistent after 3 transactions
 		if (staked > value) {
-			newStake = sub96(staked, value, "Staking::_decreaseDelegateStake: staked amount underflow");
+			newStake = sub96(staked, value, "CP08"); // staked underflow
 		}
 		_writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, newStake);
 	}
@@ -199,7 +211,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 		uint32 nCheckpoints,
 		uint96 newStake
 	) internal {
-		uint32 blockNumber = safe32(block.number, "Staking::_writeStakingCheckpoint: block number exceeds 32 bits");
+		uint32 blockNumber = safe32(block.number, "CP09"); // block numb > 32 bits
 		uint96 oldStake = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
 
 		if (nCheckpoints > 0 && delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].fromBlock == blockNumber) {
@@ -219,7 +231,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	function _increaseDailyStake(uint256 lockedTS, uint96 value) internal {
 		uint32 nCheckpoints = numTotalStakingCheckpoints[lockedTS];
 		uint96 staked = totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake;
-		uint96 newStake = add96(staked, value, "Staking::_increaseDailyStake: staked amount overflow");
+		uint96 newStake = add96(staked, value, "CP10"); // staked overflow
 		_writeStakingCheckpoint(lockedTS, nCheckpoints, newStake);
 	}
 
@@ -231,7 +243,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 	function _decreaseDailyStake(uint256 lockedTS, uint96 value) internal {
 		uint32 nCheckpoints = numTotalStakingCheckpoints[lockedTS];
 		uint96 staked = totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake;
-		uint96 newStake = sub96(staked, value, "Staking::_decreaseDailyStake: staked amount underflow");
+		uint96 newStake = sub96(staked, value, "CP11"); // staked underflow
 		_writeStakingCheckpoint(lockedTS, nCheckpoints, newStake);
 	}
 
@@ -246,7 +258,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 		uint32 nCheckpoints,
 		uint96 newStake
 	) internal {
-		uint32 blockNumber = safe32(block.number, "Staking::_writeStakingCheckpoint: block number exceeds 32 bits");
+		uint32 blockNumber = safe32(block.number, "CP12"); // block num > 32 bits
 
 		if (nCheckpoints > 0 && totalStakingCheckpoints[lockedTS][nCheckpoints - 1].fromBlock == blockNumber) {
 			totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake = newStake;
