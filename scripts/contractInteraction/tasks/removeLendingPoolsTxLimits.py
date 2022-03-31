@@ -1,3 +1,6 @@
+'''
+Removes historically set lending pools limits  
+'''
 from scripts.contractInteraction.contract_interaction import *
 
 def main():
@@ -17,5 +20,6 @@ def main():
     setTransactionLimits(conf.contracts['iBPro'], [conf.contracts['DoC'], conf.contracts['WRBTC'], conf.contracts['USDT'], conf.contracts['BPro']],[0,0,0,0])
     setTransactionLimits(conf.contracts['iDOC'], [conf.contracts['DoC'], conf.contracts['WRBTC'], conf.contracts['USDT'], conf.contracts['BPro']],[0,0,0,0])
     '''
-    # DO NOT RUN! setTransactionLimits(conf.contracts['iUSDT'], [conf.contracts['DoC'], conf.contracts['WRBTC'], conf.contracts['USDT'], conf.contracts['BPro']],[0,0,0,0])
+    # DO NOT RUN for iUSDT - it is excluded from margine trading and we leave it as is just in case 
+    # setTransactionLimits(conf.contracts['iUSDT'], [conf.contracts['DoC'], conf.contracts['WRBTC'], conf.contracts['USDT'], conf.contracts['BPro']],[0,0,0,0])
     
