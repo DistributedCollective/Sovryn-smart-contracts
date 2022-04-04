@@ -20,8 +20,7 @@ def main():
 
     # Call the function you want here
 
-    # createProposalSIP0038()
-    createProposalSIP0031()
+    # createProposalSIP0043()
 
     balanceAfter = acct.balance()
 
@@ -46,6 +45,9 @@ def loadConfig():
     elif thisNetwork == "rsk-testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet-dev":
+        acct = accounts.load("rskdeployerdev")
+        configFile = open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
@@ -109,8 +111,8 @@ def createProposal(governorAddr, target, value, signature, data, description):
     print('=============================================================')
 
     # Create Proposal
-    # tx = governor.propose(target, value, signature, data, description)
-    # tx.info()
+    tx = governor.propose(target, value, signature, data, description)
+    tx.info()
 
 def createProposalSIP0005():
     dummyAddress = contracts['GovernorOwner']
@@ -329,4 +331,54 @@ def createProposalSIP0031():
     description = "SIP-0031: Splitting AMM fees with stakers: https://github.com/DistributedCollective/SIPS/blob/344e4f1/SIP-31.md, sha256: 9a9058f6420842fffb25112c54634f950a16e119247e17550b25197e3fccc7fb"
 
     # Create Proposal
-    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+    # createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+
+def createProposalSIP0041():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0041: Designation of Exchequer Committee Multisig, Details: https://github.com/DistributedCollective/SIPS/blob/34a23a4fcecb54d19325adc2c56e6471a60caea3/SIP-0041.md, sha256: 934fc32850ac7096e88fbe2b981250527d6ddba78b01f5e191202c8043b840cb"
+
+    # Create Proposal
+    # createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+def createProposalSIP0042():
+
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    stakingLogic = Contract.from_abi("StakingLogic5", address=contracts['StakingLogic5'], abi=Staking.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking'], contracts['Staking']]
+    values = [0, 0]
+    signatures = ["setImplementation(address)", "addPauser(address)"]
+    data1 = staking.setImplementation.encode_input(contracts['StakingLogic5'])
+    data2 = stakingLogic.addPauser.encode_input(contracts['multisig'])
+    datas = ["0x" + data1[10:], "0x" + data2[10:]]
+    description = "SIP-0042: Staking Security Update, Details: https://github.com/DistributedCollective/SIPS/blob/7c1a44b/SIP-0042.md, sha256: 522e1e65c49ec028d81c3a1f94a47354c2f6287c2d90c6eec8f06dcc17a1ebcc"
+
+    # Create Proposal
+    print(signatures)
+    print(datas)
+    print(description)
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+def createProposalSIP0043():
+
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking']]
+    values = [0]
+    signatures = ["setImplementation(address)"]
+    data = staking.setImplementation.encode_input(contracts['StakingLogic6'])
+    datas = ["0x" + data[10:]]
+    description = "SIP-0043 : Critical governance bug fix, Details: https://github.com/DistributedCollective/SIPS/blob/bdd346e/SIP-0043.md, sha256: 7a99f0862208d77e54f30f3c3759ca1d7efe9d1d1ec7df1ef1f83c649aa651a4"
+
+    # Create Proposal
+    print(signatures)
+    print(datas)
+    print(description)
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)

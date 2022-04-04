@@ -816,7 +816,7 @@ contract("Vesting", (accounts) => {
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 
-			await expectRevert(staking.governanceWithdrawVesting(vesting.address, root, { from: a1 }), "unauthorized");
+			await expectRevert(staking.governanceWithdrawVesting(vesting.address, root, { from: a1 }), "WS01");
 		});
 
 		it("Shouldn't be possible to use governanceWithdraw by user", async () => {
@@ -837,7 +837,7 @@ contract("Vesting", (accounts) => {
 			await token.approve(vesting.address, toStake);
 			await vesting.stakeTokens(toStake);
 
-			await expectRevert(staking.governanceWithdraw(100, kickoffTS.toNumber() + 52 * WEEK, root), "unauthorized");
+			await expectRevert(staking.governanceWithdraw(100, kickoffTS.toNumber() + 52 * WEEK, root), "S07");
 		});
 
 		it("Shouldn't be possible to use governanceWithdrawTokens by user", async () => {
@@ -997,7 +997,7 @@ contract("Vesting", (accounts) => {
 				feeSharingProxy.address
 			);
 			vesting = await VestingLogic.at(vesting.address);
-			await expectRevert(vesting.migrateToNewStakingContract(), "there is no new staking contract set");
+			await expectRevert(vesting.migrateToNewStakingContract(), "S19");
 		});
 
 		it("should fail if the caller is neither owner nor token owner", async () => {
