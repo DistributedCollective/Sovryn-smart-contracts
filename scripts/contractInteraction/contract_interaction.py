@@ -50,4 +50,7 @@ def main():
     #    confirmWithMS(i)
     #    checkTx(i)
 
+    # pauseOrUnpauseStaking(True)
+    # isStakingPaused()
+    
     

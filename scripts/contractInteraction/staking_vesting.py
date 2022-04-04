@@ -279,10 +279,10 @@ def pauseOrUnpauseStaking(flag):
     data = staking.pauseUnpause.encode_input(flag)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
-def isStakingPausedOrUnpaused():
+def isStakingPaused():
     # Get the proxy contract instance
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
-    print("isStakingPausedOrUnpaused", staking.paused())
+    print("isStakingPaused:", staking.paused())
 
 def freezeOrUnfreezeStakingWithdawal(flag):
     # Get the proxy contract instance
