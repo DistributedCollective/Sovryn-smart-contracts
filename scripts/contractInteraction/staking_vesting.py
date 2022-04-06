@@ -14,13 +14,27 @@ def sendSOVFromVestingRegistry():
 
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
 
-def addAdmin(admin, vestingRegistryAddress):
+def vestingRegistryAddAdmin(admin, vestingRegistryAddress):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     vestingRegistry = Contract.from_abi("VestingRegistry", address=vestingRegistryAddress, abi=VestingRegistry.abi, owner=conf.acct)
     data = vestingRegistry.addAdmin.encode_input(admin)
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
 
-def isVestingAdmin(admin, vestingRegistryAddress):
+def vestingRegistryProxyAddAdmin(admin):
+    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=contracts['VestingRegistryProxy'], abi=abi, owner=acct)
+    vestingRegistryAddAdmin(admin, vestingRegistry.address)    
+
+def vestingRegistryRemoveAdmin(admin, vestingRegistryAddress):
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=vestingRegistryAddress, abi=VestingRegistry.abi, owner=conf.acct)
+    data = vestingRegistry.removeAdmin.encode_input(admin)
+    sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
+
+def vestingRegistryProxyRemoveAdmin(admin):
+    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=contracts['VestingRegistryProxy'], abi=abi, owner=acct)
+    vestingRegistryRemoveAdmin(admin, vestingRegistry.address)    
+
+def isVestingRegistryAdmin(admin, vestingRegistryAddress):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=vestingRegistryAddress, abi=VestingRegistry.abi, owner=conf.acct)
     print(vestingRegistry.admins(admin))
 
