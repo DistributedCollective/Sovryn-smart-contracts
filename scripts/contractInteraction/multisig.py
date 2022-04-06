@@ -62,9 +62,11 @@ def checkTx(txId):
     print("TX ID: ",txId,"confirmations: ", multisig.getConfirmationCount(txId), " Executed:", multisig.transactions(txId)[3], " Confirmed by: ", multisig.getConfirmations(txId))
     print("TX:", multisig.transactions(txId))
 
-def transferSOVtoTokenSender():
+def transferSOVtoTokenSender(amount):
     # 875.39 SOV
-    amount = 87539 * 10**16
+    # amount = 87539 * 10**16
+    if(amount <= 0):
+        raise Exception("Invalid amount")
 
     tokenSenderAddress = conf.contracts['TokenSender']
     SOVtoken = Contract.from_abi("SOV", address=conf.contracts['SOV'], abi=SOV.abi, owner=conf.acct)
@@ -72,6 +74,22 @@ def transferSOVtoTokenSender():
     print(data)
 
     sendWithMultisig(conf.contracts['multisig'],SOVtoken.address, data, conf.acct)
+
+def transferSOVtoAccount(receiver, amount):
+    '''
+    creates multisig tx 
+    to send amount to the vesting creation script executor address (receiver)
+    '''
+    if (receiver == ""):
+        raise Exception("Invalid address")
+    if(amount <= 0):
+        raise Exception("Invalid amount")
+
+    SOVtoken = Contract.from_abi("SOV", address=conf.contracts['SOV'], abi=SOV.abi, owner=conf.acct)
+    data = SOVtoken.transfer.encode_input(receiver, amount)
+    print("Transferring SOV from multisig to the distribution script runner address:")
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], SOVtoken.address, data, conf.acct)
 
 def addOwnerToMultisig(newOwner):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
