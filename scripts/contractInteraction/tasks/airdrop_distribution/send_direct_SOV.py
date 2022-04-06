@@ -1,36 +1,19 @@
-from brownie import *
-
-import time
-import json
+'''
+running sovryn distribution from GenericTokenSender
+'''
 import csv
-import math
+from scripts.contractInteraction.contract_interaction import *
 
-def main():
-    thisNetwork = network.show_active()
+def sendDirectSOV(path):
 
-    # == Load config =======================================================================================================================
-    if thisNetwork == "development":
-        acct = accounts[0]
-        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
-    elif thisNetwork == "testnet":
-        acct = accounts.load("rskdeployer")
-        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
-    elif thisNetwork == "rsk-mainnet":
-        acct = accounts.load("rskdeployer")
-        configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
-    else:
-        raise Exception("network not supported")
+    tokenSender = Contract.from_abi("GenericTokenSender", address=conf.contracts['GenericTokenSender'], abi=GenericTokenSender.abi, owner=conf.acct)
 
-    # load deployed contracts addresses
-    contracts = json.load(configFile)
-
-    tokenSender = Contract.from_abi("TokenSender", address=contracts['TokenSender'], abi=TokenSender.abi, owner=acct)
-
-    balanceBefore = acct.balance()
+    balanceBefore = conf.acct.balance()
     totalAmount = 0
 
     # amounts examples: 112.80, "2,387.64", 215.03 - mind 2 decimal places in the file for each number!
-    data = parseFile('./scripts/deployment/distribution/direct-sov-transfers10.csv', 10**16)
+    # TODO: set proper file path of the distribution
+    data = parseFile(path, 1e16) # 10**16 - because we remove decimal point char
     totalAmount += data["totalAmount"]
     # first do a dry run to check the amount then uncomment the next line to do actual distribution
     # tokenSender.transferSOVusingList(data["receivers"], data["amounts"])
@@ -41,7 +24,7 @@ def main():
     print(totalAmount / 10**18)
 
     print("deployment cost:")
-    print((balanceBefore - acct.balance()) / 10**18)
+    print((balanceBefore - conf.acct.balance()) / 10**18)
 
 
 def parseFile(fileName, multiplier):
@@ -64,8 +47,8 @@ def parseFile(fileName, multiplier):
             print("'" + tokenOwner + "', ")
             print(amount)
 
-    # print(receivers)
-    # print(amounts)
+    print(receivers)
+    print(amounts)
 
     return {
                "totalAmount": totalAmount,
