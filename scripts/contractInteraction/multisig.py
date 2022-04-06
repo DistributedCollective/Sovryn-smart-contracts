@@ -63,17 +63,35 @@ def checkTx(txId):
     print("TX:", multisig.transactions(txId))
 
 def transferSOVtoTokenSender(amount):
-    # 875.39 SOV
-    # amount = 87539 * 10**16
+    '''
+    GenericTokenSender is used for tokens direct distribution
+    '''
+    # example: 875.39 SOV => amount = 87539 * 10**16
     if(amount <= 0):
         raise Exception("Invalid amount")
 
-    tokenSenderAddress = conf.contracts['TokenSender']
+    tokenSenderAddress = conf.contracts['GenericTokenSender']
     SOVtoken = Contract.from_abi("SOV", address=conf.contracts['SOV'], abi=SOV.abi, owner=conf.acct)
     data = SOVtoken.transfer.encode_input(tokenSenderAddress, amount)
+    print("Transfer",amount, "SOV from Multisig:", conf.contracts['multisig']," to GenericTokenSender:",tokenSenderAddress)
     print(data)
 
-    sendWithMultisig(conf.contracts['multisig'],SOVtoken.address, data, conf.acct)
+    sendWithMultisig(conf.contracts['multisig'], SOVtoken.address, data, conf.acct)
+
+def transferXUSDtoTokenSender(amount):
+    '''
+    direct liquid xUSD distribution
+    '''
+    # 47397 xUSD
+    # amount = 47397 * 1e18
+
+    tokenSenderAddress = conf.contracts['GenericTokenSender']
+    token = Contract.from_abi("TestToken", address=conf.contracts['XUSD'], abi=TestToken.abi, owner=conf.acct)
+    data = token.transfer.encode_input(tokenSenderAddress, amount)
+    print("Transfer",amount, "xUSD from Multisig:", conf.contracts['multisig']," to GenericTokenSender:",tokenSenderAddress)
+    print(data)
+
+    sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
 
 def transferSOVtoAccount(receiver, amount):
     '''
