@@ -4,8 +4,11 @@ running sovryn distribution from GenericTokenSender
 import csv
 from scripts.contractInteraction.contract_interaction import *
 
-def sendDirectXUSD(path):
-
+def sendDirectXUSD(path, dryRun):
+    '''
+    direct token sender script - takes addresses from the file by path
+    dryRun - to check that the data will be processed correctly
+    '''
     tokenSender = Contract.from_abi("GenericTokenSender", address=conf.contracts['GenericTokenSender'], abi=GenericTokenSender.abi, owner=conf.acct)
 
     balanceBefore = conf.acct.balance()
@@ -16,7 +19,8 @@ def sendDirectXUSD(path):
     data = parseFile(path, 1e16)
     totalAmount += data["totalAmount"]
     # first do a dry run to check the amount then uncomment the next line to do actual distribution
-    # tokenSender.transferTokensUsingList(contracts['XUSD'], data["receivers"], data["amounts"])
+    if(not dryRun):
+        tokenSender.transferTokensUsingList(conf.contracts['XUSD'], data["receivers"], data["amounts"])
 
     # 282.05, 564.10, 641.03
     print("=======================================")

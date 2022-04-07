@@ -4,7 +4,11 @@ running sovryn distribution from GenericTokenSender
 import csv
 from scripts.contractInteraction.contract_interaction import *
 
-def sendDirectSOV(path):
+def sendDirectSOV(path, dryRun):
+    '''
+    direct token sender script - takes addresses from the file by path
+    dryRun - to check that the data will be processed correctly
+    '''
 
     tokenSender = Contract.from_abi("GenericTokenSender", address=conf.contracts['GenericTokenSender'], abi=GenericTokenSender.abi, owner=conf.acct)
 
@@ -16,7 +20,8 @@ def sendDirectSOV(path):
     data = parseFile(path, 1e16) # 10**16 - because we remove decimal point char
     totalAmount += data["totalAmount"]
     # first do a dry run to check the amount then uncomment the next line to do actual distribution
-    # tokenSender.transferSOVusingList(data["receivers"], data["amounts"])
+    if(not dryRun):
+        tokenSender.transferTokensUsingList(conf.contracts['SOV'], data["receivers"], data["amounts"])
 
     #
     print("=======================================")
