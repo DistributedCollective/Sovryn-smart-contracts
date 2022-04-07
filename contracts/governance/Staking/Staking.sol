@@ -137,6 +137,10 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		until = timestampToLockDate(until);
 		require(previousLock < until, "S04"); // must increase staking duration
 
+		uint32 nCheckpoints = numUserStakingCheckpoints[msg.sender][until];
+        //S20 : "cannot extend in the same block as last stake"
+    require(userStakingCheckpoints[msg.sender][until][nCheckpoints - 1].fromBlock != block.number, "S20"); 
+
 		/// @dev Do not exceed the max duration, no overflow possible.
 		uint256 latest = timestampToLockDate(block.timestamp + MAX_DURATION);
 		if (until > latest) until = latest;
@@ -431,8 +435,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * */
 	function delegate(address delegatee, uint256 lockDate) public whenNotPaused {
 		uint32 nCheckpoints = numUserStakingCheckpoints[msg.sender][lockDate];
-        //S20 : "cannot extend in the same block as last stake"
-    require(userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock != block.number, "S20"); 
+		//S20 : "cannot extend in the same block as last stake"
+		require(userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock != block.number, "S20");
 
 		_delegate(msg.sender, delegatee, lockDate);
 		// @dev delegates tokens for lock date 2 weeks later than given lock date
@@ -480,8 +484,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		bytes32 s
 	) public whenNotPaused {
 		uint32 nCheckpoints = numUserStakingCheckpoints[msg.sender][lockDate];
-        //S20 : "cannot extend in the same block as last stake"
-    require(userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock != block.number, "S20"); 
+		//S20 : "cannot extend in the same block as last stake"
+		require(userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock != block.number, "S20");
 
 		/**
 		 * @dev The DOMAIN_SEPARATOR is a hash that uniquely identifies a
