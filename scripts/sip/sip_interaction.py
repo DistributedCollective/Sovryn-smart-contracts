@@ -361,3 +361,21 @@ def createProposalSIP0043():
     print(datas)
     print(description)
     # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+def createProposalSIP0044():
+
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking']]
+    values = [0]
+    signatures = ["setImplementation(address)"]
+    data = staking.setImplementation.encode_input(contracts['StakingLogic7'])
+    datas = ["0x" + data[10:]]
+    description = "SIP-0044 : Critical governance bug fix, Details: https://github.com/DistributedCollective/SIPS/blob/__________/SIP-0044.md, sha256: _________________________"
+
+    # Create Proposal
+    print(signatures)
+    print(datas)
+    print(description)
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
