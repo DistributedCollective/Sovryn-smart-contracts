@@ -49,7 +49,16 @@ def main():
     #
     # - VESTED DISTRIBUTION -
     #
-    # vestingRegistryProxyAddAdmin('0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E') # add the script execution address to admins
+    # add and remove in the end the script execution address to admins
+    # vestingRegistryProxyAddAdmin('0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E')
+    #
+    # TODO:
+    # 1. verify amounts format - should be 2 decimals strictly: 1000.01,"1000.00", "1,000.01" 
+    # 2. trim address field to remove leading and trailing spaces
+    # 3. set relevant path
+    # 4. dry-run, the uncomment actual tx
+    # 5. try small amount
+    # 6. run full distribution 
     # 
     # vestingDistributionPath = './scripts/contractInteraction/tasks/data/distribution/vestings-XX.csv'
     # dryRun = true # false to execute, true to verify the file structure
