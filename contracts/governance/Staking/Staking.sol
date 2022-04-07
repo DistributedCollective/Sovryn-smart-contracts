@@ -737,10 +737,4 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		//S20 : "cannot extend in the same block as last stake"
 		verdict = userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock != block.number;
 	}
-
-	function _notSameBlockAsExtend(uint256 lockDate) internal view returns (bool verdict) {
-		uint32 nCheckpoints = numUserStakingCheckpoints[msg.sender][lockDate];
-		//S20 : "cannot extend in the same block as last stake"
-		verdict = userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock != block.number;
-	}
 }
