@@ -148,7 +148,7 @@ contract("Locked SOV (Any User Functions)", (accounts) => {
 	});
 
 	it("No one can use createVestingAndStake() if he does not have any locked sov balance.", async () => {
-		await expectRevert(newLockedSOV.createVestingAndStake({ from: userOne }), "amount needs to be bigger than 0");
+		await expectRevert(newLockedSOV.createVestingAndStake({ from: userOne }), "S01");
 	});
 
 	it("Anyone can create a vesting schedule using createVesting() even with no locked sov balance.", async () => {

@@ -134,6 +134,15 @@ contract StakingStorage is Ownable {
 	/// @dev numVestingCheckpoints[date] is a number.
 	mapping(uint256 => uint32) public numVestingCheckpoints;
 
-	///@notice the vesting registry contract
+	///@notice vesting registry contract
 	VestingRegistryLogic public vestingRegistryLogic;
+
+	/// @dev user => flag whether user has pauser role.
+	mapping(address => bool) public pausers;
+
+	/// @dev Staking contract is paused
+	bool public paused;
+
+	/// @dev Staking contract is frozen
+	bool public frozen;
 }

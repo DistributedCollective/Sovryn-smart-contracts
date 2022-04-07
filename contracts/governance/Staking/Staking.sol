@@ -38,7 +38,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 until,
 		address stakeFor,
 		address delegatee
-	) external {
+	) external whenNotPaused {
 		_stake(msg.sender, amount, until, stakeFor, delegatee, false);
 	}
 
@@ -58,7 +58,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 until,
 		address stakeFor,
 		address delegatee
-	) public onlyThisContract {
+	) public onlyThisContract whenNotPaused {
 		_stake(sender, amount, until, stakeFor, delegatee, false);
 	}
 
@@ -79,12 +79,12 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address delegatee,
 		bool timeAdjusted
 	) internal {
-		require(amount > 0, "amount needs to be bigger than 0");
+		require(amount > 0, "S01"); // amount needs to be bigger than 0
 
 		if (!timeAdjusted) {
 			until = timestampToLockDate(until);
 		}
-		require(until > block.timestamp, "Staking::timestampToLockDate: staking period too short");
+		require(until > block.timestamp, "S02"); // Staking::timestampToLockDate: staking period too short
 
 		/// @dev Stake for the sender if not specified otherwise.
 		if (stakeFor == address(0)) {
@@ -120,7 +120,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 			_decreaseDelegateStake(previousDelegatee, until, previousBalance);
 
 			/// @dev Add previousBalance to amount.
-			amount = add96(previousBalance, amount, "balance overflow");
+			amount = add96(previousBalance, amount, "S03");
 		}
 
 		/// @dev Increase stake.
@@ -133,9 +133,9 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param previousLock The old unlocking timestamp.
 	 * @param until The new unlocking timestamp in seconds.
 	 * */
-	function extendStakingDuration(uint256 previousLock, uint256 until) public {
+	function extendStakingDuration(uint256 previousLock, uint256 until) public whenNotPaused {
 		until = timestampToLockDate(until);
-		require(previousLock <= until, "cannot reduce the staking duration");
+		require(previousLock < until, "S04"); // must increase staking duration
 
 		/// @dev Do not exceed the max duration, no overflow possible.
 		uint256 latest = timestampToLockDate(block.timestamp + MAX_DURATION);
@@ -144,7 +144,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		/// @dev Update checkpoints.
 		/// @dev TODO James: Can reading stake at block.number -1 cause trouble with multiple tx in a block?
 		uint96 amount = _getPriorUserStakeByDate(msg.sender, previousLock, block.number - 1);
-		require(amount > 0, "nothing staked until the previous lock date");
+		require(amount > 0, "S05"); // no stakes till the prev lock date
 		_decreaseUserStake(msg.sender, previousLock, amount);
 		_increaseUserStake(msg.sender, until, amount);
 
@@ -189,7 +189,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 		/// @dev Increase staked balance.
 		uint96 balance = currentBalance(stakeFor, until);
-		balance = add96(balance, amount, "overflow");
+		balance = add96(balance, amount, "S06"); // increaseStake: overflow
 
 		/// @dev Update checkpoints.
 		_increaseDailyStake(until, amount);
@@ -216,7 +216,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 intervalLength,
 		address stakeFor,
 		address delegatee
-	) public {
+	) public whenNotPaused {
 		/**
 		 * @dev Stake them until lock dates according to the vesting schedule.
 		 * Note: because staking is only possible in periods of 2 weeks,
@@ -251,7 +251,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint96 amount,
 		uint256 until,
 		address receiver
-	) public {
+	) public whenNotFrozen {
 		_withdraw(amount, until, receiver, false);
 		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
 		//		we need to check block.timestamp here
@@ -269,8 +269,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint96 amount,
 		uint256 until,
 		address receiver
-	) public {
-		require(vestingWhitelist[msg.sender], "unauthorized");
+	) public whenNotFrozen {
+		require(vestingWhitelist[msg.sender], "S07"); // unauthorized
 
 		_withdraw(amount, until, receiver, true);
 		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
@@ -284,7 +284,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
 	 * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting.
 	 * */
-	function governanceWithdrawVesting(address vesting, address receiver) public onlyAuthorized {
+	function governanceWithdrawVesting(address vesting, address receiver) public onlyAuthorized whenNotFrozen {
 		vestingWhitelist[vesting] = true;
 		ITeamVesting(vesting).governanceWithdrawTokens(receiver);
 		vestingWhitelist[vesting] = false;
@@ -335,7 +335,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 			/// @dev punishedAmount can be 0 if block.timestamp are very close to 'until'
 			if (punishedAmount > 0) {
-				require(address(feeSharing) != address(0), "Staking::withdraw: FeeSharing address wasn't set");
+				require(address(feeSharing) != address(0), "S08"); // FeeSharing address wasn't set
 				/// @dev Move punished amount to fee sharing.
 				/// @dev Approve transfer here and let feeSharing do transfer and write checkpoint.
 				SOVToken.approve(address(feeSharing), punishedAmount);
@@ -345,7 +345,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 		/// @dev transferFrom
 		bool success = SOVToken.transfer(receiver, amount);
-		require(success, "Staking::withdraw: Token transfer failed");
+		require(success, "S09"); // Token transfer failed
 
 		emit StakingWithdrawn(msg.sender, amount, until, receiver, isGovernance);
 	}
@@ -397,9 +397,9 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param until The date until which the tokens were staked.
 	 * */
 	function _validateWithdrawParams(uint96 amount, uint256 until) internal view {
-		require(amount > 0, "Staking::withdraw: amount of tokens to be withdrawn needs to be bigger than 0");
+		require(amount > 0, "S10"); // Amount of tokens to withdraw must be > 0
 		uint96 balance = _getPriorUserStakeByDate(msg.sender, until, block.number - 1);
-		require(amount <= balance, "Staking::withdraw: not enough balance");
+		require(amount <= balance, "S11"); // Staking::withdraw: not enough balance
 	}
 
 	/**
@@ -420,7 +420,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * */
 	function balanceOf(address account) public view returns (uint96 balance) {
 		for (uint256 i = kickoffTS; i <= block.timestamp + MAX_DURATION; i += TWO_WEEKS) {
-			balance = add96(balance, currentBalance(account, i), "Staking::balanceOf: overflow");
+			balance = add96(balance, currentBalance(account, i), "S12"); // Staking::balanceOf: overflow
 		}
 	}
 
@@ -429,7 +429,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param delegatee The address to delegate votes to.
 	 * @param lockDate the date if the position to delegate.
 	 * */
-	function delegate(address delegatee, uint256 lockDate) public {
+	function delegate(address delegatee, uint256 lockDate) public whenNotPaused {
 		_delegate(msg.sender, delegatee, lockDate);
 		// @dev delegates tokens for lock date 2 weeks later than given lock date
 		//		if message sender is a contract
@@ -474,7 +474,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint8 v,
 		bytes32 r,
 		bytes32 s
-	) public {
+	) public whenNotPaused {
 		/**
 		 * @dev The DOMAIN_SEPARATOR is a hash that uniquely identifies a
 		 * smart contract. It is built from a string denoting it as an
@@ -491,9 +491,9 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address signatory = ecrecover(digest, v, r, s);
 
 		/// @dev Verify address is not null and PK is not null either.
-		require(RSKAddrValidator.checkPKNotZero(signatory), "Staking::delegateBySig: invalid signature");
-		require(nonce == nonces[signatory]++, "Staking::delegateBySig: invalid nonce");
-		require(now <= expiry, "Staking::delegateBySig: signature expired");
+		require(RSKAddrValidator.checkPKNotZero(signatory), "S13"); // Staking::delegateBySig: invalid signature
+		require(nonce == nonces[signatory]++, "S14"); // Staking::delegateBySig: invalid nonce
+		require(now <= expiry, "S15"); // Staking::delegateBySig: signature expired
 		_delegate(signatory, delegatee, lockDate);
 		// @dev delegates tokens for lock date 2 weeks later than given lock date
 		//		if message sender is a contract
@@ -618,8 +618,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * is not implemented.
 	 * @param _newStakingContract The address of the new staking contract.
 	 * */
-	function setNewStakingContract(address _newStakingContract) public onlyOwner {
-		require(_newStakingContract != address(0), "can't reset the new staking contract to 0");
+	function setNewStakingContract(address _newStakingContract) public onlyOwner whenNotFrozen {
+		require(_newStakingContract != address(0), "S16"); // can't reset the new staking contract to 0
 		newStakingContract = _newStakingContract;
 	}
 
@@ -628,8 +628,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * We need it for unstaking with slashing.
 	 * @param _feeSharing The address of FeeSharingProxy contract.
 	 * */
-	function setFeeSharing(address _feeSharing) public onlyOwner {
-		require(_feeSharing != address(0), "FeeSharing address shouldn't be 0");
+	function setFeeSharing(address _feeSharing) public onlyOwner whenNotFrozen {
+		require(_feeSharing != address(0), "S17"); // FeeSharing address shouldn't be 0
 		feeSharing = IFeeSharingProxy(_feeSharing);
 	}
 
@@ -638,10 +638,10 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * We need it for unstaking with slashing.
 	 * @param _weightScaling The weight scaling.
 	 * */
-	function setWeightScaling(uint96 _weightScaling) public onlyOwner {
+	function setWeightScaling(uint96 _weightScaling) public onlyOwner whenNotFrozen {
 		require(
 			MIN_WEIGHT_SCALING <= _weightScaling && _weightScaling <= MAX_WEIGHT_SCALING,
-			"weight scaling doesn't belong to range [1, 9]"
+			"S18" /* scaling doesn't belong to range [1, 9] */
 		);
 		weightScaling = _weightScaling;
 	}
@@ -653,8 +653,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 *      In case it's needed at some point in the future,
 	 *      the implementation needs to be changed first.
 	 * */
-	function migrateToNewStakingContract() public {
-		require(newStakingContract != address(0), "there is no new staking contract set");
+	function migrateToNewStakingContract() public whenNotFrozen {
+		require(newStakingContract != address(0), "S19"); // there is no new staking contract set
 		/// @dev implementation:
 		/// @dev Iterate over all possible lock dates from now until now + MAX_DURATION.
 		/// @dev Read the stake & delegate of the msg.sender
@@ -669,7 +669,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * tokens and lock again.
 	 * @dev Last resort.
 	 * */
-	function unlockAllTokens() public onlyOwner {
+	function unlockAllTokens() public onlyOwner whenNotFrozen {
 		allUnlocked = true;
 		emit TokensUnlocked(SOVToken.balanceOf(address(this)));
 	}
