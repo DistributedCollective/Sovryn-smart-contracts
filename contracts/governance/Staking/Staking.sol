@@ -20,7 +20,10 @@ import "../../openzeppelin/SafeMath.sol";
  * plus revenues from stakers who have a portion of their SOV slashed for
  * early unstaking.
  * */
-contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
+contract Staking is
+	IStaking,
+	WeightedStaking /*, ApprovalReceiver*/
+{
 	using SafeMath for uint256;
 
 	/// @notice Constant used for computing the vesting dates.
@@ -52,7 +55,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param stakeFor The address to stake the tokens for or 0x0 if staking for oneself.
 	 * @param delegatee The address of the delegatee or 0x0 if there is none.
 	 * */
-	function stakeWithApproval(
+	/*function stakeWithApproval(
 		address sender,
 		uint96 amount,
 		uint256 until,
@@ -60,7 +63,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address delegatee
 	) public onlyThisContract whenNotPaused {
 		_stake(sender, amount, until, stakeFor, delegatee, false);
-	}
+	}*/
 
 	/**
 	 * @notice Send sender's tokens to this contract and update its staked balance.
@@ -254,13 +257,17 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 until,
 		address receiver
 	) public whenNotFrozen {
-		
 		_notSameBlockAsStake(until);
 
 		_withdraw(amount, until, receiver, false);
 		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
 		//		we need to check block.timestamp here
-		_withdrawNext(amount, until, receiver, false);
+		_withdrawNext(
+			/*amount,*/
+			until,
+			receiver,
+			false
+		);
 	}
 
 	/**
@@ -282,7 +289,12 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		_withdraw(amount, until, receiver, true);
 		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
 		//		we don't need to check block.timestamp here
-		_withdrawNext(amount, until, receiver, true);
+		_withdrawNext(
+			/*amount,*/
+			until,
+			receiver,
+			true
+		);
 	}
 
 	/**
@@ -359,7 +371,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 	// @dev withdraws tokens for lock date 2 weeks later than given lock date
 	function _withdrawNext(
-		uint96 amount,
+		//uint96 amount,
 		uint256 until,
 		address receiver,
 		bool isGovernance
@@ -730,11 +742,11 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * register stakeWithApproval selector on this contract.
 	 * @return The array of registered selectors on this contract.
 	 * */
-	function _getSelectors() internal view returns (bytes4[] memory) {
+	/*function _getSelectors() internal view returns (bytes4[] memory) {
 		bytes4[] memory selectors = new bytes4[](1);
 		selectors[0] = this.stakeWithApproval.selector;
 		return selectors;
-	}
+	}*/
 
 	function _notSameBlockAsStake(uint256 lockDate) internal view {
 		uint32 nCheckpoints = numUserStakingCheckpoints[msg.sender][lockDate];
