@@ -1,14 +1,14 @@
 from scripts.contractInteraction.contract_interaction import *
-from scripts.contractInteraction.tasks.airdrop_distribution.send_direct_XUSD import *
-from scripts.contractInteraction.tasks.airdrop_distribution.send_direct_SOV import *
-from scripts.contractInteraction.tasks.airdrop_distribution.create_vestings import *
-from scripts.contractInteraction.tasks.airdrop_distribution.utils import *
+from scripts.contractInteraction.tasks.airdrop_distribution.functions.send_direct_XUSD import *
+from scripts.contractInteraction.tasks.airdrop_distribution.functions.send_direct_SOV import *
+from scripts.contractInteraction.tasks.airdrop_distribution.functions.create_vestings import *
+from scripts.contractInteraction.tasks.airdrop_distribution.functions.utils import *
 
 def main():
     '''
     Implements 
     - direct distribution of SOV and XUSD
-    - distribution via vested SOV
+    - distribution SOV via vesting
     '''
     
     # GenericTokenSenderAddAdmin("0x27d55f5668ef4438635bdce0adca083507e77752")
