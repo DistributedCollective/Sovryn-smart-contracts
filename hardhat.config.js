@@ -57,14 +57,14 @@ module.exports = {
 	},
 	contractSizer: {
 		alphaSort: false,
-		runOnCompile: false,
+		runOnCompile: true,
 		disambiguatePaths: false,
 	},
 	networks: {
 		hardhat: {
 			allowUnlimitedContractSizes: true,
 			gas: "auto",
-			blockGasLimit: 8_600_000,
+			blockGasLimit: 6800000
 		},
 		rskPublicTestnet: {
 			url: "https://public-node.testnet.rsk.co/",
