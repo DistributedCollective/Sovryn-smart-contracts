@@ -262,12 +262,7 @@ contract Staking is
 		_withdraw(amount, until, receiver, false);
 		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
 		//		we need to check block.timestamp here
-		_withdrawNext(
-			/*amount,*/
-			until,
-			receiver,
-			false
-		);
+		_withdrawNext(until, receiver, false);
 	}
 
 	/**
@@ -289,12 +284,7 @@ contract Staking is
 		_withdraw(amount, until, receiver, true);
 		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
 		//		we don't need to check block.timestamp here
-		_withdrawNext(
-			/*amount,*/
-			until,
-			receiver,
-			true
-		);
+		_withdrawNext(until, receiver, true);
 	}
 
 	/**
@@ -371,7 +361,6 @@ contract Staking is
 
 	// @dev withdraws tokens for lock date 2 weeks later than given lock date
 	function _withdrawNext(
-		//uint96 amount,
 		uint256 until,
 		address receiver,
 		bool isGovernance
