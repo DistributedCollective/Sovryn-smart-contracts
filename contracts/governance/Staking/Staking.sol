@@ -6,7 +6,7 @@ import "./IStaking.sol";
 import "../../rsk/RSKAddrValidator.sol";
 import "../Vesting/ITeamVesting.sol";
 import "../Vesting/IVesting.sol";
-import "../ApprovalReceiver.sol";
+// import "../ApprovalReceiver.sol"; //uncomment when refactoring
 import "../../openzeppelin/SafeMath.sol";
 
 /**
@@ -22,7 +22,7 @@ import "../../openzeppelin/SafeMath.sol";
  * */
 contract Staking is
 	IStaking,
-	WeightedStaking /*, ApprovalReceiver*/
+	WeightedStaking /*, ApprovalReceiver //TODO: uncomment after refactoring*/
 {
 	using SafeMath for uint256;
 
@@ -55,7 +55,8 @@ contract Staking is
 	 * @param stakeFor The address to stake the tokens for or 0x0 if staking for oneself.
 	 * @param delegatee The address of the delegatee or 0x0 if there is none.
 	 * */
-	/*function stakeWithApproval(
+	/* //TODO: uncomment after refactoring
+	function stakeWithApproval(
 		address sender,
 		uint96 amount,
 		uint256 until,
