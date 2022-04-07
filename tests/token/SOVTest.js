@@ -105,10 +105,7 @@ contract("SOV:", (accounts) => {
 
 		it("shouldn't be able to transfer more SOV tokens than available on balance", async () => {
 			// Try to transfer double amount to account2
-			await expectRevert(
-				tokenSOV.transfer(account2, amount * 2, { from: account1 }),
-				"ERC20: transfer amount exceeds balance"
-			);
+			await expectRevert(tokenSOV.transfer(account2, amount * 2, { from: account1 }), "ERC20: transfer amount exceeds balance");
 		});
 
 		it("shouldn't be able to transfer SOV tokens to zero address", async () => {

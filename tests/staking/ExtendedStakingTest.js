@@ -374,7 +374,6 @@ contract("Staking", (accounts) => {
 
 	describe("stakeWithApproval", () => {
 		//TODO: resume when refactored to resolve EIP-170 contract size issue
-		
 		/*
 		it("Should be able to stake and delegate for yourself", async () => {
 			let amount = "100";
@@ -426,13 +425,11 @@ contract("Staking", (accounts) => {
 			expect(checkpoint.stake.toString()).to.be.equal(amount);
 		});
 		*/
-
 		//TODO: resume when refactored to resolve EIP-170 contract size issue
 		/*it("fails if invoked directly", async () => {
 			let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
 			await expectRevert(staking.stakeWithApproval(root, "100", lockedTS, root, root), "unauthorized");
 		});*/
-
 		//TODO: resume when refactored to resolve EIP-170 contract size issue
 		/*it("fails if wrong method passed in data", async () => {
 			let amount = "100";
@@ -442,7 +439,6 @@ contract("Staking", (accounts) => {
 
 			await expectRevert(token.approveAndCall(staking.address, amount, data), "method is not allowed");
 		});*/
-
 		//TODO: resume when refactored to resolve EIP-170 contract size issue
 		/*it("fails if wrong sender passed in data", async () => {
 			let amount = "100";
@@ -456,7 +452,6 @@ contract("Staking", (accounts) => {
 			await expectRevert(token.approveAndCall(staking.address, amount, data, { from: sender }), "sender mismatch");
 		});
 		*/
-
 		//TODO: resume when refactored to resolve EIP-170 contract size issue
 		/*it("fails if wrong amount passed in data", async () => {
 			let amount = "100";
