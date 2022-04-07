@@ -63,7 +63,6 @@ module.exports = {
 	networks: {
 		hardhat: {
 			allowUnlimitedContractSizes: true,
-			//blockGasLimit: 6800000
 		},
 		rskPublicTestnet: {
 			url: "https://public-node.testnet.rsk.co/",
