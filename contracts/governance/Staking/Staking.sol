@@ -137,7 +137,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		until = timestampToLockDate(until);
 		require(previousLock < until, "S04"); // must increase staking duration
 
-		require(_notSameBlockAsStake(until), "S20");
+		_notSameBlockAsStake(until);
 
 		/// @dev Do not exceed the max duration, no overflow possible.
 		uint256 latest = timestampToLockDate(block.timestamp + MAX_DURATION);
@@ -254,6 +254,9 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 until,
 		address receiver
 	) public whenNotFrozen {
+		
+		_notSameBlockAsStake(until);
+
 		_withdraw(amount, until, receiver, false);
 		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
 		//		we need to check block.timestamp here
@@ -273,6 +276,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address receiver
 	) public whenNotFrozen {
 		require(vestingWhitelist[msg.sender], "S07"); // unauthorized
+
+		_notSameBlockAsStake(until);
 
 		_withdraw(amount, until, receiver, true);
 		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
@@ -432,7 +437,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param lockDate the date if the position to delegate.
 	 * */
 	function delegate(address delegatee, uint256 lockDate) public whenNotPaused {
-		require(_notSameBlockAsStake(lockDate), "S21");
+		_notSameBlockAsStake(lockDate);
 
 		_delegate(msg.sender, delegatee, lockDate);
 		// @dev delegates tokens for lock date 2 weeks later than given lock date
@@ -479,8 +484,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		bytes32 r,
 		bytes32 s
 	) public whenNotPaused {
-		
-		require(_notSameBlockAsStake(lockDate), "S22");
+		_notSameBlockAsStake(lockDate);
 
 		/**
 		 * @dev The DOMAIN_SEPARATOR is a hash that uniquely identifies a
@@ -732,9 +736,9 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		return selectors;
 	}
 
-	function _notSameBlockAsStake(uint256 lockDate) internal view returns (bool verdict) {
+	function _notSameBlockAsStake(uint256 lockDate) internal view {
 		uint32 nCheckpoints = numUserStakingCheckpoints[msg.sender][lockDate];
-		//S20 : "cannot extend in the same block as last stake"
-		verdict = userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock != block.number;
+		bool notSameBlock = userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock != block.number;
+		require(notSameBlock, "S20"); //S20 : "cannot be mined in the same block as last stake"
 	}
 }
