@@ -1,13 +1,15 @@
-'''
-Implements 
-- direct distribution of SOV and XUSD
-- distribution via vested SOV
-'''
 from scripts.contractInteraction.contract_interaction import *
 from scripts.contractInteraction.tasks.airdrop_distribution.send_direct_XUSD import *
 from scripts.contractInteraction.tasks.airdrop_distribution.send_direct_SOV import *
+from scripts.contractInteraction.tasks.airdrop_distribution.create_vestings import *
+from scripts.contractInteraction.tasks.airdrop_distribution.utils import *
 
 def main():
+    '''
+    Implements 
+    - direct distribution of SOV and XUSD
+    - distribution via vested SOV
+    '''
     
     # GenericTokenSenderAddAdmin("0x27d55f5668ef4438635bdce0adca083507e77752")
     # GenericTokenSenderAddAdmin("0x9E0816a71B53ca67201a5088df960fE90910DE55")
@@ -29,8 +31,9 @@ def main():
     # 1.
     # transferSOVtoTokenSender(SOVAmount) # direct liquid SOV distribution
     # 2. 
-    sovDistributionPath = './scripts/contractInteraction/tasks/data/distribution/direct-SOV-transfers-22-04.csv'
-    sendDirectSOV(sovDistributionPath)
+    # sovDistributionPath = './scripts/contractInteraction/tasks/data/distribution/direct-SOV-transfers-22-04.csv'
+    # dryRun = true # false to execute, true to verify the file structure
+    # sendDirectSOV(sovDistributionPath, dryRun)
      
     #
     # - Distribute XUSD -
@@ -39,37 +42,19 @@ def main():
     # 1.
     # transferXUSDtoTokenSender(XUSDAmount) # direct liquid XUSD distribution
     # 2.
-    xusdDistributionPath = './scripts/contractInteraction/tasks/data/distribution/direct-XUSD-transfers-22-04.csv'
-    sendDirectXUSD(xusdDistributionPath)
+    # xusdDistributionPath = './scripts/contractInteraction/tasks/data/distribution/direct-XUSD-transfers-22-04.csv'
+    # dryRun = true # false to execute, true to verify the file structure
+    # sendDirectXUSD(xusdDistributionPath, dryRun)
     
     #
     # - VESTED DISTRIBUTION -
     #
     # vestingRegistryProxyAddAdmin('0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E') # add the script execution address to admins
     # 
-    # set data in ./create_vestings.py and run the script 
-    # 
-    #
-    #
-    #
-    #
+    # vestingDistributionPath = './scripts/contractInteraction/tasks/data/distribution/vestings-XX.csv'
+    # dryRun = true # false to execute, true to verify the file structure
+    # createVestings(path, dryRun)
     #
     # vestingRegistryProxyRemoveAdmin('0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E') # remove the script exexution from admins
     # 
-    # 
-
-    #checkTx(866) # transfer SOV to the executor address
-    #checkTx(867) # vestingRegistryAddAdmin('0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E')
-
-    # checkTx(838)
-    # checkTx(839)
-
-
-def GenericTokenSenderAddAdmin(admin):
-    tokenSender = Contract.from_abi("GenericTokenSender", address=conf.contracts['GenericTokenSender'], abi=GenericTokenSender.abi, owner=conf.acct)
-    tokenSender.addAdmin(admin)
-    print(admin, "is added to GenericTokenSender admins")
-
-def GenericTokenSenderRemoveAdmin(admin):
-    tokenSender = Contract.from_abi("GenericTokenSender", address=conf.contracts['GenericTokenSender'], abi=GenericTokenSender.abi, owner=conf.acct)
-    tokenSender.removeAdmin(admin)
+    #
