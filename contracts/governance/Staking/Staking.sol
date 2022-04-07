@@ -137,9 +137,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		until = timestampToLockDate(until);
 		require(previousLock < until, "S04"); // must increase staking duration
 
-		uint32 nCheckpoints = numUserStakingCheckpoints[msg.sender][until];
-        //S20 : "cannot extend in the same block as last stake"
-    require(userStakingCheckpoints[msg.sender][until][nCheckpoints - 1].fromBlock != block.number, "S20"); 
+		require(_notSameBlockAsStake(until), "S20");
 
 		/// @dev Do not exceed the max duration, no overflow possible.
 		uint256 latest = timestampToLockDate(block.timestamp + MAX_DURATION);
@@ -434,9 +432,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param lockDate the date if the position to delegate.
 	 * */
 	function delegate(address delegatee, uint256 lockDate) public whenNotPaused {
-		uint32 nCheckpoints = numUserStakingCheckpoints[msg.sender][lockDate];
-		//S20 : "cannot extend in the same block as last stake"
-		require(userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock != block.number, "S20");
+		require(_notSameBlockAsStake(lockDate), "S21");
 
 		_delegate(msg.sender, delegatee, lockDate);
 		// @dev delegates tokens for lock date 2 weeks later than given lock date
@@ -483,9 +479,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		bytes32 r,
 		bytes32 s
 	) public whenNotPaused {
-		uint32 nCheckpoints = numUserStakingCheckpoints[msg.sender][lockDate];
-		//S20 : "cannot extend in the same block as last stake"
-		require(userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock != block.number, "S20");
+		
+		require(_notSameBlockAsStake(lockDate), "S22");
 
 		/**
 		 * @dev The DOMAIN_SEPARATOR is a hash that uniquely identifies a
@@ -735,5 +730,17 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		bytes4[] memory selectors = new bytes4[](1);
 		selectors[0] = this.stakeWithApproval.selector;
 		return selectors;
+	}
+
+	function _notSameBlockAsStake(uint256 lockDate) internal view returns (bool verdict) {
+		uint32 nCheckpoints = numUserStakingCheckpoints[msg.sender][lockDate];
+		//S20 : "cannot extend in the same block as last stake"
+		verdict = userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock != block.number;
+	}
+
+	function _notSameBlockAsExtend(uint256 lockDate) internal view returns (bool verdict) {
+		uint32 nCheckpoints = numUserStakingCheckpoints[msg.sender][lockDate];
+		//S20 : "cannot extend in the same block as last stake"
+		verdict = userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock != block.number;
 	}
 }
