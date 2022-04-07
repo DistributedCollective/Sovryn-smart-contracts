@@ -86,17 +86,18 @@
 	},
 	"husky": {
 		"hooks": {
-			"pre-commit": "yarn prettier",
-			"pre-push": "yarn lint && yarn prettier-check"
+			"pre-commit": "",
+			"pre-push": ""
 		}
 	},
 	"dependencies": {
+		"@typechain/ethers-v5": "^7.1.2",
+		"@typechain/web3-v1": "^3.1.0",
+		"dotenv": "^16.0.0",
 		"keccak": "^3.0.1",
 		"keccak256": "^1.0.3",
 		"phantomjs-prebuilt": "^2.1.16",
-		"yarn": "^1.22.10",
 		"typechain": "^5.1.2",
-		"@typechain/ethers-v5": "^7.1.2",
-		"@typechain/web3-v1": "^3.1.0"
+		"yarn": "^1.22.10"
 	}
 }

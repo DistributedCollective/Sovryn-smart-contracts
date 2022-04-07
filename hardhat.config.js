@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const { task } = require("hardhat/config");
 
 require("@nomiclabs/hardhat-ganache");
@@ -10,6 +12,7 @@ require("solidity-coverage"); // $ npx hardhat coverage
 require("hardhat-log-remover");
 require("hardhat-docgen");
 require("hardhat-abi-exporter");
+require("./scripts/tasks/checkMOCOracle");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -90,6 +93,7 @@ module.exports = {
 		rskSovrynMainnet: {
 			url: "https://mainnet.sovryn.app/rpc",
 			network_id: 30,
+			accounts: [process.env.MAINNET_PRIVATE_KEY]
 			//timeout: 20000, // increase if needed; 20000 is the default value
 		},
 	},
