@@ -92,8 +92,7 @@ module.exports = {
 		},
 		rskSovrynMainnet: {
 			url: "https://mainnet.sovryn.app/rpc",
-			network_id: 30,
-			accounts: [process.env.MAINNET_PRIVATE_KEY]
+			network_id: 30
 			//timeout: 20000, // increase if needed; 20000 is the default value
 		},
 	},

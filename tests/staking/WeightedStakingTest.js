@@ -313,9 +313,10 @@ contract("WeightedStaking", (accounts) => {
 			let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
 			let maxDuration = await staking.MAX_DURATION.call();
 			let weightFactor = await staking.WEIGHT_FACTOR.call();
-			console.log('maxVotingWeight', maxVotingWeight.toString());
-			console.log('weightFactor', weightFactor.toString());
-			let expectedWeight, total = 0;
+			console.log("maxVotingWeight", maxVotingWeight.toString());
+			console.log("weightFactor", weightFactor.toString());
+			let expectedWeight,
+				total = 0;
 			for (let i = 0; i <= 39; i++) {
 				expectedWeight = weightingFunction(100, i * DELAY * 2, maxDuration, maxVotingWeight, weightFactor.toNumber());
 				let newTime = kickoffTS.add(new BN(i * DELAY * 2));
@@ -324,7 +325,7 @@ contract("WeightedStaking", (accounts) => {
 				console.log(expectedWeight);
 				total += expectedWeight;
 			}
-			console.log(total/39)
+			console.log(total / 39);
 		});
 	});
 });
