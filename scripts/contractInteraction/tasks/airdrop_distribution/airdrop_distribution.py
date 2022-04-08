@@ -31,7 +31,7 @@ def main():
     # 1.
     # transferSOVtoTokenSender(SOVAmount) # direct liquid SOV distribution
     # 2. 
-    # sovDistributionPath = './scripts/contractInteraction/tasks/data/distribution/direct-SOV-transfers-22-04.csv'
+    # sovDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-SOV-transfers-22-04.csv'
     # dryRun = true # false to execute, true to verify the file structure
     # sendDirectSOV(sovDistributionPath, dryRun)
      
@@ -42,7 +42,7 @@ def main():
     # 1.
     # transferXUSDtoTokenSender(XUSDAmount) # direct liquid XUSD distribution
     # 2.
-    # xusdDistributionPath = './scripts/contractInteraction/tasks/data/distribution/direct-XUSD-transfers-22-04.csv'
+    # xusdDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-XUSD-transfers-22-04.csv'
     # dryRun = true # false to execute, true to verify the file structure
     # sendDirectXUSD(xusdDistributionPath, dryRun)
     
@@ -60,7 +60,7 @@ def main():
     # 5. try small amount
     # 6. run full distribution 
     # 
-    # vestingDistributionPath = './scripts/contractInteraction/tasks/data/distribution/vestings-XX.csv'
+    # vestingDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/vestings-XX.csv'
     # dryRun = true # false to execute, true to verify the file structure
     # createVestings(path, dryRun)
     #
