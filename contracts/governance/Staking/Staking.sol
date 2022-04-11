@@ -42,6 +42,7 @@ contract Staking is
 		address stakeFor,
 		address delegatee
 	) external whenNotPaused {
+		_notSameBlockAsStakingCheckpoint(until); // must wait a block before staking again for that same deadline
 		_stake(msg.sender, amount, until, stakeFor, delegatee, false);
 	}
 
@@ -141,7 +142,7 @@ contract Staking is
 		until = timestampToLockDate(until);
 		require(previousLock < until, "S04"); // must increase staking duration
 
-		_notSameBlockAsStake(previousLock);
+		_notSameBlockAsStakingCheckpoint(previousLock);
 
 		/// @dev Do not exceed the max duration, no overflow possible.
 		uint256 latest = timestampToLockDate(block.timestamp + MAX_DURATION);
@@ -229,6 +230,7 @@ contract Staking is
 		 * the total duration might end up a bit shorter than specified
 		 * depending on the date of staking.
 		 * */
+
 		uint256 start = timestampToLockDate(block.timestamp + cliff);
 		if (duration > MAX_DURATION) {
 			duration = MAX_DURATION;
@@ -243,6 +245,7 @@ contract Staking is
 		/// @dev Stake the rest in 4 week intervals.
 		for (uint256 i = start + intervalLength; i <= end; i += intervalLength) {
 			/// @dev Stakes for itself, delegates to the owner.
+			_notSameBlockAsStakingCheckpoint(i); // must wait a block before staking again for that same deadline
 			_stake(msg.sender, uint96(stakedPerInterval), i, stakeFor, delegatee, true);
 		}
 	}
@@ -258,7 +261,7 @@ contract Staking is
 		uint256 until,
 		address receiver
 	) public whenNotFrozen {
-		_notSameBlockAsStake(until);
+		_notSameBlockAsStakingCheckpoint(until);
 
 		_withdraw(amount, until, receiver, false);
 		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
@@ -280,7 +283,7 @@ contract Staking is
 	) public whenNotFrozen {
 		require(vestingWhitelist[msg.sender], "S07"); // unauthorized
 
-		_notSameBlockAsStake(until);
+		_notSameBlockAsStakingCheckpoint(until);
 
 		_withdraw(amount, until, receiver, true);
 		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
@@ -439,7 +442,7 @@ contract Staking is
 	 * @param lockDate the date if the position to delegate.
 	 * */
 	function delegate(address delegatee, uint256 lockDate) public whenNotPaused {
-		_notSameBlockAsStake(lockDate);
+		_notSameBlockAsStakingCheckpoint(lockDate);
 
 		_delegate(msg.sender, delegatee, lockDate);
 		// @dev delegates tokens for lock date 2 weeks later than given lock date
@@ -486,7 +489,7 @@ contract Staking is
 		bytes32 r,
 		bytes32 s
 	) public whenNotPaused {
-		_notSameBlockAsStake(lockDate);
+		_notSameBlockAsStakingCheckpoint(lockDate);
 
 		/**
 		 * @dev The DOMAIN_SEPARATOR is a hash that uniquely identifies a
@@ -738,7 +741,7 @@ contract Staking is
 		return selectors;
 	}*/
 
-	function _notSameBlockAsStake(uint256 lockDate) internal view {
+	function _notSameBlockAsStakingCheckpoint(uint256 lockDate) internal view {
 		uint32 nCheckpoints = numUserStakingCheckpoints[msg.sender][lockDate];
 		bool notSameBlock = userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock != block.number;
 		require(notSameBlock, "S20"); //S20 : "cannot be mined in the same block as last stake"
