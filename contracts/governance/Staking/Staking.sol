@@ -42,6 +42,7 @@ contract Staking is
 		address stakeFor,
 		address delegatee
 	) external whenNotPaused {
+		_notSameBlockAsStakingCheckpoint(until); // must wait a block before staking again for that same deadline
 		_stake(msg.sender, amount, until, stakeFor, delegatee, false);
 	}
 
@@ -229,6 +230,7 @@ contract Staking is
 		 * the total duration might end up a bit shorter than specified
 		 * depending on the date of staking.
 		 * */
+		
 		uint256 start = timestampToLockDate(block.timestamp + cliff);
 		if (duration > MAX_DURATION) {
 			duration = MAX_DURATION;
@@ -243,6 +245,7 @@ contract Staking is
 		/// @dev Stake the rest in 4 week intervals.
 		for (uint256 i = start + intervalLength; i <= end; i += intervalLength) {
 			/// @dev Stakes for itself, delegates to the owner.
+			_notSameBlockAsStakingCheckpoint(i); // must wait a block before staking again for that same deadline
 			_stake(msg.sender, uint96(stakedPerInterval), i, stakeFor, delegatee, true);
 		}
 	}
