@@ -230,7 +230,7 @@ contract Staking is
 		 * the total duration might end up a bit shorter than specified
 		 * depending on the date of staking.
 		 * */
-		
+
 		uint256 start = timestampToLockDate(block.timestamp + cliff);
 		if (duration > MAX_DURATION) {
 			duration = MAX_DURATION;
