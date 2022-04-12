@@ -6,7 +6,7 @@ import "./IStaking.sol";
 import "../../rsk/RSKAddrValidator.sol";
 import "../Vesting/ITeamVesting.sol";
 import "../Vesting/IVesting.sol";
-import "../ApprovalReceiver.sol";
+// import "../ApprovalReceiver.sol"; //uncomment when refactoring
 import "../../openzeppelin/SafeMath.sol";
 
 /**
@@ -20,7 +20,10 @@ import "../../openzeppelin/SafeMath.sol";
  * plus revenues from stakers who have a portion of their SOV slashed for
  * early unstaking.
  * */
-contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
+contract Staking is
+	IStaking,
+	WeightedStaking /*, ApprovalReceiver //TODO: uncomment after refactoring*/
+{
 	using SafeMath for uint256;
 
 	/// @notice Constant used for computing the vesting dates.
@@ -39,6 +42,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address stakeFor,
 		address delegatee
 	) external whenNotPaused {
+		_notSameBlockAsStakingCheckpoint(until); // must wait a block before staking again for that same deadline
 		_stake(msg.sender, amount, until, stakeFor, delegatee, false);
 	}
 
@@ -52,6 +56,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param stakeFor The address to stake the tokens for or 0x0 if staking for oneself.
 	 * @param delegatee The address of the delegatee or 0x0 if there is none.
 	 * */
+	/* //TODO: uncomment after refactoring
 	function stakeWithApproval(
 		address sender,
 		uint96 amount,
@@ -60,7 +65,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		address delegatee
 	) public onlyThisContract whenNotPaused {
 		_stake(sender, amount, until, stakeFor, delegatee, false);
-	}
+	}*/
 
 	/**
 	 * @notice Send sender's tokens to this contract and update its staked balance.
@@ -136,6 +141,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	function extendStakingDuration(uint256 previousLock, uint256 until) public whenNotPaused {
 		until = timestampToLockDate(until);
 		require(previousLock < until, "S04"); // must increase staking duration
+
+		_notSameBlockAsStakingCheckpoint(previousLock);
 
 		/// @dev Do not exceed the max duration, no overflow possible.
 		uint256 latest = timestampToLockDate(block.timestamp + MAX_DURATION);
@@ -223,6 +230,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		 * the total duration might end up a bit shorter than specified
 		 * depending on the date of staking.
 		 * */
+
 		uint256 start = timestampToLockDate(block.timestamp + cliff);
 		if (duration > MAX_DURATION) {
 			duration = MAX_DURATION;
@@ -237,6 +245,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		/// @dev Stake the rest in 4 week intervals.
 		for (uint256 i = start + intervalLength; i <= end; i += intervalLength) {
 			/// @dev Stakes for itself, delegates to the owner.
+			_notSameBlockAsStakingCheckpoint(i); // must wait a block before staking again for that same deadline
 			_stake(msg.sender, uint96(stakedPerInterval), i, stakeFor, delegatee, true);
 		}
 	}
@@ -252,10 +261,12 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 until,
 		address receiver
 	) public whenNotFrozen {
+		_notSameBlockAsStakingCheckpoint(until);
+
 		_withdraw(amount, until, receiver, false);
 		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
 		//		we need to check block.timestamp here
-		_withdrawNext(amount, until, receiver, false);
+		_withdrawNext(until, receiver, false);
 	}
 
 	/**
@@ -272,10 +283,12 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	) public whenNotFrozen {
 		require(vestingWhitelist[msg.sender], "S07"); // unauthorized
 
+		_notSameBlockAsStakingCheckpoint(until);
+
 		_withdraw(amount, until, receiver, true);
 		// @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
 		//		we don't need to check block.timestamp here
-		_withdrawNext(amount, until, receiver, true);
+		_withdrawNext(until, receiver, true);
 	}
 
 	/**
@@ -352,7 +365,6 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 
 	// @dev withdraws tokens for lock date 2 weeks later than given lock date
 	function _withdrawNext(
-		uint96 amount,
 		uint256 until,
 		address receiver,
 		bool isGovernance
@@ -430,6 +442,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * @param lockDate the date if the position to delegate.
 	 * */
 	function delegate(address delegatee, uint256 lockDate) public whenNotPaused {
+		_notSameBlockAsStakingCheckpoint(lockDate);
+
 		_delegate(msg.sender, delegatee, lockDate);
 		// @dev delegates tokens for lock date 2 weeks later than given lock date
 		//		if message sender is a contract
@@ -475,6 +489,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		bytes32 r,
 		bytes32 s
 	) public whenNotPaused {
+		_notSameBlockAsStakingCheckpoint(lockDate);
+
 		/**
 		 * @dev The DOMAIN_SEPARATOR is a hash that uniquely identifies a
 		 * smart contract. It is built from a string denoting it as an
@@ -719,9 +735,15 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	 * register stakeWithApproval selector on this contract.
 	 * @return The array of registered selectors on this contract.
 	 * */
-	function _getSelectors() internal view returns (bytes4[] memory) {
+	/*function _getSelectors() internal view returns (bytes4[] memory) {
 		bytes4[] memory selectors = new bytes4[](1);
 		selectors[0] = this.stakeWithApproval.selector;
 		return selectors;
+	}*/
+
+	function _notSameBlockAsStakingCheckpoint(uint256 lockDate) internal view {
+		uint32 nCheckpoints = numUserStakingCheckpoints[msg.sender][lockDate];
+		bool notSameBlock = userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock != block.number;
+		require(notSameBlock, "S20"); //S20 : "cannot be mined in the same block as last stake"
 	}
 }

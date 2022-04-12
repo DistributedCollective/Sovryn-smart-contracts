@@ -87,7 +87,7 @@ contract("SOV:", (accounts) => {
 		});
 
 		it("revert if mint on behalf of zero address", async () => {
-			await expectRevert(tokenSOV.mint(zeroAddress, amount), "revert ERC20: mint to the zero address");
+			await expectRevert(tokenSOV.mint(zeroAddress, amount), "ERC20: mint to the zero address");
 		});
 	});
 
@@ -105,15 +105,12 @@ contract("SOV:", (accounts) => {
 
 		it("shouldn't be able to transfer more SOV tokens than available on balance", async () => {
 			// Try to transfer double amount to account2
-			await expectRevert(
-				tokenSOV.transfer(account2, amount * 2, { from: account1 }),
-				"revert ERC20: transfer amount exceeds balance"
-			);
+			await expectRevert(tokenSOV.transfer(account2, amount * 2, { from: account1 }), "ERC20: transfer amount exceeds balance");
 		});
 
 		it("shouldn't be able to transfer SOV tokens to zero address", async () => {
 			// Try to transfer amount to zero address
-			await expectRevert(tokenSOV.transfer(zeroAddress, amount, { from: account1 }), "revert ERC20: transfer to the zero address");
+			await expectRevert(tokenSOV.transfer(zeroAddress, amount, { from: account1 }), "ERC20: transfer to the zero address");
 		});
 
 		/// @dev Instead of throwing the expected error from ERC20.sol contract
@@ -135,7 +132,7 @@ contract("SOV:", (accounts) => {
 
 		it("shouldn't be able to approve SOV tokens to be spent by zero address", async () => {
 			// Try to approve amount for zero address to spend
-			await expectRevert(tokenSOV.approve(zeroAddress, amount, { from: account1 }), "revert ERC20: approve to the zero address");
+			await expectRevert(tokenSOV.approve(zeroAddress, amount, { from: account1 }), "ERC20: approve to the zero address");
 		});
 
 		it("should be able to increase the allowance for a spender", async () => {
@@ -148,10 +145,7 @@ contract("SOV:", (accounts) => {
 
 		it("shouldn't be able to decrease the allowance below zero", async () => {
 			// Try to decrease an allowance below zero
-			await expectRevert(
-				tokenSOV.decreaseAllowance(account2, amount, { from: account1 }),
-				"revert ERC20: decreased allowance below zero"
-			);
+			await expectRevert(tokenSOV.decreaseAllowance(account2, amount, { from: account1 }), "ERC20: decreased allowance below zero");
 		});
 
 		it("should be able to decrease the allowance for a spender", async () => {
