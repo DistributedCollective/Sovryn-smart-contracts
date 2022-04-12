@@ -109,14 +109,6 @@ def withdrawTokensFromWatcher(token, amount, recipient):
     print(data)
     sendWithMultisig(conf.contracts['multisig'], watcher.address, data, conf.acct)
 
-def withdrawRBTCFromFastBTCBiDi(amount, recipient):
-    abiFile =  open('./scripts/contractInteraction/ABIs/FastBTCBiDi.json')
-    abi = json.load(abiFile)
-    fastBTC = Contract.from_abi("Watcher", address = conf.contracts['FastBTCBiDi'], abi = abi, owner = conf.acct)
-    data = fastBTC.withdrawRbtc.encode_input(amount, recipient)
-    print(data)
-    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
-
 
 def depositToLockedSOV(amount, recipient):
     token = Contract.from_abi("Token", address= conf.contracts['SOV'], abi = TestToken.abi, owner=conf.acct)
