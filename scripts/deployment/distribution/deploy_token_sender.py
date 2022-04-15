@@ -27,7 +27,7 @@ def main():
 
     balanceBefore = acct.balance()
 
-    tokenSender = acct.deploy(TokenSender, SOVtoken)
+    tokenSender = acct.deploy(GenericTokenSender, SOVtoken)
 
     print("deployment cost:")
     print((balanceBefore - acct.balance()) / 10**18)

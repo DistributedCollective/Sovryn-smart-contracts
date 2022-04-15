@@ -9,6 +9,8 @@ def main():
     Implements 
     - direct distribution of SOV and XUSD
     - distribution SOV via vesting
+    brownie run scripts/contractInteraction/tasks/airdrop_distribution.py --network testnet
+    brownie run scripts/contractInteraction/tasks/airdrop_distribution.py --network rsk-mainnet
     '''
     
     # GenericTokenSenderAddAdmin("0x27d55f5668ef4438635bdce0adca083507e77752")
