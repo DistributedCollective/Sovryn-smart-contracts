@@ -21,7 +21,7 @@ def vestingRegistryAddAdmin(admin, vestingRegistryAddress):
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
 
 def vestingRegistryProxyAddAdmin(admin):
-    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=contracts['VestingRegistryProxy'], abi=abi, owner=acct)
+    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
     vestingRegistryAddAdmin(admin, vestingRegistry.address)    
 
 def vestingRegistryRemoveAdmin(admin, vestingRegistryAddress):
@@ -31,7 +31,7 @@ def vestingRegistryRemoveAdmin(admin, vestingRegistryAddress):
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
 
 def vestingRegistryProxyRemoveAdmin(admin):
-    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=contracts['VestingRegistryProxy'], abi=abi, owner=acct)
+    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
     vestingRegistryRemoveAdmin(admin, vestingRegistry.address)    
 
 def isVestingRegistryAdmin(admin, vestingRegistryAddress):
