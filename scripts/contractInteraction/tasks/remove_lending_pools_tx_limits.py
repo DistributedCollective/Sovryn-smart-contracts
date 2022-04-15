@@ -1,9 +1,11 @@
-'''
-Removes historically set lending pools limits  
-'''
 from scripts.contractInteraction.contract_interaction import *
 
 def main():
+    '''
+    Removes historically set lending pools limits  
+    brownie run scripts/contractInteraction/tasks/remove_lending_pools_tx_limits.py --network testnet
+    brownie run scripts/contractInteraction/tasks/remove_lending_pools_tx_limits.py --network rsk-mainnet
+    '''
     print('iRBTC')
     readTransactionLimits(conf.contracts['iRBTC'], conf.contracts['DoC'], conf.contracts['WRBTC'], conf.contracts['USDT'], conf.contracts['BPro'], conf.contracts['XUSD'])
     print('iBPro')
