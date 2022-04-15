@@ -1,17 +1,17 @@
 '''
 Implements SOV distribution via vesting contracts
 '''
+from operator import concat
 from scripts.contractInteraction.contract_interaction import *
 import csv
 
-def createVestings(path, dryRun):
+def createVestings(path, dryRun, multiplier):
     '''
     vested token sender script - takes addresses from the file by path
     dryRun - true to check that the data will be processed correctly, false - execute distribution
+    multiplier - usually 10**16 considering the amount format should have 2 decimals
     '''
 
-    # abiFile =  open('./scripts/contractInteraction/VestingRegistryLogic.json')
-    # abi = json.load(abiFile)
     vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
 
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=conf.Staking.abi, owner=conf.acct)
@@ -24,7 +24,7 @@ def createVestings(path, dryRun):
     totalAmount = 0
 
     # amounts examples: "6,516.85", 912.92 - 2 decimals strictly!
-    data = parseFile(path, 1e16)
+    data = parseFile(path, multiplier)
     totalAmount += data["totalAmount"]
 
     for teamVesting in data["teamVestingList"]:
@@ -65,17 +65,19 @@ def createVestings(path, dryRun):
             vestingAddress = vestingRegistry.getVestingAddr(tokenOwner, cliff, duration, vestingCreationType)
             print("Vesting: ", vestingAddress)
 
-        print(tokenOwner)
-        print(isTeam)
-        print(amount)
-        print(cliff)
-        print(duration)
-        print((duration - cliff) / FOUR_WEEKS + 1)
+        print('tokenOwner:', tokenOwner)
+        print('isTeam', isTeam)
+        print('amount', amount)
+        print('cliff', cliff)
+        print('duration', duration)
+        print('(duration - cliff) / FOUR_WEEKS + 1', (duration - cliff) / FOUR_WEEKS + 1)
         
         if(not dryRun):
             SOVtoken.approve(vestingAddress, amount)
-            vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=conf.acct)
-            vestingLogic.stakeTokens(amount)
+            print('Approved:', amount)
+            print('Staking ...')
+            vesting = Contract.from_abi("Vesting", address=vestingAddress, abi=VestingLogic.abi, owner=conf.acct)
+            vesting.stakeTokens(amount)
 
         stakes = staking.getStakes(vestingAddress)
         print(stakes)
@@ -92,10 +94,14 @@ def parseFile(fileName, multiplier):
     print(fileName)
     totalAmount = 0
     teamVestingList = []
+    errorMsg = ''
     with open(fileName, 'r') as file:
         reader = csv.reader(file)
         for row in reader:
             tokenOwner = row[3].replace(" ", "")
+            decimals = row[0].split('.')
+            if(len(decimals) != 2 or len(decimals[1]) != 2):
+                errorMsg+="\n" + tokenOwner + ' amount: ' + row[0]
             amount = row[0].replace(",", "").replace(".", "")
             amount = int(amount) * multiplier
             cliff = int(row[5])
@@ -110,6 +116,9 @@ def parseFile(fileName, multiplier):
             print("=======================================")
             print("'" + tokenOwner + "', ")
             print(amount)
+
+    if(errorMsg != ''):
+        raise Exception('Formatting error: ' + errorMsg)
     return {
                "totalAmount": totalAmount,
                "teamVestingList": teamVestingList,

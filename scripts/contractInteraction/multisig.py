@@ -83,7 +83,7 @@ def transferXUSDtoTokenSender(amount):
     direct liquid xUSD distribution
     '''
     # 47397.00 xUSD
-    # amount = 4739700 * 1e16
+    # amount = 4739700 * 10**16
 
     tokenSenderAddress = conf.contracts['GenericTokenSender']
     token = Contract.from_abi("TestToken", address=conf.contracts['XUSD'], abi=TestToken.abi, owner=conf.acct)
