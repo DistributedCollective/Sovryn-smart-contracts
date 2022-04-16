@@ -13,29 +13,34 @@ import "../feeds/IPriceFeeds.sol";
  * outstanding on it.
  * */
 contract RewardHelper is State {
-	using SafeMath for uint256;
+    using SafeMath for uint256;
 
-	/**
-	 * @notice Calculate the reward of a rollover transaction.
-	 *
-	 * @param collateralToken The address of the collateral token.
-	 * @param loanToken The address of the loan token.
-	 * @param positionSize The amount of value of the position.
-	 *
-	 * @return The base fee + the flex fee.
-	 */
-	function _getRolloverReward(
-		address collateralToken,
-		address loanToken,
-		uint256 positionSize
-	) internal view returns (uint256 reward) {
-		uint256 positionSizeInCollateralToken = IPriceFeeds(priceFeeds).queryReturn(loanToken, collateralToken, positionSize);
-		uint256 rolloverBaseRewardInCollateralToken =
-			IPriceFeeds(priceFeeds).queryReturn(address(wrbtcToken), collateralToken, rolloverBaseReward);
+    /**
+     * @notice Calculate the reward of a rollover transaction.
+     *
+     * @param collateralToken The address of the collateral token.
+     * @param loanToken The address of the loan token.
+     * @param positionSize The amount of value of the position.
+     *
+     * @return The base fee + the flex fee.
+     */
+    function _getRolloverReward(
+        address collateralToken,
+        address loanToken,
+        uint256 positionSize
+    ) internal view returns (uint256 reward) {
+        uint256 positionSizeInCollateralToken =
+            IPriceFeeds(priceFeeds).queryReturn(loanToken, collateralToken, positionSize);
+        uint256 rolloverBaseRewardInCollateralToken =
+            IPriceFeeds(priceFeeds).queryReturn(
+                address(wrbtcToken),
+                collateralToken,
+                rolloverBaseReward
+            );
 
-		return
-			rolloverBaseRewardInCollateralToken
-				.mul(2) /// baseFee
-				.add(positionSizeInCollateralToken.mul(rolloverFlexFeePercent).div(10**20)); /// flexFee = 0.1% of position size
-	}
+        return
+            rolloverBaseRewardInCollateralToken
+                .mul(2) /// baseFee
+                .add(positionSizeInCollateralToken.mul(rolloverFlexFeePercent).div(10**20)); /// flexFee = 0.1% of position size
+    }
 }

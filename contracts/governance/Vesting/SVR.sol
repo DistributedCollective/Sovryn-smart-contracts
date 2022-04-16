@@ -22,124 +22,124 @@ import "../ApprovalReceiver.sol";
  * 1 year duration.
  * */
 contract SVR is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
-	/* Storage */
+    /* Storage */
 
-	string constant NAME = "Sovryn Vesting Reward Token";
-	string constant SYMBOL = "SVR";
-	uint8 constant DECIMALS = 18;
+    string constant NAME = "Sovryn Vesting Reward Token";
+    string constant SYMBOL = "SVR";
+    uint8 constant DECIMALS = 18;
 
-	/// @notice Constants used for computing the vesting dates.
-	uint256 constant FOUR_WEEKS = 4 weeks;
-	uint256 constant YEAR = 52 weeks;
-	/// @notice Amount of tokens divided by this constant will be transferred.
-	uint96 constant DIRECT_TRANSFER_PART = 14;
+    /// @notice Constants used for computing the vesting dates.
+    uint256 constant FOUR_WEEKS = 4 weeks;
+    uint256 constant YEAR = 52 weeks;
+    /// @notice Amount of tokens divided by this constant will be transferred.
+    uint96 constant DIRECT_TRANSFER_PART = 14;
 
-	/// @notice The SOV token contract.
-	IERC20_ public SOV;
-	/// @notice The staking contract.
-	IStaking public staking;
+    /// @notice The SOV token contract.
+    IERC20_ public SOV;
+    /// @notice The staking contract.
+    IStaking public staking;
 
-	/* Events */
+    /* Events */
 
-	event Mint(address indexed sender, uint256 amount);
-	event Burn(address indexed sender, uint256 amount);
+    event Mint(address indexed sender, uint256 amount);
+    event Burn(address indexed sender, uint256 amount);
 
-	/* Functions */
+    /* Functions */
 
-	/**
-	 * @notice Create reward token RSOV.
-	 * @param _SOV The SOV token address.
-	 * @param _staking The staking contract address.
-	 * */
-	constructor(address _SOV, address _staking) public ERC20Detailed(NAME, SYMBOL, DECIMALS) {
-		require(_SOV != address(0), "SVR::SOV address invalid");
-		require(_staking != address(0), "SVR::staking address invalid");
+    /**
+     * @notice Create reward token RSOV.
+     * @param _SOV The SOV token address.
+     * @param _staking The staking contract address.
+     * */
+    constructor(address _SOV, address _staking) public ERC20Detailed(NAME, SYMBOL, DECIMALS) {
+        require(_SOV != address(0), "SVR::SOV address invalid");
+        require(_staking != address(0), "SVR::staking address invalid");
 
-		SOV = IERC20_(_SOV);
-		staking = IStaking(_staking);
-	}
+        SOV = IERC20_(_SOV);
+        staking = IStaking(_staking);
+    }
 
-	/**
-	 * @notice Hold SOV tokens and mint the respective amount of SVR tokens.
-	 * @param _amount The amount of tokens to be mint.
-	 * */
-	function mint(uint96 _amount) public {
-		_mintTo(msg.sender, _amount);
-	}
+    /**
+     * @notice Hold SOV tokens and mint the respective amount of SVR tokens.
+     * @param _amount The amount of tokens to be mint.
+     * */
+    function mint(uint96 _amount) public {
+        _mintTo(msg.sender, _amount);
+    }
 
-	/**
-	 * @notice Hold SOV tokens and mint the respective amount of SVR tokens.
-	 * @dev This function will be invoked from receiveApproval.
-	 * @dev SOV.approveAndCall -> this.receiveApproval -> this.mintWithApproval
-	 * @param _sender The sender of SOV.approveAndCall
-	 * @param _amount The amount of tokens to be mint.
-	 * */
-	function mintWithApproval(address _sender, uint96 _amount) public onlyThisContract {
-		_mintTo(_sender, _amount);
-	}
+    /**
+     * @notice Hold SOV tokens and mint the respective amount of SVR tokens.
+     * @dev This function will be invoked from receiveApproval.
+     * @dev SOV.approveAndCall -> this.receiveApproval -> this.mintWithApproval
+     * @param _sender The sender of SOV.approveAndCall
+     * @param _amount The amount of tokens to be mint.
+     * */
+    function mintWithApproval(address _sender, uint96 _amount) public onlyThisContract {
+        _mintTo(_sender, _amount);
+    }
 
-	/**
-	 * @notice The actual minting process, holding SOV and minting RSOV tokens.
-	 * @param _sender The recipient of the minted tokens.
-	 * @param _amount The amount of tokens to be minted.
-	 * */
-	function _mintTo(address _sender, uint96 _amount) internal {
-		require(_amount > 0, "SVR::mint: amount invalid");
+    /**
+     * @notice The actual minting process, holding SOV and minting RSOV tokens.
+     * @param _sender The recipient of the minted tokens.
+     * @param _amount The amount of tokens to be minted.
+     * */
+    function _mintTo(address _sender, uint96 _amount) internal {
+        require(_amount > 0, "SVR::mint: amount invalid");
 
-		/// @notice Holds SOV tokens.
-		bool success = SOV.transferFrom(_sender, address(this), _amount);
-		require(success);
+        /// @notice Holds SOV tokens.
+        bool success = SOV.transferFrom(_sender, address(this), _amount);
+        require(success);
 
-		/// @notice Mints SVR tokens.
-		/// @dev uses openzeppelin/ERC20.sol internal _mint function
-		_mint(_sender, _amount);
+        /// @notice Mints SVR tokens.
+        /// @dev uses openzeppelin/ERC20.sol internal _mint function
+        _mint(_sender, _amount);
 
-		emit Mint(_sender, _amount);
-	}
+        emit Mint(_sender, _amount);
+    }
 
-	/**
-	 * @notice burns SVR tokens and stakes the respective amount SOV tokens in the user's behalf
-	 * @param _amount the amount of tokens to be burnt
-	 */
-	function burn(uint96 _amount) public {
-		require(_amount > 0, "SVR:: burn: amount invalid");
+    /**
+     * @notice burns SVR tokens and stakes the respective amount SOV tokens in the user's behalf
+     * @param _amount the amount of tokens to be burnt
+     */
+    function burn(uint96 _amount) public {
+        require(_amount > 0, "SVR:: burn: amount invalid");
 
-		/// @notice Burns RSOV tokens.
-		_burn(msg.sender, _amount);
+        /// @notice Burns RSOV tokens.
+        _burn(msg.sender, _amount);
 
-		/// @notice Transfer 1/14 of amount directly to the user.
-		/// If amount is too small it won't be transferred.
-		uint96 transferAmount = _amount / DIRECT_TRANSFER_PART;
-		if (transferAmount > 0) {
-			SOV.transfer(msg.sender, transferAmount);
-			_amount -= transferAmount;
-		}
+        /// @notice Transfer 1/14 of amount directly to the user.
+        /// If amount is too small it won't be transferred.
+        uint96 transferAmount = _amount / DIRECT_TRANSFER_PART;
+        if (transferAmount > 0) {
+            SOV.transfer(msg.sender, transferAmount);
+            _amount -= transferAmount;
+        }
 
-		/// @notice Stakes SOV tokens in the user's behalf.
-		SOV.approve(address(staking), _amount);
+        /// @notice Stakes SOV tokens in the user's behalf.
+        SOV.approve(address(staking), _amount);
 
-		staking.stakesBySchedule(_amount, FOUR_WEEKS, YEAR, FOUR_WEEKS, msg.sender, msg.sender);
+        staking.stakesBySchedule(_amount, FOUR_WEEKS, YEAR, FOUR_WEEKS, msg.sender, msg.sender);
 
-		emit Burn(msg.sender, _amount);
-	}
+        emit Burn(msg.sender, _amount);
+    }
 
-	/**
-	 * @notice Override default ApprovalReceiver._getToken function to
-	 * register SOV token on this contract.
-	 * @return The address of SOV token.
-	 * */
-	function _getToken() internal view returns (address) {
-		return address(SOV);
-	}
+    /**
+     * @notice Override default ApprovalReceiver._getToken function to
+     * register SOV token on this contract.
+     * @return The address of SOV token.
+     * */
+    function _getToken() internal view returns (address) {
+        return address(SOV);
+    }
 
-	/**
-	 * @notice Override default ApprovalReceiver._getSelectors function to
-	 * register mintWithApproval selector on this contract.
-	 * @return The array of registered selectors on this contract.
-	 * */
-	function _getSelectors() internal view returns (bytes4[] memory) {
-		bytes4[] memory selectors = new bytes4[](1);
-		selectors[0] = this.mintWithApproval.selector;
-		return selectors;
-	}
+    /**
+     * @notice Override default ApprovalReceiver._getSelectors function to
+     * register mintWithApproval selector on this contract.
+     * @return The array of registered selectors on this contract.
+     * */
+    function _getSelectors() internal view returns (bytes4[] memory) {
+        bytes4[] memory selectors = new bytes4[](1);
+        selectors[0] = this.mintWithApproval.selector;
+        return selectors;
+    }
 }
