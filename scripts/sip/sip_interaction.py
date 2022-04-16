@@ -322,7 +322,7 @@ def createProposalSIP0041():
     description = "SIP-0041: Designation of Exchequer Committee Multisig, Details: https://github.com/DistributedCollective/SIPS/blob/34a23a4fcecb54d19325adc2c56e6471a60caea3/SIP-0041.md, sha256: 934fc32850ac7096e88fbe2b981250527d6ddba78b01f5e191202c8043b840cb"
 
     # Create Proposal
-    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+    # createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
 
 def createProposalSIP0042():
 
@@ -342,7 +342,7 @@ def createProposalSIP0042():
     print(signatures)
     print(datas)
     print(description)
-    createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
 
 def createProposalSIP0043():
 

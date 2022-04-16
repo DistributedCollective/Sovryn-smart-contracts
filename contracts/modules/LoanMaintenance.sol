@@ -33,7 +33,27 @@ contract LoanMaintenance is
 	LiquidationHelper,
 	ModuleCommonFunctionalities
 {
+	// Keep the old LoanReturnData for backward compatibility (especially for the watcher)
 	struct LoanReturnData {
+		bytes32 loanId;
+		address loanToken;
+		address collateralToken;
+		uint256 principal;
+		uint256 collateral;
+		uint256 interestOwedPerDay;
+		uint256 interestDepositRemaining;
+		uint256 startRate; /// collateralToLoanRate
+		uint256 startMargin;
+		uint256 maintenanceMargin;
+		uint256 currentMargin;
+		uint256 maxLoanTerm;
+		uint256 endTimestamp;
+		uint256 maxLiquidatable;
+		uint256 maxSeizable;
+	}
+
+	// The new struct which contained borrower & creation time of a loan
+	struct LoanReturnDataV2 {
 		bytes32 loanId;
 		address loanToken;
 		address collateralToken;
@@ -80,8 +100,11 @@ contract LoanMaintenance is
 		_setTarget(this.getLenderInterestData.selector, target);
 		_setTarget(this.getLoanInterestData.selector, target);
 		_setTarget(this.getUserLoans.selector, target);
+		_setTarget(this.getUserLoansV2.selector, target);
 		_setTarget(this.getLoan.selector, target);
+		_setTarget(this.getLoanV2.selector, target);
 		_setTarget(this.getActiveLoans.selector, target);
+		_setTarget(this.getActiveLoansV2.selector, target);
 		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanMaintenance");
 	}
 
@@ -461,6 +484,63 @@ contract LoanMaintenance is
 	}
 
 	/**
+	 * @notice Get all user loans.
+	 *
+	 * Only returns data for loans that are active.
+	 *
+	 * @param user The user address.
+	 * @param start The lower loan ID to start with.
+	 * @param count The maximum number of results.
+	 * @param loanType The type of loan.
+	 *   loanType 0: all loans.
+	 *   loanType 1: margin trade loans.
+	 *   loanType 2: non-margin trade loans.
+	 * @param isLender Whether the user is lender or borrower.
+	 * @param unsafeOnly The safe filter (True/False).
+	 *
+	 * @return loansData The array of loans as query result.
+	 * */
+	function getUserLoansV2(
+		address user,
+		uint256 start,
+		uint256 count,
+		uint256 loanType,
+		bool isLender,
+		bool unsafeOnly
+	) external view returns (LoanReturnDataV2[] memory loansDataV2) {
+		EnumerableBytes32Set.Bytes32Set storage set = isLender ? lenderLoanSets[user] : borrowerLoanSets[user];
+
+		uint256 end = start.add(count).min256(set.length());
+		if (start >= end) {
+			return loansDataV2;
+		}
+
+		loansDataV2 = new LoanReturnDataV2[](count);
+		uint256 itemCount;
+		for (uint256 i = end - start; i > 0; i--) {
+			if (itemCount == count) {
+				break;
+			}
+			LoanReturnDataV2 memory loanDataV2 =
+				_getLoanV2(
+					set.get(i + start - 1), /// loanId
+					loanType,
+					unsafeOnly
+				);
+			if (loanDataV2.loanId == 0) continue;
+
+			loansDataV2[itemCount] = loanDataV2;
+			itemCount++;
+		}
+
+		if (itemCount < count) {
+			assembly {
+				mstore(loansDataV2, itemCount)
+			}
+		}
+	}
+
+	/**
 	 * @notice Get one loan data structure by matching ID.
 	 *
 	 * Wrapper to internal _getLoan call.
@@ -472,6 +552,24 @@ contract LoanMaintenance is
 	function getLoan(bytes32 loanId) external view returns (LoanReturnData memory loanData) {
 		return
 			_getLoan(
+				loanId,
+				0, /// loanType
+				false /// unsafeOnly
+			);
+	}
+
+	/**
+	 * @notice Get one loan data structure by matching ID.
+	 *
+	 * Wrapper to internal _getLoan call.
+	 *
+	 * @param loanId A unique ID representing the loan.
+	 *
+	 * @return loansData The data structure w/ loan information.
+	 * */
+	function getLoanV2(bytes32 loanId) external view returns (LoanReturnDataV2 memory loanDataV2) {
+		return
+			_getLoanV2(
 				loanId,
 				0, /// loanType
 				false /// unsafeOnly
@@ -518,6 +616,53 @@ contract LoanMaintenance is
 		if (itemCount < count) {
 			assembly {
 				mstore(loansData, itemCount)
+			}
+		}
+	}
+
+	/**
+	 * @dev New view function which will return the loan data.
+	 * @dev This function was created to support backward compatibility
+	 * @dev As in we the old getActiveLoans function is not expected to be changed by the wathcers.
+	 *
+	 * @param start The lower loan ID to start with.
+	 * @param count The maximum number of results.
+	 * @param unsafeOnly The safe filter (True/False).
+	 *
+	 * @return loanData The data structure
+	 * @return extendedLoanData The data structure which contained (borrower & creation time)
+	 */
+	function getActiveLoansV2(
+		uint256 start,
+		uint256 count,
+		bool unsafeOnly
+	) external view returns (LoanReturnDataV2[] memory loansDataV2) {
+		uint256 end = start.add(count).min256(activeLoansSet.length());
+		if (start >= end) {
+			return loansDataV2;
+		}
+
+		loansDataV2 = new LoanReturnDataV2[](count);
+		uint256 itemCount;
+		for (uint256 i = end - start; i > 0; i--) {
+			if (itemCount == count) {
+				break;
+			}
+			LoanReturnDataV2 memory loanDataV2 =
+				_getLoanV2(
+					activeLoansSet.get(i + start - 1), /// loanId
+					0, /// loanType
+					unsafeOnly
+				);
+			if (loanDataV2.loanId == 0) continue;
+
+			loansDataV2[itemCount] = loanDataV2;
+			itemCount++;
+		}
+
+		if (itemCount < count) {
+			assembly {
+				mstore(loansDataV2, itemCount)
 			}
 		}
 	}
@@ -574,6 +719,78 @@ contract LoanMaintenance is
 
 		return
 			LoanReturnData({
+				loanId: loanId,
+				loanToken: loanParamsLocal.loanToken,
+				collateralToken: loanParamsLocal.collateralToken,
+				principal: loanLocal.principal,
+				collateral: loanLocal.collateral,
+				interestOwedPerDay: loanInterestLocal.owedPerDay,
+				interestDepositRemaining: loanLocal.endTimestamp >= block.timestamp
+					? loanLocal.endTimestamp.sub(block.timestamp).mul(loanInterestLocal.owedPerDay).div(86400)
+					: 0,
+				startRate: loanLocal.startRate,
+				startMargin: loanLocal.startMargin,
+				maintenanceMargin: loanParamsLocal.maintenanceMargin,
+				currentMargin: currentMargin,
+				maxLoanTerm: loanParamsLocal.maxLoanTerm,
+				endTimestamp: loanLocal.endTimestamp,
+				maxLiquidatable: maxLiquidatable,
+				maxSeizable: maxSeizable
+			});
+	}
+
+	/**
+	 * @notice Internal function to get one loan data structure v2.
+	 *
+	 * @param loanId A unique ID representing the loan.
+	 * @param loanType The type of loan.
+	 *   loanType 0: all loans.
+	 *   loanType 1: margin trade loans.
+	 *   loanType 2: non-margin trade loans.
+	 * @param unsafeOnly The safe filter (True/False).
+	 *
+	 * @return loansData The data v2 structure w/ the loan information.
+	 * */
+	function _getLoanV2(
+		bytes32 loanId,
+		uint256 loanType,
+		bool unsafeOnly
+	) internal view returns (LoanReturnDataV2 memory loanDataV2) {
+		Loan memory loanLocal = loans[loanId];
+		LoanParams memory loanParamsLocal = loanParams[loanLocal.loanParamsId];
+
+		if (loanType != 0) {
+			if (!((loanType == 1 && loanParamsLocal.maxLoanTerm != 0) || (loanType == 2 && loanParamsLocal.maxLoanTerm == 0))) {
+				return loanDataV2;
+			}
+		}
+
+		LoanInterest memory loanInterestLocal = loanInterest[loanId];
+
+		(uint256 currentMargin, uint256 collateralToLoanRate) =
+			IPriceFeeds(priceFeeds).getCurrentMargin(
+				loanParamsLocal.loanToken,
+				loanParamsLocal.collateralToken,
+				loanLocal.principal,
+				loanLocal.collateral
+			);
+
+		uint256 maxLiquidatable;
+		uint256 maxSeizable;
+		if (currentMargin <= loanParamsLocal.maintenanceMargin) {
+			(maxLiquidatable, maxSeizable, ) = _getLiquidationAmounts(
+				loanLocal.principal,
+				loanLocal.collateral,
+				currentMargin,
+				loanParamsLocal.maintenanceMargin,
+				collateralToLoanRate
+			);
+		} else if (unsafeOnly) {
+			return loanDataV2;
+		}
+
+		return
+			LoanReturnDataV2({
 				loanId: loanId,
 				loanToken: loanParamsLocal.loanToken,
 				collateralToken: loanParamsLocal.collateralToken,

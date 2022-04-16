@@ -121,6 +121,7 @@ def checkRates():
     readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', conf.contracts['WRBTC'])
 
 
+
 def readPriceFeedFor(tokenAddress):
     feeds = Contract.from_abi("PriceFeeds", address= conf.contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = conf.acct)
     address = feeds.pricesFeeds(tokenAddress)
@@ -160,6 +161,17 @@ def readv1PoolOracleAddress(tokenAddress):
     feedAddress = readPriceFeedFor(tokenAddress)
     oracle = Contract.from_abi("PriceFeedV1PoolOracle", address= feedAddress, abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
     print("v1 pool oracle: ",oracle.v1PoolOracleAddress())
+
+def readLatestAnswerFromSOVFeed():
+    feedAddress = readPriceFeedFor(conf.contracts['SOV'])
+    oracle = Contract.from_abi("PriceFeedV1PoolOracle", address= feedAddress, abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
+    print(oracle.v1PoolOracleAddress())
+    print(oracle.wRBTCAddress())
+    print(oracle.baseCurrency())
+    print(oracle.docAddress())
+    readPriceFromOracle(oracle.v1PoolOracleAddress())
+    readPrice(conf.contracts['SOV'], conf.contracts['XUSD'])
+    #print(oracle.latestAnswer())
 
 #if the AMM pool oracle changes, use this method for updating the protocol price feed
 #example: setV1SOVPoolOracleAddress('0xF3c356E720958100ff3F2335D288da069Aa83ce8')

@@ -6,8 +6,6 @@ import copy
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
 
-conf.loadConfig()
-
 def sendSOVFromVestingRegistry():
     amount = 307470805 * 10**14
     vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=conf.acct)
@@ -44,6 +42,11 @@ def readLMVestingContractForAddress(userAddress):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistry3'], abi=VestingRegistry.abi, owner=conf.acct)
     address = vestingRegistry.getVesting(userAddress)
     print(address)
+
+def readAllVestingContractsForAddress(userAddress):
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    addresses = vestingRegistry.getVestingsOf(userAddress)
+    print(addresses)
 
 def readStakingKickOff():
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
@@ -323,3 +326,9 @@ def updateLockedSOV():
     data = lockedSOV.changeRegistryCliffAndDuration.encode_input(conf.contracts['VestingRegistryProxy'], cliff, duration)
     print(data)
     # sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
+
+def governanceWithdrawVesting( vesting,  receiver):
+    stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    data = stakingProxy.governanceWithdrawVesting.encode_input( vesting,  receiver)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)

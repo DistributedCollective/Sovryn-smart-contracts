@@ -109,6 +109,15 @@ def withdrawTokensFromWatcher(token, amount, recipient):
     print(data)
     sendWithMultisig(conf.contracts['multisig'], watcher.address, data, conf.acct)
 
+def withdrawRBTCFromFastBTCBiDi(amount, recipient):
+    abiFile =  open('./scripts/contractInteraction/ABIs/FastBTCBiDi.json')
+    abi = json.load(abiFile)
+    fastBTC = Contract.from_abi("Watcher", address = conf.contracts['FastBTCBiDi'], abi = abi, owner = conf.acct)
+    data = fastBTC.withdrawRbtc.encode_input(amount, recipient)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+
+
 def depositToLockedSOV(amount, recipient):
     token = Contract.from_abi("Token", address= conf.contracts['SOV'], abi = TestToken.abi, owner=conf.acct)
     data = token.approve.encode_input(conf.contracts["LockedSOV"], amount)
@@ -127,3 +136,7 @@ def deployFeeSharingLogic():
     feeSharingProxy = Contract.from_abi("FeeSharingProxy", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingProxy.abi, owner=conf.acct)
     data = feeSharingProxy.setImplementation.encode_input(feeSharing.address)
     sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)
+
+def replaceTx(txStr, newGas):
+    txReceipt = chain.get_transaction(txStr)
+    txReceipt.replace(None, newGas)

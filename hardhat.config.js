@@ -57,7 +57,7 @@ module.exports = {
 	},
 	contractSizer: {
 		alphaSort: false,
-		runOnCompile: true,
+		runOnCompile: false,
 		disambiguatePaths: false,
 	},
 	networks: {
