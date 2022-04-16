@@ -11,6 +11,9 @@ require("hardhat-log-remover");
 require("hardhat-docgen");
 require("hardhat-abi-exporter");
 
+require("@matterlabs/hardhat-zksync-deploy");
+require("@matterlabs/hardhat-zksync-solc");
+
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
 /// this is for use with ethers.js
@@ -60,9 +63,26 @@ module.exports = {
 		runOnCompile: false,
 		disambiguatePaths: false,
 	},
+	zksolc: {
+		version: "0.1.0",
+		compilerSource: "docker",
+		settings: {
+			optimizer: {
+				enabled: true,
+			},
+			experimental: {
+				dockerImage: "matterlabs/zksolc",
+			},
+		},
+	},
+	zkSyncDeploy: {
+		zkSyncNetwork: "https://zksync2-testnet.zksync.dev",
+		ethNetwork: "goerli", // Can also be the RPC URL of the network (e.g. `https://goerli.infura.io/v3/<API_KEY>`)
+	},
 	networks: {
 		hardhat: {
 			allowUnlimitedContractSizes: true,
+			zksync: true,
 		},
 		rskPublicTestnet: {
 			url: "https://public-node.testnet.rsk.co/",
