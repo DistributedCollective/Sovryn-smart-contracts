@@ -34,7 +34,7 @@ def main():
     # 1.
     # transferSOVtoTokenSender(SOVAmount) # direct liquid SOV distribution
     # 2. 
-    # sovDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-SOV-transfers-22-04.csv'
+    # sovDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-SOV-transfers-_____.csv'
     # dryRun = true # false to execute, true to verify the file structure
     # multiplier = 10**16 # usually 10**16 <- amounts must with 2 decimals
     # sendDirectSOV(sovDistributionPath, dryRun, multiplier)
@@ -46,7 +46,7 @@ def main():
     # 1.
     # transferXUSDtoTokenSender(XUSDAmount) # direct liquid XUSD distribution
     # 2.
-    # xusdDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-XUSD-transfers-22-04.csv'
+    # xusdDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-XUSD-transfers-_____.csv'
     # dryRun = True # false to execute, true to verify the file structure
     # multiplier = 10**16 # usually 10**16 <- amounts must with 2 decimals
     # sendDirectXUSD(xusdDistributionPath, dryRun, multiplier)
@@ -73,10 +73,10 @@ def main():
     '''
     brownie run scripts/contractInteraction/tasks/airdrop_distribution/airdrop_distribution.py --network rsk-mainnet
     '''
-    vestingDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/vestings-22-04_3.csv'
-    dryRun = False # false to execute, true to verify the file structure
-    multiplier = 10**16 # multiplier == 10**16 <- amounts must with 2 decimals
-    createVestings(vestingDistributionPath, dryRun, multiplier)
+    # vestingDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/vestings-_____.csv'
+    # dryRun = True # False to execute, True to verify the file structure
+    # multiplier = 10**16 # multiplier == 10**16 <- amounts must with 2 decimals
+    # createVestings(vestingDistributionPath, dryRun, multiplier)
     #
     # vestingRegistryProxyRemoveAdmin('0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E') # remove the script exexution from admins
     # 
