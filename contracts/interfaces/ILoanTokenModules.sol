@@ -243,6 +243,8 @@ interface ILoanTokenModules {
 	) external returns (uint256 loanAmountPaid);
 
 	/** START LOAN TOKEN LOGIC STORAGE */
+	function pauser() external view returns (address);
+
 	function liquidityMiningAddress() external view returns (address);
 
 	function name() external view returns (string memory);
