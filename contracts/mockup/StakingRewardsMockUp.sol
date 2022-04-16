@@ -8,24 +8,24 @@ import "./BlockMockUp.sol";
  * @notice This is used for Testing
  * */
 contract StakingRewardsMockUp is StakingRewards {
-	///@notice the block mock up contract
-	BlockMockUp public blockMockUp;
+    ///@notice the block mock up contract
+    BlockMockUp public blockMockUp;
 
-	using SafeMath for uint256;
+    using SafeMath for uint256;
 
-	/**
-	 * @notice gets block number from BlockMockUp
-	 * @param _blockMockUp the address of BlockMockUp
-	 */
-	function setBlockMockUpAddr(address _blockMockUp) public onlyOwner {
-		require(_blockMockUp != address(0), "block mockup address invalid");
-		blockMockUp = BlockMockUp(_blockMockUp);
-	}
+    /**
+     * @notice gets block number from BlockMockUp
+     * @param _blockMockUp the address of BlockMockUp
+     */
+    function setBlockMockUpAddr(address _blockMockUp) public onlyOwner {
+        require(_blockMockUp != address(0), "block mockup address invalid");
+        blockMockUp = BlockMockUp(_blockMockUp);
+    }
 
-	/**
-	 * @notice Determine the current Block Number from BlockMockUp
-	 * */
-	function _getCurrentBlockNumber() internal view returns (uint256) {
-		return blockMockUp.getBlockNum();
-	}
+    /**
+     * @notice Determine the current Block Number from BlockMockUp
+     * */
+    function _getCurrentBlockNumber() internal view returns (uint256) {
+        return blockMockUp.getBlockNum();
+    }
 }

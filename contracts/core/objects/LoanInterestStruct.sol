@@ -13,9 +13,9 @@ pragma solidity 0.5.17;
  * This contract contains the storage structure of the Loan Interest.
  * */
 contract LoanInterestStruct {
-	struct LoanInterest {
-		uint256 owedPerDay; /// Interest owed per day for loan.
-		uint256 depositTotal; /// Total escrowed interest for loan.
-		uint256 updatedTimestamp; /// Last update.
-	}
+    struct LoanInterest {
+        uint256 owedPerDay; /// Interest owed per day for loan.
+        uint256 depositTotal; /// Total escrowed interest for loan.
+        uint256 updatedTimestamp; /// Last update.
+    }
 }
