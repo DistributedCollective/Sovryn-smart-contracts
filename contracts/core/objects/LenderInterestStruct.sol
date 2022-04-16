@@ -13,11 +13,11 @@ pragma solidity 0.5.17;
  * This contract contains the storage structure of the Lender Interest.
  * */
 contract LenderInterestStruct {
-	struct LenderInterest {
-		uint256 principalTotal; /// Total borrowed amount outstanding of asset.
-		uint256 owedPerDay; /// Interest owed per day for all loans of asset.
-		uint256 owedTotal; /// Total interest owed for all loans of asset (assuming they go to full term).
-		uint256 paidTotal; /// Total interest paid so far for asset.
-		uint256 updatedTimestamp; /// Last update.
-	}
+    struct LenderInterest {
+        uint256 principalTotal; /// Total borrowed amount outstanding of asset.
+        uint256 owedPerDay; /// Interest owed per day for all loans of asset.
+        uint256 owedTotal; /// Total interest owed for all loans of asset (assuming they go to full term).
+        uint256 paidTotal; /// Total interest paid so far for asset.
+        uint256 updatedTimestamp; /// Last update.
+    }
 }

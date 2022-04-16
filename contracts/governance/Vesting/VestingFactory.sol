@@ -12,68 +12,90 @@ import "./IVestingFactory.sol";
  * of the same contract and keep track of them easier.
  * */
 contract VestingFactory is IVestingFactory, Ownable {
-	address public vestingLogic;
+    address public vestingLogic;
 
-	constructor(address _vestingLogic) public {
-		require(_vestingLogic != address(0), "invalid vesting logic address");
-		vestingLogic = _vestingLogic;
-	}
+    constructor(address _vestingLogic) public {
+        require(_vestingLogic != address(0), "invalid vesting logic address");
+        vestingLogic = _vestingLogic;
+    }
 
-	/**
-	 * @notice Deploys Vesting contract.
-	 * @param _SOV the address of SOV token.
-	 * @param _staking The address of staking contract.
-	 * @param _tokenOwner The owner of the tokens.
-	 * @param _cliff The time interval to the first withdraw in seconds.
-	 * @param _duration The total duration in seconds.
-	 * @param _feeSharing The address of fee sharing contract.
-	 * @param _vestingOwner The address of an owner of vesting contract.
-	 * @return The vesting contract address.
-	 * */
-	function deployVesting(
-		address _SOV,
-		address _staking,
-		address _tokenOwner,
-		uint256 _cliff,
-		uint256 _duration,
-		address _feeSharing,
-		address _vestingOwner
-	)
-		external
-		onlyOwner /// @dev owner - VestingRegistry
-		returns (address)
-	{
-		address vesting = address(new Vesting(vestingLogic, _SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing));
-		Ownable(vesting).transferOwnership(_vestingOwner);
-		return vesting;
-	}
+    /**
+     * @notice Deploys Vesting contract.
+     * @param _SOV the address of SOV token.
+     * @param _staking The address of staking contract.
+     * @param _tokenOwner The owner of the tokens.
+     * @param _cliff The time interval to the first withdraw in seconds.
+     * @param _duration The total duration in seconds.
+     * @param _feeSharing The address of fee sharing contract.
+     * @param _vestingOwner The address of an owner of vesting contract.
+     * @return The vesting contract address.
+     * */
+    function deployVesting(
+        address _SOV,
+        address _staking,
+        address _tokenOwner,
+        uint256 _cliff,
+        uint256 _duration,
+        address _feeSharing,
+        address _vestingOwner
+    )
+        external
+        onlyOwner /// @dev owner - VestingRegistry
+        returns (address)
+    {
+        address vesting =
+            address(
+                new Vesting(
+                    vestingLogic,
+                    _SOV,
+                    _staking,
+                    _tokenOwner,
+                    _cliff,
+                    _duration,
+                    _feeSharing
+                )
+            );
+        Ownable(vesting).transferOwnership(_vestingOwner);
+        return vesting;
+    }
 
-	/**
-	 * @notice Deploys Team Vesting contract.
-	 * @param _SOV The address of SOV token.
-	 * @param _staking The address of staking contract.
-	 * @param _tokenOwner The owner of the tokens.
-	 * @param _cliff The time interval to the first withdraw in seconds.
-	 * @param _duration The total duration in seconds.
-	 * @param _feeSharing The address of fee sharing contract.
-	 * @param _vestingOwner The address of an owner of vesting contract.
-	 * @return The vesting contract address.
-	 * */
-	function deployTeamVesting(
-		address _SOV,
-		address _staking,
-		address _tokenOwner,
-		uint256 _cliff,
-		uint256 _duration,
-		address _feeSharing,
-		address _vestingOwner
-	)
-		external
-		onlyOwner //owner - VestingRegistry
-		returns (address)
-	{
-		address vesting = address(new TeamVesting(vestingLogic, _SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing));
-		Ownable(vesting).transferOwnership(_vestingOwner);
-		return vesting;
-	}
+    /**
+     * @notice Deploys Team Vesting contract.
+     * @param _SOV The address of SOV token.
+     * @param _staking The address of staking contract.
+     * @param _tokenOwner The owner of the tokens.
+     * @param _cliff The time interval to the first withdraw in seconds.
+     * @param _duration The total duration in seconds.
+     * @param _feeSharing The address of fee sharing contract.
+     * @param _vestingOwner The address of an owner of vesting contract.
+     * @return The vesting contract address.
+     * */
+    function deployTeamVesting(
+        address _SOV,
+        address _staking,
+        address _tokenOwner,
+        uint256 _cliff,
+        uint256 _duration,
+        address _feeSharing,
+        address _vestingOwner
+    )
+        external
+        onlyOwner //owner - VestingRegistry
+        returns (address)
+    {
+        address vesting =
+            address(
+                new TeamVesting(
+                    vestingLogic,
+                    _SOV,
+                    _staking,
+                    _tokenOwner,
+                    _cliff,
+                    _duration,
+                    _feeSharing
+                )
+            );
+        Ownable(vesting).transferOwnership(_vestingOwner);
+        return vesting;
+    }
 }

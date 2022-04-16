@@ -36,42 +36,42 @@ import "./Pausable.sol";
  * use the BZRX tokens, which are only used to pay fees on the network currently.
  * */
 contract LoanTokenBase is ReentrancyGuard, Ownable, Pausable {
-	uint256 internal constant WEI_PRECISION = 10**18;
-	uint256 internal constant WEI_PERCENT_PRECISION = 10**20;
+    uint256 internal constant WEI_PRECISION = 10**18;
+    uint256 internal constant WEI_PERCENT_PRECISION = 10**20;
 
-	int256 internal constant sWEI_PRECISION = 10**18;
+    int256 internal constant sWEI_PRECISION = 10**18;
 
-	/// @notice Standard ERC-20 properties
-	string public name;
-	string public symbol;
-	uint8 public decimals;
+    /// @notice Standard ERC-20 properties
+    string public name;
+    string public symbol;
+    uint8 public decimals;
 
-	/// @notice The address of the loan token (asset to lend) instance.
-	address public loanTokenAddress;
+    /// @notice The address of the loan token (asset to lend) instance.
+    address public loanTokenAddress;
 
-	uint256 public baseRate;
-	uint256 public rateMultiplier;
-	uint256 public lowUtilBaseRate;
-	uint256 public lowUtilRateMultiplier;
+    uint256 public baseRate;
+    uint256 public rateMultiplier;
+    uint256 public lowUtilBaseRate;
+    uint256 public lowUtilRateMultiplier;
 
-	uint256 public targetLevel;
-	uint256 public kinkLevel;
-	uint256 public maxScaleRate;
+    uint256 public targetLevel;
+    uint256 public kinkLevel;
+    uint256 public maxScaleRate;
 
-	uint256 internal _flTotalAssetSupply;
-	uint256 public checkpointSupply;
-	uint256 public initialPrice;
+    uint256 internal _flTotalAssetSupply;
+    uint256 public checkpointSupply;
+    uint256 public initialPrice;
 
-	/// uint88 for tight packing -> 8 + 88 + 160 = 256
-	uint88 internal lastSettleTime_;
+    /// uint88 for tight packing -> 8 + 88 + 160 = 256
+    uint88 internal lastSettleTime_;
 
-	/// Mapping of keccak256(collateralToken, isTorqueLoan) to loanParamsId.
-	mapping(uint256 => bytes32) public loanParamsIds;
+    /// Mapping of keccak256(collateralToken, isTorqueLoan) to loanParamsId.
+    mapping(uint256 => bytes32) public loanParamsIds;
 
-	/// Price of token at last user checkpoint.
-	mapping(address => uint256) internal checkpointPrices_;
+    /// Price of token at last user checkpoint.
+    mapping(address => uint256) internal checkpointPrices_;
 
-	// the maximum trading/borrowing/lending limit per token address
-	mapping(address => uint256) public transactionLimit;
-	// 0 -> no limit
+    // the maximum trading/borrowing/lending limit per token address
+    mapping(address => uint256) public transactionLimit;
+    // 0 -> no limit
 }

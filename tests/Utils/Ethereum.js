@@ -5,193 +5,199 @@ const BigNumber = require("bignumber.js");
 const { ethers } = require("hardhat");
 
 function UInt256Max() {
-	return ethers.constants.MaxUint256;
+    return ethers.constants.MaxUint256;
 }
 
 function address(n) {
-	return `0x${n.toString(16).padStart(40, "0")}`;
+    return `0x${n.toString(16).padStart(40, "0")}`;
 }
 
 function encodeParameters(types, values) {
-	const abi = new ethers.utils.AbiCoder();
-	return abi.encode(types, values);
+    const abi = new ethers.utils.AbiCoder();
+    return abi.encode(types, values);
 }
 
 async function etherBalance(addr) {
-	return new BigNumber(await web3.eth.getBalance(addr));
+    return new BigNumber(await web3.eth.getBalance(addr));
 }
 
 async function etherGasCost(receipt) {
-	const tx = await web3.eth.getTransaction(receipt.transactionHash);
-	const gasUsed = new BigNumber(receipt.gasUsed);
-	const gasPrice = new BigNumber(tx.gasPrice);
-	return gasUsed.times(gasPrice);
+    const tx = await web3.eth.getTransaction(receipt.transactionHash);
+    const gasUsed = new BigNumber(receipt.gasUsed);
+    const gasPrice = new BigNumber(tx.gasPrice);
+    return gasUsed.times(gasPrice);
 }
 
 function etherExp(num) {
-	return etherMantissa(num, 1e18);
+    return etherMantissa(num, 1e18);
 }
 
 function etherDouble(num) {
-	return etherMantissa(num, 1e36);
+    return etherMantissa(num, 1e36);
 }
 
 function etherMantissa(num, scale = 1e18) {
-	if (num < 0) return new BigNumber(2).pow(256).plus(num);
-	return new BigNumber(num).times(scale);
+    if (num < 0) return new BigNumber(2).pow(256).plus(num);
+    return new BigNumber(num).times(scale);
 }
 
 function etherUnsigned(num) {
-	return new BigNumber(num);
+    return new BigNumber(num);
 }
 
 function mergeInterface(into, from) {
-	const key = (item) => (item.inputs ? `${item.name}/${item.inputs.length}` : item.name);
-	const existing = into.options.jsonInterface.reduce((acc, item) => {
-		acc[key(item)] = true;
-		return acc;
-	}, {});
-	const extended = from.options.jsonInterface.reduce((acc, item) => {
-		if (!(key(item) in existing)) acc.push(item);
-		return acc;
-	}, into.options.jsonInterface.slice());
-	into.options.jsonInterface = into.options.jsonInterface.concat(from.options.jsonInterface);
-	return into;
+    const key = (item) => (item.inputs ? `${item.name}/${item.inputs.length}` : item.name);
+    const existing = into.options.jsonInterface.reduce((acc, item) => {
+        acc[key(item)] = true;
+        return acc;
+    }, {});
+    const extended = from.options.jsonInterface.reduce((acc, item) => {
+        if (!(key(item) in existing)) acc.push(item);
+        return acc;
+    }, into.options.jsonInterface.slice());
+    into.options.jsonInterface = into.options.jsonInterface.concat(from.options.jsonInterface);
+    return into;
 }
 
 function getContractDefaults() {
-	return { gas: 20000000, gasPrice: 20000 };
+    return { gas: 20000000, gasPrice: 20000 };
 }
 
 function keccak256(values) {
-	return ethers.utils.keccak256(values);
+    return ethers.utils.keccak256(values);
 }
 
 // not working with hardhat, use hardhat_utils as a workaround
 function unlockedAccounts() {
-	let provider = web3.currentProvider;
-	if (provider._providers) provider = provider._providers.find((p) => p._ganacheProvider)._ganacheProvider;
-	return provider.manager.state.unlocked_accounts;
+    let provider = web3.currentProvider;
+    if (provider._providers)
+        provider = provider._providers.find((p) => p._ganacheProvider)._ganacheProvider;
+    return provider.manager.state.unlocked_accounts;
 }
 
 // not working with hardhat
 function unlockedAccount(a) {
-	return unlockedAccounts()[a.toLowerCase()];
+    return unlockedAccounts()[a.toLowerCase()];
 }
 
 async function mineBlockNumber(blockNumber) {
-	return rpc({ method: "evm_mineBlockNumber", params: [blockNumber] });
+    return rpc({ method: "evm_mineBlockNumber", params: [blockNumber] });
 }
 
 async function mineBlock() {
-	return rpc({ method: "evm_mine" });
+    return rpc({ method: "evm_mine" });
 }
 
 async function increaseTime(seconds) {
-	await rpc({ method: "evm_increaseTime", params: [seconds] });
-	return rpc({ method: "evm_mine" });
+    await rpc({ method: "evm_increaseTime", params: [seconds] });
+    return rpc({ method: "evm_mine" });
 }
 
 // doesn't work with hardhat
 async function setTime(seconds) {
-	await rpc({ method: "evm_setTime", params: [new Date(seconds * 1000)] });
+    await rpc({ method: "evm_setTime", params: [new Date(seconds * 1000)] });
 }
 
 // doesn't work with hardhat
 async function freezeTime(seconds) {
-	await rpc({ method: "evm_freezeTime", params: [seconds] });
-	return rpc({ method: "evm_mine" });
+    await rpc({ method: "evm_freezeTime", params: [seconds] });
+    return rpc({ method: "evm_mine" });
 }
 
 // adapted for both truffle and hardhat
 async function advanceBlocks(blocks) {
-	//let res = parseInt(await rpc({ method: "eth_blockNumber" }), 16);
-	//console.log(`await rpc({ method: "eth_blockNumber" }): ${res}`);
-	let currentBlockNumber = await blockNumber();
-	//console.log(`Ethereum::currentBlockNumber: ${currentBlockNumber}`);
-	//let { result: num } = await rpc({ method: "eth_blockNumber" });
-	//await rpc({ method: "evm_mineBlockNumber", params: [blocks + parseInt(num)] });
-	//await rpc({ method: "evm_mineBlockNumber", params: [blocks + num] });
-	for (let i = currentBlockNumber; i < blocks; i++) {
-		await mineBlock();
-	}
+    //let res = parseInt(await rpc({ method: "eth_blockNumber" }), 16);
+    //console.log(`await rpc({ method: "eth_blockNumber" }): ${res}`);
+    let currentBlockNumber = await blockNumber();
+    //console.log(`Ethereum::currentBlockNumber: ${currentBlockNumber}`);
+    //let { result: num } = await rpc({ method: "eth_blockNumber" });
+    //await rpc({ method: "evm_mineBlockNumber", params: [blocks + parseInt(num)] });
+    //await rpc({ method: "evm_mineBlockNumber", params: [blocks + num] });
+    for (let i = currentBlockNumber; i < blocks; i++) {
+        await mineBlock();
+    }
 }
 
 async function setNextBlockTimestamp(timestamp) {
-	await rpc({ method: "evm_setNextBlockTimestamp", params: [timestamp] });
+    await rpc({ method: "evm_setNextBlockTimestamp", params: [timestamp] });
 }
 
 async function blockNumber() {
-	let { result: num } = await rpc({ method: "eth_blockNumber" });
-	if (num === undefined) num = await rpc({ method: "eth_blockNumber" });
-	//let { result: num } = await rpc({ method: "eth_blockNumber" });
-	return parseInt(num);
-	//return num;
+    let { result: num } = await rpc({ method: "eth_blockNumber" });
+    if (num === undefined) num = await rpc({ method: "eth_blockNumber" });
+    //let { result: num } = await rpc({ method: "eth_blockNumber" });
+    return parseInt(num);
+    //return num;
 }
 
 async function lastBlock() {
-	return await rpc({ method: "eth_getBlockByNumber", params: ["latest", true] });
+    return await rpc({ method: "eth_getBlockByNumber", params: ["latest", true] });
 }
 
 // doesn't work with hardhat
 async function minerStart() {
-	return rpc({ method: "miner_start" });
+    return rpc({ method: "miner_start" });
 }
 
 // doesn't work with hardhat
 async function minerStop() {
-	return rpc({ method: "miner_stop" });
+    return rpc({ method: "miner_stop" });
 }
 
 // adapted to work in both truffle and hardhat
 async function rpc(request) {
-	try {
-		return await network.provider.request(request);
-	} catch (e) {
-		if (typeof network != "undefined") console.error(e);
-		//console.log("Ethereum.js rpc:: network is undefined. Trying web3.currentProvider.send...");
-		return new Promise((okay, fail) => web3.currentProvider.send(request, (err, res) => (err ? fail(err) : okay(res))));
-	}
+    try {
+        return await network.provider.request(request);
+    } catch (e) {
+        if (typeof network != "undefined") console.error(e);
+        //console.log("Ethereum.js rpc:: network is undefined. Trying web3.currentProvider.send...");
+        return new Promise((okay, fail) =>
+            web3.currentProvider.send(request, (err, res) => (err ? fail(err) : okay(res)))
+        );
+    }
 }
 
 async function both(contract, method, args = [], opts = {}) {
-	const reply = await call(contract, method, args, opts);
-	const receipt = await send(contract, method, args, opts);
-	return { reply, receipt };
+    const reply = await call(contract, method, args, opts);
+    const receipt = await send(contract, method, args, opts);
+    return { reply, receipt };
 }
 
 async function sendFallback(contract, opts = {}) {
-	const receipt = await web3.eth.sendTransaction({ to: contract._address, ...Object.assign(getContractDefaults(), opts) });
-	return Object.assign(receipt, { events: receipt.logs });
+    const receipt = await web3.eth.sendTransaction({
+        to: contract._address,
+        ...Object.assign(getContractDefaults(), opts),
+    });
+    return Object.assign(receipt, { events: receipt.logs });
 }
 
 module.exports = {
-	address,
-	encodeParameters,
-	etherBalance,
-	etherGasCost,
-	etherExp,
-	etherDouble,
-	etherMantissa,
-	etherUnsigned,
-	mergeInterface,
-	keccak256,
-	unlockedAccounts,
-	unlockedAccount,
+    address,
+    encodeParameters,
+    etherBalance,
+    etherGasCost,
+    etherExp,
+    etherDouble,
+    etherMantissa,
+    etherUnsigned,
+    mergeInterface,
+    keccak256,
+    unlockedAccounts,
+    unlockedAccount,
 
-	advanceBlocks,
-	blockNumber,
-	lastBlock,
-	freezeTime,
-	increaseTime,
-	mineBlock,
-	mineBlockNumber,
-	minerStart,
-	minerStop,
-	rpc,
-	setTime,
-	setNextBlockTimestamp,
-	both,
-	sendFallback,
-	UInt256Max,
+    advanceBlocks,
+    blockNumber,
+    lastBlock,
+    freezeTime,
+    increaseTime,
+    mineBlock,
+    mineBlockNumber,
+    minerStart,
+    minerStop,
+    rpc,
+    setTime,
+    setNextBlockTimestamp,
+    both,
+    sendFallback,
+    UInt256Max,
 };
