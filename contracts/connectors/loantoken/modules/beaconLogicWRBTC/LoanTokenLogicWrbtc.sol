@@ -98,18 +98,18 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
 	 * @notice Handle transfers prior to adding newPrincipal to loanTokenSent.
 	 *
 	 * @param collateralTokenAddress The address of the collateral token.
-	 * @param sentAddresses The array of addresses:
-	 *   sentAddresses[0]: lender
-	 *   sentAddresses[1]: borrower
-	 *   sentAddresses[2]: receiver
-	 *   sentAddresses[3]: manager
+	 * @param sentAddresses The struct which contains addresses of
+	 * - lender
+	 * - borrower
+	 * - receiver
+	 * - manager
 	 *
-	 * @param sentAmounts The array of amounts:
-	 *   sentAmounts[0]: interestRate
-	 *   sentAmounts[1]: newPrincipal
-	 *   sentAmounts[2]: interestInitialAmount
-	 *   sentAmounts[3]: loanTokenSent
-	 *   sentAmounts[4]: collateralTokenSent
+	 * @param sentAmounts The struct which contains uint256 of:
+	 * - interestRate
+	 * - newPrincipal
+	 * - interestInitialAmount
+	 * - loanTokenSent
+	 * - collateralTokenSent
 	 *
 	 * @param withdrawalAmount The amount to withdraw.
 	 *
@@ -117,16 +117,16 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
 	 * */
 	function _verifyTransfers(
 		address collateralTokenAddress,
-		address[4] memory sentAddresses,
-		uint256[5] memory sentAmounts,
+		MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+		MarginTradeStructHelpers.SentAmounts memory sentAmounts,
 		uint256 withdrawalAmount
 	) internal returns (uint256 msgValue) {
 		address _wrbtcToken = wrbtcTokenAddress;
 		address _loanTokenAddress = _wrbtcToken;
-		address receiver = sentAddresses[2];
-		uint256 newPrincipal = sentAmounts[1];
-		uint256 loanTokenSent = sentAmounts[3];
-		uint256 collateralTokenSent = sentAmounts[4];
+		address receiver = sentAddresses.receiver;
+		uint256 newPrincipal = sentAmounts.newPrincipal;
+		uint256 loanTokenSent = sentAmounts.loanTokenSent;
+		uint256 collateralTokenSent = sentAmounts.collateralTokenSent;
 
 		require(_loanTokenAddress != collateralTokenAddress, "26");
 
