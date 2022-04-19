@@ -1,7 +1,7 @@
 pragma solidity 0.5.17;
 
 library MarginTradeStructHelpers {
-  struct SentAddresses {
+	struct SentAddresses {
 		address lender;
 		address borrower;
 		address receiver;

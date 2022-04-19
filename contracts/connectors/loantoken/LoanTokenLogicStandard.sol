@@ -1151,7 +1151,9 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
 		bytes32 loanParamsId = loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, withdrawAmountExist)))];
 
-		(sentAmounts.newPrincipal, sentAmounts.collateralTokenSent) = ProtocolLike(sovrynContractAddress).borrowOrTradeFromPool.value(msgValue)( /// newPrincipal, newCollateral
+		(sentAmounts.newPrincipal, sentAmounts.collateralTokenSent) = ProtocolLike(sovrynContractAddress).borrowOrTradeFromPool.value(
+			msgValue
+		)( /// newPrincipal, newCollateral
 			loanParamsId,
 			loanId,
 			withdrawAmountExist,
@@ -1180,10 +1182,14 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 * @dev construct sentAddresses struct to array
 	 *
 	 * @param sentAddresses The struct of SentAddresses
-	 * 
+	 *
 	 * @return sentAddresses address[4]
 	 */
-	function constructSentAddressesArray(MarginTradeStructHelpers.SentAddresses memory sentAddresses) internal pure returns(address[4] memory) {
+	function constructSentAddressesArray(MarginTradeStructHelpers.SentAddresses memory sentAddresses)
+		internal
+		pure
+		returns (address[4] memory)
+	{
 		return [sentAddresses.lender, sentAddresses.borrower, sentAddresses.receiver, sentAddresses.manager];
 	}
 
@@ -1191,11 +1197,21 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 	 * @dev construct sentAmounts struct to array
 	 *
 	 * @param sentAmounts The struct of SentAmounts
-	 * 
+	 *
 	 * @return sentAmounts uint256[5]
 	 */
-	function constructSentAddressesArray(MarginTradeStructHelpers.SentAmounts memory sentAmounts) internal pure returns(uint256[5] memory) {
-		return [sentAmounts.interestRate, sentAmounts.newPrincipal, sentAmounts.interestInitialAmount, sentAmounts.loanTokenSent, sentAmounts.collateralTokenSent];
+	function constructSentAddressesArray(MarginTradeStructHelpers.SentAmounts memory sentAmounts)
+		internal
+		pure
+		returns (uint256[5] memory)
+	{
+		return [
+			sentAmounts.interestRate,
+			sentAmounts.newPrincipal,
+			sentAmounts.interestInitialAmount,
+			sentAmounts.loanTokenSent,
+			sentAmounts.collateralTokenSent
+		];
 	}
 
 	/**
