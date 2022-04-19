@@ -75,7 +75,7 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
 		ISovrynSwapNetwork sovrynSwapNetwork = getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
 		IERC20[] memory path = sovrynSwapNetwork.conversionPath(IERC20(sourceTokenAddress), IERC20(destTokenAddress));
 
-		uint256 minReturn = 0;
+		uint256 minReturn = 1;
 		sourceTokenAmountUsed = minSourceTokenAmount;
 
 		/// If the required amount of destination tokens is passed, we need to
@@ -94,9 +94,6 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
 				"insufficient source tokens provided."
 			);
 			minReturn = requiredDestTokenAmount;
-		} else if (sourceTokenAmountUsed > 0) {
-			/// For some reason the Sovryn swap network tends to return a bit less than the expected rate.
-			minReturn = sovrynSwapNetwork.rateByPath(path, sourceTokenAmountUsed).mul(995).div(1000);
 		}
 
 		require(sourceTokenAmountUsed > 0, "cannot swap 0 tokens");
