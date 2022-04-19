@@ -12,6 +12,7 @@ import "../mixins/VaultController.sol";
 import "../mixins/InterestUser.sol";
 import "../swaps/SwapsUser.sol";
 import "../mixins/ModuleCommonFunctionalities.sol";
+import "../connectors/loantoken/lib/MarginTradeStructHelpers.sol";
 
 /**
  * @title Loan Openings contract.
@@ -79,8 +80,8 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 		bytes32 loanId,
 		bool isTorqueLoan,
 		uint256 initialMargin,
-		address[4] calldata sentAddresses,
-		uint256[5] calldata sentValues,
+		MarginTradeStructHelpers.SentAddresses calldata sentAddresses,
+		MarginTradeStructHelpers.SentAmounts calldata sentValues,
 		bytes calldata loanDataBytes
 	) external payable nonReentrant whenNotPaused returns (uint256 newPrincipal, uint256 newCollateral) {
 		require(msg.value == 0 || loanDataBytes.length != 0, "loanDataBytes required with ether");
@@ -93,7 +94,13 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 
 		/// Get required collateral.
 		uint256 collateralAmountRequired =
-			_getRequiredCollateral(loanParamsLocal.loanToken, loanParamsLocal.collateralToken, sentValues[1], initialMargin, isTorqueLoan);
+			_getRequiredCollateral(
+				loanParamsLocal.loanToken,
+				loanParamsLocal.collateralToken,
+				sentValues.newPrincipal,
+				initialMargin,
+				isTorqueLoan
+			);
 		require(collateralAmountRequired != 0, "collateral is 0");
 
 		return
@@ -301,8 +308,8 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 		bool isTorqueLoan,
 		uint256 collateralAmountRequired,
 		uint256 initialMargin,
-		address[4] memory sentAddresses,
-		uint256[5] memory sentValues,
+		MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+		MarginTradeStructHelpers.SentAmounts memory sentValues,
 		bytes memory loanDataBytes
 	) internal returns (uint256, uint256) {
 		require(loanParamsLocal.collateralToken != loanParamsLocal.loanToken, "collateral/loan match");
@@ -310,7 +317,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 
 		/// maxLoanTerm == 0 indicates a Torque loan and requires that torqueInterest != 0
 		require(
-			loanParamsLocal.maxLoanTerm != 0 || sentValues[2] != 0, /// torqueInterest
+			loanParamsLocal.maxLoanTerm != 0 || sentValues.interestInitialAmount != 0, /// torqueInterest
 			"invalid interest"
 		);
 
@@ -322,71 +329,73 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 			_initializeInterest(
 				loanParamsLocal,
 				loanLocal,
-				sentValues[0], /// newRate
-				sentValues[1], /// newPrincipal,
-				sentValues[2] /// torqueInterest
+				sentValues.interestRate, /// newRate
+				sentValues.newPrincipal, /// newPrincipal,
+				sentValues.interestInitialAmount /// torqueInterest
 			);
 
 		/// substract out interest from usable loanToken sent.
-		sentValues[3] = sentValues[3].sub(amount);
+		sentValues.loanTokenSent = sentValues.loanTokenSent.sub(amount);
 
 		if (isTorqueLoan) {
-			require(sentValues[3] == 0, "surplus loan token");
+			require(sentValues.loanTokenSent == 0, "surplus loan token");
 
-			uint256 borrowingFee = _getBorrowingFee(sentValues[4]);
+			uint256 borrowingFee = _getBorrowingFee(sentValues.collateralTokenSent);
 			// need to temp into local state to avoid
 			address _collateralToken = loanParamsLocal.collateralToken;
 			address _loanToken = loanParamsLocal.loanToken;
 			if (borrowingFee != 0) {
 				_payBorrowingFee(
-					sentAddresses[1], /// borrower
+					sentAddresses.borrower, /// borrower
 					loanLocal.id,
 					_collateralToken, /// fee token
 					_loanToken, /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
 					borrowingFee
 				);
 
-				sentValues[4] = sentValues[4] /// collateralTokenReceived
+				sentValues.collateralTokenSent = sentValues
+					.collateralTokenSent /// collateralTokenReceived
 					.sub(borrowingFee);
 			}
 		} else {
 			/// Update collateral after trade.
 			/// sentValues[3] is repurposed to hold loanToCollateralSwapRate to avoid stack too deep error.
 			uint256 receivedAmount;
-			(receivedAmount, , sentValues[3]) = _loanSwap(
+			(receivedAmount, , sentValues.loanTokenSent) = _loanSwap(
 				loanId,
 				loanParamsLocal.loanToken,
 				loanParamsLocal.collateralToken,
-				sentAddresses[1], /// borrower
-				sentValues[3], /// loanTokenUsable (minSourceTokenAmount)
+				sentAddresses.borrower, /// borrower
+				sentValues.loanTokenSent, /// loanTokenUsable (minSourceTokenAmount)
 				0, /// maxSourceTokenAmount (0 means minSourceTokenAmount)
 				0, /// requiredDestTokenAmount (enforces that all of loanTokenUsable is swapped)
 				false, /// bypassFee
 				loanDataBytes
 			);
-			sentValues[4] = sentValues[4] /// collateralTokenReceived
+			sentValues.collateralTokenSent = sentValues
+				.collateralTokenSent /// collateralTokenReceived
 				.add(receivedAmount);
 		}
 
 		/// Settle collateral.
 		require(
-			_isCollateralSatisfied(loanParamsLocal, loanLocal, initialMargin, sentValues[4], collateralAmountRequired),
+			_isCollateralSatisfied(loanParamsLocal, loanLocal, initialMargin, sentValues.collateralTokenSent, collateralAmountRequired),
 			"collateral insufficient"
 		);
 
-		loanLocal.collateral = loanLocal.collateral.add(sentValues[4]);
+		loanLocal.collateral = loanLocal.collateral.add(sentValues.collateralTokenSent);
 
 		if (isTorqueLoan) {
 			/// reclaiming varaible -> interestDuration
-			sentValues[2] = loanLocal.endTimestamp.sub(block.timestamp);
+			sentValues.interestInitialAmount = loanLocal.endTimestamp.sub(block.timestamp);
 		} else {
 			/// reclaiming varaible -> entryLeverage = 100 / initialMargin
-			sentValues[2] = SafeMath.div(10**38, initialMargin);
+			sentValues.interestInitialAmount = SafeMath.div(10**38, initialMargin);
 		}
 
 		_finalizeOpen(loanParamsLocal, loanLocal, sentAddresses, sentValues, isTorqueLoan);
 
-		return (sentValues[1], sentValues[4]); /// newPrincipal, newCollateral
+		return (sentValues.newPrincipal, sentValues.collateralTokenSent); /// newPrincipal, newCollateral
 	}
 
 	/**
@@ -413,8 +422,8 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 	function _finalizeOpen(
 		LoanParams memory loanParamsLocal,
 		Loan storage loanLocal,
-		address[4] memory sentAddresses,
-		uint256[5] memory sentValues,
+		MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+		MarginTradeStructHelpers.SentAmounts memory sentValues,
 		bool isTorqueLoan
 	) internal {
 		/// @dev TODO: here the actual used rate and margin should go.
@@ -433,7 +442,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 			uint256 collateralToLoanPrecision =
 				IPriceFeeds(priceFeeds).queryPrecision(loanParamsLocal.collateralToken, loanParamsLocal.loanToken);
 			uint256 totalSwapRate = loanToCollateralPrecision.mul(collateralToLoanPrecision);
-			loanLocal.startRate = isTorqueLoan ? collateralToLoanRate : totalSwapRate.div(sentValues[3]);
+			loanLocal.startRate = isTorqueLoan ? collateralToLoanRate : totalSwapRate.div(sentValues.loanTokenSent);
 		}
 
 		_emitOpeningEvents(loanParamsLocal, loanLocal, sentAddresses, sentValues, collateralToLoanRate, initialMargin, isTorqueLoan);
@@ -464,23 +473,23 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 	function _emitOpeningEvents(
 		LoanParams memory loanParamsLocal,
 		Loan memory loanLocal,
-		address[4] memory sentAddresses,
-		uint256[5] memory sentValues,
+		MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+		MarginTradeStructHelpers.SentAmounts memory sentValues,
 		uint256 collateralToLoanRate,
 		uint256 margin,
 		bool isTorqueLoan
 	) internal {
 		if (isTorqueLoan) {
 			emit Borrow(
-				sentAddresses[1], /// user (borrower)
-				sentAddresses[0], /// lender
+				sentAddresses.borrower, /// user (borrower)
+				sentAddresses.lender, /// lender
 				loanLocal.id, /// loanId
 				loanParamsLocal.loanToken, /// loanToken
 				loanParamsLocal.collateralToken, /// collateralToken
-				sentValues[1], /// newPrincipal
-				sentValues[4], /// newCollateral
-				sentValues[0], /// interestRate
-				sentValues[2], /// interestDuration
+				sentValues.newPrincipal, /// newPrincipal
+				sentValues.collateralTokenSent, /// newCollateral
+				sentValues.interestRate, /// interestRate
+				sentValues.interestInitialAmount, /// interestDuration
 				collateralToLoanRate, /// collateralToLoanRate,
 				margin /// currentMargin
 			);
@@ -489,17 +498,17 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 			margin = SafeMath.div(10**38, margin);
 
 			emit Trade(
-				sentAddresses[1], /// user (trader)
-				sentAddresses[0], /// lender
+				sentAddresses.borrower, /// user (trader)
+				sentAddresses.lender, /// lender
 				loanLocal.id, /// loanId
 				loanParamsLocal.collateralToken, /// collateralToken
 				loanParamsLocal.loanToken, /// loanToken
-				sentValues[4], /// positionSize
-				sentValues[1], /// borrowedAmount
-				sentValues[0], /// interestRate,
+				sentValues.collateralTokenSent, /// positionSize
+				sentValues.newPrincipal, /// borrowedAmount
+				sentValues.interestRate, /// interestRate,
 				loanLocal.endTimestamp, /// settlementDate
-				sentValues[3], /// entryPrice (loanToCollateralSwapRate)
-				sentValues[2], /// entryLeverage
+				sentValues.loanTokenSent, /// entryPrice (loanToCollateralSwapRate)
+				sentValues.interestInitialAmount, /// entryLeverage
 				margin /// currentLeverage
 			);
 		}
@@ -590,15 +599,15 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 		LoanParams memory loanParamsLocal,
 		bytes32 loanId,
 		uint256 initialMargin,
-		address[4] memory sentAddresses,
-		uint256[5] memory sentValues
+		MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+		MarginTradeStructHelpers.SentAmounts memory sentValues
 	) internal returns (bytes32) {
 		require(loanParamsLocal.active, "loanParams disabled");
 
-		address lender = sentAddresses[0];
-		address borrower = sentAddresses[1];
-		address manager = sentAddresses[3];
-		uint256 newPrincipal = sentValues[1];
+		address lender = sentAddresses.lender;
+		address borrower = sentAddresses.borrower;
+		address manager = sentAddresses.manager;
+		uint256 newPrincipal = sentValues.newPrincipal;
 
 		Loan memory loanLocal;
 

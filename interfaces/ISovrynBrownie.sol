@@ -17,6 +17,7 @@ import "../contracts/events/LoanClosingsEvents.sol";
 import "../contracts/events/FeesEvents.sol";
 import "../contracts/events/SwapsEvents.sol";
 import "../contracts/events/AffiliatesEvents.sol";
+import "../contracts/connectors/loantoken/lib/MarginTradeStructHelpers.sol";
 
 contract ISovrynBrownie is
 	State,
@@ -153,12 +154,12 @@ contract ISovrynBrownie is
 		bytes32 loanId, // if 0, start a new loan
 		bool isTorqueLoan,
 		uint256 initialMargin,
-		address[4] calldata sentAddresses,
+		MarginTradeStructHelpers.SentAddresses calldata sentAddresses,
 		// lender: must match loan if loanId provided
 		// borrower: must match loan if loanId provided
 		// receiver: receiver of funds (address(0) assumes borrower address)
 		// manager: delegated manager of loan unless address(0)
-		uint256[5] calldata sentValues,
+		MarginTradeStructHelpers.SentAmounts calldata sentValues,
 		// newRate: new loan interest rate
 		// newPrincipal: new loan size (borrowAmount + any borrowed interest)
 		// torqueInterest: new amount of interest to escrow for Torque loan (determines initial loan length)

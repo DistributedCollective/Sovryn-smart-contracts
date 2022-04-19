@@ -12,7 +12,6 @@ import "./interfaces/FeedsLike.sol";
 import "./interfaces/ProtocolSettingsLike.sol";
 import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
 import "../../farm/ILiquidityMining.sol";
-import "./lib/MarginTradeStructHelpers.sol";
 
 /**
  * @title Loan Token Logic Standard contract.
@@ -1153,15 +1152,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
 		(sentAmounts.newPrincipal, sentAmounts.collateralTokenSent) = ProtocolLike(sovrynContractAddress).borrowOrTradeFromPool.value(
 			msgValue
-		)( /// newPrincipal, newCollateral
-			loanParamsId,
-			loanId,
-			withdrawAmountExist,
-			initialMargin,
-			constructSentAddressesArray(sentAddresses),
-			constructSentAddressesArray(sentAmounts),
-			loanDataBytes
-		);
+		)(loanParamsId, loanId, withdrawAmountExist, initialMargin, sentAddresses, sentAmounts, loanDataBytes); /// newPrincipal, newCollateral
 		require(sentAmounts.newPrincipal != 0, "25");
 
 		/// @dev Setting not-first-trade flag to prevent binding to an affiliate existing users post factum.
@@ -1169,49 +1160,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 		ProtocolAffiliatesInterface(sovrynContractAddress).setUserNotFirstTradeFlag(sentAddresses.borrower);
 
 		return (sentAmounts.newPrincipal, sentAmounts.collateralTokenSent); // newPrincipal, newCollateral
-	}
-
-	/**
-	 * @dev The sentAddresses & sentAmounts previously was in array format in LoanTokenLogic Module.
-	 * Then, we changed it to struct format for better readability & gas efficiency.
-	 * But, in the protocol itself, sentAddresses & sentAmounts still in the array format so that it won't break any client integration (backward compatibility).
-	 * So, we need to construct the struct into an array in order to call the protocol function which is borrowOrTradeFromPool in this case.
-	 */
-
-	/**
-	 * @dev construct sentAddresses struct to array
-	 *
-	 * @param sentAddresses The struct of SentAddresses
-	 *
-	 * @return sentAddresses address[4]
-	 */
-	function constructSentAddressesArray(MarginTradeStructHelpers.SentAddresses memory sentAddresses)
-		internal
-		pure
-		returns (address[4] memory)
-	{
-		return [sentAddresses.lender, sentAddresses.borrower, sentAddresses.receiver, sentAddresses.manager];
-	}
-
-	/**
-	 * @dev construct sentAmounts struct to array
-	 *
-	 * @param sentAmounts The struct of SentAmounts
-	 *
-	 * @return sentAmounts uint256[5]
-	 */
-	function constructSentAddressesArray(MarginTradeStructHelpers.SentAmounts memory sentAmounts)
-		internal
-		pure
-		returns (uint256[5] memory)
-	{
-		return [
-			sentAmounts.interestRate,
-			sentAmounts.newPrincipal,
-			sentAmounts.interestInitialAmount,
-			sentAmounts.loanTokenSent,
-			sentAmounts.collateralTokenSent
-		];
 	}
 
 	/**
