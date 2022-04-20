@@ -73,7 +73,14 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
 		require(supportedTokens[sourceTokenAddress] && supportedTokens[destTokenAddress], "invalid tokens");
 
 		ISovrynSwapNetwork sovrynSwapNetwork = getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
-		IERC20[] memory path = sovrynSwapNetwork.conversionPath(IERC20(sourceTokenAddress), IERC20(destTokenAddress));
+
+		IERC20[] memory _defaultPathConversion = defaultPathConversion[sourceTokenAddress][destTokenAddress];
+
+		/// will use the defaultPath if it's set, otherwise query from the SovrynSwapNetwork.
+		IERC20[] memory path =
+			_defaultPathConversion.length >= 2
+				? _defaultPathConversion
+				: sovrynSwapNetwork.conversionPath(IERC20(sourceTokenAddress), IERC20(destTokenAddress));
 
 		uint256 minReturn = 1;
 		sourceTokenAmountUsed = minSourceTokenAmount;

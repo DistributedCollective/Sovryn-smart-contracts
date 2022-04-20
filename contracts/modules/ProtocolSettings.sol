@@ -92,6 +92,9 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		_setTarget(this.getTradingRebateRewardsBasisPoint.selector, target);
 		_setTarget(this.getDedicatedSOVRebate.selector, target);
 		_setTarget(this.setRolloverFlexFeePercent.selector, target);
+		_setTarget(this.getDefaultPathConversion.selector, target);
+		_setTarget(this.setDefaultPathConversion.selector, target);
+		_setTarget(this.removeDefaultPathConversion.selector, target);
 		emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "ProtocolSettings");
 	}
 
@@ -767,5 +770,57 @@ contract ProtocolSettings is State, ProtocolTokenUser, ProtocolSettingsEvents, M
 		rolloverFlexFeePercent = newRolloverFlexFeePercent;
 
 		emit SetRolloverFlexFeePercent(msg.sender, oldRolloverFlexFeePercent, newRolloverFlexFeePercent);
+	}
+
+	/**
+	 * @dev Get default path conversion for pairs.
+	 *
+	 * @param sourceTokenAddress source token address.
+	 * @param destTokenAddress destination token address.
+	 *
+	 * @return default path of the conversion.
+	 */
+	function getDefaultPathConversion(address sourceTokenAddress, address destTokenAddress) external view returns (IERC20[] memory) {
+		return defaultPathConversion[sourceTokenAddress][destTokenAddress];
+	}
+
+	/**
+	 * @dev Set default path conversion for pairs.
+	 *
+	 * @param sourceTokenAddress source token address.
+	 * @param destTokenAddress destination token address.
+	 * @param defaultPath array of addresses for the default path.
+	 *
+	 */
+	function setDefaultPathConversion(
+		address sourceTokenAddress,
+		address destTokenAddress,
+		IERC20[] calldata defaultPath
+	) external onlyOwner whenNotPaused {
+		require(Address.isContract(sourceTokenAddress) && Address.isContract(destTokenAddress), "ERR_NON_CONTRACT_ADDR");
+
+		uint256 defaultPathLength = defaultPath.length;
+		require(defaultPathLength >= 3, "ERR_PATH_LENGTH");
+
+		for (uint256 i = 0; i < defaultPathLength; i++) {
+			require(Address.isContract(address(defaultPath[i])), "ERR_PATH_NON_CONTRACT_ADDR");
+		}
+
+		defaultPathConversion[sourceTokenAddress][destTokenAddress] = defaultPath;
+
+		emit SetDefaultPathConversion(msg.sender, sourceTokenAddress, destTokenAddress, defaultPath);
+	}
+
+	/**
+	 * @dev Remove the default path conversion for pairs
+	 *
+	 * @param sourceTokenAddress source token address.
+	 * @param destTokenAddress destination token address
+	 */
+	function removeDefaultPathConversion(address sourceTokenAddress, address destTokenAddress) external onlyOwner whenNotPaused {
+		require(defaultPathConversion[sourceTokenAddress][destTokenAddress].length > 0, "DEFAULT_PATH_EMPTY");
+		delete defaultPathConversion[sourceTokenAddress][destTokenAddress];
+
+		emit RemoveDefaultPathConversion(msg.sender, sourceTokenAddress, destTokenAddress);
 	}
 }

@@ -458,4 +458,14 @@ contract ISovrynBrownie is
 	function getDedicatedSOVRebate() external view returns (uint256);
 
 	function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent) external;
+
+	function getDefaultPathConversion(address sourceTokenAddress, address destTokenAddress) external view returns (IERC20[] memory);
+
+	function setDefaultPathConversion(
+		address sourceTokenAddress,
+		address destTokenAddress,
+		IERC20[] calldata defaultPath
+	) external;
+
+	function removeDefaultPathConversion(address sourceTokenAddress, address destTokenAddress) external;
 }

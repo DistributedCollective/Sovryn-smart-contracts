@@ -168,4 +168,59 @@ contract("Affliates", (accounts) => {
 		await sovryn.setRolloverFlexFeePercent(newRolloverFlexFeePercent);
 		expect((await sovryn.rolloverFlexFeePercent()).toString()).to.equal(newRolloverFlexFeePercent);
 	});
+
+	it("Test set defaultConversionPath", async () => {
+		let defaultConversionPath = [accounts[0], SUSD.address, WRBTC.address];
+
+		let sourceTokenAddress = WRBTC.address;
+		let destTokenAddress = SUSD.address;
+
+		// Should revert if set with non owner
+		await expectRevert(
+			sovryn.setDefaultPathConversion(sourceTokenAddress, destTokenAddress, defaultConversionPath, { from: accounts[1] }),
+			"unauthorized"
+		);
+
+		// Should revert if source token || dest token is not contract address
+		await expectRevert(sovryn.setDefaultPathConversion(accounts[0], destTokenAddress, defaultConversionPath), "ERR_NON_CONTRACT_ADDR");
+		await expectRevert(
+			sovryn.setDefaultPathConversion(sourceTokenAddress, accounts[0], defaultConversionPath),
+			"ERR_NON_CONTRACT_ADDR"
+		);
+
+		// Should revert if path is not contract address
+		await expectRevert(
+			sovryn.setDefaultPathConversion(sourceTokenAddress, destTokenAddress, defaultConversionPath),
+			"ERR_PATH_NON_CONTRACT_ADDR"
+		);
+
+		// Should revert if path contains <= 1 address
+		await expectRevert(sovryn.setDefaultPathConversion(sourceTokenAddress, destTokenAddress, [WRBTC.address]), "ERR_PATH_LENGTH");
+
+		// Set the default path
+		defaultConversionPath = [WRBTC.address, SUSD.address, BZRX.address];
+
+		await sovryn.setDefaultPathConversion(sourceTokenAddress, destTokenAddress, defaultConversionPath);
+
+		expect(await sovryn.getDefaultPathConversion(sourceTokenAddress, destTokenAddress)).to.deep.equal(defaultConversionPath);
+	});
+
+	it("Remove defaultConversionPath", async () => {
+		let defaultConversionPath = [WRBTC.address, SUSD.address, BZRX.address];
+
+		let sourceTokenAddress = WRBTC.address;
+		let destTokenAddress = SUSD.address;
+
+		await expectRevert(sovryn.removeDefaultPathConversion(sourceTokenAddress, destTokenAddress), "DEFAULT_PATH_EMPTY");
+
+		await sovryn.setDefaultPathConversion(sourceTokenAddress, destTokenAddress, defaultConversionPath);
+
+		expect(await sovryn.getDefaultPathConversion(sourceTokenAddress, destTokenAddress)).to.deep.equal(defaultConversionPath);
+
+		await expectRevert(sovryn.removeDefaultPathConversion(sourceTokenAddress, destTokenAddress, { from: accounts[1] }), "unauthorized");
+
+		await sovryn.removeDefaultPathConversion(sourceTokenAddress, destTokenAddress);
+
+		expect(await sovryn.getDefaultPathConversion(sourceTokenAddress, destTokenAddress)).to.deep.equal([]);
+	});
 });
