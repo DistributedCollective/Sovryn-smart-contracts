@@ -438,7 +438,8 @@ contract Staking is
         return
             userStakingCheckpoints[account][lockDate][
                 numUserStakingCheckpoints[account][lockDate] - 1
-            ].stake;
+            ]
+                .stake;
     }
 
     /**
@@ -515,14 +516,14 @@ contract Staking is
          * the chainId in case it changes, and the address that the
          * contract is deployed at.
          * */
-        bytes32 domainSeparator = keccak256(
-            abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), getChainId(), address(this))
-        );
+        bytes32 domainSeparator =
+            keccak256(
+                abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), getChainId(), address(this))
+            );
 
         /// @dev GovernorAlpha uses BALLOT_TYPEHASH, while Staking uses DELEGATION_TYPEHASH
-        bytes32 structHash = keccak256(
-            abi.encode(DELEGATION_TYPEHASH, delegatee, lockDate, nonce, expiry)
-        );
+        bytes32 structHash =
+            keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, lockDate, nonce, expiry));
 
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
@@ -768,8 +769,9 @@ contract Staking is
 
     function _notSameBlockAsStakingCheckpoint(uint256 lockDate) internal view {
         uint32 nCheckpoints = numUserStakingCheckpoints[msg.sender][lockDate];
-        bool notSameBlock = userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1]
-            .fromBlock != block.number;
+        bool notSameBlock =
+            userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock !=
+                block.number;
         require(notSameBlock, "S20"); //S20 : "cannot be mined in the same block as last stake"
     }
 }

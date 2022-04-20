@@ -128,9 +128,8 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
 
         bytes32[] memory loanParamsIdList = new bytes32[](collateralTokens.length);
         for (uint256 i = 0; i < collateralTokens.length; i++) {
-            uint256 id = uint256(
-                keccak256(abi.encodePacked(collateralTokens[i], isTorqueLoans[i]))
-            );
+            uint256 id =
+                uint256(keccak256(abi.encodePacked(collateralTokens[i], isTorqueLoans[i])));
             loanParamsIdList[i] = loanParamsIds[id];
             delete loanParamsIds[id];
         }
@@ -209,12 +208,13 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
         bool paused;
         require(msg.sender == pauser, "onlyPauser");
         /// keccak256("iToken_FunctionPause")
-        bytes32 slot = keccak256(
-            abi.encodePacked(
-                bytes4(keccak256(abi.encodePacked(funcId))),
-                uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
-            )
-        );
+        bytes32 slot =
+            keccak256(
+                abi.encodePacked(
+                    bytes4(keccak256(abi.encodePacked(funcId))),
+                    uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
+                )
+            );
         assembly {
             paused := sload(slot)
         }
