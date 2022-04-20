@@ -11,12 +11,12 @@ import "../../proxy/UpgradableProxy.sol";
  * the possibility of being enhanced and re-deployed.
  * */
 contract StakingProxy is StakingStorage, UpgradableProxy {
-	/**
-	 * @notice Construct a new staking contract.
-	 * @param SOV The address of the SOV token address.
-	 */
-	constructor(address SOV) public {
-		SOVToken = IERC20(SOV);
-		kickoffTS = block.timestamp;
-	}
+    /**
+     * @notice Construct a new staking contract.
+     * @param SOV The address of the SOV token address.
+     */
+    constructor(address SOV) public {
+        SOVToken = IERC20(SOV);
+        kickoffTS = block.timestamp;
+    }
 }

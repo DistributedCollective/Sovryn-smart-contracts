@@ -17,183 +17,187 @@ pragma solidity 0.5.17;
  * Include with `using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set;`.
  * */
 library EnumerableBytes32Set {
-	struct Bytes32Set {
-		/// Position of the value in the `values` array, plus 1 because index 0
-		/// means a value is not in the set.
-		mapping(bytes32 => uint256) index;
-		bytes32[] values;
-	}
+    struct Bytes32Set {
+        /// Position of the value in the `values` array, plus 1 because index 0
+        /// means a value is not in the set.
+        mapping(bytes32 => uint256) index;
+        bytes32[] values;
+    }
 
-	/**
-	 * @notice Add an address value to a set. O(1).
-	 *
-	 * @param set The set of values.
-	 * @param addrvalue The address to add.
-	 *
-	 * @return False if the value was already in the set.
-	 */
-	function addAddress(Bytes32Set storage set, address addrvalue) internal returns (bool) {
-		bytes32 value;
-		assembly {
-			value := addrvalue
-		}
-		return addBytes32(set, value);
-	}
+    /**
+     * @notice Add an address value to a set. O(1).
+     *
+     * @param set The set of values.
+     * @param addrvalue The address to add.
+     *
+     * @return False if the value was already in the set.
+     */
+    function addAddress(Bytes32Set storage set, address addrvalue) internal returns (bool) {
+        bytes32 value;
+        assembly {
+            value := addrvalue
+        }
+        return addBytes32(set, value);
+    }
 
-	/**
-	 * @notice Add a value to a set. O(1).
-	 *
-	 * @param set The set of values.
-	 * @param value The new value to add.
-	 *
-	 * @return False if the value was already in the set.
-	 */
-	function addBytes32(Bytes32Set storage set, bytes32 value) internal returns (bool) {
-		if (!contains(set, value)) {
-			set.index[value] = set.values.push(value);
-			return true;
-		} else {
-			return false;
-		}
-	}
+    /**
+     * @notice Add a value to a set. O(1).
+     *
+     * @param set The set of values.
+     * @param value The new value to add.
+     *
+     * @return False if the value was already in the set.
+     */
+    function addBytes32(Bytes32Set storage set, bytes32 value) internal returns (bool) {
+        if (!contains(set, value)) {
+            set.index[value] = set.values.push(value);
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-	/**
-	 * @notice Remove an address value from a set. O(1).
-	 *
-	 * @param set The set of values.
-	 * @param addrvalue The address to remove.
-	 *
-	 * @return False if the address was not present in the set.
-	 */
-	function removeAddress(Bytes32Set storage set, address addrvalue) internal returns (bool) {
-		bytes32 value;
-		assembly {
-			value := addrvalue
-		}
-		return removeBytes32(set, value);
-	}
+    /**
+     * @notice Remove an address value from a set. O(1).
+     *
+     * @param set The set of values.
+     * @param addrvalue The address to remove.
+     *
+     * @return False if the address was not present in the set.
+     */
+    function removeAddress(Bytes32Set storage set, address addrvalue) internal returns (bool) {
+        bytes32 value;
+        assembly {
+            value := addrvalue
+        }
+        return removeBytes32(set, value);
+    }
 
-	/**
-	 * @notice Remove a value from a set. O(1).
-	 *
-	 * @param set The set of values.
-	 * @param value The value to remove.
-	 *
-	 * @return False if the value was not present in the set.
-	 */
-	function removeBytes32(Bytes32Set storage set, bytes32 value) internal returns (bool) {
-		if (contains(set, value)) {
-			uint256 toDeleteIndex = set.index[value] - 1;
-			uint256 lastIndex = set.values.length - 1;
+    /**
+     * @notice Remove a value from a set. O(1).
+     *
+     * @param set The set of values.
+     * @param value The value to remove.
+     *
+     * @return False if the value was not present in the set.
+     */
+    function removeBytes32(Bytes32Set storage set, bytes32 value) internal returns (bool) {
+        if (contains(set, value)) {
+            uint256 toDeleteIndex = set.index[value] - 1;
+            uint256 lastIndex = set.values.length - 1;
 
-			/// If the element we're deleting is the last one,
-			/// we can just remove it without doing a swap.
-			if (lastIndex != toDeleteIndex) {
-				bytes32 lastValue = set.values[lastIndex];
+            /// If the element we're deleting is the last one,
+            /// we can just remove it without doing a swap.
+            if (lastIndex != toDeleteIndex) {
+                bytes32 lastValue = set.values[lastIndex];
 
-				/// Move the last value to the index where the deleted value is.
-				set.values[toDeleteIndex] = lastValue;
+                /// Move the last value to the index where the deleted value is.
+                set.values[toDeleteIndex] = lastValue;
 
-				/// Update the index for the moved value.
-				set.index[lastValue] = toDeleteIndex + 1; // All indexes are 1-based
-			}
+                /// Update the index for the moved value.
+                set.index[lastValue] = toDeleteIndex + 1; // All indexes are 1-based
+            }
 
-			/// Delete the index entry for the deleted value.
-			delete set.index[value];
+            /// Delete the index entry for the deleted value.
+            delete set.index[value];
 
-			/// Delete the old entry for the moved value.
-			set.values.pop();
+            /// Delete the old entry for the moved value.
+            set.values.pop();
 
-			return true;
-		} else {
-			return false;
-		}
-	}
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-	/**
-	 * @notice Find out whether a value exists in the set.
-	 *
-	 * @param set The set of values.
-	 * @param value The value to find.
-	 *
-	 * @return True if the value is in the set. O(1).
-	 */
-	function contains(Bytes32Set storage set, bytes32 value) internal view returns (bool) {
-		return set.index[value] != 0;
-	}
+    /**
+     * @notice Find out whether a value exists in the set.
+     *
+     * @param set The set of values.
+     * @param value The value to find.
+     *
+     * @return True if the value is in the set. O(1).
+     */
+    function contains(Bytes32Set storage set, bytes32 value) internal view returns (bool) {
+        return set.index[value] != 0;
+    }
 
-	/**
-	 * @dev Returns true if the value is in the set. O(1).
-	 */
-	function containsAddress(Bytes32Set storage set, address addrvalue) internal view returns (bool) {
-		bytes32 value;
-		assembly {
-			value := addrvalue
-		}
-		return set.index[value] != 0;
-	}
+    /**
+     * @dev Returns true if the value is in the set. O(1).
+     */
+    function containsAddress(Bytes32Set storage set, address addrvalue)
+        internal
+        view
+        returns (bool)
+    {
+        bytes32 value;
+        assembly {
+            value := addrvalue
+        }
+        return set.index[value] != 0;
+    }
 
-	/**
-	 * @notice Get all set values.
-	 *
-	 * @param set The set of values.
-	 * @param start The offset of the returning set.
-	 * @param count The limit of number of values to return.
-	 *
-	 * @return An array with all values in the set. O(N).
-	 *
-	 * @dev Note that there are no guarantees on the ordering of values inside the
-	 * array, and it may change when more values are added or removed.
-	 *
-	 * WARNING: This function may run out of gas on large sets: use {length} and
-	 * {get} instead in these cases.
-	 */
-	function enumerate(
-		Bytes32Set storage set,
-		uint256 start,
-		uint256 count
-	) internal view returns (bytes32[] memory output) {
-		uint256 end = start + count;
-		require(end >= start, "addition overflow");
-		end = set.values.length < end ? set.values.length : end;
-		if (end == 0 || start >= end) {
-			return output;
-		}
+    /**
+     * @notice Get all set values.
+     *
+     * @param set The set of values.
+     * @param start The offset of the returning set.
+     * @param count The limit of number of values to return.
+     *
+     * @return An array with all values in the set. O(N).
+     *
+     * @dev Note that there are no guarantees on the ordering of values inside the
+     * array, and it may change when more values are added or removed.
+     *
+     * WARNING: This function may run out of gas on large sets: use {length} and
+     * {get} instead in these cases.
+     */
+    function enumerate(
+        Bytes32Set storage set,
+        uint256 start,
+        uint256 count
+    ) internal view returns (bytes32[] memory output) {
+        uint256 end = start + count;
+        require(end >= start, "addition overflow");
+        end = set.values.length < end ? set.values.length : end;
+        if (end == 0 || start >= end) {
+            return output;
+        }
 
-		output = new bytes32[](end - start);
-		for (uint256 i; i < end - start; i++) {
-			output[i] = set.values[i + start];
-		}
-		return output;
-	}
+        output = new bytes32[](end - start);
+        for (uint256 i; i < end - start; i++) {
+            output[i] = set.values[i + start];
+        }
+        return output;
+    }
 
-	/**
-	 * @notice Get the legth of the set.
-	 *
-	 * @param set The set of values.
-	 *
-	 * @return the number of elements on the set. O(1).
-	 */
-	function length(Bytes32Set storage set) internal view returns (uint256) {
-		return set.values.length;
-	}
+    /**
+     * @notice Get the legth of the set.
+     *
+     * @param set The set of values.
+     *
+     * @return the number of elements on the set. O(1).
+     */
+    function length(Bytes32Set storage set) internal view returns (uint256) {
+        return set.values.length;
+    }
 
-	/**
-	 * @notice Get an item from the set by its index.
-	 *
-	 * @dev Note that there are no guarantees on the ordering of values inside the
-	 * array, and it may change when more values are added or removed.
-	 *
-	 * Requirements:
-	 *
-	 * - `index` must be strictly less than {length}.
-	 *
-	 * @param set The set of values.
-	 * @param index The index of the value to return.
-	 *
-	 * @return the element stored at position `index` in the set. O(1).
-	 */
-	function get(Bytes32Set storage set, uint256 index) internal view returns (bytes32) {
-		return set.values[index];
-	}
+    /**
+     * @notice Get an item from the set by its index.
+     *
+     * @dev Note that there are no guarantees on the ordering of values inside the
+     * array, and it may change when more values are added or removed.
+     *
+     * Requirements:
+     *
+     * - `index` must be strictly less than {length}.
+     *
+     * @param set The set of values.
+     * @param index The index of the value to return.
+     *
+     * @return the element stored at position `index` in the set. O(1).
+     */
+    function get(Bytes32Set storage set, uint256 index) internal view returns (bytes32) {
+        return set.values[index];
+    }
 }

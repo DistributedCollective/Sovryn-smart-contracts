@@ -18,22 +18,22 @@ import "./Proxy.sol";
  * updated to reference the new contract address.
  * */
 contract UpgradableProxy is Proxy {
-	/**
-	 * @notice Set address of the implementation.
-	 * @dev Wrapper for _setImplementation that exposes the function
-	 * as public for owner to be able to set a new version of the
-	 * contract as current pointing implementation.
-	 * @param _implementation Address of the implementation.
-	 * */
-	function setImplementation(address _implementation) public onlyProxyOwner {
-		_setImplementation(_implementation);
-	}
+    /**
+     * @notice Set address of the implementation.
+     * @dev Wrapper for _setImplementation that exposes the function
+     * as public for owner to be able to set a new version of the
+     * contract as current pointing implementation.
+     * @param _implementation Address of the implementation.
+     * */
+    function setImplementation(address _implementation) public onlyProxyOwner {
+        _setImplementation(_implementation);
+    }
 
-	/**
-	 * @notice Set address of the owner.
-	 * @param _owner Address of the owner.
-	 * */
-	function setProxyOwner(address _owner) public onlyProxyOwner {
-		_setProxyOwner(_owner);
-	}
+    /**
+     * @notice Set address of the owner.
+     * @param _owner Address of the owner.
+     * */
+    function setProxyOwner(address _owner) public onlyProxyOwner {
+        _setProxyOwner(_owner);
+    }
 }
