@@ -708,16 +708,14 @@ contract("LoanTokenTrading", (accounts) => {
             expect(args["positionSize"]).to.equal(sovryn_collateral_token_balance_diff);
         });
 
-        it("checkPriceDivergence should success if min position size is less than or equal to collateral", async () => {
+        it("checkPriceDivergence should succeed if entry price is less than or equal to a minimum", async () => {
             await set_demand_curve(loanToken);
             await SUSD.transfer(loanToken.address, wei("500", "ether"));
 
             await loanToken.checkPriceDivergence(
-                new BN(2).mul(oneEth),
-                wei("0.01", "ether"),
-                wei("0.01", "ether"),
+                wei("1", "ether"),
                 RBTC.address,
-                wei("0.02", "ether")
+                wei("0.0001", "ether")
             );
         });
 
@@ -755,7 +753,7 @@ contract("LoanTokenTrading", (accounts) => {
                     10000, // collateral token sent
                     RBTC.address, // collateralTokenAddress (RBTC)
                     accounts[1], // trader,
-                    20000, // slippage
+                    20000, // minEntryPrice
                     "0x", // loanDataBytes (only required with ether)
                     { from: accounts[2] }
                 ),
@@ -780,24 +778,18 @@ contract("LoanTokenTrading", (accounts) => {
                 oneEth.toString(), // collateral token sent
                 RBTC.address, // collateralTokenAddress (RBTC)
                 accounts[1], // trader,
-                oneEth.mul(new BN(2)).toString(), // slippage
+                200000, // minEntryPrice
                 "0x", // loanDataBytes (only required with ether)
                 { from: accounts[2] }
             );
         });
 
-        it("checkPriceDivergence should revert if min position size is greater than collateral", async () => {
+        it("checkPriceDivergence should revert if entry price lies above a minimum", async () => {
             await set_demand_curve(loanToken);
 
             await expectRevert(
-                loanToken.checkPriceDivergence(
-                    new BN(2).mul(oneEth),
-                    wei("2", "ether"),
-                    0,
-                    RBTC.address,
-                    wei("1", "ether")
-                ),
-                "coll too low"
+                loanToken.checkPriceDivergence(wei("2", "ether"), RBTC.address, wei("1", "ether")),
+                "entry price above the minimum"
             );
         });
     });
