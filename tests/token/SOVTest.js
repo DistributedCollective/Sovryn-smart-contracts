@@ -89,7 +89,7 @@ contract("SOV:", (accounts) => {
         it("revert if mint on behalf of zero address", async () => {
             await expectRevert(
                 tokenSOV.mint(zeroAddress, amount),
-                "revert ERC20: mint to the zero address"
+                "ERC20: mint to the zero address"
             );
         });
     });
@@ -110,7 +110,7 @@ contract("SOV:", (accounts) => {
             // Try to transfer double amount to account2
             await expectRevert(
                 tokenSOV.transfer(account2, amount * 2, { from: account1 }),
-                "revert ERC20: transfer amount exceeds balance"
+                "ERC20: transfer amount exceeds balance"
             );
         });
 
@@ -118,7 +118,7 @@ contract("SOV:", (accounts) => {
             // Try to transfer amount to zero address
             await expectRevert(
                 tokenSOV.transfer(zeroAddress, amount, { from: account1 }),
-                "revert ERC20: transfer to the zero address"
+                "ERC20: transfer to the zero address"
             );
         });
 
@@ -143,7 +143,7 @@ contract("SOV:", (accounts) => {
             // Try to approve amount for zero address to spend
             await expectRevert(
                 tokenSOV.approve(zeroAddress, amount, { from: account1 }),
-                "revert ERC20: approve to the zero address"
+                "ERC20: approve to the zero address"
             );
         });
 
@@ -159,7 +159,7 @@ contract("SOV:", (accounts) => {
             // Try to decrease an allowance below zero
             await expectRevert(
                 tokenSOV.decreaseAllowance(account2, amount, { from: account1 }),
-                "revert ERC20: decreased allowance below zero"
+                "ERC20: decreased allowance below zero"
             );
         });
 

@@ -32,12 +32,12 @@ const TWO_WEEKS = 1209600;
 const DELAY = TWO_WEEKS;
 
 contract("StakingRewards - First Period", (accounts) => {
-    let root, a1, a2, a3;
+    let root, a1, a2, a3, a4, a5;
     let SOV, staking;
     let kickoffTS, inOneYear, inTwoYears, inThreeYears;
 
     before(async () => {
-        [root, a1, a2, a3, ...accounts] = accounts;
+        [root, a1, a2, a3, a4, a5, ...accounts] = accounts;
         SOV = await SOV_ABI.new(TOTAL_SUPPLY);
 
         // BlockMockUp
@@ -109,7 +109,7 @@ contract("StakingRewards - First Period", (accounts) => {
         it("should account for stakes made till start date of the program for a1", async () => {
             await increaseTimeAndBlocks(1209614);
 
-            let fields = await stakingRewards.getStakerCurrentReward(true, { from: a1 });
+            let fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a1 });
             let numOfIntervals = 1;
             let fullTermAvg = avgWeight(26, 27, 9, 78);
             let expectedAmount = numOfIntervals * ((1000 * fullTermAvg) / 26);
@@ -120,7 +120,7 @@ contract("StakingRewards - First Period", (accounts) => {
 
         it("should account for stakes made till start date of the program for a2", async () => {
             let numOfIntervals = 1;
-            fields = await stakingRewards.getStakerCurrentReward(true, { from: a2 });
+            fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a2 });
             fullTermAvg = avgWeight(52, 53, 9, 78);
             expectedAmount = numOfIntervals * ((50000 * fullTermAvg) / 26);
             expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(
@@ -130,7 +130,7 @@ contract("StakingRewards - First Period", (accounts) => {
 
         it("should account for stakes made till start date of the program for a3", async () => {
             let numOfIntervals = 1;
-            fields = await stakingRewards.getStakerCurrentReward(true, { from: a3 });
+            fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a3 });
             fullTermAvg = avgWeight(78, 79, 9, 78);
             expectedAmount = numOfIntervals * ((10000 * fullTermAvg) / 26);
             expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(
@@ -144,7 +144,7 @@ contract("StakingRewards - First Period", (accounts) => {
             let startTime = await stakingRewards.startTime();
             await stakingRewards.setHistoricalBlock(parseInt(startTime));
             await stakingRewards.setHistoricalBlock(parseInt(startTime) + 1209600);
-            let fields = await stakingRewards.getStakerCurrentReward(true, { from: a1 });
+            let fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a1 });
             let numOfIntervals = 2;
             let fullTermAvg = avgWeight(25, 27, 9, 78);
             expectedAmount = numOfIntervals * ((1000 * fullTermAvg) / 26);
@@ -152,14 +152,14 @@ contract("StakingRewards - First Period", (accounts) => {
                 new BN(fields.amount).div(new BN(10).pow(new BN(8)))
             );
 
-            fields = await stakingRewards.getStakerCurrentReward(true, { from: a2 });
+            fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a2 });
             fullTermAvg = avgWeight(51, 53, 9, 78);
             expectedAmount = numOfIntervals * ((50000 * fullTermAvg) / 26);
             expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(
                 new BN(fields.amount).div(new BN(10).pow(new BN(8)))
             );
 
-            fields = await stakingRewards.getStakerCurrentReward(true, { from: a3 });
+            fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a3 });
             fullTermAvg = avgWeight(77, 79, 9, 78);
             expectedAmount = numOfIntervals * ((10000 * fullTermAvg) / 26);
             expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(
@@ -170,13 +170,63 @@ contract("StakingRewards - First Period", (accounts) => {
         it("should compute and send Rewards to the stakers a1 after 6 weeks", async () => {
             await increaseTimeAndBlocks(1209614);
 
-            let fields = await stakingRewards.getStakerCurrentReward(true, { from: a1 });
+            let fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a1 });
             let numOfIntervals = 3;
             let fullTermAvg = avgWeight(24, 27, 9, 78);
             expectedAmount = numOfIntervals * ((1000 * fullTermAvg) / 26);
             expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(
                 new BN(fields.amount).div(new BN(10).pow(new BN(8)))
             );
+        });
+
+        it("should be able to stake and get rewards after 30 weeks", async () => {
+            let block = await web3.eth.getBlock("latest");
+            let timestamp = block.timestamp;
+            let startTime = await stakingRewards.startTime();
+            await increaseTimeAndBlocks(12096000); // 20 weeks
+
+            // Transferred SOVs to a4
+            await SOV.transfer(a4, wei("10000", "ether"));
+            await SOV.approve(staking.address, wei("8000", "ether"), { from: a4 });
+
+            // Transferred SOVs to a5
+            await SOV.transfer(a5, wei("10000", "ether"));
+            await SOV.approve(staking.address, wei("8000", "ether"), { from: a5 });
+
+            // Stake
+            await staking.stake(
+                wei("8000", "ether"),
+                new BN(timestamp).add(new BN(TWO_WEEKS * 10 * 26)),
+                a4,
+                a4,
+                { from: a4 }
+            );
+            await staking.stake(
+                wei("8000", "ether"),
+                new BN(timestamp).add(new BN(TWO_WEEKS * 10 * 26)),
+                a5,
+                a5,
+                { from: a5 }
+            );
+
+            await increaseTimeAndBlocks(3628800); // 6 Weeks
+
+            let tx = await stakingRewards.collectReward(0, { from: a4 });
+            console.log("when restartTime = ", 0, ", gasUsed: " + tx.receipt.gasUsed); // 2.6M
+
+            // Using restartTime saves gas
+            let restartTime = new BN(startTime).add(new BN(13 * 1209600));
+            tx = await stakingRewards.collectReward(restartTime, { from: a5 });
+            console.log(
+                "when restartTime = ",
+                restartTime.toString(),
+                ", gasUsed: " + tx.receipt.gasUsed
+            ); // 0.7M
+
+            // let fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a4 });
+            // console.log(fields.amount.toString());
+            // let fields = await stakingRewards.getStakerCurrentReward(true, restartTime, { from: a4 });
+            // console.log(fields.amount.toString());
         });
     });
 

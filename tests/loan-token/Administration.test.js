@@ -156,15 +156,19 @@ contract("LoanTokenAdministration", (accounts) => {
 
             // pause the given function and make sure the function can't be called anymore
             let localLoanToken = loanToken;
-            await localLoanToken.setPauser(accounts[0]);
-            let tx = await localLoanToken.toggleFunctionPause(functionSignature, true);
+            let pauser = accounts[2];
+            await localLoanToken.setPauser(pauser);
+            expect(await localLoanToken.pauser()).to.equal(pauser);
+            let tx = await localLoanToken.toggleFunctionPause(functionSignature, true, {
+                from: pauser,
+            });
             expectEvent(tx, "ToggledFunctionPaused", {
                 functionId: functionSignature,
                 prevFlag: false,
                 newFlag: true,
             });
             await expectRevert(
-                localLoanToken.toggleFunctionPause(functionSignature, true),
+                localLoanToken.toggleFunctionPause(functionSignature, true, { from: pauser }),
                 "isPaused is already set to that value"
             );
 
@@ -176,15 +180,19 @@ contract("LoanTokenAdministration", (accounts) => {
             // check if checkPause returns true
             assert(localLoanToken.checkPause(functionSignature));
 
-            await localLoanToken.setPauser(accounts[0]);
-            tx = await localLoanToken.toggleFunctionPause(functionSignature, false);
+            pauser = accounts[3];
+            await localLoanToken.setPauser(pauser);
+            expect(await localLoanToken.pauser()).to.equal(pauser);
+            tx = await localLoanToken.toggleFunctionPause(functionSignature, false, {
+                from: pauser,
+            });
             expectEvent(tx, "ToggledFunctionPaused", {
                 functionId: functionSignature,
                 prevFlag: true,
                 newFlag: false,
             });
             await expectRevert(
-                localLoanToken.toggleFunctionPause(functionSignature, false),
+                localLoanToken.toggleFunctionPause(functionSignature, false, { from: pauser }),
                 "isPaused is already set to that value"
             );
             await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[1]);

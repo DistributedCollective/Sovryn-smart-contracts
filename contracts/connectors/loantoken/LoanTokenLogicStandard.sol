@@ -354,8 +354,11 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         /// @dev Compute the worth of the total deposit in loan tokens.
         /// (loanTokenSent + convert(collateralTokenSent))
         /// No actual swap happening here.
-        uint256 totalDeposit =
-            _totalDeposit(collateralTokenAddress, collateralTokenSent, loanTokenSent);
+        uint256 totalDeposit = _totalDeposit(
+            collateralTokenAddress,
+            collateralTokenSent,
+            loanTokenSent
+        );
         require(totalDeposit != 0, "12");
 
         address[4] memory sentAddresses;
@@ -816,8 +819,11 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
             collateralTokenAddress = wrbtcTokenAddress;
         }
 
-        uint256 totalDeposit =
-            _totalDeposit(collateralTokenAddress, collateralTokenSent, loanTokenSent);
+        uint256 totalDeposit = _totalDeposit(
+            collateralTokenAddress,
+            collateralTokenSent,
+            loanTokenSent
+        );
 
         (principal, interestRate) = _getMarginBorrowAmountAndRate(leverageAmount, totalDeposit);
         if (principal > _underlyingBalance()) {
@@ -858,29 +864,29 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         address collateralTokenAddress /// address(0) means rBTC
     ) public view returns (uint256 depositAmount) {
         if (borrowAmount != 0) {
-            (, , uint256 newBorrowAmount) =
-                _getInterestRateAndBorrowAmount(
-                    borrowAmount,
-                    totalAssetSupply(),
-                    initialLoanDuration
-                );
+            (, , uint256 newBorrowAmount) = _getInterestRateAndBorrowAmount(
+                borrowAmount,
+                totalAssetSupply(),
+                initialLoanDuration
+            );
 
             if (newBorrowAmount <= _underlyingBalance()) {
                 if (collateralTokenAddress == address(0))
                     collateralTokenAddress = wrbtcTokenAddress;
-                bytes32 loanParamsId =
-                    loanParamsIds[
-                        uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))
-                    ];
+                bytes32 loanParamsId = loanParamsIds[
+                    uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))
+                ];
                 return
                     ProtocolLike(sovrynContractAddress)
                         .getRequiredCollateral(
-                        loanTokenAddress,
-                        collateralTokenAddress,
-                        newBorrowAmount,
-                        ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(loanParamsId), /// initialMargin
-                        true /// isTorqueLoan
-                    )
+                            loanTokenAddress,
+                            collateralTokenAddress,
+                            newBorrowAmount,
+                            ProtocolSettingsLike(sovrynContractAddress).minInitialMargin(
+                                loanParamsId
+                            ), /// initialMargin
+                            true /// isTorqueLoan
+                        )
                         .add(10); /// Some dust to compensate for rounding errors.
             }
         }
@@ -909,8 +915,9 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
     ) public view returns (uint256 borrowAmount) {
         if (depositAmount != 0) {
             if (collateralTokenAddress == address(0)) collateralTokenAddress = wrbtcTokenAddress;
-            bytes32 loanParamsId =
-                loanParamsIds[uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))];
+            bytes32 loanParamsId = loanParamsIds[
+                uint256(keccak256(abi.encodePacked(collateralTokenAddress, true)))
+            ];
             borrowAmount = ProtocolLike(sovrynContractAddress).getBorrowAmount(
                 loanTokenAddress,
                 collateralTokenAddress,
@@ -931,28 +938,20 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         }
     }
 
-    /**
-     * @notice Check if entry price lies above a minimum
-     *
-     * @param loanTokenSent The amount of deposit.
-     * @param collateralTokenAddress The token address of collateral.
-     * @param minEntryPrice Value of loan token in collateral
-     * */
     function checkPriceDivergence(
+        uint256 leverageAmount,
         uint256 loanTokenSent,
+        uint256 collateralTokenSent,
         address collateralTokenAddress,
-        uint256 minEntryPrice
+        uint256 minReturn
     ) public view {
-        /// @dev See how many collateralTokens we would get if exchanging this amount of loan tokens to collateral tokens.
-        uint256 collateralTokensReceived =
-            ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
-                loanTokenAddress,
-                collateralTokenAddress,
-                loanTokenSent
-            );
-        uint256 collateralTokenPrice =
-            (collateralTokensReceived.mul(WEI_PRECISION)).div(loanTokenSent);
-        require(collateralTokenPrice >= minEntryPrice, "entry price above the minimum");
+        (, uint256 estimatedCollateral, ) = getEstimatedMarginDetails(
+            leverageAmount,
+            loanTokenSent,
+            collateralTokenSent,
+            collateralTokenAddress
+        );
+        require(estimatedCollateral >= minReturn, "coll too low");
     }
 
     /* Internal functions */
@@ -1091,27 +1090,22 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
         if (collateralTokenSent != 0) {
             /// @dev Get the oracle rate from collateral -> loan
-            (uint256 collateralToLoanRate, uint256 collateralToLoanPrecision) =
-                FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(
-                    collateralTokenAddress,
-                    loanTokenAddress
-                );
+            (uint256 collateralToLoanRate, uint256 collateralToLoanPrecision) = FeedsLike(
+                ProtocolLike(sovrynContractAddress).priceFeeds()
+            ).queryRate(collateralTokenAddress, loanTokenAddress);
             require(
                 (collateralToLoanRate != 0) && (collateralToLoanPrecision != 0),
                 "invalid rate collateral token"
             );
 
             /// @dev Compute the loan token amount with the oracle rate.
-            uint256 loanTokenAmount =
-                collateralTokenSent.mul(collateralToLoanRate).div(collateralToLoanPrecision);
+            uint256 loanTokenAmount = collateralTokenSent.mul(collateralToLoanRate).div(
+                collateralToLoanPrecision
+            );
 
             /// @dev See how many collateralTokens we would get if exchanging this amount of loan tokens to collateral tokens.
-            uint256 collateralTokenAmount =
-                ProtocolLike(sovrynContractAddress).getSwapExpectedReturn(
-                    loanTokenAddress,
-                    collateralTokenAddress,
-                    loanTokenAmount
-                );
+            uint256 collateralTokenAmount = ProtocolLike(sovrynContractAddress)
+                .getSwapExpectedReturn(loanTokenAddress, collateralTokenAddress, loanTokenAmount);
 
             /// @dev Probably not the same due to the price difference.
             if (collateralTokenAmount != collateralTokenSent) {
@@ -1132,11 +1126,9 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
      * @return amount in RBTC
      * */
     function _getAmountInRbtc(address asset, uint256 amount) internal returns (uint256) {
-        (uint256 rbtcRate, uint256 rbtcPrecision) =
-            FeedsLike(ProtocolLike(sovrynContractAddress).priceFeeds()).queryRate(
-                asset,
-                wrbtcTokenAddress
-            );
+        (uint256 rbtcRate, uint256 rbtcPrecision) = FeedsLike(
+            ProtocolLike(sovrynContractAddress).priceFeeds()
+        ).queryRate(asset, wrbtcTokenAddress);
         return amount.mul(rbtcRate).div(rbtcPrecision);
     }
 
@@ -1215,8 +1207,12 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         }
 
         /// @dev Handle transfers prior to adding newPrincipal to loanTokenSent
-        uint256 msgValue =
-            _verifyTransfers(collateralTokenAddress, sentAddresses, sentAmounts, withdrawAmount);
+        uint256 msgValue = _verifyTransfers(
+            collateralTokenAddress,
+            sentAddresses,
+            sentAmounts,
+            withdrawAmount
+        );
 
         /**
          * @dev Adding the loan token portion from the lender to loanTokenSent
@@ -1235,10 +1231,9 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
             withdrawAmountExist = true;
         }
 
-        bytes32 loanParamsId =
-            loanParamsIds[
-                uint256(keccak256(abi.encodePacked(collateralTokenAddress, withdrawAmountExist)))
-            ];
+        bytes32 loanParamsId = loanParamsIds[
+            uint256(keccak256(abi.encodePacked(collateralTokenAddress, withdrawAmountExist)))
+        ];
 
         (sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress)
             .borrowOrTradeFromPool
@@ -1486,8 +1481,11 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
                 _avgBorrowInterestRate(assetBorrow)
                     .mul(_utilizationRate(assetBorrow, assetSupply))
                     .mul(
-                    SafeMath.sub(10**20, ProtocolLike(sovrynContractAddress).lendingFeePercent())
-                )
+                        SafeMath.sub(
+                            10**20,
+                            ProtocolLike(sovrynContractAddress).lendingFeePercent()
+                        )
+                    )
                     .div(10**40);
         }
     }
@@ -1595,8 +1593,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         uint256 interestFeePercent;
         (, , interestOwedPerDay, interestUnPaid, interestFeePercent, ) = ProtocolLike(
             sovrynContractAddress
-        )
-            .getLenderInterestData(address(this), loanTokenAddress);
+        ).getLenderInterestData(address(this), loanTokenAddress);
 
         interestUnPaid = interestUnPaid.mul(SafeMath.sub(10**20, interestFeePercent)).div(10**20);
     }
@@ -1655,13 +1652,12 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
      * */
     function checkPause(string memory funcId) public view returns (bool isPaused) {
         bytes4 sig = bytes4(keccak256(abi.encodePacked(funcId)));
-        bytes32 slot =
-            keccak256(
-                abi.encodePacked(
-                    sig,
-                    uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
-                )
-            );
+        bytes32 slot = keccak256(
+            abi.encodePacked(
+                sig,
+                uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
+            )
+        );
         assembly {
             isPaused := sload(slot)
         }
@@ -1675,13 +1671,12 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
      * */
     function _checkPause() internal view {
         /// keccak256("iToken_FunctionPause")
-        bytes32 slot =
-            keccak256(
-                abi.encodePacked(
-                    msg.sig,
-                    uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
-                )
-            );
+        bytes32 slot = keccak256(
+            abi.encodePacked(
+                msg.sig,
+                uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
+            )
+        );
         bool isPaused;
         assembly {
             isPaused := sload(slot)
@@ -1757,11 +1752,10 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
     }
 
     function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
-        uint256 balanceOnLM =
-            ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(
-                address(this),
-                msg.sender
-            );
+        uint256 balanceOnLM = ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(
+            address(this),
+            msg.sender
+        );
         require(balanceOnLM.add(balanceOf(msg.sender)) >= burnAmount, "not enough balance");
 
         if (balanceOnLM > 0) {
