@@ -717,5 +717,210 @@ contract("LoanTokenTrading", (accounts) => {
 				"entry price above the minimum"
 			);
 		});
+
+		it("Check marginTrade with minPositionSize > 0 (with defaultConversionPath set)", async () => {
+			// await set_demand_curve(loanToken);
+			await SUSD.transfer(loanToken.address, wei("1000000", "ether"));
+			await RBTC.transfer(accounts[2], oneEth);
+			await RBTC.approve(loanToken.address, oneEth, { from: accounts[2] });
+
+			await expectRevert(
+				loanToken.marginTrade(
+					"0x0", // loanId  (0 for new loans)
+					wei("2", "ether"), // leverageAmount
+					0, // loanTokenSent (SUSD)
+					10000, // collateral token sent
+					RBTC.address, // collateralTokenAddress (RBTC)
+					accounts[1], // trader,
+					20000, // minEntryPrice
+					"0x", // loanDataBytes (only required with ether)
+					{ from: accounts[2] }
+				),
+				"principal too small"
+			);
+
+			await priceFeeds.setRates(WRBTC.address, SUSD.address, new BN(10).pow(new BN(20)).toString());
+			await priceFeeds.setRates(RBTC.address, SUSD.address, new BN(10).pow(new BN(20)).toString());
+
+			const defaultPathConversion = [SUSD.address, RBTC.address, RBTC.address];
+			await sovryn.setDefaultPathConversion(SUSD.address, RBTC.address, defaultPathConversion);
+			expect(await sovryn.getDefaultPathConversion(SUSD.address, RBTC.address)).to.deep.equal(defaultPathConversion);
+
+			await loanToken.marginTrade(
+				"0x0", // loanId  (0 for new loans)
+				wei("2", "ether"), // leverageAmount
+				0, // loanTokenSent (SUSD)
+				oneEth.toString(), // collateral token sent
+				RBTC.address, // collateralTokenAddress (RBTC)
+				accounts[1], // trader,
+				200000, // minEntryPrice
+				"0x", // loanDataBytes (only required with ether)
+				{ from: accounts[2] }
+			);
+		});
+
+		it("Test increasing position of margin trade using collateral (with default path set)", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, accounts[0]);
+			
+			const defaultPathConversion = [SUSD.address, RBTC.address, RBTC.address];
+			await sovryn.setDefaultPathConversion(SUSD.address, RBTC.address, defaultPathConversion);
+			expect(await sovryn.getDefaultPathConversion(SUSD.address, RBTC.address)).to.deep.equal(defaultPathConversion);
+
+			const collateralTokenSent = new BN(wei("1", "ether"));
+			const leverage = 2;
+
+			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[0]);
+
+			// deposit collateral to add margin to the loan created above
+			await RBTC.approve(sovryn.address, oneEth);
+			await sovryn.depositCollateral(loan_id, oneEth);
+			await RBTC.approve(loanToken.address, oneEth);
+
+			let sovryn_before_collateral_token_balance = await RBTC.balanceOf(sovryn.address);
+			let previous_trader_collateral_token_balance = await RBTC.balanceOf(accounts[0]);
+
+			let { receipt } = await loanToken.marginTrade(
+				loan_id, // loanId  (0 for new loans)
+				new BN(leverage).mul(oneEth), // leverageAmount
+				0, // loanTokenSent
+				collateralTokenSent, // collateral token sent
+				RBTC.address, // collateralTokenAddress
+				accounts[0], // trader,
+				0,
+				"0x", // loanDataBytes (only required with ether)
+				{ from: accounts[0] }
+			);
+
+			const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Trade");
+
+			// Verify event
+			let sovryn_after_collateral_token_balance = await RBTC.balanceOf(sovryn.address);
+			let latest_trader_collateral_token_balance = await RBTC.balanceOf(accounts[0]);
+
+			const sovryn_collateral_token_balance_diff = sovryn_after_collateral_token_balance
+				.sub(sovryn_before_collateral_token_balance)
+				.toString();
+			const trader_collateral_token_balance_diff = previous_trader_collateral_token_balance
+				.sub(latest_trader_collateral_token_balance)
+				.toString();
+			const args = decode[0].args;
+
+			expect(collateralTokenSent.toString()).to.equal(trader_collateral_token_balance_diff);
+			expect(args["user"]).to.equal(accounts[0]);
+			expect(args["lender"]).to.equal(loanToken.address);
+			expect(args["loanId"]).to.equal(loan_id);
+			expect(args["collateralToken"]).to.equal(RBTC.address);
+			expect(args["loanToken"]).to.equal(SUSD.address);
+
+			// For margin trade using collateral, the positionSize can be checked by getting the additional collateral token that is transferred into the protocol (difference between latest & previous balance)
+			expect(args["positionSize"]).to.equal(sovryn_collateral_token_balance_diff);
+		});
+
+		it("Test increasing position of margin trade using collateral (with default path set & removed)", async () => {
+			// prepare the test
+			await set_demand_curve(loanToken);
+			await lend_to_pool(loanToken, SUSD, accounts[0]);
+			
+			const defaultPathConversion = [SUSD.address, RBTC.address, RBTC.address];
+			await sovryn.setDefaultPathConversion(SUSD.address, RBTC.address, defaultPathConversion);
+			expect(await sovryn.getDefaultPathConversion(SUSD.address, RBTC.address)).to.deep.equal(defaultPathConversion);
+
+			const collateralTokenSent = new BN(wei("1", "ether"));
+			const leverage = 2;
+
+			const [loan_id] = await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, accounts[0]);
+
+			// deposit collateral to add margin to the loan created above
+			await RBTC.approve(sovryn.address, oneEth);
+			await sovryn.depositCollateral(loan_id, oneEth);
+			await RBTC.approve(loanToken.address, oneEth);
+
+			let sovryn_before_collateral_token_balance = await RBTC.balanceOf(sovryn.address);
+			let previous_trader_collateral_token_balance = await RBTC.balanceOf(accounts[0]);
+
+			let { receipt } = await loanToken.marginTrade(
+				loan_id, // loanId  (0 for new loans)
+				new BN(leverage).mul(oneEth), // leverageAmount
+				0, // loanTokenSent
+				collateralTokenSent, // collateral token sent
+				RBTC.address, // collateralTokenAddress
+				accounts[0], // trader,
+				0,
+				"0x", // loanDataBytes (only required with ether)
+				{ from: accounts[0] }
+			);
+
+			const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Trade");
+
+			// Verify event
+			let sovryn_after_collateral_token_balance = await RBTC.balanceOf(sovryn.address);
+			let latest_trader_collateral_token_balance = await RBTC.balanceOf(accounts[0]);
+
+			const sovryn_collateral_token_balance_diff = sovryn_after_collateral_token_balance
+				.sub(sovryn_before_collateral_token_balance)
+				.toString();
+			const trader_collateral_token_balance_diff = previous_trader_collateral_token_balance
+				.sub(latest_trader_collateral_token_balance)
+				.toString();
+			const args = decode[0].args;
+
+			expect(collateralTokenSent.toString()).to.equal(trader_collateral_token_balance_diff);
+			expect(args["user"]).to.equal(accounts[0]);
+			expect(args["lender"]).to.equal(loanToken.address);
+			expect(args["loanId"]).to.equal(loan_id);
+			expect(args["collateralToken"]).to.equal(RBTC.address);
+			expect(args["loanToken"]).to.equal(SUSD.address);
+
+			// For margin trade using collateral, the positionSize can be checked by getting the additional collateral token that is transferred into the protocol (difference between latest & previous balance)
+			expect(args["positionSize"]).to.equal(sovryn_collateral_token_balance_diff);
+
+			await sovryn.removeDefaultPathConversion(SUSD.address, RBTC.address);
+			expect(await sovryn.getDefaultPathConversion(SUSD.address, RBTC.address)).to.deep.equal([]);
+
+			// deposit collateral to add margin to the loan created above
+			await RBTC.approve(sovryn.address, oneEth);
+			await RBTC.approve(loanToken.address, oneEth);
+
+			sovryn_before_collateral_token_balance = await RBTC.balanceOf(sovryn.address);
+			previous_trader_collateral_token_balance = await RBTC.balanceOf(accounts[0]);
+
+			let tx2 = await loanToken.marginTrade(
+				loan_id, // loanId  (0 for new loans)
+				new BN(leverage).mul(oneEth), // leverageAmount
+				0, // loanTokenSent
+				collateralTokenSent, // collateral token sent
+				RBTC.address, // collateralTokenAddress
+				accounts[0], // trader,
+				0,
+				"0x", // loanDataBytes (only required with ether)
+				{ from: accounts[0] }
+			);
+
+			const decode2 = decodeLogs(tx2.receipt.rawLogs, LoanOpenings, "Trade");
+
+			// Verify event
+			sovryn_after_collateral_token_balance = await RBTC.balanceOf(sovryn.address);
+			latest_trader_collateral_token_balance = await RBTC.balanceOf(accounts[0]);
+
+			const sovryn_collateral_token_balance_diff2 = sovryn_after_collateral_token_balance
+				.sub(sovryn_before_collateral_token_balance)
+				.toString();
+			const trader_collateral_token_balance_diff2 = previous_trader_collateral_token_balance
+				.sub(latest_trader_collateral_token_balance)
+				.toString();
+			const args2 = decode2[0].args;
+
+			expect(collateralTokenSent.toString()).to.equal(trader_collateral_token_balance_diff2);
+			expect(args2["user"]).to.equal(accounts[0]);
+			expect(args2["lender"]).to.equal(loanToken.address);
+			expect(args2["loanId"]).to.equal(loan_id);
+			expect(args2["collateralToken"]).to.equal(RBTC.address);
+			expect(args2["loanToken"]).to.equal(SUSD.address);
+
+			// For margin trade using collateral, the positionSize can be checked by getting the additional collateral token that is transferred into the protocol (difference between latest & previous balance)
+			expect(args2["positionSize"]).to.equal(sovryn_collateral_token_balance_diff2);
+		});
 	});
 });

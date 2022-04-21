@@ -78,7 +78,7 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
 
 		/// will use the defaultPath if it's set, otherwise query from the SovrynSwapNetwork.
 		IERC20[] memory path =
-			_defaultPathConversion.length >= 2
+			_defaultPathConversion.length >= 3
 				? _defaultPathConversion
 				: sovrynSwapNetwork.conversionPath(IERC20(sourceTokenAddress), IERC20(destTokenAddress));
 
