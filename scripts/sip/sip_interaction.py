@@ -20,7 +20,7 @@ def main():
 
     # Call the function you want here
 
-    # createProposalSIP0043()
+    # createProposalSIP0044()
 
     balanceAfter = acct.balance()
 
@@ -376,6 +376,24 @@ def createProposalSIP0043():
     data = staking.setImplementation.encode_input(contracts['StakingLogic6'])
     datas = ["0x" + data[10:]]
     description = "SIP-0043 : Critical governance bug fix, Details: https://github.com/DistributedCollective/SIPS/blob/bdd346e/SIP-0043.md, sha256: 7a99f0862208d77e54f30f3c3759ca1d7efe9d1d1ec7df1ef1f83c649aa651a4"
+
+    # Create Proposal
+    print(signatures)
+    print(datas)
+    print(description)
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+def createProposalSIP0044():
+
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking']]
+    values = [0]
+    signatures = ["setImplementation(address)"]
+    data = staking.setImplementation.encode_input(contracts['StakingLogic7'])
+    datas = ["0x" + data[10:]]
+    description = "SIP-0044 : Staking contract hardening against multiple attack vectors, Details: https://github.com/DistributedCollective/SIPS/blob/f883810/SIP-0044.md, sha256: 6d18d5438480e269d88c4021a2b6e1ed92e5447cc0a7198c3d6d0c98e7772246"
 
     # Create Proposal
     print(signatures)

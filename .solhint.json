@@ -1,9 +1,9 @@
 {
-	"extends": "solhint:recommended",
-	"plugins": ["prettier"],
-	"rules": {
-		"prettier/prettier": "error",
-		"max-line-length": ["warn", 140],
-		"compiler-version": ["warn"]
-	}
+    "extends": "solhint:recommended",
+    "plugins": ["prettier"],
+    "rules": {
+        "prettier/prettier": "error",
+        "max-line-length": ["warn", 140],
+        "compiler-version": ["warn"]
+    }
 }

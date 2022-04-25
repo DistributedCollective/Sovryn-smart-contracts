@@ -10,5 +10,5 @@ import "./ModulesCommonEvents.sol";
  * This contract contains the events for loan maintenance operations.
  * */
 contract LoanMaintenanceEvents is ModulesCommonEvents {
-	event DepositCollateral(bytes32 indexed loanId, uint256 depositAmount, uint256 rate);
+    event DepositCollateral(bytes32 indexed loanId, uint256 depositAmount, uint256 rate);
 }

@@ -165,7 +165,6 @@ def upgradeStaking():
     print("New staking logic address:", stakingLogic.address)
     
     # Get the proxy contract instance
-    #stakingProxy = Contract.from_abi("StakingProxy", address=conf.contracts['Staking'], abi=StakingProxy.abi, owner=conf.acct)
     stakingProxy = Contract.from_abi("StakingProxy", address=conf.contracts['Staking'], abi=StakingProxy.abi, owner=conf.acct)
 
     # Register logic in Proxy
