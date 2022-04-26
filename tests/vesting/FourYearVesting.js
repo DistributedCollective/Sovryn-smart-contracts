@@ -845,10 +845,7 @@ contract("FourYearVesting", (accounts) => {
                 feeSharingProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
-            await expectRevert(
-                vesting.migrateToNewStakingContract(),
-                "S19"
-            );
+            await expectRevert(vesting.migrateToNewStakingContract(), "S19");
         });
 
         it("should fail if the caller is neither owner nor token owner", async () => {
