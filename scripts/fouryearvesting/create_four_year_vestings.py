@@ -72,8 +72,11 @@ def main():
             lastSchedule = 0
             while remainingAmount > 0:
                 fourYearVesting.stakeTokens(remainingAmount, lastSchedule)
+                time.sleep(10)
                 lastSchedule = fourYearVesting.lastStakingSchedule()
+                print('lastSchedule:', lastSchedule)
                 remainingAmount = fourYearVesting.remainingStakeAmount()
+                print('remainingAmount:', remainingAmount)
 
             stakes = staking.getStakes(vestingAddress)
             print("Staking Details")
@@ -81,7 +84,7 @@ def main():
             print(stakes)
 
     #  == Transfer ownership to multisig =============================================================================================
-    # fourYearVestingFactory.transferOwnership(multisig)
+    fourYearVestingFactory.transferOwnership(multisig)
 
     print("SOV Balance After:")
     print(SOVtoken.balanceOf(acct) / 10**18)
