@@ -743,14 +743,14 @@ contract("FourYearVesting", (accounts) => {
 
             await expectRevert(
                 staking.governanceWithdrawVesting(vesting.address, root, { from: a1 }),
-                "unauthorized"
+                "WS01"
             );
         });
 
         it("shouldn't be possible to use governanceWithdraw by user", async () => {
             await expectRevert(
                 staking.governanceWithdraw(100, kickoffTS.toNumber() + 52 * WEEK, root),
-                "unauthorized"
+                "S07"
             );
         });
     });
@@ -847,7 +847,7 @@ contract("FourYearVesting", (accounts) => {
             vesting = await VestingLogic.at(vesting.address);
             await expectRevert(
                 vesting.migrateToNewStakingContract(),
-                "there is no new staking contract set"
+                "S19"
             );
         });
 
