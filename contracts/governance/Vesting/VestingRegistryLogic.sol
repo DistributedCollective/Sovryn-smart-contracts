@@ -118,17 +118,18 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         for (uint256 i = 0; i < _tokenOwners.length; i++) {
             require(_tokenOwners[i] != address(0), "token owner cannot be 0 address");
             require(_vestingAddresses[i] != address(0), "vesting cannot be 0 address");
-            uint256 uid = uint256(
-                keccak256(
-                    abi.encodePacked(
-                        _tokenOwners[i],
-                        uint256(VestingType.Vesting),
-                        cliff,
-                        duration,
-                        vestingCreationType
+            uint256 uid =
+                uint256(
+                    keccak256(
+                        abi.encodePacked(
+                            _tokenOwners[i],
+                            uint256(VestingType.Vesting),
+                            cliff,
+                            duration,
+                            vestingCreationType
+                        )
                     )
-                )
-            );
+                );
             vestings[uid] = Vesting(
                 uint256(VestingType.Vesting),
                 vestingCreationType,
@@ -172,13 +173,14 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         uint256 _duration,
         uint256 _vestingCreationType
     ) public onlyAuthorized {
-        address vesting = _getOrCreateVesting(
-            _tokenOwner,
-            _cliff,
-            _duration,
-            uint256(VestingType.Vesting),
-            _vestingCreationType
-        );
+        address vesting =
+            _getOrCreateVesting(
+                _tokenOwner,
+                _cliff,
+                _duration,
+                uint256(VestingType.Vesting),
+                _vestingCreationType
+            );
         emit VestingCreated(
             _tokenOwner,
             vesting,
@@ -204,13 +206,14 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         uint256 _duration,
         uint256 _vestingCreationType
     ) external onlyAuthorized {
-        address vesting = _getOrCreateVesting(
-            _tokenOwner,
-            _cliff,
-            _duration,
-            uint256(VestingType.TeamVesting),
-            _vestingCreationType
-        );
+        address vesting =
+            _getOrCreateVesting(
+                _tokenOwner,
+                _cliff,
+                _duration,
+                uint256(VestingType.TeamVesting),
+                _vestingCreationType
+            );
         emit TeamVestingCreated(
             _tokenOwner,
             vesting,
@@ -257,11 +260,12 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         uint256 _vestingCreationType
     ) public view returns (address) {
         uint256 type_ = uint256(VestingType.Vesting);
-        uint256 uid = uint256(
-            keccak256(
-                abi.encodePacked(_tokenOwner, type_, _cliff, _duration, _vestingCreationType)
-            )
-        );
+        uint256 uid =
+            uint256(
+                keccak256(
+                    abi.encodePacked(_tokenOwner, type_, _cliff, _duration, _vestingCreationType)
+                )
+            );
         return vestings[uid].vestingAddress;
     }
 
@@ -275,11 +279,12 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         uint256 _vestingCreationType
     ) public view returns (address) {
         uint256 type_ = uint256(VestingType.TeamVesting);
-        uint256 uid = uint256(
-            keccak256(
-                abi.encodePacked(_tokenOwner, type_, _cliff, _duration, _vestingCreationType)
-            )
-        );
+        uint256 uid =
+            uint256(
+                keccak256(
+                    abi.encodePacked(_tokenOwner, type_, _cliff, _duration, _vestingCreationType)
+                )
+            );
         return vestings[uid].vestingAddress;
     }
 
@@ -299,11 +304,12 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         uint256 _vestingCreationType
     ) internal returns (address) {
         address vesting;
-        uint256 uid = uint256(
-            keccak256(
-                abi.encodePacked(_tokenOwner, _type, _cliff, _duration, _vestingCreationType)
-            )
-        );
+        uint256 uid =
+            uint256(
+                keccak256(
+                    abi.encodePacked(_tokenOwner, _type, _cliff, _duration, _vestingCreationType)
+                )
+            );
         if (vestings[uid].vestingAddress == address(0)) {
             if (_type == 1) {
                 vesting = vestingFactory.deployVesting(
