@@ -1114,7 +1114,7 @@ contract("FeeSharingProxy:", (accounts) => {
             let gasPrice;
             /// @dev A balance decrease (negative difference) corresponds to regular test case
             if (userLatestBTCBalance.sub(userInitialBtcBalance).toString()[0] == "-") {
-                gasPrice = new BN(8000000000);
+                gasPrice = new BN(parseInt(tx.receipt.effectiveGasPrice));
             } // regular test
             else {
                 gasPrice = new BN(1);
@@ -1255,7 +1255,7 @@ contract("FeeSharingProxy:", (accounts) => {
             let gasPrice;
             /// @dev A balance decrease (negative difference) corresponds to regular test case
             if (userLatestBTCBalance.sub(userInitialBtcBalance).toString()[0] == "-") {
-                gasPrice = new BN(8000000000);
+                gasPrice = new BN(parseInt(tx.receipt.effectiveGasPrice));
             } // regular test
             else {
                 gasPrice = new BN(1);
@@ -1326,6 +1326,7 @@ contract("FeeSharingProxy:", (accounts) => {
             tx = await feeSharingProxy.withdraw(loanTokenWrbtc.address, 2, ZERO_ADDRESS, {
                 from: account1,
             });
+            gasPrice = new BN(parseInt(tx.receipt.effectiveGasPrice));
             console.log("\nwithdraw(checkpoints = 2).gasUsed: " + tx.receipt.gasUsed);
             txFee = new BN(tx.receipt.gasUsed).mul(gasPrice);
 

@@ -580,12 +580,6 @@ def setTradingRebateRewardsBasisPoint(basisPoint):
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
-
-def upgradeStaking():
-    print('Deploying account:', conf.acct.address)
-    print("Upgrading staking")
-
-
 def pauseProtocolModules():
     print("Pause Protocol Modules")
     sovryn = Contract.from_abi(

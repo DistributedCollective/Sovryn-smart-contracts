@@ -21,7 +21,51 @@ contract WeightedStaking is Checkpoints {
      * @dev Throws if called by any account other than the owner or admin.
      */
     modifier onlyAuthorized() {
-        require(isOwner() || admins[msg.sender], "unauthorized");
+        require(isOwner() || admins[msg.sender], "WS01"); // unauthorized
+        _;
+    }
+
+    /**
+	 * @dev Throws if called by any account other than the owner or admin or pauser.
+	 
+	modifier onlyAuthorizedOrPauser() {
+		require(isOwner() || admins[msg.sender] || pausers[msg.sender], "WS02"); // unauthorized
+		_;
+	}
+	*/
+
+    /**
+     * @dev Throws if called by any account other than the owner or pauser.
+     */
+    modifier onlyPauserOrOwner() {
+        require(isOwner() || pausers[msg.sender], "WS02"); // unauthorized
+        _;
+    }
+
+    /**
+     * @dev Throws if called by any account other than pauser.
+     * @notice Uncomment when needed
+     */
+    /*
+	modifier onlyPauser() {
+		require(pausers[msg.sender], "Not pauser");
+		_;
+	}
+	*/
+
+    /**
+     * @dev Throws if paused.
+     */
+    modifier whenNotPaused() {
+        require(!paused, "WS03"); // paused
+        _;
+    }
+
+    /**
+     * @dev Throws if frozen.
+     */
+    modifier whenNotFrozen() {
+        require(!frozen, "WS04"); // paused
         _;
     }
 
@@ -31,7 +75,7 @@ contract WeightedStaking is Checkpoints {
      * @dev _vestingRegistryProxy can be set to 0 as this function can be reused by
      * various other functionalities without the necessity of linking it with Vesting Registry
      */
-    function setVestingRegistry(address _vestingRegistryProxy) external onlyOwner {
+    function setVestingRegistry(address _vestingRegistryProxy) external onlyOwner whenNotFrozen {
         vestingRegistryLogic = VestingRegistryLogic(_vestingRegistryProxy);
     }
 
@@ -43,8 +87,9 @@ contract WeightedStaking is Checkpoints {
     function setVestingStakes(uint256[] calldata lockedDates, uint96[] calldata values)
         external
         onlyAuthorized
+        whenNotFrozen
     {
-        require(lockedDates.length == values.length, "arrays mismatch");
+        require(lockedDates.length == values.length, "WS05"); // arrays mismatch
 
         uint256 length = lockedDates.length;
         for (uint256 i = 0; i < length; i++) {
@@ -96,8 +141,8 @@ contract WeightedStaking is Checkpoints {
             totalVotingPower = add96(
                 totalVotingPower,
                 _totalPowerByDate(i, start, blockNumber),
-                "overflow on total voting power computation"
-            );
+                "WS06"
+            ); // arrays mismatch
         }
     }
 
@@ -117,7 +162,7 @@ contract WeightedStaking is Checkpoints {
         uint96 weight = computeWeightByDate(date, startDate);
         uint96 staked = getPriorTotalStakesForDate(date, blockNumber);
         /// @dev weight is multiplied by some factor to allow decimals.
-        power = mul96(staked, weight, "multiplication overflow") / WEIGHT_FACTOR;
+        power = mul96(staked, weight, "WS07") / WEIGHT_FACTOR; // mul overflow
     }
 
     /**
@@ -135,7 +180,7 @@ contract WeightedStaking is Checkpoints {
         view
         returns (uint96)
     {
-        require(blockNumber < _getCurrentBlockNumber(), "not yet determined");
+        require(blockNumber < _getCurrentBlockNumber(), "WS08"); // not determined
 
         uint32 nCheckpoints = numTotalStakingCheckpoints[date];
         if (nCheckpoints == 0) {
@@ -195,8 +240,8 @@ contract WeightedStaking is Checkpoints {
             votes = add96(
                 votes,
                 _totalPowerByDateForDelegatee(account, i, start, blockNumber),
-                "overflow - total voting power computation"
-            );
+                "WS09"
+            ); // overflow - total VP
         }
     }
 
@@ -217,7 +262,7 @@ contract WeightedStaking is Checkpoints {
     ) internal view returns (uint96 power) {
         uint96 weight = computeWeightByDate(date, startDate);
         uint96 staked = getPriorStakeByDateForDelegatee(account, date, blockNumber);
-        power = mul96(staked, weight, "overflow") / WEIGHT_FACTOR;
+        power = mul96(staked, weight, "WS10") / WEIGHT_FACTOR; // overflow
     }
 
     /**
@@ -236,7 +281,7 @@ contract WeightedStaking is Checkpoints {
         uint256 date,
         uint256 blockNumber
     ) public view returns (uint96) {
-        require(blockNumber < _getCurrentBlockNumber(), "not determined yet");
+        require(blockNumber < _getCurrentBlockNumber(), "WS11"); // not determined yet
 
         uint32 nCheckpoints = numDelegateStakingCheckpoints[account][date];
         if (nCheckpoints == 0) {
@@ -298,7 +343,7 @@ contract WeightedStaking is Checkpoints {
         for (uint256 i = start; i <= end; i += TWO_WEEKS) {
             uint96 weightedStake = weightedStakeByDate(account, i, start, blockNumber);
             if (weightedStake > 0) {
-                votes = add96(votes, weightedStake, "overflow on total weight computation");
+                votes = add96(votes, weightedStake, "WS12"); // overflow on total weight
             }
         }
     }
@@ -323,7 +368,7 @@ contract WeightedStaking is Checkpoints {
         uint96 staked = _getPriorUserStakeByDate(account, date, blockNumber);
         if (staked > 0) {
             uint96 weight = computeWeightByDate(date, startDate);
-            power = mul96(staked, weight, "overflow error") / WEIGHT_FACTOR;
+            power = mul96(staked, weight, "WS13") / WEIGHT_FACTOR; // overflow
         } else {
             power = 0;
         }
@@ -369,7 +414,7 @@ contract WeightedStaking is Checkpoints {
         uint256 date,
         uint256 blockNumber
     ) internal view returns (uint96) {
-        require(blockNumber < _getCurrentBlockNumber(), "not determined");
+        require(blockNumber < _getCurrentBlockNumber(), "WS14"); // not determined
 
         date = _adjustDateForOrigin(date);
         uint32 nCheckpoints = numUserStakingCheckpoints[account][date];
@@ -431,7 +476,7 @@ contract WeightedStaking is Checkpoints {
         for (uint256 i = start; i <= end; i += TWO_WEEKS) {
             uint96 weightedStake = weightedVestingStakeByDate(i, start, blockNumber);
             if (weightedStake > 0) {
-                votes = add96(votes, weightedStake, "overflow - total weight computation");
+                votes = add96(votes, weightedStake, "WS15"); // overflow on total weight
             }
         }
     }
@@ -454,13 +499,7 @@ contract WeightedStaking is Checkpoints {
         uint96 staked = _getPriorVestingStakeByDate(date, blockNumber);
         if (staked > 0) {
             uint96 weight = computeWeightByDate(date, startDate);
-            power =
-                mul96(
-                    staked,
-                    weight,
-                    "WeightedStaking::weightedVestingStakeByDate: multiplication overflow"
-                ) /
-                WEIGHT_FACTOR;
+            power = mul96(staked, weight, "WS16") / WEIGHT_FACTOR; // multiplication overflow
         } else {
             power = 0;
         }
@@ -498,10 +537,7 @@ contract WeightedStaking is Checkpoints {
         view
         returns (uint96)
     {
-        require(
-            blockNumber < _getCurrentBlockNumber(),
-            "WeightedStaking::getPriorVestingStakeByDate: not yet determined"
-        );
+        require(blockNumber < _getCurrentBlockNumber(), "WS17"); // not determined
 
         uint32 nCheckpoints = numVestingCheckpoints[date];
         if (nCheckpoints == 0) {
@@ -556,9 +592,9 @@ contract WeightedStaking is Checkpoints {
         pure
         returns (uint96 weight)
     {
-        require(date >= startDate, "date needs to be bigger than startDate");
+        require(date >= startDate, "WS18"); // date < startDate
         uint256 remainingTime = (date - startDate);
-        require(MAX_DURATION >= remainingTime, "remaining time can't be bigger than max duration");
+        require(MAX_DURATION >= remainingTime, "WS19"); // remaining time < max duration
         /// @dev x = max days - remaining days
         uint96 x = uint96(MAX_DURATION - remainingTime) / (1 days);
         /// @dev w = (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)
@@ -566,10 +602,14 @@ contract WeightedStaking is Checkpoints {
             WEIGHT_FACTOR,
             mul96(
                 MAX_VOTING_WEIGHT * WEIGHT_FACTOR,
-                sub96(MAX_DURATION_POW_2, x * x, "underflow on weight calculation"),
-                "multiplication overflow on weight computation"
+                sub96(
+                    MAX_DURATION_POW_2,
+                    x * x,
+                    "WS20" /* weight underflow */
+                ),
+                "WS21" /* weight mul overflow */
             ) / MAX_DURATION_POW_2,
-            "overflow on weight computation"
+            "WS22" /* overflow on weight */
         );
     }
 
@@ -581,7 +621,7 @@ contract WeightedStaking is Checkpoints {
      * @return The actual unlocking date (might be up to 2 weeks shorter than intended).
      * */
     function timestampToLockDate(uint256 timestamp) public view returns (uint256 lockDate) {
-        require(timestamp >= kickoffTS, "timestamp lies before contract creation");
+        require(timestamp >= kickoffTS, "WS23"); // timestamp < contract creation
         /**
          * @dev If staking timestamp does not match any of the unstaking dates
          * , set the lockDate to the closest one before the timestamp.
@@ -611,7 +651,7 @@ contract WeightedStaking is Checkpoints {
      * @notice Add account to ACL.
      * @param _admin The addresses of the account to grant permissions.
      * */
-    function addAdmin(address _admin) public onlyOwner {
+    function addAdmin(address _admin) public onlyOwner whenNotFrozen {
         admins[_admin] = true;
         emit AdminAdded(_admin);
     }
@@ -620,9 +660,48 @@ contract WeightedStaking is Checkpoints {
      * @notice Remove account from ACL.
      * @param _admin The addresses of the account to revoke permissions.
      * */
-    function removeAdmin(address _admin) public onlyOwner {
+    function removeAdmin(address _admin) public onlyOwner whenNotFrozen {
         admins[_admin] = false;
         emit AdminRemoved(_admin);
+    }
+
+    /**
+     * @notice Add account to pausers ACL.
+     * @param _pauser The address to grant pauser permissions.
+     * */
+    function addPauser(address _pauser) public onlyOwner whenNotFrozen {
+        pausers[_pauser] = true;
+        emit PauserAddedOrRemoved(_pauser, true);
+    }
+
+    /**
+     * @notice Add account to pausers ACL.
+     * @param _pauser The address to grant pauser permissions.
+     * */
+    function removePauser(address _pauser) public onlyOwner whenNotFrozen {
+        delete pausers[_pauser];
+        emit PauserAddedOrRemoved(_pauser, false);
+    }
+
+    /**
+     * @notice Pause contract
+     * @param _pause true when pausing, false when unpausing
+     * */
+    function pauseUnpause(bool _pause) public onlyPauserOrOwner whenNotFrozen {
+        paused = _pause;
+        emit StakingPaused(_pause);
+    }
+
+    /**
+     * @notice Freeze contract - disable all functions
+     * @param _freeze true when freezing, false when unfreezing
+     * @dev When freezing, pause is always applied too. When unfreezing, the contract is left in paused stated.
+     * */
+    function freezeUnfreeze(bool _freeze) public onlyPauserOrOwner {
+        require(_freeze != frozen, "WS25");
+        if (_freeze) pauseUnpause(true);
+        frozen = _freeze;
+        emit StakingFrozen(_freeze);
     }
 
     /**
@@ -630,7 +709,7 @@ contract WeightedStaking is Checkpoints {
      * @param vesting The address of Vesting contract.
      * @dev We need it to use _isVestingContract() function instead of isContract()
      */
-    function addContractCodeHash(address vesting) public onlyAuthorized {
+    function addContractCodeHash(address vesting) public onlyAuthorized whenNotFrozen {
         bytes32 codeHash = _getCodeHash(vesting);
         vestingCodeHashes[codeHash] = true;
         emit ContractCodeHashAdded(codeHash);
@@ -641,7 +720,7 @@ contract WeightedStaking is Checkpoints {
      * @param vesting The address of Vesting contract.
      * @dev We need it to use _isVestingContract() function instead of isContract()
      */
-    function removeContractCodeHash(address vesting) public onlyAuthorized {
+    function removeContractCodeHash(address vesting) public onlyAuthorized whenNotFrozen {
         bytes32 codeHash = _getCodeHash(vesting);
         vestingCodeHashes[codeHash] = false;
         emit ContractCodeHashRemoved(codeHash);
