@@ -8,12 +8,12 @@ pragma solidity ^0.5.17;
  * and use an instance of FourYearVestingFactory.
  */
 interface IFourYearVestingFactory {
-	function deployFourYearVesting(
-		address _SOV,
-		address _staking,
-		address _tokenOwner,
-		address _feeSharing,
-		address _vestingOwnerMultisig,
-		address _fourYearVestingLogic
-	) external returns (address);
+    function deployFourYearVesting(
+        address _SOV,
+        address _staking,
+        address _tokenOwner,
+        address _feeSharing,
+        address _vestingOwnerMultisig,
+        address _fourYearVestingLogic
+    ) external returns (address);
 }

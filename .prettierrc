@@ -3,9 +3,9 @@
     {
       "files": ["*.sol", "*.js", "*.test.js", "*.json"],
       "options": {
-        "printWidth": 140,
+        "printWidth": 99,
         "tabWidth": 4,
-        "useTabs": true,
+        "useTabs": false,
         "singleQuote": false,
         "bracketSpacing": true,
         "explicitTypes": "always"

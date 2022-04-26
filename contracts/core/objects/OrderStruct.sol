@@ -13,12 +13,12 @@ pragma solidity 0.5.17;
  * This contract contains the storage structure of the Loan Order.
  * */
 contract OrderStruct {
-	struct Order {
-		uint256 lockedAmount; /// Escrowed amount waiting for a counterparty.
-		uint256 interestRate; /// Interest rate defined by the creator of this order.
-		uint256 minLoanTerm; /// Minimum loan term allowed.
-		uint256 maxLoanTerm; /// Maximum loan term allowed.
-		uint256 createdTimestamp; /// Timestamp when this order was created.
-		uint256 expirationTimestamp; /// Timestamp when this order expires.
-	}
+    struct Order {
+        uint256 lockedAmount; /// Escrowed amount waiting for a counterparty.
+        uint256 interestRate; /// Interest rate defined by the creator of this order.
+        uint256 minLoanTerm; /// Minimum loan term allowed.
+        uint256 maxLoanTerm; /// Maximum loan term allowed.
+        uint256 createdTimestamp; /// Timestamp when this order was created.
+        uint256 expirationTimestamp; /// Timestamp when this order expires.
+    }
 }
