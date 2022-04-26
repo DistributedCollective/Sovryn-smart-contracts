@@ -35,7 +35,7 @@ def main():
 
     #deploy VestingFactory
     fourYearVestingLogic = acct.deploy(FourYearVestingLogic)
-    fourYearVestingFactory = acct.deploy(FourYearVestingFactory, fourYearVestingLogic.address)
+    fourYearVestingFactory = acct.deploy(FourYearVestingFactory)
 
     # Transfer ownership of VestingFactory to multisig after creating vesting contracts and staking tokens
     # Don't forget to add the contract addresses to json files before running the script

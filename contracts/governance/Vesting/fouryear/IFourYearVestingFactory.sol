@@ -13,6 +13,7 @@ interface IFourYearVestingFactory {
 		address _staking,
 		address _tokenOwner,
 		address _feeSharing,
-		address _owner
+		address _vestingOwnerMultisig,
+		address _fourYearVestingLogic
 	) external returns (address);
 }

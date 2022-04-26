@@ -20,6 +20,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 	event TokensWithdrawn(address indexed caller, address receiver);
 	event DividendsCollected(address indexed caller, address loanPoolToken, address receiver, uint32 maxCheckpoints);
 	event MigratedToNewStakingContract(address indexed caller, address newStakingContract);
+	event TokenOwnerChanged(address indexed newOwner, address indexed oldOwner);
 
 	/* Modifiers */
 	/**
@@ -125,6 +126,42 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 		feeSharingProxy.withdraw(_loanPoolToken, _maxCheckpoints, _receiver);
 
 		emit DividendsCollected(msg.sender, _loanPoolToken, _receiver, _maxCheckpoints);
+	}
+
+	/**
+	 * @notice Change token owner - only vesting owner is allowed to change.
+	 * @dev Modifies token owner. This must be followed by approval
+	 * from token owner.
+	 * @param _newTokenOwner Address of new token owner.
+	 * */
+	function changeTokenOwner(address _newTokenOwner) public onlyOwner {
+		require(_newTokenOwner != address(0), "invalid new token owner address");
+		require(_newTokenOwner != tokenOwner, "same owner not allowed");
+		newTokenOwner = _newTokenOwner;
+	}
+
+	/**
+	 * @notice Approve token owner change - only token Owner.
+	 * @dev Token owner can only be modified
+	 * when both vesting owner and token owner have approved. This
+	 * function ascertains the approval of token owner.
+	 * */
+	function approveOwnershipTransfer() public onlyTokenOwner {
+		require(newTokenOwner != address(0), "invalid address");
+		tokenOwner = newTokenOwner;
+		newTokenOwner = address(0);
+		emit TokenOwnerChanged(tokenOwner, msg.sender);
+	}
+
+	/**
+	 * @notice Set address of the implementation - only Token Owner.
+	 * @dev This function sets the new implementation address.
+	 * It must also be approved by the Vesting owner.
+	 * @param _newImplementation Address of the new implementation.
+	 * */
+	function setImpl(address _newImplementation) public onlyTokenOwner {
+		require(_newImplementation != address(0), "invalid new implementation address");
+		newImplementation = _newImplementation;
 	}
 
 	/**

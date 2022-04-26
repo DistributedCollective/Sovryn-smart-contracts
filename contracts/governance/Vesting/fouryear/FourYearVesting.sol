@@ -7,17 +7,19 @@ import "../../Staking/Staking.sol";
 import "../../IFeeSharingProxy.sol";
 import "../../ApprovalReceiver.sol";
 import "./FourYearVestingStorage.sol";
-import "../../../proxy/Proxy.sol";
+import "../../../proxy/UpgradableProxy.sol";
+import "../../../openzeppelin/Address.sol";
 
 /**
  * @title Four Year Vesting Contract.
  *
  * @notice A four year vesting contract.
  *
- * @dev Vesting contracts shouldn't be upgradable,
- * use Proxy instead of UpgradableProxy.
+ * @dev Vesting contract is upgradable,
+ * Make sure the vesting owner is multisig otherwise it will be
+ * catastrophic.
  * */
-contract FourYearVesting is FourYearVestingStorage, Proxy {
+contract FourYearVesting is FourYearVestingStorage, UpgradableProxy {
 	/**
 	 * @notice Setup the vesting schedule.
 	 * @param _logic The address of logic contract.
@@ -47,5 +49,20 @@ contract FourYearVesting is FourYearVestingStorage, Proxy {
 		tokenOwner = _tokenOwner;
 		feeSharingProxy = IFeeSharingProxy(_feeSharingProxy);
 		maxInterval = 18 * FOUR_WEEKS;
+	}
+
+	/**
+	 * @notice Set address of the implementation - vesting owner.
+	 * @dev Overriding setImplementation function of UpgradableProxy. The logic can only be
+	 * modified when both token owner and veting owner approve. Since
+	 * setImplementation can only be called by vesting owner, we also need to check
+	 * if the new logic is already approved by the token owner.
+	 * @param _implementation Address of the implementation. Must match with what is set by token owner.
+	 * */
+	function setImplementation(address _implementation) public onlyProxyOwner {
+		require(Address.isContract(_implementation), "_implementation not a contract");
+		require(newImplementation == _implementation, "address mismatch");
+		_setImplementation(_implementation);
+		newImplementation = address(0);
 	}
 }
