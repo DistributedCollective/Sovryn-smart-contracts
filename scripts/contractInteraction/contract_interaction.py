@@ -51,3 +51,4 @@ def main():
 
     #missed = getMissedBalance()
     #transferSOVtoLM(missed)
+    #printConverterRegistryData()
