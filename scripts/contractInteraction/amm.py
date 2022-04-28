@@ -281,3 +281,17 @@ def setOracleOnV1Converter(converterAddress, oracleAddress):
     print(data)
 
     sendWithMultisig(conf.contracts['multisig'], converterContract.address, data, conf.acct)
+
+def printV1ConverterData(converterAddress): #, reserve1, reserve2
+    abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV1Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV1Converter", address=converterAddress, abi=abi, owner=conf.acct)
+    print('converterAddress:', converterAddress)
+    print('oracle:', converter.oracle())
+    print('converter.reserveRatio():', converter.reserveRatio())
+    print('amm converter pool token (anchor):', converter.anchor())
+    print('reserve token: (balance, weight, deprecated1, deprecated2, isSet)')
+    for i in range(0, 2):
+        reserveTokenAddress = converter.reserveTokens(i)
+        reserveToken = Contract.from_abi("Token", address=reserveTokenAddress, abi=TestToken.abi, owner=conf.acct)
+        print('reserve token ',i,': ',reserveToken.symbol(),', address:', reserveTokenAddress, converter.reserves(reserveTokenAddress))

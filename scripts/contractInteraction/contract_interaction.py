@@ -53,3 +53,10 @@ def main():
     
     #missed = getMissedBalance()
     #transferSOVtoLM(missed)
+    
+    #checkTx(895)
+    # checkTx(897)
+    # confirmWithMS(897)
+    # confirmMultipleTxsWithMS(895, 896)
+    printV1ConverterData('0xe76Ea314b32fCf641C6c57f14110c5Baa1e45ff4') 
+    #,'0x542fda317318ebf1d3deaf76e0b632741a7e677d','0xEFc78fc7d48b64958315949279Ba181c2114ABBd')
