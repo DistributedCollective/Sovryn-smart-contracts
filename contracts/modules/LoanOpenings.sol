@@ -359,7 +359,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 			}
 		} else {
 			/// Update collateral after trade.
-			/// sentValues[3] is repurposed to hold loanToCollateralSwapRate to avoid stack too deep error.
+			/// sentValues.loanTokenSent is repurposed to hold loanToCollateralSwapRate to avoid stack too deep error.
 			uint256 receivedAmount;
 			(receivedAmount, , sentValues.loanTokenSent) = _loanSwap(
 				loanId,
@@ -375,6 +375,9 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 			sentValues.collateralTokenSent = sentValues
 				.collateralTokenSent /// collateralTokenReceived
 				.add(receivedAmount);
+
+			/// Check the minEntryPrice with the rate
+			require(sentValues.loanTokenSent >= sentValues.minEntryPrice, "entry price above the minimum");
 		}
 
 		/// Settle collateral.
@@ -434,6 +437,7 @@ contract LoanOpenings is LoanOpeningsEvents, VaultController, InterestUser, Swap
 				loanLocal.principal,
 				loanLocal.collateral
 			);
+
 		require(initialMargin > loanParamsLocal.maintenanceMargin, "unhealthy position");
 
 		if (loanLocal.startTimestamp == block.timestamp) {

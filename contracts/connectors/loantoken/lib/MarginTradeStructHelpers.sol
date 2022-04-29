@@ -14,5 +14,6 @@ library MarginTradeStructHelpers {
 		uint256 interestInitialAmount;
 		uint256 loanTokenSent;
 		uint256 collateralTokenSent;
+		uint256 minEntryPrice;
 	}
 }

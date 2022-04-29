@@ -763,7 +763,7 @@ contract("LoanTokenTrading", (accounts) => {
 			// prepare the test
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, accounts[0]);
-			
+
 			const defaultPathConversion = [SUSD.address, RBTC.address, RBTC.address];
 			await sovryn.setDefaultPathConversion(SUSD.address, RBTC.address, defaultPathConversion);
 			expect(await sovryn.getDefaultPathConversion(SUSD.address, RBTC.address)).to.deep.equal(defaultPathConversion);
@@ -822,7 +822,7 @@ contract("LoanTokenTrading", (accounts) => {
 			// prepare the test
 			await set_demand_curve(loanToken);
 			await lend_to_pool(loanToken, SUSD, accounts[0]);
-			
+
 			const defaultPathConversion = [SUSD.address, RBTC.address, RBTC.address];
 			await sovryn.setDefaultPathConversion(SUSD.address, RBTC.address, defaultPathConversion);
 			expect(await sovryn.getDefaultPathConversion(SUSD.address, RBTC.address)).to.deep.equal(defaultPathConversion);
@@ -921,6 +921,43 @@ contract("LoanTokenTrading", (accounts) => {
 
 			// For margin trade using collateral, the positionSize can be checked by getting the additional collateral token that is transferred into the protocol (difference between latest & previous balance)
 			expect(args2["positionSize"]).to.equal(sovryn_collateral_token_balance_diff2);
+		});
+
+		it("Margin trade should revert if minEntryPrice is not fulfilled", async () => {
+			// initial price that was set, 1 RBTC = 1e22 (10000 SUSD), so we can put 2 e(22-18) to trigger the invalid minEntryPrice
+			await SUSD.transfer(loanToken.address, wei("1000000", "ether"));
+			await RBTC.transfer(accounts[2], oneEth);
+			await RBTC.approve(loanToken.address, oneEth, { from: accounts[2] });
+
+			await expectRevert(
+				loanToken.marginTrade(
+					"0x0", // loanId  (0 for new loans)
+					wei("2", "ether"), // leverageAmount
+					0, // loanTokenSent (SUSD)
+					10000, // collateral token sent
+					RBTC.address, // collateralTokenAddress (RBTC)
+					accounts[1], // trader,
+					20000, // minEntryPrice
+					"0x", // loanDataBytes (only required with ether)
+					{ from: accounts[2] }
+				),
+				"principal too small"
+			);
+
+			await expectRevert(
+				loanToken.marginTrade(
+					"0x0", // loanId  (0 for new loans)
+					wei("2", "ether"), // leverageAmount
+					0, // loanTokenSent (SUSD)
+					oneEth.toString(), // collateral token sent
+					RBTC.address, // collateralTokenAddress (RBTC)
+					accounts[1], // trader,
+					2e14, // minEntryPrice
+					"0x", // loanDataBytes (only required with ether)
+					{ from: accounts[2] }
+				),
+				"entry price above the minimum"
+			);
 		});
 	});
 });

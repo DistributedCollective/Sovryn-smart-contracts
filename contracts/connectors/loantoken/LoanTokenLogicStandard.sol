@@ -365,11 +365,11 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 			sentAmounts.newPrincipal /// depositAmount
 		);
 
-		checkPriceDivergence(loanTokenSent.add(sentAmounts.newPrincipal), collateralTokenAddress, minEntryPrice);
 		require(_getAmountInRbtc(loanTokenAddress, sentAmounts.newPrincipal) > TINY_AMOUNT, "principal too small");
 
 		/// @dev Converting to initialMargin
 		leverageAmount = SafeMath.div(10**38, leverageAmount);
+		sentAmounts.minEntryPrice = minEntryPrice;
 		return
 			_borrowOrTrade(
 				loanId,
