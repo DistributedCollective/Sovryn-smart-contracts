@@ -66,7 +66,7 @@ index ab51b5a..9328216 100644
          const rawResults = await this._sendBatch(batch);
 -        const decodedResults = rawResults.map((result, i) => (0, decodeJsonRpcResponse_1.decodeJsonRpcResponse)(result, batch[i].tType));
 +        const decodedResults = rawResults.map((result, i) => {
-+            this.addMissingTxParams(batch[i].method, rawResults);
++            this.addMissingTxParams(batch[i].method, result);
 +            return (0, decodeJsonRpcResponse_1.decodeJsonRpcResponse)(
 +                result,
 +                batch[i].tType
