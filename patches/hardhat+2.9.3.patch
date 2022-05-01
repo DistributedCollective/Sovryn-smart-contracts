@@ -28,7 +28,7 @@ index ab51b5a..9328216 100644
 +        if (
 +            method.startsWith('eth_getBlock') &&
 +            rawResult &&
-+            rawResult.transactions?.length
++            rawResult.transactions && rawResult.transactions.length
 +        ) {
 +            rawResult.transactions.forEach((t) => {
 +                // Accesslist is sometimes missing, for other networks and maybe for RSK too
