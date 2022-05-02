@@ -4,6 +4,7 @@ from brownie.network.contract import InterfaceContainer
 import json
 import csv
 import time
+import math
 
 def main():
     global contracts, acct
@@ -58,14 +59,17 @@ def main():
             owner=acct)
         startDate = fourYearVestingLogic.startDate()
         print('startDate:', startDate)
-        timeLockDate = readLockDate(time.time())
+        datenow = time.time()
+        timeLockDate = readLockDate(datenow)
         print('timeLockDate:', timeLockDate)
         DAY = 24 * 60 * 60
         FOUR_WEEKS = 4 * 7 * DAY
         result = ((timeLockDate - startDate) % FOUR_WEEKS) # the cron should run every four weeks from start date
         newResult = ((timeLockDate - startDate) / FOUR_WEEKS) # the cron should run for first 13 intervals = 52 weeks
+        timediff = datenow - timeLockDate # To avoid execution on consecutive weeks
         print('result:', result)
-        print('newResult:', newResult)
+        print('newResult:', math.floor(newResult))
+        print('timediff:', timediff)
         print('-----------------------------------------------------')
-        if ((result == 0) and (newResult <= 13)):
+        if ((result == 0) and (math.floor(newResult) >= 1) and (math.floor(newResult) <= 13) and (timediff < 86400) ):
             fourYearVestingLogic.extendStaking()
