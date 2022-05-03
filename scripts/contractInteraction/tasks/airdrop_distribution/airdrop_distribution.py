@@ -10,8 +10,8 @@ def main():
     Implements 
     - direct distribution of SOV and XUSD
     - distribution SOV via vesting
-    brownie run scripts/contractInteraction/tasks/airdrop_distribution.py --network testnet
-    brownie run scripts/contractInteraction/tasks/airdrop_distribution.py --network rsk-mainnet
+    brownie run scripts/contractInteraction/tasks/airdrop_distribution/airdrop_distribution.py --network testnet
+    brownie run scripts/contractInteraction/tasks/airdrop_distribution/airdrop_distribution.py --network rsk-mainnet
     '''
     
     # GenericTokenSenderAddAdmin("0x27d55f5668ef4438635bdce0adca083507e77752")
@@ -42,11 +42,11 @@ def main():
     #
     # - Distribute XUSD -
     # 
-    # XUSDAmount = 4325316 * 10**16 #43,253.16
+    # XUSDAmount = 4996600 * 10**16 #49,966.00
     # 1.
     # transferXUSDtoTokenSender(XUSDAmount) # direct liquid XUSD distribution
     # 2.
-    # xusdDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-XUSD-transfers-_____.csv'
+    # xusdDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-XUSD-transfers-22-05.csv'
     # dryRun = True # false to execute, true to verify the file structure
     # multiplier = 10**16 # usually 10**16 <- amounts must with 2 decimals
     # sendDirectXUSD(xusdDistributionPath, dryRun, multiplier)
@@ -81,3 +81,4 @@ def main():
     # vestingRegistryProxyRemoveAdmin('0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E') # remove the script exexution from admins
     # 
     #
+    getGenericTokenSenderInfo()

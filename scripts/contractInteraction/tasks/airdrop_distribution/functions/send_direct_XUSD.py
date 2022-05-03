@@ -36,13 +36,14 @@ def parseFile(fileName, multiplier):
     totalAmount = 0
     receivers = []
     amounts = []
+    errorMsg = ''
     with open(fileName, 'r') as file:
         reader = csv.reader(file)
         for row in reader:
             tokenOwner = row[0].replace(" ", "")
-            decimals = row[0].split('.')
+            decimals = row[1].split('.')
             if(len(decimals) != 2 or len(decimals[1]) != 2):
-                errorMsg+="\n" + tokenOwner + ' amount: ' + row[0]
+                errorMsg+="\n" + tokenOwner + ' amount: ' + row[1]
             amount = row[1].replace(",", "").replace(".", "")
             amount = int(amount) * multiplier
             totalAmount += amount
