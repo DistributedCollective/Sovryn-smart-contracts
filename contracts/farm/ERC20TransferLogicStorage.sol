@@ -5,5 +5,5 @@ import "../utils/AdminRole.sol";
 import "../interfaces/IERC20.sol";
 
 contract ERC20TransferLogicStorage is IRewardTransferLogic, AdminRole {
-	IERC20 public token;
+    IERC20 public token;
 }
