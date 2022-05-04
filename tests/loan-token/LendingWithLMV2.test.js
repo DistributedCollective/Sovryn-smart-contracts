@@ -48,10 +48,7 @@ const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const wei = web3.utils.toWei;
 
-const {
-    getLoanTokenLogic,
-    getLoanTokenLogicWrbtc,
-} = require("../Utils/initializer.js");
+const { getLoanTokenLogic, getLoanTokenLogicWrbtc } = require("../Utils/initializer.js");
 
 contract("LoanTokenLogicLM", (accounts) => {
     const name = "Test token";
@@ -319,8 +316,8 @@ contract("LoanTokenLogicLM", (accounts) => {
     }
 
     async function deployLoanTokens() {
-        const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]	
-        loanTokenLogicLM = initLoanTokenLogic[0];	
+        const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+        loanTokenLogicLM = initLoanTokenLogic[0];
         loanTokenLogicBeaconLM = initLoanTokenLogic[1];
         loanToken = await LoanToken.new(
             lender,
@@ -355,8 +352,8 @@ contract("LoanTokenLogicLM", (accounts) => {
 
         // --------------- WRBTC -----------------------//
 
-        const initLoanTokenLogicWrbtc = await getLoanTokenLogicWrbtc(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]	
-        loanTokenLogicWrbtc = initLoanTokenLogicWrbtc[0];	
+        const initLoanTokenLogicWrbtc = await getLoanTokenLogicWrbtc(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+        loanTokenLogicWrbtc = initLoanTokenLogicWrbtc[0];
         loanTokenLogicBeaconWrbtc = initLoanTokenLogicWrbtc[1];
         loanTokenWRBTC = await LoanToken.new(
             lender,
@@ -365,10 +362,10 @@ contract("LoanTokenLogicLM", (accounts) => {
             testWrbtc.address
         );
         await loanTokenWRBTC.initialize(testWrbtc.address, "iRBTC", "iRBTC");
-        /** Initialize the loan token logic proxy */	
-        loanTokenWRBTC = await ILoanTokenLogicProxy.at(loanTokenWRBTC.address);	
-        await loanTokenWRBTC.setBeaconAddress(loanTokenLogicBeaconWrbtc.address);	
-        /** Use interface of LoanTokenModules */	
+        /** Initialize the loan token logic proxy */
+        loanTokenWRBTC = await ILoanTokenLogicProxy.at(loanTokenWRBTC.address);
+        await loanTokenWRBTC.setBeaconAddress(loanTokenLogicBeaconWrbtc.address);
+        /** Use interface of LoanTokenModules */
         loanTokenWRBTC = await ILoanTokenModules.at(loanTokenWRBTC.address);
 
         params = [
