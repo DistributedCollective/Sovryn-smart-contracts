@@ -1,0 +1,69 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Set Block
+
+on:
+  schedule:
+    # TODO: The cron job should run every alternate Friday at 11 UTC(New staking interval starts at 10:28:15 UTC)
+    - cron: "30 10 * * FRI"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Setup node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: "14.x"
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Cache compiler installations
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.solcx
+            ~/.vvm
+          key: ${{ runner.os }}-compiler-cache
+
+      # - name: Set pip cache directory path
+      # id: pip-cache-dir-path
+      # run: |
+      #   echo "::set-output name=dir::$(pip cache dir)"
+
+      # - name: Restore pip cache
+      #   uses: actions/cache@v2
+      #   id: pip-cache
+      #   with:
+      #     path: |
+      #       ${{ steps.pip-cache-dir-path.outputs.dir }}
+      #     key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      #       ${{ runner.os }}-pip-
+
+      - name: Install python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Set Block
+        run: echo $REWARDS_CRON && brownie networks import network-config.yaml true && brownie run scripts/contractInteraction/setBlock_cron.py --network=rsk-mainnet
+        env:
+          REWARDS_CRON: 1
+          FEE_CLAIMER: ${{secrets.FEE_CLAIMER}}

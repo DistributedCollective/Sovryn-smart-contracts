@@ -23,10 +23,31 @@ from scripts.contractInteraction.misc import *
 from scripts.contractInteraction.prices import *
 from scripts.contractInteraction.liquidity_miningV2 import *
 from scripts.contractInteraction.liquidity_mining_V1toV2_migrator import *
+from scripts.contractInteraction.fastbtc import *
 
 def main():
+    '''
+    run from CLI:
+    brownie run scripts/contractInteraction/contract_interaction.py --network testnet
+    brownie run scripts/contractInteraction/contract_interaction.py --network rsk-mainnet
+    '''
     
-    #load the contracts and acct depending on the network
-    conf.loadConfig()
+    # call the function you want here
 
-    #call the function you want here
+    #used often:
+
+    #withdrawRBTCFromWatcher(30e18, conf.contracts['FastBTC'])
+    #bal = getBalance(conf.contracts['SOV'], conf.contracts['Watcher'])
+    #withdrawTokensFromWatcher(conf.contracts['SOV'], bal, conf.contracts['multisig'])
+
+    #sendTokensFromMultisig(conf.contracts['SOV'], '0xd1c42e0ace7a80efc191835dac102043bcfbbbe6', 4500e18)
+    #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 25e18)
+
+    #sendMYNTFromMultisigToFeeSharingProxy(36632.144056847e18)
+
+    #for i in range (885, 887):
+    #    checkTx(i)
+    #    confirmWithMS(i)
+
+    #missed = getMissedBalance()
+    #transferSOVtoLM(missed)

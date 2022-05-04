@@ -54,6 +54,10 @@ module.exports = {
 	},
 	networks: {
 		hardhat: {},
+		ganache: {
+			url: "http://127.0.0.1:7545",
+			gas: 6721975, //Block Gas Limit - Ganache
+		},
 	},
 	paths: {
 		sources: "./contracts",

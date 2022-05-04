@@ -14,10 +14,12 @@ def setLiquidityMiningAddressOnAllContracts():
     setLiquidityMiningAddress(conf.contracts['iXUSD'])
     setLiquidityMiningAddress(conf.contracts['iRBTC'])
 
-def getLiquidityMiningAddress(loanTokenAddress):
+def getLiquidityMiningAddress(loanTokenAddress, loanTokenName = ''):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicLM.abi, owner=conf.acct)
-    print(loanToken.liquidityMiningAddress())
-    print(loanToken.target_())
+    if loanTokenName != '':
+        print(loanTokenName, ":", loanToken.getLiquidityMiningAddress()," - ",loanToken.target_())
+    else:
+        print(loanToken.getLiquidityMiningAddress()," - ",loanToken.target_())
 
 def setLiquidityMiningAddress(loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicLM.abi, owner=conf.acct)
@@ -26,11 +28,13 @@ def setLiquidityMiningAddress(loanTokenAddress):
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
 def getLiquidityMiningAddressOnAllContracts():
-    print("setting LM address")
-    getLiquidityMiningAddress(conf.contracts['iDOC'])
-    getLiquidityMiningAddress(conf.contracts['iUSDT'])
-    getLiquidityMiningAddress(conf.contracts['iBPro'])
-    getLiquidityMiningAddress(conf.contracts['iRBTC'])
+    print("getting LM addresses")
+    print("loan token : LM address - loan token proxy address")
+    getLiquidityMiningAddress(conf.contracts['iDOC'], 'iDOC')
+    getLiquidityMiningAddress(conf.contracts['iUSDT'], 'iUSDT')
+    getLiquidityMiningAddress(conf.contracts['iBPro'], 'iBPro')
+    getLiquidityMiningAddress(conf.contracts['iXUSD'], 'iXUSD')
+    getLiquidityMiningAddress(conf.contracts['iRBTC'], 'iRBTC')
 
 def setWrapperOnLM():
     lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
@@ -90,3 +94,27 @@ def transferSOVtoLM(amount):
     print(data)
 
     sendWithMultisig(conf.contracts['multisig'], SOVtoken.address, data, conf.acct)
+ 
+def addAmmPoolTokenToLM(ptName):
+    # ptName - pool token name from testnet_contracts.json e.g.:
+    # "XUSD/BRZ"
+    # "(WR)BTC/MYNT"
+    lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
+
+    data = lm.add.encode_input(conf.contracts[ptName],1,False)
+    sendWithMultisig(conf.contracts['multisig'], lm.address, data, conf.acct)
+
+def getUserInfo(poolToken, user):
+    lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
+
+    res = lm.getUserInfo(poolToken, user)
+
+    print('pool tokens: ', res[0]/1e18)
+    print('debt: ', res[1]/1e18)
+    print('accumulated reward: ', res[2]/1e18)
+
+def getMissedBalance():
+    lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
+    res = lm.getMissedBalance()
+    print(res/1e18)
+    return res

@@ -8,9 +8,9 @@ import scripts.contractInteraction.config as conf
 
 def sendFromMultisig(receiver, amount):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
-    tx = multisig.submitTransaction(receiver,amount,'')
+    tx = multisig.submitTransaction(receiver,amount,b'')
     txId = tx.events["Submission"]["transactionId"]
-    print(txId);
+    print(txId)
 
 def sendTokensFromMultisig(token, receiver, amount):
     tokenContract = Contract.from_abi("Token", address=token, abi=TestToken.abi, owner=conf.acct)
@@ -24,6 +24,12 @@ def executeOnMultisig(transactionId):
 
     multisig.executeTransaction(transactionId)
 
+def revokeConfirmation(transactionId):
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+
+    multisig.revokeConfirmation(transactionId)
+
+
 def deployMultisig(owners, requiredConf):
      multisig = conf.acct.deploy(MultiSigWallet, owners, requiredConf)
      print("multisig:", multisig)
@@ -34,6 +40,7 @@ def printMultisigOwners():
     print(multisig.getOwners())
 
 def replaceOwnerOnMultisig(multisig, oldOwner, newOwner):
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     data = multisig.replaceOwner.encode_input(oldOwner, newOwner)
     sendWithMultisig(multisig, multisig, data, conf.acct)
 
@@ -41,12 +48,18 @@ def confirmWithMS(txId):
     multisig = Contract.from_abi("MultiSig", address = conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     multisig.confirmTransaction(txId)
 
-def checkTx():
-    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
-    print(multisig.transactions(216))
+def revokeConfirmationMS(txId):
+    multisig = Contract.from_abi("MultiSig", address = conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    multisig.revokeConfirmation(txId)
 
-    print(multisig.getConfirmationCount(216))
-    print(multisig.getConfirmations(216))
+def confirmMultipleTxsWithMS(txIdFrom, txIdTo):
+    for i in range(txIdFrom, txIdTo + 1): # the right boundary processed to the value-1, so adding 1
+        confirmWithMS(i)
+
+def checkTx(txId):
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    print("TX ID: ",txId,"confirmations: ", multisig.getConfirmationCount(txId), " Executed:", multisig.transactions(txId)[3], " Confirmed by: ", multisig.getConfirmations(txId))
+    print(multisig.transactions(txId))
 
 def transferSOVtoTokenSender():
     # 875.39 SOV
@@ -60,5 +73,11 @@ def transferSOVtoTokenSender():
     sendWithMultisig(conf.contracts['multisig'],SOVtoken.address, data, conf.acct)
 
 def addOwnerToMultisig(newOwner):
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     data = multisig.addOwner.encode_input(newOwner)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['multisig'], data, conf.acct)
+
+def removeOwnerFromMultisig(newOwner):
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    data = multisig.removeOwner.encode_input(newOwner)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['multisig'], data, conf.acct)

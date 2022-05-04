@@ -6,9 +6,9 @@ pragma solidity 0.5.17;
  **/
 
 contract ModulesCommonEvents {
-	event ProtocolModuleContractReplaced(
-		address indexed prevModuleContractAddress,
-		address indexed newModuleContractAddress,
-		bytes32 indexed module
-	);
+    event ProtocolModuleContractReplaced(
+        address indexed prevModuleContractAddress,
+        address indexed newModuleContractAddress,
+        bytes32 indexed module
+    );
 }

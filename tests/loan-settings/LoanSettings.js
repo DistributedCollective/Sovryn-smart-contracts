@@ -1,150 +1,146 @@
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-23
+ * Bottlenecks found at beforeEach hook, redeploying token,
+ *  protocol and loan on every test.
+ *
+ * Total time elapsed: 6.2s
+ * After optimization: 4.6s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Applied fixture to use snapshot beforeEach test.
+ *   Updated to use the initializer.js functions for protocol deployment.
+ *   Also tried to use the loan_pool_setup() function but couldn't due to the
+ *   custom pool parameters test is using.
+ */
+
 const { assert } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time, ether } = require("@openzeppelin/test-helpers");
+const { waffle } = require("hardhat");
+const { loadFixture } = waffle;
+const { expectRevert, constants, ether } = require("@openzeppelin/test-helpers");
 
-const TestToken = artifacts.require("TestToken");
-const TestWrbtc = artifacts.require("TestWrbtc");
-
-const sovrynProtocol = artifacts.require("sovrynProtocol");
-const ProtocolSettings = artifacts.require("ProtocolSettings");
-const ISovryn = artifacts.require("ISovryn");
-
-const LoanToken = artifacts.require("LoanToken");
-const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
-const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
-const LoanSettings = artifacts.require("LoanSettings");
-const LoanMaintenance = artifacts.require("LoanMaintenance");
-const LoanOpenings = artifacts.require("LoanOpenings");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
-const LoanClosingsWith = artifacts.require("LoanClosingsWith");
-const SwapsExternal = artifacts.require("SwapsExternal");
-
-const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
-const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplLocal = artifacts.require("SwapsImplLocal");
-
-const TOTAL_SUPPLY = ether("1000");
+const {
+    getSUSD,
+    getRBTC,
+    getWRBTC,
+    getBZRX,
+    getLoanTokenLogic,
+    getLoanToken,
+    getLoanTokenLogicWrbtc,
+    getLoanTokenWRBTC,
+    loan_pool_setup,
+    set_demand_curve,
+    getPriceFeeds,
+    getSovryn,
+    decodeLogs,
+    getSOV,
+} = require("../Utils/initializer.js");
 
 contract("LoanSettings", (accounts) => {
-	const name = "Test token";
-	const symbol = "TST";
+    let lender;
+    let SUSD; // underlying token
+    let WRBTC; // collateral token
+    let sovryn, loanToken;
+    let loanParams;
 
-	let lender, account1, account2, account3, account4;
-	let underlyingToken, testWrbtc;
-	let sovryn, loanToken;
-	let loanParams, loanParamsId;
+    async function deploymentAndInitFixture(_wallets, _provider) {
+        SUSD = await getSUSD();
+        RBTC = await getRBTC();
+        WRBTC = await getWRBTC();
+        BZRX = await getBZRX();
+        priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
+        sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
-	before(async () => {
-		[lender, account1, account2, account3, account4, ...accounts] = accounts;
-	});
+        /// @dev Not included in initializer.js
+        await sovryn.setFeesController(lender);
 
-	beforeEach(async () => {
-		//Token
-		underlyingToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-		testWrbtc = await TestWrbtc.new();
+        loanTokenLogicWrbtc = await getLoanTokenLogicWrbtc();
 
-		const sovrynproxy = await sovrynProtocol.new();
-		sovryn = await ISovryn.at(sovrynproxy.address);
+        loanToken = await getLoanToken(lender, sovryn, WRBTC, SUSD);
 
-		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
-		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
-		await sovryn.replaceContract((await ProtocolSettings.new()).address);
-		await sovryn.replaceContract((await LoanSettings.new()).address);
-		await sovryn.replaceContract((await LoanMaintenance.new()).address);
-		await sovryn.replaceContract((await SwapsExternal.new()).address);
-		await sovryn.replaceContract((await LoanOpenings.new()).address);
+        const loanTokenAddress = await loanToken.loanTokenAddress();
+        if (lender == (await sovryn.owner()))
+            await sovryn.setLoanPool([loanToken.address], [loanTokenAddress]);
 
-		await sovryn.setWrbtcToken(testWrbtc.address);
+        await WRBTC.mint(sovryn.address, ether("500"));
 
-		feeds = await PriceFeedsLocal.new(testWrbtc.address, sovryn.address);
-		await feeds.setRates(underlyingToken.address, testWrbtc.address, ether("0.01"));
-		const swaps = await SwapsImplLocal.new();
-		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
-		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
-		await sovryn.setSupportedTokens([underlyingToken.address, testWrbtc.address], [true, true]);
-		await sovryn.setPriceFeedContract(
-			feeds.address //priceFeeds
-		);
-		await sovryn.setSwapsImplContract(
-			swaps.address // swapsImpl
-		);
-		await sovryn.setFeesController(lender);
+        loanParams = {
+            id: "0x0000000000000000000000000000000000000000000000000000000000000000",
+            active: false,
+            owner: constants.ZERO_ADDRESS,
+            loanToken: SUSD.address,
+            collateralToken: WRBTC.address,
+            minInitialMargin: ether("50"),
+            maintenanceMargin: ether("15"),
+            maxLoanTerm: "2419200",
+        };
 
-		loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
-		loanToken = await LoanToken.new(lender, loanTokenLogicWrbtc.address, sovryn.address, testWrbtc.address);
-		await loanToken.initialize(testWrbtc.address, "iWRBTC", "iWRBTC"); //iToken
-		loanToken = await LoanTokenLogicWrbtc.at(loanToken.address);
+        let tx = await sovryn.setupLoanParams([Object.values(loanParams)]);
+        loanParamsId = tx.logs[1].args.id;
+    }
 
-		const loanTokenAddress = await loanToken.loanTokenAddress();
-		if (lender == (await sovryn.owner())) await sovryn.setLoanPool([loanToken.address], [loanTokenAddress]);
+    before(async () => {
+        [lender, ...accounts] = accounts;
+    });
 
-		await testWrbtc.mint(sovryn.address, ether("500"));
+    beforeEach(async () => {
+        await loadFixture(deploymentAndInitFixture);
+    });
 
-		loanParams = {
-			id: "0x0000000000000000000000000000000000000000000000000000000000000000",
-			active: false,
-			owner: constants.ZERO_ADDRESS,
-			loanToken: underlyingToken.address,
-			collateralToken: testWrbtc.address,
-			minInitialMargin: ether("50"),
-			maintenanceMargin: ether("15"),
-			maxLoanTerm: "2419200",
-		};
+    describe("test LoanSettings", async () => {
+        it("test setup removeLoanParams", async () => {
+            let loanParamsAfter = (await sovryn.getLoanParams([loanParamsId]))[0];
 
-		let tx = await sovryn.setupLoanParams([Object.values(loanParams)]);
-		loanParamsId = tx.logs[1].args.id;
-	});
+            assert(loanParamsAfter["id"] != "0x0");
+            assert(loanParamsAfter["active"]);
+            assert(loanParamsAfter["owner"] == lender);
+            assert(loanParamsAfter["loanToken"] == SUSD.address);
 
-	describe("test LoanSettings", async () => {
-		it("test setup removeLoanParams", async () => {
-			let loanParamsAfter = (await sovryn.getLoanParams([loanParamsId]))[0];
+            await expectRevert(
+                sovryn.disableLoanParams([loanParamsId], { from: accounts[0] }),
+                "unauthorized owner"
+            );
 
-			assert(loanParamsAfter["id"] != "0x0");
-			assert(loanParamsAfter["active"]);
-			assert(loanParamsAfter["owner"] == lender);
-			assert(loanParamsAfter["loanToken"] == underlyingToken.address);
+            await sovryn.disableLoanParams([loanParamsId], { from: lender });
+            assert((await sovryn.getLoanParams([loanParamsId]))[0]["id"] != "0x0");
+        });
 
-			await expectRevert(sovryn.disableLoanParams([loanParamsId], { from: accounts[0] }), "unauthorized owner");
+        it("test disableLoanParams", async () => {
+            await sovryn.disableLoanParams([loanParamsId], { from: lender });
 
-			await sovryn.disableLoanParams([loanParamsId], { from: lender });
-			assert((await sovryn.getLoanParams([loanParamsId]))[0]["id"] != "0x0");
-		});
+            let loanParamsAfter = (await sovryn.getLoanParams([loanParamsId]))[0];
 
-		it("test disableLoanParams", async () => {
-			await sovryn.disableLoanParams([loanParamsId], { from: lender });
+            assert(loanParamsAfter["id"] != "0x0");
+            assert(loanParamsAfter["active"] == false); // false because we disabled Loan Param just before
+            assert(loanParamsAfter["owner"] == lender);
+            assert(loanParamsAfter["loanToken"] == SUSD.address);
+            assert(loanParamsAfter["collateralToken"] == WRBTC.address);
+            assert(loanParamsAfter["minInitialMargin"] == ether("50"));
+            assert(loanParamsAfter["maintenanceMargin"] == ether("15"));
+            assert(loanParamsAfter["maxLoanTerm"] == "2419200");
+        });
 
-			let loanParamsAfter = (await sovryn.getLoanParams([loanParamsId]))[0];
+        it("test getLoanParams", async () => {
+            let loanParamsAfter = (await sovryn.getLoanParams([loanParamsId]))[0];
 
-			assert(loanParamsAfter["id"] != "0x0");
-			assert(loanParamsAfter["active"] == false); // false because we disabled Loan Param just before
-			assert(loanParamsAfter["owner"] == lender);
-			assert(loanParamsAfter["loanToken"] == underlyingToken.address);
-			assert(loanParamsAfter["collateralToken"] == testWrbtc.address);
-			assert(loanParamsAfter["minInitialMargin"] == ether("50"));
-			assert(loanParamsAfter["maintenanceMargin"] == ether("15"));
-			assert(loanParamsAfter["maxLoanTerm"] == "2419200");
-		});
+            assert(loanParamsAfter["id"] != "0x0");
+            assert(loanParamsAfter["active"]);
+            assert(loanParamsAfter["owner"] == lender);
+            assert(loanParamsAfter["loanToken"] == SUSD.address);
+            assert(loanParamsAfter["collateralToken"] == WRBTC.address);
+            assert(loanParamsAfter["minInitialMargin"] == ether("50"));
+            assert(loanParamsAfter["maintenanceMargin"] == ether("15"));
+            assert(loanParamsAfter["maxLoanTerm"] == "2419200");
+        });
 
-		it("test getLoanParams", async () => {
-			let loanParamsAfter = (await sovryn.getLoanParams([loanParamsId]))[0];
+        it("test getLoanParamsList", async () => {
+            let loanParamsList = await sovryn.getLoanParamsList(lender, 0, 1);
+            assert(loanParamsList[0] == loanParamsId);
+        });
 
-			assert(loanParamsAfter["id"] != "0x0");
-			assert(loanParamsAfter["active"]);
-			assert(loanParamsAfter["owner"] == lender);
-			assert(loanParamsAfter["loanToken"] == underlyingToken.address);
-			assert(loanParamsAfter["collateralToken"] == testWrbtc.address);
-			assert(loanParamsAfter["minInitialMargin"] == ether("50"));
-			assert(loanParamsAfter["maintenanceMargin"] == ether("15"));
-			assert(loanParamsAfter["maxLoanTerm"] == "2419200");
-		});
-
-		it("test getLoanParamsList", async () => {
-			let loanParamsList = await sovryn.getLoanParamsList(lender, 0, 1);
-			assert(loanParamsList[0] == loanParamsId);
-		});
-
-		it("test getTotalPrincipal", async () => {
-			let totalPrincipal = await sovryn.getTotalPrincipal(lender, underlyingToken.address);
-			assert(totalPrincipal == 0);
-		});
-	});
+        it("test getTotalPrincipal", async () => {
+            let totalPrincipal = await sovryn.getTotalPrincipal(lender, SUSD.address);
+            assert(totalPrincipal == 0);
+        });
+    });
 });

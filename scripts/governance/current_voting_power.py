@@ -9,7 +9,8 @@ def main():
     #load the contracts and acct depending on the network
     loadConfig()
 
-    currentVotingPower(values['account'])
+    #currentVotingPower(values['account'])
+    currentVotingPower('0x5426beDCE76FD991da29339E3d72021e57794079')
 
 def loadConfig():
     global contracts, acct, values

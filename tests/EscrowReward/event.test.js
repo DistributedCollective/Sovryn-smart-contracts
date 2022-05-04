@@ -1,19 +1,46 @@
 // For this test, multisig wallet will be done by normal wallets.
 
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-21
+ * No bottlenecks found, all tests run smoothly.
+ *
+ * Total time elapsed: 4.2s
+ * After optimization: 4.1s
+ *
+ * Other minor optimizations:
+ * - Fixed some comments
+ *
+ * Notes: Found 3 escrow reward contract deployments. It's been reduced
+ *  to just 2 of them by reordering tests and moving some code to
+ *  the before hook. Last escrow is required because test needs to go through
+ *  the entire status flow of the escrow.
+ *
+ *  Found 2 LockedSOV mock deployments, but both are needed, the former to
+ *  be attached to the escrow, and the latter to have a new and different
+ *  address to check events for updating are working ok.
+ */
+
 const EscrowReward = artifacts.require("EscrowReward");
-const LockedSOV = artifacts.require("LockedSOVMockup"); // Ideally should be using actual LockedSOV for testing.
+const LockedSOV = artifacts.require("LockedSOV"); // Ideally should be using actual LockedSOV for testing.
 const SOV = artifacts.require("TestToken");
+const VestingLogic = artifacts.require("VestingLogic");
+const VestingFactory = artifacts.require("VestingFactory");
+const VestingRegistry = artifacts.require("VestingRegistry3");
+const StakingLogic = artifacts.require("Staking");
+const StakingProxy = artifacts.require("StakingProxy");
+const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 
 const {
-	BN, // Big Number support.
-	expectEvent,
-	constants, // Assertions for transactions that should fail.
+    BN, // Big Number support.
+    expectEvent,
+    constants, // Assertions for transactions that should fail.
 } = require("@openzeppelin/test-helpers");
 
 const { assert } = require("chai");
 
 // Some constants we would be using in the contract.
 let zero = new BN(0);
+let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
+let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 const depositLimit = 75000000;
 
 /**
@@ -23,7 +50,7 @@ const depositLimit = 75000000;
  * @return {number} Random Value.
  */
 function randomValue() {
-	return Math.floor(Math.random() * 1000000);
+    return Math.floor(Math.random() * 1000000);
 }
 
 /**
@@ -33,164 +60,230 @@ function randomValue() {
  *  @return {number} Current Timestamp.
  */
 function currentTimestamp() {
-	return Math.floor(Date.now() / 1000);
+    return Math.floor(Date.now() / 1000);
 }
 
 contract("Escrow Rewards (Events)", (accounts) => {
-	let escrowReward, newEscrowReward, sov, lockedSOV;
-	let creator, multisig, newMultisig, safeVault, userOne, userTwo, userThree, userFour, userFive;
+    let escrowReward, newEscrowReward, sov, lockedSOV;
+    let creator, multisig, newMultisig, safeVault, userOne, userTwo, userThree, userFour, userFive;
+    let txReceiptEscrowRewardDeployment;
 
-	before("Initiating Accounts & Creating Test Token Instance.", async () => {
-		// Checking if we have enough accounts to test.
-		assert.isAtLeast(accounts.length, 9, "Alteast 9 accounts are required to test the contracts.");
-		[creator, multisig, newMultisig, safeVault, userOne, userTwo, userThree, userFour, userFive] = accounts;
+    before("Initiating Accounts & Creating Test Token Instance.", async () => {
+        // Checking if we have enough accounts to test.
+        assert.isAtLeast(
+            accounts.length,
+            9,
+            "At least 9 accounts are required to test the contracts."
+        );
+        [
+            creator,
+            multisig,
+            newMultisig,
+            safeVault,
+            userOne,
+            userTwo,
+            userThree,
+            userFour,
+            userFive,
+        ] = accounts;
 
-		// Creating the instance of SOV Token.
-		sov = await SOV.new("Sovryn", "SOV", 18, zero);
+        // Creating the instance of SOV Token.
+        sov = await SOV.new("Sovryn", "SOV", 18, zero);
 
-		// Creating the instance of LockedSOV Contract.
-		lockedSOV = await LockedSOV.new(sov.address, [multisig]);
+        // Creating the Staking Instance.
+        stakingLogic = await StakingLogic.new(sov.address);
+        staking = await StakingProxy.new(sov.address);
+        await staking.setImplementation(stakingLogic.address);
+        staking = await StakingLogic.at(staking.address);
 
-		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
+        // Creating the FeeSharing Instance.
+        feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, staking.address);
 
-		// Marking the contract as active.
-		await escrowReward.init({ from: multisig });
+        // Creating the Vesting Instance.
+        vestingLogic = await VestingLogic.new();
+        vestingFactory = await VestingFactory.new(vestingLogic.address);
+        vestingRegistry = await VestingRegistry.new(
+            vestingFactory.address,
+            sov.address,
+            staking.address,
+            feeSharingProxy.address,
+            creator // This should be Governance Timelock Contract.
+        );
+        vestingFactory.transferOwnership(vestingRegistry.address);
 
-		// Adding the contract as an admin in the lockedSOV.
-		await lockedSOV.addAdmin(escrowReward.address, { from: multisig });
-	});
+        // Creating the instance of newLockedSOV Contract.
+        lockedSOV = await LockedSOV.new(sov.address, vestingRegistry.address, cliff, duration, [
+            multisig,
+        ]);
 
-	it("Calling the init() will emit EscrowActivated Event.", async () => {
-		// Creating the contract instance.
-		newEscrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
-		let txReceipt = await newEscrowReward.init({ from: multisig });
-		expectEvent(txReceipt, "EscrowActivated");
-	});
+        // Creating the contract instance.
+        escrowReward = await EscrowReward.new(
+            lockedSOV.address,
+            sov.address,
+            multisig,
+            zero,
+            depositLimit,
+            { from: creator }
+        );
+        newEscrowReward = await EscrowReward.new(
+            lockedSOV.address,
+            sov.address,
+            multisig,
+            zero,
+            depositLimit,
+            { from: creator }
+        );
 
-	it("Updating the Multisig should emit NewMultisig Event.", async () => {
-		let txReceipt = await newEscrowReward.updateMultisig(newMultisig, { from: multisig });
-		expectEvent(txReceipt, "NewMultisig", {
-			_initiator: multisig,
-			_newMultisig: newMultisig,
-		});
-	});
+        // Marking the contract as active.
+        txReceiptEscrowRewardDeployment = await escrowReward.init({ from: multisig });
 
-	it("Updating the release time should emit TokenReleaseUpdated Event.", async () => {
-		let timestamp = currentTimestamp();
-		let txReceipt = await escrowReward.updateReleaseTimestamp(timestamp, { from: multisig });
-		expectEvent(txReceipt, "TokenReleaseUpdated", {
-			_initiator: multisig,
-			_releaseTimestamp: new BN(timestamp),
-		});
-	});
+        // Adding the contract as an admin in the lockedSOV.
+        await lockedSOV.addAdmin(escrowReward.address, { from: multisig });
+    });
 
-	it("Updating the deposit limit should emit TokenDepositLimitUpdated Event.", async () => {
-		let txReceipt = await escrowReward.updateDepositLimit(zero, { from: multisig });
-		expectEvent(txReceipt, "TokenDepositLimitUpdated", {
-			_initiator: multisig,
-			_depositLimit: new BN(zero),
-		});
-	});
+    it("Calling the init() will emit EscrowActivated Event.", async () => {
+        /// @dev using the init call from the before hook, for optimization
+        expectEvent(txReceiptEscrowRewardDeployment, "EscrowActivated");
+    });
 
-	it("Depositing Tokens by Users should emit TokenDeposit Event.", async () => {
-		let value = randomValue() + 1;
-		await escrowReward.updateDepositLimit(value + 1, { from: multisig });
-		await sov.mint(userOne, value);
-		await sov.approve(escrowReward.address, value, { from: userOne });
-		let txReceipt = await escrowReward.depositTokens(value, { from: userOne });
-		expectEvent(txReceipt, "TokenDeposit", {
-			_initiator: userOne,
-			_amount: new BN(value),
-		});
-	});
+    it("Updating the release time should emit TokenReleaseUpdated Event.", async () => {
+        let timestamp = currentTimestamp();
+        let txReceipt = await escrowReward.updateReleaseTimestamp(timestamp, { from: multisig });
+        expectEvent(txReceipt, "TokenReleaseUpdated", {
+            _initiator: multisig,
+            _releaseTimestamp: new BN(timestamp),
+        });
+    });
 
-	it("Reaching the Deposit Limit should emit TokenDeposit Event.", async () => {
-		let value = randomValue() + 1;
+    it("Updating the deposit limit should emit TokenDepositLimitUpdated Event.", async () => {
+        let txReceipt = await escrowReward.updateDepositLimit(zero, { from: multisig });
+        expectEvent(txReceipt, "TokenDepositLimitUpdated", {
+            _initiator: multisig,
+            _depositLimit: new BN(zero),
+        });
+    });
 
-		await sov.mint(userOne, value);
-		await sov.approve(escrowReward.address, value, { from: userOne });
+    it("Depositing Tokens by Users should emit TokenDeposit Event.", async () => {
+        let value = randomValue() + 1;
+        await escrowReward.updateDepositLimit(value + 1, { from: multisig });
+        await sov.mint(userOne, value);
+        await sov.approve(escrowReward.address, value, { from: userOne });
+        let txReceipt = await escrowReward.depositTokens(value, { from: userOne });
+        expectEvent(txReceipt, "TokenDeposit", {
+            _initiator: userOne,
+            _amount: new BN(value),
+        });
+    });
 
-		let txReceipt = await escrowReward.depositTokens(value, { from: userOne });
-		expectEvent(txReceipt, "DepositLimitReached");
-	});
+    it("Reaching the Deposit Limit should emit TokenDeposit Event.", async () => {
+        let value = randomValue() + 1;
 
-	it("Changing the contract to Holding State should emit EscrowInHoldingState Event.", async () => {
-		let txReceipt = await escrowReward.changeStateToHolding({ from: multisig });
-		expectEvent(txReceipt, "EscrowInHoldingState");
-	});
+        await sov.mint(userOne, value);
+        await sov.approve(escrowReward.address, value, { from: userOne });
 
-	it("Multisig token withdraw should emit TokenWithdrawByMultisig Event.", async () => {
-		let beforeSafeVaultSOVBalance = await sov.balanceOf(safeVault);
-		let txReceipt = await escrowReward.withdrawTokensByMultisig(safeVault, { from: multisig });
-		let afterSafeVaultSOVBalance = await sov.balanceOf(safeVault);
-		expectEvent(txReceipt, "TokenWithdrawByMultisig", {
-			_initiator: multisig,
-			_amount: new BN(afterSafeVaultSOVBalance - beforeSafeVaultSOVBalance),
-		});
-	});
+        let txReceipt = await escrowReward.depositTokens(value, { from: userOne });
+        expectEvent(txReceipt, "DepositLimitReached");
+    });
 
-	it("Multisig reward token deposit should emit RewardDepositsByMultisig Event.", async () => {
-		let reward = randomValue() + 1;
-		await sov.mint(multisig, reward);
-		await sov.approve(escrowReward.address, reward, { from: multisig });
-		let txReceipt = await escrowReward.depositRewardByMultisig(reward, { from: multisig });
-		expectEvent(txReceipt, "RewardDepositByMultisig", {
-			_initiator: multisig,
-			_amount: new BN(reward),
-		});
-	});
+    it("Changing the contract to Holding State should emit EscrowInHoldingState Event.", async () => {
+        let txReceipt = await escrowReward.changeStateToHolding({ from: multisig });
+        expectEvent(txReceipt, "EscrowInHoldingState");
+    });
 
-	it("Multisig token deposit should emit TokenDepositByMultisig Event.", async () => {
-		let value = randomValue() + 1;
-		await sov.mint(multisig, value);
-		await sov.approve(escrowReward.address, value, { from: multisig });
-		let txReceipt = await escrowReward.depositTokensByMultisig(value, { from: multisig });
-		expectEvent(txReceipt, "TokenDepositByMultisig", {
-			_initiator: multisig,
-			_amount: new BN(value),
-		});
-	});
+    it("Multisig token withdraw should emit TokenWithdrawByMultisig Event.", async () => {
+        let beforeSafeVaultSOVBalance = await sov.balanceOf(safeVault);
+        let txReceipt = await escrowReward.withdrawTokensByMultisig(safeVault, { from: multisig });
+        let afterSafeVaultSOVBalance = await sov.balanceOf(safeVault);
+        expectEvent(txReceipt, "TokenWithdrawByMultisig", {
+            _initiator: multisig,
+            _amount: new BN(afterSafeVaultSOVBalance - beforeSafeVaultSOVBalance),
+        });
+    });
 
-	it("Updating the Locked SOV Contract Address should emit LockedSOVUpdated Event.", async () => {
-		let newLockedSOV = await LockedSOV.new(sov.address, [multisig]);
-		let txReceipt = await newEscrowReward.updateLockedSOV(newLockedSOV.address, { from: newMultisig });
-		expectEvent(txReceipt, "LockedSOVUpdated", {
-			_initiator: newMultisig,
-			_lockedSOV: newLockedSOV.address,
-		});
-	});
+    it("Multisig reward token deposit should emit RewardDepositsByMultisig Event.", async () => {
+        let reward = randomValue() + 1;
+        await sov.mint(multisig, reward);
+        await sov.approve(escrowReward.address, reward, { from: multisig });
+        let txReceipt = await escrowReward.depositRewardByMultisig(reward, { from: multisig });
+        expectEvent(txReceipt, "RewardDepositByMultisig", {
+            _initiator: multisig,
+            _amount: new BN(reward),
+        });
+    });
 
-	it("SOV and Reward withdraw should emit TokenWithdraw and RewardTokenWithdraw Events", async () => {
-		// Creating the contract instance.
-		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
+    it("Multisig token deposit should emit TokenDepositByMultisig Event.", async () => {
+        let value = randomValue() + 1;
+        await sov.mint(multisig, value);
+        await sov.approve(escrowReward.address, value, { from: multisig });
+        let txReceipt = await escrowReward.depositTokensByMultisig(value, { from: multisig });
+        expectEvent(txReceipt, "TokenDepositByMultisig", {
+            _initiator: multisig,
+            _amount: new BN(value),
+        });
+    });
 
-		// Marking the contract as active.
-		await escrowReward.init({ from: multisig });
+    it("Updating the Multisig should emit NewMultisig Event.", async () => {
+        let txReceipt = await escrowReward.updateMultisig(newMultisig, { from: multisig });
+        expectEvent(txReceipt, "NewMultisig", {
+            _initiator: multisig,
+            _newMultisig: newMultisig,
+        });
+    });
 
-		// Adding the contract as an admin in the lockedSOV.
-		await lockedSOV.addAdmin(escrowReward.address, { from: multisig });
+    it("Updating the Locked SOV Contract Address should emit LockedSOVUpdated Event.", async () => {
+        let newLockedSOV = await LockedSOV.new(
+            sov.address,
+            vestingRegistry.address,
+            cliff,
+            duration,
+            [multisig]
+        );
+        let txReceipt = await newEscrowReward.updateLockedSOV(newLockedSOV.address, {
+            from: multisig,
+        });
+        expectEvent(txReceipt, "LockedSOVUpdated", {
+            _initiator: multisig,
+            _lockedSOV: newLockedSOV.address,
+        });
+    });
 
-		let value = randomValue() + 100;
-		let reward = Math.ceil(value / 100);
-		await sov.mint(userOne, value);
-		await sov.approve(escrowReward.address, value, { from: userOne });
-		await escrowReward.depositTokens(value, { from: userOne });
-		await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
-		await escrowReward.changeStateToHolding({ from: multisig });
-		await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
-		await sov.mint(multisig, reward);
-		await sov.approve(escrowReward.address, reward, { from: multisig });
-		await escrowReward.depositRewardByMultisig(reward, { from: multisig });
-		await sov.approve(escrowReward.address, value, { from: multisig });
-		await escrowReward.depositTokensByMultisig(value, { from: multisig });
+    it("SOV and Reward withdraw should emit TokenWithdraw and RewardTokenWithdraw Events", async () => {
+        // Creating the contract instance.
+        escrowReward = await EscrowReward.new(
+            lockedSOV.address,
+            sov.address,
+            multisig,
+            zero,
+            depositLimit,
+            { from: creator }
+        );
 
-		let txReceipt = await escrowReward.withdrawTokensAndReward({ from: userOne });
-		expectEvent(txReceipt, "TokenWithdraw", {
-			_initiator: userOne,
-		});
-		expectEvent(txReceipt, "RewardTokenWithdraw", {
-			_initiator: userOne,
-		});
-	});
+        // Marking the contract as active.
+        await escrowReward.init({ from: multisig });
+
+        // Adding the contract as an admin in the lockedSOV.
+        await lockedSOV.addAdmin(escrowReward.address, { from: multisig });
+
+        let value = randomValue() + 100;
+        let reward = Math.ceil(value / 100);
+        await sov.mint(userOne, value);
+        await sov.approve(escrowReward.address, value, { from: userOne });
+        await escrowReward.depositTokens(value, { from: userOne });
+        await escrowReward.updateReleaseTimestamp(currentTimestamp(), { from: multisig });
+        await escrowReward.changeStateToHolding({ from: multisig });
+        await escrowReward.withdrawTokensByMultisig(constants.ZERO_ADDRESS, { from: multisig });
+        await sov.mint(multisig, reward);
+        await sov.approve(escrowReward.address, reward, { from: multisig });
+        await escrowReward.depositRewardByMultisig(reward, { from: multisig });
+        await sov.approve(escrowReward.address, value, { from: multisig });
+        await escrowReward.depositTokensByMultisig(value, { from: multisig });
+
+        let txReceipt = await escrowReward.withdrawTokensAndReward({ from: userOne });
+        expectEvent(txReceipt, "TokenWithdraw", {
+            _initiator: userOne,
+        });
+        expectEvent(txReceipt, "RewardTokenWithdraw", {
+            _initiator: userOne,
+        });
+    });
 });

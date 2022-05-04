@@ -38,3 +38,9 @@ def readOwnersOfAllContracts():
             owner = contract.owner()
             if(owner != conf.contracts['multisig']):
                 print("owner of ", contractName, " is ", owner)
+
+
+def readAdmin(contractAddress):
+    contract = Contract.from_abi("loanToken", address=contractAddress, abi=LoanToken.abi, owner=conf.acct)
+    admin = contract.admin()
+    print(admin)
