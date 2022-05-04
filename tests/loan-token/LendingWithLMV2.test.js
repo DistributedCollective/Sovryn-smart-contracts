@@ -11,12 +11,13 @@ const ProtocolSettings = artifacts.require("ProtocolSettings");
 const ISovryn = artifacts.require("ISovryn");
 
 const LoanToken = artifacts.require("LoanToken");
+const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
+const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
 const LoanTokenLogicWRBTC = artifacts.require("LoanTokenLogicWrbtc");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 const SwapsExternal = artifacts.require("SwapsExternal");
 
@@ -46,6 +47,11 @@ const {
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const wei = web3.utils.toWei;
+
+const {
+    getLoanTokenLogic,
+    getLoanTokenLogicWrbtc,
+} = require("../Utils/initializer.js");
 
 contract("LoanTokenLogicLM", (accounts) => {
     const name = "Test token";
@@ -242,7 +248,7 @@ contract("LoanTokenLogicLM", (accounts) => {
     describe("Test setting the liquidity mining address", () => {
         it("Should be able to set the liquidity mining address", async () => {
             await loanToken.setLiquidityMiningAddress(account2);
-            expect(await loanToken.liquidityMiningAddress()).to.be.equal(account2);
+            expect(await loanToken.getLiquidityMiningAddress()).to.be.equal(account2);
         });
 
         it("Should fail to set the liquidity mining address with an unauthorized wallet", async () => {
@@ -285,7 +291,6 @@ contract("LoanTokenLogicLM", (accounts) => {
         const sovrynproxy = await sovrynProtocol.new();
         sovryn = await ISovryn.at(sovrynproxy.address);
 
-        await sovryn.replaceContract((await LoanClosingsBase.new()).address);
         await sovryn.replaceContract((await LoanClosingsWith.new()).address);
         await sovryn.replaceContract((await ProtocolSettings.new()).address);
         await sovryn.replaceContract((await LoanSettings.new()).address);
@@ -314,7 +319,9 @@ contract("LoanTokenLogicLM", (accounts) => {
     }
 
     async function deployLoanTokens() {
-        loanTokenLogicLM = await LoanTokenLogicLM.new();
+        const initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]	
+        loanTokenLogicLM = initLoanTokenLogic[0];	
+        loanTokenLogicBeaconLM = initLoanTokenLogic[1];
         loanToken = await LoanToken.new(
             lender,
             loanTokenLogicLM.address,
@@ -322,7 +329,12 @@ contract("LoanTokenLogicLM", (accounts) => {
             testWrbtc.address
         );
         await loanToken.initialize(underlyingToken.address, name, symbol); //iToken
-        loanToken = await LoanTokenLogicLM.at(loanToken.address);
+        /** Initialize the loan token logic proxy */
+        loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+        await loanToken.setBeaconAddress(loanTokenLogicBeaconLM.address);
+
+        /** Use interface of LoanTokenModules */
+        loanToken = await ILoanTokenModules.at(loanToken.address);
 
         params = [
             "0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object
@@ -343,15 +355,21 @@ contract("LoanTokenLogicLM", (accounts) => {
 
         // --------------- WRBTC -----------------------//
 
-        loanTokenLogicWRBTC = await LoanTokenLogicWRBTC.new();
+        const initLoanTokenLogicWrbtc = await getLoanTokenLogicWrbtc(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]	
+        loanTokenLogicWrbtc = initLoanTokenLogicWrbtc[0];	
+        loanTokenLogicBeaconWrbtc = initLoanTokenLogicWrbtc[1];
         loanTokenWRBTC = await LoanToken.new(
             lender,
-            loanTokenLogicWRBTC.address,
+            loanTokenLogicWrbtc.address,
             sovryn.address,
             testWrbtc.address
         );
         await loanTokenWRBTC.initialize(testWrbtc.address, "iRBTC", "iRBTC");
-        loanTokenWRBTC = await LoanTokenLogicWRBTC.at(loanTokenWRBTC.address);
+        /** Initialize the loan token logic proxy */	
+        loanTokenWRBTC = await ILoanTokenLogicProxy.at(loanTokenWRBTC.address);	
+        await loanTokenWRBTC.setBeaconAddress(loanTokenLogicBeaconWrbtc.address);	
+        /** Use interface of LoanTokenModules */	
+        loanTokenWRBTC = await ILoanTokenModules.at(loanTokenWRBTC.address);
 
         params = [
             "0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object
