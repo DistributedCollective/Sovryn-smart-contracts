@@ -38,6 +38,12 @@ def isVestingRegistryAdmin(admin, vestingRegistryAddress):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=vestingRegistryAddress, abi=VestingRegistry.abi, owner=conf.acct)
     print(vestingRegistry.admins(admin))
 
+def isVestingRegistryProxyAdmin(admin):
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
+    isAdmin = vestingRegistry.admins(admin)
+    print(admin, 'is already' if isAdmin else 'is not yet admin - setting as', 'Vesting Registry Admin')
+    return isAdmin
+
 def readVestingContractForAddress(userAddress):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=conf.acct)
     address = vestingRegistry.getVesting(userAddress)
