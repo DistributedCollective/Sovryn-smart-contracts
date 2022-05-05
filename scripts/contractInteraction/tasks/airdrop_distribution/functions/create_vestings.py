@@ -33,6 +33,14 @@ def createVestings(path, dryRun, multiplier):
         cliff = int(teamVesting[2]) * FOUR_WEEKS
         duration = int(teamVesting[3]) * FOUR_WEEKS
         isTeam = bool(teamVesting[4])
+        print("==============================================================================")
+        print("Processing vesting creation for", tokenOwner,"...")
+        # print('tokenOwner:', tokenOwner)
+        print('isTeam', isTeam)
+        print('amount', amount)
+        print('cliff', cliff)
+        print('duration', duration)
+        print('(duration - cliff) / FOUR_WEEKS + 1', (duration - cliff) / FOUR_WEEKS + 1)
 
         if teamVesting[3] == 10:
             vestingCreationType = 3
@@ -53,33 +61,32 @@ def createVestings(path, dryRun, multiplier):
             vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=conf.acct)
             if (cliff != vestingLogic.cliff() or duration != vestingLogic.duration()):
                 raise Exception("Address already has team vesting contract with different schedule")
-        print("=======================================")
         if isTeam:
             if(not dryRun):
+                print('Create or get Team Vesting...')
                 vestingRegistry.createTeamVesting(tokenOwner, amount, cliff, duration, vestingCreationType)
             vestingAddress = vestingRegistry.getTeamVesting(tokenOwner, cliff, duration, vestingCreationType)
             print("TeamVesting: ", vestingAddress)
         else:
             if(not dryRun):
+                print('Create or get Vesting contract...')
                 vestingRegistry.createVestingAddr(tokenOwner, amount, cliff, duration, vestingCreationType)
             vestingAddress = vestingRegistry.getVestingAddr(tokenOwner, cliff, duration, vestingCreationType)
             print("Vesting: ", vestingAddress)
-
-        print('tokenOwner:', tokenOwner)
-        print('isTeam', isTeam)
-        print('amount', amount)
-        print('cliff', cliff)
-        print('duration', duration)
-        print('(duration - cliff) / FOUR_WEEKS + 1', (duration - cliff) / FOUR_WEEKS + 1)
         
         if(not dryRun):
-            SOVtoken.approve(vestingAddress, amount)
-            print('Approved:', amount)
+            if(vestingAddress == ZERO_ADDRESS):
+                raise Exception('Vesting address is zero!')
+            if(SOVtoken.allowance(conf.acct, vestingAddress) < amount):
+                print('Approving amount', amount, 'to Vesting contract', vestingAddress)
+                SOVtoken.approve(vestingAddress, amount)
+                print('Approved:', amount)
             print('Staking ...')
             vesting = Contract.from_abi("Vesting", address=vestingAddress, abi=VestingLogic.abi, owner=conf.acct)
             vesting.stakeTokens(amount)
 
         stakes = staking.getStakes(vestingAddress)
+        print("Stakes:")
         print(stakes)
 
     print("=======================================")
