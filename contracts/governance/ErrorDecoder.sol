@@ -28,26 +28,31 @@ pragma solidity ^0.5.17;
  *     7863656564206d696e696d756d2064656c61792e000000000000000000000000
  */
 contract ErrorDecoder {
-	uint256 constant ERROR_MESSAGE_SHIFT = 68; // EVM silent revert error string length
+    uint256 constant ERROR_MESSAGE_SHIFT = 68; // EVM silent revert error string length
 
-	/**
-	 * @notice Concats two error strings taking into account ERROR_MESSAGE_SHIFT.
-	 * @param str1 First string, usually a hardcoded context written by dev.
-	 * @param str2 Second string, usually the error message from the reverted call.
-	 * @return The concatenated error string
-	 */
-	function _addErrorMessage(string memory str1, string memory str2) internal pure returns (string memory) {
-		bytes memory bytesStr1 = bytes(str1);
-		bytes memory bytesStr2 = bytes(str2);
-		string memory str12 = new string(bytesStr1.length + bytesStr2.length - ERROR_MESSAGE_SHIFT);
-		bytes memory bytesStr12 = bytes(str12);
-		uint256 j = 0;
-		for (uint256 i = 0; i < bytesStr1.length; i++) {
-			bytesStr12[j++] = bytesStr1[i];
-		}
-		for (uint256 i = ERROR_MESSAGE_SHIFT; i < bytesStr2.length; i++) {
-			bytesStr12[j++] = bytesStr2[i];
-		}
-		return string(bytesStr12);
-	}
+    /**
+     * @notice Concats two error strings taking into account ERROR_MESSAGE_SHIFT.
+     * @param str1 First string, usually a hardcoded context written by dev.
+     * @param str2 Second string, usually the error message from the reverted call.
+     * @return The concatenated error string
+     */
+    function _addErrorMessage(string memory str1, string memory str2)
+        internal
+        pure
+        returns (string memory)
+    {
+        bytes memory bytesStr1 = bytes(str1);
+        bytes memory bytesStr2 = bytes(str2);
+        string memory str12 =
+            new string(bytesStr1.length + bytesStr2.length - ERROR_MESSAGE_SHIFT);
+        bytes memory bytesStr12 = bytes(str12);
+        uint256 j = 0;
+        for (uint256 i = 0; i < bytesStr1.length; i++) {
+            bytesStr12[j++] = bytesStr1[i];
+        }
+        for (uint256 i = ERROR_MESSAGE_SHIFT; i < bytesStr2.length; i++) {
+            bytesStr12[j++] = bytesStr2[i];
+        }
+        return string(bytesStr12);
+    }
 }
