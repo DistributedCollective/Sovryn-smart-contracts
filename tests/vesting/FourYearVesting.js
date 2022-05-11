@@ -131,7 +131,7 @@ contract("FourYearVesting", (accounts) => {
                     staking.address,
                     root,
                     feeSharingProxy.address,
-                52 * WEEK
+                    52 * WEEK
                 ),
                 "SOV address invalid"
             );
@@ -145,7 +145,7 @@ contract("FourYearVesting", (accounts) => {
                     staking.address,
                     constants.ZERO_ADDRESS,
                     feeSharingProxy.address,
-                52 * WEEK
+                    52 * WEEK
                 ),
                 "token owner address invalid"
             );
@@ -181,8 +181,14 @@ contract("FourYearVesting", (accounts) => {
 
         it("fails if logic is not a contract address", async () => {
             await expectRevert(
-                Vesting.new(a1, token.address, staking.address, a1, feeSharingProxy.address,
-                52 * WEEK),
+                Vesting.new(
+                    a1,
+                    token.address,
+                    staking.address,
+                    a1,
+                    feeSharingProxy.address,
+                    52 * WEEK
+                ),
                 "_logic not a contract"
             );
         });
@@ -195,7 +201,7 @@ contract("FourYearVesting", (accounts) => {
                     staking.address,
                     a1,
                     feeSharingProxy.address,
-                52 * WEEK
+                    52 * WEEK
                 ),
                 "_SOV not a contract"
             );
@@ -203,22 +209,42 @@ contract("FourYearVesting", (accounts) => {
 
         it("fails if staking address is not a contract address", async () => {
             await expectRevert(
-                Vesting.new(vestingLogic.address, token.address, a1, a1, feeSharingProxy.address,
-                52 * WEEK),
+                Vesting.new(
+                    vestingLogic.address,
+                    token.address,
+                    a1,
+                    a1,
+                    feeSharingProxy.address,
+                    52 * WEEK
+                ),
                 "_stakingAddress not a contract"
             );
         });
 
         it("fails if fee sharing is not a contract address", async () => {
             await expectRevert(
-                Vesting.new(vestingLogic.address, token.address, staking.address, a1, a1, 52 * WEEK),
+                Vesting.new(
+                    vestingLogic.address,
+                    token.address,
+                    staking.address,
+                    a1,
+                    a1,
+                    52 * WEEK
+                ),
                 "_feeSharingProxy not a contract"
             );
         });
 
         it("fails if extendDurationTill is not rounding to month", async () => {
             await expectRevert(
-                Vesting.new(vestingLogic.address, token.address, staking.address, a1, feeSharingProxy.address, 6 * WEEK),
+                Vesting.new(
+                    vestingLogic.address,
+                    token.address,
+                    staking.address,
+                    a1,
+                    feeSharingProxy.address,
+                    6 * WEEK
+                ),
                 "invalid duration"
             );
         });
