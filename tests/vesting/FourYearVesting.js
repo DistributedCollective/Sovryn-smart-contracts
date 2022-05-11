@@ -69,7 +69,8 @@ contract("FourYearVesting", (accounts) => {
                 a1,
                 feeSharingProxy.address,
                 root,
-                vestingLogic.address
+                vestingLogic.address,
+                52 * WEEK
             );
             vestingInstance = await VestingLogic.at(vestingInstance.logs[0].address);
 
@@ -80,6 +81,7 @@ contract("FourYearVesting", (accounts) => {
             let _cliff = await vestingInstance.cliff();
             let _duration = await vestingInstance.duration();
             let _feeSharingProxy = await vestingInstance.feeSharingProxy();
+            let _extendDurationTill = await vestingInstance.extendDurationTill();
 
             assert.equal(_sov, token.address);
             assert.equal(_stackingAddress, staking.address);
@@ -87,6 +89,7 @@ contract("FourYearVesting", (accounts) => {
             assert.equal(_cliff.toString(), cliff);
             assert.equal(_duration.toString(), duration);
             assert.equal(_feeSharingProxy, feeSharingProxy.address);
+            assert.equal(_extendDurationTill, 52 * WEEK);
         });
     });
 
@@ -97,7 +100,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 root,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vestingInstance = await VestingLogic.at(vestingInstance.address);
 
@@ -108,6 +112,7 @@ contract("FourYearVesting", (accounts) => {
             let _cliff = await vestingInstance.cliff();
             let _duration = await vestingInstance.duration();
             let _feeSharingProxy = await vestingInstance.feeSharingProxy();
+            let _extendDurationTill = await vestingInstance.extendDurationTill();
 
             assert.equal(_sov, token.address);
             assert.equal(_stackingAddress, staking.address);
@@ -115,6 +120,7 @@ contract("FourYearVesting", (accounts) => {
             assert.equal(_cliff.toString(), cliff);
             assert.equal(_duration.toString(), duration);
             assert.equal(_feeSharingProxy, feeSharingProxy.address);
+            assert.equal(_extendDurationTill, 52 * WEEK);
         });
 
         it("fails if the 0 address is passed as SOV address", async () => {
@@ -124,7 +130,8 @@ contract("FourYearVesting", (accounts) => {
                     constants.ZERO_ADDRESS,
                     staking.address,
                     root,
-                    feeSharingProxy.address
+                    feeSharingProxy.address,
+                52 * WEEK
                 ),
                 "SOV address invalid"
             );
@@ -137,7 +144,8 @@ contract("FourYearVesting", (accounts) => {
                     token.address,
                     staking.address,
                     constants.ZERO_ADDRESS,
-                    feeSharingProxy.address
+                    feeSharingProxy.address,
+                52 * WEEK
                 ),
                 "token owner address invalid"
             );
@@ -150,7 +158,8 @@ contract("FourYearVesting", (accounts) => {
                     token.address,
                     constants.ZERO_ADDRESS,
                     root,
-                    feeSharingProxy.address
+                    feeSharingProxy.address,
+                    52 * WEEK
                 ),
                 "staking address invalid"
             );
@@ -163,7 +172,8 @@ contract("FourYearVesting", (accounts) => {
                     token.address,
                     staking.address,
                     root,
-                    constants.ZERO_ADDRESS
+                    constants.ZERO_ADDRESS,
+                    52 * WEEK
                 ),
                 "feeSharingProxy address invalid"
             );
@@ -171,7 +181,8 @@ contract("FourYearVesting", (accounts) => {
 
         it("fails if logic is not a contract address", async () => {
             await expectRevert(
-                Vesting.new(a1, token.address, staking.address, a1, feeSharingProxy.address),
+                Vesting.new(a1, token.address, staking.address, a1, feeSharingProxy.address,
+                52 * WEEK),
                 "_logic not a contract"
             );
         });
@@ -183,7 +194,8 @@ contract("FourYearVesting", (accounts) => {
                     a1,
                     staking.address,
                     a1,
-                    feeSharingProxy.address
+                    feeSharingProxy.address,
+                52 * WEEK
                 ),
                 "_SOV not a contract"
             );
@@ -191,15 +203,23 @@ contract("FourYearVesting", (accounts) => {
 
         it("fails if staking address is not a contract address", async () => {
             await expectRevert(
-                Vesting.new(vestingLogic.address, token.address, a1, a1, feeSharingProxy.address),
+                Vesting.new(vestingLogic.address, token.address, a1, a1, feeSharingProxy.address,
+                52 * WEEK),
                 "_stakingAddress not a contract"
             );
         });
 
         it("fails if fee sharing is not a contract address", async () => {
             await expectRevert(
-                Vesting.new(vestingLogic.address, token.address, staking.address, a1, a1),
+                Vesting.new(vestingLogic.address, token.address, staking.address, a1, a1, 52 * WEEK),
                 "_feeSharingProxy not a contract"
+            );
+        });
+
+        it("fails if extendDurationTill is not rounding to month", async () => {
+            await expectRevert(
+                Vesting.new(vestingLogic.address, token.address, staking.address, a1, feeSharingProxy.address, 6 * WEEK),
+                "invalid duration"
             );
         });
     });
@@ -213,7 +233,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 a2,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -272,7 +293,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 root,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
             await token.approve(vesting.address, ONE_MILLON);
@@ -370,7 +392,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 root,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -401,7 +424,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 root,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
             await expectRevert(vesting.stakeTokensWithApproval(root, amount, 0), "unauthorized");
@@ -416,7 +440,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 root,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -439,7 +464,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 root,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -479,7 +505,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 root,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -552,7 +579,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 root,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -601,7 +629,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 root,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -644,7 +673,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 root,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -685,7 +715,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 a1,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -728,7 +759,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 root,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -763,7 +795,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 a1,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
             await expectRevert(
@@ -811,7 +844,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 a1,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
             // 1. set new staking contract address on staking contract
@@ -842,7 +876,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 newStaking.address,
                 a1,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
             await expectRevert(vesting.migrateToNewStakingContract(), "S19");
@@ -858,7 +893,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 newStaking.address,
                 a1,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -880,7 +916,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 root,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
             await token.approve(vesting.address, 1000);
@@ -896,7 +933,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 root,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
             await token.approve(vesting.address, ONE_MILLON);
@@ -922,7 +960,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 root,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
             await token.approve(vesting.address, ONE_MILLON);
@@ -1004,7 +1043,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 a2,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
             let maxIntervalOld = await vesting.maxInterval();
@@ -1019,7 +1059,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 a2,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
             await expectRevert(vesting.setMaxInterval(7 * WEEK), "invalid interval");
@@ -1033,7 +1074,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 root,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
             await token.approve(vesting.address, ONE_MILLON);
@@ -1077,7 +1119,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 a1,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
             await expectRevert(vesting.changeTokenOwner(a2, { from: a1 }), "unauthorized");
@@ -1129,7 +1172,8 @@ contract("FourYearVesting", (accounts) => {
                 token.address,
                 staking.address,
                 a1,
-                feeSharingProxy.address
+                feeSharingProxy.address,
+                52 * WEEK
             );
             vesting = await VestingLogic.at(vestingObject.address);
             newVestingLogic = await NewVestingLogic.new();

@@ -57,7 +57,8 @@ def main():
             tokenOwner = row[0].replace(" ", "")
             amount = row[1].replace(",", "").replace(".", "")
             amount = int(amount) * MULTIPLIER
-            tx = fourYearVestingFactory.deployFourYearVesting(SOVtoken.address, stakingAddress, tokenOwner, feeSharingAddress, multisig, fourYearVestingLogic)
+            extendDurationTill = row[2].replace(" ", "")
+            tx = fourYearVestingFactory.deployFourYearVesting(SOVtoken.address, stakingAddress, tokenOwner, feeSharingAddress, multisig, fourYearVestingLogic, extendDurationTill)
             event = tx.events["FourYearVestingCreated"]
             vestingAddress = event["vestingAddress"]
             print("=======================================")

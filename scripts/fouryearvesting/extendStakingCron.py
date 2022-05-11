@@ -62,14 +62,18 @@ def main():
         datenow = time.time()
         timeLockDate = readLockDate(datenow)
         print('timeLockDate:', timeLockDate)
+        extendDurationTill = fourYearVestingLogic.extendDurationTill()
+        print('extendDurationTill:', extendDurationTill)
+        maxIterations = extendDurationTill / FOUR_WEEKS 
+        print('maxIterations:', maxIterations)
         DAY = 24 * 60 * 60
         FOUR_WEEKS = 4 * 7 * DAY
         result = ((timeLockDate - startDate) % FOUR_WEEKS) # the cron should run every four weeks from start date
-        newResult = ((timeLockDate - startDate) / FOUR_WEEKS) # the cron should run for first 13 intervals = 52 weeks
+        newResult = ((timeLockDate - startDate) / FOUR_WEEKS) # the cron should run for maxIterations only
         timediff = datenow - timeLockDate # To avoid execution on consecutive weeks
         print('result:', result)
         print('newResult:', math.floor(newResult))
         print('timediff:', timediff)
         print('-----------------------------------------------------')
-        if ((result == 0) and (math.floor(newResult) >= 1) and (math.floor(newResult) <= 13) and (timediff < 86400) ):
+        if ((result == 0) and (math.floor(newResult) >= 1) and (math.floor(newResult) <= maxIterations) and (timediff < 86400) ):
             fourYearVestingLogic.extendStaking()

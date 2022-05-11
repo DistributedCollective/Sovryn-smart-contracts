@@ -183,20 +183,20 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
     }
 
     /**
-     * @notice Extends first year stakes for four year vesting contracts.
+     * @notice Extends stakes(unlocked till timeDuration) for four year vesting contracts.
      * @dev Tokens are vested for 4 years. Since the max staking
-     * period is 3 years and the tokens are unlocked only after the first year is
-     * passed, hence, we extend the duration of staking for all unlocked tokens for the first
-     * year by 3 years.
+     * period is 3 years and the tokens are unlocked only after the first year(timeDuration) is
+     * passed, hence, we usually extend the duration of staking for all unlocked tokens for the first
+     * year by 3 years. In some cases, the timeDuration can differ.
      * */
     function extendStaking() external {
-        uint256 oneYear = startDate.add(52 weeks);
+        uint256 timeDuration = startDate.add(extendDurationTill);
         uint256[] memory dates;
         uint96[] memory stakes;
         (dates, stakes) = staking.getStakes(address(this));
 
         for (uint256 i = 0; i < dates.length; i++) {
-            if ((dates[i] < block.timestamp) && (dates[i] <= oneYear) && (stakes[i] > 0)) {
+            if ((dates[i] < block.timestamp) && (dates[i] <= timeDuration) && (stakes[i] > 0)) {
                 staking.extendStakingDuration(dates[i], dates[i].add(156 weeks));
                 endDate = dates[i].add(156 weeks);
             } else {
@@ -320,8 +320,9 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
         /// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
         ///		workaround found, but it doesn't work with TWO_WEEKS
         /// @dev For four year vesting, withdrawal of stakes for the first year is not allowed. These
-        /// stakes are extended for three years.
-        for (uint256 i = startDate.add(52 weeks); i <= end; i += FOUR_WEEKS) {
+        /// stakes are extended for three years. In some cases the withdrawal may be allowed at a different
+        /// time and hence we use extendDurationTill.
+        for (uint256 i = startDate.add(extendDurationTill); i <= end; i += FOUR_WEEKS) {
             /// @dev Read amount to withdraw.
             stake = staking.getPriorUserStakeByDate(address(this), i, block.number.sub(1));
 
