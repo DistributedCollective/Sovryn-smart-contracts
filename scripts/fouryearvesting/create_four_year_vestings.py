@@ -40,8 +40,8 @@ def main():
     MULTIPLIER = 10**16 # Expecting two decimals
     DAY = 24 * 60 * 60
     FOUR_WEEKS = 4 * 7 * DAY
-    CLIFF =  FOUR_WEEKS
-    DURATION = 39 * FOUR_WEEKS
+    cliff =  FOUR_WEEKS
+    duration = 39 * FOUR_WEEKS
 
     balanceBefore = acct.balance()
 

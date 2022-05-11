@@ -77,8 +77,8 @@ contract("FourYearVesting", (accounts) => {
             let _sov = await vestingInstance.SOV();
             let _stackingAddress = await vestingInstance.staking();
             let _tokenOwner = await vestingInstance.tokenOwner();
-            let _cliff = await vestingInstance.CLIFF();
-            let _duration = await vestingInstance.DURATION();
+            let _cliff = await vestingInstance.cliff();
+            let _duration = await vestingInstance.duration();
             let _feeSharingProxy = await vestingInstance.feeSharingProxy();
 
             assert.equal(_sov, token.address);
@@ -105,8 +105,8 @@ contract("FourYearVesting", (accounts) => {
             let _sov = await vestingInstance.SOV();
             let _stackingAddress = await vestingInstance.staking();
             let _tokenOwner = await vestingInstance.tokenOwner();
-            let _cliff = await vestingInstance.CLIFF();
-            let _duration = await vestingInstance.DURATION();
+            let _cliff = await vestingInstance.cliff();
+            let _duration = await vestingInstance.duration();
             let _feeSharingProxy = await vestingInstance.feeSharingProxy();
 
             assert.equal(_sov, token.address);
