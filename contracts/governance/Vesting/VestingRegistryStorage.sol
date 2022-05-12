@@ -17,48 +17,48 @@ import "./IVestingRegistry.sol";
  * */
 
 contract VestingRegistryStorage is Initializable, AdminRole {
-	///@notice the vesting factory contract
-	IVestingFactory public vestingFactory;
+    ///@notice the vesting factory contract
+    IVestingFactory public vestingFactory;
 
-	///@notice the Locked SOV contract
-	LockedSOV public lockedSOV;
+    ///@notice the Locked SOV contract
+    LockedSOV public lockedSOV;
 
-	///@notice the list of vesting registries
-	IVestingRegistry[] public vestingRegistries;
+    ///@notice the list of vesting registries
+    IVestingRegistry[] public vestingRegistries;
 
-	///@notice the SOV token contract
-	address public SOV;
+    ///@notice the SOV token contract
+    address public SOV;
 
-	///@notice the staking contract address
-	address public staking;
+    ///@notice the staking contract address
+    address public staking;
 
-	///@notice fee sharing proxy
-	address public feeSharingProxy;
+    ///@notice fee sharing proxy
+    address public feeSharingProxy;
 
-	///@notice the vesting owner (e.g. governance timelock address)
-	address public vestingOwner;
+    ///@notice the vesting owner (e.g. governance timelock address)
+    address public vestingOwner;
 
-	enum VestingType {
-		TeamVesting, //MultisigVesting
-		Vesting //TokenHolderVesting
-	}
+    enum VestingType {
+        TeamVesting, //MultisigVesting
+        Vesting //TokenHolderVesting
+    }
 
-	///@notice Vesting details
-	struct Vesting {
-		uint256 vestingType;
-		uint256 vestingCreationType;
-		address vestingAddress;
-	}
+    ///@notice Vesting details
+    struct Vesting {
+        uint256 vestingType;
+        uint256 vestingCreationType;
+        address vestingAddress;
+    }
 
-	///@notice A record of vesting details for a unique id
-	///@dev vestings[uid] returns vesting data
-	mapping(uint256 => Vesting) public vestings;
+    ///@notice A record of vesting details for a unique id
+    ///@dev vestings[uid] returns vesting data
+    mapping(uint256 => Vesting) public vestings;
 
-	///@notice A record of all unique ids for a particular token owner
-	///@dev vestingsOf[tokenOwner] returns array of unique ids
-	mapping(address => uint256[]) public vestingsOf;
+    ///@notice A record of all unique ids for a particular token owner
+    ///@dev vestingsOf[tokenOwner] returns array of unique ids
+    mapping(address => uint256[]) public vestingsOf;
 
-	///@notice A record of all vesting addresses
-	///@dev isVesting[address] returns if the address is a vesting address
-	mapping(address => bool) public isVesting;
+    ///@notice A record of all vesting addresses
+    ///@dev isVesting[address] returns if the address is a vesting address
+    mapping(address => bool) public isVesting;
 }

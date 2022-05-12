@@ -6,27 +6,27 @@
 pragma solidity 0.5.17;
 
 interface ISwapsImpl {
-	function internalSwap(
-		address sourceTokenAddress,
-		address destTokenAddress,
-		address receiverAddress,
-		address returnToSenderAddress,
-		uint256 minSourceTokenAmount,
-		uint256 maxSourceTokenAmount,
-		uint256 requiredDestTokenAmount
-	) external payable returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
+    function internalSwap(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        address receiverAddress,
+        address returnToSenderAddress,
+        uint256 minSourceTokenAmount,
+        uint256 maxSourceTokenAmount,
+        uint256 requiredDestTokenAmount
+    ) external payable returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
 
-	function internalExpectedRate(
-		address sourceTokenAddress,
-		address destTokenAddress,
-		uint256 sourceTokenAmount,
-		address optionalContractAddress
-	) external view returns (uint256);
+    function internalExpectedRate(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint256 sourceTokenAmount,
+        address optionalContractAddress
+    ) external view returns (uint256);
 
-	function internalExpectedReturn(
-		address sourceTokenAddress,
-		address destTokenAddress,
-		uint256 sourceTokenAmount,
-		address sovrynSwapContractRegistryAddress
-	) external view returns (uint256 expectedReturn);
+    function internalExpectedReturn(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint256 sourceTokenAmount,
+        address sovrynSwapContractRegistryAddress
+    ) external view returns (uint256 expectedReturn);
 }

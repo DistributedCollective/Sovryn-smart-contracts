@@ -15,20 +15,20 @@ import "./ModulesCommonEvents.sol";
  * This contract contains the events for swap operations.
  * */
 contract SwapsEvents is ModulesCommonEvents {
-	event LoanSwap(
-		bytes32 indexed loanId,
-		address indexed sourceToken,
-		address indexed destToken,
-		address borrower,
-		uint256 sourceAmount,
-		uint256 destAmount
-	);
+    event LoanSwap(
+        bytes32 indexed loanId,
+        address indexed sourceToken,
+        address indexed destToken,
+        address borrower,
+        uint256 sourceAmount,
+        uint256 destAmount
+    );
 
-	event ExternalSwap(
-		address indexed user,
-		address indexed sourceToken,
-		address indexed destToken,
-		uint256 sourceAmount,
-		uint256 destAmount
-	);
+    event ExternalSwap(
+        address indexed user,
+        address indexed sourceToken,
+        address indexed destToken,
+        uint256 sourceAmount,
+        uint256 destAmount
+    );
 }
