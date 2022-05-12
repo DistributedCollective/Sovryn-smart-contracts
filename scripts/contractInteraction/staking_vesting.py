@@ -333,22 +333,32 @@ def governanceWithdrawVesting( vesting,  receiver):
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
 
 def transferStakingOwnershipToGovernance():
+    print("Add staking admin for address: ", conf.contracts['GovernorAdmin'])
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
-    staking.addAdmin(conf.contracts['GovernorAdmin'])
+    data = staking.addAdmin.encode_input(conf.contracts['GovernorAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
 def transferStakingRewardsOwnershipToGovernance():
+    print("Transferring StakingRewards ownership to: ", conf.contracts['GovernorAdmin'])
     stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
-    stakingRewards.transferOwnership(conf.contracts['GovernorAdmin'])
+    data = stakingRewards.transferOwnership.encode_input(conf.contracts['GovernorAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], stakingRewards.address, data, conf.acct)
 
 def transferVestingRegistryOwnershipToGovernance():
     # add governor admin as admin
+    print("Add Vesting Registry admin for address: ", conf.contracts['GovernorAdmin'])
     vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
-    vestingRegistry.addAdmin(conf.contracts['GovernorAdmin'])
+    data = vestingRegistry.addAdmin.encode_input(conf.contracts['GovernorAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
 
     '''
     # add Exchequer admin as admin
-    vestingRegistry.addAdmin(conf.contracts['GovernorAdmin'])
+    print("Add Vesting Registry admin for multisig: ", conf.contracts['GovernorAdmin'])
+    data = vestingRegistry.addAdmin.encode_input(conf.contracts['multisig'])
+    sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
     '''
 
     # Transfer ownership to GovernorOwner
-    vestingRegistry.transferOwnership(conf.contracts['GovernorOwner'])
+    print("Transferring Vesting Registry ownership to: ", conf.contracts['GovernorOwner'])
+    data = vestingRegistry.transferOwnership.encode_input(conf.contracts['GovernorOwner'])
+    sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)

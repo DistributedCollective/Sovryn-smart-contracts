@@ -120,5 +120,7 @@ def getMissedBalance():
     return res
 
 def transferLiquidityMiningOwnershipToGovernance():
+    print("Transferring LiquidityMining ownership to: ", conf.contracts['GovernorOwner'])
     lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
-    lm.transferOwnership(conf.contracts['GovernorOwner'])
+    data = lm.transferOwnership.encode_input(conf.contracts['GovernorOwner'])
+    sendWithMultisig(conf.contracts['multisig'], lm.address, data, conf.acct)

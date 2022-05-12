@@ -859,40 +859,70 @@ def replaceLoanTokenSettingsLowerAdmin():
 
 def transferBeaconOwnershipToGovernance():
     # transfer beacon LM
+    print("Transferring beacon LM ownserhip to: ", conf.contracts['GovernorOwner'])
     loanTokenLogicBeaconLM = Contract.from_abi("loanTokenLogicBeaconLM", address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
-    loanTokenLogicBeaconLM.transferOwnership(conf.contracts['GovernorOwner'])
+    data = loanTokenLogicBeaconLM.transferOwnership.encode_input(conf.contracts['GovernorOwner'])
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconLM.address, data, conf.acct)
 
     # transfer beacon wrbtc
+    print("Transferring beacon WRBTC ownserhip to: ", conf.contracts['GovernorOwner'])
     loanTokenLogicBeaconWrbtc = Contract.from_abi("loanTokenLogicBeaconWrbtc", address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
-    loanTokenLogicBeaconWrbtc.transferOwnership(conf.contracts['GovernorOwner'])
+    data = loanTokenLogicBeaconWrbtc.transferOwnership.encode_input(conf.contracts['GovernorOwner'])
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWrbtc.address, data, conf.acct)
 
 def transferLoanTokenOwnershipToGovernance():
     # iDOC
+    print("Transferring iDOC admin to: ", conf.contracts['GovernorAdmin'])
     loanToken = Contract.from_abi("loanToken", address=conf.contracts['iDOC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     # Need to change the admin first before the owner
-    loanToken.setAdmin(conf.contracts['GovernorAdmin'])
-    loanToken.transferOwnership(conf.contracts['GovernorOwner'])
+    data = loanToken.setAdmin.encode_input(conf.contracts['GovernorAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    print("Transferring iDOC ownserhip to: ", conf.contracts['GovernorOwner'])
+    data = loanToken.transferOwnership.encode_input(conf.contracts['GovernorOwner'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
     # iRBTC
+    print("Transferring iRBTC admin to: ", conf.contracts['GovernorAdmin'])
     loanToken = Contract.from_abi("loanToken", address=conf.contracts['iRBTC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     # Need to change the admin first before the owner
-    loanToken.setAdmin(conf.contracts['GovernorAdmin'])
-    loanToken.transferOwnership(conf.contracts['GovernorOwner'])
+    data = loanToken.setAdmin.encode_input(conf.contracts['GovernorAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    print("Transferring iRBTC ownserhip to: ", conf.contracts['GovernorOwner'])
+    data = loanToken.transferOwnership.encode_input(conf.contracts['GovernorOwner'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
     # iXUSD
+    print("Transferring iXUSD admin to: ", conf.contracts['GovernorAdmin'])
     loanToken = Contract.from_abi("loanToken", address=conf.contracts['iXUSD'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     # Need to change the admin first before the owner
-    loanToken.setAdmin(conf.contracts['GovernorAdmin'])
-    loanToken.transferOwnership(conf.contracts['GovernorOwner'])
+    data = loanToken.setAdmin.encode_input(conf.contracts['GovernorAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    print("Transferring iXUSD ownserhip to: ", conf.contracts['GovernorOwner'])
+    data = loanToken.transferOwnership.encode_input(conf.contracts['GovernorOwner'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
     # iUSDT
+    print("Transferring iUSDT admin to: ", conf.contracts['GovernorAdmin'])
     loanToken = Contract.from_abi("loanToken", address=conf.contracts['iUSDT'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     # Need to change the admin first before the owner
-    loanToken.setAdmin(conf.contracts['GovernorAdmin'])
-    loanToken.transferOwnership(conf.contracts['GovernorOwner'])
+    data = loanToken.setAdmin.encode_input(conf.contracts['GovernorAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    print("Transferring iUSDT ownserhip to: ", conf.contracts['GovernorOwner'])
+    data = loanToken.transferOwnership.encode_input(conf.contracts['GovernorOwner'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
     # iBPro
+    print("Transferring iBPro admin to: ", conf.contracts['GovernorAdmin'])
     loanToken = Contract.from_abi("loanToken", address=conf.contracts['iBPro'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     # Need to change the admin first before the owner
-    loanToken.setAdmin(conf.contracts['GovernorAdmin'])
-    loanToken.transferOwnership(conf.contracts['GovernorOwner'])
+    data = loanToken.setAdmin.encode_input(conf.contracts['GovernorAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    print("Transferring iBPro ownserhip to: ", conf.contracts['GovernorOwner'])
+    data = loanToken.transferOwnership.encode_input(conf.contracts['GovernorOwner'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+

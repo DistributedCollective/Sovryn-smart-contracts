@@ -23,6 +23,8 @@ def executeProposal(id):
     tx.info()
 
 def transferLockedSOVOwnershipToGovernance():
+    print("Add LockedSOV admin for address: ", conf.contracts['GovernorAdmin'])
     lockedSOV = Contract.from_abi("LockedSOV", address=conf.contracts["LockedSOV"], abi=LockedSOV.abi, owner=conf.acct)
     # TODO: Need to check whether we need to remove the other admin or not
-    lockedSOV.addAdmin(conf.contracts['GovernorAdmin'])
+    data = lockedSOV.addAdmin.encode_input(conf.contracts['GovernorAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
