@@ -21,6 +21,7 @@ from scripts.contractInteraction.token import *
 from scripts.contractInteraction.ownership import *
 from scripts.contractInteraction.misc import *
 from scripts.contractInteraction.prices import *
+from scripts.contractInteraction.fastbtc import *
 
 def main():
     '''
@@ -33,19 +34,18 @@ def main():
 
     #used often:
 
-    #withdrawRBTCFromWatcher(40e18, conf.contracts['FastBTC'])
-    #withdrawTokensFromWatcher(conf.contracts['XUSD'], 100e18, conf.contracts['multisig'])
+    #withdrawRBTCFromWatcher(30e18, conf.contracts['FastBTC'])
+    #bal = getBalance(conf.contracts['SOV'], conf.contracts['Watcher'])
+    #withdrawTokensFromWatcher(conf.contracts['SOV'], bal, conf.contracts['multisig'])
 
-    #sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], 400000e18)
+    #sendTokensFromMultisig(conf.contracts['SOV'], '0xd1c42e0ace7a80efc191835dac102043bcfbbbe6', 4500e18)
     #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 25e18)
 
     #sendMYNTFromMultisigToFeeSharingProxy(36632.144056847e18)
 
-    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 1000000e18)
-    #sendTokensFromMultisig(conf.contracts['USDT'], '0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 1000000e18)
-
-    #for i in range (818, 821):
-    #    confirmWithMS(i)
+    #for i in range (885, 887):
     #    checkTx(i)
+    #    confirmWithMS(i)
 
-    
+    #missed = getMissedBalance()
+    #transferSOVtoLM(missed)

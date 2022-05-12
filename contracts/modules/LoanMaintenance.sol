@@ -272,7 +272,8 @@ contract LoanMaintenance is
 
         /// Deposit interest.
         if (useCollateral) {
-            _doCollateralSwap(loanLocal, loanParamsLocal, depositAmount);
+            /// Used the whole converted loanToken to extend the loan duration
+            depositAmount = _doCollateralSwap(loanLocal, loanParamsLocal, depositAmount);
         } else {
             if (msg.value == 0) {
                 vaultDeposit(loanParamsLocal.loanToken, msg.sender, depositAmount);
@@ -875,9 +876,9 @@ contract LoanMaintenance is
         Loan storage loanLocal,
         LoanParams memory loanParamsLocal,
         uint256 depositAmount
-    ) internal {
+    ) internal returns (uint256 purchasedLoanToken) {
         /// Reverts in _loanSwap if amountNeeded can't be bought.
-        (, uint256 sourceTokenAmountUsed, ) =
+        (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed, ) =
             _loanSwap(
                 loanLocal.id,
                 loanParamsLocal.collateralToken,
@@ -900,5 +901,7 @@ contract LoanMaintenance is
                 loanLocal.collateral
             );
         require(currentMargin > loanParamsLocal.maintenanceMargin, "unhealthy position");
+
+        return destTokenAmountReceived;
     }
 }

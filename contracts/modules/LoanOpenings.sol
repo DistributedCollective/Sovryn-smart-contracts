@@ -478,7 +478,6 @@ contract LoanOpenings is
                 loanLocal.principal,
                 loanLocal.collateral
             );
-
         require(initialMargin > loanParamsLocal.maintenanceMargin, "unhealthy position");
 
         if (loanLocal.startTimestamp == block.timestamp) {

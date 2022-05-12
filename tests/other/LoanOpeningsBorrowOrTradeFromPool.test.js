@@ -141,7 +141,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                     0, // torqueInterest
                     loanTokenSent, // loanTokenSent
                     collateralTokenSent, // collateralTokenSent
-                    0,
                 ],
                 "0x", // loanDataBytes
                 { from: accounts[1] }
@@ -212,7 +211,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                     oneEth, // torqueInterest
                     loanTokenSent, // loanTokenSent
                     collateralTokenSent, // collateralTokenSent
-                    0,
                 ],
                 "0x", // loanDataBytes
                 { from: accounts[1] }
@@ -260,7 +258,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                     oneEth, // torqueInterest
                     loanTokenSent, // loanTokenSent
                     collateralTokenSent, // collateralTokenSent
-                    0,
                 ],
                 "0x", // loanDataBytes
                 { from: accounts[1] }
@@ -313,7 +310,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                     oneEth, // torqueInterest
                     loanTokenSent, // loanTokenSent
                     collateralTokenSent, // collateralTokenSent
-                    0,
                 ],
                 "0x", // loanDataBytes
                 { from: accounts[1] }
@@ -363,7 +359,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                     oneEth, // torqueInterest
                     loanTokenSent, // loanTokenSent
                     collateralTokenSent, // collateralTokenSent
-                    0,
                 ],
                 "0x", // loanDataBytes
                 { from: accounts[1] }
@@ -415,7 +410,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                     oneEth, // torqueInterest
                     loanTokenSent, // loanTokenSent
                     collateralTokenSent, // collateralTokenSent
-                    0,
                 ],
                 "0x", // loanDataBytes
                 { from: accounts[1] }
@@ -463,7 +457,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                         oneEth, // torqueInterest
                         loanTokenSent, // loanTokenSent
                         collateralTokenSent, // collateralTokenSent
-                        0,
                     ],
                     "0x", // loanDataBytes
                     { from: accounts[1], value: 1 }
@@ -503,7 +496,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                         oneEth, // torqueInterest
                         loanTokenSent, // loanTokenSent
                         collateralTokenSent, // collateralTokenSent
-                        0,
                     ],
                     "0x", // loanDataBytes
                     { from: accounts[3] }
@@ -542,7 +534,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                         oneEth, // torqueInterest
                         loanTokenSent, // loanTokenSent
                         collateralTokenSent, // collateralTokenSent
-                        0,
                     ],
                     "0x", // loanDataBytes
                     { from: accounts[1] }
@@ -582,7 +573,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                         oneEth, // torqueInterest
                         loanTokenSent, // loanTokenSent
                         collateralTokenSent, // collateralTokenSent
-                        0,
                     ],
                     "0x", // loanDataBytes
                     { from: accounts[1] }
