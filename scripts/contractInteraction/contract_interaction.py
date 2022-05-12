@@ -49,3 +49,30 @@ def main():
 
     #missed = getMissedBalance()
     #transferSOVtoLM(missed)
+
+    # # ---------- Transfer ownership to gov ----------
+    # # core protocol
+    # transferProtocolOwnershipToGovernance()
+
+    # # loan token
+    # transferBeaconOwnershipToGovernance()
+    # transferLoanTokenOwnershipToGovernance()
+
+    # # oracles
+    # transferOracleOwnershipToGovernance()
+
+    # # LM
+    # transferLiquidityMiningOwnershipToGovernance()
+
+    # # Governance
+    # # lockedSOV
+    # transferLockedSOVOwnershipToGovernance()
+
+    # # Staking
+    # transferStakingOwnershipToGovernance()
+
+    # # StakingRewards
+    # transferStakingRewardsOwnershipToGovernance()
+
+    # # VestingRegistry
+    # transferVestingRegistryOwnershipToGovernance()

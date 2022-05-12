@@ -331,3 +331,24 @@ def governanceWithdrawVesting( vesting,  receiver):
     data = stakingProxy.governanceWithdrawVesting.encode_input( vesting,  receiver)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
+
+def transferStakingOwnershipToGovernance():
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    staking.addAdmin(conf.contracts['GovernorAdmin'])
+
+def transferStakingRewardsOwnershipToGovernance():
+    stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
+    stakingRewards.transferOwnership(conf.contracts['GovernorAdmin'])
+
+def transferVestingRegistryOwnershipToGovernance():
+    # add governor admin as admin
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
+    vestingRegistry.addAdmin(conf.contracts['GovernorAdmin'])
+
+    '''
+    # add Exchequer admin as admin
+    vestingRegistry.addAdmin(conf.contracts['GovernorAdmin'])
+    '''
+
+    # Transfer ownership to GovernorOwner
+    vestingRegistry.transferOwnership(conf.contracts['GovernorOwner'])

@@ -179,3 +179,41 @@ def setV1SOVPoolOracleAddress(v1PoolOracleAddress):
     oracle = Contract.from_abi("PriceFeedV1PoolOracle", address= conf.contracts['SOVPriceFeedOnProtocol'], abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
     data = oracle.setV1PoolOracleAddress.encode_input(v1PoolOracleAddress)
     sendWithMultisig(conf.contracts['multisig'], oracle.address, data, conf.acct)
+
+
+def transferOracleOwnershipToGovernance():
+    # PriceFeeds (Gateway)
+    feeds = Contract.from_abi("PriceFeeds", address= conf.contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = conf.acct)
+    feeds.transferOwnership(conf.contracts['GovernorAdmin'])
+
+    # MOC PriceFeeds
+    tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['MOCPriceFeeds'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
+    tokenFeeds.transferOwnership(conf.contracts['GovernorAdmin'])
+
+    # SOV PriceFeeds
+    tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['SOVPriceFeeds'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
+    tokenFeeds.transferOwnership(conf.contracts['GovernorAdmin'])
+
+    # ETHs PriceFeeds
+    tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['ETHsPriceFeeds'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
+    tokenFeeds.transferOwnership(conf.contracts['GovernorAdmin'])
+
+    # BNBs PriceFeeds
+    tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['BNBsPriceFeeds'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
+    tokenFeeds.transferOwnership(conf.contracts['GovernorAdmin'])
+
+    # XUSD PriceFeeds
+    tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['XUSDPriceFeeds'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
+    tokenFeeds.transferOwnership(conf.contracts['GovernorAdmin'])
+
+    # FISH PriceFeeds
+    tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['FISHPriceFeeds'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
+    tokenFeeds.transferOwnership(conf.contracts['GovernorAdmin'])
+
+    # RIF PriceFeeds
+    tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['RIFPriceFeeds'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
+    tokenFeeds.transferOwnership(conf.contracts['GovernorAdmin'])
+
+    # MYNT PriceFeeds
+    tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['MYNTPriceFeeds'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
+    tokenFeeds.transferOwnership(conf.contracts['GovernorAdmin'])

@@ -118,3 +118,7 @@ def getMissedBalance():
     res = lm.getMissedBalance()
     print(res/1e18)
     return res
+
+def transferLiquidityMiningOwnershipToGovernance():
+    lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
+    lm.transferOwnership(conf.contracts['GovernorOwner'])

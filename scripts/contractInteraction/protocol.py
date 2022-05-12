@@ -665,3 +665,9 @@ def depositCollateral(loanId,depositAmount, tokenAddress):
     if(token.allowance(conf.acct, sovryn.address) < depositAmount):
         token.approve(sovryn.address, depositAmount)
     sovryn.depositCollateral(loanId,depositAmount)
+
+# Transferring Ownership to GOV
+def transferProtocolOwnershipToGovernance():
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    sovryn.transferOwnership(conf.contracts['GovernorOwner'])
