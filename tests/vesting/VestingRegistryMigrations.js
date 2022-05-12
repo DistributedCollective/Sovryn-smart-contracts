@@ -77,7 +77,8 @@ contract("VestingRegistryMigrations", (accounts) => {
             SOV.address,
             staking.address,
             account4,
-            feeSharingProxy.address
+            feeSharingProxy.address,
+            13 * FOUR_WEEKS 
         );
         fourYearVesting = await FourYearVestingLogic.at(fourYearVesting.address);
     });
