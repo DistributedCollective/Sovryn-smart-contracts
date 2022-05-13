@@ -1,5 +1,13 @@
 const { ethers } = require("ethers");
 const fs = require('fs');
+const revision = require('child_process');
+var commHash = revision.execSync('git rev-parse HEAD');
+commHash = commHash.toString().substring(0,commHash.length-1);;
+var origin = revision.execSync('git config --get remote.origin.url');
+origin = origin.toString().substring(0,origin.length-1);
+var branch = revision.execSync('git branch');
+branch = branch.toString().substring(0,branch.length-1).slice(2);
+
 const FIX_ID = 32 * 2;
 
 console.log('------------------comparator script-----------------------', '\n');
@@ -13,6 +21,7 @@ async function iterator(CfgC) {
 
     var STR = initializeReport();
     STR.write('Prediction Report: Let us know if the code in this repo will produce smart contracts that will verify in a block explorer', "\n");
+    STR.write('Repository to be analysed: ', '\n', 'URL: ', origin, '\n', 'Branch: ', branch, '\n', 'Commit ', commHash, '\n');
     console.log('Prediction Report: Let us know if the code in this repo will produce smart contracts that will verify in a block explorer', '\n');
     
     for (let i = 0; i< L; ++i) {
