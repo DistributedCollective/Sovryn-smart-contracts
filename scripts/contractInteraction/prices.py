@@ -232,12 +232,6 @@ def transferOracleOwnershipToGovernance():
     data = tokenFeeds.transferOwnership.encode_input(conf.contracts['GovernorAdmin'])
     sendWithMultisig(conf.contracts['multisig'], tokenFeeds.address, data, conf.acct)
 
-    # XUSD PriceFeeds
-    print("Transferring XUSD PriceFeeds ownership to: ", conf.contracts['GovernorAdmin'])
-    tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['XUSDPriceFeeds'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
-    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['GovernorAdmin'])
-    sendWithMultisig(conf.contracts['multisig'], tokenFeeds.address, data, conf.acct)
-
     # FISH PriceFeeds
     print("Transferring FISH PriceFeeds ownership to: ", conf.contracts['GovernorAdmin'])
     tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['FISHPriceFeeds'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
