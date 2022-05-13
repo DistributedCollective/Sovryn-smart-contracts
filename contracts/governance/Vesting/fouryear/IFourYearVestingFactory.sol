@@ -15,6 +15,6 @@ interface IFourYearVestingFactory {
         address _feeSharing,
         address _vestingOwnerMultisig,
         address _fourYearVestingLogic,
-        uint256 _extendDurationTill
+        uint256 _extendDurationFor
     ) external returns (address);
 }

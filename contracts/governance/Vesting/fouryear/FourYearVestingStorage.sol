@@ -64,7 +64,7 @@ contract FourYearVestingStorage is Ownable {
     address public newImplementation;
 
     /// @notice Duration(from start) till the time unlocked tokens are extended(for 3 years)
-    uint256 public extendDurationTill;
+    uint256 public extendDurationFor;
 
     /// @dev Please add new state variables below this line. Mark them internal and
     /// add a getter function while upgrading the contracts.

@@ -22,7 +22,7 @@ contract FourYearVestingFactory is IFourYearVestingFactory, Ownable {
      * @param _vestingOwnerMultisig The address of an owner of vesting contract.
      * @dev _vestingOwnerMultisig should ALWAYS be multisig.
      * @param _fourYearVestingLogic The implementation contract.
-     * @param _extendDurationTill Duration till the unlocked tokens are extended.
+     * @param _extendDurationFor Duration till the unlocked tokens are extended.
      * @return The four year vesting contract address.
      * */
     function deployFourYearVesting(
@@ -32,7 +32,7 @@ contract FourYearVestingFactory is IFourYearVestingFactory, Ownable {
         address _feeSharing,
         address _vestingOwnerMultisig,
         address _fourYearVestingLogic,
-        uint256 _extendDurationTill
+        uint256 _extendDurationFor
     ) external onlyOwner returns (address) {
         address fourYearVesting =
             address(
@@ -42,7 +42,7 @@ contract FourYearVestingFactory is IFourYearVestingFactory, Ownable {
                     _staking,
                     _tokenOwner,
                     _feeSharing,
-                    _extendDurationTill
+                    _extendDurationFor
                 )
             );
         Ownable(fourYearVesting).transferOwnership(_vestingOwnerMultisig);

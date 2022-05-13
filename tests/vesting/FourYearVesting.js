@@ -81,7 +81,7 @@ contract("FourYearVesting", (accounts) => {
             let _cliff = await vestingInstance.cliff();
             let _duration = await vestingInstance.duration();
             let _feeSharingProxy = await vestingInstance.feeSharingProxy();
-            let _extendDurationTill = await vestingInstance.extendDurationTill();
+            let _extendDurationFor = await vestingInstance.extendDurationFor();
 
             assert.equal(_sov, token.address);
             assert.equal(_stackingAddress, staking.address);
@@ -89,7 +89,7 @@ contract("FourYearVesting", (accounts) => {
             assert.equal(_cliff.toString(), cliff);
             assert.equal(_duration.toString(), duration);
             assert.equal(_feeSharingProxy, feeSharingProxy.address);
-            assert.equal(_extendDurationTill, 52 * WEEK);
+            assert.equal(_extendDurationFor, 52 * WEEK);
         });
     });
 
@@ -112,7 +112,7 @@ contract("FourYearVesting", (accounts) => {
             let _cliff = await vestingInstance.cliff();
             let _duration = await vestingInstance.duration();
             let _feeSharingProxy = await vestingInstance.feeSharingProxy();
-            let _extendDurationTill = await vestingInstance.extendDurationTill();
+            let _extendDurationFor = await vestingInstance.extendDurationFor();
 
             assert.equal(_sov, token.address);
             assert.equal(_stackingAddress, staking.address);
@@ -120,7 +120,7 @@ contract("FourYearVesting", (accounts) => {
             assert.equal(_cliff.toString(), cliff);
             assert.equal(_duration.toString(), duration);
             assert.equal(_feeSharingProxy, feeSharingProxy.address);
-            assert.equal(_extendDurationTill, 52 * WEEK);
+            assert.equal(_extendDurationFor, 52 * WEEK);
         });
 
         it("fails if the 0 address is passed as SOV address", async () => {
@@ -235,7 +235,7 @@ contract("FourYearVesting", (accounts) => {
             );
         });
 
-        it("fails if extendDurationTill is not rounding to month", async () => {
+        it("fails if extendDurationFor is not rounding to month", async () => {
             await expectRevert(
                 Vesting.new(
                     vestingLogic.address,

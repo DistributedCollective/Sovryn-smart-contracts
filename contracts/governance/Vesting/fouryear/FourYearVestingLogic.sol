@@ -190,7 +190,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
      * year by 3 years. In some cases, the timeDuration can differ.
      * */
     function extendStaking() external {
-        uint256 timeDuration = startDate.add(extendDurationTill);
+        uint256 timeDuration = startDate.add(extendDurationFor);
         uint256[] memory dates;
         uint96[] memory stakes;
         (dates, stakes) = staking.getStakes(address(this));
@@ -321,8 +321,8 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
         ///		workaround found, but it doesn't work with TWO_WEEKS
         /// @dev For four year vesting, withdrawal of stakes for the first year is not allowed. These
         /// stakes are extended for three years. In some cases the withdrawal may be allowed at a different
-        /// time and hence we use extendDurationTill.
-        for (uint256 i = startDate.add(extendDurationTill); i <= end; i += FOUR_WEEKS) {
+        /// time and hence we use extendDurationFor.
+        for (uint256 i = startDate.add(extendDurationFor); i <= end; i += FOUR_WEEKS) {
             /// @dev Read amount to withdraw.
             stake = staking.getPriorUserStakeByDate(address(this), i, block.number.sub(1));
 

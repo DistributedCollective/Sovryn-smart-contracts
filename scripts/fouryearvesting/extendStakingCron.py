@@ -62,9 +62,9 @@ def main():
         datenow = time.time()
         timeLockDate = readLockDate(datenow)
         print('timeLockDate:', timeLockDate)
-        extendDurationTill = fourYearVestingLogic.extendDurationTill()
-        print('extendDurationTill:', extendDurationTill)
-        maxIterations = extendDurationTill / FOUR_WEEKS 
+        extendDurationFor = fourYearVestingLogic.extendDurationFor()
+        print('extendDurationFor:', extendDurationFor)
+        maxIterations = extendDurationFor / FOUR_WEEKS 
         print('maxIterations:', maxIterations)
         DAY = 24 * 60 * 60
         FOUR_WEEKS = 4 * 7 * DAY
