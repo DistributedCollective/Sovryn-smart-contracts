@@ -30,14 +30,15 @@ def main():
     # 
     # - Distribute SOV -
     # 
-    # SOVAmount = 8715198 * 10**16 # 87151.98
-    # 0. getBalance('0xEFc78fc7d48b64958315949279Ba181c2114ABBd', '0x924f5ad34698Fd20c90Fe5D5A8A0abd3b42dc711') # check multisig is funded with SOV
+    SOVAmount = 13617098 * 10**16 # 136170.98
+    # 0. 
+    # getBalance('0xEFc78fc7d48b64958315949279Ba181c2114ABBd', '0x924f5ad34698Fd20c90Fe5D5A8A0abd3b42dc711') # check multisig is funded with SOV
     # 1.
     # transferSOVtoTokenSender(SOVAmount) # direct liquid SOV distribution
     # 2. 
-    # sovDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-SOV-transfers-_____.csv'
-    # dryRun = true # false to execute, true to verify the file structure
-    # multiplier = 10**16 # usually 10**16 <- amounts must with 2 decimals
+    # sovDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-SOV-transfers-22-05.csv'
+    # dryRun = True # False to execute, true to verify the file structure
+    multiplier = 10**16 # usually 10**16 <- amounts must with 2 decimals
     # sendDirectSOV(sovDistributionPath, dryRun, multiplier)
      
     #
@@ -60,14 +61,16 @@ def main():
     # getBalance('0xEFc78fc7d48b64958315949279Ba181c2114ABBd', '0x924f5ad34698Fd20c90Fe5D5A8A0abd3b42dc711') # check multisig is funded with 
     # getBalance(conf.contracts['SOV'], receiver) # check that the script running address is funded
     receiver = '0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E'
-    # amount = 9763027 * 10**16
-    # transferSOVtoAccount(receiver, amount) # vesting SOV distribution
+    '''
+    amount = 168688 * 10**16
+    transferSOVtoAccount(receiver, amount) # vesting SOV distribution
+    '''
     # ------------------------
-    # chack, add and remove in the end the script execution address to admins
+    # check, add and remove in the end the script execution address to admins
     # if(not isVestingRegistryProxyAdmin(receiver)):
-    #     print('Adding Vesting Registry Admin')
-    #     vestingRegistryProxyAddAdmin(receiver)
-    #
+    #      print('Adding Vesting Registry Admin')
+    #      vestingRegistryProxyAddAdmin(receiver)
+    # 
     # TODO:
     # 1. set relevant vestingDistributionPath
     # 2. set dryRun = True, run, verify
@@ -78,10 +81,12 @@ def main():
     '''
     brownie run scripts/contractInteraction/tasks/airdrop_distribution/airdrop_distribution.py --network rsk-mainnet
     '''
-    vestingDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/vestings-22-05.csv'
-    dryRun = False # False to execute, True to verify the file structure
-    multiplier = 10**16 # multiplier == 10**16 <- amounts must with 2 decimals
-    createVestings(vestingDistributionPath, dryRun, multiplier)
+
+    # vestingDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/vestings-22-05_1.csv'
+    # dryRun = False # False to execute, True to verify the file structure
+    # multiplier = 10**16 # multiplier == 10**16 <- amounts must with 2 decimals
+    # createVestings(vestingDistributionPath, dryRun, multiplier)
+
     #
     # vestingRegistryProxyRemoveAdmin(receiver) # remove the script exexution from admins
     # 
