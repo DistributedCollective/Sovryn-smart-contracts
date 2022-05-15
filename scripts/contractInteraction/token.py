@@ -60,3 +60,9 @@ def sendMYNTFromMultisigToFeeSharingProxy(amount):
     print('Calling feeSharingProxy.transferTokens(multisig, mynt, amount): ', conf.contracts['multisig'], conf.contracts['MYNT'], amount)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['FeeSharingProxy'], data, conf.acct)
+
+def getBalanceOf(contractAddress, acct):
+    contract = Contract.from_abi("Token", address=contractAddress, abi=TestToken.abi, owner=conf.acct)
+    balance = contract.balanceOf(acct)
+    print(balance)
+    return balance
