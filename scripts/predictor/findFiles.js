@@ -50,6 +50,7 @@ function listMe(folders, F) {
 
 function draw(P, Bx, B0) {
   var Length = (Bx - B0);
+  // here we have a little bug in the progress... 100% not reached (minor, to be fixed)
   const percentage_progress = (((P - B0)/Length) * 100).toFixed(2);
   process.stdout.clearLine();
   process.stdout.cursorTo(0);
