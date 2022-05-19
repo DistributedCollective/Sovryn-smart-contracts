@@ -344,12 +344,8 @@ contract LiquidityMiningV1 is ILiquidityMiningV1, LiquidityMiningStorageV1 {
         PoolInfo storage pool = poolInfoList[poolId];
         uint256 start = block.number;
         uint256 end = start.add(_duration.div(SECONDS_PER_BLOCK));
-        (, uint256 accumulatedRewardPerShare) = _getPoolAccumulatedReward(
-            pool,
-            _amount,
-            start,
-            end
-        );
+        (, uint256 accumulatedRewardPerShare) =
+            _getPoolAccumulatedReward(pool, _amount, start, end);
         return _amount.mul(accumulatedRewardPerShare).div(PRECISION);
     }
 
@@ -387,10 +383,8 @@ contract LiquidityMiningV1 is ILiquidityMiningV1, LiquidityMiningStorageV1 {
             return;
         }
 
-        (
-            uint256 accumulatedReward_,
-            uint256 accumulatedRewardPerShare_
-        ) = _getPoolAccumulatedReward(pool);
+        (uint256 accumulatedReward_, uint256 accumulatedRewardPerShare_) =
+            _getPoolAccumulatedReward(pool);
         pool.accumulatedRewardPerShare = pool.accumulatedRewardPerShare.add(
             accumulatedRewardPerShare_
         );
@@ -414,10 +408,10 @@ contract LiquidityMiningV1 is ILiquidityMiningV1, LiquidityMiningStorageV1 {
         uint256 _endBlock
     ) internal view returns (uint256, uint256) {
         uint256 passedBlocks = _getPassedBlocksWithBonusMultiplier(_startBlock, _endBlock);
-        uint256 accumulatedReward = passedBlocks
-            .mul(rewardTokensPerBlock)
-            .mul(_pool.allocationPoint)
-            .div(totalAllocationPoint);
+        uint256 accumulatedReward =
+            passedBlocks.mul(rewardTokensPerBlock).mul(_pool.allocationPoint).div(
+                totalAllocationPoint
+            );
 
         uint256 poolTokenBalance = _pool.poolToken.balanceOf(address(this));
         poolTokenBalance = poolTokenBalance.add(_additionalAmount);
@@ -589,11 +583,10 @@ contract LiquidityMiningV1 is ILiquidityMiningV1, LiquidityMiningStorageV1 {
         //update user accumulated reward
         if (user.amount > 0) {
             //add reward for the previous amount of deposited tokens
-            uint256 accumulatedReward = user
-                .amount
-                .mul(pool.accumulatedRewardPerShare)
-                .div(PRECISION)
-                .sub(user.rewardDebt);
+            uint256 accumulatedReward =
+                user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION).sub(
+                    user.rewardDebt
+                );
             user.accumulatedReward = user.accumulatedReward.add(accumulatedReward);
         }
     }

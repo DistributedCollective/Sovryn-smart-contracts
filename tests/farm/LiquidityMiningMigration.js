@@ -199,7 +199,10 @@ describe("LiquidityMiningMigration", () => {
             );
             await upgradeLiquidityMining();
 
-            await expectRevert(liquidityMining.setLiquidityMiningV2Address(ZERO_ADDRESS), "Invalid address");
+            await expectRevert(
+                liquidityMining.setLiquidityMiningV2Address(ZERO_ADDRESS),
+                "Invalid address"
+            );
         });
         it("should fail if SOV address is invalid in migrator contract", async () => {
             migrator = await Migrator.new();

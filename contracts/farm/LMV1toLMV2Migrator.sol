@@ -11,12 +11,7 @@ import "./ILiquidityMiningV2.sol";
 contract LMV1toLMV2Migrator is AdminRole {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-    enum MigrationStates {
-        MigratingPools,
-        MigratingUsers,
-        MigratingFunds,
-        MigrationFinished
-    }
+    enum MigrationStates { MigratingPools, MigratingUsers, MigratingFunds, MigrationFinished }
 
     //represents de migration state from LiquidityMiningV1 to LiquidityMiningV2
     MigrationStates public migrationState;

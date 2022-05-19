@@ -215,7 +215,10 @@ describe("LiquidityMining", () => {
                 unlockedImmediatelyPercent
             );
             await upgradeLiquidityMining();
-            await expectRevert(liquidityMining.setLiquidityMiningV2Address(ZERO_ADDRESS), "Invalid address");
+            await expectRevert(
+                liquidityMining.setLiquidityMiningV2Address(ZERO_ADDRESS),
+                "Invalid address"
+            );
         });
 
         it("fails if unlockedImmediatelyPercent >= 10000", async () => {
