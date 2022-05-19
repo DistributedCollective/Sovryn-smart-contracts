@@ -68,7 +68,7 @@ describe("LiquidityMining", () => {
 
         await deployLiquidityMiningV2();
 
-        await liquidityMining.initialize(liquidityMiningV2.address);
+        await liquidityMining.setLiquidityMiningV2Address(liquidityMiningV2.address);
     });
 
     describe("initialize", () => {
@@ -182,9 +182,9 @@ describe("LiquidityMining", () => {
                 unlockedImmediatelyPercent
             );
             await upgradeLiquidityMining();
-            await liquidityMining.initialize(liquidityMiningV2.address);
+            await liquidityMining.setLiquidityMiningV2Address(liquidityMiningV2.address);
             await expectRevert(
-                liquidityMining.initialize(liquidityMiningV2.address),
+                liquidityMining.setLiquidityMiningV2Address(liquidityMiningV2.address),
                 "Already initialized"
             );
         });
@@ -215,7 +215,7 @@ describe("LiquidityMining", () => {
                 unlockedImmediatelyPercent
             );
             await upgradeLiquidityMining();
-            await expectRevert(liquidityMining.initialize(ZERO_ADDRESS), "Invalid address");
+            await expectRevert(liquidityMining.setLiquidityMiningV2Address(ZERO_ADDRESS), "Invalid address");
         });
 
         it("fails if unlockedImmediatelyPercent >= 10000", async () => {

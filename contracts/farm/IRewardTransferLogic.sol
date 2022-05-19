@@ -13,7 +13,7 @@ interface IRewardTransferLogic {
     /// @notice Transfers the reward amount to the specified address
     /// @param _to The address to transfer the reward to
     /// @param _value The amount of the reward to transfer
-    /// @param _isWithdrawal If true, means that the reward and the LP deposited tokens are being compeltely withdrawn
+    /// @param _isWithdrawal If true, the LP tokens are withdrawn and rewards are deposited to LockedSOV(not vested)
     function transferReward(
         address _to,
         uint256 _value,

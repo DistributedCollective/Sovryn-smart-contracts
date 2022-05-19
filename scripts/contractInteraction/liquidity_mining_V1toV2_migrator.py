@@ -9,7 +9,7 @@ import scripts.contractInteraction.config as conf
 def initializeLiquidityMiningV1():
     liquidityMiningV1 = Contract.from_abi("LiquidityMiningV1", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMiningV1.abi, owner = conf.acct)
 
-    data = liquidityMiningV1.initialize.encode_input(conf.contracts['LiquidityMiningProxyV2'])
+    data = liquidityMiningV1.setLiquidityMiningV2Address.encode_input(conf.contracts['LiquidityMiningProxyV2'])
     sendWithMultisig(conf.contracts['multisig'], liquidityMiningV1.address, data, conf.acct)
 
 def initializeLiquidityMiningV2():

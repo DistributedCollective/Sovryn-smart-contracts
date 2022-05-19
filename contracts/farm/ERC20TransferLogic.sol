@@ -1,6 +1,5 @@
 pragma solidity 0.5.17;
 
-import "./IRewardTransferLogic.sol";
 import "./ERC20TransferLogicStorage.sol";
 import "../interfaces/IERC20.sol";
 import "../openzeppelin/SafeERC20.sol";

@@ -70,7 +70,7 @@ describe("LiquidityMiningV2", () => {
 
         await deployLiquidityMiningV2();
 
-        await liquidityMiningV1.initialize(liquidityMining.address);
+        await liquidityMiningV1.setLiquidityMiningV2Address(liquidityMining.address);
 
         migrator = await Migrator.new();
         await migrator.initialize(
@@ -2225,7 +2225,7 @@ describe("LiquidityMiningV2", () => {
 
             await deployLiquidityMiningV2();
 
-            await liquidityMiningV1.initialize(liquidityMining.address);
+            await liquidityMiningV1.setLiquidityMiningV2Address(liquidityMining.address);
 
             migrator = await Migrator.new();
             await migrator.initialize(

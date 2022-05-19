@@ -218,7 +218,7 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
         address _poolToken,
         address _rewardToken,
         uint96 _allocationPoint
-    ) internal {
+    ) public onlyAuthorized {
         uint256 poolId = _getPoolId(_poolToken);
 
         // Allocation point checks
@@ -286,8 +286,9 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
     ) internal {
         uint256 poolId = _getPoolId(_poolToken);
         RewardToken storage rewardToken = rewardTokensMap[_rewardToken];
-        PoolInfoRewardToken storage poolInfoRewardToken =
-            poolInfoRewardTokensMap[poolId][_rewardToken];
+        PoolInfoRewardToken storage poolInfoRewardToken = poolInfoRewardTokensMap[poolId][
+            _rewardToken
+        ];
 
         uint96 previousAllocationPoint = poolInfoRewardToken.allocationPoint;
         rewardToken.totalAllocationPoint = rewardToken
@@ -361,15 +362,19 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
         address _user
     ) internal view returns (uint256) {
         PoolInfo storage pool = poolInfoList[_poolId];
-        PoolInfoRewardToken storage poolRewardToken =
-            poolInfoRewardTokensMap[_poolId][_rewardToken];
+        PoolInfoRewardToken storage poolRewardToken = poolInfoRewardTokensMap[_poolId][
+            _rewardToken
+        ];
         UserInfo storage user = userInfoMap[_poolId][_user];
 
         uint256 accumulatedRewardPerShare = poolRewardToken.accumulatedRewardPerShare;
         uint256 poolTokenBalance = pool.poolToken.balanceOf(address(this));
         if (block.number > poolRewardToken.lastRewardBlock && poolTokenBalance != 0) {
-            (, uint256 accumulatedRewardPerShare_) =
-                _getPoolAccumulatedReward(pool, poolRewardToken, rewardTokensMap[_rewardToken]);
+            (, uint256 accumulatedRewardPerShare_) = _getPoolAccumulatedReward(
+                pool,
+                poolRewardToken,
+                rewardTokensMap[_rewardToken]
+            );
             accumulatedRewardPerShare = accumulatedRewardPerShare.add(accumulatedRewardPerShare_);
         }
         return
@@ -410,15 +415,14 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
         PoolInfo storage pool = poolInfoList[poolId];
         uint256 start = block.number;
         uint256 end = start.add(_duration.div(SECONDS_PER_BLOCK));
-        (, uint256 accumulatedRewardPerShare) =
-            _getPoolAccumulatedReward(
-                pool,
-                _amount,
-                rewardTokensMap[_rewardToken],
-                poolInfoRewardTokensMap[poolId][_rewardToken],
-                start,
-                end
-            );
+        (, uint256 accumulatedRewardPerShare) = _getPoolAccumulatedReward(
+            pool,
+            _amount,
+            rewardTokensMap[_rewardToken],
+            poolInfoRewardTokensMap[poolId][_rewardToken],
+            start,
+            end
+        );
         return _amount.mul(accumulatedRewardPerShare).div(PRECISION);
     }
 
@@ -456,8 +460,9 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
         uint256 _poolId,
         address _rewardToken
     ) internal {
-        PoolInfoRewardToken storage poolRewardToken =
-            poolInfoRewardTokensMap[_poolId][_rewardToken];
+        PoolInfoRewardToken storage poolRewardToken = poolInfoRewardTokensMap[_poolId][
+            _rewardToken
+        ];
         // this pool has been updated recently
         if (block.number <= poolRewardToken.lastRewardBlock) {
             return;
@@ -470,8 +475,10 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
         }
         RewardToken storage rewardToken = rewardTokensMap[_rewardToken];
 
-        (uint256 accumulatedReward_, uint256 accumulatedRewardPerShare_) =
-            _getPoolAccumulatedReward(pool, poolRewardToken, rewardToken);
+        (
+            uint256 accumulatedReward_,
+            uint256 accumulatedRewardPerShare_
+        ) = _getPoolAccumulatedReward(pool, poolRewardToken, rewardToken);
         poolRewardToken.accumulatedRewardPerShare = poolRewardToken.accumulatedRewardPerShare.add(
             accumulatedRewardPerShare_
         );
@@ -515,12 +522,11 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
         uint256 _endBlock
     ) internal view returns (uint256, uint256) {
         uint256 passedBlocks = _getPassedBlocks(_rewardToken, _startBlock, _endBlock);
-        uint256 accumulatedReward =
-            passedBlocks
-                .mul(_rewardToken.rewardTokensPerBlock)
-                .mul(PRECISION)
-                .mul(_poolRewardToken.allocationPoint)
-                .div(_rewardToken.totalAllocationPoint);
+        uint256 accumulatedReward = passedBlocks
+            .mul(_rewardToken.rewardTokensPerBlock)
+            .mul(PRECISION)
+            .mul(_poolRewardToken.allocationPoint)
+            .div(_rewardToken.totalAllocationPoint);
 
         uint256 poolTokenBalance = _pool.poolToken.balanceOf(address(this));
         poolTokenBalance = poolTokenBalance.add(_additionalAmount);
@@ -729,15 +735,13 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
         //update user accumulated reward
         if (user.amount > 0) {
             //add reward for the previous amount of deposited tokens
-            uint256 accumulatedReward =
-                user
-                    .amount
-                    .mul(
-                    poolInfoRewardTokensMap[_poolId][_rewardTokenAddress]
-                        .accumulatedRewardPerShare
+            uint256 accumulatedReward = user
+                .amount
+                .mul(
+                    poolInfoRewardTokensMap[_poolId][_rewardTokenAddress].accumulatedRewardPerShare
                 )
-                    .div(PRECISION)
-                    .sub(reward.rewardDebt);
+                .div(PRECISION)
+                .sub(reward.rewardDebt);
             reward.accumulatedReward = reward.accumulatedReward.add(accumulatedReward);
         }
     }
@@ -1041,8 +1045,9 @@ contract LiquidityMiningV2 is ILiquidityMiningV2, LiquidityMiningStorageV2 {
         uint256 _accumulatedRewardPerShare
     ) external onlyMigrator {
         uint256 poolId = _getPoolId(_poolToken);
-        PoolInfoRewardToken storage poolInfoRewardToken =
-            poolInfoRewardTokensMap[poolId][_rewardToken];
+        PoolInfoRewardToken storage poolInfoRewardToken = poolInfoRewardTokensMap[poolId][
+            _rewardToken
+        ];
         poolInfoRewardToken.lastRewardBlock = _lastRewardBlock;
         poolInfoRewardToken.accumulatedRewardPerShare = _accumulatedRewardPerShare;
     }
