@@ -183,69 +183,69 @@ def setV1SOVPoolOracleAddress(v1PoolOracleAddress):
 
 def transferOracleOwnershipToGovernance():
     # PriceFeeds (Gateway)
-    print("Transferring priceFeeds (gateway) ownership to: ", conf.contracts['GovernorAdmin'])
+    print("Transferring priceFeeds (gateway) ownership to: ", conf.contracts['TimelockAdmin'])
     feeds = Contract.from_abi("PriceFeeds", address= conf.contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = conf.acct)
-    data = feeds.transferOwnership.encode_input(conf.contracts['GovernorAdmin'])
+    data = feeds.transferOwnership.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], feeds.address, data, conf.acct)
 
     # BPRO PriceFeeds
-    print("Transferring BPro PriceFeeds ownership to: ", conf.contracts['GovernorAdmin'])
+    print("Transferring BPro PriceFeeds ownership to: ", conf.contracts['TimelockAdmin'])
     tokenFeeds = Contract.from_abi("BProPriceFeed", address=conf.contracts['BProPriceFeeds'] , abi = BProPriceFeed.abi, owner = conf.acct)
-    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['GovernorAdmin'])
+    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], tokenFeeds.address, data, conf.acct)
 
     # MOC PriceFeeds (external)
-    print("Transferring MOC (External) PriceFeeds ownership to: ", conf.contracts['GovernorAdmin'])
+    print("Transferring MOC (External) PriceFeeds ownership to: ", conf.contracts['TimelockAdmin'])
     tokenFeeds = Contract.from_abi("PriceFeedsMoC", address = conf.contracts['PriceFeedsMOC'], abi = PriceFeedsMoC.abi, owner = conf.acct)
-    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['GovernorAdmin'])
+    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], tokenFeeds.address, data, conf.acct)
 
     # RSK PriceFeeds
-    print("Transferring RSK PriceFeeds ownership to: ", conf.contracts['GovernorAdmin'])
+    print("Transferring RSK PriceFeeds ownership to: ", conf.contracts['TimelockAdmin'])
     tokenFeeds = Contract.from_abi("PriceFeedRSKOracle", address=conf.contracts['PriceFeedRSKOracle'] , abi = PriceFeedRSKOracle.abi, owner = conf.acct)
-    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['GovernorAdmin'])
+    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], tokenFeeds.address, data, conf.acct)
 
     # --- V1Pool PriceFeeds ---
 
     # MOC PriceFeeds V1Pool
-    print("Transferring MOC (V1Pool) PriceFeeds ownership to: ", conf.contracts['GovernorAdmin'])
+    print("Transferring MOC (V1Pool) PriceFeeds ownership to: ", conf.contracts['TimelockAdmin'])
     tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['MOCPriceFeedsV1Pool'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
-    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['GovernorAdmin'])
+    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], tokenFeeds.address, data, conf.acct)
 
     # SOV PriceFeeds
-    print("Transferring SOV PriceFeeds ownership to: ", conf.contracts['GovernorAdmin'])
+    print("Transferring SOV PriceFeeds ownership to: ", conf.contracts['TimelockAdmin'])
     tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['SOVPriceFeeds'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
-    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['GovernorAdmin'])
+    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], tokenFeeds.address, data, conf.acct)
 
     # ETHs PriceFeeds
-    print("Transferring ETHs PriceFeeds ownership to: ", conf.contracts['GovernorAdmin'])
+    print("Transferring ETHs PriceFeeds ownership to: ", conf.contracts['TimelockAdmin'])
     tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['ETHsPriceFeeds'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
-    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['GovernorAdmin'])
+    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], tokenFeeds.address, data, conf.acct)
 
     # BNBs PriceFeeds
-    print("Transferring BNBs PriceFeeds ownership to: ", conf.contracts['GovernorAdmin'])
+    print("Transferring BNBs PriceFeeds ownership to: ", conf.contracts['TimelockAdmin'])
     tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['BNBsPriceFeeds'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
-    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['GovernorAdmin'])
+    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], tokenFeeds.address, data, conf.acct)
 
     # FISH PriceFeeds
-    print("Transferring FISH PriceFeeds ownership to: ", conf.contracts['GovernorAdmin'])
+    print("Transferring FISH PriceFeeds ownership to: ", conf.contracts['TimelockAdmin'])
     tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['FISHPriceFeeds'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
-    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['GovernorAdmin'])
+    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], tokenFeeds.address, data, conf.acct)
 
     # RIF PriceFeeds
-    print("Transferring RIF PriceFeeds ownership to: ", conf.contracts['GovernorAdmin'])
+    print("Transferring RIF PriceFeeds ownership to: ", conf.contracts['TimelockAdmin'])
     tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['RIFPriceFeeds'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
-    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['GovernorAdmin'])
+    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], tokenFeeds.address, data, conf.acct)
 
     # MYNT PriceFeeds
-    print("Transferring MYNT PriceFeeds ownership to: ", conf.contracts['GovernorAdmin'])
+    print("Transferring MYNT PriceFeeds ownership to: ", conf.contracts['TimelockAdmin'])
     tokenFeeds = Contract.from_abi("PriceFeedV1PoolOracle", address=conf.contracts['MYNTPriceFeeds'] , abi = PriceFeedV1PoolOracle.abi, owner = conf.acct)
-    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['GovernorAdmin'])
+    data = tokenFeeds.transferOwnership.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], tokenFeeds.address, data, conf.acct)

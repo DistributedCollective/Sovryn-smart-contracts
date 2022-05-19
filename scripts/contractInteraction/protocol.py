@@ -668,8 +668,8 @@ def depositCollateral(loanId,depositAmount, tokenAddress):
 
 # Transferring Ownership to GOV
 def transferProtocolOwnershipToGovernance():
-    print("Transferring sovryn protocol ownserhip to: ", conf.contracts['GovernorOwner'])
+    print("Transferring sovryn protocol ownserhip to: ", conf.contracts['TimelockOwner'])
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
-    data = sovryn.transferOwnership.encode_input(conf.contracts['GovernorOwner'])
+    data = sovryn.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
     sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
