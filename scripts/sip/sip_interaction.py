@@ -20,7 +20,7 @@ def main():
 
     # Call the function you want here
 
-    # createProposalSIP0043()
+    # createProposalSIP0048()
 
     balanceAfter = acct.balance()
 
@@ -361,3 +361,32 @@ def createProposalSIP0043():
     print(datas)
     print(description)
     # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+def createProposalSIP0044():
+
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking']]
+    values = [0]
+    signatures = ["setImplementation(address)"]
+    data = staking.setImplementation.encode_input(contracts['StakingLogic7'])
+    datas = ["0x" + data[10:]]
+    description = "SIP-0044 : Staking contract hardening against multiple attack vectors, Details: https://github.com/DistributedCollective/SIPS/blob/f883810/SIP-0044.md, sha256: 6d18d5438480e269d88c4021a2b6e1ed92e5447cc0a7198c3d6d0c98e7772246"
+
+    # Create Proposal
+    print(signatures)
+    print(datas)
+    print(description)
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+def createProposalSIP0048():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0048: Sovryn Strategic Investment Proposal : https://github.com/DistributedCollective/SIPS/blob/5a9b213/SIP-0048.md, sha256: 0d159814e12132caf36391ab3faa24e90174bbeeaf84449909a8b716e964267f"
+
+    # Create Proposal
+    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)

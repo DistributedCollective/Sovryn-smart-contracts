@@ -9,9 +9,11 @@ pragma experimental ABIEncoderV2;
 import "../../../core/objects/LoanParamsStruct.sol";
 
 interface ProtocolSettingsLike {
-	function setupLoanParams(LoanParamsStruct.LoanParams[] calldata loanParamsList) external returns (bytes32[] memory loanParamsIdList);
+    function setupLoanParams(LoanParamsStruct.LoanParams[] calldata loanParamsList)
+        external
+        returns (bytes32[] memory loanParamsIdList);
 
-	function disableLoanParams(bytes32[] calldata loanParamsIdList) external;
+    function disableLoanParams(bytes32[] calldata loanParamsIdList) external;
 
-	function minInitialMargin(bytes32 loanParamsId) external view returns (uint256);
+    function minInitialMargin(bytes32 loanParamsId) external view returns (uint256);
 }
