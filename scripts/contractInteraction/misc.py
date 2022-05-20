@@ -34,6 +34,10 @@ def mintAggregatedTokenWithMS(aggregatorAddress, tokenAddress, amount):
     abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
     abi = json.load(abiFile)
     aggregator = Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
+    token = Contract.from_abi("Token", address= tokenAddress, abi = TestToken.abi, owner=conf.acct)
+    if(token.allowance(conf.acct, aggregatorAddress) < amount):
+        data = token.approve(aggregatorAddress, amount)
+        sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
     data = aggregator.mint.encode_input(tokenAddress, amount)
     sendWithMultisig(conf.contracts['multisig'], aggregator.address, data, conf.acct)
 
