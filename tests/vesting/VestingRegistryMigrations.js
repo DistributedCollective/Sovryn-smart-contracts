@@ -318,6 +318,13 @@ contract("VestingRegistryMigrations", (accounts) => {
             assert.equal(vestingAddresses[0].vestingAddress, newVestingAddress);
         });
 
+        it("fails adding four year vesting if already added", async () => {
+            // Add deployed four year vesting to registry
+            await vesting.addFourYearVestings([account4], [fourYearVesting.address]);
+            await expectRevert(vesting.addFourYearVestings([account4], [fourYearVesting.address]), "vesting exists");
+            
+        });
+
         it("fails adding four year vesting if array mismatch", async () => {
             await expectRevert(vesting.addFourYearVestings([account4], []), "arrays mismatch");
         });
