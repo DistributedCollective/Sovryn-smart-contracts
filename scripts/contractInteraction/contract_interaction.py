@@ -34,21 +34,30 @@ def main():
 
     #used often:
 
-    #withdrawRBTCFromWatcher(30e18, conf.contracts['FastBTC'])
+    #withdrawRBTCFromWatcher(40e18, conf.contracts['FastBTC'])
     #bal = getBalance(conf.contracts['SOV'], conf.contracts['Watcher'])
-    #withdrawTokensFromWatcher(conf.contracts['SOV'], bal, conf.contracts['multisig'])
+    #withdrawTokensFromWatcher(conf.contracts['DoC'], 170000e18, conf.contracts['multisig'])
 
-    #sendTokensFromMultisig(conf.contracts['SOV'], '0xd1c42e0ace7a80efc191835dac102043bcfbbbe6', 4500e18)
-    #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 25e18)
+    #sendTokensFromMultisig(conf.contracts['SOV'], '0xEd09C97b91e8fC6d34FDe6503f64A01a6b8684c6', 77065e18)
+    #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 30e18)
 
     #sendMYNTFromMultisigToFeeSharingProxy(36632.144056847e18)
+    
+    '''
+    for i in range (922, 928):
+        #confirmWithMS(i)
+        checkTx(i)
+    '''
+    #missed = getMissedBalance()
+    #transferSOVtoLM(missed)
 
-    #for i in range (885, 887):
-    #    checkTx(i)
-    #    confirmWithMS(i)
+    #transferRBTCFromFastBTCOffRampToOnRamp(15e18)
 
     #missed = getMissedBalance()
     #transferSOVtoLM(missed)
+
+    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 100000e18)
+    #sendTokensFromMultisig(conf.contracts['USDT'], conf.contracts['Watcher'], 100000e18)
 
     vestingAddress = "0x9768eF9F59b030E98f12B2B4C859E5eCbC016633"
     fourYearVesting = Contract.from_abi("FourYearVestingLogic", address=vestingAddress, abi=FourYearVestingLogic.abi, owner=conf.acct)
@@ -103,3 +112,4 @@ def main():
 
     #readAllVestingContractsForAddress(conf.acct)
 
+   

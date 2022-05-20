@@ -347,3 +347,9 @@ def governanceWithdrawVesting( vesting,  receiver):
     data = stakingProxy.governanceWithdrawVesting.encode_input( vesting,  receiver)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
+
+def getStakedBalance(account):
+    stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    bal = stakingProxy.balanceOf(account)
+    print(bal)
+    return bal

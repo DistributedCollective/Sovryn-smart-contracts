@@ -20,7 +20,7 @@ def main():
 
     # Call the function you want here
 
-    # createProposalSIP0044()
+    # createProposalSIP0048()
 
     balanceAfter = acct.balance()
 
@@ -379,3 +379,14 @@ def createProposalSIP0044():
     print(datas)
     print(description)
     # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+def createProposalSIP0048():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0048: Sovryn Strategic Investment Proposal : https://github.com/DistributedCollective/SIPS/blob/5a9b213/SIP-0048.md, sha256: 0d159814e12132caf36391ab3faa24e90174bbeeaf84449909a8b716e964267f"
+
+    # Create Proposal
+    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)

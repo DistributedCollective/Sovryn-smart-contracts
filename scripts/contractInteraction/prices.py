@@ -77,6 +77,10 @@ def readMocOracleAddress():
     priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = conf.contracts['PriceFeedsMOC'], abi = PriceFeedsMoC.abi, owner = conf.acct)
     print(priceFeedsMoC.mocOracleAddress())
 
+def readRSKOracleAddress():
+    priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = conf.contracts['PriceFeedsMOC'], abi = PriceFeedsMoC.abi, owner = conf.acct)
+    print(priceFeedsMoC.rskOracleAddress())
+
 def updateOracleAddressAt(priceFeedAddress, newAddress):
     print("set oracle address to", newAddress)
     priceFeedsMoC = Contract.from_abi("PriceFeedsMoC", address = priceFeedAddress, abi = PriceFeedsMoC.abi, owner = conf.acct)
