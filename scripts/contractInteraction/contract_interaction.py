@@ -49,3 +49,57 @@ def main():
 
     #missed = getMissedBalance()
     #transferSOVtoLM(missed)
+
+    vestingAddress = "0x9768eF9F59b030E98f12B2B4C859E5eCbC016633"
+    fourYearVesting = Contract.from_abi("FourYearVestingLogic", address=vestingAddress, abi=FourYearVestingLogic.abi, owner=conf.acct)
+
+    '''
+    stakingAddress = conf.contracts['Staking']
+    staking = Contract.from_abi("Staking", address=stakingAddress, abi=Staking.abi, owner=conf.acct)
+    stakes = staking.getStakes(vestingAddress)
+    print("Staking Details")
+    print("=======================================")
+    print(stakes)
+    
+    print(fourYearVesting.lastStakingSchedule())
+    print(fourYearVesting.remainingStakeAmount())
+    print(fourYearVesting.owner())
+    print(fourYearVesting.tokenOwner())
+    print(fourYearVesting.startDate())
+
+    fourYearVestingFactory = Contract.from_abi("FourYearVestingFactory", address=conf.contracts['FourYearVestingFactory'], abi=FourYearVestingFactory.abi, owner=conf.acct)
+    print(fourYearVestingFactory.owner())
+    data = fourYearVestingFactory.transferOwnership.encode_input("0x511893483DCc1A9A98f153ec8298b63BE010A99f")
+    #sendWithMultisig(conf.contracts['multisig'], fourYearVestingFactory.address, data, conf.acct)
+    
+    
+    SOVtoken = Contract.from_abi("SOV", address=conf.contracts['SOV'], abi=SOV.abi, owner=conf.acct)
+    remainingAmount = 78*10**18
+    #SOVtoken.approve(vestingAddress, remainingAmount)
+    lastSchedule = 0
+    while remainingAmount > 0:
+        fourYearVesting.stakeTokens(remainingAmount, lastSchedule)
+        lastSchedule = fourYearVesting.lastStakingSchedule()
+        remainingAmount = fourYearVesting.remainingStakeAmount()
+        time.sleep(10)
+ 
+    stakes = staking.getStakes(vestingAddress)
+    print("Staking Details")
+    print("=======================================")
+    print(stakes)
+    
+    
+    lastSchedule = fourYearVesting.lastStakingSchedule()
+    print(lastSchedule)
+    remainingAmount = fourYearVesting.remainingStakeAmount()
+    print(remainingAmount)
+    if remainingAmount > 0:
+        fourYearVesting.stakeTokens(remainingAmount, lastSchedule)
+    '''
+
+    #upgradeVesting()
+
+    #isVestingAdmin(conf.acct)
+
+    #readAllVestingContractsForAddress(conf.acct)
+
