@@ -121,11 +121,6 @@ contract("ProtocolCloseDeposit", (accounts) => {
             await lockedSOV.getLockedBalance(borrower)
         );
 
-        const tx = await sovryn.closeWithDeposit(loan_id, receiver, deposit_amount, {
-            from: borrower,
-        });
-        const receipt = tx.receipt;
-
         let loan_close_amount = deposit_amount.gt(principal) ? principal : deposit_amount;
 
         // Check that tiny position won't be created
@@ -139,9 +134,20 @@ contract("ProtocolCloseDeposit", (accounts) => {
             remainingAmountInWRBTC = remainingAmount.mul(rate).div(precision);
 
             if (remainingAmountInWRBTC.cmp(TINY_AMOUNT) <= 0) {
-                loan_close_amount = principal;
+                await expectRevert(
+                    sovryn.closeWithDeposit(loan_id, receiver, deposit_amount, {
+                        from: borrower,
+                    }),
+                    "Tiny position will remain"
+                );
+                return;
             }
         }
+
+        const tx = await sovryn.closeWithDeposit(loan_id, receiver, deposit_amount, {
+            from: borrower,
+        });
+        const receipt = tx.receipt;
 
         const withdraw_amount = loan_close_amount.eq(principal)
             ? collateral

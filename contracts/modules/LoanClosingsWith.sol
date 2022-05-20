@@ -154,7 +154,7 @@ contract LoanClosingsWith is LoanClosingsShared {
         if (remainingAmount > 0) {
             remainingAmount = _getAmountInRbtc(loanParamsLocal.loanToken, remainingAmount);
             if (remainingAmount <= TINY_AMOUNT) {
-                loanCloseAmount = loanLocal.principal;
+                revert("Tiny position will remain");
             }
         }
 
