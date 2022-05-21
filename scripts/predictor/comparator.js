@@ -70,7 +70,7 @@ async function iterator(CfgC) {
                         let Bytc = require(Pt); // this is the JSON object holding the compilation's bytecode
                         let B0 = Bytc['deployedBytecode'];  // This is the compilation's bytecode
                         let B1 = ethers.utils.isAddress(Ad) ? await pi.getCode(Ad) : '0x';      // This is the bytecode from the deployed contract in blockchain
-                        let veredict = compare(B0, B1);     // true: it should verify; false: it won't verify
+                        let veredict = (B0 != undefined && B1 != undefined && B0 != null && B1 != null) ? compare(B0, B1) : false;     // true: it should verify; false: it won't verify
                         if(veredict) {
                         let success =  "the contract " + kj + ", deployed in the network N° " + ki + ", with the address " + Ad + " will successfully verify with the code of this repository";
                         STR.write(success);
