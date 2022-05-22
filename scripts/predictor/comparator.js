@@ -10,7 +10,7 @@ branch = branch.toString().substring(0,branch.length-1).slice(2);
 
 const FIX_ID = 32 * 2;
 
-console.log('------------------comparator script-----------------------', '\n');
+console.log('------------------comparator script-----------------------', '\n', '\n', '\n');
 
 const configContract = './contract_config.json';
 
@@ -28,17 +28,17 @@ async function iterator(CfgC) {
     var STR = initializeReport('./report');
 
     // the headers for both the report and the console
-    STR.write('Prediction Report: Let us know if the code in this repo will produce smart contracts that will verify in a block explorer' + "\n");
-    STR.write('Repository to be analysed: ' + '\n' + 'URL: ' + origin + '\n' + 'Branch: ' + branch + '\n' + 'Commit ' + commHash + '\n');
-    console.log('Prediction Report: Let us know if the code in this repo will produce smart contracts that will verify in a block explorer', '\n');
-    console.log('Repository to be analysed: ', '\n', 'URL: ', origin, '\n', 'Branch: ', branch, '\n', 'Commit ', commHash, '\n');
+    STR.write('Prediction Report: Let us know if the code in this repo will produce smart contracts that will verify in a block explorer' + '\n' + '\n' + '\n');
+    STR.write('Repository to be analysed: ' + '\n' + 'URL: ' + origin + '\n' + 'Branch: ' + branch + '\n' + 'Commit ' + commHash + '\n' + '\n' + '\n');
+    console.log('Prediction Report: Let us know if the code in this repo will produce smart contracts that will verify in a block explorer', '\n', '\n', '\n');
+    console.log('Repository to be analysed: ', '\n', 'URL: ', origin, '\n', 'Branch: ', branch, '\n', 'Commit ', commHash, '\n', '\n', '\n');
     
     // the loop to cycle through all the lists of contracts for all the networks described in CfgC
     for (let i = 0; i< L; ++i) {
 
         let ki = Object.keys(F)[i]; // this is the network id
-        STR.write('contracts dpeloyed in the network id: ' + ki + '\n');
-        console.log('contracts dpeloyed in the network id: ', ki, '\n');
+        STR.write('contracts dpeloyed in the network id: ' + ki + '\n' + '\n');
+        console.log('contracts dpeloyed in the network id: ', ki + '\n' + '\n');
         let vi = F[ki][2];          // this is the path to the JSON file with the list of contracts for that network id
         let Provi = F[ki][1];        // this is Sovryn's provider endpoint for that network id
         let pi = new ethers.providers.JsonRpcProvider(Provi); // ethers provider
@@ -48,8 +48,8 @@ async function iterator(CfgC) {
 
             let C = require(vi);        // this is the JSON object with the data of contracts
             let Lc = Object.keys(C).length; // this is how many contract are listed in that JSON
-            STR.write('checking ' + Lc + ' contracts.' + '\n');
-            console.log('checking ', Lc, ' contracts.', '\n');
+            STR.write('checking ' + Lc + ' contracts.' + '\n' + '\n');
+            console.log('checking ', Lc, ' contracts.', '\n', '\n');
             
             // the loop to cycle through all the contracts of a network's list
             for (let j = 0; j < Lc ; ++j) {
@@ -72,11 +72,11 @@ async function iterator(CfgC) {
                         let B1 = ethers.utils.isAddress(Ad) ? await pi.getCode(Ad) : '0x';      // This is the bytecode from the deployed contract in blockchain
                         let veredict = (B0 != undefined && B1 != undefined && B0 != null && B1 != null) ? compare(B0, B1) : false;     // true: it should verify; false: it won't verify
                         if(veredict) {
-                        let success =  "the contract " + kj + ", deployed in the network N° " + ki + ", with the address " + Ad + " will successfully verify with the code of this repository";
+                        let success =  "the contract " + kj + ", deployed in the network N° " + ki + ", with the address " + Ad + " will successfully verify with the code of this repository \n";
                         STR.write(success);
                         console.log(success);
                         } else {
-                            let fail = "the contract " + kj + ", deployed in the network N° " + ki + ", with the address " + Ad + " will NOT verify with the code of this repository";
+                            let fail = "the contract " + kj + ", deployed in the network N° " + ki + ", with the address " + Ad + " will NOT verify with the code of this repository \n";
                             STR.write(fail);
                             console.log(fail);
                         }
@@ -84,15 +84,15 @@ async function iterator(CfgC) {
 
                     } else {
 
-                        STR.write('the bytecode for the contract  ' + kj + 'is not in this repo' + '\n');
-                        console.log('the bytecode for the contract  ', kj, 'is not in this repo', '\n');
+                        STR.write('the bytecode for the contract  ' + kj + ' is not in this repo' + '\n');
+                        console.log('the bytecode for the contract  ', kj, ' is not in this repo', '\n');
 
                     }
 
                 } else {
 
-                    STR.write('the compilation for the contract  ' + kj + 'has not done yet' + '\n');
-                    console.log('the compilation for the contract  ', kj, 'has not done yet', '\n');
+                    STR.write('the compilation for the contract  ' + kj + ' has not done yet' + '\n');
+                    console.log('the compilation for the contract  ', kj, ' has not done yet', '\n');
 
                 }
 
