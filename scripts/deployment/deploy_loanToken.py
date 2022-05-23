@@ -61,20 +61,26 @@ def deployLoanTokens(acct, sovryn, tokens):
 '''
 Deploys a single loan token contract and sets it up
 '''
-def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddresses, wrbtcAddress, multisig='', loanTokenLogicAddress='', baseRate = 1e18, rateMultiplier = 10e18, kinkLevel = 90e18, maxScaleRate = 100e18):
+def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenName, collateralAddresses, wrbtcAddress, multisig='', loanTokenBeaconAddress='', baseRate = 1e18, rateMultiplier = 10e18, kinkLevel = 90e18, maxScaleRate = 100e18):
+    # print("Deploying LoanTokenLogicStandard")
+    # if (len(loanTokenLogicAddress) == 0):
+    #     if(loanTokenSymbol == 'iWRBTC'):
+    #         loanTokenLogic = acct.deploy(LoanTokenLogicWrbtc)
+    #     else:
+    #         loanTokenLogic = acct.deploy(LoanTokenLogicStandard)
+    #     loanTokenLogicAddress = loanTokenLogic.address
+    #     _add_contract(loanTokenLogic)
     
-    print("Deploying LoanTokenLogicStandard")
-    if (len(loanTokenLogicAddress) == 0):
-        if(loanTokenSymbol == 'iWRBTC'):
-            loanTokenLogic = acct.deploy(LoanTokenLogicWrbtc)
-        else:
-            loanTokenLogic = acct.deploy(LoanTokenLogicStandard)
-        loanTokenLogicAddress = loanTokenLogic.address
-        _add_contract(loanTokenLogic)
+    loanTokenLogicProxy = acct.deploy(LoanTokenLogicProxy)
+    print("Loan Token Logic Proxy XUSD deployed at: ", loanTokenLogicProxy.address)
 
-    print("Deploying loan token using the loan logic as target for delegate calls")
-    loanToken = acct.deploy(LoanToken, acct.address, loanTokenLogicAddress, sovryn.address, wrbtcAddress)
+    print("Deploying loan token using the loan logic proxy as target for delegate calls")
+    loanToken = acct.deploy(LoanToken, acct.address, loanTokenLogicProxy, sovryn.address, wrbtcAddress)
     _add_contract(loanToken)
+
+    print("Set beacon address")
+    loanTokenWithProxyABI = Contract.from_abi("loanTokenWithProxyABI", address=loanToken.address, abi=LoanTokenLogicProxy.abi, owner=acct)
+    loanTokenWithProxyABI.setBeaconAddress(loanTokenBeaconAddress)
 
     print("Initialize loanTokenAddress ")
     calldata = loanToken.initialize(loanTokenAddress, loanTokenName, loanTokenSymbol)#symbol and name might be mixed up
@@ -83,7 +89,7 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
     print(loanTokenAddr)
 
     #setting the logic ABI for the loan token contract
-    loanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenLogicStandard.abi, owner=acct)
+    loanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
     print("Setting up pool params on protocol.")
     
     if(acct == sovryn.owner()):
@@ -152,7 +158,7 @@ def deployLoanToken(acct, sovryn, loanTokenAddress, loanTokenSymbol, loanTokenNa
 
     print("setting up interest rates")
 
-    setupLoanTokenRates(acct, loanToken.address, loanTokenLogicAddress, baseRate, rateMultiplier, kinkLevel, maxScaleRate)
+    setupLoanTokenRates(acct, loanToken.address, loanTokenLogicProxy.address, baseRate, rateMultiplier, kinkLevel, maxScaleRate)
 
     return (loanToken, '')
 
@@ -167,8 +173,9 @@ def setupLoanTokenRates(acct, loanTokenAddress, logicAddress, baseRate, rateMult
         scale up to maxScaleRate
     '''
     targetLevel=0 # unused -> that's why 0
-    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
     localLoanToken.setDemandCurve(baseRate,rateMultiplier,baseRate,rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
+    localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicLM.abi, owner=acct)
     borrowInterestRate = localLoanToken.borrowInterestRate()
     print("borrowInterestRate: ",borrowInterestRate)
 

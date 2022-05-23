@@ -38,7 +38,7 @@ def main():
         [contracts['WRBTC'], contracts['BPro'], contracts['DoC']], #array of collateral addresses
         contracts['WRBTC'], #wrbtc address
         multisig, #multisig contract if existing
-        contracts['LoanTokenLogicStandard'], #loan token logic address if existing
+        contracts['LoanTokenLogicBeaconLM'], #loan token logic beacon address
         6e18, #base rate
         15e18, #rateMultiplier
         75e18, #kinkLevel
@@ -66,7 +66,7 @@ def setupLoanParams():
     setupSingleLoanParams(contracts['iDOC'])
 
 def setupSingleLoanParams(loanTokenAddress):
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=acct)
     
     params = []
     setup = [
