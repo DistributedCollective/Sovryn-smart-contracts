@@ -1,4 +1,4 @@
-var fs = require('fs');
+var fs = require("fs");
 
 // CAUTION : THIS SCRIPT WILL COPY AND WRITE FROM SOURCE TO TARGET PATH
 
@@ -16,7 +16,7 @@ var S;
 var T;
 
 // this function allows us to know if the couple of files pre-exist or not
-function checkParameters(s, t){
+function checkParameters(s, t) {
     if (fs.existsSync(s)) {
         S = require(s);
     } else {
@@ -24,8 +24,8 @@ function checkParameters(s, t){
     }
     if (!fs.existsSync(t) && S != null) {
         // we must ensure that target file exists
-        if (t.slice(0,2) != './') t = './' + t;
-        fs.writeFileSync(t, '{}');
+        if (t.slice(0, 2) != "./") t = "./" + t;
+        fs.writeFileSync(t, "{}");
         T = {};
     } else if (S != null) {
         T = require(t);
@@ -38,13 +38,13 @@ function findEqKeys(S, T, i) {
     var LT = Object.keys(T).length;
     let flag = false;
     for (let j = 0; j < LT; j++) {
-        let kj = Object.keys(T)[j];        
+        let kj = Object.keys(T)[j];
         // if there are differences with lowercase or uppercase, the rest of the filling must be complete by hand
-        if(ki == kj){
+        if (ki == kj) {
             flag = true;
             let vi = S[ki][1];
             // if the field contents data it is left as it is
-            if(T[kj][1] == "./" || T[kj][1] == undefined || T[kj][1] == null){
+            if (T[kj][1] == "./" || T[kj][1] == undefined || T[kj][1] == null) {
                 T[kj][1] = vi;
             }
             // https://www.youtube.com/watch?v=n0SMef9C_xU
@@ -53,22 +53,26 @@ function findEqKeys(S, T, i) {
     }
     if (!flag) {
         console.log(ki, "not found");
-        T[ki] = ["0x",S[ki][1]];
+        T[ki] = ["0x", S[ki][1]];
     }
     return T;
 }
 
-function checkAll(S, T){
+function checkAll(S, T) {
     var LS = Object.keys(S).length;
     for (let k = 0; k < LS; k++) {
-       T = findEqKeys(S, T, k);
+        T = findEqKeys(S, T, k);
     }
     return T;
 }
 
 function run() {
-    if (sourcePath != undefined && sourcePath != null && targetPath != undefined && targetPath != null) {
-
+    if (
+        sourcePath != undefined &&
+        sourcePath != null &&
+        targetPath != undefined &&
+        targetPath != null
+    ) {
         targetPath = checkParameters(sourcePath, targetPath);
 
         if (S != null) {
@@ -76,12 +80,11 @@ function run() {
             T = JSON.stringify(T, null, 2);
             fs.writeFileSync(targetPath, T);
         } else {
-            console.log('source file must be initialized');
+            console.log("source file must be initialized");
         }
     } else {
-        console.log('check input parameters')
+        console.log("check input parameters");
     }
-    
 }
 
 run();
