@@ -204,7 +204,8 @@ function compare(A, B) {
     bytes = select(A, B);
     bytes = reduce(bytes[0], bytes[1]);
 
-    x = bytes[0] == bytes[1];
+    // fixing TypeError
+    bytes = (A != undefined && B != undefined && A != null && B != null) ? reduce(bytes[0], bytes[1]) : ["wrong", "arguments"];
 
     // console.log(bytes[0], bytes[1]);
     return x;
