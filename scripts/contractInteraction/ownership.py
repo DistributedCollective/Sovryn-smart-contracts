@@ -31,7 +31,7 @@ def checkOwnerIsAddress(contractAddress, expectedOwner):
 
 
 def readOwnersOfAllContracts():
-    for contractName in contracts:
+    for contractName in conf.contracts:
         #print(contractName)
         contract = Contract.from_abi("Ownable", address=conf.contracts[contractName], abi=LoanToken.abi, owner=conf.acct)
         if(contractName != 'multisig' and contractName != 'WRBTC' and contractName != 'og'  and contractName != 'USDT' and contractName != 'medianizer' and contractName != 'USDTtoUSDTOracleAMM' and contractName != 'GovernorOwner'  and contractName != 'GovernorAdmin' and contractName != 'SovrynSwapFormula' and contractName != 'MOCState' and contractName != 'USDTPriceFeed' and contractName != 'FeeSharingProxy'  and contractName != 'TimelockOwner'  and contractName != 'TimelockAdmin' and contractName != 'AdoptionFund' and contractName != 'DevelopmentFund'):
