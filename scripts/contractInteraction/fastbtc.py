@@ -12,6 +12,12 @@ def withdrawRBTCFromFastBTCBiDi(amount, recipient):
     print(data)
     sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
 
+def transferRBTCFromFastBTCOffRampToOnRamp(amount):
+    fastBTC = loadBiDiFastBTC()
+    data = fastBTC.withdrawRbtc.encode_input(amount, conf.contracts['FastBTC'])
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+
 def setMaxTransferSatoshi(newMaxSatoshi):
     fastBTC = loadBiDiFastBTC()
     data = fastBTC.setMaxTransferSatoshi.encode_input(newMaxSatoshi)
