@@ -201,14 +201,16 @@ function initializeReport(report_path) {
 }
 
 function compare(A, B) {
-    bytes = select(A, B);
-    bytes = reduce(bytes[0], bytes[1]);
 
+    bytes = select(A, B);
     // fixing TypeError
     bytes = (A != undefined && B != undefined && A != null && B != null) ? reduce(bytes[0], bytes[1]) : ["wrong", "arguments"];
-
+    
+    x = bytes[0] == bytes[1];
+    
     // console.log(bytes[0], bytes[1]);
     return x;
+
 }
 
 function sizes(A, B) {
