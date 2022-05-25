@@ -31,13 +31,13 @@ async function iterator(CfgC) {
 
     // the headers for both the report and the console
     STR.write(
-        "Prediction Report: Let us know if the code in this repo will produce smart contracts that will verify in a block explorer" +
+        "Prediction Report: to know if the code on this repo will produce bytecode that will verify in a block explorer" +
             "\n" +
             "\n" +
             "\n"
     );
     STR.write(
-        "Repository to be analysed: " +
+        "Repository info: " +
             "\n" +
             "URL: " +
             origin +
@@ -45,20 +45,20 @@ async function iterator(CfgC) {
             "Branch: " +
             branch +
             "\n" +
-            "Commit " +
+            "Commit: " +
             commHash +
             "\n" +
             "\n" +
             "\n"
     );
     console.log(
-        "Prediction Report: Let us know if the code in this repo will produce smart contracts that will verify in a block explorer",
+        "Prediction Report: to know if the code on this repo will produce bytecode that will verify in a block explorer",
         "\n",
         "\n",
         "\n"
     );
     console.log(
-        "Repository to be analysed: ",
+        "Repository info: ",
         "\n",
         "URL: ",
         origin,
@@ -66,7 +66,7 @@ async function iterator(CfgC) {
         "Branch: ",
         branch,
         "\n",
-        "Commit ",
+        "Commit: ",
         commHash,
         "\n",
         "\n",
@@ -76,8 +76,8 @@ async function iterator(CfgC) {
     // the loop to cycle through all the lists of contracts for all the networks described in CfgC
     for (let i = 0; i < L; ++i) {
         let ki = Object.keys(F)[i]; // this is the network id
-        STR.write("contracts dpeloyed in the network id: " + ki + "\n" + "\n");
-        console.log("contracts dpeloyed in the network id: ", ki + "\n" + "\n");
+        STR.write("\n contracts dpeloyed in the network N°: " + ki + "\n" + "\n");
+        console.log("\n contracts dpeloyed in the network N°: ", ki + "\n" + "\n");
         let vi = F[ki][2]; // this is the path to the JSON file with the list of contracts for that network id
         let Provi = F[ki][1]; // this is Sovryn's provider endpoint for that network id
         let pi = new ethers.providers.JsonRpcProvider(Provi); // ethers provider
@@ -93,20 +93,20 @@ async function iterator(CfgC) {
             for (let j = 0; j < Lc; ++j) {
                 kj = Object.keys(C)[j]; // this is the name of the contract
                 STR.write(
-                    "checking element N°: " +
+                    "checking contract N°: " +
                         (j + 1) +
                         " from " +
                         Lc +
-                        ", the contract: " +
+                        ", named: " +
                         kj +
                         "\n"
                 );
                 console.log(
-                    "checking element N°: ",
+                    "checking contract N°: ",
                     j + 1,
                     " from ",
                     Lc,
-                    ", the contract: ",
+                    ", named: ",
                     kj,
                     "\n"
                 );
@@ -133,7 +133,7 @@ async function iterator(CfgC) {
                                 ki +
                                 ", with the address " +
                                 Ad +
-                                " will successfully verify with the code of this repository \n";
+                                " will successfully verify \n";
                             STR.write(success);
                             console.log(success);
                         } else {
@@ -144,42 +144,42 @@ async function iterator(CfgC) {
                                 ki +
                                 ", with the address " +
                                 Ad +
-                                " will NOT verify with the code of this repository \n";
+                                " will NOT verify \n";
                             STR.write(fail);
                             console.log(fail);
                         }
                     } else {
                         STR.write(
-                            "the bytecode for the contract  " + kj + " is not in this repo" + "\n"
+                            "the bytecode for the contract  " + kj + " may not be in this repo" + "\n"
                         );
                         console.log(
                             "the bytecode for the contract  ",
                             kj,
-                            " is not in this repo",
+                            " may not be in this repo",
                             "\n"
                         );
                     }
                 } else {
                     STR.write(
-                        "the compilation for the contract  " + kj + " has not done yet" + "\n"
+                        "the compilation for the contract  " + kj + " has not been done yet" + "\n"
                     );
                     console.log(
                         "the compilation for the contract  ",
                         kj,
-                        " has not done yet",
+                        " has not been done yet",
                         "\n"
                     );
                 }
             }
         } else {
             STR.write(
-                "make sure that all JSON files are initialized, " +
+                "make sure createJSON was run first, " +
                     vi +
                     " file not initialized" +
                     "\n"
             );
             console.log(
-                "make sure that all JSON files are initialized, ",
+                "make sure createJSON was run first, ",
                 vi,
                 " file not initialized",
                 "\n"
@@ -202,9 +202,11 @@ function initializeReport(report_path) {
 
 function compare(A, B) {
 
-    bytes = select(A, B);
+    var bytes = select(A, B);
     // fixing TypeError
-    bytes = (A != undefined && B != undefined && A != null && B != null) ? reduce(bytes[0], bytes[1]) : ["wrong", "arguments"];
+    A = bytes[0];
+    B = bytes[1];
+    bytes = (A != undefined && B != undefined && A != null && B != null) ? reduce(A, B) : ["wrong", "arguments"];
     
     x = bytes[0] == bytes[1];
     
@@ -219,7 +221,7 @@ function sizes(A, B) {
 
 function select(A, B) {
     if (!sizes(A, B)) {
-        console.log("sizes not equal or invalid");
+        console.log("bytecode sizes not equal or invalid");
         return ["wrong", "arguments"];
     }
 
@@ -240,7 +242,7 @@ function select(A, B) {
 
 function reduce(A, B) {
     if (!sizes(A, B) || A.length <= FIX_ID + 2) {
-        console.log("sizes not equal, invalid or too short");
+        console.log("bytecode sizes not equal, invalid or too short");
         return ["wrong", "arguments"];
     }
 
