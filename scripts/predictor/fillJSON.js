@@ -29,20 +29,22 @@ function checkParameters(s, t) {
         T = {};
     } else if (S != null) {
         T = require(t);
+    } else {
+        T = null;
     }
-    return t;
+    // return t;
 }
 
 function findEqKeys(S, T, i) {
-    var ki = Object.keys(S)[i];
-    var LT = Object.keys(T).length;
-    let flag = false;
+    var ki = Object.keys(S)[i];         // i-th element key from the source file
+    var LT = Object.keys(T).length;     // length of the target file
+    let flag = false;                   // flag to know if a coincidence was found
     for (let j = 0; j < LT; j++) {
-        let kj = Object.keys(T)[j];
+        let kj = Object.keys(T)[j];     // j-th element key from the target file
         // if there are differences with lowercase or uppercase, the rest of the filling must be complete by hand
         if (ki == kj) {
             flag = true;
-            let vi = S[ki][1];
+            let vi = S[ki][1];          // i-th element value from the source file
             // if the field contents data it is left as it is
             if (T[kj][1] == "./" || T[kj][1] == undefined || T[kj][1] == null) {
                 T[kj][1] = vi;
@@ -61,7 +63,7 @@ function findEqKeys(S, T, i) {
 function checkAll(S, T) {
     var LS = Object.keys(S).length;
     for (let k = 0; k < LS; k++) {
-        T = findEqKeys(S, T, k);
+        T = findEqKeys(S, T, k);        // what if this T object were too big?: it can be a stream
     }
     return T;
 }
@@ -73,7 +75,7 @@ function run() {
         targetPath != undefined &&
         targetPath != null
     ) {
-        targetPath = checkParameters(sourcePath, targetPath);
+        checkParameters(sourcePath, targetPath);
 
         if (S != null) {
             T = checkAll(S, T);
