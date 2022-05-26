@@ -80,6 +80,8 @@ async function iterator(CfgC) {
         console.log("\n contracts dpeloyed in the network N°: ", ki + "\n" + "\n");
         let vi = F[ki][2]; // this is the path to the JSON file with the list of contracts for that network id
         let Provi = F[ki][1]; // this is Sovryn's provider endpoint for that network id
+        STR.write("\n using provider: " + Provi + "\n" + "\n");
+        console.log("\n using provider: ", Provi, "\n", "\n");        
         let pi = new ethers.providers.JsonRpcProvider(Provi); // ethers provider
 
         // we assume that the string vi is rightfully written
@@ -120,7 +122,8 @@ async function iterator(CfgC) {
                     if (fs.existsSync(Pt)) {
                         let Bytc = require(Pt); // this is the JSON object holding the compilation's bytecode
                         let B0 = Bytc["deployedBytecode"]; // This is the compilation's bytecode
-                        let B1 = ethers.utils.isAddress(Ad) ? await pi.getCode(Ad) : "0x"; // This is the bytecode from the deployed contract in blockchain
+                        // preventing missing URL response error
+                        let B1 = ethers.utils.isAddress(Ad) ? await getCode(pi, Ad, 1) : "0x"; // This is the bytecode from the deployed contract in blockchain
                         let veredict =
                             (B0 != undefined && B1 != undefined && B0 != null && B1 != null)
                                 ? compare(B0, B1)
@@ -188,6 +191,28 @@ async function iterator(CfgC) {
     }
     // bug: iterator do not verify if a given file exist or not in a path
     STR.end();
+}
+
+// preventing missing URL response error
+async function getCode(provider, Addrss, tries) {
+    console.log('\n number of tries: ', tries, '\n');
+    let byCd = '0x';
+    try {
+        byCd = await provider.getCode(Addrss);
+        return byCd;
+    } catch (error) {
+        ++tries;
+        console.log('\n we got this error: ', error, '\n');
+        if (tries < 11) {
+            byCd = await getCode(provider, Addrss, tries);
+            return byCd;        
+        }
+    }     
+    if (tries = 11 && 
+        byCd == '0x') { 
+        console.log('\n DO NOT TRUST NEXT VEREDICT \n');
+        return byCd;
+    }
 }
 
 // this function guides the generation of stream of data for the report
