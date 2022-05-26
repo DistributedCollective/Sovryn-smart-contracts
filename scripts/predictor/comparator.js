@@ -122,7 +122,7 @@ async function iterator(CfgC) {
                         let B0 = Bytc["deployedBytecode"]; // This is the compilation's bytecode
                         let B1 = ethers.utils.isAddress(Ad) ? await pi.getCode(Ad) : "0x"; // This is the bytecode from the deployed contract in blockchain
                         let veredict =
-                            B0 != undefined && B1 != undefined && B0 != null && B1 != null
+                            (B0 != undefined && B1 != undefined && B0 != null && B1 != null)
                                 ? compare(B0, B1)
                                 : false; // true: it should verify; false: it won't verify
                         if (veredict) {
@@ -204,9 +204,9 @@ function compare(A, B) {
 
     var bytes = select(A, B);
     // fixing TypeError
-    A = bytes[0];
+    A = bytes[0];   
     B = bytes[1];
-    bytes = (A != undefined && B != undefined && A != null && B != null) ? reduce(A, B) : ["wrong", "arguments"];
+    bytes = (A != B ) ? reduce(A, B) : [A, B];
     
     x = bytes[0] == bytes[1];
     
@@ -224,9 +224,12 @@ function select(A, B) {
         console.log("bytecode sizes not equal or invalid");
         return ["wrong", "arguments"];
     }
-
+    // fixing returning an undefined object
+    let flag = false;
     for (let i = A.length; i > 2; i--) {
+        
         if (A[i - 1] != B[i - 1]) {
+            flag = true;
             if (isPair(i)) {
                 A = A.slice(0, i);
                 B = B.slice(0, i);
@@ -237,7 +240,9 @@ function select(A, B) {
 
             return [A, B];
         }
+        
     }
+    if (!flag) return [A, B];
 }
 
 function reduce(A, B) {
